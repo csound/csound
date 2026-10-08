@@ -99,7 +99,7 @@ static int32_t dcblock2set(CSOUND *csound, DCBlock2* p)
 
     if (UNLIKELY(!(order_value >= (cs_double)INT32_MIN &&
                    order_value <= (INT32_MAX + 0.0))))
-      return csound->InitError(csound, Str("dcblock2: invalid order %f"),
+      return csound->InitError(csound, Str("dcblock2: invalid order %f\n"),
                                *p->order);
     order = (int32_t)order_value;
     if (order == 0) order = 128;
@@ -107,7 +107,7 @@ static int32_t dcblock2set(CSOUND *csound, DCBlock2* p)
 
     iirdelsize = (size_t)order;
     if (UNLIKELY(iirdelsize - 1 > SIZE_MAX / (2 * sizeof(cs_double))))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("dcblock2: order is too large"));
     del1size = (iirdelsize - 1) * 2;
     del1bytes = del1size * sizeof(cs_double);

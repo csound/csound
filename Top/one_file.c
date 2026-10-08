@@ -103,7 +103,7 @@ CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
             s = (char*) csoundGetEnv(csound, "HOME");
         s = _tempnam(s, "cs");
         if (UNLIKELY(s == NULL))
-            csound->Die(csound, Str(" *** cannot create temporary file"));
+            csound->Die(csound, Str(" *** cannot create temporary file\n"));
         strNcpy(lbuf, s, nBytes);
         free(s);
 
@@ -134,7 +134,7 @@ CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
         /* Ensure exclusive creation (workaround "buggy mkstemp" comment kept). */
         fd = mkstemp(lbuf);
         if (UNLIKELY(fd < 0))
-            csound->Die(csound, Str(" *** cannot create temporary file"));
+            csound->Die(csound, Str(" *** cannot create temporary file\n"));
         close(fd);
 
         if (ext && ext[0] != '\0') {
@@ -325,7 +325,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
 
           if (*p== '"') {
             if (UNLIKELY(argc == CSD_MAX_ARGS))
-              csoundDie(csound, Str("More than %d arguments in <CsOptions>"),
+              csoundDie(csound, Str("More than %d arguments in <CsOptions>\n"),
                         CSD_MAX_ARGS);
             argv[++argc] = ++p;
             while (*p != '"' && *p != '\0') {
@@ -363,7 +363,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
             p = buffer; goto top;
           }
           if (UNLIKELY(argc == CSD_MAX_ARGS))
-            csoundDie(csound, Str("More than %d arguments in <CsOptions>"),
+            csoundDie(csound, Str("More than %d arguments in <CsOptions>\n"),
                       CSD_MAX_ARGS);
           argv[++argc] = p;
         }
@@ -405,10 +405,10 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
       /* Read an argv thing */
       if (UNLIKELY(argc == 0)) {
         if (readingCsOptions)
-          csoundErrorMsg(csound, Str("Invalid arguments in <CsOptions>: %s"),
+          csoundErrorMsg(csound, Str("Invalid arguments in <CsOptions>: %s\n"),
                          buffer);
         else csoundErrorMsg(csound,
-                         Str("Invalid arguments in .csound7rc or -@ file: %s"),
+                         Str("Invalid arguments in .csound7rc or -@ file: %s\n"),
                          buffer);
       }
       else argdecode(csound, argc, argv);
@@ -654,7 +654,7 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
 static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
 {
 #ifdef IOS
-  csoundErrorMsg(csound, Str("External scores not supported on iOS"));
+  csoundErrorMsg(csound, Str("External scores not supported on iOS\n"));
   return FALSE;
 #else
     char *extname;
@@ -666,12 +666,12 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
 
     p = strstr(p, "bin=\"");
     if (UNLIKELY(p==NULL)) {
-      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
+      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>\n"));
       return FALSE;
     }
     q = strchr(p+5, '"');
     if (UNLIKELY(q==NULL)) {              /* No program given */
-      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>"));
+      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>\n"));
       return FALSE;
     }
     *q = '\0';
@@ -705,23 +705,23 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
         int system_result = system(sys);
 #endif
         if (UNLIKELY(system_result != 0)) {
-          csoundErrorMsg(csound, Str("External generation failed"));
+          csoundErrorMsg(csound, Str("External generation failed\n"));
           remove(extname);
           remove(STA(sconame));
           csound->Free(csound, extname);
           return FALSE;
         }
        if (UNLIKELY(remove(extname)))
-         csoundErrorMsg(csound, Str("and cannot remove %s"), extname);
+         csoundErrorMsg(csound, Str("and cannot remove %s\n"), extname);
         if (csound->scorestr == NULL)
           csound->scorestr = corfile_create_w(csound);
 
         fd = csoundFileOpen(csound, &scof, CSFILE_STD, STA(sconame),
                                     "r", NULL, CSFTYPE_SCORE, 0);
         if (UNLIKELY(fd == NULL)) {
-          csoundErrorMsg(csound, Str("cannot open %s"), STA(sconame));
+          csoundErrorMsg(csound, Str("cannot open %s\n"), STA(sconame));
           if (UNLIKELY(remove(STA(sconame))))
-            csoundErrorMsg(csound, Str("and cannot remove %s"), STA(sconame));
+            csoundErrorMsg(csound, Str("and cannot remove %s\n"), STA(sconame));
           csound->Free(csound, extname);
           return FALSE;
         }
@@ -741,7 +741,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
       }
       else fputs(buffer, scof);
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsScore>"));
+    csoundErrorMsg(csound, Str("Missing end tag </CsScore>\n"));
     csound->Free(csound, extname);
     return FALSE;
 #endif
@@ -781,7 +781,7 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
       else if (c == '/')
         c = 63;
       else {
-        csoundDie(csound, Str("Non base64 character %c(%2x)"), c, c);
+        csoundDie(csound, Str("Non base64 character %c(%2x)\n"), c, c);
       }
       n |= (c & 0x3F);
       if (nbits >= 8) {
@@ -800,7 +800,7 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
       putc(c, out);
     }
     if (UNLIKELY(nbits > 0 && n != 0)) {
-      csoundDie(csound, Str("Truncated byte at end of base64 stream"));
+      csoundDie(csound, Str("Truncated byte at end of base64 stream\n"));
     }
 }
 #ifdef JPFF
@@ -838,7 +838,7 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
       else if (c == '/')
         c = 63;
       else {
-        csoundDie(csound, Str("Non base64 character %c(%2x)"), c, c);
+        csoundDie(csound, Str("Non base64 character %c(%2x)\n"), c, c);
       }
       n |= (c & 0x3F);
       if (nbits >= 8) {
@@ -857,7 +857,7 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
       corfile_putc(csound, c, out);
     }
     if (UNLIKELY(nbits > 0 && n != 0)) {
-      csoundDie(csound, Str("Truncated byte at end of base64 stream"));
+      csoundDie(csound, Str("Truncated byte at end of base64 stream\n"));
     }
 }
 #endif
@@ -875,7 +875,7 @@ static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
     fd = csoundFileOpen(csound, &midf, CSFILE_STD, STA(midname),
                                 "wb", NULL, CSFTYPE_STD_MIDI, 1);
     if (UNLIKELY(fd == NULL)) {
-      csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile"),
+      csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile\n"),
                         STA(midname));
     }
     csound->tempStatus |= csMidiScoMask;
@@ -908,12 +908,12 @@ static int32_t create_sample(CSOUND *csound, char *buffer, CORFIL *cf)
     snprintf(sampname, 256, "soundin.%d", num);
     if (UNLIKELY((smpf = fopen(sampname, "rb")) != NULL)) {
       fclose(smpf);
-      csoundDie(csound, Str("File %s already exists"), sampname);
+      csoundDie(csound, Str("File %s already exists\n"), sampname);
     }
     fd = csoundFileOpen(csound, &smpf, CSFILE_STD, sampname, "wb", NULL,
                                 CSFTYPE_UNKNOWN_AUDIO, 1);
     if (UNLIKELY(fd == NULL)) {
-      csoundDie(csound, Str("Cannot open sample file (%s) subfile"), sampname);
+      csoundDie(csound, Str("Cannot open sample file (%s) subfile\n"), sampname);
     }
     read_base64(csound, cf, smpf);
     csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
@@ -950,12 +950,12 @@ static int32_t create_file(CSOUND *csound, char *buffer, CORFIL *cf)
     strNcpy(filename, p, 256);
     if (UNLIKELY((smpf = fopen(filename, "rb")) != NULL)) {
       fclose(smpf);
-      csoundDie(csound, Str("File %s already exists"), filename);
+      csoundDie(csound, Str("File %s already exists\n"), filename);
     }
     fd = csoundFileOpen(csound, &smpf, CSFILE_STD, filename, "wb", NULL,
                                 CSFTYPE_UNKNOWN, 1);
     if (UNLIKELY(fd == NULL)) {
-      csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
+      csoundDie(csound, Str("Cannot open file (%s) subfile\n"), filename);
     }
     read_base64(csound, cf, smpf);
     csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
@@ -1038,12 +1038,12 @@ static int32_t create_filea(CSOUND *csound, char *buffer, CORFIL *cf)
     strNcpy(filename, p, 256); //filename[255]='\0';
     if (UNLIKELY((smpf = fopen(filename, "r")) != NULL)) {
       fclose(smpf);
-      csoundDie(csound, Str("File %s already exists"), filename);
+      csoundDie(csound, Str("File %s already exists\n"), filename);
     }
     fd = csoundFileOpen(csound, &smpf, CSFILE_STD, filename, "w", NULL,
                                 CSFTYPE_UNKNOWN, 1);
     if (UNLIKELY(fd == NULL)) {
-      csoundDie(csound, Str("Cannot open file (%s) subfile"), filename);
+      csoundDie(csound, Str("Cannot open file (%s) subfile\n"), filename);
     }
     while (corfile_fgets(buff, 1024, cf)!=NULL) {
       char *p = buff;
@@ -1077,7 +1077,7 @@ static int32_t check_version(CSOUND *csound, CORFIL *cf)
         sscanf(p, "Before %d.%d", &major, &minor);
         if (UNLIKELY(version >= ((major * 1000) + (minor*10)))) {
           csoundDie(csound, Str("This CSD file requires a version of "
-                                 "Csound before %d.%02d"), major, minor);
+                                 "Csound before %d.%02d\n"), major, minor);
           result = FALSE;
         }
       }
@@ -1085,7 +1085,7 @@ static int32_t check_version(CSOUND *csound, CORFIL *cf)
         sscanf(p, "After %d.%d", &major, &minor);
         if (UNLIKELY(version <= ((major * 1000) + (minor*10)))) {
           csoundDie(csound, Str("This CSD file requires a version of "
-                                 "Csound after %d.%02d"), major, minor);
+                                 "Csound after %d.%02d\n"), major, minor);
           result = FALSE;
         }
       }
@@ -1093,14 +1093,14 @@ static int32_t check_version(CSOUND *csound, CORFIL *cf)
         sscanf(p, "Later %d.%d", &major, &minor);
         if (UNLIKELY(version < ((major * 1000) + (minor*10)))) {
           csoundDie(csound, Str("This CSD file requires version "
-                                 "Csound %d.%02d or later"), major, minor);
+                                 "Csound %d.%02d or later\n"), major, minor);
           result = FALSE;
         }
       }
       else if (sscanf(p, "%d.%d", &major, &minor) == 2) {
         if (UNLIKELY(version <= ((major * 1000) + (minor*10)))) {
           csoundDie(csound, Str("This CSD file requires version "
-                                "%d.%02d of Csound"), major, minor);
+                                "%d.%02d of Csound\n"), major, minor);
           result = FALSE;
         }
       }

@@ -188,12 +188,12 @@ static int32_t ifilter(CSOUND *csound, FILTER* p)
     /* Check before conversion; retain truncation of fractional orders. */
     if (UNLIKELY(!(*p->nb >= 1 && *p->nb < MAXZEROS + 2 &&
                    *p->na > -1 && *p->na < MAXPOLES + 1)))
-      return csound->InitError(csound, "%s", Str("Filter order out of bounds: "
+      return csound->InitError(csound, "%s\n", Str("Filter order out of bounds: "
                                            "(1 <= nb <= 51, 0 <= na <= 50)"));
     p->numa = (int32_t)*p->na;
     p->numb = (int32_t)*p->nb;
     if (UNLIKELY(p->INOCOUNT < 3U + (uint32_t) p->numb + (uint32_t) p->numa))
-      return csound->InitError(csound, "%s", Str("filter2: not enough coefficients"));
+      return csound->InitError(csound, "%s\n", Str("filter2: not enough coefficients"));
 
     /* Calculate the total delay in samples and allocate memory for it */
     /* The sample loop stores state even for a gain-only filter. */
@@ -227,12 +227,12 @@ static int32_t izfilter(CSOUND *csound, ZFILTER *p)
 
     if (UNLIKELY(!(*p->nb >= 1 && *p->nb < MAXZEROS + 2 &&
                    *p->na > -1 && *p->na < MAXPOLES + 1)))
-      return csound->InitError(csound, "%s", Str("Filter order out of bounds: "
+      return csound->InitError(csound, "%s\n", Str("Filter order out of bounds: "
                                            "(1 <= nb <= 51, 0 <= na <= 50)"));
     p->numa = (int32_t)*p->na;
     p->numb = (int32_t)*p->nb;
     if (UNLIKELY(p->INOCOUNT < 5U + (uint32_t) p->numb + (uint32_t) p->numa))
-      return csound->InitError(csound, "%s", Str("zfilter2: not enough coefficients"));
+      return csound->InitError(csound, "%s\n", Str("zfilter2: not enough coefficients"));
 
     /* Calculate the total delay in samples and allocate memory for it */
     p->ndelay = MAX(1, MAX(p->numb-1,p->numa));
@@ -662,7 +662,7 @@ static void laguer(CSOUND *csound, fcomplex a[], int32_t m,
       if (iter % MT) *x = x1;
       else *x = Csub(*x,RCmul(frac[iter/MT],dx));
     }
-    csound->Warning(csound, "%s", Str("too many iterations in laguer"));
+    csound->Warning(csound, "%s\n", Str("too many iterations in laguer"));
     return;
 }
 #undef EPSS

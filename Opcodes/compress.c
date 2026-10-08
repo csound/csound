@@ -212,7 +212,7 @@ static int32_t distset(CSOUND *csound, DIST *p)
 
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) return NOTOK;
     if (UNLIKELY(!isfinite(*p->ihp)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("distort: half-power frequency must be finite"));
     p->ftp = ftp;
     p->maxphs = (cs_float)ftp->flen;       /* set ftable params    */
@@ -254,20 +254,20 @@ static int32_t distort(CSOUND *csound, DIST *p)
       q = p->c1 * asig[n] * asig[n] + p->c2 * q;
     }
     if (UNLIKELY(!isfinite(q)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("distort: input level is out of range"));
     rms = sqrt(q);    /* get running rms      */
     if (rms < p->min_rms)
       rms = p->min_rms;
     dist = *p->kdist;
     if (UNLIKELY(!isfinite(dist)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("distort: distortion amount must be finite"));
     if (dist < FL(0.001))
       dist = FL(0.001);
     dnew = rms / dist;                  /* & compress factor    */
     if (UNLIKELY(!isfinite(dnew) || dnew <= FL(0.0)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("distort: distortion amount is out of range"));
     p->prvq = q;
     dcur = p->prvd;
@@ -288,7 +288,7 @@ static int32_t distort(CSOUND *csound, DIST *p)
       else if (phs >= p->maxphs)                 /* check sticky bits    */
         val = p->endval;
       else                                    /* unordered index: NaN */
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("distort: signal produced a non-finite index"));
       ar[n] = (cs_float)(val * dcur);       /* restore amplitude    */
       dcur += dinc;

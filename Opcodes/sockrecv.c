@@ -218,24 +218,24 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d\n"), err);
     p->wsa_started = 1;
 #endif
     p->cs = csound;
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
-      return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
+      return csound->InitError(csound, "%s\n", Str("Cannot set nonblock"));
 #else
     {
       u_long argp = 1;
       err = ioctlsocket(p->sock, FIONBIO, &argp);
       if (UNLIKELY(err != NO_ERROR))
-        return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
+        return csound->InitError(csound, "%s\n", Str("Cannot set nonblock"));
     }
 #endif
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, "%s", Str("creating socket"));
+      return csound->InitError(csound, "%s\n", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -245,7 +245,7 @@ static int32_t init_recv(CSOUND *csound, SOCKRECV *p)
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) == SOCKET_ERROR))
-      return csound->InitError(csound, "%s", Str("bind failed"));
+      return csound->InitError(csound, "%s\n", Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
@@ -286,7 +286,7 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     WSADATA wsaData = {0};
     int32_t err;
     if (UNLIKELY((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0))
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d\n"), err);
     p->wsa_started = 1;
 #endif
 
@@ -294,17 +294,17 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
-      return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
+      return csound->InitError(csound, "%s\n", Str("Cannot set nonblock"));
 #else
     {
       u_long nonblocking = 1;
       if (UNLIKELY(ioctlsocket(p->sock, FIONBIO, &nonblocking)
                    == SOCKET_ERROR))
-        return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
+        return csound->InitError(csound, "%s\n", Str("Cannot set nonblock"));
     }
 #endif
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, "%s", Str("creating socket"));
+      return csound->InitError(csound, "%s\n", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -314,7 +314,7 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) == SOCKET_ERROR))
-      return csound->InitError(csound, "%s", Str("bind failed"));
+      return csound->InitError(csound, "%s\n", Str("bind failed"));
 
     if (p->buffer.auxp == NULL ||
         (uint64_t) STRING_RECV_BUFFER_SIZE > p->buffer.size)
@@ -339,7 +339,7 @@ static int32_t init_recv_S(CSOUND *csound, SOCKRECVSTR *p)
     if (UNLIKELY(!(*p->ptr3 >= FL(1.0)) ||
                  (cs_double) *p->ptr3 >
                  (cs_double) (INT32_MAX / (int32_t) sizeof(cs_float))))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("invalid sockrecv buffer length"));
     circular_buffer_size = (int64_t) *p->ptr3 * (int64_t) sizeof(cs_float);
     p->cb = csound->CreateCircularBuffer(csound,
@@ -436,7 +436,7 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     WSADATA wsaData = {0};
     int32_t err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d\n"), err);
     p->wsa_started = 1;
 #endif
 
@@ -444,10 +444,10 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     p->sock = socket(AF_INET, SOCK_DGRAM, 0);
 #ifndef WIN32
     if (UNLIKELY(fcntl(p->sock, F_SETFL, O_NONBLOCK)<0))
-      return csound->InitError(csound, "%s", Str("Cannot set nonblock"));
+      return csound->InitError(csound, "%s\n", Str("Cannot set nonblock"));
 #endif
     if (UNLIKELY(p->sock == SOCKET_ERROR)) {
-      return csound->InitError(csound, "%s", Str("creating socket"));
+      return csound->InitError(csound, "%s\n", Str("creating socket"));
     }
     /* create server address: where we want to send to and clear it out */
     memset(&p->server_addr, 0, sizeof(p->server_addr));
@@ -457,7 +457,7 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     /* associate the socket with the address and port */
     if (UNLIKELY(bind(p->sock, (struct sockaddr *) &p->server_addr,
                       sizeof(p->server_addr)) == SOCKET_ERROR))
-      return csound->InitError(csound, "%s", Str("bind failed"));
+      return csound->InitError(csound, "%s\n", Str("bind failed"));
 
     if (p->buffer.auxp == NULL || (uint64_t) (MTU) > p->buffer.size)
       /* allocate space for the buffer */
@@ -479,7 +479,7 @@ static int32_t init_recvS(CSOUND *csound, SOCKRECV *p)
     p->cb = csound->CreateCircularBuffer(csound, (int32_t)*p->ptr4 / 2,
                                         2 * sizeof(cs_float));
     if (UNLIKELY(p->cb == NULL))
-      return csound->InitError(csound, "%s", Str("sockrecvs: invalid buffer size"));
+      return csound->InitError(csound, "%s\n", Str("sockrecvs: invalid buffer size"));
     /* create thread */
     p->threadon = 1;
     p->thrid = csound->CreateThread(udpRecv, (void *) p);
@@ -548,7 +548,7 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d\n"), err);
 #endif
     p->init_done = 1;
     /* create a STREAM (TCP) socket in the INET (IP) protocol */
@@ -592,7 +592,7 @@ static int32_t init_srecv(CSOUND *csound, SOCKRECVT *p)
     err = errno;
 #endif
     deinit_srecv(csound, p);
-    return csound->InitError(csound, "%s (%d)", message, err);
+    return csound->InitError(csound, "%s (%d)\n", message, err);
 }
 
 static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
@@ -627,7 +627,7 @@ static int32_t send_srecv(CSOUND *csound, SOCKRECVT *p)
         deinit_srecv(csound, p);
         if (p->res) *p->res = -1;
         return csound->PerfError(csound, &p->h,
-                                 "%s", Str("read from socket failed"));
+                                 "%s\n", Str("read from socket failed"));
       }
       q += n;
       remaining -= n;
@@ -692,12 +692,12 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
     p->sock = SOCKET_ERROR;
     p->wsa_started = 0;
     if (UNLIKELY(!(*p->port >= FL(0.0) && *p->port <= FL(65535.0))))
-      return csound->InitError(csound, "%s", Str("invalid port number"));
+      return csound->InitError(csound, "%s\n", Str("invalid port number"));
 #if defined(WIN32) && !defined(__CYGWIN__)
     WSADATA wsaData = {0};
     int32_t err;
     if ((err=WSAStartup(MAKEWORD(2,2), &wsaData))!= 0)
-      return csound->InitError(csound, Str("Winsock2 failed to start: %d"), err);
+      return csound->InitError(csound, Str("Winsock2 failed to start: %d\n"), err);
     p->wsa_started = 1;
 #endif
     p->init_done = 1;
@@ -748,7 +748,7 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
 
  error:
   destroy_raw_osc(csound, p);
-  return csound->InitError(csound, "%s", message);
+  return csound->InitError(csound, "%s\n", message);
 }
 
 
@@ -1023,7 +1023,7 @@ static int32_t perf_raw_osc(CSOUND *csound, RAWOSC *p)
 
     *p->kflag = 0;
     if (out->dimensions != 1 || out->sizes == NULL || out->sizes[0] < 2)
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("output array too small\n"));
     bytes = (int32_t) recvfrom(p->sock, buffer, MTU, 0, &from, &fromLen);
     if (bytes <= 0)

@@ -502,14 +502,14 @@ void sf_open_in(CSOUND *csound)           /* init for continuous soundin */
 
     if(csound->inchnls < 1)
        csound->Die(csound,
-                 Str("error: cannot run input audio with nchnls_i=0"));
+                 Str("error: cannot run input audio with nchnls_i=0\n"));
 
 
     alloc_globals(csound);
     STA(inbufrem) = (uint32) 0;    /* start with empty buffer */
     sfname = O->infilename;
     if (UNLIKELY(sfname == NULL || sfname[0] == '\0'))
-      csound->Die(csound, Str("error: no input file name"));
+      csound->Die(csound, Str("error: no input file name\n"));
 
     if (strcmp(sfname, "stdin") == 0) {
       STA(pipdevin) = 1;
@@ -536,7 +536,7 @@ void sf_open_in(CSOUND *csound)           /* init for continuous soundin */
         parm.ksmps = csound->ksmps;
         /* open devaudio for input */
         if (UNLIKELY(csound->recopen_callback(csound, &parm) != 0))
-          csoundDie(csound, Str("Failed to initialise real time audio input"));
+          csoundDie(csound, Str("Failed to initialise real time audio input\n"));
         /*  & redirect audio gets  */
         csound->audrecv = csound->rtrecord_callback;
         STA(pipdevin) = 2;       /* no backward seeks !     */
@@ -550,13 +550,13 @@ void sf_open_in(CSOUND *csound)           /* init for continuous soundin */
       if (UNLIKELY(STA(infile) == NULL)) {
         /* open failed: possibly raw file, but cannot seek back to try again */
         const char *sfError = Str(csound->SndfileStrError(csound,NULL));
-        csoundDie(csound, Str("isfinit: cannot open %s -- %s"), sfname, sfError);
+        csoundDie(csound, Str("isfinit: cannot open %s -- %s\n"), sfname, sfError);
       }
     }
     else {
       fullName = csoundFindInputFile(csound, sfname, "SFDIR;SSDIR");
       if (UNLIKELY(fullName == NULL))                     /* if not found */
-        csoundDie(csound, Str("isfinit: cannot open %s"), sfname);
+        csoundDie(csound, Str("isfinit: cannot open %s\n"), sfname);
       STA(infile) = csound->SndfileOpen(csound,fullName, SFM_READ, &sfinfo);
       if (STA(infile) == NULL) {
         /* open failed: maybe raw file ? */
@@ -569,7 +569,7 @@ void sf_open_in(CSOUND *csound)           /* init for continuous soundin */
       }
       if (UNLIKELY(STA(infile) == NULL)) {
         const char *sfError = Str(csound->SndfileStrError(csound,NULL));
-        csoundDie(csound, Str("isfinit: cannot open %s -- %s"), fullName, sfError);
+        csoundDie(csound, Str("isfinit: cannot open %s -- %s\n"), fullName, sfError);
       }
       /* only notify the host if we opened a real file, not stdin or a pipe */
       csoundNotifyFileOpened(csound, fullName,
@@ -578,12 +578,12 @@ void sf_open_in(CSOUND *csound)           /* init for continuous soundin */
     }
     /* chk the hdr codes  */
     if (sfinfo.samplerate != (int32_t) CS_FLOAT2LRND(csound->esr)) {
-      csound->Warning(csound, Str("audio_in %s has sr = %d, orch sr = %d"),
+      csound->Warning(csound, Str("audio_in %s has sr = %d, orch sr = %d\n"),
                               sfname, (int32_t) sfinfo.samplerate,
                               (int32_t) CS_FLOAT2LRND(csound->esr));
     }
     if (sfinfo.channels != csound->inchnls) {
-      csound->Warning(csound, Str("audio_in %s has %d chnls, orch %d chnls_i"),
+      csound->Warning(csound, Str("audio_in %s has %d chnls, orch %d chnls_i\n"),
                               sfname, (int32_t) sfinfo.channels, csound->inchnls);
     }
     /* Do we care about the format?  Can assume float?? */
@@ -753,7 +753,7 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
         csound->spoutran  = spoutsf;
         /* open devaudio for output */
         if (UNLIKELY(csound->playopen_callback(csound, &parm) != 0))
-          csoundDie(csound, Str("Failed to initialise real time audio output"));
+          csoundDie(csound, Str("Failed to initialise real time audio output\n"));
         /*  & redirect audio puts  */
         csound->audtran = csound->rtplay_callback;
         STA(outbufrem)  = parm.bufSamp_SW * parm.nChannels;
@@ -798,14 +798,14 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
         char fmt_name[6];
         if (O->sndfileSampleSize == 8) {
           if (UNLIKELY(O->filetyp == TYP_AU))
-            csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
+            csoundDie(csound, Str("sfinit: cannot open fd %d\n%s\n"), osfd,
                       Str(csound->SndfileStrError(csound,NULL)));
           strcpy(fmt_name, "AU");
           O->filetyp = TYP_AU;
         }
         else {
           if (UNLIKELY(O->filetyp == TYP_IRCAM))
-            csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
+            csoundDie(csound, Str("sfinit: cannot open fd %d\n%s\n"), osfd,
                       Str(csound->SndfileStrError(csound,NULL)));
           strcpy(fmt_name, "IRCAM");
           O->filetyp = TYP_IRCAM;
@@ -817,7 +817,7 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
       }
 #endif
       if (UNLIKELY(STA(outfile) == NULL))
-        csoundDie(csound, Str("sfinit: cannot open fd %d\n%s"), osfd,
+        csoundDie(csound, Str("sfinit: cannot open fd %d\n%s\n"), osfd,
                   Str(csound->SndfileStrError(csound,NULL)));
       {
         double quality = O->quality; /* libsndfile requires double. */
@@ -828,11 +828,11 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
     else {
       fullName = csoundFindOutputFile(csound, fName, "SFDIR");
       if (UNLIKELY(fullName == NULL))
-        csoundDie(csound, Str("sfinit: cannot open %s"), fName);
+        csoundDie(csound, Str("sfinit: cannot open %s\n"), fName);
       STA(sfoutname) = fullName;
       STA(outfile)   = csound->SndfileOpen(csound,fullName, SFM_WRITE, &sfinfo);
       if (UNLIKELY(STA(outfile) == NULL))
-        csoundDie(csound, Str("sfinit: cannot open %s\n%s"),
+        csoundDie(csound, Str("sfinit: cannot open %s\n%s\n"),
                   fullName, csoundSndfileStrError (csound, NULL));
       {
         double quality = O->quality; /* libsndfile requires double. */

@@ -40,7 +40,7 @@
 #define SHORTMAX                (32767)
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
-      csound->Die(csound, "%s", MSG);
+      csound->Die(csound, "%s\n", MSG);
 
 typedef struct {
   long        sample;         /* Time file starts in samples */
@@ -110,7 +110,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
     xtrc.stop  = -1; xtrc.endtime = -FL(1.0);
     xtrc.numsamps = -1; xtrc.dur = -FL(1.0);
     if (UNLIKELY(!(--argc))) {
-      usage(csound,Str("Insufficient arguments"));
+      usage(csound,Str("Insufficient arguments\n"));
       return 1;
     }
     do {
@@ -119,14 +119,14 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
         while ((c = *s++) != '\0')
           switch(c) {
           case 'o':
-            FIND(Str("no outfilename"))
+            FIND(Str("no outfilename\n"))
             O->outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (UNLIKELY(strcmp(O->outfilename, "stdin") == 0))
-              csound->Die(csound, "%s", Str("-o cannot be stdin"));
+              csound->Die(csound, "%s\n", Str("-o cannot be stdin"));
             break;
           case 'S':
-            FIND(Str("no start sample"));
+            FIND(Str("no start sample\n"));
             xtrc.sample = atoi(s);
             while (*++s);
             if (xtrc.stime >= FL(0.0)) {
@@ -136,7 +136,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             }
             break;
           case 'T':
-            FIND(Str("no start time"));
+            FIND(Str("no start time\n"));
             xtrc.stime = (cs_float) atof(s);
             while (*++s);
             if (xtrc.sample >= 0) {
@@ -146,7 +146,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             }
             break;
           case 'Z':     /* Last sample */
-            FIND(Str("no end sample"));
+            FIND(Str("no end sample\n"));
             xtrc.stop = atoi(s);
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
@@ -166,7 +166,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             }
             break;
           case 'E':     /* Last time */
-            FIND(Str("no end time"));
+            FIND(Str("no end time\n"));
             xtrc.endtime = (cs_float) atof(s);
             while (*++s);
             if (xtrc.dur >= 0.0) {
@@ -186,7 +186,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             }
             break;
           case 'D':
-            FIND(Str("no duration"));
+            FIND(Str("no duration\n"));
             xtrc.dur = (cs_float) atof(s);
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
@@ -206,7 +206,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             }
             break;
           case 'Q':
-            FIND(Str("no sample count"));
+            FIND(Str("no sample count\n"));
             xtrc.numsamps = atoi(s);
             while (*++s);
             if (xtrc.endtime >= FL(0.0)) {
@@ -238,16 +238,16 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
             debug = 1;
             break;
           default:
-            usage(csound, Str("unknown flag -%c"), c);
+            usage(csound, Str("unknown flag -%c\n"), c);
           }
       else {
-        if (UNLIKELY(inputfile != NULL)) usage(csound,Str("Too many inputs"));
+        if (UNLIKELY(inputfile != NULL)) usage(csound,Str("Too many inputs\n"));
         inputfile = --s;
       }
     } while (--argc);
 
     /* Read sound file */
-    if (UNLIKELY(inputfile == NULL)) usage(csound,Str("No input"));
+    if (UNLIKELY(inputfile == NULL)) usage(csound,Str("No input\n"));
 
     if (UNLIKELY(!(infd = EXsndgetset(csound, &xtrc, inputfile)))) {
       csound->Message(csound,Str("%s: error while opening %s"), argv[0], inputfile);
@@ -296,7 +296,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
         fd = csound->CreateFileHandle(csound, &outfd, CSFILE_SND_W, "stdout");
         if (UNLIKELY(fd == NULL)) {
           csound->SndfileClose(csound,outfd);
-          csound->Die(csound, "%s", Str("Memory allocation failure"));
+          csound->Die(csound, "%s\n", Str("Memory allocation failure"));
         }
       }
     }
@@ -305,7 +305,7 @@ static int32_t xtrct(CSOUND *csound, int32_t argc, char **argv)
                        O->outfilename, &sfinfo, "SFDIR",
                        csound->Type2CsfileType(O->filetyp, O->outformat), 0);
     if (UNLIKELY(fd == NULL))
-      csound->Die(csound, Str("Failed to open output file %s: %s"),
+      csound->Die(csound, Str("Failed to open output file %s: %s\n"),
                   O->outfilename, Str(csound->SndfileStrError(csound,NULL)));
     ExtractSound(csound, &xtrc, infd, outfd, O);
     if (O->

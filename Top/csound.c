@@ -287,7 +287,7 @@ static void create_opcode_table(CSOUND *csound) {
   err = csoundAppendOpcodes(csound, &(opcodlst_1[0]), -1);
 
   if (UNLIKELY(err))
-    csoundDie(csound, Str("Error allocating opcode list"));
+    csoundDie(csound, Str("Error allocating opcode list\n"));
 }
 
 #define MAX_MODULES 64
@@ -1779,7 +1779,8 @@ int32_t csoundAppendOpcodes(CSOUND *csound, const OENTRY *opcodeList,
     n = 0x7FFFFFFF;
   while (n && ep->opname != NULL) {
     if (UNLIKELY((err = opcode_list_new_oentry(csound, ep, 0)) != 0)) {
-      csoundErrorMsg(csound, Str("Failed to allocate opcode entry for %s."),
+      csoundErrorMsg(csound,
+                        Str("Failed to allocate opcode entry for %s.\n"),
                      ep->opname);
       retval = err;
     }
@@ -1805,7 +1806,8 @@ int32_t csoundPrependOpcodes(CSOUND *csound, const OENTRY *opcodeList,
     n = 0x7FFFFFFF;
   while (n && ep->opname != NULL) {
     if (UNLIKELY((err = opcode_list_new_oentry(csound, ep, 1)) != 0)) {
-      csoundErrorMsg(csound, Str("Failed to prepend opcode entry for %s."),
+      csoundErrorMsg(csound,
+                        Str("Failed to prepend opcode entry for %s.\n"),
                      ep->opname);
       retval = err;
     }
@@ -2020,7 +2022,7 @@ static void reset(CSOUND *csound) {
   i = csoundInitEnv(csound);
   if (UNLIKELY(i != CSOUND_SUCCESS)) {
     csound->engineStatus |= CS_STATE_JMP;
-    csound->Die(csound, Str("Failed during csoundInitEnv"));
+    csound->Die(csound, Str("Failed during csoundInitEnv\n"));
   }
   csound_init_rand(csound);
   csound->engineState.stringPool = cs_hash_table_create(csound);
@@ -2036,12 +2038,12 @@ static void reset(CSOUND *csound) {
     int32_t err = csoundInitStaticModules(csound);
     if (csound->delayederrormessages &&
         csound->printerrormessagesflag == NULL) {
-      csound->Warning(csound, "%s", csound->delayederrormessages);
+      csound->Warning(csound, "%s\n", csound->delayederrormessages);
       csound->Free(csound, csound->delayederrormessages);
       csound->delayederrormessages = NULL;
     }
     if (UNLIKELY(err == CSOUND_ERROR))
-      csound->Die(csound, Str("Failed during csoundInitStaticModules"));
+      csound->Die(csound, Str("Failed during csoundInitStaticModules\n"));
 #endif
 #ifndef BARE_METAL
     csoundCreateGlobalVariable(csound, "_MODULES",

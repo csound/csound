@@ -1295,7 +1295,10 @@ struct CSOUND_ {
   int32_t (*PVOCEX_LoadFile)(CSOUND *, const char *, PVOCEX_MEMFILE *);
   /**@}*/
 
-  /** @name Error messages */
+  /** @name Error messages
+   * These functions do not append a newline to the supplied message.
+   * Include line endings in complete diagnostics.
+   */
   /**@{ */
   CS_NORETURN CS_PRINTF2 void (*Die)(CSOUND *, const char *msg, ...);
   CS_PRINTF2 int32_t (*InitError)(CSOUND *, const char *msg, ...);

@@ -97,7 +97,7 @@ static char set_output_format(CSOUND *csound, char c, char outformch,
                              const OPARMS **oparms)
 {
     if (oparms->outformat) {
-      csound->Warning(csound, Str("Sound format -%c has been overruled by -%c"),
+      csound->Warning(csound, Str("Sound format -%c has been overruled by -%c\n"),
                               outformch, c);
     }
     switch (c) {

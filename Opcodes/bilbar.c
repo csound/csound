@@ -59,10 +59,10 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
       int32_t N;
 
       if (UNLIKELY(!(T30 > 0.0)))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("barmodel: decay time must be positive"));
       if (UNLIKELY(!(b >= 0.0)))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("barmodel: loss must be non-negative"));
 
       /* %%%%%%%%%%%%%%%%%% derived parameters */
@@ -70,14 +70,14 @@ static int32_t bar_init(CSOUND *csound, BAR *p)
       sig = (2.0*(cs_double)CS_ESR)*(pow(10.0,3.0*dt/T30)-1.0);
       dxmin = sqrt(dt*(b+hypot(b, K+K)));
       if (UNLIKELY(!(sig >= 0.0 && sig <= DBL_MAX)))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("barmodel: decay time is too short"));
       points = 1.0 / dxmin;
       if (UNLIKELY(!(points >= 1.0 &&
                      points <= (INT32_MAX + 0.0) - 5 &&
                      points <= (cs_double)(SIZE_MAX /
                                         (3 * sizeof(cs_double)) - 5))))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("barmodel: stiffness and loss produce "
                                      "an invalid grid size"));
       N = (int32_t) points;
@@ -138,7 +138,7 @@ static int32_t bar_run(CSOUND *csound, BAR *p)
 
     if (UNLIKELY((bcL|bcR)&(~3) && (bcL|bcR)!=0))
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("Ends must be clamped(1), "
+                               "%s\n", Str("Ends must be clamped(1), "
                                    "pivoting(2) or free(3)"));
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {

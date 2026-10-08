@@ -96,7 +96,7 @@ int32_t bowedbarset(CSOUND *csound, BOWEDBAR *p)
       if (lowest == FL(0.0)) lowest = *p->frequency;
       if (lowest == FL(0.0)) {
         csound->Warning(csound,
-                        "%s", Str("unknown lowest frequency for bowed bar -- "
+                        "%s\n", Str("unknown lowest frequency for bowed bar -- "
                                  "assuming 50Hz\n"));
         lowest = FL(50.0);
       }
@@ -105,12 +105,12 @@ int32_t bowedbarset(CSOUND *csound, BOWEDBAR *p)
       /* Leave room for the extra sample in make_DLineN. */
       if (UNLIKELY(!(length >= 1.0 && length < (INT32_MAX + 0.0) &&
                      length < (cs_double)(SIZE_MAX / sizeof(cs_float)))))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                 Str("Bowedbar: invalid lowest frequency"));
       p->length = (int32_t)length;
     }
     if (UNLIKELY(p->length < 1))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("Bowedbar: delay line is not initialized"));
 
     p->nr_modes = NR_MODES;
@@ -155,7 +155,7 @@ int32_t bowedbar(CSOUND *csound, BOWEDBAR *p)
       p->bowTabl.slope = p->lastpress = *p->bowPress;
     if (frequency > FL(1568.0)) frequency = FL(1568.0);
     if (UNLIKELY(!(frequency > FL(0.0))))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("Bowedbar: frequency must be positive"));
     if (p->freq != frequency) {
       /* Keep the allocated capacity in p->length for note reuse. */
@@ -172,7 +172,7 @@ int32_t bowedbar(CSOUND *csound, BOWEDBAR *p)
         }
       }
       if (UNLIKELY(p->nr_modes==0))
-        return csound->PerfError(csound, &p->h, "%s",
+        return csound->PerfError(csound, &p->h, "%s\n",
                                  Str("Bowedbar: cannot have zero modes\n"));
       for (i=0; i<p->nr_modes; i++) {
         cs_float R = FL(1.0) - p->freq * p->modes[i] * CS_PIDSR;

@@ -294,7 +294,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
           p0 = p1 = (-b1)/2.0;
           if (p0*p0+pi*pi>=1.0) {
             cs_double theta = ATAN2(pi, p0);
-            if (warn) csound->Warning(csound, "%s", Str("rezzy instability corrected"));
+            if (warn) csound->Warning(csound, "%s\n", Str("rezzy instability corrected"));
             p0 = NEARONE * COS(theta);
             //pi = NEARONE * sin(theta);
             b1 = -2*p0; b2 = NEARONE*NEARONE; warn = 0;
@@ -305,7 +305,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
           p0=(sqrt(disc)-b1)/2.0;
           p1=(-sqrt(disc)-b1)/2.0;
           if (p0*p0>=1.0 || p1*p1>=1) {
-            if (warn) csound->Warning(csound, "%s", Str("rezzy instability corrected"));
+            if (warn) csound->Warning(csound, "%s\n", Str("rezzy instability corrected"));
             if (p0*p0>=1) p0 = NEARONE*(p0>0.0?1:(-1));
             if (p1*p1>=1) p1 = NEARONE*(p1>0.0?1:(-1));
             b1 = -(p0+p1); b2 = p0*p1; warn = 0;
@@ -342,7 +342,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
             if (p0*p0+pi*pi>=1.0) {
               cs_double theta = ATAN2(pi, p0);
               if (warn) csound->Warning(csound,
-                                        "%s", Str("rezzy instability corrected"));
+                                        "%s\n", Str("rezzy instability corrected"));
               //printf("b1, b2 = %f, %f ->", b1,b2);
               p0 = NEARONE * COS(theta);
               //pi = NEARONE * sin(theta);
@@ -356,7 +356,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
             p1=(-sqrt(disc)-b1)/2.0;
             if (p0*p0>=1.0 || p1*p1>=1) {
               if (warn) csound->Warning(csound,
-                                        "%s", Str("rezzy instability corrected"));
+                                        "%s\n", Str("rezzy instability corrected"));
               //printf("b1, b2= %f, %f ", b1, b2);
               if (p0*p0>=1) p0 = NEARONE*(p0>0.0?1:(-1));
               if (p1*p1>=1) p1 = NEARONE*(p1>0.0?1:(-1));
@@ -406,7 +406,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
           if (p0*p0+pi*pi>=1.0) {
             cs_double theta = ATAN2(pi, p0);
             //printf("b1, b2= %f, %f ", b1, b2);
-            if (warn) csound->Warning(csound, "%s", Str("rezzy instability corrected"));
+            if (warn) csound->Warning(csound, "%s\n", Str("rezzy instability corrected"));
             b1 = -p0*cos(theta); b2 = NEARONE*NEARONE; warn = 0;
             //printf("-> b1, b2= %f, %f\n", b1, b2);
           }
@@ -417,7 +417,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
           p1=(-sqrt(disc)-b1)/2.0;
           if (p0*p0>=1.0 || p1*p1>=1) {
             //printf("b1, b2= %f, %f ", b1, b2);
-            if (warn) csound->Warning(csound, "%s", Str("rezzy instability corrected"));
+            if (warn) csound->Warning(csound, "%s\n", Str("rezzy instability corrected"));
             if (p0*p0>=1.0) p0 = NEARONE*(p0>0?1:(-1));
             if (p1*p1>=1.0) p1 = NEARONE*(p1>0?1:(-1));
             b1 = -(p0+p1); b2 = p0*p1; warn = 0;
@@ -458,7 +458,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
               cs_double theta = ATAN2(pi,p0);
               //printf("b1, b2= %f, %f ", b1, b2);
               if (warn) csound->Warning(csound,
-                                        "%s", Str("rezzy instability corrected"));
+                                        "%s\n", Str("rezzy instability corrected"));
               b1 = -p0*cos(theta); b2 = NEARONE*NEARONE; warn = 0;
               //printf("-> b1, b2= %f, %f\n", b1, b2);
             }
@@ -469,7 +469,7 @@ static int32_t rezzy(CSOUND *csound, REZZY *p)
             p1=(-sqrt(disc)-b1)/2.0;
             if (p0*p0>=1.0 || p1*p1>=1) {
               if (warn) csound->Warning(csound,
-                                        "%s", Str("rezzy instability corrected"));
+                                        "%s\n", Str("rezzy instability corrected"));
               if (p0*p0>=1.0) p0 = NEARONE*(p0>0?1:(-1));
               if (p1*p1>=1.0) p1 = NEARONE*(p1>0?1:(-1));
               b1 = -(p0+p1); b2 = p0*p1; warn = 0;
@@ -858,7 +858,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
       p->fphs = fphs;
       return OK;
     err1:
-      return csound->PerfError(csound, &(p->h), "%s", Str("vco: not initialised"));
+      return csound->PerfError(csound, &(p->h), "%s\n", Str("vco: not initialised"));
     }
 
     /***************************************************************************/
@@ -1072,23 +1072,23 @@ static int32_t vco(CSOUND *csound, VCO *p)
         return OK;
       if (UNLIKELY(*p->mode != FL(1.0) && *p->mode != FL(2.0) &&
                    *p->mode != FL(3.0)))
-        return csound->InitError(csound, Str("nestedap: mode must be 1, 2 or 3"));
+        return csound->InitError(csound, Str("nestedap: mode must be 1, 2 or 3\n"));
       mode = (int32_t)*p->mode;
       samples = *p->del1 * CS_ESR;
       if (UNLIKELY(!(samples >= 1.0 && samples <= (INT32_MAX + 0.0) &&
                      samples <= (cs_double)(SIZE_MAX / sizeof(cs_float)))))
-        return csound->InitError(csound, Str("nestedap: invalid outer delay"));
+        return csound->InitError(csound, Str("nestedap: invalid outer delay\n"));
       npts = (int32_t)samples;
       if (mode >= 2) {
         samples = *p->del2 * CS_ESR;
         if (UNLIKELY(!(samples >= 1.0 && samples < npts)))
-          return csound->InitError(csound, Str("nestedap: invalid second delay"));
+          return csound->InitError(csound, Str("nestedap: invalid second delay\n"));
         npts2 = (int32_t)samples;
       }
       if (mode == 3) {
         samples = *p->del3 * CS_ESR;
         if (UNLIKELY(!(samples >= 1.0 && samples < npts - npts2)))
-          return csound->InitError(csound, Str("nestedap: invalid third delay"));
+          return csound->InitError(csound, Str("nestedap: invalid third delay\n"));
         npts3 = (int32_t)samples;
       }
       npts1 = npts - npts2 - npts3;
@@ -1254,7 +1254,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
       return OK;
     err1:
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("delay: not initialised"));
+                               "%s\n", Str("delay: not initialised"));
     }
 
     /***************************************************************************/

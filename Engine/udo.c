@@ -1578,7 +1578,7 @@ static int32_t udo_prepare_rate(CSOUND *csound, UOPCODE *p, OPDS **rate_op) {
       csound->op = op->optext->t.oentry->opname;
       if (*rate_op != NULL)
         return csound->InitError(csound,
-                                  Str("UDO %s may have only one rate setting"),
+                                  Str("UDO %s may have only one rate setting\n"),
                                   info->name);
       *rate_op = op;
     }
@@ -1594,7 +1594,7 @@ static int32_t udo_prepare_rate(CSOUND *csound, UOPCODE *p, OPDS **rate_op) {
     if (strcmp(name, "xin") != 0 && !udo_is_rate_arithmetic(name))
       return csound->InitError(
         csound, Str("%s must precede opcode initialization in UDO %s "
-        "(found after %s)"), (*rate_op)->optext->t.oentry->opname,
+        "(found after %s)\n"), (*rate_op)->optext->t.oentry->opname,
         info->name, name);
   }
 
@@ -1784,7 +1784,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
        and recursion depth are unwound normally. */
     inm->recurse_depth--;
     return csound->InitError(csound,
-                             Str("error: UDO %s max recursion depth %d reached"),
+                             Str("error: UDO %s max recursion depth %d reached\n"),
                              inm->name, csound->oparms->recursion_depth);
   }
 
@@ -1910,7 +1910,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     csound->ids = saved_ids;
     csound->curip = saved_curip;
     return csound->InitError(csound,
-                             Str("UDO %s instance is being turned off"),
+                             Str("UDO %s instance is being turned off\n"),
                              inm->name);
   }
   ATOMIC_SET(p->ip->init_done, 0);
@@ -1928,7 +1928,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   if(inm->passByRef) {
     if (UNLIKELY(handle_pass_by_ref(csound, p, lcurip) != OK)) {
       err = csound->InitError(
-        csound, Str("could not prepare pass-by-reference UDO buffers"));
+        csound, Str("could not prepare pass-by-reference UDO buffers\n"));
       goto finish_init;
     }
   }
@@ -1973,7 +1973,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
                  pbr_writeback_pass_through_inputs(
                    csound, p, lcurip, 1) != OK)) {
       err = csound->InitError(
-        csound, Str("could not copy pass-by-reference UDO value"));
+        csound, Str("could not copy pass-by-reference UDO value\n"));
       goto restore_state;
     }
     /* Init may grow an output that aliases an input. Refresh the saved input
@@ -1982,7 +1982,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     pbr_snapshot_colliding_inputs(csound, p, lcurip, 1, &copyResult);
     if (UNLIKELY(copyResult != OK)) {
       err = csound->InitError(
-        csound, Str("could not prepare pass-by-reference UDO input"));
+        csound, Str("could not prepare pass-by-reference UDO input\n"));
       goto restore_state;
     }
   }
@@ -2052,7 +2052,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
                                       buf_local->parent_ip,
                                       lcurip->nxtp != NULL, 1) != OK)) {
             err = csound->InitError(
-              csound, Str("could not prepare UDO output"));
+              csound, Str("could not prepare UDO output\n"));
             break;
           }
          }
@@ -2134,7 +2134,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 int32_t useropcd(CSOUND *csound, UOPCODE *p)
 {
   if (UNLIKELY(p->h.nxtp)) {
-    return csoundPerfError(csound, &(p->h), Str("%s: not initialised"),
+    return csoundPerfError(csound, &(p->h), Str("%s: not initialised\n"),
                            p->h.optext->t.opcod);
   }
   return OK;
@@ -2183,7 +2183,7 @@ static int32_t set_inbufs(CSOUND *csound,
                                   h->insdshead,
                                   h->insdshead->nxtp != NULL, 1) != OK)) {
         return csound->InitError(
-          csound, Str("could not prepare UDO input"));
+          csound, Str("could not prepare UDO input\n"));
       }
     }
     // set up src units one per input arg - non k/a sigs/arrays are bypassed
@@ -2196,7 +2196,7 @@ static int32_t set_inbufs(CSOUND *csound,
                                         buf->parent_ip->ksmps,
                                         h->insdshead->ksmps)) == NULL)
           return csound->InitError(csound, Str("could not initialise sample rate "
-                                   "converter"));
+                                   "converter\n"));
       }
     current = current->next;
   }
@@ -2248,7 +2248,7 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
                                   buf->parent_ip,
                                   p->h.insdshead->nxtp != NULL, 1) != OK)) {
         return csound->InitError(
-          csound, Str("could not prepare UDO output"));
+          csound, Str("could not prepare UDO output\n"));
       }
     }
     if(CS_ESR != parent_sr) {
@@ -2261,7 +2261,7 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
                                          p->h.insdshead, CS_KSMPS,
                                          buf->parent_ip->ksmps)) == 0)
           return csound->InitError(csound, Str("could not initialise sample rate "
-                                   "converter"));
+                                   "converter\n"));
       }
     current = current->next;
   }
@@ -2329,7 +2329,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                                       p->h.insdshead, 1, 0) != OK)) {
             return csound->PerfError(
               csound, &p->h,
-              Str("UDO input changed capacity during performance"));
+              Str("UDO input changed capacity during performance\n"));
           }
         } else if (current->varType == &CS_VAR_TYPE_A) {
           cs_float* in = (void*)external_ptrs[i + inm->outchns];
@@ -2349,7 +2349,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                        !udo_audio_array_range_valid(
                          targetStride, 0, 1))) {
             return csound->PerfError(
-              csound, &p->h, "%s",
+              csound, &p->h, "%s\n",
               Str("UDO audio-array input layout changed during performance"));
           }
 
@@ -2396,7 +2396,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                        !udo_audio_array_range_valid(
                          targetStride, ofs, 1))) {
             return csound->PerfError(
-              csound, &p->h, "%s",
+              csound, &p->h, "%s\n",
               Str("UDO audio-array output layout changed during performance"));
           }
 
@@ -2453,7 +2453,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                                       p->h.insdshead, 1, 0) != OK)) {
             return csound->PerfError(
               csound, &p->h,
-              Str("UDO input changed capacity during performance"));
+              Str("UDO input changed capacity during performance\n"));
           }
         } else if (current->varType == &CS_VAR_TYPE_A) {
           cs_float* in = (void*)external_ptrs[i + inm->outchns];
@@ -2474,7 +2474,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                        !udo_audio_array_range_valid(
                          targetStride, 0, localSamples))) {
             return csound->PerfError(
-              csound, &p->h, "%s",
+              csound, &p->h, "%s\n",
               Str("UDO audio-array input layout changed during performance"));
           }
 
@@ -2526,7 +2526,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                        !udo_audio_array_range_valid(
                          targetStride, ofs, localSamples))) {
             return csound->PerfError(
-              csound, &p->h, "%s",
+              csound, &p->h, "%s\n",
               Str("UDO audio-array output layout changed during performance"));
           }
           for (size_t j = 0; j < count; j++) {
@@ -2582,7 +2582,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                          strideSamples, 0, (size_t)g_ksmps +
                                            (size_t)early))) {
             return csound->PerfError(
-              csound, &p->h, "%s",
+              csound, &p->h, "%s\n",
               Str("UDO audio-array output layout changed during performance"));
           }
 
@@ -2607,7 +2607,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                                     p->h.insdshead, 1, 0) != OK)) {
           return csound->PerfError(
             csound, &p->h,
-            Str("UDO output changed capacity during performance"));
+            Str("UDO output changed capacity during performance\n"));
         }
       }
     }
@@ -2688,7 +2688,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
                                         p->h.insdshead, 1, 0) != OK)) {
               return csound->PerfError(
                 csound, &p->h,
-                Str("UDO input changed capacity during performance"));
+                Str("UDO input changed capacity during performance\n"));
             }
           }
         } else { // under/oversampling
@@ -2696,7 +2696,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
           void* out = (void*) internal_ptrs[i + inm->outchns];
           if (UNLIKELY(src_convert(csound, p->cvt_in[cvt], in, out) != OK))
             return csound->PerfError(csound, &p->h,
-                                     Str("could not convert UDO input sample rate"));
+                                     Str("could not convert UDO input sample rate\n"));
         }
       }
       current = current->next;
@@ -2731,7 +2731,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
                                         p->h.insdshead, 1, 0) != OK)) {
               return csound->PerfError(
                 csound, &p->h,
-                Str("UDO output changed capacity during performance"));
+                Str("UDO output changed capacity during performance\n"));
             }
           }
         }
@@ -2740,7 +2740,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
           void* out = (void*)external_ptrs[i];
           if (UNLIKELY(src_convert(csound, p->cvt_out[cvt], in, out) != OK))
             return csound->PerfError(csound, &p->h,
-                                     Str("could not convert UDO output sample rate"));
+                                     Str("could not convert UDO output sample rate\n"));
           /* Conversion may retain filter history outside this note. Clear
              inactive samples in the caller's units after converting. */
           if (undersample &&
@@ -2799,7 +2799,7 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
   if (UNLIKELY(copyResult != OK || seedResult != OK)) {
     return csound->PerfError(
       csound, &p->h,
-      Str("pass-by-reference UDO value changed capacity during performance"));
+      Str("pass-by-reference UDO value changed capacity during performance\n"));
   }
   p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
   if (UNLIKELY(!(CS_PDS = (OPDS*) (p->ip->nxtp))))
@@ -2834,7 +2834,7 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
     CS_PDS = saved_pds;
     return csound->PerfError(
       csound, &p->h,
-      Str("pass-by-reference UDO value changed capacity during performance"));
+      Str("pass-by-reference UDO value changed capacity during performance\n"));
   }
 
  endop:
@@ -2878,7 +2878,7 @@ int32_t setksmpsset(CSOUND *csound, SETKSMPS *p)
   if (UNLIKELY(l_ksmps < 1 || l_ksmps > CS_KSMPS ||
                ((CS_KSMPS / l_ksmps) * l_ksmps != CS_KSMPS))) {
     return csoundInitError(csound,
-                           Str("setksmps: invalid ksmps value: %d, original: %d"),
+                           Str("setksmps: invalid ksmps value: %d, original: %d\n"),
                            l_ksmps, CS_KSMPS);
   }
 
@@ -3082,7 +3082,7 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   if (UNLIKELY(instno < 0)) return NOTOK;
   /* IV - Oct 9 2002: need this check */
   if (UNLIKELY(!init_op && p->OUTOCOUNT > csound->nchnls)) {
-    return csoundInitError(csound, "%s",Str("subinstr: number of output "
+    return csoundInitError(csound, "%s\n",Str("subinstr: number of output "
                                        "args greater than nchnls"));
   }
   /* IV - Oct 9 2002: copied this code from useropcdset() to fix some bugs */
@@ -3155,7 +3155,7 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   /* by default all inputs are i-rate mapped to p-fields */
   if (UNLIKELY(p->INOCOUNT >
                (unsigned int)(csound->engineState.instrtxtp[instno]->pmax + 1)))
-    return csoundInitError(csound, "%s", Str("subinstr: too many p-fields"));
+    return csoundInitError(csound, "%s\n", Str("subinstr: too many p-fields"));
 #ifdef USE_DOUBLE
   union {
     cs_float d;
@@ -3218,7 +3218,7 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
     csound->ids = saved_ids;
     csound->curip = saved_curip;
     return csound->InitError(csound,
-                             Str("subinstrument %d is being turned off"),
+                             Str("subinstrument %d is being turned off\n"),
                              instno);
   }
   ATOMIC_SET(p->ip->init_done, 0);
@@ -3278,7 +3278,7 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
   uint32_t nsmps = CS_KSMPS;
   INSDS *ip = p->ip;
   if (UNLIKELY(ip == NULL)) {                /* IV - Oct 26 2002 */
-    return csoundPerfError(csound, &(p->h), "%s",
+    return csoundPerfError(csound, &(p->h), "%s\n",
                            Str("subinstr: not initialised"));
   }
 

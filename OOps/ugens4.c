@@ -36,7 +36,7 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
       p->floatph = !IS_POW_TWO(p->ftp->flen);
       cs_double phase = *p->iphs;
       if (UNLIKELY(!isfinite(phase)))
-        return csound->InitError(csound, "%s", Str("buzz: invalid initial phase"));
+        return csound->InitError(csound, "%s\n", Str("buzz: invalid initial phase"));
       if (phase >= 0.0) {
         phase *= 0.5; /* The sine quotient uses theta/2. */
         phase -= floor(phase);
@@ -93,7 +93,7 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     harmonics = FABS(*p->knh);
     if (UNLIKELY(!(harmonics < 2147483648.0)))
       return csound->PerfError(csound, &(p->h),
-                               Str("buzz: invalid harmonic count"));
+                               Str("buzz: invalid harmonic count\n"));
     nn = (int32_t)harmonics;
     if (UNLIKELY(nn == 0)) {     /* fix nn = knh */
       nn = 1;
@@ -153,7 +153,7 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     p->fphs = phsf;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("buzz: not initialised"));
+    return csound->PerfError(csound, &(p->h), Str("buzz: not initialised\n"));
 }
 
 #undef BUZZ_WRAP
@@ -168,7 +168,7 @@ int32_t gbzset(CSOUND *csound, GBUZZ *p)
       p->floatph = !IS_POW_TWO(p->ftp->flen);
       cs_double phase = *p->iphs;
       if (UNLIKELY(!isfinite(phase)))
-        return csound->InitError(csound, "%s", Str("gbuzz: invalid initial phase"));
+        return csound->InitError(csound, "%s\n", Str("gbuzz: invalid initial phase"));
       if (phase >= 0.0) {
         phase -= floor(phase);
         p->lphs = (int32_t)(phase * FMAXLEN);
@@ -224,7 +224,7 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
     if (UNLIKELY(!(harmonics < 2147483648.0) ||
                  !(lowest >= INT32_MIN && lowest < 2147483648.0)))
       return csound->PerfError(csound, &(p->h),
-                               Str("gbuzz: invalid harmonic range"));
+                               Str("gbuzz: invalid harmonic range\n"));
     k = (int32_t)lowest;
     nn = (int32_t)harmonics;
     if (UNLIKELY(nn == 0)) {              /* n must be > 0 */
@@ -317,7 +317,7 @@ int32_t gbuzz(CSOUND *csound, GBUZZ *p)
     p->fphs = fphs;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("gbuzz: not initialised"));
+    return csound->PerfError(csound, &(p->h), Str("gbuzz: not initialised\n"));
 }
 
 #define PLUKMIN 64
@@ -371,36 +371,36 @@ int32_t plukset(CSOUND *csound, PLUCK *p)
     case 2:     /* stretch factor: param1 >= 1 */
       if (UNLIKELY(p->param1 < FL(1.0)))
         return csound->InitError(csound,
-                                 Str("illegal stretch factor(param1) value"));
+                                 Str("illegal stretch factor(param1) value\n"));
       else p->thresh1 =  (int16)(FL(32768.0) / p->param1);
       break;
     case 3: /* roughness factor: 0 <= param1 <= 1 */
       if (UNLIKELY(p->param1 < FL(0.0) || p->param1 > FL(1.0)))
         return csound->InitError(csound,
-                                 Str("illegal roughness factor(param1) value"));
+                                 Str("illegal roughness factor(param1) value\n"));
       else
         p->thresh1 = (int16)(FL(32768.0) * p->param1);
       break;
     case 4: /* rough and stretch factor: 0 <= param1 <= 1, param2 >= 1 */
       if (UNLIKELY(p->param1 < FL(0.0) || p->param1 > FL(1.0)))
         return csound->InitError(csound,
-                                 Str("illegal roughness factor(param1) value"));
+                                 Str("illegal roughness factor(param1) value\n"));
       else p->thresh1 = (int16)(FL(32768.0) * p->param1);
       if (UNLIKELY(p->param2 < FL(1.0)))
         return csound->InitError(csound,
-                                 Str("illegal stretch factor(param2) value"));
+                                 Str("illegal stretch factor(param2) value\n"));
       else p->thresh2 = (int16)(FL(32768.0) / p->param2);
       break;
     case 5: /* weighting coeff's: param1 + param2 <= 1 */
       if (UNLIKELY(p->param1 + p->param2 > 1))
         return csound->InitError(csound, Str("coefficients too large "
-                                             "(param1 + param2)"));
+                                             "(param1 + param2)\n"));
       break;
     case 6: /* ignore any given parameters */
       break;
 
     default:
-      return csound->InitError(csound, Str("unknown method code"));
+      return csound->InitError(csound, Str("unknown method code\n"));
     }
     return OK;
 }
@@ -500,10 +500,10 @@ int32_t pluck(CSOUND *csound, PLUCK *p)
     p->phs256 = phs256;
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), Str("pluck: not initialised"));
+    return csound->PerfError(csound, &(p->h), Str("pluck: not initialised\n"));
  err2:
     return csound->PerfError(csound, &(p->h),
-                             Str("pluck: kcps more than sample rate"));
+                             Str("pluck: kcps more than sample rate\n"));
 }
 
 #define RNDMUL  15625

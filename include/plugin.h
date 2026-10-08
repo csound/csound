@@ -70,16 +70,20 @@ public:
    */
   void *host_data() { return GetHostData(this); }
 
+  /** These message helpers print the supplied text without adding a newline.
+   *  Include line endings in complete diagnostics.
+   */
+
   /** init-time error message
    */
   int32_t init_error(const std::string &s) {
-    return InitError(this, "%s\n", LocalizeString(s.c_str()));
+    return InitError(this, "%s", LocalizeString(s.c_str()));
   }
 
   /** perf-time error message
    */
   int32_t perf_error(const std::string &s, OPDS *inst) {
-    return PerfError(this, inst, "%s\n", LocalizeString(s.c_str()));
+    return PerfError(this, inst, "%s", LocalizeString(s.c_str()));
   }
 
   /** warning message
@@ -91,7 +95,7 @@ public:
   /** console messages
    */
   void message(const std::string &s) {
-    Message(this, "%s\n", LocalizeString(s.c_str()));
+    Message(this, "%s", LocalizeString(s.c_str()));
   }
 
   /** system max amp reference

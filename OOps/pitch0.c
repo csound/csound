@@ -175,7 +175,7 @@ int32_t maxalloc(CSOUND *csound, CPU_MAXALLOC *p)
 
 	  int32_t mode = (int32_t)*p->iturnoff_mode;
 	  if (UNLIKELY(mode < 0 || mode > 2)) {
-		  csoundInitError(csound, Str("maxalloc: invalid mode parameter"));
+		  csoundInitError(csound, Str("maxalloc: invalid mode parameter\n"));
 	  }
 
       csound->engineState.instrtxtp[n]->turnoff_mode = mode;
@@ -193,7 +193,7 @@ int32_t maxalloc_S(CSOUND *csound, CPU_MAXALLOC *p)
 
 	  int32_t mode = (int32_t)*p->iturnoff_mode;
 	  if (UNLIKELY(mode < 0 || mode > 2)) {
-		  csoundInitError(csound, Str("maxalloc: invalid mode parameter"));
+		  csoundInitError(csound, Str("maxalloc: invalid mode parameter\n"));
 	  }
 
       csound->engineState.instrtxtp[n]->turnoff_mode = mode;

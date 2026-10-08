@@ -102,7 +102,7 @@ int32_t dspset(CSOUND *csound, DSPLAY *p)
       npts = (int32)(*p->iprd * CS_EKR);
     else npts = (int32)(*p->iprd * CS_ESR);
     if (UNLIKELY(npts <= 0)) {
-      return csound->InitError(csound, Str("illegal iprd in display"));
+      return csound->InitError(csound, Str("illegal iprd in display\n"));
 
     }
     if ((nprds = (int32_t)*p->inprds) <= 1) {
@@ -163,7 +163,7 @@ int32_t kdsplay(CSOUND *csound, DSPLAY *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("display: not initialised"));
+                             Str("display: not initialised\n"));
 }
 
 int32_t dsplay(CSOUND *csound, DSPLAY *p)
@@ -258,20 +258,20 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
 
     window_size = (int32_t)*p->inpts;
     if (UNLIKELY(window_size > WINDMAX)) {
-      return csound->InitError(csound, Str("too many points requested (%d)"), window_size);
+      return csound->InitError(csound, Str("too many points requested (%d)\n"), window_size);
     }
     if (UNLIKELY(window_size < WINDMIN)) {
-      return csound->InitError(csound, Str("too few points requested (%d), minimum is %d"),
+      return csound->InitError(csound, Str("too few points requested (%d), minimum is %d\n"),
                                window_size, WINDMIN);
     }
     if (UNLIKELY(window_size < 1L || (window_size & (window_size - 1L)) != 0L)) {
-      return csound->InitError(csound, Str("window size must be power of two"));
+      return csound->InitError(csound, Str("window size must be power of two\n"));
     }
     if (csoundGetTypeForArg(p->signal) == &CS_VAR_TYPE_K)
       step_size = (int32)(*p->iprd * CS_EKR);
     else step_size = (int32)(*p->iprd * CS_ESR);
     if (UNLIKELY(step_size <= 0)) {
-      return csound->InitError(csound, Str("illegal iprd in ffy display"));
+      return csound->InitError(csound, Str("illegal iprd in ffy display\n"));
     }
     hanning = (int32_t)*p->ihann;
     p->dbout   = (int32_t)*p->idbout;
@@ -418,7 +418,7 @@ int32_t kdspfft(CSOUND *csound, DSPFFT *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("dispfft: not initialised"));
+                             Str("dispfft: not initialised\n"));
 }
 
 int32_t dspfft(CSOUND *csound, DSPFFT *p)
@@ -470,7 +470,7 @@ int32_t dspfft(CSOUND *csound, DSPFFT *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("dispfft: not initialised"));
+                             Str("dispfft: not initialised\n"));
 }
 
 #define NTERMS  4
@@ -485,24 +485,24 @@ int32_t tempeset(CSOUND *csound, TEMPEST *p)
     char  strmsg[256];
 
     if (UNLIKELY((p->timcount = (int32_t)(CS_EKR * iperiod)) <= 0))
-      return csound->InitError(csound, Str("illegal iperiod"));
+      return csound->InitError(csound, Str("illegal iperiod\n"));
     if (UNLIKELY((p->dtimcnt = (int32_t)(CS_EKR * *p->idisprd)) < 0))
-      return csound->InitError(csound, Str("illegal idisprd"));
+      return csound->InitError(csound, Str("illegal idisprd\n"));
     if (UNLIKELY((p->tweek = *p->itweek) <= 0))
-      return csound->InitError(csound, Str("illegal itweek"));
+      return csound->InitError(csound, Str("illegal itweek\n"));
     if (iperiod != FL(0.0)) {
       if (UNLIKELY((minlam = (int32_t)(*p->imindur/iperiod)) <= 0))
-        return csound->InitError(csound, Str("illegal imindur"));
+        return csound->InitError(csound, Str("illegal imindur\n"));
       if (UNLIKELY((npts = (int32_t)(*p->imemdur / iperiod)) <= 0))
-        return csound->InitError(csound, Str("illegal imemdur"));
+        return csound->InitError(csound, Str("illegal imemdur\n"));
     }
     if (UNLIKELY(*p->ihtim <= FL(0.0)))
-      return csound->InitError(csound, Str("illegal ihtim"));
+      return csound->InitError(csound, Str("illegal ihtim\n"));
     if (UNLIKELY(*p->istartempo <= FL(0.0)))
-      return csound->InitError(csound, Str("illegal startempo"));
+      return csound->InitError(csound, Str("illegal startempo\n"));
     ftp = csound->FTFind(csound, p->ifn);
     if (UNLIKELY(ftp != NULL && *ftp->ftable == FL(0.0)))
-      return csound->InitError(csound, Str("ifn table begins with zero"));
+      return csound->InitError(csound, Str("ifn table begins with zero\n"));
     if (UNLIKELY(ftp==NULL)) return NOTOK;
 
     if (npts==0) return NOTOK;
@@ -755,5 +755,5 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                               Str("tempest: not initialised"));
+                               Str("tempest: not initialised\n"));
 }

@@ -61,7 +61,7 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
       return(NULL);
     if (UNLIKELY(p->framesrem < (int64_t) 0)) {
       csound->Warning(csound, Str("undetermined file length, "
-                                  "will attempt requested duration"));
+                                  "will attempt requested duration\n"));
     }
     else {
       if (*ainput_dur <= FL(0.0)) {         /* 0 durtim, use to EOF */
@@ -73,7 +73,7 @@ void *SAsndgetset(CSOUND *csound, char *infilnam, void *ap_,
         p->getframes = (int64_t) ((cs_double) p->sr * (cs_double) *ainput_dur + 0.5);
         if (UNLIKELY(p->getframes > p->framesrem)) {
           p->getframes = p->framesrem;
-          csound->Warning(csound, Str("full requested duration not available"));
+          csound->Warning(csound, Str("full requested duration not available\n"));
         }
       }
       csound->Message(csound, Str("analysing %ld sample frames (%3.1f secs)"),
@@ -99,7 +99,7 @@ static int32_t sreadin(CSOUND *csound, SNDFILE *infd, cs_float *inbuf,
     do {
       n = (int32_t) csound->SndfileReadSamples(csound, infd, inbuf + ntot, nsamples - ntot);
       if (UNLIKELY(n < 0))
-        csound->Die(csound, Str("soundfile read error"));
+        csound->Die(csound, Str("soundfile read error\n"));
     } while (n > 0 && (ntot += n) < nsamples);
     if (p->audrem > (int64_t) 0) {
       if ((int64_t) ntot > p->audrem)   /*   chk haven't exceeded */
@@ -155,14 +155,14 @@ void *sndgetset(CSOUND *csound, void *p_)
     p->filetyp = SF2TYPE(sfinfo.format);
     if (p->analonly) {                              /* anal: if sr param val */
       if (p->sr != 0 && p->sr != sfinfo.samplerate) {   /*   use it          */
-        csound->Warning(csound, Str("-s %d overriding soundfile sr %d"),
+        csound->Warning(csound, Str("-s %d overriding soundfile sr %d\n"),
                                 (int32_t) p->sr, (int32_t) sfinfo.samplerate);
         sfinfo.samplerate = p->sr;
       }
     }
     else if (UNLIKELY(sfinfo.samplerate != (int32_t) ((cs_double) csound->esr + 0.5))) {
       csound->Warning(csound,                       /* non-anal:  cmp w. esr */
-                      "%s sr = %d, orch sr = %7.1f",
+                      "%s sr = %d, orch sr = %7.1f\n",
                       sfname, (int32_t) sfinfo.samplerate, csound->esr);
     }
     if (UNLIKELY(p->channel != ALLCHNLS && p->channel > sfinfo.channels)) {

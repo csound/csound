@@ -98,7 +98,7 @@ static int32_t pvset_(CSOUND *csound, PVOC *p, int32_t stringname)
   /* } */
   if (UNLIKELY((OPWLEN/2 + 1)>PVWINLEN )) {
     return csound->InitError(csound, Str("ksmps of %d needs wdw of %d, "
-                                         "max is %d for pv %s"),
+                                         "max is %d for pv %s\n"),
                              CS_KSMPS, (OPWLEN/2 + 1), PVWINLEN,
                              pvfilnam);
   }
@@ -171,7 +171,7 @@ int32_t pvoc(CSOUND *csound, PVOC *p)
     frIndx = (cs_float)p->maxFr;
     if (UNLIKELY(p->prFlg)) {
       p->prFlg = 0;   /* false */
-      csound->Warning(csound, "%s", Str("PVOC ktimpnt truncated to last frame"));
+      csound->Warning(csound, "%s\n", Str("PVOC ktimpnt truncated to last frame"));
     }
   }
   FetchIn(p->frPtr, buf, size, frIndx);
@@ -220,16 +220,16 @@ int32_t pvoc(CSOUND *csound, PVOC *p)
 
   return OK;
  err1:
-  return csound->PerfError(csound, &(p->h), "%s", Str("pvoc: not initialised"));
+  return csound->PerfError(csound, &(p->h), "%s\n", Str("pvoc: not initialised"));
  err2:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("PVOC transpose too low"));
+                           "%s\n", Str("PVOC transpose too low"));
  err3:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("PVOC transpose too high"));
+                           "%s\n", Str("PVOC transpose too high"));
  err4:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("PVOC timpnt < 0"));
+                           "%s\n", Str("PVOC timpnt < 0"));
 }
 
 /* RWD 8:2001: custom version of ldmemfile();
@@ -242,17 +242,17 @@ static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVOC *p)
   PVOCEX_MEMFILE  pp;
 
   if (UNLIKELY(csound->PVOCEX_LoadFile(csound, fname, &pp) != 0)) {
-    return csound->InitError(csound, Str("PVOC cannot load %s"), fname);
+    return csound->InitError(csound, Str("PVOC cannot load %s\n"), fname);
   }
   /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
   if (UNLIKELY(pp.fftsize > PVFRAMSIZE)) {
     return csound->InitError(csound, Str("pvoc-ex file %s: "
-                                         "FFT size %d too large for Csound"),
+                                         "FFT size %d too large for Csound\n"),
                              fname, (int32_t) pp.fftsize);
   }
   /* have to reject m/c files for now, until opcodes upgraded */
   if (UNLIKELY(pp.chans > 1)) {
-    return csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
+    return csound->InitError(csound, Str("pvoc-ex file %s is not mono\n"), fname);
   }
   /* ignore the window spec until we can use it! */
   p->frSiz    = pp.fftsize;

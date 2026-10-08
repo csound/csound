@@ -96,7 +96,7 @@ static int32_t scale_process(CSOUND *csound, scale *p)
 static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
 {
     if (*p->ihtim < FL(0.0))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("scale2: smoothing time must be nonnegative"));
     p->yt1 = 0.0;
     if (*p->ihtim != FL(0.0)) {
@@ -116,7 +116,7 @@ static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
     cs_double kmin = *p->kmin;
     cs_double val = *p->kinval;
     if (UNLIKELY(!(max > min)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("scale2: input maximum must exceed minimum"));
     if (val > max) val = max;
     else if (val < min) val = min;

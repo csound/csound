@@ -207,7 +207,7 @@ int32_t printkset(CSOUND *csound, PRINTK *p)
 int32_t printk(CSOUND *csound, PRINTK *p)
 {
     if (UNLIKELY(p->initialised != -1))
-      csound->PerfError(csound, &(p->h), Str("printk not initialised"));
+      csound->PerfError(csound, &(p->h), Str("printk not initialised\n"));
 
     //printf("printk: KCNT = %llu\n", CS_KCNT);
     //printf("printat = %lf\n", p->printat);
@@ -588,14 +588,14 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
 
     /*-----------------------------------*/
     if (UNLIKELY(p->initialised != -1))
-      csound->PerfError(csound, &(p->h), Str("printks not initialised"));
+      csound->PerfError(csound, &(p->h), Str("printks not initialised\n"));
     if (p->printat <= CS_KCNT-1) {
       //string[0]='\0';           /* incase of empty string */
       memset(string,0,8192);
       if (sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2)!=OK)
         return
           csound->PerfError(csound,  &(p->h),
-                            Str("Insufficient arguments in formatted printing"));
+                            Str("Insufficient arguments in formatted printing\n"));
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
       p->printat = CS_KCNT + p->ctime -1;
     }
@@ -619,7 +619,7 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
         return
           csound->InitError(csound,
-                            Str("Insufficient arguments in formatted printing"));
+                            Str("Insufficient arguments in formatted printing\n"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
   }
   else if(isstrcod(*p->ifilcod))
@@ -644,11 +644,11 @@ int32_t printsset_S(CSOUND *csound, PRINTS *p)
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
         return
           csound->InitError(csound,
-                            Str("Insufficient arguments in formatted printing"));
+                            Str("Insufficient arguments in formatted printing\n"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", string);
     } else {
       csound->Warning(csound,
-                      Str("Formatting string too long: %s"), pk.txtstring);
+                      Str("Formatting string too long: %s\n"), pk.txtstring);
     }
   } else csound->Message(csound, "%s\n", ((STRINGDAT*)p->ifilcod)->data);
     return OK;
@@ -762,7 +762,7 @@ int32_t printk3(CSOUND *csound, PRINTK3 *p)
       if (sprints(buff, p->sarg, vv, 1)!=OK)
         return
           csound->PerfError(csound,  &(p->h),
-                            Str("Insufficient arguments in formatted printing"));
+                            Str("Insufficient arguments in formatted printing\n"));
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buff);
       p->oldvalue = value;
     }
@@ -796,7 +796,7 @@ int32_t inz(CSOUND *csound, IOZ *p)
     /* zalast is inclusive; preserve truncation of fractional indices. */
     if (UNLIKELY(zastart == NULL || nchns > zalast + 1 ||
                  !(index > -1.0 && index < (cs_double)(zalast + 2 - nchns))))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("inz: channel range is outside ZAK audio space"));
     writeloc = zastart + (size_t)(int32_t)index * nsmps;
     for (i = 0; i < nchns; i++) {
@@ -823,7 +823,7 @@ int32_t outz(CSOUND *csound, IOZ *p)
 
     if (UNLIKELY(zastart == NULL || nchns > zalast + 1 ||
                  !(index > -1.0 && index < (cs_double)(zalast + 2 - nchns))))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("outz: channel range is outside ZAK audio space"));
     readloc = zastart + (size_t)(int32_t)index * nsmps;
     for (i = 0; i < nchns; i++) {

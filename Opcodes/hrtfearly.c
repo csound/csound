@@ -329,14 +329,14 @@ static int32_t early_init(CSOUND *csound, early *p)
                                    swap4bytes);
     if (UNLIKELY(fpl == NULL))
       return
-        csound->InitError(csound, "%s",
+        csound->InitError(csound, "%s\n",
                           Str("\n\n\nCannot load left data file, exiting\n\n"));
 
     fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,
                                    swap4bytes);
     if (UNLIKELY(fpr == NULL))
       return
-        csound->InitError(csound,  "%s",
+        csound->InitError(csound,  "%s\n",
                           Str("\n\n\nCannot load right data file, exiting\n\n"));
 
     /* file handles */

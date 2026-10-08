@@ -173,12 +173,12 @@ static int32_t sc_reverb_init(CSOUND *csound, SC_REVERB *p)
       p->sampleRate = (cs_double) *(p->iSampleRate);
     if (UNLIKELY(p->sampleRate < MIN_SRATE || p->sampleRate > MAX_SRATE)) {
       return csound->InitError(csound,
-                               "%s", Str("reverbsc: sample rate is out of range"));
+                               "%s\n", Str("reverbsc: sample rate is out of range"));
     }
     if (UNLIKELY(*(p->iPitchMod) < FL(0.0) ||
                  *(p->iPitchMod) > (cs_float) MAX_PITCHMOD)) {
       return csound->InitError(csound,
-                               "%s", Str("reverbsc: invalid pitch modulation factor"));
+                               "%s\n", Str("reverbsc: invalid pitch modulation factor"));
     }
     /* calculate the number of bytes to allocate */
     nBytes = 0;
@@ -303,7 +303,7 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("reverbsc: not initialised"));
+                             "%s\n", Str("reverbsc: not initialised"));
 }
 
 
@@ -396,7 +396,7 @@ static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("reverbsc2: not initialised"));
+                             "%s\n", Str("reverbsc2: not initialised"));
 }
 
 /* module interface functions */

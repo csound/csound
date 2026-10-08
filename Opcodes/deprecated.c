@@ -288,7 +288,7 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
 static int32_t stack_opcode_init(CSOUND *csound, STACK_OPCODE *p)
 {
     if (UNLIKELY(csound->QueryGlobalVariable(csound, "csArgStack") != NULL))
-      return csound->InitError(csound, "%s", Str("the stack is already allocated"));
+      return csound->InitError(csound, "%s\n", Str("the stack is already allocated"));
     csoundStack_AllocGlobals(csound, (int32_t) (*(p->iStackSize) + 0.5));
     return OK;
 }
@@ -296,7 +296,7 @@ static int32_t stack_opcode_init(CSOUND *csound, STACK_OPCODE *p)
 static int32_t notinit_opcode_stub_perf(CSOUND *csound, void *p)
 {
     return csound->PerfError(csound, &(((STACK_OPCODE*)p)->h),
-                             Str("%s: not initialised"),
+                             Str("%s: not initialised\n"),
                              GetOpcodeName((OPDS *)p));
 }
 
@@ -493,7 +493,7 @@ static int32_t pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
               /* printf("***string: %p\nbp=%p Off = %x\n", ans, bp, curOffs); */
               /* printf("***string: %p->%s\n", str, dst->data); */
               if (str==NULL)
-                return csound->InitError(csound, Str("pop of strings broken"));
+                return csound->InitError(csound, Str("pop of strings broken\n"));
               if (str->size>dst->size) {
                 csound->Free(csound,dst->data);
                 dst->data = csound->Strdup(csound, str->data);

@@ -159,7 +159,6 @@ void csoundWarning(CSOUND *csound, const char *msg, ...) {
   va_start(args, msg);
   csoundMessageV(csound, CSOUNDMSG_WARNING, msg, args);
   va_end(args);
-  csoundMessageS(csound, CSOUNDMSG_WARNING, "\n");
 }
 
 void csoundDebugMsg(CSOUND *csound, const char *msg, ...) {
@@ -170,7 +169,6 @@ void csoundDebugMsg(CSOUND *csound, const char *msg, ...) {
   va_start(args, msg);
   csoundMessageV(csound, 0, msg, args);
   va_end(args);
-  csoundMessage(csound, "\n");
 }
 
 void csoundErrorMsg(CSOUND *csound, const char *msg, ...) {
@@ -185,7 +183,6 @@ void csoundErrMsgV(CSOUND *csound, const char *hdr, const char *msg,
   if (hdr != NULL)
     csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
   csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
-  csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
 
 void csoundErrorMsgS(CSOUND *csound, int32_t attr, const char *msg, ...) {
@@ -355,7 +352,7 @@ void  csoundDestroyMessageBuffer(CSOUND *csound) {
   csMsgBuffer *pp = (csMsgBuffer *)csound->message_buffer;
   if (!pp) {
     csound->Warning(csound, Str("csoundDestroyMessageBuffer: "
-                                "Message buffer not allocated."));
+                                "Message buffer not allocated.\n"));
     return;
   }
   csMsgStruct *msg = pp->firstMsg;

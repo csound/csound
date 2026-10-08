@@ -62,7 +62,7 @@ static int32_t urand_init(CSOUND *csound, URANDOM *p)
     if (!p->opened) {
       int32_t ur = open("/dev/urandom", O_RDONLY);
       if (UNLIKELY(ur < 0))
-        return csound->InitError(csound, "%s", Str("urandom: cannot open /dev/urandom"));
+        return csound->InitError(csound, "%s\n", Str("urandom: cannot open /dev/urandom"));
       p->ur = ur;
       p->opened = 1;
     }
@@ -94,7 +94,7 @@ static int32_t urand_irate(CSOUND *csound, URANDOM *p)
     result = urand_run(csound,p);
     urand_deinit(csound,p);
     if (UNLIKELY(result != OK))
-      return csound->InitError(csound, "%s", Str("urandom: cannot read /dev/urandom"));
+      return csound->InitError(csound, "%s\n", Str("urandom: cannot read /dev/urandom"));
     return OK;
 }
 

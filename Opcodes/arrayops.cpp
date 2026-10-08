@@ -62,7 +62,7 @@ template <cs_float (*op)(cs_float)> struct ArrayOp : ArrayOutput<1> {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
     if (out.init(csound, in.len(), this->insdshead) != OK)
-      return csound->init_error(Str_noop("cannot initialize output array"));
+      return csound->init_error(Str_noop("cannot initialize output array\n"));
     if (!is_perf()) process(out, in);
     return OK;
   }
@@ -91,13 +91,13 @@ template <cs_float (*bop)(cs_float, cs_float)> struct ArrayOp2 : ArrayOutput<2> 
     if (UNLIKELY(in2.len() < in1.len()))
       return csound->init_error(Str_noop("second input array is too short\n"));
     if (out.init(csound, in1.len(), this->insdshead) != OK)
-      return csound->init_error(Str_noop("cannot initialize output array"));
+      return csound->init_error(Str_noop("cannot initialize output array\n"));
     if (!is_perf()) process(out, in1, in2);
     return OK;
   }
   int32_t kperf() {
     if (UNLIKELY(inargs.myfltvec_data(1).len() < inargs.myfltvec_data(0).len()))
-      return csound->perf_error(Str_noop("second input array is too short"), this);
+      return csound->perf_error(Str_noop("second input array is too short\n"), this);
     if (prepare_output() != OK) return NOTOK;
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0),
                    inargs.myfltvec_data(1));
@@ -119,7 +119,7 @@ template <cs_float (*bop)(cs_float, cs_float)> struct ArrayOp3 : ArrayOutput<2> 
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
     if (out.init(csound, in.len(), this->insdshead) != OK)
-      return csound->init_error(Str_noop("cannot initialize output array"));
+      return csound->init_error(Str_noop("cannot initialize output array\n"));
     if (!is_perf()) process(out, in, inargs[1]);
     return OK;
   }
@@ -149,7 +149,7 @@ struct ArrayLimit : ArrayOutput<3> {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
     if (out.init(csound, in.len(), this->insdshead) != OK)
-      return csound->init_error(Str_noop("cannot initialize output array"));
+      return csound->init_error(Str_noop("cannot initialize output array\n"));
     if(!is_perf()) process(out, in, inargs[1], inargs[2]);
     return OK;
   }
@@ -176,7 +176,7 @@ template <typename T> struct ArraySort : ArrayOutput<1> {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
     if (out.init(csound, in.len(), this->insdshead) != OK)
-      return csound->init_error(Str_noop("cannot initialize output array"));
+      return csound->init_error(Str_noop("cannot initialize output array\n"));
     if (!is_perf()) process(out, in);
     return OK;
   }
@@ -206,7 +206,7 @@ struct Dot : csnd::Plugin<1, 2> {
 
   int32_t kperf() {
     if (UNLIKELY(inargs.myfltvec_data(1).len() < inargs.myfltvec_data(0).len()))
-      return csound->perf_error(Str_noop("second input array is too short"), this);
+      return csound->perf_error(Str_noop("second input array is too short\n"), this);
     outargs[0] = process(inargs.myfltvec_data(0), inargs.myfltvec_data(1));
     return OK;
   }

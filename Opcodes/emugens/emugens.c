@@ -96,7 +96,7 @@ linlin1_perf(CSOUND *csound, LINLIN1 *p) {
     cs_float x1 = *p->kx1;
     if (UNLIKELY(x0 == x1)) {
         return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("linlin.k: Division by zero"));
+                                 "%s\n", Str("linlin.k: Division by zero"));
     }
     *p->kout = (x - x0) / (x1 -x0) * (*(p->ky1) - y0) + y0;
     return OK;
@@ -113,7 +113,7 @@ typedef struct {
 static int32_t linlinarr1_init(CSOUND *csound, LINLINARR1 *p) {
     if (UNLIKELY(p->xs->dimensions != 1 || p->xs->sizes == NULL ||
                    p->ys->dimensions > 1))
-        return INITERR(Str("linlin: expected one-dimensional arrays"));
+        return INITERR(Str("linlin: expected one-dimensional arrays\n"));
     int32_t numitems = p->xs->sizes[0];
     if (UNLIKELY(tabinit(csound, p->ys, numitems,
                          p->h.insdshead) != OK))
@@ -126,14 +126,14 @@ static int32_t
 linlinarr1_common(CSOUND *csound, LINLINARR1 *p, int32_t init) {
     if (UNLIKELY(p->xs->dimensions != 1 || p->xs->sizes == NULL ||
                    p->ys->dimensions != 1))
-        return INITPERFERR(init, Str("linlin: expected one-dimensional arrays"));
+        return INITPERFERR(init, Str("linlin: expected one-dimensional arrays\n"));
     const cs_float x0 = *p->kx0;
     const cs_float y0 = *p->ky0;
     const cs_float x1 = *p->kx1;
     const cs_float y1 = *p->ky1;
 
     if (UNLIKELY(x0 == x1)) {
-        return INITPERFERR(init, Str("linlin: Division by zero"));
+        return INITPERFERR(init, Str("linlin: Division by zero\n"));
     }
     cs_float fact = 1/(x1 - x0) * (y1 - y0);
 
@@ -177,7 +177,7 @@ blendarray_init(CSOUND *csound, BLENDARRAY *p) {
     if (UNLIKELY(p->A->dimensions != 1 || p->A->sizes == NULL ||
                    p->B->dimensions != 1 || p->B->sizes == NULL ||
                    p->out->dimensions > 1))
-        return INITERR(Str("linlin: expected one-dimensional arrays"));
+        return INITERR(Str("linlin: expected one-dimensional arrays\n"));
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
     int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
@@ -193,13 +193,13 @@ blendarray_common(CSOUND *csound, BLENDARRAY *p, int32_t init)
     if (UNLIKELY(p->A->dimensions != 1 || p->A->sizes == NULL ||
                    p->B->dimensions != 1 || p->B->sizes == NULL ||
                    p->out->dimensions != 1))
-        return INITPERFERR(init, Str("linlin: expected one-dimensional arrays"));
+        return INITPERFERR(init, Str("linlin: expected one-dimensional arrays\n"));
     cs_float x0 = *p->kx0;
     cs_float x1 = *p->kx1;
     cs_float x = *p->kx;
 
     if (UNLIKELY(x0 == x1)) {
-        return INITPERFERR(init, Str("linlin: Division by zero"));
+        return INITPERFERR(init, Str("linlin: Division by zero\n"));
     }
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
@@ -254,7 +254,7 @@ lincos_perf(CSOUND *csound, LINLIN1 *p) {
     cs_float x1 = *p->kx1;
     cs_float y1 = *p->ky1;
     if (UNLIKELY(x0 == x1)) {
-        return PERFERR(Str("lincos: Division by zero"));
+        return PERFERR(Str("lincos: Division by zero\n"));
     }
     // PI is defined in csoundCore.h, use that instead of M_PI from math.h, which
     // is not defined in windows
@@ -513,10 +513,10 @@ static int32_t bpfx_init(CSOUND *csound, BPFX *p) {
     int32_t datalen = p->INOCOUNT - 1;
     p->lastidx = -1;
     if(datalen % 2) {
-      return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
+      return INITERR(Str("bpf: data length should be even (pairs of x, y)\n"));
     }
     if(datalen >= BPF_MAXPOINTS) {
-      return INITERR(Str("bpf: too many pargs (max=256)"));
+      return INITERR(Str("bpf: too many pargs (max=256)\n"));
     }
     return OK;
 }
@@ -689,14 +689,14 @@ static inline int64_t bpfarr_find(cs_float x, const cs_float *xs, int64_t xslen,
 
 static int32_t bpf_k_kKK_init(CSOUND *csound, BPF_k_kKK *p) {
     if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys)))
-        return INITERR(Str("bpf: expected nonempty one-dimensional point arrays"));
+        return INITERR(Str("bpf: expected nonempty one-dimensional point arrays\n"));
     p->lastidx = -1;
     return OK;
 }
 
 static int32_t bpf_k_kKK_kr(CSOUND *csound, BPF_k_kKK *p) {
     if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys)))
-        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays"));
+        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays\n"));
     int64_t numxs = p->xs->sizes[0];
     int64_t numys = p->ys->sizes[0];
     int64_t N = numxs < numys ? numxs : numys;
@@ -739,7 +739,7 @@ static int32_t bpf_k_kKK_ir(CSOUND *csound, BPF_k_kKK *p) {
 
 static int32_t bpfcos_k_kKK_kr(CSOUND *csound, BPF_k_kKK *p) {
     if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys)))
-        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays"));
+        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays\n"));
     int32_t numxs = p->xs->sizes[0];
     int32_t numys = p->ys->sizes[0];
     int32_t N = numxs < numys ? numxs : numys;
@@ -779,7 +779,7 @@ static int32_t bpfcos_k_kKK_ir(CSOUND *csound, BPF_k_kKK *p) {
 
 static int32_t bpf_a_aKK_kr(CSOUND *csound, BPF_k_kKK *p) {
     if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys)))
-        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays"));
+        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays\n"));
     int64_t numxs = p->xs->sizes[0];
     int64_t numys = p->ys->sizes[0];
     int64_t N = numxs < numys ? numxs : numys;
@@ -825,7 +825,7 @@ static int32_t bpf_a_aKK_kr(CSOUND *csound, BPF_k_kKK *p) {
 
 static int32_t bpfcos_a_aKK_kr(CSOUND *csound, BPF_k_kKK *p) {
     if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys)))
-        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays"));
+        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays\n"));
     int64_t numxs = p->xs->sizes[0];
     int64_t numys = p->ys->sizes[0];
     int64_t N = numxs < numys ? numxs : numys;
@@ -880,7 +880,7 @@ typedef struct {
 static int32_t bpf_kk_kKKK_init(CSOUND *csound, BPF_kk_kKKK *p) {
     if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys) ||
                  !BPF_POINTS_VALID(p->zs)))
-        return INITERR(Str("bpf: expected nonempty one-dimensional point arrays"));
+        return INITERR(Str("bpf: expected nonempty one-dimensional point arrays\n"));
     p->lastidx = -1;
     return OK;
 }
@@ -888,7 +888,7 @@ static int32_t bpf_kk_kKKK_init(CSOUND *csound, BPF_kk_kKKK *p) {
 static int32_t bpf_kk_kKKK_kr(CSOUND *csound, BPF_kk_kKKK *p) {
     if (UNLIKELY(!BPF_POINTS_VALID(p->xs) || !BPF_POINTS_VALID(p->ys) ||
                  !BPF_POINTS_VALID(p->zs)))
-        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays"));
+        return PERFERR(Str("bpf: expected nonempty one-dimensional point arrays\n"));
     int32_t numxs = p->xs->sizes[0];
     int32_t numys = p->ys->sizes[0];
     int32_t numzs = p->zs->sizes[0];
@@ -945,14 +945,14 @@ typedef struct {
 static int32_t bpf_K_Km_init(CSOUND *csound, BPF_K_Km *p) {
     if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes == NULL ||
                    p->out->dimensions > 1))
-        return INITERR(Str("bpf: expected one-dimensional arrays"));
+        return INITERR(Str("bpf: expected one-dimensional arrays\n"));
     int32_t datalen = p->INOCOUNT - 1;
     if(datalen % 2)
-        return INITERR(Str("bpf: data length should be even (pairs of x, y)"));
+        return INITERR(Str("bpf: data length should be even (pairs of x, y)\n"));
     if(datalen < 4)
-        return INITERRF(Str("At least two pairs are needed, got %d"), datalen/2);
+        return INITERRF(Str("At least two pairs are needed, got %d\n"), datalen/2);
     if(datalen >= BPF_MAXPOINTS)
-        return INITERR(Str("bpf: too many pargs (max=256)"));
+        return INITERR(Str("bpf: too many pargs (max=256)\n"));
     int32_t N = p->in->sizes[0];
     if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
@@ -963,7 +963,7 @@ static int32_t bpf_K_Km_init(CSOUND *csound, BPF_K_Km *p) {
 static int32_t bpf_K_Km_kr(CSOUND *csound, BPF_K_Km *p) {
     if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes == NULL ||
                    p->out->dimensions != 1))
-        return PERFERR(Str("bpf: expected one-dimensional arrays"));
+        return PERFERR(Str("bpf: expected one-dimensional arrays\n"));
     int32_t N = p->in->sizes[0];
     if (UNLIKELY(tabcheck(csound, p->out, N, &p->h) != OK))
         return NOTOK;
@@ -1016,11 +1016,11 @@ typedef struct {
 static int32_t bpf_a_am_init(CSOUND *csound, BPF_a_am *p) {
     uint32_t datalen = p->INOCOUNT - 1;
     if(datalen % 2)
-        return INITERRF(Str("bpf: data length should be even (pairs of x, y), got %d"), datalen);
+        return INITERRF(Str("bpf: data length should be even (pairs of x, y), got %d\n"), datalen);
     if(datalen < 4)
-        return INITERRF(Str("At least two pairs are needed, got %d"), datalen%2);
+        return INITERRF(Str("At least two pairs are needed, got %d\n"), datalen%2);
     if(datalen >= BPF_MAXPOINTS)
-        return INITERRF(Str("bpf: too many pargs (max=%d)"), BPF_MAXPOINTS);
+        return INITERRF(Str("bpf: too many pargs (max=%d)\n"), BPF_MAXPOINTS);
     p->lastidx = -1;
     return OK;
 }
@@ -1126,7 +1126,7 @@ static int32_t bpfcos_a_am_kr(CSOUND *csound, BPF_a_am *p) {
 static int32_t bpfcos_K_Km_kr(CSOUND *csound, BPF_K_Km *p) {
     if (UNLIKELY(p->in->dimensions != 1 || p->in->sizes == NULL ||
                    p->out->dimensions != 1))
-        return PERFERR(Str("bpf: expected one-dimensional arrays"));
+        return PERFERR(Str("bpf: expected one-dimensional arrays\n"));
     int32_t N = p->in->sizes[0];
     if (UNLIKELY(tabcheck(csound, p->out, N, &p->h) != OK))
         return NOTOK;
@@ -1253,7 +1253,7 @@ ntom_common(CSOUND *csound, NTOM *p, int32_t init) {
     cs_float midi = 0;
     const char *error = ntomfunc(csound, p->notename->data, &midi);
     if (error != NULL)
-        return INITPERFERRF(init, Str("ntom: invalid note name \"%s\": %s"),
+        return INITPERFERRF(init, Str("ntom: invalid note name \"%s\": %s\n"),
                             p->notename->data, error);
     *p->r = midi;
     return OK;
@@ -1292,8 +1292,8 @@ mton_common(CSOUND *csound, MTON *p, int32_t init) {
     cs_double whole = floor(m);
     /* Leave room for a carry when rounding cents to the next note. */
     if (UNLIKELY(!(whole >= INT32_MIN && whole < (INT32_MAX + 0.0)))) {
-        return init ? INITERR(Str("mton: note number out of range"))
-                    : PERFERR(Str("mton: note number out of range"));
+        return init ? INITERR(Str("mton: note number out of range\n"))
+                    : PERFERR(Str("mton: note number out of range\n"));
     }
     int32_t note = (int32_t)whole;
     int32_t cents = (int32_t)round((m - whole) * 100.0);
@@ -1313,8 +1313,8 @@ mton_common(CSOUND *csound, MTON *p, int32_t init) {
     if (p->Sdst->data == NULL || p->Sdst->size < maxsize) {
         char *data = csound->ReAlloc(csound, p->Sdst->data, maxsize);
         if (UNLIKELY(data == NULL)) {
-            return init ? INITERR(Str("memory allocation failure"))
-                        : PERFERR(Str("memory allocation failure"));
+            return init ? INITERR(Str("memory allocation failure\n"))
+                        : PERFERR(Str("memory allocation failure\n"));
         }
         p->Sdst->data = data;
         p->Sdst->size = maxsize;
@@ -1364,7 +1364,7 @@ ntof_common(CSOUND *csound, NTOM *p, int32_t init) {
     cs_float midi = 0;
     const char *error = ntomfunc(csound, p->notename->data, &midi);
     if (error != NULL)
-        return INITPERFERRF(init, Str("ntof: invalid note name \"%s\": %s"),
+        return INITPERFERRF(init, Str("ntof: invalid note name \"%s\": %s\n"),
                             p->notename->data, error);
     cs_float a4 = csound->GetA4(csound);
     *p->r = mtof_func(midi, a4);
@@ -1446,7 +1446,7 @@ cmp_init(CSOUND *csound, Cmp *p) {
     int32_t mode = op2mode(p->op->data);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
-                           "Expecting <, <=, >, >=, ==, !="));
+                           "Expecting <, <=, >, >=, ==, !=\n"));
     }
     p->mode = mode;
     return OK;
@@ -1460,7 +1460,7 @@ cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
     int32_t mode = op2mode(p->op->data);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
-                           "Expecting <, <=, >, >=, ==, !="));
+                           "Expecting <, <=, >, >=, ==, !=\n"));
     }
     p->mode = mode;
     return OK;
@@ -1479,7 +1479,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
     int32_t mode = op2mode(p->op->data);
     if(mode == -1) {
         return INITERR(Str("cmp: unknown operator. "
-                           "Expecting <, <=, >, >=, ==, !="));
+                           "Expecting <, <=, >, >=, ==, !=\n"));
     }
     p->mode = mode;
     return OK;
@@ -1494,9 +1494,9 @@ cmp2array1_init(CSOUND *csound, Cmp2_array1 *p) {
     int32_t mode1 = op2mode(p->op1->data);
     int32_t mode2 = op2mode(p->op2->data);
     if (mode1 != 2 && mode1 != 3)
-        return INITERR(Str("cmp (ternary comparator): operator 1 expected < or <="));
+        return INITERR(Str("cmp (ternary comparator): operator 1 expected < or <=\n"));
     if (mode2 != 2 && mode2 != 3)
-        return INITERR(Str("cmp (ternary comparator): operator 2 expected < or <="));
+        return INITERR(Str("cmp (ternary comparator): operator 2 expected < or <=\n"));
     p->mode = (mode1 - 2) + 2 * (mode2 - 2);
     return OK;
 }
@@ -1775,16 +1775,16 @@ tabslice_tables(CSOUND *csound, TABSLICE *p, int32_t init) {
     cs_double source = (cs_double)*p->fnsrc, dest = (cs_double)*p->fndst;
     if (UNLIKELY(!(source >= INT32_MIN && source <= (INT32_MAX + 0.0) &&
                    dest >= INT32_MIN && dest <= (INT32_MAX + 0.0))))
-        return init ? INITERR(Str("ftslice: table number out of range"))
-                    : PERFERR(Str("ftslice: table number out of range"));
+        return init ? INITERR(Str("ftslice: table number out of range\n"))
+                    : PERFERR(Str("ftslice: table number out of range\n"));
     p->ftpsrc = csound->FTFind(csound, p->fnsrc);
     if (UNLIKELY(p->ftpsrc == NULL))
-        return init ? INITERRF(Str("Source table not found: %g"), *p->fnsrc)
-                    : PERFERRF(Str("Source table not found: %g"), *p->fnsrc);
+        return init ? INITERRF(Str("Source table not found: %g\n"), *p->fnsrc)
+                    : PERFERRF(Str("Source table not found: %g\n"), *p->fnsrc);
     p->ftpdst = csound->FTFind(csound, p->fndst);
     if (UNLIKELY(p->ftpdst == NULL))
-        return init ? INITERRF(Str("Destination table not found: %g"), *p->fndst)
-                    : PERFERRF(Str("Destination table not found: %g"), *p->fndst);
+        return init ? INITERRF(Str("Destination table not found: %g\n"), *p->fndst)
+                    : PERFERRF(Str("Destination table not found: %g\n"), *p->fndst);
     return OK;
 }
 
@@ -1803,8 +1803,8 @@ tabslice_copy(CSOUND *csound, TABSLICE *p, int32_t init) {
     if (UNLIKELY(!(startval >= 0 && startval <= ftpsrc->flen &&
                    endval >= INT32_MIN && endval < (INT32_MAX + 0.0) + 1 &&
                    stepval >= 1 && stepval < (INT32_MAX + 0.0) + 1)))
-        return init ? INITERR(Str("ftslice: invalid slice bounds or step"))
-                    : PERFERR(Str("ftslice: invalid slice bounds or step"));
+        return init ? INITERR(Str("ftslice: invalid slice bounds or step\n"))
+                    : PERFERR(Str("ftslice: invalid slice bounds or step\n"));
     int32_t start = (int32_t)startval;
     int32_t end = (int32_t)endval;
     int32_t step = (int32_t)stepval;
@@ -1882,13 +1882,13 @@ static int32_t
 ftset_common(CSOUND *csound, FTSET *p, int32_t init) {
     cs_double number = (cs_double)*p->tabnum;
     if (UNLIKELY(!(number >= INT32_MIN && number <= (INT32_MAX + 0.0))))
-        return INITPERFERR(init, Str("ftset: table number out of range"));
+        return INITPERFERR(init, Str("ftset: table number out of range\n"));
     /* Use the same rounding as FTFind when caching the table number. */
     int32_t tabnum = CS_FLOAT2LONG(*p->tabnum);
     if (p->tab == NULL || tabnum != p->lastTabnum) {
         p->tab = csound->FTFind(csound, p->tabnum);
         if (UNLIKELY(p->tab == NULL))
-            return INITPERFERRF(init, Str("Table %g not found"), *p->tabnum);
+            return INITPERFERRF(init, Str("Table %g not found\n"), *p->tabnum);
         p->lastTabnum = tabnum;
     }
     cs_float *data = p->tab->ftable;
@@ -1899,7 +1899,7 @@ ftset_common(CSOUND *csound, FTSET *p, int32_t init) {
     if (UNLIKELY(!(startval >= 0 && startval <= tablen &&
                    endval >= -tablen && endval < (INT32_MAX + 0.0) + 1 &&
                    stepval >= 1 && stepval < (INT32_MAX + 0.0) + 1)))
-        return INITPERFERR(init, Str("ftset: invalid slice bounds or step"));
+        return INITPERFERR(init, Str("ftset: invalid slice bounds or step\n"));
     int32_t start = (int32_t)startval;
     int32_t end = (int32_t)endval;
     int32_t step = (int32_t)stepval;
@@ -1964,22 +1964,22 @@ tab2array_common(CSOUND *csound, TAB2ARRAY *p, int32_t init, int32_t copy) {
     if (init) {
         cs_double number = (cs_double)*p->ifn;
         if (UNLIKELY(!(number >= INT32_MIN && number <= (INT32_MAX + 0.0))))
-            return INITERR(Str("tab2array: table number out of range"));
+            return INITERR(Str("tab2array: table number out of range\n"));
         p->ftp = csound->FTFind(csound, p->ifn);
         if (UNLIKELY(p->ftp == NULL))
             return NOTOK;
     }
     if (UNLIKELY(p->out->dimensions > 1))
-        return init ? INITERR(Str("tab2array: expected a one-dimensional output"))
-                    : PERFERR(Str("tab2array: expected a one-dimensional output"));
+        return init ? INITERR(Str("tab2array: expected a one-dimensional output\n"))
+                    : PERFERR(Str("tab2array: expected a one-dimensional output\n"));
     cs_double startval = (cs_double)*p->kstart;
     cs_double endval = (cs_double)*p->kend;
     cs_double stepval = (cs_double)*p->kstep;
     if (UNLIKELY(!(startval >= 0 && startval <= p->ftp->flen &&
                    endval >= INT32_MIN && endval < (INT32_MAX + 0.0) + 1 &&
                    stepval >= 1 && stepval < (INT32_MAX + 0.0) + 1)))
-        return init ? INITERR(Str("tab2array: invalid slice bounds or step"))
-                    : PERFERR(Str("tab2array: invalid slice bounds or step"));
+        return init ? INITERR(Str("tab2array: invalid slice bounds or step\n"))
+                    : PERFERR(Str("tab2array: invalid slice bounds or step\n"));
     int32_t start = (int32_t)startval;
     int32_t end = (int32_t)endval;
     int32_t step = (int32_t)stepval;
@@ -2070,7 +2070,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
                  a->sizes == NULL || numdims <= 0 ||
                  numdims > ARRAYRESHAPE_MAX_DIMENSIONS ||
                  csound_array_member_count(a, &orig_numitems) != OK)) {
-        return INITERR(Str("reshapearray: invalid array or dimensions"));
+        return INITERR(Str("reshapearray: invalid array or dimensions\n"));
     }
     for(int i=0; i < numdims; i++) {
         cs_double dim = (cs_double)*(p->dims[i]);
@@ -2078,11 +2078,11 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
                      dim > (INT32_MAX + 0.0) || floor(dim) != dim)) {
             return INITERRF(
               Str("reshapearray: dimension %d must be a positive integer, "
-                  "got %g"), i, dim);
+                  "got %g\n"), i, dim);
         }
         newSizes[i] = (int32_t)dim;
         if (UNLIKELY((size_t)newSizes[i] > SIZE_MAX / numitems)) {
-            return INITERR(Str("reshapearray: dimension product overflow"));
+            return INITERR(Str("reshapearray: dimension product overflow\n"));
         }
         numitems *= (size_t)newSizes[i];
     }
@@ -2090,7 +2090,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
     if(numitems != orig_numitems)
       return INITERRF(Str("reshapearray: the number of items does not match. "
                           "The array has %zu elements, but the new shape "
-                          "results in %zu total elements"),
+                          "results in %zu total elements\n"),
                       orig_numitems, numitems);
 
     if (UNLIKELY(csound_array_prepare_opcode_write(
@@ -2104,7 +2104,7 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
         int32_t *resized = csound->ReAlloc(
           csound, a->sizes, sizeof(int32_t) * (size_t)numdims);
         if (UNLIKELY(resized == NULL)) {
-            return INITERR(Str("reshapearray: could not resize dimensions"));
+            return INITERR(Str("reshapearray: could not resize dimensions\n"));
         }
         a->sizes = resized;
         a->dimensions = numdims;
@@ -2174,12 +2174,12 @@ static int32_t
 arrayprint_format(CSOUND *csound, ARRAYDAT *arr, STRINGDAT *format,
                   AUXCH *storage, const char **result) {
     if (UNLIKELY(arr->dimensions < 1 || arr->sizes == NULL))
-        return INITERR(Str("printarray: array not initialised"));
+        return INITERR(Str("printarray: array not initialised\n"));
     char type = arr->arrayType->varTypeName[0];
     if (UNLIKELY(type != 'i' && type != 'k' && type != 'S'))
-        return INITERR(Str("printarray: unsupported array type"));
+        return INITERR(Str("printarray: unsupported array type\n"));
     if (UNLIKELY(type == 'S' && arr->dimensions != 1))
-        return INITERR(Str("cannot print multidimensional string arrays"));
+        return INITERR(Str("cannot print multidimensional string arrays\n"));
     const char *src = format == NULL || format->data[0] == '\0'
       ? (type == 'S' ? default_printfmt_str : default_printfmt) : format->data;
     size_t size = strlen(src) + 3; /* One %d can expand by two characters. */
@@ -2199,10 +2199,10 @@ arrayprint_format(CSOUND *csound, ARRAYDAT *arr, STRINGDAT *format,
             continue;
         }
         if (UNLIKELY(++conversions > 1))
-            return INITERR(Str("printarray: format must use at most one conversion"));
+            return INITERR(Str("printarray: format must use at most one conversion\n"));
         while (*src && strchr("-+ #0", *src)) {
             if (UNLIKELY(type == 'S' && *src != '-'))
-                return INITERR(Str("printarray: format does not match the array type"));
+                return INITERR(Str("printarray: format does not match the array type\n"));
             src++;
         }
         while (*src >= '0' && *src <= '9') src++;
@@ -2219,7 +2219,7 @@ arrayprint_format(CSOUND *csound, ARRAYDAT *arr, STRINGDAT *format,
             if (UNLIKELY(*src == '\0' ||
                          (type == 'S' ? (*src != 's' || long_modifier)
                                       : strchr("aAeEfFgG", *src) == NULL)))
-                return INITERR(Str("printarray: format does not match the array type"));
+                return INITERR(Str("printarray: format does not match the array type\n"));
             size_t length = (size_t)(src - begin) + 1;
             memcpy(dst, begin, length);
             dst += length;
@@ -2377,7 +2377,7 @@ arrayprint_perf(CSOUND *csound, ARRAYPRINTK *p) {
     if (trig < 0 || (trig > 0 && p->lasttrig <= 0)) {
         if (arrprint_(csound, p->in, p->printfmt,
                        p->Slabel != NULL ? p->Slabel->data : NULL) != OK)
-            return PERFERR(Str("printarray: formatting failed"));
+            return PERFERR(Str("printarray: formatting failed\n"));
     }
     p->lasttrig = trig;
     return OK;
@@ -2387,7 +2387,7 @@ static int32_t
 arrayprint_perf_notrig(CSOUND *csound, ARRAYPRINT *p) {
     if (arrprint_(csound, p->in, p->printfmt,
                    p->Slabel != NULL ? p->Slabel->data : NULL) != OK)
-        return PERFERR(Str("printarray: formatting failed"));
+        return PERFERR(Str("printarray: formatting failed\n"));
     return OK;
 }
 
@@ -2396,7 +2396,7 @@ arrayprint_i(CSOUND *csound, ARRAYPRINT *p) {
     if (arrayprint_init_notrig(csound, p) != OK) return NOTOK;
     if (arrprint_(csound, p->in, p->printfmt,
                    p->Slabel != NULL ? p->Slabel->data : NULL) != OK)
-        return INITERR(Str("printarray: formatting failed"));
+        return INITERR(Str("printarray: formatting failed\n"));
     return OK;
 }
 
@@ -2493,13 +2493,13 @@ static int32_t ftprint(CSOUND *csound, FTPRINT *p, int32_t is_init)
     FUNC *ftp = p->ftp;
     uint32_t start, end;
     if (UNLIKELY(ftprint_index(&start, *p->kstart, ftp->flen) != OK))
-        return INITPERFERR(is_init, Str("ftprint: start index out of range"));
+        return INITPERFERR(is_init, Str("ftprint: start index out of range\n"));
     if (trunc((cs_double)*p->kend) == 0) end = ftp->flen;
     else if (UNLIKELY(ftprint_index(&end, *p->kend, ftp->flen) != OK))
-        return INITPERFERR(is_init, Str("ftprint: end index out of range"));
+        return INITPERFERR(is_init, Str("ftprint: end index out of range\n"));
     if (UNLIKELY(!(*p->kstep >= FL(1.0) &&
                    (cs_double)*p->kstep <= (UINT32_MAX + 0.0))))
-        return INITPERFERR(is_init, Str("ftprint: step must be a positive integer"));
+        return INITPERFERR(is_init, Str("ftprint: step must be a positive integer\n"));
     uint32_t step = (uint32_t)*p->kstep;
     uint32_t numcols = (uint32_t)p->numcols, column = 0;
 
@@ -2507,11 +2507,11 @@ static int32_t ftprint(CSOUND *csound, FTPRINT *p, int32_t is_init)
     csound->MessageS(csound, CSOUNDMSG_ORCH, "ftable %d:\n", ftp->fno);
     for (uint32_t i = start; i < end;) {
         if (column == 0 && ftprint_append(csound, &row, " %3u: ", i) != OK)
-            return INITPERFERR(is_init, Str("ftprint: formatting failed"));
+            return INITPERFERR(is_init, Str("ftprint: formatting failed\n"));
         column++;
         if (ftprint_append(csound, &row, "%.4f%c", ftp->ftable[i],
                            column == numcols ? '\n' : ' ') != OK)
-            return INITPERFERR(is_init, Str("ftprint: formatting failed"));
+            return INITPERFERR(is_init, Str("ftprint: formatting failed\n"));
         if (column == numcols) {
             ftprint_flush(csound, &row);
             column = 0;
@@ -2521,7 +2521,7 @@ static int32_t ftprint(CSOUND *csound, FTPRINT *p, int32_t is_init)
         i += step;
     }
     if (column != 0 && ftprint_append(csound, &row, "\n") != OK)
-        return INITPERFERR(is_init, Str("ftprint: formatting failed"));
+        return INITPERFERR(is_init, Str("ftprint: formatting failed\n"));
     ftprint_flush(csound, &row);
     return OK;
 }
@@ -2531,7 +2531,7 @@ static int32_t ftprint_init(CSOUND *csound, FTPRINT *p)
     p->lasttrig = 0;
     if (UNLIKELY(!(*p->inumcols >= FL(0.0) &&
                    (cs_double)*p->inumcols <= (INT32_MAX + 0.0))))
-        return INITERR(Str("ftprint: invalid column count"));
+        return INITERR(Str("ftprint: invalid column count\n"));
     p->numcols = (int32_t)*p->inumcols;
     if (p->numcols == 0) p->numcols = 10;
     p->ftp = csound->FTFind(csound, p->ifn);
@@ -2566,9 +2566,9 @@ array_binop_prepare(CSOUND *csound, BINOP_AAA *p, int32_t init,
                  csound_array_member_count(p->in1, &count1) != OK ||
                  csound_array_member_count(p->in2, &count2) != OK ||
                  count1 > INT32_MAX || count2 > INT32_MAX))
-        return INITPERFERR(init, Str("array bitwise: invalid array size"));
+        return INITPERFERR(init, Str("array bitwise: invalid array size\n"));
     if (UNLIKELY(count1 != count2))
-        return INITPERFERR(init, Str("array bitwise: operand lengths do not match"));
+        return INITPERFERR(init, Str("array bitwise: operand lengths do not match\n"));
     /* Keep the existing flat output, using the current input lengths. */
     *numitems = (int32_t)count1;
     if (init) {
@@ -2717,7 +2717,7 @@ static int32_t string_ensure(CSOUND *csound, STRINGDAT *s, size_t size) {
 
     char *data = csound->ReAlloc(csound, s->data, size);
     if (UNLIKELY(data == NULL))
-        return INITERR(Str("memory allocation failure"));
+        return INITERR(Str("memory allocation failure\n"));
 
     s->data = data;
     s->size = size;
@@ -2762,13 +2762,13 @@ stripr(CSOUND *csound, STR1_1 *p) {
 static int32_t
 stripside(CSOUND *csound, STR1_1 *p) {
     if(p->which->size < 2)
-        return INITERR("which should not be empty");
+        return INITERR("which should not be empty\n");
     char which = p->which->data[0];
     if(which == 'l')
         return stripl(csound, p);
     else if (which == 'r')
         return stripr(csound, p);
-    return INITERRF("which should be one of 'l' or 'r', got %s", p->which->data);
+    return INITERRF("which should be one of 'l' or 'r', got %s\n", p->which->data);
 }
 
 // Return the trimmed length and set the first non-space byte offset.
@@ -2854,10 +2854,10 @@ sprintf_opcode_(CSOUND *csound, PRINTLN *p)
   cs_float *parm;
 
   if (UNLIKELY(((OPDS*)p)->optext->t.inArgCount > 31))
-    return PERFERR(Str("too many arguments"));
+    return PERFERR(Str("too many arguments\n"));
   for (j = 0; j < numVals; j++) {
     if (UNLIKELY(IS_AUDIO_ARG(kvals[j])))
-      return PERFERR(Str("a-rate argument not allowed"));
+      return PERFERR(Str("a-rate argument not allowed\n"));
   }
   j = 0;
 
@@ -2866,7 +2866,7 @@ sprintf_opcode_(CSOUND *csound, PRINTLN *p)
   if (str->data == NULL || str->size < initialSize) {
     char *data = csound->ReAlloc(csound, str->data, initialSize);
     if (UNLIKELY(data == NULL))
-      return PERFERR(Str("memory allocation failure"));
+      return PERFERR(Str("memory allocation failure\n"));
     str->data = data;
     str->size = initialSize;
   }
@@ -2895,13 +2895,13 @@ sprintf_opcode_(CSOUND *csound, PRINTLN *p)
     if (segwaiting != NULL) {
       strseg[i] = '\0';
       if (UNLIKELY(numVals <= 0)) {
-        error = Str("insufficient arguments for format");
+        error = Str("insufficient arguments for format\n");
         goto fail;
       }
       numVals--;
       parm = kvals[j++];
       if (UNLIKELY(IS_STRING_ARG(parm) != (*segwaiting == 's'))) {
-        error = Str("argument type inconsistent with format");
+        error = Str("argument type inconsistent with format\n");
         goto fail;
       }
       while (1) {
@@ -2923,23 +2923,23 @@ sprintf_opcode_(CSOUND *csound, PRINTLN *p)
                        ((STRINGDAT*)parm)->data);
           break;
         default:
-          error = Str("invalid format string");
+          error = Str("invalid format string\n");
           goto fail;
         }
         if (UNLIKELY(n < 0)) {
-          error = Str("formatting failed");
+          error = Str("formatting failed\n");
           goto fail;
         }
         if ((size_t)n < maxChars)
           break;
         if (UNLIKELY((size_t)n >= MAX_STRINGDAT_SIZE - len)) {
-          error = Str("formatted string is too long");
+          error = Str("formatted string is too long\n");
           goto fail;
         }
         size_t size = len + (size_t)n + 1;
         char *data = csound->ReAlloc(csound, str->data, size);
         if (UNLIKELY(data == NULL)) {
-          error = Str("memory allocation failure");
+          error = Str("memory allocation failure\n");
           goto fail;
         }
         str->data = data;
@@ -2961,12 +2961,12 @@ sprintf_opcode_(CSOUND *csound, PRINTLN *p)
       segwaiting++;
     if (*segwaiting == '\0' ||
         strchr("diouxXeEfFgGcs", *segwaiting) == NULL) {
-      error = Str("invalid format string");
+      error = Str("invalid format string\n");
       goto fail;
     }
   }
   if (UNLIKELY(numVals > 0)) {
-    error = Str("too many arguments for format");
+    error = Str("too many arguments for format\n");
     goto fail;
   }
   return OK;

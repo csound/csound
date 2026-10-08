@@ -84,22 +84,22 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     nvals = ff->flen;
     nargs = ff->e.pcnt - 4;
     if (UNLIKELY(nargs < 2)) {
-      return csound->FtError(ff, "%s", Str("insufficient arguments for fareytable"));
+      return csound->FtError(ff, "%s\n", Str("insufficient arguments for fareytable"));
     }
     ff->e.p[4] *= -1;
     pp = &(ff->e.p[5]);
     if (UNLIKELY(!(*pp >= FL(1.0) && (cs_double)*pp <= (INT32_MAX + 0.0))))
-      return csound->FtError(ff, Str("farey: invalid sequence order"));
+      return csound->FtError(ff, Str("farey: invalid sequence order\n"));
     fareyseq = (int32_t)*pp;
     pp2 = &(ff->e.p[6]);
     if (UNLIKELY(!(*pp2 >= FL(0.0) && *pp2 < FL(5.0))))
-      return csound->FtError(ff, Str("farey: mode must be between 0 and 4"));
+      return csound->FtError(ff, Str("farey: mode must be between 0 and 4\n"));
     mode = (int32_t)*pp2;
     farey_length = FareyLength(fareyseq);
     if (UNLIKELY(farey_length == 0 ||
                  (size_t)farey_length > SIZE_MAX / sizeof(RATIO)))
-      return csound->FtError(ff, Str("farey: sequence is too large"));
-    if (ff->flen <= 0) return csound->FtError(ff, "%s", Str("Illegal table size"));
+      return csound->FtError(ff, Str("farey: sequence is too large\n"));
+    if (ff->flen <= 0) return csound->FtError(ff, "%s\n", Str("Illegal table size"));
     flist = (RATIO*)csound->Calloc(csound, (size_t)farey_length * sizeof(RATIO));
 
     GenerateFarey (fareyseq, flist, farey_length);

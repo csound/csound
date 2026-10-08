@@ -45,7 +45,7 @@
 
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))            \
-      csound->Die(csound, Str("mixer: error: %s"), MSG);
+      csound->Die(csound, Str("mixer: error: %s\n"), MSG);
 
 typedef struct scalepoint {
     cs_float y0;
@@ -196,21 +196,21 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
     mixin[n].fulltable = NULL; mixin[n].use_table = 0;
     for (i=1; i<5; i++) mixin[n].channels[i] = 0;
     if (UNLIKELY(!(--argc)))
-      usage(csound,"%s", Str("Insufficient arguments"));
+      usage(csound,"%s\n", Str("Insufficient arguments"));
     do {
       s = *++argv;
       if (*s++ == '-')                  /* read all flags:  */
         while ((c = *s++) != '\0')
           switch(c) {
           case 'o':
-            FIND(Str("no outfilename"))
+            FIND(Str("no outfilename\n"))
             O->outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (UNLIKELY(strcmp(O->outfilename, "stdin") == 0))
-              csound->Die(csound, "%s", Str("mixer: -o cannot be stdin"));
+              csound->Die(csound, "%s\n", Str("mixer: -o cannot be stdin"));
 #if defined(WIN32)
             if (UNLIKELY(strcmp(O->outfilename,"stdout") == 0)) {
-              csound->Die(csound, "%s", Str("mixer: stdout audio not supported"));
+              csound->Die(csound, "%s\n", Str("mixer: stdout audio not supported"));
             }
 #endif
             break;
@@ -224,7 +224,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
             O->filetyp = TYP_WAV;       /* WAV output request  */
             break;
           case 'F':
-            FIND(Str("no scale factor"));
+            FIND(Str("no scale factor\n"));
             if (isdigit(*s) || *s == '-' || *s == '+')
               mixin[n].factor = (cs_float) atof(s);
             else {
@@ -235,20 +235,20 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
             while (*++s);
             break;
           case 'S':
-            FIND(Str("no start sample"));
+            FIND(Str("no start sample\n"));
             mixin[n].start = atoi(s);
             while (*++s);
             if (UNLIKELY(mixin[n].time >= FL(0.0))) {
-              csound->Warning(csound, "%s", Str("-S overriding -T"));
+              csound->Warning(csound, "%s\n", Str("-S overriding -T"));
               mixin[n].time = -FL(1.0);
             }
             break;
           case 'T':
-            FIND(Str("no start time"));
+            FIND(Str("no start time\n"));
             mixin[n].time = (cs_float) atof(s);
             while (*++s);
             if (UNLIKELY(mixin[n].start >= 0)) {
-              csound->Warning(csound, "%s", Str("-T overriding -S"));
+              csound->Warning(csound, "%s\n", Str("-T overriding -S"));
               mixin[n].start = -1;
             }
             break;
@@ -267,14 +267,14 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
           case '^':
             {
               int32_t src = c, dst;
-              FIND(Str("no source channel number"));
+              FIND(Str("no source channel number\n"));
               src = atoi(s);
               while (*++s);
-              FIND(Str("no destination channel number"));
+              FIND(Str("no destination channel number\n"));
               dst = atoi(s);
               while (*++s);
               if (UNLIKELY(src > 4 || src < 1 || dst > 4 || dst < 1)) {
-                csound->Warning(csound, "%s",
+                csound->Warning(csound, "%s\n",
                                 Str("illegal channel number ignored"));
                 break;
               }
@@ -314,7 +314,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
             pp->debug = 1;
             break;
           default:
-            usage(csound, Str("unknown flag -%c"), c);
+            usage(csound, Str("unknown flag -%c\n"), c);
           }
       else {
         int32_t i;
@@ -322,7 +322,7 @@ static int32_t mixer_main(CSOUND *csound, int32_t argc, char **argv)
         if (!mixin[n].non_clear)
           for (i=1; i<5; i++) mixin[n].channels[i] = i;
         if (UNLIKELY(n++ >= NUMBER_OF_FILES-1)) {
-          usage(csound,Str("Too many mixin"));
+          usage(csound,Str("Too many mixin\n"));
         }
         mixin[n].start = -1;
         mixin[n].time = -1;
@@ -439,7 +439,7 @@ InitScaleTable(MIXER_GLOBALS *pp, int32_t i)
 
     if (UNLIKELY(csound->FileOpen(csound, &f, CSFILE_STD, mixin[i].fname,
                                    "r", NULL, CSFTYPE_FLOATS_TEXT, 0) == NULL)) {
-      csound->Die(csound, Str("Cannot open scale table file %s"),
+      csound->Die(csound, Str("Cannot open scale table file %s\n"),
                           mixin[i].fname);
       return;   /* not reached */
     }

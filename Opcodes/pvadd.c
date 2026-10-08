@@ -158,7 +158,7 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
       frIndx = (cs_float) p->maxFr;
       if (p->prFlg) {
         p->prFlg = 0;   /* false */
-        csound->Warning(csound, "%s", Str("PVADD ktimpnt truncated to last frame"));
+        csound->Warning(csound, "%s\n", Str("PVADD ktimpnt truncated to last frame"));
       }
     }
     FetchInForAdd(p->frPtr, p->buf, size, frIndx,
@@ -207,9 +207,9 @@ int32_t pvadd(CSOUND *csound, PVADD *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), "%s", Str("pvadd: not initialised"));
+    return csound->PerfError(csound, &(p->h), "%s\n", Str("pvadd: not initialised"));
  err2:
-    return csound->PerfError(csound, &(p->h), "%s", Str("PVADD timpnt < 0"));
+    return csound->PerfError(csound, &(p->h), "%s\n", Str("PVADD timpnt < 0"));
 }
 
 int32_t pvaddset(CSOUND *csound, PVADD *p){
@@ -226,22 +226,22 @@ static int32_t pvx_loadfile(CSOUND *csound, const char *fname, PVADD *p)
     PVOCEX_MEMFILE  pp;
 
     if (UNLIKELY(csound->PVOCEX_LoadFile(csound, fname, &pp) != 0)) {
-      return csound->InitError(csound, Str("PVADD cannot load %s"), fname);
+      return csound->InitError(csound, Str("PVADD cannot load %s\n"), fname);
     }
     /* fft size must be <= PVFRAMSIZE (=8192) for Csound */
     if (UNLIKELY(pp.fftsize > PVFRAMSIZE)) {
       return csound->InitError(csound, Str("pvoc-ex file %s: "
-                                           "FFT size %d too large for Csound"),
+                                           "FFT size %d too large for Csound\n"),
                                fname, (int32_t
                                        ) pp.fftsize);
     }
     if (UNLIKELY(pp.fftsize < 128)) {
-      return csound->InitError(csound, Str("PV frame %d seems too small in %s"),
+      return csound->InitError(csound, Str("PV frame %d seems too small in %s\n"),
                                pp.fftsize, fname);
     }
     /* have to reject m/c files for now, until opcodes upgraded */
     if (UNLIKELY(pp.chans > 1)) {
-      return csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
+      return csound->InitError(csound, Str("pvoc-ex file %s is not mono\n"), fname);
     }
     /* ignore the window spec until we can use it! */
     p->frSiz    = pp.fftsize;

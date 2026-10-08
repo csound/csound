@@ -47,6 +47,8 @@ extern "C" {
   void fdchclose(CSOUND *, INSDS *);
   char *csoundStrdup(CSOUND*, const char*);
   char *cs_strndup(CSOUND*, const char*, size_t);
+  /* Messaging functions never append a newline. Complete diagnostics must
+     include their line endings in the caller's format or text. */
   CS_PRINTF2  void synterr(CSOUND *, const char *, ...);
   CS_NORETURN CS_PRINTF2  void csoundDie(CSOUND *, const char *, ...);
   CS_PRINTF2  int32_t csoundInitError(CSOUND *, const char *, ...);

@@ -79,7 +79,7 @@ int32_t mandolinset(CSOUND *csound, MANDOL *p)
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL))
       p->soundfile = ftp;
     else {                                      /* Expect pluck wave */
-      return csound->InitError(csound, "%s", Str("No table for Mandolin"));
+      return csound->InitError(csound, "%s\n", Str("No table for Mandolin"));
     }
     if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation if negative. */
       cs_double frequency = *p->lowestFreq;
@@ -87,14 +87,14 @@ int32_t mandolinset(CSOUND *csound, MANDOL *p)
       if (frequency == 0.0) {
         frequency = *p->frequency;
         if (frequency == 0.0) {
-          csound->Warning(csound, "%s", Str("No base frequency for mandolin"));
+          csound->Warning(csound, "%s\n", Str("No base frequency for mandolin"));
           frequency = 50.0;
         }
       }
       /* Allow the documented detuning range down to 0.9. */
       length = CS_ESR / (frequency * 0.9) + 1.0;
       if (UNLIKELY(!(length >= 3.0 && length <= (INT32_MAX + 0.0))))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("Invalid minimum mandolin frequency"));
       p->length = (int32_t) length;
       p->lastFreq = FL(0.0);
@@ -118,7 +118,7 @@ int32_t mandolinset(CSOUND *csound, MANDOL *p)
       }
     }
     else if (UNLIKELY(p->length == 0))
-      return csound->InitError(csound, "%s", Str("mandolin: not initialised"));
+      return csound->InitError(csound, "%s\n", Str("mandolin: not initialised"));
     return OK;
 }
 
@@ -148,7 +148,7 @@ int32_t mandolin(CSOUND *csound, MANDOL *p)
     if (frequencyChanged) {
       cs_double period = CS_ESR / (cs_double) frequency;
       if (UNLIKELY(!(period > 0.0 && period <= (INT32_MAX + 0.0))))
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("Invalid mandolin frequency"));
       if (p->lastLength == 0.0)
         p->dampTime = (int32_t) period;
@@ -157,7 +157,7 @@ int32_t mandolin(CSOUND *csound, MANDOL *p)
     }
     if (frequencyChanged || detune != p->lastDetune) {
       if (UNLIKELY(!(detune > FL(0.0))))
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("Invalid mandolin detuning"));
       DLineA_setDelay(csound, &p->delayLine1,
                      mandolin_delay(p->lastLength / detune - 0.5, p->length));
@@ -168,7 +168,7 @@ int32_t mandolin(CSOUND *csound, MANDOL *p)
     if (frequencyChanged || *p->pluckPos != p->lastPluck) {
       cs_float pluck = *p->pluckPos;
       if (UNLIKELY(!(pluck >= FL(0.0) && pluck <= FL(1.0))))
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("Invalid mandolin pluck position"));
       DLineL_setDelay(&p->combDelay, (cs_float)
                      fmin(0.5 * pluck * p->lastLength, p->length - 1.0));

@@ -213,7 +213,7 @@ static int32_t resonzset(CSOUND *csound, RESONZ *p)
     int32_t scaletype;
     p->scaletype = scaletype = (int32_t)*p->iscl;
     if (UNLIKELY(UNLIKELY(scaletype && scaletype != 1 && scaletype != 2))) {
-      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+      return csound->InitError(csound, Str("illegal reson iscl value, %f\n"),
                                (float)*p->iscl);
     }
     if (!(*p->istor))
@@ -442,7 +442,7 @@ static int32_t phaser2set(CSOUND *csound, PHASER2 *p)
     p->modetype = modetype = (int32_t)*p->mode;
     if (UNLIKELY(UNLIKELY(modetype && modetype != 1 && modetype != 2))) {
       return csound->InitError(csound,
-                               "%s", Str("Phaser mode must be either 1 or 2"));
+                               "%s\n", Str("Phaser mode must be either 1 or 2"));
     }
     loop = p->loop = (int32_t) CS_FLOAT2LONG(*p->order);
 

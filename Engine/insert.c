@@ -894,12 +894,12 @@ int32_t init0(CSOUND *csound)
   INSDS     *ip;
 
   if (UNLIKELY(tp == NULL))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("instrument 0 is not compiled"));
 
   csound->curip = ip = allocate_or_take_instance(csound, tp, 0);
   if (UNLIKELY(ip == NULL))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("could not allocate instrument 0"));
   csound->ids = (OPDS*) ip;
   tp->active++;
@@ -1115,7 +1115,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     if (UNLIKELY(csound->cpu_power_busy > FL(100.0))) {
       csound->cpu_power_busy -= tp->cpuload;
       csoundWarning(csound, Str("cannot allocate last note because "
-                                "it exceeds 100%% of cpu time"));
+                                "it exceeds 100%% of cpu time\n"));
       return(0);
     }
   }
@@ -1124,7 +1124,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     if (tp->active >= tp->maxalloc) {
       release_cpu_power(csound, tp);
       csoundWarning(csound, Str("cannot allocate last note because it exceeds "
-                                "instr maxalloc"));
+                                "instr maxalloc\n"));
       return(0);
     }
   }
@@ -1148,7 +1148,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       release_cpu_power(csound, tp);
       return csound->InitError(csound,
                                Str("cannot reinitialize instrument %d while "
-                                   "it is being turned off"), insno);
+                                   "it is being turned off\n"), insno);
     }
   }
 
@@ -1171,7 +1171,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     if (UNLIKELY(ip == NULL)) {
       release_cpu_power(csound, tp);
       return csound->InitError(csound,
-                               Str("could not allocate instrument %d"), insno);
+                               Str("could not allocate instrument %d\n"), insno);
     }
     if(csoundGetDebug(csound) & DEBUG_RUNTIME)
       csoundMessage(csound, "insert(): instance = %p\n", ip);
@@ -1192,7 +1192,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       release_cpu_power(csound, tp);
       return csound->InitError(csound,
                                Str("cannot initialize instrument %d while "
-                                   "it is being turned off"), insno);
+                                   "it is being turned off\n"), insno);
     }
     /* Add an active instrument */
     tp->active++;
@@ -1260,10 +1260,10 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
                !tp->psetdata)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
-      csoundWarning(csound, Str("instr %s uses %d p-fields but is given %d"),
+      csoundWarning(csound, Str("instr %s uses %d p-fields but is given %d\n"),
                     name, n, newevtp->pcnt);
     else
-      csoundWarning(csound, Str("instr %d uses %d p-fields but is given %d"),
+      csoundWarning(csound, Str("instr %d uses %d p-fields but is given %d\n"),
                     insno, n, newevtp->pcnt);
   }
   if (newevtp->p3orig >= FL(0.0))
@@ -1446,7 +1446,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
       /* if there is no more cpu time */
       csound->cpu_power_busy -= tp->cpuload;
       csoundWarning(csound, Str("cannot allocate last note because "
-                                "it exceeds 100%% of cpu time"));
+                                "it exceeds 100%% of cpu time\n"));
       return(0);
     }
   }
@@ -1455,7 +1455,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     if (tp->active >= tp->maxalloc) {
       release_cpu_power(csound, tp);
       csoundWarning(csound, Str("cannot allocate last note because it exceeds "
-                                "instr maxalloc"));
+                                "instr maxalloc\n"));
       return(0);
 
     }
@@ -1491,7 +1491,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     tp->instcnt--;
     release_cpu_power(csound, tp);
     return csound->InitError(csound,
-                             Str("could not allocate instrument %d"), insno);
+                             Str("could not allocate instrument %d\n"), insno);
   }
   ATOMIC_SET(ip->init_done, 0);
   ip->insno = (int16) insno;
@@ -1502,7 +1502,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
     release_cpu_power(csound, tp);
     return csound->InitError(csound,
                              Str("cannot initialize instrument %d while "
-                                 "it is being turned off"), insno);
+                                 "it is being turned off\n"), insno);
   }
 
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME))
@@ -1510,7 +1510,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   if (UNLIKELY((prvp = *ipp) != NULL)) {          /*   if key currently activ */
     if(O->msglevel & 0x400)
     csoundWarning(csound,
-                  Str("MIDI note overlaps with key %d on same channel"),
+                  Str("MIDI note overlaps with key %d on same channel\n"),
                   (int32_t) mep->dat1);
     while (prvp->nxtolap != NULL)       /*   append to overlap list */
       prvp = prvp->nxtolap;
@@ -1846,7 +1846,7 @@ static DEACT_FRAME *deact_grow_stack(CSOUND *csound, DEACT_FRAME *stack,
 
   if (UNLIKELY(*capacity > SIZE_MAX / 2 ||
                *capacity * 2 > SIZE_MAX / sizeof(DEACT_FRAME))) {
-    csound->Die(csound, "%s", Str("deact: traversal depth overflow"));
+    csound->Die(csound, "%s\n", Str("deact: traversal depth overflow"));
     return stack;
   }
 
@@ -1863,7 +1863,7 @@ static DEACT_FRAME *deact_grow_stack(CSOUND *csound, DEACT_FRAME *stack,
   }
 
   if (UNLIKELY(grown == NULL)) {
-    csound->Die(csound, "%s", Str("deact: could not grow traversal stack"));
+    csound->Die(csound, "%s\n", Str("deact: could not grow traversal stack"));
     return stack;
   }
   *capacity = newCapacity;
@@ -2485,7 +2485,7 @@ static void setup_opcode_argpp(
           if (UNLIKELY(var == NULL)) {
             csound->Die(csound,
                         Str("setup_opcode_argpp:"
-                            " NULL local variable pointer for out-arg of %s"),
+                            " NULL local variable pointer for out-arg of %s\n"),
                         ep->opname ? ep->opname : "(null)");
           } else {
             fltp = lclbas + var->memBlockIndex;
@@ -2515,7 +2515,7 @@ static void setup_opcode_argpp(
             }
             if (!found) {
               csound->Die(csound,
-                Str("setup_opcode_argpp: struct member '%s' not found in structPath '%s' for %s"),
+                Str("setup_opcode_argpp: struct member '%s' not found in structPath '%s' for %s\n"),
                 next, arg->structPath, ep->opname ? ep->opname : "(null)");
               csound->Free(csound, path);
             }
@@ -2530,7 +2530,7 @@ static void setup_opcode_argpp(
       }
       else {
         csound->Die(csound,
-          Str("setup_opcode_argpp: Unhandled argument type (%d) for out-arg of %s"),
+          Str("setup_opcode_argpp: Unhandled argument type (%d) for out-arg of %s\n"),
           arg->type,
           ep->opname ? ep->opname : "(null)");
       }
@@ -2754,7 +2754,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     // Treat this as a fatal initialization error
     csound->InitError(csound,
                       Str("Fatal initialization error in instantiate: tp->varPool is null or corrupted (tp=%p). "
-                      "This indicates a serious problem with instrument initialization."),
+                      "This indicates a serious problem with instrument initialization.\n"),
                       (void*)tp);
     return NULL;  // Abort the instantiation path
   }
@@ -2891,7 +2891,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
 
 
   if (UNLIKELY(nxtopds > opdslim))
-    csoundDie(csound, Str("inconsistent opds total"));
+    csoundDie(csound, Str("inconsistent opds total\n"));
 
   if (link) {
     /* Publish only after the instance and its opcode graph are complete. */
@@ -3106,7 +3106,7 @@ int32_t init_instance(CSOUND *csound, INSDS *ip,
     csound->init_event = initevt;
     return csound->InitError(csound,
                              Str("cannot initialize instrument %d while "
-                                 "it is being turned off"), ip->insno);
+                                 "it is being turned off\n"), ip->insno);
   }
   error = init_pass(csound, ip);
   initResult = instance_init_finish(csound, ip);

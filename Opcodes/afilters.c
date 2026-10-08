@@ -50,11 +50,11 @@ static int32_t atonsetx(CSOUND *csound, TONEX *p)
     p->prvhp = *p->khp;
     TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
     if (UNLIKELY(!isfinite(order) || order > (INT32_MAX + 0.0) - 0.5))
-      return csound->InitError(csound, Str("tonex: invalid order %f"),
+      return csound->InitError(csound, Str("tonex: invalid order %f\n"),
                                *p->ord);
     new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
     if (UNLIKELY((size_t)new_loop > SIZE_MAX / sizeof(cs_double)))
-      return csound->InitError(csound, Str("tonex: order is too large"));
+      return csound->InitError(csound, Str("tonex: order is too large\n"));
     clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
     p->loop = new_loop;
     state_size = (size_t)p->loop * sizeof(cs_double);
@@ -73,7 +73,7 @@ static int32_t arsnset(CSOUND *csound, RESON *p)
   int32_t scale;
   p->scale = scale = (int32_t)*p->iscl;
   if (UNLIKELY(scale && scale != 1 && scale != 2)) {
-    return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+    return csound->InitError(csound, Str("illegal reson iscl value, %f\n"),
                              *p->iscl);
   }
   p->prvcf = p->prvbw = -100.0;

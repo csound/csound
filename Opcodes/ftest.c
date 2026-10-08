@@ -36,7 +36,7 @@ static int32_t tanhtable(FGDATA *ff, FUNC *ftp)
   cs_float   end   = ff->e.p[6];
   cs_float   resc  = ff->e.p[7];
 
-  if (ftp->flen <= 0) return csound->FtError(ff, "%s", Str("Illegal zero table size"));
+  if (ftp->flen <= 0) return csound->FtError(ff, "%s\n", Str("Illegal zero table size"));
   cs_float   step  = (end - start) / (cs_float) ftp->flen;
   cs_float   x;
   int32_t     i;
@@ -56,7 +56,7 @@ static int32_t exptable(FGDATA *ff, FUNC *ftp)
   cs_float   end   = ff->e.p[6];
   cs_float   resc  = ff->e.p[7];
 
-  if (ftp->flen <= 0) return csound->FtError(ff, "%s", Str("Illegal zero table size"));
+  if (ftp->flen <= 0) return csound->FtError(ff, "%s\n", Str("Illegal zero table size"));
   cs_float   step  = (end - start) / (cs_float) ftp->flen;
   cs_float   x;
   int32_t     i;
@@ -79,7 +79,7 @@ static int32_t sonetable(FGDATA *ff, FUNC *ftp)
   cs_float   eqlp  = ff->e.p[7];
   cs_float   resc  = ff->e.p[8];
 
-  if (ftp->flen <= 0) return csound->FtError(ff, "%s", Str("Illegal zero table size"));
+  if (ftp->flen <= 0) return csound->FtError(ff, "%s\n", Str("Illegal zero table size"));
   cs_float   step  = (end - start) / (cs_float) ftp->flen;
   cs_float   x;
   int32_t     i;
@@ -137,15 +137,15 @@ static int32_t wavetable(FGDATA *ff, FUNC *ftp)
     
 
   if (ftp->flen <= 0)
-    return csound->FtError(ff, "%s", Str("Illegal zero table size %d"));
+    return csound->FtError(ff, "%s\n", Str("Illegal zero table size %d"));
   srcfil = csound->FTFind(csound, &ff->e.p[5]);
   if (srcfil==NULL)
-    return csound->InitError(csound, "%s", Str("ftable number does not exist\n"));
+    return csound->InitError(csound, "%s\n", Str("ftable number does not exist\n"));
   if (UNLIKELY(ftp->flen < srcfil->flen))
-    return csound->FtError(ff, "%s",
+    return csound->FtError(ff, "%s\n",
                            Str("wave table size is smaller than source table size"));
   if (UNLIKELY(nargs < 3))
-    csound->Warning(csound, "%s", Str("insufficient arguments"));
+    csound->Warning(csound, "%s\n", Str("insufficient arguments"));
   fp_filter = srcfil->ftable;
   newLen  = srcfil->flen;
   mirr = (cs_float*) csound->Malloc(csound, sizeof(cs_float)*srcfil->flen);

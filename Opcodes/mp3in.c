@@ -90,12 +90,12 @@ static int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
   mp3in_cleanup(csound, p);
   mpa = mp3dec_init(csound);
   if (UNLIKELY(!mpa)) {
-    return csound->InitError(csound, "%s", Str("Not enough memory\n"));
+    return csound->InitError(csound, "%s\n", Str("Not enough memory\n"));
   }
 
   if (UNLIKELY((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->InitError(csound, "%s", mp3dec_error(r));
+    return csound->InitError(csound, "%s\n", mp3dec_error(r));
   }
 
 
@@ -112,7 +112,7 @@ static int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
   if (UNLIKELY(mp3dec_open_file(mpa, name, &f) == NULL)) {
     mp3dec_uninit(mpa);
     return
-      csound->InitError(csound, Str("mp3in: %s: failed to open file"), name);
+      csound->InitError(csound, Str("mp3in: %s: failed to open file\n"), name);
   }
   /* HOW TO record file handle so that it will be closed at note-off */
   /* memset(&(p->fdch), 0, sizeof(FDCH)); */
@@ -120,12 +120,12 @@ static int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
   /* csoundFDRecord(csound, &(p->fdch)); */
   if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->InitError(csound, "%s", mp3dec_error(r));
+    return csound->InitError(csound, "%s\n", mp3dec_error(r));
   }
   if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
                MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->InitError(csound, "%s", mp3dec_error(r));
+    return csound->InitError(csound, "%s\n", mp3dec_error(r));
   }
   skip = (int32_t)(*p->iSkipTime*CS_ESR);
 
@@ -267,11 +267,11 @@ static int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
   /* open file */
   mpa = mp3dec_init(csound);
   if (UNLIKELY(!mpa)) {
-    return csound->InitError(csound, "%s", Str("Not enough memory\n"));
+    return csound->InitError(csound, "%s\n", Str("Not enough memory\n"));
   }
   if (UNLIKELY((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->InitError(csound, "%s", mp3dec_error(r));
+    return csound->InitError(csound, "%s\n", mp3dec_error(r));
   }
   /* FIXME: name can overflow with very long string -- safely truncated */
   if (stringname==0){
@@ -285,16 +285,16 @@ static int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
   if (UNLIKELY(mp3dec_open_file(mpa, name, &f) == NULL)) {
     mp3dec_uninit(mpa);
     return
-      csound->InitError(csound,  Str("mp3in: %s: failed to open file"), name);
+      csound->InitError(csound,  Str("mp3in: %s: failed to open file\n"), name);
   }
   if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->InitError(csound, "%s", mp3dec_error(r));
+    return csound->InitError(csound, "%s\n", mp3dec_error(r));
   }
   if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
                MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->InitError(csound, "%s", mp3dec_error(r));
+    return csound->InitError(csound, "%s\n", mp3dec_error(r));
   }
   if(!strcmp(GetOpcodeName(&p->h), "mp3len"))
     *p->ir = (cs_float) mpainfo.duration;
@@ -367,18 +367,18 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
   if (*p->iN != FL(0.0)) {
     if (UNLIKELY(!(*p->iN >= FL(2.0) &&
                    (cs_double)*p->iN <= INT32_MAX / (BUFS * sizeof(cs_float)))))
-      return csound->InitError(csound, "%s", Str("mp3scal: invalid FFT size"));
+      return csound->InitError(csound, "%s\n", Str("mp3scal: invalid FFT size"));
     int32_t requested = (int32_t)*p->iN;
     for (N = 1; requested > 1; requested >>= 1)
       N <<= 1;
   }
   if (*p->idecim != FL(0.0)) {
     if (UNLIKELY(!(*p->idecim >= FL(1.0) && *p->idecim <= N)))
-      return csound->InitError(csound, "%s", Str("mp3scal: invalid decimation"));
+      return csound->InitError(csound, "%s\n", Str("mp3scal: invalid decimation"));
     decim = (int32_t)*p->idecim;
   }
   if (UNLIKELY(decim > N || N > INT32_MAX / (decim * sizeof(cs_float))))
-    return csound->InitError(csound, "%s", Str("mp3scal: invalid decimation"));
+    return csound->InitError(csound, "%s\n", Str("mp3scal: invalid decimation"));
 
   p->hsize = N/decim;
   p->cnt = p->hsize;
@@ -455,29 +455,29 @@ static int32_t sinit3_(CSOUND *csound, DATASPACE *p)
   name = ((STRINGDAT *)p->knum)->data;
   mpa = mp3dec_init(csound);
   if (UNLIKELY(!mpa)) {
-    return csound->InitError(csound, "%s", Str("Not enough memory\n"));
+    return csound->InitError(csound, "%s\n", Str("Not enough memory\n"));
   }
   if (UNLIKELY((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->InitError(csound, "%s", mp3dec_error(r));
+    return csound->InitError(csound, "%s\n", mp3dec_error(r));
   }
 
   if (UNLIKELY(mp3dec_open_file(mpa, name, &f) == NULL)) {
     mp3dec_uninit(mpa);
     return
-      csound->InitError(csound,  Str("mp3scale: %s: failed to open file"), name);
+      csound->InitError(csound,  Str("mp3scale: %s: failed to open file\n"), name);
   }// else
   // csound->Message(csound, "%s", Str("mp3scale: open %s\n"), name);
   if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->InitError(csound, "%s", mp3dec_error(r));
+    return csound->InitError(csound, "%s\n", mp3dec_error(r));
   } // else
     // csound->Message(csound, "%s", Str("mp3scale: init %s\n"), name);
 
   if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
                MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->InitError(csound, "%s", mp3dec_error(r));
+    return csound->InitError(csound, "%s\n", mp3dec_error(r));
   }
 
   /* {
@@ -914,7 +914,7 @@ static int32_t gen49raw(FGDATA *ff, FUNC *ftp)
   int32_t flen, nchanls, def = 0;
 
   if (UNLIKELY(ff->e.pcnt < 7)) {
-    return csound->FtError(ff, "%s", Str("insufficient arguments"));
+    return csound->FtError(ff, "%s\n", Str("insufficient arguments"));
   }
   {
     int32 filno /*= (int32) CS_FLOAT2LRND(ff->e.p[5])*/;
@@ -927,18 +927,18 @@ static int32_t gen49raw(FGDATA *ff, FUNC *ftp)
         if (len > 0 && name[len - 1] == '"') len--;
       }
       if (UNLIKELY(len >= sizeof(sfname)))
-        return csound->FtError(ff, "%s", Str("GEN49: filename too long"));
+        return csound->FtError(ff, "%s\n", Str("GEN49: filename too long"));
       memcpy(sfname, name, len);
       sfname[len] = '\0';
     }
     else if ((filno= (int32) CS_FLOAT2LRND(ff->e.p[5])) >= 0)
       snprintf(sfname, sizeof(sfname), "soundin.%d", filno); /* soundin.filno */
     else
-      return csound->FtError(ff, "%s", Str("GEN49: invalid file number"));
+      return csound->FtError(ff, "%s\n", Str("GEN49: invalid file number"));
   }
   chan  = (int32_t) CS_FLOAT2LRND(ff->e.p[7]);
   if (UNLIKELY(chan < 0 || chan > 4)) {
-    return csound->FtError(ff, Str("channel %d illegal"), (int32_t) chan);
+    return csound->FtError(ff, Str("channel %d illegal\n"), (int32_t) chan);
   }
   switch (chan) {
   case 0:
@@ -954,26 +954,26 @@ static int32_t gen49raw(FGDATA *ff, FUNC *ftp)
   }
   mpa = mp3dec_init(csound);
   if (UNLIKELY(!mpa)) {
-    return csound->FtError(ff, "%s", Str("Not enough memory\n"));
+    return csound->FtError(ff, "%s\n", Str("Not enough memory\n"));
   }
   if (UNLIKELY((r = mp3dec_configure(mpa, &config)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->FtError(ff,"%s", mp3dec_error(r));
+    return csound->FtError(ff,"%s\n", mp3dec_error(r));
   }
   fd = mp3dec_open_file(mpa, sfname, &f);
   //    fd = open(sfname, O_RDONLY); /* search paths */
   if (UNLIKELY(fd == NULL)) {
     mp3dec_uninit(mpa);
-    return csound->FtError(ff, "sfname");
+    return csound->FtError(ff, "sfname\n");
   }
   if (UNLIKELY((r = mp3dec_init_file(mpa, f, 0, FALSE)) != MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->FtError(ff,"%s", mp3dec_error(r));
+    return csound->FtError(ff,"%s\n", mp3dec_error(r));
   }
   if (UNLIKELY((r = mp3dec_get_info(mpa, &mpainfo, MPADEC_INFO_STREAM)) !=
                MP3DEC_RETCODE_OK)) {
     mp3dec_uninit(mpa);
-    return csound->FtError(ff,"%s", mp3dec_error(r));
+    return csound->FtError(ff,"%s\n", mp3dec_error(r));
   }
   /* maxsize = mpainfo.decoded_sample_size */
   /*   *mpainfo.decoded_frame_samples */
@@ -996,7 +996,7 @@ static int32_t gen49raw(FGDATA *ff, FUNC *ftp)
     cs_float skipframes = ff->e.p[6] * mpainfo.decoded_frequency;
     if (UNLIKELY(!(skipframes >= FL(0.0) && skipframes < FL(2147483648.0)))) {
       mp3dec_uninit(mpa);
-      return csound->FtError(ff, "%s", Str("invalid skip time"));
+      return csound->FtError(ff, "%s\n", Str("invalid skip time"));
     }
     skip = (int32_t) skipframes;
   }
@@ -1022,12 +1022,12 @@ static int32_t gen49raw(FGDATA *ff, FUNC *ftp)
     if (UNLIKELY(fsize <= 0)) {
       csound->Free(csound, buffer);
       mp3dec_uninit(mpa);
-      return csound->FtError(ff, "%s", Str("deferred size, but filesize unknown"));
+      return csound->FtError(ff, "%s\n", Str("deferred size, but filesize unknown"));
     }
     if (UNLIKELY(fsize > MAXLEN)) {
       csound->Free(csound, buffer);
       mp3dec_uninit(mpa);
-      return csound->FtError(ff, "%s", Str("illegal table length"));
+      return csound->FtError(ff, "%s\n", Str("illegal table length"));
     }
     ff->flen = (int32_t) fsize;
     csound->FTAlloc(csound, ff->fno, ff->flen);
@@ -1067,7 +1067,7 @@ int32_t gen49(FGDATA *ff, FUNC *ftp)
 {
   CSOUND *csound = ff->csound;
   if (UNLIKELY(ff->e.pcnt < 7)) {
-    return csound->FtError(ff, "%s", Str("insufficient arguments"));
+    return csound->FtError(ff, "%s\n", Str("insufficient arguments"));
   }
   return gen49raw(ff, ftp);
 }

@@ -97,7 +97,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     if (UNLIKELY(p->aux.auxp==NULL)) goto err1;
     if (UNLIKELY(kglen<=FL(0.0)))
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("grain: grain length zero"));
+                               "%s\n", Str("grain: grain length zero"));
     gtp  = p->gftp;
     gtbl = gtp->ftable;
     glen = gtp->flen;
@@ -188,7 +188,7 @@ static int32_t ags(CSOUND *csound, PGRA *p) /*  Granular U.G. a-rate main routin
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("grain: not initialised"));
+                             "%s\n", Str("grain: not initialised"));
 }
 
 #define S(x)    sizeof(x)

@@ -426,7 +426,7 @@ static TREE *create_cond_expression(CSOUND *csound,
     eq = "=";
   }
   else if (left[0]=='a' || right[0]=='a') {
-    csound->Warning(csound, Str("Unbanced rates in conditional expression"));
+    csound->Warning(csound, Str("Unbanced rates in conditional expression\n"));
     return NULL;
   }
   else {
@@ -672,7 +672,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       if (UNLIKELY(outtype == NULL)) {
         csound->Warning(csound,
                         Str("error: opcode %s with output type %s not found, "
-                            "line %d"),
+                            "line %d\n"),
                         root->value->lexeme, root->value->optype, line);
         outtype = "i";
       }
@@ -2277,7 +2277,7 @@ TREE* expand_switch_statement(
     } else {
       /* Ignore duplicate default clauses: print a warning */
       csound->Warning(csound,
-                      Str("duplicate default case in switch, line %d"),
+                      Str("duplicate default case in switch, line %d\n"),
                       caseNode->line-1);
     }
 
@@ -2437,7 +2437,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     if(isPerfRate == 0 &&
        isItime == 0) {
       synterr(csound, Str("cannot run a perf-time loop"
-              " with an i-time index, line %d"),
+              " with an i-time index, line %d\n"),
               current->line);
       csoundLongJmp(csound, 0);
     }
@@ -2522,7 +2522,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     // variable will replace any existing variable
     if(var != NULL)
     csound->Warning(csound, Str("redefining variable %s in loop (type: %s)\n"
-		            "\t - now using %s type, line %d"),
+		            "\t - now using %s type, line %d\n"),
 		              var->varName,  var->varType->varTypeName,
 		              isPerfRate ? "k" : "i", current->line);
     add_arg(csound, current->left->next->value->lexeme, isPerfRate ? "k" : "i", typeTable, NULL);

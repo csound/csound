@@ -36,7 +36,7 @@
 
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
-      csound->Die(csound, "%s", MSG);
+      csound->Die(csound, "%s\n", MSG);
 
 static const char *usage_txt[] = {
   Str_noop("Usage:\tscale [-flags] soundfile"),
@@ -69,7 +69,7 @@ static void usage(CSOUND *csound, char *mesg)
     int32_t i;
     for (i = 0; usage_txt[i] != NULL; i++)
       csound->Message(csound, "%s\n", Str(usage_txt[i]));
-    csound->Die(csound, "\n%s", mesg);
+    csound->Die(csound, "\n%s\n", mesg);
 }
 
 static char set_output_format(OPARMS *p, char c, char outformch)
@@ -159,7 +159,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
       else if (strcmp(envoutyp, "IRCAM") == 0)
         O->filetyp = TYP_IRCAM;
       else {
-        csound->Die(csound, Str("%s not a recognized SFOUTYP env setting"),
+        csound->Die(csound, Str("%s not a recognized SFOUTYP env setting\n"),
                             envoutyp);
       }
     }
@@ -175,10 +175,10 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
             O->outfilename = s;         /* soundout name */
             for ( ; *s != '\0'; s++) ;
             if (UNLIKELY(strcmp(O->outfilename, "stdin") == 0))
-              csound->Die(csound, "%s", Str("-o cannot be stdin"));
+              csound->Die(csound, "%s\n", Str("-o cannot be stdin"));
 #if defined(WIN32)
             if (UNLIKELY(strcmp(O->outfilename, "stdout") == 0)) {
-              csound->Die(csound, "%s", Str("stdout audio not supported"));
+              csound->Die(csound, "%s\n", Str("stdout audio not supported"));
             }
 #endif
             break;
@@ -286,7 +286,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
                         csound->CreateFileHandle(csound, &outfile,
                                                  CSFILE_SND_W, "stdout")) == NULL)) {
             csound->SndfileClose(csound,outfile);
-            csound->Die(csound, "%s", Str("Memory allocation failure"));
+            csound->Die(csound, "%s\n", Str("Memory allocation failure"));
           }
         }
       }
@@ -295,7 +295,7 @@ static int32_t scale(CSOUND *csound, int32_t argc, char **argv)
                        O->outfilename, &sfinfo, "SFDIR",
                        csound->Type2CsfileType(O->filetyp, O->outformat), 0);
       if (UNLIKELY(fd == NULL))
-        csound->Die(csound, Str("Failed to open output file %s: %s"),
+        csound->Die(csound, Str("Failed to open output file %s: %s\n"),
                     O->outfilename, Str(csound->SndfileStrError(csound,NULL)));
       outbufsiz = 1024 * O->sndfileSampleSize;    /* calc outbuf size  */
       csound->Message(csound, Str("writing %d-byte blks of %s to %s %s\n"),
@@ -328,7 +328,7 @@ static void InitScaleTable(CSOUND *csound, SCALE *thissc,
       cs_double  x, y;
       if (UNLIKELY(csound->FileOpen(csound, &f, CSFILE_STD, factorfile, "r", NULL,
                                      CSFTYPE_FLOATS_TEXT, 0) == NULL))
-        csound->Die(csound, Str("Failed to open %s"), factorfile);
+        csound->Die(csound, Str("Failed to open %s\n"), factorfile);
       while (fscanf(f, "%" CS_DOUBLE_SCAN " %" CS_DOUBLE_SCAN "\n", &x, &y) == 2) {
         scalepoint *newpoint =
           (scalepoint*) csound->Malloc(csound, sizeof(scalepoint));

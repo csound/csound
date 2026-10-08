@@ -55,7 +55,7 @@ int32_t chani_opcode_perf_k(CSOUND *csound, CHNVAL *p){
   cs_float *val;
 
   if (UNLIKELY(n < 0))
-    return csound->PerfError(csound, &(p->h),Str("chani: invalid index"));
+    return csound->PerfError(csound, &(p->h),Str("chani: invalid index\n"));
 
   snprintf(chan_name, 16, "%i", n);
   err = csoundGetChannelPtr(csound, (void **) &val, chan_name,
@@ -64,7 +64,7 @@ int32_t chani_opcode_perf_k(CSOUND *csound, CHNVAL *p){
   if (UNLIKELY(err))
     return csound->PerfError(csound, &(p->h),
                              Str("chani error %d:"
-                                 "channel not found or not right type"),
+                                 "channel not found or not right type\n"),
                              err);
   *(p->r) = *val;
   return OK;
@@ -77,7 +77,7 @@ int32_t chano_opcode_perf_k(CSOUND *csound, CHNVAL *p){
   cs_float *val;
 
   if (UNLIKELY(n < 0))
-    return csound->PerfError(csound,&(p->h),Str("chani: invalid index"));
+    return csound->PerfError(csound,&(p->h),Str("chani: invalid index\n"));
 
   snprintf(chan_name, 16, "%i", n);
   err = csoundGetChannelPtr(csound, (void **) &val, chan_name,
@@ -86,7 +86,7 @@ int32_t chano_opcode_perf_k(CSOUND *csound, CHNVAL *p){
   if (UNLIKELY(err))
     return csound->PerfError(csound, &(p->h),
                              Str("chano error %d:"
-                                 "channel not found or not right type"),
+                                 "channel not found or not right type\n"),
                              err);
   *val = *(p->r);
   return OK;
@@ -102,7 +102,7 @@ int32_t chani_opcode_perf_a(CSOUND *csound, CHNVAL *p){
   cs_float *val;
 
   if (UNLIKELY(n < 0))
-    return csound->PerfError(csound, &(p->h),Str("chani: invalid index"));
+    return csound->PerfError(csound, &(p->h),Str("chani: invalid index\n"));
 
   snprintf(chan_name, 16, "%i", n);
   err = csoundGetChannelPtr(csound, (void **) &val, chan_name,
@@ -110,7 +110,7 @@ int32_t chani_opcode_perf_a(CSOUND *csound, CHNVAL *p){
   if (UNLIKELY(err))
     return csound->PerfError(csound, &(p->h),
                              Str("chani error %d:"
-                                 "channel not found or not right type"),
+                                 "channel not found or not right type\n"),
                              err);
   if (UNLIKELY(offset)) memset(p->r, '\0', offset * sizeof(cs_float));
   memcpy(&p->r[offset], &val[offset],
@@ -130,7 +130,7 @@ int32_t chano_opcode_perf_a(CSOUND *csound, CHNVAL *p){
   cs_float *val;
 
   if (UNLIKELY(n < 0))
-    return csound->PerfError(csound, &(p->h),Str("chani: invalid index"));
+    return csound->PerfError(csound, &(p->h),Str("chani: invalid index\n"));
 
   snprintf(chan_name, 16, "%i", n);
   err = csoundGetChannelPtr(csound, (void **) &val, chan_name,
@@ -138,7 +138,7 @@ int32_t chano_opcode_perf_a(CSOUND *csound, CHNVAL *p){
   if (UNLIKELY(err))
     return csound->PerfError(csound, &(p->h),
                              Str("chano error %d:"
-                                 "channel not found or not right type"),
+                                 "channel not found or not right type\n"),
                              err);
 
   if (UNLIKELY(offset)) memset(&val, '\0', offset * sizeof(cs_float));
@@ -205,7 +205,7 @@ int32_t pvsin_perf(CSOUND *csound, FCHAN *p){
     if (UNLIKELY(err))
       return csound->PerfError(csound, &(p->h),
                                Str("pvsin error %d:"
-                                   "channel not found or not right type"),
+                                   "channel not found or not right type\n"),
                                err);
     p->lock = (spin_lock_t *) get_channel_lock(csound,p->name);
   }
@@ -226,7 +226,7 @@ int32_t pvsout_init(CSOUND *csound, FCHAN *p){
   if (UNLIKELY(pvs_frame_nbytes(fin->N, &frame_size) != CSOUND_SUCCESS ||
                fin->frame.auxp == NULL ||
                fin->frame.size < frame_size))
-    return csound->InitError(csound, Str("pvsout: invalid source frame"));
+    return csound->InitError(csound, Str("pvsout: invalid source frame\n"));
 
   if(GetTypeForArg(p->a) == &CS_VAR_TYPE_S)
     strncpy(p->name, ((STRINGDAT *)p->a)->data, MAX_CHAN_NAME);
@@ -272,7 +272,7 @@ int32_t pvsout_perf(CSOUND *csound, FCHAN *p){
     if (UNLIKELY(err))
       return csound->PerfError(csound, &(p->h),
                                Str("pvsout error %d:"
-                                   "channel not found or not right type"),
+                                   "channel not found or not right type\n"),
                                err);
     p->lock = (spin_lock_t *) get_channel_lock(csound, p->name);
   }
@@ -721,7 +721,7 @@ void csoundDeleteControlChannelHints(CSOUND *csound,
 /* perf time stub for printing "not initialised" error message */
 int32_t notinit_opcode_stub(CSOUND *csound, void *p){
   return csound->PerfError(csound, &(((CHNGET *)p)->h),
-                           Str("%s: not initialised"),
+                           Str("%s: not initialised\n"),
                            GetOpcodeName(p));
 }
 
@@ -738,7 +738,7 @@ static CS_NOINLINE void print_chn_err_perf(void *p, int32_t err) {
     msg = "invalid channel name";
   else
     msg = "channel already exists with incompatible type";
-  csound->Warning(csound, "%s", Str(msg));
+  csound->Warning(csound, "%s\n", Str(msg));
 }
 
 static CS_NOINLINE int32_t print_chn_err(void *p, int32_t err){
@@ -753,7 +753,7 @@ static CS_NOINLINE int32_t print_chn_err(void *p, int32_t err){
     msg = "invalid channel name";
   else
     msg = "channel already exists with incompatible type";
-  return csound->InitError(csound, "%s", Str(msg));
+  return csound->InitError(csound, "%s\n", Str(msg));
 }
 
 static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
@@ -805,7 +805,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
                                                     + CS_VAR_TYPE_OFFSET);
     if (UNLIKELY(pp->var->memBlock == NULL)) {
       pp->var->ctx = NULL;
-      csound->InitError(csound, Str("memory allocation failure"));
+      csound->InitError(csound, Str("memory allocation failure\n"));
       return NULL;
     }
     pp->var->memBlock->varType = pp->var->varType;
@@ -1466,7 +1466,7 @@ static int32_t chn_k_opcode_init_(CSOUND *csound, CHN_OPCODE_K *p, int32_t mode)
 
   // mode = (int32_t)CS_FLOAT2LRND(*(p->imode));
   if (UNLIKELY(mode < 1 || mode > 3))
-    return csound->InitError(csound, Str("invalid mode parameter"));
+    return csound->InitError(csound, Str("invalid mode parameter\n"));
   type = CSOUND_CONTROL_CHANNEL;
   if (mode & 1)
     type |= CSOUND_INPUT_CHANNEL;
@@ -1503,7 +1503,7 @@ static int32_t chn_k_opcode_init_(CSOUND *csound, CHN_OPCODE_K *p, int32_t mode)
   }
   if (err == CSOUND_MEMORY)
     return print_chn_err(p, err);
-  return csound->InitError(csound, Str("invalid channel parameters"));
+  return csound->InitError(csound, Str("invalid channel parameters\n"));
 }
 
 int32_t chn_k_opcode_init(CSOUND *csound, CHN_OPCODE_K *p)
@@ -1523,7 +1523,7 @@ int32_t chn_k_opcode_init_S(CSOUND *csound, CHN_OPCODE_K *p)
   else if(!strcmp("w", smode->data))
     mode = 2;
   else
-    return csound->InitError(csound, Str("invalid mode, should be r, w, rw"));
+    return csound->InitError(csound, Str("invalid mode, should be r, w, rw\n"));
   return chn_k_opcode_init_(csound, p, mode);
 }
 
@@ -1536,7 +1536,7 @@ int32_t chn_a_opcode_init(CSOUND *csound, CHN_OPCODE *p)
 
   mode = (int32_t)CS_FLOAT2LRND(*(p->imode));
   if (UNLIKELY(mode < 1 || mode > 3))
-    return csound->InitError(csound, Str("invalid mode parameter"));
+    return csound->InitError(csound, Str("invalid mode parameter\n"));
   type = CSOUND_AUDIO_CHANNEL;
   if (mode & 1)
     type |= CSOUND_INPUT_CHANNEL;
@@ -1556,7 +1556,7 @@ int32_t chn_S_opcode_init(CSOUND *csound, CHN_OPCODE *p)
 
   mode = (int32_t)CS_FLOAT2LRND(*(p->imode));
   if (UNLIKELY(mode < 1 || mode > 3))
-    return csound->InitError(csound, Str("invalid mode parameter"));
+    return csound->InitError(csound, Str("invalid mode parameter\n"));
   type = CSOUND_STRING_CHANNEL;
   if (mode & 1)
     type |= CSOUND_INPUT_CHANNEL;
@@ -1598,10 +1598,10 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
   CS_VARIABLE *var;
 
   if (UNLIKELY(GetOutputArgCnt((OPDS *)p) != 1))
-    return csound->InitError(csound, Str("invalid export variable"));
+    return csound->InitError(csound, Str("invalid export variable\n"));
   argName = GetOutputArgName(&p->h, 0);
   if (UNLIKELY(argName == NULL))
-    return csound->InitError(csound, Str("invalid export variable"));
+    return csound->InitError(csound, Str("invalid export variable\n"));
   var = csoundFindVariableWithName(csound, csound->engineState.varPool,
                                    argName);
 
@@ -1625,17 +1625,17 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
   /* mode (input and/or output) */
   mode = (int32_t)CS_FLOAT2LRND(*(p->imode));
   if (UNLIKELY(mode < 1 || mode > 3))
-    return csound->InitError(csound, Str("invalid mode parameter"));
+    return csound->InitError(csound, Str("invalid mode parameter\n"));
   if (mode & 1)
     type |= CSOUND_INPUT_CHANNEL;
   if (mode & 2)
     type |= CSOUND_OUTPUT_CHANNEL;
   if (UNLIKELY(find_channel(csound, channelName) != NULL))
-    return csound->InitError(csound, Str("channel already exists"));
+    return csound->InitError(csound, Str("channel already exists\n"));
   if (UNLIKELY(strlen(channelName) > MAX_CHAN_NAME))
-    return csound->InitError(csound, Str("invalid channel name"));
+    return csound->InitError(csound, Str("invalid channel name\n"));
   if (UNLIKELY(var->memBlock == NULL))
-    return csound->InitError(csound, Str("export variable is not initialised"));
+    return csound->InitError(csound, Str("export variable is not initialised\n"));
   if (UNLIKELY((err = ensure_channel_db(csound)) != CSOUND_SUCCESS))
     return print_chn_err(p, err);
 
@@ -1670,7 +1670,7 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     hints.attributes = NULL;
     if (UNLIKELY(set_control_channel_hints(csound, chn, hints) !=
                  CSOUND_SUCCESS)) {
-      err = csound->InitError(csound, Str("invalid channel parameters"));
+      err = csound->InitError(csound, Str("invalid channel parameters\n"));
       goto failed;
     }
   }
@@ -1841,7 +1841,7 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
         }
       }
       else{
-        return csound->InitError(csound, "%s%s", Str("invalid channel name:"),
+        return csound->InitError(csound, "%s%s\n", Str("invalid channel name:"),
                                  !strcmp(channelName, "") ?
                                  Str("\"empty\"") :
                                  Str(channelName));
@@ -2279,7 +2279,7 @@ int32_t invalset_string_S(CSOUND *csound, INVAL *p)
   /* grab input now for use during i-pass */
   kinvalS(csound, p);
   if (!csound->InputChannelCallback_) {
-    csound->Warning(csound,Str("InputChannelCallback not set."));
+    csound->Warning(csound,Str("InputChannelCallback not set.\n"));
   }
   return OK;
 }
@@ -2305,7 +2305,7 @@ int32_t invalset_S(CSOUND *csound, INVAL *p)
   kinval(csound, p);
 
   if (!csound->InputChannelCallback_) {
-    csound->Warning(csound,Str("InputChannelCallback not set."));
+    csound->Warning(csound,Str("InputChannelCallback not set.\n"));
   }
   return OK;
 }
@@ -2348,7 +2348,7 @@ int32_t invalset_string(CSOUND *csound, INVAL *p)
   /* grab input now for use during i-pass */
   kinvalS(csound, p);
   if (!csound->InputChannelCallback_) {
-    csound->Warning(csound,Str("InputChannelCallback not set."));
+    csound->Warning(csound,Str("InputChannelCallback not set.\n"));
   }
   return OK;
 }
@@ -2378,7 +2378,7 @@ int32_t invalset(CSOUND *csound, INVAL *p)
   /* grab input now for use during i-pass */
   kinval(csound, p);
   if (!csound->InputChannelCallback_) {
-    csound->Warning(csound,Str("InputChannelCallback not set."));
+    csound->Warning(csound,Str("InputChannelCallback not set.\n"));
   }
   return OK;
 }
@@ -2427,7 +2427,7 @@ int32_t outvalset_string_S(CSOUND *csound, OUTVAL *p)
   /* send output now for use during i-pass */
   koutvalS(csound, p);
   if (!csound->OutputChannelCallback_) {
-    csound->Warning(csound,Str("OutputChannelCallback not set."));
+    csound->Warning(csound,Str("OutputChannelCallback not set.\n"));
   }
 
   return OK;
@@ -2450,7 +2450,7 @@ int32_t outvalset_S(CSOUND *csound, OUTVAL *p)
 
   koutval(csound, p);
   if (!csound->OutputChannelCallback_) {
-    csound->Warning(csound,Str("OutputChannelCallback not set."));
+    csound->Warning(csound,Str("OutputChannelCallback not set.\n"));
   }
 
   return OK;
@@ -2478,7 +2478,7 @@ int32_t outvalset_string(CSOUND *csound, OUTVAL *p)
   /* send output now for use during i-pass */
   koutvalS(csound, p);
   if (!csound->OutputChannelCallback_) {
-    csound->Warning(csound,Str("OutputChannelCallback not set."));
+    csound->Warning(csound,Str("OutputChannelCallback not set.\n"));
   }
 
   return OK;
@@ -2508,7 +2508,7 @@ int32_t outvalset(CSOUND *csound, OUTVAL *p)
   /* send output now for use during i-pass */
   koutval(csound, p);
   if (!csound->OutputChannelCallback_) {
-    csound->Warning(csound,Str("OutputChannelCallback not set."));
+    csound->Warning(csound,Str("OutputChannelCallback not set.\n"));
   }
 
   return OK;
@@ -2654,7 +2654,7 @@ static int32_t chnget_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p)
     if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->arg,
                             (ARRAYDAT *)p->fp, p->lock,
                             CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("array channel copy failed"));
     }
     return OK;
@@ -2673,7 +2673,7 @@ int32_t chnget_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
       if (UNLIKELY(copy_array(csound, adat, (ARRAYDAT *)p->fp,
                               p->lock,
                               CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("array channel copy failed"));
       }
     } else {
@@ -2696,7 +2696,7 @@ static int32_t chnset_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p)
     if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->fp,
                             (ARRAYDAT *)p->arg, p->lock,
                             CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("array channel copy failed"));
     }
     return OK;
@@ -2715,7 +2715,7 @@ int32_t chnset_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
       if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->fp, adat,
                               p->lock,
                               CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("array channel copy failed"));
       }
     } else {
@@ -2741,7 +2741,7 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
 
   mode = (int32_t) CS_FLOAT2LRND(*(p->imode));
   if (UNLIKELY(mode < 1 || mode > 3))
-    return csound->InitError(csound, Str("invalid mode parameter"));
+    return csound->InitError(csound, Str("invalid mode parameter\n"));
   type = CSOUND_ARRAY_CHANNEL;
   if (mode & 1)
     type |= CSOUND_INPUT_CHANNEL;
@@ -2755,7 +2755,7 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
                p->idim->dimensions != 1 || p->idim->sizes == NULL ||
                csound_array_member_count(p->idim, &dimensionCount) != OK ||
                dimensionCount == 0 || dimensionCount > INT32_MAX))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("invalid array channel dimensions"));
   dimensions = (int32_t)dimensionCount;
   sizes = (int32_t *)csound->Malloc(
@@ -2768,7 +2768,7 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
     if (UNLIKELY(isnan(size) || size < 0.0 ||
                  roundedSize >= (INT32_MAX + 0.0) + 1.0)) {
       csound->Free(csound, sizes);
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("invalid array channel dimensions"));
     }
     sizes[i] = (int32_t)roundedSize;
@@ -2801,7 +2801,7 @@ static int32_t chnclear_opcode_perf_ARRAY(CSOUND *csound, CHNCLEAR *p)
       csoundSpinUnLock(p->lock[i]);
       return csound->PerfError(
         csound, &p->h,
-        Str("chncleararray: channel '%s' has managed elements"),
+        Str("chncleararray: channel '%s' has managed elements\n"),
         p->iname[i]->data);
     }
     if (adat->data != NULL && adat->allocated > 0) {
@@ -2828,7 +2828,7 @@ int32_t chnclear_opcode_init_ARRAY(CSOUND *csound, CHNCLEAR *p)
                      (ARRAYDAT *)p->fp[i]))) {
         return csound->InitError(
           csound,
-          Str("chncleararray: channel '%s' has managed elements"),
+          Str("chncleararray: channel '%s' has managed elements\n"),
           p->iname[i]->data);
       }
     }

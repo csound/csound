@@ -278,10 +278,10 @@ int32_t tempo_set(CSOUND *csound, TEMPO *p)
     cs_double tempo;
 
     if (UNLIKELY((tempo = (cs_double)*p->istartempo) <= FL(0.0))) {
-      return csound->InitError(csound, Str("illegal istartempo value"));
+      return csound->InitError(csound, Str("illegal istartempo value\n"));
     }
     if (UNLIKELY(csound->oparms->Beatmode==0))
-      return csound->InitError(csound, Str("Beat mode not in force"));
+      return csound->InitError(csound, Str("Beat mode not in force\n"));
     set_tempo(csound, tempo);
     p->prvtempo = (cs_float)tempo;
     return OK;
@@ -436,7 +436,7 @@ int32_t start_engine(CSOUND *csound)
 
     /* run instr 0 inits */
     if (UNLIKELY(init0(csound) != 0))
-      csoundDie(csound, Str("header init errors"));
+      csoundDie(csound, Str("header init errors\n"));
 
     /* open MIDI output (moved here from argdecode) */
     if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
@@ -1002,7 +1002,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       cs_float n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY((insno = (int32_t) n) == 0)) {
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted. instr %s undefined"),
+                        Str(" - note deleted. instr %s undefined\n"),
                         evt->strarg);
         break;
       }
@@ -1017,7 +1017,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
                    (uint32_t) csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[insno] == NULL)) {
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted. instr %d(%d) undefined"),
+                        Str(" - note deleted. instr %d(%d) undefined\n"),
                         insno, csound->engineState.maxinsno);
         break;
       }
@@ -1032,7 +1032,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       cs_float n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY((insno = (int)n) == 0)) {
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted. instr %s undefined"),
+                        Str(" - note deleted. instr %s undefined\n"),
                         evt->strarg);
         break;
       }
@@ -1061,18 +1061,18 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
           if (reason != NULL)
             print_score_error(csound, rtEvt,
                               Str("\nINIT ERROR in instr %d (%s): note "
-                                  "deleted (%s)"),
+                                  "deleted (%s)\n"),
                               insno, evt->strarg, reason);
           else
             print_score_error(csound, rtEvt,
                               Str("\nINIT ERROR in instr %d (%s): note "
-                                  "deleted (realtime event failed with status %d)"),
+                                  "deleted (realtime event failed with status %d)\n"),
                               insno, evt->strarg, n);
         }
         else
           print_score_error(csound, rtEvt,
                             Str("\nINIT ERROR in instr %d (%s): note "
-                                "deleted (%d init errors)"),
+                                "deleted (%d init errors)\n"),
                             insno, evt->strarg, n);
       }
     }
@@ -1082,7 +1082,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
                    (unsigned int)csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[insno] == NULL)) {
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted. instr %d(%d) undefined"),
+                        Str(" - note deleted. instr %d(%d) undefined\n"),
                         insno, csound->engineState.maxinsno);
         break;
       }
@@ -1107,18 +1107,18 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
             if (reason != NULL)
               print_score_error(csound, rtEvt,
                                 Str("\nINIT ERROR in instr %d: note deleted "
-                                    "(%s)"),
+                                    "(%s)\n"),
                                 insno, reason);
             else
               print_score_error(csound, rtEvt,
                                 Str("\nINIT ERROR in instr %d: note deleted "
-                                    "(realtime event failed with status %d)"),
+                                    "(realtime event failed with status %d)\n"),
                                 insno, n);
           }
           else
             print_score_error(csound, rtEvt,
                               Str("\nINIT ERROR in instr %d: note deleted "
-                                  "(%d init errors)"),
+                                  "(%d init errors)\n"),
                               insno, n);
         }
       }

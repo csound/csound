@@ -280,7 +280,7 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL))
     p->m4.wave = ftp;
   else {                                    /* Expect an impulslything */
-    return csound->InitError(csound, "%s", Str("No table for Marimba strike"));
+    return csound->InitError(csound, "%s\n", Str("No table for Marimba strike"));
   }
 
   if (UNLIKELY(make_Modal4(csound,
@@ -338,7 +338,7 @@ int32_t marimbaset(CSOUND *csound, MARIMBA *p)
     cs_double relestim = trunc(CS_EKR * *p->dettack);
     if (relestim < 0.0) relestim = 0.0;
     if (UNLIKELY(!(relestim <= (INT32_MAX + 0.0))))
-      return csound->InitError(csound, Str("invalid modal release time"));
+      return csound->InitError(csound, Str("invalid modal release time\n"));
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int32_t)relestim;
     /* -1 waits for note-off; zero means damping has already started. */
@@ -412,7 +412,7 @@ int32_t vibraphnset(CSOUND *csound, VIBRAPHN *p)
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL))
     p->m4.wave = ftp;         /* Expect an impulslything */
   else {
-    return csound->InitError(csound, "%s", Str("No table for Vibraphone strike"));
+    return csound->InitError(csound, "%s\n", Str("No table for Vibraphone strike"));
   }
 
   if (UNLIKELY(make_Modal4(csound, m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK))
@@ -447,7 +447,7 @@ int32_t vibraphnset(CSOUND *csound, VIBRAPHN *p)
     cs_double relestim = trunc(CS_EKR * *p->dettack);
     if (relestim < 0.0) relestim = 0.0;
     if (UNLIKELY(!(relestim <= (INT32_MAX + 0.0))))
-      return csound->InitError(csound, Str("invalid modal release time"));
+      return csound->InitError(csound, Str("invalid modal release time\n"));
     if (relestim > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int32_t)relestim;
     /* -1 waits for note-off; zero means damping has already started. */
@@ -516,7 +516,7 @@ int32_t agogobelset(CSOUND *csound, VIBRAPHN *p)
   /* Expect an impulslything */
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->m4.wave = ftp;
   else {
-    return csound->InitError(csound, "%s", Str("No table for Agogobell strike"));
+    return csound->InitError(csound, "%s\n", Str("No table for Agogobell strike"));
   }
 
   if (UNLIKELY(make_Modal4(csound, m, p->ivfn, *p->vibAmt, *p->vibFreq)==NOTOK))

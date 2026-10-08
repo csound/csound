@@ -97,7 +97,7 @@ int32_t mrtmsg(CSOUND *csound, MRT *p)
     csoundSendMidiMsg(csound, 0xFE, 0, 0, (int32_t)*p->port); /* active_sensing */
     break;
   default:
-    return csound->InitError(csound, Str("illegal mrtmsg argument"));
+    return csound->InitError(csound, Str("illegal mrtmsg argument\n"));
   }
   return OK;
 }

@@ -1080,7 +1080,7 @@ int32_t pvscoefs_init(CSOUND *csound, PVSCFS *p) {
   p->N = p->fin->N;
   p->M = *p->iord;
   if (UNLIKELY(p->M < 2 || p->M >= p->N))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("pvscfs: order must be at least 2 and less than the FFT size"));
   Mbytes = (p->M+1)*sizeof(cs_float);
   p->setup = csound->LPsetup(csound,0,p->M);
@@ -1129,7 +1129,7 @@ int32_t coef2parm_init(CSOUND *csound, CF2P *p) {
   coef2parm_deinit(csound, p);
   if (UNLIKELY(p->in->dimensions != 1 || p->in->data == NULL ||
                p->in->sizes[0] <= 0))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("apoleparams: expected a nonempty coefficient array"));
   p->M = p->in->sizes[0];
   p->setup = csound->LPsetup(csound,0,p->M);
@@ -1155,7 +1155,7 @@ int32_t coef2parm(CSOUND *csound, CF2P *p) {
   int32_t i,j;
   if (UNLIKELY(p->in->dimensions != 1 || c == NULL ||
                p->in->sizes[0] != p->M))
-    return csound->PerfError(csound, &p->h, "%s",
+    return csound->PerfError(csound, &p->h, "%s\n",
                             Str("apoleparams: coefficient array size changed"));
   if (p->valid && memcmp(c, p->previous.auxp, bytes) == 0)
     return OK;
@@ -1182,17 +1182,17 @@ int32_t resonbnk_init(CSOUND *csound, RESONB *p)
 {
   if (UNLIKELY(p->kparm->dimensions != 1 || p->kparm->data == NULL ||
                p->kparm->sizes[0] <= 0 || (p->kparm->sizes[0] & 1)))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("resonbnk: expected frequency/bandwidth pairs"));
   if (UNLIKELY(!(*p->iscl >= FL(0.0) && *p->iscl < FL(3.0))))
-    return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+    return csound->InitError(csound, Str("illegal reson iscl value, %f\n"),
                             *p->iscl);
   if (UNLIKELY(!(*p->iprd >= FL(1.0) && (cs_double)*p->iprd <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("resonbnk: interpolation period must be a positive integer"));
   int32_t period = (int32_t)*p->iprd;
   if (UNLIKELY(*p->iprd != (cs_float)period))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("resonbnk: interpolation period must be a positive integer"));
 
   int32_t ord = p->kparm->sizes[0];
@@ -1240,7 +1240,7 @@ int32_t resonbnk(CSOUND *csound, RESONB *p)
 
   if (UNLIKELY(p->kparm->dimensions != 1 || p->kparm->data == NULL ||
                p->kparm->sizes[0] != ord))
-    return csound->PerfError(csound, &p->h, "%s",
+    return csound->PerfError(csound, &p->h, "%s\n",
                             Str("resonbnk: parameter array size changed"));
 
 

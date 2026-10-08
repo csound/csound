@@ -50,7 +50,7 @@ int32_t storeInit(CSOUND *csound, void *data)
     observed->creations.push_back({owner, state, *state});
     *state = *p->value;
     if (*p->fail != 0)
-        return csound->InitError(csound, "test requested an init error");
+        return csound->InitError(csound, "test requested an init error\n");
     return CSOUND_SUCCESS;
 }
 
@@ -353,7 +353,7 @@ endin
 )", "i 1 0 .03\nf 0 .1"));
     csoundPerformKsmps(csound);
     ASSERT_EQ(observed.creations.size(), 1u);
-    EXPECT_NE(messages().find("test requested an init error"), std::string::npos);
+    EXPECT_NE(messages().find("test requested an init error\n"), std::string::npos);
     EXPECT_EQ(observed.deinits, (std::vector<cs_float>{99}));
     EXPECT_EQ(csound->QueryInstanceVariable(csound, observed.creations[0].owner,
                                           stateName), nullptr);

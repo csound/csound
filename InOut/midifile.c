@@ -935,7 +935,7 @@ void midifile_rewind_score(CSOUND *csound)
   } else if (LIKELY(O->FMidiname != NULL)) {
     csound->MTrkend = 0;
     if (UNLIKELY(csoundMIDIFileOpen(csound, O->FMidiname) != 0))
-      csound->Die(csound, Str("Failed to load MIDI file."));
+      csound->Die(csound, Str("Failed to load MIDI file.\n"));
     O->FMidiin = 1;
   }
   else csound->Warning(csound, Str("Cannot rewind MIDI score\n"));
@@ -948,7 +948,7 @@ int32_t midi_file_opcode(CSOUND *csound, void *p) {
   // non-op if triggered by midi
   if(GetEventType(&(pp->h)) == 0) {
     if (UNLIKELY(!(*pp->port >= 0 && *pp->port < MIDIMAXPORTS)))
-      return csound->InitError(csound, Str("midifileopen: port out of range"));
+      return csound->InitError(csound, Str("midifileopen: port out of range\n"));
     *pp->res = midi_file_open(csound, pp->mfile->data,
                               (uint8_t) *pp->port);
   }

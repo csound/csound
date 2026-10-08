@@ -69,12 +69,12 @@ static CS_NOINLINE int32_t PVS_CreateWindow(CSOUND *csound, cs_float *buf,
     return OK;
   default:
     if (UNLIKELY(type >= 0))
-      return csound->InitError(csound, Str("invalid window type"));
+      return csound->InitError(csound, Str("invalid window type\n"));
   }
   /* use table created with GEN20 */
   flen = csoundGetTable(csound, &ftable, -(type));
   if (UNLIKELY(flen < 0))
-    return csound->InitError(csound, Str("ftable for window not found"));
+    return csound->InitError(csound, Str("ftable for window not found\n"));
   inc = (cs_double)flen / (cs_double)(winLen & (~1));
   fpos = ((cs_double)flen + (cs_double)even * inc) * 0.5;
   n = winLen >> 1;
@@ -103,7 +103,7 @@ static int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
 
   if (UNLIKELY(!(*p->winsize >= FL(1.0) &&
                  *p->winsize <= (INT32_MAX + 0.0) - 3)))
-    return csound->InitError(csound, Str("Invalid window size"));
+    return csound->InitError(csound, Str("Invalid window size\n"));
   N = CS_FLOAT2LRND(*p->winsize);
   /* deal with iinit and iformat later on! */
 
@@ -112,7 +112,7 @@ static int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
   if (UNLIKELY((size_t)(N+2) > SIZE_MAX / CS_KSMPS / sizeof(cs_float) ||
                (size_t)(NB+4) > SIZE_MAX / sizeof(CMPLX) ||
                (size_t)(2*NB) > SIZE_MAX / sizeof(cs_double)))
-    return csound->InitError(csound, Str("pvsanal: window size too large"));
+    return csound->InitError(csound, Str("pvsanal: window size too large\n"));
 
   /* Need space for NB complex numbers for each of ksmps */
   if (p->fsig->frame.auxp==NULL ||
@@ -190,19 +190,19 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
   /* Keep integer bounds exact even when cs_double is float. */
   if (UNLIKELY(!(*p->overlap >= FL(0.0) &&
                  *p->overlap <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, Str("pvsanal: invalid hop size"));
+    return csound->InitError(csound, Str("pvsanal: invalid hop size\n"));
   if (UNLIKELY(!(*p->wintype >= (INT32_MIN + 0.0) + 1 &&
                  *p->wintype <= (INT32_MAX + 0.0) - 1)))
-    return csound->InitError(csound, Str("pvsanal: invalid window type"));
+    return csound->InitError(csound, Str("pvsanal: invalid window type\n"));
   overlap = (uint32_t)*p->overlap;
   if (overlap<CS_KSMPS || overlap<=10) /* 10 is a guess.... */
     return pvssanalset(csound, p);
   if (UNLIKELY(!(*p->fftsize >= FL(0.0) &&
                  *p->fftsize <= (INT32_MAX + 0.0) - 2)))
-    return csound->InitError(csound, Str("pvsanal: invalid FFT size"));
+    return csound->InitError(csound, Str("pvsanal: invalid FFT size\n"));
   if (UNLIKELY(!(*p->winsize >= FL(0.0) &&
                  *p->winsize <= (INT32_MAX + 0.0) - 2)))
-    return csound->InitError(csound, Str("pvsanal: invalid window size"));
+    return csound->InitError(csound, Str("pvsanal: invalid window size\n"));
   N = (uint32_t)*p->fftsize;
   M = (uint32_t)*p->winsize;
   wintype = (int32_t)*p->wintype;
@@ -213,7 +213,7 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
   N = N  + N%2;       /* Make N even */
   if (UNLIKELY(M < N)) {
     csound->Warning(csound,
-                    Str("pvsanal: window size too small for fftsize"));
+                    Str("pvsanal: window size too small for fftsize\n"));
     M = N;
   }
   if (UNLIKELY(overlap > N / 2))
@@ -223,7 +223,7 @@ int32_t pvsanalset(CSOUND *csound, PVSANAL *p)
      Its size also bounds the smaller analysis and phase buffers. */
   if (UNLIKELY(M > INT32_MAX / 4 ||
                (size_t)M > SIZE_MAX / 4 / sizeof(cs_float)))
-    return csound->InitError(csound, Str("pvsanal: window size too large"));
+    return csound->InitError(csound, Str("pvsanal: window size too large\n"));
 #ifdef OLPC
   if (UNLIKELY(overlap < CS_KSMPS))
     return csound->InitError(csound,

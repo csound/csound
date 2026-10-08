@@ -38,7 +38,7 @@ static CS_NOINLINE CONTROL_GLOBALS *get_globals_(CSOUND *csound)
       return p;
     if (csound->CreateGlobalVariable(csound, "controlGlobals_",
                                      sizeof(CONTROL_GLOBALS)) != 0){
-      csound->Warning(csound, "%s", Str("control: failed to allocate globals"));
+      csound->Warning(csound, "%s\n", Str("control: failed to allocate globals"));
       return NULL;
     }
     p = (CONTROL_GLOBALS*) csound->QueryGlobalVariable(csound,
@@ -225,7 +225,7 @@ static int32_t ocontrol_(CSOUND *csound, SCNTRL *p, int32_t istring)
         break;
       }
     default:
-      return csound->InitError(csound, Str("Unknown control %d"), c);
+      return csound->InitError(csound, Str("Unknown control %d\n"), c);
     }
     return OK;
 }

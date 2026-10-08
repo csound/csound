@@ -199,7 +199,7 @@ _Babo_common_delay_create(CSOUND *csound, BaboDelay *this, cs_float max_time)
 
     if (UNLIKELY(!(samples >= 1.0 && samples <= (INT32_MAX + 0.0) &&
                    samples <= (cs_double)(SIZE_MAX / sizeof(cs_float)))))
-        return csound->InitError(csound, "%s", Str("Babo: delay size out of range"));
+        return csound->InitError(csound, "%s\n", Str("Babo: delay size out of range"));
     BaboMemory_create(csound, &this->core, (size_t)samples);
     return OK;
 }
@@ -773,7 +773,7 @@ baboset(CSOUND *csound, void *entry)
     int32_t i;
     if (UNLIKELY(!(*p->lx > FL(0.0) && *p->ly > FL(0.0) &&
                    *p->lz > FL(0.0))))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("Babo: room dimensions must be positive"));
     p->tapline.sr = CS_ESR;
     p->matrix_delay.sr = CS_ESR;

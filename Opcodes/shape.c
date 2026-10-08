@@ -52,7 +52,7 @@ static int32_t PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
     if (UNLIKELY(p->maxamplitude<= 0.0))
       return
         csound->InitError(csound,
-                          "%s", Str("powershape: ifullscale must be strictly positive"));
+                          "%s\n", Str("powershape: ifullscale must be strictly positive"));
     p->one_over_maxamp = FL(1.0) / p->maxamplitude;
     return OK;
 }
@@ -243,7 +243,7 @@ static int32_t ChebyshevPoly2Init(CSOUND* csound, CHEBPOLY2* p)
 {
     p->count = GetInputArgCnt((OPDS *)p) - 1;
     if (UNLIKELY(p->count < 1))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("chebyshevpoly2: no coefficients"));
     csound->AuxAlloc(csound, (size_t)p->count * sizeof(cs_double), &p->coeff);
     return OK;
@@ -304,7 +304,7 @@ static int32_t ChebyshevPoly2ArrayInit(CSOUND* csound, CHEBPOLY2ARRAY* p)
     ARRAYDAT *coeff = p->coefficients;
     if (UNLIKELY(coeff->data == NULL || coeff->sizes == NULL ||
                  coeff->dimensions != 1 || coeff->sizes[0] < 1))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("chebyshevpoly2: coefficients must be "
                                    "a non-empty one-dimensional array"));
     return OK;
@@ -325,7 +325,7 @@ static int32_t ChebyshevPolynomial2Array(CSOUND* csound, CHEBPOLY2ARRAY* p)
                  coefficients->dimensions != 1 || coefficients->sizes[0] < 1))
       return csound->PerfError(csound, &p->h,
                                Str("chebyshevpoly2: coefficients must be "
-                                   "a non-empty one-dimensional array"));
+                                   "a non-empty one-dimensional array\n"));
     count = coefficients->sizes[0];
     coeff = (cs_float*)coefficients->data;
     if (UNLIKELY(offset)) memset(out, 0, offset * sizeof(cs_float));
@@ -561,10 +561,10 @@ static int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
     cs_double phs = (cs_double)*p->initphase;
 
     if (UNLIKELY(!isfinite(phs)))
-      return csound->InitError(csound, "%s", Str("syncphasor: invalid phase"));
+      return csound->InitError(csound, "%s\n", Str("syncphasor: invalid phase"));
     if (phs >= 0.0) {
       if (UNLIKELY(phs >= 1.0)) {
-        csound->Warning(csound, "%s", Str("init phase truncation\n"));
+        csound->Warning(csound, "%s\n", Str("init phase truncation\n"));
       }
       p->curphase = phs - FLOOR(phs);
     }
@@ -636,7 +636,7 @@ static int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("syncphasor: invalid frequency"));
+                             Str("syncphasor: invalid frequency\n"));
 }
 
 

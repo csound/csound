@@ -128,19 +128,19 @@ void midi_open(CSOUND *csound)
     /* Then open device... */
     if (O->Midiin) {
       if (p->MidiInOpenCallback == NULL)
-        csound->Die(csound, Str(" *** no callback for opening MIDI input"));
+        csound->Die(csound, Str(" *** no callback for opening MIDI input\n"));
       if (p->MidiReadCallback == NULL)
-        csound->Die(csound, Str(" *** no callback for reading MIDI data"));
+        csound->Die(csound, Str(" *** no callback for reading MIDI data\n"));
       err = p->MidiInOpenCallback(csound, &(p->midiInUserData), O->Midiname);
       if (err != 0) {
-        csound->Die(csound, Str(" *** error opening MIDI in device: %d (%s)"),
+        csound->Die(csound, Str(" *** error opening MIDI in device: %d (%s)\n"),
                             err, csoundExternalMidiErrorString(csound, err));
       }
     }
     /* and file. */
     if (O->FMidiin && O->FMidiname != NULL) {
       if (csoundMIDIFileOpen(csound, O->FMidiname) != 0)
-        csound->Die(csound, Str("Failed to load MIDI file."));
+        csound->Die(csound, Str("Failed to load MIDI file.\n"));
     }
 }
 
@@ -356,11 +356,11 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       case 3:
         break;
       default:
-        csound->Die(csound, Str("unrecognised sys_common type %d"), mep->chan);
+        csound->Die(csound, Str("unrecognised sys_common type %d\n"), mep->chan);
       }
       break;
     default:
-      csound->Die(csound, Str("unrecognised message type %d"), mep->type);
+      csound->Die(csound, Str("unrecognised message type %d\n"), mep->type);
     }
 }
 
@@ -419,7 +419,7 @@ int32_t m_chinsno(CSOUND *csound, int32_t chan, int32_t insno, int32_t reset_ctl
     MEVENT   mev;
 
     if (chan < 0 || chan >= MAXCHAN)
-      return csound->InitError(csound, Str("illegal channel number"));
+      return csound->InitError(csound, Str("illegal channel number\n"));
     chn = csound->m_chnbp[chan];
     if (insno <= 0) {
       chn->insno = -1;
@@ -429,7 +429,7 @@ int32_t m_chinsno(CSOUND *csound, int32_t chan, int32_t insno, int32_t reset_ctl
       if (insno > csound->engineState.maxinsno ||
           csound->engineState.instrtxtp[insno] == NULL) {
         csound->Message(csound, Str("Insno = %d\n"), insno);
-        return csound->InitError(csound, Str("unknown instr"));
+        return csound->InitError(csound, Str("unknown instr\n"));
       }
       chn->insno = (int16_t) insno;
       csound->Message(csound, Str("chnl %d using instr %d\n"),
@@ -490,7 +490,8 @@ int32_t sens_midi(CSOUND *csound)
       if (O->Midiin && !csound->advanceCnt) {   /* read MIDI device */
         n = p->MidiReadCallback(csound, p->midiInUserData, p->bufp, MBUFSIZ);
         if (n < 0)
-          csoundErrorMsg(csound, Str(" *** error reading MIDI device: %d (%s)"),
+          csoundErrorMsg(csound,
+                            Str(" *** error reading MIDI device: %d (%s)\n"),
                                  n, csoundExternalMidiErrorString(csound, n));
         else
           p->endatp += (int32_t) n;
@@ -576,7 +577,7 @@ int32_t sens_midi(CSOUND *csound)
           int32_t port = *(p->bufp++) & 0x7F;
           if(port >= MIDIMAXPORTS) {
             csoundWarning(csound, Str("port: %d exceeds max number of ports %d"
-                                      ", mapping to port 0"), port, MIDIMAXPORTS);
+                                      ", mapping to port 0\n"), port, MIDIMAXPORTS);
           } else mep->chan += 16*port;
         }
         p->datcnt = 0;
@@ -625,14 +626,16 @@ void midi_close(CSOUND *csound)
     if (p->MidiInCloseCallback != NULL) {
       retval = p->MidiInCloseCallback(csound, p->midiInUserData);
       if (retval != 0)
-        csoundErrorMsg(csound, Str("Error closing MIDI in device: %d (%s)"),
+        csoundErrorMsg(csound,
+                          Str("Error closing MIDI in device: %d (%s)\n"),
                        retval, csoundExternalMidiErrorString(csound, retval));
     }
     p->midiInUserData = NULL;
     if (p->MIDIoutDONE && p->MidiOutCloseCallback != NULL) {
       retval = p->MidiOutCloseCallback(csound, p->midiOutUserData);
       if (retval != 0)
-        csoundErrorMsg(csound, Str("Error closing MIDI out device: %d (%s)"),
+        csoundErrorMsg(csound,
+                          Str("Error closing MIDI out device: %d (%s)\n"),
                        retval, csoundExternalMidiErrorString(csound, retval));
     }
     p->MIDIoutDONE = 0;

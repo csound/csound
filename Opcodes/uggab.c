@@ -251,7 +251,7 @@ static int32_t trig(CSOUND *csound, TRIG *p)
       break;
     default:
       return
-        csound->PerfError(csound, &(p->h), "%s",
+        csound->PerfError(csound, &(p->h), "%s\n",
                           Str(" bad imode value"));
     }
     p->old_sig = sig;
@@ -263,7 +263,7 @@ static int32_t trig(CSOUND *csound, TRIG *p)
 static int32_t interpol(CSOUND *csound, INTERPOL *p)
 {
     if (UNLIKELY(*p->imax == *p->imin))
-      return csound->InitError(csound, "%s", Str("Min and max the same"));
+      return csound->InitError(csound, "%s\n", Str("Min and max the same"));
     cs_float point_value = (*p->point - *p->imin) / (*p->imax - *p->imin);
     *p->r = point_value * (*p->val2 - *p->val1) + *p->val1;
     return OK;
@@ -274,7 +274,7 @@ static int32_t nterpol_init(CSOUND *csound, INTERPOL *p)
     if (LIKELY(*p->imax != *p->imin))
       p->point_factor = FL(1.0)/(*p->imax - *p->imin);
     else
-      return csound->InitError(csound, "%s", Str("Min and max the same"));
+      return csound->InitError(csound, "%s\n", Str("Min and max the same"));
     return OK;
  }
 
@@ -357,7 +357,7 @@ static int32_t sum_(CSOUND *csound, SUM *p)
 static int32_t product_init(CSOUND *csound, SUM *p)
 {
     if (UNLIKELY(p->INOCOUNT == 0))
-      return csound->InitError(csound, Str("product requires an input"));
+      return csound->InitError(csound, Str("product requires an input\n"));
     /* Keep existing scratch space sized on reinit. */
     if (p->aux.auxp != NULL)
       return sum_init(csound, p);
@@ -402,7 +402,7 @@ static int32_t rsnsety(CSOUND *csound, RESONY *p)
     /* icorrect opts into base-relative linear spacing; old calls keep
        the original spacing and integer conversion of isepmode. */
     if (UNLIKELY(*p->icorrect != FL(0.0) && *p->icorrect != FL(1.0)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("resony: icorrect must be 0 or 1"));
     cs_double order = (cs_double)*p->ord;
     cs_double scale_value = (cs_double)*p->iscl;
@@ -412,20 +412,20 @@ static int32_t rsnsety(CSOUND *csound, RESONY *p)
     uint32_t nsmps = CS_KSMPS;
     if (UNLIKELY(!isfinite(scale_value) || scale_value < (cs_double)INT32_MIN ||
                  scale_value > (INT32_MAX + 0.0))) {
-      return csound->InitError(csound, Str("illegal reson iscl value: %f"),
+      return csound->InitError(csound, Str("illegal reson iscl value: %f\n"),
                                *p->iscl);
     }
     p->scale = scale = (int32_t)scale_value;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
-      return csound->InitError(csound, Str("illegal reson iscl value: %f"),
+      return csound->InitError(csound, Str("illegal reson iscl value: %f\n"),
                                        *p->iscl);
     }
     if (UNLIKELY(!isfinite(order) || order > (INT32_MAX + 0.0) - 0.5))
-      return csound->InitError(csound, Str("resony: invalid order %f"),
+      return csound->InitError(csound, Str("resony: invalid order %f\n"),
                                *p->ord);
     new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
     if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(cs_float))))
-      return csound->InitError(csound, Str("resony: order is too large"));
+      return csound->InitError(csound, Str("resony: order is too large\n"));
     clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
     p->loop = new_loop;
     state_size = (size_t)p->loop * 2 * sizeof(cs_float);
@@ -451,10 +451,10 @@ static int32_t resony(CSOUND *csound, RESONY *p)
     cs_double  cf;
     int32_t loop = p->loop;
     if (UNLIKELY(loop==0))
-      return csound->InitError(csound, "%s", Str("loop cannot be zero"));
+      return csound->InitError(csound, "%s\n", Str("loop cannot be zero"));
     if (UNLIKELY(*p->icorrect && *p->kcf == FL(0.0)))
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("resony: base frequency must be nonzero"));
+                               "%s\n", Str("resony: base frequency must be nonzero"));
     {
       cs_float   sep = (*p->sep / (cs_float) loop);
       int32_t     flag = *p->icorrect ? (*p->iflag != FL(0.0)) :
@@ -531,7 +531,7 @@ static int32_t fold(CSOUND *csound, FOLD *p)
     cs_double index = p->index;
     cs_float value = p->value;
     if (UNLIKELY(!isfinite(kincr) || kincr < FL(1.0)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("fold: increment must be finite and >= 1"));
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
@@ -568,7 +568,7 @@ static int32_t loopseg_set(CSOUND *csound, LOOPSEG *p)
     p->nsegs   = p->INOCOUNT-3;
     // Should check this is even
     if (UNLIKELY((p->nsegs&1)!=0))
-      csound->Warning(csound, "%s", Str("loop opcode: wrong argument count"));
+      csound->Warning(csound, "%s\n", Str("loop opcode: wrong argument count"));
     p->args[0] = FL(0.0);
     p->phs     = *p->iphase;
     return OK;
@@ -923,7 +923,7 @@ static int32_t vibrato_set(CSOUND *csound, VIBRATO *p)
       if (*p->iphs >= 0 && *p->iphs<1.0)
         p->lphs = (cs_double)*p->iphs * ftp->flen;
       else if (UNLIKELY(*p->iphs>=1.0))
-        return csound->InitError(csound, "%s", Str("vibrato@ Phase out of range"));
+        return csound->InitError(csound, "%s\n", Str("vibrato@ Phase out of range"));
     }
     else return NOTOK;
     p->xcpsAmpRate = randGab(csound) *(*p->ampMaxRate - *p->ampMinRate) +
@@ -989,7 +989,7 @@ static int32_t vibrato(CSOUND *csound, VIBRATO *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("vibrato(krate): not initialised"));
+                             "%s\n", Str("vibrato(krate): not initialised"));
 }
 
 static int32_t vibr_set(CSOUND *csound, VIBR *p)
@@ -1035,7 +1035,7 @@ static int32_t vibr(CSOUND *csound, VIBR *p)
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("vibrato(krate): not initialised"));
+                               "%s\n", Str("vibrato(krate): not initialised"));
     }
     fract = (cs_float) (phs - (int32)phs); /*PFRAC(phs);*/
     ftab = ftp->ftable + (int32)phs; /*(phs >> ftp->lobits);*/
@@ -1291,7 +1291,7 @@ static int32_t userrand_table(CSOUND *csound, cs_float *number,
 static int32_t kDiscreteUserRand(CSOUND *csound, DURAND *p)
 {
     if (UNLIKELY(userrand_table(csound, p->tableNum, &p->ftp, &p->pfn) != OK))
-      return csound->PerfError(csound, &p->h, Str("Invalid ftable no. %f"),
+      return csound->PerfError(csound, &p->h, Str("Invalid ftable no. %f\n"),
                                *p->tableNum);
     USER_RAND_LOOKUP(*p->out, p->ftp->ftable, p->ftp->flen,
                      randGab(csound) * p->ftp->flen, 0);
@@ -1302,7 +1302,7 @@ static int32_t iDiscreteUserRand(CSOUND *csound, DURAND *p)
 {
     p->ftp = NULL;
     if (UNLIKELY(userrand_table(csound, p->tableNum, &p->ftp, &p->pfn) != OK))
-      return csound->InitError(csound, Str("Invalid ftable no. %f"), *p->tableNum);
+      return csound->InitError(csound, Str("Invalid ftable no. %f\n"), *p->tableNum);
     USER_RAND_LOOKUP(*p->out, p->ftp->ftable, p->ftp->flen,
                      randGab(csound) * p->ftp->flen, 0);
     return OK;
@@ -1316,7 +1316,7 @@ static int32_t aDiscreteUserRand(CSOUND *csound, DURAND *p)
     uint32_t n, nsmps = CS_KSMPS, flen;
 
     if (UNLIKELY(userrand_table(csound, p->tableNum, &p->ftp, &p->pfn) != OK))
-      return csound->PerfError(csound, &p->h, Str("Invalid ftable no. %f"),
+      return csound->PerfError(csound, &p->h, Str("Invalid ftable no. %f\n"),
                                *p->tableNum);
     table = p->ftp->ftable;
     flen = p->ftp->flen;
@@ -1335,7 +1335,7 @@ static int32_t kContinuousUserRand(CSOUND *csound, CURAND *p)
 {
     cs_float value;
     if (UNLIKELY(userrand_table(csound, p->tableNum, &p->ftp, &p->pfn) != OK))
-      return csound->PerfError(csound, &p->h, Str("Invalid ftable no. %f"),
+      return csound->PerfError(csound, &p->h, Str("Invalid ftable no. %f\n"),
                                *p->tableNum);
     USER_RAND_LOOKUP(value, p->ftp->ftable, p->ftp->flen,
                      randGab(csound) * p->ftp->flen, 1);
@@ -1348,7 +1348,7 @@ static int32_t iContinuousUserRand(CSOUND *csound, CURAND *p)
     cs_float value;
     p->ftp = NULL;
     if (UNLIKELY(userrand_table(csound, p->tableNum, &p->ftp, &p->pfn) != OK))
-      return csound->InitError(csound, Str("Invalid ftable no. %f"), *p->tableNum);
+      return csound->InitError(csound, Str("Invalid ftable no. %f\n"), *p->tableNum);
     USER_RAND_LOOKUP(value, p->ftp->ftable, p->ftp->flen,
                      randGab(csound) * p->ftp->flen, 1);
     *p->out = value * (*p->max - *p->min) + *p->min;
@@ -1380,7 +1380,7 @@ static int32_t aContinuousUserRand(CSOUND *csound, CURAND *p)
     uint32_t n, nsmps = CS_KSMPS, flen;
 
     if (UNLIKELY(userrand_table(csound, p->tableNum, &p->ftp, &p->pfn) != OK))
-      return csound->PerfError(csound, &p->h, Str("Invalid ftable no. %f"),
+      return csound->PerfError(csound, &p->h, Str("Invalid ftable no. %f\n"),
                                *p->tableNum);
     table = p->ftp->ftable;
     flen = p->ftp->flen;
@@ -1600,7 +1600,7 @@ static int32_t random3(CSOUND *csound, RANDOM3 *p)
 
     if (UNLIKELY(!isfinite(cpsMin) || !isfinite(cpsMax) ||
                  cpsMin < FL(0.0) || cpsMax < FL(0.0)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("rspline: rates must be finite and non-negative"));
 
     if (p->initflag) {
@@ -1646,7 +1646,7 @@ static int32_t random3a(CSOUND *csound, RANDOM3 *p)
 
     if (UNLIKELY(!isfinite(cpsMin) || !isfinite(cpsMax) ||
                  cpsMin < FL(0.0) || cpsMax < FL(0.0)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("rspline: rates must be finite and non-negative"));
 
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));

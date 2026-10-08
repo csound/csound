@@ -874,7 +874,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
   }
 
   if(tree == NULL) {
-   synterr(csound, Str("NULL tree"));
+   synterr(csound, Str("NULL tree\n"));
    longjmp(csound->exitjmp,0);
    return 0;
   }
@@ -1012,7 +1012,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     }
 
     if (UNLIKELY(var == NULL)) {
-      synterr(csound, Str("get_arg_type2: Variable '%s' used before defined, line %d"),
+      synterr(csound, Str("get_arg_type2: Variable '%s' used before defined, line %d\n"),
               tree->value->lexeme, tree->line);
       do_baktrace(csound, tree->locn);
       return NULL;
@@ -1780,7 +1780,7 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     char* argType = get_arg_type2(csound, current, typeTable);
     if (argType == NULL) {
       // if we failed to find argType, exit from parser
-      csound->Die(csound, Str("Could not parse type for argument"));
+      csound->Die(csound, Str("Could not parse type for argument\n"));
     } else {
       	// catch type[] in expressions to opcall - no conversion
       if(!is_external(argType)) {
@@ -1848,7 +1848,7 @@ static char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* type
     // Use get_arg_type2 to extract the actual type from the tree node
     char* argType = get_arg_type2(csound, current, typeTable);
     if (argType == NULL) {
-      csound->Die(csound, Str("Could not parse type for argument"));
+      csound->Die(csound, Str("Could not parse type for argument\n"));
     }
 
     int32_t argLen = (int32_t) strlen(argType);
@@ -2056,7 +2056,7 @@ static int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
         argType = get_arg_type2(csound, current, typeTable);
         if (UNLIKELY(argType==NULL)) {
           synterr(csound,
-                  Str("Variable type for %s could not be determined, line %d"),
+                  Str("Variable type for %s could not be determined, line %d\n"),
                   varName, tree->line);
           do_baktrace(csound, tree->locn);
           return 0;
@@ -2074,7 +2074,7 @@ static int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
 
         if (UNLIKELY(var == NULL)) {
             synterr(csound,
-                    Str("ArgCheck: variable '%s' used before defined\nline %d"),
+                    Str("ArgCheck: variable '%s' used before defined\nline %d\n"),
                     varName, tree->line);
             do_baktrace(csound, tree->locn);
             return 0;
@@ -2248,7 +2248,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
   // remove any global annotation
   find_global_annotation(t, typeTable);
   if (annotation != NULL && is_pfield_name(t)) {
-    synterr(csound, Str("Variable name '%s' is reserved for p-fields"), t);
+    synterr(csound, Str("Variable name '%s' is reserved for p-fields\n"), t);
     if (tree != NULL) do_baktrace(csound, tree->locn);
     csound->Free(csound, t);
     csound->Free(csound, lvarName);
@@ -2286,7 +2286,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
       // check for @global in implicit-type rhs vars
       // and if found, strip it and print warning
       if(find_global_annotation(varName, typeTable) == typeTable->globalPool)
-        csound->Warning(csound, Str("%s: @global annotation ignored"), varName);
+        csound->Warning(csound, Str("%s: @global annotation ignored\n"), varName);
 
       t = lvarName;
 
@@ -2357,14 +2357,14 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 	   (var_pool == csound->engineState.varPool
 	    && pool == typeTable->globalPool)) {
 	  if(tree)
-	   csound->Warning(csound, Str("Replacing previous definition %s:%s by %s:%s, line %d"),
+	   csound->Warning(csound, Str("Replacing previous definition %s:%s by %s:%s, line %d\n"),
                               var->varName, previousType,
 			  lvarName, newType, tree->line);
 	  cs_hash_table_remove(csound, var_pool->table, var->varName);
 	}
 	else if(pool == typeTable->globalPool)
 	  if(tree) // synterr should not happen tree is NULL, as arg is synthetic
-	  synterr(csound, Str("global variable %s:%s cannot shadow local variable %s:%s, line %d"),
+	  synterr(csound, Str("global variable %s:%s cannot shadow local variable %s:%s, line %d\n"),
 		  lvarName, newType, var->varName, previousType, tree->line);
 	csound->Free(csound, previousType);
 	csound->Free(csound, newType);
@@ -2374,7 +2374,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 	// if it's a global var was requested, print warning, do nothing
         if(pool == typeTable->globalPool) {
 	  if(tree)
-	    csound->Warning(csound, Str("@global annotation ignored for variable %s, line %d"),
+	    csound->Warning(csound, Str("@global annotation ignored for variable %s, line %d\n"),
 			    lvarName, tree->line);
 	  goto end;
 	}
@@ -2431,7 +2431,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
   // remove any global annotation
   find_global_annotation(t, typeTable);
   if (is_pfield_name(t)) {
-    synterr(csound, Str("Variable name '%s' is reserved for p-fields"), t);
+    synterr(csound, Str("Variable name '%s' is reserved for p-fields\n"), t);
     csound->Free(csound, t);
     csound->Free(csound, lvarName);
     csound->LongJmp(csound, 1);
@@ -2499,7 +2499,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
            var->subType ? var->subType->varTypeName : var->varType->varTypeName,
            var->dimensions);
          synterr(csound, Str("%s:%s -- type mismatch for existing "
-                          "array variable %s:%s"),
+                          "array variable %s:%s\n"),
                  varName, newType, varName, previousType);
          csound->Free(csound, newType);
          csound->Free(csound, previousType);
@@ -2562,14 +2562,14 @@ static int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
       // check if the array variable exists, it needs to be declared
       arrvar = find_var_from_pools(csound, varName, varName, typeTable);
       if(arrvar == NULL) {
-        synterr(csound,Str("cannot find array variable %s, line %d"),
+        synterr(csound,Str("cannot find array variable %s, line %d\n"),
                 varName, current->line);
         csound->LongJmp(csound, 1);
       }
       // & needs to be an array or asigs
       if(arrvar->varType != &CS_VAR_TYPE_ARRAY &&
          arrvar->varType != &CS_VAR_TYPE_A) {
-        synterr(csound,Str("variable %s is not an array, line %d"),
+        synterr(csound,Str("variable %s is not an array, line %d\n"),
                 varName, current->line);
         csound->LongJmp(csound, 1);
       }
@@ -2916,7 +2916,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
     synterr(csound, Str("unable to find opcode with name: %s, line %d,"
-                         " columns %d-%d"),
+                         " columns %d-%d\n"),
             root->value->lexeme, root->line,
             root->value->first_column, root->value->last_column);
     if (entries != NULL) {
@@ -2937,7 +2937,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
 	*rightArgString = 'k';
       else // otherwise ignore it
 	csound->Warning(csound, Str("ignoring annotation %s \n"
-			"\t for opcode %s with no outputs, line %d"),
+			"\t for opcode %s with no outputs, line %d\n"),
 			root->value->optype, opcodeName,
 			root->line);
     }
@@ -2958,7 +2958,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       char *displayAnnotation = csoundFormatTypeName(csound, root->value->optype, 0);
       csound->Warning(csound, Str(" output type(s) %s\n"
                       "\t not matching annotation %s\n"
-                      "\t ignoring annotation for opcode %s, line %d"),
+                      "\t ignoring annotation for opcode %s, line %d\n"),
                       displayLeft, displayAnnotation,
 		      opcodeName, root->line);
       csound->Free(csound, displayLeft);
@@ -2976,7 +2976,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     csoundOpcodeDeprecationMessage(oentry->opname, oentry->deprecated == 2,
                                   message, sizeof(message));
     if (csound->oparms->error_deprecated) {
-      synterr(csound, Str("%s, line %d, columns %d-%d"), message,
+      synterr(csound, Str("%s, line %d, columns %d-%d\n"), message,
               root->line, root->value->first_column, root->value->last_column);
       csoundMessage(csound, Str(" %s %s %s\n"),
                     leftArgString ? leftArgString : "",
@@ -2984,7 +2984,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
       return 0;
     }
     if (!(csound->oparms->msglevel & CS_NOQQ))
-      csoundWarning(csound, Str("%s, line %d"), message, root->line);
+      csoundWarning(csound, Str("%s, line %d\n"), message, root->line);
   }
 
   if (UNLIKELY(oentry == NULL)) {
@@ -2992,7 +2992,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     char *name = strip_extension(csound, opcodeName);
     synterr(csound, Str("Unable to find opcode entry for \'%s\'\n"
                         "  with matching argument types, line %d"
-                        " columns %d-%d"), name, root->line,
+                        " columns %d-%d\n"), name, root->line,
                           root->value->first_column,
                          root->value->last_column);
     csound->Free(csound, name);
@@ -3699,7 +3699,7 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
         if (UNLIKELY(xinArgs != NULL)) {
           synterr(csound,
                   Str("Multiple xin statements found. "
-                      "Only one is allowed."));
+                      "Only one is allowed.\n"));
           return 0;
         }
         xinArgs = current->left;
@@ -3708,7 +3708,7 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
         if (UNLIKELY(xoutArgs != NULL)) {
           synterr(csound,
                   Str("Multiple xout statements found. "
-                      "Only one is allowed."));
+                      "Only one is allowed.\n"));
           return 0;
         }
         xoutArgs = current->right;
@@ -3724,7 +3724,7 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
   if (!check_in_args(csound, inArgsFound, inArgs)) {
     if (UNLIKELY(!(strcmp("0", inArgs) == 0 && xinArgs == NULL))) {
       synterr(csound,
-              Str("invalid xin statement for UDO: defined '%s', found '%s'"),
+              Str("invalid xin statement for UDO: defined '%s', found '%s'\n"),
               inArgs, inArgsFound);
       return 0;
     }
@@ -3860,7 +3860,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
         if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
           if(!verify_xin_xout(csound, current, typeTable)) {
-            synterr(csound, Str("%s UDO"), udo_name);
+            synterr(csound, Str("%s UDO\n"), udo_name);
             return 0;
           }
         }
@@ -3908,7 +3908,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     case IF_TOKEN:
       if (!verify_if_statement(csound, current, typeTable)) {
-        synterr(csound, Str("conditional expression not valid, line %d"),
+        synterr(csound, Str("conditional expression not valid, line %d\n"),
                 current->line - 2);
         return NULL;
       }
@@ -3930,7 +3930,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       LOOP_JUMP_TARGETS* targets = csound->Calloc(csound, sizeof(LOOP_JUMP_TARGETS));
 
       if (!verify_until_statement(csound, current, typeTable)) {
-        synterr(csound, Str("loop conditional expression not valid, line %d"),
+        synterr(csound, Str("loop conditional expression not valid, line %d\n"),
                 current->line - 2);
         csound->Free(csound, targets);
         anchor = NULL;
@@ -3982,7 +3982,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         synterr(csound,Str("line:%d invalid argument in for statement: "
                            "found '%s', which is not an array\n"),
           current->line,current->right->left->value->lexeme);
-        else synterr(csound,Str("line:%d expected an array variable in for statement."),
+        else synterr(csound,Str("line:%d expected an array variable in for statement.\n"),
                      current->line);
         return 0;
       }
@@ -4022,7 +4022,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                                               current->left->value->lexeme,
                                               typeTable);
             csound->Warning(csound, Str("redefining variable %s in loop (type: %s)\n"
-			    "\t - now using %s type, line %d"),
+			    "\t - now using %s type, line %d\n"),
 			    var->varName, otype,
 			    var->varType->varTypeName, current->line);
           }
@@ -4069,7 +4069,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       TREE* breakGoto;
 
       if (activeLoopStack == NULL) {
-        synterr(csound,Str("line:%d found break statement outside of loop."),
+        synterr(csound,Str("line:%d found break statement outside of loop.\n"),
                 current->line);
         return NULL;
       }
@@ -4087,7 +4087,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       TREE* continueGoto;
 
       if (activeLoopStack == NULL) {
-        synterr(csound,Str("line:%d found continue statement outside of loop."),
+        synterr(csound,Str("line:%d found continue statement outside of loop.\n"),
                 current->line);
         return NULL;
       }
@@ -4884,6 +4884,6 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
                                          &CS_VAR_TYPE_INSTR, varname,
                                            NULL);
     if(var == NULL)
-      csound->Warning(csound, Str("Could not add instrument ref %s"), varname);
+      csound->Warning(csound, Str("Could not add instrument ref %s\n"), varname);
   }
 }

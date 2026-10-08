@@ -55,7 +55,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
                                                CSFTYPE_CVANAL,NULL))
                  == NULL)) {
       int32_t status = csound->InitError(csound,
-                                         Str("CONVOLVE cannot load %s"), cvfilnam);
+                                         Str("CONVOLVE cannot load %s\n"), cvfilnam);
       if (allocatedName != NULL)
         csound->Free(csound, allocatedName);
       return status;
@@ -66,11 +66,11 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
   p->mfp = mfp;
   cvfilnam = mfp->filename;
   if (UNLIKELY(mfp->length < (int32_t) sizeof(CVSTRUCT)))
-    return csound->InitError(csound, "%s", Str("convolve: truncated file header"));
+    return csound->InitError(csound, "%s\n", Str("convolve: truncated file header"));
   cvh = (CVSTRUCT *)mfp->beginp;
   if (UNLIKELY(cvh->magic != CVMAGIC)) {
     return csound->InitError(csound,
-                             Str("%s not a CONVOLVE file (magic %"PRIi32")"),
+                             Str("%s not a CONVOLVE file (magic %"PRIi32")\n"),
                              cvfilnam, cvh->magic);
   }
 
@@ -81,7 +81,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
                (cvh->channel != ALLCHNLS &&
                 (cvh->channel < 1 || cvh->channel > cvh->src_chnls)) ||
                cvh->Format != CVRECT))
-    return csound->InitError(csound, "%s", Str("convolve: invalid file header"));
+    return csound->InitError(csound, "%s\n", Str("convolve: invalid file header"));
 
   nchanls = (cvh->channel == ALLCHNLS ? cvh->src_chnls : 1);
 
@@ -90,7 +90,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
       p->nchanls = nchanls;
     else {
       return csound->InitError(csound,
-                               "%s", Str("CONVOLVE: output channels not equal "
+                               "%s\n", Str("CONVOLVE: output channels not equal "
                                          "to number of channels in source"));
     }
   }
@@ -98,7 +98,7 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
     if (*p->channel >= FL(1.0) && *p->channel <= nchanls) {
       if (UNLIKELY(p->OUTOCOUNT != 1)) {
         return csound->InitError(csound,
-                                 "%s", Str("CONVOLVE: output channels not equal "
+                                 "%s\n", Str("CONVOLVE: output channels not equal "
                                            "to number of channels in source"));
       }
       else
@@ -106,19 +106,19 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
     }
     else {
       return csound->InitError(csound,
-                               "%s", Str("CONVOLVE: channel number greater than "
+                               "%s\n", Str("CONVOLVE: channel number greater than "
                                          "number of channels in source"));
     }
   }
   Hlen = p->Hlen = cvh->Hlen;
   if (UNLIKELY(Hlen < 1 || Hlen > (1 << 29)))
-    return csound->InitError(csound, "%s", Str("convolve: invalid impulse length"));
+    return csound->InitError(csound, "%s\n", Str("convolve: invalid impulse length"));
   while (Hlenpadded < 2*Hlen-1)
     Hlenpadded <<= 1;
   /* Use the loaded size: text files can come from a different cs_float build. */
   siz = ((uint64_t) Hlenpadded + 2) * nchanls * sizeof(cs_float);
   if (UNLIKELY(siz > (uint64_t) (mfp->length - cvh->headBsize)))
-    return csound->InitError(csound, "%s", Str("convolve: truncated spectrum data"));
+    return csound->InitError(csound, "%s\n", Str("convolve: truncated spectrum data"));
   p->Hlenpadded = Hlenpadded;
   p->H = (cs_float *) ((char *)cvh+cvh->headBsize);
   if ((p->nchanls == 1) && (*p->channel > 0))
@@ -126,13 +126,13 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
 
   if (UNLIKELY(cvh->samplingRate != CS_ESR)) {
     /* & chk the data */
-    csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
+    csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f\n"),
                     cvfilnam, cvh->samplingRate, CS_ESR);
   }
   if (UNLIKELY(cvh->dataFormat != CVMYFLT)) {
     return csound->InitError(csound,
                              Str("unsupported CONVOLVE data "
-                                 "format %"PRIi32" in %s"),
+                                 "format %"PRIi32" in %s\n"),
                              cvh->dataFormat, cvfilnam);
   }
 
@@ -141,13 +141,13 @@ static int32_t cvset_(CSOUND *csound, CONVOLVE *p, int32_t stringname)
     ((int64_t)Hlen + nsmps - 1) / nsmps * nsmps :
     ((int64_t)nsmps + Hlen - 1) / Hlen * Hlen;
   if (UNLIKELY(outputSize > INT32_MAX))
-    return csound->InitError(csound, "%s", Str("convolve: output buffer is too large"));
+    return csound->InitError(csound, "%s\n", Str("convolve: output buffer is too large"));
   obufsiz = (int32_t)outputSize;
   siz = (uint64_t)Hlenpadded + 2 + nsmps +
     (uint64_t)p->nchanls * ((uint64_t)Hlen - 1 + obufsiz) +
     (p->nchanls > 1 ? (uint64_t)Hlenpadded + 2 : 0);
   if (UNLIKELY(siz > SIZE_MAX / sizeof(cs_float)))
-    return csound->InitError(csound, "%s", Str("convolve: buffer size is too large"));
+    return csound->InitError(csound, "%s\n", Str("convolve: buffer size is too large"));
   if (p->auxch.auxp == NULL || p->auxch.size < siz * sizeof(cs_float))
     csound->AuxAlloc(csound, siz * sizeof(cs_float), &p->auxch);
   else
@@ -409,7 +409,7 @@ static int32_t convolve(CSOUND *csound, CONVOLVE *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("convolve: not initialised"));
+                           "%s\n", Str("convolve: not initialised"));
 }
 
 /* partitioned (low latency) overlap-save convolution.
@@ -446,14 +446,14 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
   if (UNLIKELY(channel < 1 && channel != ALLCHNLS)) {
     if (allocatedName != NULL)
       csound->Free(csound, allocatedName);
-    return csound->InitError(csound, Str("channel request %d illegal"), channel);
+    return csound->InitError(csound, Str("channel request %d illegal\n"), channel);
   }
   file = csound->FileOpen(csound, &infd, CSFILE_SND_R, sfname, &info,
                           "SFDIR;SSDIR;SADIR", CSFTYPE_UNKNOWN_AUDIO, 0);
   if (allocatedName != NULL)
     csound->Free(csound, allocatedName);
   if (UNLIKELY(file == NULL))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("pconvolve: error while opening impulse file"));
   if (UNLIKELY(info.frames <= 0 || info.channels <= 0 || info.samplerate <= 0)) {
     error = Str("pconvolve: impulse file must contain audio frames");
@@ -469,7 +469,7 @@ static int32_t pconvset_(CSOUND *csound, PCONVOLVE *p, int32_t stringname)
     goto err;
   }
   if (UNLIKELY(info.samplerate != (int32_t)CS_ESR))
-    csound->Warning(csound, "%s", Str("IR srate != orch's srate"));
+    csound->Warning(csound, "%s\n", Str("IR srate != orch's srate"));
   if (csound->GetDebug(csound) & DEBUG_OPCODES)
     csound->Warning(csound, Str("analyzing %ld sample frames (%3.1f secs)\n"),
                      (long)info.frames, (cs_double)info.frames / info.samplerate);
@@ -556,7 +556,7 @@ err:
   if (inbuf != NULL)
     csound->Free(csound, inbuf);
   csound->FileClose(csound, file, CSFILE_CLOSE_SYNC);
-  return csound->InitError(csound, "%s", error);
+  return csound->InitError(csound, "%s\n", error);
 }
 
 static int32_t pconvset(CSOUND *csound, PCONVOLVE *p){

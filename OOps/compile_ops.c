@@ -253,7 +253,7 @@ int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
     if ((size_t)cnt != strlen(p->type->data)) {
       csoundClearOSCMessage(mess);
       return csound->PerfError(csound, &p->h,
-                               Str("osclisten: output count does not match type string"));
+                               Str("osclisten: output count does not match type string\n"));
     }
     cs_float **out = p->out;
     const char *buf = mess->data;
@@ -267,11 +267,11 @@ int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
         buf = OSC_message_get_number(buf, type[i], out[i]);
         if(buf == NULL)
           return csound->PerfError(csound, &(p->h),  
-                                   Str("unsupported OSC type %c"), type[i]);
+                                   Str("unsupported OSC type %c\n"), type[i]);
       }
       else
         return csound->PerfError(csound, &(p->h), Str("wrong output argument "
-                                 "for OSC type %c"), type[i]);
+                                 "for OSC type %c\n"), type[i]);
     }
     *p->kstatus = 1;
     csoundClearOSCMessage(mess);
@@ -299,7 +299,7 @@ int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p) {
         (size_t)p->out->sizes[0] != strlen(p->type->data)) {
       csoundClearOSCMessage(mess);
       return csound->PerfError(csound, &p->h,
-                               Str("osclisten: array size does not match type string"));
+                               Str("osclisten: array size does not match type string\n"));
     }
     cnt = p->out->sizes[0];
     cs_float *out = p->out->data;
@@ -309,7 +309,7 @@ int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p) {
       buf = OSC_message_get_number(buf, type[i], &out[i]);
       if(buf == NULL)
         return csound->PerfError(csound, &(p->h),  
-                                 Str("unsupported OSC type %c"),
+                                 Str("unsupported OSC type %c\n"),
                                  type[i]);
     }
     *p->kstatus = 1;
@@ -501,7 +501,7 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
   if(UNLIKELY(!(*p->b >= FL(1.0) &&
                  (cs_double)*p->b < (cs_double)nchnls + 1))) {
     return csound->PerfError(csound, &p->h,
-                             "%s", Str("Csound inch: channel out of range"));
+                             "%s\n", Str("Csound inch: channel out of range"));
   }
   chn = (int32_t)*p->b - 1;
 
@@ -533,7 +533,7 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
   if(UNLIKELY(!(*p->a >= FL(1.0) &&
                  (cs_double)*p->a < (cs_double)nchnls + 1))) {
     return csound->PerfError(csound, &p->h,
-                             "%s", Str("Csound outch: channel out of range"));
+                             "%s\n", Str("Csound outch: channel out of range"));
   }
   chn = (int32_t)*p->a - 1;
    

@@ -50,24 +50,24 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
     p->ilohi = (int32_t)*p->lohi;
     if (UNLIKELY((p->ilohi < 0) || (p->ilohi > 1))) {
       return csound->InitError(csound,
-                               "%s", Str("filter type not lowpass or "
+                               "%s\n", Str("filter type not lowpass or "
                                    "highpass in clfilt"));
     }
     p->ikind = (int32_t)*p->kind;
     if (UNLIKELY((p->ikind < 0) || (p->ikind > 3))) {
       return csound->InitError(csound,
-                               Str("filter kind, %d, out of range in clfilt"),
+                               Str("filter kind, %d, out of range in clfilt\n"),
                                p->ikind);
     }
     if (UNLIKELY((*p->npol < FL(1.0)) || (*p->npol > 2*CL_LIM))) {
       return csound->InitError(csound, Str("number of poles, %f, out of range "
-                                           "in clfilt"), *p->npol);
+                                           "in clfilt\n"), *p->npol);
 /*       p->nsec = nsec = 1; */
     }
     else if (UNLIKELY(fmod((cs_double)*p->npol,2.0) != 0.0)) {
       p->nsec = nsec = (int32_t)((*p->npol+FL(1.0))*FL(0.5));
       csound->Warning(csound, Str("odd number of poles chosen in clfilt,"
-                                  " rounded to %d"), 2*nsec);
+                                  " rounded to %d\n"), 2*nsec);
     }
     else p->nsec = nsec = (int32_t)((*p->npol)*FL(0.5));
     switch (p->ilohi) {
@@ -92,12 +92,12 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
         if (UNLIKELY( pbr < FL(0.0) )) {
           pbr = -pbr;
           csound->Warning(csound, Str("passband ripple must be positive "
-                                      "in clfilt. Set to %f"), pbr);
+                                      "in clfilt. Set to %f\n"), pbr);
         }
         else if (UNLIKELY( pbr == FL(0.0) )) {
           pbr = FL(1.0);
           csound->Warning(csound, Str("passband ripple must be non-zero in "
-                                      "clfilt. Set to %f"), pbr);
+                                      "clfilt. Set to %f\n"), pbr);
         }
         eps = sqrt(expm1((cs_double)pbr * (log(10.0) / 10.0)));
         aleph = 0.5/nsec * asinh(1.0/eps);
@@ -139,12 +139,12 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
         else if (UNLIKELY( sbr > FL(0.0) )) {
           sbr = -sbr;
           csound->Warning(csound, Str("stopband attenuation must be negative "
-                                      "in clfilt. Set to %f"), sbr);
+                                      "in clfilt. Set to %f\n"), sbr);
         }
         else if (UNLIKELY( sbr == FL(0.0) )) {
           sbr = FL(-60.0);
           csound->Warning(csound, Str("stopband attenuation must be non-zero "
-                                      "in clfilt. Set to %f"), sbr);
+                                      "in clfilt. Set to %f\n"), sbr);
         }
         /* Work with inverse epsilon directly for the Type II poles. */
         aleph = 0.5/nsec *
@@ -169,10 +169,10 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
       case 3: /* Lowpass Elliptical */
         return
           csound->InitError(csound,
-                            "%s", Str("Lowpass Elliptical not implemented yet. Sorry!"));
+                            "%s\n", Str("Lowpass Elliptical not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return csound->InitError(csound, "%s", Str("code error, ikind out of range"));
+        return csound->InitError(csound, "%s\n", Str("code error, ikind out of range"));
       }
       break;
     case 1: /* Highpass filters */
@@ -197,12 +197,12 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
           pbr = -pbr;
           csound->Warning(csound,
                           Str("passband ripple must be positive in clfilt. "
-                              "Set to %f"), pbr);
+                              "Set to %f\n"), pbr);
         }
         else if (UNLIKELY( pbr == FL(0.0) )) {
           pbr = FL(1.0);
           csound->Warning(csound, Str("passband ripple must be non-zero "
-                                      "in clfilt. Set to %f"), pbr);
+                                      "in clfilt. Set to %f\n"), pbr);
         }
         eps = sqrt(expm1((cs_double)pbr * (log(10.0) / 10.0)));
         aleph = 0.5/nsec * asinh(1.0/eps);
@@ -244,12 +244,12 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
         else if (UNLIKELY( sbr > FL(0.0) )) {
           sbr = -sbr;
           csound->Warning(csound, Str("stopband attenuation must be negative "
-                                      "in clfilt. Set to %f"), sbr);
+                                      "in clfilt. Set to %f\n"), sbr);
         }
         else if (UNLIKELY( sbr == FL(0.0) )) {
           sbr = FL(-60.0);
           csound->Warning(csound, Str("stopband attenuation must be non-zero "
-                                      "in clfilt. Set to %f"), sbr);
+                                      "in clfilt. Set to %f\n"), sbr);
         }
         /* Work with inverse epsilon directly for the Type II poles. */
         aleph = 0.5/nsec *
@@ -272,15 +272,15 @@ static int32_t clfiltset(CSOUND *csound, CLFILT *p)
         }
         break;
       case 3: /* Highpass Elliptical */
-        return csound->InitError(csound, "%s", Str("Highpass Elliptical "
+        return csound->InitError(csound, "%s\n", Str("Highpass Elliptical "
                                              "not implemented yet. Sorry!"));
         break;
       default: /* Because of earlier conditionals, should never get here. */
-        return csound->InitError(csound, "%s", Str("code error, ikind out of range"));
+        return csound->InitError(csound, "%s\n", Str("code error, ikind out of range"));
       }
       break;
     default: /* Because of earlier conditionals, should never get here. */
-      return csound->InitError(csound, "%s", Str("code error, ihilo out of range"));
+      return csound->InitError(csound, "%s\n", Str("code error, ihilo out of range"));
     }
     if (*p->reinit==FL(0.0)) {      /* Only reset in in non-legato mode */
       for (m=0;m<=nsec-1;m++) {
@@ -344,12 +344,12 @@ static int32_t clfilt(CSOUND *csound, CLFILT *p)
           break;
         case 3: /* Lowpass Elliptical */
           return csound->PerfError(csound, &(p->h),
-                                   "%s", Str("Lowpass Elliptical "
+                                   "%s\n", Str("Lowpass Elliptical "
                                                "not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
           return csound->PerfError(csound, &(p->h),
-                                   "%s", Str("code error, ikind out of range"));
+                                   "%s\n", Str("code error, ikind out of range"));
         }
         break;
       case 1: /* Highpass filters */
@@ -382,17 +382,17 @@ static int32_t clfilt(CSOUND *csound, CLFILT *p)
           break;
         case 3: /* Highpass Elliptical */
           return csound->PerfError(csound, &(p->h),
-                                   "%s", Str("Highpass Elliptical "
+                                   "%s\n", Str("Highpass Elliptical "
                                        "not implemented yet. Sorry!"));
           break;
         default: /* Because of earlier contditionals, should never get here. */
           return csound->PerfError(csound, &(p->h),
-                                   "%s", Str("code error, ikind out of range"));
+                                   "%s\n", Str("code error, ikind out of range"));
         }
         break;
       default: /* Because of earlier conditionals, should never get here. */
         return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("code error, ihilo out of range"));
+                                 "%s\n", Str("code error, ihilo out of range"));
       }
     }
     in   = p->in;
