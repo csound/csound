@@ -81,6 +81,11 @@ class TestResult:
             for pattern in self.test_data.expect.get(stream + "_regex", []):
                 if not any(re.search(pattern, output) for output in outputs):
                     missing.append(f"{stream} missing regex {pattern!r}")
+            # A crash report under a sanitizer can exit with the very status
+            # an expected failure declares; *_excludes keeps it from passing.
+            for pattern in self.test_data.expect.get(stream + "_excludes", []):
+                if any(pattern in output for output in outputs):
+                    missing.append(f"{stream} contains excluded substring {pattern!r}")
         return missing
 
     @property

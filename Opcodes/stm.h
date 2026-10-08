@@ -107,7 +107,7 @@
    count, which means successive drivers with different local setksmps values
    contribute their real control-period lengths without retroactively rescaling
    earlier steps. stmtick is counted internally in a uint64 and returned as
-   MYFLT, hence exact up to 2^53 in a double build and 2^24 in a float one.
+   cs_float, hence exact up to 2^53 in a double build and 2^24 in a float one.
 
    Node time is measured from the sample-frame count at which the current node
    was entered:
@@ -120,7 +120,7 @@
 
    REGISTRY HANDLES
 
-   Builder, definition and runner handles are numeric MYFLT values because
+   Builder, definition and runner handles are numeric cs_float values because
    orchestra code cannot safely carry raw C pointers. One typed registry stores
    all three object kinds in reusable slots and encodes both the slot index and
    a generation counter into each handle. Every lookup validates generation and
@@ -128,7 +128,7 @@
    definition or runner handle.
 
    The handle encoding is intentionally kept within 2^24, so all handle
-   integers are exact even in single-precision MYFLT builds. With the current
+   integers are exact even in single-precision cs_float builds. With the current
    constants this allows 4096 live registry slots per CSOUND instance and 4096
    generations per slot, for up to 16,777,216 graph lifetimes before every slot
    would be exhausted.
@@ -342,7 +342,7 @@ typedef struct {
 } STM_OWNER_TOKEN;
 
 /* Per-csound registry: handles encode a slot and generation into an integer
-   stored as MYFLT (kept within the exact integer range of float builds). */
+   stored as cs_float (kept within the exact integer range of float builds). */
 typedef struct {
     STM_REGISTRY_SLOT *slots;
     uint32_t count;
@@ -353,21 +353,21 @@ typedef struct {
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *handle;
+    cs_float *handle;
     STM_OWNER_TOKEN owner;
 } GRAPH_CREATE;
 
 typedef struct {
     OPDS h;
     // inputs
-    MYFLT *handle;
+    cs_float *handle;
     STRINGDAT *node_name;
 } GRAPH_ADD_NODE;
 
 typedef struct {
     OPDS h;
     // inputs
-    MYFLT *handle;
+    cs_float *handle;
     STRINGDAT *from;
     STRINGDAT *to;
 } GRAPH_ADD_EDGE;
@@ -375,7 +375,7 @@ typedef struct {
 typedef struct {
     OPDS h;
     // inputs
-    MYFLT *handle;
+    cs_float *handle;
     STRINGDAT *from;
     ARRAYDAT *targets;
 } GRAPH_ADD_COND_EDGE;
@@ -383,18 +383,18 @@ typedef struct {
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *def_handle; // definition handle
+    cs_float *def_handle; // definition handle
     // inputs
-    MYFLT *bld_handle; // builder handle
+    cs_float *bld_handle; // builder handle
     STM_OWNER_TOKEN owner;
 } GRAPH_COMPILE;
 
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *runner_handle;
+    cs_float *runner_handle;
     // inputs
-    MYFLT *def_handle;
+    cs_float *def_handle;
     STM_OWNER_TOKEN owner;
 } GRAPH_INSTANCE;
 
@@ -403,36 +403,36 @@ typedef struct {
     // outputs
     STRINGDAT *cur;
     // inputs
-    MYFLT *handle;
+    cs_float *handle;
     STM_RUNNER_REF ref;
 } GRAPH_CURRENT; // k-rate
 
-/* Shared by every k-rate runner query with a single MYFLT output:
+/* Shared by every k-rate runner query with a single cs_float output:
    stmcurrentid, stmnodecount, stmedgecount, stmtick, stmtime, stmnodetime. */
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *out;
+    cs_float *out;
     // inputs
-    MYFLT *handle;
+    cs_float *handle;
     STM_RUNNER_REF ref;
 } GRAPH_RUNNER_QUERY; // k-rate
 
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *status;
-    MYFLT *id_from;
-    MYFLT *id_to;
+    cs_float *status;
+    cs_float *id_from;
+    cs_float *id_to;
     // inputs
-    MYFLT *handle;
+    cs_float *handle;
     STM_RUNNER_REF ref;
 } GRAPH_ADVANCE; // k-rate
 
 typedef struct {
     OPDS h;
     // inputs
-    MYFLT *handle;
+    cs_float *handle;
     STRINGDAT *next_node;
     STM_RUNNER_REF ref;
 } GRAPH_NEXT;
@@ -440,17 +440,17 @@ typedef struct {
 typedef struct {
     OPDS h;
     // inputs
-    MYFLT *handle;
-    MYFLT *next_node;
+    cs_float *handle;
+    cs_float *next_node;
     STM_RUNNER_REF ref;
 } GRAPH_NEXT_ID;
 
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *trig;
+    cs_float *trig;
     // inputs
-    MYFLT *handle;
+    cs_float *handle;
     STRINGDAT *node;
     // The node id is stable in the immutable definition. The retained runner
     // reference keeps both the runtime state and its definition alive.
@@ -464,9 +464,9 @@ typedef struct {
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *node_id;
+    cs_float *node_id;
     // inputs
-    MYFLT *handle;
+    cs_float *handle;
     STRINGDAT *node_name;
     STM_RUNNER_REF ref;
 } GRAPH_NODE_ID;
@@ -476,8 +476,8 @@ typedef struct {
     // outputs
     STRINGDAT *node_name;
     // inputs
-    MYFLT *handle;
-    MYFLT *node_id;
+    cs_float *handle;
+    cs_float *node_id;
     STM_RUNNER_REF ref;
 } GRAPH_NODE_NAME;
 
@@ -486,8 +486,8 @@ typedef struct {
 typedef struct {
     OPDS h;
     // inputs
-    MYFLT *handle;
-    MYFLT *trig;
+    cs_float *handle;
+    cs_float *trig;
     // private
     STM_RUNNER_REF ref;
     int32_t trigger_high;
@@ -496,7 +496,7 @@ typedef struct {
 typedef struct {
     OPDS h;
     // inputs
-    MYFLT *handle;
+    cs_float *handle;
     STRINGDAT *entry_node;
 } GRAPH_ENTRY;
 
@@ -505,14 +505,14 @@ typedef struct {
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *status;
-    MYFLT *sequence;
-    MYFLT *overflow;
-    MYFLT *available;
-    MYFLT *from;
-    MYFLT *to;
+    cs_float *status;
+    cs_float *sequence;
+    cs_float *overflow;
+    cs_float *available;
+    cs_float *from;
+    cs_float *to;
     // inputs
-    MYFLT *handle;
+    cs_float *handle;
     // private
     uint64_t next_event_seq;
     STM_RUNNER_REF ref;
@@ -521,11 +521,11 @@ typedef struct {
 typedef struct {
     OPDS h;
     // outputs
-    MYFLT *check;
+    cs_float *check;
     // inputs
-    MYFLT *runner_handle;
+    cs_float *runner_handle;
     STRINGDAT *checkpoint_name;
-    MYFLT *trig;
+    cs_float *trig;
     //private
     STM_RUNNER_REF ref;
     char last_name[64];

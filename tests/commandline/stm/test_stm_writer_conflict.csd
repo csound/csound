@@ -4,6 +4,7 @@ description = "expected failure: stm rejects overlapping writer instruments"
 [expect]
 exit = 1
 stderr = ["[stm] runner already has another active writer"]
+output_excludes = ["Segmentation fault", "AddressSanitizer", "UndefinedBehaviorSanitizer", "Abort trap"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

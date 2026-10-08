@@ -4,6 +4,7 @@ description = "expected failure: stm rejects a builder where a definition is req
 [expect]
 exit = 1
 stderr = ["[stm] stminstance: invalid definition"]
+output_excludes = ["Segmentation fault", "AddressSanitizer", "UndefinedBehaviorSanitizer", "Abort trap"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
