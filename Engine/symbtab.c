@@ -453,11 +453,10 @@ void synterr(CSOUND *csound, const char *s, ...)
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
     if(csoundGetDebug(csound)) {
     // Also echo semantic errors to the normal message channel to make them visible in verbose runs
-     char buf[1024];
-     vsnprintf(buf, sizeof(buf), s, args_copy);
-     va_end(args_copy);
-     csound->Message(csound, "SEMERR: %s\n", buf);
+     csound->Message(csound, "SEMERR: ");
+     csoundMessageLineV(csound, 0, s, args_copy);
     }
+    va_end(args_copy);
 #endif
     va_end(args);
     csound->synterrcnt++;

@@ -3240,7 +3240,8 @@ static CS_NOINLINE FUNC *gen01_defer_load(CSOUND *csound, int32_t fno)
     ftp->sr = csound->esr;
     if (UNLIKELY(result != 0)) {
       ftp->flen = 0;
-      csoundErrorMsg(csound, Str("Deferred load of '%s' failed\n"), strarg);
+      csoundMessageLine(csound, CSOUNDMSG_ERROR,
+                        Str("Deferred load of '%s' failed"), strarg);
       return NULL;
     }
     if (ff.e.p[3] != FL(0.0))

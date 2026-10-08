@@ -586,7 +586,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
           goto nxtToken;
         }
       }
-      csoundErrorMsg(csound, Str("unknown output format: '%s'\n"), s);
+      csoundMessageLine(csound, CSOUNDMSG_ERROR, Str("unknown output format: '%s'"), s);
       return 0;
     nxtToken:
       s = t;

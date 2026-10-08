@@ -405,10 +405,10 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
       /* Read an argv thing */
       if (UNLIKELY(argc == 0)) {
         if (readingCsOptions)
-          csoundErrorMsg(csound, Str("Invalid arguments in <CsOptions>: %s\n"),
+          csoundMessageLine(csound, CSOUNDMSG_ERROR, Str("Invalid arguments in <CsOptions>: %s"),
                          buffer);
-        else csoundErrorMsg(csound,
-                         Str("Invalid arguments in .csound7rc or -@ file: %s\n"),
+        else csoundMessageLine(csound, CSOUNDMSG_ERROR,
+                         Str("Invalid arguments in .csound7rc or -@ file: %s"),
                          buffer);
       }
       else argdecode(csound, argc, argv);
@@ -654,7 +654,7 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
 static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
 {
 #ifdef IOS
-  csoundErrorMsg(csound, Str("External scores not supported on iOS\n"));
+  csoundMessageLine(csound, CSOUNDMSG_ERROR, Str("External scores not supported on iOS"));
   return FALSE;
 #else
     char *extname;
@@ -666,12 +666,12 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
 
     p = strstr(p, "bin=\"");
     if (UNLIKELY(p==NULL)) {
-      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>\n"));
+      csoundMessageLine(csound, CSOUNDMSG_ERROR, Str("Missing program in tag <CsScore>"));
       return FALSE;
     }
     q = strchr(p+5, '"');
     if (UNLIKELY(q==NULL)) {              /* No program given */
-      csoundErrorMsg(csound, Str("Missing program in tag <CsScore>\n"));
+      csoundMessageLine(csound, CSOUNDMSG_ERROR, Str("Missing program in tag <CsScore>"));
       return FALSE;
     }
     *q = '\0';
@@ -705,23 +705,23 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
         int system_result = system(sys);
 #endif
         if (UNLIKELY(system_result != 0)) {
-          csoundErrorMsg(csound, Str("External generation failed\n"));
+          csoundMessageLine(csound, CSOUNDMSG_ERROR, Str("External generation failed"));
           remove(extname);
           remove(STA(sconame));
           csound->Free(csound, extname);
           return FALSE;
         }
        if (UNLIKELY(remove(extname)))
-         csoundErrorMsg(csound, Str("and cannot remove %s\n"), extname);
+         csoundMessageLine(csound, CSOUNDMSG_ERROR, Str("and cannot remove %s"), extname);
         if (csound->scorestr == NULL)
           csound->scorestr = corfile_create_w(csound);
 
         fd = csoundFileOpen(csound, &scof, CSFILE_STD, STA(sconame),
                                     "r", NULL, CSFTYPE_SCORE, 0);
         if (UNLIKELY(fd == NULL)) {
-          csoundErrorMsg(csound, Str("cannot open %s\n"), STA(sconame));
+          csoundMessageLine(csound, CSOUNDMSG_ERROR, Str("cannot open %s"), STA(sconame));
           if (UNLIKELY(remove(STA(sconame))))
-            csoundErrorMsg(csound, Str("and cannot remove %s\n"), STA(sconame));
+            csoundMessageLine(csound, CSOUNDMSG_ERROR, Str("and cannot remove %s"), STA(sconame));
           csound->Free(csound, extname);
           return FALSE;
         }
@@ -741,7 +741,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
       }
       else fputs(buffer, scof);
     }
-    csoundErrorMsg(csound, Str("Missing end tag </CsScore>\n"));
+    csoundMessageLine(csound, CSOUNDMSG_ERROR, Str("Missing end tag </CsScore>"));
     csound->Free(csound, extname);
     return FALSE;
 #endif

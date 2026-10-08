@@ -1779,7 +1779,8 @@ int32_t csoundAppendOpcodes(CSOUND *csound, const OENTRY *opcodeList,
     n = 0x7FFFFFFF;
   while (n && ep->opname != NULL) {
     if (UNLIKELY((err = opcode_list_new_oentry(csound, ep, 0)) != 0)) {
-      csoundErrorMsg(csound, Str("Failed to allocate opcode entry for %s.\n"),
+      csoundMessageLine(csound, CSOUNDMSG_ERROR,
+                        Str("Failed to allocate opcode entry for %s."),
                      ep->opname);
       retval = err;
     }
@@ -1805,7 +1806,8 @@ int32_t csoundPrependOpcodes(CSOUND *csound, const OENTRY *opcodeList,
     n = 0x7FFFFFFF;
   while (n && ep->opname != NULL) {
     if (UNLIKELY((err = opcode_list_new_oentry(csound, ep, 1)) != 0)) {
-      csoundErrorMsg(csound, Str("Failed to prepend opcode entry for %s.\n"),
+      csoundMessageLine(csound, CSOUNDMSG_ERROR,
+                        Str("Failed to prepend opcode entry for %s."),
                      ep->opname);
       retval = err;
     }

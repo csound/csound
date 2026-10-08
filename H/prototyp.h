@@ -53,6 +53,12 @@ extern "C" {
   CS_PRINTF3  int32_t csoundPerfError(CSOUND *, OPDS *h, const char *, ...);
   CS_PRINTF2  void csoundWarning(CSOUND *, const char *, ...);
   CS_PRINTF2  void csoundDebugMsg(CSOUND *, const char *, ...);
+  /* Complete diagnostics end in a newline. Pass Str(format) unchanged so
+     line termination does not change gettext keys. Existing trailing
+     newlines are preserved. Message/MessageS/MessageV and ErrorMsg/ErrorMsgS
+     remain exact-output APIs for fragments and formatted output. */
+  CS_PRINTF3 void csoundMessageLine(CSOUND *, int32_t attr, const char *, ...);
+  void csoundMessageLineV(CSOUND *, int32_t attr, const char *, va_list);
   CS_PRINTF2  void csoundErrorMsg(CSOUND *, const char *, ...);
   void csoundErrorMsgS(CSOUND *, int32_t attr, const char *, ...);
   void csoundErrMsgV(CSOUND *, const char *, const char *, va_list);

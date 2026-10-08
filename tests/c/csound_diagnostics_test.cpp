@@ -101,3 +101,82 @@ TEST_F(DiagnosticLineTests, InvalidMidiModules)
     }
   }
 }
+
+TEST_F(DiagnosticLineTests, CompleteLinesKeepTheirNewlines)
+{
+  for (const char *text : {"message", "message\n", "message\n\n", ""}) {
+    SCOPED_TRACE(text);
+    csoundMessageLine(csound, CSOUNDMSG_ERROR, "%s", text);
+    std::string expected = text;
+    if (expected.empty() || expected.back() != '\n') expected += '\n';
+    ASSERT_EQ(csoundGetMessageCnt(csound), 1);
+    EXPECT_EQ(std::string(csoundGetFirstMessage(csound)), expected);
+    EXPECT_EQ(csoundGetFirstMessageAttr(csound), CSOUNDMSG_ERROR);
+    csoundPopFirstMessage(csound);
+  }
+}
+
+TEST_F(DiagnosticLineTests, TranslatedTextIsTerminatedAfterFormatting)
+{
+  // The caller supplies the gettext result, without changing its lookup key.
+  csoundMessageLine(csound, CSOUNDMSG_ERROR,
+                    "Le chargement différé de '%s' a échoué", "piano.wav");
+  ASSERT_EQ(csoundGetMessageCnt(csound), 1);
+  EXPECT_STREQ(csoundGetFirstMessage(csound),
+               "Le chargement différé de 'piano.wav' a échoué\n");
+}
+
+TEST_F(DiagnosticLineTests, PublicMessageCallsPreserveFragments)
+{
+  csoundMessage(csound, "left");
+  csoundMessageS(csound, CSOUNDMSG_ERROR, " middle");
+  csoundErrorMsg(csound, " right");
+  csoundErrorMsgS(csound, 0, "\n");
+  std::string output;
+  while (csoundGetMessageCnt(csound)) {
+    output += csoundGetFirstMessage(csound);
+    csoundPopFirstMessage(csound);
+  }
+  EXPECT_EQ(output, "left middle right\n");
+}
+
+TEST_F(DiagnosticLineTests, WarningAndSyntaxErrorsDoNotAddBlankLines)
+{
+  for (const char *text : {"diagnostic", "diagnostic\n"}) {
+    csoundWarning(csound, "%s", text);
+    synterr(csound, "%s", text);
+    std::string output;
+    while (csoundGetMessageCnt(csound)) {
+      output += csoundGetFirstMessage(csound);
+      csoundPopFirstMessage(csound);
+    }
+    EXPECT_EQ(output, "warning: diagnostic\n\nsyntax error, diagnostic\n");
+  }
+}
+
+TEST_F(DiagnosticLineTests, LongLinesReachBothCallbackTypes)
+{
+  const std::string text(4096, 'x');
+  csoundMessageLine(csound, CSOUNDMSG_ERROR, "%s", text.c_str());
+  ASSERT_EQ(csoundGetMessageCnt(csound), 1);
+  EXPECT_EQ(std::string(csoundGetFirstMessage(csound)), text + "\n");
+  csoundPopFirstMessage(csound);
+
+  std::string output;
+  csoundSetHostData(csound, &output);
+  csoundSetMessageStringCallback(csound,
+    [](CSOUND *cs, int32_t, const char *message) {
+      *static_cast<std::string *>(csoundGetHostData(cs)) += message;
+    });
+  csoundMessageLine(csound, CSOUNDMSG_ERROR, "%s", text.c_str());
+  EXPECT_EQ(output, text + "\n");
+  csoundSetMessageCallback(csound, nullptr);
+  csoundSetHostData(csound, nullptr);
+}
+
+TEST_F(DiagnosticLineTests, SilentModeSuppressesCompleteDiagnostics)
+{
+  csoundSetMessageLevel(csound, CS_NOMSG);
+  csoundMessageLine(csound, CSOUNDMSG_ERROR, "hidden");
+  EXPECT_EQ(csoundGetMessageCnt(csound), 0);
+}
