@@ -290,7 +290,6 @@ int32_t savgol_audio_perf(CSOUND *csound, SAVGOL *p) {
     (void) csound;
 
     cs_float *out = p->y;
-    const cs_float *in = p->signal;
     const double *coeffs = (const double *) p->coeffs.auxp;
     uint32_t winsize = p->winsize_i;
     uint32_t win_offset = winsize - 1U;
@@ -298,6 +297,7 @@ int32_t savgol_audio_perf(CSOUND *csound, SAVGOL *p) {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t nsmps = CS_KSMPS;
+    const cs_float *in = p->signal;
 
     if (UNLIKELY(offset)) {
         memset(out, 0, sizeof(cs_float) * (size_t) offset);
@@ -308,7 +308,13 @@ int32_t savgol_audio_perf(CSOUND *csound, SAVGOL *p) {
         memset(out + nsmps, 0, sizeof(cs_float) * (size_t) early);
     }
 
-    memcpy(p->buffer_ptr + win_offset, in, sizeof(cs_float) * (size_t) nsmps);
+    if (UNLIKELY(offset)) {
+        memset(p->buffer_ptr + win_offset, 0, sizeof(cs_float) * (size_t) offset);
+    }
+    if (LIKELY(nsmps > offset)) {
+        memcpy(p->buffer_ptr + win_offset + offset, in + offset,
+               sizeof(cs_float) * (size_t) (nsmps - offset));
+    }
 
     /* buffer_ptr[i .. i + winsize - 1] runs oldest to newest, matching the
        coefficient order; out[i] is the fit at the window centre, so the
