@@ -406,6 +406,60 @@ instr 10
 endin
 
 
+; ------------------------------------------------- output is also a table
+; ydata = remap(x, xdata, ydata, ...) maps the whole input through the table
+; as it was before the call. Writing the output element by element would
+; feed the first results back into the later lookups: [5, 15, 10] here.
+; The tables are rebuilt every period, so each one starts from them again.
+instr 11
+  fails:k = 0
+  q:k[] = fillarray(0.5, 1.5, 0.5)
+
+  yx:k[] = fillarray(0, 1, 2)
+  yy:k[] = fillarray(0, 10, 20)
+  yy[0] = 0
+  yy[1] = 10
+  yy[2] = 20
+  yy = remap(q, yx, yy, $MODE_LINEAR, $BOUNDS_CLAMP)
+  fails += assert_k(yy[0], 5, 1000)
+  fails += assert_k(yy[1], 15, 1001)
+  fails += assert_k(yy[2], 5, 1002)
+
+  ; the x table as the output, with lookups that cross the first writes
+  xx:k[] = fillarray(0, 1, 2)
+  xy:k[] = fillarray(0, 10, 20)
+  xx[0] = 0
+  xx[1] = 1
+  xx[2] = 2
+  xx = remap(q, xx, xy, $MODE_LINEAR, $BOUNDS_CLAMP)
+  fails += assert_k(xx[0], 5, 1010)
+  fails += assert_k(xx[1], 15, 1011)
+  fails += assert_k(xx[2], 5, 1012)
+
+  abort_on_fail(fails)
+endin
+
+; A table that is also the output and must grow to the input's length is
+; resized only after every lookup. The next period would find x and y of
+; different lengths, so the note ends after its first.
+instr 12
+  fails:k = 0
+  q:k[] = fillarray(0.5, 1.5, 0.5, 2, 0)
+  gx:k[] = fillarray(0, 1, 2)
+  gy:k[] = fillarray(0, 10, 20)
+  gy = remap(q, gx, gy, $MODE_LINEAR, $BOUNDS_CLAMP)
+  fails += assert_k(lenarray:k(gy), 5, 1100)
+  fails += assert_k(gy[0], 5, 1101)
+  fails += assert_k(gy[1], 15, 1102)
+  fails += assert_k(gy[2], 5, 1103)
+  ; gy only grows at performance time, so its new elements cannot be indexed
+  ; by an init-time read: 5 + 15 + 5 + 20 + 0
+  fails += assert_k(sumarray(gy), 45, 1104)
+  abort_on_fail(fails)
+  turnoff
+endin
+
+
 ; --------------------------------------------------------------- verdict
 ; instr 98 is only reached when no instrument aborted the run before it
 instr 98
@@ -429,6 +483,8 @@ i7  0   0.5
 i8  0   1
 i9  0   0.5
 i10 0   0.5
+i11 0   0.5
+i12 0   0.5
 ; the verdict runs once every test note is over; instr 99 only ever exists if
 ; an assertion scheduled it, and its exitnow stops the run before this point
 i98 1.2 0.1

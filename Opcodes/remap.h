@@ -107,9 +107,6 @@ typedef struct {
     double fill_value;
     int32_t imode;
     int32_t ibounds;
-    /* set when both data arrays are i-rate: the breakpoints cannot change
-       during performance, so they are validated once at init */
-    int32_t static_data;
 } REMAP_VALUE;
 
 typedef struct {
@@ -127,7 +124,10 @@ typedef struct {
     double fill_value;
     int32_t imode;
     int32_t ibounds;
-    int32_t static_data;
+    /* set when the output is also xdata or ydata: results go to the scratch
+       buffer first, so every lookup of the call sees the original table */
+    int32_t aliased;
+    AUXCH result;
 } REMAP_VEC;
 
 // REMAP

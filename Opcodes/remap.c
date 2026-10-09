@@ -34,10 +34,15 @@
       y:k[] = remap(x:k[], xdata:k[], ydata:k[], mode:i, bounds:i [, fill:i])
       y:a   = remap(x:a,   xdata:k[], ydata:k[], mode:i, bounds:i [, fill:i])
 
-    The two tables may be i- or k-rate arrays. With i-rate tables the
-    breakpoints cannot change during the note, so they are validated once at
-    init; with k-rate tables they may be rewritten at any control period and
-    are re-checked every time.
+    The two tables may be i- or k-rate arrays. When both are i-rate, the x
+    table is checked to be strictly increasing once, at init; k-rate tables
+    may be rewritten at any control period and are not scanned. The lengths
+    are checked on every call whatever the rate, since another instrument
+    can resize even a global i-rate array while the note runs.
+
+    The output array may be one of the tables (ydata = remap(x, xdata,
+    ydata, ...)): the whole input is then mapped through the table as it was
+    before the call.
 
     imode - how to interpolate between the two bracketing breakpoints
 
@@ -84,10 +89,11 @@
 #include <math.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 
-static int32_t check_vector(ARRAYDAT *vec) {
-    if (vec == NULL || vec->sizes[0] < 2) {
+static int32_t check_vector(const ARRAYDAT *vec) {
+    if (vec == NULL || vec->sizes == NULL || vec->sizes[0] < 2) {
         return NOTOK;
     }
     return OK;
@@ -297,36 +303,40 @@ static double pchip_eval(double x, const cs_float *xdata, const cs_float *ydata,
 }
 
 /*
- * True when the resolved overload takes i-rate arrays for both data inputs:
- * the breakpoints are then fixed for the whole note.
+ * Whether an array holds i-rate values. Read from the array itself: the
+ * overload Csound resolves may declare k[] for an i[] argument.
  */
-static int32_t data_is_static(OPDS *h) {
-    const char *t = h->optext->t.oentry->intypes;
-    int32_t arg = 0;
-    int32_t x_static = 0;
-    int32_t y_static = 0;
+static int32_t is_irate_array(const ARRAYDAT *vec) {
+    return vec->arrayType != NULL && strcmp(vec->arrayType->varTypeName, "i") == 0;
+}
 
-    while (*t != '\0') {
-        char base = *t++;
-        int32_t is_array = 0;
-        if (*t == '[') {
-            t += 2;             /* skip the "[]" suffix */
-            is_array = 1;
-        }
-        if (arg == 1) x_static = is_array && base == 'i';
-        if (arg == 2) y_static = is_array && base == 'i';
-        arg++;
+/*
+ * NULL when the tables can be searched, else what is wrong with them. Cheap
+ * enough for every call, and needed there: even a global i-rate array can be
+ * resized by another instrument during the note.
+ */
+static const char *table_error(const ARRAYDAT *xdata, const ARRAYDAT *ydata) {
+    if (check_vector(xdata) != OK) {
+        return "[remap] Invalid x data array\n";
     }
 
-    return x_static && y_static;
+    if (check_vector(ydata) != OK) {
+        return "[remap] Invalid y data array\n";
+    }
+
+    if (xdata->sizes[0] != ydata->sizes[0]) {
+        return "[remap] x and y must have same length\n";
+    }
+
+    return NULL;
 }
 
 /*
  * The interval search assumes strictly increasing breakpoints, for every
- * interpolation mode. Only checked for i-rate data, where it costs nothing
- * at performance time.
+ * interpolation mode. Only checked when both tables are i-rate, once at
+ * init, where it costs nothing at performance time.
  */
-static int32_t check_increasing(ARRAYDAT *vec) {
+static int32_t check_increasing(const ARRAYDAT *vec) {
     const cs_float *v = vec->data;
     for (int32_t i = 0; i < vec->sizes[0] - 1; ++i) {
         if (v[i + 1] <= v[i]) {
@@ -353,19 +363,10 @@ int32_t remap_value_init(CSOUND *csound, REMAP_VALUE *p) {
     if (p->xdata->sizes == NULL || p->ydata->sizes == NULL)
         return csound->InitError(csound, "[remap] array not initialised\n");
 
-    p->static_data = data_is_static(&p->h);
-
-    if (p->static_data) {
-        if (check_vector(p->xdata) != OK) {
-            return csound->InitError(csound, "[remap] Invalid x data array\n");
-        }
-
-        if (check_vector(p->ydata) != OK) {
-            return csound->InitError(csound, "[remap] Invalid y data array\n");
-        }
-
-        if (p->xdata->sizes[0] != p->ydata->sizes[0]) {
-            return csound->InitError(csound, "[remap] x and y must have same length\n");
+    if (is_irate_array(p->xdata) && is_irate_array(p->ydata)) {
+        const char *error = table_error(p->xdata, p->ydata);
+        if (error != NULL) {
+            return csound->InitError(csound, "%s", error);
         }
 
         if (check_increasing(p->xdata) != OK) {
@@ -377,18 +378,9 @@ int32_t remap_value_init(CSOUND *csound, REMAP_VALUE *p) {
 }
 
 int32_t remap_value_perf(CSOUND *csound, REMAP_VALUE *p) {
-    if (!p->static_data) {
-        if (check_vector(p->xdata) != OK) {
-            return csound->PerfError(csound, &(p->h), "[remap] Invalid x data array\n");
-        }
-
-        if (check_vector(p->ydata) != OK) {
-            return csound->PerfError(csound, &(p->h), "[remap] Invalid y data array\n");
-        }
-
-        if (p->xdata->sizes[0] != p->ydata->sizes[0]) {
-            return csound->PerfError(csound, &(p->h), "[remap] x and y must have same length\n");
-        }
+    const char *error = table_error(p->xdata, p->ydata);
+    if (error != NULL) {
+        return csound->PerfError(csound, &(p->h), "%s", error);
     }
 
     const cs_float *xdata = p->xdata->data;
@@ -454,19 +446,10 @@ int32_t remap_vec_init(CSOUND *csound, REMAP_VEC *p) {
         return csound->InitError(csound, "[remap] array not initialised\n");
     }
 
-    p->static_data = data_is_static(&p->h);
-
-    if (p->static_data) {
-        if (check_vector(p->xdata) != OK) {
-            return csound->InitError(csound, "[remap] Invalid x data array\n");
-        }
-
-        if (check_vector(p->ydata) != OK) {
-            return csound->InitError(csound, "[remap] Invalid y data array\n");
-        }
-
-        if (p->xdata->sizes[0] != p->ydata->sizes[0]) {
-            return csound->InitError(csound, "[remap] x and y must have same length\n");
+    if (is_irate_array(p->xdata) && is_irate_array(p->ydata)) {
+        const char *error = table_error(p->xdata, p->ydata);
+        if (error != NULL) {
+            return csound->InitError(csound, "%s", error);
         }
 
         if (check_increasing(p->xdata) != OK) {
@@ -474,7 +457,17 @@ int32_t remap_vec_init(CSOUND *csound, REMAP_VEC *p) {
         }
     }
 
-    tabinit(csound, p->y, p->x->sizes[0], p->h.insdshead);
+    /* When the output is also a table, writing it element by element would
+       change the table under the lookups still to come, and resizing it here
+       would shrink or move the table before any lookup: such a call computes
+       into a scratch buffer and resizes the output only once it is done. */
+    p->aliased = p->y == p->xdata || p->y == p->ydata;
+    if (p->aliased) {
+        csound->AuxAlloc(csound, sizeof(cs_float) * (size_t) (p->x->sizes[0] > 0 ? p->x->sizes[0] : 1), &p->result);
+    } else {
+        tabinit(csound, p->y, p->x->sizes[0], p->h.insdshead);
+    }
+
     return OK;
 }
 
@@ -483,18 +476,9 @@ int32_t remap_vec_perf(CSOUND *csound, REMAP_VEC *p) {
         return csound->PerfError(csound, &(p->h), "[remap] Invalid x array\n");
     }
 
-    if (!p->static_data) {
-        if (check_vector(p->xdata) != OK) {
-            return csound->PerfError(csound, &(p->h), "[remap] Invalid x data array\n");
-        }
-
-        if (check_vector(p->ydata) != OK) {
-            return csound->PerfError(csound, &(p->h), "[remap] Invalid y data array\n");
-        }
-
-        if (p->xdata->sizes[0] != p->ydata->sizes[0]) {
-            return csound->PerfError(csound, &(p->h), "[remap] x and y must have same length\n");
-        }
+    const char *error = table_error(p->xdata, p->ydata);
+    if (error != NULL) {
+        return csound->PerfError(csound, &(p->h), "%s", error);
     }
 
     const cs_float *xdata = p->xdata->data;
@@ -503,10 +487,19 @@ int32_t remap_vec_perf(CSOUND *csound, REMAP_VEC *p) {
     int32_t size = p->ydata->sizes[0];
     int32_t out_size = p->x->sizes[0];
 
-    if (p->y->sizes[0] != out_size) {       /* the input array may be resized */
-        tabinit(csound, p->y, out_size, p->h.insdshead);
+    cs_float *y;
+    if (p->aliased) {
+        size_t bytes = sizeof(cs_float) * (size_t) out_size;
+        if (p->result.auxp == NULL || p->result.size < bytes) {
+            csound->AuxAlloc(csound, bytes, &p->result);
+        }
+        y = (cs_float *) p->result.auxp;
+    } else {
+        if (p->y->sizes[0] != out_size) {   /* the input array may be resized */
+            tabinit(csound, p->y, out_size, p->h.insdshead);
+        }
+        y = p->y->data;
     }
-    cs_float *y = p->y->data;
 
     /* The PCHIP coefficients are rebuilt only when the segment changes, so at
        most min(out_size, size - 1) times: never more work than tabulating the
@@ -559,23 +552,21 @@ int32_t remap_vec_perf(CSOUND *csound, REMAP_VEC *p) {
         }
     }
 
+    if (p->aliased) {
+        if (p->y->sizes[0] != out_size) {
+            tabinit(csound, p->y, out_size, p->h.insdshead);
+        }
+        memcpy(p->y->data, y, sizeof(cs_float) * (size_t) out_size);
+    }
+
     return OK;
 
 }
 
 int32_t remap_audio_perf(CSOUND *csound, REMAP_VALUE *p) {
-    if (!p->static_data) {
-        if (check_vector(p->xdata) != OK) {
-            return csound->PerfError(csound, &(p->h), "[remap] Invalid x data array\n");
-        }
-
-        if (check_vector(p->ydata) != OK) {
-            return csound->PerfError(csound, &(p->h), "[remap] Invalid y data array\n");
-        }
-
-        if (p->xdata->sizes[0] != p->ydata->sizes[0]) {
-            return csound->PerfError(csound, &(p->h), "[remap] x and y must have same length\n");
-        }
+    const char *error = table_error(p->xdata, p->ydata);
+    if (error != NULL) {
+        return csound->PerfError(csound, &(p->h), "%s", error);
     }
 
     const cs_float *xdata = p->xdata->data;
