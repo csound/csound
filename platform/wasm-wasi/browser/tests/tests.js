@@ -757,24 +757,32 @@ schedule(1, 0.05, 10)`), 0);
       });
 
       it("emits public events in realtime performance", async function () {
-        if (test.name !== "WORKER, AW, SAB") {
-          const eventPlaySpy = sinon.spy();
-          const eventPauseSpy = sinon.spy();
-          const eventStopSpy = sinon.spy();
-          const eventOnAudioNodeCreatedSpy = sinon.spy();
-
-          const csoundObj = await Csound(test);
-
+        const eventPlaySpy = sinon.spy();
+        const eventPauseSpy = sinon.spy();
+        const eventStopSpy = sinon.spy();
+        const eventPausedSpy = sinon.spy();
+        const eventResumedSpy = sinon.spy();
+        const eventOnAudioNodeCreatedSpy = sinon.spy();
+        const csoundObj = await Csound(test);
+        try {
           csoundObj.on("play", eventPlaySpy);
           csoundObj.on("pause", eventPauseSpy);
           csoundObj.on("stop", eventStopSpy);
+          csoundObj.on("realtimePerformancePaused", eventPausedSpy);
+          csoundObj.on("realtimePerformanceResumed", eventResumedSpy);
           csoundObj.on("onAudioNodeCreated", eventOnAudioNodeCreatedSpy);
 
           await csoundObj.setOption("-odac");
           await csoundObj.compileCSD(shortTone);
           await csoundObj.start();
           await csoundObj.pause();
+          // A paused SAB worker used to emit pause/resume pairs continuously.
+          await new Promise((resolve) => setTimeout(resolve, 200));
+          assert.equal(eventPausedSpy.callCount, 1, "one pause notification");
+          assert.equal(eventResumedSpy.callCount, 0, "no resume while paused");
           await csoundObj.resume();
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          assert.equal(eventResumedSpy.callCount, 1, "one resume notification");
           await csoundObj.stop();
 
           assert(eventPlaySpy.calledTwice, 'The "play" event was emitted twice');
@@ -788,9 +796,84 @@ schedule(1, 0.05, 10)`), 0);
             eventOnAudioNodeCreatedSpy.calledWith(sinon.match.instanceOf(AudioNode)),
             'The argument provided to the callback of "onAudioNodeCreated" was an AudioNode',
           );
+        } finally {
           await csoundObj.terminateInstance();
         }
       });
+
+      if (test.useSAB) {
+        it("keeps SAB score time still while paused and handles repeated transport calls", async function () {
+          const cs = await Csound(test);
+          try {
+            const events = [];
+            cs.on("realtimePerformancePaused", () => events.push("paused"));
+            cs.on("realtimePerformanceResumed", () => events.push("resumed"));
+            await cs.compileCSD(shortTone.replace("i 1 0 2", "i 1 0 30"));
+            await cs.start();
+            const before = await cs.getScoreTime();
+            await cs.pause();
+            await cs.pause();
+            await new Promise((resolve) => setTimeout(resolve, 600));
+            await cs.resume();
+            await cs.resume();
+            const after = await cs.getScoreTime();
+            assert.isBelow(after - before, 0.3, "paused wall time must not advance the score");
+            assert.deepEqual(events, ["paused", "resumed"]);
+            for (let i = 0; i < 5; i++) {
+              await cs.pause();
+              await cs.resume();
+            }
+            assert.equal(events.length, 12, "one event per transition");
+            await cs.pause();
+            const beforeStop = events.slice();
+            await cs.stop();
+            assert.deepEqual(events, beforeStop, "stop must not report resume");
+          } finally {
+            await cs.terminateInstance();
+          }
+        });
+
+        for (const command of ["pause", "resume"]) {
+          it(`stops SAB with ${command} acknowledgement still pending`, async function () {
+            const cs = await Csound(test);
+            try {
+              let resumed = 0;
+              let ended = 0;
+              cs.on("realtimePerformanceResumed", () => resumed++);
+              cs.on("realtimePerformanceEnded", () => ended++);
+              await cs.compileCSD(shortTone);
+              await cs.start();
+              if (command === "resume") await cs.pause();
+              const pending = cs[command]();
+              await Promise.all([pending, cs.stop()]);
+              assert.equal(ended, 1, "stop completes the run");
+              assert.equal(resumed, 0, "cancelled transport must not report resume");
+            } finally {
+              await cs.terminateInstance();
+            }
+          });
+        }
+
+        it("pauses, resumes and stops a SAB offline render", async function () {
+          const cs = await Csound(test);
+          try {
+            const events = [];
+            cs.on("realtimePerformancePaused", () => events.push("paused"));
+            cs.on("realtimePerformanceResumed", () => events.push("resumed"));
+            await cs.compileCSD(shortTone.replace("-odac", "-n").replace("i 1 0 2", "i 1 0 36000"));
+            await cs.start();
+            await cs.pause();
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            assert.deepEqual(events, ["paused"]);
+            await cs.resume();
+            await cs.pause();
+            await cs.stop();
+            assert.deepEqual(events, ["paused", "resumed", "paused"]);
+          } finally {
+            await cs.terminateInstance();
+          }
+        });
+      }
 
       it("keeps multi-instance worklets isolated on shared AudioContext", async function () {
         const backendConfig = {
