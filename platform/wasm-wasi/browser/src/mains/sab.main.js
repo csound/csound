@@ -27,6 +27,7 @@ import {
 import { logSABMain as log } from "../logger";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
 import { EventPromises } from "../utils/event-promises";
+import { stopSAB } from "../utils/sab-transport.js";
 import { SABCompletionCoordinator } from "../utils/sab-completion-coordinator.js";
 import { PublicEventAPI } from "../events";
 import { enableAudioInputInWorker } from "./io.utils.js";
@@ -148,28 +149,35 @@ class SharedArrayBufferMainThread {
   }
 
   async csoundPause() {
-    if (this.eventPromises.isWaiting("pause")) {
+    if (
+      this.eventPromises.isWaiting("pause") ||
+      Atomics.load(this.audioStatePointer, AUDIO_STATE.STOP) === 1 ||
+      (Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING) !== 1 &&
+        Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_RENDERING) !== 1)
+    )
       return -1;
-    } else {
-      this.eventPromises.createPausePromise();
-
-      Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 1);
-      await this.eventPromises.waitForPause();
-      this.onPlayStateChange("realtimePerformancePaused", this.performanceGeneration);
-      return 0;
-    }
+    if (Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) return 0;
+    this.eventPromises.createPausePromise();
+    Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 1);
+    await this.eventPromises.waitForPause();
+    // Only the worker acknowledgement publishes the transition.
+    return 0;
   }
 
   async csoundResume() {
+    if (this.eventPromises.isWaiting("resume")) return -1;
     if (
       Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1 &&
       Atomics.load(this.audioStatePointer, AUDIO_STATE.STOP) !== 1 &&
-      Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING) === 1
+      (Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING) === 1 ||
+        Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_RENDERING) === 1)
     ) {
+      this.eventPromises.createResumePromise();
       Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
       Atomics.notify(this.audioStatePointer, AUDIO_STATE.IS_PAUSED);
-      this.onPlayStateChange("realtimePerformanceResumed", this.performanceGeneration);
+      await this.eventPromises.waitForResume();
     }
+    return 0;
   }
 
   markPerformanceEndState(playState, performanceGeneration) {
@@ -196,6 +204,13 @@ class SharedArrayBufferMainThread {
       );
     });
     this.callbackBuffer = {};
+
+    // A score can finish before acknowledging pause or resume. Settle both
+    // here too: releasing stop clears their timeout timers.
+    if (this.eventPromises) {
+      this.eventPromises.releasePausePromise();
+      this.eventPromises.releaseResumePromise();
+    }
 
     // Logs and play-state changes share one ordered port. releaseStop uses a
     // second port, so wait for both before exposing completion to callers.
@@ -347,6 +362,20 @@ class SharedArrayBufferMainThread {
         this.markStopReleaseReceived(event.data["performanceGeneration"]);
         return;
       }
+      const type = event.data && event.data["type"];
+      if (type === "releasePause" || type === "releaseResumed") {
+        if (
+          this.performanceCompletion.canAccept(event.data["performanceGeneration"]) &&
+          !this.eventPromises.isWaitingToStop() &&
+          Atomics.load(this.audioStatePointer, AUDIO_STATE.STOP) !== 1
+        ) {
+          this.onPlayStateChange(
+            type === "releasePause" ? "realtimePerformancePaused" : "realtimePerformanceResumed",
+            event.data["performanceGeneration"],
+          );
+        }
+        return;
+      }
       switch (event.data) {
         case "poll": {
           if (this.ipcMessagePorts && this.ipcMessagePorts.sabMainCallbackReply) {
@@ -368,14 +397,9 @@ class SharedArrayBufferMainThread {
           // workers always send the object payload handled above.
           break;
         }
-        case "releasePause": {
-          this.publicEvents.triggerRealtimePerformancePaused();
-          this.eventPromises.releasePausePromise();
-          break;
-        }
+        case "releasePause":
         case "releaseResumed": {
-          this.publicEvents.triggerRealtimePerformanceResumed();
-          this.eventPromises.releaseResumePromise();
+          // Ignore untagged releases from workers without generation metadata.
           break;
         }
         default: {
@@ -421,7 +445,10 @@ class SharedArrayBufferMainThread {
       ]);
     }
     if (userProvidedNchnls > -1) {
-      await proxyPort["callUncloned"]("csoundSetOption", [csoundInstance, "--nchnls=" + userProvidedNchnls]);
+      await proxyPort["callUncloned"]("csoundSetOption", [
+        csoundInstance,
+        "--nchnls=" + userProvidedNchnls,
+      ]);
     }
     if (userProvidedNchnlsInput > -1) {
       await proxyPort["callUncloned"]("csoundSetOption", [
@@ -525,27 +552,18 @@ class SharedArrayBufferMainThread {
               await this.eventPromises.waitForStop();
               return 0;
             }
-            if (this.eventPromises.isWaiting("stop")) {
-              log("already waiting to stop, doing nothing")();
+            if (this.eventPromises.isWaitingToStart()) {
+              log("cannot stop while starting")();
               return -1;
             } else if (stopableStates.has(this.currentPlayState)) {
               log("Marking SAB's state to STOP")();
 
+              stopSAB(this.audioStatePointer);
+              // Stop takes precedence over an in-flight pause/resume. Settle
+              // those callers without publishing a false transport event.
+              this.eventPromises.releasePausePromise();
+              this.eventPromises.releaseResumePromise();
               this.eventPromises.createStopPromise();
-
-              Atomics.store(this.audioStatePointer, AUDIO_STATE.STOP, 1);
-              log("Marking that performance is not running anymore (stops the audio too)")();
-              Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
-
-              // A potential case where the thread is locked because of pause
-              if (this.currentPlayState === "realtimePerformancePaused") {
-                Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
-                Atomics.notify(this.audioStatePointer, AUDIO_STATE.IS_PAUSED);
-              }
-              if (this.currentPlayState !== "renderStarted") {
-                !Atomics.compareExchange(this.audioStatePointer, AUDIO_STATE.CSOUND_LOCK, 0, 1) &&
-                  Atomics.notify(this.audioStatePointer, AUDIO_STATE.CSOUND_LOCK);
-              }
               await this.eventPromises.waitForStop();
               return 0;
             } else {

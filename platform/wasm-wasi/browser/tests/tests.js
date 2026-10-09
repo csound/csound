@@ -757,24 +757,32 @@ schedule(1, 0.05, 10)`), 0);
       });
 
       it("emits public events in realtime performance", async function () {
-        if (test.name !== "WORKER, AW, SAB") {
-          const eventPlaySpy = sinon.spy();
-          const eventPauseSpy = sinon.spy();
-          const eventStopSpy = sinon.spy();
-          const eventOnAudioNodeCreatedSpy = sinon.spy();
-
-          const csoundObj = await Csound(test);
-
+        const eventPlaySpy = sinon.spy();
+        const eventPauseSpy = sinon.spy();
+        const eventStopSpy = sinon.spy();
+        const eventPausedSpy = sinon.spy();
+        const eventResumedSpy = sinon.spy();
+        const eventOnAudioNodeCreatedSpy = sinon.spy();
+        const csoundObj = await Csound(test);
+        try {
           csoundObj.on("play", eventPlaySpy);
           csoundObj.on("pause", eventPauseSpy);
           csoundObj.on("stop", eventStopSpy);
+          csoundObj.on("realtimePerformancePaused", eventPausedSpy);
+          csoundObj.on("realtimePerformanceResumed", eventResumedSpy);
           csoundObj.on("onAudioNodeCreated", eventOnAudioNodeCreatedSpy);
 
           await csoundObj.setOption("-odac");
           await csoundObj.compileCSD(shortTone);
           await csoundObj.start();
           await csoundObj.pause();
+          // A paused SAB worker used to emit pause/resume pairs continuously.
+          await new Promise((resolve) => setTimeout(resolve, 200));
+          assert.equal(eventPausedSpy.callCount, 1, "one pause notification");
+          assert.equal(eventResumedSpy.callCount, 0, "no resume while paused");
           await csoundObj.resume();
+          await new Promise((resolve) => setTimeout(resolve, 50));
+          assert.equal(eventResumedSpy.callCount, 1, "one resume notification");
           await csoundObj.stop();
 
           assert(eventPlaySpy.calledTwice, 'The "play" event was emitted twice');
@@ -788,9 +796,164 @@ schedule(1, 0.05, 10)`), 0);
             eventOnAudioNodeCreatedSpy.calledWith(sinon.match.instanceOf(AudioNode)),
             'The argument provided to the callback of "onAudioNodeCreated" was an AudioNode',
           );
+        } finally {
           await csoundObj.terminateInstance();
         }
       });
+
+      if (test.useSAB) {
+        // Match the backend selection in isSabSupported(): Firefox falls back
+        // to message ports even when the caller requests SAB.
+        const sabIt =
+          typeof SharedArrayBuffer !== "undefined" &&
+          typeof Atomics !== "undefined" &&
+          !navigator.userAgent.toLowerCase().includes("firefox")
+            ? it
+            : it.skip;
+        sabIt("keeps SAB score time still while paused and handles repeated transport calls", async function () {
+          const cs = await Csound(test);
+          try {
+            const events = [];
+            cs.on("realtimePerformancePaused", () => events.push("paused"));
+            cs.on("realtimePerformanceResumed", () => events.push("resumed"));
+            await cs.compileCSD(shortTone.replace("i 1 0 2", "i 1 0 30"));
+            await cs.start();
+            const before = await cs.getScoreTime();
+            await cs.pause();
+            await cs.pause();
+            await new Promise((resolve) => setTimeout(resolve, 600));
+            await cs.resume();
+            await cs.resume();
+            const after = await cs.getScoreTime();
+            assert.isBelow(after - before, 0.3, "paused wall time must not advance the score");
+            assert.deepEqual(events, ["paused", "resumed"]);
+            for (let i = 0; i < 5; i++) {
+              await cs.pause();
+              await cs.resume();
+            }
+            assert.equal(events.length, 12, "one event per transition");
+            await cs.pause();
+            const beforeStop = events.slice();
+            await cs.stop();
+            assert.deepEqual(events, beforeStop, "stop must not report resume");
+          } finally {
+            await cs.terminateInstance();
+          }
+        });
+
+        sabIt("rejects SAB resume while a pause acknowledgement is pending", async function () {
+          const cs = await Csound(test);
+          const errors = sinon.stub(console, "error");
+          try {
+            const events = [];
+            cs.on("realtimePerformancePaused", () => events.push("paused"));
+            cs.on("realtimePerformanceResumed", () => events.push("resumed"));
+            await cs.compileCSD(shortTone);
+            await cs.start();
+            const pendingPause = cs.pause();
+            assert.equal(await cs.resume(), -1, "resume must not cancel a pending pause");
+            assert.equal(await pendingPause, 0);
+            assert.deepEqual(events, ["paused"]);
+            await cs.resume();
+            assert.deepEqual(events, ["paused", "resumed"]);
+            await cs.stop();
+          } finally {
+            errors.restore();
+            await cs.terminateInstance();
+          }
+        });
+
+        sabIt("settles SAB resume when the score ends before acknowledgement", async function () {
+          // Hold the resume reply on the real message port so completion wins
+          // the race between ports, regardless of the browser's scheduling.
+          const addEventListener = MessagePort.prototype.addEventListener;
+          const delayedReplies = [];
+          const listeners = sinon
+            .stub(MessagePort.prototype, "addEventListener")
+            .callsFake(function (type, listener, ...options) {
+              return addEventListener.call(
+                this,
+                type,
+                type === "message"
+                  ? (event) => {
+                      if (event.data?.type === "releaseResumed") {
+                        delayedReplies.push(() => listener.call(this, event));
+                        return;
+                      }
+                      listener.call(this, event);
+                    }
+                  : listener,
+                ...options,
+              );
+            });
+          let cs;
+          try {
+            cs = await Csound(test);
+            const events = [];
+            cs.on("realtimePerformancePaused", () => events.push("paused"));
+            cs.on("realtimePerformanceResumed", () => events.push("resumed"));
+            const ended = new Promise((resolve) => cs.once("realtimePerformanceEnded", resolve));
+            await cs.compileCSD(shortTone.replace("i 1 0 2", "i 1 0 0.5"));
+            await cs.start();
+            await cs.pause();
+            const pending = cs.resume();
+            await ended;
+            assert.lengthOf(delayedReplies, 1, "resume reply is still pending at completion");
+            const result = await Promise.race([
+              pending,
+              new Promise((resolve) => setTimeout(() => resolve("pending"), 100)),
+            ]);
+            assert.equal(result, 0, "completion must settle the pending transport call");
+            delayedReplies.forEach((reply) => reply());
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            assert.deepEqual(events, ["paused"], "late replies cannot publish a transition");
+          } finally {
+            listeners.restore();
+            if (cs) await cs.terminateInstance();
+          }
+        });
+
+        for (const command of ["pause", "resume"]) {
+          sabIt(`stops SAB with ${command} acknowledgement still pending`, async function () {
+            const cs = await Csound(test);
+            try {
+              let resumed = 0;
+              let ended = 0;
+              cs.on("realtimePerformanceResumed", () => resumed++);
+              cs.on("realtimePerformanceEnded", () => ended++);
+              await cs.compileCSD(shortTone);
+              await cs.start();
+              if (command === "resume") await cs.pause();
+              const pending = cs[command]();
+              await Promise.all([pending, cs.stop()]);
+              assert.equal(ended, 1, "stop completes the run");
+              assert.equal(resumed, 0, "cancelled transport must not report resume");
+            } finally {
+              await cs.terminateInstance();
+            }
+          });
+        }
+
+        sabIt("pauses, resumes and stops a SAB offline render", async function () {
+          const cs = await Csound(test);
+          try {
+            const events = [];
+            cs.on("realtimePerformancePaused", () => events.push("paused"));
+            cs.on("realtimePerformanceResumed", () => events.push("resumed"));
+            await cs.compileCSD(shortTone.replace("-odac", "-n").replace("i 1 0 2", "i 1 0 36000"));
+            await cs.start();
+            await cs.pause();
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            assert.deepEqual(events, ["paused"]);
+            await cs.resume();
+            await cs.pause();
+            await cs.stop();
+            assert.deepEqual(events, ["paused", "resumed", "paused"]);
+          } finally {
+            await cs.terminateInstance();
+          }
+        });
+      }
 
       it("keeps multi-instance worklets isolated on shared AudioContext", async function () {
         const backendConfig = {
