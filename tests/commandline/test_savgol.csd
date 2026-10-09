@@ -229,6 +229,28 @@ instr 7  ; parity of the derivative rows
   prints("savgolmat symmetry: ok\n")
 endin
 
+; With order winsize - 1 the fit interpolates every sample, so row 0 must
+; return the centre sample unchanged. The normal equations lost this
+; completely from w = 21 on (centre 0.64 instead of 1 in double precision).
+opcode assert_identity(w:i):void
+  mat:i[][] = savgolmat(w, w - 1)
+  centre:i = (w - 1) / 2
+  k:i = 0
+  while k < w do
+    assert_close(mat[0][k], (k == centre ? 1 : 0), prec_tol(1.0e-12, 1.0e-6), "savgolmat order winsize-1 row 0")
+    k += 1
+  od
+endop
+
+instr 10  ; high orders stay exact
+  assert_identity(11)
+  assert_identity(21)
+  assert_identity(41)
+  assert_identity(61)
+  assert_moments(21, 12)
+  prints("savgolmat high orders: ok\n")
+endin
+
 instr 9  ; frequency response at the two ends of the spectrum
   mat:i[][] = savgolmat(9, 2)
   dc:i = 0
@@ -314,6 +336,16 @@ instr 25  ; same, for a derivative row
 endin
 
 
+instr 26  ; order winsize-1 is a pure delay of (winsize-1)/2 samples
+  sig:a = oscili(0.7, 440) + oscili(0.3, 1234.5)
+  y:a = savgol(sig, 21, 20)
+  ref:a = delay(sig, 10 / sr)
+  if timeinstk() > 2 then
+    assert_close_k(downsamp(y, 1), downsamp(ref, 1), prec_tol(1.0e-9, 1.0e-4), 26)
+  endif
+endin
+
+
 ; ------------------------------------------------------------------ savgol.k
 
 instr 30  ; unity DC gain at k-rate
@@ -353,7 +385,7 @@ endin
 
 instr 90
   if timeinstk() == 1 then
-    ; The score is deterministic and yields 1857650 checks in both the double
+    ; The score is deterministic and yields 1871429 checks in both the double
     ; and the single-precision build; the bound
     ; is tight enough that a whole instrument going silent trips it.
     if gk_checks < 1850000 then
@@ -375,6 +407,7 @@ i 6  0 0.1
 i 7  0 0.1
 i 8  0 0.1
 i 9  0 0.1
+i 10 0 0.1
 
 ; Ten seconds of audio-rate filtering, then ten of control-rate, so that ring
 ; wrap-around, history shifting and coefficient scaling are exercised over
@@ -385,6 +418,7 @@ i 22 0.1 10
 i 23 0.1 10
 i 24 0.1 10
 i 25 0.1 10
+i 26 0.1 10
 
 i 30 10.2 10
 i 31 10.2 10

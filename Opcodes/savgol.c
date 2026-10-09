@@ -31,22 +31,24 @@
 
     with the abscissae centred so that evaluating the fit at the middle of
     the window is just reading p back. The least-squares solution is
-    p = C * y with C the pseudo-inverse
+    p = C * y with C the pseudo-inverse of A, an (o + 1) by w matrix that
+    depends only on w and o, never on the samples. So the fit costs one dot
+    product per output: row d of C convolved with the window yields p[d],
+    and the d-th derivative of the fit at the centre is d! * p[d] / delta^d.
+    calculate_savgol_coeffs() builds the derivative weights once at init
+    time and get_coeffs() folds in 1 / delta^d for the single row the perf
+    pass needs.
 
-        C = (A^T A)^-1 A^T,
-
-    an (o + 1) by w matrix that depends only on w and o, never on the
-    samples. So the fit costs one dot product per output: row d of C
-    convolved with the window yields p[d], and the d-th derivative of the
-    fit at the centre is d! * p[d] / delta^d. calculate_savgol_coeffs()
-    builds C once at init time and get_coeffs() folds that scaling into the
-    single row the perf pass needs.
-
-    The normal equations are inverted by Gauss-Jordan elimination with
-    partial pivoting. A^T A inherits the poor conditioning of the
-    Vandermonde matrix, but it is only (o + 1) square and o stays small in
-    practice, so the pivoting is enough and the cost is irrelevant next to
-    an init-time allocation.
+    C is never formed from the normal equations: A^T A squares the already
+    exponential conditioning of the Vandermonde matrix, and in double
+    precision it returns a wrong kernel from about w = 21, o = 20 on. The
+    abscissae are scaled to [-1, 1] instead, and Arnoldi iteration (Gram-
+    Schmidt run twice, as in Brubeck, Nakatsukasa and Trefethen,
+    "Vandermonde with Arnoldi", SIAM Review 63, 2021) builds polynomials
+    q_0 .. q_o orthonormal over the window. The fit is then the projection
+    sum_k (q_k . y) q_k, and its derivatives at the centre follow from the
+    recurrence that defines q_k, differentiated. Every accepted order comes
+    out within a few ulps of the exact coefficients.
 
     At perf time both variants are a direct convolution, w multiply-adds per
     output sample, which stays well below the cost of the surrounding
@@ -71,151 +73,116 @@
 #include <string.h>
 
 
-static void matrix_mult(const double *a, const double *b, double *c, uint32_t row_a, uint32_t col_a, uint32_t col_b) {
-    for (uint32_t i = 0; i < row_a; i++) {
-        for (uint32_t j = 0; j < col_b; j++) {
-            double sum = 0.0;
-            for (uint32_t k = 0; k < col_a; k++) {
-                sum += a[i * col_a + k] * b[k * col_b + j];
-            }
-            c[i * col_b + j] = sum;
-        }
-    }
-}
-
-static int32_t matrix_inverse(CSOUND *csound, const double *matrix, double *inverse, uint32_t n) {
-    double *work = (double *) csound->Calloc(csound, sizeof(double) * (size_t) n * n);
-
-    for (uint32_t i = 0; i < n; ++i) {
-        for (uint32_t j = 0; j < n; ++j) {
-            work[i * n + j] = matrix[i * n + j];
-            inverse[i * n + j] = (i == j) ? 1.0 : 0.0;
-        }
+static double dot(const double *a, const double *b, uint32_t n) {
+    double sum = 0.0;
+    for (uint32_t i = 0; i < n; i++) {
+        sum += a[i] * b[i];
     }
 
-    for (uint32_t col = 0; col < n; ++col) {
-        uint32_t pivot_row = col;
-        double max_value = fabs(work[col * n + col]);
-
-        for (uint32_t row = col + 1; row < n; ++row) {
-            double value = fabs(work[row * n + col]);
-
-            if (value > max_value) {
-                max_value = value;
-                pivot_row = row;
-            }
-        }
-
-        if (max_value <= 1.0e-12) {
-            csound->Free(csound, work);
-            return NOTOK;
-        }
-
-        if (pivot_row != col) {
-            for (uint32_t j = 0; j < n; ++j) {
-                double tmp;
-
-                tmp = work[col * n + j];
-                work[col * n + j] = work[pivot_row * n + j];
-                work[pivot_row * n + j] = tmp;
-
-                tmp = inverse[col * n + j];
-                inverse[col * n + j] = inverse[pivot_row * n + j];
-                inverse[pivot_row * n + j] = tmp;
-            }
-        }
-
-        double pivot = work[col * n + col];
-
-        for (uint32_t j = 0; j < n; ++j) {
-            work[col * n + j] /= pivot;
-            inverse[col * n + j] /= pivot;
-        }
-
-        for (uint32_t row = 0; row < n; ++row) {
-            if (row == col) continue;
-
-            double factor = work[row * n + col];
-            for (uint32_t j = 0; j < n; ++j) {
-                work[row * n + j] -= factor * work[col * n + j];
-                inverse[row * n + j] -= factor * inverse[col * n + j];
-            }
-        }
-    }
-
-    csound->Free(csound, work);
-    return OK;
+    return sum;
 }
 
-static void deallocate_temp_buffer(CSOUND *csound, TEMP_BUFFER *buffer) {
-    csound->Free(csound, buffer->data);
-    csound->Free(csound, buffer->transposed);
-    csound->Free(csound, buffer->normal);
-    csound->Free(csound, buffer->inversed);
-    csound->Free(csound, buffer->pinversed);
-    memset(buffer, 0, sizeof(*buffer));
-}
-
-static void allocate_temp_buffer(CSOUND *csound, TEMP_BUFFER *buffer, uint32_t winsize, uint32_t ncoef) {
-    size_t design = sizeof(double) * (size_t) winsize * ncoef;
-    size_t square = sizeof(double) * (size_t) ncoef * ncoef;
-
-    buffer->data       = (double *) csound->Calloc(csound, design);
-    buffer->transposed = (double *) csound->Calloc(csound, design);
-    buffer->normal     = (double *) csound->Calloc(csound, square);
-    buffer->inversed   = (double *) csound->Calloc(csound, square);
-    buffer->pinversed  = (double *) csound->Calloc(csound, design);
-}
-
-/* Fills sg->coeffs (ncoef * winsize doubles, allocated by the caller) with
-   the pseudo-inverse of the Vandermonde design matrix. */
+/* Fills sg->coeffs (ncoef * winsize doubles, allocated by the caller): row d
+   holds the weights giving the d-th derivative of the least-squares fit at
+   the centre of the window, for a sample spacing of 1. NOTOK if the basis
+   breaks down, which distinct abscissae rule out unless arithmetic fails. */
 static int32_t calculate_savgol_coeffs(CSOUND *csound, SAVGOL_BUFFER *sg, uint32_t winsize, uint32_t ncoef) {
-    TEMP_BUFFER temp = {0};
-    allocate_temp_buffer(csound, &temp, winsize, ncoef);
+    double half = (double) (winsize - 1U) * 0.5;
+    double *t = (double *) csound->Calloc(csound, sizeof(double) * (size_t) winsize);
+    double *q = (double *) csound->Calloc(csound, sizeof(double) * (size_t) ncoef * winsize);
+    double *h = (double *) csound->Calloc(csound, sizeof(double) * (size_t) ncoef * ncoef);
+    double *deriv = (double *) csound->Calloc(csound, sizeof(double) * (size_t) ncoef * ncoef);
+    int32_t res = OK;
 
-    // Vandermonde matrix: A[i][j] = (i - center)^j
-    double center = (double) (winsize - 1U) * 0.5;
-    double value = 1.0;
     for (uint32_t i = 0; i < winsize; i++) {
-        double x = (double) i - center;
-        for (uint32_t j = 0; j < ncoef; j++) {
-            value = j == 0 ? 1.0 : value * x;
-            temp.data[i * ncoef + j] = value;
-            temp.transposed[j * winsize + i] = value;
+        t[i] = ((double) i - half) / half;
+        q[i] = 1.0 / sqrt((double) winsize);
+    }
+
+    /* Arnoldi: q_k = (t * q_{k-1} - sum_j h[j][k] q_j) / h[k][k], with the
+       Gram-Schmidt pass run twice so that the columns stay orthonormal to
+       working precision at any order. */
+    for (uint32_t k = 1; k < ncoef && res == OK; k++) {
+        double *qk = q + (size_t) k * winsize;
+        const double *prev = qk - winsize;
+
+        for (uint32_t i = 0; i < winsize; i++) {
+            qk[i] = t[i] * prev[i];
+        }
+
+        for (int32_t pass = 0; pass < 2; pass++) {
+            for (uint32_t j = 0; j < k; j++) {
+                const double *qj = q + (size_t) j * winsize;
+                double c = dot(qj, qk, winsize);
+                h[j * ncoef + k] += c;
+                for (uint32_t i = 0; i < winsize; i++) {
+                    qk[i] -= c * qj[i];
+                }
+            }
+        }
+
+        double norm = sqrt(dot(qk, qk, winsize));
+        if (UNLIKELY(!(norm > 0.0) || !isfinite(norm))) {
+            res = NOTOK;
+            break;
+        }
+
+        h[k * ncoef + k] = norm;
+        for (uint32_t i = 0; i < winsize; i++) {
+            qk[i] /= norm;
         }
     }
 
-    // normal = A^T * A
-    matrix_mult(temp.transposed, temp.data, temp.normal, ncoef, winsize, ncoef);
+    if (res == OK) {
+        /* deriv[d][k] is the d-th derivative of q_k at t = 0, from the same
+           recurrence differentiated d times; q_k has degree k, so the higher
+           derivatives stay zero. */
+        deriv[0] = 1.0 / sqrt((double) winsize);
+        for (uint32_t k = 1; k < ncoef; k++) {
+            double hkk = h[k * ncoef + k];
+            for (uint32_t d = 0; d <= k; d++) {
+                double sum = d > 0 ? (double) d * deriv[(d - 1) * ncoef + k - 1] : 0.0;
+                for (uint32_t j = 0; j < k; j++) {
+                    sum -= h[j * ncoef + k] * deriv[d * ncoef + j];
+                }
+                deriv[d * ncoef + k] = sum / hkk;
+            }
+        }
 
-    if (matrix_inverse(csound, temp.normal, temp.inversed, ncoef) != OK) {
-        deallocate_temp_buffer(csound, &temp);
-        return NOTOK;
+        /* The fit is sum_k (q_k . y) q_k, so its d-th derivative at the
+           centre weights sample i by sum_k deriv[d][k] q_k[i]; 1 / half^d
+           converts from t back to samples. */
+        double scale = 1.0;
+        for (uint32_t d = 0; d < ncoef && res == OK; d++) {
+            double *row = sg->coeffs + (size_t) d * winsize;
+            for (uint32_t i = 0; i < winsize; i++) {
+                double sum = 0.0;
+                for (uint32_t k = d; k < ncoef; k++) {
+                    sum += deriv[d * ncoef + k] * q[(size_t) k * winsize + i];
+                }
+                row[i] = sum * scale;
+                if (UNLIKELY(!isfinite(row[i]))) {
+                    res = NOTOK;
+                }
+            }
+            scale /= half;
+        }
     }
 
-    // pinversed = (A^T A)^-1 * A^T
-    matrix_mult(temp.inversed, temp.transposed, temp.pinversed, ncoef, ncoef, winsize);
-    memcpy(sg->coeffs, temp.pinversed, sizeof(double) * (size_t) ncoef * winsize);
+    csound->Free(csound, t);
+    csound->Free(csound, q);
+    csound->Free(csound, h);
+    csound->Free(csound, deriv);
+
     sg->nrows = ncoef;
     sg->ncols = winsize;
-
-    deallocate_temp_buffer(csound, &temp);
-    return OK;
+    return res;
 }
 
-static double factorial(uint32_t n) {
-    double fac = 1.0;
-    for (uint32_t i = 2; i <= n; i++) {
-        fac *= (double) i;
-    }
-
-    return fac;
-}
-
-/* Row deriv of the coefficient matrix, scaled by deriv! / delta^deriv so that
-   the convolution yields the deriv-th derivative of the fitted polynomial. */
+/* Row deriv of the coefficient matrix, scaled by 1 / delta^deriv so that the
+   convolution yields the deriv-th derivative per unit of delta. */
 static void get_coeffs(const SAVGOL_BUFFER *sg, double *coeffs_buffer, uint32_t deriv, double delta) {
-    double scale = factorial(deriv) / pow(delta, (double) deriv);
+    double scale = 1.0 / pow(delta, (double) deriv);
     const double *row = sg->coeffs + (size_t) deriv * sg->ncols;
     for (uint32_t i = 0; i < sg->ncols; i++) {
         coeffs_buffer[i] = row[i] * scale;
