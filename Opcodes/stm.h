@@ -116,7 +116,9 @@
      - a transition rejected by stmadvance (no such edge) leaves it untouched,
        since the current node never changed
      - stmreset restarts tick, graph time and node time at 0, exactly the way
-       stminstance does
+       stminstance does; an stmadvance in the same control period does not
+       tick the restarted clock. Under setksmps that period is the local
+       pass, so the following passes of the engine cycle tick as usual
 
    REGISTRY HANDLES
 
@@ -300,8 +302,11 @@ typedef struct {
     uint64_t event_seq;
     uint32_t event_entered_node;
     uint32_t event_exited_node;
-    // cycle (graph reset)
-    uint64_t reset_pcycle;
+    // cycle (graph reset): where the last stmreset ran, so that stmadvance
+    // does not tick the restarted clock in that same control period
+    uint64_t reset_kcycle; // engine k-counter
+    INSDS *reset_ip;       // instance (instrument or UDO) that ran it
+    uint64_t reset_lcycle; // that instance's k-counter, one per local period
     int32_t has_reset_cycle;
     // transitions buffer
     GRAPH_TRANSITION_EVENT *transitions;
