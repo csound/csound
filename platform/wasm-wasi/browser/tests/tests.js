@@ -802,7 +802,15 @@ schedule(1, 0.05, 10)`), 0);
       });
 
       if (test.useSAB) {
-        it("keeps SAB score time still while paused and handles repeated transport calls", async function () {
+        // Match the backend selection in isSabSupported(): Firefox falls back
+        // to message ports even when the caller requests SAB.
+        const sabIt =
+          typeof SharedArrayBuffer !== "undefined" &&
+          typeof Atomics !== "undefined" &&
+          !navigator.userAgent.toLowerCase().includes("firefox")
+            ? it
+            : it.skip;
+        sabIt("keeps SAB score time still while paused and handles repeated transport calls", async function () {
           const cs = await Csound(test);
           try {
             const events = [];
@@ -834,7 +842,7 @@ schedule(1, 0.05, 10)`), 0);
         });
 
         for (const command of ["pause", "resume"]) {
-          it(`stops SAB with ${command} acknowledgement still pending`, async function () {
+          sabIt(`stops SAB with ${command} acknowledgement still pending`, async function () {
             const cs = await Csound(test);
             try {
               let resumed = 0;
@@ -854,7 +862,7 @@ schedule(1, 0.05, 10)`), 0);
           });
         }
 
-        it("pauses, resumes and stops a SAB offline render", async function () {
+        sabIt("pauses, resumes and stops a SAB offline render", async function () {
           const cs = await Csound(test);
           try {
             const events = [];
