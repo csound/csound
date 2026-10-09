@@ -19,6 +19,11 @@ export const messageEventHandler = (worker) => (event) => {
     if (worker && worker.publicEvents) {
       worker.publicEvents.triggerReadline(event.data.log["readline"]);
     }
+  } else if (event.data.debugCallback || (event.data.log && event.data.log.debugCallback)) {
+    // Worker ports wrap WASM callbacks in `log`, just like readline requests.
+    if (worker && worker.publicEvents && worker.publicEvents.triggerDebugCallback) {
+      worker.publicEvents.triggerDebugCallback();
+    }
   } else if (event.data.log) {
     if (worker && worker.publicEvents && worker.publicEvents.triggerMessage) {
       worker.publicEvents.triggerMessage(event.data.log);
@@ -30,10 +35,6 @@ export const messageEventHandler = (worker) => (event) => {
           ? event.data.log.log
           : event.data.log,
       );
-    }
-  } else if (event.data.debugCallback) {
-    if (worker && worker.publicEvents && worker.publicEvents.triggerDebugCallback) {
-      worker.publicEvents.triggerDebugCallback();
     }
   } else if (event.data["playStateChange"] && worker && worker["onPlayStateChange"]) {
     worker["onPlayStateChange"](
