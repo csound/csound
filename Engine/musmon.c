@@ -1558,7 +1558,9 @@ int32_t sense_events(CSOUND *csound)
     free_inactive_instances(csound);                      /*   rtn inactiv spc */
     if (csound->actanchor.nxtact == NULL)   /*   if no indef ins */
       free_memfiles(csound);                  /*    purge memfiles */
-    csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    STA(sectno)++;
+    if (csound->oparms->msglevel > 0)
+      csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
     RT_SPIN_UNLOCK
     goto retest;                            /*   & back for more */
   }
@@ -1843,7 +1845,8 @@ void rewind_score(CSOUND *csound)
     /* update section/overall amplitudes, reset to section 1 */
     section_amps(csound, 1);
     STA(sectno) = 1;
-    csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
+    if (csound->oparms->msglevel > 0)
+      csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
   }
 
   /* apply score offset if non-zero */
