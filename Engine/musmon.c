@@ -699,16 +699,16 @@ int32_t csound_cleanup(CSOUND *csound)
     /* NOT SURE HOW   ************************** */
     // if(csound->oparms->msglevel)
     if(!csound->info_message_request) {
+      corfile_rm(csound, &csound->expanded_sco);
+      for (n = 0; n < csound->nchnls; n++) {
+        if (csound->smaxamp[n] > csound->omaxamp[n])
+          csound->omaxamp[n] = csound->smaxamp[n];
+        if (csound->maxamp[n] > csound->omaxamp[n])
+          csound->omaxamp[n] = csound->maxamp[n];
+        STA(orngcnt)[n] += (STA(srngcnt)[n] + csound->rngcnt[n]);
+      }
       if(csound->oparms->msglevel > 0) {
         csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
-        corfile_rm(csound, &csound->expanded_sco);
-        for (n = 0; n < csound->nchnls; n++) {
-          if (csound->smaxamp[n] > csound->omaxamp[n])
-            csound->omaxamp[n] = csound->smaxamp[n];
-          if (csound->maxamp[n] > csound->omaxamp[n])
-            csound->omaxamp[n] = csound->maxamp[n];
-          STA(orngcnt)[n] += (STA(srngcnt)[n] + csound->rngcnt[n]);
-        }
         for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
           print_maxamp(csound, *maxp++);
       }
