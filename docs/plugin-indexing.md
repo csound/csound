@@ -45,14 +45,19 @@ perf functions then decide when it runs, so register them to match:
   init function for a read that is also needed at init.
 - `##array_init` runs at init time only: init function, no perf function.
 
-Csound does not check this. A `k` setter with an init function also writes
-at init time, as `kvar =` must not.
+Csound does not enforce these rules: it calls whatever functions the entry
+registers. If a `k` setter also has an init function, `v[kidx] = kval`
+writes once at init time as well as every block, unlike `kvar = kval`,
+which writes only at perf time.
 
 Reads follow the rule for built-in arrays. A read follows changes, using the
 entry that takes `k` indices, unless an init-only consumer reads it with `i`
 indices. An `i` assignment is an init-only consumer. With `i` indices, the
 element is typed by the init-time read when Csound chooses the statement's
 overload: an opcode with both `i` and `k` versions takes the `i` one.
+Overloads are chosen before the access knows its rate, so entries that tie
+for the init-time read still type the element when they agree on its type;
+the tie is reported only if the access does run at init time (see below).
 
 ```csound
 v:IndexedVec = indexed_vec(4)   ; holds 0, 10, 20, 30
@@ -70,6 +75,13 @@ variable first (`kvalue = v[0]`) or use a `k` index.
 An assignment `v[...] = x` is k-rate when `x` or any index is k-rate.
 Otherwise it runs once, at init time, like `ivar = x`. `init` always writes
 once, at init time.
+
+This differs from built-in arrays, whose element rate comes from the array:
+`kArr[0] = 7` writes every block because `kArr` is a `k` array, and
+`iArr[0] = 7` writes once. A plugin type has no rate of its own, so only the
+arguments decide: `v[0] = 7` has only `i` arguments and writes once, at init
+time, like `iArr[0] = 7`. To write every block, give it a `k` value or index:
+after `kseven init 7`, `v[0] = kseven` writes every block.
 
 ```csound
 kidx init 0

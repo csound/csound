@@ -58,11 +58,19 @@ protected:
     }
     EXPECT_EQ(csoundErrCnt(csound), 0) << messages();
   }
+  // Expects compiling to fail with one error, which contains expected.
   void expectCompileError(const std::string &body, const std::string &expected,
                           const std::string &udos = "") {
     EXPECT_NE(csoundCompileOrc(csound, orchestra(body, udos).c_str(), 0), 0);
     std::string text = messages();
     EXPECT_NE(text.find(expected), std::string::npos) << text;
+    EXPECT_EQ(count(text, "syntax error, "), 1u) << text;
+  }
+  static size_t count(const std::string &text, const std::string &what) {
+    size_t n = 0;
+    for (size_t at = text.find(what); at != std::string::npos;
+         at = text.find(what, at + what.size())) ++n;
+    return n;
   }
   // Compiles, then expects a run-time error with the given text.
   void expectRunError(const std::string &body, const std::string &expected) {
@@ -233,6 +241,18 @@ chnset v[kone], "e1"
 )cs", 4, [&](int block) { channel("e1", 5 + block + 1); });
 }
 
+TEST_F(PluginIndex, KValueAssignmentRepeatsEveryBlock) {
+  // Like kArr[0] = 7: v[0] is 7 again each block before the increment.
+  runBlocks(R"cs(
+v:IndexedVec = indexed_vec(4)
+kseven init 7
+v[0] = kseven
+kzero init 0
+v[kzero] = v[kzero] + 1
+chnset v[kzero], "e0"
+)cs", 4, [&](int) { channel("e0", 8); });
+}
+
 TEST_F(PluginIndex, InitWritesOnceAcrossBlocks) {
   // kj moves to 3 at perf time: an init write repeated then would reach v[3].
   runBlocks(R"cs(
@@ -295,6 +315,19 @@ kx = a[kidx]
 chnset kx, "value"
 )cs");
   channel("value", 10);
+}
+
+TEST_F(PluginIndex, ATieOnlyAmongInitReadsLeavesPerfReadsWithAConstantIndex) {
+  // Overloads are chosen before a[1]'s rate is known; the two i getters
+  // agree on its type, and their tie is an error only for an init-time read.
+  run(R"cs(
+a:AmbiguousVec = ambiguous_vec(2)
+kx = a[1]
+ky = a[1] + 1
+chnset kx, "value"
+chnset ky, "sum"
+)cs");
+  channel("value", 10); channel("sum", 11);
 }
 
 TEST_F(PluginIndex, SettersWithTheSameSignatureAreAmbiguous) {
@@ -476,6 +509,27 @@ chnset iy, "read"
 chnset p.x, "written"
 )cs");
   channel("read", 2); channel("written", 9);
+}
+
+TEST_F(PluginIndex, GetterReturningAStructTypesTheElementAsThatStruct) {
+  // p[1][0] is the pair (p.y, p.x). The type overloads see for it and the
+  // type the getter declares are the same IndexedPair.
+  run(R"cs(
+p:IndexedPair init 1, 2
+q:IndexedPair = p[1][0]
+iq = pairsum(p[1][0])
+chnset q.x, "qx"
+chnset q.y, "qy"
+chnset iq, "sum"
+)cs", R"cs(
+opcode pairsum(x:i):i
+  xout -1
+endop
+opcode pairsum(pair:IndexedPair):i
+  xout pair.x * 10 + pair.y
+endop
+)cs");
+  channel("qx", 2); channel("qy", 1); channel("sum", 21);
 }
 
 TEST_F(PluginIndex, OperatorsResolveThroughTheTypesEntries) {

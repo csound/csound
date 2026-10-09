@@ -267,6 +267,28 @@ static int32_t pair_set(CSOUND *csound, PAIR_SET *p)
   return OK;
 }
 
+/* p[i][j] is the pair (p[i], p[j]): a read that returns the struct type. */
+typedef struct {
+  OPDS h;
+  CS_STRUCT_VAR *out;
+  CS_STRUCT_VAR *pair;
+  cs_float *first;
+  cs_float *second;
+} PAIR_PICK;
+
+static int32_t pair_pick(CSOUND *csound, PAIR_PICK *p)
+{
+  cs_float *at[2] = {p->first, p->second};
+  int32_t n;
+  for (n = 0; n < 2; n++) {
+    int32_t i = *at[n] >= 0 ? (int32_t)*at[n] : -1;
+    if (i < 0 || i >= p->pair->memberCount)
+      return csound->InitError(csound, "IndexedPair read out of range\n");
+    p->out->members[n]->value = p->pair->members[i]->value;
+  }
+  return OK;
+}
+
 PUBLIC int32_t csoundModuleCreate(CSOUND *csound)
 {
   (void)csound;
@@ -337,6 +359,7 @@ PUBLIC int32_t csoundModuleInit(CSOUND *csound)
     {"##array_set.AV2", sizeof(VEC_SET),   0, "",               ":AmbiguousVec;kk", NULL,           (SUBR) vec_set_perf,   NULL},
 
     {"##array_get.IPi", sizeof(PAIR_GET),  0, "i",             ":IndexedPair;i", (SUBR) pair_get,  NULL,                  NULL},
+    {"##array_get.IPp", sizeof(PAIR_PICK), 0, ":IndexedPair;", ":IndexedPair;ii",(SUBR) pair_pick, NULL,                  NULL},
     {"##array_set.IPi", sizeof(PAIR_SET),  0, "",              ":IndexedPair;ii",(SUBR) pair_set,  NULL,                  NULL}
   };
 

@@ -1946,8 +1946,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
                                                  assigns ? current->right : NULL,
                                                  currentArg->right, typeTable, &outType);
             if (indexEntry == NULL) {
-              synterr(csound, Str("cannot write %s[] here, line %d\n"),
-                      varBaseName, current->line);
+              // resolve_index_set_entry said why
               return NULL;
             }
             typeIndexed = 1;
