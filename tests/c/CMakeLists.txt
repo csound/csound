@@ -232,7 +232,8 @@ if(BUILD_TESTS)
             DEPENDS cmidi
         )
         add_dependencies(unittests unittests_coremidi_plugin)
-        target_sources(unittests PRIVATE cmidi_output_test.cpp)
+        target_sources(unittests PRIVATE cmidi_output_test.cpp
+                                           cmidi_input_test.cpp)
         target_link_libraries(unittests PRIVATE
             "-framework CoreMIDI" "-framework CoreFoundation")
         target_compile_definitions(unittests PRIVATE

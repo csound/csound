@@ -40,6 +40,7 @@ typedef struct {
   Byte status;
   Byte data1;
   Byte data2;
+  Byte port;
   Byte flag;
 } MIDIdata;
 
@@ -48,6 +49,7 @@ typedef struct _cdata {
   MIDIdata *mdata;
   int32_t p; int32_t q;
   MIDIClientRef mclient;
+  int32_t multiport;
 } cdata;
 
 /* user data for MIDI output */
@@ -58,6 +60,9 @@ typedef struct _odata {
   int32_t ndest;
   int32_t multiport;
 } odata;
+
+/* used to distinguish between 1 and 2-byte messages */
+static  const   int32_t     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 
 
 /* copy the name of a CoreMIDI endpoint into a fixed-size buffer */
@@ -76,21 +81,34 @@ static void getEndpointName(MIDIEndpointRef endpoint, char *buf, size_t size)
 /* coremidi callback, called when MIDI data is available */
 static void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
 {
-  IGN(srcConnRefCon);
   cdata *data = (cdata *)refcon;
   MIDIdata *mdata = data->mdata;
   int32_t *p = &data->p;
-  UInt32 i, j;
+  /* the source connection refcon holds the port number for mapping */
+  int32_t port = (int32_t)(long) srcConnRefCon;
+  UInt32 i;
   MIDIPacket *packet = &((MIDIPacketList *)pktlist)->packet[0];
-  Byte *curpack;
 
   for (i = 0; i < pktlist->numPackets; i++) {
-    for (j=0; j < packet->length; j+=3) {
-      curpack = packet->data+j;
-      memcpy(&mdata[*p], curpack, 3);
+    UInt32 j = 0;
+    while (j < packet->length) {
+      Byte *curpack = &packet->data[j];
+      int32_t st = (int32_t) curpack[0];
+      int32_t nb;
+      if (st < 0x80) {          /* stray data byte (running status) */
+        j++;
+        continue;
+      }
+      nb = datbyts[(st - 0x80) >> 4] + 1;
+      if (j + (UInt32) nb > packet->length) break;
+      mdata[*p].status = (Byte) st;
+      mdata[*p].data1 = (nb > 1) ? curpack[1] : 0;
+      mdata[*p].data2 = (nb > 2) ? curpack[2] : 0;
+      mdata[*p].port = (Byte) port;
       mdata[*p].flag = 1;
       (*p)++;
       if (*p == DSIZE) *p = 0;
+      j += nb;
     }
     packet = MIDIPacketNext(packet);
   }
@@ -126,19 +144,21 @@ static int32_t listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput
 /* csound MIDI input open callback, sets the device for input */
 static int32_t MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
-  int32_t k, endpoints;
-  CFStringRef name = NULL, cname = NULL, pname = NULL;
+  int32_t k, endpoints, port = 0;
+  CFStringRef cname = NULL, pname = NULL;
   CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
   MIDIClientRef mclient = (MIDIClientRef) 0;
   MIDIPortRef mport =  (MIDIPortRef) 0;
   MIDIEndpointRef endpoint;
   MIDIdata *mdata = (MIDIdata *) csound->Malloc(csound, DSIZE*sizeof(MIDIdata));
   OSStatus ret;
+  const OPARMS *O = csound->GetOParms(csound);
   cdata *refcon = (cdata *) csound->Malloc(csound, sizeof(cdata));
   memset(mdata, 0, sizeof(MIDIdata)*DSIZE);
   refcon->mdata = mdata;
   refcon->p = 0;
   refcon->q = 0;
+  refcon->multiport = 0;
   /* MIDI client */
   cname = CFStringCreateWithCString(NULL, "my client", defaultEncoding);
   ret = MIDIClientCreate(cname, NULL, NULL, &mclient);
@@ -149,33 +169,47 @@ static int32_t MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev
     if (!ret){
       /* sources, we connect to all available input sources */
       endpoints = (int32_t) MIDIGetNumberOfSources();
-      const OPARMS *O;
-      O = csound->GetOParms(csound);
       if(O->msglevel || O->odebug)
         csound->Message(csound, Str("%d MIDI sources in system\n"), endpoints);
-      if (!strcmp(dev,"all")) {
+      if (dev == NULL) dev = "0";
+      if (!strcmp(dev,"all") || !strcmp(dev,"a") || !strcmp(dev,"m")) {
+        /* 'm' maps each source to a separate port (16 channels each) */
+        int32_t mapped = !strcmp(dev,"m");
+        refcon->multiport = mapped;
         if(O->msglevel || O->odebug)
-          csound->Message(csound, "%s", Str("receiving from all sources\n"));
+          csound->Message(csound, "%s",
+                          mapped ? Str("receiving from all sources, "
+                                       "mapped to ports\n")
+                                 : Str("receiving from all sources\n"));
         for(k=0; k < endpoints; k++){
           endpoint = MIDIGetSource(k);
-          long srcRefCon = (long) endpoint;
-          MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
-          MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-          if(O->msglevel || O->odebug)
-            csound->Message(csound, Str("connecting midi device %d: %s\n"), k,
-                            CFStringGetCStringPtr(name, defaultEncoding));
+          MIDIPortConnectSource(mport, endpoint, (void *)(long) port);
+          if(O->msglevel || O->odebug) {
+            if (mapped)
+              csound->Message(csound,
+                              Str("device %d mapped to channels %d to %d\n"),
+                              k, port*16+1, (port+1)*16);
+            else {
+              char name[128];
+              getEndpointName(endpoint, name, sizeof(name));
+              csound->Message(csound, Str("connecting midi device %d: %s\n"),
+                              k, name);
+            }
+          }
+          port++;
         }
       }
       else{
         k = atoi(dev);
         if (k < endpoints){
           endpoint = MIDIGetSource(k);
-          long srcRefCon = (long) endpoint;
-          MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
-          MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-          if(O->msglevel || O->odebug)
+          MIDIPortConnectSource(mport, endpoint, (void *)(long) 0);
+          if(O->msglevel || O->odebug) {
+            char name[128];
+            getEndpointName(endpoint, name, sizeof(name));
             csound->Message(csound, Str("connecting midi device %d: %s\n"), k,
-                            CFStringGetCStringPtr(name, defaultEncoding));
+                            name);
+          }
         }
         else {
           if(O->msglevel || O->odebug)
@@ -189,7 +223,6 @@ static int32_t MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev
   }
   refcon->mclient = mclient;
   *userData = (void*) refcon;
-  if (name) CFRelease(name);
   if (pname) CFRelease(pname);
   if (cname) CFRelease(cname);
   /* report success */
@@ -298,9 +331,6 @@ static int32_t MidiOutDeviceOpen(CSOUND *csound, void **userData, const char *de
   return 0;
 }
 
-/* used to distinguish between 1 and 2-byte messages */
-static  const   int32_t     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
-
 /* csound MIDI read callback, called every k-cycle */
 static int32_t MidiDataRead(CSOUND *csound, void *userData,
                             unsigned char *mbuf, int32_t nbytes)
@@ -308,13 +338,15 @@ static int32_t MidiDataRead(CSOUND *csound, void *userData,
   IGN(csound);
   cdata *data = (cdata *)userData;
   MIDIdata *mdata = data->mdata;
-  int32_t *q = &data->q, st, d1, d2, n = 0;
+  int32_t *q = &data->q, st, d1, d2, port, n = 0;
+  int32_t map = data->multiport ? 1 : 0;
 
   /* check if there is new data in circular queue */
   while (mdata[*q].flag) {
     st = (int32_t) mdata[*q].status;
     d1 = (int32_t) mdata[*q].data1;
     d2 = (int32_t) mdata[*q].data2;
+    port = (int32_t) mdata[*q].port;
 
     if (st < 0x80) goto next;
 
@@ -322,21 +354,24 @@ static int32_t MidiDataRead(CSOUND *csound, void *userData,
         !(st == 0xF8 || st == 0xFA || st == 0xFB ||
           st == 0xFC || st == 0xFF)) goto next;
 
-    nbytes -= (datbyts[(st - 0x80) >> 4] + 1);
+    nbytes -= (datbyts[(st - 0x80) >> 4] + 1 + map);
     if (nbytes < 0) break;
 
     /* write to csound midi buffer */
-    n += (datbyts[(st - 0x80) >> 4] + 1);
+    n += (datbyts[(st - 0x80) >> 4] + 1 + map);
     switch (datbyts[(st - 0x80) >> 4]) {
     case 0:
       *mbuf++ = (unsigned char) st;
       break;
     case 1:
       *mbuf++ = (unsigned char) st;
+      /* when mapping, a port byte (0x80 | port) follows the status */
+      if (map) *mbuf++ = (unsigned char) (0x80 | port);
       *mbuf++ = (unsigned char) d1;
       break;
     case 2:
       *mbuf++ = (unsigned char) st;
+      if (map) *mbuf++ = (unsigned char) (0x80 | port);
       *mbuf++ = (unsigned char) d1;
       *mbuf++ = (unsigned char) d2;
       break;
