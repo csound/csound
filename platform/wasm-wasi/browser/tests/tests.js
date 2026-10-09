@@ -841,6 +841,78 @@ schedule(1, 0.05, 10)`), 0);
           }
         });
 
+        sabIt("rejects SAB resume while a pause acknowledgement is pending", async function () {
+          const cs = await Csound(test);
+          const errors = sinon.stub(console, "error");
+          try {
+            const events = [];
+            cs.on("realtimePerformancePaused", () => events.push("paused"));
+            cs.on("realtimePerformanceResumed", () => events.push("resumed"));
+            await cs.compileCSD(shortTone);
+            await cs.start();
+            const pendingPause = cs.pause();
+            assert.equal(await cs.resume(), -1, "resume must not cancel a pending pause");
+            assert.equal(await pendingPause, 0);
+            assert.deepEqual(events, ["paused"]);
+            await cs.resume();
+            assert.deepEqual(events, ["paused", "resumed"]);
+            await cs.stop();
+          } finally {
+            errors.restore();
+            await cs.terminateInstance();
+          }
+        });
+
+        sabIt("settles SAB resume when the score ends before acknowledgement", async function () {
+          // Hold the resume reply on the real message port so completion wins
+          // the race between ports, regardless of the browser's scheduling.
+          const addEventListener = MessagePort.prototype.addEventListener;
+          const delayedReplies = [];
+          const listeners = sinon
+            .stub(MessagePort.prototype, "addEventListener")
+            .callsFake(function (type, listener, ...options) {
+              return addEventListener.call(
+                this,
+                type,
+                type === "message"
+                  ? (event) => {
+                      if (event.data?.type === "releaseResumed") {
+                        delayedReplies.push(() => listener.call(this, event));
+                        return;
+                      }
+                      listener.call(this, event);
+                    }
+                  : listener,
+                ...options,
+              );
+            });
+          let cs;
+          try {
+            cs = await Csound(test);
+            const events = [];
+            cs.on("realtimePerformancePaused", () => events.push("paused"));
+            cs.on("realtimePerformanceResumed", () => events.push("resumed"));
+            const ended = new Promise((resolve) => cs.once("realtimePerformanceEnded", resolve));
+            await cs.compileCSD(shortTone.replace("i 1 0 2", "i 1 0 0.5"));
+            await cs.start();
+            await cs.pause();
+            const pending = cs.resume();
+            await ended;
+            assert.lengthOf(delayedReplies, 1, "resume reply is still pending at completion");
+            const result = await Promise.race([
+              pending,
+              new Promise((resolve) => setTimeout(() => resolve("pending"), 100)),
+            ]);
+            assert.equal(result, 0, "completion must settle the pending transport call");
+            delayedReplies.forEach((reply) => reply());
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            assert.deepEqual(events, ["paused"], "late replies cannot publish a transition");
+          } finally {
+            listeners.restore();
+            if (cs) await cs.terminateInstance();
+          }
+        });
+
         for (const command of ["pause", "resume"]) {
           sabIt(`stops SAB with ${command} acknowledgement still pending`, async function () {
             const cs = await Csound(test);

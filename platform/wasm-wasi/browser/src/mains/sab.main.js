@@ -205,6 +205,13 @@ class SharedArrayBufferMainThread {
     });
     this.callbackBuffer = {};
 
+    // A score can finish before acknowledging pause or resume. Settle both
+    // here too: releasing stop clears their timeout timers.
+    if (this.eventPromises) {
+      this.eventPromises.releasePausePromise();
+      this.eventPromises.releaseResumePromise();
+    }
+
     // Logs and play-state changes share one ordered port. releaseStop uses a
     // second port, so wait for both before exposing completion to callers.
     if (performanceEndState === "renderEnded") {
