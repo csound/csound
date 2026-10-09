@@ -601,7 +601,7 @@ void sf_open_in(CSOUND *csound)           /* init for continuous soundin */
     STA(inbufsiz) = (unsigned) (O->inbufsamps * sizeof(cs_float));
     STA(inbuf) = (cs_float*) csound->Calloc(csound,
                                          STA(inbufsiz)); /* alloc inbuf space */
-    if(csound->oparms->odebug > 0) {
+    if(csound->oparms->msglevel > 0) {
       if (STA(pipdevout) == 2) {
         csound->Message(csound,
                         Str("reading %d sample blks of %lu-bit floats from %s\n"),

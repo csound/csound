@@ -462,7 +462,7 @@ int32_t start_engine(CSOUND *csound)
 
     if (csound->playscore!=NULL) corfile_flush(csound, csound->playscore);
     ++STA(sectno);
-    if (O->msglevel & SEGAMPS)
+    if (O->msglevel > 0)
       csound->Message(csound, Str("SECTION %d:\n"), STA(sectno));
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
@@ -698,18 +698,20 @@ int32_t csound_cleanup(CSOUND *csound)
     /* print stats only if musmon was actually run */
     /* NOT SURE HOW   ************************** */
     // if(csound->oparms->msglevel)
-    if(!csound->info_message_request && csound->oparms->msglevel) {
-      csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
-      corfile_rm(csound, &csound->expanded_sco);
-      for (n = 0; n < csound->nchnls; n++) {
-        if (csound->smaxamp[n] > csound->omaxamp[n])
-          csound->omaxamp[n] = csound->smaxamp[n];
-        if (csound->maxamp[n] > csound->omaxamp[n])
-          csound->omaxamp[n] = csound->maxamp[n];
-        STA(orngcnt)[n] += (STA(srngcnt)[n] + csound->rngcnt[n]);
+    if(!csound->info_message_request) {
+      if(csound->oparms->msglevel > 0) {
+        csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
+        corfile_rm(csound, &csound->expanded_sco);
+        for (n = 0; n < csound->nchnls; n++) {
+          if (csound->smaxamp[n] > csound->omaxamp[n])
+            csound->omaxamp[n] = csound->smaxamp[n];
+          if (csound->maxamp[n] > csound->omaxamp[n])
+            csound->omaxamp[n] = csound->maxamp[n];
+          STA(orngcnt)[n] += (STA(srngcnt)[n] + csound->rngcnt[n]);
+        }
+        for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
+          print_maxamp(csound, *maxp++);
       }
-      for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
-        print_maxamp(csound, *maxp++);
       if (csound->oparms->outformat != AE_FLOAT) {
         // only print samples out of range if there were actually any
         size_t samples_out_of_range = 0;
