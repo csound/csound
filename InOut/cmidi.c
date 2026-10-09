@@ -404,9 +404,12 @@ static int32_t MidiDataWrite(CSOUND *csound, void *userData,
                              const unsigned char *mbuf, int32_t nbytes)
 {
   odata *data = (odata *)userData;
-  int32_t i, pos, n = 0, mess_port;
+  int32_t i, pos, sent = 0, mess_port;
   UInt32 bufsize;
-  Byte *buf;
+  /* module-level MIDI messages are at most a few bytes long, so build the
+     packet list on the stack to avoid allocating on the audio thread */
+  Byte stackbuf[2048];
+  Byte *buf = stackbuf;
   MIDIPacketList *pktlist;
   MIDIPacket *packet;
 
@@ -420,9 +423,11 @@ static int32_t MidiDataWrite(CSOUND *csound, void *userData,
   /* build a packet list, not splitting MIDI messages across packets */
   bufsize = (UInt32) (sizeof(MIDIPacketList) + (size_t) nbytes +
                       ((size_t) nbytes / 256 + 1) * sizeof(MIDIPacket));
-  buf = (Byte *) csound->Malloc(csound, bufsize);
-  if (UNLIKELY(buf == NULL))
-    return 0;
+  if (bufsize > sizeof(stackbuf)) {
+    buf = (Byte *) csound->Malloc(csound, bufsize);
+    if (UNLIKELY(buf == NULL))
+      return 0;
+  }
   pktlist = (MIDIPacketList *) buf;
   packet = MIDIPacketListInit(pktlist);
 
@@ -439,22 +444,31 @@ static int32_t MidiDataWrite(CSOUND *csound, void *userData,
     packet = MIDIPacketListAdd(pktlist, bufsize, packet, 0,
                                (ByteCount) len, (const Byte *) (mbuf + pos));
     if (UNLIKELY(packet == NULL)) {
-      csound->Free(csound, buf);
-      return n;
+      if (buf != stackbuf) csound->Free(csound, buf);
+      return 0;
     }
     pos += len;
   }
 
   for (i = 0; i < data->ndest; i++) {
+    OSStatus status;
     if (data->multiport && mess_port != i)
       continue;
-    MIDISend(data->mport, data->dest[i], pktlist);
+    status = MIDISend(data->mport, data->dest[i], pktlist);
+    if (UNLIKELY(status != noErr)) {
+      csound->ErrorMsg(csound,
+                       Str(" *** CoreMIDI: error %d sending MIDI message\n"),
+                       (int32_t) status);
+    } else {
+      sent++;
+    }
   }
-  csound->Free(csound, buf);
-  n = nbytes;
+  if (buf != stackbuf) csound->Free(csound, buf);
 
-  /* return the number of bytes written */
-  return n;
+  /* return the number of bytes written, counting the message as written
+     when it was sent to at least one destination; 0 if all sends failed
+     (or no destination matched the message port) */
+  return sent > 0 ? nbytes : 0;
 }
 
 

@@ -24,6 +24,7 @@
 
 #include <chrono>
 #include <condition_variable>
+#include <cstdlib>
 #include <cstring>
 #include <mutex>
 #include <string>
@@ -68,18 +69,48 @@ class CoreMidiOutputTests : public ::testing::Test {
  protected:
   MidiSink sink;
   CSOUND *csound {nullptr};
+  std::string priorOpcodeDir;
+  std::string priorOpcodeDir64;
+  bool hadOpcodeDir {false};
+  bool hadOpcodeDir64 {false};
 
   void SetUp() override {
+#if defined(CSOUND_TEST_COREMIDI_PLUGIN_DIR)
+    /* Capture the prior plugin search path first, before any assertion that
+       could abort SetUp, so TearDown always restores the original values
+       (and never deletes variables it did not set). */
+    const char *value = std::getenv("OPCODE7DIR");
+    hadOpcodeDir = value != nullptr;
+    if (hadOpcodeDir)
+      priorOpcodeDir = value;
+    value = std::getenv("OPCODE7DIR64");
+    hadOpcodeDir64 = value != nullptr;
+    if (hadOpcodeDir64)
+      priorOpcodeDir64 = value;
+#endif
     ASSERT_EQ(MIDIClientCreate(CFSTR("csound unittests"), nullptr, nullptr,
                                &sink.client), noErr);
     ASSERT_EQ(MIDIDestinationCreate(sink.client, CFSTR("csound unit test sink"),
                                     midiReadProc, &sink, &sink.endpoint),
               noErr);
+
+#if defined(CSOUND_TEST_COREMIDI_PLUGIN_DIR)
+    /* Point the plugin search path at the freshly built coremidi plugin
+       before Csound loads its default modules. */
+    csoundSetGlobalEnv("OPCODE7DIR", CSOUND_TEST_COREMIDI_PLUGIN_DIR);
+    csoundSetGlobalEnv("OPCODE7DIR64", CSOUND_TEST_COREMIDI_PLUGIN_DIR);
+#endif
   }
 
   void TearDown() override {
     if (csound != nullptr)
       csoundDestroy(csound);
+#if defined(CSOUND_TEST_COREMIDI_PLUGIN_DIR)
+    csoundSetGlobalEnv("OPCODE7DIR",
+                       hadOpcodeDir ? priorOpcodeDir.c_str() : nullptr);
+    csoundSetGlobalEnv("OPCODE7DIR64",
+                       hadOpcodeDir64 ? priorOpcodeDir64.c_str() : nullptr);
+#endif
     if (sink.client != 0)
       MIDIClientDispose(sink.client);
   }
@@ -91,13 +122,6 @@ TEST_F(CoreMidiOutputTests, SendsMidiMessages) {
 #else
   const int index = destinationIndex(sink.endpoint);
   ASSERT_GE(index, 0);
-
-  /* Point the plugin search path at the freshly built coremidi plugin
-     before Csound loads its default modules. */
-  ASSERT_EQ(csoundSetGlobalEnv("OPCODE7DIR",
-                               CSOUND_TEST_COREMIDI_PLUGIN_DIR), 0);
-  ASSERT_EQ(csoundSetGlobalEnv("OPCODE7DIR64",
-                               CSOUND_TEST_COREMIDI_PLUGIN_DIR), 0);
 
   csound = csoundCreate(nullptr, nullptr);
   ASSERT_NE(csound, nullptr);
