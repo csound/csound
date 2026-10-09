@@ -972,6 +972,7 @@ int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
     }
 
     if (builder->compiled) {
+        stm_registry_unlock(csound, reg);
         return csound->InitError(csound, "[stm] stmcompile: graph already compiled\n");
     }
 
@@ -1173,7 +1174,6 @@ static int32_t resume_gcheckpoint(GRAPH_RUNNER *g, const char *name) {
     /* A reset cycle is tied to an absolute engine k-counter and cannot be
        resumed later.  Resume is instead published as a new, monotonic event;
        the transition ring and its reader cursors remain valid. */
-    STM_STORE(&g->reset_pcycle, 0);
     STM_STORE(&g->has_reset_cycle, 0);
     record_gevent(g, old_node, gc->current_node, STM_EVENT_RECALL, 1);
 
@@ -1319,8 +1319,26 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
     g->requested_node = STM_NO_NODE;
     g->request_conflict = STM_REQUEST_OK;
 
-    uint64_t curr_pcycle = csound->GetEngineKcounter(csound);
-    int is_reset = g->has_reset_cycle && curr_pcycle == g->reset_pcycle;
+    /* An stmreset in this call's control period restarted the clock, which
+       this call must then leave at 0. The period is the local one: under
+       setksmps only the reset's own pass is skipped, not every pass of the
+       engine cycle. The writer may reset and advance from different
+       instances, its instrument body and a UDO with its own ksmps, whose
+       periods do not line up; there the first advance after the reset in the
+       same engine cycle is the one skipped. */
+    INSDS *ip = p->h.insdshead;
+    int32_t is_reset = 0;
+    if (g->has_reset_cycle) {
+        if (csound->GetEngineKcounter(csound) != g->reset_kcycle) {
+            g->has_reset_cycle = 0;
+        } else if (ip == g->reset_ip) {
+            is_reset = ip->kcounter == g->reset_lcycle;
+            if (!is_reset) g->has_reset_cycle = 0;
+        } else {
+            is_reset = 1;
+            g->has_reset_cycle = 0;
+        }
+    }
 
     if (!is_reset) {
         uint64_t total_frames = STM_LOAD(&g->total_sample_frames) + (uint64_t) CS_KSMPS;
@@ -1329,10 +1347,6 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
         if (accepted) {
             STM_STORE(&g->node_sample_on_enter, total_frames);
         }
-    }
-
-    if (g->has_reset_cycle && curr_pcycle != g->reset_pcycle) {
-        g->has_reset_cycle = 0;
     }
 
     *p->status = (cs_float) status;
@@ -1513,7 +1527,9 @@ int32_t graph_reset(CSOUND *csound, GRAPH_ONE_SHOT *p) {
     STM_STORE(&g->graph_tick, 0);
     STM_STORE(&g->total_sample_frames, 0);
     STM_STORE(&g->node_sample_on_enter, 0);
-    g->reset_pcycle = csound->GetEngineKcounter(csound);
+    g->reset_kcycle = csound->GetEngineKcounter(csound);
+    g->reset_ip = p->h.insdshead;
+    g->reset_lcycle = p->h.insdshead->kcounter;
     g->has_reset_cycle = 1;
     if (old_node != start_node) {
         record_gevent(g, old_node, start_node, STM_EVENT_RESET, 1);

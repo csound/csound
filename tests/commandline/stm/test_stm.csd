@@ -727,6 +727,68 @@ instr 61
 endin
 
 ; ============================================================
+; Example 6b: stmreset under local setksmps.
+;
+; A reset keeps only the advance of its own control period from ticking
+; the restarted clock. Under setksmps 1 that period is one local pass, not
+; the 32 passes of the engine cycle, so after a reset at pass 1 the clock
+; reads 1, 31 and 32 after passes 2, 32 and 33.
+;
+; When the writer resets in its body and advances inside a UDO with its
+; own ksmps, the two periods do not line up: only the first advance after
+; the reset is skipped, and the other 31 of that engine cycle tick.
+; ============================================================
+
+graph6b_builder@global:i = stmcreate()
+stmaddnode(graph6b_builder, "A")
+graph6b_definition@global:i = stmcompile(graph6b_builder)
+graph6b@global:i = stminstance(graph6b_definition)
+graph6c@global:i = stminstance(graph6b_definition)
+
+instr 62
+    setksmps 1
+    c:k = init(0)
+    c = c + 1
+
+    stmreset(graph6b, c == 1 ? 1 : 0)
+    changed:k, from_id:k, to_id:k = stmadvance(graph6b)
+    tick:k = stmtick(graph6b)
+
+    ; read after the advance: pass c has ticked c - 1 times
+    if (c == 2 || c == 32 || c == 33) && tick != c - 1 then
+        printks("[FAIL] E6b pass %d: tick=%d expected %d\n", 0, c, tick, c - 1)
+        exitnowk(-1)
+    endif
+    if c == 33 then
+        println("[DONE] STM LOCAL KSMPS RESET TEST PASSED\n")
+        turnoff
+    endif
+endin
+
+opcode advance_every_sample(g:i):void
+    setksmps 1
+    changed:k, from_id:k, to_id:k = stmadvance(g)
+endop
+
+instr 63
+    c:k = init(0)
+    c = c + 1
+
+    stmreset(graph6c, c == 1 ? 1 : 0)
+    advance_every_sample(graph6c)
+    tick:k = stmtick(graph6c)
+
+    if tick != ksmps * c - 1 then
+        printks("[FAIL] E6c cycle %d: tick=%d expected %d\n", 0, c, tick, ksmps * c - 1)
+        exitnowk(-1)
+    endif
+    if c == 3 then
+        println("[DONE] STM UDO KSMPS RESET TEST PASSED\n")
+        turnoff
+    endif
+endin
+
+; ============================================================
 ; Example 7: stmadvance status, source/target IDs and conflicts.
 ;
 ; Status values:
@@ -878,6 +940,8 @@ i 40 4.4 1 ; example 4: introspection + id-based API + entry/reset
 i 50 5.3 1 ; example 5: graph clock (tick / graph time / node time)
 i 60 6.4 0.1 ; example 6: 32 one-sample advances
 i 61 6.5 0.1 ; example 6: one 32-sample advance
+i 62 6.5 0.1 ; example 6b: stmreset under setksmps 1
+i 63 6.5 0.1 ; example 6b: reset in the body, advance in a setksmps 1 UDO
 i 70 6.6 0.1 ; example 7: advance statuses and request conflicts
 i 80 6.8 0.01 ; example 8: first writer requests B
 i 81 6.81 0.01 ; example 8: second writer requests C
