@@ -354,27 +354,33 @@ static int32_t MidiDataRead(CSOUND *csound, void *userData,
         !(st == 0xF8 || st == 0xFA || st == 0xFB ||
           st == 0xFC || st == 0xFF)) goto next;
 
-    nbytes -= (datbyts[(st - 0x80) >> 4] + 1 + map);
-    if (nbytes < 0) break;
+    {
+      /* status-only messages (e.g. real-time clock) carry no port byte */
+      int32_t nd = datbyts[(st - 0x80) >> 4];
+      int32_t len = nd + 1 + ((map && nd > 0) ? 1 : 0);
 
-    /* write to csound midi buffer */
-    n += (datbyts[(st - 0x80) >> 4] + 1 + map);
-    switch (datbyts[(st - 0x80) >> 4]) {
-    case 0:
-      *mbuf++ = (unsigned char) st;
-      break;
-    case 1:
-      *mbuf++ = (unsigned char) st;
-      /* when mapping, a port byte (0x80 | port) follows the status */
-      if (map) *mbuf++ = (unsigned char) (0x80 | port);
-      *mbuf++ = (unsigned char) d1;
-      break;
-    case 2:
-      *mbuf++ = (unsigned char) st;
-      if (map) *mbuf++ = (unsigned char) (0x80 | port);
-      *mbuf++ = (unsigned char) d1;
-      *mbuf++ = (unsigned char) d2;
-      break;
+      nbytes -= len;
+      if (nbytes < 0) break;
+
+      /* write to csound midi buffer */
+      n += len;
+      switch (nd) {
+      case 0:
+        *mbuf++ = (unsigned char) st;
+        break;
+      case 1:
+        *mbuf++ = (unsigned char) st;
+        /* when mapping, a port byte (0x80 | port) follows the status */
+        if (map) *mbuf++ = (unsigned char) (0x80 | port);
+        *mbuf++ = (unsigned char) d1;
+        break;
+      case 2:
+        *mbuf++ = (unsigned char) st;
+        if (map) *mbuf++ = (unsigned char) (0x80 | port);
+        *mbuf++ = (unsigned char) d1;
+        *mbuf++ = (unsigned char) d2;
+        break;
+      }
     }
     /* mark as read */
   next:

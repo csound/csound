@@ -23,7 +23,6 @@
 #include "csound.h"
 
 #include <chrono>
-#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <thread>
@@ -53,12 +52,13 @@ class CoreMidiInputTests : public ::testing::Test {
 #if defined(CSOUND_TEST_COREMIDI_PLUGIN_DIR)
     /* Capture the prior plugin search path first, before any assertion that
        could abort SetUp, so TearDown always restores the original values
-       (and never deletes variables it did not set). */
-    const char *value = std::getenv("OPCODE7DIR");
+       (and never deletes variables it did not set). csoundGetEnv() also sees
+       overrides set with csoundSetGlobalEnv(), unlike std::getenv(). */
+    const char *value = csoundGetEnv(nullptr, "OPCODE7DIR");
     hadOpcodeDir = value != nullptr;
     if (hadOpcodeDir)
       priorOpcodeDir = value;
-    value = std::getenv("OPCODE7DIR64");
+    value = csoundGetEnv(nullptr, "OPCODE7DIR64");
     hadOpcodeDir64 = value != nullptr;
     if (hadOpcodeDir64)
       priorOpcodeDir64 = value;
