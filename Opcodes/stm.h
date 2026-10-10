@@ -83,7 +83,7 @@
    Every runner carries its own clock, read with three k-rate opcodes:
 
      stmtick     - k-cycles elapsed since stminstance or stmreset
-     stmtime     - graph time in seconds, advanced sample frames / sr
+     stmtime     - graph time in seconds advanced by stmadvance
      stmnodetime - seconds elapsed since the current node became current
 
    The clock is driven by stmadvance, not by the global k-counter: one tick is
@@ -101,16 +101,21 @@
      2. read the time opcodes BEFORE stmadvance. After it they already report
         the values of the next cycle.
 
-   Times are derived from integer sample-frame counters rather than accumulated
-   floating-point seconds, so they cannot drift over long runs. Each stmadvance
-   adds the advancing instrument's current CS_KSMPS to the graph's total sample
-   count, which means successive drivers with different local setksmps values
-   contribute their real control-period lengths without retroactively rescaling
-   earlier steps. stmtick is counted internally in a uint64 and returned as
-   cs_float, hence exact up to 2^53 in a double build and 2^24 in a float one.
+   Times are derived from integer counters rather than accumulated
+   floating-point seconds, so they cannot drift over long runs. The counters
+   use one common unit, STM_TIME_UNITS_PER_FRAME per sample frame at the
+   engine sample rate, so neither writers nor readers depend on their local
+   rate. Each stmadvance adds the length of the advancing instance's control
+   period, local ksmps / local sr, converted to that unit. Successive drivers
+   with different setksmps, oversample or undersample settings therefore
+   contribute their real control-period lengths without retroactively
+   rescaling earlier steps, and stmtime/stmnodetime read the same seconds in
+   the instrument body and inside a resampled UDO. stmtick is counted
+   internally in a uint64 and returned as cs_float, hence exact up to 2^53 in
+   a double build and 2^24 in a float one.
 
-   Node time is measured from the sample-frame count at which the current node
-   was entered:
+   Node time is measured from the graph time at which the current node was
+   entered:
 
      - it reads 0 on the node's own first cycle
      - a transition rejected by stmadvance (no such edge) leaves it untouched,
@@ -171,6 +176,24 @@
 #define STM_REGISTRY_NAME "::stm_registry::"
 #define STM_REQUEST_OK 0
 #define STM_REQUEST_CONFLICT 1
+
+/* Graph clocks count STM_TIME_UNITS_PER_FRAME units per sample frame at the
+   engine sample rate. 20160 = 2^6 * 3^2 * 5 * 7, so a control period stays a
+   whole number of units under any oversampling factor that divides it (every
+   power of two up to 64 and every factor up to 10). */
+#define STM_TIME_UNITS_PER_FRAME 20160U
+
+/* Runner state is published with 32- and 64-bit __atomic accesses, but the
+   CMake probe only checks the width of cs_float. Where 64-bit atomics are not
+   lock-free (e.g. 32-bit Cortex-M) they would become libatomic calls, so use
+   the per-runner fallback mutex there instead. */
+#if defined(HAVE_ATOMIC_BUILTIN) && \
+        defined(__GCC_ATOMIC_INT_LOCK_FREE) && __GCC_ATOMIC_INT_LOCK_FREE == 2 && \
+        defined(__GCC_ATOMIC_LLONG_LOCK_FREE) && __GCC_ATOMIC_LLONG_LOCK_FREE == 2
+#define STM_ATOMIC_STATE 1
+#else
+#define STM_ATOMIC_STATE 0
+#endif
 
 #define STM_GET_BUILDER_INIT(csound, opds, handle, msg, reg, out) \
     stm_get_object_init_locked((csound), (opds), (handle), STM_OBJECT_BUILDER, (msg), (reg), (void **) (out))
@@ -234,7 +257,7 @@ typedef struct {
 } STM_LATEST_EVENT_SNAPSHOT;
 
 typedef struct {
-    uint64_t total_frames;
+    uint64_t total_time;
     uint64_t node_enter;
 } STM_NODE_TIME_SNAPSHOT;
 
@@ -276,15 +299,15 @@ typedef struct {
     uint32_t requested_node;
     int32_t request_conflict;
     uint64_t graph_tick;
-    uint64_t total_sample_frames;
-    uint64_t node_sample_on_enter;
+    uint64_t total_time;
+    uint64_t node_time_on_enter;
 } STM_CHECKPOINT;
 
 typedef struct {
     GRAPH_DEFINITION *definition;
     uint32_t refcount;
     uint32_t state_version;
-#if !defined(HAVE_ATOMIC_BUILTIN)
+#if !STM_ATOMIC_STATE
     void *state_mutex;
 #endif
     INSDS *writer_owner;
@@ -296,8 +319,8 @@ typedef struct {
     int32_t request_conflict;
     // time section: the clock is driven by stmadvance, see the note above
     uint64_t graph_tick; // stmadvance calls since compile/reset
-    uint64_t total_sample_frames; // samples advanced since compile/reset
-    uint64_t node_sample_on_enter; // total_sample_frames at node entry
+    uint64_t total_time; // time units (see STM_TIME_UNITS_PER_FRAME) advanced since compile/reset
+    uint64_t node_time_on_enter; // total_time at node entry
     // transition event section: runner-level enter/exit events
     uint64_t event_seq;
     uint32_t event_entered_node;
