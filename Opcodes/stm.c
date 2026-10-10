@@ -83,7 +83,7 @@
    Every runner carries its own clock, read with three k-rate opcodes:
 
      stmtick     - k-cycles elapsed since stminstance or stmreset
-     stmtime     - graph time in seconds, advanced sample frames / sr
+     stmtime     - graph time in seconds advanced by stmadvance
      stmnodetime - seconds elapsed since the current node became current
 
    The clock is driven by stmadvance, not by the global k-counter: one tick is
@@ -101,16 +101,21 @@
      2. read the time opcodes BEFORE stmadvance. After it they already report
         the values of the next cycle.
 
-   Times are derived from integer sample-frame counters rather than accumulated
-   floating-point seconds, so they cannot drift over long runs. Each stmadvance
-   adds the advancing instrument's current CS_KSMPS to the graph's total sample
-   count, which means successive drivers with different local setksmps values
-   contribute their real control-period lengths without retroactively rescaling
-   earlier steps. stmtick is counted internally in a uint64 and returned as
-   cs_float, hence exact up to 2^53 in a double build and 2^24 in a float one.
+   Times are derived from integer counters rather than accumulated
+   floating-point seconds, so they cannot drift over long runs. The counters
+   use one common unit, STM_TIME_UNITS_PER_FRAME per sample frame at the
+   engine sample rate, so neither writers nor readers depend on their local
+   rate. Each stmadvance adds the length of the advancing instance's control
+   period, local ksmps / local sr, converted to that unit. Successive drivers
+   with different setksmps, oversample or undersample settings therefore
+   contribute their real control-period lengths without retroactively
+   rescaling earlier steps, and stmtime/stmnodetime read the same seconds in
+   the instrument body and inside a resampled UDO. stmtick is counted
+   internally in a uint64 and returned as cs_float, hence exact up to 2^53 in
+   a double build and 2^24 in a float one.
 
-   Node time is measured from the sample-frame count at which the current node
-   was entered:
+   Node time is measured from the graph time at which the current node was
+   entered:
 
      - it reads 0 on the node's own first cycle
      - a transition rejected by stmadvance (no such edge) leaves it untouched,
@@ -144,8 +149,9 @@
    Each opcode resolves and retains its runner during initialization, so the
    performance path does not touch the registry mutex. The writer publishes
    compound runner updates through an atomic sequence counter; observers retry
-   if an update overlaps their snapshot. On platforms without compiler atomic
-   builtins, the same contract uses a per-runner fallback mutex.
+   if an update overlaps their snapshot. On platforms without lock-free 32-
+   and 64-bit compiler atomic builtins, the same contract uses a per-runner
+   fallback mutex.
 */
 
 
@@ -243,7 +249,7 @@ static uint32_t stm_ref_load(uint32_t *refcount) { // NOLINT(readability-non-con
 
 /* Type-generic loads/stores on runner state: acquire/release atomics where
    available, plain accesses (guarded by the fallback mutex) otherwise. */
-#if defined(HAVE_ATOMIC_BUILTIN)
+#if STM_ATOMIC_STATE
 #define STM_LOAD(p)     __atomic_load_n((p), __ATOMIC_ACQUIRE)
 #define STM_STORE(p, v) __atomic_store_n((p), (v), __ATOMIC_RELEASE)
 #else
@@ -252,7 +258,7 @@ static uint32_t stm_ref_load(uint32_t *refcount) { // NOLINT(readability-non-con
 #endif
 
 static void stm_increment_state_version(uint32_t *value) { // NOLINT(readability-non-const-parameter)
-#if defined(HAVE_ATOMIC_BUILTIN)
+#if STM_ATOMIC_STATE
     __atomic_add_fetch(value, 1U, __ATOMIC_SEQ_CST);
 #else
     ++(*value);
@@ -260,7 +266,7 @@ static void stm_increment_state_version(uint32_t *value) { // NOLINT(readability
 }
 
 static void stm_state_read_lock(CSOUND *csound, GRAPH_RUNNER *runner) {
-#if !defined(HAVE_ATOMIC_BUILTIN)
+#if !STM_ATOMIC_STATE
     if (runner->state_mutex != NULL) csound->LockMutex(runner->state_mutex);
 #else
     (void) csound;
@@ -269,7 +275,7 @@ static void stm_state_read_lock(CSOUND *csound, GRAPH_RUNNER *runner) {
 }
 
 static void stm_state_read_unlock(CSOUND *csound, GRAPH_RUNNER *runner) {
-#if !defined(HAVE_ATOMIC_BUILTIN)
+#if !STM_ATOMIC_STATE
     if (runner->state_mutex != NULL) csound->UnlockMutex(runner->state_mutex);
 #else
     (void) csound;
@@ -286,7 +292,7 @@ static uint32_t stm_state_read_begin(GRAPH_RUNNER *runner) {
 }
 
 static int32_t stm_state_read_retry(GRAPH_RUNNER *runner, uint32_t version) {
-#if defined(HAVE_ATOMIC_BUILTIN)
+#if STM_ATOMIC_STATE
     __atomic_thread_fence(__ATOMIC_ACQUIRE);
 #endif
     return STM_LOAD(&runner->state_version) != version;
@@ -334,8 +340,8 @@ static STM_NODE_TIME_SNAPSHOT stm_node_time_snapshot(CSOUND *csound, GRAPH_RUNNE
     stm_state_read_lock(csound, runner);
     do {
         version = stm_state_read_begin(runner);
-        snapshot.total_frames = STM_LOAD(&runner->total_sample_frames);
-        snapshot.node_enter = STM_LOAD(&runner->node_sample_on_enter);
+        snapshot.total_time = STM_LOAD(&runner->total_time);
+        snapshot.node_enter = STM_LOAD(&runner->node_time_on_enter);
     } while (stm_state_read_retry(runner, version));
     stm_state_read_unlock(csound, runner);
 
@@ -414,7 +420,7 @@ static void stm_runner_release(CSOUND *csound, GRAPH_RUNNER *runner) {
         if (runner->checkpoints != NULL) {
             csound->Free(csound, runner->checkpoints);
         }
-#if !defined(HAVE_ATOMIC_BUILTIN)
+#if !STM_ATOMIC_STATE
         if (runner->state_mutex != NULL) {
             csound->DestroyMutex(runner->state_mutex);
         }
@@ -1049,7 +1055,7 @@ int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p) {
         return csound->InitError(csound, "[stm] stminstance: runner memory error\n");
     }
 
-#if !defined(HAVE_ATOMIC_BUILTIN) && STM_MUTEX_AVAILABLE
+#if !STM_ATOMIC_STATE && STM_MUTEX_AVAILABLE
     runner->state_mutex = csound->Create_Mutex(0);
     if (runner->state_mutex == NULL) {
         csound->Free(csound, runner->transitions);
@@ -1133,8 +1139,8 @@ static int32_t record_gcheckpoint(GRAPH_RUNNER *g, const char *name) {
     gc->requested_node       = STM_LOAD(&g->requested_node);
     gc->request_conflict     = STM_LOAD(&g->request_conflict);
     gc->graph_tick           = STM_LOAD(&g->graph_tick);
-    gc->total_sample_frames  = STM_LOAD(&g->total_sample_frames);
-    gc->node_sample_on_enter = STM_LOAD(&g->node_sample_on_enter);
+    gc->total_time  = STM_LOAD(&g->total_time);
+    gc->node_time_on_enter = STM_LOAD(&g->node_time_on_enter);
 
     gc->is_valid = 1;
     g->cndx_write = (g->cndx_write + 1U) % CHECKPOINT_BUFFER_CAPACITY;
@@ -1168,8 +1174,8 @@ static int32_t resume_gcheckpoint(GRAPH_RUNNER *g, const char *name) {
     STM_STORE(&g->requested_node, gc->requested_node);
     STM_STORE(&g->request_conflict, gc->request_conflict);
     STM_STORE(&g->graph_tick, gc->graph_tick);
-    STM_STORE(&g->total_sample_frames, gc->total_sample_frames);
-    STM_STORE(&g->node_sample_on_enter, gc->node_sample_on_enter);
+    STM_STORE(&g->total_time, gc->total_time);
+    STM_STORE(&g->node_time_on_enter, gc->node_time_on_enter);
 
     /* A reset cycle is tied to an absolute engine k-counter and cannot be
        resumed later.  Resume is instead published as a new, monotonic event;
@@ -1238,6 +1244,21 @@ int32_t graph_current(CSOUND *csound, GRAPH_CURRENT *p) {
     }
     memcpy(p->cur->data, name, len + 1);
     return OK;
+}
+
+/* Length of the calling instance's control period, local ksmps / local sr,
+   in STM_TIME_UNITS_PER_FRAME units of the engine rate. Oversampled UDOs run
+   ksmps frames at sr * factor, undersampled ones scale ksmps and sr together;
+   rounding only matters for factors that do not divide the unit. */
+static uint64_t stm_period_time_units(CSOUND *csound, const INSDS *ip) {
+    double units = (double) ip->ksmps * STM_TIME_UNITS_PER_FRAME
+                   * (double) csound->GetEngineSr(csound) / (double) ip->esr;
+    return (uint64_t) (units + 0.5);
+}
+
+static cs_float stm_time_units_to_seconds(CSOUND *csound, uint64_t units) {
+    return (cs_float) ((double) units
+                       / ((double) csound->GetEngineSr(csound) * STM_TIME_UNITS_PER_FRAME));
 }
 
 /* return the current node id (for orchestra-side dispatch) */
@@ -1341,11 +1362,11 @@ int32_t graph_advance(CSOUND *csound, GRAPH_ADVANCE *p) {
     }
 
     if (!is_reset) {
-        uint64_t total_frames = STM_LOAD(&g->total_sample_frames) + (uint64_t) CS_KSMPS;
+        uint64_t total_time = STM_LOAD(&g->total_time) + stm_period_time_units(csound, ip);
         STM_STORE(&g->graph_tick, STM_LOAD(&g->graph_tick) + 1U);
-        STM_STORE(&g->total_sample_frames, total_frames);
+        STM_STORE(&g->total_time, total_time);
         if (accepted) {
-            STM_STORE(&g->node_sample_on_enter, total_frames);
+            STM_STORE(&g->node_time_on_enter, total_time);
         }
     }
 
@@ -1525,8 +1546,8 @@ int32_t graph_reset(CSOUND *csound, GRAPH_ONE_SHOT *p) {
     g->requested_node = STM_NO_NODE;
     g->request_conflict = STM_REQUEST_OK;
     STM_STORE(&g->graph_tick, 0);
-    STM_STORE(&g->total_sample_frames, 0);
-    STM_STORE(&g->node_sample_on_enter, 0);
+    STM_STORE(&g->total_time, 0);
+    STM_STORE(&g->node_time_on_enter, 0);
     g->reset_kcycle = csound->GetEngineKcounter(csound);
     g->reset_ip = p->h.insdshead;
     g->reset_lcycle = p->h.insdshead->kcounter;
@@ -1570,11 +1591,11 @@ int32_t graph_time_tick(CSOUND *csound, GRAPH_RUNNER_QUERY *p) {
     return OK;
 }
 
-/* graph time in seconds: derived from the integer count of sample frames
+/* graph time in seconds: derived from the integer count of time units
    advanced by stmadvance, never accumulated as floating-point seconds */
 int32_t graph_time_global(CSOUND *csound, GRAPH_RUNNER_QUERY *p) {
     GRAPH_RUNNER *g = p->ref.runner;
-    *p->out = (cs_float) stm_snapshot_u64(csound, g, &g->total_sample_frames) / CS_ESR;
+    *p->out = stm_time_units_to_seconds(csound, stm_snapshot_u64(csound, g, &g->total_time));
     return OK;
 }
 
@@ -1583,7 +1604,7 @@ int32_t graph_time_global(CSOUND *csound, GRAPH_RUNNER_QUERY *p) {
 int32_t graph_time_node(CSOUND *csound, GRAPH_RUNNER_QUERY *p) {
     STM_NODE_TIME_SNAPSHOT clock =
             stm_node_time_snapshot(csound, p->ref.runner);
-    *p->out = (cs_float) (clock.total_frames - clock.node_enter) / CS_ESR;
+    *p->out = stm_time_units_to_seconds(csound, clock.total_time - clock.node_enter);
     return OK;
 }
 
