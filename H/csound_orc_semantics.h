@@ -62,6 +62,24 @@ char *check_annotated_type(CSOUND* csound, OENTRIES* entries,
                            char* outArgTypes);
 CS_VARIABLE* find_var_from_pools(CSOUND* csound, const char* varName,
                                  const char* varBaseName, TYPE_TABLE* typeTable);
+/* Indexing a variable that is neither an array nor an a-signal is
+   delegated to the "##array_get" / "##array_set" / "##array_init" entries
+   whose first argument is the variable's own type, so a plugin type can
+   provide []. "=" writes through "##array_set", init through "##array_init". */
+int32_t type_has_index_opcode(CSOUND* csound, const CS_TYPE* type, const char* opname);
+/* The element type of type[...] for choosing overloads, before the access's
+   rate is known: a tie between entries is left to the access to report. */
+char* resolve_index_get_type(CSOUND* csound, const CS_TYPE* type, TREE* indices, TYPE_TABLE* typeTable);
+/* The "##array_get" entry reading type[...]: at perf time, following
+   changes, or at init time. NULL, reported, when no single entry fits. */
+OENTRY* resolve_index_read_entry(CSOUND* csound, const CS_TYPE* type, TREE* indices,
+                                 TYPE_TABLE* typeTable, int32_t perf);
+/* The opname entry ("##array_set" or "##array_init") writing type[...];
+   *valueType receives the type of the value it takes. NULL, reported, when
+   no single entry takes it. */
+OENTRY* resolve_index_set_entry(CSOUND* csound, const CS_TYPE* type, const char* opname,
+                                TREE* value, TREE* indices, TYPE_TABLE* typeTable,
+                                char** valueType);
 TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable);
 int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable);
 // bison functions
