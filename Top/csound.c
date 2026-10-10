@@ -622,522 +622,553 @@ static const CSOUND cenviron_ = {
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL},
     /* ------- private data (not to be used by hosts or externals) ------- */
-    /* callback function pointers */
-  (SUBR) NULL,    /*  first_callback_     */
-  (channelCallback_t) NULL,
-  (channelCallback_t) NULL,
-  csoundDefaultMessageCallback,
-  (int32_t (*)(CSOUND *)) NULL,
-  (void (*)(CSOUND *, WINDAT *, const char *)) NULL, /* was: MakeAscii,*/
-  (void (*)(CSOUND *, WINDAT *windat)) NULL, /* was: DrawAscii,*/
-  (void (*)(CSOUND *, WINDAT *windat)) NULL, /* was: KillAscii,*/
-  (int32_t (*)(CSOUND *)) NULL, /* was: defaultCsoundExitGraph, */
-  (void*(*)(CSOUND*, const char*, int32_t,  void*)) NULL,/* OpenSoundFileCallback_ */
-  (FILE*(*)(CSOUND*, const char*, const char*)) NULL, /* OpenFileCallback_ */
-  (void(*)(CSOUND*, const char*, int32_t,  int32_t,  int32_t)) NULL, /* FileOpenCallback_ */
-  (SUBR) NULL,    /*  last_callback_      */
-  /* these are not saved on RESET */
-  playopen_dummy,
-  rtplay_dummy,
-  recopen_dummy,
-  rtrecord_dummy,
-  rtclose_dummy,
-  audio_dev_list_dummy,
-  midi_dev_list_dummy,
-  csoundDoCallback_,  /*  doCsoundCallback    */
-  kperf,    /* current kperf function - not debug by default */
-  (void (*)(CSOUND *csound, int32_t attr, const char *str)) NULL,/* message string callback */
-  (void (*)(CSOUND *)) NULL,                      /*  spinrecv    */
-  (void (*)(CSOUND *)) NULL,                      /*  spoutran    */
-  (int32_t (*)(CSOUND *, cs_float *, int32_t)) NULL,         /*  audrecv     */
-  (void (*)(CSOUND *, const cs_float *, int32_t)) NULL,  /*  audtran     */
-  NULL,           /*  hostdata            */
-  NULL, NULL,     /*  orchname, scorename */
-  0, NULL,        /*  command line args   */
-  NULL, NULL,     /*  orchstr, *scorestr  */
-  (OPDS*) NULL,   /*  ids                 */
-  { (CS_VAR_POOL*)NULL,
-    (CS_HASH_TABLE *) NULL,
-    (CS_HASH_TABLE *) NULL,
-    -1,
-    (INSTRTXT**)NULL,
-    { NULL,
-      {
-        0,0,
-        NULL, NULL, NULL, NULL,
-        0,0,
+
+    /* -------- Callback pointers preserved by csoundReset() (between the two markers) -------- */
+    .first_callback_ = (SUBR) NULL,
+    .InputChannelCallback_ = (channelCallback_t) NULL,
+    .OutputChannelCallback_ = (channelCallback_t) NULL,
+    .csoundMessageCallback_ = csoundDefaultMessageCallback,
+    .csoundMakeGraphCallback_ = (void (*)(CSOUND *, WINDAT *, const char *)) NULL,
+    .csoundDrawGraphCallback_ = (void (*)(CSOUND *, WINDAT *windat)) NULL,
+    .csoundKillGraphCallback_ = (void (*)(CSOUND *, WINDAT *windat)) NULL,
+    .csoundExitGraphCallback_ = (int32_t (*)(CSOUND *)) NULL,
+    .OpenSoundFileCallback_ = (void*(*)(CSOUND*, const char*, int32_t,  void*)) NULL,
+    .OpenFileCallback_ = (FILE*(*)(CSOUND*, const char*, const char*)) NULL,
+    .FileOpenCallback_ = (void(*)(CSOUND*, const char*, int32_t,  int32_t,  int32_t)) NULL,
+    .last_callback_ = (SUBR) NULL,
+    /* -------- Callback pointers not preserved by csoundReset() -------- */
+    .playopen_callback = playopen_dummy,
+    .rtplay_callback = rtplay_dummy,
+    .recopen_callback = recopen_dummy,
+    .rtrecord_callback = rtrecord_dummy,
+    .rtclose_callback = rtclose_dummy,
+    .audio_dev_list_callback = audio_dev_list_dummy,
+    .midi_dev_list_callback = midi_dev_list_dummy,
+    .doCsoundCallback = csoundDoCallback_,
+    .kperf = kperf,
+    .csoundMessageStringCallback = (void (*)(CSOUND *csound, int32_t attr, const char *str)) NULL,
+    .spinrecv = (void (*)(CSOUND *)) NULL,
+    .spoutran = (void (*)(CSOUND *)) NULL,
+    .audrecv = (int32_t (*)(CSOUND *, cs_float *, int32_t)) NULL,
+    .audtran = (void (*)(CSOUND *, const cs_float *, int32_t)) NULL,
+    .debug_cb = NULL,
+    /* -------- Engine state, rates and timing -------- */
+    .hostdata = NULL,
+    .engineState = { (CS_VAR_POOL*)NULL,
+        (CS_HASH_TABLE *) NULL,
+        (CS_HASH_TABLE *) NULL,
+        -1,
+        (INSTRTXT**)NULL,
+        { NULL,
+          {
+            0,0,
+            NULL, NULL, NULL, NULL,
+            0,0,
+            NULL,
+            0},
+          0,0,0,
+
+          NULL,
+          0,
+          0,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          NULL,
+          0,
+          0,
+          0,
+          0,
+          FL(0.0),
+          NULL,
+          NULL,
+          0,
+          0,
+          0
+        },
         NULL,
-        0},
-      0,0,0,
-      //0,
-      NULL,
-      0,
-      0,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      NULL,
-      0,
-      0,
-      0,
-      0,
-      FL(0.0),
-      NULL,
-      NULL,
-      0,
-      0,
-      0
-    },
-    NULL,
-    MAXINSNO,     /* engineState          */
-  },
-  (INSTRTXT *) NULL, /* instr0  */
-  (INSTRTXT**)NULL,  /* dead_instr_pool */
-  0,                /* dead_instr_no */
-  (TYPE_POOL*)NULL,
-  DFLT_KSMPS,     /*  ksmps               */
-  DFLT_NCHNLS,    /*  nchnls              */
-  -1,             /*  inchns              */
-  0L,             /*  kcounter            */
-  0L,             /*  global_kcounter     */
-  DFLT_SR,        /*  esr                 */
-  DFLT_KR,        /*  ekr                 */
-  0l,             /*  curTime             */
-  0l,             /*  curTime_inc         */
-  0.0,            /*  timeOffs            */
-  0.0,            /*  beatOffs            */
-  0.0,            /*  curBeat             */
-  0.0,            /*  curBeat_inc         */
-  0L,             /*  beatTime            */
-  (EVTBLK*) NULL, /*  currevent           */
-  (INSDS*) NULL,  /*  curip               */
-  FL(0.0),        /*  cpu_power_busy      */
-  (char*) NULL,   /*  xfilename           */
-  1,              /*  peakchunks          */
-  0,              /*  keep_tmp            */
-  (CS_HASH_TABLE*)NULL, /* Opcode hash table */
-  0,              /*  nrecs               */
-  NULL,           /*  Linepipe            */
-  0,              /*  Linefd              */
-  NULL,           /*  csoundCallbacks_    */
-  (FILE*)NULL,    /*  scfp                */
-  (CORFIL*)NULL,  /*  scstr               */
-  NULL,           /*  oscfp               */
-  { FL(0.0) },    /*  maxamp              */
-  { FL(0.0) },    /*  smaxamp             */
-  { FL(0.0) },    /*  omaxamp             */
-  {0}, {0}, {0},  /*  maxpos, smaxpos, omaxpos */
-  NULL, NULL,     /*  scorein, scoreout   */
-  NULL,           /*  argoffspace         */
-  NULL,           /*  frstoff             */
-  0,              /*  randSeed1           */
-  0,              /*  randSeed2           */
-  NULL,           /*  csRandState         */
-  NULL,           /*  csRtClock           */
-  // 16384,            /*  strVarMaxLen        */
-  0,              /*  strsmax             */
-  (char**) NULL,  /*  strsets             */
-  NULL,           /*  spin                */
-  NULL,           /*  spout               */
-  NULL,           /*  spout_tmp               */
-  0,              /*  nspin               */
-  0,              /*  nspout              */
-  NULL,           /*  auxspin             */
-  (OPARMS*) NULL, /*  oparms              */
-  { NULL },       /*  m_chnbp             */
-  0,              /*   dither_output      */
-  FL(0.0),        /*  onedsr              */
-  FL(0.0),        /*  sicvt               */
-  FL(-1.0),       /*  tpidsr              */
-  FL(-1.0),       /*  pidsr               */
-  FL(-1.0),       /*  mpidsr              */
-  FL(-1.0),       /*  mtpdsr              */
-  FL(0.0),        /*  onedksmps           */
-  FL(0.0),        /*  onedkr              */
-  FL(0.0),        /*  kicvt               */
-  0,              /*  reinitflag          */
-  0,              /*  tieflag             */
-  DFLT_DBFS,      /*  e0dbfs              */
-  FL(1.0) / DFLT_DBFS, /* dbfs_to_float ( = 1.0 / e0dbfs) */
-  440.0,               /* A4 base frequency */
-  NULL,           /*  rtRecord_userdata   */
-  NULL,           /*  rtPlay_userdata     */
+        MAXINSNO,
+      },
+    .engineStatus = 0,
+    .ksmps = DFLT_KSMPS,
+    .nchnls = DFLT_NCHNLS,
+    .inchnls = -1,
+    .kcounter = 0L,
+    .global_kcounter = 0L,
+    .esr = DFLT_SR,
+    .ekr = DFLT_KR,
+    .onedsr = FL(0.0),
+    .onedksmps = FL(0.0),
+    .onedkr = FL(0.0),
+    .sicvt = FL(0.0),
+    .kicvt = FL(0.0),
+    .tpidsr = FL(-1.0),
+    .pidsr = FL(-1.0),
+    .mpidsr = FL(-1.0),
+    .mtpdsr = FL(-1.0),
+    .e0dbfs = DFLT_DBFS,
+    .dbfs_to_float = FL(1.0) / DFLT_DBFS,
+    .A4 = 440.0,
+    ._system_sr = -1,
+    .csoundScoreOffsetSeconds_ = FL(0.0),
+    .reinitflag = 0,
+    .tieflag = 0,
+    .icurTimeSamples = 0l,
+    .curTime_inc = 0l,
+    .timeOffs = 0.0,
+    .beatOffs = 0.0,
+    .curBeat = 0.0,
+    .curBeat_inc = 0.0,
+    .ibeatTime = 0L,
+    .prvbt = FL(0.0),
+    .curbt = FL(0.0),
+    .nxtbt = FL(0.0),
+    .curp2 = FL(0.0),
+    .nxtim = FL(0.0),
+    .cyclesRemaining = 0,
+    .advanceCnt = 0,
+    .sampsNeeded = 0,
+    .initonly = 0,
+    .cpu_power_busy = FL(0.0),
+    .exitjmp =
 #if defined(MSVC) ||defined(__POWERPC__) || defined(MACOSX)
-  {0},
+      {0}
 #elif defined(LINUX) && !defined(__ANDROID__)
-  {{{0}}},        /*  exitjmp of type jmp_buf */
+      {{{0}}}
 #else
-  {0},
+      {0}
 #endif
-  NULL,           /*  frstbp              */
-  0,              /*  sectcnt             */
-  0, 0, 0, 0,     /*  inerrcnt, synterrcnt, perferrcnt, total_assert_cnt */
-  /* {NULL}, */   /*  instxtanchor  in engineState */
-  {   /*  actanchor           */
-    NULL,
-    NULL,
-    NULL,
-    NULL, /*nxtdd*/
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    NULL,
-    0,
-    NULL,
-    NULL,
-    0,
-    NULL,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0.0,
-    0.0,
-    //    NULL,
-    NULL,
-    0,
-    FL(0.0),  /* esr */
-    FL(0.0),
-    FL(0.0),
-    FL(0.0),
-    0,       /* in_cvt */
-    0,       /* out_cvt */
-    0,
-    FL(0.0),
-    FL(0.0), FL(0.0), FL(0.0),
-    NULL,
-    {FL(0.0), FL(0.0), FL(0.0), FL(0.0)},
-    NULL,NULL,
-    NULL,
-    0,
-    0,
-    0,
-    NULL,
-    NULL,
-    0,  /* init_done */
-    0,  /* init_pass */
-    0,  /* init_running */
-    0,  /* turnoff_pending */
-    0,  /* free_pending */
-    NULL, /* init_turnoff_next */
-    0,
-    0,
-    FL(0.0),
-    NULL,
-    NULL,
-    0,  /* link flag */
-    0,  /* instance id */
-    0,  /* async references */
-    NULL, /* instance variables */
-    {NULL, FL(0.0)},
-    {NULL, FL(0.0)},
-    {NULL, FL(0.0)},
-    {NULL, FL(0.0)}
-  },
-  {0L },          /*  rngcnt              */
-  0, 0,           /*  rngflg, multichan   */
-  NULL,           /*  evtFuncChain        */
-  NULL,           /*  OrcTrigEvts         */
-  NULL,           /*  freeEvtNodes        */
-  1,              /*  csoundIsScorePending_ */
-  0,              /*  advanceCnt          */
-  0,              /*  initonly            */
-  0, 0, 0,        /*  Mforcdecs, Mxtroffs, MTrkend */
-  NULL,           /*  opcodeInfo  */
-  NULL,           /*  flist               */
-  0,              /*  maxfnum             */
-  NULL,           /*  gensub              */
-  GENMAX+1,       /*  genmax              */
-  NULL,           /*  namedGlobals        */
-  NULL,           /*  cfgVariableDB       */
-  FL(0.0), FL(0.0), FL(0.0),  /*  prvbt, curbt, nxtbt */
-  FL(0.0), FL(0.0),       /*  curp2, nxtim        */
-  0,              /*  cyclesRemaining     */
-  { 0, NULL, NULL, 0, '\0', 0, FL(0.0),
-    FL(0.0), NULL},   /*  evt */
-  NULL,           /*  memalloc_db         */
-  (MGLOBAL*) NULL, /* midiGlobals         */
-  NULL,           /*  envVarDB            */
-  (MEMFIL*) NULL, /*  memfiles            */
-  NULL,           /*  pvx_memfiles        */
-  0,              /*  FFT_max_size        */
-  NULL,           /*  FFT_table_1         */
-  NULL,           /*  FFT_table_2         */
-  NULL, NULL, NULL, /* tseg, tpsave, unused */
-  (cs_float*) NULL,  /*  gbloffbas           */
-  NULL,           /* file_io_thread    */
-  0,              /* file_io_start   */
-  NULL,           /* file_io_threadlock */
-  0,              /* realtime_audio_flag */
-  NULL,           /* init pass thread */
-  0,              /* init pass loop  */
-  NULL,           /* init pass threadlock */
-  NULL,           /* API_lock */
-  NULL,           /* array_storage_lock */
-  SPINLOCK_INIT,  /* array_storage_spinlock */
-  SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
-  SPINLOCK_INIT, SPINLOCK_INIT, SPINLOCK_INIT, /* spinlocks */
-  NULL, NULL,             /* Delayed messages */
-  {
-    NULL, NULL, NULL, NULL, /* bp, prvibp, sp, nx */
-    0, 0, 0, 0,   /*  op warpin linpos lincnt */
-    -FL(1.0), FL(0.0), FL(1.0), /* prvp2 clock_base warp_factor */
-    NULL,         /*  curmem              */
-    NULL,         /*  memend              */
-    NULL,         /*  macros              */
-    -1,           /*  next_name           */
-    NULL, NULL,   /*  inputs, str         */
-    0,0,0,        /*  input_size, input_cnt, pop */
-    1,            /*  ingappop            */
-    -1,           /*  linepos             */
-    {{NULL, 0, 0}}, /* names        */
-    {""},         /*  repeat_name_n[RPTDEPTH][NAMELEN] */
-    {0},          /*  repeat_cnt_n[RPTDEPTH] */
-    {0},          /*  repeat_point_n[RPTDEPTH] */
-    1, {NULL}, 0, /*  repeat_inc_n,repeat_mm_n repeat_index */
-    "",          /*  repeat_name[NAMELEN] */
-    0,0,1,        /*  repeat_cnt, repeat_point32_t,  repeat_inc */
-    NULL,         /*  repeat_mm */
-    0
-  },
-  {
-    NULL,
-    NULL, NULL, NULL, /* orcname, sconame, midname */
-    0, 0           /* midiSet, csdlinecount */
-  },
-  {
-    NULL, NULL,   /* Linep, Linebufend    */
-    0,            /* stdmode              */
-    {
-      0, NULL, NULL, 0, 0, 0, FL(0.0), FL(0.0), NULL
-    },            /* EVTBLK  prve         */
-    NULL,        /* Linebuf              */
-    0,            /* linebufsiz */
-    NULL, NULL,
-    0, NULL, 0
-  },
-  {
-    {0,0}, {0,0},  /* srngcnt, orngcnt    */
-    0, 0, 0, 0, 0, /* srngflg, sectno, lplayed, segamps, sormsg */
-  },
-  //NULL,           /*  musmonGlobals       */
-  {
-    NULL,         /*  outfile             */
-    NULL,         /*  infile              */
-    NULL,         /*  sfoutname;          */
-    NULL,         /*  inbuf               */
-    NULL,         /*  outbuf              */
-    NULL,         /*  outbufp             */
-    0,            /*  inbufrem            */
-    0,            /*  outbufrem           */
-    0,0,          /*  inbufsiz,  outbufsiz */
-    0,            /*  isfopen             */
-    0,            /*  osfopen             */
-    0,0,          /*  pipdevin, pipdevout */
-    1U,           /*  nframes             */
-    NULL, NULL,   /*  pin, pout           */
-    0,            /*dither                */
-    0, 0,         /* outputFadeFrames, outputFadePos */
-  },
-  0,              /*  warped              */
-  0,              /*  sstrlen             */
-  (char*) NULL,   /*  sstrbuf             */
-  1,              /*  enableMsgAttr       */
-  0,              /*  sampsNeeded         */
-  FL(0.0),        /*  csoundScoreOffsetSeconds_   */
-  -1,             /*  inChar_             */
-  0,              /*  isGraphable_        */
-  { 0L, 0L, 0L, 0L, 0L, 0L },     /*  revlpsiz    */
-  0L,             /*  revlpsum            */
-  0.5,            /*  rndfrac             */
-  NULL,           /*  logbase2            */
-  NULL, NULL,     /*  omacros, smacros    */
-  NULL,           /*  namedgen            */
-  NULL, NULL,     /*  open_files, retired_files */
-  0,              /*  file_io_pass */
-  NULL,           /*  searchPathCache     */
-  NULL,           /*  sndmemfiles         */
-  NULL,           /*  reset_list          */
-  NULL,           /*  pvFileTable         */
-  0,              /*  pvNumFiles          */
-  0,              /*  pvErrorCode         */
-  //    NULL,           /*  pluginOpcodeFiles   */
-  0,              /*  enableHostImplementedAudioIO  */
-  0,              /* MIDI IO */
-  0,              /*  hostRequestedBufferSize       */
-  0,              /*  engineStatus         */
-  0,              /*  stdin_assign_flg    */
-  0,              /*  stdout_assign_flg   */
-  0,              /*  orcname_mode        */
-  0,              /*  use_only_orchfile   */
-  NULL,           /*  csmodule_db         */
-  (char*) NULL,   /*  dl_opcodes_oplibs   */
-  (char*) NULL,   /*  SF_csd_licence      */
-  (char*) NULL,   /*  SF_id_title         */
-  (char*) NULL,   /*  SF_id_copyright     */
-  -1,             /*  SF_id_scopyright    */
-  (char*) NULL,   /*  SF_id_software      */
-  (char*) NULL,   /*  SF_id_artist        */
-  (char*) NULL,   /*  SF_id_comment       */
-  (char*) NULL,   /*  SF_id_date          */
-  NULL,           /*  utility_db          */
-  (int16*) NULL,  /*  isintab             */
-  NULL,           /*  chn_db              */
-  1,              /*  opcodedirWasOK      */
-  0,              /*  disable_csd_options */
-  { 0, { 0U } },  /*  randState_          */
-  0,              /*  performState        */
-  1000,           /*  ugens4_rand_16      */
-  1000,           /*  ugens4_rand_15      */
-  NULL,           /*  schedule_kicked     */
-  (cs_float*) NULL,  /*  disprep_fftcoefs    */
-  NULL,           /*  winEPS_globals      */
-  {               /*  oparms_             */
-    0,            /*    odebug            */
-    0, 1, 0,   /*    sfread, ...       */
-    0, 0, 0, 0,   /*    inbufsamps, ...   */
-    0,            /*    sndfileSampleSize        */
-    1,            /*    displays          */
-    1, 0, 135,    /*    graphsoff ...     */
-    0, 0,         /*    Beatmode, ...     */
-    0,
-    0, 0, 0, 0,   /*    RTevents, ...     */
-    0, 0,         /*    ringbell, ...     */
-    0, 0, 0,      /*    rewrt_hdr, ...    */
-    0.0,          /*    cmdTempo          */
-    0.0f, 0.0f,   /*    sr_override ...   */
-    0, 0,     /*    nchnls_override ...   */
-    (char*) NULL, (char*) NULL,   /* filenames */
-    (char*) NULL, (char*) NULL, (char*) NULL,
-    (char*) NULL, (char*) NULL,
-    0,            /*    midiKey           */
-    0,            /*    midiKeyCps        */
-    0,            /*    midiKeyOct        */
-    0,            /*    midiKeyPch        */
-    0,            /*    midiVelocity      */
-    0,            /*    midiVelocityAmp   */
-    0,            /*    noDefaultPaths    */
-    1,            /*    numThreads        */
-    0,            /*    syntaxCheckOnly   */
-    0,            /*    runUnitTests      */
-    1,            /*    useCsdLineCounts  */
-    0,            /*    samp acc   */
-    0,            /*    realtime  */
-    0.0,          /*    0dbfs override */
-    0,            /*    no exit on compile error */
-    0.4,          /*    vbr quality  */
-    0,            /*    ksmps_override */
-    0,             /*    fft_lib */
-    0,             /*    echo */
-    0.0,           /*   limiter */
-    DFLT_SR, DFLT_KR,  /* defaults */
-    0,             /* mp3 mode */
-    0,             /* instr redefinition flag */
-    0,             /* deprecation error flag */
-    1000           /* MAX udo recursion depth */
-  },
-  {0, 0, {0}}, /* REMOT_BUF */
-  NULL,           /* remoteGlobals        */
-  0, 0,           /* nchanof, nchanif     */
-  NULL, NULL,     /* chanif, chanof       */
-  0,              /* multiThreadedComplete */
-  NULL,           /* multiThreadedThreadInfo */
-  NULL,           /* multiThreadedDag */
-  NULL,           /* barrier1 */
-  NULL,           /* barrier2 */
-  /* statics from cs_par_orc_semantic_analysis */
-  NULL,           /* instCurr */
-  NULL,           /* instRoot */
-  0,              /* inInstr */
-  /* new dag model statics */
-  1,              /* dag_changed */
-  0,              /* dag_num_active */
-  NULL,           /* dag_task_map */
-  NULL,           /* dag_task_status */
-  NULL,           /* dag_task_watch */
-  NULL,           /* dag_wlmm */
-  NULL,           /* dag_task_dep */
-  100,            /* dag_task_max_size */
-  0,              /* tempStatus */
-  1,              /* orcLineOffset */
-  0,              /* scoLineOffset */
-  NULL,           /* csdname */
-  0,              /*  tran_nchnlsi */
-  0,              /* Count of score strings */
-  0,              /* length of current strings space */
-  NULL,           /* sinetable */
-  16384,          /* sinesize */
-  NULL,           /* unused *** pow2 table */
-  NULL,           /* cps conv table */
-  NULL,           /* output of preprocessor */
-  NULL,           /* output of preprocessor */
-  {NULL},         /* filedir */
-  NULL,           /* message buffer struct */
-  0,              /* jumpset */
-  0,              /* info_message_request */
-  0,              /* modules loaded */
-  -1,             /* audio system sr */
-  0,              /* csdebug_data */
-  NULL,           /* debug_cb */
-  NULL,           /* debug_cb_data */
-  0,              /* which score parser */
-  0,              /* print_version */
-  1,              /* inZero */
-  NULL,           /* msg_queue */
-  0,              /* msg_queue_wget */
-  0,              /* msg_queue_wput */
-  0,              /* msg_queue_rstart */
-  0,              /* msg_queue_items */
-  127,            /* aftouch */
-  NULL,           /* directory for corfiles */
-  NULL,           /* alloc_queue */
-  0,              /* alloc_queue_items */
-  0,              /* alloc_queue_active */
-  0,              /* alloc_queue_wp */
-  SPINLOCK_INIT,  /* alloc_queue_spinlock */
-  SPINLOCK_INIT,  /* alloc_spinlock */
-  SPINLOCK_INIT,  /* instance_spinlock */
-  SPINLOCK_INIT,  /* async_ref_spinlock */
-  SPINLOCK_INIT,  /* rt_event_spinlock */
-  0,              /* realtime_locks_initialized */
-  NULL,           /* init_turnoff_pending */
-  SPINLOCK_INIT,  /* diskin2_async_lock */
-  NULL,           /* diskin2_async_state */
-  NULL,           /* init_event */
-  NULL,           /* message_string */
-  0,              /* message_string_queue_items */
-  0,              /* message_string_queue_wp */
-  NULL,           /* message_string_queue */
-  0,              /* io_initialised */
-  0,              /* options_checked */
-  NULL,           /* op */
-  0,              /* mode */
-  NULL,           /* opcodedir */
-  NULL,           /* score_srt */
-  {NULL, NULL, NULL, 0, 0, NULL}, /* osc_message_anchor */
-  NULL,
-  SPINLOCK_INIT,
-  {                /* csound_util */
-  csoundAddUtility,
-  csoundRunUtility,
-  csoundListUtilities,
-  csoundSetUtilityDescription,
-  csoundGetUtilityDescription,
-  set_util_sr,
-  set_util_nchnls,
-  SAsndgetset,
-  sndgetset,
-  getsndin
-  },
-    0, /* instance count */
-    300, /* genLabs */
-    0, 0, 0, 0, /* midi RT messages */
-    0, /* struct_array_temp_counter */
-    0, NULL  /* PARCS thread sync */
+    ,
+    /* -------- Instruments, opcodes and modules -------- */
+    .ids = (OPDS*) NULL,
+    .curip = (INSDS*) NULL,
+    .instr0 = (INSTRTXT *) NULL,
+    .dead_instr_pool = (INSTRTXT**)NULL,
+    .dead_instr_no = 0,
+    .frstoff = NULL,
+    .actanchor = {
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        0,
+        NULL,
+        NULL,
+        0,
+        NULL,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.0,
+        0.0,
+
+        NULL,
+        0,
+        FL(0.0),
+        FL(0.0),
+        FL(0.0),
+        FL(0.0),
+        0,
+        0,
+        0,
+        FL(0.0),
+        FL(0.0), FL(0.0), FL(0.0),
+        NULL,
+        {FL(0.0), FL(0.0), FL(0.0), FL(0.0)},
+        NULL,NULL,
+        NULL,
+        0,
+        0,
+        0,
+        NULL,
+        NULL,
+        0,
+        0,
+        0,
+        0,
+        0,
+        NULL,
+        0,
+        0,
+        FL(0.0),
+        NULL,
+        NULL,
+        0,
+        0,
+        0,
+        NULL,
+        {NULL, FL(0.0)},
+        {NULL, FL(0.0)},
+        {NULL, FL(0.0)},
+        {NULL, FL(0.0)}
+      },
+    .typePool = (TYPE_POOL*)NULL,
+    .opcodes = (CS_HASH_TABLE*)NULL,
+    .opcodeInfo = NULL,
+    .nrecs = 0,
+    .csmodule_db = NULL,
+    .dl_opcodes_oplibs = (char*) NULL,
+    .opcodedirWasOK = 1,
+    .utility_db = NULL,
+    .modules_loaded = 0,
+    .default_modules_loaded = 0,
+    .use_only_orchfile = 0,
+    .orcname_mode = 0,
+    /* -------- Function tables, generators and lookup tables -------- */
+    .flist = NULL,
+    .maxfnum = 0,
+    .gensub = NULL,
+    .genmax = GENMAX+1,
+    .namedgen = NULL,
+    .genlabs = 300,
+    .sinetable = NULL,
+    .sinelength = 16384,
+    .cpsocfrc = NULL,
+    .logbase2 = NULL,
+    .isintab = (int16*) NULL,
+    .FFT_max_size = 0,
+    .FFT_table_1 = NULL,
+    .FFT_table_2 = NULL,
+    .tseg = NULL,
+    .tpsave = NULL,
+    .revlpsum = 0L,
+    /* -------- Score, events and parsing -------- */
+    .orchname = NULL,
+    .scorename = NULL,
+    .commandLineArgCount = 0,
+    .commandLineArgs = NULL,
+    .orchstr = NULL,
+    .scorestr = NULL,
+    .scstr = (CORFIL*)NULL,
+    .expanded_orc = NULL,
+    .expanded_sco = NULL,
+    .playscore = NULL,
+    .scoreout = NULL,
+    .currevent = (EVTBLK*) NULL,
+    .evt = { 0, NULL, NULL, 0, '\0', 0, FL(0.0),
+      FL(0.0), NULL},
+    .init_event = NULL,
+    .frstbp = NULL,
+    .omacros = NULL,
+    .smacros = NULL,
+    .orc_macros = NULL,
+    .sectcnt = 0,
+    .inerrcnt = 0,
+    .synterrcnt = 0,
+    .perferrcnt = 0,
+    .total_assert_cnt = 0,
+    .warped = 0,
+    .jumpset = 0,
+    .inZero = 1,
+    .orcLineOffset = 1,
+    .scoLineOffset = 0,
+    .csdname = NULL,
+    .xfilename = (char*) NULL,
+    .score_parser = 0,
+    .score_srt = NULL,
+    .op = NULL,
+    .mode = 0,
+    .print_version = 0,
+    .opcodedir = NULL,
+    .aftouch = 127,
+    .keep_tmp = 0,
+    .tempStatus = 0,
+    .evtFuncChain = NULL,
+    .OrcTrigEvts = NULL,
+    .freeEvtNodes = NULL,
+    .csoundIsScorePending_ = 1,
+    .Mforcdecs = 0,
+    .Mxtroffs = 0,
+    .MTrkend = 0,
+    .rngcnt = {0L },
+    .rngflg = 0,
+    .multichan = 0,
+    /* -------- Global variables, configuration and strings -------- */
+    .namedGlobals = NULL,
+    .cfgVariableDB = NULL,
+    .envVarDB = NULL,
+    .chn_db = NULL,
+    .strsmax = 0,
+    .strsets = (char**) NULL,
+    .scnt = 0,
+    .strsiz = 0,
+    .sstrlen = 0,
+    .sstrbuf = (char*) NULL,
+    .oparms = (OPARMS*) NULL,
+    .oparms_ = {
+        0,
+        0, 1, 0,
+        0, 0, 0, 0,
+        0,
+        1,
+        1, 0, 135,
+        0, 0,
+        0,
+        0, 0, 0, 0,
+        0, 0,
+        0, 0, 0,
+        0.0,
+        0.0f, 0.0f,
+        0, 0,
+        (char*) NULL, (char*) NULL,
+        (char*) NULL, (char*) NULL, (char*) NULL,
+        (char*) NULL, (char*) NULL,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0.0,
+        0,
+        0.4,
+        0,
+        0,
+        0,
+        0.0,
+        DFLT_SR, DFLT_KR,
+        0,
+        0,
+        0,
+        1000
+      },
+    .disable_csd_options = 0,
+    .options_checked = 0,
+    .inChar_ = -1,
+    .enableMsgAttr = 1,
+    .info_message_request = 0,
+    /* -------- Realtime audio I/O and buffers -------- */
+    .spin = NULL,
+    .spout = NULL,
+    .spout_tmp = NULL,
+    .nspin = 0,
+    .nspout = 0,
+    .auxspin = NULL,
+    .rtRecord_userdata = NULL,
+    .rtPlay_userdata = NULL,
+    .realtime_audio_flag = 0,
+    .dither_output = 0,
+    .enableHostImplementedAudioIO = 0,
+    .enableHostImplementedMIDIIO = 0,
+    .hostRequestedBufferSize = 0,
+    .stdin_assign_flg = 0,
+    .stdout_assign_flg = 0,
+    .io_initialised = 0,
+    .SVrecvbuf = {0, 0, {0}},
+    .remoteGlobals = NULL,
+    /* -------- MIDI -------- */
+    .m_chnbp = { NULL },
+    .midiGlobals = (MGLOBAL*) NULL,
+    .midi_clock_pulse = 0,
+    .midi_start = 0,
+    .midi_continue = 0,
+    .midi_stop = 0,
+    .midiout_port = 0,
+    /* -------- File I/O -------- */
+    .Linepipe = NULL,
+    .Linefd = 0,
+    .file_io_thread = NULL,
+    .file_io_start = 0,
+    .file_io_threadlock = NULL,
+    .file_io_pass = 0,
+    .open_files = NULL,
+    .retired_files = NULL,
+    .pvFileTable = NULL,
+    .pvNumFiles = 0,
+    .pvErrorCode = 0,
+    .memfiles = (MEMFIL*) NULL,
+    .pvx_memfiles = NULL,
+    .sndmemfiles = NULL,
+    .diskin2_async_state = NULL,
+    .filedir = {NULL},
+    /* -------- Memory management -------- */
+    .memalloc_db = NULL,
+    .alloc_queue = NULL,
+    .alloc_queue_items = 0,
+    .alloc_queue_active = 0,
+    .alloc_queue_wp = 0,
+    .searchPathCache = NULL,
+    .reset_list = NULL,
+    .csoundCallbacks_ = NULL,
+    /* -------- Locks and synchronisation -------- */
+    .API_lock = NULL,
+    .array_storage_lock = NULL,
+    .array_storage_spinlock = SPINLOCK_INIT,
+    .spoutlock = SPINLOCK_INIT,
+    .spinlock = SPINLOCK_INIT,
+    .memlock = SPINLOCK_INIT,
+    .spinlock1 = SPINLOCK_INIT,
+    .open_files_lock = SPINLOCK_INIT,
+    .alloc_queue_spinlock = SPINLOCK_INIT,
+    .alloc_spinlock = SPINLOCK_INIT,
+    .instance_spinlock = SPINLOCK_INIT,
+    .async_ref_spinlock = SPINLOCK_INIT,
+    .rt_event_spinlock = SPINLOCK_INIT,
+    .diskin2_async_lock = SPINLOCK_INIT,
+    .osc_spinlock = SPINLOCK_INIT,
+    .realtime_locks_initialized = 0,
+    /* -------- Threads, parallel execution and DAG -------- */
+    .event_insert_thread = NULL,
+    .event_insert_loop = 0,
+    .init_pass_threadlock = NULL,
+    .multiThreadedComplete = 0,
+    .multiThreadedThreadInfo = NULL,
+    .multiThreadedDag = NULL,
+    .barrier1 = NULL,
+    .barrier2 = NULL,
+    .instCurr = NULL,
+    .instRoot = NULL,
+    .inInstr = 0,
+    .dag_changed = 1,
+    .dag_num_active = 0,
+    .dag_task_map = NULL,
+    .dag_task_status = NULL,
+    .dag_task_watch = NULL,
+    .dag_wlmm = NULL,
+    .dag_task_dep = NULL,
+    .dag_task_max_size = 100,
+    .init_turnoff_pending = NULL,
+    .parflag = 0,
+    .taskflag = NULL,
+    /* -------- Message output -------- */
+    .message_buffer = NULL,
+    .message_string = NULL,
+    .message_string_queue_items = 0,
+    .message_string_queue_wp = 0,
+    .message_string_queue = NULL,
+    .msg_queue = NULL,
+    .msg_queue_wget = 0,
+    .msg_queue_wput = 0,
+    .msg_queue_rstart = 0,
+    .msg_queue_items = 0,
+    .delayederrormessages = NULL,
+    .printerrormessagesflag = NULL,
+    .osc_message_anchor = {NULL, NULL, NULL, 0, 0, NULL},
+    /* -------- Random number generators -------- */
+    .randSeed1 = 0,
+    .randSeed2 = 0,
+    .csRandState = NULL,
+    .randState_ = { 0, { 0U } },
+    .ugens4_rand_16 = 1000,
+    .ugens4_rand_15 = 1000,
+    .rndfrac = 0.5,
+    /* -------- Display and graphs -------- */
+    .isGraphable_ = 0,
+    .disprep_fftcoefs = (cs_float*) NULL,
+    .winEPS_globals = NULL,
+    /* -------- Sound file metadata and analysis -------- */
+    .maxamp = { FL(0.0) },
+    .smaxamp = { FL(0.0) },
+    .omaxamp = { FL(0.0) },
+    .maxpos = {0},
+    .smaxpos = {0},
+    .omaxpos = {0},
+    .peakchunks = 1,
+    .SF_csd_licence = (char*) NULL,
+    .SF_id_title = (char*) NULL,
+    .SF_id_copyright = (char*) NULL,
+    .SF_id_scopyright = -1,
+    .SF_id_software = (char*) NULL,
+    .SF_id_artist = (char*) NULL,
+    .SF_id_comment = (char*) NULL,
+    .SF_id_date = (char*) NULL,
+    /* -------- Sub-module static state and API bookkeeping -------- */
+    .sread = {
+        NULL, NULL, NULL, NULL,
+        0, 0, 0, 0,
+        -FL(1.0), FL(0.0), FL(1.0),
+        NULL,
+        NULL,
+        NULL,
+        -1,
+        NULL, NULL,
+        0,0,0,
+        1,
+        -1,
+        {{NULL, 0, 0}},
+        {""},
+        {0},
+        {0},
+        1, {NULL}, 0,
+        "",
+        0,0,1,
+        NULL,
+        0
+      },
+    .onefileStatics = {
+        NULL,
+        NULL, NULL, NULL,
+        0, 0
+      },
+    .lineventStatics = {
+        NULL, NULL,
+        0,
+        {
+          0, NULL, NULL, 0, 0, 0, FL(0.0), FL(0.0), NULL
+        },
+        NULL,
+        0,
+        NULL, NULL,
+        0, NULL, 0
+      },
+    .musmonStatics = {
+        {0,0}, {0,0},
+        0, 0, 0, 0, 0,
+      },
+    .libsndStatics = {
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        0,
+        0,
+        0,0,
+        0,
+        0,
+        0,0,
+        1U,
+        NULL, NULL,
+        0,
+        0, 0,
+      },
+    .csRtClock = NULL,
+    .csdebug_data = 0,
+    .debug_cb_data = NULL,
+    .csound_util = {
+      csoundAddUtility,
+      csoundRunUtility,
+      csoundListUtilities,
+      csoundSetUtilityDescription,
+      csoundGetUtilityDescription,
+      set_util_sr,
+      set_util_nchnls,
+      SAsndgetset,
+      sndgetset,
+      getsndin
+      },
+    .instance_count = 0,
+    .readlineCallback = NULL,
+    .readlineUserData = NULL,
+    .readlineRequestId = 0,
+
 };
 
 void csoundLongJmp(CSOUND *csound, int32_t retval) {
