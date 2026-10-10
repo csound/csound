@@ -25,8 +25,10 @@ int main(int argc, char **argv)
   int cpp = strcmp(kind, "cpp") == 0;
   int linkage = strcmp(kind, "linkage") == 0;
   int modern = cpp || linkage || strcmp(kind, "current") == 0;
+  int no_info = strcmp(kind, "missing") == 0 || strcmp(kind, "zero") == 0;
   int declares_sample = modern || strcmp(kind, "legacy") == 0;
-  int accepted = csoundGetSizeOfCsDouble() == (modern ? double_size : 8) &&
+  int accepted = !no_info &&
+                 csoundGetSizeOfCsDouble() == (modern ? double_size : 8) &&
                  (!declares_sample || csoundGetSizeOfCsFloat() == sample_size);
   int failed = 0, incompatible = 0;
   CSOUND *csound = NULL;

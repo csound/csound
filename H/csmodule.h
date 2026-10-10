@@ -59,14 +59,14 @@
  * Converts error codes returned by any of the initialisation or destructor   *
  * functions to a string message.                                             *
  *                                                                            *
- * int32_t csoundModuleInfo(void)                   (optional)                    *
+ * int32_t csoundModuleInfo(void)                   (required)                    *
  * --------------------------                                                 *
  *                                                                            *
  * Return CSOUND_MODULE_INFO (from csdl.h) to identify the plugin ABI.         *
  * Bits 16 and up hold CS_VERSION; bits 8-15 hold CS_SUBVER.                   *
  * Bits 0-6 hold sizeof(cs_float); bit 7 marks USE_FLOAT (32-bit cs_double).    *
- * A missing function or unset bit 7 denotes the legacy 64-bit cs_double ABI. *
- * USE_FLOAT engines reject plugins without that flag before calling them.   *
+ * A missing function, or a return value of 0, cannot be validated against    *
+ * this Csound, so such a plugin is not loaded.                               *
  *                                                                            *
  ******************************************************************************/
 
