@@ -1611,7 +1611,7 @@ struct CSOUND_ {
   int32_t (*kperf)(CSOUND *);                                /* active k-cycle performance function */
   void (*csoundMessageStringCallback)(CSOUND *csound, int32_t attr, const char *str); /* host callback receiving preformatted messages */
   void (*spinrecv)(CSOUND *);                                /* receives an input audio block */
-  void (*spoutran)(CSOUND *);                                /* randomises the output audio block */
+  void (*spoutran)(CSOUND *);                                /* transfers the spout block to the output buffer */
   int32_t (*audrecv)(CSOUND *, cs_float *, int32_t);         /* copies audio input samples */
   void (*audtran)(CSOUND *, const cs_float *, int32_t);      /* copies audio output samples */
   void (*debug_cb)(CSOUND *, void *);                        /* per-k-cycle debugger callback */
@@ -1700,7 +1700,7 @@ struct CSOUND_ {
   void *FFT_table_2;                                         /* cached FFT setup table 2 */
   void *tseg;                                                /* time-warping segment pointer */
   void *tpsave;                                              /* time-warping saved segment pointer */
-  int32 revlpsum;                                            /* reverse low-pass accumulation */
+  int32 revlpsum;                                            /* sum of reverb opcode loop sizes */
 
   /* -------- Score, events and parsing -------- */
   char *orchname;                                            /* orchestra file name */
@@ -1746,12 +1746,12 @@ struct CSOUND_ {
   EVTNODE *OrcTrigEvts;                                      /* events triggered by the orchestra awaiting start */
   EVTNODE *freeEvtNodes;                                     /* free list of event nodes */
   int32_t csoundIsScorePending_;                             /* score events pending flag */
-  int32_t Mforcdecs;                                         /* score force-decrement flag */
-  int32_t Mxtroffs;                                          /* score turn-off offset flag */
-  int32_t MTrkend;                                           /* score end-of-track flag */
-  int32 rngcnt[MAXCHNLS];                                    /* per-channel random-number counters */
-  int16 rngflg;                                              /* per-channel random-number flags */
-  int16 multichan;                                           /* multichannel score playback flag */
+  int32_t Mforcdecs;                                         /* MIDI forced-decay flag */
+  int32_t Mxtroffs;                                          /* MIDI extra note-off flag */
+  int32_t MTrkend;                                           /* MIDI file end-of-track flag */
+  int32 rngcnt[MAXCHNLS];                                    /* per-channel count of out-of-range output samples */
+  int16 rngflg;                                              /* out-of-range output sample flag */
+  int16 multichan;                                           /* multichannel MIDI input flag */
 
   /* -------- Global variables, configuration and strings -------- */
   CS_HASH_TABLE *namedGlobals;                               /* named global variable table */
