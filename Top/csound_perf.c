@@ -114,12 +114,13 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
         insds->spout = csound->spout_tmp + index * csound->nspout;
         insds->kcounter = csound->kcounter;
         csound->mode = 2;
+        /* The chain belongs to insds; callbacks may redirect its pds. */
         while (error == 0 && (opstart = opstart->nxtp) != NULL) {
           /* In case of jumping need this repeat of opstart */
-          opstart->insdshead->pds = opstart;
+          insds->pds = opstart;
           csound->op = opstart->optext->t.opcod;
           error = (*opstart->perf)(csound, opstart); /* run each opcode */
-          opstart = opstart->insdshead->pds;
+          opstart = insds->pds;
         }
         csound->mode = 0;
       } else {
@@ -153,10 +154,10 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
           csound->mode = 2;
           while (error == 0 &&
                  (opstart = opstart->nxtp) != NULL) {
-            opstart->insdshead->pds = opstart;
+            insds->pds = opstart;
             csound->op = opstart->optext->t.opcod;
             error = (*opstart->perf)(csound, opstart); /* run each opcode */
-            opstart = opstart->insdshead->pds;
+            opstart = insds->pds;
           }
           csound->mode = 0;
           insds->ksmps_offset = 0;
@@ -336,12 +337,13 @@ int32_t kperf(CSOUND *csound) {
           ip->kcounter = csound->kcounter;
           if (ip->ksmps == csound->ksmps) {
             csound->mode = 2;
+            /* Keep the owner, but reread pds after callbacks for jumps. */
             while (error == 0 && opstart != NULL &&
                    (opstart = opstart->nxtp) != NULL && ip->actflg) {
-              opstart->insdshead->pds = opstart;
+              ip->pds = opstart;
               csound->op = opstart->optext->t.opcod;
               error = (*opstart->perf)(csound, opstart); /* run each opcode */
-              opstart = opstart->insdshead->pds;
+              opstart = ip->pds;
             }
             csound->mode = 0;
           } else {
@@ -375,10 +377,10 @@ int32_t kperf(CSOUND *csound) {
               csound->mode = 2;
               while (error == 0 && (opstart = opstart->nxtp) != NULL &&
                      ip->actflg) {
-                opstart->insdshead->pds = opstart;
+                ip->pds = opstart;
                 csound->op = opstart->optext->t.opcod;
                 error = (*opstart->perf)(csound, opstart); /* run each opcode */
-                opstart = opstart->insdshead->pds;
+                opstart = ip->pds;
               }
               csound->mode = 0;
               ip->ksmps_offset = 0;
