@@ -39,6 +39,7 @@ if(BUILD_TESTS)
         csound_message_buffer_test.cpp
         csound_diagnostics_test.cpp
         csound_option_parser_test.cpp
+        plugin_options_test.cpp
         csound_csd_compile_test.cpp
         csound_orc_compile_test.cpp
         csound_orc_semantics_test.cpp
@@ -182,6 +183,28 @@ if(BUILD_TESTS)
             ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>)
         target_compile_definitions(unittests PRIVATE
             CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN)
+
+        add_library(configuration_test_plugin MODULE
+            fixtures/configuration_plugin.c)
+        target_include_directories(configuration_test_plugin PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_compile_definitions(configuration_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        set_target_properties(configuration_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/configuration-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/configuration-plugin)
+        add_dependencies(unittests configuration_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/configuration_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_CONFIGURATION_PLUGIN_DIR R\"csound($<TARGET_FILE_DIR:configuration_test_plugin>)csound\"\n"
+            TARGET configuration_test_plugin)
+        target_compile_definitions(unittests PRIVATE
+            CSOUND_TEST_HAS_CONFIGURATION_PLUGIN)
     endif()
 
     if(TARGET stdutil)
