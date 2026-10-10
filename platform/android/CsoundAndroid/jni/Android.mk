@@ -327,6 +327,7 @@ $(CSOUND_SRC_ROOT)/Engine/cs_new_dispatch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
 $(CSOUND_SRC_ROOT)/languages/java/cs_glue.cpp \
+$(CSOUND_SRC_ROOT)/Opcodes/savgol.c \
 $(CSOUND_SRC_ROOT)/Opcodes/remap.c
 #CsoundObj.cpp
 
