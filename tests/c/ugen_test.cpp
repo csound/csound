@@ -17,6 +17,9 @@
  * white-box tests can inspect struct internals.
  */
 
+#include "csound_types.h"
+#include "sysdep.h"
+#include "ugen.h"
 #define __BUILDING_LIBCSOUND
 #include "ugen_internal.h"
 #include "csound.h"
@@ -24,6 +27,12 @@
 #include <cstring>
 #include <cmath>
 #include "gtest/gtest.h"
+
+static void perform(UGEN* u, int n) {
+    for (int k = 0; k < n; k++) {
+        EXPECT_EQ(csoundUgenPerform(u), CSOUND_SUCCESS);
+    }
+}
 
 class UGenTests : public ::testing::Test {
 public:
@@ -51,6 +60,19 @@ public:
     CSOUND* csound{nullptr};
 };
 
+class UGenInstTests : public UGenTests {
+public:
+    void SetUp() override {
+        csound = csoundCreate(NULL, NULL);
+        csoundSetOption(csound, "--logfile=NULL");
+        csoundSetOption(csound, "-n");
+        csoundSetOption(csound, "--sample-rate=128");
+        csoundSetOption(csound, "--ksmps=8");      /* kr = 16, 1 s = 128 samples */
+        csoundCompileOrc(csound, "instr 1\nendin\n", 0);
+        csoundStart(csound);
+    }
+};
+
 /* ------------------------------------------------------------------
  *  Factory API
  * ------------------------------------------------------------------ */
@@ -59,8 +81,6 @@ TEST_F(UGenTests, FactoryCreateDelete) {
     UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
     ASSERT_NE(factory, nullptr);
     EXPECT_EQ(factory->csound, csound);
-    EXPECT_NE(factory->insds, nullptr);
-    EXPECT_EQ((uint32_t)factory->insds->ksmps, csoundGetKsmps(csound));
     EXPECT_TRUE(csoundUgenFactoryDelete(factory));
 }
 
@@ -84,6 +104,62 @@ TEST_F(UGenTests, CreateOscils) {
     EXPECT_TRUE(csoundUgenDelete(ugen));
     csoundUgenFactoryDelete(factory);
 }
+
+TEST_F(UGenTests, UgenConcreteTypes) {
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
+                           (char*)"a", (char*)"iiii");
+    ASSERT_NE(ugen, nullptr);
+    EXPECT_NE(ugen->oentry, nullptr);
+    EXPECT_NE(ugen->opcodeMem, nullptr);
+    EXPECT_NE(ugen->data, nullptr);
+
+    EXPECT_TRUE(csoundUgenDelete(ugen));
+    csoundUgenFactoryDelete(factory);
+}
+
+TEST_F(UGenTests, UgenOptionalUnderspecified) {
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
+                           (char*)"a", (char*)"iii");
+    ASSERT_EQ(ugen, nullptr);
+    csoundUgenFactoryDelete(factory);
+}
+
+TEST_F(UGenTests, UgenVariadicOutputTypes) {
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* ugen = csoundUgenNew(factory, (char*)"loscilx",
+                           (char*)"mmmmmmmmmmmmmmmm", (char*)"xkioojjoo");
+    ASSERT_NE(ugen, nullptr);
+    EXPECT_EQ(ugen->inCount, 9);
+    EXPECT_EQ(ugen->outCount, 16);
+    // expected but not good
+    // concrete methods would solve that
+    EXPECT_EQ(ugen->outVars[0].type, UGEN_ARG_TYPE_K);
+    EXPECT_EQ(ugen->outVars[15].type, UGEN_ARG_TYPE_K);
+    EXPECT_TRUE(csoundUgenDelete(ugen));
+    csoundUgenFactoryDelete(factory);
+}
+
+TEST_F(UGenTests, UgenConcreteIOTypes) {
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    // x allows to pass anything
+    UGEN* ugen = csoundUgenNew(factory, (char*)"loscilx",
+                           (char*)"aaaa", (char*)"akiiiiiii");
+    ASSERT_NE(ugen, nullptr);
+    // all of them
+    EXPECT_EQ(ugen->outCount, 4);
+    // 4 as requested
+    EXPECT_EQ(ugen->inCount, 9);
+    // very good
+    EXPECT_EQ(ugen->outVars[0].type, UGEN_ARG_TYPE_A);
+    EXPECT_EQ(ugen->outVars[3].type, UGEN_ARG_TYPE_A);
+    // we can request all types allowed
+    EXPECT_EQ(ugen->inVars[0].type, UGEN_ARG_TYPE_A);
+    EXPECT_TRUE(csoundUgenDelete(ugen));
+    csoundUgenFactoryDelete(factory);
+}
+
 
 TEST_F(UGenTests, CreateLine) {
     UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
@@ -145,7 +221,7 @@ TEST_F(UGenTests, QueryTypes) {
 
     /* Out-of-range returns UNKNOWN */
     EXPECT_EQ(csoundUgenGetOutType(ugen, 1), UGEN_ARG_TYPE_UNKNOWN);
-    EXPECT_EQ(csoundUgenGetInType(ugen, 4), UGEN_ARG_TYPE_UNKNOWN);
+    EXPECT_EQ(csoundUgenGetInType(ugen,4), UGEN_ARG_TYPE_UNKNOWN);
 
     csoundUgenDelete(ugen);
     csoundUgenFactoryDelete(factory);
@@ -378,35 +454,272 @@ TEST_F(UGenTests, FindOpcode) {
 }
 
 /* ------------------------------------------------------------------
- *  Context API
+ *  Ugen instrument API
  * ------------------------------------------------------------------ */
 
-TEST_F(UGenTests, ContextCreateDelete) {
-    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
-    UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
-    ASSERT_NE(ctx, nullptr);
-    EXPECT_NE(ctx->insds, nullptr);
-    EXPECT_EQ((uint32_t)ctx->insds->ksmps, csoundGetKsmps(csound));
 
-    EXPECT_TRUE(csoundUgenContextDelete(ctx));
-    csoundUgenFactoryDelete(factory);
-}
-
-TEST_F(UGenTests, SetContext) {
+TEST_F(UGenTests, UgenInstrumentProperties) {
     UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
-    UGEN_CONTEXT* ctx = csoundUgenContextNew(factory);
     UGEN* ugen = csoundUgenNew(factory, (char*)"oscils",
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
-
-    EXPECT_TRUE(csoundUgenSetContext(ugen, ctx));
-    /* After setting context, the ugen's insds should be the context's */
-    EXPECT_EQ(ugen->insds, ctx->insds);
-
+    ASSERT_NE(ugen->insds, nullptr);
     csoundUgenDelete(ugen);
-    csoundUgenContextDelete(ctx);
     csoundUgenFactoryDelete(factory);
 }
+
+TEST_F(UGenInstTests, ContextSetDurationNoRelease) {
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* adsr = csoundUgenNew(factory, (char*)"adsr",
+                           (char*)"k", (char*)"iiiio");
+    // a
+    csoundUgenSetValue(adsr, 0, 1);
+    // d
+    csoundUgenSetValue(adsr, 1, 1);
+    // s
+    csoundUgenSetValue(adsr, 2, 0.25);
+    // r
+    csoundUgenSetValue(adsr, 3, 1);
+    // delay is default to 0
+
+    csoundUgenInit(adsr);
+
+    cs_float o = csoundUgenGetValue(adsr, 0);
+    float e = 1e-2;
+    perform(adsr, 1);
+    // init
+    EXPECT_NEAR(o, 0.0, e);
+    perform(adsr, 7);
+    // atack
+    o = csoundUgenGetValue(adsr, 0);
+    EXPECT_NEAR(o, 0.4375, e);
+    perform(adsr, 8);
+    // peak
+    o = csoundUgenGetValue(adsr, 0);
+    EXPECT_NEAR(o, 0.94, e);
+    perform(adsr, 8);
+    // decay
+    o = csoundUgenGetValue(adsr, 0);
+    EXPECT_NEAR(o, 0.6718, e);
+
+    perform(adsr, 8);
+    // decay end
+    o = csoundUgenGetValue(adsr, 0);
+    EXPECT_NEAR(o, 0.2968, e);
+    perform(adsr, 8);
+    // sustain
+    o = csoundUgenGetValue(adsr, 0);
+    EXPECT_NEAR(o, 0.25, e);
+    // still sustain
+    perform(adsr, 128);
+    o = csoundUgenGetValue(adsr, 0);
+    EXPECT_NEAR(o, 0.25, e);
+
+    csoundUgenDelete(adsr);
+    csoundUgenFactoryDelete(factory);
+
+}
+
+// with known duration
+TEST_F(UGenInstTests, ContextSetDuration) {
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* adsr = csoundUgenNew(factory, (char*)"adsr",
+                           (char*)"k", (char*)"iiiio");
+    // a
+    csoundUgenSetValue(adsr, 0, 1);
+    // d
+    csoundUgenSetValue(adsr, 1, 1);
+    // s
+    csoundUgenSetValue(adsr, 2, 0.25);
+    // r
+    csoundUgenSetValue(adsr, 3, 1);
+    // delay is default to 0
+
+
+    // if we know note duration before hand
+    // we can set it in context before performance
+    csoundUgenSetDuration(adsr, 4);
+
+    csoundUgenInit(adsr);
+
+    cs_float o = csoundUgenGetValue(adsr, 0);
+    float e = 1e-2;
+    perform(adsr, 1);
+    // init
+    EXPECT_NEAR(o, 0.0, e);
+    perform(adsr, 7);
+    // atack
+    o = csoundUgenGetValue(adsr, 0);
+    EXPECT_NEAR(o, 0.4375, e);
+    perform(adsr, 8);
+    // peak
+    o = csoundUgenGetValue(adsr, 0);
+    EXPECT_NEAR(o, 0.94, e);
+    perform(adsr, 8);
+    // decay
+    o = csoundUgenGetValue(adsr, 0);
+    EXPECT_NEAR(o, 0.6718, e);
+
+    perform(adsr, 8);
+    // decay end
+    o = csoundUgenGetValue(adsr, 0);
+    EXPECT_NEAR(o, 0.2968, e);
+    perform(adsr, 8);
+    // sustain
+    o = csoundUgenGetValue(adsr, 0);
+    EXPECT_NEAR(o, 0.25, e);
+    // releases
+    perform(adsr, 128);
+    o = csoundUgenGetValue(adsr, 0);
+    EXPECT_NEAR(o, 0.0, e);
+
+    csoundUgenDelete(adsr);
+    csoundUgenFactoryDelete(factory);
+}
+
+// release event
+TEST_F(UGenInstTests, ContextSetDurationRelease) {
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* madsr = csoundUgenNew(factory, (char*)"madsr",
+                           (char*)"k", (char*)"iiiiii");
+    ASSERT_NE(madsr, nullptr);
+    // a
+    csoundUgenSetValue(madsr, 0, 1.0);
+    // d
+    csoundUgenSetValue(madsr, 1, 1.0);
+    // s
+    csoundUgenSetValue(madsr, 2, 0.25);
+    // r
+    csoundUgenSetValue(madsr, 3, 1.0);
+    // delay is default to 0
+    csoundUgenSetValue(madsr, 4, 0.0);
+    csoundUgenSetValue(madsr, 5, -1.0);
+
+
+    // if we know note duration before hand
+    // we can set it in context before performance
+
+    ASSERT_EQ(csoundUgenInit(madsr), 0);
+
+    cs_float o = csoundUgenGetValue(madsr, 0);
+    float e = 1e-2;
+    perform(madsr, 1);
+    // init
+    EXPECT_NEAR(o, 0.0, e);
+    perform(madsr, 7);
+    // atack
+    o = csoundUgenGetValue(madsr, 0);
+    EXPECT_NEAR(o, 0.4375, e);
+    perform(madsr, 8);
+    // peak
+    o = csoundUgenGetValue(madsr, 0);
+    EXPECT_NEAR(o, 0.94, e);
+    perform(madsr, 8);
+    // decay
+    o = csoundUgenGetValue(madsr, 0);
+    EXPECT_NEAR(o, 0.6718, e);
+
+    perform(madsr, 8);
+    // decay end
+    o = csoundUgenGetValue(madsr, 0);
+    EXPECT_NEAR(o, 0.2968, e);
+    perform(madsr, 8);
+    // sustain
+    o = csoundUgenGetValue(madsr, 0);
+    EXPECT_NEAR(o, 0.25, e);
+    // holds
+    perform(madsr, 128);
+    o = csoundUgenGetValue(madsr, 0);
+    EXPECT_NEAR(o, 0.25, e);
+
+    // we release
+    csoundUgenReleaseNote(madsr);
+    perform(madsr, 8);
+    o = csoundUgenGetValue(madsr, 0);
+    EXPECT_NEAR(o, 0.14, e);
+    perform(madsr, 128);
+    o = csoundUgenGetValue(madsr, 0);
+    EXPECT_NEAR(o, 0.0, e);
+
+    csoundUgenDelete(madsr);
+    csoundUgenFactoryDelete(factory);
+}
+
+
+TEST_F(UGenInstTests, ContextOffsets) {
+   UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+   UGEN* line = csoundUgenNew(factory, (char*)"line",
+                          (char*)"a", (char*)"iii");
+   csoundUgenSetValue(line, 0, 0.25);
+   csoundUgenSetValue(line, 1, 8.0/128);
+   csoundUgenSetValue(line, 2, 0.75);
+
+   ASSERT_NE(line, nullptr);
+   ASSERT_EQ(csoundUgenInit(line), 0);
+   csoundUgenPerform(line);
+   auto audioVar = csoundUgenGetOutVar(line, 0);
+   cs_float* srcOutBuf = (cs_float*)csoundUgenVarGetData(audioVar);
+   auto size = csoundGetKsmps(csound);
+   cs_float first = srcOutBuf[0];
+   cs_float last = srcOutBuf[size-1];
+   auto e = 1e-2;
+   EXPECT_NEAR(first, 0.25, e);
+   EXPECT_NEAR(last, 0.68, e);
+   csoundUgenSetStartOffset(line, 2);
+   csoundUgenSetEndOffset(line, 2);
+   csoundUgenPerform(line);
+
+   cs_float* srcOutBuf2 = (cs_float*)csoundUgenVarGetData(audioVar);
+
+   EXPECT_NEAR(srcOutBuf2[0], 0.0, e);
+   EXPECT_NEAR(srcOutBuf2[1], 0.0, e);
+   EXPECT_NEAR(srcOutBuf2[2], 0.75, e);
+   EXPECT_NEAR(srcOutBuf2[3], 0.8125, e);
+   EXPECT_NEAR(srcOutBuf2[4], 0.875, e);
+   EXPECT_NEAR(srcOutBuf2[5], 0.9375, e);
+   EXPECT_NEAR(srcOutBuf2[6], 0.0, e);
+   EXPECT_NEAR(srcOutBuf2[7], 0.0, e);
+
+   EXPECT_TRUE(csoundUgenResetOffsets(line));
+   csoundUgenPerform(line);
+
+   cs_float* srcOutBuf3 = (cs_float*)csoundUgenVarGetData(audioVar);
+
+   EXPECT_GE(srcOutBuf3[0], 1);
+   EXPECT_GE(srcOutBuf3[1], 1);
+   EXPECT_GE(srcOutBuf3[2], 1);
+   EXPECT_GE(srcOutBuf3[3], 1);
+   EXPECT_GE(srcOutBuf3[4], 1);
+   EXPECT_GE(srcOutBuf3[5], 1);
+   EXPECT_GE(srcOutBuf3[6], 1);
+   EXPECT_GE(srcOutBuf3[7], 1);
+
+   csoundUgenDelete(line);
+   csoundUgenFactoryDelete(factory);
+}
+
+
+TEST_F(UGenInstTests, ContextSetDurationExtraTime) {
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+    UGEN* madsr = csoundUgenNew(factory, (char*)"madsr",
+                           (char*)"k", (char*)"iiiiii");
+    ASSERT_NE(madsr, nullptr);
+    csoundUgenSetValue(madsr, 0, 1.0);
+    csoundUgenSetValue(madsr, 1, 1.0);
+    csoundUgenSetValue(madsr, 2, 0.25);
+    csoundUgenSetValue(madsr, 3, 1.0);
+    csoundUgenSetValue(madsr, 4, 0.0);
+    csoundUgenSetValue(madsr, 5, -1.0);
+
+    EXPECT_EQ(csoundUgenGetExtraTime(madsr), 0);
+    ASSERT_EQ(csoundUgenInit(madsr), 0);
+    EXPECT_EQ(csoundUgenGetExtraTime(madsr), 16);
+
+    csoundUgenDelete(madsr);
+    csoundUgenFactoryDelete(factory);
+}
+
+
 
 /* ------------------------------------------------------------------
  *  Graph API
@@ -596,11 +909,11 @@ TEST_F(UGenTests, MemoryLayoutHeaderAlignment) {
         cs_float* next = p[outCount + i + 1];
         UGEN_VAR* currVar = csoundUgenGetInVar(ugen, i);
         size_t currArgSizeBytes = csoundUgenVarGetSize(currVar);
-        size_t currArgSizeMYFLTs = currArgSizeBytes / sizeof(cs_float);
+        size_t currArgSizecs_floats = currArgSizeBytes / sizeof(cs_float);
 
         ptrdiff_t headerStartOffset = CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(cs_float);
         cs_float* nextHeaderStart = next - headerStartOffset;
-        EXPECT_GE(nextHeaderStart, curr + (ptrdiff_t)currArgSizeMYFLTs)
+        EXPECT_GE(nextHeaderStart, curr + (ptrdiff_t)currArgSizecs_floats)
             << "input[" << i+1 << "] header overlaps input[" << i << "] data";
     }
 

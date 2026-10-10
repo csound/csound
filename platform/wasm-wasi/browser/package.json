@@ -98,5 +98,8 @@
     "text-encoding-shim": "^1.0.5",
     "unmute-ios-audio": "^3.3.0",
     "web-midi-api": "^2.4.0"
+  },
+  "allowScripts": {
+    "unrs-resolver@1.12.2": true
   }
 }
