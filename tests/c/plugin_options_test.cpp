@@ -19,6 +19,7 @@ protected:
 
   void TearDown() override
   {
+    csoundDestroyMessageBuffer(csound);
     csoundDestroy(csound);
   }
 
