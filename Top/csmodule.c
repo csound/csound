@@ -56,14 +56,14 @@
  * Converts error codes returned by any of the initialisation or destructor   *
  * functions to a string message.                                             *
  *                                                                            *
- * int32_t csoundModuleInfo(void)                   (optional)                *
+ * int32_t csoundModuleInfo(void)                   (required)                *
  * --------------------------                                                 *
  *                                                                            *
  * Return CSOUND_MODULE_INFO (from csdl.h) to identify the plugin ABI.         *
  * Bits 16 and up hold CS_VERSION; bits 8-15 hold CS_SUBVER.                   *
  * Bits 0-6 hold sizeof(cs_float); bit 7 marks USE_FLOAT (32-bit cs_double).    *
- * A missing function or unset bit 7 denotes the legacy 64-bit cs_double ABI. *
- * USE_FLOAT engines reject plugins without that flag before calling them.   *
+ * A missing function, or a return value of 0, cannot be validated against    *
+ * this Csound, so such a plugin is not loaded.                               *
  *                                                                            *
  ******************************************************************************/
 
@@ -213,7 +213,13 @@ static int32_t check_plugin_compatibility(CSOUND *csound, const char *fname, int
   int32_t     sampleSize, minorVersion, majorVersion;
   int32_t floatABI = sizeof(cs_double) == sizeof(float) ? CSOUND_MODULE_USE_FLOAT : 0;
 
-  /* No metadata (n == 0) denotes the legacy ABI, never USE_FLOAT. */
+  /* Plugins that report no ABI metadata cannot be validated. */
+  if (UNLIKELY(n == 0)) {
+    csoundWarning(csound, Str("not loading '%s' (missing or incompatible "
+                              "version information; rebuild the plugin with "
+                              "this version of Csound)\n"), fname);
+    return -1;
+  }
   if (UNLIKELY((n & CSOUND_MODULE_USE_FLOAT) != floatABI)) {
     csoundWarning(csound, Str("not loading '%s' (incompatible cs_double precision; "
                               "rebuild the plugin with matching USE_FLOAT)\n"), fname);
