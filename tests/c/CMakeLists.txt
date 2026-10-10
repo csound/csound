@@ -219,6 +219,28 @@ if(BUILD_TESTS)
         )
     endif()
 
+    if(APPLE AND TARGET cmidi)
+        add_dependencies(unittests cmidi)
+        # Give the test a directory with only the CoreMIDI plugin.
+        set(TEST_COREMIDI_PLUGIN_DIR
+            ${CMAKE_CURRENT_BINARY_DIR}/coremidi-plugin)
+        add_custom_target(unittests_coremidi_plugin
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+                ${TEST_COREMIDI_PLUGIN_DIR}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:cmidi> ${TEST_COREMIDI_PLUGIN_DIR}/
+            DEPENDS cmidi
+        )
+        add_dependencies(unittests unittests_coremidi_plugin)
+        target_sources(unittests PRIVATE cmidi_output_test.cpp
+                                           cmidi_input_test.cpp)
+        target_link_libraries(unittests PRIVATE
+            "-framework CoreMIDI" "-framework CoreFoundation")
+        target_compile_definitions(unittests PRIVATE
+            CSOUND_TEST_COREMIDI_PLUGIN_DIR="${TEST_COREMIDI_PLUGIN_DIR}"
+        )
+    endif()
+
     if(TARGET dssi4cs)
         add_library(dssi_test_plugin MODULE fixtures/dssi_test_plugin.c)
         add_library(ladspa_test_plugin MODULE fixtures/dssi_test_plugin.c)

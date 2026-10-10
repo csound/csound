@@ -2,6 +2,28 @@
 
 import assert from "node:assert/strict";
 import { PublicEventAPI } from "../../src/events.js";
+import { messageEventHandler } from "../../src/mains/messages.main.js";
+
+describe("debug callback messages", () => {
+  for (const data of [{ log: { debugCallback: true } }, { debugCallback: true }]) {
+    it(`routes ${data.log ? "wrapped" : "direct"} callbacks without emitting a log`, () => {
+      const events = new PublicEventAPI({});
+      const api = events.decorateAPI({});
+      const received = [];
+      api.on("debugCallback", () => received.push("debugCallback"));
+      api.on("message", (message) => received.push(message));
+      const deliver = messageEventHandler({ publicEvents: events });
+
+      // Worker ports wrap WASM notifications in `log`. Keep direct messages
+      // working too, and deliver each k-period even when its payload repeats.
+      deliver({ data });
+      deliver({ data });
+      deliver({ data: { log: { log: "Csound message" } } });
+
+      assert.deepEqual(received, ["debugCallback", "debugCallback", "Csound message"]);
+    });
+  }
+});
 
 describe("public events", () => {
   it("removes every listener when the instance terminates", () => {

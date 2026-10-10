@@ -6,6 +6,7 @@ env:
 on:
   push:
     branches:
+      - main
       - master
       - develop
   pull_request:
@@ -33,7 +34,7 @@ jobs:
         id: tag
         uses: anothrNick/github-tag-action@1.75.0
         env:
-          PRERELEASE: true
+          PRERELEASE: ${{ github.ref != 'refs/heads/main' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: true
 
@@ -667,7 +668,7 @@ jobs:
           ./build.sh
 
       - uses: actions/upload-artifact@v7.0.1
-        if: github.ref == 'refs/heads/develop'
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
         with:
           name: Csound-For-iOS-${{env.CSOUND_VERSION}}
           path: platform/ios/Csound-For-iOS
@@ -1574,7 +1575,7 @@ jobs:
 
   publish_artifacts:
     #
-    if: ${{ github.ref == 'refs/heads/develop' && needs.update_version.outputs.release == 'true' }}
+    if: ${{ (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main') && needs.update_version.outputs.release == 'true' }}
     name: Publish Artifacts
     runs-on: ubuntu-latest
     needs:
@@ -1680,6 +1681,7 @@ jobs:
           tag_name: ${{ env.CSOUND_VERSION }}
           generate_release_notes: true
           make_latest: true
+          prerelease: ${{ github.ref != 'refs/heads/main' }}
           files: |
             csound-windows-${{env.CSOUND_VERSION}}.zip
             csound-windows-i386-installer-${{env.CSOUND_VERSION}}.zip

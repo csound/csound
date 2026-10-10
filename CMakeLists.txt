@@ -1277,6 +1277,7 @@ set(stdopcod_SRCS
     Opcodes/stdopcod.c
     Opcodes/dbap.c
     Opcodes/savgol.c
+    Opcodes/remap.c
     )
 
 set(sock_ops_SRCS
