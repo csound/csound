@@ -50,8 +50,8 @@ instr 1
         stmreset(event_graph, 1)
     elseif cycle == 7 then
         ; Produce 12 alternating transitions. The ten retained events are
-        ; sequences 9..18, so readers waiting for sequence 7 report overflow
-        ; and resume from sequence 9.
+        ; sequences 8..17, so readers waiting for sequence 6 report overflow
+        ; and resume from sequence 8.
         index:k = 0
         while index < 12 do
             current:k = stmcurrentid(event_graph)
@@ -85,38 +85,38 @@ instr 1
                 available1, overflow1)
         exitnowk(-1)
     elseif cycle == 2 && (available1 != 1 || overflow1 != 0 || status1 != 1 ||
-                          sequence1 != 2 || from1 != 0 || to1 != 1) then
+                          sequence1 != 1 || from1 != 0 || to1 != 1) then
         printks("[FAIL] stmevent changed: status/seq/overflow/available/from/to=%f/%f/%f/%f/%f/%f\n", 0,
                 status1, sequence1, overflow1, available1, from1, to1)
         exitnowk(-1)
     elseif cycle == 3 && (available1 != 1 || overflow1 != 0 || status1 != 1 ||
-                          sequence1 != 3 || from1 != 1 || to1 != 0) then
+                          sequence1 != 2 || from1 != 1 || to1 != 0) then
         printks("[FAIL] stmevent queued first: status/seq/from/to=%f/%f/%f/%f\n", 0,
                 status1, sequence1, from1, to1)
         exitnowk(-1)
     elseif cycle == 4 && (available1 != 1 || overflow1 != 0 || status1 != 1 ||
-                          sequence1 != 4 || from1 != 0 || to1 != 1) then
+                          sequence1 != 3 || from1 != 0 || to1 != 1) then
         printks("[FAIL] stmevent queued second: status/seq/from/to=%f/%f/%f/%f\n", 0,
                 status1, sequence1, from1, to1)
         exitnowk(-1)
     elseif cycle == 5 && (available1 != 1 || overflow1 != 0 || status1 != 2 ||
-                          sequence1 != 5 || from1 != 1 || to1 != 1) then
+                          sequence1 != 4 || from1 != 1 || to1 != 1) then
         printks("[FAIL] stmevent self: status/seq/from/to=%f/%f/%f/%f\n", 0,
                 status1, sequence1, from1, to1)
         exitnowk(-1)
     elseif cycle == 6 && (available1 != 1 || overflow1 != 0 || status1 != 3 ||
-                          sequence1 != 6 || from1 != 1 || to1 != 0) then
+                          sequence1 != 5 || from1 != 1 || to1 != 0) then
         printks("[FAIL] stmevent reset: status/seq/from/to=%f/%f/%f/%f\n", 0,
                 status1, sequence1, from1, to1)
         exitnowk(-1)
     elseif cycle == 7 && (available1 != 1 || overflow1 != 1 || status1 != 1 ||
-                          sequence1 != 9 || from1 != 0 || to1 != 1) then
+                          sequence1 != 8 || from1 != 0 || to1 != 1) then
         printks("[FAIL] stmevent overflow: status/seq/overflow/from/to=%f/%f/%f/%f/%f\n", 0,
                 status1, sequence1, overflow1, from1, to1)
         exitnowk(-1)
     elseif cycle == 8 then
         if available1 != 1 || overflow1 != 0 || status1 != 1 ||
-           sequence1 != 10 || from1 != 1 || to1 != 0 then
+           sequence1 != 9 || from1 != 1 || to1 != 0 then
             printks("[FAIL] stmevent after overflow: status/seq/overflow/from/to=%f/%f/%f/%f/%f\n", 0,
                     status1, sequence1, overflow1, from1, to1)
             exitnowk(-1)

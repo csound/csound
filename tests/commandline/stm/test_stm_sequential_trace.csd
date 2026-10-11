@@ -214,7 +214,7 @@ instr 1
         expected_to = 1
         expected_input = 2
         expected_executed = 0
-        expected_event_sequence = 2
+        expected_event_sequence = 1
         expected_event_from = 0
         expected_event_to = 1
         expected_enter_process = 1
@@ -230,7 +230,7 @@ instr 1
         expected_input = 2
         expected_attempts = 1
         expected_executed = 1
-        expected_event_sequence = 3
+        expected_event_sequence = 2
         expected_event_from = 1
         expected_event_to = 2
         expected_enter_retry = 1
@@ -247,7 +247,7 @@ instr 1
         expected_attempts = 1
         expected_retries = 1
         expected_executed = 2
-        expected_event_sequence = 4
+        expected_event_sequence = 3
         expected_event_from = 2
         expected_event_to = 1
         expected_enter_process = 1
@@ -265,7 +265,7 @@ instr 1
         expected_retries = 1
         expected_result = 30
         expected_executed = 1
-        expected_event_sequence = 5
+        expected_event_sequence = 4
         expected_event_from = 1
         expected_event_to = 3
         expected_enter_done = 1
@@ -285,7 +285,7 @@ instr 1
         expected_completed = 1
         expected_executed = 3
         expected_event_status = 2
-        expected_event_sequence = 6
+        expected_event_sequence = 5
         expected_event_from = 3
         expected_event_to = 3
         expected_enter_done = 1
@@ -320,7 +320,7 @@ instr 1
         expected_completed = 1
         expected_executed = 3
         expected_event_status = 3
-        expected_event_sequence = 7
+        expected_event_sequence = 6
         expected_event_from = 3
         expected_event_to = 0
         expected_enter_start = 1
@@ -335,7 +335,7 @@ instr 1
         expected_to = 1
         expected_input = 2
         expected_executed = 0
-        expected_event_sequence = 8
+        expected_event_sequence = 7
         expected_event_from = 0
         expected_event_to = 1
         expected_enter_process = 1

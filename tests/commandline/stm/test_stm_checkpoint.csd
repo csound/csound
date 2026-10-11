@@ -59,21 +59,21 @@ instr 1
         printks("[checkpoint][EVENT] none\n", 0)
     endif
 
-    if cycle == 1 && (captured != 1 || current != 1 || tick != 1 || event_available != 1 || event_status != 1 || event_sequence != 2 || event_from != 0 || event_to != 1) then
+    if cycle == 1 && (captured != 1 || current != 1 || tick != 1 || event_available != 1 || event_status != 1 || event_sequence != 1 || event_from != 0 || event_to != 1) then
         printks("[FAIL] freeze state/result/current/tick/event=%f/%f/%f/%f/%f/%f/%f/%f\n", 0,
                 captured, current, tick, event_available, event_status,
                 event_sequence, event_from, event_to)
         exitnowk(-1)
-    elseif cycle == 2 && (current != 2 || tick != 2 || event_available != 1 || event_status != 1 || event_sequence != 3 || event_from != 1 || event_to != 2) then
+    elseif cycle == 2 && (current != 2 || tick != 2 || event_available != 1 || event_status != 1 || event_sequence != 2 || event_from != 1 || event_to != 2) then
         printks("[FAIL] checkpoint setup current/event=%f/%f/%f/%f\n", 0, current, event_available, event_status, event_sequence)
         exitnowk(-1)
-    elseif cycle == 4 && (resumed != 1 || current != 1 || tick != 1 || event_available != 1 || event_status != 4 || event_sequence != 4 || event_from != 2 || event_to != 1) then
+    elseif cycle == 4 && (resumed != 1 || current != 1 || tick != 1 || event_available != 1 || event_status != 4 || event_sequence != 3 || event_from != 2 || event_to != 1) then
         printks("[FAIL] first resume result/current/tick/event=%f/%f/%f/%f/%f/%f/%f/%f\n", 0, resumed, current, tick, event_available, event_status, event_sequence, event_from, event_to)
         exitnowk(-1)
-    elseif cycle == 5 && (current != 2 || tick != 2 || event_available != 1 || event_status != 1 || event_sequence != 5 || event_from != 1 || event_to != 2) then
+    elseif cycle == 5 && (current != 2 || tick != 2 || event_available != 1 || event_status != 1 || event_sequence != 4 || event_from != 1 || event_to != 2) then
         printks("[FAIL] post-resume transition current/event=%f/%f/%f/%f\n", 0, current, event_available, event_status, event_sequence)
         exitnowk(-1)
-    elseif cycle == 6 && (resumed != 1 || current != 1 || tick != 1 || event_available != 1 || event_status != 4 || event_sequence != 6 || event_from != 2 || event_to != 1) then
+    elseif cycle == 6 && (resumed != 1 || current != 1 || tick != 1 || event_available != 1 || event_status != 4 || event_sequence != 5 || event_from != 2 || event_to != 1) then
         printks("[FAIL] repeated resume result/current/tick/event=%f/%f/%f/%f/%f/%f/%f/%f\n", 0, resumed, current, tick, event_available, event_status, event_sequence, event_from, event_to)
         exitnowk(-1)
     elseif cycle == 7 then

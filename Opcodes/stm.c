@@ -798,11 +798,17 @@ static void graph_request_node(GRAPH_RUNNER *g, uint32_t target) {
     }
 }
 
-static int32_t IS_FIRED(GRAPH_ONE_SHOT *p) {
-    int32_t high = *p->trig > FL(0.0);
-    int32_t fired = high && !p->trigger_high;
-    p->trigger_high = high;
+/* Rising edge: fires on the first pass where trig is positive after being
+   zero or negative. Shared by every triggered opcode of the family. */
+static int32_t stm_trigger_fired(cs_float trig, int32_t *trigger_high) {
+    int32_t high = trig > FL(0.0);
+    int32_t fired = high && !*trigger_high;
+    *trigger_high = high;
     return fired;
+}
+
+static int32_t IS_FIRED(GRAPH_ONE_SHOT *p) {
+    return stm_trigger_fired(*p->trig, &p->trigger_high);
 }
 
 /* ------------------------------------------------------------------ */
@@ -1073,8 +1079,8 @@ int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p) {
     runner->previous_node = STM_NO_NODE;
     runner->requested_node = STM_NO_NODE;
     runner->request_conflict = STM_REQUEST_OK;
-    runner->event_seq = 1;
-    runner->node_event_seq = 1;
+    runner->event_seq = 0;
+    runner->node_event_seq = 0;
     runner->event_entered_node = runner->current_node;
     runner->event_exited_node = STM_NO_NODE;
     runner->run_state = STM_RUNNER_RUNNING;
@@ -1122,17 +1128,24 @@ static int32_t record_gcheckpoint(GRAPH_RUNNER *g, const char *name) {
     if (name == NULL || name[0] == '\0') return NOTOK;
     if (strlen(name) >= sizeof(checkpoints[0].name)) return NOTOK;
 
+    /* A name is a save slot: saving under an existing name overwrites that
+       checkpoint in place. A new name takes the next ring slot, replacing the
+       oldest checkpoint once the ring is full. */
+    STM_CHECKPOINT *gc = NULL;
     for (uint32_t i = 0; i < CHECKPOINT_BUFFER_CAPACITY; ++i) {
         if (!checkpoints[i].is_valid) continue;
-        if (strcmp(name, checkpoints[i].name) == 0) return NOTOK;
+        if (strcmp(name, checkpoints[i].name) == 0) {
+            gc = &checkpoints[i];
+            break;
+        }
     }
 
-    STM_CHECKPOINT *gc = &checkpoints[g->cndx_write];
-    int32_t was_valid = gc->is_valid;
-
-    if (!was_valid) g->ckp_count++;
-
-    snprintf(gc->name, sizeof(gc->name), "%s", name);
+    if (gc == NULL) {
+        gc = &checkpoints[g->cndx_write];
+        if (!gc->is_valid) g->ckp_count++;
+        g->cndx_write = (g->cndx_write + 1U) % CHECKPOINT_BUFFER_CAPACITY;
+        snprintf(gc->name, sizeof(gc->name), "%s", name);
+    }
 
     gc->current_node         = STM_LOAD(&g->current_node);
     gc->previous_node        = STM_LOAD(&g->previous_node);
@@ -1143,7 +1156,6 @@ static int32_t record_gcheckpoint(GRAPH_RUNNER *g, const char *name) {
     gc->node_time_on_enter = STM_LOAD(&g->node_time_on_enter);
 
     gc->is_valid = 1;
-    g->cndx_write = (g->cndx_write + 1U) % CHECKPOINT_BUFFER_CAPACITY;
 
     return OK;
 }
@@ -1179,9 +1191,11 @@ static int32_t resume_gcheckpoint(GRAPH_RUNNER *g, const char *name) {
 
     /* A reset cycle is tied to an absolute engine k-counter and cannot be
        resumed later.  Resume is instead published as a new, monotonic event;
-       the transition ring and its reader cursors remain valid. */
+       the transition ring and its reader cursors remain valid. Like a reset,
+       it only counts as an enter/exit transition when the node changes. */
     STM_STORE(&g->has_reset_cycle, 0);
-    record_gevent(g, old_node, gc->current_node, STM_EVENT_RECALL, 1);
+    record_gevent(g, old_node, gc->current_node, STM_EVENT_RECALL,
+                  old_node != gc->current_node);
 
     return OK;
 }
@@ -1644,13 +1658,13 @@ int32_t graph_transition(CSOUND *csound, GRAPH_TRANSITION *p) {
 }
 
 static int32_t graph_checkpoint_init(CSOUND *csound, GRAPH_CHECKPOINT *p) {
-    p->last_name[0] = '\0';
+    p->trigger_high = 0;
     *p->check = FL(0.0);
     return stm_runner_ref_init(csound, &p->h, *p->runner_handle, STM_RUNNER_WRITER, "[stm] stmcall: invalid runner", &p->ref);
 }
 
 static int32_t graph_checkpoint_resume_init(CSOUND *csound, GRAPH_CHECKPOINT *p) {
-    p->last_name[0] = '\0';
+    p->trigger_high = 0;
     *p->check = FL(0.0);
     return stm_runner_ref_init(csound, &p->h, *p->runner_handle, STM_RUNNER_WRITER, "[stm] stmrecall: invalid runner", &p->ref);
 }
@@ -1659,6 +1673,8 @@ static int32_t graph_checkpoint_deinit(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     return stm_runner_ref_deinit(csound, &p->h, &p->ref);
 }
 
+/* Save on the rising edge of trig, like every other triggered opcode of the
+   family. Saving under an existing name overwrites that checkpoint. */
 int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     *p->check = FL(0.0);
 
@@ -1667,21 +1683,16 @@ int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
         return csound->PerfError(csound, &p->h,"[stm] stmcall: runner is not initialized\n");
     }
 
+    if (!stm_trigger_fired(*p->trig, &p->trigger_high)) {
+        return OK;
+    }
+
     if (STM_LOAD(&runner->run_state) == STM_RUNNER_DELETED) {
         return OK;
     }
 
-    if (*p->trig != FL(1.0)) {
-        return OK;
-    } else {
-        if (p->checkpoint_name->data[0] == '\0') {
-            return csound->PerfError(csound, &p->h,"[stm] stmcall: empty checkpoint name\n");
-        }
-    }
-
-    if (strcmp(p->checkpoint_name->data, p->last_name) == 0) {
-        *p->check = FL(1.0); // already captured by this opcode instance
-        return OK;
+    if (p->checkpoint_name->data[0] == '\0') {
+        return csound->PerfError(csound, &p->h,"[stm] stmcall: empty checkpoint name\n");
     }
 
     stm_runner_update_begin(csound, runner);
@@ -1692,11 +1703,11 @@ int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
         return csound->PerfError(csound, &p->h,"[stm] stmcall: could not record checkpoint '%s'\n",p->checkpoint_name->data);
     }
 
-    snprintf(p->last_name, sizeof(p->last_name), "%s", p->checkpoint_name->data);
     *p->check = FL(1.0);
     return OK;
 }
 
+/* Restore on the rising edge of trig. */
 int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     *p->check = FL(0.0);
 
@@ -1705,9 +1716,7 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
         return csound->PerfError(csound, &p->h,"[stm] stmrecall: runner is not initialized\n");
     }
 
-    if (*p->trig != FL(1.0)) {
-        /* Re-arm the same checkpoint name for the next trigger pulse. */
-        p->last_name[0] = '\0';
+    if (!stm_trigger_fired(*p->trig, &p->trigger_high)) {
         return OK;
     }
 
@@ -1719,11 +1728,6 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
         return csound->PerfError(csound, &p->h,"[stm] stmrecall: empty checkpoint name\n");
     }
 
-    if (strcmp(p->checkpoint_name->data, p->last_name) == 0) {
-        *p->check = FL(1.0); // already resumed for the current high trigger
-        return OK;
-    }
-
     stm_runner_update_begin(csound, runner);
     int32_t result = resume_gcheckpoint(runner, p->checkpoint_name->data);
     stm_runner_update_end(csound, runner);
@@ -1732,7 +1736,6 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
         return csound->PerfError(csound, &p->h,"[stm] stmrecall: could not resume checkpoint '%s'\n",p->checkpoint_name->data);
     }
 
-    snprintf(p->last_name, sizeof(p->last_name), "%s", p->checkpoint_name->data);
     *p->check = FL(1.0);
     return OK;
 }

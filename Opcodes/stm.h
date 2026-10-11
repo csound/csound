@@ -556,7 +556,7 @@ typedef struct {
     cs_float *trig;
     //private
     STM_RUNNER_REF ref;
-    char last_name[64];
+    int32_t trigger_high;
 } GRAPH_CHECKPOINT;
 
 

@@ -68,7 +68,7 @@ instr 1
 
     if cycle == 1 &&
        (current != 0 || tick != 1 || advance_status != 0 || advance_from != 0 || advance_to != -1 ||
-        event_available != 1 || event_overflow != 0 || event_sequence != 2 ||
+        event_available != 1 || event_overflow != 0 || event_sequence != 1 ||
         event_status != 5 || event_from != 0 || event_to != 0 || entered_b != 0 || exited_a != 0) then
         printks("[FAIL] initial pause state/event=%f/%f/%f/%f/%f/%f/%f/%f/%f/%f/%f/%f\n", 0,
                 current, tick, advance_status, advance_from, advance_to,
@@ -81,7 +81,7 @@ instr 1
         exitnowk(-1)
     elseif cycle == 3 &&
            (current != 0 || tick != 1 || advance_status != 5 || advance_from != 0 || advance_to != -1 ||
-            event_available != 1 || event_overflow != 0 || event_sequence != 3 ||
+            event_available != 1 || event_overflow != 0 || event_sequence != 2 ||
             event_status != 6 || event_from != 0 || event_to != 0 || entered_b != 0 || exited_a != 0) then
         printks("[FAIL] resume state/event=%f/%f/%f/%f/%f/%f/%f/%f/%f/%f/%f/%f\n", 0,
                 current, tick, advance_status, advance_from, advance_to,
@@ -97,7 +97,7 @@ instr 1
         exitnowk(-1)
     elseif cycle == 5 &&
            (current != 1 || tick != 3 || advance_status != 1 || advance_from != 0 || advance_to != 1 ||
-            event_available != 1 || event_overflow != 0 || event_sequence != 4 ||
+            event_available != 1 || event_overflow != 0 || event_sequence != 3 ||
             event_status != 1 || event_from != 0 || event_to != 1 || entered_b != 1 || exited_a != 1) then
         printks("[FAIL] post-resume transition state/event=%f/%f/%f/%f/%f/%f/%f/%f/%f/%f/%f/%f\n", 0,
                 current, tick, advance_status, advance_from, advance_to,

@@ -61,7 +61,7 @@ instr 1
         if advance_status != 1 || advance_from != 0 || advance_to != 1 ||
            current != 1 || tick != 1 || captured != 1 ||
            event_available != 1 || event_overflow != 0 ||
-           event_sequence != 2 || event_status != 1 ||
+           event_sequence != 1 || event_status != 1 ||
            event_from != 0 || event_to != 1 then
             printks("[FAIL] delete setup status/from/to/current/tick/captured/event=%f/%f/%f/%f/%f/%f/%f/%f/%f/%f/%f/%f\n", 0,
                     advance_status, advance_from, advance_to, current, tick,
@@ -73,7 +73,7 @@ instr 1
         if advance_status != 6 || advance_from != 1 || advance_to != -1 ||
            current != 1 || tick != 1 || post_capture != 0 || recalled != 0 ||
            event_available != 1 || event_overflow != 0 ||
-           event_sequence != 3 || event_status != 7 ||
+           event_sequence != 2 || event_status != 7 ||
            event_from != 1 || event_to != 1 then
             printks("[FAIL] delete terminal state/status/event=%f/%f/%f/%f/%f/%f/%f/%f/%f/%f/%f/%f/%f\n", 0,
                     advance_status, advance_from, advance_to, current, tick,
