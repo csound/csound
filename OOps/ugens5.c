@@ -51,14 +51,14 @@ static LPC_STATE *lpc_prepare_slot(CSOUND *csound, INSDS *owner, int32_t slot)
 {
     LPC_STATE *state;
     if (UNLIKELY(slot < 0 || slot > INT32_MAX - MAX_LPC_SLOT)) {
-      csound->InitError(csound, Str("LPC slot out of range"));
+      csound->InitError(csound, Str("LPC slot out of range\n"));
       return NULL;
     }
     state = lpc_state(csound, owner);
     if (state == NULL) {
       if (csound->CreateInstanceVariable(csound, owner, LPC_INSTANCE,
                                         sizeof(LPC_STATE)) != OK) {
-        csound->InitError(csound, Str("could not allocate LPC instance state"));
+        csound->InitError(csound, Str("could not allocate LPC instance state\n"));
         return NULL;
       }
       state = lpc_state(csound, owner);
@@ -242,11 +242,11 @@ int32_t tonsetx(CSOUND *csound, TONEX *p)
     p->prvhp = *p->khp;
     TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
     if (UNLIKELY(!isfinite(order) || order > (INT32_MAX + 0.0) - 0.5))
-      return csound->InitError(csound, Str("tonex: invalid order %f"),
+      return csound->InitError(csound, Str("tonex: invalid order %f\n"),
                                *p->ord);
     new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
     if (UNLIKELY((size_t)new_loop > SIZE_MAX / sizeof(cs_double)))
-      return csound->InitError(csound, Str("tonex: order is too large"));
+      return csound->InitError(csound, Str("tonex: order is too large\n"));
     clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
     p->loop = new_loop;
     state_size = (size_t)p->loop * sizeof(cs_double);
@@ -383,12 +383,12 @@ int32_t rsnset(CSOUND *csound, RESON *p)
     int32_t scale;
     if (UNLIKELY(!isfinite(scale_value) || scale_value < (cs_double)INT32_MIN ||
                  scale_value > (INT32_MAX + 0.0))) {
-      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+      return csound->InitError(csound, Str("illegal reson iscl value, %f\n"),
                                *p->iscl);
     }
     p->scale = scale = (int32_t)scale_value;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
-      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+      return csound->InitError(csound, Str("illegal reson iscl value, %f\n"),
                                        *p->iscl);
     }
     p->prvcf = p->prvbw = -100.0;
@@ -505,20 +505,20 @@ int32_t rsnsetx(CSOUND *csound, RESONX *p)
     int32_t new_loop, scale;
     if (UNLIKELY(!isfinite(scale_value) || scale_value < (cs_double)INT32_MIN ||
                  scale_value > (INT32_MAX + 0.0))) {
-      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+      return csound->InitError(csound, Str("illegal reson iscl value, %f\n"),
                                *p->iscl);
     }
     p->scale = scale = (int32_t)scale_value;
     if (UNLIKELY(scale && scale != 1 && scale != 2)) {
-      return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+      return csound->InitError(csound, Str("illegal reson iscl value, %f\n"),
                                        *p->iscl);
     }
     if (UNLIKELY(!isfinite(order) || order > (INT32_MAX + 0.0) - 0.5))
-      return csound->InitError(csound, Str("resonx: invalid order %f"),
+      return csound->InitError(csound, Str("resonx: invalid order %f\n"),
                                *p->ord);
     new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
     if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(cs_double))))
-      return csound->InitError(csound, Str("resonx: order is too large"));
+      return csound->InitError(csound, Str("resonx: order is too large\n"));
     clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
     p->loop = new_loop;
     state_size = (size_t)p->loop * 2 * sizeof(cs_double);
@@ -740,7 +740,7 @@ static int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
 
     mfp = csoundLoadMemoryfile(csound, lpfilname, CSFTYPE_LPC, NULL);
     if (UNLIKELY(mfp == NULL))
-      return csound->InitError(csound, Str("LPREAD cannot load %s"), lpfilname);
+      return csound->InitError(csound, Str("LPREAD cannot load %s\n"), lpfilname);
 
     /* Headerless coefficient files remain supported. Read only the magic
        until we know that the complete numeric header is present. */
@@ -763,12 +763,12 @@ static int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
       p->nvals = (int32_t) lph->nvals;
       p->framrate = lph->framrate;
       if (*p->inpoles || *p->ifrmrate)
-        csound->Warning(csound, Str("lpheader overriding inputs"));
+        csound->Warning(csound, Str("lpheader overriding inputs\n"));
       if (lph->srate != CS_ESR)
-        csound->Warning(csound, Str("lpfile srate != orch sr"));
+        csound->Warning(csound, Str("lpfile srate != orch sr\n"));
     }
     else if (BYTREVL(magic) == LP_MAGIC || BYTREVL(magic) == LP_MAGIC2) {
-      return csound->InitError(csound, Str("file %s bytes are in wrong order"),
+      return csound->InitError(csound, Str("file %s bytes are in wrong order\n"),
                                lpfilname);
     }
     else {
@@ -810,7 +810,7 @@ static int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
     return lpc_publish_source(csound, p->h.insdshead, &p->source, p);
 
  invalid_file:
-    return csound->InitError(csound, Str("LPREAD: invalid analysis data in %s"),
+    return csound->InitError(csound, Str("LPREAD: invalid analysis data in %s\n"),
                              lpfilname);
 }
 
@@ -1010,20 +1010,20 @@ int32_t lpread(CSOUND *csound, LPREAD *p)
 
     if (UNLIKELY(p->mfp==NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("lpread: not initialised"));
+                               Str("lpread: not initialised\n"));
     }
     /* Locate frame position range */
     position = (cs_double) *p->ktimpt * p->framrate;
     if (UNLIKELY(!(position >= 0))) {
       /* for kfram reqd*/
       return csound->PerfError(csound, &(p->h),
-                               Str("lpread timpnt < 0"));
+                               Str("lpread timpnt < 0\n"));
     }
     if (position > p->lastframe) {
       position = p->lastframe;
       if (UNLIKELY(!p->lastmsg)) {
         p->lastmsg = 1;
-        csound->Warning(csound, Str("lpread ktimpnt truncated to last frame"));
+        csound->Warning(csound, Str("lpread ktimpnt truncated to last frame\n"));
       }
     }
     /* Locate frames bounding current time */
@@ -1053,7 +1053,7 @@ int32_t lpread(CSOUND *csound, LPREAD *p)
                             polePhas2,fract,interMagn,interPhas);
       if (UNLIKELY(!status)) {
         return csound->PerfError(csound, &(p->h),
-                                 Str("Interpolation failed"));
+                                 Str("Interpolation failed\n"));
       }
       for (i=0; i<p->npoles; i++) {
         *cp++ =  interMagn[i];
@@ -1077,7 +1077,7 @@ int32_t lpformantset(CSOUND *csound, LPFORM *p)
    /* get adr lpread struct */
     p->lpread = q = lpc_current_analysis(csound, p->h.insdshead);
     if (UNLIKELY(q == NULL))
-      return csound->InitError(csound, Str("LPC slot has no analysis"));
+      return csound->InitError(csound, Str("LPC slot has no analysis\n"));
     csound->AuxAlloc(csound, p->lpread->npoles*sizeof(cs_float), &p->aux);
     return OK;
 }
@@ -1137,9 +1137,9 @@ int32_t lprsnset(CSOUND *csound, LPRESON *p)
 
     p->lpread = q = lpc_current_analysis(csound, p->h.insdshead);
     if (UNLIKELY(q == NULL))
-      return csound->InitError(csound, Str("LPC slot has no analysis"));
+      return csound->InitError(csound, Str("LPC slot has no analysis\n"));
     if (UNLIKELY(q->npoles < 1 || (q->storePoles && q->npoles > MAXPOLES)))
-      return csound->InitError(csound, Str("lpreson: unsupported pole count"));
+      return csound->InitError(csound, Str("lpreson: unsupported pole count\n"));
     p->npoles = q->npoles;
     csound->AuxAlloc(csound, (size_t)q->npoles * 3 * sizeof(cs_float), &p->aux);
    /* Initialize pointer to circular buffer (for filtering) */
@@ -1172,7 +1172,7 @@ int32_t lpreson(CSOUND *csound, LPRESON *p)
     if (UNLIKELY(q->npoles != p->npoles ||
                  (q->storePoles && q->npoles > MAXPOLES)))
       return csound->PerfError(csound, &(p->h),
-                               Str("lpreson: analysis changed; reinitialize the filter"));
+                               Str("lpreson: analysis changed; reinitialize the filter\n"));
 
     jp = p->circjp;
     jp2 = jp + q->npoles;
@@ -1254,15 +1254,15 @@ int32_t lpfrsnset(CSOUND *csound, LPFRESON *p)
 
     p->lpread = lpc_current_analysis(csound, p->h.insdshead);
     if (UNLIKELY(p->lpread == NULL))
-      return csound->InitError(csound, Str("LPC slot has no analysis"));
+      return csound->InitError(csound, Str("LPC slot has no analysis\n"));
     if (p->lpread->storePoles) {
       return csound->InitError(csound, Str("Pole file not supported "
-                                           "for this opcode !"));
+                                           "for this opcode !\n"));
     }
 
 
     if(p->lpread->npoles < 2) {
-      return csound->InitError(csound, Str("lpfreson: at least two poles are required"));
+      return csound->InitError(csound, Str("lpfreson: at least two poles are required\n"));
     }
 
     p->prvratio = FL(1.0);
@@ -1293,12 +1293,12 @@ int32_t lpfreson(CSOUND *csound, LPFRESON *p)
 
     if (UNLIKELY(q->npoles != p->npoles || q->storePoles))
       return csound->PerfError(csound, &(p->h),
-                               Str("lpfreson: analysis changed; reinitialize the filter"));
+                               Str("lpfreson: analysis changed; reinitialize the filter\n"));
 
     if (*p->kfrqratio != p->prvratio) {             /* for new freqratio */
       if (*p->kfrqratio <= FL(0.0)) {
         return csound->PerfError(csound, &(p->h),
-                                 Str("illegal frqratio, %5.2f"),
+                                 Str("illegal frqratio, %5.2f\n"),
                                          *p->kfrqratio);
       }                                             /*      calculate d  */
       p->d = (*p->kfrqratio - FL(1.0)) / (*p->kfrqratio + FL(1.0));
@@ -1537,7 +1537,7 @@ int32_t lpslotset(CSOUND *csound, LPSLOT *p)
 
     if (UNLIKELY(!(*p->islotnum >= 0 &&
                    (cs_double) *p->islotnum <= (INT32_MAX + 0.0) - MAX_LPC_SLOT)))
-      return csound->InitError(csound, Str("LPC slot out of range"));
+      return csound->InitError(csound, Str("LPC slot out of range\n"));
     n = (int32_t) *(p->islotnum);
     LPC_STATE *state = lpc_prepare_slot(csound, p->h.insdshead, n);
     if (UNLIKELY(state == NULL))
@@ -1554,27 +1554,27 @@ int32_t lpitpset(CSOUND *csound, LPINTERPOL *p)
                    (cs_double) *p->islot1 < state->slot_limit) ||
                  !(*p->islot2 >= 0 &&
                    (cs_double) *p->islot2 < state->slot_limit)))
-      return csound->InitError(csound, Str("LPC slot is not allocated"));
+      return csound->InitError(csound, Str("LPC slot is not allocated\n"));
   /* Get lpread pointers */
     p->lp1 = lpc_get_slot(state, (int32_t) *p->islot1);
     p->lp2 = lpc_get_slot(state, (int32_t) *p->islot2);
     if (UNLIKELY(p->lp1 == NULL || p->lp2 == NULL))
-      return csound->InitError(csound, Str("LPC slot has no analysis"));
+      return csound->InitError(csound, Str("LPC slot has no analysis\n"));
 
   /* Check if workable */
 
     if (UNLIKELY((!p->lp1->storePoles) || (!p->lp2->storePoles))) {
       return csound->InitError(csound, Str("lpinterpol works only "
-                                           "with poles files.."));
+                                           "with poles files..\n"));
     }
     if (UNLIKELY(p->lp1->npoles != p->lp2->npoles)) {
       return csound->InitError(csound, Str("The poles files "
-                                           "have different pole count"));
+                                           "have different pole count\n"));
     }
 
 #if 0                   /* This is incorrect C */
     if (&p->kcoefs-p != &p->lp1->kcoefs-p->lp1)
-      return csound->InitError(csound, Str("padding error"));
+      return csound->InitError(csound, Str("padding error\n"));
 #endif
 
     p->npoles = p->lp1->npoles;
@@ -1607,7 +1607,7 @@ int32_t lpinterpol(CSOUND *csound, LPINTERPOL *p)
     /* RWD: guessing this... */
     if (UNLIKELY(p->lp1==NULL || p->lp2==NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("lpinterpol: not initialised"));
+                               Str("lpinterpol: not initialised\n"));
     }
     cp1 =  p->lp1->kcoefs;
     cp2 =  p->lp2->kcoefs;
@@ -1623,7 +1623,7 @@ int32_t lpinterpol(CSOUND *csound, LPINTERPOL *p)
                                      polePhas2,*p->kmix,interMagn,interPhas);
     if (UNLIKELY(!status)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("Interpolation failed"));
+                               Str("Interpolation failed\n"));
     }
 
     cp = p->kcoefs;      /* This is where the coefs get stored */

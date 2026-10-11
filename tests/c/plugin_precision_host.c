@@ -25,8 +25,10 @@ int main(int argc, char **argv)
   int cpp = strcmp(kind, "cpp") == 0;
   int linkage = strcmp(kind, "linkage") == 0;
   int modern = cpp || linkage || strcmp(kind, "current") == 0;
+  int no_info = strcmp(kind, "missing") == 0 || strcmp(kind, "zero") == 0;
   int declares_sample = modern || strcmp(kind, "legacy") == 0;
-  int accepted = csoundGetSizeOfCsDouble() == (modern ? double_size : 8) &&
+  int accepted = !no_info &&
+                 csoundGetSizeOfCsDouble() == (modern ? double_size : 8) &&
                  (!declares_sample || csoundGetSizeOfCsFloat() == sample_size);
   int failed = 0, incompatible = 0;
   CSOUND *csound = NULL;
@@ -47,9 +49,10 @@ int main(int argc, char **argv)
   csound = csoundCreate(NULL, NULL);
   CHECK(csound != NULL);
   csoundCreateMessageBuffer(csound, 0);
-  option = malloc(strlen(argv[1]) + sizeof("--opcode-lib="));
+  size_t option_size = strlen(argv[1]) + sizeof("--opcode-lib=");
+  option = malloc(option_size);
   CHECK(option != NULL);
-  sprintf(option, "--opcode-lib=%s", argv[1]);
+  snprintf(option, option_size, "--opcode-lib=%s", argv[1]);
   CHECK(csoundSetOption(csound, option) == 0);
   int result = csoundCompileOrc(csound, linkage
       ? "instr 1\nprecision_test_opcode\nendin\n"

@@ -112,7 +112,7 @@ static int32_t hm234set(CSOUND *csound, HARM234 *p)
       cs_double total = nsamples * 2.0 + prdsamples * 4.0 + (SLEN+1);
       if (UNLIKELY(!(nsamples >= CS_KSMPS && prdsamples >= 2.0 &&
                      total <= (INT32_MAX + 0.0) && total <= (cs_double)(SIZE_MAX / sizeof(cs_float)))))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("harmon234: lowest pitch is out of range"));
       int32_t nbufsmps = (int32_t)nsamples, maxprd = (int32_t)prdsamples;
       int32_t cnt;
@@ -173,7 +173,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
         cs_float cps = POWER(FL(2.0), koct) * ONEPT;     /*   recalc pulse period */
         cs_double period = CS_ESR / cps;
         if (UNLIKELY(!(period >= 1.0 && period <= p->maxprd)))
-          return csound->PerfError(csound, &p->h, "%s",
+          return csound->PerfError(csound, &p->h, "%s\n",
                                    Str("harmon234: pitch estimate is out of range"));
         p->period = (int32_t)period;
         if (!p->cpsmode)
@@ -279,14 +279,14 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
           /* find z-cross with grtst slope to peak */
           if (UNLIKELY(p->poslead < LCNT)) {   /*      and consistent polarity */
             if (p->poslead == 1)
-              csound->Warning(csound, "%s", Str("harm signal has positive lead\n"));
+              csound->Warning(csound, "%s\n", Str("harm signal has positive lead\n"));
             p->poslead += 1;
           }
         }
         else {
           if (UNLIKELY(p->poslead > -LCNT)) {
             if (p->poslead == -1)
-              csound->Warning(csound, "%s", Str("harm signal has negative lead\n"));
+              csound->Warning(csound, "%s\n", Str("harm signal has negative lead\n"));
             p->poslead -= 1;
           }
        }
@@ -369,7 +369,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     for (vdp=p->vocdat; vdp<p->vlim; vdp++) {   /* get new frequencies  */
       cs_double inc = *vdp->kfrq * p->sicvt;
       if (UNLIKELY(!(inc >= INT32_MIN && inc <= (INT32_MAX + 0.0))))
-        return csound->PerfError(csound, &p->h, "%s",
+        return csound->PerfError(csound, &p->h, "%s\n",
                                  Str("harmon234: voice frequency is out of range"));
       vdp->phsinc = (uint32_t)(int32_t)inc;
     }
@@ -421,7 +421,7 @@ static int32_t harmon234(CSOUND *csound, HARM234 *p)
     p->vocamp = vocamp;
 
     if (UNLIKELY(oflow && ++p->hmrngflg > 10)) {
-      csound->Warning(csound, "%s", Str("harmon234: out of range\n"));
+      csound->Warning(csound, "%s\n", Str("harmon234: out of range\n"));
       p->hmrngflg = 0;
     }
     if (inp1 >= p->midp) {                       /* if end of pq bufs */

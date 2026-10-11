@@ -84,11 +84,11 @@ static int32_t SoundFontLoad(CSOUND *csound, char *fname)
     fd = csound->FileOpen(csound, &fil, CSFILE_STD, fname, "rb",
                          "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
     if (UNLIKELY(fd == NULL))
-      return csound->InitError(csound, Str("sfload: cannot open SoundFont file \"%s\""),
+      return csound->InitError(csound, Str("sfload: cannot open SoundFont file \"%s\"\n"),
                                fname);
     for (i = 0; i < globals->currSFndx; i++) {
       if (strcmp(csound->GetFileName(fd), globals->sfArray[i].name) == 0) {
-        csound->Warning(csound, Str("%s already loaded"), fname);
+        csound->Warning(csound, Str("%s already loaded\n"), fname);
         csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
         return i;
       }
@@ -109,7 +109,7 @@ static int32_t SoundFontLoad(CSOUND *csound, char *fname)
       free_SfBank(csound, soundFont);
       globals->soundFont = NULL;
       return csound->InitError(csound,
-                              Str("sfload: invalid or incomplete SoundFont file \"%s\""),
+                              Str("sfload: invalid or incomplete SoundFont file \"%s\"\n"),
                               fname);
     }
     qsort(soundFont->preset, soundFont->presets_num, sizeof(presetType),
@@ -138,7 +138,7 @@ static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(globals==NULL)) {
-      return csound->InitError(csound, "%s", Str("sfload: could not open globals\n"));
+      return csound->InitError(csound, "%s\n", Str("sfload: could not open globals\n"));
     }
     if (istring) fname = csound->Strdup(csound, ((STRINGDAT *)p->fname)->data);
     else {
@@ -188,7 +188,7 @@ static int32_t Sfplist(CSOUND *csound, SFPLIST *p)
     int32_t j;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     sf = &globals->sfArray[(int32_t) *p->ihandle];
     /* if (UNLIKELY(sf==NULL)) */
     /*   return csound->InitError(csound, "%s", Str("invalid soundfont")); */
@@ -212,19 +212,19 @@ static int32_t SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
 
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     sf = &globals->sfArray[(int32_t) *p->ihandle];
     /* if (UNLIKELY(globals->soundFont==NULL)) */
     /*   return csound->InitError(csound, "%s", Str("invalid sound font")); */
 
     if (UNLIKELY(!(*p->startNum >= FL(0.0) &&
                    *p->startNum < MAX_SFPRESET)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("sfpassign: preset range out of bounds"));
     pHandle = (int32_t) *p->startNum;
     pnum = sf->presets_num;
     if (UNLIKELY(pnum > MAX_SFPRESET - pHandle))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("sfpassign: preset range out of bounds"));
     enableMsgs = (*p->msgs==FL(0.0));
     if (enableMsgs)
@@ -255,7 +255,7 @@ static int32_t Sfilist(CSOUND *csound, SFPLIST *p)
     int32_t j;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     /* if (UNLIKELY(globals->soundFont==NULL)) */
     /*   return csound->InitError(csound, "%s", Str("invalid sound font")); */
 
@@ -277,7 +277,7 @@ static int32_t Sfilist_prefix(CSOUND *csound, SFPLIST *p)
     char *prefix = p->Sprefix->data;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     /* if (UNLIKELY(globals->soundFont==NULL)) */
     /*   return csound->InitError(csound, "%s", Str("invalid sound font")); */
 
@@ -299,11 +299,11 @@ static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sf = &globals->sfArray[(DWORD) *p->isfhandle];
     if (UNLIKELY( *p->isfhandle<0 || *p->isfhandle>=globals->currSFndx))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
 
     if (UNLIKELY(presetHandle >= MAX_SFPRESET || presetHandle<0)) {
       return csound->InitError(csound,
-                               Str("sfpreset: preset handle too big (%d), max: %d"),
+                               Str("sfpreset: preset handle too big (%d), max: %d\n"),
                                presetHandle, (int32_t) MAX_SFPRESET - 1);
     }
 
@@ -323,7 +323,7 @@ static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
       csound->Warning(csound,
                                Str("sfpreset: cannot find any preset having prog "
                                    "number %d and bank number %d in SoundFont file"
-                                   " \"%s\""),
+                                   " \"%s\"\n"),
                                (int32_t) *p->iprog, (int32_t) *p->ibank,
                                globals->sfArray[(DWORD) *p->isfhandle].name);
     }
@@ -340,13 +340,13 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
 
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(index>=MAX_SFPRESET))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
 
     if (*p->iskip && p->spltNum) return OK;
     if (!UNLIKELY(preset!=NULL)) {
-      return csound->InitError(csound, "%s", Str("sfplay: invalid or "
+      return csound->InitError(csound, "%s\n", Str("sfplay: invalid or "
                                            "out-of-range preset number"));
     }
     layersNum = preset->layers_num;
@@ -375,7 +375,7 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
               vel     >= split->minVelRange  &&
               vel     <= split->maxVelRange) {
             if (UNLIKELY(spltNum >= MAXSPLT))
-              return csound->InitError(csound, "%s",
+              return csound->InitError(csound, "%s\n",
                                       Str("SoundFont: too many matching sample zones"));
             sfSample *sample = split->sample;
             
@@ -709,7 +709,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     //printf("*** index= %d  maximum = %d\n", index, globals->currSFndx);
     if (UNLIKELY(index>=MAX_SFPRESET))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
 
     if (*p->iskip && p->spltNum) return OK;
     
@@ -717,7 +717,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     sBase = globals->sampleBase[index];
 
     if (UNLIKELY(!preset)) {
-      return csound->InitError(csound, "%s", Str("sfplaym: invalid or "
+      return csound->InitError(csound, "%s\n", Str("sfplaym: invalid or "
                                            "out-of-range preset number"));
     }
     layersNum= preset->layers_num;
@@ -737,7 +737,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
               vel >= split->minVelRange  &&
               vel <= split->maxVelRange) {
             if (UNLIKELY(spltNum >= MAXSPLT))
-              return csound->InitError(csound, "%s",
+              return csound->InitError(csound, "%s\n",
                                       Str("SoundFont: too many matching sample zones"));
             sfSample *sample = split->sample;
             DWORD start=sample->dwStart;
@@ -984,13 +984,13 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(!(*p->sfBank >= FL(0.0) &&
                    *p->sfBank < globals->currSFndx)))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     index = (int32_t)*p->sfBank;
     sf = &globals->sfArray[index];
     if (*p->iskip && p->spltNum)  return OK;
     if (UNLIKELY(!(*p->instrNum >= FL(0.0) &&
                    *p->instrNum < sf->instrs_num))) {
-      return csound->InitError(csound, "%s", Str("sfinstr: instrument out of range"));
+      return csound->InitError(csound, "%s\n", Str("sfinstr: instrument out of range"));
     }
     else {
       instrType *layer = &sf->instr[(int32_t) *p->instrNum];
@@ -1007,7 +1007,7 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
             vel >= split->minVelRange  &&
             vel <= split->maxVelRange) {
           if (UNLIKELY(spltNum >= MAXSPLT))
-            return csound->InitError(csound, "%s",
+            return csound->InitError(csound, "%s\n",
                                     Str("SoundFont: too many matching sample zones"));
           sfSample *sample = split->sample;
           DWORD start=sample->dwStart;
@@ -1267,13 +1267,13 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(!(*p->sfBank >= FL(0.0) &&
                    *p->sfBank < globals->currSFndx)))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     index = (int32_t)*p->sfBank;
 
     sf = &globals->sfArray[index];
     if (UNLIKELY(!(*p->instrNum >= FL(0.0) &&
                    *p->instrNum < sf->instrs_num))) {
-      return csound->InitError(csound, "%s", Str("sfinstr: instrument out of range"));
+      return csound->InitError(csound, "%s\n", Str("sfinstr: instrument out of range"));
     }
     else {
       instrType *layer = &sf->instr[(int32_t) *p->instrNum];
@@ -1291,7 +1291,7 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
             vel >= split->minVelRange  &&
             vel     <= split->maxVelRange) {
           if (UNLIKELY(spltNum >= MAXSPLT))
-            return csound->InitError(csound, "%s",
+            return csound->InitError(csound, "%s\n",
                                     Str("SoundFont: too many matching sample zones"));
           sfSample *sample = split->sample;
           DWORD start=sample->dwStart;
@@ -2300,13 +2300,13 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
 
     if (UNLIKELY(!(*p->ipresethandle >= FL(0.0) &&
                    *p->ipresethandle < MAX_SFPRESET)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("sflooper: preset number out of range"));
     index = (DWORD) *p->ipresethandle;
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
     if (!preset) {
-      return csound->InitError(csound, "%s", Str("sfplay: invalid or "
+      return csound->InitError(csound, "%s\n", Str("sfplay: invalid or "
                                            "out-of-range preset number"));
     }
     layersNum = preset->layers_num;
@@ -2325,7 +2325,7 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
               vel     >= split->minVelRange  &&
               vel     <= split->maxVelRange) {
             if (UNLIKELY(spltNum >= MAXSPLT))
-              return csound->InitError(csound, "%s",
+              return csound->InitError(csound, "%s\n",
                                       Str("SoundFont: too many matching sample zones"));
             sfSample *sample = split->sample;
             DWORD start=sample->dwStart;
@@ -2716,7 +2716,7 @@ int32_t sfont_ModuleCreate(CSOUND *csound)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (globals == NULL)
       return csound->InitError(csound,
-                               "%s", Str("error... could not create sfont globals\n"));
+                               "%s\n", Str("error... could not create sfont globals\n"));
 
     globals->sfArray = (SFBANK *) csound->Calloc(csound, MAX_SFONT*sizeof(SFBANK));
     globals->presetp =

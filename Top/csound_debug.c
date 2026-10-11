@@ -116,11 +116,11 @@ int32_t csoundDebuggerInit(CSOUND *csound)
     if (!data) {
       csound->Warning(csound,
                       Str("csoundSetBreakpoint: cannot set breakpoint. "
-                          "Debugger is not initialised."));
+                          "Debugger is not initialised.\n"));
       return;
     }
     if (line <= 0) {
-      csound->Warning(csound, Str("csoundSetBreakpoint: line > 0 for breakpoint."));
+      csound->Warning(csound, Str("csoundSetBreakpoint: line > 0 for breakpoint.\n"));
       return;
     }
     bkpt_node_t *newpoint =
@@ -139,11 +139,11 @@ int32_t csoundDebuggerInit(CSOUND *csound)
     if (!data) {
       csound->Warning(csound,
                       Str("csoundRemoveBreakpoint: cannot remove breakpoint. "
-                          "Debugger is not initialised."));
+                          "Debugger is not initialised.\n"));
       return;
     }
     if (line < 0) {
-      csound->Warning(csound, Str ("Negative line for breakpoint invalid."));
+      csound->Warning(csound, Str ("Negative line for breakpoint invalid.\n"));
     }
     bkpt_node_t *newpoint =
       (bkpt_node_t *) csound->Malloc(csound, sizeof(bkpt_node_t));
@@ -159,7 +159,7 @@ int32_t csoundDebuggerInit(CSOUND *csound)
     if (!data) {
       csound->Warning(csound,
                       Str("csoundRemoveBreakpoint: cannot remove breakpoint. "
-                          "Debugger is not initialised."));
+                          "Debugger is not initialised.\n"));
       return;
     }
     assert(data);

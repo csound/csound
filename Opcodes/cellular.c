@@ -50,32 +50,32 @@ static int32_t cell_set(CSOUND *csound,CELL *p)
 
     if (UNLIKELY(!(count >= 1.0 && count <= (INT32_MAX + 0.0) &&
                    count <= (cs_double)(SIZE_MAX / (2 * sizeof(cs_float))))))
-      return csound->InitError(csound, "%s", Str("cell: invalid num of elements"));
+      return csound->InitError(csound, "%s\n", Str("cell: invalid num of elements"));
     elements = p->elements = (int32_t)count;
 
     if (LIKELY((ftp = csound->FTFind(csound,p->ioutFunc)) != NULL)) {
       p->outVec = ftp->ftable;
 
       if (UNLIKELY((uint32_t)elements > ftp->flen))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("cell: invalid num of elements"));
     }
-    else return csound->InitError(csound, "%s", Str("cell: invalid output table"));
+    else return csound->InitError(csound, "%s\n", Str("cell: invalid output table"));
     if (LIKELY((ftp = csound->FTFind(csound,p->initStateFunc)) != NULL)) {
       initVec = (p->initVec = ftp->ftable);
       if (UNLIKELY((uint32_t)elements > ftp->flen))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("cell: invalid num of elements"));
     }
     else
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("cell: invalid initial state table"));
     if (LIKELY((ftp = csound->FTFind(csound,p->iRuleFunc)) != NULL)) {
       p->ruleVec = ftp->ftable;
       p->rulelen = ftp->flen;
     }
     else
-      return csound->InitError(csound, "%s", Str("cell: invalid rule table"));
+      return csound->InitError(csound, "%s\n", Str("cell: invalid rule table"));
 
     if (p->auxch.auxp == NULL ||
         p->auxch.size < elements * sizeof(cs_float) * 2)
@@ -115,7 +115,7 @@ static int32_t cell(CSOUND *csound,CELL *p)
                        previous[j+1 == elements ? 0 : j+1];
         /* Truncate fractional indices, as before, but check before converting. */
         if (UNLIKELY(!(index > -1.0 && index < p->rulelen)))
-          return csound->PerfError(csound, &p->h, "%s",
+          return csound->PerfError(csound, &p->h, "%s\n",
                                    Str("cell: rule index out of range"));
         actual[j] = ruleVec[(uint32_t)index];
       }

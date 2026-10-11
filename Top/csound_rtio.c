@@ -30,7 +30,7 @@ static cs_double *get_dummy_rtaudio_globals(CSOUND *csound) {
   if (p == NULL) {
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "__rtaudio_null_state",
                                               sizeof(cs_double) * 4) != 0))
-      csound->Die(csound, Str("rtdummy: failed to allocate globals"));
+      csound->Die(csound, Str("rtdummy: failed to allocate globals\n"));
 #ifndef __wasi__
     csound->Message(csound, Str("rtaudio: dummy module enabled\n"));
 #endif
@@ -60,11 +60,11 @@ int32_t playopen_dummy(CSOUND *csound, const csRtAudioParams *parm) {
                      strcmp(s, "NULL") == 0)) {
     if (s[0] == '\0')
       csoundErrorMsg(csound,
-                     Str(" *** error: rtaudio module set to empty string"));
+                     Str(" *** error: rtaudio module set to empty string\n"));
     else {
       // print_opcodedir_warning(csound);
       csoundErrorMsg(
-          csound, Str(" unknown rtaudio module: '%s', using dummy module"), s);
+          csound, Str(" unknown rtaudio module: '%s', using dummy module\n"), s);
     }
     // return CSOUND_ERROR;
   }
@@ -94,11 +94,11 @@ int32_t recopen_dummy(CSOUND *csound, const csRtAudioParams *parm) {
                      strcmp(s, "NULL") == 0)) {
     if (s[0] == '\0')
       csoundErrorMsg(csound,
-                     Str(" *** error: rtaudio module set to empty string"));
+                     Str(" *** error: rtaudio module set to empty string\n"));
     else {
       // print_opcodedir_warning(csound);
       csoundErrorMsg(
-          csound, Str(" unknown rtaudio module: '%s', using dummy module"), s);
+          csound, Str(" unknown rtaudio module: '%s', using dummy module\n"), s);
     }
     // return CSOUND_ERROR;
   }
@@ -208,10 +208,12 @@ int32_t DummyMidiInOpen(CSOUND *csound, void **userData, const char *devName) {
     return 0;
   }
   if (s[0] == '\0')
-    csoundErrorMsg(csound, Str("error: -+rtmidi set to empty string"));
+    csoundErrorMsg(csound,
+                      Str("error: -+rtmidi set to empty string\n"));
   else {
     print_opcodedir_warning(csound);
-    csoundErrorMsg(csound, Str("error: -+rtmidi='%s': unknown module"), s);
+    csoundErrorMsg(csound,
+                      Str("error: -+rtmidi='%s': unknown module\n"), s);
   }
   return -1;
 }
@@ -241,10 +243,12 @@ int32_t DummyMidiOutOpen(CSOUND *csound, void **userData, const char *devName) {
     return 0;
   }
   if (s[0] == '\0')
-    csoundErrorMsg(csound, Str("error: -+rtmidi set to empty string"));
+    csoundErrorMsg(csound,
+                      Str("error: -+rtmidi set to empty string\n"));
   else {
     print_opcodedir_warning(csound);
-    csoundErrorMsg(csound, Str("error: -+rtmidi='%s': unknown module"), s);
+    csoundErrorMsg(csound,
+                      Str("error: -+rtmidi='%s': unknown module\n"), s);
   }
   return -1;
 }
@@ -361,6 +365,7 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
 
  void csoundSetRTAudioModule(CSOUND *csound, const char *module) {
   char *s;
+  int32_t modules_loaded = csound->default_modules_loaded;
   if ((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
     strNcpy(s, module, 20);
   if (UNLIKELY(s == NULL))
@@ -376,12 +381,15 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
     csound->SetAudioDeviceListCallback(csound, audio_dev_list_dummy);
     return;
   }
-  if (csoundInitModules(csound) != 0)
+  if (csoundLoadDefaultModules(csound) != CSOUND_SUCCESS)
+    csound->LongJmp(csound, 1);
+  if (modules_loaded && csoundInitModules(csound) != 0)
     csound->LongJmp(csound, 1);
 }
 
  void csoundSetMIDIModule(CSOUND *csound, const char *module) {
   char *s;
+  int32_t modules_loaded = csound->default_modules_loaded;
 
   if ((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
     strNcpy(s, module, 20);
@@ -399,6 +407,8 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
 
     return;
   }
-  if (csoundInitModules(csound) != 0)
+  if (csoundLoadDefaultModules(csound) != CSOUND_SUCCESS)
+    csound->LongJmp(csound, 1);
+  if (modules_loaded && csoundInitModules(csound) != 0)
     csound->LongJmp(csound, 1);
 }

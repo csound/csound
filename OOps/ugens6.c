@@ -33,7 +33,7 @@ int32_t downset(CSOUND *csound, DOWNSAMP *p)
 
     /* Check the truncated length before converting to an unsigned integer. */
     if (UNLIKELY(!(length > -1.0 && length < (cs_double)CS_KSMPS + 1.0)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("downsamp: window length out of range"));
     p->len = (uint32_t)length;
     return OK;
@@ -277,7 +277,7 @@ int32_t delset(CSOUND *csound, DELAY *p)
       return OK;
     /* Round not truncate */
     if (UNLIKELY((npts = CS_FLOAT2LRND(*p->idlt * CS_ESR)) <= 0)) {
-      return csound->InitError(csound, Str("illegal delay time"));
+      return csound->InitError(csound, Str("illegal delay time\n"));
     }
 
     if ((auxp = p->auxch.auxp) == NULL ||
@@ -343,12 +343,12 @@ int32_t delrset(CSOUND *csound, DELAYR *p)
     /* Reinit must not enqueue the same reader twice. */
     delrdeinit(csound, p);
     if (UNLIKELY(!IS_ASIG_ARG(p->ar)))
-      return csound->InitError(csound, Str("delayr: invalid outarg type"));
+      return csound->InitError(csound, Str("delayr: invalid outarg type\n"));
     if (UNLIKELY(*p->istor != FL(0.0) && p->auxch.auxp != NULL))
       goto register_reader;
     /* ksmps is min dely */
     if (UNLIKELY((npts=(uint32_t)CS_FLOAT2LRND(*p->idlt*CS_ESR)) < CS_KSMPS)) {
-      return csound->InitError(csound, Str("illegal delay time"));
+      return csound->InitError(csound, Str("illegal delay time\n"));
     }
     if ((auxp = (cs_float*)p->auxch.auxp) == NULL ||       /* new space if reqd */
         npts != p->npts) {
@@ -367,7 +367,7 @@ int32_t delrset(CSOUND *csound, DELAYR *p)
     if (pairing == NULL) {
       if (csound->CreateInstanceVariable(csound, p->h.insdshead,
             DELAY_PAIRING_INSTANCE, sizeof(DELAY_PAIRING)) != OK)
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("delayr: could not allocate pairing state"));
       pairing = delay_pairing(csound, p->h.insdshead);
     }
@@ -389,7 +389,7 @@ int32_t delwset(CSOUND *csound, DELAYW *p)
     p->delayr = NULL;
     if (UNLIKELY(pairing == NULL || pairing->first == NULL))
       return csound->InitError(csound,
-                               Str("delayw: associated delayr not found"));
+                               Str("delayw: associated delayr not found\n"));
     p->delayr = pairing->first;
     pairing->first = p->delayr->next_delayr;
     if (pairing->first == NULL)
@@ -406,7 +406,7 @@ static DELAYR *delayr_find(CSOUND *csound, INSDS *owner, const cs_float *ndx)
     int32_t     n = (int32_t)CS_FLOAT2LRND(*ndx);
 
     if (UNLIKELY(d == NULL)) {
-      csound->InitError(csound, Str("deltap: associated delayr not found"));
+      csound->InitError(csound, Str("deltap: associated delayr not found\n"));
       return NULL;
     }
     if (!n)
@@ -417,7 +417,7 @@ static DELAYR *delayr_find(CSOUND *csound, INSDS *owner, const cs_float *ndx)
       n = -n;                                   /* ndx < 0: FIFO index mode */
     if (UNLIKELY(n < 1 || n > pairing->depth)) {
       csound->InitError(csound,
-                        Str("deltap: delayr index %.0f is out of range"),
+                        Str("deltap: delayr index %.0f is out of range\n"),
                         (cs_double)*ndx);
       return NULL;
     }
@@ -466,7 +466,7 @@ int32_t delay(CSOUND *csound, DELAY *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("delay: not initialised"));
+                             Str("delay: not initialised\n"));
 }
 
 int32_t delayr(CSOUND *csound, DELAYR *p)
@@ -493,7 +493,7 @@ int32_t delayr(CSOUND *csound, DELAYR *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("delayr: not initialised"));
+                             Str("delayr: not initialised\n"));
 }
 
 int32_t delayw(CSOUND *csound, DELAYW *p)
@@ -518,7 +518,7 @@ int32_t delayw(CSOUND *csound, DELAYW *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("delayw: not initialised"));
+                             Str("delayw: not initialised\n"));
 }
 
 int32_t deltap(CSOUND *csound, DELTAP *p)
@@ -548,7 +548,7 @@ int32_t deltap(CSOUND *csound, DELTAP *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("deltap: not initialised"));
+                             Str("deltap: not initialised\n"));
 }
 
 int32_t deltapi(CSOUND *csound, DELTAP *p)
@@ -605,10 +605,10 @@ int32_t deltapi(CSOUND *csound, DELTAP *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                              Str("deltapi: not initialised"));
+                              Str("deltapi: not initialised\n"));
   err2:
     return csound->PerfError(csound, &(p->h),
-                              Str("deltapi: INF delaytime"));
+                              Str("deltapi: INF delaytime\n"));
 }
 
 /* ***** From Hans Mikelson ************* */
@@ -661,7 +661,7 @@ int32_t deltapn(CSOUND *csound, DELTAP *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("deltapn: not initialised"));
+                             Str("deltapn: not initialised\n"));
 }
 
 /* **** JPff **** */
@@ -747,10 +747,10 @@ int32_t deltap3(CSOUND *csound, DELTAP *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("deltap3: not initialised"));
+                             Str("deltap3: not initialised\n"));
   err2:
     return csound->PerfError(csound, &(p->h),
-                              Str("deltapi: INF delaytime"));
+                              Str("deltapi: INF delaytime\n"));
 
 }
 
@@ -858,7 +858,7 @@ int32_t deltapx(CSOUND *csound, DELTAPX *p)                 /* deltapx opcode */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("deltap: not initialised"));
+                             Str("deltap: not initialised\n"));
 }
 
 int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode */
@@ -943,7 +943,7 @@ int32_t deltapxw(CSOUND *csound, DELTAPX *p)                /* deltapxw opcode *
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("deltap: not initialised"));
+                             Str("deltap: not initialised\n"));
 }
 
 int32_t del1set(CSOUND *csound, DELAY1 *p)
@@ -985,11 +985,11 @@ int32_t cmbset(CSOUND *csound, COMB *p)
 
     if (*p->insmps != 0) {
       if (UNLIKELY((lpsiz = CS_FLOAT2LRND(*p->ilpt))) <= 0) {
-        return csound->InitError(csound, Str("illegal loop time"));
+        return csound->InitError(csound, Str("illegal loop time\n"));
       }
     }
     else if (UNLIKELY((lpsiz = CS_FLOAT2LRND(*p->ilpt * CS_ESR)) <= 0)) {
-      return csound->InitError(csound, Str("illegal loop time"));
+      return csound->InitError(csound, Str("illegal loop time\n"));
     }
     nbytes = lpsiz * sizeof(cs_float);
     if (p->auxch.auxp == NULL || (uint32_t)nbytes != p->auxch.size) {
@@ -1052,7 +1052,7 @@ int32_t comb(CSOUND *csound, COMB *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("comb: not initialised"));
+                             Str("comb: not initialised\n"));
 }
 
 int32_t invcomb(CSOUND *csound, COMB *p)
@@ -1099,7 +1099,7 @@ int32_t invcomb(CSOUND *csound, COMB *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("combinv: not initialised"));
+                             Str("combinv: not initialised\n"));
 }
 
 int32_t alpass(CSOUND *csound, COMB *p)
@@ -1153,7 +1153,7 @@ int32_t alpass(CSOUND *csound, COMB *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("alpass: not initialised"));
+                             Str("alpass: not initialised\n"));
 }
 
 static const cs_float revlptimes[6] = {FL(0.0297), FL(0.0371), FL(0.0411),
@@ -1276,7 +1276,7 @@ int32_t reverb(CSOUND *csound, REVERB *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("reverb: not initialised"));
+                             Str("reverb: not initialised\n"));
 }
 
 int32_t panset(CSOUND *csound, PAN *p)
@@ -1350,5 +1350,5 @@ int32_t pan(CSOUND *csound, PAN *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("pan: not initialised"));
+                             Str("pan: not initialised\n"));
 }

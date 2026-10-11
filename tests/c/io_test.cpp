@@ -131,6 +131,22 @@ TEST_F (IOTests, testDeviceList)
     }
 }
 
+TEST_F (IOTests, testRunUtilityLoadsDefaultModules)
+{
+#ifndef CSOUND_TEST_PLUGIN_DIR
+    GTEST_SKIP() << "The stdutil plugin is not built";
+#else
+    char utility[] = "sndinfo";
+    char *argv[] = {utility};
+
+    // Set the search path without loading plugins before csoundRunUtility().
+    const std::string option = std::string(sizeof(cs_float) == sizeof(float)
+        ? "--env:OPCODE7DIR=" : "--env:OPCODE7DIR64=") + CSOUND_TEST_PLUGIN_DIR;
+    ASSERT_EQ(csoundSetOption(csound, option.c_str()), 0);
+    EXPECT_EQ(csoundRunUtility(csound, "sndinfo", 1, argv), 0);
+#endif
+}
+
 int32_t key_callback_evt(void *userData, void *p, uint32_t type)
 {
     int32_t *prev = (int32_t *) userData;

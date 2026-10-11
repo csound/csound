@@ -6,6 +6,7 @@ env:
 on:
   push:
     branches:
+      - main
       - master
       - develop
   pull_request:
@@ -33,7 +34,7 @@ jobs:
         id: tag
         uses: anothrNick/github-tag-action@1.75.0
         env:
-          PRERELEASE: true
+          PRERELEASE: ${{ github.ref != 'refs/heads/main' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: true
 
@@ -61,14 +62,52 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install clang cmake libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk liblo-dev ladspa-sdk dssi-dev  bison flex gettext libsamplerate0-dev libpipewire-0.3-dev
+          sudo apt-get install cmake curl xz-utils libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk liblo-dev ladspa-sdk dssi-dev  bison flex gettext libsamplerate0-dev libpipewire-0.3-dev
+
+      - name: Install WASI SDK
+        run: |
+          CSOUND_WASI_SDK_VERSION=34
+          CSOUND_WASI_SDK_FULL_VERSION=34.0
+          CSOUND_WASI_SDK_SHA256=b761e3a0721dbae9c09a0059e5fdb2bf917d1b4a8a7b430fb3b5aafb0984b2c4
+          CSOUND_WASI_SDK_ARCHIVE="wasi-sdk-${CSOUND_WASI_SDK_FULL_VERSION}-x86_64-linux.tar.gz"
+          curl --fail --location --retry 3 \
+            --output "${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE}" \
+            "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${CSOUND_WASI_SDK_VERSION}/${CSOUND_WASI_SDK_ARCHIVE}"
+          echo "${CSOUND_WASI_SDK_SHA256}  ${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE}" | sha256sum --check
+          tar -xzf "${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE}" -C "${RUNNER_TEMP}"
+          echo "WASI_SDK_PATH=${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE%.tar.gz}" >> "${GITHUB_ENV}"
+
+      - name: Install Wasmtime C API
+        run: |
+          # Stay on the supported 48 LTS line and take its patch updates.
+          CSOUND_WASMTIME_VERSION=48.0.5
+          CSOUND_WASMTIME_SHA256=81fffe5fe895c7f8f84a744f4d4d165dda28793d00ee943ee71fcfb6ab5ed923
+          CSOUND_WASMTIME_ARCHIVE="wasmtime-v${CSOUND_WASMTIME_VERSION}-x86_64-linux-c-api.tar.xz"
+          curl --fail --location --retry 3 \
+            --output "${RUNNER_TEMP}/${CSOUND_WASMTIME_ARCHIVE}" \
+            "https://github.com/bytecodealliance/wasmtime/releases/download/v${CSOUND_WASMTIME_VERSION}/${CSOUND_WASMTIME_ARCHIVE}"
+          echo "${CSOUND_WASMTIME_SHA256}  ${RUNNER_TEMP}/${CSOUND_WASMTIME_ARCHIVE}" | sha256sum --check
+          tar -xJf "${RUNNER_TEMP}/${CSOUND_WASMTIME_ARCHIVE}" -C "${RUNNER_TEMP}"
+          echo "CSOUND_WASMTIME_ROOT=${RUNNER_TEMP}/${CSOUND_WASMTIME_ARCHIVE%.tar.xz}" >> "${GITHUB_ENV}"
+
+      - name: Configure without Wasmtime
+        run: |
+          cmake -S . -B build-no-wasmtime -DUSE_WASMTIME=OFF -DUSE_MP3=0 \
+            -DWasmtime_ROOT="${CSOUND_WASMTIME_ROOT}"
+          if grep -Eq '^Wasmtime_(INCLUDE_DIR|LIBRARY):' build-no-wasmtime/CMakeCache.txt; then
+            echo "USE_WASMTIME=OFF must skip Wasmtime discovery"
+            exit 1
+          fi
+          cmake --build build-no-wasmtime --target csound-bin --parallel
 
       - name: Configure build
         run: |
           mkdir build
           cd build
           cmake .. -DUSE_MP3=0 -DBUILD_TESTS=1 -DBUILD_STATIC_LIBRARY=1 -DBUILD_DSSI_OPCODES=1 \
+            -DWasmtime_ROOT="${CSOUND_WASMTIME_ROOT}" \
             -DCMAKE_BUILD_TYPE=Debug -DDEBUG_ERROR_ON_WARNING=ON
+          grep -q '^Wasmtime_HAS_REQUIRED_API:INTERNAL=1$' CMakeCache.txt
 
       - name: Build Csound
         run: |
@@ -78,7 +117,8 @@ jobs:
       - name: Run unit tests
         run: |
           cd build
-          ctest -j$(nproc) --output-on-failure
+          ctest -R '^commandline_wasmtime_opcode_cache$' --no-tests=error --output-on-failure
+          ctest -LE wasmtime -j$(nproc) --output-on-failure
           
       - name: Run CSD tests
         run: |
@@ -628,7 +668,7 @@ jobs:
           ./build.sh
 
       - uses: actions/upload-artifact@v7.0.1
-        if: github.ref == 'refs/heads/develop'
+        if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
         with:
           name: Csound-For-iOS-${{env.CSOUND_VERSION}}
           path: platform/ios/Csound-For-iOS
@@ -1123,23 +1163,27 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-          $redistVersion = (Get-Content "$vsPath\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt").Trim()
-          $redistRoot = "$vsPath\VC\Redist\MSVC\$redistVersion\x64"
-          function Get-RedistDir($component) {
-            $dir = Get-ChildItem -Path $redistRoot -Directory -Filter "Microsoft.VC*.$component" | Select-Object -First 1
-            if (-not $dir) {
-              Write-Error "Could not find Microsoft.VC*.$component under $redistRoot"
-              exit 1
-            }
-            return $dir.FullName
+          $redistUrl = "https://aka.ms/vs/18/release/vc_redist.x64.exe"
+          $redistPath = "installer/windows/vc_redist.x64.exe"
+          Write-Host "Downloading Visual C++ Redistributable (x64) from $redistUrl ..."
+          Invoke-WebRequest -Uri $redistUrl -OutFile $redistPath
+          if (!(Test-Path $redistPath)) {
+            Write-Error "Failed to download vc_redist.x64.exe to $redistPath"
+            exit 1
           }
-          $Env:VCREDIST_CRT_DIR = (Get-RedistDir "CRT")
-          $Env:VCREDIST_CXXAMP_DIR = (Get-RedistDir "CXXAMP")
-          $Env:VCREDIST_OPENMP_DIR = (Get-RedistDir "OpenMP")
-          echo "Resolved VCREDIST_CRT_DIR to: $Env:VCREDIST_CRT_DIR"
-          echo "Resolved VCREDIST_CXXAMP_DIR to: $Env:VCREDIST_CXXAMP_DIR"
-          echo "Resolved VCREDIST_OPENMP_DIR to: $Env:VCREDIST_OPENMP_DIR"
+          $hash = (Get-FileHash $redistPath -Algorithm SHA256).Hash
+          $size = (Get-Item $redistPath).Length
+          Write-Host "Downloaded vc_redist.x64.exe - SHA256: $hash Size: $size bytes"
+          $sig = Get-AuthenticodeSignature $redistPath
+          if ($sig.Status -ne 'Valid') {
+            Write-Error "Authenticode signature invalid for $redistPath : $($sig.Status) $($sig.StatusMessage)"
+            exit 1
+          }
+          if ($sig.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') {
+            Write-Error "Unexpected signer for $redistPath : $($sig.SignerCertificate.Subject) - expected Microsoft Corporation"
+            exit 1
+          }
+          Write-Host "Authenticode valid - Subject: $($sig.SignerCertificate.Subject) Issuer: $($sig.SignerCertificate.Issuer)"
           iscc /o. installer\\windows\\csound7_x64_github.iss
 
       - name: Upload installer
@@ -1215,23 +1259,27 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
-          $redistVersion = (Get-Content "$vsPath\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt").Trim()
-          $redistRoot = "$vsPath\VC\Redist\MSVC\$redistVersion\x86"
-          function Get-RedistDir($component) {
-            $dir = Get-ChildItem -Path $redistRoot -Directory -Filter "Microsoft.VC*.$component" | Select-Object -First 1
-            if (-not $dir) {
-              Write-Error "Could not find Microsoft.VC*.$component under $redistRoot"
-              exit 1
-            }
-            return $dir.FullName
+          $redistUrl = "https://aka.ms/vs/17/release/vc_redist.x86.exe"
+          $redistPath = "installer/windows/vc_redist.x86.exe"
+          Write-Host "Downloading Visual C++ Redistributable (x86) from $redistUrl ..."
+          Invoke-WebRequest -Uri $redistUrl -OutFile $redistPath
+          if (!(Test-Path $redistPath)) {
+            Write-Error "Failed to download vc_redist.x86.exe to $redistPath"
+            exit 1
           }
-          $Env:VCREDIST_CRT_DIR = (Get-RedistDir "CRT")
-          $Env:VCREDIST_CXXAMP_DIR = (Get-RedistDir "CXXAMP")
-          $Env:VCREDIST_OPENMP_DIR = (Get-RedistDir "OpenMP")
-          echo "Resolved VCREDIST_CRT_DIR to: $Env:VCREDIST_CRT_DIR"
-          echo "Resolved VCREDIST_CXXAMP_DIR to: $Env:VCREDIST_CXXAMP_DIR"
-          echo "Resolved VCREDIST_OPENMP_DIR to: $Env:VCREDIST_OPENMP_DIR"
+          $hash = (Get-FileHash $redistPath -Algorithm SHA256).Hash
+          $size = (Get-Item $redistPath).Length
+          Write-Host "Downloaded vc_redist.x86.exe - SHA256: $hash Size: $size bytes"
+          $sig = Get-AuthenticodeSignature $redistPath
+          if ($sig.Status -ne 'Valid') {
+            Write-Error "Authenticode signature invalid for $redistPath : $($sig.Status) $($sig.StatusMessage)"
+            exit 1
+          }
+          if ($sig.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') {
+            Write-Error "Unexpected signer for $redistPath : $($sig.SignerCertificate.Subject) - expected Microsoft Corporation"
+            exit 1
+          }
+          Write-Host "Authenticode valid - Subject: $($sig.SignerCertificate.Subject) Issuer: $($sig.SignerCertificate.Issuer)"
           iscc /o. installer\\windows\\csound7_x86_github.iss
 
       - name: Upload installer
@@ -1527,7 +1575,7 @@ jobs:
 
   publish_artifacts:
     #
-    if: ${{ github.ref == 'refs/heads/develop' && needs.update_version.outputs.release == 'true' }}
+    if: ${{ (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main') && needs.update_version.outputs.release == 'true' }}
     name: Publish Artifacts
     runs-on: ubuntu-latest
     needs:
@@ -1633,6 +1681,7 @@ jobs:
           tag_name: ${{ env.CSOUND_VERSION }}
           generate_release_notes: true
           make_latest: true
+          prerelease: ${{ github.ref != 'refs/heads/main' }}
           files: |
             csound-windows-${{env.CSOUND_VERSION}}.zip
             csound-windows-i386-installer-${{env.CSOUND_VERSION}}.zip

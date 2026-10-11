@@ -265,19 +265,19 @@ static int32_t dnoise(CSOUND *csound, int32_t argc, char **argv)
             case 'A':
               if (UNLIKELY(O.filetyp == TYP_WAV))
                 csound->Warning(csound,
-                                "%s", Str("-A overriding local default WAV out"));
+                                "%s\n", Str("-A overriding local default WAV out"));
               O.filetyp = TYP_AIFF;    /* AIFF output request*/
               break;
             case 'J':
               if (UNLIKELY(O.filetyp == TYP_AIFF || O.filetyp == TYP_WAV))
-                csound->Warning(csound, "%s", Str("-J overriding local default "
+                csound->Warning(csound, "%s\n", Str("-J overriding local default "
                                             "AIFF/WAV out"));
               O.filetyp = TYP_IRCAM;   /* IRCAM output request */
               break;
             case 'W':
               if (UNLIKELY(O.filetyp == TYP_AIFF))
                 csound->Warning(csound,
-                                "%s", Str("-W overriding local default AIFF out"));
+                                "%s\n", Str("-W overriding local default AIFF out"));
               O.filetyp = TYP_WAV;      /* WAV output request */
               break;
             case 'h':

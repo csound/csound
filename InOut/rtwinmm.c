@@ -98,13 +98,13 @@ static int32_t allocate_buffers(CSOUND *csound, rtWinMMDevice *dev,
       dev->nBuffers *= 2;
     if (UNLIKELY(dev->nBuffers > MAXBUFFERS)) {
       dev->nBuffers = 0;
-      return err_msg(csound, Str("too many buffers"));
+      return err_msg(csound, Str("too many buffers\n"));
     }
     for (i = 0; i < dev->nBuffers; i++) {
       ptr = GlobalAlloc(GMEM_MOVEABLE | GMEM_SHARE, (SIZE_T) bufBytes);
       if (UNLIKELY(ptr == (HGLOBAL) NULL)) {
         dev->nBuffers = i;
-        return err_msg(csound, Str("memory allocation failure"));
+        return err_msg(csound, Str("memory allocation failure\n"));
       }
       dev->buffers[i].lpData = (LPSTR) GlobalLock(ptr);
       dev->bufferHandles[i] = ptr;
@@ -119,7 +119,7 @@ static int32_t allocate_buffers(CSOUND *csound, rtWinMMDevice *dev,
                                         (LPWAVEHDR) &(dev->buffers[i]),
                                         sizeof(WAVEHDR));
       if (UNLIKELY(err != MMSYSERR_NOERROR))
-        return err_msg(csound, Str("failed to prepare buffers"));
+        return err_msg(csound, Str("failed to prepare buffers\n"));
       dev->buffers[i].dwFlags |= WHDR_DONE;
     }
     return 0;
@@ -139,7 +139,7 @@ static int32_t set_format_params(CSOUND *csound, WAVEFORMATEX *wfx,
         break;
       default:
         return err_msg(csound, Str("invalid sample format: "
-                                   "must be -s, -l, or -f"));
+                                   "must be -s, -l, or -f\n"));
     }
     framsize = sampsize * parm->nChannels;
     wfx->wFormatTag = (WORD) (parm->sampleFormat == AE_FLOAT ? 3 : 1);
@@ -260,7 +260,7 @@ static int32_t open_device(CSOUND *csound,
     DWORD           openFlags = CALLBACK_NULL;
 
     if (UNLIKELY(parm->devName != NULL))
-      return err_msg(csound, Str("Must specify a device number, not a name"));
+      return err_msg(csound, Str("Must specify a device number, not a name\n"));
     if (set_format_params(csound, &wfx, parm) != 0)
       return -1;
     devNum = (parm->devNum == 1024 ? 0 : parm->devNum);
@@ -277,9 +277,9 @@ static int32_t open_device(CSOUND *csound,
         csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
       }
       if (UNLIKELY(ndev < 1))
-        return err_msg(csound, Str("No output device is available"));
+        return err_msg(csound, Str("No output device is available\n"));
       if (UNLIKELY(devNum < 0 || devNum >= ndev)) {
-        return err_msg(csound, Str("Device number is out of range"));
+        return err_msg(csound, Str("Device number is out of range\n"));
       }
       waveOutGetDevCapsA((uint32_t) devNum, (LPWAVEOUTCAPSA) &caps,
                          sizeof(WAVEOUTCAPSA));
@@ -296,9 +296,9 @@ static int32_t open_device(CSOUND *csound,
         csound->Message(csound, Str("%3d: %s\n"), i, (char*) caps.szPname);
       }
       if (UNLIKELY(ndev < 1))
-        return err_msg(csound, Str("no input device is available"));
+        return err_msg(csound, Str("no input device is available\n"));
       if (UNLIKELY(devNum < 0 || devNum >= ndev)) {
-        return err_msg(csound, Str("device number is out of range"));
+        return err_msg(csound, Str("device number is out of range\n"));
       }
       waveInGetDevCapsA((uint32_t) devNum, (LPWAVEINCAPSA) &caps,
                         sizeof(WAVEINCAPSA));
@@ -309,7 +309,7 @@ static int32_t open_device(CSOUND *csound,
           csound->QueryGlobalVariable(csound, "_rtwinmm_globals");
     dev = (rtWinMMDevice*) csound->Malloc(csound, sizeof(rtWinMMDevice));
     if (UNLIKELY(dev == NULL))
-      return err_msg(csound, Str("memory allocation failure"));
+      return err_msg(csound, Str("memory allocation failure\n"));
     memset(dev, 0, sizeof(rtWinMMDevice));
     conv_idx = (parm->sampleFormat == AE_SHORT ?
                 0 : (parm->sampleFormat == AE_LONG ? 1 : 2));
@@ -321,7 +321,7 @@ static int32_t open_device(CSOUND *csound,
                                (LPWAVEFORMATEX) &wfx, 0, 0,
                                openFlags) != MMSYSERR_NOERROR)) {
         dev->outDev = (HWAVEOUT) 0;
-        return err_msg(csound, Str("failed to open device"));
+        return err_msg(csound, Str("failed to open device\n"));
       }
       switch (conv_idx) {
         case 0:
@@ -350,7 +350,7 @@ static int32_t open_device(CSOUND *csound,
                               (LPWAVEFORMATEX) &wfx, 0, 0,
                               openFlags) != MMSYSERR_NOERROR)) {
         dev->inDev = (HWAVEIN) 0;
-        return err_msg(csound, Str("failed to open device"));
+        return err_msg(csound, Str("failed to open device\n"));
       }
       switch (conv_idx) {
         case 0: dev->rec_conv =
@@ -743,7 +743,7 @@ static int32_t midi_out_close(CSOUND *csound, void *userData)
 
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_rtwinmm_globals",
                                               sizeof(rtWinMMGlobals)) != 0))
-      return err_msg(csound, Str("could not allocate global structure"));
+      return err_msg(csound, Str("could not allocate global structure\n"));
     pp = (rtWinMMGlobals*) csound->QueryGlobalVariable(csound,
                                                        "_rtwinmm_globals");
     pp->inDev = NULL;

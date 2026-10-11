@@ -70,27 +70,27 @@ static int32_t platerev_init(CSOUND *csound, PLATE *p)
     uint32_t qq;
 
     if (UNLIKELY(!(a > 0.0 && a <= 1.0)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("platerev: aspect ratio must be in (0, 1]"));
     if (UNLIKELY(!(decay > 0.0)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("platerev: decay time must be positive"));
     if (UNLIKELY(!(stiffness >= 0.0) || !(loss >= 0.0) ||
                  (stiffness == 0.0 && loss == 0.0)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("platerev: stiffness and loss must define "
                                    "a positive grid spacing"));
 
     cs_double sig = (CS_ESR+CS_ESR)*
                  (POWER(10.0, FL(3.0)*dt/decay)-FL(1.0)); /* loss constant */
     if (UNLIKELY(!isfinite(sig)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("platerev: decay time is too small"));
     cs_double b2 = loss;
     dxmin = 2.0*sqrt(dt*(b2+hypot(loss, stiffness)));
     nx = floor(1.0/dxmin);
     if (UNLIKELY(!(nx >= 1.0 && nx <= (UINT32_MAX + 0.0) - 5.0)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("platerev: physical parameters produce an "
                                    "invalid grid size"));
     uint32_t Nx = (p->Nx = (uint32_t)nx);
@@ -98,7 +98,7 @@ static int32_t platerev_init(CSOUND *csound, PLATE *p)
     cs_double dx = 1.0/(cs_double)Nx;
     ny = floor(a*nx);
     if (UNLIKELY(!(ny >= 1.0 && ny <= (UINT32_MAX + 0.0) - 5.0)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("platerev: aspect ratio produces an invalid "
                                    "grid size"));
     uint32_t Ny = (p->Ny = (uint32_t)ny);
@@ -113,12 +113,12 @@ static int32_t platerev_init(CSOUND *csound, PLATE *p)
     p->nin = (int32_t) (p->INOCOUNT) - 7; p->nout = (int32_t) (p->OUTOCOUNT);
     if (UNLIKELY((inp = csound->FTFind(csound,p->tabins)) == NULL ||
                  inp->flen < (uint32_t)3*p->nin)) {
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("Missing input table or too short"));
     }
     if (UNLIKELY((outp = csound->FTFind(csound,p->tabout)) == NULL ||
                  outp->flen < (uint32_t)3*p->nout)) {
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("Missing output table or too short"));
     }
     p->in_param = inp->ftable;
@@ -126,7 +126,7 @@ static int32_t platerev_init(CSOUND *csound, PLATE *p)
     p->L = a;
     if (UNLIKELY(Nx5 > SIZE_MAX / Ny5 ||
                  Nx5 * Ny5 > SIZE_MAX / (3u * sizeof(cs_double))))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("platerev: grid is too large"));
     gridpoints = Nx5 * Ny5;
     csound->AuxAlloc(csound, 3u * gridpoints * sizeof(cs_double), &p->auxch);
@@ -159,14 +159,14 @@ static int32_t platerev_init(CSOUND *csound, PLATE *p)
     p->t01 = -V*eta*alf*alf;
     for (qq=0; qq<p->nin; qq++) {
       if (UNLIKELY(!isfinite((cs_double)p->in_param[3*qq+2])))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("platerev: input phase must be finite"));
       p->ci[qq] = cos((cs_double)p->in_param[3*qq+2]);
       p->si[qq] = sin((cs_double)p->in_param[3*qq+2]);
     }
     for (qq=0; qq<p->nout; qq++) {
       if (UNLIKELY(!isfinite((cs_double)p->out_param[3*qq+2])))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("platerev: output phase must be finite"));
       p->co[qq] = cos((cs_double)p->out_param[3*qq+2]);
       p->so[qq] = sin((cs_double)p->out_param[3*qq+2]);
@@ -199,7 +199,7 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
       cs_double delta = TWOPI*(cs_double)p->in_param[3*qq]*dt;
       cs_double radius = (cs_double)p->in_param[3*qq+1];
       if (UNLIKELY(!isfinite(delta) || !(radius > -1.0 && radius < 1.0)))
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("platerev: input frequency must be finite "
                                      "and radius must be in (-1, 1)"));
       p->cdi[qq] = cos(delta);
@@ -210,7 +210,7 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
       cs_double delta = TWOPI*(cs_double)p->out_param[3*qq]*dt;
       cs_double radius = (cs_double)p->out_param[3*qq+1];
       if (UNLIKELY(!isfinite(delta) || !(radius > -1.0 && radius < 1.0)))
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("platerev: output frequency must be finite "
                                      "and radius must be in (-1, 1)"));
       p->cdo[qq] = cos(delta);

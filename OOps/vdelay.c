@@ -41,16 +41,16 @@ int32_t vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 
     if (*p->istod) {
       if (UNLIKELY(p->aux.auxp == NULL))
-        return csound->InitError(csound, "%s", Str("vdelay: no buffer to preserve"));
+        return csound->InitError(csound, "%s\n", Str("vdelay: no buffer to preserve"));
       return OK;
     }
     samples = (cs_double)*p->imaxd * ESR;
     if (UNLIKELY(!isfinite(samples) || samples < 0.0 || samples >= (INT32_MAX + 0.0)))
-      return csound->InitError(csound, "%s", Str("vdelay: invalid maximum delay"));
+      return csound->InitError(csound, "%s\n", Str("vdelay: invalid maximum delay"));
     maxd = (int32_t)samples;
     if (maxd < 1) maxd = 1;
     if (UNLIKELY((size_t)maxd > SIZE_MAX / sizeof(cs_float) - 1))
-      return csound->InitError(csound, "%s", Str("vdelay: delay buffer too large"));
+      return csound->InitError(csound, "%s\n", Str("vdelay: delay buffer too large"));
     bytes = ((size_t)maxd + 1) * sizeof(cs_float);
     if (p->aux.auxp == NULL || bytes > p->aux.size)
       csound->AuxAlloc(csound, bytes, &p->aux);
@@ -140,10 +140,10 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
  errdel:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: invalid delay"));
+                             Str("vdelay: invalid delay\n"));
 }
 
 int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
@@ -243,10 +243,10 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay3: not initialised"));
+                             Str("vdelay3: not initialised\n"));
  errdel:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay3: invalid delay"));
+                             Str("vdelay3: invalid delay\n"));
 }
 
 #undef VDELAY_READPOS
@@ -403,7 +403,7 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
 }
 
 int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
@@ -472,7 +472,7 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
 }
 
 int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
@@ -550,7 +550,7 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
 }
 
 int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
@@ -627,7 +627,7 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
 }
 
 int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
@@ -722,7 +722,7 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
 }
 
 int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
@@ -817,7 +817,7 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
 }
 
 int32_t multitap_set(CSOUND *csound, MDEL *p)
@@ -837,7 +837,7 @@ int32_t multitap_set(CSOUND *csound, MDEL *p)
     for (i = 0; i < ntaps; i++) {
       cs_double samples = (cs_double)(CS_ESR * *p->ndel[2*i]);
       if (UNLIKELY(!(samples >= 0.0 && samples < (INT32_MAX + 0.0))))
-        return csound->InitError(csound, Str("multitap: invalid delay time"));
+        return csound->InitError(csound, Str("multitap: invalid delay time\n"));
       delays[i] = (int32_t)samples;
       if (max < delays[i]) max = delays[i];
     }
@@ -845,7 +845,7 @@ int32_t multitap_set(CSOUND *csound, MDEL *p)
     /* Keep the current input as well as the longest delayed sample. */
     p->max = max + 1;
     if (UNLIKELY((size_t)p->max > SIZE_MAX / sizeof(cs_float)))
-      return csound->InitError(csound, Str("multitap: delay buffer too large"));
+      return csound->InitError(csound, Str("multitap: delay buffer too large\n"));
     bytes = (size_t)p->max * sizeof(cs_float);
     if (p->aux.auxp == NULL || bytes > p->aux.size)
       csound->AuxAlloc(csound, bytes, &p->aux);
@@ -891,7 +891,7 @@ int32_t multitap_play(CSOUND *csound, MDEL *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("multitap: not initialised"));
+                             Str("multitap: not initialised\n"));
 }
 
 /*      nreverb coded by Paris Smaragdis 1994 and Richard Karpen 1998 */
@@ -1010,17 +1010,17 @@ static int32_t reverb_delay_samples(CSOUND *csound, cs_float time, cs_float sr,
     cs_double samples = time < FL(0.0) ? -(cs_double)time :
                                      (cs_double)(time * sr);
     if (UNLIKELY(!(samples >= 0.0 && samples < (INT32_MAX + 0.0))))
-      return csound->InitError(csound, Str("nreverb: invalid delay length"));
+      return csound->InitError(csound, Str("nreverb: invalid delay length\n"));
     *length = (int32_t)samples;
     if (time < FL(0.0)) {
       if (UNLIKELY(*length == 0))
-        return csound->InitError(csound, Str("nreverb: delay must contain a sample"));
+        return csound->InitError(csound, Str("nreverb: delay must contain a sample\n"));
     }
     else {
       if ((*length & 1) == 0) ++*length;
       while (!prime(*length)) {
         if (UNLIKELY(*length > INT32_MAX - 2))
-          return csound->InitError(csound, Str("nreverb: delay length too large"));
+          return csound->InitError(csound, Str("nreverb: delay length too large\n"));
         *length += 2;
       }
     }
@@ -1069,7 +1069,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
                       (cs_double)*p->inumCombs < (INT32_MAX + 0.0) &&
                       (cs_double)*p->inumCombs < (cs_double)(ftCombs->flen / 2) + 1.0))) {
         return csound->InitError(csound,
-                                Str("nreverb: invalid comb count or table too short"));
+                                Str("nreverb: invalid comb count or table too short\n"));
       }
       p->numCombs = (int32_t)*p->inumCombs;
       c_orgtime = ftCombs->ftable;
@@ -1077,7 +1077,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
     }
     if (UNLIKELY((size_t)p->numCombs > (SIZE_MAX - 2*sizeof(cs_float*)) /
                  (5*sizeof(cs_float) + sizeof(int32_t) + 2*sizeof(cs_float*))))
-      return csound->InitError(csound, Str("nreverb: too many comb filters"));
+      return csound->InitError(csound, Str("nreverb: too many comb filters\n"));
     cmbAllocSize = (size_t)p->numCombs * sizeof(cs_float);
     csound->AuxAlloc(csound, 5*cmbAllocSize +
                      (size_t)p->numCombs*sizeof(int32_t) +
@@ -1107,7 +1107,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
                       (cs_double)*p->inumAlpas < (INT32_MAX + 0.0) &&
                       (cs_double)*p->inumAlpas < (cs_double)(ftAlpas->flen / 2) + 1.0))) {
         return csound->InitError(csound,
-                                Str("nreverb: invalid allpass count or table too short"));
+                                Str("nreverb: invalid allpass count or table too short\n"));
       }
       p->numAlpas = (int32_t)*p->inumAlpas;
       a_orgtime = ftAlpas->ftable;
@@ -1115,7 +1115,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
     }
     if (UNLIKELY((size_t)p->numAlpas > (SIZE_MAX - 2*sizeof(cs_float*)) /
                  (3*sizeof(cs_float) + sizeof(int32_t) + 2*sizeof(cs_float*))))
-      return csound->InitError(csound, Str("nreverb: too many allpass filters"));
+      return csound->InitError(csound, Str("nreverb: too many allpass filters\n"));
     alpAllocSize = (size_t)p->numAlpas * sizeof(cs_float);
     csound->AuxAlloc(csound, 3*alpAllocSize +
                      (size_t)p->numAlpas*sizeof(int32_t) +
@@ -1134,7 +1134,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
       if (reverb_delay_samples(csound, c_orgtime[i], CS_ESR, &c_time) != OK)
         return NOTOK;
       if (UNLIKELY((size_t)c_time > SIZE_MAX / sizeof(cs_float) - n))
-        return csound->InitError(csound, Str("nreverb: delay buffer too large"));
+        return csound->InitError(csound, Str("nreverb: delay buffer too large\n"));
       c_lengths[i] = c_time;
       p->c_time[i] = (cs_float) c_time;
       n += c_time;
@@ -1157,7 +1157,7 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
       if (reverb_delay_samples(csound, a_orgtime[i], CS_ESR, &a_time) != OK)
         return NOTOK;
       if (UNLIKELY((size_t)a_time > SIZE_MAX / sizeof(cs_float) - n))
-        return csound->InitError(csound, Str("nreverb: delay buffer too large"));
+        return csound->InitError(csound, Str("nreverb: delay buffer too large\n"));
       a_lengths[i] = a_time;
       p->a_time[i] = (cs_float) a_time;
       p->a_gain[i] = (cs_float) exp((cs_double)(LOG001 * (p->a_time[i]
@@ -1266,6 +1266,6 @@ int32_t reverbx(CSOUND *csound, NREV2 *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("reverbx: not initialised"));
+                             Str("reverbx: not initialised\n"));
 }
 

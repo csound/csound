@@ -242,12 +242,12 @@ static int32_t tablefilter (CSOUND *csound, TABFILT *p)
      * Error message if any are < 1 and no further action.     */
     if (UNLIKELY((*p->dft < 1) || (*p->sft < 1))) {
       return csound->PerfError(csound, &(p->h),
-                               Str("Farey: Table no. < 1 dft=%.2f  sft=%.2f"),
+                               Str("Farey: Table no. < 1 dft=%.2f  sft=%.2f\n"),
                                (float)*p->dft, (float)*p->sft);
     }
     if (UNLIKELY((*p->ftype < 1))) {
       return csound->PerfError(csound, &(p->h),
-                               Str("Farey: Filter type < 1 ftype=%.2f"),
+                               Str("Farey: Filter type < 1 ftype=%.2f\n"),
                                (float)*p->ftype);
     }
 
@@ -262,7 +262,7 @@ static int32_t tablefilter (CSOUND *csound, TABFILT *p)
       if (UNLIKELY((p->funcd = csound->FTFind(csound, p->dft)) == NULL)) {
         return
           csound->PerfError(csound, &(p->h),
-                            Str("Farey: Destination dft table %.2f not found."),
+                            Str("Farey: Destination dft table %.2f not found.\n"),
                             *p->dft);
       }
       /* Table number is valid.
@@ -273,7 +273,7 @@ static int32_t tablefilter (CSOUND *csound, TABFILT *p)
     if (p->psft != (int32_t)*p->sft) {
       if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
         return csound->PerfError(csound, &(p->h),
-                                 Str("Farey: Source sft table %.2f not found."),
+                                 Str("Farey: Source sft table %.2f not found.\n"),
                                  *p->sft);
       }
       p->psft = (int32_t)*p->sft;
@@ -292,12 +292,12 @@ static int32_t tableifilter (CSOUND *csound, TABFILT *p)
      * Error message if any are < 1 and no further action. */
     if (UNLIKELY((*p->dft < 1) || (*p->sft < 1))) {
       return csound->InitError(csound,
-                               Str("Farey: Table no. < 1 dft=%.2f  sft=%.2f"),
+                               Str("Farey: Table no. < 1 dft=%.2f  sft=%.2f\n"),
                                *p->dft, *p->sft);
     }
     if (UNLIKELY((*p->ftype < 1))) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("Farey: Filter type < 1"));
+                               "%s\n", Str("Farey: Filter type < 1"));
     }
 
     /* Check each table number in turn.  */
@@ -309,7 +309,7 @@ static int32_t tableifilter (CSOUND *csound, TABFILT *p)
       if (UNLIKELY((p->funcd = csound->FTFind(csound, p->dft)) == NULL)) {
         return
           csound->InitError(csound,
-                            Str("Farey: Destination dft table %.2f not found."),
+                            Str("Farey: Destination dft table %.2f not found.\n"),
                             *p->dft);
       }
       /* Table number is valid.
@@ -320,7 +320,7 @@ static int32_t tableifilter (CSOUND *csound, TABFILT *p)
     if (p->psft != (int32_t)*p->sft) {
       if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
         return csound->InitError(csound,
-                                 Str("Farey: Source sft table %.2f not found."),
+                                 Str("Farey: Source sft table %.2f not found.\n"),
                                  *p->sft);
       }
       p->psft = (int32_t)*p->sft;
@@ -433,7 +433,7 @@ static int32_t tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
 
     if (UNLIKELY(*p->sft < 1)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("Table no. < 1 sft=%.2f"),
+                               Str("Table no. < 1 sft=%.2f\n"),
                                *p->sft);
     }
 
@@ -441,7 +441,7 @@ static int32_t tableshuffle (CSOUND * csound, TABSHUFFLE *p) {
     if (p->psft != (int32_t)*p->sft) {
       if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
         return csound->PerfError(csound, &(p->h),
-                                 Str("Source sft table %.2f not found."),
+                                 Str("Source sft table %.2f not found.\n"),
                                  *p->sft);
       }
       p->psft = (int32_t)*p->sft;
@@ -454,7 +454,7 @@ static int32_t tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
 
     if (UNLIKELY(*p->sft < 1)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("Table no. < 1 sft=%.2f"),
+                               Str("Table no. < 1 sft=%.2f\n"),
                                *p->sft);
     }
 
@@ -463,7 +463,7 @@ static int32_t tableishuffle (CSOUND *csound, TABSHUFFLE *p) {
     if (p->psft != (int32_t)*p->sft) {
       if (UNLIKELY((p->funcs = csound->FTFind(csound, p->sft)) == NULL)) {
         return csound->InitError(csound,
-                                 Str("Source sft table %.2f not found."),
+                                 Str("Source sft table %.2f not found.\n"),
                                  *p->sft);
       }
       p->psft = (int32_t)*p->sft;
@@ -516,11 +516,11 @@ static int32_t fareylen (CSOUND *csound, FAREYLEN *p)
     int32_t length;
     if (UNLIKELY(!(*p->kn >= FL(1.0) && (cs_double)*p->kn <= (INT32_MAX + 0.0))))
       return csound->PerfError(csound, &(p->h),
-                               Str("fareylen: invalid sequence order"));
+                               Str("fareylen: invalid sequence order\n"));
     length = FareyLength((int32_t)*p->kn);
     if (UNLIKELY(length == 0))
       return csound->PerfError(csound, &(p->h),
-                               Str("fareylen: sequence length exceeds int32 range"));
+                               Str("fareylen: sequence length exceeds int32 range\n"));
     *p->kr = (cs_float)length;
     return OK;
 }
@@ -529,11 +529,11 @@ static int32_t fareyleni (CSOUND *csound, FAREYLEN *p)
 {
     int32_t length;
     if (UNLIKELY(!(*p->kn >= FL(1.0) && (cs_double)*p->kn <= (INT32_MAX + 0.0))))
-      return csound->InitError(csound, Str("fareylen: invalid sequence order"));
+      return csound->InitError(csound, Str("fareylen: invalid sequence order\n"));
     length = FareyLength((int32_t)*p->kn);
     if (UNLIKELY(length == 0))
       return csound->InitError(csound,
-                               Str("fareylen: sequence length exceeds int32 range"));
+                               Str("fareylen: sequence length exceeds int32 range\n"));
     *p->kr = (cs_float)length;
     return OK;
 }

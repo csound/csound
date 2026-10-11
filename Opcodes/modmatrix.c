@@ -19,7 +19,7 @@ Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 
 #include "modmatrix.h"
 
-#define INITERROR(x) csound->InitError(csound, "%s", Str("modmatrix: " x))
+#define INITERROR(x) csound->InitError(csound, "%s\n", Str("modmatrix: " x))
 
 #if defined(__SSE2__)
 #include <emmintrin.h>

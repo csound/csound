@@ -3193,7 +3193,7 @@ static inline int32_t ConvertFFTSize(CSOUND *csound, int32_t N)
   case 0x10000000:  return 28;
   }
   csound->Warning(csound, Str(" *** fftlib.c: internal error: "
-                              "invalid FFT size: %d"), N);
+                              "invalid FFT size: %d\n"), N);
   return 0;
 }
 
@@ -3459,7 +3459,7 @@ void *csoundRealFFT2Setup(CSOUND *csound,
     csound->Warning(csound,
       Str("FFTsize %d \n"
       "Cannot use PFFT with sizes <= 16\n"
-      "--defaulting to FFTLIB"),
+      "--defaulting to FFTLIB\n"),
         FFTsize);
     lib = 0;
   }

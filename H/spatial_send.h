@@ -35,7 +35,7 @@ static inline int32_t spatial_source_register(CSOUND *csound, OPDS *opcode,
     if (sources == NULL) {
       if (csound->CreateInstanceVariable(csound, opcode->insdshead,
             SPATIAL_SOURCES_INSTANCE, sizeof(SPATIAL_SOURCES)) != OK)
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                 Str("could not allocate spatial source state"));
       sources = (SPATIAL_SOURCES *)csound->QueryInstanceVariable(
           csound, opcode->insdshead, SPATIAL_SOURCES_INSTANCE);

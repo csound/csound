@@ -98,7 +98,7 @@ void linevent_open(CSOUND *csound)
 #else
       STA(stdmode) = fcntl(csound->Linefd, F_GETFL, 0);
       if (UNLIKELY(fcntl(csound->Linefd, F_SETFL, STA(stdmode) | O_NDELAY) < 0))
-        csoundDie(csound, Str("-L stdin fcntl failed"));
+        csoundDie(csound, Str("-L stdin fcntl failed\n"));
 #endif
     }
 #ifdef PIPES
@@ -108,13 +108,13 @@ void linevent_open(CSOUND *csound)
         csound->Linefd = fileno(csound->Linepipe);
         setvbuf(csound->Linepipe, NULL, _IONBF, 0);
       }
-      else csoundDie(csound, Str("Cannot open %s"), O->Linename);
+      else csoundDie(csound, Str("Cannot open %s\n"), O->Linename);
     }
 #endif
 #define MODE ,0
     else
       if (UNLIKELY((csound->Linefd=open(O->Linename, O_RDONLY|O_NDELAY MODE)) < 0))
-        csoundDie(csound, Str("Cannot open %s"), O->Linename);
+        csoundDie(csound, Str("Cannot open %s\n"), O->Linename);
     if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
@@ -235,7 +235,7 @@ void csoundInputMessage(CSOUND *csound, const char *message) {
     if (!size) return;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       int32_t extralloc = (int32_t) (STA(Linep) + size - STA(Linebufend));
-      csound->DebugMsg(csound, "realloc %d", extralloc);
+      csound->DebugMsg(csound, "realloc %d\n", extralloc);
       // csound->Message(csound, "extralloc: %d %d %d\n",
       //                 extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
       // FIXME -- Coverity points out that this test is always false
@@ -243,7 +243,7 @@ void csoundInputMessage(CSOUND *csound, const char *message) {
 #if 1
       if ((n=linevent_alloc(csound, (STA(linebufsiz) + extralloc))) != 0) {
         csoundErrorMsg(csound, Str("LineBuffer Overflow - "
-                                   "Input Data has been Lost"));
+                                   "Input Data has been Lost\n"));
         return;
       }
 #else

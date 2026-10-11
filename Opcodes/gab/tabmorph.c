@@ -66,18 +66,18 @@ static int32_t tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
 
     numOfTabs = p->numOfTabs =((p->INOCOUNT-4)); /* count segs & alloc if nec */
     if (UNLIKELY(numOfTabs < 1 || numOfTabs >= VARGMAX))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("tabmorph: table count out of range"));
     argp = p->argums;
     for (j=0; j< numOfTabs; j++) {
       if (UNLIKELY((ftp = csound->FTFind(csound, *argp++)) == NULL))
-        return csound->InitError(csound, "%s", Str("tabmorph: invalid table number"));
+        return csound->InitError(csound, "%s\n", Str("tabmorph: invalid table number"));
       if (UNLIKELY(ftp->flen == 0 || ftp->flen > INT32_MAX))
-        return csound->InitError(csound, "%s", Str("tabmorph: invalid table length"));
+        return csound->InitError(csound, "%s\n", Str("tabmorph: invalid table length"));
       if (UNLIKELY(ftp->flen != flength && flength  != 0))
         return
           csound->InitError(csound,
-                            "%s", Str("tabmorph: all tables must have the "
+                            "%s\n", Str("tabmorph: all tables must have the "
                                 "same length!"));
       flength = ftp->flen;
       if (j==0) first_table = ftp->ftable;
@@ -299,24 +299,24 @@ static int32_t tabmorph_set_array (CSOUND *csound, TABMORPH_ARR *p) /*Gab 13-Mar
     int64_t flength = 0;
 
     if (UNLIKELY(arr->dimensions != 1 || arr->sizes == NULL || arr->data == NULL))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("tabmorph: expected a one-dimensional table array"));
     numOfTabs = p->numOfTabs = arr->sizes[0];
     /* One extra pointer closes the interpolation interval at the last table. */
     if (UNLIKELY(numOfTabs < 1 || numOfTabs >= VARGMAX))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("tabmorph: table count out of range"));
     cs_float *table_nums = arr->data;
     for (j=0; j< numOfTabs; j++) {
         cs_float table = table_nums[j];
         if (UNLIKELY((ftp = csound->FTFind(csound, &table)) == NULL))
-        return csound->InitError(csound, "%s", Str("tabmorph: invalid table number"));
+        return csound->InitError(csound, "%s\n", Str("tabmorph: invalid table number"));
       if (UNLIKELY(ftp->flen == 0 || ftp->flen > INT32_MAX))
-        return csound->InitError(csound, "%s", Str("tabmorph: invalid table length"));
+        return csound->InitError(csound, "%s\n", Str("tabmorph: invalid table length"));
       if (UNLIKELY(ftp->flen != flength && flength  != 0))
         return
           csound->InitError(csound,
-                            "%s", Str("tabmorph: all tables must have the "
+                            "%s\n", Str("tabmorph: all tables must have the "
                                 "same length!"));
       flength = ftp->flen;
       if (j==0) first_table = ftp->ftable;

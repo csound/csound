@@ -37,7 +37,10 @@ if(BUILD_TESTS)
         csound_debugger_test.cpp
         csound_debug_fsig_globals_arrays_test.cpp
         csound_message_buffer_test.cpp
+        csound_diagnostics_test.cpp
         csound_option_parser_test.cpp
+        plugin_options_test.cpp
+        csound_csd_compile_test.cpp
         csound_orc_compile_test.cpp
         csound_orc_semantics_test.cpp
         csound_type_system_test.cpp
@@ -180,6 +183,34 @@ if(BUILD_TESTS)
             ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>)
         target_compile_definitions(unittests PRIVATE
             CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN)
+
+        add_library(configuration_test_plugin MODULE
+            fixtures/configuration_plugin.c)
+        target_include_directories(configuration_test_plugin PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_compile_definitions(configuration_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        set_target_properties(configuration_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/configuration-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/configuration-plugin)
+        add_dependencies(unittests configuration_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/configuration_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_CONFIGURATION_PLUGIN_DIR R\"csound($<TARGET_FILE_DIR:configuration_test_plugin>)csound\"\n"
+            TARGET configuration_test_plugin)
+        target_compile_definitions(unittests PRIVATE
+            CSOUND_TEST_HAS_CONFIGURATION_PLUGIN)
+    endif()
+
+    if(TARGET stdutil)
+        add_dependencies(unittests stdutil)
+        target_compile_definitions(unittests PRIVATE
+            CSOUND_TEST_PLUGIN_DIR="$<TARGET_FILE_DIR:stdutil>")
     endif()
 
     # BUILD_OSC_OPCODES stays ON in the cache when check_deps disables it
@@ -208,6 +239,28 @@ if(BUILD_TESTS)
             CSOUND_TEST_OSC_PLUGIN_DIR="${TEST_OSC_PLUGIN_DIR}"
             CSOUND_TEST_OSC_PLUGIN="${TEST_OSC_PLUGIN}"
             CSOUND_TEST_OSC_PLUGIN_ENV="${TEST_OSC_PLUGIN_ENV}"
+        )
+    endif()
+
+    if(APPLE AND TARGET cmidi)
+        add_dependencies(unittests cmidi)
+        # Give the test a directory with only the CoreMIDI plugin.
+        set(TEST_COREMIDI_PLUGIN_DIR
+            ${CMAKE_CURRENT_BINARY_DIR}/coremidi-plugin)
+        add_custom_target(unittests_coremidi_plugin
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+                ${TEST_COREMIDI_PLUGIN_DIR}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:cmidi> ${TEST_COREMIDI_PLUGIN_DIR}/
+            DEPENDS cmidi
+        )
+        add_dependencies(unittests unittests_coremidi_plugin)
+        target_sources(unittests PRIVATE cmidi_output_test.cpp
+                                           cmidi_input_test.cpp)
+        target_link_libraries(unittests PRIVATE
+            "-framework CoreMIDI" "-framework CoreFoundation")
+        target_compile_definitions(unittests PRIVATE
+            CSOUND_TEST_COREMIDI_PLUGIN_DIR="${TEST_COREMIDI_PLUGIN_DIR}"
         )
     endif()
 
@@ -278,6 +331,34 @@ if(BUILD_TESTS)
         add_dependencies(plugin_struct_tests struct_test_plugin)
         add_dependencies(unittests plugin_struct_tests)
         gtest_discover_tests(plugin_struct_tests)
+
+        add_library(index_test_plugin MODULE fixtures/indexed_plugin.c)
+        # Deliberately expose only installed SDK headers to this plugin.
+        set_property(TARGET index_test_plugin PROPERTY INCLUDE_DIRECTORIES
+            "${Csound_SOURCE_DIR}/include;${PROJECT_BINARY_DIR}/include")
+        if(USE_LIBSNDFILE)
+            target_include_directories(index_test_plugin PRIVATE
+                $<TARGET_PROPERTY:SndFile::sndfile,INTERFACE_INCLUDE_DIRECTORIES>)
+        endif()
+        target_compile_definitions(index_test_plugin PRIVATE BUILD_PLUGINS)
+        set_target_properties(index_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/index-plugin
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/index-plugin)
+        add_executable(plugin_index_tests plugin_index_test.cpp)
+        target_compile_options(plugin_index_tests PRIVATE ${unittests_CFLAGS})
+        target_compile_features(plugin_index_tests PRIVATE cxx_std_17)
+        target_link_libraries(plugin_index_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        file(GENERATE
+            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/index_plugin_path.hpp
+            CONTENT "#pragma once\n#define CSOUND_TEST_INDEX_PLUGIN_DIR R\"csound($<TARGET_FILE_DIR:index_test_plugin>)csound\"\n"
+            TARGET index_test_plugin)
+        target_include_directories(plugin_index_tests PRIVATE
+            ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>)
+        add_dependencies(plugin_index_tests index_test_plugin)
+        add_dependencies(unittests plugin_index_tests)
+        gtest_discover_tests(plugin_index_tests)
     endif()
 
     add_executable(json_udt_tests json_udt_test.cpp)

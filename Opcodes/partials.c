@@ -66,12 +66,12 @@ static int32_t partials_init(CSOUND * csound, _PARTS * p)
     if (UNLIKELY(p->fin1->format != PVS_AMP_FREQ)) {
       return
         csound->InitError(csound,
-                          "%s", Str("partials: first input not in AMP_FREQ format\n"));
+                          "%s\n", Str("partials: first input not in AMP_FREQ format\n"));
     }
 
     if (UNLIKELY(p->fin2->format != PVS_AMP_PHASE)) {
       csound->Warning(csound,
-                      "%s", Str("partials: no phase input, tracks will contain "
+                      "%s\n", Str("partials: no phase input, tracks will contain "
                           "amp & freq only\n"));
       p->nophase = 1;
     }
@@ -79,7 +79,7 @@ static int32_t partials_init(CSOUND * csound, _PARTS * p)
       p->nophase = 0;
 
     if (UNLIKELY(!(*p->mtrks >= FL(1.0))))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("partials: imaxtracks must be at least 1"));
 
     p->tracks = 0;
@@ -510,7 +510,7 @@ typedef struct  _partxt{
 static int32_t part2txt_init(CSOUND *csound, PARTXT *p){
 
     if (UNLIKELY(p->tracks->format != PVS_TRACKS))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("part2txt: input must be in TRACKS format"));
 
     if (p->fdch.fd != NULL)
@@ -518,7 +518,7 @@ static int32_t part2txt_init(CSOUND *csound, PARTXT *p){
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, p->fname->data,
                                    "w", "", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), p->fname->data);
+      return csound->InitError(csound, Str("Cannot open %s\n"), p->fname->data);
 
     p->lastframe = 0;
     return OK;

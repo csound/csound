@@ -43,19 +43,19 @@ static int32_t dconvset_common(CSOUND *csound, OPDS *h, DCONV_STATE *p,
     int32_t channels = p->out.channels;
 
     if (UNLIKELY(channels < 1))
-      return csound->InitError(csound, "%s", Str("dconv: invalid number of channels"));
+      return csound->InitError(csound, "%s\n", Str("dconv: invalid number of channels"));
     if (UNLIKELY(!(len >= 1.0)))
-      return csound->InitError(csound, "%s", Str("dconv: isize must be at least 1"));
+      return csound->InitError(csound, "%s\n", Str("dconv: isize must be at least 1"));
     if ((ftp = csound->FTFind(csound, ifn)) == NULL)
-      return csound->InitError(csound, "%s", Str("No table for dconv"));
+      return csound->InitError(csound, "%s\n", Str("No table for dconv"));
     uint32_t frames = ftp->flen / channels;
     if (UNLIKELY(frames < 1))
-      return csound->InitError(csound, "%s", Str("dconv: insufficient IR data for convolution"));
+      return csound->InitError(csound, "%s\n", Str("dconv: insufficient IR data for convolution"));
     p->ftp = ftp;
     /* isize counts frames, each containing one tap per output channel. */
     p->len = len >= frames ? frames : (uint32_t)len;
     if (UNLIKELY((uint64_t)p->len * sizeof(cs_float) > SIZE_MAX))
-      return csound->InitError(csound, "%s", Str("dconv: impulse response too large"));
+      return csound->InitError(csound, "%s\n", Str("dconv: impulse response too large"));
     if (conv_output_init(csound, h, &p->out) != OK)
       return NOTOK;
     nbytes = (size_t)p->len * sizeof(cs_float);
@@ -716,7 +716,7 @@ static int32_t vcombset(CSOUND *csound, VCOMB *p)
     if (UNLIKELY(!((cs_double) samples >= 1.0 &&
                    (cs_double) samples <= (INT32_MAX + 0.0) &&
                    (cs_double) samples <= (cs_double)(SIZE_MAX / sizeof(cs_float))))) {
-      return csound->InitError(csound, "%s", Str("illegal loop time"));
+      return csound->InitError(csound, "%s\n", Str("illegal loop time"));
     }
     uint32_t lpsiz = (uint32_t) samples;
     size_t nbytes = (size_t) lpsiz * sizeof(cs_float);
@@ -724,7 +724,7 @@ static int32_t vcombset(CSOUND *csound, VCOMB *p)
       csound->AuxAlloc(csound, nbytes, &p->auxch);
       p->pntr = (cs_float *) p->auxch.auxp;
       if (UNLIKELY(p->pntr==NULL)) {
-        return csound->InitError(csound, "%s", Str("could not allocate memory"));
+        return csound->InitError(csound, "%s\n", Str("could not allocate memory"));
       }
     }
     else if (!(*p->istor)) {
@@ -812,7 +812,7 @@ static int32_t vcomb(CSOUND *csound, VCOMB *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("vcomb: not initialised"));
+                             "%s\n", Str("vcomb: not initialised"));
 }
 
 static int32_t valpass(CSOUND *csound, VCOMB *p)
@@ -872,7 +872,7 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("valpass: not initialised"));
+                             "%s\n", Str("valpass: not initialised"));
 }
 
 #undef VCOMB_DELAY
@@ -888,25 +888,25 @@ static int32_t ftmorfset(CSOUND *csound, FTMORF *p)
       p->resfn = ftp, len = p->resfn->flen;
     }
     else {
-      return csound->InitError(csound, "%s", Str("iresfn for ftmorf does not exist"));
+      return csound->InitError(csound, "%s\n", Str("iresfn for ftmorf does not exist"));
     }
     /* make sure ftfn exists and set it up */
     if (LIKELY((ftp = csound->FTFind(csound, p->iftfn)) != NULL)) {
       p->ftfn = ftp;
     }
     else {
-      return csound->InitError(csound, "%s", Str("iftfn for ftmorf does not exist"));
+      return csound->InitError(csound, "%s\n", Str("iftfn for ftmorf does not exist"));
     }
 
     do {                /* make sure tables in ftfn exist and are right size*/
       if (LIKELY((ftp = csound->FTFind(csound, p->ftfn->ftable + j)) != NULL)) {
         if (UNLIKELY((uint32_t)ftp->flen != len)) {
           return csound->InitError(csound,
-                                   "%s", Str("table in iftfn for ftmorf wrong size"));
+                                   "%s\n", Str("table in iftfn for ftmorf wrong size"));
         }
       }
       else {
-        return csound->InitError(csound, "%s", Str("table in iftfn for ftmorf "
+        return csound->InitError(csound, "%s\n", Str("table in iftfn for ftmorf "
                                              "does not exist"));
       }
     } while (++j < (int32_t)p->ftfn->flen);
@@ -930,7 +930,7 @@ static int32_t ftmorf(CSOUND *csound, FTMORF *p)
       ndx = (cs_double)p->ftfn->flen - 1.0;
     else if (UNLIKELY(!(ndx >= 0.0)))
       return csound->PerfError(csound, &(p->h),
-                              "%s", Str("ftmorf: invalid index"));
+                              "%s\n", Str("ftmorf: invalid index"));
     if (p->ftndx != ndx) {
       i = (uint32_t)ndx;
       f = (cs_float)(ndx - i);
@@ -940,10 +940,10 @@ static int32_t ftmorf(CSOUND *csound, FTMORF *p)
       /* The table list may have changed since initialisation. */
       if (UNLIKELY(ftp1 == NULL || ftp2 == NULL))
         return csound->PerfError(csound, &(p->h),
-                                "%s", Str("ftmorf: source table does not exist"));
+                                "%s\n", Str("ftmorf: source table does not exist"));
       if (UNLIKELY(ftp1->flen != p->len || ftp2->flen != p->len))
         return csound->PerfError(csound, &(p->h),
-                                "%s", Str("ftmorf: source table has wrong size"));
+                                "%s\n", Str("ftmorf: source table has wrong size"));
       /* Interpolating readers also need the source tables' guard points. */
       for (j = 0; j <= p->len; j++)
         p->resfn->ftable[j] = ftp1->ftable[j] * (FL(1.0) - f) +

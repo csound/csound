@@ -536,10 +536,10 @@ extern "C" {
 
 
   /**
-   * retrieves a module name and type ("audio" or "midi") given a
+   * Retrieves a module name and type ("audio" or "midi") given a
    * number Modules are added to list as csound loads them returns
    * CSOUND_SUCCESS on success and CSOUND_ERROR if module number
-   * was not found
+   * was not found. The first call may load the default modules.
    *
    * \code
    *  char *name, *type;
@@ -782,18 +782,20 @@ extern "C" {
    *
    *  @{ */
   /**
-   * Displays an informational message.
+   * Displays an informational message exactly as formatted, without adding
+   * a newline. Calls may supply fragments of a line.
    */
   PUBLIC CS_PRINTF2 void csoundMessage(CSOUND *, const char *format, ...);
 
   /**
    * Print message with special attributes (see msg_attr.h for the list of
    * available attributes). With attr=0, csoundMessageS() is identical to
-   * csoundMessage().
+   * csoundMessage(). No newline is added.
    */
   PUBLIC CS_PRINTF3 void csoundMessageS(CSOUND *,int32_t attr, const char *format,
                                         ...);
 
+  /** The va_list form of csoundMessageS(), with the same newline behavior. */
   PUBLIC void csoundMessageV(CSOUND *, int32_t attr, const char *format,
                              va_list args);
 

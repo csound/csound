@@ -51,7 +51,7 @@ static int32_t pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     FSIG_HANDLE **phandle = NULL;
 
     if (UNLIKELY(p->fin->sliding))
-      return csound->InitError(csound, "%s", Str("SDFT case not implemented yet"));
+      return csound->InitError(csound, "%s\n", Str("SDFT case not implemented yet"));
     if (p->handmem.auxp == NULL)
       csound->AuxAlloc(csound, sizeof(FSIG_HANDLE), &p->handmem);
     p->handle = (FSIG_HANDLE *) p->handmem.auxp;
@@ -85,7 +85,7 @@ static int32_t pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     if (phandle == NULL)
       return
         csound->InitError(csound,
-                          "%s", Str("error... could not create global var for handle\n"));
+                          "%s\n", Str("error... could not create global var for handle\n"));
     else
       *phandle = p->handle;
      }
@@ -144,7 +144,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
     if (phandle == NULL)
       return csound->InitError(csound,
-                               "%s", Str("error... could not read handle from "
+                               "%s\n", Str("error... could not read handle from "
                                    "global variable\n"));
     else
       handle = *phandle;
@@ -193,7 +193,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
      if (phandle == NULL)
        csound->PerfError(csound, &(p->h),
-                         "%s", Str("error... could not read handle "
+                         "%s\n", Str("error... could not read handle "
                              "from global variable\n"));
      else
        handle = *phandle;
@@ -246,7 +246,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
    return OK;
  err1:
    return csound->PerfError(csound, &(p->h),
-                             "%s", Str("Invalid buffer handle"));
+                             "%s\n", Str("Invalid buffer handle"));
   }
 
 
@@ -267,7 +267,7 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
       phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
       if (phandle == NULL)
         csound->PerfError(csound, &(p->h),
-                          "%s", Str("error... could not read handle from "
+                          "%s\n", Str("error... could not read handle from "
                               "global variable\n"));
       else
         handle = *phandle;
@@ -324,7 +324,7 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("Invalid buffer handle"));
+                             "%s\n", Str("Invalid buffer handle"));
   }
 
 

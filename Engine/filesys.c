@@ -392,7 +392,7 @@ static void overwrite_warning(CSOUND *csound, const char *name) {
   int32_t fd;
   fd = open(name, WR_OPTS | O_EXCL);
   if(fd == -1)
-    csoundWarning(csound, Str("file %s exists...\n...will be overwritten"), name);
+    csoundWarning(csound, Str("file %s exists...\n...will be overwritten\n"), name);
   else 
     close(fd);
 }
@@ -732,7 +732,7 @@ static void *csoundFileOpenInternal(
     /* check file type */
     if (UNLIKELY((uint32_t) (type - 1) >= (uint32_t) CSFILE_SND_W)) {
       csoundErrorMsg(csound, Str("internal error: csoundFileOpen(): "
-                                 "invalid type: %d"), type);
+                                 "invalid type: %d\n"), type);
       return NULL;
     }
     /* get full name and open file */
@@ -987,8 +987,9 @@ void *csoundCreateFileHandle(CSOUND *csound,
       p->sf = *((SNDFILE**) fd);
       break;
     default:
-      csoundErrorMsg(csound, Str("internal error: csoundCreateFileHandle(): "
-                                 "invalid type: %d"), type);
+      csoundErrorMsg(csound,
+                        Str("internal error: csoundCreateFileHandle(): "
+                                 "invalid type: %d\n"), type);
       csound->Free(csound, p);
       return NULL;
     }
@@ -1159,7 +1160,8 @@ int32_t csoundFileClose(CSOUND *csound, void *fd, uint32_t closeFlags)
     CSFILE *p = (CSFILE *) fd;
 
     if (UNLIKELY(closeFlags & ~CSFILE_CLOSE_DEFER)) {
-      csoundErrorMsg(csound, Str("csoundFileClose: invalid close flags: %u"),
+      csoundErrorMsg(csound,
+                        Str("csoundFileClose: invalid close flags: %u\n"),
                      closeFlags);
       return CSOUND_ERROR;
     }

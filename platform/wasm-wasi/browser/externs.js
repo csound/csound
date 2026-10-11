@@ -333,3 +333,57 @@ var SABMainProxy;
  * audioStreamOut: SharedArrayBuffer,
  * }}  */
 var CsoundWorkerMain;
+
+// WASI imports are looked up by name in uploaded WebAssembly modules.
+/** @typedef {{
+ * args_sizes_get: function(...*): *,
+ * args_get: function(...*): *,
+ * environ_sizes_get: function(...*): *,
+ * environ_get: function(...*): *,
+ * clock_res_get: function(...*): *,
+ * clock_time_get: function(...*): *,
+ * fd_advise: function(...*): *,
+ * fd_allocate: function(...*): *,
+ * fd_close: function(...*): *,
+ * fd_datasync: function(...*): *,
+ * fd_fdstat_get: function(...*): *,
+ * fd_fdstat_set_flags: function(...*): *,
+ * fd_fdstat_set_rights: function(...*): *,
+ * fd_filestat_get: function(...*): *,
+ * fd_filestat_set_size: function(...*): *,
+ * fd_filestat_set_times: function(...*): *,
+ * fd_pread: function(...*): *,
+ * fd_prestat_get: function(...*): *,
+ * fd_prestat_dir_name: function(...*): *,
+ * fd_pwrite: function(...*): *,
+ * fd_read: function(...*): *,
+ * fd_readdir: function(...*): *,
+ * fd_renumber: function(...*): *,
+ * fd_seek: function(...*): *,
+ * fd_sync: function(...*): *,
+ * fd_tell: function(...*): *,
+ * fd_write: function(...*): *,
+ * path_create_directory: function(...*): *,
+ * path_filestat_get: function(...*): *,
+ * path_filestat_set_times: function(...*): *,
+ * path_link: function(...*): *,
+ * path_open: function(...*): *,
+ * path_readlink: function(...*): *,
+ * path_remove_directory: function(...*): *,
+ * path_rename: function(...*): *,
+ * path_symlink: function(...*): *,
+ * path_unlink_file: function(...*): *,
+ * poll_oneoff: function(...*): *,
+ * proc_exit: function(...*): *,
+ * proc_raise: function(...*): *,
+ * sched_yield: function(...*): *,
+ * random_get: function(...*): *,
+ * sock_recv: function(...*): *,
+ * sock_send: function(...*): *,
+ * sock_shutdown: function(...*): *,
+ * sock_accept: function(...*): *,
+ * }} */
+var WasiCommandImports;
+
+/** @typedef {{memory: !WebAssembly.Memory, _start: function(): *, _initialize: function(): *}} */
+var WasiCommandExports;

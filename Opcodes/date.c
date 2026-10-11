@@ -95,13 +95,13 @@ static int32_t datestringset(CSOUND *csound, DATESTRING *p)
       cs_double limit = ldexp(1.0, sizeof(time_t) * CHAR_BIT -
                           ((time_t)-1 < (time_t)0));
       if (UNLIKELY(!(seconds >= 0.0 && seconds < limit)))
-        return csound->InitError(csound, "%s", Str("dates: time out of range"));
+        return csound->InitError(csound, "%s\n", Str("dates: time out of range"));
       temp_time = (time_t)seconds;
     }
 
     time_string = ctime(&temp_time);
     if (UNLIKELY(time_string == NULL))
-      return csound->InitError(csound, "%s", Str("dates: time out of range"));
+      return csound->InitError(csound, "%s\n", Str("dates: time out of range"));
     if (p->Stime_->data != NULL) csound->Free(csound, p->Stime_->data);
     p->Stime_->data = csound->Strdup(csound, time_string);
     p->Stime_->size = strlen(time_string)+1;
@@ -186,7 +186,7 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
       p->Sline->size = MAXLINE;
     }
     if (UNLIKELY(p->fd==NULL))
-      return csound->InitError(csound, "%s", Str("readf: failed to open file"));
+      return csound->InitError(csound, "%s\n", Str("readf: failed to open file"));
     return OK;
 }
 
@@ -219,7 +219,7 @@ static int32_t readf(CSOUND *csound, READF *p)
       }
       else
         return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("readf: read failure"));
+                                 "%s\n", Str("readf: read failure"));
     }
     *p->line = ++p->lineno;
     return OK;

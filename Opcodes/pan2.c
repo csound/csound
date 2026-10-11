@@ -46,7 +46,7 @@ static int32_t pan2set(CSOUND *csound, PAN2 *p)
 {
     int32_t type = p->type = CS_FLOAT2LRND(*p->itype);
     if (UNLIKELY(type <0 || type > 3))
-      return csound->InitError(csound, "%s", Str("Unknown panning type"));
+      return csound->InitError(csound, "%s\n", Str("Unknown panning type"));
     p->lastpan = -FL(1.0);
     return OK;
 }
@@ -175,7 +175,7 @@ typedef struct {
 static int32_t pan2arr_set(CSOUND *csound, PAN2ARR *p) {
     int32_t type = p->type = CS_FLOAT2LRND(*p->itype);
     if (UNLIKELY(type <0 || type > 3))
-      return csound->InitError(csound, "%s", Str("Unknown panning type"));
+      return csound->InitError(csound, "%s\n", Str("Unknown panning type"));
     // p->lastpan = -FL(1.0);
     if (UNLIKELY(tabinit(csound, p->out, 2, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);

@@ -228,7 +228,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     if (q == NULL) {
       if (UNLIKELY(csound->CreateGlobalVariable(csound, "serialGlobals_",
                                                sizeof(SERIAL_GLOBALS)) != 0)) {
-        csound->InitError(csound, Str("serial: failed to allocate globals"));
+        csound->InitError(csound, Str("serial: failed to allocate globals\n"));
         return -1;
       }
       q = (SERIAL_GLOBALS*) csound->QueryGlobalVariable(csound,
@@ -253,7 +253,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     dcbSerialParams.DCBlength=sizeof(dcbSerialParams);
     if (UNLIKELY(!GetCommState(hSerial, &dcbSerialParams))) {
       CloseHandle(hSerial);
-      return csound->InitError(csound, Str("Cannot read serial port settings"));
+      return csound->InitError(csound, Str("Cannot read serial port settings\n"));
     }
     switch (baud) {
     case 1200:  dcbSerialParams.BaudRate = CBR_1200; break;
@@ -279,7 +279,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     if (UNLIKELY(!SetCommState(hSerial, &dcbSerialParams) ||
                  !SetCommTimeouts(hSerial, &timeouts))) {
       CloseHandle(hSerial);
-      return csound->InitError(csound, Str("Cannot configure serial port"));
+      return csound->InitError(csound, Str("Cannot configure serial port\n"));
     }
     for (i=0; i<q->maxind; i++) {
       if (q->handles[i]==NULL) {
@@ -289,7 +289,7 @@ int32_t serialport_init(CSOUND *csound, const char* serialport, int32_t baud)
     }
     if (UNLIKELY(q->maxind>=10)) {
       CloseHandle(hSerial);
-      csound->InitError(csound, Str("Number of serial handles exhausted"));
+      csound->InitError(csound, Str("Number of serial handles exhausted\n"));
       return -1;
     }
     q->handles[q->maxind++] = hSerial;
@@ -336,7 +336,7 @@ int32_t serialEnd(CSOUND *csound, SERIALEND *p)
                                                       "serialGlobals_");
     HANDLE port = get_port(csound, *p->port);
     if (UNLIKELY(port == NULL))
-      return csound->PerfError(csound, &(p->h), Str("Nothing to close"));
+      return csound->PerfError(csound, &(p->h), Str("Nothing to close\n"));
     if (UNLIKELY(!CloseHandle(port))) return NOTOK;
     q->handles[(int32_t)*p->port] = NULL;
 #else
@@ -559,27 +559,27 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
     ARDUINO_GLOBALS *q = (ARDUINO_GLOBALS*)
       csound->QueryGlobalVariable(csound, "arduinoGlobals_");
     if (q != NULL && q->thread != NULL)
-      return csound->InitError(csound, "%s", Str("arduinoStart already running\n"));
+      return csound->InitError(csound, "%s\n", Str("arduinoStart already running\n"));
     if (q == NULL) {
       if (csound->CreateGlobalVariable(csound, "arduinoGlobals_", sizeof(*q)) != 0)
-        return csound->InitError(csound, "%s", Str("arduino: failed to allocate globals"));
+        return csound->InitError(csound, "%s\n", Str("arduino: failed to allocate globals"));
       q = (ARDUINO_GLOBALS*)csound->QueryGlobalVariable(csound, "arduinoGlobals_");
       q->csound = csound;
       q->portIndex = -1;
       q->lock = csound->Create_Mutex(0);
       if (q->lock == NULL) {
         csound->DestroyGlobalVariable(csound, "arduinoGlobals_");
-        return csound->InitError(csound, "%s", Str("arduino: failed to create mutex"));
+        return csound->InitError(csound, "%s\n", Str("arduino: failed to create mutex"));
       }
       if (csound->RegisterResetCallback(csound, q, arduino_reset) != OK) {
         csound->DestroyMutex(q->lock);
         csound->DestroyGlobalVariable(csound, "arduinoGlobals_");
-        return csound->InitError(csound, "%s", Str("arduino: failed to register cleanup"));
+        return csound->InitError(csound, "%s\n", Str("arduino: failed to register cleanup"));
       }
     }
     int32_t port = serialport_init(csound, p->portName->data, *p->baudRate);
     if (port < 0)
-      return csound->InitError(csound, "%s", Str("failed to open serial line\n"));
+      return csound->InitError(csound, "%s\n", Str("failed to open serial line\n"));
     q->portIndex = port;
 #ifdef WIN32
     q->port = get_port(csound, port);
@@ -587,7 +587,7 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
     timeouts.ReadIntervalTimeout = MAXDWORD;
     if (!SetCommTimeouts(q->port, &timeouts)) {
       arduino_close_port(csound, q);
-      return csound->InitError(csound, "%s", Str("arduino: failed to set read timeout"));
+      return csound->InitError(csound, "%s\n", Str("arduino: failed to set read timeout"));
     }
 #else
     q->port = port;
@@ -601,7 +601,7 @@ int32_t arduinoStart(CSOUND* csound, ARD_START* p)
     if (q->thread == NULL) {
       ATOMIC_SET(q->stop, 1);
       arduino_close_port(csound, q);
-      return csound->InitError(csound, "%s", Str("arduino: failed to create thread"));
+      return csound->InitError(csound, "%s\n", Str("arduino: failed to create thread"));
     }
     p->q = q;
     p->generation = q->generation;
@@ -614,7 +614,7 @@ int32_t arduinoReadSetup(CSOUND* csound, ARD_READ* p)
     p->q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "arduinoGlobals_");
     if (p->q == NULL || p->q->thread == NULL || *p->port != p->q->portIndex)
-      return csound->InitError(csound, "%s", Str("arduinoStart not running\n"));
+      return csound->InitError(csound, "%s\n", Str("arduinoStart not running\n"));
     p->generation = p->q->generation;
     p->yt1 = FL(0.0);
     /* Initialise port filter */
@@ -633,12 +633,12 @@ int32_t arduinoRead(CSOUND* csound, ARD_READ* p)
     cs_float val;
     if (!(*p->index >= 0 && *p->index < MAXSENSORS))
       return csound->PerfError(csound, &p->h,
-                               "%s", Str("out of range\n"));
+                               "%s\n", Str("out of range\n"));
     int32_t ind = (int32_t)*p->index;
     csound->LockMutex(q->lock);
     if (p->generation != q->generation || ATOMIC_GET(q->stop)) {
       csound->UnlockMutex(q->lock);
-      return csound->PerfError(csound, &p->h, "%s", Str("arduinoStart not running\n"));
+      return csound->PerfError(csound, &p->h, "%s\n", Str("arduinoStart not running\n"));
     }
     val = (cs_float)q->values[ind];
     csound->UnlockMutex(q->lock);
@@ -652,7 +652,7 @@ int32_t arduinoReadFSetup(CSOUND* csound, ARD_READF* p)
     p->q = (ARDUINO_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                       "arduinoGlobals_");
     if (p->q == NULL || p->q->thread == NULL || *p->port != p->q->portIndex)
-      return csound->InitError(csound, "%s", Str("arduinoStart not running\n"));
+      return csound->InitError(csound, "%s\n", Str("arduinoStart not running\n"));
     p->generation = p->q->generation;
     return OK;
 }
@@ -664,7 +664,7 @@ int32_t arduinoReadF(CSOUND* csound, ARD_READF* p)
     if (!(*p->index1 >= 0 && *p->index1 < MAXSENSORS &&
           *p->index2 >= 0 && *p->index2 < MAXSENSORS &&
           *p->index3 >= 0 && *p->index3 < MAXSENSORS))
-      return csound->PerfError(csound, &p->h, "%s", Str("out of range\n"));
+      return csound->PerfError(csound, &p->h, "%s\n", Str("out of range\n"));
     int32_t ind1 = (int32_t)*p->index1;
     int32_t ind2 = (int32_t)*p->index2;
     int32_t ind3 = (int32_t)*p->index3;
@@ -672,7 +672,7 @@ int32_t arduinoReadF(CSOUND* csound, ARD_READF* p)
     csound->LockMutex(q->lock);
     if (p->generation != q->generation || ATOMIC_GET(q->stop)) {
       csound->UnlockMutex(q->lock);
-      return csound->PerfError(csound, &p->h, "%s", Str("arduinoStart not running\n"));
+      return csound->PerfError(csound, &p->h, "%s\n", Str("arduinoStart not running\n"));
     }
     c1 = q->values[ind1];
     c2 = q->values[ind2];
@@ -694,7 +694,7 @@ int32_t arduinoStop(CSOUND* csound, ARD_START* p)
       csound->Message(csound, "%s\n", Str("arduino not running"));
     else {
       if (*p->returnedPort != q->portIndex && q->thread != NULL)
-        return csound->InitError(csound, "%s", Str("Invalid Arduino port"));
+        return csound->InitError(csound, "%s\n", Str("Invalid Arduino port"));
       arduino_shutdown(csound, q);
     }
     return OK;

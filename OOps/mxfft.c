@@ -171,7 +171,7 @@ static void fft_(CSOUND *csound, cs_float *a, cs_float *b,
       maxp = m + kt + 1;
     if (UNLIKELY(m+kt > 15)) {
       csound->Warning(csound, Str("\nerror - fft parameter n has "
-                                  "more than 15 factors : %d"), n);
+                                  "more than 15 factors : %d\n"), n);
       return;
     }
     if (kt!=0) {
@@ -939,7 +939,7 @@ void csoundRealFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize)
     else {
       if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))) {
         csound->Warning(csound,
-                        Str("csoundRealFFTnp2(): invalid FFT size, %d"), FFTsize);
+                        Str("csoundRealFFTnp2(): invalid FFT size, %d\n"), FFTsize);
         return;
       }
       buf[FFTsize] = buf[FFTsize + 1] = FL(0.0);
@@ -962,7 +962,7 @@ void csoundRealFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize)
 void csoundInverseRealFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize)
 {
   if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))){
-      csound->Warning(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size"));
+      csound->Warning(csound, Str("csoundInverseRealFFTnp2(): invalid FFT size\n"));
       return;
   }
     buf[1] = buf[FFTsize + 1] = FL(0.0);
@@ -975,7 +975,7 @@ void csoundInverseComplexFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize)
 {
     if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))) {
       csound->Warning(csound,
-                      Str("csoundInverseComplexFFTnp2(): invalid FFT size, %d"),
+                      Str("csoundInverseComplexFFTnp2(): invalid FFT size, %d\n"),
                       FFTsize);
       return;
     }
@@ -986,7 +986,7 @@ void csoundComplexFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize)
 {
     if (UNLIKELY(FFTsize < 2 || (FFTsize & 1))) {
       csound->Warning(csound,
-                      Str("csoundComplexFFTnp2(): invalid FFT size, %d"),
+                      Str("csoundComplexFFTnp2(): invalid FFT size, %d\n"),
                       FFTsize);
       return;
     }

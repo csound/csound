@@ -158,18 +158,18 @@ static int32_t dssiinit(CSOUND *csound, DSSIINIT *op)
 {
     *op->result = -1;
     if (!integer(*op->index, UINT32_MAX))
-        return csound->InitError(csound, Str("DSSI4CS: invalid plugin index"));
+        return csound->InitError(csound, Str("DSSI4CS: invalid plugin index\n"));
     if (csound->GetOParms(csound)->numThreads > 1)
-        return csound->InitError(csound, Str("DSSI4CS: use one Csound performance thread"));
+        return csound->InitError(csound, Str("DSSI4CS: use one Csound performance thread\n"));
     DSSI_HOST *h = host(csound);
     if (!h) {
         if (csound->CreateGlobalVariable(csound, "$DSSI4CS", sizeof(DSSI_HOST)))
-            return csound->InitError(csound, Str("DSSI4CS: cannot create host state"));
+            return csound->InitError(csound, Str("DSSI4CS: cannot create host state\n"));
         h = host(csound);
         csound->RegisterResetCallback(csound, h, reset);
     }
     if (h->count == DSSI4CS_INSTANCES)
-        return csound->InitError(csound, Str("DSSI4CS: instance limit reached"));
+        return csound->InitError(csound, Str("DSSI4CS: instance limit reached\n"));
     char legacy_name[MAXNAME];
     const char *name;
     if (!strcmp(GetTypeForArg(op->filename)->varTypeName, "S"))
@@ -245,13 +245,13 @@ static int32_t dssiinit(CSOUND *csound, DSSIINIT *op)
     return OK;
 fail:
     destroy_plugin(csound, p);
-    return csound->InitError(csound, "DSSI4CS: %s: %s", name, Str(error));
+    return csound->InitError(csound, "DSSI4CS: %s: %s\n", name, Str(error));
 }
 
 static int32_t dssiactivate_init(CSOUND *csound, DSSIACTIVATE *p)
 {
     p->plugin = lookup(csound, *p->id);
-    return p->plugin ? OK : csound->InitError(csound, Str("DSSI4CS: invalid handle"));
+    return p->plugin ? OK : csound->InitError(csound, Str("DSSI4CS: invalid handle\n"));
 }
 
 static int same_plugin(DSSI_PLUGIN *, DSSI_PLUGIN *);
@@ -259,7 +259,7 @@ static int same_plugin(DSSI_PLUGIN *, DSSI_PLUGIN *);
 static int32_t dssiactivate(CSOUND *csound, DSSIACTIVATE *p)
 {
     if (!integer(*p->trigger, 1))
-        return csound->PerfError(csound, &p->h, Str("DSSI4CS: activation must be 0 or 1"));
+        return csound->PerfError(csound, &p->h, Str("DSSI4CS: activation must be 0 or 1\n"));
     DSSI_PLUGIN *q = p->plugin;
     if (*p->trigger && !q->active && q->dssi &&
         !q->dssi->run_synth && q->dssi->run_multiple_synths) {
@@ -268,7 +268,7 @@ static int32_t dssiactivate(CSOUND *csound, DSSIACTIVATE *p)
             if (same_plugin(q, h->plugins[i]) &&
                 h->plugins[i]->rendered_until > block_start(&p->h))
                 return csound->PerfError(csound, &p->h,
-                    Str("DSSI4CS: activate all grouped instances before rendering their block"));
+                    Str("DSSI4CS: activate all grouped instances before rendering their block\n"));
     }
     set_active(q, *p->trigger != 0);
     return OK;
@@ -282,7 +282,7 @@ static int has_synth(DSSI_PLUGIN *p)
 static int32_t synth_handle(CSOUND *csound, cs_float id, DSSI_PLUGIN **p)
 {
     *p = lookup(csound, id);
-    return has_synth(*p) ? OK : csound->InitError(csound, Str("DSSI4CS: handle is not a DSSI synth"));
+    return has_synth(*p) ? OK : csound->InitError(csound, Str("DSSI4CS: handle is not a DSSI synth\n"));
 }
 
 /* Stable insertion preserves note-on/note-off order at the same sample. */
@@ -301,11 +301,11 @@ static int32_t reserve_events(CSOUND *csound, OPDS *op, DSSI_PLUGIN *p,
                               unsigned int count, int64_t time)
 {
     if (!p->active)
-        return csound->PerfError(csound, op, Str("DSSI4CS: activate the synth before sending events"));
+        return csound->PerfError(csound, op, Str("DSSI4CS: activate the synth before sending events\n"));
     if (time < p->rendered_until)
-        return csound->PerfError(csound, op, Str("DSSI4CS: send events before rendering their block"));
+        return csound->PerfError(csound, op, Str("DSSI4CS: send events before rendering their block\n"));
     if (count > DSSI4CS_EVENTS - p->queued)
-        return csound->PerfError(csound, op, Str("DSSI4CS: event queue is full"));
+        return csound->PerfError(csound, op, Str("DSSI4CS: event queue is full\n"));
     return OK;
 }
 
@@ -322,7 +322,7 @@ static int32_t dssinote(CSOUND *csound, DSSINOTE *p)
     if (!integer(*p->note, 127) || !integer(*p->velocity, 127) ||
         !integer(*p->channel, 15) || !isfinite(samples) || samples < 0 ||
         samples > (cs_double)(INT64_MAX / 2))
-        return csound->PerfError(csound, &p->h, Str("DSSI4CS: invalid note, velocity, channel or duration"));
+        return csound->PerfError(csound, &p->h, Str("DSSI4CS: invalid note, velocity, channel or duration\n"));
     if (reserve_events(csound, &p->h, p->plugin, *p->velocity ? 2 : 1, now)) return NOTOK;
     snd_seq_event_t event = {0};
     event.type = *p->velocity ? SND_SEQ_EVENT_NOTEON : SND_SEQ_EVENT_NOTEOFF;
@@ -347,7 +347,7 @@ static int32_t dssinoteon(CSOUND *csound, DSSINOTEON *p)
 {
     if (*p->trigger == 0) return OK;
     if (!integer(*p->note, 127) || !integer(*p->velocity, 127))
-        return csound->PerfError(csound, &p->h, Str("DSSI4CS: invalid note or velocity"));
+        return csound->PerfError(csound, &p->h, Str("DSSI4CS: invalid note or velocity\n"));
     int64_t time = event_time(&p->h);
     if (reserve_events(csound, &p->h, p->plugin, 1, time)) return NOTOK;
     snd_seq_event_t event = {0};
@@ -370,7 +370,7 @@ static int32_t dssievent(CSOUND *csound, DSSIEVENT *p)
         !integer(*p->data1, 127) || !integer(*p->data2, 127) ||
         !integer(*p->offset, (int64_t)GetLocalKsmps(&p->h) - GetKsmpsOffset(&p->h) -
                                     GetEarlySmps(&p->h) - 1))
-        return csound->PerfError(csound, &p->h, Str("DSSI4CS: invalid MIDI event or sample offset"));
+        return csound->PerfError(csound, &p->h, Str("DSSI4CS: invalid MIDI event or sample offset\n"));
     snd_seq_event_t event = {0};
     int status = (int)*p->status, channel = (int)*p->channel;
     int a = (int)*p->data1, b = (int)*p->data2;
@@ -389,7 +389,7 @@ static int32_t dssievent(CSOUND *csound, DSSIEVENT *p)
         case 0xc0: event.type = SND_SEQ_EVENT_PGMCHANGE; event.data.control.value = a; break;
         case 0xd0: event.type = SND_SEQ_EVENT_CHANPRESS; event.data.control.value = a; break;
         case 0xe0: event.type = SND_SEQ_EVENT_PITCHBEND; event.data.control.value = a + 128*b - 8192; break;
-        default: return csound->PerfError(csound, &p->h, Str("DSSI4CS: unsupported MIDI status"));
+        default: return csound->PerfError(csound, &p->h, Str("DSSI4CS: unsupported MIDI status\n"));
         }
     }
     int64_t time = event_time(&p->h) + (int64_t)*p->offset;
@@ -410,7 +410,7 @@ static int32_t dssinrpn(CSOUND *csound, DSSINRPN *p)
         !integer(*p->value, 16383) ||
         !integer(*p->offset, (int64_t)GetLocalKsmps(&p->h) - GetKsmpsOffset(&p->h) -
                             GetEarlySmps(&p->h) - 1))
-        return csound->PerfError(csound, &p->h, Str("DSSI4CS: invalid NRPN event"));
+        return csound->PerfError(csound, &p->h, Str("DSSI4CS: invalid NRPN event\n"));
     int64_t time = event_time(&p->h) + (int64_t)*p->offset;
     if (reserve_events(csound, &p->h, p->plugin, 1, time)) return NOTOK;
     snd_seq_event_t event = {0};
@@ -561,12 +561,12 @@ static int32_t dssiaudio_init(CSOUND *csound, DSSIAUDIO *p)
 {
     p->plugin = lookup(csound, *p->id);
     DSSI_PLUGIN *q = p->plugin;
-    if (!q) return csound->InitError(csound, Str("DSSI4CS: invalid handle"));
+    if (!q) return csound->InitError(csound, Str("DSSI4CS: invalid handle\n"));
     if (q->owner && q->owner != &p->h)
-        return csound->InitError(csound, Str("DSSI4CS: each instance needs exactly one audio renderer"));
+        return csound->InitError(csound, Str("DSSI4CS: each instance needs exactly one audio renderer\n"));
     if (GetLocalKsmps(&p->h) > q->capacity ||
         GetInputArgCnt(&p->h) - 1 > q->input_count || GetOutputArgCnt(&p->h) > q->output_count)
-        return csound->InitError(csound, Str("DSSI4CS: audio port count or ksmps mismatch"));
+        return csound->InitError(csound, Str("DSSI4CS: audio port count or ksmps mismatch\n"));
     q->render_ksmps = GetLocalKsmps(&p->h);
     q->owner = &p->h;
     return OK;
@@ -599,7 +599,7 @@ static int32_t dssiaudio(CSOUND *csound, DSSIAUDIO *p)
     int64_t block = block_start(&p->h);
     if (q->last_block != block) {
         if (block + offset < q->rendered_until)
-            return csound->PerfError(csound, &p->h, Str("DSSI4CS: these samples have already rendered"));
+            return csound->PerfError(csound, &p->h, Str("DSSI4CS: these samples have already rendered\n"));
         for (unsigned long i = 0; i < q->input_count; ++i) {
             LADSPA_Data *data = q->audio[q->inputs[i]];
             memset(data, 0, size * sizeof(*data));
@@ -617,7 +617,7 @@ static int32_t dssiaudio(CSOUND *csound, DSSIAUDIO *p)
                 if (other != q && other->active && same_plugin(q, other)) {
                     if (other->rendered_until > block + offset)
                         return csound->PerfError(csound, &p->h,
-                            Str("DSSI4CS: activate all grouped instances before rendering their block"));
+                            Str("DSSI4CS: activate all grouped instances before rendering their block\n"));
                     group[count++] = other;
                 }
             }
@@ -627,7 +627,7 @@ static int32_t dssiaudio(CSOUND *csound, DSSIAUDIO *p)
                         !group[i]->owner || GetKsmpsOffset(group[i]->owner) ||
                         GetEarlySmps(group[i]->owner) || offset || end != size)
                         return csound->PerfError(csound, &p->h,
-                            Str("DSSI4CS: grouped synths need no audio inputs, matching ksmps and full blocks"));
+                            Str("DSSI4CS: grouped synths need no audio inputs, matching ksmps and full blocks\n"));
             }
         }
         render(group, count, multiple, block + offset, end - offset, offset);
@@ -651,7 +651,7 @@ static int32_t dssictls_init(CSOUND *csound, DSSICTLS *p)
 {
     p->plugin = lookup(csound, *p->id);
     if (!control_port(p->plugin, *p->port, 1))
-        return csound->InitError(csound, Str("DSSI4CS: expected an input control port"));
+        return csound->InitError(csound, Str("DSSI4CS: expected an input control port\n"));
     p->index = (unsigned long)*p->port;
     return OK;
 }
@@ -663,7 +663,7 @@ static int32_t dssictls(CSOUND *csound, DSSICTLS *p)
     if (LADSPA_IS_HINT_SAMPLE_RATE(p->plugin->ladspa->PortRangeHints[p->index].HintDescriptor))
         value *= p->plugin->sample_rate;
     if (!isfinite(value) || fabs(value) > FLT_MAX)
-        return csound->PerfError(csound, &p->h, Str("DSSI4CS: invalid control value"));
+        return csound->PerfError(csound, &p->h, Str("DSSI4CS: invalid control value\n"));
     p->plugin->control[p->index] = (LADSPA_Data)value;
     return OK;
 }
@@ -672,7 +672,7 @@ static int32_t dssiget_init(CSOUND *csound, DSSIGET *p)
 {
     p->plugin = lookup(csound, *p->id);
     if (!control_port(p->plugin, *p->port, 0))
-        return csound->InitError(csound, Str("DSSI4CS: expected a control port"));
+        return csound->InitError(csound, Str("DSSI4CS: expected a control port\n"));
     p->index = (unsigned long)*p->port;
     *p->value = p->plugin->control[p->index];
     return OK;
@@ -689,7 +689,7 @@ static int32_t dssiprogram_init(CSOUND *csound, DSSIPROGRAM *p)
 {
     p->plugin = lookup(csound, *p->id);
     if (!p->plugin || !p->plugin->dssi || !p->plugin->dssi->select_program)
-        return csound->InitError(csound, Str("DSSI4CS: plugin does not support programs"));
+        return csound->InitError(csound, Str("DSSI4CS: plugin does not support programs\n"));
     return OK;
 }
 
@@ -697,7 +697,7 @@ static int32_t dssiprogram(CSOUND *csound, DSSIPROGRAM *p)
 {
     if (*p->trigger == 0) return OK;
     if (!integer(*p->bank, UINT32_MAX) || !integer(*p->program, UINT32_MAX))
-        return csound->PerfError(csound, &p->h, Str("DSSI4CS: invalid bank or program"));
+        return csound->PerfError(csound, &p->h, Str("DSSI4CS: invalid bank or program\n"));
     p->plugin->dssi->select_program(p->plugin->handle, (unsigned long)*p->bank,
                                    (unsigned long)*p->program);
     return OK;
@@ -707,7 +707,7 @@ static int32_t dssiconfigure(CSOUND *csound, DSSICONFIGURE *p)
 {
     DSSI_PLUGIN *q = lookup(csound, *p->id);
     if (!q || !q->dssi || !q->dssi->configure)
-        return csound->InitError(csound, Str("DSSI4CS: plugin does not support configuration"));
+        return csound->InitError(csound, Str("DSSI4CS: plugin does not support configuration\n"));
     DSSI_HOST *h = host(csound);
     int global = !strncmp(p->key->data, DSSI_GLOBAL_CONFIGURE_PREFIX,
                           strlen(DSSI_GLOBAL_CONFIGURE_PREFIX));
@@ -716,7 +716,7 @@ static int32_t dssiconfigure(CSOUND *csound, DSSICONFIGURE *p)
         if (target != q && !(global && same_plugin(q, target))) continue;
         char *error = target->dssi->configure(target->handle, p->key->data, p->value->data);
         if (error) {
-            int32_t result = csound->InitError(csound, "DSSI4CS: configure: %s", error);
+            int32_t result = csound->InitError(csound, "DSSI4CS: configure: %s\n", error);
             free(error); /* DSSI specifies malloc/free ownership for this string. */
             return result;
         }
@@ -728,7 +728,7 @@ static int32_t dssiprograminfo(CSOUND *csound, DSSIPROGRAMINFO *p)
 {
     DSSI_PLUGIN *q = lookup(csound, *p->id);
     if (!q || !q->dssi || !q->dssi->get_program || !integer(*p->index, UINT32_MAX))
-        return csound->InitError(csound, Str("DSSI4CS: cannot enumerate programs"));
+        return csound->InitError(csound, Str("DSSI4CS: cannot enumerate programs\n"));
     const DSSI_Program_Descriptor *program = q->dssi->get_program(q->handle, (unsigned long)*p->index);
     const char *name = program && program->Name ? program->Name : "";
     size_t size = strlen(name) + 1;
@@ -745,7 +745,7 @@ static int32_t dssiprograminfo(CSOUND *csound, DSSIPROGRAMINFO *p)
 static int32_t dssiinfo(CSOUND *csound, DSSIINFO *p)
 {
     DSSI_PLUGIN *q = lookup(csound, *p->id);
-    if (!q) return csound->InitError(csound, Str("DSSI4CS: invalid handle"));
+    if (!q) return csound->InitError(csound, Str("DSSI4CS: invalid handle\n"));
     describe(csound, q);
     return OK;
 }

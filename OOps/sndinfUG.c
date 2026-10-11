@@ -126,7 +126,7 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
       }
     }
     if (UNLIKELY(sf == NULL && csFileType == CSFTYPE_UNKNOWN)) {
-      return csound->InitError(csound, Str("diskinfo cannot open %s"), sfname);
+      return csound->InitError(csound, Str("diskinfo cannot open %s\n"), sfname);
     }
     if (sf != NULL) {
       csFileType = csoundSndfileType2CsfileType(sfinfo.format);
@@ -295,21 +295,21 @@ static int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
       sfname = csound->oparms->infilename;  /* commandline inputfile */
       if (UNLIKELY(sfname == NULL))
         return csound->InitError(csound,
-                    Str("no infile specified in the commandline"));
+                    Str("no infile specified in the commandline\n"));
     }
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));    /* open with full dir paths */
     fd = csound->FileOpen(csound, &sf, CSFILE_SND_R, sfname, &sfinfo,
                              "SFDIR;SSDIR", CSFTYPE_UNKNOWN_AUDIO, 0);
     if (UNLIKELY(fd == NULL)) {
       /* RWD 5:2001 better to exit in this situation ! */
-      return csound->InitError(csound, Str("diskinfo cannot open %s: %s"),
+      return csound->InitError(csound, Str("diskinfo cannot open %s: %s\n"),
                                sfname, Str(csound->SndfileStrError(csound,NULL)));
     }
     if (channel <= 0) {
       if (csound->SndfileCommand(csound,sf, SFC_GET_SIGNAL_MAX, &peakVal, sizeof(double))
           == SFLIB_FALSE) {
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
-                                    "file for maximum amplitude"), sfname);
+                                    "file for maximum amplitude\n"), sfname);
         if (csound->SndfileCommand(csound,sf, SFC_CALC_NORM_SIGNAL_MAX,
                        &peakVal, sizeof(double)) != 0)
           peakVal = -1.0;
@@ -322,13 +322,13 @@ static int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
         csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
         return csound->InitError(csound,
                                  Str("Input channel for peak exceeds number "
-                                "of channels in file"));
+                                "of channels in file\n"));
       }
       nBytes = sizeof(double)* sfinfo.channels;
       peaks = (double*)csound->Malloc(csound, nBytes);
       if (csound->SndfileCommand(csound,sf, SFC_GET_MAX_ALL_CHANNELS, peaks, (int32_t) nBytes) == SFLIB_FALSE) {
         csound->Warning(csound, Str("%s: no PEAK chunk was found, scanning "
-                                    "file for maximum amplitude"), sfname);
+                                    "file for maximum amplitude\n"), sfname);
         if (csound->SndfileCommand(csound,sf, SFC_CALC_NORM_MAX_ALL_CHANNELS, peaks, (int32_t) nBytes) == 0)
           peakVal = peaks[channel - 1];
       }
@@ -338,7 +338,7 @@ static int32_t filepeak_(CSOUND *csound, SNDINFOPEAK *p, char *soundiname)
     }
     csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     if (UNLIKELY(peakVal < 0.0))
-      return csound->InitError(csound, Str("filepeak: error getting peak value"));
+      return csound->InitError(csound, Str("filepeak: error getting peak value\n"));
     /* scale output consistently with soundin opcode (see diskin2.c) */
     fmt = TYPE2ENC(sfinfo.format);
     typ = SF2TYPE(sfinfo.format);

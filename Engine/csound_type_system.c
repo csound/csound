@@ -38,7 +38,7 @@
 /* Forward declaration for p-field string extraction */
 extern char* csoundGetArgString(CSOUND *csound, cs_float p);
 
-static int32_t type_exists_with_same_name(TYPE_POOL* pool, CS_TYPE* typeInstance) {
+static int32_t type_exists_with_same_name(TYPE_POOL* pool, const CS_TYPE* typeInstance) {
     CS_TYPE_ITEM* current = pool->head;
     while (current != NULL) {
 
@@ -110,7 +110,7 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
     return NULL;
 }
 
-int32_t csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, CS_TYPE* typeInstance)
+int32_t csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool, const CS_TYPE* typeInstance)
 {
     CS_TYPE_ITEM* item;
     if (type_exists_with_same_name(pool, typeInstance)) {
@@ -576,8 +576,8 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
                                      CSOUND_STRUCT_COPY_MODE structCopyMode,
                                      int32_t initializing) {
     ASSIGN* assign = (ASSIGN*)p;
-    CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
-    CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
+    const CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
+    const CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
 
     // Check for type equivalence, handling both internal (:Type;) and external (Type) formats
     int types_different = (typeR != typeA) && !types_are_equivalent(csound, typeR->varTypeName, typeA->varTypeName);
@@ -598,12 +598,12 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
         if(assign->h.perf != copy_var_no_op)
           error = csound->PerfError(csound,&(assign->h),
             Str("Opcode given variables "
-                "with two different types: %s : %s"),
+                "with two different types: %s : %s\n"),
             resultType, argumentType);
         else
           error = csound->InitError(csound,
             Str("Opcode given variables "
-                "with two different types: %s : %s"),
+                "with two different types: %s : %s\n"),
             resultType, argumentType);
         csound->Free(csound, resultType);
         csound->Free(csound, argumentType);
@@ -669,9 +669,9 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
                      assign->h.insdshead,
                      structCopyMode) != OK)) {
         return initializing
-          ? csound->InitError(csound, Str("could not copy structured value"))
+          ? csound->InitError(csound, Str("could not copy structured value\n"))
           : csound->PerfError(csound, &assign->h,
-                              Str("could not copy structured value"));
+                              Str("could not copy structured value\n"));
       }
       return OK;
     }
@@ -693,8 +693,8 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
     ASSIGN *assign = (ASSIGN *)p;
 
     // Determine destination (right-hand?) type once.
-    CS_TYPE *destType = csoundGetTypeForArg(assign->r);
-    CS_TYPE *srcType = csoundGetTypeForArg(assign->a);
+    const CS_TYPE *destType = csoundGetTypeForArg(assign->r);
+    const CS_TYPE *srcType = csoundGetTypeForArg(assign->a);
 
     // If destination is an array, handle array-specific init/copy paths.
     if (destType == &CS_VAR_TYPE_ARRAY) {
@@ -711,7 +711,7 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
                            csound, dstArr, srcArr, assign->h.insdshead,
                            CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
               return csound->InitError(
-                csound, Str("could not copy structured array value"));
+                csound, Str("could not copy structured array value\n"));
             }
             return OK;
         }
@@ -719,7 +719,7 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
         if (csoundGetTypeForArg(dstArr) == &CS_VAR_TYPE_ARRAY) {
             if (UNLIKELY(tabinit_like(csound, dstArr, srcArr) != OK)) {
                 return csound->InitError(
-                  csound, "%s",
+                  csound, "%s\n",
                   Str("array assignment: could not initialize destination"));
             }
         }

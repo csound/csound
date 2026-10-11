@@ -169,7 +169,7 @@ void csoundFDClose(CSOUND *csound, FDCH *fdchp)
     nxtchp = nxtchp->nxtchp;
   }
   fdchprint(csound, csound->curip);
-  csound->Die(csound, Str("csoundFDClose: no record of fd %p"), fdchp->fd);
+  csound->Die(csound, Str("csoundFDClose: no record of fd %p\n"), fdchp->fd);
 }
 
 /* release all xds in instr auxp chain */

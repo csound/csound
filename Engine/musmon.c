@@ -218,8 +218,10 @@ cs_float initialise_io(CSOUND *csound) {
       O->outbufsamps = new_b;
       O->inbufsamps = new_b;
     }
-     csound->ErrorMsg(csound, Str("audio buffered in %d sample-frame blocks\n"),
-                    (int32_t) O->outbufsamps);
+    if (O->msglevel > 0) {
+      csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
+                     (int32_t) O->outbufsamps);
+    }
     O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
     O->outbufsamps *= csound->nchnls;
     set_io_backend(csound);          /* point recv & tran to audio formatter */
@@ -278,10 +280,10 @@ int32_t tempo_set(CSOUND *csound, TEMPO *p)
     cs_double tempo;
 
     if (UNLIKELY((tempo = (cs_double)*p->istartempo) <= FL(0.0))) {
-      return csound->InitError(csound, Str("illegal istartempo value"));
+      return csound->InitError(csound, Str("illegal istartempo value\n"));
     }
     if (UNLIKELY(csound->oparms->Beatmode==0))
-      return csound->InitError(csound, Str("Beat mode not in force"));
+      return csound->InitError(csound, Str("Beat mode not in force\n"));
     set_tempo(csound, tempo);
     p->prvtempo = (cs_float)tempo;
     return OK;
@@ -354,7 +356,8 @@ void print_sndfile_version(CSOUND* csound);
 int32_t start_engine(CSOUND *csound)
 {
     OPARMS  *O = csound->oparms;
-    print_sndfile_version(csound);
+    if (O->odebug > 0)
+      print_sndfile_version(csound);
 
     /* initialise search path cache */
     csoundGetSearchPathFromEnv(csound, "SNAPDIR");
@@ -400,7 +403,8 @@ int32_t start_engine(CSOUND *csound)
     csound->cyclesRemaining = 0;
     memset(&(csound->evt), 0, sizeof(EVTBLK));
 
-    print_engine_parameters(csound);
+    if(O->msglevel > 0)
+      print_engine_parameters(csound);
 
     /* Enable musmon to handle external MIDI input, if it has been enabled.
        called before init() so that any file passed -F is the first on the
@@ -436,7 +440,7 @@ int32_t start_engine(CSOUND *csound)
 
     /* run instr 0 inits */
     if (UNLIKELY(init0(csound) != 0))
-      csoundDie(csound, Str("header init errors"));
+      csoundDie(csound, Str("header init errors\n"));
 
     /* open MIDI output (moved here from argdecode) */
     if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
@@ -457,7 +461,9 @@ int32_t start_engine(CSOUND *csound)
          initialise_io(csound);
 
     if (csound->playscore!=NULL) corfile_flush(csound, csound->playscore);
-     csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    ++STA(sectno);
+    if (O->msglevel > 0)
+      csound->Message(csound, Str("SECTION %d:\n"), STA(sectno));
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
@@ -692,8 +698,7 @@ int32_t csound_cleanup(CSOUND *csound)
     /* print stats only if musmon was actually run */
     /* NOT SURE HOW   ************************** */
     // if(csound->oparms->msglevel)
-    if(!csound->info_message_request){
-      csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
+    if(!csound->info_message_request) {
       corfile_rm(csound, &csound->expanded_sco);
       for (n = 0; n < csound->nchnls; n++) {
         if (csound->smaxamp[n] > csound->omaxamp[n])
@@ -702,12 +707,22 @@ int32_t csound_cleanup(CSOUND *csound)
           csound->omaxamp[n] = csound->maxamp[n];
         STA(orngcnt)[n] += (STA(srngcnt)[n] + csound->rngcnt[n]);
       }
-      for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
-        print_maxamp(csound, *maxp++);
+      if(csound->oparms->msglevel > 0) {
+        csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
+        for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
+          print_maxamp(csound, *maxp++);
+      }
       if (csound->oparms->outformat != AE_FLOAT) {
-        csound->ErrorMsg(csound, Str("\n\t   overall samples out of range:"));
+        // only print samples out of range if there were actually any
+        size_t samples_out_of_range = 0;
         for (rngp = STA(orngcnt), n = csound->nchnls; n--; )
-          csound->ErrorMsg(csound, "%9d", *rngp++);
+          samples_out_of_range += *rngp++;
+        if (samples_out_of_range > 0) {
+          csound->ErrorMsg(csound, Str("\n\t   overall samples out of range:"));
+          for (rngp = STA(orngcnt), n = csound->nchnls; n--; ) {
+            csound->ErrorMsg(csound, "%9d", *rngp++);
+          }
+        }
       }
       if(csound->perferrcnt > 0) {
         csound->ErrorMsg(csound, Str("\n%d errors in performance\n"),
@@ -1002,7 +1017,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       cs_float n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY((insno = (int32_t) n) == 0)) {
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted. instr %s undefined"),
+                        Str(" - note deleted. instr %s undefined\n"),
                         evt->strarg);
         break;
       }
@@ -1017,7 +1032,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
                    (uint32_t) csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[insno] == NULL)) {
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted. instr %d(%d) undefined"),
+                        Str(" - note deleted. instr %d(%d) undefined\n"),
                         insno, csound->engineState.maxinsno);
         break;
       }
@@ -1032,7 +1047,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       cs_float n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY((insno = (int)n) == 0)) {
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted. instr %s undefined"),
+                        Str(" - note deleted. instr %s undefined\n"),
                         evt->strarg);
         break;
       }
@@ -1061,18 +1076,18 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
           if (reason != NULL)
             print_score_error(csound, rtEvt,
                               Str("\nINIT ERROR in instr %d (%s): note "
-                                  "deleted (%s)"),
+                                  "deleted (%s)\n"),
                               insno, evt->strarg, reason);
           else
             print_score_error(csound, rtEvt,
                               Str("\nINIT ERROR in instr %d (%s): note "
-                                  "deleted (realtime event failed with status %d)"),
+                                  "deleted (realtime event failed with status %d)\n"),
                               insno, evt->strarg, n);
         }
         else
           print_score_error(csound, rtEvt,
                             Str("\nINIT ERROR in instr %d (%s): note "
-                                "deleted (%d init errors)"),
+                                "deleted (%d init errors)\n"),
                             insno, evt->strarg, n);
       }
     }
@@ -1082,7 +1097,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
                    (unsigned int)csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[insno] == NULL)) {
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted. instr %d(%d) undefined"),
+                        Str(" - note deleted. instr %d(%d) undefined\n"),
                         insno, csound->engineState.maxinsno);
         break;
       }
@@ -1107,18 +1122,18 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
             if (reason != NULL)
               print_score_error(csound, rtEvt,
                                 Str("\nINIT ERROR in instr %d: note deleted "
-                                    "(%s)"),
+                                    "(%s)\n"),
                                 insno, reason);
             else
               print_score_error(csound, rtEvt,
                                 Str("\nINIT ERROR in instr %d: note deleted "
-                                    "(realtime event failed with status %d)"),
+                                    "(realtime event failed with status %d)\n"),
                                 insno, n);
           }
           else
             print_score_error(csound, rtEvt,
                               Str("\nINIT ERROR in instr %d: note deleted "
-                                  "(%d init errors)"),
+                                  "(%d init errors)\n"),
                               insno, n);
         }
       }
@@ -1543,7 +1558,9 @@ int32_t sense_events(CSOUND *csound)
     free_inactive_instances(csound);                      /*   rtn inactiv spc */
     if (csound->actanchor.nxtact == NULL)   /*   if no indef ins */
       free_memfiles(csound);                  /*    purge memfiles */
-    csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    STA(sectno)++;
+    if (csound->oparms->msglevel > 0)
+      csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
     RT_SPIN_UNLOCK
     goto retest;                            /*   & back for more */
   }
@@ -1828,7 +1845,8 @@ void rewind_score(CSOUND *csound)
     /* update section/overall amplitudes, reset to section 1 */
     section_amps(csound, 1);
     STA(sectno) = 1;
-    csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
+    if (csound->oparms->msglevel > 0)
+      csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
   }
 
   /* apply score offset if non-zero */

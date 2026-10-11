@@ -30,7 +30,7 @@
 #define LOWRES_CHECK_PARAMS(cutoff, resonance)                            \
     do {                                                                 \
       if (UNLIKELY(!((cutoff) > FL(0.0) && (resonance) > FL(0.0))))       \
-        return csound->PerfError(csound, &p->h, "%s",                     \
+        return csound->PerfError(csound, &p->h, "%s\n",                     \
                   Str("lowres: cutoff and resonance must be positive")); \
     } while (0)
 
@@ -222,7 +222,7 @@ static int32_t lowpr_setx(CSOUND *csound, LOWPRX *p)
     int32_t j;
     if ((p->loop = (int32_t) CS_FLOAT2LONG(*p->ord)) < 1) p->loop = 4; /*default value*/
     else if (UNLIKELY(p->loop > 10)) {
-      return csound->InitError(csound, "%s", Str("illegal order num. (min 1, max 10)"));
+      return csound->InitError(csound, "%s\n", Str("illegal order num. (min 1, max 10)"));
     }
     if (*p->istor == FL(0.0))
       for (j=0; j< p->loop; j++)  p->ynm1[j] = p->ynm2[j] = FL(0.0);
@@ -288,7 +288,7 @@ static int32_t lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
     if ((p->loop = (int32_t) CS_FLOAT2LONG(*p->ord)) < 1)
       p->loop = 4; /*default value*/
     else if (UNLIKELY(p->loop > 10)) {
-      return csound->InitError(csound, "%s", Str("illegal order num. (min 1, max 10)"));
+      return csound->InitError(csound, "%s\n", Str("illegal order num. (min 1, max 10)"));
     }
     for (j=0; j< p->loop; j++)  p->ynm1[j] = p->ynm2[j] = FL(0.0);
     return OK;

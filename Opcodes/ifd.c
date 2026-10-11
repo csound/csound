@@ -68,25 +68,25 @@ static int32_t ifd_setup(CSOUND *csound, IFD *p, cs_double requested_fft,
 
   if (UNLIKELY(!(requested_fft >= 2 && requested_fft <= (INT32_MAX + 0.0) - 2 &&
                  requested_hop >= 1 && requested_hop <= requested_fft)))
-    return csound->InitError(csound, "%s", Str("IFD: invalid FFT or hop size"));
+    return csound->InitError(csound, "%s\n", Str("IFD: invalid FFT or hop size"));
   fftsize = (int32_t) requested_fft;
   hopsize = (int32_t) requested_hop;
   if (UNLIKELY(fftsize != requested_fft || hopsize != requested_hop ||
                (fftsize & (fftsize-1)) || fftsize % hopsize))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("IFD: FFT size must be a power of two and "
                                 "an integer multiple of the hop size"));
   if (UNLIKELY(window != PVS_WIN_HAMMING && window != PVS_WIN_HANN))
-    return csound->InitError(csound, "%s", Str("IFD: unsupported window type"));
+    return csound->InitError(csound, "%s\n", Str("IFD: unsupported window type"));
   if (UNLIKELY(window == PVS_WIN_HANN && fftsize < 4))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("IFD: Hann window needs at least 4 samples"));
 
   frames = streaming ? fftsize / hopsize : 1;
   if (UNLIKELY(frames > INT32_MAX / fftsize ||
                (size_t)fftsize > SIZE_MAX / sizeof(cs_float) / frames ||
                (size_t)fftsize+2 > SIZE_MAX / sizeof(float)))
-    return csound->InitError(csound, "%s", Str("IFD: frame buffers too large"));
+    return csound->InitError(csound, "%s\n", Str("IFD: frame buffers too large"));
   p->fftsize = fftsize;
   p->hopsize = hopsize;
   p->wintype = (int32_t)window;

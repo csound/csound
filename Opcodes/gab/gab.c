@@ -43,20 +43,20 @@ static int32_t krsnsetx(CSOUND *csound, KRESONX *p)
   int32_t new_loop, scale;
   if (UNLIKELY(!isfinite(scale_value) || scale_value < (cs_double)INT32_MIN ||
                scale_value > (INT32_MAX + 0.0))) {
-    return csound->InitError(csound, Str("illegal reson iscl value, %f"),
+    return csound->InitError(csound, Str("illegal reson iscl value, %f\n"),
                              *p->iscl);
   }
   p->scale = scale = (int32_t)scale_value;
   if (UNLIKELY(scale && scale != 1 && scale != 2)) {
-    return csound->InitError(csound,Str("illegal reson iscl value, %f"),
+    return csound->InitError(csound,Str("illegal reson iscl value, %f\n"),
                              *p->iscl);
   }
   if (UNLIKELY(!isfinite(order) || order > (INT32_MAX + 0.0) - 0.5))
-    return csound->InitError(csound, Str("resonxk: invalid order %f"),
+    return csound->InitError(csound, Str("resonxk: invalid order %f\n"),
                              *p->ord);
   new_loop = order < 0.5 ? 4 : (int32_t)(order + 0.5);
   if (UNLIKELY((size_t)new_loop > SIZE_MAX / (2 * sizeof(cs_double))))
-    return csound->InitError(csound, Str("resonxk: order is too large"));
+    return csound->InitError(csound, Str("resonxk: order is too large\n"));
   clear_state |= p->aux.auxp == NULL || p->loop != new_loop;
   p->loop = new_loop;
   state_size = (size_t)p->loop * 2 * sizeof(cs_double);
@@ -125,7 +125,7 @@ static int32_t fastab_set(CSOUND *csound, FASTAB *p)
 {
   FUNC *ftp;
   if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL)) {
-    return csound->InitError(csound, "%s", Str("fastab: incorrect table number"));
+    return csound->InitError(csound, "%s\n", Str("fastab: incorrect table number"));
   }
   p->table = ftp->ftable;
   p->tablen = ftp->flen;
@@ -156,7 +156,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
       int32_t i = (int32_t)CS_FLOAT2LRND(ndx[n]*xbmul);
       if (UNLIKELY(i > len || i<0)) {
         csound->Message(csound, "ndx: %f\n", ndx[n]);
-        return csound->PerfError(csound, &(p->h), "%s", Str("tabw off end"));
+        return csound->PerfError(csound, &(p->h), "%s\n", Str("tabw off end"));
       }
       tab[i] = rslt[n];
     }
@@ -166,7 +166,7 @@ static int32_t fastabw(CSOUND *csound, FASTAB *p)
     for (n=offset; n<nsmps; n++) {
       int32_t i = CS_FLOAT2LRND(ndx[n]);
       if (UNLIKELY(i > len || i<0)) {
-        return csound->PerfError(csound, &(p->h), "%s", Str("tabw off end"));
+        return csound->PerfError(csound, &(p->h), "%s\n", Str("tabw off end"));
       }
       tab[i] = rslt[n];
     }
@@ -182,7 +182,7 @@ static int32_t fastabk(CSOUND *csound, FASTAB *p)
   else
     i = (int32_t) CS_FLOAT2LRND(*p->xndx);
   if (UNLIKELY(i > p->tablen || i<0)) {
-    return csound->PerfError(csound, &(p->h), Str("tab off end %i"), i);
+    return csound->PerfError(csound, &(p->h), Str("tab off end %i\n"), i);
   }
   *p->rslt =  p->table[i];
   return OK;
@@ -196,7 +196,7 @@ static int32_t fastabkw(CSOUND *csound, FASTAB *p)
   else
     i = (int32_t) CS_FLOAT2LRND(*p->xndx);
   if (UNLIKELY(i > p->tablen || i<0)) {
-    return csound->PerfError(csound, &(p->h), "%s", Str("tabw off end"));
+    return csound->PerfError(csound, &(p->h), "%s\n", Str("tabw off end"));
   }
   p->table[i] = *p->rslt;
   return OK;
@@ -208,7 +208,7 @@ static int32_t fastabi(CSOUND *csound, FASTAB *p)
   int32 i;
 
   if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL)) {
-    return csound->InitError(csound, "%s", Str("tab_i: incorrect table number"));
+    return csound->InitError(csound, "%s\n", Str("tab_i: incorrect table number"));
   }
   if (*p->ixmode)
     i = (int32) CS_FLOAT2LRND(*p->xndx * ftp->flen);
@@ -228,14 +228,14 @@ static int32_t fastabiw(CSOUND *csound, FASTAB *p)
   int32 i;
   /*ftp = csound->FTFind(p->xfn); */
   if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL)) {
-    return csound->InitError(csound, "%s", Str("tabw_i: incorrect table number"));
+    return csound->InitError(csound, "%s\n", Str("tabw_i: incorrect table number"));
   }
   if (*p->ixmode)
     i = (int32) CS_FLOAT2LRND(*p->xndx * ftp->flen);
   else
     i = (int32) CS_FLOAT2LRND(*p->xndx);
   if (UNLIKELY(i >= (int32)ftp->flen || i<0)) {
-    return csound->PerfError(csound, &(p->h), "%s", Str("tabw_i off end"));
+    return csound->PerfError(csound, &(p->h), "%s\n", Str("tabw_i off end"));
   }
   ftp->ftable[i] = *p->rslt;
   return OK;
@@ -261,7 +261,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
     for (i=offset; i<nsmps; i++) {
       int32_t n = (int32_t) CS_FLOAT2LRND(ndx[i] * xbmul);
       if (UNLIKELY(n > len || n<0)) {
-        return csound->PerfError(csound, &(p->h), Str("tab off end %d"),n);
+        return csound->PerfError(csound, &(p->h), Str("tab off end %d\n"),n);
       }
       rslt[i] = tab[n];
     }
@@ -271,7 +271,7 @@ static int32_t fastab(CSOUND *csound, FASTAB *p)
     for (i=offset; i<nsmps; i++) {
       int32_t n = (int32_t) CS_FLOAT2LRND(ndx[i]);
       if (UNLIKELY(n > len || n<0)) {
-        return csound->PerfError(csound, &(p->h), Str("tab off end %d"),n);
+        return csound->PerfError(csound, &(p->h), Str("tab off end %d\n"),n);
       }
       rslt[i] = tab[n];
     }
@@ -289,12 +289,12 @@ static CS_NOINLINE int32_t tab_init(CSOUND *csound, TB_INIT *p, int32_t ndx)
   FUNC *ftp = csound->FTFind(csound, p->ifn);
 
   if (UNLIKELY(ftp == NULL))
-    return csound->InitError(csound, "%s", Str("tab_init: incorrect table number"));
+    return csound->InitError(csound, "%s\n", Str("tab_init: incorrect table number"));
   slots = (cs_float **)csound->QueryGlobalVariable(csound, TB_GLOBALS);
   if (slots == NULL) {
     if (csound->CreateGlobalVariable(csound, TB_GLOBALS,
                                      16 * sizeof(*slots)) != OK)
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("tab_init: could not allocate table slots"));
     slots = (cs_float **)csound->QueryGlobalVariable(csound, TB_GLOBALS);
   }
@@ -313,7 +313,7 @@ static CS_NOINLINE int32_t tab_i_tmp(CSOUND *csound, FASTB *p, int32_t ndx)
 {
   cs_float **slots = (cs_float **)csound->QueryGlobalVariable(csound, TB_GLOBALS);
   if (UNLIKELY(slots == NULL || slots[ndx] == NULL))
-    return csound->InitError(csound, Str("tb%d: table slot is not initialized"), ndx);
+    return csound->InitError(csound, Str("tb%d: table slot is not initialized\n"), ndx);
   /* Cache the slot itself so later assignments remain visible. */
   p->tb_ptr = &slots[ndx];
   p->h.init = (SUBR) tab_perf;
@@ -325,7 +325,7 @@ static CS_NOINLINE int32_t tab_k_tmp(CSOUND *csound, FASTB *p, int32_t ndx)
   cs_float **slots = (cs_float **)csound->QueryGlobalVariable(csound, TB_GLOBALS);
   if (UNLIKELY(slots == NULL || slots[ndx] == NULL))
     return csound->PerfError(csound, &(p->h),
-                             Str("tb%d: table slot is not initialized"), ndx);
+                             Str("tb%d: table slot is not initialized\n"), ndx);
   p->tb_ptr = &slots[ndx];
   p->h.perf = (SUBR) tab_perf;
   return tab_perf(csound, p);
@@ -458,7 +458,7 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
     }
     else {
       p->inerr = 1;
-      return csound->InitError(csound, "%s", Str("adsynt2: wavetable not found!"));
+      return csound->InitError(csound, "%s\n", Str("adsynt2: wavetable not found!"));
     }
     p->floatph = !IS_POW_TWO(ftp->flen);
   count = (uint32_t)*p->icnt;
@@ -470,12 +470,12 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
   }
   else {
     p->inerr = 1;
-    return csound->InitError(csound, "%s", Str("adsynt2: freqtable not found!"));
+    return csound->InitError(csound, "%s\n", Str("adsynt2: freqtable not found!"));
   }
   if (UNLIKELY(ftp->flen < count)) {
     p->inerr = 1;
     return csound->InitError(csound,
-                             "%s", Str("adsynt2: partial count is greater "
+                             "%s\n", Str("adsynt2: partial count is greater "
                                        "than freqtable size!"));
   }
 
@@ -484,12 +484,12 @@ static int32_t adsynt2_set(CSOUND *csound,ADSYNT2 *p)
   }
   else {
     p->inerr = 1;
-    return csound->InitError(csound, "%s", Str("adsynt2: amptable not found!"));
+    return csound->InitError(csound, "%s\n", Str("adsynt2: amptable not found!"));
   }
   if (UNLIKELY(ftp->flen < count)) {
     p->inerr = 1;
     return csound->InitError(csound,
-                             "%s", Str("adsynt2: partial count is greater "
+                             "%s\n", Str("adsynt2: partial count is greater "
                                        "than amptable size!"));
   }
     if (p->lphs.auxp==NULL ||
@@ -548,7 +548,7 @@ static int32_t adsynt2(CSOUND *csound,ADSYNT2 *p)
   /* I believe this can never happen as InitError will remove instance */
   /* The check should be on p->amptp and p->freqtp  -- JPff            */
   if (UNLIKELY(p->inerr || p->amptp==NULL || p->freqtp==NULL)) {
-    return csound->InitError(csound, "%s", Str("adsynt2: not initialised"));
+    return csound->InitError(csound, "%s\n", Str("adsynt2: not initialised"));
   }
     ftp = p->ftp;
     ftbl = ftp->ftable;
@@ -629,7 +629,7 @@ static int32_t tabrec_set(CSOUND *csound,TABREC *p)
   p->ndx = 0;
   p->numins = p->INOCOUNT-4;
   if (UNLIKELY(p->numins < 1))
-    return csound->InitError(csound, "%s", Str("tabrec: no input signals"));
+    return csound->InitError(csound, "%s\n", Str("tabrec: no input signals"));
   return OK;
 }
 
@@ -639,12 +639,12 @@ static int32_t tabrec_k(CSOUND *csound,TABREC *p)
     FUNC *ftp = csound->FTFind(csound, p->kfn);
     if (UNLIKELY(ftp == NULL))
       return csound->PerfError(csound, &(p->h),
-                              Str("Invalid ftable no. %f"), *p->kfn);
+                              Str("Invalid ftable no. %f\n"), *p->kfn);
     if (UNLIKELY(ftp->flen <= (uint32_t)p->numins))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                               Str("tabrec: table has no complete frame"));
     if (UNLIKELY(!(*p->numtics > FL(0.0))))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                               Str("tabrec: tick count must be positive"));
     /* Keep the tick-count header separate from the recorded frames. */
     ftp->ftable[0] = *p->numtics;
@@ -658,7 +658,7 @@ static int32_t tabrec_k(CSOUND *csound,TABREC *p)
     int32_t j;
     if (*p->ktrig_stop) {
       if (UNLIKELY(!(*p->numtics > FL(0.0))))
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                 Str("tabrec: tick count must be positive"));
       p->currtic++;
     }
@@ -681,7 +681,7 @@ static int32_t tabplay_set(CSOUND *csound,TABPLAY *p)
   p->numouts = p->INOCOUNT-3;
   p->table = NULL;
   if (UNLIKELY(p->numouts < 1))
-    return csound->InitError(csound, "%s", Str("tabplay: no output signals"));
+    return csound->InitError(csound, "%s\n", Str("tabplay: no output signals"));
   return OK;
 }
 
@@ -691,12 +691,12 @@ static int32_t tabplay_k(CSOUND *csound,TABPLAY *p)
     FUNC *ftp = csound->FTFind(csound, p->kfn);
     if (UNLIKELY(ftp == NULL))
       return csound->PerfError(csound, &(p->h),
-                              Str("Invalid ftable no. %f"), *p->kfn);
+                              Str("Invalid ftable no. %f\n"), *p->kfn);
     if (UNLIKELY(ftp->flen <= (uint32_t)p->numouts))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                               Str("tabplay: table has no complete frame"));
     if (UNLIKELY(!(*p->numtics > FL(0.0))))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                               Str("tabplay: tick count must be positive"));
     if (p->table == NULL || *p->kfn != p->old_fn ||
         p->table != ftp->ftable + 1) {
@@ -782,7 +782,7 @@ static int32_t isAChanged_set(CSOUND *csound, ISACHANGED *p)
 {
   size_t size;
   if (UNLIKELY(isAChanged_size(p->chk, &size) != OK))
-    return csound->InitError(csound, "%s", Str("changed2: invalid array size"));
+    return csound->InitError(csound, "%s\n", Str("changed2: invalid array size"));
   if (size > p->old_chk.size)
     csound->AuxAlloc(csound, size, &p->old_chk);
   p->size = size;
@@ -797,7 +797,7 @@ static int32_t isAChanged(CSOUND *csound,ISACHANGED *p)
   size_t size;
   int32_t ktrig;
   if (UNLIKELY(isAChanged_size(chk, &size) != OK))
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csound->PerfError(csound, &(p->h), "%s\n",
                              Str("changed2: invalid array size"));
   ktrig = size != p->size;
   if (size > p->old_chk.size)
@@ -869,7 +869,7 @@ static int32_t partial_maximum(CSOUND *csound,P_MAXIMUM *p)
     break;
   default:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("max_k: invalid imaxflag value"));
+                             "%s\n", Str("max_k: invalid imaxflag value"));
   }
   if (*p->ktrig) {
     *p->kout = flag == 4 ? p->max / (cs_float)p->counter : p->max;
@@ -896,7 +896,7 @@ static int32_t mandel(CSOUND *csound,MANDEL *p)
   if (*p->ktrig && (p->oldCount < 0 || px != p->oldx || py != p->oldy ||
                    limit != p->oldMaxIter)) {
     if (UNLIKELY(!((cs_double)limit >= 0.0 && (cs_double)limit <= (INT32_MAX + 0.0))))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("mandel: iteration limit out of range"));
     int32_t maxIter = (int32_t) limit, j;
     cs_float x=FL(0.0), y=FL(0.0), newx, newy;

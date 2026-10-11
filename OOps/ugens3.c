@@ -34,7 +34,7 @@ int32_t foscset(CSOUND *csound, FOSC *p)
     p->floatph = !IS_POW_TWO(p->ftp->flen);
     cs_double phase = *p->iphs;
     if (UNLIKELY(!isfinite(phase)))
-      return csound->InitError(csound, "%s", Str("foscil: invalid initial phase"));
+      return csound->InitError(csound, "%s\n", Str("foscil: invalid initial phase"));
     if (phase >= 0.0) {
       phase -= floor(phase);
       p->cphs = p->mphs = (int32_t)(phase * FMAXLEN);
@@ -164,7 +164,7 @@ int32_t foscil(CSOUND *csound, FOSC *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("foscil: not initialised"));
+                           Str("foscil: not initialised\n"));
 }
 
 int32_t foscili(CSOUND *csound, FOSC *p)
@@ -296,7 +296,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           Str("foscili: not initialised"));
+                           Str("foscili: not initialised\n"));
 }
 
 
@@ -314,13 +314,13 @@ int32_t losset(CSOUND *csound, LOSC *p)
       p->cpscvt = (ftp->cvtbas / *p->ibas); 
     else if (UNLIKELY((p->cpscvt = ftp->cpscvt) == FL(0.0))) {
       p->cpscvt = FL(1.0) /FL(261.62556530059862592); /* Middle C */
-      csound->Warning(csound, Str("no legal base frequency"));
+      csound->Warning(csound, Str("no legal base frequency\n"));
     }
     //printf("****cpscvt = %g\n", p->cpscvt);
     if ((p->mod1 = (int16) *p->imod1) < 0) {
       if (UNLIKELY((p->mod1 = ftp->loopmode1) == 0)) {
         csound->Warning(csound, Str("loscil: sustain defers to "
-                                    "non-looping source"));
+                                    "non-looping source\n"));
       }
       p->beg1 = ftp->begin1;
       p->end1 = ftp->end1;
@@ -380,22 +380,22 @@ int32_t losset(CSOUND *csound, LOSC *p)
       p->stereo = 0;
       if (UNLIKELY(ftp->nchanls != 1))
         return csound->InitError(csound, Str(
-                                             "mono loscil cannot read from stereo ftable"));
+                                             "mono loscil cannot read from stereo ftable\n"));
     }
     else {
       p->stereo = 1;
       if (UNLIKELY(ftp->nchanls != 2))
         return csound->InitError(csound, Str(
-                                             "stereo loscil cannot read from mono ftable"));
+                                             "stereo loscil cannot read from mono ftable\n"));
     }
     return OK;
   }
   return NOTOK;
 
  lerr2:
-  return csound->InitError(csound, Str("illegal sustain loop data"));
+  return csound->InitError(csound, Str("illegal sustain loop data\n"));
  lerr3:
-  return csound->InitError(csound, Str("illegal release loop data"));
+  return csound->InitError(csound, Str("illegal release loop data\n"));
 }
 
 int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
@@ -409,13 +409,13 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
       p->cpscvt = (ftp->cvtbas / *p->ibas); 
     else if (UNLIKELY((p->cpscvt = ftp->cpscvt) == FL(0.0))) {
       p->cpscvt = FL(1.0) /FL(261.62556530059862592); /* Middle C */
-      csound->Warning(csound, Str("no legal base frequency"));
+      csound->Warning(csound, Str("no legal base frequency\n"));
     }
     //printf("****cpscvt = %g\n", p->cpscvt);
     if ((p->mod1 = (int16) *p->imod1) < 0) {
       if (UNLIKELY((p->mod1 = ftp->loopmode1) == 0)) {
         csound->Warning(csound, Str("loscil: sustain defers to "
-                                    "non-looping source"));
+                                    "non-looping source\n"));
       }
       p->beg1 = ftp->begin1;
       p->end1 = ftp->end1;
@@ -475,27 +475,27 @@ int32_t losset_phs(CSOUND *csound, LOSCPHS *p)
       p->stereo = 0;
       if (UNLIKELY(ftp->nchanls != 1))
         return csound->InitError(csound, Str(
-                                             "mono loscilphs cannot read from stereo ftable"));
+                                             "mono loscilphs cannot read from stereo ftable\n"));
     }
     else if (p->OUTOCOUNT == 3)
       {
         p->stereo = 1;
         if (UNLIKELY(ftp->nchanls != 2))
           return csound->InitError(csound, Str(
-                                               "stereo loscilphs cannot read from mono ftable"));
+                                               "stereo loscilphs cannot read from mono ftable\n"));
       }
     else {
       return csound->InitError(csound, Str(
-                                           "loscilphs: insufficient outputs"));
+                                           "loscilphs: insufficient outputs\n"));
     }
     return OK;
   }
   return NOTOK;
 
  lerr2:
-  return csound->InitError(csound, Str("illegal sustain loop data"));
+  return csound->InitError(csound, Str("illegal sustain loop data\n"));
  lerr3:
-  return csound->InitError(csound, Str("illegal release loop data"));
+  return csound->InitError(csound, Str("illegal release loop data\n"));
 }
 
 static inline void loscil_linear_interp_mono(cs_float *ar,
@@ -1460,7 +1460,7 @@ static int32_t validate_adsyn_track(CSOUND *csound,
   ptrdiff_t words = end - begin;
   if (UNLIKELY(words < 3 || end[-1] != 32767)) {
     return csound->InitError(csound,
-                             "%s", Str("truncated ADSYN breakpoint track"));
+                             "%s\n", Str("truncated ADSYN breakpoint track"));
   }
   return OK;
 }
@@ -1490,7 +1490,7 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
     /* readfile if reqd */
     if (UNLIKELY((mfp = csoundLoadMemoryfile(csound, filnam,
                                          CSFTYPE_HETRO, NULL)) == NULL)) {
-      return csound->InitError(csound, Str("ADSYN cannot load %s"), filnam);
+      return csound->InitError(csound, Str("ADSYN cannot load %s\n"), filnam);
     }
 
     p->mfp = mfp;                         /*   & record         */
@@ -1502,7 +1502,7 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
   if (UNLIKELY(mfp->length < (int32_t) sizeof(int16) ||
                (mfp->length % (int32_t) sizeof(int16)) != 0)) {
     return csound->InitError(csound,
-                             Str("malformed ADSYN file %s: truncated header"),
+                             Str("malformed ADSYN file %s: truncated header\n"),
                              filnam);
   }
   if (*adp == -1) {
@@ -1514,7 +1514,7 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
     if (UNLIKELY(declared_partials < 1 || declared_partials > MAXPTLS)) {
       return csound->InitError(csound,
                                Str("malformed ADSYN file %s: "
-                                   "invalid partial count"),
+                                   "invalid partial count\n"),
                                filnam);
     }
     size = declared_partials + 1;
@@ -1532,7 +1532,7 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
         return NOTOK;
       if (UNLIKELY(endata - adp < 2))
         return csound->InitError(csound,
-                                 "%s", Str("truncated ADSYN breakpoint track"));
+                                 "%s\n", Str("truncated ADSYN breakpoint track"));
       track_start = adp;
       switch (val) {
       case -1:
@@ -1548,18 +1548,18 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
         ptlfp->phs = 0;                /*  and clr the phase */
         break;
       default:
-        return csound->InitError(csound, Str("illegal code %d encountered"), val);
+        return csound->InitError(csound, Str("illegal code %d encountered\n"), val);
       }
     }
   }
   if (UNLIKELY(track_start == NULL))
     return csound->InitError(csound,
-                             Str("malformed ADSYN file %s: no tracks"),
+                             Str("malformed ADSYN file %s: no tracks\n"),
                              filnam);
   if (UNLIKELY(validate_adsyn_track(csound, track_start, endata) != OK))
     return NOTOK;
   if (UNLIKELY(ptlap != ptlfp || ptlap == (PTLPTR *) p->aux.auxp)) {
-    return csound->InitError(csound, Str("%d amp tracks, %d freq tracks"),
+    return csound->InitError(csound, Str("%d amp tracks, %d freq tracks\n"),
                              (int32_t) (ptlap - (PTLPTR*)p->aux.auxp) - 1,
                              (int32_t) (ptlfp - (PTLPTR*)p->aux.auxp) - 1);
   }
@@ -1567,7 +1567,7 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
                ptlap - (PTLPTR *) p->aux.auxp != declared_partials)) {
     return csound->InitError(csound,
                              Str("malformed ADSYN file %s: "
-                                 "partial count does not match header"),
+                                 "partial count does not match header\n"),
                              filnam);
   }
   ptlap->nxtp = NULL;   /* terminate the chain */
@@ -1576,7 +1576,7 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
   return OK;
 
  adsful:
-  return csound->InitError(csound, Str("partial count exceeds MAXPTLS"));
+  return csound->InitError(csound, Str("partial count exceeds MAXPTLS\n"));
 }
 
 int32_t adset(CSOUND *csound, ADSYN *p){
@@ -1604,7 +1604,7 @@ int32_t adsyn(CSOUND *csound, ADSYN *p)
 
   if (UNLIKELY(csound->isintab == NULL)) {      /* RWD fix */
     return csound->PerfError(csound, &(p->h),
-                             Str("adsyn: not initialised"));
+                             Str("adsyn: not initialised\n"));
   }
   /* IV - Jul 11 2002 */
   ampscale = *p->kamod * csound->e0dbfs;      /* since 15-bit sine table */

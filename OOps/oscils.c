@@ -233,7 +233,7 @@ int32_t tablexkt(CSOUND *csound, TABLEXKT *p)
     wsize = p->wsize;
     if (UNLIKELY((wsize < 2) || (wsize > 1024))) {
       return csound->PerfError(csound, &(p->h),
-                               Str("tablexkt: not initialised"));
+                               Str("tablexkt: not initialised\n"));
     }
     wsized2 = wsize >> 1;
 

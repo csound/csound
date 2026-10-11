@@ -318,7 +318,7 @@ public:
                                      swap4bytes);
       if (UNLIKELY(fpl == NULL))
         return
-          csound->InitError(csound, "%s",
+          csound->InitError(csound, "%s\n",
                             Str("\n\n\nCannot load left data file, exiting\n\n"));
 
       fpr = csound->LoadMemoryFile(csound, filer, CSFTYPE_FLOATS_BINARY,
@@ -326,7 +326,7 @@ public:
       if (UNLIKELY(fpr == NULL))
         return
           csound->InitError(csound,
-                            "%s", Str("\n\n\nCannot load right data file, exiting\n\n"));
+                            "%s\n", Str("\n\n\nCannot load right data file, exiting\n\n"));
 
       irlength_p = irlength;
       irlengthpad_p = irlengthpad;
@@ -927,7 +927,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
     /* First check bounds on initialization arguments */
     if (UNLIKELY((p->numb<1) || (p->numb>(MAXZEROS+1)) ||
                  (p->numa<0) || (p->numa>MAXPOLES)))
-      return csound->InitError(csound,  "%s", Str("Filter order out of bounds: "
+      return csound->InitError(csound,  "%s\n", Str("Filter order out of bounds: "
                                                   "(1 <= nb < 51, 0 <= na <= 50)"));
 
     /* Calculate the total delay in samples and allocate memory for it */
@@ -935,7 +935,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
     if (!isfinite(*p->type_mix) || *p->type_mix < 0 || *p->type_mix >= 3 ||
         *p->type_mix != floor(*p->type_mix))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("bformdec2: mix type must be 0, 1 or 2"));
     int32_t type_mix = (int)*p->type_mix;
 
@@ -957,38 +957,38 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
     case 16: p->order = 3; break;
     case 25: p->order = 4; break;
     case 36: p->order = 5; break;
-    default : return csound->InitError(csound, "%s", Str("illegal number of inputs"));
+    default : return csound->InitError(csound, "%s\n", Str("illegal number of inputs"));
     }
 
     if ((isetup == 1) & (p->order >= 2)) {
-      return csound->InitError(csound, "%s", Str("Stereo configuration only works with first order"));
+      return csound->InitError(csound, "%s\n", Str("Stereo configuration only works with first order"));
     }
     if ((isetup == 2) & (p->order >= 2)) {
-      return csound->InitError(csound, "%s", Str("Quad configuration only works with first order"));
+      return csound->InitError(csound, "%s\n", Str("Quad configuration only works with first order"));
     }
 
     if ((isetup == 3) & (p->order >= 3)) {
-      return csound->InitError(csound, "%s", Str("5.0 configuration only works with first and second order"));
+      return csound->InitError(csound, "%s\n", Str("5.0 configuration only works with first and second order"));
     }
 
     if ((isetup == 4) & (p->order >= 4)) {
-      return csound->InitError(csound, "%s", Str("Octagon configuration only works with first, second and third order"));
+      return csound->InitError(csound, "%s\n", Str("Octagon configuration only works with first, second and third order"));
     }
 
     if ((isetup == 5) & (p->order >= 2)) {
-      return csound->InitError(csound, "%s", Str("Cube configuration only works with first order"));
+      return csound->InitError(csound, "%s\n", Str("Cube configuration only works with first order"));
     }
 
     if ((isetup == 6) & (p->order >= 3)) {
-      return csound->InitError(csound, "%s", Str("Hexagon configuration only works with first and second order"));
+      return csound->InitError(csound, "%s\n", Str("Hexagon configuration only works with first and second order"));
     }
 
     if ((isetup == 21) & (p->order >= 4)) {
-      return csound->InitError(csound, "%s", Str("2D Binaural configuration only works with first, second and third order"));
+      return csound->InitError(csound, "%s\n", Str("2D Binaural configuration only works with first, second and third order"));
     }
 
     if ((isetup == 31) & (p->order >= 4)) {
-      return csound->InitError(csound, "%s", Str("3D Binaural configuration only works with first, second and third order"));
+      return csound->InitError(csound, "%s\n", Str("3D Binaural configuration only works with first, second and third order"));
     }
 
     p->horizontal = ((isetup == 1) | (isetup == 2) | (isetup == 3)  | (isetup == 4)  | (isetup == 6) | (isetup == 21));
@@ -1065,7 +1065,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
       switch (type_mix) {
       default:
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("bformdec2: mix type must be 0, 1 or 2"));
       case 0: // "energy"
         gW = sqrt(2.0);
@@ -1125,7 +1125,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
         switch (type_mix) {
         default:
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                    Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           gW = 1.58113883;
@@ -1187,7 +1187,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
         switch (type_mix) {
         default:
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                    Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 1.2909944487;
@@ -1255,7 +1255,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
         switch (type_mix) {
         default:
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                    Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 2.0;
@@ -1285,7 +1285,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
         switch (type_mix) {
         default:
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                    Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 1.632993162;
@@ -1320,7 +1320,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
         switch (type_mix) {
         default:
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                    Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = sqrt(2.0);
@@ -1389,7 +1389,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
       switch (type_mix) {
       default:
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("bformdec2: mix type must be 0, 1 or 2"));
       case 0: // "energy"
         gW = 2.0;
@@ -1450,7 +1450,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
         switch (type_mix) {
         default:
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                    Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 =  1.732050808;
@@ -1480,7 +1480,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
         switch (type_mix) {
         default:
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                    Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 1.414213562;
@@ -1596,7 +1596,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
         switch (type_mix) {
         default:
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                    Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 3.16227766;
@@ -1626,7 +1626,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
         switch (type_mix) {
         default:
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                    Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 2.357022604;
@@ -1664,7 +1664,7 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
 
         switch (type_mix) {
         default:
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                    Str("bformdec2: mix type must be 0, 1 or 2"));
         case 0: // "energy"
           g0 = 1.865086714;

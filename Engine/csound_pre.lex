@@ -453,7 +453,7 @@ QNAN            "qnan"[ \t]*\(
                   yypop_buffer_state(yyscanner);
                   PARM->depth--;
                   if (UNLIKELY(PARM->depth > 1024))
-                    csound->Die(csound, Str("unexpected EOF!"));
+                    csound->Die(csound, Str("unexpected EOF!\n"));
                   PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
                   /* csound->DebugMsg(csound,"%s(%d): loc=%Ld; lastloc=%Ld\n", */
                   /*                  __FILE__, __LINE__, */
@@ -772,7 +772,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
     while ((c=input(yyscanner))!=term) {
       if (c=='\n' || c==EOF || c=='\0') {
-        csound->Warning(csound, Str("Ill formed #include ignored"));
+        csound->Warning(csound, Str("Ill formed #include ignored\n"));
         return;
       }
       buffer[p] = c;
@@ -782,14 +782,14 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     //printf("****buffer >>%s<<\n", buffer);
     while ((c=input(yyscanner))!='\n');
     if (UNLIKELY(PARM->depth++>=1024)) {
-      csound->Die(csound, Str("Includes nested too deeply"));
+      csound->Die(csound, Str("Includes nested too deeply\n"));
     }
     csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
     csound->DebugMsg(csound,"line %d at end of #include line\n",
                      csound_preget_lineno(yyscanner));
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
-      csound->Warning(csound, Str("%s is a directory; not including"), buffer);
+      csound->Warning(csound, Str("%s is a directory; not including\n"), buffer);
     if (PARM->path && buffer[0]!= DIRSEP) { // if nested included directories
       char tmp[1024];
       csound->DebugMsg(csound, "using path %s\n", PARM->path);
@@ -841,7 +841,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       PARM->alt_stack[PARM->macro_stack_ptr].path = PARM->path;
       PARM->path = strdup(buffer); /* wasteful! */
       *(strrchr(PARM->path,DIRSEP)) = '\0';
-      csound->DebugMsg(csound, "setting path from %s to %s",
+      csound->DebugMsg(csound, "setting path from %s to %s\n",
                        PARM->alt_stack[PARM->macro_stack_ptr].path, PARM->path);
     }
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
@@ -871,14 +871,14 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     //printf("****buffer >>%s<<\n", buffer);
     while ((input(yyscanner))!='\n');
     if (UNLIKELY(PARM->depth++>=1024)) {
-      csound->Die(csound, Str("Includes nested too deeply"));
+      csound->Die(csound, Str("Includes nested too deeply\n"));
     }
     csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
     csound->DebugMsg(csound,"line %d at end of #include line\n",
                      csound_preget_lineno(yyscanner));
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
     if (UNLIKELY(isDir(buffer)))
-      csound->Warning(csound, Str("%s is a directory; not including"), buffer);
+      csound->Warning(csound, Str("%s is a directory; not including\n"), buffer);
     if (PARM->path && buffer[0]!=DIRSEP) {
       char tmp[1024];
       strncpy(tmp, PARM->path, 1023);
@@ -1071,7 +1071,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
 
     while ((c = input(yyscanner)) != '#') { /* read body */
       if (UNLIKELY(c == EOF || c == '\0'))
-        csound->Die(csound, Str("define macro with args: unexpected EOF"));
+        csound->Die(csound, Str("define macro with args: unexpected EOF\n"));
       if (c=='$') {             /* munge macro name? */
         int32_t n = (int32_t) strlen(name0)+4;
         if (UNLIKELY(i+n >= size)) {
@@ -1173,7 +1173,7 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     }
     while ((c = input(yyscanner)) != '#') {
       if (UNLIKELY(c == EOF || c=='\0'))
-        csound->Die(csound, Str("define macro: unexpected EOF"));
+        csound->Die(csound, Str("define macro: unexpected EOF\n"));
       mm->body[i++] = c=='\r'?'\n':c;
       if (UNLIKELY(i >= size)) {
         mm->body = csound->ReAlloc(csound, mm->body, size += 100);
@@ -1413,7 +1413,7 @@ void cs_init_omacros(CSOUND *csound, NAMES *nn)
         csound->Message(csound, Str("Macro definition for %*s\n"), (int)(p - s), s);
       s = strchr(s, ':') + 1;                   /* skip arg bit */
       if (UNLIKELY(s == NULL || s >= p)) {
-        csound->Die(csound, Str("Invalid macro name for --omacro"));
+        csound->Die(csound, Str("Invalid macro name for --omacro\n"));
       }
       mname = (char*) csound->Malloc(csound, (p - s) + 1);
       if (UNLIKELY(mname == NULL)) {
@@ -1528,30 +1528,30 @@ static MACRO *find_definition(MACRO *mmo, char *s)
 static void print_csound_predata(CSOUND *csound, char *mesg, void *yyscanner)
 {
     struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
-    csound->DebugMsg(csound,"********* %s extra data ************", mesg);
-    csound->DebugMsg(csound,"yyscanner = %p", yyscanner);
+    csound->DebugMsg(csound,"********* %s extra data ************\n", mesg);
+    csound->DebugMsg(csound,"yyscanner = %p\n", yyscanner);
     csound->DebugMsg(csound,"yyextra_r = %p, yyin_r = %p, yyout_r = %p,"
-                     " yy_buffer_stack_top = %d",
+                     " yy_buffer_stack_top = %d\n",
            yyg->yyextra_r, yyg->yyin_r,yyg->yyout_r, yyg->yy_buffer_stack_top);
     csound->DebugMsg(csound,"yy_buffer_stack_max = %d1, yy_buffer_stack = %p, "
-                     "yy_hold_char = %d '%c'",
+                     "yy_hold_char = %d '%c'\n",
            yyg->yy_buffer_stack_max, yyg->yy_buffer_stack, yyg->yy_hold_char,
            yyg->yy_hold_char);
-    csound->DebugMsg(csound,"yy_n_chars = %d, yyleng_r = %d, yy_c_buf_p = %p %c",
+    csound->DebugMsg(csound,"yy_n_chars = %d, yyleng_r = %d, yy_c_buf_p = %p %c\n",
            yyg->yy_n_chars, yyg->yyleng_r, yyg->yy_c_buf_p, *yyg->yy_c_buf_p);
     csound->DebugMsg(csound,"yy_init = %d, yy_start = %d, "
-                     "yy_did_buffer_switch_on_eof = %d",
+                     "yy_did_buffer_switch_on_eof = %d\n",
            yyg->yy_init, yyg->yy_start, yyg->yy_did_buffer_switch_on_eof);
     csound->DebugMsg(csound,"yy_start_stack_ptr = %d,"
-                     " yy_start_stack_depth = %d, yy_start_stack = %p",
+                     " yy_start_stack_depth = %d, yy_start_stack = %p\n",
            yyg->yy_start_stack_ptr, yyg->yy_start_stack_depth, yyg->yy_start_stack);
 
     csound->DebugMsg(csound,"yy_last_accepting_state = %d, "
-                     "yy_last_accepting_cpos = %p %c",
+                     "yy_last_accepting_cpos = %p %c\n",
            yyg->yy_last_accepting_state, yyg->yy_last_accepting_cpos,
                      *yyg->yy_last_accepting_cpos);
     csound->DebugMsg(csound,"yylineno_r = %d, yy_flex_debug_r = %d, "
-                     "yytext_r = %p \"%s\", yy_more_flag = %d, yy_more_len = %d",
+                     "yytext_r = %p \"%s\", yy_more_flag = %d, yy_more_len = %d\n",
            yyg->yylineno_r, yyg->yy_flex_debug_r, yyg->yytext_r, yyg->yytext_r,
                      yyg->yy_more_flag, yyg->yy_more_len);
     {

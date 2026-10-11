@@ -186,10 +186,10 @@ static int32_t cpupercent_init(CSOUND *csound, CPUMETER *p)
     uint32_t output;
     deinit_cpupercent(csound, p);
     if (p->OUTOCOUNT == 0)
-      return csound->InitError(csound, "%s", Str("cpumeter: no outputs"));
+      return csound->InitError(csound, "%s\n", Str("cpumeter: no outputs"));
     p->cnt = p->trig = (cs_double)*p->itrig * CS_ESR;
     if (!(p->trig >= 0 && p->trig <= DBL_MAX))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("cpumeter: invalid refresh interval"));
     for (output = 0; output < p->OUTOCOUNT; ++output)
       *p->kk[output] = FL(0.0);
@@ -197,12 +197,12 @@ static int32_t cpupercent_init(CSOUND *csound, CPUMETER *p)
     memset(p->valid, 0, sizeof(p->valid));
     p->fp = fopen("/proc/stat", "r");
     if (!p->fp)
-      return csound->InitError(csound, Str("Failed to open /proc/stat: %s"),
+      return csound->InitError(csound, Str("Failed to open /proc/stat: %s\n"),
                               strerror(errno));
 #endif
     if (cpupercent_renew(csound, p) != OK) {
       deinit_cpupercent(csound, p);
-      return csound->InitError(csound, "%s", Str("cpumeter: cannot read CPU counters"));
+      return csound->InitError(csound, "%s\n", Str("cpumeter: cannot read CPU counters"));
     }
     return OK;
 }
@@ -213,7 +213,7 @@ static int32_t cpupercent(CSOUND *csound, CPUMETER *p)
     if (p->cnt <= 0) {
       p->cnt = p->trig;
       if (cpupercent_renew(csound, p) != OK)
-        return csound->PerfError(csound, &p->h, "%s",
+        return csound->PerfError(csound, &p->h, "%s\n",
                                 Str("cpumeter: cannot read CPU counters"));
     }
     return OK;

@@ -14,6 +14,7 @@
  */
 
 import * as Comlink from "../utils/comlink.js";
+import { waitForSABResume } from "../utils/sab-transport.js";
 import MessagePortState from "../utils/message-port-state";
 import libcsoundFactory from "../libcsound.js";
 import loadWasm from "../module";
@@ -204,13 +205,11 @@ const sabCreateRealtimeAudioThread =
       }
 
       if (Atomics.load(audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        releasePause();
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        releaseResumed();
-        await new Promise((resolve) => setTimeout(resolve, 0));
+        waitForSABResume(
+          audioStatePointer,
+          () => releasePause(performanceGeneration),
+          () => releaseResumed(performanceGeneration),
+        );
       }
 
       if (maybeStop()) {
@@ -394,10 +393,13 @@ const renderFunction =
       libraryCsound["csoundPerformKsmps"](csound) === 0
     ) {
       if (Atomics.load(audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) {
-        releasePause();
-        Atomics.wait(audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
-        releaseResumed();
+        waitForSABResume(
+          audioStatePointer,
+          () => releasePause(performanceGeneration),
+          () => releaseResumed(performanceGeneration),
+        );
       }
+      if (Atomics.load(audioStatePointer, AUDIO_STATE.STOP) === 1) break;
       if (
         Atomics.compareExchange(audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 1, 0) === 1
       ) {
@@ -428,8 +430,17 @@ const initialize = async (payload) => {
     payload["performanceGeneration"] = performanceGeneration;
     callbackPort.postMessage(payload);
   };
-  const releasePause = () => callbackPort.postMessage("releasePause");
-  const releaseResumed = () => callbackPort.postMessage("releaseResumed");
+  const releaseTransport = (type, performanceGeneration) => {
+    // Keep wire keys stable across separately compiled worker/main bundles.
+    const payload = {};
+    payload["type"] = type;
+    payload["performanceGeneration"] = performanceGeneration;
+    callbackPort.postMessage(payload);
+  };
+  const releasePause = (performanceGeneration) =>
+    releaseTransport("releasePause", performanceGeneration);
+  const releaseResumed = (performanceGeneration) =>
+    releaseTransport("releaseResumed", performanceGeneration);
 
   initCallbackReplyPort({ port: callbackPort });
 

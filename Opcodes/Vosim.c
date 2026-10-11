@@ -72,7 +72,7 @@ static int32_t vosimset(CSOUND* csound, VOSIM *p)
 
   p->ftable = csound->FTFind(csound, p->iftab);
   if (UNLIKELY(p->ftable == NULL)) {
-    return csound->InitError(csound,  "%s", Str("vosim: pulse table not found"));
+    return csound->InitError(csound,  "%s\n", Str("vosim: pulse table not found"));
   }
   p->floatph = !(IS_POW_TWO(p->ftable->flen));
   p->pulsephsf = p->pulseincf = FL(0.0);
@@ -95,7 +95,7 @@ static void vosim_event(CSOUND* csound, VOSIM *p)
   p->pulstogo = 1+(int32)*p->knofpulse;
   if (UNLIKELY(fundabs == FL(0.0))) {                /* infinitely long event */
     p->timrem = INT_MAX;
-    csound->Warning(csound, "%s",
+    csound->Warning(csound, "%s\n",
                     Str("vosim: zero kfund. 'Infinite' length event generated."));
   }
   else {
@@ -104,7 +104,7 @@ static void vosim_event(CSOUND* csound, VOSIM *p)
       p->timrem = CS_KSMPS;
       p->pulstogo = 0;
       csound->Warning(csound,
-                      Str("vosim: kfund (%f) > sr. Generating ksmps silence."),
+                      Str("vosim: kfund (%f) > sr. Generating ksmps silence.\n"),
                       *p->kfund);
     }
   }
@@ -229,7 +229,7 @@ static int32_t vosim(CSOUND* csound, VOSIM *p)
   return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("vosim: not initialised"));
+                             "%s\n", Str("vosim: not initialised"));
 }
 
 

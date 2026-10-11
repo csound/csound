@@ -321,13 +321,13 @@ static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
 
 static inline int32_t csound_array_init_resize_error(CSOUND *csound)
 {
-    return csound->InitError(csound, "%s", Str("Could not resize array"));
+    return csound->InitError(csound, "%s\n", Str("Could not resize array"));
 }
 
 static inline int32_t csound_array_perf_resize_error(CSOUND *csound,
                                                      OPDS *ctx)
 {
-    return csound->PerfError(csound, ctx, "%s",
+    return csound->PerfError(csound, ctx, "%s\n",
                              Str("Could not resize array"));
 }
 
@@ -350,28 +350,28 @@ static inline int32_t tabcheck(CSOUND *csound, ARRAYDAT *p, int32_t size, OPDS *
     size_t bytes;
 
     if (UNLIKELY(p == NULL || size < 0)) {
-      return csound->PerfError(csound, q, "%s", Str("Invalid array size"));
+      return csound->PerfError(csound, q, "%s\n", Str("Invalid array size"));
     }
     /* The caller writes this buffer during performance. Claiming a
        sole reference is safe here, but cloning shared storage would allocate. */
     if (UNLIKELY(csound_array_try_prepare_write(
                    csound, p, q != NULL ? q->insdshead : NULL) != OK)) {
-      return csound->PerfError(csound, q, "%s",
+      return csound->PerfError(csound, q, "%s\n",
                                Str("Cannot write shared array during "
                                    "performance pass"));
     }
     if (p->data == NULL || p->dimensions == 0 || p->sizes == NULL) {
-      return csound->PerfError(csound, q, "%s", Str("Array not initialised"));
+      return csound->PerfError(csound, q, "%s\n", Str("Array not initialised"));
     }
     if (UNLIKELY(csound_array_allocation_size(
                    p->arrayMemberSize, (size_t)size, &bytes) != OK)) {
-      return csound->PerfError(csound, q, "%s",
+      return csound->PerfError(csound, q, "%s\n",
                                Str("Array size overflow"));
     }
     if (bytes > p->allocated) { /* was arr->allocate */
       return csound->PerfError(csound, q,
         Str("Array too small (allocated %zu < needed %zu), but cannot "
-            "allocate during performance pass. Allocate a bigger array at init time"),
+            "allocate during performance pass. Allocate a bigger array at init time\n"),
         p->allocated, bytes);
     }
     p->sizes[0] = size;

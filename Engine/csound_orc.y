@@ -201,6 +201,8 @@ orcfile : root_statement_list
           {
               if ($1 != NULL)
                 *astTree = ((TREE *)$1);
+              else
+                *astTree = NULL;
               csound->synterrcnt = csound_orcnerrs;
               if (csoundGetDebug(csound) & DEBUG_PARSER ||
 		  csoundGetDebug(csound) & DEBUG_TREE)
@@ -211,7 +213,8 @@ orcfile : root_statement_list
 
 root_statement_list : root_statement_list root_statement
                       { $$ = parser_append(csound, $1, $2); }
-                    | root_statement
+                    | /* empty */
+                      { $$ = NULL; }
                     ;
 
 root_statement : statement

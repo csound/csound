@@ -158,7 +158,7 @@ static INSTR_SEMANTICS *dag_get_info(CSOUND* csound, int32_t insno)
       if (UNLIKELY(current_instr == NULL))
         csound->Die(csound,
                     Str("Failed to find semantic information"
-                        " for instrument '%i'"),
+                        " for instrument '%i'\n"),
                     insno);
     }
     return current_instr;

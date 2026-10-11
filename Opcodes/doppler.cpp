@@ -151,9 +151,9 @@ public:
     } else
       smoothingFilterCutoff = *jUpdateFilterCutoff;
     if (!(speedOfSound > cs_float(0.0)))
-      return csound->InitError(csound, Str("doppler: speed of sound must be positive"));
+      return csound->InitError(csound, Str("doppler: speed of sound must be positive\n"));
     if (!(smoothingFilterCutoff >= cs_float(0.0)))
-      return csound->InitError(csound, Str("doppler: filter cutoff must be nonnegative"));
+      return csound->InitError(csound, Str("doppler: filter cutoff must be nonnegative\n"));
     samplesPerDistance = sampleRate / speedOfSound;
     audioInterpolator = new LinearInterpolator;
     smoothingFilter = NULL;

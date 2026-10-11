@@ -44,7 +44,7 @@ static int32_t locsigset(CSOUND *csound, LOCSIG *p)
     int32_t     outcount = p->OUTOCOUNT;
 
     if (UNLIKELY(outcount != 2 && outcount != 4))
-      return csound->InitError(csound, "%s", Str("Wrong number of outputs in locsig; "
+      return csound->InitError(csound, "%s\n", Str("Wrong number of outputs in locsig; "
                                            "must be 2 or 4"));
 
     if (p->auxch.auxp == NULL ||
@@ -160,13 +160,13 @@ static int32_t locsendset(CSOUND *csound, LOCSEND *p)
                                             SPATIAL_LOCSIG);
 
     if (UNLIKELY(q == NULL))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("locsend: no previous locsig in this "
                                    "instrument instance"));
     p->locsig = q;
 
     if (UNLIKELY(p->OUTOCOUNT != q->OUTOCOUNT)) {
-      return csound->InitError(csound, "%s", Str("Number of outputs must be the "
+      return csound->InitError(csound, "%s\n", Str("Number of outputs must be the "
                                            "same as the previous locsig"));
     }
     return OK;

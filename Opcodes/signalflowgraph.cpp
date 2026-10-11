@@ -822,7 +822,7 @@ struct Inletf : public OpcodeBase<Inletf> {
           int32 N = sourceOutlet->fsignal->N;
           if (UNLIKELY(sourceOutlet->fsignal == fsignal)) {
             csound->Warning(csound,
-                            "%s", Str("Unsafe to have same fsig as in and out"));
+                            "%s\n", Str("Unsafe to have same fsig as in and out"));
           }
           fsignal->sliding = 0;
           if (sourceOutlet->fsignal->sliding) {
@@ -853,7 +853,7 @@ struct Inletf : public OpcodeBase<Inletf> {
           if (UNLIKELY(!((fsignal->format == PVS_AMP_FREQ) ||
                          (fsignal->format == PVS_AMP_PHASE))))
             result = csound->InitError(csound,
-                                       "%s", Str("inletf: signal format "
+                                       "%s\n", Str("inletf: signal format "
                                            "must be amp-phase or amp-freq."));
           fsignalInitialized = true;
         }
@@ -1484,7 +1484,7 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
   if (UNLIKELY(p == nullptr || p->ifno == nullptr || p->p1 == nullptr ||
                p->p2 == nullptr || p->p3 == nullptr || p->p4 == nullptr ||
                p->p5 == nullptr)) {
-    return csound->InitError(csound, "%s", Str("ftgenonce: invalid arguments"));
+    return csound->InitError(csound, "%s\n", Str("ftgenonce: invalid arguments"));
   }
   SignalFlowGraphState *sfg_globals = nullptr;
   QueryGlobalPointer(csound, "sfg_globals", sfg_globals);
@@ -1495,14 +1495,14 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
   if (UNLIKELY(sfg_globals == nullptr ||
                sfg_globals->signal_flow_ftables_lock == nullptr)) {
 #endif
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("ftgenonce: not initialized"));
   }
   LockGuard guard(csound, sfg_globals->signal_flow_ftables_lock);
   int32_t result = OK;
   int32_t inputArgCount = GetInputArgCnt((OPDS *)p);
   if (UNLIKELY(inputArgCount < 5)) {
-    return csound->InitError(csound, "%s", Str("ftgenonce: invalid arguments"));
+    return csound->InitError(csound, "%s\n", Str("ftgenonce: invalid arguments"));
   }
   EventBlock eventBlock((size_t)inputArgCount + 1);
   EVTBLK *ftevt = &eventBlock.evtblk;
@@ -1525,7 +1525,7 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       named = named->next; /*  and round again   */
     }
     if (UNLIKELY(named == 0)) {
-      return csound->InitError(csound, Str("Named gen \"%s\" not defined"),
+      return csound->InitError(csound, Str("Named gen \"%s\" not defined\n"),
                                ((STRINGDAT *)p->p4)->data);
     } else {
       ftevt->p[4] = named->genum;
@@ -1547,7 +1547,7 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       ftevt->strarg = ((STRINGDAT *)p->p5)->data;
       break;
     default:
-      return csound->InitError(csound, "%s", Str("ftgen string arg not allowed"));
+      return csound->InitError(csound, "%s\n", Str("ftgen string arg not allowed"));
     }
   } else {
     ftevt->p[5] = *p->p5;
@@ -1560,7 +1560,7 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
     cs_float *fp = &ftevt->p[0] + 6;
     do {
       if (UNLIKELY(*argp == nullptr)) {
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("ftgenonce: invalid arguments"));
       }
       *fp++ = **argp++;
@@ -1583,7 +1583,7 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
       FUNC *func = 0;
       int32_t status = csound->FTCreate(csound, &func, ftevt, 1);
       if (UNLIKELY(status != 0)) {
-        result = csound->InitError(csound, "%s", Str("ftgenonce error"));
+        result = csound->InitError(csound, "%s\n", Str("ftgenonce error"));
       }
       if (func) {
         sfg_globals->functionTablesForEvtblks[eventBlock] = func->fno;

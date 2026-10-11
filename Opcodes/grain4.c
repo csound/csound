@@ -61,7 +61,7 @@ static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
       p->ftp = ftp;
     }
     else {
-      return csound->InitError(csound, "%s", Str("granule_set: "
+      return csound->InitError(csound, "%s\n", Str("granule_set: "
                                            "Unable to find function table"));
     }
 
@@ -71,34 +71,34 @@ static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
         p->ftp_env = ftp_env;
       }
       else {
-        return csound->InitError(csound, "%s", Str("granule_set: Unable to find "
+        return csound->InitError(csound, "%s\n", Str("granule_set: Unable to find "
                                              "function table for envelope"));
       }
     }
 
     if (UNLIKELY(*p->ivoice > MAXVOICE)) {
-      return csound->InitError(csound, "%s", Str("granule_set: Too many voices"));
+      return csound->InitError(csound, "%s\n", Str("granule_set: Too many voices"));
     }
     if (UNLIKELY(*p->iratio <= 0)) {
-      return csound->InitError(csound, "%s", Str("granule_set: "
+      return csound->InitError(csound, "%s\n", Str("granule_set: "
                                            "iratio must be greater then 0"));
     }
     if (UNLIKELY((*p->imode != 0) && ((*p->imode != -1) && (*p->imode != 1)))) {
-      return csound->InitError(csound, "%s", Str("granule_set: "
+      return csound->InitError(csound, "%s\n", Str("granule_set: "
                                            "imode must be -1, 0 or +1"));
     }
     if (UNLIKELY(*p->ithd < 0)) {
-      return csound->InitError(csound, "%s", Str("granule_set: Illegal ithd, "
+      return csound->InitError(csound, "%s\n", Str("granule_set: Illegal ithd, "
                                            "must be greater than zero"));
     }
     if (UNLIKELY((*p->ipshift != 1) && (*p->ipshift!=2) && (*p->ipshift!=3) &&
                  (*p->ipshift!=4) && (*p->ipshift!=0) )) {
-      return csound->InitError(csound, "%s", Str("granule_set: ipshift must be "
+      return csound->InitError(csound, "%s\n", Str("granule_set: ipshift must be "
                                            "integer between 0 and 4"));
     }
     if (UNLIKELY(((*p->ipshift >=1) && (*p->ipshift <=4)) &&
                  (*p->ivoice < *p->ipshift))) {
-      return csound->InitError(csound, "%s", Str("granule_set: Not enough voices "
+      return csound->InitError(csound, "%s\n", Str("granule_set: Not enough voices "
                                            "for the number of pitches"));
     }
     if ( *p->ipshift !=FL(0.0) ) {
@@ -106,25 +106,25 @@ static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
                    *p->ipitch1 <= FL(0.0) )) {
         return
           csound->InitError(csound,
-                            "%s", Str("granule_set: ipitch1 must be greater then zero"));
+                            "%s\n", Str("granule_set: ipitch1 must be greater then zero"));
       }
       if (UNLIKELY(*p->ipshift >= FL(2.0) &&
                    (!isfinite(*p->ipitch2) || *p->ipitch2 <= FL(0.0)) )) {
         return
           csound->InitError(csound,
-                            "%s", Str("granule_set: ipitch2 must be greater then zero"));
+                            "%s\n", Str("granule_set: ipitch2 must be greater then zero"));
       }
       if (UNLIKELY(*p->ipshift >= FL(3.0) &&
                    (!isfinite(*p->ipitch3) || *p->ipitch3 <= FL(0.0)) )) {
         return
           csound->InitError(csound,
-                            "%s", Str("granule_set: ipitch3 must be greater then zero"));
+                            "%s\n", Str("granule_set: ipitch3 must be greater then zero"));
       }
       if (UNLIKELY(*p->ipshift >= FL(4.0) &&
                    (!isfinite(*p->ipitch4) || *p->ipitch4 <= FL(0.0)) )) {
         return
           csound->InitError(csound,
-                            "%s", Str("granule_set: ipitch4 must be greater then zero"));
+                            "%s\n", Str("granule_set: ipitch4 must be greater then zero"));
       }
     }
 
@@ -133,20 +133,20 @@ static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
     if (UNLIKELY(!isfinite(gstart_samples) || gstart_samples < 0.0 ||
                  gstart_samples > (INT32_MAX + 0.0) ||
                  gstart_samples > (cs_double) ftp->flen)) {
-      return csound->InitError(csound, "%s", Str("granule_set: must be positive and "
+      return csound->InitError(csound, "%s\n", Str("granule_set: must be positive and "
                                            "less than function table length"));
     }
     glength_samples = (cs_float) (*p->ilength * CS_ESR);
     if (UNLIKELY(!isfinite(glength_samples) || glength_samples < 1.0)) {
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("granule_set: ilength must span at least one sample"));
     }
     if (UNLIKELY(glength_samples > (INT32_MAX + 0.0))) {
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("granule_set: ilength is too large"));
     }
     if (UNLIKELY(*p->igskip_os < 0)) {
-      return csound->InitError(csound, "%s", Str("granule_set: "
+      return csound->InitError(csound, "%s\n", Str("granule_set: "
                                            "igskip_os must be greater then 0"));
     }
 
@@ -154,32 +154,32 @@ static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
     p->glength = (int32)glength_samples;
     if (UNLIKELY(p->glength > INT32_MAX - p->gstart ||
                  (uint32_t) p->glength > ftp->flen - (uint32_t) p->gstart)) {
-      return csound->InitError(csound, "%s", Str("granule_set: Illegal combination "
+      return csound->InitError(csound, "%s\n", Str("granule_set: Illegal combination "
                                            "of igskip and ilength"));
     }
     p->gend = p->gstart + p->glength;
 
     if (UNLIKELY(*p->kgap < 0)) {
-      return csound->InitError(csound, "%s", Str("granule_set: "
+      return csound->InitError(csound, "%s\n", Str("granule_set: "
                                            "kgap must be greater then 0"));
     }
     if (UNLIKELY((*p->igap_os < 0) || (*p->igap_os > 100))) {
-      return csound->InitError(csound, "%s", Str("granule_set: "
+      return csound->InitError(csound, "%s\n", Str("granule_set: "
                                            "igap_os must be 0%% to 100%%"));
     }
     if (UNLIKELY(*p->kgsize < 0)) {
-      return csound->InitError(csound, "%s", Str("granule_set: "
+      return csound->InitError(csound, "%s\n", Str("granule_set: "
                                            "kgsize must be greater then 0"));
     }
     if (UNLIKELY((*p->igsize_os < 0) || (*p->igsize_os >100))) {
-      return csound->InitError(csound, "%s", Str("granule_set: "
+      return csound->InitError(csound, "%s\n", Str("granule_set: "
                                            "igsize_os must be 0%% to 100%%"));
     }
     if (UNLIKELY((*p->iatt < FL(0.0)) || (*p->idec < 0.0) ||
                  ((*p->iatt + *p->idec) > FL(100.0)))) {
       return
         csound->InitError(csound,
-                          "%s", Str("granule_set: Illegal value of iatt and/or idec"));
+                          "%s\n", Str("granule_set: Illegal value of iatt and/or idec"));
     } /* end if */
 
     /* Initialize random number generator */
@@ -264,7 +264,7 @@ static int32_t grainsetv4(CSOUND *csound, GRAINV4 *p)
     }
 
     if (UNLIKELY((uint32_t) p->gend > ftp->flen)) {
-      return csound->InitError(csound, "%s", Str("granule_set: Illegal combination "
+      return csound->InitError(csound, "%s\n", Str("granule_set: Illegal combination "
                                            "of igskip and ilength"));
     }
 
@@ -466,7 +466,7 @@ static int32_t graingenv4(CSOUND *csound, GRAINV4 *p)
    return OK;
  err1:
    return csound->PerfError(csound, &(p->h),
-                            "%s", Str("grain4: not initialised"));
+                            "%s\n", Str("grain4: not initialised"));
 
 } /* end graingenv4(p) */
 

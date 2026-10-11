@@ -473,7 +473,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
                         break;
         case 'g':
                         csound->Warning(csound,
-                          "%s", Str("graphical display is currently unsupported"));
+                          "%s\n", Str("graphical display is currently unsupported"));
                         break;
         case 'a':
                         storePoles = TRUE;
@@ -508,7 +508,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
     coef = (cs_float*) csound->Malloc(csound, (NDATA+lpc.poleCount*2)*sizeof(cs_float));
     /* Space allocated */
     if (UNLIKELY(slice < lpc.poleCount * 5))
-      csound->Warning(csound,"%s", Str("hopsize may be too small, "
+      csound->Warning(csound,"%s\n", Str("hopsize may be too small, "
                                  "recommend at least poleCount * 5\n"));
 
     if (UNLIKELY((lpc.WINDIN = slice * 2) > MAXWINDIN))
@@ -789,7 +789,7 @@ static int32_t lpanal(CSOUND *csound, int32_t argc, char **argv)
 static void quit(CSOUND *csound, char *msg)
 {
     csound->Message(csound,"lpanal: %s\n", msg);
-    csound->Die(csound, "%s", Str("analysis aborted"));
+    csound->Die(csound, "%s\n", Str("analysis aborted"));
 }
 
 static void lpdieu(CSOUND *csound, char *msg)
@@ -1260,7 +1260,7 @@ static void ptable(CSOUND *csound,
     lpg->Dwind   = windsiz/10;           /* downsampled windsiz */
     lpg->Hwind   = (lpg->Dwind+1)/2;     /* half of that        */
     if (lpg->Hwind > HWIN)
-      csound->Die(csound, "%s", Str("LPTRKFNS: called with excessive Windsiz"));
+      csound->Die(csound, "%s\n", Str("LPTRKFNS: called with excessive Windsiz"));
     tpidsrd10 = TWOPI_F / (sr/FL(10.0));
     fstep = (fmax - fmin) / FREQS;    /* alloc & init each cs_float array  */
     for (i=0;  i<FREQS; ++i) {        /*   as if MAX dimension of Hwind */

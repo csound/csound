@@ -161,7 +161,7 @@ static int32_t osc_send_set(CSOUND *csound, OSCSEND *p)
 
     /* with too many args, XINCODE may not work correctly */
     if (UNLIKELY(p->INOCOUNT > ARG_CNT-1))
-      return csound->InitError(csound, "%s", Str("Too many arguments to OSCsend"));
+      return csound->InitError(csound, "%s\n", Str("Too many arguments to OSCsend"));
 /* a-rate arguments are not allowed */
 /* for (i = 0; i < p->INOCOUNT-5; i++) { */
 /*   if (strcmp("a", GetTypeForArg(p->arg[i])->varTypeName) == 0) { */
@@ -213,7 +213,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
 
     if(p->INOCOUNT > 4) {
       if(strcmp(GetTypeForArg(p->type)->varTypeName, "S"))
-        return csound->InitError(csound,"%s",
+        return csound->InitError(csound,"%s\n",
                              Str("Message type is not given as a string\n"));
     }
 
@@ -314,7 +314,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
             i++;
             if (UNLIKELY(type[i]!='t'))
               return csound->PerfError(csound, &(p->h),
-                                       "%s", Str("Time stamp is two values"));
+                                       "%s\n", Str("Time stamp is two values"));
             tt.frac = (uint32_t)(*arg[i]+FL(0.5));
             lo_message_add_timetag(msg, tt);
             break;
@@ -338,7 +338,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
             }
             else {
               return csound->PerfError(csound, &(p->h),
-                                       Str("ftable %.2f does not exist"), *arg[i]);
+                                       Str("ftable %.2f does not exist\n"), *arg[i]);
             }
             myblob = lo_blob_new(olen, data);
             lo_message_add_blob(msg, myblob);
@@ -374,7 +374,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
             }
             else {
               return csound->PerfError(csound, &(p->h),
-                                       Str("argument %d is not an array"), i);
+                                       Str("argument %d is not an array\n"), i);
             }
             // two parts needed
             {
@@ -396,7 +396,7 @@ static int32_t osc_send(CSOUND *csound, OSCSEND *p)
             lo_blob_free(myblob);
             break;
           }
-        case 'S': csound->Warning(csound, Str("S unimplemented")); break;
+        case 'S': csound->Warning(csound, Str("S unimplemented\n")); break;
           //#endif
         default:
           csound->Warning(csound, Str("Unknown OSC type %c\n"), type[1]);
@@ -810,25 +810,25 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
     OSC_GLOBALS *pp =
       (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (UNLIKELY(pp == NULL))
-      return csound->InitError(csound, "%s", Str("OSC not running"));
+      return csound->InitError(csound, "%s\n", Str("OSC not running"));
     /* find port */
     n = (int32_t) *(p->ihandle);
     if (UNLIKELY(n < 0 || n >= pp->nPorts))
-      return csound->InitError(csound, "%s", Str("invalid handle"));
+      return csound->InitError(csound, "%s\n", Str("invalid handle"));
     p->port = pp->ports[n];
     if (UNLIKELY(p->port == NULL || p->port->thread == NULL ||
                  p->port->mutex_ == NULL))
-      return csound->InitError(csound, "%s", Str("invalid handle"));
+      return csound->InitError(csound, "%s\n", Str("invalid handle"));
     p->c.saved_path = (char*) csound->Malloc(csound,
                                            strlen((char*) p->dest->data) + 1);
     strcpy(p->c.saved_path, (char*) p->dest->data);
     /* check for a valid argument list */
     n = GetInputArgCnt((OPDS *)p) - 3;
     if (UNLIKELY(n < 0 || n > ARG_CNT-4))
-      return csound->InitError(csound, "%s", Str("invalid number of arguments"));
+      return csound->InitError(csound, "%s\n", Str("invalid number of arguments"));
     if (UNLIKELY((int32_t) strlen((char*) p->type->data) != n))
       return csound->InitError(csound,
-                               "%s", Str("-- argument list inconsistent with "
+                               "%s\n", Str("-- argument list inconsistent with "
                                    "format string"));
     strcpy(p->c.saved_types, (char*) p->type->data);
     for (i = 0; i < n; i++) {
@@ -846,16 +846,16 @@ static int32_t OSC_list_init(CSOUND *csound, OSCLISTEN *p)
       case 'h':
       case 'i':
         if (!IS_KSIG_ARG(p->args[i]))
-          return csound->InitError(csound, "%s", Str("argument list inconsistent "
+          return csound->InitError(csound, "%s\n", Str("argument list inconsistent "
                                                "with format string"));
         break;
       case 's':
         if (!IS_STR_ARG(p->args[i]))
-          return csound->InitError(csound, "%s", Str("argument list inconsistent "
+          return csound->InitError(csound, "%s\n", Str("argument list inconsistent "
                                                "with format string"));
         break;
       default:
-        return csound->InitError(csound, "%s", Str("invalid type"));
+        return csound->InitError(csound, "%s\n", Str("invalid type"));
       }
     }
     csound->LockMutex(p->port->mutex_);
@@ -1039,12 +1039,12 @@ static int32_t osc_decode_ftable(CSOUND *csound, OSCLISTEN *p, int32_t index,
     }
     if (UNLIKELY(fno <= 0)) {
       return csound->PerfError(csound, &(p->h),
-                               Str("Invalid ftable no. %d"), fno);
+                               Str("Invalid ftable no. %d\n"), fno);
     }
     ftp = csound->FTFind(csound, p->args[index]);
     if (UNLIKELY(ftp == NULL)) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("OSC internal error"));
+                               "%s\n", Str("OSC internal error"));
     }
     if (view.count > ftp->flen) {
       if (UNLIKELY(csound->FTAlloc(
@@ -1056,7 +1056,7 @@ static int32_t osc_decode_ftable(CSOUND *csound, OSCLISTEN *p, int32_t index,
       ftp = csound->FTFind(csound, p->args[index]);
       if (UNLIKELY(ftp == NULL)) {
         return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("OSC internal error"));
+                                 "%s\n", Str("OSC internal error"));
       }
     }
     if (view.count != 0) {
@@ -1087,7 +1087,7 @@ static int32_t osc_decode_blob(CSOUND *csound, OSCLISTEN *p, int32_t index,
       return OK;
     default:
       return csound->PerfError(csound, &(p->h),
-                               Str("OSC: invalid blob type '%c'"), type);
+                               Str("OSC: invalid blob type '%c'\n"), type);
     }
 }
 
@@ -1256,18 +1256,18 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
     OSC_GLOBALS *pp =
       (OSC_GLOBALS*) csound->QueryGlobalVariable(csound, "_OSC_globals");
     if (UNLIKELY(pp == NULL))
-      return csound->InitError(csound, "%s", Str("OSC not running"));
+      return csound->InitError(csound, "%s\n", Str("OSC not running"));
     /* find port */
     n = (int32_t) *(p->ihandle);
     if (UNLIKELY(n < 0 || n >= pp->nPorts))
-      return csound->InitError(csound, "%s", Str("invalid handle"));
+      return csound->InitError(csound, "%s\n", Str("invalid handle"));
     p->port = pp->ports[n];
     if (UNLIKELY(p->port == NULL || p->port->thread == NULL ||
                  p->port->mutex_ == NULL))
-      return csound->InitError(csound, "%s", Str("invalid handle"));
+      return csound->InitError(csound, "%s\n", Str("invalid handle"));
     typeLength = strlen(types);
     if (UNLIKELY(typeLength >= ARG_CNT))
-      return csound->InitError(csound, "%s", Str("too many OSC types"));
+      return csound->InitError(csound, "%s\n", Str("too many OSC types"));
     n = (int32_t)typeLength;
     for (i = 0; i < n; i++) {
       switch (types[i]) {
@@ -1278,7 +1278,7 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
       case 'i':
         break;
       default:
-        return csound->InitError(csound, "%s", Str("invalid type"));
+        return csound->InitError(csound, "%s\n", Str("invalid type"));
       }
     }
     if (UNLIKELY(tabinit(csound, p->args, n, p->h.insdshead) != OK))

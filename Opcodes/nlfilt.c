@@ -115,7 +115,7 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("nlfilt: not initialised"));
+                             "%s\n", Str("nlfilt: not initialised"));
 } /* end nlfilt(p) */
 
 /* Y{n} = a Y{n-1} + b Y{n-2} + d Y^2{n-L} + X{n} - C */
@@ -186,7 +186,7 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("nlfilt2: not initialised"));
+                             "%s\n", Str("nlfilt2: not initialised"));
 } /* end nlfilt2(p) */
 
 

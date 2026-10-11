@@ -102,8 +102,10 @@ Opcodes: internal and plugin opcodes
 - pvsgendy.c: streaming phase vocoder GENDY processing
 - pvsops.cpp: phase vocoder opcodes, time-varying convolution
 - quadbezier.c: bezier lines
+- remap.c: remaps values through an interpolated lookup curve
 - repluck.c: plucked-string physical models
 - reverbsc.c: FDN reverb
+- savgol.c: Savitzky-Golay filter
 - scansyn.c: scanned synthesis
 - scansynx.c: scanned synthesis
 - scoreline.c: event triggering

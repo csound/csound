@@ -40,12 +40,12 @@ static int32_t  mtable1_set(CSOUND *csound, MTABLE1 *p) /* mtab by G.Maldonado *
 {
   FUNC *ftp;
   if (UNLIKELY((ftp = csound->FTFind(csound, p->xfn)) == NULL))
-    return csound->InitError(csound, "%s", Str("vtable1: incorrect table number"));
+    return csound->InitError(csound, "%s\n", Str("vtable1: incorrect table number"));
   p->nargs = p->INOCOUNT-1;
   if (UNLIKELY(p->nargs < 1))
-    return csound->InitError(csound, "%s", Str("vtable1k: no vector elements"));
+    return csound->InitError(csound, "%s\n", Str("vtable1k: no vector elements"));
   if (UNLIKELY((uint32_t)p->nargs > ftp->flen))
-    return csound->InitError(csound, "%s", Str("vtable1k: table is too short"));
+    return csound->InitError(csound, "%s\n", Str("vtable1k: table is too short"));
   p->ftable = ftp->ftable;
   p->pfn = *p->xfn;
   return OK;
@@ -60,10 +60,10 @@ static int32_t  mtable1_k(CSOUND *csound, MTABLE1 *p)
     FUNC *ftp;
     if (UNLIKELY( (ftp = csound->FTFind(csound, p->xfn) ) == NULL))
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("vtable1: incorrect table number"));
+                               "%s\n", Str("vtable1: incorrect table number"));
     if (UNLIKELY((uint32_t)nargs > ftp->flen))
       return csound->PerfError(csound, &(p->h),
-                              "%s", Str("vtable1k: table is too short"));
+                              "%s\n", Str("vtable1k: table is too short"));
     p->pfn = *p->xfn;
     p->ftable = ftp->ftable;
   }
@@ -94,7 +94,7 @@ static int32_t lposc_stereo_set(CSOUND *csound, LPOSC_ST *p)
   FUNC *ftp;
   cs_double  loop, end, looplength, fsr;
   if (UNLIKELY((ftp = csound->FTFind(csound, p->ift)) == NULL))
-    return csound->InitError(csound, "%s", Str("invalid function"));
+    return csound->InitError(csound, "%s\n", Str("invalid function"));
   if (UNLIKELY(!(fsr = ftp->gen01args.sample_rate))) {
     csound->Message(csound, "%s", Str("lposcil: no sample rate stored in function;"
                                       " assuming=sr\n"));

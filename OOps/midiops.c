@@ -98,7 +98,7 @@ int32_t ctrlinit(CSOUND *csound, CTLINIT *p)
     int16 chnl = (int16)(*p->chnl - FL(0.5));
     int16 nargs = p->INOCOUNT;
     if (UNLIKELY((nargs & 0x1) == 0)) {
-      return csound->InitError(csound, Str("uneven ctrl pairs"));
+      return csound->InitError(csound, Str("uneven ctrl pairs\n"));
     }
     else {
       MCHNBLK *chn;
@@ -109,7 +109,7 @@ int32_t ctrlinit(CSOUND *csound, CTLINIT *p)
         cs_float val;
         ctlno = (int16)**argp++;
         if (UNLIKELY(ctlno < 0 || ctlno > 127)) {
-          return csound->InitError(csound, Str("illegal ctrl no"));
+          return csound->InitError(csound, Str("illegal ctrl no\n"));
         }
         val = **argp++;
         if (val < FL(0.0) || val > FL(127.0))
@@ -136,7 +136,7 @@ int32_t ctrlnameinit(CSOUND *csound, CTLINITS *p)
         cs_float val;
         ctlno = (int16)**argp++;
         if (UNLIKELY(ctlno < 0 || ctlno > 127)) {
-          return csound->InitError(csound, Str("illegal ctrl no"));
+          return csound->InitError(csound, Str("illegal ctrl no\n"));
         }
         val = **argp++;
         if (val < FL(0.0) || val > FL(127.0))
@@ -215,7 +215,7 @@ int32_t cpstmid(CSOUND *csound, CPSTABLE *p)
     cs_float basefreq, factor, interval;
 
     if (UNLIKELY((ftp = csound->FTFind(csound, p->tablenum)) == NULL)) {
-      return csound->InitError(csound, Str("cpstabm: invalid modulator table"));
+      return csound->InitError(csound, Str("cpstabm: invalid modulator table\n"));
     }
     func = ftp->ftable;
     numgrades = (int32_t)*func++;
@@ -405,7 +405,7 @@ int32_t imidictl(CSOUND *csound, MIDICTL *p)
 {
     int32_t  ctlno;
     if (UNLIKELY((ctlno = (int32_t)*p->ictlno) < 0 || ctlno > 127))
-      return csound->InitError(csound, Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number\n"));
     else *p->r = MIDI_VALUE(csound->curip->m_chnbp, ctl_val[ctlno])
            * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
     return OK;
@@ -415,7 +415,7 @@ int32_t mctlset(CSOUND *csound, MIDICTL *p)
 {
     int32_t  ctlno;
     if (UNLIKELY((ctlno = (int32_t)*p->ictlno) < 0 || ctlno > 127))
-      return csound->InitError(csound, Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number\n"));
     else {
       p->ctlno = ctlno;
       p->scale = (*p->ihi - *p->ilo) * dv127;
@@ -436,7 +436,7 @@ int32_t imidiaft(CSOUND *csound, MIDICTL *p)
 {
     int32_t  ctlno;
     if (UNLIKELY((ctlno = (int32_t)*p->ictlno) < 0 || ctlno > 127))
-      return csound->InitError(csound, Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number\n"));
     else *p->r = MIDI_VALUE(csound->curip->m_chnbp, polyaft[ctlno])
            * (*p->ihi - *p->ilo) * dv127 + *p->ilo;
     return OK;
@@ -446,7 +446,7 @@ int32_t maftset(CSOUND *csound, MIDICTL *p)
 {
     int32_t  ctlno;
     if (UNLIKELY((ctlno = (int32_t)*p->ictlno) < 0 || ctlno > 127))
-      return csound->InitError(csound, Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number\n"));
     else {
       p->ctlno = ctlno;
       p->scale = (*p->ihi - *p->ilo) * dv127;
@@ -480,7 +480,7 @@ static int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
 
     chn = (int32_t)(*p->ichn + 0.5);
     if (UNLIKELY(chn < 0 || chn > 16))
-      return csound->InitError(csound, Str("illegal channel number"));
+      return csound->InitError(csound, Str("illegal channel number\n"));
     /* IV - Oct 31 2002: allow named instruments */
     if (instname || IsStringCode(*p->inst)) {
       cs_float buf[128];
@@ -504,7 +504,7 @@ static int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
     else {                              /* program > 0: assign selected pgm */
       pgm = (int32_t)(*(p->ipgm) - FL(0.5));
       if (UNLIKELY(pgm < 0 || pgm > 127)) {
-        return csound->InitError(csound, Str("pgmassign: invalid program number"));
+        return csound->InitError(csound, Str("pgmassign: invalid program number\n"));
       }
       if (!chn) {                           /* on all channels */
         for (chn = 0; chn < 16; chn++)
@@ -530,9 +530,9 @@ int32_t ichanctl(CSOUND *csound, CHANCTL *p)
 {
     int32_t  ctlno, chan = (int32_t)(*p->ichano - FL(1.0));
     if (UNLIKELY(chan < 0 || chan > 15 || csound->m_chnbp[chan] == NULL))
-      return csound->InitError(csound, Str("illegal channel number"));
+      return csound->InitError(csound, Str("illegal channel number\n"));
     if (UNLIKELY((ctlno = (int32_t)*p->ictlno) < 0 || ctlno > 127))
-      return csound->InitError(csound, Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number\n"));
     else *p->r = csound->m_chnbp[chan]->ctl_val[ctlno] * (*p->ihi - *p->ilo)
            * dv127 + *p->ilo;
     return OK;
@@ -542,11 +542,11 @@ int32_t chctlset(CSOUND *csound, CHANCTL *p)
 {
     int32_t  ctlno, chan = (int32_t)(*p->ichano - FL(1.0));
     if (UNLIKELY(chan < 0 || chan > 15 || csound->m_chnbp[chan] == NULL)) {
-      return csound->InitError(csound, Str("illegal channel number"));
+      return csound->InitError(csound, Str("illegal channel number\n"));
     }
     p->chano = chan;
     if (UNLIKELY((ctlno = (int32_t)*p->ictlno) < 0 || ctlno > 127)) {
-      return csound->InitError(csound, Str("illegal controller number"));
+      return csound->InitError(csound, Str("illegal controller number\n"));
     }
     else {
       p->ctlno = ctlno;
@@ -712,7 +712,7 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
     *p->counter = FL(0.0);
     if (UNLIKELY(!(*p->arpMode >= 0 && *p->arpMode < 4)))
       return csound->PerfError(csound, &p->h,
-                              Str("midiarp: mode must be 0, 1, 2, or 3"));
+                              Str("midiarp: mode must be 0, 1, 2, or 3\n"));
     mode = (int32_t) *p->arpMode;
 
     /* Drain the messages already received before choosing a held note.
@@ -812,11 +812,11 @@ int32_t savectrl_init(CSOUND *csound, SAVECTRL *p)
     cs_float **argp = p->ctrls;
     if (UNLIKELY(!(*p->chnl >= 1 &&
                    *p->chnl < MIDIMAXPORTS * MAXCHAN + 1)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("ctrlsave: MIDI channel out of range"));
     chnl = (int16)(*p->chnl - FL(0.5));
     if (UNLIKELY(csound->m_chnbp[chnl] == NULL))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("ctrlsave: MIDI channel is not initialized"));
     p->ivals = csound->m_chnbp[chnl]->ctl_val;
     for (i=0; i<nargs; i++) {
@@ -864,7 +864,7 @@ int32_t printctrl_init1(CSOUND *csound, PRINTCTRL *p)
     p->fdch.fd = csound->FileOpen(csound, &p->fout, CSFILE_STD,
                                  p->file->data, "a", "", CSFTYPE_OTHER_TEXT, 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), p->file->data);
+      return csound->InitError(csound, Str("Cannot open %s\n"), p->file->data);
     csoundFDRecord(csound, &p->fdch);
     return OK;
 }
@@ -876,19 +876,19 @@ int32_t printctrl(CSOUND *csound, PRINTCTRL *p)
     int32_t n, i;
     if (UNLIKELY(p->arr->dimensions != 1 || p->arr->sizes == NULL ||
                  d == NULL || p->arr->sizes[0] < 2))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                               Str("ctrlprint: expected a controller array"));
     if (UNLIKELY(!(d[0] >= 0 &&
                    (cs_double)d[0] <= (p->arr->sizes[0]-2)/2)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                               Str("ctrlprint: controller count exceeds array bounds"));
     n = (int32_t)d[0];
     if (UNLIKELY(!(d[1] >= 1 && d[1] < MIDIMAXPORTS * MAXCHAN + 1)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                               Str("ctrlprint: MIDI channel out of range"));
     for (i = 2; i < 2+2*n; i++)
       if (UNLIKELY(!(d[i] >= 0 && d[i] < 128)))
-        return csound->PerfError(csound, &p->h, "%s",
+        return csound->PerfError(csound, &p->h, "%s\n",
                                 Str("ctrlprint: controller and value must be in 0..127"));
     fprintf(p->fout, "\n ctrlinit\t%d", (int)d[1]);
     for (i=0; i<n; i++)
@@ -906,7 +906,7 @@ int32_t presetctrl_init(CSOUND *csound, PRESETCTRL *p)
       if (UNLIKELY(csound->CreateGlobalVariable(csound, "presetGlobals_",
                                                 sizeof(PRESET_GLOB)) != 0))
         return
-          csound->InitError(csound, "%s",
+          csound->InitError(csound, "%s\n",
                             Str("ctrlpreset: failed to allocate globals"));
       q = (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
       q->max_num = 10;
@@ -923,7 +923,7 @@ static int32_t presetctrl_slot(CSOUND *csound, OPDS *h, PRESET_GLOB *q,
     int32_t tag, i, new_count;
     int32_t **presets, *slot;
     if (UNLIKELY(!(number >= 0 && (cs_double)number < (INT32_MAX + 0.0)))) {
-      csound->PerfError(csound, h, Str("ctrlpreset: invalid preset tag"));
+      csound->PerfError(csound, h, Str("ctrlpreset: invalid preset tag\n"));
       return -1;
     }
     tag = (int32_t)number - 1;
@@ -933,20 +933,20 @@ static int32_t presetctrl_slot(CSOUND *csound, OPDS *h, PRESET_GLOB *q,
     }
     if (tag >= q->max_num) {
       if (UNLIKELY(tag == INT32_MAX)) {
-        csound->PerfError(csound, h, Str("ctrlpreset: too many presets"));
+        csound->PerfError(csound, h, Str("ctrlpreset: too many presets\n"));
         return -1;
       }
       new_count = tag + 1;
       if (q->max_num <= INT32_MAX - 10 && new_count < q->max_num + 10)
         new_count = q->max_num + 10;
       if (UNLIKELY((size_t)new_count > SIZE_MAX / sizeof(*presets))) {
-        csound->PerfError(csound, h, Str("ctrlpreset: too many presets"));
+        csound->PerfError(csound, h, Str("ctrlpreset: too many presets\n"));
         return -1;
       }
       presets = (int32_t **)csound->ReAlloc(csound, q->presets,
                                           (size_t)new_count * sizeof(*presets));
       if (UNLIKELY(presets == NULL)) {
-        csound->PerfError(csound, h, Str("Failed to allocate presets"));
+        csound->PerfError(csound, h, Str("Failed to allocate presets\n"));
         return -1;
       }
       for (i = q->max_num; i < new_count; i++) presets[i] = NULL;
@@ -958,7 +958,7 @@ static int32_t presetctrl_slot(CSOUND *csound, OPDS *h, PRESET_GLOB *q,
       slot = (int32_t *)csound->ReAlloc(csound, slot,
                                       (size_t)count * sizeof(*slot));
       if (UNLIKELY(slot == NULL)) {
-        csound->PerfError(csound, h, Str("Failed to allocate preset"));
+        csound->PerfError(csound, h, Str("Failed to allocate preset\n"));
         return -1;
       }
       q->presets[tag] = slot;
@@ -972,14 +972,14 @@ int32_t presetctrl_perf(CSOUND *csound, PRESETCTRL *p)
     int32_t count = p->INOCOUNT, i, tag, *slot;
     if (UNLIKELY(count < 4 || count > 66 || (count & 1)))
       return csound->PerfError(csound, &p->h,
-                              Str("ctrlpreset: expected controller/value pairs"));
+                              Str("ctrlpreset: expected controller/value pairs\n"));
     if (UNLIKELY(!(*p->chnl >= 1 && *p->chnl < 17)))
       return csound->PerfError(csound, &p->h,
-                              Str("ctrlpreset: channel must be in 1..16"));
+                              Str("ctrlpreset: channel must be in 1..16\n"));
     for (i = 0; i < count - 2; i++)
       if (UNLIKELY(!(*p->ctrls[i] >= 0 && *p->ctrls[i] < 128)))
         return csound->PerfError(csound, &p->h,
-                                Str("ctrlpreset: controller and value must be in 0..127"));
+                                Str("ctrlpreset: controller and value must be in 0..127\n"));
     tag = presetctrl_slot(csound, &p->h, p->q, *p->itag, count);
     if (UNLIKELY(tag < 0)) return NOTOK;
     slot = p->q->presets[tag];
@@ -997,7 +997,7 @@ int32_t presetctrl1_init(CSOUND *csound, PRESETCTRL1 *p)
       if (UNLIKELY(csound->CreateGlobalVariable(csound, "presetGlobals_",
                                                 sizeof(PRESET_GLOB)) != 0))
         return
-          csound->InitError(csound, "%s",
+          csound->InitError(csound, "%s\n",
                             Str("ctrlpreset: failed to allocate globals"));
       q = (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
       q->max_num = 10;
@@ -1014,15 +1014,15 @@ int32_t presetctrl1_perf(CSOUND *csound, PRESETCTRL1 *p)
                  p->arr->data == NULL || p->arr->sizes[0] < 2 ||
                  (p->arr->sizes[0] & 1)))
       return csound->PerfError(csound, &p->h,
-                              Str("ctrlpreset: expected a controller preset array"));
+                              Str("ctrlpreset: expected a controller preset array\n"));
     count = p->arr->sizes[0];
     if (UNLIKELY(! (p->arr->data[1] >= 1 && p->arr->data[1] < 17)))
       return csound->PerfError(csound, &p->h,
-                              Str("ctrlpreset: channel must be in 1..16"));
+                              Str("ctrlpreset: channel must be in 1..16\n"));
     for (i = 2; i < count; i++)
       if (UNLIKELY(!(p->arr->data[i] >= 0 && p->arr->data[i] < 128)))
         return csound->PerfError(csound, &p->h,
-                                Str("ctrlpreset: controller and value must be in 0..127"));
+                                Str("ctrlpreset: controller and value must be in 0..127\n"));
     tag = presetctrl_slot(csound, &p->h, p->q, *p->itag, count);
     if (UNLIKELY(tag < 0)) return NOTOK;
     slot = p->q->presets[tag];
@@ -1036,7 +1036,7 @@ int32_t selectctrl_init(CSOUND *csound, SELECTCTRL *p)
     PRESET_GLOB *q =
       (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
     if (q==NULL) {
-      return csound->InitError(csound, Str("No presets stored"));
+      return csound->InitError(csound, Str("No presets stored\n"));
     }
     p->q = q;
     return OK;
@@ -1075,7 +1075,7 @@ int32_t printpresets_perf(CSOUND *csound, PRINTPRESETS *p)
     PRESET_GLOB *q =
       (PRESET_GLOB*)csound->QueryGlobalVariable(csound, "presetGlobals_");
     if (q==NULL) {
-      return csound->InitError(csound, Str("No presets stored"));
+      return csound->InitError(csound, Str("No presets stored\n"));
     }
     for (j=0; j<q->max_num; j++)
       if (q->presets[j]) {
@@ -1105,7 +1105,7 @@ int32_t printpresets_init1(CSOUND *csound, PRINTPRESETS *p)
     p->fdch.fd = csound->FileOpen(csound, &p->fout, CSFILE_STD,
                                  p->file->data, "a", "", CSFTYPE_OTHER_TEXT, 0);
     if (UNLIKELY(p->fdch.fd == NULL))
-      return csound->InitError(csound, Str("Cannot open %s"), p->file->data);
+      return csound->InitError(csound, Str("Cannot open %s\n"), p->file->data);
     csoundFDRecord(csound, &p->fdch);
     return OK;
 }

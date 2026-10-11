@@ -206,7 +206,7 @@ static int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 
     if (UNLIKELY(overlapCount <= FL(0.0) || floor(overlapCount) != overlapCount)) {
 
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                   Str("olabuffer: Error, overlap factor must be a positive integer"));
     }
 
@@ -214,7 +214,7 @@ static int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
 
     if (UNLIKELY(array->dimensions != 1)) {
 
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                   Str("olabuffer: Error, k-rate array must be one dimensional"));
     }
 
@@ -224,20 +224,20 @@ static int32_t OLABuffer_checkArgumentSanity(CSOUND *csound, OLABuffer *self)
     if (UNLIKELY((cs_double)frameSampleCount <= (cs_double)overlapCount)) {
 
       return csound->InitError(csound,
-                  "%s", Str("olabuffer: Error, k-rate array size must be "
+                  "%s\n", Str("olabuffer: Error, k-rate array size must be "
                       "larger than ovelap factor"));
     }
 
     if (UNLIKELY(frameSampleCount % (int32_t)overlapCount != 0)) {
 
-      return csound->InitError(csound, "%s", Str("olabuffer: Error, overlap factor must be "
+      return csound->InitError(csound, "%s\n", Str("olabuffer: Error, overlap factor must be "
                               "an integer multiple of k-rate array size"));
     }
 
     if (UNLIKELY(frameSampleCount / (int32_t)overlapCount <
                  (int32_t) self->h.insdshead->ksmps)) {
 
-      return csound->InitError(csound, "%s", Str("olabuffer: Error, k-rate array size divided "
+      return csound->InitError(csound, "%s\n", Str("olabuffer: Error, k-rate array size divided "
                               "by overlap factor must be larger than or equal "
                               "to ksmps"));
     }
@@ -248,20 +248,20 @@ static int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
 {
     cs_double size;
     if (UNLIKELY(self->INOCOUNT != 2 || self->OUTOCOUNT != 1))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("framebuffer: expected two inputs and one output"));
     self->inputType = Framebuffer_getArgumentType(csound, self->inputArgument);
     self->outputType = Framebuffer_getArgumentType(csound, self->outputArgument);
     if (UNLIKELY(Framebuffer_getArgumentType(csound, self->sizeArgument) != IRATE_VAR))
-      return csound->InitError(csound, "%s", Str("framebuffer: size must be i-rate"));
+      return csound->InitError(csound, "%s\n", Str("framebuffer: size must be i-rate"));
     self->ksmps = self->h.insdshead->ksmps;
     size = *self->sizeArgument;
     if (UNLIKELY(!(size >= self->ksmps && size < (INT32_MAX + 0.0) + 1.0)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("framebuffer: size must be at least ksmps and fit in int32"));
     self->elementCount = (int32_t)size;
     if (UNLIKELY((size_t)self->elementCount > SIZE_MAX / sizeof(cs_float)))
-      return csound->InitError(csound, "%s", Str("framebuffer: size is too large"));
+      return csound->InitError(csound, "%s\n", Str("framebuffer: size is too large"));
 
     if (UNLIKELY(Framebuffer_checkArgumentSanity(csound, self) != OK))
       return NOTOK;
@@ -275,11 +275,11 @@ static int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
 
         ARRAYDAT *array = (ARRAYDAT *) self->outputArgument;
         if (UNLIKELY(array->dimensions > 1))
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                   Str("framebuffer: output array must be one dimensional"));
         if (UNLIKELY(tabinit(csound, array, self->elementCount,
                             self->h.insdshead) != OK))
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                   Str("framebuffer: cannot initialise output array"));
         memset(array->data, 0, (size_t)self->elementCount * sizeof(cs_float));
     }
@@ -339,7 +339,7 @@ static int32_t Framebuffer_processAudioInFrameOut(CSOUND *csound, Framebuffer *s
     uint32_t end = self->ksmps - self->h.insdshead->ksmps_no_end;
     ARRAYDAT *array = (ARRAYDAT *)self->outputArgument;
     if (UNLIKELY(array->dimensions != 1))
-        return csound->PerfError(csound, &self->h, "%s",
+        return csound->PerfError(csound, &self->h, "%s\n",
                                 Str("framebuffer: output array must be one dimensional"));
     if (UNLIKELY(tabcheck(csound, array, self->elementCount, &self->h) != OK))
         return NOTOK;
@@ -357,7 +357,7 @@ static int32_t Framebuffer_processFrameInAudioOut(CSOUND *csound, Framebuffer *s
     ARRAYDAT *array = (ARRAYDAT *)self->inputArgument;
     if (UNLIKELY(array->dimensions != 1 || array->data == NULL ||
                  array->sizes[0] <= 0 || array->sizes[0] > self->elementCount))
-        return csound->PerfError(csound, &self->h, "%s",
+        return csound->PerfError(csound, &self->h, "%s\n",
                                 Str("framebuffer: invalid input array size"));
     if (UNLIKELY(offset))
         memset(self->outputArgument, 0, offset * sizeof(cs_float));
@@ -392,7 +392,7 @@ static int32_t Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self
 
       if (UNLIKELY(self->outputType != KRATE_ARRAY)) {
 
-          return csound->InitError(csound, "%s", Str("framebuffer: Error, only k-rate arrays "
+          return csound->InitError(csound, "%s\n", Str("framebuffer: Error, only k-rate arrays "
                                   "allowed for a-rate var inputs"));
         }
     }
@@ -400,7 +400,7 @@ static int32_t Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self
 
       if (UNLIKELY(self->outputType != ARATE_VAR)) {
 
-          return csound->InitError(csound, "%s", Str("framebuffer: Error, only a-rate vars "
+          return csound->InitError(csound, "%s\n", Str("framebuffer: Error, only a-rate vars "
                                   "allowed for k-rate array inputs"));
         }
 
@@ -408,21 +408,21 @@ static int32_t Framebuffer_checkArgumentSanity(CSOUND *csound, Framebuffer *self
 
         if (UNLIKELY(array->dimensions != 1)) {
 
-          return csound->InitError(csound, "%s", Str("framebuffer: Error, k-rate array input "
+          return csound->InitError(csound, "%s\n", Str("framebuffer: Error, k-rate array input "
                                   "must be one dimensional"));
         }
 
         if (UNLIKELY(array->data == NULL || array->sizes[0] <= 0 ||
                      array->sizes[0] > self->elementCount)) {
 
-          return csound->InitError(csound, "%s", Str("framebuffer: input array size "
+          return csound->InitError(csound, "%s\n", Str("framebuffer: input array size "
                                   "must be positive and no greater than buffer size"));
         }
     }
     else {
 
       return csound->InitError(csound,
-                  "%s", Str("framebuffer: Error, only a-rate var input with k-rate "
+                  "%s\n", Str("framebuffer: Error, only a-rate var input with k-rate "
                       "array output or k-rate\narray input with a-rate var "
                       "output are valid arguments"));
     }

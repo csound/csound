@@ -42,11 +42,11 @@ static int32_t pvsbandinit(CSOUND *csound, PVSBAND *p)
     int32_t     N = p->fin->N;
 
     if (UNLIKELY(p->fin->format != PVS_AMP_FREQ))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("pvsband: input must be amp-freq"));
 
     if (UNLIKELY(p->fin == p->fout))
-      csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
+      csound->Warning(csound, "%s\n", Str("Unsafe to have same fsig as in and out"));
 
     if (p->fin->sliding) {
       if (p->fout->frame.auxp==NULL ||
@@ -170,7 +170,7 @@ static int32_t pvsband(CSOUND *csound, PVSBAND *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("pvsband: not initialised"));
+                             "%s\n", Str("pvsband: not initialised"));
 }
 
 static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
@@ -236,7 +236,7 @@ static int32_t pvsbrej(CSOUND *csound, PVSBAND *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("pvsband: not initialised"));
+                             "%s\n", Str("pvsband: not initialised"));
 }
 
 #undef PVSBAND_GAIN

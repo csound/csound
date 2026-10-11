@@ -640,7 +640,7 @@ static int32_t configure_terminal(CSOUND *csound, READLINE_STATE *state)
                  state->outputHandle == INVALID_HANDLE_VALUE ||
                  !GetConsoleMode(state->outputHandle, &mode)))
       return csound->InitError(
-        csound, "%s", Str("readline: failed to read console mode"));
+        csound, "%s\n", Str("readline: failed to read console mode"));
 
     state->savedOutputMode = mode;
     if (!(mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING)) {
@@ -648,7 +648,7 @@ static int32_t configure_terminal(CSOUND *csound, READLINE_STATE *state)
                      state->outputHandle,
                      mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING)))
         return csound->InitError(
-          csound, "%s",
+          csound, "%s\n",
           Str("readline: failed to enable virtual terminal mode"));
       state->outputModeSet = 1;
     }
@@ -660,7 +660,7 @@ static int32_t configure_terminal(CSOUND *csound, READLINE_STATE *state)
     struct termios mode;
 
     if (UNLIKELY(tcgetattr(STDIN_FILENO, &state->savedTerminalMode) != 0))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("readline: failed to read terminal mode"));
 
     mode = state->savedTerminalMode;
@@ -668,7 +668,7 @@ static int32_t configure_terminal(CSOUND *csound, READLINE_STATE *state)
     mode.c_cc[VMIN] = 0;
     mode.c_cc[VTIME] = 0;
     if (UNLIKELY(tcsetattr(STDIN_FILENO, TCSAFLUSH, &mode) != 0))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("readline: failed to set terminal mode"));
     state->terminalModeSet = 1;
   }
@@ -733,7 +733,7 @@ static int32_t readline_perf_error(CSOUND *csound, READLINE_OPCODE *p,
     ATOMIC_SET(state->writerStop, 1);
   }
   release_readline(csound, p);
-  return csound->PerfError(csound, &p->h, "%s", message);
+  return csound->PerfError(csound, &p->h, "%s\n", message);
 }
 
 static int32_t readline_reset(CSOUND *csound, void *userData)
@@ -918,23 +918,23 @@ int32_t readline_init(CSOUND *csound, READLINE_OPCODE *p)
 
   globals = get_readline_globals(csound);
   if (UNLIKELY(globals == NULL))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("readline: failed to allocate global state"));
   if (UNLIKELY(globals->active != NULL))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("readline: another prompt is already active"));
   if (UNLIKELY(csound->stdin_assign_flg != 0))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("readline: stdin is already in use"));
   if (UNLIKELY(!claim_process_input(csound)))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("readline: stdin is owned by another Csound instance"));
 
   state = (READLINE_STATE *) csound->Calloc(csound,
                                              sizeof(READLINE_STATE));
   if (UNLIKELY(state == NULL)) {
     release_process_input(csound);
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("readline: memory allocation failure"));
   }
 
@@ -943,7 +943,7 @@ int32_t readline_init(CSOUND *csound, READLINE_OPCODE *p)
   if (UNLIKELY(state->buffer == NULL)) {
     csound->Free(csound, state);
     release_process_input(csound);
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("readline: memory allocation failure"));
   }
 
@@ -962,7 +962,7 @@ int32_t readline_init(CSOUND *csound, READLINE_OPCODE *p)
   if (UNLIKELY(start_terminal_writer(csound, state) != OK)) {
     readline_deinit(csound, p);
     return csound->InitError(
-      csound, "%s", Str("readline: failed to start terminal writer"));
+      csound, "%s\n", Str("readline: failed to start terminal writer"));
   }
   return OK;
 }

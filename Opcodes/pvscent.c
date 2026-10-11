@@ -41,7 +41,7 @@ static int32_t pvscentset(CSOUND *csound, PVSCENT *p)
     if (UNLIKELY(!((p->fin->format==PVS_AMP_FREQ) ||
                    (p->fin->format==PVS_AMP_PHASE))))
       return csound->InitError(csound,
-                               "%s", Str("pvscent: format must be amp-phase"
+                               "%s\n", Str("pvscent: format must be amp-phase"
                                    " or amp-freq.\n"));
     return OK;
 }
@@ -195,7 +195,7 @@ static int32_t cent_i(CSOUND *csound, CENT *p)
     uint32_t i;
     cs_float *win;
     if (UNLIKELY(!(requested >= FL(2.0) && requested <= (1U << 30))))
-      return csound->InitError(csound, "%s", Str("centroid: FFT size out of range"));
+      return csound->InitError(csound, "%s\n", Str("centroid: FFT size out of range"));
     p->count = 0;
     p->fsize = 2;
     while (p->fsize < requested) p->fsize <<= 1;
@@ -204,7 +204,7 @@ static int32_t cent_i(CSOUND *csound, CENT *p)
                       Str("centroid requested fftsize = %.0f, actual = %d\n"),
                       requested, p->fsize);
     if (UNLIKELY((size_t)p->fsize > SIZE_MAX / sizeof(cs_float)))
-      return csound->InitError(csound, "%s", Str("centroid: FFT size out of range"));
+      return csound->InitError(csound, "%s\n", Str("centroid: FFT size out of range"));
     if (p->frame.auxp == NULL || p->frame.size < p->fsize*sizeof(cs_float))
       csound->AuxAlloc(csound, p->fsize*sizeof(cs_float), &p->frame);
     if (p->windowed.auxp == NULL || p->windowed.size < p->fsize*sizeof(cs_float))
@@ -322,7 +322,7 @@ static int32_t pvspitch_init(CSOUND *csound, PVSPITCH *p)
     p->lastframe = 0;
 
     if (UNLIKELY(p->fin->sliding))
-      return csound->InitError(csound, "%s", Str("SDFT case not implemented yet"));
+      return csound->InitError(csound, "%s\n", Str("SDFT case not implemented yet"));
     size = sizeof(cs_float)*(p->fin->N+2);
     if (p->peakfreq.auxp == NULL || p->peakfreq.size < size)
       csound->AuxAlloc(csound, size, &p->peakfreq);
@@ -330,7 +330,7 @@ static int32_t pvspitch_init(CSOUND *csound, PVSPITCH *p)
       csound->AuxAlloc(csound, size, &p->inharmonic);
     if (UNLIKELY(p->fin->format!=PVS_AMP_FREQ)) {
       return csound->InitError(csound,
-                               "%s", Str("PV Frames must be in AMP_FREQ format!\n"));
+                               "%s\n", Str("PV Frames must be in AMP_FREQ format!\n"));
     }
 
     return OK;

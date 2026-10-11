@@ -315,9 +315,9 @@ static int32_t Xsynthset(CSOUND *csound, CON *p)
     cs_float       len = *p->len, ovlp = *p->ovlp;
 
     if (UNLIKELY(!isfinite(len) || len < FL(1.0)))
-      return csound->InitError(csound, "%s", Str("cross2: length must be at least 1"));
+      return csound->InitError(csound, "%s\n", Str("cross2: length must be at least 1"));
     if (UNLIKELY(len > (cs_float)CROSS2_MAX_FFT_SIZE))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("cross2: length is too large"));
 
     flen = cross2_next_power_of_two((uint32_t)len);
@@ -325,7 +325,7 @@ static int32_t Xsynthset(CSOUND *csound, CON *p)
       flen = CROSS2_MIN_FFT_SIZE;
 
     if (UNLIKELY(!isfinite(ovlp)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("cross2: overlap must be finite"));
     if (ovlp < FL(2.0))
       ovlp = FL(2.0);

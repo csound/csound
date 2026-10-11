@@ -185,7 +185,7 @@ static int32_t syncgrain_process(CSOUND *csound, syncgrain *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("grain size smaller than 1 sample\n"));
+                             "%s\n", Str("grain size smaller than 1 sample\n"));
 }
 
 
@@ -362,7 +362,7 @@ static int32_t syncgrainloop_process(CSOUND *csound, syncgrainloop *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("grain size smaller than 1 sample\n"));
+                             "%s\n", Str("grain size smaller than 1 sample\n"));
 }
 
 #define DGRAIN_MAXCHAN 4
@@ -412,7 +412,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     p->nChannels = (int32_t) (p->OUTOCOUNT);
     if (UNLIKELY(p->nChannels < 1 || p->nChannels > DGRAIN_MAXCHAN)) {
       return csound->InitError(csound,
-                               "%s", Str("diskgrain: invalid number of channels"));
+                               "%s\n", Str("diskgrain: invalid number of channels"));
     }
     p->efunc = csound->FTFind(csound, p->ifn2);
     if (UNLIKELY(p->efunc == NULL))
@@ -450,7 +450,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
     }
     if (UNLIKELY(sfinfo.channels != p->nChannels)) {
       return
-        csound->InitError(csound, "%s", Str("diskgrain: soundfile channel numbers "
+        csound->InitError(csound, "%s\n", Str("diskgrain: soundfile channel numbers "
                                       "do not match the number of outputs\n"));
     }
 
@@ -465,7 +465,7 @@ static int32_t filegrain_init(CSOUND *csound, filegrain *p)
       p->read2 = 0;
     }
     else {
-      return csound->InitError(csound, "%s", Str("diskgrain: could not read file\n"));
+      return csound->InitError(csound, "%s\n", Str("diskgrain: could not read file\n"));
     }
 
    /* -===-  */
@@ -727,7 +727,7 @@ static int32_t filegrain_process(CSOUND *csound, filegrain *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("grain size smaller than 1 sample\n"));
+                             "%s\n", Str("grain size smaller than 1 sample\n"));
 }
 
 

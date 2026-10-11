@@ -63,10 +63,10 @@ static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
     nvals = ff->flen;
     nargs = ff->e.pcnt - 4;
     if (UNLIKELY(nargs < 5)) {
-      return csound->FtError(ff, "%s", Str("insufficient arguments"));
+      return csound->FtError(ff, "%s\n", Str("insufficient arguments"));
     }
     if (UNLIKELY((nargs - 1) % 4 != 0))
-      return csound->FtError(ff, "%s", Str("incomplete quadbezier segment"));
+      return csound->FtError(ff, "%s\n", Str("incomplete quadbezier segment"));
     ff->e.p[4] *= -1;
 
     for (n = 4; n < nargs; n += 4)
@@ -74,10 +74,10 @@ static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
       cs_float x1 = (n < 8) ? FL(0.0) : ff->e.p[n];
       cs_float cx = ff->e.p[n+2], x2 = ff->e.p[n+4];
       if (UNLIKELY(!isfinite(x2) || !(x2 > x1)))
-        return csound->FtError(ff, "%s",
+        return csound->FtError(ff, "%s\n",
                               Str("quadbezier endpoints must be finite and increasing"));
       if (UNLIKELY(!(cx >= x1 && cx <= x2)))
-        return csound->FtError(ff, "%s",
+        return csound->FtError(ff, "%s\n",
                               Str("quadbezier control point must lie within its segment"));
 
       /* Keep the sample index separate from the curve's fractional coordinates. */

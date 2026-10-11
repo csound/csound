@@ -41,13 +41,13 @@ static int32_t sndwarpcheck(CSOUND *csound, cs_float overlap,
     if (UNLIKELY(!(overlap >= FL(1.0) &&
                    (cs_double)overlap < (INT32_MAX + 0.0) + 1.0) ||
                  overlap != (cs_float)(int32_t)overlap))
-      return csound->InitError(csound, "%s", Str("sndwarp: ioverlap must be a "
+      return csound->InitError(csound, "%s\n", Str("sndwarp: ioverlap must be a "
                                                "positive integer"));
     if (UNLIKELY((size_t)(int32_t)overlap > SIZE_MAX / sizeof(WARPSECTION)))
-      return csound->InitError(csound, "%s", Str("sndwarp: too many overlaps"));
+      return csound->InitError(csound, "%s\n", Str("sndwarp: too many overlaps"));
     if (UNLIKELY(!(wsize >= FL(2.0) && randw >= FL(0.0) &&
                    wsize + randw < FL(2147483648.0))))
-      return csound->InitError(csound, "%s", Str("sndwarp: window size must be "
+      return csound->InitError(csound, "%s\n", Str("sndwarp: window size must be "
                         "at least 2 and iwsize + irandw must be below 2^31; "
                         "irandw must be nonnegative"));
     return OK;
@@ -167,7 +167,7 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
           frIndx = (cs_float)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
-            csound->Warning(csound, "%s", Str("SNDWARP at last sample frame"));
+            csound->Warning(csound, "%s\n", Str("SNDWARP at last sample frame"));
           }
         }
         longphase = (int32)exp[i].ampphs;
@@ -202,7 +202,7 @@ static int32_t sndwarp(CSOUND *csound, SNDWARP *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("sndwarp: not initialised"));
+                             "%s\n", Str("sndwarp: not initialised"));
 }
 
 /****************************************************************/
@@ -219,7 +219,7 @@ static int32_t sndwarpstgetset(CSOUND *csound, SNDWARPST *p)
     cs_float       iwsize;
 
     if (UNLIKELY(p->OUTOCOUNT != 2 && p->OUTOCOUNT != 4)) {
-      return csound->InitError(csound, "%s", Str("Wrong number of outputs "
+      return csound->InitError(csound, "%s\n", Str("Wrong number of outputs "
                                            "in sndwarpst; must be 2 or 4"));
     }
     if (UNLIKELY(sndwarpcheck(csound, *p->ioverlap, *p->iwsize,
@@ -334,7 +334,7 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
           frIndx = (cs_float)p->maxFr;
           if (p->prFlg) {
             p->prFlg = 0;   /* false */
-            csound->Warning(csound, "%s", Str("SNDWARP at last sample frame"));
+            csound->Warning(csound, "%s\n", Str("SNDWARP at last sample frame"));
           }
         }
         longphase = (int32)exp[i].ampphs;
@@ -381,7 +381,7 @@ static int32_t sndwarpst(CSOUND *csound, SNDWARPST *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("sndwarpst: not initialised"));
+                             "%s\n", Str("sndwarpst: not initialised"));
 }
 
 #define S(x)    sizeof(x)

@@ -306,7 +306,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             SAFE_RELEASE(pCollection);
             if (O->msglevel || O->odebug)
                 csound->Warning(csound,
-                                Str("WASAPI: Requested device %d out of range, using default"),
+                                Str("WASAPI: Requested device %d out of range, using default\n"),
                                 (int)devnum);
             /* Fall back to default device */
             hr = pEnumerator->lpVtbl->GetDefaultAudioEndpoint(
@@ -998,7 +998,7 @@ static void rtclose_(CSOUND *csound)
             csound->DestroyCircularBuffer(csound, cdata->outcb);
         }
         csound->Free(csound, cdata);
-        csound->DebugMsg(csound, "%s", Str("WASAPI module: device closed\n"));
+        csound->DebugMsg(csound, "%s\n", Str("WASAPI module: device closed\n"));
     }
 
     CoUninitialize();
@@ -1014,7 +1014,7 @@ int32_t csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "wasapi") == 0 || strcmp(drv, "WASAPI") == 0 ||
           strcmp(drv, "Wasapi") == 0))
         return 0;
-    csound->DebugMsg(csound, "%s", Str("rtaudio: WASAPI module enabled\n"));
+    csound->DebugMsg(csound, "%s\n", Str("rtaudio: WASAPI module enabled\n"));
     csound->SetPlayopenCallback(csound, playopen_);
     csound->SetRecopenCallback(csound, recopen_);
     csound->SetRtplayCallback(csound, rtplay_);

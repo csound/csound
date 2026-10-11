@@ -33,14 +33,14 @@ static int32_t flanger_set (CSOUND *csound, FLANGER *p)
 
     if (UNLIKELY(!(maxDelaySamples >= 0.0) ||
                  maxDelaySamples > (cs_double)(UINT32_MAX - 2U)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("flanger: invalid maximum delay"));
     maxDelay = (uint32)maxDelaySamples;
     if ((cs_double)maxDelay < maxDelaySamples)
       maxDelay++;
     bufferSize = maxDelay + 1U;
     if (UNLIKELY((size_t)bufferSize > SIZE_MAX / sizeof(cs_float)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("flanger: delay buffer too large"));
     if (*p->iskip == 0 || p->aux.auxp == NULL ||
         p->maxdelay != bufferSize) {
@@ -84,7 +84,7 @@ static int32_t flanger(CSOUND *csound, FLANGER *p)
 
                 /*---------------- delay -----------------------*/
       if (UNLIKELY(!(delay >= FL(0.0) && delay <= maxDelaySeconds)))
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("flanger: delay is outside imaxd"));
       buf[indx] = in[n] + (yt1 * feedback);
       fv1 = (cs_double)indx - (cs_double)delay * CS_ESR;
@@ -226,7 +226,7 @@ static int32_t wguide2set (CSOUND *csound, WGUIDE2 *p)
     p->xdel2cod              = IS_ASIG_ARG(p->xdel2) ? 1 : 0;
 
     if (UNLIKELY(p->xdel1cod != p->xdel2cod))
-      return csound->InitError(csound, "%s", Str(
+      return csound->InitError(csound, "%s\n", Str(
                     "wguide2 xfreq1 and xfreq2 arguments must"
                     " be both a-rate or k and i-rate"));
     return OK;

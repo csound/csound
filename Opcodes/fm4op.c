@@ -168,7 +168,7 @@ static int32_t make_FM4Op(CSOUND *csound, FM4OP *p)
     return OK;
  err1:
 /* Expect sine wave */
-    return csound->InitError(csound, "%s", Str("No table for VibWaveato"));
+    return csound->InitError(csound, "%s\n", Str("No table for VibWaveato"));
 }
 
 static int32_t FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
@@ -186,7 +186,7 @@ static int32_t FM4Op_loadWaves(CSOUND *csound, FM4OP *p)
     p->w_time[0] = p->w_time[1] = p->w_time[2] = p->w_time[3] = FL(0.0);
     return OK;
  err1:
-    return csound->InitError(csound, "%s", Str("No table for FM4Op"));
+    return csound->InitError(csound, "%s\n", Str("No table for FM4Op"));
 }
 
 static void FM4Op_setRatio(FM4OP *p, int32_t whichOne, cs_float ratio)
@@ -975,7 +975,7 @@ static int32_t FMVoices_setFreq(CSOUND *csound, FM4OPV *q, cs_float frequency)
     for (i = 0; i < 3; i++) {
       cs_double ratio = (cs_double)scale * phonParams[index][i][0] / frequency + 0.5;
       if (UNLIKELY(!(ratio < (INT32_MAX + 0.0))))
-        return csound->PerfError(csound, &p->h, "%s",
+        return csound->PerfError(csound, &p->h, "%s\n",
                                 Str("fmvoice: frequency is too low"));
       FM4Op_setRatio(p, i, (cs_float)(int32_t)ratio);
       p->gains[i] = FL(1.0);
@@ -1042,7 +1042,7 @@ int32_t FMVoice(CSOUND *csound, FM4OPV *q)
     int32_t i;
 
     if (UNLIKELY(!(frequency > FL(0.0)) || !isfinite(frequency)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                               Str("fmvoice: frequency must be positive and finite"));
     if (p->baseFreq != frequency || *p->control1 != q->last_control) {
       q->last_control = *p->control1;

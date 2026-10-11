@@ -47,15 +47,15 @@ static int32_t pvsgainset(CSOUND *csound, PVSGAIN *p)
 
   if (UNLIKELY(p->fa->format != PVS_AMP_FREQ &&
                p->fa->format != PVS_AMP_PHASE))
-    return csound->InitError(csound, "%s", Str("pvsgain: signal format "
+    return csound->InitError(csound, "%s\n", Str("pvsgain: signal format "
                                          "must be amp-phase or amp-freq."));
   if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) ||
                (size_t)(N + 2) > SIZE_MAX / sample_size / samples ||
                (p->fa->sliding && p->fa->NB != N / 2 + 1)))
-    return csound->InitError(csound, "%s", Str("pvsgain: invalid frame size"));
+    return csound->InitError(csound, "%s\n", Str("pvsgain: invalid frame size"));
   frame_bytes = (size_t)(N + 2) * sample_size * samples;
   if (UNLIKELY(p->fa->frame.auxp == NULL || p->fa->frame.size < frame_bytes))
-    return csound->InitError(csound, "%s", Str("pvsgain: source is not initialised"));
+    return csound->InitError(csound, "%s\n", Str("pvsgain: source is not initialised"));
   if (p->fout->frame.auxp == NULL || p->fout->frame.size < frame_bytes)
     csound->AuxAlloc(csound, frame_bytes, &p->fout->frame);
   memset(p->fout->frame.auxp, 0, frame_bytes);
@@ -87,7 +87,7 @@ static int32_t pvsgain(CSOUND *csound, PVSGAIN *p)
                p->fa->winsize != p->fout->winsize ||
                p->fa->wintype != p->fout->wintype ||
                (p->fa->sliding && p->fa->NB != p->fout->NB)))
-    return csound->PerfError(csound, &p->h, "%s",
+    return csound->PerfError(csound, &p->h, "%s\n",
                              Str("pvsgain: source format changed; reinitialise"));
 
   if (p->fa->sliding) {
@@ -145,23 +145,23 @@ static int32_t pvsinit(CSOUND *csound, PVSINI *p)
   cs_float binsize;
 
   if (UNLIKELY(!(size >= 2.0 && size <= (INT32_MAX + 0.0) - 2)))
-    return csound->InitError(csound, "%s", Str("pvsinit: invalid frame size"));
+    return csound->InitError(csound, "%s\n", Str("pvsinit: invalid frame size"));
   N = (int32_t)size;
   if (UNLIKELY(N & 1))
-    return csound->InitError(csound, "%s", Str("pvsinit: frame size must be even"));
+    return csound->InitError(csound, "%s\n", Str("pvsinit: frame size must be even"));
   if (overlap == 0.0)
     overlap = N / 4;
   if (winsize == 0.0)
     winsize = N;
   if (UNLIKELY(!(overlap >= 1.0 && overlap <= (INT32_MAX + 0.0) &&
                  winsize >= 1.0 && winsize <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("pvsinit: invalid overlap or window size"));
   if (UNLIKELY(!(*p->wintype >= INT32_MIN && *p->wintype <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, "%s", Str("pvsinit: invalid window type"));
+    return csound->InitError(csound, "%s\n", Str("pvsinit: invalid window type"));
   if (UNLIKELY(*p->format != PVS_AMP_FREQ &&
                *p->format != PVS_AMP_PHASE && *p->format != PVS_COMPLEX))
-    return csound->InitError(csound, "%s", Str("pvsinit: unsupported format"));
+    return csound->InitError(csound, "%s\n", Str("pvsinit: unsupported format"));
 
   p->fout->N = N;
   p->fout->NB = N / 2 + 1;
@@ -175,7 +175,7 @@ static int32_t pvsinit(CSOUND *csound, PVSINI *p)
   samples = p->fout->sliding ? CS_KSMPS : 1;
   bytes = p->fout->sliding ? sizeof(cs_float) : sizeof(float);
   if (UNLIKELY((size_t)N + 2 > SIZE_MAX / bytes / samples))
-    return csound->InitError(csound, "%s", Str("pvsinit: frame size is too large"));
+    return csound->InitError(csound, "%s\n", Str("pvsinit: frame size is too large"));
   bytes *= ((size_t)N + 2) * samples;
   if (p->fout->frame.auxp == NULL || p->fout->frame.size < bytes)
     csound->AuxAlloc(csound, bytes, &p->fout->frame);
@@ -262,7 +262,7 @@ static int32_t pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int32_t stringname)
 
 
   if (UNLIKELY(p->fin->sliding))
-    return csound->InitError(csound,"%s", Str("SDFT Not implemented in this case yet"));
+    return csound->InitError(csound,"%s\n", Str("SDFT Not implemented in this case yet"));
   p->pvfile= -1;
   N = p->N = p->fin->N;
   if ((p->pvfile  = csound->PVOC_CreateFile(csound, fname,
@@ -346,7 +346,7 @@ static int32_t pvsfwrite(CSOUND *csound, PVSFWRITE *p)
       }
       if (UNLIKELY(!csound->PVOC_PutFrames(csound, p->pvfile, fout, 1)))
         return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("pvsfwrite: could not write data\n"));
+                                 "%s\n", Str("pvsfwrite: could not write data\n"));
     }
     else {
       cs_float *fout = p->frame.auxp;
@@ -414,7 +414,7 @@ static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
 
   if (UNLIKELY(p->fout->sliding))
     return csound->InitError(csound,
-                             "%s", Str("SDFT Not implemented in this case yet"));
+                             "%s\n", Str("SDFT Not implemented in this case yet"));
   if ((p->pvfile  = csound->PVOC_OpenFile(csound, fname,
                                           &pvdata, &fmt)) < 0)
     return csound->InitError(csound,
@@ -427,7 +427,7 @@ static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
                frames % fmt.nChannels != 0 || fmt.nSamplesPerSec == 0 ||
                pvdata.dwOverlap < CS_KSMPS || pvdata.dwOverlap < 10)) {
     pvsdiskin_destroy(csound, p);
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("pvsdiskin: invalid frame count or analysis rate"));
   }
   N = (pvdata.nAnalysisBins-1)*2;
@@ -495,7 +495,7 @@ static int32_t pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
 
   if (p->scnt >= overlap) {
     if (UNLIKELY(!isfinite(pos)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                               Str("pvsdiskin: non-finite playback position"));
     if (pos >= p->flen || pos < 0.0) {
       pos -= p->flen * floor(pos / p->flen);
@@ -539,7 +539,7 @@ static int32_t pvsdiskinproc(CSOUND *csound, pvsdiskin *p)
 
   return OK;
 read_error:
-  return csound->PerfError(csound, &p->h, "%s",
+  return csound->PerfError(csound, &p->h, "%s\n",
                           Str("pvsdiskin: could not read analysis frame"));
 }
 
@@ -550,14 +550,14 @@ static int32_t pvstanal_sizes(CSOUND *csound, cs_double fftsize, cs_double hop,
   if (fftsize <= 0.0) fftsize = 2048;
   if (hop <= 0.0) hop = 512;
   if (UNLIKELY(!(fftsize >= 2.0 && fftsize <= (INT32_MAX + 0.0) - 2)))
-    return csound->InitError(csound, "%s", Str("pvstanal: invalid FFT size"));
+    return csound->InitError(csound, "%s\n", Str("pvstanal: invalid FFT size"));
   *N = (int32_t) fftsize;
   if (UNLIKELY(*N != fftsize || (*N & (*N - 1)) != 0 ||
                (size_t)(*N + 2) > SIZE_MAX/sizeof(cs_float)))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("pvstanal: FFT size must be a power of two"));
   if (UNLIKELY(!(hop >= ksmps && hop <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("pvstanal: hop size must be at least ksmps"));
   *hsize = (int32_t) hop;
   return OK;
@@ -596,7 +596,7 @@ static int32_t pvstanalset(CSOUND *csound, PVST *p)
   p->init = 0;
   nChannels = GetOutputArgCnt((OPDS *)p);
   if (UNLIKELY(nChannels < 1 || nChannels > MAXOUTS))
-    return csound->InitError(csound, "%s", Str("invalid number of output arguments"));
+    return csound->InitError(csound, "%s\n", Str("invalid number of output arguments"));
   p->nchans = nChannels;
   for (i=0; i < p->nchans; i++) {
     p->fout[i]->N = N;
@@ -680,7 +680,7 @@ static int32_t pvstanalset1(CSOUND *csound, PVST1 *p)
   p->init = 0;
   nChannels = GetOutputArgCnt((OPDS *)p);
   if (UNLIKELY(nChannels < 1 || nChannels > 1))
-    return csound->InitError(csound, "%s", Str("invalid number of output arguments"));
+    return csound->InitError(csound, "%s\n", Str("invalid number of output arguments"));
   p->nchans = nChannels;
   for (i=0; i < p->nchans; i++) {
     p->fout[i]->N = N;
@@ -770,7 +770,7 @@ int32_t pvstanal(CSOUND *csound, PVST *p)
     */
     if (UNLIKELY(ft->nchanls != (int32)nchans))
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("number of output arguments "
+                               "%s\n", Str("number of output arguments "
                                    "inconsistent with number of "
                                    "sound file channels"));
 
@@ -927,7 +927,7 @@ static int32_t pvstanal1(CSOUND *csound, PVST1 *p)
     */
     if (UNLIKELY(ft->nchanls != (int32)nchans))
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("number of output arguments "
+                               "%s\n", Str("number of output arguments "
                                    "inconsistent with number of "
                                    "sound file channels"));
 
@@ -1053,7 +1053,7 @@ static int32_t pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
   size_t output_bytes = state_bytes * (p->fin->sliding ? CS_KSMPS : 1);
 
   if (UNLIKELY(p->fin == p->fout))
-    csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
+    csound->Warning(csound, "%s\n", Str("Unsafe to have same fsig as in and out"));
   p->fout->N = N;
   p->fout->overlap = p->fin->overlap;
   p->fout->winsize = p->fin->winsize;
@@ -1066,7 +1066,7 @@ static int32_t pvsfreezeset(CSOUND *csound, PVSFREEZE *p)
 
   if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
                  (p->fout->format == PVS_AMP_PHASE))))
-    return csound->InitError(csound, "%s", Str("pvsfreeze: signal format "
+    return csound->InitError(csound, "%s\n", Str("pvsfreeze: signal format "
                                              "must be amp-phase or amp-freq."));
   if (p->fout->frame.auxp == NULL || p->fout->frame.size < output_bytes)
     csound->AuxAlloc(csound, output_bytes, &p->fout->frame);
@@ -1150,22 +1150,22 @@ static int32_t pvsoscset(CSOUND *csound, PVSOSC *p)
 
   if (UNLIKELY(!(size >= 2.0 && size <= (INT32_MAX + 0.0) - 2 &&
                  size <= (cs_double)SIZE_MAX / sizeof(float) - 2)))
-    return csound->InitError(csound, "%s", Str("pvsosc: invalid frame size"));
+    return csound->InitError(csound, "%s\n", Str("pvsosc: invalid frame size"));
   N = (int32_t)size;
   if (UNLIKELY(N & 1))
-    return csound->InitError(csound, "%s", Str("pvsosc: frame size must be even"));
+    return csound->InitError(csound, "%s\n", Str("pvsosc: frame size must be even"));
   if (overlap == 0.0)
     overlap = N / 4;
   if (winsize == 0.0)
     winsize = N;
   if (UNLIKELY(!(overlap >= 1.0 && overlap <= (INT32_MAX + 0.0) &&
                  winsize >= 1.0 && winsize <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("pvsosc: invalid overlap or window size"));
   if (UNLIKELY(!(*p->wintype >= INT32_MIN && *p->wintype <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, "%s", Str("pvsosc: invalid window type"));
+    return csound->InitError(csound, "%s\n", Str("pvsosc: invalid window type"));
   if (UNLIKELY(*p->format != PVS_AMP_FREQ))
-    return csound->InitError(csound, "%s", Str("pvsosc: format must be amp-freq"));
+    return csound->InitError(csound, "%s\n", Str("pvsosc: format must be amp-freq"));
 
   p->fout->N = N;
   p->fout->NB = N / 2 + 1;
@@ -1177,7 +1177,7 @@ static int32_t pvsoscset(CSOUND *csound, PVSOSC *p)
   p->fout->sliding = 0;
   if (UNLIKELY(p->fout->overlap < (int32_t)CS_KSMPS ||
                p->fout->overlap <= 10))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("pvsosc does not work while sliding"));
 
   if (p->fout->frame.auxp == NULL ||
@@ -1211,7 +1211,7 @@ static int32_t pvsoscprocess(CSOUND *csound, PVSOSC *p)
     int32_t step = type == 2 ? 2 : 1;
 
     if (UNLIKELY(!(ffun >= 0.0)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("pvsosc: frequency must be non-negative"));
     memset(fout, 0, sizeof(float) * (size_t)framesize);
     /* Zero and above-Nyquist fundamentals have no oscillating partials. */
@@ -1219,7 +1219,7 @@ static int32_t pvsoscprocess(CSOUND *csound, PVSOSC *p)
       if (type >= 1 && type <= 3) {
         cs_double count = (CS_ESR * 0.5) / ffun;
         if (UNLIKELY(!(count < (INT32_MAX + 0.0))))
-          return csound->PerfError(csound, &(p->h), "%s",
+          return csound->PerfError(csound, &(p->h), "%s\n",
                                    Str("pvsosc: frequency is too low"));
         harm = (int32_t)count;
       }
@@ -1275,7 +1275,7 @@ static int32_t pvsbinprocess(CSOUND *csound, PVSBIN *p)
   int32_t NB = p->fin->sliding ? p->fin->NB : p->fin->N / 2 + 1;
   int32_t pos;
   if (UNLIKELY(!(bin >= 0.0 && bin < NB)))
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csound->PerfError(csound, &(p->h), "%s\n",
                              Str("pvsbin: bin index out of range"));
   pos = (int32_t)bin;
   if (p->fin->sliding) {
@@ -1310,7 +1310,7 @@ static int32_t pvsbinprocessa(CSOUND *csound, PVSBIN *p)
   uint32_t n, nsmps = CS_KSMPS;
   if (p->fin->sliding || p->lastframe < p->fin->framecount) {
     if (UNLIKELY(!(bin >= 0.0 && bin < NB)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("pvsbin: bin index out of range"));
     pos = (int32_t)bin;
   }
@@ -1353,7 +1353,7 @@ static int32_t pvsmoothset(CSOUND *csound, PVSMOOTH *p)
     (p->fin->sliding ? sizeof(cs_float) : sizeof(float));
 
   if (UNLIKELY(p->fin == p->fout))
-    csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
+    csound->Warning(csound, "%s\n", Str("Unsafe to have same fsig as in and out"));
   p->fout->NB = (N/2)+1;
   p->fout->sliding = p->fin->sliding;
   if (p->fin->sliding) {
@@ -1381,7 +1381,7 @@ static int32_t pvsmoothset(CSOUND *csound, PVSMOOTH *p)
   p->lastframe = 0;
   if (UNLIKELY(!((p->fout->format == PVS_AMP_FREQ) ||
                  (p->fout->format == PVS_AMP_PHASE))))
-    return csound->InitError(csound, "%s", Str("pvsmooth: signal format "
+    return csound->InitError(csound, "%s\n", Str("pvsmooth: signal format "
                                          "must be amp-phase or amp-freq."));
   return OK;
 }
@@ -1495,18 +1495,18 @@ static int32_t pvsmixset(CSOUND *csound, PVSMIX *p)
 
   if (UNLIKELY(p->fa->format != PVS_AMP_FREQ &&
                p->fa->format != PVS_AMP_PHASE))
-    return csound->InitError(csound, "%s", Str("pvsmix: signal format "
+    return csound->InitError(csound, "%s\n", Str("pvsmix: signal format "
                                          "must be amp-phase or amp-freq."));
   if (UNLIKELY(!PVSMIX_SAME_FORMAT(p->fa, p->fb)))
-    return csound->InitError(csound, "%s", Str("pvsmix: formats are different."));
+    return csound->InitError(csound, "%s\n", Str("pvsmix: formats are different."));
   if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) ||
                (size_t)(N + 2) > SIZE_MAX / sample_size / samples ||
                (p->fa->sliding && p->fa->NB != N / 2 + 1)))
-    return csound->InitError(csound, "%s", Str("pvsmix: invalid frame size"));
+    return csound->InitError(csound, "%s\n", Str("pvsmix: invalid frame size"));
   frame_bytes = (size_t)(N + 2) * sample_size * samples;
   if (UNLIKELY(p->fa->frame.auxp == NULL || p->fb->frame.auxp == NULL ||
                p->fa->frame.size < frame_bytes || p->fb->frame.size < frame_bytes))
-    return csound->InitError(csound, "%s", Str("pvsmix: source is not initialised"));
+    return csound->InitError(csound, "%s\n", Str("pvsmix: source is not initialised"));
   if (p->fout->frame.auxp == NULL || p->fout->frame.size < frame_bytes)
     csound->AuxAlloc(csound, frame_bytes, &p->fout->frame);
   memset(p->fout->frame.auxp, 0, frame_bytes);
@@ -1534,7 +1534,7 @@ static int32_t pvsmix(CSOUND *csound, PVSMIX *p)
 
   if (UNLIKELY(!PVSMIX_SAME_FORMAT(p->fa, p->fb))) goto err1;
   if (UNLIKELY(!PVSMIX_SAME_FORMAT(p->fa, p->fout)))
-    return csound->PerfError(csound, &p->h, "%s",
+    return csound->PerfError(csound, &p->h, "%s\n",
                              Str("pvsmix: source format changed; reinitialise"));
   if (p->fa->sliding) {
     CMPLX * fout, *fa, *fb;
@@ -1588,7 +1588,7 @@ static int32_t pvsmix(CSOUND *csound, PVSMIX *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("pvsmix: formats are different."));
+                           "%s\n", Str("pvsmix: formats are different."));
 }
 
 #undef PVSMIX_SAME_FORMAT
@@ -1609,21 +1609,21 @@ static int32_t pvsfilterset(CSOUND *csound, PVSFILTER *p)
   size_t bytes;
 
   if (UNLIKELY(p->fin == p->fout || p->fil == p->fout))
-    csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
+    csound->Warning(csound, "%s\n", Str("Unsafe to have same fsig as in and out"));
   if (UNLIKELY(!((p->fin->format == PVS_AMP_FREQ) ||
                  (p->fin->format == PVS_AMP_PHASE))))
-    return csound->InitError(csound, "%s", Str("pvsfilter: signal format "
+    return csound->InitError(csound, "%s\n", Str("pvsfilter: signal format "
                                          "must be amp-phase or amp-freq."));
   if (UNLIKELY(!PVSFILTER_SAME_FORMAT(p->fin, p->fil)))
-    return csound->InitError(csound, "%s", Str("pvsfilter: formats are different."));
+    return csound->InitError(csound, "%s\n", Str("pvsfilter: formats are different."));
   if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) ||
                (size_t)(N + 2) > SIZE_MAX / sample_size / samples ||
                (p->fin->sliding && p->fin->NB != N / 2 + 1)))
-    return csound->InitError(csound, "%s", Str("pvsfilter: invalid frame size"));
+    return csound->InitError(csound, "%s\n", Str("pvsfilter: invalid frame size"));
   bytes = (size_t)(N + 2) * sample_size * samples;
   if (UNLIKELY(p->fin->frame.auxp == NULL || p->fil->frame.auxp == NULL ||
                p->fin->frame.size < bytes || p->fil->frame.size < bytes))
-    return csound->InitError(csound, "%s", Str("pvsfilter: source is not initialised"));
+    return csound->InitError(csound, "%s\n", Str("pvsfilter: source is not initialised"));
   if (p->fout->frame.auxp == NULL || p->fout->frame.size < bytes)
     csound->AuxAlloc(csound, bytes, &p->fout->frame);
   memset(p->fout->frame.auxp, 0, bytes);
@@ -1654,7 +1654,7 @@ static int32_t pvsfilter(CSOUND *csound, PVSFILTER *p)
   if (UNLIKELY(fout == NULL)) goto err1;
   if (UNLIKELY(!PVSFILTER_SAME_FORMAT(p->fin, p->fil))) goto err2;
   if (UNLIKELY(!PVSFILTER_SAME_FORMAT(p->fin, p->fout)))
-    return csound->PerfError(csound, &p->h, "%s",
+    return csound->PerfError(csound, &p->h, "%s\n",
                              Str("pvsfilter: source format changed; reinitialise"));
 
   if (p->fin->sliding) {
@@ -1708,10 +1708,10 @@ static int32_t pvsfilter(CSOUND *csound, PVSFILTER *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("pvsfilter: not initialised"));
+                           "%s\n", Str("pvsfilter: not initialised"));
  err2:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("pvsfilter: formats are different."));
+                           "%s\n", Str("pvsfilter: formats are different."));
 }
 
 #undef PVSFILTER_SAME_FORMAT
@@ -1735,7 +1735,7 @@ static int32_t pvsscaleset(CSOUND *csound, PVSSCALE *p)
   int32    N = p->fin->N, tmp;
 
   if (UNLIKELY(p->fin == p->fout))
-    csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
+    csound->Warning(csound, "%s\n", Str("Unsafe to have same fsig as in and out"));
   p->fout->NB = p->fin->NB;
   p->fout->sliding = p->fin->sliding;
   if (p->fin->sliding) {
@@ -1946,7 +1946,7 @@ static int32_t pvsscale(CSOUND *csound, PVSSCALE *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("pvscale: not initialised"));
+                           "%s\n", Str("pvscale: not initialised"));
 }
 
 /* pvshift */
@@ -1969,7 +1969,7 @@ static int32_t pvsshiftset(CSOUND *csound, PVSSHIFT *p)
   int32_t    N = p->fin->N;
 
   if (UNLIKELY(p->fin == p->fout))
-    csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
+    csound->Warning(csound, "%s\n", Str("Unsafe to have same fsig as in and out"));
   if (p->fin->sliding) {
     if (p->fout->frame.auxp==NULL ||
         CS_KSMPS*(N+2)*sizeof(cs_float) > (uint32_t)p->fout->frame.size)
@@ -2175,7 +2175,7 @@ static int32_t pvsshift(CSOUND *csound, PVSSHIFT *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("pvshift: not initialised"));
+                           "%s\n", Str("pvshift: not initialised"));
 }
 
 /* pvswarp  */
@@ -2198,17 +2198,17 @@ static int32_t pvswarpset(CSOUND *csound, PVSWARP *p)
   int32    N = p->fin->N;
 
   if (UNLIKELY(p->fin->sliding))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("pvswarp: sliding analysis is not supported"));
   if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) ||
                (size_t)(N + 2) > SIZE_MAX / sizeof(cs_float)))
-    return csound->InitError(csound, "%s", Str("pvswarp: invalid frame size"));
+    return csound->InitError(csound, "%s\n", Str("pvswarp: invalid frame size"));
   if (UNLIKELY(p->fin->format != PVS_AMP_FREQ &&
                p->fin->format != PVS_AMP_PHASE))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("pvswarp: format must be amp-freq or amp-phase"));
   if (UNLIKELY(p->fin == p->fout))
-    csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
+    csound->Warning(csound, "%s\n", Str("Unsafe to have same fsig as in and out"));
   {
     if (p->fout->frame.auxp == NULL ||
         p->fout->frame.size < sizeof(float) * (N + 2))  /* RWD MUST be 32bit */
@@ -2343,7 +2343,7 @@ static int32_t pvswarp(CSOUND *csound, PVSWARP *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("pvswarp: not initialised"));
+                           "%s\n", Str("pvswarp: not initialised"));
 }
 
 
@@ -2360,27 +2360,27 @@ static int32_t pvsblurset(CSOUND *csound, PVSBLUR *p)
   float *delay;
 
   if (UNLIKELY(p->fin == p->fout))
-    csound->Warning(csound, "%s", Str("Unsafe to have same fsig as in and out"));
+    csound->Warning(csound, "%s\n", Str("Unsafe to have same fsig as in and out"));
   if (UNLIKELY(p->fin->sliding))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("pvsblur does not work sliding yet"));
   if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) || olap <= 0 ||
                (size_t)(N + 2) > SIZE_MAX / sizeof(float)))
-    return csound->InitError(csound, "%s", Str("pvsblur: invalid frame size"));
+    return csound->InitError(csound, "%s\n", Str("pvsblur: invalid frame size"));
   if (UNLIKELY(p->fin->format != PVS_AMP_FREQ &&
                p->fin->format != PVS_AMP_PHASE))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("pvsblur: format must be amp-freq or amp-phase"));
 
   p->frpsec = (cs_double)CS_ESR / olap;
   frames = maxdel * p->frpsec;
   if (UNLIKELY(!(maxdel >= 0.0 && frames <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, "%s", Str("pvsblur: invalid maximum delay"));
+    return csound->InitError(csound, "%s\n", Str("pvsblur: invalid maximum delay"));
   p->maxframes = (int32_t)frames;
   capacity = p->maxframes > 0 ? p->maxframes : 1;
   frame_bytes = (size_t)(N + 2) * sizeof(float);
   if (UNLIKELY((size_t)capacity > SIZE_MAX / frame_bytes))
-    return csound->InitError(csound, "%s", Str("pvsblur: delay buffer too large"));
+    return csound->InitError(csound, "%s\n", Str("pvsblur: delay buffer too large"));
   delay_bytes = frame_bytes * capacity;
 
   if (p->fout->frame.auxp == NULL || p->fout->frame.size < frame_bytes)
@@ -2418,7 +2418,7 @@ static int32_t pvsblur(CSOUND *csound, PVSBLUR *p)
   float *delay = (float *)p->delframes.auxp;
 
   if (UNLIKELY(fout == NULL || delay == NULL))
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csound->PerfError(csound, &(p->h), "%s\n",
                              Str("pvsblur: not initialised"));
 
   if (p->lastframe < p->fin->framecount) {
@@ -2430,7 +2430,7 @@ static int32_t pvsblur(CSOUND *csound, PVSBLUR *p)
     frames = frames < 0.0 ? 0.0 :
       (frames > p->maxframes ? p->maxframes : frames);
     if (UNLIKELY(!(frames >= 0.0)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("pvsblur: invalid blur time"));
     delayframes = (int32_t)frames;
     first = p->count - delayframes;
@@ -2478,7 +2478,7 @@ static int32_t pvstencilset(CSOUND *csound, PVSTENCIL *p)
 
   if (UNLIKELY(p->fin->format != PVS_AMP_FREQ &&
                p->fin->format != PVS_AMP_PHASE))
-    return csound->InitError(csound, "%s", Str("pvstencil: signal format "
+    return csound->InitError(csound, "%s\n", Str("pvstencil: signal format "
                                          "must be amp-phase or amp-freq."));
 
   p->fout->N = N;
@@ -2503,7 +2503,7 @@ static int32_t pvstencilset(CSOUND *csound, PVSTENCIL *p)
     return NOTOK;
 
   if (UNLIKELY(p->func->flen + 1 < (uint32_t)chans))
-    return csound->InitError(csound, "%s", Str("pvstencil: ftable needs to equal "
+    return csound->InitError(csound, "%s\n", Str("pvstencil: ftable needs to equal "
                                          "the number of bins"));
 
   ftable = p->func->ftable;
@@ -2584,7 +2584,7 @@ static int32_t pvstencil(CSOUND *csound, PVSTENCIL *p)
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
-                           "%s", Str("pvstencil: not initialised"));
+                           "%s\n", Str("pvstencil: not initialised"));
 }
 
 typedef struct _pvsenvw {
@@ -2604,15 +2604,15 @@ static int32_t pvsenvwset(CSOUND *csound, PVSENVW *p)
   int32    N = p->fin->N;
 
   if (UNLIKELY(p->fin->sliding))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("pvsenvftw: cannot use sliding PVS"));
   if (UNLIKELY(p->fin->format != PVS_AMP_FREQ &&
                p->fin->format != PVS_AMP_PHASE))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("pvsenvftw: format must be amp-freq or amp-phase"));
   if (UNLIKELY(N < 2 || N > INT32_MAX - 2 || (N & 1) ||
                (size_t)(N + 2) > SIZE_MAX / sizeof(cs_float)))
-    return csound->InitError(csound, "%s", Str("pvsenvftw: invalid frame size"));
+    return csound->InitError(csound, "%s\n", Str("pvsenvftw: invalid frame size"));
 
   p->lastframe = 0;
 
@@ -2649,7 +2649,7 @@ static int32_t pvsenvw(CSOUND *csound, PVSENVW *p)
   /* The envelope contains N/2 bins, without Nyquist or a guard point.
      ktable can change, so validate each selected table before writing. */
   if (UNLIKELY(ft->flen != (uint32_t)(N / 2)))
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csound->PerfError(csound, &(p->h), "%s\n",
                              Str("pvsenvftw: table length must equal N/2"));
   ftab = ft->ftable;
 
@@ -2725,13 +2725,13 @@ static int32_t pvs2tab_init(CSOUND *csound, PVS2TAB_T *p)
 {
     if (UNLIKELY(!((p->fsig->format == PVS_AMP_FREQ) ||
                    (p->fsig->format == PVS_AMP_PHASE))))
-    return csound->InitError(csound, "%s", Str("pvs2tab: signal format "
+    return csound->InitError(csound, "%s\n", Str("pvs2tab: signal format "
                                          "must be amp-phase or amp-freq."));
     if (UNLIKELY(p->fsig->sliding))
-        return csound->InitError(csound, "%s", Str("pvs2tab: cannot use sliding PVS"));
+        return csound->InitError(csound, "%s\n", Str("pvs2tab: cannot use sliding PVS"));
 
   if (LIKELY(p->ans->data)) return OK;
-  return csound->InitError(csound, "%s", Str("array-variable not initialised"));
+  return csound->InitError(csound, "%s\n", Str("array-variable not initialised"));
 }
 
 static int32_t  pvs2tab(CSOUND *csound, PVS2TAB_T *p){
@@ -2756,16 +2756,16 @@ static int32_t pvs2tabsplit_init(CSOUND *csound, PVS2TABSPLIT_T *p)
 {
     if (UNLIKELY(!((p->fsig->format == PVS_AMP_FREQ) ||
                    (p->fsig->format == PVS_AMP_PHASE))))
-    return csound->InitError(csound, "%s", Str("pvs2tab: signal format "
+    return csound->InitError(csound, "%s\n", Str("pvs2tab: signal format "
                                          "must be amp-phase or amp-freq."));
 
     if (UNLIKELY(p->fsig->sliding))
-        return csound->InitError(csound, "%s", Str("pvs2tab: cannot use sliding PVS"));
+        return csound->InitError(csound, "%s\n", Str("pvs2tab: cannot use sliding PVS"));
 
   if (LIKELY(p->mags->data) && LIKELY(p->freqs->data))
     return OK;
 
-  return csound->InitError(csound, "%s", Str("array-variable not initialised"));
+  return csound->InitError(csound, "%s\n", Str("array-variable not initialised"));
 }
 
 static int32_t  pvs2tabsplit(CSOUND *csound, PVS2TABSPLIT_T *p){
@@ -2799,15 +2799,15 @@ static int32_t tab2pvs_setframe(CSOUND *csound, PVSDAT *out, int32_t N,
   if (winsize == 0.0)
     winsize = N;
   if (UNLIKELY(!(overlap >= ksmps && overlap <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("tab2pvs: hop size must be at least ksmps "
                                  "and fit in a 32-bit integer"));
   if (UNLIKELY(!(winsize >= 1.0 && winsize <= (INT32_MAX + 0.0) &&
                  wintype >= INT32_MIN && wintype <= (INT32_MAX + 0.0))))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("tab2pvs: invalid window size or type"));
   if (UNLIKELY((size_t)N + 2 > SIZE_MAX / sizeof(float)))
-    return csound->InitError(csound, "%s", Str("tab2pvs: frame size is too large"));
+    return csound->InitError(csound, "%s\n", Str("tab2pvs: frame size is too large"));
 
   out->N = N;
   out->NB = N / 2 + 1;
@@ -2839,7 +2839,7 @@ static int32_t tab2pvs_init(CSOUND *csound, TAB2PVS_T *p)
 {
   if (UNLIKELY(!TAB2PVS_ARRAY(p->in) || p->in->sizes[0] < 4 ||
                (p->in->sizes[0] & 1)))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("tab2pvs: expected a one-dimensional array "
                                  "of at least two amplitude/frequency pairs"));
   p->size = p->in->sizes[0];
@@ -2855,7 +2855,7 @@ int32_t  tab2pvs(CSOUND *csound, TAB2PVS_T *p)
   float *fout = (float *) p->fout->frame.auxp;
 
   if (UNLIKELY(!TAB2PVS_ARRAY(p->in) || p->in->sizes[0] != size))
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csound->PerfError(csound, &(p->h), "%s\n",
                              Str("tab2pvs: array shape changed; reinitialise"));
   /* Count elapsed samples before this block, not through its end. */
   if (p->ktime >= (uint32) p->fout->overlap) {
@@ -2889,7 +2889,7 @@ static int32_t tab2pvssplit_init(CSOUND *csound, TAB2PVSSPLIT_T *p)
   if (UNLIKELY(!TAB2PVS_ARRAY(p->mags) || !TAB2PVS_ARRAY(p->freqs) ||
                p->mags->sizes[0] < 2 || p->mags->sizes[0] > INT32_MAX / 2 ||
                p->mags->sizes[0] != p->freqs->sizes[0]))
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("tab2pvs: expected matching one-dimensional "
                                  "magnitude and frequency arrays of at least two bins"));
   p->size = p->mags->sizes[0];
@@ -2906,7 +2906,7 @@ static int32_t  tab2pvssplit(CSOUND *csound, TAB2PVSSPLIT_T *p)
 
   if (UNLIKELY(!TAB2PVS_ARRAY(p->mags) || !TAB2PVS_ARRAY(p->freqs) ||
                p->mags->sizes[0] != size || p->freqs->sizes[0] != size))
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csound->PerfError(csound, &(p->h), "%s\n",
                              Str("tab2pvs: array shape changed; reinitialise"));
   if (p->ktime >= (uint32) p->fout->overlap) {
     p->fout->framecount++;

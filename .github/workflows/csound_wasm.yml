@@ -30,7 +30,7 @@ jobs:
         with:
           name: csound
           authToken: ${{ secrets.CACHIX_TOKEN }}
-      - name: Compile wasm binaries
+      - name: Compile Csound and accessory wasm binaries
         run: cd $wasm_bin_dir && yarn build
       - name: Zip the compilation output
         run: |

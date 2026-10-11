@@ -70,7 +70,7 @@ static int32_t metro_set(CSOUND *csound, METRO *p)
 
     if (phs >= 0.0) {
       if (UNLIKELY((longphs = (int32)phs)))
-        csound->Warning(csound, "%s", Str("metro:init phase truncation"));
+        csound->Warning(csound, "%s\n", Str("metro:init phase truncation"));
       p->curphs = (cs_float)phs - (cs_float)longphs;
     }
     p->flag=1;
@@ -136,9 +136,9 @@ static int32_t metro2_set(CSOUND *csound, METRO2 *p)
     cs_double phs = *p->iphs;
 
     if (UNLIKELY(!isfinite(phs) || phs < 0.0))
-      return csound->InitError(csound, "%s", Str("metro2: invalid initial phase"));
+      return csound->InitError(csound, "%s\n", Str("metro2: invalid initial phase"));
     if (UNLIKELY(phs >= 1.0)) {
-      csound->Warning(csound, "%s", Str("metro2:init phase truncation"));
+      csound->Warning(csound, "%s\n", Str("metro2:init phase truncation"));
       phs -= floor(phs);
     }
     p->amp2 = *p->iamp;
@@ -156,10 +156,10 @@ static int32_t metro2(CSOUND *csound, METRO2 *p)
     cs_double frequency = *p->xcps, increment, threshold;
 
     if (UNLIKELY(!(swng >= 0.0 && swng <= 1.0)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                               Str("metro2: swing must be between 0 and 1"));
     if (UNLIKELY(!isfinite(frequency) || frequency < 0.0))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                               Str("metro2: frequency must be finite and nonnegative"));
 
     /* An exact initial tick must hold both clocks for the same cycle.
@@ -224,15 +224,15 @@ static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
     FUNC *ftp;
     cs_double maxtics = (cs_double)*p->maxtics;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
-      return csound->InitError(csound, "%s", Str("splitrig: incorrect table number"));
+      return csound->InitError(csound, "%s\n", Str("splitrig: incorrect table number"));
     }
     p->table = ftp->ftable;
     p->numouts =  p->INOCOUNT-4;
     if (UNLIKELY(p->numouts < 1 || ftp->flen < (uint32_t)p->numouts))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("splitrig: table cannot hold one tick"));
     if (UNLIKELY(!(maxtics >= 1.0 && maxtics < (INT32_MAX + 0.0) + 1.0)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("splitrig: invalid maximum tick count"));
     p->max_tics = (int32_t)maxtics;
     p->stride = (uint64_t)p->numouts * p->max_tics + 1;
@@ -259,7 +259,7 @@ static int32_t split_trig(CSOUND *csound, SPLIT_TRIG *p)
 
       /* Preserve truncation toward zero, but check before converting. */
       if (UNLIKELY(!(index > -1.0 && index < (cs_double)p->numseq)))
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("splitrig: sequence index out of range"));
       kndx = (int32_t)index;
       ndx = (uint32_t)(kndx * p->stride);
@@ -268,7 +268,7 @@ static int32_t split_trig(CSOUND *csound, SPLIT_TRIG *p)
       if (UNLIKELY(!(ticks >= 1.0 &&
                      ticks < (cs_double)p->max_tics + 1.0 &&
                      ticks < (cs_double)available + 1.0)))
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("splitrig: invalid sequence tick count"));
       numtics = (int32_t)ticks;
       table = &p->table[ndx+1];
@@ -303,7 +303,7 @@ static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
     if (UNLIKELY(ftp == NULL)) return NOTOK;
     p->numParm = p->INOCOUNT - 2;
     if (UNLIKELY(p->numParm < 2))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("timedseq: rows need at least an event and time"));
     p->table = ftp->ftable;
     rows = ftp->flen / p->numParm;
@@ -312,7 +312,7 @@ static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
       if (event[0] < 0) {
         if (UNLIKELY(row == 0 || !(event[1] > 0) ||
                      !isfinite(event[1]) || event[1] < previous))
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                   Str("timedseq: invalid sequence end"));
         p->endSeq = event[1];
         p->endIndex = row;
@@ -321,11 +321,11 @@ static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
         return OK;
       }
       if (UNLIKELY(!(event[1] >= previous) || !isfinite(event[1])))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                 Str("timedseq: event times must be sorted and nonnegative"));
       previous = event[1];
     }
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("timedseq: missing complete end row"));
 }
 
@@ -342,7 +342,7 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
       if (phs < 0) phs += endseq;
     }
     if (UNLIKELY(!(phs >= 0 && phs < endseq)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                               Str("timedseq: invalid time pointer"));
     delta = p->initFlag ? FL(0.0) : phs - p->oldPhs;
     p->oldPhs = phs;

@@ -112,7 +112,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
     if (UNLIKELY(named == NULL)) {
       csound->Free(csound,ftevt);
       return csound->InitError(csound,
-                               Str("Named gen \"%s\" not defined"),
+                               Str("Named gen \"%s\" not defined\n"),
                                (char *)p->p4);
     }
     // else fp[4] = named->genum;
@@ -135,7 +135,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
       break;
     default:
       csound->Free(csound, ftevt);
-      return csound->InitError(csound, "%s", Str("ftgen string arg not allowed"));
+      return csound->InitError(csound, "%s\n", Str("ftgen string arg not allowed"));
     }
   }
   else {
@@ -153,7 +153,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
   csound->Free(csound,ftevt->p);
   csound->Free(csound, ftevt);
   if (UNLIKELY(n != 0))
-    return csound->InitError(csound, "%s", Str("ftgen error"));
+    return csound->InitError(csound, "%s\n", Str("ftgen error"));
   if (ftp != NULL)
     *p->ifno = (cs_float) ftp->fno;                      /* record the fno */
   return OK;
@@ -225,11 +225,11 @@ static int32_t ftfree(CSOUND *csound, FTFREE *p)
   p->fno = (int32_t) CS_FLOAT2LRND(*p->iftno);
 
   if (UNLIKELY(p->fno <= 0))
-    return csound->InitError(csound, Str("Invalid table number: %d"), p->fno);
+    return csound->InitError(csound, Str("Invalid table number: %d\n"), p->fno);
   if (*p->ifreeTime == FL(0.0)) {
     p->deinit = 0;
     if (UNLIKELY(csound->FTDelete(csound, p->fno) != 0))
-      return csound->InitError(csound, Str("Error deleting ftable %d"), p->fno);
+      return csound->InitError(csound, Str("Error deleting ftable %d\n"), p->fno);
     return OK;
   }
   p->deinit = 1;
@@ -244,7 +244,7 @@ static int32_t myInitError(CSOUND *csound, OPDS *p, const char *str, ...)
   va_start(args, str);
   vsnprintf(message, sizeof(message), str, args);
   va_end(args);
-  return csound->InitError(csound, "%s", message);
+  return csound->InitError(csound, "%s\n", message);
 }
 
 static void ftload_copy_header(CSOUND *csound, FUNC *ftp,
@@ -330,7 +330,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
       ftp = ft_func(csound, &fno_f);
       // Do we need to check value of ftp->fflen? #27323
       if (ftp->flen > 0x40000000)
-        return csound->InitError(csound,"%s", Str("table length too long"));
+        return csound->InitError(csound,"%s\n", Str("table length too long"));
       ftload_copy_header(csound, ftp, &header,
                          sizeof(FUNC) - sizeof(cs_float*) - SSTRSIZ);
       memset(ftp->ftable, 0, sizeof(cs_float) * ((uint64_t) ftp->flen + 1));
@@ -659,7 +659,7 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
     if (UNLIKELY(named == NULL)) {
       csound->Free(csound,ftevt);
       return csound->InitError(csound,
-                               Str("Named gen \"%s\" not defined"),
+                               Str("Named gen \"%s\" not defined\n"),
                                (char *)p->p4);
     }
   }
@@ -669,7 +669,7 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
   csound->Free(csound,ftevt->p);
   csound->Free(csound,ftevt);
   if (UNLIKELY(n != 0))
-    return csound->InitError(csound, "%s", Str("ftgen error"));
+    return csound->InitError(csound, "%s\n", Str("ftgen error"));
   if (ftp != NULL)
     *p->ifno = (cs_float) ftp->fno;                      /* record the fno */
   return OK;
@@ -733,7 +733,7 @@ static int32_t getftargs(CSOUND *csound, FTARGS *p)
 
   if (UNLIKELY((src = csound->FTFind(csound, p->ftable)) == NULL)) {
     return csound->PerfError(csound, &(p->h),
-                             Str("table: could not find ftable %d"),
+                             Str("table: could not find ftable %d\n"),
                              (int32_t) *p->ftable);
   }
 

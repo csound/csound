@@ -140,24 +140,24 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
 
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
-    return csound->InitError(csound, "%s", Str("No table for Clarinet"));
+    return csound->InitError(csound, "%s\n", Str("No table for Clarinet"));
   }
   if (UNLIKELY(ftp->flen < 1)) {
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("Clarinet vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
     cs_double release = ceil((cs_double)*p->dettack * CS_EKR);
     if (UNLIKELY(!(*p->attack >= FL(0.0) && release >= 0.0 &&
                    release <= (INT32_MAX + 0.0))))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("wgclar: invalid attack or release time"));
     if (*p->lowestFreq)
       p->length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
     else if (LIKELY(*p->frequency))
       p->length = (int32_t) (CS_ESR / *p->frequency + FL(1.0));
     else {
-      csound->Warning(csound, "%s", Str("No base frequency for clarinet "
+      csound->Warning(csound, "%s\n", Str("No base frequency for clarinet "
                                         "-- assuming 50Hz\n"));
       p->length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
     }
@@ -317,17 +317,17 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
 
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                   /* Expect sine wave */
-    return csound->InitError(csound, "%s", Str("No table for Flute"));
+    return csound->InitError(csound, "%s\n", Str("No table for Flute"));
   }
   if (UNLIKELY(ftp->flen < 1)) {
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("Flute vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
     cs_double release = ceil((cs_double)*p->dettack * CS_EKR);
     if (UNLIKELY(!(*p->attack >= FL(0.0) && release >= 0.0 &&
                    release <= (INT32_MAX + 0.0))))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("wgflute: invalid attack or release time"));
     if (release > p->h.insdshead->xtratim)
       p->h.insdshead->xtratim = (int32_t)release;
@@ -340,7 +340,7 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
       p->limit = *p->frequency;
     }
     else {
-      csound->Warning(csound, "%s", Str("No base frequency for flute "
+      csound->Warning(csound, "%s\n", Str("No base frequency for flute "
                                         "-- assumed to be 50Hz\n"));
       length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
       p->limit = FL(50.0);
@@ -411,7 +411,7 @@ int32_t flute(CSOUND *csound, FLUTE *p)
     p->lastFreq = *p->frequency;
     if (p->limit>p->lastFreq) {
       p->lastFreq = p->limit;
-      csound->Warning(csound, "%s", Str("frequency too low, set to minimum"));
+      csound->Warning(csound, "%s\n", Str("frequency too low, set to minimum"));
     }
     p->lastJet = *p->jetRatio;
     /* freq = (2/3)*p->frequency as we're overblowing here */
@@ -536,10 +536,10 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
 
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
-    return csound->InitError(csound, "%s", Str("No table for wgbow vibrato"));
+    return csound->InitError(csound, "%s\n", Str("No table for wgbow vibrato"));
   }
   if (UNLIKELY(ftp->flen < 1)) {
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("wgbow vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
@@ -552,7 +552,7 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
       p->limit = *p->frequency;
     }
     else {
-      csound->Warning(csound, "%s", Str("unknown lowest frequency for bowed string "
+      csound->Warning(csound, "%s\n", Str("unknown lowest frequency for bowed string "
                                         "-- assuming 50Hz\n"));
       length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
       p->limit = FL(50.0);
@@ -627,7 +627,7 @@ int32_t bowed(CSOUND *csound, BOWED *p)
       p->lastfreq = *p->frequency;
     else {
       p->lastfreq = p->limit;
-      csound->Warning(csound, "%s", Str("frequency too low, set to minimum"));
+      csound->Warning(csound, "%s\n", Str("frequency too low, set to minimum"));
     }
     p->baseDelay = CS_ESR / p->lastfreq - FL(4.0);
     freq_changed = 1;
@@ -835,10 +835,10 @@ int32_t brassset(CSOUND *csound, BRASS *p)
 
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
-    return csound->InitError(csound, "%s", Str("No table for Brass"));
+    return csound->InitError(csound, "%s\n", Str("No table for Brass"));
   }
   if (UNLIKELY(ftp->flen < 1)) {
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("Brass vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {
@@ -852,7 +852,7 @@ int32_t brassset(CSOUND *csound, BRASS *p)
       p->limit = frequency;
     }
     else {
-      csound->Warning(csound, "%s", Str("No base frequency for brass "
+      csound->Warning(csound, "%s\n", Str("No base frequency for brass "
                                         "-- assumed to be 50Hz\n"));
       p->length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
       p->limit = FL(50.0);
@@ -930,7 +930,7 @@ int32_t brass(CSOUND *csound, BRASS *p)
     p->frq = *p->frequency;
     if (p->limit > p->frq) {
       p->frq =p->limit;
-      csound->Warning(csound, "%s", Str("frequency too low, set to minimum"));
+      csound->Warning(csound, "%s\n", Str("frequency too low, set to minimum"));
     }
     p->slideTarget = (CS_ESR / p->frq * FL(2.0)) + FL(3.0);
     /* fudge correction for filter delays */

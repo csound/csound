@@ -96,19 +96,19 @@ int32_t zakinit(CSOUND *csound, ZAKINIT *p)
 
     if (UNLIKELY(zak != NULL)) {
       return csound->InitError(csound,
-                               "%s", Str("zakinit should only be called once."));
+                               "%s\n", Str("zakinit should only be called once."));
     }
 
     if (UNLIKELY(!(*p->isizea > 0 && *p->isizek > 0 &&
                    (cs_double)*p->isizea < (INT32_MAX + 0.0) &&
                    (cs_double)*p->isizek < (INT32_MAX + 0.0))))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("zakinit: sizes out of range"));
     audioCount = (size_t)(int32_t)*p->isizea + 1;
     controlCount = (size_t)(int32_t)*p->isizek + 1;
     if (UNLIKELY(audioCount > SIZE_MAX / sizeof(cs_float) / CS_KSMPS ||
                  controlCount > SIZE_MAX / sizeof(cs_float)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("zakinit: sizes out of range"));
     /* Allocate memory for zk space.
      * This is all set to 0 and there will be an error report if the
@@ -117,7 +117,7 @@ int32_t zakinit(CSOUND *csound, ZAKINIT *p)
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_zak_globals",
                                               sizeof(ZAK_GLOBALS)) != 0))
       return
-        csound->InitError(csound, "%s",
+        csound->InitError(csound, "%s\n",
                            Str("zakinit: failed to allocate globals"));
     zak = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
     zak->zklast = (int32_t) *p->isizek;
@@ -148,7 +148,7 @@ int32_t zkset(CSOUND *csound, ZKR *p)
     ZAK_GLOBALS* zak =
       (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
     if (UNLIKELY(zak == NULL || zak->zkstart == NULL)) {
-      return csound->InitError(csound, "%s", Str("No zk space: "
+      return csound->InitError(csound, "%s\n", Str("No zk space: "
                                            "zakinit has not been called yet."));
     }
     p->zz = zak;
@@ -169,11 +169,11 @@ int32_t zkr(CSOUND *csound, ZKR *p)
     indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zklast)) {
       *p->rslt = FL(0.0);
-      csound->Warning(csound, "%s", Str("zkr index > isizek. Returning 0."));
+      csound->Warning(csound, "%s\n", Str("zkr index > isizek. Returning 0."));
     }
     else if (UNLIKELY(indx < 0)) {
       *p->rslt = FL(0.0);
-      csound->Warning(csound, "%s", Str("zkr index < 0. Returning 0."));
+      csound->Warning(csound, "%s\n", Str("zkr index < 0. Returning 0."));
     }
     else {
       cs_float *readloc;
@@ -198,7 +198,7 @@ int32_t zir(CSOUND *csound, ZKR *p)
     ZAK_GLOBALS* zak;
 
     if (UNLIKELY(zkset(csound, (ZKR*)p)!=OK))
-      return csound->InitError(csound, "%s", Str("No zk space: "
+      return csound->InitError(csound, "%s\n", Str("No zk space: "
                                            "zakinit has not been called yet."));
     zak = (ZAK_GLOBALS*) p->zz;
 
@@ -207,11 +207,11 @@ int32_t zir(CSOUND *csound, ZKR *p)
     /* Check to see this index is within the limits of zk space. */
     indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zklast)) {
-      csound->Warning(csound, "%s", Str("zir index > isizek. Returning 0."));
+      csound->Warning(csound, "%s\n", Str("zir index > isizek. Returning 0."));
       *p->rslt = FL(0.0);
     }
     else if (UNLIKELY(indx < 0)) {
-      csound->Warning(csound, "%s", Str("zir index < 0. Returning 0."));
+      csound->Warning(csound, "%s\n", Str("zir index < 0. Returning 0."));
       *p->rslt = FL(0.0);
     }
     else {
@@ -235,11 +235,11 @@ int32_t zkw(CSOUND *csound, ZKW *p)
     indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zklast)) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zkw index > isizek. Not writing."));
+                               "%s\n", Str("zkw index > isizek. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zkw index < 0. Not writing."));
+                               "%s\n", Str("zkw index < 0. Not writing."));
     }
     else {
       cs_float *writeloc;
@@ -262,17 +262,17 @@ int32_t ziw(CSOUND *csound, ZKW *p)
     ZAK_GLOBALS* zak;
 
     if (UNLIKELY(zkset(csound, (ZKR*)p)!= OK))
-      return csound->InitError(csound, "%s", Str("No zk space: "
+      return csound->InitError(csound, "%s\n", Str("No zk space: "
                                            "zakinit has not been called yet."));
     zak = p->zz;
     /* if (UNLIKELY(zak==NULL)) */
     /*   return NOTOK; */
     indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zklast)) {
-      return csound->InitError(csound, "%s", Str("ziw index > isizek. Not writing."));
+      return csound->InitError(csound, "%s\n", Str("ziw index > isizek. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
-      return csound->InitError(csound, "%s", Str("ziw index < 0. Not writing."));
+      return csound->InitError(csound, "%s\n", Str("ziw index < 0. Not writing."));
     }
     else {
       cs_float *writeloc;
@@ -297,11 +297,11 @@ int32_t zkwm(CSOUND *csound, ZKWM *p)
     indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zklast)) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zkwm index > isizek. Not writing."));
+                               "%s\n", Str("zkwm index > isizek. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zkwm index < 0. Not writing."));
+                               "%s\n", Str("zkwm index < 0. Not writing."));
     }
     else {
       cs_float *writeloc;
@@ -336,10 +336,10 @@ int32_t ziwm(CSOUND *csound, ZKWM *p)
     indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zklast)) {
       return csound->InitError(csound,
-                               "%s", Str("ziwm index > isizek. Not writing."));
+                               "%s\n", Str("ziwm index > isizek. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
-      return csound->InitError(csound, "%s", Str("ziwm index < 0. Not writing."));
+      return csound->InitError(csound, "%s\n", Str("ziwm index < 0. Not writing."));
     }
     else {
       cs_float *writeloc;
@@ -384,7 +384,7 @@ int32_t zkmod(CSOUND *csound, ZKMOD *p)
 
     if (UNLIKELY(indx > zak->zklast)) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zkmod kzkmod > isizek. Not writing."));
+                               "%s\n", Str("zkmod kzkmod > isizek. Not writing."));
     }
     else {
       /* Now read the value from zk space. */
@@ -411,14 +411,14 @@ int32_t zkcl(CSOUND *csound, ZKCL *p)
      * and that last is >= first.                */
     if (UNLIKELY((first > zak->zklast) || (last > zak->zklast)))
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zkcl first or last > isizek. Not clearing."));
+                               "%s\n", Str("zkcl first or last > isizek. Not clearing."));
     else if (UNLIKELY((first < 0) || (last < 0))) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zkcl first or last < 0. Not clearing."));
+                               "%s\n", Str("zkcl first or last < 0. Not clearing."));
     }
     else if (UNLIKELY(first > last)) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zkcl first > last. Not clearing."));
+                               "%s\n", Str("zkcl first > last. Not clearing."));
     }
     else {
       /* Now clear the appropriate locations in zk space. */
@@ -443,7 +443,7 @@ int32_t zaset(CSOUND *csound, ZAR *p)
       (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
      IGN(p);
     if  (zak == NULL) {
-      return csound->InitError(csound, "%s", Str("No za space: "
+      return csound->InitError(csound, "%s\n", Str("No za space: "
                                            "zakinit has not been called yet."));
     }
     p->zz = zak;
@@ -473,12 +473,12 @@ int32_t zar(CSOUND *csound, ZAR *p)
     if (UNLIKELY(indx > zak->zalast)) {
       memset(writeloc, 0, nsmps*sizeof(cs_float));
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zar index > isizea. Returning 0."));
+                               "%s\n", Str("zar index > isizea. Returning 0."));
     }
     else if (UNLIKELY(indx < 0)) {
       memset(writeloc, 0, nsmps*sizeof(cs_float));
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zar index < 0. Returning 0."));
+                               "%s\n", Str("zar index < 0. Returning 0."));
     }
     else {
       /* Now read from the array in za space and write to the destination.
@@ -519,13 +519,13 @@ int32_t zarg(CSOUND *csound, ZARG *p)
     if (UNLIKELY(indx > zak->zalast)) {
       memset(writeloc, 0, nsmps*sizeof(cs_float));
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zarg index > isizea. Returning 0."));
+                               "%s\n", Str("zarg index > isizea. Returning 0."));
     }
     else {
       if (UNLIKELY(indx < 0)) {
         memset(writeloc, 0, nsmps*sizeof(cs_float));
         return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("zarg index < 0. Returning 0."));
+                                 "%s\n", Str("zarg index < 0. Returning 0."));
       }
       else {
         /* Now read from the array in za space multiply by kgain and write
@@ -564,11 +564,11 @@ int32_t zaw(CSOUND *csound, ZAW *p)
     indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zalast)) {
       return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("zaw index > isizea. Not writing."));
+                                 "%s\n", Str("zaw index > isizea. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
       return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("zaw index < 0. Not writing."));
+                                 "%s\n", Str("zaw index < 0. Not writing."));
     }
     else {
         /* Now write to the array in za space pointed to by indx.    */
@@ -605,11 +605,11 @@ int32_t zawm(CSOUND *csound, ZAWM *p)
     indx = ZAK_INDEX(*p->ndx);
     if (UNLIKELY(indx > zak->zalast)) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zaw index > isizea. Not writing."));
+                               "%s\n", Str("zaw index > isizea. Not writing."));
     }
     else if (UNLIKELY(indx < 0)) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zaw index < 0. Not writing."));
+                               "%s\n", Str("zaw index < 0. Not writing."));
     }
     else {
       /* Now write to the array in za space pointed to by indx.    */
@@ -673,7 +673,7 @@ int32_t zamod(CSOUND *csound, ZAMOD *p)
     /* Check to see this index is within the limits of za space.    */
     if (UNLIKELY(indx > zak->zalast)) {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("zamod kzamod > isizea. Not writing."));
+                               "%s\n", Str("zamod kzamod > isizea. Not writing."));
     }
     else {                      /* Now read the values from za space.    */
       readloc = zak->zastart + ((size_t)indx * CS_KSMPS);
@@ -711,16 +711,16 @@ int32_t zacl(CSOUND *csound, ZACL *p)
     if (UNLIKELY((first > zak->zalast) || (last > zak->zalast)))
       return
         csound->PerfError(csound, &(p->h),
-                          "%s", Str("zacl first or last > isizea. Not clearing."));
+                          "%s\n", Str("zacl first or last > isizea. Not clearing."));
     else {
       if (UNLIKELY((first < 0) || (last < 0))) {
         return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("zacl first or last < 0. Not clearing."));
+                                 "%s\n", Str("zacl first or last < 0. Not clearing."));
       }
       else {
         if (UNLIKELY(first > last)) {
           return csound->PerfError(csound, &(p->h),
-                                   "%s", Str("zacl first > last. Not clearing."));
+                                   "%s\n", Str("zacl first > last. Not clearing."));
         }
         else {  /* Now clear the appropriate locations in za space. */
           loopcount = (size_t)(last - first + 1) * CS_KSMPS;

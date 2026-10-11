@@ -57,7 +57,7 @@ static intptr_t expand_nxp(CSOUND *csound)
 
     if (UNLIKELY((csound->sread.nxp) >=
                  ((csound->sread.memend) + MARGIN))) {
-      csound->Die(csound, Str("sread:  text space overrun, increase MARGIN"));
+      csound->Die(csound, Str("sread:  text space overrun, increase MARGIN\n"));
       return 0;     /* not reached */
     }
     /* calculate the number of bytes to allocate */
@@ -113,7 +113,6 @@ static void sreaderr(CSOUND *csound, const char *s, ...)
     va_start(args, s);
     csoundMessageV(csound, 0, s, args);
     va_end(args);
-    csoundMessage(csound, "\n");
     print_input_backtrace(csound, 1, csoundMessage);
     return;
 }
@@ -144,7 +143,7 @@ static void print_input_backtrace(CSOUND *csound, int32_t needLFs,
     do {
       if (curr == (csound->sread.inputs)) lastinput = 1;
       if (UNLIKELY(!curr->mac || !curr->mac->name)){
-        csound->Warning(csound, Str("Internal error in print_input_backtrace()"));
+        csound->Warning(csound, Str("Internal error in print_input_backtrace()\n"));
         return;
       }
       switch(lastsource) {
@@ -184,7 +183,7 @@ static cs_float operate(CSOUND *csound, cs_float a, cs_float b, char c)
     case '|': ans = (cs_float) (CS_FLOAT2LRND(a) | CS_FLOAT2LRND(b)); break;
     case '#': ans = (cs_float) (CS_FLOAT2LRND(a) ^ CS_FLOAT2LRND(b)); break;
     default:
-      csoundDie(csound, Str("Internal error op=%c"), c);
+      csoundDie(csound, Str("Internal error op=%c\n"), c);
       ans = FL(0.0);    /* compiler only */
     }
     return ans;
@@ -484,7 +483,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           }
           //printf("i=%d\n", i);
           if (UNLIKELY(i > (csound->sread.last_name)))
-            sreaderr(csound, Str("Name %s not found"), buff);
+            sreaderr(csound, Str("Name %s not found\n"), buff);
           else {
             //csound->Message(csound, Str("%d: %s (%ld)\n"),
             //                i, buff, (csound->sread.names)[i].posit);
@@ -618,7 +617,7 @@ static void ifa(CSOUND *csound)
           (csound->sread.sp)++; foundplus = 1;
         }
         if (UNLIKELY((csound->sread.prvp2)<0)) {
-          sreaderr(csound,Str("No previous event for ^"));
+          sreaderr(csound,Str("No previous event for ^\n"));
           (csound->sread.prvp2) =
             (csound->sread.bp)->p2val =
               (csound->sread.warp_factor) *
@@ -626,7 +625,7 @@ static void ifa(CSOUND *csound)
         }
         else if (UNLIKELY(isspace(*((csound->sread.sp)+1)))) {
           /* stof() assumes no leading whitespace -- 070204, akozar */
-          sreaderr(csound, Str("illegal space following %s, zero substituted"),
+          sreaderr(csound, Str("illegal space following %s, zero substituted\n"),
                            (foundplus ? "^+" : "^"));
           (csound->sread.prvp2) =
             (csound->sread.bp)->p2val =
@@ -666,16 +665,16 @@ static void ifa(CSOUND *csound)
         if (UNLIKELY((csound->sread.op) != 'i')) {
           *((csound->sread.nxp)-1) = '\0';
           getmore = 1;
-          sreaderr(csound, Str("ignoring '%s' in '%c' event"),
+          sreaderr(csound, Str("ignoring '%s' in '%c' event\n"),
                    (csound->sread.sp), (csound->sread.op));
         }
         else if (UNLIKELY((csound->sread.bp)->pcnt < 4)) {
-          sreaderr(csound, Str("! invalid in p1, p2, or p3"));
+          sreaderr(csound, Str("! invalid in p1, p2, or p3\n"));
           csound->Message(csound, Str("      remainder of line flushed\n"));
           flushlin(csound);
         }
         else if (UNLIKELY(csound->sread.nxp-csound->sread.sp != 2)) {
-          sreaderr(csound, Str("illegal character after !: '%c'"),
+          sreaderr(csound, Str("illegal character after !: '%c'\n"),
                    *((csound->sread.sp)+1));
           csound->Message(csound, Str("      remainder of line flushed\n"));
           flushlin(csound);
@@ -992,7 +991,7 @@ static int32_t getop(CSOUND *csound)        /* get next legal opcode */
     case EOF:
       break;            /* if ok, go with it    */
     default:            /*   else complain      */
-      sreaderr(csound, Str("illegal opcode %c"), c);
+      sreaderr(csound, Str("illegal opcode %c\n"), c);
       csound->Message(csound,Str("      remainder of line flushed\n"));
       flushlin(csound);
       goto nextc;
@@ -1013,21 +1012,21 @@ typedef struct {
 static void score_expr_push_op(CSOUND *csound, SCORE_EXPR *expr, char op)
 {
   if (UNLIKELY(expr->opCount == SCORE_EXPR_STACK_SIZE))
-    scorerr(csound, Str("score expression operator stack full"));
+    scorerr(csound, Str("score expression operator stack full\n"));
   expr->ops[expr->opCount++] = op;
 }
 
 static void score_expr_push_value(CSOUND *csound, SCORE_EXPR *expr, cs_float value)
 {
   if (UNLIKELY(expr->valueCount == SCORE_EXPR_STACK_SIZE))
-    scorerr(csound, Str("score expression value stack full"));
+    scorerr(csound, Str("score expression value stack full\n"));
   expr->values[expr->valueCount++] = value;
 }
 
 static void score_expr_reduce(CSOUND *csound, SCORE_EXPR *expr)
 {
   if (UNLIKELY(expr->valueCount < 2))
-    scorerr(csound, Str("missing operand in score expression"));
+    scorerr(csound, Str("missing operand in score expression\n"));
   cs_float right = expr->values[--expr->valueCount];
   cs_float left = expr->values[expr->valueCount - 1];
   expr->values[expr->valueCount - 1] =
@@ -1038,7 +1037,7 @@ static void score_expr_append_char(CSOUND *csound, char *buffer,
                                    int32_t *length, int32_t c)
 {
   if (UNLIKELY(*length == SCORE_EXPR_NUMBER_SIZE - 1))
-    scorerr(csound, Str("number too long in score expression"));
+    scorerr(csound, Str("number too long in score expression\n"));
   buffer[(*length)++] = (char)c;
 }
 
@@ -1049,7 +1048,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
       int32_t i, c;
       int32_t type = 0; /* 1: expecting an operator or closing delimiter */
       if (UNLIKELY(depth >= SCORE_EXPR_STACK_SIZE))
-        scorerr(csound, Str("score expression nested too deeply"));
+        scorerr(csound, Str("score expression nested too deeply\n"));
       score_expr_push_op(csound, &expr, '[');
       c = getscochar(csound, 1);
       for (;;) {
@@ -1060,7 +1059,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
         case '.':
           if (UNLIKELY(type)) {
             scorerr(csound, Str("illegal placement of number in [] "
-                                "expression"));
+                                "expression\n"));
           }
  parseNumber:
           i = 0;
@@ -1087,7 +1086,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
         case '~':
           if (UNLIKELY(type)) {
             scorerr(csound, Str("illegal placement of operator ~ in [] "
-                                "expression"));
+                                "expression\n"));
           }
           score_expr_push_value(csound, &expr,
             (cs_float)(csound->Rand31(&(csound->randSeed1)) - 1) / FL(2147483645));
@@ -1097,7 +1096,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
         case '@':
           if (UNLIKELY(type)) {
             scorerr(csound, Str("illegal placement of operator @ or @@ in"
-                                " [] expression"));
+                                " [] expression\n"));
           }
           {
             int32_t n = 0;
@@ -1106,7 +1105,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
             if (c=='@') { k = 1; c = getscochar(csound, 1);}
             while (isdigit(c)) {
               if (UNLIKELY(n > (INT32_MAX - (c - '0')) / 10))
-                scorerr(csound, Str("integer overflow in @ expression"));
+                scorerr(csound, Str("integer overflow in @ expression\n"));
               n = 10*n + (c - '0');
               c = getscochar(csound, 1);
             }
@@ -1129,7 +1128,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
         case '%':
           if (UNLIKELY(!type)) {
             scorerr(csound, Str("illegal placement of operator %c in [] "
-                                "expression"), c);
+                                "expression\n"), c);
           }
           if (top == '*' || top == '/' || top == '%') {
             score_expr_reduce(csound, &expr);
@@ -1141,7 +1140,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
         case '#':
           if (UNLIKELY(!type)) {
             scorerr(csound, Str("illegal placement of operator %c in [] "
-                                "expression"), c);
+                                "expression\n"), c);
           }
           if (top == '|' || top == '&' || top == '#') {
             score_expr_reduce(csound, &expr);
@@ -1150,7 +1149,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
           score_expr_push_op(csound, &expr, c); c = getscochar(csound, 1); break;
         case '(':
           if (UNLIKELY(type)) {
-            scorerr(csound, Str("illegal placement of '(' in [] expression"));
+            scorerr(csound, Str("illegal placement of '(' in [] expression\n"));
           }
           type = 0;
           score_expr_push_op(csound, &expr, c); c = getscochar(csound, 1); break;
@@ -1179,12 +1178,12 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
           --expr.opCount; c = getscochar(csound, 1); break;
         case '^':
           if (UNLIKELY(!type))
-            scorerr(csound, Str("missing operand before '^' in [] expression"));
+            scorerr(csound, Str("missing operand before '^' in [] expression\n"));
           type = 0;
           score_expr_push_op(csound, &expr, c); c = getscochar(csound, 1); break;
         case '[':
           if (UNLIKELY(type)) {
-            scorerr(csound, Str("illegal placement of '[' in [] expression"));
+            scorerr(csound, Str("illegal placement of '[' in [] expression\n"));
           }
           type = 1;
           {
@@ -1194,7 +1193,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
           }
         case ']':
           if (UNLIKELY(!type)) {
-            scorerr(csound, Str("missing operand before closing bracket in []"));
+            scorerr(csound, Str("missing operand before closing bracket in []\n"));
           }
           while (expr.ops[expr.opCount - 1] != '[' &&
                  expr.ops[expr.opCount - 1] != '(') {
@@ -1211,13 +1210,13 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
           return expr.values[expr.valueCount - 1];
         case '$':
         case EOF:
-          scorerr(csound, Str("missing closing bracket in score expression"));
+          scorerr(csound, Str("missing closing bracket in score expression\n"));
           return FL(0.0);
         case ' ':               /* Ignore spaces */
           c = getscochar(csound, 1);
           continue;
         default:
-          scorerr(csound, Str("illegal character %c(%.2x) in [] expression"),
+          scorerr(csound, Str("illegal character %c(%.2x) in [] expression\n"),
                   c, c);
         }
       }
@@ -1247,7 +1246,7 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
                                  && c!='"' && c!='~' && c!='!' && c!='z'))) {
       ungetscochar(csound, c);                /* then no more pfields    */
       if (UNLIKELY((csound->sread.linpos))) {
-        sreaderr(csound, Str("unexpected char %c"), c);
+        sreaderr(csound, Str("unexpected char %c\n"), c);
         csound->Message(csound, Str("      remainder of line flushed\n"));
         flushlin(csound);
       }
@@ -1262,14 +1261,14 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
           !(((csound->sread.op) == 'i' ||
              (csound->sread.op) == 'd' || (csound->sread.op) == 'q') &&
             !(csound->sread.bp)->pcnt))) {
-        sreaderr(csound, Str("illegally placed string"));
+        sreaderr(csound, Str("illegally placed string\n"));
         csound->Message(csound, Str("      remainder of line flushed\n"));
         flushlin(csound);
         return(0);
       }
       while ((c = getscochar(csound, 1)) != '"') {
         if (UNLIKELY(c == LF || c == EOF)) {
-          sreaderr(csound, Str("unmatched quote"));
+          sreaderr(csound, Str("unmatched quote\n"));
           return(0);
         }
         *p++ = c;                       /*   copy to matched quote */

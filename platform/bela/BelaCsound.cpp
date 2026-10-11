@@ -248,7 +248,7 @@ struct TrillIn : csnd::Plugin<4, 2> {
         trillID = inargs[1];
         activeTouches = 0;
         if (gTouchSensors.size() < trillID + 1)
-            return csound->init_error("No Trill sensor connected");
+            return csound->init_error("No Trill sensor connected\n");
 
         touchSize = new float[numTouches];
         touchVertLocation = new float[numTouches];

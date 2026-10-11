@@ -51,7 +51,7 @@ CSOUND_PRESERVE_LEGACY_BEHAVIOR("bformenc")
 static int32_t iambicode(CSOUND *csound, AMBIC *p)
 {
     csound->Warning(csound,
-                    "%s", Str("bformenc is deprecated; use bformenc1 instead\n"));
+                    "%s\n", Str("bformenc is deprecated; use bformenc1 instead\n"));
     /* check correct number of input and output arguments */
     switch (p->OUTOCOUNT) {
       case 4:
@@ -90,7 +90,7 @@ static int32_t iambicode(CSOUND *csound, AMBIC *p)
       default:
         {
           return csound->InitError(csound,
-                                   "%s", Str("Wrong number of output arguments! "
+                                   "%s\n", Str("Wrong number of output arguments! "
                                        "4, 9 or 16 needed!"));
         }
     }
@@ -340,13 +340,13 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
 {
     int32_t setup = (int32_t)*p->isetup;
     csound->Warning(csound,
-                    "%s", Str("bformdec is deprecated; use bformdec1 instead\n"));
+                    "%s\n", Str("bformdec is deprecated; use bformdec1 instead\n"));
     if (setup<0) setup = -setup;
     /* check correct number of input arguments */
     if (UNLIKELY((p->INOCOUNT != 5)  &&
                  (p->INOCOUNT != 10) &&
                  (p->INOCOUNT != 17))) {
-      return csound->InitError(csound, "%s", Str("Wrong number of input arguments!"));
+      return csound->InitError(csound, "%s\n", Str("Wrong number of input arguments!"));
     }
 
     switch (setup) {
@@ -354,7 +354,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
         {
           if (UNLIKELY(p->OUTOCOUNT != 2)) {
             return csound->InitError(csound,
-                                     "%s", Str("Wrong number of output cells! "
+                                     "%s\n", Str("Wrong number of output cells! "
                                          "There must be 2 output cells."));
           }
           else if (*p->isetup>0) {
@@ -399,7 +399,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
         {
           if (UNLIKELY(p->OUTOCOUNT != 4)) {
             return csound->InitError(csound,
-                                     "%s", Str("Wrong number of output cells! "
+                                     "%s\n", Str("Wrong number of output cells! "
                                          "There must be 4 output cells."));
           }
           else if (*p->isetup>0) {
@@ -444,7 +444,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
       case 3: {
         if (UNLIKELY(p->OUTOCOUNT != 5)) {
           return csound->InitError(csound,
-                                   "%s", Str("Wrong number of output cells! "
+                                   "%s\n", Str("Wrong number of output cells! "
                                        "There must be 5 output cells."));
         }
         else if (*p->isetup>0) {
@@ -493,7 +493,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
         {
           if (UNLIKELY(p->OUTOCOUNT != 8)) {
             return csound->InitError(csound,
-                                     "%s", Str("Wrong number of output cells! "
+                                     "%s\n", Str("Wrong number of output cells! "
                                          "There must be 8 output cells."));
           }
           else if (*p->isetup>0) {
@@ -548,7 +548,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
         {
           if (UNLIKELY(p->OUTOCOUNT != 8)) {
             return csound->InitError(csound,
-                                     "%s", Str("Wrong number of output cells! "
+                                     "%s\n", Str("Wrong number of output cells! "
                                          "There must be 8 output cells."));
           }
           else if (*p->isetup>0) {
@@ -603,7 +603,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
       case 6: {
         if (UNLIKELY(p->OUTOCOUNT != 5)) {
           return csound->InitError(csound,
-                                   "%s", Str("Wrong number of output cells! "
+                                   "%s\n", Str("Wrong number of output cells! "
                                        "There must be 5 output cells."));
         }
                 /*  These are Wiggins' cpefficients */
@@ -642,7 +642,7 @@ static int32_t iambideco(CSOUND *csound, AMBID *p)
       }
 
       default:
-        return csound->InitError(csound, "%s", Str("Not supported setup number!"));
+        return csound->InitError(csound, "%s\n", Str("Not supported setup number!"));
     }
     return OK;
 }

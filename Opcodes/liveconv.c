@@ -242,7 +242,7 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     p->partSize = (int32_t) part;
     if (UNLIKELY((p->partSize & (p->partSize - 1)) != 0)) {
       // Must be a power of 2 at least as large as 4
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("liveconv: invalid impulse response "
                                    "partition length"));
     }
@@ -253,8 +253,9 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
       return NOTOK; /* ftfind should already have printed the error message */
 
     /* Calculate the total length  */
-    if (UNLIKELY(ftp->flen == 0 || ftp->flen > INT32_MAX)) {
-      return csound->InitError(csound, "%s",
+    n = (int32_t) ftp->flen;
+    if (UNLIKELY(n <= 0)) {
+      return csound->InitError(csound, "%s\n",
                                Str("liveconv: invalid length, or insufficient"
                                    " IR data for convolution"));
     }
@@ -501,7 +502,7 @@ static int32_t liveconv_perf(CSOUND *csound, liveconv_t *p)
 
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("liveconv: not initialised"));
+                             "%s\n", Str("liveconv: not initialised"));
 }
 
 /* module interface functions */

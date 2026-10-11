@@ -321,7 +321,7 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
       FUNC *ftp = csound->FTFind(csound, p->args[xift]);
       if (UNLIKELY(ftp == NULL)) return NOTOK;
       if (UNLIKELY(ftp->flen < 54))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("spat3d: room table needs 54 values"));
       p->ftable = ftp->ftable;
     }
@@ -335,7 +335,7 @@ static int32_t spat3d_set_opcode_params(CSOUND *csound, SPAT3D *p)
       FUNC *ftp = csound->FTFind(csound, p->args[xioutft]);
       if (UNLIKELY(ftp == NULL)) return NOTOK;
       if (UNLIKELY(ftp->flen < 4))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                  Str("spat3dt: output table needs at least 4 values"));
       p->outftlnth = ftp->flen;
       p->outft = ftp->ftable;
@@ -682,7 +682,7 @@ static int32_t    spat3d(CSOUND *csound, SPAT3D *p)
     }
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csound->PerfError(csound, &(p->h), "%s\n",
                              Str("spat3d: not initialised"));
 }
 
@@ -808,7 +808,7 @@ static int32_t    spat3di(CSOUND *csound, SPAT3D *p)
     } while (--nn);
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csound->PerfError(csound, &(p->h), "%s\n",
                              Str("spat3di: not initialised"));
 }
 

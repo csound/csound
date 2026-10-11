@@ -25,7 +25,7 @@ static inline int32_t conv_output_init(CSOUND *csound, OPDS *h,
 {
     if (out->array != NULL) {
       if (out->array->dimensions > 1)
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                 Str("convolution: output must be a one-dimensional array"));
       if (tabinit(csound, out->array, out->channels, h->insdshead) != OK)
         return csound_array_init_resize_error(csound);
@@ -43,7 +43,7 @@ static inline int32_t conv_output_ready(CSOUND *csound, OPDS *h,
          a->arrayMemberSize < h->insdshead->ksmps * sizeof(cs_float) ||
          a->arrayMemberSize % sizeof(cs_float) != 0 ||
          (size_t)out->channels > a->allocated / a->arrayMemberSize))
-      return csound->PerfError(csound, h, "%s",
+      return csound->PerfError(csound, h, "%s\n",
                               Str("convolution: output array is too small"));
     return OK;
 }

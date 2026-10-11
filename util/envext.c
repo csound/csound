@@ -70,29 +70,29 @@ static int32_t envext(CSOUND *csound, int32_t argc, char **argv)
 
     /* Check arguments */
     if (UNLIKELY(!(--argc)))
-      envext_usage(csound, "%s", Str("Insufficient arguments"));
+      envext_usage(csound, "%s\n", Str("Insufficient arguments"));
     do {
       s = *++argv;
       if (*s++ == '-')                        /* read all flags:  */
         while ((c = *s++) != '\0')
           switch(c) {
           case 'o':
-            FIND(Str("no outfilename"))
+            FIND(Str("no outfilename\n"))
             outname = s;
             while (*++s);
             break;
           case 'w':
-            FIND(Str("No window size"));
+            FIND(Str("No window size\n"));
             window = atof(s);
             while (*++s);
             break;
           default:
-            envext_usage(csound, Str("unknown flag -%c"), c);
+            envext_usage(csound, Str("unknown flag -%c\n"), c);
           }
       else if (LIKELY(inputfile == NULL)) {
         inputfile = --s;
       }
-      else envext_usage(csound, Str("too many arguments"));
+      else envext_usage(csound, Str("too many arguments\n"));
     } while (--argc);
 
     /* Read sound file */

@@ -80,7 +80,7 @@ static void rtpw_out_callback(void *p) {
   }
   if(sil  > 0){
     CSOUND *csound = rtpw->csound;
-    csound->Warning(csound, Str("%d dropped output frames"), sil);
+    csound->Warning(csound, Str("%d dropped output frames\n"), sil);
     memset(SPA_PTROFF(bufp, rem*fbytes, void), 0, sil*fbytes);
   }
   spabuf->datas[0].chunk->offset = 0;
@@ -296,7 +296,7 @@ parm_callback(void *p, uint32_t id, const struct spa_pod *param)
 
   if(rtpw->sysr != rtpw->sr && rtpw->sr != -1.0)
     csound->Warning(csound, Str("rtpw: mismatched input sampling rate,\n"
-		    "system-sr %.1f csound-sr %.1f"), rtpw->sysr,
+		    "system-sr %.1f csound-sr %.1f\n"), rtpw->sysr,
 		    rtpw->sr);
 
   if(rtpw->nchnls != (int32_t) rtpw->format.info.raw.channels) {

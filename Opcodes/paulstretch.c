@@ -119,15 +119,15 @@ static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
     cs_double stretch = (cs_double)*p->stretch;
 
     if (ftp == NULL)
-      return csound->InitError(csound, "%s", Str("paulstretch: table not found"));
+      return csound->InitError(csound, "%s\n", Str("paulstretch: table not found"));
 
     if (UNLIKELY(!(stretch > 0.0) || !isfinite(stretch)))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("paulstretch: stretch must be finite and positive"));
     /* RealFFT uses signed byte counts internally and needs two spare samples. */
     if (UNLIKELY(!(samples >= 0.0 &&
                    samples < (cs_double)(INT32_MAX / sizeof(cs_float) - 2))))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("paulstretch: invalid window size"));
     p->ft = ftp;
     p->windowsize = (uint32_t)samples;

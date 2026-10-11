@@ -80,7 +80,7 @@ int32_t timset(CSOUND *csound, TIMOUT *p)
 {
   if (UNLIKELY((p->cnt1 = (int32_t)(*p->idel * CS_EKR + FL(0.5))) < 0L ||
                (p->cnt2 = (int32_t)(*p->idur * CS_EKR + FL(0.5))) < 0L))
-    return csoundInitError(csound, Str("negative time period"));
+    return csoundInitError(csound, Str("negative time period\n"));
   return OK;
 }
 
@@ -123,7 +123,7 @@ int32_t reinit(CSOUND *csound, GOTO *p)
     if (UNLIKELY(instance_init_begin(csound, p->h.insdshead) !=
                  CSOUND_SUCCESS)) {
       csound->reinitflag = p->h.insdshead->reinitflag = 0;
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("reinit: instance is being turned off"));
     }
     ATOMIC_SET(p->h.insdshead->init_done, 0);
@@ -141,7 +141,7 @@ int32_t reinit(CSOUND *csound, GOTO *p)
         ATOMIC_SET(p->h.insdshead->init_done, init_done);
         ATOMIC_SET8(p->h.insdshead->actflg, actflg);
       }
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("reinit: realtime allocation queue is full"));
     }
     return NOTOK;
@@ -232,9 +232,9 @@ int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
                csound->engineState.instrtxtp[insno] == NULL)) {
     if(p->h.init == NULL)
       return csoundPerfError(csound, &(p->h),
-                             Str("turnoff2: invalid instrument number"));
+                             Str("turnoff2: invalid instrument number\n"));
     else return csoundInitError(csound,
-                                Str("turnoff2: invalid instrument number"));
+                                Str("turnoff2: invalid instrument number\n"));
 
   }
   mode = (int32_t) (*(p->kFlags) + FL(0.5));
@@ -242,9 +242,9 @@ int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
   if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
     if(p->h.init == NULL)
       return csoundPerfError(csound, &(p->h),
-                             Str("turnoff2: invalid mode parameter"));
+                             Str("turnoff2: invalid mode parameter\n"));
     else csoundInitError(csound,
-                         Str("turnoff2: invalid mode parameter"));
+                         Str("turnoff2: invalid mode parameter\n"));
   }
   ip = &(csound->actanchor);
   ip2 = NULL;
@@ -335,7 +335,7 @@ int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
   if (UNLIKELY(insno < 1 || insno > (int32_t) csound->engineState.maxinsno ||
                csound->engineState.instrtxtp[insno] == NULL)) {
     return csoundPerfError(csound, &(p->h),
-                           Str("turnoff3: invalid instrument number"));
+                           Str("turnoff3: invalid instrument number\n"));
   }
   delete_selected_rt_events(csound, p1);
   return OK;

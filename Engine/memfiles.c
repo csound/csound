@@ -419,7 +419,7 @@ int32_t csoundPVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE 
 
     if (UNLIKELY(fname == NULL || fname[0] == '\0')) {
       memset(p, 0, sizeof(PVOCEX_MEMFILE));
-      return pvx_err_msg(csound, Str("Empty or NULL file name"));
+      return pvx_err_msg(csound, Str("Empty or NULL file name\n"));
     }
     /* is this file already loaded ? */
     pp = csound->pvx_memfiles;
@@ -432,7 +432,7 @@ int32_t csoundPVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE 
 
     fname_size = strlen(fname);
     if (UNLIKELY(fname_size > SIZE_MAX - 8U))
-      return pvx_err_msg(csound, Str("pvoc-ex file name is too large"));
+      return pvx_err_msg(csound, Str("pvoc-ex file name is too large\n"));
     hdr_size = (sizeof(PVOCEX_MEMFILE) + 7U) & ~(size_t) 7U;
     name_size = (fname_size + 8U) & ~(size_t) 7U;
     memset(p, 0, sizeof(PVOCEX_MEMFILE));
@@ -440,49 +440,49 @@ int32_t csoundPVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE 
     memset(&fmt, 0, sizeof(WAVEFORMATEX));
     pvx_id = csound->PVOC_OpenFile(csound, fname, &pvdata, &fmt);
     if (UNLIKELY(pvx_id < 0)) {
-      return pvx_err_msg(csound, Str("unable to open pvocex file %s: %s"),
+      return pvx_err_msg(csound, Str("unable to open pvocex file %s: %s\n"),
                                  fname, csound->PVOC_ErrorString(csound));
     }
     if (UNLIKELY(pvdata.nAnalysisBins < 2U ||
                  pvdata.nAnalysisBins > (uint32_t) INT32_MAX / 2U)) {
       csound->PVOC_CloseFile(csound, pvx_id);
-      return pvx_err_msg(csound, Str("pvoc-ex file %s has invalid frame size"),
+      return pvx_err_msg(csound, Str("pvoc-ex file %s has invalid frame size\n"),
                                  fname);
     }
     framelen = 2 * pvdata.nAnalysisBins;
     /* also, accept only 32bit floats for now */
     if (UNLIKELY(pvdata.wWordFormat != PVOC_IEEE_FLOAT)) {
       csound->PVOC_CloseFile(csound, pvx_id);
-      return pvx_err_msg(csound, Str("pvoc-ex file %s is not 32bit floats"),
+      return pvx_err_msg(csound, Str("pvoc-ex file %s is not 32bit floats\n"),
                                  fname);
     }
     /* FOR NOW, accept only PVOC_AMP_FREQ: later, we can convert */
     /* NB Csound knows no other: frameFormat is not read anywhere! */
     if (UNLIKELY(pvdata.wAnalFormat != PVOC_AMP_FREQ)) {
       csound->PVOC_CloseFile(csound, pvx_id);
-      return pvx_err_msg(csound, Str("pvoc-ex file %s not in AMP_FREQ format"),
+      return pvx_err_msg(csound, Str("pvoc-ex file %s not in AMP_FREQ format\n"),
                                  fname);
     }
     /* ignore the window spec until we can use it! */
     totalframes = csound->PVOC_FrameCount(csound, pvx_id);
     if (UNLIKELY(totalframes <= 0)) {
       csound->PVOC_CloseFile(csound, pvx_id);
-      return pvx_err_msg(csound, Str("pvoc-ex file %s is empty!"), fname);
+      return pvx_err_msg(csound, Str("pvoc-ex file %s is empty!\n"), fname);
     }
     if (UNLIKELY((size_t) totalframes >
                  SIZE_MAX / (size_t) framelen / sizeof(float))) {
       csound->PVOC_CloseFile(csound, pvx_id);
-      return pvx_err_msg(csound, Str("pvoc-ex file %s is too large"), fname);
+      return pvx_err_msg(csound, Str("pvoc-ex file %s is too large\n"), fname);
     }
     mem_wanted = (size_t) totalframes * (size_t) framelen * sizeof(float);
     if (UNLIKELY(hdr_size > SIZE_MAX - name_size)) {
       csound->PVOC_CloseFile(csound, pvx_id);
-      return pvx_err_msg(csound, Str("pvoc-ex file %s is too large"), fname);
+      return pvx_err_msg(csound, Str("pvoc-ex file %s is too large\n"), fname);
     }
     header_bytes = hdr_size + name_size;
     if (UNLIKELY(header_bytes > SIZE_MAX - mem_wanted)) {
       csound->PVOC_CloseFile(csound, pvx_id);
-      return pvx_err_msg(csound, Str("pvoc-ex file %s is too large"), fname);
+      return pvx_err_msg(csound, Str("pvoc-ex file %s is too large\n"), fname);
     }
     alloc_size = header_bytes + mem_wanted;
     /* try for the big block first! */
@@ -511,16 +511,16 @@ int32_t csoundPVOCEX_LoadFile(CSOUND *csound, const char *fname, PVOCEX_MEMFILE 
     csound->PVOC_CloseFile(csound, pvx_id);
     if (UNLIKELY(rc < 0)) {
       csound->Free(csound, pp);
-      return pvx_err_msg(csound, Str("error reading pvoc-ex file %s"), fname);
+      return pvx_err_msg(csound, Str("error reading pvoc-ex file %s\n"), fname);
     }
     if (UNLIKELY(i < totalframes)) {
       csound->Free(csound, pp);
       return pvx_err_msg(csound, Str("error reading pvoc-ex file %s "
-                                     "after %d frames"), fname, i);
+                                     "after %d frames\n"), fname, i);
     }
     pp->srate = (cs_float) fmt.nSamplesPerSec;
     if (UNLIKELY(pp->srate != csound->esr)) {             /* & chk the data */
-      csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f"),
+      csound->Warning(csound, Str("%s's srate = %8.0f, orch's srate = %8.0f\n"),
                               fname, pp->srate, csound->esr);
     }
     pp->nframes = (uint32) totalframes;
