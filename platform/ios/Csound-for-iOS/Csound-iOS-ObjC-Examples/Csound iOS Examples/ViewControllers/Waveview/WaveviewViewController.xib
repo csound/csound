@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11762" systemVersion="16A323" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES">
-    <device id="retina4_7" orientation="portrait">
-        <adaptation id="fullscreen"/>
-    </device>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="25098" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="25073"/>
+        <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -36,7 +35,7 @@
                     </constraints>
                 </view>
                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Sine" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="DBM-mW-gYZ">
-                    <rect key="frame" x="143.5" y="71" width="33.5" height="21"/>
+                    <rect key="frame" x="143.5" y="71" width="33" height="21"/>
                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                     <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     <nil key="highlightedColor"/>
@@ -47,7 +46,9 @@
                         <constraint firstAttribute="width" constant="25" id="dBP-GG-3na"/>
                         <constraint firstAttribute="height" constant="25" id="vxV-UM-JA1"/>
                     </constraints>
-                    <state key="normal" title="Button" image="InfoButtonWhite"/>
+                    <state key="normal">
+                        <imageReference key="image" image="info.circle.fill" catalog="system" symbolScale="large"/>
+                    </state>
                     <connections>
                         <action selector="showInfo:" destination="-1" eventType="touchUpInside" id="z6h-6O-BSV"/>
                     </connections>
@@ -69,14 +70,10 @@
                 <constraint firstItem="DBM-mW-gYZ" firstAttribute="centerX" secondItem="1" secondAttribute="centerX" id="zBX-Rv-JHd"/>
             </constraints>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
+            <point key="canvasLocation" x="-293" y="27"/>
         </view>
     </objects>
     <resources>
-        <image name="InfoButtonWhite" width="25" height="25"/>
+        <image name="info.circle.fill" catalog="system" width="128" height="128"/>
     </resources>
-    <simulatedMetricsContainer key="defaultSimulatedMetrics">
-        <simulatedStatusBarMetrics key="statusBar"/>
-        <simulatedOrientationMetrics key="orientation"/>
-        <simulatedScreenMetrics key="destination" type="retina4_7.fullscreen"/>
-    </simulatedMetricsContainer>
 </document>

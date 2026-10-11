@@ -24,6 +24,7 @@
 
 #import "ControlKnob.h"
 #import "CsoundObj.h"
+#import "CsoundBindingDispatch.h"
 
 @interface ControlKnob ()
 {
@@ -150,11 +151,13 @@
 
 - (void)setup:(CsoundObj *)csoundObj
 {
-	channelPtr = [csoundObj getInputChannelPtr:@"pitch" channelType:CSOUND_CONTROL_CHANNEL];
-    channelValue = _value;
-    [self addTarget:self
-             action:@selector(updateChannelValue:)
-   forControlEvents:UIControlEventValueChanged];
+    CsoundRunSyncOnMainQueue(^{
+        channelPtr = [csoundObj getInputChannelPtr:@"pitch" channelType:CSOUND_CONTROL_CHANNEL];
+        channelValue = _value;
+        [self addTarget:self
+                 action:@selector(updateChannelValue:)
+       forControlEvents:UIControlEventValueChanged];
+    });
 }
 
 - (void)updateChannelValue:(id)sender
@@ -169,9 +172,11 @@
 
 - (void)cleanup
 {
-	[self removeTarget:self
-                action:@selector(updateChannelValue:)
-      forControlEvents:UIControlEventValueChanged];
+    CsoundRunSyncOnMainQueue(^{
+        [self removeTarget:self
+                    action:@selector(updateChannelValue:)
+          forControlEvents:UIControlEventValueChanged];
+    });
 }
 
 @end

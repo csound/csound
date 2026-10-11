@@ -24,6 +24,7 @@
 
 
 #import "ControlXYGrid.h"
+#import "CsoundBindingDispatch.h"
 
 @interface ControlXYGrid ()
 {
@@ -222,13 +223,15 @@
 
 - (void)setup:(CsoundObj *)csoundObj
 {
-	xChannelPtr = [csoundObj getInputChannelPtr:@"mix"   channelType:CSOUND_CONTROL_CHANNEL];
-	yChannelPtr = [csoundObj getInputChannelPtr:@"pitch" channelType:CSOUND_CONTROL_CHANNEL];
-    xChannelValue = _xValue;
-	yChannelValue = _yValue;
-    [self addTarget:self
-             action:@selector(updateChannelValues:)
-   forControlEvents:UIControlEventValueChanged];
+    CsoundRunSyncOnMainQueue(^{
+        xChannelPtr = [csoundObj getInputChannelPtr:@"mix"   channelType:CSOUND_CONTROL_CHANNEL];
+        yChannelPtr = [csoundObj getInputChannelPtr:@"pitch" channelType:CSOUND_CONTROL_CHANNEL];
+        xChannelValue = _xValue;
+        yChannelValue = _yValue;
+        [self addTarget:self
+                 action:@selector(updateChannelValues:)
+       forControlEvents:UIControlEventValueChanged];
+    });
 }
 
 - (void)updateChannelValues:(id)sender
@@ -246,9 +249,11 @@
 
 - (void)cleanup
 {
-	[self removeTarget:self
-                action:@selector(updateChannelValues:)
-      forControlEvents:UIControlEventValueChanged];
+    CsoundRunSyncOnMainQueue(^{
+        [self removeTarget:self
+                    action:@selector(updateChannelValues:)
+          forControlEvents:UIControlEventValueChanged];
+    });
 }
 
 @end

@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="24765" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="25098" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24743"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="25073"/>
+        <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -55,13 +56,15 @@
                         <constraint firstAttribute="width" constant="25" id="t8O-h5-lxu"/>
                         <constraint firstAttribute="height" constant="25" id="xbf-5j-gaP"/>
                     </constraints>
-                    <state key="normal" title="Button" image="InfoButton"/>
+                    <state key="normal">
+                        <imageReference key="image" image="info.circle.fill" catalog="system" symbolScale="large"/>
+                    </state>
                     <connections>
                         <action selector="showInfo:" destination="-1" eventType="touchUpInside" id="kVF-cY-Mf6"/>
                     </connections>
                 </button>
             </subviews>
-            <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color key="backgroundColor" systemColor="systemBackgroundColor"/>
             <constraints>
                 <constraint firstItem="4" firstAttribute="top" secondItem="8" secondAttribute="bottom" constant="8" id="6n2-Xx-KTx"/>
                 <constraint firstAttribute="trailing" secondItem="4" secondAttribute="trailing" constant="20" id="72b-1m-1K5"/>
@@ -78,7 +81,10 @@
         </view>
     </objects>
     <resources>
-        <image name="InfoButton" width="25" height="25"/>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <image name="info.circle.fill" catalog="system" width="128" height="128"/>
         <systemColor name="darkTextColor">
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>

@@ -123,6 +123,8 @@
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[onOffSwitch setOn:NO animated:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self->onOffSwitch setOn:NO animated:YES];
+    });
 }
 @end

@@ -25,12 +25,8 @@
 
 #import <UIKit/UIKit.h>
 
-@class DetailViewController;
-
 @interface MasterViewController : UITableViewController {
     NSMutableArray* testNames;
 }
-
-@property (strong, nonatomic) DetailViewController *detailViewController;
 
 @end

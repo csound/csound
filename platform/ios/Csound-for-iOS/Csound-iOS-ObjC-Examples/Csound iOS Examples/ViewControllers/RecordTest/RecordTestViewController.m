@@ -131,10 +131,12 @@
 }
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[_mSwitch setOn:NO animated:YES];
-    _mPlayer = nil;
-	_mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];
-	[_mPlayer setDelegate:self];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self->_mSwitch setOn:NO animated:YES];
+        self->_mPlayer = nil;
+        self->_mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];
+        [self->_mPlayer setDelegate:self];
+    });
 }
 
 @end

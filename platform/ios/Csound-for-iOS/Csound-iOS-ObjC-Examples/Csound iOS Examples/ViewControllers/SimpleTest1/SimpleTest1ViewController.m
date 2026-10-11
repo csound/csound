@@ -94,9 +94,10 @@
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[uiSwitch setOn:NO animated:YES];
-    [uiLabel performSelectorOnMainThread:@selector(setText:) withObject:@"" waitUntilDone:NO];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self->uiSwitch setOn:NO animated:YES];
+        [self->uiLabel setText:@""];
+    });
 }
-
 
 @end

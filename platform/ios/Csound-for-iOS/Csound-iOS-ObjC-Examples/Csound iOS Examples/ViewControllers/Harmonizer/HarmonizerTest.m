@@ -89,7 +89,9 @@
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[mSwitch setOn:NO animated:YES];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self->mSwitch setOn:NO animated:YES];
+    });
 }
 
 @end
