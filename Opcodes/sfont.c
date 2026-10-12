@@ -1758,13 +1758,13 @@ static int32_t fill_SfStruct(CSOUND *csound)
                   if (GfineTune != UNUSE)
                     split->fineTune = (SBYTE) GfineTune;
                   if (GscaleTuning != UNUSE)
-                    split->scaleTuning = (BYTE) GscaleTuning;
+                    split->scaleTuning = (SHORT) GscaleTuning;
                   if (Gpan != UNUSE)
-                    split->pan = (BYTE) Gpan;
+                    split->pan = (SHORT) Gpan;
                   if (GsampleModes != UNUSE)
                     split->sampleModes = (BYTE) GsampleModes;
                   if (GinitialAttenuation != UNUSE)
-                    split->initialAttenuation = (BYTE) GinitialAttenuation;
+                    split->initialAttenuation = (SHORT) GinitialAttenuation;
 
                   for (m=mStart; m < mEnd; m++) {
                     switch (igen[m].sfGenOper) {
@@ -1994,13 +1994,13 @@ static int32_t fill_SfStruct(CSOUND *csound)
             if (GfineTune != UNUSE)
               split->fineTune = (SBYTE) GfineTune;
             if (GscaleTuning != UNUSE)
-              split->scaleTuning = (BYTE) GscaleTuning;
+              split->scaleTuning = (SHORT) GscaleTuning;
             if (Gpan != UNUSE)
-              split->pan = (BYTE) Gpan;
+              split->pan = (SHORT) Gpan;
             if (GsampleModes != UNUSE)
               split->sampleModes = (BYTE) GsampleModes;
             if (GinitialAttenuation != UNUSE)
-              split->initialAttenuation = (BYTE) GinitialAttenuation;
+              split->initialAttenuation = (SHORT) GinitialAttenuation;
 
             for (m=mStart; m < mEnd; m++) {
               switch (igen[m].sfGenOper) {
