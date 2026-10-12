@@ -74,8 +74,8 @@ opcode list reports `_QQ` entries as deprecated too.
 Compilation names the recommended replacement when known. `--error-deprecated`
 turns either registration style into an error; `--no-deprecated-warnings`
 suppresses deprecation warnings from both the catalog and hard-coded opcodes,
-and message-level bit 1024 (`CS_NOQQ`) does the same for catalog warnings.
-Neither suppression option bypasses the explicit `--error-deprecated` error.
+and so does message-level bit 1024 (`CS_NOQQ`, as in `-m1024`). Neither
+suppression option bypasses the explicit `--error-deprecated` error.
 No warning is added to the audio processing loop.
 
 Regenerate and check the reference with:

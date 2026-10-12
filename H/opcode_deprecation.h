@@ -8,6 +8,7 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdio.h>
 
 #include "csoundCore.h"
 
@@ -37,20 +38,23 @@ void csoundOpcodeDeprecationMessage(const char *name, int renamed,
 
 /* Emits a deprecation warning unless warnings are disabled by message level
    (CS_WARNMSG or CS_NOQQ) or by --no-deprecated-warnings. Shared by the
-   library and built-in/plugin opcodes. */
+   library and built-in/plugin opcodes. The warning is emitted as a single
+   message so message-buffer and callback consumers receive the prefix and
+   diagnostic text together. */
 static inline void csoundDeprecationWarning(CSOUND *csound,
                                             const char *fmt, ...)
 {
   const OPARMS *oparms = csound->GetOParms(csound);
   va_list args;
+  char buffer[2048];
   if (oparms->no_deprecated_warnings ||
       (oparms->msglevel & CS_NOQQ) ||
       !(oparms->msglevel & CS_WARNMSG))
     return;
-  csound->MessageS(csound, CSOUNDMSG_WARNING, Str("warning: "));
   va_start(args, fmt);
-  csound->MessageV(csound, CSOUNDMSG_WARNING, fmt, args);
+  vsnprintf(buffer, sizeof(buffer), fmt, args);
   va_end(args);
+  csound->MessageS(csound, CSOUNDMSG_WARNING, Str("warning: %s"), buffer);
 }
 
 #ifdef __cplusplus
