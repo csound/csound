@@ -24,6 +24,7 @@
  */
 
 #import "PitchShifterViewController.h"
+#import "CsoundBindingDispatch.h"
 
 @implementation PitchShifterViewController
 
@@ -69,7 +70,7 @@
 }
 
 - (void)csoundObjCompleted:(CsoundObj *)csoundObj {
-    dispatch_async(dispatch_get_main_queue(), ^{
+    CsoundRunSyncOnMainQueue(^{
         [self->mSwitch setOn:NO animated:YES];
     });
 }

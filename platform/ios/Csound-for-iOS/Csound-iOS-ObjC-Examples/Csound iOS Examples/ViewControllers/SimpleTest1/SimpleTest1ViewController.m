@@ -24,6 +24,7 @@
  */
 
 #import "SimpleTest1ViewController.h"
+#import "CsoundBindingDispatch.h"
 
 @interface SimpleTest1ViewController() {
     IBOutlet UISlider *uiSlider;
@@ -94,7 +95,7 @@
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-    dispatch_async(dispatch_get_main_queue(), ^{
+    CsoundRunSyncOnMainQueue(^{
         [self->uiSwitch setOn:NO animated:YES];
         [self->uiLabel setText:@""];
     });

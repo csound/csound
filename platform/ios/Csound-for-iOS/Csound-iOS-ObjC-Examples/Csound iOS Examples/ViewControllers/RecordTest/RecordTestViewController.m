@@ -24,6 +24,7 @@
  */
 
 #import "RecordTestViewController.h"
+#import "CsoundBindingDispatch.h"
 
 @implementation RecordTestViewController
 
@@ -131,7 +132,7 @@
 }
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-    dispatch_async(dispatch_get_main_queue(), ^{
+    CsoundRunSyncOnMainQueue(^{
         [self->_mSwitch setOn:NO animated:YES];
         self->_mPlayer = nil;
         self->_mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];

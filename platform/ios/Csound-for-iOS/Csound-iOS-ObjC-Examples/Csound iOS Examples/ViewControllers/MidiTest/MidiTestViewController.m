@@ -23,6 +23,7 @@
  
  */
 #import "MidiTestViewController.h"
+#import "CsoundBindingDispatch.h"
 
 @implementation MidiTestViewController
 
@@ -117,7 +118,7 @@
 
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-    dispatch_async(dispatch_get_main_queue(), ^{
+    CsoundRunSyncOnMainQueue(^{
         [self->mSwitch setOn:NO animated:YES];
     });
 }
