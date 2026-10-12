@@ -23,6 +23,7 @@
  
  */
 #import "MidiTestViewController.h"
+#import "CsoundBindingDispatch.h"
 
 @implementation MidiTestViewController
 
@@ -117,7 +118,9 @@
 
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[mSwitch setOn:NO animated:YES];
+    CsoundRunSyncOnMainQueue(^{
+        [self->mSwitch setOn:NO animated:YES];
+    });
 }
 
 #pragma mark CsoundVirtualKeyboardDelegate

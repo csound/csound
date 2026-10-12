@@ -23,6 +23,7 @@
  
  */
 #import "CsoundMomentaryButtonBinding.h"
+#import "CsoundBindingDispatch.h"
 
 @interface CsoundMomentaryButtonBinding () {
     float channelValue;
@@ -50,12 +51,14 @@
 
 -(void)setup:(CsoundObj *)csoundObj
 {
-    channelValue = self.button.selected ? 1 : 0;
-    channelPtr = [csoundObj getInputChannelPtr:self.channelName
-                                   channelType:CSOUND_CONTROL_CHANNEL];
-    [self.button addTarget:self
-                    action:@selector(updateChannelValue:)
-          forControlEvents:UIControlEventTouchDown];
+    CsoundRunSyncOnMainQueue(^{
+        channelValue = self.button.selected ? 1 : 0;
+        channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                       channelType:CSOUND_CONTROL_CHANNEL];
+        [self.button addTarget:self
+                        action:@selector(updateChannelValue:)
+              forControlEvents:UIControlEventTouchDown];
+    });
 }
 
 
@@ -67,9 +70,11 @@
 
 -(void)cleanup
 {
-    [self.button removeTarget:self
-                       action:@selector(updateChannelValue:)
-             forControlEvents:UIControlEventTouchDown];
+    CsoundRunSyncOnMainQueue(^{
+        [self.button removeTarget:self
+                           action:@selector(updateChannelValue:)
+                 forControlEvents:UIControlEventTouchDown];
+    });
 }
 
 

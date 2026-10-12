@@ -24,6 +24,7 @@
  */
 
 #import "SimpleTest2ViewController.h"
+#import "CsoundBindingDispatch.h"
 
 @interface SimpleTest2ViewController() {
     IBOutlet UISwitch *onOffSwitch;
@@ -123,6 +124,8 @@
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[onOffSwitch setOn:NO animated:YES];
+    CsoundRunSyncOnMainQueue(^{
+        [self->onOffSwitch setOn:NO animated:YES];
+    });
 }
 @end

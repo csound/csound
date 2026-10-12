@@ -81,11 +81,4 @@
     [self presentViewController:infoVC animated:YES completion:nil];
 }
 
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-    [self.csound stop];
-}
-
-
 @end

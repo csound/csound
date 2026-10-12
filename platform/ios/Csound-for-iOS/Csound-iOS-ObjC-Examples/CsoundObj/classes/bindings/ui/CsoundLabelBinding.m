@@ -1,6 +1,6 @@
 /*
  
- CsoundButtonBinding.m:
+ CsoundLabelBinding.m:
  
  Copyright (C) 2014 Steven Yi, Aurelius Prochazka
  

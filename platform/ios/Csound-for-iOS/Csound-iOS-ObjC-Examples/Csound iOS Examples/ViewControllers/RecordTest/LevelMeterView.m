@@ -23,6 +23,7 @@
  */
 
 #import "LevelMeterView.h"
+#import "CsoundBindingDispatch.h"
 
 @interface LevelMeterView () {
 	float channelValue;
@@ -170,9 +171,11 @@
 
 - (void)cleanup
 {
-	channelValue = 0;
-	lastY = -100;
-	[self setNeedsDisplay];
+    CsoundRunSyncOnMainQueue(^{
+        channelValue = 0;
+        lastY = -100;
+        [self setNeedsDisplay];
+    });
 }
 
 @end

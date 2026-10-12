@@ -93,6 +93,8 @@ void InterruptionListener(void *inClientData, UInt32 inInterruption);
   }
 }
 
+/// Keep this non-blocking, or else calls to `CsoundRunSyncOnMainQueue`
+/// (Binding setup/cleanup) could deadlock. See CsoundBindingDispatch.h.
 - (void)stop {
   mCsData.running = false;
 }
@@ -454,11 +456,11 @@ OSStatus  Csound_Render(void *inRefCon,
     [self updateAllValuesToCsound];
         
       
-    csoundStart(cs);
     if(!ret) {
+      ret = csoundStart(cs);
       while(!ret) ret = csoundPerformKsmps(cs);
-      csoundDestroy(cs);
     }
+    csoundDestroy(cs);
         
     [self cleanupBindings];
     [self notifyListenersOfCompletion];

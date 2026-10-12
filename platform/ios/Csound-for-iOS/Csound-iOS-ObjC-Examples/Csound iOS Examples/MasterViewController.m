@@ -24,7 +24,6 @@
  */
 
 #import "MasterViewController.h"
-#import "DetailViewController.h"
 #import "SimpleTest1ViewController.h"
 #import "SimpleTest2ViewController.h"
 #import "ButtonTestViewController.h"
@@ -46,14 +45,13 @@
 
 @implementation MasterViewController
 
-- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
+- (instancetype)initWithStyle:(UITableViewStyle)style
 {
-    self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+    self = [super initWithStyle:style];
     if (self) {
         self.title = @"Csound for iOS";
         if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
             self.clearsSelectionOnViewWillAppear = NO;
-            self.preferredContentSize = CGSizeMake(320.0, 600.0);
         }
         testNames = [NSMutableArray arrayWithObjects:
                      @"01. Simple Test 1",
@@ -76,13 +74,6 @@
     }
     return self;
 }
-							
-
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Release any cached data, images, etc that aren't in use.
-}
 
 #pragma mark - View lifecycle
 
@@ -92,43 +83,6 @@
 	// Do any additional setup after loading the view, typically from a nib.
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
         [self.tableView selectRowAtIndexPath:[NSIndexPath indexPathForRow:0 inSection:0] animated:NO scrollPosition:UITableViewScrollPositionMiddle];
-    }
-}
-
-- (void)viewDidUnload
-{
-    [super viewDidUnload];
-    // Release any retained subviews of the main view.
-    // e.g. self.myOutlet = nil;
-}
-
-- (void)viewWillAppear:(BOOL)animated
-{
-    [super viewWillAppear:animated];
-}
-
-- (void)viewDidAppear:(BOOL)animated
-{
-    [super viewDidAppear:animated];
-}
-
-- (void)viewWillDisappear:(BOOL)animated
-{
-	[super viewWillDisappear:animated];
-}
-
-- (void)viewDidDisappear:(BOOL)animated
-{
-	[super viewDidDisappear:animated];
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    // Return YES for supported orientations
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
-    } else {
-        return YES;
     }
 }
 
@@ -159,44 +113,6 @@
     cell.textLabel.text = [testNames objectAtIndex:indexPath.row];
     return cell;
 }
-
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source.
-        [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view.
-    }   
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -270,30 +186,19 @@
         
         AppDelegate *appDelegate = (AppDelegate *)([UIApplication sharedApplication].delegate);
         UISplitViewController *splitViewController = appDelegate.splitViewController;
-        
-        BaseCsoundViewController *currentDetail = (BaseCsoundViewController *)splitViewController.delegate;
-        
-        if(currentDetail.navigationItem.leftBarButtonItem != nil) {
-            controller.navigationItem.leftBarButtonItem = currentDetail.navigationItem.leftBarButtonItem;
-            controller.masterPopoverController = currentDetail.masterPopoverController;
-        }
-        
-        UINavigationController *detailNavigationController = [[UINavigationController alloc] initWithRootViewController:controller];
-        
-        NSArray *viewControllers = [[NSArray alloc] initWithObjects:[splitViewController.viewControllers objectAtIndex:0], detailNavigationController, nil];
-        splitViewController.viewControllers = viewControllers;
-        splitViewController.delegate = controller;
-        
-        if ([[UIDevice currentDevice] orientation] == UIDeviceOrientationPortrait) {
-            [UIView animateWithDuration:0.2 animations:^{
-                splitViewController.preferredDisplayMode = UISplitViewControllerDisplayModePrimaryHidden;
-            }];
+
+        [splitViewController setViewController:controller forColumn:UISplitViewControllerColumnSecondary];
+
+        if (splitViewController.collapsed) {
+            // In a narrow window the columns collapse into one navigation
+            // stack, so the example has to be pushed explicitly.
+            [splitViewController showColumn:UISplitViewControllerColumnSecondary];
+        } else if (splitViewController.displayMode == UISplitViewControllerDisplayModeOneOverSecondary) {
+            // Dismiss the sidebar if it is overlaying the example.
+            [splitViewController hideColumn:UISplitViewControllerColumnPrimary];
         }
     }
-
     
-    
-
 }
 
 @end

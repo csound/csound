@@ -28,11 +28,10 @@
 #import "CsoundUI.h"
 #import "CsoundMotion.h"
 
-@interface BaseCsoundViewController : UIViewController <UISplitViewControllerDelegate, UIPopoverPresentationControllerDelegate>
+@interface BaseCsoundViewController : UIViewController <UIPopoverPresentationControllerDelegate>
 
 @property (nonatomic, strong) CsoundObj *csound;
 @property (strong, nonatomic) id detailItem;
 @property (strong, nonatomic) IBOutlet UILabel *detailDescriptionLabel;
-@property (strong, nonatomic) UIViewController *masterPopoverController;
 
 @end

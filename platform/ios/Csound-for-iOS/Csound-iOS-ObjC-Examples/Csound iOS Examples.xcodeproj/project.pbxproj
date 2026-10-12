@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		2499965020A60882002B6ED8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2499964F20A6087C002B6ED8 /* Accelerate.framework */; };
 		249B1A441E2FBB1F004F6566 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 249B1A431E2FBB1F004F6566 /* Assets.xcassets */; };
-		249B1A4A1E2FD95E004F6566 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 249B1A491E2FD95E004F6566 /* LaunchScreen.storyboard */; };
 		24D727291E33F9F400CEC022 /* csdStorage in Resources */ = {isa = PBXBuildFile; fileRef = 24D727281E33F9F400CEC022 /* csdStorage */; };
 		5704CB102D7CD4310085F4B1 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB0F2D7CD4310085F4B1 /* CoreAudio.framework */; };
 		5704CB162D7CE6F10085F4B1 /* CsoundiOS.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5704CB152D7CE6F10085F4B1 /* CsoundiOS.xcframework */; };
@@ -49,11 +48,6 @@
 		F6B6466A14D348E5005F786B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6466914D348E5005F786B /* main.m */; };
 		F6B6466E14D348E5005F786B /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6466D14D348E5005F786B /* AppDelegate.m */; };
 		F6B6467114D348E5005F786B /* MasterViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6467014D348E5005F786B /* MasterViewController.m */; };
-		F6B6467414D348E5005F786B /* DetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B6467314D348E5005F786B /* DetailViewController.m */; };
-		F6B6467714D348E5005F786B /* MasterViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = F6B6467514D348E5005F786B /* MasterViewController_iPhone.xib */; };
-		F6B6467A14D348E5005F786B /* MasterViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = F6B6467814D348E5005F786B /* MasterViewController_iPad.xib */; };
-		F6B6467D14D348E5005F786B /* DetailViewController_iPhone.xib in Resources */ = {isa = PBXBuildFile; fileRef = F6B6467B14D348E5005F786B /* DetailViewController_iPhone.xib */; };
-		F6B6468014D348E5005F786B /* DetailViewController_iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = F6B6467E14D348E5005F786B /* DetailViewController_iPad.xib */; };
 		F6B6474814D353A7005F786B /* AudioFileTestViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = F6B646F314D353A7005F786B /* AudioFileTestViewController.m */; };
 		F6B6474914D353A7005F786B /* AudioFileTestViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = F6B646F414D353A7005F786B /* AudioFileTestViewController.xib */; };
 		F6B6474C14D353A7005F786B /* audioInTest.csd in Resources */ = {isa = PBXBuildFile; fileRef = F6B646F814D353A7005F786B /* audioInTest.csd */; };
@@ -115,8 +109,8 @@
 /* Begin PBXFileReference section */
 		2499964F20A6087C002B6ED8 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		249B1A431E2FBB1F004F6566 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		249B1A491E2FD95E004F6566 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		24D727281E33F9F400CEC022 /* csdStorage */ = {isa = PBXFileReference; lastKnownFileType = folder; path = csdStorage; sourceTree = "<group>"; };
+		3723AABB3079C4890099C71D /* CsoundBindingDispatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundBindingDispatch.h; sourceTree = "<group>"; };
 		5704CB0F2D7CD4310085F4B1 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		5704CB152D7CE6F10085F4B1 /* CsoundiOS.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = CsoundiOS.xcframework; path = ../CsoundiOS.xcframework; sourceTree = "<group>"; };
 		5704CB192D7CE9280085F4B1 /* libSndfileiOS.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libSndfileiOS.xcframework; path = ../libSndfileiOS.xcframework; sourceTree = "<group>"; };
@@ -152,10 +146,6 @@
 		576FFABC2D7D9E8C00190F26 /* CsoundObj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundObj.h; sourceTree = "<group>"; };
 		576FFABD2D7D9E8C00190F26 /* CsoundObj.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundObj.m; sourceTree = "<group>"; };
 		576FFABF2D7D9E8C00190F26 /* LICENSE.TXT */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.TXT; sourceTree = "<group>"; };
-		57F227EA270C49DF003E71F1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MasterViewController_iPhone.xib; sourceTree = "<group>"; };
-		57F227EB270C4A04003E71F1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MasterViewController_iPad.xib; sourceTree = "<group>"; };
-		57F227EC270C4A34003E71F1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/DetailViewController_iPhone.xib; sourceTree = "<group>"; };
-		57F227ED270C4A53003E71F1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/DetailViewController_iPad.xib; sourceTree = "<group>"; };
 		C41F0A8E1973607B00997479 /* audiofiletest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = audiofiletest.csd; sourceTree = "<group>"; };
 		C41F0A90197360AF00997479 /* recordTest.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = recordTest.csd; sourceTree = "<group>"; };
 		C41F0A92197360CD00997479 /* pitchshifter.csd */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = pitchshifter.csd; sourceTree = "<group>"; };
@@ -183,8 +173,6 @@
 		F6B6466D14D348E5005F786B /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		F6B6466F14D348E5005F786B /* MasterViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MasterViewController.h; sourceTree = "<group>"; };
 		F6B6467014D348E5005F786B /* MasterViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MasterViewController.m; sourceTree = "<group>"; };
-		F6B6467214D348E5005F786B /* DetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DetailViewController.h; sourceTree = "<group>"; };
-		F6B6467314D348E5005F786B /* DetailViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DetailViewController.m; sourceTree = "<group>"; };
 		F6B646F214D353A7005F786B /* AudioFileTestViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioFileTestViewController.h; sourceTree = "<group>"; };
 		F6B646F314D353A7005F786B /* AudioFileTestViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AudioFileTestViewController.m; sourceTree = "<group>"; };
 		F6B646F414D353A7005F786B /* AudioFileTestViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = AudioFileTestViewController.xib; sourceTree = "<group>"; };
@@ -288,6 +276,7 @@
 		576FFAB12D7D9E8C00190F26 /* ui */ = {
 			isa = PBXGroup;
 			children = (
+				3723AABB3079C4890099C71D /* CsoundBindingDispatch.h */,
 				576FFAA52D7D9E8C00190F26 /* CsoundButtonBinding.h */,
 				576FFAA62D7D9E8C00190F26 /* CsoundButtonBinding.m */,
 				576FFAA72D7D9E8C00190F26 /* CsoundLabelBinding.h */,
@@ -408,13 +397,6 @@
 				F6B6466D14D348E5005F786B /* AppDelegate.m */,
 				F6B6466F14D348E5005F786B /* MasterViewController.h */,
 				F6B6467014D348E5005F786B /* MasterViewController.m */,
-				F6B6467214D348E5005F786B /* DetailViewController.h */,
-				F6B6467314D348E5005F786B /* DetailViewController.m */,
-				F6B6467514D348E5005F786B /* MasterViewController_iPhone.xib */,
-				F6B6467814D348E5005F786B /* MasterViewController_iPad.xib */,
-				F6B6467B14D348E5005F786B /* DetailViewController_iPhone.xib */,
-				F6B6467E14D348E5005F786B /* DetailViewController_iPad.xib */,
-				249B1A491E2FD95E004F6566 /* LaunchScreen.storyboard */,
 				249B1A431E2FBB1F004F6566 /* Assets.xcassets */,
 				F6B6466414D348E5005F786B /* Supporting Files */,
 			);
@@ -637,7 +619,8 @@
 		F6B6465014D348E4005F786B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1250;
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					F6B6465814D348E5005F786B = {
 						ProvisioningStyle = Automatic;
@@ -667,10 +650,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F6B6467714D348E5005F786B /* MasterViewController_iPhone.xib in Resources */,
-				F6B6467A14D348E5005F786B /* MasterViewController_iPad.xib in Resources */,
-				F6B6467D14D348E5005F786B /* DetailViewController_iPhone.xib in Resources */,
-				F6B6468014D348E5005F786B /* DetailViewController_iPad.xib in Resources */,
 				F6B6474914D353A7005F786B /* AudioFileTestViewController.xib in Resources */,
 				F6B6474C14D353A7005F786B /* audioInTest.csd in Resources */,
 				C41F0A93197360CD00997479 /* pitchshifter.csd in Resources */,
@@ -702,7 +681,6 @@
 				C41F0A8F1973607B00997479 /* audiofiletest.csd in Resources */,
 				F6B6477614D353A7005F786B /* SimpleTest2ViewController.xib in Resources */,
 				F6B6477714D353A7005F786B /* test2.csd in Resources */,
-				249B1A4A1E2FD95E004F6566 /* LaunchScreen.storyboard in Resources */,
 				F6B6477914D353A7005F786B /* Waveviewtest.csd in Resources */,
 				F6B6477B14D353A7005F786B /* WaveviewViewController.xib in Resources */,
 				F6EE378B16AD67C50050820E /* testAudioFile.aif in Resources */,
@@ -722,7 +700,6 @@
 				F6B6466E14D348E5005F786B /* AppDelegate.m in Sources */,
 				F6B6467114D348E5005F786B /* MasterViewController.m in Sources */,
 				C41F0AA41973620C00997479 /* LevelMeterView.m in Sources */,
-				F6B6467414D348E5005F786B /* DetailViewController.m in Sources */,
 				F6B6474814D353A7005F786B /* AudioFileTestViewController.m in Sources */,
 				F6B6474D14D353A7005F786B /* AudioInTestViewController.m in Sources */,
 				F6B6475714D353A7005F786B /* BaseCsoundViewController.m in Sources */,
@@ -764,41 +741,6 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXVariantGroup section */
-		F6B6467514D348E5005F786B /* MasterViewController_iPhone.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				57F227EA270C49DF003E71F1 /* Base */,
-			);
-			name = MasterViewController_iPhone.xib;
-			sourceTree = "<group>";
-		};
-		F6B6467814D348E5005F786B /* MasterViewController_iPad.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				57F227EB270C4A04003E71F1 /* Base */,
-			);
-			name = MasterViewController_iPad.xib;
-			sourceTree = "<group>";
-		};
-		F6B6467B14D348E5005F786B /* DetailViewController_iPhone.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				57F227EC270C4A34003E71F1 /* Base */,
-			);
-			name = DetailViewController_iPhone.xib;
-			sourceTree = "<group>";
-		};
-		F6B6467E14D348E5005F786B /* DetailViewController_iPad.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				57F227ED270C4A53003E71F1 /* Base */,
-			);
-			name = DetailViewController_iPad.xib;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
-
 /* Begin XCBuildConfiguration section */
 		F6B6468114D348E5005F786B /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -828,8 +770,10 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COMPRESS_PNG_FILES = YES;
 				COPY_PHASE_STRIP = NO;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -847,7 +791,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
@@ -884,7 +828,9 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COMPRESS_PNG_FILES = YES;
 				COPY_PHASE_STRIP = YES;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -895,7 +841,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
@@ -913,17 +859,11 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = 4T7354VM5R;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "$(SRCROOT)/Csound iOS Examples/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(SRCROOT)/csound-iOS/libs",
-					"$(PROJECT_DIR)/csound-iOS/libs",
-				);
 				OTHER_LDFLAGS = "-lstdc++";
 				PRODUCT_BUNDLE_IDENTIFIER = com.csounds.CsoundiOSExamplesNew2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -940,17 +880,11 @@
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DEVELOPMENT_TEAM = 4T7354VM5R;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
 				INFOPLIST_FILE = "$(SRCROOT)/Csound iOS Examples/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(SRCROOT)/csound-iOS/libs",
-					"$(PROJECT_DIR)/csound-iOS/libs",
-				);
 				OTHER_LDFLAGS = "-lstdc++";
 				PRODUCT_BUNDLE_IDENTIFIER = com.csounds.CsoundiOSExamplesNew2;
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -24,6 +24,7 @@
  */
 
 #import "RecordTestViewController.h"
+#import "CsoundBindingDispatch.h"
 
 @implementation RecordTestViewController
 
@@ -131,10 +132,12 @@
 }
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[_mSwitch setOn:NO animated:YES];
-    _mPlayer = nil;
-	_mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];
-	[_mPlayer setDelegate:self];
+    CsoundRunSyncOnMainQueue(^{
+        [self->_mSwitch setOn:NO animated:YES];
+        self->_mPlayer = nil;
+        self->_mPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:[self recordingURL] error:nil];
+        [self->_mPlayer setDelegate:self];
+    });
 }
 
 @end
