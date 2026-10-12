@@ -976,13 +976,16 @@ int32_t graph_compile_deinit(CSOUND *csound, GRAPH_COMPILE *p) {
 }
 
 int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
+    /* Read the input first: the deinit clears the output, which may share
+       the input variable (ib stmcompile ib). */
+    cs_float bld_handle = *p->bld_handle;
     int32_t rc = graph_compile_deinit(csound, p);
     if (rc != OK) return rc;
 
     STM_REGISTRY *reg;
     GRAPH_BUILDER *builder;
 
-    if (STM_GET_BUILDER_INIT(csound, &(p->h), *p->bld_handle, "[stm] stmcompile: invalid builder", &reg, &builder) != OK) {
+    if (STM_GET_BUILDER_INIT(csound, &(p->h), bld_handle, "[stm] stmcompile: invalid builder", &reg, &builder) != OK) {
         return NOTOK;
     }
 
@@ -1031,12 +1034,15 @@ int32_t graph_instance_deinit(CSOUND *csound, GRAPH_INSTANCE *p) {
 }
 
 int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p) {
+    /* Read the input first: the deinit clears the output, which may share
+       the input variable (id stminstance id). */
+    cs_float def_handle = *p->def_handle;
     int32_t rc = graph_instance_deinit(csound, p);
     if (rc != OK) return rc;
 
     STM_REGISTRY *reg;
     GRAPH_DEFINITION *definition;
-    if (STM_GET_DEFINITION_INIT(csound, &(p->h), *p->def_handle, "[stm] stminstance: invalid definition", &reg, &definition) != OK) {
+    if (STM_GET_DEFINITION_INIT(csound, &(p->h), def_handle, "[stm] stminstance: invalid definition", &reg, &definition) != OK) {
         return NOTOK;
     }
     if (stm_ref_load(&definition->refcount) == UINT32_MAX) {
@@ -1667,13 +1673,15 @@ int32_t graph_transition(CSOUND *csound, GRAPH_TRANSITION *p) {
 
 static int32_t graph_checkpoint_init(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     p->trigger_high = 0;
-    *p->check = FL(0.0);
+    /* Leave a trigger that shares the output variable untouched. */
+    if (p->check != p->trig) *p->check = FL(0.0);
     return stm_runner_ref_init(csound, &p->h, *p->runner_handle, STM_RUNNER_WRITER, "[stm] stmcall: invalid runner", &p->ref);
 }
 
 static int32_t graph_checkpoint_resume_init(CSOUND *csound, GRAPH_CHECKPOINT *p) {
     p->trigger_high = 0;
-    *p->check = FL(0.0);
+    /* Leave a trigger that shares the output variable untouched. */
+    if (p->check != p->trig) *p->check = FL(0.0);
     return stm_runner_ref_init(csound, &p->h, *p->runner_handle, STM_RUNNER_WRITER, "[stm] stmrecall: invalid runner", &p->ref);
 }
 
@@ -1684,6 +1692,9 @@ static int32_t graph_checkpoint_deinit(CSOUND *csound, GRAPH_CHECKPOINT *p) {
 /* Save on the rising edge of trig, like every other triggered opcode of the
    family. Saving under an existing name overwrites that checkpoint. */
 int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
+    /* Read the trigger before clearing the output: they may share a
+       variable (kTrig stmcall ..., kTrig). */
+    cs_float trig = *p->trig;
     *p->check = FL(0.0);
 
     GRAPH_RUNNER *runner = p->ref.runner;
@@ -1691,7 +1702,7 @@ int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
         return csound->PerfError(csound, &p->h,"[stm] stmcall: runner is not initialized\n");
     }
 
-    if (!stm_trigger_fired(*p->trig, &p->trigger_high)) {
+    if (!stm_trigger_fired(trig, &p->trigger_high)) {
         return OK;
     }
 
@@ -1717,6 +1728,9 @@ int32_t graph_checkpoint(CSOUND *csound, GRAPH_CHECKPOINT *p) {
 
 /* Restore on the rising edge of trig. */
 int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
+    /* Read the trigger before clearing the output: they may share a
+       variable (kTrig stmrecall ..., kTrig). */
+    cs_float trig = *p->trig;
     *p->check = FL(0.0);
 
     GRAPH_RUNNER *runner = p->ref.runner;
@@ -1724,7 +1738,7 @@ int32_t graph_checkpoint_resume(CSOUND *csound, GRAPH_CHECKPOINT *p) {
         return csound->PerfError(csound, &p->h,"[stm] stmrecall: runner is not initialized\n");
     }
 
-    if (!stm_trigger_fired(*p->trig, &p->trigger_high)) {
+    if (!stm_trigger_fired(trig, &p->trigger_high)) {
         return OK;
     }
 
