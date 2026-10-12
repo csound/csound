@@ -72,9 +72,11 @@ plugins without catalog entries still receive a generic warning. The public
 opcode list reports `_QQ` entries as deprecated too.
 
 Compilation names the recommended replacement when known. `--error-deprecated`
-turns either registration style into an error; message-level bit 1024 (`CS_NOQQ`)
-suppresses ordinary deprecation warnings, but does not bypass that explicit error
-option. No warning is added to the audio processing loop.
+turns either registration style into an error; `--no-deprecated-warnings`
+suppresses deprecation warnings from both the catalog and hard-coded opcodes,
+and message-level bit 1024 (`CS_NOQQ`) does the same for catalog warnings.
+Neither suppression option bypasses the explicit `--error-deprecated` error.
+No warning is added to the audio processing loop.
 
 Regenerate and check the reference with:
 

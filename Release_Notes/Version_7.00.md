@@ -128,7 +128,9 @@ older registrations that previously only gave a warning. With this option,
 an orchestra that uses these opcodes can fail to compile.
 
 Message-level bit 1024 (`CS_NOQQ`, as in `-m1024`) suppresses ordinary
-deprecation warnings for both registration styles. It does not override
+deprecation warnings for both registration styles. `--no-deprecated-warnings`
+suppresses deprecation warnings from both the catalog and hard-coded opcodes
+without affecting other warnings. Neither suppression option overrides
 `--error-deprecated`.
 
 ## API changes

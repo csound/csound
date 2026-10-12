@@ -26,6 +26,7 @@
  */
 #include "stdopcod.h"
 #include "interlocks.h"
+#include "opcode_deprecation.h"
 #include <math.h>
 
 typedef struct {
@@ -50,7 +51,7 @@ typedef struct {
 CSOUND_PRESERVE_LEGACY_BEHAVIOR("bformenc")
 static int32_t iambicode(CSOUND *csound, AMBIC *p)
 {
-    csound->Warning(csound,
+    csoundDeprecationWarning(csound,
                     "%s\n", Str("bformenc is deprecated; use bformenc1 instead\n"));
     /* check correct number of input and output arguments */
     switch (p->OUTOCOUNT) {
@@ -339,7 +340,7 @@ CSOUND_PRESERVE_LEGACY_BEHAVIOR("bformdec")
 static int32_t iambideco(CSOUND *csound, AMBID *p)
 {
     int32_t setup = (int32_t)*p->isetup;
-    csound->Warning(csound,
+    csoundDeprecationWarning(csound,
                     "%s\n", Str("bformdec is deprecated; use bformdec1 instead\n"));
     if (setup<0) setup = -setup;
     /* check correct number of input arguments */

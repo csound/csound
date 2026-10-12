@@ -26,6 +26,7 @@
 #include "soundio.h"
 #include "sysdep.h"
 #include "diskin2.h"
+#include "opcode_deprecation.h"
 #include <math.h>
 #include <inttypes.h>
 
@@ -3426,8 +3427,8 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
     //SNDOUTS *p = (SNDOUTS*) pp;
 
     opname = GetOpcodeName(pp);
-    csound->Warning(csound, Str("%s is deprecated; use fout instead\n"),
-                    opname);
+    csoundDeprecationWarning(csound, Str("%s is deprecated; use fout instead\n"),
+                             opname);
     if (strcmp(opname, "soundouts") == 0 || strcmp(opname, "soundouts.i") == 0) {
       q = &(((SNDOUTS*) pp)->c);
       ifilcod = ((SNDOUTS*) pp)->ifilcod;
