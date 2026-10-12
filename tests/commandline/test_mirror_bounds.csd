@@ -30,9 +30,19 @@ instr 1
   kvalue mirror kx, ilow, ihigh
   avalue mirror ax, ilow, ihigh
   aexpected = p7
-  kerror max_k abs(avalue / iscale - aexpected), 1, 1
+  anormalized = avalue / iscale
+  kerror max_k abs(anormalized - aexpected), 1, 1
   if !(abs(kvalue / iscale - p7) < .000001 && kerror < .000001) then
     printks "mirror mismatch: input=%g low=%g high=%g expected=%g k=%g a-error=%g\n", 0, p4, p5, p6, p7, kvalue / iscale, kerror
+    ; Show the signal before and after normalization to locate audio failures.
+    ksample = 0
+    while ksample < ksmps do
+      kinput vaget ksample, ax
+      kactual vaget ksample, avalue
+      knormalized vaget ksample, anormalized
+      printks "sample=%g input=%g output=%g scale=%g normalized=%g\n", 0, ksample, kinput, kactual, iscale, knormalized
+      ksample += 1
+    od
     exitnowk(-1)
   endif
   kfirst init 1
