@@ -3372,8 +3372,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                     oentry->opname, rightArgString ? rightArgString : "");
       return 0;
     }
-    if (!(csound->oparms->msglevel & CS_NOQQ))
-      csoundWarning(csound, Str("%s, line %d\n"), message, root->line);
+    csoundDeprecationWarning(csound, Str("%s, line %d\n"), message, root->line);
   }
 
   if (UNLIKELY(oentry == NULL) &&
