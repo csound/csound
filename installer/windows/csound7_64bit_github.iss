@@ -189,8 +189,8 @@ Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\Csound"; Filename: "cmd.exe"; Parameters: "/K csound.exe"; WorkingDir: "{#APP_BIN}"; Flags: dontcloseonexit;  Components: core
 
 [Registry]
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"OPCODE7DIR64"; ValueData:"{#APP_PLUGINS64}"; Flags: preservestringtype uninsdeletevalue;  Components: core
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"RAWWAVE_PATH"; ValueData:"{#APP_SAMPLES}"; Flags: preservestringtype uninsdeletevalue;  Components: core
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"OPCODE7DIR64"; ValueData:"{#APP_PLUGINS64}"; Flags: preservestringtype;  Components: core
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"; ValueType:string; ValueName:"RAWWAVE_PATH"; ValueData:"{#APP_SAMPLES}"; Flags: preservestringtype;  Components: core
 
 [Tasks]
 Name: modifypath; Description: &Add application directory to your PATH environment variable; Components: core;
@@ -430,6 +430,16 @@ begin
 	end;
 end;
 
+// Another installation or the user may have changed these shared paths.
+procedure DeleteEnvironmentValueIfOwned(const Name, OwnedValue: String);
+var
+  CurrentValue: String;
+begin
+  if RegQueryStringValue(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', Name, CurrentValue) then
+    if CompareText(CurrentValue, OwnedValue) = 0 then
+      RegDeleteValue(HKLM, 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment', Name);
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
 	aSelectedTasks:	TArrayOfString;
@@ -441,6 +451,9 @@ var
 begin
 	// only run during actual uninstall
 	if CurUninstallStep = usUninstall then begin
+		DeleteEnvironmentValueIfOwned('OPCODE7DIR64', ExpandConstant('{#APP_PLUGINS64}'));
+		DeleteEnvironmentValueIfOwned('RAWWAVE_PATH', ExpandConstant('{#APP_SAMPLES}'));
+
 		// get list of selected tasks saved in registry at install time
 		appid := '{#emit SetupSetting("AppId")}';
 		if appid = '' then appid := '{#emit SetupSetting("AppName")}';

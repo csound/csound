@@ -284,9 +284,13 @@ iscc /o. installer\windows\csound7_arm64_github.iss
 
 The installer accepts only ARM64 Windows and uses `C:\Program Files\Csound7 ARM64`.
 It bundles the ARM64 runtime for offline installation. The Windows installers
-share `PATH` and `OPCODE7DIR64`. If you keep an x64 installation too, use the full
-path to the desired executable and set `OPCODE7DIR64` to its matching `plugins64`
-directory.
+share `PATH`, `OPCODE7DIR64` and `RAWWAVE_PATH`. If you keep an x64 installation
+too, use the full path to the desired executable and set `OPCODE7DIR64` and
+`RAWWAVE_PATH` to its `plugins64` and `samples` directories.
+
+Uninstalling a copy leaves plugin and sample paths that point elsewhere alone.
+If they point to the copy being removed, the uninstaller clears them. Set them
+again for any copy you keep.
 
 If you wish to customize the build in any way, you can modify the `Custom-vs.cmake` file in the `platform\windows` directory. For common options, refer to "Useful CMake Options" above.
 
