@@ -211,6 +211,19 @@ static void multiply_fft_buffers(cs_float *outBuf, cs_float *ringBuf, cs_float *
     } while (--nPartitions);
 }
 
+static inline uint64_t buf_bytes_alloc(int32_t partSize, int32_t nPartitions)
+{
+    uint64_t partBytes = (uint64_t) partSize * 2 * sizeof(cs_float);
+    uint64_t bytes = partBytes;              /* tmpBuf  */
+    bytes += partBytes * nPartitions;        /* ringBuf */
+    bytes += partBytes * nPartitions;        /* IR_Data */
+    bytes += partBytes;                      /* outBuf  */
+
+    /* One load/unload entry per partition, plus one for buffering. */
+    bytes += ((uint64_t) nPartitions + 1) * sizeof(load_t);
+    return bytes;
+}
+
 static void set_buf_pointers(liveconv_t *p, int32_t partSize, int32_t nPartitions)
 {
     cs_float *ptr;
@@ -273,8 +286,7 @@ static int32_t liveconv_init(CSOUND *csound, liveconv_t *p)
     ** Function of partition size and number of partitions
     */
 
-    uint64_t bytes = ((uint64_t) p->nPartitions + 1) *
-                     ((uint64_t) p->partSize * 4 * sizeof(cs_float) + sizeof(load_t));
+    uint64_t bytes = buf_bytes_alloc(p->partSize, p->nPartitions);
     if (UNLIKELY(bytes > SIZE_MAX))
       return csound->InitError(csound, "%s", Str("liveconv: impulse response too large"));
     size_t nBytes = (size_t) bytes;
