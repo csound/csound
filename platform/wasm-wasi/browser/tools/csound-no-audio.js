@@ -18,19 +18,14 @@
 // for calling csound without any audio
 // bindings
 
-import pako from "pako/dist/pako.min.js";
 import wasmDataURI from "../dist/__csound_wasm_static_tools.inline.js";
 import libcsoundFactory from "../src/libcsound";
-import { WASI } from "../src/filesystem/wasi";
-import { createSystem } from "../src/filesystem/system.js";
-import { uint2String } from "../src/utils/text-encoders";
-import { clearArray } from "../src/utils/clear-array";
+import loadWasm from "../src/module";
 import { csoundApiRename } from "../src/utils";
 import fs from "../src/filesystem/worker-fs";
 
 const fsMethods = Object.keys(fs);
 
-let streamBuffer = [];
 let arrayBuffer;
 
 const makeCsoundCallback =
@@ -39,91 +34,17 @@ const makeCsoundCallback =
     return await apiCallback.apply({}, [csoundInstance, ...arguments_]);
   };
 
-export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer, wasi }) => {
-  return function (csound_, attribute, length_, offset) {
-    if (!memory) {
-      return;
-    }
-    const buf = new Uint8Array(memory.buffer, offset, length_);
-    const string = uint2String(buf);
-    const endsWithNewline = /\n$/g.test(string);
-    const startsWithNewline = /^\n/g.test(string);
-    const chunks = string.split("\n").filter((item) => item.length > 0);
-    const printableChunks = [];
-    if ((chunks.length === 0 && endsWithNewline) || startsWithNewline) {
-      printableChunks.push(streamBuffer.join(""));
-      clearArray(streamBuffer);
-    }
-    chunks.forEach((chunk, index) => {
-      // if it's last chunk
-      if (index + 1 === chunks.length) {
-        if (endsWithNewline) {
-          if (index === 0) {
-            printableChunks.push(streamBuffer.join("") + chunk);
-            clearArray(streamBuffer);
-          } else {
-            printableChunks.push(chunk);
-          }
-        } else {
-          streamBuffer.push(chunk);
-        }
-      } else if (index === 0) {
-        printableChunks.push(streamBuffer.join("") + chunk);
-        clearArray(streamBuffer);
-      } else {
-        printableChunks.push(chunk);
-      }
-    });
-    printableChunks.forEach((chunk) => {
-      const maybePrintable = chunk.replace(/(\r\n|\n|\r)/gm, "");
-      if (maybePrintable) {
-        messagePort.post({ log: chunk });
-      }
-    });
-  };
-};
-
-const Csound = async ({ logCallback }) => {
-  streamBuffer = [];
+const Csound = async ({ logCallback } = {}) => {
   if (!arrayBuffer) {
     arrayBuffer = wasmDataURI();
   }
-  const wasi = new WASI({ preopens: { "/": "/" } });
-  const wasmCompressed = new Uint8Array(arrayBuffer);
-  const wasmBytes = pako.inflate(wasmCompressed);
-  const module = await WebAssembly.compile(wasmBytes);
-  const memory = new WebAssembly.Memory({ initial: 65536 / 4 });
-  const options = wasi.getImports(module);
-  options.env = options.env || {};
-  options.env.csoundLoadModules = () => 0;
-  options.env.csoundLoadExternals = () => -1;
-  options.env.memory = memory;
-
-  const messagePort = { post: ({ log }) => typeof logCallback === "function" && logCallback(log) };
-  options.env.csoundWasiJsSystem = createSystem(wasi, (log) => messagePort.post({ log }));
-
-  options.env.csoundWasiJsMessageCallback = csoundWasiJsMessageCallback({
-    memory: options.env.memory,
-    streamBuffer,
-    messagePort,
-  });
-
-  options.env.printDebugCallback = (offset, length) => {
-    if (typeof logCallback === "function") {
-      const buf = new Uint8Array(memory.buffer, offset, length);
-      const string = uint2String(buf);
-      logCallback(string);
-    }
+  // Use the same per-instance log buffer and WASI setup as the audio bindings.
+  const messagePort = {
+    post: ({ log }) =>
+      typeof log === "string" && typeof logCallback === "function" && logCallback(log),
   };
-
-  const instance = await WebAssembly.instantiate(module, options);
-
-  instance.memory = memory;
+  const [instance, wasi] = await loadWasm({ wasmDataURI: arrayBuffer, messagePort });
   instance.wasi = wasi;
-
-  wasi.setMemory(memory);
-  wasi.start(instance);
-  instance.exports.__wasi_js_csoundSetMessageStringCallback();
 
   const libcsound = libcsoundFactory(instance);
 

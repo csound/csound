@@ -20,12 +20,13 @@ import JarPath from "google-closure-compiler-java";
 import { fileURLToPath } from "url";
 import { inlineArraybuffer } from "./goog/inline-arraybuffer.js";
 
-const { compiler: ClosureCompiler } = goog;
+const ClosureCompiler = goog.compiler || goog;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = __dirname;
 
+fs.mkdirSync(path.join(rootDir, "dist"), { recursive: true });
 fs.writeFileSync(
   path.join(rootDir, "dist", "__csound_wasm_static_tools.inline.js"),
   inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.wasm.z", "binary.wasm"),
@@ -45,11 +46,7 @@ fs.writeFileSync(
       "./goog/mocks/index.js",
       "./node_modules/google-closure-library/package.json",
       "./node_modules/google-closure-library/**/*.js",
-      "./node_modules/pako/package.json",
-      "./node_modules/pako/dist/*.js",
     ],
-    hide_warnings_for: ["./node_modules/pako/dist/pako.min.js"],
-
     jscomp_off: ["accessControls"],
     jscomp_error: ["globalThis"],
     assume_function_wrapper: false,
@@ -67,7 +64,7 @@ fs.writeFileSync(
 
   const closureCompiler = new ClosureCompiler(closureConfig);
 
-  closureCompiler.javaPath = `${process.env.JAVA_HOME}/bin/java`;
+  closureCompiler.javaPath = process.env.JAVA_HOME ? `${process.env.JAVA_HOME}/bin/java` : "java";
   closureCompiler.JAR_PATH = JarPath;
   await new Promise((resolve, reject) => {
     const javaProcess = closureCompiler.run((exitCode, inputString, stderr) => {

@@ -24,6 +24,42 @@ import { beatsCsd, exitCommand } from "./score-command-fixtures.js";
   // console.log("RESP", resp);
   const { Csound } = resp;
 
+  const carriageReturnOrchestra = `
+ksmps = 32
+nchnls = 1
+instr 1
+  kcount init 0
+  if kcount == 0 then
+    printks "[log-test] CR\\r", 0
+    printks "[log-test] CRLF\\r\\n", 0
+    printks "[log-test] split", 0
+    printks "\\r", 0
+    printks "\\n", 0
+    printks "[log-test] frag", 0
+    printks "ment\\r", 0
+    printks "\\r\\n\\r\\n", 0
+    printks "[log-test] first\\r[log-test] second\\n", 0
+  endif
+  printks "[log-test] tick %d\\r", 0.05, kcount
+  kcount += 1
+endin
+schedule(1, 0.02, 60)`;
+
+  function assertCarriageReturnLogs(messages) {
+    const lines = messages.filter((message) => message.startsWith("[log-test]"));
+    assert.deepEqual(lines.slice(0, 6), [
+      "[log-test] CR",
+      "[log-test] CRLF",
+      "[log-test] split",
+      "[log-test] fragment",
+      "[log-test] first",
+      "[log-test] second",
+    ]);
+    assert.isAtLeast(lines.length, 9);
+    assert.isTrue(lines.every((message) => !/[\r\n]/.test(message)));
+    assert.notInclude(messages, "");
+  }
+
   const helloWorld = `
 <CsoundSynthesizer>
 <CsOptions>
@@ -459,44 +495,14 @@ e
         });
         try {
           assert.equal(await cs.setOption("-odac"), 0);
-          assert.equal(await cs.compileOrc(`
-ksmps = 32
-nchnls = 1
-instr 1
-  kcount init 0
-  if kcount == 0 then
-    printks "[log-test] CR\\r", 0
-    printks "[log-test] CRLF\\r\\n", 0
-    printks "[log-test] split", 0
-    printks "\\r", 0
-    printks "\\n", 0
-    printks "[log-test] frag", 0
-    printks "ment\\r", 0
-    printks "\\r\\n\\r\\n", 0
-    printks "[log-test] first\\r[log-test] second\\n", 0
-  endif
-  printks "[log-test] tick %d\\r", 0.05, kcount
-  kcount += 1
-endin
-schedule(1, 0.02, 60)`), 0);
+          assert.equal(await cs.compileOrc(carriageReturnOrchestra), 0);
           assert.equal(await cs.start(), 0);
           timer = setTimeout(
             () => rejectProgress(new Error("Carriage-return logs stayed buffered")),
             4000,
           );
           await progress;
-          const lines = messages.filter((message) => message.startsWith("[log-test]"));
-          assert.deepEqual(lines.slice(0, 6), [
-            "[log-test] CR",
-            "[log-test] CRLF",
-            "[log-test] split",
-            "[log-test] fragment",
-            "[log-test] first",
-            "[log-test] second",
-          ]);
-          assert.isAtLeast(lines.length, 9);
-          assert.isTrue(lines.every((message) => !/[\r\n]/.test(message)));
-          assert.notInclude(messages, "");
+          assertCarriageReturnLogs(messages);
         } finally {
           clearTimeout(timer);
           cs.off("message", onMessage);
@@ -1801,6 +1807,29 @@ e
         assert.notEqual(0, compileResult, "compileCSD should fail for missing #include file");
         await csoundObj.terminateInstance();
       });
+    });
+  });
+
+  describe("standalone csound-no-audio", function () {
+    this.timeout(30000);
+
+    it("delivers carriage-return logs during performance", async function () {
+      const { Csound } = await import("/dist/csound-no-audio.js");
+      const messages = [];
+      const cs = await Csound({ logCallback: (message) => messages.push(message) });
+      try {
+        assert.equal(await cs.setOption("-n"), 0);
+        assert.equal(await cs.compileOrc(carriageReturnOrchestra), 0);
+        assert.equal(await cs.start(), 0);
+        // Read the logs before stop() can flush the buffer with a newline.
+        for (let block = 0; block < 512; block++) {
+          assert.equal(await cs.performKsmps(), 0);
+        }
+        assertCarriageReturnLogs(messages);
+      } finally {
+        await cs.stop();
+        await cs.destroy();
+      }
     });
   });
 
