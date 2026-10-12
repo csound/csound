@@ -49,8 +49,11 @@
    stmadvance returns three k-rate values: status, source node ID and target
    node ID. The status values are STM_NO_REQUEST (0), STM_CHANGED (1),
    STM_ILLEGAL_EDGE (2), STM_SELF_TRANSITION (3), STM_CONFLICT (4),
-   STM_PAUSED (5) and STM_DELETED (6). The target is -1 when there was no
-   unique target or the runner did not advance.
+   STM_PAUSED (5) and STM_DELETED (6). The target depends on the status:
+   STM_CHANGED and STM_SELF_TRANSITION report the node that became current;
+   STM_ILLEGAL_EDGE reports the requested target although the current node
+   does not change; STM_NO_REQUEST, STM_CONFLICT, STM_PAUSED and STM_DELETED
+   report -1. The source is always the node that was current at the advance.
 
    Requests share one pending slot. The first target requested before an
    advance is retained; repeating that target is idempotent, while requesting

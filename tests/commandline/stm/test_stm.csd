@@ -261,7 +261,8 @@ endin
 instr 11
     Scur = stmcurrent(graph2)
     STM_DISPATCH(graph2, state2, Scur)
-    changed:k, from_id:k, to_id:k = stmadvance(graph2)
+    status:k, from_id:k, to_id:k = stmadvance(graph2)
+    current_id:k = stmcurrentid(graph2)
 
     node:k = state2.node
 
@@ -270,8 +271,23 @@ instr 11
         printks("[FAIL] rnd: invalid node id %f\n", 0, node)
         exitnowk(-1)
     endif
-    if changed != 0 && changed != 1 then
-        printks("[FAIL] rnd: invalid changed flag %f\n", 0, changed)
+    ; nodes only request legal edges, one request per cycle: any status
+    ; other than NO_REQUEST (0) or CHANGED (1) is a runtime bug
+    if status == 0 then
+        if to_id != -1 || from_id != current_id then
+            printks("[FAIL] rnd: NO_REQUEST but from/to/current=%f/%f/%f\n", 0,
+                    from_id, to_id, current_id)
+            exitnowk(-1)
+        endif
+    elseif status == 1 then
+        if to_id != current_id || from_id == to_id || from_id != node - 1 then
+            printks("[FAIL] rnd: CHANGED but from/to/current/node=%f/%f/%f/%f\n", 0,
+                    from_id, to_id, current_id, node)
+            exitnowk(-1)
+        endif
+    else
+        printks("[FAIL] rnd: unexpected advance status %f (from/to=%f/%f)\n", 0,
+                status, from_id, to_id)
         exitnowk(-1)
     endif
 
@@ -287,14 +303,14 @@ instr 11
     elseif node == 3 then
         seen_f = 1
     endif
-    if changed == 1 then
+    if status == 1 then
         ntrans = ntrans + 1
     endif
 
     t:k = timeinstk()
 
     ; ---- flow trace: transitions + periodic heartbeat ----
-    if changed == 1 then
+    if status == 1 then
         Snew:S = stmcurrent(graph2)
         println("[E2] t%d  transition -> %s", t, Snew)
     endif
@@ -933,7 +949,7 @@ endin
 </CsInstruments>
 <CsScore>
 i 1  0   1 ; example 1: deterministic transitions + conditional edge
-i 10 1.1 1 ; example 2: capture / analysis of random signal
+i 10 2.2 1 ; example 2: capture / analysis of random signal (runs with instr 11)
 i 11 2.2 1 ; example 2: graph runtime + invariant checks
 i 20 3.3 1 ; example 3: instruments as stateful processes (spawn/kill via enter/exit)
 i 40 4.4 1 ; example 4: introspection + id-based API + entry/reset
