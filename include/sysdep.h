@@ -368,7 +368,7 @@ typedef unsigned long       uintptr_t;
 #    define CS_FLOAT2LRND64(x) (x > LONG_MIN && x < (cs_double)LONG_MAX ? \
                            (int64_t) lrintl((cs_double) (x)) : 0)
 #  endif
-#elif defined(MSVC)
+#elif defined(MSVC) && (defined(_M_IX86) || defined(_M_X64))
 #include <emmintrin.h>
 #  ifndef USE_DOUBLE
 // From Agner Fog optimisation manuals p.144

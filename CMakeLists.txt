@@ -97,9 +97,11 @@ if (USE_VCPKG)
         set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-emscripten/wasm32.cmake)
         set(VCPKG_CMAKE_SYSTEM_NAME Emscripten)
     elseif (WIN32)
-        # Detect 32-bit vs 64-bit Windows build
+        # Match dependencies to the Visual Studio target architecture
         if (CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
             set(VCPKG_TARGET_TRIPLET "x86-windows-static")
+        elseif (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+            set(VCPKG_TARGET_TRIPLET "arm64-windows-static")
         else()
             set(VCPKG_TARGET_TRIPLET "x64-windows-static")
         endif()
