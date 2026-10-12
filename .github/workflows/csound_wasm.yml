@@ -122,6 +122,7 @@ jobs:
           npm ci
           npm link --no-save --package-lock=false --ignore-scripts ..
           npm run build:prod
+          npm run build:tools
       - name: Install test dependencies
         run: |
           cd $wasm_browser_dir
