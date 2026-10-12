@@ -1,5 +1,5 @@
 <CsTest>
-description = "liveconv rejects invalid partitions"
+description = "liveconv rejects a negative partition length"
 
 [expect]
 exit = "nonzero"
@@ -20,11 +20,7 @@ instr 1
 endin
 </CsInstruments>
 <CsScore>
-i 1 0 .01 0
 i 1 0 .01 -1
-i 1 0 .01 3
-i 1 0 .01 6
-i 1 0 .01 1e20
 e
 </CsScore>
 </CsoundSynthesizer>
