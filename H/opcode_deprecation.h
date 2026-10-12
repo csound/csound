@@ -41,8 +41,8 @@ void csoundOpcodeDeprecationMessage(const char *name, int renamed,
    library and built-in/plugin opcodes. The warning is emitted as a single
    message so message-buffer and callback consumers receive the prefix and
    diagnostic text together. */
-static inline void csoundDeprecationWarning(CSOUND *csound,
-                                            const char *fmt, ...)
+static inline CS_PRINTF2 void csoundDeprecationWarning(CSOUND *csound,
+                                                       const char *fmt, ...)
 {
   const OPARMS *oparms = csound->GetOParms(csound);
   va_list args;

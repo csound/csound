@@ -127,10 +127,12 @@ differences in behavior.
 older registrations that previously only gave a warning. With this option,
 an orchestra that uses these opcodes can fail to compile.
 
-Message-level bit 1024 (`CS_NOQQ`, as in `-m1024`) and
-`--no-deprecated-warnings` both suppress deprecation warnings from the
-catalog and hard-coded opcodes without affecting other warnings. Neither
-suppression option overrides `--error-deprecated`.
+Message-level bit 1024 (`CS_NOQQ`) suppresses deprecation warnings from the
+catalog and hard-coded opcodes. `-m1024` replaces the entire message-level
+mask, so it also disables ordinary warnings; combine the bit with the default
+mask (`-m1159`) to suppress deprecation warnings only. Alternatively,
+`--no-deprecated-warnings` does the same while preserving other warnings.
+Neither suppression option overrides `--error-deprecated`.
 
 ## API changes
 
