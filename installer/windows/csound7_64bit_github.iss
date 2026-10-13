@@ -152,6 +152,7 @@ Source: "{#ReleaseDir}\pvanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion;
 Source: "{#ReleaseDir}\pvlook.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\pmidi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\rtpa.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
+Source: "{#ReleaseDir}\rtwasapi.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\rtwinmm.dll"; DestDir: "{#APP_PLUGINS64}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\scale.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\scot.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
