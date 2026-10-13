@@ -982,23 +982,16 @@ array_identifier: array_identifier '[' ']' {
           }
           | typed_identifier '[' ']' {
             $$ = $1;
-            // Check if this is a type annotation (e.g., "var:Type[]") vs array access
-            // If the typed_identifier already has a type annotation ending with "[]",
-            // keep it as T_TYPED_IDENT rather than converting to T_ARRAY_IDENT
-            if ($1->value && $1->value->optype) {
-              size_t len = strlen($1->value->optype);
-              if (len >= 2 && $1->value->optype[len-2] == '[' && $1->value->optype[len-1] == ']') {
-                // This is a type annotation like "Person[]", keep as T_TYPED_IDENT
-                // Don't attach the '[' token or change the type
-              } else {
-                // This is array access syntax, convert to T_ARRAY_IDENT
-                $1->type = T_ARRAY_IDENT;
-                $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[", NULL));
-              }
-            } else {
-              // No type annotation, treat as array access
-              $1->type = T_ARRAY_IDENT;
-              $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[", NULL));
+            $$->type = T_ARRAY_IDENT;
+            $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[", NULL));
+            /* Preserve brackets already consumed by the lexer when more
+               follow after whitespace, as in values:i[][] []. */
+            char *brackets = strchr($$->value->optype, '[');
+            if (brackets != NULL) {
+              for (char *p = brackets; *p != '\0'; p += 2)
+                parser_append(csound, $$->right,
+                  make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[", NULL)));
+              *brackets = '\0';
             }
           }
           ;

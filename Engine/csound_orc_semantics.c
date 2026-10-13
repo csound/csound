@@ -520,21 +520,18 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
 static const char *convert_array_type_string(CSOUND *csound,
                                        const char *str) {
   const char *check = str;
-  char dim = 0;
+  size_t dim = 0;
   while(*check != '\0') {
     if(*check == '[') dim++;
     check++;
   }
   if(dim){
-    int len = (int) strlen(str);
-    char *arr = csoundCalloc(csound, strlen(str)+1);
-    for(int i = 0; i < dim; i++) {
-      arr[i] = '[';
-    }
-    memcpy(arr+dim, str, len-dim);
-    for(int i = len-dim; i < len; i++) {
-      arr[i] = ']';
-    }
+    size_t typeLen = strlen(str) - 2 * dim;
+    char *arr = csoundCalloc(csound, dim + typeLen + 2);
+    memset(arr, '[', dim);
+    memcpy(arr + dim, str, typeLen);
+    /* Internal array types have one closing bracket, at every rank. */
+    arr[dim + typeLen] = ']';
     return arr;
   } else return str;
 }
@@ -2725,6 +2722,22 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
         csound->Free(csound, lvarName);
         return;
       }
+      /* A local declaration may shadow a global array, but redeclaring an
+         array in the same scope must not silently ignore a new element type. */
+      if (type == &CS_VAR_TYPE_ARRAY && var->varType == type &&
+          varInit.type != var->subType &&
+          (pool == var_pool || (var_pool == csound->engineState.varPool &&
+                                pool == typeTable->globalPool))) {
+        char *previousType = csoundFormatTypeName(csound,
+          var->subType->varTypeName, var->dimensions);
+        synterr(csound, Str("%s:%s -- type mismatch for existing "
+                           "array variable %s:%s\n"),
+                lvarName, annotation, lvarName, previousType);
+        csound->Free(csound, previousType);
+        csound->Free(csound, t);
+        csound->Free(csound, lvarName);
+        return;
+      }
       if(type && type != var->varType){
 	char *previousType = csoundFormatTypeName(csound,
           var->subType ? var->subType->varTypeName : var->varType->varTypeName,
@@ -2905,8 +2918,16 @@ static int32_t add_args(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
     case T_ARRAY_IDENT:
 
       varName = current->value->lexeme;
-      add_array_arg(csound, varName, current->value->optype,
-                    tree_arg_list_count(current->right), typeTable);
+      if (current->value->optype != NULL) {
+        /* Whitespace before [] must not change declaration or scope rules. */
+        char *annotation = csoundFormatTypeName(csound,
+          current->value->optype, tree_arg_list_count(current->right));
+        add_arg(csound, varName, annotation, typeTable, current);
+        csound->Free(csound, annotation);
+      } else {
+        add_array_arg(csound, varName, NULL,
+                      tree_arg_list_count(current->right), typeTable);
+      }
 
       break;
 
@@ -3866,18 +3887,16 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
 
     memberName = csoundStrdup(csound, memberName);
 
-    // Check if this is an array type (ends with [])
     size_t typeLen = strlen(typedIdentArg);
-    int32_t isArray = (typeLen >= 2 &&
-                       typedIdentArg[typeLen-2] == '[' &&
-                       typedIdentArg[typeLen-1] == ']');
+    const char *brackets = strchr(typedIdentArg, '[');
+    int32_t isArray = brackets != NULL || current->type == T_ARRAY_IDENT;
 
     const CS_TYPE* memberType;
     CS_VARIABLE* var;
 
     if (isArray) {
-      // Extract base type (remove [] from the end)
-      char* baseType = cs_strndup(csound, typedIdentArg, typeLen - 2);
+      size_t baseLen = brackets ? (size_t) (brackets - typedIdentArg) : typeLen;
+      char* baseType = cs_strndup(csound, typedIdentArg, baseLen);
       const CS_TYPE* baseCSType = csoundGetTypeWithVarTypeName(csound->typePool, baseType);
 
       if (baseCSType == NULL) {
@@ -3897,7 +3916,9 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
 
       // Create array variable with dimensions set
       ARRAY_VAR_INIT varInit;
-      varInit.dimensions = 1;
+      varInit.dimensions = current->type == T_ARRAY_IDENT
+        ? tree_arg_list_count(current->right)
+        : (int32_t) ((typeLen - baseLen) / 2);
       varInit.type = baseCSType;
 
       // Use array type - csoundCreateVariable will set var->varType to arrayType
