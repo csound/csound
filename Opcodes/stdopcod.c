@@ -99,6 +99,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= dbap_init_(csound);
     err |= savgol_init_(csound);
     err |= remap_init_(csound);
+    err |= stm_init_(csound);
 
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
