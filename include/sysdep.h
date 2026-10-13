@@ -368,7 +368,7 @@ typedef unsigned long       uintptr_t;
 #    define CS_FLOAT2LRND64(x) (x > LONG_MIN && x < (cs_double)LONG_MAX ? \
                            (int64_t) lrintl((cs_double) (x)) : 0)
 #  endif
-#elif defined(MSVC)
+#elif defined(MSVC) && (defined(_M_IX86) || defined(_M_X64))
 #include <emmintrin.h>
 #  ifndef USE_DOUBLE
 // From Agner Fog optimisation manuals p.144
@@ -411,13 +411,15 @@ static inline int32 CS_FLOAT2LRND(cs_double fval)
     return ((int32) (fval + (fval < 0.0 ? -0.5 : 0.5)));
 }
 
-static inline int64 CS_FLOAT2LRND64(cs_double fval)
-{
-    return ((int64) (fval + (fval < 0.0 ? -0.5 : 0.5)));
-}
-
 #    endif
 #  endif
+
+/* Keep the 64-bit helpers available in both float and double builds. */
+#  define CS_FLOAT2LONG64(x) ((int64_t) (x))
+static inline int64_t CS_FLOAT2LRND64(cs_double fval)
+{
+    return ((int64_t) (fval + (fval < 0.0 ? -0.5 : 0.5)));
+}
 #endif
 
 #ifdef HAVE_C99

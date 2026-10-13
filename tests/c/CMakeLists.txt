@@ -288,6 +288,25 @@ if(BUILD_TESTS)
 
     include(GoogleTest)
     gtest_discover_tests(unittests)
+    if(NOT MSVC OR CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+        foreach(precision IN ITEMS FLOAT DOUBLE)
+            set(conversion_test float_conversion_fallback_${precision})
+            add_executable(${conversion_test} float_conversion_fallback_test.c)
+            target_include_directories(${conversion_test} PRIVATE
+                ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+            target_compile_definitions(${conversion_test} PRIVATE
+                BUILD_PLUGINS USE_${precision})
+            add_test(NAME ${conversion_test} COMMAND ${conversion_test})
+        endforeach()
+    endif()
+    if(WIN32)
+        add_executable(wasapi_format_tests wasapi_format_test.c)
+        target_include_directories(wasapi_format_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_compile_definitions(wasapi_format_tests PRIVATE BUILD_PLUGINS)
+        target_link_libraries(wasapi_format_tests PRIVATE ole32 uuid mmdevapi)
+        add_test(NAME wasapi_format_tests COMMAND wasapi_format_tests)
+    endif()
     if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND NOT EMSCRIPTEN AND
        USE_ATOMIC_BUILTIN AND HAVE_ATOMIC_BUILTIN AND NOT IOS AND
        NOT BARE_METAL AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
