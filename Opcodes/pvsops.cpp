@@ -22,6 +22,11 @@
 #include <algorithm>
 #include <plugin.h>
 
+// Bound the count before converting it, retaining the existing minimum of one.
+#define PVSTRACE_COUNT(value, available)                                  \
+  (!((value) >= FL(1.0)) ? 1 :                                           \
+   (cs_double(value) >= cs_double(available) ? (available) : int32_t(value)))
+
 struct PVTrace : csnd::FPlugin<1, 2> {
   csnd::AuxMem<float> amps;
   static constexpr char const *otypes = "f";
@@ -29,10 +34,10 @@ struct PVTrace : csnd::FPlugin<1, 2> {
 
   int32_t init() {
     if (inargs.fsig_data(0).isSliding())
-      return csound->init_error("sliding not supported");
+      return csound->init_error(Str_noop("sliding not supported\n"));
     if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
-      return csound->init_error("fsig format not supported");
+      return csound->init_error(Str_noop("fsig format not supported\n"));
 
     amps.allocate(csound, inargs.fsig_data(0).nbins());
     csnd::Fsig &fout = outargs.fsig_data(0);
@@ -45,15 +50,21 @@ struct PVTrace : csnd::FPlugin<1, 2> {
     csnd::pv_frame &fin = inargs.fsig_data(0);
     csnd::pv_frame &fout = outargs.fsig_data(0);
     if (framecount < fin.count()) {
-      int32_t n = fin.len() - (int) (inargs[1] >= 1 ? inargs[1] : 1.);
+      int32_t n = fin.len() - PVSTRACE_COUNT(inargs[1], fin.len());
       float thrsh;
       std::transform(fin.begin(), fin.end(), amps.begin(),
                      [](csnd::pv_bin f) { return f.amp(); });
       std::nth_element(amps.begin(), amps.begin() + n, amps.end());
       thrsh = amps[n];
+      // Only keep enough threshold ties to reach the requested count.
+      auto ties = std::count(amps.begin() + n, amps.end(), thrsh);
       std::transform(fin.begin(), fin.end(), fout.begin(),
-                     [thrsh](csnd::pv_bin f) {
-                       return f.amp() >= thrsh ? f : csnd::pv_bin();
+                     [thrsh, &ties](csnd::pv_bin f) {
+                       if (f.amp() > thrsh || (f.amp() == thrsh && ties > 0)) {
+                         if (f.amp() == thrsh) --ties;
+                         return f;
+                       }
+                       return csnd::pv_bin();
                      });
       framecount = fout.count(fin.count());
     }
@@ -69,24 +80,35 @@ struct binamp {
 struct PVTrace2 : csnd::FPlugin<2, 5> {
   csnd::AuxMem<float> amps;
   csnd::AuxMem<binamp> binlist;
+  int32_t start, end;
   static constexpr char const *otypes = "fk[]";
   static constexpr char const *itypes = "fkooo";
 
   int32_t init() {
-    csnd::Vector<MYFLT> &bins = outargs.vector_data<MYFLT>(1);
+    csnd::Vector<cs_float> &bins = outargs.vector_data<cs_float>(1);
     if (inargs.fsig_data(0).isSliding())
-      return csound->init_error("sliding not supported");
+      return csound->init_error(Str_noop("sliding not supported\n"));
 
     if (inargs.fsig_data(0).fsig_format() != csnd::fsig_format::pvs &&
         inargs.fsig_data(0).fsig_format() != csnd::fsig_format::polar)
-      return csound->init_error("fsig format not supported");
+      return csound->init_error(Str_noop("fsig format not supported\n"));
 
-    amps.allocate(csound, inargs.fsig_data(0).nbins());
-    binlist.allocate(csound, inargs.fsig_data(0).nbins());
+    if (!(inargs[3] >= 0 && inargs[4] >= 0))
+      return csound->init_error(Str_noop("pvstrace: bin limits must be nonnegative\n"));
+    int32_t nbins = inargs.fsig_data(0).nbins();
+    start = cs_double(inargs[3]) >= nbins ? nbins : int32_t(inargs[3]);
+    // Zero means no upper limit; keep the existing exclusive upper bound.
+    end = inargs[4] < 1 || cs_double(inargs[4]) >= nbins ?
+      nbins : int32_t(inargs[4]);
+    if (end < start) end = start;
+
+    amps.allocate(csound, nbins);
+    binlist.allocate(csound, nbins);
     csnd::Fsig &fout = outargs.fsig_data(0);
     fout.init(csound, inargs.fsig_data(0));
 
-    bins.init(csound, inargs.fsig_data(0).nbins(), this->insdshead);
+    if (bins.init(csound, nbins, this->insdshead) != OK)
+      return csound_array_init_resize_error(reinterpret_cast<CSOUND *>(csound));
 
     framecount = 0;
     return OK;
@@ -95,42 +117,51 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
   int32_t kperf() {
     csnd::pv_frame &fin = inargs.fsig_data(0);
     csnd::pv_frame &fout = outargs.fsig_data(0);
-    csnd::Vector<MYFLT> &bins = outargs.vector_data<MYFLT>(1);
+    csnd::Vector<cs_float> &bins = outargs.vector_data<cs_float>(1);
     csnd::AuxMem<binamp> &mbins = binlist;
 
     if (framecount < fin.count()) {
-      int32_t n = fin.len() - (int) (inargs[1] >= 1 ? inargs[1] : 1.);
+      if (tabcheck(reinterpret_cast<CSOUND *>(csound),
+                   reinterpret_cast<ARRAYDAT *>(outargs(1)),
+                   fin.len(), this) != OK)
+        return NOTOK;
+      int32_t available = end - start;
+      if (available == 0) {
+        std::fill(fout.begin(), fout.end(), csnd::pv_bin());
+        std::fill(bins.begin(), bins.end(), FL(0.0));
+        framecount = fout.count(fin.count());
+        return OK;
+      }
+      int32_t n = available - PVSTRACE_COUNT(inargs[1], available);
       float thrsh;
       int32_t cnt = 0;
-      int32_t bin = 0;
-      int32_t start = (int) inargs[3];
-      int32_t end = (int) inargs[4];
-      std::transform(fin.begin() + start,
-                     end ? fin.begin() +
-                     ((unsigned int)end <= fin.len() ? end : fin.len()) :
-                     fin.end(), amps.begin(),
+      int32_t bin = start;
+      std::transform(fin.begin() + start, fin.begin() + end, amps.begin(),
                      [](csnd::pv_bin f) { return f.amp(); });
-      std::nth_element(amps.begin(), amps.begin() + n, amps.end());
+      std::nth_element(amps.begin(), amps.begin() + n, amps.begin() + available);
       thrsh = amps[n];
-      std::transform(fin.begin(), fin.end(), fout.begin(),
-                     [thrsh, &mbins, &cnt, &bin](csnd::pv_bin f) {
-                       if(f.amp() >= thrsh) {
-                       mbins[cnt].bin = bin++;
-                       mbins[cnt++].amp = f.amp();
-                       return f;
+      auto ties = std::count(amps.begin() + n, amps.begin() + available, thrsh);
+      std::fill(fout.begin(), fout.begin() + start, csnd::pv_bin());
+      std::fill(fout.begin() + end, fout.end(), csnd::pv_bin());
+      std::transform(fin.begin() + start, fin.begin() + end, fout.begin() + start,
+                     [thrsh, &ties, &mbins, &cnt, &bin](csnd::pv_bin f) {
+                       int32_t current = bin++;
+                       if (f.amp() > thrsh || (f.amp() == thrsh && ties > 0)) {
+                         if (f.amp() == thrsh) --ties;
+                         mbins[cnt].bin = current;
+                         mbins[cnt++].amp = f.amp();
+                         return f;
                        }
-                       else {
-                        bin++;
-                        return csnd::pv_bin();
-                       }
+                       return csnd::pv_bin();
                      });
 
-      if(inargs[2] > 0)
-      std::sort(binlist.begin(), binlist.begin()+cnt, [](binamp a, binamp b){
-          return (a.amp > b.amp);});
+      if (inargs[2] != 0)
+        std::sort(binlist.begin(), binlist.begin()+cnt, [](binamp a, binamp b) {
+          return a.amp > b.amp || (a.amp == b.amp && a.bin < b.bin);
+        });
 
       std::transform(binlist.begin(), binlist.begin()+cnt, bins.begin(),
-                     [](binamp a) { return (MYFLT) a.bin;});
+                     [](binamp a) { return (cs_float) a.bin;});
       std::fill(bins.begin()+cnt, bins.end(), FL(0.0));
 
       framecount = fout.count(fin.count());
@@ -140,25 +171,26 @@ struct PVTrace2 : csnd::FPlugin<2, 5> {
   }
 };
 
+#undef PVSTRACE_COUNT
 
 
 struct TVConv : csnd::Plugin<1, 6> {
-  csnd::AuxMem<MYFLT> ir;
-  csnd::AuxMem<MYFLT> in;
-  csnd::AuxMem<MYFLT> insp;
-  csnd::AuxMem<MYFLT> irsp;
-  csnd::AuxMem<MYFLT> out;
-  csnd::AuxMem<MYFLT> saved;
-  csnd::AuxMem<MYFLT>::iterator itn;
-  csnd::AuxMem<MYFLT>::iterator itr;
-  csnd::AuxMem<MYFLT>::iterator itnsp;
-  csnd::AuxMem<MYFLT>::iterator itrsp;
+  csnd::AuxMem<cs_float> ir;
+  csnd::AuxMem<cs_float> in;
+  csnd::AuxMem<cs_float> insp;
+  csnd::AuxMem<cs_float> irsp;
+  csnd::AuxMem<cs_float> out;
+  csnd::AuxMem<cs_float> saved;
+  csnd::AuxMem<cs_float>::iterator itn;
+  csnd::AuxMem<cs_float>::iterator itr;
+  csnd::AuxMem<cs_float>::iterator itnsp;
+  csnd::AuxMem<cs_float>::iterator itrsp;
   uint32_t n;
   uint32_t fils;
   uint32_t pars;
   uint32_t ffts;
   csnd::fftp fwd, inv;
-  typedef std::complex<MYFLT> cmplx;
+  typedef std::complex<cs_float> cmplx;
 
   uint32_t rpow2(uint32_t n) {
     uint32_t v = 2;
@@ -170,20 +202,28 @@ struct TVConv : csnd::Plugin<1, 6> {
       return v;
   }
 
-  cmplx *to_cmplx(MYFLT *f) { return reinterpret_cast<cmplx *>(f); }
+  cmplx *to_cmplx(cs_float *f) { return reinterpret_cast<cmplx *>(f); }
 
   cmplx real_prod(cmplx &a, cmplx &b) {
     return cmplx(a.real() * b.real(), a.imag() * b.imag());
   }
 
   int32_t init() {
+    if (!(cs_double(inargs[4]) >= 0 && cs_double(inargs[4]) <= (INT32_MAX + 0.0) &&
+          cs_double(inargs[5]) >= 1 && cs_double(inargs[5]) <= (INT32_MAX + 0.0)))
+      return csound->init_error(Str_noop("tvconv: invalid partition or filter size\n"));
     pars = inargs[4];
     fils = inargs[5];
     if (pars > fils)
       std::swap(pars, fils);
     if (pars > 1) {
       pars = rpow2(pars);
-      fils = rpow2(fils) * 2;
+      fils = rpow2(fils);
+      // AuxMem and the FFT API use signed element counts.
+      if (fils > INT32_MAX / 2 ||
+          size_t(fils) > SIZE_MAX / (2 * sizeof(cs_float)))
+        return csound->init_error(Str_noop("tvconv: filter size too large\n"));
+      fils *= 2;
       ffts = pars * 2;
       fwd = csound->fft_setup(ffts, FFT_FWD);
       inv = csound->fft_setup(ffts, FFT_INV);
@@ -193,13 +233,22 @@ struct TVConv : csnd::Plugin<1, 6> {
       saved.allocate(csound, pars);
       ir.allocate(csound, fils);
       in.allocate(csound, fils);
+      std::fill(out.begin(), out.end(), 0.);
+      std::fill(insp.begin(), insp.end(), 0.);
+      std::fill(irsp.begin(), irsp.end(), 0.);
+      std::fill(saved.begin(), saved.end(), 0.);
       itnsp = insp.begin();
       itrsp = irsp.begin();
       n = 0;
     } else {
+      if (size_t(fils) > SIZE_MAX / sizeof(cs_float))
+        return csound->init_error(Str_noop("tvconv: filter size too large\n"));
       ir.allocate(csound, fils);
       in.allocate(csound, fils);
     }
+    // AuxMem retains samples when an instrument reuses an allocation.
+    std::fill(ir.begin(), ir.end(), 0.);
+    std::fill(in.begin(), in.end(), 0.);
     itn = in.begin();
     itr = ir.begin();
     return OK;
@@ -215,7 +264,9 @@ struct TVConv : csnd::Plugin<1, 6> {
     auto *frz2 = inargs(3);
     auto inc1 = csound->is_asig(frz1);
     auto inc2 = csound->is_asig(frz2);
-    MYFLT _0dbfs = csound->_0dbfs();
+    frz1 += offset * inc1;
+    frz2 += offset * inc2;
+    cs_float _0dbfs = csound->_0dbfs();
 
     for (auto &s : outsig) {
       if (*frz1 > 0)
@@ -243,8 +294,9 @@ struct TVConv : csnd::Plugin<1, 6> {
           itr = ir.begin();
         }
         // spectral delay line
-        for (csnd::AuxMem<MYFLT>::iterator it1 = itnsp, it2 = irsp.end() - ffts;
-             it2 >= irsp.begin(); it1 += ffts, it2 -= ffts) {
+        for (csnd::AuxMem<cs_float>::iterator it1 = itnsp, it2 = irsp.end();
+             it2 != irsp.begin(); it1 += ffts) {
+          it2 -= ffts;
           if (it1 == insp.end())
             it1 = insp.begin();
           ins = to_cmplx(it1);
@@ -274,20 +326,25 @@ struct TVConv : csnd::Plugin<1, 6> {
     auto frz2 = inargs(3);
     auto inc1 = csound->is_asig(frz1);
     auto inc2 = csound->is_asig(frz2);
+    frz1 += offset * inc1;
+    frz2 += offset * inc2;
+    // Normalize the coefficients so the output uses the same units as pconv.
+    const cs_float scale = FL(1.0) / csound->_0dbfs();
 
     for (auto &s : outsig) {
       if (*frz1 > 0)
         *itn = *inp;
       if (*frz2 > 0)
-        *itr = *irp;
+        *itr = *irp * scale;
       itn++, itr++;
       if (itn == in.end()) {
         itn = in.begin();
         itr = ir.begin();
       }
       s = 0.;
-      for (csnd::AuxMem<MYFLT>::iterator it1 = itn, it2 = ir.end() - 1;
-           it2 >= ir.begin(); it1++, it2--) {
+      for (csnd::AuxMem<cs_float>::iterator it1 = itn, it2 = ir.end();
+           it2 != ir.begin(); it1++) {
+        --it2;
         if (it1 == in.end())
           it1 = in.begin();
         s += *it1 * *it2;
@@ -309,14 +366,14 @@ struct TVConv : csnd::Plugin<1, 6> {
 
 struct Gtadsr : public csnd::Plugin<1,6> {
   uint64_t a, d;
-  MYFLT e, ainc, dfac;
-  double rfac;
+  cs_float e, ainc, dfac;
+  cs_double rfac;
   bool gate;
 
-  void process(MYFLT s) {
+  void process(cs_float s) {
     if (gate) {
       if (a > 0) {
-        e = --a == 0 ? MYFLT(1) : e + ainc;
+        e = --a == 0 ? cs_float(1) : e + ainc;
       } else if (d > 0) {
         e = --d == 0 ? s : e + (s - 1) * dfac;
         if (e < s) e = s;
@@ -324,26 +381,26 @@ struct Gtadsr : public csnd::Plugin<1,6> {
         e = s;
       }
     } else {
-      e = e < MYFLT(0.00001) ? MYFLT(0) : e * rfac;
+      e = e < cs_float(0.00001) ? cs_float(0) : e * rfac;
     }
   }
 
   int32_t init() {
     gate = false;
-    e = MYFLT(0);
+    e = cs_float(0);
     return OK;
   }
 
   // Gate and envelope parameters are control-rate inputs in all variants.
-  int32_t prepare(MYFLT rate) {
+  int32_t prepare(cs_float rate) {
     bool nextgate = inargs[5] > 0;
     if (nextgate && !gate) {
-      MYFLT attack = inargs[1] * rate;
-      MYFLT decay = inargs[2] * rate;
+      cs_float attack = inargs[1] * rate;
+      cs_float decay = inargs[2] * rate;
       // 2^64 is the first value outside the range of uint64_t.
       if (!(attack >= 0 && attack < 18446744073709551616.0 &&
             decay >= 0 && decay < 18446744073709551616.0))
-        return csound->perf_error("gtadsr: attack and decay times out of range", this);
+        return csound->perf_error(Str_noop("gtadsr: attack and decay times out of range\n"), this);
       // Preserve the one-step minimum for zero and sub-step stage times.
       a = attack < 1 ? 1 : static_cast<uint64_t>(attack);
       d = decay < 1 ? 1 : static_cast<uint64_t>(decay);
@@ -360,7 +417,7 @@ struct Gtadsr : public csnd::Plugin<1,6> {
   int32_t kperf() {
     if (prepare(this->kr()) != OK)
       return NOTOK;
-    MYFLT s = inargs[3];
+    cs_float s = inargs[3];
     s = s > 0 ? (s < 1 ? s : 1.) : 0.;
     process(s);
     outargs[0] = e * inargs[0];
@@ -372,14 +429,14 @@ struct Gtadsr : public csnd::Plugin<1,6> {
       return OK;
     if (prepare(this->sr()) != OK)
       return NOTOK;
-    MYFLT s = inargs[3];
+    cs_float s = inargs[3];
     s = s > 0 ? (s < 1 ? s : 1.) : 0.;
-    MYFLT *sig = NULL, amp = MYFLT(0);
+    cs_float *sig = NULL, amp = cs_float(0);
     if (csound->is_asig(inargs(0)))
       sig = inargs(0);
     else
       amp = inargs[0];
-    MYFLT *out = outargs(0);
+    cs_float *out = outargs(0);
 
     for (auto n = offset; n < nsmps; n++) {
       process(s);
@@ -392,7 +449,7 @@ struct Gtadsr : public csnd::Plugin<1,6> {
 
 
 
-void onload(csnd::Csound *csound) {
+static void onload(csnd::Csound *csound) {
   csnd::plugin<PVTrace>(csound, "pvstrace",  csnd::thread::ik);
   csnd::plugin<PVTrace2>(csound, "pvstrace", csnd::thread::ik);
   csnd::plugin<TVConv>(csound, "tvconv", "a", "aaxxii", csnd::thread::ia);

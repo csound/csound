@@ -31,11 +31,11 @@ typedef struct {
 
 typedef struct {
   OPDS h;
-  MYFLT  *hptr;
-  MYFLT  *ktime;
+  cs_float  *hptr;
+  cs_float  *ktime;
   PVSDAT *fin;
-  MYFLT  *len;
-  MYFLT  pos;
+  cs_float  *len;
+  cs_float  pos;
   uint32 nframes;
   uint32 cframes;
   AUXCH handmem;
@@ -51,7 +51,7 @@ static int32_t pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     FSIG_HANDLE **phandle = NULL;
 
     if (UNLIKELY(p->fin->sliding))
-      return csound->InitError(csound, "%s", Str("SDFT case not implemented yet"));
+      return csound->InitError(csound, "%s\n", Str("SDFT case not implemented yet"));
     if (p->handmem.auxp == NULL)
       csound->AuxAlloc(csound, sizeof(FSIG_HANDLE), &p->handmem);
     p->handle = (FSIG_HANDLE *) p->handmem.auxp;
@@ -85,11 +85,11 @@ static int32_t pvsbufferset(CSOUND *csound, PVSBUFFER *p)
     if (phandle == NULL)
       return
         csound->InitError(csound,
-                          "%s", Str("error... could not create global var for handle\n"));
+                          "%s\n", Str("error... could not create global var for handle\n"));
     else
       *phandle = p->handle;
      }
-    *p->hptr = (MYFLT) i;
+    *p->hptr = (cs_float) i;
 
     p->lastframe = 0;
     p->cframes = 0;
@@ -123,12 +123,12 @@ static int32_t pvsbufferproc(CSOUND *csound, PVSBUFFER *p)
 typedef struct {
   OPDS h;
   PVSDAT *fout;
-  MYFLT  *ktime;
-  MYFLT *hptr;
-  MYFLT *strt;
-  MYFLT *end;
-  MYFLT *clear;
-  MYFLT iclear, optr;
+  cs_float  *ktime;
+  cs_float *hptr;
+  cs_float *strt;
+  cs_float *end;
+  cs_float *clear;
+  cs_float iclear, optr;
   FSIG_HANDLE *handle;
   uint32_t scnt;
 } PVSBUFFERREAD;
@@ -144,7 +144,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
     phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
     if (phandle == NULL)
       return csound->InitError(csound,
-                               "%s", Str("error... could not read handle from "
+                               "%s\n", Str("error... could not read handle from "
                                    "global variable\n"));
     else
       handle = *phandle;
@@ -180,7 +180,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
  static int32_t pvsbufreadproc(CSOUND *csound, PVSBUFFERREAD *p){
 
     uint32_t posi, frames;
-    MYFLT pos, sr = CS_ESR, frac;
+    cs_float pos, sr = CS_ESR, frac;
     FSIG_HANDLE *handle =  p->handle, **phandle;
     float *fout, *buffer;
     int32_t strt = *p->strt, end = *p->end, i, N;
@@ -193,7 +193,7 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
      if (phandle == NULL)
        csound->PerfError(csound, &(p->h),
-                         "%s", Str("error... could not read handle "
+                         "%s\n", Str("error... could not read handle "
                              "from global variable\n"));
      else
        handle = *phandle;
@@ -210,9 +210,12 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
      float *frame1, *frame2;
      strt /= (sr/N);
      end /= (sr/N);
-     strt = (int32_t)(strt < 0 ? 0 : strt > N/2 ? N/2 : strt);
-     end = (int32_t)(end <= strt ? N/2 + 2 : end > N/2 + 2 ? N/2 + 2 : end);
-     frames = handle->frames-1;
+     // the ranges are originally being used at 1/2 target freqs
+     // we will keep it that way for backward compat and
+     // note it in the documentation - expand checks however to allow full range
+     strt = (int32_t)(strt < 0 ? 0 : strt > N ? N : strt);
+     end = (int32_t)(end <= strt ? N + 1 : end > N + 1 ? N + 1 : end);
+     frames = handle->frames;
      pos = *p->ktime*(sr/overlap);
 
      if (p->iclear) memset(fout, 0, sizeof(float)*(N+2));
@@ -243,16 +246,16 @@ static int32_t pvsbufreadset(CSOUND *csound, PVSBUFFERREAD *p)
    return OK;
  err1:
    return csound->PerfError(csound, &(p->h),
-                             "%s", Str("Invalid buffer handle"));
+                             "%s\n", Str("Invalid buffer handle"));
   }
 
 
 static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
 {
     uint32_t posi, frames;
-    MYFLT pos, sr = CS_ESR;
+    cs_float pos, sr = CS_ESR;
     FSIG_HANDLE *handle =  p->handle, **phandle;
-    MYFLT    frac, *tab1, *tab2, *tab;
+    cs_float    frac, *tab1, *tab2, *tab;
     FUNC     *ftab;
     float    *fout, *buffer;
     uint32_t overlap, i;
@@ -264,7 +267,7 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
       phandle = (FSIG_HANDLE **) csound->QueryGlobalVariable(csound,varname);
       if (phandle == NULL)
         csound->PerfError(csound, &(p->h),
-                          "%s", Str("error... could not read handle from "
+                          "%s\n", Str("error... could not read handle from "
                               "global variable\n"));
       else
         handle = *phandle;
@@ -277,17 +280,21 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     overlap = p->fout->overlap;
     if (p->scnt >= overlap) {
       float *frame1, *frame2;
-      frames = handle->frames-1;
+      frames = handle->frames;
       ftab = csound->FTFind(csound, p->strt);
+      if (UNLIKELY(ftab==NULL))
+        return csound->PerfError(csound, &(p->h),Str("amp function table not found\n"));
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
-        csound->PerfError(csound, &(p->h),
+        return csound->PerfError(csound, &(p->h),
                           Str("table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab = tab1 = ftab->ftable;
       ftab = csound->FTFind(csound, p->end);
+      if (UNLIKELY(ftab==NULL))
+        return csound->PerfError(csound, &(p->h),Str("freq function table not found\n"));
       if (UNLIKELY((int32_t)ftab->flen < N/2+1))
-        csound->PerfError(csound, &(p->h),
-                          Str("table length too small: needed %d, got %d\n"),
+        return csound->PerfError(csound, &(p->h),
+                          Str("freq table length too small: needed %d, got %d\n"),
                           N/2+1, ftab->flen);
       tab2 = ftab->ftable;
       for (i=0; i < (uint32_t)N+2; i++){
@@ -317,7 +324,7 @@ static int32_t pvsbufreadproc2(CSOUND *csound, PVSBUFFERREAD *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("Invalid buffer handle"));
+                             "%s\n", Str("Invalid buffer handle"));
   }
 
 

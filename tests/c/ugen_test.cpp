@@ -197,9 +197,9 @@ TEST_F(UGenTests, VarSetGetOutputAudio) {
     UGEN_VAR* outVar = csoundUgenGetOutVar(ugen, 0);
     ASSERT_NE(outVar, nullptr);
     EXPECT_EQ(csoundUgenVarGetType(outVar), UGEN_ARG_TYPE_A);
-    EXPECT_EQ(csoundUgenVarGetSize(outVar), (size_t)ksmps * sizeof(MYFLT));
+    EXPECT_EQ(csoundUgenVarGetSize(outVar), (size_t)ksmps * sizeof(cs_float));
 
-    MYFLT* outData = (MYFLT*)csoundUgenVarGetData(outVar);
+    cs_float* outData = (cs_float*)csoundUgenVarGetData(outVar);
     ASSERT_NE(outData, nullptr);
     outData[0] = 1.0;
     outData[ksmps - 1] = -1.0;
@@ -224,14 +224,14 @@ TEST_F(UGenTests, VarQueryTypeAndSize) {
     UGEN_VAR* outVar = csoundUgenGetOutVar(ugen, 0);
     ASSERT_NE(outVar, nullptr);
     EXPECT_EQ(csoundUgenVarGetType(outVar), UGEN_ARG_TYPE_A);
-    EXPECT_EQ(csoundUgenVarGetSize(outVar), (size_t)ksmps * sizeof(MYFLT));
+    EXPECT_EQ(csoundUgenVarGetSize(outVar), (size_t)ksmps * sizeof(cs_float));
 
     /* Input vars: i-rate */
     for (int i = 0; i < 4; i++) {
         UGEN_VAR* inVar = csoundUgenGetInVar(ugen, i);
         ASSERT_NE(inVar, nullptr);
         EXPECT_EQ(csoundUgenVarGetType(inVar), UGEN_ARG_TYPE_I);
-        EXPECT_EQ(csoundUgenVarGetSize(inVar), sizeof(MYFLT));
+        EXPECT_EQ(csoundUgenVarGetSize(inVar), sizeof(cs_float));
     }
 
     /* Out of range */
@@ -283,7 +283,7 @@ TEST_F(UGenTests, StandaloneVarCreateDelete) {
     UGEN_VAR* kVar = csoundUgenVarNew(factory, UGEN_ARG_TYPE_K);
     ASSERT_NE(kVar, nullptr);
     EXPECT_EQ(csoundUgenVarGetType(kVar), UGEN_ARG_TYPE_K);
-    EXPECT_EQ(csoundUgenVarGetSize(kVar), sizeof(MYFLT));
+    EXPECT_EQ(csoundUgenVarGetSize(kVar), sizeof(cs_float));
     csoundUgenVarSetValue(kVar, 42.0);
     EXPECT_DOUBLE_EQ(csoundUgenVarGetValue(kVar), 42.0);
     csoundUgenVarDelete(kVar);
@@ -292,7 +292,7 @@ TEST_F(UGenTests, StandaloneVarCreateDelete) {
     ASSERT_NE(aVar, nullptr);
     EXPECT_EQ(csoundUgenVarGetType(aVar), UGEN_ARG_TYPE_A);
     int32_t ksmps = csoundGetKsmps(csound);
-    EXPECT_EQ(csoundUgenVarGetSize(aVar), (size_t)ksmps * sizeof(MYFLT));
+    EXPECT_EQ(csoundUgenVarGetSize(aVar), (size_t)ksmps * sizeof(cs_float));
     csoundUgenVarDelete(aVar);
 
     csoundUgenFactoryDelete(factory);
@@ -326,7 +326,7 @@ TEST_F(UGenTests, InitPerformOscils) {
     EXPECT_EQ(csoundUgenPerform(ugen), CSOUND_SUCCESS);
 
     /* Read output via UGEN_VAR - should have non-zero samples */
-    MYFLT* outBuf = (MYFLT*)csoundUgenVarGetData(csoundUgenGetOutVar(ugen, 0));
+    cs_float* outBuf = (cs_float*)csoundUgenVarGetData(csoundUgenGetOutVar(ugen, 0));
     bool hasNonZero = false;
     for (int i = 0; i < ksmps; i++) {
         if (outBuf[i] != 0.0) {
@@ -459,12 +459,12 @@ TEST_F(UGenTests, VarConnect) {
     EXPECT_TRUE(csoundUgenSetInputVar(dst, 0, srcOutVar));
 
     /* Verify the pointers are shared: write to src output, read from dst input */
-    MYFLT* srcOutBuf = (MYFLT*)csoundUgenVarGetData(srcOutVar);
+    cs_float* srcOutBuf = (cs_float*)csoundUgenVarGetData(srcOutVar);
     srcOutBuf[0] = 42.0;
 
     /* Read from dst's input var - should see 42.0 because they share pointer */
     UGEN_VAR* dstInVar = csoundUgenGetInVar(dst, 0);
-    MYFLT* dstInBuf = (MYFLT*)csoundUgenVarGetData(dstInVar);
+    cs_float* dstInBuf = (cs_float*)csoundUgenVarGetData(dstInVar);
     EXPECT_DOUBLE_EQ(dstInBuf[0], 42.0);
 
     csoundUgenDelete(src);
@@ -493,7 +493,7 @@ TEST_F(UGenTests, GraphInitPerform) {
 
     /* Output should have non-zero samples */
     int32_t ksmps = csoundGetKsmps(csound);
-    MYFLT* outBuf = (MYFLT*)csoundUgenVarGetData(csoundUgenGetOutVar(ugen, 0));
+    cs_float* outBuf = (cs_float*)csoundUgenVarGetData(csoundUgenGetOutVar(ugen, 0));
     bool hasNonZero = false;
     for (int i = 0; i < ksmps; i++) {
         if (outBuf[i] != 0.0) {
@@ -548,14 +548,14 @@ TEST_F(UGenTests, MemoryLayoutNoDoubleOffset) {
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
-    MYFLT** p = (MYFLT**)((char*)ugen->opcodeMem + sizeof(OPDS));
-    MYFLT* data = ugen->data;
+    cs_float** p = (cs_float**)((char*)ugen->opcodeMem + sizeof(OPDS));
+    cs_float* data = ugen->data;
     int32_t outCount = ugen->outCount;
 
     /* Check output argument pointers */
     CS_VARIABLE* var = ugen->outPool->head;
     for (int i = 0; i < outCount && var != NULL; i++, var = var->next) {
-        MYFLT* expected = data + var->memBlockIndex;
+        cs_float* expected = data + var->memBlockIndex;
         EXPECT_EQ(p[i], expected)
             << "output[" << i << "] pointer should be data + memBlockIndex";
 
@@ -567,7 +567,7 @@ TEST_F(UGenTests, MemoryLayoutNoDoubleOffset) {
     /* Check input argument pointers */
     var = ugen->inPool->head;
     for (int i = 0; i < ugen->inCount && var != NULL; i++, var = var->next) {
-        MYFLT* expected = data + ugen->outDataOffset + var->memBlockIndex;
+        cs_float* expected = data + ugen->outDataOffset + var->memBlockIndex;
         EXPECT_EQ(p[outCount + i], expected)
             << "input[" << i << "] pointer should be data + outDataOffset + memBlockIndex";
 
@@ -586,20 +586,20 @@ TEST_F(UGenTests, MemoryLayoutHeaderAlignment) {
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
-    MYFLT** p = (MYFLT**)((char*)ugen->opcodeMem + sizeof(OPDS));
+    cs_float** p = (cs_float**)((char*)ugen->opcodeMem + sizeof(OPDS));
     int32_t outCount = ugen->outCount;
     int32_t inCount = ugen->inCount;
 
     /* For each consecutive pair of input args, check no overlap. */
     for (int i = 0; i + 1 < inCount; i++) {
-        MYFLT* curr = p[outCount + i];
-        MYFLT* next = p[outCount + i + 1];
+        cs_float* curr = p[outCount + i];
+        cs_float* next = p[outCount + i + 1];
         UGEN_VAR* currVar = csoundUgenGetInVar(ugen, i);
         size_t currArgSizeBytes = csoundUgenVarGetSize(currVar);
-        size_t currArgSizeMYFLTs = currArgSizeBytes / sizeof(MYFLT);
+        size_t currArgSizeMYFLTs = currArgSizeBytes / sizeof(cs_float);
 
-        ptrdiff_t headerStartOffset = CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(MYFLT);
-        MYFLT* nextHeaderStart = next - headerStartOffset;
+        ptrdiff_t headerStartOffset = CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) / sizeof(cs_float);
+        cs_float* nextHeaderStart = next - headerStartOffset;
         EXPECT_GE(nextHeaderStart, curr + (ptrdiff_t)currArgSizeMYFLTs)
             << "input[" << i+1 << "] header overlaps input[" << i << "] data";
     }
@@ -614,7 +614,7 @@ TEST_F(UGenTests, MemoryLayoutWriteReadRoundTrip) {
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
-    MYFLT** p = (MYFLT**)((char*)ugen->opcodeMem + sizeof(OPDS));
+    cs_float** p = (cs_float**)((char*)ugen->opcodeMem + sizeof(OPDS));
     int32_t outCount = ugen->outCount;
     int32_t ksmps = csoundGetKsmps(csound);
 
@@ -628,14 +628,14 @@ TEST_F(UGenTests, MemoryLayoutWriteReadRoundTrip) {
     ASSERT_NE(inType0, nullptr);
 
     /* Write a test pattern into the audio output buffer via UGEN_VAR */
-    MYFLT* outData = (MYFLT*)csoundUgenVarGetData(csoundUgenGetOutVar(ugen, 0));
+    cs_float* outData = (cs_float*)csoundUgenVarGetData(csoundUgenGetOutVar(ugen, 0));
     for (int i = 0; i < ksmps; i++) {
-        outData[i] = (MYFLT)(i + 1);
+        outData[i] = (cs_float)(i + 1);
     }
 
     /* Read back */
     for (int i = 0; i < ksmps; i++) {
-        EXPECT_DOUBLE_EQ(outData[i], (MYFLT)(i + 1));
+        EXPECT_DOUBLE_EQ(outData[i], (cs_float)(i + 1));
     }
 
     /* Write an i-rate scalar via UGEN_VAR */
@@ -759,11 +759,11 @@ TEST_F(UGenTests, MultiCycleStability) {
     EXPECT_EQ(csoundUgenInit(ugen), CSOUND_SUCCESS);
 
     /* Remember the varType header pointer */
-    MYFLT** p = (MYFLT**)((char*)ugen->opcodeMem + sizeof(OPDS));
+    cs_float** p = (cs_float**)((char*)ugen->opcodeMem + sizeof(OPDS));
     CS_VAR_MEM* outHdr = (CS_VAR_MEM*)((char*)p[0] - CS_VAR_TYPE_OFFSET);
     const CS_TYPE* origType = outHdr->varType;
 
-    MYFLT* outBuf = (MYFLT*)csoundUgenVarGetData(csoundUgenGetOutVar(ugen, 0));
+    cs_float* outBuf = (cs_float*)csoundUgenVarGetData(csoundUgenGetOutVar(ugen, 0));
 
     for (int cycle = 0; cycle < 100; cycle++) {
         EXPECT_EQ(csoundUgenPerform(ugen), CSOUND_SUCCESS);
@@ -793,8 +793,8 @@ TEST_F(UGenTests, MemoryLayoutKRate) {
                            (char*)"k", (char*)"iii");
     ASSERT_NE(ugen, nullptr);
 
-    MYFLT** p = (MYFLT**)((char*)ugen->opcodeMem + sizeof(OPDS));
-    MYFLT* data = ugen->data;
+    cs_float** p = (cs_float**)((char*)ugen->opcodeMem + sizeof(OPDS));
+    cs_float* data = ugen->data;
     int32_t outCount = ugen->outCount;
 
     /* Output (k-rate): pointer should equal data + memBlockIndex */
@@ -809,7 +809,7 @@ TEST_F(UGenTests, MemoryLayoutKRate) {
     /* All inputs: verify pointer and header */
     var = ugen->inPool->head;
     for (int i = 0; i < ugen->inCount && var != NULL; i++, var = var->next) {
-        MYFLT* expected = data + ugen->outDataOffset + var->memBlockIndex;
+        cs_float* expected = data + ugen->outDataOffset + var->memBlockIndex;
         EXPECT_EQ(p[outCount + i], expected)
             << "k-rate input[" << i << "] pointer mismatch";
 
@@ -826,7 +826,7 @@ TEST_F(UGenTests, MemoryLayoutKRate) {
     EXPECT_EQ(csoundUgenPerform(ugen), CSOUND_SUCCESS);
 
     /* Read back the k-rate scalar output via UGEN_VAR */
-    MYFLT result = csoundUgenVarGetValue(csoundUgenGetOutVar(ugen, 0));
+    cs_float result = csoundUgenVarGetValue(csoundUgenGetOutVar(ugen, 0));
     /* result should be some value between 0 and 1 */
     (void)result;
 
@@ -845,20 +845,20 @@ TEST_F(UGenTests, VarDataMatchesArgPointers) {
                            (char*)"a", (char*)"iiio");
     ASSERT_NE(ugen, nullptr);
 
-    MYFLT** p = (MYFLT**)((char*)ugen->opcodeMem + sizeof(OPDS));
+    cs_float** p = (cs_float**)((char*)ugen->opcodeMem + sizeof(OPDS));
     int32_t outCount = ugen->outCount;
 
     for (int i = 0; i < outCount; i++) {
         UGEN_VAR* outVar = csoundUgenGetOutVar(ugen, i);
         ASSERT_NE(outVar, nullptr);
-        EXPECT_EQ((MYFLT*)csoundUgenVarGetData(outVar), p[i])
+        EXPECT_EQ((cs_float*)csoundUgenVarGetData(outVar), p[i])
             << "outVar[" << i << "] data doesn't match opcode arg pointer";
     }
 
     for (int i = 0; i < ugen->inCount; i++) {
         UGEN_VAR* inVar = csoundUgenGetInVar(ugen, i);
         ASSERT_NE(inVar, nullptr);
-        EXPECT_EQ((MYFLT*)csoundUgenVarGetData(inVar), p[outCount + i])
+        EXPECT_EQ((cs_float*)csoundUgenVarGetData(inVar), p[outCount + i])
             << "inVar[" << i << "] data doesn't match opcode arg pointer";
     }
 
@@ -894,8 +894,8 @@ TEST_F(UGenTests, ConvenienceSetGetValue) {
     EXPECT_EQ(csoundUgenInit(ugen), CSOUND_SUCCESS);
     EXPECT_EQ(csoundUgenPerform(ugen), CSOUND_SUCCESS);
 
-    /* GetValue operates on outputs; for audio, it reads the first MYFLT */
-    MYFLT outVal = csoundUgenGetValue(ugen, 0);
+    /* GetValue operates on outputs; for audio, it reads the first cs_float */
+    cs_float outVal = csoundUgenGetValue(ugen, 0);
     /* The oscillator should have produced a non-zero first sample */
     EXPECT_NE(outVal, 0.0);
 
@@ -929,7 +929,7 @@ TEST_F(UGenTests, GetValueReadsOutputAfterPerform) {
     /* GetValue on output 0 should return the first audio sample.
      * With phase=0.25 (quarter cycle) the first sample of a sine should
      * be near 1.0 (sin(π/2) = 1). */
-    MYFLT outA = csoundUgenGetValue(osc, 0);
+    cs_float outA = csoundUgenGetValue(osc, 0);
     EXPECT_NEAR(outA, 1.0, 0.05) << "oscils first sample with phase=0.25";
 
     /* Verify consistency: same value accessible via UGEN_VAR */
@@ -951,7 +951,7 @@ TEST_F(UGenTests, GetValueReadsOutputAfterPerform) {
     EXPECT_EQ(csoundUgenInit(ln), CSOUND_SUCCESS);
     EXPECT_EQ(csoundUgenPerform(ln), CSOUND_SUCCESS);
 
-    MYFLT outK = csoundUgenGetValue(ln, 0);
+    cs_float outK = csoundUgenGetValue(ln, 0);
     /* After one k-cycle, output should be near 1.0 (slightly less) */
     EXPECT_GT(outK, 0.0);
     EXPECT_LE(outK, 1.0);

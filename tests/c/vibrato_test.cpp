@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace {
-std::vector<MYFLT> render(const std::string &body, int samples = 100,
+std::vector<cs_float> render(const std::string &body, int samples = 100,
                           const char *score = "i1 0 10")
 {
     CSOUND *csound = csoundCreate(nullptr, nullptr);
@@ -19,7 +19,7 @@ std::vector<MYFLT> render(const std::string &body, int samples = 100,
         "giOdd ftgen 0,0,-5,-2,0,1,0,-1,0\n"
         "instr 1\nseed 12345\n" + body +
         "\nchnset kValue, \"value\"\nendin\n";
-    std::vector<MYFLT> result;
+    std::vector<cs_float> result;
     int status = csoundCompileOrc(csound, orc.c_str(), 0);
     EXPECT_EQ(status, 0);
     if (status == 0) {

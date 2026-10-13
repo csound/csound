@@ -94,7 +94,6 @@ static int32_t OpenMidiInDevice_(CSOUND *csound, void **userData, const char *de
 
     if ( status < 0 ) {
 #ifdef WIN32
-        char *buff = strerror(errno);
         csound->ErrorMsg(csound, "WSAGetLastError() = %d\n", WSAGetLastError());
         return -1;
 #else
@@ -132,7 +131,7 @@ static int32_t ReadMidiData_(CSOUND *csound, void *userData,
     rc = select(sock + 1, &rset, NULL, NULL, &timeout);
     if (rc > 0) {
 #ifdef WIN32
-      n = recv(sock, mbuf, nbytes, 0);
+      n = recv(sock, (char *)mbuf, nbytes, 0);
 #else
       n = (int32_t) read(sock, mbuf, nbytes);
 #endif
@@ -178,7 +177,7 @@ static int32_t CloseMidiInDevice_(CSOUND *csound, void *userData)
     if (strcmp(drv, "ipmidi") != 0)
       return 0;
 
-    csound->DebugMsg(csound, "%s", Str("ipmidi: ipMIDI module enabled\n"));
+    csound->DebugMsg(csound, "%s\n", Str("ipmidi: ipMIDI module enabled\n"));
     csound->SetExternalMidiInOpenCallback(csound, OpenMidiInDevice_);
     csound->SetExternalMidiReadCallback(csound, ReadMidiData_);
     csound->SetExternalMidiInCloseCallback(csound, CloseMidiInDevice_);
@@ -187,6 +186,5 @@ static int32_t CloseMidiInDevice_(CSOUND *csound, void *userData)
 
  int32_t csoundModuleInfo(void)
 {
-    /* does not depend on MYFLT type */
-    return ((CS_VERSION << 16) + (CS_SUBVER << 8));
+  return CSOUND_MODULE_INFO;
 }

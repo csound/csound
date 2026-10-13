@@ -29,7 +29,7 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT *value;
+    cs_float *value;
 } ASSERT_OP_NUMERIC;
 
 

@@ -56,10 +56,10 @@ tabensure_init(CSOUND *csound, ARRAYDAT *p, int size, void *ctx)
         csound, p->arrayType, NULL, ctx);
         p->arrayMemberSize = var->memBlockSize;
         ss = p->arrayMemberSize*size;
-        p->data = (MYFLT*)csound->Calloc(csound, ss);
+        p->data = (cs_float*)csound->Calloc(csound, ss);
         p->allocated = ss;
     } else if( (ss = p->arrayMemberSize*size) > p->allocated) {
-        p->data = (MYFLT*) csound->ReAlloc(csound, p->data, ss);
+        p->data = (cs_float*) csound->ReAlloc(csound, p->data, ss);
         p->allocated = ss;
     }
     p->sizes[0] = size;
@@ -86,10 +86,10 @@ tabensure_init(CSOUND *csound, ARRAYDAT *p, int size, void *ctx)
 
 
 static inline
-int em_isnan(MYFLT d) {
+int em_isnan(cs_float d) {
   union {
     unsigned long long l;
-    double d;
+    cs_double d;
   } u;
   u.d=d;
   return (u.l==0x7FF8000000000000ll ||
@@ -98,20 +98,20 @@ int em_isnan(MYFLT d) {
 }
 
 static inline
-int em_isinf(MYFLT d) {
+int em_isinf(cs_float d) {
   union {
     unsigned long long l;
-    double d;
+    cs_double d;
   } u;
   u.d=d;
   return (u.l==0x7FF0000000000000ll?1:u.l==0xFFF0000000000000ll?-1:0);
 }
 
 static inline
-int em_isinfornan(MYFLT d) {
+int em_isinfornan(cs_float d) {
     union {
       unsigned long long l;
-      double d;
+      cs_double d;
     } u;
     u.d=d;
     return (u.l==0x7FF8000000000000ll ||

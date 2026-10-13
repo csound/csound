@@ -108,8 +108,8 @@ TEST_F(DopplerTests, PartialBlocksPreserveDelayAndClearInactiveSamples)
         instrument.ekr = 128;
         instrument.ksmps = 8;
         opcode.opds.insdshead = &instrument;
-        MYFLT input[8], output[8];
-        MYFLT source = delay, mic = 0, speed = 1024, cutoff = 6;
+        cs_float input[8], output[8];
+        cs_float source = delay, mic = 0, speed = 1024, cutoff = 6;
         opcode.audioInput = input;
         opcode.audioOutput = output;
         opcode.kSourcePosition = &source;
@@ -124,8 +124,8 @@ TEST_F(DopplerTests, PartialBlocksPreserveDelayAndClearInactiveSamples)
         for (const auto &block : blocks) {
             instrument.ksmps_offset = block.start;
             instrument.ksmps_no_end = 8 - block.end;
-            std::fill(input, input + 8, MYFLT(-999));
-            std::fill(output, output + 8, MYFLT(-999));
+            std::fill(input, input + 8, cs_float(-999));
+            std::fill(output, output + 8, cs_float(-999));
             for (uint32_t i = block.start; i < block.end; ++i)
                 input[i] = sample + i - block.start + 1;
             ASSERT_EQ(opcode.kontrol(csound), OK);
@@ -153,7 +153,7 @@ TEST_F(DopplerTests, RejectInvalidPropagationParameters)
     instrument.ekr = 128;
     instrument.ksmps = 8;
     opcode.opds.insdshead = &instrument;
-    MYFLT speed = 0, cutoff = 6;
+    cs_float speed = 0, cutoff = 6;
     opcode.jSpeedOfSound = &speed;
     opcode.jUpdateFilterCutoff = &cutoff;
     EXPECT_EQ(opcode.init(csound), NOTOK);

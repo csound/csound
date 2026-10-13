@@ -30,22 +30,22 @@
 
 typedef struct {
     OPDS          h;
-    MYFLT*        out;
-    MYFLT*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
-    MYFLT*        nths[1];      // Member index (constant) - MUST be last, variable length!
+    cs_float*        out;
+    cs_float*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
+    cs_float*        nths[1];      // Member index (constant) - MUST be last, variable length!
 } STRUCT_GET;
 
 typedef struct {
     OPDS          h;
-    MYFLT*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
-    MYFLT*        nths[1];      // Member index (constant)
-    MYFLT*        in;           // Value to set
+    cs_float*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
+    cs_float*        nths[1];      // Member index (constant)
+    cs_float*        in;           // Value to set
 } STRUCT_SET;
 
 typedef struct {
     OPDS          h;
-    MYFLT*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
-    MYFLT*        nths[1];      // Member index (constant)
+    cs_float*        var;          // Struct variable (will be cast to CS_STRUCT_VAR*)
+    cs_float*        nths[1];      // Member index (constant)
     ARRAYDAT*     in;           // Array to assign
 } STRUCT_MEMBER_ARRAY_ASSIGN;
 
@@ -61,9 +61,9 @@ typedef struct {
 
 typedef struct {
   OPDS      h;
-  MYFLT*    out;
+  cs_float*    out;
   ARRAYDAT* arrayDat;
-  MYFLT*    indicies[VARGMAX];
+  cs_float*    indicies[VARGMAX];
 } STRUCT_ARRAY_GET;
 
 int32_t array_set_struct_init(CSOUND *csound, ARRAY_SET *p);

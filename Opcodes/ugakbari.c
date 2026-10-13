@@ -31,39 +31,39 @@
 #include "interlocks.h"
 #include <math.h>
 
-#define LOGCURVE(x,y) (log1p((double)(x) * ((double)(y)-1.0)) / log((double)(y)))
-#define EXPCURVE(x,y) (expm1((double)(x) * log((double)(y))) / ((double)(y)-1.0))
+#define LOGCURVE(x,y) (log1p((cs_double)(x) * ((cs_double)(y)-1.0)) / log((cs_double)(y)))
+#define EXPCURVE(x,y) (expm1((cs_double)(x) * log((cs_double)(y))) / ((cs_double)(y)-1.0))
 #define GAINSLIDER(x) (FL(0.000145) * EXP(x * FL(0.06907)))
 
 typedef struct _scale {
   OPDS  h;
-  MYFLT *koutval;
-  MYFLT *kinval, *kmax, *kmin, *imax, *imin;
+  cs_float *koutval;
+  cs_float *kinval, *kmax, *kmin, *imax, *imin;
 } scale;
 
 typedef struct _scale2 {
   OPDS  h;
-  MYFLT *koutval;
-  MYFLT *kinval, *kmin, *kmax, *imin, *imax, *ihtim;
-  MYFLT c1, c2, yt1;
+  cs_float *koutval;
+  cs_float *kinval, *kmin, *kmax, *imin, *imax, *ihtim;
+  cs_double c1, c2, yt1;
 } SCALE2;
 
 typedef struct _expcurve {
   OPDS  h;
-  MYFLT *kout;
-  MYFLT *kin, *ksteepness;
+  cs_float *kout;
+  cs_float *kin, *ksteepness;
 } expcurve;
 
 typedef struct _logcurve {
   OPDS  h;
-  MYFLT *kout;
-  MYFLT *kin, *ksteepness;
+  cs_float *kout;
+  cs_float *kin, *ksteepness;
 } logcurve;
 
 typedef struct _gainslider {
   OPDS  h;
-  MYFLT *koutsig;
-  MYFLT *kindex;
+  cs_float *koutsig;
+  cs_float *kindex;
 } gainslider;
 
 /*  scale opcode  */
@@ -71,11 +71,11 @@ typedef struct _gainslider {
 static int32_t scale_process(CSOUND *csound, scale *p)
 {
     IGN(csound);
-    MYFLT max = *p->imax;
-    MYFLT min = *p->imin;
-    MYFLT kmax = *p->kmax;
-    MYFLT kmin = *p->kmin;
-    MYFLT val = *p->kinval;
+    cs_float max = *p->imax;
+    cs_float min = *p->imin;
+    cs_float kmax = *p->kmax;
+    cs_float kmin = *p->kmin;
+    cs_float val = *p->kinval;
     /* if (max < min) { max = min ; min = *p->imax; } */
     /* if (kmax < kmin) { kmax = kmin ; kmin = *p->kmax; } */
     /* if (val > max) val = max; */
@@ -96,37 +96,37 @@ static int32_t scale_process(CSOUND *csound, scale *p)
 static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
 {
     if (*p->ihtim < FL(0.0))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("scale2: smoothing time must be nonnegative"));
-    p->yt1 = FL(0.0);
+    p->yt1 = 0.0;
     if (*p->ihtim != FL(0.0)) {
-      p->c2 = POWER(FL(0.5), CS_ONEDKR / *p->ihtim);
-      p->c1 = FL(1.0) - p->c2;
+      p->c2 = pow(0.5, CS_ONEDKR / (cs_double)*p->ihtim);
+      p->c1 = 1.0 - p->c2;
     } else {
-      p->c2 = FL(0.0); p->c1 = FL(1.0);
+      p->c2 = 0.0; p->c1 = 1.0;
     }
     return OK;
 }
 
 static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
 {
-    MYFLT max = *p->imax;
-    MYFLT min = *p->imin;
-    MYFLT kmax = *p->kmax;
-    MYFLT kmin = *p->kmin;
-    MYFLT val = *p->kinval;
+    cs_double max = *p->imax;
+    cs_double min = *p->imin;
+    cs_double kmax = *p->kmax;
+    cs_double kmin = *p->kmin;
+    cs_double val = *p->kinval;
     if (UNLIKELY(!(max > min)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("scale2: input maximum must exceed minimum"));
     if (val > max) val = max;
     else if (val < min) val = min;
 
     val = ((val - min)/(max-min))* (kmax - kmin) + kmin;
-    if (p->c2 == FL(0.0))
+    if (p->c2 == 0.0)
       p->yt1 = val;
     else
       p->yt1 = p->c1 * val + p->c2 * p->yt1;
-    *p->koutval = p->yt1;
+    *p->koutval = (cs_float)p->yt1;
     return OK;
 }
 
@@ -135,8 +135,8 @@ static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
 static int32_t expcurve_perf(CSOUND *csound, expcurve *p)
 {
     IGN(csound);
-    MYFLT ki = *p->kin;
-    MYFLT ks = *p->ksteepness;
+    cs_float ki = *p->kin;
+    cs_float ks = *p->ksteepness;
     if (ks <= FL(1.0) || ki == FL(0.0) || ki == FL(1.0))
       *p->kout = ki;
     else
@@ -150,8 +150,8 @@ static int32_t expcurve_perf(CSOUND *csound, expcurve *p)
 static int32_t logcurve_perf(CSOUND *csound, logcurve *p)
 {
     IGN(csound);
-    MYFLT ki = *p->kin;
-    MYFLT ks = *p->ksteepness;
+    cs_float ki = *p->kin;
+    cs_float ks = *p->ksteepness;
     if (ks <= FL(1.0) || ki == FL(0.0) || ki == FL(1.0))
       *p->kout = ki;
     else

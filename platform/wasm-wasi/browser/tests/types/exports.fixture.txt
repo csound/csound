@@ -1,0 +1,97 @@
+import { Csound as createCsound, libcsound } from "@csound/browser";
+import type {
+  Csound,
+  CsoundFs,
+  CsoundFsStat,
+  CsoundObj,
+  CSOUND_PARAMS,
+  LibCsoundObj,
+  PublicEvents,
+  ReadlineEvent,
+  UgenArgTypeEnum,
+  UgenContextPtr,
+  UgenFactoryPtr,
+  UgenGraphPtr,
+  UgenOpcodeInfo,
+  UgenPtr,
+  UgenVarPtr,
+} from "@csound/browser";
+
+type LoadedCsound = Awaited<ReturnType<Csound>>;
+type LoadedLibCsound = Awaited<ReturnType<typeof libcsound>>;
+
+declare const fs: CsoundFs;
+declare const fsStat: CsoundFsStat;
+declare const eventName: PublicEvents;
+declare const browserCsound: CsoundObj;
+declare const csoundParams: CSOUND_PARAMS;
+declare const localLibCsound: LibCsoundObj;
+declare const ugenArgTypeEnum: UgenArgTypeEnum;
+declare const ugenFactoryPtr: UgenFactoryPtr;
+declare const ugenPtr: UgenPtr;
+declare const ugenVarPtr: UgenVarPtr;
+declare const ugenGraphPtr: UgenGraphPtr;
+declare const ugenContextPtr: UgenContextPtr;
+declare const ugenOpcodeInfo: UgenOpcodeInfo;
+
+const createBrowserCsound: Csound = createCsound;
+const loadedCsound: LoadedCsound = browserCsound;
+const loadedLibCsound: LoadedLibCsound = localLibCsound;
+const isRequestingRtAudioInput: number = localLibCsound.isRequestingRtAudioInput(0);
+const isRequestingRtMidiInput: number = localLibCsound.isRequestingRtMidiInput(0);
+const isRequestingRtAudioInputAlias: number = localLibCsound._isRequestingRtAudioInput(0);
+const isRequestingRtMidiInputAlias: number = localLibCsound._isRequestingRtMidiInput(0);
+const isRequestingPlugins: number = localLibCsound.isRequestingPlugins(0);
+const requestedPlugins: string = localLibCsound.getRequestedPlugins(0);
+const browserIsRequestingPlugins: Promise<number> = browserCsound.isRequestingPlugins();
+const browserRequestedPlugins: Promise<string> = browserCsound.getRequestedPlugins();
+
+void [
+  createBrowserCsound,
+  fs,
+  fsStat,
+  eventName,
+  browserCsound,
+  csoundParams,
+  localLibCsound,
+  ugenArgTypeEnum,
+  ugenFactoryPtr,
+  ugenPtr,
+  ugenVarPtr,
+  ugenGraphPtr,
+  ugenContextPtr,
+  ugenOpcodeInfo,
+  loadedCsound,
+  loadedLibCsound,
+  isRequestingRtAudioInput,
+  isRequestingRtMidiInput,
+  isRequestingRtAudioInputAlias,
+  isRequestingRtMidiInputAlias,
+  isRequestingPlugins,
+  requestedPlugins,
+  browserIsRequestingPlugins,
+  browserRequestedPlugins,
+];
+
+const messageListener = (message: string) => void message;
+const messageContext = {};
+const messageCount: number = browserCsound.listenerCount("message");
+browserCsound.on("message", messageListener, messageContext).once("play", () => {});
+browserCsound.addListener("message", messageListener, messageContext);
+browserCsound.once("message", messageListener, messageContext);
+browserCsound.off("message", messageListener, messageContext, true);
+browserCsound.removeListener("message");
+browserCsound.removeAllListeners("message");
+browserCsound.removeAllListeners();
+// @ts-expect-error listenerCount requires an event name.
+browserCsound.listenerCount();
+// @ts-expect-error removeAllListeners accepts one event, not an array.
+browserCsound.removeAllListeners(["play", "pause"]);
+void messageCount;
+
+const promptEvent: ReadlineEvent = { requestId: 1, prompt: "" };
+const closedEvent: ReadlineEvent = { requestId: 1, prompt: null };
+browserCsound.on("readline", (event: ReadlineEvent) => { void event; });
+void browserCsound.readlineSubmit(promptEvent.requestId, "answer");
+void localLibCsound.csoundReadlineSubmit(1, closedEvent.requestId, "answer");
+void libcsound({ onReadline(event) { const id: number = event.csound; void id; } });

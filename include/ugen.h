@@ -137,16 +137,16 @@ PUBLIC size_t csoundUgenVarGetSize(UGEN_VAR* var);
 /* ==== UGEN_VAR: Numeric Access (i/k) ==== */
 
 /** Set a scalar (i-rate or k-rate) value on a UGEN_VAR. */
-PUBLIC void csoundUgenVarSetValue(UGEN_VAR* var, MYFLT value);
+PUBLIC void csoundUgenVarSetValue(UGEN_VAR* var, cs_float value);
 
 /** Get a scalar (i-rate or k-rate) value from a UGEN_VAR. */
-PUBLIC MYFLT csoundUgenVarGetValue(UGEN_VAR* var);
+PUBLIC cs_float csoundUgenVarGetValue(UGEN_VAR* var);
 
 /* ==== UGEN_VAR: Data Access (generic) ==== */
 
 /** Get a raw pointer to the var's data.
- * For i/k types: points to a single MYFLT.
- * For a-rate: points to MYFLT[ksmps].
+ * For i/k types: points to a single cs_float.
+ * For a-rate: points to cs_float[ksmps].
  * For S type: points to the internal STRINGDAT struct.
  * For f type: points to the internal PVSDAT struct.
  * The pointer is valid until the owning UGEN or standalone var is deleted. */
@@ -169,12 +169,12 @@ PUBLIC const char* csoundUgenVarGetString(UGEN_VAR* var);
  * but avoids the UGEN_VAR lookup.  Best for one-off init-time setup.
  * For per-k-cycle updates in a tight loop, prefer caching the UGEN_VAR
  * handle from csoundUgenGetInVar() and calling csoundUgenVarSetValue(). */
-PUBLIC void csoundUgenSetValue(UGEN* ugen, int32_t index, MYFLT value);
+PUBLIC void csoundUgenSetValue(UGEN* ugen, int32_t index, cs_float value);
 
 /** Convenience: get a scalar value from output argument at the given index.
  * Equivalent to csoundUgenVarGetValue(csoundUgenGetOutVar(ugen, index)).
  * For repeated reads in a tight loop, prefer caching the UGEN_VAR handle. */
-PUBLIC MYFLT csoundUgenGetValue(UGEN* ugen, int32_t index);
+PUBLIC cs_float csoundUgenGetValue(UGEN* ugen, int32_t index);
 
 /* ==== UGEN convenience: string access by index ==== */
 

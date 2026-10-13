@@ -18,6 +18,10 @@ gkUdoFirst init 0
 gkUdoSecond init 0
 gkSubFirst init 0
 gkSubSecond init 0
+; Keep separate records for the first note and the reused note.
+gkUdoInitStarted[] init 2
+gkUdoInitFinished[] init 2
+gkUdoPerfCycles[] init 2
 
 instr 1
   a1 diskin2 "fox.wav"
@@ -120,12 +124,19 @@ opcode NestedDiskin():a
 endop
 
 instr 11
+  iNote = p4 - 1
+  gkUdoInitStarted[iNote] init 1
   audio:a = NestedDiskin()
+  gkUdoInitFinished[iNote] init 1
+  gkUdoPerfCycles[iNote] += 1
   level:k rms audio
   if (p4 == 1) then
     gkUdoFirst = max(gkUdoFirst, level)
   else
     gkUdoSecond = max(gkUdoSecond, level)
+  endif
+  if (level > 0) then
+    turnoff
   endif
 endin
 
@@ -142,14 +153,48 @@ instr 13
   else
     gkSubSecond = max(gkSubSecond, level)
   endif
+  if (level > 0) then
+    turnoff
+  endif
 endin
 
 instr 10
-  ; Validate nested reuse before starting the deliberately slow init case.
-  if (timeinstk() > 0) then
-    ; Async readers can start on different control blocks, so require output
-    ; from both instances without comparing their peak levels.
+  ; Wait for each reader to produce audio and turn off before reusing it.
+  ; Fixed score times can reach the check before async init has caught up.
+  kStage init 0
+  if (kStage == 0) then
+    schedulek(11, 0, -1, 1)
+    kStage = 1
+  elseif (kStage == 1 && gkUdoFirst > 0) then
+    schedulek(11, 0, -1, 2)
+    kStage = 2
+  elseif (kStage == 2 && gkUdoSecond > 0) then
+    schedulek(13, 0, -1, 1)
+    kStage = 3
+  elseif (kStage == 3 && gkSubFirst > 0) then
+    schedulek(13, 0, -1, 2)
+    kStage = 4
+  elseif (kStage == 4 && gkSubSecond > 0) then
+    ; Complete overlap, reinit, and file-close stress before blocking init.
+    schedulek(3, 0.05, 0)
+    schedulek(4, 0.05, 0.05)
+    schedulek(4, 0.06, 0.05)
+    schedulek(5, 0.05, 0.03)
+    ; Start the turnoff loop and watcher before the victim blocks init.
+    schedulek(7, 0.35, 30.5)
+    schedulek(9, 0.35, 30.5)
+    schedulek(8, 0.40, -1)
+    turnoff
+  endif
+
+  if (timeinsts() > 30.0) then
     if (gkUdoFirst <= 0 || gkUdoSecond <= 0) then
+      ; A zero level alone cannot tell a silent reader from a note that never
+      ; ran. Report both notes before exiting so CI preserves that distinction.
+      printks "UDO first note: init entered=%d completed=%d perf cycles=%d\n", \
+        0, gkUdoInitStarted[0], gkUdoInitFinished[0], gkUdoPerfCycles[0]
+      printks "UDO second note: init entered=%d completed=%d perf cycles=%d\n", \
+        0, gkUdoInitStarted[1], gkUdoInitFinished[1], gkUdoPerfCycles[1]
       printks "Realtime UDO diskin2 reuse failed: first=%f second=%f\n", \
         0, gkUdoFirst, gkUdoSecond
       exitnowk(1)
@@ -165,20 +210,7 @@ endin
 
 </CsInstruments>
 <CsScore>
-i 11 0.00 0.1 1
-i 11 0.15 0.1 2
-i 13 0.30 0.1 1
-i 13 0.45 0.1 2
-i 10 0.60 0.05
-; Complete overlap, reinit, and file-close stress before blocking init.
-i 3 0.65 0
-i 4 0.65 0.05
-i 4 0.66 0.05
-i 5 0.65 0.03
-; Start the turnoff loop and watcher before the victim blocks the init thread.
-i 7 0.95 30.5
-i 9 0.95 30.5
-i 8 1.00 -1
-e 31.50
+i 10 0 -1
+e 62
 </CsScore>
 </CsoundSynthesizer>

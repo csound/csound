@@ -105,15 +105,15 @@ typedef struct devparams_ {
     void            *buf;           /* sample conversion buffer         */
     char            *device;        /* device name                      */
     int32_t             format;         /* sample format                    */
-    int32_t             sampleSize;     /* MYFLT sample frame size in bytes */
+    int32_t             sampleSize;     /* cs_float sample frame size in bytes */
     uint32_t        srate;          /* sample rate in Hz                */
     int32_t             nchns;          /* number of channels               */
     int32_t             buffer_smps;    /* buffer length in samples         */
     int32_t             period_smps;    /* period time in samples           */
     /* playback sample conversion function */
-    void            (*playconv)(int32_t, MYFLT *, void *, int32_t *);
+    void            (*playconv)(int32_t, const cs_float *, void *, int32_t *);
     /* record sample conversion function */
-    void            (*rec_conv)(int32_t, void *, MYFLT *);
+    void            (*rec_conv)(int32_t, const void *, cs_float *);
     int32_t             seed;           /* random seed for dithering        */
 } DEVPARAMS;
 
@@ -150,7 +150,7 @@ static const unsigned char dataBytes[16] = {
     0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 1, 2, 0
 };
 
-int32_t set_scheduler_priority(CSOUND *csound, int32_t priority)
+static int32_t set_scheduler_priority(CSOUND *csound, int32_t priority)
 {
     struct sched_param p;
 
@@ -190,17 +190,18 @@ int32_t set_scheduler_priority(CSOUND *csound, int32_t priority)
 
 /* sample conversion routines for playback */
 
-static void MYFLT_to_short(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_short(int32_t nSmps, const cs_float *inBuf,
+                              int16_t *outBuf, int32_t *seed)
 {
-    MYFLT tmp_f;
+    cs_float tmp_f;
     int32_t   tmp_i;
     int32_t n;
     for (n=0; n<nSmps; n++) {
       int32_t rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = (((rnd) * 15625) + 1) & 0xFFFF;
       rnd += *seed;           /* triangular distribution */
-      tmp_f = (MYFLT) ((rnd>>1) - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
-      tmp_f += inBuf[n] * (MYFLT) 0x8000;
+      tmp_f = (cs_float) ((rnd>>1) - 0x8000) * (FL(1.0) / (cs_float) 0x10000);
+      tmp_f += inBuf[n] * (cs_float) 0x8000;
 #ifndef USE_DOUBLE
       tmp_i = (int32_t) lrintf(tmp_f);
 #else
@@ -212,16 +213,17 @@ static void MYFLT_to_short(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32_t
     }
 }
 
-static void MYFLT_to_short_u(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_short_u(int32_t nSmps, const cs_float *inBuf,
+                                int16_t *outBuf, int32_t *seed)
 {
-    MYFLT tmp_f;
+    cs_float tmp_f;
     int32_t   tmp_i;
     int32_t n;
     for (n=0; n<nSmps; n++) {
       int32_t rnd = (((*seed) * 15625) + 1) & 0xFFFF;
       *seed = rnd;
-      tmp_f = (MYFLT) (rnd - 0x8000) * (FL(1.0) / (MYFLT) 0x10000);
-      tmp_f += inBuf[n] * (MYFLT) 0x8000;
+      tmp_f = (cs_float) (rnd - 0x8000) * (FL(1.0) / (cs_float) 0x10000);
+      tmp_f += inBuf[n] * (cs_float) 0x8000;
 #ifndef USE_DOUBLE
       tmp_i = (int32_t) lrintf(tmp_f);
 #else
@@ -233,15 +235,18 @@ static void MYFLT_to_short_u(int32_t nSmps, MYFLT *inBuf, int16_t *outBuf, int32
     }
 }
 
-static void MYFLT_to_short_no_dither(int32_t nSmps, MYFLT *inBuf,
-                                     int16_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_short_no_dither(int32_t nSmps, const cs_float *inBuf,
+                                       int16_t *outBuf,
+    /* The playback callback shares writable dither state. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
+                                       int32_t *seed)
 {
   IGN(seed);
-    MYFLT tmp_f;
+    cs_float tmp_f;
     int32_t   tmp_i;
     int32_t n;
     for (n=0; n<nSmps; n++) {
-      tmp_f = inBuf[n] * (MYFLT) 0x8000;
+      tmp_f = inBuf[n] * (cs_float) 0x8000;
 #ifndef USE_DOUBLE
       tmp_i = (int32_t) lrintf(tmp_f);
 #else
@@ -253,14 +258,17 @@ static void MYFLT_to_short_no_dither(int32_t nSmps, MYFLT *inBuf,
     }
 }
 
-static void MYFLT_to_long(int32_t nSmps, MYFLT *inBuf, int32_t *outBuf, int32_t *seed)
+static void CS_FLOAT_to_long(int32_t nSmps, const cs_float *inBuf, int32_t *outBuf,
+    /* The playback callback shares writable dither state. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
+                             int32_t *seed)
 {
-    MYFLT   tmp_f;
+    cs_float   tmp_f;
     int64_t tmp_i;
     (void) seed;
     int32_t n;
     for (n=0; n<nSmps; n++) {
-      tmp_f = inBuf[n] * (MYFLT) 0x80000000UL;
+      tmp_f = inBuf[n] * (cs_float) 0x80000000UL;
 #ifndef USE_DOUBLE
       tmp_i = (int64_t) llrintf(tmp_f);
 #else
@@ -273,7 +281,10 @@ static void MYFLT_to_long(int32_t nSmps, MYFLT *inBuf, int32_t *outBuf, int32_t 
     }
 }
 
-static void MYFLT_to_float(int32_t nSmps, MYFLT *inBuf, float *outBuf, int32_t *seed)
+static void CS_FLOAT_to_float(int32_t nSmps, const cs_float *inBuf, float *outBuf,
+    /* The playback callback shares writable dither state. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
+                              int32_t *seed)
 {
     (void) seed;
     int32_t n;
@@ -283,27 +294,27 @@ static void MYFLT_to_float(int32_t nSmps, MYFLT *inBuf, float *outBuf, int32_t *
 
 /* sample conversion routines for recording */
 
-static void short_to_MYFLT(int32_t nSmps, int16_t *inBuf, MYFLT *outBuf)
+static void short_to_CS_FLOAT(int32_t nSmps, const int16_t *inBuf, cs_float *outBuf)
 {
     int32_t n;
-    MYFLT adjust = FL(1.0) / (MYFLT) 0x8000;
+    cs_float adjust = FL(1.0) / (cs_float) 0x8000;
     for (n=0; n<nSmps; n++)
-      outBuf[n] = (MYFLT) inBuf[n] * adjust;
+      outBuf[n] = (cs_float) inBuf[n] * adjust;
 }
 
-static void long_to_MYFLT(int32_t nSmps, int32_t *inBuf, MYFLT *outBuf)
+static void long_to_CS_FLOAT(int32_t nSmps, const int32_t *inBuf, cs_float *outBuf)
 {
     int32_t n;
-    MYFLT adjust = FL(1.0) / (MYFLT) 0x80000000UL;
+    cs_float adjust = FL(1.0) / (cs_float) 0x80000000UL;
     for (n=0; n<nSmps; n++)
-      outBuf[n] = (MYFLT) inBuf[n] * adjust;
+      outBuf[n] = (cs_float) inBuf[n] * adjust;
 }
 
-static void float_to_MYFLT(int32_t nSmps, float *inBuf, MYFLT *outBuf)
+static void float_to_CS_FLOAT(int32_t nSmps, const float *inBuf, cs_float *outBuf)
 {
     int32_t n;
     for (n=0; n<nSmps; n++)
-      outBuf[n] = (MYFLT) inBuf[n];
+      outBuf[n] = (cs_float) inBuf[n];
 }
 
 /* select sample format */
@@ -319,26 +330,26 @@ static snd_pcm_format_t set_format(void (**convFunc)(void), int32_t csound_forma
     case AE_SHORT:
       if (play) {
         if (csound_dither==1)
-          *convFunc = (void (*)(void)) MYFLT_to_short;
+          *convFunc = (void (*)(void)) CS_FLOAT_to_short;
         else if (csound_dither==2)
-          *convFunc = (void (*)(void)) MYFLT_to_short_u;
+          *convFunc = (void (*)(void)) CS_FLOAT_to_short_u;
         else
-          *convFunc = (void (*)(void)) MYFLT_to_short_no_dither;
+          *convFunc = (void (*)(void)) CS_FLOAT_to_short_no_dither;
       }
       else
-        *convFunc = (void (*)(void)) short_to_MYFLT;
+        *convFunc = (void (*)(void)) short_to_CS_FLOAT;
       break;
     case AE_LONG:
       if (play)
-        *convFunc = (void (*)(void)) MYFLT_to_long;
+        *convFunc = (void (*)(void)) CS_FLOAT_to_long;
       else
-        *convFunc = (void (*)(void)) long_to_MYFLT;
+        *convFunc = (void (*)(void)) long_to_CS_FLOAT;
       break;
     case AE_FLOAT:
       if (play)
-        *convFunc = (void (*)(void)) MYFLT_to_float;
+        *convFunc = (void (*)(void)) CS_FLOAT_to_float;
       else
-        *convFunc = (void (*)(void)) float_to_MYFLT;
+        *convFunc = (void (*)(void)) float_to_CS_FLOAT;
       break;
     }
     if (*((unsigned char*) (&endian_test)) == (unsigned char) 0x34) {
@@ -440,12 +451,12 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
     /* sample format, */
     alsaFmt = SND_PCM_FORMAT_UNKNOWN;
     if(dev->srate  == 0) dev->format = AE_FLOAT;
-    dev->sampleSize = (int32_t) sizeof(MYFLT) * dev->nchns;
+    dev->sampleSize = (int32_t) sizeof(cs_float) * dev->nchns;
     {
       void  (*fp)(void) = NULL;
       alsaFmt = set_format(&fp, dev->format, play, csound->GetDitherMode(csound));
-      if (play) dev->playconv = (void (*)(int32_t, MYFLT*, void*, int*)) fp;
-      else      dev->rec_conv = (void (*)(int32_t, void*, MYFLT*)) fp;
+      if (play) dev->playconv = (void (*)(int32_t, const cs_float*, void*, int*)) fp;
+      else      dev->rec_conv = (void (*)(int32_t, const void*, cs_float*)) fp;
     }
 
     if (UNLIKELY(alsaFmt == SND_PCM_FORMAT_UNKNOWN)) {
@@ -502,11 +513,15 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
     {
       snd_pcm_uframes_t nn = (snd_pcm_uframes_t) dev->buffer_smps;
       err = snd_pcm_hw_params_set_buffer_size_near(dev->handle, hw_params, &nn);
+      if (UNLIKELY(err >= 0 && nn > INT32_MAX)) {
+        strNcpy(msg, Str("ALSA buffer size exceeds the supported range"), MSGLEN);
+        goto err_return_msg;
+      }
       if (err < 0 || (int32_t) nn != dev->buffer_smps) {
         if (UNLIKELY(err >= 0))  {
           p->Message(p, Str("ALSA: -B %d not allowed on this device; "
                             "using %d instead\n"), dev->buffer_smps, (int32_t) nn);
-          dev->buffer_smps=nn;
+          dev->buffer_smps = (int32_t) nn;
         }
       }
     }
@@ -525,11 +540,15 @@ static int32_t set_device_params(CSOUND *csound, DEVPARAMS *dev, int32_t play)
       int32_t               dir = 0;
       err = snd_pcm_hw_params_set_period_size_near(dev->handle, hw_params, &nn,
                                                    &dir);
+      if (UNLIKELY(err >= 0 && nn > INT32_MAX)) {
+        strNcpy(msg, Str("ALSA period size exceeds the supported range"), MSGLEN);
+        goto err_return_msg;
+      }
       if (err < 0 || (int32_t) nn != dev->period_smps) {
         if (UNLIKELY(err >= 0)) {
           p->Message(p, Str("ALSA: -b %d not allowed on this device; "
                             "using %d instead\n"), dev->period_smps, (int32_t) nn);
-          dev->period_smps=nn;
+          dev->period_smps = (int32_t) nn;
         }
       }
     }
@@ -713,8 +732,8 @@ static int32_t open_device(CSOUND *csound, const csRtAudioParams *parm, int32_t 
     dev->nchns = parm->nChannels;
 
     dev->period_smps = parm->bufSamp_SW;
-    dev->playconv = (void (*)(int32_t, MYFLT*, void*, int*)) NULL;
-    dev->rec_conv = (void (*)(int32_t, void*, MYFLT*)) NULL;
+    dev->playconv = NULL;
+    dev->rec_conv = NULL;
     dev->seed = 1;
     /* open device */
     retval = set_device_params(csound, dev, play);
@@ -749,7 +768,7 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
         csound->Warning(csound, Str(x));                  \
   }
 
-static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf, int32_t nbytes)
+static int32_t rtrecord_(CSOUND *csound, cs_float *inbuf, int32_t nbytes)
 {
     DEVPARAMS *dev;
     int32_t       n, m, err;
@@ -772,12 +791,12 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf, int32_t nbytes)
       /* handle I/O errors */
       if (UNLIKELY(err == -EPIPE)) {
         /* buffer underrun */
-        warning(Str("Buffer overrun in real-time audio input"));     /* complain */
+        warning(Str("Buffer overrun in real-time audio input\n"));     /* complain */
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
       else if (err == -ESTRPIPE) {
         /* suspend */
-        warning(Str("Real-time audio input suspended"));
+        warning(Str("Real-time audio input suspended\n"));
         while (snd_pcm_resume(dev->handle) == -EAGAIN) sleep(1);
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
@@ -788,14 +807,14 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuf, int32_t nbytes)
       dev->handle = NULL;
       break;
     }
-    /* convert samples to MYFLT */
+    /* convert samples to cs_float */
     dev->rec_conv(m * dev->nchns, dev->buf, inbuf);
     return (m * dev->sampleSize);
 }
 
 /* put samples to DAC */
 
-static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
+static void rtplay_(CSOUND *csound, const cs_float *outbuf, int32_t nbytes)
 {
     DEVPARAMS *dev;
     int32_t     n, err;
@@ -806,8 +825,8 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
     /* calculate the number of samples to play */
     n = nbytes / dev->sampleSize;
 
-    /* convert samples from MYFLT */
-    dev->playconv(n * dev->nchns, (MYFLT*) outbuf, dev->buf, &(dev->seed));
+    /* convert samples from cs_float */
+    dev->playconv(n * dev->nchns, (cs_float*) outbuf, dev->buf, &(dev->seed));
 
     while (n) {
       err = (int32_t) snd_pcm_writei(dev->handle, dev->buf, (snd_pcm_uframes_t) n);
@@ -817,12 +836,12 @@ static void rtplay_(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes)
       /* handle I/O errors */
       if (err == -EPIPE) {
         /* buffer underrun */
-        warning(Str("Buffer underrun in real-time audio output"));   /* complain */
+        warning(Str("Buffer underrun in real-time audio output\n"));   /* complain */
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
       else if (err == -ESTRPIPE) {
         /* suspend */
-        warning(Str("Real-time audio output suspended"));
+        warning(Str("Real-time audio output suspended\n"));
         while (snd_pcm_resume(dev->handle) == -EAGAIN) sleep(1);
         if (snd_pcm_prepare(dev->handle) >= 0) continue;
       }
@@ -1182,7 +1201,8 @@ static int32_t midi_in_read_file(CSOUND *csound, void *userData,
           if (n < 0)
             csound->ErrorMsg(csound, Str("sensMIDI: retval errno %d"), errno);
           else
-            n = read(dev->fd, &(dev->buf[0]), BUF_SIZE);
+            /* read() returns at most BUF_SIZE bytes, or -1. */
+            n = (int32_t) read(dev->fd, &(dev->buf[0]), BUF_SIZE);
         }
         if (n > 0)
           dev->nbytes = n;
@@ -1364,7 +1384,7 @@ static char *my_strchr(const char *s, int32_t c, int32_t escape_all)
 static int32_t get_port_from_string(CSOUND *csound, char *str)
 {
   IGN(csound);
-  int32_t port = 0;
+  long port = 0;
     char *end, *tmp, *c = str;
 
     while (1) {
@@ -1372,9 +1392,12 @@ static int32_t get_port_from_string(CSOUND *csound, char *str)
       if (c == NULL)
         break;
       tmp = c+1;
+      errno = 0;
       port = strtol(tmp, &end, 10);
       if (*end == '\0') {
         *c = '\0';
+        if (errno == ERANGE || port < 0 || port > INT32_MAX)
+          return -1;
         break;
       }
       else { /* Not found, continue the search */
@@ -1382,7 +1405,7 @@ static int32_t get_port_from_string(CSOUND *csound, char *str)
         c = tmp;
       }
     }
-    return port;
+    return (int32_t) port;
 }
 
 static int32_t alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
@@ -1426,7 +1449,7 @@ static int32_t alsaseq_connect(CSOUND *csound, alsaseqMidi *amidi,
         port = get_port_from_string(csound, client_spec);
         client = alsaseq_get_client_id(csound, amidi, capability, client_spec);
         if (client >= 0) {
-          err = amidi_connect(amidi->seq, 0, client, port);
+          err = port < 0 ? -EINVAL : amidi_connect(amidi->seq, 0, client, port);
           if (err < 0) {
             csound->ErrorMsg(csound,
                              Str("ALSASEQ: connection failed %s %s, port %d (%s)"),
@@ -1524,7 +1547,8 @@ static int32_t alsaseq_in_read(CSOUND *csound,
     if (err <= 0)
       return 0;
     else
-      err = snd_midi_event_decode(amidi->mev, buf, nbytes, ev);
+      /* The decoded byte count is bounded by the int32_t buffer size. */
+      err = (int32_t) snd_midi_event_decode(amidi->mev, buf, nbytes, ev);
     return (err==-ENOENT) ? 0 : err;
 }
 
@@ -1617,7 +1641,8 @@ static int32_t alsaseq_out_write(CSOUND *csound,
     if (nbytes == 0)
       return 0;
     snd_midi_event_reset_encode(amidi->mev);
-    nbytes = snd_midi_event_encode(amidi->mev, buf, nbytes, &amidi->sev);
+    /* The consumed byte count cannot exceed the int32_t input size. */
+    nbytes = (int32_t) snd_midi_event_encode(amidi->mev, buf, nbytes, &amidi->sev);
     snd_seq_event_output(amidi->seq, &amidi->sev);
     snd_seq_drain_output(amidi->seq);
     return nbytes;
@@ -1672,7 +1697,7 @@ static int32_t alsaseq_out_close(CSOUND *csound, void *userData)
     return 0;
 }
 
-int32_t listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
+static int32_t listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
     int32_t count = 0;
     int32_t card, err;
 
@@ -1805,7 +1830,7 @@ int32_t listRawMidi(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
       snd_ctl_close(ctl);
       if ((err = snd_card_next(&card)) < 0) {
         csound->Warning(csound,
-                        Str("cannot determine card number: %s"), snd_strerror(err));
+                        Str("cannot determine card number: %s\n"), snd_strerror(err));
         break;
       }
     } while (card >= 0);
@@ -1838,10 +1863,10 @@ static int32_t check_permission(snd_seq_port_info_t *pinfo, int32_t perm)
     return 1;
 }
 
-int32_t listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
+static int32_t listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
     snd_seq_client_info_t *cinfo;
     snd_seq_port_info_t *pinfo;
-    int32_t numdevs = 0, count = 0;
+    int32_t numdevs = 0;
     snd_seq_t *seq;
 
     IGN(csound);
@@ -1858,7 +1883,6 @@ int32_t listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
       /* reset query info */
       snd_seq_port_info_set_client(pinfo, snd_seq_client_info_get_client(cinfo));
       snd_seq_port_info_set_port(pinfo, -1);
-      count = 0;
       while (snd_seq_query_next_port(seq, pinfo) >= 0) {
         if (check_permission(pinfo, isOutput? LIST_OUTPUT : LIST_INPUT)) {
           if (list) {
@@ -1872,7 +1896,6 @@ int32_t listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput) {
                     snd_seq_port_info_get_port(pinfo));
           }
           numdevs++;
-          count++;
         }
       }
     }
@@ -1988,5 +2011,5 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutpu
 
  int32_t csoundModuleInfo(void)
 {
-    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+  return CSOUND_MODULE_INFO;
 }

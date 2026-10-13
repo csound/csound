@@ -36,14 +36,14 @@
 
 struct windat_ {
     uintptr_t windid;           /* set by MakeGraph() */
-    MYFLT   *fdata;             /* data passed to DrawGraph */
+    cs_float   *fdata;             /* data passed to DrawGraph */
     int32   npts;               /* size of above array */
     char    caption[CAPSIZE];   /* caption string for graph */
     int16   waitflg;            /* set =1 to wait for ms after Draw */
     int16   polarity;           /* controls positioning of X axis */
-    MYFLT   max, min;           /* workspace .. extrema this frame */
-    MYFLT   absmax;             /* workspace .. largest of above */
-    MYFLT   oabsmax;            /* Y axis scaling factor */
+    cs_float   max, min;           /* workspace .. extrema this frame */
+    cs_float   absmax;             /* workspace .. largest of above */
+    cs_float   oabsmax;            /* Y axis scaling factor */
     int32_t     danflag;            /* set to 1 for extra Yaxis mid span */
     int32_t     absflag;            /* set to 1 to skip abs check */
 };
@@ -58,7 +58,7 @@ enum {                  /* symbols for WINDAT.polarity field */
 struct xyindat_ {       /* for 'joystick' input window */
     uintptr_t windid;   /* xwindow handle */
     int32_t     m_x,m_y;    /* current crosshair pixel adr */
-    MYFLT   x,y;        /* current proportions of fsd */
+    cs_float   x,y;        /* current proportions of fsd */
     int32_t     down;
 };
 
@@ -66,14 +66,14 @@ struct xyindat_ {       /* for 'joystick' input window */
 
 #ifdef __BUILDING_LIBCSOUND
 
-void csoundSetDisplay(CSOUND *, WINDAT *, MYFLT *, int32, char *, int32_t, char *);
+void csoundSetDisplay(CSOUND *, WINDAT *, cs_float *, int32, char *, int32_t, char *);
 int32_t csoundDeinitDisplay(CSOUND *);
 void csoundDisplay(CSOUND *, WINDAT*);
 #if 0
 /* create window for a graph */
 void MakeGraph(CSOUND *, WINDAT *, const char *);
 /* create a mouse input window; init scale */
-void MakeXYin(CSOUND *, XYINDAT *, MYFLT, MYFLT);
+void MakeXYin(CSOUND *, XYINDAT *, cs_float, cs_float);
 /* update graph in existing window */
 void DrawGraph(CSOUND *, WINDAT *);
 /* fetch latest value from mouse input window */

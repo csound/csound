@@ -9,7 +9,7 @@ namespace {
 class ResonBankTests : public ::testing::Test {
 protected:
     CSOUND *csound;
-    struct Sample { MYFLT actual, expected; };
+    struct Sample { cs_float actual, expected; };
     void SetUp() override {
         csound = csoundCreate(nullptr, nullptr);
         csoundCreateMessageBuffer(csound, 0);
@@ -30,7 +30,7 @@ protected:
         EXPECT_EQ(csoundStart(csound), 0);
         for (int i = 0; i < blocks; ++i) {
             if (csoundPerformKsmps(csound) != 0) break;
-            const MYFLT *out = csoundGetSpout(csound);
+            const cs_float *out = csoundGetSpout(csound);
             for (int n = 0; n < 8; ++n)
                 result.push_back({out[2*n], out[2*n+1]});
         }
@@ -100,15 +100,15 @@ TEST_F(ResonBankTests, InterpolationReachesTheTargetAtTheEndOfThePeriod) {
         "aResult resonbnk aInput,kParams,0,500,8,1\naReference init 0",
         "i1 0 .512\nf0 1", 4);
     ASSERT_EQ(samples.size(), 32u);
-    const double pi = std::acos(-1.0);
-    const double c3 = std::exp(-2*pi*20/1000);
-    const double oldC2 = 4*c3*std::cos(2*pi*100/1000)/(1+c3);
-    const double newC2 = 4*c3*std::cos(2*pi*200/1000)/(1+c3);
-    double y1=0, y2=0;
+    const cs_double pi = std::acos(-1.0);
+    const cs_double c3 = std::exp(-2*pi*20/1000);
+    const cs_double oldC2 = 4*c3*std::cos(2*pi*100/1000)/(1+c3);
+    const cs_double newC2 = 4*c3*std::cos(2*pi*200/1000)/(1+c3);
+    cs_double y1=0, y2=0;
     for (int n=0; n<32; ++n) {
-        const double fraction = n<8 ? 0 : (n<16 ? (n-7)/8.0 : 1);
-        const double c2 = oldC2 + (newC2-oldC2)*fraction;
-        const double y = .1+c2*y1-c3*y2;
+        const cs_double fraction = n<8 ? 0 : (n<16 ? (n-7)/8.0 : 1);
+        const cs_double c2 = oldC2 + (newC2-oldC2)*fraction;
+        const cs_double y = .1+c2*y1-c3*y2;
         EXPECT_NEAR(samples[n].actual,y,1e-5) << n;
         y2=y1; y1=y;
     }

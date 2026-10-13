@@ -101,7 +101,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
                                  OPCODINFO *inm)
 {
     if (inm == NULL) {
-      synterr(csound, Str("invalid opcode info for opcode %s"),
+      synterr(csound, Str("invalid opcode info for opcode %s\n"),
               opc && opc->opname ? opc->opname : "(unknown)");
       return NOTOK;
     }
@@ -164,8 +164,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
           }
           memcpy(typeSpecifier, in_arg, length);
           typeSpecifier[length] = '\0';
-          CS_TYPE* type = (CS_TYPE *)
-            csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+          const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
           if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid input type for opcode %s\n"), in_arg);
@@ -177,7 +176,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
           varInit.dimensions = dimensions;
           varInit.type = type;
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  (CS_TYPE*)&CS_VAR_TYPE_ARRAY,
+                                                  &CS_VAR_TYPE_ARRAY,
                                                   tempName, &varInit);
           var->dimensions = dimensions;
           csoundAddVariable(csound, inm->in_arg_pool, var);
@@ -191,8 +190,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
             c = map_udo_in_arg_type(in_arg);  // Map single-char types
           }
 
-          CS_TYPE* type = (CS_TYPE *)
-            csoundGetTypeWithVarTypeName(csound->typePool, c);
+          const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, c);
 
           if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid input type for opcode %s\n"), in_args[i]);
@@ -240,11 +238,10 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
           }
           memcpy(typeSpecifier, out_arg, length);
           typeSpecifier[length] = '\0';
-          CS_TYPE* type = (CS_TYPE *)
-            csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+          const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
 
           if (UNLIKELY(type == NULL)) {
-            synterr(csound, Str("invalid output type for opcode %s"), out_args[i]);
+            synterr(csound, Str("invalid output type for opcode %s\n"), out_args[i]);
             err++;
             i++;
             continue;
@@ -253,17 +250,16 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
           varInit.dimensions = dimensions;
           varInit.type = type;
           CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  (CS_TYPE*)&CS_VAR_TYPE_ARRAY,
+                                                  &CS_VAR_TYPE_ARRAY,
                                                   tempName, &varInit);
           var->dimensions = dimensions;
           csoundAddVariable(csound, inm->out_arg_pool, var);
         } else {
           char* c = map_udo_out_arg_type(out_arg);
-          CS_TYPE* type = (CS_TYPE *)
-            csoundGetTypeWithVarTypeName(csound->typePool, c);
+          const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, c);
 
           if (UNLIKELY(type == NULL)) {
-            synterr(csound, Str("invalid output type for opcode %s"), out_arg);
+            synterr(csound, Str("invalid output type for opcode %s\n"), out_arg);
             err++;
             i++;
             continue;
@@ -279,7 +275,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
 
     inm->outchns = i;
     opc->dsblksiz = (uint16) (sizeof(UOPCODE) +
-                              sizeof(MYFLT*) * (inm->inchns + inm->outchns));
+                              sizeof(cs_float*) * (inm->inchns + inm->outchns));
     opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
                      & (~((uint16) 15)));   /* align (needed ?) */
     opc->intypes = csoundStrdup(csound, (inm->intypes[0] == '0') ? "" :
@@ -308,7 +304,7 @@ early_exit:
 }
 
 
-OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
+static OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
     CONS_CELL *items;
     char *shortName;
     OENTRY *ep, *retVal = NULL;
@@ -359,7 +355,7 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     int32_t isRedefinition = 0;
 
     if (UNLIKELY(!check_instr_name(opname))) {
-      synterr(csound, Str("invalid name for opcode"));
+      synterr(csound, Str("invalid name for opcode\n"));
       return -1;
     }
 
@@ -390,7 +386,7 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
                    !strcmp(opname, "xin") ||
                    !strcmp(opname, "xout") ||
                    !strcmp(opname, "subinstr"))) {
-        synterr(csound, Str("cannot redefine %s"), opname);
+        synterr(csound, Str("cannot redefine %s\n"), opname);
         return -2;
       }
       csound->Message(csound,
@@ -457,11 +453,10 @@ void synterr(CSOUND *csound, const char *s, ...)
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
     if(csoundGetDebug(csound)) {
     // Also echo semantic errors to the normal message channel to make them visible in verbose runs
-     char buf[1024];
-     vsnprintf(buf, sizeof(buf), s, args_copy);
-     va_end(args_copy);
-     csound->Message(csound, "SEMERR: %s\n", buf);
+     csound->Message(csound, "SEMERR: ");
+     csoundMessageV(csound, 0, s, args_copy);
     }
+    va_end(args_copy);
 #endif
     va_end(args);
     csound->synterrcnt++;

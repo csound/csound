@@ -33,13 +33,13 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *a;
+    cs_float   *r, *a;
 } ASSIGN;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *r, *a;
-  MYFLT   mem;
+  cs_float   *r, *a;
+  cs_float   mem;
 } STOREI;
 
 
@@ -47,14 +47,14 @@ typedef struct {
 #define ASSIGNM_MAX (24)
 typedef struct {
     OPDS    h;
-    MYFLT   *r[ASSIGNM_MAX], *a[ASSIGNM_MAX];
+    cs_float   *r[ASSIGNM_MAX], *a[ASSIGNM_MAX];
 } ASSIGNM;
 
 
 typedef struct {
     OPDS    h;
     int32_t     *rbool;
-    MYFLT   *a, *b;
+    cs_float   *a, *b;
 } RELAT;
 
 typedef struct {
@@ -65,34 +65,34 @@ typedef struct {
 typedef struct {
     OPDS    h;
     int32_t     *rbool;
-    MYFLT       *a, *b;
+    cs_float       *a, *b;
 } LOGCL_KK;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r;
+    cs_float   *r;
     int32_t     *cond;
-    MYFLT   *a, *b;
+    cs_float   *a, *b;
 } CONVAL;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *a, *b;
+    cs_float   *r, *a, *b;
 } AOP;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *a, *b, *def;
+    cs_float   *r, *a, *b, *def;
 } DIVZ;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *a;
+    cs_float   *r, *a;
 } EVAL;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar;
+    cs_float   *ar;
 } INM;
 
 typedef struct {
@@ -102,46 +102,46 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar1, *ar2;
+    cs_float   *ar1, *ar2;
 } INS;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar1, *ar2, *ar3, *ar4;
+    cs_float   *ar1, *ar2, *ar3, *ar4;
 } INQ;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar1, *ar2, *ar3, *ar4, *ar5, *ar6;
+    cs_float   *ar1, *ar2, *ar3, *ar4, *ar5, *ar6;
 } INH;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar1, *ar2, *ar3, *ar4, *ar5, *ar6, *ar7, *ar8;
+    cs_float   *ar1, *ar2, *ar3, *ar4, *ar5, *ar6, *ar7, *ar8;
 } INO;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar[40];    /* array size should be consistent with entry2.c */
+    cs_float   *ar[40];    /* array size should be consistent with entry2.c */
 } INALL;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar[40];
-    MYFLT   *ch[VARGMAX];
+    cs_float   *ar[40];
+    cs_float   *ch[VARGMAX];
     int32_t     init;
 } INCH;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ar;
-    MYFLT   *ch;
+    cs_float   *ar;
+    cs_float   *ch;
     int32_t     init;
 } INCH1;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *asig[VARGMAX];
+    cs_float   *asig[VARGMAX];
 } OUTX;
 
 typedef struct {
@@ -152,89 +152,89 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *asig;
+    cs_float   *asig;
 } OUTM;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *args[VARGMAX];
+    cs_float   *args[VARGMAX];
 } OUTCH;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *pc, *et, *cy, *ref;
+    cs_float   *r, *pc, *et, *cy, *ref;
 } XENH;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *ktrig, *kinput, *tablenum;
-    MYFLT   old_r;
+    cs_float   *r, *ktrig, *kinput, *tablenum;
+    cs_float   old_r;
 } CPSTUN;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *input, *tablenum;
+    cs_float   *r, *input, *tablenum;
 } CPSTUNI;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *res, *arg;
+    cs_float   *res, *arg;
 } ERRFN;
 
 typedef struct MONITOR_OPCODE_ {
     OPDS    h;
-    MYFLT   *ar[24];
+    cs_float   *ar[24];
 } MONITOR_OPCODE;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *kstartChan, *argums[VARGMAX];
+        cs_float   *kstartChan, *argums[VARGMAX];
         int32_t narg;
 } OUTRANGE;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *kstartChan, *argums[VARGMAX];
+        cs_float   *kstartChan, *argums[VARGMAX];
         int32_t numChans, narg;
 } INRANGE;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ians;
-        MYFLT   *index;
+        cs_float   *ians;
+        cs_float   *index;
 } PFIELD;
 
 typedef struct {
         OPDS    h;
         STRINGDAT   *ians;
-        MYFLT   *index;
+        cs_float   *index;
 } PFIELDSTR;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *inits[24];
-        MYFLT   *start;
-        MYFLT   *end;
+        cs_float   *inits[24];
+        cs_float   *start;
+        cs_float   *end;
 } PINIT;
 
 typedef struct {
         OPDS    h;
         ARRAYDAT *inits;
-        MYFLT   *start;
-        MYFLT   *end;
+        cs_float   *start;
+        cs_float   *end;
 } PAINIT;
 
 typedef struct iref_init {
   OPDS  h;
   INSTREF *out;
-  MYFLT  *in;
+  cs_float  *in;
 } IREF_INIT;
 
 typedef struct iref_num {
   OPDS  h;
-  MYFLT  *out;
+  cs_float  *out;
   INSTREF *in;
-  MYFLT  *offs;
+  cs_float  *offs;
 } IREF_NUM;
 
 typedef struct {
@@ -253,7 +253,7 @@ int32_t outRange_i(CSOUND *csound, OUTRANGE *p);
 int32_t outRange(CSOUND *csound, OUTRANGE *p);
 int32_t hw_channels(CSOUND *csound, ASSIGN *p);
 void csound_aops_init_tables(CSOUND *);
-MYFLT MOD(MYFLT, MYFLT);
+cs_float MOD(cs_float, cs_float);
 int32_t inarray_set(CSOUND *csound, INA *p);
 int32_t monitora_perf(CSOUND *csound, MONITOR_A *p);
 int32_t monitora_init(CSOUND *csound, MONITOR_A *p);

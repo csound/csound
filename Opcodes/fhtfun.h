@@ -24,49 +24,49 @@
 
 typedef struct{
     OPDS          h;
-    MYFLT         *out, *as, *af, *len, *ovlp, *iwin, *bias;
+    cs_float         *out, *as, *af, *len, *ovlp, *iwin, *bias;
     AUXCH         mem;
-    MYFLT         *buffer_in1, *buffer_in2, *buffer_out;
+    cs_float         *buffer_in1, *buffer_in2, *buffer_out;
     FUNC          *win;
-    MYFLT         *in1, *in2, *w;
+    cs_float         *in1, *in2, *w;
     int32         size, overlap, hop, count;
 } CON;
 
 /* typedef struct{ */
 /*   OPDS               h; */
-/*   MYFLT              *out, *as, *imp, *iwin, *ienv; */
+/*   cs_float              *out, *as, *imp, *iwin, *ienv; */
 /*   AUXCH              mem; */
-/*   MYFLT              *buffer_in, *buffer_out; */
+/*   cs_float              *buffer_in, *buffer_out; */
 /*   FUNC               *win; */
-/*   MYFLT              *in, *in2, norm; */
+/*   cs_float              *in, *in2, norm; */
 /*   int32               flen, count, count2; */
 /* } CNV; */
 
 /* typedef struct{ */
 /*   OPDS               h; */
-/*   MYFLT              *out, *as, *str, *len, *ovlp, *iwin; */
+/*   cs_float              *out, *as, *str, *len, *ovlp, *iwin; */
 /*   AUXCH              mem; */
-/*   MYFLT              *buffer_in, *buffer_out; */
+/*   cs_float              *buffer_in, *buffer_out; */
 /*   FUNC               *win; */
-/*   MYFLT              *in; */
+/*   cs_float              *in; */
 /*   int32               m, count; */
 /* } STCH; */
 
 /* typedef struct{ */
 /*   OPDS               h; */
-/*   MYFLT              *out, *as, *af, *len, *ovlp, *iwin, *bias, *peaks; */
+/*   cs_float              *out, *as, *af, *len, *ovlp, *iwin, *bias, *peaks; */
 /*   AUXCH              mem; */
-/*   MYFLT              *buffer_in, *buffer_in2, *buffer_out; */
+/*   cs_float              *buffer_in, *buffer_in2, *buffer_out; */
 /*   FUNC               *win; */
-/*   MYFLT              *in, *in2, *mor; */
+/*   cs_float              *in, *in2, *mor; */
 /*   int32               *clx, *cly; */
 /*   int32               m, count; */
 /* } MRH; */
 
-static void getmag(MYFLT *x, int32 size);
-static void mult(MYFLT *x, MYFLT *y, int32 size, MYFLT w);
-static void lineaprox(MYFLT *x, int32 size, int32 m);
-static void do_fht(MYFLT *real, int32 n);
-static void do_ifht(MYFLT *real, int32 n);
-static void pfht(MYFLT *fz, int32 n);
+static void getmag(cs_float *x, int32 size);
+static void mult(cs_float *x, cs_float *y, int32 size, cs_float w);
+static void lineaprox(cs_float *x, int32 size, int32 m);
+static void do_fht(cs_float *real, int32 n);
+static void do_ifht(cs_float *real, int32 n);
+static void pfht(cs_float *fz, int32 n);
 

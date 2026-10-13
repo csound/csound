@@ -22,6 +22,7 @@
 
 /* Console Csound using the Csound API. */
 #include "csound.h"
+#include "text.h"
 #include <stdio.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -65,6 +66,8 @@ static void msg_callback(CSOUND *csound,
 }
 
 static void nomsg_callback(CSOUND *csound,
+    /* Matches the message callback signature. va_list differs between platforms. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
   int attr, const char *format, va_list args){
   IGN(csound); IGN(attr);  IGN(format);  IGN(args);
 }
@@ -171,9 +174,7 @@ int main(int argc, char **argv)
     else
         lang = setlocale(LC_MESSAGES, lang);
     if(lang == NULL)
-      csoundMessage(csound, "csould not set the locale\n");
-    /* If the strings for this binary are ever translated,
-     * the textdomain should be set here */
+      fprintf(stderr, "%s", Str("could not set the locale\n"));
     }
 #endif
 
@@ -199,7 +200,7 @@ int main(int argc, char **argv)
       if (!strcmp(fname, "NULL") || !strcmp(fname, "null"))
                nomessages = 1;
       else if ((logFile = fopen(fname, "w")) == NULL) {
-        fprintf(stderr, "Error opening log file '%s': %s\n",
+        fprintf(stderr, Str("Error opening log file '%s': %s\n"),
                         fname, strerror(errno));
         return -1;
       }

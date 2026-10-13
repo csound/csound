@@ -21,20 +21,21 @@
 */
 
 #pragma once
+#include "csound_types.h"
 
     typedef struct instr {
       struct instr *next;
       int n;                    /* self referencial */
       int largest;
-      double *p;
+      cs_double *p;
     } INSTR;
 
 extern INSTR *instr;
 extern int yyline;
 extern int last_note;
 extern int last_integer;
-extern double last_duration;
-extern double bpm;
+extern cs_double last_duration;
+extern cs_double bpm;
 extern int permeasure;
 extern int yydebug;
 extern int yyparse(void);

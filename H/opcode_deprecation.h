@@ -6,7 +6,11 @@
 #ifndef CSOUND_OPCODE_DEPRECATION_H
 #define CSOUND_OPCODE_DEPRECATION_H
 
+#include <stdarg.h>
 #include <stddef.h>
+#include <stdio.h>
+
+#include "csoundCore.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,6 +35,27 @@ const CS_OPCODE_DEPRECATION *csoundOpcodeDeprecation(const char *name);
 /* Does not emit a message; callers retain their error/warning policy. */
 void csoundOpcodeDeprecationMessage(const char *name, int renamed,
                                   char *buffer, size_t size);
+
+/* Emits a deprecation warning unless warnings are disabled by message level
+   (CS_WARNMSG or CS_NOQQ) or by --no-deprecated-warnings. Shared by the
+   library and built-in/plugin opcodes. The warning is emitted as a single
+   message so message-buffer and callback consumers receive the prefix and
+   diagnostic text together. */
+static inline CS_PRINTF2 void csoundDeprecationWarning(CSOUND *csound,
+                                                       const char *fmt, ...)
+{
+  const OPARMS *oparms = csound->GetOParms(csound);
+  va_list args;
+  char buffer[2048];
+  if (oparms->no_deprecated_warnings ||
+      (oparms->msglevel & CS_NOQQ) ||
+      !(oparms->msglevel & CS_WARNMSG))
+    return;
+  va_start(args, fmt);
+  vsnprintf(buffer, sizeof(buffer), fmt, args);
+  va_end(args);
+  csound->MessageS(csound, CSOUNDMSG_WARNING, Str("warning: %s"), buffer);
+}
 
 #ifdef __cplusplus
 }

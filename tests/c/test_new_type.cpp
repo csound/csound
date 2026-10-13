@@ -39,11 +39,11 @@ public:
 };
 
 typedef struct Tuple {
-  MYFLT *data;
+  cs_float *data;
   size_t size;
 } TUPLE;
 
-void varInitMemory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
+void varInitMemory(CSOUND *csound, CS_VARIABLE* var, cs_float* memblock) {
   memset(memblock, 0, var->memBlockSize);
 }
 
@@ -65,7 +65,7 @@ CS_VARIABLE* createTuple(void* cs, const CS_TYPE* type,
     return var;
 }
 
-CS_TYPE CS_VAR_TYPE_TUPLE = {
+const CS_TYPE CS_VAR_TYPE_TUPLE = {
    (char *) "Tuple", (char *) "Tuple", CS_ARG_TYPE_BOTH,
    createTuple, tupleCopyValue,
    NULL, NULL, 0
@@ -80,17 +80,17 @@ int32_t addTuple(CSOUND *csound) {
 struct TUPINIT {
   OPDS h;
   TUPLE *r;
-  MYFLT *in[VARGMAX];
+  cs_float *in[VARGMAX];
 };
 
 int32_t tuple_init(CSOUND *csound, TUPINIT *p) {
-  int32_t n = p->INOCOUNT;
+  size_t n = p->INOCOUNT;
   if(p->r->data == NULL)  
-    p->r->data = (MYFLT *)
-      csound->Calloc(csound, sizeof(MYFLT)*n);
+    p->r->data = (cs_float *)
+      csound->Calloc(csound, sizeof(cs_float)*n);
   else if(p->r->size < n)
-    p->r->data = (MYFLT *)
-      csound->ReAlloc(csound, p->r->data, sizeof(MYFLT)*n);
+    p->r->data = (cs_float *)
+      csound->ReAlloc(csound, p->r->data, sizeof(cs_float)*n);
   p->r->size = n;
   for(n = 0; n < p->r->size; n++)
     p->r->data[n] = *p->in[n];
@@ -99,14 +99,14 @@ int32_t tuple_init(CSOUND *csound, TUPINIT *p) {
 
 struct TUPGET {
   OPDS h;
-  MYFLT *r;
+  cs_float *r;
   TUPLE *tuple;
-  MYFLT *ndx;
+  cs_float *ndx;
 };
 
 int32_t tuple_get(CSOUND *csound, TUPGET *p) {
   int32_t ndx = (int32_t) *p->ndx;
-  if(ndx >= 0 && ndx < p->tuple->size) {
+  if(ndx >= 0 && (size_t) ndx < p->tuple->size) {
     *p->r = p->tuple->data[ndx];
     return OK;
   }

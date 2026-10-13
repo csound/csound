@@ -1,0 +1,53 @@
+name: Static and const correctness
+
+on:
+  pull_request:
+    branches: [develop]
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CC: clang-19
+      CXX: clang++-19
+      CLANG: clang-19
+      CLANG_TIDY: clang-tidy-19
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Clang and build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-19 clang-tidy-19 python3-clang-19 \
+            cmake ninja-build bison flex gettext libasound2-dev \
+            libsndfile1-dev libsamplerate0-dev
+      - name: Check the lint runner
+        run: /usr/bin/python3 tests/test_static_const.py
+      - name: Configure source analysis
+        run: >
+          cmake -S . -B build-lint -G Ninja
+          -DCMAKE_BUILD_TYPE=Debug
+          -DBUILD_TESTS=OFF
+          -DBUILD_STATIC_LIBRARY=OFF
+          -DBUILD_UTILITIES=ON
+          -DBUILD_INSTALLER=OFF
+          -DUSE_MP3=OFF
+          -DUSE_CURL=OFF
+      - name: Build and generate parser sources
+        run: cmake --build build-lint --parallel 2
+      - name: Check static and const declarations
+        run: >
+          /usr/bin/python3 scripts/check_static_const.py -p build-lint
+          --clang clang-19 --clang-tidy clang-tidy-19 --jobs 2

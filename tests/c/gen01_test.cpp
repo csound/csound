@@ -58,11 +58,11 @@ TEST_P(DeferredGen01DataTests, MatchesImmediateLoadAndRetainsArguments)
     ASSERT_NO_FATAL_FAILURE(start(csound, size, gen, numeric));
     ASSERT_EQ(csound->flist[1]->flen, 0u);
 
-    MYFLT *args = nullptr;
+    cs_float *args = nullptr;
     const int count = csoundGetTableArgs(csound, &args, 1);
     ASSERT_EQ(count, 5);
-    const std::vector<MYFLT> originalArgs(args, args + count);
-    MYFLT *expected = nullptr, *actual = nullptr;
+    const std::vector<cs_float> originalArgs(args, args + count);
+    cs_float *expected = nullptr, *actual = nullptr;
     const int length = csoundGetTable(reference, &expected, 1);
     ASSERT_GT(length, 0);
     ASSERT_EQ(csoundGetTable(csound, &actual, 1), length);
@@ -72,8 +72,8 @@ TEST_P(DeferredGen01DataTests, MatchesImmediateLoadAndRetainsArguments)
     EXPECT_EQ(csound->flist[1]->nchanls, reference->flist[1]->nchanls);
     EXPECT_EQ(csound->flist[1]->lobits, reference->flist[1]->lobits);
     ASSERT_EQ(csoundGetTableArgs(csound, &args, 1), count);
-    EXPECT_EQ(std::memcmp(args, originalArgs.data(), count * sizeof(MYFLT)), 0);
-    MYFLT *again = nullptr;
+    EXPECT_EQ(std::memcmp(args, originalArgs.data(), count * sizeof(cs_float)), 0);
+    cs_float *again = nullptr;
     EXPECT_EQ(csoundGetTable(csound, &again, 1), length);
     EXPECT_EQ(again, actual);
 }
@@ -96,10 +96,10 @@ TEST_F(DeferredGen01Tests, MissingFileReportsFailureOnFirstUse)
 {
     path += ".missing";
     ASSERT_NO_FATAL_FAILURE(start(csound, "0", 1, false));
-    MYFLT *table = nullptr;
+    cs_float *table = nullptr;
     EXPECT_EQ(csoundGetTable(csound, &table, 1), -1);
     EXPECT_EQ(table, nullptr);
-    MYFLT *args = nullptr;
+    cs_float *args = nullptr;
     EXPECT_EQ(csoundGetTableArgs(csound, &args, 1), 5);
 }
 

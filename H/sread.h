@@ -32,5 +32,5 @@
   void sfree(CSOUND *csound);
   int32_t  sread(CSOUND *csound);
   void sread_initstr(CSOUND *, CORFIL *sco);
-  MYFLT stof(CSOUND *, char *);
+  cs_float stof(CSOUND *, char *);
 #endif

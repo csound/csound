@@ -33,7 +33,7 @@
 
 #define END  32767
 
-void het_export_usage(CSOUND *csound)
+static void het_export_usage(CSOUND *csound)
 {
     csound->Message(csound, "%s", Str("Usage: het_export het_file cstext_file\n"));
 }

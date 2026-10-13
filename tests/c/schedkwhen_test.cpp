@@ -55,10 +55,10 @@ protected:
         EXPECT_EQ(csound->perferrcnt, 0) << messages();
     }
 
-    MYFLT channel(const std::string &name)
+    cs_float channel(const std::string &name)
     {
         int error = 0;
-        MYFLT value = csoundGetControlChannel(csound, name.c_str(), &error);
+        cs_float value = csoundGetControlChannel(csound, name.c_str(), &error);
         EXPECT_EQ(error, CSOUND_SUCCESS);
         return value;
     }
@@ -104,9 +104,9 @@ TEST_P(SchedkwhenTests, ChangingMinimumIntervalAdjustsPendingCountdown)
         "Sname sprintf \"time%d\", giEvents\nchnset p2,Sname\n",
         "i 1 0 .04\ni 1 .1 .04\ne"));
     ASSERT_EQ(channel("events"), 10);
-    const double gaps[] = {0, .02, .025, .03, .035};
+    const cs_double gaps[] = {0, .02, .025, .03, .035};
     for (int note = 0; note < 2; ++note) {
-        const MYFLT first = channel("time" + std::to_string(note * 5));
+        const cs_float first = channel("time" + std::to_string(note * 5));
         for (int i = 1; i < 5; ++i)
             EXPECT_NEAR(channel("time" + std::to_string(note * 5 + i)) - first,
                         gaps[i], 1e-6);

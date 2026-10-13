@@ -213,10 +213,8 @@
 ./Opcodes/doppler.cpp
 ./Opcodes/dsputil.c
 ./Opcodes/dsputil.h
-./Opcodes/dssi4cs/src/dssi.h
 ./Opcodes/dssi4cs/src/dssi4cs.c
 ./Opcodes/dssi4cs/src/dssi4cs.h
-./Opcodes/dssi4cs/src/ladspa.h
 ./Opcodes/dssi4cs/src/load.c
 ./Opcodes/dssi4cs/src/utils.h
 ./Opcodes/emugens/emugens.c

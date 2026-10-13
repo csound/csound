@@ -29,7 +29,7 @@
 #pragma once
 
 
-void    SpectralExtract(float *, float *, int32_t, int32, int32_t, MYFLT);
-MYFLT   PvocMaxAmp(float *, int32, int32);
-void    PvAmpGate(MYFLT *, int32, FUNC *, MYFLT);
+void    SpectralExtract(float *, float *, int32_t, int32, int32_t, cs_float);
+cs_float   PvocMaxAmp(float *, int32, int32);
+void    PvAmpGate(cs_float *, int32, FUNC *, cs_float);
 

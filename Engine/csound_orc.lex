@@ -57,7 +57,10 @@ YYLTYPE *yylloc_param;
 #define YY_EXTRA_TYPE  PARSE_PARM *
 #define PARM    yyget_extra(yyscanner)
 
-#define YY_USER_ACTION PARM->first_column = yycolumn; PARM->last_column = yycolumn + yyleng - 1; yycolumn += yyleng;
+#define YY_USER_ACTION \
+  PARM->first_column = yycolumn; \
+  PARM->last_column = (uint32_t)(yycolumn + yyleng - 1); \
+  yycolumn += yyleng;
 #define YY_USER_INIT
 
 struct yyguts_t;
@@ -472,7 +475,7 @@ ERSTR           "}R"
                                    yyscanner);
              return NEWLINE; }
   {IDENT} {
-    csound->Message(csound, "unsupported UDO arg type: %s", yytext);
+    csound->Message(csound, Str("unsupported UDO arg type: %s"), yytext);
     return ERROR_TOKEN;
   }
 }
@@ -714,7 +717,7 @@ ORCTOKEN *make_int(CSOUND *csound, char *s, void *yyscanner)
 
 ORCTOKEN *make_num(CSOUND *csound, char *s, void *yyscanner)
 {
-    double n = atof(s);
+    cs_double n = atof(s);
     ORCTOKEN *ans = new_token(csound, NUMBER_TOKEN, yyscanner);
     int32_t len = (int32_t) strlen(s);
     ans->lexeme = (char*)csound->Calloc(csound, len + 1);

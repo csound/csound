@@ -28,7 +28,7 @@
 #include <stdint.h>
 #include <string.h>
 
-/* String elements can include padding to MYFLT alignment. Use the array's
+/* String elements can include padding to cs_float alignment. Use the array's
    byte stride rather than sizeof(STRINGDAT); callers validate the index. */
 static inline STRINGDAT *csound_string_array_element(const ARRAYDAT *array,
                                                      size_t index)
@@ -61,6 +61,18 @@ static inline int32_t csound_array_try_prepare_write(CSOUND *csound,
     return csound->ArrayPrepareWrite(csound, array, ctx, 0);
 }
 
+/* Opcode writers use the engine's phase and error policy. */
+static inline int32_t csound_array_prepare_opcode_write(
+    CSOUND *csound, ARRAYDAT *array, OPDS *opds, int32_t initializing,
+    const char *errorMessage)
+{
+    if (csound == NULL || csound->ArrayPrepareOpcodeWrite == NULL) {
+        return NOTOK;
+    }
+    return csound->ArrayPrepareOpcodeWrite(
+      csound, array, opds, initializing, errorMessage);
+}
+
 /* Managed elements own memory or contain nested runtime values. They must be
    copied and cleared through their type callbacks, never as raw bytes. */
 static inline int32_t csound_array_has_managed_elements(
@@ -73,7 +85,7 @@ static inline int32_t csound_array_has_managed_elements(
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r, *a;
+    cs_float   *r, *a;
 } AEVAL;
 
 
@@ -123,7 +135,7 @@ static inline int32_t csound_array_element_types_compatible(
         return 0;
     }
     /* Array channels have historically allowed i[] and k[] to connect; both
-       store MYFLT elements, while the receiving variable retains its rate. */
+       store cs_float elements, while the receiving variable retains its rate. */
     return (destinationName[0] == 'i' && sourceName[0] == 'k') ||
            (destinationName[0] == 'k' && sourceName[0] == 'i');
 }
@@ -176,130 +188,15 @@ static inline int32_t csound_array_allocation_size(int32_t memberSize,
     return OK;
 }
 
-static inline int32_t csound_array_initialize_struct_range(
-    CSOUND *csound, const CS_TYPE *arrayType, CS_VARIABLE *var,
-    MYFLT *data, int32_t memberSize, size_t begin, size_t end)
-{
-    if (arrayType == NULL || !arrayType->userDefinedType || begin == end) {
-        return OK;
-    }
-    if (var == NULL || var->initializeVariableMemory == NULL ||
-        var->memBlockSize != memberSize) {
-        return NOTOK;
-    }
-    for (size_t i = begin; i < end; i++) {
-        void *element = (char *)data + i * (size_t)memberSize;
-        var->initializeVariableMemory(csound, var, (MYFLT *)element);
-    }
-    return OK;
-}
-
 static inline int32_t csound_array_ensure_capacity(CSOUND *csound,
                                                    ARRAYDAT *array,
                                                    size_t capacity,
                                                    INSDS *ctx)
 {
-    CS_VARIABLE *var = NULL;
-    MYFLT *newData;
-    size_t oldCapacity = 0;
-    size_t bytes;
-    int32_t memberSize = array->arrayMemberSize;
-    int32_t fresh = array->data == NULL;
-
-    if (array->arrayType == NULL || capacity == 0) {
+    if (csound == NULL || csound->ArrayEnsureCapacity == NULL) {
         return NOTOK;
     }
-    if (fresh) {
-        var = array_element_create_variable(csound, array->arrayType, ctx);
-        if (var == NULL || var->memBlockSize <= 0 ||
-            (array->arrayType->userDefinedType &&
-             var->initializeVariableMemory == NULL)) {
-            if (var != NULL) {
-                csound->Free(csound, var);
-            }
-            return NOTOK;
-        }
-        memberSize = var->memBlockSize;
-    }
-    else {
-        /* allocated == 0 marks a legacy non-owning view. Only managed
-           structured views can be detached safely before resizing. A view
-           may still reuse its known logical extent without taking ownership. */
-        if (array->allocated == 0) {
-            size_t logicalCapacity;
-
-            if (array->arrayMemberSize <= 0 ||
-                csound_array_member_count(array, &logicalCapacity) != OK ||
-                capacity > logicalCapacity) {
-                return NOTOK;
-            }
-            return OK;
-        }
-        if (array->arrayMemberSize <= 0 ||
-            array->allocated % (size_t)array->arrayMemberSize != 0) {
-            return NOTOK;
-        }
-        oldCapacity = array->allocated / (size_t)array->arrayMemberSize;
-    }
-    if (csound_array_allocation_size(memberSize, capacity,
-                                     &bytes) != OK) {
-        if (var != NULL) {
-            csound->Free(csound, var);
-        }
-        return NOTOK;
-    }
-    if (!fresh && bytes <= array->allocated) {
-        return OK;
-    }
-
-    if (!fresh && array->arrayType->userDefinedType) {
-        var = array_element_create_variable(csound, array->arrayType, ctx);
-        if (var == NULL || var->initializeVariableMemory == NULL ||
-            var->memBlockSize != memberSize) {
-            if (var != NULL) {
-                csound->Free(csound, var);
-            }
-            return NOTOK;
-        }
-    }
-    if (fresh) {
-        newData = (MYFLT *)csound->Calloc(csound, bytes);
-        if (UNLIKELY(newData == NULL)) {
-            csound->Free(csound, var);
-            return NOTOK;
-        }
-        if (UNLIKELY(csound_array_initialize_struct_range(
-                       csound, array->arrayType, var, newData, memberSize,
-                       oldCapacity, capacity) != OK)) {
-            csound->Free(csound, newData);
-            csound->Free(csound, var);
-            return NOTOK;
-        }
-        array->arrayMemberSize = memberSize;
-        array->data = newData;
-        array->allocated = bytes;
-    }
-    else {
-        newData = (MYFLT *)csound->ReAlloc(csound, array->data, bytes);
-        if (UNLIKELY(newData == NULL)) {
-            csound->Free(csound, var);
-            return NOTOK;
-        }
-        array->data = newData;
-        memset((char *)newData + array->allocated, 0,
-               bytes - array->allocated);
-        array->allocated = bytes;
-        if (UNLIKELY(csound_array_initialize_struct_range(
-                       csound, array->arrayType, var, newData, memberSize,
-                       oldCapacity, capacity) != OK)) {
-            csound->Free(csound, var);
-            return NOTOK;
-        }
-    }
-    if (var != NULL) {
-        csound->Free(csound, var);
-    }
-    return OK;
+    return csound->ArrayEnsureCapacity(csound, array, capacity, ctx);
 }
 
 /* Resize an array. Return NOTOK without publishing a new logical size when
@@ -342,10 +239,10 @@ static inline int32_t tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size,
     return OK;
 }
 
-/* Match another array's layout. Return NOTOK without publishing partial size
-   metadata when validation, detachment, or allocation fails. */
-static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
-                                   const ARRAYDAT *tp)
+/* Match another array's shape, allocating elements for the receiving context.
+   Return NOTOK without publishing partial size metadata on failure. */
+static inline int32_t tabinit_like_context(CSOUND *csound, ARRAYDAT *p,
+                                           const ARRAYDAT *tp, INSDS *ctx)
 {
     int32_t *newSizes = NULL;
     const CS_TYPE *originalArrayType;
@@ -379,7 +276,7 @@ static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
         memcpy(newSizes, tp->sizes,
                sizeof(int32_t) * (size_t)tp->dimensions);
     }
-    if (UNLIKELY(csound_array_prepare_write(csound, p, NULL) != OK)) {
+    if (UNLIKELY(csound_array_prepare_write(csound, p, ctx) != OK)) {
         p->arrayType = originalArrayType;
         csound->Free(csound, newSizes);
         return NOTOK;
@@ -392,7 +289,7 @@ static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
 
     capacity = elementCount > 0 ? elementCount : 1;
     p->arrayType = targetArrayType;
-    if (UNLIKELY(csound_array_ensure_capacity(csound, p, capacity, NULL)
+    if (UNLIKELY(csound_array_ensure_capacity(csound, p, capacity, ctx)
                  != OK)) {
         p->arrayType = originalArrayType;
         csound->Free(csound, newSizes);
@@ -416,25 +313,32 @@ static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
     return OK;
 }
 
+static inline int32_t tabinit_like(CSOUND *csound, ARRAYDAT *p,
+                                   const ARRAYDAT *tp)
+{
+    return tabinit_like_context(csound, p, tp, NULL);
+}
+
 static inline int32_t csound_array_init_resize_error(CSOUND *csound)
 {
-    return csound->InitError(csound, "%s", Str("Could not resize array"));
+    return csound->InitError(csound, "%s\n", Str("Could not resize array"));
 }
 
 static inline int32_t csound_array_perf_resize_error(CSOUND *csound,
                                                      OPDS *ctx)
 {
-    return csound->PerfError(csound, ctx, "%s",
+    return csound->PerfError(csound, ctx, "%s\n",
                              Str("Could not resize array"));
 }
 
-static inline int32_t csound_array_size_to_int32(MYFLT requestedSize,
+static inline int32_t csound_array_size_to_int32(cs_float requestedSize,
                                                  int32_t *size)
 {
-    double value = (double)requestedSize;
+    cs_double value = (cs_double)requestedSize;
 
-    if (size == NULL || isnan(value) || value < 0.0 ||
-        value >= (double)INT32_MAX + 1.0) {
+    /* Ordered comparisons also reject NaN, without C/C++ math-name lookup. */
+    if (size == NULL || !(value >= 0.0 &&
+                         value < (INT32_MAX + 0.0) + 1.0)) {
         return NOTOK;
     }
     *size = (int32_t)value;
@@ -446,28 +350,28 @@ static inline int32_t tabcheck(CSOUND *csound, ARRAYDAT *p, int32_t size, OPDS *
     size_t bytes;
 
     if (UNLIKELY(p == NULL || size < 0)) {
-      return csound->PerfError(csound, q, "%s", Str("Invalid array size"));
+      return csound->PerfError(csound, q, "%s\n", Str("Invalid array size"));
     }
     /* The caller writes this buffer during performance. Claiming a
        sole reference is safe here, but cloning shared storage would allocate. */
     if (UNLIKELY(csound_array_try_prepare_write(
                    csound, p, q != NULL ? q->insdshead : NULL) != OK)) {
-      return csound->PerfError(csound, q, "%s",
+      return csound->PerfError(csound, q, "%s\n",
                                Str("Cannot write shared array during "
                                    "performance pass"));
     }
     if (p->data == NULL || p->dimensions == 0 || p->sizes == NULL) {
-      return csound->PerfError(csound, q, "%s", Str("Array not initialised"));
+      return csound->PerfError(csound, q, "%s\n", Str("Array not initialised"));
     }
     if (UNLIKELY(csound_array_allocation_size(
                    p->arrayMemberSize, (size_t)size, &bytes) != OK)) {
-      return csound->PerfError(csound, q, "%s",
+      return csound->PerfError(csound, q, "%s\n",
                                Str("Array size overflow"));
     }
     if (bytes > p->allocated) { /* was arr->allocate */
       return csound->PerfError(csound, q,
         Str("Array too small (allocated %zu < needed %zu), but cannot "
-            "allocate during performance pass. Allocate a bigger array at init time"),
+            "allocate during performance pass. Allocate a bigger array at init time\n"),
         p->allocated, bytes);
     }
     p->sizes[0] = size;

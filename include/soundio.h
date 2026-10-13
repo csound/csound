@@ -52,7 +52,7 @@ extern "C" {
 
 typedef struct {
         void   *sinfd;             /* sound file handle                    */
-        MYFLT   *inbufp, *bufend;   /* current buffer position, end of buf  */
+        cs_float   *inbufp, *bufend;   /* current buffer position, end of buf  */
         void    *fd;                /* handle returned by csoundFileOpen()  */
         int32_t     bufsmps;            /* number of mono samples in buffer     */
         int32_t     format;             /* sample format (AE_SHORT, etc.)       */
@@ -65,10 +65,10 @@ typedef struct {
         int32_t     sr;                 /* sample rate in Hz                    */
         int32_t     do_floatscaling;    /* scale floats by fscalefac ? 0: no    */
         int64_t audrem, framesrem, getframes;   /* samples, frames, frames */
-        MYFLT   fscalefac;
-        MYFLT   skiptime;
+        cs_float   fscalefac;
+        cs_float   skiptime;
         char    sfname[MAXSNDNAME];
-        MYFLT   inbuf[SNDINBUFSIZ];
+        cs_float   inbuf[SNDINBUFSIZ];
 } SOUNDIN;
 
 #ifdef __cplusplus

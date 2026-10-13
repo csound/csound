@@ -48,40 +48,40 @@ typedef struct {
 
   OPDS h;
 
-  MYFLT *aout;
-  MYFLT *kamp;
-  MYFLT *kpch;
-  MYFLT *kx;
-  MYFLT *ky;
-  MYFLT *krx;
-  MYFLT *kry;
-  MYFLT *krot; // rotation of the curve
-  MYFLT *ktabx, *ktaby;       /* Table numbers */
-  MYFLT *kfunc; // the curve index
-  MYFLT *kparam;
+  cs_float *aout;
+  cs_float *kamp;
+  cs_float *kpch;
+  cs_float *kx;
+  cs_float *ky;
+  cs_float *krx;
+  cs_float *kry;
+  cs_float *krot; // rotation of the curve
+  cs_float *ktabx, *ktaby;       /* Table numbers */
+  cs_float *kfunc; // the curve index
+  cs_float *kparam;
 
 /* Internals */
-  MYFLT oldfnx;  // storage of the current table for k-rate table change
-  MYFLT oldfny;  // storage of the current table for k-rate table change
+  cs_float oldfnx;  // storage of the current table for k-rate table change
+  cs_float oldfny;  // storage of the current table for k-rate table change
 
-  MYFLT *xarr, *yarr;           /* Actual tables */
+  cs_float *xarr, *yarr;           /* Actual tables */
 
-  MYFLT sizx, sizy;
-  double theta;
+  cs_float sizx, sizy;
+  cs_double theta;
 
 } WAVETER;
 
-static void rotate_point(MYFLT  cx, MYFLT  cy, MYFLT  angle, MYFLT *x, MYFLT *y)
+static void rotate_point(cs_float  cx, cs_float  cy, cs_float  angle, cs_float *x, cs_float *y)
 {
   if(angle == 0) return;
-  MYFLT s = SIN(angle);
-  MYFLT c = COS(angle);
+  cs_float s = SIN(angle);
+  cs_float c = COS(angle);
 
   *x -= cx;
   *y -= cy;
 
-  MYFLT xnew = *x * c - *y * s;
-  MYFLT ynew = *x * s + *y * c;
+  cs_float xnew = *x * c - *y * s;
+  cs_float ynew = *x * s + *y * c;
 
   *x = xnew + cx;
   *y = ynew + cy;
@@ -89,8 +89,8 @@ static void rotate_point(MYFLT  cx, MYFLT  cy, MYFLT  angle, MYFLT *x, MYFLT *y)
 
 /* the normal eclipse function with center kx,ky and radius krx and kry */
 
-static void ellipse(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
-    double x = t+kparam*SIN(t);
+static void ellipse(cs_float t, cs_float kx, cs_float ky, cs_float krx, cs_float kry, cs_float kparam, cs_float *outX, cs_float *outY ) {
+    cs_double x = t+kparam*SIN(t);
     *outX = kx + krx * SIN(x);
     *outY = ky + kry * COS(x);
 }
@@ -100,15 +100,15 @@ static void ellipse(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kpa
    for kparam = 1 we have a cardioid
 */
 
-static void limacon(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
+static void limacon(cs_float t, cs_float kx, cs_float ky, cs_float krx, cs_float kry, cs_float kparam, cs_float *outX, cs_float *outY ) {
     *outX = kx + krx * SIN(t) * (COS(t) + kparam);
     *outY = ky + kry * COS(t) * (COS(t) + kparam);
 }
 
 /* a simple 8 */
 
-static void lemniskateG(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
-    double x = t+kparam*SIN(t);
+static void lemniskateG(cs_float t, cs_float kx, cs_float ky, cs_float krx, cs_float kry, cs_float kparam, cs_float *outX, cs_float *outY ) {
+    cs_double x = t+kparam*SIN(t);
     *outX = kx + krx * COS(x);
     *outY = ky + kry * SIN(x)*COS(x);
 }
@@ -116,7 +116,7 @@ static void lemniskateG(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT
 /* the cornoid curve
    see e.g. http://www.2dcurves.com/sextic/sexticco.html
 */
-static void cornoid(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
+static void cornoid(cs_float t, cs_float kx, cs_float ky, cs_float krx, cs_float kry, cs_float kparam, cs_float *outX, cs_float *outY ) {
     *outX = kx + krx * COS(t) * COS(2*t);
     *outY = ky + kry * SIN(t) * (kparam + COS(2*t));
 }
@@ -124,7 +124,7 @@ static void cornoid(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kpa
 /* Chevas trisextix
    see e.g. http://www.2dcurves.com/sextic/sextict.html
 */
-static void trisec(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
+static void trisec(cs_float t, cs_float kx, cs_float ky, cs_float krx, cs_float kry, cs_float kparam, cs_float *outX, cs_float *outY ) {
     *outX = kx + krx * COS(t) * (1+kparam*SIN(2*t));
     *outY = ky + kry * SIN(t) * (1+kparam*SIN(2*t));
 }
@@ -132,27 +132,27 @@ static void trisec(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kpar
 /* Scarabeus curve see e.g http://www.2dcurves.com/sextic/sexticsc.html
 */
 
-static void scarabeus(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
+static void scarabeus(cs_float t, cs_float kx, cs_float ky, cs_float krx, cs_float kry, cs_float kparam, cs_float *outX, cs_float *outY ) {
     *outX = kx + krx * COS(t) * (kparam*SIN(2*t)+SIN(t));
     *outY = ky + kry * SIN(t) * (kparam*SIN(2*t)+SIN(t));
 }
 /* folium see http://www.2dcurves.com/quartic/quarticfo.html */
-static void folium(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
-    double sint = SIN(t);
-    double cost = COS(t);
+static void folium(cs_float t, cs_float kx, cs_float ky, cs_float krx, cs_float kry, cs_float kparam, cs_float *outX, cs_float *outY ) {
+    cs_double sint = SIN(t);
+    cs_double cost = COS(t);
     *outX = kx + krx * cost * cost * (sint*sint - kparam);
     *outY = ky + kry * sint * cost * (sint*sint - kparam);
 }
 
 /* talbot see http://www.2dcurves.com/trig/trigta.html */
-static void talbot(MYFLT t, MYFLT kx, MYFLT ky, MYFLT krx, MYFLT kry, MYFLT kparam, MYFLT *outX, MYFLT *outY ) {
-    double sint = SIN(t);
-    double cost = COS(t);
+static void talbot(cs_float t, cs_float kx, cs_float ky, cs_float krx, cs_float kry, cs_float kparam, cs_float *outX, cs_float *outY ) {
+    cs_double sint = SIN(t);
+    cs_double cost = COS(t);
     *outX = kx + krx * cost * (1 + kparam * sint*sint);
     *outY = ky + kry * sint * (1 - kparam - kparam*cost*cost);
 }
 
-static void (*ifuncs[8])(MYFLT,MYFLT,MYFLT,MYFLT,MYFLT,MYFLT,MYFLT*,MYFLT*) = { ellipse, lemniskateG, limacon, cornoid, trisec, scarabeus, folium, talbot };
+static void (*ifuncs[8])(cs_float,cs_float,cs_float,cs_float,cs_float,cs_float,cs_float*,cs_float*) = { ellipse, lemniskateG, limacon, cornoid, trisec, scarabeus, folium, talbot };
 
 static int32_t wtinit(CSOUND *csound, WAVETER *p)
 {
@@ -173,35 +173,35 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int32_t xloc, yloc;
-    MYFLT xc, yc;
-    MYFLT amp = *p->kamp;
-    MYFLT pch = *p->kpch;
+    cs_float xc, yc;
+    cs_float amp = *p->kamp;
+    cs_float pch = *p->kpch;
 
     if (*(p->ktabx) != p->oldfnx || p->xarr == NULL) {
       p->oldfnx = *(p->ktabx);
       FUNC *ftp = csound->FTFind(csound, p->ktabx);    /* new table parameters */
       if (UNLIKELY((ftp == NULL) || ((p->xarr = ftp->ftable) == NULL))) return NOTOK;
-      p->sizx = (MYFLT)ftp->flen;
+      p->sizx = (cs_float)ftp->flen;
     }
     if (*(p->ktaby) != p->oldfny || p->yarr == NULL) {
       p->oldfny = *(p->ktaby);
       FUNC *ftp = csound->FTFind(csound, p->ktaby);    /* new table parameters */
       if (UNLIKELY((ftp == NULL) || ((p->yarr = ftp->ftable) == NULL))) return NOTOK;
-      p->sizy = (MYFLT)ftp->flen;
+      p->sizy = (cs_float)ftp->flen;
     }
 
 
     uint32_t kfunc = (uint32_t)*p->kfunc;
     if(kfunc>7) kfunc = 7;
-    MYFLT sizx = p->sizx, sizy = p->sizy;
-    double theta = p->theta;
-    double increment = (double)pch * (TWOPI / CS_ESR);
-    MYFLT *aout = p->aout;
+    cs_float sizx = p->sizx, sizy = p->sizy;
+    cs_double theta = p->theta;
+    cs_double increment = (cs_double)pch * (TWOPI / CS_ESR);
+    cs_float *aout = p->aout;
 
-    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&aout[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i=offset; i<nsmps; i++) {
 

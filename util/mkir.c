@@ -29,13 +29,13 @@
 
 #define FIND(MSG)   if (*s == '\0')  \
     if (UNLIKELY(!(--argc) || ((s = *++argv) && *s == '-')))    \
-      csound->Die(csound, "%s", MSG);
+      csound->Die(csound, "%s\n", MSG);
 
-static MYFLT *generate_sweep(CSOUND *csound, MYFLT sr, int32_t len) {
+static cs_float *generate_sweep(CSOUND *csound, cs_float sr, int32_t len) {
   int n;
-  double ph = 0, f = 1., fi;
-  double scal = 2*PI/sr;
-  MYFLT *sweep = (MYFLT *) csound->Calloc(csound, len*sizeof(MYFLT));
+  cs_double ph = 0, f = 1., fi;
+  cs_double scal = 2*PI/sr;
+  cs_float *sweep = (cs_float *) csound->Calloc(csound, len*sizeof(cs_float));
   fi = pow(sr/2, 1./len);
   for(n = 0; n < len; n++) {
     sweep[n] = sin(ph);
@@ -45,7 +45,7 @@ static MYFLT *generate_sweep(CSOUND *csound, MYFLT sr, int32_t len) {
   return sweep;
 }
 
-static void specdiv(CSOUND *csound, MYFLT *inp, MYFLT *swp, int32_t fftlen) {
+static void specdiv(CSOUND *csound, cs_float *inp, cs_float *swp, int32_t fftlen) {
    void *setup = csound->RealFFTSetup(csound, fftlen, FFT_FWD);
    csound->RealFFT(csound, setup, inp);
    csound->RealFFT(csound, setup, swp);
@@ -54,11 +54,11 @@ static void specdiv(CSOUND *csound, MYFLT *inp, MYFLT *swp, int32_t fftlen) {
    if(swp[1] != 0)
      inp[1] /= swp[1];
    for(int n = 2; n < fftlen; n+=2) {
-     MYFLT c = swp[n], a = inp[n];
-     MYFLT d = swp[n+1], b = inp[n+1];
-     MYFLT den = c*c + d*d;
+     cs_float c = swp[n], a = inp[n];
+     cs_float d = swp[n+1], b = inp[n+1];
+     cs_float den = c*c + d*d;
      if(den == 0)
-       csound->Warning(csound, "deconv: div by zero detected, sweep bin %d", n/2);
+       csound->Warning(csound, Str("deconv: div by zero detected, sweep bin %d\n"), n/2);
      else {
       inp[n] = (a*c + b*d)/den;
       inp[n+1] = (b*c - a*d)/den;
@@ -69,15 +69,15 @@ static void specdiv(CSOUND *csound, MYFLT *inp, MYFLT *swp, int32_t fftlen) {
 }
 
   
-static MYFLT *deconvolve(CSOUND *csound, MYFLT *sweep, MYFLT *rec, int32_t len,
+static cs_float *deconvolve(CSOUND *csound, cs_float *sweep, cs_float *rec, int32_t len,
                          int32_t ilen) {
    int32_t fftlen = 2*len;
-   MYFLT *inp = (MYFLT *) csound->Calloc(csound,fftlen*sizeof(MYFLT));
-   MYFLT *swp = (MYFLT *) csound->Calloc(csound,fftlen*sizeof(MYFLT));
-   memcpy(inp, rec, sizeof(MYFLT)*(ilen < fftlen ? ilen : fftlen));
-   memcpy(swp, sweep, sizeof(MYFLT)*len);
+   cs_float *inp = (cs_float *) csound->Calloc(csound,fftlen*sizeof(cs_float));
+   cs_float *swp = (cs_float *) csound->Calloc(csound,fftlen*sizeof(cs_float));
+   memcpy(inp, rec, sizeof(cs_float)*(ilen < fftlen ? ilen : fftlen));
+   memcpy(swp, sweep, sizeof(cs_float)*len);
    specdiv(csound,inp,swp,fftlen);
-   memcpy(rec,inp,sizeof(MYFLT)*len);
+   memcpy(rec,inp,sizeof(cs_float)*len);
    csound->Free(csound,inp);
    csound->Free(csound,swp);
    return rec;
@@ -104,11 +104,11 @@ static void usage(CSOUND *csound, char *mesg, ...)
 static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
   char *sweepfile = NULL, *inputfile = NULL, *outputfile = NULL;
   int32_t generate = 0;
-  MYFLT len = 1., sr = 44100.;
+  cs_float len = 1., sr = 44100.;
   char *s, c;
 
   if (UNLIKELY(!(--argc))) {
-      usage(csound,Str("Insufficient arguments"));
+      usage(csound,Str("Insufficient arguments\n"));
       return 1;
   }
   do {
@@ -117,65 +117,65 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
         while ((c = *s++) != '\0')
           switch(c) {
           case 'o':
-            FIND(Str("no output filename"))
+            FIND(Str("no output filename\n"))
             outputfile = s;         
             for ( ; *s != '\0'; s++) ;
             if (UNLIKELY(strcmp(outputfile, "stdin") == 0))
-              csound->Die(csound, "%s", Str("-o cannot be stdin"));
+              csound->Die(csound, "%s\n", Str("-o cannot be stdin"));
             break;
           case 'i':
-            FIND(Str("no input filename"))
+            FIND(Str("no input filename\n"))
             inputfile = s;        
             for ( ; *s != '\0'; s++) ;
             if (UNLIKELY(strcmp(inputfile, "stdout") == 0))
-              csound->Die(csound, "%s", Str("-i cannot be stdout"));
+              csound->Die(csound, "%s\n", Str("-i cannot be stdout"));
             break;
           case 'g':
             generate = 1;         
             break;
           case 't':
-            FIND(Str("no sweep length"));
-            len = (MYFLT) atof(s);
+            FIND(Str("no sweep length\n"));
+            len = (cs_float) atof(s);
             while (*++s);           
             break;
           case 'r':
-            FIND(Str("no sampling rate"));
-            sr = (MYFLT) atof(s);
+            FIND(Str("no sampling rate\n"));
+            sr = (cs_float) atof(s);
             while (*++s);           
             break;            
           default:
-            usage(csound, Str("unknown flag -%c"), c);            
+            usage(csound, Str("unknown flag -%c\n"), c);
           }
       else {
-        if (UNLIKELY(sweepfile != NULL)) usage(csound,Str("Too many inputs"));
+        if (UNLIKELY(sweepfile != NULL)) usage(csound,Str("Too many inputs\n"));
         sweepfile = --s;
       }
     } while (--argc);
 
   if(sweepfile == NULL)
-    csound->Die(csound, "%s", Str("missing sweep file"));
+    csound->Die(csound, "%s\n", Str("missing sweep file"));
   
   if(generate == 0) {
      SFLIB_INFO sfinfo;
      SNDFILE *fd;
      int32_t frames, iframes;
-     MYFLT *swp, *inp;
+     cs_float *swp, *inp;
      if (inputfile == NULL)
-       csound->Die(csound, "%s", Str("missing input file"));
+       csound->Die(csound, "%s\n", Str("missing input file"));
      if (outputfile == NULL)
-       csound->Die(csound, "%s", Str("missing output file"));
+       csound->Die(csound, "%s\n", Str("missing output file"));
      
      fd = csound->SndfileOpen(csound, sweepfile,
                                  SFM_READ, &sfinfo);
      if(fd == NULL)
-       csound->Die(csound, "%s", Str("could not open sweep file"));
+       csound->Die(csound, "%s\n", Str("could not open sweep file"));
        
      if(sfinfo.channels > 1) {
         csound->SndfileClose(csound, fd);
-        csound->Die(csound, "%s", Str("sweep file is not mono"));
+        csound->Die(csound, "%s\n", Str("sweep file is not mono"));
      }
      frames = (int32_t) sfinfo.frames; 
-     swp = (MYFLT *) csound->Calloc(csound, frames*sizeof(MYFLT));
+     swp = (cs_float *) csound->Calloc(csound, frames*sizeof(cs_float));
      csound->SndfileRead(csound,fd,swp,frames);
      csound->SndfileClose(csound,fd);
 
@@ -183,23 +183,23 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
      fd = csound->SndfileOpen(csound, inputfile, SFM_READ,
                               &sfinfo);
      if(fd == NULL)
-       csound->Die(csound, "%s", Str("could not open input file"));
+       csound->Die(csound, "%s\n", Str("could not open input file"));
      
      iframes = (int32_t) (sfinfo.frames > frames ? sfinfo.frames : frames);
-     inp = (MYFLT *) csound->Calloc(csound, iframes*sizeof(MYFLT)*sfinfo.channels);
+     inp = (cs_float *) csound->Calloc(csound, iframes*sizeof(cs_float)*sfinfo.channels);
      csound->SndfileRead(csound,fd,inp,iframes);
      csound->SndfileClose(csound,fd);
      
      if(sfinfo.channels > 1) {
        int i, j, m = sfinfo.channels;
-       MYFLT *outp, *chn = (MYFLT *)
-         csound->Calloc(csound, len*sizeof(MYFLT));
+       cs_float *outp, *chn = (cs_float *)
+         csound->Calloc(csound, len*sizeof(cs_float));
        csound->Message(csound,
-                     "\tmultichannel input: %d channels\n",
+                     Str("\tmultichannel input: %d channels\n"),
                      sfinfo.channels);       
        for(i = 0; i < sfinfo.channels; i++) {
          csound->Message(csound,
-                     "\t\tprocessing channel %d\n",
+                     Str("\t\tprocessing channel %d\n"),
                      i);    
          for(j = 0; j < iframes; j++)
              chn[j] = inp[j*m + i];
@@ -213,39 +213,39 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
      fd = csound->SndfileOpen(csound, outputfile, SFM_WRITE, &sfinfo);
 
      if(fd == NULL)
-       csound->Die(csound, "%s", Str("could not open output file"));
+       csound->Die(csound, "%s\n", Str("could not open output file"));
      
      csound->SndfileWrite(csound,fd,inp,frames);
      csound->SndfileClose(csound,fd);
      csound->Free(csound, swp);
      csound->Free(csound, inp);
      csound->Message(csound,
-                     "\tcreated IR file %s\n",
+                     Str("\tcreated IR file %s\n"),
                      outputfile);
      csound->Message(csound,
-                     "\tsr = %.1f, %.3f seconds, %d channels\n",
+                     Str("\tsr = %.1f, %.3f seconds, %d channels\n"),
                      sr, frames/sr, sfinfo.channels);
    }
   else {
     SFLIB_INFO sfinfo;
     SNDFILE* fd;
-    MYFLT *sweep = generate_sweep(csound, sr, len*sr);
+    cs_float *sweep = generate_sweep(csound, sr, len*sr);
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     sfinfo.samplerate = sr;
     sfinfo.channels = 1;
     sfinfo.format = TYPE2SF(TYP_WAV) | FORMAT2SF(AE_FLOAT);
     fd = csound->SndfileOpen(csound, sweepfile, SFM_WRITE, &sfinfo);
     if (UNLIKELY(fd == NULL))
-      csound->Die(csound, Str("Failed to open file for generated sweep %s: %s"),
+      csound->Die(csound, Str("Failed to open file for generated sweep %s: %s\n"),
                  sweepfile, Str(csound->SndfileStrError(csound,NULL)));
     csound->SndfileWrite(csound,fd,sweep,len*sr);
     csound->SndfileClose(csound,fd);
     csound->Free(csound, sweep);
     csound->Message(csound,
-                     "\tcreated sine sweep file %s\n",
+                     Str("\tcreated sine sweep file %s\n"),
                      sweepfile);
     csound->Message(csound,
-                     "\tsr = %.1f, %.3f seconds\n",
+                     Str("\tsr = %.1f, %.3f seconds\n"),
                      sr, len);
   }
   return CSOUND_SUCCESS;
@@ -254,7 +254,7 @@ static int32_t mkir(CSOUND *csound, int32_t argc, char **argv) {
 typedef struct {
   OPDS h;
   ARRAYDAT *outp, *inp, *swp;
-  MYFLT *in, *sw;
+  cs_float *in, *sw;
   int32_t len;
 } DECONV;
 
@@ -265,8 +265,8 @@ static int32_t deconv_init(CSOUND *csound, DECONV *p) {
   fftlen = p->len*2;
   if (UNLIKELY(tabinit_like(csound, p->outp, p->swp) != OK))
     return csound_array_init_resize_error(csound);
-  p->in = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*fftlen);
-  p->sw = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*fftlen);
+  p->in = (cs_float *) csound->Calloc(csound, sizeof(cs_float)*fftlen);
+  p->sw = (cs_float *) csound->Calloc(csound, sizeof(cs_float)*fftlen);
   return OK;
 }
 
@@ -281,13 +281,13 @@ static int32_t deconv_deinit(CSOUND *csound, DECONV *p) {
 // then copies the data to output array 
 static int32_t kdeconv(CSOUND *csound, DECONV *p) {
   int32_t fftlen = p->len*2;
-  memcpy(p->sw, p->swp->data, sizeof(MYFLT)*p->len);
-  memcpy(p->in, p->inp->data, sizeof(MYFLT)*(p->inp->sizes[0]
+  memcpy(p->sw, p->swp->data, sizeof(cs_float)*p->len);
+  memcpy(p->in, p->inp->data, sizeof(cs_float)*(p->inp->sizes[0]
                                              < fftlen ?
                                              p->inp->sizes[0] :
                                              fftlen));
   specdiv(csound,p->in,p->sw,fftlen);
-  memcpy(p->outp->data,p->in, sizeof(MYFLT)*p->len);
+  memcpy(p->outp->data,p->in, sizeof(cs_float)*p->len);
   return OK;
 }
 
@@ -305,26 +305,26 @@ static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
   FUNC    *inp = csound->FTFind(csound, &(ff->e.p[6]));
   FUNC    *sweep = csound->FTFind(csound, &(ff->e.p[5]));
   int32_t len = sweep->flen;
-  MYFLT   *fp;
-  MYFLT   *inpd;
+  cs_float   *fp;
+  cs_float   *inpd;
   int32_t chns = ff->e.pcnt - 5;
 
   if(ff->e.p[5] <= 0) {
-    csound->Message(csound, "sweep table num %d illegal", (int) ff->e.p[5]);
+    csound->Message(csound, Str("sweep table num %d illegal"), (int) ff->e.p[5]);
     return NOTOK;
   }
                         
   
   if(chns < 1) {
-    csound->Message(csound, "insufficient number of input channels: %d", chns);
+    csound->Message(csound, Str("insufficient number of input channels: %d"), chns);
     return NOTOK;
   }
 
   if(ftp) {
    fp = ftp->ftable;
-   if(len != ftp->flen/chns) {
-     csound->Message(csound, "destination table size not matching"
-                     " sweep, size %d frames, need %d\n", ftp->flen/chns, len);
+   if(sweep->flen != ftp->flen/chns) {
+     csound->Message(csound, Str("destination table size not matching"
+                     " sweep, size %d frames, need %d\n"), ftp->flen/chns, len);
     return NOTOK;
    }
   }
@@ -340,22 +340,22 @@ static int32_t gen_deconv(FGDATA *ff, FUNC *ftp) {
   sweep = csound->FTFind(csound, &(ff->e.p[5]));
   for(int n = 0; n < chns; n++) {
     if(ff->e.p[n+6] <= 0) {
-      csound->Message(csound, "input table num %d illegal", (int) ff->e.p[n+6]);
+      csound->Message(csound, Str("input table num %d illegal"), (int) ff->e.p[n+6]);
      return NOTOK;
     }
     inp = csound->FTFind(csound, &(ff->e.p[n+6]));
     
     // input length cannot be smaller than sweep length
     if(len) {
-      int32_t ilen =  inp->flen > len ? inp->flen : len;
-      inpd = (MYFLT *) csound->Calloc(csound, ilen*sizeof(MYFLT));  
-      memcpy(inpd, inp->ftable, sizeof(MYFLT)*inp->flen);
+      int32_t ilen =  inp->flen > sweep->flen ? inp->flen : sweep->flen;
+      inpd = (cs_float *) csound->Calloc(csound, ilen*sizeof(cs_float));
+      memcpy(inpd, inp->ftable, sizeof(cs_float)*inp->flen);
       deconvolve(csound, sweep->ftable, inpd, len, ilen);
       for(int i = 0; i < len; i++)
         fp[i*chns + n] = inpd[i];  
       csound->Free(csound, inpd);
     } else {
-      csound->Message(csound, "illegal sweep source table length: %d\n", len);
+      csound->Message(csound, Str("illegal sweep source table length: %d\n"), len);
       return NOTOK;
     }
   }

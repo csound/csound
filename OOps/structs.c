@@ -31,13 +31,13 @@
 #include "csound_orc_structs.h"
 #include "struct_ops.h"
 
-static int32_t nonnegative_index_from_myflt(MYFLT value, int32_t *result)
+static int32_t nonnegative_index_from_myflt(cs_float value, int32_t *result)
 {
-  double widened = (double)value;
+  cs_double widened = (cs_double)value;
 
-  /* Widen before comparing so a float MYFLT cannot round INT32_MAX upward. */
+  /* Widen before comparing so a float cs_float cannot round INT32_MAX upward. */
   if (UNLIKELY(result == NULL || isnan(widened) || widened < 0.0 ||
-               widened > (double)INT32_MAX)) {
+               widened > (INT32_MAX + 0.0))) {
     return NOTOK;
   }
   /* Fractional indexes retain the established truncation behavior. */
@@ -80,7 +80,7 @@ static int32_t struct_value_matches_type(const CS_TYPE *type,
 static int32_t struct_array_flat_index(CSOUND *csound, OPDS *opds,
                                        const char *opcodeName,
                                        const ARRAYDAT *array,
-                                       MYFLT *const *indexes,
+                                       cs_float *const *indexes,
                                        int32_t indexCount,
                                        int32_t initializing,
                                        size_t *result)
@@ -92,51 +92,51 @@ static int32_t struct_array_flat_index(CSOUND *csound, OPDS *opds,
                array->sizes == NULL || indexCount != array->dimensions)) {
     return initializing
       ? csound->InitError(
-          csound, "%s: array dimensions do not match indexes", opcodeName)
+          csound, Str("%s: array dimensions do not match indexes\n"), opcodeName)
       : csound->PerfError(
           csound, opds,
-          "%s: array dimensions do not match indexes", opcodeName);
+          Str("%s: array dimensions do not match indexes\n"), opcodeName);
   }
   for (int32_t i = 0; i < indexCount; i++) {
     int32_t coordinate;
     size_t dimension;
-    MYFLT rawIndex;
+    cs_float rawIndex;
 
     if (UNLIKELY(indexes[i] == NULL || array->sizes[i] <= 0)) {
       return initializing
         ? csound->InitError(csound,
-                            "%s: invalid index or dimension %d",
+                            Str("%s: invalid index or dimension %d\n"),
                             opcodeName, i + 1)
         : csound->PerfError(csound, opds,
-                            "%s: invalid index or dimension %d",
+                            Str("%s: invalid index or dimension %d\n"),
                             opcodeName, i + 1);
     }
     rawIndex = *indexes[i];
     if (UNLIKELY(nonnegative_index_from_myflt(rawIndex, &coordinate) != OK)) {
       return initializing
         ? csound->InitError(csound,
-                            "%s: invalid index for dimension %d",
+                            Str("%s: invalid index for dimension %d\n"),
                             opcodeName, i + 1)
         : csound->PerfError(csound, opds,
-                            "%s: invalid index for dimension %d",
+                            Str("%s: invalid index for dimension %d\n"),
                             opcodeName, i + 1);
     }
     dimension = (size_t)array->sizes[i];
     if (UNLIKELY(coordinate < 0 || (size_t)coordinate >= dimension)) {
       return initializing
         ? csound->InitError(
-            csound, "%s: index %d out of range for dimension %d",
+            csound, Str("%s: index %d out of range for dimension %d\n"),
             opcodeName, coordinate, i + 1)
         : csound->PerfError(
             csound, opds,
-            "%s: index %d out of range for dimension %d",
+            Str("%s: index %d out of range for dimension %d\n"),
             opcodeName, coordinate, i + 1);
     }
     if (UNLIKELY(flatIndex >
                  (SIZE_MAX - (size_t)coordinate) / dimension)) {
       return initializing
-        ? csound->InitError(csound, "%s: index overflow", opcodeName)
-        : csound->PerfError(csound, opds, "%s: index overflow",
+        ? csound->InitError(csound, Str("%s: index overflow\n"), opcodeName)
+        : csound->PerfError(csound, opds, Str("%s: index overflow\n"),
                             opcodeName);
     }
     flatIndex = flatIndex * dimension + (size_t)coordinate;
@@ -159,23 +159,23 @@ static int32_t struct_array_element(CSOUND *csound, OPDS *opds,
                array->data == NULL ||
                array->arrayMemberSize <= 0)) {
     return initializing
-      ? csound->InitError(csound, "%s: invalid array storage", opcodeName)
-      : csound->PerfError(csound, opds, "%s: invalid array storage",
+      ? csound->InitError(csound, Str("%s: invalid array storage\n"), opcodeName)
+      : csound->PerfError(csound, opds, Str("%s: invalid array storage\n"),
                           opcodeName);
   }
   if (UNLIKELY(!csound_array_storage_matches(csound, array))) {
     return initializing
       ? csound->InitError(
-          csound, "%s: inconsistent shared array storage", opcodeName)
+          csound, Str("%s: inconsistent shared array storage\n"), opcodeName)
       : csound->PerfError(
           csound, opds,
-          "%s: inconsistent shared array storage", opcodeName);
+          Str("%s: inconsistent shared array storage\n"), opcodeName);
   }
   elementSize = (size_t)array->arrayMemberSize;
   if (UNLIKELY(index > (SIZE_MAX - elementSize) / elementSize)) {
     return initializing
-      ? csound->InitError(csound, "%s: offset overflow", opcodeName)
-      : csound->PerfError(csound, opds, "%s: offset overflow",
+      ? csound->InitError(csound, Str("%s: offset overflow\n"), opcodeName)
+      : csound->PerfError(csound, opds, Str("%s: offset overflow\n"),
                           opcodeName);
   }
   offset = index * elementSize;
@@ -184,10 +184,10 @@ static int32_t struct_array_element(CSOUND *csound, OPDS *opds,
                offset > allocated - elementSize)) {
     return initializing
       ? csound->InitError(
-          csound, "%s: element exceeds allocated storage", opcodeName)
+          csound, Str("%s: element exceeds allocated storage\n"), opcodeName)
       : csound->PerfError(
           csound, opds,
-          "%s: element exceeds allocated storage", opcodeName);
+          Str("%s: element exceeds allocated storage\n"), opcodeName);
   }
   *result = (char *)array->data + offset;
   return OK;
@@ -206,31 +206,24 @@ static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
 
   if (UNLIKELY(dat == NULL || p->value == NULL)) {
     return initializing
-      ? csound->InitError(csound, "array_set_struct: NULL array or value")
+      ? csound->InitError(csound, Str("array_set_struct: NULL array or value\n"))
       : csound->PerfError(csound, &p->h,
-                          "array_set_struct: NULL array or value");
+                          Str("array_set_struct: NULL array or value\n"));
   }
   if (UNLIKELY(dat->arrayType == NULL ||
                !dat->arrayType->userDefinedType ||
                dat->arrayType->copyValue == NULL)) {
     return initializing
       ? csound->InitError(csound,
-                          "array_set_struct: invalid element type")
+                          Str("array_set_struct: invalid element type\n"))
       : csound->PerfError(csound, &p->h,
-                          "array_set_struct: invalid element type");
+                          Str("array_set_struct: invalid element type\n"));
   }
-  {
-    int32_t result = initializing
-      ? csound_array_prepare_write(csound, dat, p->h.insdshead)
-      : csound_array_try_prepare_write(csound, dat, p->h.insdshead);
-    if (UNLIKELY(result != OK)) {
-      return initializing
-        ? csound->InitError(
-            csound, "array_set_struct: could not detach shared array")
-        : csound->PerfError(
-            csound, &p->h,
-            "array_set_struct: could not detach shared array");
-    }
+  if (UNLIKELY(csound_array_prepare_opcode_write(
+                 csound, dat, &p->h, initializing,
+                 Str("array_set_struct: could not prepare array for writing"))
+               != OK)) {
+    return NOTOK;
   }
   if (UNLIKELY(struct_array_flat_index(csound, &p->h, "array_set_struct",
                                        dat, p->indexes, indexCount,
@@ -249,40 +242,36 @@ static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
   if (UNLIKELY(!struct_value_matches_type(dat->arrayType, source))) {
     return initializing
       ? csound->InitError(
-          csound, "array_set_struct: value does not match type")
+          csound, Str("array_set_struct: value does not match type\n"))
       : csound->PerfError(
           csound, &p->h,
-          "array_set_struct: value does not match type");
+          Str("array_set_struct: value does not match type\n"));
   }
   if (destination->members == NULL) {
     if (!initializing) {
       return csound->PerfError(
         csound, &p->h,
-        "array_set_struct: destination was not prepared during init");
+        Str("array_set_struct: destination was not prepared during init\n"));
     }
-    CS_VARIABLE *var = array_element_create_variable(
-      csound, dat->arrayType, p->h.insdshead);
-    if (UNLIKELY(var == NULL || var->initializeVariableMemory == NULL)) {
-      if (var != NULL) {
-        csound->Free(csound, var);
-      }
+    size_t allocated = csound_array_allocated_bytes(csound, dat);
+    if (UNLIKELY(csound_array_initialize_element_range(
+                   csound, dat, allocated, index, index + 1,
+                   p->h.insdshead) != OK)) {
       return initializing
         ? csound->InitError(
-            csound, "array_set_struct: cannot initialize element")
+            csound, Str("array_set_struct: cannot initialize element\n"))
         : csound->PerfError(
             csound, &p->h,
-            "array_set_struct: cannot initialize element");
+            Str("array_set_struct: cannot initialize element\n"));
     }
-    var->initializeVariableMemory(csound, var, element);
-    csound->Free(csound, var);
   }
   if (UNLIKELY(!struct_value_matches_type(dat->arrayType, destination))) {
     return initializing
       ? csound->InitError(
-          csound, "array_set_struct: destination does not match type")
+          csound, Str("array_set_struct: destination does not match type\n"))
       : csound->PerfError(
           csound, &p->h,
-          "array_set_struct: destination does not match type");
+          Str("array_set_struct: destination does not match type\n"));
   }
 
   /* The registered copier carries nested-array ownership through ordinary
@@ -292,9 +281,9 @@ static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
                  p->h.insdshead, copyMode) != OK)) {
     return initializing
       ? csound->InitError(csound,
-                          "array_set_struct: could not copy value")
+                          Str("array_set_struct: could not copy value\n"))
       : csound->PerfError(csound, &p->h,
-                          "array_set_struct: could not copy value");
+                          Str("array_set_struct: could not copy value\n"));
   }
   return OK;
 }
@@ -306,15 +295,16 @@ int32_t array_set_struct_init(CSOUND *csound, ARRAY_SET *p)
   if (UNLIKELY(dat == NULL || dat->arrayType == NULL ||
                !dat->arrayType->userDefinedType)) {
     return csound->InitError(csound,
-                             "array_set_struct: invalid destination");
+                             Str("array_set_struct: invalid destination\n"));
   }
   /* Preparation must not perform the k-rate assignment early. It only makes
      the outer destination independent; nested value storage is copied when
      the assignment actually executes. */
-  if (UNLIKELY(csound_array_prepare_write(csound, dat,
-                                          p->h.insdshead) != OK)) {
-    return csound->InitError(
-      csound, "array_set_struct: could not prepare writable array");
+  if (UNLIKELY(csound_array_prepare_opcode_write(
+                 csound, dat, &p->h, 1,
+                 Str("array_set_struct: could not prepare array for writing"))
+               != OK)) {
+    return NOTOK;
   }
   return OK;
 }
@@ -353,21 +343,21 @@ int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
 {
   if (UNLIKELY(p->nths[0] == NULL)) {
     return csound->PerfError(csound, &p->h,
-                             "Invalid member index pointer (NULL)");
+                             Str("Invalid member index pointer (NULL)\n"));
   }
   if (UNLIKELY(p->out == NULL)) {
     return csound->PerfError(csound, &p->h,
-                             "Invalid struct member output (NULL)");
+                             Str("Invalid struct member output (NULL)\n"));
   }
 
   if (UNLIKELY(p->var == NULL)) {
-    return csound->PerfError(csound, &(p->h), "Invalid struct pointer (NULL)");
+    return csound->PerfError(csound, &(p->h), Str("Invalid struct pointer (NULL)\n"));
   }
 
   CS_STRUCT_VAR* varIn = (CS_STRUCT_VAR*)p->var;
 
   if (UNLIKELY(varIn == NULL || varIn->members == NULL)) {
-    return csound->PerfError(csound, &(p->h), "Invalid struct for member_get");
+    return csound->PerfError(csound, &(p->h), Str("Invalid struct for member_get\n"));
   }
 
   /* Safety: detect type confusion (ARRAYDAT being accessed as CS_STRUCT_VAR) */
@@ -375,25 +365,26 @@ int32_t struct_member_get(CSOUND *csound, STRUCT_GET *p)
     ARRAYDAT* arrayDat = (ARRAYDAT*)varIn;
     if (arrayDat->arrayType && arrayDat->arrayType->userDefinedType) {
       return csound->PerfError(csound, &(p->h),
-        "Type confusion: trying to access array of structs as single struct. "
-        "Use array[index].member syntax instead of array.member");
+        /* TRANSLATORS: Keep array[index].member and array.member unchanged. */
+        Str("Type confusion: trying to access array of structs as single struct. "
+        "Use array[index].member syntax instead of array.member\n"));
     }
-    return csound->PerfError(csound, &(p->h), "Corrupted struct: invalid memberCount=%d", varIn->memberCount);
+    return csound->PerfError(csound, &(p->h), Str("Corrupted struct: invalid memberCount=%d\n"), varIn->memberCount);
   }
 
   int32_t nthInt;
   if (UNLIKELY(nonnegative_index_from_myflt(*p->nths[0], &nthInt) != OK)) {
-    return csound->PerfError(csound, &p->h, "Invalid member index");
+    return csound->PerfError(csound, &p->h, Str("Invalid member index\n"));
   }
 
   if (UNLIKELY(nthInt >= varIn->memberCount)) {
-    return csound->PerfError(csound, &(p->h), "Invalid member index %d (memberCount=%d)", nthInt, varIn->memberCount);
+    return csound->PerfError(csound, &(p->h), Str("Invalid member index %d (memberCount=%d)\n"), nthInt, varIn->memberCount);
   }
 
   CS_VAR_MEM* member = varIn->members[nthInt];
   if (UNLIKELY(member == NULL)) {
     return csound->PerfError(csound, &p->h,
-                             "Struct member %d is not initialized", nthInt);
+                             Str("Struct member %d is not initialized\n"), nthInt);
   }
 
   /* Use type-aware copy so array members and non-scalars are handled */
@@ -427,17 +418,17 @@ int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
 {
   // Check if the member index pointer is NULL before dereferencing
   if (UNLIKELY(p->nths[0] == NULL)) {
-    return csound->PerfError(csound, &(p->h), "Invalid member index pointer (NULL)");
+    return csound->PerfError(csound, &(p->h), Str("Invalid member index pointer (NULL)\n"));
   }
 
   // Check if p->var is NULL before casting
   if (UNLIKELY(p->var == NULL)) {
     return csound->PerfError(csound, &p->h,
-                             "Invalid struct pointer (NULL)");
+                             Str("Invalid struct pointer (NULL)\n"));
   }
   if (UNLIKELY(p->in == NULL)) {
     return csound->PerfError(csound, &p->h,
-                             "Invalid struct member input (NULL)");
+                             Str("Invalid struct member input (NULL)\n"));
   }
 
   CS_STRUCT_VAR* var = (CS_STRUCT_VAR*)p->var;
@@ -449,30 +440,31 @@ int32_t struct_member_set(CSOUND *csound, STRUCT_SET *p)
       arrayCheck->arrayType && arrayCheck->arrayType->userDefinedType &&
       arrayCheck->data != NULL) {
     return csound->PerfError(csound, &(p->h),
-      "Cannot directly access array[index].member for struct arrays. "
-      "Use: temp = array[index]; temp.member = value; array[index] = temp");
+      /* TRANSLATORS: Keep array[index].member and the code after "Use:" unchanged. */
+      Str("Cannot directly access array[index].member for struct arrays. "
+      "Use: temp = array[index]; temp.member = value; array[index] = temp\n"));
   }
 
   if (UNLIKELY(var == NULL || var->members == NULL))
-    return csound->PerfError(csound, &(p->h), "Invalid struct for member_set");
+    return csound->PerfError(csound, &(p->h), Str("Invalid struct for member_set\n"));
 
   if (UNLIKELY(var->memberCount <= 0 || var->memberCount > 1000)) {
-    return csound->PerfError(csound, &(p->h), "Corrupted struct: invalid memberCount=%d", var->memberCount);
+    return csound->PerfError(csound, &(p->h), Str("Corrupted struct: invalid memberCount=%d\n"), var->memberCount);
   }
 
   int32_t nthInt;
   if (UNLIKELY(nonnegative_index_from_myflt(*p->nths[0], &nthInt) != OK)) {
-    return csound->PerfError(csound, &p->h, "Invalid member index");
+    return csound->PerfError(csound, &p->h, Str("Invalid member index\n"));
   }
 
   if (UNLIKELY(nthInt >= var->memberCount)) {
-    return csound->PerfError(csound, &(p->h), "Invalid member index %d (memberCount=%d)", nthInt, var->memberCount);
+    return csound->PerfError(csound, &(p->h), Str("Invalid member index %d (memberCount=%d)\n"), nthInt, var->memberCount);
   }
 
   CS_VAR_MEM* member = var->members[nthInt];
   if (UNLIKELY(member == NULL)) {
     return csound->PerfError(csound, &p->h,
-                             "Struct member %d is not initialized", nthInt);
+                             Str("Struct member %d is not initialized\n"), nthInt);
   }
 
   /* Type-aware assignment; fall back to scalar write */
@@ -493,37 +485,37 @@ int32_t struct_member_array_assign(
 ) {
     // Check if the member index pointer is NULL before dereferencing
     if (UNLIKELY(p->nths[0] == NULL)) {
-      return csound->PerfError(csound, &(p->h), "Invalid member index pointer (NULL)");
+      return csound->PerfError(csound, &(p->h), Str("Invalid member index pointer (NULL)\n"));
     }
 
     // Check if p->var is NULL before casting
     if (UNLIKELY(p->var == NULL)) {
       return csound->PerfError(csound, &p->h,
-                               "Invalid struct pointer (NULL)");
+                               Str("Invalid struct pointer (NULL)\n"));
     }
     if (UNLIKELY(p->in == NULL)) {
       return csound->PerfError(csound, &p->h,
-                               "Invalid array member input (NULL)");
+                               Str("Invalid array member input (NULL)\n"));
     }
 
     CS_STRUCT_VAR* var = (CS_STRUCT_VAR*)p->var;
     int32_t nthInt;
 
     if (UNLIKELY(var == NULL || var->members == NULL))
-      return csound->PerfError(csound, &(p->h), "Invalid struct for member_array_assign");
+      return csound->PerfError(csound, &(p->h), Str("Invalid struct for member_array_assign\n"));
 
     if (UNLIKELY(nonnegative_index_from_myflt(*p->nths[0], &nthInt) != OK)) {
-      return csound->PerfError(csound, &p->h, "Invalid member index");
+      return csound->PerfError(csound, &p->h, Str("Invalid member index\n"));
     }
     if (UNLIKELY(nthInt >= var->memberCount)) {
       return csound->PerfError(csound, &(p->h),
-        "Member index %d out of bounds (memberCount=%d)", nthInt, var->memberCount);
+        Str("Member index %d out of bounds (memberCount=%d)\n"), nthInt, var->memberCount);
     }
 
     CS_VAR_MEM* member = var->members[nthInt];
 
     if (UNLIKELY(member == NULL || member->varType != &CS_VAR_TYPE_ARRAY)) {
-      return csound->PerfError(csound, &(p->h), "Selected member is not an array for member_array_assign");
+      return csound->PerfError(csound, &(p->h), Str("Selected member is not an array for member_array_assign\n"));
     }
 
     ARRAYDAT* dst = (ARRAYDAT*) &member->value;
@@ -540,7 +532,7 @@ int32_t struct_alias(CSOUND *csound, STRUCT_ALIAS *p)
   CS_STRUCT_VAR* dst = p->dst;
   CS_STRUCT_VAR* src = p->src;
   if (UNLIKELY(dst == NULL || src == NULL))
-    return csound->PerfError(csound, &(p->h), "Invalid struct for struct_alias");
+    return csound->PerfError(csound, &(p->h), Str("Invalid struct for struct_alias\n"));
 
   /* Capture existing destination members for deferred free at deinit */
   p->oldMembers = NULL;
@@ -550,7 +542,7 @@ int32_t struct_alias(CSOUND *csound, STRUCT_ALIAS *p)
   if (dst->ownsMembers && dst->members && dst->memberCount > 0) {
     p->oldMembers = dst->members;
     p->oldMemberCount = dst->memberCount;
-    p->oldOwned = 1;
+    p->oldOwned = dst->ownsMembers;
   }
 
   /* BIDIRECTIONAL ALIASING: Both structs should point to the same shared memory
@@ -590,18 +582,18 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
   if (UNLIKELY(arrayDat == NULL || destination == NULL)) {
     return initializing
       ? csound->InitError(
-          csound, "struct_array_get: NULL array or output")
+          csound, Str("struct_array_get: NULL array or output\n"))
       : csound->PerfError(
-          csound, &dat->h, "struct_array_get: NULL array or output");
+          csound, &dat->h, Str("struct_array_get: NULL array or output\n"));
   }
   if (UNLIKELY(arrayDat->arrayType == NULL ||
                !arrayDat->arrayType->userDefinedType ||
                arrayDat->arrayType->copyValue == NULL)) {
     return initializing
       ? csound->InitError(
-          csound, "struct_array_get: invalid element type")
+          csound, Str("struct_array_get: invalid element type\n"))
       : csound->PerfError(
-          csound, &dat->h, "struct_array_get: invalid element type");
+          csound, &dat->h, Str("struct_array_get: invalid element type\n"));
   }
 
   /* A declared array can have complete dimensions before its backing store is
@@ -609,12 +601,12 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
   if (arrayDat->data == NULL) {
     if (!initializing) {
       return csound->PerfError(
-        csound, &dat->h, "struct_array_get: array is not initialized");
+        csound, &dat->h, Str("struct_array_get: array is not initialized\n"));
     }
     if (UNLIKELY(csound_array_member_count(arrayDat, &totalSize) != OK ||
                  totalSize > INT32_MAX)) {
       return csound->InitError(csound,
-                               "Invalid struct array dimensions");
+                               Str("Invalid struct array dimensions\n"));
     }
     if (UNLIKELY(tabinit(csound, arrayDat, (int32_t)totalSize,
                          dat->h.insdshead) != OK))
@@ -637,10 +629,10 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
   if (UNLIKELY(!struct_value_matches_type(arrayDat->arrayType, source))) {
     return initializing
       ? csound->InitError(
-          csound, "struct_array_get: element does not match type")
+          csound, Str("struct_array_get: element does not match type\n"))
       : csound->PerfError(
           csound, &dat->h,
-          "struct_array_get: element does not match type");
+          Str("struct_array_get: element does not match type\n"));
   }
 
   if (destination->members == NULL || !destination->ownsMembers ||
@@ -666,22 +658,22 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
       }
       return initializing
         ? csound->InitError(
-            csound, "Could not initialize struct array output")
+            csound, Str("Could not initialize struct array output\n"))
         : csound->PerfError(
             csound, &dat->h,
-            "Could not initialize struct array output");
+            Str("Could not initialize struct array output\n"));
     }
-    helper->initializeVariableMemory(csound, helper, (MYFLT *)destination);
+    helper->initializeVariableMemory(csound, helper, (cs_float *)destination);
     csound->Free(csound, helper);
   }
   if (UNLIKELY(!struct_value_matches_type(arrayDat->arrayType,
                                           destination))) {
     return initializing
       ? csound->InitError(
-          csound, "struct_array_get: output does not match type")
+          csound, Str("struct_array_get: output does not match type\n"))
       : csound->PerfError(
           csound, &dat->h,
-          "struct_array_get: output does not match type");
+          Str("struct_array_get: output does not match type\n"));
   }
 
   arrayDat->arrayType->copyValue(csound, arrayDat->arrayType,
@@ -696,7 +688,7 @@ int32_t struct_alias_deinit(CSOUND *csound, STRUCT_ALIAS *p)
     CS_STRUCT_VAR tmp;
     tmp.members     = p->oldMembers;
     tmp.memberCount = p->oldMemberCount;
-    tmp.ownsMembers = 1;
+    tmp.ownsMembers = p->oldOwned;
     /* Deep-free the previously owned member storage now that i-time is over */
     csound_free_struct_members(csound, &tmp);
     p->oldMembers = NULL;
@@ -712,14 +704,14 @@ int32_t struct_init(CSOUND *csound, STRUCT_INIT *p)
   CS_STRUCT_VAR* structVar = p->out;
 
   if (UNLIKELY(structVar == NULL)) {
-    return csound->PerfError(csound, &(p->h), "Invalid struct variable for initialization");
+    return csound->PerfError(csound, &(p->h), Str("Invalid struct variable for initialization\n"));
   }
 
   // The struct variable should already be created by the type system
   // We just need to initialize its members with the provided values
 
   if (UNLIKELY(structVar->members == NULL || structVar->memberCount == 0)) {
-    return csound->PerfError(csound, &(p->h), "Struct has no members to initialize");
+    return csound->PerfError(csound, &(p->h), Str("Struct has no members to initialize\n"));
   }
 
   // Get the number of input arguments (excluding the output)
@@ -730,7 +722,7 @@ int32_t struct_init(CSOUND *csound, STRUCT_INIT *p)
 
   if (UNLIKELY(argCount != structVar->memberCount)) {
     return csound->PerfError(csound, &(p->h),
-                            "Struct initialization: expected %d arguments, got %d",
+                            Str("Struct initialization: expected %d arguments, got %d\n"),
                             structVar->memberCount, argCount);
   }
 
@@ -738,7 +730,7 @@ int32_t struct_init(CSOUND *csound, STRUCT_INIT *p)
   for (int32_t i = 0; i < structVar->memberCount; i++) {
     CS_VAR_MEM* member = structVar->members[i];
     if (UNLIKELY(member == NULL)) {
-      return csound->PerfError(csound, &(p->h), "Struct member %d is NULL", i);
+      return csound->PerfError(csound, &(p->h), Str("Struct member %d is NULL\n"), i);
     }
 
     if (member->varType && member->varType->copyValue) {

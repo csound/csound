@@ -96,7 +96,7 @@ void csoundInitDisplay(CSOUND *csound)
 
 void csoundSetDisplay(CSOUND *csound,            /* setup a new window       */
              WINDAT *wdptr,             /*   & init the data struct */
-             MYFLT  *fdata,
+             cs_float  *fdata,
              int32  npts,
              char   *caption,
              int32_t    waitflg,
@@ -145,11 +145,11 @@ int32_t csoundDeinitDisplay(CSOUND *csound)
     return ret;
 }
 
-void csoundDisplay(CSOUND *csound, WINDAT *wdptr)   /* prepare a MYFLT array, then  */
+void csoundDisplay(CSOUND *csound, WINDAT *wdptr)   /* prepare a cs_float array, then  */
                                               /*   call the graphing fn       */
 {
-    MYFLT   *fp, *fplim;
-    MYFLT   max, min, absmax, fval;
+    cs_float   *fp, *fplim;
+    cs_float   max, min, absmax, fval;
     int32_t     pol;
    const OPARMS * O;
     O = csound->GetOParms(csound) ;

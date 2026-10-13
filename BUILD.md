@@ -47,6 +47,12 @@ use linear interpolation for sample rate conversion. Default is ON.
 - `BUILD_PLUGINS=`: build all external opcodes as plugin libraries.
 This option is disabled by default.
 
+- `USE_WASMTIME=`: allow CMake to build native WebAssembly opcode support when
+it finds the Wasmtime C API. This option is enabled by default. Set it to
+`OFF` to disable the feature even when Wasmtime is installed. Set
+`Wasmtime_ROOT` if the Wasmtime package is outside CMake's normal search paths.
+See [Native Csound WebAssembly plugins](platform/wasm-wasi/NATIVE_OPCODE_PLUGINS.md).
+
 -`DCUSTOM_CMAKE=`: with this option you can specify a custom.cmake
 file containing build options and CMake variables to control the build.
 
@@ -157,7 +163,7 @@ be installed (`brew install bison` is an alternative to building from
 upstream sources).
 
 ```
-cd iOS
+cd platform/ios
 chmod +x build_libsndfile.sh
 ./build_libsndfile.sh
 build.sh
@@ -229,18 +235,79 @@ cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.c
 cmake --build build --config Release
 ```
 
-If you wish to build the installer, use the following commands. The first four set the location of the MS C/C++ runtime libraries that need to be packaged with Csound. Note that the `C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build` path might need updating depending on your installed version of Visual Studio:
+If you wish to build the installer, download the Visual C++ Redistributable installer (pinned to VS 2022 / `vs/17` stable, bundled offline) and then run Inno Setup. The installer will run `vc_redist.x64.exe` silently during Csound installation so loose VCRUNTIME DLLs are no longer shipped (avoids Windows Defender false positives). The redistributable requires admin elevation (`PrivilegesRequired=admin`).
+
+For 64-bit:
 
 ```powershell
-$Env:RedistVersion = Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-$Env:VCREDIST_CRT_DIR = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CRT"
-$Env:VCREDIST_CXXAMP_DIR = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CXXAMP"
-$Env:VCREDIST_OPENMP_DIR = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.OpenMP"
+Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x64.exe -OutFile installer/windows/vc_redist.x64.exe
 iscc /o. installer\windows\csound7_x64_github.iss
 ```
 
+For 32-bit:
+
+```powershell
+Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x86.exe -OutFile installer/windows/vc_redist.x86.exe
+iscc /o. installer\windows\csound7_x86_github.iss
+```
+
+### Windows ARM64
+
+The ARM64 package runs natively on Windows on Arm. It includes the command-line
+tools, Csound library, plugins and headers. Applications that load the library
+and any extra plugins must also target ARM64.
+
+Build on Windows on Arm with Visual Studio 2026, the ARM64 C++ build tools and a
+Windows SDK. Install the prerequisites and initialize vcpkg as described above. Use a fresh checkout
+or remove an old `build` directory before changing architectures.
+
+```powershell
+cmake -B build -S . -G "Visual Studio 18 2026" -A ARM64 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
+cmake --build build --config Release
+cmake --install build --prefix build\install --config Release
+```
+
+CMake selects `arm64-windows-static` for the dependencies. The CI job uses a
+native `windows-11-arm` runner and runs the existing CSD and C++ tests there.
+The installer and binaries are available as workflow artifacts and release
+assets.
+
+Set the version and build number before packaging a local build. Download the
+ARM64 Visual C++ runtime and compile the installer with Inno Setup 6.3 or later.
+
+```powershell
+$env:CSOUND_VERSION = "7.0-local"
+$env:GITHUB_RUN_NUMBER = "1"
+Invoke-WebRequest -Uri https://aka.ms/vc14/vc_redist.arm64.exe -OutFile installer/windows/vc_redist.arm64.exe
+iscc /o. installer\windows\csound7_arm64_github.iss
+```
+
+The installer accepts only ARM64 Windows and uses `C:\Program Files\Csound7 ARM64`.
+It bundles the ARM64 runtime for offline installation. The Windows installers
+share `PATH`, `OPCODE7DIR64` and `RAWWAVE_PATH`. The last installation sets
+`OPCODE7DIR64` and `RAWWAVE_PATH` for all copies. If you keep an x64 installation
+too, use the full path to the desired executable and set `OPCODE7DIR64` and
+`RAWWAVE_PATH` to its `plugins64` and `samples` directories.
+
+Uninstalling a copy leaves plugin and sample paths that point elsewhere alone.
+If they point to the copy being removed, the uninstaller clears them. Set them
+again for any copy you keep.
+
 If you wish to customize the build in any way, you can modify the `Custom-vs.cmake` file in the `platform\windows` directory. For common options, refer to "Useful CMake Options" above.
 
+### Windows audio backends
+
+The x64 and ARM64 installers include PortAudio, WASAPI and Windows MME.
+Use `-+rtaudio=wasapi` to select the native WASAPI backend. It uses exclusive
+mode when the device accepts Csound's rate, channel count and float format.
+Otherwise it tries shared mode with Windows audio engine conversion enabled
+through `AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM`.
+
+Shared mode requires the audio engine to accept this conversion request for
+playback or capture. If it cannot, Csound reports the HRESULT and stops opening
+the stream. It does not fall back to an unconverted device format, which could
+change pitch, duration or channel layout. Try `-+rtaudio=pa` to use PortAudio
+instead. The Windows ARM64 workflow uses Windows 11.
 
 
 

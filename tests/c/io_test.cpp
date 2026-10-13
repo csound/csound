@@ -10,7 +10,7 @@
 #include "csoundCore.h"
 #include "filesys.h"
 
-extern "C" int32_t csoundKillInstance(CSOUND *, MYFLT, char *, int32_t,
+extern "C" int32_t csoundKillInstance(CSOUND *, cs_float, char *, int32_t,
                                        int32_t, int32_t);
 
 typedef struct {
@@ -131,6 +131,22 @@ TEST_F (IOTests, testDeviceList)
     }
 }
 
+TEST_F (IOTests, testRunUtilityLoadsDefaultModules)
+{
+#ifndef CSOUND_TEST_PLUGIN_DIR
+    GTEST_SKIP() << "The stdutil plugin is not built";
+#else
+    char utility[] = "sndinfo";
+    char *argv[] = {utility};
+
+    // Set the search path without loading plugins before csoundRunUtility().
+    const std::string option = std::string(sizeof(cs_float) == sizeof(float)
+        ? "--env:OPCODE7DIR=" : "--env:OPCODE7DIR64=") + CSOUND_TEST_PLUGIN_DIR;
+    ASSERT_EQ(csoundSetOption(csound, option.c_str()), 0);
+    EXPECT_EQ(csoundRunUtility(csound, "sndinfo", 1, argv), 0);
+#endif
+}
+
 int32_t key_callback_evt(void *userData, void *p, uint32_t type)
 {
     int32_t *prev = (int32_t *) userData;
@@ -198,7 +214,7 @@ TEST_F (IOTests, testKeyboardIO)
     ASSERT_TRUE (ret == CSOUND_SUCCESS);
 
     // TODO these assertions are failing
-    // MYFLT val = csoundGetControlChannel(csound, "key", &err);
+    // cs_float val = csoundGetControlChannel(csound, "key", &err);
     // ASSERT_DOUBLE_EQ (val, 100.0);
 
     // val = csoundGetControlChannel(csound, "key2", &err);
@@ -241,6 +257,90 @@ TEST_F (IOTests, testSynchronousCloseWhileAsyncWorkerRuns)
     ASSERT_EQ(csoundFileClose(csound, asyncHandle, CSFILE_CLOSE_SYNC), 0);
     EXPECT_TRUE(retiredFilesEmpty());
     EXPECT_EQ(remove(asyncPath.c_str()), 0);
+}
+
+TEST_F(IOTests, testAsyncOutputDrainsBeforeClose)
+{
+    struct Writer {
+      int64_t (*write)(CSOUND *, void *, cs_float *, int64_t);
+      int32_t (*close)(CSOUND *, void *);
+      std::thread::id closer;
+    } writer = {csound->SndfileWriteSamples, csound->SndfileClose, {}};
+    std::string path = ::testing::TempDir() + "csound_async_output_" +
+                      std::to_string(reinterpret_cast<uintptr_t>(csound)) + ".wav";
+    cs_float samples[160], result[160];
+    for (int i = 0; i < 160; ++i) samples[i] = i / FL(256.0);
+
+    for (uint32_t flags : {CSFILE_CLOSE_SYNC, CSFILE_CLOSE_DEFER}) {
+      writer.closer = {};
+      csoundSetHostData(csound, &writer);
+      csound->SndfileWriteSamples = [](CSOUND *cs, void *sf, cs_float *data,
+                                      int64_t count) -> int64_t {
+        auto *writer = static_cast<Writer *>(csoundGetHostData(cs));
+        return writer->write(cs, sf, data, std::min<int64_t>(count, 7));
+      };
+      csound->SndfileClose = [](CSOUND *cs, void *sf) -> int32_t {
+        auto *writer = static_cast<Writer *>(csoundGetHostData(cs));
+        writer->closer = std::this_thread::get_id();
+        return writer->close(cs, sf);
+      };
+      SFLIB_INFO info = {};
+      info.samplerate = 48000;
+      info.channels = 1;
+      info.format = TYP2SF(TYP_WAV) | AE_FLOAT;
+      void *sf = nullptr;
+      void *file = csoundFileOpenAsync(csound, &sf, CSFILE_SND_W, path.c_str(),
+                                      &info, nullptr, CSFTYPE_WAVE, 64, 0);
+      ASSERT_NE(file, nullptr);
+      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+      EXPECT_EQ(csound->WriteAsync(csound, file, samples, 160), 160u);
+      EXPECT_EQ(csoundFileClose(csound, file, flags), 0);
+      if (flags == CSFILE_CLOSE_DEFER)
+        EXPECT_EQ(writer.closer, std::thread::id());
+      csound->NotifyThreadLock(csound->file_io_threadlock);
+      csoundReset(csound);  // Join the worker before reading the closed file.
+      EXPECT_NE(writer.closer, std::thread::id());
+      EXPECT_EQ(writer.closer == std::this_thread::get_id(),
+                flags == CSFILE_CLOSE_SYNC);
+      csound->SndfileWriteSamples = writer.write;
+      csound->SndfileClose = writer.close;
+      csoundSetHostData(csound, nullptr);
+
+      info = {};
+      sf = csound->SndfileOpen(csound, path.c_str(), SFM_READ, &info);
+      ASSERT_NE(sf, nullptr);
+      EXPECT_EQ(info.frames, 160);
+      EXPECT_EQ(csound->SndfileReadSamples(csound, sf, result, 160), 160);
+      for (int i = 0; i < 160; ++i) EXPECT_EQ(result[i], samples[i]);
+      EXPECT_EQ(csound->SndfileClose(csound, sf), 0);
+      EXPECT_EQ(remove(path.c_str()), 0);
+    }
+}
+
+TEST_F(IOTests, testAsyncCloseReportsWriteFailure)
+{
+    std::string path = ::testing::TempDir() + "csound_async_error_" +
+                      std::to_string(reinterpret_cast<uintptr_t>(csound)) + ".wav";
+    SFLIB_INFO info = {};
+    info.samplerate = 48000;
+    info.channels = 1;
+    info.format = TYP2SF(TYP_WAV) | AE_FLOAT;
+    void *sf = nullptr;
+    void *file = csoundFileOpenAsync(csound, &sf, CSFILE_SND_W, path.c_str(),
+                                    &info, nullptr, CSFTYPE_WAVE, 64, 0);
+    ASSERT_NE(file, nullptr);
+    csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+    auto savedWrite = csound->SndfileWriteSamples;
+    csound->SndfileWriteSamples = [](CSOUND *, void *, cs_float *, int64_t) -> int64_t {
+      return 0;
+    };
+    cs_float sample = FL(0.5);
+    EXPECT_EQ(csound->WriteAsync(csound, file, &sample, 1), 1u);
+    EXPECT_EQ(csoundFileClose(csound, file, CSFILE_CLOSE_SYNC), NOTOK);
+    csound->SndfileWriteSamples = savedWrite;
+    csound->NotifyThreadLock(csound->file_io_threadlock);
+    csoundReset(csound);
+    EXPECT_EQ(remove(path.c_str()), 0);
 }
 
 TEST_F (IOTests, testSynchronousCloseReportsBorrowedFileError)
@@ -426,7 +526,7 @@ TEST_F (IOTests, testReadline)
     csoundEventString(csound, "i 1 0 1", 0);
     ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
 
-    MYFLT status = 0;
+    cs_float status = 0;
     int32_t error = 0;
     for (int32_t cycle = 0; cycle < 32 && status == 0; cycle++) {
         ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
@@ -462,7 +562,7 @@ TEST_F (IOTests, testReadlineHostInput)
               CSOUND_SUCCESS);
     ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
 
-    MYFLT status = 0;
+    cs_float status = 0;
     int32_t error = 0;
     for (int32_t cycle = 0; cycle < 32 && status == 0; cycle++) {
         ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
@@ -521,7 +621,7 @@ TEST_F (IOTests, testReadlineReportsEof)
     ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
 
     int32_t error = 0;
-    MYFLT status = csoundGetControlChannel(
+    cs_float status = csoundGetControlChannel(
         csound, "readline_status", &error);
     ASSERT_EQ(error, CSOUND_SUCCESS);
     ASSERT_EQ(status, FL(-1.0));
@@ -716,23 +816,23 @@ TEST_F (IOTests, testSpoutFilledWhenKsmpsExceedsSoftwareBuffer)
     ASSERT_EQ(csoundGetKsmps(csound), (uint32_t) 512);
     ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
 
-    const MYFLT *spout = csoundGetSpout(csound);
+    const cs_float *spout = csoundGetSpout(csound);
     ASSERT_NE(spout, nullptr);
     const uint32_t ksmps = csoundGetKsmps(csound);
     const uint32_t nchnls = csoundGetChannels(csound, 0);
     ASSERT_EQ(nchnls, (uint32_t) 2);
 
     int32_t zerosAfterFirst = 0;
-    MYFLT peak = FL(0.0);
-    MYFLT maxStep = FL(0.0);
-    MYFLT prev = spout[0];
+    cs_float peak = FL(0.0);
+    cs_float maxStep = FL(0.0);
+    cs_float prev = spout[0];
     for (uint32_t i = 0; i < ksmps; ++i) {
-      MYFLT sample = spout[i * nchnls];
+      cs_float sample = spout[i * nchnls];
       if (i > 0 && sample == FL(0.0))
         zerosAfterFirst++;
-      if (std::fabs((double) sample) > (double) peak)
+      if (std::fabs((cs_double) sample) > (cs_double) peak)
         peak = sample >= FL(0.0) ? sample : -sample;
-      MYFLT step = sample - prev;
+      cs_float step = sample - prev;
       if (step < FL(0.0))
         step = -step;
       if (step > maxStep)
@@ -741,9 +841,9 @@ TEST_F (IOTests, testSpoutFilledWhenKsmpsExceedsSoftwareBuffer)
     }
 
     /* 0.1 * sin(2*pi*400*t) at 48 kHz: max adjacent step ~ 0.00524. */
-    const MYFLT expectedMaxStep =
-      (MYFLT) (0.1 * 2.0 * 3.14159265358979323846 * 400.0 / 48000.0 * 1.5);
-    EXPECT_GT(peak, (MYFLT) 0.05) << "expected a sounding 400 Hz tone";
+    const cs_float expectedMaxStep =
+      (cs_float) (0.1 * 2.0 * 3.14159265358979323846 * 400.0 / 48000.0 * 1.5);
+    EXPECT_GT(peak, (cs_float) 0.05) << "expected a sounding 400 Hz tone";
     EXPECT_LT(zerosAfterFirst, 2)
       << "trailing k-cycle frames were left as kperf zeros (ksmps > -b)";
     EXPECT_LT(maxStep, expectedMaxStep)
@@ -797,17 +897,17 @@ TEST_F (IOTests, testSoftwareBufferClampedToKsmpsPreservesBRatio)
       << "expected a warning that -b was raised; got:\n" << messages;
 
     ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
-    const MYFLT *spout = csoundGetSpout(csound);
+    const cs_float *spout = csoundGetSpout(csound);
     ASSERT_NE(spout, nullptr);
-    MYFLT peak = FL(0.0);
+    cs_float peak = FL(0.0);
     for (uint32_t i = 0; i < 512; ++i) {
-      MYFLT sample = spout[i * nchnls];
+      cs_float sample = spout[i * nchnls];
       if (sample < FL(0.0))
         sample = -sample;
       if (sample > peak)
         peak = sample;
     }
-    EXPECT_GT(peak, (MYFLT) 0.05) << "expected a sounding 400 Hz tone";
+    EXPECT_GT(peak, (cs_float) 0.05) << "expected a sounding 400 Hz tone";
 }
 
 TEST_F (IOTests, testSoftwareBufferUnchangedWhenKsmpsFits)

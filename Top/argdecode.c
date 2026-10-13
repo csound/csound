@@ -350,12 +350,13 @@ static const char *longUsageList[] = {
     Str_noop("--run-unit-tests        enable assertion opcodes and report test failures"),
     Str_noop("                          (assertions are ignored by default)"),
     Str_noop("--error-deprecated      trigger compilation error on deprecated opcodes"),
+    Str_noop("--no-deprecated-warnings suppress deprecation warnings"),
     Str_noop("--recursion-depth=n    set max UDO recursion depth to n"),
     Str_noop("--help                  long help"),
     NULL};
 
 /* IV - Feb 19 2005 */
-void print_short_usage(CSOUND *csound) {
+static void print_short_usage(CSOUND *csound) {
   char buf[256];
   int32_t i;
   i = -1;
@@ -462,7 +463,7 @@ static const SAMPLE_FORMAT_ENTRY sample_format_map[] = {
     {"double", 'd'}, {"long", 'l'},   {"short", 's'}, {"ulaw", 'u'},
     {"24bit", '3'},  {"vorbis", 'v'}, {NULL, '\0'}};
 
-const char *get_output_format(OPARMS *O) {
+static const char *get_output_format(OPARMS *O) {
   int32_t i = 0;
   char c;
   switch (O->outformat) {
@@ -525,6 +526,27 @@ static const SOUNDFILE_TYPE_ENTRY file_type_map[] = {
 extern void sf_open_out(CSOUND *csound);
 extern void sf_close_out(CSOUND *csound);
 
+/* Parse a verbosity/debug level. A "0x"/"0X" prefix selects hexadecimal,
+   anything else is read as decimal. Leading zeros are decimal, not octal
+   (e.g. "08" is 8), so a value is never silently truncated. On return
+   *odebug is only modified if a valid number was found; the number of
+   characters consumed is returned (0 if there was no number). */
+static int parse_odebug(const char *s, int32_t *odebug) {
+  char *end;
+  unsigned long v;
+  if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
+    v = strtoul(s + 2, &end, 16);
+    if (end == s + 2)
+      return 0;                 /* "0x" with no hex digits */
+  } else {
+    v = strtoul(s, &end, 10);
+    if (end == s)
+      return 0;                 /* no digits */
+  }
+  *odebug = (int32_t)v;
+  return (int)(end - s);
+}
+
 static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   OPARMS *O = csound->oparms;
   /* Add other long options here */
@@ -565,7 +587,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
           goto nxtToken;
         }
       }
-      csoundErrorMsg(csound, Str("unknown output format: '%s'"), s);
+      csoundErrorMsg(csound, Str("unknown output format: '%s'\n"), s);
       return 0;
     nxtToken:
       s = t;
@@ -582,14 +604,14 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "iobufsamps=", 11))) {
     s += 11;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no iobufsamps"));
+      dieu(csound, Str("no iobufsamps\n"));
     /* defaults in musmon.c */
     O->inbufsamps = O->outbufsamps = atoi(s);
     return 1;
   } else if (!(strncmp(s, "hardwarebufsamps=", 17))) {
     s += 17;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no hardware bufsamps"));
+      dieu(csound, Str("no hardware bufsamps\n"));
     O->inbufsamps = O->outbufsamps = atoi(s);
     return 1;
   } else if (!(strcmp(s, "orc"))) {
@@ -615,11 +637,11 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     if (*s == 3)
       s++; /* skip ETX */
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no midifile name"));
+      dieu(csound, Str("no midifile name\n"));
     O->FMidiname = s; /* Midifile name */
     if (!strcmp(O->FMidiname, "stdin")) {
 #if defined(WIN32)
-      csoundDie(csound, Str("-F: stdin not supported on this platform"));
+      csoundDie(csound, Str("-F: stdin not supported on this platform\n"));
 #else
       set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #endif
@@ -632,7 +654,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     if (*s == 3)
       s++; /* skip ETX */
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no midi output file name"));
+      dieu(csound, Str("no midi output file name\n"));
     O->FMidioutname = s;
     return 1;
   }
@@ -664,7 +686,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     if (*s == 3)
       s++; /* skip ETX */
     if (UNLIKELY(python_add_cmdline_definition(s)))
-      dieu(csound, Str("invalid python variable definition syntax"));
+      dieu(csound, Str("invalid python variable definition syntax\n"));
     return 1;
   }
 #endif
@@ -673,14 +695,14 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     if (*s == 3)
       s++; /* skip ETX */
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no infilename"));
+      dieu(csound, Str("no infilename\n"));
     O->infilename = s; /* soundin name */
     if (UNLIKELY(strcmp(O->infilename, "stdout") == 0))
-      csoundDie(csound, Str("input cannot be stdout"));
+      csoundDie(csound, Str("input cannot be stdout\n"));
     if (strcmp(O->infilename, "stdin") == 0) {
       set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
 #if defined(WIN32)
-      csoundDie(csound, Str("stdin audio not supported"));
+      csoundDie(csound, Str("stdin audio not supported\n"));
 #endif
     } else
       set_stdin_assign(csound, STDINASSIGN_SNDFILE, 0);
@@ -713,13 +735,13 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   else if (!(strncmp(s, "control-rate=", 13))) {
     s += 13;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no control rate"));
+      dieu(csound, Str("no control rate\n"));
     O->kr_override = (float)atof(s);
     return 1;
   } else if (!(strncmp(s, "ksmps=", 6))) {
     s += 6;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no ksmps"));
+      dieu(csound, Str("no ksmps\n"));
     O->ksmps_override = atoi(s);
     return 1;
   }
@@ -736,7 +758,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     if (*s == 3)
       s++; /* skip ETX */
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no Linein score device_name"));
+      dieu(csound, Str("no Linein score device_name\n"));
     O->Linename = s;
     if (!strcmp(O->Linename, "stdin")) {
       set_stdin_assign(csound, STDINASSIGN_LINEIN, 1);
@@ -752,20 +774,20 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   else if (!(strncmp(s, "messagelevel=", 13))) {
     s += 13;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no message level"));
+      dieu(csound, Str("no message level\n"));
     O->msglevel = atoi(s);
     return 1;
   } else if (!(strncmp(s, "messageolevel=", 14))) {
     s += 14;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no message level"));
+      dieu(csound, Str("no message level\n"));
     sscanf(s, "%o", &(O->msglevel));
     return 1;
   } else if (!(strncmp(s, "m-amps=", 7))) {
     int32_t n;
     s += 7;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no message amps"));
+      dieu(csound, Str("no message amps\n"));
     sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_AMPLMSG;
@@ -776,7 +798,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     int32_t n;
     s += 8;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no message range"));
+      dieu(csound, Str("no message range\n"));
     sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_RNGEMSG;
@@ -787,7 +809,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     int32_t n;
     s += 11;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no message warnings"));
+      dieu(csound, Str("no message warnings\n"));
     sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_WARNMSG;
@@ -798,7 +820,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     int32_t n;
     s += 6;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no message raw"));
+      dieu(csound, Str("no message raw\n"));
     sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= 32;
@@ -809,7 +831,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     int32_t n;
     s += 5;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no message dB"));
+      dieu(csound, Str("no message dB\n"));
     sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_RAWMSG;
@@ -820,7 +842,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     int32_t n;
     s += 10;
     if (*s == '\0')
-      dieu(csound, Str("no message colours"));
+      dieu(csound, Str("no message colours\n"));
     sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= 96;
@@ -831,7 +853,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     int32_t n;
     s += 13;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no benchmark level"));
+      dieu(csound, Str("no benchmark level\n"));
     sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_TIMEMSG;
@@ -841,7 +863,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "csd-line-nums=", 14))) {
     s += 14;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no value for --csd-line-nums"));
+      dieu(csound, Str("no value for --csd-line-nums\n"));
     O->useCsdLineCounts = (atoi(s) != 0);
     return 1;
   }
@@ -853,12 +875,12 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     if (*s == 3)
       s++; /* skip ETX */
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no midi device_name"));
+      dieu(csound, Str("no midi device_name\n"));
     O->Midiname = s;
     if (!strcmp(O->Midiname, "stdin")) {
       set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
 #if defined(WIN32)
-      csoundDie(csound, Str("-M: stdin not supported on this platform"));
+      csoundDie(csound, Str("-M: stdin not supported on this platform\n"));
 #endif
     } else
       set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 0);
@@ -879,14 +901,14 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     if (*s == 3)
       s++; /* skip ETX */
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no outfilename"));
+      dieu(csound, Str("no outfilename\n"));
     O->outfilename = s; /* soundout name */
     if (UNLIKELY(strcmp(O->outfilename, "stdin")) == 0)
-      dieu(csound, Str("-o cannot be stdin"));
+      dieu(csound, Str("-o cannot be stdin\n"));
     if (strcmp(O->outfilename, "stdout") == 0) {
       set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
 #if defined(WIN32)
-      csoundDie(csound, Str("stdout audio not supported"));
+      csoundDie(csound, Str("stdout audio not supported\n"));
 #endif
     } else
       set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
@@ -901,7 +923,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "logfile=", 8))) {
     s += 8;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no log file"));
+      dieu(csound, Str("no log file\n"));
     do_logging(s);
     return 1;
   }
@@ -974,8 +996,9 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     if (*s == 3)
       s++; /* skip ETX */
     if (*s == '\0')
-      dieu(csound, Str("no utility name"));
+      dieu(csound, Str("no utility name\n"));
     csound->info_message_request = 1;
+    csoundLoadDefaultModules(csound);
     retval = csoundRunUtility(csound, s, argc, argv);
     if (retval) {
       csound->orchname = NULL;
@@ -986,19 +1009,20 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   }
   /* -v */
   else if (!strncmp(s, "verbose", 7)) {
-    O->odebug = DEBUG_FULL; 
-    if(strlen(s) > 7) {
-      s += 8;
-      if(sscanf(s, "0x%x", &(O->odebug)) == 0)
-        sscanf(s, "%d", &(O->odebug));
-    }   
+    O->odebug = DEBUG_FULL;
+    if (strlen(s) > 7) {
+      s += 7;
+      if (*s == '=' || *s == ':' || *s == ' ')
+        s++;
+      parse_odebug(s, &(O->odebug));
+    }
     return 1;
   }
   /* -x fnam extract from score.srt using extract file 'fnam' */
   else if (!(strncmp(s, "extract-score=", 14))) {
     s += 14;
     if (UNLIKELY(*s == '\0'))
-      dieu(csound, Str("no xfilename"));
+      dieu(csound, Str("no xfilename\n"));
     csound->xfilename = s;
     return 1;
   } else if (!(strcmp(s, "wave"))) {
@@ -1012,6 +1036,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       if (isdigit(*s))
         full = *s++ - '0';
     }
+    csoundLoadDefaultModules(csound);
     list_opcodes(csound, full);
     return 1;
     // csound->LongJmp(csound, 0);
@@ -1157,7 +1182,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       *ports = '\0';
       csoundUDPConsole(csound, s, atoi(ports + 1), 0);
     } else
-      csound->Warning(csound, "UDP console: needs address and port\n");
+      csound->Warning(csound, Str("UDP console: needs address and port\n"));
     return 1;
   } else if (!(strncmp(s, "udp-mirror-console=", 19))) {
     char *ports;
@@ -1167,7 +1192,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       *ports = '\0';
       csoundUDPConsole(csound, s, atoi(ports + 1), 1);
     } else
-      csound->Warning(csound, "UDP console: needs address and port\n");
+      csound->Warning(csound, Str("UDP console: needs address and port\n"));
     return 1;
   } else if (!(strncmp(s, "fftlib=", 7))) {
     s += 7;
@@ -1281,6 +1306,10 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     O->error_deprecated = 1;
     return 1;
   }
+  else if (!(strncmp(s, "no-deprecated-warnings", 22))) {
+    O->no_deprecated_warnings = 1;
+    return 1;
+  }
   else if (!(strncmp(s, "code", 4))) {
     s += 5;
     if(csound->orcname_mode == 0 && // only 1st argdecode pass
@@ -1298,7 +1327,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     }
     return 1;
   }  
-  csoundWarning(csound, Str("unknown long option: '--%s',\n...ignored."), s);
+  csoundWarning(csound, Str("unknown long option: '--%s',\n...ignored.\n"), s);
   return 1;
 }
 
@@ -1356,9 +1385,10 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
       while ((c = *s++) != '\0') {
         switch (c) {
         case 'U':
-          FIND(Str("no utility name"));
+          FIND(Str("no utility name\n"));
           {
             csound->info_message_request = 1;
+            csoundLoadDefaultModules(csound);
             int32_t retval = csoundRunUtility(csound, s, argc, argv);
             if (retval) {
               csound->orchname = NULL;
@@ -1375,44 +1405,44 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           O->sfwrite = 0; /* nosound        */
           break;
         case 'i':
-          FIND(Str("no infilename"));
+          FIND(Str("no infilename\n"));
           O->infilename = s; /* soundin name */
           s += (int32_t)strlen(s);
           if (UNLIKELY(strcmp(O->infilename, "stdout")) == 0)
-            csoundDie(csound, Str("input cannot be stdout"));
+            csoundDie(csound, Str("input cannot be stdout\n"));
           if (strcmp(O->infilename, "stdin") == 0) {
             set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
 #if defined(WIN32)
-            csoundDie(csound, Str("stdin audio not supported"));
+            csoundDie(csound, Str("stdin audio not supported\n"));
 #endif
           } else
             set_stdin_assign(csound, STDINASSIGN_SNDFILE, 0);
           O->sfread = 1;
           break;
         case 'o':
-          FIND(Str("no outfilename"));
+          FIND(Str("no outfilename\n"));
           O->outfilename = s; /* soundout name */
           s += (int32_t)strlen(s);
           if (UNLIKELY(strcmp(O->outfilename, "stdin") == 0))
-            dieu(csound, Str("-o cannot be stdin"));
+            dieu(csound, Str("-o cannot be stdin\n"));
           if (strcmp(O->outfilename, "stdout") == 0) {
             set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
 #if defined(WIN32)
-            csoundDie(csound, Str("stdout audio not supported"));
+            csoundDie(csound, Str("stdout audio not supported\n"));
 #endif
           } else
             set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
           O->sfwrite = 1;
           break;
         case 'b':
-          FIND(Str("no iobufsamps"));
+          FIND(Str("no iobufsamps\n"));
           sscanf(s, "%d%n", &(O->outbufsamps), &n);
           /* defaults in musmon.c */
           O->inbufsamps = O->outbufsamps;
           s += n;
           break;
         case 'B':
-          FIND(Str("no hardware bufsamps"));
+          FIND(Str("no hardware bufsamps\n"));
           sscanf(s, "%d%n", &(O->oMaxLag), &n);
           /* defaults in rtaudio.c */
           s += n;
@@ -1440,28 +1470,26 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           set_output_format(O, c);
           break;
         case 'r':
-          FIND(Str("no sample rate"));
+          FIND(Str("no sample rate\n"));
           O->sr_override = (float)atof(s);
           while (*++s)
             ;
           break;
         case 'k':
-          FIND(Str("no control rate"));
+          FIND(Str("no control rate\n"));
           O->kr_override = (float)atof(s);
           while (*++s)
             ;
           break;
         case 'v':
           if (isdigit(*s)) {
-	    /* verbose level try hex first*/
-            if(sscanf(s, "0x%x%n", &(O->odebug), &n) == 0)
-              sscanf(s, "%d%n", &(O->odebug), &n);
-            s += n;		
+            /* verbose level, "0x" prefix means hexadecimal */
+            s += parse_odebug(s, &(O->odebug));
           } else
             O->odebug = 0xFFFFFFF; /* full verbose  */
           break;
         case 'm':
-          FIND(Str("no message level"));
+          FIND(Str("no message level\n"));
           sscanf(s, "%d%n", &(O->msglevel), &n);
           s += n;
           break;
@@ -1475,19 +1503,19 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           O->postscript = 1; /* Postscript graphics*/
           break;
         case 'x':
-          FIND(Str("no xfilename"));
+          FIND(Str("no xfilename\n"));
           csound->xfilename = s; /* extractfile name */
           while (*++s)
             ;
           break;
         case 't':
-          FIND(Str("no tempo value"));
+          FIND(Str("no tempo value\n"));
           {
-            double val;
-            sscanf(s, "%lg%n", &val, &n); /* use this tempo .. */
+            cs_double val;
+            sscanf(s, "%" CS_DOUBLE_SCAN "%n", &val, &n); /* use this tempo .. */
             s += n;
             if (UNLIKELY(val < 0.0))
-              dieu(csound, Str("illegal tempo"));
+              dieu(csound, Str("illegal tempo\n"));
             else if (val == 0.0) {
               csound->keep_tmp = 1;
               break;
@@ -1497,7 +1525,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           }
           break;
         case 'L':
-          FIND(Str("no Linein score device_name"));
+          FIND(Str("no Linein score device_name\n"));
           O->Linename = s; /* Linein device name */
           s += (int32_t)strlen(s);
           if (!strcmp(O->Linename, "stdin")) {
@@ -1507,12 +1535,12 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           O->Linein = 1;
           break;
         case 'M':
-          FIND(Str("no midi device_name"));
+          FIND(Str("no midi device_name\n"));
           O->Midiname = s; /* Midi device name */
           s += (int32_t)strlen(s);
           if (strcmp(O->Midiname, "stdin") == 0) {
 #if defined(WIN32)
-            csoundDie(csound, Str("-M: stdin not supported on this platform"));
+            csoundDie(csound, Str("-M: stdin not supported on this platform\n"));
 #else
             set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
 #endif
@@ -1531,12 +1559,12 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
               break;
              }
           }
-           FIND(Str("no midi file"));
+           FIND(Str("no midi file\n"));
           O->FMidiname = s; /* Midifile name */
           s += (int32_t)strlen(s);
           if (strcmp(O->FMidiname, "stdin") == 0) {
 #if defined(WIN32)
-            csoundDie(csound, Str("-F: stdin not supported on this platform"));
+            csoundDie(csound, Str("-F: stdin not supported on this platform\n"));
 #else
             set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #endif
@@ -1545,7 +1573,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           O->FMidiin = 1; /*****************/
           break;
         case 'Q':
-          FIND(Str("no MIDI output device"));
+          FIND(Str("no MIDI output device\n"));
           O->Midioutname = s;
           s += (int32_t)strlen(s);
           break;
@@ -1578,6 +1606,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             if (isdigit(*s))
               full = *s++ - '0';
           }
+          csoundLoadDefaultModules(csound);
           list_opcodes(csound, full);
         }
           csound->info_message_request = 1;
@@ -1592,7 +1621,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           csound->dither_output = full;
         } break;
         case '@':
-          FIND(Str("No indirection file"));
+          FIND(Str("No indirection file\n"));
           {
             FILE *ind;
             void *fd;
@@ -1612,7 +1641,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           }
           break;
         case 'O':
-          FIND(Str("no log file"));
+          FIND(Str("no log file\n"));
           do_logging(s);
           while (*s++) {
           };
@@ -1632,14 +1661,14 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           }
 #endif
           if (!decode_long(csound, s, argc, argv)) {
-            csound->Message(csound, "\n...failing to parse options\n");
+            csound->Message(csound, Str("\n...failing to parse options\n"));
             return 0; // fail
           }
           while (*(++s))
             ;
           break;
         case 'j':
-          FIND(Str("no number of threads"));
+          FIND(Str("no number of threads\n"));
           sscanf(s, "%d%n", &(O->numThreads), &n);
           s += n;
           break;
@@ -1651,14 +1680,14 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           break;
         default:
           if (csound->info_message_request == 0)
-            dieu(csound, Str("unknown flag -%c"), c);
+            dieu(csound, Str("unknown flag -%c\n"), c);
         }
       }
     } else {
       /* 0: normal, 1: ignore, 2: fail */
       if (csound->orcname_mode == 2) {
         csound->Die(csound, Str("error: orchestra and score name not "
-                                "allowed in .csound7rc"));
+                                "allowed in .csound7rc\n"));
       } else if (csound->orcname_mode == 0) {
         if (csound->orchname == NULL) /* VL dec 2016: better duplicate these */
           csound->orchname = csoundStrdup(csound, --s);
@@ -1667,7 +1696,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
         else {
           csound->Message(csound, "argc=%d Additional string \"%s\"\n", argc,
                           --s);
-          dieu(csound, Str("too many arguments"));
+          dieu(csound, Str("too many arguments\n"));
         }
       }
     }
@@ -1678,7 +1707,7 @@ end:
 
 void check_options(CSOUND *csound);
 
-char *unquote_arg(CSOUND *csound, char *arg) {
+static char *unquote_arg(CSOUND *csound, char *arg) {
   char *out = csoundStrdup(csound, arg);
   char *op = out;
   while(*arg != '\0') {
@@ -1707,11 +1736,13 @@ char *unquote_arg(CSOUND *csound, char *arg) {
       csound->options_checked = 1;
     }
 
-    /* remove whitespace at start */
-    while (*opt == ' ')
-      opt++;
+    const char *cursor = opt;
 
-    sp = options = csoundStrdup(csound, opt);
+    /* remove whitespace at start */
+    while (*cursor == ' ')
+      cursor++;
+
+    sp = options = csoundStrdup(csound, cursor);
 
     /* remove whitespace at end */
     char *end = sp + strlen(sp) - 1;
@@ -1749,11 +1780,11 @@ char *unquote_arg(CSOUND *csound, char *arg) {
     flag = 1;
     quote  = 0;
     /* split into separate args */
-    while (*opt && cnt < argn + 2) {
-      if(*opt == '"') quote = quote ? 0 : 1;
+    while (*cursor && cnt < argn + 2) {
+      if(*cursor == '"') quote = quote ? 0 : 1;
       if(!quote) {
-        while (*opt == ' ') {
-          opt++;
+        while (*cursor == ' ') {
+          cursor++;
           sp++;
           flag = 1;
         }
@@ -1764,7 +1795,7 @@ char *unquote_arg(CSOUND *csound, char *arg) {
         flag = 0;
       }
       sp++;
-      opt++;
+      cursor++;
     }
 
     ret = argdecode(csound, argn + 1, (const char **)args);
@@ -1796,7 +1827,7 @@ char *unquote_arg(CSOUND *csound, char *arg) {
   if (strcmp(oparms->outfilename, "stdout") == 0) {
     set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 1);
 #if defined(WIN32)
-    csound->Warning(csound, Str("stdout not supported on this platform"));
+    csound->Warning(csound, Str("stdout not supported on this platform\n"));
 #endif
   } else
     set_stdout_assign(csound, STDOUTASSIGN_SNDFILE, 0);
@@ -1857,7 +1888,7 @@ char *unquote_arg(CSOUND *csound, char *arg) {
   if (strcmp(oparms->infilename, "stdin") == 0) {
     set_stdin_assign(csound, STDINASSIGN_SNDFILE, 1);
 #if defined(WIN32)
-    csound->Warning(csound, Str("stdin not supported on this platform"));
+    csound->Warning(csound, Str("stdin not supported on this platform\n"));
 #endif
   } else
     set_stdin_assign(csound, STDINASSIGN_SNDFILE, 0);
@@ -1877,7 +1908,7 @@ char *unquote_arg(CSOUND *csound, char *arg) {
   if (!strcmp(oparms->Midiname, "stdin")) {
     set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 1);
 #if defined(WIN32)
-    csound->Warning(csound, Str("stdin not supported on this platform"));
+    csound->Warning(csound, Str("stdin not supported on this platform\n"));
 #endif
   } else
     set_stdin_assign(csound, STDINASSIGN_MIDIDEV, 0);
@@ -1897,7 +1928,7 @@ char *unquote_arg(CSOUND *csound, char *arg) {
   if (!strcmp(oparms->FMidiname, "stdin")) {
     set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 1);
 #if defined(WIN32)
-    csound->Warning(csound, Str("stdin not supported on this platform"));
+    csound->Warning(csound, Str("stdin not supported on this platform\n"));
 #endif
   } else
     set_stdin_assign(csound, STDINASSIGN_MIDIFILE, 0);

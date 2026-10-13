@@ -50,8 +50,8 @@
 
 typedef struct {
     OPDS h;
-    MYFLT *kk[MAXCPUOUTPUTS], *itrig;
-    double cnt, trig;
+    cs_float *kk[MAXCPUOUTPUTS], *itrig;
+    cs_double cnt, trig;
 #if defined(LINUX)
     FILE *fp;
     unsigned long long previous[MAXCPUOUTPUTS][8];
@@ -91,7 +91,7 @@ static int32_t cpupercent_renew(CSOUND *csound, CPUMETER *p)
       unsigned long long ticks[8] = {0};
       unsigned id;
       int field, fields;
-      double total = 0, idle = 0;
+      cs_double total = 0, idle = 0;
       if (strncmp(buf, "cpu", 3) != 0) break;
       fields = sscanf(buf, "%31s %llu %llu %llu %llu %llu %llu %llu %llu",
                       label, &ticks[0], &ticks[1], &ticks[2], &ticks[3],
@@ -106,8 +106,8 @@ static int32_t cpupercent_renew(CSOUND *csound, CPUMETER *p)
       if (p->valid[output]) {
         for (field = 0; field < 8; ++field) {
           /* Linux counters can decrease, notably iowait. */
-          double delta = ticks[field] >= p->previous[output][field]
-              ? (double)(ticks[field] - p->previous[output][field]) : 0;
+          cs_double delta = ticks[field] >= p->previous[output][field]
+              ? (cs_double)(ticks[field] - p->previous[output][field]) : 0;
           total += delta;
           if (field == 3) idle = delta;
         }
@@ -132,7 +132,7 @@ static int32_t cpupercent_renew(CSOUND *csound, CPUMETER *p)
     mach_msg_type_number_t count;
     natural_t cpus;
     uint32_t output;
-    double total_all = 0, idle_all = 0;
+    cs_double total_all = 0, idle_all = 0;
     host_t host = mach_host_self();
     kern_return_t result = host_processor_info(host, PROCESSOR_CPU_LOAD_INFO,
                                              &cpus, &info, &count);
@@ -149,7 +149,7 @@ static int32_t cpupercent_renew(CSOUND *csound, CPUMETER *p)
     if (p->previous && p->previous_cpus == cpus) {
       natural_t cpu;
       for (cpu = 0; cpu < cpus; ++cpu) {
-        double total = 0, idle = 0;
+        cs_double total = 0, idle = 0;
         int state;
         for (state = 0; state < CPU_STATE_MAX; ++state) {
           size_t index = (size_t)cpu * CPU_STATE_MAX + state;
@@ -186,10 +186,10 @@ static int32_t cpupercent_init(CSOUND *csound, CPUMETER *p)
     uint32_t output;
     deinit_cpupercent(csound, p);
     if (p->OUTOCOUNT == 0)
-      return csound->InitError(csound, "%s", Str("cpumeter: no outputs"));
-    p->cnt = p->trig = (double)*p->itrig * CS_ESR;
+      return csound->InitError(csound, "%s\n", Str("cpumeter: no outputs"));
+    p->cnt = p->trig = (cs_double)*p->itrig * CS_ESR;
     if (!(p->trig >= 0 && p->trig <= DBL_MAX))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("cpumeter: invalid refresh interval"));
     for (output = 0; output < p->OUTOCOUNT; ++output)
       *p->kk[output] = FL(0.0);
@@ -197,12 +197,12 @@ static int32_t cpupercent_init(CSOUND *csound, CPUMETER *p)
     memset(p->valid, 0, sizeof(p->valid));
     p->fp = fopen("/proc/stat", "r");
     if (!p->fp)
-      return csound->InitError(csound, Str("Failed to open /proc/stat: %s"),
+      return csound->InitError(csound, Str("Failed to open /proc/stat: %s\n"),
                               strerror(errno));
 #endif
     if (cpupercent_renew(csound, p) != OK) {
       deinit_cpupercent(csound, p);
-      return csound->InitError(csound, "%s", Str("cpumeter: cannot read CPU counters"));
+      return csound->InitError(csound, "%s\n", Str("cpumeter: cannot read CPU counters"));
     }
     return OK;
 }
@@ -213,7 +213,7 @@ static int32_t cpupercent(CSOUND *csound, CPUMETER *p)
     if (p->cnt <= 0) {
       p->cnt = p->trig;
       if (cpupercent_renew(csound, p) != OK)
-        return csound->PerfError(csound, &p->h, "%s",
+        return csound->PerfError(csound, &p->h, "%s\n",
                                 Str("cpumeter: cannot read CPU counters"));
     }
     return OK;
@@ -221,7 +221,7 @@ static int32_t cpupercent(CSOUND *csound, CPUMETER *p)
 
 typedef struct {
     OPDS   h;
-    MYFLT  *ti;
+    cs_float  *ti;
 } SYST;
 
 static int32_t

@@ -50,24 +50,24 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *rslt, *ktimpnt, *kfmod, *ifilno, *ispecwp, *imode;
-    MYFLT   *ifreqlim, *igatefun, *ifiletime;
+    cs_float   *rslt, *ktimpnt, *kfmod, *ifilno, *ispecwp, *imode;
+    cs_float   *ifreqlim, *igatefun, *ifiletime;
     int32   mems;
     int32   kcnt, baseFr, maxFr, frSiz, prFlg, opBpos;
     /* RWD 8:2001 for pvocex: need these too */
     int32   frInc, chans;
 
-    MYFLT   frPktim, frPrtim, scale, asr, lastPex;
-    MYFLT   PvMaxAmp;
+    cs_float   frPktim, frPrtim, scale, asr, lastPex;
+    cs_float   PvMaxAmp;
     float   *frPtr, *pvcopy;
     FUNC    *AmpGateFunc;
     AUXCH   auxch;
-    MYFLT   *lastPhase; /* [PVDATASIZE] Keep track of cum. phase */
-    MYFLT   *fftBuf;    /* [PVFFTSIZE]  FFT works on Real & Imag */
-    MYFLT   *dsBuf;     /* [PVFFTSIZE]  Output of downsampling may be 2x */
-    MYFLT   *outBuf;    /* [PVFFTSIZE]  Output buffer over win length */
-    MYFLT   *window;    /* [PVWINLEN]   Store 1/2 window */
-    MYFLT   *dsputil_env;
+    cs_float   *lastPhase; /* [PVDATASIZE] Keep track of cum. phase */
+    cs_float   *fftBuf;    /* [PVFFTSIZE]  FFT works on Real & Imag */
+    cs_float   *dsBuf;     /* [PVFFTSIZE]  Output of downsampling may be 2x */
+    cs_float   *outBuf;    /* [PVFFTSIZE]  Output buffer over win length */
+    cs_float   *window;    /* [PVWINLEN]   Store 1/2 window */
+    cs_float   *dsputil_env;
     AUXCH   memenv;
     PVOC_GLOBALS  *pp;
   void *setup;

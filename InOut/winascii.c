@@ -46,11 +46,11 @@ void KillAscii(CSOUND *csound, WINDAT *wdptr)
 static CS_NOINLINE void DrawAscii_(CSOUND *csound, WINDAT *wdptr, char *points)
 {
   long    npts    = wdptr->npts, incr;
-    MYFLT   absmax  = wdptr->absmax;
+    cs_float   absmax  = wdptr->absmax;
     char    *s;
-    MYFLT   *fp = wdptr->fdata, *fplim = fp + npts;
+    cs_float   *fp = wdptr->fdata, *fplim = fp + npts;
     int32_t     n, vscale4, vpos, vmin = VER, vmax = 0;
-    MYFLT   scalefactor;
+    cs_float   scalefactor;
 
     scalefactor = YOFF4 / absmax;                   /*   get normalizing */
     incr = (npts-1)/HOR + 1;                        /*   & sampling facs */

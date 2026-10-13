@@ -2,7 +2,7 @@
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
 #include "gtest/gtest.h"
-#include "../../Opcodes/linuxjoystick.h"
+#include "fixtures/joystick_test_opcode.h"
 #include <cerrno>
 #include <cstdarg>
 #include <cstring>
@@ -23,21 +23,21 @@ int nextFd, openCalls, readCalls;
 bool failOpen, failQuery;
 uint8_t axes, buttons;
 FUNC tables[3];
-std::vector<MYFLT> data[3];
+std::vector<cs_float> data[3];
 
-int mockOpen(const char *, int flags, ...) {
+extern "C" int csound_test_joystick_open(const char *, int flags, ...) {
     ++openCalls;
     EXPECT_NE(flags & O_NONBLOCK, 0);
     if (failOpen) { errno = ENOENT; return -1; }
     descriptors.insert(nextFd);
     return nextFd++;
 }
-int mockClose(int fd) {
+extern "C" int csound_test_joystick_close(int fd) {
     EXPECT_EQ(descriptors.erase(fd), 1u);
     closed.push_back(fd);
     return 0;
 }
-int mockIoctl(int fd, unsigned long request, ...) {
+extern "C" int csound_test_joystick_ioctl(int fd, unsigned long request, ...) {
     EXPECT_EQ(descriptors.count(fd), 1u);
     if (failQuery) { errno = EIO; return -1; }
     va_list args;
@@ -47,7 +47,7 @@ int mockIoctl(int fd, unsigned long request, ...) {
     va_end(args);
     return 0;
 }
-ssize_t mockRead(int fd, void *buffer, size_t size) {
+extern "C" ssize_t csound_test_joystick_read(int fd, void *buffer, size_t size) {
     ++readCalls;
     EXPECT_EQ(descriptors.count(fd), 1u);
     if (pending[fd].empty()) { errno = EAGAIN; return -1; }
@@ -61,20 +61,8 @@ ssize_t mockRead(int fd, void *buffer, size_t size) {
     return result.size;
 }
 
-#define open mockOpen
-#define close mockClose
-#define ioctl mockIoctl
-#define read mockRead
-#undef LINKAGE
-#define LINKAGE
-#include "../../Opcodes/linuxjoystick.c"
-#undef read
-#undef ioctl
-#undef close
-#undef open
-
 int32_t ignorePerfError(CSOUND *, OPDS *, const char *, ...) { return NOTOK; }
-FUNC *findTable(CSOUND *, MYFLT *number) {
+FUNC *findTable(CSOUND *, cs_float *number) {
     if (*number < 1 || *number > 3) return nullptr;
     return &tables[(int)*number - 1];
 }
@@ -89,16 +77,16 @@ void event(int fd, uint8_t type, uint8_t number, int16_t value) {
 
 struct Instance {
     LINUXJOYSTICK opcode = {};
-    MYFLT result = -1, device = 0, table = 1;
+    cs_float result = -1, device = 0, table = 1;
     CSOUND *csound;
     explicit Instance(CSOUND *engine) : csound(engine) {
         opcode.kresult = &result;
         opcode.kdev = &device;
         opcode.ktable = &table;
-        linuxjoystick_init(csound, &opcode);
+        csound_test_linuxjoystick_init(csound, &opcode);
     }
-    ~Instance() { linuxjoystick_deinit(csound, &opcode); }
-    int32_t run() { return linuxjoystick(csound, &opcode); }
+    ~Instance() { csound_test_linuxjoystick_deinit(csound, &opcode); }
+    int32_t run() { return csound_test_linuxjoystick(csound, &opcode); }
 };
 
 class JoystickTests : public ::testing::Test {
@@ -165,7 +153,7 @@ TEST_F(JoystickTests, ValidateEventsAndBoundMaskShifts) {
     EXPECT_EQ(data[0][68], 1);
     EXPECT_EQ(data[0][37], -99);
     EXPECT_EQ(data[0][2], -99);
-    EXPECT_EQ(instance.result, (MYFLT)(UINT64_C(3) | (UINT64_C(1) << 32)));
+    EXPECT_EQ(instance.result, (cs_float)(UINT64_C(3) | (UINT64_C(1) << 32)));
     EXPECT_EQ(instance.run(), OK);
     EXPECT_EQ(instance.result, 0);
 }
@@ -177,19 +165,19 @@ TEST_F(JoystickTests, CloseDeviceZeroOnSwitchReinitAndDeinit) {
     instance.device = 1;
     ASSERT_EQ(instance.run(), OK);
     EXPECT_EQ(closed, std::vector<int>({0}));
-    EXPECT_EQ(linuxjoystick_init(csound, &instance.opcode), OK);
+    EXPECT_EQ(csound_test_linuxjoystick_init(csound, &instance.opcode), OK);
     EXPECT_EQ(closed, std::vector<int>({0, 1}));
     ASSERT_EQ(instance.run(), OK);
-    EXPECT_EQ(linuxjoystick_deinit(csound, &instance.opcode), OK);
-    EXPECT_EQ(linuxjoystick_deinit(csound, &instance.opcode), OK);
+    EXPECT_EQ(csound_test_linuxjoystick_deinit(csound, &instance.opcode), OK);
+    EXPECT_EQ(csound_test_linuxjoystick_deinit(csound, &instance.opcode), OK);
     EXPECT_EQ(closed, std::vector<int>({0, 1, 2}));
 }
 
 TEST_F(JoystickTests, ValidateDeviceNumberBeforeRounding) {
     Instance instance(csound);
-    for (MYFLT value : {MYFLT(-1), MYFLT(2147483648.0),
-                       std::numeric_limits<MYFLT>::infinity(),
-                       std::numeric_limits<MYFLT>::quiet_NaN()}) {
+    for (cs_float value : {cs_float(-1), cs_float(2147483648.0),
+                       std::numeric_limits<cs_float>::infinity(),
+                       std::numeric_limits<cs_float>::quiet_NaN()}) {
         instance.device = value;
         EXPECT_EQ(instance.run(), NOTOK);
         EXPECT_EQ(instance.result, 0);
@@ -233,7 +221,7 @@ TEST_F(JoystickTests, RetryFailuresWithoutStaleMasksOrSharedReadState) {
 }
 
 TEST_F(JoystickTests, EngineClosesDeviceAtNoteEnd) {
-    const auto &entry = localops[0];
+    const auto &entry = *csound_test_joystick_opcode();
     ASSERT_EQ(csoundAppendOpcode(csound, "test_joystick", entry.dsblksiz,
         entry.flags, entry.outypes, entry.intypes,
         entry.init, entry.perf, entry.deinit), OK);

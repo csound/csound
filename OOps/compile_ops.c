@@ -29,7 +29,7 @@ int32_t compile_orc_i(CSOUND *csound, COMPILE *p){
   size_t size=0;
   char *orc, c, *name;
 
-  *p->res = (MYFLT)(CSOUND_ERROR);
+  *p->res = (cs_float)(CSOUND_ERROR);
   name = ((STRINGDAT *)p->str)->data;
   fp = fopen(name, "rb");
 
@@ -49,7 +49,7 @@ int32_t compile_orc_i(CSOUND *csound, COMPILE *p){
     csound->Free(csound,orc);
     goto read_error;
   }
-  *p->res = (MYFLT)(csound_compile_orc(csound, orc, 0));
+  *p->res = (cs_float)(csound_compile_orc(csound, orc, 0));
   fclose(fp);
   csound->Free(csound,orc);
   return OK;
@@ -61,14 +61,14 @@ read_error:
 }
 
 int32_t compile_csd_i(CSOUND *csound, COMPILE *p){
-  *p->res = (MYFLT) csoundCompileCSD(csound, ((STRINGDAT *)p->str)->data, 0, 0);
+  *p->res = (cs_float) csoundCompileCSD(csound, ((STRINGDAT *)p->str)->data, 0, 0);
   return OK;
 }
 
 int32_t compile_str_i(CSOUND *csound, COMPILE *p){
   //void csp_orc_sa_print_list(CSOUND*);
   //printf("START\n");
-  *p->res = (MYFLT)(csound_compile_orc(csound,
+  *p->res = (cs_float)(csound_compile_orc(csound,
                                        ((STRINGDAT *)p->str)->data, 0));
   //printf("END\n");
   //csp_orc_sa_print_list(csound);
@@ -97,12 +97,12 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p) {
     return OK;
   }
   csound->Free(csound, code);
-  return csound->InitError(csound, "failed to compile instr\n");
+  return csound->InitError(csound, Str("failed to compile instr\n"));
 }
 
 
 int32_t read_score_i(CSOUND *csound, COMPILE *p){
-  *p->res = (MYFLT)(csoundReadScore(csound,((STRINGDAT *)p->str)->data));
+  *p->res = (cs_float)(csoundReadScore(csound,((STRINGDAT *)p->str)->data));
   return OK;
 }
 
@@ -127,15 +127,13 @@ int32_t retval_i(CSOUND *csound, RETVAL *p){
 
 /** Read OSC message from linked list
  */
-OSC_MESS *csoundReadOSCMessage(CSOUND *csound, const char *address,
+static OSC_MESS *csoundReadOSCMessage(CSOUND *csound, const char *address,
                                const char *type){  
   OSC_MESS *p = &csound->osc_message_anchor;
   spin_lock_t *lock = &csound->osc_spinlock;
-  // no messages, just exit
-  if(p->address == NULL) return NULL;
   csoundSpinLock(lock);
   do {
-    if(p->flag &&
+    if(ATOMIC_GET(p->flag) &&
       !strcmp(p->address, address)
        && !strcmp(p->type, type)) break;
   } while((p = p->nxt) != NULL);
@@ -145,26 +143,30 @@ OSC_MESS *csoundReadOSCMessage(CSOUND *csound, const char *address,
 
 /** Clear flag for OSC message so its slot can be reused.
  */
-void csoundClearOSCMessage(OSC_MESS *mess){
+static void csoundClearOSCMessage(OSC_MESS *mess){
   ATOMIC_SET(mess->flag, 0);
 }
+
+/* Copy numeric values out of byte storage before swapping. OSC only aligns
+   arguments to four bytes, so a double or int64_t may not be aligned for
+   direct indirection; typed reads also impose aliasing rules. */
 
 /** Get float from Osc Message data 
     returns pointer to next datum
 */
-const char *csoundOSCMessageGetFloat(const char *buf, MYFLT *mf) {
+static const char *csoundOSCMessageGetFloat(const char *buf, cs_float *mf) {
   float f;
-  f = *((float *) buf);
+  memcpy(&f, buf, sizeof(f));
   byteswap((char*)&f,4);
-  *mf = (MYFLT) f;
+  *mf = (cs_float) f;
   return buf + 4;
 }
 
-const char *csoundOSCMessageGetDouble(const char *buf, MYFLT *mf) {
-  double f;
-  f = *((double *) buf);
+static const char *csoundOSCMessageGetDouble(const char *buf, cs_float *mf) {
+  double f; /* OSC type d is always 64 bits. */
+  memcpy(&f, buf, sizeof(f));
   byteswap((char*)&f,8);
-  *mf = (MYFLT) f;
+  *mf = (cs_float) f;
   return buf + 8;
 }
 
@@ -172,33 +174,30 @@ const char *csoundOSCMessageGetDouble(const char *buf, MYFLT *mf) {
 /** Get int32_t from Osc Message data 
     returns pointer to next datum
 */
-const char *csoundOSCMessageGetInt32(const char *buf, MYFLT *mf) {
+static const char *csoundOSCMessageGetInt32(const char *buf, cs_float *mf) {
   int32_t i;
-  i = *((int32_t *) buf);
+  memcpy(&i, buf, sizeof(i));
   byteswap((char*)&i,4);
-  *mf = (MYFLT) i;
+  *mf = (cs_float) i;
   return buf + 4;
 }
 
 /** Get int64 from Osc Message data 
     returns pointer to next datum
 */
-const char *csoundOSCMessageGetInt64(const char *buf, MYFLT *mf) {
+static const char *csoundOSCMessageGetInt64(const char *buf, cs_float *mf) {
   int64_t i;
-  i = *((int64_t *) buf);
+  memcpy(&i, buf, sizeof(i));
   byteswap((char*)&i,8);
-  *mf = (MYFLT) i;
+  *mf = (cs_float) i;
   return buf + 8;
 }
 
 /** Get char from Osc Message data 
     returns pointer to next datum
 */
-const char *csoundOSCMessageGetChar(const char *buf, MYFLT *mf) {
-  int8_t i;
-  i = *((int8_t *) buf);
-  *mf = (MYFLT) i;
-  return buf + 1;
+static const char *csoundOSCMessageGetChar(const char *buf, cs_float *mf) {
+  return csoundOSCMessageGetInt32(buf, mf);
 }
 
 /** Get stringdata from Osc Message data 
@@ -206,16 +205,20 @@ const char *csoundOSCMessageGetChar(const char *buf, MYFLT *mf) {
 */
 const char *csoundOSCMessageGetString(const char *data, STRINGDAT *sdat) {
   size_t len = strlen(data)+1;
-  strncpy(sdat->data, data, sdat->size-1);
-  sdat->data[sdat->size-1] = '\0'; // safety
-  return data+((size_t) ceil(len/4.)*4);
+  if (sdat->data != NULL && sdat->size > 0) {
+    size_t size = len < (size_t)sdat->size ? len : (size_t)sdat->size;
+    memcpy(sdat->data, data, size-1);
+    sdat->data[size-1] = '\0';
+  }
+  /* Skip the full input, including padding, even if the output was truncated. */
+  return data+((len+3) & ~(size_t)3);
 }
 
 /** Get a number according to type 
     returns pointer to the next datum or NULL on failure
 */
 const char *OSC_message_get_number(const char *buf,
-                                      char type, MYFLT *out) {
+                                      char type, cs_float *out) {
   switch(type){
   case 'f':
     buf = csoundOSCMessageGetFloat(buf,out);
@@ -240,13 +243,19 @@ const char *OSC_message_get_number(const char *buf,
 
 int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
   int32_t cnt = p->OUTOCOUNT - 1, i;
+  *p->kstatus = 0;
   if(cnt > 32)
     return csound->PerfError(csound, &(p->h),
-                             "OSCRead exceeded max output args (>32)\n");
+                             Str("OSCRead exceeded max output args (>32)\n"));
   OSC_MESS *mess = csoundReadOSCMessage(csound, p->address->data,
                                         p->type->data);
   if(mess != NULL) {
-    MYFLT **out = p->out;
+    if ((size_t)cnt != strlen(p->type->data)) {
+      csoundClearOSCMessage(mess);
+      return csound->PerfError(csound, &p->h,
+                               Str("osclisten: output count does not match type string\n"));
+    }
+    cs_float **out = p->out;
     const char *buf = mess->data;
     const char *type = p->type->data;
     for(i = 0; i < cnt; i++) {
@@ -258,11 +267,11 @@ int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
         buf = OSC_message_get_number(buf, type[i], out[i]);
         if(buf == NULL)
           return csound->PerfError(csound, &(p->h),  
-                                   "unsupported OSC type %c", type[i]);
+                                   Str("unsupported OSC type %c\n"), type[i]);
       }
       else
-        return csound->PerfError(csound, &(p->h), "wrong output argument" 
-                                 "for OSC type %c", type[i]);
+        return csound->PerfError(csound, &(p->h), Str("wrong output argument "
+                                 "for OSC type %c\n"), type[i]);
     }
     *p->kstatus = 1;
     csoundClearOSCMessage(mess);
@@ -281,18 +290,26 @@ int32_t readOSCarray_init(CSOUND *csound, ROSCA *p) {
 }
 
 int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p) {
-  int32_t cnt = p->out->sizes[0], i;
+  int32_t cnt, i;
+  *p->kstatus = 0;
   OSC_MESS *mess = csoundReadOSCMessage(csound, p->address->data,
                                         p->type->data);
   if(mess != NULL) {
-    MYFLT *out = p->out->data;
+    if (p->out->dimensions != 1 ||
+        (size_t)p->out->sizes[0] != strlen(p->type->data)) {
+      csoundClearOSCMessage(mess);
+      return csound->PerfError(csound, &p->h,
+                               Str("osclisten: array size does not match type string\n"));
+    }
+    cnt = p->out->sizes[0];
+    cs_float *out = p->out->data;
     const char *buf = mess->data;
     const char *type = p->type->data;
     for(i = 0; i < cnt; i++) {
       buf = OSC_message_get_number(buf, type[i], &out[i]);
       if(buf == NULL)
         return csound->PerfError(csound, &(p->h),  
-                                 "unsupported OSC type %c",
+                                 Str("unsupported OSC type %c\n"),
                                  type[i]);
     }
     *p->kstatus = 1;
@@ -303,7 +320,7 @@ int32_t readOSCarray_perf(CSOUND *csound, ROSCA *p) {
 
 #include "aops.h"
 int32_t myflt_size(CSOUND *csound, ASSIGN *p) {
-  *p->r = FL(sizeof(MYFLT));
+  *p->r = FL(sizeof(cs_float));
   return OK;
 }
 
@@ -312,11 +329,11 @@ int32_t myflt_size(CSOUND *csound, ASSIGN *p) {
 typedef struct {
   CSOUND *csound;
   int32_t nsmps;
-  MYFLT  *bufferout;
-  MYFLT  *bufferin;
+  cs_float  *bufferout;
+  cs_float  *bufferin;
 } CS_OBJ;
 
-static void csobj_var_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
+static void csobj_var_init_memory(CSOUND *csound, CS_VARIABLE* var, cs_float* memblock) {
   memset(memblock, 0, var->memBlockSize);
 }
 
@@ -365,11 +382,11 @@ static int32_t start_csobj(CSOUND *csound, AOP *p) {
   *p->r = csoundStart(engine);
   if (*p->r != CSOUND_SUCCESS) return OK;
   size_t bsiz = (size_t)(CS_KSMPS < engine->ksmps ?
-                         engine->ksmps : CS_KSMPS)*sizeof(MYFLT);
+                         engine->ksmps : CS_KSMPS)*sizeof(cs_float);
   csobj->nsmps = engine->ksmps;
   
-  csobj->bufferout = (MYFLT *) csoundCalloc(csound,bsiz*engine->nchnls);
-  csobj->bufferin = (MYFLT *) csoundCalloc(csound,bsiz*engine->inchnls);  
+  csobj->bufferout = (cs_float *) csoundCalloc(csound,bsiz*engine->nchnls);
+  csobj->bufferin = (cs_float *) csoundCalloc(csound,bsiz*engine->inchnls);
   return OK;
 }
 
@@ -389,36 +406,36 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
   uint32 esmps = engine->ksmps;
   int32_t nchnls = engine->nchnls, inc;
   int32_t inchnls = engine->inchnls;
-  MYFLT *spout = engine->spout;
-  MYFLT *bufferout = csobj->bufferout;
-  MYFLT *spin = engine->spin;
-  MYFLT *bufferin = csobj->bufferin;
+  cs_float *spout = engine->spout;
+  cs_float *bufferout = csobj->bufferout;
+  cs_float *spin = engine->spin;
+  cs_float *bufferin = csobj->bufferin;
   
   if(esmps >= ksmps) {
-   for(int i=0; i < ksmps; i++) {
-    if(csobj->nsmps == esmps) {
+   for(uint32_t i=0; i < ksmps; i++) {
+    if((uint32_t)csobj->nsmps == esmps) {
       *p->r = csoundPerformKsmps(engine);             
       csobj->nsmps = 0;
     }
     inc = csobj->nsmps*inchnls;
     memcpy(spin+inc,bufferin+inc,
-            sizeof(MYFLT)*inchnls);
+            sizeof(cs_float)*inchnls);
     inc = csobj->nsmps*nchnls;
     memcpy(bufferout+inc,
            spout+inc,
-           sizeof(MYFLT)*nchnls);
+           sizeof(cs_float)*nchnls);
     csobj->nsmps += 1;
    }
   } else {
-    for(int j = 0; j < ksmps; j++) {
-      if(csobj->nsmps == esmps) {
+    for(uint32_t j = 0; j < ksmps; j++) {
+      if((uint32_t)csobj->nsmps == esmps) {
       *p->r = csoundPerformKsmps(engine);
        csobj->nsmps = 0;
       }
       inc = (csobj->nsmps*inchnls);
-      memcpy(spin+inc,bufferin+j*inchnls,sizeof(MYFLT)*inchnls);
+      memcpy(spin+inc,bufferin+j*inchnls,sizeof(cs_float)*inchnls);
       inc = (csobj->nsmps*nchnls);
-      memcpy(bufferout+j*nchnls,spout+inc,sizeof(MYFLT)*nchnls);      
+      memcpy(bufferout+j*nchnls,spout+inc,sizeof(cs_float)*nchnls);
       csobj->nsmps += 1;
     }
    }
@@ -428,7 +445,7 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
 static int32_t chnset_scalar_csobj(CSOUND *csound, AOP *p) {
     CS_OBJ *csobj = (CS_OBJ *) p->r;
     CSOUND *engine = csobj->csound;
-    MYFLT  val = *p->a;
+    cs_float  val = *p->a;
     STRINGDAT *channel = (STRINGDAT *) p->b;
     csoundSetControlChannel(engine, channel->data, val);
     return OK;
@@ -437,12 +454,12 @@ static int32_t chnset_scalar_csobj(CSOUND *csound, AOP *p) {
 static int32_t chnset_vector_csobj(CSOUND *csound, AOP *p) {
     CS_OBJ *csobj = (CS_OBJ *) p->r;
     CSOUND *engine = csobj->csound;
-    MYFLT  *val = p->a;
+    cs_float  *val = p->a;
     STRINGDAT *channel = (STRINGDAT *) p->b;
     if(engine->ksmps == CS_KSMPS)
      csoundSetAudioChannel(engine, channel->data, val);
-    else return csound->PerfError(csound,  &p->h,"ksmps do not match:\n"
-                                  "csound obj (%d), instr (%d)\n",
+    else return csound->PerfError(csound,  &p->h,Str("ksmps do not match:\n"
+                                  "csound obj (%d), instr (%d)\n"),
                                   engine->ksmps, CS_KSMPS);
     return OK;
 }
@@ -460,12 +477,12 @@ static int32_t chnget_scalar_csobj(CSOUND *csound, AOP *p) {
 static int32_t chnget_vector_csobj(CSOUND *csound, AOP *p) {
     CS_OBJ *csobj = (CS_OBJ *) p->a;
     CSOUND *engine = csobj->csound;
-    MYFLT  *val = p->r;
+    cs_float  *val = p->r;
     STRINGDAT *channel = (STRINGDAT *) p->b;
     if(engine->ksmps == CS_KSMPS)
      csoundGetAudioChannel(engine, channel->data, val);
-    else return csound->PerfError(csound,  &p->h, "ksmps do not match:\n"
-                                  "csound obj (%d), instr (%d)\n",
+    else return csound->PerfError(csound,  &p->h, Str("ksmps do not match:\n"
+                                  "csound obj (%d), instr (%d)\n"),
                                   engine->ksmps, CS_KSMPS);
     return OK;
 }
@@ -478,13 +495,13 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
   int32_t nchnls = engine->nchnls;
   uint32_t ksmps = CS_KSMPS;
   uint32_t esmps = engine->ksmps;
-  MYFLT *out = p->r;
-  MYFLT *in = csobj->bufferout;
+  cs_float *out = p->r;
+  cs_float *in = csobj->bufferout;
    
   if(UNLIKELY(!(*p->b >= FL(1.0) &&
-                 (double)*p->b < (double)nchnls + 1))) {
+                 (cs_double)*p->b < (cs_double)nchnls + 1))) {
     return csound->PerfError(csound, &p->h,
-                             "%s", Str("Csound inch: channel out of range"));
+                             "%s\n", Str("Csound inch: channel out of range"));
   }
   chn = (int32_t)*p->b - 1;
 
@@ -493,10 +510,12 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
     if(start < 0) start += esmps;
     start *= nchnls;
     esmps *= nchnls;
-    for(int i = start+chn, j = 0; j < ksmps; i+=nchnls, j++) 
+    int i = start+chn;
+    for(uint32_t j = 0; j < ksmps; i+=nchnls, j++)
       out[j] = in[i%esmps];
   } else {
-    for(int i = chn, j = 0; j < ksmps; i+=nchnls, j++) 
+    int i = chn;
+    for(uint32_t j = 0; j < ksmps; i+=nchnls, j++)
       out[j] = in[i];
   }
   return OK;
@@ -509,12 +528,12 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
   int32_t nchnls = engine->inchnls;
   uint32_t ksmps = CS_KSMPS;
   uint32_t esmps = engine->ksmps;
-  MYFLT *in = p->b;
-  MYFLT *out = csobj->bufferin;  
+  cs_float *in = p->b;
+  cs_float *out = csobj->bufferin;
   if(UNLIKELY(!(*p->a >= FL(1.0) &&
-                 (double)*p->a < (double)nchnls + 1))) {
+                 (cs_double)*p->a < (cs_double)nchnls + 1))) {
     return csound->PerfError(csound, &p->h,
-                             "%s", Str("Csound outch: channel out of range"));
+                             "%s\n", Str("Csound outch: channel out of range"));
   }
   chn = (int32_t)*p->a - 1;
    
@@ -522,10 +541,12 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
     int start = csobj->nsmps;
     start *= nchnls;
     esmps *= nchnls;
-    for(int i = start+chn, j = 0; j < ksmps; i+=nchnls, j++)
+    int i = start+chn;
+    for(uint32_t j = 0; j < ksmps; i+=nchnls, j++)
       out[i%esmps] = in[j];
   } else {
-    for(int i = chn, j = 0; j < ksmps; i+=nchnls, j++)
+    int i = chn;
+    for(uint32_t j = 0; j < ksmps; i+=nchnls, j++)
       out[i] = in[j];
   }
 
@@ -551,7 +572,7 @@ const CS_TYPE CS_VAR_TYPE_CSOBJ = {
  */
 void add_csobj(CSOUND *csound, TYPE_POOL *pool) {
   csoundAddVariableType(csound, pool,
-                        (CS_TYPE*) &CS_VAR_TYPE_CSOBJ);
+                        &CS_VAR_TYPE_CSOBJ);
   csoundAppendOpcode(csound, "create", sizeof(ASSIGN), 0,
                        ":Csound;", "", (SUBR) create_csobj, NULL, NULL);
   csoundAppendOpcode(csound, "setoption", sizeof(AOP), 0,

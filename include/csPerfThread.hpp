@@ -118,12 +118,14 @@ class PUBLIC CsoundPerformanceThread {
     void    *pauseLock;
     void    *flushLock;
     void    *recordLock;
+    void    *callbackLock;      // guards processcallback/cdata
     void    *perfThread;
     int32_t     paused;
     int32_t     status;
     void    *cdata;
     recordData_t recordData;
     int32_t  running;
+    int32_t  flushWarned;
     void (*processcallback)(void *cdata);
     int32_t  Perform();
     void csPerfThread_constructor(CSOUND *);
@@ -142,15 +144,12 @@ class PUBLIC CsoundPerformanceThread {
   /**
   * Returns the process callback as a void pointer
   */
-  void *GetProcessCallback() { return (void *)processcallback; }
+  void *GetProcessCallback();
 
   /**
    * Sets the process callback.
    */
-   void SetProcessCallback(void (*Callback)(void *), void *cbdata){
-    processcallback = Callback;
-    cdata = cbdata;
-   }
+   void SetProcessCallback(void (*Callback)(void *), void *cbdata);
     /**
      * Returns the Csound instance pointer.
      */
@@ -207,7 +206,7 @@ class PUBLIC CsoundPerformanceThread {
      * the start time of the event is measured from the beginning of
      * performance, instead of the default of relative to the current time.
      */
-    void ScoreEvent(int32_t absp2mode, char opcod, int32_t pcnt, const MYFLT *p);
+    void ScoreEvent(int32_t absp2mode, char opcod, int32_t pcnt, const cs_float *p);
     
     /**
      * Sends a score event as a string, similarly to line events (-L).
@@ -217,7 +216,7 @@ class PUBLIC CsoundPerformanceThread {
     /**
      * Sets the playback time pointer to the specified value (in seconds).
      */
-    void SetScoreOffsetSeconds(double timeVal);
+    void SetScoreOffsetSeconds(cs_double timeVal);
 
 
     /**
@@ -230,7 +229,16 @@ class PUBLIC CsoundPerformanceThread {
      * Evaluates the given code, calls the `returncb` callback with the 
      * value passed to the `return` opcode in global space. 
      */
-    void EvalCode(const char *code, void (*returncb)(MYFLT));
+    void EvalCode(const char *code, void (*returncb)(cs_float));
+
+
+     /**
+     * Evaluates the given code, calls the `returncb` callback with the
+     * value passed to the `return` opcode in global space, and the
+     * `userdata` pointer.
+     */
+    void EvalCode(const char *code, void (*returncb)(cs_float, void *userdata),
+                  void *userdata);
 
 
     /**
@@ -239,10 +247,14 @@ class PUBLIC CsoundPerformanceThread {
     void RequestCallback(void (*func)(CsoundPerformanceThread *));
 
 
-     /**
-     * Waits until all pending messages (pause, send score event, etc.)
-     * are actually received by the performance thread.
-     */
+      /**
+      * Waits until all pending messages (pause, send score event, etc.)
+      * and their callbacks have been processed by the performance thread.
+      * Must not be called from the performance thread itself, i.e. from a
+      * message callback or from the process callback: the performance thread
+      * cannot wait for itself. Such a call is ignored (with a one-time
+      * warning) instead of deadlocking.
+      */
     void FlushMessageQueue();
 
      /**

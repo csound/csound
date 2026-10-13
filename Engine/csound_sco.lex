@@ -32,7 +32,7 @@
 #include "csound_scoparse.h"
   
 
-#define YYSTYPE MYFLT
+#define YYSTYPE cs_float
 #define YYLTYPE SCOTOKEN
 #define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
 #include "corfile.h"
@@ -41,7 +41,7 @@ YYLTYPE *yylval_param;
 YYLTYPE *yylloc_param;
 static  SCOTOKEN *make_string(CSOUND *, char *);
 static  SCOTOKEN *make_int(CSOUND *, int);
-static  SCOTOKEN *make_num(CSOUND *, double);
+static  SCOTOKEN *make_num(CSOUND *, cs_double);
 
 #define YY_EXTRA_TYPE  SCORE_PARM *
 #define PARM    yyget_extra(yyscanner)
@@ -190,11 +190,11 @@ static SCOTOKEN *make_int(CSOUND *csound, int i)
     return ans;
 }
 
-static SCOTOKEN *make_num(CSOUND *csound, double f)
+static SCOTOKEN *make_num(CSOUND *csound, cs_double f)
 {
     SCOTOKEN *ans = (SCOTOKEN*)mcalloc(csound, sizeof(SCOTOKEN));
     ans->type = NUMBER_TOKEN;
-    ans->fval = (MYFLT)f;
+    ans->fval = (cs_float)f;
     return ans;
 }
 

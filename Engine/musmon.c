@@ -170,7 +170,7 @@ static void realtime_engine_locks_destroy(CSOUND *csound)
   returns the HW sampling rate if it has been
   set, -1.0 otherwise.
 */
-MYFLT initialise_io(CSOUND *csound) {
+cs_float initialise_io(CSOUND *csound) {
     OPARMS *O = csound->oparms;
     if (csound->enableHostImplementedAudioIO &&
         csound->hostRequestedBufferSize) {
@@ -218,8 +218,10 @@ MYFLT initialise_io(CSOUND *csound) {
       O->outbufsamps = new_b;
       O->inbufsamps = new_b;
     }
-     csound->ErrorMsg(csound, Str("audio buffered in %d sample-frame blocks\n"),
-                    (int32_t) O->outbufsamps);
+    if (O->msglevel > 0) {
+      csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
+                     (int32_t) O->outbufsamps);
+    }
     O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
     O->outbufsamps *= csound->nchnls;
     set_io_backend(csound);          /* point recv & tran to audio formatter */
@@ -244,7 +246,7 @@ MYFLT initialise_io(CSOUND *csound) {
 /* IV - Jan 28 2005 */
 void print_benchmark_info(CSOUND *csound, const char *s)
 {
-  double  rt, ct;
+  cs_double  rt, ct;
 
   if ((csound->oparms->msglevel & CS_TIMEMSG) == 0 || csound->csRtClock == NULL)
     return;
@@ -255,18 +257,18 @@ void print_benchmark_info(CSOUND *csound, const char *s)
                   (char*) s, rt, ct);
 }
 
-static void set_tempo(CSOUND *csound, double tempo)
+static void set_tempo(CSOUND *csound, cs_double tempo)
 {
     if (tempo <= 0.0) return;
     if (csound->oparms->Beatmode==1)
       csound->ibeatTime = (int64_t)(csound->esr*60.0 / tempo);
-    csound->curBeat_inc = tempo / (60.0 * (double) csound->ekr);
+    csound->curBeat_inc = tempo / (60.0 * (cs_double) csound->ekr);
 }
 
 int32_t get_tempo(CSOUND *csound, GTEMPO *p)
 {
     if (LIKELY(csound->oparms->Beatmode)) {
-      *p->ans = FL(60.0) * csound->esr / (MYFLT)csound->ibeatTime;
+      *p->ans = FL(60.0) * csound->esr / (cs_float)csound->ibeatTime;
     }
     else
       *p->ans = FL(60.0);
@@ -275,33 +277,33 @@ int32_t get_tempo(CSOUND *csound, GTEMPO *p)
 
 int32_t tempo_set(CSOUND *csound, TEMPO *p)
 {
-    double tempo;
+    cs_double tempo;
 
-    if (UNLIKELY((tempo = (double)*p->istartempo) <= FL(0.0))) {
-      return csound->InitError(csound, Str("illegal istartempo value"));
+    if (UNLIKELY((tempo = (cs_double)*p->istartempo) <= FL(0.0))) {
+      return csound->InitError(csound, Str("illegal istartempo value\n"));
     }
     if (UNLIKELY(csound->oparms->Beatmode==0))
-      return csound->InitError(csound, Str("Beat mode not in force"));
+      return csound->InitError(csound, Str("Beat mode not in force\n"));
     set_tempo(csound, tempo);
-    p->prvtempo = (MYFLT)tempo;
+    p->prvtempo = (cs_float)tempo;
     return OK;
 }
 
 int32_t tempo(CSOUND *csound, TEMPO *p)
 {
     if (*p->ktempo != p->prvtempo) {
-      set_tempo(csound, (double)*p->ktempo);
+      set_tempo(csound, (cs_double)*p->ktempo);
       p->prvtempo = *p->ktempo;
     }
     return OK;
 }
 
-static void print_maxamp(CSOUND *csound, MYFLT x)
+static void print_maxamp(CSOUND *csound, cs_float x)
 {
     int32_t   attr = 0;
     if (!(csound->oparms->msglevel & 0x60)) {   /* 0x00: raw amplitudes */
       if (csound->oparms->msglevel & 0x300) {
-        MYFLT y = x / csound->e0dbfs;     /* relative level */
+        cs_float y = x / csound->e0dbfs;     /* relative level */
         if (UNLIKELY(y >= FL(1.0)))                    /* >= 0 dB: red */
           attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
         else if (csound->oparms->msglevel & 0x200) {
@@ -325,13 +327,13 @@ static void print_maxamp(CSOUND *csound, MYFLT x)
         csoundMessageS(csound, attr, "%9.4f", x);
     }
     else {                              /* dB values */
-      MYFLT y = x / csound->e0dbfs;     /* relative level */
+      cs_float y = x / csound->e0dbfs;     /* relative level */
       if (UNLIKELY(y < FL(1.0e-10))) {
         /* less than -200 dB: print zero */
         csound->Message(csound, "      0  ");
         return;
       }
-      y = FL(20.0) * (MYFLT) log10((double) y);
+      y = FL(20.0) * (cs_float) log10((cs_double) y);
       if (csound->oparms->msglevel & 0x40) {
         if (UNLIKELY(y >= FL(0.0)))                     /* >= 0 dB: red */
           attr = CSOUNDMSG_FG_BOLD | CSOUNDMSG_FG_RED;
@@ -354,7 +356,8 @@ void print_sndfile_version(CSOUND* csound);
 int32_t start_engine(CSOUND *csound)
 {
     OPARMS  *O = csound->oparms;
-    print_sndfile_version(csound);
+    if (O->odebug > 0)
+      print_sndfile_version(csound);
 
     /* initialise search path cache */
     csoundGetSearchPathFromEnv(csound, "SNAPDIR");
@@ -375,14 +378,14 @@ int32_t start_engine(CSOUND *csound)
     dbfs_init(csound, csound->e0dbfs);
     csound->nspout = csound->ksmps * csound->nchnls;  /* alloc spin & spout */
     csound->nspin = csound->ksmps * csound->inchnls; /* JPff: in preparation */
-    csound->spin  = (MYFLT *) csound->Calloc(csound, csound->nspin*sizeof(MYFLT));
-    csound->spout_tmp = (MYFLT *)
-      csound->Calloc(csound,(csound->oparms->numThreads+1)*csound->nspout*sizeof(MYFLT));
-    csound->spout = (MYFLT *) csound->Calloc(csound, csound->nspout*sizeof(MYFLT));
-    csound->auxspin = (MYFLT *) csound->Calloc(csound, csound->nspin*sizeof(MYFLT));
-    /* memset(csound->maxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
-    /* memset(csound->smaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
-    /* memset(csound->omaxamp, '\0', sizeof(MYFLT)*MAXCHNLS); */
+    csound->spin  = (cs_float *) csound->Calloc(csound, csound->nspin*sizeof(cs_float));
+    csound->spout_tmp = (cs_float *)
+      csound->Calloc(csound,(csound->oparms->numThreads+1)*csound->nspout*sizeof(cs_float));
+    csound->spout = (cs_float *) csound->Calloc(csound, csound->nspout*sizeof(cs_float));
+    csound->auxspin = (cs_float *) csound->Calloc(csound, csound->nspin*sizeof(cs_float));
+    /* memset(csound->maxamp, '\0', sizeof(cs_float)*MAXCHNLS); */
+    /* memset(csound->smaxamp, '\0', sizeof(cs_float)*MAXCHNLS); */
+    /* memset(csound->omaxamp, '\0', sizeof(cs_float)*MAXCHNLS); */
 
     /* initialise sense_events state */
     csound->prvbt = csound->curbt = csound->nxtbt = 0.0;
@@ -390,17 +393,18 @@ int32_t start_engine(CSOUND *csound)
     csound->icurTimeSamples = 0L;
     if (O->Beatmode && O->cmdTempo > 0.0) {
       /* if performing from beats, set the initial tempo */
-      csound->curBeat_inc = O->cmdTempo / (60.0 * (double) csound->ekr);
+      csound->curBeat_inc = O->cmdTempo / (60.0 * (cs_double) csound->ekr);
       csound->ibeatTime = (int64_t)(csound->esr*60.0 / O->cmdTempo);
     }
     else {
-      csound->curBeat_inc = 1.0 / (double) csound->ekr;
+      csound->curBeat_inc = 1.0 / (cs_double) csound->ekr;
       csound->ibeatTime = 1;
     }
     csound->cyclesRemaining = 0;
     memset(&(csound->evt), 0, sizeof(EVTBLK));
 
-    print_engine_parameters(csound);
+    if(O->msglevel > 0)
+      print_engine_parameters(csound);
 
     /* Enable musmon to handle external MIDI input, if it has been enabled.
        called before init() so that any file passed -F is the first on the
@@ -436,7 +440,7 @@ int32_t start_engine(CSOUND *csound)
 
     /* run instr 0 inits */
     if (UNLIKELY(init0(csound) != 0))
-      csoundDie(csound, Str("header init errors"));
+      csoundDie(csound, Str("header init errors\n"));
 
     /* open MIDI output (moved here from argdecode) */
     if (O->Midioutname != NULL && O->Midioutname[0] == (char) '\0')
@@ -457,7 +461,9 @@ int32_t start_engine(CSOUND *csound)
          initialise_io(csound);
 
     if (csound->playscore!=NULL) corfile_flush(csound, csound->playscore);
-     csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    ++STA(sectno);
+    if (O->msglevel > 0)
+      csound->Message(csound, Str("SECTION %d:\n"), STA(sectno));
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
@@ -538,7 +544,7 @@ static void delete_pending_rt_events(CSOUND *csound)
   csound_recycle_rt_event_list_with_tail(csound, events, tail);
 }
 
-void delete_selected_rt_events(CSOUND *csound, MYFLT instr)
+void delete_selected_rt_events(CSOUND *csound, cs_float instr)
 {
   EVTNODE *ep;
   EVTNODE *last = NULL;
@@ -622,7 +628,7 @@ void csound_close_audio(CSOUND *csound)
 int32_t csound_cleanup(CSOUND *csound)
 {
     void    *p;
-    MYFLT   *maxp;
+    cs_float   *maxp;
     int32   *rngp;
     uint32_t n;
 
@@ -692,8 +698,7 @@ int32_t csound_cleanup(CSOUND *csound)
     /* print stats only if musmon was actually run */
     /* NOT SURE HOW   ************************** */
     // if(csound->oparms->msglevel)
-    if(!csound->info_message_request){
-      csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
+    if(!csound->info_message_request) {
       corfile_rm(csound, &csound->expanded_sco);
       for (n = 0; n < csound->nchnls; n++) {
         if (csound->smaxamp[n] > csound->omaxamp[n])
@@ -702,12 +707,22 @@ int32_t csound_cleanup(CSOUND *csound)
           csound->omaxamp[n] = csound->maxamp[n];
         STA(orngcnt)[n] += (STA(srngcnt)[n] + csound->rngcnt[n]);
       }
-      for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
-        print_maxamp(csound, *maxp++);
+      if(csound->oparms->msglevel > 0) {
+        csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
+        for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
+          print_maxamp(csound, *maxp++);
+      }
       if (csound->oparms->outformat != AE_FLOAT) {
-        csound->ErrorMsg(csound, Str("\n\t   overall samples out of range:"));
+        // only print samples out of range if there were actually any
+        size_t samples_out_of_range = 0;
         for (rngp = STA(orngcnt), n = csound->nchnls; n--; )
-          csound->ErrorMsg(csound, "%9d", *rngp++);
+          samples_out_of_range += *rngp++;
+        if (samples_out_of_range > 0) {
+          csound->ErrorMsg(csound, Str("\n\t   overall samples out of range:"));
+          for (rngp = STA(orngcnt), n = csound->nchnls; n--; ) {
+            csound->ErrorMsg(csound, "%9d", *rngp++);
+          }
+        }
       }
       if(csound->perferrcnt > 0) {
         csound->ErrorMsg(csound, Str("\n%d errors in performance\n"),
@@ -719,16 +734,16 @@ int32_t csound_cleanup(CSOUND *csound)
         int32_t passed = csound->total_assert_cnt - csound->perferrcnt;
         csound->ErrorMsg(csound, "\n");
         csound->ErrorMsg(csound, "=====================================\n");
-        csound->ErrorMsg(csound, "         UNIT TEST REPORT            \n");
+        csound->ErrorMsg(csound, Str("         UNIT TEST REPORT            \n"));
         csound->ErrorMsg(csound, "=====================================\n");
-        csound->ErrorMsg(csound, "  Total assertions: %d\n", csound->total_assert_cnt);
-        csound->ErrorMsg(csound, "  Passed: %d\n", passed);
-        csound->ErrorMsg(csound, "  Failed: %d\n", csound->perferrcnt);
+        csound->ErrorMsg(csound, Str("  Total assertions: %d\n"), csound->total_assert_cnt);
+        csound->ErrorMsg(csound, Str("  Passed: %d\n"), passed);
+        csound->ErrorMsg(csound, Str("  Failed: %d\n"), csound->perferrcnt);
         csound->ErrorMsg(csound, "\n");
         if (csound->perferrcnt == 0) {
-          csound->ErrorMsg(csound, "  Result: ✓ ALL TESTS PASSED\n");
+          csound->ErrorMsg(csound, Str("  Result: ✓ ALL TESTS PASSED\n"));
         } else {
-          csound->ErrorMsg(csound, "  Result: ✗ TESTS FAILED\n");
+          csound->ErrorMsg(csound, Str("  Result: ✗ TESTS FAILED\n"));
         }
         csound->ErrorMsg(csound, "=====================================\n");
       }
@@ -758,9 +773,9 @@ int32_t turnon(CSOUND *csound, TURNON *p)
 {
   EVTBLK  evt;
   int32_t insno;
-  MYFLT pfields[3]  = {0};
+  cs_float pfields[3]  = {0};
   memset(&evt, 0, sizeof(EVTBLK));
-  evt.p = (MYFLT *) pfields;
+  evt.p = (cs_float *) pfields;
   evt.strarg = NULL; evt.scnt = 0;
   evt.opcod = 'i';
   evt.pcnt = 3;
@@ -775,9 +790,9 @@ int32_t turnon(CSOUND *csound, TURNON *p)
     // VL prevent i-time infinite loop
   if(*p->insno == p->h.insdshead->insno &&
      *p->itime == 0)
-    return csound->InitError(csound, "cannot turnon self with zero delay\n");
+    return csound->InitError(csound, Str("cannot turnon self with zero delay\n"));
 
-  evt.p[0] = (MYFLT) insno;
+  evt.p[0] = (cs_float) insno;
   evt.p[1] = *p->itime;
   evt.p[2] = FL(-1.0);
   return insert_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
@@ -790,11 +805,11 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
 {
   EVTBLK  evt;
   int32_t     insno;
-  MYFLT pfields[3]  = {0};
+  cs_float pfields[3]  = {0};
   memset(&evt, 0, sizeof(EVTBLK));
   evt.strarg = NULL; evt.scnt = 0;
   evt.opcod = 'i';
-  evt.p = (MYFLT *) pfields;
+  evt.p = (cs_float *) pfields;
   evt.pcnt = 3;
   insno = csound->StringArg2Insno(csound, ((STRINGDAT *)p->insno)->data, 1);
   if (UNLIKELY(insno == NOT_AN_INSTRUMENT))
@@ -803,9 +818,9 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
   // VL prevent i-time infinite loop
   if(*p->insno == p->h.insdshead->insno &&
      *p->itime == 0)
-    return csound->InitError(csound, "cannot turnon self with zero delay\n");
+    return csound->InitError(csound, Str("cannot turnon self with zero delay\n"));
 
-  evt.p[0] = (MYFLT) insno;
+  evt.p[0] = (cs_float) insno;
   evt.p[1] = *p->itime;
   evt.p[2] = FL(-1.0);
   return insert_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
@@ -816,7 +831,7 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
 static void print_amp_values(CSOUND *csound, int32_t score_evt)
 {
   CSOUND        *p = csound;
-  MYFLT         *maxp, *smaxp;
+  cs_float         *maxp, *smaxp;
   uint32        *maxps, *smaxps;
   int32         *rngp, *srngp;
   int32_t           n;
@@ -875,7 +890,7 @@ static void print_amp_values(CSOUND *csound, int32_t score_evt)
 static void section_amps(CSOUND *csound, int32_t enable_msgs)
 {
   CSOUND        *p = csound;
-  MYFLT         *maxp, *smaxp;
+  cs_float         *maxp, *smaxp;
   uint32        *maxps, *smaxps;
   int32         *rngp, *srngp;
   int32_t           n;
@@ -921,7 +936,7 @@ static void section_amps(CSOUND *csound, int32_t enable_msgs)
   }
 }
 
-static void indef_off(CSOUND *csound, MYFLT p1)   /* turn off an indef copy of instr p1 */
+static void indef_off(CSOUND *csound, cs_float p1)   /* turn off an indef copy of instr p1 */
 {
   INSDS *ip;
   int32_t   insno;
@@ -999,10 +1014,10 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
     return (evt->opcod == 'l' ? 3 : (evt->opcod == 's' ? 1 : 2));
   case 'q':
     if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
-      MYFLT n = named_instr_find(csound, evt->strarg);
+      cs_float n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY((insno = (int32_t) n) == 0)) {
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted. instr %s undefined"),
+                        Str(" - note deleted. instr %s undefined\n"),
                         evt->strarg);
         break;
       }
@@ -1017,7 +1032,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
                    (uint32_t) csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[insno] == NULL)) {
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted. instr %d(%d) undefined"),
+                        Str(" - note deleted. instr %d(%d) undefined\n"),
                         insno, csound->engineState.maxinsno);
         break;
       }
@@ -1029,10 +1044,10 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   case 'i':
   case 'd':
     if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
-      MYFLT n = named_instr_find(csound, evt->strarg);
+      cs_float n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY((insno = (int)n) == 0)) {
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted. instr %s undefined"),
+                        Str(" - note deleted. instr %s undefined\n"),
                         evt->strarg);
         break;
       }
@@ -1052,7 +1067,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       }
       evt->p[1] = n;
       if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
-        evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
+        evt->p[3] = evt->p3orig * (cs_float) csound->ibeatTime/csound->esr;
       /* else alloc, init, activate */
       if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
         /* Use a consistent INIT ERROR prefix so frontends can parse it */
@@ -1061,18 +1076,18 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
           if (reason != NULL)
             print_score_error(csound, rtEvt,
                               Str("\nINIT ERROR in instr %d (%s): note "
-                                  "deleted (%s)"),
+                                  "deleted (%s)\n"),
                               insno, evt->strarg, reason);
           else
             print_score_error(csound, rtEvt,
                               Str("\nINIT ERROR in instr %d (%s): note "
-                                  "deleted (realtime event failed with status %d)"),
+                                  "deleted (realtime event failed with status %d)\n"),
                               insno, evt->strarg, n);
         }
         else
           print_score_error(csound, rtEvt,
                             Str("\nINIT ERROR in instr %d (%s): note "
-                                "deleted (%d init errors)"),
+                                "deleted (%d init errors)\n"),
                             insno, evt->strarg, n);
       }
     }
@@ -1082,7 +1097,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
                    (unsigned int)csound->engineState.maxinsno ||
                    csound->engineState.instrtxtp[insno] == NULL)) {
         print_score_error(csound, rtEvt,
-                        Str(" - note deleted. instr %d(%d) undefined"),
+                        Str(" - note deleted. instr %d(%d) undefined\n"),
                         insno, csound->engineState.maxinsno);
         break;
       }
@@ -1099,7 +1114,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
         indef_off(csound, -evt->p[1]);    /*  turnoff any infin cpy */
       else {
         if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
-          evt->p[3] = evt->p3orig * (MYFLT) csound->ibeatTime/csound->esr;
+          evt->p[3] = evt->p3orig * (cs_float) csound->ibeatTime/csound->esr;
         if (UNLIKELY((n = insert_event(csound, insno, evt)))) {
           /* Use a consistent INIT ERROR prefix so frontends can parse it */
           if (n < 0) {
@@ -1107,18 +1122,18 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
             if (reason != NULL)
               print_score_error(csound, rtEvt,
                                 Str("\nINIT ERROR in instr %d: note deleted "
-                                    "(%s)"),
+                                    "(%s)\n"),
                                 insno, reason);
             else
               print_score_error(csound, rtEvt,
                                 Str("\nINIT ERROR in instr %d: note deleted "
-                                    "(realtime event failed with status %d)"),
+                                    "(realtime event failed with status %d)\n"),
                                 insno, n);
           }
           else
             print_score_error(csound, rtEvt,
                               Str("\nINIT ERROR in instr %d: note deleted "
-                                  "(%d init errors)"),
+                                  "(%d init errors)\n"),
                               insno, n);
         }
       }
@@ -1135,7 +1150,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   case 'a':
     {
       int64_t kCnt;
-      kCnt = (int64_t) ((double) csound->ekr * (double) evt->p[3] + 0.5);
+      kCnt = (int64_t) ((cs_double) csound->ekr * (cs_double) evt->p[3] + 0.5);
       if (kCnt > csound->advanceCnt) {
         csound->advanceCnt = kCnt;
         csound->ErrorMsg(csound,
@@ -1219,8 +1234,8 @@ static int32_t process_rt_score_event(CSOUND *csound, EVTNODE *e)
   EVTBLK *evt = &e->evt;
   int32_t retval;
 
-  if (csound->curp2 * csound->esr < (double)csound->icurTimeSamples) {
-    csound->curp2 = (double)csound->icurTimeSamples/csound->esr;
+  if (csound->curp2 * csound->esr < (cs_double)csound->icurTimeSamples) {
+    csound->curp2 = (cs_double)csound->icurTimeSamples/csound->esr;
     print_amp_values(csound, 0);
   }
   retval = process_score_event(csound, evt, 1);
@@ -1236,8 +1251,8 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
 {
   int32_t retval = 0, rfd;
 
-  if (csound->curp2 * csound->esr < (double)csound->icurTimeSamples) {
-    csound->curp2 = (double)csound->icurTimeSamples/csound->esr;
+  if (csound->curp2 * csound->esr < (cs_double)csound->icurTimeSamples) {
+    csound->curp2 = (cs_double)csound->icurTimeSamples/csound->esr;
     print_amp_values(csound, 0);
   }
   if (sensType == 2) {                           /* Midievent:    */
@@ -1258,7 +1273,7 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
   return retval;
 }
 
-#define RNDINT64(x) ((int64_t) ((double) (x) + ((double) (x) < 0.0 ? -0.5 : 0.5)))
+#define RNDINT64(x) ((int64_t) ((cs_double) (x) + ((cs_double) (x) < 0.0 ? -0.5 : 0.5)))
 
 /* sense events for one k-period            */
 /* return value is one of the following:    */
@@ -1277,6 +1292,12 @@ int32_t sense_events(CSOUND *csound)
   if (UNLIKELY(data && data->status == CSDEBUG_STATUS_STOPPED)) {
     return 0; /* don't process events if we're in debug mode and stopped */
   }
+  /* Clear realtime MIDI flags once per control cycle. sens_midi() may return
+     for each note message, so clearing there loses flags from earlier bytes. */
+  csound->midi_clock_pulse = 0;
+  csound->midi_start = 0;
+  csound->midi_continue = 0;
+  csound->midi_stop = 0;
   if (UNLIKELY(csound->MTrkend && O->termifend)) {   /* end of MIDI file:  */
     deactivate_all_notes(csound);
     csound->ErrorMsg(csound, Str("terminating.\n"));
@@ -1288,14 +1309,14 @@ int32_t sense_events(CSOUND *csound)
   /* if turnoffs pending, remove any expired instrs */
   RT_SPIN_TRYLOCK
   if (UNLIKELY(csound->frstoff != NULL)) {
-    double  tval;
+    cs_double  tval;
     /* the following comparisons must match those in schedofftim() */
     if (O->Beatmode) {
       tval = csound->curBeat + (0.505 * csound->curBeat_inc);
       if (csound->frstoff->offbet <= tval) beat_expire(csound, tval);
     }
     else {
-      tval = ((double)csound->icurTimeSamples + csound->ksmps * 0.505)/csound->esr;
+      tval = ((cs_double)csound->icurTimeSamples + csound->ksmps * 0.505)/csound->esr;
       if (csound->frstoff->offtim <= tval)
         time_expire(csound, tval);
     }
@@ -1373,15 +1394,15 @@ int32_t sense_events(CSOUND *csound)
       switch (e->opcod) {
       case 'w':
         if (!O->Beatmode)                   /* Not beatmode: read 'w' */
-          set_tempo(csound, (double)e->p2orig); /* to init the tempo   */
+          set_tempo(csound, (cs_double)e->p2orig); /* to init the tempo   */
         continue;                           /*   for this section     */
       case 'q':
       case 'i':
       case 'd':
       case 'f':
       case 'a':
-        csound->nxtim = (double) e->p[2] + csound->timeOffs;
-        csound->nxtbt = (double) e->p2orig + csound->beatOffs;
+        csound->nxtim = (cs_double) e->p[2] + csound->timeOffs;
+        csound->nxtbt = (cs_double) e->p2orig + csound->beatOffs;
         if (e->opcod=='i'||e->opcod=='d')
           if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME))
             csound->ErrorMsg(csound, "new event: %16.13lf %16.13lf\n",
@@ -1471,7 +1492,7 @@ int32_t sense_events(CSOUND *csound)
 
             if (bp->type == SCOR_EVT) {
               EVTBLK *evt = (EVTBLK*)bp->data;
-              evt->p[2] = (double)csound->icurTimeSamples/csound->esr;
+              evt->p[2] = (cs_double)csound->icurTimeSamples/csound->esr;
               if ((retval = process_score_event(csound, evt, 1)) != 0) {
                 e->opcod = evt->opcod;        /* pass any s, e, or l */
 
@@ -1537,7 +1558,9 @@ int32_t sense_events(CSOUND *csound)
     free_inactive_instances(csound);                      /*   rtn inactiv spc */
     if (csound->actanchor.nxtact == NULL)   /*   if no indef ins */
       free_memfiles(csound);                  /*    purge memfiles */
-    csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    STA(sectno)++;
+    if (csound->oparms->msglevel > 0)
+      csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
     RT_SPIN_UNLOCK
     goto retest;                            /*   & back for more */
   }
@@ -1545,11 +1568,11 @@ int32_t sense_events(CSOUND *csound)
   return retval;                   /* done with entire score */
 }
 
-static inline uint64_t time2kcnt(CSOUND *csound, double tval)
+static inline uint64_t time2kcnt(CSOUND *csound, cs_double tval)
 {
   if (tval > 0.0) {
-    tval *= (double) csound->ekr;
-    return !csound->oparms->sampleAccurate ? MYFLT2UINT64(tval) : (uint64_t) FLOOR(tval);
+    tval *= (cs_double) csound->ekr;
+    return !csound->oparms->sampleAccurate ? CS_FLOAT2UINT64(tval) : (uint64_t) FLOOR(tval);
   }
   return 0UL;
 }
@@ -1591,7 +1614,7 @@ static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
     // alloc memory
      e->evt.pcnt = ep->pcnt;
      if(e->evt.p != NULL) csound->Free(csound, e->evt.p);
-     e->evt.p = csound->Calloc(csound, sizeof(MYFLT)*(ep->pcnt+1));
+     e->evt.p = csound->Calloc(csound, sizeof(cs_float)*(ep->pcnt+1));
      if (UNLIKELY(e->evt.p == NULL)) {
        e->evt.pcnt = 0;
        if (e->evt.strarg != NULL) {
@@ -1606,13 +1629,13 @@ static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
 }
 
 static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
-  double        start_time;
+  cs_double        start_time;
   EVTNODE       *prv;
   CSOUND        *st = csound;
   uint32        start_kcnt;
   int32_t       i, retval = -1;
   EVTBLK        *evt = &(e->evt);
-  MYFLT         *pf = evt->p;
+  cs_float         *pf = evt->p;
 
    /* check for required p-fields */
   switch (evt->opcod) {
@@ -1629,14 +1652,14 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   case 'd':
   cont:
     /* calculate actual start time in seconds and k-periods */
-    start_time = (double) pf[2] + (double)time_ofs/csound->esr;
+    start_time = (cs_double) pf[2] + (cs_double)time_ofs/csound->esr;
     start_kcnt = (uint32_t) time2kcnt(csound, start_time);
     /* correct p2 value for section offset */
-    pf[2] = (MYFLT) (start_time - st->timeOffs);
+    pf[2] = (cs_float) (start_time - st->timeOffs);
     if (pf[2] < FL(0.0))
       pf[2] = FL(0.0);
     /* start beat: this is possibly wrong */
-    evt->p2orig = (MYFLT) (((start_time - st->icurTimeSamples/st->esr) /
+    evt->p2orig = (cs_float) (((start_time - st->icurTimeSamples/st->esr) /
                             st->ibeatTime)
                            + (st->curBeat - st->beatOffs));
     if (evt->p2orig < FL(0.0))
@@ -1652,7 +1675,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   case 'd':
     /* calculate the length in beats */
     if (evt->p3orig > FL(0.0))
-      evt->p3orig = (MYFLT) ((double) evt->p3orig / st->ibeatTime);
+      evt->p3orig = (cs_float) ((cs_double) evt->p3orig / st->ibeatTime);
     /* fall through */
   case 'q':                         /* mute instrument */
     /* check for a valid instrument number or name */
@@ -1662,18 +1685,18 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
         pf[1] = -i;
       }
       else {
-        i = (int32_t) fabs((double) pf[1]);
+        i = (int32_t) fabs((cs_double) pf[1]);
         pf[1] = -i;
       }
     }
     else if (evt->strarg != NULL && IsStringCode(pf[1])) {
-      MYFLT n = named_instr_find(csound, evt->strarg);
+      cs_float n = named_instr_find(csound, evt->strarg);
       pf[1] = n;
       i =(int32_t) n;
       if (n<0) {i= -i;}
     }
     else
-      i = (int32_t) fabs((double) pf[1]);
+      i = (int32_t) fabs((cs_double) pf[1]);
 
     if (UNLIKELY((uint32_t) i >
                  (uint32_t) csound->engineState.maxinsno ||
@@ -1689,15 +1712,15 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     break;
   case 'a':                         /* advance score time */
     /* calculate the length in beats */
-    evt->p3orig = (MYFLT) ((double) evt->p3orig *csound->esr/ st->ibeatTime);
+    evt->p3orig = (cs_float) ((cs_double) evt->p3orig *csound->esr/ st->ibeatTime);
     /* fall through */
   case 'f':                         /* function table */
     break;
   case 'e':                         /* end of score, */
   case 's':                         /*   section:    */
-    start_time = (double)time_ofs/csound->esr;
+    start_time = (cs_double)time_ofs/csound->esr;
     if (evt->pcnt >= 2)
-      start_time += (double) pf[2];
+      start_time += (cs_double) pf[2];
     evt->pcnt = 0;
     start_kcnt = (uint32_t)time2kcnt(csound, start_time);
     break;
@@ -1754,11 +1777,11 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
 /* the event is made.                                                 */
 /* Return value is zero on success.                                   */
 int32_t insert_event_at_sample(CSOUND *csound, const EVTBLK *ep,
-                                     const MYFLT *pfields,
+                                     const cs_float *pfields,
                                      int64_t time_ofs)
 {
 
-  MYFLT *pf;
+  cs_float *pf;
   int  i;
   EVTNODE *e = copy_evtblk(csound, ep);
   if (UNLIKELY(e == NULL))
@@ -1773,11 +1796,11 @@ int32_t insert_event_at_sample(CSOUND *csound, const EVTBLK *ep,
 
 /** second version for argument pointers as pfields */
 int32_t insert_score_args_at_sample(CSOUND *csound, const EVTBLK *ep,
-                                     MYFLT *pfields[VARGMAX],
+                                     cs_float *pfields[VARGMAX],
                                      int64_t time_ofs)
 {
 
-  MYFLT *pf;
+  cs_float *pf;
   int  i;
   EVTNODE *e = copy_evtblk(csound, ep);
   if (UNLIKELY(e == NULL))
@@ -1822,7 +1845,8 @@ void rewind_score(CSOUND *csound)
     /* update section/overall amplitudes, reset to section 1 */
     section_amps(csound, 1);
     STA(sectno) = 1;
-    csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
+    if (csound->oparms->msglevel > 0)
+      csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
   }
 
   /* apply score offset if non-zero */

@@ -35,6 +35,14 @@
 #include "csdl.h"
 #include "soundio.h"
 
+/* Older MinGW headers omit these documented Windows audio engine flags. */
+#ifndef AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM
+#define AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM 0x80000000
+#endif
+#ifndef AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY
+#define AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY 0x08000000
+#endif
+
 /* Define the COM GUIDs we need for WASAPI */
 /* MinGW headers already define these when initguid.h is included, but MSVC doesn't */
 #ifdef _MSC_VER
@@ -71,8 +79,8 @@ typedef struct csdata_ {
   HANDLE hOutThread;
   WAVEFORMATEX *pwfxIn;
   WAVEFORMATEX *pwfxOut;
-  MYFLT       *inputBuffer;
-  MYFLT       *outputBuffer;
+  cs_float       *inputBuffer;
+  cs_float       *outputBuffer;
   csRtAudioParams *inParm;
   csRtAudioParams *outParm;
   int32_t onchnls, inchnls;
@@ -80,7 +88,7 @@ typedef struct csdata_ {
   int32_t disp;
   void *incb;
   void *outcb;
-  MYFLT sr;
+  cs_float sr;
   volatile int32_t inRunning;
   volatile int32_t outRunning;
   volatile int32_t outDraining;
@@ -122,7 +130,7 @@ static DWORD WINAPI InputThread(LPVOID lpParam)
     DWORD flags;
     HRESULT hr;
     int32_t i, j;
-    MYFLT *inputBuffer = cdata->inputBuffer;
+    cs_float *inputBuffer = cdata->inputBuffer;
     int32_t inchnls = cdata->inchnls;
 
     while (cdata->inRunning) {
@@ -140,12 +148,12 @@ static DWORD WINAPI InputThread(LPVOID lpParam)
             }
 
             if (flags & AUDCLNT_BUFFERFLAGS_SILENT) {
-                memset(inputBuffer, 0, numFramesAvailable * inchnls * sizeof(MYFLT));
+                memset(inputBuffer, 0, numFramesAvailable * inchnls * sizeof(cs_float));
             } else {
                 float *pFloatData = (float *)pData;
                 for (i = 0; i < (int32_t)numFramesAvailable; i++) {
                     for (j = 0; j < inchnls; j++) {
-                        inputBuffer[i * inchnls + j] = (MYFLT)pFloatData[i * inchnls + j];
+                        inputBuffer[i * inchnls + j] = (cs_float)pFloatData[i * inchnls + j];
                     }
                 }
             }
@@ -181,7 +189,7 @@ static DWORD WINAPI OutputThread(LPVOID lpParam)
     UINT32 numFramesPadding;
     HRESULT hr;
     int32_t i, j;
-    MYFLT *outputBuffer = cdata->outputBuffer;
+    cs_float *outputBuffer = cdata->outputBuffer;
     int32_t onchnls = cdata->onchnls;
     int32_t n;
 
@@ -206,7 +214,7 @@ static DWORD WINAPI OutputThread(LPVOID lpParam)
         if (n < (int32_t)(numFramesAvailable * onchnls)) {
             /* Not enough data in buffer, fill remainder with silence */
             memset(&outputBuffer[n], 0,
-                   ((numFramesAvailable * onchnls) - n) * sizeof(MYFLT));
+                   ((numFramesAvailable * onchnls) - n) * sizeof(cs_float));
         }
 
         float *pFloatData = (float *)pData;
@@ -247,7 +255,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
     /* WASAPI duration is in 100-nanosecond units (REFERENCE_TIME) */
     /* Duration = (bufSamp_HW / sampleRate) * 10,000,000 */
     if (parm->bufSamp_HW > 0 && parm->sampleRate > 0) {
-        hnsRequestedDuration = (REFERENCE_TIME)((double)parm->bufSamp_HW / 
+        hnsRequestedDuration = (REFERENCE_TIME)((cs_double)parm->bufSamp_HW /
                                                  parm->sampleRate * REFTIMES_PER_SEC);
     } else {
         /* Default to 100ms if not specified */
@@ -306,8 +314,8 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             SAFE_RELEASE(pCollection);
             if (O->msglevel || O->odebug)
                 csound->Warning(csound,
-                                Str("WASAPI: Requested device %d out of range, using default"),
-                                devnum);
+                                Str("WASAPI: Requested device %d out of range, using default\n"),
+                                (int)devnum);
             /* Fall back to default device */
             hr = pEnumerator->lpVtbl->GetDefaultAudioEndpoint(
                 pEnumerator, isInput ? eCapture : eRender, eConsole, &pDevice);
@@ -389,7 +397,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         csound->Message(csound, Str("WASAPI: Attempting exclusive mode initialization...\n"));
 
     /* Try two formats for exclusive mode in order:
-     * 1. The device's own mix format (most compatible - uses device-native format)
+     * 1. The device's mix format, if its rate and channel count match Csound
      * 2. Our custom WAVEFORMATEXTENSIBLE 32-bit float format
      * Only float formats are tried since the I/O threads assume 32-bit float data. */
     exclusiveFmts[0] = pwfx;
@@ -404,11 +412,19 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         WAVEFORMATEX *fmt = exclusiveFmts[fi];
         if (fmt == NULL) continue;
 
+        /* Exclusive mode does not convert samples. A different rate changes
+         * pitch and duration; a different channel count changes the stride. */
+        if (fmt->nSamplesPerSec != desiredFormat.nSamplesPerSec ||
+            fmt->nChannels != desiredFormat.nChannels)
+            continue;
+
         /* Only use 32-bit float formats (I/O threads assume float data) */
         int isFloat32 = 0;
         if (fmt->wFormatTag == WAVE_FORMAT_IEEE_FLOAT && fmt->wBitsPerSample == 32) {
             isFloat32 = 1;
-        } else if (fmt->wFormatTag == WAVE_FORMAT_EXTENSIBLE && fmt->wBitsPerSample == 32) {
+        } else if (fmt->wFormatTag == WAVE_FORMAT_EXTENSIBLE &&
+                   fmt->cbSize >= sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX) &&
+                   fmt->wBitsPerSample == 32) {
             WAVEFORMATEXTENSIBLE *fmtex = (WAVEFORMATEXTENSIBLE *)fmt;
             isFloat32 = (memcmp(&fmtex->SubFormat, &ksdataFormatSubtypeIeeeFloat,
                                 sizeof(GUID)) == 0);
@@ -461,18 +477,18 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             SAFE_RELEASE(pAudioClient);
             hr = pDevice->lpVtbl->Activate(pDevice, &IID_IAudioClient, CLSCTX_ALL,
                                             NULL, (void **)&pAudioClient);
-            if (SUCCEEDED(hr)) {
-                pFormatToUse = (WAVEFORMATEX *)CoTaskMemAlloc(exclusiveFmtSizes[fi]);
-                if (pFormatToUse != NULL) {
-                    memcpy(pFormatToUse, fmt, exclusiveFmtSizes[fi]);
-                    hr = pAudioClient->lpVtbl->Initialize(pAudioClient,
-                                                           AUDCLNT_SHAREMODE_EXCLUSIVE,
-                                                           AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-                                                           hnsBufferDuration, hnsBufferDuration,
-                                                           pFormatToUse, NULL);
-                } else {
-                    hr = E_OUTOFMEMORY;
-                }
+            if (FAILED(hr))
+                break;
+            pFormatToUse = (WAVEFORMATEX *)CoTaskMemAlloc(exclusiveFmtSizes[fi]);
+            if (pFormatToUse != NULL) {
+                memcpy(pFormatToUse, fmt, exclusiveFmtSizes[fi]);
+                hr = pAudioClient->lpVtbl->Initialize(pAudioClient,
+                                                       AUDCLNT_SHAREMODE_EXCLUSIVE,
+                                                       AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+                                                       hnsBufferDuration, hnsBufferDuration,
+                                                       pFormatToUse, NULL);
+            } else {
+                hr = E_OUTOFMEMORY;
             }
         }
 
@@ -497,67 +513,57 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
         }
     }
 
-    /* Free the mix format if exclusive mode succeeded and we didn't use it */
-    if (hr == S_OK && pwfx != NULL) {
+    if (pwfx != NULL) {
         CoTaskMemFree(pwfx);
         pwfx = NULL;
     }
 
     /* If exclusive mode failed, fall back to shared mode */
-    if (FAILED(hr) || hr != S_OK) {
+    if (hr != S_OK) {
         if (O->msglevel || O->odebug)
             csound->Message(csound, Str("WASAPI: All exclusive mode attempts failed, "
                                         "falling back to shared mode\n"));
-        /* Ensure we still have the mix format */
-        if (pwfx == NULL) {
-            hr = pAudioClient->lpVtbl->GetMixFormat(pAudioClient, &pwfx);
-            if (FAILED(hr)) {
-                if (pFormatToUse != NULL) CoTaskMemFree(pFormatToUse);
-                SAFE_RELEASE(pAudioClient);
-                SAFE_RELEASE(pDevice);
-                SAFE_RELEASE(pEnumerator);
-                csound->ErrorMsg(csound, Str("WASAPI: Failed to get mix format"));
-                return -1;
-            }
+        /* A failed exclusive Initialize can leave the client unusable. */
+        SAFE_RELEASE(pAudioClient);
+        hr = pDevice->lpVtbl->Activate(pDevice, &IID_IAudioClient, CLSCTX_ALL,
+                                     NULL, (void **)&pAudioClient);
+        if (FAILED(hr)) {
+            SAFE_RELEASE(pDevice);
+            SAFE_RELEASE(pEnumerator);
+            csound->ErrorMsg(csound, Str("WASAPI: Failed to activate shared audio client"));
+            return -1;
         }
 
-        /* Check if our desired format is supported in shared mode */
-        WAVEFORMATEX *pClosestMatch = NULL;
-        hr = pAudioClient->lpVtbl->IsFormatSupported(pAudioClient, AUDCLNT_SHAREMODE_SHARED,
-                                                       &desiredFormat, &pClosestMatch);
-
-        /* Determine which format to use */
-        if (hr == S_OK) {
-            /* Exact match - use our desired format (allocate new structure) */
-            pFormatToUse = (WAVEFORMATEX *)CoTaskMemAlloc(sizeof(WAVEFORMATEX));
-            if (pFormatToUse != NULL) {
-                memcpy(pFormatToUse, &desiredFormat, sizeof(WAVEFORMATEX));
-                CoTaskMemFree(pwfx);
-                pwfx = NULL;
-            } else {
-                pFormatToUse = pwfx;
-                pwfx = NULL;
-            }
-        } else if (hr == S_FALSE && pClosestMatch != NULL) {
-            /* Close match suggested - use it */
-            CoTaskMemFree(pwfx);
-            pwfx = NULL;
-            pFormatToUse = pClosestMatch;
-        } else {
-            /* Use the original mix format from GetMixFormat */
-            pFormatToUse = pwfx;
-            pwfx = NULL;
+        /* Keep Csound's rate, channel count and float samples. Let the Windows
+         * audio engine convert between this format and the device format for
+         * both playback and capture. If conversion fails, report the error
+         * instead of using a different rate or channel count without conversion. */
+        pFormatToUse = (WAVEFORMATEX *)CoTaskMemAlloc(sizeof(WAVEFORMATEX));
+        if (pFormatToUse == NULL) {
+            SAFE_RELEASE(pAudioClient);
+            SAFE_RELEASE(pDevice);
+            SAFE_RELEASE(pEnumerator);
+            csound->ErrorMsg(csound, Str("WASAPI: Failed to allocate audio format"));
+            return -1;
         }
+        memcpy(pFormatToUse, &desiredFormat, sizeof(WAVEFORMATEX));
 
         hr = pAudioClient->lpVtbl->Initialize(pAudioClient, AUDCLNT_SHAREMODE_SHARED,
-                                               AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+                                               AUDCLNT_STREAMFLAGS_EVENTCALLBACK |
+                                               AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM |
+                                               AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY,
                                                hnsRequestedDuration, 0, pFormatToUse, NULL);
         if (FAILED(hr)) {
             CoTaskMemFree(pFormatToUse);
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
-            csound->ErrorMsg(csound, Str("WASAPI: Failed to initialize audio client"));
+            csound->ErrorMsg(csound,
+                            Str("WASAPI: Cannot open shared stream at %lu Hz with %u "
+                                "channels using automatic format conversion "
+                                "(HRESULT: 0x%08lX). Try -+rtaudio=pa.\n"),
+                            (unsigned long)desiredFormat.nSamplesPerSec,
+                            (unsigned int)desiredFormat.nChannels, (unsigned long)hr);
             return -1;
         }
 
@@ -813,13 +819,13 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams *parm)
     cdata->inParm = (csRtAudioParams *)parm;
     cdata->csound = csound;
     cdata->incb = csound->CreateCircularBuffer(csound,
-                                               parm->bufSamp_HW * parm->nChannels, sizeof(MYFLT));
+                                               parm->bufSamp_HW * parm->nChannels, sizeof(cs_float));
 
     int32_t ret = WASAPI_open(csound, parm, cdata, 1);
     if (ret == 0) {
         /* Allocate inputBuffer based on the actual buffer size from WASAPI */
-        cdata->inputBuffer = (MYFLT *)csound->Calloc(csound,
-                                                      cdata->inBufferFrames * cdata->inchnls * sizeof(MYFLT));
+        cdata->inputBuffer = (cs_float *)csound->Calloc(csound,
+                                                      cdata->inBufferFrames * cdata->inchnls * sizeof(cs_float));
         if (cdata->inputBuffer == NULL) {
             csound->ErrorMsg(csound, Str("WASAPI: Failed to allocate input buffer"));
             return -1;
@@ -855,13 +861,13 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
     cdata->outParm = (csRtAudioParams *)parm;
     cdata->csound = csound;
     cdata->outcb = csound->CreateCircularBuffer(csound,
-                                                parm->bufSamp_HW * parm->nChannels, sizeof(MYFLT));
+                                                parm->bufSamp_HW * parm->nChannels, sizeof(cs_float));
 
     int32_t ret = WASAPI_open(csound, parm, cdata, 0);
     if (ret == 0) {
         /* Allocate outputBuffer based on the actual buffer size from WASAPI */
-        cdata->outputBuffer = (MYFLT *)csound->Calloc(csound,
-                                                       cdata->outBufferFrames * cdata->onchnls * sizeof(MYFLT));
+        cdata->outputBuffer = (cs_float *)csound->Calloc(csound,
+                                                       cdata->outBufferFrames * cdata->onchnls * sizeof(cs_float));
         if (cdata->outputBuffer == NULL) {
             csound->ErrorMsg(csound, Str("WASAPI: Failed to allocate output buffer"));
             return -1;
@@ -881,10 +887,10 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams *parm)
     return ret;
 }
 
-static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
+static int32_t rtrecord_(CSOUND *csound, cs_float *inbuff_, int32_t nbytes)
 {
     csdata *cdata;
-    int32_t n = nbytes / sizeof(MYFLT);
+    int32_t n = nbytes / sizeof(cs_float);
     int32_t m = 0, l;
 
     cdata = (csdata *)*(csound->GetRtRecordUserData(csound));
@@ -898,10 +904,10 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
     return nbytes;
 }
 
-static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int32_t nbytes)
+static void rtplay_(CSOUND *csound, const cs_float *outbuff_, int32_t nbytes)
 {
     csdata *cdata;
-    int32_t n = nbytes / sizeof(MYFLT);
+    int32_t n = nbytes / sizeof(cs_float);
     int32_t m = 0, l;
 
     cdata = (csdata *)*(csound->GetRtPlayUserData(csound));
@@ -998,7 +1004,7 @@ static void rtclose_(CSOUND *csound)
             csound->DestroyCircularBuffer(csound, cdata->outcb);
         }
         csound->Free(csound, cdata);
-        csound->DebugMsg(csound, "%s", Str("WASAPI module: device closed\n"));
+        csound->DebugMsg(csound, "%s\n", Str("WASAPI module: device closed\n"));
     }
 
     CoUninitialize();
@@ -1014,7 +1020,7 @@ int32_t csoundModuleInit(CSOUND *csound)
     if (!(strcmp(drv, "wasapi") == 0 || strcmp(drv, "WASAPI") == 0 ||
           strcmp(drv, "Wasapi") == 0))
         return 0;
-    csound->DebugMsg(csound, "%s", Str("rtaudio: WASAPI module enabled\n"));
+    csound->DebugMsg(csound, "%s\n", Str("rtaudio: WASAPI module enabled\n"));
     csound->SetPlayopenCallback(csound, playopen_);
     csound->SetRecopenCallback(csound, recopen_);
     csound->SetRtplayCallback(csound, rtplay_);
@@ -1022,6 +1028,11 @@ int32_t csoundModuleInit(CSOUND *csound)
     csound->SetRtcloseCallback(csound, rtclose_);
     csound->SetAudioDeviceListCallback(csound, listDevices);
     return 0;
+}
+
+PUBLIC int32_t csoundModuleInfo(void)
+{
+  return CSOUND_MODULE_INFO;
 }
 
 int32_t csoundModuleCreate(CSOUND *csound)

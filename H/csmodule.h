@@ -59,15 +59,14 @@
  * Converts error codes returned by any of the initialisation or destructor   *
  * functions to a string message.                                             *
  *                                                                            *
- * int32_t csoundModuleInfo(void)                   (optional)                    *
+ * int32_t csoundModuleInfo(void)                   (required)                    *
  * --------------------------                                                 *
  *                                                                            *
- * Returns information that can be used to determine if the plugin was built  *
- * for a compatible version of libcsound. The return value may be the sum of  *
- * any of the following two values:                                           *
- *                                                                            *
- *   ((CS_VERSION << 16) + (CS_SUBVER << 8))      API version           *
- *   (int32_t) sizeof(MYFLT)                                MYFLT type            *
+ * Return CSOUND_MODULE_INFO (from csdl.h) to identify the plugin ABI.         *
+ * Bits 16 and up hold CS_VERSION; bits 8-15 hold CS_SUBVER.                   *
+ * Bits 0-6 hold sizeof(cs_float); bit 7 marks USE_FLOAT (32-bit cs_double).    *
+ * A missing function, or a return value of 0, cannot be validated against    *
+ * this Csound, so such a plugin is not loaded.                               *
  *                                                                            *
  ******************************************************************************/
 
@@ -85,6 +84,13 @@ extern "C" {
    * if a memory allocation failure has occured.
    */
   int32_t csoundLoadModules(CSOUND *csound);
+
+  /**
+   * Scan and initialise the default plugin directories once per instance,
+   * if not already done. Called lazily by the operations that need loaded
+   * modules. Safe to call repeatedly.
+   */
+  int32_t csoundLoadDefaultModules(CSOUND *csound);
 
   /**
    * Call initialisation functions of all loaded modules that have a

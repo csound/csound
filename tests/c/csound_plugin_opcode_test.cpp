@@ -44,8 +44,8 @@ public:
 
 struct OPC {
   OPDS h;
-  MYFLT *r,*a,*b,*c;
-  MYFLT ival;
+  cs_float *r,*a,*b,*c;
+  cs_float ival;
 };
 
 int32_t opcode_init(CSOUND *csound, OPC *p) {
@@ -57,12 +57,12 @@ int32_t opcode_perf(CSOUND *csound, OPC *p) {
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT *out = p->r, *in = p->a, scal = *p->b, offs = p->ival;
+  cs_float *out = p->r, *in = p->a, scal = *p->b, offs = p->ival;
 
-  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
   }
   for(n = offset; n < nsmps;  n++) 
     out[n] = in[n]*scal + offs;
@@ -71,7 +71,7 @@ int32_t opcode_perf(CSOUND *csound, OPC *p) {
 }
 
 int32_t opcode_deinit(CSOUND *csound, OPC *p) {
-  p->ival = (MYFLT) 0;
+  p->ival = (cs_float) 0;
   return OK;
 }
 

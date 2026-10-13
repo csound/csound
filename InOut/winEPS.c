@@ -178,9 +178,9 @@ void PS_MakeGraph(CSOUND *csound, WINDAT *wdptr, const char *name)
     fprintf(pp->psFile, "%s \n", "   ");
 }
 
-static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
+static void setAxisNumbers(cs_float *min, cs_float *max, char *cmin, char *cmax)
 {
-    double bmin, bmax, big;
+    cs_double bmin, bmax, big;
     int32_t    i;
 
     /**
@@ -194,7 +194,7 @@ static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
     }
 
     bmax = 0.0000001;
-    if (fabs((double)*max) > bmax) {
+    if (fabs((cs_double)*max) > bmax) {
       while ((i = (int32_t)(FABS(*max) / bmax)))
         bmax = bmax * 10.0;
     }
@@ -211,13 +211,13 @@ static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
       i = 0;
     else
       i = (int32_t)((*max / big) * 100.0) + 1;
-    *max = (MYFLT) (i * big * 0.01);
+    *max = (cs_float) (i * big * 0.01);
 
     if (*min == FL(0.0))
       i = 0;
     else
       i = (int32_t)((*min / big) * 100.0) - 1;
-    *min = (MYFLT) (i * big * 0.01);
+    *min = (cs_float) (i * big * 0.01);
 
     if (fabs(*max - *min) < 0.0000001)
       *max = *min + FL(1.0);                       /* No zero divide */
@@ -233,8 +233,8 @@ static void setAxisNumbers(MYFLT *min, MYFLT *max, char *cmin, char *cmax)
 static void PS_drawAxes(winEPS_globals_t *pp,
                         char *cxmin, char *cxmax, char *cymin, char *cymax)
 {
-    MYFLT xx, yy, dx, dy;
-    MYFLT fnts, swide;
+    cs_float xx, yy, dx, dy;
+    cs_float fnts, swide;
     int32_t   i;
 
     /**
@@ -305,13 +305,13 @@ static void PS_drawAxes(winEPS_globals_t *pp,
     fprintf(pp->psFile, "                \n");
     fprintf(pp->psFile, "%s findfont %f scalefont setfont \n", MyPS_FONT, fnts);
 
-    swide = FL(0.5) * fnts * (MYFLT) strlen(cxmin);
+    swide = FL(0.5) * fnts * (cs_float) strlen(cxmin);
     xx    = MyPS_XORIG - swide * FL(0.5);
     yy    = MyPS_YORIG - fnts * FL(1.8);
     fprintf(pp->psFile, "%f %f moveto \n", xx, yy);
     fprintf(pp->psFile, "(%s) show \n", cxmin);
 
-    swide = FL(0.5) * fnts * (MYFLT) strlen(cxmax);
+    swide = FL(0.5) * fnts * (cs_float) strlen(cxmax);
     xx    = MyPS_XORIG + MyPS_WIDTH - swide * FL(0.2);
     yy    = MyPS_YORIG - fnts * FL(1.8);
     fprintf(pp->psFile, "%f %f moveto \n", xx, yy);
@@ -323,7 +323,7 @@ static void PS_drawAxes(winEPS_globals_t *pp,
     fprintf(pp->psFile, "%f %f moveto \n", xx, yy);
     fprintf(pp->psFile, "(%s) show \n", cymin);
 
-    swide = FL(0.5) * fnts * (MYFLT) strlen(cymax);
+    swide = FL(0.5) * fnts * (cs_float) strlen(cymax);
     xx    = MyPS_XORIG - fnts * FL(0.5) - swide;
     yy    = MyPS_YORIG + MyPS_HEIGHT - fnts * FL(0.4);
     fprintf(pp->psFile, "%f %f moveto \n", xx, yy);
@@ -335,7 +335,7 @@ void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr)
     winEPS_globals_t  *pp;
     int32_t   iskip = (wdptr->npts < MyPS_WIDTH ?
                    1 : (int32_t)(wdptr->npts / MyPS_WIDTH));
-    MYFLT ymin, ymax, xx, yy, dx, dy, fnts;
+    cs_float ymin, ymax, xx, yy, dx, dy, fnts;
     char  cxmin[20], cxmax[20], cymin[20], cymax[20];
     int32_t   i;
 
@@ -425,7 +425,7 @@ void PS_DrawGraph(CSOUND *csound, WINDAT *wdptr)
     fprintf(pp->psFile, "%% Plot data    \n");
     fprintf(pp->psFile, "1 setlinewidth \n");
 
-    dx = iskip * MyPS_WIDTH / ((MYFLT) wdptr->npts);
+    dx = iskip * MyPS_WIDTH / ((cs_float) wdptr->npts);
     xx = MyPS_XORIG;
     yy = MyPS_YORIG + (wdptr->fdata[0] - ymin) * dy;
     fprintf(pp->psFile, "newpath %f  %f  moveto \n", xx, yy);

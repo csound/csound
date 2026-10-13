@@ -37,8 +37,8 @@
 
 
 
-extern MYFLT phonGains[32][2];
-extern MYFLT phonParams[32][4][3];
+extern cs_float phonGains[32][2];
+extern cs_float phonParams[32][4][3];
 extern char phonemes[32][4];
 
 /*******************************************/
@@ -60,14 +60,14 @@ typedef struct SubNoise {
 
 typedef struct Modulatr {
     FUNC     *wave;
-    MYFLT    v_rate;
-    MYFLT    v_time;
-    MYFLT    v_phase;
-    MYFLT    v_lastOutput;
+    cs_float    v_rate;
+    cs_float    v_time;
+    cs_float    v_phase;
+    cs_float    v_lastOutput;
     SubNoise noise;
     OnePole  onepole;
-    MYFLT    vibAmt;
-    MYFLT    lastOutput;
+    cs_float    vibAmt;
+    cs_float    lastOutput;
 } Modulatr;
 
 typedef struct SingWave {
@@ -76,10 +76,10 @@ typedef struct SingWave {
     Envelope    envelope;
     Envelope    pitchEnvelope;
     FUNC        *wave;
-    MYFLT       rate;
-    MYFLT       sweepRate;
-    MYFLT       mytime;
-    MYFLT       lastOutput;
+    cs_float       rate;
+    cs_float       sweepRate;
+    cs_float       mytime;
+    cs_float       lastOutput;
 } SingWave;
 
 /*******************************************/
@@ -108,17 +108,17 @@ typedef struct SingWave {
 
 typedef struct VOICF {
     OPDS         h;
-    MYFLT       *ar;                  /* Output */
-    MYFLT       *amp, *frequency;
-    MYFLT       *phoneme, *formant;
-    MYFLT       *vibf, *vibAmt;
-    MYFLT       *ifn, *ivfn;
+    cs_float       *ar;                  /* Output */
+    cs_float       *amp, *frequency;
+    cs_float       *phoneme, *formant;
+    cs_float       *vibf, *vibAmt;
+    cs_float       *ifn, *ivfn;
 
-    MYFLT       oldform;
+    cs_float       oldform;
     int32_t
     ph;
-    MYFLT       basef;
-    MYFLT       lastGain;
+    cs_float       basef;
+    cs_float       lastGain;
     SingWave    voiced;
     Noise       noise;
     Envelope    noiseEnv;

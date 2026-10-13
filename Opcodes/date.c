@@ -48,14 +48,14 @@
 
 typedef struct {
    OPDS h;
-   MYFLT *time_;
-   MYFLT *nano;
+   cs_float *time_;
+   cs_float *nano;
 } DATEMYFLT;
 
 typedef struct {
    OPDS h;
    STRINGDAT *Stime_;
-   MYFLT *timstmp;
+   cs_float *timstmp;
 } DATESTRING;
 
 static int32_t datemyfltset(CSOUND *csound, DATEMYFLT *p)
@@ -65,19 +65,19 @@ static int32_t datemyfltset(CSOUND *csound, DATEMYFLT *p)
 #ifdef LINUX
     struct timespec tp;
     clock_gettime(CLOCK_REALTIME, &tp);
-    *p->time_ = (MYFLT) (tp.tv_sec-base);
-    *p->time_ += (MYFLT)(tp.tv_nsec)*1.0e-9;
-    if (p->OUTOCOUNT==2) *p->nano =(MYFLT)tp.tv_nsec;
+    *p->time_ = (cs_float) (tp.tv_sec-base);
+    *p->time_ += (cs_float)(tp.tv_nsec)*1.0e-9;
+    if (p->OUTOCOUNT==2) *p->nano =(cs_float)tp.tv_nsec;
 #else
   #ifdef __MACH__
     // There may be more accurate methods.....
     struct timeval tp;
-    int32_t rv = gettimeofday(&tp, NULL);
-    *p->time_  = (MYFLT)(tp.tv_sec-base);
-    *p->time_ += (MYFLT)(tp.tv_usec)*1.0e-6;
-    if (p->OUTOCOUNT==2) *p->nano =(MYFLT)(tp.tv_usec * 1000);
+    gettimeofday(&tp, NULL);
+    *p->time_  = (cs_float)(tp.tv_sec-base);
+    *p->time_ += (cs_float)(tp.tv_usec)*1.0e-6;
+    if (p->OUTOCOUNT==2) *p->nano =(cs_float)(tp.tv_usec * 1000);
   #else
-    *p->time_ = (MYFLT) (time(NULL)-base);
+    *p->time_ = (cs_float) (time(NULL)-base);
     if (p->OUTOCOUNT==2) *p->nano = FL(0.0);
   #endif
 #endif
@@ -91,17 +91,17 @@ static int32_t datestringset(CSOUND *csound, DATESTRING *p)
     if (*p->timstmp < FL(0.0)) temp_time = time(NULL);
     else {
       /* Match date's epoch and round before converting to the host time type. */
-      double seconds = floor((double)*p->timstmp + 0.5) + DATE_EPOCH;
-      double limit = ldexp(1.0, sizeof(time_t) * CHAR_BIT -
+      cs_double seconds = floor((cs_double)*p->timstmp + 0.5) + DATE_EPOCH;
+      cs_double limit = ldexp(1.0, sizeof(time_t) * CHAR_BIT -
                           ((time_t)-1 < (time_t)0));
       if (UNLIKELY(!(seconds >= 0.0 && seconds < limit)))
-        return csound->InitError(csound, "%s", Str("dates: time out of range"));
+        return csound->InitError(csound, "%s\n", Str("dates: time out of range"));
       temp_time = (time_t)seconds;
     }
 
     time_string = ctime(&temp_time);
     if (UNLIKELY(time_string == NULL))
-      return csound->InitError(csound, "%s", Str("dates: time out of range"));
+      return csound->InitError(csound, "%s\n", Str("dates: time out of range"));
     if (p->Stime_->data != NULL) csound->Free(csound, p->Stime_->data);
     p->Stime_->data = csound->Strdup(csound, time_string);
     p->Stime_->size = strlen(time_string)+1;
@@ -150,10 +150,11 @@ static int32_t getcurdir(CSOUND *csound, GETCWD *p)
 typedef struct {
   OPDS      h;
   STRINGDAT *Sline;
-  MYFLT     *line;
-  MYFLT     *Sfile;
+  cs_float     *line;
+  cs_float     *Sfile;
   FILE      *fd;
   int32_t   lineno;
+  uint64_t  init_pass;
 } READF;
 
 static int32_t readf_delete(CSOUND *csound, void *p)
@@ -178,13 +179,14 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
     readf_delete(csound, p);
     p->fd = fopen(name, "r");
     p->lineno = 0;
+    p->init_pass = p->h.insdshead->init_pass;
     if (p->Sline->size < MAXLINE) {
       if (p->Sline->data != NULL) csound->Free(csound, p->Sline->data);
       p->Sline->data = (char *) csound->Calloc(csound, MAXLINE);
       p->Sline->size = MAXLINE;
     }
     if (UNLIKELY(p->fd==NULL))
-      return csound->InitError(csound, "%s", Str("readf: failed to open file"));
+      return csound->InitError(csound, "%s\n", Str("readf: failed to open file"));
     return OK;
 }
 
@@ -217,7 +219,7 @@ static int32_t readf(CSOUND *csound, READF *p)
       }
       else
         return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("readf: read failure"));
+                                 "%s\n", Str("readf: read failure"));
     }
     *p->line = ++p->lineno;
     return OK;
@@ -225,7 +227,8 @@ static int32_t readf(CSOUND *csound, READF *p)
 
 static int32_t readfi(CSOUND *csound, READF *p)
 {
-    if (p->fd==NULL && p->lineno==0)
+    if (p->init_pass != p->h.insdshead->init_pass ||
+        (p->fd==NULL && p->lineno==0))
       if (UNLIKELY(readf_init(csound, p)!= OK))
         return NOTOK;
     return readf(csound, p);
@@ -233,7 +236,8 @@ static int32_t readfi(CSOUND *csound, READF *p)
 
 static int32_t readfi_S(CSOUND *csound, READF *p)
 {
-    if (p->fd==NULL && p->lineno==0)
+    if (p->init_pass != p->h.insdshead->init_pass ||
+        (p->fd==NULL && p->lineno==0))
       if (UNLIKELY(readf_init_S(csound, p)!= OK))
         return NOTOK;
     return readf(csound, p);

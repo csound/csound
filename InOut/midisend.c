@@ -57,7 +57,7 @@ static CS_NOINLINE void
     csoundWriteMidiOutFile(CSOUND *csound, const unsigned char *evt, int32_t nbytes)
 {
     unsigned char   buf[8];
-    double          s;
+    cs_double          s;
     midiOutFile_t   *p = (midiOutFile_t *) csound->midiGlobals->midiOutFileData;
     uint32_t   t, prv;
     int32_t             ndx = 0;
@@ -189,15 +189,15 @@ void midi_open_out(CSOUND *csound)
     /* open MIDI out device */
     if (O->Midioutname != NULL && !p->MIDIoutDONE) {
       if (UNLIKELY(p->MidiOutOpenCallback == NULL))
-        csoundDie(csound, Str(" *** no callback for opening MIDI output"));
+        csoundDie(csound, Str(" *** no callback for opening MIDI output\n"));
       if (UNLIKELY(p->MidiWriteCallback == NULL))
-        csoundDie(csound, Str(" *** no callback for writing MIDI data"));
+        csoundDie(csound, Str(" *** no callback for writing MIDI data\n"));
       p->MIDIoutDONE = 1;
       retval = p->MidiOutOpenCallback(csound, &(p->midiOutUserData),
                                               O->Midioutname);
       if (UNLIKELY(retval != 0)) {
         csoundDie(csound,
-                  Str(" *** error opening MIDI out device: %d (%s)"),
+                  Str(" *** error opening MIDI out device: %d (%s)\n"),
                   retval, csoundExternalMidiErrorString(csound, retval));
       }
     }
@@ -208,7 +208,7 @@ void midi_open_out(CSOUND *csound)
     fp->fd = csound->FileOpen(csound, &(fp->f), CSFILE_STD, O->FMidioutname,
                                 "wb", NULL,  CSFTYPE_STD_MIDI, 0);
     if (UNLIKELY(fp->fd == NULL)) {
-      csoundDie(csound, Str(" *** error opening MIDI out file '%s'"),
+      csoundDie(csound, Str(" *** error opening MIDI out file '%s'\n"),
                         O->FMidioutname);
     }
     p->midiOutFileData = (void *) fp;

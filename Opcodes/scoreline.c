@@ -31,32 +31,32 @@
 typedef struct _inmess {
   OPDS h;
   STRINGDAT *SMess;
-  MYFLT *ktrig;
+  cs_float *ktrig;
 } INMESS;
 
 
 typedef struct _scorepos {
   OPDS h;
-  MYFLT *spos;
+  cs_float *spos;
 } SCOREPOS;
 
-int32_t messi(CSOUND *csound, INMESS *p)
+static int32_t messi(CSOUND *csound, INMESS *p)
 {
     csound->InputMessage(csound, (char *)p->SMess->data);
     return OK;
 }
 
-int32_t messk(CSOUND *csound, INMESS *p){
+static int32_t messk(CSOUND *csound, INMESS *p){
     if (*p->ktrig) csound->InputMessage(csound, (char *)p->SMess->data);
     return OK;
 }
 
-int32_t setscorepos(CSOUND *csound, SCOREPOS *p){
+static int32_t setscorepos(CSOUND *csound, SCOREPOS *p){
     csound->SetScoreOffsetSeconds(csound, *p->spos);
     return OK;
 }
 
-int32_t
+static int32_t
 rewindscore(CSOUND *csound, SCOREPOS *p){
     IGN(p);
     csound->RewindScore(csound);

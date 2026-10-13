@@ -104,15 +104,15 @@ istart - start position (in secs), defaults to 0.
 
 typedef struct _syncgrain {
     OPDS h;
-    MYFLT *output;
-    MYFLT *amp;
-    MYFLT *fr;
-    MYFLT *pitch;
-    MYFLT *grsize;
-    MYFLT *prate;
-    MYFLT *ifn1;
-    MYFLT *ifn2;
-    MYFLT *ols;
+    cs_float *output;
+    cs_float *amp;
+    cs_float *fr;
+    cs_float *pitch;
+    cs_float *grsize;
+    cs_float *prate;
+    cs_float *ifn1;
+    cs_float *ifn2;
+    cs_float *ols;
     FUNC  *sfunc;
     FUNC  *efunc;
     int32_t count, numstreams, firststream;
@@ -126,19 +126,19 @@ typedef struct _syncgrain {
 
 typedef struct _syncgrainl {
     OPDS h;
-    MYFLT *output;
-    MYFLT *amp;
-    MYFLT *fr;
-    MYFLT *pitch;
-    MYFLT *grsize;
-    MYFLT *prate;
-    MYFLT *loop_start;
-    MYFLT *loop_end;
-    MYFLT *ifn1;
-    MYFLT *ifn2;
-    MYFLT *ols;
-    MYFLT *startpos;
-  MYFLT *iskip;
+    cs_float *output;
+    cs_float *amp;
+    cs_float *fr;
+    cs_float *pitch;
+    cs_float *grsize;
+    cs_float *prate;
+    cs_float *loop_start;
+    cs_float *loop_end;
+    cs_float *ifn1;
+    cs_float *ifn2;
+    cs_float *ols;
+    cs_float *startpos;
+  cs_float *iskip;
     FUNC  *sfunc;
     FUNC  *efunc;
     int32_t count, numstreams, firststream;

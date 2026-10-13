@@ -24,7 +24,7 @@
 
 #pragma once
 
-#define PFRAC1(x)   ((MYFLT)((x) & ftp1->lomask) * ftp1->lodiv)
+#define PFRAC1(x)   ((cs_float)((x) & ftp1->lomask) * ftp1->lodiv)
 
 typedef struct overlap {
   struct overlap *nxtact;
@@ -32,18 +32,18 @@ typedef struct overlap {
   int32          timrem, dectim, formphs, forminc;
   int32         risphs;
   int32          risinc, decphs, decinc;
-  double         formphsf, formincf, risphsf, risincf, decphsf, decincf;
-  MYFLT          curamp, expamp;
+  cs_double         formphsf, formincf, risphsf, risincf, decphsf, decincf;
+  cs_float          curamp, expamp;
 } OVERLAP;
 
 typedef struct {
   OPDS  h;
-  MYFLT *ar, *xamp, *xdens, *xtrans, *xspd, *koct, *kband, *kris, *kdur, *kdec;
-  MYFLT *iolaps, *ifna, *ifnb, *itotdur, *iphs, *itmode, *iskip;
+  cs_float *ar, *xamp, *xdens, *xtrans, *xspd, *koct, *kband, *kris, *kdur, *kdec;
+  cs_float *iolaps, *ifna, *ifnb, *itotdur, *iphs, *itmode, *iskip;
   OVERLAP       basovrlap;
   int32 durtogo, fundphs, fofcount, prvsmps, spdphs; /*last added JMC for FOG*/
-  MYFLT fundphsf, spdphsf;
-  MYFLT prvband, expamp, preamp, fogcvt; /*last added JMC for FOG*/
+  cs_float fundphsf, spdphsf;
+  cs_float prvband, expamp, preamp, fogcvt; /*last added JMC for FOG*/
   int16 xincod, ampcod, fundcod;
   int16 formcod, fmtmod, speedcod; /*last added JMC for FOG*/
   AUXCH auxch;
@@ -53,7 +53,7 @@ typedef struct {
 
 /*typedef struct {
         OPDS    h;
-        MYFLT   *sr, *xamp, *xcps, *ifn, *iphs;
+        cs_float   *sr, *xamp, *xcps, *ifn, *iphs;
         int32   lphs;
         FUNC    *ftp;
 } JMC;

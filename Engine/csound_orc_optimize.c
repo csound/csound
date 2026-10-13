@@ -203,13 +203,13 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
              current->left->type == NUMBER_TOKEN) &&
             (current->right->type == INTEGER_TOKEN ||
              current->right->type == NUMBER_TOKEN)) {
-          MYFLT lval, rval;
+          cs_float lval, rval;
           char buf[64];
           lval = (current->left->type == INTEGER_TOKEN ?
-                  (double)current->left->value->value :
+                  (cs_double)current->left->value->value :
                   current->left->value->fvalue);
           rval = (current->right->type == INTEGER_TOKEN ?
-                  (double)current->right->value->value :
+                  (cs_double)current->right->value->value :
                   current->right->value->fvalue);
           //printf("lval = %g  rval = %g\n", lval, rval);
           switch (current->type) {
@@ -232,19 +232,19 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
             lval = MOD(lval,rval);
             break;
           case '|':
-            lval = (MYFLT)(((int)lval)|((int)rval));
+            lval = (cs_float)(((int)lval)|((int)rval));
             break;
           case '&':
-            lval = (MYFLT)(((int)lval)&((int)rval));
+            lval = (cs_float)(((int)lval)&((int)rval));
             break;
           case '#':
-            lval = (MYFLT)(((int)lval)^((int)rval));
+            lval = (cs_float)(((int)lval)^((int)rval));
             break;
           case S_BITSHIFT_LEFT:
-            lval = (MYFLT)(((int)lval)<<((int)rval));
+            lval = (cs_float)(((int)lval)<<((int)rval));
             break;
           case S_BITSHIFT_RIGHT:
-            lval = (MYFLT)(((int)lval)>>((int)rval));
+            lval = (cs_float)(((int)lval)>>((int)rval));
             break;
           }
           //printf("ans = %g\n", lval);
@@ -390,17 +390,17 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
         //print_tree(csound, "Folding case??\n", current);
         if (current->right->type == INTEGER_TOKEN ||
              current->right->type == NUMBER_TOKEN) {
-          MYFLT lval;
+          cs_float lval;
           char buf[64];
           lval = (current->right->type == INTEGER_TOKEN ?
-                  (double)current->right->value->value :
+                  (cs_double)current->right->value->value :
                   current->right->value->fvalue);
           switch (current->type) {
           case S_UMINUS:
             lval = -lval;
             break;
           case '~':
-            lval = (MYFLT)(~(int)lval);
+            lval = (cs_float)(~(int)lval);
             break;
           case S_UPLUS:
             break;

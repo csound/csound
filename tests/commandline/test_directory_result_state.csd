@@ -14,15 +14,16 @@ nchnls = 1
 giChecks init 0
 
 instr 1
-  fprints "directory_z.dirtest", "z"
-  fprints "directory_a.dirtest", "a"
-  fprints "directory_m_long_name.dirtest", "m"
-  ficlose "directory_z.dirtest"
-  ficlose "directory_a.dirtest"
-  ficlose "directory_m_long_name.dirtest"
+  fprints "directory_result_state/directory_z.dirtest", "z"
+  fprints "directory_result_state/directory_a.dirtest", "a"
+  fprints "directory_result_state/directory_m_long_name.dirtest", "m"
+  ficlose "directory_result_state/directory_z.dirtest"
+  ficlose "directory_result_state/directory_a.dirtest"
+  ficlose "directory_result_state/directory_m_long_name.dirtest"
 endin
 
 instr 2
+  iPrefix = strlen("directory_result_state") + 1
   SNames[] fillarray "old", "old value with a longer buffer", "old"
   SSaved[] init 0
   iStep = 0
@@ -32,13 +33,13 @@ again:
   if iPhase == 1 then
     SFilter strcpy ".directory_no_matches"
   endif
-  SNames directory ".", SFilter
+  SNames directory "directory_result_state", SFilter
   if iPhase == 1 then
     if lenarray(SNames) != 0 || lenarray(SSaved) != 3 then
       prints "directory empty results or saved copy have the wrong size\n"
       exitnow -1
     endif
-    if strindex(SSaved[0], "directory_a.dirtest") != 2 then
+    if strindex(SSaved[0], "directory_a.dirtest") != iPrefix then
       prints "directory changed a saved array copy\n"
       exitnow -1
     endif
@@ -47,7 +48,7 @@ again:
       prints "directory returned the wrong number of matching files\n"
       exitnow -1
     endif
-    if strindex(SNames[0], "directory_a.dirtest") != 2 || strindex(SNames[1], "directory_m_long_name.dirtest") != 2 || strindex(SNames[2], "directory_z.dirtest") != 2 then
+    if strindex(SNames[0], "directory_a.dirtest") != iPrefix || strindex(SNames[1], "directory_m_long_name.dirtest") != iPrefix || strindex(SNames[2], "directory_z.dirtest") != iPrefix then
       prints "directory returned the wrong names or sort order\n"
       exitnow -1
     endif
@@ -59,13 +60,14 @@ again:
 endin
 
 instr 3
+  iPrefix = strlen("directory_result_state") + 1
   kCycle timeinstk
   if kCycle == 3 then
     reinit read
   endif
 read:
-  SNames[] directory ".", ".dirtest"
-  if lenarray(SNames) != 3 || strindex(SNames[0], "directory_a.dirtest") != 2 then
+  SNames[] directory "directory_result_state", ".dirtest"
+  if lenarray(SNames) != 3 || strindex(SNames[0], "directory_a.dirtest") != iPrefix then
     exitnow -1
   endif
   giChecks += 1

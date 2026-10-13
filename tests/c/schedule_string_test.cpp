@@ -11,7 +11,7 @@ struct ScheduleForm {
     const char *opcode;
     const char *target;
     bool control;
-    double fraction;
+    cs_double fraction;
 };
 
 class ScheduleStringTests : public ::testing::TestWithParam<ScheduleForm> {
@@ -70,10 +70,10 @@ protected:
         EXPECT_EQ(csound->perferrcnt, 0) << messages();
     }
 
-    MYFLT number(const char *name)
+    cs_float number(const char *name)
     {
         int error = 0;
-        MYFLT value = csoundGetControlChannel(csound, name, &error);
+        cs_float value = csoundGetControlChannel(csound, name, &error);
         EXPECT_EQ(error, CSOUND_SUCCESS);
         return value;
     }
@@ -98,8 +98,8 @@ TEST_P(ScheduleStringTests, PreservesStringsNumbersAndEventTime)
     ASSERT_NO_FATAL_FAILURE(run(first, second));
     EXPECT_EQ(string("first"), first);
     EXPECT_EQ(string("second"), second);
-    EXPECT_EQ(number("number"), static_cast<MYFLT>(0.123456789123));
-    EXPECT_EQ(number("small"), static_cast<MYFLT>(1e-20));
+    EXPECT_EQ(number("number"), static_cast<cs_float>(0.123456789123));
+    EXPECT_EQ(number("small"), static_cast<cs_float>(1e-20));
     EXPECT_EQ(number("identity"), number("targetNumber") + GetParam().fraction);
     EXPECT_EQ(number("time"), number("reference"));
     EXPECT_EQ(number("calls"), 2);

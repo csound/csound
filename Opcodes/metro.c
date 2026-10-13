@@ -25,58 +25,71 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *sr, *xcps, *iphs, *kgate;
-        double  curphs;
-        double  gate;
+        cs_float   *sr, *xcps, *iphs, *kgate;
+        cs_double  curphs;
+        cs_double  gate;
         int32_t flag;
 } METRO;
 
 // METRO2 ADDED BY GLEB ROGOZINSKY Oct 2019
 typedef struct {
         OPDS    h;
-        MYFLT   *sr, *xcps, *kswng, *iamp, *iphs, *icorrect;
-        double  amp2, curphs, curphs2, swng_init;
-        int32_t flag, flag2;
+        cs_float   *sr, *xcps, *kswng, *iamp, *iphs;
+        cs_double  amp2, curphs, curphs2, swng_init;
+        int32_t flag;
 } METRO2;
 //
 
 typedef struct  {
         OPDS    h;
-        MYFLT   *trig, *ndx, *maxtics, *ifn, *outargs[VARGMAX];
+        cs_float   *trig, *ndx, *maxtics, *ifn, *outargs[VARGMAX];
         int32_t             numouts, currtic, old_ndx;
         int32_t max_tics;
         uint32_t flen, numseq;
         uint64_t stride;
-        MYFLT *table;
+        cs_float *table;
 } SPLIT_TRIG;
 
 typedef struct  {
         OPDS    h;
-        MYFLT   *ktrig, *kphs, *ifn, *args[VARGMAX];
-        MYFLT endSeq, *table, oldPhs;
+        cs_float   *ktrig, *kphs, *ifn, *args[VARGMAX];
+        cs_float endSeq, *table, oldPhs;
         int32_t numParm, endIndex;
         int32_t initFlag;
 
 } TIMEDSEQ;
 
+/* Preserve metro's initial-phase and first-trigger timing for old scores.
+   This initializer also serves metrobpm; do not change metro's startup
+   behavior through this shared function. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("metro")
 static int32_t metro_set(CSOUND *csound, METRO *p)
 {
-    double phs = *p->iphs;
+    cs_double phs = *p->iphs;
     int32  longphs;
 
     if (phs >= 0.0) {
       if (UNLIKELY((longphs = (int32)phs)))
-        csound->Warning(csound, "%s", Str("metro:init phase truncation"));
-      p->curphs = (MYFLT)phs - (MYFLT)longphs;
+        csound->Warning(csound, "%s\n", Str("metro:init phase truncation"));
+      p->curphs = (cs_float)phs - (cs_float)longphs;
     }
     p->flag=1;
     p->gate=0.0;
     return OK;
 }
 
+/* FROZEN for backward compatibility: subtract only one cycle per trigger.
+   Frequencies above kr can leave whole cycles in curphs, so triggers can
+   continue after the frequency drops, even to zero. At kr=100, three calls
+   at 250 Hz from phase zero leave three more triggers after stopping.
+   Do not normalize this phase or otherwise change the historical timing.
+   metro remains supported. Use metro2 for bounded phase at high frequencies;
+   do not copy its phase wrapping or startup logic into metro as a bug fix.
+   A timing change here requires an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("metro")
 static int32_t metro(CSOUND *csound, METRO *p)
 {
-    double      phs= p->curphs;
+    cs_double      phs= p->curphs;
     IGN(csound);
     if (phs == 0.0 && p->flag) {
       *p->sr = FL(1.0);
@@ -96,7 +109,7 @@ static int32_t metro(CSOUND *csound, METRO *p)
 /* John ffitch Oct 2021; for beginers */
 static int32_t metrobpm(CSOUND *csound, METRO *p)
 {
-    double      phs= p->curphs;
+    cs_double      phs= p->curphs;
     IGN(csound);
     /* Keep the held gate in opcode state, not in the output variable. */
     if (phs == 0.0 && p->flag) {
@@ -110,80 +123,22 @@ static int32_t metrobpm(CSOUND *csound, METRO *p)
     }
     else if (phs>= *p->kgate)
       p->gate = 0.0;
-    *p->sr = (MYFLT)p->gate;
+    *p->sr = (cs_float)p->gate;
     p->curphs = phs;
     return OK;
 }
 
-/* GLEB ROGOZINSKY Oct 2019
-   Opcode metro2 in addition to 'classic' metro opcode,
-   allows swinging with possibiliy of setting its own amplitude value
-*/
-static int32_t metro2_legacy_set(CSOUND *csound, METRO2 *p)
+/* metro2 keeps its main and swing clocks in step and discards completed
+   phase cycles. This is its only timing mode; metro's historical timing
+   above is intentionally separate for compatibility with existing scores. */
+static int32_t metro2_set(CSOUND *csound, METRO2 *p)
 {
-    double phs = *p->iphs;
-    double swng = *p->kswng;
-    int32  longphs;
-    p->amp2 = *p->iamp;
-
-    if (phs >= 0.0) {
-      if (UNLIKELY((longphs = (int32)phs)))
-        csound->Warning(csound, "%s", Str("metro2:init phase truncation"));
-      p->curphs = (MYFLT)phs - (MYFLT)longphs;
-      p->curphs2 = (MYFLT)phs - (MYFLT)longphs + 1.0 - (MYFLT)swng;
-    }
-    p->flag = 1;
-    p->flag2 = 1;
-    p->swng_init = (MYFLT)swng;
-    return OK;
-}
-
-static int32_t metro2_legacy(CSOUND *csound, METRO2 *p)
-{
-    double      phs= p->curphs;
-    double      phs2= p->curphs2;
-    double      phs2_init = p->swng_init;
-    double      amp2= p->amp2;
-    double      swng= *p->kswng;
-    IGN(csound);
-// MAIN TICK
-    if (phs == 0.0 && p->flag) {
-      *p->sr = FL(1.0);
-      p->flag = 0;
-    }
-    else if ((phs += *p->xcps * CS_ONEDKR * 0.5) >= 1.0 ) {
-      *p->sr = FL(1.0);
-      phs -= 1.0;
-      p->flag = 0;
-    }
-    else
-      *p->sr = FL(0.0);
-    p->curphs = phs;
-
-// SWINGING TICK
-    if (phs2 == 0.0 && p->flag2) {
-      *p->sr = FL(amp2);
-      p->flag2 = 0;
-    }
-    else if ((phs2 += *p->xcps * CS_ONEDKR * 0.5) >= (1.0 + swng - phs2_init) ) {
-      *p->sr = FL(amp2);
-      phs2 -= 1.0;
-      p->flag2 = 0;
-    }
-    p->curphs2 = phs2;
-
-    return OK;
-}
-//
-
-static int32_t metro2_correct_set(CSOUND *csound, METRO2 *p)
-{
-    double phs = *p->iphs;
+    cs_double phs = *p->iphs;
 
     if (UNLIKELY(!isfinite(phs) || phs < 0.0))
-      return csound->InitError(csound, "%s", Str("metro2: invalid initial phase"));
+      return csound->InitError(csound, "%s\n", Str("metro2: invalid initial phase"));
     if (UNLIKELY(phs >= 1.0)) {
-      csound->Warning(csound, "%s", Str("metro2:init phase truncation"));
+      csound->Warning(csound, "%s\n", Str("metro2:init phase truncation"));
       phs -= floor(phs);
     }
     p->amp2 = *p->iamp;
@@ -194,17 +149,17 @@ static int32_t metro2_correct_set(CSOUND *csound, METRO2 *p)
     return OK;
 }
 
-static int32_t metro2_correct(CSOUND *csound, METRO2 *p)
+static int32_t metro2(CSOUND *csound, METRO2 *p)
 {
-    double phs = p->curphs, phs2 = p->curphs2;
-    double swng = *p->kswng;
-    double frequency = *p->xcps, increment, threshold;
+    cs_double phs = p->curphs, phs2 = p->curphs2;
+    cs_double swng = *p->kswng;
+    cs_double frequency = *p->xcps, increment, threshold;
 
     if (UNLIKELY(!(swng >= 0.0 && swng <= 1.0)))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                               Str("metro2: swing must be between 0 and 1"));
     if (UNLIKELY(!isfinite(frequency) || frequency < 0.0))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                               Str("metro2: frequency must be finite and nonnegative"));
 
     /* An exact initial tick must hold both clocks for the same cycle.
@@ -217,7 +172,7 @@ static int32_t metro2_correct(CSOUND *csound, METRO2 *p)
       p->curphs2 = phs2;
       p->flag = 0;
       if (phs == 0.0 || phs2 == 0.0) {
-        *p->sr = phs == 0.0 ? FL(1.0) : (MYFLT)p->amp2;
+        *p->sr = phs == 0.0 ? FL(1.0) : (cs_float)p->amp2;
         return OK;
       }
     }
@@ -238,25 +193,12 @@ static int32_t metro2_correct(CSOUND *csound, METRO2 *p)
 
     threshold = 1.0 + swng - p->swng_init;
     if (phs2 >= threshold) {
-      *p->sr = (MYFLT)p->amp2;
+      *p->sr = (cs_float)p->amp2;
       phs2 -= floor(phs2 - threshold) + 1.0;
     }
     p->curphs = phs;
     p->curphs2 = phs2;
     return OK;
-}
-
-/* Preserve existing scores unless corrected timing is requested. */
-static int32_t metro2_set(CSOUND *csound, METRO2 *p)
-{
-    return *p->icorrect == FL(0.0) ? metro2_legacy_set(csound, p)
-                                 : metro2_correct_set(csound, p);
-}
-
-static int32_t metro2(CSOUND *csound, METRO2 *p)
-{
-    return *p->icorrect == FL(0.0) ? metro2_legacy(csound, p)
-                                 : metro2_correct(csound, p);
 }
 
 static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
@@ -280,17 +222,17 @@ static int32_t split_trig_set(CSOUND *csound,   SPLIT_TRIG *p)
     */
 
     FUNC *ftp;
-    double maxtics = (double)*p->maxtics;
+    cs_double maxtics = (cs_double)*p->maxtics;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->ifn)) == NULL)) {
-      return csound->InitError(csound, "%s", Str("splitrig: incorrect table number"));
+      return csound->InitError(csound, "%s\n", Str("splitrig: incorrect table number"));
     }
     p->table = ftp->ftable;
     p->numouts =  p->INOCOUNT-4;
     if (UNLIKELY(p->numouts < 1 || ftp->flen < (uint32_t)p->numouts))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("splitrig: table cannot hold one tick"));
-    if (UNLIKELY(!(maxtics >= 1.0 && maxtics < (double)INT32_MAX + 1.0)))
-      return csound->InitError(csound, "%s",
+    if (UNLIKELY(!(maxtics >= 1.0 && maxtics < (INT32_MAX + 0.0) + 1.0)))
+      return csound->InitError(csound, "%s\n",
                                Str("splitrig: invalid maximum tick count"));
     p->max_tics = (int32_t)maxtics;
     p->stride = (uint64_t)p->numouts * p->max_tics + 1;
@@ -306,27 +248,27 @@ static int32_t split_trig(CSOUND *csound, SPLIT_TRIG *p)
 {
     int32_t j;
     int32_t numouts =  p->numouts;
-    MYFLT **outargs = p->outargs;
+    cs_float **outargs = p->outargs;
 
     if (*p->trig) {
-      double index = (double)*p->ndx;
-      double ticks;
+      cs_double index = (cs_double)*p->ndx;
+      cs_double ticks;
       uint32_t ndx, available;
       int32_t kndx, numtics, currtic;
-      MYFLT *table;
+      cs_float *table;
 
       /* Preserve truncation toward zero, but check before converting. */
-      if (UNLIKELY(!(index > -1.0 && index < (double)p->numseq)))
-        return csound->PerfError(csound, &(p->h), "%s",
+      if (UNLIKELY(!(index > -1.0 && index < (cs_double)p->numseq)))
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("splitrig: sequence index out of range"));
       kndx = (int32_t)index;
       ndx = (uint32_t)(kndx * p->stride);
-      ticks = (double)p->table[ndx];
+      ticks = (cs_double)p->table[ndx];
       available = (p->flen - ndx) / numouts;
       if (UNLIKELY(!(ticks >= 1.0 &&
-                     ticks < (double)p->max_tics + 1.0 &&
-                     ticks < (double)available + 1.0)))
-        return csound->PerfError(csound, &(p->h), "%s",
+                     ticks < (cs_double)p->max_tics + 1.0 &&
+                     ticks < (cs_double)available + 1.0)))
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("splitrig: invalid sequence tick count"));
       numtics = (int32_t)ticks;
       table = &p->table[ndx+1];
@@ -357,20 +299,20 @@ static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
 {
     FUNC *ftp = csound->FTFind(csound, p->ifn);
     uint32_t row, rows;
-    MYFLT previous = FL(0.0);
+    cs_float previous = FL(0.0);
     if (UNLIKELY(ftp == NULL)) return NOTOK;
     p->numParm = p->INOCOUNT - 2;
     if (UNLIKELY(p->numParm < 2))
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                               Str("timedseq: rows need at least an event and time"));
     p->table = ftp->ftable;
     rows = ftp->flen / p->numParm;
     for (row = 0; row < rows; row++) {
-      MYFLT *event = p->table + (size_t)row * p->numParm;
+      cs_float *event = p->table + (size_t)row * p->numParm;
       if (event[0] < 0) {
         if (UNLIKELY(row == 0 || !(event[1] > 0) ||
                      !isfinite(event[1]) || event[1] < previous))
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                   Str("timedseq: invalid sequence end"));
         p->endSeq = event[1];
         p->endIndex = row;
@@ -379,18 +321,18 @@ static int32_t timeseq_set(CSOUND *csound, TIMEDSEQ *p)
         return OK;
       }
       if (UNLIKELY(!(event[1] >= previous) || !isfinite(event[1])))
-        return csound->InitError(csound, "%s",
+        return csound->InitError(csound, "%s\n",
                                 Str("timedseq: event times must be sorted and nonnegative"));
       previous = event[1];
     }
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                             Str("timedseq: missing complete end row"));
 }
 
 static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 {
-    MYFLT phs = *p->kphs, delta, distance;
-    MYFLT endseq = p->endSeq;
+    cs_float phs = *p->kphs, delta, distance;
+    cs_float endseq = p->endSeq;
     int32_t lo = 0, hi = p->endIndex, index, j;
     int32_t reverse;
 
@@ -400,7 +342,7 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
       if (phs < 0) phs += endseq;
     }
     if (UNLIKELY(!(phs >= 0 && phs < endseq)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                               Str("timedseq: invalid time pointer"));
     delta = p->initFlag ? FL(0.0) : phs - p->oldPhs;
     p->oldPhs = phs;
@@ -415,7 +357,7 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
        is never an event. Only one row can be returned per control cycle. */
     while (lo < hi) {
       int32_t mid = lo + (hi - lo) / 2;
-      MYFLT time = p->table[(size_t)mid * p->numParm + 1];
+      cs_float time = p->table[(size_t)mid * p->numParm + 1];
       if (time < phs || (!reverse && time == phs)) lo = mid + 1;
       else hi = mid;
     }
@@ -431,7 +373,7 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
     }
     if ((p->initFlag && distance == 0) ||
         (!p->initFlag && distance < (reverse ? -delta : delta))) {
-      MYFLT *event = p->table + (size_t)index * p->numParm;
+      cs_float *event = p->table + (size_t)index * p->numParm;
       for (j = 0; j < p->numParm; j++) *p->args[j] = event[j];
       *p->ktrig = FL(1.0);
     }
@@ -443,7 +385,7 @@ static int32_t timeseq(CSOUND *csound, TIMEDSEQ *p)
 
 static OENTRY localops[] = {
   { "metro",  S(METRO),  0,        "k", "ko",  (SUBR)metro_set, (SUBR)metro    },
-  { "metro2", S(METRO2), 0,        "k", "kkpoo", (SUBR)metro2_set, (SUBR)metro2  },
+  { "metro2", S(METRO2), 0,        "k", "kkpo", (SUBR)metro2_set, (SUBR)metro2  },
   { "metrobpm",S(METRO), 0,        "k", "koO",  (SUBR)metro_set, (SUBR)metrobpm },
   { "splitrig", S(SPLIT_TRIG), 0,  "",  "kkiiz",
                                         (SUBR)split_trig_set, (SUBR)split_trig },

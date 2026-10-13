@@ -100,7 +100,7 @@ typedef struct memAllocBlock_s {
     struct memAllocBlock_s  *nxt;       /* next structure in chain      */
 } memAllocBlock_t;
 #ifdef ALIGN_MEMORY
- #define MALIGN (sizeof(MYFLT)-1)
+ #define MALIGN (sizeof(cs_float)-1)
 #else 
  #define MALIGN 0
 #endif
@@ -133,7 +133,7 @@ void *csoundMalloc(CSOUND *csound, size_t size)
 #endif
     /* allocate memory */
     if (UNLIKELY((p = CS_MALLOC(ALLOC_BYTES(size))) == NULL)) {
-        csound->ErrorMsg(csound, "Malloc failed: ");
+        csound->ErrorMsg(csound, Str("Malloc failed: "));
         memdie(csound, size);     /* does a long jump */
     }
     /* link into chain */
@@ -173,7 +173,7 @@ void *csoundCalloc(CSOUND *csound, size_t size)
 #endif
     /* allocate memory */
     if (UNLIKELY((p = CS_CALLOC(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
-      csound->ErrorMsg(csound, "Calloc failed: ");
+      csound->ErrorMsg(csound, Str("Calloc failed: "));
       memdie(csound, size);     /* does longjump */
     }
     /* link into chain */
@@ -211,7 +211,7 @@ void *csoundCallocAligned(CSOUND *csound, size_t size, size_t align) {
 #endif
     /* allocate memory */
     if (UNLIKELY((p = CS_ALIGNED_ALLOC(ALIGN_BYTES(size+HDR_SIZE,align), align)) == NULL)) {
-      csound->ErrorMsg(csound, "CallocAligned failed: ");
+      csound->ErrorMsg(csound, Str("CallocAligned failed: "));
       memdie(csound, size);     /* does longjump */
     }
     
@@ -253,7 +253,7 @@ void csoundFree(CSOUND *csound, void *p)
     CSOUND_MEM_SPINUNLOCK
     if (UNLIKELY(pp == NULL || pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
       if (pp != NULL && pp->magic != MEMALLOC_MAGIC) {
-        csound->Warning(csound, "csound->Free() called with corrupted pointer (%p)",
+        csound->Warning(csound, Str("csound->Free() called with corrupted pointer (%p)\n"),
                         p);
       }
       return;
@@ -297,8 +297,12 @@ void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
       return NULL;
     }
     pp = HDR_PTR(oldp);
+    /* Keep the live list locked while realloc can move its block header.
+       Other threads must not follow the old links before we repair them. */
+    CSOUND_MEM_SPINLOCK
 #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != oldp)) {
+      CSOUND_MEM_SPINUNLOCK
       csound->DebugMsg(csound, " *** internal error: csoundRealloc() called with invalid "
                       "pointer (%p)\n", oldp);
       /* exit() is ugly, but this is a fatal error that can only occur */
@@ -311,20 +315,17 @@ void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
 #endif
     /* allocate memory */
     p = CS_REALLOC((void*) pp, ALLOC_BYTES(size));
-    pp = p;
     if (UNLIKELY(p == NULL)) {
 #ifdef MEMDEBUG
-      CSOUND_MEM_SPINLOCK
       /* alloc failed, restore original header */
       pp->magic = MEMALLOC_MAGIC;
       pp->ptr = oldp;
-      CSOUND_MEM_SPINUNLOCK
 #endif
-      csound->ErrorMsg(csound, "Realloc failed: ");
+      CSOUND_MEM_SPINUNLOCK
+      csound->ErrorMsg(csound, Str("Realloc failed: "));
       memdie(csound, size);
       return NULL;
     }
-    CSOUND_MEM_SPINLOCK
     /* create new header and update chain pointers */
     pp = (memAllocBlock_t*) p;
 #ifdef MEMDEBUG

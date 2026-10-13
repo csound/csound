@@ -7,12 +7,20 @@
 
 #if defined(_WIN32) || defined(CSOUND_SERIAL_WINDOWS_TEST)
 #include <winsock2.h>
+#ifndef WIN32
+#define WIN32
+#endif
 #else
 #include <unistd.h>
 #include <fcntl.h>
+#ifndef __wasm__
+#include <poll.h>
+#include <termios.h>
+#endif
 #endif
 
 #ifndef NO_SERIAL_OPCODES
+#include "fixtures/serial_test_opcode.h"
 namespace {
 #if defined(_WIN32) || defined(CSOUND_SERIAL_WINDOWS_TEST)
 // Exercise the Windows backend without requiring a physical serial device.
@@ -21,24 +29,24 @@ bool setupFails, readFails, writeFails, shortWrite;
 std::string received, sent;
 COMMTIMEOUTS configuredTimeouts;
 
-HANDLE WINAPI testCreateFileA(LPCSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES,
+extern "C" HANDLE WINAPI testCreateFileA(LPCSTR, DWORD, DWORD, LPSECURITY_ATTRIBUTES,
                              DWORD, DWORD, HANDLE) {
     return reinterpret_cast<HANDLE>(static_cast<uintptr_t>(++opened));
 }
-BOOL WINAPI testCloseHandle(HANDLE) { ++closed; return TRUE; }
-BOOL WINAPI testGetCommState(HANDLE, LPDCB state) {
+extern "C" BOOL WINAPI testCloseHandle(HANDLE) { ++closed; return TRUE; }
+extern "C" BOOL WINAPI testGetCommState(HANDLE, LPDCB state) {
     state->XonChar = 17;
     state->XoffChar = 19;
     return TRUE;
 }
-BOOL WINAPI testSetCommState(HANDLE, LPDCB state) {
+extern "C" BOOL WINAPI testSetCommState(HANDLE, LPDCB state) {
     return !setupFails && state->fBinary && state->XonChar != state->XoffChar;
 }
-BOOL WINAPI testSetCommTimeouts(HANDLE, LPCOMMTIMEOUTS value) {
+extern "C" BOOL WINAPI testSetCommTimeouts(HANDLE, LPCOMMTIMEOUTS value) {
     configuredTimeouts = *value;
     return TRUE;
 }
-BOOL WINAPI testReadFile(HANDLE, LPVOID output, DWORD length, LPDWORD count,
+extern "C" BOOL WINAPI testReadFile(HANDLE, LPVOID output, DWORD length, LPDWORD count,
                          LPOVERLAPPED) {
     if (readFails) return FALSE;
     *count = static_cast<DWORD>(std::min<size_t>(length, received.size()));
@@ -46,36 +54,20 @@ BOOL WINAPI testReadFile(HANDLE, LPVOID output, DWORD length, LPDWORD count,
     received.erase(0, *count);
     return TRUE;
 }
-BOOL WINAPI testWriteFile(HANDLE, LPCVOID input, DWORD length, LPDWORD count,
+extern "C" BOOL WINAPI testWriteFile(HANDLE, LPCVOID input, DWORD length, LPDWORD count,
                           LPOVERLAPPED) {
     if (writeFails) return FALSE;
     *count = length - (shortWrite && length > 0 ? 1 : 0);
     sent.append(static_cast<const char *>(input), *count);
     return TRUE;
 }
-BOOL WINAPI testPurgeComm(HANDLE, DWORD flags) {
+extern "C" BOOL WINAPI testPurgeComm(HANDLE, DWORD flags) {
     if (flags != PURGE_RXCLEAR) return FALSE;
     received.clear();
     return TRUE;
 }
 
-#ifndef WIN32
-#define WIN32
 #endif
-#define CreateFileA testCreateFileA
-#define CloseHandle testCloseHandle
-#define GetCommState testGetCommState
-#define SetCommState testSetCommState
-#define SetCommTimeouts testSetCommTimeouts
-#define ReadFile testReadFile
-#define WriteFile testWriteFile
-#define PurgeComm testPurgeComm
-#endif
-
-// Keep this copy private; the library supplies the registered opcodes.
-#undef LINKAGE_BUILTIN
-#define LINKAGE_BUILTIN(x)
-#include "../../Opcodes/serial.c"
 
 int32_t ignoreInitError(CSOUND *, const char *, ...) { return NOTOK; }
 int32_t ignorePerfError(CSOUND *, OPDS *, const char *, ...) { return NOTOK; }
@@ -101,7 +93,7 @@ protected:
 #ifdef WIN32
 TEST_F(SerialTests, CloseReuseAndFailedSetup) {
     SERIALEND end = {};
-    MYFLT port = 0;
+    cs_float port = 0;
     end.port = &port;
     EXPECT_EQ(serialEnd(csound, &end), NOTOK);
     for (int i = 0; i < 10; ++i)
@@ -130,7 +122,7 @@ TEST_F(SerialTests, CloseReuseAndFailedSetup) {
 }
 
 TEST_F(SerialTests, ReadPrintFlushAndWriteErrors) {
-    MYFLT port = serialport_init(csound, "COM1", 9600), value = 42;
+    cs_float port = serialport_init(csound, "COM1", 9600), value = 42;
     ASSERT_EQ(port, 0);
     SERIALREAD reader = {};
     reader.port = &port;
@@ -168,6 +160,49 @@ TEST_F(SerialTests, ReadPrintFlushAndWriteErrors) {
 }
 #endif
 
+#if !defined(WIN32) && !defined(__wasm__)
+TEST_F(SerialTests, RawInputPreservesBytes) {
+    int master = posix_openpt(O_RDWR | O_NOCTTY);
+    ASSERT_GE(master, 0);
+    ASSERT_EQ(grantpt(master), 0);
+    ASSERT_EQ(unlockpt(master), 0);
+    const char *path = ptsname(master);
+    ASSERT_NE(path, nullptr);
+    int slave = open(path, O_RDWR | O_NOCTTY);
+    ASSERT_GE(slave, 0);
+    struct termios state;
+    ASSERT_EQ(tcgetattr(slave, &state), 0);
+    state.c_iflag |= ICRNL | ISTRIP | PARMRK | IXON | IXOFF;
+    state.c_lflag |= ECHONL | IEXTEN;
+    ASSERT_EQ(tcsetattr(slave, TCSANOW, &state), 0);
+
+    int fd = serialport_init(csound, path, 9600);
+    ASSERT_GE(fd, 0);
+    ASSERT_EQ(tcgetattr(fd, &state), 0);
+    EXPECT_EQ(state.c_iflag & (IGNBRK | BRKINT | PARMRK | INPCK | ISTRIP |
+                              INLCR | IGNCR | ICRNL | IXON | IXOFF | IXANY), 0u);
+    EXPECT_EQ(state.c_lflag & (ICANON | ECHO | ECHONL | ISIG | IEXTEN), 0u);
+
+    const unsigned char bytes[] = {0, 13, 10, 17, 19, 127, 128, 255};
+    ASSERT_EQ(write(master, bytes, sizeof(bytes)), sizeof(bytes));
+    struct pollfd ready = {fd, POLLIN, 0};
+    ASSERT_EQ(poll(&ready, 1, 1000), 1);
+    cs_float port = fd, value;
+    SERIALREAD reader = {};
+    reader.port = &port;
+    reader.rChar = &value;
+    for (unsigned char byte : bytes) {
+        EXPECT_EQ(serialRead(csound, &reader), OK);
+        EXPECT_EQ(value, byte);
+    }
+    EXPECT_EQ(serialRead(csound, &reader), OK);
+    EXPECT_EQ(value, -1);
+    close(fd);
+    close(slave);
+    close(master);
+}
+#endif
+
 TEST_F(SerialTests, StringWritesUseContentLength) {
     char storage[64];
     memset(storage, 'x', sizeof(storage));
@@ -177,14 +212,14 @@ TEST_F(SerialTests, StringWritesUseContentLength) {
     str.size = sizeof(storage);
     SERIALWRITE writer = {};
 #ifdef WIN32
-    MYFLT port = serialport_init(csound, "COM1", 9600);
+    cs_float port = serialport_init(csound, "COM1", 9600);
 #else
     int descriptors[2];
     ASSERT_EQ(pipe(descriptors), 0);
-    MYFLT port = descriptors[1];
+    cs_float port = descriptors[1];
 #endif
     writer.port = &port;
-    writer.toWrite = reinterpret_cast<MYFLT *>(&str);
+    writer.toWrite = reinterpret_cast<cs_float *>(&str);
     EXPECT_EQ(serialWrite_S(csound, &writer), OK);
 #ifdef WIN32
     EXPECT_EQ(sent, "abc");

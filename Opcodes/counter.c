@@ -30,10 +30,10 @@
 
 /* Structure of a counter */
 typedef struct {
-  MYFLT val;
-  MYFLT max;
-  MYFLT min;
-  MYFLT inc;
+  cs_float val;
+  cs_float max;
+  cs_float min;
+  cs_float inc;
   uint64_t      cycles, generation;
   int32_t       active;
 } COUNT;
@@ -41,22 +41,22 @@ typedef struct {
 /* for create counter ocde */
 typedef struct {
   OPDS          h;
-  MYFLT         *res;
-  MYFLT         *max, *min, *inc;
+  cs_float         *res;
+  cs_float         *max, *min, *inc;
 } CNTSET;
 
 typedef struct {
   OPDS          h;
-  MYFLT         *res;
-  MYFLT         *icnt;
+  cs_float         *res;
+  cs_float         *icnt;
   COUNT         *cnt;
   uint64_t      generation;
 } COUNTER;
 
 typedef struct {
   OPDS          h;
-  MYFLT         *max, *min, *inc;
-  MYFLT         *icnt;
+  cs_float         *max, *min, *inc;
+  cs_float         *icnt;
   COUNT         *cnt;
   uint64_t      generation;
 } CNTSTATE;
@@ -82,7 +82,7 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
       if (UNLIKELY(csound->CreateGlobalVariable(csound, "counterGlobals_",
                                                     sizeof(CNT_GLOBALS)) != 0))
         return
-          csound->InitError(csound, "%s",
+          csound->InitError(csound, "%s\n",
                             Str("counter: failed to allocate globals"));
       q = (CNT_GLOBALS*)csound->QueryGlobalVariable(csound, "counterGlobals_");
       q->max_num = 10;
@@ -92,18 +92,18 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
       while (q->cnts[m]->active) m++;
       q->free--;
     } else {
-      /* Counter handles must remain exact in either MYFLT format. */
-      const int32_t limit = sizeof(MYFLT) == sizeof(float) ? 16777216 : INT32_MAX;
+      /* Counter handles must remain exact in either cs_float format. */
+      const int32_t limit = sizeof(cs_float) == sizeof(float) ? 16777216 : INT32_MAX;
       if (q->used == limit)
-        return csound->InitError(csound, "%s", Str("counter: too many counters"));
+        return csound->InitError(csound, "%s\n", Str("counter: too many counters"));
       if (q->used == q->max_num) {
         int32_t capacity = q->max_num > limit - 10 ? limit : q->max_num + 10;
         if ((size_t)capacity > SIZE_MAX / sizeof(COUNT*))
-          return csound->InitError(csound, "%s", Str("counter: too many counters"));
+          return csound->InitError(csound, "%s\n", Str("counter: too many counters"));
         COUNT **tt = (COUNT**)csound->ReAlloc(csound, q->cnts,
                                              (size_t)capacity * sizeof(COUNT*));
         if (tt == NULL)
-          return csound->InitError(csound, "%s",
+          return csound->InitError(csound, "%s\n",
                                    Str("Failed to allocate counters\n"));
         q->cnts = tt;
         q->max_num = capacity;
@@ -119,7 +119,7 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
     y->min = *p->min;
     y->max = *p->max;
     y->inc = *p->inc;
-    *p->res = (MYFLT)m;
+    *p->res = (cs_float)m;
     return OK;
 }
 
@@ -128,9 +128,9 @@ static int32_t setcnt(CSOUND *csound, CNTSET *p)
 #define COUNTER_VALID(p) ((p)->cnt->active && \
                           (p)->generation == (p)->cnt->generation)
 
-static COUNT* find_counter(CNT_GLOBALS *globals, MYFLT handle)
+static COUNT* find_counter(CNT_GLOBALS *globals, cs_float handle)
 {
-    double id = handle;
+    cs_double id = handle;
     if (UNLIKELY(globals == NULL || !(id >= 0.0 && id < globals->used)))
       return NULL;
     COUNT *cnt = globals->cnts[(int32_t)id];
@@ -143,7 +143,7 @@ static int32_t count_init(CSOUND *csound, COUNTER *p)
       csound->QueryGlobalVariable(csound, "counterGlobals_");
     COUNT *q = find_counter(globals, *p->icnt);
     if (UNLIKELY(q == NULL))
-      return csound->InitError(csound, "%s", Str("counter: invalid handle"));
+      return csound->InitError(csound, "%s\n", Str("counter: invalid handle"));
     p->cnt = q;
     p->generation = q->generation;
     return OK;
@@ -155,7 +155,7 @@ static int32_t count_init0(CSOUND *csound, COUNTER *p)
       csound->QueryGlobalVariable(csound, "counterGlobals_");
     COUNT *q = find_counter(globals, *p->res);
     if (UNLIKELY(q == NULL))
-      return csound->InitError(csound, "%s", Str("counter: invalid handle"));
+      return csound->InitError(csound, "%s\n", Str("counter: invalid handle"));
     p->cnt = q;
     p->generation = q->generation;
     return OK;
@@ -164,7 +164,7 @@ static int32_t count_init0(CSOUND *csound, COUNTER *p)
 static int32_t count_perf(CSOUND *csound, COUNTER *p)
 {
     if (UNLIKELY(!COUNTER_VALID(p)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("counter: counter has been deleted"));
     COUNT *q = p->cnt;
     if (q->val > q->max) {
@@ -189,7 +189,7 @@ static int32_t count_init_perf(CSOUND *csound, COUNTER *p)
 static int32_t count_cycles(CSOUND *csound, COUNTER* p)
 {
     if (UNLIKELY(!COUNTER_VALID(p)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("counter: counter has been deleted"));
     *p->res = p->cnt->cycles;
     return OK;
@@ -198,7 +198,7 @@ static int32_t count_cycles(CSOUND *csound, COUNTER* p)
 static int32_t count_read(CSOUND *csound, COUNTER* p)
 {
     if (UNLIKELY(!COUNTER_VALID(p)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("counter: counter has been deleted"));
     *p->res = p->cnt->val;
     return OK;
@@ -207,7 +207,7 @@ static int32_t count_read(CSOUND *csound, COUNTER* p)
 static int32_t count_reset(CSOUND *csound, COUNTER* p)
 {
     if (UNLIKELY(!COUNTER_VALID(p)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("counter: counter has been deleted"));
     p->cnt->val = p->cnt->min;
     return OK;
@@ -219,7 +219,7 @@ static int32_t count_init3(CSOUND *csound, CNTSTATE *p)
       csound->QueryGlobalVariable(csound, "counterGlobals_");
     COUNT *q = find_counter(globals, *p->icnt);
     if (UNLIKELY(q == NULL))
-      return csound->InitError(csound, "%s", Str("counter: invalid handle"));
+      return csound->InitError(csound, "%s\n", Str("counter: invalid handle"));
     p->cnt = q;
     p->generation = q->generation;
     return OK;
@@ -228,7 +228,7 @@ static int32_t count_init3(CSOUND *csound, CNTSTATE *p)
 static int32_t count_state(CSOUND *csound, CNTSTATE *p)
 {
     if (UNLIKELY(!COUNTER_VALID(p)))
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("counter: counter has been deleted"));
     *p->max = p->cnt->max;
     *p->min = p->cnt->min;
@@ -248,7 +248,7 @@ static int32_t count_del(CSOUND *csound, COUNTER* p)
     int32_t n = (int32_t)*p->icnt;
     cnt->active = 0;
     q->free++;
-    *p->res = (MYFLT)n;
+    *p->res = (cs_float)n;
     return OK;
 }
 

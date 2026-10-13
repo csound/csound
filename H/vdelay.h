@@ -28,7 +28,7 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *sr, *ain, *adel, *imaxd, *istod;
+        cs_float   *sr, *ain, *adel, *imaxd, *istod;
         uint32 maxd;
         AUXCH   aux;
         int32   left;
@@ -36,8 +36,8 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *sr1, *sr2, *sr3, *sr4;
-        MYFLT   *ain1, *ain2, *ain3, *ain4, *adel, *imaxd, *iquality, *istod;
+        cs_float   *sr1, *sr2, *sr3, *sr4;
+        cs_float   *ain1, *ain2, *ain3, *ain4, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1, aux2, aux3, aux4;
         uint32 maxd;
         int32_t     interp_size;
@@ -46,7 +46,7 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *sr1, *sr2, *ain1, *ain2, *adel, *imaxd, *iquality, *istod;
+        cs_float   *sr1, *sr2, *ain1, *ain2, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1, aux2;
         uint32 maxd;
         int32_t     interp_size;
@@ -55,7 +55,7 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *sr1, *ain1, *adel, *imaxd, *iquality, *istod;
+        cs_float   *sr1, *ain1, *adel, *imaxd, *iquality, *istod;
         AUXCH   aux1;
         uint32 maxd;
         int32_t     interp_size;
@@ -64,7 +64,7 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *sr, *ain, *ndel[VARGMAX-1];
+        cs_float   *sr, *ain, *ndel[VARGMAX-1];
         AUXCH   aux, tapdel;
         int32   left, max;
 } MDEL;
@@ -76,26 +76,26 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *in, *time, *hdif, *istor;
-        MYFLT   *cbuf_cur[Combs], *abuf_cur[Alpas];
-        MYFLT   c_time[Combs], c_gain[Combs], a_time[Alpas], a_gain[Alpas];
-        MYFLT   z[Combs], g[Combs];
+        cs_float   *out, *in, *time, *hdif, *istor;
+        cs_float   *cbuf_cur[Combs], *abuf_cur[Alpas];
+        cs_float   c_time[Combs], c_gain[Combs], a_time[Alpas], a_gain[Alpas];
+        cs_float   z[Combs], g[Combs];
         AUXCH   temp;
         AUXCH   caux[Combs], aaux[Alpas];
-        MYFLT   prev_time, prev_hdif;
+        cs_float   prev_time, prev_hdif;
 } STVB;
 
 /*      nreverb coded by Paris Smaragdis 1994 and Richard Karpen 1998 */
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *in, *time, *hdif, *istor;
-        MYFLT   *cbuf_cur[Combs], *abuf_cur[Alpas];
-        MYFLT   c_time[Combs], c_gain[Combs], a_time[Alpas], a_gain[Alpas];
-        MYFLT   z[Combs], g[Combs];
+        cs_float   *out, *in, *time, *hdif, *istor;
+        cs_float   *cbuf_cur[Combs], *abuf_cur[Alpas];
+        cs_float   c_time[Combs], c_gain[Combs], a_time[Alpas], a_gain[Alpas];
+        cs_float   z[Combs], g[Combs];
         AUXCH   temp;
         AUXCH   caux[Combs], aaux[Alpas];
-        MYFLT   prev_time, prev_hdif;
+        cs_float   prev_time, prev_hdif;
 } NREV;
 
 #endif
@@ -108,19 +108,19 @@ typedef struct {
  */
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *in, *time, *hdif, *istor;
-        MYFLT   *inumCombs, *ifnCombs, *inumAlpas, *ifnAlpas;
+        cs_float   *out, *in, *time, *hdif, *istor;
+        cs_float   *inumCombs, *ifnCombs, *inumAlpas, *ifnAlpas;
         /* Used to be [Combs]- and [Alpas]-sized arrays */
         int32_t     numCombs, numAlpas, initialized;
-        MYFLT   **cbuf_cur, **abuf_cur;
-        MYFLT   **pcbuf_cur, **pabuf_cur;
-        MYFLT   *c_time, *c_gain, *a_time, *a_gain;
-        MYFLT   *c_orggains, *a_orggains;
-        MYFLT   *z, *g;        /* [Combs] */
+        cs_float   **cbuf_cur, **abuf_cur;
+        cs_float   **pcbuf_cur, **pabuf_cur;
+        cs_float   *c_time, *c_gain, *a_time, *a_gain;
+        cs_float   *c_orggains, *a_orggains;
+        cs_float   *z, *g;        /* [Combs] */
         AUXCH   temp;
         AUXCH   caux, aaux;
         AUXCH   caux2, aaux2;  /* Used to hold space for all dynamized arrays */
-        MYFLT   prev_time, prev_hdif;
+        cs_float   prev_time, prev_hdif;
 } NREV2;
 
 int32_t vdelset(CSOUND *, VDEL *p);

@@ -41,12 +41,11 @@
 #include "singwave.h"
 #include "moog1.h"
 
-void OneZero_setCoeff(OneZero*, MYFLT);
-MYFLT Wave_tick(MYFLT *, int32_t len, MYFLT *, MYFLT, MYFLT);
+void OneZero_setCoeff(OneZero*, cs_float);
 
-static void SingWave_setFreq(CSOUND *csound, SingWave *p, MYFLT aFreq);
-static MYFLT SingWave_tick(CSOUND *csound, SingWave *p);
-static void VoicForm_setVoicedUnVoiced(VOICF *p, MYFLT vGain, MYFLT nGain);
+static void SingWave_setFreq(CSOUND *csound, SingWave *p, cs_float aFreq);
+static cs_float SingWave_tick(CSOUND *csound, SingWave *p);
+static void VoicForm_setVoicedUnVoiced(VOICF *p, cs_float vGain, cs_float nGain);
 
 static inline void make_SubNoise(SubNoise *p, int32_t subSample)
 {
@@ -54,9 +53,9 @@ static inline void make_SubNoise(SubNoise *p, int32_t subSample)
     p->howOften = p->counter = subSample-1;
 }
 
-static MYFLT SubNoise_tick(CSOUND *csound, SubNoise *p)
+static cs_float SubNoise_tick(CSOUND *csound, SubNoise *p)
 {
-    MYFLT last;
+    cs_float last;
     if (p->counter==0) {
       last = p->lastOutput = Noise_tick(csound, &p->lastOutput);
       p->counter = p->howOften;
@@ -78,14 +77,14 @@ static MYFLT SubNoise_tick(CSOUND *csound, SubNoise *p)
 #define POLE_POS  (FL(0.999))
 #define RND_SCALE (FL(10.0))
 
-static int32_t make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
+static int32_t make_Modulatr(CSOUND *csound,Modulatr *p, cs_float *i)
 {
     FUNC        *ftp;
 
     if (LIKELY((ftp = csound->FTFind(csound,i)) != NULL))
       p->wave = ftp;
     else { /* Expect sine wave */
-      return csound->InitError(csound, "%s", Str("No table for Modulatr"));
+      return csound->InitError(csound, "%s\n", Str("No table for Modulatr"));
     }
     p->v_time = FL(0.0);
 /*  p->v_rate = 6.0; */
@@ -99,12 +98,12 @@ static int32_t make_Modulatr(CSOUND *csound,Modulatr *p, MYFLT *i)
 }
 
 #define Modulatr_setVibFreq(p,vibFreq)  \
-        (p.v_rate = vibFreq * (MYFLT)p.wave->flen*CS_ONEDSR)
+        (p.v_rate = vibFreq * (cs_float)p.wave->flen*CS_ONEDSR)
 #define Modulatr_setVibAmt(p,vibAmount) (p.vibAmt = vibAmount)
 
-static MYFLT Modulatr_tick(CSOUND *csound, Modulatr *p)
+static cs_float Modulatr_tick(CSOUND *csound, Modulatr *p)
 {
-    MYFLT lastOutput;
+    cs_float lastOutput;
     lastOutput = Wave_tick(&p->v_time, p->wave->flen, p->wave->ftable,
                            p->v_rate, FL(0.0));
     lastOutput *= p->vibAmt;        /*  Compute periodic and */
@@ -121,13 +120,13 @@ static void Modulatr_print(CSOUND *csound, Modulatr *p)
 }
 #endif
 
-static int32_t make_SingWave(CSOUND *csound, SingWave *p, MYFLT *ifn, MYFLT *ivfn)
+static int32_t make_SingWave(CSOUND *csound, SingWave *p, cs_float *ifn, cs_float *ivfn)
 {
     FUNC        *ftp;
 
     if (LIKELY((ftp = csound->FTFind(csound,ifn)) != NULL)) p->wave = ftp;
     else {
-      return csound->InitError(csound, "%s", Str("No table for Singwave"));
+      return csound->InitError(csound, "%s\n", Str("No table for Singwave"));
     }
     p->mytime = FL(0.0);
     p->rate = FL(1.0);
@@ -151,11 +150,11 @@ static int32_t make_SingWave(CSOUND *csound, SingWave *p, MYFLT *ifn, MYFLT *ivf
     return OK;
 }
 
-static void SingWave_setFreq(CSOUND *csound, SingWave *p, MYFLT aFreq)
+static void SingWave_setFreq(CSOUND *csound, SingWave *p, cs_float aFreq)
 {
-    MYFLT temp = p->rate;
+    cs_float temp = p->rate;
 
-    p->rate = (MYFLT)p->wave->flen * aFreq * CS_ONEDSR;
+    p->rate = (cs_float)p->wave->flen * aFreq * CS_ONEDSR;
     temp -= p->rate;
     temp = FABS(temp);
     Envelope_setTarget(&p->pitchEnvelope, p->rate);
@@ -169,19 +168,19 @@ static void SingWave_setFreq(CSOUND *csound, SingWave *p, MYFLT aFreq)
 #define SingWave_setVibAmt(p, vibAmount) \
             Modulatr_setVibAmt(p.modulator, vibAmount)
 
-static MYFLT SingWave_tick(CSOUND *csound, SingWave *p)
+static cs_float SingWave_tick(CSOUND *csound, SingWave *p)
 {
-    MYFLT lastOutput;
+    cs_float lastOutput;
     int32  temp, temp1;
-    MYFLT alpha, temp_rate;
-    MYFLT mytime = p->mytime;
+    cs_float alpha, temp_rate;
+    cs_float mytime = p->mytime;
 
     temp_rate = Envelope_tick(&p->pitchEnvelope);
     //    printf("SingWave_tick: %f\n", temp_rate);
     mytime += temp_rate;                      /*  Update current time     */
     mytime += temp_rate*Modulatr_tick(csound,&p->modulator); /* Add vibratos */
     //printf("             : %f %d\n", mytime, p->wave->flen);
-    while (mytime >= (MYFLT)p->wave->flen) {  /*  Check for end of sound  */
+    while (mytime >= (cs_float)p->wave->flen) {  /*  Check for end of sound  */
       mytime -= p->wave->flen;                /*  loop back to beginning  */
     }
     while (mytime < FL(0.0)) {                /*  Check for end of sound  */
@@ -189,7 +188,7 @@ static MYFLT SingWave_tick(CSOUND *csound, SingWave *p)
     }
 
     temp = (int32) mytime;             /*  Integer part of time address    */
-    alpha = mytime - (MYFLT) temp;    /*  fractional part of time address */
+    alpha = mytime - (cs_float) temp;    /*  fractional part of time address */
 
     temp1 = temp + 1;
     if (temp1==(int32_t)p->wave->flen) temp1 = temp; /* Wrap!! */
@@ -260,29 +259,22 @@ char phonemes[32][4] =
 #define VoicForm_setFormantAll(p,w,f,r,g) \
         FormSwep_setTargets(& p->filters[w],f,r,g)
 
-static void VoicForm_setPhoneme(CSOUND *csound, VOICF *p, int32_t i, MYFLT sc)
+static void VoicForm_setPhoneme(CSOUND *csound, VOICF *p, int32_t i, cs_float sc)
 {
-    if (i>16) i = i%16;
     VoicForm_setFormantAll(p, 0,sc*phonParams[i][0][0], phonParams[i][0][1],
-                           (MYFLT)pow(10.0,phonParams[i][0][2] / FL(20.0)));
-    VoicForm_setFormantAll(p, 1,sc*phonParams[i][0][0], phonParams[i][1][1],
-                           (MYFLT)pow(10.0,phonParams[i][1][2] / FL(20.0)));
-    VoicForm_setFormantAll(p, 2,sc*phonParams[i][0][0], phonParams[i][2][1],
-                           (MYFLT)pow(10.0,phonParams[i][2][2] / FL(20.0)));
-    VoicForm_setFormantAll(p, 3,sc*phonParams[i][0][0], phonParams[i][3][1],
-                           (MYFLT)pow(10.0,phonParams[i][3][2] / FL(20.0)));
-     /* VoicForm_setFormantAll(p, 1,sc*phonParams[i][1][0], */
-    /*                        phonParams[i][1][1], FL(1.0)); */
-    /* VoicForm_setFormantAll(p, 2,sc*phonParams[i][2][0], */
-    /*                        phonParams[i][2][1], FL(1.0)); */
-    /* VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0], */
-    /*                        phonParams[i][3][1], FL(1.0)); */
+                           (cs_float)pow(10.0,phonParams[i][0][2] / FL(20.0)));
+    VoicForm_setFormantAll(p, 1,sc*phonParams[i][1][0], phonParams[i][1][1],
+                           (cs_float)pow(10.0,phonParams[i][1][2] / FL(20.0)));
+    VoicForm_setFormantAll(p, 2,sc*phonParams[i][2][0], phonParams[i][2][1],
+                           (cs_float)pow(10.0,phonParams[i][2][2] / FL(20.0)));
+    VoicForm_setFormantAll(p, 3,sc*phonParams[i][3][0], phonParams[i][3][1],
+                           (cs_float)pow(10.0,phonParams[i][3][2] / FL(20.0)));
     VoicForm_setVoicedUnVoiced(p,phonGains[i][0], phonGains[i][1]);
     csound->Message(csound,
                     Str("Found Formant: %s (number %i)\n"), phonemes[i], i);
 }
 
-static void VoicForm_setVoicedUnVoiced(VOICF *p, MYFLT vGain, MYFLT nGain)
+static void VoicForm_setVoicedUnVoiced(VOICF *p, cs_float vGain, cs_float nGain)
 {
     Envelope_setTarget(&(p->voiced.envelope), vGain);
     Envelope_setTarget(&p->noiseEnv, nGain);
@@ -327,9 +319,11 @@ static void make_FormSwep(FormSwep *p)
 
 int32_t voicformset(CSOUND *csound, VOICF *p)
 {
-    MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
     int32_t i;
 
+    if (UNLIKELY(!(*p->phoneme >= FL(0.0) && *p->phoneme <= FL(16.0))))
+      return csound->InitError(csound, "%s\n",
+                               Str("voice: phoneme must be between 0 and 16"));
     p->voiced.h = p->h;
     if (UNLIKELY(make_SingWave(csound, &p->voiced, p->ifn, p->ivfn)!=OK))
       return NOTOK;
@@ -361,37 +355,42 @@ int32_t voicformset(CSOUND *csound, VOICF *p)
     FormSwep_clear(p->filters[2]);
     FormSwep_clear(p->filters[3]);
     {
-      MYFLT temp, freq = *p->frequency;
+      cs_float temp, freq = *p->frequency;
       if ((freq * FL(22.0)) > CS_ESR)      {
-        csound->Warning(csound, "%s", Str("This note is too high!!\n"));
+        csound->Warning(csound, "%s\n", Str("This note is too high!!\n"));
         freq = CS_ESR / FL(22.0);
       }
-      p->basef = freq;
+      p->basef = *p->frequency;
       temp = FABS(FL(1500.0) - freq) + FL(200.0);
       p->lastGain = FL(10000.0) / temp / temp;
       SingWave_setFreq(csound, &p->voiced, freq);
     }
 
-    Envelope_setTarget(&(p->voiced.envelope), amp);
-    OnePole_setPole(&p->onepole, FL(0.95) - (amp * FL(0.2))/FL(128.0));
 /*  voicprint(csound, p); */
     return OK;
 }
 
 int32_t voicform(CSOUND *csound, VOICF *p)
 {
-    MYFLT *ar = p->ar;
+    cs_float *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
+    if (UNLIKELY(!(*p->phoneme >= FL(0.0) && *p->phoneme <= FL(16.0))))
+      return csound->PerfError(csound, &p->h, "%s\n",
+                               Str("voice: phoneme must be between 0 and 16"));
     if (p->basef != *p->frequency) {
+      cs_float temp, freq = *p->frequency;
       p->basef = *p->frequency;
-      SingWave_setFreq(csound, &p->voiced, p->basef);
+      if (freq * FL(22.0) > CS_ESR)
+        freq = CS_ESR / FL(22.0);
+      temp = FABS(FL(1500.0) - freq) + FL(200.0);
+      p->lastGain = FL(10000.0) / temp / temp;
+      SingWave_setFreq(csound, &p->voiced, freq);
     }
-/*  OnePole_setPole(&p->onepole, 0.95 - (amp * 0.1)); */
-/*  Envelope_setTarget(&(p->voiced.envelope), amp); */
-/*  Envelope_setTarget(&p->noiseEnv, 0.95 - (amp * 0.1)); */
+    OnePole_setPole(&p->onepole,
+                   FL(0.95) - (*p->amp * AMP_RSCALE * FL(0.2))/FL(128.0));
     SingWave_setVibFreq(p->voiced, *p->vibf);
     Modulatr_setVibAmt(p->voiced.modulator, *p->vibAmt);
                                 /* Set phoneme */
@@ -400,18 +399,18 @@ int32_t voicform(CSOUND *csound, VOICF *p)
       p->ph = (int32_t)(0.5 + *p->phoneme);
       csound->Warning(csound, Str("Setting Phoneme: %d %f\n"),
                               p->ph, p->oldform);
-      VoicForm_setPhoneme(csound, p, (int32_t) *p->phoneme, p->oldform);
+      VoicForm_setPhoneme(csound, p, p->ph, p->oldform);
     }
 /*  voicprint(csound, p); */
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT temp;
-      MYFLT lastOutput;
+      cs_float temp;
+      cs_float lastOutput;
       temp   = OnePole_tick(&p->onepole,
                             OneZero_tick(&p->onezero,
                                          SingWave_tick(csound, &p->voiced)));
@@ -429,9 +428,9 @@ int32_t voicform(CSOUND *csound, VOICF *p)
       lastOutput *= p->lastGain;
       //      printf("%f ", lastOutput);
       //      printf("->%f\n", lastOutput* AMP_SCALE);
-      ar[n] = lastOutput * FL(0.22) * AMP_SCALE * *p->amp;
+      /* The envelopes hold phoneme gains; kamp sets the output amplitude. */
+      ar[n] = lastOutput * FL(0.22) * *p->amp;
     }
 
     return OK;
 }
-

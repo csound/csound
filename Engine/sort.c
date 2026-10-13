@@ -31,7 +31,7 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
 /* inline int32_t ordering(SRTBLK *a, SRTBLK *b) */
 /* { */
 /*     char cb = b->text[0], ca = a->text[0]; */
-/*     MYFLT diff; */
+/*     cs_float diff; */
 /*     int32_t prdiff, indiff; */
 /*     int32_t ans; */
 /*     ans = !(ca != 'w' */
@@ -59,7 +59,7 @@ Adapted from Delphi implementation of Dijkstra's algorithm.
 static inline int32_t ordering(SRTBLK *a, SRTBLK *b)
 {
     char cb = b->text[0], ca = a->text[0];
-    MYFLT tmp;
+    cs_float tmp;
     int32_t itmp;
     /* printf("SORT: ca=%c, cb=%c\n", ca, cb); */
     if (ca=='w') return TRUE;

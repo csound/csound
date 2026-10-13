@@ -27,22 +27,22 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *iargs[VARGMAX];
+        cs_float   *iargs[VARGMAX];
 } PRINTV;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *signal, *iprd, *inprds, *iwtflg;
+        cs_float   *signal, *iprd, *inprds, *iwtflg;
         int32    npts, nprds, bufpts, totpts, pntcnt;
         WINDAT  dwindow;
-        MYFLT   *nxtp, *begp, *endp;
+        cs_float   *nxtp, *begp, *endp;
         AUXCH   auxch;
 } DSPLAY;
 
 typedef struct {
         OPDS    h;
         PVSDAT  *fin;
-        MYFLT   *points, *flag;
+        cs_float   *points, *flag;
         int32_t     size;
         WINDAT  dwindow;
         AUXCH   fdata;
@@ -54,8 +54,8 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *signal, *iprd, *inpts, *ihann, *idbout, *iwtflg, *imin, *imax;
-        MYFLT   *sampbuf, *bufp, *endp, overN;
+        cs_float   *signal, *iprd, *inpts, *ihann, *idbout, *iwtflg, *imin, *imax;
+        cs_float   *sampbuf, *bufp, *endp, overN;
         int32   windsize, overlap, ncoefs;
         int32_t     hanning, dbout;
         int32_t     npts, start;
@@ -66,15 +66,15 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
-        MYFLT   *kout,*kin,*iprd,*imindur,*imemdur,*ihp,*ithresh,*ihtim,*ixfdbak;
-        MYFLT   *istartempo,*ifn,*idisprd,*itweek;
+        cs_float   *kout,*kin,*iprd,*imindur,*imemdur,*ihp,*ithresh,*ihtim,*ixfdbak;
+        cs_float   *istartempo,*ifn,*idisprd,*itweek;
         int32_t     countdown, timcount, npts, minlam, maxlam;
-        MYFLT   *hbeg, *hcur, *hend;
-        MYFLT   *xbeg, *xcur, *xend;
-        MYFLT   *stmemp, *linexp, *ftable, *xscale, *lmults;
+        cs_float   *hbeg, *hcur, *hend;
+        cs_float   *xbeg, *xcur, *xend;
+        cs_float   *stmemp, *linexp, *ftable, *xscale, *lmults;
         int16   *lambdas;
-        MYFLT   *stmemnow, ncross, coef0, coef1, yt1, thresh;
-        MYFLT   fwdcoef, fwdmask, xfdbak, avglam, tempscal, tempo, tweek;
+        cs_float   *stmemnow, ncross, coef0, coef1, yt1, thresh;
+        cs_float   fwdcoef, fwdmask, xfdbak, avglam, tempscal, tempo, tweek;
         int32_t     dcntdown, dtimcnt;
         WINDAT  dwindow;
         AUXCH   auxch;

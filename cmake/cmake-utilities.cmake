@@ -80,6 +80,24 @@ function(check_deps option)
     endif()
 endfunction()
 
+# C opcode tables omit optional trailing OENTRY fields, which default to zero.
+# Limit the MinGW warning exception to these sources, including plugin builds.
+function(csound_suppress_opcode_initializer_warnings)
+    if(NOT MINGW OR NOT CMAKE_C_COMPILER_ID MATCHES "^(GNU|Clang)$")
+        return()
+    endif()
+    set(sources ${ARGN})
+    list(REMOVE_DUPLICATES sources)
+    foreach(source IN LISTS sources)
+        get_filename_component(source_path "${source}" ABSOLUTE)
+        file(RELATIVE_PATH relative_path "${PROJECT_SOURCE_DIR}" "${source_path}")
+        if(relative_path MATCHES "^(Opcodes/.*|Engine/entry)\\.c$")
+            set_property(SOURCE "${source_path}" APPEND PROPERTY
+                COMPILE_OPTIONS -Wno-missing-field-initializers)
+        endif()
+    endforeach()
+endfunction()
+
 # Utility function to make plugins. All plugin targets should use this as it
 # sets up output directory set in top-level CmakeLists.txt
 # and adds the appropriate install target
@@ -91,6 +109,7 @@ endfunction()
 # NB - this was moved here as it needs some VARS defined above
 # for setting up the framework
 function(make_plugin libname srcs)
+    csound_suppress_opcode_initializer_warnings(${srcs})
     if(APPLE)
         add_library(${libname} SHARED ${srcs})
     else()

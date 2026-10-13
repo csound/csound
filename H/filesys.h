@@ -180,14 +180,14 @@ extern "C" {
    * call, the handle must not be used again, regardless of the selected mode.
    *
    * CSFILE_CLOSE_SYNC removes the handle, waits for active asynchronous file
-   * worker borrowers, closes the underlying file, and returns its close
-   * result.
+   * worker borrowers, drains queued output, and closes the underlying file.
+   * It returns any write or close error.
    *
    * CSFILE_CLOSE_DEFER removes the handle without waiting for active worker
-   * borrowers. If borrowed, the worker closes it after the final borrow. If
-   * unborrowed, it is closed immediately on the calling thread. The return
-   * value reports that ownership was accepted; an eventual close error cannot
-   * be reported to the caller.
+   * borrowers. The worker drains and closes asynchronous output files, and
+   * closes borrowed files after the final borrow. Other files close immediately
+   * on the calling thread. The return value reports that ownership was accepted;
+   * an eventual write or close error cannot be reported to the caller.
    */
   int32_t csoundFileClose(CSOUND *, void *fd, uint32_t closeFlags);
 
@@ -208,10 +208,10 @@ extern "C" {
                                      int32_t isTemporary);
 
   uint32_t csoundReadAsync(CSOUND *csound, void *handle,
-                               MYFLT *buf, int32_t items);
+                               cs_float *buf, int32_t items);
 
   uint32_t csoundWriteAsync(CSOUND *csound, void *handle,
-                                MYFLT *buf, int32_t items);
+                                cs_float *buf, int32_t items);
 
   int32_t csoundFSeekAsync(CSOUND *csound, void *handle, int32_t pos, int32_t whence);
 

@@ -36,7 +36,7 @@ extern "C" {
 #include "pstream.h"
 
   typedef struct _mycmplx {
-    MYFLT re; MYFLT im;
+    cs_float re; cs_float im;
   } MYCMPLX;
 
   /**
@@ -48,7 +48,7 @@ extern "C" {
    * NF: fft size, power-of-two (NF >= N*2-1)
    * returns: autocorrelation r
    */
-  MYFLT *csoundAutoCorrelation(CSOUND *csound, MYFLT *r, MYFLT *s, int32_t size, MYFLT *b, int32_t NF);
+  cs_float *csoundAutoCorrelation(CSOUND *csound, cs_float *r, cs_float *s, int32_t size, cs_float *b, int32_t NF);
 
 
   /**
@@ -80,7 +80,7 @@ extern "C" {
    * output format is [E,c1,c2,...,cm] OR NULL if a memory problem occured
    * NB: c0 is always 1
    */
-  MYFLT *csoundLPred(CSOUND *csound, void *p, MYFLT *x);
+  cs_float *csoundLPred(CSOUND *csound, void *p, cs_float *x);
 
   /**
    * Compute cepstrum coefficients from all-pole coefficients
@@ -90,12 +90,12 @@ extern "C" {
    * b: array of size M+1 with M all-pole coefficients
    *   and E in place of coefficient 0 [E,c1,...,cM]
    * N: size of cepstrum array output
-   * M: all-pole filter order
+   * M: all-pole filter order, at least 2
    *
-   * returns: array with N cepstrum coefficients
+   * returns: array with N cepstrum coefficients, or NULL if M < 2
    * NB: cepstrum is computed from power spectrum
    */
-  MYFLT *csoundCepsLP(CSOUND *csound, MYFLT *b, MYFLT *c, int32_t M, int32_t N);
+  cs_float *csoundLPCeps(CSOUND *csound, cs_float *c, cs_float *b, int32_t N, int32_t M);
 
   /**
    * Compute all-pole coefficients and linear prediction error
@@ -104,64 +104,65 @@ extern "C" {
    * b: array of size M+1
    * c: array of size N with cepstrum coeffs
    *
-   * M: all-pole filter order
-   * N: cepstrum size
+   * M: all-pole filter order, at least 2
+   * N: cepstrum size, at least M+1
    *
    * returns: M+1 size array with all-pole coefficients 1-M and
    * E in place of coefficient 0 [E,c1,...,cM]
+   * Returns NULL if M < 2 or N < M+1, without writing to b.
    * NB: cepstrum is expected to be computed from power spectrum
    */
-  MYFLT *csoundLPCeps(CSOUND *csound, MYFLT *c, MYFLT *b, int32_t N, int32_t M);
+  cs_float *csoundCepsLP(CSOUND *csound, cs_float *b, cs_float *c, int32_t M, int32_t N);
 
   /**
    * Returns the computed RMS from LP object
    */
-  MYFLT csoundLPrms(CSOUND *csound, void *parm);
+  cs_float csoundLPrms(CSOUND *csound, void *parm);
 
 
   typedef struct _lpfil {
     OPDS h;
-    MYFLT *out;
-    MYFLT *in, *koff, *kflag, *ifn, *isiz, *iord, *iwin;
+    cs_float *out;
+    cs_float *in, *koff, *kflag, *ifn, *isiz, *iord, *iwin;
     AUXCH coefs;
     AUXCH del;
     AUXCH buf;
     int32_t M, N, wlen;
     int32_t rp;
     void *setup;
-    MYFLT *win, g;
+    cs_float *win, g;
     FUNC *ft;
   } LPCFIL;
 
   typedef struct _lpfil2 {
     OPDS h;
-    MYFLT *out;
-    MYFLT *in, *sig, *flag, *prd, *isiz, *iord, *iwin;
+    cs_float *out;
+    cs_float *in, *sig, *flag, *prd, *isiz, *iord, *iwin;
     AUXCH coefs;
     AUXCH del;
     AUXCH buf;
     AUXCH cbuf;
     int32_t M, N, wlen;
     int32_t rp,bp,cp;
-    MYFLT *win, g;
+    cs_float *win, g;
     void *setup;
   } LPCFIL2;
 
   typedef struct _lpreda {
     OPDS h;
     ARRAYDAT *out;
-    MYFLT *rms, *err, *cps;
-    MYFLT  *off, *flag, *ifn, *isiz, *iord, *iwin;
+    cs_float *rms, *err, *cps;
+    cs_float  *off, *flag, *ifn, *isiz, *iord, *iwin;
     AUXCH buf;
     int32_t M, N, wlen;
     FUNC *ft;
-    MYFLT *win;
+    cs_float *win;
     void *setup;
   } LPREDA;
 
   typedef struct _lpfil3 {
     OPDS h;
-    MYFLT *out, *in;
+    cs_float *out, *in;
     ARRAYDAT *coefs;
     AUXCH del;
     int32_t M;
@@ -172,12 +173,12 @@ extern "C" {
   typedef struct _lpreda2 {
     OPDS h;
     ARRAYDAT *out;
-    MYFLT *rms, *err, *cps;
-    MYFLT  *in, *flag, *prd, *isiz, *iord, *iwin;
+    cs_float *rms, *err, *cps;
+    cs_float  *in, *flag, *prd, *isiz, *iord, *iwin;
     AUXCH cbuf;
     AUXCH buf;
     int32_t M, N, wlen, cp, bp;
-    MYFLT *win;
+    cs_float *win;
     void *setup;
   } LPREDA2;
 
@@ -185,12 +186,12 @@ extern "C" {
   typedef struct _lpreda3 {
     OPDS h;
     PVSDAT *fout;
-    MYFLT  *in, *isiz, *prd, *iord, *iwin;
+    cs_float  *in, *isiz, *prd, *iord, *iwin;
     AUXCH cbuf;
     AUXCH buf;
     AUXCH fftframe;
     int32_t M, N, wlen, cp, bp;
-    MYFLT *win;
+    cs_float *win;
     void *setup;
     void *fftsetup;
   } LPCPVS;
@@ -199,15 +200,15 @@ extern "C" {
   typedef struct _pvscoefs {
     OPDS h;
     ARRAYDAT *out;
-    MYFLT *krms, *kerr;
+    cs_float *krms, *kerr;
     PVSDAT  *fin;
-    MYFLT  *iord, *imod;
+    cs_float  *iord, *imod;
     AUXCH coef;
     AUXCH buf;
     int32_t M, N;
-    MYFLT rms;
-    MYFLT err;
-    MYFLT mod;
+    cs_float rms;
+    cs_float err;
+    cs_float mod;
     uint32_t framecount;
     void *setup;
   } PVSCFS;
@@ -219,18 +220,19 @@ extern "C" {
     ARRAYDAT *in;
     int32_t M;
     void *setup;
-    MYFLT sum;
+    AUXCH previous;
+    int32_t valid;
   } CF2P;
 
   typedef struct {
     OPDS    h;
-    MYFLT   *ar, *asig;
+    cs_float   *ar, *asig;
     ARRAYDAT *kparm;
-    MYFLT   *kmin, *kmax, *iprd, *imod, *iscl, *istor;
+    cs_float   *kmin, *kmax, *iprd, *imod, *iscl, *istor;
     int32_t     scale, ord;
     AUXCH   y1m,y2m,y1o,y2o,y1c,y2c,active;
     int32_t kcnt, period;
-    double oneds;
+    cs_double oneds;
   } RESONB;
 
 

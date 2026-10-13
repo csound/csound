@@ -30,7 +30,7 @@
 
 typedef struct {
   CSOUND *csound;
-  MYFLT   *samples;
+  cs_float   *samples;
   uint32_t frames;
   SNDFILE *sf;
   void     *fd;
@@ -40,25 +40,25 @@ typedef struct {
 
 typedef struct {
   OPDS    h;
-  MYFLT   *kans;
-  MYFLT   *itab;
+  cs_float   *kans;
+  cs_float   *itab;
   STRINGDAT *file;
-  MYFLT   *format;
-  MYFLT   *beg;
-  MYFLT   *end;
+  cs_float   *format;
+  cs_float   *beg;
+  cs_float   *end;
   /* Local */
 } TABAUDIO;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *kans;
-  MYFLT   *trig;
-  MYFLT   *itab;
+  cs_float   *kans;
+  cs_float   *trig;
+  cs_float   *itab;
   STRINGDAT *file;
-  MYFLT   *format;
-  MYFLT   *sync;
-  MYFLT   *beg;
-  MYFLT   *end;
+  cs_float   *format;
+  cs_float   *sync;
+  cs_float   *beg;
+  cs_float   *end;
   /* Local */
   SAVE_THREAD *job;
 } TABAUDIOK;
@@ -123,8 +123,8 @@ static int32_t on_reset_audio(CSOUND *csound, void *pp)
   return 0;
 }
 
-static inline int32_t ftaudio_range(FUNC *ftp, MYFLT beginArg, MYFLT endArg,
-                                    MYFLT **samples, uint32_t *frames)
+static inline int32_t ftaudio_range(FUNC *ftp, cs_float beginArg, cs_float endArg,
+                                    cs_float **samples, uint32_t *frames)
 {
   int32_t begin, end;
 
@@ -132,8 +132,8 @@ static inline int32_t ftaudio_range(FUNC *ftp, MYFLT beginArg, MYFLT endArg,
                !(beginArg >= FL(0.0) && beginArg <= ftp->flenfrms) ||
                !(endArg <= FL(0.0) || endArg <= ftp->flenfrms)))
     return NOTOK;
-  begin = MYFLT2LRND(beginArg);
-  end = endArg <= FL(0.0) ? ftp->flenfrms : MYFLT2LRND(endArg);
+  begin = CS_FLOAT2LRND(beginArg);
+  end = endArg <= FL(0.0) ? ftp->flenfrms : CS_FLOAT2LRND(endArg);
   if (UNLIKELY(begin > end))
     return NOTOK;
   *samples = ftp->ftable + (size_t) begin * (size_t) ftp->nchanls;
@@ -154,7 +154,7 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
   if (p->job != NULL) {
     int32_t result = ATOMIC_GET(p->job->result);
 
-    *p->kans = (MYFLT) result;
+    *p->kans = (cs_float) result;
     if (result >= 0)
       p->job = NULL;
   }
@@ -163,20 +163,20 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
 
   if (*p->trig) {
     FUNC  *ftp;
-    MYFLT *t;
+    cs_float *t;
     int64_t n;
     uint32_t frames;
     SNDFILE *sf;
     void *fd;
     SFLIB_INFO sfinfo;
-    int32_t  format = MYFLT2LRND(*p->format);
+    int32_t  format = CS_FLOAT2LRND(*p->format);
     const OPARMS *parms;
     parms =   csound->GetOParms(csound) ;
     if (UNLIKELY((ftp = csound->FTFind(csound, p->itab)) == NULL)) {
-      return csound->PerfError(csound, &(p->h), Str("tabaudio: No table %g"), *p->itab);
+      return csound->PerfError(csound, &(p->h), Str("tabaudio: No table %g\n"), *p->itab);
     }
     if (UNLIKELY(ftaudio_range(ftp, *p->beg, *p->end, &t, &frames) != OK))
-      return csound->PerfError(csound, &(p->h), "%s",
+      return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("ftaudio: illegal range"));
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));
     if (format >= 51)
@@ -190,19 +190,19 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
       sfinfo.format |= FORMAT2SF(parms->outformat);
     if (!SF2TYPE(sfinfo.format))
       sfinfo.format |= TYPE2SF(parms->filetyp);
-    sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
+    sfinfo.samplerate = (int32_t) CS_FLOAT2LRND(CS_ESR);
     sfinfo.channels = ftp->nchanls;
     fd = csound->FileOpen(csound, &sf, CSFILE_SND_W, p->file->data, &sfinfo, NULL,
                           csound->Type2CsfileType(parms->filetyp,
                                                  parms->outformat), 0);
     if (fd == NULL)
       return csound->PerfError(csound, &(p->h),
-                               Str("tabaudio: failed to open file %s"),
+                               Str("tabaudio: failed to open file %s\n"),
                                p->file->data);
     if (*p->sync==FL(0.0)) {  /* write in perf thread */
       if ((n = csound->SndfileWrite(csound, sf, t, frames)) != frames) {
         int32_t result = csound->PerfError(
-          csound, &(p->h), Str("tabaudio: failed to write data: %s"),
+          csound, &(p->h), Str("tabaudio: failed to write data: %s\n"),
           csound->SndfileStrError(csound, sf));
         csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
         return result;
@@ -215,9 +215,9 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
     else {                    /* Use a helper thread */
       SAVE_THREAD *q = (SAVE_THREAD*)csound->Malloc(csound, sizeof(SAVE_THREAD));
       size_t sampleCount = (size_t) frames * (size_t) ftp->nchanls;
-      q->samples = (MYFLT *) csound->Malloc(csound,
-                                            sampleCount * sizeof(MYFLT));
-      memcpy(q->samples, t, sampleCount * sizeof(MYFLT));
+      q->samples = (cs_float *) csound->Malloc(csound,
+                                            sampleCount * sizeof(cs_float));
+      memcpy(q->samples, t, sampleCount * sizeof(cs_float));
       q->frames = frames;
       q->sf = sf;
       q->fd = fd;
@@ -228,13 +228,13 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
         csound->Free(csound, q->samples);
         csound->Free(csound, q);
         return csound->PerfError(csound, &(p->h),
-                                 "%s", Str("Error creating thread"));
+                                 "%s\n", Str("Error creating thread"));
       }
       if (UNLIKELY(csound->RegisterResetCallback(csound, (void *) q,
                                                  on_reset_audio) != OK)) {
         csound->JoinThread(q->thread);
         csound->Free(csound, q);
-        return csound->PerfError(csound, &(p->h), "%s",
+        return csound->PerfError(csound, &(p->h), "%s\n",
                                  Str("Error registering thread cleanup"));
       }
       p->job = q;
@@ -249,23 +249,23 @@ static int32_t tabaudiok(CSOUND *csound, TABAUDIOK *p)
 static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
 {
   FUNC  *ftp;
-  MYFLT *t;
+  cs_float *t;
   int64_t n;
   uint32_t frames;
   SNDFILE *sf;
   void *fd;
   SFLIB_INFO sfinfo;
-  int32_t  format = MYFLT2LRND(*p->format);
+  int32_t  format = CS_FLOAT2LRND(*p->format);
 
  const OPARMS *parms;
   parms =   csound->GetOParms(csound) ;
 
   if (UNLIKELY((ftp = csound->FTFind(csound, p->itab)) == NULL)) {
-    return csound->InitError(csound, "%s", Str("tabaudio: No table"));
+    return csound->InitError(csound, "%s\n", Str("tabaudio: No table"));
   }
   *p->kans = FL(0.0);
   if (UNLIKELY(ftaudio_range(ftp, *p->beg, *p->end, &t, &frames) != OK))
-    return csound->InitError(csound, "%s", Str("ftaudio: illegal range"));
+    return csound->InitError(csound, "%s\n", Str("ftaudio: illegal range"));
   memset(&sfinfo, 0, sizeof(SFLIB_INFO));
   if (format >= 51)
     sfinfo.format = AE_SHORT | TYP2SF(TYP_RAW);
@@ -279,18 +279,18 @@ static int32_t tabaudioi(CSOUND *csound, TABAUDIO *p)
   if (!SF2TYPE(sfinfo.format))
     sfinfo.format |= TYPE2SF(parms->filetyp);
 
-  sfinfo.samplerate = (int32_t) MYFLT2LRND(CS_ESR);
+  sfinfo.samplerate = (int32_t) CS_FLOAT2LRND(CS_ESR);
   sfinfo.channels = ftp->nchanls;
 
   fd = csound->FileOpen(csound, &sf, CSFILE_SND_W, p->file->data, &sfinfo, NULL,
                         csound->Type2CsfileType(parms->filetyp,
                                                parms->outformat), 0);
   if (fd == NULL)
-    return csound->InitError(csound, Str("tabaudio: failed to open file %s"),
+    return csound->InitError(csound, Str("tabaudio: failed to open file %s\n"),
                              p->file->data);
   if ((n = csound->SndfileWrite(csound, sf, t, frames)) != frames) {
     int32_t result = csound->InitError(
-      csound, Str("tabaudio: failed to write data: %s"),
+      csound, Str("tabaudio: failed to write data: %s\n"),
       csound->SndfileStrError(csound, sf));
     csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     return result;

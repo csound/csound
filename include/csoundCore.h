@@ -120,10 +120,18 @@ extern "C" {
   /**
    *   holds OENTRYs for opcode overloads
    **/
+#ifdef _MSC_VER
+#  pragma warning(push)
+/* This trailing array is extended by the allocation without changing the ABI. */
+#  pragma warning(disable: 4200)
+#endif
    typedef struct oentries {
-      int32_t count;                /* Number of etries in table */
-      OENTRY* entries[0];       /* Entended by count entries */
+      int32_t count;            /* Number of entries in table */
+      OENTRY* entries[0];       /* Extended by count entries */
     } OENTRIES;
+#ifdef _MSC_VER
+#  pragma warning(pop)
+#endif
 
 
   /**
@@ -154,7 +162,7 @@ typedef struct instr {
   CS_VAR_POOL *varPool;
   int16 muted;
   int32 opdstot;              /* Total size of opds structs in instr */
-  MYFLT *psetdata;            /* Used for pset opcode */
+  cs_float *psetdata;            /* Used for pset opcode */
   struct insds *instance;     /* Chain of allocated instances of
                                  this instrument */
   struct insds *lst_instance; /* last allocated instance */
@@ -165,7 +173,7 @@ typedef struct instr {
   int32_t pending_release; /* To count instruments in release phase */
   int32_t maxalloc;
   int32_t turnoff_mode; /* Opt turnoff instruments instances above maxalloc */
-  MYFLT cpuload;    /* % load this instrumemnt makes */
+  cs_float cpuload;    /* % load this instrumemnt makes */
   struct opcodinfo *opcode_info; /* UDO info (when instrs are UDOs) */
   char *insname;                 /* instrument name */
   int32_t instcnt;               /* Count number of instances ever */
@@ -241,7 +249,7 @@ typedef struct {
       OCTAVE data
   */
   typedef struct {
-    MYFLT   *begp, *curp, *endp, feedback[6];
+    cs_float   *begp, *curp, *endp, feedback[6];
     int32    scount;
   } OCTDAT;
 
@@ -251,7 +259,7 @@ typedef struct {
   */
   typedef struct {
     int32    npts, nocts, nsamps;
-    MYFLT   lofrq, hifrq, looct, srate;
+    cs_float   lofrq, hifrq, looct, srate;
     OCTDAT  octdata[MAXOCTS];
     AUXCH   auxch;
   } DOWNDAT;
@@ -276,7 +284,7 @@ typedef struct {
     int32_t*     sizes;  /* size of each dimensions */
     int32_t      arrayMemberSize; /* size of each item */
     const struct cstype* arrayType; /* type of array */
-    MYFLT*   data; /* data */
+    cs_float*   data; /* data */
     size_t   allocated; /* size of allocated data */
     /* Opaque ownership sidecar for structured arrays. Appending it preserves
        existing member offsets but changes sizeof(ARRAYDAT), so external code
@@ -300,8 +308,8 @@ typedef struct {
   typedef struct opcodeObj {
     struct opds *dataspace; // opcode dataspace
     size_t size;            // dataspace size
-    MYFLT **outargp;        // ptr to the first output arg
-    MYFLT **inargp;         // ptr to first input arg
+    cs_float **outargp;        // ptr to the first output arg
+    cs_float **inargp;         // ptr to first input arg
     int32_t udo_flag;       // set if opcode is UDO
     int32_t readonly;       // readonly flag
   } OPCODEOBJ;
@@ -328,8 +336,8 @@ typedef struct {
    * Type definition for complex numbers
    */
   typedef struct complexdat {
-    MYFLT real;
-    MYFLT imag;
+    cs_float real;
+    cs_float imag;
     int32_t isPolar;
   } COMPLEXDAT;
 
@@ -367,7 +375,7 @@ typedef struct {
     struct dklst *nxtlst;
     int32    pgmno;
     /** cnt + keynos */
-    MYFLT   keylst[1];
+    cs_float   keylst[1];
   } DKLST;
 
   typedef struct mchnblk {
@@ -384,17 +392,17 @@ typedef struct {
     /** list of active notes (NULL: not active) */
     struct insds *kinsptr[128];
     /** polyphonic pressure indexed by note number */
-    MYFLT   polyaft[128];
+    cs_float   polyaft[128];
     /** ... with GS vib_rate, stored in c128-c135 */
-    MYFLT   ctl_val[136];
+    cs_float   ctl_val[136];
     /** program change to instr number (<=0: ignore) */
     int16   pgm2ins[128];
     /** channel pressure (0-127) */
-    MYFLT   aftouch;
+    cs_float   aftouch;
     /** pitch bend (-1 to 1) */
-    MYFLT   pchbend;
+    cs_float   pchbend;
     /** pitch bend sensitivity in semitones */
-    MYFLT   pbensens;
+    cs_float   pbensens;
     /** number of held (sustaining) notes */
     int16   ksuscnt;
     /** current state of sustain pedal (0: off) */
@@ -431,11 +439,11 @@ typedef struct {
     /** Number of p-fields */
     int32_t  pcnt;
     /** Event start time */
-    MYFLT   p2orig;
+    cs_float   p2orig;
     /** Length */
-    MYFLT   p3orig;
+    cs_float   p3orig;
     /** All p-fields for this event (SSTRCOD: string argument) */
-    MYFLT   *p; // dynamically-allocated
+    cs_float   *p; // dynamically-allocated
   } EVTBLK;
 
 
@@ -489,21 +497,21 @@ typedef struct {
     /* Set if instr instance is active (perfing) */
     char     actflg;
     /* Time to turn off event, in score beats */
-    double   offbet;
+    cs_double   offbet;
     /* Time to turn off event, in seconds (negative on indef/tie) */
-    double   offtim;
+    cs_double   offtim;
     /* pointer to Csound engine and API for externals */
     CSOUND  *csound;
     uint64_t kcounter;
-    MYFLT    esr, sicvt, pidsr;                  /* local sr */
-    MYFLT    onedsr;
+    cs_float    esr, sicvt, pidsr;                  /* local sr */
+    cs_float    onedsr;
     int32_t  in_cvt, out_cvt; /* resampling converter modes for in and out */
     uint32_t ksmps;     /* Instrument copy of ksmps */
-    MYFLT    ekr;                /* and of rates */
+    cs_float    ekr;                /* and of rates */
 
-    MYFLT    onedksmps, onedkr, kicvt;
+    cs_float    onedksmps, onedkr, kicvt;
     struct opds  *pds;          /* Used for jumping */
-    MYFLT    scratchpad[4];      /* Persistent data */
+    cs_float    scratchpad[4];      /* Persistent data */
 
     /* user defined opcode I/O buffers */
     void    *opcod_iobufs;
@@ -513,9 +521,11 @@ typedef struct {
                              (calculated) */
     uint32_t ksmps_no_end; /* samps left at the end for sample accuracy
                               (used by opcodes) */
-    MYFLT   *spin;         /* offset into csound->spin */
-    MYFLT   *spout;        /* offset into csound->spout, or local spout */
+    cs_float   *spin;         /* offset into csound->spin */
+    cs_float   *spout;        /* offset into csound->spout, or local spout */
     int32_t  init_done;
+    /* Incremented when this instance starts an init or reinit pass. */
+    uint64_t init_pass;
     /* Init work can be nested or queued more than once. Only
        instance_init_begin/finish update init_running, under
        async_ref_spinlock. A terminal turnoff remains sticky until the
@@ -528,8 +538,8 @@ typedef struct {
     struct insds *init_turnoff_next;
     int32_t  tieflag;
     int32_t  reinitflag;
-    MYFLT    retval;
-    MYFLT   *lclbas;  /* base for variable memory pool */
+    cs_float    retval;
+    cs_float   *lclbas;  /* base for variable memory pool */
     char    *strarg;       /* string argument */
     int32_t  linked;  /* linked to instrtxt->act_instance */
     uint64_t instance_id; /* instance id number */
@@ -538,6 +548,8 @@ typedef struct {
        reuse and free path must reject a nonzero count, and a borrower must not
        access the INSDS after its final decrement. */
     volatile int32_t async_ref_count;
+    /* Private named storage. Use Create/QueryInstanceVariable to access it. */
+    void *instance_variables;
     /* Copy of required p-field values for quick access */
     CS_VAR_MEM  p0;
     CS_VAR_MEM  p1;
@@ -587,12 +599,12 @@ typedef struct {
    * Data for GEN01
    */
   typedef struct {
-    MYFLT   gen01;
-    MYFLT   ifilno;
-    MYFLT   iskptim;
-    MYFLT   iformat;
-    MYFLT   channel;
-    MYFLT   sample_rate;
+    cs_float   gen01;
+    cs_float   ifilno;
+    cs_float   iskptim;
+    cs_float   iformat;
+    cs_float   channel;
+    cs_float   sample_rate;
     char    strarg[SSTRSIZ];
     int32_t deferred_length;
     int32_t deferred_guardreq;
@@ -612,9 +624,9 @@ typedef struct {
     /** 2^lobits - 1 */
     int32    lomask;
     /** 1 / 2^lobits */
-    MYFLT   lodiv;
+    cs_float   lodiv;
     /** LOFACT * (table_sr / orch_sr), cpscvt = cvtbas / base_freq */
-    MYFLT   cvtbas, cpscvt;
+    cs_float   cvtbas, cpscvt;
     /** sustain loop mode (0: none, 1: forward, 2: forward and backward) */
     int16   loopmode1;
     /** release loop mode (0: none, 1: forward, 2: forward and backward) */
@@ -630,15 +642,15 @@ typedef struct {
     /** table number */
     int32    fno;
     /** sampling rate */
-    MYFLT   sr;
+    cs_float   sr;
     /** args  */
-    MYFLT *args;
+    cs_float *args;
     /** arg count */
     int32_t argcnt;
     /** GEN01 parameters */
     GEN01ARGS gen01args;
-    /** table data (flen + 1 MYFLT values) */
-    MYFLT   *ftable;
+    /** table data (flen + 1 cs_float values) */
+    cs_float   *ftable;
   } FUNC;
 
   /**
@@ -688,7 +700,7 @@ typedef struct {
     /** file length in sample frames  */
     size_t          nFrames;
     /** sample rate in Hz             */
-    double          sampleRate;
+    cs_double          sampleRate;
     /** number of channels            */
     int32_t             nChannels;
     /** AE_SHORT, AE_FLOAT, etc.      */
@@ -705,17 +717,17 @@ typedef struct {
      */
     int32_t             loopMode;
     /** playback start offset frames  */
-    double          startOffs;
+    cs_double          startOffs;
     /** loop start (sample frames)    */
-    double          loopStart;
+    cs_double          loopStart;
     /** loop end (sample frames)      */
-    double          loopEnd;
+    cs_double          loopEnd;
     /** base frequency (in Hz)        */
-    double          baseFreq;
+    cs_double          baseFreq;
     /** amplitude scale factor        */
-    double          scaleFac;
+    cs_double          scaleFac;
     /** interleaved sample data       */
-    MYFLT           data[1];
+    cs_float           data[1];
   } SNDMEMFILE;
 
 /**
@@ -732,7 +744,7 @@ typedef struct pvx_memfile_ {
   int32_t winsize;
   int32_t wintype;
   int32_t chans;
-  MYFLT srate;
+  cs_float srate;
 } PVOCEX_MEMFILE;
 
 /**@}*/
@@ -745,7 +757,7 @@ typedef struct pvx_memfile_ {
 typedef struct _FFT_SETUP {
   int32_t N, M;
   void *setup;
-  MYFLT *buffer;
+  cs_float *buffer;
   int32_t lib;
   int32_t d;
   int32_t p2;
@@ -775,8 +787,8 @@ typedef struct _FFT_SETUP {
 #define ORTXT h.optext->t
 #define INOCOUNT ORTXT.inArgCount
 #define OUTOCOUNT ORTXT.outArgCount
-#define CURTIME (((double)csound->icurTimeSamples) / ((double)csound->esr))
-#define CURTIME_inc (((double)csound->ksmps) / ((double)csound->esr))
+#define CURTIME (((cs_double)csound->icurTimeSamples) / ((cs_double)csound->esr))
+#define CURTIME_inc (((cs_double)csound->ksmps) / ((cs_double)csound->esr))
 
 /**@}*/
 /** @name Macros to check for arg types */
@@ -796,15 +808,15 @@ typedef struct _FFT_SETUP {
 /**
  * Phase modulo-1 for oscillators
  */
-static inline MYFLT PHMOD1(MYFLT p) {
+static inline cs_float PHMOD1(cs_float p) {
   return p < 0 ? p - (int64_t) (p-1) : p - (uint64_t)p;
 }
 
 /**
  * Binary positive power function
  */
-static inline double intpow1(double x, int32_t n) {
-  double ans = 1.;
+static inline cs_double intpow1(cs_double x, int32_t n) {
+  cs_double ans = 1.;
   while (n != 0) {
     if (n & 1)
       ans = ans * x;
@@ -817,7 +829,7 @@ static inline double intpow1(double x, int32_t n) {
   /**
  * Binary power function
  */
-static inline double intpow(MYFLT x, int32_t n) {
+static inline cs_double intpow(cs_float x, int32_t n) {
   if (n < 0) {
     n = -n;
     x = 1. / x;
@@ -836,11 +848,11 @@ static inline int32_t byte_order(void) {
   /**
    * checks for string code in p-fields
    */
-  static inline int32_t isstrcod(MYFLT xx){
+  static inline int32_t isstrcod(cs_float xx){
 #ifdef USE_DOUBLE
     int32_t sel = (byte_order()+1)&1;
     union {
-      double d;
+      cs_double d;
       int32_t i[2];
     } z;
     z.d = xx;
@@ -861,7 +873,7 @@ static inline int32_t byte_order(void) {
 /**
  * Returns true if argument is a string code
  */
-static inline int32_t IsStringCode(MYFLT f) {
+static inline int32_t IsStringCode(cs_float f) {
   return isstrcod(f);
 }
 
@@ -900,9 +912,9 @@ static inline char *GetOutputArgName(OPDS *p, uint32_t n) {
 /**
  * Returns the CS_TYPE for an opcode argument argPtr
  */
-static inline CS_TYPE *GetTypeForArg(void *argPtr) {
-  char *ptr = (char *)argPtr;
-  CS_TYPE *varType = *(CS_TYPE **)(ptr - CS_VAR_TYPE_OFFSET);
+static inline const CS_TYPE *GetTypeForArg(const void *argPtr) {
+  const char *ptr = (const char *)argPtr;
+  const CS_TYPE *varType = *(const CS_TYPE *const *)(ptr - CS_VAR_TYPE_OFFSET);
   return varType;
 }
 
@@ -956,8 +968,8 @@ static inline int32_t GetReleaseFlag(void *p) {
  * was called. The return value may be negative if the note has indefinite
  * duration.
  */
-static inline double GetOffTime(OPDS *p) {
-  return (double)p->insdshead->offtim;
+static inline cs_double GetOffTime(OPDS *p) {
+  return (cs_double)p->insdshead->offtim;
 }
 
 /**
@@ -1007,7 +1019,7 @@ static inline uint32_t GetKsmpsOffset(OPDS *p) {
  * Returns the local sr of instrument/UDO containing opcode p.
  * This is an alternative to the macro CS_ESR.
  */
-static inline MYFLT GetLocalSr(OPDS *p) {
+static inline cs_float GetLocalSr(OPDS *p) {
   return p->insdshead->esr;
 }
 
@@ -1015,7 +1027,7 @@ static inline MYFLT GetLocalSr(OPDS *p) {
  * Returns the local kr of instrument/UDO containing opcode p.
  * This is an alternative to the macro CS_EKR.
  */
-static inline MYFLT GetLocalKr(OPDS *p) {
+static inline cs_float GetLocalKr(OPDS *p) {
   return p->insdshead->ekr;
 }
 
@@ -1077,12 +1089,12 @@ typedef struct _CSOUND_UTIL {
   int32_t (*SetUtilityDescription)(CSOUND *, const char *utilName,
                                    const char *utilDesc);
   const char *(*GetUtilityDescription)(CSOUND *, const char *utilName);
-  void (*SetUtilSr)(CSOUND *, MYFLT);
+  void (*SetUtilSr)(CSOUND *, cs_float);
   void (*SetUtilNchnls)(CSOUND *, int32_t);
-  void *(*SndinGetSetSA)(CSOUND *, char *, void *, MYFLT *, MYFLT *, MYFLT *,
+  void *(*SndinGetSetSA)(CSOUND *, char *, void *, cs_float *, cs_float *, cs_float *,
                          int32_t);
   void *(*SndinGetSet)(CSOUND *, void *);
-  int32_t (*Sndin)(CSOUND *, void *, MYFLT *, int32_t, void *);
+  int32_t (*Sndin)(CSOUND *, void *, cs_float *, int32_t, void *);
 } CSOUND_UTIL;
 
 /* The definitions and declarations in this header
@@ -1104,6 +1116,8 @@ typedef struct _CSOUND_UTIL {
  * New functions only need to be added here if
  * they are required by plugins.
  */
+#include "csound_structs.h"
+
 struct CSOUND_ {
 
   /** @name Attributes */
@@ -1113,9 +1127,9 @@ struct CSOUND_ {
   /** Get number of input channels */
   uint32_t (*GetNchnls_i)(CSOUND *);
   /** Get max peak amp */
-  MYFLT (*Get0dBFS)(CSOUND *);
+  cs_float (*Get0dBFS)(CSOUND *);
   /** Get reference tuning */
-  MYFLT (*GetA4)(CSOUND *);
+  cs_float (*GetA4)(CSOUND *);
   /** Get current tie flag */
   int32_t (*GetTieFlag)(CSOUND *);
   /** Get current reinit flag */
@@ -1132,14 +1146,17 @@ struct CSOUND_ {
   long (*GetInputBufferSize)(CSOUND *);
   long (*GetOutputBufferSize)(CSOUND *);
   int32_t (*GetDebug)(CSOUND *);
-  int32_t (*GetSizeOfMYFLT)(void);
+  union {
+    int32_t (*GetSizeOfCsFloat)(void);
+    int32_t (*GetSizeOfMYFLT)(void); /* CS7 compatibility name. */
+  };
   const OPARMS *(*GetOParms)(CSOUND *);
   const char *(*GetEnv)(CSOUND *, const char *name);
-  MYFLT (*GetSystemSr)(CSOUND *, MYFLT);
+  cs_float (*GetSystemSr)(CSOUND *, cs_float);
   /* Get engine sampling rate */
-  MYFLT   (*GetEngineSr) (CSOUND *csound);
+  cs_float   (*GetEngineSr) (CSOUND *csound);
   /* Get engine control rate */
-  MYFLT   (*GetEngineKr) (CSOUND *csound);
+  cs_float   (*GetEngineKr) (CSOUND *csound);
   /* Get engine kcounter value */
   uint64_t (*GetEngineKcounter) (CSOUND *csound);
   /**@}*/
@@ -1153,9 +1170,9 @@ struct CSOUND_ {
 
   /** @name Events and Score */
   /**@{ */
-  void (*Event)(CSOUND *, int32_t, const MYFLT *, int32_t);
-  MYFLT (*GetScoreOffsetSeconds)(CSOUND *);
-  void (*SetScoreOffsetSeconds)(CSOUND *, MYFLT);
+  void (*Event)(CSOUND *, int32_t, const cs_float *, int32_t);
+  cs_float (*GetScoreOffsetSeconds)(CSOUND *);
+  void (*SetScoreOffsetSeconds)(CSOUND *, cs_float);
   void (*RewindScore)(CSOUND *);
   void (*InputMessage)(CSOUND *, const char *message__);
   int32_t (*ReadScore)(CSOUND *, const char *);
@@ -1175,13 +1192,13 @@ struct CSOUND_ {
 
   /** @name Arguments and Types */
   /**@{ */
-  char *(*GetArgString)(CSOUND *, MYFLT);
+  char *(*GetArgString)(CSOUND *, cs_float);
   int32 (*StringArg2Insno)(CSOUND *, void *p, int32_t is_string);
   char *(*StringArg2Name)(CSOUND *, char *, void *, const char *, int32_t);
   const CS_TYPE *(*GetType)(CSOUND *csound, const char *type);
   TYPE_POOL *(*GetTypePool)(CSOUND *csound);
   int32_t (*AddVariableType)(CSOUND *csound, TYPE_POOL *pool,
-                             CS_TYPE *typeInstance);
+                             const CS_TYPE *typeInstance);
 
   /**@}*/
 
@@ -1204,8 +1221,18 @@ struct CSOUND_ {
   int32_t (*FTCreate)(CSOUND *, FUNC **, const EVTBLK *, int32_t);
   int32_t (*FTAlloc)(CSOUND *, int32_t tableNum, int32_t len);
   int32_t (*FTDelete)(CSOUND *, int32_t tableNum);
-  FUNC *(*FTFind)(CSOUND *, MYFLT *argp);
+  FUNC *(*FTFind)(CSOUND *, cs_float *argp);
   void *(*GetNamedGens)(CSOUND *);
+  int32_t (*GetTableArgs)(CSOUND *, cs_float **, int32_t);
+  /**@}*/
+
+  /** @name Instance variables */
+  /**@{ */
+  /** Create zero-filled named storage local to an instrument instance. */
+  int32_t (*CreateInstanceVariable)(CSOUND *, INSDS *owner,
+                                     const char *name, size_t nbytes);
+  /** Return instance storage, or NULL for a missing name or invalid owner. */
+  void *(*QueryInstanceVariable)(CSOUND *, const INSDS *owner, const char *name);
   /**@}*/
 
   /** @name Global and config variable manipulation */
@@ -1230,27 +1257,27 @@ struct CSOUND_ {
   /** @name FFT support */
   /**@{ */
   void *(*RealFFTSetup)(CSOUND *csound, int32_t FFTsize, int32_t d);
-  void (*RealFFT)(CSOUND *csound, void *p, MYFLT *sig);
-  MYFLT (*GetInverseRealFFTScale)(CSOUND *, int32_t FFTsize);
-  void (*ComplexFFT)(CSOUND *, MYFLT *buf, int32_t FFTsize);
-  void (*InverseComplexFFT)(CSOUND *, MYFLT *buf, int32_t FFTsize);
-  MYFLT (*GetInverseComplexFFTScale)(CSOUND *, int32_t FFTsize);
-  void (*RealFFTMult)(CSOUND *, MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
-                      int32_t FFTsize, MYFLT scaleFac);
+  void (*RealFFT)(CSOUND *csound, void *p, cs_float *sig);
+  cs_float (*GetInverseRealFFTScale)(CSOUND *, int32_t FFTsize);
+  void (*ComplexFFT)(CSOUND *, cs_float *buf, int32_t FFTsize);
+  void (*InverseComplexFFT)(CSOUND *, cs_float *buf, int32_t FFTsize);
+  cs_float (*GetInverseComplexFFTScale)(CSOUND *, int32_t FFTsize);
+  void (*RealFFTMult)(CSOUND *, cs_float *outbuf, cs_float *buf1, cs_float *buf2,
+                      int32_t FFTsize, cs_float scaleFac);
   void *(*DCTSetup)(CSOUND *csound, int32_t FFTsize, int32_t d);
-  void (*DCT)(CSOUND *csound, void *p, MYFLT *sig);
+  void (*DCT)(CSOUND *csound, void *p, cs_float *sig);
   /**@}*/
 
   /** @name LPC support */
   /**@{ */
-  MYFLT *(*AutoCorrelation)(CSOUND *, MYFLT *, MYFLT *, int32_t, MYFLT *,
+  cs_float *(*AutoCorrelation)(CSOUND *, cs_float *, cs_float *, int32_t, cs_float *,
                             int32_t);
   void *(*LPsetup)(CSOUND *csound, int32_t N, int32_t M);
   void (*LPfree)(CSOUND *csound, void *);
-  MYFLT *(*LPred)(CSOUND *, void *, MYFLT *);
-  MYFLT *(*LPCeps)(CSOUND *, MYFLT *, MYFLT *, int32_t, int32_t);
-  MYFLT *(*CepsLP)(CSOUND *, MYFLT *, MYFLT *, int32_t, int32_t);
-  MYFLT (*LPrms)(CSOUND *, void *);
+  cs_float *(*LPred)(CSOUND *, void *, cs_float *);
+  cs_float *(*LPCeps)(CSOUND *, cs_float *, cs_float *, int32_t, int32_t);
+  cs_float *(*CepsLP)(CSOUND *, cs_float *, cs_float *, int32_t, int32_t);
+  cs_float (*LPrms)(CSOUND *, void *);
   /**@}*/
 
   /** @name PVOC-EX system */
@@ -1268,7 +1295,10 @@ struct CSOUND_ {
   int32_t (*PVOCEX_LoadFile)(CSOUND *, const char *, PVOCEX_MEMFILE *);
   /**@}*/
 
-  /** @name Error messages */
+  /** @name Error messages
+   * These functions do not append a newline to the supplied message.
+   * Include line endings in complete diagnostics.
+   */
   /**@{ */
   CS_NORETURN CS_PRINTF2 void (*Die)(CSOUND *, const char *msg, ...);
   CS_PRINTF2 int32_t (*InitError)(CSOUND *, const char *msg, ...);
@@ -1312,8 +1342,8 @@ struct CSOUND_ {
   void *(*GetCurrentThreadID)(void);
   void (*Sleep)(size_t milliseconds);
   void (*InitTimerStruct)(RTCLOCK *);
-  double (*GetRealTime)(RTCLOCK *);
-  double (*GetCPUTime)(RTCLOCK *);
+  cs_double (*GetRealTime)(RTCLOCK *);
+  cs_double (*GetCPUTime)(RTCLOCK *);
   /**@}*/
 
   /** @name Circular lock-free buffer */
@@ -1341,8 +1371,8 @@ struct CSOUND_ {
   const char *(*FileError)(CSOUND *, void *);
   void *(*FileOpenAsync)(CSOUND *, void *, int32_t, const char *, void *,
                          const char *, int32_t, int32_t, int32_t);
-  uint32_t (*ReadAsync)(CSOUND *, void *, MYFLT *, int32_t);
-  uint32_t (*WriteAsync)(CSOUND *, void *, MYFLT *, int32_t);
+  uint32_t (*ReadAsync)(CSOUND *, void *, cs_float *, int32_t);
+  uint32_t (*WriteAsync)(CSOUND *, void *, cs_float *, int32_t);
   int32_t (*FSeekAsync)(CSOUND *, void *, int32_t, int32_t);
   void (*RewriteHeader)(CSOUND *csound, void *ofd);
   SNDMEMFILE *(*LoadSoundFile)(CSOUND *, const char *, void *);
@@ -1366,10 +1396,10 @@ struct CSOUND_ {
   void *(*SndfileOpenFd)(CSOUND *csound, int32_t fd, int32_t mode,
                          SFLIB_INFO *sfinfo, int32_t close_desc);
   int32_t (*SndfileClose)(CSOUND *csound, void *);
-  int64_t (*SndfileWrite)(CSOUND *, void *, MYFLT *, int64_t);
-  int64_t (*SndfileRead)(CSOUND *, void *, MYFLT *, int64_t);
-  int64_t (*SndfileWriteSamples)(CSOUND *, void *, MYFLT *, int64_t);
-  int64_t (*SndfileReadSamples)(CSOUND *, void *, MYFLT *, int64_t);
+  int64_t (*SndfileWrite)(CSOUND *, void *, cs_float *, int64_t);
+  int64_t (*SndfileRead)(CSOUND *, void *, cs_float *, int64_t);
+  int64_t (*SndfileWriteSamples)(CSOUND *, void *, cs_float *, int64_t);
+  int64_t (*SndfileReadSamples)(CSOUND *, void *, cs_float *, int64_t);
   int64_t (*SndfileSeek)(CSOUND *, void *, int64_t, int32_t);
   int32_t (*SndfileSetString)(CSOUND *csound, void *sndfile, int32_t str_type,
                               const char *str);
@@ -1416,13 +1446,13 @@ struct CSOUND_ {
   void (*SetPlayopenCallback)(
       CSOUND *, int32_t (*playopen__)(CSOUND *, const csRtAudioParams *parm));
   void (*SetRtplayCallback)(CSOUND *,
-                            void (*rtplay__)(CSOUND *, const MYFLT *outBuf,
+                            void (*rtplay__)(CSOUND *, const cs_float *outBuf,
                                              int32_t nbytes));
   void (*SetRecopenCallback)(CSOUND *,
                              int32_t (*recopen__)(CSOUND *,
                                                   const csRtAudioParams *parm));
   void (*SetRtrecordCallback)(CSOUND *,
-                              int32_t (*rtrecord__)(CSOUND *, MYFLT *inBuf,
+                              int32_t (*rtrecord__)(CSOUND *, cs_float *inBuf,
                                                     int32_t nbytes));
   void (*SetRtcloseCallback)(CSOUND *, void (*rtclose__)(CSOUND *));
   void (*SetAudioDeviceListCallback)(
@@ -1469,7 +1499,7 @@ struct CSOUND_ {
   /**@}*/
   /** @name Displays & graphs support */
   /**@{ */
-  void (*SetDisplay)(CSOUND *, WINDAT *, MYFLT *, int32, char *, int32_t,
+  void (*SetDisplay)(CSOUND *, WINDAT *, cs_float *, int32, char *, int32_t,
                      char *);
   void (*Display)(CSOUND *, WINDAT *);
   int32_t (*DeinitDisplay)(CSOUND *);
@@ -1491,15 +1521,15 @@ struct CSOUND_ {
   /* access functions used in csound utilities */
   const CSOUND_UTIL *(*GetUtility)(CSOUND *csound);
   /* Fast power of two function from a precomputed table */
-  MYFLT (*Pow2)(CSOUND *, MYFLT a);
-  /* String localisation */
-#if defined(__CUDACC__) || defined(__MACH__)
+  cs_float (*Pow2)(CSOUND *, cs_float a);
+  /* String localisation; preserve printf format checking through Str(). */
+#if defined(__CUDACC__)
   char *(*LocalizeString)(const char *);
 #else
   char *(*LocalizeString)(const char *)__attribute__((format_arg(1)));
 #endif
   /* String conversion */
-  double (*Strtod)(char *nptr, char **);
+  cs_double (*Strtod)(char *nptr, char **);
   /* String formatted printing */
   int32_t (*Sprintf)(char *str, const char *format, ...);
   /* String formatted scanning */
@@ -1508,14 +1538,21 @@ struct CSOUND_ {
   int32_t (*Deprecate)(CSOUND *csound, char *name,
                        char *o, char *i, int32_t deprec);
   /**@}*/
+  /** @name Arrays & Structs */
+  /**@{ */
+  int32_t (*ArrayPrepareWrite)(CSOUND *, ARRAYDAT *, INSDS *, int32_t);
+  int32_t (*ArrayPrepareOpcodeWrite)(CSOUND *, ARRAYDAT *, OPDS *, int32_t,
+                                     const char *);
+  int32_t (*ArrayEnsureCapacity)(CSOUND *, ARRAYDAT *, size_t, INSDS *);
+  const CS_TYPE *(*RegisterStruct)(CSOUND *, const char *,
+                                    const CSOUND_STRUCT_MEMBER *, size_t);
+  /**@}*/
+
   /** @name Placeholders
-      To allow the API to grow while maintining backward binary compatibility.
+      To allow the API to grow while maintaining backward binary compatibility.
    */
   /**@{ */
-  /* This consumes one former placeholder; the 50-pointer reserve keeps the
-     offsets of private CSOUND fields unchanged. */
-  int32_t (*ArrayPrepareWrite)(CSOUND *, ARRAYDAT *, INSDS *, int32_t);
-  SUBR dummyfn_2[49];
+  SUBR dummyfn_2[45];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */
@@ -1547,337 +1584,353 @@ struct CSOUND_ {
       \endcode
   */
   /**@{ */
-  SUBR first_callback_;
-  channelCallback_t InputChannelCallback_;
-  channelCallback_t OutputChannelCallback_;
-  void (*csoundMessageCallback_)(CSOUND *, int32_t attr, const char *format,
-                                 va_list args);
-  int32_t (*csoundConfigureCallback_)(CSOUND *);
-  void (*csoundMakeGraphCallback_)(CSOUND *, WINDAT *windat, const char *name);
-  void (*csoundDrawGraphCallback_)(CSOUND *, WINDAT *windat);
-  void (*csoundKillGraphCallback_)(CSOUND *, WINDAT *windat);
-  int32_t (*csoundExitGraphCallback_)(CSOUND *);
-  void *(*OpenSoundFileCallback_)(CSOUND *, const char *, int32_t, void *);
-  FILE *(*OpenFileCallback_)(CSOUND *, const char *, const char *);
-  void (*FileOpenCallback_)(CSOUND *, const char *, int32_t, int32_t, int32_t);
-  SUBR last_callback_;
-  /* these are not saved on RESET */
-  int32_t (*playopen_callback)(CSOUND *, const csRtAudioParams *parm);
-  void (*rtplay_callback)(CSOUND *, const MYFLT *outBuf, int32_t nbytes);
-  int32_t (*recopen_callback)(CSOUND *, const csRtAudioParams *parm);
-  int32_t (*rtrecord_callback)(CSOUND *, MYFLT *inBuf, int32_t nbytes);
-  void (*rtclose_callback)(CSOUND *);
-  int32_t (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int32_t);
-  int32_t (*midi_dev_list_callback)(CSOUND *, CS_MIDIDEVICE *, int32_t);
-  int32_t (*doCsoundCallback)(CSOUND *, void *, uint32_t);
-  int32_t (*kperf)(CSOUND *); /* kperf function pointer, to switch between debug
-                           and nodebug function */
-  void (*csoundMessageStringCallback)(CSOUND *csound, int32_t attr,
-                                      const char *str);
-  void (*spinrecv)(CSOUND *);
-  void (*spoutran)(CSOUND *);
-  int32_t (*audrecv)(CSOUND *, MYFLT *, int32_t);
-  void (*audtran)(CSOUND *, const MYFLT *, int32_t);
-  void *hostdata;
-  char *orchname, *scorename;
-  int32_t commandLineArgCount;
-  char **commandLineArgs;
-  CORFIL *orchstr, *scorestr;
-  OPDS *ids;                /* used by init loops */
-  ENGINE_STATE engineState; /* current Engine State merged after
-                               compilation */
-  INSTRTXT *instr0;         /* instr0     */
-  INSTRTXT **dead_instr_pool;
-  int32_t dead_instr_no;
-  TYPE_POOL *typePool;
-  uint32_t ksmps;
-  uint32_t nchnls;
-  int32_t inchnls;
-  uint64_t kcounter, global_kcounter;
-  MYFLT esr;
-  MYFLT ekr;
-  /** current time in seconds, inc. per kprd */
-  int64_t icurTimeSamples; /* Current time in samples */
-  double curTime_inc;
-  /** start time of current section    */
-  double timeOffs, beatOffs;
-  /** current time in beats, inc per kprd */
-  double curBeat, curBeat_inc;
-  /** beat time = 60 / tempo           */
-  int64_t ibeatTime; /* Beat time in samples */
-  EVTBLK *currevent;
-  INSDS *curip;
-  MYFLT cpu_power_busy;
-  char *xfilename;
-  int32_t peakchunks;
-  int32_t keep_tmp;
-  CS_HASH_TABLE *opcodes;
-  int32 nrecs;
-  FILE *Linepipe;
-  int32_t Linefd;
-  void *csoundCallbacks_;
-  FILE *scfp;
-  CORFIL *scstr;
-  FILE *oscfp;
-  MYFLT maxamp[MAXCHNLS];
-  MYFLT smaxamp[MAXCHNLS];
-  MYFLT omaxamp[MAXCHNLS];
-  uint32 maxpos[MAXCHNLS], smaxpos[MAXCHNLS], omaxpos[MAXCHNLS];
-  FILE *scorein;
-  FILE *scoreout;
-  int32_t *argoffspace;
-  INSDS *frstoff;
-  int32_t randSeed1;
-  int32_t randSeed2;
-  CsoundRandMTState *csRandState;
-  RTCLOCK *csRtClock;
-  int32_t strsmax;
-  char **strsets;
-  MYFLT *spin;
-  MYFLT *spout;
-  MYFLT *spout_tmp;
-  int32_t nspin;
-  int32_t nspout;
-  MYFLT *auxspin;
-  OPARMS *oparms;
-  /** reserve space for up to MIDIMAXPORTS MIDI devices */
-  MCHNBLK *m_chnbp[MIDIMAXPORTS * 16];
-  int32_t dither_output;
-  MYFLT onedsr, sicvt;
-  MYFLT tpidsr, pidsr, mpidsr, mtpdsr;
-  MYFLT onedksmps;
-  MYFLT onedkr;
-  MYFLT kicvt;
-  int32_t reinitflag;
-  int32_t tieflag;
-  MYFLT e0dbfs, dbfs_to_float;
-  double A4;
-  void *rtRecord_userdata;
-  void *rtPlay_userdata;
-  jmp_buf exitjmp;
-  SRTBLK *frstbp;
-  int32_t sectcnt;
-  int32_t inerrcnt, synterrcnt, perferrcnt;
-  int32_t total_assert_cnt; /* Total number of assertions when unit tests enabled */
-  INSDS actanchor;
-  int32 rngcnt[MAXCHNLS];
-  int16 rngflg, multichan;
-  void *evtFuncChain;
-  EVTNODE *OrcTrigEvts; /* List of events to be started */
-  EVTNODE *freeEvtNodes;
-  int32_t csoundIsScorePending_;
-  int64_t advanceCnt;
-  int32_t initonly;
-  int32_t Mforcdecs, Mxtroffs, MTrkend;
-  OPCODINFO *opcodeInfo;
-  FUNC **flist;
-  int32_t maxfnum;
-  GEN *gensub;
-  int32_t genmax;
-  CS_HASH_TABLE *namedGlobals;
-  CS_HASH_TABLE *cfgVariableDB;
-  double prvbt, curbt, nxtbt;
-  double curp2, nxtim;
-  int64_t cyclesRemaining;
-  EVTBLK evt;
-  void *memalloc_db;
-  MGLOBAL *midiGlobals;
-  CS_HASH_TABLE *envVarDB;
-  MEMFIL *memfiles;
-  PVOCEX_MEMFILE *pvx_memfiles;
-  int32_t FFT_max_size;
-  void *FFT_table_1;
-  void *FFT_table_2;
-  /* statics from twarp.c should be TSEG* */
-  void *tseg, *tpsave;
-  /* persistent macros */
-  MACRO *orc_macros;
-  /* Statics from express.c */
-  MYFLT *gbloffbas; /* was static in oload.c */
-  void *file_io_thread;
-  int32_t file_io_start;
-  void *file_io_threadlock;
-  int32_t realtime_audio_flag;
-  void *event_insert_thread;
-  int32_t event_insert_loop;
-  void *init_pass_threadlock;
-  void *API_lock;
-  void *array_storage_lock;
-  /* Serializes only structured-array sidecar discovery and reference changes.
-     Allocation and element copying happen after this lock is released. */
-  spin_lock_t array_storage_spinlock;
-  spin_lock_t spoutlock, spinlock;
-  spin_lock_t memlock, spinlock1, open_files_lock;
-  char *delayederrormessages;
-  void *printerrormessagesflag;
-  struct sread__ sread;
-  struct onefileStatics__ onefileStatics;
-  struct lineventStatics__ lineventStatics;
-  struct musmonStatics__ musmonStatics;
-  struct libsndStatics__ libsndStatics;
-  int32_t warped; /* rdscor.c */
-  int32_t sstrlen;
-  char *sstrbuf;
-  int32_t enableMsgAttr; /* csound.c */
-  int32_t sampsNeeded;
-  MYFLT csoundScoreOffsetSeconds_;
-  int32_t inChar_;
-  int32_t isGraphable_;
-  int32_t delayr_stack_depth; /* ugens6.c */
-  void *first_delayr;
-  void *last_delayr;
-  int32 revlpsiz[6];
-  int32 revlpsum;
-  double rndfrac; /* aops.c */
-  MYFLT *logbase2;
-  NAMES *omacros, *smacros;
-  void *namedgen;   /* fgens.c */
-  void *open_files; /* fileopen.c */
-  void *retired_files; /* nodes awaiting file I/O thread reclamation */
-  uint64_t file_io_pass;
-  void *searchPathCache;
-  CS_HASH_TABLE *sndmemfiles;
-  void *reset_list;
-  void *pvFileTable; /* pvfileio.c */
-  int32_t pvNumFiles;
-  int32_t pvErrorCode;
-  int32_t enableHostImplementedAudioIO;
-  int32_t enableHostImplementedMIDIIO;
-  int32_t hostRequestedBufferSize;
-  /* engineStatus is sum of:
-   *   1 (CS_STATE_PRE):  csoundPreCompile was called
-   *   2 (CS_STATE_COMP): csoundCompile was called
-   *   4 (CS_STATE_UTIL): csoundRunUtility was called
-   *   8 (CS_STATE_CLN):  csoundCleanup needs to be called
-   *  16 (CS_STATE_JMP):  csoundLongJmp was called
-   */
-  char engineStatus;
-  /* stdXX_assign_flags  can be {1,2,4,8} */
-  char stdin_assign_flg;
-  char stdout_assign_flg;
-  char orcname_mode; /* 0: normal, 1: ignore, 2: fail */
-  int32_t use_only_orchfile;
-  void *csmodule_db;
-  char *dl_opcodes_oplibs;
-  char *SF_csd_licence;
-  char *SF_id_title;
-  char *SF_id_copyright;
-  int32_t SF_id_scopyright;
-  char *SF_id_software;
-  char *SF_id_artist;
-  char *SF_id_comment;
-  char *SF_id_date;
-  void *utility_db;
-  int16 *isintab; /* ugens3.c */
-  void *lprdaddr; /* ugens5.c */
-  int32_t currentLPCSlot;
-  int32_t max_lpc_slot;
-  CS_HASH_TABLE *chn_db;
-  int32_t opcodedirWasOK;
-  int32_t disable_csd_options;
-  CsoundRandMTState randState_;
-  int32_t performState;
-  int32_t ugens4_rand_16;
-  int32_t ugens4_rand_15;
-  void *schedule_kicked;
-  MYFLT *disprep_fftcoefs;
-  void *winEPS_globals;
-  OPARMS oparms_;
-  REMOT_BUF SVrecvbuf; /* RM: rt_evt input Communications buffer */
-  void *remoteGlobals;
-  /* VL: pvs bus */
-  int32_t nchanif, nchanof;
-  char *chanif, *chanof;
-  int32_t multiThreadedComplete;
-  THREADINFO *multiThreadedThreadInfo;
-  struct dag_t *multiThreadedDag;
-  void *barrier1;
-  void *barrier2;
-  /* statics from cs_par_orc_semantic_analysis */
-  struct instr_semantics_t *instCurr;
-  struct instr_semantics_t *instRoot;
-  int32_t inInstr;
-  int32_t dag_changed;
-  int32_t dag_num_active;
-  INSDS **dag_task_map;
-  volatile stateWithPadding *dag_task_status;
-  watchList *volatile *dag_task_watch;
-  watchList *dag_wlmm;
-  char **dag_task_dep;
-  int32_t dag_task_max_size;
-  uint32_t tempStatus;   /* keeps track of which files are temps */
-  int32_t orcLineOffset; /* 1 less than 1st orch line in the CSD */
-  int32_t scoLineOffset; /* 1 less than 1st score line in the CSD */
-  char *csdname; /* original CSD name; do not free() */
-  int32_t tran_nchnlsi;
-  int32_t scnt;         /* Count of strings */
-  int32_t strsiz;       /* length of current strings space */
-  FUNC *sinetable;      /* A useful table */
-  int32_t sinelength;   /* Size of table */
-  MYFLT *UNUSEDP;       /* pow2 table */
-  MYFLT *cpsocfrc;      /* cps conv table */
-  CORFIL *expanded_orc; /* output of preprocessor */
-  CORFIL *expanded_sco; /* output of preprocessor */
-  char *filedir[256];   /* for location directory */
-  void *message_buffer;
-  int32_t jumpset;
-  int32_t info_message_request;
-  int32_t modules_loaded;
-  MYFLT _system_sr;
-  void *csdebug_data; /* debugger data */
-  void (*debug_cb)(CSOUND *, void *); /* per-k-cycle debug callback, set via csoundSetDebugCallback() */
-  void *debug_cb_data;               /* userdata for debug_cb */
 
-  int32_t score_parser;
-  int32_t print_version;
-  int32_t inZero; /* flag compilation of instr0 */
-  struct _message_queue **msg_queue;
-  volatile long msg_queue_wget;   /* Writer - Get index */
-  volatile long msg_queue_wput;   /* Writer - Put Index */
-  volatile long msg_queue_rstart; /* Reader - start index */
-  volatile long msg_queue_items;
-  int32_t aftouch;
-  void *directory;
-  ALLOC_DATA *alloc_queue;
-  volatile unsigned long alloc_queue_items;
-  unsigned long alloc_queue_active;
-  unsigned long alloc_queue_wp;
-  spin_lock_t alloc_queue_spinlock;
-  /* Realtime lock order is alloc, then instance/async-reference/event. The
-     three short registry locks must never be held while taking alloc. */
-  spin_lock_t alloc_spinlock;
-  spin_lock_t instance_spinlock;
-  spin_lock_t async_ref_spinlock;
-  spin_lock_t rt_event_spinlock;
-  int32_t realtime_locks_initialized;
-  INSDS *init_turnoff_pending;
-  spin_lock_t diskin2_async_lock;
-  void *diskin2_async_state;
-  EVTBLK *init_event;
-  char *message_string;
-  volatile unsigned long message_string_queue_items;
-  unsigned long message_string_queue_wp;
-  message_string_queue_t *message_string_queue;
-  int32_t io_initialised;
-  int32_t options_checked;
-  char *op;
-  int32_t mode;
-  char *opcodedir;
-  char *score_srt;
-  OSC_MESS osc_message_anchor;
-  CORFIL *playscore;
-  spin_lock_t osc_spinlock;
-  CSOUND_UTIL csound_util;
-  uint64_t instance_count;
-  int32_t genlabs;
-  int32_t midi_clock_pulse;
-  int32_t midi_start;
-  int32_t midi_continue;
-  int32_t midi_stop;
-  int32_t struct_array_temp_counter;
-  int32_t parflag;
-  int32_t *taskflag;
-  int32_t midiout_port;
+  /* -------- Callback pointers preserved by csoundReset() (between the two markers) -------- */
+  SUBR first_callback_;                                      /* start marker of the callback block preserved by csoundReset() */
+  channelCallback_t InputChannelCallback_;                   /* software bus input channel callback */
+  channelCallback_t OutputChannelCallback_;                  /* software bus output channel callback */
+  void (*csoundMessageCallback_)(CSOUND *, int32_t attr, const char *format, va_list args); /* host message callback */
+  void (*csoundMakeGraphCallback_)(CSOUND *, WINDAT *windat, const char *name); /* host callback that creates a graph window */
+  void (*csoundDrawGraphCallback_)(CSOUND *, WINDAT *windat); /* host callback that draws a graph window */
+  void (*csoundKillGraphCallback_)(CSOUND *, WINDAT *windat); /* host callback that closes a graph window */
+  int32_t (*csoundExitGraphCallback_)(CSOUND *);             /* host callback returning non-zero while graphs are open */
+  void *(*OpenSoundFileCallback_)(CSOUND *, const char *, int32_t, void *); /* host callback that opens a sound file */
+  FILE *(*OpenFileCallback_)(CSOUND *, const char *, const char *); /* host callback that opens a generic file */
+  void (*FileOpenCallback_)(CSOUND *, const char *, int32_t, int32_t, int32_t); /* host callback notified when a file is opened */
+  SUBR last_callback_;                                       /* end marker of the callback block preserved by csoundReset() */
+
+  /* -------- Callback pointers not preserved by csoundReset() -------- */
+  int32_t (*playopen_callback)(CSOUND *, const csRtAudioParams *parm); /* host audio output open callback */
+  void (*rtplay_callback)(CSOUND *, const cs_float *outBuf, int32_t nbytes); /* host audio output write callback */
+  int32_t (*recopen_callback)(CSOUND *, const csRtAudioParams *parm); /* host audio input open callback */
+  int32_t (*rtrecord_callback)(CSOUND *, cs_float *inBuf, int32_t nbytes); /* host audio input read callback */
+  void (*rtclose_callback)(CSOUND *);                        /* host audio close callback */
+  int32_t (*audio_dev_list_callback)(CSOUND *, CS_AUDIODEVICE *, int32_t); /* host callback that enumerates audio devices */
+  int32_t (*midi_dev_list_callback)(CSOUND *, CS_MIDIDEVICE *, int32_t); /* host callback that enumerates MIDI devices */
+  int32_t (*doCsoundCallback)(CSOUND *, void *, uint32_t);   /* dispatches a registered keyboard/event callback */
+  int32_t (*kperf)(CSOUND *);                                /* active k-cycle performance function */
+  void (*csoundMessageStringCallback)(CSOUND *csound, int32_t attr, const char *str); /* host callback receiving preformatted messages */
+  void (*spinrecv)(CSOUND *);                                /* receives an input audio block */
+  void (*spoutran)(CSOUND *);                                /* transfers the spout block to the output buffer */
+  int32_t (*audrecv)(CSOUND *, cs_float *, int32_t);         /* copies audio input samples */
+  void (*audtran)(CSOUND *, const cs_float *, int32_t);      /* copies audio output samples */
+  void (*debug_cb)(CSOUND *, void *);                        /* per-k-cycle debugger callback */
+
+  /* -------- Engine state, rates and timing -------- */
+  void *hostdata;                                            /* opaque host-provided user data */
+  ENGINE_STATE engineState;                                  /* engine state merged after compilation */
+  char engineStatus;                                         /* engine lifecycle state bitmask */
+  uint32_t ksmps;                                            /* samples per control period */
+  uint32_t nchnls;                                           /* number of output channels */
+  int32_t inchnls;                                           /* number of input channels */
+  uint64_t kcounter;                                         /* control-period counter for the current performance */
+  uint64_t global_kcounter;                                  /* global control-period counter */
+  cs_float esr;                                              /* engine sample rate */
+  cs_float ekr;                                              /* engine control rate */
+  cs_float onedsr;                                           /* 1 / esr */
+  cs_float onedksmps;                                        /* 1 / ksmps */
+  cs_float onedkr;                                           /* 1 / ekr */
+  cs_float sicvt;                                            /* samples-to-increment conversion factor */
+  cs_float kicvt;                                            /* control-to-increment conversion factor */
+  cs_float tpidsr;                                           /* 2*pi / esr */
+  cs_float pidsr;                                            /* pi / esr */
+  cs_float mpidsr;                                           /* -pi / esr */
+  cs_float mtpdsr;                                           /* -2*pi / esr */
+  cs_float e0dbfs;                                           /* amplitude corresponding to 0 dBFS */
+  cs_float dbfs_to_float;                                    /* 1 / e0dbfs */
+  cs_double A4;                                              /* reference tuning frequency */
+  cs_float _system_sr;                                       /* host/system audio sample rate */
+  cs_float csoundScoreOffsetSeconds_;                        /* score time offset in seconds */
+  int32_t reinitflag;                                        /* current reinit flag */
+  int32_t tieflag;                                           /* current tie flag */
+  int64_t icurTimeSamples;                                   /* current time in samples */
+  cs_double curTime_inc;                                     /* time increment per control period */
+  cs_double timeOffs;                                        /* start time offset of the current section */
+  cs_double beatOffs;                                        /* start beat offset of the current section */
+  cs_double curBeat;                                         /* current time in beats */
+  cs_double curBeat_inc;                                     /* beat increment per control period */
+  int64_t ibeatTime;                                         /* beat time in samples */
+  cs_double prvbt;                                           /* previous beat time */
+  cs_double curbt;                                           /* current beat time */
+  cs_double nxtbt;                                           /* next beat time */
+  cs_double curp2;                                           /* current event p2 time */
+  cs_double nxtim;                                           /* next score event time */
+  int64_t cyclesRemaining;                                   /* performance cycles remaining */
+  int64_t advanceCnt;                                        /* events to process before advancing time */
+  int32_t sampsNeeded;                                       /* samples needed for the next control period */
+  int32_t initonly;                                          /* initialisation-only run flag */
+  cs_float cpu_power_busy;                                   /* measured CPU load */
+  jmp_buf exitjmp;                                           /* setjmp target for fatal-error unwinding */
+
+  /* -------- Instruments, opcodes and modules -------- */
+  OPDS *ids;                                                 /* current init opcode chain */
+  INSDS *curip;                                              /* currently running instrument instance */
+  INSTRTXT *instr0;                                          /* compiled global instrument 0 */
+  INSTRTXT **dead_instr_pool;                                /* pool of deactivated instrument definitions */
+  int32_t dead_instr_no;                                     /* number of pooled deactivated instruments */
+  INSDS *frstoff;                                            /* first deactivated instrument instance */
+  INSDS actanchor;                                           /* anchor of the active instrument instance list */
+  TYPE_POOL *typePool;                                       /* variable type pool */
+  CS_HASH_TABLE *opcodes;                                    /* opcode hash table */
+  OPCODINFO *opcodeInfo;                                     /* opcode metadata chain */
+  int32 nrecs;                                               /* number of recorded opcode definitions */
+  void *csmodule_db;                                         /* loaded plugin module database */
+  char *dl_opcodes_oplibs;                                   /* opcode libraries requested for loading */
+  int32_t opcodedirWasOK;                                    /* plugin directory scan status */
+  void *utility_db;                                          /* utility database */
+  int32_t modules_loaded;                                    /* number of loaded modules */
+  int32_t default_modules_loaded;                            /* whether the default plugin directories were scanned */
+  int32_t use_only_orchfile;                                 /* ignore the score file */
+  char orcname_mode;                                         /* orchestra name handling mode */
+
+  /* -------- Function tables, generators and lookup tables -------- */
+  FUNC **flist;                                              /* function table list */
+  int32_t maxfnum;                                           /* highest allocated function table number */
+  GEN *gensub;                                               /* user-defined gen routine chain */
+  int32_t genmax;                                            /* highest generator number */
+  void *namedgen;                                            /* named generator table */
+  int32_t genlabs;                                           /* number of gen slots */
+  FUNC *sinetable;                                           /* built-in sine table */
+  int32_t sinelength;                                        /* sine table length */
+  cs_float *cpsocfrc;                                        /* cps/oct conversion lookup table */
+  cs_float *logbase2;                                        /* log2 lookup table */
+  int16 *isintab;                                            /* is-integer lookup table */
+  int32_t FFT_max_size;                                      /* largest FFT size */
+  void *FFT_table_1;                                         /* cached FFT setup table 1 */
+  void *FFT_table_2;                                         /* cached FFT setup table 2 */
+  void *tseg;                                                /* time-warping segment pointer */
+  void *tpsave;                                              /* time-warping saved segment pointer */
+  int32 revlpsum;                                            /* sum of reverb opcode loop sizes */
+
+  /* -------- Score, events and parsing -------- */
+  char *orchname;                                            /* orchestra file name */
+  char *scorename;                                           /* score file name */
+  int32_t commandLineArgCount;                               /* number of command-line arguments */
+  char **commandLineArgs;                                    /* command-line arguments */
+  CORFIL *orchstr;                                           /* orchestra source corfile */
+  CORFIL *scorestr;                                          /* score source corfile */
+  CORFIL *scstr;                                             /* score reader corfile */
+  CORFIL *expanded_orc;                                      /* preprocessed orchestra source */
+  CORFIL *expanded_sco;                                      /* preprocessed score source */
+  CORFIL *playscore;                                         /* realtime score playback corfile */
+  FILE *scoreout;                                            /* score output file */
+  EVTBLK *currevent;                                         /* current event block */
+  EVTBLK evt;                                                /* working event block */
+  EVTBLK *init_event;                                        /* event used during initialisation */
+  SRTBLK *frstbp;                                            /* first score block */
+  NAMES *omacros;                                            /* orchestra macro table */
+  NAMES *smacros;                                            /* score macro table */
+  MACRO *orc_macros;                                         /* persistent orchestra macros */
+  int32_t sectcnt;                                           /* score section count */
+  int32_t inerrcnt;                                          /* initialisation error count */
+  int32_t synterrcnt;                                        /* syntax error count */
+  int32_t perferrcnt;                                        /* performance error count */
+  int32_t total_assert_cnt;                                  /* total number of unit-test assertions */
+  int32_t warped;                                            /* score warping active flag */
+  int32_t jumpset;                                           /* setjmp target is active */
+  int32_t inZero;                                            /* compiling or running global instrument 0 */
+  int32_t orcLineOffset;                                     /* lines before the orchestra in the CSD */
+  int32_t scoLineOffset;                                     /* lines before the score in the CSD */
+  char *csdname;                                             /* original CSD file name (not freed) */
+  char *xfilename;                                           /* CSD file name */
+  int32_t score_parser;                                      /* selected score parser */
+  char *score_srt;                                           /* sorted score text */
+  char *op;                                                  /* current command-line option */
+  int32_t mode;                                              /* current operating mode */
+  int32_t print_version;                                     /* print version on startup flag */
+  char *opcodedir;                                           /* opcode search directory */
+  int32_t aftouch;                                           /* default MIDI touch value */
+  int32_t keep_tmp;                                          /* keep temporary files */
+  uint32_t tempStatus;                                       /* temporary-file tracking status */
+  void *evtFuncChain;                                        /* realtime event function chain */
+  EVTNODE *OrcTrigEvts;                                      /* events triggered by the orchestra awaiting start */
+  EVTNODE *freeEvtNodes;                                     /* free list of event nodes */
+  int32_t csoundIsScorePending_;                             /* score events pending flag */
+  int32_t Mforcdecs;                                         /* MIDI forced-decay flag */
+  int32_t Mxtroffs;                                          /* MIDI extra note-off flag */
+  int32_t MTrkend;                                           /* MIDI file end-of-track flag */
+  int32 rngcnt[MAXCHNLS];                                    /* per-channel count of out-of-range output samples */
+  int16 rngflg;                                              /* out-of-range output sample flag */
+  int16 multichan;                                           /* multichannel MIDI input flag */
+
+  /* -------- Global variables, configuration and strings -------- */
+  CS_HASH_TABLE *namedGlobals;                               /* named global variable table */
+  CS_HASH_TABLE *cfgVariableDB;                              /* configuration variable table */
+  CS_HASH_TABLE *envVarDB;                                   /* environment variable table */
+  CS_HASH_TABLE *chn_db;                                     /* channel database */
+  int32_t strsmax;                                           /* maximum number of strset variables */
+  char **strsets;                                            /* strset strings */
+  int32_t scnt;                                              /* string count */
+  int32_t strsiz;                                            /* current string space size */
+  int32_t sstrlen;                                           /* string buffer length */
+  char *sstrbuf;                                             /* string buffer */
+  OPARMS *oparms;                                            /* active option set */
+  OPARMS oparms_;                                            /* option storage */
+  int32_t disable_csd_options;                               /* ignore options embedded in the CSD */
+  int32_t options_checked;                                   /* command-line options checked flag */
+  int32_t inChar_;                                           /* next input character */
+  int32_t enableMsgAttr;                                     /* message attributes enabled */
+  int32_t info_message_request;                              /* information messages requested */
+
+  /* -------- Realtime audio I/O and buffers -------- */
+  cs_float *spin;                                            /* input channel buffer */
+  cs_float *spout;                                           /* output channel buffer */
+  cs_float *spout_tmp;                                       /* scratch output channel buffer */
+  int32_t nspin;                                             /* number of channels in spin */
+  int32_t nspout;                                            /* number of channels in spout */
+  cs_float *auxspin;                                         /* auxiliary input buffer */
+  void *rtRecord_userdata;                                   /* host audio input callback user data */
+  void *rtPlay_userdata;                                     /* host audio output callback user data */
+  int32_t realtime_audio_flag;                               /* realtime audio active flag */
+  int32_t dither_output;                                     /* dither output flag */
+  int32_t enableHostImplementedAudioIO;                      /* host provides audio I/O */
+  int32_t enableHostImplementedMIDIIO;                       /* host provides MIDI I/O */
+  int32_t hostRequestedBufferSize;                           /* host-requested audio buffer size */
+  char stdin_assign_flg;                                     /* standard input redirection flag */
+  char stdout_assign_flg;                                    /* standard output redirection flag */
+  int32_t io_initialised;                                    /* I/O subsystem initialised */
+  REMOT_BUF SVrecvbuf;                                       /* realtime event input communications buffer */
+  void *remoteGlobals;                                       /* remote control globals */
+
+  /* -------- MIDI -------- */
+  MCHNBLK *m_chnbp[MIDIMAXPORTS * 16];                       /* MIDI channel blocks */
+  MGLOBAL *midiGlobals;                                      /* MIDI global state */
+  int32_t midi_clock_pulse;                                  /* MIDI clock pulse flag */
+  int32_t midi_start;                                        /* MIDI start message flag */
+  int32_t midi_continue;                                     /* MIDI continue message flag */
+  int32_t midi_stop;                                         /* MIDI stop message flag */
+  int32_t midiout_port;                                      /* current MIDI output port */
+
+  /* -------- File I/O -------- */
+  FILE *Linepipe;                                            /* line input pipe */
+  int32_t Linefd;                                            /* line input file descriptor */
+  void *file_io_thread;                                      /* asynchronous file I/O thread */
+  int32_t file_io_start;                                     /* asynchronous file I/O running flag */
+  void *file_io_threadlock;                                  /* asynchronous file I/O lock */
+  uint64_t file_io_pass;                                     /* asynchronous file I/O generation counter */
+  void *open_files;                                          /* list of open files */
+  void *retired_files;                                       /* files awaiting asynchronous reclamation */
+  void *pvFileTable;                                         /* PVOC file table */
+  int32_t pvNumFiles;                                        /* number of open PVOC files */
+  int32_t pvErrorCode;                                       /* last PVOC error code */
+  MEMFIL *memfiles;                                          /* memory file list */
+  PVOCEX_MEMFILE *pvx_memfiles;                              /* PVOC-EX memory files */
+  CS_HASH_TABLE *sndmemfiles;                                /* sound memory file hash table */
+  void *diskin2_async_state;                                 /* diskin2 asynchronous read state */
+  char *filedir[256];                                        /* file search directory list */
+
+  /* -------- Memory management -------- */
+  void *memalloc_db;                                         /* memory allocation database */
+  ALLOC_DATA *alloc_queue;                                   /* queue of allocations pending free */
+  volatile unsigned long alloc_queue_items;                  /* number of entries in the allocation queue */
+  unsigned long alloc_queue_active;                          /* allocations currently active */
+  unsigned long alloc_queue_wp;                              /* allocation queue write pointer */
+  void *searchPathCache;                                     /* cached file search paths */
+  void *reset_list;                                          /* registered reset callback list */
+  void *csoundCallbacks_;                                    /* registered event callback list */
+
+  /* -------- Locks and synchronisation -------- */
+  void *API_lock;                                            /* serialises public API entry points */
+  void *array_storage_lock;                                  /* structured array storage lock */
+  spin_lock_t array_storage_spinlock;                        /* structured array sidecar spinlock */
+  spin_lock_t spoutlock;                                     /* output buffer spinlock */
+  spin_lock_t spinlock;                                      /* input buffer spinlock */
+  spin_lock_t memlock;                                       /* memory database spinlock */
+  spin_lock_t spinlock1;                                     /* general-purpose spinlock */
+  spin_lock_t open_files_lock;                               /* open file list spinlock */
+  spin_lock_t alloc_queue_spinlock;                          /* allocation queue spinlock */
+  spin_lock_t alloc_spinlock;                                /* allocation spinlock */
+  spin_lock_t instance_spinlock;                             /* instrument instance registry spinlock */
+  spin_lock_t async_ref_spinlock;                            /* asynchronous reference registry spinlock */
+  spin_lock_t rt_event_spinlock;                             /* realtime event registry spinlock */
+  spin_lock_t diskin2_async_lock;                            /* diskin2 asynchronous read lock */
+  spin_lock_t osc_spinlock;                                  /* OSC message spinlock */
+  int32_t realtime_locks_initialized;                        /* realtime locks initialised flag */
+
+  /* -------- Threads, parallel execution and DAG -------- */
+  void *event_insert_thread;                                 /* realtime event insertion thread */
+  int32_t event_insert_loop;                                 /* realtime event insertion loop flag */
+  void *init_pass_threadlock;                                /* initialisation pass lock */
+  int32_t multiThreadedComplete;                             /* parallel performance complete flag */
+  THREADINFO *multiThreadedThreadInfo;                       /* parallel worker thread information */
+  struct dag_t *multiThreadedDag;                            /* parallel execution graph */
+  void *barrier1;                                            /* parallel execution barrier 1 */
+  void *barrier2;                                            /* parallel execution barrier 2 */
+  struct instr_semantics_t *instCurr;                        /* instrument currently under semantic analysis */
+  struct instr_semantics_t *instRoot;                        /* root of the instrument semantic tree */
+  int32_t inInstr;                                           /* inside an instrument during semantic analysis */
+  int32_t dag_changed;                                       /* execution graph changed flag */
+  int32_t dag_num_active;                                    /* number of active graph nodes */
+  INSDS **dag_task_map;                                      /* graph node to instrument instance map */
+  volatile stateWithPadding *dag_task_status;                /* graph node status array */
+  watchList *volatile *dag_task_watch;                       /* graph node watch lists */
+  watchList *dag_wlmm;                                       /* graph watch-list free list */
+  char **dag_task_dep;                                       /* graph task dependencies */
+  int32_t dag_task_max_size;                                 /* maximum graph size */
+  INSDS *init_turnoff_pending;                               /* instances pending turn-off at initialisation */
+  int32_t parflag;                                           /* parallel performance active flag */
+  int32_t *taskflag;                                         /* per-task graph status flags */
+
+  /* -------- Message output -------- */
+  void *message_buffer;                                      /* buffered message storage */
+  char *message_string;                                      /* reusable message string */
+  volatile unsigned long message_string_queue_items;         /* pending entries in the message string queue */
+  unsigned long message_string_queue_wp;                     /* message string queue write pointer */
+  message_string_queue_t *message_string_queue;              /* message string queue */
+  struct _message_queue **msg_queue;                         /* realtime message queue */
+  volatile long msg_queue_wget;                              /* realtime message queue read index */
+  volatile long msg_queue_wput;                              /* realtime message queue write index */
+  volatile long msg_queue_rstart;                            /* realtime message queue start index */
+  volatile long msg_queue_items;                             /* realtime message queue entry count */
+  char *delayederrormessages;                                /* queued error messages */
+  void *printerrormessagesflag;                              /* deferred error printing flag */
+  OSC_MESS osc_message_anchor;                               /* anchored OSC message storage */
+
+  /* -------- Random number generators -------- */
+  int32_t randSeed1;                                         /* legacy random seed 1 */
+  int32_t randSeed2;                                         /* legacy random seed 2 */
+  CsoundRandMTState *csRandState;                            /* active Mersenne-Twister state */
+  CsoundRandMTState randState_;                              /* Mersenne-Twister state storage */
+  int32_t ugens4_rand_16;                                    /* ugens4 16-bit random state */
+  int32_t ugens4_rand_15;                                    /* ugens4 15-bit random state */
+  cs_double rndfrac;                                         /* random fraction accumulator */
+
+  /* -------- Display and graphs -------- */
+  int32_t isGraphable_;                                      /* graph display enabled */
+  cs_float *disprep_fftcoefs;                                /* FFT coefficients for display */
+  void *winEPS_globals;                                      /* winEPS display globals */
+
+  /* -------- Sound file metadata and analysis -------- */
+  cs_float maxamp[MAXCHNLS];                                 /* maximum output amplitude per channel */
+  cs_float smaxamp[MAXCHNLS];                                /* maximum input amplitude per channel */
+  cs_float omaxamp[MAXCHNLS];                                /* previous maximum output amplitude per channel */
+  uint32 maxpos[MAXCHNLS];                                   /* sample position of maximum output */
+  uint32 smaxpos[MAXCHNLS];                                  /* sample position of maximum input */
+  uint32 omaxpos[MAXCHNLS];                                  /* sample position of previous maximum output */
+  int32_t peakchunks;                                        /* peak analysis chunk count */
+  char *SF_csd_licence;                                      /* sound file licence metadata */
+  char *SF_id_title;                                         /* sound file title metadata */
+  char *SF_id_copyright;                                     /* sound file copyright metadata */
+  int32_t SF_id_scopyright;                                  /* sound file copyright flag */
+  char *SF_id_software;                                      /* sound file software metadata */
+  char *SF_id_artist;                                        /* sound file artist metadata */
+  char *SF_id_comment;                                       /* sound file comment metadata */
+  char *SF_id_date;                                          /* sound file date metadata */
+
+  /* -------- Sub-module static state and API bookkeeping -------- */
+  struct sread__ sread;                                      /* score file reader static state */
+  struct onefileStatics__ onefileStatics;                    /* single-file opcode static state */
+  struct lineventStatics__ lineventStatics;                  /* line event static state */
+  struct musmonStatics__ musmonStatics;                      /* score playback static state */
+  struct libsndStatics__ libsndStatics;                      /* libsndfile static state */
+  RTCLOCK *csRtClock;                                        /* realtime clock */
+  void *csdebug_data;                                        /* debugger data */
+  void *debug_cb_data;                                       /* debugger callback user data */
+  CSOUND_UTIL csound_util;                                   /* utility access table */
+  uint64_t instance_count;                                   /* number of live CSOUND instances */
+  readlineCallback_t readlineCallback;                       /* host readline callback */
+  void *readlineUserData;                                    /* readline callback user data */
+  uint32_t readlineRequestId;                                /* readline request identifier */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

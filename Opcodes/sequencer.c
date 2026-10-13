@@ -31,13 +31,13 @@
 #include "arrays.h"
 typedef struct {
   OPDS        h;
-  MYFLT       *res;           /*  state */
+  cs_float       *res;           /*  state */
   ARRAYDAT    *riff;          /* initial note row */
   ARRAYDAT    *instr;         /* renderers for each note */
   ARRAYDAT    *data;          /* extra data for pitch info */
-  MYFLT       *kbpm;          /* speed of sequence */
-  MYFLT       *klen;          /* Length of sequece to use */
-  MYFLT       *mode;          /* Mode; -1 backward,
+  cs_float       *kbpm;          /* speed of sequence */
+  cs_float       *klen;          /* Length of sequece to use */
+  cs_float       *mode;          /* Mode; -1 backward,
                                  0 loop frward;
                                  +ve mutate
                                  -1 backward
@@ -48,10 +48,10 @@ typedef struct {
                                  -6 shuffle
                                  -7 reset
                               */
-  MYFLT       *step;          /* Step mode in force */
-  MYFLT       *reset;         /* Reset key */
-  MYFLT       *verbos;
-  MYFLT       *id;            /* so can find it amonst others */
+  cs_float       *step;          /* Step mode in force */
+  cs_float       *reset;         /* Reset key */
+  cs_float       *verbos;
+  cs_float       *id;            /* so can find it amonst others */
   // Internals
   int32_t     max_length;
   uint32_t        cnt;            /* Count loops for mutator */
@@ -63,14 +63,14 @@ typedef struct {
 
 typedef struct {
   OPDS        h;
-  MYFLT       *res;           /*  state */
-  MYFLT       *kstart;        /* kstart */
+  cs_float       *res;           /*  state */
+  cs_float       *kstart;        /* kstart */
   ARRAYDAT    *riff;          /* initial note row */
   ARRAYDAT    *instr;         /* renderers for each note */
   ARRAYDAT    *data;          /* extra data for pitch info */
-  MYFLT       *kbpm;          /* speed of sequence */
-  MYFLT       *klen;          /* Length of sequece to use */
-  MYFLT       *mode;          /* Mode; -1 backward,
+  cs_float       *kbpm;          /* speed of sequence */
+  cs_float       *klen;          /* Length of sequece to use */
+  cs_float       *mode;          /* Mode; -1 backward,
                                  0 loop frward;
                                  +ve mutate
                                  -1 backward
@@ -81,10 +81,10 @@ typedef struct {
                                  -6 shuffle
                                  -7 reset
                               */
-  MYFLT       *step;          /* Step mode in force */
-  MYFLT       *reset;         /* Reset key */
-  MYFLT       *verbos;
-  MYFLT       *id;            /* so can find it amonst others */
+  cs_float       *step;          /* Step mode in force */
+  cs_float       *reset;         /* Reset key */
+  cs_float       *verbos;
+  cs_float       *id;            /* so can find it amonst others */
   // Internals
   int32_t     max_length;
   uint32_t        cnt;            /* Count loops for mutator */
@@ -100,7 +100,7 @@ typedef struct {
 typedef struct {
   void *owner;
   int32_t max_length;
-  MYFLT *klen;
+  cs_float *klen;
   int32_t *seq;
   uint32_t *cnt;
 } SEQREF;
@@ -110,21 +110,21 @@ typedef struct {
 
 typedef struct {
   OPDS        h;
-  MYFLT       *res;           /*  state */
+  cs_float       *res;           /*  state */
   ARRAYDAT    *riff;          /* copy intervnal array */
-  MYFLT       *id;
+  cs_float       *id;
   SEQREF      *q;
 } SEQSTATE;
 
 
-static int32_t sequ_register(CSOUND *csound, void *owner, MYFLT id,
-                             int32_t length, MYFLT *klen, int32_t *seq,
+static int32_t sequ_register(CSOUND *csound, void *owner, cs_float id,
+                             int32_t length, cs_float *klen, int32_t *seq,
                              uint32_t *cnt)
 {
   SEQREF *q;
   int32_t index;
   if (UNLIKELY(!(id >= FL(0.0) && id < FL(10.0))))
-    return csound->InitError(csound, Str("sequ: id out of range"));
+    return csound->InitError(csound, Str("sequ: id out of range\n"));
   index = (int32_t)id;
   q = (SEQREF*)csound->QueryGlobalVariable(csound, "sequGlobals");
   if (q == NULL) {
@@ -155,14 +155,14 @@ static int32_t sequencer_init(CSOUND *csound, SEQ *p)
   int32_t i;
   if (UNLIKELY(p->riff->dimensions != 1 || p->instr->dimensions != 1 ||
                (p->data->dimensions != 1 && p->data->dimensions != 2)))
-    return csound->InitError(csound, Str("sequ: invalid array dimensions"));
+    return csound->InitError(csound, Str("sequ: invalid array dimensions\n"));
   p->max_length = p->riff->sizes[0];
   if (p->max_length < 1 || p->max_length != p->instr->sizes[0] ||
       (p->data->dimensions == 2 &&
        (p->data->sizes[0] < 1 || p->max_length != p->data->sizes[1])) ||
       (p->data->dimensions == 1 && p->max_length != p->data->sizes[0]) ||
       p->max_length > 128) {
-    return csound->InitError(csound, "%s", Str("sequ: arrays have differing sizes"));
+    return csound->InitError(csound, "%s\n", Str("sequ: arrays have differing sizes"));
   }
   p->time = 0;
   p->next = 0;
@@ -182,14 +182,14 @@ static int32_t sequencer2_init(CSOUND *csound, SEQ2 *p)
   int32_t i;
   if (UNLIKELY(p->riff->dimensions != 1 || p->instr->dimensions != 1 ||
                (p->data->dimensions != 1 && p->data->dimensions != 2)))
-    return csound->InitError(csound, Str("sequ: invalid array dimensions"));
+    return csound->InitError(csound, Str("sequ: invalid array dimensions\n"));
   p->max_length = p->riff->sizes[0];
   if (p->max_length < 1 || p->max_length != p->instr->sizes[0] ||
       (p->data->dimensions == 2 &&
        (p->data->sizes[0] < 1 || p->max_length != p->data->sizes[1])) ||
       (p->data->dimensions == 1 && p->max_length != p->data->sizes[0]) ||
       p->max_length > 128) {
-    return csound->InitError(csound, "%s", Str("sequ: arrays have differing sizes"));
+    return csound->InitError(csound, "%s\n", Str("sequ: arrays have differing sizes"));
   }
   p->time = 0;
   p->next = 0;
@@ -210,8 +210,8 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
   int32_t len = SEQU_LENGTH(*p->klen, p->max_length);
   int32_t i = p->next;
   int32_t mode;
-  if (UNLIKELY(!(*p->mode >= FL(-8.0) && (double)*p->mode <= INT32_MAX)))
-    return csound->PerfError(csound, &p->h, Str("sequ: invalid mode"));
+  if (UNLIKELY(!(*p->mode >= FL(-8.0) && (cs_double)*p->mode <= (INT32_MAX + 0.0))))
+    return csound->PerfError(csound, &p->h, Str("sequ: invalid mode\n"));
   mode = (int32_t)*p->mode;
 
   if (*p->step!=FL(0.0)) {    /* Step style so no clock */
@@ -312,14 +312,14 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
     }
   }
   {
-    MYFLT inst = p->instr->data[p->seq[i]];
-    double duration, samples;
+    cs_float inst = p->instr->data[p->seq[i]];
+    cs_double duration, samples;
     if (UNLIKELY(!(*p->kbpm > FL(0.0))))
-      return csound->PerfError(csound, &p->h, Str("sequ: tempo must be positive"));
+      return csound->PerfError(csound, &p->h, Str("sequ: tempo must be positive\n"));
     duration = 60.0 / *p->kbpm * p->riff->data[p->seq[i]];
     samples = duration * CS_ESR;
-    if (UNLIKELY(!(samples >= 0.0 && samples <= INT32_MAX)))
-      return csound->PerfError(csound, &p->h, Str("sequ: invalid step duration"));
+    if (UNLIKELY(!(samples >= 0.0 && samples <= (INT32_MAX + 0.0))))
+      return csound->PerfError(csound, &p->h, Str("sequ: invalid step duration\n"));
     if (inst != 0) {
       char buff[100];
       if (p->data->dimensions==2) {
@@ -356,7 +356,7 @@ static int32_t sequencer(CSOUND *csound, SEQ *p)
           printf("swap %d and %d\n", r1, r2);
       }
     }
-    *p->res = (MYFLT)i;
+    *p->res = (cs_float)i;
     p->next = i + p->direction;
     //if (*p->mode >=0) p->next++;
     //else if (mode == -1) p->next--;
@@ -375,8 +375,8 @@ static int32_t sequencer2(CSOUND *csound, SEQ2 *p)
   
   int32_t i = p->next;
   int32_t mode;
-  if (UNLIKELY(!(*p->mode >= FL(-8.0) && (double)*p->mode <= INT32_MAX)))
-    return csound->PerfError(csound, &p->h, Str("sequ: invalid mode"));
+  if (UNLIKELY(!(*p->mode >= FL(-8.0) && (cs_double)*p->mode <= (INT32_MAX + 0.0))))
+    return csound->PerfError(csound, &p->h, Str("sequ: invalid mode\n"));
   mode = (int32_t)*p->mode;
 
 
@@ -483,14 +483,14 @@ static int32_t sequencer2(CSOUND *csound, SEQ2 *p)
     }
   }
   {
-    MYFLT inst = p->instr->data[p->seq[i]];
-    double duration, samples;
+    cs_float inst = p->instr->data[p->seq[i]];
+    cs_double duration, samples;
     if (UNLIKELY(!(*p->kbpm > FL(0.0))))
-      return csound->PerfError(csound, &p->h, Str("sequ: tempo must be positive"));
+      return csound->PerfError(csound, &p->h, Str("sequ: tempo must be positive\n"));
     duration = 60.0 / *p->kbpm * p->riff->data[p->seq[i]];
     samples = duration * CS_ESR;
-    if (UNLIKELY(!(samples >= 0.0 && samples <= INT32_MAX)))
-      return csound->PerfError(csound, &p->h, Str("sequ: invalid step duration"));
+    if (UNLIKELY(!(samples >= 0.0 && samples <= (INT32_MAX + 0.0))))
+      return csound->PerfError(csound, &p->h, Str("sequ: invalid step duration\n"));
     if (inst != 0) {
       char buff[100];
       if (p->data->dimensions==2) {
@@ -527,7 +527,7 @@ static int32_t sequencer2(CSOUND *csound, SEQ2 *p)
           printf("swap %d and %d\n", r1, r2);
       }
     }
-    *p->res = (MYFLT)i;
+    *p->res = (cs_float)i;
     p->next = i + p->direction;
     //if (*p->mode >=0) p->next++;
     //else if (mode == -1) p->next--;
@@ -545,15 +545,15 @@ static int32_t sequStateInit(CSOUND *csound, SEQSTATE* p)
   int32_t id;
   SEQREF *r;
   if (UNLIKELY(!(*p->id >= FL(0.0) && *p->id < FL(10.0))))
-    return csound->InitError(csound, Str("sequstate: id out of range"));
+    return csound->InitError(csound, Str("sequstate: id out of range\n"));
   id = (int32_t)*p->id;
   r = (SEQREF*)csound->QueryGlobalVariable(csound, "sequGlobals");
   if (UNLIKELY(r == NULL || r[id].owner == NULL))
-    return csound->InitError(csound, Str("sequstate: no active sequence"));
+    return csound->InitError(csound, Str("sequstate: no active sequence\n"));
   p->q = &r[id];
   if (UNLIKELY(tabinit(csound, p->riff, p->q->max_length,
                        p->h.insdshead) != OK))
-    return csound->InitError(csound, Str("sequstate: cannot allocate output array"));
+    return csound->InitError(csound, Str("sequstate: cannot allocate output array\n"));
   return sequState(csound, p);
 }
 
@@ -562,13 +562,13 @@ static int32_t sequState(CSOUND *csound, SEQSTATE* p)
   SEQREF *q = p->q;
   int32_t i, len;
   if (UNLIKELY(q->owner == NULL))
-    return csound->PerfError(csound, &p->h, Str("sequstate: sequence has ended"));
+    return csound->PerfError(csound, &p->h, Str("sequstate: sequence has ended\n"));
   len = SEQU_LENGTH(*q->klen, q->max_length);
   if (UNLIKELY(p->riff->dimensions != 1 || p->riff->sizes[0] < len))
-    return csound->PerfError(csound, &p->h, Str("sequstate: output array is too small"));
+    return csound->PerfError(csound, &p->h, Str("sequstate: output array is too small\n"));
   for (i = 0; i < len; i++)
     p->riff->data[i] = q->seq[i];
-  *p->res = (MYFLT)*q->cnt;
+  *p->res = (cs_float)*q->cnt;
   return OK;
 }
 

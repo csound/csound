@@ -12,7 +12,7 @@ import unittest
 import math
 
 # Ensure ctcsound can be found (adjust path if needed)
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'Python'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'languages', 'python'))
 import ctcsound
 
 

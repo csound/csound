@@ -52,7 +52,7 @@ TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_until_statement(CSOUND* csound, TREE* current,
                              TYPE_TABLE* typeTable, int32_t, LOOP_JUMP_TARGETS* targets);
 TREE* expand_switch_statement(CSOUND* csound, TREE* current,TYPE_TABLE* typeTable,
-  char* switchArgType);
+  const char* switchArgType);
 TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, char* arrayArgType,
                            LOOP_JUMP_TARGETS* targets);

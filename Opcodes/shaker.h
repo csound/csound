@@ -36,24 +36,24 @@
 
 typedef struct Shaker {
     OPDS        h;
-    MYFLT       *ar;                  /* Output */
-    MYFLT       *amp, *kfreq;
-    MYFLT       *beancount, *shake_damp;
-    MYFLT       *times, *dettack;
+    cs_float       *ar;                  /* Output */
+    cs_float       *amp, *kfreq;
+    cs_float       *beancount, *shake_damp;
+    cs_float       *times, *dettack;
 
     BiQuad      filter;
     ADSR        envelope;
     int32_t         num_beans;
     int32_t         wait_time;
     int32_t         shake_num;
-    MYFLT       shake_speed;    /* A + amp*N -- hides two parameters */
-    MYFLT       res_freq;
-    MYFLT       coll_damp;
-    MYFLT       shakeEnergy;
-    MYFLT       noiseGain;
-    MYFLT       gain_norm;
-    double      kloop;
-    MYFLT       freq;
+    cs_float       shake_speed;    /* A + amp*N -- hides two parameters */
+    cs_float       res_freq;
+    cs_float       coll_damp;
+    cs_float       shakeEnergy;
+    cs_float       noiseGain;
+    cs_float       gain_norm;
+    cs_double      kloop;
+    cs_float       freq;
 } SHAKER;
 
 #endif

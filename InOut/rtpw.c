@@ -25,9 +25,9 @@
 #include "csdl.h"
 
 #ifdef USE_DOUBLE
-#define MYFLT_FORMAT SPA_AUDIO_FORMAT_F64
+#define CS_FLOAT_FORMAT SPA_AUDIO_FORMAT_F64
 #else
-#define MYFLT_FORMAT SPA_AUDIO_FORMAT_F32
+#define CS_FLOAT_FORMAT SPA_AUDIO_FORMAT_F32
 #endif
 
 typedef struct {
@@ -40,7 +40,7 @@ typedef struct {
   uint8_t pbuffer[1024];
   uint8_t *cbuffer;
   int32_t nchnls;
-  MYFLT sr, sysr;
+  cs_float sr, sysr;
   int32_t buframes;
   int32_t cbflag;
   int32_t drained;
@@ -54,7 +54,7 @@ static void rtpw_out_callback(void *p) {
   struct spa_buffer *spabuf;
   uint8_t *bufp;
   uint32_t i, rem, sil;
-  int32_t n, frames, fbytes = (int32_t) (rtpw->nchnls*sizeof(MYFLT));
+  int32_t n, frames, fbytes = (int32_t) (rtpw->nchnls*sizeof(cs_float));
 
   if ((pwbuf = pw_stream_dequeue_buffer(rtpw->stream)) == NULL) {
     pw_log_warn("out of buffers: %m");
@@ -79,7 +79,8 @@ static void rtpw_out_callback(void *p) {
     spa_ringbuffer_read_update(&rtpw->ring, i + rem);
   }
   if(sil  > 0){
-    rtpw->csound->Warning(rtpw->csound, "%d dropped output frames", sil);
+    CSOUND *csound = rtpw->csound;
+    csound->Warning(csound, Str("%d dropped output frames\n"), sil);
     memset(SPA_PTROFF(bufp, rem*fbytes, void), 0, sil*fbytes);
   }
   spabuf->datas[0].chunk->offset = 0;
@@ -95,10 +96,10 @@ static void rtpw_drained(void *p) {
   pw_thread_loop_signal(rtpw->loop, false);
 }
 
-static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
+static void rtpw_play(CSOUND *csound, const cs_float *outbuf, int32_t nbytes){
   RTPW *rtpw = (RTPW *) *csound->GetRtPlayUserData(csound);
-  int32_t nframes = nbytes/(sizeof(MYFLT)*rtpw->nchnls);
-  int32_t rem, fbytes = sizeof(MYFLT)*rtpw->nchnls, n;
+  int32_t nframes = nbytes/(sizeof(cs_float)*rtpw->nchnls);
+  int32_t rem, fbytes = sizeof(cs_float)*rtpw->nchnls, n;
   uint32_t i;
   uint64_t cnt;
 
@@ -140,12 +141,12 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   p = (void**) csound->GetRtPlayUserData(csound);
   if(*p != NULL) return 0;
   rtpw = (RTPW *) csound->Calloc(csound, sizeof(RTPW));
-  rtpw->cbuffer = csound->Calloc(csound,sizeof(MYFLT)*parm->bufSamp_HW*
+  rtpw->cbuffer = csound->Calloc(csound,sizeof(cs_float)*parm->bufSamp_HW*
 				 parm->nChannels);
   rtpw->nchnls = parm->nChannels;
   rtpw->sr = parm->sampleRate;
   rtpw->buframes = parm->bufSamp_HW;
-  csound->Message(csound, "hw frames: %d sw frames: %d\n", rtpw->buframes,
+  csound->Message(csound, Str("hw frames: %d sw frames: %d\n"), rtpw->buframes,
 		  parm->bufSamp_SW);
 
   rtpw->loop = pw_thread_loop_new("csound-out", NULL);
@@ -166,7 +167,7 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   rtpw->b = SPA_POD_BUILDER_INIT(rtpw->pbuffer, sizeof(rtpw->pbuffer));
   params[0] = spa_format_audio_raw_build(&rtpw->b, SPA_PARAM_EnumFormat,
 					 &SPA_AUDIO_INFO_RAW_INIT
-					 (.format = MYFLT_FORMAT,
+					 (.format = CS_FLOAT_FORMAT,
 					  .channels = parm->nChannels,
 					  .rate = parm->sampleRate));
   rtpw->sr = parm->sampleRate;
@@ -196,7 +197,7 @@ static void rtpw_in_callback(void *p) {
   struct spa_buffer *spabuf;
   uint8_t *bufp;
   uint32_t i;
-  int32_t rem, n, frames, fbytes = (int32_t) (rtpw->nchnls*sizeof(MYFLT));
+  int32_t rem, n, frames, fbytes = (int32_t) (rtpw->nchnls*sizeof(cs_float));
 
   if ((pwbuf = pw_stream_dequeue_buffer(rtpw->stream)) == NULL) {
     pw_log_warn("out of buffers: %m");
@@ -205,7 +206,7 @@ static void rtpw_in_callback(void *p) {
 
   spabuf = pwbuf->buffer;
   if ((bufp = spabuf->datas[0].data) == NULL) return;
-  frames = spabuf->datas[0].chunk->size / sizeof(MYFLT);
+  frames = spabuf->datas[0].chunk->size / sizeof(cs_float);
 
   while(frames > 0) {
     n = spa_ringbuffer_get_write_index(&rtpw->ring, &i);
@@ -227,12 +228,12 @@ static void rtpw_in_callback(void *p) {
 }
 
 
-static int32_t rtpw_record(CSOUND *csound, MYFLT *inbuf, int32_t nbytes) {
+static int32_t rtpw_record(CSOUND *csound, cs_float *inbuf, int32_t nbytes) {
   RTPW *rtpw = (RTPW *) *csound->GetRtRecordUserData(csound);
   uint32_t i, rem, nframes;
-  int32_t n, fbytes = rtpw->nchnls*sizeof(MYFLT);
+  int32_t n, fbytes = rtpw->nchnls*sizeof(cs_float);
   int32_t wbytes = 0;
-  nframes = (uint32_t) (nbytes/(csound->GetNchnls_i(csound)*sizeof(MYFLT)));
+  nframes = (uint32_t) (nbytes/(csound->GetNchnls_i(csound)*sizeof(cs_float)));
 
 
   if(csound->GetNchnls_i(csound) == (uint32_t) rtpw->nchnls) {
@@ -249,7 +250,7 @@ static int32_t rtpw_record(CSOUND *csound, MYFLT *inbuf, int32_t nbytes) {
       wbytes += rem * fbytes;
     }
   } else { // sample by sample
-    MYFLT samp;
+    cs_float samp;
     int32_t j, k, nchnls = csound->GetNchnls_i(csound);
     int32_t samps = (int32_t) nframes*nchnls;
     for(j = 0; j < samps; j+=nchnls){
@@ -259,13 +260,13 @@ static int32_t rtpw_record(CSOUND *csound, MYFLT *inbuf, int32_t nbytes) {
 	  if(n > 0) {
 	    spa_ringbuffer_read_data(&rtpw->ring, rtpw->cbuffer,
 				     rtpw->buframes * fbytes,
-				     (i % rtpw->buframes) * sizeof(MYFLT),
-				     &samp, sizeof(MYFLT));
+				     (i % rtpw->buframes) * sizeof(cs_float),
+				     &samp, sizeof(cs_float));
 	    spa_ringbuffer_read_update(&rtpw->ring, i + 1);
 	  } else samp = FL(0.0);
 	} else samp = FL(0.0);
 	inbuf[j + k] = samp;
-	wbytes += sizeof(MYFLT);
+	wbytes += sizeof(cs_float);
       }
     }
   }
@@ -291,19 +292,19 @@ parm_callback(void *p, uint32_t id, const struct spa_pod *param)
     return;
 
   spa_format_audio_raw_parse(param, &rtpw->format.info.raw);
-  rtpw->sysr = (MYFLT) rtpw->format.info.raw.rate;
+  rtpw->sysr = (cs_float) rtpw->format.info.raw.rate;
 
   if(rtpw->sysr != rtpw->sr && rtpw->sr != -1.0)
-    csound->Warning(csound, "rtpw: mismatched input sampling rate,\n"
-		    "system-sr %.1f csound-sr %.1f", rtpw->sysr,
+    csound->Warning(csound, Str("rtpw: mismatched input sampling rate,\n"
+		    "system-sr %.1f csound-sr %.1f\n"), rtpw->sysr,
 		    rtpw->sr);
 
   if(rtpw->nchnls != (int32_t) rtpw->format.info.raw.channels) {
     // update channel count and realloc buffer
     rtpw->nchnls = rtpw->format.info.raw.channels;
-    rtpw->cbuffer = csound->ReAlloc(csound,rtpw->cbuffer,sizeof(MYFLT)*rtpw->buframes*
+    rtpw->cbuffer = csound->ReAlloc(csound,rtpw->cbuffer,sizeof(cs_float)*rtpw->buframes*
 				    rtpw->nchnls);
-    csound->Message(csound, "pw - reallocated hw buffer: %d\n", rtpw->buframes);
+    csound->Message(csound, Str("pw - reallocated hw buffer: %d\n"), rtpw->buframes);
   }
 
 }
@@ -326,13 +327,13 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   p = (void**) csound->GetRtRecordUserData(csound);
   if(*p != NULL) return 0;
   rtpw = (RTPW *) csound->Calloc(csound, sizeof(RTPW));
-  rtpw->cbuffer = csound->Calloc(csound,sizeof(MYFLT)*parm->bufSamp_HW*
+  rtpw->cbuffer = csound->Calloc(csound,sizeof(cs_float)*parm->bufSamp_HW*
 				 parm->nChannels);
   rtpw->nchnls = parm->nChannels;
   rtpw->sr = parm->sampleRate;
   rtpw->sysr = -1.0;
   rtpw->buframes = parm->bufSamp_HW;
-  csound->Message(csound, "pwin - hw frames: %d sw frames: %d\n", rtpw->buframes,
+  csound->Message(csound, Str("pwin - hw frames: %d sw frames: %d\n"), rtpw->buframes,
 		  parm->bufSamp_SW);
 
   rtpw->loop = pw_thread_loop_new("csound-in", NULL);
@@ -353,7 +354,7 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   rtpw->b = SPA_POD_BUILDER_INIT(rtpw->pbuffer, sizeof(rtpw->pbuffer));
   params[0] = spa_format_audio_raw_build(&rtpw->b, SPA_PARAM_EnumFormat,
 					 &SPA_AUDIO_INFO_RAW_INIT
-					 (.format = MYFLT_FORMAT));
+					 (.format = CS_FLOAT_FORMAT));
   rtpw->cbflag =
     spa_system_eventfd_create(rtpw->cloop->system, SPA_FD_CLOEXEC);
   spa_ringbuffer_init(&rtpw->ring);
@@ -466,14 +467,14 @@ static void registry_event_global(void *data, uint32_t id, uint32_t permissions,
 	  node_description = spa_dict_lookup(props,
 					     PW_KEY_NODE_DESCRIPTION);
 	  if(display){
-	    csound->Message(csound, "  sink node: %d\n", n);
+	    csound->Message(csound, Str("  sink node: %d\n"), n);
 	    csound->Message(csound, "  ID: %u\n", id);
-	    csound->Message(csound,"  name: %s\n",
+	    csound->Message(csound,Str("  name: %s\n"),
 			    node_name ? node_name : "Unknown");
-	    csound->Message(csound,"  description: %s\n",
+	    csound->Message(csound,Str("  description: %s\n"),
 			    node_description ? node_description :
 			    "No description");
-	    csound->Message(csound,"  media class: %s\n ----\n",
+	    csound->Message(csound,Str("  media class: %s\n ----\n"),
 			    media_class);
 	  }
 	  sinks[n].n_channels = 2;
@@ -506,7 +507,8 @@ static void core_event_done(void *data, uint32_t id, int seq)
 static void core_event_error(void *data, uint32_t id, int seq, int res, const char *message)
 {
   struct sink_data *sink_data = data;
-  sink_data->csound->Message(sink_data->csound, "Core error: %s\n", message);
+  CSOUND *csound = sink_data->csound;
+  csound->Message(csound, Str("Core error: %s\n"), message);
   sink_data->done = 1;
   pw_thread_loop_stop(sink_data->tloop);
 }
@@ -530,21 +532,21 @@ int32_t query_pipewire_sinks(CSOUND *csound, CS_AUDIODEVICE *list, int32_t displ
 
   // Create main loop
   if (!data.loop) {
-    csound->Message(csound, "Failed to create main loop\n");
+    csound->Message(csound, Str("Failed to create main loop\n"));
     goto cleanup;
   }
 
   // Create context
   data.context = pw_context_new(pw_thread_loop_get_loop(data.tloop), NULL, 0);
   if (!data.context) {
-    csound->Message(csound, "Failed to create context\n");
+    csound->Message(csound, Str("Failed to create context\n"));
     goto cleanup;
   }
 
   // Connect to PipeWire daemon
   data.core = pw_context_connect(data.context, NULL, 0);
   if (!data.core) {
-    csound->Message(csound, "Failed to connect to PipeWire\n");
+    csound->Message(csound, Str("Failed to connect to PipeWire\n"));
     goto cleanup;
   }
 
@@ -554,7 +556,7 @@ int32_t query_pipewire_sinks(CSOUND *csound, CS_AUDIODEVICE *list, int32_t displ
   // Get registry
   data.registry = pw_core_get_registry(data.core, PW_VERSION_REGISTRY, 0);
   if (!data.registry) {
-    csound->Message(csound, "Failed to get registry\n");
+    csound->Message(csound, Str("Failed to get registry\n"));
     goto cleanup;
   }
 
@@ -562,11 +564,11 @@ int32_t query_pipewire_sinks(CSOUND *csound, CS_AUDIODEVICE *list, int32_t displ
   pw_registry_add_listener(data.registry, &data.registry_listener, &registry_events, &data);
 
   if(display)
-   csound->Message(csound, "pipewire sinks:\n");
+   csound->Message(csound, Str("pipewire sinks:\n"));
   pw_thread_loop_start(data.tloop);
   usleep(100000);
   if(display)
-    csound->Message(csound, "found %d sinks\n", data.no_devs);
+    csound->Message(csound, Str("found %d sinks\n"), data.no_devs);
 
  cleanup:
   pw_thread_loop_stop(data.tloop);
@@ -617,7 +619,6 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
 }
 
  int32_t csoundModuleInit(CSOUND *csound) {
-  const OPARMS *O = csound->GetOParms(csound);
   csound->ModuleListAdd(csound, "rtpw", "audio");
   char buf[32];
   char *s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
@@ -648,5 +649,5 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
 }
 
  int32_t csoundModuleInfo(void){
-  return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+  return CSOUND_MODULE_INFO;
 }

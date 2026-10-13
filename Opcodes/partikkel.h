@@ -30,21 +30,21 @@ Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 
 typedef struct {
     FUNC *table;
-    double phase, delta;
-    double sweepoffset, sweepdecay;
-    MYFLT gain;
+    cs_double phase, delta;
+    cs_double sweepoffset, sweepdecay;
+    cs_float gain;
 } WAVEDATA;
 
 typedef struct {
     uint32_t start, stop;
-    double envphase, envinc;
-    double envattacklen, envdecaystart;
-    double env2amount;
-    MYFLT fmamp;
+    cs_double envphase, envinc;
+    cs_double envattacklen, envdecaystart;
+    cs_double env2amount;
+    cs_float fmamp;
     FUNC *fmenvtab;
     uint32_t harmonics;
-    MYFLT falloff, falloff_pow_N;
-    MYFLT gain1, gain2;
+    cs_float falloff, falloff_pow_N;
+    cs_float gain1, gain2;
     uint32_t chan1, chan2;
     WAVEDATA wav[5];
 } GRAIN;
@@ -67,8 +67,8 @@ typedef struct {
 struct PARTIKKEL;
 
 typedef struct PARTIKKEL_GLOBALS_ENTRY {
-    MYFLT id;
-    MYFLT *synctab;
+    cs_float id;
+    cs_float *synctab;
     struct PARTIKKEL *partikkel;
     struct PARTIKKEL_GLOBALS_ENTRY *next;
 } PARTIKKEL_GLOBALS_ENTRY;
@@ -87,43 +87,43 @@ typedef struct {
 typedef struct PARTIKKEL {
     OPDS h;
     /* output arrays */
-    MYFLT *output1, *output2, *output3, *output4;
-    MYFLT *output5, *output6, *output7, *output8;
+    cs_float *output1, *output2, *output3, *output4;
+    cs_float *output5, *output6, *output7, *output8;
 
     /* opcode parameters */
-    MYFLT *grainfreq;
-    MYFLT *distribution;
-    MYFLT *dist;
-    MYFLT *sync;
-    MYFLT *env2_amount;
-    MYFLT *env2;
-    MYFLT *env_attack;
-    MYFLT *env_decay;
-    MYFLT *sustain_amount;
-    MYFLT *a_d_ratio;
-    MYFLT *duration;
-    MYFLT *amplitude;
-    MYFLT *gainmasks;
-    MYFLT *wavfreq;
-    MYFLT *freqsweepshape;
-    MYFLT *wavfreq_startmuls;
-    MYFLT *wavfreq_endmuls;
-    MYFLT *fm;
-    MYFLT *fm_indices;
-    MYFLT *fm_env;
-    MYFLT *cosine;
-    MYFLT *trainletfreq;
-    MYFLT *harmonics;
-    MYFLT *falloff;
-    MYFLT *channelmasks;
-    MYFLT *randommask;
-    MYFLT *waveform1, *waveform2, *waveform3, *waveform4;
-    MYFLT *waveamps;
-    MYFLT *samplepos1, *samplepos2, *samplepos3, *samplepos4;
-    MYFLT *wavekey1, *wavekey2, *wavekey3, *wavekey4;
-    MYFLT *max_grains;
-    MYFLT *opcodeid;
-    MYFLT *pantable;
+    cs_float *grainfreq;
+    cs_float *distribution;
+    cs_float *dist;
+    cs_float *sync;
+    cs_float *env2_amount;
+    cs_float *env2;
+    cs_float *env_attack;
+    cs_float *env_decay;
+    cs_float *sustain_amount;
+    cs_float *a_d_ratio;
+    cs_float *duration;
+    cs_float *amplitude;
+    cs_float *gainmasks;
+    cs_float *wavfreq;
+    cs_float *freqsweepshape;
+    cs_float *wavfreq_startmuls;
+    cs_float *wavfreq_endmuls;
+    cs_float *fm;
+    cs_float *fm_indices;
+    cs_float *fm_env;
+    cs_float *cosine;
+    cs_float *trainletfreq;
+    cs_float *harmonics;
+    cs_float *falloff;
+    cs_float *channelmasks;
+    cs_float *randommask;
+    cs_float *waveform1, *waveform2, *waveform3, *waveform4;
+    cs_float *waveamps;
+    cs_float *samplepos1, *samplepos2, *samplepos3, *samplepos4;
+    cs_float *wavekey1, *wavekey2, *wavekey3, *wavekey4;
+    cs_float *max_grains;
+    cs_float *opcodeid;
+    cs_float *pantable;
 
     /* internal variables */
     PARTIKKEL_GLOBALS *globals;
@@ -139,7 +139,7 @@ typedef struct PARTIKKEL {
     FUNC *wavetabs[4];
     FUNC *costab;
     uint32_t cosineshift;
-    MYFLT zscale;
+    cs_float zscale;
     FUNC *disttab;
     uint32_t distindex;
     uint32_t disttabshift;
@@ -155,7 +155,7 @@ typedef struct PARTIKKEL {
     uint32_t channelmaskindex;
     FUNC *wavgaintab;
     uint32_t wavgainindex;
-    double grainphase, graininc;
+    cs_double grainphase, graininc;
     FUNC *pantab;
     int32_t floatph;
 } PARTIKKEL;
@@ -163,11 +163,11 @@ typedef struct PARTIKKEL {
 typedef struct {
     OPDS h;
     /* output arrays */
-    MYFLT *syncout;
-    MYFLT *schedphaseout;
+    cs_float *syncout;
+    cs_float *schedphaseout;
 
     /* opcode parameters */
-    MYFLT *opcodeid;
+    cs_float *opcodeid;
 
     /* internal variables */
     int32_t
@@ -178,20 +178,20 @@ typedef struct {
 typedef struct {
     OPDS h;
     /* output */
-    MYFLT *valout;
+    cs_float *valout;
 
     /* inputs */
-    MYFLT *index;
-    MYFLT *opcodeid;
+    cs_float *index;
+    cs_float *opcodeid;
     PARTIKKEL_GLOBALS_ENTRY *ge;
 } PARTIKKEL_GET;
 
 typedef struct {
     OPDS h;
     /* inputs */
-    MYFLT *index;
-    MYFLT *value;
-    MYFLT *opcodeid;
+    cs_float *index;
+    cs_float *value;
+    cs_float *opcodeid;
     PARTIKKEL_GLOBALS_ENTRY *ge;
 } PARTIKKEL_SET;
 

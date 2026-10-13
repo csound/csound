@@ -33,28 +33,28 @@
 
 typedef struct {
   OPDS    h;
-  MYFLT   *out, *kamp, *ampdist, *durdist, *adpar, *ddpar;
-  MYFLT   *minfreq, *maxfreq, *ampscl, *durscl, *initcps, *knum;
-  MYFLT   phase, amp, nextamp, dur, speed;
+  cs_float   *out, *kamp, *ampdist, *durdist, *adpar, *ddpar;
+  cs_float   *minfreq, *maxfreq, *ampscl, *durscl, *initcps, *knum;
+  cs_float   phase, amp, nextamp, dur, speed;
   int32   index, rand, points;
   AUXCH   memamp, memdur;
 } GENDY;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *out, *kamp, *ampdist, *durdist, *adpar, *ddpar;
-  MYFLT   *minfreq, *maxfreq, *ampscl, *durscl;
-  MYFLT   *kcurveup, *kcurvedown, *initcps, *knum;
-  MYFLT   phase, amp, nextamp, dur, speed;
+  cs_float   *out, *kamp, *ampdist, *durdist, *adpar, *ddpar;
+  cs_float   *minfreq, *maxfreq, *ampscl, *durscl;
+  cs_float   *kcurveup, *kcurvedown, *initcps, *knum;
+  cs_float   phase, amp, nextamp, dur, speed;
   int32   index, rand, points;
   AUXCH   memamp, memdur;
 } GENDYX;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *out, *kamp, *ampdist, *durdist, *adpar, *ddpar;
-  MYFLT   *minfreq, *maxfreq, *ampscl, *durscl, *initcps, *knum;
-  MYFLT   amp, nextamp, dur, slope, midpnt, curve;
+  cs_float   *out, *kamp, *ampdist, *durdist, *adpar, *ddpar;
+  cs_float   *minfreq, *maxfreq, *ampscl, *durscl, *initcps, *knum;
+  cs_float   amp, nextamp, dur, slope, midpnt, curve;
   int32   phase, index, rand, points;
   AUXCH   memamp, memdur;
 } GENDYC;
@@ -64,7 +64,7 @@ typedef struct {
 #define GENDYMAXCPS  8192          /* Max number of control points */
 
 #define GENDY_BIPOLAR(rnd)                                                \
-  ((MYFLT)((int64_t)(uint32_t)(rnd) * 2 - BIPOLAR) * dv2_31)
+  ((cs_float)((int64_t)(uint32_t)(rnd) * 2 - BIPOLAR) * dv2_31)
 
 #define GENDY_POINTS(value)                                               \
   ((value) >= FL(1.0)                                                     \
@@ -72,17 +72,17 @@ typedef struct {
    : 12)
 
 #define GENDY_KNUM(value, points)                                         \
-  ((value) >= FL(1.0) && (value) <= (MYFLT)(points)                       \
+  ((value) >= FL(1.0) && (value) <= (cs_float)(points)                       \
    ? (int32_t)(value) : (points))
 
 #define GENDY_SET_CUBIC_PHASE(result, frequency, sample_rate)             \
   do {                                                                    \
-    double frequency_ = (double)(frequency);                              \
-    double phase_;                                                        \
+    cs_double frequency_ = (cs_double)(frequency);                              \
+    cs_double phase_;                                                        \
     if (UNLIKELY(!(frequency_ > 0.001)))                                  \
       frequency_ = 0.001;                                                 \
-    phase_ = (double)(sample_rate) / frequency_;                           \
-    if (UNLIKELY(!(phase_ < (double)INT32_MAX)))                           \
+    phase_ = (cs_double)(sample_rate) / frequency_;                           \
+    if (UNLIKELY(!(phase_ < (INT32_MAX + 0.0))))                           \
       (result) = INT32_MAX;                                               \
     else if (UNLIKELY(phase_ < 2.0))                                      \
       (result) = 2;                                                       \
@@ -92,20 +92,20 @@ typedef struct {
 
 #define GENDY_SET_SPEED(result, minfreq, maxfreq, dur, onedsr, points)    \
   do {                                                                    \
-    MYFLT speed_ = ((minfreq) + ((maxfreq) - (minfreq)) * (dur))          \
+    cs_float speed_ = ((minfreq) + ((maxfreq) - (minfreq)) * (dur))          \
       * (onedsr) * (points);                                              \
     if (UNLIKELY(!(speed_ > FL(0.0))))                                    \
       speed_ = FL(0.0);                                                   \
-    else if (UNLIKELY(speed_ > (MYFLT)(points)))                          \
-      speed_ = (MYFLT)(points);                                           \
+    else if (UNLIKELY(speed_ > (cs_float)(points)))                          \
+      speed_ = (cs_float)(points);                                           \
     (result) = speed_;                                                    \
   } while (0)
 
-static MYFLT gendy_distribution(CSOUND *csound, MYFLT which, MYFLT a, int32 rnd)
+static cs_float gendy_distribution(CSOUND *csound, cs_float which, cs_float a, int32 rnd)
 {
   IGN(csound);
   int32_t selection;
-  MYFLT   c, r;
+  cs_float   c, r;
   if (which >= FL(0.0) && which < FL(7.0))
     selection = (int32_t)which;
   else
@@ -125,21 +125,21 @@ static MYFLT gendy_distribution(CSOUND *csound, MYFLT which, MYFLT a, int32 rnd)
   case 2: // logist
     c = FL(0.5)+(FL(0.499)*a);
     c = LOG((FL(1.0)-c)/c);
-    r = (((MYFLT)rnd*dv2_31 - FL(0.5)) * FL(0.998)*a) + FL(0.5);
+    r = (((cs_float)rnd*dv2_31 - FL(0.5)) * FL(0.998)*a) + FL(0.5);
     r = LOG((FL(1.0)-r)/r)/c;
     return r;
   case 3: // hyperbcos
     c = TAN(FL(1.5692255)*a);
-    r = TAN(FL(1.5692255)*a*(MYFLT)rnd*dv2_31)/c;
+    r = TAN(FL(1.5692255)*a*(cs_float)rnd*dv2_31)/c;
     r = (LOG(r*FL(0.999)+FL(0.001)) * FL(-0.1447648))*FL(2.0) - FL(1.0);
     return r;
   case 4: // arcsine
     c = SIN(FL(1.5707963)*a);
-    r = SIN(PI_F * ((MYFLT)rnd*dv2_31 - FL(0.5))*a)/c;
+    r = SIN(PI_F * ((cs_float)rnd*dv2_31 - FL(0.5))*a)/c;
     return r;
   case 5: // expon
     c = LOG(FL(1.0)-(FL(0.999)*a));
-    r = (MYFLT)rnd*dv2_31*FL(0.999)*a;
+    r = (cs_float)rnd*dv2_31*FL(0.999)*a;
     r = (LOG(FL(1.0)-r)/c)*FL(2.0) - FL(1.0);
     return r;
   case 6: // external sig
@@ -154,15 +154,15 @@ static MYFLT gendy_distribution(CSOUND *csound, MYFLT which, MYFLT a, int32 rnd)
 static int32_t gendyset(CSOUND *csound, GENDY *p)
 {
   int32_t     i;
-  MYFLT   *memamp, *memdur;
+  cs_float   *memamp, *memdur;
   p->amp     = FL(0.0);
   p->nextamp = FL(0.0);
   p->phase   = FL(1.0);
   p->speed   = FL(100.0);
   p->index   = 0;
   p->points = GENDY_POINTS(*p->initcps);
-  csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
-  csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
+  csound->AuxAlloc(csound, p->points*sizeof(cs_float), &p->memamp);
+  csound->AuxAlloc(csound, p->points*sizeof(cs_float), &p->memdur);
   memamp  = p->memamp.auxp;
   memdur  = p->memdur.auxp;
   p->rand = csound->Rand31(csound->RandSeed31(csound));
@@ -170,7 +170,7 @@ static int32_t gendyset(CSOUND *csound, GENDY *p)
     p->rand = csound->Rand31(&p->rand);
     memamp[i] = GENDY_BIPOLAR(p->rand);
     p->rand = csound->Rand31(&p->rand);
-    memdur[i] = (MYFLT)p->rand * dv2_31;
+    memdur[i] = (cs_float)p->rand * dv2_31;
   }
   return OK;
 }
@@ -178,7 +178,7 @@ static int32_t gendyset(CSOUND *csound, GENDY *p)
 static int32_t kgendy(CSOUND *csound, GENDY *p)
 {
   int32_t     knum;
-  MYFLT   *memamp, *memdur, minfreq, maxfreq, dist;
+  cs_float   *memamp, *memdur, minfreq, maxfreq, dist;
   knum = GENDY_KNUM(*p->knum, p->points);
   memamp  = p->memamp.auxp;
   memdur  = p->memdur.auxp;
@@ -225,17 +225,17 @@ static int32_t agendy(CSOUND *csound, GENDY *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
+  cs_float   *out, *memamp, *memdur, minfreq, maxfreq, dist;
   out  = p->out;
   knum = GENDY_KNUM(*p->knum, p->points);
   memamp  = p->memamp.auxp;
   memdur  = p->memdur.auxp;
   minfreq = *p->minfreq;
   maxfreq = *p->maxfreq;
-  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&out[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset; n<nsmps; n++) {
     while (p->phase >= FL(1.0)) {
@@ -275,15 +275,15 @@ static int32_t agendy(CSOUND *csound, GENDY *p)
 static int32_t gendyxset(CSOUND *csound, GENDYX *p)
 {
   int32_t     i;
-  MYFLT   *memamp, *memdur;
+  cs_float   *memamp, *memdur;
   p->amp     = FL(0.0);
   p->nextamp = FL(0.0);
   p->phase   = FL(1.0);
   p->speed   = FL(100.0);
   p->index   = 0;
   p->points = GENDY_POINTS(*p->initcps);
-  csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
-  csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
+  csound->AuxAlloc(csound, p->points*sizeof(cs_float), &p->memamp);
+  csound->AuxAlloc(csound, p->points*sizeof(cs_float), &p->memdur);
   memamp  = p->memamp.auxp;
   memdur  = p->memdur.auxp;
   p->rand = csound->Rand31(csound->RandSeed31(csound));
@@ -292,7 +292,7 @@ static int32_t gendyxset(CSOUND *csound, GENDYX *p)
     p->rand   = (int32)csound->Rand31(&p->rand);
     memamp[i] = GENDY_BIPOLAR(p->rand);
     p->rand   = csound->Rand31(&p->rand);
-    memdur[i] = (MYFLT)p->rand * dv2_31;
+    memdur[i] = (cs_float)p->rand * dv2_31;
   }
   return OK;
 }
@@ -300,8 +300,8 @@ static int32_t gendyxset(CSOUND *csound, GENDYX *p)
 static int32_t kgendyx(CSOUND *csound, GENDYX *p)
 {
   int32_t     knum;
-  MYFLT   *memamp, *memdur, minfreq, maxfreq, dist;
-  MYFLT   curve, curveup, curvedown;
+  cs_float   *memamp, *memdur, minfreq, maxfreq, dist;
+  cs_float   curve, curveup, curvedown;
   knum = GENDY_KNUM(*p->knum, p->points);
   memamp  = p->memamp.auxp;
   memdur  = p->memdur.auxp;
@@ -349,8 +349,8 @@ static int32_t agendyx(CSOUND *csound, GENDYX *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
-  MYFLT   curve, curveup, curvedown;
+  cs_float   *out, *memamp, *memdur, minfreq, maxfreq, dist;
+  cs_float   curve, curveup, curvedown;
   out  = p->out;
   knum = GENDY_KNUM(*p->knum, p->points);
   memamp  = p->memamp.auxp;
@@ -359,10 +359,10 @@ static int32_t agendyx(CSOUND *csound, GENDYX *p)
   maxfreq = *p->maxfreq;
   curveup = (*p->kcurveup > FL(0.0) ? *p->kcurveup : FL(0.0));
   curvedown = (*p->kcurvedown > FL(0.0) ? *p->kcurvedown : FL(0.0));
-  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&out[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset; n<nsmps; n++) {
     while (p->phase >= FL(1.0)) {
@@ -404,7 +404,7 @@ static int32_t agendyx(CSOUND *csound, GENDYX *p)
 static int32_t gendycset(CSOUND *csound, GENDYC *p)
 {
   int32_t     i;
-  MYFLT   *memamp, *memdur;
+  cs_float   *memamp, *memdur;
   p->amp     = FL(0.0);
   p->nextamp = FL(0.0);
   p->slope   = FL(0.0);
@@ -413,8 +413,8 @@ static int32_t gendycset(CSOUND *csound, GENDYC *p)
   p->phase   = 0;
   p->index   = 0;
   p->points = GENDY_POINTS(*p->initcps);
-  csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memamp);
-  csound->AuxAlloc(csound, p->points*sizeof(MYFLT), &p->memdur);
+  csound->AuxAlloc(csound, p->points*sizeof(cs_float), &p->memamp);
+  csound->AuxAlloc(csound, p->points*sizeof(cs_float), &p->memdur);
   memamp  = p->memamp.auxp;
   memdur  = p->memdur.auxp;
   p->rand = csound->Rand31(csound->RandSeed31(csound));
@@ -422,7 +422,7 @@ static int32_t gendycset(CSOUND *csound, GENDYC *p)
     p->rand = csound->Rand31(&p->rand);
     memamp[i] = GENDY_BIPOLAR(p->rand);
     p->rand = csound->Rand31(&p->rand);
-    memdur[i] = (MYFLT)p->rand * dv2_31;
+    memdur[i] = (cs_float)p->rand * dv2_31;
   }
   return OK;
 }
@@ -430,7 +430,7 @@ static int32_t gendycset(CSOUND *csound, GENDYC *p)
 static int32_t kgendyc(CSOUND *csound, GENDYC *p)
 {
   int32_t     knum;
-  MYFLT   *memamp, *memdur, minfreq, maxfreq, dist;
+  cs_float   *memamp, *memdur, minfreq, maxfreq, dist;
   knum = GENDY_KNUM(*p->knum, p->points);
   memamp  = p->memamp.auxp;
   memdur  = p->memdur.auxp;
@@ -438,7 +438,7 @@ static int32_t kgendyc(CSOUND *csound, GENDYC *p)
   maxfreq = *p->maxfreq;
   if (p->phase <= 0) {
     int32_t     index = p->index;
-    MYFLT   fphase, next_midpnt;
+    cs_float   fphase, next_midpnt;
     p->index = index = (index+1) % knum;
     p->amp = p->nextamp;
     p->rand = csound->Rand31(&p->rand);
@@ -466,7 +466,7 @@ static int32_t kgendyc(CSOUND *csound, GENDYC *p)
     fphase = (minfreq + (maxfreq - minfreq) * p->dur) * knum;
     GENDY_SET_CUBIC_PHASE(p->phase, fphase, CS_ESR);
     p->curve = FL(2.0) * (next_midpnt - p->midpnt - p->phase * p->slope);
-    fphase = (MYFLT)p->phase;
+    fphase = (cs_float)p->phase;
     p->curve = p->curve / (fphase * fphase + fphase);
   }
   p->phase--;
@@ -484,22 +484,22 @@ static int32_t agendyc(CSOUND *csound, GENDYC *p)
   int32_t     knum;
   uint32_t    n = offset;
   uint32_t    remain = CS_KSMPS-offset-early;
-  MYFLT   *out, *memamp, *memdur, minfreq, maxfreq, dist;
+  cs_float   *out, *memamp, *memdur, minfreq, maxfreq, dist;
   out  = p->out;
   knum = GENDY_KNUM(*p->knum, p->points);
   memamp  = p->memamp.auxp;
   memdur  = p->memdur.auxp;
   minfreq = *p->minfreq;
   maxfreq = *p->maxfreq;
-  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
-    memset(&out[remain+offset], '\0', early*sizeof(MYFLT));
+    memset(&out[remain+offset], '\0', early*sizeof(cs_float));
   }
   while (remain > 0) {
     uint32_t end, nsmps;
     if (p->phase <= 0) {
       int32_t     index = p->index;
-      MYFLT   fphase, next_midpnt;
+      cs_float   fphase, next_midpnt;
       p->index = index = (index+1) % knum;
       p->amp = p->nextamp;
       p->rand = csound->Rand31(&p->rand);
@@ -527,7 +527,7 @@ static int32_t agendyc(CSOUND *csound, GENDYC *p)
       fphase = (minfreq + (maxfreq - minfreq) * p->dur) * knum;
       GENDY_SET_CUBIC_PHASE(p->phase, fphase, CS_ESR);
       p->curve = FL(2.0) * (next_midpnt - p->midpnt - p->phase * p->slope);
-      fphase = (MYFLT)p->phase;
+      fphase = (cs_float)p->phase;
       p->curve = p->curve / (fphase * fphase + fphase);
     }
     nsmps = (remain < (uint32_t)p->phase ? remain : (uint32_t)p->phase);

@@ -37,7 +37,7 @@
 
 #define WG_WRAP_VIBRATO_PHASE(phase_, length_)                         \
   do {                                                                 \
-    MYFLT _length = (MYFLT)(length_);                                  \
+    cs_float _length = (cs_float)(length_);                                  \
     if (UNLIKELY(!((phase_) >= FL(0.0) && (phase_) < _length))) {      \
       if ((phase_) >= _length && (phase_) < FL(2.0) * _length)         \
         (phase_) -= _length;                                           \
@@ -73,11 +73,11 @@
 /*        more for information.               */
 /**********************************************/
 
-static inline MYFLT ReedTabl_LookUp(ReedTabl *r, MYFLT deltaP)
+static inline cs_float ReedTabl_LookUp(ReedTabl *r, cs_float deltaP)
 /*   Perform "Table Lookup" by direct clipped  */
 /*   linear function calculation               */
 {   /*   deltaP is differential reed pressure      */
-  MYFLT lastOutput = r->offSet + (r->slope * deltaP); /* basic non-lin */
+  cs_float lastOutput = r->offSet + (r->slope * deltaP); /* basic non-lin */
   if (lastOutput > FL(1.0))
     lastOutput = FL(1.0);      /* if other way, reed slams shut */
   if (lastOutput < -FL(1.0))
@@ -108,16 +108,16 @@ void make_OneZero(OneZero* z)
   z->inputs = FL(0.0);
 }
 
-MYFLT OneZero_tick(OneZero* z, MYFLT sample) /*   Perform Filter Operation  */
+cs_float OneZero_tick(OneZero* z, cs_float sample) /*   Perform Filter Operation  */
 {
-  MYFLT temp, lastOutput;
+  cs_float temp, lastOutput;
   temp = z->sgain * sample;
   lastOutput = (z->inputs * z->zeroCoeff) + temp;
   z->inputs = temp;
   return lastOutput;
 }
 
-void OneZero_setCoeff(OneZero* z, MYFLT aValue)
+void OneZero_setCoeff(OneZero* z, cs_float aValue)
 {
   z->zeroCoeff = aValue;
   if (z->zeroCoeff > FL(0.0))               /*  Normalize gain to 1.0 max  */
@@ -140,19 +140,24 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
 
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
-    return csound->InitError(csound, "%s", Str("No table for Clarinet"));
+    return csound->InitError(csound, "%s\n", Str("No table for Clarinet"));
   }
   if (UNLIKELY(ftp->flen < 1)) {
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("Clarinet vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
+    cs_double release = ceil((cs_double)*p->dettack * CS_EKR);
+    if (UNLIKELY(!(*p->attack >= FL(0.0) && release >= 0.0 &&
+                   release <= (INT32_MAX + 0.0))))
+      return csound->InitError(csound, "%s\n",
+                               Str("wgclar: invalid attack or release time"));
     if (*p->lowestFreq)
       p->length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
     else if (LIKELY(*p->frequency))
       p->length = (int32_t) (CS_ESR / *p->frequency + FL(1.0));
     else {
-      csound->Warning(csound, "%s", Str("No base frequency for clarinet "
+      csound->Warning(csound, "%s\n", Str("No base frequency for clarinet "
                                         "-- assuming 50Hz\n"));
       p->length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
     }
@@ -165,18 +170,20 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
     /*    p->noiseGain = 0.2f; */       /* Arguemnts; suggested values? */
     /*    p->vibrGain = 0.1f; */
     {
-      int32_t relestim = (int32_t)(CS_EKR * FL(0.1));
-      /* 1/10th second decay extention */
+      int32_t relestim = (int32_t)fmax(release, ceil(CS_EKR * 0.1));
+      /* Keep the decay tail, and allow the requested note-off release. */
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
     }
-    p->kloop = (int32_t) ((int32_t) (p->h.insdshead->offtim * CS_EKR)
-                          - (int32_t) (CS_EKR * *p->attack));
+    /* -1 waits for note-off; 0 means the release has already started. */
+    p->kloop = p->h.insdshead->offtim > 0.0 ?
+      fmax(1.0, ceil((p->h.insdshead->offtim - *p->dettack) * CS_EKR) + 1.0)
+      : -1.0;
 #ifdef BETA
-    csound->Message(csound, "offtim=%f  kloop=%d\n",
+    csound->Message(csound, "offtim=%f  kloop=%g\n",
                     p->h.insdshead->offtim, p->kloop);
 #endif
-    p->envelope.rate = FL(0.0);
+    p->attackPending = 1;
     p->v_time = 0;
   }
   return OK;
@@ -184,50 +191,54 @@ int32_t clarinset(CSOUND *csound, CLARIN *p)
 
 int32_t clarin(CSOUND *csound, CLARIN *p)
 {
-  MYFLT *ar = p->ar;
+  cs_float *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-  MYFLT nGain = *p->noiseGain;
+  cs_float amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+  cs_float nGain = *p->noiseGain;
   int32_t v_len = (int32_t)p->vibr->flen;
-  MYFLT *v_data = p->vibr->ftable;
-  MYFLT vibGain = *p->vibAmt;
-  MYFLT vTime = p->v_time;
+  cs_float *v_data = p->vibr->ftable;
+  cs_float vibGain = *p->vibAmt;
+  cs_float vTime = p->v_time;
 
-  if (p->envelope.rate==FL(0.0)) {
-    p->envelope.rate =  amp /(*p->attack*CS_ESR);
-    p->envelope.value = p->envelope.target = FL(0.55) + amp*FL(0.30);
+  if (p->attackPending) {
+    p->envelope.target = FL(0.55) + amp*FL(0.30);
+    p->envelope.rate = *p->attack > FL(0.0) ?
+      p->envelope.target / (*p->attack * CS_ESR) : p->envelope.target;
+    p->attackPending = 0;
   }
   p->outputGain = amp + FL(0.001);
   DLineL_setDelay(&p->delayLine, /* length - approx filter delay */
                   (CS_ESR/ *p->frequency) * FL(0.5) - FL(1.5));
   p->v_rate = *p->vibFreq * p->vibr->flen * CS_ONEDSR;
   /* Check to see if into decay yet */
-  if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if ((--p->kloop) == 0) {
+  if (p->kloop != 0.0 && (p->h.insdshead->relesing ||
+                          (p->kloop > 0.0 && --p->kloop == 0.0))) {
+    p->kloop = 0.0;
     p->envelope.state = 1;  /* Start change */
-    p->envelope.rate = p->envelope.value / (*p->dettack * CS_ESR);
+    p->envelope.rate = *p->dettack > FL(0.0) ?
+      p->envelope.value / (*p->dettack * CS_ESR) : p->envelope.value;
     p->envelope.target =  FL(0.0);
 #ifdef BETA
     csound->Message(csound, "Set off phase time = %f Breath v,r = %f, %f\n",
-                    (MYFLT) CS_KCNT * CS_ONEDKR,
+                    (cs_float) CS_KCNT * CS_ONEDKR,
                     p->envelope.value, p->envelope.rate);
 #endif
   }
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset;n<nsmps;n++) {
-    MYFLT   pressureDiff;
-    MYFLT   breathPressure;
+    cs_float   pressureDiff;
+    cs_float   breathPressure;
     int32    temp;
-    MYFLT   temp_time, alpha;
-    MYFLT   nextsamp;
-    MYFLT   v_lastOutput;
-    MYFLT   lastOutput;
+    cs_float   temp_time, alpha;
+    cs_float   nextsamp;
+    cs_float   v_lastOutput;
+    cs_float   lastOutput;
 
     breathPressure = Envelope_tick(&p->envelope);
     breathPressure += breathPressure * nGain * Noise_tick(csound,&p->noise);
@@ -245,7 +256,7 @@ int32_t clarin(CSOUND *csound, CLARIN *p)
 #endif
     temp = (int32_t) temp_time;    /*  Integer part of time address    */
                                    /*  fractional part of time address */
-    alpha = temp_time - (MYFLT)temp;
+    alpha = temp_time - (cs_float)temp;
     v_lastOutput = v_data[temp]; /* Do linear interpolation */
     /*  same as alpha*data[temp+1] + (1-alpha)data[temp] */
     v_lastOutput += (alpha * (v_data[temp+1] - v_lastOutput));
@@ -290,10 +301,10 @@ int32_t clarin(CSOUND *csound, CLARIN *p)
 /* nomial calculation.                        */
 /**********************************************/
 
-static inline MYFLT JetTabl_lookup(MYFLT sample) /* Perform "Table Lookup"  */
+static inline cs_float JetTabl_lookup(cs_float sample) /* Perform "Table Lookup"  */
 {                                  /* By Polynomial Calculation */
                                    /* (x^3 - x) approximates sigmoid of jet */
-  MYFLT j = sample * (sample*sample - FL(1.0));
+  cs_float j = sample * (sample*sample - FL(1.0));
   if (j > FL(1.0)) j = FL(1.0);        /* Saturation at +/- 1.0       */
   else if (j < -FL(1.0)) j = -FL(1.0);
   return j;
@@ -306,13 +317,20 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
 
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                   /* Expect sine wave */
-    return csound->InitError(csound, "%s", Str("No table for Flute"));
+    return csound->InitError(csound, "%s\n", Str("No table for Flute"));
   }
   if (UNLIKELY(ftp->flen < 1)) {
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("Flute vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation?? */
+    cs_double release = ceil((cs_double)*p->dettack * CS_EKR);
+    if (UNLIKELY(!(*p->attack >= FL(0.0) && release >= 0.0 &&
+                   release <= (INT32_MAX + 0.0))))
+      return csound->InitError(csound, "%s\n",
+                               Str("wgflute: invalid attack or release time"));
+    if (release > p->h.insdshead->xtratim)
+      p->h.insdshead->xtratim = (int32_t)release;
     if (*p->lowestFreq!=FL(0.0)) {
       length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
       p->limit = *p->lowestFreq;
@@ -322,7 +340,7 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
       p->limit = *p->frequency;
     }
     else {
-      csound->Warning(csound, "%s", Str("No base frequency for flute "
+      csound->Warning(csound, "%s\n", Str("No base frequency for flute "
                                         "-- assumed to be 50Hz\n"));
       length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
       p->limit = FL(50.0);
@@ -343,7 +361,9 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
 
     OnePole_setPole(&p->filter, FL(0.7) - (FL(0.1) * RATE_NORM));
     OnePole_setGain(&p->filter, -FL(1.0));
-    ADSR_setAllTimes(csound, &p->adsr, FL(0.005), FL(0.01), FL(0.8), FL(0.010));
+    ADSR_setAllTimes(csound, &p->adsr,
+                    *p->attack > FL(0.0) ? *p->attack : CS_ONEDSR,
+                    FL(0.01), FL(0.8), FL(0.010));
     /*        ADSR_setAll(&p->adsr, 0.02f, 0.05f, 0.8f, 0.001f); */
     /* Suggested values */
     /*    p->endRefl = 0.5; */
@@ -351,14 +371,12 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
     /*    p->noiseGain = 0.15; */ /* Breath pressure random component   */
     /*    p->vibrGain = 0.05;  */ /* breath periodic vibrato component  */
     /*    p->jetRatio = 0.32;  */
-    p->lastamp = FL(1.0);       /* Remember */
-    /* This should be controlled by attack */
-    ADSR_setAttackRate(csound, &p->adsr, FL(0.02));
-    p->maxPress = FL(2.3) / FL(0.8);
-    p->outputGain = FL(1.001);
+    p->lastamp = FL(-1.0);  /* Set gain from the first k-rate amplitude. */
     ADSR_keyOn(&p->adsr);
-    p->kloop = (MYFLT)((int32_t)(p->h.insdshead->offtim*CS_EKR -
-                                 CS_EKR*(*p->dettack)));
+    p->kloop = p->h.insdshead->offtim > 0.0 ?
+      fmax(1.0, ceil((p->h.insdshead->offtim - *p->dettack) * CS_EKR) + 1.0)
+      : -1.0;
+    p->v_time = FL(0.0);
 
     p->lastFreq = FL(0.0);
     p->lastJet = -FL(1.0);
@@ -370,21 +388,19 @@ int32_t fluteset(CSOUND *csound, FLUTE *p)
 
 int32_t flute(CSOUND *csound, FLUTE *p)
 {
-  MYFLT       *ar = p->ar;
+  cs_float       *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-  MYFLT       temp;
+  cs_float       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+  cs_float       temp;
   int32_t     v_len = (int32_t)p->vibr->flen;
-  MYFLT       *v_data = p->vibr->ftable;
-  MYFLT       v_time = p->v_time;
-  MYFLT       vibGain = *p->vibAmt;
-  MYFLT       jetRefl, endRefl, noisegain;
+  cs_float       *v_data = p->vibr->ftable;
+  cs_float       v_time = p->v_time;
+  cs_float       vibGain = *p->vibAmt;
+  cs_float       jetRefl, endRefl, noisegain;
 
   if (amp!=p->lastamp) {      /* If amplitude has changed */
-    /* This should be controlled by attack */
-    ADSR_setAttackRate(csound, &p->adsr, amp * FL(0.02));
     p->maxPress = (FL(1.1) + (amp * FL(0.20))) / FL(0.8);
     p->outputGain = amp + FL(0.001);
     p->lastamp = amp;
@@ -395,7 +411,7 @@ int32_t flute(CSOUND *csound, FLUTE *p)
     p->lastFreq = *p->frequency;
     if (p->limit>p->lastFreq) {
       p->lastFreq = p->limit;
-      csound->Warning(csound, "%s", Str("frequency too low, set to minimum"));
+      csound->Warning(csound, "%s\n", Str("frequency too low, set to minimum"));
     }
     p->lastJet = *p->jetRatio;
     /* freq = (2/3)*p->frequency as we're overblowing here */
@@ -413,28 +429,30 @@ int32_t flute(CSOUND *csound, FLUTE *p)
   }
   /* End SetFreq */
 
-  if (p->kloop>FL(0.0) && p->h.insdshead->relesing) p->kloop=FL(1.0);
-  if ((--p->kloop) == 0) {
-    p->adsr.releaseRate = p->adsr.value / (*p->dettack * CS_ESR);
+  if (p->kloop != 0.0 && (p->h.insdshead->relesing ||
+                          (p->kloop > 0.0 && --p->kloop == 0.0))) {
+    p->kloop = 0.0;
+    p->adsr.releaseRate = *p->dettack > FL(0.0) ?
+      p->adsr.value / (*p->dettack * CS_ESR) : p->adsr.value;
     p->adsr.target = FL(0.0);
     p->adsr.rate = p->adsr.releaseRate;
     p->adsr.state = RELEASE;
   }
   noisegain = *p->noiseGain; jetRefl = *p->jetRefl; endRefl = *p->endRefl;
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset;n<nsmps;n++) {
     int32     temp;
-    MYFLT     temf;
-    MYFLT     temp_time, alpha;
-    MYFLT     pressDiff;
-    MYFLT     randPress;
-    MYFLT     breathPress;
-    MYFLT     lastOutput;
-    MYFLT     v_lastOutput;
+    cs_float     temf;
+    cs_float     temp_time, alpha;
+    cs_float     pressDiff;
+    cs_float     randPress;
+    cs_float     breathPress;
+    cs_float     lastOutput;
+    cs_float     v_lastOutput;
 
     breathPress = p->maxPress * ADSR_tick(&p->adsr); /* Breath Pressure */
     randPress = noisegain*Noise_tick(csound,&p->noise); /* Random Deviation */
@@ -453,7 +471,7 @@ int32_t flute(CSOUND *csound, FLUTE *p)
 
     temp = (int32_t) temp_time;        /*  Integer part of time address    */
                                        /*  fractional part of time address */
-    alpha = temp_time - (MYFLT)temp;
+    alpha = temp_time - (cs_float)temp;
     v_lastOutput = v_data[temp];    /* Do linear interpolation */
     /*  same as alpha*data[temp+1] + (1-alpha)data[temp] */
     v_lastOutput += (alpha * (v_data[temp+1] - v_lastOutput));
@@ -497,10 +515,10 @@ int32_t flute(CSOUND *csound, FLUTE *p)
 /******************************************/
 
 /*  Perform Table Lookup    */
-MYFLT BowTabl_lookup(CSOUND *csound, BowTabl *b, MYFLT sample)
+cs_float BowTabl_lookup(CSOUND *csound, BowTabl *b, cs_float sample)
 {                                              /*  sample is differential  */
-  MYFLT lastOutput;                          /*  string vs. bow velocity */
-  MYFLT input;
+  cs_float lastOutput;                          /*  string vs. bow velocity */
+  cs_float input;
   input = sample /* + b->offSet*/ ;          /*  add bias to sample      */
   input *= b->slope;                         /*  scale it                */
   lastOutput = FABS(input) + FL(0.75); /*  below min delta, frict = 1 */
@@ -514,14 +532,14 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
 {
   int32        length;
   FUNC        *ftp;
-  MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+  cs_float       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
-    return csound->InitError(csound, "%s", Str("No table for wgbow vibrato"));
+    return csound->InitError(csound, "%s\n", Str("No table for wgbow vibrato"));
   }
   if (UNLIKELY(ftp->flen < 1)) {
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("wgbow vibrato table is empty"));
   }
   if (*p->lowestFreq>=FL(0.0)) {      /* If no init skip */
@@ -534,7 +552,7 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
       p->limit = *p->frequency;
     }
     else {
-      csound->Warning(csound, "%s", Str("unknown lowest frequency for bowed string "
+      csound->Warning(csound, "%s\n", Str("unknown lowest frequency for bowed string "
                                         "-- assuming 50Hz\n"));
       length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
       p->limit = FL(50.0);
@@ -571,6 +589,11 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
     p->adsr.state = ATTACK;
     p->maxVelocity = FL(0.03) + (FL(0.2) * amp);
 
+    /* Allow the envelope's 10 ms release to run after note-off. */
+    int32_t release = (int32_t)ceil(CS_EKR * 0.01);
+    if (release > p->h.insdshead->xtratim)
+      p->h.insdshead->xtratim = release;
+    p->v_time = FL(0.0);
     p->lastpress = FL(0.0);   /* Set unknown state */
     p->lastfreq = FL(0.0);
     p->lastbeta = FL(0.0);    /* Remember states */
@@ -581,12 +604,12 @@ int32_t bowedset(CSOUND *csound, BOWED *p)
 
 int32_t bowed(CSOUND *csound, BOWED *p)
 {
-  MYFLT       *ar = p->ar;
+  cs_float       *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-  MYFLT       maxVel;
+  cs_float       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+  cs_float       maxVel;
   int32_t         freq_changed = 0;
 
   if (amp != p->lastamp) {
@@ -604,7 +627,7 @@ int32_t bowed(CSOUND *csound, BOWED *p)
       p->lastfreq = *p->frequency;
     else {
       p->lastfreq = p->limit;
-      csound->Warning(csound, "%s", Str("frequency too low, set to minimum"));
+      csound->Warning(csound, "%s\n", Str("frequency too low, set to minimum"));
     }
     p->baseDelay = CS_ESR / p->lastfreq - FL(4.0);
     freq_changed = 1;
@@ -618,24 +641,23 @@ int32_t bowed(CSOUND *csound, BOWED *p)
                     p->baseDelay *(FL(1.0) - p->lastbeta));
   }
   p->v_rate = *p->vibFreq * p->vibr->flen * CS_ONEDSR;
-  if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if ((--p->kloop) == 0) {
-    ADSR_setDecayRate(csound, &p->adsr, (FL(1.0) - p->adsr.value) * FL(0.005));
+  if (p->h.insdshead->relesing && p->adsr.state != RELEASE &&
+      p->adsr.state != CLEAR) {
     p->adsr.target = FL(0.0);
     p->adsr.rate = p->adsr.releaseRate;
     p->adsr.state = RELEASE;
   }
 
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset;n<nsmps;n++) {
-    MYFLT     bowVelocity;
-    MYFLT     bridgeRefl=FL(0.0), nutRefl=FL(0.0);
-    MYFLT     newVel=FL(0.0), velDiff=FL(0.0), stringVel=FL(0.0);
-    MYFLT     lastOutput;
+    cs_float     bowVelocity;
+    cs_float     bridgeRefl=FL(0.0), nutRefl=FL(0.0);
+    cs_float     newVel=FL(0.0), velDiff=FL(0.0), stringVel=FL(0.0);
+    cs_float     lastOutput;
 
     bowVelocity = maxVel * ADSR_tick(&p->adsr);
 
@@ -651,7 +673,7 @@ int32_t bowed(CSOUND *csound, BOWED *p)
 
     if (*p->vibAmt > FL(0.0)) {
       int32    temp;
-      MYFLT   temp_time, alpha;
+      cs_float   temp_time, alpha;
       /* Tick on vibrato table */
       p->v_time += p->v_rate;              /*  Update current time    */
       WG_WRAP_VIBRATO_PHASE(p->v_time, p->vibr->flen);
@@ -666,7 +688,7 @@ int32_t bowed(CSOUND *csound, BOWED *p)
 #endif
       temp = (int32_t) temp_time;    /*  Integer part of time address    */
       /*  fractional part of time address */
-      alpha = temp_time - (MYFLT)temp;
+      alpha = temp_time - (cs_float)temp;
       p->v_lastOutput = p->vibr->ftable[temp]; /* Do linear interpolation */
       /*  same as alpha*data[temp+1] + (1-alpha)data[temp] */
       p->v_lastOutput = p->v_lastOutput +
@@ -715,18 +737,18 @@ int32_t bowed(CSOUND *csound, BOWED *p)
 void make_DLineA(CSOUND *csound, DLineA *p, int32 max_length)
 {
   p->length = max_length;
-  csound->AuxAlloc(csound, max_length * sizeof(MYFLT), &p->inputs);
+  csound->AuxAlloc(csound, max_length * sizeof(cs_float), &p->inputs);
   p->lastIn = FL(0.0);
   p->lastOutput = FL(0.0);
   p->inPoint = 0;
   p->outPoint = max_length >> 1;
 }
 
-int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
+int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, cs_float lag)
 {
-  MYFLT outputPointer;
+  cs_float outputPointer;
   /* outPoint chases inpoint + 2 for interp and other        */
-  outputPointer = (MYFLT)p->inPoint - lag + FL(2.0);
+  outputPointer = (cs_float)p->inPoint - lag + FL(2.0);
 
   if (UNLIKELY(p->length<=0)) goto err1;
   while (outputPointer<0)
@@ -749,13 +771,13 @@ int32_t DLineA_setDelay(CSOUND *csound, DLineA *p, MYFLT lag)
   return NOTOK;
 }
 
-MYFLT DLineA_tick(DLineA *p, MYFLT sample)   /*   Take sample, yield sample */
+cs_float DLineA_tick(DLineA *p, cs_float sample)   /*   Take sample, yield sample */
 {
-  MYFLT temp;
-  ((MYFLT*)p->inputs.auxp)[p->inPoint++] = sample; /* Write input sample  */
+  cs_float temp;
+  ((cs_float*)p->inputs.auxp)[p->inPoint++] = sample; /* Write input sample  */
   if (p->inPoint >= p->length)                 /* Increment input pointer */
     p->inPoint -= p->length;                 /* modulo length           */
-  temp = ((MYFLT*)p->inputs.auxp)[p->outPoint++]; /* filter input         */
+  temp = ((cs_float*)p->inputs.auxp)[p->outPoint++]; /* filter input         */
   if (p->outPoint >= p->length)                /* Increment output pointer*/
     p->outPoint -= p->length;                /* modulo length           */
   p->lastOutput = -p->coeff * p->lastOutput;   /* delayed output          */
@@ -776,11 +798,11 @@ MYFLT DLineA_tick(DLineA *p, MYFLT sample)   /*   Take sample, yield sample */
 
 #define make_LipFilt(p) make_BiQuad(p)
 
-void LipFilt_setFreq(BRASS *p, LipFilt *pp, MYFLT frequency)
+void LipFilt_setFreq(BRASS *p, LipFilt *pp, cs_float frequency)
 {
-  MYFLT coeffs[2];
+  cs_float coeffs[2];
   coeffs[0] = FL(2.0) * FL(0.997) *
-    (MYFLT)cos(CS_TPIDSR * (double)frequency);   /* damping should  */
+    (cs_float)cos(CS_TPIDSR * (cs_double)frequency);   /* damping should  */
   coeffs[1] = -FL(0.997) * FL(0.997);                 /* change with lip */
   BiQuad_setPoleCoeffs(pp, coeffs);                    /* parameters, but */
   BiQuad_setGain(*pp, FL(0.03));                       /* not yet.        */
@@ -790,11 +812,11 @@ void LipFilt_setFreq(BRASS *p, LipFilt *pp, MYFLT frequency)
 /*              settings based on Mass/Spring/Damping     */
 /*              Maybe in TookKit97                        */
 
-MYFLT LipFilt_tick(LipFilt *p, MYFLT mouthSample, MYFLT boreSample)
+cs_float LipFilt_tick(LipFilt *p, cs_float mouthSample, cs_float boreSample)
 /*   Perform "Table Lookup" By Polynomial Calculation */
 {
-  MYFLT temp;
-  MYFLT output;
+  cs_float temp;
+  cs_float output;
   temp = mouthSample - boreSample;     /* Differential pressure        */
   temp = BiQuad_tick(p, temp);         /* Force -> position            */
   temp = temp*temp;                    /* Simple position to area mapping */
@@ -809,28 +831,28 @@ MYFLT LipFilt_tick(LipFilt *p, MYFLT mouthSample, MYFLT boreSample)
 int32_t brassset(CSOUND *csound, BRASS *p)
 {
   FUNC        *ftp;
-  MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+  cs_float amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
   if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL)) p->vibr = ftp;
   else {                                      /* Expect sine wave */
-    return csound->InitError(csound, "%s", Str("No table for Brass"));
+    return csound->InitError(csound, "%s\n", Str("No table for Brass"));
   }
   if (UNLIKELY(ftp->flen < 1)) {
-    return csound->InitError(csound, "%s",
+    return csound->InitError(csound, "%s\n",
                              Str("Brass vibrato table is empty"));
   }
-  p->frq = *p->frequency;     /* Remember */
   if (*p->lowestFreq>=FL(0.0)) {
+    cs_float frequency = *p->frequency;
     if (*p->lowestFreq!=FL(0.0)) {
       p->length = (int32_t) (CS_ESR / *p->lowestFreq + FL(1.0));
       p->limit = *p->lowestFreq;
     }
-    else if (p->frq!=FL(0.0)) {
-      p->length = (int32_t) (CS_ESR / p->frq + FL(1.0));
-      p->limit = p->frq;
+    else if (frequency!=FL(0.0)) {
+      p->length = (int32_t) (CS_ESR / frequency + FL(1.0));
+      p->limit = frequency;
     }
     else {
-      csound->Warning(csound, "%s", Str("No base frequency for brass "
+      csound->Warning(csound, "%s\n", Str("No base frequency for brass "
                                         "-- assumed to be 50Hz\n"));
       p->length = (int32_t) (CS_ESR / FL(50.0) + FL(1.0));
       p->limit = FL(50.0);
@@ -844,6 +866,7 @@ int32_t brassset(CSOUND *csound, BRASS *p)
 
     ADSR_setAttackRate(csound, &p->adsr, amp * FL(0.001));
 
+    p->lastamp = amp;
     p->maxPressure = amp;
     ADSR_keyOn(&p->adsr);
 
@@ -855,10 +878,11 @@ int32_t brassset(CSOUND *csound, BRASS *p)
     p->lipTarget = FL(0.0);
     /*        LipFilt_setFreq(csound, &p->lipFilter, p->frq); */
     /* End of set frequency */
-    p->frq = FL(0.0);         /* to say we do not know */
+    p->frq = FL(-1.0);        /* Update from the first k-rate frequency. */
     p->lipT = FL(0.0);
+    p->v_time = FL(0.0);
     /*     LipFilt_setFreq(csound, &p->lipFilter, */
-    /*                     p->lipTarget * (MYFLT)pow(4.0,
+    /*                     p->lipTarget * (cs_float)pow(4.0,
                            (2.0* p->lipT) -1.0)); */
     {
       int32_t relestim = (int32_t)(CS_EKR * FL(0.1));
@@ -866,30 +890,39 @@ int32_t brassset(CSOUND *csound, BRASS *p)
       if (relestim > p->h.insdshead->xtratim)
         p->h.insdshead->xtratim = relestim;
     }
-    p->kloop = (int32_t) ((int32_t) (p->h.insdshead->offtim * CS_EKR)
-                          - (int32_t) (CS_EKR * *p->dettack));
+    /* Keep the fourth argument's existing release lead-time meaning. */
+    p->kloop = p->h.insdshead->offtim > 0.0 ?
+      fmax(1.0, ceil((p->h.insdshead->offtim - *p->dettack) * CS_EKR) + 1.0)
+      : -1.0;
   }
   return OK;
 }
 
 int32_t brass(CSOUND *csound, BRASS *p)
 {
-  MYFLT *ar = p->ar;
+  cs_float *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-  MYFLT maxPressure = p->maxPressure = amp;
+  cs_float amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+  cs_float maxPressure = p->maxPressure = amp;
   int32_t v_len = (int32_t)p->vibr->flen;
-  MYFLT *v_data = p->vibr->ftable;
-  MYFLT vibGain = *p->vibAmt;
-  MYFLT vTime = p->v_time;
+  cs_float *v_data = p->vibr->ftable;
+  cs_float vibGain = *p->vibAmt;
+  cs_float vTime = p->v_time;
 
+  int32_t frequencyChanged = 0;
+  if (amp != p->lastamp) {
+    ADSR_setAttackRate(csound, &p->adsr, amp * FL(0.001));
+    if (p->adsr.state == ATTACK) p->adsr.rate = p->adsr.attackRate;
+    p->lastamp = amp;
+  }
   p->v_rate = *p->vibFreq * v_len * CS_ONEDSR;
   /*   vibr->setFreq(6.137); */
   /* vibrGain = 0.05; */            /* breath periodic vibrato component  */
-  if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-  if ((--p->kloop) == 0) {
+  if (p->kloop != 0.0 && (p->h.insdshead->relesing ||
+                          (p->kloop > 0.0 && --p->kloop == 0.0))) {
+    p->kloop = 0.0;
     ADSR_setReleaseRate(csound, &p->adsr, amp * FL(0.005));
     ADSR_keyOff(&p->adsr);
   }
@@ -897,33 +930,33 @@ int32_t brass(CSOUND *csound, BRASS *p)
     p->frq = *p->frequency;
     if (p->limit > p->frq) {
       p->frq =p->limit;
-      csound->Warning(csound, "%s", Str("frequency too low, set to minimum"));
+      csound->Warning(csound, "%s\n", Str("frequency too low, set to minimum"));
     }
     p->slideTarget = (CS_ESR / p->frq * FL(2.0)) + FL(3.0);
     /* fudge correction for filter delays */
     /*  we'll play a harmonic */
     if (DLineA_setDelay(csound, &p->delayLine, p->slideTarget)) return OK;
     p->lipTarget = p->frq;
-    p->lipT = FL(0.0);                /* So other part is set */
+    frequencyChanged = 1;
   } /* End of set frequency */
-  if (*p->liptension != p->lipT) {
+  if (frequencyChanged || *p->liptension != p->lipT) {
     p->lipT = *p->liptension;
     LipFilt_setFreq(p, &p->lipFilter,
-                    p->lipTarget * (MYFLT)pow(4.0,(2.0* p->lipT) -1.0));
+                    p->lipTarget * (cs_float)pow(4.0,(2.0* p->lipT) -1.0));
   }
 
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset;n<nsmps;n++) {
-    MYFLT     breathPressure;
-    MYFLT     lastOutput;
+    cs_float     breathPressure;
+    cs_float     lastOutput;
     int32_t       temp;
-    MYFLT     temp_time, alpha;
-    MYFLT     v_lastOutput;
-    MYFLT     ans;
+    cs_float     temp_time, alpha;
+    cs_float     v_lastOutput;
+    cs_float     ans;
 
     breathPressure = maxPressure * ADSR_tick(&p->adsr);
     /* Tick on vibrato table */
@@ -941,7 +974,7 @@ int32_t brass(CSOUND *csound, BRASS *p)
 
     temp = (int32_t) temp_time;            /*  Integer part of time address    */
     /*  fractional part of time address */
-    alpha = temp_time - (MYFLT)temp;
+    alpha = temp_time - (cs_float)temp;
     v_lastOutput = v_data[temp];  /* Do linear interpolation, same as */
     v_lastOutput +=               /*alpha*data[temp+1]+(1-alpha)data[temp] */
       (alpha * (v_data[temp+1] - v_lastOutput));

@@ -26,7 +26,7 @@
  stackops: copyright (C) 2006 Istvan Varga
 */
 static int32_t STR_ARG_P(CSOUND *csound, void* arg) {
-    CS_TYPE *cs_type = GetTypeForArg(arg);
+    const CS_TYPE *cs_type = GetTypeForArg(arg);
     if (strcmp("S", cs_type->varTypeName) == 0) {
       return 1;
     } else {
@@ -35,7 +35,7 @@ static int32_t STR_ARG_P(CSOUND *csound, void* arg) {
 }
 
 static int32_t ASIG_ARG_P(CSOUND *csound, void* arg) {
-    CS_TYPE *cs_type = GetTypeForArg(arg);
+    const CS_TYPE *cs_type = GetTypeForArg(arg);
     if (strcmp("a", cs_type->varTypeName) == 0) {
       return 1;
     } else {
@@ -63,12 +63,12 @@ struct CsoundArgStack_s {
 
 typedef struct STACK_OPCODE_ {
     OPDS    h;
-    MYFLT   *iStackSize;
+    cs_float   *iStackSize;
 } STACK_OPCODE;
 
 typedef struct PUSH_OPCODE_ {
     OPDS    h;
-    MYFLT   *args[32];
+    cs_float   *args[32];
     /* argMap[0]: bit mask of init (0) or perf (1) time arg type */
     /* argMap[1]: number of stack bytes required at i-time */
     /* argMap[2]: number of stack bytes required at performace time */
@@ -80,7 +80,7 @@ typedef struct PUSH_OPCODE_ {
 
 typedef struct POP_OPCODE_ {
     OPDS    h;
-    MYFLT   *args[32];
+    cs_float   *args[32];
     /* argMap[0]: bit mask of init (0) or perf (1) time arg type */
     /* argMap[1]: number of stack bytes required at i-time */
     /* argMap[2]: number of stack bytes required at performace time */
@@ -199,7 +199,7 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
 {
     CSOUND  *csound;
     int32_t     i, argCnt, argCnt_i, argCnt_p, curOffs_i, curOffs_p;
-    MYFLT** args = p->args;
+    cs_float** args = p->args;
 
     csound = ((OPDS*) p)->insdshead->csound;
     if (!isOutput) {
@@ -252,11 +252,11 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
         /* performance time types */
         if (ASIG_ARG_P(csound, args[i])) {
           argMap[i + 3] = (curOffs_p | CS_STACK_A);
-          curOffs_p += ((int32_t) sizeof(MYFLT) * CS_KSMPS);
+          curOffs_p += ((int32_t) sizeof(cs_float) * CS_KSMPS);
         }
         else {
           argMap[i + 3] = (curOffs_p | CS_STACK_K);
-          curOffs_p += (int32_t) sizeof(MYFLT);
+          curOffs_p += (int32_t) sizeof(cs_float);
         }
       }
       else {
@@ -268,7 +268,7 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
         }
         else {
           argMap[i + 3] = (curOffs_i | CS_STACK_I);
-          curOffs_i += (int32_t) sizeof(MYFLT);
+          curOffs_i += (int32_t) sizeof(cs_float);
         }
       }
     }
@@ -288,7 +288,7 @@ static CS_NOINLINE int32_t csoundStack_CreateArgMap(PUSH_OPCODE *p, int32_t *arg
 static int32_t stack_opcode_init(CSOUND *csound, STACK_OPCODE *p)
 {
     if (UNLIKELY(csound->QueryGlobalVariable(csound, "csArgStack") != NULL))
-      return csound->InitError(csound, "%s", Str("the stack is already allocated"));
+      return csound->InitError(csound, "%s\n", Str("the stack is already allocated"));
     csoundStack_AllocGlobals(csound, (int32_t) (*(p->iStackSize) + 0.5));
     return OK;
 }
@@ -296,7 +296,7 @@ static int32_t stack_opcode_init(CSOUND *csound, STACK_OPCODE *p)
 static int32_t notinit_opcode_stub_perf(CSOUND *csound, void *p)
 {
     return csound->PerfError(csound, &(((STACK_OPCODE*)p)->h),
-                             Str("%s: not initialised"),
+                             Str("%s: not initialised\n"),
                              GetOpcodeName((OPDS *)p));
 }
 
@@ -320,24 +320,24 @@ static int32_t push_opcode_perf(CSOUND *csound, PUSH_OPCODE *p)
           *(ofsp++) = curOffs;
           switch (curOffs & (int32_t) 0x7F000000) {
           case CS_STACK_K:
-            *((MYFLT*) ((char*) bp + (int32_t) (curOffs & (int32_t) 0x00FFFFFF))) =
+            *((cs_float*) ((char*) bp + (int32_t) (curOffs & (int32_t) 0x00FFFFFF))) =
                 *(p->args[i]);
             break;
           case CS_STACK_A:
             {
-              MYFLT *src, *dst;
+              cs_float *src, *dst;
               uint32_t offset = p->h.insdshead->ksmps_offset;
               uint32_t early  = p->h.insdshead->ksmps_no_end;
               uint32_t nsmps = CS_KSMPS;
               src = p->args[i];
-              dst = (MYFLT*) ((char*) bp +
+              dst = (cs_float*) ((char*) bp +
                               (int32_t) (curOffs & (int32_t) 0x00FFFFFF));
-              if (UNLIKELY(offset)) memset(dst, '\0', offset*sizeof(MYFLT));
+              if (UNLIKELY(offset)) memset(dst, '\0', offset*sizeof(cs_float));
               if (UNLIKELY(early)) {
                 nsmps -= early;
-                memset(&dst[nsmps], '\0', early*sizeof(MYFLT));
+                memset(&dst[nsmps], '\0', early*sizeof(cs_float));
               }
-              memcpy(&dst[offset], &src[offset], sizeof(MYFLT)*(nsmps-offset));
+              memcpy(&dst[offset], &src[offset], sizeof(cs_float)*(nsmps-offset));
               //for (j = 0; j < nsmps; j++)
               //dst[j] = src[j];
             }
@@ -376,7 +376,7 @@ static int32_t push_opcode_init(CSOUND *csound, PUSH_OPCODE *p)
           *(ofsp++) = curOffs;
           switch (curOffs & (int32_t) 0x7F000000) {
           case CS_STACK_I:
-            *((MYFLT*) ((char*) bp + (int32_t) (curOffs & (int32_t) 0x00FFFFFF))) =
+            *((cs_float*) ((char*) bp + (int32_t) (curOffs & (int32_t) 0x00FFFFFF))) =
                 *(p->args[i]);
             break;
           case CS_STACK_S:
@@ -422,24 +422,24 @@ static int32_t pop_opcode_perf(CSOUND *csound, POP_OPCODE *p)
           switch (curOffs & (int32_t) 0x7F000000) {
           case CS_STACK_K:
             *(p->args[i]) =
-                *((MYFLT*) ((char*) bp +
+                *((cs_float*) ((char*) bp +
                             (int32_t) (curOffs & (int32_t) 0x00FFFFFF)));
             break;
           case CS_STACK_A:
             {
-              MYFLT *src, *dst;
+              cs_float *src, *dst;
               uint32_t offset = p->h.insdshead->ksmps_offset;
               uint32_t early  = p->h.insdshead->ksmps_no_end;
               uint32_t nsmps = CS_KSMPS;
-              src = (MYFLT*) ((char*) bp +
+              src = (cs_float*) ((char*) bp +
                               (int32_t) (curOffs & (int32_t) 0x00FFFFFF));
               dst = p->args[i];
-              if (UNLIKELY(offset)) memset(dst, '\0', offset*sizeof(MYFLT));
+              if (UNLIKELY(offset)) memset(dst, '\0', offset*sizeof(cs_float));
               if (UNLIKELY(early)) {
                 nsmps -= early;
-                memset(&dst[nsmps], '\0', early*sizeof(MYFLT));
+                memset(&dst[nsmps], '\0', early*sizeof(cs_float));
               }
-              memcpy(&dst[offset], &src[offset], (nsmps-offset)*sizeof(MYFLT));
+              memcpy(&dst[offset], &src[offset], (nsmps-offset)*sizeof(cs_float));
               //for (j = 0; j < CS_KSMPS; j++)
               //  dst[j] = src[j];
             }
@@ -480,7 +480,7 @@ static int32_t pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
           switch (curOffs & (int32_t) 0x7F000000) {
           case CS_STACK_I:
             *(p->args[i]) =
-                *((MYFLT*) ((char*) bp +
+                *((cs_float*) ((char*) bp +
                             (int32_t) (curOffs & (int32_t) 0x00FFFFFF)));
             break;
           case CS_STACK_S:
@@ -493,7 +493,7 @@ static int32_t pop_opcode_init(CSOUND *csound, POP_OPCODE *p)
               /* printf("***string: %p\nbp=%p Off = %x\n", ans, bp, curOffs); */
               /* printf("***string: %p->%s\n", str, dst->data); */
               if (str==NULL)
-                return csound->InitError(csound, "pop of strings broken");
+                return csound->InitError(csound, Str("pop of strings broken\n"));
               if (str->size>dst->size) {
                 csound->Free(csound,dst->data);
                 dst->data = csound->Strdup(csound, str->data);

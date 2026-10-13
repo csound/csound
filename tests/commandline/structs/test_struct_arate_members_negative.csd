@@ -3,7 +3,7 @@ description = "fail when a-rate struct members are initialized with constants"
 
 [expect]
 exit = "nonzero"
-stderr = [":AudioBus; init cc"]
+stderr = ["AudioBus init c, c"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

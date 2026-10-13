@@ -31,9 +31,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#ifndef MYFLT
 #include "sysdep.h"
-#endif
 #include "lpc.h"
 #include "text.h"
 
@@ -49,7 +47,7 @@ static int32_t lpc_export(CSOUND *csound, int32_t argc, char **argv)
     LPHEADER hdr;
     uint32_t i, j;
     char *str;
-    MYFLT *coef;
+    cs_float *coef;
 
     if (UNLIKELY(argc!= 3)) {
       lpc_export_usage(csound);
@@ -93,11 +91,11 @@ static int32_t lpc_export(CSOUND *csound, int32_t argc, char **argv)
     for (i=0; i<hdr.headersize-sizeof(LPHEADER)+4; i++)
       putc(str[i],outf);
     putc('\n', outf);
-    coef = (MYFLT *)csound->Malloc(csound,(hdr.npoles+hdr.nvals)*sizeof(MYFLT));
+    coef = (cs_float *)csound->Malloc(csound,(hdr.npoles+hdr.nvals)*sizeof(cs_float));
     if (UNLIKELY(coef==NULL)) {
       fclose(inf); fclose(outf); csound->Free(csound,str); return 3;}
     for (i = 0; i<(uint32_t)floor(hdr.framrate*hdr.duration); i++) {
-      if (UNLIKELY(fread(&coef[0], sizeof(MYFLT), hdr.npoles, inf)!=hdr.npoles))
+      if (UNLIKELY(fread(&coef[0], sizeof(cs_float), hdr.npoles, inf)!=hdr.npoles))
         csound->Message(csound, "%s", Str("Read failure\n"));
       for (j=0; j<hdr.npoles; j++)
         fprintf(outf, "%f%c", coef[j], (j==hdr.npoles-1 ? '\n' : ','));

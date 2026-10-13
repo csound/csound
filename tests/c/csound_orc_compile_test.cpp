@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "csoundCore.h"
+#include "csound_type_system.h"
 #include "gtest/gtest.h"
 #include <cstring>
 #include <cmath>
@@ -19,6 +20,7 @@
 #include <vector>
 extern "C" {
 #include "str_ops.h"
+#include "udo.h"
 }
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
@@ -79,13 +81,13 @@ endin
     ASSERT_EQ(0, csoundCompileOrc(csound, orc));
     csoundReadScore(csound, "i 1 0 .01\n");
     ASSERT_EQ(0, csoundStart(csound));
-    MYFLT *table = nullptr;
+    cs_float *table = nullptr;
     ASSERT_EQ(4, csoundGetTable(csound, &table, 1));
     // Even a zero interpolation weight must not read beyond the last pair.
-    table[4] = std::numeric_limits<MYFLT>::quiet_NaN();
+    table[4] = std::numeric_limits<cs_float>::quiet_NaN();
     csoundPerformKsmps(csound);
     ASSERT_EQ(0, csoundErrCnt(csound));
-    const MYFLT *output = csoundGetSpout(csound);
+    const cs_float *output = csoundGetSpout(csound);
     EXPECT_NEAR(0, output[0], 1e-6);
     EXPECT_NEAR(1, output[1], 1e-6);
     EXPECT_NEAR(0, output[2], 1e-6);
@@ -117,8 +119,8 @@ TEST_P(SpaceTrajectoryErrorTests, ReportsInvalidInput)
         orc += "kdist spdist 1, ktime, 0, 0\n";
     orc += "endin\n";
     ASSERT_EQ(0, csoundCompileOrc(csound, orc.c_str()));
-    MYFLT time = invalid == 1 ? std::numeric_limits<MYFLT>::quiet_NaN() :
-                 invalid == 2 ? std::numeric_limits<MYFLT>::infinity() : 0;
+    cs_float time = invalid == 1 ? std::numeric_limits<cs_float>::quiet_NaN() :
+                 invalid == 2 ? std::numeric_limits<cs_float>::infinity() : 0;
     csoundSetControlChannel(csound, "time", time);
     csoundReadScore(csound, "i 1 0 .01\n");
     ASSERT_EQ(0, csoundStart(csound));
@@ -141,11 +143,11 @@ INSTANTIATE_TEST_SUITE_P(
                        ::testing::Values(0, 1, 2)));
 
 class OLABufferTests : public OrcCompileTests,
-                      public ::testing::WithParamInterface<MYFLT> {};
+                      public ::testing::WithParamInterface<cs_float> {};
 
 TEST_P(OLABufferTests, ValidatesOverlapBeforeIntegerArithmetic)
 {
-    const MYFLT overlap = GetParam();
+    const cs_float overlap = GetParam();
     const bool valid = overlap == 1 || overlap == 2 || overlap == 4;
     const char *instrument = R"(
 sr = 48000
@@ -177,8 +179,9 @@ schedule(2, 0, 0.001)
         // Once all frames contain ones, overlap-add must sum to the factor.
         for (int sample = 0; sample < 24; ++sample) {
             ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
-            if (sample >= 8)
+            if (sample >= 8) {
                 EXPECT_EQ(csoundGetSpout(csound)[0], overlap);
+            }
         }
     }
     else {
@@ -203,19 +206,19 @@ schedule(2, 0, 0.001)
 INSTANTIATE_TEST_SUITE_P(
     OverlapFactors, OLABufferTests,
     ::testing::Values(FL(0.0), FL(-1.0), FL(0.5), FL(3.0), FL(8.0),
-                      FL(2147483648.0), std::numeric_limits<MYFLT>::infinity(),
-                      -std::numeric_limits<MYFLT>::infinity(),
-                      std::numeric_limits<MYFLT>::quiet_NaN(),
+                      FL(2147483648.0), std::numeric_limits<cs_float>::infinity(),
+                      -std::numeric_limits<cs_float>::infinity(),
+                      std::numeric_limits<cs_float>::quiet_NaN(),
                       FL(1.0), FL(2.0), FL(4.0)));
 
 struct ScanhammerCase {
     const char *name;
     int source;
     int destination;
-    MYFLT position;
-    MYFLT gain;
+    cs_float position;
+    cs_float gain;
     bool valid;
-    std::vector<MYFLT> expected;
+    std::vector<cs_float> expected;
 };
 
 class ScanhammerTests : public OrcCompileTests,
@@ -253,7 +256,7 @@ schedule(1, 0, 0.001)
 
     // Check every point, including untouched values and the separate guard.
     // Invalid input must leave the existing destination unchanged.
-    MYFLT *table = nullptr;
+    cs_float *table = nullptr;
     ASSERT_EQ(csoundGetTable(csound, &table, 2),
               static_cast<int>(test.expected.size()) - 1);
     ASSERT_NE(table, nullptr);
@@ -272,7 +275,7 @@ INSTANTIATE_TEST_SUITE_P(
         ScanhammerCase{"MissingDestination", 1, 99, 0, 1, false, {1, 2, 3, 4, 99}},
         ScanhammerCase{"NegativePosition", 1, 2, -1, 1, false, {1, 2, 3, 4, 99}},
         ScanhammerCase{"PositionAtLength", 1, 2, 4, 1, false, {1, 2, 3, 4, 99}},
-        ScanhammerCase{"NaNPosition", 1, 2, std::numeric_limits<MYFLT>::quiet_NaN(),
+        ScanhammerCase{"NaNPosition", 1, 2, std::numeric_limits<cs_float>::quiet_NaN(),
                        1, false, {1, 2, 3, 4, 99}}),
     [](const ::testing::TestParamInfo<ScanhammerCase> &info) {
         return info.param.name;
@@ -415,6 +418,62 @@ endop
 }
 
 
+TEST_F (OrcCompileTests, testStructArrayMemberAssignmentRates)
+{
+    const char* orchestra = R"(
+struct Field value:i, enabled:b
+struct Record field:Field
+fields@global:Field[] init 1
+records@global:Record[] init 1
+
+opcode WriteFlat(index:i):void
+  fields[index].value = 7
+endop
+opcode WriteNested(index:i):void
+  records[index].field.value = 9
+endop
+opcode WriteBoolean(index:i):void
+  records[index].field.enabled = (index == 0)
+endop
+opcode WriteWithPerformance(index:i):void
+  fields[index].value = 7
+  printks "", 1
+endop
+opcode WriteKValue(input:i):void
+  value:k init input
+  fields[0].value = value
+endop
+opcode WriteKBoolean(input:i):void
+  value:k init input
+  fields[0].enabled = (value > 0)
+endop
+opcode WriteFromKIndex(input:i):void
+  index:k init input
+  fields[0].value = fields[index].value
+endop
+opcode WriteToKIndex(input:i):void
+  index:k init input
+  fields[index].value = 7
+endop
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    for (const char* name : {"WriteFlat", "WriteNested", "WriteBoolean"}) {
+        OENTRY* entry = find_opcode_new(csound, name, "", "i");
+        ASSERT_NE(nullptr, entry) << name;
+        EXPECT_EQ(nullptr, entry->perf) << name;
+    }
+    OENTRY* perf = find_opcode_new(csound, "WriteWithPerformance", "", "i");
+    ASSERT_NE(nullptr, perf);
+    EXPECT_NE(nullptr, perf->perf);
+    for (const char* name : {"WriteKValue", "WriteKBoolean",
+                             "WriteFromKIndex", "WriteToKIndex"}) {
+        OENTRY* entry = find_opcode_new(csound, name, "", "i");
+        ASSERT_NE(nullptr, entry) << name;
+        EXPECT_NE(nullptr, entry->perf) << name;
+    }
+}
+
 TEST_F (OrcCompileTests, testInitOnlyGeneratedGetterConsumers)
 {
     const char* orchestra = R"(
@@ -532,6 +591,112 @@ endin
     }
     // Completed branches reuse frames; only recursion depth sets the bound.
     EXPECT_LE(instances, 16);
+}
+
+TEST_F (OrcCompileTests, UdosAtParentSampleRateDoNotAllocateConverters)
+{
+    const char* orchestra = R"(
+sr = 64
+ksmps = 8
+nchnls = 1
+0dbfs = 1
+opcode SameRate(signal:a):a
+  xout signal * 2
+endop
+opcode SmallerBlock(signal:a):a
+  setksmps 2
+  xout signal * 2
+endop
+instr 1
+  input:a = 0.25
+  out SameRate(input) + SmallerBlock(input)
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    EXPECT_EQ(FL(1.0), csoundGetSpout(csound)[0]);
+
+    for (const char* name : {"SameRate", "SmallerBlock"}) {
+        SCOPED_TRACE(name);
+        OENTRY* entry = find_opcode_new(csound, name, "a", "a");
+        ASSERT_NE(nullptr, entry);
+        OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+        ASSERT_NE(nullptr, info->ip->instance);
+        OPCOD_IOBUFS* buffers = (OPCOD_IOBUFS*)info->ip->instance->opcod_iobufs;
+        ASSERT_NE(nullptr, buffers);
+        UOPCODE* call = (UOPCODE*)buffers->uopcode_struct;
+        ASSERT_NE(nullptr, call);
+        EXPECT_EQ(nullptr, call->cvt_in);
+        EXPECT_EQ(nullptr, call->cvt_out);
+    }
+}
+
+TEST_F (OrcCompileTests, UdoConvertersFollowRateChangesAndTurnoff)
+{
+    const char* orchestra = R"(
+sr = 64
+ksmps = 8
+nchnls = 1
+0dbfs = 1
+opcode ResampledGain(signal:a, factor:i):a
+  oversample factor, 3, 3
+  xout signal * 2
+endop
+instr 1
+  cycle:k timeinstk
+  factor:k init 2
+  if cycle == 4 then
+    factor = 1
+    reinit SET_RATE
+  elseif cycle == 7 then
+    factor = 2
+    reinit SET_RATE
+  elseif cycle == 10 then
+    turnoff
+  endif
+  input:a = 0.25
+SET_RATE:
+  result:a = ResampledGain(input, i(factor))
+  rireturn
+  out result
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 2\nf 0 2\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    UOPCODE* call = nullptr;
+    for (int cycle = 1; cycle <= 10; ++cycle) {
+        SCOPED_TRACE(cycle);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+        if (call == nullptr) {
+            OENTRY* entry = find_opcode_new(csound, "ResampledGain", "a", "ai");
+            ASSERT_NE(nullptr, entry);
+            OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+            ASSERT_NE(nullptr, info->ip->instance);
+            OPCOD_IOBUFS* buffers = (OPCOD_IOBUFS*)info->ip->instance->opcod_iobufs;
+            ASSERT_NE(nullptr, buffers);
+            call = (UOPCODE*)buffers->uopcode_struct;
+            ASSERT_NE(nullptr, call);
+        }
+        if ((cycle >= 4 && cycle <= 6) || cycle == 10) {
+            EXPECT_EQ(nullptr, call->cvt_in);
+            EXPECT_EQ(nullptr, call->cvt_out);
+        } else {
+            ASSERT_NE(nullptr, call->cvt_in);
+            ASSERT_NE(nullptr, call->cvt_out);
+            EXPECT_NE(nullptr, call->cvt_in[0]);
+            EXPECT_NE(nullptr, call->cvt_out[0]);
+        }
+        // Each converter has settled by the third block after initialization.
+        if (cycle % 3 == 0)
+            EXPECT_NEAR(0.5, csoundGetSpout(csound)[0], 1e-6);
+    }
+    EXPECT_EQ(0, csoundErrCnt(csound));
 }
 
 TEST_F (OrcCompileTests, testCompile)
@@ -1509,7 +1674,7 @@ const char* event = R"(
      result = csoundStart(csound);
      ASSERT_TRUE(result == 0);
      result = csoundPerformKsmps(csound);
-    if(sizeof(MYFLT) > 4) {
+    if(sizeof(cs_float) > 4) {
     ASSERT_TRUE(result == 0);
     ASSERT_TRUE(csoundTableLength(csound,1) == pow(2,30)-1);
    }
@@ -1525,7 +1690,7 @@ TEST_F (OrcCompileTests, test0dbfs)
 
   int result = csoundCompileOrc(csound, instrument);
   ASSERT_TRUE(result == 0);
-  MYFLT val = csoundGet0dBFS(csound);
+  cs_float val = csoundGet0dBFS(csound);
   ASSERT_TRUE(val == 1.0);
 }
 
@@ -1574,7 +1739,7 @@ schedule(1,6/sr,0.5)
   result = csoundStart(csound);
   ASSERT_TRUE(result == 0);
   result = csoundPerformKsmps(csound);
-  const MYFLT *spout = csoundGetSpout(csound);
+  const cs_float *spout = csoundGetSpout(csound);
   ASSERT_TRUE(spout[5] == 0.0);
   ASSERT_TRUE(spout[6] == 1.0);
 
@@ -1611,14 +1776,14 @@ schedule(1, 0, 40 / sr, 2)
   ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
   ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
 
-  const MYFLT *spout = csoundGetSpout(csound);
+  const cs_float *spout = csoundGetSpout(csound);
   ASSERT_NE(spout, nullptr);
   constexpr int32_t blockSize = 64;
   constexpr int32_t channelCount = 2;
   constexpr int32_t endSamples[] = {24, 40};
   for (int32_t sample = 0; sample < blockSize; ++sample) {
     for (int32_t channel = 0; channel < channelCount; ++channel) {
-      const MYFLT expected =
+      const cs_float expected =
         sample < endSamples[channel] ? FL(1.0) : FL(0.0);
       EXPECT_EQ(expected, spout[sample * channelCount + channel])
         << "sample " << sample << ", channel " << channel + 1;
@@ -1647,6 +1812,66 @@ i 1 0 -1
   result = csoundStart(csound);
   ASSERT_TRUE(result == 0);
   result = csoundPerformKsmps(csound);
+}
+
+TEST_F (OrcCompileTests, testEmptyOrchestraCreatesInstr0)
+{
+  /* main.c compiles an empty string at startup so that instr0 exists and the
+     system constants are initialised even with no orchestra. */
+  ASSERT_EQ (nullptr, csound->instr0);
+  ASSERT_EQ (CSOUND_SUCCESS, csoundCompileOrc(csound, ""));
+  ASSERT_NE (nullptr, csound->instr0);
+
+  /* instr0 must be usable afterwards, so a later real orchestra still works. */
+  const char* instrument = R"(
+instr 1
+  aOut = 1
+  out aOut
+endin
+)";
+  ASSERT_EQ (CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testEmptyOrchestraInitialisesSystemConstants)
+{
+  ASSERT_EQ (CSOUND_SUCCESS, csoundCompileOrc(csound, ""));
+  ASSERT_NE (nullptr, csound->instr0);
+
+  /* create_instrument0() registers these globals in the engine state pool;
+     finding them back proves they were created and given memory. */
+  static const char* constants[] = {"sr",     "kr",         "ksmps",
+                                    "nchnls", "nchnls_i",   "0dbfs",
+                                    "A4",     "$sr",        "$kr",
+                                    "$ksmps"};
+  for (const char* name : constants) {
+    CS_VARIABLE *var = csoundFindVariableWithName(csound,
+                                                 csound->engineState.varPool,
+                                                 (char *) name);
+    EXPECT_NE(nullptr, var) << "missing system constant " << name;
+    if (var != nullptr)
+      EXPECT_NE(nullptr, var->memBlock) << "unallocated constant " << name;
+  }
+
+  /* A real orchestra must still compile against those globals. */
+  const char* instrument = R"(
+instr 1
+  aOut = sr
+  out aOut
+endin
+)";
+  ASSERT_EQ (CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
+}
+
+TEST_F (OrcCompileTests, testMalformedOrchestraStillFails)
+{
+  /* Empty input is legal, but that must not make real syntax errors pass:
+     the parser signals failure by returning no tree. */
+  const char* instrument = R"(
+instr 1
+  a1 =
+endin
+)";
+  EXPECT_EQ (CSOUND_ERROR, csoundCompileOrc(csound, instrument));
 }
 
 TEST (ScoreCompileTests, testUnmatchedScoreParenthesis)
@@ -1746,6 +1971,81 @@ TEST_F (OrcCompileTests, StrcatDoesNotCopyUnusedInputCapacity)
     for (size_t i = output.size; i < sizeof(outputData); i++) {
         EXPECT_EQ('x', outputData[i]) << "write beyond output capacity at " << i;
     }
+}
+
+TEST_F (OrcCompileTests, StrsubAllocatesForSubstringLength)
+{
+    char inputData[65536]{};
+    std::memset(inputData, 'x', sizeof(inputData) - 1);
+    STRINGDAT input{};
+    input.data = inputData;
+    input.size = sizeof(inputData);
+    STRINGDAT output{};
+    cs_float start = 0;
+    cs_float end = 1;
+    STRSUB_OP op{};
+    op.Ssrc = &input;
+    op.Sdst = &output;
+    op.istart = &start;
+    op.iend = &end;
+
+    ASSERT_EQ(OK, strsub_opcode(csound, &op));
+    EXPECT_STREQ("x", output.data);
+    EXPECT_EQ(2, output.size);
+    csound->Free(csound, output.data);
+}
+
+TEST_F (OrcCompileTests, StrsubReusesThenGrowsOutputBuffer)
+{
+    char inputData[128] = "abcdef";
+    STRINGDAT input{};
+    input.data = inputData;
+    input.size = sizeof(inputData);
+    STRINGDAT output{};
+    output.data = static_cast<char *>(csound->Calloc(csound, 4));
+    output.size = 4;
+    char *originalBuffer = output.data;
+    cs_float start = 1;
+    cs_float end = 3;
+    STRSUB_OP op{};
+    op.Ssrc = &input;
+    op.Sdst = &output;
+    op.istart = &start;
+    op.iend = &end;
+
+    ASSERT_EQ(OK, strsub_opcode(csound, &op));
+    EXPECT_STREQ("bc", output.data);
+    EXPECT_EQ(originalBuffer, output.data);
+    EXPECT_EQ(4, output.size);
+
+    start = 6;
+    end = 0;
+    ASSERT_EQ(OK, strsub_opcode(csound, &op));
+    EXPECT_STREQ("fedcba", output.data);
+    EXPECT_EQ(7, output.size);
+    csound->Free(csound, output.data);
+}
+
+TEST_F (OrcCompileTests, StrsubAllocatesEmptyOutputTerminator)
+{
+    char inputData[128] = "abc";
+    STRINGDAT input{};
+    input.data = inputData;
+    input.size = sizeof(inputData);
+    STRINGDAT output{};
+    cs_float start = 1;
+    cs_float end = 1;
+    STRSUB_OP op{};
+    op.Ssrc = &input;
+    op.Sdst = &output;
+    op.istart = &start;
+    op.iend = &end;
+
+    ASSERT_EQ(OK, strsub_opcode(csound, &op));
+    ASSERT_NE(nullptr, output.data);
+    EXPECT_STREQ("", output.data);
+    EXPECT_EQ(1, output.size);
+    csound->Free(csound, output.data);
 }
 
 /* Functional init(-1) used to fail: unary minus is an expression, so

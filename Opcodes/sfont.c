@@ -49,7 +49,9 @@
 
 
 static int32_t chunk_read(CSOUND *, FILE *f, CHUNK *chunk);
-static void fill_SfPointers(CSOUND *);
+static int32_t fill_SfPointers(CSOUND *);
+static void free_SfBank(CSOUND *, SFBANK *);
+static int32_t compare(presetType *, presetType *);
 static int32_t  fill_SfStruct(CSOUND *);
 static void layerDefaults(layerType *layer);
 static void splitDefaults(splitType *split);
@@ -68,78 +70,75 @@ typedef struct _sfontg {
   int32_t maxSFndx;
   presetType **presetp;
   SHORT **sampleBase;
-  MYFLT pitches[128];
+  cs_float pitches[128];
 } sfontg;
 
 static int32_t SoundFontLoad(CSOUND *csound, char *fname)
 {
     FILE *fil;
     void *fd;
-    int32_t i;
+    int32_t i, status;
     SFBANK *soundFont;
-    sfontg *globals;
-    globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
+    sfontg *globals = (sfontg *) csound->QueryGlobalVariable(csound, "::sfontg");
 
-    //soundFont = globals->soundFont;
     fd = csound->FileOpen(csound, &fil, CSFILE_STD, fname, "rb",
-                             "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
-    if (UNLIKELY(fd == NULL)) {
-      #ifndef __wasi__
-      csound->ErrorMsg(csound,
-                  Str("sfload: cannot open SoundFont file \"%s\" (error %s)"),
-                  fname, strerror(errno));
-      #else
-      csound->ErrorMsg(csound, Str("sfload: cannot open SoundFont file \"%s\""), fname);
-      #endif
-      return -1;
-    }
-    for (i=0; i<globals->currSFndx+1; i++) {
-      //printf("name[%d]: %s \n",  i, globals->sfArray[i].name);
-      if (strcmp(fname, globals->sfArray[i].name)==0) {
-        csound->Warning(csound, "%s already loaded", fname);
+                         "SFDIR;SSDIR", CSFTYPE_SOUNDFONT, 0);
+    if (UNLIKELY(fd == NULL))
+      return csound->InitError(csound, Str("sfload: cannot open SoundFont file \"%s\"\n"),
+                               fname);
+    for (i = 0; i < globals->currSFndx; i++) {
+      if (strcmp(csound->GetFileName(fd), globals->sfArray[i].name) == 0) {
+        csound->Warning(csound, Str("%s already loaded\n"), fname);
+        csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
         return i;
       }
     }
+    if (globals->currSFndx == globals->maxSFndx) {
+      globals->maxSFndx += 5;
+      globals->sfArray = (SFBANK *) csound->ReAlloc(csound, globals->sfArray,
+                                        globals->maxSFndx * sizeof(SFBANK));
+    }
     soundFont = &globals->sfArray[globals->currSFndx];
-    /* if (UNLIKELY(soundFont==NULL)){ */
-    /*   csound->ErrorMsg(csound, Str("Sfload: cannot use globals")); */
-    /*   return; */
-    /* } */
-    strncpy(soundFont->name, csound->GetFileName(fd), 256);
-    //soundFont->name[255]='\0';
-    if (UNLIKELY(chunk_read(csound, fil, &soundFont->chunk.main_chunk)<0))
-      csound->Message(csound, "%s", Str("sfont: failed to read file\n"));
+    memset(soundFont, 0, sizeof(*soundFont));
+    soundFont->name = csound->Strdup(csound, csound->GetFileName(fd));
+    status = chunk_read(csound, fil, &soundFont->chunk.main_chunk);
     csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
     globals->soundFont = soundFont;
-    fill_SfPointers(csound);
-    fill_SfStruct(csound);
-    return -1;
+    if (status != OK || fill_SfPointers(csound) != OK ||
+        fill_SfStruct(csound) != OK) {
+      free_SfBank(csound, soundFont);
+      globals->soundFont = NULL;
+      return csound->InitError(csound,
+                              Str("sfload: invalid or incomplete SoundFont file \"%s\"\n"),
+                              fname);
+    }
+    qsort(soundFont->preset, soundFont->presets_num, sizeof(presetType),
+          (int (*)(const void *, const void *)) compare);
+    return globals->currSFndx++;
 }
 
 static int32_t compare(presetType * elem1, presetType *elem2)
 {
     if (elem1->bank * 128 + elem1->prog >  elem2->bank * 128 + elem2->prog)
       return 1;
-    else
+    else if (elem1->bank * 128 + elem1->prog < elem2->bank * 128 + elem2->prog)
       return -1;
+    return 0;
 }
 
 /* syntax:
         ihandle SfLoad "filename"
 */
 
-static char *Gfname;            /* NOT THREAD SAFE */
-
 static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
                                        /* open a file and return its handle */
 {                                      /* the handle is simply a stack index */
     char *fname;
     int32_t hand;
-    SFBANK *sf;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(globals==NULL)) {
-      return csound->InitError(csound, "%s", Str("sfload: could not open globals\n"));
+      return csound->InitError(csound, "%s\n", Str("sfload: could not open globals\n"));
     }
     if (istring) fname = csound->Strdup(csound, ((STRINGDAT *)p->fname)->data);
     else {
@@ -149,26 +148,10 @@ static int32_t SfLoad_(CSOUND *csound, SFLOAD *p, int32_t istring)
                                 NULL, p->fname, "sfont.",
                                 0);
     }
-    /*    strcpy(fname, (char*) p->fname); */
-    Gfname = fname;
     hand = SoundFontLoad(csound, fname);
-    if (hand<0) {
-      *p->ihandle = (MYFLT) globals->currSFndx;
-      sf = &globals->sfArray[globals->currSFndx];
-      qsort(sf->preset, sf->presets_num, sizeof(presetType),
-            (int (*)(const void *, const void * )) compare);
-      csound->Free(csound,fname);
-      if (UNLIKELY(++globals->currSFndx>=globals->maxSFndx)) {
-        globals->maxSFndx += 5;
-        globals->sfArray = (SFBANK *)csound->ReAlloc(csound, globals->sfArray,
-                  /* JPff fix */        globals->maxSFndx*sizeof(SFBANK));
-        csound->Warning(csound, "%s", Str("Extending soundfonts"));
-        if (globals->sfArray  == NULL) return NOTOK;
-      }
-      //printf("curr sf: %d \n", globals->currSFndx);
-    }
-    else *p->ihandle=hand;
-    return OK;
+    csound->Free(csound, fname);
+    *p->ihandle = (cs_float) hand;
+    return hand < 0 ? NOTOK : OK;
 }
 
 static int32_t SfLoad(CSOUND *csound, SFLOAD *p){
@@ -179,7 +162,7 @@ static int32_t SfLoad_S(CSOUND *csound, SFLOAD *p){
   return SfLoad_(csound,p,1);
 }
 
-static char *filter_string(char *s, char temp_string[24])
+static char *filter_string(const char *s, char temp_string[24])
 {
     int32_t i=0, j=0;
     int32_t c;
@@ -205,7 +188,7 @@ static int32_t Sfplist(CSOUND *csound, SFPLIST *p)
     int32_t j;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     sf = &globals->sfArray[(int32_t) *p->ihandle];
     /* if (UNLIKELY(sf==NULL)) */
     /*   return csound->InitError(csound, "%s", Str("invalid soundfont")); */
@@ -229,13 +212,20 @@ static int32_t SfAssignAllPresets(CSOUND *csound, SFPASSIGN *p)
 
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     sf = &globals->sfArray[(int32_t) *p->ihandle];
     /* if (UNLIKELY(globals->soundFont==NULL)) */
     /*   return csound->InitError(csound, "%s", Str("invalid sound font")); */
 
+    if (UNLIKELY(!(*p->startNum >= FL(0.0) &&
+                   *p->startNum < MAX_SFPRESET)))
+      return csound->InitError(csound, "%s\n",
+                               Str("sfpassign: preset range out of bounds"));
     pHandle = (int32_t) *p->startNum;
     pnum = sf->presets_num;
+    if (UNLIKELY(pnum > MAX_SFPRESET - pHandle))
+      return csound->InitError(csound, "%s\n",
+                               Str("sfpassign: preset range out of bounds"));
     enableMsgs = (*p->msgs==FL(0.0));
     if (enableMsgs)
       csound->Message(csound,
@@ -265,7 +255,7 @@ static int32_t Sfilist(CSOUND *csound, SFPLIST *p)
     int32_t j;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     /* if (UNLIKELY(globals->soundFont==NULL)) */
     /*   return csound->InitError(csound, "%s", Str("invalid sound font")); */
 
@@ -287,7 +277,7 @@ static int32_t Sfilist_prefix(CSOUND *csound, SFPLIST *p)
     char *prefix = p->Sprefix->data;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY( *p->ihandle<0 || *p->ihandle>=globals->currSFndx))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     /* if (UNLIKELY(globals->soundFont==NULL)) */
     /*   return csound->InitError(csound, "%s", Str("invalid sound font")); */
 
@@ -309,11 +299,11 @@ static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     sf = &globals->sfArray[(DWORD) *p->isfhandle];
     if (UNLIKELY( *p->isfhandle<0 || *p->isfhandle>=globals->currSFndx))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
 
     if (UNLIKELY(presetHandle >= MAX_SFPRESET || presetHandle<0)) {
       return csound->InitError(csound,
-                               Str("sfpreset: preset handle too big (%d), max: %d"),
+                               Str("sfpreset: preset handle too big (%d), max: %d\n"),
                                presetHandle, (int32_t) MAX_SFPRESET - 1);
     }
 
@@ -326,14 +316,14 @@ static int32_t SfPreset(CSOUND *csound, SFPRESET *p)
           break;
         }
     }
-    *p->ipresethandle = (MYFLT) presetHandle;
+    *p->ipresethandle = (cs_float) presetHandle;
 
     if (UNLIKELY(globals->presetp[presetHandle] == NULL)) {
       //      return csound->InitError(csound,
       csound->Warning(csound,
                                Str("sfpreset: cannot find any preset having prog "
                                    "number %d and bank number %d in SoundFont file"
-                                   " \"%s\""),
+                                   " \"%s\"\n"),
                                (int32_t) *p->iprog, (int32_t) *p->ibank,
                                globals->sfArray[(DWORD) *p->isfhandle].name);
     }
@@ -350,13 +340,13 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
 
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(index>=MAX_SFPRESET))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
 
     if (*p->iskip && p->spltNum) return OK;
     if (!UNLIKELY(preset!=NULL)) {
-      return csound->InitError(csound, "%s", Str("sfplay: invalid or "
+      return csound->InitError(csound, "%s\n", Str("sfplay: invalid or "
                                            "out-of-range preset number"));
     }
     layersNum = preset->layers_num;
@@ -385,15 +375,15 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
               vel     >= split->minVelRange  &&
               vel     <= split->maxVelRange) {
             if (UNLIKELY(spltNum >= MAXSPLT))
-              return csound->InitError(csound, "%s",
+              return csound->InitError(csound, "%s\n",
                                       Str("SoundFont: too many matching sample zones"));
             sfSample *sample = split->sample;
             
             DWORD start=sample->dwStart;
-            MYFLT attenuation;
-            double pan;
-            double freq, orgfreq;
-            double tuneCorrection = split->coarseTune + layer->coarseTune +
+            cs_float attenuation;
+            int32_t ipan;
+            cs_double freq, orgfreq;
+            cs_double tuneCorrection = split->coarseTune + layer->coarseTune +
               (split->fineTune + layer->fineTune)*0.01;
             int32_t orgkey = split->overridingRootKey, nm = notnum;
             if (orgkey == -1) orgkey = sample->byOriginalKey;
@@ -410,23 +400,29 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
               p->si[spltNum]= (freq/orgfreq) * sample->dwSampleRate*CS_ONEDSR;
             }
               ;
-            attenuation = (MYFLT) (layer->initialAttenuation +
+            attenuation = (cs_float) (layer->initialAttenuation +
                                    split->initialAttenuation);
             attenuation = POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * attenuation )
               * GLOBAL_ATTENUATION;
-            pan = (double)(split->pan + layer->pan) / 1000.0 + 0.5;
-            if (pan > 1.0) pan = 1.0;
-            else if (pan < 0.0) pan = 0.0;
+            /* pan in 0.1% units, -500 is hard left.  Clamp it as an integer:
+               as a double, -500/1000.0 + 0.5 could come out slightly
+               negative (gcc -ffast-math, fused multiply-add), and sqrt()
+               of it made the right channel NaN (#3403) */
+            ipan = split->pan + layer->pan;
+            if (ipan > 500) ipan = 500;
+            else if (ipan < -500) ipan = -500;
             /* Suggested fix from steven yi Oct 2002 */
             p->base[spltNum] = sBase + start;
-            p->phs[spltNum] = (double) split->startOffset + *p->ioffset;
+            p->phs[spltNum] = (cs_double) split->startOffset + *p->ioffset;
             p->end[spltNum] = (DWORD) (sample->dwEnd + split->endOffset - start);
             p->startloop[spltNum] =  (DWORD) 
               (sample->dwStartloop + split->startLoopOffset  - start);
             p->endloop[spltNum] =  (DWORD) 
               (sample->dwEndloop + split->endLoopOffset - start);
-            p->leftlevel[spltNum] = (MYFLT) sqrt(1.0-pan) * attenuation;
-            p->rightlevel[spltNum] = (MYFLT) sqrt(pan) * attenuation;
+            p->leftlevel[spltNum] =
+              (cs_float) sqrt((500 - ipan) / 1000.0) * attenuation;
+            p->rightlevel[spltNum] =
+              (cs_float) sqrt((500 + ipan) / 1000.0) * attenuation;
             p->mode[spltNum]= split->sampleModes;
             p->attack[spltNum] = split->attack*CS_EKR;
             p->decay[spltNum] = split->decay*CS_EKR;
@@ -468,22 +464,22 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
 
 #define Linear_interpolation \
         SHORT *curr_samp = *base + (int32) *phs;\
-        MYFLT fract = (MYFLT) *phs - (MYFLT)((int32)*phs);\
-        MYFLT out = (*curr_samp + (*(curr_samp+1) - *curr_samp)*fract);
+        cs_float fract = (cs_float) *phs - (cs_float)((int32)*phs);\
+        cs_float out = (*curr_samp + (*(curr_samp+1) - *curr_samp)*fract);
 
 #define Cubic_interpolation \
-        MYFLT phs1 = (MYFLT) *phs -FL(1.0);\
+        cs_float phs1 = (cs_float) *phs -FL(1.0);\
         int32_t   x0 = (int32)phs1 ;\
-        MYFLT fract = (MYFLT)(phs1 - x0);\
+        cs_float fract = (cs_float)(phs1 - x0);\
         SHORT *ftab = *base + x0;\
-        MYFLT ym1= *ftab++;\
-        MYFLT y0 = *ftab++;\
-        MYFLT y1 = *ftab++;\
-        MYFLT y2 = *ftab;\
-        MYFLT frsq = fract*fract;\
-        MYFLT frcu = frsq*ym1;\
-        MYFLT t1   = y2 + FL(3.0)*y0;\
-        MYFLT out =  y0 + FL(0.5)*frcu + \
+        cs_float ym1= *ftab++;\
+        cs_float y0 = *ftab++;\
+        cs_float y1 = *ftab++;\
+        cs_float y2 = *ftab;\
+        cs_float frsq = fract*fract;\
+        cs_float frcu = frsq*ym1;\
+        cs_float t1   = y2 + FL(3.0)*y0;\
+        cs_float out =  y0 + FL(0.5)*frcu + \
                 fract*(y1 - frcu/FL(6.0) - t1/FL(6.0) - ym1/FL(3.0)) + \
                 frsq*fract*(t1/FL(6.0) - FL(0.5)*y1) + frsq*(FL(0.5)* y1 - y0);
 
@@ -522,7 +518,7 @@ static int32_t SfPlay_set(CSOUND *csound, SFPLAY *p)
 static int32_t SfPlay(CSOUND *csound, SFPLAY *p)
 {
     IGN(csound);
-    MYFLT   *out1 = p->out1, *out2 = p->out2, *env = p->env;
+    cs_float   *out1 = p->out1, *out2 = p->out2, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -531,27 +527,27 @@ static int32_t SfPlay(CSOUND *csound, SFPLAY *p)
     DWORD *end = p->end,  *startloop= p->startloop, *endloop= p->endloop,
           *tinc = p->ti;
     SHORT *mode = p->mode;
-    double *sampinc = p->si, *phs = p->phs;
-    MYFLT *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
+    cs_double *sampinc = p->si, *phs = p->phs;
+    cs_float *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
       *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
       /* *release = p->release,*/ *attr = p->attr;
 
 
-    memset(out1, 0, nsmps*sizeof(MYFLT));
-    memset(out2, 0, nsmps*sizeof(MYFLT));
+    memset(out1, 0, nsmps*sizeof(cs_float));
+    memset(out2, 0, nsmps*sizeof(cs_float));
     if (UNLIKELY(early)) nsmps -= early;
 
     if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
-        double looplength = *endloop - *startloop;
-        MYFLT *freq = p->xfreq;
+        cs_double looplength = *endloop - *startloop;
+        cs_float *freq = p->xfreq;
 
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Linear_interpolation Stereo_out Looped
           }
         }
@@ -559,7 +555,7 @@ static int32_t SfPlay(CSOUND *csound, SFPLAY *p)
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Linear_interpolation Stereo_out  Unlooped
           }
         }
@@ -569,10 +565,10 @@ static int32_t SfPlay(CSOUND *csound, SFPLAY *p)
       }
     }
     else {
-      MYFLT freq = *p->xfreq;
+      cs_float freq = *p->xfreq;
       while (j--) {
-        double looplength = *endloop - *startloop;
-        double si = *sampinc * freq;
+        cs_double looplength = *endloop - *startloop;
+        cs_double si = *sampinc * freq;
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
@@ -594,14 +590,14 @@ static int32_t SfPlay(CSOUND *csound, SFPLAY *p)
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {
-      MYFLT *amp = p->xamp;
+      cs_float *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
         out2[n] *= amp[n];
       }
     }
     else {
-      MYFLT famp = *p->xamp;
+      cs_float famp = *p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
         out2[n] *= famp;
@@ -613,7 +609,7 @@ static int32_t SfPlay(CSOUND *csound, SFPLAY *p)
 static int32_t SfPlay3(CSOUND *csound, SFPLAY *p)
 {
     IGN(csound);
-    MYFLT    *out1 = p->out1, *out2 = p->out2, *env = p->env;
+    cs_float    *out1 = p->out1, *out2 = p->out2, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -622,26 +618,26 @@ static int32_t SfPlay3(CSOUND *csound, SFPLAY *p)
     DWORD *end = p->end,  *startloop = p->startloop,
           *endloop = p->endloop, *tinc = p->ti;
     SHORT *mode = p->mode;
-    double *sampinc = p->si, *phs = p->phs;
-    MYFLT *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
+    cs_double *sampinc = p->si, *phs = p->phs;
+    cs_float *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
           *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
           /**release = p->release,*/ *attr = p->attr;
 
-    memset(out1, 0, nsmps*sizeof(MYFLT));
-    memset(out2, 0, nsmps*sizeof(MYFLT));
+    memset(out1, 0, nsmps*sizeof(cs_float));
+    memset(out2, 0, nsmps*sizeof(cs_float));
     if (UNLIKELY(early)) nsmps -= early;
 
     if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
-        double looplength = *endloop - *startloop;
-        MYFLT *freq = p->xfreq;
+        cs_double looplength = *endloop - *startloop;
+        cs_float *freq = p->xfreq;
 /*         nsmps = CS_KSMPS; */
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Cubic_interpolation Stereo_out      Looped
               
           }
@@ -650,7 +646,7 @@ static int32_t SfPlay3(CSOUND *csound, SFPLAY *p)
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Cubic_interpolation Stereo_out      Unlooped
           }
         }
@@ -660,10 +656,10 @@ static int32_t SfPlay3(CSOUND *csound, SFPLAY *p)
       }
     }
     else {
-      MYFLT freq = *p->xfreq;
+      cs_float freq = *p->xfreq;
       while (j--) {
          
-        double looplength = *endloop - *startloop, si = *sampinc * freq;
+        cs_double looplength = *endloop - *startloop, si = *sampinc * freq;
         if (*mode == 1 || *mode ==3) {
            
           int32_t flag =0;
@@ -693,14 +689,14 @@ static int32_t SfPlay3(CSOUND *csound, SFPLAY *p)
     }
         
     if (IS_ASIG_ARG(p->xamp)) {
-      MYFLT *amp = p->xamp;
+      cs_float *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
         out2[n] *= amp[n];
       }
     }
     else {
-      MYFLT famp = *p->xamp;
+      cs_float famp = *p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
         out2[n] *= famp;
@@ -719,7 +715,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     //printf("*** index= %d  maximum = %d\n", index, globals->currSFndx);
     if (UNLIKELY(index>=MAX_SFPRESET))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
 
     if (*p->iskip && p->spltNum) return OK;
     
@@ -727,7 +723,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
     sBase = globals->sampleBase[index];
 
     if (UNLIKELY(!preset)) {
-      return csound->InitError(csound, "%s", Str("sfplaym: invalid or "
+      return csound->InitError(csound, "%s\n", Str("sfplaym: invalid or "
                                            "out-of-range preset number"));
     }
     layersNum= preset->layers_num;
@@ -747,12 +743,12 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
               vel >= split->minVelRange  &&
               vel <= split->maxVelRange) {
             if (UNLIKELY(spltNum >= MAXSPLT))
-              return csound->InitError(csound, "%s",
+              return csound->InitError(csound, "%s\n",
                                       Str("SoundFont: too many matching sample zones"));
             sfSample *sample = split->sample;
             DWORD start=sample->dwStart;
-            double freq, orgfreq;
-            double tuneCorrection = split->coarseTune + layer->coarseTune +
+            cs_double freq, orgfreq;
+            cs_double tuneCorrection = split->coarseTune + layer->coarseTune +
               (split->fineTune + layer->fineTune)*0.01;
             int32_t orgkey = split->overridingRootKey, nn = notnum;
             if (orgkey == -1) orgkey = sample->byOriginalKey;
@@ -772,7 +768,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
                                                     split->initialAttenuation)) *
               GLOBAL_ATTENUATION;
             p->base[spltNum] =  sBase+ start;
-            p->phs[spltNum] = (double) split->startOffset + *p->ioffset;
+            p->phs[spltNum] = (cs_double) split->startOffset + *p->ioffset;
             p->end[spltNum] =  (DWORD) (sample->dwEnd + split->endOffset - start);
             p->startloop[spltNum] =  (DWORD) (sample->dwStartloop +
                                               split->startLoopOffset - start);
@@ -815,7 +811,7 @@ static int32_t SfPlayMono_set(CSOUND *csound, SFPLAYMONO *p)
 static int32_t SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 {
     IGN(csound);
-    MYFLT   *out1 = p->out1 , *env  = p->env;
+    cs_float   *out1 = p->out1 , *env  = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -824,25 +820,25 @@ static int32_t SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
     DWORD *end= p->end, *startloop= p->startloop, *endloop= p->endloop,
           *tinc = p->ti;
     SHORT *mode = p->mode;
-    double *sampinc = p->si, *phs = p->phs;
-    MYFLT *attenuation = p->attenuation, *attack = p->attack, *decr = p->decr,
+    cs_double *sampinc = p->si, *phs = p->phs;
+    cs_float *attenuation = p->attenuation, *attack = p->attack, *decr = p->decr,
           *decay = p->decay, *sustain= p->sustain, /**release = p->release,*/
           *attr = p->attr;
 
-    memset(out1, 0, nsmps*sizeof(MYFLT));
+    memset(out1, 0, nsmps*sizeof(cs_float));
     if (UNLIKELY(early)) nsmps -= early;
 
     if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
-        double looplength = *endloop - *startloop;
-        MYFLT *freq = p->xfreq;
+        cs_double looplength = *endloop - *startloop;
+        cs_float *freq = p->xfreq;
 
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             { Linear_interpolation Mono_out Looped }
           }
         }
@@ -850,7 +846,7 @@ static int32_t SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             { Linear_interpolation Mono_out Unlooped }
           }
         }
@@ -860,10 +856,10 @@ static int32_t SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
       }
     }
     else {
-      MYFLT freq = *p->xfreq;
+      cs_float freq = *p->xfreq;
       while (j--) {
-        double looplength = *endloop - *startloop;
-        double si = *sampinc * freq;
+        cs_double looplength = *endloop - *startloop;
+        cs_double si = *sampinc * freq;
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
@@ -885,13 +881,13 @@ static int32_t SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {
-      MYFLT *amp = p->xamp;
+      cs_float *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
       }
     }
     else {
-      MYFLT famp = *p->xamp;
+      cs_float famp = *p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
       }
@@ -902,7 +898,7 @@ static int32_t SfPlayMono(CSOUND *csound, SFPLAYMONO *p)
 static int32_t SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
 {
     IGN(csound);
-    MYFLT   *out1 = p->out1, *env = p->env;
+    cs_float   *out1 = p->out1, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -911,24 +907,24 @@ static int32_t SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
     DWORD   *end = p->end,  *startloop = p->startloop,
             *endloop = p->endloop, *tinc = p->ti;
     SHORT   *mode = p->mode;
-    double *sampinc = p->si, *phs = p->phs;
-    MYFLT *attenuation = p->attenuation,*attack = p->attack, *decr = p->decr,
+    cs_double *sampinc = p->si, *phs = p->phs;
+    cs_float *attenuation = p->attenuation,*attack = p->attack, *decr = p->decr,
           *decay = p->decay, *sustain= p->sustain, /**release = p->release,*/
           *attr = p->attr;
 
-    memset(out1, 0, nsmps*sizeof(MYFLT));
+    memset(out1, 0, nsmps*sizeof(cs_float));
     if (UNLIKELY(early)) nsmps -= early;
     if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
-        double looplength = *endloop - *startloop;
-        MYFLT *freq = p->xfreq;
+        cs_double looplength = *endloop - *startloop;
+        cs_float *freq = p->xfreq;
 
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Cubic_interpolation Mono_out        Looped
           }
         }
@@ -936,7 +932,7 @@ static int32_t SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Cubic_interpolation Mono_out        Unlooped
           }
         }
@@ -946,10 +942,10 @@ static int32_t SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
       }
     }
     else {
-      MYFLT freq = *p->xfreq;
+      cs_float freq = *p->xfreq;
       while (j--) {
-        double looplength = *endloop - *startloop;
-        double si = *sampinc * freq;
+        cs_double looplength = *endloop - *startloop;
+        cs_double si = *sampinc * freq;
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
@@ -971,13 +967,13 @@ static int32_t SfPlayMono3(CSOUND *csound, SFPLAYMONO *p)
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {
-      MYFLT *amp = p->xamp;
+      cs_float *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
       }
     }
     else {
-      MYFLT famp = *p->xamp;
+      cs_float famp = *p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
       }
@@ -994,13 +990,13 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(!(*p->sfBank >= FL(0.0) &&
                    *p->sfBank < globals->currSFndx)))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     index = (int32_t)*p->sfBank;
     sf = &globals->sfArray[index];
     if (*p->iskip && p->spltNum)  return OK;
     if (UNLIKELY(!(*p->instrNum >= FL(0.0) &&
                    *p->instrNum < sf->instrs_num))) {
-      return csound->InitError(csound, "%s", Str("sfinstr: instrument out of range"));
+      return csound->InitError(csound, "%s\n", Str("sfinstr: instrument out of range"));
     }
     else {
       instrType *layer = &sf->instr[(int32_t) *p->instrNum];
@@ -1017,13 +1013,13 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
             vel >= split->minVelRange  &&
             vel <= split->maxVelRange) {
           if (UNLIKELY(spltNum >= MAXSPLT))
-            return csound->InitError(csound, "%s",
+            return csound->InitError(csound, "%s\n",
                                     Str("SoundFont: too many matching sample zones"));
           sfSample *sample = split->sample;
           DWORD start=sample->dwStart;
-          MYFLT attenuation, pan;
-          double freq, orgfreq;
-          double tuneCorrection = split->coarseTune + split->fineTune*0.01;
+          cs_float attenuation, pan;
+          cs_double freq, orgfreq;
+          cs_double tuneCorrection = split->coarseTune + split->fineTune*0.01;
           int32_t orgkey = split->overridingRootKey, nn = notnum;
           if (orgkey == -1) orgkey = sample->byOriginalKey;
           orgfreq = globals->pitches[orgkey] ;
@@ -1037,14 +1033,14 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
               * pow( 2.0, ONETWELTH* (split->scaleTuning*0.01)*(nn-orgkey));
             p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*CS_ONEDSR);
           }
-          attenuation = (MYFLT) (split->initialAttenuation);
+          attenuation = (cs_float) (split->initialAttenuation);
           attenuation = POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * attenuation) *
             GLOBAL_ATTENUATION;
-          pan = (MYFLT)  split->pan / FL(1000.0) + FL(0.5);
+          pan = (cs_float)  split->pan / FL(1000.0) + FL(0.5);
           if (pan > FL(1.0)) pan =FL(1.0);
           else if (pan < FL(0.0)) pan = FL(0.0);
           p->base[spltNum] = sBase + start;
-          p->phs[spltNum] = (double) split->startOffset + *p->ioffset;
+          p->phs[spltNum] = (cs_double) split->startOffset + *p->ioffset;
           p->end[spltNum] =  (DWORD) (sample->dwEnd + split->endOffset - start);
           p->startloop[spltNum] =  (DWORD) (sample->dwStartloop +
                                             split->startLoopOffset - start);
@@ -1089,7 +1085,7 @@ static int32_t SfInstrPlay_set(CSOUND *csound, SFIPLAY *p)
 static int32_t SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 {
     IGN(csound);
-    MYFLT *out1= p->out1, *out2= p->out2, *env = p->env;
+    cs_float *out1= p->out1, *out2= p->out2, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -1098,26 +1094,26 @@ static int32_t SfInstrPlay(CSOUND *csound, SFIPLAY *p)
     DWORD *end= p->end,  *startloop= p->startloop,
           *endloop= p->endloop, *tinc = p->ti;
     SHORT *mode = p->mode;
-    double *sampinc = p->si, *phs = p->phs;
-    MYFLT *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
+    cs_double *sampinc = p->si, *phs = p->phs;
+    cs_float *left= p->leftlevel, *right= p->rightlevel, *attack = p->attack,
           *decr = p->decr, *decay = p->decay, *sustain= p->sustain,
           /**release = p->release,*/ *attr = p->attr;
 
-    memset(out1, 0, nsmps*sizeof(MYFLT));
-    memset(out2, 0, nsmps*sizeof(MYFLT));
+    memset(out1, 0, nsmps*sizeof(cs_float));
+    memset(out2, 0, nsmps*sizeof(cs_float));
     if (UNLIKELY(early)) nsmps -= early;
 
     if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
-        double looplength = *endloop - *startloop;
-        MYFLT *freq = p->xfreq;
+        cs_double looplength = *endloop - *startloop;
+        cs_float *freq = p->xfreq;
 
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Linear_interpolation        Stereo_out      Looped
           }
         }
@@ -1125,7 +1121,7 @@ static int32_t SfInstrPlay(CSOUND *csound, SFIPLAY *p)
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Linear_interpolation Stereo_out     Unlooped
           }
         }
@@ -1135,10 +1131,10 @@ static int32_t SfInstrPlay(CSOUND *csound, SFIPLAY *p)
       }
     }
     else {
-      MYFLT freq = *p->xfreq;
+      cs_float freq = *p->xfreq;
       while (j--) {
-        double looplength = *endloop - *startloop;
-        double si = *sampinc * freq;
+        cs_double looplength = *endloop - *startloop;
+        cs_double si = *sampinc * freq;
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
@@ -1161,14 +1157,14 @@ static int32_t SfInstrPlay(CSOUND *csound, SFIPLAY *p)
     }
 
     if (IS_ASIG_ARG(p->xamp)) {
-      MYFLT *amp = p->xamp;
+      cs_float *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
         out2[n] *= amp[n];
       }
     }
     else {
-      MYFLT famp = *p->xamp;
+      cs_float famp = *p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
         out2[n] *= famp;
@@ -1180,7 +1176,7 @@ static int32_t SfInstrPlay(CSOUND *csound, SFIPLAY *p)
 static int32_t SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
 {
    IGN(csound);
-    MYFLT *out1= p->out1, *out2= p->out2,*env =p->env;
+    cs_float *out1= p->out1, *out2= p->out2,*env =p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -1189,27 +1185,27 @@ static int32_t SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
     DWORD *end= p->end,  *startloop= p->startloop,
           *endloop= p->endloop, *tinc = p->ti;
     SHORT *mode = p->mode;
-    double *sampinc = p->si, *phs = p->phs;
-    MYFLT *left= p->leftlevel, *right= p->rightlevel,
+    cs_double *sampinc = p->si, *phs = p->phs;
+    cs_float *left= p->leftlevel, *right= p->rightlevel,
       *attack = p->attack, *decr = p->decr,
       *decay = p->decay, *sustain= p->sustain, /**release = p->release,*/
       *attr = p->attr;
 
-    memset(out1, 0, nsmps*sizeof(MYFLT));
-    memset(out2, 0, nsmps*sizeof(MYFLT));
+    memset(out1, 0, nsmps*sizeof(cs_float));
+    memset(out2, 0, nsmps*sizeof(cs_float));
     if (UNLIKELY(early)) nsmps -= early;
 
     if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
-        double looplength = *endloop - *startloop;
-        MYFLT *freq = p->xfreq;
+        cs_double looplength = *endloop - *startloop;
+        cs_float *freq = p->xfreq;
 
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Cubic_interpolation Stereo_out      Looped
           }
         }
@@ -1217,7 +1213,7 @@ static int32_t SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Cubic_interpolation Stereo_out      Unlooped
           }
         }
@@ -1227,10 +1223,10 @@ static int32_t SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
       }
     }
     else {
-      MYFLT freq = *p->xfreq;
+      cs_float freq = *p->xfreq;
       while (j--) {
-        double looplength = *endloop - *startloop;
-        double si = *sampinc * freq;
+        cs_double looplength = *endloop - *startloop;
+        cs_double si = *sampinc * freq;
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
@@ -1253,14 +1249,14 @@ static int32_t SfInstrPlay3(CSOUND *csound, SFIPLAY *p)
     }
 
     if (IS_ASIG_ARG(p->xamp)) {
-      MYFLT *amp = p->xamp;
+      cs_float *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
         out2[n] *= amp[n];
       }
     }
     else {
-      MYFLT famp = *p->xamp;
+      cs_float famp = *p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
         out2[n] *= famp;
@@ -1277,13 +1273,13 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (UNLIKELY(!(*p->sfBank >= FL(0.0) &&
                    *p->sfBank < globals->currSFndx)))
-      return csound->InitError(csound, "%s", Str("invalid soundfont"));
+      return csound->InitError(csound, "%s\n", Str("invalid soundfont"));
     index = (int32_t)*p->sfBank;
 
     sf = &globals->sfArray[index];
     if (UNLIKELY(!(*p->instrNum >= FL(0.0) &&
                    *p->instrNum < sf->instrs_num))) {
-      return csound->InitError(csound, "%s", Str("sfinstr: instrument out of range"));
+      return csound->InitError(csound, "%s\n", Str("sfinstr: instrument out of range"));
     }
     else {
       instrType *layer = &sf->instr[(int32_t) *p->instrNum];
@@ -1301,12 +1297,12 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
             vel >= split->minVelRange  &&
             vel     <= split->maxVelRange) {
           if (UNLIKELY(spltNum >= MAXSPLT))
-            return csound->InitError(csound, "%s",
+            return csound->InitError(csound, "%s\n",
                                     Str("SoundFont: too many matching sample zones"));
           sfSample *sample = split->sample;
           DWORD start=sample->dwStart;
-          double freq, orgfreq;
-          double tuneCorrection = split->coarseTune + split->fineTune/100.0;
+          cs_double freq, orgfreq;
+          cs_double tuneCorrection = split->coarseTune + split->fineTune/100.0;
           int32_t orgkey = split->overridingRootKey, nn = (int32_t) notnum;
           if (orgkey == -1) orgkey = sample->byOriginalKey;
           orgfreq = globals->pitches[orgkey];
@@ -1320,11 +1316,11 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
               * pow( 2.0, ONETWELTH* (split->scaleTuning*0.01) * (nn-orgkey));
             p->si[spltNum] = (freq/orgfreq)*(sample->dwSampleRate*CS_ONEDSR);
           }
-          p->attenuation[spltNum] = (MYFLT) pow(2.0, (-1.0/60.0)*
+          p->attenuation[spltNum] = (cs_float) pow(2.0, (-1.0/60.0)*
                                                 split->initialAttenuation)
             * GLOBAL_ATTENUATION;
           p->base[spltNum] = sBase+ start;
-          p->phs[spltNum] = (double) split->startOffset + *p->ioffset;
+          p->phs[spltNum] = (cs_double) split->startOffset + *p->ioffset;
           p->end[spltNum] =  (DWORD) (sample->dwEnd + split->endOffset - start);
           p->startloop[spltNum] =  (DWORD) (sample->dwStartloop +
                                             split->startLoopOffset - start);
@@ -1366,7 +1362,7 @@ static int32_t SfInstrPlayMono_set(CSOUND *csound, SFIPLAYMONO *p)
 static int32_t SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
 {
     IGN(csound);
-    MYFLT *out1= p->out1, *env = p->env;
+    cs_float *out1= p->out1, *env = p->env;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
      uint32_t n, nsmps = CS_KSMPS;
@@ -1376,25 +1372,25 @@ static int32_t SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
       *tinc = p->ti;
     SHORT *mode = p->mode;
 
-    double *sampinc = p->si, *phs = p->phs;
-    MYFLT *attenuation = p->attenuation, *attack = p->attack, *decr = p->decr,
+    cs_double *sampinc = p->si, *phs = p->phs;
+    cs_float *attenuation = p->attenuation, *attack = p->attack, *decr = p->decr,
       *decay = p->decay, *sustain= p->sustain, /**release = p->release,*/
       *attr = p->attr;
 
-    memset(out1, 0, nsmps*sizeof(MYFLT));
+    memset(out1, 0, nsmps*sizeof(cs_float));
     if (UNLIKELY(early)) nsmps -= early;
 
     if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
-        double looplength = *endloop - *startloop;
-        MYFLT *freq = p->xfreq;
+        cs_double looplength = *endloop - *startloop;
+        cs_float *freq = p->xfreq;
 
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Linear_interpolation        Mono_out        Looped
           }
         }
@@ -1402,7 +1398,7 @@ static int32_t SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Linear_interpolation Mono_out       Unlooped
           }
         }
@@ -1412,10 +1408,10 @@ static int32_t SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
       }
     }
     else {
-      MYFLT freq = *p->xfreq;
+      cs_float freq = *p->xfreq;
       while (j--) {
-        double looplength = *endloop - *startloop;
-        double si = *sampinc * freq;
+        cs_double looplength = *endloop - *startloop;
+        cs_double si = *sampinc * freq;
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
@@ -1437,13 +1433,13 @@ static int32_t SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {
-      MYFLT *amp = p->xamp;
+      cs_float *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
       }
     }
     else {
-      MYFLT famp = *p->xamp;
+      cs_float famp = *p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
       }
@@ -1454,7 +1450,7 @@ static int32_t SfInstrPlayMono(CSOUND *csound, SFIPLAYMONO *p)
 static int32_t SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
 {
     IGN(csound);
-    MYFLT *out1= p->out1, *env = p->env  ;
+    cs_float *out1= p->out1, *env = p->env  ;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -1463,25 +1459,25 @@ static int32_t SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
     DWORD *end= p->end,  *startloop= p->startloop,
           *endloop= p->endloop, *tinc = p->ti;
     SHORT *mode = p->mode;
-    double *sampinc = p->si, *phs = p->phs;
-    MYFLT *attenuation = p->attenuation,*attack = p->attack, *decr = p->decr,
+    cs_double *sampinc = p->si, *phs = p->phs;
+    cs_float *attenuation = p->attenuation,*attack = p->attack, *decr = p->decr,
       *decay = p->decay, *sustain= p->sustain, /**release = p->release,*/
       *attr = p->attr;
 
-    memset(out1, 0, nsmps*sizeof(MYFLT));
+    memset(out1, 0, nsmps*sizeof(cs_float));
     if (UNLIKELY(early)) nsmps -= early;
 
     if (IS_ASIG_ARG(p->xfreq)) {
       while (j--) {
-        double looplength = *endloop - *startloop;
-        MYFLT *freq = p->xfreq;
+        cs_double looplength = *endloop - *startloop;
+        cs_float *freq = p->xfreq;
 
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Cubic_interpolation Mono_out Looped
           }
         }
@@ -1489,7 +1485,7 @@ static int32_t SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
           if (*p->ienv > 1) { ExpEnvelope }
           else if (*p->ienv > 0) { LinEnvelope }
           for (n=offset;n<nsmps;n++) {
-            double si = *sampinc * freq[n];
+            cs_double si = *sampinc * freq[n];
             Cubic_interpolation Mono_out Unlooped
           }
         }
@@ -1499,10 +1495,10 @@ static int32_t SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
       }
     }
     else {
-      MYFLT freq = *p->xfreq;
+      cs_float freq = *p->xfreq;
       while (j--) {
-        double looplength = *endloop - *startloop;
-        double si = *sampinc * freq;
+        cs_double looplength = *endloop - *startloop;
+        cs_double si = *sampinc * freq;
         if (*mode == 1 || *mode ==3) {
           int32_t flag =0;
           if (*p->ienv > 1) { ExpEnvelope }
@@ -1524,13 +1520,13 @@ static int32_t SfInstrPlayMono3(CSOUND *csound, SFIPLAYMONO *p)
       }
     }
     if (IS_ASIG_ARG(p->xamp)) {
-      MYFLT *amp = p->xamp;
+      cs_float *amp = p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= amp[n];
       }
     }
     else {
-      MYFLT famp = *p->xamp;
+      cs_float famp = *p->xamp;
       for (n=offset;n<nsmps;n++) {
         out1[n] *= famp;
       }
@@ -1637,7 +1633,8 @@ static int32_t fill_SfStruct(CSOUND *csound)
 
     size = phdrChunk->ckSize / sizeof(sfPresetHeader);
     soundFont->presets_num = size;
-    preset = (presetType *) csound->Malloc(csound, size * sizeof(presetType));
+    preset = (presetType *) csound->Calloc(csound, size * sizeof(presetType));
+    soundFont->preset = preset;
     for (j=0; j < size; j++) {
       preset[j].name = phdr[j].achPresetName;
       if (strcmp(preset[j].name,"EOP")==0) {
@@ -1661,7 +1658,7 @@ static int32_t fill_SfStruct(CSOUND *csound)
       }
       preset[j].layers_num = layer_num;
       preset[j].layer =
-        (layerType *) csound->Malloc(csound, layer_num * sizeof(layerType));
+        (layerType *) csound->Calloc(csound, layer_num * sizeof(layerType));
       for (k=0; k <layer_num; k++) {
         layerDefaults(&preset[j].layer[k]);
       }
@@ -1761,13 +1758,13 @@ static int32_t fill_SfStruct(CSOUND *csound)
                   if (GfineTune != UNUSE)
                     split->fineTune = (SBYTE) GfineTune;
                   if (GscaleTuning != UNUSE)
-                    split->scaleTuning = (BYTE) GscaleTuning;
+                    split->scaleTuning = (SHORT) GscaleTuning;
                   if (Gpan != UNUSE)
-                    split->pan = (BYTE) Gpan;
+                    split->pan = (SHORT) Gpan;
                   if (GsampleModes != UNUSE)
                     split->sampleModes = (BYTE) GsampleModes;
                   if (GinitialAttenuation != UNUSE)
-                    split->initialAttenuation = (BYTE) GinitialAttenuation;
+                    split->initialAttenuation = (SHORT) GinitialAttenuation;
 
                   for (m=mStart; m < mEnd; m++) {
                     switch (igen[m].sfGenOper) {
@@ -1777,14 +1774,13 @@ static int32_t fill_SfStruct(CSOUND *csound)
                         split->num= num;
                         split->sample = &shdr[num];
                         if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
-                          csound->Free(csound, preset);
                           csound->ErrorMsg(csound, Str("SoundFont file \"%s\" "
                                                        "contains ROM samples !\n"
                                                        "At present time only RAM "
                                                        "samples are allowed "
                                                        "by sfload.\n"
                                                        "Session aborted !"),
-                                           Gfname);
+                                           soundFont->name);
                             return NOTOK;
                         }
                         //sglobal_zone = 0;
@@ -1904,7 +1900,8 @@ static int32_t fill_SfStruct(CSOUND *csound)
       instrType *instru;
       size = soundFont->chunk.instChunk->ckSize / sizeof(sfInst);
       soundFont->instrs_num = size;
-      instru = (instrType *) csound->Malloc(csound, size * sizeof(layerType));
+      instru = (instrType *) csound->Calloc(csound, size * sizeof(instrType));
+      soundFont->instr = instru;
       for (j=0; j < size; j++) {
 #define UNUSE 0x7fffffff
         int32_t GsampleModes=UNUSE, GcoarseTune=UNUSE, GfineTune=UNUSE;
@@ -1997,13 +1994,13 @@ static int32_t fill_SfStruct(CSOUND *csound)
             if (GfineTune != UNUSE)
               split->fineTune = (SBYTE) GfineTune;
             if (GscaleTuning != UNUSE)
-              split->scaleTuning = (BYTE) GscaleTuning;
+              split->scaleTuning = (SHORT) GscaleTuning;
             if (Gpan != UNUSE)
-              split->pan = (BYTE) Gpan;
+              split->pan = (SHORT) Gpan;
             if (GsampleModes != UNUSE)
               split->sampleModes = (BYTE) GsampleModes;
             if (GinitialAttenuation != UNUSE)
-              split->initialAttenuation = (BYTE) GinitialAttenuation;
+              split->initialAttenuation = (SHORT) GinitialAttenuation;
 
             for (m=mStart; m < mEnd; m++) {
               switch (igen[m].sfGenOper) {
@@ -2013,12 +2010,11 @@ static int32_t fill_SfStruct(CSOUND *csound)
                   split->num= num;
                   split->sample = &shdr[num];
                   if (UNLIKELY(split->sample->sfSampleType & 0x8000)) {
-                    csound->Free(csound, instru);
                     csound->ErrorMsg(csound, Str("SoundFont file \"%s\" contains "
                                             "ROM samples !\n"
                                             "At present time only RAM samples "
                                             "are allowed by sfload.\n"
-                                            "Session aborted !"), Gfname);
+                                            "Session aborted !"), soundFont->name);
                     return NOTOK;
                   }
                   //sglobal_zone = 0;
@@ -2142,19 +2138,18 @@ static void splitDefaults(splitType *split)
 
 static int32_t chunk_read(CSOUND *csound, FILE *fil, CHUNK *chunk)
 {
-    if (UNLIKELY(4 != fread(chunk->ckID,1,4, fil)))
-      return 0;
-    if (UNLIKELY(1 != fread(&chunk->ckSize,4,1,fil))) {
-      chunk->ckSize = 0;
-      return 0;
-    }
-    //if (UNLIKELY(chunk->ckSize>0x8fffff00)) return 0;
+    if (fread(chunk->ckID, 1, 4, fil) != 4 ||
+        memcmp(chunk->ckID, "RIFF", 4) != 0 ||
+        fread(&chunk->ckSize, 4, 1, fil) != 1)
+      return NOTOK;
     ChangeByteOrder("d", (char *)&chunk->ckSize, 4);
+    if (chunk->ckSize < 4 || chunk->ckSize > INT32_MAX)
+      return NOTOK;
     chunk->ckDATA = (BYTE *) csound->Malloc(csound, chunk->ckSize);
-    if (chunk->ckDATA==NULL)
-      return 0;
-    if (chunk->ckSize>0x8fffff00) return 0;
-    return (int32_t) fread(chunk->ckDATA,1,chunk->ckSize,fil);
+    if (fread(chunk->ckDATA, 1, chunk->ckSize, fil) != chunk->ckSize ||
+        memcmp(chunk->ckDATA, "sfbk", 4) != 0)
+      return NOTOK;
+    return OK;
 }
 
 static DWORD dword(char *p)
@@ -2170,230 +2165,154 @@ static DWORD dword(char *p)
     return x.i;
 }
 
-static void fill_SfPointers(CSOUND *csound)
+/* RIFF lengths exclude the header and include a possible list type.
+   Keep each subchunk within its list before converting or following it. */
+static int32_t fill_SfPointers(CSOUND *csound)
 {
-    char *chkp;
-    DWORD chkid, j, size;
+    sfontg *globals = (sfontg *) csound->QueryGlobalVariable(csound, "::sfontg");
+    SFBANK *sf = globals->soundFont;
+    char *data = (char *) sf->chunk.main_chunk.ckDATA;
+    uint32_t length = sf->chunk.main_chunk.ckSize, pos = 4;
 
-    CHUNK *main_chunk;
-    CHUNK *smplChunk=NULL, *phdrChunk=NULL, *pbagChunk=NULL, *pmodChunk=NULL;
-    CHUNK *pgenChunk=NULL, *instChunk=NULL, *ibagChunk=NULL, *imodChunk=NULL;
-    CHUNK *igenChunk=NULL, *shdrChunk=NULL;
-
-    SFBANK *soundFont;
-    sfontg *globals;
-    globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-
-    if (UNLIKELY(globals == NULL)) {
-      csound->ErrorMsg(csound, "%s", Str("Sfont: cannot use globals/"));
-      return;
-    }
-
-    soundFont = globals->soundFont;
-    if (LIKELY(soundFont != NULL))
-      main_chunk=&(soundFont->chunk.main_chunk);
-    else  {
-     csound->ErrorMsg(csound, "%s", Str("Sfont: cannot use globals/"));
-     return;
-    }
-
-    if (UNLIKELY(main_chunk->ckDATA == NULL)) {
-      csound->ErrorMsg(csound, "%s", Str("Sfont format not compatible"));
-      return;
-    }
-    chkp = (char *) main_chunk->ckDATA+4;
-
-    for  (j=4; j< main_chunk->ckSize;) {
-
-      chkid = /* (DWORD *) chkp*/ dword(chkp);
-/* #ifdef BETA */
-/*    csound->Message(csound, "Looking at %.4s\n", (char*) &chkid); */
-/* #endif */
-      if (chkid == s2d("LIST")) {
-/* #ifdef BETA */
-/*         csound->Message(csound, "LIST "); */
-/* #endif */
-        j += 4; chkp += 4;
-        ChangeByteOrder("d", chkp, 4);
-        size = /* (DWORD *) chkp */ dword(chkp);
-        j += 4; chkp += 4;
-        chkid = /* (DWORD *) chkp */ dword(chkp);
-/* #ifdef BETA */
-/*         csound->Message(csound, "**chkid %p %p\n", */
-/*                                 (void*) chkid, (void*) (*((DWORD *) chkp))); */
-/*         csound->Message(csound, ":Looking at %.4s (%u)\n", */
-/*                                 (char*) &chkid, (uint32_t) size); */
-/* #endif */
-        if (chkid == s2d("INFO")) {
-          chkp += size;
-          j    += size;
-        }
-        else if (chkid == s2d("sdta")) {
-          j +=4; chkp += 4;
-          smplChunk = (CHUNK *) chkp;
-          soundFont->sampleData = (void *) &(smplChunk->ckDATA);
-          ChangeByteOrder("d", chkp + 4, 4);
-          ChangeByteOrder("w", chkp + 8, size - 12);
-/* #ifdef BETA */
-/*           { */
-/*             DWORD i; */
-/*             for (i=size-12; i< size+4; i++) */
-/*               csound->Message(csound, "%c(%.2x)", chkp[i], chkp[i]); */
-/*             csound->Message(csound, "\n"); */
-/*           } */
-/* #endif */
-          chkp += size-4;
-          j += size-4;
-        }
-        else if (chkid  ==  s2d("pdta")) {
-          j += 4; chkp += 4;
-          do {
-            chkid = /* (DWORD *) chkp */ dword(chkp);
-            /* csound->Message(csound, "::Looking at %.4s (%d)\n",&chkid,size); */
-            if (chkid == s2d("phdr")) {
-              phdrChunk = (CHUNK *) chkp;
-              soundFont->chunk.phdr= (sfPresetHeader *) &phdrChunk->ckDATA;
-              ChangeByteOrder("d", chkp + 4, 4);
-              ChangeByteOrder("b20w3d3", chkp + 8, phdrChunk->ckSize);
-              chkp += phdrChunk->ckSize+8;
-              j += phdrChunk->ckSize+8;
-            }
-            else if (chkid == s2d("pbag")) {
-              pbagChunk = (CHUNK *) chkp;
-              soundFont->chunk.pbag= (void *) &pbagChunk->ckDATA;
-              ChangeByteOrder("d", chkp + 4, 4);
-              ChangeByteOrder("w2", chkp + 8, pbagChunk->ckSize);
-              chkp += pbagChunk->ckSize+8;
-              j += pbagChunk->ckSize+8;
-            }
-            else if (chkid == s2d("pmod")) {
-              pmodChunk = (CHUNK *) chkp;
-              soundFont->chunk.pmod= (void *) &pmodChunk->ckDATA;
-              ChangeByteOrder("d", chkp + 4, 4);
-              ChangeByteOrder("w5", chkp + 8, pmodChunk->ckSize);
-              chkp += pmodChunk->ckSize+8;
-              j += pmodChunk->ckSize+8;
-            }
-            else if (chkid == s2d("pgen")) {
-              pgenChunk = (CHUNK *) chkp;
-              soundFont->chunk.pgen= (void *) &pgenChunk->ckDATA;
-              ChangeByteOrder("d", chkp + 4, 4);
-              ChangeByteOrder("w2", chkp + 8, pgenChunk->ckSize);
-              chkp += pgenChunk->ckSize+8;
-              j += pgenChunk->ckSize+8;
-            }
-            else if (chkid == s2d("inst")) {
-              instChunk = (CHUNK *) chkp;
-              soundFont->chunk.inst= (sfInst *) &instChunk->ckDATA;
-              ChangeByteOrder("d", chkp + 4, 4);
-              ChangeByteOrder("b20w", chkp + 8, instChunk->ckSize);
-              chkp += instChunk->ckSize+8;
-              j += instChunk->ckSize+8;
-            }
-            else if (chkid == s2d("ibag")) {
-              ibagChunk = (CHUNK *) chkp;
-              soundFont->chunk.ibag= (void *) &ibagChunk->ckDATA;
-              ChangeByteOrder("d", chkp + 4, 4);
-              ChangeByteOrder("w2", chkp + 8, ibagChunk->ckSize);
-              chkp += ibagChunk->ckSize+8;
-              j += ibagChunk->ckSize+8;
-            }
-            else if (chkid == s2d("imod")) {
-              imodChunk = (CHUNK *) chkp;
-              soundFont->chunk.imod= (void *) &imodChunk->ckDATA;
-              ChangeByteOrder("d", chkp + 4, 4);
-              ChangeByteOrder("w5", chkp + 8, imodChunk->ckSize);
-              chkp += imodChunk->ckSize+8;
-              j += imodChunk->ckSize+8;
-            }
-            else if (chkid == s2d("igen")) {
-              igenChunk = (CHUNK *) chkp;
-              soundFont->chunk.igen= (sfInstGenList *) &igenChunk->ckDATA;
-              ChangeByteOrder("d", chkp + 4, 4);
-              ChangeByteOrder("w2", chkp + 8, igenChunk->ckSize);
-              chkp += igenChunk->ckSize+8;
-              j += igenChunk->ckSize+8;
-            }
-            else if (chkid == s2d("shdr")) {
-              shdrChunk = (CHUNK *) chkp;
-              soundFont->chunk.shdr= (sfSample *) &shdrChunk->ckDATA;
-              ChangeByteOrder("d", chkp + 4, 4);
-              ChangeByteOrder("b20d5b2w2", chkp + 8, shdrChunk->ckSize);
-              chkp += shdrChunk->ckSize+8;
-              j += shdrChunk->ckSize+8;
-            }
-            else {
-/* #ifdef BETA */
-/*               csound->Message(csound, "Unknown sfont %.4s(%.8x)\n", */
-/*                                       (char*) &chkid, (uint32_t) chkid); */
-/* #endif */
-              shdrChunk = (CHUNK *) chkp;
-              chkp += shdrChunk->ckSize+8;
-              j += shdrChunk->ckSize+8;
-            }
-          } while (j < main_chunk->ckSize);
+    while (pos < length) {
+      uint32_t size, next, end, sub;
+      char *list = data + pos;
+      if (length - pos < 8) return NOTOK;
+      ChangeByteOrder("d", list + 4, 4);
+      size = dword(list + 4);
+      if (size > length - pos - 8) return NOTOK;
+      end = pos + 8 + size;
+      if ((size & 1) && end == length) return NOTOK;
+      next = end + (size & 1);
+      if (memcmp(list, "LIST", 4) != 0) {
+        pos = next;
+        continue;
+      }
+      if (size < 4) return NOTOK;
+      if (memcmp(list + 8, "sdta", 4) != 0 &&
+          memcmp(list + 8, "pdta", 4) != 0) {
+        pos = next;
+        continue;
+      }
+      sub = pos + 12;
+      while (sub < end) {
+        char *item = data + sub;
+        CHUNK *chunk = (CHUNK *) item;
+        uint32_t count;
+        if (end - sub < 8) return NOTOK;
+        ChangeByteOrder("d", item + 4, 4);
+        count = dword(item + 4);
+        if (count > end - sub - 8) return NOTOK;
+        if ((count & 1) && count == end - sub - 8) return NOTOK;
+        if (memcmp(list + 8, "sdta", 4) == 0) {
+          if (memcmp(item, "smpl", 4) == 0) {
+            if (sf->sampleData || count % sizeof(SHORT)) return NOTOK;
+            sf->chunk.smplChunk = chunk;
+            sf->sampleData = (SHORT *) (item + 8);
+            ChangeByteOrder("w", item + 8, count);
+          }
         }
         else {
-/* #ifdef BETA */
-/*           csound->Message(csound, "Unknown sfont %.4s(%.8x)\n", */
-/*                                   (char*) &chkid, (uint32_t) chkid); */
-/* #endif */
-          shdrChunk = (CHUNK *) chkp;
-          chkp += shdrChunk->ckSize+8;
-          j += shdrChunk->ckSize+8;
+#define SF_CHUNK(id, type, format)                                      \
+          if (memcmp(item, #id, 4) == 0) {                              \
+            if (sf->chunk.id || count < sizeof(type) ||                  \
+                count % sizeof(type)) return NOTOK;                    \
+            sf->chunk.id##Chunk = chunk;                               \
+            sf->chunk.id = (type *) (item + 8);                         \
+            ChangeByteOrder(format, item + 8, count);                   \
+          }
+          SF_CHUNK(phdr, sfPresetHeader, "b20w3d3")
+          else SF_CHUNK(pbag, sfPresetBag, "w2")
+          else SF_CHUNK(pmod, sfModList, "w5")
+          else SF_CHUNK(pgen, sfGenList, "w2")
+          else SF_CHUNK(inst, sfInst, "b20w")
+          else SF_CHUNK(ibag, sfInstBag, "w2")
+          else SF_CHUNK(imod, sfInstModList, "w5")
+          else SF_CHUNK(igen, sfInstGenList, "w2")
+          else SF_CHUNK(shdr, sfSample, "b20d5b2w2")
+#undef SF_CHUNK
         }
+        sub += 8 + count + (count & 1);
       }
-      else {
-/* #ifdef BETA */
-/*         csound->Message(csound, "Unknown sfont %.4s(%.8x)\n", */
-/*                                 (char*) &chkid, (uint32_t) chkid); */
-/* #endif */
-        shdrChunk = (CHUNK *) chkp;
-        chkp += shdrChunk->ckSize+8;
-        j += shdrChunk->ckSize+8;
-      }
+      pos = next;
     }
-    soundFont->chunk.smplChunk = smplChunk;
-    soundFont->chunk.phdrChunk = phdrChunk;
-    soundFont->chunk.pbagChunk = pbagChunk;
-    soundFont->chunk.pmodChunk = pmodChunk;
-    soundFont->chunk.pgenChunk = pgenChunk;
-    soundFont->chunk.instChunk = instChunk;
-    soundFont->chunk.ibagChunk = ibagChunk;
-    soundFont->chunk.imodChunk = imodChunk;
-    soundFont->chunk.igenChunk = igenChunk;
-    soundFont->chunk.shdrChunk = shdrChunk;
+    if (!sf->sampleData || !sf->chunk.phdr || !sf->chunk.pbag ||
+        !sf->chunk.pgen || !sf->chunk.inst || !sf->chunk.ibag ||
+        !sf->chunk.igen || !sf->chunk.shdr)
+      return NOTOK;
+    /* Each header refers to a range ending at the following header/bag. */
+    {
+      uint32_t np = sf->chunk.phdrChunk->ckSize / sizeof(sfPresetHeader);
+      uint32_t ni = sf->chunk.instChunk->ckSize / sizeof(sfInst);
+      uint32_t ns = sf->chunk.shdrChunk->ckSize / sizeof(sfSample);
+      uint32_t nb = sf->chunk.pbagChunk->ckSize / sizeof(sfPresetBag);
+      uint32_t ng = sf->chunk.pgenChunk->ckSize / sizeof(sfGenList);
+      uint32_t nib = sf->chunk.ibagChunk->ckSize / sizeof(sfInstBag);
+      uint32_t nig = sf->chunk.igenChunk->ckSize / sizeof(sfInstGenList);
+      uint32_t i;
+      if (memcmp(sf->chunk.phdr[np-1].achPresetName, "EOP", 4) != 0 ||
+          memcmp(sf->chunk.inst[ni-1].achInstName, "EOI", 4) != 0)
+        return NOTOK;
+      for (i = 0; i < np; i++)
+        if (sf->chunk.phdr[i].wPresetBagNdx >= nb ||
+            (i && sf->chunk.phdr[i].wPresetBagNdx <
+                  sf->chunk.phdr[i-1].wPresetBagNdx)) return NOTOK;
+      for (i = 0; i < nb; i++)
+        if (sf->chunk.pbag[i].wGenNdx > ng ||
+            (i && sf->chunk.pbag[i].wGenNdx <
+                  sf->chunk.pbag[i-1].wGenNdx)) return NOTOK;
+      for (i = 0; i < ni; i++)
+        if (sf->chunk.inst[i].wInstBagNdx >= nib ||
+            (i && sf->chunk.inst[i].wInstBagNdx <
+                  sf->chunk.inst[i-1].wInstBagNdx)) return NOTOK;
+      for (i = 0; i < nib; i++)
+        if (sf->chunk.ibag[i].wInstGenNdx > nig ||
+            (i && sf->chunk.ibag[i].wInstGenNdx <
+                  sf->chunk.ibag[i-1].wInstGenNdx)) return NOTOK;
+      for (i = 0; i < ng; i++)
+        if (sf->chunk.pgen[i].sfGenOper == instrument &&
+            sf->chunk.pgen[i].genAmount.wAmount >= ni-1) return NOTOK;
+      for (i = 0; i < nig; i++)
+        if (sf->chunk.igen[i].sfGenOper == sampleID &&
+            sf->chunk.igen[i].genAmount.wAmount >= ns-1) return NOTOK;
+    }
+    return OK;
 }
 
 typedef struct _sflooper {
   OPDS h;
-  MYFLT *outL, *outR;  /* output */
-  MYFLT *ivel, *inotnum, *amp, *pitch, *ipresethandle, *loop_start, *loop_end,
+  cs_float *outL, *outR;  /* output */
+  cs_float *ivel, *inotnum, *amp, *pitch, *ipresethandle, *loop_start, *loop_end,
     *crossfade, *start, *imode, *ifn2, *iskip, *iflag;
   int32_t     spltNum;
   SHORT   *sBase[MAXSPLT];
   FUNC *efunc;
-  MYFLT count;
+  cs_float count;
   int32_t lstart[MAXSPLT], lend[MAXSPLT], cfade, mode;
-  double  ndx[MAXSPLT][2];    /* table lookup ndx */
-  double  freq[MAXSPLT];
+  cs_double  ndx[MAXSPLT][2];    /* table lookup ndx */
+  cs_double  freq[MAXSPLT];
   int32_t firsttime[MAXSPLT], init, end[MAXSPLT], sstart[MAXSPLT];
-  MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT];
+  cs_float   leftlevel[MAXSPLT], rightlevel[MAXSPLT];
 } sflooper;
 
 static int32_t sflooper_init(CSOUND *csound, sflooper *p)
 {
-    DWORD index = (DWORD) *p->ipresethandle;
+    DWORD index;
     presetType *preset;
     SHORT *sBase;
     int32_t layersNum, j, spltNum = 0;
     sfontg *globals;
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
 
+    if (UNLIKELY(!(*p->ipresethandle >= FL(0.0) &&
+                   *p->ipresethandle < MAX_SFPRESET)))
+      return csound->InitError(csound, "%s\n",
+                               Str("sflooper: preset number out of range"));
+    index = (DWORD) *p->ipresethandle;
     preset = globals->presetp[index];
     sBase = globals->sampleBase[index];
     if (!preset) {
-      return csound->InitError(csound, "%s", Str("sfplay: invalid or "
+      return csound->InitError(csound, "%s\n", Str("sfplay: invalid or "
                                            "out-of-range preset number"));
     }
     layersNum = preset->layers_num;
@@ -2412,14 +2331,14 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
               vel     >= split->minVelRange  &&
               vel     <= split->maxVelRange) {
             if (UNLIKELY(spltNum >= MAXSPLT))
-              return csound->InitError(csound, "%s",
+              return csound->InitError(csound, "%s\n",
                                       Str("SoundFont: too many matching sample zones"));
             sfSample *sample = split->sample;
             DWORD start=sample->dwStart;
-            MYFLT attenuation;
-            double pan;
-            double freq, orgfreq;
-            double tuneCorrection = split->coarseTune + layer->coarseTune +
+            cs_float attenuation;
+            int32_t ipan;
+            cs_double freq, orgfreq;
+            cs_double tuneCorrection = split->coarseTune + layer->coarseTune +
               (split->fineTune + layer->fineTune)*0.01;
             int32_t orgkey = split->overridingRootKey;
             if (orgkey == -1) orgkey = sample->byOriginalKey;
@@ -2436,18 +2355,24 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
               p->freq[spltNum]= (freq/orgfreq) * sample->dwSampleRate*CS_ONEDSR;
             }
 
-            attenuation = (MYFLT) (layer->initialAttenuation +
+            attenuation = (cs_float) (layer->initialAttenuation +
                                    split->initialAttenuation);
             attenuation = POWER(FL(2.0), (-FL(1.0)/FL(60.0)) * attenuation )
               * GLOBAL_ATTENUATION;
-            pan = (double)(split->pan + layer->pan) / 1000.0 + 0.5;
-            if (pan > 1.0) pan = 1.0;
-            else if (pan < 0.0) pan = 0.0;
+            /* pan in 0.1% units, -500 is hard left.  Clamp it as an integer:
+               as a double, -500/1000.0 + 0.5 could come out slightly
+               negative (gcc -ffast-math, fused multiply-add), and sqrt()
+               of it made the right channel NaN (#3403) */
+            ipan = split->pan + layer->pan;
+            if (ipan > 500) ipan = 500;
+            else if (ipan < -500) ipan = -500;
             p->sBase[spltNum] = sBase;
             p->sstart[spltNum] = start;
             p->end[spltNum] =  (DWORD) (sample->dwEnd + split->endOffset);
-            p->leftlevel[spltNum] = (MYFLT) sqrt(1.0-pan) * attenuation;
-            p->rightlevel[spltNum] = (MYFLT) sqrt(pan) * attenuation;
+            p->leftlevel[spltNum] =
+              (cs_float) sqrt((500 - ipan) / 1000.0) * attenuation;
+            p->rightlevel[spltNum] =
+              (cs_float) sqrt((500 + ipan) / 1000.0) * attenuation;
             spltNum++;
           }
         }
@@ -2465,7 +2390,7 @@ static int32_t sflooper_init(CSOUND *csound, sflooper *p)
         if ((p->ndx[j][0] = *p->start*CS_ESR+p->sstart[j]) < 0)
           p->ndx[j][0] = 0;
         if (p->ndx[j][0] >= p->end[j])
-          p->ndx[j][0] = (double) p->end[j] - 1.0;
+          p->ndx[j][0] = (cs_double) p->end[j] - 1.0;
         p->count = 0;
       }
       p->firsttime[j] = 1;
@@ -2482,14 +2407,14 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    MYFLT    *outL = p->outL, *outR = p->outR, out, sr = CS_ESR;
-    MYFLT    amp = *(p->amp), pit = *(p->pitch);
+    cs_float    *outL = p->outL, *outR = p->outR, out, sr = CS_ESR;
+    cs_float    amp = *(p->amp), pit = *(p->pitch);
     SHORT    **base = p->sBase, *tab;
-    double *ndx;
-    MYFLT frac0, frac1, *etab, left, right;
+    cs_double *ndx;
+    cs_float frac0, frac1, *etab, left, right;
     int32_t *nend = p->end, *loop_end = p->lend, *loop_start = p->lstart,
       crossfade = p->cfade, send, sstart, spltNum = p->spltNum;
-    MYFLT count = p->count,fadein, fadeout, pitch;
+    cs_float count = p->count,fadein, fadeout, pitch;
     int32_t *firsttime = p->firsttime, elen, mode=p->mode, init = p->init;
     uint32 tndx0, tndx1;
 
@@ -2504,8 +2429,8 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
 
     /* loop parameters & check */
     if (pit < FL(0.0)) pit = FL(0.0);
-    memset(outL, 0, nsmps*sizeof(MYFLT));
-    memset(outR, 0, nsmps*sizeof(MYFLT));
+    memset(outL, 0, nsmps*sizeof(cs_float));
+    memset(outR, 0, nsmps*sizeof(cs_float));
     if (UNLIKELY(early)) nsmps -= early;
 
     for (k=0; k < spltNum; k++) {
@@ -2525,13 +2450,13 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
         loop_start[k] = loop_start[k] < sstart ? sstart : loop_start[k];
         /* TODO : CHECKS */
         if(loop_start[k] > send) {
-          csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+          csound->Warning(csound, Str("loop start %f beyond sample end %f, clamping.\n"),
                           (loop_start[k] - sstart)/sr,
                           (send - sstart)/sr);
           loop_start[k] = send;
         }
         if(loop_end[k] > send) {
-          csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+          csound->Warning(csound, Str("loop end %f beyond sample end %f, clamping.\n"),
                           (loop_end[k] - sstart)/sr,
                           (send - sstart)/sr);
           loop_end[k] = send;
@@ -2539,17 +2464,17 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
         loopsize = loop_end[k] - loop_start[k];
         crossfade = (int32_t) (*p->crossfade*sr);
        if (mode == 1) {
-          ndx[0] = (double) loop_end[k];
-          ndx[1] = (double) loop_end[k];
-          count = (MYFLT) crossfade;
+          ndx[0] = (cs_double) loop_end[k];
+          ndx[1] = (cs_double) loop_end[k];
+          count = (cs_float) crossfade;
           p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
         }
         else if (mode == 2) {
-          ndx[1] = (double) loop_start[k] - 1.0;
+          ndx[1] = (cs_double) loop_start[k] - 1.0;
           p->cfade = crossfade = crossfade > loopsize/2 ? loopsize/2 - 1 : crossfade;
         }
         else {
-          ndx[1] = (double) loop_start[k];
+          ndx[1] = (cs_double) loop_start[k];
           p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
         }
         firsttime[k] = 0;
@@ -2587,13 +2512,13 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             loop_start[k] = loop_start[k] < sstart ? sstart: loop_start[k];
             /* CHECKS */
             if(loop_start[k] > send) {
-             csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+             csound->Warning(csound, Str("loop start %f beyond sample end %f, clamping.\n"),
                           (loop_start[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_start[k] = send;
             }
             if(loop_end[k] > send) {
-              csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+              csound->Warning(csound, Str("loop end %f beyond sample end %f, clamping.\n"),
                           (loop_end[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_end[k] = send;
@@ -2602,8 +2527,8 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             crossfade = (int32_t) (*p->crossfade*sr);
             p->cfade = crossfade = crossfade > loopsize ? loopsize : crossfade;
             ndx[0] = ndx[1];
-            ndx[1] =  (double)loop_end[k];
-            count=(MYFLT)crossfade;
+            ndx[1] =  (cs_double)loop_end[k];
+            count=(cs_float)crossfade;
           }
           outR[i] += out*right;
           outL[i] += out*left;
@@ -2633,7 +2558,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             ndx[0] += pitch;
             init = 0;
             if (ndx[0] >= loop_end[k] - crossfade) {
-              ndx[1] = (double) loop_end[k];
+              ndx[1] = (cs_double) loop_end[k];
               count = 0;
             }
           }
@@ -2661,7 +2586,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             out = amp*(tab[tndx1] + frac1*(tab[tndx1+1] - tab[tndx1]));
             ndx[1] -= pitch;
             if (ndx[1] <= loop_start[k] + crossfade) {
-              ndx[0] = (double) loop_start[k];
+              ndx[0] = (cs_double) loop_start[k];
               count = 0;
             }
           }
@@ -2679,13 +2604,13 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
               loop_start[k] = loop_start[k] < sstart ? sstart: loop_start[k];
                           /* CHECKS */
               if(loop_start[k] > send) {
-               csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+               csound->Warning(csound, Str("loop start %f beyond sample end %f, clamping.\n"),
                           (loop_start[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_start[k] = send;
             }
             if(loop_end[k] > send) {
-              csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+              csound->Warning(csound, Str("loop end %f beyond sample end %f, clamping.\n"),
                           (loop_end[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_end[k] = send;
@@ -2731,13 +2656,13 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             loop_start[k] = loop_start[k] < sstart ? sstart: loop_start[k];
             /* TODO : CHECKS */
             if(loop_start[k] > send) {
-             csound->Warning(csound, "loop start %f beyond sample end %f, clamping.\n",
+             csound->Warning(csound, Str("loop start %f beyond sample end %f, clamping.\n"),
                           (loop_start[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_start[k] = send;
             }
             if(loop_end[k] > send) {
-              csound->Warning(csound, "loop end %f beyond sample end %f, clamping.\n",
+              csound->Warning(csound, Str("loop end %f beyond sample end %f, clamping.\n"),
                           (loop_end[k] - sstart)/sr,
                           (send - sstart)/sr);
               loop_end[k] = send;
@@ -2746,7 +2671,7 @@ static int32_t sflooper_process(CSOUND *csound, sflooper *p)
             crossfade = (int32_t) (*p->crossfade*sr);
             p->cfade = crossfade = crossfade > loopsize ? loopsize-1 : crossfade;
             ndx[0] = ndx[1];
-            ndx[1] = (double)loop_start[k];
+            ndx[1] = (cs_double)loop_start[k];
             count=0;
           }
           outR[i] += out*right;
@@ -2803,7 +2728,7 @@ int32_t sfont_ModuleCreate(CSOUND *csound)
     globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
     if (globals == NULL)
       return csound->InitError(csound,
-                               "%s", Str("error... could not create sfont globals\n"));
+                               "%s\n", Str("error... could not create sfont globals\n"));
 
     globals->sfArray = (SFBANK *) csound->Calloc(csound, MAX_SFONT*sizeof(SFBANK));
     globals->presetp =
@@ -2813,7 +2738,7 @@ int32_t sfont_ModuleCreate(CSOUND *csound)
     globals->currSFndx = 0;
     globals->maxSFndx = MAX_SFONT;
     for (j=0; j<128; j++) {
-      globals->pitches[j] = (MYFLT) (csound->GetA4(csound) * pow(2.0, (double)(j- 69)/12.0));
+      globals->pitches[j] = (cs_float) (csound->GetA4(csound) * pow(2.0, (cs_double)(j- 69)/12.0));
     }
 
    return OK;
@@ -2837,36 +2762,35 @@ int32_t sfont_ModuleInit(CSOUND *csound)
     return err;
 }
 
+static void free_SfBank(CSOUND *csound, SFBANK *sf)
+{
+    int32_t k, l;
+    for (k = 0; k < sf->presets_num; k++) {
+      for (l = 0; l < sf->preset[k].layers_num; l++)
+        csound->Free(csound, sf->preset[k].layer[l].split);
+      csound->Free(csound, sf->preset[k].layer);
+    }
+    csound->Free(csound, sf->preset);
+    for (l = 0; l < sf->instrs_num; l++)
+      csound->Free(csound, sf->instr[l].split);
+    csound->Free(csound, sf->instr);
+    csound->Free(csound, sf->chunk.main_chunk.ckDATA);
+    csound->Free(csound, sf->name);
+    memset(sf, 0, sizeof(*sf));
+}
+
 int32_t sfont_ModuleDestroy(CSOUND *csound)
 {
-    int32_t j,k,l;
-    SFBANK *sfArray;
-    sfontg *globals;
-    globals = (sfontg *) (csound->QueryGlobalVariable(csound, "::sfontg"));
-    if (globals == NULL) return 0;
-    sfArray = globals->sfArray;
-
-    for (j=0; j<globals->currSFndx; j++) {
-      for (k=0; k< sfArray[j].presets_num; k++) {
-        for (l=0; l<sfArray[j].preset[k].layers_num; l++) {
-          csound->Free(csound, sfArray[j].preset[k].layer[l].split);
-        }
-        csound->Free(csound, sfArray[j].preset[k].layer);
-      }
-      csound->Free(csound, sfArray[j].preset);
-      for (l=0; l< sfArray[j].instrs_num; l++) {
-        csound->Free(csound, sfArray[j].instr[l].split);
-      }
-      csound->Free(csound, sfArray[j].instr);
-      csound->Free(csound, sfArray[j].chunk.main_chunk.ckDATA);
-    }
-    csound->Free(csound, sfArray);
-    globals->currSFndx = 0;
+    int32_t j;
+    sfontg *globals = (sfontg *) csound->QueryGlobalVariable(csound, "::sfontg");
+    if (globals == NULL) return OK;
+    for (j = 0; j < globals->currSFndx; j++)
+      free_SfBank(csound, &globals->sfArray[j]);
+    csound->Free(csound, globals->sfArray);
     csound->Free(csound, globals->presetp);
     csound->Free(csound, globals->sampleBase);
-
     csound->DestroyGlobalVariable(csound, "::sfontg");
-    return 0;
+    return OK;
 }
 
 
@@ -2887,7 +2811,6 @@ int32_t sfont_ModuleDestroy(CSOUND *csound)
 
  int32_t csoundModuleInfo(void)
 {
-    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t
-) sizeof(MYFLT));
+  return CSOUND_MODULE_INFO;
 }
 #endif

@@ -13,7 +13,7 @@
 #endif
 
 namespace {
-void checkExpression(const std::string& expression, MYFLT expected,
+void checkExpression(const std::string& expression, cs_float expected,
                      const char* error = nullptr, int mode = 1)
 {
     SCOPED_TRACE(expression);
@@ -45,8 +45,9 @@ void checkExpression(const std::string& expression, MYFLT expected,
     }
     int result = csoundCompileCSD(csound,
                                  mode == 0 ? path.c_str() : csd.c_str(), mode, 0);
-    if (!path.empty())
+    if (!path.empty()) {
         EXPECT_EQ(0, std::remove(path.c_str()));
+    }
     if (error) {
         EXPECT_NE(CSOUND_SUCCESS, result);
         std::string messages;
@@ -69,7 +70,7 @@ void checkExpression(const std::string& expression, MYFLT expected,
 TEST(ScoreExpressionTests, PreservesArithmeticAndGrouping)
 {
     for (const auto& item : {
-      std::pair<const char*, MYFLT>{"110+220", 330},
+      std::pair<const char*, cs_float>{"110+220", 330},
       {"330-55", 275}, {"44*10", 440}, {"1100/2", 550},
       {"5^4", 625}, {"5660%1000", 660}, {"110&220", 76},
       {"110|220", 254}, {"110#220", 178}, {"8/2*3", 12},

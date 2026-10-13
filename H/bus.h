@@ -41,13 +41,13 @@ extern "C" {
 
   typedef struct {
     OPDS    h;
-    MYFLT   *r, *a;
+    cs_float   *r, *a;
   } CHNVAL;
 
   typedef struct {
     OPDS    h;
     PVSDAT   *r;
-    MYFLT    *a,*N, *overlap, *winsize, *wintype, *format;
+    cs_float    *a,*N, *overlap, *winsize, *wintype, *format;
     PVSDAT   init;
     PVSDAT  *f;
     spin_lock_t *lock;
@@ -57,8 +57,8 @@ extern "C" {
 
   typedef struct {
     OPDS    h;
-    MYFLT   *ans;
-    MYFLT   *keyDown;
+    cs_float   *ans;
+    cs_float   *keyDown;
     int32_t evtbuf;
   } KSENSE;
 
@@ -74,9 +74,9 @@ extern "C" {
 
   typedef struct {
     OPDS        h;
-    MYFLT       *arg;
+    cs_float       *arg;
     STRINGDAT   *iname;
-    MYFLT       *fp;
+    cs_float       *fp;
     spin_lock_t *lock;
     int32_t     pos;
     char        chname[MAX_CHAN_NAME+1];
@@ -86,11 +86,11 @@ extern "C" {
     OPDS        h;
     ARRAYDAT    *arrayDat;
     STRINGDAT   *iname;
-    MYFLT       *fp;
+    cs_float       *fp;
     spin_lock_t *lock;
     int32_t     pos;
     int32_t     arraySize;
-    MYFLT**     channelPtrs;
+    cs_float**     channelPtrs;
     ARRAYDAT    *channels;
     char        chname[MAX_CHAN_NAME+1];
   } CHNGETARRAY;
@@ -98,22 +98,22 @@ extern "C" {
   typedef struct {
     OPDS    h;
     STRINGDAT   *iname[MAX_CHAN_NAME+1];
-    MYFLT   *fp[MAX_CHAN_NAME+1];
+    cs_float   *fp[MAX_CHAN_NAME+1];
     spin_lock_t *lock[MAX_CHAN_NAME+1];
   } CHNCLEAR;
 
   typedef struct {
     OPDS    h;
     STRINGDAT   *iname;
-    MYFLT   *imode;
-    MYFLT   *itype;
-    MYFLT   *idflt;
-    MYFLT   *imin;
-    MYFLT   *imax;
-    MYFLT   *ix;
-    MYFLT   *iy;
-    MYFLT   *iwidth;
-    MYFLT   *iheight;
+    cs_float   *imode;
+    cs_float   *itype;
+    cs_float   *idflt;
+    cs_float   *imin;
+    cs_float   *imax;
+    cs_float   *ix;
+    cs_float   *iy;
+    cs_float   *iwidth;
+    cs_float   *iheight;
     STRINGDAT *Sattributes;
     spin_lock_t      *lock;
   } CHN_OPCODE_K;
@@ -121,7 +121,7 @@ extern "C" {
   typedef struct {
     OPDS    h;
     STRINGDAT   *iname;
-    MYFLT   *imode;
+    cs_float   *imode;
     STRINGDAT *type;
     ARRAYDAT *idim;
     spin_lock_t *lock;
@@ -130,35 +130,35 @@ extern "C" {
   typedef struct {
     OPDS    h;
     STRINGDAT   *iname;
-    MYFLT   *imode;
+    cs_float   *imode;
     spin_lock_t   *lock;
   } CHN_OPCODE;
 
   typedef struct {
     OPDS    h;
-    MYFLT   *arg;
+    cs_float   *arg;
     STRINGDAT   *iname;
-    MYFLT   *imode;
-    MYFLT   *itype;
-    MYFLT   *idflt;
-    MYFLT   *imin;
-    MYFLT   *imax;
+    cs_float   *imode;
+    cs_float   *itype;
+    cs_float   *idflt;
+    cs_float   *imin;
+    cs_float   *imax;
   } CHNEXPORT_OPCODE;
 
   typedef struct {
     OPDS    h;
-    MYFLT   *itype;
-    MYFLT   *imode;
-    MYFLT   *ictltype;
-    MYFLT   *idflt;
-    MYFLT   *imin;
-    MYFLT   *imax;
+    cs_float   *itype;
+    cs_float   *imode;
+    cs_float   *ictltype;
+    cs_float   *idflt;
+    cs_float   *imin;
+    cs_float   *imax;
     STRINGDAT   *iname;
   } CHNPARAMS_OPCODE;
 
   typedef struct {
     OPDS    h;
-    MYFLT   *value, *valID;
+    cs_float   *value, *valID;
     AUXCH   channelName;
     const CS_TYPE *channelType;
     void *channelptr;
@@ -166,7 +166,7 @@ extern "C" {
 
   typedef struct {
     OPDS    h;
-    MYFLT   *valID, *value;
+    cs_float   *valID, *value;
     AUXCH   channelName;
     const CS_TYPE *channelType;
     void *channelptr;

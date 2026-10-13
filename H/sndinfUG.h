@@ -24,15 +24,15 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r1, *ifilno, *irawfiles;
+    cs_float   *r1, *ifilno, *irawfiles;
 } SNDINFO;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *r1, *ifilno, *channel;
+    cs_float   *r1, *ifilno, *channel;
 } SNDINFOPEAK;
 
 typedef struct {
     OPDS  h;
-    MYFLT *r1, *ifilno;
+    cs_float *r1, *ifilno;
 } FILEVALID;

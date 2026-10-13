@@ -70,24 +70,24 @@ extern "C" {
 #if defined(USE_DOUBLE) && !defined(SHORT_TABLE_LENGTH)  
 // MAXLEN is the largest positive 32bit signed pow of two  
 static const int32_t MAXLEN = 1 << 30;
-static const double FMAXLEN = (double) (1 << 30);
+static const cs_double FMAXLEN = (cs_double) (1 << 30);
 static const uint32_t PHMASK = (1 << 30) - 1;
 #else   // this is the original max table length - floats
 static const int32_t MAXLEN =  1 << 24;
-static const double FMAXLEN = (double) (1 << 24);
+static const cs_double FMAXLEN = (cs_double) (1 << 24);
 static const uint32_t PHMASK = (1 << 24) - 1;
 #endif  
-#define PFRAC(x)   ((MYFLT)((x) & ftp->lomask) * ftp->lodiv)
+#define PFRAC(x)   ((cs_float)((x) & ftp->lomask) * ftp->lodiv)
 #define MAXPOS     0x7FFFFFFFL
 #define MAX_STRING_CHANNEL_DATASIZE 16384
 #define BYTREVS(n) ((n>>8  & 0xFF) | (n<<8 & 0xFF00))
 #define BYTREVL(n) ((n>>24 & 0xFF) | (n>>8 & 0xFF00L) |         \
                     (n<<8 & 0xFF0000L) | (n<<24 & 0xFF000000L))
 #define OCTRES     8192
-#define CPSOCTL(n) ((MYFLT)(1<<((int32_t)(n)>>13))*csound->cpsocfrc[(int32_t)(n)&8191])
+#define CPSOCTL(n) ((cs_float)(1<<((int32_t)(n)>>13))*csound->cpsocfrc[(int32_t)(n)&8191])
 #ifdef USE_DOUBLE
   extern int64_t MYNAN;
-#define SSTRCOD    (double) NAN
+#define SSTRCOD    (cs_double) NAN
 #else
   extern int32 MYNAN;
 #define SSTRCOD    (float) NAN
@@ -114,13 +114,13 @@ static const uint32_t PHMASK = (1 << 24) - 1;
 #define TWOPI   (6.283185307179586476925286766559005768394)
 #define HALFPI  (1.570796326794896619231321691639751442099)
 #ifndef PI_F  
-#define PI_F    ((MYFLT) PI)
+#define PI_F    ((cs_float) PI)
 #endif
 #ifndef TWOPI_F    
-#define TWOPI_F ((MYFLT) TWOPI)
+#define TWOPI_F ((cs_float) TWOPI)
 #endif
 #ifndef HALFPI_F  
-#define HALFPI_F ((MYFLT) HALFPI)
+#define HALFPI_F ((cs_float) HALFPI)
 #endif  
 #define INF     (2147483647.0)
 #define ROOT2   (1.414213562373095048801688724209698078569)

@@ -53,8 +53,8 @@ extern "C" {
   } csRtAudioParams;
 
   typedef int32_t (*devOpenFunc)(CSOUND *, const csRtAudioParams *);
-  typedef void (*audioOutFunc)(CSOUND *, const MYFLT *, int32_t) ;
-  typedef int32_t (*audioInFunc)(CSOUND *, MYFLT *, int32_t);
+  typedef void (*audioOutFunc)(CSOUND *, const cs_float *, int32_t) ;
+  typedef int32_t (*audioInFunc)(CSOUND *, cs_float *, int32_t);
   typedef int32_t (*audioDevListFunc)(CSOUND *,
                                       CS_AUDIODEVICE *, int32_t);
 

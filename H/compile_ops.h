@@ -27,26 +27,26 @@
 
 typedef struct _compile {
   OPDS h;
-  MYFLT *res;
-  MYFLT *str;
-  MYFLT *ktrig;
+  cs_float *res;
+  cs_float *str;
+  cs_float *ktrig;
 }COMPILE;
 
 typedef struct _retval {
   OPDS h;
-  MYFLT *ret;
+  cs_float *ret;
 } RETVAL;
 
 typedef struct rosc {
   OPDS h;
-  MYFLT *kstatus;
-  MYFLT *out[32];
+  cs_float *kstatus;
+  cs_float *out[32];
   STRINGDAT *address, *type;
 } ROSC;
 
 typedef struct rosca {
   OPDS h;
-  MYFLT *kstatus;
+  cs_float *kstatus;
   ARRAYDAT *out;
   STRINGDAT *address, *type;
 } ROSCA;

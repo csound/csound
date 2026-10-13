@@ -34,11 +34,11 @@
 
 #include <math.h>
 #ifndef sinf
-#define sinf(a) (MYFLT)sin((double)(a))
-#define cosf(a) (MYFLT)cos((double)(a))
-#define sqrtf(a) (MYFLT)sqrt((double)(a))
-#define atan2f(a,b) (MYFLT)atan2((double)(a),(double)(b))
-#define powf(a,b) (MYFLT)pow((double)(a),(double)(b))
+#define sinf(a) (cs_float)sin((cs_double)(a))
+#define cosf(a) (cs_float)cos((cs_double)(a))
+#define sqrtf(a) (cs_float)sqrt((cs_double)(a))
+#define atan2f(a,b) (cs_float)atan2((cs_double)(a),(cs_double)(b))
+#define powf(a,b) (cs_float)pow((cs_double)(a),(cs_double)(b))
 #endif
 
 /* TYPEDEFS */
@@ -51,35 +51,35 @@ typedef int64_t    len_t;    /* length type */
 typedef struct {
   int32_t    inited;           /* Data initialization flag */
   len_t  size;             /* Size of the digital filter lattice */
-  MYFLT* insertionPoint;   /* Position in queue to place new data */
-  MYFLT* extractionPoint;  /* Position to read data from */
-  MYFLT* data;             /* The lattice data */
-  MYFLT* endPoint;         /* The end of the data */
-  MYFLT* pointer;          /* pointer to current position in data */
+  cs_float* insertionPoint;   /* Position in queue to place new data */
+  cs_float* extractionPoint;  /* Position to read data from */
+  cs_float* data;             /* The lattice data */
+  cs_float* endPoint;         /* The end of the data */
+  cs_float* pointer;          /* pointer to current position in data */
 } circularBuffer;
 
 /* class filter -- recursive filter implementation class */
 typedef struct {
   circularBuffer buffer; /* The filter's delay line */
-  MYFLT* coeffs;         /* The filter's coefficients */
+  cs_float* coeffs;         /* The filter's coefficients */
 } filter;
 
 /* class filter3-- JPff */
 typedef struct {
-  MYFLT         x1, x2;         /* Delay line */
-  MYFLT         a0, a1;         /* The filter's coefficients */
+  cs_float         x1, x2;         /* Delay line */
+  cs_float         a0, a1;         /* The filter's coefficients */
 } filter3;
 
 /* filter member functions */
-static void filter3Set(filter3*,MYFLT,MYFLT); /* set the coefficients */
-static MYFLT filter3FIR(filter3*,MYFLT);      /* convolution filter routine */
+static void filter3Set(filter3*,cs_float,cs_float); /* set the coefficients */
+static cs_float filter3FIR(filter3*,cs_float);      /* convolution filter routine */
 
 /* waveguide rail implementation class */
 typedef circularBuffer guideRail; /* It's just a circular buffer really */
 
 /* guideRail member functions */
-static inline MYFLT guideRailAccess(guideRail*,len_t);  /* delay line access routine */
-static void guideRailUpdate(guideRail*,MYFLT);   /* delay line update routine */
+static inline cs_float guideRailAccess(guideRail*,len_t);  /* delay line access routine */
+static void guideRailUpdate(guideRail*,cs_float);   /* delay line update routine */
 
 /* waveguide -- abstract base class definition for waveguide classes */
 typedef struct{
@@ -87,17 +87,17 @@ typedef struct{
     excited;         /* excitation flag */
   guideRail upperRail; /* the right-going wave */
   guideRail lowerRail; /* the left-going wave */
-  MYFLT c;             /* The tuning filter coefficient */
-  MYFLT p;             /* The tuning fitler state */
-  MYFLT w0;            /* The fundamental frequency (PI normalized) */
-  MYFLT f0;            /* The fundamental frequency (Hertz) */
-  MYFLT sr;
+  cs_float c;             /* The tuning filter coefficient */
+  cs_float p;             /* The tuning fitler state */
+  cs_float w0;            /* The fundamental frequency (PI normalized) */
+  cs_float f0;            /* The fundamental frequency (Hertz) */
+  cs_float sr;
 } waveguide;
 
-static MYFLT filterAllpass(waveguide*,MYFLT);/* 1st-order allpass filtering*/
+static cs_float filterAllpass(waveguide*,cs_float);/* 1st-order allpass filtering*/
 
 /* waveguide member functions */
-static void waveguideWaveguide(CSOUND *, waveguide*, MYFLT, MYFLT*, MYFLT*, MYFLT);
-static void waveguideSetTuning(CSOUND *,waveguide*, MYFLT); /* Set tuning filters */
+static void waveguideWaveguide(CSOUND *, waveguide*, cs_float, cs_float*, cs_float*, cs_float);
+static void waveguideSetTuning(CSOUND *,waveguide*, cs_float); /* Set tuning filters */
 #endif
 

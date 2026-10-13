@@ -34,6 +34,7 @@
 
 #include "csoundCore.h"
 #include "csound.h"
+#include "csmodule.h"
 #include "new_opts.h"
 
 /* list command line usage of all registered configuration variables */
@@ -43,6 +44,9 @@ void dump_cfg_variables(CSOUND *csound)
     csCfgVariable_t **p;
     int32_t             i;
 
+    /* Plugins register their options in csoundModuleCreate(). */
+    if (csoundLoadDefaultModules(csound) != CSOUND_SUCCESS)
+      return;
     p = csoundListConfigurationVariables(csound);
     if (p == NULL)
       return;
@@ -69,28 +73,28 @@ void dump_cfg_variables(CSOUND *csound)
           csound->Message(csound, Str("<float>"));
           if ((p[i])->f.min > -1.0e24f)
             csound->Message(csound, ", %s%g", Str("min: "),
-                                    (double) (p[i])->f.min);
+                                    (cs_double) (p[i])->f.min);
           if ((p[i])->f.max < 1.0e24f)
             csound->Message(csound, ", %s%g", Str("max: "),
-                                    (double) (p[i])->f.max);
+                                    (cs_double) (p[i])->f.max);
           break;
         case CSOUNDCFG_DOUBLE:
           csound->Message(csound, Str("<float>"));
           if ((p[i])->d.min > -1.0e24)
             csound->Message(csound, ", %s%g", Str("min: "),
-                                    (double) (p[i])->d.min);
+                                    (cs_double) (p[i])->d.min);
           if ((p[i])->d.max < 1.0e24)
             csound->Message(csound, ", %s%g", Str("max: "),
-                                    (double) (p[i])->d.max);
+                                    (cs_double) (p[i])->d.max);
           break;
         case CSOUNDCFG_MYFLT:
           csound->Message(csound, Str("<float>"));
-          if ((p[i])->m.min > ((MYFLT) -1.0e24))
+          if ((p[i])->m.min > ((cs_float) -1.0e24))
             csound->Message(csound, ", %s%g", Str("min: "),
-                                    (double) (p[i])->m.min);
-          if ((p[i])->m.max < ((MYFLT) 1.0e24))
+                                    (cs_double) (p[i])->m.min);
+          if ((p[i])->m.max < ((cs_float) 1.0e24))
             csound->Message(csound, ", %s%g", Str("max: "),
-                                    (double) (p[i])->m.max);
+                                    (cs_double) (p[i])->m.max);
           break;
         case CSOUNDCFG_STRING:
           csound->Message(csound, Str("<string> (max. length = %d characters)"),
@@ -118,50 +122,59 @@ int32_t parse_option_as_cfgvar(CSOUND *csound, const char *s)
 
     if (UNLIKELY((int32_t) strlen(s) < 3)) {
       csound->Warning(csound, Str(" *** '%s' is not a valid "
-                                  "Csound command line option."), s);
+                                  "Csound command line option.\n"), s);
       csound->Warning(csound, Str(" *** Type 'csound --help' for the list of "
-                                  "available options"));
+                                  "available options\n"));
       return 0;
     }
     if (UNLIKELY(strncmp(s, "-+", 2) != 0)) {
       csound->Warning(csound, Str(" *** '%s' is not a valid "
-                                  "Csound command line option."), s);
+                                  "Csound command line option.\n"), s);
       csound->Warning(csound, Str(" *** Type 'csound --help' for the list of "
-                                  "available options"));
+                                  "available options\n"));
       return 0;
     }
     if (strchr(s, '=') == NULL) {
       /* there is no '=' character, must be a boolean */
       p = csoundQueryConfigurationVariable(csound, s + 2);
+      /* Check both boolean forms before loading plugins, so core options
+         such as -+no-msg_color can still be used without a plugin scan. */
+      if (p == NULL &&
+          (strncmp(s, "-+no-", 5) != 0 ||
+           csoundQueryConfigurationVariable(csound, s + 5) == NULL)) {
+        if (csoundLoadDefaultModules(csound) != CSOUND_SUCCESS)
+          return -1;
+        p = csoundQueryConfigurationVariable(csound, s + 2);
+      }
       if (p != NULL) {
         if (UNLIKELY(p->h.type != CSOUNDCFG_BOOLEAN)) {
           csound->Warning(csound, Str(" *** type of option '%s' "
-                                      "is not boolean"), s + 2);
+                                      "is not boolean\n"), s + 2);
           return 0;
         }
         *(p->b.p) = 1;
       }
       else if (LIKELY((int32_t) strlen(s) > 5)) {
         if (UNLIKELY(strncmp(s, "-+no-", 5) != 0)) {
-          csound->Warning(csound, Str(" *** '%s': invalid option name"),
+          csound->Warning(csound, Str(" *** '%s': invalid option name\n"),
                                   s + 2);
           return 0;
         }
         p = csoundQueryConfigurationVariable(csound, s + 5);
         if (UNLIKELY(p == NULL)) {
-          csound->Warning(csound, Str(" *** '%s': invalid option name"),
+          csound->Warning(csound, Str(" *** '%s': invalid option name\n"),
                                   s + 2);
           return -1;
         }
         if (UNLIKELY(p->h.type != CSOUNDCFG_BOOLEAN)) {
           csound->Warning(csound, Str(" *** type of option '%s' "
-                                      "is not boolean"), s + 2);
+                                      "is not boolean\n"), s + 2);
           return 0;
         }
         *(p->b.p) = 0;
       }
       else {
-        csound->Warning(csound, Str(" *** '%s': invalid option name"), s + 2);
+        csound->Warning(csound, Str(" *** '%s': invalid option name\n"), s + 2);
         return 0;
       }
     }
@@ -171,7 +184,7 @@ int32_t parse_option_as_cfgvar(CSOUND *csound, const char *s)
       buf = (char*) csound->Malloc(csound,
                                    sizeof(char) * (size_t) ((int32_t) strlen(s) - 1));
       if (UNLIKELY(buf == NULL)) {
-        csound->Warning(csound, Str(" *** memory allocation failure"));
+        csound->Warning(csound, Str(" *** memory allocation failure\n"));
         return -1;
       }
       /* strcpy(buf, s + 2); */
@@ -191,9 +204,17 @@ int32_t parse_option_as_cfgvar(CSOUND *csound, const char *s)
       val = strchr(buf, '=');
       *(val++) = '\0';  /* 'buf' is now the name, 'val' is the value string */
       retval = csoundParseConfigurationVariable(csound, buf, val);
+      /* An unknown option may belong to a plugin that has not loaded yet. */
+      if (retval == CSOUNDCFG_INVALID_NAME) {
+        if (csoundLoadDefaultModules(csound) != CSOUND_SUCCESS) {
+          csound->Free(csound, buf);
+          return -1;
+        }
+        retval = csoundParseConfigurationVariable(csound, buf, val);
+      }
       if (UNLIKELY(retval != CSOUNDCFG_SUCCESS)) {
         csound->Warning(csound,
-                        Str(" *** error setting option '%s' to '%s': %s"),
+                        Str(" *** error setting option '%s' to '%s': %s\n"),
                         buf, val, csoundCfgErrorCodeToString(retval));
         csound->Free(csound, (void*) buf);
         return 0;
@@ -202,9 +223,9 @@ int32_t parse_option_as_cfgvar(CSOUND *csound, const char *s)
     }
     else {
       csound->Warning(csound, Str(" *** '%s' is not a valid "
-                                  "Csound command line option."), s);
+                                  "Csound command line option.\n"), s);
       csound->Warning(csound, Str(" *** Type 'csound --help' for the list of "
-                                  "available options."));
+                                  "available options.\n"));
       return 0;
     }
     return 0;

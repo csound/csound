@@ -30,6 +30,7 @@ extern "C" {
 #include "csound.h"
 #include "csound_data_structures.h"
 #include <stdint.h>
+#include <stddef.h>
 
 #define CS_ARG_TYPE_BOTH 0
 #define CS_ARG_TYPE_IN 1
@@ -46,6 +47,10 @@ extern "C" {
       void *cs, const struct cstype *type, const void *typeArg,
       struct insds *ctx);
     
+  /* userDefinedType flags: test for nonzero to recognize any struct. */
+  #define CS_TYPE_USER_DEFINED 1
+  #define CS_TYPE_PLUGIN_DEFINED 2
+
   typedef struct cstype {
     char* varTypeName;
     char* varDescription;
@@ -65,20 +70,16 @@ extern "C" {
 
   typedef struct csvarmem {
     const CS_TYPE* varType;
-    MYFLT value;
+    cs_float value;
   } CS_VAR_MEM;
 
-#if defined(UINTPTR_MAX) && defined(UINT64_MAX) && (UINTPTR_MAX == UINT64_MAX)
-#define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(double))
-#else
-#define CS_VAR_TYPE_OFFSET (sizeof(CS_VAR_MEM) - sizeof(MYFLT))
-#endif
+#define CS_VAR_TYPE_OFFSET offsetof(CS_VAR_MEM, value)
 
   typedef struct csvariable {
     char* varName;
     const CS_TYPE* varType;
-    int32_t memBlockSize; /* Must be a multiple of sizeof(MYFLT), as
-                         Csound uses MYFLT* and pointer arithmetic
+    int32_t memBlockSize; /* Must be a multiple of sizeof(cs_float), as
+                         Csound uses cs_float* and pointer arithmetic
                          to assign var locations */
     int32_t memBlockIndex;
     int32_t dimensions;  // used by arrays
@@ -86,13 +87,13 @@ extern "C" {
     struct csvariable* next;
     const CS_TYPE* subType;
     void (*updateMemBlockSize)(CSOUND*, struct csvariable*);
-    void (*initializeVariableMemory)(CSOUND*, struct csvariable*, MYFLT*);
+    void (*initializeVariableMemory)(CSOUND*, struct csvariable*, cs_float*);
     struct insds *ctx;
     CS_VAR_MEM *memBlock;
   } CS_VARIABLE;
 
   typedef struct cstypeitem {
-    CS_TYPE* cstype;
+    const CS_TYPE* cstype;
     struct cstypeitem* next;
   } CS_TYPE_ITEM;
 
@@ -106,11 +107,13 @@ extern "C" {
   PUBLIC TYPE_POOL *csoundGetTypePool(CSOUND* csound);
   
   /** 
-   *  Adds a new type to type table pool
-   *  Returns if variable type redefined
+   *  Registers a type descriptor without copying or modifying it.
+   *  The descriptor must remain valid for the lifetime of the pool.
+   *  Returns 1 on success, or 0 if the type name is already registered.
+   *  Allocation failure invokes Csound's non-returning memory error handler.
    */
   PUBLIC int32_t csoundAddVariableType(CSOUND* csound, TYPE_POOL* pool,
-                                   CS_TYPE* typeInstance);
+                                   const CS_TYPE* typeInstance);
 
   /**
    * Invokes a type's variable constructor with separate type and optional
@@ -132,7 +135,7 @@ extern "C" {
                                            const void* typeArg);
   /** 
    *  Gets a type variable from a type name string
-   *  Returns the CS_TYPE*, NULL on failure
+   *  Returns the const CS_TYPE*, NULL on failure
    */ 
   PUBLIC const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool,
                                                const char* typeName);
@@ -169,7 +172,7 @@ extern "C" {
                                CS_VARIABLE* var);
   PUBLIC void csoundRecalculateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
   PUBLIC void csoundReallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
-  PUBLIC void csoundInitializeVarPool(CSOUND* csound, MYFLT* memBlock, CS_VAR_POOL* pool);
+  PUBLIC void csoundInitializeVarPool(CSOUND* csound, cs_float* memBlock, CS_VAR_POOL* pool);
   PUBLIC void csoundDeleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool);
 
 #ifdef  __cplusplus

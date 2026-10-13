@@ -36,7 +36,7 @@
 
 typedef struct {
   OPDS h;
-  MYFLT *ar;
+  cs_float *ar;
   uint32_t inc;
   uint32_t dec;
   uint32_t accu;
@@ -101,13 +101,13 @@ static int32_t pink_perf(CSOUND* csound, PINKER *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t mask;
     float yy;
-    MYFLT *out = p->ar;
-    MYFLT scale = csound->Get0dBFS(csound);
+    cs_float *out = p->ar;
+    cs_float scale = csound->Get0dBFS(csound);
     int32_t loffset = p->offset;
-    if (UNLIKELY(offset)) memset(out, 0, offset * sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, 0, offset * sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], 0, early * sizeof(MYFLT));
+      memset(&out[nsmps], 0, early * sizeof(cs_float));
     }
     for (n=offset, nn=loffset; n<nsmps; n++, nn++) {
       int32_t k = nn%16;   /* algorithm is in 16 sample chunks */

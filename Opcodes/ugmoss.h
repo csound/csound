@@ -24,19 +24,33 @@
 
 #pragma once
 
+#include "convolution.h"
+
 typedef struct {
-  OPDS                  h;
-  MYFLT                 *ar, *ain, *isize, *ifn;
-  MYFLT                 *curp;
+  CONV_OUTPUT           out;
+  cs_float                 *curp;
   FUNC                  *ftp;
   AUXCH                 sigbuf;
   uint32_t          len;
+} DCONV_STATE;
+
+typedef struct {
+  OPDS                  h;
+  cs_float                 *ar[CONV_MAX_OUTPUTS], *ain, *isize, *ifn;
+  DCONV_STATE            state;
 } DCONV;
 
 typedef struct {
   OPDS                  h;
-  MYFLT                 *ar, *asig, *krvt, *xlpt, *imaxlpt, *istor, *insmps;
-  MYFLT                 g, rvt, *pntr;
+  ARRAYDAT              *ar;
+  cs_float                 *ain, *isize, *ifn, *ichannels;
+  DCONV_STATE            state;
+} DCONV_ARRAY;
+
+typedef struct {
+  OPDS                  h;
+  cs_float                 *ar, *asig, *krvt, *xlpt, *imaxlpt, *istor, *insmps;
+  cs_float                 g, rvt, *pntr;
   uint32_t              lpt, maxlpt;
   AUXCH                 auxch;
   int16                 lpta;
@@ -44,9 +58,9 @@ typedef struct {
 
 typedef struct {
   OPDS                  h;
-  MYFLT                 *kftndx, *iftfn, *iresfn;
+  cs_float                 *kftndx, *iftfn, *iresfn;
   FUNC                  *ftfn, *resfn;
-  MYFLT                 ftndx;
+  cs_float                 ftndx;
   uint32_t              len;
 } FTMORF;
 

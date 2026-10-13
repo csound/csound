@@ -10,6 +10,31 @@ cmake_policy(SET CMP0077 NEW)
 cmake_policy(SET CMP0075 NEW)
 cmake_policy(SET CMP0091 NEW)
 
+set(CSOUND_ESP32_TARGET "" CACHE STRING "ESP32 target chip (esp32p4 or esp32s3)")
+set_property(CACHE CSOUND_ESP32_TARGET PROPERTY STRINGS "" esp32p4 esp32s3)
+if(CSOUND_ESP32_TARGET)
+    if(NOT CSOUND_ESP32_TARGET MATCHES "^(esp32p4|esp32s3)$")
+        message(FATAL_ERROR "CSOUND_ESP32_TARGET must be esp32p4 or esp32s3")
+    endif()
+    if(EXISTS "${CMAKE_BINARY_DIR}/CMakeCache.txt" AND
+       NOT DEFINED CSOUND_CONFIGURED_ESP32_TARGET)
+        message(FATAL_ERROR "Use a fresh build directory for an ESP32 target")
+    endif()
+    if(DEFINED CSOUND_CONFIGURED_ESP32_TARGET AND
+       NOT CSOUND_CONFIGURED_ESP32_TARGET STREQUAL CSOUND_ESP32_TARGET)
+        message(FATAL_ERROR "Use a fresh build directory when changing the ESP32 target")
+    endif()
+    if(USE_VCPKG)
+        message(FATAL_ERROR "The ESP32 build does not use Vcpkg")
+    endif()
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/platform/esp32/toolchain.cmake"
+        CACHE FILEPATH "CMake toolchain file")
+    include(platform/esp32/defaults.cmake)
+    set(CSOUND_CONFIGURED_ESP32_TARGET "${CSOUND_ESP32_TARGET}" CACHE INTERNAL "Configured ESP32 chip")
+elseif(CSOUND_CONFIGURED_ESP32_TARGET)
+    message(FATAL_ERROR "Use a fresh build directory when leaving the ESP32 target")
+endif()
+
 include(cmake/cmake-utilities.cmake)
 
 # silence RPATH cmake warning
@@ -36,7 +61,7 @@ if (USE_VCPKG)
             set(CMAKE_ANDROID_ARCH_ABI x86_64)
         endif()
         set(CMAKE_SYSTEM_VERSION 21)
-        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/android/android.cmake)
+        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/androidcross/android.cmake)
     elseif (OSXCROSS_TARGET)
         if (IOS)
             if(CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
@@ -69,12 +94,14 @@ if (USE_VCPKG)
         set(VCPKG_CMAKE_SYSTEM_NAME MinGW)
     elseif (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
         set(VCPKG_TARGET_TRIPLET "wasm32-emscripten")
-        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm/wasm32.cmake)
+        set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-emscripten/wasm32.cmake)
         set(VCPKG_CMAKE_SYSTEM_NAME Emscripten)
     elseif (WIN32)
-        # Detect 32-bit vs 64-bit Windows build
+        # Match dependencies to the Visual Studio target architecture
         if (CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
             set(VCPKG_TARGET_TRIPLET "x86-windows-static")
+        elseif (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+            set(VCPKG_TARGET_TRIPLET "arm64-windows-static")
         else()
             set(VCPKG_TARGET_TRIPLET "x64-windows-static")
         endif()
@@ -209,6 +236,10 @@ option(USE_APPLE_M1_BASELINE "On macOS arm64, tune for Apple M1 as the baseline 
 ## USER OPTIONS ##
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
 option(USE_DOUBLE "Set to use double-precision floating point for audio samples." ON)
+option(USE_FLOAT "Use single precision for cs_float and cs_double." OFF)
+if(USE_DOUBLE AND USE_FLOAT)
+    message(FATAL_ERROR "USE_FLOAT requires -DUSE_DOUBLE=OFF")
+endif()
 option(USE_LIBSNDFILE "Use libsndfile for sndfile IO, if available" ON)
 option(BUILD_PERFTHREAD_CLASS "Include the Csound performance thread support (C++) " ON)
 option(BUILD_UTILITIES "Build stand-alone executables for utilities that can also be used with -U" ON)
@@ -219,6 +250,7 @@ option(USE_GETTEXT "Use the Gettext internationalization library" ON)
 option(BUILD_STATIC_LIBRARY "Also build a static version of the csound library" OFF)
 option(USE_LRINT "Use lrint/lrintf for converting floating point values to integers." ON)
 option(USE_CURL "Use CURL library" ON)
+option(USE_WASMTIME "Load WebAssembly opcode libraries with Wasmtime when available" ON)
 option(USE_DEFAULT_OPCODEDIR "Use default opcodedir for the system" ON)
 option(BUILD_INSTALLER "Build installer" OFF)
 option(BUILD_TESTS "Build tests" OFF)
@@ -247,11 +279,25 @@ option(USE_ASA  "Use address sanitizer in Debug build" ON)
 option(USE_STATIC_DEPS "Use static dependencies for libsndfile" OFF)
 option(USE_LIBSAMPLERATE "Use libsamplerate for sample rate conversion" ON)
 option(USE_LOCK_BARRIER "Use lock-based barrier in PARCS " OFF)
-option(ALIGN_MEMORY "Align memory allocation to MYFLT size" OFF)
+option(ALIGN_MEMORY "Align memory allocation to cs_float size" OFF)
 option(PRESERVE_NAN "Force preserving NaNs against optimisation removal" ON)
 # Build metadata overrides for reproducible/sandboxed builds (e.g. Nix).
 set(CSOUND_GIT_HASH "" CACHE STRING "Override git commit shown in version output")
 set(CSOUND_BUILD_DATE "" CACHE STRING "Override build date shown in version output (e.g. 2026-02-12)")
+
+set(HAVE_WASMTIME OFF)
+if(USE_WASMTIME)
+    # Probe the needed API instead of guessing support from the Csound target.
+    find_package(Wasmtime 47 QUIET MODULE)
+    if(Wasmtime_FOUND)
+        set(HAVE_WASMTIME ON)
+        message(STATUS "Using Wasmtime ${Wasmtime_VERSION} for WebAssembly opcode libraries")
+    else()
+        message(STATUS "Compatible Wasmtime C API with compiler and cache support not found; WebAssembly opcode libraries are disabled")
+    endif()
+else()
+    message(STATUS "Wasmtime opcode support is disabled by USE_WASMTIME=OFF")
+endif()
 
 
 # secret rabbit code
@@ -278,7 +324,7 @@ endif()
 
 if(ALIGN_MEMORY)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DALIGN_MEMORY")
-    message(STATUS "Aligning memory to MYFLT size")
+    message(STATUS "Aligning memory to cs_float size")
 else()
     message(STATUS "No memory alignment")
 endif()
@@ -502,41 +548,61 @@ if (PRESERVE_NAN)
     check_c_compiler_flag(-fno-finite-math-only HAS_NO_FINITE_MATH_ONLY)
     check_cxx_compiler_flag(-fno-finite-math-only HAS_CXX_NO_FINITE_MATH_ONLY)
     if (HAS_NO_FINITE_MATH_ONLY)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-finite-math-only")
+        add_compile_options("$<$<COMPILE_LANGUAGE:C>:-fno-finite-math-only>")
     endif()
     if (HAS_CXX_NO_FINITE_MATH_ONLY)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-finite-math-only")
+        add_compile_options("$<$<COMPILE_LANGUAGE:CXX>:-fno-finite-math-only>")
     endif()
 endif()
 
-check_c_source_compiles("
+# Probe the same flags used to compile sources, without passing compile-only
+# flags to the linker. Function scope keeps these probe settings local.
+function(csound_check_nonfinite_math)
+    set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+    if(PRESERVE_NAN AND HAS_NO_FINITE_MATH_ONLY)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-finite-math-only")
+    endif()
+    if(PRESERVE_NAN AND HAS_CXX_NO_FINITE_MATH_ONLY)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-finite-math-only")
+    endif()
+
+    check_c_source_compiles("
 #if defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__
 #error __FINITE_MATH_ONLY__ is enabled
 #endif
 int main(void) { return 0; }
 " CSOUND_C_PRESERVES_NONFINITE)
-if (NOT CSOUND_C_PRESERVES_NONFINITE)
-    message(FATAL_ERROR "C compiler has finite-math-only enabled; Csound requires NaN and Inf checks")
-endif()
+    if (NOT CSOUND_C_PRESERVES_NONFINITE)
+        message(FATAL_ERROR "C compiler has finite-math-only enabled; Csound requires NaN and Inf checks")
+    endif()
 
-check_cxx_source_compiles("
+    check_cxx_source_compiles("
 #if defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__
 #error __FINITE_MATH_ONLY__ is enabled
 #endif
 int main() { return 0; }
 " CSOUND_CXX_PRESERVES_NONFINITE)
-if (NOT CSOUND_CXX_PRESERVES_NONFINITE)
-    message(FATAL_ERROR "C++ compiler has finite-math-only enabled; Csound requires NaN and Inf checks")
-endif()
+    if (NOT CSOUND_CXX_PRESERVES_NONFINITE)
+        message(FATAL_ERROR "C++ compiler has finite-math-only enabled; Csound requires NaN and Inf checks")
+    endif()
+endfunction()
+csound_check_nonfinite_math()
 
-check_c_compiler_flag(-std=gnu11 HAS_C11)
-if (HAS_C11)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")
+# C language standard.
+# MSVC only gained /std:c11 in 19.27 and CMake only maps CMAKE_C_STANDARD to it
+# from 3.18, but we are supporting cmake >= 3.13, so probe the switch directly
+# there. Everywhere else use CMAKE_C_STANDARD, which CMake translates to the
+# right compiler option for the toolchain (-std=gnu11 for GCC/Clang, -std=c11, /std:c11 for clang-cl,
+#  and decays to gnu99 when C11 is unavailable.
+if(MSVC)
+    check_c_compiler_flag("/std:c11" HAS_C11)
+    if(HAS_C11)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /std:c11")
+    endif()
 else()
-check_c_compiler_flag(-std=gnu99 HAS_GNU99)
-if (HAS_GNU99)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
-endif()
+    set(CMAKE_C_STANDARD 11)
+    set(CMAKE_C_STANDARD_REQUIRED OFF)
+    set(CMAKE_C_EXTENSIONS ON)
 endif()
 
 
@@ -755,15 +821,11 @@ if (NOT MATH_LIBRARY)
     set(MATH_LIBRARY "")
 endif()
 
-if(APPLE)
 include(CheckSymbolExists)
-check_symbol_exists(lrint math.h FOUND_LRINT)
-else()
 cmake_push_check_state()
 list(APPEND CMAKE_REQUIRED_LIBRARIES ${MATH_LIBRARY})
-check_function_exists(lrint FOUND_LRINT)
+check_symbol_exists(lrint math.h FOUND_LRINT)
 cmake_pop_check_state()
-endif()
 
 # MSVC / VCPKG won't find dirent.h by default. Need to add the path explicitly
 find_file(DIRENT_H "dirent.h")
@@ -918,6 +980,8 @@ endif()
 
 # The csound library
 set(libcsound_SRCS
+    OOps/json_ops.c
+    third_party/yyjson/yyjson.c
     Top/csound.c
     Top/csound_perf.c
     Top/csound_events.c
@@ -1019,11 +1083,19 @@ set(libcsound_SRCS
     OOps/compile_ops.c
 )
 
+if(HAVE_WASMTIME)
+    list(APPEND libcsound_SRCS Top/wasm_plugins.c)
+endif()
+
+if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" AND BUILD_WASI_BROWSER)
+    list(APPEND libcsound_SRCS Top/wasm_opcode_abi_check.c)
+endif()
+
 if(IOS AND NOT  OSXCROSS_TARGET)
 
 set(libcsound_SRCS ${libcsound_SRCS}
-  iOS/Csound-for-iOS/src/rtaunit.c
-  iOS/Csound-for-iOS/src/iOSCsound.cpp
+  platform/ios/Csound-for-iOS/src/rtaunit.c
+  platform/ios/Csound-for-iOS/src/iOSCsound.cpp
 )
 endif()
 
@@ -1032,6 +1104,19 @@ set(vbap_ops
 )
 
 set(libcsound_static_SRCS  ${libcsound_SRCS})
+
+# Keep JSON numbers precise even when DSP code uses fast-math. The parser is
+# private to Csound, not a new exported library interface.
+set_source_files_properties(OOps/json_ops.c third_party/yyjson/yyjson.c
+    PROPERTIES COMPILE_DEFINITIONS
+    "yyjson_api=;YYJSON_DISABLE_UTILS=1;YYJSON_DISABLE_INCR_READER=1")
+if(MSVC)
+    set_source_files_properties(OOps/json_ops.c third_party/yyjson/yyjson.c
+        PROPERTIES COMPILE_OPTIONS "/fp:precise")
+elseif(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    set_source_files_properties(OOps/json_ops.c third_party/yyjson/yyjson.c
+        PROPERTIES COMPILE_OPTIONS "-fno-fast-math")
+endif()
 
 if(WIN32 AND NOT MSVC)
     set_source_files_properties(Opcodes/sfont.c PROPERTIES
@@ -1119,8 +1204,8 @@ if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     if(BUILD_WASI_BROWSER)
         # Browser builds use JavaScript-hosted callbacks and imported memory.
         list(APPEND libcsound_CFLAGS -DCSOUND_WASI_BROWSER)
-        list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/src/csound_wasm.c)
-        list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/wasm/src/csound_wasm.c)
+        list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/csound_wasm.c)
+        list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/csound_wasm.c)
     else()
         # Standalone WASI has a conventional command entry point and no JS host.
         list(APPEND libcsound_CFLAGS -DCSOUND_WASI_CLI)
@@ -1193,6 +1278,9 @@ set(stdopcod_SRCS
     Opcodes/wterrain2.c
     Opcodes/stdopcod.c
     Opcodes/dbap.c
+    Opcodes/savgol.c
+    Opcodes/remap.c
+    Opcodes/stm.c
     )
 
 set(sock_ops_SRCS
@@ -1291,16 +1379,15 @@ if(NOT BUILD_PLUGINS)
  ${pitch_ops_SRCS} ${vbap_ops} ${stdopcod_SRCS}
 )
  list(APPEND libcsound_CFLAGS -DCS_INTERNAL)
+endif()
 
- list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${physmod_SRCS}
+# The static library includes builtin opcodes even when the shared library
+# loads them as plugins. Do not pass BUILD_PLUGINS to its sources or tests.
+list(APPEND libcsound_static_SRCS ${stdopcod_SRCS} ${cs_pvs_ops_SRCS} ${physmod_SRCS}
 ${pitch_ops_SRCS}  ${oldpvoc_SRCS} ${scanops_SRCS} ${mp3in_SRCS} ${cppops_SRCS}
 ${hrtf_ops_SRCS} ${sock_ops_SRCS} ${externs_SRCS} ${gens_SRCS} ${pitch_ops_SRCS}
 ${newgabops_SRCS}  ${oldpvoc_SRCS} ${vbap_ops}
 )
-else()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_PLUGINS")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBUILD_PLUGINS")
-endif()
 
 
 
@@ -1550,6 +1637,12 @@ endif()
 
 set(libcsound_LIBS "")
 
+if(HAVE_WASMTIME)
+    list(APPEND libcsound_LIBS Wasmtime::wasmtime)
+    list(APPEND libcsound_CFLAGS -DHAVE_WASMTIME)
+    set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lwasmtime")
+endif()
+
 if(REQUIRE_PTHREADS AND NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     list(APPEND libcsound_LIBS Threads::Threads)
 endif()
@@ -1692,6 +1785,9 @@ endif()
 
 if(MSVC)
     target_link_libraries(${CSOUNDLIB} PRIVATE ws2_32)
+    if(HAVE_WASMTIME)
+        target_link_libraries(${CSOUNDLIB} PRIVATE Wasmtime::wasmtime)
+    endif()
 else()
     if(NOT IOS OR OSXCROSS_TARGET)
         target_link_libraries(${CSOUNDLIB} PRIVATE ${libcsound_LIBS})
@@ -1812,11 +1908,13 @@ if(BUILD_STATIC_LIBRARY AND NOT BARE_METAL)
         ARCHIVE DESTINATION "${LIBRARY_INSTALL_DIR}")
 endif()
 
+csound_suppress_opcode_initializer_warnings(${libcsound_SRCS} ${libcsound_static_SRCS})
+
 add_subdirectory(Opcodes)
 add_subdirectory(InOut)
 add_subdirectory(Frontends)
-add_subdirectory(Python)
-add_subdirectory(Bela)
+add_subdirectory(languages/python)
+add_subdirectory(platform/bela)
 add_subdirectory(util)
 add_subdirectory(util1)
 add_subdirectory(po)
@@ -1857,12 +1955,14 @@ if(BUILD_DOCS)
     find_package(Doxygen)
 
     if(DOXYGEN_FOUND)
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.doxygen
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docs/doxygen/config.doxygen
             ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY
         )
 
-        add_custom_target(doc ${DOXYGEN_EXECUTABLE}
-            ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        add_custom_target(doc
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+                ${CMAKE_CURRENT_BINARY_DIR}/docs/doxygen
+            COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         )
     else()
@@ -1917,6 +2017,9 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfigVersion.cmake"
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindCsound.cmake"
     DESTINATION "share/csound"
 )
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/FindWasmtime.cmake"
+    DESTINATION "share/csound"
+)
 
 # configure and install pkg-config file
 # Set appropriate link flags for different platforms
@@ -1967,6 +2070,6 @@ if(MINGW)
     endif()
 endif()
 
-add_custom_target(format sh format.sh  Top/*.c  Top/*.cpp  Engine/*.c
+add_custom_target(format sh scripts/format.sh  Top/*.c  Top/*.cpp  Engine/*.c
     OOps/*.c Opcodes/*.c  Opcodes/*.cpp Opcodes/*/*.c  Opcodes/*/*.cpp
     util/*.c WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})

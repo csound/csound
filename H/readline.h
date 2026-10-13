@@ -28,7 +28,7 @@
 typedef struct {
   OPDS h;
   STRINGDAT *line;
-  MYFLT *status;
+  cs_float *status;
   STRINGDAT *prompt;
   void *state;
 } READLINE_OPCODE;

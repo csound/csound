@@ -63,9 +63,9 @@
 
 typedef struct debug_instr_s {
     CS_VARIABLE *varPoolHead;
-    MYFLT *lclbas;
+    cs_float *lclbas;
     void *instrptr;
-    MYFLT p1, p2, p3;
+    cs_float p1, p2, p3;
     uint64_t kcounter;
     int32_t line;
     struct debug_instr_s *next;
@@ -105,14 +105,14 @@ typedef struct debug_fsig_info_s {
     int32_t wintype;       /* window type */
     int32_t format;        /* PVS analysis format (0 = PVS_AMP_FREQ) */
     uint32_t framecount;   /* increments when a new analysis frame is ready */
-    int32_t sliding;       /* 1 = source frame is MYFLT (sliding), 0 = float32 */
+    int32_t sliding;       /* 1 = source frame is cs_float (sliding), 0 = float32 */
 } debug_fsig_info_t;
 
 /** Numeric array (ARRAYDAT) metadata, filled by csoundDebugSerializeArray(). */
 typedef struct debug_array_info_s {
     int32_t dimensions;        /* number of array dimensions */
     int32_t arrayMemberSize;   /* bytes per element */
-    int32_t totalElements;     /* total MYFLT values in the flat data */
+    int32_t totalElements;     /* total cs_float values in the flat data */
     char elementTypeName[16];  /* element type name, e.g. "k", "a", "i" */
 } debug_array_info_t;
 
@@ -143,7 +143,7 @@ typedef enum {
 
 typedef struct bkpt_node_s {
     int32_t line; /* if line is < 0 breakpoint is for instrument instances */
-    MYFLT instr; /* instrument number (including fractional part */
+    cs_float instr; /* instrument number (including fractional part */
     int32_t skip; /* number of times to skip when arriving at the breakpoint */
     int32_t count; /* current backwards count for skip, when 0 break */
     bkpt_mode_t mode;
@@ -267,7 +267,7 @@ PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int32_t line, int32_t instr);
  * @param instr instrument number
  * @param skip number of control blocks to skip
  */
-PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int32_t skip);
+PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, cs_float instr, int32_t skip);
 
 /** Remove instrument breakpoint
  *
@@ -277,7 +277,7 @@ PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int32_t s
  * This call is thread safe, as the breakpoint will be put in a lock free queue
  * that is processed as soon as possible in the kperf function.
  */
-PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr);
+PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, cs_float instr);
 
 /** Clear all breakpoints
  *
@@ -409,7 +409,7 @@ PUBLIC debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound);
  * csoundDebugGetGlobalVariables() for a variable of type "f". The current
  * analysis frame is written to outBuf as 2*NB interleaved float32 values
  * (amp0, freq0, amp1, freq1, ...), regardless of whether the source frame is
- * float32 (normal) or MYFLT (sliding). For sliding analysis the most recent
+ * float32 (normal) or cs_float (sliding). For sliding analysis the most recent
  * active sub-frame in the current ksmps block is used.
  *
  * localKsmps is the producer's current local ksmps (from the instrument or UDO
@@ -429,7 +429,7 @@ PUBLIC int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
                                         debug_fsig_info_t *infoOut,
                                         int32_t localKsmps);
 
-/** Serialize a numeric array (ARRAYDAT) into a flat MYFLT buffer
+/** Serialize a numeric array (ARRAYDAT) into a flat cs_float buffer
  *
  * varData must point to an ARRAYDAT, as provided by csoundDebugGetVariables()
  * or csoundDebugGetGlobalVariables() for a variable of type "[". The flat
@@ -438,11 +438,11 @@ PUBLIC int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
  *
  * infoOut (may be NULL) receives the array shape and element type.
  *
- * Returns the total number of MYFLT values available and copies
+ * Returns the total number of cs_float values available and copies
  * min(total, bufMax) of them. Returns 0 on invalid/empty input.
  */
 PUBLIC int32_t csoundDebugSerializeArray(CSOUND *csound, void *varData,
-                                         MYFLT *outBuf, int32_t bufMax,
+                                         cs_float *outBuf, int32_t bufMax,
                                          debug_array_info_t *infoOut);
 
 

@@ -64,10 +64,10 @@ static inline int32_t my_random(CSOUND *csound, int32_t max)
   return (csound->Rand31(csound->RandSeed31(csound)) % (max + 1));
 }
 
-static MYFLT noise_tick(CSOUND *csound)
-{                         /* Return random MYFLT float between -1.0 and 1.0 */
-  MYFLT rnd = (MYFLT) csound->Rand31(csound->RandSeed31(csound)) - FL(1073741823.5);
-  return (rnd * (MYFLT) (1.0 / 1073741823.0));
+static cs_float noise_tick(CSOUND *csound)
+{                         /* Return random cs_float float between -1.0 and 1.0 */
+  cs_float rnd = (cs_float) csound->Rand31(csound->RandSeed31(csound)) - FL(1073741823.5);
+  return (rnd * (cs_float) (1.0 / 1073741823.0));
 }
 
 /************************* MARACA *****************************/
@@ -202,7 +202,7 @@ static int32_t cabasaset(CSOUND *csound, CABASA *p)
   p->num_objects = CABA_NUM_BEADS;
   p->soundDecay = CABA_SOUND_DECAY;
   p->systemDecay = CABA_SYSTEM_DECAY;
-  p->gain = LOG((MYFLT)CABA_NUM_BEADS)*CABA_GAIN/(MYFLT)CABA_NUM_BEADS;
+  p->gain = LOG((cs_float)CABA_NUM_BEADS)*CABA_GAIN/(cs_float)CABA_NUM_BEADS;
   p->resons = CABA_RESON;
   p->coeffs1 = CABA_RESON * CABA_RESON;
   p->coeffs0 = - CABA_RESON * FL(2.0) * COS(CABA_CENTER_FREQ * CS_TPIDSR);
@@ -215,32 +215,32 @@ static int32_t cabasaset(CSOUND *csound, CABASA *p)
 
 static int32_t cabasa(CSOUND *csound, CABASA *p)
 {
-  MYFLT *ar = p->ar;
+  cs_float *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT data;
-  MYFLT fullscale = csound->Get0dBFS(csound);
+  cs_float data;
+  cs_float fullscale = csound->Get0dBFS(csound);
   /* Use locals for speed */
-  MYFLT shakeEnergy = p->shakeEnergy;
-  MYFLT systemDecay = p->systemDecay;
-  MYFLT sndLevel    = p->sndLevel;
-  MYFLT soundDecay  = p->soundDecay;
-  MYFLT input;
-  MYFLT outputs0    = p->outputs0;
-  MYFLT outputs1    = p->outputs1;
-  MYFLT coeff0      = p->coeffs0;
-  MYFLT coeff1      = p->coeffs1;
-  MYFLT gain        = p->gain;
+  cs_float shakeEnergy = p->shakeEnergy;
+  cs_float systemDecay = p->systemDecay;
+  cs_float sndLevel    = p->sndLevel;
+  cs_float soundDecay  = p->soundDecay;
+  cs_float input;
+  cs_float outputs0    = p->outputs0;
+  cs_float outputs1    = p->outputs1;
+  cs_float coeff0      = p->coeffs0;
+  cs_float coeff1      = p->coeffs1;
+  cs_float gain        = p->gain;
 
   if (*p->num_beads != p->last_num) { /* # beans has changed */
     p->last_num = *p->num_beads;
     if ((int32)(*p->num_beads+FL(0.5)) != p->num_objects) {
       p->num_objects = (int32)(*p->num_beads+FL(0.5));
       if (p->num_objects >= 1) {
-        gain = p->gain = LOG((MYFLT)p->num_objects) /
-          FL(1.38629436111989061883) /* (MYFLT)log(4.0)*/ * FL(40.0) /
-          (MYFLT) p->num_objects;
+        gain = p->gain = LOG((cs_float)p->num_objects) /
+          FL(1.38629436111989061883) /* (cs_float)log(4.0)*/ * FL(40.0) /
+          (cs_float) p->num_objects;
       }
     }
   }
@@ -260,10 +260,10 @@ static int32_t cabasa(CSOUND *csound, CABASA *p)
     shakeEnergy = FL(0.0);
   }
 
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset;n<nsmps;n++) {
     /*        if (shakeEnergy > MIN_ENERGY) { */
@@ -322,32 +322,32 @@ static int32_t sekereset(CSOUND *csound, SEKERE *p)
 
 static int32_t sekere(CSOUND *csound, SEKERE *p)
 {
-  MYFLT *ar = p->ar;
+  cs_float *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT data;
+  cs_float data;
   /* Use locals for speed */
-  MYFLT shakeEnergy = p->shakeEnergy;
-  MYFLT systemDecay = p->systemDecay;
-  MYFLT sndLevel = p->sndLevel;
-  MYFLT soundDecay = p->soundDecay;
-  MYFLT input;
-  MYFLT outputs0 = p->outputs0;
-  MYFLT outputs1 = p->outputs1;
-  MYFLT coeff0   = p->coeffs0;
-  MYFLT coeff1   = p->coeffs1;
-  MYFLT gain     = p->gain;
-  MYFLT fullscale = csound->Get0dBFS(csound);
+  cs_float shakeEnergy = p->shakeEnergy;
+  cs_float systemDecay = p->systemDecay;
+  cs_float sndLevel = p->sndLevel;
+  cs_float soundDecay = p->soundDecay;
+  cs_float input;
+  cs_float outputs0 = p->outputs0;
+  cs_float outputs1 = p->outputs1;
+  cs_float coeff0   = p->coeffs0;
+  cs_float coeff1   = p->coeffs1;
+  cs_float gain     = p->gain;
+  cs_float fullscale = csound->Get0dBFS(csound);
 
   if (*p->num_beads != p->last_num) {
     p->last_num = *p->num_beads;
     if ((int32)(*p->num_beads+FL(0.5)) != p->num_objects) {
       p->num_objects = *p->num_beads;
       if (p->num_objects >= 1) {
-        gain = p->gain = LOG((MYFLT)p->num_objects) /
-          FL(1.38629436111989061883) /* (MYFLT)log(4.0)*/ * FL(120.0) /
-          (MYFLT) p->num_objects;
+        gain = p->gain = LOG((cs_float)p->num_objects) /
+          FL(1.38629436111989061883) /* (cs_float)log(4.0)*/ * FL(120.0) /
+          (cs_float) p->num_objects;
       }
     }
   }
@@ -367,10 +367,10 @@ static int32_t sekere(CSOUND *csound, SEKERE *p)
     shakeEnergy = FL(0.0);
   }
 
-  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+  if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
   if (UNLIKELY(early)) {
     nsmps -= early;
-    memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+    memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
   for (n=offset;n<nsmps;n++) {
     /*        if (shakeEnergy > MIN_ENERGY) { */
@@ -471,8 +471,8 @@ static int32_t crunchset(CSOUND *csound, CABASA *p)
   p->num_objects = CRUNCH1_NUM_BEADS;
   p->soundDecay = CRUNCH1_SOUND_DECAY;
   p->systemDecay = CRUNCH1_SYSTEM_DECAY;
-  p->gain = LOG((MYFLT)CRUNCH1_NUM_BEADS) *
-    CRUNCH1_GAIN / (MYFLT) CRUNCH1_NUM_BEADS;
+  p->gain = LOG((cs_float)CRUNCH1_NUM_BEADS) *
+    CRUNCH1_GAIN / (cs_float) CRUNCH1_NUM_BEADS;
   p->resons = CRUNCH1_RESON;
   p->coeffs1 = CRUNCH1_RESON * CRUNCH1_RESON;
   p->coeffs0 = - CRUNCH1_RESON * FL(2.0) *
@@ -486,7 +486,7 @@ static int32_t crunchset(CSOUND *csound, CABASA *p)
 
 static int32_t guiroset(CSOUND *csound, GUIRO *p)
 {
-  MYFLT temp;
+  cs_float temp;
 
   p->res_freqSave = FL(0.0);
   p->shake_maxSave = FL(0.0);
@@ -496,7 +496,7 @@ static int32_t guiroset(CSOUND *csound, GUIRO *p)
 
   p->sndLevel = FL(0.0);
   p->kloop = trunc(p->h.insdshead->offtim * CS_EKR)
-    - trunc((double)CS_EKR * *p->dettack);
+    - trunc((cs_double)CS_EKR * *p->dettack);
 
   if (p->h.insdshead->offtim >= 0.0 && p->kloop < 1.0)
     p->kloop = 1.0;
@@ -512,11 +512,11 @@ static int32_t guiroset(CSOUND *csound, GUIRO *p)
   p->finalZ1      = FL(0.0);
   p->finalZ2      = FL(0.0);
 
-  p->num_objects = (MYFLT)GUIR_NUM_PARTS;
+  p->num_objects = (cs_float)GUIR_NUM_PARTS;
   p->soundDecay = GUIR_SOUND_DECAY;
   p->systemDecay = FL(1.0);
-  temp = LOG((MYFLT)GUIR_NUM_PARTS) * GUIR_GAIN /
-    (MYFLT) GUIR_NUM_PARTS;
+  temp = LOG((cs_float)GUIR_NUM_PARTS) * GUIR_GAIN /
+    (cs_float) GUIR_NUM_PARTS;
   p->gains0=temp;
   p->gains1=temp;
 
@@ -540,14 +540,14 @@ static int32_t guiroset(CSOUND *csound, GUIRO *p)
 
 static int32_t guiro(CSOUND *csound, GUIRO *p)
 {
-  MYFLT *ar = p->ar;
+  cs_float *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT lastOutput;
+  cs_float lastOutput;
 
   if (*p->num_teeth != FL(0.0)) {
-    MYFLT teeth = *p->num_teeth;
+    cs_float teeth = *p->num_teeth;
     if (teeth < FL(1.0)) teeth = FL(1.0);
     if (teeth != p->num_objects) {
       p->num_objects = teeth;
@@ -582,32 +582,32 @@ static int32_t guiro(CSOUND *csound, GUIRO *p)
   }
 
   {
-    MYFLT sndLevel     = p->sndLevel;
-    MYFLT ratchet      = p->ratchet;
+    cs_float sndLevel     = p->sndLevel;
+    cs_float ratchet      = p->ratchet;
     int32_t ratchetPos     = p->ratchetPos;
-    MYFLT totalEnergy  = p->totalEnergy;
-    MYFLT num_objects  = p->num_objects;
-    MYFLT soundDecay   = p->soundDecay;
-    MYFLT ratchetDelta = p->ratchetDelta;
-    MYFLT inputs0, inputs1;
-    MYFLT outputs00    = p->outputs00;
-    MYFLT outputs01    = p->outputs01;
-    MYFLT outputs10    = p->outputs10;
-    MYFLT outputs11    = p->outputs11;
-    MYFLT coeffs00     = p->coeffs00;
-    MYFLT coeffs01     = p->coeffs01;
-    MYFLT coeffs10     = p->coeffs10;
-    MYFLT coeffs11     = p->coeffs11;
-    MYFLT finalZ0      = p->finalZ0;
-    MYFLT finalZ1      = p->finalZ1;
-    MYFLT finalZ2      = p->finalZ2;
-    MYFLT gains0       = p->gains0;
-    MYFLT gains1       = p->gains1;
-    MYFLT amp          = *p->amp; /* Already in output amplitude units. */
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    cs_float totalEnergy  = p->totalEnergy;
+    cs_float num_objects  = p->num_objects;
+    cs_float soundDecay   = p->soundDecay;
+    cs_float ratchetDelta = p->ratchetDelta;
+    cs_float inputs0, inputs1;
+    cs_float outputs00    = p->outputs00;
+    cs_float outputs01    = p->outputs01;
+    cs_float outputs10    = p->outputs10;
+    cs_float outputs11    = p->outputs11;
+    cs_float coeffs00     = p->coeffs00;
+    cs_float coeffs01     = p->coeffs01;
+    cs_float coeffs10     = p->coeffs10;
+    cs_float coeffs11     = p->coeffs11;
+    cs_float finalZ0      = p->finalZ0;
+    cs_float finalZ1      = p->finalZ1;
+    cs_float finalZ2      = p->finalZ2;
+    cs_float gains0       = p->gains0;
+    cs_float gains1       = p->gains1;
+    cs_float amp          = *p->amp; /* Already in output amplitude units. */
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset;n<nsmps;n++) {
       if (ratchetPos > 0) {
@@ -662,12 +662,12 @@ static int32_t guiro(CSOUND *csound, GUIRO *p)
 
 static int32_t tambourset(CSOUND *csound, TAMBOURINE *p)
 {
-  MYFLT temp;
+  cs_float temp;
 
   p->shake_maxSave = FL(0.0);
   p->sndLevel = FL(0.0);
   p->kloop = trunc(p->h.insdshead->offtim * CS_EKR)
-    - trunc((double)CS_EKR * *p->dettack);
+    - trunc((cs_double)CS_EKR * *p->dettack);
 
   p->outputs00       = FL(0.0);
   p->outputs01       = FL(0.0);
@@ -681,7 +681,7 @@ static int32_t tambourset(CSOUND *csound, TAMBOURINE *p)
   p->finalZ1         = FL(0.0);
   p->finalZ2         = FL(0.0);
 
-  p->num_objectsSave = p->num_objects = (MYFLT)TAMB_NUM_TIMBRELS;
+  p->num_objectsSave = p->num_objects = (cs_float)TAMB_NUM_TIMBRELS;
   p->soundDecay      = TAMB_SOUND_DECAY;
   p->systemDecay     = TAMB_SYSTEM_DECAY;
   p->gain            = FL(24.0) / TAMB_NUM_TIMBRELS;
@@ -689,8 +689,8 @@ static int32_t tambourset(CSOUND *csound, TAMBOURINE *p)
   p->res_freq        = TAMB_SHELL_FREQ;
   p->res_freq1       = TAMB_CYMB_FREQ1;
   p->res_freq2       = TAMB_CYMB_FREQ2;
-  temp               = LOG((MYFLT)TAMB_NUM_TIMBRELS) * TAMB_GAIN /
-    (MYFLT) TAMB_NUM_TIMBRELS;
+  temp               = LOG((cs_float)TAMB_NUM_TIMBRELS) * TAMB_GAIN /
+    (cs_float) TAMB_NUM_TIMBRELS;
   p->gains0          = temp*TAMB_SHELL_GAIN;
   p->gains1          = temp*FL(0.8);
   p->gains2          = temp;
@@ -712,14 +712,14 @@ static int32_t tambourset(CSOUND *csound, TAMBOURINE *p)
 
 static int32_t tambourine(CSOUND *csound, TAMBOURINE *p)
 {
-  MYFLT *ar = p->ar;
+  cs_float *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT data;
-  MYFLT temp_rand;
-  MYFLT lastOutput;
-  MYFLT fullscale = csound->Get0dBFS(csound);
+  cs_float data;
+  cs_float temp_rand;
+  cs_float lastOutput;
+  cs_float fullscale = csound->Get0dBFS(csound);
 
   if (*p->num_timbrels != FL(0.0) && *p->num_timbrels != p->num_objects) {
     p->num_objects = *p->num_timbrels;
@@ -756,15 +756,15 @@ static int32_t tambourine(CSOUND *csound, TAMBOURINE *p)
   }
 
   {
-    MYFLT shakeEnergy = p->shakeEnergy;
-    MYFLT systemDecay = p->systemDecay;
-    MYFLT sndLevel = p->sndLevel;
-    MYFLT soundDecay = p->soundDecay;
-    MYFLT inputs0, inputs1, inputs2;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    cs_float shakeEnergy = p->shakeEnergy;
+    cs_float systemDecay = p->systemDecay;
+    cs_float sndLevel = p->sndLevel;
+    cs_float soundDecay = p->soundDecay;
+    cs_float inputs0, inputs1, inputs2;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset;n<nsmps;n++) {
       shakeEnergy *= systemDecay; /* Exponential system decay */
@@ -811,7 +811,7 @@ static int32_t tambourine(CSOUND *csound, TAMBOURINE *p)
 
 static int32_t bambooset(CSOUND *csound, BAMBOO *p)
 {
-  MYFLT temp;
+  cs_float temp;
   p->shake_maxSave = FL(0.0);
 
   p->sndLevel = FL(0.0);
@@ -833,8 +833,8 @@ static int32_t bambooset(CSOUND *csound, BAMBOO *p)
   p->num_objectsSave = p->num_objects = BAMB_NUM_TUBES;
   p->soundDecay      = BAMB_SOUND_DECAY;
   p->systemDecay     = BAMB_SYSTEM_DECAY;
-  temp               = LOG((MYFLT)BAMB_NUM_TUBES) * BAMB_GAIN /
-    (MYFLT) BAMB_NUM_TUBES;
+  temp               = LOG((cs_float)BAMB_NUM_TUBES) * BAMB_GAIN /
+    (cs_float) BAMB_NUM_TUBES;
   p->gain            = temp;
   p->coeffs01        = BAMB_RESON * BAMB_RESON;
   p->coeffs00        = -BAMB_RESON * FL(2.0) *
@@ -854,13 +854,13 @@ static int32_t bambooset(CSOUND *csound, BAMBOO *p)
 
 static int32_t bamboo(CSOUND *csound, BAMBOO *p)
 {
-  MYFLT *ar = p->ar;
+  cs_float *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT data;
-  MYFLT temp_rand;
-  MYFLT lastOutput;
+  cs_float data;
+  cs_float temp_rand;
+  cs_float lastOutput;
 
   if (*p->num_tubes != FL(0.0) && *p->num_tubes != p->num_objects) {
     p->num_objects = *p->num_tubes;
@@ -896,15 +896,15 @@ static int32_t bamboo(CSOUND *csound, BAMBOO *p)
   }
 
   {
-    MYFLT shakeEnergy = p->shakeEnergy;
-    MYFLT systemDecay = p->systemDecay;
-    MYFLT sndLevel    = p->sndLevel;
-    MYFLT soundDecay  = p->soundDecay;
-    MYFLT inputs0, inputs1, inputs2;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    cs_float shakeEnergy = p->shakeEnergy;
+    cs_float systemDecay = p->systemDecay;
+    cs_float sndLevel    = p->sndLevel;
+    cs_float soundDecay  = p->soundDecay;
+    cs_float inputs0, inputs1, inputs2;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset;n<nsmps;n++) {
       shakeEnergy *= systemDecay; /* Exponential system decay */
@@ -954,7 +954,7 @@ static int32_t bamboo(CSOUND *csound, BAMBOO *p)
 
 static int32_t wuterset(CSOUND *csound, WUTER *p)
 {
-  MYFLT temp;
+  cs_float temp;
 
   p->sndLevel = FL(0.0);
   p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
@@ -1001,16 +1001,16 @@ static int32_t wuterset(CSOUND *csound, WUTER *p)
 
 static int32_t wuter(CSOUND *csound, WUTER *p)
 {
-  MYFLT *ar = p->ar;
+  cs_float *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT data;
-  MYFLT lastOutput;
-  MYFLT fullscale = csound->Get0dBFS(csound);
+  cs_float data;
+  cs_float lastOutput;
+  cs_float fullscale = csound->Get0dBFS(csound);
   /* Retain the original random spread and arithmetic at the default pitches. */
-  MYFLT freq0 = p->res_freq0 / FL(0.75);
-  MYFLT freq2 = p->res_freq2 / FL(1.25);
+  cs_float freq0 = p->res_freq0 / FL(0.75);
+  cs_float freq2 = p->res_freq2 / FL(1.25);
 
   if (*p->num_tubes != FL(0.0) && *p->num_tubes != p->num_objects) {
     p->num_objects = *p->num_tubes;
@@ -1031,17 +1031,17 @@ static int32_t wuter(CSOUND *csound, WUTER *p)
   }
 
   {
-    MYFLT shakeEnergy = p->shakeEnergy;
-    MYFLT systemDecay = p->systemDecay;
-    MYFLT sndLevel = p->sndLevel;
-    MYFLT num_objects = p->num_objects;
-    MYFLT soundDecay = p->soundDecay;
-    MYFLT inputs0, inputs1, inputs2;
+    cs_float shakeEnergy = p->shakeEnergy;
+    cs_float systemDecay = p->systemDecay;
+    cs_float sndLevel = p->sndLevel;
+    cs_float num_objects = p->num_objects;
+    cs_float soundDecay = p->soundDecay;
+    cs_float inputs0, inputs1, inputs2;
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset;n<nsmps;n++) {
 
@@ -1125,13 +1125,13 @@ static int32_t wuter(CSOUND *csound, WUTER *p)
 
 static int32_t sleighset(CSOUND *csound, SLEIGHBELLS *p)
 {
-  MYFLT temp;
+  cs_float temp;
 
   p->shake_maxSave = FL(0.0);
   p->sndLevel = FL(0.0);
   /* Preserve whole-control-cycle timing without narrowing to int32_t. */
   p->kloop = trunc(p->h.insdshead->offtim * CS_EKR)
-    - trunc((double)CS_EKR * *p->dettack);
+    - trunc((cs_double)CS_EKR * *p->dettack);
   if (p->h.insdshead->offtim >= 0.0 && p->kloop < 1.0)
     p->kloop = 1.0;
 
@@ -1155,10 +1155,10 @@ static int32_t sleighset(CSOUND *csound, SLEIGHBELLS *p)
   p->res_freq2 = SLEI_CYMB_FREQ2;
   p->res_freq3 = SLEI_CYMB_FREQ3;
   p->res_freq4 = SLEI_CYMB_FREQ4;
-  p->num_objectsSave = p->num_objects = (MYFLT)SLEI_NUM_BELLS;
+  p->num_objectsSave = p->num_objects = (cs_float)SLEI_NUM_BELLS;
   p->soundDecay      = SLEI_SOUND_DECAY;
   p->systemDecay     = SLEI_SYSTEM_DECAY;
-  temp               = LOG((MYFLT)SLEI_NUM_BELLS)/(MYFLT)SLEI_NUM_BELLS;
+  temp               = LOG((cs_float)SLEI_NUM_BELLS)/(cs_float)SLEI_NUM_BELLS;
   p->gain            = temp;
   p->coeffs01        = SLEI_CYMB_RESON * SLEI_CYMB_RESON;
   p->coeffs00        = -SLEI_CYMB_RESON * FL(2.0) *
@@ -1184,14 +1184,14 @@ static int32_t sleighset(CSOUND *csound, SLEIGHBELLS *p)
 
 static int32_t sleighbells(CSOUND *csound, SLEIGHBELLS *p)
 {
-  MYFLT *ar = p->ar;
+  cs_float *ar = p->ar;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  MYFLT data;
-  MYFLT temp_rand;
-  MYFLT lastOutput;
-  MYFLT fullscale = csound->Get0dBFS(csound);
+  cs_float data;
+  cs_float temp_rand;
+  cs_float lastOutput;
+  cs_float fullscale = csound->Get0dBFS(csound);
 
   if (*p->num_bells != FL(0.0) && *p->num_bells != p->num_objects) {
     p->num_objects = *p->num_bells;
@@ -1227,15 +1227,15 @@ static int32_t sleighbells(CSOUND *csound, SLEIGHBELLS *p)
   }
 
   {
-    MYFLT shakeEnergy = p->shakeEnergy;
-    MYFLT systemDecay = p->systemDecay;
-    MYFLT sndLevel = p->sndLevel;
-    MYFLT soundDecay = p->soundDecay;
-    MYFLT inputs0, inputs1, inputs2, inputs3, inputs4;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    cs_float shakeEnergy = p->shakeEnergy;
+    cs_float systemDecay = p->systemDecay;
+    cs_float sndLevel = p->sndLevel;
+    cs_float soundDecay = p->soundDecay;
+    cs_float inputs0, inputs1, inputs2, inputs3, inputs4;
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset;n<nsmps;n++) {
       shakeEnergy *= systemDecay; /* Exponential system decay */

@@ -39,29 +39,29 @@
 
 typedef struct Mandolin {
     OPDS        h;
-    MYFLT       *ar;                  /* Output */
-    MYFLT       *amp;
-    MYFLT       *frequency;
-    MYFLT       *pluckPos;
-    MYFLT       *detuning;
-    MYFLT       *baseLoopGain;
-    MYFLT       *s_rate;
-    MYFLT       *ifn;
-    MYFLT       *lowestFreq;
+    cs_float       *ar;                  /* Output */
+    cs_float       *amp;
+    cs_float       *frequency;
+    cs_float       *pluckPos;
+    cs_float       *detuning;
+    cs_float       *baseLoopGain;
+    cs_float       *s_rate;
+    cs_float       *ifn;
+    cs_float       *lowestFreq;
 
     FUNC        *soundfile;
-    MYFLT       s_time;
-    MYFLT       s_lastOutput;
+    cs_float       s_time;
+    cs_float       s_lastOutput;
     DLineA      delayLine1;
     DLineA      delayLine2;
     DLineL      combDelay;
     OneZero     filter1;
     OneZero     filter2;
     int32       length;
-    MYFLT       lastFreq;
-    double      lastLength;
-    MYFLT       lastDetune;
-    MYFLT       lastPluck;
+    cs_float       lastFreq;
+    cs_double      lastLength;
+    cs_float       lastDetune;
+    cs_float       lastPluck;
     int32       dampTime;
     int32_t         waveDone;
 } MANDOL;

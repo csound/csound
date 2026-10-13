@@ -11,7 +11,7 @@ static void clear_myflt_view(OSC_MYFLT_BLOB_VIEW *view)
     }
 }
 
-static int32_t myflt_is_finite(MYFLT value)
+static int32_t myflt_is_finite(cs_float value)
 {
     /* -ffast-math can fold isfinite() away, so check the exponent bits. */
 #ifdef USE_DOUBLE
@@ -31,11 +31,11 @@ int32_t osc_blob_parse_myflts(const void *payload, size_t payloadBytes,
 {
     clear_myflt_view(view);
     if (view == NULL || (payload == NULL && payloadBytes != 0) ||
-        payloadBytes % sizeof(MYFLT) != 0) {
+        payloadBytes % sizeof(cs_float) != 0) {
       return NOTOK;
     }
     view->data = (const unsigned char *)payload;
-    view->count = payloadBytes / sizeof(MYFLT);
+    view->count = payloadBytes / sizeof(cs_float);
     return OK;
 }
 
@@ -44,27 +44,27 @@ int32_t osc_blob_parse_audio(const void *payload, size_t payloadBytes,
                              OSC_MYFLT_BLOB_VIEW *view)
 {
     const unsigned char *bytes = (const unsigned char *)payload;
-    MYFLT advertised;
-    double advertisedValue;
+    cs_float advertised;
+    cs_double advertisedValue;
     uint32_t advertisedCount;
     size_t available;
 
     clear_myflt_view(view);
-    if (view == NULL || payload == NULL || payloadBytes < sizeof(MYFLT) ||
-        (payloadBytes - sizeof(MYFLT)) % sizeof(MYFLT) != 0) {
+    if (view == NULL || payload == NULL || payloadBytes < sizeof(cs_float) ||
+        (payloadBytes - sizeof(cs_float)) % sizeof(cs_float) != 0) {
       return NOTOK;
     }
     memcpy(&advertised, bytes, sizeof(advertised));
-    advertisedValue = (double)advertised;
+    advertisedValue = (cs_double)advertised;
     if (!myflt_is_finite(advertised) || advertisedValue < 0.0 ||
-        advertisedValue > (double)UINT32_MAX) {
+        advertisedValue > (UINT32_MAX + 0.0)) {
       return NOTOK;
     }
     advertisedCount = (uint32_t)advertisedValue;
-    if ((double)advertisedCount != advertisedValue) {
+    if ((cs_double)advertisedCount != advertisedValue) {
       return NOTOK;
     }
-    available = (payloadBytes - sizeof(MYFLT)) / sizeof(MYFLT);
+    available = (payloadBytes - sizeof(cs_float)) / sizeof(cs_float);
     view->count = (size_t)advertisedCount;
     if (view->count > available) {
       view->count = available;
@@ -72,7 +72,7 @@ int32_t osc_blob_parse_audio(const void *payload, size_t payloadBytes,
     if (view->count > sampleLimit) {
       view->count = sampleLimit;
     }
-    view->data = bytes + sizeof(MYFLT);
+    view->data = bytes + sizeof(cs_float);
     return OK;
 }
 
@@ -90,7 +90,7 @@ int32_t osc_blob_array_size(const OSC_ARRAY_BLOB_VIEW *view, int32_t index,
 int32_t osc_blob_parse_array(const void *payload, size_t payloadBytes,
                              OSC_ARRAY_BLOB_VIEW *view)
 {
-    /* Array blobs contain a dimension count, dimension sizes, then MYFLTs. */
+    /* Array blobs contain a dimension count, dimension sizes, then cs_float values. */
     const unsigned char *bytes = (const unsigned char *)payload;
     const unsigned char *sizes;
     size_t headerBytes;
@@ -133,10 +133,10 @@ int32_t osc_blob_parse_array(const void *payload, size_t payloadBytes,
         valueCount *= (size_t)dimensionSize;
       }
     }
-    if (valueCount > SIZE_MAX / sizeof(MYFLT)) {
+    if (valueCount > SIZE_MAX / sizeof(cs_float)) {
       return NOTOK;
     }
-    valueBytes = valueCount * sizeof(MYFLT);
+    valueBytes = valueCount * sizeof(cs_float);
     if (payloadBytes - headerBytes != valueBytes) {
       return NOTOK;
     }

@@ -38,8 +38,8 @@
 /* pluck -- derived class to implement simple plucked string algorithm */
 typedef struct {
   OPDS h;
-  MYFLT *out;                   /* plucked string output */
-  MYFLT *freq,*amp,*pickupPos,*pickPos,*Aw0,*AwPI,*afdbk; /* inputs */
+  cs_float *out;                   /* plucked string output */
+  cs_float *freq,*amp,*pickupPos,*pickPos,*Aw0,*AwPI,*afdbk; /* inputs */
 
   waveguide wg;                 /* general waveguide model structure   */
   filter3 bridge;               /* lowpass bridge filter               */

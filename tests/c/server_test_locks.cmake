@@ -6,5 +6,8 @@ foreach(test_name IN LISTS unittests_TESTS)
         set_tests_properties("${test_name}" PROPERTIES
             RESOURCE_LOCK csound_udp_ports)
     endif()
+    if(test_name MATCHES "^ServerTests\\.InternalOsc")
+        set_tests_properties("${test_name}" PROPERTIES TIMEOUT 30)
+    endif()
 endforeach()
 unset(test_name)

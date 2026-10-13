@@ -28,12 +28,12 @@
 
 typedef struct {
     OPDS        h;
-    MYFLT       *sr, *xamp, *xlfr, *xdns, *kabnd, *kbnd, *kglen;
-    MYFLT       *igfn, *iefn, *imkglen, *opt;
-    MYFLT       gcount;
-    MYFLT       pr;
+    cs_float       *sr, *xamp, *xlfr, *xdns, *kabnd, *kbnd, *kglen;
+    cs_float       *igfn, *iefn, *imkglen, *opt;
+    cs_float       gcount;
+    cs_float       pr;
     AUXCH       aux;
-    MYFLT       *x, *y;
+    cs_float       *x, *y;
     FUNC        *gftp, *eftp;
     int16       dnsadv, ampadv, lfradv;
 } PGRA;

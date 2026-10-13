@@ -28,7 +28,7 @@
 #define FHT_SWAP(a,b,t) {(t)=(a);(a)=(b);(b)=(t);}
 
 #define TRIG_VARS                   \
-    MYFLT   coswrk[24], sinwrk[24]; \
+    cs_float   coswrk[24], sinwrk[24]; \
     int32   t_lam = 0L;             \
     coswrk[0] = FL(0.0);            \
     sinwrk[0] = FL(1.0);
@@ -63,7 +63,7 @@
 #endif
 
 #if defined(FAST_TRIG)
-#define TRIG_VARS       MYFLT t_c,t_s;
+#define TRIG_VARS       cs_float t_c,t_s;
 
 #define TRIG_INIT(k,c,s)            \
     {                               \
@@ -75,7 +75,7 @@
 
 #define TRIG_NEXT(k,c,s)            \
     {                               \
-        MYFLT t = c;                \
+        cs_float t = c;                \
         c   = t*t_c - s*t_s;        \
         s   = t*t_s + s*t_c;        \
     }
@@ -84,7 +84,7 @@
 #define SQRT2_2         (FL(0.70710678118654752440084436210484))
 #define SQRT2           (FL(2.0) * FL(0.70710678118654752440084436210484))
 
-static const MYFLT halsec[20]=
+static const cs_float halsec[20]=
     {
       FL(0.0),
       FL(0.0),
@@ -103,7 +103,7 @@ static const MYFLT halsec[20]=
       FL(.50000000229794635411562887767906868558991922348920),
       FL(.50000000057448658687873302235147272458812263401372)
     };
-static const MYFLT costab[20]=
+static const cs_float costab[20]=
     {
       FL(.00000000000000000000000000000000000000000000000000),
       FL(.70710678118654752440084436210484903928483593768847),
@@ -122,7 +122,7 @@ static const MYFLT costab[20]=
       FL(.99999999540410731289097193313960614895889430318945),
       FL(.99999999885102682756267330779455410840053741619428)
     };
-static const MYFLT sintab[20]=
+static const cs_float sintab[20]=
     {
       FL(1.0000000000000000000000000000000000000000000000000),
       FL(.70710678118654752440084436210484903928483593768846),

@@ -91,8 +91,8 @@ typedef struct csdata_ {
   int32_t         outBufSamples;
   int32_t         currentInputIndex;
   int32_t         currentOutputIndex;
-  MYFLT       *inputBuffer;
-  MYFLT       *outputBuffer;
+  cs_float       *inputBuffer;
+  cs_float       *outputBuffer;
   csRtAudioParams *inParm;
   csRtAudioParams *outParm;
   int32_t onchnls, inchnls;
@@ -108,20 +108,20 @@ typedef struct csdata_ {
   int32_t devout;
   void *incb;
   void *outcb;
-  MYFLT sr;
+  cs_float sr;
   int32_t complete;          /* set at close: fade out, then stop  */
   RT_AUDIO_FADE closeFade;
 } csdata;
 
 
-OSStatus  Csound_Input(void *inRefCon,
+static OSStatus  Csound_Input(void *inRefCon,
                        AudioUnitRenderActionFlags *ioActionFlags,
                        const AudioTimeStamp *inTimeStamp,
                        UInt32 inBusNumber,
                        UInt32 inNumberFrames,
                        AudioBufferList *ioData);
 
-OSStatus  Csound_Render(void *inRefCon,
+static OSStatus  Csound_Render(void *inRefCon,
                         AudioUnitRenderActionFlags *ioActionFlags,
                         const AudioTimeStamp *inTimeStamp,
                         UInt32 dump,
@@ -150,7 +150,7 @@ static void ADC_channels(CSOUND *csound, int32_t chans){
     }
 }
 
-int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
+static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                csdata *cdata, int32_t isInput)
 {
     UInt32  psize, devnum, devnos;
@@ -161,7 +161,7 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     Device_Info *devinfo;
     UInt32  bufframes, nchnls;
     int32_t devouts = 0, devins = 0;
-    double srate;
+    Float64 srate;
     UInt32 enableIO, maxFPS;
     AudioComponent HALOutput;
     AudioComponentInstance *aunit;
@@ -303,7 +303,7 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
         }
         else {
        if(O->msglevel || O->odebug)
-          csound->Warning(csound, Str("requested device %d out of range"),
+          csound->Warning(csound, Str("requested device %d out of range\n"),
                              devnum);
         }
 
@@ -321,7 +321,7 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
         }
         else {
           if(O->msglevel || O->odebug)
-          csound->Warning(csound, Str("requested device %d (%s) out of range"),
+          csound->Warning(csound, Str("requested device %d (%s) out of range\n"),
                              devnum, devinfo[CoreAudioDev].name);
         }
       }
@@ -383,14 +383,14 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
     /* although the SR is set in the stream properties,
        we also need to set the device to match */
-    double sr;
+    Float64 sr;
     prop.mSelector = kAudioDevicePropertyNominalSampleRate;
     if(!isInput){
       AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
       csound->GetSystemSr(csound, sr);
     }
 
-    psize = sizeof(double);
+    psize = sizeof(Float64);
     AudioObjectSetPropertyData(dev, &prop, 0, NULL, psize, &srate);
     AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
 
@@ -400,7 +400,7 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     while (UNLIKELY(sr != srate)) {
        if(O->odebug)
         csound->Warning(csound,
-                      Str("Attempted to set device SR, tried %.1f, got %.1f"),
+                      Str("Attempted to set device SR, tried %.1f, got %.1f\n"),
                       srate, sr);
        // wait for it
        csound->Sleep(500);
@@ -409,12 +409,12 @@ int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
        AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
        // try another 5 times max (2.5 sec wait)
        if(++attempts > 5) {
-         csound->Warning(csound, "could not set sr to %.1f after %d attempts",
+         csound->Warning(csound, Str("could not set sr to %.1f after %d attempts\n"),
                          srate, attempts);
          break;
        }
     }
-    csound->Message(csound, "auhal: device sampling rate set to %.1f\n",
+    csound->Message(csound, Str("auhal: device sampling rate set to %.1f\n"),
                     sr);
 
     HALOutput = AudioComponentFindNext(NULL, &cd);
@@ -667,12 +667,12 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams * parm)
     cdata->inParm =  (csRtAudioParams *) parm;
     cdata->csound = csound;
     cdata->inputBuffer =
-      (MYFLT *) csound->Calloc(csound,
-                               csound->GetInputBufferSize(csound)* sizeof(MYFLT));
+      (cs_float *) csound->Calloc(csound,
+                               csound->GetInputBufferSize(csound)* sizeof(cs_float));
     cdata->incb =
       csound->CreateCircularBuffer(csound,
                                    parm->bufSamp_HW*parm->nChannels,
-                                   sizeof(MYFLT));
+                                   sizeof(cs_float));
 
     int32_t ret = AuHAL_open(csound, parm, cdata, 1);
     return ret;
@@ -695,15 +695,15 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams * parm)
     cdata->outParm =  (csRtAudioParams *) parm;
     cdata->csound = csound;
     cdata->outputBuffer =
-      (MYFLT *) csound->Calloc(csound,
-                               csound->GetOutputBufferSize(csound)*sizeof(MYFLT));
+      (cs_float *) csound->Calloc(csound,
+                               csound->GetOutputBufferSize(csound)*sizeof(cs_float));
     memset(cdata->outputBuffer, 0,
-           csound->GetOutputBufferSize(csound)*sizeof(MYFLT));
+           csound->GetOutputBufferSize(csound)*sizeof(cs_float));
 
     cdata->outcb =
       csound->CreateCircularBuffer(csound,
                                    parm->bufSamp_HW*parm->nChannels,
-                                   sizeof(MYFLT));
+                                   sizeof(cs_float));
     ATOMIC_SET(cdata->complete, 0);
     rt_audio_fade_reset(&cdata->closeFade);
 
@@ -711,7 +711,7 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams * parm)
 }
 
 
-OSStatus  Csound_Input(void *inRefCon,
+static OSStatus  Csound_Input(void *inRefCon,
                        AudioUnitRenderActionFlags *ioActionFlags,
                        const AudioTimeStamp *inTimeStamp,
                        UInt32 inBusNumber,
@@ -720,7 +720,7 @@ OSStatus  Csound_Input(void *inRefCon,
     csdata *cdata = (csdata *) inRefCon;
     CSOUND *csound = cdata->csound;
     int32_t inchnls = cdata->inchnls;
-    MYFLT *inputBuffer = cdata->inputBuffer;
+    cs_float *inputBuffer = cdata->inputBuffer;
     int32_t j,k,i,chns;
     Float32 *buffer;
     int32_t n = inNumberFrames*inchnls;
@@ -733,21 +733,21 @@ OSStatus  Csound_Input(void *inRefCon,
       for (i = 0; i < ioData->mNumberBuffers; i++) {
         buffer = (Float32 *) ioData->mBuffers[i].mData;
         for(j = 0, k = 0; (uint32_t) k < inNumberFrames; j+=inchnls, k++)
-          inputBuffer[j+i] = (MYFLT) buffer[k];
+          inputBuffer[j+i] = (cs_float) buffer[k];
       }
     } else { // interleaved
       buffer = (Float32 *) ioData->mBuffers[0].mData;
       for(k = 0; k < n; k++)
-        inputBuffer[k] = (MYFLT) buffer[k];
+        inputBuffer[k] = (cs_float) buffer[k];
     }
     csound->WriteCircularBuffer(csound, cdata->incb,inputBuffer,n);
     return 0;
 }
 #define slt 100
-static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
+static int32_t rtrecord_(CSOUND *csound, cs_float *inbuff_, int32_t nbytes)
 {
     csdata  *cdata;
-    int32_t n = nbytes/sizeof(MYFLT);
+    int32_t n = nbytes/sizeof(cs_float);
     int32_t m = 0, l;
     cdata = (csdata *) *(csound->GetRtRecordUserData(csound));
     do{
@@ -762,7 +762,9 @@ static int32_t rtrecord_(CSOUND *csound, MYFLT *inbuff_, int32_t nbytes)
     return nbytes;
 }
 
-OSStatus Csound_Render(void *inRefCon,
+static OSStatus Csound_Render(void *inRefCon,
+    /* Matches the AudioUnit callback signature. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
                         AudioUnitRenderActionFlags *ioActionFlags,
                         const AudioTimeStamp *inTimeStamp,
                         UInt32 inBusNumber,
@@ -771,7 +773,7 @@ OSStatus Csound_Render(void *inRefCon,
     csdata *cdata = (csdata *) inRefCon;
     CSOUND *csound = cdata->csound;
     int32_t onchnls = cdata->onchnls;
-    MYFLT *outputBuffer = cdata->outputBuffer;
+    cs_float *outputBuffer = cdata->outputBuffer;
     int32_t j,k,i,chns;
     Float32 *buffer;
     int32_t n = inNumberFrames*onchnls;
@@ -779,7 +781,7 @@ OSStatus Csound_Render(void *inRefCon,
     IGN(inTimeStamp);
     IGN(inBusNumber);
 
-    memset(outputBuffer, 0, sizeof(MYFLT)*n);
+    memset(outputBuffer, 0, sizeof(cs_float)*n);
     /* Once closing, fade the audio still queued out to silence, as
        Ardour does when stopping its engine, so the stream never ends
        on a non-zero sample. The fade spans the queued audio and so
@@ -807,10 +809,10 @@ OSStatus Csound_Render(void *inRefCon,
     return 0;
 }
 
-static void rtplay_(CSOUND *csound, const MYFLT *outbuff_, int32_t nbytes)
+static void rtplay_(CSOUND *csound, const cs_float *outbuff_, int32_t nbytes)
 {
     csdata  *cdata;
-    int32_t n = nbytes/sizeof(MYFLT);
+    int32_t n = nbytes/sizeof(cs_float);
     int32_t m = 0, l;
     cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
     do {
@@ -840,13 +842,13 @@ static void rtclose_(CSOUND *csound)
            the second wait lets the final render block reach the device. */
         int32_t waitMs = 100;
         int32_t queued = csound->CheckCircularBuffer(csound, cdata->outcb, 0);
-        double renderMs = 0.0;
+        cs_double renderMs = 0.0;
         if (cdata->sr > 0.0 && cdata->onchnls > 0) {
-          double queueMs = 1000.0 * (double) queued /
-                           ((double) cdata->onchnls * (double) cdata->sr);
+          cs_double queueMs = 1000.0 * (cs_double) queued /
+                           ((cs_double) cdata->onchnls * (cs_double) cdata->sr);
           renderMs = 1000.0 *
-                     (double) csound->GetOutputBufferSize(csound) /
-                     ((double) cdata->onchnls * (double) cdata->sr);
+                     (cs_double) csound->GetOutputBufferSize(csound) /
+                     ((cs_double) cdata->onchnls * (cs_double) cdata->sr);
           waitMs = (int32_t) (queueMs + renderMs + 20.0);
           if (waitMs < 50)
             waitMs = 50;
@@ -917,7 +919,7 @@ static void rtclose_(CSOUND *csound)
       csound->DestroyCircularBuffer(csound, cdata->incb);
       csound->DestroyCircularBuffer(csound, cdata->outcb);
       csound->Free(csound,cdata);
-      csound->DebugMsg(csound, "%s", Str("AuHAL module: device closed\n"));
+      csound->DebugMsg(csound, "%s\n", Str("AuHAL module: device closed\n"));
     }
 }
 
@@ -933,7 +935,7 @@ int32_t csoundModuleInit(CSOUND *csound)
           strcmp(drv, "coreaudio") == 0 || strcmp(drv, "CoreAudio") == 0 ||
           strcmp(drv, "COREAUDIO") == 0))
       return 0;
-    csound->DebugMsg(csound, "%s", Str("rtaudio: coreaaudio-AuHAL module enabled\n"));
+    csound->DebugMsg(csound, "%s\n", Str("rtaudio: coreaaudio-AuHAL module enabled\n"));
     csound->SetPlayopenCallback(csound, playopen_);
     csound->SetRecopenCallback(csound, recopen_);
     csound->SetRtplayCallback(csound, rtplay_);
@@ -941,6 +943,11 @@ int32_t csoundModuleInit(CSOUND *csound)
     csound->SetRtcloseCallback(csound, rtclose_);
     csound->SetAudioDeviceListCallback(csound, listDevices);
     return 0;
+}
+
+PUBLIC int32_t csoundModuleInfo(void)
+{
+  return CSOUND_MODULE_INFO;
 }
 
 int32_t csoundModuleCreate(CSOUND *csound)

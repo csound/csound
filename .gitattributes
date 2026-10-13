@@ -1,1 +1,7 @@
 *.mid -text
+
+# Preserve the bytes and whitespace of unmodified upstream files.
+third_party/dssi/dssi.h -text -whitespace
+third_party/dssi/LICENSE -text -whitespace
+third_party/ladspa/ladspa.h -text -whitespace
+third_party/ladspa/LICENSE -text -whitespace

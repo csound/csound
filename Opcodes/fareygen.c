@@ -77,29 +77,29 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     */
 
     int32_t j, fareyseq, nvals, nargs, farey_length, mode;
-    MYFLT   *fp = ftp->ftable, *pp, *pp2;
+    cs_float   *fp = ftp->ftable, *pp, *pp2;
     CSOUND  *csound = ff->csound;
     RATIO *flist;
 
     nvals = ff->flen;
     nargs = ff->e.pcnt - 4;
     if (UNLIKELY(nargs < 2)) {
-      return csound->FtError(ff, "%s", Str("insufficient arguments for fareytable"));
+      return csound->FtError(ff, "%s\n", Str("insufficient arguments for fareytable"));
     }
     ff->e.p[4] *= -1;
     pp = &(ff->e.p[5]);
-    if (UNLIKELY(!(*pp >= FL(1.0) && (double)*pp <= INT32_MAX)))
-      return csound->FtError(ff, Str("farey: invalid sequence order"));
+    if (UNLIKELY(!(*pp >= FL(1.0) && (cs_double)*pp <= (INT32_MAX + 0.0))))
+      return csound->FtError(ff, Str("farey: invalid sequence order\n"));
     fareyseq = (int32_t)*pp;
     pp2 = &(ff->e.p[6]);
     if (UNLIKELY(!(*pp2 >= FL(0.0) && *pp2 < FL(5.0))))
-      return csound->FtError(ff, Str("farey: mode must be between 0 and 4"));
+      return csound->FtError(ff, Str("farey: mode must be between 0 and 4\n"));
     mode = (int32_t)*pp2;
     farey_length = FareyLength(fareyseq);
     if (UNLIKELY(farey_length == 0 ||
                  (size_t)farey_length > SIZE_MAX / sizeof(RATIO)))
-      return csound->FtError(ff, Str("farey: sequence is too large"));
-    if (ff->flen <= 0) return csound->FtError(ff, "%s", Str("Illegal table size"));
+      return csound->FtError(ff, Str("farey: sequence is too large\n"));
+    if (ff->flen <= 0) return csound->FtError(ff, "%s\n", Str("Illegal table size"));
     flist = (RATIO*)csound->Calloc(csound, (size_t)farey_length * sizeof(RATIO));
 
     GenerateFarey (fareyseq, flist, farey_length);
@@ -109,16 +109,16 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     case 0: /* output float elements of F_n */
       for (j = 0;  j < nvals; j++) {
         if (j < farey_length)
-          fp[j] = (MYFLT) flist[j].p / (MYFLT) flist[j].q;
+          fp[j] = (cs_float) flist[j].p / (cs_float) flist[j].q;
       }
       break;
     case 1: /* output delta values of successive elements of F_n */
       {
-        MYFLT last = FL(0.0);
+        cs_float last = FL(0.0);
         int32_t i = 1;
         for (j = 0; j < nvals; j++, i++) {
           if (i < farey_length) {
-            MYFLT current = (MYFLT) flist[i].p / (MYFLT) flist[i].q;
+            cs_float current = (cs_float) flist[i].p / (cs_float) flist[i].q;
             fp[j] = current - last;
             last = current;
           }
@@ -128,22 +128,22 @@ static int32_t fareytable (FGDATA *ff, FUNC *ftp)
     case 2: /* output only the denominators of the integer ratios */
       for (j = 0; j < nvals; j++) {
         if (j < farey_length)
-          fp[j] = (MYFLT) flist[j].q;
+          fp[j] = (cs_float) flist[j].q;
       }
       break;
     case 3: /* output the normalised denominators of the integer ratios */
       {
-        MYFLT farey_scale = (MYFLT) 1 / (MYFLT) fareyseq;
+        cs_float farey_scale = (cs_float) 1 / (cs_float) fareyseq;
         for (j = 0; j < nvals; j++) {
           if (j < farey_length)
-            fp[j] = (MYFLT) flist[j].q * farey_scale;
+            fp[j] = (cs_float) flist[j].q * farey_scale;
         }
         break;
       }
     case 4: /* output float elements of F_n + 1 for tuning tables*/
       for (j = 0; j < nvals; j++) {
         if (j < farey_length)
-          fp[j] = FL(1.0) + (MYFLT) flist[j].p / (MYFLT) flist[j].q;
+          fp[j] = FL(1.0) + (cs_float) flist[j].p / (cs_float) flist[j].q;
       }
       break;
     }

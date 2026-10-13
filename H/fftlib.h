@@ -35,85 +35,85 @@ extern "C" {
    * Returns the amplitude scale that should be applied to the result of
    * an inverse complex FFT with a length of 'FFTsize' samples.
    */
-  MYFLT csoundGetInverseComplexFFTScale(CSOUND *csound, int32_t FFTsize);
+  cs_float csoundGetInverseComplexFFTScale(CSOUND *csound, int32_t FFTsize);
 
   /**
    * Returns the amplitude scale that should be applied to the result of
    * an inverse real FFT with a length of 'FFTsize' samples.
    */
-  MYFLT csoundGetInverseRealFFTScale(CSOUND *csound, int32_t FFTsize);
+  cs_float csoundGetInverseRealFFTScale(CSOUND *csound, int32_t FFTsize);
 
   /**
    * Compute in-place complex FFT
    * FFTsize: FFT length in samples
-   * buf:     array of FFTsize*2 MYFLT values,
+   * buf:     array of FFTsize*2 cs_float values,
    *          in interleaved real/imaginary format
    */
-  void csoundComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+  void csoundComplexFFT(CSOUND *csound, cs_float *buf, int32_t FFTsize);
 
   /**
    * Compute in-place inverse complex FFT
    * FFTsize: FFT length in samples
-   * buf:     array of FFTsize*2 MYFLT values,
+   * buf:     array of FFTsize*2 cs_float values,
    *          in interleaved real/imaginary format
    * Output should be scaled by the return value of
    * csoundGetInverseComplexFFTScale(csound, FFTsize).
    */
-  void csoundInverseComplexFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+  void csoundInverseComplexFFT(CSOUND *csound, cs_float *buf, int32_t FFTsize);
 
   /**
    * Compute in-place real FFT
    * FFTsize: FFT length in samples
-   * buf:     array of FFTsize MYFLT values; output is in interleaved
+   * buf:     array of FFTsize cs_float values; output is in interleaved
    *          real/imaginary format, except for buf[1] which is the real
    *          part for the Nyquist frequency
    */
-  void csoundRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+  void csoundRealFFT(CSOUND *csound, cs_float *buf, int32_t FFTsize);
 
   /**
    * Compute in-place inverse real FFT
    * FFTsize: FFT length in samples
-   * buf:     array of FFTsize MYFLT values; input is expected to be in
+   * buf:     array of FFTsize cs_float values; input is expected to be in
    *          interleaved real/imaginary format, except for buf[1] which
    *          is the real part for the Nyquist frequency
    * Output should be scaled by the return value of
    * csoundGetInverseRealFFTScale(csound, FFTsize).
    */
-  void csoundInverseRealFFT(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+  void csoundInverseRealFFT(CSOUND *csound, cs_float *buf, int32_t FFTsize);
 
   /**
    * Multiply two arrays (buf1 and buf2) of complex data in the format
    * returned by csoundRealFFT(), and leave the result in outbuf, which
    * may be the same as either buf1 or buf2.
    * An amplitude scale of 'scaleFac' is also applied.
-   * The arrays should contain 'FFTsize' MYFLT values.
+   * The arrays should contain 'FFTsize' cs_float values.
    */
   void csoundRealFFTMult(CSOUND *csound,
-                         MYFLT *outbuf, MYFLT *buf1, MYFLT *buf2,
-                         int32_t FFTsize, MYFLT scaleFac);
+                         cs_float *outbuf, cs_float *buf1, cs_float *buf2,
+                         int32_t FFTsize, cs_float scaleFac);
 
   /**
    * Compute in-place real FFT, allowing non power of two FFT sizes.
    *
-   * buf:     array of FFTsize + 2 MYFLT values; output is in interleaved
+   * buf:     array of FFTsize + 2 cs_float values; output is in interleaved
    *          real/imaginary format (note: the real part of the Nyquist
    *          frequency is stored in buf[FFTsize], and not in buf[1]).
    * FFTsize: FFT length in samples; not required to be an integer power of two,
    *          but should be even and not have too many factors.
    */
-  void csoundRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+  void csoundRealFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize);
 
   /**
    * Compute in-place inverse real FFT, allowing non power of two FFT sizes.
    * The output does not need to be scaled.
    *
-   * buf:     array of FFTsize + 2 MYFLT values, in interleaved real/imaginary
+   * buf:     array of FFTsize + 2 cs_float values, in interleaved real/imaginary
    *          format (note: the real part of the Nyquist frequency is stored
    *          in buf[FFTsize], and not in buf[1]).
    * FFTsize: FFT length in samples; not required to be an integer power of two,
    *          but should be even and not have too many factors.
    */
-  void csoundInverseRealFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+  void csoundInverseRealFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize);
 
 
    /**
@@ -133,17 +133,17 @@ extern "C" {
    * New Real FFT interface
    * Compute in-place real FFT.
    *
-   * buf:     array of FFTsize + 2 MYFLT values, in interleaved real/imaginary
+   * buf:     array of FFTsize + 2 cs_float values, in interleaved real/imaginary
    *          format, with 0Hz and Nyquist packed up in the buf[0] and buf[1], 
    *          respectively (in forward output and inverse input data).
    *
    * setup:   an FFT setup created with csoundRealFFT2Setup()
    */
-  void csoundRealFFT2(CSOUND *csound, void *setup, MYFLT *sig);
-  void csoundDCT(CSOUND *csound, void *p, MYFLT *sig);
+  void csoundRealFFT2(CSOUND *csound, void *setup, cs_float *sig);
+  void csoundDCT(CSOUND *csound, void *p, cs_float *sig);
   void *csoundDCTSetup(CSOUND *csound, int32_t FFTsize, int32_t d);
-  void csoundComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
-  void csoundInverseComplexFFTnp2(CSOUND *csound, MYFLT *buf, int32_t FFTsize);
+  void csoundComplexFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize);
+  void csoundInverseComplexFFTnp2(CSOUND *csound, cs_float *buf, int32_t FFTsize);
 #ifdef __cplusplus
 }
 #endif

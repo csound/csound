@@ -9,11 +9,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-namespace {
-#undef LINKAGE_BUILTIN
-#define LINKAGE_BUILTIN(x)
-#include "../../Opcodes/serial.c"
+#include "fixtures/serial_test_opcode.h"
 
+namespace {
 int32_t ignoreInitError(CSOUND *, const char *, ...) { return NOTOK; }
 int32_t ignorePerfError(CSOUND *, OPDS *, const char *, ...) { return NOTOK; }
 void *failThread(uintptr_t (*)(void *), void *) { return nullptr; }
@@ -23,7 +21,7 @@ protected:
     CSOUND *csound = nullptr;
     int master = -1;
     STRINGDAT name = {};
-    MYFLT port = -1, baud = 9600;
+    cs_float port = -1, baud = 9600;
     ARD_START starter = {};
 
     void SetUp() override {
@@ -80,7 +78,7 @@ TEST_F(ArduinoTests, StopWhileSilentUnsyncedOrMidValue) {
 
 TEST_F(ArduinoTests, RestartKeepsOldReadersAndCleanupSeparate) {
     ASSERT_EQ(arduinoStart(csound, &starter), OK);
-    MYFLT value = 0, index = 0, halfTime = 0;
+    cs_float value = 0, index = 0, halfTime = 0;
     ARD_READ reader = {};
     reader.val = &value;
     reader.port = &port;
@@ -120,7 +118,7 @@ TEST_F(ArduinoTests, FailedStartAndDuplicateStartLeaveNoExtraSession) {
     csound->CreateThread = createThread;
     ASSERT_EQ(arduinoStart(csound, &starter), OK);
     ARD_START duplicate = {};
-    MYFLT duplicatePort = -1;
+    cs_float duplicatePort = -1;
     duplicate.returnedPort = &duplicatePort;
     duplicate.portName = &name;
     duplicate.baudRate = &baud;
@@ -135,7 +133,7 @@ TEST_F(ArduinoTests, SensorBoundsFloatBitsAndReset) {
     // Ignore unsupported sensor slots, then decode a valid pair.
     send({0xf8, 1, 240, 2, 249, 127, 239});
     ASSERT_TRUE(waitForValue(29, 1023));
-    MYFLT value, index = 30, halfTime = 0;
+    cs_float value, index = 30, halfTime = 0;
     ARD_READ reader = {};
     reader.val = &value;
     reader.port = &port;
@@ -146,7 +144,7 @@ TEST_F(ArduinoTests, SensorBoundsFloatBitsAndReset) {
     index = 29;
     EXPECT_EQ(arduinoRead(csound, &reader), OK);
     EXPECT_EQ(value, 1023);
-    MYFLT first = 0, second = 1, third = 2;
+    cs_float first = 0, second = 1, third = 2;
     ARD_READF floatReader = {};
     floatReader.val = &value;
     floatReader.port = &port;

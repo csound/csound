@@ -41,14 +41,14 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *kamp, *kdensity, density0, thresh, scale;
+        cs_float   *out, *kamp, *kdensity, density0, thresh, scale;
         int32_t   rand;
 } DUST;
 
 typedef struct {
         OPDS    h;
 /* 8.03.15 Added new option ifrst1   --Gleb R */
-        MYFLT   *out, *kamp, *kfrq, *kdev, *imode, *ifrst1, frq0, first;
+        cs_float   *out, *kamp, *kfrq, *kdev, *imode, *ifrst1, frq0, first;
         int32   count;
         int32_t rand;
         int32 mmode;
@@ -68,7 +68,7 @@ static int32_t dust_init(CSOUND *csound, DUST *p)
 
 static int32_t dust_process_krate(CSOUND *csound, DUST *p)
 {
-    MYFLT   density, thresh, scale, r;
+    cs_float   density, thresh, scale, r;
     density = *p->kdensity;
 
     if (density != p->density0) {
@@ -81,7 +81,7 @@ static int32_t dust_process_krate(CSOUND *csound, DUST *p)
       scale  = p->scale;
     }
     p->rand = csound->Rand31(&p->rand);
-    r = (MYFLT)p->rand * dv2_31;
+    r = (cs_float)p->rand * dv2_31;
     *p->out = *p->kamp * (r < thresh ? r*scale : FL(0.0));
     return OK;
 }
@@ -91,7 +91,7 @@ static int32_t dust_process_arate(CSOUND *csound, DUST *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   *out, density, thresh, scale;
+    cs_float   *out, density, thresh, scale;
     out = p->out;
     density = *p->kdensity;
 
@@ -104,16 +104,16 @@ static int32_t dust_process_arate(CSOUND *csound, DUST *p)
       thresh = p->thresh;
       scale  = p->scale;
     }
-    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->out[nsmps], '\0', early*sizeof(cs_float));
     }
-    //memset(out, '\0', offset*sizeof(MYFLT));
+    //memset(out, '\0', offset*sizeof(cs_float));
    for (n=offset; n<nsmps; n++) {
-      MYFLT r;
+      cs_float r;
       p->rand = csound->Rand31(&p->rand);
-      r = (MYFLT)p->rand * dv2_31;
+      r = (cs_float)p->rand * dv2_31;
       out[n] = *p->kamp * (r < thresh ? r*scale : FL(0.0));
     }
     return OK;
@@ -121,7 +121,7 @@ static int32_t dust_process_arate(CSOUND *csound, DUST *p)
 
 static int32_t dust2_process_krate(CSOUND *csound, DUST *p)
 {
-    MYFLT   density, thresh, scale, r;
+    cs_float   density, thresh, scale, r;
     density = *p->kdensity;
 
     if (density != p->density0) {
@@ -134,7 +134,7 @@ static int32_t dust2_process_krate(CSOUND *csound, DUST *p)
       scale  = p->scale;
     }
     p->rand = csound->Rand31(&p->rand);
-    r = (MYFLT)p->rand * dv2_31;
+    r = (cs_float)p->rand * dv2_31;
     *p->out = *p->kamp * (r < thresh ? r*scale - FL(1.0) : FL(0.0));
     return OK;
 }
@@ -144,7 +144,7 @@ static int32_t dust2_process_arate(CSOUND *csound, DUST *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   *out, density, thresh, scale;
+    cs_float   *out, density, thresh, scale;
     out = p->out;
     density = *p->kdensity;
 
@@ -157,16 +157,16 @@ static int32_t dust2_process_arate(CSOUND *csound, DUST *p)
       thresh = p->thresh;
       scale  = p->scale;
     }
-    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->out[nsmps], '\0', early*sizeof(cs_float));
     }
-    //memset(out, '\0', offset*sizeof(MYFLT));
+    //memset(out, '\0', offset*sizeof(cs_float));
     for (n=offset; n<nsmps; n++) {
-      MYFLT r;
+      cs_float r;
       p->rand = csound->Rand31(&p->rand);
-      r = (MYFLT)p->rand * dv2_31;
+      r = (cs_float)p->rand * dv2_31;
       out[n] = *p->kamp * (r < thresh ? r*scale - FL(1.0) : FL(0.0));
     }
     return OK;
@@ -182,23 +182,23 @@ static int32_t gausstrig_init(CSOUND* csound, GAUSSTRIG *p)
       /* values less than FL(0.0) could be used in later versions
          as an offset in samples */
       int32_t     nextsamps;
-      MYFLT   nextcount, frq, dev, r1, r2;
+      cs_float   nextcount, frq, dev, r1, r2;
       p->frq0 = *p->kfrq;
       frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
       dev = *p->kdev;
 
       nextsamps = (int32_t)(csound->GetSr(csound) / frq);
       p->rand = csound->Rand31(&p->rand);
-      r1 = (MYFLT)p->rand * dv2_31;
+      r1 = (cs_float)p->rand * dv2_31;
       p->rand = csound->Rand31(&p->rand);
-      r2 = (MYFLT)p->rand * dv2_31;
+      r2 = (cs_float)p->rand * dv2_31;
       nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
       if (nextcount < FL(-1.0)) {
-        MYFLT diff = FL(-1.0) - nextcount;
+        cs_float diff = FL(-1.0) - nextcount;
         nextcount  = (FL(1.0) < FL(-1.0) + diff ? FL(1.0) : FL(-1.0) + diff);
       }
       else if (nextcount > FL(1.0)) {
-        MYFLT diff = nextcount - FL(1.0);
+        cs_float diff = nextcount - FL(1.0);
         nextcount  = (FL(-1.0) > FL(1.0) - diff ? FL(-1.0) : FL(1.0) - diff);
       }
       p->count = (int32_t)(nextsamps + nextcount * dev * nextsamps);
@@ -228,23 +228,23 @@ static int32_t gausstrig_initk(CSOUND* csound, GAUSSTRIG *p)
       /* values less than FL(0.0) could be used in later versions
          as an offset in samples */
       int32_t     nextsamps;
-      MYFLT   nextcount, frq, dev, r1, r2;
+      cs_float   nextcount, frq, dev, r1, r2;
       p->frq0 = *p->kfrq;
       frq = (*p->kfrq > FL(0.001) ? *p->kfrq : FL(0.001));
       dev = *p->kdev;
       /* this very line of k-time fix. Changed GetSt to GetKr */
       nextsamps = (int32_t)(csound->GetKr(csound) / frq);
       p->rand = csound->Rand31(&p->rand);
-      r1 = (MYFLT)p->rand * dv2_31;
+      r1 = (cs_float)p->rand * dv2_31;
       p->rand = csound->Rand31(&p->rand);
-      r2 = (MYFLT)p->rand * dv2_31;
+      r2 = (cs_float)p->rand * dv2_31;
       nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
       if (nextcount < FL(-1.0)) {
-        MYFLT diff = FL(-1.0) - nextcount;
+        cs_float diff = FL(-1.0) - nextcount;
         nextcount  = (FL(1.0) < FL(-1.0) + diff ? FL(1.0) : FL(-1.0) + diff);
       }
       else if (nextcount > FL(1.0)) {
-        MYFLT diff = nextcount - FL(1.0);
+        cs_float diff = nextcount - FL(1.0);
         nextcount  = (FL(-1.0) > FL(1.0) - diff ? FL(-1.0) : FL(1.0) - diff);
       }
       p->count = (int32_t)(nextsamps + nextcount * dev * nextsamps);
@@ -259,7 +259,7 @@ static int32_t gausstrig_initk(CSOUND* csound, GAUSSTRIG *p)
 }
 static int32_t gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
 {
-    MYFLT frq, dev;
+    cs_float frq, dev;
     if (p->mmode && p->count > 0 && *p->kfrq != p->frq0)
       p->first = 1;  /* Recalculate the pending delay at the new frequency. */
     p->frq0 = *p->kfrq;
@@ -269,20 +269,20 @@ static int32_t gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
       /* values less than FL(0.0) could be used in later versions
          as an offset in samples */
       int32_t     nextsamps;
-      MYFLT   nextcount, r1, r2;
+      cs_float   nextcount, r1, r2;
       /* this very line of k-time fix. Changed GetSt to GetKr */
       nextsamps = (int32_t)(CS_EKR / frq);
       p->rand = csound->Rand31(&p->rand);
-      r1 = (MYFLT)p->rand * dv2_31;
+      r1 = (cs_float)p->rand * dv2_31;
       p->rand = csound->Rand31(&p->rand);
-      r2 = (MYFLT)p->rand * dv2_31;
+      r2 = (cs_float)p->rand * dv2_31;
       nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
       if (nextcount < FL(-1.0)) {
-        MYFLT diff = FL(-1.0) - nextcount;
+        cs_float diff = FL(-1.0) - nextcount;
         nextcount  = (FL(1.0) < FL(-1.0) + diff ? FL(1.0) : FL(-1.0) + diff);
       }
       else if (nextcount > FL(1.0)) {
-        MYFLT diff = nextcount - FL(1.0);
+        cs_float diff = nextcount - FL(1.0);
         nextcount  = (FL(-1.0) > FL(1.0) - diff ? FL(-1.0) : FL(1.0) - diff);
       }
       p->count = (int32_t)(nextsamps + nextcount * dev * nextsamps);
@@ -290,20 +290,20 @@ static int32_t gausstrig_process_krate(CSOUND* csound, GAUSSTRIG *p)
     }
     if (p->count <= 0) {
       int32_t     nextsamps;
-      MYFLT   nextcount, r1, r2;
+      cs_float   nextcount, r1, r2;
 /* this very line of k-time fix. Changed GetSt to GetKr */
       nextsamps = (int32_t)(CS_EKR / frq);
       p->rand = csound->Rand31(&p->rand);
-      r1 = (MYFLT)p->rand * dv2_31;
+      r1 = (cs_float)p->rand * dv2_31;
       p->rand = csound->Rand31(&p->rand);
-      r2 = (MYFLT)p->rand * dv2_31;
+      r2 = (cs_float)p->rand * dv2_31;
       nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
       if (nextcount < FL(-1.0)) {
-        MYFLT diff = FL(-1.0) - nextcount;
+        cs_float diff = FL(-1.0) - nextcount;
         nextcount  = (FL(1.0) < FL(-1.0) + diff ? FL(1.0) : FL(-1.0) + diff);
       }
       else if (nextcount > FL(1.0)) {
-        MYFLT diff = nextcount - FL(1.0);
+        cs_float diff = nextcount - FL(1.0);
         nextcount  = (FL(-1.0) > FL(1.0) - diff ? FL(-1.0) : FL(1.0) - diff);
       }
       p->count = (int32_t)(nextsamps + nextcount * dev * nextsamps);
@@ -321,39 +321,39 @@ static int32_t gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   *out = p->out;
-    MYFLT frq, dev;
+    cs_float   *out = p->out;
+    cs_float frq, dev;
     if (p->mmode && p->count > 0 && *p->kfrq != p->frq0)
       p->first = 1;  /* Once per block: kfrq cannot change within the loop. */
     p->frq0 = *p->kfrq;
     frq = (p->frq0 > FL(0.001) ? p->frq0 : FL(0.001));
     dev = *p->kdev;
-    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(p->out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->out[nsmps], '\0', early*sizeof(cs_float));
     }
-    //memset(out, '\0', offset*sizeof(MYFLT));
+    //memset(out, '\0', offset*sizeof(cs_float));
     if (p->first > FL(0.0)) {
       /* values less than FL(0.0) could be used in later versions
          as an offset in samples */
       int32_t     nextsamps;
-      MYFLT   nextcount, dev, r1, r2;
+      cs_float   nextcount, dev, r1, r2;
       //p->frq0 = *p->kfrq;
       //frq = (p->frq0 > FL(0.001) ? p->frq0 : FL(0.001));
       dev = *p->kdev;
       nextsamps = (int32_t)(CS_ESR / frq);
       p->rand = csound->Rand31(&p->rand);
-      r1 = (MYFLT)p->rand * dv2_31;
+      r1 = (cs_float)p->rand * dv2_31;
       p->rand = csound->Rand31(&p->rand);
-      r2 = (MYFLT)p->rand * dv2_31;
+      r2 = (cs_float)p->rand * dv2_31;
       nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
       if (nextcount < FL(-1.0)) {
-        MYFLT diff = FL(-1.0) - nextcount;
+        cs_float diff = FL(-1.0) - nextcount;
         nextcount  = (FL(1.0) < FL(-1.0) + diff ? FL(1.0) : FL(-1.0) + diff);
       }
       else if (nextcount > FL(1.0)) {
-        MYFLT diff = nextcount - FL(1.0);
+        cs_float diff = nextcount - FL(1.0);
         nextcount  = (FL(-1.0) > FL(1.0) - diff ? FL(-1.0) : FL(1.0) - diff);
       }
       p->count = (int32_t)(nextsamps + nextcount * dev * nextsamps);
@@ -362,19 +362,19 @@ static int32_t gausstrig_process_arate(CSOUND* csound, GAUSSTRIG *p)
     for (n=offset; n<nsmps; n++) {
       if (p->count <= 0) {
         int32_t     nextsamps;
-        MYFLT   nextcount, r1, r2;
+        cs_float   nextcount, r1, r2;
         nextsamps = (int32_t)(CS_ESR / frq);
         p->rand = csound->Rand31(&p->rand);
-        r1 = (MYFLT)p->rand * dv2_31;
+        r1 = (cs_float)p->rand * dv2_31;
         p->rand = csound->Rand31(&p->rand);
-        r2 = (MYFLT)p->rand * dv2_31;
+        r2 = (cs_float)p->rand * dv2_31;
         nextcount = SQRT(FL(-2.0) * LOG(r1)) * SIN(r2 * TWOPI_F);
         if (nextcount < FL(-1.0)) {
-          MYFLT diff = FL(-1.0) - nextcount;
+          cs_float diff = FL(-1.0) - nextcount;
           nextcount  = (FL(1.0) < FL(-1.0) + diff ? FL(1.0) : FL(-1.0) + diff);
         }
         else if (nextcount > FL(1.0)) {
-          MYFLT diff = nextcount - FL(1.0);
+          cs_float diff = nextcount - FL(1.0);
           nextcount  = (FL(-1.0) > FL(1.0) - diff ? FL(-1.0) : FL(1.0) - diff);
         }
         p->count = (int32_t)(nextsamps + nextcount * dev * nextsamps);

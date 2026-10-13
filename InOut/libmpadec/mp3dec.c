@@ -184,13 +184,13 @@ int32_t mp3dec_init_file(mp3dec_t mp3dec, FILE *f, int64_t length, int32_t nogap
       mp3->mpainfo.frames = mp3->taginfo.frames;
       if (mp3->mpainfo.frames && mp3->mpainfo.frame_samples) {
         mp3->mpainfo.bitrate = (int32_t) 
-         ((MYFLT)(((MYFLT)mp3->stream_size*(MYFLT)mp3->mpainfo.frequency + 0.5)/
-                ((MYFLT)125.0*mp3->mpainfo.frame_samples*mp3->mpainfo.frames)));
+         ((cs_float)(((cs_float)mp3->stream_size*(cs_float)mp3->mpainfo.frequency + 0.5)/
+                ((cs_float)125.0*mp3->mpainfo.frame_samples*mp3->mpainfo.frames)));
       }
     } else if (mp3->mpainfo.bitrate && mp3->mpainfo.frame_samples) {
       mp3->mpainfo.frames = (int32_t) 
-      ((MYFLT)(((MYFLT)mp3->stream_size*(MYFLT)mp3->mpainfo.frequency + 0.5)/
-               ((MYFLT)125.0*mp3->mpainfo.frame_samples*mp3->mpainfo.bitrate)));
+      ((cs_float)(((cs_float)mp3->stream_size*(cs_float)mp3->mpainfo.frequency + 0.5)/
+               ((cs_float)125.0*mp3->mpainfo.frame_samples*mp3->mpainfo.bitrate)));
     } 
     mp3->mpainfo.duration =
       (mp3->mpainfo.frames*mp3->mpainfo.frame_samples +
@@ -350,12 +350,12 @@ int32_t mp3dec_seek(mp3dec_t mp3dec, int64_t pos, int32_t units)
       mp3->in_buffer_offset = mp3->in_buffer_used = 0;
       mp3->out_buffer_offset = mp3->out_buffer_used = 0;
     } else if (units == MP3DEC_SEEK_SAMPLES) {
-      MYFLT fsize =
-        (MYFLT)(125.0*mp3->mpainfo.bitrate*mp3->mpainfo.decoded_frame_samples)/
-        (MYFLT)mp3->mpainfo.decoded_frequency;
+      cs_float fsize =
+        (cs_float)(125.0*mp3->mpainfo.bitrate*mp3->mpainfo.decoded_frame_samples)/
+        (cs_float)mp3->mpainfo.decoded_frequency;
 
       newpos = (int64_t)
-        ((MYFLT)pos*fsize/(MYFLT)mp3->mpainfo.decoded_frame_samples);
+        ((cs_float)pos*fsize/(cs_float)mp3->mpainfo.decoded_frame_samples);
       //printf("seek pos: %d %d\n", newpos, pos);
       if (newpos > mp3->stream_size) newpos = mp3->stream_size;
       pos = (pos%mp3->mpainfo.decoded_frame_samples)*

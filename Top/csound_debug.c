@@ -30,8 +30,8 @@
 int32_t kperf(CSOUND *csound);
 int32_t kperf_debug(CSOUND *csound);  
 debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound);
-debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound);
-void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list);
+static debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound);
+static void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list);
 int32_t dag_get_task(CSOUND *csound, int32_t index, int32_t numThreads,
                      int32_t next_task);
 int32_t dag_end_task(CSOUND *csound, int32_t task);
@@ -69,7 +69,7 @@ int32_t csoundDebuggerInit(CSOUND *csound)
 {
   /* to be removed if/when multicore is supported */
   if(csound->oparms->numThreads > 1) {
-    csoundErrorMsg(csound, "cannot initialise debugger for multicore\n");
+    csoundErrorMsg(csound, Str("cannot initialise debugger for multicore\n"));
     return CSOUND_ERROR;
   }
   
@@ -116,11 +116,11 @@ int32_t csoundDebuggerInit(CSOUND *csound)
     if (!data) {
       csound->Warning(csound,
                       Str("csoundSetBreakpoint: cannot set breakpoint. "
-                          "Debugger is not initialised."));
+                          "Debugger is not initialised.\n"));
       return;
     }
     if (line <= 0) {
-      csound->Warning(csound, Str("csoundSetBreakpoint: line > 0 for breakpoint."));
+      csound->Warning(csound, Str("csoundSetBreakpoint: line > 0 for breakpoint.\n"));
       return;
     }
     bkpt_node_t *newpoint =
@@ -139,11 +139,11 @@ int32_t csoundDebuggerInit(CSOUND *csound)
     if (!data) {
       csound->Warning(csound,
                       Str("csoundRemoveBreakpoint: cannot remove breakpoint. "
-                          "Debugger is not initialised."));
+                          "Debugger is not initialised.\n"));
       return;
     }
     if (line < 0) {
-      csound->Warning(csound, Str ("Negative line for breakpoint invalid."));
+      csound->Warning(csound, Str ("Negative line for breakpoint invalid.\n"));
     }
     bkpt_node_t *newpoint =
       (bkpt_node_t *) csound->Malloc(csound, sizeof(bkpt_node_t));
@@ -153,13 +153,13 @@ int32_t csoundDebuggerInit(CSOUND *csound)
     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint,  1);
 }
 
- void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int32_t skip)
+ void csoundSetInstrumentBreakpoint(CSOUND *csound, cs_float instr, int32_t skip)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     if (!data) {
       csound->Warning(csound,
                       Str("csoundRemoveBreakpoint: cannot remove breakpoint. "
-                          "Debugger is not initialised."));
+                          "Debugger is not initialised.\n"));
       return;
     }
     assert(data);
@@ -173,7 +173,7 @@ int32_t csoundDebuggerInit(CSOUND *csound)
     csoundWriteCircularBuffer(csound, data->bkpt_buffer, &newpoint,  1);
 }
 
- void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr)
+ void csoundRemoveInstrumentBreakpoint(CSOUND *csound, cs_float instr)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
@@ -301,7 +301,7 @@ debug_instr_t *csoundDebugGetCurrentInstrInstance(CSOUND *csound)
 }
 
 
-debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound)
+static debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound)
 {
     csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
     assert(data);
@@ -320,7 +320,7 @@ debug_opcode_t *csoundDebugGetCurrentOpcodeList(CSOUND *csound)
     return opcode_list;
 }
 
-void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
+static void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
 {
     csound->Free(csound, opcode_list);
 }
@@ -340,7 +340,7 @@ void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
  * lclbas + memBlockIndex. For the global pool (isGlobal == 1) each variable
  * owns its own storage block, reached through var->memBlock->value (lclbas is
  * unused / NULL). Both paths use the same type dispatch:
- *   i/k/a/r -> MYFLT(s) read in place
+ *   i/k/a/r -> cs_float(s) read in place
  *   S       -> STRINGDAT, data points to the C string
  *   f       -> PVSDAT*,   decode with csoundDebugSerializeFsig()
  *   [       -> ARRAYDAT*, decode with csoundDebugSerializeArray()
@@ -353,7 +353,7 @@ void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_list)
  * user_opcode_ref_arg_storage() instead of lclbas.
  */
 static debug_variable_t *debug_build_var_list(
-    CSOUND *csound, CS_VARIABLE *varPoolHead, MYFLT *lclbas, int32_t isGlobal,
+    CSOUND *csound, CS_VARIABLE *varPoolHead, cs_float *lclbas, int32_t isGlobal,
     const UOPCODE *udo)
 {
     debug_variable_t *head = NULL;
@@ -361,10 +361,10 @@ static debug_variable_t *debug_build_var_list(
     CS_VARIABLE *var = varPoolHead;
     while (var) {
         void *varmem = NULL;
-        MYFLT *base = NULL;
+        cs_float *base = NULL;
         if (isGlobal) {
             if (var->memBlock != NULL) {
-                base = (MYFLT *) &var->memBlock->value;
+                base = (cs_float *) &var->memBlock->value;
             }
         } else {
             base = udo != NULL ?
@@ -687,7 +687,7 @@ int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
                                  int32_t localKsmps)
 {
     PVSDAT *fsig = (PVSDAT *) varData;
-    int32_t NB, total, n, i, activeKsmps;
+    int32_t NB, total, n, i;
 
     if (infoOut != NULL) {
         memset(infoOut, 0, sizeof(debug_fsig_info_t));
@@ -739,12 +739,11 @@ int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
             }
             return 0;
         }
-        activeKsmps = (localKsmps > 0) ? localKsmps : csound->ksmps;
+        activeSubframes = (localKsmps > 0) ? (uint32_t)localKsmps : csound->ksmps;
         capacitySubframes = (uint32_t)(fsig->frame.size / stride);
         if (capacitySubframes < 1) {
             capacitySubframes = 1;
         }
-        activeSubframes = (uint32_t) activeKsmps;
         if (activeSubframes > capacitySubframes) {
             activeSubframes = capacitySubframes;
         }
@@ -768,7 +767,7 @@ int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
 }
 
 int32_t csoundDebugSerializeArray(CSOUND *csound, void *varData,
-                                  MYFLT *outBuf, int32_t bufMax,
+                                  cs_float *outBuf, int32_t bufMax,
                                   debug_array_info_t *infoOut)
 {
     ARRAYDAT *adat = (ARRAYDAT *) varData;
@@ -791,7 +790,7 @@ int32_t csoundDebugSerializeArray(CSOUND *csound, void *varData,
                     sizeof(infoOut->elementTypeName) - 1);
         }
     }
-    /* Only numeric arrays (i/k/a) serialize to flat MYFLT. S[]/f[] return 0. */
+    /* Only numeric arrays (i/k/a) serialize to flat cs_float. S[]/f[] return 0. */
     if (elemType == NULL ||
         (strcmp(elemType, "i") != 0 && strcmp(elemType, "k") != 0 &&
          strcmp(elemType, "a") != 0)) {
@@ -805,7 +804,7 @@ int32_t csoundDebugSerializeArray(CSOUND *csound, void *varData,
     for (d = 0; d < adat->dimensions; d++) {
         elements *= adat->sizes[d];
     }
-    perMember = (int32_t) (adat->arrayMemberSize / (int32_t) sizeof(MYFLT));
+    perMember = (int32_t) (adat->arrayMemberSize / (int32_t) sizeof(cs_float));
     if (perMember < 1) {
         perMember = 1;
     }
@@ -823,7 +822,7 @@ int32_t csoundDebugSerializeArray(CSOUND *csound, void *varData,
     return total;
 }
 
-inline static void mix_out(MYFLT *out, MYFLT *in, uint32_t smps) {
+inline static void mix_out(cs_float *out, const cs_float *in, uint32_t smps) {
   uint32_t i;
   for (i = 0; i < smps; i++)
     out[i] += in[i];
@@ -942,9 +941,9 @@ int32_t kperf_debug(CSOUND *csound) {
     if (csound->oparms_.sfread) /*   if audio_infile open  */
       csound->spinrecv(csound); /*      fill the spin buf  */
     /* clear spout */
-    memset(csound->spout, 0, csound->nspout * sizeof(MYFLT));
+    memset(csound->spout, 0, csound->nspout * sizeof(cs_float));
     memset(csound->spout_tmp, 0,
-           csound->nspout * csound->oparms->numThreads * sizeof(MYFLT));
+           csound->nspout * csound->oparms->numThreads * sizeof(cs_float));
   }
 
   ip = csound->actanchor.nxtact;
@@ -1010,7 +1009,7 @@ int32_t kperf_debug(CSOUND *csound) {
       csound->multiThreadedDag = NULL;
     } else {
       int32_t done;
-      double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
+      cs_double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
 
       while (ip != NULL) { /* for each instr active:  */
         if (UNLIKELY(csound->oparms->sampleAccurate && ip->offtim > 0 &&

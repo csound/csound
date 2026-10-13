@@ -43,10 +43,10 @@ protected:
         ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS) << messages();
     }
 
-    MYFLT value(const char *name)
+    cs_float value(const char *name)
     {
         int error = 0;
-        MYFLT result = csoundGetControlChannel(csound, name, &error);
+        cs_float result = csoundGetControlChannel(csound, name, &error);
         EXPECT_EQ(error, CSOUND_SUCCESS);
         return result;
     }
@@ -129,7 +129,7 @@ TEST_F(TrigseqTests, TableChangeUsesTheLookupRoundingRule)
     ASSERT_NO_FATAL_FAILURE(start(
         "kTable init 1.25\nif timeinstk() == 2 then\nkTable = 1.75\nendif\n"
         "trigseq 1,0,3,0,kTable,kA,kB"));
-    const bool roundedUp = MYFLT2LONG(FL(1.75)) == 2;
+    const bool roundedUp = CS_FLOAT2LONG(FL(1.75)) == 2;
     expect({10, roundedUp ? 200 : 20, roundedUp ? 300 : 30});
 }
 

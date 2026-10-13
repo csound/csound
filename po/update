@@ -1,28 +1,22 @@
-(cd .. ; xgettext --keyword=Str --keyword=Str_noop --keyword=STR -o /tmp/str --omit-header -f all_string_files)
-msgmerge csound.po /tmp/str -o new.po
-mv csound.po old_csound.po
-mv new.po csound.po
-msgmerge american.po /tmp/str -o new.po
-mv american.po old_american.po
-mv new.po american.po
-msgmerge french.po /tmp/str -o new.po
-mv french.po old_french.po
-mv new.po french.po
-msgmerge romanian.po /tmp/str -o new.po
-mv romanian.po old_romanian.po
-mv new.po romanian.po
-msgmerge german.po /tmp/str -o new.po
-mv german.po old_german.po
-mv new.po german.po
-msgmerge italian.po /tmp/str -o new.po
-mv italian.po old_italian.po
-mv new.po italian.po
-msgmerge es_CO.po /tmp/str -o new.po
-mv es_CO.po old_es_CO.po
-mv new.po es_CO.po
-msgmerge spanish.po /tmp/str -o new.po
-mv spanish.po old_spanish.po
-mv new.po spanish.po
-msgmerge russian.po /tmp/str -o new.po
-mv russian.po old_russian.po
-mv new.po russian.po
+#!/bin/sh
+# Refresh every catalog from the messages in the current source tree.
+set -eu
+cd "$(dirname "$0")/.."
+
+tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/csound-po.XXXXXX")
+trap 'rm -rf "$tmpdir"' EXIT HUP INT TERM
+
+# Use tracked source files to include new messages and exclude build output.
+git ls-files -- '*.c' '*.h' '*.cpp' '*.hpp' '*.cc' '*.cxx' '*.lex' '*.y' '*.m' \
+    ':!:tests/**' > "$tmpdir/files"
+xgettext --language=C++ --from-code=UTF-8 \
+    --keyword --keyword=Str --keyword=Str_noop --keyword=STR \
+    --package-name=Csound --package-version=7 \
+    --msgid-bugs-address=https://github.com/csound/csound/issues \
+    --add-comments=TRANSLATORS --sort-by-file \
+    --files-from="$tmpdir/files" --output="$tmpdir/messages.pot"
+
+for catalog in po/*.po; do
+    msgmerge --quiet --update --previous --backup=none \
+        "$catalog" "$tmpdir/messages.pot"
+done

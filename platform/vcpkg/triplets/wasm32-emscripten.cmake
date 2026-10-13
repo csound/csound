@@ -4,5 +4,6 @@ set(VCPKG_LIBRARY_LINKAGE static)
 
 set(VCPKG_CMAKE_SYSTEM_NAME Emscripten)
 
-get_filename_component(TOOLCHAIN_FILE "../platform/wasm/wasm32.cmake" REALPATH BASE_DIR "${CMAKE_SOURCE_DIR}")
+get_filename_component(TOOLCHAIN_FILE
+    "${CMAKE_CURRENT_LIST_DIR}/../../wasm-emscripten/wasm32.cmake" REALPATH)
 set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${TOOLCHAIN_FILE})

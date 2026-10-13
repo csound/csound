@@ -8,6 +8,15 @@
 #include "gtest/gtest.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <filesystem>
+#include <fstream>
+#include <string>
+#include <vector>
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
 #include "csound.h"
 #include "csound_files.h"
 #include "csdl.h"
@@ -26,15 +35,26 @@ public:
     virtual void SetUp ()
     {
         csound = csoundCreate (NULL,NULL);
+#ifdef _WIN32
+        const auto pid = _getpid();
+#else
+        const auto pid = getpid();
+#endif
+        path = std::filesystem::temp_directory_path() /
+          ("csound-sndfile-" + std::to_string(pid) + "-" +
+           std::to_string(reinterpret_cast<uintptr_t>(csound)) + ".raw");
     }
 
     virtual void TearDown ()
     {
         csoundDestroy (csound);
         csound = nullptr;
+        std::error_code error;
+        std::filesystem::remove(path, error);
     }
 
     CSOUND* csound {nullptr};
+    std::filesystem::path path;
 };
 
 
@@ -84,24 +104,24 @@ int32_t sfile_close(CSOUND *csound, void *p) {
     return CSOUND_SUCCESS;
 }
 
-int64_t sfile_write(CSOUND *csound, void *p, MYFLT *data, int64_t frames) {
+int64_t sfile_write(CSOUND *csound, void *p, cs_float *data, int64_t frames) {
   sfile *file = (sfile *) p;
-  return fwrite(data, sizeof(MYFLT)*file->sfinfo->channels, frames, file->fp);
+  return fwrite(data, sizeof(cs_float)*file->sfinfo->channels, frames, file->fp);
 }
 
-int64_t sfile_read(CSOUND *csound, void *p, MYFLT *data, int64_t frames) {
+int64_t sfile_read(CSOUND *csound, void *p, cs_float *data, int64_t frames) {
   sfile *file = (sfile *) p;
-  return fread(data, sizeof(MYFLT)*file->sfinfo->channels, frames, file->fp);
+  return fread(data, sizeof(cs_float)*file->sfinfo->channels, frames, file->fp);
 }
 
-int64_t sfile_write_samples(CSOUND *csound, void *p, MYFLT *data, int64_t samples) {
+int64_t sfile_write_samples(CSOUND *csound, void *p, cs_float *data, int64_t samples) {
   sfile *file = (sfile *) p;
-  return fwrite(data, sizeof(MYFLT), samples, file->fp);
+  return fwrite(data, sizeof(cs_float), samples, file->fp);
 }
 
-int64_t sfile_read_samples(CSOUND *csound, void *p, MYFLT *data, int64_t samples) {
+int64_t sfile_read_samples(CSOUND *csound, void *p, cs_float *data, int64_t samples) {
   sfile *file = (sfile *) p;
-  return fread(data, sizeof(MYFLT), samples, file->fp);
+  return fread(data, sizeof(cs_float), samples, file->fp);
 }
 
 int64_t sfile_seek(CSOUND *csound, void *p, int64_t offs, int32_t whence) {
@@ -138,6 +158,34 @@ SNDFILE_CALLBACKS *sfile_setup(CSOUND *csound) {
       return sfcbs;
 }
 
+TEST_F (SndfileTests, testFileErrorHandle)
+{
+  int token;
+  void *soundfile = &token;
+  auto savedError = csound->SndfileStrError;
+  auto savedClose = csound->SndfileClose;
+  csoundSetHostData(csound, soundfile);
+  csound->SndfileStrError = [](CSOUND *cs, void *handle) -> const char * {
+    EXPECT_EQ(handle, csoundGetHostData(cs));
+    return "soundfile error";
+  };
+  csound->SndfileClose = [](CSOUND *cs, void *handle) -> int32_t {
+    EXPECT_EQ(handle, csoundGetHostData(cs));
+    return 0;
+  };
+
+  for (int type : {CSFILE_SND_R, CSFILE_SND_W}) {
+    void *file = csound->CreateFileHandle(csound, &soundfile, type, "callback-test");
+    ASSERT_NE(file, nullptr);
+    EXPECT_STREQ(csound->FileError(csound, file), "soundfile error");
+    EXPECT_EQ(csound->FileClose(csound, file, CSFILE_CLOSE_SYNC), 0);
+  }
+
+  csound->SndfileStrError = savedError;
+  csound->SndfileClose = savedClose;
+  csoundSetHostData(csound, nullptr);
+}
+
 TEST_F (SndfileTests, testWriteSndfile)
 {
   int32_t result;
@@ -149,7 +197,9 @@ TEST_F (SndfileTests, testWriteSndfile)
   
   SNDFILE_CALLBACKS *sfcbs = sfile_setup(csound);   
   csoundSetSndfileCallbacks(csound, sfcbs);
-  csoundSetOption (csound, "--format=raw --format=double -o test.raw");
+  const std::string options = "--format=raw --format=double -o \"" +
+                              path.generic_string() + "\"";
+  ASSERT_EQ(csoundSetOption(csound, options.c_str()), 0);
   result = csoundCompileOrc(csound, instrument, 0);
   ASSERT_TRUE (result == 0);
   csoundEventString(csound,  "i 1 0 1 0.5 440 \n", 0);
@@ -162,6 +212,14 @@ TEST_F (SndfileTests, testWriteSndfile)
 
 TEST_F (SndfileTests, testReadSndfile)
 {
+  const std::vector<cs_float> samples(44100, cs_float(0.25));
+  std::ofstream input(path, std::ios::binary);
+  ASSERT_TRUE(input.is_open());
+  input.write(reinterpret_cast<const char *>(samples.data()),
+              samples.size() * sizeof(cs_float));
+  input.close();
+  ASSERT_TRUE(input.good());
+
   int32_t result;
   const char* instrument =
         "0dbfs = 1\n"
@@ -172,13 +230,21 @@ TEST_F (SndfileTests, testReadSndfile)
   
   SNDFILE_CALLBACKS *sfcbs = sfile_setup(csound); 
   csoundSetSndfileCallbacks(csound, sfcbs);
-  csoundSetOption (csound, "--format=raw --format=double -itest.raw -odac");
+  const std::string options = "--format=raw --format=double -n -i \"" +
+                              path.generic_string() + "\"";
+  ASSERT_EQ(csoundSetOption(csound, options.c_str()), 0);
   result = csoundCompileOrc(csound, instrument, 0);
   ASSERT_TRUE (result == 0);
   csoundEventString(csound,  "i 1 0 1\n", 0);
   result = csoundStart(csound);
   ASSERT_TRUE (result == 0);
-  while(!result)
+  bool heardInput = false;
+  while(!result) {
     result = csoundPerformKsmps(csound);
+    const cs_float *output = csoundGetSpout(csound);
+    for (uint32_t i = 0; i < csoundGetKsmps(csound); ++i)
+      heardInput |= output[i] == cs_float(0.25);
+  }
+  EXPECT_TRUE(heardInput);
 
 }

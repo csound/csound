@@ -41,35 +41,35 @@
 typedef struct {
   OPDS h;
 
-  MYFLT *out;       /* output signal */
-  MYFLT *in;        /* input signal */
-  MYFLT *nb, *na;   /* filter-order input arguments */
-  MYFLT *coeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient input arguments */
+  cs_float *out;       /* output signal */
+  cs_float *in;        /* input signal */
+  cs_float *nb, *na;   /* filter-order input arguments */
+  cs_float *coeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient input arguments */
 
   int32_t numa;         /* i-var p-time storage registers */
   int32_t numb;
 
-  double dcoeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient double arguments */
+  cs_double dcoeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient double arguments */
   AUXCH delay;     /* delay-line state memory base pointer */
-  double* currPos;  /* delay-line current position pointer */ /* >>Was float<< */
+  cs_double* currPos;  /* delay-line current position pointer */ /* >>Was float<< */
   int32_t   ndelay;    /* length of delay line (i.e. filter order) */
 } FILTER;
 
 typedef struct {
   OPDS h;
 
-  MYFLT *out;       /* output signal */
-  MYFLT *in;        /* input signal */
-  MYFLT *kmagf, *kphsf; /* magnitude and phase pole nudging factors */
-  MYFLT *nb, *na;   /* filter-order input arguments */
-  MYFLT *coeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient input arguments */
+  cs_float *out;       /* output signal */
+  cs_float *in;        /* input signal */
+  cs_float *kmagf, *kphsf; /* magnitude and phase pole nudging factors */
+  cs_float *nb, *na;   /* filter-order input arguments */
+  cs_float *coeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient input arguments */
 
   int32_t numa;         /* i-var p-time storage registers */
   int32_t numb;
 
-  double dcoeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient double arguments */
+  cs_double dcoeffs[MAXPOLES+MAXZEROS+1]; /* filter-coefficient double arguments */
   AUXCH delay;     /* delay-line state memory base pointer */
-  double* currPos;  /* delay-line current position pointer */ /* >>Was float<< */
+  cs_double* currPos;  /* delay-line current position pointer */ /* >>Was float<< */
   int32_t
   ndelay;    /* length of delay line (i.e. filter order) */
   AUXCH roots;     /* pole roots memory for zfilter */

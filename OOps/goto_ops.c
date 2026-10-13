@@ -80,7 +80,7 @@ int32_t timset(CSOUND *csound, TIMOUT *p)
 {
   if (UNLIKELY((p->cnt1 = (int32_t)(*p->idel * CS_EKR + FL(0.5))) < 0L ||
                (p->cnt2 = (int32_t)(*p->idur * CS_EKR + FL(0.5))) < 0L))
-    return csoundInitError(csound, Str("negative time period"));
+    return csoundInitError(csound, Str("negative time period\n"));
   return OK;
 }
 
@@ -107,6 +107,7 @@ int32_t reinit(CSOUND *csound, GOTO *p)
   if (csound->oparms->realtime == 0) {
     csound->curip = p->h.insdshead;
     csound->ids = p->lblblk->prvi;        /* now, despite ANSI C warning:  */
+    p->h.insdshead->init_pass++;
     while ((csound->ids = csound->ids->nxti) != NULL &&
            (csound->ids->init != (SUBR) rireturn))
       (*csound->ids->init)(csound, csound->ids);
@@ -122,7 +123,7 @@ int32_t reinit(CSOUND *csound, GOTO *p)
     if (UNLIKELY(instance_init_begin(csound, p->h.insdshead) !=
                  CSOUND_SUCCESS)) {
       csound->reinitflag = p->h.insdshead->reinitflag = 0;
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("reinit: instance is being turned off"));
     }
     ATOMIC_SET(p->h.insdshead->init_done, 0);
@@ -140,7 +141,7 @@ int32_t reinit(CSOUND *csound, GOTO *p)
         ATOMIC_SET(p->h.insdshead->init_done, init_done);
         ATOMIC_SET8(p->h.insdshead->actflg, actflg);
       }
-      return csound->PerfError(csound, &p->h, "%s",
+      return csound->PerfError(csound, &p->h, "%s\n",
                                Str("reinit: realtime allocation queue is full"));
     }
     return NOTOK;
@@ -207,19 +208,19 @@ int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
 /* turnoff2 opcode */
 int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
-  MYFLT p1;                     /* Shoud e a float */
+  cs_float p1;                     /* Shoud e a float */
   INSDS *ip, *ip2, *nip;
   int32_t   mode, insno, allow_release;
 
   if (isStringArg == 1) {
-    p1 = (MYFLT) csoundStringArg2Insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
+    p1 = (cs_float) csoundStringArg2Insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
   }
   else if (isStringArg == 2) {
     INSTREF *ref = (INSTREF *) p->kInsNo;
-    p1 = (MYFLT) instr_num(csound, ref->instr);
+    p1 = (cs_float) instr_num(csound, ref->instr);
   }
   else if (IsStringCode(*p->kInsNo)) {
-    p1 = (MYFLT) csoundStringArg2Insno(csound, csoundGetArgString(csound, *p->kInsNo), 1);
+    p1 = (cs_float) csoundStringArg2Insno(csound, csoundGetArgString(csound, *p->kInsNo), 1);
   }
   else p1 = *(p->kInsNo);
 
@@ -231,9 +232,9 @@ int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
                csound->engineState.instrtxtp[insno] == NULL)) {
     if(p->h.init == NULL)
       return csoundPerfError(csound, &(p->h),
-                             Str("turnoff2: invalid instrument number"));
+                             Str("turnoff2: invalid instrument number\n"));
     else return csoundInitError(csound,
-                                Str("turnoff2: invalid instrument number"));
+                                Str("turnoff2: invalid instrument number\n"));
 
   }
   mode = (int32_t) (*(p->kFlags) + FL(0.5));
@@ -241,9 +242,9 @@ int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
   if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
     if(p->h.init == NULL)
       return csoundPerfError(csound, &(p->h),
-                             Str("turnoff2: invalid mode parameter"));
+                             Str("turnoff2: invalid mode parameter\n"));
     else csoundInitError(csound,
-                         Str("turnoff2: invalid mode parameter"));
+                         Str("turnoff2: invalid mode parameter\n"));
   }
   ip = &(csound->actanchor);
   ip2 = NULL;
@@ -308,21 +309,21 @@ int32_t turnoff2k(CSOUND *csound, TURNOFF2 *p){
   return turnoff2(csound, p, 0);
 }
 
-extern void delete_selected_rt_events(CSOUND*, MYFLT);
+extern void delete_selected_rt_events(CSOUND*, cs_float);
 int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
-  MYFLT p1;
+  cs_float p1;
   int32_t   insno;
 
   if (isStringArg) {
-    p1 = (MYFLT) csoundStringArg2Insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
+    p1 = (cs_float) csoundStringArg2Insno(csound, ((STRINGDAT *)p->kInsNo)->data, 1);
   }
   else if (isStringArg == 2) {
     INSTREF *ref = (INSTREF *) p->kInsNo;
-    p1 = (MYFLT) instr_num(csound, ref->instr);
+    p1 = (cs_float) instr_num(csound, ref->instr);
   }
   else if (IsStringCode(*p->kInsNo)) {
-    p1 = (MYFLT) csoundStringArg2Insno(csound, csoundGetArgString(csound, *p->kInsNo), 1);
+    p1 = (cs_float) csoundStringArg2Insno(csound, csoundGetArgString(csound, *p->kInsNo), 1);
   }
   else p1 = *(p->kInsNo);
 
@@ -334,7 +335,7 @@ int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
   if (UNLIKELY(insno < 1 || insno > (int32_t) csound->engineState.maxinsno ||
                csound->engineState.instrtxtp[insno] == NULL)) {
     return csoundPerfError(csound, &(p->h),
-                           Str("turnoff3: invalid instrument number"));
+                           Str("turnoff3: invalid instrument number\n"));
   }
   delete_selected_rt_events(csound, p1);
   return OK;

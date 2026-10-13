@@ -54,7 +54,7 @@ int32_t assert_true_opcode_numeric(CSOUND *csound, ASSERT_OP_NUMERIC *p)
   }
 
   csound->total_assert_cnt += 1;
-  MYFLT value = *p->value;
+  cs_float value = *p->value;
   if (value == FL(0.0)) {
     csound->perferrcnt += 1;
   }
@@ -69,7 +69,7 @@ int32_t assert_false_opcode_numeric(CSOUND *csound, ASSERT_OP_NUMERIC *p)
   }
 
   csound->total_assert_cnt += 1;
-  MYFLT value = *p->value;
+  cs_float value = *p->value;
   if (value != FL(0.0)) {
     csound->perferrcnt += 1;
   }

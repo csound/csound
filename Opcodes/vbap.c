@@ -43,7 +43,7 @@
 #define MATSIZE (4)
 #define ATORAD  (TWOPI_F / FL(360.0))
 
-static int64_t GetZaBounds(CSOUND *csound, MYFLT **zastart){
+static int64_t GetZaBounds(CSOUND *csound, cs_float **zastart){
     ZAK_GLOBALS *zz;
     zz = (ZAK_GLOBALS*) csound->QueryGlobalVariable(csound, "_zak_globals");
     if (zz==NULL) {
@@ -71,37 +71,37 @@ static void choose_ls_tuplets(CSOUND *csound, ls lss[],
 static void sort_2D_lss(ls lss[], int32_t sorted_lss[],
                         int32_t ls_amount);
 
-static inline MYFLT vec_prod(CART_VEC v1, CART_VEC v2)
+static inline cs_float vec_prod(CART_VEC v1, CART_VEC v2)
 {
   return (v1.x*v2.x + v1.y*v2.y + v1.z*v2.z);
 }
 
-static inline MYFLT vec_length(CART_VEC v1)
+static inline cs_float vec_length(CART_VEC v1)
 {
   return SQRT(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z);
 }
 
-static MYFLT *create_ls_table(CSOUND *csound, size_t cnt, int32_t ind)
+static cs_float *create_ls_table(CSOUND *csound, size_t cnt, int32_t ind)
 {
   char name[24];
   snprintf(name, 24, "vbap_ls_table_%d", ind);
   csound->DestroyGlobalVariable(csound, name);
   if (UNLIKELY(csound->CreateGlobalVariable(csound, name,
-                                            cnt * sizeof(MYFLT)) != 0)) {
+                                            cnt * sizeof(cs_float)) != 0)) {
     csound->ErrorMsg(csound, "%s", Str("vbap: error allocating loudspeaker table"));
     return NULL;
   }
-  return (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
+  return (cs_float*) (csound->QueryGlobalVariableNoCheck(csound, name));
 }
 
 void calc_vbap_gns(int32_t ls_set_am, int32_t dim, LS_SET *sets,
-                   MYFLT *gains, int32_t ls_amount,
+                   cs_float *gains, int32_t ls_amount,
                    CART_VEC cart_dir)
 /* Selects a vector base of a virtual source.
    Calculates gain factors in that base. */
 {
   int32_t i,j,k, tmp2;
-  MYFLT vec[3], tmp;
+  cs_float vec[3], tmp;
   /* direction of the virtual source in cartesian coordinates*/
   vec[0] = cart_dir.x;
   vec[1] = cart_dir.y;
@@ -157,7 +157,7 @@ void calc_vbap_gns(int32_t ls_set_am, int32_t dim, LS_SET *sets,
     sets[j].set_gains[2] = FL(1.0);
   }
 
-  memset(gains, 0, ls_amount*sizeof(MYFLT));
+  memset(gains, 0, ls_amount*sizeof(cs_float));
 
   gains[sets[j].ls_nos[0]-1] = sets[j].set_gains[0];
   gains[sets[j].ls_nos[1]-1] = sets[j].set_gains[1];
@@ -186,18 +186,18 @@ void scale_angles(ANG_VEC *avec)
 void normalize_wts(OUT_WTS *wts)
 /* performs equal-power normalization to gain factors*/
 {
-  double tmp;
-  MYFLT tmp1;
+  cs_double tmp;
+  cs_float tmp1;
   if (wts->wt1 < 0) wts->wt1 = FL(0.0);
   if (wts->wt2 < 0) wts->wt2 = FL(0.0);
   if (wts->wt3 < 0) wts->wt3 = FL(0.0);
 
-  tmp  = (double)wts->wt1 * wts->wt1;
-  tmp += (double)wts->wt2 * wts->wt2;
-  tmp += (double)wts->wt3 * wts->wt3;
+  tmp  = (cs_double)wts->wt1 * wts->wt1;
+  tmp += (cs_double)wts->wt2 * wts->wt2;
+  tmp += (cs_double)wts->wt3 * wts->wt3;
 
   tmp = sqrt(tmp);
-  tmp1 = (MYFLT)(1.0 / tmp);
+  tmp1 = (cs_float)(1.0 / tmp);
   wts->wt1 *= tmp1;
   wts->wt2 *= tmp1;
   wts->wt3 *= tmp1;
@@ -207,19 +207,19 @@ void angle_to_cart(ANG_VEC avec, CART_VEC *cvec)
 /* conversion */
 {
   /* length unattended */
-  //MYFLT atorad = (TWOPI_F / FL(360.0));
-  cvec->x = (MYFLT) (cos((double) (avec.azi * ATORAD)) *
-                     cos((double) (avec.ele * ATORAD)));
-  cvec->y = (MYFLT) (sin((double) (avec.azi * ATORAD)) *
-                     cos((double) (avec.ele * ATORAD)));
-  cvec->z = (MYFLT) (sin((double) (avec.ele * ATORAD)));
+  //cs_float atorad = (TWOPI_F / FL(360.0));
+  cvec->x = (cs_float) (cos((cs_double) (avec.azi * ATORAD)) *
+                     cos((cs_double) (avec.ele * ATORAD)));
+  cvec->y = (cs_float) (sin((cs_double) (avec.azi * ATORAD)) *
+                     cos((cs_double) (avec.ele * ATORAD)));
+  cvec->z = (cs_float) (sin((cs_double) (avec.ele * ATORAD)));
 }
 
 void cart_to_angle(CART_VEC cvec, ANG_VEC *avec)
 /* conversion */
 {
-  MYFLT tmp, tmp2, tmp3, tmp4;
-  //MYFLT atorad = (TWOPI_F / FL(360.0));
+  cs_float tmp, tmp2, tmp3, tmp4;
+  //cs_float atorad = (TWOPI_F / FL(360.0));
 
   tmp3 = SQRT(FL(1.0) - cvec.z*cvec.z);
   if (FABS(tmp3) > FL(0.001)) {
@@ -248,19 +248,19 @@ void cart_to_angle(CART_VEC cvec, ANG_VEC *avec)
 void angle_to_cart_II(ANG_VEC *from, CART_VEC *to)
 /* conversion, double*/
 {
-  MYFLT ang2rad = TWOPI_F / FL(360.0);
+  cs_float ang2rad = TWOPI_F / FL(360.0);
   to->x= COS(from->azi * ang2rad) * COS(from->ele * ang2rad);
   to->y= SIN(from->azi * ang2rad) * COS(from->ele * ang2rad);
   to->z= SIN(from->ele * ang2rad);
 }
 
-MYFLT vol_p_side_lgth(int32_t i, int32_t j,int32_t k, ls  lss[] )
+cs_float vol_p_side_lgth(int32_t i, int32_t j,int32_t k, ls  lss[] )
 {
   /* calculate volume of the parallelepiped defined by the loudspeaker
      direction vectors and divide it with total length of the triangle sides.
      This is used when removing too narrow triangles. */
 
-  MYFLT volper, lgth;
+  cs_float volper, lgth;
   CART_VEC xprod;
   cross_prod(lss[i].coords, lss[j].coords, &xprod);
   volper = FABS(vec_prod(xprod, lss[k].coords));
@@ -287,10 +287,10 @@ static void choose_ls_triplets(CSOUND *csound, ls *lss,
   int32_t i, j, k, l, table_size;
   int32_t *connections;
   /*  int32_t *i_ptr; */
-  MYFLT *distance_table;
+  cs_float *distance_table;
   int32_t *distance_table_i;
   int32_t *distance_table_j;
-  MYFLT distance;
+  cs_float distance;
   struct ls_triplet_chain *trip_ptr, *prev, *tmp_ptr;
 
   if (UNLIKELY(ls_amount == 0)) {
@@ -300,7 +300,7 @@ static void choose_ls_triplets(CSOUND *csound, ls *lss,
 
   connections = csound->Calloc(csound, ls_amount * ls_amount * sizeof(int32_t));
   distance_table =
-    csound->Calloc(csound, ((ls_amount * (ls_amount - 1)) / 2)* sizeof(MYFLT));
+    csound->Calloc(csound, ((ls_amount * (ls_amount - 1)) / 2)* sizeof(cs_float));
   distance_table_i =
     csound->Calloc(csound, ((ls_amount * (ls_amount - 1)) / 2)* sizeof(int32_t));
   distance_table_j =
@@ -409,11 +409,11 @@ static void choose_ls_triplets(CSOUND *csound, ls *lss,
 static int32_t any_ls_inside_triplet(int32_t a, int32_t b, int32_t c, ls lss[],
                                      int32_t ls_amount)
 {
-  MYFLT invdet;
+  cs_float invdet;
   CART_VEC *lp1, *lp2, *lp3;
-  MYFLT invmx[9];
+  cs_float invmx[9];
   int32_t i,j;
-  MYFLT tmp;
+  cs_float tmp;
   int32_t any_ls_inside, this_inside;
 
   lp1 =  &(lss[a].coords);
@@ -481,9 +481,9 @@ static void add_ldsp_triplet(CSOUND *csound, int32_t i, int32_t j, int32_t k,
   /*printf("added.\n");*/
 }
 
-MYFLT angle_in_base(CART_VEC vb1,CART_VEC vb2,CART_VEC vec)
+cs_float angle_in_base(CART_VEC vb1,CART_VEC vb2,CART_VEC vec)
 {
-  MYFLT tmp1,tmp2;
+  cs_float tmp1,tmp2;
   tmp1 = vec_prod(vec,vb2);
   if (FABS(tmp1) <= FL(0.001))
     tmp2 = FL(1.0);
@@ -492,9 +492,9 @@ MYFLT angle_in_base(CART_VEC vb1,CART_VEC vb2,CART_VEC vec)
   return (vec_angle(vb1,vec) * tmp2);
 }
 
-MYFLT vec_angle(CART_VEC v1, CART_VEC v2)
+cs_float vec_angle(CART_VEC v1, CART_VEC v2)
 {
-  MYFLT inner= ((v1.x*v2.x + v1.y*v2.y + v1.z*v2.z)/
+  cs_float inner= ((v1.x*v2.x + v1.y*v2.y + v1.z*v2.z)/
                 (vec_length(v1) * vec_length(v2)));
   if (inner > FL(1.0))
     inner= FL(1.0);
@@ -513,7 +513,7 @@ void vec_mean(CART_VEC v1, CART_VEC v2, CART_VEC *v3)
 void cross_prod(CART_VEC v1,CART_VEC v2,
                 CART_VEC *res)
 {
-  MYFLT length;
+  cs_float length;
   res->x = (v1.y * v2.z ) - (v1.z * v2.y);
   res->y = (v1.z * v2.x ) - (v1.x * v2.z);
   res->z = (v1.x * v2.y ) - (v1.y * v2.x);
@@ -541,8 +541,8 @@ int32_t lines_intersect(int32_t i,int32_t j,int32_t k,int32_t l,ls  lss[])
   CART_VEC v1;
   CART_VEC v2;
   CART_VEC v3, neg_v3;
-  MYFLT dist_ij,dist_kl,dist_iv3,dist_jv3,dist_inv3,dist_jnv3;
-  MYFLT dist_kv3,dist_lv3,dist_knv3,dist_lnv3;
+  cs_float dist_ij,dist_kl,dist_iv3,dist_jv3,dist_inv3,dist_jnv3;
+  cs_float dist_kv3,dist_lv3,dist_knv3,dist_lnv3;
 
   cross_prod(lss[i].coords,lss[j].coords,&v1);
   cross_prod(lss[k].coords,lss[l].coords,&v2);
@@ -582,7 +582,7 @@ int32_t lines_intersect(int32_t i,int32_t j,int32_t k,int32_t l,ls  lss[])
 }
 
 static inline int32_t vbap_ls_init_sr (CSOUND *csound, int32_t dim, int32_t count,
-                                       MYFLT **f, int32_t layout)
+                                       cs_float **f, int32_t layout)
 /* Inits the loudspeaker data. Calls choose_ls_tuplets or _triplets
    according to current dimension. The inversion matrices are
    stored in transposed form to ease calculation at run time.*/
@@ -606,11 +606,11 @@ static inline int32_t vbap_ls_init_sr (CSOUND *csound, int32_t dim, int32_t coun
   //count = (int32_t) *p->ls_amount;
   for (j=1;j<=count;j++) {
     if (dim == 3) {
-      a_vector.azi= (MYFLT) *f[2*j-2];
-      a_vector.ele= (MYFLT) *f[2*j-1];
+      a_vector.azi= (cs_float) *f[2*j-2];
+      a_vector.ele= (cs_float) *f[2*j-1];
     }
     else if (dim == 2) {
-      a_vector.azi= (MYFLT) *f[j-1];
+      a_vector.azi= (cs_float) *f[j-1];
       a_vector.ele=FL(0.0);
     }
     angle_to_cart_II(&a_vector,&c_vector);
@@ -645,22 +645,22 @@ static inline int32_t vbap_ls_init_sr (CSOUND *csound, int32_t dim, int32_t coun
 int32_t vbap_ls_init (CSOUND *csound, VBAP_LS_INIT *p)
 {
   int32_t dim = (int32_t) *p->dim;
-  MYFLT  layout = (*p->dim-dim)*100;
+  cs_float  layout = (*p->dim-dim)*100;
   return vbap_ls_init_sr(csound, dim, (int32_t) *p->ls_amount,
                          p->f, round(layout));
 }
 
-int32_t vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
+static int32_t vbap_ls_inita (CSOUND *csound, VBAP_LS_INITA *p)
 {
   int32_t dim = (int32_t) *p->dim;
-  MYFLT  layout = (*p->dim-dim)*100;
+  cs_float  layout = (*p->dim-dim)*100;
   int32_t i, n = (int32_t)*p->ls_amount;
   /* if (n>CHANNELS) */
   /*   return csound->InitError(csound, "%s", Str("Too many speakers (%n)\n"), n); */
   if (UNLIKELY(n>p->a->sizes[0]))
     return csound->InitError(csound, Str("Too little data speakers (%d)\n"),
                              n>p->a->sizes[0]);
-  MYFLT  **f = csound->Malloc(csound, 2*sizeof(MYFLT*)*n);
+  cs_float  **f = csound->Malloc(csound, 2*sizeof(cs_float*)*n);
   // Transfer values to pointers
   for (i=0; i<2*n; i++) f[i] = &(p->a->data[i]);
   n = vbap_ls_init_sr(csound, dim, n, f, round(layout));
@@ -673,10 +673,10 @@ static void calculate_3x3_matrixes(CSOUND *csound,
                                    ls lss[], int32_t ls_amount, int32_t ind)
 /* Calculates the inverse matrices for 3D */
 {
-  MYFLT invdet;
+  cs_float invdet;
   CART_VEC *lp1, *lp2, *lp3;
-  MYFLT *ls_table, *invmx;
-  MYFLT *ptr;
+  cs_float *ls_table, *invmx;
+  cs_float *ptr;
   struct ls_triplet_chain *tr_ptr = ls_triplets;
   int32_t triplet_amount = 0, i,j,k;
 
@@ -694,10 +694,10 @@ static void calculate_3x3_matrixes(CSOUND *csound,
   /* calculations and data storage to a global array */
   ls_table = create_ls_table(csound, triplet_amount * 12 + 3, ind);
   ls_table[0] = FL(3.0);  /* dimension */
-  ls_table[1] = (MYFLT) ls_amount;
-  ls_table[2] = (MYFLT) triplet_amount;
+  ls_table[1] = (cs_float) ls_amount;
+  ls_table[2] = (cs_float) triplet_amount;
   tr_ptr = ls_triplets;
-  ptr = (MYFLT *) &(ls_table[3]);
+  ptr = (cs_float *) &(ls_table[3]);
   while (tr_ptr != NULL) {
     lp1 =  &(lss[tr_ptr->ls_nos[0]].coords);
     lp2 =  &(lss[tr_ptr->ls_nos[1]].coords);
@@ -719,20 +719,20 @@ static void calculate_3x3_matrixes(CSOUND *csound,
     invmx[5] = ((lp1->x * lp3->y) - (lp1->y * lp3->x)) * -invdet;
     invmx[8] = ((lp1->x * lp2->y) - (lp1->y * lp2->x)) * invdet;
     for (i=0;i<3;i++) {
-      *(ptr++) = (MYFLT) tr_ptr->ls_nos[i]+1;
+      *(ptr++) = (cs_float) tr_ptr->ls_nos[i]+1;
     }
     for (i=0;i<9;i++) {
-      *(ptr++) = (MYFLT) invmx[i];
+      *(ptr++) = (cs_float) invmx[i];
     }
     tr_ptr = tr_ptr->next;
   }
 
   k = 3;
-  csound->Warning(csound, "%s", Str("\nConfigured loudspeakers\n"));
+  csound->Warning(csound, "%s\n", Str("\nConfigured loudspeakers\n"));
   for (i = 0; i < triplet_amount; i++) {
-    csound->Warning(csound,  Str("Triplet %d Loudspeakers: "), i);
+    csound->Warning(csound,  Str("Triplet %d Loudspeakers: \n"), i);
     for (j = 0; j < 3; j++) {
-      csound->Warning(csound, "%d ", (int32_t) ls_table[k++]);
+      csound->Warning(csound, "%d \n", (int32_t) ls_table[k++]);
     }
     csound->Warning(csound, "\n");
 
@@ -757,7 +757,7 @@ static void choose_ls_tuplets(CSOUND *csound,
   int32_t *sorted_lss = (int32_t*)malloc(sizeof(int32_t)*ls_amount);
   int32_t *exist = (int32_t*)calloc(1,sizeof(int32_t)*ls_amount);
   int32_t amount = 0;
-  MYFLT *inv_mat = (MYFLT*)malloc(MATSIZE*sizeof(MYFLT)*ls_amount),
+  cs_float *inv_mat = (cs_float*)malloc(MATSIZE*sizeof(cs_float)*ls_amount),
     *ls_table, *ptr;
   //int32_t ftable_size;
 
@@ -798,7 +798,7 @@ static void choose_ls_tuplets(CSOUND *csound,
                         lss[sorted_lss[0]].angles.azi*FL(180.0)/PI_F);
 
   if (UNLIKELY(amount==0)) {
-    csound->InitError(csound, "%s", Str("insufficient valid speakers"));
+    csound->InitError(csound, "%s\n", Str("insufficient valid speakers"));
     free(sorted_lss); free(exist); free(inv_mat);
     return;
   }
@@ -818,13 +818,13 @@ static void choose_ls_tuplets(CSOUND *csound,
 #endif
   ls_table = create_ls_table(csound, amount * 6 + 3 + 100, ind);
   ls_table[0] = FL(2.0);  /* dimension */
-  ls_table[1] = (MYFLT) ls_amount;
-  ls_table[2] = (MYFLT) amount;
+  ls_table[1] = (cs_float) ls_amount;
+  ls_table[2] = (cs_float) amount;
   ptr = &(ls_table[3]);
   for (i=0;i<ls_amount - 1;i++) {
     if (exist[i] == 1) {
-      *(ptr++) = (MYFLT)sorted_lss[i]+1;
-      *(ptr++) = (MYFLT)sorted_lss[i+1]+1;
+      *(ptr++) = (cs_float)sorted_lss[i]+1;
+      *(ptr++) = (cs_float)sorted_lss[i+1]+1;
       for (j=0;j<MATSIZE;j++) {
         /*printf("iv_mat i=%d a=%d [%d] %f\n",
           i, ls_amount, i*MATSIZE+j, inv_mat[i*ls_amount+j]); */
@@ -833,8 +833,8 @@ static void choose_ls_tuplets(CSOUND *csound,
     }
   }
   if (exist[ls_amount-1] == 1) {
-    *(ptr++) = (MYFLT)sorted_lss[ls_amount-1]+1;
-    *(ptr++) = (MYFLT)sorted_lss[0]+1;
+    *(ptr++) = (cs_float)sorted_lss[ls_amount-1]+1;
+    *(ptr++) = (cs_float)sorted_lss[0]+1;
     for (j=0;j<MATSIZE;j++) {
       /*         printf("iv_mat[%d] %f\n", (ls_amount-1)*MATSIZE+j, */
       /*                inv_mat[(ls_amount-1)*MATSIZE+j]); */
@@ -863,7 +863,7 @@ static void sort_2D_lss(ls lss[], int32_t sorted_lss[],
                         int32_t ls_amount)
 {
   int32_t i,j,index=-1;
-  MYFLT tmp, tmp_azi;
+  cs_float tmp, tmp_azi;
 
   /* Transforming angles between -180 and 180 */
   for (i=0; i<ls_amount; i++) {
@@ -894,10 +894,10 @@ static void sort_2D_lss(ls lss[], int32_t sorted_lss[],
   }
 }
 
-int32_t calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[MATSIZE])
+int32_t calc_2D_inv_tmatrix(cs_float azi1,cs_float azi2, cs_float inv_mat[MATSIZE])
 {
-  MYFLT x1,x2,x3,x4; /* x1 x3 */
-  MYFLT det;
+  cs_float x1,x2,x3,x4; /* x1 x3 */
+  cs_float det;
   x1 = COS(azi1 );
   x2 = SIN(azi1 );
   x3 = COS(azi2 );
@@ -922,11 +922,11 @@ int32_t calc_2D_inv_tmatrix(MYFLT azi1,MYFLT azi2, MYFLT inv_mat[MATSIZE])
 }
 
 void new_spread_dir(CART_VEC *spreaddir, CART_VEC vscartdir,
-                    CART_VEC spread_base, MYFLT azi, MYFLT spread)
+                    CART_VEC spread_base, cs_float azi, cs_float spread)
 {
-  MYFLT beta,gamma;
-  MYFLT a,b;
-  MYFLT power;
+  cs_float beta,gamma;
+  cs_float a,b;
+  cs_float power;
   ANG_VEC tmp;
   gamma = ACOS(vscartdir.x * spread_base.x +
                vscartdir.y * spread_base.y +
@@ -957,10 +957,10 @@ void new_spread_dir(CART_VEC *spreaddir, CART_VEC vscartdir,
 }
 
 void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
-                     MYFLT spread, CART_VEC *spread_base)
+                     cs_float spread, CART_VEC *spread_base)
 {
-  MYFLT d;
-  MYFLT power;
+  cs_float d;
+  cs_float power;
 
   d = COS(spread/FL(180.0)*PI_F);
   spread_base->x = spreaddir.x - d * vscartdir.x;
@@ -975,9 +975,9 @@ void new_spread_base(CART_VEC spreaddir, CART_VEC vscartdir,
 }
 
 
-static int32_t vbap1_moving_control(CSOUND *, VBAP1_MOVE_DATA *, OPDS *, MYFLT,
-                                    MYFLT, MYFLT, MYFLT**);
-static int32_t vbap1_control(CSOUND *, VBAP1_DATA *, MYFLT*, MYFLT*, MYFLT*);
+static int32_t vbap1_moving_control(CSOUND *, VBAP1_MOVE_DATA *, OPDS *, cs_float,
+                                    cs_float, cs_float, cs_float**);
+static int32_t vbap1_control(CSOUND *, VBAP1_DATA *, const cs_float*, cs_float*, cs_float*);
 
 int32_t vbap1(CSOUND *csound, VBAP1 *p) /* during note performance: */
 {
@@ -993,17 +993,17 @@ int32_t vbap1(CSOUND *csound, VBAP1 *p) /* during note performance: */
 }
 
 static int32_t vbap1_control(CSOUND *csound, VBAP1_DATA *p,
-                             MYFLT* azi, MYFLT* ele, MYFLT* spread)
+                             const cs_float* azi, cs_float* ele, cs_float* spread)
 {
   CART_VEC spreaddir[16];
   CART_VEC spreadbase[16];
   ANG_VEC atmp;
   int32 i,j, spreaddirnum;
   int32_t cnt = p->number;
-  MYFLT *tmp_gains=malloc(sizeof(MYFLT)*cnt),sum=FL(0.0);
+  cs_float *tmp_gains=malloc(sizeof(cs_float)*cnt),sum=FL(0.0);
   if (UNLIKELY(p->dim == 2 && fabs(*ele) > 0.0)) {
     csound->Warning(csound,
-                    "%s", Str("Warning: truncating elevation to 2-D plane\n"));
+                    "%s\n", Str("Warning: truncating elevation to 2-D plane\n"));
     *ele = FL(0.0);
   }
 
@@ -1106,14 +1106,14 @@ static int32_t vbap1_control(CSOUND *csound, VBAP1_DATA *p,
 int32_t vbap1_init(CSOUND *csound, VBAP1 *p)
 {                               /* Initializations before run time*/
   int32_t     i, j;
-  MYFLT   *ls_table, *ptr;
+  cs_float   *ls_table, *ptr;
   LS_SET  *ls_set_ptr;
   char name[24];
   snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout);
-  ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
+  ls_table = (cs_float*) (csound->QueryGlobalVariableNoCheck(csound, name));
   if (ls_table==NULL)
     return csound->InitError(csound,
-                             Str("could not find layout table no.%d"),
+                             Str("could not find layout table no.%d\n"),
                              (int32_t)*p->layout );
   p->q.number = p->OUTOCOUNT;
   p->q.dim       = (int32_t)ls_table[0];   /* reading in loudspeaker info */
@@ -1121,11 +1121,11 @@ int32_t vbap1_init(CSOUND *csound, VBAP1 *p)
   p->q.ls_set_am = (int32_t)ls_table[2];
   ptr = &(ls_table[3]);
   if (!p->q.ls_set_am)
-    return csound->InitError(csound, "%s", Str("vbap system NOT configured.\nMissing"
+    return csound->InitError(csound, "%s\n", Str("vbap system NOT configured.\nMissing"
                                                " vbaplsinit opcode in orchestra?"));
   csound->AuxAlloc(csound, p->q.ls_set_am * sizeof (LS_SET), &p->q.aux);
   if (UNLIKELY(p->q.aux.auxp == NULL)) {
-    return csound->InitError(csound, "%s", Str("could not allocate memory"));
+    return csound->InitError(csound, "%s\n", Str("could not allocate memory"));
   }
   p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
   ls_set_ptr = p->q.ls_sets;
@@ -1134,22 +1134,22 @@ int32_t vbap1_init(CSOUND *csound, VBAP1 *p)
     for (j=0 ; j < p->q.dim ; j++) {
       ls_set_ptr[i].ls_nos[j] = (int32_t)*(ptr++);
     }
-    memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT)); // initial setting
+    memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(cs_float)); // initial setting
     /* for (j=0 ; j < 9; j++) */
     /*   ls_set_ptr[i].ls_mx[j] = FL(0.0);  /\*initial setting*\/ */
     for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
-      ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
+      ls_set_ptr[i].ls_mx[j] = (cs_float)*(ptr++);
     }
   }
 
   /* other initialization */
   if (UNLIKELY(p->q.dim == 2 && fabs(*p->ele) > 0.0)) {
     csound->Warning(csound,
-                    "%s", Str("Warning: truncating elevation to 2-D plane\n"));
+                    "%s\n", Str("Warning: truncating elevation to 2-D plane\n"));
     *p->ele = FL(0.0);
   }
-  p->q.ang_dir.azi    = (MYFLT)*p->azi;
-  p->q.ang_dir.ele    = (MYFLT)*p->ele;
+  p->q.ang_dir.azi    = (cs_float)*p->azi;
+  p->q.ang_dir.ele    = (cs_float)*p->ele;
   p->q.ang_dir.length = FL(1.0);
   angle_to_cart(p->q.ang_dir, &(p->q.cart_dir));
   p->q.spread_base.x  = p->q.cart_dir.y;
@@ -1175,14 +1175,14 @@ int32_t vbap1a(CSOUND *csound, VBAPA1 *p) /* during note performance: */
 int32_t vbap1_init_a(CSOUND *csound, VBAPA1 *p)
 {                               /* Initializations before run time*/
   int32_t     i, j;
-  MYFLT   *ls_table, *ptr;
+  cs_float   *ls_table, *ptr;
   LS_SET  *ls_set_ptr;
   char name[24];
   snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout);
-  ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, name));
+  ls_table = (cs_float*) (csound->QueryGlobalVariableNoCheck(csound, name));
   if (ls_table==NULL)
     return csound->InitError(csound,
-                             Str("could not find layout table no.%d"),
+                             Str("could not find layout table no.%d\n"),
                              (int32_t)*p->layout );
   p->q.number = p->tabout->sizes[0];
   p->q.dim       = (int32_t)ls_table[0];   /* reading in loudspeaker info */
@@ -1190,11 +1190,11 @@ int32_t vbap1_init_a(CSOUND *csound, VBAPA1 *p)
   p->q.ls_set_am = (int32_t)ls_table[2];
   ptr = &(ls_table[3]);
   if (!p->q.ls_set_am)
-    return csound->InitError(csound, "%s", Str("vbap system NOT configured.\nMissing"
+    return csound->InitError(csound, "%s\n", Str("vbap system NOT configured.\nMissing"
                                                " vbaplsinit opcode in orchestra?"));
   csound->AuxAlloc(csound, p->q.ls_set_am * sizeof (LS_SET), &p->q.aux);
   if (UNLIKELY(p->q.aux.auxp == NULL)) {
-    return csound->InitError(csound, "%s", Str("could not allocate memory"));
+    return csound->InitError(csound, "%s\n", Str("could not allocate memory"));
   }
   p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
   ls_set_ptr = p->q.ls_sets;
@@ -1203,20 +1203,20 @@ int32_t vbap1_init_a(CSOUND *csound, VBAPA1 *p)
     for (j=0 ; j < p->q.dim ; j++) {
       ls_set_ptr[i].ls_nos[j] = (int32_t)*(ptr++);
     }
-    memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT));  /*initial setting*/
+    memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(cs_float));  /*initial setting*/
     for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
-      ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
+      ls_set_ptr[i].ls_mx[j] = (cs_float)*(ptr++);
     }
   }
 
   /* other initialization */
   if (UNLIKELY(p->q.dim == 2 && fabs(*p->ele) > 0.0)) {
     csound->Warning(csound,
-                    "%s", Str("Warning: truncating elevation to 2-D plane\n"));
+                    "%s\n", Str("Warning: truncating elevation to 2-D plane\n"));
     *p->ele = FL(0.0);
   }
-  p->q.ang_dir.azi    = (MYFLT)*p->azi;
-  p->q.ang_dir.ele    = (MYFLT)*p->ele;
+  p->q.ang_dir.azi    = (cs_float)*p->azi;
+  p->q.ang_dir.ele    = (cs_float)*p->ele;
   p->q.ang_dir.length = FL(1.0);
   angle_to_cart(p->q.ang_dir, &(p->q.cart_dir));
   p->q.spread_base.x  = p->q.cart_dir.y;
@@ -1252,7 +1252,7 @@ int32_t vbap1_moving_a(CSOUND *csound, VBAPA1_MOVING *p)
 
   /* write audio to resulting audio streams weighted
      with gain factors*/
-  memcpy(p->tabout->data, p->q.gains, cnt*sizeof(MYFLT));
+  memcpy(p->tabout->data, p->q.gains, cnt*sizeof(cs_float));
   /* for (j=0; j<cnt ;j++) { */
   /*   p->tabout->data[j] = p->q.gains[j]; */
   /* } */
@@ -1260,23 +1260,23 @@ int32_t vbap1_moving_a(CSOUND *csound, VBAPA1_MOVING *p)
 }
 
 static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
-                                    OPDS *h, MYFLT ONEDKR,
-                                    MYFLT spread, MYFLT field_am, MYFLT **fld)
+                                    OPDS *h, cs_float ONEDKR,
+                                    cs_float spread, cs_float field_am, cs_float **fld)
 {
   CART_VEC spreaddir[16];
   CART_VEC spreadbase[16];
   ANG_VEC atmp;
   int32 i,j, spreaddirnum;
   CART_VEC tmp1, tmp2, tmp3;
-  MYFLT coeff, angle;
+  cs_float coeff, angle;
   int32_t cnt = p->number;
-  MYFLT *tmp_gains=malloc(sizeof(MYFLT)*cnt),sum=FL(0.0);
+  cs_float *tmp_gains=malloc(sizeof(cs_float)*cnt),sum=FL(0.0);
 #ifdef JPFF
   printf("cnt=%d dim=%d\n", cnt, p->dim);
 #endif
   if (UNLIKELY(p->dim == 2 && fabs(p->ang_dir.ele) > 0.0)) {
     csound->Warning(csound,
-                    "%s", Str("Warning: truncating elevation to 2-D plane\n"));
+                    "%s\n", Str("Warning: truncating elevation to 2-D plane\n"));
     p->ang_dir.ele = FL(0.0);
   }
   if (spread <FL(0.0))
@@ -1304,13 +1304,13 @@ static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
     if (UNLIKELY((fld[abs(p->next_fld)]==NULL))) {
       free(tmp_gains);
       return csound->PerfError(csound, h,
-                               "%s", Str("Missing fields in vbapmove\n"));
+                               "%s\n", Str("Missing fields in vbapmove\n"));
     }
     if (field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
       if (UNLIKELY(fabs(fabs(*fld[p->next_fld] -
                              *fld[p->curr_fld]) - 180.0) < 1.0))
         csound->Warning(csound,
-                        "%s", Str("Warning: Ambiguous transition 180 degrees.\n"));
+                        "%s\n", Str("Warning: Ambiguous transition 180 degrees.\n"));
   }
   if (field_am >= FL(0.0)) { /* point-to-point */
     if (p->dim == 3) { /* 3-D*/
@@ -1318,14 +1318,14 @@ static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
       p->next_ang_dir.azi =  *fld[p->next_fld];
       p->prev_ang_dir.ele = *fld[p->curr_fld];
       p->next_ang_dir.ele = *fld[p->next_fld+1];
-      coeff = ((MYFLT) p->point_change_counter) /
-        ((MYFLT) p->point_change_interval);
+      coeff = ((cs_float) p->point_change_counter) /
+        ((cs_float) p->point_change_interval);
       angle_to_cart( p->prev_ang_dir,&tmp1);
       angle_to_cart( p->next_ang_dir,&tmp2);
       tmp3.x = (FL(1.0)-coeff) * tmp1.x + coeff * tmp2.x;
       tmp3.y = (FL(1.0)-coeff) * tmp1.y + coeff * tmp2.y;
       tmp3.z = (FL(1.0)-coeff) * tmp1.z + coeff * tmp2.z;
-      coeff = (MYFLT)sqrt((double)(tmp3.x * tmp3.x +
+      coeff = (cs_float)sqrt((cs_double)(tmp3.x * tmp3.x +
                                    tmp3.y * tmp3.y +
                                    tmp3.z * tmp3.z));
       tmp3.x /= coeff; tmp3.y /= coeff; tmp3.z /= coeff;
@@ -1342,8 +1342,8 @@ static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
         angle -= FL(360.0);
       while (angle < -FL(180.0))
         angle += FL(360.0);
-      coeff = ((MYFLT) p->point_change_counter) /
-        ((MYFLT) p->point_change_interval);
+      coeff = ((cs_float) p->point_change_counter) /
+        ((cs_float) p->point_change_interval);
       angle  *=  (coeff);
       p->ang_dir.azi = p->prev_ang_dir.azi -  angle;
       p->ang_dir.ele = FL(0.0);
@@ -1351,7 +1351,7 @@ static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
     else {
       free(tmp_gains);
       return csound->PerfError(csound, h,
-                               "%s", Str("Missing fields in vbapmove\n"));
+                               "%s\n", Str("Missing fields in vbapmove\n"));
     }
   }
   else { /* angular velocities */
@@ -1464,24 +1464,24 @@ static int32_t vbap1_moving_control(CSOUND *csound, VBAP1_MOVE_DATA *p,
 int32_t vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
 {
   int32_t     i, j;
-  MYFLT   *ls_table, *ptr;
+  cs_float   *ls_table, *ptr;
   LS_SET  *ls_set_ptr;
 
   p->q.number = p->OUTOCOUNT;
   ls_table =
-    (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, "vbap_ls_table_0"));
+    (cs_float*) (csound->QueryGlobalVariableNoCheck(csound, "vbap_ls_table_0"));
   /* reading in loudspeaker info */
   p->q.dim       = (int32_t)ls_table[0];
   p->q.ls_am     = (int32_t)ls_table[1];
   p->q.ls_set_am = (int32_t)ls_table[2];
   ptr = &(ls_table[3]);
   if (!p->q.ls_set_am)
-    return csound->InitError(csound, "%s", Str("vbap system NOT configured.\n"
+    return csound->InitError(csound, "%s\n", Str("vbap system NOT configured.\n"
                                                "Missing vbaplsinit opcode"
                                                " in orchestra?"));
   csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
   if (UNLIKELY(p->q.aux.auxp == NULL)) {
-    return csound->InitError(csound, "%s", Str("could not allocate memory"));
+    return csound->InitError(csound, "%s\n", Str("could not allocate memory"));
   }
   p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
   ls_set_ptr = p->q.ls_sets;
@@ -1493,7 +1493,7 @@ int32_t vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     for (j=0 ; j < 9; j++)
       ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
     for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
-      ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
+      ls_set_ptr[i].ls_mx[j] = (cs_float)*(ptr++);
     }
   }
 
@@ -1501,7 +1501,7 @@ int32_t vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
   p->q.ele_vel = FL(1.0);    /* functions specific to movement */
   if (UNLIKELY(fabs(*p->field_am) < (2+ (p->q.dim - 2)*2))) {
     return csound->InitError(csound,
-                             Str("Have to have at least %d directions in vbapmove"),
+                             Str("Have to have at least %d directions in vbapmove\n"),
                              2 + (p->q.dim - 2) * 2);
   }
   if (p->q.dim == 2)
@@ -1511,7 +1511,7 @@ int32_t vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
     p->q.point_change_interval =
       (int32_t)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
   else
-    return csound->InitError(csound, "%s", Str("Wrong dimension"));
+    return csound->InitError(csound, "%s\n", Str("Wrong dimension"));
   p->q.point_change_counter = 0;
   p->q.curr_fld = 0;
   p->q.next_fld = 1;
@@ -1537,26 +1537,26 @@ int32_t vbap1_moving_init(CSOUND *csound, VBAP1_MOVING *p)
 int32_t vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
 {
   int32_t     i, j;
-  MYFLT   *ls_table, *ptr;
+  cs_float   *ls_table, *ptr;
   LS_SET  *ls_set_ptr;
 
   if (UNLIKELY(p->tabout->data == NULL || p->tabout->dimensions!=1))
-    return csound->InitError(csound, "%s", Str("Output array not initialised"));
+    return csound->InitError(csound, "%s\n", Str("Output array not initialised"));
   p->q.number = p->tabout->sizes[0];
   ls_table =
-    (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound, "vbap_ls_table_0"));
+    (cs_float*) (csound->QueryGlobalVariableNoCheck(csound, "vbap_ls_table_0"));
   /* reading in loudspeaker info */
   p->q.dim       = (int32_t)ls_table[0];
   p->q.ls_am     = (int32_t)ls_table[1];
   p->q.ls_set_am = (int32_t)ls_table[2];
   ptr = &(ls_table[3]);
   if (UNLIKELY(!p->q.ls_set_am))
-    return csound->InitError(csound, "%s", Str("vbap system NOT configured.\n"
+    return csound->InitError(csound, "%s\n", Str("vbap system NOT configured.\n"
                                                "Missing vbaplsinit opcode"
                                                " in orchestra?"));
   csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
   if (UNLIKELY(p->q.aux.auxp == NULL)) {
-    return csound->InitError(csound, "%s", Str("could not allocate memory"));
+    return csound->InitError(csound, "%s\n", Str("could not allocate memory"));
   }
   p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
   ls_set_ptr = p->q.ls_sets;
@@ -1568,7 +1568,7 @@ int32_t vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     for (j=0 ; j < 9; j++)
       ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
     for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
-      ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
+      ls_set_ptr[i].ls_mx[j] = (cs_float)*(ptr++);
     }
   }
 
@@ -1576,7 +1576,7 @@ int32_t vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
   p->q.ele_vel = FL(1.0);    /* functions specific to movement */
   if (UNLIKELY(fabs(*p->field_am) < (2+ (p->q.dim - 2)*2))) {
     return csound->InitError(csound,
-                             Str("Have to have at least %d directions in vbapmove"),
+                             Str("Have to have at least %d directions in vbapmove\n"),
                              2 + (p->q.dim - 2) * 2);
   }
   if (p->q.dim == 2)
@@ -1586,7 +1586,7 @@ int32_t vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
     p->q.point_change_interval =
       (int32_t)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
   else
-    return csound->InitError(csound, "%s", Str("Wrong dimension"));
+    return csound->InitError(csound, "%s\n", Str("Wrong dimension"));
   p->q.point_change_counter = 0;
   p->q.curr_fld = 0;
   p->q.next_fld = 1;
@@ -1611,14 +1611,14 @@ int32_t vbap1_moving_init_a(CSOUND *csound, VBAPA1_MOVING *p)
 
 #include "arrays.h"
 
-int32_t vbap_moving_control(CSOUND *, VBAP_MOVE_DATA *, OPDS*, MYFLT,
-                            MYFLT *, MYFLT*,MYFLT**);
+static int32_t vbap_moving_control(CSOUND *, VBAP_MOVE_DATA *, OPDS*, cs_float,
+                            cs_float *, const cs_float*,cs_float**);
 
 int32_t vbap(CSOUND *csound, VBAP *p) /* during note performance: */
 {
-  MYFLT *outptr, *inptr;
-  MYFLT ogain, ngain, gainsubstr;
-  MYFLT invfloatn;
+  cs_float *outptr, *inptr;
+  cs_float ogain, ngain, gainsubstr;
+  cs_float invfloatn;
   int32_t j, channel, in_place = -1;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1646,14 +1646,14 @@ int32_t vbap(CSOUND *csound, VBAP *p) /* during note performance: */
     ogain      = p->q.beg_gains[j];
     ngain      = p->q.end_gains[j];
     gainsubstr = ngain - ogain;
-    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(cs_float));
+    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(cs_float));
     //printf("cnt%d: ngain=%lf ogain=%f\n", j, ngain, ogain);
     if (ngain != FL(0.0) || ogain != FL(0.0)) {
       if (ngain != ogain) {
         for (i = offset; i < nsmps; i++) {
           outptr[i] = inptr[i] *
-            (ogain + (MYFLT)(i-offset+1) * invfloatn * gainsubstr);
+            (ogain + (cs_float)(i-offset+1) * invfloatn * gainsubstr);
         }
         p->q.curr_gains[j] = ngain;
       }
@@ -1664,7 +1664,7 @@ int32_t vbap(CSOUND *csound, VBAP *p) /* during note performance: */
       }
     }
     else {
-      memset(outptr, 0, nsmps*sizeof(MYFLT));
+      memset(outptr, 0, nsmps*sizeof(cs_float));
     }
   }
   return OK;
@@ -1672,9 +1672,9 @@ int32_t vbap(CSOUND *csound, VBAP *p) /* during note performance: */
 
 int32_t vbap_a(CSOUND *csound, VBAPA *p) /* during note performance: */
 {
-  MYFLT *outptr, *inptr;
-  MYFLT ogain, ngain, gainsubstr;
-  MYFLT invfloatn;
+  cs_float *outptr, *inptr;
+  cs_float ogain, ngain, gainsubstr;
+  cs_float invfloatn;
   int32_t j, channel, in_place = -1;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -1704,13 +1704,13 @@ int32_t vbap_a(CSOUND *csound, VBAPA *p) /* during note performance: */
     ogain      = p->q.beg_gains[j];
     ngain      = p->q.end_gains[j];
     gainsubstr = ngain - ogain;
-    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(cs_float));
+    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(cs_float));
     if (ngain != FL(0.0) || ogain != FL(0.0)) {
       if (ngain != ogain) {
         for (i = offset; i < nsmps; i++) {
           outptr[i] = inptr[i] *
-            (ogain + (MYFLT)(i-offset+1) * invfloatn * gainsubstr);
+            (ogain + (cs_float)(i-offset+1) * invfloatn * gainsubstr);
         }
         p->q.curr_gains[j] = ngain;
       }
@@ -1720,24 +1720,24 @@ int32_t vbap_a(CSOUND *csound, VBAPA *p) /* during note performance: */
       }
     }
     else {
-      memset(outptr, 0, nsmps*sizeof(MYFLT));
+      memset(outptr, 0, nsmps*sizeof(cs_float));
     }
   }
   return OK;
 }
 
 int32_t vbap_control(CSOUND *csound, VBAP_DATA *p,
-                     MYFLT *azi, MYFLT *ele, MYFLT *spread)
+                     const cs_float *azi, cs_float *ele, cs_float *spread)
 {
   CART_VEC spreaddir[16];
   CART_VEC spreadbase[16];
   ANG_VEC atmp;
   int32 i,j, spreaddirnum;
   int32_t cnt = p->number;
-  MYFLT *tmp_gains = malloc(sizeof(MYFLT)*cnt),sum=FL(0.0);
+  cs_float *tmp_gains = malloc(sizeof(cs_float)*cnt),sum=FL(0.0);
   if (UNLIKELY(p->dim == 2 && fabs(*ele) > 0.0)) {
     csound->Warning(csound,
-                    "%s", Str("Warning: truncating elevation to 2-D plane\n"));
+                    "%s\n", Str("Warning: truncating elevation to 2-D plane\n"));
     *ele = FL(0.0);
   }
 
@@ -1746,8 +1746,8 @@ int32_t vbap_control(CSOUND *csound, VBAP_DATA *p,
   else if (*spread >FL(100.0))
     *spread = FL(100.0);
   /* Current panning angles */
-  p->ang_dir.azi = (MYFLT) *azi;
-  p->ang_dir.ele = (MYFLT) *ele;
+  p->ang_dir.azi = (cs_float) *azi;
+  p->ang_dir.ele = (cs_float) *ele;
   p->ang_dir.length = FL(1.0);
   angle_to_cart(p->ang_dir, &(p->cart_dir));
   calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
@@ -1840,17 +1840,17 @@ int32_t vbap_control(CSOUND *csound, VBAP_DATA *p,
 int32_t vbap_init(CSOUND *csound, VBAP *p)
 {                               /* Initializations before run time*/
   int32_t     i, j;
-  MYFLT   *ls_table, *ptr;
+  cs_float   *ls_table, *ptr;
   LS_SET  *ls_set_ptr;
   int32_t cnt = p->q.number = (int32_t)(p->OUTOCOUNT);
   char name[24];
 
   snprintf(name, 24, "vbap_ls_table_%d", (p->layout==NULL?0:(int32_t)*p->layout));
-  ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
+  ls_table = (cs_float*) (csound->QueryGlobalVariable(csound, name));
 
   if (UNLIKELY(ls_table==NULL))
     return csound->InitError(csound,
-                             Str("could not find layout table no.%d"),
+                             Str("could not find layout table no.%d\n"),
                              (int32_t)*p->layout );
 
   p->q.dim       = (int32_t)ls_table[0];   /* reading in loudspeaker info */
@@ -1859,11 +1859,11 @@ int32_t vbap_init(CSOUND *csound, VBAP *p)
   ptr = &(ls_table[3]);
   if (UNLIKELY(!p->q.ls_set_am))
     return csound->InitError(csound,
-                             "%s", Str("vbap system NOT configured.\nMissing"
+                             "%s\n", Str("vbap system NOT configured.\nMissing"
                                        " vbaplsinit opcode in orchestra?"));
   csound->AuxAlloc(csound, p->q.ls_set_am * sizeof (LS_SET), &p->q.aux);
   if (UNLIKELY(p->q.aux.auxp == NULL)) {
-    return csound->InitError(csound, "%s", Str("could not allocate memory"));
+    return csound->InitError(csound, "%s\n", Str("could not allocate memory"));
   }
   p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
   ls_set_ptr = p->q.ls_sets;
@@ -1872,22 +1872,22 @@ int32_t vbap_init(CSOUND *csound, VBAP *p)
     for (j=0 ; j < p->q.dim ; j++) {
       ls_set_ptr[i].ls_nos[j] = (int32_t)*(ptr++);
     }
-    memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT)); // initial setting
+    memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(cs_float)); // initial setting
     /* for (j=0 ; j < 9; j++) */
     /*   ls_set_ptr[i].ls_mx[j] = FL(0.0);  /\*initial setting*\/ */
     for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
-      ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
+      ls_set_ptr[i].ls_mx[j] = (cs_float)*(ptr++);
     }
   }
 
   /* other initialization */
   if (UNLIKELY(p->q.dim == 2 && fabs(p->ele==NULL?0:*p->ele) > 0.0)) {
     csound->Warning(csound,
-                    "%s", Str("Warning: truncating elevation to 2-D plane\n"));
+                    "%s\n", Str("Warning: truncating elevation to 2-D plane\n"));
     *p->ele = FL(0.0);
   }
-  p->q.ang_dir.azi    = (MYFLT)*p->azi;
-  p->q.ang_dir.ele    = (MYFLT)*p->ele;
+  p->q.ang_dir.azi    = (cs_float)*p->azi;
+  p->q.ang_dir.ele    = (cs_float)*p->ele;
   p->q.ang_dir.length = FL(1.0);
   angle_to_cart(p->q.ang_dir, &(p->q.cart_dir));
   p->q.spread_base.x  = p->q.cart_dir.y;
@@ -1904,17 +1904,17 @@ int32_t vbap_init(CSOUND *csound, VBAP *p)
 int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
 {                               /* Initializations before run time*/
   int32_t     i, j;
-  MYFLT   *ls_table, *ptr;
+  cs_float   *ls_table, *ptr;
   LS_SET  *ls_set_ptr;
   int32_t cnt;
   char name[24];
 
   snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout);
-  ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
+  ls_table = (cs_float*) (csound->QueryGlobalVariable(csound, name));
 
   if (UNLIKELY(ls_table==NULL))
     return csound->InitError(csound,
-                             Str("could not find layout table no.%d"),
+                             Str("could not find layout table no.%d\n"),
                              (int32_t)*p->layout );
 
   p->q.dim       = (int32_t)ls_table[0];   /* reading in loudspeaker info */
@@ -1923,7 +1923,7 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
   ptr = &(ls_table[3]);
   if (UNLIKELY(!p->q.ls_set_am))
     return csound->InitError(csound,
-                             "%s", Str("vbap system NOT configured.\nMissing"
+                             "%s\n", Str("vbap system NOT configured.\nMissing"
                                        " vbaplsinit opcode in orchestra?"));
   //printf("**** size = %d\n", p->q.ls_set_am);
   if (UNLIKELY(tabinit(csound, p->tabout, p->q.ls_am,
@@ -1932,7 +1932,7 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
   cnt = p->q.number = p->tabout->sizes[0];
   csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
   if (UNLIKELY(p->q.aux.auxp == NULL)) {
-    return csound->InitError(csound, "%s", Str("could not allocate memory"));
+    return csound->InitError(csound, "%s\n", Str("could not allocate memory"));
   }
   p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
   ls_set_ptr = p->q.ls_sets;
@@ -1941,18 +1941,18 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
     for (j=0 ; j < p->q.dim ; j++) {
       ls_set_ptr[i].ls_nos[j] = (int32_t)*(ptr++);
     }
-    memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT));
+    memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(cs_float));
     /* for (j=0 ; j < 9; j++) */
     /*   ls_set_ptr[i].ls_mx[j] = FL(0.0);  /\*initial setting*\/ */
     for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
-      ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
+      ls_set_ptr[i].ls_mx[j] = (cs_float)*(ptr++);
     }
   }
 
   /* other initialization */
   if (UNLIKELY(p->q.dim == 2 && fabs(*p->ele) > 0.0)) {
     csound->Warning(csound,
-                    "%s", Str("Warning: truncating elevation to 2-D plane\n"));
+                    "%s\n", Str("Warning: truncating elevation to 2-D plane\n"));
     *p->ele = FL(0.0);
   }
   p->q.ang_dir.azi    = *p->azi;
@@ -1972,9 +1972,9 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
 
 int32_t vbap_moving(CSOUND *csound, VBAP_MOVING *p)
 {                               /* during note performance:   */
-  MYFLT *outptr, *inptr;
-  MYFLT ogain, ngain, gainsubstr;
-  MYFLT invfloatn;
+  cs_float *outptr, *inptr;
+  cs_float ogain, ngain, gainsubstr;
+  cs_float invfloatn;
   int32_t j, channel, in_place = -1;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2002,8 +2002,8 @@ int32_t vbap_moving(CSOUND *csound, VBAP_MOVING *p)
       in_place = j;
       continue;
     }
-    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(cs_float));
+    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(cs_float));
     ogain  = p->q.beg_gains[j];
     ngain  = p->q.end_gains[j];
     gainsubstr = ngain - ogain;
@@ -2011,7 +2011,7 @@ int32_t vbap_moving(CSOUND *csound, VBAP_MOVING *p)
       if (ngain != ogain) {
         for (i = offset; i < nsmps; i++) {
           outptr[i] = inptr[i] *
-            (ogain + (MYFLT)(i-offset+1) * invfloatn * gainsubstr);
+            (ogain + (cs_float)(i-offset+1) * invfloatn * gainsubstr);
         }
         p->q.curr_gains[j] = ngain;
       }
@@ -2019,26 +2019,26 @@ int32_t vbap_moving(CSOUND *csound, VBAP_MOVING *p)
         for (i=offset; i<nsmps; ++i)
           outptr[i] = inptr[i] * ogain;
     else
-      memset(outptr, 0, nsmps*sizeof(MYFLT));
+      memset(outptr, 0, nsmps*sizeof(cs_float));
   }
   return OK;
 }
 
-int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
-                            MYFLT ONEDKR, MYFLT* spread, MYFLT* field_am, MYFLT *fld[])
+static int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
+                            cs_float ONEDKR, cs_float* spread, const cs_float* field_am, cs_float *fld[])
 {
   CART_VEC spreaddir[16];
   CART_VEC spreadbase[16];
   ANG_VEC atmp;
   int32 i,j, spreaddirnum;
   CART_VEC tmp1, tmp2, tmp3;
-  MYFLT coeff, angle;
+  cs_float coeff, angle;
   int32_t cnt = p->number;
-  MYFLT *tmp_gains=malloc(sizeof(MYFLT)*cnt),sum=FL(0.0);
+  cs_float *tmp_gains=malloc(sizeof(cs_float)*cnt),sum=FL(0.0);
 
   if (UNLIKELY(p->dim == 2 && fabs(p->ang_dir.ele) > 0.0)) {
     csound->Warning(csound,
-                    "%s", Str("Warning: truncating elevation to 2-D plane\n"));
+                    "%s\n", Str("Warning: truncating elevation to 2-D plane\n"));
     p->ang_dir.ele = FL(0.0);
   }
   if (*spread <FL(0.0))
@@ -2066,13 +2066,13 @@ int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
     if (UNLIKELY((fld[abs(p->next_fld)]==NULL))) {
       free(tmp_gains);
       return csound->PerfError(csound, h,
-                               "%s", Str("Missing fields in vbapmove\n"));
+                               "%s\n", Str("Missing fields in vbapmove\n"));
     }
     if (*field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
       if (UNLIKELY(fabs(fabs(*fld[p->next_fld] -
                              *fld[p->curr_fld]) - 180.0) < 1.0))
         csound->Warning(csound,
-                        "%s", Str("Warning: Ambiguous transition 180 degrees.\n"));
+                        "%s\n", Str("Warning: Ambiguous transition 180 degrees.\n"));
   }
   if (*field_am >= FL(0.0)) { /* point-to-point */
     if (p->dim == 3) { /* 3-D*/
@@ -2080,14 +2080,14 @@ int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
       p->next_ang_dir.azi =  *fld[p->next_fld];
       p->prev_ang_dir.ele = *fld[p->curr_fld];
       p->next_ang_dir.ele = *fld[p->next_fld+1];
-      coeff = ((MYFLT) p->point_change_counter) /
-        ((MYFLT) p->point_change_interval);
+      coeff = ((cs_float) p->point_change_counter) /
+        ((cs_float) p->point_change_interval);
       angle_to_cart( p->prev_ang_dir,&tmp1);
       angle_to_cart( p->next_ang_dir,&tmp2);
       tmp3.x = (FL(1.0)-coeff) * tmp1.x + coeff * tmp2.x;
       tmp3.y = (FL(1.0)-coeff) * tmp1.y + coeff * tmp2.y;
       tmp3.z = (FL(1.0)-coeff) * tmp1.z + coeff * tmp2.z;
-      coeff = (MYFLT)sqrt((double)(tmp3.x * tmp3.x +
+      coeff = (cs_float)sqrt((cs_double)(tmp3.x * tmp3.x +
                                    tmp3.y * tmp3.y +
                                    tmp3.z * tmp3.z));
       tmp3.x /= coeff; tmp3.y /= coeff; tmp3.z /= coeff;
@@ -2104,8 +2104,8 @@ int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
         angle -= FL(360.0);
       while (angle < -FL(180.0))
         angle += FL(360.0);
-      coeff = ((MYFLT) p->point_change_counter) /
-        ((MYFLT) p->point_change_interval);
+      coeff = ((cs_float) p->point_change_counter) /
+        ((cs_float) p->point_change_interval);
       angle  *=  (coeff);
       p->ang_dir.azi = p->prev_ang_dir.azi -  angle;
       p->ang_dir.ele = FL(0.0);
@@ -2113,7 +2113,7 @@ int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
     else {
       free(tmp_gains);
       return csound->PerfError(csound, h,
-                               "%s", Str("Missing fields in vbapmove\n"));
+                               "%s\n", Str("Missing fields in vbapmove\n"));
     }
   }
   else { /* angular velocities */
@@ -2226,7 +2226,7 @@ int32_t vbap_moving_control(CSOUND *csound, VBAP_MOVE_DATA *p, OPDS *h,
 int32_t vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
 {
   int32_t     i, j;
-  MYFLT   *ls_table, *ptr;
+  cs_float   *ls_table, *ptr;
   LS_SET  *ls_set_ptr;
   int32_t cnt = (int32_t)p->h.optext->t.outArgCount;
   if ((!strncmp(p->h.optext->t.opcod, "vbapmove", 8)) == 0) {
@@ -2235,13 +2235,13 @@ int32_t vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     p->spread = p->out_array[cnt+2];
     p->field_am = p->out_array[cnt+3];
     memcpy(p->fld, &(p->out_array[cnt+4]),
-           sizeof(MYFLT *)*(p->h.optext->t.inArgCount-4));
+           sizeof(cs_float *)*(p->h.optext->t.inArgCount-4));
   }
 
-  ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
+  ls_table = (cs_float*) (csound->QueryGlobalVariableNoCheck(csound,
                                                           "vbap_ls_table_0"));
   if (UNLIKELY(ls_table==NULL))
-    return csound->InitError(csound, "%s", Str("could not find layout table no.0"));
+    return csound->InitError(csound, "%s\n", Str("could not find layout table no.0"));
   p->q.number = cnt;
   /* reading in loudspeaker info */
   p->q.dim       = (int32_t)ls_table[0];
@@ -2249,11 +2249,11 @@ int32_t vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
   p->q.ls_set_am = (int32_t)ls_table[2];
   ptr = &(ls_table[3]);
   if (UNLIKELY(!p->q.ls_set_am))
-    return csound->InitError(csound, "%s", Str("vbap system NOT configured.\nMissing"
+    return csound->InitError(csound, "%s\n", Str("vbap system NOT configured.\nMissing"
                                                " vbaplsinit opcode in orchestra?"));
   csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
   if (UNLIKELY(p->q.aux.auxp == NULL)) {
-    return csound->InitError(csound, "%s", Str("could not allocate memory"));
+    return csound->InitError(csound, "%s\n", Str("could not allocate memory"));
   }
   p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
   ls_set_ptr = p->q.ls_sets;
@@ -2265,7 +2265,7 @@ int32_t vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     for (j=0 ; j < 9; j++)
       ls_set_ptr[i].ls_mx[j] = FL(0.0);  /*initial setting*/
     for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
-      ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
+      ls_set_ptr[i].ls_mx[j] = (cs_float)*(ptr++);
     }
   }
 
@@ -2273,7 +2273,7 @@ int32_t vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
   p->q.ele_vel = FL(1.0);    /* functions specific to movement */
   if (UNLIKELY(fabs(*p->field_am) < (2+ (p->q.dim - 2)*2))) {
     return csound->InitError(csound,
-                             Str("Have to have at least %d directions in vbapmove"),
+                             Str("Have to have at least %d directions in vbapmove\n"),
                              2 + (p->q.dim - 2) * 2);
   }
   if (p->q.dim == 2)
@@ -2283,7 +2283,7 @@ int32_t vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
     p->q.point_change_interval =
       (int32_t)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
   else
-    return csound->InitError(csound, "%s", Str("Wrong dimension"));
+    return csound->InitError(csound, "%s\n", Str("Wrong dimension"));
   p->q.point_change_counter = 0;
   p->q.curr_fld = 0;
   p->q.next_fld = 1;
@@ -2312,9 +2312,9 @@ int32_t vbap_moving_init(CSOUND *csound, VBAP_MOVING *p)
 
 int32_t vbap_moving_a(CSOUND *csound, VBAPA_MOVING *p)
 {                               /* during note performance:   */
-  MYFLT *outptr, *inptr;
-  MYFLT ogain, ngain, gainsubstr;
-  MYFLT invfloatn;
+  cs_float *outptr, *inptr;
+  cs_float ogain, ngain, gainsubstr;
+  cs_float invfloatn;
   int32_t j, channel, in_place = -1;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2343,8 +2343,8 @@ int32_t vbap_moving_a(CSOUND *csound, VBAPA_MOVING *p)
       in_place = j;
       continue;
     }
-    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(cs_float));
+    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(cs_float));
     ogain  = p->q.beg_gains[j];
     ngain  = p->q.end_gains[j];
     gainsubstr = ngain - ogain;
@@ -2352,7 +2352,7 @@ int32_t vbap_moving_a(CSOUND *csound, VBAPA_MOVING *p)
       if (ngain != ogain) {
         for (i = offset; i < nsmps; i++) {
           outptr[i] = inptr[i] *
-            (ogain + (MYFLT)(i-offset+1) * invfloatn * gainsubstr);
+            (ogain + (cs_float)(i-offset+1) * invfloatn * gainsubstr);
         }
         p->q.curr_gains[j] = ngain;
       }
@@ -2360,7 +2360,7 @@ int32_t vbap_moving_a(CSOUND *csound, VBAPA_MOVING *p)
         for (i=offset; i<nsmps; ++i)
           outptr[i] = inptr[i] * ogain;
     else
-      memset(outptr, 0, nsmps*sizeof(MYFLT));
+      memset(outptr, 0, nsmps*sizeof(cs_float));
   }
   return OK;
 }
@@ -2368,20 +2368,20 @@ int32_t vbap_moving_a(CSOUND *csound, VBAPA_MOVING *p)
 int32_t vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
 {
   int32_t     i, j;
-  MYFLT   *ls_table, *ptr;
+  cs_float   *ls_table, *ptr;
   LS_SET  *ls_set_ptr;
   int32_t cnt;
 
   if (UNLIKELY(p->tabout->data==NULL)) {
     return csound->InitError(csound,
-                             "%s", Str("Output array in vpabmove not initialised"));
+                             "%s\n", Str("Output array in vpabmove not initialised"));
   }
   cnt = p->tabout->sizes[0];
 
-  ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
+  ls_table = (cs_float*) (csound->QueryGlobalVariableNoCheck(csound,
                                                           "vbap_ls_table_0"));
   if (UNLIKELY(ls_table==NULL))
-    return csound->InitError(csound, "%s", Str("could not find layout table no.0"));
+    return csound->InitError(csound, "%s\n", Str("could not find layout table no.0"));
   p->q.number = cnt;
   /* reading in loudspeaker info */
   p->q.dim       = (int32_t)ls_table[0];
@@ -2390,11 +2390,11 @@ int32_t vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
   ptr = &(ls_table[3]);
   if (UNLIKELY(!p->q.ls_set_am))
     return csound->InitError(csound,
-                             "%s", Str("vbap system NOT configured.\nMissing"
+                             "%s\n", Str("vbap system NOT configured.\nMissing"
                                        " vbaplsinit opcode in orchestra?"));
   csound->AuxAlloc(csound, p->q.ls_set_am * sizeof(LS_SET), &p->q.aux);
   if (UNLIKELY(p->q.aux.auxp == NULL)) {
-    return csound->InitError(csound, "%s", Str("could not allocate memory"));
+    return csound->InitError(csound, "%s\n", Str("could not allocate memory"));
   }
   p->q.ls_sets = (LS_SET*) p->q.aux.auxp;
   ls_set_ptr = p->q.ls_sets;
@@ -2403,11 +2403,11 @@ int32_t vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
     for (j=0 ; j < p->q.dim ; j++) {
       ls_set_ptr[i].ls_nos[j] = (int32_t)*(ptr++);
     }
-    memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT));
+    memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(cs_float));
     /* for (j=0 ; j < 9; j++) */
     /*   ls_set_ptr[i].ls_mx[j] = FL(0.0);  /\*initial setting*\/ */
     for (j=0 ; j < (p->q.dim) * (p->q.dim); j++) {
-      ls_set_ptr[i].ls_mx[j] = (MYFLT)*(ptr++);
+      ls_set_ptr[i].ls_mx[j] = (cs_float)*(ptr++);
     }
   }
 
@@ -2415,7 +2415,7 @@ int32_t vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
   p->q.ele_vel = FL(1.0);    /* functions specific to movement */
   if (UNLIKELY(fabs(*p->field_am) < (2+ (p->q.dim - 2)*2))) {
     return csound->InitError(csound,
-                             Str("Have to have at least %d directions in vbapmove"),
+                             Str("Have to have at least %d directions in vbapmove\n"),
                              2 + (p->q.dim - 2) * 2);
   }
   if (p->q.dim == 2)
@@ -2425,7 +2425,7 @@ int32_t vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
     p->q.point_change_interval =
       (int32_t)(CS_EKR * *p->dur /(fabs(*p->field_am)*0.5 - 1.0));
   else
-    return csound->InitError(csound, "%s", Str("Wrong dimension"));
+    return csound->InitError(csound, "%s\n", Str("Wrong dimension"));
   p->q.point_change_counter = 0;
   p->q.curr_fld = 0;
   p->q.next_fld = 1;
@@ -2452,14 +2452,14 @@ int32_t vbap_moving_init_a(CSOUND *csound, VBAPA_MOVING *p)
   return OK;
 }
 
-int32_t vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
-int32_t vbap_zak_control(CSOUND *,VBAP_ZAK *);
+static int32_t vbap_zak_moving_control(CSOUND *, VBAP_ZAK_MOVING *);
+static int32_t vbap_zak_control(CSOUND *,VBAP_ZAK *);
 
 int32_t vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
 {
-  MYFLT *outptr, *inptr;
-  MYFLT ogain, ngain, gainsubstr;
-  MYFLT invfloatn;
+  cs_float *outptr, *inptr;
+  cs_float ogain, ngain, gainsubstr;
+  cs_float invfloatn;
   int32_t j;
   int32_t n = p->n;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -2482,13 +2482,13 @@ int32_t vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
     ogain = p->beg_gains[j];
     ngain = p->end_gains[j];
     gainsubstr = ngain - ogain;
-    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(cs_float));
+    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(cs_float));
     if (ngain != FL(0.0) || ogain != FL(0.0))
       if (ngain != ogain) {
         for (i = offset; i < nsmps; i++) {
           outptr[i] = inptr[i] *
-            (ogain + (MYFLT)(i-offset+1) * invfloatn * gainsubstr);
+            (ogain + (cs_float)(i-offset+1) * invfloatn * gainsubstr);
         }
         p->curr_gains[j] = ngain;
       }
@@ -2497,23 +2497,23 @@ int32_t vbap_zak(CSOUND *csound, VBAP_ZAK *p)   /* during note performance: */
           outptr[i] = inptr[i] * ogain;
       }
     else
-      memset(outptr, 0, nsmps*sizeof(MYFLT));
+      memset(outptr, 0, nsmps*sizeof(cs_float));
     outptr += CS_KSMPS;
   }
   return OK;
 }
 
-int32_t vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
+static int32_t vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
 {
   CART_VEC spreaddir[16];
   CART_VEC spreadbase[16];
   ANG_VEC atmp;
   int32 i,j, spreaddirnum;
   int32_t n = p->n;
-  MYFLT tmp_gains[MAXCHNLS],sum = FL(0.0);
+  cs_float tmp_gains[MAXCHNLS],sum = FL(0.0);
   if (UNLIKELY(p->dim == 2 && fabs(*p->ele) > 0.0)) {
     csound->Warning(csound,
-                    "%s", Str("Warning: truncating elevation to 2-D plane\n"));
+                    "%s\n", Str("Warning: truncating elevation to 2-D plane\n"));
     *p->ele = FL(0.0);
   }
   if (*p->spread <FL(0.0))
@@ -2521,8 +2521,8 @@ int32_t vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
   else if (*p->spread >FL(100.0))
     *p->spread=FL(100.0);
   /* Current panning angles */
-  p->ang_dir.azi = (MYFLT) *p->azi;
-  p->ang_dir.ele = (MYFLT) *p->ele;
+  p->ang_dir.azi = (cs_float) *p->azi;
+  p->ang_dir.ele = (cs_float) *p->ele;
   p->ang_dir.length = FL(1.0);
   angle_to_cart(p->ang_dir, &(p->cart_dir));
   calc_vbap_gns(p->ls_set_am, p->dim,  p->ls_sets,
@@ -2613,33 +2613,33 @@ int32_t vbap_zak_control(CSOUND *csound, VBAP_ZAK *p)
 int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
 {                               /* Initializations before run time */
   int32_t     i, j, indx;
-  MYFLT   *ls_table, *ptr; /* , *gains; */
+  cs_float   *ls_table, *ptr; /* , *gains; */
   LS_SET  *ls_set_ptr;
-  int32_t n = p->n = (int32_t)MYFLT2LONG(*p->numb); /* Set size */
+  int32_t n = p->n = (int32_t)CS_FLOAT2LONG(*p->numb); /* Set size */
   char name[24];
   /* Check to see this index is within the limits of za space.    */
-  MYFLT* zastart;
+  cs_float* zastart;
   int64_t zalast = GetZaBounds(csound, &zastart);
   indx = (int32) *p->ndx;
   if (UNLIKELY(indx > zalast)) {
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("outz index > isizea. No output"));
+                             "%s\n", Str("outz index > isizea. No output"));
   }
   else if (UNLIKELY(indx < 0)) {
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("outz index < 0. No output."));
+                             "%s\n", Str("outz index < 0. No output."));
   }
   snprintf(name, 24, "vbap_ls_table_%d", (int32_t)*p->layout);
   /* Now read from the array in za space and write to the output. */
   p->out_array     = zastart + (indx * CS_KSMPS);/* outputs */
-  csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
-  p->curr_gains    = (MYFLT*)p->auxch.auxp;
+  csound->AuxAlloc(csound, p->n*sizeof(cs_float)*4, &p->auxch);
+  p->curr_gains    = (cs_float*)p->auxch.auxp;
   p->beg_gains     = p->curr_gains + p->n;
   p->end_gains     = p->beg_gains + p->n;
   p->updated_gains = p->end_gains + p->n;
-  ls_table = (MYFLT*) (csound->QueryGlobalVariable(csound, name));
+  ls_table = (cs_float*) (csound->QueryGlobalVariable(csound, name));
   if (UNLIKELY(ls_table == NULL))
-    return csound->InitError(csound, Str("could not find layout table no.%d"),
+    return csound->InitError(csound, Str("could not find layout table no.%d\n"),
                              (int32_t)*p->layout);
   p->dim           = (int32_t) ls_table[0];   /* reading in loudspeaker info */
   p->ls_am         = (int32_t) ls_table[1];
@@ -2647,7 +2647,7 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
   ptr              = &(ls_table[3]);
   csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
   if (UNLIKELY(p->aux.auxp == NULL)) {
-    return csound->InitError(csound, "%s", Str("could not allocate memory"));
+    return csound->InitError(csound, "%s\n", Str("could not allocate memory"));
   }
   p->ls_sets = (LS_SET*) p->aux.auxp;
   ls_set_ptr = p->ls_sets;
@@ -2659,18 +2659,18 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
     for (j=0 ; j < 9; j++)
       ls_set_ptr[i].ls_mx[j] = FL(0.0);  /* initial setting */
     for (j=0 ; j < (p->dim) * (p->dim); j++) {
-      ls_set_ptr[i].ls_mx[j] = (MYFLT) *(ptr++);
+      ls_set_ptr[i].ls_mx[j] = (cs_float) *(ptr++);
     }
   }
 
   /* other initialization */
   if (UNLIKELY(p->dim == 2 && fabs(*p->ele) > 0.0)) {
     csound->Warning(csound,
-                    "%s", Str("Warning: truncating elevation to 2-D plane\n"));
+                    "%s\n", Str("Warning: truncating elevation to 2-D plane\n"));
     *p->ele = FL(0.0);
   }
-  p->ang_dir.azi = (MYFLT) *p->azi;
-  p->ang_dir.ele = (MYFLT) *p->ele;
+  p->ang_dir.azi = (cs_float) *p->azi;
+  p->ang_dir.ele = (cs_float) *p->ele;
   p->ang_dir.length = FL(1.0);
   angle_to_cart(p->ang_dir, &(p->cart_dir));
   p->spread_base.x = p->cart_dir.y;
@@ -2686,9 +2686,9 @@ int32_t vbap_zak_init(CSOUND *csound, VBAP_ZAK *p)
 
 int32_t vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
 {                                           /* during note performance: */
-  MYFLT *outptr, *inptr;
-  MYFLT ogain, ngain, gainsubstr;
-  MYFLT invfloatn;
+  cs_float *outptr, *inptr;
+  cs_float ogain, ngain, gainsubstr;
+  cs_float invfloatn;
   int32_t j;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -2706,8 +2706,8 @@ int32_t vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
   invfloatn = (nsmps > offset ? FL(1.0)/(nsmps-offset) : FL(0.0));
   outptr = p->out_array;
   for (j=0; j<p->n ;j++) {
-    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(outptr, '\0', offset*sizeof(cs_float));
+    if (UNLIKELY(early)) memset(&outptr[nsmps], '\0', early*sizeof(cs_float));
     inptr = p->audio;
     ogain = p->beg_gains[j];
     ngain = p->end_gains[j];
@@ -2716,7 +2716,7 @@ int32_t vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
       if (ngain != ogain) {
         for (i = offset; i < nsmps; i++) {
           outptr[i] = inptr[i] *
-            (ogain + (MYFLT)(i-offset+1) * invfloatn * gainsubstr);
+            (ogain + (cs_float)(i-offset+1) * invfloatn * gainsubstr);
         }
         p->curr_gains[j] = ngain;
       }
@@ -2724,13 +2724,13 @@ int32_t vbap_zak_moving(CSOUND *csound, VBAP_ZAK_MOVING *p)
         for (i=offset; i<nsmps; ++i)
           outptr[i] = inptr[i] * ogain;
     else
-      memset(outptr, 0, nsmps*sizeof(MYFLT));
+      memset(outptr, 0, nsmps*sizeof(cs_float));
     outptr += CS_KSMPS;
   }
   return OK;
 }
 
-int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
+static int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
 {
   CART_VEC spreaddir[16];
   CART_VEC spreadbase[16];
@@ -2738,11 +2738,11 @@ int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
   int32 i,j, spreaddirnum;
   int32_t n = p->n;
   CART_VEC tmp1, tmp2, tmp3;
-  MYFLT coeff, angle;
-  MYFLT tmp_gains[MAXCHNLS],sum = FL(0.0); /* Array long enough */
+  cs_float coeff, angle;
+  cs_float tmp_gains[MAXCHNLS],sum = FL(0.0); /* Array long enough */
   if (UNLIKELY(p->dim == 2 && fabs(p->ang_dir.ele) > 0.0)) {
     csound->Warning(csound,
-                    "%s", Str("Warning: truncating elevation to 2-D plane\n"));
+                    "%s\n", Str("Warning: truncating elevation to 2-D plane\n"));
     p->ang_dir.ele = FL(0.0);
   }
 
@@ -2770,12 +2770,12 @@ int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
     }
     if (UNLIKELY((p->fld[abs(p->next_fld)]==NULL)))
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("Missing fields in vbapzmove\n"));
+                               "%s\n", Str("Missing fields in vbapzmove\n"));
     if (*p->field_am >= FL(0.0) && p->dim == 2) /* point-to-point */
       if (UNLIKELY(fabs(fabs(*p->fld[p->next_fld] - *p->fld[p->curr_fld])
                         - 180.0) < 1.0))
         csound->Warning(csound,
-                        "%s", Str("Warning: Ambiguous transition 180 degrees.\n"));
+                        "%s\n", Str("Warning: Ambiguous transition 180 degrees.\n"));
   }
   if (*p->field_am >= FL(0.0)) { /* point-to-point */
     if (p->dim == 3) { /* 3-D */
@@ -2783,14 +2783,14 @@ int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
       p->next_ang_dir.azi =  *p->fld[p->next_fld];
       p->prev_ang_dir.ele = *p->fld[p->curr_fld];
       p->next_ang_dir.ele = *p->fld[p->next_fld+1];
-      coeff = ((MYFLT) p->point_change_counter) /
-        ((MYFLT) p->point_change_interval);
+      coeff = ((cs_float) p->point_change_counter) /
+        ((cs_float) p->point_change_interval);
       angle_to_cart( p->prev_ang_dir,&tmp1);
       angle_to_cart( p->next_ang_dir,&tmp2);
       tmp3.x = (FL(1.0)-coeff) * tmp1.x + coeff * tmp2.x;
       tmp3.y = (FL(1.0)-coeff) * tmp1.y + coeff * tmp2.y;
       tmp3.z = (FL(1.0)-coeff) * tmp1.z + coeff * tmp2.z;
-      coeff = (MYFLT)sqrt((double)(tmp3.x * tmp3.x +
+      coeff = (cs_float)sqrt((cs_double)(tmp3.x * tmp3.x +
                                    tmp3.y * tmp3.y +
                                    tmp3.z * tmp3.z));
       tmp3.x /= coeff; tmp3.y /= coeff; tmp3.z /= coeff;
@@ -2807,15 +2807,15 @@ int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
         angle -= FL(360.0);
       while (angle < -FL(180.0))
         angle += FL(360.0);
-      coeff = ((MYFLT) p->point_change_counter) /
-        ((MYFLT) p->point_change_interval);
+      coeff = ((cs_float) p->point_change_counter) /
+        ((cs_float) p->point_change_interval);
       angle  *=  (coeff);
       p->ang_dir.azi = p->prev_ang_dir.azi -  angle;
       p->ang_dir.ele = FL(0.0);
     }
     else {
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("Missing fields in vbapzmove\n"));
+                               "%s\n", Str("Missing fields in vbapzmove\n"));
     }
   }
   else { /* angular velocities */
@@ -2927,40 +2927,40 @@ int32_t vbap_zak_moving_control(CSOUND *csound, VBAP_ZAK_MOVING *p)
 int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
 {
   int32_t     i, j, indx;
-  MYFLT   *ls_table, *ptr;
+  cs_float   *ls_table, *ptr;
   LS_SET  *ls_set_ptr;
-  int32_t n = p->n = (int32_t)MYFLT2LONG(*p->numb); /* Set size */
+  int32_t n = p->n = (int32_t)CS_FLOAT2LONG(*p->numb); /* Set size */
   /* Check to see this index is within the limits of za space.    */
-  MYFLT* zastart;
+  cs_float* zastart;
   int64_t zalast = GetZaBounds(csound, &zastart);
   indx = (int32) *p->ndx;
   if (UNLIKELY(indx > zalast)) {
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("outz index > isizea. No output"));
+                             "%s\n", Str("outz index > isizea. No output"));
   }
   else if (UNLIKELY(indx < 0)) {
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("outz index < 0. No output."));
+                             "%s\n", Str("outz index < 0. No output."));
   }
   /* Now read from the array in za space and write to the output. */
   p->out_array     = zastart + (indx * CS_KSMPS);/* outputs */
-  csound->AuxAlloc(csound, p->n*sizeof(MYFLT)*4, &p->auxch);
-  p->curr_gains    = (MYFLT*)p->auxch.auxp;
+  csound->AuxAlloc(csound, p->n*sizeof(cs_float)*4, &p->auxch);
+  p->curr_gains    = (cs_float*)p->auxch.auxp;
   p->beg_gains     = p->curr_gains + p->n;
   p->end_gains     = p->beg_gains + p->n;
   p->updated_gains = p->end_gains + p->n;
   /* reading in loudspeaker info */
-  ls_table = (MYFLT*) (csound->QueryGlobalVariableNoCheck(csound,
+  ls_table = (cs_float*) (csound->QueryGlobalVariableNoCheck(csound,
                                                           "vbap_ls_table_0"));
   if (UNLIKELY(ls_table == NULL))
-    return csound->InitError(csound, "%s", Str("could not find layout table no.0"));
+    return csound->InitError(csound, "%s\n", Str("could not find layout table no.0"));
   p->dim           = (int32_t) ls_table[0];
   p->ls_am         = (int32_t) ls_table[1];
   p->ls_set_am     = (int32_t) ls_table[2];
   ptr              = &(ls_table[3]);
   csound->AuxAlloc(csound, p->ls_set_am * sizeof (LS_SET), &p->aux);
   if (UNLIKELY(p->aux.auxp == NULL)) {
-    return csound->InitError(csound, "%s", Str("could not allocate memory"));
+    return csound->InitError(csound, "%s\n", Str("could not allocate memory"));
   }
   p->ls_sets = (LS_SET*) p->aux.auxp;
   ls_set_ptr = p->ls_sets;
@@ -2969,11 +2969,11 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     for (j=0 ; j < p->dim ; j++) {
       ls_set_ptr[i].ls_nos[j] = (int32_t) *(ptr++);
     }
-    memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(MYFLT));
+    memset(ls_set_ptr[i].ls_mx, '\0', 9*sizeof(cs_float));
     /* for (j=0 ; j < 9; j++) */
     /*   ls_set_ptr[i].ls_mx[j] = FL(0.0);  /\* initial setting *\/ */
     for (j=0 ; j < (p->dim) * (p->dim); j++) {
-      ls_set_ptr[i].ls_mx[j] = (MYFLT) *(ptr++);
+      ls_set_ptr[i].ls_mx[j] = (cs_float) *(ptr++);
     }
   }
 
@@ -2981,7 +2981,7 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
   p->ele_vel = FL(1.0);    /* functions specific to movement */
   if (UNLIKELY(fabs(*p->field_am) < (2+ (p->dim - 2)*2))) {
     return csound->InitError(csound,
-                             Str("Have to have at least %d directions in vbapzmove"),
+                             Str("Have to have at least %d directions in vbapzmove\n"),
                              2 + (p->dim - 2) * 2);
   }
   if (p->dim == 2)
@@ -2991,7 +2991,7 @@ int32_t vbap_zak_moving_init(CSOUND *csound, VBAP_ZAK_MOVING *p)
     p->point_change_interval = (int32_t) (CS_EKR * *p->dur
                                           / (fabs(*p->field_am) * 0.5 - 1.0));
   else
-    return csound->InitError(csound, "%s", Str("Wrong dimension"));
+    return csound->InitError(csound, "%s\n", Str("Wrong dimension"));
   p->point_change_counter = 0;
   p->curr_fld = 0;
   p->next_fld = 1;

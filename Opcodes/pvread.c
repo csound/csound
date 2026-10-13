@@ -37,20 +37,20 @@ static int32_t pvocex_loadfile(CSOUND *, const char *fname, PVREAD *p);
 
 static void FetchInOne(
                        float   *inp,       /* pointer to input data */
-                       MYFLT   *buf,       /* where to put our nice mag/pha pairs */
+                       cs_float   *buf,       /* where to put our nice mag/pha pairs */
                        int32    fsize,      /* frame size we're working with */
-                       MYFLT   pos,        /* fractional frame we want */
+                       cs_float   pos,        /* fractional frame we want */
                        int32    mybin)
 {
   float   *frame0;
   float   *frame1;
   int32    base;
-  MYFLT   frac;
+  cs_float   frac;
   int32    twmybin = mybin+mybin;  /* Always used thus */
 
   /***** WITHOUT INFO ON WHERE LAST FRAME IS, MAY 'INTERP' BEYOND IT ****/
   base = (int32)pos;               /* index of basis frame of interpolation */
-  frac = ((MYFLT)(pos - (MYFLT)base));
+  frac = ((cs_float)(pos - (cs_float)base));
   /* & how close to get to next */
   frame0 = inp + ((int32) fsize + 2L) * base + twmybin;
   frame1 = frame0 + ((int32) fsize + 2L);      /* addresses of both frames */
@@ -67,20 +67,24 @@ static void FetchInOne(
   }
 }
 
-int32_t pvreadset_(CSOUND *csound, PVREAD *p, int32_t stringname)
+static int32_t pvreadset_(CSOUND *csound, PVREAD *p, int32_t stringname)
 {
-  char      pvfilnam[256];
+  char generated_name[MAXNAME];
+  const char *pvfilnam;
 
   if (stringname==0){
     if (IsStringCode(*p->ifilno))
-      strncpy(pvfilnam,csound->GetArgString(csound, *p->ifilno), MAXNAME);
-    else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+      pvfilnam = csound->GetArgString(csound, *p->ifilno);
+    else {
+      csound->StringArg2Name(csound, generated_name, p->ifilno, "pvoc.", 0);
+      pvfilnam = generated_name;
+    }
   }
-  else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME);
+  else pvfilnam = ((STRINGDAT *)p->ifilno)->data;
 
   if (pvocex_loadfile(csound, pvfilnam, p) == OK) {
     p->prFlg = 1;
-    p->mybin = MYFLT2LRND(*p->ibin);
+    p->mybin = CS_FLOAT2LRND(*p->ibin);
     return OK;
   }
   return NOTOK;
@@ -96,16 +100,16 @@ int32_t pvreadset_S(CSOUND *csound, PVREAD *p){
 
 int32_t pvread(CSOUND *csound, PVREAD *p)
 {
-  MYFLT  frIndx;
-  MYFLT  buf[2];
+  cs_float  frIndx;
+  cs_float  buf[2];
   int32_t    size = pvfrsiz(p);
 
   if (UNLIKELY((frIndx = *p->ktimpnt * p->frPrtim) < 0)) goto err1;
   if (frIndx > p->maxFr) {  /* not past last one */
-    frIndx = (MYFLT)p->maxFr;
+    frIndx = (cs_float)p->maxFr;
     if (p->prFlg) {
       p->prFlg = 0;   /* false */
-      csound->Warning(csound, "%s", Str("PVOC ktimpnt truncated to last frame"));
+      csound->Warning(csound, "%s\n", Str("PVOC ktimpnt truncated to last frame"));
     }
   }
   FetchInOne(p->frPtr, &(buf[0]), size, frIndx, p->mybin);
@@ -113,7 +117,7 @@ int32_t pvread(CSOUND *csound, PVREAD *p)
   *p->kamp = buf[0];
   return OK;
  err1:
-  return csound->PerfError(csound, &(p->h), "%s", Str("PVOC timpnt < 0"));
+  return csound->PerfError(csound, &(p->h), "%s\n", Str("PVOC timpnt < 0"));
 }
 
 static int32_t pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)
@@ -121,11 +125,11 @@ static int32_t pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)
   PVOCEX_MEMFILE  pp;
 
   if (UNLIKELY(csound->PVOCEX_LoadFile(csound, fname, &pp) != 0)) {
-    return csound->InitError(csound, Str("PVREAD cannot load %s"), fname);
+    return csound->InitError(csound, Str("PVREAD cannot load %s\n"), fname);
   }
   /* have to reject m/c files for now, until opcodes upgraded */
   if (UNLIKELY(pp.chans > 1)) {
-    return csound->InitError(csound, Str("pvoc-ex file %s is not mono"), fname);
+    return csound->InitError(csound, Str("pvoc-ex file %s is not mono\n"), fname);
   }
   /* ignore the window spec until we can use it! */
   p->frSiz    = pp.fftsize;
@@ -135,7 +139,7 @@ static int32_t pvocex_loadfile(CSOUND *csound, const char *fname, PVREAD *p)
   p->asr      = pp.srate;
   /* highest possible frame index */
   /* factor by which to mult expand phase diffs (ratio of samp spacings) */
-  p->frPrtim = (*p->ifiletime != FL(0.0) ? p->asr : CS_ESR) / ((MYFLT) pp.overlap);
+  p->frPrtim = (*p->ifiletime != FL(0.0) ? p->asr : CS_ESR) / ((cs_float) pp.overlap);
   return OK;
 }
 

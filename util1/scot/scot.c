@@ -355,7 +355,7 @@ void readinstsec(Inst *inst,
         if (*notetop == NULL) {
           pn = (*ln) = (*notetop) = (Note *) malloc(sizeof(Note));
           initnote(*notetop);
-          (*notetop)->instrum = (double) inst->number + 0.01;
+          (*notetop)->instrum = (cs_double) inst->number + 0.01;
         }
         else if (ratcmp(curtime, lastnote))
           pn = (*notetop);
@@ -813,7 +813,7 @@ void readscore(Inst *insttop)
     int     accidentals,
             octaves,
             vertical, key[PITCHCLASSES], barkey[PITCHCLASSES], transpose, z;
-    double  maxtime, fcurtime;
+    cs_double  maxtime, fcurtime;
 
 #ifdef DEBUG
     printf("Reading score section\n");
@@ -1161,7 +1161,7 @@ static int letterval(int c)
 }
 
 static                          /* returns octave.pitchclass */
-double pitchval(int oct, int pit, int acc, int transpose)
+cs_double pitchval(int oct, int pit, int acc, int transpose)
 {
 #ifdef DEBUG
     printf("  Computing pitchval(%d,%d,%d,%d)\n", oct, pit, acc, transpose);
@@ -1196,7 +1196,7 @@ double pitchval(int oct, int pit, int acc, int transpose)
     printf("  pitchval: %d.%02d\n", oct, pit);
 #endif
 
-    return (double) oct + (double) pit * 0.01;
+    return (cs_double) oct + (cs_double) pit * 0.01;
 }
 
 static                          /* just writes pfields from n->p, */
@@ -1297,13 +1297,13 @@ void strlistcopy(Strlist **dest, Strlist **source)
 
 /* rational number functions */
 
-static double ratval(Rat *r)
+static cs_double ratval(Rat *r)
 {                               /* evaluate r */
     if (!r->denom) {
       scoterror(Str("Division by zero"));
-      return (double) 1.0;
+      return (cs_double) 1.0;
     }
-    return (double) r->num / (double) r->denom;
+    return (cs_double) r->num / (cs_double) r->denom;
 }
 
 static void ratreduce(Rat *r)
