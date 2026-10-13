@@ -2691,6 +2691,8 @@ int32_t monitora_init(CSOUND *csound, MONITOR_A *p)
                              Str("local sampling rate not supported\n"));
   ARRAYDAT *aa = p->tabin;
   // should call ensure here but it is a-rate
+  if (UNLIKELY(csound_array_check_rank(csound, aa, 1) != OK))
+    return csound->InitError(csound, "%s\n", Str("monitor: invalid output rank"));
   aa->dimensions = 1;
   if (aa->sizes) csound->Free(csound, aa->sizes);
   if (aa->data) csound->Free(csound, aa->data);

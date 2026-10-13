@@ -9,7 +9,8 @@ class AutocorrTests : public ::testing::Test {
 protected:
   void run(const std::string &input, const std::vector<cs_float> &expected,
            const std::string &after = "", bool alias = false,
-           const char *error = nullptr, int cycles = 1)
+           const char *error = nullptr, int cycles = 1,
+           const char *outputShape = "[]")
   {
     CSOUND *csound = csoundCreate(nullptr, nullptr);
     csoundCreateMessageBuffer(csound, 0);
@@ -18,7 +19,7 @@ protected:
     std::string csd =
       "<CsoundSynthesizer>\n<CsInstruments>\nsr=1024\nksmps=1\n"
       "nchnls=1\n0dbfs=1\ninstr 1\n" + input + "\n" + output +
-      "[] autocorr kIn\n" + after + "\nkLength lenarray " + output +
+      outputShape + " autocorr kIn\n" + after + "\nkLength lenarray " + output +
       "\nchnset kLength, \"length\"\nkIndex = 0\n"
       "while kIndex < kLength do\n"
       "Sname sprintfk \"lag%d\", kIndex\nchnset " + output +
@@ -105,13 +106,13 @@ TEST_F(AutocorrTests, GrowthBeyondWorkspaceReportsError)
 
 TEST_F(AutocorrTests, MultidimensionalInputReportsError)
 {
-  run("kIn[] init 2, 2", {}, "", false, "expected one-dimensional arrays");
+  run("kIn[][] init 2, 2", {}, "", false, "expected one-dimensional arrays");
 }
 
 TEST_F(AutocorrTests, OutputShapeReportsError)
 {
-  run("kIn[] fillarray 1, 2\nkOut[] init 2, 2", {}, "", false,
-      "expected one-dimensional arrays");
+  run("kIn[] fillarray 1, 2\nkOut[][] init 2, 2", {}, "", false,
+      "expected one-dimensional arrays", 1, "[][]");
 }
 
 TEST_F(AutocorrTests, ShorterOutputRestoresRequiredLength)

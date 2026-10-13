@@ -542,6 +542,10 @@ static int32_t csound_array_copy_dimensions(CSOUND *csound,
                                             const ARRAYDAT *source,
                                             int32_t allowAllocation)
 {
+    if (UNLIKELY(csound_array_check_rank(
+                   csound, destination, source->dimensions) != OK)) {
+        return NOTOK;
+    }
     if (source->dimensions == 0) {
         if (!allowAllocation && (destination->dimensions != 0 ||
                                  destination->sizes != NULL)) {
@@ -586,6 +590,10 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
     }
     if (destination == source) {
         return OK;
+    }
+    if (UNLIKELY(csound_array_check_rank(
+                   csound, destination, source->dimensions) != OK)) {
+        return NOTOK;
     }
     if (UNLIKELY(!csound_array_element_types_compatible(
                    destination->arrayType, source->arrayType))) {
@@ -1080,9 +1088,8 @@ static void string_free_var_mem(void* csnd, void* p) {
 }
 
 static void array_clear_view(ARRAYDAT* dat) {
-    /* Keep arrayType: it is the variable's declared element type and is needed
-       if the same ARRAYDAT is initialized again. */
-    dat->dimensions = 0;
+    /* Keep the declared element type and rank when storage is released, so
+       initializing this variable again can change sizes but not its rank. */
     dat->sizes = NULL;
     dat->arrayMemberSize = 0;
     dat->data = NULL;
@@ -1152,6 +1159,10 @@ static int32_t csound_array_share(CSOUND *csound, ARRAYDAT *dest,
 
     if (dest == NULL || src == NULL || dest == src) {
         return dest == src ? OK : NOTOK;
+    }
+    if (UNLIKELY(csound_array_check_rank(
+                   csound, dest, src->dimensions) != OK)) {
+        return NOTOK;
     }
 retry:
     if (UNLIKELY(cs_array_storage_protocol_lock(csound) != OK)) {

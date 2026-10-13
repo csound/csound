@@ -793,6 +793,10 @@ static int32_t scsnmapV_init(CSOUND *csound, PSCSNMAPV *p)
     const CS_TYPE *arrayContainerType = csound->GetType(csound, "[");
     ARRAYDAT preparedPosition = {0}, preparedVelocity = {0};
 
+    if (UNLIKELY(csound_array_check_rank(csound, p->k_pos, 1) != OK ||
+                 csound_array_check_rank(csound, p->k_vel, 1) != OK))
+      return csound_array_init_resize_error(csound);
+
     /* Get corresponding update */
     p->p = listget(csound, (int32_t)*p->i_id);
     if (p->p == NULL) return NOTOK;

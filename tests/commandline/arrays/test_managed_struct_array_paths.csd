@@ -25,8 +25,8 @@ instr 1
   source[0] = first
   source[1] = second
 
-  reshaped:Label[] = Forward(source)
-  reshapearray reshaped, 1, 2
+  forwarded:Label[] = Forward(source)
+  reshaped:Label[][] reshapearray forwarded, 1, 2
   reshaped[0][0] = changed
 
   rack:Rack init source

@@ -1560,13 +1560,20 @@ struct CSOUND_ {
   int32_t (*ArrayEnsureCapacity)(CSOUND *, ARRAYDAT *, size_t, INSDS *);
   const CS_TYPE *(*RegisterStruct)(CSOUND *, const char *,
                                     const CSOUND_STRUCT_MEMBER *, size_t);
+  /** Copy an initialized struct with independent nested array storage.
+      A nonzero allowAllocation permits allocating nested array storage;
+      zero requires enough storage in the destination. Returns OK or NOTOK.
+      Failure may leave earlier fields copied. */
+  int32_t (*StructCopyIndependent)(CSOUND *, const CS_TYPE *, void *,
+                                    const void *, INSDS *,
+                                    int32_t allowAllocation);
   /**@}*/
 
   /** @name Placeholders
       To allow the API to grow while maintaining backward binary compatibility.
    */
   /**@{ */
-  SUBR dummyfn_2[45];
+  SUBR dummyfn_2[44];
   /**@}*/
 #ifdef __BUILDING_LIBCSOUND
   /* ------- private data (not to be used by hosts or externals) ------- */

@@ -79,6 +79,9 @@ static int32_t udo_init_audio_array(CSOUND *csound, ARRAYDAT *destination,
 
   if (destination == source)
     return OK;
+  if (UNLIKELY(csound_array_check_rank(csound, destination,
+                                      source->dimensions) != OK))
+    return NOTOK;
   if (UNLIKELY(ctx == NULL ||
                csound_array_member_count(source, &count) != OK ||
                (count > 0 && (source->data == NULL ||
@@ -122,6 +125,10 @@ static int32_t udo_copy_value(CSOUND *csound, const CS_VARIABLE *variable,
       destination == NULL || source == NULL) {
     return NOTOK;
   }
+  if (variable->varType == &CS_VAR_TYPE_ARRAY &&
+      UNLIKELY(csound_array_check_rank(csound, (ARRAYDAT *)destination,
+                      ((const ARRAYDAT *)source)->dimensions) != OK))
+    return NOTOK;
   if (allowAllocation && variable->varType == &CS_VAR_TYPE_ARRAY &&
       variable->subType == &CS_VAR_TYPE_A) {
     return udo_init_audio_array(csound, destination, source, ctx);
@@ -1096,6 +1103,10 @@ static int32_t pbr_copy_value(CSOUND *csound, cs_float *dst, cs_float *src,
   if (type == &CS_VAR_TYPE_ARRAY) {
     const ARRAYDAT *sourceArray = (const ARRAYDAT *)src;
 
+    if (UNLIKELY(csound_array_check_rank(csound, (ARRAYDAT *)dst,
+                                        sourceArray->dimensions) != OK))
+      return NOTOK;
+
     if (sourceArray->arrayType != NULL &&
         sourceArray->arrayType->userDefinedType) {
       return csound_array_copy_independent(
@@ -1815,6 +1826,43 @@ static OPCODINFO *find_latest_useropinfo(CSOUND *csound, const char *name,
   return NULL;
 }
 
+static int32_t udo_check_array_ranks(CSOUND *csound, const char *name,
+                                      CS_VAR_POOL *pool, cs_float **args,
+                                      int32_t count)
+{
+  CS_VARIABLE *var = pool != NULL ? pool->head : NULL;
+  for (int32_t i = 0; var != NULL && i < count; i++, var = var->next) {
+    if (var->varType == &CS_VAR_TYPE_ARRAY && var->dimensions > 0 &&
+        args[i] != NULL) {
+      const ARRAYDAT *array = (const ARRAYDAT *)args[i];
+      if (array->dimensions > 0 && array->dimensions != var->dimensions)
+        return csound->InitError(csound,
+          Str("UDO %s: array rank mismatch: expected %d, got %d\n"),
+          name, var->dimensions, array->dimensions);
+    }
+  }
+  return OK;
+}
+
+static void udo_reset_generic_arrays(CSOUND *csound, INSDS *instance)
+{
+  CS_VAR_POOL *pool = instance->instr->varPool;
+
+  if (pool == NULL || instance->lclbas == NULL)
+    return;
+  for (CS_VARIABLE *var = pool->head; var != NULL; var = var->next) {
+    if (var->varType == &CS_VAR_TYPE_ARRAY && var->dimensions == 0) {
+      cs_float *memory = instance->lclbas + var->memBlockIndex;
+
+      /* Generic parameters and expression temporaries acquire a rank for
+         each call. Reset their own slots, never caller storage reached by
+         the argument pointers that pass-by-reference rewires. */
+      csound_free_array_storage(csound, (ARRAYDAT *)memory);
+      var->initializeVariableMemory(csound, var, memory);
+    }
+  }
+}
+
 int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 {
   OPDS         *saved_ids = csound->ids;
@@ -1838,6 +1886,13 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
       inm = latest;
     }
   }
+  /* Function arguments can acquire their rank only at runtime. Check before
+     pass-by-reference rewires a fixed-rank parameter to caller storage. */
+  if (UNLIKELY(udo_check_array_ranks(csound, inm->name, inm->in_arg_pool,
+                 p->ar + inm->outchns, inm->inchns) != OK ||
+               udo_check_array_ranks(csound, inm->name, inm->out_arg_pool,
+                 p->ar, inm->outchns) != OK))
+    return NOTOK;
   instno = inm->instno;
   tp = csound->engineState.instrtxtp[instno];
   if (tp == NULL)
@@ -1990,6 +2045,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
                              inm->name);
   }
   ATOMIC_SET(p->ip->init_done, 0);
+  udo_reset_generic_arrays(csound, lcurip);
   csound->mode = 1;
   buf->iflag = 0;
   lcurip->init_pass++;
@@ -2140,6 +2196,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     }
   }
 
+  if (err == OK)
+    err = udo_check_array_ranks(csound, inm->name, inm->out_arg_pool,
+                                p->ar, inm->outchns);
   csound->mode = 0;
   if (UNLIKELY(err != OK)) {
     ATOMIC_SET(p->ip->init_done, 0);

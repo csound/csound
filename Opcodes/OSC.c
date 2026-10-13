@@ -971,6 +971,10 @@ static int32_t osc_decode_array(CSOUND *csound, OSCLISTEN *p,
          array->storage == NULL)) {
       return osc_malformed_blob(csound, p, 'A');
     }
+    if (UNLIKELY(!csound_array_rank_matches(array, view.dimensions)))
+      return csound->PerfError(csound, &p->h,
+        Str("OSC: array rank mismatch: expected %d, got %d\n"),
+        array->dimensions, view.dimensions);
     newSizes = (int32_t *)csound->Malloc(
       csound, (size_t)view.dimensions * sizeof(int32_t));
     if (UNLIKELY(newSizes == NULL)) {
