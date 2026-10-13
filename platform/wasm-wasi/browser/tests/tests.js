@@ -463,6 +463,97 @@ e
         });
       }
 
+      it("starts realtime MIDI and releases notes from browser and API input", async function () {
+        // Run against dist/csound.js: source-only tests miss Closure's property renaming.
+        const previousMidiAccess = Object.getOwnPropertyDescriptor(navigator, "requestMIDIAccess");
+        const input = { name: "Test keyboard", onmidimessage: undefined };
+        Object.defineProperty(navigator, "requestMIDIAccess", {
+          configurable: true,
+          value: async () => ({ inputs: new Map([["test", input]]) }),
+        });
+        let cs;
+        let analyser;
+        let startTimer;
+        const waitFor = async (condition, message) => {
+          const deadline = performance.now() + 2000;
+          while (!condition() && performance.now() < deadline) {
+            await new Promise((resolve) => setTimeout(resolve, 10));
+          }
+          assert.isTrue(condition(), message);
+        };
+        try {
+          cs = await Csound(test);
+          let ended = 0;
+          cs.on("realtimePerformanceEnded", () => ended++);
+          assert.equal(
+            await cs.compileCSD(`
+<CsoundSynthesizer>
+<CsOptions>
+-odac -M0
+</CsOptions>
+<CsInstruments>
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+massign 0, 1
+instr 1
+  aEnvelope madsr 0.01, 0.02, 0.8, 0.05
+  aTone oscili ampmidi(0.2), cpsmidi()
+  out aTone * aEnvelope
+endin
+</CsInstruments>
+<CsScore>
+f 0 z
+</CsScore>
+</CsoundSynthesizer>`),
+            0,
+          );
+          const startup = new Promise((_, reject) => {
+            startTimer = setTimeout(() => reject(new Error("MIDI startup did not finish")), 4000);
+          });
+          assert.equal(await Promise.race([cs.start(), startup]), 0);
+          clearTimeout(startTimer);
+          await waitFor(
+            () => typeof input.onmidimessage === "function",
+            "Web MIDI input connected",
+          );
+          const context = await cs.getAudioContext();
+          analyser = context.createAnalyser();
+          (await cs.getNode()).connect(analyser);
+          const samples = new Float32Array(analyser.fftSize);
+          const peak = () => {
+            analyser.getFloatTimeDomainData(samples);
+            return samples.reduce((maximum, sample) => Math.max(maximum, Math.abs(sample)), 0);
+          };
+          assert.isBelow(peak(), 0.00001, "no notes before MIDI input");
+          for (const send of [
+            (status, note, velocity) =>
+              input.onmidimessage({ data: new Uint8Array([status, note, velocity]) }),
+            (status, note, velocity) => cs.midiMessage(status, note, velocity),
+          ]) {
+            await send(0x90, 69, 100);
+            await waitFor(() => peak() > 0.01, "note-on produces audio");
+            await send(0x80, 69, 0);
+            await waitFor(() => peak() < 0.00001, "note-off releases the voice");
+          }
+          assert.equal(ended, 0, "MIDI keeps running between notes");
+          await cs.stop();
+          assert.equal(ended, 1, "stop ends the performance");
+        } finally {
+          clearTimeout(startTimer);
+          if (analyser) analyser.disconnect();
+          try {
+            if (cs) await cs.terminateInstance();
+          } finally {
+            if (previousMidiAccess) {
+              Object.defineProperty(navigator, "requestMIDIAccess", previousMidiAccess);
+            } else {
+              delete navigator.requestMIDIAccess;
+            }
+          }
+        }
+      });
+
       it("can be started", async function () {
         console.log("initialising Csound object");
         const cs = await Csound(test);

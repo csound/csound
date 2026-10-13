@@ -606,7 +606,7 @@ class SharedArrayBufferMainThread {
           const midiMessage = async (status = 0, data1 = 0, data2 = 0) => {
             this.handleMidiInput({ data: [status, data1, data2] });
           };
-          this.exportApi.midiMessage = midiMessage.bind(this);
+          this.exportApi["midiMessage"] = midiMessage.bind(this);
           midiMessage["toString"] = () => reference["toString"]();
           break;
         }
