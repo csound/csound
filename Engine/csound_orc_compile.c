@@ -317,7 +317,7 @@ int32_t get_pfield(CSOUND *csound, ENGINE_STATE *engineState,
 }
 
 /* convert string constant */
-static void unquote_string(char *dst, const char *src) {
+void csound_unquote_string(char *dst, const char *src) {
   int32_t i, j, n = (int)strlen(src) - 1;
   for (i = 1, j = 0; i < n; i++) {
     if (src[i] != '\\')
@@ -2834,7 +2834,7 @@ static void build_const_pool(CSOUND *csound, INSTRTXT *ip, char *s,
     temp = csound->Calloc(csound, strlen(s) + 1);
     if(csound->GetDebug(csound) & DEBUG_COMPILER)
       csound->Message(csound, "string const: %s\n", s);
-    unquote_string(temp, s);
+    csound_unquote_string(temp, s);
     cs_hash_table_put_key(csound, engineState->stringPool, temp);
     csound->Free(csound, temp);
   }
@@ -2924,7 +2924,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     varMem->varType = &CS_VAR_TYPE_S;
     arg->type = ARG_STRING;
     temp = csound->Calloc(csound, strlen(s) + 1);
-    unquote_string(temp, s);
+    csound_unquote_string(temp, s);
     str->data = strsav_string(csound, engineState, temp);
     str->size = strlen(temp) + 1;
     csound->Free(csound, temp);
