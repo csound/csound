@@ -35,8 +35,12 @@ in stdenvWasm.mkDerivation {
       -c  plugin_example.c \
       -o plugin_example.o
 
-    # Compile wasi-libc's setjmp support as PIC. The browser supplies the
-    # imported exception tag; the plugin owns its jump buffers.
+    # scripts/nixpkgs-pin.sh pins nixpkgs 4db2c220f32fd162658ed1b7bb2f46a82996ddbe
+    # (wasi-libc SDK 27, Clang 21). This source path and its C_LONGJMP tag ABI
+    # are version-sensitive; recheck both when changing that pin. SDK 27's
+    # rt.c uses __builtin_wasm_throw(1, ...) without a Clang-version branch.
+    # Compile it as PIC. The loader supplies a private exception tag, and the
+    # plugin owns its jump buffers.
     $CC -fPIC -mllvm -wasm-enable-sjlj \
       -c ${pkgsWasm.wasilibc.src}/libc-top-half/musl/src/setjmp/wasm32/rt.c \
       -o setjmp.o
@@ -55,6 +59,7 @@ in stdenvWasm.mkDerivation {
       -Wl,--export-if-defined=__wasm_apply_data_relocs \
       -Wl,--export=csound_opcode_init \
       -Wl,--export=csoundModuleInfo \
+      -Wl,--export=plugin_local_data \
       plugin_example.o setjmp.o -o plugin_example.wasm
   '';
 

@@ -1,11 +1,34 @@
 /* Copyright (c) The Csound Developers. Licensed under Apache-2.0. */
 
-// LLVM imports and exports a default-visible weak definition under the same
-// name. Bind it to the host when present, or to its own export after creation.
+// These wasi-libc aliases have the same signatures as their public functions.
+// Resolve them to the same Wasm functions without requiring private exports.
+const hostFunctionAliases = new Map([
+  ["__libc_malloc", "malloc"],
+  ["__libc_calloc", "calloc"],
+  ["__libc_free", "free"],
+]);
+const sharedFunctions = new Set([
+  "malloc",
+  "calloc",
+  "realloc",
+  "free",
+  "aligned_alloc",
+  "posix_memalign",
+  "memcpy",
+  "memmove",
+  "memset",
+]);
+const ownValue = (object, name) =>
+  Object.prototype.hasOwnProperty.call(object, name) ? object[name] : undefined;
+const hostFunction = (exports, name) => ownValue(exports, hostFunctionAliases.get(name) || name);
+
+// Use the engine for shared heap functions and weak definitions. Other strong
+// definitions stay in the plugin, so its static runtime keeps its own state.
 export const preparePluginImports = ({
   imports,
   exports,
   hostExports,
+  hostTableExports = hostExports,
   options,
   importedSymbols = [],
   memoryBase,
@@ -21,12 +44,16 @@ export const preparePluginImports = ({
     ((module === "GOT.func" || module === "GOT.mem") && weak.has(`env:${name}`));
   let pluginExports;
   const addressImports = [];
-  const hostValue = (name) => (Object.hasOwn(hostExports, name) ? hostExports[name] : undefined);
+  const preferHostFunction = (name, module) =>
+    sharedFunctions.has(hostFunctionAliases.get(name) || name) || isWeak(module, name);
 
   const functionFor = (name, module) => {
-    const host = hostValue(name);
-    if (typeof host === "function") return host;
-    if (exportKinds.get(name) === "function") {
+    const host = hostFunction(hostExports, name);
+    const hasLocal = exportKinds.get(name) === "function";
+    if (typeof host === "function" && (!hasLocal || preferHostFunction(name, module))) {
+      return host;
+    }
+    if (hasLocal) {
       return (...args) => pluginExports[name](...args);
     }
     if (isWeak(module, name)) {
@@ -46,7 +73,10 @@ export const preparePluginImports = ({
       options[module][name] = global;
       addressImports.push({ module, name, global });
     } else if (module === "env" && kind === "function") {
-      options["env"][name] = functionFor(name, module);
+      // Respect imports supplied by the caller before resolving engine symbols.
+      if (ownValue(options["env"], name) === undefined) {
+        options["env"][name] = functionFor(name, module);
+      }
     } else if (
       module === "env" &&
       kind === "tag" &&
@@ -61,21 +91,31 @@ export const preparePluginImports = ({
   return (instanceExports, addFunction) => {
     pluginExports = instanceExports;
     for (const { module, name, global } of addressImports) {
-      const host = hostValue(name);
       const local = pluginExports[name];
       if (module === "GOT.func") {
-        const func = typeof host === "function" ? host : local;
+        const host = hostFunction(hostTableExports, name);
+        const func =
+          typeof host === "function" &&
+          (typeof local !== "function" || preferHostFunction(name, module))
+            ? host
+            : local;
         if (typeof func === "function") {
           global.value = addFunction(func);
         } else if (!isWeak(module, name)) {
           throw new TypeError(`Missing WebAssembly function address: ${name}`);
         }
-      } else if (host instanceof WebAssembly.Global) {
-        global.value = host.value;
-      } else if (local instanceof WebAssembly.Global) {
-        global.value = Number(local.value) + memoryBase;
-      } else if (!isWeak(module, name)) {
-        throw new TypeError(`Missing WebAssembly data address: ${name}`);
+      } else {
+        const host = ownValue(hostExports, name);
+        if (
+          host instanceof WebAssembly.Global &&
+          (!(local instanceof WebAssembly.Global) || isWeak(module, name))
+        ) {
+          global.value = host.value;
+        } else if (local instanceof WebAssembly.Global) {
+          global.value = Number(local.value) + memoryBase;
+        } else if (!isWeak(module, name)) {
+          throw new TypeError(`Missing WebAssembly data address: ${name}`);
+        }
       }
     }
   };

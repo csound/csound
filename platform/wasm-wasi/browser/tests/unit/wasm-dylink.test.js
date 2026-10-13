@@ -45,6 +45,7 @@ describe("WebAssembly dynamic link metadata", () => {
       tableAlign: 0,
       neededDynlibsCount: 0,
       neededDynlibs: [],
+      importedSymbols: [],
     });
   });
 
@@ -67,6 +68,7 @@ describe("WebAssembly dynamic link metadata", () => {
       tableAlign: 1,
       neededDynlibsCount: 1,
       neededDynlibs: ["libfoo.so"],
+      importedSymbols: [],
     });
   });
 
@@ -88,6 +90,7 @@ describe("WebAssembly dynamic link metadata", () => {
       tableAlign: 2,
       neededDynlibsCount: 2,
       neededDynlibs: ["libfoo.so", "libbar.so"],
+      importedSymbols: [],
     });
   });
 

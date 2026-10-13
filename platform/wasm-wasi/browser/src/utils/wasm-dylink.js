@@ -22,6 +22,7 @@ const emptyHeader = () => ({
   tableAlign: 0,
   neededDynlibsCount: 0,
   neededDynlibs: [],
+  importedSymbols: [],
 });
 
 const isWasmBinary = (wasmBytes) =>
@@ -99,6 +100,7 @@ export const getBinaryHeaderData = (input, nameDecoder = new TextDecoder("utf-8"
       tableAlign,
       neededDynlibsCount,
       neededDynlibs,
+      importedSymbols: [],
     };
   };
 
@@ -145,7 +147,6 @@ export const getBinaryHeaderData = (input, nameDecoder = new TextDecoder("utf-8"
           break;
         }
         case 4: {
-          header.importedSymbols ||= [];
           const count = readULEB(subsectionEnd);
           for (let index = 0; index < count; index += 1) {
             const module = readName(subsectionEnd);

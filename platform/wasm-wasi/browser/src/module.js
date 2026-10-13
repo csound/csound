@@ -526,10 +526,34 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
     try {
       let pluginTable = pluginRuntime.table;
       let pluginTableBaseValue = pluginRuntime.table.length;
+      const functionAddresses = pluginImports.filter(({ module }) => module === "GOT.func").length;
+
+      if (
+        !Number.isSafeInteger(pluginTableSize) ||
+        pluginTableSize < 0 ||
+        pluginTableSize > MAX_PLUGIN_TABLE_ENTRIES
+      ) {
+        throw new TypeError("Invalid WebAssembly plugin table size");
+      }
+
+      if (!useIsolatedPluginTable) {
+        const pluginTableAlignment = alignmentFromExponent(pluginTableAlign);
+        pluginTableBaseValue = alignUp(sharedTableEnd, pluginTableAlignment);
+      }
+      const functionTableBase = pluginTableBaseValue + pluginTableSize;
+      const tableLimit = functionTableBase + functionAddresses;
+      if (!Number.isSafeInteger(tableLimit) || tableLimit > MAX_SIGNED_WASM_I32) {
+        throw new TypeError("The WebAssembly plugin table request is too large");
+      }
+      const tableGrowth = tableLimit - pluginRuntime.table.length;
+      if (tableGrowth > MAX_PLUGIN_TABLE_ENTRIES) {
+        throw new TypeError("The WebAssembly plugin table request is too large");
+      }
 
       if (useIsolatedPluginTable) {
         const isolatedInitial = Math.max(
           pluginRuntime.table.length + Math.max(pluginTableSize, 0) + 16,
+          tableLimit,
           16,
         );
         pluginTable = new WebAssembly.Table({ initial: isolatedInitial, element: "anyfunc" });
@@ -540,26 +564,6 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
           }
         }
       } else {
-        if (
-          !Number.isSafeInteger(pluginTableSize) ||
-          pluginTableSize < 0 ||
-          pluginTableSize > MAX_PLUGIN_TABLE_ENTRIES
-        ) {
-          throw new TypeError("Invalid WebAssembly plugin table size");
-        }
-        const pluginTableAlignment = alignmentFromExponent(pluginTableAlign);
-        pluginTableBaseValue = alignUp(sharedTableEnd, pluginTableAlignment);
-        const functionAddresses = pluginImports.filter(
-          ({ module }) => module === "GOT.func",
-        ).length;
-        const tableLimit = pluginTableBaseValue + pluginTableSize + functionAddresses;
-        if (!Number.isSafeInteger(tableLimit) || tableLimit > MAX_SIGNED_WASM_I32) {
-          throw new TypeError("The WebAssembly plugin table request is too large");
-        }
-        const tableGrowth = tableLimit - pluginRuntime.table.length;
-        if (tableGrowth > MAX_PLUGIN_TABLE_ENTRIES) {
-          throw new TypeError("The WebAssembly plugin table request is too large");
-        }
         if (tableGrowth > 0) {
           pluginRuntime.table.grow(tableGrowth);
         }
@@ -600,6 +604,8 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
         imports: pluginImports,
         exports: pluginExports,
         hostExports: instance_["exports"],
+        // Keep API cleanup on direct calls; tables require raw Wasm functions.
+        hostTableExports: instance["exports"],
         options: pluginOptions,
         importedSymbols: headerData.importedSymbols,
         memoryBase: pluginMemory.memoryBaseValue,
@@ -609,10 +615,12 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
        * @type {WasmInst} */
       const pluginInstance = new WebAssembly.Instance(plugin, pluginOptions);
 
-      let nextFunctionAddress = pluginTableBaseValue + pluginTableSize;
+      let nextFunctionAddress = functionTableBase;
       linkImports(pluginInstance.exports, (func) => {
+        if (nextFunctionAddress < functionTableBase || nextFunctionAddress >= tableLimit) {
+          throw new RangeError("WebAssembly plugin function address exceeds its table reservation");
+        }
         const index = nextFunctionAddress++;
-        if (index >= pluginTable.length) pluginTable.grow(index - pluginTable.length + 1);
         pluginTable.set(index, func);
         return index;
       });

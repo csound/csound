@@ -67,11 +67,28 @@ int mult_vector(CSOUND *csound, MULT *p) {
 __attribute__((weak)) int plugin_weak_value(void) { return 42; }
 extern int plugin_optional_value(void) __attribute__((weak));
 static void (*volatile release_bytes)(void *) = free;
+static void (*volatile destroy_instance)(CSOUND *) = csoundDestroy;
 extern unsigned char __heap_base;
+
+static volatile int local_data_storage = 41;
+extern volatile int plugin_local_data
+    __attribute__((weak, visibility("default"), alias("local_data_storage")));
 
 /* This unresolved data address imports GOT.mem.__heap_base from the engine. */
 static int heap_base(CSOUND *csound, MULT *p) {
   *p->out = (uintptr_t)&__heap_base;
+  return OK;
+}
+
+/* The exported alias uses GOT.mem; the static name uses __memory_base directly. */
+static int local_data_check(CSOUND *csound, MULT *p) {
+  local_data_storage = 41;
+  if (&plugin_local_data != &local_data_storage || plugin_local_data != 41) {
+    *p->out = -1;
+    return OK;
+  }
+  plugin_local_data = 42;
+  *p->out = local_data_storage;
   return OK;
 }
 
@@ -109,6 +126,7 @@ static int runtime_check(CSOUND *csound, MULT *p) {
 
   ok &= plugin_weak_value() == 42;
   ok &= plugin_optional_value == NULL;
+  ok &= destroy_instance != NULL;
 
   jmp_buf state;
   int value = setjmp(state);
@@ -120,6 +138,7 @@ static int runtime_check(CSOUND *csound, MULT *p) {
 
 static OENTRY localops[] = {
     {"plugin_heap_base", sizeof(MULT), 0, "i", "", (SUBR)heap_base, NULL},
+    {"plugin_local_data_check", sizeof(MULT), 0, "i", "", (SUBR)local_data_check, NULL},
     {"plugin_runtime_check", sizeof(MULT), 0, "i", "", (SUBR)runtime_check, NULL},
     {"mult.aa", sizeof(MULT), 0, "a", "aa", NULL, (SUBR)mult_vector},
     {"mult.kk", sizeof(MULT), 0, "k", "kk", NULL, (SUBR)mult_scalar},
