@@ -28,10 +28,12 @@
 
 #include <string>
 
-/* Default MIDI input callback installed by the core (Top/csound_rtio.c).
-   The JACK module must replace it when "-+rtmidi=jack" is selected. */
+/* Default MIDI callbacks installed by the core (Top/csound_rtio.c).
+   The JACK module must replace them when "-+rtmidi=jack" is selected. */
 extern "C" int32_t DummyMidiInOpen(CSOUND *csound, void **userData,
                                    const char *devName);
+extern "C" int32_t DummyMidiOutOpen(CSOUND *csound, void **userData,
+                                    const char *devName);
 
 namespace {
 
@@ -100,7 +102,10 @@ TEST_F(RtMidiJackModuleTests, MidiModuleSelectedWithoutJackAudio) {
 
   EXPECT_NE((void *)csound->midiGlobals->MidiInOpenCallback,
             (void *)DummyMidiInOpen)
-      << "the JACK MIDI callbacks were not installed";
+      << "the JACK MIDI input callback was not installed";
+  EXPECT_NE((void *)csound->midiGlobals->MidiOutOpenCallback,
+            (void *)DummyMidiOutOpen)
+      << "the JACK MIDI output callback was not installed";
   EXPECT_FALSE(sawMessage("unknown module"));
 }
 
@@ -118,7 +123,10 @@ TEST_F(RtMidiJackModuleTests, MidiModuleSelectedWithJackAudio) {
 
   EXPECT_NE((void *)csound->midiGlobals->MidiInOpenCallback,
             (void *)DummyMidiInOpen)
-      << "the JACK MIDI callbacks were not installed";
+      << "the JACK MIDI input callback was not installed";
+  EXPECT_NE((void *)csound->midiGlobals->MidiOutOpenCallback,
+            (void *)DummyMidiOutOpen)
+      << "the JACK MIDI output callback was not installed";
 }
 
 }  // namespace
