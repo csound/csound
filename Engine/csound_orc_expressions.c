@@ -2601,6 +2601,8 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   TREE* breakTargetIdent = create_synthetic_ident(csound, breakTargetCounter);
 
   TREE* tail = tree_tail(current->right->right);
+  if (tail == NULL)
+    tail = arrayGetStatement;
   tail->next = continueTargetLabel;
 
   strNcpy(op, isPerfRate ? "looplt.k" : "looplt.i", 10);
