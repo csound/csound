@@ -402,8 +402,13 @@ int32_t args_required(char* argString)
       if (*t == '[') {
         // Handle internal array encoding like "[[a]"
         while (*t == '[') t++;
+        if (*t == '*' && t[1] != ']') t++;
         if (*t == '\0') return -1; // malformed
-        t++; // skip base type char
+        if (*t == ':') {
+          while (*t != '\0' && *t != ';') t++;
+          if (*t == '\0') return -1;
+        }
+        t++;
         if (*t != ']') return -1;
         t++; // skip closing bracket
         continue;
@@ -418,6 +423,7 @@ int32_t args_required(char* argString)
       t++;
       while (*t == '[') { // external form like "a[][]"
         t++;
+        if (*t == '*') t++;
         if (*t != ']') {
           // ERROR HERE, unmatched array identifier, perhaps should report...
           return -1;
@@ -450,6 +456,7 @@ int32_t args_required(char* argString)
 char** split_args(CSOUND* csound, char* argString)
 {
   int32_t argCount = args_required(argString);
+  if (argCount < 0) return NULL;
   char** args = csound->Malloc(csound, sizeof(char*) * (argCount + 1));
   char* start = argString;
   int32_t i = 0;
@@ -460,11 +467,16 @@ char** split_args(CSOUND* csound, char* argString)
       if (*start == '[') {
         char* t = start;
         while (*t == '[') t++;
+        if (*t == '*' && t[1] != ']') t++;
         if (*t == '\0') {
           csound->Message(csound, Str("ERROR: Malformed internal array type (missing base type)\n"));
           return NULL;
         }
-        t++; // skip base type char
+        if (*t == ':') {
+          while (*t != '\0' && *t != ';') t++;
+          if (*t == '\0') return NULL;
+        }
+        t++;
         if (*t != ']') {
           csound->Message(csound, Str("ERROR: Malformed internal array type (missing ']')\n"));
           return NULL;
@@ -478,6 +490,7 @@ char** split_args(CSOUND* csound, char* argString)
       char* current = start;
       char* part;
       int32_t dimensions = 0;
+      int32_t generic = 0;
 
       if (*current == ':') {
         current++;
@@ -500,6 +513,10 @@ char** split_args(CSOUND* csound, char* argString)
 
         while (*t == '[') {
           t++;
+          if (*t == '*') {
+            generic = 1;
+            t++;
+          }
 
           if (*t != ']') {
             // FIXME: needs more precise error information
@@ -512,12 +529,15 @@ char** split_args(CSOUND* csound, char* argString)
           t++;
           dimensions++;
         }
-        part = csound->Malloc(csound, sizeof(char) * (dimensions + len + 2));
+        if (generic && dimensions != 1) return NULL;
+        int32_t prefix = generic ? 2 : dimensions;
+        part = csound->Malloc(csound, sizeof(char) * (prefix + len + 2));
 
-        memset(part, '[', dimensions);
-        strNcpy((part + dimensions), start, len + 1);
-        part[dimensions + len] = ']';
-        part[dimensions + len + 1] = '\0';
+        memset(part, '[', prefix);
+        if (generic) part[1] = '*';
+        strNcpy((part + prefix), start, len + 1);
+        part[prefix + len] = ']';
+        part[prefix + len + 1] = '\0';
 
         args[i] = part;
 

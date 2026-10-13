@@ -608,8 +608,8 @@ int32_t struct_array_get(CSOUND *csound, STRUCT_ARRAY_GET* dat)
       return csound->InitError(csound,
                                Str("Invalid struct array dimensions\n"));
     }
-    if (UNLIKELY(tabinit(csound, arrayDat, (int32_t)totalSize,
-                         dat->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_ensure_capacity(csound, arrayDat,
+                    totalSize ? totalSize : 1, dat->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
   }
   if (UNLIKELY(struct_array_flat_index(csound, &dat->h,

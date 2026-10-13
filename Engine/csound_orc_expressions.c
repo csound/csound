@@ -155,21 +155,21 @@ static char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
      // we need to remove these for the type system to recognise the type
     char *type = remove_type_quoting(csound, outype);
     if (find_brace(type)) {
-      if(*type == '[') { // [type]
-        size_t typeLen = strlen(type);
-        char *baseType = (typeLen >= 3) ? cs_strndup(csound, type + 1, typeLen - 2)
-                                        : csoundStrdup(csound, type);
-        snprintf(s, 256, "#%s%d[]", baseType, argCount);
-        add_array_arg(csound, s, baseType, 1, typeTable);
-        csound->Free(csound, baseType);
-      } else { // type[]
-        size_t typeLen = strlen(type);
-        char *baseType = (typeLen >= 2) ? cs_strndup(csound, type, typeLen - 2)
-                                        : csoundStrdup(csound, type);
-        snprintf(s, 256, "#%s%d[]", baseType, argCount);
-        add_array_arg(csound, s,  baseType, 1, typeTable);
-        csound->Free(csound, baseType);
+      const char *base = type;
+      size_t length;
+      if (*base == '[') {
+        while (*base == '[') base++;
+        if (*base == '*' && base[1] != ']') base++;
+        length = strlen(base) - 1;
+      } else {
+        length = (size_t) (strchr(base, '[') - base);
       }
+      char *baseType = cs_strndup(csound, base, length);
+      snprintf(s, 256, "#%s%d[]", baseType, argCount);
+      /* A native opcode's [] signature does not state its result rank.
+         The temporary takes that rank from the first produced value. */
+      add_array_arg(csound, s, baseType, 0, typeTable);
+      csound->Free(csound, baseType);
     }
     else {
       snprintf(s, 256, "#%s%d", type, argCount);
@@ -643,6 +643,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   case T_FUNCTION:
     {
       char *outtype, *outtype_internal;
+      int32_t fixedUdoRank = 0;
       int32_t len = (int32_t) strlen(root->value->lexeme);
       strNcpy(op, root->value->lexeme, len+1);
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
@@ -668,6 +669,19 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         csound->Free(csound, inArgTypes);
       }
 
+      if (outtype != NULL) {
+        for (int32_t i = 0; i < opentries->count; i++) {
+          OENTRY *entry = opentries->entries[i];
+          if (entry->useropinfo != NULL && entry->outypes == outtype) {
+            const char *brackets = strchr(outtype, '[');
+            while (brackets != NULL && brackets[0] == '[' && brackets[1] == ']') {
+              fixedUdoRank++;
+              brackets += 2;
+            }
+            break;
+          }
+        }
+      }
       csound->Free(csound, opentries);
 
       if (UNLIKELY(outtype == NULL)) {
@@ -681,6 +695,11 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       outtype_internal = convert_external_to_internal(csound, outtype);
       outarg = create_out_arg(csound, outtype_internal,
                               typeTable->localPool->synthArgCount++, typeTable);
+      if (fixedUdoRank > 0) {
+        CS_VARIABLE *var = csoundFindVariableWithName(csound, typeTable->localPool, outarg);
+        if (var != NULL && var->varType == &CS_VAR_TYPE_ARRAY)
+          var->dimensions = fixedUdoRank;
+      }
 
     }
     break;
@@ -1284,15 +1303,16 @@ static char* get_struct_array_element_type_name(CSOUND* csound,
 
   len = strlen(arrayTypeName);
   if (len >= 3 && arrayTypeName[0] == '[' && arrayTypeName[len - 1] == ']') {
-    elementTypeName = csound->Malloc(csound, len - 1);
-    strncpy(elementTypeName, arrayTypeName + 1, len - 2);
-    elementTypeName[len - 2] = '\0';
+    const char *base = arrayTypeName;
+    while (*base == '[') base++;
+    if (*base == '*' && base[1] != ']') base++;
+    elementTypeName = cs_strndup(csound, base, strlen(base) - 1);
   }
   else if (len > 2 && arrayTypeName[len - 2] == '[' &&
            arrayTypeName[len - 1] == ']') {
-    elementTypeName = csound->Malloc(csound, len - 1);
-    strncpy(elementTypeName, arrayTypeName, len - 2);
-    elementTypeName[len - 2] = '\0';
+    const char *brackets = strchr(arrayTypeName, '[');
+    elementTypeName = cs_strndup(csound, arrayTypeName,
+                                 (size_t) (brackets - arrayTypeName));
   }
 
   csound->Free(csound, arrayTypeName);
@@ -2511,7 +2531,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   arrayIdent->value = make_token(csound, arrayName, NULL);
   arrayIdent->type = T_ARRAY_IDENT;
   arrayIdent->value->type = T_ARRAY_IDENT;
-  add_array_arg(csound, arrayName, arrayArgType, 1, typeTable);
+  add_array_arg(csound, arrayName, arrayArgType, 0, typeTable);
 
   arrayAssign->left = arrayIdent;
   arrayAssign->right = current->right->left;

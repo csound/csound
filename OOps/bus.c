@@ -418,7 +418,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
   case CSOUND_PVS_CHANNEL:
     varType = &CS_VAR_TYPE_F;
     break;
-  case CSOUND_ARRAY_CHANNEL: // one-dim array
+  case CSOUND_ARRAY_CHANNEL:
     varType = &CS_VAR_TYPE_ARRAY;
     break;
   case CSOUND_VAR_CHANNEL: // generic
@@ -436,7 +436,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
   if(varType) {
     ARRAY_VAR_INIT varInit;
     if(varType == &CS_VAR_TYPE_ARRAY) {
-      varInit.dimensions = 1; //  default to 1
+      varInit.dimensions = 0; // the first value supplies the channel rank
       varInit.type = NULL; //subtype to be set later
     }
     pp->var = csoundCreateVariableForType(
@@ -2558,7 +2558,8 @@ static int32_t prepare_array_channel(CSOUND *csound, ARRAYDAT *prepared,
     prepared->sizes[i] = sizes[i];
     totalSize *= (size_t)sizes[i];
   }
-  if (UNLIKELY(tabinit(csound, prepared, (int32_t)totalSize, ctx) != OK)) {
+  if (UNLIKELY(csound_array_ensure_capacity(csound, prepared,
+                                            totalSize ? totalSize : 1, ctx) != OK)) {
     csound_free_array_storage(csound, prepared);
     return NOTOK;
   }

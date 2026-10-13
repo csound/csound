@@ -62,6 +62,10 @@ Review assignments to input arguments when you convert an existing
 UDO to the new form.
 
 Array literals use brackets, as in `notes:i[] = [60, 64, 67]`.
+Array declarations fix the rank. Use `[][]` for a matrix and `[*]` in a UDO
+interface that accepts any rank. To change rank, use `reshapearray` with a
+separate output.
+
 The `for ... in ... do` loop reads array elements and can also provide
 their indices. Audio variables support sample access with an index.
 The `switch`, `case`, `default`, and `endsw` statements select a branch

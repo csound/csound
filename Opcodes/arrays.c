@@ -1023,7 +1023,7 @@ static int32_t set_matrix_init(CSOUND *csound, FFT *p, int32_t column) {
   int32_t length = set_vector_length(p->in);
   cs_double index = *((cs_float *)p->in2);
   if (UNLIKELY(length < 0 ||
-               (p->out->data != NULL && p->out->dimensions != 2)))
+               csound_array_check_rank(csound, p->out, 2) != OK))
     return csound->InitError(csound, "%s\n",
                             Str("setrow/setcol: invalid array dimensions"));
   if (UNLIKELY(!(index >= 0 && index < (INT32_MAX + 0.0))))
@@ -1618,6 +1618,9 @@ static int32_t interleave_perf (CSOUND *csound, INTERL *p) {
 }
 
 static int32_t deinterleave_i (CSOUND *csound, INTERL *p) {
+  if (UNLIKELY(csound_array_check_rank(csound, p->a, 1) != OK ||
+               csound_array_check_rank(csound, p->b, 1) != OK))
+    return csound_array_init_resize_error(csound);
   if(p->c->sizes == NULL)
     return csound->InitError(csound, Str("array not initialised\n"));
   if(p->c->dimensions == 1) {

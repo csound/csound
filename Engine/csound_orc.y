@@ -980,6 +980,16 @@ array_identifier: array_identifier '[' ']' {
             $1->type = T_ARRAY_IDENT;
             $$->right = make_leaf(csound, LINE, LOCN, '[', make_token(csound, "[", NULL));
           }
+          | identifier '[' '*' ']' {
+            $$ = $1;
+            $$->type = T_ARRAY_IDENT;
+            $$->right = make_leaf(csound, LINE, LOCN, '*', make_token(csound, "*", NULL));
+          }
+          | typed_identifier '[' '*' ']' {
+            $$ = $1;
+            $$->type = T_ARRAY_IDENT;
+            $$->right = make_leaf(csound, LINE, LOCN, '*', make_token(csound, "*", NULL));
+          }
           | typed_identifier '[' ']' {
             $$ = $1;
             // Check if this is a type annotation (e.g., "var:Type[]") vs array access
