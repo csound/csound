@@ -31,10 +31,7 @@ const isWasmBinary = (wasmBytes) =>
   wasmBytes[2] === 0x73 &&
   wasmBytes[3] === 0x6d;
 
-export const getBinaryHeaderData = (
-  input,
-  nameDecoder = new TextDecoder("utf-8"),
-) => {
+export const getBinaryHeaderData = (input, nameDecoder = new TextDecoder("utf-8")) => {
   const wasmBytes = input instanceof Uint8Array ? input : new Uint8Array(input);
   if (!isWasmBinary(wasmBytes)) {
     return emptyHeader();
@@ -120,26 +117,49 @@ export const getBinaryHeaderData = (
         throw new Error("dylink.0 subsection extends past its section");
       }
 
-      if (subsectionType === 1) {
-        if (hasMemoryInfo) {
-          throw new Error("dylink.0 contains more than one memory info subsection");
+      switch (subsectionType) {
+        case 1: {
+          if (hasMemoryInfo) {
+            throw new Error("dylink.0 contains more than one memory info subsection");
+          }
+          hasMemoryInfo = true;
+          header.memorySize = readULEB(subsectionEnd);
+          header.memoryAlign = readULEB(subsectionEnd);
+          header.tableSize = readULEB(subsectionEnd);
+          header.tableAlign = readULEB(subsectionEnd);
+          if (position !== subsectionEnd) {
+            throw new Error("Unexpected data in the dylink.0 memory info subsection");
+          }
+
+          break;
         }
-        hasMemoryInfo = true;
-        header.memorySize = readULEB(subsectionEnd);
-        header.memoryAlign = readULEB(subsectionEnd);
-        header.tableSize = readULEB(subsectionEnd);
-        header.tableAlign = readULEB(subsectionEnd);
-        if (position !== subsectionEnd) {
-          throw new Error("Unexpected data in the dylink.0 memory info subsection");
+        case 2: {
+          const neededCount = readULEB(subsectionEnd);
+          for (let index = 0; index < neededCount; index += 1) {
+            header.neededDynlibs.push(readName(subsectionEnd));
+          }
+          if (position !== subsectionEnd) {
+            throw new Error("Unexpected data in the dylink.0 needed libraries subsection");
+          }
+
+          break;
         }
-      } else if (subsectionType === 2) {
-        const neededCount = readULEB(subsectionEnd);
-        for (let index = 0; index < neededCount; index += 1) {
-          header.neededDynlibs.push(readName(subsectionEnd));
+        case 4: {
+          header.importedSymbols ||= [];
+          const count = readULEB(subsectionEnd);
+          for (let index = 0; index < count; index += 1) {
+            const module = readName(subsectionEnd);
+            const name = readName(subsectionEnd);
+            const flags = readULEB(subsectionEnd);
+            header.importedSymbols.push({ module, name, flags });
+          }
+          if (position !== subsectionEnd) {
+            throw new Error("Unexpected data in the dylink.0 import info subsection");
+          }
+
+          break;
         }
-        if (position !== subsectionEnd) {
-          throw new Error("Unexpected data in the dylink.0 needed libraries subsection");
-        }
+        // No default
       }
 
       position = subsectionEnd;

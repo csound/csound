@@ -142,6 +142,21 @@ in
         "--export=__stack_pointer"
         "--export-if-defined=sin"
         "--export-if-defined=strcmp"
+        # Side modules must share the engine's heap. Unlike export-if-defined,
+        # these exports pull allocator functions from the runtime archive.
+        "--export=malloc"
+        "--export=calloc"
+        "--export=realloc"
+        "--export=free"
+        "--export=aligned_alloc"
+        "--export=posix_memalign"
+        "--export=__libc_malloc"
+        "--export=__libc_calloc"
+        "--export=__libc_free"
+        "--export=__wasilibc_find_relpath_alloc"
+        "--export=memcpy"
+        "--export=memmove"
+        "--export=memset"
         "--export=__heap_base"
         "--export=__data_end"
       ]

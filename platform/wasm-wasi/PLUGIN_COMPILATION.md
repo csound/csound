@@ -63,6 +63,30 @@ nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example_c
 })'
 ```
 
+## Static runtime libraries in browser plugins
+
+Build side modules and their static dependencies as position-independent code
+(`-fPIC`). Import the engine's memory, table, and stack pointer. The loader binds
+weak function definitions to an engine export when one exists, or to the plugin's
+own export. It also fills `GOT.func` and `GOT.mem` address imports before running
+data relocations and constructors. Missing weak addresses stay zero; missing
+strong symbols fail loading.
+
+All plugins share the engine's allocator. The browser engine exports `malloc`,
+`calloc`, `realloc`, `free`, `aligned_alloc`, `posix_memalign`, the corresponding
+WASI libc allocation aliases, and `memcpy`, `memmove`, and `memset`. Build a private
+WASI libc with `MALLOC_IMPL=none` to avoid linking a second allocator into shared
+memory. The engine also exports `__wasilibc_find_relpath_alloc` so plugin file
+operations use its working directory.
+
+For WASI `setjmp`/`longjmp`, compile with `-mllvm -wasm-enable-sjlj` and link PIC
+setjmp support. The C example does this with the toolchain's unmodified source.
+Use `--allow-undefined` when linking side modules that import exception tags, and
+export `__wasm_apply_data_relocs` when present. Each plugin gets private
+`__c_longjmp` and `__cpp_exception` tags for its statically linked runtime.
+Exceptions cannot be caught across plugins with separate runtimes. Shared
+dynamic-library dependencies remain unsupported.
+
 ## Fallback Mode (Rebuild from Source)
 
 If needed, disable SDK usage:

@@ -727,6 +727,27 @@ schedule(1, 0.05, 10)`), 0);
         await cs.terminateInstance();
       });
 
+      it("supports host allocation and private WASI exceptions in plugins", async function () {
+        const cs = await Csound(Object.assign({ withPlugins: ["./plugin_example.wasm"] }, test));
+        try {
+          const orchestra = `
+            iresult plugin_runtime_check
+            chnset iresult, "plugin_runtime_result"
+          `;
+          assert.equal(0, await cs.compileOrc(orchestra));
+          assert.equal(0, await cs.start());
+          assert.equal(42, await cs.getControlChannel("plugin_runtime_result"));
+          await cs.stop();
+          await cs.reset();
+          assert.equal(0, await cs.compileOrc(orchestra));
+          assert.equal(0, await cs.start());
+          assert.equal(42, await cs.getControlChannel("plugin_runtime_result"));
+          await cs.stop();
+        } finally {
+          await cs.terminateInstance();
+        }
+      });
+
       it("can load and run c++ plugins", async function () {
         const testWithPlugin = Object.assign(
           {

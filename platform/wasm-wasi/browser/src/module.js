@@ -20,6 +20,7 @@ import { clearArray } from "./utils/clear-array";
 import { decoder, uint2String } from "./utils/text-encoders.js";
 import { getBinaryHeaderData as parseBinaryHeaderData } from "./utils/wasm-dylink.js";
 import { Inflate } from "./zlib/inflate.js";
+import { preparePluginImports } from "./utils/plugin-imports.js";
 
 export const getBinaryHeaderData = (input) => parseBinaryHeaderData(input, decoder);
 
@@ -548,7 +549,10 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
         }
         const pluginTableAlignment = alignmentFromExponent(pluginTableAlign);
         pluginTableBaseValue = alignUp(sharedTableEnd, pluginTableAlignment);
-        const tableLimit = pluginTableBaseValue + pluginTableSize;
+        const functionAddresses = pluginImports.filter(
+          ({ module }) => module === "GOT.func",
+        ).length;
+        const tableLimit = pluginTableBaseValue + pluginTableSize + functionAddresses;
         if (!Number.isSafeInteger(tableLimit) || tableLimit > MAX_SIGNED_WASM_I32) {
           throw new TypeError("The WebAssembly plugin table request is too large");
         }
@@ -584,16 +588,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
         if (pluginImport.module !== "env") {
           continue;
         }
-        if (pluginImport.kind === "function" && !pluginOptions["env"][pluginImport.name]) {
-          const hostFunction = instance_["exports"][pluginImport.name];
-          if (typeof hostFunction !== "function") {
-            throw new TypeError(`Missing WebAssembly host function: env.${pluginImport.name}`);
-          }
-          pluginOptions["env"][pluginImport.name] = hostFunction;
-        } else if (
-          pluginImport.kind === "global" &&
-          pluginImport.name === "__stack_pointer"
-        ) {
+        if (pluginImport.kind === "global" && pluginImport.name === "__stack_pointer") {
           const hostStackPointer = instance_["exports"]["__stack_pointer"];
           if (!hostStackPointer) {
             throw new Error("The WebAssembly host does not export __stack_pointer");
@@ -601,10 +596,26 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
           pluginOptions["env"]["__stack_pointer"] = hostStackPointer;
         }
       }
+      const linkImports = preparePluginImports({
+        imports: pluginImports,
+        exports: pluginExports,
+        hostExports: instance_["exports"],
+        options: pluginOptions,
+        importedSymbols: headerData.importedSymbols,
+        memoryBase: pluginMemory.memoryBaseValue,
+      });
       /**
        * @suppress {checkTypes}
        * @type {WasmInst} */
       const pluginInstance = new WebAssembly.Instance(plugin, pluginOptions);
+
+      let nextFunctionAddress = pluginTableBaseValue + pluginTableSize;
+      linkImports(pluginInstance.exports, (func) => {
+        const index = nextFunctionAddress++;
+        if (index >= pluginTable.length) pluginTable.grow(index - pluginTable.length + 1);
+        pluginTable.set(index, func);
+        return index;
+      });
 
       if (typeof pluginInstance.exports["__wasm_apply_data_relocs"] === "function") {
         pluginInstance.exports["__wasm_apply_data_relocs"]();
