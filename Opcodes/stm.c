@@ -640,6 +640,17 @@ static int32_t stm_release_owner(CSOUND *csound, STM_OWNER_TOKEN *owner) {
     return OK;
 }
 
+/* Release an owned object and clear the output only if it still holds that
+   owner's handle: a variable shared by overlapping owners (giRunner
+   stminstance ...) may already hold a newer handle that is still alive. */
+static int32_t stm_release_owner_output(CSOUND *csound, STM_OWNER_TOKEN *owner, cs_float *out) {
+    if (owner->type != STM_OBJECT_NONE &&
+            *out == (cs_float) stm_make_handle(owner->slot, owner->generation)) {
+        *out = FL(0.0);
+    }
+    return stm_release_owner(csound, owner);
+}
+
 static int32_t stm_get_object_init_locked(CSOUND *csound, OPDS *opds, cs_float handle, STM_OBJECT_TYPE expected_type, const char *msg, STM_REGISTRY **reg_out, void **object_out) {
     STM_REGISTRY *reg = stm_registry_query(csound);
     if (reg == NULL) {
@@ -819,8 +830,7 @@ static int32_t IS_FIRED(GRAPH_ONE_SHOT *p) {
 /* ------------------------------------------------------------------ */
 
 int32_t graph_create_deinit(CSOUND *csound, GRAPH_CREATE *p) {
-    *p->handle = FL(0.0);
-    return stm_release_owner(csound, &p->owner);
+    return stm_release_owner_output(csound, &p->owner, p->handle);
 }
 
 int32_t graph_create(CSOUND *csound, GRAPH_CREATE *p) {
@@ -971,12 +981,11 @@ memory_error:
 }
 
 int32_t graph_compile_deinit(CSOUND *csound, GRAPH_COMPILE *p) {
-    *p->def_handle = FL(0.0);
-    return stm_release_owner(csound, &p->owner);
+    return stm_release_owner_output(csound, &p->owner, p->def_handle);
 }
 
 int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
-    /* Read the input first: the deinit clears the output, which may share
+    /* Read the input first: the deinit may clear the output, which may share
        the input variable (ib stmcompile ib). */
     cs_float bld_handle = *p->bld_handle;
     int32_t rc = graph_compile_deinit(csound, p);
@@ -1029,12 +1038,11 @@ int32_t graph_compile(CSOUND *csound, GRAPH_COMPILE *p) {
 }
 
 int32_t graph_instance_deinit(CSOUND *csound, GRAPH_INSTANCE *p) {
-    *p->runner_handle = FL(0.0);
-    return stm_release_owner(csound, &p->owner);
+    return stm_release_owner_output(csound, &p->owner, p->runner_handle);
 }
 
 int32_t graph_instance(CSOUND *csound, GRAPH_INSTANCE *p) {
-    /* Read the input first: the deinit clears the output, which may share
+    /* Read the input first: the deinit may clear the output, which may share
        the input variable (id stminstance id). */
     cs_float def_handle = *p->def_handle;
     int32_t rc = graph_instance_deinit(csound, p);
