@@ -37,6 +37,14 @@ instr 1
   assertEquals(vectorCopy[2], 3)
   assertEquals(matrixCopy[1][2], 42)
 
+  ; Explicit generic return annotations also allow spaces around the brackets.
+  compact:i[][] = Forward:i[*](matrix)
+  spaced:i[][] = Forward:i [*] (matrix)
+  assertEquals(lenarray(compact, 0), 2)
+  assertEquals(compact[1][2], 42)
+  assertEquals(lenarray(spaced, 0), 2)
+  assertEquals(spaced[1][2], 42)
+
   items:Item[][] init 2, 3
   last:Item init 84
   items[1][2] = last
