@@ -282,7 +282,8 @@ class AudioWorkletMainThread {
     if (this["isRequestingMidi"]) {
       log("requesting for web-midi connection");
       requestMidi({
-        onMidiMessage: this.csoundWorkerMain["handleMidiInput"].bind(this.csoundWorkerMain),
+        // Let Closure rename this internal call with the worker controller methods.
+        onMidiMessage: this.csoundWorkerMain.handleMidiInput.bind(this.csoundWorkerMain),
       });
     }
 
