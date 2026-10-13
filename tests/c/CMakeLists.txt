@@ -264,6 +264,25 @@ if(BUILD_TESTS)
         )
     endif()
 
+    if(TARGET rtjack)
+        add_dependencies(unittests rtjack)
+        # Give the test a directory with only the JACK plugin.
+        set(TEST_JACK_PLUGIN_DIR
+            ${CMAKE_CURRENT_BINARY_DIR}/jack-plugin)
+        add_custom_target(unittests_jack_plugin
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+                ${TEST_JACK_PLUGIN_DIR}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:rtjack> ${TEST_JACK_PLUGIN_DIR}/
+            DEPENDS rtjack
+        )
+        add_dependencies(unittests unittests_jack_plugin)
+        target_sources(unittests PRIVATE rtmidi_jack_module_test.cpp)
+        target_compile_definitions(unittests PRIVATE
+            CSOUND_TEST_JACK_PLUGIN_DIR="${TEST_JACK_PLUGIN_DIR}"
+        )
+    endif()
+
     if(TARGET dssi4cs)
         add_library(dssi_test_plugin MODULE fixtures/dssi_test_plugin.c)
         add_library(ladspa_test_plugin MODULE fixtures/dssi_test_plugin.c)
