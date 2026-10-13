@@ -1585,14 +1585,14 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
     char    *drv;
 
     csound->ModuleListAdd(csound,"jack", "audio");
+
+    /* The audio and MIDI interfaces are independent: JACK MIDI can be used
+       without JACK audio (e.g. -+rtaudio=null -+rtmidi=jack), so each is
+       enabled on its own regardless of the other module selection. */
     drv = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
-    if (drv == NULL)
-      return 0;
-    if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
-          strcmp(drv, "JACK") == 0))
-      return 0;
-    csound->DebugMsg(csound, "%s\n", Str("rtaudio: JACK module enabled\n"));
-    {
+    if (drv != NULL && (strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
+                        strcmp(drv, "JACK") == 0)) {
+      csound->DebugMsg(csound, "%s\n", Str("rtaudio: JACK module enabled\n"));
       /* register Csound interface functions */
       csound->SetPlayopenCallback(csound, playopen_);
       csound->SetRecopenCallback(csound, recopen_);
@@ -1603,13 +1603,9 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list,
     }
 
     drv = (char*) csound->QueryGlobalVariable(csound, "_RTMIDI");
-    if (drv == NULL)
-      return 0;
-    if (!(strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
-          strcmp(drv, "JACK") == 0))
-      return 0;
-    csound->DebugMsg(csound, "%s\n", Str("rtmidi: JACK module enabled\n"));
-    {
+    if (drv != NULL && (strcmp(drv, "jack") == 0 || strcmp(drv, "Jack") == 0 ||
+                        strcmp(drv, "JACK") == 0)) {
+      csound->DebugMsg(csound, "%s\n", Str("rtmidi: JACK module enabled\n"));
       csound->SetExternalMidiInOpenCallback(csound, midi_in_open);
       csound->SetExternalMidiReadCallback(csound, midi_in_read);
       csound->SetExternalMidiInCloseCallback(csound, midi_in_close);
