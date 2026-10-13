@@ -80,7 +80,7 @@ int get_next_char(char *, int32_t, void*);
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*(@global)?
 IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*\n?
 TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*(@global)?:[a-zA-Z_][a-zA-Z0-9_]*(\[\])*
-TYPED_IDENTIFIERB [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*(\[\])*\([ \t]*\n?
+TYPED_IDENTIFIERB [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*(([ \t]*\[\])+[ \t]*)?\([ \t]*\n?
 XIDENT          0|[aijkftKOJVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
@@ -562,6 +562,14 @@ ERSTR           "}R"
                                                 yyscanner);
                       }
                       *strrchr(yytext, '(') = '\0';
+                      /* Type lookup uses compact brackets even when the
+                         function annotation separates them with spaces. */
+                      char *out = yytext;
+                      for (const char *in = yytext; *in != '\0'; in++) {
+                          if (*in != ' ' && *in != '\t')
+                              *out++ = *in;
+                      }
+                      *out = '\0';
                       *lvalp = lookup_token(csound, yytext, yyscanner);
                       return (*lvalp)->type+1; }
 {INTGR}         {
