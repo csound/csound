@@ -1985,6 +1985,38 @@ e
       }
     });
 
+    it("resolves a plugin's GOT.mem import to the engine's absolute data address", async function () {
+      const { libcsound } = await import(url);
+      const response = await fetch("./plugin_example.wasm");
+      assert.isTrue(response.ok);
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      const plugin = await WebAssembly.compile(bytes);
+      assert.deepInclude(WebAssembly.Module.imports(plugin), {
+        module: "GOT.mem",
+        name: "__heap_base",
+        kind: "global",
+      });
+      const api = await libcsound({ withPlugins: [bytes] });
+      const csound = api.csoundCreate();
+      try {
+        api.csoundSetOption(csound, "-n");
+        assert.equal(
+          api.csoundCompileOrc(csound, `
+            iaddress plugin_heap_base
+            chnset iaddress, "plugin_heap_base"
+          `),
+          0,
+        );
+        assert.equal(api.csoundStart(csound), 0);
+        assert.equal(
+          api.csoundGetControlChannel(csound, "plugin_heap_base"),
+          api.wasm.exports.__heap_base.value,
+        );
+      } finally {
+        api.csoundDestroy(csound);
+      }
+    });
+
     it("reuses resources after failed plugin loads", async function () {
       const { libcsound } = await import(url);
       const badPlugin = Uint8Array.from(

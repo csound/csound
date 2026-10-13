@@ -67,6 +67,13 @@ int mult_vector(CSOUND *csound, MULT *p) {
 __attribute__((weak)) int plugin_weak_value(void) { return 42; }
 extern int plugin_optional_value(void) __attribute__((weak));
 static void (*volatile release_bytes)(void *) = free;
+extern unsigned char __heap_base;
+
+/* This unresolved data address imports GOT.mem.__heap_base from the engine. */
+static int heap_base(CSOUND *csound, MULT *p) {
+  *p->out = (uintptr_t)&__heap_base;
+  return OK;
+}
 
 /* Exercise host allocation, weak symbols, and the private WASI setjmp runtime. */
 static int runtime_check(CSOUND *csound, MULT *p) {
@@ -112,6 +119,7 @@ static int runtime_check(CSOUND *csound, MULT *p) {
 }
 
 static OENTRY localops[] = {
+    {"plugin_heap_base", sizeof(MULT), 0, "i", "", (SUBR)heap_base, NULL},
     {"plugin_runtime_check", sizeof(MULT), 0, "i", "", (SUBR)runtime_check, NULL},
     {"mult.aa", sizeof(MULT), 0, "a", "aa", NULL, (SUBR)mult_vector},
     {"mult.kk", sizeof(MULT), 0, "k", "kk", NULL, (SUBR)mult_scalar},
