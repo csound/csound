@@ -759,7 +759,7 @@ jobs:
           cmake -S .ci/googletest -B "$RUNNER_TEMP/googletest-build" \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/googletest" \
-            -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 \
             -DCMAKE_CXX_FLAGS="-fsanitize=address -fno-omit-frame-pointer" \
             -DBUILD_GMOCK=OFF
           cmake --build "$RUNNER_TEMP/googletest-build" --parallel "$(sysctl -n hw.ncpu)"

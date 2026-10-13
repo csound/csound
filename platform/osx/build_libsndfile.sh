@@ -14,7 +14,7 @@ FLACVERSION="1.4.3"
 LAMEVERSION="3.100"
 LAME_TARBALL="lame-${LAMEVERSION}.tar.gz"
 LIBSNDFILEVERSION="1.2.2"
-MINOSVERSION="11.0"
+MINOSVERSION="12.0"
 
 # Auto-detect SDK version
 SDKVERSION=$(xcrun --sdk macosx --show-sdk-version)
