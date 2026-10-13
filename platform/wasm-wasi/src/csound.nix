@@ -142,6 +142,23 @@ in
         "--export=__stack_pointer"
         "--export-if-defined=sin"
         "--export-if-defined=strcmp"
+        # Side modules must share the engine's heap. Unlike export-if-defined,
+        # these exports pull allocator functions from the runtime archive.
+        "--export=malloc"
+        "--export=calloc"
+        "--export=realloc"
+        "--export=free"
+        "--export=aligned_alloc"
+        "--export=posix_memalign"
+        # The loader maps wasi-libc's __libc_malloc/calloc/free aliases to the
+        # public functions above, so they need no separate engine exports.
+        # wasi-libc SDK 27 (scripts/nixpkgs-pin.sh) defines this cwd-aware
+        # resolver in libc-bottom-half/sources/chdir.c. It has no public alias:
+        # keep a hard export and recheck its name/signature when updating Nix.
+        "--export=__wasilibc_find_relpath_alloc"
+        "--export=memcpy"
+        "--export=memmove"
+        "--export=memset"
         "--export=__heap_base"
         "--export=__data_end"
       ]

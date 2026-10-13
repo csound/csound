@@ -818,6 +818,27 @@ schedule(1, 0.05, 10)`), 0);
         await cs.terminateInstance();
       });
 
+      it("supports host allocation and private WASI exceptions in plugins", async function () {
+        const cs = await Csound(Object.assign({ withPlugins: ["./plugin_example.wasm"] }, test));
+        try {
+          const orchestra = `
+            iresult plugin_runtime_check
+            chnset iresult, "plugin_runtime_result"
+          `;
+          assert.equal(0, await cs.compileOrc(orchestra));
+          assert.equal(0, await cs.start());
+          assert.equal(42, await cs.getControlChannel("plugin_runtime_result"));
+          await cs.stop();
+          await cs.reset();
+          assert.equal(0, await cs.compileOrc(orchestra));
+          assert.equal(0, await cs.start());
+          assert.equal(42, await cs.getControlChannel("plugin_runtime_result"));
+          await cs.stop();
+        } finally {
+          await cs.terminateInstance();
+        }
+      });
+
       it("can load and run c++ plugins", async function () {
         const testWithPlugin = Object.assign(
           {
@@ -2052,6 +2073,86 @@ e
         wasm.freeStringMem(wideString);
         wasm.freeStringMem(format);
         cs.csoundDestroy(csound);
+      }
+    });
+
+    it("resolves a plugin's GOT.mem import to the engine's absolute data address", async function () {
+      const { libcsound } = await import(url);
+      const response = await fetch("./plugin_example.wasm");
+      assert.isTrue(response.ok);
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      const plugin = await WebAssembly.compile(bytes);
+      // The pinned LLVM/WASI build must exercise this relocation, not optimize it away.
+      assert.deepInclude(WebAssembly.Module.imports(plugin), {
+        module: "GOT.mem",
+        name: "__heap_base",
+        kind: "global",
+      });
+      const api = await libcsound({ withPlugins: [bytes] });
+      const csound = api.csoundCreate();
+      try {
+        api.csoundSetOption(csound, "-n");
+        assert.equal(
+          api.csoundCompileOrc(
+            csound,
+            `
+            iaddress plugin_heap_base
+            chnset iaddress, "plugin_heap_base"
+          `,
+          ),
+          0,
+        );
+        assert.equal(api.csoundStart(csound), 0);
+        assert.equal(
+          api.csoundGetControlChannel(csound, "plugin_heap_base"),
+          api.wasm.exports.__heap_base.value,
+        );
+      } finally {
+        api.csoundDestroy(csound);
+      }
+    });
+
+    it("relocates a plugin's GOT.mem export from its local data offset", async function () {
+      const { libcsound } = await import(url);
+      const response = await fetch("./plugin_example.wasm");
+      assert.isTrue(response.ok);
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      const plugin = await WebAssembly.compile(bytes);
+      // Keep these checks when updating the toolchain: both imports guard real loader paths.
+      assert.deepInclude(WebAssembly.Module.imports(plugin), {
+        module: "GOT.mem",
+        name: "plugin_local_data",
+        kind: "global",
+      });
+      assert.deepInclude(WebAssembly.Module.exports(plugin), {
+        name: "plugin_local_data",
+        kind: "global",
+      });
+      assert.deepInclude(WebAssembly.Module.imports(plugin), {
+        module: "GOT.func",
+        name: "csoundDestroy",
+        kind: "global",
+      });
+      const api = await libcsound({ withPlugins: [bytes] });
+      const csound = api.csoundCreate();
+      try {
+        api.csoundSetOption(csound, "-n");
+        assert.equal(
+          api.csoundCompileOrc(
+            csound,
+            `
+            iresult plugin_local_data_check
+            chnset iresult, "plugin_local_data_check"
+          `,
+          ),
+          0,
+        );
+        assert.equal(api.csoundStart(csound), 0);
+        // The opcode compares the GOT address with the direct static address,
+        // then writes through the GOT and reads through the static name.
+        assert.equal(api.csoundGetControlChannel(csound, "plugin_local_data_check"), 42);
+      } finally {
+        api.csoundDestroy(csound);
       }
     });
 
