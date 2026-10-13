@@ -1,5 +1,6 @@
-/* Exercise WASAPI_open without an audio device. The fake client records the
- * stream format, then stops at GetBufferSize before any audio threads start. */
+/* Check format selection only. The fake client records the stream format,
+ * then stops at GetBufferSize before any audio threads start. This does not
+ * show whether a real Windows device accepts conversion or capture flags. */
 #include <initguid.h>
 #include <windows.h>
 #include <mmdeviceapi.h>
@@ -8,6 +9,8 @@
 static HRESULT WINAPI testCreateInstance(REFCLSID clsid, LPUNKNOWN outer,
                                          DWORD context, REFIID iid, LPVOID *out);
 #define CoCreateInstance testCreateInstance
+/* Include the implementation to exercise its private WASAPI_open path without
+ * adding a public API for tests. Keep the fake COM methods in step with it. */
 #include "../../InOut/rtwasapi.c"
 #undef CoCreateInstance
 
@@ -18,6 +21,7 @@ static WAVEFORMATEX mixFormat, streamFormat;
 static AUDCLNT_SHAREMODE streamMode;
 static DWORD streamFlags;
 static int allowExclusive, failExclusiveInit, clientFailed, initialized;
+static int unexpectedSharedQuery;
 
 static ULONG STDMETHODCALLTYPE releaseEnumerator(IMMDeviceEnumerator *self)
 {
@@ -74,9 +78,9 @@ static HRESULT STDMETHODCALLTYPE formatSupported(IAudioClient *self,
                                                   WAVEFORMATEX **closest)
 {
     if (mode == AUDCLNT_SHAREMODE_SHARED) {
-        /* Reproduce a device that suggests a different stream format. */
-        HRESULT hr = getMixFormat(self, closest);
-        return FAILED(hr) ? hr : S_FALSE;
+        /* Shared mode must request conversion, not a replacement format. */
+        unexpectedSharedQuery = 1;
+        return E_UNEXPECTED;
     }
     if (allowExclusive && format->nSamplesPerSec == mixFormat.nSamplesPerSec &&
         format->nChannels == mixFormat.nChannels &&
@@ -146,6 +150,7 @@ static int checkFormat(const char *name, DWORD rate, WORD channels, int input,
     csound.LocalizeString = identity;
     csound.ErrorMsg = discardMessage;
     csound.Message = discardMessage;
+    /* Csound's default-device sentinel avoids enumerating numbered devices. */
     params.devNum = 1024;
     params.sampleRate = rate;
     params.nChannels = channels;
@@ -162,11 +167,13 @@ static int checkFormat(const char *name, DWORD rate, WORD channels, int input,
     allowExclusive = exclusive;
     failExclusiveInit = failInit;
     initialized = 0;
+    unexpectedSharedQuery = 0;
     memset(&streamFormat, 0, sizeof(streamFormat));
     int result = WASAPI_open(&csound, &params, &data, input);
     CoUninitialize();
 
-    int ok = result == -1 && initialized && streamMode == expectedMode &&
+    int ok = result == -1 && initialized && !unexpectedSharedQuery &&
+             streamMode == expectedMode &&
              streamFormat.nSamplesPerSec == rate &&
              streamFormat.nChannels == channels &&
              streamFormat.wBitsPerSample == 32 &&

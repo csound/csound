@@ -35,6 +35,14 @@
 #include "csdl.h"
 #include "soundio.h"
 
+/* Older MinGW headers omit these documented Windows audio engine flags. */
+#ifndef AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM
+#define AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM 0x80000000
+#endif
+#ifndef AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY
+#define AUDCLNT_STREAMFLAGS_SRC_DEFAULT_QUALITY 0x08000000
+#endif
+
 /* Define the COM GUIDs we need for WASAPI */
 /* MinGW headers already define these when initguid.h is included, but MSVC doesn't */
 #ifdef _MSC_VER
@@ -511,7 +519,7 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
     }
 
     /* If exclusive mode failed, fall back to shared mode */
-    if (FAILED(hr) || hr != S_OK) {
+    if (hr != S_OK) {
         if (O->msglevel || O->odebug)
             csound->Message(csound, Str("WASAPI: All exclusive mode attempts failed, "
                                         "falling back to shared mode\n"));
@@ -528,7 +536,8 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
 
         /* Keep Csound's rate, channel count and float samples. Let the Windows
          * audio engine convert between this format and the device format for
-         * both playback and capture. */
+         * both playback and capture. If conversion fails, report the error
+         * instead of using a different rate or channel count without conversion. */
         pFormatToUse = (WAVEFORMATEX *)CoTaskMemAlloc(sizeof(WAVEFORMATEX));
         if (pFormatToUse == NULL) {
             SAFE_RELEASE(pAudioClient);
@@ -549,7 +558,12 @@ static int32_t WASAPI_open(CSOUND *csound, const csRtAudioParams *parm,
             SAFE_RELEASE(pAudioClient);
             SAFE_RELEASE(pDevice);
             SAFE_RELEASE(pEnumerator);
-            csound->ErrorMsg(csound, Str("WASAPI: Failed to initialize audio client"));
+            csound->ErrorMsg(csound,
+                            Str("WASAPI: Cannot open shared stream at %lu Hz with %u "
+                                "channels using automatic format conversion "
+                                "(HRESULT: 0x%08lX). Try -+rtaudio=pa.\n"),
+                            (unsigned long)desiredFormat.nSamplesPerSec,
+                            (unsigned int)desiredFormat.nChannels, (unsigned long)hr);
             return -1;
         }
 

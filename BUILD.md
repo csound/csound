@@ -273,7 +273,7 @@ The installer and binaries are available as workflow artifacts and release
 assets.
 
 Set the version and build number before packaging a local build. Download the
-ARM64 Visual C++ runtime and compile the installer with Inno Setup 6 or later.
+ARM64 Visual C++ runtime and compile the installer with Inno Setup 6.3 or later.
 
 ```powershell
 $env:CSOUND_VERSION = "7.0-local"
@@ -284,7 +284,8 @@ iscc /o. installer\windows\csound7_arm64_github.iss
 
 The installer accepts only ARM64 Windows and uses `C:\Program Files\Csound7 ARM64`.
 It bundles the ARM64 runtime for offline installation. The Windows installers
-share `PATH`, `OPCODE7DIR64` and `RAWWAVE_PATH`. If you keep an x64 installation
+share `PATH`, `OPCODE7DIR64` and `RAWWAVE_PATH`. The last installation sets
+`OPCODE7DIR64` and `RAWWAVE_PATH` for all copies. If you keep an x64 installation
 too, use the full path to the desired executable and set `OPCODE7DIR64` and
 `RAWWAVE_PATH` to its `plugins64` and `samples` directories.
 
@@ -293,6 +294,20 @@ If they point to the copy being removed, the uninstaller clears them. Set them
 again for any copy you keep.
 
 If you wish to customize the build in any way, you can modify the `Custom-vs.cmake` file in the `platform\windows` directory. For common options, refer to "Useful CMake Options" above.
+
+### Windows audio backends
+
+The x64 and ARM64 installers include PortAudio, WASAPI and Windows MME.
+Use `-+rtaudio=wasapi` to select the native WASAPI backend. It uses exclusive
+mode when the device accepts Csound's rate, channel count and float format.
+Otherwise it tries shared mode with Windows audio engine conversion enabled
+through `AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM`.
+
+Shared mode requires the audio engine to accept this conversion request for
+playback or capture. If it cannot, Csound reports the HRESULT and stops opening
+the stream. It does not fall back to an unconverted device format, which could
+change pitch, duration or channel layout. Try `-+rtaudio=pa` to use PortAudio
+instead. The Windows ARM64 workflow uses Windows 11.
 
 
 

@@ -288,6 +288,17 @@ if(BUILD_TESTS)
 
     include(GoogleTest)
     gtest_discover_tests(unittests)
+    if(NOT MSVC OR CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+        foreach(precision IN ITEMS FLOAT DOUBLE)
+            set(conversion_test float_conversion_fallback_${precision})
+            add_executable(${conversion_test} float_conversion_fallback_test.c)
+            target_include_directories(${conversion_test} PRIVATE
+                ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+            target_compile_definitions(${conversion_test} PRIVATE
+                BUILD_PLUGINS USE_${precision})
+            add_test(NAME ${conversion_test} COMMAND ${conversion_test})
+        endforeach()
+    endif()
     if(WIN32)
         add_executable(wasapi_format_tests wasapi_format_test.c)
         target_include_directories(wasapi_format_tests PRIVATE
