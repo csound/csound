@@ -79,7 +79,7 @@ int get_next_char(char *, int32_t, void*);
 
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*(@global)?
 IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*\n?
-TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*(@global)?:[a-zA-Z_][a-zA-Z0-9_]*(\[\])*
+TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*(@global)?:[a-zA-Z_][a-zA-Z0-9_]*([ \t]*\[\])*
 TYPED_IDENTIFIERB [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*(([ \t]*\[\])+[ \t]*)?\([ \t]*\n?
 XIDENT          0|[aijkftKOJVPopS\[\]]+
 INTGR           [0-9]+
@@ -562,14 +562,6 @@ ERSTR           "}R"
                                                 yyscanner);
                       }
                       *strrchr(yytext, '(') = '\0';
-                      /* Type lookup uses compact brackets even when the
-                         function annotation separates them with spaces. */
-                      char *out = yytext;
-                      for (const char *in = yytext; *in != '\0'; in++) {
-                          if (*in != ' ' && *in != '\t')
-                              *out++ = *in;
-                      }
-                      *out = '\0';
                       *lvalp = lookup_token(csound, yytext, yyscanner);
                       return (*lvalp)->type+1; }
 {INTGR}         {
@@ -642,6 +634,13 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         char* baseName = strtok_r(s, ":", &th);
         char* annotation = strtok_r(NULL, ":", &th);
         ans->lexeme = csoundStrdup(csound, baseName);
+        /* Use one spelling for annotations in every lexer state. */
+        char *out = annotation;
+        for (const char *in = annotation; *in != '\0'; in++) {
+            if (*in != ' ' && *in != '\t')
+                *out++ = *in;
+        }
+        *out = '\0';
         ans->optype = csoundStrdup(csound, annotation);
         type = T_TYPED_IDENT;
     } else {
