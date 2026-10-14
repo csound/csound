@@ -22,7 +22,6 @@ export DMG_DIR="Csound-${CS_VERSION}"
 export DMG_NAME="csound-MacOS-${CS_VERSION}.dmg"
 
 #export SDK=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/
-export TARGET=10.7
 export DEPS_BASE=/usr/local
 # If arg2 passed in, will cd into that dir and rebuild, otherwise
 # will clone from repo and do a fresh build
@@ -54,7 +53,7 @@ mkdir build
 cd build
 export BUILD_DIR=`pwd`
 # i386 is now deprecated, so we're not building it anymore
-cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0  -DBUILD_LUA_INTERFACE=0 -DUSE_GETTEXT=0 -DUSE_FLTK=0
+cmake .. -DBUILD_INSTALLER=1 -DCMAKE_INSTALL_PREFIX=dist -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=0  -DBUILD_LUA_INTERFACE=0 -DUSE_GETTEXT=0 -DUSE_FLTK=0
 make -j6 install
 
 cd ../..
