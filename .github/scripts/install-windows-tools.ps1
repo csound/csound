@@ -9,7 +9,8 @@ function Test-BuildTools($Tools) {
             Write-Host "Missing build tool $name"
             return $false
         }
-        $arguments = $Tools[$name]
+        # Splat an array, since splatting a string passes its characters separately.
+        $arguments = @($Tools[$name])
         & $command.Source @arguments | Out-Host
         if ($LASTEXITCODE -ne 0) {
             Write-Host "$name failed with exit code $LASTEXITCODE"
