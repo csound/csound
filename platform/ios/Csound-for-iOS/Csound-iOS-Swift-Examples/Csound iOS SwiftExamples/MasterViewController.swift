@@ -127,7 +127,7 @@ class MasterViewController: UITableViewController {
                 
                 if UIDevice.current.orientation == .portrait {  // If iPad orientation is portrait, animate hiding the master pane
                     UIView.animate(withDuration: 0.2, animations: { [unowned self] in
-                        self.splitViewController?.preferredDisplayMode = .primaryHidden
+                        self.splitViewController?.preferredDisplayMode = UISplitViewControllerDisplayMode.secondaryOnly
                     })
                 }
             }

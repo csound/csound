@@ -153,8 +153,9 @@ extension LevelMeterView: CsoundBinding {
         }
         count2 += 1
         
-        if count2 > Int.max {
-            count2 -= Int.max
-        }
+        // remove 'will never execute' warning
+//        if count2 > Int.max {
+//            count2 -= Int.max
+//        }
     }
 }
