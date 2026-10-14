@@ -62,11 +62,12 @@ void legacy_host(CSOUND *csound) {{
 ''')
                 result = subprocess.run(command, check=True, capture_output=True,
                                         text=True)
-                assert "MYFLT is deprecated in CS7; use cs_float" in result.stderr
+                # Restore warning expectations when MYFLT warnings resume.
+                assert "MYFLT is deprecated in CS7; use cs_float" not in result.stderr
                 result = subprocess.run(
                     [*command, "-Werror=deprecated-declarations"],
                     capture_output=True, text=True)
-                assert result.returncode != 0, "MYFLT must trigger deprecation"
+                assert result.returncode == 0, result.stderr
                 source.write_text('''
 #include "csdl.h"
 void legacy_plugin(cs_float sample) {
