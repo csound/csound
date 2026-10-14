@@ -9,7 +9,8 @@ function Test-BuildTools($Tools) {
             Write-Host "Missing build tool $name"
             return $false
         }
-        & $command.Source $Tools[$name] | Out-Host
+        $arguments = $Tools[$name]
+        & $command.Source @arguments | Out-Host
         if ($LASTEXITCODE -ne 0) {
             Write-Host "$name failed with exit code $LASTEXITCODE"
             return $false
@@ -20,7 +21,8 @@ function Test-BuildTools($Tools) {
 
 $packages = @(
     @{ Name = 'winflexbison3'; Tools = @{ 'win_flex.exe' = '--version'; 'win_bison.exe' = '--version' } },
-    @{ Name = 'innosetup'; Tools = @{ 'iscc.exe' = '/?' } }
+    # ISCC's help command returns 1. A compile-only check returns 0 on success.
+    @{ Name = 'innosetup'; Tools = @{ 'iscc.exe' = @('/Q', "$PSScriptRoot/check-inno-setup.iss") } }
 )
 
 foreach ($package in $packages) {
