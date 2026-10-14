@@ -1138,8 +1138,8 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Install system dependencies
-        run: |
-          choco install -y winflexbison3 innosetup
+        shell: pwsh
+        run: ./.github/scripts/install-windows-tools.ps1
 
       - name: Bootstrap VCPKG
         run: .\vcpkg\bootstrap-vcpkg.bat
@@ -1230,8 +1230,8 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Install system dependencies
-        run: |
-          choco install -y winflexbison3 innosetup
+        shell: pwsh
+        run: ./.github/scripts/install-windows-tools.ps1
 
       - name: Bootstrap VCPKG
         run: .\vcpkg\bootstrap-vcpkg.bat
@@ -1323,8 +1323,8 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       - name: Install system dependencies
-        run: |
-          choco install -y winflexbison3 innosetup
+        shell: pwsh
+        run: ./.github/scripts/install-windows-tools.ps1
 
       - name: Bootstrap VCPKG
         run: .\vcpkg\bootstrap-vcpkg.bat
