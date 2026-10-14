@@ -634,14 +634,14 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         char* baseName = strtok_r(s, ":", &th);
         char* annotation = strtok_r(NULL, ":", &th);
         ans->lexeme = csoundStrdup(csound, baseName);
-        /* Use one spelling for annotations in every lexer state. */
-        char *out = annotation;
-        for (const char *in = annotation; *in != '\0'; in++) {
+        ans->optype = csoundStrdup(csound, annotation);
+        /* Normalize the copy. Error locations depend on the scanner buffer. */
+        char *out = ans->optype;
+        for (const char *in = ans->optype; *in != '\0'; in++) {
             if (*in != ' ' && *in != '\t')
                 *out++ = *in;
         }
         *out = '\0';
-        ans->optype = csoundStrdup(csound, annotation);
         type = T_TYPED_IDENT;
     } else {
         ans->lexeme = csoundStrdup(csound, s);
