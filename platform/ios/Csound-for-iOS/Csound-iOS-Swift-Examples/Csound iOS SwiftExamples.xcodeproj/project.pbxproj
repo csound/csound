@@ -47,7 +47,6 @@
 		244DC5231EDF746100216C1B /* LevelMeterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 244DC5221EDF746100216C1B /* LevelMeterView.swift */; };
 		2499964D20A60800002B6ED8 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2499964C20A607FC002B6ED8 /* Accelerate.framework */; };
 		24BF2D561EDD13870091F04E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BF2D551EDD13870091F04E /* AppDelegate.swift */; };
-		B6200222C8D24849BF3382CA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E810CAD0C04A97BBCB4AFB /* SceneDelegate.swift */; };
 		24BF2D581EDD13870091F04E /* MasterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24BF2D571EDD13870091F04E /* MasterViewController.swift */; };
 		24BF2D5D1EDD13870091F04E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D5B1EDD13870091F04E /* Main.storyboard */; };
 		24BF2D5F1EDD13870091F04E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 24BF2D5E1EDD13870091F04E /* Assets.xcassets */; };
@@ -89,6 +88,7 @@
 		576FFB012D7D9F7200190F26 /* CsoundGyroscopeBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAD62D7D9F7200190F26 /* CsoundGyroscopeBinding.m */; };
 		576FFB022D7D9F7200190F26 /* CsoundSliderBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAE12D7D9F7200190F26 /* CsoundSliderBinding.m */; };
 		576FFB032D7D9F7200190F26 /* CsoundSwitchBinding.m in Sources */ = {isa = PBXBuildFile; fileRef = 576FFAE32D7D9F7200190F26 /* CsoundSwitchBinding.m */; };
+		B6200222C8D24849BF3382CA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9E810CAD0C04A97BBCB4AFB /* SceneDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -148,7 +148,6 @@
 		2499964C20A607FC002B6ED8 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		24BF2D521EDD13870091F04E /* Csound iOS SwiftExamples.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Csound iOS SwiftExamples.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		24BF2D551EDD13870091F04E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		B9E810CAD0C04A97BBCB4AFB /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		24BF2D571EDD13870091F04E /* MasterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MasterViewController.swift; sourceTree = "<group>"; };
 		24BF2D5C1EDD13870091F04E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		24BF2D5E1EDD13870091F04E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -205,6 +204,7 @@
 		576FFAF02D7D9F7200190F26 /* CsoundObj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CsoundObj.h; sourceTree = "<group>"; };
 		576FFAF12D7D9F7200190F26 /* CsoundObj.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CsoundObj.m; sourceTree = "<group>"; };
 		576FFAF32D7D9F7200190F26 /* LICENSE.TXT */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.TXT; sourceTree = "<group>"; };
+		B9E810CAD0C04A97BBCB4AFB /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -554,8 +554,9 @@
 		24BF2D4A1EDD13870091F04E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 0910;
+				LastUpgradeCheck = 2700;
 				ORGANIZATIONNAME = "Nikhil Singh";
 				TargetAttributes = {
 					24BF2D511EDD13870091F04E = {
@@ -697,6 +698,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
@@ -707,6 +709,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -714,8 +717,10 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -724,8 +729,10 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = AH2WVU4222;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -740,7 +747,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -755,6 +762,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
@@ -765,6 +773,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -772,8 +781,10 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -782,8 +793,10 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = AH2WVU4222;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -792,7 +805,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -807,18 +820,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = AH2WVU4222;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Csound iOS SwiftExamples/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Csound\\ iOS\\ SwiftExamples/csound-iOS/libs",
-					"$(PROJECT_DIR)/Csound\\ iOS\\ SwiftExamples/csound-iOS/libs",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.csound.Csound-iOS-SwiftExamples";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -832,18 +838,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = AH2WVU4222;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "Csound iOS SwiftExamples/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
-				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Csound\\ iOS\\ SwiftExamples/csound-iOS/libs",
-					"$(PROJECT_DIR)/Csound\\ iOS\\ SwiftExamples/csound-iOS/libs",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.csound.Csound-iOS-SwiftExamples";
 				PRODUCT_NAME = "$(TARGET_NAME)";
