@@ -35,12 +35,13 @@ typedef double cs_double;
 /* Deprecated in CS7. Keep old host and opcode source code valid. */
 #ifndef __MYFLT_DEF
 #define __MYFLT_DEF
+/* Temporarily pause these warnings. Re-enable the attributes later. */
 #if defined(SWIG)
 typedef cs_float MYFLT;
 #elif defined(_MSC_VER)
-typedef __declspec(deprecated("MYFLT is deprecated in CS7; use cs_float")) cs_float MYFLT;
+typedef /* __declspec(deprecated("MYFLT is deprecated in CS7; use cs_float")) */ cs_float MYFLT;
 #elif defined(__GNUC__) || defined(__clang__)
-typedef cs_float MYFLT __attribute__((deprecated("MYFLT is deprecated in CS7; use cs_float")));
+typedef cs_float MYFLT /* __attribute__((deprecated("MYFLT is deprecated in CS7; use cs_float"))) */;
 #else
 typedef cs_float MYFLT;
 #endif
