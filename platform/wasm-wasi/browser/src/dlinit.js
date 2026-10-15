@@ -46,7 +46,8 @@ export const dlinit = (
   // Match the native loader: missing metadata denotes the legacy cs_double ABI.
   const getSampleSize = hostExports["csoundGetSizeOfCsFloat"] ||
     hostExports["csoundGetSizeOfMYFLT"];
-  const sampleSize = info & 0x7f;
+  // Bits 7 and 6 describe internal precision and array-rank support.
+  const sampleSize = info & 0x3f;
   const doubleSize = typeof hostExports["csoundGetSizeOfCsDouble"] === "function"
     ? hostExports["csoundGetSizeOfCsDouble"]() : 8;
   if (Boolean(info & 0x80) !== (doubleSize === 4)) {
