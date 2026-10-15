@@ -1364,25 +1364,18 @@ int32_t csoundSpinLockInit(spin_lock_t *spinlock) {
 
 #elif defined(__GNUC__) && defined(HAVE_ATOMIC_BUILTIN)
 // No POSIX spinlocks but GCC intrinsics
-#include <stdbool.h>
+#include "atomic_spinlock.h"
 
 void csoundSpinLock(spin_lock_t *spinlock){
-    spin_lock_t unset = 0;
-    spin_lock_t set = 1;
-    while (!__atomic_compare_exchange_n(spinlock, &unset, set, false,
-                                        __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)) { };
+    csoundAtomicSpinLock(spinlock);
 }
 
 void csoundSpinUnLock(spin_lock_t *spinlock){
-    __atomic_clear(spinlock, __ATOMIC_SEQ_CST);
+    csoundAtomicSpinUnlock(spinlock);
 }
 
 int32_t csoundSpinTryLock(spin_lock_t *spinlock) {
-    spin_lock_t unset = 0;
-    spin_lock_t set = 1;
-    return __atomic_compare_exchange_n(spinlock, &unset, set, false,
-                                       __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST) ?
-      CSOUND_SUCCESS : CSOUND_ERROR;
+    return csoundAtomicSpinTryLock(spinlock) ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int32_t csoundSpinLockInit(spin_lock_t *spinlock) {

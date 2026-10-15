@@ -128,6 +128,10 @@ static EVTNODE *rt_event_take_due(CSOUND *csound)
 
 static int32_t realtime_engine_locks_init(CSOUND *csound)
 {
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+  IGN(csound);
+  return CSOUND_ERROR;
+#else
   if (csound->realtime_locks_initialized)
     return CSOUND_SUCCESS;
   if (alloc_queue_lock_init(csound) != CSOUND_SUCCESS)
@@ -152,6 +156,7 @@ static int32_t realtime_engine_locks_init(CSOUND *csound)
  fail_alloc:
   alloc_queue_lock_destroy(csound);
   return CSOUND_ERROR;
+#endif
 }
 
 static void realtime_engine_locks_destroy(CSOUND *csound)
@@ -424,8 +429,13 @@ int32_t start_engine(CSOUND *csound)
 #ifndef __EMSCRIPTEN__
     if (O->realtime &&
         UNLIKELY(realtime_engine_locks_init(csound) != CSOUND_SUCCESS)) {
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+      csound->ErrorMsg(csound, "%s", Str("Realtime mode requires atomic "
+                                           "operations in this build\n"));
+#else
       csound->ErrorMsg(csound, "%s", Str("Failed to initialise realtime "
                                            "engine locks\n"));
+#endif
       return CSOUND_ERROR;
     }
 #endif

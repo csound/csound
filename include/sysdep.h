@@ -558,8 +558,18 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_CMP_XCH(val, newVal, oldVal) \
   !(__atomic_compare_exchange(val, (long *) &oldVal,  &newVal, 0, \
                               __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
-#else /* FIXME: no atomics, what to do? */
-#define ATOMIC_CMP_XCH(val, newVal, oldVal) (*val = newVal) != oldVal
+#else
+/* Serialized fallback only; this does not synchronize concurrent callers. */
+static inline int csoundCompareExchangeSerial(volatile long *value,
+                                              long desired, long expected)
+{
+  if (*value != expected)
+    return 1;
+  *value = desired;
+  return 0;
+}
+#define ATOMIC_CMP_XCH(val, newVal, oldVal) \
+  csoundCompareExchangeSerial(val, newVal, oldVal)
 #endif
 
 #if defined(WIN32)

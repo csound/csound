@@ -13,6 +13,8 @@ endif()
 if(BUILD_TESTS)
   add_executable(unittests
         array_matrix_setters_test.cpp
+        atomic_fallback_test.cpp
+        fixtures/atomic_fallback.c
         array_ops_test.cpp
         array_size_conversion_test.cpp
         audio_array_io_test.cpp
@@ -327,6 +329,14 @@ if(BUILD_TESTS)
             GTest::gtest_main ${CSOUNDLIB_STATIC})
         target_compile_features(realtime_score_end_tests PRIVATE cxx_std_17)
         gtest_discover_tests(realtime_score_end_tests PROPERTIES TIMEOUT 15)
+
+        add_executable(atomic_spinlock_tests
+            atomic_spinlock_test.cpp fixtures/atomic_spinlock.c)
+        target_include_directories(atomic_spinlock_tests PRIVATE
+            ${PROJECT_SOURCE_DIR}/H)
+        target_link_libraries(atomic_spinlock_tests PRIVATE GTest::gtest_main)
+        target_compile_features(atomic_spinlock_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(atomic_spinlock_tests PROPERTIES TIMEOUT 10)
 
         add_executable(diskin2_concurrency_tests
             diskin2_concurrency_test.cpp fixtures/diskin2_concurrency.c)
