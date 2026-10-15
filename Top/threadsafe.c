@@ -310,8 +310,9 @@ static void kill_instance_enqueue(CSOUND *csound, cs_float instr, int32_t insno,
 */
 int32_t merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e,
                             TYPE_TABLE *t, OPDS *ids) {
-  if (csound->oparms->realtime && csound->event_insert_loop &&
-      csound->alloc_queue != NULL) {
+  /* The queue keeps ownership through shutdown; its admission check must
+     reject stopped work instead of sending it to the audio-side API queue. */
+  if (csound->oparms->realtime && csound->alloc_queue != NULL) {
     ALLOC_DATA data = { 0 };
     data.engine_state = e;
     data.type_table = t;

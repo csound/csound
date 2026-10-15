@@ -474,7 +474,7 @@ static void midNotesOff(CSOUND *csound)
 }
 
 /* sense a MIDI event, collect the data & dispatch */
-/* called from sense_events(), returns 2 if MIDI on/off */
+/* Returns 2 for notes and, in realtime mode, 3 for control/system messages. */
 
 int32_t sens_midi(CSOUND *csound)
 {
@@ -606,6 +606,10 @@ int32_t sens_midi(CSOUND *csound)
     p->datcnt = 0;                      /* else allow a repeat  */
     /* NB:  this allows repeat in syscom 1,2,3 too */
     if (mep->type > NOTEON_TYPE) {      /* if control or syscom */
+      /* The performance thread must wait for earlier asynchronous note-ons
+         before applying controllers, sustain changes, or program changes. */
+      if (O->realtime)
+        return 3;
       m_chanmsg(csound, mep);           /*   handle from here   */
       goto nxtchr;                      /*   & go look for more */
     }

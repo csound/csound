@@ -461,8 +461,11 @@ void realtime_spin_lock_destroy(spin_lock_t *spinlock)
 
 int32_t alloc_queue_lock_init(CSOUND *csound)
 {
-  csound->alloc_queue_items = 0;
+  ATOMIC_SET(csound->alloc_queue_items, 0);
   csound->alloc_queue_active = 0;
+  ATOMIC_SET(csound->alloc_queue_stopping, 0);
+  ATOMIC_SET(csound->alloc_queue_midi, 0);
+  csound->midi_event_pending = 0;
   csound->alloc_queue_wp = 0;
   return realtime_spin_lock_init(&csound->alloc_queue_spinlock);
 }
@@ -482,14 +485,17 @@ int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
     return CSOUND_ERROR;
 
   alloc_queue_lock(csound);
-  if (UNLIKELY(csound->alloc_queue_items >= MAX_ALLOC_QUEUE)) {
+  if (UNLIKELY(ATOMIC_GET(csound->alloc_queue_stopping) ||
+               ATOMIC_GET(csound->alloc_queue_items) >= MAX_ALLOC_QUEUE)) {
     result = CSOUND_ERROR;
   }
   else {
     wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp] = *data;
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
-    csound->alloc_queue_items++;
+    ATOMIC_INCR(csound->alloc_queue_items);
+    if (data->type == ALLOC_DATA_MIDI_EVENT)
+      ATOMIC_INCR(csound->alloc_queue_midi);
   }
   alloc_queue_unlock(csound);
   return result;
@@ -501,11 +507,11 @@ static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
   int32_t result = 0;
 
   alloc_queue_lock(csound);
-  if (csound->alloc_queue_items > 0) {
+  if (ATOMIC_GET(csound->alloc_queue_items) > 0) {
     *data = csound->alloc_queue[*readPosition];
     *readPosition = *readPosition + 1 < MAX_ALLOC_QUEUE ?
       *readPosition + 1 : 0;
-    csound->alloc_queue_items--;
+    ATOMIC_DECR(csound->alloc_queue_items);
     csound->alloc_queue_active++;
     result = 1;
   }
@@ -518,15 +524,35 @@ int32_t alloc_queue_has_pending(CSOUND *csound)
   int32_t result;
 
   alloc_queue_lock(csound);
-  result = csound->alloc_queue_items > 0 || csound->alloc_queue_active > 0;
+  result = ATOMIC_GET(csound->alloc_queue_items) > 0 || csound->alloc_queue_active > 0;
   alloc_queue_unlock(csound);
   return result;
 }
 
-static void alloc_queue_complete(CSOUND *csound)
+/* Keep MIDI parsing on the performance thread, but do not let later note-off
+   or controller messages overtake an accepted asynchronous note-on. */
+int32_t alloc_queue_midi_ready(CSOUND *csound, int32_t wait_for_init)
+{
+  /* Capacity is advisory; enqueue checks it again under the queue lock. */
+  return !ATOMIC_GET(csound->alloc_queue_stopping) &&
+         (!wait_for_init || ATOMIC_GET(csound->alloc_queue_midi) == 0) &&
+         ATOMIC_GET(csound->alloc_queue_items) < MAX_ALLOC_QUEUE;
+}
+
+/* Close admission before allowing the worker to exit. A producer already
+   holding the queue lock finishes before the worker's final empty check. */
+void alloc_queue_stop(CSOUND *csound)
+{
+  ATOMIC_SET(csound->alloc_queue_stopping, 1);
+  ATOMIC_SET(csound->event_insert_loop, 0);
+}
+
+static void alloc_queue_complete(CSOUND *csound, int32_t type)
 {
   alloc_queue_lock(csound);
   csound->alloc_queue_active--;
+  if (type == ALLOC_DATA_MIDI_EVENT)
+    ATOMIC_DECR(csound->alloc_queue_midi);
   alloc_queue_unlock(csound);
 }
 
@@ -863,7 +889,7 @@ uintptr_t event_insert_thread(void *p) {
       }
       if (csound->init_pass_threadlock)
         csoundUnlockMutex(csound->init_pass_threadlock);
-      alloc_queue_complete(csound);
+      alloc_queue_complete(csound, data.type);
       processed++;
     }
     diskin2_async_drain_deferred(csound);
@@ -879,7 +905,7 @@ uintptr_t event_insert_thread(void *p) {
     }
     /* Stop requests reject new work at the engine boundary. Drain all
        published work so init depths and copied score data are not stranded. */
-    if (!csound->event_insert_loop && !alloc_queue_has_pending(csound))
+    if (!ATOMIC_GET(csound->event_insert_loop) && !alloc_queue_has_pending(csound))
       break;
   }
 

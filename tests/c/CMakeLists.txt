@@ -106,6 +106,7 @@ if(BUILD_TESTS)
         nreverb_test.cpp
         midi_file_test.cpp
         midi_realtime_input_test.cpp
+        realtime_queue_test.cpp
         midiarp_test.cpp
         tableseg_test.cpp
         table_copy_test.cpp
@@ -307,6 +308,26 @@ if(BUILD_TESTS)
     if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND NOT EMSCRIPTEN AND
        USE_ATOMIC_BUILTIN AND HAVE_ATOMIC_BUILTIN AND NOT IOS AND
        NOT BARE_METAL AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+        add_executable(realtime_lock_tests
+            realtime_lock_test.cpp fixtures/realtime_lock.c)
+        target_compile_options(realtime_lock_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(realtime_lock_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(realtime_lock_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(realtime_lock_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(realtime_lock_tests PROPERTIES TIMEOUT 15)
+
+        add_executable(realtime_score_end_tests
+            realtime_score_end_test.cpp fixtures/realtime_score_end.c)
+        target_compile_options(realtime_score_end_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(realtime_score_end_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(realtime_score_end_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(realtime_score_end_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(realtime_score_end_tests PROPERTIES TIMEOUT 15)
+
         add_executable(diskin2_concurrency_tests
             diskin2_concurrency_test.cpp fixtures/diskin2_concurrency.c)
         target_compile_options(diskin2_concurrency_tests PRIVATE ${libcsound_CFLAGS})
