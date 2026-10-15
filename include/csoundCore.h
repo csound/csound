@@ -550,6 +550,10 @@ typedef struct {
     volatile int32_t async_ref_count;
     /* Private named storage. Use Create/QueryInstanceVariable to access it. */
     void *instance_variables;
+    /* Reuse list; never overwrite a retired active-chain successor. */
+    struct insds * nxtinactive;
+    /* Render interval in which this instance left the active chain. */
+    volatile long retired_epoch;
     /* Copy of required p-field values for quick access */
     CS_VAR_MEM  p0;
     CS_VAR_MEM  p1;
@@ -1624,6 +1628,8 @@ struct CSOUND_ {
   uint32_t nchnls;                                           /* number of output channels */
   int32_t inchnls;                                           /* number of input channels */
   uint64_t kcounter;                                         /* control-period counter for the current performance */
+  /* Odd while a render traversal may retain active-chain successors. */
+  volatile long performance_epoch;
   uint64_t global_kcounter;                                  /* global control-period counter */
   cs_float esr;                                              /* engine sample rate */
   cs_float ekr;                                              /* engine control rate */

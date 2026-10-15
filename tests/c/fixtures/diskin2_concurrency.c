@@ -381,7 +381,7 @@ int32_t csound_test_diskin_retirement(int32_t borrowed, int32_t reinit)
         checking_audio_locks = 0;
         result &= audio_locks == 0;
         ATOMIC_SET8(owner.actflg, 0);
-        result &= !instance_is_reclaimable(&owner);
+        result &= !instance_is_reclaimable(&cs, &owner);
     }
     diskin2_async_drain_deferred(&cs);
     if (borrowed) {

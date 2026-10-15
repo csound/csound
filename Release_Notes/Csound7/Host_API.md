@@ -47,6 +47,12 @@ starts. Write input frames through `csoundGetSpin` and read output through
 `csoundGetSpout`. Each performance call processes `ksmps` frames.
 The output pointer is read-only.
 
+Use one performance thread per Csound instance, and do not call performance
+from a Csound callback. `csoundPerformKsmps` returns zero while running, a
+positive value when finished, or a negative value on error. A call during an
+active render interval returns `CSOUND_ERROR`; this check does not serialize
+concurrent callers. The host must prevent overlapping performance calls.
+
 The performance thread interface now belongs to the main Csound library.
 Use `csPerfThread.h` from C or `csPerfThread.hpp` from C++ when Csound must
 perform on its own thread.

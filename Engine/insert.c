@@ -174,9 +174,19 @@ int32_t instance_has_async_refs(const INSDS *ip)
   return ip != NULL && ATOMIC_GET(ip->async_ref_count) != 0;
 }
 
-int32_t instance_is_reclaimable(const INSDS *ip)
+static int32_t instance_has_perf_refs(const CSOUND *csound, const INSDS *ip)
 {
+  long retired = ATOMIC_GET(ip->retired_epoch);
+  long current = ATOMIC_GET(csound->performance_epoch);
+  return (retired & 1L) && retired == current;
+}
+
+int32_t instance_is_reclaimable(const CSOUND *csound, const INSDS *ip)
+{
+  /* Observe inactive first: retirement publishes its epoch before actflg.
+     Reading the render epoch first could miss a concurrent retirement. */
   return ip != NULL && !ATOMIC_GET8(ip->actflg) &&
+         !instance_has_perf_refs(csound, ip) &&
          !instance_has_async_refs(ip) && !ATOMIC_GET(ip->init_running) &&
          !ATOMIC_GET(ip->turnoff_pending);
 }
@@ -259,6 +269,18 @@ INSTANCE_INIT_RESULT instance_init_finish(CSOUND *csound, INSDS *ip)
   return result;
 }
 
+/* Final scheduling can expire a short note. A concurrent turnoff request
+   also owns init_done, so publish readiness under the same state lock. */
+static void instance_publish_ready(CSOUND *csound, INSDS *ip)
+{
+  async_instance_lock(csound);
+  if (ATOMIC_GET8(ip->actflg) &&
+      ATOMIC_GET(ip->turnoff_pending) == INSTANCE_TURNOFF_NONE &&
+      ATOMIC_GET(ip->init_running) == 0)
+    ATOMIC_SET(ip->init_done, 1);
+  async_instance_unlock(csound);
+}
+
 void instance_init_request_turnoff(CSOUND *csound, INSDS *ip)
 {
   int32_t state;
@@ -324,7 +346,7 @@ void instance_process_pending_turnoffs(CSOUND *csound)
     if (state == INSTANCE_TURNOFF_FINALIZING ||
         state == INSTANCE_TURNOFF_RECLAIM) {
       waitForReaders = ATOMIC_GET(ip->free_pending) && !ip->linked &&
-                       instance_has_async_refs(ip);
+                       (instance_has_async_refs(ip) || instance_has_perf_refs(csound, ip));
       if (waitForReaders) {
         ATOMIC_SET(ip->turnoff_pending, INSTANCE_TURNOFF_RECLAIM);
         enqueue_init_turnoff_locked(csound, ip);
@@ -364,19 +386,19 @@ static INSDS *take_inactive_instance(CSOUND *csound, INSTRTXT *tp)
 
   inactive_instance_lock(csound);
   current = tp->act_instance;
-  while (current != NULL && !instance_is_reclaimable(current)) {
+  while (current != NULL && !instance_is_reclaimable(csound, current)) {
     previous = current;
-    current = current->nxtact;
+    current = current->nxtinactive;
   }
   if (current == NULL) {
     inactive_instance_unlock(csound);
     return NULL;
   }
   if (previous == NULL)
-    tp->act_instance = current->nxtact;
+    tp->act_instance = current->nxtinactive;
   else
-    previous->nxtact = current->nxtact;
-  current->nxtact = NULL;
+    previous->nxtinactive = current->nxtinactive;
+  current->nxtinactive = NULL;
   inactive_instance_unlock(csound);
   /* A previous deactivation may have deferred this close until its final
      asynchronous reader released the instance. No reader remains here. */
@@ -422,7 +444,7 @@ void recycle_inactive_instance(CSOUND *csound, INSDS *ip)
 
   /* The caller owns an inactive instance detached from this reuse list. */
   inactive_instance_lock(csound);
-  ip->nxtact = tp->act_instance;
+  ip->nxtinactive = tp->act_instance;
   tp->act_instance = ip;
   inactive_instance_unlock(csound);
 }
@@ -1358,12 +1380,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
   error = csound->oparms->realtime ? realtime_init_pass(csound, ip) :
     init_pass(csound, ip);
   initResult = instance_init_finish(csound, ip);
-  if (initResult == INSTANCE_INIT_COMPLETE && error == 0) {
-    ATOMIC_SET(ip->init_done, 1);
-  }
-  else {
-    ATOMIC_SET(ip->init_done, 0);
-  }
+  ATOMIC_SET(ip->init_done, 0);
   if (initResult == INSTANCE_INIT_TURNOFF) {
     return error != 0 ? error : csound->inerrcnt;
   }
@@ -1420,6 +1437,8 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       csound->Message(csound, Str("instr %d now active:\n"), insno);
     show_allocs(csound);
   }
+  if (initResult == INSTANCE_INIT_COMPLETE && error == 0)
+    instance_publish_ready(csound, ip);
   if (newevtp->pinstance != NULL) {
     /* place instance on output var memory */
     memcpy(newevtp->pinstance, &ip, sizeof(INSDS *));
@@ -1695,12 +1714,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   if(evt.p) csound->Free(csound, evt.p);
   csound->init_event = NULL;
   initResult = instance_init_finish(csound, ip);
-  if (initResult == INSTANCE_INIT_COMPLETE && error == 0) {
-    ATOMIC_SET(ip->init_done, 1);
-  }
-  else {
-    ATOMIC_SET(ip->init_done, 0);
-  }
+  ATOMIC_SET(ip->init_done, 0);
   if (initResult == INSTANCE_INIT_TURNOFF) {
     return error != 0 ? error : csound->inerrcnt;
   }
@@ -1714,6 +1728,8 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   }
   ip->tieflag = ip->reinitflag = 0;
   csound->tieflag = csound->reinitflag = 0;
+  if (initResult == INSTANCE_INIT_COMPLETE && error == 0)
+    instance_publish_ready(csound, ip);
 
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
@@ -2002,8 +2018,10 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
           nxtp->prvact = current->prvact;
         }
         current->prvact = NULL;
-        current->nxtact = NULL;
-        /* Prevent a loop in kperf() if an inactive instance is passed in. */
+        /* A render callback may have retained this successor before turnoff.
+           Keep it until the node can be reused in a later render interval. */
+        ATOMIC_SET(current->retired_epoch,
+                   ATOMIC_GET(csound->performance_epoch));
         async_instance_lock(csound);
         ATOMIC_SET(current->init_done, 0);
         ATOMIC_SET8(current->actflg, 0);
@@ -2018,7 +2036,7 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
             csound->engineState.instrtxtp[current->insno] ==
               current->instr) {
           inactive_instance_lock(csound);
-          current->nxtact =
+          current->nxtinactive =
             csound->engineState.instrtxtp[current->insno]->act_instance;
           csound->engineState.instrtxtp[current->insno]->act_instance =
             current;
@@ -2228,7 +2246,7 @@ void free_inactive_instances(CSOUND *csound)
       prvip = NULL;
       prvnxtloc = &txtp->instance;
       do {
-        if (instance_is_reclaimable(ip)) {
+        if (instance_is_reclaimable(csound, ip)) {
           cnt++;
           if ((nxtip = ip->nxtinstance) != NULL)
             nxtip->prvinstance = prvip;
@@ -2246,7 +2264,7 @@ void free_inactive_instances(CSOUND *csound)
         }
         else {
           if (!ip->actflg && ip->linked) {
-            ip->nxtact = pending;
+            ip->nxtinactive = pending;
             pending = ip;
           }
           prvip = ip;
@@ -2289,7 +2307,7 @@ void free_inactive_instances(CSOUND *csound)
       if (csound->dead_instr_pool[i] != NULL) {
         INSDS *active = csound->dead_instr_pool[i]->instance;
         while (active != NULL) {
-          if (!instance_is_reclaimable(active)) {
+          if (!instance_is_reclaimable(csound, active)) {
             // add_to_deadpool(csound,csound->dead_instr_pool[i]);
             break;
           }
@@ -2928,7 +2946,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     else
       tp->instance = ip;
     tp->lst_instance = ip;
-    ip->nxtact = tp->act_instance;
+    ip->nxtinactive = tp->act_instance;
     tp->act_instance = ip;
     ip->linked = 1;
     inactive_instance_unlock(csound);
@@ -3025,7 +3043,8 @@ static void free_unlinked_instance(CSOUND *csound, INSDS *ip)
 {
   /* The pending-turnoff handoff polls readers before reaching this function.
      Never wait here: delete can run while its caller owns an engine lock. */
-  if (UNLIKELY(instance_has_async_refs(ip)))
+  if (UNLIKELY(instance_has_async_refs(ip) ||
+               instance_has_perf_refs(csound, ip)))
     return;
 
   // deactivate any opcodes
