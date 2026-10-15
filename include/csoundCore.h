@@ -1883,6 +1883,7 @@ struct CSOUND_ {
   struct _message_queue **msg_queue;                         /* realtime message queue */
   volatile long msg_queue_write;                             /* reserved API queue positions */
   volatile long msg_queue_read;                              /* consumed API queue positions */
+  volatile long msg_queue_warned;                            /* queue rejection reported since reset */
   char *delayederrormessages;                                /* queued error messages */
   void *printerrormessagesflag;                              /* deferred error printing flag */
   OSC_MESS osc_message_anchor;                               /* anchored OSC message storage */

@@ -1058,6 +1058,7 @@ static const CSOUND cenviron_ = {
     .msg_queue = NULL,
     .msg_queue_write = 0,
     .msg_queue_read = 0,
+    .msg_queue_warned = 0,
     .delayederrormessages = NULL,
     .printerrormessagesflag = NULL,
     .osc_message_anchor = {NULL, NULL, NULL, 0, 0, NULL},

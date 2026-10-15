@@ -62,6 +62,17 @@ Both functions return `void`. The `async` argument selects synchronous or
 asynchronous operation. Use the current
 [public header](../../include/csound.h) for signatures and state requirements.
 
+Async event and table-copy calls return without waiting for queue space. If the
+queue rejects a request, calls that return `void` report at most one warning per
+instance between resets. Async compilation and the internal kill call return an
+error when they cannot queue a request.
+
+In `--realtime` mode, synchronous table copies take no mutex. Hosts must keep
+them separate from performance, table changes, and other host table copies.
+Code using the retained internal `csoundKillInstance` symbol must also keep the
+active-instance list stable during lookup and turnoff. This symbol is not part
+of the Csound 7 public API.
+
 ## Run one opcode from C
 
 The UGen API creates an opcode instance with typed inputs and outputs.

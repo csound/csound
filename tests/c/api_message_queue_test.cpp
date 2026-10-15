@@ -5,11 +5,15 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <cstring>
 #include <mutex>
 #include <thread>
 #include <vector>
 
 extern "C" void message_dequeue(CSOUND *csound);
+extern "C" void input_message_async(CSOUND *, const char *);
+extern "C" void read_score_async(CSOUND *, const char *);
+extern "C" void score_event_async(CSOUND *, char, const cs_float *, long);
 extern "C" int32_t csoundKillInstance(CSOUND *, cs_float, char *, int32_t,
                                       int32_t, int32_t);
 extern "C" void free_inactive_instances(CSOUND *csound);
@@ -112,6 +116,153 @@ TEST_F(ApiMessageQueueTests, FullQueueReturnsAndAsyncCompileReportsFailure)
     EXPECT_EQ(overflow, 0);
     for (const auto copy : copies)
         EXPECT_EQ(copy, 1);
+}
+
+class ApiQueueRejectionTests : public ApiMessageQueueTests,
+                               public ::testing::WithParamInterface<int> {
+protected:
+    void fillQueue()
+    {
+        for (int i = 0; i < queueCapacity; ++i)
+            csoundTableCopyOut(csound, 1, &output, 1);
+    }
+
+    void rejectRequest(int api)
+    {
+        const cs_float fields[] = { 1, 0, 1 };
+        switch (api) {
+        case 0: csoundTableCopyOut(csound, 1, &output, 1); break;
+        case 1: csoundTableCopyIn(csound, 1, input, 1); break;
+        case 2: csoundEvent(csound, CS_INSTR_EVENT, fields, 3, 1); break;
+        case 3: csoundEventString(csound, "i 1 0 1", 1); break;
+        case 4: input_message_async(csound, "i 1 0 1"); break;
+        case 5: read_score_async(csound, "i 1 0 1"); break;
+        case 6: score_event_async(csound, 'i', fields, 3); break;
+        }
+    }
+
+    int takeWarnings()
+    {
+        int count = 0;
+        while (csoundGetMessageCnt(csound) > 0) {
+            if (std::strstr(csoundGetFirstMessage(csound),
+                            "async API request could not be queued") != nullptr) {
+                EXPECT_EQ(csoundGetFirstMessageAttr(csound), CSOUNDMSG_WARNING);
+                ++count;
+            }
+            csoundPopFirstMessage(csound);
+        }
+        return count;
+    }
+
+    static void reenterFromWarning(CSOUND *csound, int32_t, const char *message)
+    {
+        if (std::strstr(message, "async API request could not be queued") == nullptr)
+            return;
+        auto *self = static_cast<ApiQueueRejectionTests *>(csoundGetHostData(csound));
+        // Bound a broken implementation's recursion so the assertion can fail.
+        if (++self->callbackWarnings < 3)
+            input_message_async(csound, "i 1 0 1");
+    }
+
+    cs_float output = 0;
+    cs_float input[2] = { 2, 3 };
+    int callbackWarnings = 0;
+};
+
+TEST_P(ApiQueueRejectionTests, VoidApiWarnsOnceUntilReset)
+{
+    fillQueue();
+    EXPECT_EQ(takeWarnings(), 0);
+    rejectRequest(GetParam());
+    EXPECT_EQ(takeWarnings(), 1);
+    for (int api = 0; api < 7; ++api)
+        rejectRequest(api);
+    EXPECT_EQ(takeWarnings(), 0);
+
+    message_dequeue(csound);
+    EXPECT_EQ(output, 1);
+    fillQueue();
+    rejectRequest(GetParam());
+    EXPECT_EQ(takeWarnings(), 0);
+    message_dequeue(csound);
+}
+
+INSTANTIATE_TEST_SUITE_P(EachVoidApi, ApiQueueRejectionTests,
+                        ::testing::Range(0, 7));
+
+TEST_F(ApiQueueRejectionTests, WarningCallbackCanRejectAnotherRequest)
+{
+    fillQueue();
+    csoundDestroyMessageBuffer(csound);
+    csoundSetMessageStringCallback(csound, reenterFromWarning);
+    rejectRequest(0);
+    EXPECT_EQ(callbackWarnings, 1);
+    message_dequeue(csound);
+    EXPECT_EQ(output, 1);
+}
+
+TEST_F(ApiQueueRejectionTests, ResetAllowsAnotherWarning)
+{
+    fillQueue();
+    rejectRequest(0);
+    EXPECT_EQ(takeWarnings(), 1);
+    message_dequeue(csound);
+
+    csoundDestroyMessageBuffer(csound);
+    csoundReset(csound);
+    csoundCreateMessageBuffer(csound, 0);
+    // The queue does not exist yet. Start must not re-arm this reset's warning.
+    rejectRequest(0);
+    EXPECT_EQ(takeWarnings(), 1);
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound,
+        "sr=48000\nksmps=32\nnchnls=1\ngiTable ftgen 1, 0, -1, -2, 1\n", 0),
+        CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    fillQueue();
+    EXPECT_EQ(takeWarnings(), 0);
+    rejectRequest(0);
+    EXPECT_EQ(takeWarnings(), 0);
+    message_dequeue(csound);
+}
+
+TEST_F(ApiQueueRejectionTests, DisabledWarningsDoNotConsumeLimit)
+{
+    fillQueue();
+    csoundSetMessageLevel(csound, 0); // Same warning level as -m0.
+    rejectRequest(0);
+    EXPECT_EQ(takeWarnings(), 0);
+
+    csoundSetMessageLevel(csound, CS_WARNMSG);
+    rejectRequest(0);
+    EXPECT_EQ(takeWarnings(), 1);
+    rejectRequest(1);
+    EXPECT_EQ(takeWarnings(), 0);
+    message_dequeue(csound);
+}
+
+TEST_F(ApiQueueRejectionTests, ConcurrentRejectionsWarnOnce)
+{
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+    GTEST_SKIP() << "Concurrent API calls require native atomics";
+#endif
+    fillQueue();
+    std::array<std::thread, 4> producers;
+    std::atomic<bool> start{false};
+    for (auto &producer : producers) {
+        producer = std::thread([&] {
+            while (!start.load())
+                std::this_thread::yield();
+            for (int i = 0; i < 16; ++i)
+                rejectRequest(0);
+        });
+    }
+    start.store(true);
+    for (auto &producer : producers)
+        producer.join();
+    EXPECT_EQ(takeWarnings(), 1);
+    message_dequeue(csound);
 }
 
 TEST_F(ApiMessageQueueTests, UnpublishedHeadKeepsLaterProducerPending)

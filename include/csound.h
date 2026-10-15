@@ -1252,6 +1252,7 @@ extern "C" {
    * Concurrent async API calls require a build with atomic operations. Without
    * an atomic backend, async calls and performance calls must not overlap.
    * If the queue cannot accept the request, no event is queued.
+   * Rejected async calls issue at most one warning per instance between resets.
    * NB: This is non-op before csoundStart() is called.
    */
   PUBLIC void  csoundEvent(CSOUND *, int32_t type, const cs_float *params,
@@ -1270,6 +1271,7 @@ extern "C" {
    * optionally run asynchronously (async = 1).
    * Async calls copy the string and return without waiting for queue space.
    * If the queue cannot accept the request, no events are queued.
+   * Rejected async calls issue at most one warning per instance between resets.
    */
   PUBLIC void  csoundEventString(CSOUND *, const char *message, int32_t async);
 
@@ -1426,11 +1428,13 @@ extern "C" {
    * size plus one (guard point required).
    * Does nothing if the table does not exist when the copy runs.
    * Can also run asynchronously. In realtime mode, synchronous calls must not
-   * overlap performance or table changes; this path takes no mutex. For either
-   * mode, keep the table storage valid until the copy completes.
+   * overlap performance, table changes or other host table copies; this path
+   * takes no mutex. For either mode, keep table storage valid until the copy
+   * completes.
    * In async mode, keep the source buffer valid and unchanged until the copy
    * runs. The queue stores its address, not a copy of its contents.
    * If the queue cannot accept the request, the call returns without copying.
+   * Rejected async calls issue at most one warning per instance between resets.
    */
   PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
 				 const cs_float *ptable, int32_t async);
@@ -1442,11 +1446,13 @@ extern "C" {
    * the full table length returned by csoundTableLength().
    * Does nothing if the table does not exist when the copy runs.
    * Can also run asynchronously. In realtime mode, synchronous calls must not
-   * overlap performance or table changes; this path takes no mutex. For either
-   * mode, keep the table storage valid until the copy completes.
+   * overlap performance, table changes or other host table copies; this path
+   * takes no mutex. For either mode, keep table storage valid until the copy
+   * completes.
    * In async mode, keep the destination buffer valid until the copy runs;
    * do not read or write it concurrently with the copy.
    * If the queue cannot accept the request, the call returns without copying.
+   * Rejected async calls issue at most one warning per instance between resets.
    */
   PUBLIC void csoundTableCopyOut(CSOUND *csound, int32_t table,
 				cs_float *ptable, int32_t async);

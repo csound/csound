@@ -66,7 +66,9 @@ typedef struct _message_queue {
   volatile long ready;
 } message_queue_t;
 
-/* called by csoundCreate() and after reset by csoundStart() */
+/* Called by csoundCreate() and after reset by csoundStart(). The queue, slots
+   and payloads use the tracked allocator: memreset() also frees pending entries
+   on reset/destroy, so they do not need a separate teardown path. */
 void allocate_message_queue(CSOUND *csound) {
   if (csound->msg_queue == NULL) {
     int32_t i;
@@ -260,10 +262,23 @@ void message_dequeue(CSOUND *csound) {
   }
 }
 
+static void report_api_queue_rejection(CSOUND *csound) {
+  long expected = 0, warned = 1;
+  if (!(csound->oparms->msglevel & CS_WARNMSG))
+    return;
+  /* Set before calling the host: its callback may submit another request.
+     Warn once per reset so repeated rejection adds no logging load. */
+  if (ATOMIC_CMP_XCH(&csound->msg_queue_warned, warned, expected) == 0)
+    csound->MessageS(csound, CSOUNDMSG_WARNING, "%s",
+                     Str("async API request could not be queued; "
+                         "further warnings suppressed until reset\n"));
+}
+
 /* these are the message enqueueing functions for each relevant API function */
 static inline void input_message_enqueue(CSOUND *csound,
                                               const char *str){
-  message_enqueue(csound,INPUT_MESSAGE, str, strlen(str)+1);
+  if (message_enqueue(csound, INPUT_MESSAGE, str, strlen(str)+1) != CSOUND_SUCCESS)
+    report_api_queue_rejection(csound);
 }
 
 static inline int32_t read_score_enqueue(CSOUND *csound, const char *str){
@@ -276,7 +291,8 @@ static inline void table_copy_out_enqueue(CSOUND *csound, int32_t table,
   char args[ARG_ALIGN*2] = { 0 };
   memcpy(args, &table, sizeof(int32_t));
   memcpy(args+ARG_ALIGN, &ptable, sizeof(cs_float *));
-  message_enqueue(csound,TABLE_COPY_OUT, args, argsize);
+  if (message_enqueue(csound, TABLE_COPY_OUT, args, argsize) != CSOUND_SUCCESS)
+    report_api_queue_rejection(csound);
 }
 
 static inline void table_copy_in_enqueue(CSOUND *csound, int32_t table,
@@ -285,7 +301,8 @@ static inline void table_copy_in_enqueue(CSOUND *csound, int32_t table,
   char args[ARG_ALIGN*2] = { 0 };
   memcpy(args, &table, sizeof(int32_t));
   memcpy(args+ARG_ALIGN, &ptable, sizeof(cs_float *));
-  message_enqueue(csound,TABLE_COPY_IN, args, argsize);
+  if (message_enqueue(csound, TABLE_COPY_IN, args, argsize) != CSOUND_SUCCESS)
+    report_api_queue_rejection(csound);
 }
 
 static inline int32_t score_event_enqueue(CSOUND *csound, char type,
@@ -349,12 +366,14 @@ void input_message_async(CSOUND *csound, const char *message){
 }
 
 void read_score_async(CSOUND *csound, const char *message){
-  read_score_enqueue(csound, message);
+  if (read_score_enqueue(csound, message) != CSOUND_SUCCESS)
+    report_api_queue_rejection(csound);
 }
 
 void score_event_async(CSOUND *csound, char type,
                            const cs_float *pfields, long numFields){
-  score_event_enqueue(csound, type, pfields, numFields);
+  if (score_event_enqueue(csound, type, pfields, numFields) != CSOUND_SUCCESS)
+    report_api_queue_rejection(csound);
 }
 
 void csoundTableCopyOut(CSOUND *csound, int32_t table, cs_float *ptable, int32_t async){
@@ -382,6 +401,10 @@ void csoundTableCopyIn(CSOUND *csound, int32_t table, const
     csoundUnlockMutex(csound->API_lock);
 }
 
+/* Legacy internal entry point, no longer part of the public API. Callers must
+   keep engine state and the active list stable during target lookup. Realtime
+   synchronous turnoff also skips API_lock: serialize it against performance,
+   instance init/turnoff and other host calls instead of locking the audio thread. */
 int32_t csoundKillInstance(CSOUND *csound, cs_float instr, char *instrName,
                        int32_t mode, int32_t allow_release, int32_t async)
 {
