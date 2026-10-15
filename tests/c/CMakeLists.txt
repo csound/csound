@@ -306,6 +306,19 @@ if(BUILD_TESTS)
         target_link_libraries(wasapi_format_tests PRIVATE ole32 uuid mmdevapi)
         add_test(NAME wasapi_format_tests COMMAND wasapi_format_tests)
     endif()
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND NOT MSVC AND
+       NOT EMSCRIPTEN AND NOT IOS AND NOT BARE_METAL AND
+       NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+        add_executable(realtime_log_noatom_tests
+            realtime_log_noatom_test.cpp fixtures/realtime_log_noatom.c)
+        target_compile_options(realtime_log_noatom_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(realtime_log_noatom_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(realtime_log_noatom_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(realtime_log_noatom_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(realtime_log_noatom_tests PROPERTIES TIMEOUT 15)
+    endif()
     if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND NOT EMSCRIPTEN AND
        USE_ATOMIC_BUILTIN AND HAVE_ATOMIC_BUILTIN AND NOT IOS AND
        NOT BARE_METAL AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")

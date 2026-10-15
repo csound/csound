@@ -20,6 +20,7 @@
     Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 #include "csoundCore.h"
+#include "csound_message_callbacks.h"
 
 extern void (*msgcallback_)(CSOUND *, int32_t, const char *, va_list);
 void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
@@ -80,8 +81,8 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
                                      const char *str)) {
 
   if (csoundMessageStrCallback) {
-    csound->csoundMessageStringCallback = csoundMessageStrCallback;
-    csound->csoundMessageCallback_ = NULL;
+    csoundStoreMessageStringCallback(csound, csoundMessageStrCallback);
+    csoundStoreMessageCallback(csound, NULL);
   }
 }
 
@@ -91,56 +92,45 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
                                   const char *format, va_list args)) {
   /* Protect against a null callback. */
   if (csoundMessageCallback) {
-    csound->csoundMessageCallback_ = csoundMessageCallback;
+    csoundStoreMessageCallback(csound, csoundMessageCallback);
   } else {
-    csound->csoundMessageCallback_ = csoundDefaultMessageCallback;
+    csoundStoreMessageCallback(csound, csoundDefaultMessageCallback);
   }
 }
 
  void csoundMessageV(CSOUND *csound, int32_t attr, const char *format,
                            va_list args) {
   if (!(csound->oparms->msglevel & CS_NOMSG)) {
-    if (csound->csoundMessageCallback_) {
-      csound->csoundMessageCallback_(csound, attr, format, args);
+    CSOUND_MESSAGE_CALLBACK callback = csoundLoadMessageCallback(csound);
+    if (callback) {
+      callback(csound, attr, format, args);
     } else {
-      char message[MAX_MESSAGE_STR];
-      vsnprintf(message, sizeof(message), format, args);
-      csound->csoundMessageStringCallback(csound, attr, message);
+      CSOUND_MESSAGE_STRING_CALLBACK stringCallback =
+          csoundLoadMessageStringCallback(csound);
+      /* Cleanup may restore the callbacks while formatting. Keep the selected
+         callback, and drop a message if the two loads cross that transition. */
+      if (stringCallback) {
+        char message[MAX_MESSAGE_STR];
+        vsnprintf(message, sizeof(message), format, args);
+        stringCallback(csound, attr, message);
+      }
     }
   }
-  
 }
 
  void csoundMessage(CSOUND *csound, const char *format, ...) {
-  if (!(csound->oparms->msglevel & CS_NOMSG)) {
-    va_list args;
-    va_start(args, format);
-    if (csound->csoundMessageCallback_)
-      csound->csoundMessageCallback_(csound, 0, format, args);
-    else {
-      char message[MAX_MESSAGE_STR];
-      vsnprintf(message, sizeof(message), format, args);
-      csound->csoundMessageStringCallback(csound, 0, message);
-    }
-    va_end(args);
-  }
+  va_list args;
+  va_start(args, format);
+  csoundMessageV(csound, 0, format, args);
+  va_end(args);
 }
 
  void csoundMessageS(CSOUND *csound, int32_t attr, const char *format,
                            ...) {
-
-  if (!(csound->oparms->msglevel & CS_NOMSG)) {
-    va_list args;
-    va_start(args, format);
-    if (csound->csoundMessageCallback_)
-      csound->csoundMessageCallback_(csound, attr, format, args);
-    else {
-      char message[MAX_MESSAGE_STR];
-      vsnprintf(message, sizeof(message), format, args);
-      csound->csoundMessageStringCallback(csound, attr, message);
-    }
-    va_end(args);
-  }
+  va_list args;
+  va_start(args, format);
+  csoundMessageV(csound, attr, format, args);
+  va_end(args);
 }
 
 void csoundDie(CSOUND *csound, const char *msg, ...) {

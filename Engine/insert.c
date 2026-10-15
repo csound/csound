@@ -24,6 +24,7 @@
 */
 
 #include "csoundCore.h" /*  INSERT.C */
+#include "csound_message_callbacks.h"
 #include "oload.h"
 #include "udo.h"
 #include "aops.h"       /* for cond's */
@@ -686,24 +687,34 @@ static void message_string_unlock(CSOUND *csound)
   ATOMIC_SET(csound->message_string_queue_lock, 0);
 }
 
+/* Only the worker and startup/shutdown paths may wait. Sleeping lets a
+   preempted producer finish its copy even on a single-core system. */
+static void message_string_lock(CSOUND *csound)
+{
+  while (message_string_trylock(csound) != 0)
+    csoundSleep(1);
+}
+
 static void message_string_enqueue(CSOUND *csound, int32_t attr,
                                    const char *str) {
   unsigned long wp;
-  message_string_queue_t *queue = csound->message_string_queue;
-  if (!ATOMIC_GET(queue->accepting) ||
-      message_string_trylock(csound) != 0) {
+  message_string_queue_t *queue;
+  if (message_string_trylock(csound) != 0) {
     ATOMIC_INCR(csound->message_string_queue_dropped);
     return;
   }
-  if (!ATOMIC_GET(queue->accepting) ||
+  /* Stop can free the queue while a caller holds the old callback. Protect
+     the pointer lookup as well as the copy with the same one-attempt CAS. */
+  queue = csound->message_string_queue;
+  if (queue == NULL || !ATOMIC_GET(queue->accepting) ||
       csound->message_string_queue_items == MAX_MESSAGE_QUEUE) {
     message_string_unlock(csound);
     ATOMIC_INCR(csound->message_string_queue_dropped);
     return;
   }
   wp = csound->message_string_queue_wp;
-  csound->message_string_queue->messages[wp].attr = attr;
-  strNcpy(csound->message_string_queue->messages[wp].str, str, MAX_MESSAGE_STR);
+  queue->messages[wp].attr = attr;
+  strNcpy(queue->messages[wp].str, str, MAX_MESSAGE_STR);
   csound->message_string_queue_wp = (wp + 1) % MAX_MESSAGE_QUEUE;
   csound->message_string_queue_items++;
   message_string_unlock(csound);
@@ -713,8 +724,7 @@ static int32_t message_string_dequeue(CSOUND *csound, unsigned long *rp,
                                       message_string_t *message)
 {
   /* Only the worker dequeues. Producers never wait for this bounded copy. */
-  while (message_string_trylock(csound) != 0) {
-  }
+  message_string_lock(csound);
   if (csound->message_string_queue_items == 0) {
     message_string_unlock(csound);
     return 0;
@@ -739,19 +749,30 @@ static void no_op(CSOUND *csound, int32_t attr,
 /* Install before starting the worker, and restore only after joining it. */
 int32_t realtime_message_queue_start(CSOUND *csound)
 {
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+  /* The serial ATOMIC_CMP_XCH fallback cannot guard concurrent producers.
+     Reject here too, even without the engine startup check. */
+  return CSOUND_ERROR;
+#endif
   message_string_queue_t *queue;
   queue = (message_string_queue_t *)csound->Calloc(csound, sizeof(*queue));
   if (queue == NULL)
     return CSOUND_MEMORY;
-  ATOMIC_SET(csound->message_string_queue_lock, 0);
+  message_string_lock(csound);
+  if (csound->message_string_queue != NULL) {
+    message_string_unlock(csound);
+    csound->Free(csound, queue);
+    return CSOUND_ERROR;
+  }
   csound->message_string_queue = queue;
   ATOMIC_SET(queue->accepting, 1);
   csound->message_string_queue_wp = csound->message_string_queue_items = 0;
   ATOMIC_SET(csound->message_string_queue_dropped, 0);
-  queue->saved_callback = csound->csoundMessageCallback_;
-  queue->saved_string_callback = csound->csoundMessageStringCallback;
+  queue->saved_callback = csoundLoadMessageCallback(csound);
+  queue->saved_string_callback = csoundLoadMessageStringCallback(csound);
   queue->output = queue->saved_string_callback ? queue->saved_string_callback :
                                                 print_messages;
+  message_string_unlock(csound);
   if (csound->oparms_.msglevel)
     csoundSetMessageStringCallback(csound, message_string_enqueue);
   else
@@ -761,13 +782,22 @@ int32_t realtime_message_queue_start(CSOUND *csound)
 
 void realtime_message_queue_stop(CSOUND *csound)
 {
-  message_string_queue_t *queue = csound->message_string_queue;
-  if (queue == NULL)
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+  return; /* Startup cannot install a queue on this build. */
+#endif
+  message_string_queue_t *queue;
+  message_string_lock(csound);
+  queue = csound->message_string_queue;
+  if (queue == NULL) {
+    message_string_unlock(csound);
     return;
-  csound->csoundMessageCallback_ = queue->saved_callback;
-  csound->csoundMessageStringCallback = queue->saved_string_callback;
-  csound->Free(csound, queue);
+  }
+  ATOMIC_SET(queue->accepting, 0);
   csound->message_string_queue = NULL;
+  message_string_unlock(csound);
+  csoundStoreMessageCallback(csound, queue->saved_callback);
+  csoundStoreMessageStringCallback(csound, queue->saved_string_callback);
+  csound->Free(csound, queue);
 }
 
 /* do init pass for this instr */
@@ -955,7 +985,9 @@ uintptr_t event_insert_thread(void *p) {
     stopping = !ATOMIC_GET(csound->event_insert_loop) &&
                !alloc_queue_has_pending(csound);
     /* Close admission before the final drain. No more than one ring can
-       remain, and callbacks cannot extend shutdown by logging again. */
+       remain, and callbacks cannot extend shutdown by logging again.
+       Until cleanup joins us, late logs are dropped rather than running
+       the host output callback on a producer (possibly the audio thread). */
     if (stopping && mess != NULL)
       ATOMIC_SET(mess->accepting, 0);
     /* A callback may log again. Bound each drain and call it without a lock. */

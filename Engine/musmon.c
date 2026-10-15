@@ -488,12 +488,13 @@ int32_t start_engine(CSOUND *csound)
         csound->init_pass_threadlock = NULL;
         return CSOUND_MEMORY;
       }
-      if (realtime_message_queue_start(csound) != CSOUND_SUCCESS) {
+      int32_t message_queue_result = realtime_message_queue_start(csound);
+      if (message_queue_result != CSOUND_SUCCESS) {
         csoundDestroyMutex(csound->init_pass_threadlock);
         csound->init_pass_threadlock = NULL;
         csound->Free(csound, csound->alloc_queue);
         csound->alloc_queue = NULL;
-        return CSOUND_ERROR;
+        return message_queue_result;
       }
       ATOMIC_SET(csound->event_insert_loop, 1);
       csound->event_insert_thread =
