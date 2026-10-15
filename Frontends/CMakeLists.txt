@@ -24,7 +24,9 @@ if(BUILD_CSOUND_COMMAND)
   if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" AND BUILD_WASI_BROWSER)
     # Use wasi-libc's reactor startup: it exposes _initialize for the JS host
     # and deliberately has no command-style _start entry point.
-    target_compile_definitions(csound-bin PRIVATE CSOUND_WASI_BROWSER)
+    # The built-in browser shim accesses the instance's MIDI callback data.
+    target_compile_definitions(csound-bin PRIVATE
+        CSOUND_WASI_BROWSER __BUILDING_LIBCSOUND)
     target_link_options(csound-bin PRIVATE -mexec-model=reactor)
     if(BUILD_WASI_REALTIME AND BUILD_WASI_REALTIME_TESTS)
       target_sources(csound-bin PRIVATE

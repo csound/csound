@@ -92,13 +92,22 @@ assert.equal(api.csoundIsRealtime(csound), 0);
 assert.equal(threadSpawns, 0);
 api.csoundResetWasi(csound);
 
-function fillMidiQueue() {
+function fillMidiQueue(target = csound) {
   for (let index = 0; index < 1024; ++index)
-    assert.equal(api.tryPushMidiMessage(csound, 144, index % 128, 100), 1);
-  assert.equal(api.tryPushMidiMessage(csound, 128, 60, 0), 0);
+    assert.equal(api.tryPushMidiMessage(target, 144, index % 128, 100), 1);
+  assert.equal(api.tryPushMidiMessage(target, 128, 60, 0), 0);
 }
 
 fillMidiQueue();
+const second = api.csoundCreateWasi();
+assert(second);
+assert.equal(api.tryPushMidiMessage(csound, 128, 60, 0), 0);
+fillMidiQueue(second);
+api.csoundResetWasi(second);
+assert.equal(api.tryPushMidiMessage(csound, 128, 60, 0), 0);
+fillMidiQueue(second);
+api.csoundDestroy(second);
+assert.equal(api.tryPushMidiMessage(csound, 128, 60, 0), 0);
 api.csoundResetWasi(csound);
 fillMidiQueue();
 api.csoundDestroy(csound);
@@ -106,4 +115,4 @@ csound = api.csoundCreateWasi();
 assert(csound);
 fillMidiQueue();
 api.csoundDestroy(csound);
-console.log("WASI browser runtime mode, recovery, and MIDI reset checks passed");
+console.log("WASI browser runtime mode, recovery, and MIDI ownership/reset checks passed");

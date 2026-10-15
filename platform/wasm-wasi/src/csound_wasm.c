@@ -1,5 +1,4 @@
-#include "csound.h"
-#include "csound_misc.h"
+#include "csoundCore.h"
 #include "ugen.h"
 #include <ctype.h>
 #include <limits.h>
@@ -11,9 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 
-// Define constants that were previously from internal headers
-#define MAX_MESSAGE_STR 4096
-#define OK 0
+#define WASI_MESSAGE_BUFFER_SIZE 4096
 
 // Forward declaration for printDebug function
 void printDebug(const char *log);
@@ -129,14 +126,14 @@ void csoundWasiJsMessageCallback(
 
 
 void csoundWasiCMessageCallback(CSOUND *csound, int attr, const char *format, va_list args) {
-  char buffer[MAX_MESSAGE_STR];
-  int len = vsnprintf(buffer, MAX_MESSAGE_STR, format, args);
+  char buffer[WASI_MESSAGE_BUFFER_SIZE];
+  int len = vsnprintf(buffer, WASI_MESSAGE_BUFFER_SIZE, format, args);
   if (len < 0) {
     return;
   }
   /* vsnprintf returns the length before truncation. Only pass stored bytes. */
-  if (len >= MAX_MESSAGE_STR) {
-    len = MAX_MESSAGE_STR - 1;
+  if (len >= WASI_MESSAGE_BUFFER_SIZE) {
+    len = WASI_MESSAGE_BUFFER_SIZE - 1;
   }
   (* csoundWasiJsMessageCallback)(csound, attr, len, buffer);
 }
@@ -174,32 +171,28 @@ struct MidiData {
 };
 
 struct MidiCallbackData {
-  struct MidiData *midiData;
+  struct MidiData midiData[MIDI_QUEUE_SIZE];
   int p, q;
 };
 
-struct MidiData midiData[MIDI_QUEUE_SIZE];
-struct MidiCallbackData midiCallbackData = { midiData, 0, 0 };
-
-static void clearMidiMessages(void) {
-  memset(midiData, 0, sizeof(midiData));
-  midiCallbackData.p = 0;
-  midiCallbackData.q = 0;
-}
+static const char midiQueueName[] = "__wasiMidiQueue";
+static int midiDataRead(CSOUND *, void *, unsigned char *, int);
 
 /* The engine owner submits and drains this queue. Keep a rejected packet in
    the host queue until the next k-cycle instead of overwriting a note-off. */
 __attribute__((used))
 int tryPushMidiMessage(CSOUND *csound, unsigned char status,
                        unsigned char data1, unsigned char data2) {
-  (void) csound;
-  struct MidiData *slot = &midiCallbackData.midiData[midiCallbackData.p];
+  if (csound->midiGlobals->MidiReadCallback != midiDataRead) return 0;
+  struct MidiCallbackData *queue = csound->midiGlobals->midiInUserData;
+  if (queue == NULL) return 0;
+  struct MidiData *slot = &queue->midiData[queue->p];
   if (slot->flag) return 0;
   slot->status = status;
   slot->data1 = data1;
   slot->data2 = data2;
   slot->flag = 1;
-  midiCallbackData.p = (midiCallbackData.p + 1) % MIDI_QUEUE_SIZE;
+  queue->p = (queue->p + 1) % MIDI_QUEUE_SIZE;
   return 1;
 }
 
@@ -213,8 +206,11 @@ static const int datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0  };
 
 /* csound MIDI read callback, called every k-cycle */
 static int midiDataRead(CSOUND *csound, void *userData, unsigned char *mbuf, int nbytes) {
-  struct MidiData *mdata = midiCallbackData.midiData;
-  int *q = &midiCallbackData.q, st, d1, d2, n = 0;
+  (void) csound;
+  struct MidiCallbackData *queue = userData;
+  if (queue == NULL) return 0;
+  struct MidiData *mdata = queue->midiData;
+  int *q = &queue->q, st, d1, d2, n = 0;
   /* check if there is new data on circular queue */
   while (mdata[*q].flag) {
     st = (int) mdata[*q].status;
@@ -254,7 +250,9 @@ static int midiDataRead(CSOUND *csound, void *userData, unsigned char *mbuf, int
 }
 
 static int midiInOpen(CSOUND *csound, void **userData, const char *dev) {
-  return OK;
+  (void) dev;
+  *userData = csoundQueryGlobalVariable(csound, midiQueueName);
+  return *userData != NULL ? OK : CSOUND_MEMORY;
 }
 
 static int midiInClose(CSOUND *csound, void *userData) {
@@ -263,6 +261,17 @@ static int midiInClose(CSOUND *csound, void *userData) {
 
 __attribute__((used))
 void csoundSetMidiCallbacks(CSOUND *csound) {
+  struct MidiCallbackData *queue =
+    csoundQueryGlobalVariable(csound, midiQueueName);
+  if (queue == NULL) {
+    if (csoundCreateGlobalVariable(csound, midiQueueName,
+                                  sizeof(struct MidiCallbackData)) != 0)
+      return;
+    queue = csoundQueryGlobalVariable(csound, midiQueueName);
+  }
+  /* Reset/destroy frees this instance's queue. Cache its pointer so the
+     render path never searches the global table while init may change it. */
+  csound->midiGlobals->midiInUserData = queue;
   csoundSetHostMIDIIO(csound);
   csoundSetExternalMidiInOpenCallback(csound, midiInOpen);
   csoundSetExternalMidiReadCallback(csound, midiDataRead);
@@ -300,11 +309,15 @@ int system(const char *command)
 __attribute__((used))
 CSOUND *csoundCreateWasi() {
   CSOUND *csound = csoundCreate(NULL, NULL);
-  clearMidiMessages();
+  if (csound == NULL) return NULL;
   // printDebug("DEBUG: csoundCreateWasi called, setting message callback");
   csoundSetMessageCallback(csound, &csoundWasiCMessageCallback);
   csoundSetReadlineCallback(csound, csoundWasiCReadlineCallback, NULL);
   csoundSetMidiCallbacks(csound);
+  if (csound->midiGlobals->midiInUserData == NULL) {
+    csoundDestroy(csound);
+    return NULL;
+  }
   return csound;
 }
 
@@ -314,9 +327,9 @@ CSOUND *csoundCreateWasi() {
 // NB: csoundCleanup has been removed from API for 7.0
 int csoundResetWasi(CSOUND *csound) {
   csoundReset(csound);
-  clearMidiMessages();
   csoundSetMidiCallbacks(csound);
-  return CSOUND_SUCCESS;
+  return csound->midiGlobals->midiInUserData != NULL
+    ? CSOUND_SUCCESS : CSOUND_MEMORY;
 }
 
 __attribute__((used))

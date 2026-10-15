@@ -2011,6 +2011,91 @@ e
       assert.property(cs, "getMemory");
     });
 
+    describe("MIDI queue ownership", function () {
+      function startMidi(csound) {
+        for (const option of ["-n", "-m0", "-M0", "--daemon"]) {
+          assert.equal(cs.csoundSetOption(csound, option), 0);
+        }
+        assert.equal(
+          cs.csoundCompileOrc(
+            csound,
+            `
+sr=48000
+ksmps=32
+nchnls=1
+0dbfs=1
+massign 0, 1
+instr 1
+  ihits chnget "hits"
+  chnset ihits + 1, "hits"
+endin`,
+          ),
+          0,
+        );
+        assert.equal(cs.csoundStart(csound), 0);
+      }
+
+      function hitsAfterPerform(csound) {
+        for (let cycle = 0; cycle < 8; cycle++) cs.csoundPerformKsmps(csound);
+        return cs.csoundGetControlChannel(csound, "hits");
+      }
+
+      for (const action of ["create", "reset", "destroy"]) {
+        it(`keeps pending MIDI across another instance's ${action}`, function () {
+          const first = cs.csoundCreate();
+          let second = action === "create" ? 0 : cs.csoundCreate();
+          try {
+            startMidi(first);
+            if (second) startMidi(second);
+            cs.csoundPushMidiMessage(first, 0x90, 60, 100);
+            if (action === "create") second = cs.csoundCreate();
+            if (action === "reset") cs.csoundReset(second);
+            if (action === "destroy") {
+              cs.csoundDestroy(second);
+              second = 0;
+            }
+            assert.equal(hitsAfterPerform(first), 1);
+          } finally {
+            cs.csoundDestroy(first);
+            if (second) cs.csoundDestroy(second);
+          }
+        });
+      }
+
+      it("delivers MIDI only to its target instance", function () {
+        const first = cs.csoundCreate();
+        const second = cs.csoundCreate();
+        try {
+          startMidi(first);
+          startMidi(second);
+          cs.csoundPushMidiMessage(first, 0x90, 60, 100);
+          cs.csoundPushMidiMessage(second, 0x90, 67, 100);
+          cs.csoundPushMidiMessage(second, 0x90, 72, 100);
+          assert.equal(hitsAfterPerform(first), 1);
+          assert.equal(hitsAfterPerform(second), 2);
+        } finally {
+          cs.csoundDestroy(first);
+          cs.csoundDestroy(second);
+        }
+      });
+
+      it("discards pending MIDI on its own reset and accepts fresh MIDI", function () {
+        const csound = cs.csoundCreate();
+        try {
+          startMidi(csound);
+          cs.csoundPushMidiMessage(csound, 0x90, 60, 100);
+          assert.equal(cs.csoundReset(csound), 0);
+          startMidi(csound);
+          assert.equal(hitsAfterPerform(csound), 0);
+          cs.csoundPushMidiMessage(csound, 0x90, 67, 100);
+          cs.csoundSetMidiCallbacks(csound);
+          assert.equal(hitsAfterPerform(csound), 1);
+        } finally {
+          cs.csoundDestroy(csound);
+        }
+      });
+    });
+
     it("rejects invalid WASM allocation sizes", function () {
       const wasm = cs.wasm.exports;
       // These sizes must fail before malloc, without exhausting browser memory.
