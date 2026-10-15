@@ -336,6 +336,7 @@ extern "C" {
       int16   sectno;
       int32_t     lplayed;
       int32_t     segamps, sormsg;
+      int32_t     score_segment_polling;
    };
 
    struct libsndStatics__ {

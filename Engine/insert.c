@@ -798,6 +798,12 @@ void realtime_message_queue_stop(CSOUND *csound)
   csoundStoreMessageCallback(csound, queue->saved_callback);
   csoundStoreMessageStringCallback(csound, queue->saved_string_callback);
   csound->Free(csound, queue);
+  /* Report on the control thread after restoring host output. Producers
+     must not wait for output; the callback may log again or stop the queue. */
+  long dropped = ATOMIC_GET(csound->message_string_queue_dropped);
+  if (dropped > 0 && (csound->oparms->msglevel & CS_WARNMSG))
+    csound->MessageS(csound, CSOUNDMSG_WARNING,
+                     Str("%ld realtime messages dropped\n"), dropped);
 }
 
 /* do init pass for this instr */

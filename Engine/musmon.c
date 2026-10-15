@@ -402,6 +402,7 @@ int32_t start_engine(CSOUND *csound)
       csound->ibeatTime = 1;
     }
     csound->cyclesRemaining = 0;
+    STA(score_segment_polling) = 0;
     memset(&(csound->evt), 0, sizeof(EVTBLK));
 
     if(O->msglevel > 0)
@@ -839,7 +840,8 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
   return insert_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
 }
 
-/* Print current amplitude values, and update section amps. */
+/* Print current amplitude values, and update section amps. A negative
+   score_evt updates the totals without printing a segment. */
 
 static void print_amp_values(CSOUND *csound, int32_t score_evt)
 {
@@ -849,7 +851,8 @@ static void print_amp_values(CSOUND *csound, int32_t score_evt)
   int32         *rngp, *srngp;
   int32_t           n;
 
-  if (UNLIKELY(STA(segamps) || (p->rngflg && STA(sormsg)))) {
+  if (UNLIKELY(score_evt >= 0 &&
+               (STA(segamps) || (p->rngflg && STA(sormsg))))) {
     if (score_evt > 0)
       p->Message(p, "B%7.3f ..%7.3f T%7.3f TT%7.3f M:",
                  p->prvbt - p->beatOffs,  p->curbt - p->beatOffs,
@@ -1353,10 +1356,11 @@ int32_t sense_events(CSOUND *csound)
       csound->prvbt = csound->curbt;      /* update beats and times */
       csound->curbt = csound->nxtbt;
       csound->curp2 = csound->nxtim;
-      print_amp_values(csound, 1);        /* print amplitudes for this segment */
+      print_amp_values(csound, STA(score_segment_polling) ? -1 : 1);
     }
     else                                  /* this should only happen at */
       csound->cyclesRemaining = 0;        /* beginning of performance   */
+    STA(score_segment_polling) = 0;
   }
 
  retest:
@@ -1378,6 +1382,8 @@ int32_t sense_events(CSOUND *csound)
            off-time. */
         if (O->realtime && alloc_queue_has_pending(csound)) {
           waiting_for_realtime_work = 1;
+          /* Polling the init worker does not end a score segment. */
+          STA(score_segment_polling) = 1;
           csound->nxtim =
             (csound->icurTimeSamples + csound->ksmps) / csound->esr;
           csound->nxtbt = csound->curBeat + csound->curBeat_inc;
@@ -1471,8 +1477,10 @@ int32_t sense_events(CSOUND *csound)
        current sample, rounding produces zero cycles and retest would spin
        inside sense_events(), never reaching the note-expiration check at the
        top of the next control cycle. */
-    if (waiting_for_realtime_work && csound->cyclesRemaining <= 0)
+    if (waiting_for_realtime_work && csound->cyclesRemaining <= 0) {
       csound->cyclesRemaining = 1;
+      STA(score_segment_polling) = 1;
+    }
   }
 
   /* handle any real time events now: */
@@ -1878,6 +1886,7 @@ void rewind_score(CSOUND *csound)
     csound->curBeat  = 0.0;
     csound->icurTimeSamples = 0L;
     csound->cyclesRemaining = 0;
+    STA(score_segment_polling) = 0;
     csound->evt.strarg = NULL;
     csound->evt.scnt = 0;
     csound->evt.opcod  = '\0';

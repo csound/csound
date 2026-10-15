@@ -3,6 +3,9 @@
 #endif
 #include "csoundCore.h"
 #include "gtest/gtest.h"
+#include <cstdio>
+#include <string>
+#include <vector>
 
 extern "C" {
 void csound_test_realtime_locks_begin(void);
@@ -18,6 +21,9 @@ namespace {
 class RealtimeLogLockTests : public ::testing::Test {
  protected:
   CSOUND *csound = nullptr;
+  std::vector<std::string> messages;
+  std::vector<int32_t> attributes;
+  bool reenterOnReport = false;
 
   void SetUp() override
   {
@@ -42,7 +48,102 @@ class RealtimeLogLockTests : public ::testing::Test {
     EXPECT_EQ(tries, 0);
     EXPECT_EQ(unlocks, 0);
   }
+  static void recordMessage(CSOUND *cs, int32_t attr, const char *message)
+  {
+    auto &test = *static_cast<RealtimeLogLockTests *>(csoundGetHostData(cs));
+    test.messages.emplace_back(message);
+    test.attributes.push_back(attr);
+    if (test.reenterOnReport) {
+      test.reenterOnReport = false;
+      EXPECT_EQ(cs->message_string_queue, nullptr);
+      csoundMessage(cs, "message from restored callback\n");
+      realtime_message_queue_stop(cs);
+    }
+  }
+  void captureMessages(bool useStringCallback = true)
+  {
+    csoundSetHostData(csound, this);
+    if (useStringCallback) {
+      csoundSetMessageStringCallback(csound, recordMessage);
+    } else {
+      csound->csoundMessageStringCallback = nullptr;
+      csoundSetMessageCallback(csound,
+          [](CSOUND *cs, int32_t attr, const char *format, va_list args) {
+        char message[MAX_MESSAGE_STR];
+        vsnprintf(message, sizeof(message), format, args);
+        recordMessage(cs, attr, message);
+      });
+    }
+  }
+  void dropMessageWhileBusy()
+  {
+    ATOMIC_SET(csound->message_string_queue_lock, 1);
+    csoundMessage(csound, "contended log message\n");
+    ATOMIC_SET(csound->message_string_queue_lock, 0);
+  }
 };
+
+TEST_F(RealtimeLogLockTests, StopDoesNotReportWhenNoMessagesWereDropped)
+{
+  captureMessages();
+  csound->oparms_.msglevel = CS_WARNMSG;
+  ASSERT_EQ(realtime_message_queue_start(csound), CSOUND_SUCCESS);
+  realtime_message_queue_stop(csound);
+  EXPECT_TRUE(messages.empty());
+}
+
+TEST_F(RealtimeLogLockTests, StopReportsFullAndBusyDropsOnce)
+{
+  captureMessages();
+  csound->oparms_.msglevel = CS_WARNMSG;
+  ASSERT_EQ(realtime_message_queue_start(csound), CSOUND_SUCCESS);
+  for (int i = 0; i < MAX_MESSAGE_QUEUE + 3; ++i)
+    csoundMessage(csound, "queued log message\n");
+  dropMessageWhileBusy();
+  dropMessageWhileBusy();
+  EXPECT_TRUE(messages.empty());
+  EXPECT_EQ(ATOMIC_GET(csound->message_string_queue_dropped), 5);
+  realtime_message_queue_stop(csound);
+  ASSERT_EQ(messages.size(), 1u);
+  EXPECT_EQ(messages[0], "5 realtime messages dropped\n");
+  EXPECT_EQ(attributes[0], CSOUNDMSG_WARNING);
+  realtime_message_queue_stop(csound);
+  EXPECT_EQ(messages.size(), 1u);
+}
+
+TEST_F(RealtimeLogLockTests, DropReportHonorsWarningMessageLevel)
+{
+  captureMessages();
+  csound->oparms_.msglevel = 1;
+  ASSERT_EQ(realtime_message_queue_start(csound), CSOUND_SUCCESS);
+  dropMessageWhileBusy();
+  realtime_message_queue_stop(csound);
+  EXPECT_EQ(ATOMIC_GET(csound->message_string_queue_dropped), 1);
+  EXPECT_TRUE(messages.empty());
+}
+
+TEST_F(RealtimeLogLockTests, RestoredCallbacksCanLogAndStopAgain)
+{
+  for (bool useStringCallback : {true, false}) {
+    SCOPED_TRACE(useStringCallback);
+    captureMessages(useStringCallback);
+    csound->oparms_.msglevel = CS_WARNMSG;
+    messages.clear();
+    attributes.clear();
+    auto stringCallback = csound->csoundMessageStringCallback;
+    auto callback = csound->csoundMessageCallback_;
+    ASSERT_EQ(realtime_message_queue_start(csound), CSOUND_SUCCESS);
+    dropMessageWhileBusy();
+    reenterOnReport = true;
+    realtime_message_queue_stop(csound);
+    ASSERT_EQ(messages.size(), 2u);
+    EXPECT_EQ(messages[0], "1 realtime messages dropped\n");
+    EXPECT_EQ(attributes[0], CSOUNDMSG_WARNING);
+    EXPECT_EQ(messages[1], "message from restored callback\n");
+    EXPECT_EQ(csound->csoundMessageStringCallback, stringCallback);
+    EXPECT_EQ(csound->csoundMessageCallback_, callback);
+  }
+}
 
 TEST_F(RealtimeLogLockTests, LogPublicationAvoidsPlatformLocks)
 {

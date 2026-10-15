@@ -102,6 +102,43 @@ class RealtimeLoggingTests : public ::testing::Test {
   }
 };
 
+TEST_F(RealtimeLoggingTests, PendingInitDoesNotPrintPollingSegments)
+{
+  // The worker stays inside holdInit while performance polls the score end.
+  // Those control cycles are not score boundaries and must not fill the log.
+  csound->oparms->daemon = 0;
+  csound->evt.opcod = 'e';
+  csound->cyclesRemaining = 0;
+  csound->musmonStatics.segamps = 1;
+  csound->musmonStatics.sormsg = 1;
+  const unsigned long queued = csound->message_string_queue_items;
+  const long dropped = ATOMIC_GET(csound->message_string_queue_dropped);
+  csound->maxamp[0] = FL(0.75);
+  csound->rngflg = 1;
+  csound->rngcnt[0] = 2;
+  for (int cycle = 0; cycle < 128; ++cycle)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(csound->message_string_queue_items, queued);
+  EXPECT_EQ(ATOMIC_GET(csound->message_string_queue_dropped), dropped);
+  EXPECT_EQ(csound->smaxamp[0], FL(0.75));
+  EXPECT_EQ(csound->musmonStatics.srngcnt[0], 2);
+}
+
+TEST_F(RealtimeLoggingTests, RealScoreBoundaryStillPrintsAmplitude)
+{
+  csound->oparms->daemon = 0;
+  csound->evt.opcod = 'e';
+  csound->cyclesRemaining = 1;
+  csound->musmonStatics.segamps = 1;
+  const unsigned long queued = csound->message_string_queue_items;
+  const unsigned long wp = csound->message_string_queue_wp;
+  csound->maxamp[0] = FL(0.5);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_GT(csound->message_string_queue_items, queued);
+  EXPECT_EQ(csound->message_string_queue->messages[wp].str[0], 'B');
+  EXPECT_EQ(csound->smaxamp[0], FL(0.5));
+}
+
 TEST_F(RealtimeLoggingTests, FullLogQueueDoesNotOverwriteOrReplayMessages)
 {
   for (int i = 0; i < 128; ++i) csoundMessage(csound, "queue-test %d\n", i);
