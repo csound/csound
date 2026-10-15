@@ -38,9 +38,30 @@ static inline cs_float lim1(cs_float f) {
 }
 
 /* Keep output length current without allocating during performance. */
-template <std::size_t Inputs>
+template <std::size_t Inputs, std::size_t ArrayInputs = 1>
 struct ArrayOutput : csnd::Plugin<1, Inputs> {
+  bool vectors_only() {
+    for (std::size_t i = 0; i < ArrayInputs; ++i) {
+      const auto *in = reinterpret_cast<const ARRAYDAT *>(this->inargs(i));
+      if (in->dimensions != 1 || in->sizes == nullptr) return false;
+    }
+    const auto *out = reinterpret_cast<const ARRAYDAT *>(this->outargs(0));
+    return out->dimensions <= 1;
+  }
+
+  int32_t init_output() {
+    if (!vectors_only())
+      return this->csound->init_error(Str_noop("expected one-dimensional arrays\n"));
+    auto &in = this->inargs.myfltvec_data(0);
+    if (this->outargs.myfltvec_data(0).init(this->csound, in.len(),
+                                          this->insdshead) != OK)
+      return this->csound->init_error(Str_noop("cannot initialize output array\n"));
+    return OK;
+  }
+
   int32_t prepare_output() {
+    if (!vectors_only())
+      return this->csound->perf_error(Str_noop("expected one-dimensional arrays\n"), this);
     auto &in = this->inargs.myfltvec_data(0);
     auto *out = reinterpret_cast<ARRAYDAT *>(this->outargs(0));
     return tabcheck(reinterpret_cast<CSOUND *>(this->csound), out,
@@ -61,8 +82,7 @@ template <cs_float (*op)(cs_float)> struct ArrayOp : ArrayOutput<1> {
   int32_t init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    if (out.init(csound, in.len(), this->insdshead) != OK)
-      return csound->init_error(Str_noop("cannot initialize output array\n"));
+    if (this->init_output() != OK) return NOTOK;
     if (!is_perf()) process(out, in);
     return OK;
   }
@@ -76,7 +96,7 @@ template <cs_float (*op)(cs_float)> struct ArrayOp : ArrayOutput<1> {
 /** k-rate binary operator
     kout[] op kin1[], kin2[]
  */
-template <cs_float (*bop)(cs_float, cs_float)> struct ArrayOp2 : ArrayOutput<2> {
+template <cs_float (*bop)(cs_float, cs_float)> struct ArrayOp2 : ArrayOutput<2, 2> {
 
   int32_t process(csnd::myfltvec &out, csnd::myfltvec &in1, csnd::myfltvec &in2) {
     std::transform(in1.begin(), in1.end(), in2.begin(), out.begin(),
@@ -88,17 +108,16 @@ template <cs_float (*bop)(cs_float, cs_float)> struct ArrayOp2 : ArrayOutput<2> 
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in1 = inargs.myfltvec_data(0);
     csnd::myfltvec &in2 = inargs.myfltvec_data(1);
+    if (this->init_output() != OK) return NOTOK;
     if (UNLIKELY(in2.len() < in1.len()))
       return csound->init_error(Str_noop("second input array is too short\n"));
-    if (out.init(csound, in1.len(), this->insdshead) != OK)
-      return csound->init_error(Str_noop("cannot initialize output array\n"));
     if (!is_perf()) process(out, in1, in2);
     return OK;
   }
   int32_t kperf() {
+    if (this->prepare_output() != OK) return NOTOK;
     if (UNLIKELY(inargs.myfltvec_data(1).len() < inargs.myfltvec_data(0).len()))
       return csound->perf_error(Str_noop("second input array is too short\n"), this);
-    if (prepare_output() != OK) return NOTOK;
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0),
                    inargs.myfltvec_data(1));
   }
@@ -118,8 +137,7 @@ template <cs_float (*bop)(cs_float, cs_float)> struct ArrayOp3 : ArrayOutput<2> 
   int32_t init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    if (out.init(csound, in.len(), this->insdshead) != OK)
-      return csound->init_error(Str_noop("cannot initialize output array\n"));
+    if (this->init_output() != OK) return NOTOK;
     if (!is_perf()) process(out, in, inargs[1]);
     return OK;
   }
@@ -148,8 +166,7 @@ struct ArrayLimit : ArrayOutput<3> {
   int32_t init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    if (out.init(csound, in.len(), this->insdshead) != OK)
-      return csound->init_error(Str_noop("cannot initialize output array\n"));
+    if (this->init_output() != OK) return NOTOK;
     if(!is_perf()) process(out, in, inargs[1], inargs[2]);
     return OK;
   }
@@ -175,8 +192,7 @@ template <typename T> struct ArraySort : ArrayOutput<1> {
   int32_t init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    if (out.init(csound, in.len(), this->insdshead) != OK)
-      return csound->init_error(Str_noop("cannot initialize output array\n"));
+    if (this->init_output() != OK) return NOTOK;
     if (!is_perf()) process(out, in);
     return OK;
   }
@@ -232,122 +248,122 @@ template <typename T, int32_t I> struct Accum : csnd::Plugin<1, 1> {
 
 
 static void onload(csnd::Csound *csound) {
-  csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "i[]", "i[]", csnd::thread::i);
-  csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "k[]", "k[]", csnd::thread::ik);
+  csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "i[]", "i[]", csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
+  csnd::plugin<ArrayOp<lim1>>(csound, "limit1", "k[]", "k[]", csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "i[]", "i[]",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::ceil>>(csound, "ceil", "k[]", "k[]",
-                                   csnd::thread::ik);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::floor>>(csound, "floor", "i[]", "i[]",
-                                    csnd::thread::i);
+                                    csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::floor>>(csound, "floor", "k[]", "k[]",
-                                    csnd::thread::ik);
+                                    csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::round>>(csound, "round", "i[]", "i[]",
-                                    csnd::thread::i);
+                                    csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::round>>(csound, "round", "k[]", "k[]",
-                                    csnd::thread::ik);
+                                    csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::trunc>>(csound, "int", "i[]", "i[]",
-                                    csnd::thread::i);
+                                    csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::trunc>>(csound, "int", "k[]", "k[]",
-                                    csnd::thread::ik);
-  csnd::plugin<ArrayOp<frac>>(csound, "frac", "i[]", "i[]", csnd::thread::i);
-  csnd::plugin<ArrayOp<frac>>(csound, "frac", "k[]", "k[]", csnd::thread::ik);
+                                    csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
+  csnd::plugin<ArrayOp<frac>>(csound, "frac", "i[]", "i[]", csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
+  csnd::plugin<ArrayOp<frac>>(csound, "frac", "k[]", "k[]", csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::exp2>>(csound, "powoftwo", "i[]", "i[]",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::exp2>>(csound, "powoftwo", "k[]", "k[]",
-                                   csnd::thread::ik);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::fabs>>(csound, "abs", "i[]", "i[]",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::fabs>>(csound, "abs", "k[]", "k[]",
-                                   csnd::thread::ik);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::log2>>(csound, "log2", "i[]", "i[]",
-                                    csnd::thread::i);
+                                    csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::log2>>(csound, "log2", "k[]", "k[]",
-                                    csnd::thread::ik);
+                                    csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::log10>>(csound, "log10", "i[]", "i[]",
-                                    csnd::thread::i);
+                                    csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::log10>>(csound, "log10", "k[]", "k[]",
-                                    csnd::thread::ik);
-  csnd::plugin<ArrayOp<std::log>>(csound, "log", "i[]", "i[]", csnd::thread::i);
+                                    csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
+  csnd::plugin<ArrayOp<std::log>>(csound, "log", "i[]", "i[]", csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::log>>(csound, "log", "k[]", "k[]",
-                                  csnd::thread::ik);
-  csnd::plugin<ArrayOp3<logb>>(csound, "log", "i[]", "i[]i", csnd::thread::i);
-  csnd::plugin<ArrayOp<std::exp>>(csound, "exp", "i[]", "i[]", csnd::thread::i);
+                                  csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
+  csnd::plugin<ArrayOp3<logb>>(csound, "log", "i[]", "i[]i", csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
+  csnd::plugin<ArrayOp<std::exp>>(csound, "exp", "i[]", "i[]", csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::exp>>(csound, "exp", "k[]", "k[]",
-                                  csnd::thread::ik);
+                                  csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::sqrt>>(csound, "sqrt", "i[]", "i[]",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::sqrt>>(csound, "sqrt", "k[]", "k[]",
-                                   csnd::thread::ik);
-  csnd::plugin<ArrayOp<std::cos>>(csound, "cos", "i[]", "i[]", csnd::thread::i);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
+  csnd::plugin<ArrayOp<std::cos>>(csound, "cos", "i[]", "i[]", csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::cos>>(csound, "cos", "k[]", "k[]",
-                                  csnd::thread::ik);
-  csnd::plugin<ArrayOp<std::sin>>(csound, "sin", "i[]", "i[]", csnd::thread::i);
+                                  csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
+  csnd::plugin<ArrayOp<std::sin>>(csound, "sin", "i[]", "i[]", csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::sin>>(csound, "sin", "k[]", "k[]",
-                                  csnd::thread::ik);
-  csnd::plugin<ArrayOp<std::tan>>(csound, "tan", "i[]", "i[]", csnd::thread::i);
+                                  csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
+  csnd::plugin<ArrayOp<std::tan>>(csound, "tan", "i[]", "i[]", csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::tan>>(csound, "tan", "k[]", "k[]",
-                                  csnd::thread::ik);
+                                  csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::acos>>(csound, "cosinv", "i[]", "i[]",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::acos>>(csound, "cosinv", "k[]", "k[]",
-                                   csnd::thread::ik);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::asin>>(csound, "sininv", "i[]", "i[]",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::asin>>(csound, "sininv", "k[]", "k[]",
-                                   csnd::thread::ik);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::atan>>(csound, "taninv", "i[]", "i[]",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::atan>>(csound, "taninv", "k[]", "k[]",
-                                   csnd::thread::ik);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::cosh>>(csound, "cosh", "i[]", "i[]",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::cosh>>(csound, "cosh", "k[]", "k[]",
-                                   csnd::thread::ik);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::sinh>>(csound, "sinh", "i[]", "i[]",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::sinh>>(csound, "sinh", "k[]", "k[]",
-                                   csnd::thread::ik);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::tanh>>(csound, "tanh", "i[]", "i[]",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::tanh>>(csound, "tanh", "k[]", "k[]",
-                                   csnd::thread::ik);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::cbrt>>(csound, "cbrt", "i[]", "i[]",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp<std::cbrt>>(csound, "cbrt", "k[]", "k[]",
-                                   csnd::thread::ik);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp2<std::atan2>>(csound, "taninv", "i[]", "i[]i[]",
-                                     csnd::thread::i);
+                                     csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp2<std::atan2>>(csound, "taninv", "k[]", "k[]k[]",
-                                     csnd::thread::ik);
+                                     csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp2<std::pow>>(csound, "pow", "i[]", "i[]i[]",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp2<std::pow>>(csound, "pow", "k[]", "k[]k[]",
-                                   csnd::thread::ik);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp2<std::hypot>>(csound, "hypot", "i[]", "i[]i[]",
-                                     csnd::thread::i);
+                                     csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp2<std::hypot>>(csound, "hypot", "k[]", "k[]k[]",
-                                     csnd::thread::ik);
+                                     csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp2<std::fmod>>(csound, "fmod", "i[]", "i[]i[]",
-                                    csnd::thread::i);
+                                    csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp2<std::fmod>>(csound, "fmod", "k[]", "k[]k[]",
-                                    csnd::thread::ik);
+                                    csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp2<std::fmax>>(csound, "fmax", "i[]", "i[]i[]",
-                                    csnd::thread::i);
+                                    csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp2<std::fmax>>(csound, "fmax", "k[]", "k[]k[]",
-                                    csnd::thread::ik);
+                                    csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp2<std::fmin>>(csound, "fmin", "i[]", "i[]i[]",
-                                    csnd::thread::i);
+                                    csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp2<std::fmin>>(csound, "fmin", "k[]", "k[]k[]",
-                                    csnd::thread::ik);
+                                    csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArraySort<std::less<cs_float>>>(csound, "sorta", "i[]", "i[]",
-                                            csnd::thread::i);
+                                            csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArraySort<std::greater<cs_float>>>(csound, "sortd", "i[]", "i[]",
-                                               csnd::thread::i);
+                                               csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArraySort<std::less<cs_float>>>(csound, "sorta", "k[]", "k[]",
-                                            csnd::thread::ik);
+                                            csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArraySort<std::greater<cs_float>>>(csound, "sortd", "k[]", "k[]",
-                                               csnd::thread::ik);
+                                               csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<Dot>(csound, "dot", "i", "i[]i[]", csnd::thread::i);
   csnd::plugin<Dot>(csound, "dot", "k", "k[]k[]", csnd::thread::k);
   csnd::plugin<Accum<std::multiplies<cs_float>, 1>>(csound, "product", "k", "k[]",
@@ -359,25 +375,25 @@ static void onload(csnd::Csound *csound) {
   csnd::plugin<Accum<std::plus<cs_float>, 0>>(csound, "sum", "i", "i[]",
                                            csnd::thread::i);
   csnd::plugin<ArrayLimit>(csound, "limit", "i[]", "i[]ii",
-                               csnd::thread::i);
+                               csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayLimit>(csound, "limit", "k[]", "k[]kk",
-                               csnd::thread::ik);
+                               csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp3<std::pow>>(csound, "pow", "i[]", "i[]i",
-                                   csnd::thread::i);
+                                   csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp3<std::pow>>(csound, "pow", "k[]", "k[]k",
-                                   csnd::thread::ik);
+                                   csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp3<std::fmod>>(csound, "fmod", "i[]", "i[]i",
-                                    csnd::thread::i);
+                                    csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp3<std::fmod>>(csound, "fmod", "k[]", "k[]k",
-                                    csnd::thread::ik);
+                                    csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp3<std::fmax>>(csound, "fmax", "i[]", "i[]i",
-                                    csnd::thread::i);
+                                    csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp3<std::fmax>>(csound, "fmax", "k[]", "k[]k",
-                                    csnd::thread::ik);
+                                    csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp3<std::fmin>>(csound, "fmin", "i[]", "i[]i",
-                                    csnd::thread::i);
+                                    csnd::thread::i, CSOUND_ARRAY_OUTPUT_VECTOR);
   csnd::plugin<ArrayOp3<std::fmin>>(csound, "fmin", "k[]", "k[]k",
-                                    csnd::thread::ik);
+                                    csnd::thread::ik, CSOUND_ARRAY_OUTPUT_VECTOR);
 }
 
 
