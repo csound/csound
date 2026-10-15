@@ -225,7 +225,7 @@ static int32_t check_plugin_compatibility(CSOUND *csound, const char *fname, int
                               "rebuild the plugin with matching USE_FLOAT)\n"), fname);
     return -1;
   }
-  sampleSize = n & (0xFF ^ CSOUND_MODULE_USE_FLOAT);
+  sampleSize = n & (0xFF ^ (CSOUND_MODULE_USE_FLOAT | CSOUND_MODULE_ARRAY_RANK));
   if (UNLIKELY(sampleSize != 0 && sampleSize != (int32_t) sizeof(cs_float))) {
     csoundWarning(csound, Str("not loading '%s' (uses incompatible "
                               "floating point type)\n"), fname);

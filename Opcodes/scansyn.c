@@ -808,9 +808,9 @@ static int32_t scsnmapV_init(CSOUND *csound, PSCSNMAPV *p)
       return csound_array_init_resize_error(csound);
     preparedPosition.arrayType = p->k_pos->arrayType;
     preparedVelocity.arrayType = p->k_vel->arrayType;
-    if (UNLIKELY(tabinit(csound, &preparedPosition, (p->p)->len,
+    if (UNLIKELY(csound_array_init_vector(csound, &preparedPosition, (p->p)->len,
                          p->h.insdshead) != OK ||
-                 tabinit(csound, &preparedVelocity, (p->p)->len,
+                 csound_array_init_vector(csound, &preparedVelocity, (p->p)->len,
                          p->h.insdshead) != OK)) {
       arrayContainerType->freeVariableMemory(csound, &preparedPosition);
       arrayContainerType->freeVariableMemory(csound, &preparedVelocity);

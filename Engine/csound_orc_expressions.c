@@ -159,16 +159,17 @@ static char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
       size_t length;
       if (*base == '[') {
         while (*base == '[') base++;
-        if (*base == '*' && base[1] != ']') base++;
+        if (*base == '^') base++;
         length = strlen(base) - 1;
       } else {
         length = (size_t) (strchr(base, '[') - base);
       }
       char *baseType = cs_strndup(csound, base, length);
       snprintf(s, 256, "#%s%d[]", baseType, argCount);
-      /* A native opcode's [] signature does not state its result rank.
-         The temporary takes that rank from the first produced value. */
-      add_array_arg(csound, s, baseType, 0, typeTable);
+      int32_t rank = 0;
+      for (const char *bracket = type; *bracket == '['; bracket++) rank++;
+      if (type[0] == '[' && type[1] == '^') rank = 0;
+      add_array_arg(csound, s, baseType, rank, typeTable);
       csound->Free(csound, baseType);
     }
     else {
@@ -485,7 +486,7 @@ static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
   strNcpy(argString, leftArgType, 80);
   strlcat(argString, rightArgType, 80);
 
-  outType = resolve_opcode_get_outarg(csound, opentries, argString);
+  outType = resolve_expression_type(csound, opentries, argString, NULL);
 
   csound->Free(csound, argString);
   csound->Free(csound, leftArgType);
@@ -494,9 +495,10 @@ static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
 
   if (outType == NULL) return NULL;
 
-  outType = convert_external_to_internal(csound, outType);
-  return create_out_arg(csound, outType,
-                        typeTable->localPool->synthArgCount++, typeTable);
+  char *result = create_out_arg(csound, outType,
+                                typeTable->localPool->synthArgCount++, typeTable);
+  csound->Free(csound, outType);
+  return result;
 }
 
 static TREE *expand_expression_arg_list(CSOUND *csound, TREE *current,
@@ -642,64 +644,17 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
     break;
   case T_FUNCTION:
     {
-      char *outtype, *outtype_internal;
-      int32_t fixedUdoRank = 0;
-      int32_t len = (int32_t) strlen(root->value->lexeme);
-      strNcpy(op, root->value->lexeme, len+1);
-      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_EXPRESSIONS))
-        csound->Message(csound, "Found OP: %s\n", op);
-
+      strNcpy(op, root->value->lexeme, strlen(root->value->lexeme) + 1);
       opentries = find_opcode2(csound, root->value->lexeme);
-      if (UNLIKELY(opentries->count == 0)) {
-        csound->Warning(csound,
-                        Str("error: function %s not found, "
-                            "line %d\n"),
-                        root->value->lexeme, line);
-        outtype = "i";
-      }
-      else {
-        char* inArgTypes =
-          get_arg_string_from_tree(csound, root->right, typeTable);
-        if (root->value->optype != NULL)
-          outtype =
-            check_annotated_type(csound, opentries, root->value->optype);
-        /* if there are type annotations */
-        else outtype =
-               resolve_opcode_get_outarg(csound, opentries, inArgTypes);
-        csound->Free(csound, inArgTypes);
-      }
-
-      if (outtype != NULL) {
-        for (int32_t i = 0; i < opentries->count; i++) {
-          OENTRY *entry = opentries->entries[i];
-          if (entry->useropinfo != NULL && entry->outypes == outtype) {
-            const char *brackets = strchr(outtype, '[');
-            while (brackets != NULL && brackets[0] == '[' && brackets[1] == ']') {
-              fixedUdoRank++;
-              brackets += 2;
-            }
-            break;
-          }
-        }
-      }
+      char *inArgTypes = get_arg_string_from_tree(csound, root->right, typeTable);
+      char *outtype = resolve_expression_type(csound, opentries, inArgTypes,
+                                              root->value->optype);
+      csound->Free(csound, inArgTypes);
       csound->Free(csound, opentries);
-
-      if (UNLIKELY(outtype == NULL)) {
-        csound->Warning(csound,
-                        Str("error: opcode %s with output type %s not found, "
-                            "line %d\n"),
-                        root->value->lexeme, root->value->optype, line);
-        outtype = "i";
-      }
-
-      outtype_internal = convert_external_to_internal(csound, outtype);
-      outarg = create_out_arg(csound, outtype_internal,
+      if (outtype == NULL) return NULL;
+      outarg = create_out_arg(csound, outtype,
                               typeTable->localPool->synthArgCount++, typeTable);
-      if (fixedUdoRank > 0) {
-        CS_VARIABLE *var = csoundFindVariableWithName(csound, typeTable->localPool, outarg);
-        if (var != NULL && var->varType == &CS_VAR_TYPE_ARRAY)
-          var->dimensions = fixedUdoRank;
-      }
+      csound->Free(csound, outtype);
 
     }
     break;
@@ -757,8 +712,8 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         return NULL;
       }
 
-      char* outype = resolve_opcode_get_outarg(csound, opentries,
-                                               rightArgType);
+      char* outype = resolve_expression_type(csound, opentries,
+                                             rightArgType, NULL);
       csound->Free(csound, rightArgType);
       csound->Free(csound, opentries);
 
@@ -768,7 +723,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
 
       outarg = create_out_arg(csound, outype,
                               typeTable->localPool->synthArgCount++, typeTable);
-
+      csound->Free(csound, outype);
     }
     break;
   case T_ARRAY:
@@ -1305,7 +1260,7 @@ static char* get_struct_array_element_type_name(CSOUND* csound,
   if (len >= 3 && arrayTypeName[0] == '[' && arrayTypeName[len - 1] == ']') {
     const char *base = arrayTypeName;
     while (*base == '[') base++;
-    if (*base == '*' && base[1] != ']') base++;
+    if (*base == '^') base++;
     elementTypeName = cs_strndup(csound, base, strlen(base) - 1);
   }
   else if (len > 2 && arrayTypeName[len - 2] == '[' &&

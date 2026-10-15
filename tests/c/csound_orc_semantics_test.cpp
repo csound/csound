@@ -108,6 +108,31 @@ TEST_F (OrcSemanticsTest, ResolveOpcodeTest)
     csound->Free(csound, entries);
 }
 
+TEST_F (OrcSemanticsTest, NativeArrayRanksKeepLegacyWildcard)
+{
+    OENTRY legacy{}, explicitAny{}, matrix{};
+    legacy.opname = explicitAny.opname = matrix.opname = "ranktest";
+    legacy.outypes = explicitAny.outypes = matrix.outypes = "i";
+    legacy.intypes = "i[]";
+    explicitAny.intypes = "i[*]";
+    matrix.intypes = "i[][]";
+    auto *entries = static_cast<OENTRIES *>(
+        csound->Calloc(csound, sizeof(OENTRIES) + 3 * sizeof(OENTRY *)));
+    entries->count = 3;
+    entries->entries[0] = &legacy;
+    entries->entries[1] = &explicitAny;
+    entries->entries[2] = &matrix;
+
+    EXPECT_EQ(&matrix, resolve_opcode(csound, entries, "i", "i[][]"));
+    EXPECT_EQ(&legacy, resolve_opcode(csound, entries, "i", "i[][][]"));
+    EXPECT_EQ(&explicitAny, resolve_opcode(csound, entries, "i", "i[*]"));
+    EXPECT_EQ(nullptr, resolve_opcode(csound, entries, "i", "S[]"));
+    entries->count = 1;
+    entries->entries[0] = &matrix;
+    EXPECT_EQ(nullptr, resolve_opcode(csound, entries, "i", "i[]"));
+    csound->Free(csound, entries);
+}
+
 TEST_F (OrcSemanticsTest, FindOpcodeNewTest)
 {
   ASSERT_TRUE (find_opcode_new(csound, (char *) "##error", (char *)  "i", (char *)  "i") != NULL);

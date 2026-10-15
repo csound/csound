@@ -235,9 +235,6 @@ static inline int32_t tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size,
     if (UNLIKELY(p == NULL || size < 0 || p->dimensions < 0)) {
         return NOTOK;
     }
-    if (UNLIKELY(csound_array_check_rank(csound, p, 1) != OK)) {
-        return NOTOK;
-    }
     if (p->dimensions <= 1 && p->sizes == NULL) {
         newSizes = (int32_t *)csound->Calloc(csound, sizeof(int32_t));
         if (UNLIKELY(newSizes == NULL)) {
@@ -262,6 +259,16 @@ static inline int32_t tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size,
         p->sizes[0] = size;
     }
     return OK;
+}
+
+/* Core vector outputs use this helper. Keep tabinit's allocation-only
+   behavior for plugins that set dimensions and sizes themselves. */
+static inline int32_t csound_array_init_vector(CSOUND *csound, ARRAYDAT *p,
+                                               int32_t size, INSDS *ctx)
+{
+    if (UNLIKELY(csound_array_check_rank(csound, p, 1) != OK))
+        return NOTOK;
+    return tabinit(csound, p, size, ctx);
 }
 
 /* Match another array's shape, allocating elements for the receiving context.

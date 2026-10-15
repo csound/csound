@@ -562,14 +562,6 @@ ERSTR           "}R"
                                                 yyscanner);
                       }
                       *strrchr(yytext, '(') = '\0';
-                      /* Type lookup uses compact brackets even when the
-                         function annotation separates them with spaces. */
-                      char *out = yytext;
-                      for (const char *in = yytext; *in != '\0'; in++) {
-                          if (*in != ' ' && *in != '\t')
-                              *out++ = *in;
-                      }
-                      *out = '\0';
                       *lvalp = lookup_token(csound, yytext, yyscanner);
                       return (*lvalp)->type+1; }
 {INTGR}         {

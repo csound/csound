@@ -456,7 +456,7 @@ static char *write_type_name(char *out, const char *name, size_t length,
       ++name;
       --length;
     }
-    if (length > 1 && *name == '*') {
+    if (length > 1 && *name == '^') {
       generic = 1;
       ++name;
       --length;

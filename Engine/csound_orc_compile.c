@@ -402,7 +402,7 @@ int32_t args_required(char* argString)
       if (*t == '[') {
         // Handle internal array encoding like "[[a]"
         while (*t == '[') t++;
-        if (*t == '*' && t[1] != ']') t++;
+        if (*t == '^') t++;
         if (*t == '\0') return -1; // malformed
         if (*t == ':') {
           while (*t != '\0' && *t != ';') t++;
@@ -450,6 +450,9 @@ int32_t args_required(char* argString)
  *         - Brackets precede the type, single closing bracket at end
  *         - Dimension count = number of leading '[' chars
  *
+ * Any-rank i[*] uses [^i] internally. The marker is separate from the
+ * existing any-element type * (whose array encoding is [*]).
+ *
  * This function is the bridge between human-readable OENTRY definitions
  * and the internal representation used by parse_opcode_args().
  */
@@ -467,7 +470,7 @@ char** split_args(CSOUND* csound, char* argString)
       if (*start == '[') {
         char* t = start;
         while (*t == '[') t++;
-        if (*t == '*' && t[1] != ']') t++;
+        if (*t == '^') t++;
         if (*t == '\0') {
           csound->Message(csound, Str("ERROR: Malformed internal array type (missing base type)\n"));
           return NULL;
@@ -534,7 +537,7 @@ char** split_args(CSOUND* csound, char* argString)
         part = csound->Malloc(csound, sizeof(char) * (prefix + len + 2));
 
         memset(part, '[', prefix);
-        if (generic) part[1] = '*';
+        if (generic) part[1] = '^';
         strNcpy((part + prefix), start, len + 1);
         part[prefix + len] = ']';
         part[prefix + len + 1] = '\0';

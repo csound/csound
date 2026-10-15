@@ -1285,7 +1285,7 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
         return csound->InitError(csound, "%s\n", Str("invalid type"));
       }
     }
-    if (UNLIKELY(tabinit(csound, p->args, n, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->args, n, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     pathLength = strlen(path);
     p->c.saved_path = (char*)csound->Malloc(csound, pathLength + 1);

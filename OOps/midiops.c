@@ -823,7 +823,7 @@ int32_t savectrl_init(CSOUND *csound, SAVECTRL *p)
       if (UNLIKELY(!(*argp[i] >= 0 && *argp[i] < 128)))
         return csound->InitError(csound, Str("Value out of range [0,127]\n"));
     }
-    if (UNLIKELY(tabinit(csound, p->arr, 2+2*nargs,
+    if (UNLIKELY(csound_array_init_vector(csound, p->arr, 2+2*nargs,
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     p->arr->data[0] = nargs;    /* length */
