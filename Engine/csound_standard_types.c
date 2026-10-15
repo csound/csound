@@ -992,8 +992,8 @@ static CS_VARIABLE* create_string(void* cs, const CS_TYPE *type,
     return var;
 }
 
-CS_VARIABLE* create_array(void* csnd, const CS_TYPE *type,
-                          const void *typeArg, INSDS *ctx) {
+static CS_VARIABLE* create_array(void* csnd, const CS_TYPE *type,
+                                 const void *typeArg, INSDS *ctx) {
     CSOUND* csound = (CSOUND*)csnd;
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     IGN(type);

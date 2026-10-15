@@ -513,30 +513,25 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
   return result;
 }
 
-/* convert array type string from type[] to [type]
-   accepts multidimensional type strings (type[][])
-   non-op for non-array type strings
-*/
-static const char *convert_array_type_string(CSOUND *csound,
+/* Convert type[][] to [[type]. The caller owns the returned string,
+   including when the annotation names a scalar type. */
+static char *convert_array_type_string(CSOUND *csound,
                                        const char *str) {
   const char *check = str;
-  char dim = 0;
+  size_t dim = 0;
   while(*check != '\0') {
     if(*check == '[') dim++;
     check++;
   }
   if(dim){
-    int len = (int) strlen(str);
-    char *arr = csoundCalloc(csound, strlen(str)+1);
-    for(int i = 0; i < dim; i++) {
-      arr[i] = '[';
-    }
-    memcpy(arr+dim, str, len-dim);
-    for(int i = len-dim; i < len; i++) {
-      arr[i] = ']';
-    }
+    size_t typeLen = strlen(str) - 2 * dim;
+    char *arr = csoundCalloc(csound, dim + typeLen + 2);
+    memset(arr, '[', dim);
+    memcpy(arr + dim, str, typeLen);
+    /* Internal array types have one closing bracket, at every rank. */
+    arr[dim + typeLen] = ']';
     return arr;
-  } else return str;
+  } else return csoundStrdup(csound, str);
 }
 
 /* This function gets arg type with checking type table */
@@ -1034,8 +1029,7 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
   case T_TYPED_IDENT:
     // in the case of arrays, we need to convert from type[] to [type]
     // so that semantic analysis can identify the type correctly
-    return csoundStrdup(csound,
-                        convert_array_type_string(csound, tree->value->optype));
+    return convert_array_type_string(csound, tree->value->optype);
   case STRUCT_EXPR:
     return resolve_struct_expr_type(csound, tree, typeTable);
 
@@ -3028,12 +3022,7 @@ static char *get_assignment_lhs_type_hint(CSOUND *csound, TREE *left)
   }
 
   if (left->value->optype != NULL) {
-    const char *type = convert_array_type_string(csound, left->value->optype);
-    char *ret = csoundStrdup(csound, type);
-    if (type != left->value->optype) {
-      csound->Free(csound, (void*)type);
-    }
-    return ret;
+    return convert_array_type_string(csound, left->value->optype);
   }
 
   char *name = left->value->lexeme;
@@ -3857,67 +3846,33 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
 
   // FIXME: Values are appended in reverse order of definition
   while (current != NULL) {
-    char* memberName = current->value->lexeme;
-    char* typedIdentArg = current->value->optype;
+    const char* memberName = current->value->lexeme;
+    const char* annotation = current->value->optype;
+    char* inferredAnnotation = NULL;
 
-    if (typedIdentArg == NULL) {
-      typedIdentArg = cs_strndup(csound, memberName, 1);
+    if (annotation == NULL) {
+      char elementType[] = { memberName[0], '\0' };
+      int32_t dimensions = current->type == T_ARRAY_IDENT
+        ? tree_arg_list_count(current->right) : 0;
+      inferredAnnotation = csoundFormatTypeName(csound, elementType, dimensions);
+      annotation = inferredAnnotation;
     }
 
-    memberName = csoundStrdup(csound, memberName);
+    ARRAY_VAR_INIT varInit;
+    const void* typeArg;
+    const CS_TYPE* memberType =
+      resolve_type_annotation(csound, annotation, &varInit, &typeArg);
+    CS_VARIABLE* var =
+      csoundCreateVariableForType(csound, memberType, typeArg, NULL);
 
-    // Check if this is an array type (ends with [])
-    size_t typeLen = strlen(typedIdentArg);
-    int32_t isArray = (typeLen >= 2 &&
-                       typedIdentArg[typeLen-2] == '[' &&
-                       typedIdentArg[typeLen-1] == ']');
-
-    const CS_TYPE* memberType;
-    CS_VARIABLE* var;
-
-    if (isArray) {
-      // Extract base type (remove [] from the end)
-      char* baseType = cs_strndup(csound, typedIdentArg, typeLen - 2);
-      const CS_TYPE* baseCSType = csoundGetTypeWithVarTypeName(csound->typePool, baseType);
-
-      if (baseCSType == NULL) {
-        // create_array() stores the element type without validating it, so an
-        // unknown base type would yield a member with a NULL subType and only
-        // fail much later with a misleading message.
-        csound->ErrorMsg(csound,
-                         Str("unknown type '%s' for member '%s' of struct\n"),
-                         baseType, memberName);
-        csound->Free(csound, baseType);
-        csound->Free(csound, memberName);
-        return 0;
-      }
-
-      // Get the array type (use "[" which has create_array as its createVariable function)
-      const CS_TYPE* arrayType = csoundGetTypeWithVarTypeName(csound->typePool, "[");
-
-      // Create array variable with dimensions set
-      ARRAY_VAR_INIT varInit;
-      varInit.dimensions = 1;
-      varInit.type = baseCSType;
-
-      // Use array type - csoundCreateVariable will set var->varType to arrayType
-      // and create_array will set var->subType to baseCSType
-      var = csoundCreateVariable(csound, csound->typePool, arrayType, memberName, &varInit);
-      csound->Free(csound, baseType);
-    } else {
-      memberType = csoundGetTypeWithVarTypeName(csound->typePool, typedIdentArg);
-      var = csoundCreateVariableForType(csound, memberType, NULL, NULL);
-    }
-
-    // Both helpers return NULL when the type is unknown or cannot allocate a
-    // variable. Dereferencing var below would fault, so report it instead.
     if (UNLIKELY(var == NULL)) {
       csound->ErrorMsg(csound,
                        Str("unknown type '%s' for member '%s' of struct\n"),
-                       typedIdentArg, memberName);
-      csound->Free(csound, memberName);
+                       annotation, memberName);
+      csound->Free(csound, inferredAnnotation);
       return 0;
     }
+    csound->Free(csound, inferredAnnotation);
 
     var->varName = csoundStrdup(csound, memberName);
     CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));

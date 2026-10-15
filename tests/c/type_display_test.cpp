@@ -205,17 +205,22 @@ endin
   EXPECT_EQ(std::string::npos, output.find(":Point;"));
 }
 
-TEST_F(TypeDisplayTests, ReportsArrayRedeclarationDimensions)
+TEST_F(TypeDisplayTests, ReportsArrayElementTypesAndDimensions)
 {
   EXPECT_NE(0, compile(R"(
+opcode ReadPoints(points:Point[][]):i
+  xout 0
+endop
 instr 1
   points:k [][] init 2, 3
-  points:Point [][] init 2, 3
+  result:i ReadPoints points
 endin
 )"));
   const std::string output = messages();
   EXPECT_NE(std::string::npos, output.find(
-    "points:Point[][] -- type mismatch for existing array variable points:k[][]"))
+    "Found:\n  i ReadPoints k[][]\n")) << output;
+  EXPECT_NE(std::string::npos, output.find(
+    "Candidates:\n  i ReadPoints Point[][]\n"))
     << output;
   EXPECT_EQ(std::string::npos, output.find(":Point;"));
 }

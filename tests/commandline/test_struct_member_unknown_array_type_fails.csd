@@ -3,7 +3,7 @@ description = "struct array member with an unknown element type fails cleanly"
 
 [expect]
 exit = "nonzero"
-stderr = ["unknown type 'nosuchtype' for member 'val0' of struct"]
+stderr = ["unknown type 'nosuchtype[]' for member 'val0' of struct"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

@@ -79,8 +79,8 @@ int get_next_char(char *, int32_t, void*);
 
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*(@global)?
 IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*\n?
-TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*(@global)?:[a-zA-Z_][a-zA-Z0-9_]*(\[\])?
-TYPED_IDENTIFIERB [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*\[?\]?\([ \t]*\n?
+TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*(@global)?:[a-zA-Z_][a-zA-Z0-9_]*([ \t]*\[\])*
+TYPED_IDENTIFIERB [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*(([ \t]*\[\])+[ \t]*)?\([ \t]*\n?
 XIDENT          0|[aijkftKOJVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
@@ -635,6 +635,13 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         char* annotation = strtok_r(NULL, ":", &th);
         ans->lexeme = csoundStrdup(csound, baseName);
         ans->optype = csoundStrdup(csound, annotation);
+        /* Normalize the copy. Error locations depend on the scanner buffer. */
+        char *out = ans->optype;
+        for (const char *in = ans->optype; *in != '\0'; in++) {
+            if (*in != ' ' && *in != '\t')
+                *out++ = *in;
+        }
+        *out = '\0';
         type = T_TYPED_IDENT;
     } else {
         ans->lexeme = csoundStrdup(csound, s);
