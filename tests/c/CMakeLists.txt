@@ -107,6 +107,8 @@ if(BUILD_TESTS)
         midi_file_test.cpp
         midi_realtime_input_test.cpp
         realtime_queue_test.cpp
+        realtime_chain_test.cpp
+        realtime_readiness_test.cpp
         midiarp_test.cpp
         tableseg_test.cpp
         table_copy_test.cpp

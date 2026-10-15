@@ -147,7 +147,7 @@ int32_t delete_instr(CSOUND *csound, DELETEIN *p)
   active = ip->instance;
   while (active != NULL) {    /* Check there are no active instances */
     INSDS   *nxt = active->nxtinstance;
-    if (UNLIKELY(!instance_is_reclaimable(active))) {
+    if (UNLIKELY(!instance_is_reclaimable(csound, active))) {
       char *name = csound->engineState.instrtxtp[n]->insname;
       if (name)
         return csound->InitError(csound,
@@ -207,7 +207,7 @@ int32_t delete_instrdef_opcode(CSOUND *csound, DELETE_INSTRDEF *p)
   active = ip->instance;
   while (active != NULL) {    /* Check there are no active instances */
     INSDS   *nxt = active->nxtinstance;
-    if (UNLIKELY(!instance_is_reclaimable(active))) {
+    if (UNLIKELY(!instance_is_reclaimable(csound, active))) {
       char *name = csound->engineState.instrtxtp[n]->insname;
       if (name)
         return csound->InitError(csound,
@@ -328,6 +328,8 @@ static int32_t splice_before_instance(CSOUND *csound,
   if(ip->prvact != NULL) {
     // unlink first
     ip->prvact->nxtact = ip->nxtact;
+    if (ip->nxtact != NULL)
+      ip->nxtact->prvact = ip->prvact;
   }
   nxtp = &(csound->actanchor);
   while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
@@ -353,11 +355,15 @@ static int32_t splice_after_instance(CSOUND *csound,
   if(ip->prvact != NULL) {
     // unlink first
     ip->prvact->nxtact = ip->nxtact;
+    if (ip->nxtact != NULL)
+      ip->nxtact->prvact = ip->prvact;
   }
   nxtp = &(csound->actanchor);
   while (nxtp != NULL) {
     if (nxtp == ipprev) {
       ip->nxtact = nxtp->nxtact;
+      if (ip->nxtact != NULL)
+        ip->nxtact->prvact = ip;
       nxtp->nxtact = ip;
       break;
     }

@@ -96,10 +96,6 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
     /* VL: the validity of icurTime needs to be checked */
     time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
     insds = task_map[which_task];
-    if (insds->offtim > 0 && time_end > insds->offtim) {
-      /* this is the last cycle of performance */
-      insds->ksmps_no_end = insds->no_end;
-    }
 #if defined(MSVC)
     done = InterlockedExchangeAdd(&insds->init_done, 0);
 #elif defined(HAVE_ATOMIC_BUILTIN)
@@ -108,6 +104,10 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
     done = insds->init_done;
 #endif
     if (done) {
+      if (insds->offtim > 0 && time_end > insds->offtim) {
+        /* this is the last cycle of performance */
+        insds->ksmps_no_end = insds->no_end;
+      }
       opstart = (OPDS *)task_map[which_task];
       if (insds->ksmps == csound->ksmps) {
         insds->spin = csound->spin;
@@ -319,17 +319,17 @@ int32_t kperf(CSOUND *csound) {
 
       while (ip != NULL) { /* for each instr active:  */
         INSDS *nxt = ip->nxtact;
-        if (UNLIKELY(csound->oparms->sampleAccurate && ip->offtim > 0 &&
-                     time_end > ip->offtim)) {
-          /* this is the last cycle of performance */
-          if(csoundGetDebug(csound) & DEBUG_RUNTIME)
-             csound->Message(csound, "last cycle %d: %f %f %d\n",
-                 ip->insno, csound->icurTimeSamples/csound->esr,
-                 ip->offtim, ip->no_end);
-          ip->ksmps_no_end = ip->no_end;
-        }
         done = ATOMIC_GET(ip->init_done);
         if (done == 1) { /* if init-pass has been done */
+          if (UNLIKELY(csound->oparms->sampleAccurate && ip->offtim > 0 &&
+                       time_end > ip->offtim)) {
+            /* this is the last cycle of performance */
+            if(csoundGetDebug(csound) & DEBUG_RUNTIME)
+               csound->Message(csound, "last cycle %d: %f %f %d\n",
+                   ip->insno, csound->icurTimeSamples/csound->esr,
+                   ip->offtim, ip->no_end);
+            ip->ksmps_no_end = ip->no_end;
+          }
           int32_t error = 0;
           OPDS *opstart = (OPDS *)ip;
           ip->spin = csound->spin;
@@ -386,9 +386,9 @@ int32_t kperf(CSOUND *csound) {
               ip->ksmps_offset = 0;
             }
           }
+          ip->ksmps_offset = 0; /* reset sample-accuracy offset */
+          ip->ksmps_no_end = 0; /* reset end of loop samples */
         }
-        ip->ksmps_offset = 0; /* reset sample-accuracy offset */
-        ip->ksmps_no_end = 0; /* reset end of loop samples */
         if(nxt == NULL) {
           ip = ip->nxtact;
         /* VL 13.04.21 this allows for deletions to operate
@@ -409,8 +409,25 @@ int32_t kperf(CSOUND *csound) {
 }
 
 
+/* Both normal and debugger traversal retain successors across callbacks.
+   The call returns only after PARCS workers finish, so one interval covers
+   every render reader. Public entry points reject nested performance. */
+static int32_t perform_control_period(CSOUND *csound)
+{
+  long epoch = ATOMIC_GET(csound->performance_epoch);
+  int32_t result;
+  ATOMIC_SET(csound->performance_epoch,
+             (long) ((unsigned long) epoch + 1UL));
+  result = csound->kperf(csound);
+  ATOMIC_SET(csound->performance_epoch,
+             (long) ((unsigned long) epoch + 2UL));
+  return result;
+}
+
  int32_t csoundPerformKsmps(CSOUND *csound) {
   int32_t done;
+  if (UNLIKELY(ATOMIC_GET(csound->performance_epoch) & 1L))
+    return CSOUND_ERROR;
   /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
   if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
     csound->Warning(csound,
@@ -422,8 +439,13 @@ int32_t kperf(CSOUND *csound) {
     int32_t returnValue;
     csound->jumpset = 1;
     /* setup jmp for return after an exit() */
-    if (UNLIKELY((returnValue = setjmp(csound->exitjmp))))
+    if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
+      long epoch = ATOMIC_GET(csound->performance_epoch);
+      if (epoch & 1L)
+        ATOMIC_SET(csound->performance_epoch,
+                   (long) ((unsigned long) epoch + 1UL));
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    }
   }
   if (!csound->oparms->realtime) // no API lock in realtime mode
     csoundLockMutex(csound->API_lock);
@@ -443,7 +465,7 @@ int32_t kperf(CSOUND *csound) {
       csoundMessage(csound, Str("end of Performance\n"));
       return done;
     }
-  } while (csound->kperf(csound));
+  } while (perform_control_period(csound));
   if (!csound->oparms->realtime) // no API lock in realtime mode
     csoundUnlockMutex(csound->API_lock);
   return 0;
@@ -456,6 +478,8 @@ int32_t kperf(CSOUND *csound) {
 int32_t perform_buffer(CSOUND *csound) {
   int32_t returnValue;
   int32_t done;
+  if (UNLIKELY(ATOMIC_GET(csound->performance_epoch) & 1L))
+    return CSOUND_ERROR;
   /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
   if (UNLIKELY(!(csound->engineStatus & CS_STATE_COMP))) {
     csound->Warning(csound,
@@ -465,6 +489,10 @@ int32_t perform_buffer(CSOUND *csound) {
   }
   /* Setup jmp for return after an exit(). */
   if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
+    long epoch = ATOMIC_GET(csound->performance_epoch);
+    if (epoch & 1L)
+      ATOMIC_SET(csound->performance_epoch,
+                 (long) ((unsigned long) epoch + 1UL));
 #ifndef MACOSX
     csoundMessage(csound, Str("Early return from csoundPerformBuffer().\n"));
 #endif
@@ -489,7 +517,7 @@ int32_t perform_buffer(CSOUND *csound) {
         }
         return done;
       }
-    } while (csound->kperf(csound));
+    } while (perform_control_period(csound));
     if (!csound->oparms->realtime) { // no API lock in realtime mode
       csoundUnlockMutex(csound->API_lock);
     }

@@ -382,7 +382,7 @@ TEST_F (EngineTests, testRecycleDetachedInactiveInstance)
     recycle_inactive_instance(csound, &detached);
 
     EXPECT_EQ(instrument.act_instance, &detached);
-    EXPECT_EQ(detached.nxtact, &available);
+    EXPECT_EQ(detached.nxtinactive, &available);
 }
 
 TEST_F (EngineTests, testRealtimeLongJmpPreservesInitThreadContext)
