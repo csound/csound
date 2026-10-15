@@ -551,14 +551,6 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_ADD(var, val) var += val
 #endif
 
-#if defined(MSVC)
-#define ATOMIC_CMP_XCH(val, newVal, oldVal) \
-  (InterlockedCompareExchange(val, newVal, oldVal) != oldVal)
-#elif defined(HAVE_ATOMIC_BUILTIN)
-#define ATOMIC_CMP_XCH(val, newVal, oldVal) \
-  !(__atomic_compare_exchange(val, (long *) &oldVal,  &newVal, 0, \
-                              __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
-#else
 /* Serialized fallback only; this does not synchronize concurrent callers. */
 static inline int csoundCompareExchangeSerial(volatile long *value,
                                               long desired, long expected)
@@ -568,6 +560,15 @@ static inline int csoundCompareExchangeSerial(volatile long *value,
   *value = desired;
   return 0;
 }
+
+#if defined(MSVC)
+#define ATOMIC_CMP_XCH(val, newVal, oldVal) \
+  (InterlockedCompareExchange(val, newVal, oldVal) != oldVal)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_CMP_XCH(val, newVal, oldVal) \
+  !(__atomic_compare_exchange(val, (long *) &oldVal,  &newVal, 0, \
+                              __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
+#else
 #define ATOMIC_CMP_XCH(val, newVal, oldVal) \
   csoundCompareExchangeSerial(val, newVal, oldVal)
 #endif
