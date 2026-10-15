@@ -1881,10 +1881,8 @@ struct CSOUND_ {
   unsigned long message_string_queue_wp;                     /* message string queue write pointer */
   message_string_queue_t *message_string_queue;              /* message string queue */
   struct _message_queue **msg_queue;                         /* realtime message queue */
-  volatile long msg_queue_wget;                              /* realtime message queue read index */
-  volatile long msg_queue_wput;                              /* realtime message queue write index */
-  volatile long msg_queue_rstart;                            /* realtime message queue start index */
-  volatile long msg_queue_items;                             /* realtime message queue entry count */
+  volatile long msg_queue_write;                             /* reserved API queue positions */
+  volatile long msg_queue_read;                              /* consumed API queue positions */
   char *delayederrormessages;                                /* queued error messages */
   void *printerrormessagesflag;                              /* deferred error printing flag */
   OSC_MESS osc_message_anchor;                               /* anchored OSC message storage */

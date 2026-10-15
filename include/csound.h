@@ -648,6 +648,8 @@ extern "C" {
    * Parse, and compile the given orchestra from an ASCII string,
    * also evaluating any global space code (i-time only)
    * in synchronous or asynchronous (async = 1) mode.
+   * Parsing and compilation run on the caller; async mode queues the merge.
+   * Returns an error if the async queue cannot accept the compiled state.
    * /code
    *       char *orc = "instr 1 \n a1 rand 0dbfs/4 \n out a1 \n";
    *       csoundCompileOrc(csound, orc, 0);
@@ -1245,7 +1247,11 @@ extern "C" {
    * type 1 - function table instance CS_TABLE_EVENT
    * type 2 - end event               CS_END_EVENT
    * event parameters is nparams cs_float array with the event parameters (p-fields)
-   * optionally run asynchronously (async = 1)
+   * optionally run asynchronously (async = 1).
+   * Async calls copy the parameters and return without waiting for queue space.
+   * Concurrent async API calls require a build with atomic operations. Without
+   * an atomic backend, async calls and performance calls must not overlap.
+   * If the queue cannot accept the request, no event is queued.
    * NB: This is non-op before csoundStart() is called.
    */
   PUBLIC void  csoundEvent(CSOUND *, int32_t type, const cs_float *params,
@@ -1261,7 +1267,9 @@ extern "C" {
    *
    * Multiple events separated by newlines are possible
    * and score preprocessing (carry, etc) is applied.
-   * optionally run asynchronously (async = 1)
+   * optionally run asynchronously (async = 1).
+   * Async calls copy the string and return without waiting for queue space.
+   * If the queue cannot accept the request, no events are queued.
    */
   PUBLIC void  csoundEventString(CSOUND *, const char *message, int32_t async);
 
@@ -1417,7 +1425,12 @@ extern "C" {
    * The input array should be at least as long as the table
    * size plus one (guard point required).
    * Does nothing if the table does not exist when the copy runs.
-   * This function is threadsafe and can also be run asynchronously
+   * Can also run asynchronously. In realtime mode, synchronous calls must not
+   * overlap performance or table changes; this path takes no mutex. For either
+   * mode, keep the table storage valid until the copy completes.
+   * In async mode, keep the source buffer valid and unchanged until the copy
+   * runs. The queue stores its address, not a copy of its contents.
+   * If the queue cannot accept the request, the call returns without copying.
    */
   PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
 				 const cs_float *ptable, int32_t async);
@@ -1428,7 +1441,12 @@ extern "C" {
    * excluding the guard point. The destination must have room for
    * the full table length returned by csoundTableLength().
    * Does nothing if the table does not exist when the copy runs.
-   * This function is threadsafe and can also be run asynchronously
+   * Can also run asynchronously. In realtime mode, synchronous calls must not
+   * overlap performance or table changes; this path takes no mutex. For either
+   * mode, keep the table storage valid until the copy completes.
+   * In async mode, keep the destination buffer valid until the copy runs;
+   * do not read or write it concurrently with the copy.
+   * If the queue cannot accept the request, the call returns without copying.
    */
   PUBLIC void csoundTableCopyOut(CSOUND *csound, int32_t table,
 				cs_float *ptable, int32_t async);
