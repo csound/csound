@@ -142,7 +142,7 @@ syn	keyword	Statement	ATScross barmodel betarand bformdec bformenc
 syn	keyword	Statement	butterbp butterbr butterhp butterlp chanctrl
 syn	keyword	Statement	checkbox chnclear clockoff compress convolve
 syn	keyword	Statement	cpsmidib ctrlinit cuserrnd deltapxw distort1
-syn	keyword	Statement	downsamp dssictls dssiinit dssilist duserrnd
+syn	keyword	Statement	downsamp duserrnd
 syn	keyword	Statement	filepeak flashtxt FLbutton FLcolor2 FLprintk
 syn	keyword	Statement	FLroller FLscroll FLsetBox FLsetVal FLslider
 syn	keyword	Statement	fluidCCi fluidCCk fluidOut FLupdate fmpercfl
@@ -175,7 +175,7 @@ syn	keyword	Statement	trfilter trlowest turnoff2 vco2init vdelayxq
 syn	keyword	Statement	vdelayxs vdelayxw vecdelay vtablewa vtablewi
 syn	keyword	Statement	vtablewk wgpluck2 wterrain xscanmap zfilter2
 syn	keyword	Statement	ATSreadnz ATSsinnoi chnexport chnparams
-syn	keyword	Statement	dripwater dssiaudio FLbutBank FLgetsnap
+syn	keyword	Statement	dripwater FLbutBank FLgetsnap
 syn	keyword	Statement	FLpackEnd FLprintk2 FLsetFont FLsetSize
 syn	keyword	Statement	FLsetsnap FLsetText FLsetVali FLslidBnk
 syn	keyword	Statement	FLtabsEnd fluidLoad fluidNote ktableseg
@@ -212,7 +212,7 @@ syn	keyword	Statement	STKBandedWG STKBeeThree STKBlowBotl STKBlowHole
 syn	keyword	Statement	STKClarinet STKFMVoices STKHevyMetl STKMandolin
 syn	keyword	Statement	STKModalBar STKPercFlut STKResonate STKSaxofony
 syn	keyword	Statement	STKStifKarp STKTubeBell STKVoicForm
-syn	keyword	Statement	dssiactivate FLscroll_end fluidControl
+syn	keyword	Statement	FLscroll_end fluidControl
 syn	keyword	Statement	MixerReceive subinstrinit ATSinterpread
 syn	keyword	Statement	ATSpartialtap FLsetPosition FLsetTextSize
 syn	keyword	Statement	FLsetTextType midinoteoncps midinoteonkey
