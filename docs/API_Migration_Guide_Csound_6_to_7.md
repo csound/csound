@@ -337,7 +337,7 @@ PUBLIC void csoundInputMessageAsync(CSOUND *, const char *message);
 These functions have been replaced by
 
 ```
-PUBLIC int csoundEventString(CSOUND *csound, const char *str, int async);
+PUBLIC void csoundEventString(CSOUND *csound, const char *str, int32_t async);
 ```
 
 These functions:
@@ -356,8 +356,8 @@ PUBLIC void csoundScoreEventAbsoluteAsync(CSOUND *,
 have been replaced by
 
 ```
-PUBLIC int csoundEvent(CSOUND *csound, int type, const cs_float *pfields,
-long numFields, int async);
+PUBLIC void csoundEvent(CSOUND *csound, int32_t type, const cs_float *pfields,
+                       int32_t numFields, int32_t async);
 ```
 
 where type is one of
