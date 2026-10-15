@@ -117,6 +117,8 @@ extern "C" {
   int32_t alloc_queue_has_pending(CSOUND *csound);
   int32_t alloc_queue_midi_ready(CSOUND *csound, int32_t wait_for_init);
   void alloc_queue_stop(CSOUND *csound);
+  int32_t realtime_message_queue_start(CSOUND *csound);
+  void realtime_message_queue_stop(CSOUND *csound);
   int32_t alloc_queue_lock_init(CSOUND *csound);
   void alloc_queue_lock_destroy(CSOUND *csound);
   int32_t realtime_spin_lock_init(spin_lock_t *);

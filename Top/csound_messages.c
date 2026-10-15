@@ -80,8 +80,6 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
                                      const char *str)) {
 
   if (csoundMessageStrCallback) {
-    if (csound->message_string == NULL)
-      csound->message_string = (char *)csound->Calloc(csound, MAX_MESSAGE_STR);
     csound->csoundMessageStringCallback = csoundMessageStrCallback;
     csound->csoundMessageCallback_ = NULL;
   }
@@ -105,8 +103,9 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
     if (csound->csoundMessageCallback_) {
       csound->csoundMessageCallback_(csound, attr, format, args);
     } else {
-      vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
-      csound->csoundMessageStringCallback(csound, attr, csound->message_string);
+      char message[MAX_MESSAGE_STR];
+      vsnprintf(message, sizeof(message), format, args);
+      csound->csoundMessageStringCallback(csound, attr, message);
     }
   }
   
@@ -119,8 +118,9 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
     if (csound->csoundMessageCallback_)
       csound->csoundMessageCallback_(csound, 0, format, args);
     else {
-      vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
-      csound->csoundMessageStringCallback(csound, 0, csound->message_string);
+      char message[MAX_MESSAGE_STR];
+      vsnprintf(message, sizeof(message), format, args);
+      csound->csoundMessageStringCallback(csound, 0, message);
     }
     va_end(args);
   }
@@ -135,8 +135,9 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
     if (csound->csoundMessageCallback_)
       csound->csoundMessageCallback_(csound, attr, format, args);
     else {
-      vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
-      csound->csoundMessageStringCallback(csound, attr, csound->message_string);
+      char message[MAX_MESSAGE_STR];
+      vsnprintf(message, sizeof(message), format, args);
+      csound->csoundMessageStringCallback(csound, attr, message);
     }
     va_end(args);
   }

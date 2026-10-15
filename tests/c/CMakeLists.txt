@@ -107,6 +107,7 @@ if(BUILD_TESTS)
         midi_file_test.cpp
         midi_realtime_input_test.cpp
         realtime_queue_test.cpp
+        realtime_logging_test.cpp
         midiarp_test.cpp
         tableseg_test.cpp
         table_copy_test.cpp
@@ -327,6 +328,16 @@ if(BUILD_TESTS)
             GTest::gtest_main ${CSOUNDLIB_STATIC})
         target_compile_features(realtime_score_end_tests PRIVATE cxx_std_17)
         gtest_discover_tests(realtime_score_end_tests PROPERTIES TIMEOUT 15)
+
+        add_executable(realtime_log_lock_tests
+            realtime_log_lock_test.cpp fixtures/realtime_log_lock.c)
+        target_compile_options(realtime_log_lock_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(realtime_log_lock_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(realtime_log_lock_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(realtime_log_lock_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(realtime_log_lock_tests PROPERTIES TIMEOUT 15)
 
         add_executable(diskin2_concurrency_tests
             diskin2_concurrency_test.cpp fixtures/diskin2_concurrency.c)

@@ -488,12 +488,20 @@ int32_t start_engine(CSOUND *csound)
         csound->init_pass_threadlock = NULL;
         return CSOUND_MEMORY;
       }
+      if (realtime_message_queue_start(csound) != CSOUND_SUCCESS) {
+        csoundDestroyMutex(csound->init_pass_threadlock);
+        csound->init_pass_threadlock = NULL;
+        csound->Free(csound, csound->alloc_queue);
+        csound->alloc_queue = NULL;
+        return CSOUND_ERROR;
+      }
       ATOMIC_SET(csound->event_insert_loop, 1);
       csound->event_insert_thread =
         csound->CreateThread(event_insert_thread,
                              (void*)csound);
       if (UNLIKELY(csound->event_insert_thread == NULL)) {
         ATOMIC_SET(csound->event_insert_loop, 0);
+        realtime_message_queue_stop(csound);
         csoundDestroyMutex(csound->init_pass_threadlock);
         csound->init_pass_threadlock = NULL;
         csound->Free(csound, csound->alloc_queue);
@@ -588,6 +596,7 @@ static void stop_event_insert_thread(CSOUND *csound)
     if (csound->event_insert_thread != NULL) {
       alloc_queue_stop(csound);
       csound->JoinThread(csound->event_insert_thread);
+      realtime_message_queue_stop(csound);
       /* Complete the context reset that csoundLongJmp deferred while this
          thread could still be traversing an init chain. */
       if (csound->engineStatus & CS_STATE_JMP) {
