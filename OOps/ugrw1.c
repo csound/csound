@@ -650,7 +650,7 @@ int32_t printsset_S(CSOUND *csound, PRINTS *p)
       csound->Warning(csound,
                       Str("Formatting string too long: %s\n"), pk.txtstring);
     }
-  } else csound->Message(csound, "%s\n", ((STRINGDAT*)p->ifilcod)->data);
+  } else csound->Message(csound, "%s", ((STRINGDAT*)p->ifilcod)->data);
     return OK;
 }
 

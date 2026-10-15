@@ -76,6 +76,9 @@ static int32_t checked_vsnprintf(char *str, size_t size, const char *format,
     return result;
 }
 
+#ifdef vsnprintf
+#undef vsnprintf
+#endif
 #define vsnprintf checked_vsnprintf
 #include "../../../Top/csound_messages.c"
 #undef vsnprintf
