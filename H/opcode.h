@@ -33,7 +33,8 @@ typedef struct _opinfo {
 typedef struct _oprun {
   OPDS h;
   cs_float *args[VARGMAX];
-  AUXCH mem;
+  AUXCH mem;    /* Opcode[] run: slot table, one entry per object and arg */
+  AUXCH slots;  /* Opcode[] run: storage for the split array elements */
 } OPRUN;
 
 typedef struct _oparray {
