@@ -695,34 +695,34 @@ const OENTRY opcodlst_1[] = {
   CSOUND_DEPRECATED_OPCODE("genarray_i", "genarrayi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "genarray_i", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL, NULL, 2},
   { "genarrayi", sizeof(TABGEN),0, "k[]", "iip", (SUBR) tabgen, NULL, NULL}, /* Alias */
-  { "maparray.i", sizeof(TABMAP), 0, "i[]", "i[]S", (SUBR) tabmap_set },
+  { "maparray.i", sizeof(TABMAP), CSOUND_ARRAY_OUTPUT_VECTOR, "i[]", "i[]S", (SUBR) tabmap_set },
   CSOUND_DEPRECATED_OPCODE("maparray_i", "maparrayi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
-  { "maparray_i", sizeof(TABMAP),0, "k[]", "k[]S", (SUBR) tabmap_set, NULL, NULL, NULL, 2},
-  { "maparrayi", sizeof(TABMAP),0, "k[]", "k[]S", (SUBR) tabmap_set    },  /* Alias */
-  { "maparray.k", sizeof(TABMAP), 0, "k[]", "k[]S", (SUBR) tabmap_set,
+  { "maparray_i", sizeof(TABMAP),CSOUND_ARRAY_OUTPUT_VECTOR, "k[]", "k[]S", (SUBR) tabmap_set, NULL, NULL, NULL, 2},
+  { "maparrayi", sizeof(TABMAP),CSOUND_ARRAY_OUTPUT_VECTOR, "k[]", "k[]S", (SUBR) tabmap_set    },  /* Alias */
+  { "maparray.k", sizeof(TABMAP), CSOUND_ARRAY_OUTPUT_VECTOR, "k[]", "k[]S", (SUBR) tabmap_set,
     (SUBR) tabmap_perf          },
   CSOUND_DEPRECATED_OPCODE("tabslice", "slicearray", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "tabslice", sizeof(TABSLICE), _QQ, "k[]", "k[]iip",
     NULL, (SUBR) tabslice, NULL },
-  { "slicearray.i", sizeof(TABSLICE), 0, "i[]", "i[]ijp",
+  { "slicearray.i", sizeof(TABSLICE), CSOUND_ARRAY_OUTPUT_VECTOR, "i[]", "i[]ijp",
     (SUBR) tabslice, NULL, NULL },
-  { "slicearray.k", sizeof(TABSLICE), 0, "k[]", "k[]ijp",
+  { "slicearray.k", sizeof(TABSLICE), CSOUND_ARRAY_OUTPUT_VECTOR, "k[]", "k[]ijp",
     (SUBR) tabslice, (SUBR) tabslice_perf, NULL },
-  { "slicearray.a", sizeof(TABSLICE), 0, "a[]", "a[]ijp",
+  { "slicearray.a", sizeof(TABSLICE), CSOUND_ARRAY_OUTPUT_VECTOR, "a[]", "a[]ijp",
     (SUBR) tabslice, (SUBR) tabslice_perf, NULL },
-  { "slicearray.S", sizeof(TABSLICE), 0, "S[]", "S[]ijp",
+  { "slicearray.S", sizeof(TABSLICE), CSOUND_ARRAY_OUTPUT_VECTOR, "S[]", "S[]ijp",
     (SUBR) tabslice, (SUBR) tabslice_perf, NULL },
-  { "slicearray_i.i", sizeof(TABSLICE), 0, "i[]", "i[]iip",
+  { "slicearray_i.i", sizeof(TABSLICE), CSOUND_ARRAY_OUTPUT_VECTOR, "i[]", "i[]iip",
     (SUBR) tabslice, NULL },
-  { "slicearrayi.i", sizeof(TABSLICE), 0, "i[]", "i[]iip",
+  { "slicearrayi.i", sizeof(TABSLICE), CSOUND_ARRAY_OUTPUT_VECTOR, "i[]", "i[]iip",
     (SUBR) tabslice, NULL }, /* Alias */
-  { "slicearray_i.k", sizeof(TABSLICE), 0, "k[]", "k[]iip",
+  { "slicearray_i.k", sizeof(TABSLICE), CSOUND_ARRAY_OUTPUT_VECTOR, "k[]", "k[]iip",
     (SUBR) tabslice, NULL },
-  { "slicearrayi.k", sizeof(TABSLICE), 0, "k[]", "k[]iip",
+  { "slicearrayi.k", sizeof(TABSLICE), CSOUND_ARRAY_OUTPUT_VECTOR, "k[]", "k[]iip",
     (SUBR) tabslice, NULL }, /* Alias */
-  { "slicearray_i.S", sizeof(TABSLICE), 0, "S[]", "S[]iip",
+  { "slicearray_i.S", sizeof(TABSLICE), CSOUND_ARRAY_OUTPUT_VECTOR, "S[]", "S[]iip",
     (SUBR) tabslice, NULL },
-  { "slicearrayi.S", sizeof(TABSLICE), 0, "S[]", "S[]iip",
+  { "slicearrayi.S", sizeof(TABSLICE), CSOUND_ARRAY_OUTPUT_VECTOR, "S[]", "S[]iip",
     (SUBR) tabslice, NULL }, /* Alias */
   { "trim.i", sizeof(TRIM), WI, "", "i[]i", (SUBR)trim_i, NULL },
   { "trim.k", sizeof(TRIM), WI, "", ".[]k", (SUBR)trim_prepare,

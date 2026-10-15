@@ -88,6 +88,11 @@ extern "C" {
     struct arg *next;
   } ARG;
 
+  /* All array outputs of this registration are vectors. Leave this unset
+     when the rank is dynamic or follows an input. Legacy plugin [] signatures
+     alone do not promise a vector. */
+#define CSOUND_ARRAY_OUTPUT_VECTOR 0x10000
+
   /**
    * Opcode entry structure.
    *

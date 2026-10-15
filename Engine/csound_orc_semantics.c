@@ -1736,8 +1736,7 @@ char *resolve_expression_type(CSOUND *csound, OENTRIES *entries,
     "##add", "##sub", "##mul", "##div", "##mod", "##pow",
     "##and", "##or", "##xor", "##shl", "##shr", "##not", NULL
   };
-  rank = 0;
-  if (!strcmp(name, "getrow") || !strcmp(name, "getcol")) rank = 1;
+  rank = (entry->flags & CSOUND_ARRAY_OUTPUT_VECTOR) ? 1 : 0;
   for (int32_t i = 0; elementwise[i] != NULL; i++) {
     if (strcmp(name, elementwise[i]) != 0) continue;
     char **inputs = split_args(csound, inTypes);
