@@ -2467,7 +2467,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       if (UNLIKELY(merge_state_enqueue(csound, engineState,
                                        typeTable, ids) != CSOUND_SUCCESS)) {
         csound->ErrorMsg(csound, "%s", Str("cannot merge compiled orchestra: "
-                                           "realtime allocation queue is full\n"));
+                                           "async queue is full or busy\n"));
         enginestate_free(csound, engineState);
         free_typetable(csound, typeTable);
         return CSOUND_ERROR;

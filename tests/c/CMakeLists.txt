@@ -18,6 +18,7 @@ if(BUILD_TESTS)
         array_ops_test.cpp
         array_size_conversion_test.cpp
         audio_array_io_test.cpp
+        api_message_queue_test.cpp
         autocorr_test.cpp
         lpc_lifetime_test.cpp
         sfload_test.cpp
@@ -373,6 +374,16 @@ if(BUILD_TESTS)
             GTest::gtest_main ${CSOUNDLIB_STATIC})
         target_compile_features(diskin2_concurrency_tests PRIVATE cxx_std_17)
         gtest_discover_tests(diskin2_concurrency_tests)
+
+        add_executable(api_queue_capacity_tests
+            api_queue_capacity_test.cpp fixtures/api_queue_capacity.c)
+        target_compile_options(api_queue_capacity_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(api_queue_capacity_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(api_queue_capacity_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(api_queue_capacity_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(api_queue_capacity_tests PROPERTIES TIMEOUT 15)
     endif()
 
     if(NOT EMSCRIPTEN AND NOT IOS AND NOT BARE_METAL AND
