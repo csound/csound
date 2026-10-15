@@ -116,6 +116,9 @@ TEST_F(ApiMessageQueueTests, FullQueueReturnsAndAsyncCompileReportsFailure)
 
 TEST_F(ApiMessageQueueTests, UnpublishedHeadKeepsLaterProducerPending)
 {
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+    GTEST_SKIP() << "Concurrent API calls require native atomics";
+#endif
     std::array<cs_float, queueCapacity> warmup{};
     for (auto &copy : warmup)
         csoundTableCopyOut(csound, 1, &copy, 1);
@@ -155,6 +158,9 @@ TEST_F(ApiMessageQueueTests, UnpublishedHeadKeepsLaterProducerPending)
 
 TEST_F(ApiMessageQueueTests, ConcurrentProducersAndConsumerReuseSlots)
 {
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+    GTEST_SKIP() << "Concurrent API calls require native atomics";
+#endif
     constexpr int producers = 4, perProducer = 64, rounds = 24;
     std::array<cs_float, producers * perProducer> copies{};
     std::atomic<int> currentRound{0}, finished{0};
@@ -188,6 +194,9 @@ TEST_F(ApiMessageQueueTests, ConcurrentProducersAndConsumerReuseSlots)
 
 TEST_F(ApiMessageQueueTests, TwoProducersCannotClaimTheLastSlot)
 {
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+    GTEST_SKIP() << "Concurrent API calls require native atomics";
+#endif
     ASSERT_EQ(csoundCompileOrc(csound, "instr 1\nendin\n", 0), CSOUND_SUCCESS);
     const cs_float fields[] = { 1, 0, -1 };
     csoundEvent(csound, CS_INSTR_EVENT, fields, 3, 0);
