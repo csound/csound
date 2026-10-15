@@ -431,10 +431,19 @@ where type is one of
     };
 ```
 
-Numeric events are inserted at the current sample position; there is
-no absolute-time variant of `csoundEvent()`. To schedule an event at
-an absolute score time, pass score syntax to `csoundEventString()`,
-for example `csoundEventString(csound, "i 1 4.0 1.0", 0)`.
+During performance, both `csoundEvent()` and `csoundEventString()`
+treat the start time as relative to the current time: the value is
+added to the current sample position when the event is inserted. A
+string such as `"i 1 4.0 1.0"` therefore starts the note 4.0 seconds
+from now, not at score time 4.0. Before performance starts, the
+current position is zero and the usual absolute score time applies.
+
+There is no absolute-time event function in 7.0.
+`csoundScoreEventAbsolute()` was removed and its implementation is not
+exposed. Hosts that relied on it must convert the target time to a
+delay, for example `targetTime - csoundGetScoreTime(csound)` when
+submitting synchronously between k-periods, and decide how to treat a
+target time that has already passed.
 
 The function
 
