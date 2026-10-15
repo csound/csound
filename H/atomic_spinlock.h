@@ -1,7 +1,8 @@
 #ifndef CSOUND_ATOMIC_SPINLOCK_H
 #define CSOUND_ATOMIC_SPINLOCK_H
 
-/* Generic atomic backend. The caller supplies spin_lock_t. */
+/* The caller supplies spin_lock_t so tests can exercise this backend on
+   hosts whose sysdep.h selects a platform lock with a different type. */
 static inline void csoundAtomicSpinLock(spin_lock_t *lock)
 {
     for (;;) {
