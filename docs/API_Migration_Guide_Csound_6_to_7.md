@@ -132,11 +132,13 @@ PUBLIC int csoundCompileCsdText(CSOUND *csound, const char *csd_text);
 These functions have been replaced by
 
 ```
-PUBLIC int csoundCompileCSD(CSOUND *csound, const char *csd, int mode);
+PUBLIC int32_t csoundCompileCSD(CSOUND *csound, const char *csd, int32_t mode,
+                                int32_t async);
 ```
 
-Note the all uppercase letters in `CSD`. The mode parameter indicates whether
-the `csd` parameter is a filename or a code string.
+Note the all uppercase letters in `CSD`. The mode parameter is `0` for a
+filename or `1` for a CSD code string. Pass `0` for `async` to compile
+synchronously, or `1` to compile asynchronously.
 
 ```
 PUBLIC int csoundPerform(CSOUND *);

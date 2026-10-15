@@ -682,10 +682,10 @@ extern "C" {
    * as it is done by csoundEventString())
    * \code
    *
-   * csoundSetOption("-an_option");
-   * csoundSetOption("-another_option");
+   * csoundSetOption(csound, "-an_option");
+   * csoundSetOption(csound, "-another_option");
    * csoundStart(csound);
-   * csoundCompileCSD(csound, csd_filename, 0);
+   * csoundCompileCSD(csound, csd_filename, 0, 0);
    * while (1) {
    *    csoundPerformKsmps(csound);
    *    // Something to break out of the loop
@@ -703,7 +703,7 @@ extern "C" {
    *
    * \code
    *
-   * csoundCompileCSD(csound, csd_filename, 0);
+   * csoundCompileCSD(csound, csd_filename, 0, 0);
    * csoundStart(csound);
    * while (1) {
    *    int32_t finished = csoundPerformKsmps(csound);
