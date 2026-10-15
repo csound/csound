@@ -325,23 +325,23 @@ static int32_t splice_before_instance(CSOUND *csound,
                                       INSDS *ip, INSDS *ipnxt){
   INSDS *nxtp, *prvp;
   if(ip == NULL) return CSOUND_ERROR;
+  // Validate the target before unlinking; a failed splice must leave ip active.
+  nxtp = &(csound->actanchor);
+  while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
+    if (nxtp == ipnxt)
+      break;
+  }
+  if(nxtp == NULL) return CSOUND_ERROR;
+  if(nxtp == ip || prvp == ip) return CSOUND_SUCCESS;
   if(ip->prvact != NULL) {
-    // unlink first
     ip->prvact->nxtact = ip->nxtact;
     if (ip->nxtact != NULL)
       ip->nxtact->prvact = ip->prvact;
   }
-  nxtp = &(csound->actanchor);
-  while ((prvp = nxtp) && (nxtp = prvp->nxtact) != NULL) {
-    if (nxtp == ipnxt) {
-      nxtp->prvact = ip;
-      break;
-    }
-  }
-  if(nxtp == NULL) return CSOUND_ERROR;
   ip->nxtact = nxtp;
   ip->prvact = prvp;
   prvp->nxtact = ip;
+  nxtp->prvact = ip;
   return CSOUND_SUCCESS;
 }
 
@@ -352,24 +352,21 @@ static int32_t splice_after_instance(CSOUND *csound,
                                   INSDS *ip, INSDS *ipprev){
   INSDS *nxtp;
   if(ip == NULL) return CSOUND_ERROR;
+  // Validate the target before unlinking, including self and adjacent moves.
+  nxtp = &(csound->actanchor);
+  while (nxtp != NULL && nxtp != ipprev)
+    nxtp = nxtp->nxtact;
+  if(nxtp == NULL) return CSOUND_ERROR;
+  if(nxtp == ip || nxtp->nxtact == ip) return CSOUND_SUCCESS;
   if(ip->prvact != NULL) {
-    // unlink first
     ip->prvact->nxtact = ip->nxtact;
     if (ip->nxtact != NULL)
       ip->nxtact->prvact = ip->prvact;
   }
-  nxtp = &(csound->actanchor);
-  while (nxtp != NULL) {
-    if (nxtp == ipprev) {
-      ip->nxtact = nxtp->nxtact;
-      if (ip->nxtact != NULL)
-        ip->nxtact->prvact = ip;
-      nxtp->nxtact = ip;
-      break;
-    }
-    nxtp = nxtp->nxtact;
-  }
-  if(nxtp == NULL) return CSOUND_ERROR;
+  ip->nxtact = nxtp->nxtact;
+  if (ip->nxtact != NULL)
+    ip->nxtact->prvact = ip;
+  nxtp->nxtact = ip;
   ip->prvact = nxtp;
   return CSOUND_SUCCESS;
 }

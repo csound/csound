@@ -1,6 +1,9 @@
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
 #include "gtest/gtest.h"
+extern "C" {
+#include "inst_ops.h"
+}
 #include <string>
 #include <initializer_list>
 #include <chrono>
@@ -105,6 +108,89 @@ TEST_F(SpliceChainTests, SplicingAfterRepairsBothDirections)
 {
     checkSplice("splice(first, second, 1)", {2, 1, 3, 4});
 }
+
+class SpliceTargetTests : public ActiveChainTests,
+                          public ::testing::WithParamInterface<int> {
+protected:
+    INSDS nodes[3] = {};
+    INSDS detached = {};
+
+    void SetUp() override
+    {
+        ActiveChainTests::SetUp();
+        ASSERT_FALSE(HasFatalFailure());
+        INSDS *previous = &csound->actanchor;
+        for (int i = 0; i < 3; ++i) {
+            nodes[i].insno = i + 1;
+            nodes[i].prvact = previous;
+            previous->nxtact = &nodes[i];
+            previous = &nodes[i];
+        }
+    }
+
+    void TearDown() override
+    {
+        // These test instances are not engine allocations.
+        if (csound != nullptr)
+            csound->actanchor.nxtact = nullptr;
+        ActiveChainTests::TearDown();
+    }
+
+    void splice(INSDS *source, INSDS *target, int expected)
+    {
+        INSTANCEREF input = {source, 0}, next = {target, 0};
+        cs_float result = 1, mode = GetParam();
+        SPLICE_INSTR opcode = {};
+        opcode.out = &result;
+        opcode.in = &input;
+        opcode.nxt = &next;
+        opcode.mode = &mode;
+        EXPECT_EQ(splice_instance(csound, &opcode), CSOUND_SUCCESS);
+        EXPECT_EQ(result, expected);
+    }
+
+    void expectUnchanged()
+    {
+        INSDS *previous = &csound->actanchor;
+        for (INSDS &node : nodes) {
+            EXPECT_EQ(previous->nxtact, &node);
+            EXPECT_EQ(node.prvact, previous);
+            previous = &node;
+        }
+        EXPECT_EQ(previous->nxtact, nullptr);
+    }
+};
+
+TEST_P(SpliceTargetTests, MissingTargetKeepsBothDirections)
+{
+    splice(&nodes[1], &detached, CSOUND_ERROR);
+    expectUnchanged();
+    EXPECT_EQ(detached.prvact, nullptr);
+    EXPECT_EQ(detached.nxtact, nullptr);
+}
+
+TEST_P(SpliceTargetTests, SelfSpliceLeavesOrderUnchanged)
+{
+    splice(&nodes[1], &nodes[1], CSOUND_SUCCESS);
+    expectUnchanged();
+}
+
+TEST_P(SpliceTargetTests, AdjacentSpliceLeavesOrderUnchanged)
+{
+    splice(&nodes[GetParam()], &nodes[1 - GetParam()], CSOUND_SUCCESS);
+    expectUnchanged();
+}
+
+TEST_P(SpliceTargetTests, DetachedSelfSpliceFailsWithoutJoiningChain)
+{
+    splice(&detached, &detached, CSOUND_ERROR);
+    expectUnchanged();
+    EXPECT_EQ(detached.prvact, nullptr);
+    EXPECT_EQ(detached.nxtact, nullptr);
+}
+
+INSTANTIATE_TEST_SUITE_P(BeforeAndAfter, SpliceTargetTests,
+                         ::testing::Values(0, 1));
 
 #if defined(CSOUND_TEST_PTHREADS)
 struct RenderGate {

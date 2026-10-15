@@ -411,7 +411,10 @@ int32_t kperf(CSOUND *csound) {
 
 /* Both normal and debugger traversal retain successors across callbacks.
    The call returns only after PARCS workers finish, so one interval covers
-   every render reader. Public entry points reject nested performance. */
+   every render reader. The host must use one performance thread per instance
+   and must not re-enter from callbacks. The odd-epoch entry check catches
+   render re-entry; it does not synchronize concurrent callers. Keep rejection
+   silent because a message callback could try to enter performance again. */
 static int32_t perform_control_period(CSOUND *csound)
 {
   long epoch = ATOMIC_GET(csound->performance_epoch);
@@ -471,9 +474,9 @@ static int32_t perform_control_period(CSOUND *csound)
   return 0;
 }
 
-/** Perform a full buffer 
-    used solely in audio backends, internally (not plugins) 
-    may be fully removed in the future.
+/** Perform a full buffer, for internal audio backends only.
+    Uses the same single-thread, non-reentrant contract as csoundPerformKsmps.
+    An active render interval returns CSOUND_ERROR without calling the host.
  */
 int32_t perform_buffer(CSOUND *csound) {
   int32_t returnValue;

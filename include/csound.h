@@ -735,10 +735,16 @@ extern "C" {
   /**
    * Senses input events, and performs one block of
    * audio output containing ksmps frames. csoundStart() must be called first.
-   * Returns false during performance, and true when performance is finished.
-   * If called until it returns true, will perform an entire score.
+   * Returns zero during performance, a positive value when performance has
+   * finished, or a negative value on error. Call until it returns nonzero
+   * to perform an entire score.
    * Enables external software to control the execution of Csound,
    * and to synchronize performance with audio input and output.
+   *
+   * Use one performance thread per Csound instance. Do not re-enter performance
+   * from a Csound callback or overlap it with another performance call.
+   * Calls during an active render interval return CSOUND_ERROR. This check
+   * does not serialize concurrent callers; the host must prevent overlap.
    */
   PUBLIC int32_t  csoundPerformKsmps(CSOUND *);
 
