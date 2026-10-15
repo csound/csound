@@ -293,6 +293,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
 
       typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
       typeTable->udos = NULL;
+      typeTable->instancedDefinitions = NULL;
 
       typeTable->globalPool = csoundCreateVarPool(csound);
       if (typeTable->globalPool == NULL) {
