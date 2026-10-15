@@ -1882,8 +1882,9 @@ struct CSOUND_ {
 
   /* -------- Message output -------- */
   void *message_buffer;                                      /* buffered message storage */
-  char *message_string;                                      /* reusable message string */
-  volatile unsigned long message_string_queue_items;         /* pending entries in the message string queue */
+  volatile long message_string_queue_lock;                   /* bounded message publication lock */
+  volatile long message_string_queue_dropped;                /* messages dropped on full queue or contention */
+  unsigned long message_string_queue_items;                  /* pending entries in the message string queue */
   unsigned long message_string_queue_wp;                     /* message string queue write pointer */
   message_string_queue_t *message_string_queue;              /* message string queue */
   struct _message_queue **msg_queue;                         /* realtime message queue */

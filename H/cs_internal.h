@@ -261,9 +261,17 @@ extern "C" {
   } ALLOC_DATA;
 
 #define MAX_MESSAGE_STR 1024
-  typedef struct _message_queue_t_ {
+#define MAX_MESSAGE_QUEUE 64
+  typedef struct {
     int32_t attr;
     char str[MAX_MESSAGE_STR];
+  } message_string_t;
+  typedef struct _message_queue_t_ {
+    volatile long accepting;
+    message_string_t messages[MAX_MESSAGE_QUEUE];
+    void (*output)(CSOUND *, int32_t, const char *);
+    void (*saved_string_callback)(CSOUND *, int32_t, const char *);
+    void (*saved_callback)(CSOUND *, int32_t, const char *, va_list);
   } message_string_queue_t;
 
    struct sread__ {
@@ -328,6 +336,7 @@ extern "C" {
       int16   sectno;
       int32_t     lplayed;
       int32_t     segamps, sormsg;
+      int32_t     score_segment_polling;
    };
 
    struct libsndStatics__ {

@@ -989,7 +989,8 @@ static const CSOUND cenviron_ = {
     .taskflag = NULL,
     /* -------- Message output -------- */
     .message_buffer = NULL,
-    .message_string = NULL,
+    .message_string_queue_lock = 0,
+    .message_string_queue_dropped = 0,
     .message_string_queue_items = 0,
     .message_string_queue_wp = 0,
     .message_string_queue = NULL,
