@@ -35,6 +35,16 @@ describe("shared WASI filesystem", () => {
     host.setMemory(memory());
   });
 
+  it("opens UTF-8 paths and fills random bytes in shared Wasm memory", () => {
+    host.setMemory(new WebAssembly.Memory({ initial: 2, maximum: 2, shared: true }));
+    host.writeFile("音", encode("audio"));
+    assert.ok(open(host, "音") >= 4);
+    assert.equal(host.random_get(65520, 65540), 0);
+    const bytes = new Uint8Array(host.memory.buffer, 65520, 65540);
+    assert.ok(bytes.some((byte) => byte !== 0));
+    assert.ok(bytes.subarray(65536).some((byte) => byte !== 0));
+  });
+
   it("shares writes while preserving each parent's and child's open position", () => {
     host.writeFile("score", encode("abcdef"));
     const parentFd = open(host, "score");

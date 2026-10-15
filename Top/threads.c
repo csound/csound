@@ -27,7 +27,7 @@
 
 #ifndef HAVE_GETTIMEOFDAY
 #if defined(LINUX)    || defined(__unix)   || defined(__unix__) || \
-    defined(__MACH__) || defined(__HAIKU__)
+    defined(__MACH__) || defined(__HAIKU__) || defined(__wasi__)
 #define HAVE_GETTIMEOFDAY 1
 #endif
 #endif
@@ -95,7 +95,9 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
 
 #else
 
+#if !defined(__wasi__)
 #include <sys/wait.h>
+#endif
 /**
  * Runs an external command with the arguments specified in 'argv'.
  * argv[0] is the name of the program to execute (if not a full path
@@ -111,6 +113,13 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
 
  long csoundRunCommand(const char * const *argv, int32_t noWait)
 {
+#if defined(__wasi__)
+    /* P1 threads add workers, not processes or a shell. */
+    IGN(argv);
+    IGN(noWait);
+    errno = ENOSYS;
+    return -1L;
+#else
     long    retval;
 
     if (argv == NULL || argv[0] == NULL)
@@ -141,6 +150,7 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
       }
     }
     return retval;
+#endif
 }
 
  void csoundSleep(size_t milliseconds)
@@ -179,6 +189,41 @@ typedef struct barrier {
 #endif
 
 
+#if defined(CSOUND_WASI_REALTIME)
+typedef struct {
+    uintptr_t (*routine)(void *);
+    void *userdata;
+} CsoundWasiThreadStart;
+
+static _Thread_local int32_t csoundWasiWorker;
+
+int32_t csoundWasiIsWorkerThread(void)
+{
+    return csoundWasiWorker;
+}
+
+static void *csoundWasiThreadEntry(void *data)
+{
+    CsoundWasiThreadStart start = *(CsoundWasiThreadStart *) data;
+    free(data);
+    /* Fatal recovery must not jump to another thread's engine jump buffer. */
+    csoundWasiWorker = 1;
+    return (void *) start.routine(start.userdata);
+}
+
+static int csoundWasiThreadCreate(pthread_t *thread, pthread_attr_t *attr,
+                                 uintptr_t (*routine)(void *), void *userdata)
+{
+    CsoundWasiThreadStart *start = malloc(sizeof(*start));
+    if (start == NULL) return ENOMEM;
+    start->routine = routine;
+    start->userdata = userdata;
+    int status = pthread_create(thread, attr, csoundWasiThreadEntry, start);
+    if (status != 0) free(start);
+    return status;
+}
+#endif
+
  void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *),
                                  uint32_t stack,
                                  void *userdata)
@@ -187,6 +232,11 @@ typedef struct barrier {
     pthread_t *thread;
     int status;
 
+#if defined(CSOUND_WASI_REALTIME)
+    /* wasi-libc defaults to 128 KiB without a guard page; init needs the same
+       stack budget as the command's parser and main thread. */
+    if (stack == 0) stack = 1024U * 1024U;
+#endif
     if (pthread_attr_init(&attr) != 0)
       return NULL;
     if (stack != 0 && pthread_attr_setstacksize(&attr, stack) != 0) {
@@ -198,8 +248,12 @@ typedef struct barrier {
       pthread_attr_destroy(&attr);
       return NULL;
     }
+#if defined(CSOUND_WASI_REALTIME)
+    status = csoundWasiThreadCreate(thread, &attr, threadRoutine, userdata);
+#else
     status = pthread_create(thread, &attr,
                             (void *(*)(void *))(void*)threadRoutine, userdata);
+#endif
     pthread_attr_destroy(&attr);
     if (status == 0)
       return thread;
@@ -212,6 +266,9 @@ typedef struct barrier {
  void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
 {
+#if defined(CSOUND_WASI_REALTIME)
+    return csoundCreateThread2(threadRoutine, 0, userdata);
+#else
     pthread_t *pthread = (pthread_t *) malloc(sizeof(pthread_t));
     if (pthread == NULL)
       return NULL;
@@ -221,6 +278,7 @@ typedef struct barrier {
     }
     free(pthread);
     return NULL;
+#endif
 
 }
 

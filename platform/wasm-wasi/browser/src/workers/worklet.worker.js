@@ -16,6 +16,7 @@
 import * as Comlink from "../utils/comlink.js";
 import MessagePortState from "../utils/message-port-state";
 import { AUDIO_STATE, RING_BUFFER_SIZE } from "../constants";
+import { sharedAudioChannels } from "../utils/sab-audio-channels.js";
 import {
   applyAudioFade,
   createAudioFade,
@@ -381,20 +382,8 @@ class CsoundWorkletProcessor extends AudioWorkletProcessor {
       this.sharedArrayBuffer = maybeSharedArrayBuffer;
       this.audioStreamIn = maybeSharedArrayBufferAudioIn;
       this.audioStreamOut = maybeSharedArrayBufferAudioOut;
-      this.sabOutputChannels = [];
-      this.sabInputChannels = [];
-
-      for (let channelIndex = 0; channelIndex < inputsCount; ++channelIndex) {
-        this.sabInputChannels.push(
-          new Float64Array(this.audioStreamIn, RING_BUFFER_SIZE * channelIndex, RING_BUFFER_SIZE),
-        );
-      }
-
-      for (let channelIndex = 0; channelIndex < outputsCount; ++channelIndex) {
-        this.sabOutputChannels.push(
-          new Float64Array(this.audioStreamOut, RING_BUFFER_SIZE * channelIndex, RING_BUFFER_SIZE),
-        );
-      }
+      this.sabInputChannels = sharedAudioChannels(this.audioStreamIn, inputsCount);
+      this.sabOutputChannels = sharedAudioChannels(this.audioStreamOut, outputsCount);
       this.actualProcess = processSharedArrayBuffer.bind(this);
     } else {
       this.vanillaOutputChannels = [];

@@ -1,6 +1,8 @@
 [
   "__wasi_js_csoundSetMessageStringCallback",
   "csoundShouldDaemonize",
+  "csoundSupportsRealtime",
+  "csoundIsRealtime",
   "chdir",
   "csoundSetMidiCallbacks",
   "sizeOfMidiStruct",
@@ -11,6 +13,7 @@
   "getRtMidiName",
   "getMidiOutFileName",
   "pushMidiMessage",
+  "tryPushMidiMessage",
   "csoundResetWasi",
   "csoundCreateWasi",
   "csoundPerformKsmpsWasi",

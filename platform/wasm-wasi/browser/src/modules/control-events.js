@@ -25,6 +25,26 @@ import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.
  * without any pre-process parsing
  * @function
  */
+export const csoundEvent = (wasm) => (csound, type, pfields) => {
+  if (
+    ![0, 1, 2].includes(type) ||
+    !Array.isArray(pfields) ||
+    pfields.length > 64 ||
+    ![...pfields].every(Number.isFinite) ||
+    (type === 0 && pfields.length < 3)
+  )
+    throw new TypeError("event expects a type (0, 1 or 2) and up to 64 numeric p-fields");
+  const pointer = wasm.exports["allocFloatArray"](Math.max(1, pfields.length));
+  if (!pointer) throw new Error("Could not allocate event p-fields");
+  try {
+    new Float64Array(wasm.wasi.memory.buffer, pointer, pfields.length).set(pfields);
+    wasm.exports["csoundEvent"](csound, type, pointer, pfields.length, 1);
+  } finally {
+    wasm.exports["freeFloatArrayMem"](pointer);
+  }
+};
+csoundEvent["toString"] = () => "event = async (type, pfields) => undefined;";
+
 export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
   const result = wasm.exports["csoundEventString"](csound, stringPtr, 0);
@@ -41,7 +61,7 @@ csoundInputMessage["toString"] = () => "inputMessage = async (scoreEvent) => Num
  */
 export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
-    const result = wasm.exports["csoundEventString"](csound, stringPtr, 1);
+  const result = wasm.exports["csoundEventString"](csound, stringPtr, 1);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
@@ -59,8 +79,7 @@ export const csoundReadlinePushText = (wasm) => (csound, text) => {
   return result;
 };
 
-csoundReadlinePushText["toString"] = () =>
-  "readlinePushText = async (text) => Number;";
+csoundReadlinePushText["toString"] = () => "readlinePushText = async (text) => Number;";
 
 /**
  * Submits one complete line for an open readline request (no newline needed).

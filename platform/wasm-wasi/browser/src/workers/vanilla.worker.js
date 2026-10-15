@@ -19,7 +19,7 @@ import { logVANWorker as log } from "../logger";
 import { RING_BUFFER_SIZE } from "../constants.js";
 import { handleCsoundStart, instantiateAudioPacket, renderFunction } from "./common.utils";
 import libcsoundFactory from "../libcsound";
-import loadWasm from "../module";
+import loadWasm from "../module.loader.js";
 import { clearArray } from "../utils/clear-array";
 
 let combined;

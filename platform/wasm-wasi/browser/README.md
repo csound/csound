@@ -35,6 +35,27 @@ See the
 [MediaDevices.getUserMedia documentation](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#privacy_and_security)
 for browser security and permission rules.
 
+## Realtime init
+
+Normal builds include thread support when the toolchain supports it. `Csound()`
+uses the shared worker host. Set `--realtime` before `start()` to enable
+background init; omitting the flag keeps synchronous init. Reset clears it.
+The default host requires isolation headers and reports missing browser
+features before startup.
+
+The bundle contains one binary for all APIs. Explicit `useWorker: false`,
+`useSAB: false`, and the named `libcsound()` constructor use it locally with
+synchronous init. They need shared Wasm support but no isolation headers.
+
+Plugins work with the shared engine. Rebuild them with the matching plugin
+SDK, then load them before the first `start()`. The shared worker host keeps
+that plugin set across reset; create a new instance to change it.
+
+`supportsRealtime()` reports whether the selected engine supports the mode;
+`isRealtime()` reports its native setting. Both return a promise for 0 or 1.
+See the [build guide](../README.md#wasi-realtime-browser) for headers, limits,
+and setup.
+
 ## Api Documentation
 
 ## Objects
@@ -887,9 +908,9 @@ otherwise undefined.
 | [params.inputChannelCount] | <code>Number</code> |  | Optional input channel count for AudioNode used with WebAudio graph. Defaults to the value of nchnls_i in useWorker but 2 otherwise. |
 | [params.outputChannelCount] | <code>Number</code> |  | Optional output channel count AudioNode used with WebAudio graph. Defaults to the value of nchnls in useWorker but 2 otherwise. |
 | [params.autoConnect] | <code>Boolean</code> | <code>true</code> | Set to configure Csound to automatically connect to the audioContext.destination output. |
-| [params.withPlugins] | <code>Array.&lt;Object&gt;</code> |  | Array of WebAssembly Csound plugin libraries to use with Csound. |
-| [params.useWorker] | <code>Boolean</code> | <code>false</code> | Configure to use backend using Web Workers to run Csound in a thread separate from audio callback. |
-| [params.useSAB] | <code>Boolean</code> | <code>true</code> | Configure to use SharedArrayBuffers for WebWorker communications if platform supports it. |
+| [params.withPlugins] | <code>Array.&lt;Object&gt;</code> |  | WebAssembly Csound plugins built with the matching SDK. The shared worker host fixes its plugin set at first start. |
+| [params.useWorker] | <code>Boolean</code> |  | Use the shared worker host. Setting false runs the same engine in one AudioWorklet with synchronous init. |
+| [params.useSAB] | <code>Boolean</code> | <code>true</code> | Setting false keeps the existing transport without shared audio buffers and uses synchronous init. |
 
 
 <a name="CSOUND_PARAMS"></a>

@@ -210,6 +210,10 @@ declare interface CsoundObj {
    * no spaces are allowed in the string.
    */
   setOption: (option: string) => Promise<number>;
+  /** Returns 1 when this engine supports --realtime, otherwise 0. */
+  supportsRealtime: () => Promise<number>;
+  /** Returns 1 when --realtime is set on this instance, otherwise 0. */
+  isRealtime: () => Promise<number>;
   /**
    * Returns 1 when one or more --opcode-lib paths are waiting to be loaded.
    */
@@ -495,6 +499,8 @@ declare interface CsoundObj {
    * Terminates an instances and all its workers, making disabling any futher uses of a given instance.
    */
   terminateInstance: () => Promise<void>;
+  /** Queue a numeric event: type 0 = instrument, 1 = table, 2 = end. */
+  event: (type: 0 | 1 | 2, pfields: number[]) => Promise<void>;
   /**
    * Sets `-iadc`, requests microphone access, and prepares the input stream.
    * Call this before `start()`. Works in all modes and rejects when the browser
@@ -539,9 +545,9 @@ declare interface CsoundObj {
  * @param [params.outputChannelCount] - Optional output channel count AudioNode used with WebAudio graph.
  * Defaults to the value of nchnls in useWorker but 2 otherwise.
  * @param [params.autoConnect = true] - Set to configure Csound to automatically connect to the audioContext.destination output.
- * @param [params.withPlugins] - Array of WebAssembly Csound plugin libraries to use with Csound.
- * @param [params.useWorker = false] - Configure to use backend using Web Workers to run Csound in a thread separate from audio callback.
- * @param [params.useSAB = true] - Configure to use SharedArrayBuffers for WebWorker communications if platform supports it.
+ * @param [params.withPlugins] - WebAssembly Csound plugins built with the matching SDK. The shared worker host fixes its plugin set at first start.
+ * @param [params.useWorker] - Use the shared worker host. Setting false runs the same engine in one AudioWorklet with synchronous init.
+ * @param [params.useSAB = true] - Setting false keeps the existing transport without shared audio buffers and uses synchronous init.
 
  */
 declare function Csound(params?: {
@@ -639,6 +645,8 @@ declare interface LibCsoundObj {
   csoundPerformKsmps: (csound: number) => number;
   csoundStop: (csound: number) => void;
   csoundReset: (csound: number) => void;
+  csoundSupportsRealtime: () => number;
+  csoundIsRealtime: (csound: number) => number;
   csoundGetSr: (csound: number) => number;
   csoundSystemSr: (sr: number) => number;
   csoundGetKr: (csound: number) => number;
@@ -808,6 +816,7 @@ declare interface LibCsoundObj {
 /**
  * Creates a lightweight, in-process Csound wasm instance.
  * No AudioContext or AudioWorklet dependency required.
+ * Uses the same engine binary as Csound(), with synchronous init.
  * Each call creates an independent wasm instance supporting multiple Csound instances.
  *
  * @param [params.withPlugins] - Optional plugin wasm binaries to load

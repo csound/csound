@@ -112,4 +112,12 @@ export const decoder = WITH_TEXT_ENCODER_POLYFILL
 
 export const encoder = WITH_TEXT_ENCODER_POLYFILL ? new TextEncoderPoly() : new TextEncoder("utf8");
 
-export const uint2String = (uint) => decoder.decode(uint);
+export const uint2String = (uint) =>
+  decoder.decode(
+    uint.buffer instanceof ArrayBuffer
+      ? uint
+      : // TextDecoder rejects shared buffers, including local Wasm heaps on
+        // pages where the browser hides the SharedArrayBuffer constructor.
+        // eslint-disable-next-line unicorn/prefer-spread
+        uint.slice(),
+  );

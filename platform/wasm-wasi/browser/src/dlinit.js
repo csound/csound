@@ -39,6 +39,7 @@ export const dlinit = (
   csoundInstance,
   pluginTable = table,
   hostMemory = undefined,
+  internFunction = internTableFunction,
 ) => {
   const hostExports = hostInstance && hostInstance.exports ? hostInstance.exports : {};
   const info = typeof pluginInstance.exports["csoundModuleInfo"] === "function"
@@ -74,19 +75,19 @@ export const dlinit = (
     );
 
     if (typeof pluginInstance.exports["csoundModuleCreate"] === "function") {
-      csoundModuleCreate.value = internTableFunction(table, pluginInstance.exports["csoundModuleCreate"]);
+      csoundModuleCreate.value = internFunction(table, pluginInstance.exports["csoundModuleCreate"]);
     }
 
     if (typeof pluginInstance.exports["csoundModuleInit"] === "function") {
-      csoundModuleInit.value = internTableFunction(table, pluginInstance.exports["csoundModuleInit"]);
+      csoundModuleInit.value = internFunction(table, pluginInstance.exports["csoundModuleInit"]);
     }
 
     if (typeof pluginInstance.exports["csoundModuleDestroy"] === "function") {
-      csoundModuleDestroy.value = internTableFunction(table, pluginInstance.exports["csoundModuleDestroy"]);
+      csoundModuleDestroy.value = internFunction(table, pluginInstance.exports["csoundModuleDestroy"]);
     }
 
     if (typeof pluginInstance.exports["csoundModuleErrorCodeToString"] === "function") {
-      csoundModuleErrorCodeToString.value = internTableFunction(table, pluginInstance.exports["csoundModuleErrorCodeToString"]);
+      csoundModuleErrorCodeToString.value = internFunction(table, pluginInstance.exports["csoundModuleErrorCodeToString"]);
     }
 
     hostExports["csoundWasiLoadPlugin"](
@@ -152,7 +153,7 @@ export const dlinit = (
                 console.error(`Missing plugin function at table index ${funcIndex}`);
                 return 0;
               }
-              return internTableFunction(table, funcRef);
+              return internFunction(table, funcRef);
             };
 
             try {
@@ -208,11 +209,11 @@ export const dlinit = (
     const csoundFgenInit = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
 
     if (typeof pluginInstance.exports["csound_opcode_init"] === "function") {
-      csoundOpcodeInit.value = internTableFunction(table, pluginInstance.exports["csound_opcode_init"]);
+      csoundOpcodeInit.value = internFunction(table, pluginInstance.exports["csound_opcode_init"]);
     }
 
     if (typeof pluginInstance.exports["csound_fgen_init"] === "function") {
-      csoundFgenInit.value = internTableFunction(table, pluginInstance.exports["csound_fgen_init"]);
+      csoundFgenInit.value = internFunction(table, pluginInstance.exports["csound_fgen_init"]);
     }
 
     hostExports["csoundWasiLoadOpcodeLibrary"](

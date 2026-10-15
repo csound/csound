@@ -40,6 +40,7 @@ export const handleCsoundStart =
         `error: csoundStart failed while trying to render ${outputName},` +
           " look out for errors in options and syntax",
       );
+      return startError;
     }
 
     setTimeout(() => {

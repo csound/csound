@@ -399,7 +399,7 @@ int32_t csoundLoadExternalsHost(CSOUND *csound, const char *libraries)
                    __import_module__("env"),
                    __import_name__("csoundLoadExternals")));
 #elif defined(CSOUND_WASI_CLI)
-// Standalone WASI has no dynamic loader. All available opcodes are linked in.
+// Standalone WASI commands use only statically linked opcodes.
 int32_t csoundLoadModules(CSOUND *csound) {
   (void) csound;
   return CSOUND_SUCCESS;
@@ -424,7 +424,7 @@ const char *getRequestedPlugins(CSOUND *csound) {
 }
 
 int32_t csoundLoadExternals(CSOUND *csound) {
-#ifdef CSOUND_WASI_BROWSER
+#if defined(CSOUND_WASI_BROWSER)
   char *libraries = csound->dl_opcodes_oplibs;
   int32_t retval;
 

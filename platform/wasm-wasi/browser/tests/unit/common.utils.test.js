@@ -67,6 +67,18 @@ describe("worker performance mode", () => {
     });
   }
 
+  it("does not launch a render loop when native start fails", async () => {
+    const start = handleCsoundStart(
+      { post: () => {}, broadcastPlayState: () => assert.fail("no state broadcast") },
+      { csoundShouldDaemonize: () => 0, csoundStart: () => -1, csoundGetOutputName: () => "dac" },
+      {},
+      () => assert.fail("no realtime render"),
+      () => assert.fail("no offline render"),
+    );
+    assert.equal(start({ csound: 1 }), -1);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
   it("uses the real-time path for microphone input without DAC output", async () => {
     let realtimeStarted = false;
     let renderStarted = false;

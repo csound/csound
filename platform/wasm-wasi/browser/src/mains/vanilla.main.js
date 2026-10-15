@@ -68,17 +68,18 @@ class VanillaWorkerMainThread {
   }
 
   async terminateInstance() {
+    this.ipcMessagePorts.close();
     if (this.csoundWorker) {
       this.csoundWorker.terminate();
       delete this.csoundWorker;
     }
+    if (this.proxyPort) {
+      this.proxyPort[Comlink.releaseProxy](false);
+      delete this.proxyPort;
+    }
     if (this.audioWorker && this.audioWorker.terminateInstance) {
       await this.audioWorker.terminateInstance();
       delete this.audioWorker.terminateInstance;
-    }
-    if (this.proxyPort) {
-      this.proxyPort[Comlink.releaseProxy]();
-      delete this.proxyPort;
     }
     if (this.publicEvents) {
       this.publicEvents.terminateInstance();

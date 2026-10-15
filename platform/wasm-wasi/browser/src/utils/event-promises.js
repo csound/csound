@@ -17,10 +17,11 @@
 // promises which hold back releases
 // of certain async events
 // for internal usecases only
-import { clearArray } from "./clear-array";
+import { clearArray } from "./clear-array.js";
 
 export class EventPromises {
-  constructor() {
+  constructor(onTimeout = undefined) {
+    this.onTimeout = onTimeout;
     this.timeoutTimers = [];
 
     this.startPromise = undefined;
@@ -102,19 +103,23 @@ export class EventPromises {
     return this.resumePromise ?? -1;
   }
 
-  createStartPromise() {
+  createStartPromise(timeoutMs = 2000) {
     if (!this.startPromise) {
       this.startPromise = new Promise((resolve) => {
         this.startResolver = resolve;
         const timer = setTimeout(() => {
           this.timeoutTimers = this.timeoutTimers.filter((oldTimer) => oldTimer !== timer);
           if (this.startPromise) {
+            if (this.onTimeout) {
+              this.onTimeout("start");
+              return;
+            }
             console.warn("start promise timed out");
             this.startResolver();
             delete this.startResolver;
             this.startPromise && delete this.startPromise;
           }
-        }, 2000);
+        }, timeoutMs);
         this.timeoutTimers.push(timer);
       });
     }
@@ -145,6 +150,10 @@ export class EventPromises {
         const timer = setTimeout(() => {
           this.timeoutTimers = this.timeoutTimers.filter((oldTimer) => oldTimer !== timer);
           if (this.stopPromise) {
+            if (this.onTimeout) {
+              this.onTimeout("stop");
+              return;
+            }
             console.warn("stop promise timed out");
             this.stopResolver();
             delete this.stopResolver;
@@ -181,6 +190,10 @@ export class EventPromises {
         const timer = setTimeout(() => {
           this.timeoutTimers = this.timeoutTimers.filter((oldTimer) => oldTimer !== timer);
           if (this.pausePromise) {
+            if (this.onTimeout) {
+              this.onTimeout("pause");
+              return;
+            }
             console.warn("pause promise timed out");
             this.pauseResolver();
             delete this.pauseResolver;
@@ -217,6 +230,10 @@ export class EventPromises {
         const timer = setTimeout(() => {
           this.timeoutTimers = this.timeoutTimers.filter((oldTimer) => oldTimer !== timer);
           if (this.resumePromise) {
+            if (this.onTimeout) {
+              this.onTimeout("resume");
+              return;
+            }
             console.warn("resume promise timed out");
             this.resumeResolver();
             delete this.resumeResolver;

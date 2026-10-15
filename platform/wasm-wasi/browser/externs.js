@@ -136,6 +136,8 @@ var WasiFS;
  * csoundStop: function(CsoundInst): number,
  * csoundCleanup: function(CsoundInst): number,
  * csoundReset: function(CsoundInst): number,
+ * csoundSupportsRealtime: function(): number,
+ * csoundIsRealtime: function(CsoundInst): number,
  * csoundGetSr: function(CsoundInst): number,
  * csoundGetKr: function(CsoundInst): number,
  * csoundGetKsmps: function(CsoundInst): number,
@@ -165,6 +167,7 @@ var WasiFS;
  * csoundGetRtMidiName: function(CsoundInst): string,
  * csoundGetMidiOutFileName: function(CsoundInst): string,
  * csoundPushMidiMessage: function(CsoundInst, number, number, number): number,
+ * csoundEvent: function(CsoundInst, number, !Array<number>): void,
  * csoundInputMessage: function(CsoundInst, string): number,
  * csoundInputMessageAsync: function(CsoundInst, string): number,
  * csoundReadlinePushText: function(CsoundInst, string): number,
@@ -266,8 +269,11 @@ var UgenArgTypeEnum;
 var WasmInst;
 
 /** @typedef {{
+ * supportsRealtime: function(): Promise.<number>,
+ * isRealtime: function(): Promise.<number>,
  * start: function(): Promise.<number>,
  * stop: function(): Promise.<number>,
+ * event: function(number, !Array<number>): !Promise<void>,
  * getNchnls: function(CsoundInst): Promise.<number>,
  * getInputName: function(CsoundInst): Promise.<string>,
  * getSr: function(CsoundInst): Promise.<number>,
@@ -281,13 +287,13 @@ var WasmInst;
 var CsoundObj;
 
 /** @typedef {{
- * audioContext: Object,
- * inputChannelCount: number,
- * outputChannelCount: number,
- * autoConnect: boolean,
- * withPlugins: Array<string>,
- * useWorker: boolean,
- * useSAB: boolean,
+ * audioContext: (Object|undefined),
+ * inputChannelCount: (number|undefined),
+ * outputChannelCount: (number|undefined),
+ * autoConnect: (boolean|undefined),
+ * withPlugins: (Array<string>|undefined),
+ * useWorker: (boolean|undefined),
+ * useSAB: (boolean|undefined),
  * }}  */
 var CsoundExportArguments;
 

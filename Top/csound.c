@@ -1113,6 +1113,13 @@ static const CSOUND cenviron_ = {
 };
 
 void csoundLongJmp(CSOUND *csound, int32_t retval) {
+#ifdef CSOUND_WASI_REALTIME
+  /* exitjmp belongs to the control/render caller. A worker cannot unwind that
+     stack or safely recover a partly initialized opcode. P1 proc_exit stops
+     all threads; avoid callbacks and cleanup that could wait on held locks. */
+  if (csoundWasiIsWorkerThread())
+    _Exit(EXIT_FAILURE);
+#endif
   int32_t n = CSOUND_EXITJMP_SUCCESS;
 
   n = (retval < 0 ? n + retval : n - retval) & (CSOUND_EXITJMP_SUCCESS - 1);

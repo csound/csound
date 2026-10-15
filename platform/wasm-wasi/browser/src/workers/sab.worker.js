@@ -14,19 +14,19 @@
  */
 
 import * as Comlink from "../utils/comlink.js";
+import { assertRealtimeCallAllowed } from "../utils/realtime-api.js";
 import { waitForSABResume } from "../utils/sab-transport.js";
+import { drainMidiPackets } from "../utils/sab-midi-queue.js";
+import { tryPushMidiMessage } from "../utils/wasm-midi.js";
+import { sharedAudioChannels } from "../utils/sab-audio-channels.js";
 import MessagePortState from "../utils/message-port-state";
 import libcsoundFactory from "../libcsound.js";
-import loadWasm from "../module";
+import loadWasm from "../module.loader.js";
+import loadRealtimeWasm from "../module.realtime.js";
+import { superviseWasiPerformance } from "../utils/wasi-threads.js";
 import { logSABWorker as log } from "../logger";
 import { handleCsoundStart } from "../workers/common.utils";
-import {
-  AUDIO_STATE,
-  RING_BUFFER_SIZE,
-  MIDI_BUFFER_SIZE,
-  MIDI_BUFFER_PAYLOAD_SIZE,
-  initialSharedState,
-} from "../constants";
+import { AUDIO_STATE, RING_BUFFER_SIZE, initialSharedState } from "../constants";
 
 /**
  * @type {Map.<LibcsoundUncloned>}
@@ -34,6 +34,8 @@ import {
 let combined;
 let pollPromise;
 let unlockPromise;
+let threadedMode = false;
+let activeGeneration = -1;
 
 const callUncloned = async (k, arguments_) => {
   const caller = combined.get(k);
@@ -92,7 +94,10 @@ const sabCreateRealtimeAudioThread =
 
     // In case of multiple performances, let's reset the sab state
     initialSharedState.forEach((value, index) => {
-      Atomics.store(audioStatePointer, index, value);
+      // The main thread resets MIDI counters before start; it may already be
+      // publishing new packets while this worker initializes the other state.
+      if (index !== AUDIO_STATE.RTMIDI_READ && index !== AUDIO_STATE.RTMIDI_WRITE)
+        Atomics.store(audioStatePointer, index, value);
     });
     if (userProvidedNchnls > -1) {
       Atomics.store(audioStatePointer, AUDIO_STATE.NCHNLS, userProvidedNchnls);
@@ -132,20 +137,8 @@ const sabCreateRealtimeAudioThread =
     const zeroDecibelFullScale = libraryCsound.csoundGet0dBFS(csound);
 
     // Get the Worklet channels
-    const channelsOutput = [];
-    const channelsInput = [];
-
-    for (let channelIndex = 0; channelIndex < nchnls; ++channelIndex) {
-      channelsOutput.push(
-        new Float64Array(audioStreamOut, RING_BUFFER_SIZE * channelIndex, RING_BUFFER_SIZE),
-      );
-    }
-
-    for (let channelIndex = 0; channelIndex < nchnlsInput; ++channelIndex) {
-      channelsInput.push(
-        new Float64Array(audioStreamIn, RING_BUFFER_SIZE * channelIndex, RING_BUFFER_SIZE),
-      );
-    }
+    const channelsOutput = sharedAudioChannels(audioStreamOut, nchnls);
+    const channelsInput = sharedAudioChannels(audioStreamIn, nchnlsInput);
 
     workerMessagePort.broadcastPlayState("realtimePerformanceStarted", performanceGeneration);
     // Let's notify the audio-worker that performance has started
@@ -217,28 +210,9 @@ const sabCreateRealtimeAudioThread =
       }
 
       if (isRequestingRtMidiInput) {
-        const availableMidiEvents = Atomics.load(
-          audioStatePointer,
-          AUDIO_STATE.AVAIL_RTMIDI_EVENTS,
+        drainMidiPackets(audioStatePointer, midiBuffer, (status, data1, data2) =>
+          tryPushMidiMessage(wasm, csound, status, data1, data2),
         );
-        if (availableMidiEvents > 0) {
-          const rtmidiBufferIndex = Atomics.load(audioStatePointer, AUDIO_STATE.RTMIDI_INDEX);
-          let absIndex = rtmidiBufferIndex;
-          for (let index = 0; index < availableMidiEvents; index++) {
-            absIndex = (rtmidiBufferIndex + MIDI_BUFFER_PAYLOAD_SIZE * index) % MIDI_BUFFER_SIZE;
-            const status = Atomics.load(midiBuffer, absIndex);
-            const data1 = Atomics.load(midiBuffer, absIndex + 1);
-            const data2 = Atomics.load(midiBuffer, absIndex + 2);
-            libraryCsound["csoundPushMidiMessage"](csound, status, data1, data2);
-          }
-
-          Atomics.store(
-            audioStatePointer,
-            AUDIO_STATE.RTMIDI_INDEX,
-            (absIndex + 1) % MIDI_BUFFER_SIZE,
-          );
-          Atomics.sub(audioStatePointer, AUDIO_STATE.AVAIL_RTMIDI_EVENTS, availableMidiEvents);
-        }
       }
 
       const bufferLength = Atomics.load(audioStatePointer, AUDIO_STATE.BUFFER_LEN);
@@ -354,10 +328,19 @@ const initCallbackReplyPort = (response) => {
         const argumentz = callerPayload["argumentz"];
         const apiKey = callerPayload["apiKey"];
         const caller = combined.get(apiKey);
-        const answer = caller && caller.apply({}, argumentz || []);
         const answerPayload = {};
         answerPayload["id"] = id;
-        answerPayload["answer"] = answer;
+        try {
+          if (threadedMode && callerPayload["generation"] !== activeGeneration)
+            throw new Error("Call belongs to an ended performance");
+          // Options and start can overlap on the UI. Check the native mode
+          // here too, before a call admitted under an older mode can execute.
+          if (threadedMode && combined.get("csoundIsRealtime")(argumentz[0]))
+            assertRealtimeCallAllowed(apiKey, argumentz.slice(1));
+          answerPayload["answer"] = caller && caller.apply({}, argumentz || []);
+        } catch (error) {
+          answerPayload["error"] = error instanceof Error ? error.message : String(error);
+        }
         accumulator.push(answerPayload);
         return accumulator;
       }, []);
@@ -424,6 +407,7 @@ const initialize = async (payload) => {
   const workerMessagePort = initMessagePort({ port: messagePort });
   const callbacksRequest = () => callbackPort.postMessage("poll");
   const releaseStop = (performanceGeneration) => {
+    activeGeneration = -1;
     const payload = {};
     payload["type"] = "releaseStop";
     payload["performanceGeneration"] = performanceGeneration;
@@ -443,46 +427,75 @@ const initialize = async (payload) => {
 
   initCallbackReplyPort({ port: callbackPort });
 
-  const [wasm, wasi] = await loadWasm({
-    wasmDataURI,
-    withPlugins,
-    messagePort: workerMessagePort,
-  });
+  const threaded = payload["threaded"] === true;
+  threadedMode = threaded;
+  const [wasm, wasi] = threaded
+    ? await loadRealtimeWasm({
+        wasmBytes: wasmDataURI,
+        ports: payload["threadPorts"],
+        messagePort: workerMessagePort,
+        withPlugins,
+      })
+    : await loadWasm({ wasmDataURI, withPlugins, messagePort: workerMessagePort });
 
   wasm.wasi = wasi;
 
   const libraryCsound = libcsoundFactory(wasm);
 
-  const startHandler = (_, arguments_) => {
+  const supervise = (perform) =>
+    threaded
+      ? superviseWasiPerformance(perform, (error) => {
+          globalThis.postMessage({
+            "type": "wasi-thread-fatal",
+            "message": error instanceof Error ? error.message : String(error),
+          });
+        })
+      : perform;
+
+  const startHandler = async (_, arguments_) => {
+    // Mirror every plugin before native start can launch an init thread.
+    if (threaded) await wasm["prepareThreads"](arguments_["csound"]);
+    activeGeneration = arguments_["performanceGeneration"];
     applyUserProvidedAudioParams({
       audioStateBuffer: arguments_ && arguments_["audioStateBuffer"],
       csound: arguments_ && arguments_["csound"],
       libraryCsound,
     });
 
-    return handleCsoundStart(
+    const status = handleCsoundStart(
       workerMessagePort,
       libraryCsound,
       wasi,
-      sabCreateRealtimeAudioThread({
-        libraryCsound,
-        callbacksRequest,
-        wasm,
-        workerMessagePort,
-        releaseStop,
-        releasePause,
-        releaseResumed,
-      }),
-      renderFunction({
-        libraryCsound,
-        callbacksRequest,
-        workerMessagePort,
-        wasi,
-        releaseStop,
-        releasePause,
-        releaseResumed,
-      }),
+      supervise(
+        sabCreateRealtimeAudioThread({
+          libraryCsound,
+          callbacksRequest,
+          wasm,
+          workerMessagePort,
+          releaseStop,
+          releasePause,
+          releaseResumed,
+        }),
+      ),
+      supervise(
+        renderFunction({
+          libraryCsound,
+          callbacksRequest,
+          workerMessagePort,
+          wasi,
+          releaseStop,
+          releasePause,
+          releaseResumed,
+        }),
+      ),
     )(arguments_);
+    return threaded
+      ? {
+          // eslint-disable-next-line object-shorthand -- Keep wire keys across bundles.
+          "status": status,
+          "realtimeMode": Boolean(libraryCsound.csoundIsRealtime(arguments_["csound"])),
+        }
+      : status;
   };
 
   const allAPI = { ...libraryCsound, csoundStart: startHandler, wasm };
@@ -491,6 +504,15 @@ const initialize = async (payload) => {
   libraryCsound["csoundInitialize"](0);
   const csoundInstance = libraryCsound["csoundCreate"]();
 
+  const installProbe = wasm.exports["csoundWasiInstallThreadProbe"];
+  if (threaded && typeof installProbe === "function") {
+    const pointer = installProbe(csoundInstance);
+    return {
+      // eslint-disable-next-line object-shorthand -- Preserve keys across worker bundles.
+      "csoundInstance": csoundInstance,
+      "threadProbe": new Int32Array(wasi.memory.buffer, pointer, 4),
+    };
+  }
   return csoundInstance;
 };
 

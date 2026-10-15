@@ -35,6 +35,28 @@ See the
 [MediaDevices.getUserMedia documentation](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#privacy_and_security)
 for browser security and permission rules.
 `;
+const realtimeSection = `## Realtime init
+
+Normal builds include thread support when the toolchain supports it. \`Csound()\`
+uses the shared worker host. Set \`--realtime\` before \`start()\` to enable
+background init; omitting the flag keeps synchronous init. Reset clears it.
+The default host requires isolation headers and reports missing browser
+features before startup.
+
+The bundle contains one binary for all APIs. Explicit \`useWorker: false\`,
+\`useSAB: false\`, and the named \`libcsound()\` constructor use it locally with
+synchronous init. They need shared Wasm support but no isolation headers.
+
+Plugins work with the shared engine. Rebuild them with the matching plugin
+SDK, then load them before the first \`start()\`. The shared worker host keeps
+that plugin set across reset; create a new instance to change it.
+
+\`supportsRealtime()\` reports whether the selected engine supports the mode;
+\`isRealtime()\` reports its native setting. Both return a promise for 0 or 1.
+See the [build guide](../README.md#wasi-realtime-browser) for headers, limits,
+and setup.
+
+`;
 const apiDocTitle = `## Api Documentation\n\n`;
 const licenseSection =
   `## License\n\n` +
@@ -54,6 +76,7 @@ jsdoc2md
         `\n\n` +
         `${breakingChangesSection}\n` +
         `${microphoneInputSection}\n` +
+        `${realtimeSection}` +
         `${apiDocTitle}${jsdocMarkdown}` +
         `\n${licenseSection}`,
     ),

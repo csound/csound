@@ -29,7 +29,7 @@
  */
 
 import wasmDataURI from "../dist/__csound_wasm.inline.js";
-import loadWasm from "./module";
+import loadWasm from "./module.loader.js";
 import libcsoundFactory from "./libcsound";
 
 /**

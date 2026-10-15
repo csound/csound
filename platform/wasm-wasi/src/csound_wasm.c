@@ -69,6 +69,31 @@ int csoundShouldDaemonize(CSOUND *csound) {
   return 0;
 }
 
+#if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
+int csoundWasiJsSupportsThreads(void)
+    __attribute__((__import_module__("env"),
+                   __import_name__("csoundWasiJsSupportsThreads")));
+#endif
+
+/* Host support and the native option are separate: loading a pthread-capable
+   reactor does not turn on background init. Read the option after CSD parsing
+   as well as setOption(), since either can select --realtime. */
+__attribute__((used))
+int csoundSupportsRealtime(void) {
+#if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
+  return csoundWasiJsSupportsThreads() != 0;
+#elif defined(CSOUND_WASI_REALTIME)
+  return 1;
+#else
+  return 0;
+#endif
+}
+
+__attribute__((used))
+int csoundIsRealtime(CSOUND *csound) {
+  return csoundGetParams(csound)->realtime != 0;
+}
+
 int isRequestingRtAudioInput(CSOUND *csound);
 
 // END CS_MIDIDEVICE
@@ -156,15 +181,31 @@ struct MidiCallbackData {
 struct MidiData midiData[MIDI_QUEUE_SIZE];
 struct MidiCallbackData midiCallbackData = { midiData, 0, 0 };
 
-void pushMidiMessage(CSOUND *csound, unsigned char status, unsigned char data1, unsigned char data2){
-  midiCallbackData.midiData[midiCallbackData.p].status = status;
-  midiCallbackData.midiData[midiCallbackData.p].data1 = data1;
-  midiCallbackData.midiData[midiCallbackData.p].data2= data2;
-  midiCallbackData.midiData[midiCallbackData.p].flag = 1;
-  midiCallbackData.p++;
-  if (midiCallbackData.p == MIDI_QUEUE_SIZE) {
-    midiCallbackData.p = 0;
-  }
+static void clearMidiMessages(void) {
+  memset(midiData, 0, sizeof(midiData));
+  midiCallbackData.p = 0;
+  midiCallbackData.q = 0;
+}
+
+/* The engine owner submits and drains this queue. Keep a rejected packet in
+   the host queue until the next k-cycle instead of overwriting a note-off. */
+__attribute__((used))
+int tryPushMidiMessage(CSOUND *csound, unsigned char status,
+                       unsigned char data1, unsigned char data2) {
+  (void) csound;
+  struct MidiData *slot = &midiCallbackData.midiData[midiCallbackData.p];
+  if (slot->flag) return 0;
+  slot->status = status;
+  slot->data1 = data1;
+  slot->data2 = data2;
+  slot->flag = 1;
+  midiCallbackData.p = (midiCallbackData.p + 1) % MIDI_QUEUE_SIZE;
+  return 1;
+}
+
+void pushMidiMessage(CSOUND *csound, unsigned char status,
+                     unsigned char data1, unsigned char data2) {
+  (void) tryPushMidiMessage(csound, status, data1, data2);
 }
 
 /* used to distinguish between 1 and 2-byte messages */
@@ -259,6 +300,7 @@ int system(const char *command)
 __attribute__((used))
 CSOUND *csoundCreateWasi() {
   CSOUND *csound = csoundCreate(NULL, NULL);
+  clearMidiMessages();
   // printDebug("DEBUG: csoundCreateWasi called, setting message callback");
   csoundSetMessageCallback(csound, &csoundWasiCMessageCallback);
   csoundSetReadlineCallback(csound, csoundWasiCReadlineCallback, NULL);
@@ -272,6 +314,7 @@ CSOUND *csoundCreateWasi() {
 // NB: csoundCleanup has been removed from API for 7.0
 int csoundResetWasi(CSOUND *csound) {
   csoundReset(csound);
+  clearMidiMessages();
   csoundSetMidiCallbacks(csound);
   return CSOUND_SUCCESS;
 }
@@ -502,6 +545,7 @@ void printDebug(const char *log) {
 }
 
 
+#if !defined(CSOUND_WASI_REALTIME)
 // WASI setjmp/longjmp stubs for the linker
 // These are weak symbols to allow the linker to resolve them
 // Function signatures match what's expected by the linker
@@ -528,3 +572,4 @@ void __wasm_longjmp(void *env, int val) {
   printDebug(message);
   __builtin_trap();
 }
+#endif /* !CSOUND_WASI_REALTIME: threaded builds use libc libsetjmp. */

@@ -1,4 +1,4 @@
-import { decoder } from "../utils/text-encoders.js";
+import { uint2String } from "../utils/text-encoders.js";
 
 // This is an argv parser, not a shell. Never silently interpret shell syntax
 // as filenames or try to fetch commands from the network.
@@ -48,7 +48,7 @@ export function createSystem(host, log) {
       const memory = new Uint8Array(host.memory.buffer);
       const end = memory.indexOf(0, pointer);
       if (pointer <= 0 || end < pointer) throw new Error("Invalid command string");
-      const args = commandArguments(decoder.decode(memory.subarray(pointer, end)));
+      const args = commandArguments(uint2String(memory.subarray(pointer, end)));
       let path = host.resolvePath(args[0]);
       let bytes = host.readFile(path);
       if (!bytes && !path.endsWith(".wasm")) {

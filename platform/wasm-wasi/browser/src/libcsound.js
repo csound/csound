@@ -33,6 +33,8 @@ import {
   csoundReset,
 } from "./modules/performance";
 import {
+  csoundSupportsRealtime,
+  csoundIsRealtime,
   csoundGetSr,
   csoundSystemSr,
   csoundGetKr,
@@ -69,6 +71,7 @@ import {
 } from "./modules/rtmidi";
 import { getRequestedPlugins, isRequestingPlugins } from "./modules/plugins";
 import {
+  csoundEvent,
   csoundInputMessage,
   csoundInputMessageAsync,
   csoundReadlinePushText,
@@ -172,6 +175,8 @@ export const api = {
   csoundStop,
   csoundReset,
   // @module/attributes
+  csoundSupportsRealtime,
+  csoundIsRealtime,
   csoundGetSr,
   csoundSystemSr,
   csoundGetKr,
@@ -207,6 +212,7 @@ export const api = {
   isRequestingPlugins,
   getRequestedPlugins,
   // @module/control_events
+  csoundEvent,
   csoundInputMessage,
   csoundInputMessageAsync,
   csoundReadlinePushText,

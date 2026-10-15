@@ -25,6 +25,7 @@ import * as R from "ramda";
 const ClosureCompiler = googClosureCompiler.compiler || googClosureCompiler;
 import { inlineWebworker } from "./goog/generate-webworker-module.js";
 import { inlineArraybuffer } from "./goog/inline-arraybuffer.js";
+import { browserBinaries } from "./goog/browser-binaries.js";
 
 const DEV = process.env.NODE_ENV === "development";
 const __filename = fileURLToPath(import.meta.url);
@@ -59,8 +60,8 @@ const captureClosureExport = (data, exportName, variableName) => {
   return data.replace(marker, () => `${marker}${variableName}=`);
 };
 
-const makeModuleExportsHack = () => {
-  let data = fs.readFileSync(path.join(rootDir, "dist", "csound.js")).toString();
+const makeModuleExportsHack = (filename) => () => {
+  let data = fs.readFileSync(path.join(distDir, filename)).toString();
   const marker = "__GOOGLE_CLOSURE_REPLACEME__";
   if (!data.includes(marker)) {
     throw new Error("Could not find the module export marker");
@@ -80,17 +81,24 @@ const makeModuleExportsHack = () => {
     ` const libcsound = ${libcsoundExport};` +
     ` export { Csound, libcsound }; export default Csound;`;
   const hackedData = data.replace(marker, () => exportStatement);
-  fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
+  fs.writeFileSync(path.join(distDir, filename), hackedData);
 };
 
 if (fs.existsSync(distDir)) {
   rimrafSync(distDir);
 }
 fs.mkdirSync(distDir);
-
+// Repository builds write to ../lib; installed packages provide the same files.
+const binaries = browserBinaries(rootDir, process.env.CSOUND_THREADED_WASM);
 fs.writeFileSync(
   path.join(rootDir, "dist", "__csound_wasm.inline.js"),
-  inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.wasm.z", "binary.wasm"),
+  inlineArraybuffer(binaries.threaded || binaries.baseline, "binary.wasm"),
+);
+
+// Workers need the engine kind, but must not embed another copy of its bytes.
+fs.writeFileSync(
+  path.join(distDir, "__csound_engine.inline.js"),
+  `export const sharedEngine = ${Boolean(binaries.threaded)};\n`,
 );
 
 // const polyfills = {
@@ -101,6 +109,13 @@ fs.writeFileSync(
 // };
 
 const compilationSequence = [
+  {
+    entry_point: "./src/workers/wasi-thread.worker.js",
+    js_output_file: path.join(rootDir, "dist", "__compiled.wasi-thread.worker.js"),
+    postbuild: () => inlineWebworker("wasi-thread.worker.js", "worker.wasi-thread", false),
+    output_wrapper: "(function(){%output%}).call(this);",
+    define: DEV ? [] : ["PRODUCTION=1"],
+  },
   {
     entry_point: "./src/workers/sab.worker",
     js_output_file: path.join(rootDir, "dist", "__compiled.sab.worker.js"),
@@ -157,7 +172,7 @@ const compilationSequence = [
     create_source_map: path.join(rootDir, "dist", "csound.js.map"),
     define: DEV ? [] : ["PRODUCTION=1"],
     output_manifest: "output.manifest.txt",
-    postbuild: makeModuleExportsHack,
+    postbuild: makeModuleExportsHack("csound.js"),
     output_wrapper: trimString(`%output%
       __GOOGLE_CLOSURE_REPLACEME__
       //# sourceMappingURL=csound.js.map`),
