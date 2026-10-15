@@ -31,6 +31,9 @@ extern "C" {
 
 int32_t csoundMIDIFileOpen(CSOUND *csound, const char *name);
 
+/* Advance file clocks once per control cycle, even when MIDI input is held. */
+void csoundMIDIFileAdvance(CSOUND *csound);
+
 /* read MIDI file event data at performace time */
 
 int32_t csoundMIDIFileRead(CSOUND *csound, unsigned char *buf, int32_t nBytes);

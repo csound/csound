@@ -1822,8 +1822,11 @@ struct CSOUND_ {
   /* -------- Memory management -------- */
   void *memalloc_db;                                         /* memory allocation database */
   ALLOC_DATA *alloc_queue;                                   /* queue of allocations pending free */
-  volatile unsigned long alloc_queue_items;                  /* number of entries in the allocation queue */
+  volatile long alloc_queue_items;                          /* number of entries in the allocation queue */
   unsigned long alloc_queue_active;                          /* allocations currently active */
+  volatile long alloc_queue_stopping;                       /* reject requests once shutdown starts */
+  volatile long alloc_queue_midi;                           /* queued or initializing MIDI notes */
+  int32_t midi_event_pending;                                /* parsed host event waiting for queue space */
   unsigned long alloc_queue_wp;                              /* allocation queue write pointer */
   void *searchPathCache;                                     /* cached file search paths */
   void *reset_list;                                          /* registered reset callback list */
