@@ -44,7 +44,12 @@ const Csound = async function (options = {}) {
     withPlugins = [],
     useSAB = true,
   } = options;
-  const threaded = sharedEngine && options.useWorker !== false && useSAB;
+  // Keep the default usable without isolation, but honor an explicit worker request.
+  const threaded =
+    sharedEngine &&
+    options.useWorker !== false &&
+    useSAB &&
+    (options.useWorker === true || canUseThreadedWasm());
   const useWorker = threaded || Boolean(options.useWorker);
   if (threaded && !canUseThreadedWasm())
     throw new Error(

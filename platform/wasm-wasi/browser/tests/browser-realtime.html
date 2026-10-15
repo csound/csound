@@ -532,7 +532,7 @@ endin
       }
       checks.push("bad local plugins reject and clean up only owned AudioContexts");
     }
-    async function rejectsUnsupportedDefault(simulateMissingWasm) {
+    async function unsupportedHost(simulateMissingWasm) {
       const AudioContext = window.AudioContext;
       const validate = WebAssembly.validate;
       let contexts = 0;
@@ -544,12 +544,19 @@ endin
       });
       if (simulateMissingWasm) WebAssembly.validate = () => false;
       try {
-        const error = await rejects(() => Csound(), "unsupported default started an engine");
+        const error = await rejects(
+          () => Csound(simulateMissingWasm ? undefined : { useWorker: true }),
+          "unsupported host started an engine",
+        );
         check(
           /shared|isolation|isolated|Wasm|WebAssembly/i.test(error.message),
           "unsupported default did not explain its missing requirements",
         );
         if (simulateMissingWasm) {
+          await rejects(
+            () => Csound({ useWorker: true }),
+            "unsupported worker Wasm started an engine",
+          );
           await rejects(
             () => Csound({ useWorker: false }),
             "unsupported local Wasm started an engine",
@@ -565,7 +572,55 @@ endin
         window.AudioContext = AudioContext;
         WebAssembly.validate = validate;
       }
-      checks.push("unsupported default rejects before AudioContext creation");
+      checks.push("unsupported explicit host rejects before AudioContext creation");
+      if (!simulateMissingWasm) {
+        await localEngine({});
+        checks.push("default engine renders without isolation and keeps synchronous init");
+      }
+    }
+    async function pluginPayloads() {
+      const bytes = async (name) => new Uint8Array(await (await fetch(`/${name}`)).arrayBuffer());
+      const invalid = new TextEncoder().encode("<!doctype html><title>404 Not Found</title>");
+      const messages = [];
+      const log = console.log;
+      let api;
+      console.log = (...args) => messages.push(args.join(" "));
+      try {
+        api = await libcsound({
+          withPlugins: [invalid, await bytes("plugin_example_shared.wasm"), new Uint8Array()],
+        });
+      } finally {
+        console.log = log;
+      }
+      const instance = api.csoundCreate();
+      try {
+        check(
+          messages.filter((message) => /Skipping plugin payload.*not a wasm binary/.test(message))
+            .length === 2,
+          "non-Wasm plugin payloads did not each produce a warning",
+        );
+        check(api.csoundSetOption(instance, "-n -m0") === 0, "plugin payload options failed");
+        check(
+          api.csoundCompileOrc(instance, 'ivalue plugin_runtime_check\nchnset ivalue, "plugin"') ===
+            0,
+          "valid plugin following an invalid payload did not compile",
+        );
+        check(api.csoundStart(instance) === 0, "plugin payload start failed");
+        check(api.csoundGetControlChannel(instance, "plugin") === 42, "valid plugin did not run");
+      } finally {
+        api.csoundDestroy(instance);
+      }
+      const oldPlugin = await bytes("plugin_example.wasm");
+      const error = await rejects(
+        () => libcsound({ withPlugins: [invalid, oldPlugin] }),
+        "old plugin ABI was accepted after skipping a non-Wasm payload",
+      );
+      check(/shared.memory|shared-memory|SDK/i.test(error.message), "wrong old plugin ABI error");
+      await localEngine({
+        useWorker: false,
+        withPlugins: ["/missing-plugin.wasm", "/plugin_example_shared.wasm"],
+      });
+      checks.push("non-Wasm payloads warn and skip; valid plugins run and old Wasm ABI rejects");
     }
     async function sharedContext(localFirst) {
       const context = new AudioContext({ sampleRate: 48000 });
@@ -671,7 +726,7 @@ endin
       if (query.has("unsupported")) {
         if (query.get("unsupported") === "isolation")
           check(!crossOriginIsolated, "unsupported page was unexpectedly isolated");
-        await rejectsUnsupportedDefault(query.get("unsupported") === "wasm");
+        await unsupportedHost(query.get("unsupported") === "wasm");
         await localEngine({ useSAB: false });
         checks.push("explicit parent-only engine renders without cross-origin isolation");
       } else if (query.has("mode")) {
@@ -679,6 +734,7 @@ endin
         if (mode === "shared-context") await sharedContext(query.has("localFirst"));
         else if (mode === "libcsound") await localLibrary();
         else if (mode === "bad-plugin") await rejectsLocalPlugin();
+        else if (mode === "plugin-payloads") await pluginPayloads();
         else if (mode === "plugins") await sharedPlugins(query.has("realtime"), query.has("local"));
         else
           await localEngine(

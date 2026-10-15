@@ -34,7 +34,8 @@ const server = http.createServer((request, response) => {
   }
   const route = routes.get(pathname);
   if (!route) {
-    response.writeHead(404).end();
+    response.writeHead(404, { "Content-Type": "text/html" });
+    response.end("<!doctype html><title>404 Not Found</title>");
     return;
   }
   response.setHeader("Content-Type", route[1]);
@@ -83,6 +84,7 @@ try {
         "/?mode=plugins&local",
         "/?mode=libcsound",
         "/?mode=bad-plugin",
+        "/?mode=plugin-payloads",
         "/?mode=shared-context",
         "/?mode=shared-context&localFirst",
         "/unisolated?unsupported=isolation",

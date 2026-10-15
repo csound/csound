@@ -38,10 +38,14 @@ for browser security and permission rules.
 const realtimeSection = `## Realtime init
 
 Normal builds include thread support when the toolchain supports it. \`Csound()\`
-uses the shared worker host. Set \`--realtime\` before \`start()\` to enable
+uses the shared worker host when the page has isolation headers and the browser
+supports it. Otherwise, it uses the same engine in one AudioWorklet with
+synchronous init. Explicit \`useWorker: true\` requires the shared host unless
+\`useSAB: false\` selects MessagePort mode; missing features cause an error
+before startup.
+
+On the shared worker host, set \`--realtime\` before \`start()\` to enable
 background init; omitting the flag keeps synchronous init. Reset clears it.
-The default host requires isolation headers and reports missing browser
-features before startup.
 
 The bundle contains one binary for all APIs. Explicit \`useWorker: false\`,
 \`useSAB: false\`, and the named \`libcsound()\` constructor use it locally with

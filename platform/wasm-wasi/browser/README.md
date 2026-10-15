@@ -38,10 +38,14 @@ for browser security and permission rules.
 ## Realtime init
 
 Normal builds include thread support when the toolchain supports it. `Csound()`
-uses the shared worker host. Set `--realtime` before `start()` to enable
+uses the shared worker host when the page has isolation headers and the browser
+supports it. Otherwise, it uses the same engine in one AudioWorklet with
+synchronous init. Explicit `useWorker: true` requires the shared host unless
+`useSAB: false` selects MessagePort mode; missing features cause an error
+before startup.
+
+On the shared worker host, set `--realtime` before `start()` to enable
 background init; omitting the flag keeps synchronous init. Reset clears it.
-The default host requires isolation headers and reports missing browser
-features before startup.
 
 The bundle contains one binary for all APIs. Explicit `useWorker: false`,
 `useSAB: false`, and the named `libcsound()` constructor use it locally with
@@ -909,7 +913,7 @@ otherwise undefined.
 | [params.outputChannelCount] | <code>Number</code> |  | Optional output channel count AudioNode used with WebAudio graph. Defaults to the value of nchnls in useWorker but 2 otherwise. |
 | [params.autoConnect] | <code>Boolean</code> | <code>true</code> | Set to configure Csound to automatically connect to the audioContext.destination output. |
 | [params.withPlugins] | <code>Array.&lt;Object&gt;</code> |  | WebAssembly Csound plugins built with the matching SDK. The shared worker host fixes its plugin set at first start. |
-| [params.useWorker] | <code>Boolean</code> |  | Use the shared worker host. Setting false runs the same engine in one AudioWorklet with synchronous init. |
+| [params.useWorker] | <code>Boolean</code> |  | Use the shared worker host. If omitted, use it when supported; otherwise run the same engine in one AudioWorklet with synchronous init. Setting true requires the shared host unless useSAB is false. Setting false always uses one AudioWorklet. |
 | [params.useSAB] | <code>Boolean</code> | <code>true</code> | Setting false keeps the existing transport without shared audio buffers and uses synchronous init. |
 
 

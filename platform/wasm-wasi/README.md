@@ -161,10 +161,12 @@ Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
 
-The default entry checks these features and reports missing support before
-opening an AudioContext. It does not fall back based on browser age. The
-shared host uses feature checks in every browser, including Firefox. A failed
-worker startup closes the instance and any context it owns.
+The default entry selects the shared host when these features are available.
+Otherwise, it uses the same engine in one AudioWorklet with synchronous init.
+Explicit `useWorker: true` requires the shared host unless `useSAB: false`
+selects MessagePort mode; missing support causes an error before opening an
+AudioContext. All modes still require the Wasm features of the bundled engine.
+A failed worker startup closes the instance and any context it owns.
 
 Explicit `useWorker: false` runs the engine in one AudioWorklet. `useSAB: false`
 keeps the existing transport without shared audio buffers. The named

@@ -26,7 +26,7 @@ const emptyHeader = () => ({
   exportedSymbols: [],
 });
 
-const isWasmBinary = (wasmBytes) =>
+export const isWasmBinary = (wasmBytes) =>
   wasmBytes.length >= 8 &&
   wasmBytes[0] === 0x00 &&
   wasmBytes[1] === 0x61 &&

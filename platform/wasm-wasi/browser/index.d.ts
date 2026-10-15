@@ -546,7 +546,7 @@ declare interface CsoundObj {
  * Defaults to the value of nchnls in useWorker but 2 otherwise.
  * @param [params.autoConnect = true] - Set to configure Csound to automatically connect to the audioContext.destination output.
  * @param [params.withPlugins] - WebAssembly Csound plugins built with the matching SDK. The shared worker host fixes its plugin set at first start.
- * @param [params.useWorker] - Use the shared worker host. Setting false runs the same engine in one AudioWorklet with synchronous init.
+ * @param [params.useWorker] - Use the shared worker host. If omitted, use it when supported; otherwise run the same engine in one AudioWorklet with synchronous init. Setting true requires the shared host unless useSAB is false. Setting false always uses one AudioWorklet.
  * @param [params.useSAB = true] - Setting false keeps the existing transport without shared audio buffers and uses synchronous init.
 
  */

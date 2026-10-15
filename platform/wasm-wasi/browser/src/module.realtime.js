@@ -6,6 +6,7 @@ import { uint2String } from "./utils/text-encoders.js";
 import { csoundWasiJsMessageCallback } from "./module.js";
 import { createWasiThreadHost } from "./utils/wasi-threads.js";
 import { createThreadedPluginRegistry } from "./utils/threaded-plugins.js";
+import { isWasmBinary } from "./utils/wasm-dylink.js";
 import {
   createWasiClockImports,
   createWasiThreadEnvironment,
@@ -96,7 +97,20 @@ export default async function loadRealtimeWasm({
     poolSize: ports.length,
     onError: (error) => messagePort.post({ "log": error.message }),
   });
-  for (const bytes of withPlugins) plugins.addInitial(bytes);
+  for (const bytes of withPlugins) {
+    const view = new Uint8Array(bytes);
+    // A bad URL can return HTML. Skip it as the baseline loader does, while
+    // leaving Wasm ABI and initialization failures to the plugin registry.
+    if (!isWasmBinary(view)) {
+      messagePort.post({
+        "log":
+          "Skipping plugin payload because it is not a wasm binary. " +
+          "Check plugin URL/path and server mapping.",
+      });
+      continue;
+    }
+    plugins.addInitial(view);
+  }
   instance.exports["__wasi_js_csoundSetMessageStringCallback"]();
   // Keep runtime fields stable across separately compiled worker bundles.
   const runtime = {
