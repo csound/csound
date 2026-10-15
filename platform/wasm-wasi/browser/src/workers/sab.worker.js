@@ -385,7 +385,6 @@ const renderFunction =
     const csound = argumentz["csound"];
     const performanceGeneration = argumentz["performanceGeneration"];
     const audioStatePointer = new Int32Array(audioStateBuffer);
-    Atomics.store(audioStatePointer, AUDIO_STATE.IS_RENDERING, 1);
     workerMessagePort.broadcastSabUnlocked();
 
     while (
