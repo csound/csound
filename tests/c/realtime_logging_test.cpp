@@ -54,8 +54,9 @@ class RealtimeLoggingTests : public ::testing::Test {
   }
   void SetUp() override
   {
-#if !CSOUND_SPINLOCK_AVAILABLE
-    GTEST_SKIP() << "Realtime mode requires a native spinlock backend";
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN))
+    GTEST_SKIP() << "Realtime mode requires native atomics and a spinlock backend";
 #endif
     csound = csoundCreate(this, nullptr);
     ASSERT_NE(csound, nullptr);
