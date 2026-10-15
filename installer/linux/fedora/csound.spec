@@ -24,7 +24,7 @@ BuildRequires: swig scons libsndfile-devel libpng-devel libjpeg-devel
 BuildRequires: python python-devel
 BuildRequires: flex bison
 BuildRequires: alsa-lib-devel jack-audio-connection-kit-devel pulseaudio-libs-devel
-BuildRequires: fluidsynth-devel liblo-devel dssi-devel lua-devel
+BuildRequires: fluidsynth-devel liblo-devel lua-devel
 BuildRequires: fltk-devel fltk-fluid
 BuildRequires: java-devel >= 1.4.0
 BuildRequires: jpackage-utils >= 1.5
@@ -153,15 +153,6 @@ Requires: %{name} = %{version}-%{release}
 %description fluidsynth
 Contains Fluidsynth soundfont plugin for Csound.
 
-%package dssi
-Summary: Disposable Soft Synth Interface (DSSI) plugin for Csound
-Group: Applications/Multimedia
-Requires: %{name} = %{version}-%{release}
-Requires: dssi
-
-%description dssi
-Disposable Soft Synth Interface (DSSI) plugin for Csound
-
 %package osc
 Summary: Open Sound Control (OSC) plugin for Csound
 Group: Applications/Multimedia
@@ -236,7 +227,6 @@ scons dynamicCsoundLibrary=1 \
       buildLuaWrapper=1 \
       buildTclcsound=1 \
       buildJavaWrapper=1 \
-      buildDSSI=1 \
       buildUtilities=1 \
       prefix=%{_prefix} \
       customCCFLAGS="%{optflags}" \
@@ -427,10 +417,6 @@ fi
 %files fluidsynth
 %defattr(-,root,root,-)
 %{_libdir}/%{name}/plugins/libfluidOpcodes.so
-
-%files dssi
-%defattr(-,root,root,-)
-%{_libdir}/%{name}/plugins/libdssi4cs.so
 
 %files osc
 %defattr(-,root,root,-)

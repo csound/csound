@@ -62,7 +62,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake curl xz-utils libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk liblo-dev ladspa-sdk dssi-dev  bison flex gettext libsamplerate0-dev libpipewire-0.3-dev
+          sudo apt-get install cmake curl xz-utils libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk liblo-dev bison flex gettext libsamplerate0-dev libpipewire-0.3-dev
 
       - name: Install WASI SDK
         run: |
@@ -104,7 +104,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake .. -DUSE_MP3=0 -DBUILD_TESTS=1 -DBUILD_STATIC_LIBRARY=1 -DBUILD_DSSI_OPCODES=1 \
+          cmake .. -DUSE_MP3=0 -DBUILD_TESTS=1 -DBUILD_STATIC_LIBRARY=1 \
             -DWasmtime_ROOT="${CSOUND_WASMTIME_ROOT}" \
             -DCMAKE_BUILD_TYPE=Debug -DDEBUG_ERROR_ON_WARNING=ON
           grep -q '^Wasmtime_HAS_REQUIRED_API:INTERNAL=1$' CMakeCache.txt
@@ -146,7 +146,7 @@ jobs:
             build-essential clang cmake ninja-build python3 libgtest-dev \
             libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev \
             libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk \
-            liblo-dev ladspa-sdk dssi-dev libsamplerate0-dev \
+            liblo-dev libsamplerate0-dev \
             libpipewire-0.3-dev bison flex gettext
 
       - name: Configure sanitizer build
@@ -161,7 +161,6 @@ jobs:
           -DCMAKE_BUILD_TYPE=Debug
           -DDEBUG_ERROR_ON_WARNING=ON
           -DBUILD_TESTS=1
-          -DBUILD_DSSI_OPCODES=1
           -DBUILD_STATIC_LIBRARY=1
           -DUSE_MP3=1
           -DUSE_CURL=0
@@ -265,7 +264,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake libjack-dev libpulse-dev ladspa-sdk dssi-dev autoconf libtool
+          sudo apt-get install cmake libjack-dev libpulse-dev autoconf libtool
 
       - name: Configure Build
         run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/linux/custom.cmake"

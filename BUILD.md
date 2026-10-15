@@ -184,7 +184,7 @@ sudo apt-get update
 sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev \
 portaudio19-dev libportmidi-dev libpulse-dev swig \
 default-jdk liblo-dev \
-ladspa-sdk dssi-dev bison flex \
+bison flex \
 gettext libsamplerate0-dev
 mkdir build
 cd build

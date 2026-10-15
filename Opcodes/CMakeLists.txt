@@ -1,4 +1,3 @@
-option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" OFF)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_DEPRECATED_OPCODES "Build deprecated opcodes" ON)
 
@@ -108,20 +107,6 @@ endif()
 ## platform-dependent opcodes ##
 if(LINUX)
     make_plugin(joystick linuxjoystick.c)
-endif()
-
-check_deps(BUILD_DSSI_OPCODES LINUX)
-if(BUILD_DSSI_OPCODES)
-    check_include_file(alsa/asoundlib.h DSSI_ALSA_HEADERS)
-    if(NOT DSSI_ALSA_HEADERS)
-        message(FATAL_ERROR "DSSI requires ALSA headers (libasound2-dev)")
-    endif()
-    add_library(dssi_headers INTERFACE)
-    target_include_directories(dssi_headers INTERFACE
-        "${PROJECT_SOURCE_DIR}/third_party/dssi"
-        "${PROJECT_SOURCE_DIR}/third_party/ladspa")
-    set(dssi_SRC dssi4cs/src/load.c dssi4cs/src/dssi4cs.c)
-    make_plugin(dssi4cs "${dssi_SRC}" dssi_headers "${CMAKE_DL_LIBS}" m)
 endif()
 
 # config file shipped by vcpkg isn't working, so use module
