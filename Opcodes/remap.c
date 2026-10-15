@@ -465,7 +465,7 @@ int32_t remap_vec_init(CSOUND *csound, REMAP_VEC *p) {
     if (p->aliased) {
         csound->AuxAlloc(csound, sizeof(cs_float) * (size_t) (p->x->sizes[0] > 0 ? p->x->sizes[0] : 1), &p->result);
     } else {
-        if (UNLIKELY(tabinit(csound, p->y, p->x->sizes[0],
+        if (UNLIKELY(csound_array_init_vector(csound, p->y, p->x->sizes[0],
                              p->h.insdshead) != OK))
             return csound_array_init_resize_error(csound);
     }
@@ -498,7 +498,7 @@ int32_t remap_vec_perf(CSOUND *csound, REMAP_VEC *p) {
         y = (cs_float *) p->result.auxp;
     } else {
         if (p->y->sizes[0] != out_size) {   /* the input array may be resized */
-            if (UNLIKELY(tabinit(csound, p->y, out_size,
+            if (UNLIKELY(csound_array_init_vector(csound, p->y, out_size,
                                  p->h.insdshead) != OK))
                 return csound->PerfError(csound, &p->h,
                                          "[remap] could not resize output array\n");
@@ -559,7 +559,7 @@ int32_t remap_vec_perf(CSOUND *csound, REMAP_VEC *p) {
 
     if (p->aliased) {
         if (p->y->sizes[0] != out_size) {
-            if (UNLIKELY(tabinit(csound, p->y, out_size,
+            if (UNLIKELY(csound_array_init_vector(csound, p->y, out_size,
                                  p->h.insdshead) != OK))
                 return csound->PerfError(csound, &p->h,
                                          "[remap] could not resize output array\n");

@@ -42,8 +42,8 @@ int main(int argc, char **argv)
   if (modern) {
     int32_t (*info)(void) = (int32_t (*)(void))dlsym(plugin, "csoundModuleInfo");
     CHECK(info != NULL);
-    /* Pin the legacy byte values for older loaders too. */
-    CHECK((info() & 0xff) == (sample_size | (double_size == 4 ? 0x80 : 0)));
+    /* New headers require the rank-aware loader. Old loaders reject bit 6. */
+    CHECK((info() & 0xff) == (sample_size | 0x40 | (double_size == 4 ? 0x80 : 0)));
   }
   CHECK(linkage || entry_counts != NULL);
   csound = csoundCreate(NULL, NULL);

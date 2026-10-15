@@ -147,7 +147,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
             dimensions += 1;
             in_arg += 1;
           }
-          if (*in_arg == '*') {
+          if (*in_arg == '^') {
             dimensions = 0;
             in_arg++;
           }
@@ -225,7 +225,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
             dimensions += 1;
             out_arg += 1;
           }
-          if (*out_arg == '*') {
+          if (*out_arg == '^') {
             dimensions = 0;
             out_arg++;
           }

@@ -115,7 +115,7 @@ static int32_t linlinarr1_init(CSOUND *csound, LINLINARR1 *p) {
                    p->ys->dimensions > 1))
         return INITERR(Str("linlin: expected one-dimensional arrays\n"));
     int32_t numitems = p->xs->sizes[0];
-    if (UNLIKELY(tabinit(csound, p->ys, numitems,
+    if (UNLIKELY(csound_array_init_vector(csound, p->ys, numitems,
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     return OK;
@@ -181,7 +181,7 @@ blendarray_init(CSOUND *csound, BLENDARRAY *p) {
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
     int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
-    if (UNLIKELY(tabinit(csound, p->out, numitems,
+    if (UNLIKELY(csound_array_init_vector(csound, p->out, numitems,
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     return OK;
@@ -416,7 +416,7 @@ static int32_t
 ftom_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
     p->freqA4 = csound->GetA4(csound);
     p->rnd = (int)*p->irnd;
-    if (UNLIKELY(tabinit(csound, p->outarr, p->inarr->sizes[0],
+    if (UNLIKELY(csound_array_init_vector(csound, p->outarr, p->inarr->sizes[0],
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     return ftom_arr(csound, p);
@@ -442,7 +442,7 @@ mtof_arr(CSOUND *csound, PITCHCONV_ARR *p) {
 static int32_t
 mtof_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
     p->freqA4 = csound->GetA4(csound);
-    if (UNLIKELY(tabinit(csound, p->outarr, p->inarr->sizes[0],
+    if (UNLIKELY(csound_array_init_vector(csound, p->outarr, p->inarr->sizes[0],
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     return mtof_arr(csound, p);
@@ -954,7 +954,7 @@ static int32_t bpf_K_Km_init(CSOUND *csound, BPF_K_Km *p) {
     if(datalen >= BPF_MAXPOINTS)
         return INITERR(Str("bpf: too many pargs (max=256)\n"));
     int32_t N = p->in->sizes[0];
-    if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     p->lastidx = -1;
     return OK;
@@ -1455,7 +1455,7 @@ cmp_init(CSOUND *csound, Cmp *p) {
 static int32_t
 cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
     int32_t N = p->in->sizes[0];
-    if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     int32_t mode = op2mode(p->op->data);
     if(mode == -1) {
@@ -1474,7 +1474,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
 
     // make sure that we can put the result in `out`,
     // grow the array if necessary
-    if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     int32_t mode = op2mode(p->op->data);
     if(mode == -1) {
@@ -1488,7 +1488,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
 static int32_t
 cmp2array1_init(CSOUND *csound, Cmp2_array1 *p) {
     int32_t N = p->in->sizes[0];
-    if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
 
     int32_t mode1 = op2mode(p->op1->data);
@@ -1987,7 +1987,7 @@ tab2array_common(CSOUND *csound, TAB2ARRAY *p, int32_t init, int32_t copy) {
         end = p->ftp->flen;
     int32_t numitems = end > start ? 1 + (end - start - 1) / step : 0;
     if (init) {
-        if (UNLIKELY(tabinit(csound, p->out, numitems, p->h.insdshead) != OK))
+        if (UNLIKELY(csound_array_init_vector(csound, p->out, numitems, p->h.insdshead) != OK))
             return csound_array_init_resize_error(csound);
     } else if (UNLIKELY(tabcheck(csound, p->out, numitems, &p->h) != OK)) {
         return NOTOK;
@@ -2662,7 +2662,7 @@ array_binop_prepare(CSOUND *csound, BINOP_AAA *p, int32_t init,
     /* Keep the existing flat output, using the current input lengths. */
     *numitems = (int32_t)count1;
     if (init) {
-        if (UNLIKELY(tabinit(csound, p->out, *numitems,
+        if (UNLIKELY(csound_array_init_vector(csound, p->out, *numitems,
                              p->h.insdshead) != OK))
             return csound_array_init_resize_error(csound);
         return OK;

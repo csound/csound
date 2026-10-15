@@ -164,7 +164,7 @@ char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
   size_t length = strlen(name);
   char *result = csound->Malloc(csound, prefix + length + 2);
   memset(result, '[', prefix);
-  if (arrayVar->dimensions == 0) result[1] = '*';
+  if (arrayVar->dimensions == 0) result[1] = '^';
   memcpy(result + prefix, name, length);
   result[prefix + length] = ']';
   result[prefix + length + 1] = '\0';
@@ -176,7 +176,7 @@ static int32_t array_type_rank(const char *type) {
   if (type == NULL || *type != '[') return -1;
   int32_t rank = 0;
   while (*type == '[') { rank++; type++; }
-  return *type == '*' && type[1] != ']' ? 0 : rank;
+  return *type == '^' ? 0 : rank;
 }
 
 static int32_t array_tree_rank(TREE *tree) {
@@ -359,7 +359,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
             structArrayType[len - 1] == ']') {
           const char *base = structArrayType;
           while (*base == '[') base++;
-          if (*base == '*' && base[1] != ']') base++;
+          if (*base == '^') base++;
           elementType = cs_strndup(csound, base, strlen(base) - 1);
         } else if (structArrayType[0] == ':') {
           char *semicolon = strchr(structArrayType, ';');
@@ -577,7 +577,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
           if (len >= 3 && fnReturn[len-1] == ']') {
             const char *base = fnReturn;
             while (*base == '[') base++;
-            if (*base == '*' && base[1] != ']') base++;
+            if (*base == '^') base++;
             char *result = cs_strndup(csound, base, strlen(base) - 1);
             csound->Free(csound, fnReturn);
             return result;
@@ -604,7 +604,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
             // memberType is like "[S]", we want "S"
             const char *base = memberType;
             while (*base == '[') base++;
-            if (*base == '*' && base[1] != ']') base++;
+            if (*base == '^') base++;
             char *result = cs_strndup(csound, base, strlen(base) - 1);
             csound->Free(csound, memberType);
             return result;
@@ -727,9 +727,8 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
       OENTRIES* entries = find_opcode2(csound, opname);
       char * out;
 
-      if (tree->value->optype != NULL) /* if there is type annotation */
-        out = check_annotated_type(csound, entries, tree->value->optype);
-      else  out = resolve_opcode_get_outarg(csound, entries, argTypeRight);
+      out = resolve_expression_type(csound, entries, argTypeRight,
+                                     tree->value->optype);
 
 
       if (UNLIKELY(out == 0)) {
@@ -745,12 +744,9 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
       }
 
       if (args_required(out) == 1) {
-        char** args = split_args(csound, out);
-        char *ret = csoundStrdup(csound, args[0]);
-        free_split_args(csound, args);
         csound->Free(csound, argTypeRight);
         csound->Free(csound, entries);
-        return ret;
+        return out;
       }
 
       char *displayTypes = csoundFormatTypeList(csound, argTypeRight);
@@ -805,7 +801,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
 
       inArgTypes[len1 + len2] = '\0';
 
-      out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
+      out = resolve_expression_type(csound, entries, inArgTypes, NULL);
       csound->Free(csound, entries);
 
       if (UNLIKELY(out == NULL)) {
@@ -822,7 +818,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
       csound->Free(csound, argTypeLeft);
       csound->Free(csound, argTypeRight);
       csound->Free(csound, inArgTypes);
-      return csoundStrdup(csound, out);
+      return out;
 
     } else {
       return argTypeRight;
@@ -865,7 +861,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
 
       inArgTypes[len1 + len2] = '\0';
 
-      out = resolve_opcode_get_outarg(csound, entries, inArgTypes);
+      out = resolve_expression_type(csound, entries, inArgTypes, NULL);
       csound->Free(csound, entries);
 
       if (UNLIKELY(out == NULL)) {
@@ -884,7 +880,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
       csound->Free(csound, argTypeLeft);
       csound->Free(csound, argTypeRight);
       csound->Free(csound, inArgTypes);
-      return csoundStrdup(csound, out);
+      return out;
 
     }
   }
@@ -1192,14 +1188,14 @@ static int32_t check_array_arg(const char* found, const char* required) {
   const char* r = required;
 
   while (*r == '[') r++;
-  if (*r == '*' && r[1] != ']') r++;
+  if (*r == '^') r++;
 
   if (*r == '.' || *r == '?' || *r == '*') {
     return 1;
   }
 
   while (*f == '[') f++;
-  if (*f == '*' && f[1] != ']') f++;
+  if (*f == '^') f++;
 
   /* Array signatures accept any rank, but the whole element type must
      match: every named type starts with ':'. */
@@ -1211,14 +1207,14 @@ static int32_t check_array_arg_in(const char* found, const char* required) {
   const char* r = required;
 
   while (*r == '[') r++;
-  if (*r == '*' && r[1] != ']') r++;
+  if (*r == '^') r++;
 
   if (*r == '.' || *r == '?' || *r == '*') {
     return 1;
   }
 
   while (*f == '[') f++;
-  if (*f == '*' && f[1] != ']') f++;
+  if (*f == '^') f++;
 
   // special case: k args with i inputs
   if (strcmp(r, "k]") == 0 && strcmp(f, "i]") == 0) return 1;
@@ -1661,40 +1657,131 @@ OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
   return NULL;
 }
 
-/* Given an OENTRIES list, resolve to a single OENTRY* based on the
- * found in- and out- argtypes.  Returns NULL if opcode could not be
- * resolved. If more than one entry matches, mechanism assumes there
- * are multiple opcode entries with same types and last one should
- * override previous definitions.
- */
-OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
-                       char* outArgTypes, char* inArgTypes) {
-  int32_t i, inCount = args_required(inArgTypes);
-  OENTRY* exact;
+/* A native [] remains any-rank for existing plugins. UDO [] and native
+   [][] or higher state an exact rank. Lower scores need fewer assumptions. */
+static int32_t array_rank_score(CSOUND *csound, char *found, char *required,
+                                int32_t userop) {
+  if (found == NULL || required == NULL) return 0;
+  char **actual = split_args(csound, found);
+  char **expected = split_args(csound, required);
+  int32_t score = 0;
+  /* Element-type matches take precedence over all input/output rank costs. */
+  const int32_t typeCost = 4 * VARGMAX + 1;
+  if (actual != NULL && expected != NULL) {
+    for (int32_t i = 0; actual[i] != NULL && expected[i] != NULL; i++) {
+      int32_t got = array_type_rank(actual[i]);
+      int32_t want = array_type_rank(expected[i]);
+      if (!userop && want == 1) want = 0;
+      if (got < 0) continue;
+      if (want < 0) {
+        score += 4 * typeCost; /* Prefer an array over an any-type parameter. */
+        continue;
+      }
+      const char *base = actual[i], *requiredBase = expected[i];
+      while (*base == '[' || *base == '^') base++;
+      while (*requiredBase == '[' || *requiredBase == '^') requiredBase++;
+      if (strchr(".*?", *requiredBase) != NULL) score += 2 * typeCost;
+      else if (*base == 'i' && *requiredBase == 'k') score += typeCost;
+      if (got > 0 && want > 0 && got != want) {
+        score = -1;
+        break;
+      }
+      if (got == 0 && want > 0) score += 2; /* Requires an init check. */
+      else if (got > 0 && want == 0) score++;
+    }
+  }
+  if (actual != NULL) {
+    for (int32_t i = 0; actual[i] != NULL; i++) csound->Free(csound, actual[i]);
+    csound->Free(csound, actual);
+  }
+  if (expected != NULL) {
+    for (int32_t i = 0; expected[i] != NULL; i++) csound->Free(csound, expected[i]);
+    csound->Free(csound, expected);
+  }
+  return score;
+}
 
-  if (inCount < 0 || args_required(outArgTypes) < 0) return NULL;
+/* Only rank overloads gain new ambiguity rules. Scalar rate conversions,
+   optional arguments, and repeated identical definitions keep their order. */
+static int32_t rank_signatures_differ(CSOUND *csound, char *left, char *right,
+                                      int32_t leftUser, int32_t rightUser) {
+  if (left == NULL || right == NULL) return 0;
+  char **a = split_args(csound, left), **b = split_args(csound, right);
+  int32_t differs = 0;
+  if (a != NULL && b != NULL) {
+    for (int32_t i = 0; a[i] != NULL && b[i] != NULL; i++) {
+      int32_t ar = array_type_rank(a[i]), br = array_type_rank(b[i]);
+      if (!leftUser && ar == 1) ar = 0;
+      if (!rightUser && br == 1) br = 0;
+      if (ar >= 0 && br >= 0 && ar != br) differs = 1;
+    }
+  }
+  if (a != NULL) {
+    for (int32_t i = 0; a[i] != NULL; i++) csound->Free(csound, a[i]);
+    csound->Free(csound, a);
+  }
+  if (b != NULL) {
+    for (int32_t i = 0; b[i] != NULL; i++) csound->Free(csound, b[i]);
+    csound->Free(csound, b);
+  }
+  return differs;
+}
+
+static OENTRY *resolve_ranked_opcode(CSOUND *csound, OENTRIES *entries,
+                                     char *outArgTypes, char *inArgTypes,
+                                     int32_t checkOutputs) {
+  OENTRY *best = NULL;
+  int32_t bestScore = INT32_MAX, ambiguous = 0;
+  int32_t inCount = args_required(inArgTypes);
+  if (entries == NULL) return NULL;
+  if (inCount < 0 || (checkOutputs && args_required(outArgTypes) < 0))
+    return NULL;
   if (inCount >= VARGMAX) {
     synterr(csound, Str("Found %d inputs, maximum is %d\n"),
             inCount, VARGMAX - 1);
     return NULL;
   }
-  /* A polymorphic or variadic entry must not shadow a concrete signature. */
-  if ((exact = resolve_opcode_exact(csound, entries,
-                                    outArgTypes, inArgTypes)) != NULL) {
-    return exact;
-  }
-
-  for (i = 0; i < entries->count; i++) {
-    OENTRY* temp = entries->entries[i];
-    if (check_in_args(csound, inArgTypes, temp->intypes) > 0 &&
-        check_out_args(csound, outArgTypes, temp->outypes) &&
-        (temp->useropinfo == NULL ||
-         (check_udo_array_ranks(csound, inArgTypes, temp->intypes, 0) &&
-          check_udo_array_ranks(csound, outArgTypes, temp->outypes, 0)))) {
-      return temp;
+  for (int32_t i = 0; i < entries->count; i++) {
+    OENTRY *entry = entries->entries[i];
+    if (entry->intypes == NULL && entry->outypes == NULL) continue;
+    int32_t check = check_in_args(csound, inArgTypes, entry->intypes);
+    if (check <= 0 || args_required(entry->outypes) < 0 || (checkOutputs &&
+        !check_out_args(csound, outArgTypes, entry->outypes))) continue;
+    int32_t score = array_rank_score(csound, inArgTypes, entry->intypes,
+                                     entry->useropinfo != NULL);
+    int32_t outputScore = checkOutputs ?
+      array_rank_score(csound, outArgTypes, entry->outypes,
+                       entry->useropinfo != NULL) : 0;
+    if (score < 0 || outputScore < 0) continue;
+    score += outputScore;
+    if (score < bestScore) {
+      best = entry;
+      bestScore = score;
+      ambiguous = 0;
+    } else if (score == bestScore &&
+               (rank_signatures_differ(csound, best->intypes, entry->intypes,
+                                       best->useropinfo != NULL,
+                                       entry->useropinfo != NULL) ||
+                (checkOutputs && rank_signatures_differ(
+                  csound, best->outypes, entry->outypes,
+                  best->useropinfo != NULL, entry->useropinfo != NULL)))) {
+      ambiguous = 1;
     }
   }
-  return NULL;
+  if (ambiguous) {
+    synterr(csound, Str("ambiguous array rank overload for '%s'; "
+                        "assign the argument to an array of a known rank\n"),
+            best->opname);
+    return NULL;
+  }
+  return best;
+}
+
+OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
+                       char* outArgTypes, char* inArgTypes) {
+  OENTRY *exact = resolve_opcode_exact(csound, entries, outArgTypes, inArgTypes);
+  if (exact != NULL) return exact;
+  return resolve_ranked_opcode(csound, entries, outArgTypes, inArgTypes, 1);
 }
 
 static OENTRY *resolve_inplace_rate_opcode(CSOUND *csound,
@@ -1723,27 +1810,59 @@ static OENTRY *resolve_inplace_rate_opcode(CSOUND *csound,
   return NULL;
 }
 
-/* used when creating T_FUNCTION's */
+/* Used when the caller has no output annotation. */
 char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
                                 char* inArgTypes) {
-  int32_t i;
+  OENTRY *entry = resolve_ranked_opcode(csound, entries, NULL, inArgTypes, 0);
+  return entry != NULL ? entry->outypes : NULL;
+}
 
-  for (i = 0; i < entries->count; i++) {
-    OENTRY* temp = entries->entries[i];
-    if (temp->intypes == NULL && temp->outypes == NULL) {
-      continue;
+/* Return an owned internal type, with the result rank retained where known.
+   The listed built-in arithmetic operators preserve shape. Do not infer
+   arbitrary plugin output ranks from their legacy [] signature. */
+char *resolve_expression_type(CSOUND *csound, OENTRIES *entries,
+                              char *inTypes, char *annotation) {
+  OENTRY *entry = resolve_ranked_opcode(csound, entries, annotation, inTypes,
+                                       annotation != NULL);
+  if (entry == NULL) return NULL;
+  char *output = annotation != NULL ? annotation : entry->outypes;
+  char *internal = convert_external_to_internal(csound, output);
+  if (internal == output) internal = csoundStrdup(csound, output);
+  int32_t rank = array_type_rank(internal);
+  if (rank < 0 || entry->useropinfo != NULL || annotation != NULL || rank != 1)
+    return internal;
+
+  char *name = get_opcode_short_name(csound, entry->opname);
+  static const char *const elementwise[] = {
+    "##add", "##sub", "##mul", "##div", "##mod", "##pow",
+    "##and", "##or", "##xor", "##shl", "##shr", "##not", NULL
+  };
+  rank = 0;
+  if (!strcmp(name, "getrow") || !strcmp(name, "getcol")) rank = 1;
+  for (int32_t i = 0; elementwise[i] != NULL; i++) {
+    if (strcmp(name, elementwise[i]) != 0) continue;
+    char **inputs = split_args(csound, inTypes);
+    int32_t foundArray = 0;
+    for (int32_t j = 0; inputs != NULL && inputs[j] != NULL; j++) {
+      int32_t inputRank = array_type_rank(inputs[j]);
+      if (!foundArray && inputRank >= 0) {
+        rank = inputRank;
+        foundArray = 1;
+      }
+      csound->Free(csound, inputs[j]);
     }
-    if (check_in_args(csound, inArgTypes, temp->intypes) > 0 &&
-        args_required(temp->outypes) >= 0 &&
-        (temp->useropinfo == NULL ||
-         check_udo_array_ranks(csound, inArgTypes, temp->intypes, 0))) {
-      // FIXME this is only returning the first match, we need to check
-      // if there are multiple matches and if so, return NULL to signify
-      // ambiguity
-      return temp->outypes;
-    }
+    csound->Free(csound, inputs);
+    break;
   }
-  return NULL;
+  if (name != entry->opname) csound->Free(csound, name);
+  const char *base = internal + 1;
+  size_t prefix = rank == 0 ? 2 : (size_t)rank;
+  char *result = csound->Malloc(csound, prefix + strlen(base) + 1);
+  memset(result, '[', prefix);
+  if (rank == 0) result[1] = '^';
+  strcpy(result + prefix, base);
+  csound->Free(csound, internal);
+  return result;
 }
 
 /* An entry belongs to a type when its first argument is exactly that type,
@@ -2150,7 +2269,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
   const char *name = arg;
   int32_t rank = 0, generic = 0;
   while (*name == '[') { rank++; name++; }
-  if (rank > 0 && *name == '*' && name[1] != ']') { generic = 1; name++; }
+  if (rank > 0 && *name == '^') { generic = 1; name++; }
   size_t length = strlen(name) - (rank > 0 ? 1 : 0);
   int32_t quoted = length >= 2 && name[0] == ':' && name[length - 1] == ';';
   int32_t quote = length > 1 && !quoted;
@@ -2187,7 +2306,7 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
   size_t prefix = generic ? 2 : (size_t) rank;
   char *result = csound->Malloc(csound, prefix + length + 2);
   memset(result, '[', prefix);
-  if (generic) result[1] = '*';
+  if (generic) result[1] = '^';
   memcpy(result + prefix, arg, length);
   result[prefix + length] = ']';
   result[prefix + length + 1] = '\0';
@@ -4554,7 +4673,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
       const char *element = arrayArgType;
       while (*element == '[') element++;
-      if (*element == '*' && element[1] != ']') element++;
+      if (*element == '^') element++;
       char* atype = csoundStrdup(csound, element);
       char* typ;
       atype[strlen(atype)-1] = '\0'; // remove ']'

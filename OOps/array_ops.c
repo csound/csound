@@ -139,7 +139,7 @@ static int32_t tabfill_init(CSOUND *csound, ARRAYDAT *array,
   size_t count;
 
   if (array->dimensions <= 1)
-    return tabinit(csound, array, values, ctx);
+    return csound_array_init_vector(csound, array, values, ctx);
   if (UNLIKELY(csound_array_member_count(array, &count) != OK))
     return NOTOK;
   if (UNLIKELY(count == 0)) {
@@ -3721,7 +3721,7 @@ static const char *array_generate(CSOUND *csound, TABGEN *p)
     return Str("genarray: sequence length out of range");
   int32_t size = (int32_t)count;
 
-  if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->tab, size, p->h.insdshead) != OK))
     return Str("genarray: could not resize output array");
   cs_float *data = p->tab->data;
   for (int32_t i = 0; i < size; i++) {
@@ -3759,7 +3759,7 @@ int32_t ftab2tabi(CSOUND *csound, TABCOPY *p)
     return csound->InitError(csound, "%s\n", Str("No table for copy2ftab"));
   fsize = ftp->flen;
   if (UNLIKELY(p->tab->data==NULL)) {
-    if (UNLIKELY(tabinit(csound, p->tab, fsize, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->tab, fsize, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     p->tab->sizes[0] = fsize;
   }
@@ -3798,7 +3798,7 @@ int32_t trim_i(CSOUND *csound, TRIM *p)
   if (UNLIKELY(csound_array_size_to_int32(*p->size, &size) != OK)) {
     return csound->InitError(csound, "%s\n", Str("Invalid array size"));
   }
-  if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK)) {
+  if (UNLIKELY(csound_array_init_vector(csound, p->tab, size, p->h.insdshead) != OK)) {
     return csound_array_init_resize_error(csound);
   }
   return OK;
@@ -3882,7 +3882,7 @@ int32_t tabslice(CSOUND *csound, TABSLICE *p)
   const char *error = tabslice_bounds(p, &start, &inc, &size);
   if (UNLIKELY(error != NULL))
     return csound->InitError(csound, "%s\n", error);
-  if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->tab, size, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   tabslice_copy(csound, p, start, inc, size);
   return OK;
@@ -3921,7 +3921,7 @@ int32_t tabmap_set(CSOUND *csound, TABMAP *p)
                              Str("maparray: unsupported init-time function: %s\n"),
                              p->str->data);
   int32_t size = p->tabin->sizes[0];
-  if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->tab, size, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   cs_float *data = p->tab->data, *tabin = p->tabin->data;
   AEVAL eval = {0};
@@ -3976,7 +3976,7 @@ int32_t asig2array_init(CSOUND *csound, A2ARR *p) {
     return csound->InitError(csound, "%s\n",
                              Str("Audio-to-array conversion requires a "
                                  "one-dimensional output"));
-  if (UNLIKELY(tabinit(csound, p->res, nsmps, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->res, nsmps, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }

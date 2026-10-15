@@ -404,7 +404,7 @@ static const char *next_arg_type(const char *start, const char **type,
     (*dimensions)++;
     t++;
   }
-  if (internal && *t == '*' && t[1] != ']') {
+  if (internal && *t == '^') {
     if (*dimensions != 1) return NULL;
     *generic = 1;
     t++;
@@ -476,6 +476,9 @@ int32_t args_required(const char* argString)
  *         - Brackets precede the type, single closing bracket at end
  *         - Dimension count = number of leading '[' chars
  *
+ * Any-rank i[*] uses [^i] internally. The marker is separate from the
+ * existing any-element type * (whose array encoding is [*]).
+ *
  * This function is the bridge between human-readable OENTRY definitions
  * and the internal representation used by parse_opcode_args().
  */
@@ -500,7 +503,7 @@ char** split_args(CSOUND* csound, const char* argString)
     prefix = generic ? 2 : dimensions;
     part = csound->Malloc(csound, prefix + len + (dimensions ? 2 : 1));
     memset(part, '[', prefix);
-    if (generic) part[1] = '*';
+    if (generic) part[1] = '^';
     memcpy(part + prefix, type, len);
     if (dimensions) part[prefix + len++] = ']';
     part[prefix + len] = '\0';

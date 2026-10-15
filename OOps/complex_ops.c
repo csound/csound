@@ -733,7 +733,7 @@ int32_t cops_init(CSOUND *csound, COPS1 *p) {
       return csound->InitError(csound, Str("array uninitialised\n"));
     size = aa->sizes[0];
   }
-  if (UNLIKELY(tabinit(csound, p->out, size, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, size, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
@@ -1472,7 +1472,7 @@ int32_t cops_init_r(CSOUND *csound, COPS1 *p) {
     if(IS_ARRAY_ARG(p->out)) {
       int32_t size = ((ARRAYDAT *)p->a)->sizes ? ((ARRAYDAT *)p->a)->sizes[0] : 0;
       if (size <= 0) size = CS_KSMPS; /* fallback to ksmps for audio-like arrays */
-      if (UNLIKELY(tabinit(csound, p->out, size,
+      if (UNLIKELY(csound_array_init_vector(csound, p->out, size,
                            p->h.insdshead) != OK))
         return csound_array_init_resize_error(csound);
     } else {
@@ -1620,7 +1620,7 @@ int32_t cops_init_a(CSOUND *csound, COPS1 *p) {
       size = aa->sizes[0] < ab->sizes[0] ? aa->sizes[0] : ab->sizes[0];
     }
   }
-  if (UNLIKELY(tabinit(csound, p->out, size, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, size, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
@@ -1735,7 +1735,7 @@ int32_t quadosc_init(CSOUND *csound, QUADOSC *p) {
     p->rphs = 1.0;
     p->iphs = 0;
   }
-  if (UNLIKELY(tabinit(csound, p->out, CS_KSMPS,
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, CS_KSMPS,
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;

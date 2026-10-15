@@ -56,7 +56,7 @@ static int32_t init_autocorr(CSOUND *csound, AUTOCORR *p) {
   if (p->mem.auxp == NULL || p->mem.size < (size_t)fn * sizeof(cs_float))
     csound->AuxAlloc(csound, (size_t)fn * sizeof(cs_float), &p->mem);
   p->FN = fn;
-  if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
@@ -149,7 +149,7 @@ static int32_t init_fft_complex_common(CSOUND *csound, FFT *p,
                              Str("fft: input array size (%d) must be 1 or even\n"),
                              N);
 
-  if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N;
   size_t bytes = (size_t)N * 2u * sizeof(cs_float);
@@ -231,7 +231,7 @@ static int32_t init_rfft_r2c(CSOUND *csound, FFT *p) {
                              Str("rfft: only one-dimensional arrays allowed"));
   if (UNLIKELY(validate_real_fft_size(csound, "rfft", N) != OK))
     return NOTOK;
-  if (UNLIKELY(tabinit(csound, p->out, N/2+1, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N/2+1, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N;
   p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
@@ -271,7 +271,7 @@ static int32_t init_rfft_c2r(CSOUND *csound, FFT *p) {
   int32_t N = 2*(M - 1);
   if (UNLIKELY(validate_real_fft_size(csound, "rifft", N) != OK))
     return NOTOK;
-  if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = M;
   p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
@@ -306,7 +306,7 @@ static int32_t init_rfft(CSOUND *csound, FFT *p) {
                              Str("rfft: only one-dimensional arrays allowed"));
   if (UNLIKELY(validate_real_fft_size(csound, "rfft", N) != OK))
     return NOTOK;
-  if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N;
   p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
@@ -337,7 +337,7 @@ static int32_t init_rifft(CSOUND *csound, FFT *p) {
   if (UNLIKELY(validate_real_fft_size(csound, "rifft", N) != OK))
     return NOTOK;
   p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
-  if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N;
   return OK;
@@ -379,7 +379,7 @@ static int32_t init_rfftmult(CSOUND *csound, FFT *p) {
     return csound->InitError(csound, "%s\n", Str("array sizes do not match\n"));
   if (UNLIKELY(validate_packed_fft_size(csound, "cmplxprod", N) != OK))
     return NOTOK;
-  if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N;
   return OK;
@@ -405,7 +405,7 @@ static int32_t initialise_fft(CSOUND *csound, FFT *p) {
                              Str("fft: only one-dimensional arrays allowed"));
   if (UNLIKELY(validate_packed_fft_size(csound, "fft", N2) != OK))
     return NOTOK;
-  if (UNLIKELY(tabinit(csound, p->out, N2, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N2, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N2;
   return OK;
@@ -435,7 +435,7 @@ static int32_t init_ifft(CSOUND *csound, FFT *p) {
                              Str("fftinv: only one-dimensional arrays allowed"));
   if (UNLIKELY(validate_packed_fft_size(csound, "fftinv", N2) != OK))
     return NOTOK;
-  if (UNLIKELY(tabinit(csound, p->out, N2, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N2, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N2;
   return OK;
@@ -465,7 +465,7 @@ static int32_t init_recttopol(CSOUND *csound, FFT *p) {
                N < 2 || (N & 1)))
     return csound->InitError(csound, "%s\n",
                             Str("expected a one-dimensional packed real spectrum of even length"));
-  if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
@@ -523,7 +523,7 @@ static int32_t init_poltorect2(CSOUND *csound, FFT *p) {
                N < 2 || N > INT32_MAX/2+1))
     return csound->InitError(csound, "%s\n",
                             Str("pol2rect: expected equal-length one-dimensional magnitude and phase arrays"));
-  if (UNLIKELY(tabinit(csound, p->out, (N-1)*2,
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, (N-1)*2,
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
@@ -561,7 +561,7 @@ static int32_t init_mags(CSOUND *csound, FFT *p) {
                N < 2 || (N & 1)))
     return csound->InitError(csound, "%s\n",
                             Str("expected a one-dimensional packed real spectrum of even length"));
-  if (UNLIKELY(tabinit(csound, p->out, N/2+1, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N/2+1, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
@@ -606,7 +606,7 @@ static int32_t perf_phs(CSOUND *csound, FFT *p) {
 static int32_t init_logarray(CSOUND *csound, FFT *p) {
   if(p->in->sizes == NULL)
     return csound->InitError(csound, Str("array not initialised\n"));
-  if (UNLIKELY(tabinit(csound, p->out, p->in->sizes[0],
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, p->in->sizes[0],
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   if (LIKELY(*((cs_float *)p->in2)))
@@ -641,7 +641,7 @@ static int32_t init_rtoc(CSOUND *csound, FFT *p) {
                N > INT32_MAX/2))
     return csound->InitError(csound, "%s\n",
                             Str("r2c: invalid array shape or size"));
-  if (UNLIKELY(tabinit(csound, p->out, N*2, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N*2, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
@@ -680,7 +680,7 @@ static int32_t init_ctor(CSOUND *csound, FFT *p) {
   if (UNLIKELY(p->in->dimensions != 1 || p->out->dimensions > 1 || (N & 1)))
     return csound->InitError(csound, "%s\n",
                             Str("c2r: expected a one-dimensional array of complex pairs"));
-  if (UNLIKELY(tabinit(csound, p->out, N/2, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N/2, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }
@@ -721,7 +721,7 @@ static int32_t init_window(CSOUND *csound, FFT *p) {
   int32_t   N = p->in->sizes[0];
   int32_t   i;
   cs_float *w;
-  if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N;
   if (N > 0 && (p->mem.auxp == 0 || p->mem.size < (size_t) N*sizeof(cs_float)))
@@ -779,7 +779,7 @@ typedef struct _pvsceps {
 static int32_t pvsceps_init(CSOUND *csound, PVSCEPS *p) {
   int32_t N = p->fin->N;
   p->setup = csound->RealFFTSetup(csound, N/2, FFT_FWD);
-  if (UNLIKELY(tabinit(csound, p->out, N/2+1, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N/2+1, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->lastframe = 0;
   return OK;
@@ -839,7 +839,7 @@ static int32_t init_ceps(CSOUND *csound, FFT *p) {
   if (UNLIKELY(validate_cepstrum_size(csound, "ceps", N) != OK))
     return NOTOK;
   p->setup = csound->RealFFTSetup(csound, N, FFT_FWD);
-  if (UNLIKELY(tabinit(csound, p->out, N+1, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N+1, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N;
   return OK;
@@ -878,7 +878,7 @@ static int32_t init_iceps(CSOUND *csound, FFT *p) {
   if (UNLIKELY(validate_cepstrum_size(csound, "cepsinv", N) != OK))
     return NOTOK;
   p->setup = csound->RealFFTSetup(csound, N, FFT_INV);
-  if (UNLIKELY(tabinit(csound, p->out, N+1, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N+1, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N;
   if (p->mem.auxp == NULL || p->mem.size < (N+1)*sizeof(cs_float))
@@ -908,7 +908,7 @@ static int32_t rows_init(CSOUND *csound, FFT *p) {
     return csound->InitError(csound, Str("array not initialised\n"));
   if (p->in->dimensions == 2) {
     int32_t siz = p->in->sizes[1];
-    if (UNLIKELY(tabinit(csound, p->out, siz, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->out, siz, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     return OK;
   }
@@ -1114,7 +1114,7 @@ static int32_t cols_init(CSOUND *csound, FFT *p) {
     return csound->InitError(csound, Str("array not initialised\n"));
   if (LIKELY(p->in->dimensions == 2)) {
     int32_t siz = p->in->sizes[0];
-    if (UNLIKELY(tabinit(csound, p->out, siz, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->out, siz, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     return OK;
   }
@@ -1198,7 +1198,7 @@ static int32_t shiftin_init(CSOUND *csound, SHIFTIN *p) {
                             Str("shiftin: expected a one-dimensional array"));
   if (p->out->sizes != NULL && p->out->sizes[0] > size)
     size = p->out->sizes[0];
-  if (UNLIKELY(tabinit(csound, p->out, size, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, size, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->size = size;
   p->n = 0;
@@ -1297,7 +1297,7 @@ static int32_t unwrap_set(CSOUND *csound, UNWRAP *p) {
   if (UNLIKELY(*p->mode != FL(0) && *p->mode != FL(1)))
     return csound->InitError(csound, "%s\n", Str("unwrap: mode must be 0 or 1"));
   int32_t N = p->in->sizes[0];
-  if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->size = N;
   p->unwrap = *p->mode == FL(1);
@@ -1348,7 +1348,7 @@ static int32_t init_dct_common(CSOUND *csound, FFT *p, int32_t direction) {
     return csound->InitError(csound, "%s\n",
                             Str("dct/dctinv: size must be a power of two "
                                 "between 1 and 2^26"));
-  if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->n = N;
   p->setup = csound->DCTSetup(csound, N, direction);
@@ -1436,7 +1436,7 @@ static int32_t mfb_init(CSOUND *csound, MFB *p) {
     return csound->InitError(csound, "%s\n",
                             Str("mfb: band count must be positive and less than input length"));
   int32_t L = (int32_t)*p->len;
-  if (UNLIKELY(tabinit(csound, p->out, L, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->out, L, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   p->bands = L;
   size_t bytes = ((size_t)L + 2)*sizeof(int32_t);
@@ -1585,7 +1585,7 @@ static int32_t interleave_i (CSOUND *csound, INTERL *p) {
     int32_t len = p->b->sizes[0], i;
     if (UNLIKELY(len > INT32_MAX/2))
       return csound->InitError(csound, "%s\n", Str("interleave: array too large"));
-    if (UNLIKELY(tabinit(csound, p->a, len*2, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->a, len*2, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     /* Work backwards and read each pair before writing to allow input reuse. */
     for (i = len; i-- > 0;) {
@@ -1636,9 +1636,9 @@ static int32_t deinterleave_i (CSOUND *csound, INTERL *p) {
       return csound_array_init_resize_error(csound);
     preparedA.arrayType = p->a->arrayType;
     preparedB.arrayType = p->b->arrayType;
-    if (UNLIKELY(tabinit(csound, &preparedA, len,
+    if (UNLIKELY(csound_array_init_vector(csound, &preparedA, len,
                          p->h.insdshead) != OK ||
-                 tabinit(csound, &preparedB, len,
+                 csound_array_init_vector(csound, &preparedB, len,
                          p->h.insdshead) != OK)) {
       arrayContainerType->freeVariableMemory(csound, &preparedA);
       arrayContainerType->freeVariableMemory(csound, &preparedB);
