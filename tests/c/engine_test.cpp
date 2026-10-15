@@ -800,8 +800,48 @@ TEST_F (EngineTests, testNegativeFunctionTableEventReleasesTemporaryPfields)
     EXPECT_EQ(csound->memalloc_db, memoryBaseline);
 }
 
+TEST_F (EngineTests, testRealtimeStartRejectsMissingNativeAtomics)
+{
+#if defined(__EMSCRIPTEN__) || defined(__wasi__) || \
+    defined(MSVC) || defined(HAVE_ATOMIC_BUILTIN)
+    GTEST_SKIP() << "Requires a native build without atomic operations";
+#else
+    const char *orchestra = R"(
+      sr = 48000
+      ksmps = 64
+      nchnls = 1
+      0dbfs = 1
+      instr 1
+      endin
+    )";
+    ASSERT_EQ(csoundSetOption(csound, "-n -d --realtime"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra, 0), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundStart(csound), CSOUND_ERROR);
+    EXPECT_EQ(csound->event_insert_thread, nullptr);
+    EXPECT_EQ(csound->event_insert_loop, 0);
+    EXPECT_EQ(csound->init_pass_threadlock, nullptr);
+    EXPECT_EQ(csound->alloc_queue, nullptr);
+    EXPECT_EQ(csound->realtime_locks_initialized, 0);
+    EXPECT_NE(drainMessageBuffer(csound).find(
+                "Realtime mode requires atomic operations in this build"),
+              std::string::npos);
+
+    // The serialized fallback still supports normal performance after reset.
+    csoundReset(csound);
+    ASSERT_EQ(csoundSetOption(csound, "-n -d"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra, 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i1 0 0.01", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+#endif
+}
+
 TEST_F (EngineTests, testRealtimeAsyncCompileMergesOnEventThread)
 {
+#if !defined(__EMSCRIPTEN__) && !defined(__wasi__) && \
+    !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+    GTEST_SKIP() << "Native realtime mode requires atomic operations";
+#endif
     csoundSetOption(csound, "-n");
     csoundSetOption(csound, "-d");
     csoundSetOption(csound, "--realtime");
