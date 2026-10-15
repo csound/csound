@@ -265,6 +265,7 @@ int32_t printksset(CSOUND*,PRINTKS *p);
 int32_t printksset_S(CSOUND*,PRINTKS *p);
 int32_t printsset(CSOUND*,PRINTS *p);
 int32_t printsset_S(CSOUND*,PRINTS *p);
+int32_t printset_S(CSOUND*,PRINTS *p);
 int32_t printk3(CSOUND*,PRINTK3 *p);
 int32_t printk3set(CSOUND*,PRINTK3 *p);
 
