@@ -127,6 +127,10 @@ int32_t holdRender(CSOUND *csound, void *)
 
 TEST_F(ActiveChainTests, RetiredSuccessorCannotBeReusedDuringRender)
 {
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN))
+    GTEST_SKIP() << "Realtime mode requires native spinlocks and atomics";
+#endif
     using namespace std::chrono_literals;
     RenderGate gate;
     csoundSetHostData(csound, &gate);
