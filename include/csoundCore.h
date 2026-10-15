@@ -550,6 +550,10 @@ typedef struct {
     volatile int32_t async_ref_count;
     /* Private named storage. Use Create/QueryInstanceVariable to access it. */
     void *instance_variables;
+    /* Reuse list; never overwrite a retired active-chain successor. */
+    struct insds * nxtinactive;
+    /* Render interval in which this instance left the active chain. */
+    volatile long retired_epoch;
     /* Copy of required p-field values for quick access */
     CS_VAR_MEM  p0;
     CS_VAR_MEM  p1;
@@ -1624,6 +1628,8 @@ struct CSOUND_ {
   uint32_t nchnls;                                           /* number of output channels */
   int32_t inchnls;                                           /* number of input channels */
   uint64_t kcounter;                                         /* control-period counter for the current performance */
+  /* Odd while a render traversal may retain active-chain successors. */
+  volatile long performance_epoch;
   uint64_t global_kcounter;                                  /* global control-period counter */
   cs_float esr;                                              /* engine sample rate */
   cs_float ekr;                                              /* engine control rate */
@@ -1822,8 +1828,11 @@ struct CSOUND_ {
   /* -------- Memory management -------- */
   void *memalloc_db;                                         /* memory allocation database */
   ALLOC_DATA *alloc_queue;                                   /* queue of allocations pending free */
-  volatile unsigned long alloc_queue_items;                  /* number of entries in the allocation queue */
+  volatile long alloc_queue_items;                          /* number of entries in the allocation queue */
   unsigned long alloc_queue_active;                          /* allocations currently active */
+  volatile long alloc_queue_stopping;                       /* reject requests once shutdown starts */
+  volatile long alloc_queue_midi;                           /* queued or initializing MIDI notes */
+  int32_t midi_event_pending;                                /* parsed host event waiting for queue space */
   unsigned long alloc_queue_wp;                              /* allocation queue write pointer */
   void *searchPathCache;                                     /* cached file search paths */
   void *reset_list;                                          /* registered reset callback list */
@@ -1873,15 +1882,15 @@ struct CSOUND_ {
 
   /* -------- Message output -------- */
   void *message_buffer;                                      /* buffered message storage */
-  char *message_string;                                      /* reusable message string */
-  volatile unsigned long message_string_queue_items;         /* pending entries in the message string queue */
+  volatile long message_string_queue_lock;                   /* bounded message publication lock */
+  volatile long message_string_queue_dropped;                /* messages dropped on full queue or contention */
+  unsigned long message_string_queue_items;                  /* pending entries in the message string queue */
   unsigned long message_string_queue_wp;                     /* message string queue write pointer */
   message_string_queue_t *message_string_queue;              /* message string queue */
   struct _message_queue **msg_queue;                         /* realtime message queue */
-  volatile long msg_queue_wget;                              /* realtime message queue read index */
-  volatile long msg_queue_wput;                              /* realtime message queue write index */
-  volatile long msg_queue_rstart;                            /* realtime message queue start index */
-  volatile long msg_queue_items;                             /* realtime message queue entry count */
+  volatile long msg_queue_write;                             /* reserved API queue positions */
+  volatile long msg_queue_read;                              /* consumed API queue positions */
+  volatile long msg_queue_warned;                            /* queue rejection reported since reset */
   char *delayederrormessages;                                /* queued error messages */
   void *printerrormessagesflag;                              /* deferred error printing flag */
   OSC_MESS osc_message_anchor;                               /* anchored OSC message storage */

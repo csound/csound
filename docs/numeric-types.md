@@ -6,9 +6,11 @@ Include `csound.h` in hosts or `csdl.h` in plugins; both expose these types.
 Standalone code can include `csound_types.h`.
 
 `MYFLT` remains a typedef alias for `cs_float` in Csound 7. Existing C and C++
-code still compiles, but MSVC, GCC, and Clang warn when it uses `MYFLT`.
-Replace the type name with `cs_float` to remove the warning. Projects that
-treat warnings as errors must migrate or allow deprecated declarations.
+code still compiles, and does not warn yet: the deprecation attributes for
+`MYFLT` are present but currently disabled in `csound_types.h`, and are
+intended to be re-enabled in a future release. Replace the type name with
+`cs_float` to be ready for that; projects that treat warnings as errors
+should migrate or allow deprecated declarations once the attributes return.
 `MYFLT` is now a typedef, so do not test it with `#ifdef` or redefine it.
 
 ## Build options

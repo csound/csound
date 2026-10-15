@@ -14,6 +14,7 @@
  */
 
 import { logCommonUtils as log } from "../logger.js";
+import { AUDIO_STATE } from "../constants.js";
 
 export const handleCsoundStart =
   (workerMessagePort, libraryCsound, wasi, createRealtimeAudioThread, renderFunction) =>
@@ -53,11 +54,12 @@ export const handleCsoundStart =
       if (isExpectingRealtimePerformance) {
         createRealtimeAudioThread(arguments_);
       } else {
-        // Do rendering
-        workerMessagePort.broadcastPlayState(
-          "renderStarted",
-          arguments_["performanceGeneration"],
-        );
+        // A start listener can pause immediately, before renderFunction runs.
+        const audioStateBuffer = arguments_["audioStateBuffer"];
+        if (audioStateBuffer) {
+          Atomics.store(new Int32Array(audioStateBuffer), AUDIO_STATE.IS_RENDERING, 1);
+        }
+        workerMessagePort.broadcastPlayState("renderStarted", arguments_["performanceGeneration"]);
         if (renderFunction) {
           renderFunction(arguments_);
         } else {

@@ -1126,11 +1126,10 @@ schedule(1, 0.05, 10)`), 0);
             cs.on("realtimePerformanceResumed", () => events.push("resumed"));
             await cs.compileCSD(shortTone.replace("-odac", "-n").replace("i 1 0 2", "i 1 0 36000"));
             await cs.start();
-            await cs.pause();
-            await new Promise((resolve) => setTimeout(resolve, 50));
+            assert.equal(await cs.pause(), 0);
             assert.deepEqual(events, ["paused"]);
             await cs.resume();
-            await cs.pause();
+            assert.equal(await cs.pause(), 0);
             await cs.stop();
             assert.deepEqual(events, ["paused", "resumed", "paused"]);
           } finally {

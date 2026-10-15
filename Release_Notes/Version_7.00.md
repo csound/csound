@@ -157,9 +157,10 @@ The following table covers the main changes.
 | Dedicated input and output option setters | Use `csoundSetOption`. It accepts several command-line options in one string. |
 | Parameter structures passed to get and set calls | Read `csoundGetParams`, which returns a read-only `OPARMS` pointer. Change settings through options. |
 | `csoundGetChannelPtr` with `cs_float **` | Pass `void **`. Use channel locks or the typed get and set functions for shared access. |
-| Table get, set, and copy helpers | Use `csoundGetTable` and the returned data pointer. The host must control concurrent access. |
+| Table get, set, and named generator helpers | Use `csoundGetTable` and the returned data pointer. The host must control concurrent access. `csoundTableCopyIn` and `csoundTableCopyOut` remain, with a new `async` argument. |
 
-Numeric events use `CS_INSTR_EVENT`, `CS_TABLE_EVENT`, or `CS_END_EVENT`.
+Numeric events use `CS_INSTR_EVENT`, `CS_TABLE_EVENT`, `CS_END_EVENT`, or
+`CS_ADV_EVENT`.
 Call `csoundStart` before `csoundEvent`. For score text before the engine
 starts, use `csoundEventString` with `async = 0`.
 

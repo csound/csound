@@ -46,7 +46,6 @@ int32_t csound_score_event_absolute(CSOUND *csound, char type,
 void named_instr_assign_numbers(CSOUND *csound, ENGINE_STATE *engineState);
 static void csound_table_copy_out(CSOUND *csound, int32_t table, cs_float *ptable);
 static void csound_table_copy_in(CSOUND *csound, int32_t table, const cs_float *ptable);
-static void csound_table_set(CSOUND *csound, int32_t table, int32_t index, cs_float value);
 
 enum {INPUT_MESSAGE=1, READ_SCORE, SCORE_EVENT, SCORE_EVENT_ABS,
       TABLE_COPY_OUT, TABLE_COPY_IN, TABLE_SET, MERGE_STATE, KILL_INSTANCE};
@@ -56,73 +55,81 @@ enum {INPUT_MESSAGE=1, READ_SCORE, SCORE_EVENT, SCORE_EVENT_ABS,
 /* ARG LIST ALIGNMENT */
 #define ARG_ALIGN 8
 
-/* Message queue structure */
+/* Each slot has one producer and the single kperf consumer. Positions reserve
+   capacity; ready publishes the complete payload. A delayed producer can defer
+   the head, but the audio thread never waits for it. Concurrent async API
+   calls require MSVC or HAVE_ATOMIC_BUILTIN. Without either, the ATOMIC_*
+   fallback supports serialized API calls and dequeue only. */
 typedef struct _message_queue {
-  int64_t message;  /* message id */
-  char *args;   /* args, arg pointers */
-  int64_t rtn;  /* return value */
+  int32_t message;
+  char *args;
+  volatile long ready;
 } message_queue_t;
 
-
-/* atomicGetAndIncrementWithModulus */
-/* ATOMIC_CMP_XCH writes through this pointer. */
-/* NOLINTNEXTLINE(readability-non-const-parameter) */
-static long atomicGet_Incr_Mod(volatile long* val, long mod) {
-  long oldVal;
-  long newVal;
-  do {
-    oldVal = *val;
-    newVal = (oldVal + 1) % mod;
-  } while (ATOMIC_CMP_XCH(val, newVal, oldVal));
-  return oldVal;
-}
-
-/* called by csoundCreate() at the start
-   and also by csoundStart() to cover de-allocation
-   by reset
-*/
+/* Called by csoundCreate() and after reset by csoundStart(). The queue, slots
+   and payloads use the tracked allocator: memreset() also frees pending entries
+   on reset/destroy, so they do not need a separate teardown path. */
 void allocate_message_queue(CSOUND *csound) {
   if (csound->msg_queue == NULL) {
     int32_t i;
     csound->msg_queue = (message_queue_t **)
-      csound->Calloc(csound, sizeof(message_queue_t*)*API_MAX_QUEUE);
+      csound->Calloc(csound, sizeof(message_queue_t*) * API_MAX_QUEUE);
     for (i = 0; i < API_MAX_QUEUE; i++) {
-      csound->msg_queue[i] =
-        (message_queue_t*)
+      csound->msg_queue[i] = (message_queue_t *)
         csound->Calloc(csound, sizeof(message_queue_t));
     }
+    ATOMIC_SET(csound->msg_queue_write, 0);
+    ATOMIC_SET(csound->msg_queue_read, 0);
   }
 }
 
+static int32_t message_queue_full(CSOUND *csound) {
+  /* Read the consumer first. It can pass an older write snapshot, making
+     unsigned subtraction report a full queue when there is space. */
+  unsigned long read = (unsigned long) ATOMIC_GET(csound->msg_queue_read);
+  unsigned long write = (unsigned long) ATOMIC_GET(csound->msg_queue_write);
+  return write - read >= API_MAX_QUEUE;
+}
 
-
-/* enqueue should be called by the relevant API function */
-static void *message_enqueue(CSOUND *csound, int32_t message, char *args,
-                      int32_t argsiz) {
-  if(csound->msg_queue != NULL) {
-    int64_t *rtn;
-    volatile long items;
-
-    /* block if queue is full */
-    do {
-      items = ATOMIC_GET(csound->msg_queue_items);
-    } while(items >= API_MAX_QUEUE);
-
-    message_queue_t* msg =
-      csound->msg_queue[atomicGet_Incr_Mod(&csound->msg_queue_wget,
-                                           API_MAX_QUEUE)];
-    msg->message = message;
-    if(msg->args != NULL)
-      csound->Free(csound, msg->args);
-    msg->args = (char *)csound->Calloc(csound, argsiz);
-    memcpy(msg->args, args, argsiz);
-    rtn = &msg->rtn;
-    csound->msg_queue[atomicGet_Incr_Mod(&csound->msg_queue_wput,
-                                         API_MAX_QUEUE)] = msg;
-    ATOMIC_INCR(csound->msg_queue_items);
-    return (void *) rtn;
+/* Takes ownership of args, including on rejection. Allocation and copying must
+   finish before reservation: neither can leave an unpublished slot behind. */
+static int32_t message_enqueue_owned(CSOUND *csound, int32_t message, char *args) {
+  int32_t attempt;
+  if (csound->msg_queue != NULL) {
+    /* Bound contention as well as capacity. A producer must never wait for the
+       audio thread (which can itself call an async API from a host callback). */
+    for (attempt = 0; attempt < API_MAX_QUEUE; attempt++) {
+      unsigned long read = (unsigned long) ATOMIC_GET(csound->msg_queue_read);
+      long write = ATOMIC_GET(csound->msg_queue_write);
+      long next = (long) ((unsigned long) write + 1UL);
+      message_queue_t *msg;
+      if ((unsigned long) write - read >= API_MAX_QUEUE)
+        break;
+      if (ATOMIC_CMP_XCH(&csound->msg_queue_write, next, write))
+        continue;
+      msg = csound->msg_queue[(unsigned long) write % API_MAX_QUEUE];
+      /* The consumer released this slot before advancing read. Reclaim its old
+         payload here to keep deallocation out of the queue drain. */
+      if (msg->args != NULL)
+        csound->Free(csound, msg->args);
+      msg->args = args;
+      msg->message = message;
+      ATOMIC_SET(msg->ready, 1);
+      return CSOUND_SUCCESS;
+    }
   }
-  else return NULL;
+  csound->Free(csound, args);
+  return CSOUND_ERROR;
+}
+
+static int32_t message_enqueue(CSOUND *csound, int32_t message, const void *args,
+                               size_t argsiz) {
+  char *copy;
+  if (csound->msg_queue == NULL || message_queue_full(csound))
+    return CSOUND_ERROR;
+  copy = (char *) csound->Calloc(csound, argsiz);
+  memcpy(copy, args, argsiz);
+  return message_enqueue_owned(csound, message, copy);
 }
 
 /* dequeue should be called by kperf_*()
@@ -130,12 +137,14 @@ static void *message_enqueue(CSOUND *csound, int32_t message, char *args,
 */
 void message_dequeue(CSOUND *csound) {
   if(csound->msg_queue != NULL) {
-    long rp = csound->msg_queue_rstart;
-    long items = csound->msg_queue_items;
-    long rend = rp + items;
+    unsigned long read = (unsigned long) ATOMIC_GET(csound->msg_queue_read);
+    unsigned long end = (unsigned long) ATOMIC_GET(csound->msg_queue_write);
 
-    while(rp < rend) {
-      message_queue_t* msg = csound->msg_queue[rp % API_MAX_QUEUE];
+    /* Snapshot the end so nested API calls wait until the next audio block. */
+    while (read != end) {
+      message_queue_t *msg = csound->msg_queue[read % API_MAX_QUEUE];
+      if (!ATOMIC_GET(msg->ready))
+        break;
       switch(msg->message) {
       case INPUT_MESSAGE:
         {
@@ -155,8 +164,7 @@ void message_dequeue(CSOUND *csound) {
           char type;
           cs_float *fargs = (cs_float *) msg->args;
           type = (char) fargs[0];
-          csound_score_event(csound, type, &fargs[2], (int32_t)
-                                   (int32_t) fargs[1]);
+          csound_score_event(csound, type, &fargs[2], (int32_t) fargs[1]);
         }
         break;
       case SCORE_EVENT_ABS:
@@ -206,7 +214,7 @@ void message_dequeue(CSOUND *csound) {
                  sizeof(int32_t));
           memcpy(&value, msg->args + 2*ARG_ALIGN,
                  sizeof(cs_float));
-          csound_table_set(csound, table, index, value);
+          csound->flist[table]->ftable[index] = value;
         }
         break;
       case MERGE_STATE:
@@ -227,82 +235,103 @@ void message_dequeue(CSOUND *csound) {
         {
           cs_float instr;
           int32_t mode, insno, rls;
-          INSDS *ip;
+          INSDS *ip, *target;
           memcpy(&instr, msg->args, sizeof(cs_float));
           memcpy(&insno, msg->args + ARG_ALIGN,
                  sizeof(int32_t));
-          memcpy(&ip, msg->args + ARG_ALIGN*2,
-                 sizeof(INSDS *));
-          memcpy(&mode, msg->args + ARG_ALIGN*3,
-                 sizeof(int32_t));
-          memcpy(&rls, msg->args  + ARG_ALIGN*4,
-                 sizeof(int32_t));
-          xturnoff_instance(csound, instr, insno, ip, mode, rls);
+          memcpy(&target, msg->args + ARG_ALIGN*2, sizeof(INSDS *));
+          memcpy(&mode, msg->args + ARG_ALIGN*3, sizeof(int32_t));
+          memcpy(&rls, msg->args + ARG_ALIGN*4, sizeof(int32_t));
+          /* The saved address may have been freed. Search live nodes before
+             dereferencing it. Keep the legacy API's address-based selection:
+             a fresh instrument lookup could stop a different note. This check
+             does not distinguish a new note that reuses the same address. */
+          ip = csound->actanchor.nxtact;
+          while (ip != NULL && ip != target)
+            ip = ip->nxtact;
+          if (ip != NULL && (int32_t) ip->insno == insno)
+            xturnoff_instance(csound, instr, insno, ip, mode, rls);
         }
         break;
       }
       msg->message = 0;
-      rp += 1;
+      ATOMIC_SET(msg->ready, 0);
+      read++;
+      ATOMIC_SET(csound->msg_queue_read, (long) read);
     }
-    ATOMIC_SUB(csound->msg_queue_items, items);
-    csound->msg_queue_rstart = rp % API_MAX_QUEUE;
   }
+}
+
+static void report_api_queue_rejection(CSOUND *csound) {
+  long expected = 0, warned = 1;
+  if (!(csound->oparms->msglevel & CS_WARNMSG))
+    return;
+  /* Set before calling the host: its callback may submit another request.
+     Warn once per reset so repeated rejection adds no logging load. */
+  if (ATOMIC_CMP_XCH(&csound->msg_queue_warned, warned, expected) == 0)
+    csound->MessageS(csound, CSOUNDMSG_WARNING, "%s",
+                     Str("async API request could not be queued; "
+                         "further warnings suppressed until reset\n"));
 }
 
 /* these are the message enqueueing functions for each relevant API function */
 static inline void input_message_enqueue(CSOUND *csound,
                                               const char *str){
-  message_enqueue(csound,INPUT_MESSAGE, (char *) str, (int32_t) strlen(str)+1);
+  if (message_enqueue(csound, INPUT_MESSAGE, str, strlen(str)+1) != CSOUND_SUCCESS)
+    report_api_queue_rejection(csound);
 }
 
-static inline int64_t *read_score_enqueue(CSOUND *csound, const char *str){
-  return message_enqueue(csound, READ_SCORE, (char *) str, (int32_t) strlen(str)+1);
+static inline int32_t read_score_enqueue(CSOUND *csound, const char *str){
+  return message_enqueue(csound, READ_SCORE, str, strlen(str)+1);
 }
 
 static inline void table_copy_out_enqueue(CSOUND *csound, int32_t table,
                                               cs_float *ptable){
   const int32_t argsize = ARG_ALIGN*2;
-  char args[ARG_ALIGN*2];
+  char args[ARG_ALIGN*2] = { 0 };
   memcpy(args, &table, sizeof(int32_t));
   memcpy(args+ARG_ALIGN, &ptable, sizeof(cs_float *));
-  message_enqueue(csound,TABLE_COPY_OUT, args, argsize);
+  if (message_enqueue(csound, TABLE_COPY_OUT, args, argsize) != CSOUND_SUCCESS)
+    report_api_queue_rejection(csound);
 }
 
 static inline void table_copy_in_enqueue(CSOUND *csound, int32_t table,
                                              const cs_float *ptable){
   const int32_t argsize = ARG_ALIGN*2;
-  char args[ARG_ALIGN*2];
+  char args[ARG_ALIGN*2] = { 0 };
   memcpy(args, &table, sizeof(int32_t));
   memcpy(args+ARG_ALIGN, &ptable, sizeof(cs_float *));
-  message_enqueue(csound,TABLE_COPY_IN, args, argsize);
+  if (message_enqueue(csound, TABLE_COPY_IN, args, argsize) != CSOUND_SUCCESS)
+    report_api_queue_rejection(csound);
 }
 
-static inline int64_t *score_event_enqueue(CSOUND *csound, char type,
-                                                const cs_float *pfields,
-                                                long numFields)
-{
-  const int32_t argsize = (int32_t) (sizeof(cs_float)*(numFields+2));
-  cs_float *args = csoundCalloc(csound, argsize);
-  memcpy(&args[2], pfields, argsize - sizeof(cs_float)*2);
+static inline int32_t score_event_enqueue(CSOUND *csound, char type,
+                                          const cs_float *pfields,
+                                          long numFields) {
+  size_t argsize;
+  cs_float *args;
+  if (numFields < 0 || (size_t) numFields > SIZE_MAX / sizeof(cs_float) - 2 ||
+      csound->msg_queue == NULL || message_queue_full(csound))
+    return CSOUND_ERROR;
+  argsize = sizeof(cs_float) * ((size_t) numFields + 2);
+  args = (cs_float *) csound->Calloc(csound, argsize);
+  if (numFields > 0)
+    memcpy(&args[2], pfields, sizeof(cs_float) * (size_t) numFields);
   args[0] = (cs_float) type;
-  args[1] = numFields;
-  return message_enqueue(csound, SCORE_EVENT, (char *) args,
-                         argsize);
+  args[1] = (cs_float) numFields;
+  return message_enqueue_owned(csound, SCORE_EVENT, (char *) args);
 }
 
-
-
-static void kill_instance_enqueue(CSOUND *csound, cs_float instr, int32_t insno,
-                          INSDS *ip, int32_t mode,
-                          int32_t allow_release) {
-  const int32_t argsize = ARG_ALIGN*5;
-  char args[ARG_ALIGN*5];
-  memcpy(args, &instr, sizeof(int32_t));
+static int32_t kill_instance_enqueue(CSOUND *csound, cs_float instr, int32_t insno,
+                                     INSDS *ip, int32_t mode,
+                                     int32_t allow_release) {
+  char args[ARG_ALIGN*5] = { 0 };
+  memcpy(args, &instr, sizeof(cs_float));
   memcpy(args+ARG_ALIGN, &insno, sizeof(int32_t));
   memcpy(args+ARG_ALIGN*2, &ip, sizeof(INSDS *));
   memcpy(args+ARG_ALIGN*3, &mode, sizeof(int32_t));
   memcpy(args+ARG_ALIGN*4, &allow_release, sizeof(int32_t));
-  message_enqueue(csound,KILL_INSTANCE,args,argsize);
+  return message_enqueue(csound, KILL_INSTANCE, args, sizeof(args));
 }
 
 /* this is to be called from
@@ -310,8 +339,9 @@ static void kill_instance_enqueue(CSOUND *csound, cs_float instr, int32_t insno,
 */
 int32_t merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e,
                             TYPE_TABLE *t, OPDS *ids) {
-  if (csound->oparms->realtime && csound->event_insert_loop &&
-      csound->alloc_queue != NULL) {
+  /* The queue keeps ownership through shutdown; its admission check must
+     reject stopped work instead of sending it to the audio-side API queue. */
+  if (csound->oparms->realtime && csound->alloc_queue != NULL) {
     ALLOC_DATA data = { 0 };
     data.engine_state = e;
     data.type_table = t;
@@ -321,12 +351,11 @@ int32_t merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e,
   }
 
   const int32_t argsize = ARG_ALIGN*3;
-  char args[ARG_ALIGN*3];
+  char args[ARG_ALIGN*3] = { 0 };
   memcpy(args, &e, sizeof(ENGINE_STATE *));
   memcpy(args+ARG_ALIGN, &t, sizeof(TYPE_TABLE *));
   memcpy(args+2*ARG_ALIGN, &ids, sizeof(OPDS *));
-  message_enqueue(csound,MERGE_STATE, args, argsize);
-  return CSOUND_SUCCESS;
+  return message_enqueue(csound, MERGE_STATE, args, argsize);
 }
 
 /** Async versions of the functions above
@@ -337,12 +366,14 @@ void input_message_async(CSOUND *csound, const char *message){
 }
 
 void read_score_async(CSOUND *csound, const char *message){
-  read_score_enqueue(csound, message);
+  if (read_score_enqueue(csound, message) != CSOUND_SUCCESS)
+    report_api_queue_rejection(csound);
 }
 
 void score_event_async(CSOUND *csound, char type,
                            const cs_float *pfields, long numFields){
-  score_event_enqueue(csound, type, pfields, numFields);
+  if (score_event_enqueue(csound, type, pfields, numFields) != CSOUND_SUCCESS)
+    report_api_queue_rejection(csound);
 }
 
 void csoundTableCopyOut(CSOUND *csound, int32_t table, cs_float *ptable, int32_t async){
@@ -350,9 +381,11 @@ void csoundTableCopyOut(CSOUND *csound, int32_t table, cs_float *ptable, int32_t
     table_copy_out_enqueue(csound, table, ptable);
     return;
   }
-  csoundLockMutex(csound->API_lock);
+  if (!csound->oparms->realtime)
+    csoundLockMutex(csound->API_lock);
   csound_table_copy_out(csound, table, ptable);
-  csoundUnlockMutex(csound->API_lock);
+  if (!csound->oparms->realtime)
+    csoundUnlockMutex(csound->API_lock);
 }
 
 void csoundTableCopyIn(CSOUND *csound, int32_t table, const
@@ -361,11 +394,17 @@ void csoundTableCopyIn(CSOUND *csound, int32_t table, const
     table_copy_in_enqueue(csound, table, ptable);
     return;
   }
-  csoundLockMutex(csound->API_lock);
+  if (!csound->oparms->realtime)
+    csoundLockMutex(csound->API_lock);
   csound_table_copy_in(csound, table, ptable);
-  csoundUnlockMutex(csound->API_lock);
+  if (!csound->oparms->realtime)
+    csoundUnlockMutex(csound->API_lock);
 }
 
+/* Legacy internal entry point, no longer part of the public API. Callers must
+   keep engine state and the active list stable during target lookup. Realtime
+   synchronous turnoff also skips API_lock: serialize it against performance,
+   instance init/turnoff and other host calls instead of locking the audio thread. */
 int32_t csoundKillInstance(CSOUND *csound, cs_float instr, char *instrName,
                        int32_t mode, int32_t allow_release, int32_t async)
 {
@@ -383,7 +422,6 @@ int32_t csoundKillInstance(CSOUND *csound, cs_float instr, char *instrName,
   }
 
   if (UNLIKELY(mode < 0 || mode > 15 || (mode & 3) == 3)) {
-    csoundUnlockMutex(csound->API_lock);
     return CSOUND_ERROR;
   }
   ip = &(csound->actanchor);
@@ -394,48 +432,32 @@ int32_t csoundKillInstance(CSOUND *csound, cs_float instr, char *instrName,
   }
 
   if (!async) {
-    csoundLockMutex(csound->API_lock);
+    if (!csound->oparms->realtime)
+      csoundLockMutex(csound->API_lock);
     xturnoff_instance(csound, instr, insno, ip, mode, allow_release);
-    csoundUnlockMutex(csound->API_lock);
+    if (!csound->oparms->realtime)
+      csoundUnlockMutex(csound->API_lock);
   }
   else
-    kill_instance_enqueue(csound, instr, insno, ip, mode, allow_release);
+    return kill_instance_enqueue(csound, instr, insno, ip, mode, allow_release);
   return CSOUND_SUCCESS;
 }
 
-void csound_table_set(CSOUND *csound, int32_t table, int32_t index,
-                            cs_float value) {
-  if (csound->oparms->realtime)
-    csoundLockMutex(csound->init_pass_threadlock);
-  csound->flist[table]->ftable[index] = value;
-  if (csound->oparms->realtime)
-    csoundUnlockMutex(csound->init_pass_threadlock);
+/* These helpers also run in the audio queue drain. Bela cannot take the init
+   mutex here, even with a try-lock. Callers must keep table storage valid and
+   prevent concurrent table changes until the copy finishes (see csound.h). */
+static void csound_table_copy_out(CSOUND *csound, int32_t table,
+                                  cs_float *ptable) {
+  cs_float *ftab;
+  int32_t len = csoundGetTable(csound, &ftab, table);
+  if (LIKELY(len > 0))
+    memcpy(ptable, ftab, (size_t) len * sizeof(cs_float));
 }
 
-void csound_table_copy_out(CSOUND *csound, int32_t table, cs_float *ptable) {
-  int32_t len;
+static void csound_table_copy_in(CSOUND *csound, int32_t table,
+                                 const cs_float *ptable) {
   cs_float *ftab;
-  /* in realtime mode init pass is executed in a separate thread, so
-     we need to protect it */
-  if (csound->oparms->realtime)
-    csoundLockMutex(csound->init_pass_threadlock);
-  len = csoundGetTable(csound, &ftab, table);
+  int32_t len = csoundGetTable(csound, &ftab, table);
   if (LIKELY(len > 0))
-    memcpy(ptable, ftab, (size_t)len * sizeof(cs_float));
-  if (csound->oparms->realtime)
-    csoundUnlockMutex(csound->init_pass_threadlock);
-}
-
-void csound_table_copy_in(CSOUND *csound, int32_t table, const cs_float *ptable) {
-  int32_t len;
-  cs_float *ftab;
-  /* in realtime mode init pass is executed in a separate thread, so
-     we need to protect it */
-  if (csound->oparms->realtime)
-    csoundLockMutex(csound->init_pass_threadlock);
-  len = csoundGetTable(csound, &ftab, table);
-  if (LIKELY(len > 0))
-    memcpy(ftab, ptable, ((size_t)len + 1) * sizeof(cs_float)); // + guard point
-  if (csound->oparms->realtime)
-    csoundUnlockMutex(csound->init_pass_threadlock);
+    memcpy(ftab, ptable, ((size_t) len + 1) * sizeof(cs_float));
 }

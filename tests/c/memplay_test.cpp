@@ -193,6 +193,10 @@ TEST_F(MemplayTests, CacheStoresAllChannelsAndReusesTheFile) {
 }
 
 TEST_F(MemplayTests, RealtimePlaybackAndReinitUseOnlyCachedMemory) {
+#if !defined(__EMSCRIPTEN__) && !defined(__wasi__) && \
+    !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+    GTEST_SKIP() << "Native realtime mode requires atomic operations";
+#endif
     writeFile(2);
     csoundSetOption(csound, "--realtime");
     const std::string name = file.generic_string();

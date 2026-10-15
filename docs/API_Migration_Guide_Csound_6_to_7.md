@@ -24,7 +24,7 @@ existed, mainly to support the wrapping of the C API in
 other languages, plus some little used extra functionality.
 This has been removed, and the C++ `CsoundPerformanceThread`
 class was incorporated into the main Csound library.
-A C-languageinterface for this class is provided as part of the
+A C-language interface for this class is provided as part of the
 public headers.
 
 ## Numeric types
@@ -35,6 +35,47 @@ that normally use double precision. The new `USE_FLOAT` build option makes
 both types single precision. See [Numeric types](numeric-types.md) for the
 build options, helper aliases, and binding changes.
 
+The change is not limited to typedefs: the public headers now use `cs_float`
+in every declaration that used `MYFLT` in Csound 6.x, and `MYFLT` otherwise
+remains only as an alias in `csound_types.h`. For example, the function
+
+```
+PUBLIC MYFLT *csoundGetSpin(CSOUND *);
+```
+
+is now
+
+```
+PUBLIC cs_float *csoundGetSpin(CSOUND *);
+```
+
+The same applies to the buffers and data passed to the API, such as
+`csoundGetSpout()`, `csoundTableCopyIn()` and `csoundTableCopyOut()`, and
+the table data returned by `csoundGetTable()`. Throughout this guide, the
+Csound 6.x declarations are shown with `MYFLT` and the Csound 7
+replacements with `cs_float`.
+
+Values that Csound 6.x declared as `double` now use `cs_double`, for
+example
+
+```
+PUBLIC double csoundGetRealTime(RTCLOCK *);
+PUBLIC double csoundGetCPUTime(RTCLOCK *);
+PUBLIC double csoundGetScoreTime(CSOUND *);
+```
+
+are now
+
+```
+PUBLIC cs_double csoundGetRealTime(RTCLOCK *);
+PUBLIC cs_double csoundGetCPUTime(RTCLOCK *);
+PUBLIC cs_double csoundGetScoreTime(CSOUND *);
+```
+
+as are the `OPARMS` fields `cmdTempo` and `quality`. These are type-name
+changes only; C's promotion rules, floating-point literals, and external
+library interfaces are unchanged.
+
 ## Main Changes in `csound.h`
 
 The following is an outline of the changes in the main
@@ -42,7 +83,7 @@ header file, `csound.h`.
 
 
 ```
-PUBLIC void csoundGetAPIVersion(csound);
+PUBLIC int csoundGetAPIVersion(void);
 ```
 
 This function has been removed. Semantic versioning only available now
@@ -65,7 +106,7 @@ This function now takes two parameters:
 PUBLIC CSOUND *csoundCreate(void *hostData, const char *opcodedir);
 ```
 
-where `opcodedir`is an opcode directory override.
+where `opcodedir` is an opcode directory override.
 
 ```
 PUBLIC TREE *csoundParseOrc(CSOUND *csound, const char *str);
@@ -82,7 +123,7 @@ PUBLIC int csoundCompileTreeAsync(CSOUND *csound, TREE *root)
 These functions were replaced by the function 
 
 ```
-PUBLIC int csoundCompileTree(CSOUND *csound, TREE *root, int async);
+PUBLIC int32_t csoundCompileTree(CSOUND *csound, TREE *root, int32_t async);
 ```
 
 in `csound_compiler.h`.
@@ -97,7 +138,7 @@ PUBLIC int csoundCompileOrcAsync(CSOUND *csound, const char *str);
 were replaced by
 
 ```
-PUBLIC int csoundCompileOrc(CSOUND *csound, const char *str, int async);
+PUBLIC int32_t csoundCompileOrc(CSOUND *csound, const char *str, int32_t async);
 ```
 
 This function was removed, as we have discontinued support for
@@ -105,6 +146,13 @@ Cscore in the API.
 
 ```
 PUBLIC int csoundInitializeCscore(CSOUND *, FILE *insco, FILE *outsco);
+```
+
+The callback version has been removed for the same reason:
+
+```
+PUBLIC void csoundSetCscoreCallback(CSOUND *,
+                                    void (*cscoreCallback_)(CSOUND *));
 ```
 
 The function 
@@ -167,11 +215,11 @@ This function has been removed as cleanup can be achieved with `csoundReset()` o
 
 
 ```
-PUBLIC int csoundUDPServerStart(CSOUND *csound, unsigned int port);
-PUBLIC int csoundUDPServerStatus(CSOUND *csound);
-PUBLIC int csoundUDPServerClose(CSOUND *csound);
-PUBLIC int csoundUDPConsole(CSOUND *csound, const char *addr,
-                              int port, int mirror);
+PUBLIC int32_t csoundUDPServerStart(CSOUND *csound, uint32_t port);
+PUBLIC int32_t csoundUDPServerStatus(CSOUND *csound);
+PUBLIC int32_t csoundUDPServerClose(CSOUND *csound);
+PUBLIC int32_t csoundUDPConsole(CSOUND *csound, const char *addr,
+                              int32_t port, int32_t mirror);
 PUBLIC void csoundStopUDPConsole(CSOUND *csound);
 ```
 
@@ -185,17 +233,18 @@ PUBLIC uint32_t csoundGetNchnlsInput(CSOUND *csound);
 These functions have been replaced by
 
 ```
-PUBLIC uint32_t csoundGetChannels(CSOUND *, int isInput);
+PUBLIC uint32_t csoundGetChannels(CSOUND *, int32_t isInput);
 ```
 
 The functions
 
 ```
-PUBLIC void csoundSetParameters(CSOUND *, CSOUND_PARAMETERS *p);
-PUBLIC void csoundGetParameters(CSOUND *, CSOUND_PARAMETERS *p);
+PUBLIC void csoundSetParams(CSOUND *csound, CSOUND_PARAMS *p);
+PUBLIC void csoundGetParams(CSOUND *csound, CSOUND_PARAMS *p);
 ```
 
-have been removed and replaced by`
+have been removed. `csoundGetParams()` remains, with a changed
+signature:
 
 ```
 PUBLIC const OPARMS *csoundGetParams(CSOUND *csound);
@@ -205,7 +254,7 @@ Note that configuration parameters can be modified via
 command-line options, CsOptions, or `csoundSetOption()`.
 
 ```
-PUBLIC int csoundSetOption(CSOUND *csound, const char *option);
+PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *option);
 ```
 
 This function can now take any number of options, in the command-line
@@ -229,7 +278,7 @@ provided by csound options.
 ```
 PUBLIC void csoundSetFileOpenCallback(CSOUND *p,
                                         void (*func)(CSOUND*, const char*,
-                                        int, int, int));
+                                        int32_t, int32_t, int32_t));
 ```
 
 This function has been placed in the `csound_files.h` header.
@@ -238,14 +287,14 @@ This function has been placed in the `csound_files.h` header.
 ```
 PUBLIC long csoundGetInputBufferSize(CSOUND *);
 PUBLIC long csoundGetOutputBufferSize(CSOUND *);
-PUBLIC cs_float *csoundGetInputBuffer(CSOUND *);
-PUBLIC cs_float *csoundGetOutputBuffer(CSOUND *);
+PUBLIC MYFLT *csoundGetInputBuffer(CSOUND *);
+PUBLIC MYFLT *csoundGetOutputBuffer(CSOUND *);
 ```
 
 The function
 
 ```
-PUBLIC cs_float *csoundGetSpout(CSOUND *csound)
+PUBLIC MYFLT *csoundGetSpout(CSOUND *csound)
 ```
 
 has changed signature to
@@ -260,22 +309,33 @@ and spout buffers.
 
 ```
 PUBLIC void csoundAddSpinSample(CSOUND *csound,
-                                  int frame, int channel, cs_float sample);
+                                  int frame, int channel, MYFLT sample);
 PUBLIC void csoundSetSpinSample(CSOUND *csound,
-                                  int frame, int channel, cs_float sample);
+                                  int frame, int channel, MYFLT sample);
 ```
 These functions duplicate functionality and have been removed.
 Access to spin/spout data is done by acquiring the pointers
 and access the vectors directly.
 
 ```
+PUBLIC void csoundClearSpin(CSOUND *);
+PUBLIC MYFLT csoundGetSpoutSample(CSOUND *csound, int frame, int channel);
+```
+
+These functions have been removed as well. The engine clears the
+spout buffer at the start of every k-cycle, but not the spin buffer;
+if your host does not write the whole spin buffer each k-cycle, zero
+it first with `memset()`, using the pointer returned by
+`csoundGetSpin()`. Read individual spout samples through the pointer
+returned by `csoundGetSpout()`.
+
+```
 PUBLIC void **csoundGetRtRecordUserData(CSOUND *);
 PUBLIC void **csoundGetRtPlayUserData(CSOUND *);
 ```
 
-Audio IO module registration has been removed from the
-API and so these functions have also been removed as they
-have no use.
+These functions have been moved to the `csound_rtaudio.h` header,
+where audio back ends continue to use them to store per-stream state.
 
 ```
 PUBLIC void csoundSetHostImplementedAudioIO(CSOUND *,
@@ -288,34 +348,34 @@ This function was replaced by
 PUBLIC void csoundSetHostAudioIO(CSOUND *);
 ```
 
-These functions have been removed:
+These functions have been moved to the `csound_rtaudio.h` header:
 
 ```
 PUBLIC void
   csoundSetPlayopenCallback(CSOUND *,
-                            int (*playopen__)(CSOUND *,
+                            int32_t (*playopen__)(CSOUND *,
                                               const csRtAudioParams *parm));
 PUBLIC void csoundSetRtplayCallback(CSOUND *,
                                       void (*rtplay__)(CSOUND *,
                                                        const cs_float *outBuf,
-                                                       int nbytes));
+                                                       int32_t nbytes));
 PUBLIC void csoundSetRecopenCallback(CSOUND *,
-                                     int (*recopen_)(CSOUND *,
+                                     int32_t (*recopen__)(CSOUND *,
                                                      const csRtAudioParams *parm));
 PUBLIC void csoundSetRtrecordCallback(CSOUND *,
-                                        int (*rtrecord__)(CSOUND *,
+                                        int32_t (*rtrecord__)(CSOUND *,
                                                           cs_float *inBuf,
-                                                          int nbytes));
+                                                          int32_t nbytes));
 PUBLIC void csoundSetRtcloseCallback(CSOUND *, void (*rtclose__)(CSOUND *));
 PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound,
-                                               int (*audiodevlist__)(CSOUND *,
+                                               int32_t (*audiodevlist__)(CSOUND *,
                                                    CS_AUDIODEVICE *list,
-                                                   int isOutput));
+                                                   int32_t isOutput));
 ```
 
-Registration of audio modules via the API has been
-discontinued. Audio modules
-are now only added using the module API.
+They remain available to hosts and audio back ends that supply
+real-time audio callbacks. The audio module to use is selected by
+name with `csoundSetRTAudioModule()`, also in `csound_rtaudio.h`.
 
 ```
 PUBLIC void csoundSetHostImplementedMIDIIO(CSOUND *csound,
@@ -344,13 +404,13 @@ These functions:
 
 ```
 PUBLIC int csoundScoreEvent(CSOUND *,
-                              char type, const cs_float *pFields, long numFields);
+                              char type, const MYFLT *pFields, long numFields);
 PUBLIC void csoundScoreEventAsync(CSOUND *,
-                              char type, const cs_float *pFields, long numFields);
+                              char type, const MYFLT *pFields, long numFields);
 PUBLIC int csoundScoreEventAbsolute(CSOUND *,
-                 char type, const cs_float *pfields, long numFields, double time_ofs);
+                 char type, const MYFLT *pfields, long numFields, double time_ofs);
 PUBLIC void csoundScoreEventAbsoluteAsync(CSOUND *,
-                 char type, const cs_float *pfields, long numFields, double time_ofs);
+                 char type, const MYFLT *pfields, long numFields, double time_ofs);
 ```
 
 have been replaced by
@@ -366,22 +426,37 @@ where type is one of
   enum {
     CS_INSTR_EVENT = 0,
     CS_TABLE_EVENT,
-    CS_END_EVENT
+    CS_END_EVENT,
+    CS_ADV_EVENT
     };
 ```
+
+During performance, both `csoundEvent()` and `csoundEventString()`
+treat the start time as relative to the current time: the value is
+added to the current sample position when the event is inserted. A
+string such as `"i 1 4.0 1.0"` therefore starts the note 4.0 seconds
+from now, not at score time 4.0. Before performance starts, the
+current position is zero and the usual absolute score time applies.
+
+There is no absolute-time event function in 7.0.
+`csoundScoreEventAbsolute()` was removed and its implementation is not
+exposed. Hosts that relied on it must convert the target time to a
+delay, for example `targetTime - csoundGetScoreTime(csound)` when
+submitting synchronously between k-periods, and decide how to treat a
+target time that has already passed.
 
 The function
 
 ```
 PUBLIC int csoundGetChannelPtr(CSOUND *,
-                                 cs_float **p, const char *name, int type);
+                                 MYFLT **p, const char *name, int type);
 ```
 
 has changed signature to
 
 ```
-PUBLIC int csoundGetChannelPtr(CSOUND *,
-                                 void **p, const char *name, int type);
+PUBLIC int32_t csoundGetChannelPtr(CSOUND *,
+                                 void **p, const char *name, int32_t type);
 ```
 
 The function
@@ -400,7 +475,7 @@ PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
 The function
 
 ```
-PUBLIC int csoundKillInstance(CSOUND *csound, cs_float instr,
+PUBLIC int csoundKillInstance(CSOUND *csound, MYFLT instr,
                                 char *instrName, int mode, int allow_release);
 ```
 
@@ -417,20 +492,35 @@ has lost its purpose.
 
 
 ```
-PUBLIC cs_float csoundTableGet(CSOUND *, int table, int index);
-PUBLIC void csoundTableSet(CSOUND *, int table, int index, cs_float value);
-PUBLIC void csoundTableCopyOut(CSOUND *csound, int table, cs_float *dest);
-PUBLIC void csoundTableCopyOutAsync(CSOUND *csound, int table, cs_float *dest);
-PUBLIC void csoundTableCopyIn(CSOUND *csound, int table, cs_float *src);
-PUBLIC void csoundTableCopyInAsync(CSOUND *csound, int table, cs_float *src);
+PUBLIC MYFLT csoundTableGet(CSOUND *, int table, int index);
+PUBLIC void csoundTableSet(CSOUND *, int table, int index, MYFLT value);
+PUBLIC void csoundTableCopyOutAsync(CSOUND *csound, int table, MYFLT *dest);
+PUBLIC void csoundTableCopyInAsync(CSOUND *csound, int table, MYFLT *src);
 PUBLIC void csoundGetNamedGEN(CSOUND *csound, int num, char *name, int len);
 PUBLIC int csoundIsNamedGEN(CSOUND *csound, int num);
+PUBLIC void *csoundGetNamedGens(CSOUND *);
 ```
 
-These functions duplicated `csoundGetTable()` and so have been removed.
+These functions have been removed. Read table data through the
+pointer returned by `csoundGetTable()`. The asynchronous variants of
+the copy functions have been folded into their synchronous
+counterparts, which gained an `async` argument:
 
 ```
-PUBLIC int csoundSetIsGraphable(CSOUND *, int isGraphable);
+PUBLIC void csoundTableCopyOut(CSOUND *csound, int32_t table,
+                               cs_float *ptable, int32_t async);
+PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
+                              const cs_float *ptable, int32_t async);
+```
+
+Pass `0` to copy immediately under the API lock, or `1` to enqueue
+the copy for the performance thread.
+
+The list of named generators returned by `csoundGetNamedGens()`
+remains available to modules as `csound->GetNamedGens()`.
+
+```
+PUBLIC int32_t csoundSetIsGraphable(CSOUND *, int32_t isGraphable);
 PUBLIC void csoundSetMakeGraphCallback(CSOUND *,
                            void (*makeGraphCallback_)(CSOUND *,
                                                       WINDAT *windat,
@@ -441,17 +531,26 @@ PUBLIC void csoundSetDrawGraphCallback(CSOUND *,
 PUBLIC void csoundSetKillGraphCallback(CSOUND *,
        void (*killGraphCallback_)(CSOUND *, WINDAT *windat));
 PUBLIC void csoundSetExitGraphCallback(CSOUND *,
-                                         int (*exitGraphCallback_)(CSOUND *));
+                                         int32_t (*exitGraphCallback_)(CSOUND *));
 ```
 
-These functions have been moved to `csound_graph_displays.h`.
+These functions have been moved to `csound_graph_display.h`.
 
 ```
-PUBLIC int csoundNewOpcodeList(CSOUND *, opcodeListEntry **opcodelist);
+PUBLIC int32_t csoundNewOpcodeList(CSOUND *, opcodeListEntry **opcodelist);
 PUBLIC void csoundDisposeOpcodeList(CSOUND *, opcodeListEntry *opcodelist);
 ```
 
-These functions have been removed.
+These functions have been moved to `csound_misc.h`.
+
+```
+PUBLIC int csoundOpenLibrary(void **library, const char *libraryPath);
+PUBLIC int csoundCloseLibrary(void *library);
+PUBLIC void *csoundGetLibrarySymbol(void *library, const char *symbolName);
+```
+
+These functions have been removed; loading shared libraries is no
+longer part of the host API.
 
 
 ```
@@ -466,15 +565,16 @@ PUBLIC int csoundAppendOpcode(CSOUND *, const char *opname,
 The signature of this function has changed to:
 
 ```
-PUBLIC int csoundAppendOpcode (CSOUND *, const char *opname,
-                                 int dsblksiz, int flags,
-                                 const char *outypes, const char *intypes,
-                                 int(*init)(CSOUND *, void *),
-                                 int(*perf)(CSOUND *, void *),
-                                 int(*deinit)(CSOUND *, void *));
+PUBLIC int32_t csoundAppendOpcode(CSOUND *, const char *opname,
+                                  size_t dsblksiz, int32_t flags,
+                                  const char *outypes, const char *intypes,
+                                  int32_t (*init)(CSOUND *, void *),
+                                  int32_t (*perf)(CSOUND *, void *),
+                                  int32_t (*deinit)(CSOUND *, void *));
 ```
 
-Note the removal of the `thread` argument.
+Note the removal of the `thread` argument. `dsblksiz` is now of type
+`size_t`, and `flags` and the callback functions use `int32_t`.
 
 ```
 PUBLIC void csoundSetYieldCallback(CSOUND *, int (*yieldCallback_)(CSOUND *));
@@ -489,7 +589,7 @@ moved to `csound_threads.h`.
 All functions under the *miscellaneous* group have been
 moved to `csound_misc.h`.
 
-All cicular buffer functions have been moved to `csound_circular_buffer.h`.
+All circular buffer functions have been moved to `csound_circular_buffer.h`.
 
 The header file `csound_threaded.hpp` has been removed as it 
 duplicates (in a limited way) multithreading that is now built into
@@ -505,17 +605,29 @@ type and its optional setup data as separate arguments. A Csound6
 callback such as
 
 ```c
-struct csvariable *create_variable(void *cs, void *type_arg,
-                                   struct insds *ctx);
+struct csvariable *create_variable(void *csound, void *type_arg);
 ```
 
 must use this Csound7 signature:
 
 ```c
-struct csvariable *create_variable(void *cs,
+struct csvariable *create_variable(void *csound,
                                    const struct cstype *type,
                                    const void *type_arg,
                                    struct insds *ctx);
+```
+
+Similarly, the `copyValue` callback changed from
+
+```c
+void copy_value(void *csound, void *dest, void *src);
+```
+
+to
+
+```c
+void copy_value(CSOUND *csound, const struct cstype *type,
+                void *dest, const void *src, struct insds *ctx);
 ```
 
 Call `csoundCreateVariableForType()` instead of invoking a type's

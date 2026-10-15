@@ -13,9 +13,12 @@ endif()
 if(BUILD_TESTS)
   add_executable(unittests
         array_matrix_setters_test.cpp
+        atomic_fallback_test.cpp
+        fixtures/atomic_fallback.c
         array_ops_test.cpp
         array_size_conversion_test.cpp
         audio_array_io_test.cpp
+        api_message_queue_test.cpp
         autocorr_test.cpp
         lpc_lifetime_test.cpp
         sfload_test.cpp
@@ -62,6 +65,8 @@ if(BUILD_TESTS)
         nxtpow2_test.cpp
         dct_test.cpp
         engine_test.cpp
+        realtime_chain_test.cpp
+        realtime_readiness_test.cpp
         instance_variable_test.cpp
         doppler_test.cpp
         io_test.cpp
@@ -106,6 +111,8 @@ if(BUILD_TESTS)
         nreverb_test.cpp
         midi_file_test.cpp
         midi_realtime_input_test.cpp
+        realtime_queue_test.cpp
+        realtime_logging_test.cpp
         midiarp_test.cpp
         tableseg_test.cpp
         table_copy_test.cpp
@@ -304,9 +311,60 @@ if(BUILD_TESTS)
         target_link_libraries(wasapi_format_tests PRIVATE ole32 uuid mmdevapi)
         add_test(NAME wasapi_format_tests COMMAND wasapi_format_tests)
     endif()
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND NOT MSVC AND
+       NOT EMSCRIPTEN AND NOT IOS AND NOT BARE_METAL AND
+       NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+        add_executable(realtime_log_noatom_tests
+            realtime_log_noatom_test.cpp fixtures/realtime_log_noatom.c)
+        target_compile_options(realtime_log_noatom_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(realtime_log_noatom_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(realtime_log_noatom_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(realtime_log_noatom_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(realtime_log_noatom_tests PROPERTIES TIMEOUT 15)
+    endif()
     if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND NOT EMSCRIPTEN AND
        USE_ATOMIC_BUILTIN AND HAVE_ATOMIC_BUILTIN AND NOT IOS AND
        NOT BARE_METAL AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+        add_executable(atomic_spinlock_tests
+            atomic_spinlock_test.cpp fixtures/atomic_spinlock.c)
+        target_include_directories(atomic_spinlock_tests PRIVATE
+            ${PROJECT_SOURCE_DIR}/H)
+        target_link_libraries(atomic_spinlock_tests PRIVATE GTest::gtest_main)
+        target_compile_features(atomic_spinlock_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(atomic_spinlock_tests PROPERTIES TIMEOUT 10)
+
+        add_executable(realtime_lock_tests
+            realtime_lock_test.cpp fixtures/realtime_lock.c)
+        target_compile_options(realtime_lock_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(realtime_lock_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(realtime_lock_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(realtime_lock_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(realtime_lock_tests PROPERTIES TIMEOUT 15)
+
+        add_executable(realtime_score_end_tests
+            realtime_score_end_test.cpp fixtures/realtime_score_end.c)
+        target_compile_options(realtime_score_end_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(realtime_score_end_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(realtime_score_end_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(realtime_score_end_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(realtime_score_end_tests PROPERTIES TIMEOUT 15)
+
+        add_executable(realtime_log_lock_tests
+            realtime_log_lock_test.cpp fixtures/realtime_log_lock.c)
+        target_compile_options(realtime_log_lock_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(realtime_log_lock_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(realtime_log_lock_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(realtime_log_lock_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(realtime_log_lock_tests PROPERTIES TIMEOUT 15)
+
         add_executable(diskin2_concurrency_tests
             diskin2_concurrency_test.cpp fixtures/diskin2_concurrency.c)
         target_compile_options(diskin2_concurrency_tests PRIVATE ${libcsound_CFLAGS})
@@ -316,6 +374,16 @@ if(BUILD_TESTS)
             GTest::gtest_main ${CSOUNDLIB_STATIC})
         target_compile_features(diskin2_concurrency_tests PRIVATE cxx_std_17)
         gtest_discover_tests(diskin2_concurrency_tests)
+
+        add_executable(api_queue_capacity_tests
+            api_queue_capacity_test.cpp fixtures/api_queue_capacity.c)
+        target_compile_options(api_queue_capacity_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(api_queue_capacity_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(api_queue_capacity_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(api_queue_capacity_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(api_queue_capacity_tests PROPERTIES TIMEOUT 15)
     endif()
 
     if(NOT EMSCRIPTEN AND NOT IOS AND NOT BARE_METAL AND

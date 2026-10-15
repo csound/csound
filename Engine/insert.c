@@ -24,6 +24,7 @@
 */
 
 #include "csoundCore.h" /*  INSERT.C */
+#include "csound_message_callbacks.h"
 #include "oload.h"
 #include "udo.h"
 #include "aops.h"       /* for cond's */
@@ -174,9 +175,19 @@ int32_t instance_has_async_refs(const INSDS *ip)
   return ip != NULL && ATOMIC_GET(ip->async_ref_count) != 0;
 }
 
-int32_t instance_is_reclaimable(const INSDS *ip)
+static int32_t instance_has_perf_refs(const CSOUND *csound, const INSDS *ip)
 {
+  long retired = ATOMIC_GET(ip->retired_epoch);
+  long current = ATOMIC_GET(csound->performance_epoch);
+  return (retired & 1L) && retired == current;
+}
+
+int32_t instance_is_reclaimable(const CSOUND *csound, const INSDS *ip)
+{
+  /* Observe inactive first: retirement publishes its epoch before actflg.
+     Reading the render epoch first could miss a concurrent retirement. */
   return ip != NULL && !ATOMIC_GET8(ip->actflg) &&
+         !instance_has_perf_refs(csound, ip) &&
          !instance_has_async_refs(ip) && !ATOMIC_GET(ip->init_running) &&
          !ATOMIC_GET(ip->turnoff_pending);
 }
@@ -259,6 +270,18 @@ INSTANCE_INIT_RESULT instance_init_finish(CSOUND *csound, INSDS *ip)
   return result;
 }
 
+/* Final scheduling can expire a short note. A concurrent turnoff request
+   also owns init_done, so publish readiness under the same state lock. */
+static void instance_publish_ready(CSOUND *csound, INSDS *ip)
+{
+  async_instance_lock(csound);
+  if (ATOMIC_GET8(ip->actflg) &&
+      ATOMIC_GET(ip->turnoff_pending) == INSTANCE_TURNOFF_NONE &&
+      ATOMIC_GET(ip->init_running) == 0)
+    ATOMIC_SET(ip->init_done, 1);
+  async_instance_unlock(csound);
+}
+
 void instance_init_request_turnoff(CSOUND *csound, INSDS *ip)
 {
   int32_t state;
@@ -324,7 +347,7 @@ void instance_process_pending_turnoffs(CSOUND *csound)
     if (state == INSTANCE_TURNOFF_FINALIZING ||
         state == INSTANCE_TURNOFF_RECLAIM) {
       waitForReaders = ATOMIC_GET(ip->free_pending) && !ip->linked &&
-                       instance_has_async_refs(ip);
+                       (instance_has_async_refs(ip) || instance_has_perf_refs(csound, ip));
       if (waitForReaders) {
         ATOMIC_SET(ip->turnoff_pending, INSTANCE_TURNOFF_RECLAIM);
         enqueue_init_turnoff_locked(csound, ip);
@@ -364,19 +387,19 @@ static INSDS *take_inactive_instance(CSOUND *csound, INSTRTXT *tp)
 
   inactive_instance_lock(csound);
   current = tp->act_instance;
-  while (current != NULL && !instance_is_reclaimable(current)) {
+  while (current != NULL && !instance_is_reclaimable(csound, current)) {
     previous = current;
-    current = current->nxtact;
+    current = current->nxtinactive;
   }
   if (current == NULL) {
     inactive_instance_unlock(csound);
     return NULL;
   }
   if (previous == NULL)
-    tp->act_instance = current->nxtact;
+    tp->act_instance = current->nxtinactive;
   else
-    previous->nxtact = current->nxtact;
-  current->nxtact = NULL;
+    previous->nxtinactive = current->nxtinactive;
+  current->nxtinactive = NULL;
   inactive_instance_unlock(csound);
   /* A previous deactivation may have deferred this close until its final
      asynchronous reader released the instance. No reader remains here. */
@@ -422,7 +445,7 @@ void recycle_inactive_instance(CSOUND *csound, INSDS *ip)
 
   /* The caller owns an inactive instance detached from this reuse list. */
   inactive_instance_lock(csound);
-  ip->nxtact = tp->act_instance;
+  ip->nxtinactive = tp->act_instance;
   tp->act_instance = ip;
   inactive_instance_unlock(csound);
 }
@@ -461,8 +484,11 @@ void realtime_spin_lock_destroy(spin_lock_t *spinlock)
 
 int32_t alloc_queue_lock_init(CSOUND *csound)
 {
-  csound->alloc_queue_items = 0;
+  ATOMIC_SET(csound->alloc_queue_items, 0);
   csound->alloc_queue_active = 0;
+  ATOMIC_SET(csound->alloc_queue_stopping, 0);
+  ATOMIC_SET(csound->alloc_queue_midi, 0);
+  csound->midi_event_pending = 0;
   csound->alloc_queue_wp = 0;
   return realtime_spin_lock_init(&csound->alloc_queue_spinlock);
 }
@@ -482,14 +508,17 @@ int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
     return CSOUND_ERROR;
 
   alloc_queue_lock(csound);
-  if (UNLIKELY(csound->alloc_queue_items >= MAX_ALLOC_QUEUE)) {
+  if (UNLIKELY(ATOMIC_GET(csound->alloc_queue_stopping) ||
+               ATOMIC_GET(csound->alloc_queue_items) >= MAX_ALLOC_QUEUE)) {
     result = CSOUND_ERROR;
   }
   else {
     wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp] = *data;
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
-    csound->alloc_queue_items++;
+    ATOMIC_INCR(csound->alloc_queue_items);
+    if (data->type == ALLOC_DATA_MIDI_EVENT)
+      ATOMIC_INCR(csound->alloc_queue_midi);
   }
   alloc_queue_unlock(csound);
   return result;
@@ -501,11 +530,11 @@ static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
   int32_t result = 0;
 
   alloc_queue_lock(csound);
-  if (csound->alloc_queue_items > 0) {
+  if (ATOMIC_GET(csound->alloc_queue_items) > 0) {
     *data = csound->alloc_queue[*readPosition];
     *readPosition = *readPosition + 1 < MAX_ALLOC_QUEUE ?
       *readPosition + 1 : 0;
-    csound->alloc_queue_items--;
+    ATOMIC_DECR(csound->alloc_queue_items);
     csound->alloc_queue_active++;
     result = 1;
   }
@@ -518,15 +547,35 @@ int32_t alloc_queue_has_pending(CSOUND *csound)
   int32_t result;
 
   alloc_queue_lock(csound);
-  result = csound->alloc_queue_items > 0 || csound->alloc_queue_active > 0;
+  result = ATOMIC_GET(csound->alloc_queue_items) > 0 || csound->alloc_queue_active > 0;
   alloc_queue_unlock(csound);
   return result;
 }
 
-static void alloc_queue_complete(CSOUND *csound)
+/* Keep MIDI parsing on the performance thread, but do not let later note-off
+   or controller messages overtake an accepted asynchronous note-on. */
+int32_t alloc_queue_midi_ready(CSOUND *csound, int32_t wait_for_init)
+{
+  /* Capacity is advisory; enqueue checks it again under the queue lock. */
+  return !ATOMIC_GET(csound->alloc_queue_stopping) &&
+         (!wait_for_init || ATOMIC_GET(csound->alloc_queue_midi) == 0) &&
+         ATOMIC_GET(csound->alloc_queue_items) < MAX_ALLOC_QUEUE;
+}
+
+/* Close admission before allowing the worker to exit. A producer already
+   holding the queue lock finishes before the worker's final empty check. */
+void alloc_queue_stop(CSOUND *csound)
+{
+  ATOMIC_SET(csound->alloc_queue_stopping, 1);
+  ATOMIC_SET(csound->event_insert_loop, 0);
+}
+
+static void alloc_queue_complete(CSOUND *csound, int32_t type)
 {
   alloc_queue_lock(csound);
   csound->alloc_queue_active--;
+  if (type == ALLOC_DATA_MIDI_EVENT)
+    ATOMIC_DECR(csound->alloc_queue_midi);
   alloc_queue_unlock(csound);
 }
 
@@ -646,16 +695,67 @@ static void print_messages(CSOUND *csound, int32_t attr, const char *str){
 #endif
 }
 
-#define QUEUESIZ 64
+/* Use a word CAS rather than a platform lock: on macOS csoundSpin* uses
+   os_unfair_lock. Realtime startup requires atomic support; producers never
+   wait for this word. */
+static int32_t message_string_trylock(CSOUND *csound)
+{
+  long expected = 0, desired = 1;
+  return ATOMIC_CMP_XCH(&csound->message_string_queue_lock, desired, expected);
+}
+
+static void message_string_unlock(CSOUND *csound)
+{
+  ATOMIC_SET(csound->message_string_queue_lock, 0);
+}
+
+/* Only the worker and startup/shutdown paths may wait. Sleeping lets a
+   preempted producer finish its copy even on a single-core system. */
+static void message_string_lock(CSOUND *csound)
+{
+  while (message_string_trylock(csound) != 0)
+    csoundSleep(1);
+}
 
 static void message_string_enqueue(CSOUND *csound, int32_t attr,
                                    const char *str) {
-  unsigned long wp = csound->message_string_queue_wp;
-  csound->message_string_queue[wp].attr = attr;
-  strNcpy(csound->message_string_queue[wp].str, str, MAX_MESSAGE_STR);
-  //csound->message_string_queue[wp].str[MAX_MESSAGE_STR-1] = '\0';
-  csound->message_string_queue_wp = wp + 1 < QUEUESIZ ? wp + 1 : 0;
-  ATOMIC_INCR(csound->message_string_queue_items);
+  unsigned long wp;
+  message_string_queue_t *queue;
+  if (message_string_trylock(csound) != 0) {
+    ATOMIC_INCR(csound->message_string_queue_dropped);
+    return;
+  }
+  /* Stop can free the queue while a caller holds the old callback. Protect
+     the pointer lookup as well as the copy with the same one-attempt CAS. */
+  queue = csound->message_string_queue;
+  if (queue == NULL || !ATOMIC_GET(queue->accepting) ||
+      csound->message_string_queue_items == MAX_MESSAGE_QUEUE) {
+    message_string_unlock(csound);
+    ATOMIC_INCR(csound->message_string_queue_dropped);
+    return;
+  }
+  wp = csound->message_string_queue_wp;
+  queue->messages[wp].attr = attr;
+  strNcpy(queue->messages[wp].str, str, MAX_MESSAGE_STR);
+  csound->message_string_queue_wp = (wp + 1) % MAX_MESSAGE_QUEUE;
+  csound->message_string_queue_items++;
+  message_string_unlock(csound);
+}
+
+static int32_t message_string_dequeue(CSOUND *csound, unsigned long *rp,
+                                      message_string_t *message)
+{
+  /* Only the worker dequeues. Producers never wait for this bounded copy. */
+  message_string_lock(csound);
+  if (csound->message_string_queue_items == 0) {
+    message_string_unlock(csound);
+    return 0;
+  }
+  *message = csound->message_string_queue->messages[*rp];
+  *rp = (*rp + 1) % MAX_MESSAGE_QUEUE;
+  csound->message_string_queue_items--;
+  message_string_unlock(csound);
+  return 1;
 }
 
 static void no_op(CSOUND *csound, int32_t attr,
@@ -667,6 +767,66 @@ static void no_op(CSOUND *csound, int32_t attr,
   IGN(format);
   IGN(args);
 };
+
+/* Install before starting the worker, and restore only after joining it. */
+int32_t realtime_message_queue_start(CSOUND *csound)
+{
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+  /* The serial ATOMIC_CMP_XCH fallback cannot guard concurrent producers.
+     Reject here too, even without the engine startup check. */
+  return CSOUND_ERROR;
+#endif
+  message_string_queue_t *queue;
+  queue = (message_string_queue_t *)csound->Calloc(csound, sizeof(*queue));
+  if (queue == NULL)
+    return CSOUND_MEMORY;
+  message_string_lock(csound);
+  if (csound->message_string_queue != NULL) {
+    message_string_unlock(csound);
+    csound->Free(csound, queue);
+    return CSOUND_ERROR;
+  }
+  csound->message_string_queue = queue;
+  ATOMIC_SET(queue->accepting, 1);
+  csound->message_string_queue_wp = csound->message_string_queue_items = 0;
+  ATOMIC_SET(csound->message_string_queue_dropped, 0);
+  queue->saved_callback = csoundLoadMessageCallback(csound);
+  queue->saved_string_callback = csoundLoadMessageStringCallback(csound);
+  queue->output = queue->saved_string_callback ? queue->saved_string_callback :
+                                                print_messages;
+  message_string_unlock(csound);
+  if (csound->oparms_.msglevel)
+    csoundSetMessageStringCallback(csound, message_string_enqueue);
+  else
+    csoundSetMessageCallback(csound, no_op);
+  return CSOUND_SUCCESS;
+}
+
+void realtime_message_queue_stop(CSOUND *csound)
+{
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+  return; /* Startup cannot install a queue on this build. */
+#endif
+  message_string_queue_t *queue;
+  message_string_lock(csound);
+  queue = csound->message_string_queue;
+  if (queue == NULL) {
+    message_string_unlock(csound);
+    return;
+  }
+  ATOMIC_SET(queue->accepting, 0);
+  csound->message_string_queue = NULL;
+  message_string_unlock(csound);
+  csoundStoreMessageCallback(csound, queue->saved_callback);
+  csoundStoreMessageStringCallback(csound, queue->saved_string_callback);
+  csound->Free(csound, queue);
+  /* Report on the control thread after restoring host output. Producers
+     must not wait for output; the callback may log again or stop the queue. */
+  long dropped = ATOMIC_GET(csound->message_string_queue_dropped);
+  if (dropped > 0 && (csound->oparms->msglevel & CS_WARNMSG))
+    csound->MessageS(csound, CSOUNDMSG_WARNING,
+                     Str("%ld realtime messages dropped\n"), dropped);
+}
 
 /* do init pass for this instr */
 static int32_t init_pass(CSOUND *csound, INSDS *ip) {
@@ -758,31 +918,12 @@ static int32_t realtime_reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids)
 uintptr_t event_insert_thread(void *p) {
   CSOUND *csound = (CSOUND *) p;
   float wakeup = (1000*csound->ksmps/csound->esr);
-  unsigned long rp = 0, items, rpm = 0;
-  message_string_queue_t *mess = NULL;
-  void (*csoundMessageStringCallback)(CSOUND *csound,
-                                      int32_t attr,
-                                      const char *str) = NULL;
-  void (*csoundMessageCallback)(CSOUND *csound,
-                                int32_t attr,
-                                const char *format,
-                                va_list args)
-    = csound->csoundMessageCallback_;
-  if(csound->oparms_.msglevel){
-    if(csound->message_string_queue == NULL)
-      csound->message_string_queue = (message_string_queue_t *)
-        csound->Calloc(csound, QUEUESIZ*sizeof(message_string_queue_t));
-    mess = csound->message_string_queue;
-    if(csound->csoundMessageStringCallback)
-      csoundMessageStringCallback = csound->csoundMessageStringCallback;
-    else csoundMessageStringCallback = print_messages;
-    csoundSetMessageStringCallback(csound, message_string_enqueue);
-  } else {
-    csoundSetMessageCallback(csound, no_op);
-  }
+  unsigned long rp = 0, rpm = 0;
+  message_string_queue_t *mess = csound->message_string_queue;
 
   for (;;) {
     ALLOC_DATA data;
+    int32_t stopping;
     uint32_t processed = 0;
 
     while (processed < MAX_ALLOC_QUEUE &&
@@ -863,27 +1004,34 @@ uintptr_t event_insert_thread(void *p) {
       }
       if (csound->init_pass_threadlock)
         csoundUnlockMutex(csound->init_pass_threadlock);
-      alloc_queue_complete(csound);
+      alloc_queue_complete(csound, data.type);
       processed++;
     }
     diskin2_async_drain_deferred(csound);
     if(processed == 0)
       csoundSleep((int32_t) ((int32_t) wakeup > 0 ? wakeup : 1));
-    items = ATOMIC_GET(csound->message_string_queue_items);
-    while(items) {
-      if(mess != NULL)
-        csoundMessageStringCallback(csound, mess[rpm].attr,  mess[rpm].str);
-      ATOMIC_DECR(csound->message_string_queue_items);
-      items--;
-      rpm = rpm + 1 < QUEUESIZ ? rpm + 1 : 0;
+    stopping = !ATOMIC_GET(csound->event_insert_loop) &&
+               !alloc_queue_has_pending(csound);
+    /* Close admission before the final drain. No more than one ring can
+       remain, and callbacks cannot extend shutdown by logging again.
+       Until cleanup joins us, late logs are dropped rather than running
+       the host output callback on a producer (possibly the audio thread). */
+    if (stopping && mess != NULL)
+      ATOMIC_SET(mess->accepting, 0);
+    /* A callback may log again. Bound each drain and call it without a lock. */
+    if (mess != NULL) {
+      message_string_t message;
+      uint32_t count = 0;
+      while (count++ < MAX_MESSAGE_QUEUE &&
+             message_string_dequeue(csound, &rpm, &message))
+        mess->output(csound, message.attr, message.str);
     }
     /* Stop requests reject new work at the engine boundary. Drain all
        published work so init depths and copied score data are not stranded. */
-    if (!csound->event_insert_loop && !alloc_queue_has_pending(csound))
+    if (stopping)
       break;
   }
 
-  csoundSetMessageCallback(csound, csoundMessageCallback);
   return (uintptr_t) NULL;
 }
 
@@ -1332,12 +1480,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
   error = csound->oparms->realtime ? realtime_init_pass(csound, ip) :
     init_pass(csound, ip);
   initResult = instance_init_finish(csound, ip);
-  if (initResult == INSTANCE_INIT_COMPLETE && error == 0) {
-    ATOMIC_SET(ip->init_done, 1);
-  }
-  else {
-    ATOMIC_SET(ip->init_done, 0);
-  }
+  ATOMIC_SET(ip->init_done, 0);
   if (initResult == INSTANCE_INIT_TURNOFF) {
     return error != 0 ? error : csound->inerrcnt;
   }
@@ -1394,6 +1537,8 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       csound->Message(csound, Str("instr %d now active:\n"), insno);
     show_allocs(csound);
   }
+  if (initResult == INSTANCE_INIT_COMPLETE && error == 0)
+    instance_publish_ready(csound, ip);
   if (newevtp->pinstance != NULL) {
     /* place instance on output var memory */
     memcpy(newevtp->pinstance, &ip, sizeof(INSDS *));
@@ -1669,12 +1814,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   if(evt.p) csound->Free(csound, evt.p);
   csound->init_event = NULL;
   initResult = instance_init_finish(csound, ip);
-  if (initResult == INSTANCE_INIT_COMPLETE && error == 0) {
-    ATOMIC_SET(ip->init_done, 1);
-  }
-  else {
-    ATOMIC_SET(ip->init_done, 0);
-  }
+  ATOMIC_SET(ip->init_done, 0);
   if (initResult == INSTANCE_INIT_TURNOFF) {
     return error != 0 ? error : csound->inerrcnt;
   }
@@ -1688,6 +1828,8 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   }
   ip->tieflag = ip->reinitflag = 0;
   csound->tieflag = csound->reinitflag = 0;
+  if (initResult == INSTANCE_INIT_COMPLETE && error == 0)
+    instance_publish_ready(csound, ip);
 
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
@@ -1976,8 +2118,10 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
           nxtp->prvact = current->prvact;
         }
         current->prvact = NULL;
-        current->nxtact = NULL;
-        /* Prevent a loop in kperf() if an inactive instance is passed in. */
+        /* A render callback may have retained this successor before turnoff.
+           Keep it until the node can be reused in a later render interval. */
+        ATOMIC_SET(current->retired_epoch,
+                   ATOMIC_GET(csound->performance_epoch));
         async_instance_lock(csound);
         ATOMIC_SET(current->init_done, 0);
         ATOMIC_SET8(current->actflg, 0);
@@ -1992,7 +2136,7 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
             csound->engineState.instrtxtp[current->insno] ==
               current->instr) {
           inactive_instance_lock(csound);
-          current->nxtact =
+          current->nxtinactive =
             csound->engineState.instrtxtp[current->insno]->act_instance;
           csound->engineState.instrtxtp[current->insno]->act_instance =
             current;
@@ -2202,7 +2346,7 @@ void free_inactive_instances(CSOUND *csound)
       prvip = NULL;
       prvnxtloc = &txtp->instance;
       do {
-        if (instance_is_reclaimable(ip)) {
+        if (instance_is_reclaimable(csound, ip)) {
           cnt++;
           if ((nxtip = ip->nxtinstance) != NULL)
             nxtip->prvinstance = prvip;
@@ -2220,7 +2364,7 @@ void free_inactive_instances(CSOUND *csound)
         }
         else {
           if (!ip->actflg && ip->linked) {
-            ip->nxtact = pending;
+            ip->nxtinactive = pending;
             pending = ip;
           }
           prvip = ip;
@@ -2263,7 +2407,7 @@ void free_inactive_instances(CSOUND *csound)
       if (csound->dead_instr_pool[i] != NULL) {
         INSDS *active = csound->dead_instr_pool[i]->instance;
         while (active != NULL) {
-          if (!instance_is_reclaimable(active)) {
+          if (!instance_is_reclaimable(csound, active)) {
             // add_to_deadpool(csound,csound->dead_instr_pool[i]);
             break;
           }
@@ -2902,7 +3046,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     else
       tp->instance = ip;
     tp->lst_instance = ip;
-    ip->nxtact = tp->act_instance;
+    ip->nxtinactive = tp->act_instance;
     tp->act_instance = ip;
     ip->linked = 1;
     inactive_instance_unlock(csound);
@@ -2999,7 +3143,8 @@ static void free_unlinked_instance(CSOUND *csound, INSDS *ip)
 {
   /* The pending-turnoff handoff polls readers before reaching this function.
      Never wait here: delete can run while its caller owns an engine lock. */
-  if (UNLIKELY(instance_has_async_refs(ip)))
+  if (UNLIKELY(instance_has_async_refs(ip) ||
+               instance_has_perf_refs(csound, ip)))
     return;
 
   // deactivate any opcodes

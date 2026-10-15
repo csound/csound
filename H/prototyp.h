@@ -85,7 +85,7 @@ extern "C" {
   INSDS *allocate_or_take_instance(CSOUND *, INSTRTXT *, int32_t);
   void recycle_inactive_instance(CSOUND *, INSDS *);
   int32_t instance_has_async_refs(const INSDS *);
-  int32_t instance_is_reclaimable(const INSDS *);
+  int32_t instance_is_reclaimable(const CSOUND *, const INSDS *);
   typedef enum {
     INSTANCE_INIT_DEFERRED = 0,
     INSTANCE_INIT_COMPLETE,
@@ -115,6 +115,10 @@ extern "C" {
   int32_t alloc_queue_enqueue(CSOUND *csound,
                               const struct _alloc_data_ *data);
   int32_t alloc_queue_has_pending(CSOUND *csound);
+  int32_t alloc_queue_midi_ready(CSOUND *csound, int32_t wait_for_init);
+  void alloc_queue_stop(CSOUND *csound);
+  int32_t realtime_message_queue_start(CSOUND *csound);
+  void realtime_message_queue_stop(CSOUND *csound);
   int32_t alloc_queue_lock_init(CSOUND *csound);
   void alloc_queue_lock_destroy(CSOUND *csound);
   int32_t realtime_spin_lock_init(spin_lock_t *);

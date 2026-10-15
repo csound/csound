@@ -47,6 +47,12 @@ starts. Write input frames through `csoundGetSpin` and read output through
 `csoundGetSpout`. Each performance call processes `ksmps` frames.
 The output pointer is read-only.
 
+Use one performance thread per Csound instance, and do not call performance
+from a Csound callback. `csoundPerformKsmps` returns zero while running, a
+positive value when finished, or a negative value on error. A call during an
+active render interval returns `CSOUND_ERROR`; this check does not serialize
+concurrent callers. The host must prevent overlapping performance calls.
+
 The performance thread interface now belongs to the main Csound library.
 Use `csPerfThread.h` from C or `csPerfThread.hpp` from C++ when Csound must
 perform on its own thread.
@@ -61,6 +67,17 @@ After start, it sends events to the real-time queue.
 Both functions return `void`. The `async` argument selects synchronous or
 asynchronous operation. Use the current
 [public header](../../include/csound.h) for signatures and state requirements.
+
+Async event and table-copy calls return without waiting for queue space. If the
+queue rejects a request, calls that return `void` report at most one warning per
+instance between resets. Async compilation and the internal kill call return an
+error when they cannot queue a request.
+
+In `--realtime` mode, synchronous table copies take no mutex. Hosts must keep
+them separate from performance, table changes, and other host table copies.
+Code using the retained internal `csoundKillInstance` symbol must also keep the
+active-instance list stable during lookup and turnoff. This symbol is not part
+of the Csound 7 public API.
 
 ## Run one opcode from C
 

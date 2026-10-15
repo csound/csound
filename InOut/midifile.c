@@ -875,6 +875,21 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
   return nRead;
 }
 
+/* Reading bytes can wait for asynchronous note init. File time must continue
+   to follow orchestra cycles while those bytes remain buffered. */
+void csoundMIDIFileAdvance(CSOUND *csound)
+{
+  midifile_t *midifile = MIDIFILE;
+  while (midifile != NULL) {
+    if (!midifile->pause &&
+        midifile->global_kcounter < csound->global_kcounter) {
+      midifile->counter += 1. / midifile->temposcal;
+      midifile->global_kcounter = csound->global_kcounter;
+    }
+    midifile = midifile->nxt;
+  }
+}
+
 /* this reads all MIDI files in the list headed by MIDIFILE
  */
 int32_t csoundMIDIFileRead(CSOUND *csound, unsigned char *buf,
@@ -882,13 +897,8 @@ int32_t csoundMIDIFileRead(CSOUND *csound, unsigned char *buf,
   midifile_t *midifile = MIDIFILE;
   int32_t n = 0;
 
+  csoundMIDIFileAdvance(csound);
   while(midifile != NULL) {
-    if(!midifile->pause &&
-       midifile->global_kcounter < csound->global_kcounter) {
-      // increment counter always in sync with global kcounter
-      midifile->counter += 1./midifile->temposcal;
-      midifile->global_kcounter = csound->global_kcounter;
-    }
     n += midi_file_read(csound, midifile, buf+n, nbytes-n);
     midifile = midifile->nxt;
   }
