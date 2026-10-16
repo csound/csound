@@ -391,6 +391,19 @@ extern "C" {
   CSOUND_WASI_COMPILE_JUMP *csoundWasiCompileJumpContext(CSOUND *csound);
   CSOUND_WASI_COMPILE_JUMP *csoundWasiSwapCompileJumpContext(
       CSOUND_WASI_COMPILE_JUMP *context);
+  /* Only explicitly owned parser storage belongs to this thread-local scope.
+     Engine definitions and concurrent render allocations never enter it. */
+  typedef struct {
+    CSOUND *csound;
+    void *allocations;
+  } CSOUND_WASI_ALLOC_SCOPE;
+  CSOUND_WASI_ALLOC_SCOPE *csoundWasiSwapAllocScope(
+      CSOUND_WASI_ALLOC_SCOPE *scope);
+  int32_t csoundWasiHasAllocScope(CSOUND *csound);
+  void *csoundWasiOwnAllocation(CSOUND *csound, void *ptr,
+                              void (*dispose)(CSOUND *, void *));
+  void csoundWasiFinishAllocScope(CSOUND_WASI_ALLOC_SCOPE *scope,
+                                 int32_t discard);
 #ifdef CSOUND_WASI_BROWSER
   void csoundRealtimeApiStopWasi(CSOUND *csound);
 #endif

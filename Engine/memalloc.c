@@ -98,6 +98,11 @@ typedef struct memAllocBlock_s {
 #endif
     struct memAllocBlock_s  *prv;       /* previous structure in chain  */
     struct memAllocBlock_s  *nxt;       /* next structure in chain      */
+#ifdef CSOUND_WASI_REALTIME
+    CSOUND_WASI_ALLOC_SCOPE *owner;
+    struct memAllocBlock_s *owner_prv, *owner_nxt;
+    void (*dispose)(CSOUND *, void *);
+#endif
 } memAllocBlock_t;
 #ifdef ALIGN_MEMORY
  #define MALIGN (sizeof(cs_float)-1)
@@ -113,8 +118,82 @@ typedef struct memAllocBlock_s {
 
 #define MEMALLOC_DB (csound->memalloc_db)
 
+#ifdef CSOUND_WASI_REALTIME
+static _Thread_local CSOUND_WASI_ALLOC_SCOPE *alloc_scope;
+
+CSOUND_WASI_ALLOC_SCOPE *csoundWasiSwapAllocScope(
+    CSOUND_WASI_ALLOC_SCOPE *scope)
+{
+    CSOUND_WASI_ALLOC_SCOPE *previous = alloc_scope;
+    alloc_scope = scope;
+    return previous;
+}
+
+int32_t csoundWasiHasAllocScope(CSOUND *csound)
+{
+    return alloc_scope != NULL && alloc_scope->csound == csound;
+}
+
+/* Called with the allocation list locked. A node may leave the AST during
+   rewriting, so ownership follows its allocation, not its tree links. */
+static void unlink_owner(memAllocBlock_t *block)
+{
+    if (block->owner == NULL) return;
+    if (block->owner_prv != NULL)
+      block->owner_prv->owner_nxt = block->owner_nxt;
+    else
+      block->owner->allocations = block->owner_nxt;
+    if (block->owner_nxt != NULL)
+      block->owner_nxt->owner_prv = block->owner_prv;
+    block->owner = NULL;
+}
+
+void *csoundWasiOwnAllocation(CSOUND *csound, void *ptr,
+                            void (*dispose)(CSOUND *, void *))
+{
+    if (ptr != NULL && csoundWasiHasAllocScope(csound)) {
+      memAllocBlock_t *block = HDR_PTR(ptr);
+      CSOUND_MEM_SPINLOCK
+      if (block->owner == NULL) {
+        block->owner = alloc_scope;
+        block->dispose = dispose;
+        block->owner_prv = NULL;
+        block->owner_nxt = alloc_scope->allocations;
+        if (block->owner_nxt != NULL)
+          block->owner_nxt->owner_prv = block;
+        alloc_scope->allocations = block;
+      }
+      CSOUND_MEM_SPINUNLOCK
+    }
+    return ptr;
+}
+
+void csoundWasiFinishAllocScope(CSOUND_WASI_ALLOC_SCOPE *scope,
+                               int32_t discard)
+{
+    CSOUND *csound = scope->csound;
+    while (scope->allocations != NULL) {
+      memAllocBlock_t *block = scope->allocations;
+      void (*dispose)(CSOUND *, void *) = block->dispose;
+      CSOUND_MEM_SPINLOCK
+      unlink_owner(block);
+      CSOUND_MEM_SPINUNLOCK
+      if (discard) {
+        if (dispose != NULL) dispose(csound, DATA_PTR(block));
+        else csoundFree(csound, DATA_PTR(block));
+      }
+    }
+}
+#endif
+
 static void memdie(CSOUND *csound, size_t nbytes)
 {
+#ifdef CSOUND_WASI_REALTIME
+    /* Allocation failure can interrupt a persistent engine update too. It
+       must not look like an ordinary, recoverable source error. */
+    CSOUND_WASI_COMPILE_JUMP *context = csoundWasiCompileJumpContext(csound);
+    if (context != NULL) context->enabled = 0;
+#endif
     csound->ErrorMsg(csound, Str("memory allocate failure for %zd \n"),
                              nbytes);
     csound->LongJmp(csound, CSOUND_MEMORY);
@@ -137,6 +216,9 @@ void *csoundMalloc(CSOUND *csound, size_t size)
         memdie(csound, size);     /* does a long jump */
     }
     /* link into chain */
+#ifdef CSOUND_WASI_REALTIME
+    ((memAllocBlock_t*) p)->owner = NULL;
+#endif
 #ifdef MEMDEBUG
     ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
     ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
@@ -177,6 +259,9 @@ void *csoundCalloc(CSOUND *csound, size_t size)
       memdie(csound, size);     /* does longjump */
     }
     /* link into chain */
+#ifdef CSOUND_WASI_REALTIME
+    ((memAllocBlock_t*) p)->owner = NULL;
+#endif
 #ifdef MEMDEBUG
     ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
     ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
@@ -217,6 +302,9 @@ void *csoundCallocAligned(CSOUND *csound, size_t size, size_t align) {
     
     memset(p,0,ALIGN_BYTES(size+HDR_SIZE,align));
     /* link into chain */
+#ifdef CSOUND_WASI_REALTIME
+    ((memAllocBlock_t*) p)->owner = NULL;
+#endif
 #ifdef MEMDEBUG
     ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
     ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
@@ -265,6 +353,9 @@ void csoundFree(CSOUND *csound, void *p)
     CSOUND_MEM_SPINLOCK
 #endif
     /* unlink from chain */
+#ifdef CSOUND_WASI_REALTIME
+    unlink_owner(pp);
+#endif
     {
       memAllocBlock_t *prv = pp->prv, *nxt = pp->nxt;
       if (nxt != NULL)
@@ -328,6 +419,13 @@ void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
     }
     /* create new header and update chain pointers */
     pp = (memAllocBlock_t*) p;
+#ifdef CSOUND_WASI_REALTIME
+    if (pp->owner != NULL) {
+      if (pp->owner_prv != NULL) pp->owner_prv->owner_nxt = pp;
+      else pp->owner->allocations = pp;
+      if (pp->owner_nxt != NULL) pp->owner_nxt->owner_prv = pp;
+    }
+#endif
 #ifdef MEMDEBUG
     pp->magic = MEMALLOC_MAGIC;
     pp->ptr = DATA_PTR(pp);

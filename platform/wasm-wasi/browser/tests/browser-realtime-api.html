@@ -221,6 +221,37 @@ od
         );
       }
       checks.push("syntax, preprocessor, and unsupported file errors recover without restart");
+      check(
+        (await csound.compileOrc(`
+chn_k "kept-result", 3
+instr KeepOnError
+  chnset 71, "kept-result"
+endin
+`)) === 0,
+        "named instrument setup failed",
+      );
+      check(
+        (await csound.compileOrc(`
+instr KeepOnError
+  chnset 99, "kept-result"
+endin
+instr 98
+  Sarr[] fillarray "x", "y"
+  kidx init 0
+  prints Sarr[kidx]
+endin
+`)) !== 0,
+        "invalid replacement compiled",
+      );
+      check(
+        (await csound.evalCode("schedule KeepOnError, 0, 0.01\nreturn 0")) === 0,
+        "could not schedule the original named instrument after rejection",
+      );
+      await until(
+        async () => (await csound.getControlChannel("kept-result")) === 71,
+        "failed compilation changed the existing named instrument",
+      );
+      checks.push("rejected compilation preserves the existing named instrument");
       for (const action of [
         () => csound.compileOrc("return 0\0return 1"),
         () => csound.evalCode("return 0\0return 1"),
@@ -287,6 +318,54 @@ od
         );
         checks.push(
           "repeated incomplete preprocessing frees scanners, buffers, and partial macros",
+        );
+        // These faults occur after preprocessing: verification jumps out for
+        // invalid array targets and typed p-fields; compilation rejects a
+        // performance-only string read used at init time. Local definitions
+        // ensure each attempt owns a substantial tree and variable pool.
+        const locals = Array.from({ length: 128 }, (_, index) => `iHeap${index} init 1`).join("\n");
+        const failedEdits = [
+          ["syntax", "syntax nonsense @@@"],
+          ["typed p-field", "p1:i = 1"],
+          ["missing array", "kMissing[0] = 1"],
+          ["missing argument", 'printf "%d", 1, kMissing'],
+          [
+            "UDO argument type",
+            "endin\nopcode HeapFailure(karg:MissingType):i\nxout 1\nendop\ninstr 95",
+          ],
+          ["unfinished string", "Sbad = {{" + "x".repeat(100000)],
+          ["if before failure", "if iHeap0 > 0 then\niHeap1 = 2\nendif\np1:i = 1"],
+          ["while before failure", "while iHeap0 < 2 do\niHeap0 += 1\nod\np1:i = 1"],
+          [
+            "earlier instruments",
+            `endin\ninstr 96\n${locals}\nendin\ninstr 97\n${locals}\np1:i = 1`,
+          ],
+          ["string array phase", 'Sarr[] fillarray "x", "y"\nkidx init 0\nprints Sarr[kidx]'],
+        ];
+        const compilerHeap = [];
+        for (const [name, fault] of failedEdits) {
+          const edit = `instr 98\n${locals}\n${fault}\nendin`;
+          phase = "warm compiler failure: " + name;
+          check((await csound.compileOrc(edit)) !== 0, "invalid edit compiled: " + name);
+          const before = await freeHeap();
+          for (let attempt = 0; attempt < 8; attempt++) {
+            phase = "repeat compiler failure: " + name;
+            check((await csound.compileOrc(edit)) !== 0, "invalid edit compiled: " + name);
+          }
+          const after = await freeHeap();
+          compilerHeap.push({ name, before, after });
+          check(
+            (await csound.compileOrc("instr 98\nendin")) === 0 &&
+              (await csound.evalCode("return 67")) === 67,
+            "valid edit failed after recovery: " + name,
+          );
+        }
+        check(
+          compilerHeap.every(({ before, after }) => before - after < 65536),
+          "failed edits retained compiler heap: " + JSON.stringify(compilerHeap),
+        );
+        checks.push(
+          "repeated parsing, verification, and compilation failures release temporary state",
         );
         phase = "held evaluation and stop";
         probe = csound["__threadProbe"];

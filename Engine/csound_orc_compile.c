@@ -1972,6 +1972,108 @@ static void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable) {
   csound->Free(csound, typeTable);
 }
 
+/* These references may already belong to the running engine. Keep their old
+   values until a new compilation passes all checks. */
+typedef struct compile_reference {
+  INSTREF *instrument;
+  INSTREF oldInstrument;
+  OPCODINFO *opcode;
+  INSTRTXT *oldOpcodeInstrument;
+  SUBR oldPerf;
+  struct compile_reference *next;
+} COMPILE_REFERENCE;
+
+static void save_compile_reference(CSOUND *csound, COMPILE_REFERENCE **head,
+                                    INSTREF *instrument, OPCODINFO *opcode) {
+  COMPILE_REFERENCE *reference = csound->Calloc(csound, sizeof(*reference));
+  reference->instrument = instrument;
+  reference->opcode = opcode;
+  if (instrument != NULL) reference->oldInstrument = *instrument;
+  if (opcode != NULL) {
+    reference->oldOpcodeInstrument = opcode->ip;
+    reference->oldPerf = opcode->oentry->perf;
+  }
+  reference->next = *head;
+  *head = reference;
+}
+
+static void finish_compile_references(CSOUND *csound, COMPILE_REFERENCE *head,
+                                      int32_t restore, int32_t rebuildPlans) {
+  while (head != NULL) {
+    COMPILE_REFERENCE *next = head->next;
+    if (restore) {
+      if (head->instrument != NULL)
+        *head->instrument = head->oldInstrument;
+      if (head->opcode != NULL) {
+        head->opcode->ip = head->oldOpcodeInstrument;
+        head->opcode->oentry->perf = head->oldPerf;
+        if (rebuildPlans) build_user_opcode_rewire_plan(csound, head->opcode);
+      }
+    }
+    csound->Free(csound, head);
+    head = next;
+  }
+}
+
+static void discard_compile_var_pool(CSOUND *csound, CS_VAR_POOL *pool) {
+  CS_VARIABLE *variable = pool->head;
+  while (variable != NULL) {
+    CS_VARIABLE *next = variable->next;
+    if (variable->memBlock != NULL) {
+      if (variable->varType->freeVariableMemory != NULL)
+        variable->varType->freeVariableMemory(csound,
+                                              &variable->memBlock->value);
+      csound->Free(csound, variable->memBlock);
+    }
+    csound->Free(csound, variable->varName);
+    csound->Free(csound, variable);
+    variable = next;
+  }
+  /* The list also owns variables shadowed by later entries in the table. */
+  cs_hash_table_free(csound, pool->table);
+  csound->Free(csound, pool);
+}
+
+static void discard_compile_state(CSOUND *csound, ENGINE_STATE *state) {
+  INSTRTXT *instrument = state->instxtanchor.nxtinstxt;
+  while (instrument != NULL) {
+    INSTRTXT *next = instrument->nxtinstxt;
+    OPTXT *opcode = (OPTXT *)instrument;
+    /* Rejected private templates have no instances or prepared ARG lists. */
+    while (opcode != NULL) {
+      OPTXT *nextOpcode = opcode->nxtop;
+      csound->Free(csound, opcode->t.inlist);
+      csound->Free(csound, opcode->t.outlist);
+      if (opcode != (OPTXT *)instrument) csound->Free(csound, opcode);
+      opcode = nextOpcode;
+    }
+    discard_compile_var_pool(csound, instrument->varPool);
+    csound->Free(csound, instrument->insname);
+    csound->Free(csound, instrument);
+    instrument = next;
+  }
+  if (state->instrumentNames != NULL) {
+    INSTRNAME *name = cs_hash_table_get(csound, state->instrumentNames,
+                                        (char *)INSTR_NAME_FIRST);
+    /* named_instr_alloc(merge=0) stores a separately allocated INSTRNAME in
+       each wrapper's name field. This chain still owns all entries before
+       named_instr_assign_numbers, including ones replaced in the hash table. */
+    while (name != NULL) {
+      INSTRNAME *next = name->next;
+      INSTRNAME *entry = (INSTRNAME *)name->name;
+      csound->Free(csound, entry->name);
+      csound->Free(csound, entry);
+      csound->Free(csound, name);
+      name = next;
+    }
+    cs_hash_table_free(csound, state->instrumentNames);
+  }
+  cs_hash_table_mfree_complete(csound, state->constantsPool);
+  discard_compile_var_pool(csound, state->varPool);
+  csound->Free(csound, state->instrtxtp);
+  csound->Free(csound, state);
+}
+
 static char *node2string(int32_t type) {
   /* Add new nodes here as necessary -- JPff */
   switch (type) {
@@ -2188,6 +2290,9 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   CS_VARIABLE* var;
   TYPE_TABLE* typeTable;
   CS_VAR_POOL *globalPool = csound->engineState.varPool;
+  INSTRTXT *previousInstr0 = csound->instr0;
+  COMPILE_REFERENCE *references = NULL;
+  int32_t plansBuilt = 0;
 
   if (current == NULL) {
     csound->Message(csound, Str("Error: root is NULL in csound_compile_tree\n"));
@@ -2297,7 +2402,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
         print_tree(csound, "Instrument found\n", current);
       instrtxt = create_instrument(csound, current, engineState, typeTable);
       if (UNLIKELY(instrtxt == NULL)) {
-        return CSOUND_ERROR;
+        goto invalid;
       }
       prvinstxt = prvinstxt->nxtinstxt = instrtxt;
 
@@ -2317,6 +2422,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
             if (UNLIKELY(!check_instr_name(c))) {
               synterr(csound, Str("invalid name for instrument: %s\n"), c);
             }
+            csound->Free(csound, instrtxt->insname);
             instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
             strcpy(instrtxt->insname, c);
             // the parser has created a variable with the instrument name
@@ -2325,6 +2431,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
             // set it
             if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
               INSTREF src = { instrtxt, 0 }, *dest = (INSTREF *) &(ivar->memBlock->value);
+              if (engineState != &csound->engineState)
+                save_compile_reference(csound, &references, dest, NULL);
               ivar->varType->copyValue(csound, ivar->varType,
                                        dest, &src, NULL);
               // mark it as read-only
@@ -2348,6 +2456,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 
             if(named_instr_alloc(csound, c, instrtxt, insno_priority,
                                  engineState, 0) == 0) {
+              csound->Free(csound, instrtxt->insname);
               instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
               strcpy(instrtxt->insname, c);
 
@@ -2359,6 +2468,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
               if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
                 INSTREF src = { instrtxt, 0 }, *dest = (INSTREF *)
                   &(ivar->memBlock->value);
+                if (engineState != &csound->engineState)
+                  save_compile_reference(csound, &references, dest, NULL);
                 // clear readonly first so var can be overwritten in case of
                 // redefinition
                 dest->readonly = 0;
@@ -2399,6 +2510,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     case UDO_TOKEN:
       /* csound->Message(csound, "UDO found\n"); */
       instrtxt = create_instrument(csound, current, engineState, typeTable);
+      if (UNLIKELY(instrtxt == NULL)) goto invalid;
       prvinstxt = prvinstxt->nxtinstxt = instrtxt;
       opname = current->left->value->lexeme;
       OPCODINFO *opinfo =
@@ -2411,6 +2523,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
                         Str("ERROR: Could not find OPCODINFO for opname: %s, line %d"),
                         opname, current->line);
       } else {
+        if (engineState != &csound->engineState)
+          save_compile_reference(csound, &references, NULL, opinfo);
         opinfo->ip = instrtxt;
         instrtxt->insname = csoundStrdup(csound, opname);
         instrtxt->opcode_info = opinfo;
@@ -2445,22 +2559,21 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     classify_udo_rates(csound, engineState);
   }
   verify_array_read_phases(csound, engineState);
-  for (ip = engineState->instxtanchor.nxtinstxt;
-       ip != NULL; ip = ip->nxtinstxt) {
-    if (ip->opcode_info != NULL) {
-      build_user_opcode_rewire_plan(csound, ip->opcode_info);
-    }
-  }
-
 
   if (UNLIKELY(csound->synterrcnt)) {
     print_opcodedir_warning(csound);
     csound->Warning(csound, Str("%d syntax errors in orchestra.  "
                                 "compilation invalid\n"),
                     csound->synterrcnt);
-    free_typetable(csound, typeTable);
-    return CSOUND_ERROR;
+    goto invalid;
   }
+  for (ip = engineState->instxtanchor.nxtinstxt;
+       ip != NULL; ip = ip->nxtinstxt) {
+    if (ip->opcode_info != NULL) {
+      build_user_opcode_rewire_plan(csound, ip->opcode_info);
+    }
+  }
+  plansBuilt = 1;
 
   if (engineState != &csound->engineState) {
     OPDS *ids = csound->ids;
@@ -2484,9 +2597,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
                                        typeTable, ids) != CSOUND_SUCCESS)) {
         csound->ErrorMsg(csound, "%s", Str("cannot merge compiled orchestra: "
                                            "async queue is full or busy\n"));
-        enginestate_free(csound, engineState);
-        free_typetable(csound, typeTable);
-        return CSOUND_ERROR;
+        goto invalid;
       }
     }
   } else {
@@ -2574,7 +2685,18 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       csound->Message(csound, Str("Warning: Could not find or access 'A4' variable\n"));
     }
   }
+  finish_compile_references(csound, references, 0, 0);
   return CSOUND_SUCCESS;
+
+ invalid:
+  finish_compile_references(csound, references, 1, plansBuilt);
+  if (engineState != &csound->engineState) {
+    csound->instr0 = previousInstr0;
+    discard_compile_state(csound, engineState);
+  }
+  /* Initial compilation writes the persistent state owned by CSOUND. */
+  free_typetable(csound, typeTable);
+  return CSOUND_ERROR;
 }
 
 
@@ -2599,6 +2721,12 @@ static int32_t compile_orc(CSOUND *csound, const char *str, int32_t async) {
       csoundDeleteTree(csound, root);
       return CSOUND_ERROR;
     }
+#ifdef CSOUND_WASI_REALTIME
+    CSOUND_WASI_COMPILE_JUMP *context = csoundWasiCompileJumpContext(csound);
+    /* Parsing owns a cleanup path. The compiler may publish engine references,
+       so invariant/allocation failures after this point must remain fatal. */
+    if (context != NULL) context->enabled = 0;
+#endif
     retVal = csound_compile_tree(csound, root, async);
 #ifdef PARCS
     // Sanitise semantic sets here
@@ -2626,8 +2754,8 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
     context.csound = csound;
     context.enabled = 1;
     previous = csoundWasiSwapCompileJumpContext(&context);
-    /* Never borrow the render caller's jump buffer. Only parser/compiler
-       failures recover here; merge/global init disables the target. */
+    /* Never borrow the render caller's jump buffer. Only parser failures
+       recover here; compilation disables the target before publishing state. */
     if (setjmp(context.target)) {
       csoundWasiSwapCompileJumpContext(previous);
       csound->synterrcnt = 0;

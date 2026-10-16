@@ -60,6 +60,43 @@ extern "C" {
                                     const char* inArgsFound);
 }
 
+TEST_F(OrcCompileTests, RejectedLiveCompilePreservesNamedInstrument)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    ASSERT_EQ(0, csoundCompileOrc(csound, R"(
+sr = 48000
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+chn_k "kept-result", 3
+instr KeepOnError
+  chnset 71, "kept-result"
+endin
+)"));
+    ASSERT_EQ(0, csoundStart(csound));
+    ASSERT_EQ(0, csoundEvalCode(csound,
+                              "schedule KeepOnError, 0, 0.01\nreturn 0"));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    ASSERT_EQ(71, csoundGetControlChannel(csound, "kept-result", &error));
+    csoundSetControlChannel(csound, "kept-result", 0);
+    ASSERT_NE(0, csoundCompileOrc(csound, R"(
+instr KeepOnError
+  chnset 99, "kept-result"
+endin
+instr 98
+  Sarr[] fillarray "x", "y"
+  kidx init 0
+  prints Sarr[kidx]
+endin
+)"));
+    ASSERT_EQ(0, csoundEvalCode(csound,
+                              "schedule KeepOnError, 0, 0.01\nreturn 0"));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_EQ(71, csoundGetControlChannel(csound, "kept-result", &error));
+    EXPECT_EQ(0, error);
+}
+
 TEST_F (OrcCompileTests, testSpaceTrajectoryGuardPoint)
 {
     csoundCreateMessageBuffer(csound, 0);

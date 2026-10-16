@@ -535,7 +535,17 @@ static char *convert_array_type_string(CSOUND *csound,
 }
 
 /* This function gets arg type with checking type table */
+static char* get_arg_type2_impl(CSOUND* csound, TREE* tree,
+                                TYPE_TABLE* typeTable);
+
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
+{
+  /* Callers own each returned type string. Register recursive results too,
+     since a later argument can fail before its caller releases them. */
+  return csoundParserOwn(csound, get_arg_type2_impl(csound, tree, typeTable));
+}
+
+static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
   char* s;
   char* t;
@@ -772,13 +782,16 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       OENTRIES* entries = find_opcode2(csound, opname);
 
-      argTypeLeft = convert_internal_to_external(csound, argTypeLeft);
-      argTypeRight = convert_internal_to_external(csound, argTypeRight);
+      argTypeLeft = csoundParserOwn(csound,
+        convert_internal_to_external(csound, argTypeLeft));
+      argTypeRight = csoundParserOwn(csound,
+        convert_internal_to_external(csound, argTypeRight));
 
 
       len1 = (int32_t) strlen(argTypeLeft);
       len2 = (int32_t) strlen(argTypeRight);
-      inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
+      inArgTypes = csoundParserOwn(csound,
+        csound->Malloc(csound, len1 + len2 + 1));
 
 
 
@@ -839,7 +852,8 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
       len1 = (int32_t) strlen(argTypeLeft);
       len2 = (int32_t) strlen(argTypeRight);
-      inArgTypes = csound->Malloc(csound, len1 + len2 + 1);
+      inArgTypes = csoundParserOwn(csound,
+        csound->Malloc(csound, len1 + len2 + 1));
 
       memcpy(inArgTypes, argTypeLeft, len1);
       memcpy(inArgTypes + len1, argTypeRight, len2);
@@ -1102,7 +1116,9 @@ OENTRY* find_opcode(CSOUND *csound, char *opname)
 
 static OENTRIES* get_entries(CSOUND* csound, int32_t count)
 {
-  OENTRIES* x = csound->Calloc(csound, sizeof(OENTRIES*)+sizeof(OENTRY*)*count);
+  /* This lookup owns only its array; the OENTRY values remain borrowed. */
+  OENTRIES* x = csoundParserOwn(csound,
+    csound->Calloc(csound, sizeof(OENTRIES*)+sizeof(OENTRY*)*count));
   x->count = count;
   return x;
 }
@@ -2033,7 +2049,7 @@ char* convert_internal_to_external(CSOUND* csound, char* arg) {
   // so we need to remove them to avoid
   // accummulation
   // now remove any : or ; leftover in typename
-  type = remove_type_quoting(csound, arg);
+  type = csoundParserOwn(csound, remove_type_quoting(csound, arg));
 
   // Check if this is already a properly formatted struct array type
   // (e.g., ":MyType;[]")
@@ -2159,21 +2175,24 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     return NULL;
   }
 
-  char** argTypes = csound->Malloc(csound, len * sizeof(char*));
+  char** argTypes = csoundParserOwn(csound,
+    csound->Malloc(csound, len * sizeof(char*)));
   char* argString = NULL;
   TREE* current = tree;
   int32_t index = 0;
   int32_t argsLen = 0;
 
   while (current != NULL) {
-    char* argType = get_arg_type2(csound, current, typeTable);
+    char* argType = csoundParserOwn(csound,
+      get_arg_type2(csound, current, typeTable));
     if (argType == NULL) {
       // if we failed to find argType, exit from parser
       csound->Die(csound, Str("Could not parse type for argument\n"));
     } else {
       	// catch type[] in expressions to opcall - no conversion
       if(!is_external(argType)) {
-        argType = convert_internal_to_external(csound, argType);
+        argType = csoundParserOwn(csound,
+          convert_internal_to_external(csound, argType));
       }
       argsLen += strlen(argType);
       argTypes[index++] = argType;
@@ -2183,7 +2202,8 @@ char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
     current = current->next;
   }
 
-  argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
+  argString = csoundParserOwn(csound,
+    csound->Malloc(csound, (argsLen + 1) * sizeof(char)));
   char* temp = argString;
 
   for (i = 0; i < len; i++) {
@@ -2226,7 +2246,8 @@ static char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* type
   }
 
   // Use the same logic as get_out_types_from_tree to ensure consistent formatting
-  char* argTypes = csound->Malloc(csound, len * 256 * sizeof(char));
+  char* argTypes = csoundParserOwn(csound,
+    csound->Malloc(csound, len * 256 * sizeof(char)));
   int32_t i;
   int32_t argsLen = 0;
   i = 0;
@@ -2235,7 +2256,8 @@ static char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* type
 
   while (current != NULL) {
     // Use get_arg_type2 to extract the actual type from the tree node
-    char* argType = get_arg_type2(csound, current, typeTable);
+    char* argType = csoundParserOwn(csound,
+      get_arg_type2(csound, current, typeTable));
     if (argType == NULL) {
       csound->Die(csound, Str("Could not parse type for argument\n"));
     }
@@ -2290,7 +2312,8 @@ static char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* type
     i += 1;
   }
 
-  char* argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
+  char* argString = csoundParserOwn(csound,
+    csound->Malloc(csound, (argsLen + 1) * sizeof(char)));
   char* temp = argString;
 
   for (i = 0; i < len; i++) {
@@ -2320,11 +2343,12 @@ static char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* type
 static char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
 
   int32_t len = tree_arg_list_count(tree);
-  char* argTypes = csound->Malloc(csound, len * 256 * sizeof(char));
+  char* argTypes = csoundParserOwn(csound,
+    csound->Malloc(csound, len * 256 * sizeof(char)));
   int32_t i;
 
   if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
-    return csoundStrdup(csound, "0");
+    return csoundParserStrdup(csound, "0");
   }
 
   int32_t argsLen = 0;
@@ -2371,7 +2395,8 @@ static char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
     i += 1;
   }
 
-  char* argString = csound->Malloc(csound, (argsLen + 1) * sizeof(char));
+  char* argString = csoundParserOwn(csound,
+    csound->Malloc(csound, (argsLen + 1) * sizeof(char)));
   char* curLoc = argString;
 
   for (i = 0; i < len; i++) {
@@ -3473,7 +3498,7 @@ static CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
     switch(current->type) {
     case LABEL_TOKEN:
       labelText = current->value->lexeme;
-      head = cs_cons(csound, csoundStrdup(csound, labelText), head);
+      head = csoundParserCons(csound, csoundParserStrdup(csound, labelText), head);
       break;
 
     case IF_TOKEN:
@@ -4145,7 +4170,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       csound->inZero = 0;
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
 	csound->Message(csound, "Instrument found\n");
-      typeTable->localPool = csoundCreateVarPool(csound);
+      typeTable->localPool = csoundParserCreateVarPool(csound);
       current->markup = typeTable->localPool;
 
       if (current->right) {
@@ -4169,12 +4194,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     case UDO_TOKEN:
       if (csoundGetDebug(csound) & DEBUG_SEMANTICS)
 	csound->Message(csound, "UDO found\n");
-      typeTable->localPool = csoundCreateVarPool(csound);
+      typeTable->localPool = csoundParserCreateVarPool(csound);
       current->markup = typeTable->localPool;
       top = current->left;
       if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
-        top->left->markup = csoundStrdup(csound, top->left->value->lexeme);
-        top->right->markup = csoundStrdup(csound, top->right->value->lexeme);
+        top->left->markup = csoundParserStrdup(csound, top->left->value->lexeme);
+        top->right->markup = csoundParserStrdup(csound, top->right->value->lexeme);
         add_udo_definition(csound, false,
                            top->value->lexeme,
                            top->left->value->lexeme,
@@ -4200,8 +4225,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           xin->next = statements;
           current->right = xin;
         }
-        top->left->markup = csoundStrdup(csound, outArgString);
-        top->right->markup = csoundStrdup(csound, inArgString);
+        top->left->markup = csoundParserStrdup(csound, outArgString);
+        top->right->markup = csoundParserStrdup(csound, inArgString);
         add_udo_definition(csound, true,
                            current->left->value->lexeme,
                            outArgString,
@@ -4251,7 +4276,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
 	csound->Message(csound, "UDO declared\n");
 
-      typeTable->localPool = csoundCreateVarPool(csound);
+      typeTable->localPool = csoundParserCreateVarPool(csound);
       current->markup = typeTable->localPool;
 
       if (current->right != NULL) {
@@ -4294,7 +4319,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     case UNTIL_TOKEN:
     case WHILE_TOKEN: {
-      LOOP_JUMP_TARGETS* targets = csound->Calloc(csound, sizeof(LOOP_JUMP_TARGETS));
+      LOOP_JUMP_TARGETS* targets = csoundParserOwn(csound, csound->Calloc(csound, sizeof(LOOP_JUMP_TARGETS)));
 
       if (!verify_until_statement(csound, current, typeTable)) {
         synterr(csound, Str("loop conditional expression not valid, line %d\n"),
@@ -4317,7 +4342,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         previous->next = current;
       }
 
-      activeLoopStack = cs_cons(csound, targets, activeLoopStack);
+      activeLoopStack = csoundParserCons(csound, targets, activeLoopStack);
       continue;
     }
 
@@ -4397,14 +4422,14 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
        csoundFree(csound, typ);
        typ = csoundStrdup(csound, var->varType->varTypeName);
       }
-      LOOP_JUMP_TARGETS* targets = csound->Calloc(csound, sizeof(LOOP_JUMP_TARGETS));
+      LOOP_JUMP_TARGETS* targets = csoundParserOwn(csound, csound->Calloc(csound, sizeof(LOOP_JUMP_TARGETS)));
       current = expand_for_statement(csound, current, typeTable, typ, targets);
       csound->Free(csound, atype);
       csound->Free(csound, typ);
       if (previous != NULL) {
         previous->next = current;
       }
-      activeLoopStack = cs_cons(csound, targets, activeLoopStack);
+      activeLoopStack = csoundParserCons(csound, targets, activeLoopStack);
     }
     continue;
 
@@ -4654,7 +4679,7 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
   TREE *ans = NULL;
 
   if(tree != NULL) {
-    ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
+    ans = (TREE*)csoundParserOwn(csound, csound->Calloc(csound, sizeof(TREE)));
     if (UNLIKELY(ans==NULL)) {
       if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
        csoundMessage(csound, Str("Out of memory\n"));
@@ -4665,7 +4690,7 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
     ans->right = (tree->right == NULL) ? NULL : copy_node(csound, tree->right);
     if (tree->value != NULL) {
       ans->value = make_token(csound, tree->value->lexeme, NULL);
-      ans->value->optype = csoundStrdup(csound, tree->value->optype);
+      ans->value->optype = csoundParserStrdup(csound, tree->value->optype);
       ans->value->first_column = tree->value->first_column;
       ans->value->last_column = tree->value->last_column;
     } else {
@@ -4687,7 +4712,7 @@ TREE* copy_node_shallow(CSOUND* csound, TREE* tree) {
   TREE *ans = NULL;
 
   if(tree != NULL) {
-    ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
+    ans = (TREE*)csoundParserOwn(csound, csound->Calloc(csound, sizeof(TREE)));
     if (UNLIKELY(ans==NULL)) {
       /* fprintf(stderr, "Out of memory\n"); */
       exit(1);
@@ -4698,7 +4723,7 @@ TREE* copy_node_shallow(CSOUND* csound, TREE* tree) {
 
     if (tree->value != NULL) {
       ans->value = make_token(csound, tree->value->lexeme, NULL);
-      ans->value->optype = csoundStrdup(csound, tree->value->optype);
+      ans->value->optype = csoundParserStrdup(csound, tree->value->optype);
       ans->value->first_column = tree->value->first_column;
       ans->value->last_column = tree->value->last_column;
     } else {
@@ -4719,7 +4744,7 @@ TREE* make_node(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
                 TREE* left, TREE* right)
 {
   TREE *ans;
-  ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
+  ans = (TREE*)csoundParserOwn(csound, csound->Calloc(csound, sizeof(TREE)));
   if (UNLIKELY(ans==NULL)) {
    if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
     csound->Message(csound, Str("Out of memory\n"));
@@ -4742,7 +4767,7 @@ TREE* make_leaf(CSOUND *csound, int32_t line, uint64_t locn, int32_t type,
                 ORCTOKEN *v)
 {
   TREE *ans;
-  ans = (TREE*)csound->Calloc(csound, sizeof(TREE));
+  ans = (TREE*)csoundParserOwn(csound, csound->Calloc(csound, sizeof(TREE)));
   if (UNLIKELY(ans==NULL)) {
    if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
     csoundMessage(csound, Str("Out of memory\n"));
@@ -5247,7 +5272,13 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
   */
   if (x->type == T_IDENT) {
     char *varname = x->value->lexeme;
-    CS_VARIABLE *var = add_global_variable(csound, &csound->engineState,
+    CS_VARIABLE *var = csoundFindVariableWithName(csound,
+                                                 csound->engineState.varPool,
+                                                 varname);
+    /* Keep the running instrument's ref so the compiler can restore it
+       if a replacement fails its checks. */
+    if (var != NULL && var->varType == &CS_VAR_TYPE_INSTR) return;
+    var = add_global_variable(csound, &csound->engineState,
                                          &CS_VAR_TYPE_INSTR, varname,
                                            NULL);
     if(var == NULL)
