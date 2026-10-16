@@ -327,6 +327,12 @@ const initCallbackReplyPort = (response) => {
           // here too, before a call admitted under an older mode can execute.
           const realtime = threadedMode && combined.get("csoundIsRealtime")(argumentz[0]);
           if (realtime) assertRealtimeCallAllowed(apiKey, argumentz.slice(1));
+          if (
+            realtime &&
+            (apiKey === "csoundGetControlChannel" || apiKey === "csoundSetControlChannel") &&
+            !realtimeControls
+          )
+            throw new Error("Control channels are unavailable for this performance phase");
           if (realtime && apiKey === "csoundGetControlChannel")
             answerPayload["answer"] = realtimeControls.get(argumentz[1]);
           else if (realtime && apiKey === "csoundSetControlChannel")

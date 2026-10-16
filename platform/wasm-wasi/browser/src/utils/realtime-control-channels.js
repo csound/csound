@@ -28,6 +28,10 @@ export function createRealtimeControlChannels(wasm, csound) {
     if (!slot) throw new Error(`Declare numeric control channel "${name}" before start`);
     return slot;
   };
+  // Shared builds require atomic builtins: chnget/chnset and the numeric C API
+  // use 64-bit atomic accesses. This worker runs JS calls between performKsmps
+  // calls; direct pointer access from other threads must also use atomics.
+  // Alignment alone does not make a plain Wasm store atomic.
   // Closure's Atomics externs only describe numeric typed arrays. These calls
   // use BigInt64Array and must preserve all 64 bits without Number conversion.
   return {

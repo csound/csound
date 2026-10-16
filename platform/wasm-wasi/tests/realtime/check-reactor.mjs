@@ -99,11 +99,38 @@ hostSupportsThreads = true;
 const { createRealtimeControlChannels } =
   await import("../../browser/src/utils/realtime-control-channels.js");
 const runtime = { exports: api, wasi: { memory } };
-assert.equal(compile('chn_k "gain", 3\nchn_S "text", 3\nchn_a "audio", 3'), 0);
+assert.equal(
+  compile(
+    'chn_k "gain", 3\nchn_k "input", 1\nchn_k "output", 2\nchn_S "text", 3\nchn_a "audio", 3',
+  ),
+  0,
+);
+function channelType(name) {
+  const bytes = new TextEncoder().encode(name);
+  const namePointer = api.allocStringMem(bytes.length);
+  const valuePointer = api.allocByteMem(4);
+  assert(namePointer && valuePointer);
+  try {
+    new Uint8Array(memory.buffer, namePointer, bytes.length).set(bytes);
+    // Type zero returns the existing type without changing its direction.
+    return api.csoundGetChannelPtr(csound, valuePointer, namePointer, 0);
+  } finally {
+    api.freeStringMem(namePointer);
+    api.freeByteMem(valuePointer);
+  }
+}
 stringCall("csoundSetControlChannel", "preset", 0.25);
 assert.equal(stringCall("csoundSetOption", "-n -m0"), 0);
 assert.equal(api.csoundStartWasi(csound), 0);
+const declaredTypes = ["input", "output", "gain"].map(channelType);
+assert.deepEqual(declaredTypes, [17, 33, 49]); // control + input/output flags
 const controls = createRealtimeControlChannels(runtime, csound);
+assert.deepEqual(["input", "output", "gain"].map(channelType), declaredTypes);
+controls.set("input", 0.375);
+assert.equal(controls.get("input"), 0.375);
+controls.set("output", 0.625);
+assert.equal(controls.get("output"), 0.625);
+assert.deepEqual(["input", "output", "gain"].map(channelType), declaredTypes);
 controls.set("gain", 0.5);
 assert.equal(stringCall("csoundGetControlChannelWasi", "gain"), 0.5);
 assert.equal(controls.get("preset"), 0.25);

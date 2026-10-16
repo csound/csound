@@ -29,7 +29,7 @@ struct host {
 
 struct marker_opcode {
     OPDS header;
-    MYFLT *sequence;
+    cs_float *sequence;
 };
 
 static struct timespec deadline(void)
@@ -134,7 +134,7 @@ static void run(CSOUND *csound, struct host *host, int fatal)
     CHECK(csoundCompileOrc(csound, orchestra, 0) == 0);
     CHECK(csoundStart(csound) == 0);
     if (fatal) {
-        const MYFLT event[] = {3, 0, 60};
+        const cs_float event[] = {3, 0, 60};
         csoundEvent(csound, CS_INSTR_EVENT, event, 3, 1);
         for (int attempt = 0; attempt < 5000; ++attempt) {
             CHECK(csoundPerformKsmps(csound) == 0);
@@ -144,7 +144,7 @@ static void run(CSOUND *csound, struct host *host, int fatal)
         exit(2);
     }
     /* An existing voice must keep rendering while a later init waits. */
-    const MYFLT steady[] = {4, 0, 60};
+    const cs_float steady[] = {4, 0, 60};
     csoundEvent(csound, CS_INSTR_EVENT, steady, 3, 1);
     int steady_rendered = 0;
     for (int attempt = 0; attempt < 5000; ++attempt) {
@@ -156,7 +156,7 @@ static void run(CSOUND *csound, struct host *host, int fatal)
         csoundSleep(1);
     }
     CHECK(steady_rendered);
-    const MYFLT hold[] = {9, 0, 60};
+    const cs_float hold[] = {9, 0, 60};
     csoundEvent(csound, CS_INSTR_EVENT, hold, 3, 1);
     int entered = 0;
     for (int attempt = 0; attempt < 5000; ++attempt) {
@@ -169,11 +169,11 @@ static void run(CSOUND *csound, struct host *host, int fatal)
     }
     CHECK(entered);
 
-    const MYFLT error[] = {2, 0, 60};
+    const cs_float error[] = {2, 0, 60};
     csoundEvent(csound, CS_INSTR_EVENT, error, 3, 1);
 
     /* The numeric API queue must copy the reused caller-owned p-fields. */
-    MYFLT event[] = {1, 0, 60, 0};
+    cs_float event[] = {1, 0, 60, 0};
     for (int i = 0; i < EVENTS; ++i) {
         event[3] = i;
         csoundEvent(csound, CS_INSTR_EVENT, event, 4, 1);

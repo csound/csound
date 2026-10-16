@@ -441,9 +441,9 @@ uint32_t *csoundGetControlChannelsWasi(CSOUND *csound) {
     void *value;
     if ((channels[i].type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
       continue;
+    /* Query existing storage without adding direction flags to the channel. */
     if (csoundGetChannelPtr(csound, &value, channels[i].name,
-                           CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL |
-                           CSOUND_OUTPUT_CHANNEL) != 0) {
+                           CSOUND_CONTROL_CHANNEL) != 0) {
       free(snapshot);
       snapshot = NULL;
       goto done;
@@ -457,9 +457,9 @@ done:
   return snapshot;
 }
 
-cs_double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
+cs_float csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
   int *error = NULL;
-  cs_double returnValue = csoundGetControlChannel(csound, channelName, error);
+  cs_float returnValue = csoundGetControlChannel(csound, channelName, error);
 
 //  printf("csoundGetControlChannel: Channel Name %s\n", channelName);
   if (error != NULL) {

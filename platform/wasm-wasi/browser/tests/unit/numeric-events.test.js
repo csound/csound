@@ -18,7 +18,7 @@ describe("numeric score events", () => {
     else delete globalThis.goog;
   });
 
-  const fixture = (nativeEvent) => {
+  const fixture = (nativeEvent, precision = 8) => {
     const memory = new WebAssembly.Memory({ initial: 1, maximum: 1, shared: true });
     const allocations = [];
     const freed = [];
@@ -29,6 +29,7 @@ describe("numeric score events", () => {
       wasm: {
         wasi: { memory },
         exports: {
+          csoundGetSizeOfMYFLT: () => precision,
           allocFloatArray: (length) => {
             allocations.push(length);
             return 64;
@@ -80,6 +81,21 @@ describe("numeric score events", () => {
       assert.throws(() => event(state.wasm)(123, type, fields), TypeError);
     }
     assert.deepEqual(state.allocations, []);
+  });
+
+  it("rejects an incompatible sample width before allocating or calling Csound", () => {
+    for (const precision of [4, 16]) {
+      const state = fixture(() => assert.fail("native event must not run"), precision);
+      new Uint8Array(state.memory.buffer).fill(0xa5);
+      for (const [type, fields] of [
+        [0, [1, 0, 0.1]],
+        [2, []],
+      ])
+        assert.throws(() => event(state.wasm)(123, type, fields), /double-precision Csound module/);
+      assert.deepEqual(state.allocations, []);
+      assert.deepEqual(state.freed, []);
+      assert.ok(new Uint8Array(state.memory.buffer).every((byte) => byte === 0xa5));
+    }
   });
 
   it("frees copied p-fields if native admission throws", () => {
