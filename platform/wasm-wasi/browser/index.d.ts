@@ -536,8 +536,7 @@ declare interface CsoundObj {
 
 /**
  * The default entry for @csound/wasm/browser module.
- * If loaded successfully, it returns CsoundObj,
- * otherwise undefined.
+ * Returns CsoundObj, or rejects if the host lacks required audio or Wasm support.
  * @param [params] - Initialization parameters
  * @param [params.audioContext] - Optional AudioContext or OfflineAudioContext to use; if none given, an AudioContext will be created.
  * @param [params.inputChannelCount] - Optional input channel count for AudioNode used with WebAudio graph.
@@ -559,7 +558,7 @@ declare function Csound(params?: {
   useWorker?: boolean;
   useSAB?: boolean;
 
-}): Promise<CsoundObj | undefined>;
+}): Promise<CsoundObj>;
 
 declare type Csound = typeof Csound;
 

@@ -2,11 +2,14 @@ import { readFileSync, existsSync } from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { extraEngineRequests } from "./browser-engine-requests.js";
 import { Builder } from "selenium-webdriver";
 
 const browserDir = fileURLToPath(new URL("..", import.meta.url));
 const production = process.env.CSOUND_BROWSER_BUNDLE || path.join(browserDir, "dist/csound.js");
-const probe = process.env.CSOUND_BROWSER_PROBE_BUNDLE;
+const probe =
+  process.env.CSOUND_BROWSER_PROBE_BUNDLE ||
+  path.join(browserDir, "../test-artifacts/csound-probe.js");
 if (!existsSync(production) || !probe || !existsSync(probe)) {
   throw new Error("Provide production and test-only probe browser bundles");
 }
@@ -24,10 +27,22 @@ const routes = new Map([
     "plugin_example_cpp_shared.wasm",
     "plugin_example_shared_missing_tls.wasm",
     "plugin_example_shared_trap_ctor.wasm",
-  ].map((name) => [`/${name}`, [path.join(browserDir, "../lib", name), "application/wasm"]]),
+  ].map((name) => [
+    `/${name}`,
+    [
+      path.join(
+        browserDir,
+        /missing_tls|trap_ctor/.test(name) ? "../test-artifacts" : "../lib",
+        name,
+      ),
+      "application/wasm",
+    ],
+  ]),
 ]);
+const requests = [];
 const server = http.createServer((request, response) => {
   const pathname = new URL(request.url, "http://localhost").pathname;
+  requests.push(pathname);
   if (pathname !== "/unisolated") {
     response.setHeader("Cross-Origin-Opener-Policy", "same-origin");
     response.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
@@ -94,12 +109,21 @@ try {
         "/?unsupported=wasm",
       ];
   for (const page of pages) {
+    requests.length = 0;
     await driver.get(`http://127.0.0.1:${server.address().port}${page}`);
     const result = await driver.wait(
       () => driver.executeScript("return window.__csoundRealtimeResult || null"),
       120000,
       `Browser realtime checks did not finish: ${page}`,
     );
+    const bundle = new URL(page, "http://localhost").searchParams.has("probe")
+      ? "/probe/csound.js"
+      : "/dist/csound.js";
+    const extra = extraEngineRequests(requests, bundle);
+    if (requests.filter((request) => request === bundle).length !== 1 || extra.length) {
+      result.ok = false;
+      result.error = "Expected one engine bundle request; got " + JSON.stringify(requests);
+    } else result.checks?.push("server observed one engine download, including worker requests");
     console.log(JSON.stringify({ page, ...result }, null, 2));
     if (!result.ok) process.exitCode = 1;
   }
@@ -107,7 +131,10 @@ try {
   if (driver) {
     try {
       if (browser === "chrome")
-        for (const entry of await driver.manage().logs().get("browser")) console.log(entry.message);
+        for (const entry of await driver.manage().logs().get("browser")) {
+          if (/Uncaught/.test(entry.message)) process.exitCode = 1;
+          console.log(entry.message.replace(/data:[^ ]+/g, "[embedded worker]").slice(0, 1600));
+        }
     } finally {
       await driver.quit();
     }

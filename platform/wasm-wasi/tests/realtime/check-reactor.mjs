@@ -6,13 +6,21 @@ import assert from "node:assert/strict";
 globalThis.goog = { define: (_name, value) => value, global: globalThis };
 const { WASI } = await import("../../browser/src/filesystem/wasi.js");
 const module = await WebAssembly.compile(fs.readFileSync(process.argv[2]));
-const memory = new WebAssembly.Memory({ initial: 256, maximum: 4096, shared: true });
+const maximum =
+  Number(fs.readFileSync(new URL("../../src/shared-memory-max.txt", import.meta.url), "utf8")) /
+  65536;
+const memory = new WebAssembly.Memory({ initial: 256, maximum, shared: true });
 const wasi = new WASI();
 wasi.setMemory(memory);
 let hostSupportsThreads = true;
 let threadSpawns = 0;
 const imports = wasi.getImports(module);
-imports.wasi = { "thread-spawn": () => { threadSpawns++; return -6; } };
+imports.wasi = {
+  "thread-spawn": () => {
+    threadSpawns++;
+    return -6;
+  },
+};
 imports.env = {
   memory,
   csoundWasiJsSupportsThreads: () => Number(hostSupportsThreads),
@@ -53,7 +61,10 @@ assert.equal(stringCall("csoundSetOption", "--realtime"), 0);
 assert.equal(api.csoundIsRealtime(csound), 1);
 api.csoundResetWasi(csound);
 assert.equal(api.csoundIsRealtime(csound), 0);
-const compileCsd = () => stringCall("csoundCompileCSD", `<CsoundSynthesizer>
+const compileCsd = () =>
+  stringCall(
+    "csoundCompileCSD",
+    `<CsoundSynthesizer>
 <CsOptions>
 -n -d --realtime
 </CsOptions>
@@ -68,7 +79,10 @@ endin
 <CsScore>
 f0 1
 </CsScore>
-</CsoundSynthesizer>`, 1, 0);
+</CsoundSynthesizer>`,
+    1,
+    0,
+  );
 assert.equal(compileCsd(), 0);
 assert.equal(api.csoundIsRealtime(csound), 1);
 api.csoundResetWasi(csound);
@@ -79,7 +93,10 @@ api.csoundResetWasi(csound);
 hostSupportsThreads = true;
 
 assert.notEqual(compile("instr 1\nsyntax nonsense @@@\nendin"), 0);
-assert.equal(compile("sr=48000\nksmps=32\nnchnls=1\n0dbfs=1\ninstr 1\na1 oscili 0.1,440\nout a1\nendin"), 0);
+assert.equal(
+  compile("sr=48000\nksmps=32\nnchnls=1\n0dbfs=1\ninstr 1\na1 oscili 0.1,440\nout a1\nendin"),
+  0,
+);
 
 // Check raw start as well as the WASI wrapper: a preset native flag cannot
 // start background workers on a host which has no pool.

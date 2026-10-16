@@ -1,4 +1,5 @@
 /* eslint-disable object-shorthand -- Host import and message keys must remain stable. */
+import { sharedMemoryPages } from "../dist/__csound_engine.inline.js";
 import { WASI } from "./filesystem/wasi.js";
 import { createSystem } from "./filesystem/system.js";
 import { Inflate } from "./zlib/inflate.js";
@@ -15,6 +16,7 @@ import {
 export default async function loadRealtimeWasm({
   wasmBytes,
   ports = [],
+  mayBlock = false,
   withPlugins = [],
   messagePort,
 }) {
@@ -27,7 +29,11 @@ export default async function loadRealtimeWasm({
   const names = new Set(WebAssembly.Module.exports(module).map(({ name }) => name));
   if (!names.has("wasi_thread_start") || !names.has("_initialize"))
     throw new Error("Expected the threaded Csound browser reactor");
-  const memory = new WebAssembly.Memory({ initial: 4096, maximum: 4096, shared: true });
+  const memory = new WebAssembly.Memory({
+    initial: sharedMemoryPages,
+    maximum: sharedMemoryPages,
+    shared: true,
+  });
   const wasi = new WASI({ preopens: { "/": "/" } });
   wasi.setMemory(memory);
   let host = null;
@@ -73,7 +79,12 @@ export default async function loadRealtimeWasm({
   // A local shared Wasm memory also works when the browser hides the global
   // SharedArrayBuffer constructor. UI/AudioWorklet hosts still cannot wait.
   const clockControl = new WebAssembly.Memory({ initial: 1, maximum: 1, shared: true });
-  const clocks = createWasiClockImports({ memory, control: new Int32Array(clockControl.buffer) });
+  const clocks = createWasiClockImports({
+    memory,
+    control: new Int32Array(clockControl.buffer),
+    mayBlock,
+  });
+  imports["wasi_snapshot_preview1"] ??= {};
   Object.assign(imports["wasi_snapshot_preview1"], clocks);
   const instance = await WebAssembly.instantiate(module, imports);
   // Constructors and the main thread's TLS run once, never on child instances.
@@ -116,7 +127,6 @@ export default async function loadRealtimeWasm({
   const runtime = {
     "exports": instance.exports,
     "wasi": wasi,
-    "threadHost": null,
     "prepareThreads": async (csound) => {
       if (ports.length === 0) return;
       if (!host) {
@@ -125,10 +135,29 @@ export default async function loadRealtimeWasm({
         if (instance.exports["csoundLoadExternals"](csound) !== 0)
           throw new Error("Could not load Csound plugins before preparing threads");
         plugins.freeze();
+        const plans = plugins.snapshot();
+        const allocations = [];
+        const initializationStackTops = [];
+        try {
+          // Match the reactor's 1 MiB stack size. These stacks live with the
+          // engine, as do plugin data/TLS blocks; reset keeps the same pool.
+          if (plans.length > 0) {
+            for (let index = 0; index < ports.length; index++) {
+              const base = instance.exports["allocByteMem"](1048576 + 15);
+              if (!base) throw new Error("Could not allocate plugin setup stack");
+              allocations.push(base);
+              initializationStackTops.push(Math.ceil(base / 16) * 16 + 1048576);
+            }
+          }
+        } catch (error) {
+          for (const base of allocations) instance.exports["freeByteMem"](base);
+          throw error;
+        }
         host = createWasiThreadHost({
           module,
           memory,
-          plugins: plugins.snapshot(),
+          plugins: plans,
+          initializationStackTops,
           poolSize: ports.length,
           createWorker: (index) => {
             const port = ports[index];
@@ -139,13 +168,16 @@ export default async function loadRealtimeWasm({
               terminate: () => port.close(),
             };
           },
-          onMessage: (data) => messagePort.post(data),
           onError: (error) =>
             globalThis.postMessage({ "type": "wasi-thread-fatal", "message": error.message }),
         });
-        runtime["threadHost"] = host;
       }
-      await host.ready;
+      try {
+        await host.ready;
+      } catch (error) {
+        host.dispose();
+        throw error;
+      }
     },
   };
   return [runtime, wasi];

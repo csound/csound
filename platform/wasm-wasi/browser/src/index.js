@@ -33,7 +33,7 @@ let audioUnmuted = false;
  * @expose
  * @noalias
  * @param {CsoundExportArguments=} options
- * @return {Promise.<CsoundObj|undefined>}
+ * @return {Promise.<CsoundObj>}
  */
 const Csound = async function (options = {}) {
   const {

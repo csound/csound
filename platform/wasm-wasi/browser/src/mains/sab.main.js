@@ -28,7 +28,7 @@ import { logSABMain as log } from "../logger";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
 import { EventPromises } from "../utils/event-promises";
 import { assertRealtimeCallAllowed } from "../utils/realtime-api.js";
-import { stopSAB } from "../utils/sab-transport.js";
+import { stopSAB, wakeSAB } from "../utils/sab-transport.js";
 import { enqueueMidiPacket, resetMidiQueue } from "../utils/sab-midi-queue.js";
 import { SABCompletionCoordinator } from "../utils/sab-completion-coordinator.js";
 import { PublicEventAPI } from "../events";
@@ -53,7 +53,6 @@ class SharedArrayBufferMainThread {
     /** @type {function(!Error):void} */
     this.rejectThreadFailure = () => {};
     this.currentPlayState = undefined;
-    this.wasmTransformerDataURI = undefined;
     this.wasmTransformerDataURI = undefined;
     /**
      * @type {SABMainProxy}
@@ -173,7 +172,7 @@ class SharedArrayBufferMainThread {
             `Worker timed out during ${csoundApiRename(apiKey)}(); dispatched work may have run`,
           ),
         );
-      }, 10000);
+      }, 10000 + this.eventPromises.getStartRemainingMs());
       this.callbackBuffer[callbackId] = {
         "resolveCallback": (answer) => {
           clearTimeout(timeout);
@@ -190,6 +189,7 @@ class SharedArrayBufferMainThread {
       };
     });
     Atomics.compareExchange(this.audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 0, 1);
+    wakeSAB(this.audioStatePointer);
     return this.guardThreadedCall(promise);
   }
 
@@ -250,6 +250,7 @@ class SharedArrayBufferMainThread {
     if (Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) return 0;
     this.eventPromises.createPausePromise();
     Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 1);
+    wakeSAB(this.audioStatePointer);
     await this.guardThreadedCall(this.eventPromises.waitForPause());
     // Only the worker acknowledgement publishes the transition.
     return 0;
@@ -443,6 +444,7 @@ class SharedArrayBufferMainThread {
       // Some callers only listen for messages. Keep terminal failure observed
       // even when there is no outstanding API call to race it against.
       this.threadFailure.catch(() => {});
+      const onThreadMessage = messageEventHandler(this);
       for (let index = 0; index < 4; index++) {
         const url = WasiThreadWorker();
         const worker = new Worker(url);
@@ -454,6 +456,8 @@ class SharedArrayBufferMainThread {
         worker.addEventListener("message", ({ data }) => {
           if (data["type"] === "wasi-thread-fatal")
             this.failThreadedInstance(new Error(data["message"]));
+          else if (data["type"] === "wasi-thread-message")
+            onThreadMessage({ data: { log: data["message"] } });
         });
         const channel = new MessageChannel();
         worker.postMessage({ type: "connect", port: channel.port1 }, [channel.port1]);
@@ -556,8 +560,10 @@ class SharedArrayBufferMainThread {
             else pending["resolveCallback"](payload["answer"]);
             delete this.callbackBuffer[payload["id"]];
           });
-          if (Object.values(this.callbackBuffer).some((entry) => !entry["inFlight"]))
+          if (Object.values(this.callbackBuffer).some((entry) => !entry["inFlight"])) {
             Atomics.store(this.audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 1);
+            wakeSAB(this.audioStatePointer);
+          }
         }
       }
     });

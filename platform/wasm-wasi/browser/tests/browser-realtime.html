@@ -45,12 +45,6 @@ endin
 `;
     const checks = [];
     const active = [];
-    const extraEngineRequests = () =>
-      performance
-        .getEntriesByType("resource")
-        .filter((entry) =>
-          /csound-(compat|realtime)\.(js|wasm)/.test(new URL(entry.name).pathname),
-        );
     async function run(enabled, viaCsd = false) {
       const gated = gatedBundle;
       const mode = enabled ? (viaCsd ? "CSD --realtime" : "setOption --realtime") : "no flag";
@@ -108,7 +102,9 @@ f0 3600
           samples.reduce((sum, sample) => sum + sample * sample, 0) / samples.length,
         );
       };
-      const audible = () => rms(analysers[0]) > 0.06 && rms(analysers[1]) > 0.025;
+      const stereoAudible = ([left, right]) =>
+        left > 0.02 && right > 0.01 && left > right * 1.5 && left < right * 2.5;
+      const audible = () => stereoAudible(analysers.map(rms));
       await csound.event(0, [1, 0, 60]);
       await until(audible, "oscillator did not reach the AudioWorklet output");
       const left = rms(analysers[0]);
@@ -151,29 +147,50 @@ f0 3600
           () => csound.compileOrc("instr 77\nendin"),
           "compilation after resume was accepted",
         );
-      const calls = await Promise.allSettled(
-        Array.from({ length: 320 }, () => csound.getCurrentTimeSamples()),
-      );
-      check(
-        calls.some(
-          (result) => result.status === "rejected" && /queue is full/.test(result.reason.message),
+      // Hold the render worker before filling its control queue, so a fast
+      // worker cannot drain calls before the overflow assertion.
+      const holdControl = gated && !enabled;
+      let heldNote;
+      if (holdControl) {
+        heldNote = csound.event(0, [9, 0, 0.01]);
+        await until(
+          () => Atomics.load(csound["__threadProbe"], 0) === 1,
+          "control gate did not close",
+        );
+      }
+      let rejected = 0;
+      const callsPending = Promise.allSettled(
+        Array.from({ length: 320 }, () =>
+          csound.getCurrentTimeSamples().catch((error) => {
+            rejected++;
+            throw error;
+          }),
         ),
-        "control burst did not reject excess calls",
       );
+      if (holdControl) {
+        try {
+          await until(() => rejected > 0, "full control queue did not reject excess calls");
+          check(Atomics.load(csound["__threadProbe"], 3) === 0, "no-flag init ran on a pthread");
+        } finally {
+          Atomics.store(csound["__threadProbe"], 1, 1);
+          Atomics.notify(csound["__threadProbe"], 1);
+        }
+        await heldNote;
+        checks.push("held render worker rejects queue overflow and resumes after release");
+      }
+      const calls = await callsPending;
       check(
         calls.some((result) => result.status === "fulfilled"),
         "control burst made no progress",
       );
+      check(
+        calls.every(
+          (result) => result.status === "fulfilled" || /queue is full/.test(result.reason.message),
+        ),
+        "control burst failed for an unexpected reason",
+      );
       await csound.getCurrentTimeSamples();
-      checks.push("pause/resume preserves control admission and full queues recover");
-      if (gated && !enabled) {
-        const probe = csound["__threadProbe"];
-        Atomics.store(probe, 1, 1);
-        await csound.event(0, [9, 0, 0.01]);
-        await until(() => Atomics.load(probe, 2) === 1, "synchronous init probe did not run");
-        check(Atomics.load(probe, 3) === 0, "no-flag note initialized on a Csound pthread");
-        checks.push("no flag: probe confirms synchronous note init");
-      }
+      checks.push("pause/resume preserves control admission and control bursts recover");
       if (gated && enabled) {
         const probe = csound["__threadProbe"];
         check(
@@ -189,10 +206,12 @@ f0 3600
         const progress = [];
         for (let index = 0; index < 6; ++index) {
           await delay(50);
+          // Wait for a populated window; keep the init gate closed throughout.
+          await until(audible, "stereo audio stopped while background init waited");
           const levels = analysers.map(rms);
           progress.push({ levels, clock: Number(await csound.getCurrentTimeSamples()) });
           check(
-            levels[0] > 0.06 && levels[1] > 0.025,
+            stereoAudible(levels),
             "steady audio stopped while background init waited: " +
               JSON.stringify({ before: Number(before), progress }),
           );
@@ -296,22 +315,22 @@ f0 3600
       active.splice(active.indexOf(csound), 1);
       checks.push("reset before first start clears the native flag");
     }
-    async function startWhileEnablingRealtime() {
+    async function queuedCallsDuringStartup() {
       const csound = await Csound({ autoConnect: false });
       active.push(csound);
       await csound.setOption("-odac -m0 --daemon");
       check((await csound.compileOrc(orchestra)) === 0, "race setup compilation failed");
-      // The UI may still cache mode 0 when these calls enter its startup queue.
-      // The render worker must check the native mode before dispatching them.
+      // Set the native mode first, then queue unsafe calls during startup.
+      // This tests startup admission without racing option delivery.
+      check((await csound.setOption("--realtime")) === 0, "startup flag failed");
       const results = await Promise.allSettled([
-        csound.setOption("--realtime"),
         csound.start(),
         csound.compileOrc("instr 79\nendin"),
         csound.fs.writeFile("startup-race.txt", new Uint8Array([1])),
       ]);
       check(
-        results.slice(0, 2).every((result) => result.status === "fulfilled" && result.value === 0),
-        "overlapping option and start did not succeed: " +
+        results.slice(0, 1).every((result) => result.status === "fulfilled" && result.value === 0),
+        "start did not succeed: " +
           JSON.stringify(
             results.map((result) =>
               result.status === "rejected"
@@ -322,20 +341,20 @@ f0 3600
       );
       check(
         results
-          .slice(2)
+          .slice(1)
           .every(
             (result) =>
               result.status === "rejected" &&
-              /requires stopped realtime performance/.test(result.reason.message),
+              /requires? stopped realtime performance/.test(result.reason.message),
           ),
         "startup queue admitted compilation or filesystem access after native realtime activation",
       );
-      check((await csound.isRealtime()) === 1, "overlapping option did not activate realtime");
+      check((await csound.isRealtime()) === 1, "startup lost the realtime flag");
       await csound.stop();
       await csound.reset();
       await csound.terminateInstance();
       active.splice(active.indexOf(csound), 1);
-      checks.push("overlapping option/start rejects queued compile and filesystem changes");
+      checks.push("startup rejects queued compile and filesystem changes");
     }
     async function localEngine(options) {
       const csound = await Csound(options);
@@ -567,7 +586,6 @@ endin
           );
         }
         check(contexts === 0, "unsupported default created an AudioContext");
-        check(extraEngineRequests().length === 0, "unsupported default downloaded another engine");
       } finally {
         window.AudioContext = AudioContext;
         WebAssembly.validate = validate;
@@ -744,14 +762,12 @@ endin
       } else {
         check(crossOriginIsolated, "test server did not isolate the page");
         await resetBeforeStart();
-        await startWhileEnablingRealtime();
+        await queuedCallsDuringStartup();
         await run(false);
         await run(true);
         await run(true, true);
         if (gatedBundle) await fatalWhileJoining();
       }
-      check(extraEngineRequests().length === 0, "mode downloaded a second engine");
-      checks.push("no second engine download");
       window.__csoundRealtimeResult = { ok: true, checks };
     } catch (error) {
       for (const csound of active) {

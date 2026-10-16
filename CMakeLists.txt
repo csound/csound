@@ -259,12 +259,24 @@ option(BUILD_TESTS "Build tests" OFF)
 option(LEXER_DEBUG "Build lexer with debug option" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
+option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
 option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
 option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" OFF)
 option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 option(BUILD_PLUGINS "Build external opcodes as plugins" OFF)
 if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
+    # Engine, browser host, and side modules share this memory ABI.
+    file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/shared-memory-max.txt"
+         CSOUND_WASI_FIXED_MAX_MEMORY)
+    if(DEFINED CSOUND_WASI_MAX_MEMORY AND
+       NOT CSOUND_WASI_MAX_MEMORY STREQUAL CSOUND_WASI_FIXED_MAX_MEMORY)
+        message(FATAL_ERROR
+            "Set the shared memory limit in platform/wasm-wasi/src/shared-memory-max.txt and rebuild the engine, browser bundle, and plugins together")
+    endif()
+    set(CSOUND_WASI_MAX_MEMORY "${CSOUND_WASI_FIXED_MAX_MEMORY}")
+    set(CSOUND_WASI_LINK_OPTIONS
+        "-pthread;-Wl,--import-memory,--export-memory,--max-memory=${CSOUND_WASI_MAX_MEMORY}")
     set(BUILD_WASI_REALTIME "AUTO" CACHE STRING
         "WASI pthread support: AUTO, ON, or OFF")
     set_property(CACHE BUILD_WASI_REALTIME PROPERTY STRINGS AUTO ON OFF)
@@ -275,9 +287,11 @@ if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     set(BUILD_WASI_REALTIME OFF)
     if(NOT WASI_REALTIME_REQUESTED STREQUAL "OFF" AND REQUIRE_PTHREADS
        AND NOT BUILD_PLUGINS
-       AND (NOT DEFINED USE_ATOMIC_BUILTIN OR USE_ATOMIC_BUILTIN))
+       AND USE_ATOMIC_BUILTIN)
+        set(THREADS_PREFER_PTHREAD_FLAG ON)
+        find_package(Threads)
         include(cmake/CheckWasiRealtime.cmake)
-        if(HAVE_WASI_REALTIME_RUNTIME)
+        if(HAVE_WASI_REALTIME_RUNTIME AND Threads_FOUND AND CMAKE_USE_PTHREADS_INIT)
             set(BUILD_WASI_REALTIME ON)
         endif()
     endif()
@@ -308,12 +322,10 @@ if(BUILD_WASI_REALTIME)
     endif()
     # The WASI host uses one render caller and the existing init worker.
     set(BUILD_MULTI_CORE OFF)
-    set(CSOUND_WASI_MAX_MEMORY "268435456" CACHE STRING
-        "Maximum shared WASI linear memory in bytes")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -DCSOUND_WASI_REALTIME")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -DCSOUND_WASI_REALTIME")
-    set(CMAKE_EXE_LINKER_FLAGS
-        "${CMAKE_EXE_LINKER_FLAGS} -pthread -Wl,--import-memory,--export-memory,--max-memory=${CSOUND_WASI_MAX_MEMORY}")
+    string(REPLACE ";" " " wasi_link_flags "${CSOUND_WASI_LINK_OPTIONS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${wasi_link_flags}")
 endif()
 option(BUILD_BELA "Build Bela main program" OFF)
 option(BUILD_WITH_LTO "Build with link-time optimisations" OFF)
@@ -835,7 +847,6 @@ if(REQUIRE_PTHREADS)
 endif()
 
 # Now, non required library searches
-option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
 
 if(USE_ATOMIC_BUILTIN)
     include(cmake/CheckAtomic.cmake)
@@ -850,6 +861,9 @@ else()
     message(STATUS "Not using atomic builtins - user disabled")
 endif()
 
+if(BUILD_WASI_REALTIME AND NOT REQUIRE_PTHREADS)
+    message(FATAL_ERROR "WASI realtime requires CMake Threads support")
+endif()
 if(BUILD_WASI_REALTIME AND (NOT HAVE_ATOMIC_BUILTIN OR ATOMIC_LIB))
     message(FATAL_ERROR "WASI realtime requires lock-free atomic builtins")
 endif()

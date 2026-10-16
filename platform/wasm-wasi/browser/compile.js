@@ -90,6 +90,24 @@ if (fs.existsSync(distDir)) {
 fs.mkdirSync(distDir);
 // Repository builds write to ../lib; installed packages provide the same files.
 const binaries = browserBinaries(rootDir, process.env.CSOUND_THREADED_WASM);
+const memoryLimitFile = path.join(rootDir, "../src/shared-memory-max.txt");
+const sharedMemoryMax = binaries.threaded
+  ? Number(
+      fs.readFileSync(
+        fs.existsSync(memoryLimitFile)
+          ? memoryLimitFile
+          : path.join(nodeModulesDir, "@csound/wasm-bin/src/shared-memory-max.txt"),
+        "utf8",
+      ),
+    )
+  : 65536;
+if (
+  !Number.isSafeInteger(sharedMemoryMax) ||
+  sharedMemoryMax <= 0 ||
+  sharedMemoryMax > 4294967296 ||
+  sharedMemoryMax % 65536 !== 0
+)
+  throw new Error("Shared Wasm memory limit must be a positive whole number of pages");
 fs.writeFileSync(
   path.join(rootDir, "dist", "__csound_wasm.inline.js"),
   inlineArraybuffer(binaries.threaded || binaries.baseline, "binary.wasm"),
@@ -98,7 +116,8 @@ fs.writeFileSync(
 // Workers need the engine kind, but must not embed another copy of its bytes.
 fs.writeFileSync(
   path.join(distDir, "__csound_engine.inline.js"),
-  `export const sharedEngine = ${Boolean(binaries.threaded)};\n`,
+  `export const sharedEngine = ${Boolean(binaries.threaded)};\n` +
+    `export const sharedMemoryPages = ${sharedMemoryMax / 65536};\n`,
 );
 
 // const polyfills = {

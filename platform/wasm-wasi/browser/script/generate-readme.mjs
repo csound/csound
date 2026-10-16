@@ -5,6 +5,18 @@ const prettierShield = `[![styled with prettier](https://img.shields.io/badge/st
 const workflowShield = `[![GitHub Workflow Status](https://shields.shivering-isles.com/github/workflow/status/csound/csound/csound_wasm)](https://github.com/csound/csound/actions?query=workflow%3Acsound_wasm)`;
 const breakingChangesSection = `## Breaking Changes
 
+### Default host and startup errors
+
+On pages with cross-origin isolation and the required Wasm features, \`Csound()\`
+now selects the shared worker host. Previously it used one AudioWorklet.
+Pass \`useWorker: false\` to keep the previous execution model. The shared host
+freezes plugins at its first start and uses the realtime API limits only when
+\`--realtime\` is enabled. Pages without isolation still use one AudioWorklet.
+
+\`Csound()\` now rejects its promise when AudioWorklet support is missing;
+it previously logged an error and returned \`undefined\`. Catch startup errors
+around \`await Csound()\` instead of checking its result for \`undefined\`.
+
 ### ScriptProcessorNode Support Removed (v7.0.0+)
 
 ScriptProcessorNode support has been removed from the library. ScriptProcessorNode was deprecated in 2014 and provides inferior performance compared to AudioWorklet. All modern browsers (Chrome 64+, Firefox 76+, Safari 14.1+) support AudioWorklet.

@@ -16,6 +16,7 @@
 import * as Comlink from "../utils/comlink.js";
 import MessagePortState from "../utils/message-port-state";
 import { AUDIO_STATE, RING_BUFFER_SIZE } from "../constants";
+import { wakeSAB } from "../utils/sab-transport.js";
 import { sharedAudioChannels } from "../utils/sab-audio-channels.js";
 import {
   applyAudioFade,
@@ -107,6 +108,7 @@ function processSharedArrayBuffer(inputs, outputs) {
         AUDIO_STATE.OUTPUT_READ_INDEX,
         this.outputReadIndex,
       );
+      wakeSAB(this.sharedArrayBuffer);
       applyAudioFade(this.audioFade, writeableOutputChannels, frameCount);
     }
     if (
@@ -166,6 +168,7 @@ function processSharedArrayBuffer(inputs, outputs) {
     // subtract the available output buffers, all channels are the same length
     Atomics.sub(this.sharedArrayBuffer, AUDIO_STATE.AVAIL_OUT_BUFS, bufferLength);
     Atomics.store(this.sharedArrayBuffer, AUDIO_STATE.OUTPUT_READ_INDEX, this.outputReadIndex);
+    wakeSAB(this.sharedArrayBuffer);
   } else {
     if (this.outputReadIndex > 4098) {
       console.log("buffer underrun");

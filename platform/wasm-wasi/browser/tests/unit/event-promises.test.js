@@ -28,6 +28,26 @@ describe("transport deadlines", () => {
     assert.deepEqual(delays, [35000, 2000]);
     events.releaseStartPromise();
   });
+  it("keeps queued call deadlines beyond the remaining start window", () => {
+    const events = new EventPromises();
+    const originalNow = Date.now;
+    let now = 1000;
+    Date.now = () => now;
+    try {
+      events.createStartPromise(35000);
+      assert.equal(events.getStartRemainingMs(), 35000);
+      now += 11000;
+      assert.equal(events.getStartRemainingMs(), 24000);
+      events.releaseStartPromise();
+      assert.equal(events.getStartRemainingMs(), 0);
+      events.createStartPromise(100);
+      now += 200;
+      assert.equal(events.getStartRemainingMs(), 0);
+    } finally {
+      Date.now = originalNow;
+      events.releaseStartPromise();
+    }
+  });
   afterEach(() => {
     globalThis.setTimeout = originalSetTimeout;
     globalThis.clearTimeout = originalClearTimeout;

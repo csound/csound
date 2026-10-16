@@ -35,8 +35,8 @@ export function createWasiThreadHost({
   module,
   memory,
   plugins = [],
+  initializationStackTops = [],
   createWorker,
-  onMessage = () => {},
   onError = () => {},
   poolSize = 4,
   clockOrigin = performance.timeOrigin,
@@ -99,10 +99,6 @@ export function createWasiThreadHost({
             fail(new Error(data["message"]));
             break;
           }
-          case "message": {
-            onMessage(data["message"]);
-            break;
-          }
           default: {
             break;
           }
@@ -119,6 +115,7 @@ export function createWasiThreadHost({
         "module": module,
         "memory": memory,
         "plugins": plugins,
+        "initializationStackTop": initializationStackTops[index] || 0,
         "control": control.buffer,
         "index": index,
         "clockOrigin": clockOrigin,
@@ -144,16 +141,22 @@ export function createWasiThreadHost({
         WASI_THREAD_IDLE
       )
         continue;
-      const tid = nextThreadId++;
+      const releaseReservation = () => {
+        Atomics.compareExchange(control, slot, WASI_THREAD_RESERVED, WASI_THREAD_IDLE);
+        Atomics.notify(control, slot);
+        return -EAGAIN;
+      };
+      const tid = nextThreadId;
       Atomics.store(control, slot + 1, tid);
       Atomics.store(control, slot + 2, argument);
       // Stop may race reservation. Do not turn a stopped slot back into a run.
-      if (Atomics.load(control, 0) !== 0) return -EAGAIN;
+      if (Atomics.load(control, 0) !== 0) return releaseReservation();
       if (
         Atomics.compareExchange(control, slot, WASI_THREAD_RESERVED, WASI_THREAD_RUNNING) !==
         WASI_THREAD_RESERVED
       )
-        return -EAGAIN;
+        return releaseReservation();
+      nextThreadId += 1;
       Atomics.notify(control, slot);
       return tid;
     }

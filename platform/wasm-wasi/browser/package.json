@@ -58,7 +58,9 @@
     "test:unit": "mocha \"tests/unit/**/*.test.js\"",
     "test:ci": "npm run test:types && npm run test:unit && node tests/selenium_runner.js",
     "test:ci:firefox": "npm run test:types && npm run test:unit && node tests/selenium_runner_firefox.js",
-    "test:open": "node tests/server.cjs"
+    "test:open": "node tests/server.cjs",
+    "test:fixtures": "node tests/build-realtime-fixture.js",
+    "test:realtime": "node tests/browser-realtime-runner.js"
   },
   "devDependencies": {
     "@csound/wasm-bin": "7.0.0-beta29",

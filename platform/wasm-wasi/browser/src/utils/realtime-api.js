@@ -17,6 +17,8 @@ const allowed = new Set([
 ]);
 
 export function assertRealtimeCallAllowed(apiKey, arguments_) {
+  // Only numeric note events enter the realtime init queue. Table generation
+  // and score-end events keep the generic API's short forms when stopped.
   if (!allowed.has(apiKey) || (apiKey === "csoundEvent" && arguments_[0] !== 0))
     throw new Error(`${apiKey} requires stopped realtime performance`);
   if (

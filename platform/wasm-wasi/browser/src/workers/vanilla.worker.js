@@ -265,6 +265,7 @@ const initialize = async (payload) => {
     wasmTransformerDataURI,
     withPlugins,
     messagePort: workerMessagePort,
+    mayBlock: true,
   });
 
   wasm.wasi = wasi;

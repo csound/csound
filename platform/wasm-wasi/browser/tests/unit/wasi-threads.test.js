@@ -4,6 +4,9 @@ import {
   createWasiThreadHost,
   superviseWasiPerformance,
   WASI_THREAD_IDLE,
+  WASI_THREAD_RESERVED,
+  WASI_THREAD_RUNNING,
+  WASI_THREAD_STOPPED,
   WASI_THREAD_STRIDE,
 } from "../../src/utils/wasi-threads.js";
 import {
@@ -97,6 +100,50 @@ describe("WASI thread host", () => {
     assert.ok(workers.every((worker) => worker.terminated));
   });
 
+  for (const stopSlot of [false, true]) {
+    it(`releases a failed reservation without consuming an ID (slot stopped: ${stopSlot})`, async () => {
+      const worker = new FakeWorker();
+      const host = createWasiThreadHost({
+        module: threadModule(),
+        memory: memory(),
+        poolSize: 1,
+        createWorker: () => worker,
+      });
+      worker.ready();
+      await host.ready;
+      const compareExchange = Atomics.compareExchange;
+      try {
+        Atomics.compareExchange = (array, index, expected, replacement) => {
+          if (
+            array === host.control &&
+            expected === WASI_THREAD_RESERVED &&
+            replacement === WASI_THREAD_RUNNING &&
+            stopSlot
+          )
+            Atomics.store(array, index, WASI_THREAD_STOPPED);
+          const result = compareExchange(array, index, expected, replacement);
+          if (array === host.control && replacement === WASI_THREAD_RESERVED && !stopSlot)
+            Atomics.store(array, 0, 1);
+          return result;
+        };
+        assert.equal(host.threadSpawn(128), -6);
+        assert.equal(
+          Atomics.load(host.control, 1),
+          stopSlot ? WASI_THREAD_STOPPED : WASI_THREAD_IDLE,
+        );
+      } finally {
+        Atomics.compareExchange = compareExchange;
+      }
+      try {
+        Atomics.store(host.control, 0, 0);
+        Atomics.store(host.control, 1, WASI_THREAD_IDLE);
+        assert.equal(host.threadSpawn(128), 2);
+      } finally {
+        host.dispose();
+      }
+    });
+  }
+
   it("rejects readiness and releases the whole pool on a startup error", async () => {
     const workers = [];
     let failure;
@@ -185,6 +232,18 @@ describe("WASI thread host", () => {
 });
 
 describe("WASI thread imports", () => {
+  it("rejects blocking sleeps on local hosts even with a control buffer", () => {
+    const shared = memory();
+    const control = new Int32Array(new SharedArrayBuffer(16));
+    const clocks = createWasiClockImports({ memory: shared, control, mayBlock: false });
+    const view = new DataView(shared.buffer);
+    view.setBigUint64(88, 1000000n, true);
+    assert.throws(() => clocks.poll_oneoff(64, 128, 1, 32), /requires a worker thread host/);
+    view.setBigUint64(88, 0n, true);
+    assert.equal(clocks.poll_oneoff(64, 128, 1, 32), 0);
+    assert.equal(clocks.poll_oneoff(64, 128, 0, 32), 28);
+  });
+
   it("uses the AudioWorklet sample clock when performance is absent", () => {
     const previousPerformance = Object.getOwnPropertyDescriptor(globalThis, "performance");
     const previousTime = Object.getOwnPropertyDescriptor(globalThis, "currentTime");
@@ -204,7 +263,7 @@ describe("WASI thread imports", () => {
   it("implements nanosleep clock events and rejects filesystem polling", () => {
     const shared = memory();
     const control = new Int32Array(new SharedArrayBuffer(16));
-    const clocks = createWasiClockImports({ memory: shared, control });
+    const clocks = createWasiClockImports({ memory: shared, control, mayBlock: true });
     const view = new DataView(shared.buffer);
     view.setBigUint64(64, 123n, true);
     view.setBigUint64(88, 1000000n, true);
@@ -226,6 +285,7 @@ describe("WASI thread imports", () => {
       memory: shared,
       control,
       clockOrigin: performance.timeOrigin - 1000,
+      mayBlock: true,
     });
     assert.equal(clocks.clock_time_get(1, 0n, 32), 0);
     const view = new DataView(shared.buffer);

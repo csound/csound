@@ -12,6 +12,7 @@
     else ../lib/csound-plugin-sdk-compat.tar.gz,
   useSdkArchive ? true,
 }: let
+  maxMemory = builtins.fromJSON (builtins.readFile ./shared-memory-max.txt);
   csound-sdk = pkgs.callPackage ./csound_plugin_sdk.nix {
     inherit pkgs pkgsWasm stdenvWasm csoundSdkArchive useSdkArchive sharedMemory;
   };
@@ -51,7 +52,7 @@ in
         -Wl,--no-entry \
         -Wl,--import-table \
         -Wl,--import-memory \
-        ${pkgs.lib.optionalString sharedMemory "-Wl,--shared-memory -Wl,--max-memory=268435456 -Wl,--export=__wasm_init_tls -Wl,--export=__tls_size -Wl,--export=__tls_align"} \
+        ${pkgs.lib.optionalString sharedMemory "-Wl,--shared-memory -Wl,--max-memory=${toString maxMemory} -Wl,--export=__wasm_init_tls -Wl,--export=__tls_size -Wl,--export=__tls_align"} \
         -Wl,--import-undefined \
         -Wl,--export=__wasm_call_ctors \
         -Wl,--export-if-defined=__wasm_apply_data_relocs \

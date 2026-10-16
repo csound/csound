@@ -29,6 +29,7 @@ const nowNanoseconds = (id, clockOrigin) =>
 export function createWasiClockImports({
   memory,
   control,
+  mayBlock = false,
   waitIndex = 0,
   clockOrigin = clockOriginNow(),
 }) {
@@ -46,6 +47,7 @@ export function createWasiClockImports({
     "poll_oneoff": (input, output, count, events) => {
       // libc nanosleep uses one clock subscription. File polling needs a shared
       // filesystem owner and cannot be emulated with per-worker descriptor copies.
+      if (count === 0) return EINVAL;
       if (count !== 1) return ENOTSUP;
       const view = new DataView(memory.buffer);
       if (view.getUint8(input + 8) !== 0) return ENOTSUP;
@@ -54,7 +56,7 @@ export function createWasiClockImports({
       if ((clock !== 0 && clock !== 1) || flags > 1) return EINVAL;
       let delay = view.getBigUint64(input + 24, true);
       if (flags === 1) delay -= nowNanoseconds(clock, clockOrigin);
-      if (control) {
+      if (mayBlock && control) {
         const expected = Atomics.load(control, waitIndex);
         if (Atomics.load(control, 0) !== 0) throw new Error("WASI thread host stopped");
         if (delay > BigInt(0)) Atomics.wait(control, waitIndex, expected, Number(delay) / 1e6);
@@ -109,7 +111,13 @@ export function createWasiThreadImports({
   clockOrigin,
   postMessage,
 }) {
-  const clocks = createWasiClockImports({ memory, control, waitIndex: 1 + index * 3, clockOrigin });
+  const clocks = createWasiClockImports({
+    memory,
+    control,
+    mayBlock: true,
+    waitIndex: 1 + index * 3,
+    clockOrigin,
+  });
   const emptySizes = (count, size) => {
     const view = new DataView(memory.buffer);
     view.setUint32(count, 0, true);

@@ -5,6 +5,18 @@
 
 ## Breaking Changes
 
+### Default host and startup errors
+
+On pages with cross-origin isolation and the required Wasm features, `Csound()`
+now selects the shared worker host. Previously it used one AudioWorklet.
+Pass `useWorker: false` to keep the previous execution model. The shared host
+freezes plugins at its first start and uses the realtime API limits only when
+`--realtime` is enabled. Pages without isolation still use one AudioWorklet.
+
+`Csound()` now rejects its promise when AudioWorklet support is missing;
+it previously logged an error and returned `undefined`. Catch startup errors
+around `await Csound()` instead of checking its result for `undefined`.
+
 ### ScriptProcessorNode Support Removed (v7.0.0+)
 
 ScriptProcessorNode support has been removed from the library. ScriptProcessorNode was deprecated in 2014 and provides inferior performance compared to AudioWorklet. All modern browsers (Chrome 64+, Firefox 76+, Safari 14.1+) support AudioWorklet.
@@ -73,10 +85,9 @@ and setup.
 ## Functions
 
 <dl>
-<dt><a href="#Csound">Csound([params])</a> ⇒ <code>Promise.&lt;(CsoundObj|undefined)&gt;</code></dt>
+<dt><a href="#Csound">Csound([params])</a> ⇒ <code>Promise.&lt;CsoundObj&gt;</code></dt>
 <dd><p>The default entry for @csound/wasm/browser module.
-If loaded successfully, it returns CsoundObj,
-otherwise undefined.</p>
+Returns CsoundObj, or rejects if the host lacks required audio or Wasm support.</p>
 </dd>
 <dt><a href="#getTable">getTable(tableNum)</a> ⇒ <code>Promise.&lt;(Float64Array|undefined)&gt;</code></dt>
 <dd></dd>
@@ -898,10 +909,9 @@ return undefined.
 
 <a name="Csound"></a>
 
-## Csound([params]) ⇒ <code>Promise.&lt;(CsoundObj\|undefined)&gt;</code>
+## Csound([params]) ⇒ <code>Promise.&lt;CsoundObj&gt;</code>
 The default entry for @csound/wasm/browser module.
-If loaded successfully, it returns CsoundObj,
-otherwise undefined.
+Returns CsoundObj, or rejects if the host lacks required audio or Wasm support.
 
 **Kind**: global function
 

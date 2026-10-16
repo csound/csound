@@ -104,8 +104,6 @@ export function instantiateThreadedPlugins({
   }
   return {
     initializeTLS: () => {
-      // These linker-generated initializers only set a TLS global and copy data.
-      // They do not need the C stack that wasi_thread_start will set next.
       for (const initialize of tls) initialize();
     },
   };

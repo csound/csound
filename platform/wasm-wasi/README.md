@@ -208,8 +208,10 @@ The wrapper reads native state, so rejected option changes do not change its
 mode. Omitting the flag keeps synchronous init and the usual live engine APIs.
 
 The shared host prepares four child Workers against fixed 256 MiB Wasm
-memory. Csound uses its existing init pthread when the flag is set. The UI
-owns all five workers, so it can end a failed engine even if the render worker
+memory. `src/shared-memory-max.txt` sets this limit for the engine, plugins,
+and browser bundle. Change that file and rebuild all three together; CMake
+rejects a conflicting `CSOUND_WASI_MAX_MEMORY` override. Csound uses its existing
+init pthread when the flag is set. The UI owns all five workers, so it can end a failed engine even if the render worker
 waits in a join. The AudioWorklet consumes audio from the shared ring. Wasm
 constructors run once, before the child workers become ready.
 
@@ -260,24 +262,17 @@ To run the Chrome checks, build a second wrapper with the test-only init gate:
 
 ```bash
 # From platform/wasm-wasi, after the normal build
-source scripts/nixpkgs-pin.sh
-nix-build src/csound-browser-realtime.nix --arg testHooks true -o result_browser_probe
-nix-build src/plugin_example.nix --argstr testVariant missing_tls -o result_plugin_missing_tls
-nix-build src/plugin_example.nix --argstr testVariant trap_ctor -o result_plugin_trap_ctor
-cp result_plugin_missing_tls/lib/*.wasm result_plugin_trap_ctor/lib/*.wasm lib/
+bash scripts/compile-test-fixtures.sh
 cd browser
-npm run build:prod
-cp dist/csound.js /tmp/csound-production.js
-CSOUND_THREADED_WASM=../result_browser_probe/lib/csound-browser-realtime.wasm npm run build:prod
-cp dist/csound.js /tmp/csound-probe.js
-CSOUND_BROWSER_BUNDLE=/tmp/csound-production.js \
-CSOUND_BROWSER_PROBE_BUNDLE=/tmp/csound-probe.js \
-  node tests/browser-realtime-runner.js
-npm run build:prod
+npm run test:fixtures
+npm run test:realtime
 ```
 
 `CSOUND_THREADED_WASM` is a build-time override for a raw or compressed reactor.
-The gate is absent from normal artifacts. The checks cover flag activation,
+CI runs the WASI command pthread checks and these browser checks. Test fixtures
+stay outside the published `lib/` directory; the fixture build leaves `dist/` on
+the production engine. The gate is absent from normal artifacts. The checks
+cover flag activation,
 reset, shared C/C++ plugins, local modes without isolation headers, audio and
 clock progress during held init, and shutdown. They do not establish a latency
 bound or make every opcode safe for concurrent init. Set

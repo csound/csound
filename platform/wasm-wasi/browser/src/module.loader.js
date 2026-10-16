@@ -11,6 +11,7 @@ export default function loadWasm(options) {
         withPlugins: options.withPlugins,
         messagePort: options.messagePort,
         ports: [],
+        mayBlock: options.mayBlock === true,
       })
     : loadLegacyWasm(options);
 }

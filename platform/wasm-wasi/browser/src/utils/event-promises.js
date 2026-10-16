@@ -26,6 +26,7 @@ export class EventPromises {
 
     this.startPromise = undefined;
     this.startResolver = undefined;
+    this.startDeadline = 0;
 
     this.stopPromise = undefined;
     this.stopResolver = undefined;
@@ -53,6 +54,10 @@ export class EventPromises {
 
     this.isWaitingToStart = this.isWaitingToStart.bind(this);
     this.isWaitingToStop = this.isWaitingToStop.bind(this);
+  }
+
+  getStartRemainingMs() {
+    return this.startPromise ? Math.max(0, this.startDeadline - Date.now()) : 0;
   }
 
   isWaitingToStart() {
@@ -105,6 +110,7 @@ export class EventPromises {
 
   createStartPromise(timeoutMs = 2000) {
     if (!this.startPromise) {
+      this.startDeadline = Date.now() + timeoutMs;
       this.startPromise = new Promise((resolve) => {
         this.startResolver = resolve;
         const timer = setTimeout(() => {

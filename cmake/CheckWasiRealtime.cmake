@@ -10,12 +10,15 @@ function(check_wasi_realtime_runtime)
   # the executable even when the cross toolchain normally probes static libraries.
   set(CMAKE_TRY_COMPILE_TARGET_TYPE EXECUTABLE)
   set(CMAKE_REQUIRED_FLAGS "-pthread")
-  set(CMAKE_REQUIRED_LINK_OPTIONS "-pthread;-Wl,--shared-memory,--max-memory=268435456")
+  set(CMAKE_REQUIRED_LINK_OPTIONS ${CSOUND_WASI_LINK_OPTIONS})
 
   # A pthread header or an empty libpthread archive does not supply a thread host.
   # Link real entry points, and reject a compiler configured without Wasm atomics.
   file(READ "${wasi_realtime_probe_file}"
        wasi_realtime_source)
+  # Toolchain flags/sysroots can change in an existing build directory.
+  unset(HAVE_WASI_REALTIME_RUNTIME CACHE)
+  unset(HAVE_WASI_REALTIME_RUNTIME)
   check_c_source_compiles("${wasi_realtime_source}" HAVE_WASI_REALTIME_RUNTIME)
   cmake_pop_check_state()
 endfunction()

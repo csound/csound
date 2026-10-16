@@ -15,7 +15,7 @@
 
 import * as Comlink from "../utils/comlink.js";
 import { assertRealtimeCallAllowed } from "../utils/realtime-api.js";
-import { waitForSABResume } from "../utils/sab-transport.js";
+import { waitForSABResume, waitForSABOutput } from "../utils/sab-transport.js";
 import { drainMidiPackets } from "../utils/sab-midi-queue.js";
 import { tryPushMidiMessage } from "../utils/wasm-midi.js";
 import { sharedAudioChannels } from "../utils/sab-audio-channels.js";
@@ -121,8 +121,6 @@ const sabCreateRealtimeAudioThread =
 
     const nchnlsInput =
       userProvidedNchnlsIn || isExpectingInput ? libraryCsound.csoundGetNchnlsInput(csound) : 0;
-    const sampleRate =
-      Atomics.load(audioStatePointer, AUDIO_STATE.SAMPLE_RATE) || libraryCsound.csoundGetSr(csound);
 
     // a final merge of user configuration and csound options
     Atomics.store(audioStatePointer, AUDIO_STATE.NCHNLS, nchnls);
@@ -144,14 +142,11 @@ const sabCreateRealtimeAudioThread =
     // Let's notify the audio-worker that performance has started
     Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 1);
 
-    log(`Atomic.wait started (thread is now locked)\n`)();
-
     let firstRound = true;
     let lastReturn = 0;
     let currentCsoundBufferPos = 0;
     let currentInputReadIndex = 0;
     let currentOutputWriteIndex = 0;
-    let waitResult;
 
     const maybeStop = (forceStop = false) => {
       if (
@@ -178,15 +173,7 @@ const sabCreateRealtimeAudioThread =
 
     let firstPerformKsmps = true;
 
-    while (
-      !firstPerformKsmps ||
-      (waitResult = Atomics.wait(audioStatePointer, AUDIO_STATE.CSOUND_LOCK, 1, 10 * 1000))
-    ) {
-      if (waitResult === "timed-out") {
-        maybeStop(true);
-        return;
-      }
-
+    while (true) {
       if (firstRound) {
         firstRound = false;
         await new Promise((resolve) => {
@@ -194,7 +181,7 @@ const sabCreateRealtimeAudioThread =
           workerMessagePort.broadcastSabUnlocked();
         });
 
-        log(`Atomic.wait unlocked, performance started`)();
+        log(`Shared audio performance started`)();
       }
 
       if (Atomics.load(audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) {
@@ -293,7 +280,7 @@ const sabCreateRealtimeAudioThread =
       Atomics.store(audioStatePointer, AUDIO_STATE.FRAMES_REQUESTED, nextFramesRequested);
 
       if (nextFramesRequested === 0) {
-        await new Promise((resolve) => setTimeout(resolve, 1000 * (bufferLength / sampleRate)));
+        waitForSABOutput(audioStatePointer, readIndex);
       }
     }
   };
@@ -433,10 +420,11 @@ const initialize = async (payload) => {
     ? await loadRealtimeWasm({
         wasmBytes: wasmDataURI,
         ports: payload["threadPorts"],
+        mayBlock: true,
         messagePort: workerMessagePort,
         withPlugins,
       })
-    : await loadWasm({ wasmDataURI, withPlugins, messagePort: workerMessagePort });
+    : await loadWasm({ wasmDataURI, withPlugins, messagePort: workerMessagePort, mayBlock: true });
 
   wasm.wasi = wasi;
 
