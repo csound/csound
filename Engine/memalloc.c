@@ -168,6 +168,31 @@ void *csoundWasiOwnAllocation(CSOUND *csound, void *ptr,
     return ptr;
 }
 
+void csoundWasiReleaseAllocation(CSOUND *csound, void *ptr)
+{
+    if (ptr == NULL) return;
+    CSOUND_MEM_SPINLOCK
+    unlink_owner(HDR_PTR(ptr));
+    CSOUND_MEM_SPINUNLOCK
+}
+
+void csoundWasiTransferAllocScope(CSOUND_WASI_ALLOC_SCOPE *source,
+                                 CSOUND_WASI_ALLOC_SCOPE *destination)
+{
+    CSOUND *csound = source->csound;
+    CSOUND_MEM_SPINLOCK
+    while (source->allocations != NULL) {
+      memAllocBlock_t *block = source->allocations;
+      unlink_owner(block);
+      block->owner = destination;
+      block->owner_prv = NULL;
+      block->owner_nxt = destination->allocations;
+      if (block->owner_nxt != NULL) block->owner_nxt->owner_prv = block;
+      destination->allocations = block;
+    }
+    CSOUND_MEM_SPINUNLOCK
+}
+
 void csoundWasiFinishAllocScope(CSOUND_WASI_ALLOC_SCOPE *scope,
                                int32_t discard)
 {

@@ -97,6 +97,94 @@ endin
     EXPECT_EQ(0, error);
 }
 
+TEST_F(OrcCompileTests, AsyncCompilePublishesNamedReferenceAtMerge)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    ASSERT_EQ(0, csoundCompileOrc(csound, R"(
+sr = 48000
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+chn_k "merged-result", 3
+instr MergeTarget
+  chnset 71, "merged-result"
+endin
+)"));
+    ASSERT_EQ(0, csoundStart(csound));
+    CS_VARIABLE *variable = csoundFindVariableWithName(
+        csound, csound->engineState.varPool, "MergeTarget");
+    ASSERT_NE(nullptr, variable);
+    INSTREF *reference = reinterpret_cast<INSTREF *>(&variable->memBlock->value);
+    INSTRTXT *original = reference->instr;
+    int32_t originalNumber = reference->number;
+    // The async API compiles now, but performance has not consumed the merge.
+    ASSERT_EQ(0, (csoundCompileOrc)(csound, R"(
+instr MergeTarget
+  chnset 99, "merged-result"
+endin
+schedule MergeTarget, 0, 0.01
+)", 1));
+    EXPECT_EQ(original, reference->instr);
+    EXPECT_EQ(originalNumber, reference->number);
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_NE(original, reference->instr);
+    EXPECT_EQ(originalNumber, reference->number);
+    int32_t error = 0;
+    for (int block = 0; block < 10 &&
+         csoundGetControlChannel(csound, "merged-result", &error) == 0; block++)
+      ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_EQ(99, csoundGetControlChannel(csound, "merged-result", &error));
+    EXPECT_EQ(0, error);
+}
+
+TEST_F(OrcCompileTests, RealtimeEventWaitsForInstrumentPublication)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#endif
+    csoundSetOption(csound, "-n -d -m0 --realtime --daemon");
+    ASSERT_EQ(0, csoundCompileOrc(csound, R"(
+sr = 48000
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+chn_k "published-note", 3
+instr 2
+  chnset 71, "published-note"
+endin
+)"));
+    ASSERT_EQ(0, csoundStart(csound));
+    ASSERT_TRUE(csound->realtime_locks_initialized);
+    EVTBLK event = {};
+    event.opcod = 'i';
+    event.pcnt = 3;
+    cs_float fields[] = {2, 0, 0.01};
+    int32_t error = 0;
+    csoundSpinLock(&csound->alloc_spinlock);
+    // Reproduce the empty slot inside named_instr_alloc's merge, while the
+    // render caller keeps submitting events and advancing the sample clock.
+    INSTRTXT *original = csound->engineState.instrtxtp[2];
+    csound->engineState.instrtxtp[2] = nullptr;
+    int32_t submitted = insert_event_at_sample(csound, &event, fields, 0);
+    int64_t before = csoundGetCurrentTimeSamples(csound);
+    int32_t performed = csoundPerformKsmps(csound);
+    cs_float seen = csoundGetControlChannel(csound, "published-note", &error);
+    csound->engineState.instrtxtp[2] = original;
+    csoundSpinUnLock(&csound->alloc_spinlock);
+    EXPECT_EQ(0, submitted);
+    EXPECT_EQ(0, performed);
+    EXPECT_EQ(0, seen);
+    EXPECT_GT(csoundGetCurrentTimeSamples(csound), before);
+    for (int attempt = 0; attempt < 1000 &&
+         csoundGetControlChannel(csound, "published-note", &error) == 0; attempt++) {
+      ASSERT_EQ(0, csoundPerformKsmps(csound));
+      csoundSleep(1);
+    }
+    EXPECT_EQ(71, csoundGetControlChannel(csound, "published-note", &error));
+    EXPECT_EQ(0, error);
+}
+
 TEST_F (OrcCompileTests, testSpaceTrajectoryGuardPoint)
 {
     csoundCreateMessageBuffer(csound, 0);

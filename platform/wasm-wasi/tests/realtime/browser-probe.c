@@ -8,6 +8,24 @@
 /* The browser test controls this storage directly while rendering or join waits.
    0: entered; 1: release (negative traps); 2: completed; 3: Csound worker. */
 static _Atomic int32_t probe[4];
+static int32_t freed_published_lookup;
+
+static void check_browser_free(CSOUND *csound, void *memory)
+{
+    /* Observe the exact lifetime error without relying on freed heap contents
+       being overwritten before the next compilation. Only the API compiler
+       thread reads the variable pool here. */
+    if (csoundWasiCompileJumpContext(csound) != NULL) {
+      CS_VARIABLE *variable = csoundFindVariableWithName(
+          csound, csound->engineState.varPool, "KeptLookup");
+      if (variable != NULL && variable->memBlock != NULL) {
+        OPCODEREF *reference = (OPCODEREF *) &variable->memBlock->value;
+        if (memory != NULL && memory == reference->entries)
+          freed_published_lookup++;
+      }
+    }
+    csoundFree(csound, memory);
+}
 
 static int32_t hold_browser_init(CSOUND *csound, void *opcode)
 {
@@ -62,9 +80,18 @@ static int32_t browser_macro_arguments(CSOUND *csound, HEAP_PROBE *opcode)
     return 0;
 }
 
+static int32_t browser_freed_lookup(CSOUND *csound, HEAP_PROBE *opcode)
+{
+    (void) csound;
+    *opcode->result = freed_published_lookup;
+    return 0;
+}
+
 __attribute__((used))
 uintptr_t csoundWasiInstallThreadProbe(CSOUND *csound)
 {
+    freed_published_lookup = 0;
+    csound->Free = check_browser_free;
     for (int index = 0; index < 4; ++index)
         atomic_store(&probe[index], 0);
     if (csoundAppendOpcode(csound, "test_wasi_browser_hold", sizeof(OPDS), 0,
@@ -75,6 +102,9 @@ uintptr_t csoundWasiInstallThreadProbe(CSOUND *csound)
         return 0;
     if (csoundAppendOpcode(csound, "test_wasi_browser_macro_args", sizeof(HEAP_PROBE), 0,
                            "i", "", (SUBR) browser_macro_arguments, NULL, NULL) != 0)
+        return 0;
+    if (csoundAppendOpcode(csound, "test_wasi_browser_freed_lookup", sizeof(HEAP_PROBE), 0,
+                           "i", "", (SUBR) browser_freed_lookup, NULL, NULL) != 0)
         return 0;
     return (uintptr_t) &probe[0];
 }

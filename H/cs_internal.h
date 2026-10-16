@@ -231,6 +231,7 @@ extern "C" {
     CS_HASH_TABLE *instrumentNames; /* instrument names */
     int32_t           maxinsno;
     OPCODINFO     *opcodeInfo;
+    struct instrument_reference *instrumentRefs; /* pending merge publication */
   } ENGINE_STATE;
 
 
@@ -402,6 +403,9 @@ extern "C" {
   int32_t csoundWasiHasAllocScope(CSOUND *csound);
   void *csoundWasiOwnAllocation(CSOUND *csound, void *ptr,
                               void (*dispose)(CSOUND *, void *));
+  void csoundWasiReleaseAllocation(CSOUND *csound, void *ptr);
+  void csoundWasiTransferAllocScope(CSOUND_WASI_ALLOC_SCOPE *source,
+                                   CSOUND_WASI_ALLOC_SCOPE *destination);
   void csoundWasiFinishAllocScope(CSOUND_WASI_ALLOC_SCOPE *scope,
                                  int32_t discard);
 #ifdef CSOUND_WASI_BROWSER

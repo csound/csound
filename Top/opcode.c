@@ -312,6 +312,12 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep) {
       ref.entries = find_opcode2(csound, name);
       if(dest->entries == NULL ||
          dest->entries->count < ref.entries->count) {
+#ifdef CSOUND_WASI_REALTIME
+        /* The shallow copy outlives this parse, even if a later statement
+           fails verification. Keep temporary lookups scoped, but transfer
+           this published array to the engine's reset-time allocation list. */
+        csoundWasiReleaseAllocation(csound, ref.entries);
+#endif
         dest->readonly = 0;
         type->copyValue(csound, type, dest, &ref, NULL);
         dest->readonly = 1;  // mark it as readonly

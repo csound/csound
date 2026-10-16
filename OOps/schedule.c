@@ -42,7 +42,7 @@ static const char *errmsg_2 =
   Str_noop("event: string name is allowed only for"
            " \"i\", \"d\", and \"q\" events");
 
-int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
+int32_t instr_num(CSOUND *csound, INSTREF *reference);
 int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
                                  int32_t mode, char opcod)
 {
@@ -85,7 +85,7 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
           INSTREF *ref = (INSTREF *) args[0];
           if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
             return csound->InitError(csound, "%s\n", Str(errmsg_2));
-          insno = instr_num(csound, ref->instr);
+          insno = instr_num(csound, ref);
           aref = args[0];
           args[0] = &insno;
           evt.strarg = NULL; evt.scnt = 0;
@@ -184,7 +184,7 @@ int32_t event_opcode_init(CSOUND *csound, LINEVENT *p, int32_t pcnt,
         INSTREF *iref = (INSTREF *) args[0];
         if (UNLIKELY(evt.opcod != 'i' && evt.opcod != 'q' && opcod != 'd'))
           return csound->InitError(csound, "%s\n", Str(errmsg_2));
-        insno = instr_num(csound, iref->instr);
+        insno = instr_num(csound, iref);
         ref = args[0];
         args[0] = &insno;
         evt.strarg = NULL; evt.scnt = 0;
@@ -272,7 +272,7 @@ static int32_t instance_opcode(CSOUND *csound, LINEVENT2 *p,
     if (evt.pcnt > 0) {
       if (mode == 2) {
         INSTREF *ref = (INSTREF *) args[0];
-        insno = instr_num(csound, ref->instr);
+        insno = instr_num(csound, ref);
         aref = args[0];
         args[0] = &insno;
         evt.strarg = NULL; evt.scnt = 0;
@@ -346,7 +346,7 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
     cs_float insno;
     int32_t res;
     INSTREF *ref = (INSTREF *) p->argums[0];
-    insno = instr_num(csound, ref->instr);
+    insno = instr_num(csound, ref);
     p->argums[0] = &insno;
     res = insert_score_args_at_sample(csound, &evt, p->argums,
                                   csound->icurTimeSamples);
@@ -439,7 +439,7 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
     const CS_TYPE *type = GetTypeForArg(p->which);
     if (type == &CS_VAR_TYPE_INSTR) {
       INSTREF *ref = (INSTREF *) p->which;
-      insno = (cs_float) instr_num(csound, ref->instr);
+      insno = (cs_float) instr_num(csound, ref);
     }
     else if (type == &CS_VAR_TYPE_I || type == &CS_VAR_TYPE_C ||
              type == &CS_VAR_TYPE_P || type == &CS_VAR_TYPE_K)
@@ -715,7 +715,7 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
       insno = (int32_t)csoundStringArg2Insno_p(csound, ((STRINGDAT*)p->args[0])->data);
     else if (GetTypeForArg(p->args[0]) == &CS_VAR_TYPE_INSTR) {
       INSTREF *ref = (INSTREF *) p->args[0];
-      insno = instr_num(csound, ref->instr);
+      insno = instr_num(csound, ref);
     }
     else if (IsStringCode(*p->args[0])) {
       char *ss = csoundGetArgString(csound, *p->args[0]);
@@ -793,7 +793,7 @@ static int32_t ktriginstr_(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     }
     else if (instrref) {
       INSTREF *ref = (INSTREF *) p->args[0];
-      evt.p[1] = (cs_float) instr_num(csound, ref->instr);
+      evt.p[1] = (cs_float) instr_num(csound, ref);
     }
     else if (IsStringCode(*p->args[0])) {
       unquote(name, csoundGetArgString(csound, *p->args[0]), 512);
@@ -1034,7 +1034,7 @@ static int32_t remove_event_op(CSOUND *csound, RMEVT *p, int32_t cont) {
                                  ((STRINGDAT *)p->arg[0])->data);
   } else if(GetTypeForArg(p->arg[0]) == &CS_VAR_TYPE_INSTR){
     INSTREF *ref = (INSTREF *) p->arg[0];
-    evt.p[1] =  instr_num(csound, ref->instr);
+    evt.p[1] =  instr_num(csound, ref);
   }
   else evt.p[1] = *p->arg[0];
 

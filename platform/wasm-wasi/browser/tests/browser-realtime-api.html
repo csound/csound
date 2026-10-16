@@ -252,6 +252,69 @@ endin
         "failed compilation changed the existing named instrument",
       );
       checks.push("rejected compilation preserves the existing named instrument");
+      phase = "scheduling through instrument replacement";
+      const target = `
+instr LoopTarget
+  iSeen chnget "loop-seen"
+  chnset iSeen + 1, "loop-seen"
+endin
+`;
+      check(
+        (await csound.compileOrc(`
+chn_k "loop-sent", 3
+chn_k "loop-seen", 3
+${target}
+instr 80
+  saved:InstrDef = LoopTarget
+  kSent init 0
+  kTick metro 100
+  if kTick == 1 && kSent < 120 then
+    kSent += 1
+    if kSent % 2 == 0 then
+      schedulek LoopTarget, 0, 0.001
+    else
+      schedulek saved, 0, 0.001
+    endif
+    chnset kSent, "loop-sent"
+  endif
+endin
+`)) === 0,
+        "live scheduler setup failed",
+      );
+      await csound.event(0, [80, 0, 10]);
+      await until(
+        async () => (await csound.getControlChannel("loop-seen")) > 0,
+        "live scheduler did not start",
+      );
+      for (let edit = 0; edit < 24; edit++) {
+        const reject = edit % 2 === 0;
+        const result = await csound.compileOrc(
+          target +
+            (reject
+              ? `
+instr 98
+  Sarr[] fillarray "x", "y"
+  kidx init 0
+  prints Sarr[kidx]
+endin
+`
+              : ""),
+        );
+        check(reject ? result !== 0 : result === 0, "unexpected replacement result");
+        await delay(10);
+        check(audible(), "steady audio stopped during instrument replacement");
+      }
+      await until(
+        async () => (await csound.getControlChannel("loop-sent")) === 120,
+        "scheduler stopped during live edits",
+      );
+      await until(
+        async () => (await csound.getControlChannel("loop-seen")) === 120,
+        "live edits lost scheduled notes through named or copied references",
+      );
+      checks.push(
+        "named and copied references keep every note through accepted and rejected edits",
+      );
       for (const action of [
         () => csound.compileOrc("return 0\0return 1"),
         () => csound.evalCode("return 0\0return 1"),
@@ -348,7 +411,10 @@ endin
           phase = "warm compiler failure: " + name;
           check((await csound.compileOrc(edit)) !== 0, "invalid edit compiled: " + name);
           const before = await freeHeap();
-          for (let attempt = 0; attempt < 8; attempt++) {
+          // Compilation rejection follows a successful parse. More repeats
+          // catch small allocations that survive that ownership handoff.
+          const attempts = name === "string array phase" ? 80 : 8;
+          for (let attempt = 0; attempt < attempts; attempt++) {
             phase = "repeat compiler failure: " + name;
             check((await csound.compileOrc(edit)) !== 0, "invalid edit compiled: " + name);
           }
@@ -367,6 +433,35 @@ endin
         checks.push(
           "repeated parsing, verification, and compilation failures release temporary state",
         );
+        phase = "published opcode reference after rejected edit";
+        check(
+          (await csound.compileOrc(`
+  opcode KeptLookup(iValue:i):i
+    xout iValue
+  endop
+  instr 98
+    p1:i = 1
+  endin
+  `)) !== 0,
+          "invalid edit after an opcode definition compiled",
+        );
+        check(
+          (await csound.evalCode("return test_wasi_browser_freed_lookup()")) === 0,
+          "parser cleanup freed a published opcode lookup",
+        );
+        check(
+          (await csound.evalCode("opcodeinfo KeptLookup\nreturn 71")) === 71,
+          "recovery freed a published opcode lookup",
+        );
+        check(
+          (await csound.compileOrc(`
+  opcode KeptLookup(iValue:i):i
+    xout iValue + 1
+  endop
+  `)) === 0 && (await csound.evalCode("return KeptLookup(71)")) === 72,
+          "opcode definition could not be compiled and called after rejection",
+        );
+        checks.push("published opcode lookups survive a later semantic error");
         phase = "held evaluation and stop";
         probe = csound["__threadProbe"];
         check(probe instanceof Int32Array, "missing private evaluation gate");

@@ -5275,8 +5275,7 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
     CS_VARIABLE *var = csoundFindVariableWithName(csound,
                                                  csound->engineState.varPool,
                                                  varname);
-    /* Keep the running instrument's ref so the compiler can restore it
-       if a replacement fails its checks. */
+    /* Keep the running reference until the compiler publishes a valid merge. */
     if (var != NULL && var->varType == &CS_VAR_TYPE_INSTR) return;
     var = add_global_variable(csound, &csound->engineState,
                                          &CS_VAR_TYPE_INSTR, varname,

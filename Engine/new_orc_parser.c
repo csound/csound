@@ -511,7 +511,12 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csound_orclex_destroy(state->parser.yyscanner);
       free(state->parser.xstrbuff);
       corfile_rm(csound, &csound->expanded_orc);
-      csoundWasiFinishAllocScope(&state->allocations, result == NULL);
+      /* A live compiler still needs these allocations until validation ends.
+         Standalone ParseOrc callers keep the usual tree ownership contract. */
+      if (result != NULL && previous != NULL && previous->csound == csound)
+        csoundWasiTransferAllocScope(&state->allocations, previous);
+      else
+        csoundWasiFinishAllocScope(&state->allocations, result == NULL);
       csound->Free(csound, state);
       return result;
     }

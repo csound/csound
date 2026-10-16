@@ -320,6 +320,8 @@ typedef struct {
   typedef struct instrRef {
     INSTRTXT *instr;
     int32_t   readonly;
+    /* Scheduling reads this atomically; it never scans a table being merged. */
+    int32_t   number;
   } INSTREF;
 
 #define MAX_STRINGDAT_SIZE 0xFFFFFFFF

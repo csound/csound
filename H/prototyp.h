@@ -107,7 +107,7 @@ extern "C" {
   void *csoundQueryInstanceVariable(CSOUND *, const INSDS *, const char *);
   void reset_instance_variables(INSDS *);
   void free_instance_variables(CSOUND *, INSDS *);
-  int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
+  int32_t instr_num(CSOUND *csound, INSTREF *reference);
   void free_instr_var_memory(CSOUND* csound, INSDS* ip);
   void recycle_udo_instance(CSOUND* csound, INSDS* ip);
   int32_t init_instance(CSOUND *csound, INSDS *ip, EVTBLK *newevtp);

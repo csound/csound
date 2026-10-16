@@ -1874,6 +1874,48 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
   }
 }
 
+typedef struct instrument_reference {
+  INSTREF *destination;
+  INSTRTXT *instrument;
+  struct instrument_reference *next;
+} INSTR_REFERENCE;
+
+static void stage_instr_reference(CSOUND *csound, ENGINE_STATE *state,
+                                  INSTREF *destination, INSTRTXT *instrument) {
+  INSTR_REFERENCE *reference = state->instrumentRefs;
+  while (reference != NULL && reference->destination != destination)
+    reference = reference->next;
+  if (reference == NULL) {
+    reference = csound->Calloc(csound, sizeof(*reference));
+    reference->destination = destination;
+    reference->next = state->instrumentRefs;
+    state->instrumentRefs = reference;
+  }
+  reference->instrument = instrument;
+}
+
+static void finish_instr_references(CSOUND *csound, ENGINE_STATE *state,
+                                    int32_t publish) {
+  INSTR_REFERENCE *reference = state->instrumentRefs;
+  while (reference != NULL) {
+    INSTR_REFERENCE *next = reference->next;
+    if (publish) {
+      int32_t number = 0;
+      ENGINE_STATE *live = &csound->engineState;
+      while (number <= live->maxinsno &&
+             live->instrtxtp[number] != reference->instrument) number++;
+      reference->destination->instr = reference->instrument;
+      reference->destination->readonly = 1;
+      /* Init readers share the merge lock. Render scheduling only reads this
+         number, so neither a retired template nor a resized table is exposed. */
+      ATOMIC_SET(reference->destination->number, number);
+    }
+    csound->Free(csound, reference);
+    reference = next;
+  }
+  state->instrumentRefs = NULL;
+}
+
 /**
    Merge a new engineState into csound->engineState
    1) Add to stringPool, constantsPool and varPool (globals)
@@ -1951,6 +1993,7 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     }
   }
   (&(current_state->instxtanchor))->nxtinstxt = csound->instr0;
+  finish_instr_references(csound, engineState, 1);
 
   // VL 23-09-2022
   // At the moment, instr0 can't be freed anywhere because it may hold state
@@ -1972,11 +2015,9 @@ static void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable) {
   csound->Free(csound, typeTable);
 }
 
-/* These references may already belong to the running engine. Keep their old
-   values until a new compilation passes all checks. */
+/* UDO compilation needs its temporary binding while checking opcode rates.
+   Restore that binding if validation rejects the new templates. */
 typedef struct compile_reference {
-  INSTREF *instrument;
-  INSTREF oldInstrument;
   OPCODINFO *opcode;
   INSTRTXT *oldOpcodeInstrument;
   SUBR oldPerf;
@@ -1984,11 +2025,9 @@ typedef struct compile_reference {
 } COMPILE_REFERENCE;
 
 static void save_compile_reference(CSOUND *csound, COMPILE_REFERENCE **head,
-                                    INSTREF *instrument, OPCODINFO *opcode) {
+                                    OPCODINFO *opcode) {
   COMPILE_REFERENCE *reference = csound->Calloc(csound, sizeof(*reference));
-  reference->instrument = instrument;
   reference->opcode = opcode;
-  if (instrument != NULL) reference->oldInstrument = *instrument;
   if (opcode != NULL) {
     reference->oldOpcodeInstrument = opcode->ip;
     reference->oldPerf = opcode->oentry->perf;
@@ -2002,8 +2041,6 @@ static void finish_compile_references(CSOUND *csound, COMPILE_REFERENCE *head,
   while (head != NULL) {
     COMPILE_REFERENCE *next = head->next;
     if (restore) {
-      if (head->instrument != NULL)
-        *head->instrument = head->oldInstrument;
       if (head->opcode != NULL) {
         head->opcode->ip = head->oldOpcodeInstrument;
         head->opcode->oentry->perf = head->oldPerf;
@@ -2035,6 +2072,7 @@ static void discard_compile_var_pool(CSOUND *csound, CS_VAR_POOL *pool) {
 }
 
 static void discard_compile_state(CSOUND *csound, ENGINE_STATE *state) {
+  finish_instr_references(csound, state, 0);
   INSTRTXT *instrument = state->instxtanchor.nxtinstxt;
   while (instrument != NULL) {
     INSTRTXT *next = instrument->nxtinstxt;
@@ -2430,13 +2468,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
                                                            csound->engineState.varPool, c);
             // set it
             if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
-              INSTREF src = { instrtxt, 0 }, *dest = (INSTREF *) &(ivar->memBlock->value);
-              if (engineState != &csound->engineState)
-                save_compile_reference(csound, &references, dest, NULL);
-              ivar->varType->copyValue(csound, ivar->varType,
-                                       dest, &src, NULL);
-              // mark it as read-only
-              dest->readonly = 1;
+              stage_instr_reference(csound, engineState,
+                  (INSTREF *) &ivar->memBlock->value, instrtxt);
             }
           }
         } else {
@@ -2466,17 +2499,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
                 csoundFindVariableWithName(csound, globalPool, c);
               // set it
               if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
-                INSTREF src = { instrtxt, 0 }, *dest = (INSTREF *)
-                  &(ivar->memBlock->value);
-                if (engineState != &csound->engineState)
-                  save_compile_reference(csound, &references, dest, NULL);
-                // clear readonly first so var can be overwritten in case of
-                // redefinition
-                dest->readonly = 0;
-                ivar->varType->copyValue(csound, ivar->varType,
-                                         dest, &src, NULL);
-                // mark it as read-only so Csound code can't redefine it
-                dest->readonly = 1;
+                stage_instr_reference(csound, engineState,
+                    (INSTREF *) &ivar->memBlock->value, instrtxt);
               }
             }
           }
@@ -2524,7 +2548,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
                         opname, current->line);
       } else {
         if (engineState != &csound->engineState)
-          save_compile_reference(csound, &references, NULL, opinfo);
+          save_compile_reference(csound, &references, opinfo);
         opinfo->ip = instrtxt;
         instrtxt->insname = csoundStrdup(csound, opname);
         instrtxt->opcode_info = opinfo;
@@ -2639,6 +2663,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       csoundRecalculateVarPoolMemory(csound, ip->varPool);
     }
 
+    finish_instr_references(csound, engineState, 1);
     CS_VARIABLE *var;
     var = csoundFindVariableWithName(csound, engineState->varPool, "sr");
     if (var && var->memBlock) {
@@ -2693,7 +2718,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   if (engineState != &csound->engineState) {
     csound->instr0 = previousInstr0;
     discard_compile_state(csound, engineState);
-  }
+  } else finish_instr_references(csound, engineState, 0);
   /* Initial compilation writes the persistent state owned by CSOUND. */
   free_typetable(csound, typeTable);
   return CSOUND_ERROR;
@@ -2751,18 +2776,32 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
   if (csoundWasiIsWorkerThread()) {
     CSOUND_WASI_COMPILE_JUMP context;
     CSOUND_WASI_COMPILE_JUMP *previous;
+    CSOUND_WASI_ALLOC_SCOPE *scope = NULL, *previousScope = NULL;
+    /* A first compilation writes directly to persistent engine state. Only
+       live edits have private compiler state that can be discarded on error.
+       Keep the owner on the heap so longjmp cannot invalidate its list. */
+    if (csound->instr0 != NULL) {
+      scope = csound->Calloc(csound, sizeof(*scope));
+      scope->csound = csound;
+      previousScope = csoundWasiSwapAllocScope(scope);
+    }
     context.csound = csound;
     context.enabled = 1;
     previous = csoundWasiSwapCompileJumpContext(&context);
     /* Never borrow the render caller's jump buffer. Only parser failures
        recover here; compilation disables the target before publishing state. */
     if (setjmp(context.target)) {
-      csoundWasiSwapCompileJumpContext(previous);
       csound->synterrcnt = 0;
-      return CSOUND_ERROR;
+      retVal = CSOUND_ERROR;
+    } else {
+      retVal = compile_orc(csound, str, async);
     }
-    retVal = compile_orc(csound, str, async);
     csoundWasiSwapCompileJumpContext(previous);
+    if (scope != NULL) {
+      csoundWasiSwapAllocScope(previousScope);
+      csoundWasiFinishAllocScope(scope, retVal != CSOUND_SUCCESS);
+      csound->Free(csound, scope);
+    }
     return retVal;
   }
 #endif
