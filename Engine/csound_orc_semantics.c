@@ -4092,6 +4092,400 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
   return 1;
 }
 
+/* Instanced for loops
+
+   `for x in arr instanced do ... od` gives every iteration its own
+   instances of the opcodes in the body. The body becomes a synthetic UDO
+   and the loop becomes a vector run over an array of opcode objects:
+
+     opcode __instanced_N(captured..., x[, index]):(written...)
+     ref:OpcodeDef = opcoderef("__instanced_N")
+     obj:Opcode[] = create(ref, lenarray(arr))
+     written... = run(obj, captured..., arr[, indices])
+
+   run gives each instance one element of arr and binds the captured
+   variables to every instance in turn, so values written in the body
+   accumulate in iteration order. Variables declared in the body become
+   UDO locals, so each iteration keeps its own state. */
+
+extern ORCTOKEN *make_string(CSOUND *, char *, void *);
+
+typedef struct {
+  char *name;
+  int32_t written;
+  int32_t declared;
+} INSTANCED_NAME;
+
+typedef struct {
+  INSTANCED_NAME *names;
+  int32_t count;
+  int32_t capacity;
+} INSTANCED_SCAN;
+
+static void instanced_note_name(CSOUND *csound, INSTANCED_SCAN *scan,
+                                const char *name, int32_t written,
+                                int32_t declared) {
+  int32_t i;
+  /* Globals are visible inside the UDO and need no capture. */
+  if (name == NULL || strchr(name, '@') != NULL)
+    return;
+  for (i = 0; i < scan->count; i++) {
+    if (strcmp(scan->names[i].name, name) == 0) {
+      scan->names[i].written |= written;
+      scan->names[i].declared |= declared;
+      return;
+    }
+  }
+  if (scan->count == scan->capacity) {
+    scan->capacity = scan->capacity ? scan->capacity * 2 : 8;
+    scan->names = csound->ReAlloc(csound, scan->names,
+                                  scan->capacity * sizeof(INSTANCED_NAME));
+  }
+  scan->names[scan->count].name = csoundStrdup(csound, name);
+  scan->names[scan->count].written = written;
+  scan->names[scan->count].declared = declared;
+  scan->count++;
+}
+
+/* Collect the identifiers of a statement list in order of appearance,
+   marking those in output position. Writing an array element or a struct
+   member writes its base variable. */
+static void instanced_scan(CSOUND *csound, TREE *t, int32_t written,
+                           INSTANCED_SCAN *scan) {
+  for (; t != NULL; t = t->next) {
+    switch (t->type) {
+    case T_ASSIGNMENT:
+    case S_ADDIN:
+    case S_SUBIN:
+    case S_MULIN:
+    case S_DIVIN:
+      instanced_scan(csound, t->left, 1, scan);
+      instanced_scan(csound, t->right, 0, scan);
+      continue;
+    case T_OPCALL:
+      if (t->left != NULL && t->left->type == T_OPCALL) {
+        instanced_scan(csound, t->left->left, 1, scan);
+        instanced_scan(csound, t->left->right, 0, scan);
+      } else {
+        instanced_scan(csound, t->left, 1, scan);
+      }
+      instanced_scan(csound, t->right, 0, scan);
+      continue;
+    case T_ARRAY:
+    case STRUCT_EXPR:
+      instanced_scan(csound, t->left, written, scan);
+      instanced_scan(csound, t->right, 0, scan);
+      continue;
+    case T_TYPED_IDENT:
+      instanced_note_name(csound, scan, t->value->lexeme, written, 1);
+      break;
+    case T_IDENT:
+      instanced_note_name(csound, scan, t->value->lexeme, written, 0);
+      break;
+    default:
+      break;
+    }
+    instanced_scan(csound, t->left, 0, scan);
+    instanced_scan(csound, t->right, 0, scan);
+  }
+}
+
+static void instanced_scan_free(CSOUND *csound, INSTANCED_SCAN *scan) {
+  int32_t i;
+  for (i = 0; i < scan->count; i++)
+    csound->Free(csound, scan->names[i].name);
+  csound->Free(csound, scan->names);
+}
+
+/* break and continue cannot leave the synthetic UDO. Those inside a nested
+   loop of the body are fine. */
+static int32_t instanced_has_loop_jump(TREE *t, int32_t nested) {
+  for (; t != NULL; t = t->next) {
+    switch (t->type) {
+    case BREAK_TOKEN:
+    case CONTINUE_TOKEN:
+      if (!nested)
+        return 1;
+      break;
+    case FOR_TOKEN:
+    case INSTANCED_FOR_TOKEN:
+    case WHILE_TOKEN:
+    case UNTIL_TOKEN:
+      if (instanced_has_loop_jump(t->left, 1) ||
+          instanced_has_loop_jump(t->right, 1))
+        return 1;
+      continue;
+    default:
+      break;
+    }
+    if (instanced_has_loop_jump(t->left, nested) ||
+        instanced_has_loop_jump(t->right, nested))
+      return 1;
+  }
+  return 0;
+}
+
+static TREE *instanced_ident(CSOUND *csound, TREE *at, const char *name) {
+  return make_leaf(csound, at->line, at->locn, T_IDENT,
+                   make_token(csound, (char *) name, NULL));
+}
+
+static TREE *instanced_typed_ident(CSOUND *csound, TREE *at,
+                                   const char *name, const char *type) {
+  TREE *t = make_leaf(csound, at->line, at->locn, T_TYPED_IDENT,
+                      make_token(csound, (char *) name, NULL));
+  t->value->optype = csoundStrdup(csound, type);
+  return t;
+}
+
+static TREE *instanced_call(CSOUND *csound, TREE *at, const char *name,
+                            TREE *args) {
+  TREE *t = make_leaf(csound, at->line, at->locn, T_FUNCTION,
+                      make_token(csound, (char *) name, NULL));
+  t->right = args;
+  return t;
+}
+
+static TREE *instanced_assign(CSOUND *csound, TREE *at, TREE *lhs,
+                              TREE *rhs) {
+  TREE *t = make_leaf(csound, at->line, at->locn, T_ASSIGNMENT,
+                      make_token(csound, "=", NULL));
+  t->left = lhs;
+  t->right = rhs;
+  return t;
+}
+
+static TREE *instanced_int(CSOUND *csound, TREE *at, const char *value) {
+  return make_leaf(csound, at->line, at->locn, INTEGER_TOKEN,
+                   make_int(csound, (char *) value, NULL));
+}
+
+static TREE *instanced_with_next(TREE *first, TREE *second) {
+  first->next = second;
+  return first;
+}
+
+/* External annotation for a variable: "a", "k[]", "Point[]", ... */
+static char *instanced_type_name(CSOUND *csound, const CS_VARIABLE *var) {
+  if (var->varType == &CS_VAR_TYPE_ARRAY && var->subType != NULL)
+    return csoundFormatTypeName(csound, var->subType->varTypeName,
+                                var->dimensions);
+  return csoundStrdup(csound, var->varType->varTypeName);
+}
+
+/* A UDO output type as the parser builds it: the type name, with a "["
+   child for a one-dimensional array. */
+static TREE *instanced_out_type(CSOUND *csound, TREE *at,
+                                const CS_VARIABLE *var) {
+  TREE *t;
+  if (var->varType == &CS_VAR_TYPE_ARRAY) {
+    t = instanced_ident(csound, at, var->subType->varTypeName);
+    t->right = instanced_ident(csound, at, "[");
+    return t;
+  }
+  return instanced_ident(csound, at, var->varType->varTypeName);
+}
+
+/* Replace an instanced loop with the statements that run it, after
+   verifying its synthetic UDO and queueing it for the enclosing
+   definition. Returns NULL after reporting an error. */
+static TREE *expand_instanced_for(CSOUND *csound, TREE *loop,
+                                  TYPE_TABLE *typeTable) {
+  TREE *loopVar = loop->left;
+  TREE *indexVar = loopVar->next;
+  TREE *in = loop->right;
+  TREE *arrayExpr = in->left;
+  TREE *body = in->right;
+  INSTANCED_SCAN scan = { NULL, 0, 0 };
+  char *arrayType = NULL;
+  char element[2] = { 0, 0 };
+  char udoName[64], refName[64], objName[64], arrName[64], idxName[64];
+  char quoted[72];
+  const char *loopType, *indexType = NULL;
+  TREE *inArgs = NULL, *outTypes = NULL, *runIns = NULL, *runOuts = NULL;
+  TREE *xoutArgs = NULL, *udo, *nameNode, *defs, *pending;
+  TREE *stmts = NULL, *runCall, *runArgs;
+  CS_VAR_POOL *pool;
+  int32_t inZero, id, i;
+
+  if (typeTable->localPool == typeTable->instr0LocalPool) {
+    synterr(csound, Str("line %d: instanced loops are only allowed inside "
+                        "instruments and UDOs\n"), loop->line);
+    return NULL;
+  }
+  if (instanced_has_loop_jump(body, 0)) {
+    synterr(csound, Str("line %d: break and continue are not allowed in "
+                        "instanced loops\n"), loop->line);
+    return NULL;
+  }
+
+  arrayType = get_arg_type2(csound, arrayExpr, typeTable);
+  if (arrayType == NULL || arrayType[0] != '[') {
+    synterr(csound, Str("line %d: expected an array in instanced for "
+                        "statement\n"), loop->line);
+    csound->Free(csound, arrayType);
+    return NULL;
+  }
+  if (arrayType[1] == '[') {
+    synterr(csound, Str("line %d: instanced loops require a one-dimensional "
+                        "array\n"), loop->line);
+    csound->Free(csound, arrayType);
+    return NULL;
+  }
+  if (strlen(arrayType) != 3 || strchr("ika", arrayType[1]) == NULL) {
+    synterr(csound, Str("line %d: instanced loops require an array of "
+                        "numeric values\n"), loop->line);
+    csound->Free(csound, arrayType);
+    return NULL;
+  }
+  element[0] = arrayType[1];
+  csound->Free(csound, arrayType);
+
+  loopType = (loopVar->type == T_TYPED_IDENT && loopVar->value->optype)
+    ? loopVar->value->optype : element;
+  if (indexVar != NULL) {
+    indexType = (indexVar->type == T_TYPED_IDENT && indexVar->value->optype)
+      ? indexVar->value->optype : (element[0] == 'i' ? "i" : "k");
+  }
+
+  id = csound->genlabs++;
+  snprintf(udoName, sizeof(udoName), "__instanced_%d", id);
+  snprintf(refName, sizeof(refName), "__instanced_ref_%d", id);
+  snprintf(objName, sizeof(objName), "__instanced_obj_%d", id);
+  snprintf(arrName, sizeof(arrName), "__instanced_arr_%d", id);
+  snprintf(idxName, sizeof(idxName), "__instanced_idx_%d", id);
+  snprintf(quoted, sizeof(quoted), "\"%s\"", udoName);
+
+  /* Outer locals used in the body become UDO arguments. Those written in
+     the body are also UDO outputs, assigned back by run. */
+  instanced_scan(csound, body, 0, &scan);
+  for (i = 0; i < scan.count; i++) {
+    const INSTANCED_NAME *name = &scan.names[i];
+    CS_VARIABLE *var;
+    char *type;
+    if (name->declared || strcmp(name->name, loopVar->value->lexeme) == 0 ||
+        (indexVar != NULL &&
+         strcmp(name->name, indexVar->value->lexeme) == 0))
+      continue;
+    var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                     name->name);
+    if (var == NULL)
+      continue;
+    if (name->written && var->varType == &CS_VAR_TYPE_ARRAY &&
+        var->dimensions > 1) {
+      synterr(csound, Str("line %d: instanced loops cannot write the "
+                          "multidimensional array '%s'\n"),
+              loop->line, name->name);
+      instanced_scan_free(csound, &scan);
+      return NULL;
+    }
+    type = instanced_type_name(csound, var);
+    inArgs = tree_append(inArgs,
+                         instanced_typed_ident(csound, loop, name->name, type));
+    csound->Free(csound, type);
+    runIns = tree_append(runIns, instanced_ident(csound, loop, name->name));
+    if (name->written) {
+      outTypes = tree_append(outTypes, instanced_out_type(csound, loop, var));
+      runOuts = tree_append(runOuts, instanced_ident(csound, loop, name->name));
+      xoutArgs = tree_append(xoutArgs,
+                             instanced_ident(csound, loop, name->name));
+    }
+  }
+  instanced_scan_free(csound, &scan);
+
+  inArgs = tree_append(inArgs, instanced_typed_ident(
+                         csound, loop, loopVar->value->lexeme, loopType));
+  if (indexVar != NULL)
+    inArgs = tree_append(inArgs, instanced_typed_ident(
+                           csound, loop, indexVar->value->lexeme, indexType));
+
+  if (xoutArgs != NULL) {
+    TREE *xout = create_opcode_token(csound, "xout");
+    xout->right = xoutArgs;
+    xout->line = loop->line;
+    xout->locn = loop->locn;
+    body = tree_append(body, xout);
+  }
+
+  nameNode = instanced_ident(csound, loop, udoName);
+  nameNode->left = outTypes != NULL ? outTypes
+                                    : instanced_ident(csound, loop, "0");
+  nameNode->right = inArgs;
+  udo = make_leaf(csound, loop->line, loop->locn, UDO_TOKEN, NULL);
+  udo->left = nameNode;
+  udo->right = body;
+  in->right = NULL;
+
+  /* Verify the UDO as a definition of its own. Instanced loops in its body
+     queue their UDOs here and verify_tree places them before this one. */
+  pending = typeTable->instancedDefinitions;
+  pool = typeTable->localPool;
+  inZero = csound->inZero;
+  typeTable->instancedDefinitions = NULL;
+  defs = verify_tree(csound, udo, typeTable);
+  typeTable->instancedDefinitions = pending;
+  typeTable->localPool = pool;
+  csound->inZero = inZero;
+  if (defs == NULL)
+    return NULL;
+  typeTable->instancedDefinitions =
+    tree_append(typeTable->instancedDefinitions, defs);
+
+  /* An array expression is evaluated once into a temporary. */
+  if (arrayExpr->type == T_IDENT) {
+    strNcpy(arrName, arrayExpr->value->lexeme, sizeof(arrName));
+  } else {
+    char arrType[4] = { element[0], '[', ']', 0 };
+    stmts = tree_append(stmts, instanced_assign(
+              csound, loop,
+              instanced_typed_ident(csound, loop, arrName, arrType),
+              arrayExpr));
+    in->left = NULL;
+  }
+
+  stmts = tree_append(stmts, instanced_assign(
+            csound, loop,
+            instanced_typed_ident(csound, loop, refName, "OpcodeDef"),
+            instanced_call(csound, loop, "opcoderef",
+                           make_leaf(csound, loop->line, loop->locn,
+                                     STRING_TOKEN,
+                                     make_string(csound, quoted, NULL)))));
+  stmts = tree_append(stmts, instanced_assign(
+            csound, loop,
+            instanced_typed_ident(csound, loop, objName, "Opcode[]"),
+            instanced_call(csound, loop, "create", instanced_with_next(
+              instanced_ident(csound, loop, refName),
+              instanced_call(csound, loop, "lenarray",
+                             instanced_ident(csound, loop, arrName))))));
+  if (indexVar != NULL) {
+    /* 0..length: one element more than needed, so that an empty array
+       still gives genarray a valid range. run only reads the first
+       length elements. */
+    stmts = tree_append(stmts, instanced_assign(
+              csound, loop,
+              instanced_typed_ident(csound, loop, idxName, "i[]"),
+              instanced_call(csound, loop, "genarray", instanced_with_next(
+                instanced_int(csound, loop, "0"),
+                instanced_call(csound, loop, "lenarray",
+                               instanced_ident(csound, loop, arrName))))));
+  }
+
+  runArgs = instanced_ident(csound, loop, objName);
+  runArgs = tree_append(runArgs, runIns);
+  runArgs = tree_append(runArgs, instanced_ident(csound, loop, arrName));
+  if (indexVar != NULL)
+    runArgs = tree_append(runArgs, instanced_ident(csound, loop, idxName));
+  runCall = instanced_call(csound, loop, "run", runArgs);
+  stmts = tree_append(stmts, runOuts != NULL
+                      ? instanced_assign(csound, loop, runOuts, runCall)
+                      : runCall);
+
+  tree_append(stmts, loop->next);
+  loop->next = NULL;
+  csoundDeleteTree(csound, loop);
+  return stmts;
+}
+
 TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 {
   TREE *anchor = NULL;
@@ -4315,6 +4709,16 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     }
     continue;
 
+    case INSTANCED_FOR_TOKEN:
+      current = expand_instanced_for(csound, current, typeTable);
+      if (current == NULL) {
+        anchor = NULL;
+        goto cleanup;
+      }
+      if (previous != NULL) {
+        previous->next = current;
+      }
+      continue;
     case FOR_TOKEN: {
       /** for-loop typing:
           1) if loop variable does not exist, it takes the type of the array
@@ -4548,6 +4952,21 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         continue;
       } else {
         handle_optional_args(csound, current);
+      }
+    }
+
+    /* Place the UDOs synthesised for instanced loops before the definition
+       that contains them. */
+    if ((current->type == INSTR_TOKEN || current->type == UDO_TOKEN) &&
+        typeTable->instancedDefinitions != NULL) {
+      TREE *definitions = typeTable->instancedDefinitions;
+      typeTable->instancedDefinitions = NULL;
+      tree_append(definitions, current);
+      if (previous != NULL) {
+        previous->next = definitions;
+      }
+      if (anchor == NULL) {
+        anchor = definitions;
       }
     }
 

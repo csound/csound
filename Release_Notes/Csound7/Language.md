@@ -111,7 +111,51 @@ The loop variable's type determines the loop rate. Without an explicit or
 existing type, it follows the array element type. This loop runs at initialization.
 The optional index starts at zero. Existing array operations remain available.
 
+## Give each iteration its own opcode state
+
+In a plain loop, each opcode in the body has one instance that all
+iterations share. An oscillator called twice per control cycle therefore
+advances a single phase at two frequencies. Add `instanced` before `do` to
+give every iteration its own instances:
+
+```csound
+instr Chord
+  frequencies:i[] = [220, 277.18, 329.63]
+  mix:a = 0
+  for frequency:i in frequencies instanced do
+    fade:k init 0
+    fade = fade * 0.999 + 0.001
+    mix += moogladder(vco2(0.1, frequency), 2000, 0.3) * fade
+  od
+  out mix
+endin
+
+schedule(Chord, 0, 1)
+```
+
+Each iteration keeps its own oscillator phase, filter state and `fade` value
+between control cycles. The iterations run in order, so `mix` accumulates
+the three voices.
+
+The body can read and write variables declared before the loop. Variables
+declared in the body belong to their iteration. Global variables behave as
+usual. The loop and index variables belong to the loop: unlike a plain loop,
+an instanced loop leaves a variable of the same name outside it unchanged.
+
+An instanced loop:
+
+- iterates over a one-dimensional array of `i`, `k` or `a` values;
+- creates its instances when the note starts, so the number of iterations
+  is fixed for the note;
+- can appear in instruments and UDOs, but not in global code;
+- does not accept `break` or `continue` in its body.
+
+The compiler turns the body into a UDO and runs one instance of it per
+element through an `Opcode[]` array, as described in the
+[object article](Objects.md).
+
 See the [UDO reference](https://csound.com/manual/opcodes/opcode/) for call
 rules. The repository also has examples of
-[input changes](../../tests/commandline/udo/pass_by_ref.csd) and
-[array loops](../../tests/commandline/test_for_in2.csd).
+[input changes](../../tests/commandline/udo/pass_by_ref.csd),
+[array loops](../../tests/commandline/test_for_in2.csd) and
+[instanced loops](../../tests/commandline/loops/test_instanced_local_state.csd).

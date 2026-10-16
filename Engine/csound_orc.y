@@ -96,6 +96,7 @@
 %token ENDSW_TOKEN
 %token FOR_TOKEN
 %token IN_TOKEN
+%token INSTANCED_FOR_TOKEN
 %token TRUE_TOKEN
 %token FALSE_TOKEN
 %token TRUEK_TOKEN
@@ -635,28 +636,43 @@ switch  : SWITCH_TOKEN expr NEWLINE case_list ENDSW_TOKEN
         }
         ;
 
-for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
+for_in : FOR_TOKEN identifier in expr for_do statement_list OD_TOKEN
         {
           $3->left = $4;
           $3->right = $6;
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $3);
+          if ($5 != NULL) {
+            $$->type = INSTANCED_FOR_TOKEN;
+            $$->line = $5->line;
+            csoundDeleteTree(csound, $5);
+          }
         }
-        | FOR_TOKEN identifier ',' identifier in expr DO_TOKEN statement_list OD_TOKEN
+        | FOR_TOKEN identifier ',' identifier in expr for_do statement_list OD_TOKEN
         {
           $2->next = $4;
           $5->left = $6;
           $5->right = $8;
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $5);
+          if ($7 != NULL) {
+            $$->type = INSTANCED_FOR_TOKEN;
+            $$->line = $7->line;
+            csoundDeleteTree(csound, $7);
+          }
         }
-         | FOR_TOKEN typed_identifier in expr DO_TOKEN statement_list OD_TOKEN
+         | FOR_TOKEN typed_identifier in expr for_do statement_list OD_TOKEN
         {
           $3->left = $4;
           $3->right = $6;
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN,
                          make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
                                    lookup_token(csound, $2->value->lexeme, NULL)), $3);
+          if ($5 != NULL) {
+            $$->type = INSTANCED_FOR_TOKEN;
+            $$->line = $5->line;
+            csoundDeleteTree(csound, $5);
+          }
         }
-         | FOR_TOKEN typed_identifier ',' identifier in expr DO_TOKEN statement_list OD_TOKEN
+         | FOR_TOKEN typed_identifier ',' identifier in expr for_do statement_list OD_TOKEN
         {
           
           $5->left = $6;
@@ -665,8 +681,13 @@ for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
                          lookup_token(csound, $2->value->lexeme, NULL));
           $$->next = $4;
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $$, $5);
+          if ($7 != NULL) {
+            $$->type = INSTANCED_FOR_TOKEN;
+            $$->line = $7->line;
+            csoundDeleteTree(csound, $7);
           }
-         | FOR_TOKEN typed_identifier ',' typed_identifier in expr DO_TOKEN statement_list OD_TOKEN
+          }
+         | FOR_TOKEN typed_identifier ',' typed_identifier in expr for_do statement_list OD_TOKEN
         {
           $5->left = $6;
           $5->right = $8;
@@ -675,14 +696,41 @@ for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
           $$->next = make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
                          lookup_token(csound, $4->value->lexeme, NULL));
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $$, $5);
+          if ($7 != NULL) {
+            $$->type = INSTANCED_FOR_TOKEN;
+            $$->line = $7->line;
+            csoundDeleteTree(csound, $7);
           }
-        | FOR_TOKEN identifier ',' typed_identifier in expr DO_TOKEN statement_list OD_TOKEN
+          }
+        | FOR_TOKEN identifier ',' typed_identifier in expr for_do statement_list OD_TOKEN
         {
           $2->next = make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
                          lookup_token(csound, $4->value->lexeme, NULL));
           $5->left = $6;
           $5->right = $8;
           $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $5);
+          if ($7 != NULL) {
+            $$->type = INSTANCED_FOR_TOKEN;
+            $$->line = $7->line;
+            csoundDeleteTree(csound, $7);
+          }
+        }
+        ;
+
+/* "instanced" is matched by name rather than reserved, so it stays usable
+   as an identifier elsewhere. A non-NULL value marks an instanced loop. */
+for_do : DO_TOKEN
+        { $$ = NULL; }
+        | identifier DO_TOKEN
+        {
+          if (strcmp($1->value->lexeme, "instanced") != 0) {
+            csoundDeleteTree(csound, $1);
+            csound_orcerror(parm, scanner, csound, astTree,
+                            "expected 'instanced' or 'do' after the array "
+                            "in a for loop");
+            YYERROR;
+          }
+          $$ = $1;
         }
         ;
 

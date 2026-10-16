@@ -82,7 +82,9 @@ schedule(Pair, 0, 0.25)
 ```
 
 The object array preserves each oscillator's phase between control cycles.
-The loop selects an instance through its index.
+The loop selects an instance through its index. An `instanced` loop builds
+this arrangement for you; see
+[Give each iteration its own opcode state](Language.md#give-each-iteration-its-own-opcode-state).
 
 ## Schedule an instrument through its definition
 
