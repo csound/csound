@@ -80,6 +80,8 @@ in
         # would generate the same libcsound64.a output and Ninja rejects it.
         "-DBUILD_STATIC_LIBRARY=OFF"
         "-DBUILD_CSOUND_COMMAND=ON"
+        # This artifact supports unshared hosts and the existing plugin ABI.
+        "-DBUILD_WASI_REALTIME=OFF"
         "-DBUILD_UTILITIES=${if browserHosted then "OFF" else "ON"}"
         "-DBUILD_CSBEATS=${if browserHosted then "OFF" else "ON"}"
         "-DINSTALL_PYTHON_INTERFACE=OFF"

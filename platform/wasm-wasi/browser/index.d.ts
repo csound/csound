@@ -210,6 +210,10 @@ declare interface CsoundObj {
    * no spaces are allowed in the string.
    */
   setOption: (option: string) => Promise<number>;
+  /** Returns 1 when this engine supports --realtime, otherwise 0. */
+  supportsRealtime: () => Promise<number>;
+  /** Returns 1 when --realtime is set on this instance, otherwise 0. */
+  isRealtime: () => Promise<number>;
   /**
    * Returns 1 when one or more --opcode-lib paths are waiting to be loaded.
    */
@@ -269,12 +273,12 @@ declare interface CsoundObj {
   readlineSubmit: (requestId: number, text: string) => Promise<number>;
   /**
    * Retrieves the value of control channel identified by channelName.
-   * If the err argument is not NULL, the error (or success) code finding
-   * or accessing the channel is stored in it.
+   * Active --realtime accepts numeric channels declared before start.
    */
-  getControlChannel: (channelName: string) => Promise<undefined>;
+  getControlChannel: (channelName: string) => Promise<number>;
   /**
-   * Sets the value of control channel identified by channelName
+   * Sets the value of control channel identified by channelName.
+   * Active --realtime accepts finite values for channels declared before start.
    */
   setControlChannel: (channelName: string, value: number) => Promise<undefined>;
   /**
@@ -496,6 +500,13 @@ declare interface CsoundObj {
    */
   terminateInstance: () => Promise<void>;
   /**
+   * Queue a numeric event: type 0 = instrument, 1 = table, 2 = end.
+   * Active --realtime accepts notes and end events, including an empty end
+   * event. The promise confirms admission, not performance completion.
+   * Table events require stopped realtime performance.
+   */
+  event: (type: 0 | 1 | 2, pfields: number[]) => Promise<void>;
+  /**
    * Sets `-iadc`, requests microphone access, and prepares the input stream.
    * Call this before `start()`. Works in all modes and rejects when the browser
    * cannot provide microphone access. Requires HTTPS, localhost, or a loopback
@@ -530,8 +541,7 @@ declare interface CsoundObj {
 
 /**
  * The default entry for @csound/wasm/browser module.
- * If loaded successfully, it returns CsoundObj,
- * otherwise undefined.
+ * Returns CsoundObj, or rejects if the host lacks required audio or Wasm support.
  * @param [params] - Initialization parameters
  * @param [params.audioContext] - Optional AudioContext or OfflineAudioContext to use; if none given, an AudioContext will be created.
  * @param [params.inputChannelCount] - Optional input channel count for AudioNode used with WebAudio graph.
@@ -539,9 +549,9 @@ declare interface CsoundObj {
  * @param [params.outputChannelCount] - Optional output channel count AudioNode used with WebAudio graph.
  * Defaults to the value of nchnls in useWorker but 2 otherwise.
  * @param [params.autoConnect = true] - Set to configure Csound to automatically connect to the audioContext.destination output.
- * @param [params.withPlugins] - Array of WebAssembly Csound plugin libraries to use with Csound.
- * @param [params.useWorker = false] - Configure to use backend using Web Workers to run Csound in a thread separate from audio callback.
- * @param [params.useSAB = true] - Configure to use SharedArrayBuffers for WebWorker communications if platform supports it.
+ * @param [params.withPlugins] - WebAssembly Csound plugins built with the matching SDK. The shared worker host fixes its plugin set at first start.
+ * @param [params.useWorker] - Use the shared worker host. If omitted, use it when supported; otherwise run the same engine in one AudioWorklet with synchronous init. Setting true requires the shared host unless useSAB is false. Setting false always uses one AudioWorklet.
+ * @param [params.useSAB = true] - Setting false keeps the existing transport without shared audio buffers and uses synchronous init.
 
  */
 declare function Csound(params?: {
@@ -553,7 +563,7 @@ declare function Csound(params?: {
   useWorker?: boolean;
   useSAB?: boolean;
 
-}): Promise<CsoundObj | undefined>;
+}): Promise<CsoundObj>;
 
 declare type Csound = typeof Csound;
 
@@ -639,6 +649,8 @@ declare interface LibCsoundObj {
   csoundPerformKsmps: (csound: number) => number;
   csoundStop: (csound: number) => void;
   csoundReset: (csound: number) => void;
+  csoundSupportsRealtime: () => number;
+  csoundIsRealtime: (csound: number) => number;
   csoundGetSr: (csound: number) => number;
   csoundSystemSr: (sr: number) => number;
   csoundGetKr: (csound: number) => number;
@@ -808,6 +820,7 @@ declare interface LibCsoundObj {
 /**
  * Creates a lightweight, in-process Csound wasm instance.
  * No AudioContext or AudioWorklet dependency required.
+ * Uses the same engine binary as Csound(), with synchronous init.
  * Each call creates an independent wasm instance supporting multiple Csound instances.
  *
  * @param [params.withPlugins] - Optional plugin wasm binaries to load

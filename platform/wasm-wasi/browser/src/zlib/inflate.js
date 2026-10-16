@@ -79,14 +79,14 @@ Inflate.BufferType = RawInflate.BufferType;
 
 /**
  * decompress.
- * @return {Uint8Array} inflated buffer.
+ * @return {!Uint8Array} inflated buffer.
  */
 Inflate.prototype.decompress = function () {
   /** @type {Uint8Array} input buffer. */
   const input = this.input;
   /** @type {number} adler-32 checksum */
   let adler32;
-  /** @type {Uint8Array} inflated buffer. */
+  /** @type {!Uint8Array} inflated buffer. */
   const buffer = this.rawinflate.decompress();
   this.ip = this.rawinflate.ip;
 

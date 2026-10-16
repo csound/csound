@@ -24,6 +24,10 @@
 #include <setjmp.h>
 #include <stdint.h>
 #include <stdlib.h>
+#ifdef CSOUND_WASI_SHARED_PLUGIN
+#include <pthread.h>
+#include <stdatomic.h>
+#endif
 
 typedef struct {
   OPDS h;
@@ -136,7 +140,40 @@ static int runtime_check(CSOUND *csound, MULT *p) {
   return OK;
 }
 
+#ifdef CSOUND_WASI_SHARED_PLUGIN
+static pthread_t plugin_owner;
+static _Atomic int plugin_constructor_count;
+static _Thread_local int plugin_thread_value = 41;
+
+__attribute__((constructor)) static void plugin_shared_init(void) {
+#ifdef CSOUND_WASI_PLUGIN_TRAP_CTOR
+  __builtin_trap();
+#endif
+  plugin_owner = pthread_self();
+  atomic_fetch_add(&plugin_constructor_count, 1);
+}
+
+/* Check per-thread TLS and the same relocated callbacks used by the parent. */
+static int thread_check(CSOUND *csound, MULT *p) {
+  int constructors = atomic_load(&plugin_constructor_count);
+  int value = ++plugin_thread_value;
+  int result = runtime_check(csound, p);
+  int runtime_ok = result == OK && *p->out == 42;
+  result = local_data_check(csound, p);
+  int data_ok = result == OK && *p->out == 42;
+  csound->Message(csound, "shared C plugin: ctor=%d tls=%d thread=%s runtime=%d data=%d\n",
+                  constructors, value,
+                  pthread_self() == plugin_owner ? "owner" : "worker",
+                  runtime_ok, data_ok);
+  *p->out = constructors == 1 && runtime_ok && data_ok ? value : -1;
+  return OK;
+}
+#endif
+
 static OENTRY localops[] = {
+#ifdef CSOUND_WASI_SHARED_PLUGIN
+    {"plugin_thread_check", sizeof(MULT), 0, "i", "", (SUBR)thread_check, NULL},
+#endif
     {"plugin_heap_base", sizeof(MULT), 0, "i", "", (SUBR)heap_base, NULL},
     {"plugin_local_data_check", sizeof(MULT), 0, "i", "", (SUBR)local_data_check, NULL},
     {"plugin_runtime_check", sizeof(MULT), 0, "i", "", (SUBR)runtime_check, NULL},

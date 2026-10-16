@@ -14,24 +14,17 @@
  */
 
 import wasmDataURI from "../dist/__csound_wasm.inline.js";
-import VanillaWorkerMainThread from "./mains/vanilla.main";
+import { sharedEngine } from "../dist/__csound_engine.inline.js";
+import { canUseSharedWasm, canUseThreadedWasm } from "./utils/wasi-thread-capabilities.js";
 import unmuteIosAudio from "unmute-ios-audio/index.js";
 import SharedArrayBufferMainThread from "./mains/sab.main";
 import AudioWorkletMainThread from "./mains/worklet.main";
-
+import VanillaWorkerMainThread from "./mains/vanilla.main";
 import SingleThreadAudioWorkletMainThread from "./mains/worklet.singlethread.main";
-import { logIndex as log } from "./logger";
-import {
-  areWorkletsSupported,
-  isSafari,
-  isSabSupported,
+import { areWorkletsSupported, isSabSupported, isSafari, WebkitAudioContext } from "./utils";
+import libcsound from "./libcsound-entry";
 
-  WebkitAudioContext,
-} from "./utils";
-
-import libcsoundEntry from "./libcsound-entry";
-
-unmuteIosAudio();
+let audioUnmuted = false;
 
 /**
  * CsoundObj API.
@@ -39,105 +32,92 @@ unmuteIosAudio();
  * @export
  * @expose
  * @noalias
- * @param {CsoundExportArguments} argumentz
- * @return {Promise.<CsoundObj|undefined>}
+ * @param {CsoundExportArguments=} options
+ * @return {Promise.<CsoundObj>}
  */
-const Csound = async function ({
-  audioContext,
-  inputChannelCount,
-  outputChannelCount,
-  autoConnect = true,
-  withPlugins = [],
-  useWorker = false,
-  useSAB = true,
-
-} = {}) {
+const Csound = async function (options = {}) {
+  const {
+    audioContext: requestedContext,
+    inputChannelCount,
+    outputChannelCount,
+    autoConnect = true,
+    withPlugins = [],
+    useSAB = true,
+  } = options;
+  // Keep the default usable without isolation, but honor an explicit worker request.
+  const threaded =
+    sharedEngine &&
+    options.useWorker !== false &&
+    useSAB &&
+    (options.useWorker === true || canUseThreadedWasm());
+  const useWorker = threaded || Boolean(options.useWorker);
+  if (threaded && !canUseThreadedWasm())
+    throw new Error(
+      "Csound requires cross-origin isolation, SharedArrayBuffer, AudioWorklet, and " +
+        "WebAssembly threads with standard exception handling. " +
+        "Set useWorker: false for a local engine without background init.",
+    );
+  if (sharedEngine && !threaded && !canUseSharedWasm())
+    throw new Error(
+      "Csound requires WebAssembly shared memory, atomics, and standard exception handling.",
+    );
+  if (!areWorkletsSupported()) throw new Error("Csound requires AudioWorklet support.");
   const audioContextIsProvided =
-    audioContext && WebkitAudioContext() && audioContext instanceof WebkitAudioContext();
-
-  if (!audioContextIsProvided) {
-    // default to creating an audio context for SingleThread
-    audioContext = audioContext || new (WebkitAudioContext())({ latencyHint: "interactive" });
+    requestedContext && WebkitAudioContext() && requestedContext instanceof WebkitAudioContext();
+  if (!audioUnmuted) {
+    unmuteIosAudio();
+    audioUnmuted = true;
   }
-
-  if (isSafari()) {
-    audioContext.resume();
-  }
-
-  const workletSupport = areWorkletsSupported();
-
-  // SingleThread implementations
+  const audioContext =
+    requestedContext || new (WebkitAudioContext())({ latencyHint: "interactive" });
+  if (isSafari()) audioContext.resume();
   if (!useWorker) {
-    if (workletSupport) {
-      log("Single Thread AudioWorklet")();
-      const instance = new SingleThreadAudioWorkletMainThread({
-        audioContext,
-        audioContextIsProvided,
-        inputChannelCount: inputChannelCount || 2,
-        outputChannelCount: outputChannelCount || 2,
-      });
-      return instance.initialize({ wasmDataURI, withPlugins, autoConnect });
-    } else {
-      console.error("No detectable WebAudioAPI in current environment");
-      return;
+    const instance = new SingleThreadAudioWorkletMainThread({
+      audioContext,
+      audioContextIsProvided,
+      inputChannelCount: inputChannelCount || 2,
+      outputChannelCount: outputChannelCount || 2,
+    });
+    try {
+      return await instance.initialize({ wasmDataURI, withPlugins, autoConnect });
+    } catch (error) {
+      await instance.terminateInstance().catch(() => {});
+      if (!audioContextIsProvided && audioContext.state !== "closed")
+        await audioContext.close().catch(() => {});
+      throw error;
     }
   }
-
-  if (workletSupport) {
-    // closure-compiler keepme
-    log(`worklet support detected`)();
-  } else {
-    console.error(`No WebAudio Support detected`);
+  const audioWorker = new AudioWorkletMainThread({
+    audioContext,
+    audioContextIsProvided,
+    autoConnect,
+  });
+  const WorkerMain =
+    threaded || (useSAB && isSabSupported())
+      ? SharedArrayBufferMainThread
+      : VanillaWorkerMainThread;
+  const worker = new WorkerMain({
+    audioWorker,
+    audioContext,
+    audioContextIsProvided,
+    inputChannelCount,
+    outputChannelCount,
+  });
+  try {
+    await worker.initialize({
+      wasmDataURI,
+      withPlugins,
+      threadedBytes: threaded ? wasmDataURI() : undefined,
+    });
+  } catch (error) {
+    // Cleanup must not hide a bad reactor or worker startup error.
+    await worker.terminateInstance().catch(() => {});
+    if (!audioContextIsProvided && audioContext.state !== "closed")
+      await audioContext.close().catch(() => {});
+    throw error;
   }
-
-  let audioWorker;
-  let csoundWasmApi;
-
-  if (workletSupport) {
-    audioWorker = new AudioWorkletMainThread({ audioContext, audioContextIsProvided, autoConnect });
-  }
-
-  if (!audioWorker) {
-    console.error("No detectable WebAudioAPI in current environment");
-    return;
-  }
-
-  const hasSABSupport = isSabSupported();
-
-  if (hasSABSupport) {
-    useSAB && log(`using SharedArrayBuffers`)();
-  } else {
-    log(`SharedArrayBuffers not found, falling back to Vanilla concurrency`)();
-  }
-
-  const worker =
-    hasSABSupport && workletSupport && useSAB
-      ? new SharedArrayBufferMainThread({
-          audioWorker,
-          audioContext,
-          audioContextIsProvided,
-          inputChannelCount,
-          outputChannelCount,
-        })
-      : new VanillaWorkerMainThread({
-          audioWorker,
-          audioContext,
-          audioContextIsProvided,
-          inputChannelCount,
-          outputChannelCount,
-        });
-
-  if (worker) {
-    log(`starting Csound thread initialization via WebWorker`)();
-    await worker.initialize({ wasmDataURI, withPlugins });
-    csoundWasmApi = worker.api;
-  } else {
-    console.error("No detectable WebAssembly support in current environment");
-    return;
-  }
-
-  return Object.freeze(csoundWasmApi);
+  return Object.freeze(worker.api);
 };
 
 goog.exportSymbol("__Csound__", Csound);
-goog.exportSymbol("__libcsound__", libcsoundEntry);
+goog.exportSymbol("__libcsound__", libcsound);

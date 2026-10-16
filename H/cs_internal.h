@@ -377,6 +377,11 @@ extern "C" {
      be promoted. */
   int32_t csoundIsCurrentThread(void *thread);
 
+#ifdef CSOUND_WASI_REALTIME
+  /* Set by the WASI pthread entry wrapper, before calling engine code. */
+  int32_t csoundWasiIsWorkerThread(void);
+#endif
+
 
 #ifdef __cplusplus
 }

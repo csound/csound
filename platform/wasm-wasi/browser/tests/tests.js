@@ -23,6 +23,9 @@ import { beatsCsd, exitCommand } from "./score-command-fixtures.js";
   const resp = await import(url);
   // console.log("RESP", resp);
   const { Csound } = resp;
+  const { sharedEngine } = await import("/dist/__csound_engine.inline.js");
+  const cPlugin = sharedEngine ? "./plugin_example_shared.wasm" : "./plugin_example.wasm";
+  const cppPlugin = sharedEngine ? "./plugin_example_cpp_shared.wasm" : "./plugin_example_cpp.wasm";
 
   const carriageReturnOrchestra = `
 ksmps = 32
@@ -711,6 +714,22 @@ schedule(1, 0.05, 10)`), 0);
       });
 
       if (!test.useWorker) {
+        it("releases terminated worklet heaps while the caller's AudioContext stays open", async function () {
+          this.timeout(30000);
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          try {
+            // Keep the context alive: each terminated processor must release its
+            // own Wasm heap. Chrome 144 exhausted memory before round 80.
+            for (let iteration = 0; iteration < 80; iteration++) {
+              const cs = await Csound({ useWorker: false, audioContext, autoConnect: false });
+              await cs.terminateInstance();
+            }
+            assert.notEqual(audioContext.state, "closed");
+          } finally {
+            if (audioContext.state !== "closed") await audioContext.close();
+          }
+        });
+
         it("preserves Web Audio input when -iadc is requested", async function () {
           const audioContext = new (window.AudioContext || window.webkitAudioContext)({
             latencyHint: "interactive",
@@ -807,7 +826,7 @@ schedule(1, 0.05, 10)`), 0);
       it("can load and run plugins", async function () {
         const testWithPlugin = Object.assign(
           {
-            withPlugins: ["./plugin_example.wasm"],
+            withPlugins: [cPlugin],
           },
           test,
         );
@@ -818,8 +837,8 @@ schedule(1, 0.05, 10)`), 0);
         await cs.terminateInstance();
       });
 
-      it("supports host allocation and private WASI exceptions in plugins", async function () {
-        const cs = await Csound(Object.assign({ withPlugins: ["./plugin_example.wasm"] }, test));
+      it("supports host allocation and WASI exceptions in plugins", async function () {
+        const cs = await Csound(Object.assign({ withPlugins: [cPlugin] }, test));
         try {
           const orchestra = `
             iresult plugin_runtime_check
@@ -842,7 +861,7 @@ schedule(1, 0.05, 10)`), 0);
       it("can load and run c++ plugins", async function () {
         const testWithPlugin = Object.assign(
           {
-            withPlugins: ["./plugin_example_cpp.wasm"],
+            withPlugins: [cppPlugin],
           },
           test,
         );
@@ -863,7 +882,7 @@ schedule(1, 0.05, 10)`), 0);
           assert.equal(1, await cs.isRequestingPlugins());
           assert.equal("./plugin_example_cpp.wasm", await cs.getRequestedPlugins());
 
-          const response = await fetch("./plugin_example_cpp.wasm");
+          const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
           await cs.fs.writeFile("./plugin_example_cpp.wasm", pluginBytes);
@@ -895,7 +914,7 @@ schedule(1, 0.05, 10)`), 0);
         const cs = await Csound(test);
 
         try {
-          const response = await fetch("./plugin_example_cpp.wasm");
+          const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
           await cs.fs.writeFile("./plugin_example_cpp.wasm", pluginBytes);
@@ -924,7 +943,7 @@ schedule(1, 0.05, 10)`), 0);
           assert.equal(1, await cs.isRequestingPlugins());
           assert.equal("./plugin_example_cpp.wasm", await cs.getRequestedPlugins());
 
-          const response = await fetch("./plugin_example_cpp.wasm");
+          const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
           await cs.fs.writeFile("./plugin_example_cpp.wasm", pluginBytes);
@@ -986,14 +1005,20 @@ schedule(1, 0.05, 10)`), 0);
       });
 
       if (test.useSAB) {
-        // Match the backend selection in isSabSupported(): Firefox falls back
-        // to message ports even when the caller requests SAB.
-        const sabIt =
-          typeof SharedArrayBuffer !== "undefined" &&
-          typeof Atomics !== "undefined" &&
-          !navigator.userAgent.toLowerCase().includes("firefox")
-            ? it
-            : it.skip;
+        let sharedTransport;
+        const sabIt = (title, run) => it(title, async function () {
+          // Check the selected transport instead of assuming it from the browser.
+          if (sharedTransport === undefined) {
+            const probe = await Csound(test);
+            try {
+              sharedTransport = probe.name === "Csound: Audio Worklet, Shared-Array Buffer";
+            } finally {
+              await probe.terminateInstance();
+            }
+          }
+          if (!sharedTransport) this.skip();
+          await run.call(this);
+        });
         sabIt("keeps SAB score time still while paused and handles repeated transport calls", async function () {
           const cs = await Csound(test);
           try {
@@ -1986,6 +2011,91 @@ e
       assert.property(cs, "getMemory");
     });
 
+    describe("MIDI queue ownership", function () {
+      function startMidi(csound) {
+        for (const option of ["-n", "-m0", "-M0", "--daemon"]) {
+          assert.equal(cs.csoundSetOption(csound, option), 0);
+        }
+        assert.equal(
+          cs.csoundCompileOrc(
+            csound,
+            `
+sr=48000
+ksmps=32
+nchnls=1
+0dbfs=1
+massign 0, 1
+instr 1
+  ihits chnget "hits"
+  chnset ihits + 1, "hits"
+endin`,
+          ),
+          0,
+        );
+        assert.equal(cs.csoundStart(csound), 0);
+      }
+
+      function hitsAfterPerform(csound) {
+        for (let cycle = 0; cycle < 8; cycle++) cs.csoundPerformKsmps(csound);
+        return cs.csoundGetControlChannel(csound, "hits");
+      }
+
+      for (const action of ["create", "reset", "destroy"]) {
+        it(`keeps pending MIDI across another instance's ${action}`, function () {
+          const first = cs.csoundCreate();
+          let second = action === "create" ? 0 : cs.csoundCreate();
+          try {
+            startMidi(first);
+            if (second) startMidi(second);
+            cs.csoundPushMidiMessage(first, 0x90, 60, 100);
+            if (action === "create") second = cs.csoundCreate();
+            if (action === "reset") cs.csoundReset(second);
+            if (action === "destroy") {
+              cs.csoundDestroy(second);
+              second = 0;
+            }
+            assert.equal(hitsAfterPerform(first), 1);
+          } finally {
+            cs.csoundDestroy(first);
+            if (second) cs.csoundDestroy(second);
+          }
+        });
+      }
+
+      it("delivers MIDI only to its target instance", function () {
+        const first = cs.csoundCreate();
+        const second = cs.csoundCreate();
+        try {
+          startMidi(first);
+          startMidi(second);
+          cs.csoundPushMidiMessage(first, 0x90, 60, 100);
+          cs.csoundPushMidiMessage(second, 0x90, 67, 100);
+          cs.csoundPushMidiMessage(second, 0x90, 72, 100);
+          assert.equal(hitsAfterPerform(first), 1);
+          assert.equal(hitsAfterPerform(second), 2);
+        } finally {
+          cs.csoundDestroy(first);
+          cs.csoundDestroy(second);
+        }
+      });
+
+      it("discards pending MIDI on its own reset and accepts fresh MIDI", function () {
+        const csound = cs.csoundCreate();
+        try {
+          startMidi(csound);
+          cs.csoundPushMidiMessage(csound, 0x90, 60, 100);
+          assert.equal(cs.csoundReset(csound), 0);
+          startMidi(csound);
+          assert.equal(hitsAfterPerform(csound), 0);
+          cs.csoundPushMidiMessage(csound, 0x90, 67, 100);
+          cs.csoundSetMidiCallbacks(csound);
+          assert.equal(hitsAfterPerform(csound), 1);
+        } finally {
+          cs.csoundDestroy(csound);
+        }
+      });
+    });
+
     it("rejects invalid WASM allocation sizes", function () {
       const wasm = cs.wasm.exports;
       // These sizes must fail before malloc, without exhausting browser memory.
@@ -2077,7 +2187,7 @@ e
 
     it("resolves a plugin's GOT.mem import to the engine's absolute data address", async function () {
       const { libcsound } = await import(url);
-      const response = await fetch("./plugin_example.wasm");
+      const response = await fetch(cPlugin);
       assert.isTrue(response.ok);
       const bytes = new Uint8Array(await response.arrayBuffer());
       const plugin = await WebAssembly.compile(bytes);
@@ -2113,7 +2223,7 @@ e
 
     it("relocates a plugin's GOT.mem export from its local data offset", async function () {
       const { libcsound } = await import(url);
-      const response = await fetch("./plugin_example.wasm");
+      const response = await fetch(cPlugin);
       assert.isTrue(response.ok);
       const bytes = new Uint8Array(await response.arrayBuffer());
       const plugin = await WebAssembly.compile(bytes);
@@ -2155,7 +2265,7 @@ e
       }
     });
 
-    it("reuses resources after failed plugin loads", async function () {
+    it("recovers after failed plugin loads", async function () {
       const { libcsound } = await import(url);
       const badPlugin = Uint8Array.from(
         atob(
@@ -2163,6 +2273,24 @@ e
         ),
         (char) => char.charCodeAt(0),
       );
+      if (sharedEngine) {
+        for (let index = 0; index < 8; index++) {
+          let rejected = false;
+          try {
+            await libcsound({ withPlugins: [badPlugin] });
+          } catch (error) {
+            rejected = true;
+            assert.match(error.message, /plugin|Csound/i);
+          }
+          assert.isTrue(rejected, "malformed shared plugin must reject the factory");
+        }
+        const valid = await libcsound({
+          withPlugins: [new Uint8Array(await (await fetch(cPlugin)).arrayBuffer())],
+        });
+        const instance = valid.csoundCreate();
+        valid.csoundDestroy(instance);
+        return;
+      }
       const errors = sinon.stub(console, "error");
       try {
         const oneFailure = await libcsound({ withPlugins: [badPlugin] });
@@ -2211,9 +2339,19 @@ e
 
       try {
         for (const unsafePlugin of unsafePlugins) {
-          await libcsound({ withPlugins: [unsafePlugin] });
+          if (sharedEngine) {
+            let rejected = false;
+            try {
+              await libcsound({ withPlugins: [unsafePlugin] });
+            } catch (error) {
+              rejected = true;
+              assert.match(error.message, /plugin|table|Csound/i);
+            }
+            assert.isTrue(rejected, "unsafe plugin must reject the shared factory");
+          } else await libcsound({ withPlugins: [unsafePlugin] });
         }
         assert.isFalse(growCalled);
+        if (sharedEngine) return;
         assert.equal(errors.callCount, unsafePlugins.length);
         assert.deepEqual(
           errors.args.map(([message, error]) => [message, error.name, error.message]),

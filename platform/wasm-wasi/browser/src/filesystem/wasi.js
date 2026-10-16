@@ -413,9 +413,9 @@ export class WASI {
     const crypto = getGlobalScope().crypto;
     if (!crypto?.getRandomValues) return constants.WASI_ENOSYS;
     for (let offset = 0; offset < length; offset += 65536) {
-      crypto.getRandomValues(
-        new Uint8Array(this.memory.buffer, pointer + offset, Math.min(65536, length - offset)),
-      );
+      const bytes = new Uint8Array(Math.min(65536, length - offset));
+      crypto.getRandomValues(bytes);
+      new Uint8Array(this.memory.buffer, pointer + offset, bytes.length).set(bytes);
     }
     return 0;
   }
@@ -623,7 +623,7 @@ export class WASI {
     const handle = this.fd[fd];
     if (!handle) return { error: constants.WASI_EBADF };
     if (handle.node.type !== "dir") return { error: constants.WASI_ENOTDIR };
-    const text = decoder.decode(new Uint8Array(this.memory.buffer, pointer, length));
+    const text = decoder.decode(new Uint8Array(this.memory.buffer, pointer, length).slice());
     if (text.includes("\0")) return { error: constants.WASI_EINVAL };
     if (text.startsWith("/")) return { error: constants.WASI_ENOTCAPABLE };
     const guest =

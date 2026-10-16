@@ -23,9 +23,10 @@ const emptyHeader = () => ({
   neededDynlibsCount: 0,
   neededDynlibs: [],
   importedSymbols: [],
+  exportedSymbols: [],
 });
 
-const isWasmBinary = (wasmBytes) =>
+export const isWasmBinary = (wasmBytes) =>
   wasmBytes.length >= 8 &&
   wasmBytes[0] === 0x00 &&
   wasmBytes[1] === 0x61 &&
@@ -101,6 +102,7 @@ export const getBinaryHeaderData = (input, nameDecoder = new TextDecoder("utf-8"
       neededDynlibsCount,
       neededDynlibs,
       importedSymbols: [],
+      exportedSymbols: [],
     };
   };
 
@@ -144,6 +146,17 @@ export const getBinaryHeaderData = (input, nameDecoder = new TextDecoder("utf-8"
             throw new Error("Unexpected data in the dylink.0 needed libraries subsection");
           }
 
+          break;
+        }
+        case 3: {
+          const count = readULEB(subsectionEnd);
+          for (let index = 0; index < count; index += 1) {
+            const name = readName(subsectionEnd);
+            const flags = readULEB(subsectionEnd);
+            header.exportedSymbols.push({ name, flags });
+          }
+          if (position !== subsectionEnd)
+            throw new Error("Unexpected data in the dylink.0 export info subsection");
           break;
         }
         case 4: {

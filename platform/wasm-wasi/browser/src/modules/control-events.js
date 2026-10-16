@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { assertNumericEvent } from "../utils/numeric-events.js";
 import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.js";
 
 /*
@@ -25,6 +26,23 @@ import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.
  * without any pre-process parsing
  * @function
  */
+export const csoundEvent = (wasm) => (csound, type, pfields) => {
+  assertNumericEvent(type, pfields);
+  // The browser bindings use 64-bit sample storage. Check the loaded ABI
+  // before allocating: USE_FLOAT would otherwise get an oversized JS write.
+  if (wasm.exports["csoundGetSizeOfMYFLT"]() !== 8)
+    throw new Error("Numeric events require a double-precision Csound module");
+  const pointer = wasm.exports["allocFloatArray"](Math.max(1, pfields.length));
+  if (!pointer) throw new Error("Could not allocate event p-fields");
+  try {
+    new Float64Array(wasm.wasi.memory.buffer, pointer, pfields.length).set(pfields);
+    wasm.exports["csoundEvent"](csound, type, pointer, pfields.length, 1);
+  } finally {
+    wasm.exports["freeFloatArrayMem"](pointer);
+  }
+};
+csoundEvent["toString"] = () => "event = async (type, pfields) => undefined;";
+
 export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
   const result = wasm.exports["csoundEventString"](csound, stringPtr, 0);
@@ -41,7 +59,7 @@ csoundInputMessage["toString"] = () => "inputMessage = async (scoreEvent) => Num
  */
 export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
-    const result = wasm.exports["csoundEventString"](csound, stringPtr, 1);
+  const result = wasm.exports["csoundEventString"](csound, stringPtr, 1);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
@@ -59,8 +77,7 @@ export const csoundReadlinePushText = (wasm) => (csound, text) => {
   return result;
 };
 
-csoundReadlinePushText["toString"] = () =>
-  "readlinePushText = async (text) => Number;";
+csoundReadlinePushText["toString"] = () => "readlinePushText = async (text) => Number;";
 
 /**
  * Submits one complete line for an open readline request (no newline needed).
@@ -88,8 +105,7 @@ csoundReadlineSubmit["toString"] = () => "readlineSubmit = async (requestId, tex
 
 /**
  * Retrieves the value of control channel identified by channelName.
- * If the err argument is not NULL, the error (or success) code finding
- * or accessing the channel is stored in it.
+ * Active --realtime accepts numeric channels declared before start.
  * @function
  */
 export const csoundGetControlChannel = (wasm) => (csound, channelName) => {

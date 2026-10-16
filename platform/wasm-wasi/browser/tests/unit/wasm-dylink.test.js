@@ -46,6 +46,7 @@ describe("WebAssembly dynamic link metadata", () => {
       neededDynlibsCount: 0,
       neededDynlibs: [],
       importedSymbols: [],
+      exportedSymbols: [],
     });
   });
 
@@ -69,6 +70,7 @@ describe("WebAssembly dynamic link metadata", () => {
       neededDynlibsCount: 1,
       neededDynlibs: ["libfoo.so"],
       importedSymbols: [],
+      exportedSymbols: [],
     });
   });
 
@@ -76,7 +78,7 @@ describe("WebAssembly dynamic link metadata", () => {
     const memoryInfo = [...encodeULEB(2048), ...encodeULEB(5), ...encodeULEB(7), ...encodeULEB(2)];
     const needed = [...encodeULEB(2), ...encodeName("libfoo.so"), ...encodeName("libbar.so")];
     const payload = [
-      ...subsection(3, [1, 2, 3]),
+      ...subsection(42, [1, 2, 3]),
       ...subsection(1, memoryInfo),
       ...subsection(2, needed),
     ];
@@ -91,6 +93,7 @@ describe("WebAssembly dynamic link metadata", () => {
       neededDynlibsCount: 2,
       neededDynlibs: ["libfoo.so", "libbar.so"],
       importedSymbols: [],
+      exportedSymbols: [],
     });
   });
 
@@ -105,6 +108,22 @@ describe("WebAssembly dynamic link metadata", () => {
       );
     assert.deepEqual(getBinaryHeaderData(binary(entry)).importedSymbols, [
       { module: "GOT.func", name: "optional", flags: 1 },
+    ]);
+    assert.throws(() => getBinaryHeaderData(binary(entry.slice(0, -1))), /Unexpected end/);
+    assert.throws(() => getBinaryHeaderData(binary([...entry, 0])), /Unexpected data/);
+  });
+
+  it("reads exported TLS flags and rejects malformed export metadata", () => {
+    const entry = [...encodeName("thread_value"), ...encodeULEB(0x100)];
+    const binary = (entries) =>
+      wasmWith(
+        customSection("dylink.0", [
+          ...subsection(1, [0, 0, 0, 0]),
+          ...subsection(3, [1, ...entries]),
+        ]),
+      );
+    assert.deepEqual(getBinaryHeaderData(binary(entry)).exportedSymbols, [
+      { name: "thread_value", flags: 0x100 },
     ]);
     assert.throws(() => getBinaryHeaderData(binary(entry.slice(0, -1))), /Unexpected end/);
     assert.throws(() => getBinaryHeaderData(binary([...entry, 0])), /Unexpected data/);

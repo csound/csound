@@ -34,13 +34,15 @@ npm run build         # builds Csound, plugins and accessory commands with Nix
 
 `scripts/compile.sh` produces the following artefacts in `platform/wasm-wasi/lib/`:
 
-- `csound.wasm` - browser-hosted WASI reactor (`_initialize`, no `_start`)
-- `csound.wasm.z` - compressed browser-hosted module
+- `csound.wasm` / `csound.wasm.z` - baseline browser reactor and compressed copy
+- `csound-browser-realtime.wasm` / `.wasm.z` - shared browser reactor, when supported
 - `csound-cli.wasm` - standalone WASI command for runtimes such as Wasmtime
-- `csound-plugin-sdk.tar.gz` — plugin SDK archive
-- `plugin_example.wasm` / `plugin_example_cpp.wasm` — example plugins
+- `csound-plugin-sdk.tar.gz` - SDK matching the selected browser engine
+- `csound-plugin-sdk-compat.tar.gz` - SDK for the baseline browser engine
+- `plugin_example.wasm` / `plugin_example_cpp.wasm` - baseline example plugins
+- `plugin_example_shared.wasm` / `plugin_example_cpp_shared.wasm` - shared examples, when supported
 
-Both Csound modules are published in `@csound/wasm-bin`. The package `main`
+These modules are published in `@csound/wasm-bin`. The package `main`
 entry remains the browser reactor, `csound.wasm`. Command-line runtimes should
 load `csound-cli.wasm` explicitly.
 
@@ -112,6 +114,210 @@ expectations, including WebAssembly overrides. The OSC and asynchronous
 For releases, publish a new `@csound/wasm-bin` version before updating and
 publishing `@csound/browser`; older binary packages do not contain the new
 `csound-cli.wasm` command artifact.
+
+---
+
+## WASI realtime support
+
+`npm run build` builds the compatible browser module and, when the toolchain
+supports WASI threads, a shared-memory browser reactor. Both ship in
+`@csound/wasm-bin`. The `csound.js` bundle includes one engine: the shared
+reactor when available, otherwise the baseline module. All browser APIs use
+that engine. No separate realtime build command or runtime module URL is needed.
+
+CMake's `BUILD_WASI_REALTIME` setting defaults to `AUTO`. Its compile/link
+check requires real pthread entry points, lock-free atomics, and shared
+memory. `ON` requires that support; `OFF` disables it. The normal Nix build
+checks a threaded C/C++ runtime built with the pinned LLVM 21. If the check
+fails, it packages only the compatible module. Other build failures still
+fail the build.
+
+Support does not enable the mode. Csound starts its background init worker
+only when `--realtime` is set before performance. Engines without support
+retain synchronous behavior and warn when given the flag.
+
+## WASI realtime browser
+
+Build the binaries and browser wrapper through the usual commands:
+
+```bash
+# From platform/wasm-wasi
+npm run build
+cd browser
+npm ci
+npm run build:prod
+```
+
+The wrapper uses local `../lib` artifacts when present, or the installed
+`@csound/wasm-bin` package. Serve `browser/dist/csound.js` from your app.
+No second engine file is needed. Builds without a threaded reactor use the
+baseline engine.
+
+The threaded host needs a secure context (localhost works), AudioWorklet,
+shared memory, Wasm atomics and exceptions, and these HTTP response headers:
+
+```text
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+```
+
+The default entry selects the shared host when these features are available.
+Otherwise, it uses the same engine in one AudioWorklet with synchronous init.
+Explicit `useWorker: true` requires the shared host unless `useSAB: false`
+selects MessagePort mode; missing support causes an error before opening an
+AudioContext. All modes still require the Wasm features of the bundled engine.
+A failed worker startup closes the instance and any context it owns.
+
+Explicit `useWorker: false` runs the engine in one AudioWorklet. `useSAB: false`
+keeps the existing transport without shared audio buffers. The named
+`libcsound()` constructor keeps its synchronous engine API. These modes use
+the same shared Wasm binary locally, without passing its memory across workers,
+so they do not require isolation headers. They still need shared Wasm memory,
+atomics, and standard Wasm exceptions. They use synchronous init and ignore
+`--realtime` with a warning; `supportsRealtime()` returns 0.
+
+```js
+import Csound from "/csound.js";
+
+const cs = await Csound();
+await cs.setOption("-odac -m0 --daemon");
+await cs.setOption("--realtime");
+await cs.compileOrc(`
+  sr = 48000
+  ksmps = 32
+  nchnls = 2
+  0dbfs = 1
+  instr 1
+    a1 oscils 0.1, p4, 0
+    outs a1, a1
+  endin
+`);
+// Start/resume from a user gesture if the browser requires one.
+await cs.start();
+await cs.event(0, [1, 0, 0.25, 440]);
+// Later:
+await cs.stop();
+await cs.reset();
+await cs.terminateInstance();
+```
+
+`supportsRealtime()` returns 1 when the selected engine supports the mode;
+`isRealtime()` returns the native flag setting. Both return 0 otherwise.
+`<CsOptions> --realtime </CsOptions>` also enables it. Reset clears the flag.
+The wrapper reads native state, so rejected option changes do not change its
+mode. Omitting the flag keeps synchronous init and the usual live engine APIs.
+
+The shared host prepares four child Workers against fixed 256 MiB Wasm
+memory. `src/shared-memory-max.txt` sets this limit for the engine, plugins,
+and browser bundle. Change that file and rebuild all three together; CMake
+rejects a conflicting `CSOUND_WASI_MAX_MEMORY` override. Csound uses its existing
+init pthread when the flag is set. The UI owns all five workers, so it can end a failed engine even if the render worker
+waits in a join. The AudioWorklet consumes audio from the shared ring. Wasm
+constructors run once, before the child workers become ready.
+
+With `--realtime`, compile and preload while stopped. During performance the
+wrapper accepts numeric note and end events, numeric control channels, MIDI,
+the sample clock, fixed audio settings, mode queries, and pause/resume/stop.
+`event(2, [])` ends the performance; `[0, delay]` schedules its end in seconds.
+The event promise confirms admission; `realtimePerformanceEnded` fires after
+Csound joins background init and the browser releases the audio node. Queued
+calls settle or reject when performance ends.
+
+Declare numeric channels with global `chn_k` statements or set them before
+`start()`. After global init and before the first render call, the host captures
+their addresses, then uses atomic loads and stores without channel lookup or
+allocation. Declare channels needed during playback before start, including
+those used by later instrument init. Reset clears these saved addresses.
+String channels can allocate and lock, so their APIs require stopped performance.
+Compile and filesystem calls also require a stop. Table events remain restricted
+because the score queue still runs GEN work on the render thread; supporting
+them needs a separate change to table generation.
+Resume before submitting engine calls while the shared host is paused.
+
+Dynamic plugins work in all modes. Rebuild plugins with the matching
+`csound-plugin-sdk.tar.gz`; old unshared binaries cannot use the shared engine
+and fail with a clear error. The normal build produces the matching SDK and
+shared C/C++ examples. Pass plugins through `withPlugins`, or write them to the
+virtual filesystem and select them through Csound options before the first
+`start()`. The shared worker host fixes its plugin set at that first start,
+even without `--realtime`. Reset can reuse those plugins but cannot add new
+ones. Create a new instance to change that set.
+
+The SDK and example Nix builds check for `lib/csound-browser-realtime.wasm.z`
+to choose the default memory ABI, just as the browser build does. When passing
+an SDK archive from another package, also pass `--arg sharedMemory true` for
+a shared engine or `--arg sharedMemory false` for an unshared engine.
+
+The loader gives every worker the same function-table layout and each thread
+its own plugin TLS storage. It initializes shared data and runs constructors
+once. Plugins may use module-local TLS; cross-module TLS addresses and dependent
+shared libraries are unsupported. Parent-only modes can still load plugins
+synchronously through the filesystem. Child-thread file access, nested thread
+creation, and parallel DSP remain unsupported. Preloading files does not make
+child file descriptors available. Plugins must avoid those operations during
+background init.
+
+`event(0, pfields)` takes 3–64 finite numbers in active realtime mode and
+requests asynchronous note admission. The shared host holds at most 256 API
+calls and sends at most 32 per batch. A resolved call confirms dispatch, not
+note init or audible output. Native queue overflow follows Csound's diagnostics.
+A timeout removes pending host work but cannot undo a call already sent. In
+realtime mode, stop rejects pending work; a later run never replays it. Without
+the flag, completion keeps the existing API call behavior. MIDI uses a separate
+1,024-packet ring and rejects full writes without replacing unread packets.
+
+Normal stop/reset waits for init to finish. It cannot cancel an arbitrary
+opcode. A transport timeout or fatal worker error rejects pending calls and
+ends the instance. Create a new instance afterward. `terminateInstance()` also
+discards all workers and shared engine state.
+
+To run the Chrome checks, build a second wrapper with the test-only init gate:
+
+```bash
+# From platform/wasm-wasi, after the normal build
+bash scripts/compile-test-fixtures.sh
+cd browser
+npm run test:fixtures
+npm run test:realtime
+```
+
+`CSOUND_THREADED_WASM` is a build-time override for a raw or compressed reactor.
+CI runs the WASI command pthread checks and these browser checks. Test fixtures
+stay outside the published `lib/` directory; the fixture build leaves `dist/` on
+the production engine. The gate is absent from normal artifacts. The checks
+cover flag activation,
+reset, shared C/C++ plugins, local modes without isolation headers, audio and
+clock progress during held init, and shutdown. They do not establish a latency
+bound or make every opcode safe for concurrent init. Set
+`CSOUND_BROWSER_ENGINE=firefox` to run them in Firefox.
+
+## WASI realtime command host
+
+The published command module remains compatible with unthreaded WASI hosts.
+For a WASI Preview 1 threads command host, build the internal Nix target:
+
+```bash
+# From platform/wasm-wasi
+source scripts/nixpkgs-pin.sh
+nix-build src/csound-realtime.nix -o result_realtime
+wasmtime run -Sthreads=y -Wthreads=y -Wshared-memory=y -Wexceptions=y \
+  -Ccache=n --dir=. result_realtime/lib/csound-realtime.wasm \
+  --realtime -nd example.csd
+```
+
+This target keeps its static library and headers and runs the pthread and
+Csound worker checks. It does not replace published command modules. It needs
+a host with WASI P1 threads, shared memory, and Wasm exceptions.
+
+An unpaced render can advance score time while background init waits. Compile
+instruments before performance and use numeric events. Concurrent compilation
+still needs an audit of shared compiler state. Dynamic plugins, external
+processes, and parallel DSP remain outside this target.
+
+Normal init errors keep Csound's note-error behavior. A fatal worker error
+ends the command with failure: the worker cannot use the render thread's jump
+buffer or safely clean up a half-finished opcode. The browser reactor uses the
+same rule.
 
 ---
 

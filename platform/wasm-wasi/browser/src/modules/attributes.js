@@ -23,6 +23,22 @@ import { CSOUND_PARAMS } from "../structures.js";
    https://csound.com/docs/api/modules.html
 */
 
+/** Returns 1 when this engine supports --realtime, otherwise 0. */
+export const csoundSupportsRealtime = (wasm) => () =>
+  typeof wasm.exports["csoundSupportsRealtime"] === "function"
+    ? wasm.exports["csoundSupportsRealtime"]()
+    : 0;
+
+csoundSupportsRealtime["toString"] = () => "supportsRealtime = async () => Number;";
+
+/** Returns the native --realtime setting for this instance. */
+export const csoundIsRealtime = (wasm) => (csound) =>
+  typeof wasm.exports["csoundIsRealtime"] === "function"
+    ? wasm.exports["csoundIsRealtime"](csound)
+    : 0;
+
+csoundIsRealtime["toString"] = () => "isRealtime = async () => Number;";
+
 /**
  * Returns the sample rate from Csound instance
  * @function
@@ -64,7 +80,7 @@ csoundGetKsmps["toString"] = () => "getKsmps = async () => Number;";
  */
 export const csoundGetChannels = (wasm) => (csound, isInput) => wasm.exports["csoundGetChannels"](csound, isInput);
 
-csoundGetKsmps["toString"] = () => "getChannels = async (isInput) => Number;";
+csoundGetChannels["toString"] = () => "getChannels = async (isInput) => Number;";
 
 /**
  * Returns the number of output channels from Csound instance

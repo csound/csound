@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <link rel="icon" href="data:," />
+  <title>WASI realtime browser smoke</title>
+  <script type="module">
+    const query = new URLSearchParams(location.search);
+    const gatedBundle = query.has("probe");
+    const { default: Csound, libcsound } = await import(
+      gatedBundle ? "/probe/csound.js" : "/dist/csound.js"
+    );
+    const check = (condition, message) => {
+      if (!condition) throw new Error(message);
+    };
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const until = async (predicate, message) => {
+      const deadline = performance.now() + 10000;
+      while (!(await predicate())) {
+        if (performance.now() >= deadline) throw new Error(message);
+        await delay(20);
+      }
+    };
+    const rejects = async (action, message) => {
+      try {
+        await action();
+      } catch (error) {
+        return error;
+      }
+      throw new Error(message);
+    };
+    const orchestra = `
+sr = 48000
+ksmps = 32
+nchnls = 2
+0dbfs = 1
+instr 1
+  aleft oscils 0.125, 440, 0
+  aright oscils 0.0625, 660, 0
+  outs aleft, aright
+endin
+instr 2
+  asilent oscils 0, 330, 0
+  outs asilent, asilent
+endin
+`;
+    const checks = [];
+    const active = [];
+    async function run(enabled, viaCsd = false) {
+      const gated = gatedBundle;
+      const mode = enabled ? (viaCsd ? "CSD --realtime" : "setOption --realtime") : "no flag";
+      const csound = await Csound({ autoConnect: false });
+      active.push(csound);
+      const messages = [];
+      csound.on("message", (message) => messages.push(message));
+      check(
+        (await csound.supportsRealtime()) === 1,
+        "capable host did not select the shared engine",
+      );
+      check((await csound.isRealtime()) === 0, "factory enabled realtime without a flag");
+      const options = "-odac -m0 --daemon" + (enabled ? " --realtime" : "");
+      const source = orchestra + (gated ? "\ninstr 9\n  test_wasi_browser_hold\nendin\n" : "");
+      if (viaCsd) {
+        check(
+          (await csound.compileCSD(`<CsoundSynthesizer>
+<CsOptions>
+${options}
+</CsOptions>
+<CsInstruments>
+${source}
+</CsInstruments>
+<CsScore>
+f0 3600
+</CsScore>
+</CsoundSynthesizer>`)) === 0,
+          "CSD compile failed: " + messages.join("\n"),
+        );
+      } else {
+        check((await csound.setOption(options)) === 0, "setOption failed");
+        check((await csound.compileOrc(source)) === 0, "compile failed: " + messages.join("\n"));
+      }
+      check((await csound.isRealtime()) === Number(enabled), "native mode did not match options");
+      check((await csound.start()) === 0, "start failed: " + messages.join("\n"));
+      const context = await csound.getAudioContext();
+      await context.resume();
+      const node = await csound.getNode();
+      check(node instanceof AudioWorkletNode, "expected a real AudioWorkletNode");
+      const splitter = context.createChannelSplitter(2);
+      const silence = context.createGain();
+      silence.gain.value = 0;
+      silence.connect(context.destination);
+      const analysers = [context.createAnalyser(), context.createAnalyser()];
+      const samples = new Float32Array(2048);
+      node.connect(splitter);
+      analysers.forEach((analyser, channel) => {
+        analyser.fftSize = samples.length;
+        splitter.connect(analyser, channel);
+        analyser.connect(silence);
+      });
+      const rms = (analyser) => {
+        analyser.getFloatTimeDomainData(samples);
+        return Math.sqrt(
+          samples.reduce((sum, sample) => sum + sample * sample, 0) / samples.length,
+        );
+      };
+      const stereoAudible = ([left, right]) =>
+        left > 0.02 && right > 0.01 && left > right * 1.5 && left < right * 2.5;
+      const audible = () => stereoAudible(analysers.map(rms));
+      await csound.event(0, [1, 0, 60]);
+      await until(audible, "oscillator did not reach the AudioWorklet output");
+      const left = rms(analysers[0]);
+      const right = rms(analysers[1]);
+      check(
+        left > right * 1.5 && left < right * 2.5,
+        "stereo channels overlap or have the wrong level",
+      );
+      checks.push(`${mode}: AudioWorklet stereo output`);
+      if (enabled) {
+        await rejects(
+          () => csound.compileOrc("instr 77\nendin"),
+          "active realtime compilation was accepted",
+        );
+        await rejects(
+          () => csound.fs.writeFile("active.txt", new Uint8Array([1])),
+          "active realtime filesystem write was accepted",
+        );
+        checks.push(`${mode}: active compile and filesystem changes reject`);
+      } else {
+        check((await csound.compileOrc("instr 77\nendin")) === 0, "normal live compilation failed");
+        await csound.fs.writeFile("active.txt", new Uint8Array([1]));
+        check(
+          (await csound.fs.readFile("active.txt"))[0] === 1,
+          "normal active filesystem access failed",
+        );
+        await csound.setControlChannel("test-live", 0.25);
+        check((await csound.getControlChannel("test-live")) === 0.25, "normal channel API failed");
+        check((await csound.setOption("--realtime")) !== 0, "late option unexpectedly succeeded");
+        check((await csound.isRealtime()) === 0, "failed late option changed mode");
+        checks.push("no flag: live compilation, files and channels work; late flag has no effect");
+      }
+      await csound.pause();
+      await csound.resume();
+      // A second equal-level oscillator can cancel the steady voice by phase.
+      // Keep this transport check silent instead.
+      await csound.event(0, [2, 0, 0.05]);
+      if (enabled)
+        await rejects(
+          () => csound.compileOrc("instr 77\nendin"),
+          "compilation after resume was accepted",
+        );
+      // Hold the render worker before filling its control queue, so a fast
+      // worker cannot drain calls before the overflow assertion.
+      const holdControl = gated && !enabled;
+      let heldNote;
+      if (holdControl) {
+        heldNote = csound.event(0, [9, 0, 0.01]);
+        await until(
+          () => Atomics.load(csound["__threadProbe"], 0) === 1,
+          "control gate did not close",
+        );
+      }
+      let rejected = 0;
+      const callsPending = Promise.allSettled(
+        Array.from({ length: 320 }, () =>
+          csound.getCurrentTimeSamples().catch((error) => {
+            rejected++;
+            throw error;
+          }),
+        ),
+      );
+      if (holdControl) {
+        try {
+          await until(() => rejected > 0, "full control queue did not reject excess calls");
+          check(Atomics.load(csound["__threadProbe"], 3) === 0, "no-flag init ran on a pthread");
+        } finally {
+          Atomics.store(csound["__threadProbe"], 1, 1);
+          Atomics.notify(csound["__threadProbe"], 1);
+        }
+        await heldNote;
+        checks.push("held render worker rejects queue overflow and resumes after release");
+      }
+      const calls = await callsPending;
+      check(
+        calls.some((result) => result.status === "fulfilled"),
+        "control burst made no progress",
+      );
+      check(
+        calls.every(
+          (result) => result.status === "fulfilled" || /queue is full/.test(result.reason.message),
+        ),
+        "control burst failed for an unexpected reason",
+      );
+      await csound.getCurrentTimeSamples();
+      checks.push("pause/resume preserves control admission and control bursts recover");
+      if (gated && enabled) {
+        const probe = csound["__threadProbe"];
+        check(
+          probe instanceof Int32Array && probe.buffer instanceof SharedArrayBuffer,
+          "missing test-only shared init gate",
+        );
+        // This finite note expires halfway through the held init below.
+        await csound.event(0, [2, 0, 0.15]);
+        await csound.event(0, [9, 0, 60]);
+        await until(() => Atomics.load(probe, 0) === 1, "background init did not enter the gate");
+        check(Atomics.load(probe, 3) === 1, "init did not run on a Csound pthread");
+        const before = await csound.getCurrentTimeSamples();
+        const progress = [];
+        for (let index = 0; index < 6; ++index) {
+          await delay(50);
+          // Wait for a populated window; keep the init gate closed throughout.
+          await until(audible, "stereo audio stopped while background init waited");
+          const levels = analysers.map(rms);
+          progress.push({ levels, clock: Number(await csound.getCurrentTimeSamples()) });
+          check(
+            stereoAudible(levels),
+            "steady audio stopped while background init waited: " +
+              JSON.stringify({ before: Number(before), progress }),
+          );
+        }
+        const after = await csound.getCurrentTimeSamples();
+        check(
+          Number(after) - Number(before) > 4800,
+          "engine clock stopped while background init waited",
+        );
+        check(Atomics.load(probe, 2) === 0, "init gate completed before release");
+        checks.push("steady AudioWorklet audio and engine clock continue during blocked init");
+        let resetDone = false;
+        const reset = csound
+          .stop()
+          .then(() => csound.reset())
+          .then(() => {
+            resetDone = true;
+          });
+        await delay(200);
+        check(!resetDone, "reset returned before joining blocked init");
+        Atomics.store(probe, 1, 1);
+        Atomics.notify(probe, 1);
+        await reset;
+        check(Atomics.load(probe, 2) === 1, "init did not finish before reset returned");
+        checks.push("stop/reset joins after UI releases blocked init");
+      } else {
+        await csound.stop();
+        await csound.reset();
+      }
+      splitter.disconnect();
+      analysers.forEach((analyser) => analyser.disconnect());
+      silence.disconnect();
+      check((await csound.isRealtime()) === 0, "reset retained the realtime flag");
+      check((await csound.setOption("-odac -m0 --daemon")) === 0, "second setOption failed");
+      check((await csound.compileOrc(orchestra)) === 0, "compile after reset failed");
+      check((await csound.start()) === 0, "restart failed");
+      check((await csound.isRealtime()) === 0, "start enabled realtime after reset");
+      check(
+        (await csound.compileOrc("instr 78\nendin")) === 0,
+        "normal live compilation after reset failed",
+      );
+      await csound.event(0, [1, 0, 60]);
+      const start = Number(await csound.getCurrentTimeSamples());
+      await delay(100);
+      check(
+        Number(await csound.getCurrentTimeSamples()) > start,
+        "clock did not advance after restart",
+      );
+      await csound.stop();
+      await csound.reset();
+      await csound.terminateInstance();
+      active.splice(active.indexOf(csound), 1);
+      checks.push(`${mode}: reset restores synchronous mode and APIs; restart and teardown`);
+    }
+    async function fatalWhileJoining(useEndEvent = false) {
+      const csound = await Csound({ autoConnect: false });
+      active.push(csound);
+      await csound.setOption("-odac -m0 --daemon --realtime");
+      check(
+        (await csound.compileOrc(orchestra + "\ninstr 9\n  test_wasi_browser_hold\nendin\n")) === 0,
+        "fatal probe compile failed",
+      );
+      await csound.start();
+      await (await csound.getAudioContext()).resume();
+      const probe = csound["__threadProbe"];
+      await csound.event(0, [9, 0, 60]);
+      await until(() => Atomics.load(probe, 0) === 1, "fatal probe did not enter init");
+      let settled = false;
+      const stop = (useEndEvent ? csound.event(2, []) : csound.stop())
+        .then(() => csound.reset())
+        .then(
+          () => {
+            settled = true;
+            return { resolved: true };
+          },
+          (error) => {
+            settled = true;
+            return { error };
+          },
+        );
+      await delay(200);
+      check(!settled, "stop/reset did not wait for init before the trap");
+      Atomics.store(probe, 1, -1);
+      Atomics.notify(probe, 1);
+      await until(() => settled, "child trap did not reject the blocked stop/reset");
+      check((await stop).error instanceof Error, "blocked stop/reset resolved after a child trap");
+      await rejects(() => csound.getCurrentTimeSamples(), "failed instance accepted another call");
+      await csound.terminateInstance();
+      active.splice(active.indexOf(csound), 1);
+      checks.push("child trap rejects a blocked join through the direct UI error path");
+    }
+    async function endEventsAndChannels() {
+      const csound = await Csound({ autoConnect: false });
+      active.push(csound);
+      const messages = [];
+      csound.on("message", (message) => messages.push(message));
+      let ends = 0;
+      csound.on("realtimePerformanceEnded", () => {
+        ends++;
+      });
+      const forms = [[], [0], [0, 0.25]];
+      for (let pass = 0; pass < forms.length; pass++) {
+        const input = pass === 0 ? "gain" : "fresh";
+        await csound.setOption("-odac -m0 --daemon --realtime");
+        check(
+          (await csound.compileOrc(
+            orchestra +
+              `
+chn_k "${input}", 3
+chn_k "meter", 3
+chn_S "label", 3
+instr 3
+  kin chnget "${input}"
+  chnset kin * 2, "meter"
+endin
+instr 4
+  chnset 12, "late"
+endin
+` +
+              (gatedBundle && pass === 0 ? "\ninstr 9\n test_wasi_browser_hold\nendin\n" : ""),
+          )) === 0,
+          `channel test compile failed on pass ${pass}: ${messages.join("\n")}`,
+        );
+        await csound.setControlChannel("preset", 0.125);
+        check((await csound.start()) === 0, "channel test start failed");
+        await (await csound.getAudioContext()).resume();
+        check((await csound.getControlChannel("preset")) === 0.125, "pre-start channel was lost");
+        if (pass > 0)
+          await rejects(
+            () => csound.getControlChannel("gain"),
+            "reset retained a stale channel pointer",
+          );
+        await csound.event(0, [3, 0, 60]);
+        await csound.event(0, [4, 0, 0.01]);
+        await csound.setControlChannel(input, 0.375);
+        await until(
+          async () => (await csound.getControlChannel("meter")) === 0.75,
+          "numeric channel write did not reach the orchestra",
+        );
+        for (const action of [
+          () => csound.setControlChannel("unknown", 1),
+          () => csound.getControlChannel("late"),
+          () => csound.getControlChannel("label"),
+          () => csound.getStringChannel("label"),
+          () => csound.setStringChannel("label", "text"),
+          () => csound.event(1, [1, 0, 1024, 10, 1]),
+          () => csound.event(2, [NaN]),
+        ])
+          await rejects(action, "unsafe active call was accepted");
+        const held = gatedBundle && pass === 0;
+        const probe = csound["__threadProbe"];
+        if (held) {
+          await csound.event(0, [9, 0, 60]);
+          await until(() => Atomics.load(probe, 0) === 1, "end test init gate did not close");
+          await csound.setControlChannel(input, 0.25);
+          await until(
+            async () => (await csound.getControlChannel("meter")) === 0.5,
+            "numeric channels blocked behind background init",
+          );
+        }
+        const before = Number(await csound.getCurrentTimeSamples());
+        // Queue more than one callback batch. End must settle every call,
+        // including those left behind when performKsmps reports completion.
+        const admission = csound.event(2, forms[pass]);
+        const pending = Promise.allSettled(
+          Array.from({ length: 128 }, () => csound.getCurrentTimeSamples()),
+        );
+        await admission;
+        let lateStart;
+        if (held) {
+          await delay(150);
+          check(ends === pass, "end returned before joining background init");
+          let startSettled = false;
+          lateStart = csound.start().finally(() => {
+            startSettled = true;
+          });
+          await delay(50);
+          check(!startSettled, "start replaced a performance still waiting for init");
+          Atomics.store(probe, 1, 1);
+          Atomics.notify(probe, 1);
+        }
+        if (forms[pass].length === 2) {
+          await delay(50);
+          check(ends === pass, "delayed end ran immediately");
+        }
+        await until(() => ends === pass + 1, "end event did not finish browser shutdown");
+        if (lateStart)
+          check((await lateStart) !== 0, "restart without reset unexpectedly succeeded");
+        const results = await pending;
+        check(
+          results.every(
+            (result) =>
+              result.status === "fulfilled" ||
+              /ended performance|Performance ended/.test(result.reason.message),
+          ),
+          "end left pending calls timed out or failed for another reason",
+        );
+        if (forms[pass].length === 2)
+          check(
+            Number(await csound.getCurrentTimeSamples()) - before >= 48000 * 0.2,
+            "delayed end did not advance score time",
+          );
+        check(
+          (await csound.getControlChannel("unknown")) === 0,
+          "rejected channel write created a value",
+        );
+        check((await csound.getControlChannel("late")) === 12, "late channel init did not finish");
+        await delay(50);
+        check(ends === pass + 1, "end event completed more than once");
+        await csound.reset();
+      }
+      await csound.terminateInstance();
+      active.splice(active.indexOf(csound), 1);
+      checks.push(
+        "numeric channels use declared values, reject late/string access, and refresh after reset",
+      );
+      checks.push("empty, short and delayed end events stop once and settle pending calls");
+      if (gatedBundle)
+        checks.push("numeric channels progress during blocked init; end waits for its join");
+    }
+    async function resetBeforeStart() {
+      const csound = await Csound({ autoConnect: false });
+      active.push(csound);
+      check((await csound.setOption("--realtime")) === 0, "pre-start flag failed");
+      check((await csound.isRealtime()) === 1, "pre-start flag was not set");
+      await csound.reset();
+      check((await csound.isRealtime()) === 0, "reset before start retained the realtime flag");
+      await csound.terminateInstance();
+      active.splice(active.indexOf(csound), 1);
+      checks.push("reset before first start clears the native flag");
+    }
+    async function queuedCallsDuringStartup() {
+      const csound = await Csound({ autoConnect: false });
+      active.push(csound);
+      await csound.setOption("-odac -m0 --daemon");
+      check((await csound.compileOrc(orchestra)) === 0, "race setup compilation failed");
+      // Set the native mode first, then queue unsafe calls during startup.
+      // This tests startup admission without racing option delivery.
+      check((await csound.setOption("--realtime")) === 0, "startup flag failed");
+      const results = await Promise.allSettled([
+        csound.start(),
+        csound.compileOrc("instr 79\nendin"),
+        csound.fs.writeFile("startup-race.txt", new Uint8Array([1])),
+      ]);
+      check(
+        results.slice(0, 1).every((result) => result.status === "fulfilled" && result.value === 0),
+        "start did not succeed: " +
+          JSON.stringify(
+            results.map((result) =>
+              result.status === "rejected"
+                ? { status: result.status, error: String(result.reason) }
+                : result,
+            ),
+          ),
+      );
+      check(
+        results
+          .slice(1)
+          .every(
+            (result) =>
+              result.status === "rejected" &&
+              /requires? stopped realtime performance/.test(result.reason.message),
+          ),
+        "startup queue admitted compilation or filesystem access after native realtime activation",
+      );
+      check((await csound.isRealtime()) === 1, "startup lost the realtime flag");
+      await csound.stop();
+      await csound.reset();
+      await csound.terminateInstance();
+      active.splice(active.indexOf(csound), 1);
+      checks.push("startup rejects queued compile and filesystem changes");
+    }
+    async function localEngine(options) {
+      const csound = await Csound(options);
+      active.push(csound);
+      check((await csound.supportsRealtime()) === 0, "parent-only engine claims realtime support");
+      check(
+        (await csound.setOption("-odac -m0 --daemon --realtime")) === 0,
+        "parent-only option failed",
+      );
+      check((await csound.isRealtime()) === 0, "unsupported flag enabled realtime");
+      const source =
+        orchestra +
+        (options.withPlugins
+          ? '\niresult plugin_runtime_check\nchnset iresult, "plugin-result"\n'
+          : "");
+      check((await csound.compileOrc(source)) === 0, "parent-only compilation failed");
+      check((await csound.start()) === 0, "parent-only start failed");
+      if (options.withPlugins)
+        check(
+          (await csound.getControlChannel("plugin-result")) === 42,
+          "parent-only plugin did not run",
+        );
+      await (await csound.getAudioContext()).resume();
+      await csound.event(0, [2, 0, 1]);
+      const before = Number(await csound.getCurrentTimeSamples());
+      // MessagePort mode renders larger chunks ahead of the audio device.
+      await until(
+        async () => Number(await csound.getCurrentTimeSamples()) > before,
+        "parent-only engine did not render",
+      );
+      await csound.stop();
+      await csound.terminateInstance();
+      active.splice(active.indexOf(csound), 1);
+    }
+    async function sharedPlugins(enabled, local) {
+      const csound = await Csound({
+        autoConnect: false,
+        ...(local ? { useWorker: false } : {}),
+        withPlugins: ["/plugin_example_shared.wasm", "/plugin_example_cpp_shared.wasm"],
+      });
+      active.push(csound);
+      const messages = [];
+      csound.on("message", (message) => messages.push(message));
+      check((await csound.supportsRealtime()) === Number(!local), "plugins changed host selection");
+      const source = `${orchestra}
+instr 3
+  iresult plugin_thread_check
+  asignal hello440
+  again init 0.5
+  ascaled mult asignal, again
+  outs ascaled, ascaled
+endin
+`;
+      for (let cycle = 0; cycle < 2; cycle++) {
+        const before = messages.length;
+        // Realtime -m0 suppresses all messages, including our thread markers.
+        check(
+          (await csound.setOption("-odac -m1 --daemon" + (enabled ? " --realtime" : ""))) === 0,
+          "plugin options failed",
+        );
+        check(
+          (await csound.compileOrc(source)) === 0,
+          "plugin compile failed: " + messages.join("\n"),
+        );
+        check((await csound.start()) === 0, "plugin start failed: " + messages.join("\n"));
+        const context = await csound.getAudioContext();
+        await context.resume();
+        const analyser = context.createAnalyser();
+        const silence = context.createGain();
+        silence.gain.value = 0;
+        const node = await csound.getNode();
+        node.connect(analyser);
+        analyser.connect(silence);
+        silence.connect(context.destination);
+        const samples = new Float32Array(2048);
+        analyser.fftSize = samples.length;
+        await csound.event(0, [3, 0, 30]);
+        const expectedTls = enabled ? 42 : 42 + cycle;
+        const marker = `shared C plugin: ctor=1 tls=${expectedTls} thread=${enabled ? "worker" : "owner"} runtime=1 data=1`;
+        try {
+          await until(
+            () => messages.slice(before).some((message) => message.includes(marker)),
+            "plugin init did not preserve constructor/TLS/GOT state",
+          );
+        } catch (error) {
+          const time = await csound.getCurrentTimeSamples();
+          throw new Error(`${error.message}; samples=${time}; messages=${messages.join("\n")}`);
+        }
+        await until(
+          () => {
+            analyser.getFloatTimeDomainData(samples);
+            return (
+              Math.sqrt(samples.reduce((sum, value) => sum + value * value, 0) / samples.length) >
+              0.05
+            );
+          },
+          "plugin audio did not reach the worklet: " + messages.join("\n"),
+        );
+        check(
+          messages
+            .slice(before)
+            .some((message) => message.includes("shared C++ plugin: ctor=1 tls=42")),
+          "C++ plugin constructor/TLS check did not run",
+        );
+        await csound.stop();
+        await csound.reset();
+        analyser.disconnect();
+        silence.disconnect();
+      }
+      await csound.terminateInstance();
+      active.splice(active.indexOf(csound), 1);
+      checks.push(
+        `${enabled ? "background" : "owner"} plugin init, constructor once, TLS, GOT and audio survive reset`,
+      );
+      const api = await libcsound({
+        withPlugins: [
+          new Uint8Array(await (await fetch("/plugin_example_shared.wasm")).arrayBuffer()),
+        ],
+      });
+      const instance = api.csoundCreate();
+      try {
+        check(api.csoundSetOption(instance, "-n -m0") === 0, "synchronous plugin options failed");
+        check(
+          api.csoundCompileOrc(instance, 'ivalue plugin_runtime_check\nchnset ivalue, "plugin"') ===
+            0,
+          "synchronous plugin API compile failed",
+        );
+        check(api.csoundStart(instance) === 0, "synchronous plugin start failed");
+        check(
+          api.csoundGetControlChannel(instance, "plugin") === 42,
+          "synchronous plugin did not run",
+        );
+      } finally {
+        api.csoundDestroy(instance);
+      }
+      for (const [name, expected] of [
+        ["plugin_example.wasm", /shared.memory|shared-memory|SDK/i],
+        ["plugin_example_shared_missing_tls.wasm", /TLS|initializer/i],
+        ["plugin_example_shared_trap_ctor.wasm", /unreachable|trap/i],
+      ]) {
+        const bytes = new Uint8Array(await (await fetch(`/${name}`)).arrayBuffer());
+        const error = await rejects(
+          () => libcsound({ withPlugins: [bytes] }),
+          `invalid plugin ${name} was accepted`,
+        );
+        check(expected.test(error.message), `wrong failure for ${name}: ${error.message}`);
+      }
+      checks.push(
+        "synchronous shared plugins work; old ABI, missing TLS and constructor traps reject",
+      );
+    }
+    async function rejectsLocalPlugin() {
+      const RealContext = window.AudioContext;
+      const created = [];
+      window.AudioContext = new Proxy(RealContext, {
+        construct(target, args) {
+          const context = Reflect.construct(target, args);
+          created.push(context);
+          return context;
+        },
+      });
+      try {
+        const error = await rejects(
+          () =>
+            Csound({ useWorker: false, withPlugins: ["/plugin_example_shared_trap_ctor.wasm"] }),
+          "bad local plugin factory resolved",
+        );
+        check(
+          /unreachable|trap/i.test(error.message),
+          "wrong local plugin failure: " + error.message,
+        );
+        check(
+          created.length === 1 && created[0].state === "closed",
+          "failed local factory leaked its owned AudioContext",
+        );
+        const supplied = new RealContext();
+        try {
+          await rejects(
+            () =>
+              Csound({
+                useWorker: false,
+                audioContext: supplied,
+                withPlugins: ["/plugin_example_shared_trap_ctor.wasm"],
+              }),
+            "bad local plugin with supplied context resolved",
+          );
+          check(supplied.state !== "closed", "failed local factory closed caller context");
+        } finally {
+          await supplied.close();
+        }
+      } finally {
+        window.AudioContext = RealContext;
+        for (const context of created) if (context.state !== "closed") await context.close();
+      }
+      checks.push("bad local plugins reject and clean up only owned AudioContexts");
+    }
+    async function unsupportedHost(simulateMissingWasm) {
+      const AudioContext = window.AudioContext;
+      const validate = WebAssembly.validate;
+      let contexts = 0;
+      window.AudioContext = new Proxy(AudioContext, {
+        construct(target, args) {
+          contexts += 1;
+          return Reflect.construct(target, args);
+        },
+      });
+      if (simulateMissingWasm) WebAssembly.validate = () => false;
+      try {
+        const error = await rejects(
+          () => Csound(simulateMissingWasm ? undefined : { useWorker: true }),
+          "unsupported host started an engine",
+        );
+        check(
+          /shared|isolation|isolated|Wasm|WebAssembly/i.test(error.message),
+          "unsupported default did not explain its missing requirements",
+        );
+        if (simulateMissingWasm) {
+          await rejects(
+            () => Csound({ useWorker: true }),
+            "unsupported worker Wasm started an engine",
+          );
+          await rejects(
+            () => Csound({ useWorker: false }),
+            "unsupported local Wasm started an engine",
+          );
+          await rejects(
+            () => Csound({ useSAB: false, useWorker: true }),
+            "unsupported MessagePort Wasm started an engine",
+          );
+        }
+        check(contexts === 0, "unsupported default created an AudioContext");
+      } finally {
+        window.AudioContext = AudioContext;
+        WebAssembly.validate = validate;
+      }
+      checks.push("unsupported explicit host rejects before AudioContext creation");
+      if (!simulateMissingWasm) {
+        await localEngine({});
+        checks.push("default engine renders without isolation and keeps synchronous init");
+      }
+    }
+    async function pluginPayloads() {
+      const bytes = async (name) => new Uint8Array(await (await fetch(`/${name}`)).arrayBuffer());
+      const invalid = new TextEncoder().encode("<!doctype html><title>404 Not Found</title>");
+      const messages = [];
+      const log = console.log;
+      let api;
+      console.log = (...args) => messages.push(args.join(" "));
+      try {
+        api = await libcsound({
+          withPlugins: [invalid, await bytes("plugin_example_shared.wasm"), new Uint8Array()],
+        });
+      } finally {
+        console.log = log;
+      }
+      const instance = api.csoundCreate();
+      try {
+        check(
+          messages.filter((message) => /Skipping plugin payload.*not a wasm binary/.test(message))
+            .length === 2,
+          "non-Wasm plugin payloads did not each produce a warning",
+        );
+        check(api.csoundSetOption(instance, "-n -m0") === 0, "plugin payload options failed");
+        check(
+          api.csoundCompileOrc(instance, 'ivalue plugin_runtime_check\nchnset ivalue, "plugin"') ===
+            0,
+          "valid plugin following an invalid payload did not compile",
+        );
+        check(api.csoundStart(instance) === 0, "plugin payload start failed");
+        check(api.csoundGetControlChannel(instance, "plugin") === 42, "valid plugin did not run");
+      } finally {
+        api.csoundDestroy(instance);
+      }
+      const oldPlugin = await bytes("plugin_example.wasm");
+      const error = await rejects(
+        () => libcsound({ withPlugins: [invalid, oldPlugin] }),
+        "old plugin ABI was accepted after skipping a non-Wasm payload",
+      );
+      check(/shared.memory|shared-memory|SDK/i.test(error.message), "wrong old plugin ABI error");
+      await localEngine({
+        useWorker: false,
+        withPlugins: ["/missing-plugin.wasm", "/plugin_example_shared.wasm"],
+      });
+      checks.push("non-Wasm payloads warn and skip; valid plugins run and old Wasm ABI rejects");
+    }
+    async function sharedContext(localFirst) {
+      const context = new AudioContext({ sampleRate: 48000 });
+      const engines = [];
+      const nodes = [];
+      const analysers = [];
+      const silence = context.createGain();
+      silence.gain.value = 0;
+      silence.connect(context.destination);
+      const modes = localFirst ? [true, false] : [false, true];
+      const samples = new Float32Array(2048);
+      const audible = (analyser) => {
+        analyser.getFloatTimeDomainData(samples);
+        return (
+          Math.sqrt(samples.reduce((sum, sample) => sum + sample * sample, 0) / samples.length) >
+          0.06
+        );
+      };
+      try {
+        for (const local of modes) {
+          const csound = await Csound({
+            audioContext: context,
+            autoConnect: false,
+            outputChannelCount: 1,
+            ...(local ? { useWorker: true, useSAB: false } : {}),
+          });
+          active.push(csound);
+          engines.push(csound);
+          check(
+            (await csound.supportsRealtime()) === Number(!local),
+            "wrong shared-context backend",
+          );
+          await csound.setOption("-odac -m0 --daemon");
+          check(
+            (await csound.compileOrc(`
+ sr = 48000
+ ksmps = 32
+ nchnls = 1
+ 0dbfs = 1
+ instr 1
+   asignal oscils 0.125, ${local ? 660 : 440}, 0
+   out asignal
+ endin`)) === 0,
+            "shared-context compile failed",
+          );
+          check((await csound.start()) === 0, "shared-context start failed");
+          await context.resume();
+          const node = await csound.getNode();
+          const analyser = context.createAnalyser();
+          analyser.fftSize = samples.length;
+          node.connect(analyser);
+          analyser.connect(silence);
+          nodes.push(node);
+          analysers.push(analyser);
+          await csound.event(0, [1, 0, 60]);
+          await until(
+            () => analysers.every(audible),
+            "shared-context engine did not produce audio",
+          );
+        }
+        check(nodes[0] !== nodes[1], "engines reused the same AudioWorkletNode");
+        await delay(100);
+        check(analysers.every(audible), "starting the second engine interrupted the first");
+        for (const csound of engines) {
+          await csound.stop();
+          await csound.terminateInstance();
+          active.splice(active.indexOf(csound), 1);
+        }
+        check(context.state !== "closed", "engine closed the caller's shared AudioContext");
+      } finally {
+        for (const csound of engines) {
+          if (active.includes(csound)) {
+            await csound.terminateInstance();
+            active.splice(active.indexOf(csound), 1);
+          }
+        }
+        nodes.forEach((node) => node.disconnect());
+        analysers.forEach((analyser) => analyser.disconnect());
+        silence.disconnect();
+        if (context.state !== "closed") await context.close();
+      }
+    }
+    async function localLibrary() {
+      const api = await libcsound();
+      const instance = api.csoundCreate();
+      try {
+        check(
+          Object.prototype.toString.call(api.getMemory().buffer) === "[object SharedArrayBuffer]",
+          "libcsound did not use the shared engine",
+        );
+        check(api.csoundSupportsRealtime() === 0, "parent-only libcsound claims realtime support");
+        check(api.csoundSetOption(instance, "-n -m0") === 0, "libcsound option failed");
+        check(api.csoundCompileOrc(instance, orchestra) === 0, "libcsound compile failed");
+        check(api.csoundStart(instance) === 0, "libcsound start failed");
+        api.csoundEvent(instance, 0, [2, 0, 1]);
+        api.csoundPerformKsmps(instance);
+        check(Number(api.csoundGetCurrentTimeSamples(instance)) > 0, "libcsound did not render");
+      } finally {
+        api.csoundDestroy(instance);
+      }
+    }
+    try {
+      if (query.has("unsupported")) {
+        if (query.get("unsupported") === "isolation")
+          check(!crossOriginIsolated, "unsupported page was unexpectedly isolated");
+        await unsupportedHost(query.get("unsupported") === "wasm");
+        await localEngine({ useSAB: false });
+        checks.push("explicit parent-only engine renders without cross-origin isolation");
+      } else if (query.has("mode")) {
+        const mode = query.get("mode");
+        if (mode === "shared-context") await sharedContext(query.has("localFirst"));
+        else if (mode === "libcsound") await localLibrary();
+        else if (mode === "bad-plugin") await rejectsLocalPlugin();
+        else if (mode === "plugin-payloads") await pluginPayloads();
+        else if (mode === "plugins") await sharedPlugins(query.has("realtime"), query.has("local"));
+        else
+          await localEngine(
+            mode === "singlethread" ? { useWorker: false } : { useSAB: false, useWorker: true },
+          );
+        checks.push(`${mode}: one engine preserves the API`);
+      } else {
+        check(crossOriginIsolated, "test server did not isolate the page");
+        await resetBeforeStart();
+        await queuedCallsDuringStartup();
+        await endEventsAndChannels();
+        await run(false);
+        await run(true);
+        await run(true, true);
+        if (gatedBundle) {
+          await fatalWhileJoining();
+          await fatalWhileJoining(true);
+        }
+      }
+      window.__csoundRealtimeResult = { ok: true, checks };
+    } catch (error) {
+      for (const csound of active) {
+        const probe = csound["__threadProbe"];
+        if (probe) {
+          Atomics.store(probe, 1, 1);
+          Atomics.notify(probe, 1);
+        }
+        try {
+          await csound.terminateInstance();
+        } catch {}
+      }
+      window.__csoundRealtimeResult = {
+        ok: false,
+        checks,
+        error: String(error) + "\n" + (error.stack || ""),
+      };
+    }
+  </script>
+</html>

@@ -19,7 +19,7 @@
 import * as Comlink from "../utils/comlink.js";
 import MessagePortState from "../utils/message-port-state";
 import libcsoundFactory from "../libcsound";
-import loadWasm from "../module";
+import loadWasm from "../module.loader.js";
 import { clearArray } from "../utils/clear-array";
 import {
   createAudioFade,
@@ -80,6 +80,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.result = undefined;
 
     this.rtmidiPort = undefined;
+    this.messagePort = undefined;
     this.renderSleep = undefined;
     this.libraryCsound = undefined;
     this.combined = undefined;
@@ -132,6 +133,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
 
     /** @export */
     this.initializeMessagePort = ({ messagePort, rtmidiPort }) => {
+      this.messagePort = messagePort;
       this.workerMessagePort.post = (messageLog) => messagePort.postMessage({ log: messageLog });
       this.workerMessagePort.broadcastPlayState = (playStateChange) => {
         if (this.workerMessagePort.workerState !== playStateChange) {
@@ -154,48 +156,42 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   async initialize(wasmDataURI, withPlugins) {
     log("initializing worklet.singlethread.worker")();
 
-    let resolver;
-    const waiter = new Promise((resolve) => {
-      resolver = resolve;
-    });
-
-    loadWasm({
+    // Let Comlink carry loader failures back to the factory. A separate
+    // resolve-only promise would leave a rejected plugin load pending forever.
+    const [wasm, wasi] = await loadWasm({
       wasmDataURI,
       withPlugins,
       messagePort: this.workerMessagePort,
-    }).then(([wasm, wasi]) => {
-      this.wasm = wasm;
-      this.wasi = wasi;
-      wasm.wasi = wasi;
-
-      this.libraryCsound = libcsoundFactory(wasm);
-      this.csound = this.libraryCsound.csoundCreate(0);
-      this.result = 0;
-      this.running = false;
-      this.isRendering = false;
-      this.started = false;
-      this.isTerminated = false;
-      this.resetCsound(false);
-
-      const csoundCreate = async (v) => {
-        return this.csound;
-      };
-
-      const allAPI = {
-        ...this.libraryCsound,
-        csoundCreate,
-        csoundReset: this.resetCsound.bind(this),
-        csoundStop: this.stop.bind(this),
-        csoundStart: this.start.bind(this),
-        wasm,
-      };
-
-      this.combined = new Map(Object.entries(allAPI));
-      log("wasm initialized and api generated")();
-      resolver();
     });
-    log("waiting on wasm initialization to complete")();
-    await waiter;
+    if (this.isTerminated) throw new Error("Csound instance terminated during initialization");
+    this.wasm = wasm;
+    this.wasi = wasi;
+    wasm.wasi = wasi;
+
+    this.libraryCsound = libcsoundFactory(wasm);
+    this.csound = this.libraryCsound.csoundCreate(0);
+    this.result = 0;
+    this.running = false;
+    this.isRendering = false;
+    this.started = false;
+    this.isTerminated = false;
+    await this.resetCsound(false);
+
+    const csoundCreate = async (v) => {
+      return this.csound;
+    };
+
+    const allAPI = {
+      ...this.libraryCsound,
+      csoundCreate,
+      csoundReset: this.resetCsound.bind(this),
+      csoundStop: this.stop.bind(this),
+      csoundStart: this.start.bind(this),
+      wasm,
+    };
+
+    this.combined = new Map(Object.entries(allAPI));
+    log("wasm initialized and api generated")();
   }
 
   async resetCsound(callReset) {
@@ -266,7 +262,27 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       resolveRenderSleep();
     }
     clearArray(this.rtmidiQueue);
-    this.stop();
+    try {
+      this.stop();
+      if (this.csound) this.libraryCsound.csoundDestroy(this.csound);
+    } finally {
+      // A provided AudioContext can outlive this processor. Release the engine
+      // and its ports now instead of relying on the context's garbage collection.
+      if (this.rtmidiPort) this.rtmidiPort.close();
+      if (this.messagePort) this.messagePort.close();
+      this.rtmidiPort = undefined;
+      this.messagePort = undefined;
+      this.workerMessagePort = undefined;
+      this.combined = undefined;
+      this.libraryCsound = undefined;
+      this.csound = undefined;
+      this.csoundInputBuffer = undefined;
+      this.csoundOutputBuffer = undefined;
+      this.wasm = undefined;
+      this.wasi = undefined;
+      this.audioFade = undefined;
+      this.lastOutput = [];
+    }
   }
 
   pause() {

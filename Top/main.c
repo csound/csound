@@ -29,6 +29,9 @@
 // #include "cs_par_dispatch.h"
 
 extern const uint32_t csPlayScoMask;
+#if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
+extern int csoundSupportsRealtime(void);
+#endif
 
 void input_message_async(CSOUND *csound, const char *message);
 void allocate_message_queue(CSOUND *csound);
@@ -585,6 +588,16 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
   if (csound->csdname == NULL && !csound->options_checked) {
     check_options(csound);
   }
+
+#if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
+  /* Enforce the host limit even when options were set through native state. */
+  if (O->realtime && !csoundSupportsRealtime()) {
+    csound->Message(csound,
+                   Str("--realtime ignored: this browser host has no worker pool; "
+                       "using synchronous mode\n"));
+    O->realtime = 0;
+  }
+#endif
 
   if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
     csound->Message(csound,

@@ -95,3 +95,23 @@ browserCsound.on("readline", (event: ReadlineEvent) => { void event; });
 void browserCsound.readlineSubmit(promptEvent.requestId, "answer");
 void localLibCsound.csoundReadlineSubmit(1, closedEvent.requestId, "answer");
 void libcsound({ onReadline(event) { const id: number = event.csound; void id; } });
+
+void createCsound({ useWorker: false });
+const realtimeSupport: Promise<number> = browserCsound.supportsRealtime();
+const realtimeMode: Promise<number> = browserCsound.isRealtime();
+void realtimeSupport;
+void realtimeMode;
+void localLibCsound.csoundSupportsRealtime();
+void localLibCsound.csoundIsRealtime(1);
+const numericEvent: Promise<void> = browserCsound.event(0, [1, 0, 0.25, 440]);
+void numericEvent;
+// @ts-expect-error Numeric events use a fixed type enum.
+void browserCsound.event(3, [1, 0, 1]);
+// @ts-expect-error Numeric events do not parse score strings.
+void browserCsound.event(0, "i1 0 1");
+
+async function numericChannelValue() {
+  const csound = await createCsound();
+  const value: number = await csound.getControlChannel("gain");
+  await csound.setControlChannel("gain", value);
+}

@@ -80,7 +80,8 @@ export const preparePluginImports = ({
     } else if (
       module === "env" &&
       kind === "tag" &&
-      ["__c_longjmp", "__cpp_exception"].includes(name)
+      ["__c_longjmp", "__cpp_exception"].includes(name) &&
+      ownValue(options["env"], name) === undefined
     ) {
       // Statically linked runtimes own their exception state. Exceptions may
       // propagate through the engine, but cannot be caught by another plugin.
