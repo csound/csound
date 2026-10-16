@@ -3,7 +3,8 @@ description = "for loops honor variable type prefixes and run at the resolved ra
 
 [expect]
 exit = 0
-output = ["implicit k-rate loop passed", "for-loop type precedence passed"]
+output = ["implicit k-rate loop passed", "for-loop type precedence passed", "for-loop prefix edge cases passed"]
+stderr = ["ignoring type annotation 'i' for existing loop variable 'existing' (type 'k')"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -84,9 +85,64 @@ instr 2
     turnoff
   endif
 endin
+
+instr 3
+  ; The index inherits the loop rate, even with a conflicting name prefix.
+  isum init 0
+  for value, kndx in [1, 2, 3] do
+    if strcmp(typeof(kndx), "i") != 0 then
+      prints "index prefix changed its type\n"
+      exitnow -1
+    endif
+    isum += kndx
+  od
+  ; Descriptive names with standard prefixes can explicitly request i-type.
+  for freq:i in [1, 2, 3] do
+    isum += freq
+  od
+  for wave:i in [1, 2, 3] do
+    isum += wave
+  od
+  controls:k[] fillarray 1, 2, 3
+  for iElement in controls do
+    isum += iElement
+  od
+  if isum != 21 then
+    prints "explicit prefix override failed\n"
+    exitnow -1
+  endif
+
+  kcycle init 0
+  kcycle += 1
+  ksum = 0
+  ; Strip the g prefix when resolving the element's implicit type.
+  for gkvalue in [1, 2, 3] do
+    ksum += gkvalue + kcycle
+  od
+  ; An explicit index annotation selects performance-time iteration.
+  kindexsum = 0
+  for element, ndx:k in [1, 2, 3] do
+    kindexsum += element + ndx + kcycle
+  od
+  ; An existing variable wins over a conflicting annotation, with a warning.
+  existing:k init 0
+  kexistingsum = 0
+  for existing:i in [1, 2, 3] do
+    kexistingsum += existing + kcycle
+  od
+  if ksum != 6 + 3 * kcycle || kindexsum != 9 + 3 * kcycle || kexistingsum != 6 + 3 * kcycle then
+    printks "for-loop prefix edge cases failed\n", 0
+    exitnowk -1
+  endif
+  if kcycle == 2 then
+    printks "for-loop prefix edge cases passed\n", 0
+    turnoff
+  endif
+endin
 </CsInstruments>
 <CsScore>
 i 1 0 0.01
 i 2 0 0.01
+i 3 0 0.01
 </CsScore>
 </CsoundSynthesizer>

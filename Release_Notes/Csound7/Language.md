@@ -107,9 +107,20 @@ endin
 schedule(ListNotes, 0, 0)
 ```
 
-The loop variable's type determines the loop rate. Without an explicit or
-existing type, it follows the array element type. This loop runs at initialization.
-The optional index starts at zero. Existing array operations remain available.
+The element variable's type determines the loop rate. For a new element
+variable, an explicit annotation takes precedence over its implicit name prefix;
+if neither supplies a type, it follows the array element type. This example
+runs at initialization. Names such as `k0`, `freq`, and `wave` imply k-, f-, and
+w-type respectively; use `k0:i`, `freq:i`, or `wave:i` when init-time numeric
+iteration is intended. A leading `g` is skipped when resolving an implicit
+prefix, so `gkvalue` implies k-type. Element and array types must match except
+for i/k conversions. An existing element variable follows the previous type
+and shadowing rules; a conflicting annotation is ignored with a warning.
+
+The optional index starts at zero. Its name prefix does not determine its
+type: an unannotated index follows the loop rate. Use an explicit `:i` or `:k`
+index annotation to select init- or perf-time iteration, where compatible with
+the element type. Existing array operations remain available.
 
 See the [UDO reference](https://csound.com/manual/opcodes/opcode/) for call
 rules. The repository also has examples of
