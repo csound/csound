@@ -3015,7 +3015,7 @@ static TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* un
  * For further reference, please see the rule for statement and opcall in
  * Engine/csound_orc.y.
  */
-static char *get_assignment_lhs_type_hint(CSOUND *csound, TREE *left)
+static char *get_variable_type_hint(CSOUND *csound, TREE *left)
 {
   if (left == NULL || left->value == NULL) {
     return NULL;
@@ -3035,9 +3035,12 @@ static char *get_assignment_lhs_type_hint(CSOUND *csound, TREE *left)
   if (*name == 'g' && name[1] != '\0') {
     name++;
   }
-  if (strchr("aikSKBbf", *name) != NULL) {
-    char type[2] = {*name, '\0'};
-    return csoundStrdup(csound, type);
+  char typeName[2] = {*name, '\0'};
+  const CS_TYPE *type = csoundGetTypeWithVarTypeName(csound->typePool, typeName);
+  // Constants, p-fields and reserved symbols are not variable type prefixes.
+  if (type != NULL && type != &CS_VAR_TYPE_C &&
+      type != &CS_VAR_TYPE_P && type != &CS_VAR_TYPE_R) {
+    return csoundStrdup(csound, type->varTypeName);
   }
   return NULL;
 }
@@ -3067,7 +3070,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
       }
 
       if (hasExpressionArg && tree_arg_list_count(root->left) == 1) {
-        char *leftType = get_assignment_lhs_type_hint(csound, root->left);
+        char *leftType = get_variable_type_hint(csound, root->left);
 
         if (leftType != NULL && strlen(leftType) == 1 &&
             (outType = get_arg_type2(csound, right, typeTable)) != NULL) {
@@ -4317,7 +4320,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     case FOR_TOKEN: {
       /** for-loop typing:
-          1) if loop variable does not exist, it takes the type of the array
+          1) a new loop variable uses its explicit type or name prefix,
+             falling back to the array element type
           2) if it exists, the loop type follows the variable type when conversion is possible
       */
 
@@ -4342,12 +4346,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       atype[strlen(atype)-1] = '\0'; // remove ']'
       typ = remove_type_quoting(csound, atype);
       if(var == NULL) {
-       // check for optype
-        if(current->left->value->optype != NULL) {
+        char *varType = get_variable_type_hint(csound, current->left);
+        if (varType != NULL) {
           csoundFree(csound, typ);
-          typ = csoundStrdup(csound, current->left->value->optype);
+          typ = varType;
         }
-       // now create the arg based on the array type
+       // create the arg using the resolved variable type
        add_arg(csound, current->left->value->lexeme, typ,
 	       typeTable, current);
        } else {
