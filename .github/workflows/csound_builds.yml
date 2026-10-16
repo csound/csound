@@ -888,6 +888,11 @@ jobs:
     needs: update_version
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
+      DEV_ID_APP_CERT: ${{ secrets.DEV_ID_APP_CERT }}
+      DEV_ID_APP_PASSWORD: ${{ secrets.DEV_ID_APP_PASSWORD }}
+      DEV_ID_INSTALLER_CERT: ${{ secrets.DEV_ID_INSTALLER_CERT }}
+      DEV_ID_INSTALLER_PASSWORD: ${{ secrets.DEV_ID_INSTALLER_PASSWORD }}
+      CODESIGN_TIMESTAMP: ${{ vars.CODESIGN_TIMESTAMP }}
     steps:
       - name: Checkout source code
         uses: actions/checkout@v7.0.1
@@ -958,22 +963,154 @@ jobs:
           install_name_tool -change @rpath/liblo.7.dylib @loader_path/../../../../libs/liblo.dylib csound_install/CsoundLib64.framework/Versions/7.0/Resources/Opcodes64/libosc.dylib
           install_name_tool -add_rpath /Applications/Csound/CsoundLib64.framework/libs liblo_install/lib/liblo.dylib
 
-      - name: Build installer
+      - name: Import macOS signing certificates
+        if: ${{ env.DEV_ID_APP_CERT != '' && env.DEV_ID_APP_PASSWORD != '' && env.DEV_ID_INSTALLER_CERT != '' && env.DEV_ID_INSTALLER_PASSWORD != '' }}
+        uses: sudara/basic-macos-keychain-action@v1
+        id: keychain
+        with:
+          dev-id-app-cert: ${{ secrets.DEV_ID_APP_CERT }}
+          dev-id-app-password: ${{ secrets.DEV_ID_APP_PASSWORD }}
+          dev-id-installer-cert: ${{ secrets.DEV_ID_INSTALLER_CERT }}
+          dev-id-installer-password: ${{ secrets.DEV_ID_INSTALLER_PASSWORD }}
+
+      - name: Trust test signing certificates
+        if: ${{ steps.keychain.outcome == 'success' && vars.CODESIGN_TIMESTAMP == 'false' }}
+        env:
+          APP_CERT: ${{ secrets.DEV_ID_APP_CERT }}
+          APP_PASSWORD: ${{ secrets.DEV_ID_APP_PASSWORD }}
+          INSTALLER_CERT: ${{ secrets.DEV_ID_INSTALLER_CERT }}
+          INSTALLER_PASSWORD: ${{ secrets.DEV_ID_INSTALLER_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          printf '%s' "$APP_CERT" | base64 --decode > "$RUNNER_TEMP/app.p12"
+          printf '%s' "$INSTALLER_CERT" | base64 --decode > "$RUNNER_TEMP/installer.p12"
+
+          openssl pkcs12 \
+            -legacy \
+            -in "$RUNNER_TEMP/app.p12" \
+            -clcerts -nokeys \
+            -passin "pass:$APP_PASSWORD" \
+            -out "$RUNNER_TEMP/app.crt"
+
+          openssl pkcs12 \
+            -legacy \
+            -in "$RUNNER_TEMP/installer.p12" \
+            -clcerts -nokeys \
+            -passin "pass:$INSTALLER_PASSWORD" \
+            -out "$RUNNER_TEMP/installer.crt"
+
+          sudo -n security add-trusted-cert \
+            -d \
+            -r trustRoot \
+            -k "$HOME/Library/Keychains/login.keychain-db" \
+            "$RUNNER_TEMP/app.crt"
+
+          sudo -n security add-trusted-cert \
+            -d \
+            -r trustRoot \
+            -k "$HOME/Library/Keychains/login.keychain-db" \
+            "$RUNNER_TEMP/installer.crt"
+
+          security find-identity -v
+
+      - name: Prepare installer contents
         run: |
           mkdir csound_install/CsoundLib64.framework/Versions/7.0/Resources/Python
           cp languages/python/ctcsound.py csound_install/CsoundLib64.framework/Versions/7.0/Resources/Python
+
           mkdir csound_install/CsoundLib64.framework/libs
           cp portmidi_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
           cp portaudio_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
           cp liblo_install/lib/*.dylib csound_install/CsoundLib64.framework/libs
+
           mkdir -p csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake
           cp csound_install/share/csound/CsoundConfig.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
           cp csound_install/share/csound/CsoundConfigVersion.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
           cp csound_install/share/csound/FindCsound.cmake csound_install/CsoundLib64.framework/Versions/7.0/Resources/cmake/
+
           mkdir -p csound_install/PkgContents/Applications/Csound
           mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
           mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
-          pkgbuild --identifier com.csound.csound7Environment.csoundLib64 --root csound_install/PkgContents CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
+
+      - name: Verify signing identities
+        if: ${{ steps.keychain.outcome == 'success' }}
+        env:
+          DEVELOPER_APP_ID: ${{ vars.DEVELOPER_APP_ID }}
+          DEVELOPER_INSTALLER_ID: ${{ vars.DEVELOPER_INSTALLER_ID }}
+        run: |
+          set -euo pipefail
+
+          [[ -n "$DEVELOPER_APP_ID" ]] || {
+            echo "::error::DEVELOPER_APP_ID is not configured"
+            exit 1
+          }
+
+          [[ -n "$DEVELOPER_INSTALLER_ID" ]] || {
+            echo "::error::DEVELOPER_INSTALLER_ID is not configured"
+            exit 1
+          }
+
+          security find-identity -v
+
+      - name: Sign binaries
+        if: ${{ steps.keychain.outcome == 'success' }}
+        env:
+          DEVELOPER_APP_ID: ${{ vars.DEVELOPER_APP_ID }}
+        run: |
+          set -euo pipefail
+
+          timestamp_args=(--timestamp)
+
+          if [[ "$CODESIGN_TIMESTAMP" == "false" ]]; then
+            timestamp_args=(--timestamp=none)
+          fi
+
+          while IFS= read -r -d '' file; do
+            if file -b "$file" | grep -q 'Mach-O'; then
+              echo "Signing $file"
+
+              codesign --force \
+                --options runtime \
+                "${timestamp_args[@]}" \
+                --sign "$DEVELOPER_APP_ID" \
+                "$file"
+
+                codesign --verify --verbose=2 "$file"
+            fi
+          done < <(find csound_install/PkgContents -type f -print0)
+
+      - name: Build installer
+        env:
+          DEVELOPER_INSTALLER_ID: ${{ vars.DEVELOPER_INSTALLER_ID }}
+          SIGN_CERTIFICATES: ${{ steps.keychain.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+
+          timestamp_args=(--timestamp)
+
+          if [[ "$CODESIGN_TIMESTAMP" == "false" ]]; then
+            timestamp_args=(--timestamp=none)
+          fi
+
+          if [[ "$SIGN_CERTIFICATES" == "true" ]]; then
+            pkgbuild \
+              --identifier com.csound.csound7Environment.csoundLib64 \
+              --root csound_install/PkgContents \
+              --sign "$DEVELOPER_INSTALLER_ID" \
+              "${timestamp_args[@]}" \
+              CsoundLib64-${{ env.CSOUND_VERSION }}-beta-universal.pkg
+          else
+            pkgbuild \
+              --identifier com.csound.csound7Environment.csoundLib64 \
+              --root csound_install/PkgContents \
+              CsoundLib64-${{ env.CSOUND_VERSION }}-beta-universal.pkg
+          fi
+
+          if [[ "$SIGN_CERTIFICATES" == "true" ]]; then
+            pkgutil --check-signature \
+            CsoundLib64-${{ env.CSOUND_VERSION }}-beta-universal.pkg
+          fi
 
       - name: Upload zip
         uses: actions/upload-artifact@v7.0.1
