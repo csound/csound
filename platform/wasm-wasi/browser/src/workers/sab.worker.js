@@ -325,7 +325,10 @@ const initCallbackReplyPort = (response) => {
             throw new Error("Call belongs to an ended performance");
           // Options and start can overlap on the UI. Check the native mode
           // here too, before a call admitted under an older mode can execute.
-          const realtime = threadedMode && combined.get("csoundIsRealtime")(argumentz[0]);
+          const isRealtime = /** @type {function(number): number} */ (
+            combined.get("csoundIsRealtime")
+          );
+          const realtime = threadedMode && isRealtime(argumentz[0]);
           if (realtime) assertRealtimeCallAllowed(apiKey, argumentz.slice(1));
           if (
             realtime &&

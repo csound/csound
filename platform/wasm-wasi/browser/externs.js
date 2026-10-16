@@ -44,13 +44,6 @@ var CsoundReadlineMessage;
 var CsoundReadlineOptions;
 
 /**
- * @param {number} index
- * @return {number}
- * @nosideeffects
- */
-String.prototype.charPointAt = function (index) {};
-
-/**
  * @constructor
  * @struct
  * @nosideeffects

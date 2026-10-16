@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-import googClosureCompiler from "google-closure-compiler";
-import JarPath from "google-closure-compiler-java";
 import prettier from "prettier";
 import { Readable } from "stream";
 import { fileURLToPath } from "url";
@@ -22,9 +20,9 @@ import { rimrafSync } from "rimraf";
 import fs from "fs";
 import path from "path";
 import * as R from "ramda";
-const ClosureCompiler = googClosureCompiler.compiler || googClosureCompiler;
 import { inlineWebworker } from "./goog/generate-webworker-module.js";
 import { inlineArraybuffer } from "./goog/inline-arraybuffer.js";
+import { runClosureCompiler } from "./goog/closure-compiler.js";
 import { browserBinaries } from "./goog/browser-binaries.js";
 
 const DEV = process.env.NODE_ENV === "development";
@@ -135,7 +133,6 @@ const compilationSequence = [
     js_output_file: path.join(rootDir, "dist", "__compiled.wasi-thread.worker.js"),
     postbuild: () => inlineWebworker("wasi-thread.worker.js", "worker.wasi-thread", false),
     output_wrapper: "(function(){%output%}).call(this);",
-    define: DEV ? [] : ["PRODUCTION=1"],
   },
   {
     entry_point: "./src/workers/sab.worker",
@@ -250,21 +247,7 @@ const compile = async (config) => {
     debug: false,
     source_map_include_content: true,
   };
-  const closureCompiler = new ClosureCompiler(deepMerge(defaultConfig, config));
-
-  closureCompiler.javaPath = process.env.JAVA_HOME ? `${process.env.JAVA_HOME}/bin/java` : "java";
-  closureCompiler.JAR_PATH = JarPath;
-  await new Promise((resolve, reject) => {
-    const javaProcess = closureCompiler.run((exitCode, inputString, stderr) => {
-      console.log(stderr);
-      if (exitCode === 0) {
-        resolve();
-      } else {
-        reject();
-        process.exit(1);
-      }
-    });
-  });
+  await runClosureCompiler(deepMerge(defaultConfig, config), { failOnWarnings: !DEV });
 };
 
 (async () => {

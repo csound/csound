@@ -133,6 +133,7 @@ jobs:
           cd $wasm_browser_dir
           npm ci
           npm link --no-save --package-lock=false --ignore-scripts ..
+          npm run test:closure
           npm run test:fixtures
           npm run build:tools
       - name: Install test dependencies

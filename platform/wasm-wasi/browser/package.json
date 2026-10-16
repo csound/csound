@@ -54,6 +54,7 @@
     "build:prod": "cross-env NODE_ENV=production node compile.js",
     "build:readme": "node --experimental-modules script/generate-readme.mjs > README.md",
     "build:tools": "node compile-tools.js",
+    "test:closure": "node --test tests/closure-build.test.js",
     "test:types": "node tests/types/run.cjs",
     "test:unit": "mocha \"tests/unit/**/*.test.js\"",
     "test:ci": "npm run test:types && npm run test:unit && node tests/selenium_runner.js",
