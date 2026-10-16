@@ -171,7 +171,7 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     AudioObjectPropertyAddress prop = {
       kAudioObjectPropertyName,
       kAudioObjectPropertyScopeGlobal,
-      kAudioObjectPropertyElementMaster
+      kAudioObjectPropertyElementMain
     };
     CFStringRef devName;
     CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
@@ -538,7 +538,7 @@ int32_t listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int32_t isOutput){
     AudioObjectPropertyAddress prop = {
       kAudioObjectPropertyName,
       kAudioObjectPropertyScopeGlobal,
-      kAudioObjectPropertyElementMaster
+      kAudioObjectPropertyElementMain
     };
     CFStringRef devName;
     CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
@@ -900,7 +900,7 @@ static void rtclose_(CSOUND *csound)
         AudioObjectPropertyAddress prop = {
           kAudioHardwarePropertyDefaultInputDevice,
           kAudioObjectPropertyScopeGlobal,
-          kAudioObjectPropertyElementMaster
+          kAudioObjectPropertyElementMain
         };
         UInt32 psize = sizeof(AudioDeviceID);
         AudioObjectSetPropertyData(kAudioObjectSystemObject,
@@ -910,7 +910,7 @@ static void rtclose_(CSOUND *csound)
         AudioObjectPropertyAddress prop = {
           kAudioHardwarePropertyDefaultOutputDevice,
           kAudioObjectPropertyScopeGlobal,
-          kAudioObjectPropertyElementMaster
+          kAudioObjectPropertyElementMain
         };
         UInt32 psize = sizeof(AudioDeviceID);
         AudioObjectSetPropertyData(kAudioObjectSystemObject,
