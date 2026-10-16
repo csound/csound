@@ -75,7 +75,7 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
         // Safety check: if args[0] contains a numeric value instead of an INSTREF pointer,
         // treat it as mode 0 (numeric mode) to prevent memory corruption
         if (args[0] && (uintptr_t)args[0] > 0x1000 &&
-+           *args[0] >= 1.0 && *args[0] <= 999.0) {
+           *args[0] >= 1.0 && *args[0] <= 999.0) {
           // This looks like a numeric value, not an INSTREF pointer
           // Fall back to numeric mode (mode 0)
           insno = FABS(*args[0]);
@@ -99,9 +99,10 @@ int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
           args[0] = &insno;
         } else {                  /* Should check for valid instr num here */
           insno = FABS(*args[0]);
-          if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno ==0 ||
-                       insno > csound->engineState.maxinsno ||
-                       !csound->engineState.instrtxtp[(int)insno]))) {
+          if (UNLIKELY((opcod == 'i' || opcod == 'd') && (insno == 0 ||
+                       (!csound->realtime_locks_initialized &&
+                        (insno > csound->engineState.maxinsno ||
+                         !csound->engineState.instrtxtp[(int)insno]))))) {
             csound->Message(csound, Str("Cannot Find Instrument %d. No action.\n"),
                            (int32_t) insno);
             return OK;
@@ -723,9 +724,10 @@ static int32_t get_absinsno(CSOUND *csound, TRIGINSTR *p, int32_t stringname)
     }
     else
       insno = (int32_t)FABS(*p->args[0]);
-    /* Check that instrument is defined */
-    if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
-                 csound->engineState.instrtxtp[insno] == NULL)) {
+    /* Realtime dispatch checks the table under its publication lock. */
+    if (UNLIKELY(insno < 1 || (!csound->realtime_locks_initialized &&
+                 (insno > csound->engineState.maxinsno ||
+                  csound->engineState.instrtxtp[insno] == NULL)))) {
       csound->Warning(csound, Str("schedkwhen ignored. "
                                   "Instrument %d undefined\n"), insno);
       csound->perferrcnt++;

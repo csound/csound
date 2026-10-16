@@ -95,8 +95,17 @@ endin
           Math.sqrt(samples.reduce((sum, value) => sum + value * value, 0) / samples.length) > 0.02
         );
       };
-      await csound.event(0, [1, 0, 60]);
+      await csound.event(0, [1, 0, -1]);
       await until(audible, "steady voice did not reach the AudioWorklet");
+
+      if (gated) {
+        phase = "channel allocation lock scope";
+        check(
+          (await csound.evalCode("return test_wasi_browser_channel_allocs()")) === 0,
+          "channel creation, listing, or hints allocated while holding the registry lock",
+        );
+        checks.push("channel growth, listing, and hint copies allocate outside the registry lock");
+      }
 
       // Submit without awaiting between calls: completion must preserve writes
       // and keep each evaluation's result attached to its own request.
@@ -119,6 +128,38 @@ endin
       checks.push(
         "ordered string writes, per-request evaluation results, and resized UTF-8 strings",
       );
+
+      const renderText = "λ音".repeat(4096);
+      check(
+        (await csound.compileOrc(`
+chn_S "render-string", 3
+instr 81
+  Slarge init "${renderText}"
+  ktime timeinsts
+  if int(ktime * 20) % 2 == 0 then
+    chnset "short", "render-string"
+  else
+    chnset Slarge, "render-string"
+  endif
+endin
+`)) === 0,
+        "string writer setup failed",
+      );
+      await csound.event(0, [81, 0, -1]);
+      await until(
+        async () => (await csound.getStringChannel("render-string")) !== "",
+        "perf-time string writer did not start",
+      );
+      const stringLengths = new Set();
+      for (let read = 0; read < 32; read++) {
+        const value = await csound.getStringChannel("render-string");
+        check(value === "short" || value === renderText, "string read mixed concurrent writes");
+        stringLengths.add(value.length);
+        await delay(10);
+      }
+      check(stringLengths.size === 2, "string writer did not exercise both sizes");
+      await csound.event(0, [-81, 0, 0]);
+      checks.push("string snapshots stay intact while a perf-time writer changes their size");
 
       check(
         (await csound.compileOrc(`
@@ -144,7 +185,7 @@ endin
 
       // Dynamic render names force registry lookups on every control period.
       // Global init creates 640 other entries, crossing several hash resizes.
-      await csound.event(0, [79, 0, 60]);
+      await csound.event(0, [79, 0, -1]);
       await until(
         async () => (await csound.getControlChannel("registry-ticks")) > 16,
         "dynamic channel instrument did not start",
@@ -270,10 +311,16 @@ instr 80
   kTick metro 100
   if kTick == 1 && kSent < 120 then
     kSent += 1
-    if kSent % 2 == 0 then
+    if kSent % 5 == 0 then
       schedulek LoopTarget, 0, 0.001
-    else
+    elseif kSent % 5 == 1 then
       schedulek saved, 0, 0.001
+    elseif kSent % 5 == 2 then
+      event "i", "LoopTarget", 0, 0.001
+    elseif kSent % 5 == 3 then
+      schedulek "LoopTarget", 0, 0.001
+    else
+      schedkwhen 1, 0, 1000, "LoopTarget", 0, 0.001
     endif
     chnset kSent, "loop-sent"
   endif
@@ -288,8 +335,14 @@ endin
       );
       for (let edit = 0; edit < 24; edit++) {
         const reject = edit % 2 === 0;
+        // Add enough distinct names to rehash the compiler's mutable table
+        // while event/schedulek/schedkwhen keep looking up a string name.
+        const addedNames = Array.from(
+          { length: 16 },
+          (_, index) => `instr LiveName${edit}_${index}\nendin\n`,
+        ).join("");
         const result = await csound.compileOrc(
-          target +
+          target + addedNames +
             (reject
               ? `
 instr 98
@@ -310,10 +363,10 @@ endin
       );
       await until(
         async () => (await csound.getControlChannel("loop-seen")) === 120,
-        "live edits lost scheduled notes through named or copied references",
+        "live edits lost scheduled notes through references or string names",
       );
       checks.push(
-        "named and copied references keep every note through accepted and rejected edits",
+        "references and string names keep every note through replacement and name-table growth",
       );
       for (const action of [
         () => csound.compileOrc("return 0\0return 1"),
@@ -475,8 +528,10 @@ endin
         await until(() => Atomics.load(probe, 0) === 1, "evaluation did not enter its gate");
         check(Atomics.load(probe, 3) === 1, "evaluation did not run on a Csound pthread");
         const before = Number(await csound.getCurrentTimeSamples());
-        for (let sample = 0; sample < 6; sample++) {
-          await delay(50);
+        // A valid background call can outlive the old ten-second host timeout.
+        // Keep it held while checking that render and scalar calls still run.
+        for (let sample = 0; sample < 22; sample++) {
+          await delay(500);
           check(audible(), "steady audio stopped while evaluation waited");
           check(
             (await csound.getSr()) === context.sampleRate,
@@ -494,7 +549,7 @@ endin
           "existing numeric channel blocked behind evaluation",
         );
         checks.push(
-          "steady audio, sample clock, and cached numeric channels progress during held evaluation",
+          "evaluation survives ten seconds while audio, the clock, and cached channels progress",
         );
 
         const pending = Promise.allSettled([

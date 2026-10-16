@@ -11,6 +11,8 @@
 #include <string.h>
 
 #define WASI_API_SLOTS 4U
+/* Four fixed text buffers use 4 MiB of the shared 256 MiB heap. Growing them
+   on demand would put allocation back on the render worker during submit. */
 #define WASI_API_TEXT_CAPACITY (1024U * 1024U)
 #define WASI_API_CANCELLED (-2)
 

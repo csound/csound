@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
+import sinon from "sinon";
+import { AUDIO_STATE, initialSharedState } from "../../src/constants.js";
+import { stopSAB, wakeSAB } from "../../src/utils/sab-transport.js";
 import {
   submitRealtimeApiCall,
   settleRealtimeApiCompletion,
@@ -32,8 +35,38 @@ const mainSource = readFileSync(new URL("../../src/mains/sab.main.js", import.me
     "export default SharedArrayBufferMainThread;",
     "globalThis.Main = SharedArrayBufferMainThread;",
   );
-const context = { realtimeBackgroundOperations };
+const context = {
+  realtimeBackgroundOperations,
+  AUDIO_STATE,
+  stopSAB,
+  wakeSAB,
+  csoundApiRename: (key) => key,
+  setTimeout: (...args) => setTimeout(...args),
+  clearTimeout: (timer) => clearTimeout(timer),
+};
 vm.runInNewContext(mainSource, context);
+
+const mainFixture = () => {
+  const main = Object.create(context.Main.prototype);
+  main.threaded = true;
+  main.realtimeMode = true;
+  main.callbackId = 0;
+  main.callbackOrder = 0;
+  main.callbackBuffer = {};
+  main.performanceGeneration = 2;
+  main.audioStatePointer = new Int32Array(new SharedArrayBuffer(initialSharedState.length * 4));
+  main.eventPromises = {
+    getStartRemainingMs: () => 0,
+    releaseStartPromise() {},
+    releasePausePromise() {},
+    releaseResumePromise() {},
+    releaseStopPromise() {},
+  };
+  main.rejectThreadFailure = () => {};
+  main.publicEvents = { triggerMessage() {}, triggerRealtimePerformanceEnded() {} };
+  main.terminateInstance = async () => {};
+  return main;
+};
 
 describe("background realtime API", () => {
   it("copies UTF-8 strings with terminators into the bounded native slot", () => {
@@ -184,5 +217,148 @@ describe("background realtime API", () => {
     ]);
     main.maybeFinishPerformanceEnd();
     assert.equal(calls.length, 5);
+  });
+
+  it("keeps a long compile pending until completion rather than timing out", async () => {
+    const clock = sinon.useFakeTimers();
+    try {
+      const main = mainFixture();
+      let completed = false;
+      const result = main.enqueueCallback("csoundCompileOrc", [1, "instr LongEdit\nendin"]);
+      result.then(
+        () => (completed = true),
+        () => (completed = true),
+      );
+      await clock.tickAsync(60000);
+      assert.equal(completed, false);
+      assert.equal(Object.keys(main.callbackBuffer).length, 1);
+      settleRealtimeApiCompletion(main.callbackBuffer, {
+        id: 0,
+        generation: 2,
+        status: 0,
+        answer: 0,
+      });
+      assert.equal(await result, 0);
+      assert.equal(clock.countTimers(), 0);
+    } finally {
+      clock.restore();
+    }
+  });
+
+  it("rejects long background calls on worker failure or before dispatch at stop", async () => {
+    for (const terminate of [false, true]) {
+      const main = mainFixture();
+      const result = main.enqueueCallback("csoundEvalCode", [1, "return 42"]);
+      const rejected = assert.rejects(result, /worker failed|Performance ended/);
+      if (terminate) main.failThreadedInstance(new Error("worker failed"));
+      else main.finishPerformanceEnd("realtimePerformanceEnded");
+      await rejected;
+      assert.equal(Object.keys(main.callbackBuffer).length, 0);
+    }
+  });
+
+  it("retains transport deadlines for short calls and nonthreaded performance", async () => {
+    const clock = sinon.useFakeTimers();
+    try {
+      for (const [threaded, api] of [
+        [true, "csoundGetKr"],
+        [false, "csoundCompileOrc"],
+      ]) {
+        const main = mainFixture();
+        main.threaded = threaded;
+        const result = main.enqueueCallback(api, [1]);
+        const rejected = assert.rejects(result, /Worker timed out/);
+        await clock.tickAsync(10000);
+        await rejected;
+        assert.equal(Object.keys(main.callbackBuffer).length, 0);
+      }
+    } finally {
+      clock.restore();
+    }
+  });
+
+  it("preserves enqueue order through id rollover and reordered port replies", async () => {
+    const main = mainFixture();
+    for (let round = 0; round < 100; round++) {
+      main.callbackId = 0xffff_fffe;
+      const results = Array.from({ length: 40 }, (_, index) =>
+        main.enqueueCallback("csoundEvalCode", [1, `return ${index}`]),
+      );
+      const first = main.takeCallbacks();
+      const second = main.takeCallbacks();
+      const dispatched = [...first, ...second];
+      assert.equal(first.length, 32);
+      assert.equal(second.length, 8);
+      assert.deepEqual(
+        dispatched.map((call) => call.argumentz[1]),
+        Array.from({ length: 40 }, (_, index) => `return ${index}`),
+      );
+      assert.equal(new Set(dispatched.map((call) => call.id)).size, 40);
+      // Force rollover while high and low IDs are still in flight.
+      main.callbackId = 0xffff_fffe;
+      const next = main.enqueueCallback("csoundEvalCode", [1, "return 40"]);
+      const extra = main.takeCallbacks();
+      assert.equal(extra.length, 1);
+      assert.equal(extra[0].id, "38");
+      // Replies from both ports may overtake one another; each keeps its call.
+      const env = createWasiThreadEnvironment({
+        memory: new WebAssembly.Memory({ initial: 1 }),
+        postMessage: (payload) => settleRealtimeApiCompletion(main.callbackBuffer, payload),
+      });
+      for (const [index, call] of [...dispatched, ...extra].entries()) {
+        if (index % 2) continue;
+        // Wasm i32 imports pass the high unsigned IDs as negative JS numbers.
+        env.csoundWasiApiComplete(Number(call.id) | 0, 2, 0, index, 0);
+      }
+      main.settleCallbackReplies(
+        dispatched.flatMap((call, index) =>
+          index % 2 ? [{ id: call.id, generation: 2, answer: index }] : [],
+        ),
+      );
+      assert.deepEqual(
+        await Promise.all([...results, next]),
+        Array.from({ length: 41 }, (_, index) => index),
+      );
+      assert.equal(Object.keys(main.callbackBuffer).length, 0);
+    }
+  });
+
+  it("ignores replies from a previous performance when an id is reused", async () => {
+    const main = mainFixture();
+    const result = main.enqueueCallback("csoundEvalCode", [1, "return 42"]);
+    main.takeCallbacks();
+    main.settleCallbackReplies([{ id: 0, generation: 1, answer: -1 }]);
+    assert.equal(
+      settleRealtimeApiCompletion(main.callbackBuffer, {
+        id: 0,
+        generation: 1,
+        status: 0,
+        answer: -1,
+      }),
+      false,
+    );
+    assert.equal(Object.keys(main.callbackBuffer).length, 1);
+    main.settleCallbackReplies([{ id: 0, generation: 2, answer: 42 }]);
+    assert.equal(await result, 42);
+    assert.equal(
+      settleRealtimeApiCompletion(main.callbackBuffer, {
+        id: 0,
+        generation: 2,
+        status: 0,
+        answer: -1,
+      }),
+      false,
+    );
+  });
+
+  it("settles nonthreaded replies with the same generation check", async () => {
+    const main = mainFixture();
+    main.threaded = false;
+    const result = main.enqueueCallback("csoundCompileOrc", [1, "instr Note\nendin"]);
+    const [request] = main.takeCallbacks();
+    assert.equal(request.generation, main.performanceGeneration);
+    main.settleCallbackReplies([{ ...request, answer: 0 }]);
+    assert.equal(await result, 0);
+    assert.equal(Object.keys(main.callbackBuffer).length, 0);
   });
 });

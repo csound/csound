@@ -16,11 +16,13 @@
 #include <cstring>
 #include <cmath>
 #include <limits>
+#include <string>
 #include <tuple>
 #include <vector>
 extern "C" {
 #include "str_ops.h"
 #include "udo.h"
+#include "namedins.h"
 }
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
@@ -183,6 +185,104 @@ endin
     }
     EXPECT_EQ(71, csoundGetControlChannel(csound, "published-note", &error));
     EXPECT_EQ(0, error);
+}
+
+TEST_F(OrcCompileTests, RealtimeNamedEventsSurviveHashPublication)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#endif
+    csoundSetOption(csound, "-n -d -m0 --realtime --daemon");
+    ASSERT_EQ(0, csoundCompileOrc(csound, R"(
+sr = 48000
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+chn_k "named-ready", 3
+chn_k "named-fire", 3
+chn_k "named-count", 3
+instr 1
+  chnset 1, "named-ready"
+  kFire chnget "named-fire"
+  if kFire == 1 then
+    event "i", "NamedTarget", 0, 0.01
+    schedulek "NamedTarget", 0, 0.01
+    schedkwhen 1, 0, 4, "NamedTarget", 0, 0.01
+    chnset 0, "named-fire"
+  endif
+endin
+instr NamedTarget
+  iCount chnget "named-count"
+  chnset iCount + 1, "named-count"
+endin
+schedule 1, 0, -1
+)"));
+    ASSERT_EQ(0, csoundStart(csound));
+    ASSERT_TRUE(csound->realtime_locks_initialized);
+    int32_t error = 0;
+    for (int attempt = 0; attempt < 1000 &&
+         csoundGetControlChannel(csound, "named-ready", &error) == 0; attempt++) {
+      ASSERT_EQ(0, csoundPerformKsmps(csound));
+      csoundSleep(1);
+    }
+    ASSERT_EQ(1, csoundGetControlChannel(csound, "named-ready", &error));
+
+    // Force several compiler hash-table resizes, then replace the target.
+    std::string additions;
+    for (int name = 0; name < 160; name++)
+      additions += "instr AddedName" + std::to_string(name) + "\nendin\n";
+    int32_t oldSize = csound->engineState.instrumentNames->table_size;
+    ASSERT_EQ(0, csoundCompileOrc(csound, additions.c_str()));
+    ASSERT_GT(csound->engineState.instrumentNames->table_size, oldSize);
+    auto number = named_instr_find(csound, const_cast<char *>("NamedTarget"));
+    ASSERT_GT(number, 0);
+    std::vector<void *> buckets;
+    for (auto entry : csound->engineState.instrumentNumbers)
+      buckets.push_back(entry);
+    ASSERT_EQ(0, csoundCompileOrc(csound, R"(
+instr NamedTarget
+  iCount chnget "named-count"
+  chnset iCount + 1, "named-count"
+endin
+)"));
+    for (int bucket = 0; bucket < 64; bucket++)
+      EXPECT_EQ(buckets[bucket], csound->engineState.instrumentNumbers[bucket]);
+    EXPECT_EQ(number, named_instr_find(csound, const_cast<char *>("NamedTarget")));
+
+    csoundSetControlChannel(csound, "named-fire", 1);
+    csoundSpinLock(&csound->alloc_spinlock);
+    // Model a hash/table replacement while the render opcodes submit notes.
+    // Lookups must use the published numbers without waiting for this lock.
+    CS_HASH_TABLE *names = csound->engineState.instrumentNames;
+    INSTRTXT *instrument = csound->engineState.instrtxtp[(int32_t)number];
+    csound->engineState.instrumentNames = nullptr;
+    csound->engineState.instrtxtp[(int32_t)number] = nullptr;
+    cs_float tagged = named_instr_find(csound,
+                                      const_cast<char *>("NamedTarget.25"));
+    cs_float negative = named_instr_find(csound,
+                                       const_cast<char *>("-NamedTarget.25"));
+    std::string inverse = named_instr_name(csound, (int32_t)number);
+    int64_t before = csoundGetCurrentTimeSamples(csound);
+    int32_t performed = csoundPerformKsmps(csound);
+    csound->engineState.instrumentNames = names;
+    csound->engineState.instrtxtp[(int32_t)number] = instrument;
+    csoundSpinUnLock(&csound->alloc_spinlock);
+    EXPECT_EQ(number + FL(0.25), tagged);
+    EXPECT_EQ(-number - FL(0.25), negative);
+    EXPECT_EQ("NamedTarget", inverse);
+    EXPECT_EQ(0, performed);
+    EXPECT_GT(csoundGetCurrentTimeSamples(csound), before);
+    for (int attempt = 0; attempt < 1000 &&
+         csoundGetControlChannel(csound, "named-count", &error) < 3; attempt++) {
+      ASSERT_EQ(0, csoundPerformKsmps(csound));
+      csoundSleep(1);
+    }
+    EXPECT_EQ(3, csoundGetControlChannel(csound, "named-count", &error));
+    EXPECT_EQ(0, error);
+    csoundReset(csound);
+    for (auto entry : csound->engineState.instrumentNumbers)
+      EXPECT_EQ(nullptr, entry);
 }
 
 TEST_F (OrcCompileTests, testSpaceTrajectoryGuardPoint)

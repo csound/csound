@@ -311,6 +311,9 @@ int32_t csoundSetUtilityDescription(CSOUND *, const char *utilName,
  */
 int32_t csoundDeleteAllConfigurationVariables(CSOUND *);
 
+/* Initialize channels before render and control workers can publish entries. */
+int32_t csoundInitChannelDb(CSOUND *);
+
 #ifdef __cplusplus
 }
 #endif

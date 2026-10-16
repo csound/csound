@@ -1994,6 +1994,7 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   }
   (&(current_state->instxtanchor))->nxtinstxt = csound->instr0;
   finish_instr_references(csound, engineState, 1);
+  named_instr_publish_numbers(csound);
 
   // VL 23-09-2022
   // At the moment, instr0 can't be freed anywhere because it may hold state
@@ -2664,6 +2665,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     }
 
     finish_instr_references(csound, engineState, 1);
+    named_instr_publish_numbers(csound);
     CS_VARIABLE *var;
     var = csoundFindVariableWithName(csound, engineState->varPool, "sr");
     if (var && var->memBlock) {

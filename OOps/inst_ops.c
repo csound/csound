@@ -79,13 +79,7 @@ int32_t nstrnumset_S(CSOUND *csound, NSTRNUM *p)
 
 int32_t nstrstr(CSOUND *csound, NSTRSTR *p)
 {
-  char *ss;
-  if (csound->engineState.instrumentNames) {
-    ss = cs_inverse_hash_get(csound,
-                             csound->engineState.instrumentNames,
-                             (int)*p->num);
-  }
-  else ss= "";
+  const char *ss = named_instr_name(csound, (int32_t)*p->num);
   csoundFree(csound,p->ans->data);
   p->ans->data = csoundStrdup(csound, ss);
   p->ans->size = strlen(ss);

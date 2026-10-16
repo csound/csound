@@ -3,15 +3,39 @@
 #include "cs_internal.h"
 #include <stdatomic.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* The browser test controls this storage directly while rendering or join waits.
    0: entered; 1: release (negative traps); 2: completed; 3: Csound worker. */
 static _Atomic int32_t probe[4];
 static int32_t freed_published_lookup;
+static _Thread_local int32_t checking_channel_allocations;
+static _Thread_local int32_t locked_channel_allocations;
+
+static void check_channel_allocation(CSOUND *csound)
+{
+    if (checking_channel_allocations &&
+        __atomic_load_n(&csound->wasi_channel_lock, __ATOMIC_RELAXED))
+        locked_channel_allocations++;
+}
+
+static void *check_browser_malloc(CSOUND *csound, size_t size)
+{
+    check_channel_allocation(csound);
+    return csoundMalloc(csound, size);
+}
+
+static void *check_browser_calloc(CSOUND *csound, size_t size)
+{
+    check_channel_allocation(csound);
+    return csoundCalloc(csound, size);
+}
 
 static void check_browser_free(CSOUND *csound, void *memory)
 {
+    check_channel_allocation(csound);
     /* Observe the exact lifetime error without relying on freed heap contents
        being overwritten before the next compilation. Only the API compiler
        thread reads the variable pool here. */
@@ -87,10 +111,51 @@ static int32_t browser_freed_lookup(CSOUND *csound, HEAP_PROBE *opcode)
     return 0;
 }
 
+static int32_t browser_channel_allocations(CSOUND *csound, HEAP_PROBE *opcode)
+{
+    controlChannelHints_t hints = {0}, copied = {0};
+    controlChannelInfo_t *channels = NULL;
+    char attributes[4097];
+    int32_t result = 0;
+    memset(attributes, 'x', sizeof(attributes) - 1);
+    attributes[sizeof(attributes) - 1] = '\0';
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.max = 1;
+    hints.attributes = attributes;
+    locked_channel_allocations = 0;
+    checking_channel_allocations = 1;
+    /* The host runs this before starting dynamic-name channel opcodes. The
+       only registry operations during these hooks belong to this thread. */
+    for (int32_t index = 0; index < 256; index++) {
+        char name[48];
+        void *value;
+        snprintf(name, sizeof(name), "allocation-probe-%03d", index);
+        if (csoundGetChannelPtr(csound, &value, name,
+                               CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL) ||
+            csoundSetControlChannelHints(csound, name, hints) ||
+            csoundGetControlChannelHints(csound, name, &copied)) {
+            result = -1;
+            break;
+        }
+        if (strcmp(copied.attributes, attributes) != 0)
+            result = -1;
+        csoundDeleteControlChannelHints(csound, &copied);
+    }
+    int32_t count = csoundListChannels(csound, &channels);
+    if (count < 256)
+        result = -1;
+    csoundDeleteChannelList(csound, channels);
+    checking_channel_allocations = 0;
+    *opcode->result = result != 0 ? result : locked_channel_allocations;
+    return 0;
+}
+
 __attribute__((used))
 uintptr_t csoundWasiInstallThreadProbe(CSOUND *csound)
 {
     freed_published_lookup = 0;
+    csound->Malloc = check_browser_malloc;
+    csound->Calloc = check_browser_calloc;
     csound->Free = check_browser_free;
     for (int index = 0; index < 4; ++index)
         atomic_store(&probe[index], 0);
@@ -105,6 +170,9 @@ uintptr_t csoundWasiInstallThreadProbe(CSOUND *csound)
         return 0;
     if (csoundAppendOpcode(csound, "test_wasi_browser_freed_lookup", sizeof(HEAP_PROBE), 0,
                            "i", "", (SUBR) browser_freed_lookup, NULL, NULL) != 0)
+        return 0;
+    if (csoundAppendOpcode(csound, "test_wasi_browser_channel_allocs", sizeof(HEAP_PROBE), 0,
+                           "i", "", (SUBR) browser_channel_allocations, NULL, NULL) != 0)
         return 0;
     return (uintptr_t) &probe[0];
 }

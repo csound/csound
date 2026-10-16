@@ -25,6 +25,93 @@
 #include "csound_orc_semantics.h"
 #include <ctype.h>
 
+typedef struct named_instr_number {
+  struct named_instr_number *next;
+  int32_t number;
+  char name[];
+} NAMED_INSTR_NUMBER;
+
+/* The compiler's hash table can rehash during a live edit. Render callers
+   instead read immutable entries, retained until reset. A replacement keeps
+   its number and does not allocate another entry. Fixed buckets never move. */
+static NAMED_INSTR_NUMBER *published_number(NAMED_INSTR_NUMBER **bucket)
+{
+#if defined(MSVC)
+  return (NAMED_INSTR_NUMBER *)InterlockedCompareExchangePointer(
+      (void *volatile *)bucket, NULL, NULL);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+  return __atomic_load_n(bucket, __ATOMIC_ACQUIRE);
+#else
+  return *bucket;
+#endif
+}
+
+static void publish_number(NAMED_INSTR_NUMBER **bucket, NAMED_INSTR_NUMBER *entry)
+{
+#if defined(MSVC)
+  InterlockedExchangePointer((void *volatile *)bucket, entry);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+  __atomic_store_n(bucket, entry, __ATOMIC_RELEASE);
+#else
+  *bucket = entry;
+#endif
+}
+
+static uint32_t number_bucket(const char *name, size_t length)
+{
+  uint32_t hash = 5381;
+  for (size_t i = 0; i < length; i++)
+    hash = hash * 33 + (unsigned char)name[i];
+  return hash % 64;
+}
+
+/* Called only after successful publication, with the compiler/init lock held
+   during playback. Readers need neither a mutex nor a retry on the audio path. */
+void named_instr_publish_numbers(CSOUND *csound)
+{
+  ENGINE_STATE *state = &csound->engineState;
+  CS_HASH_TABLE *names = state->instrumentNames;
+  if (names == NULL) return;
+  for (int32_t i = 0; i < names->table_size; i++) {
+    for (CS_HASH_TABLE_ITEM *item = names->buckets[i]; item; item = item->next) {
+      INSTRNAME *name = (INSTRNAME *)item->value;
+      size_t length = strlen(name->name);
+      NAMED_INSTR_NUMBER **bucket =
+          &state->instrumentNumbers[number_bucket(name->name, length)];
+      NAMED_INSTR_NUMBER *head = published_number(bucket), *entry = head;
+      for (; entry != NULL; entry = entry->next) {
+        if (strcmp(entry->name, name->name) == 0) break;
+      }
+      /* named_instr_alloc preserves the assigned number on replacement. */
+      if (entry != NULL) continue;
+      entry = csound->Malloc(csound, sizeof(*entry) + length + 1);
+      entry->number = name->instno;
+      memcpy(entry->name, name->name, length + 1);
+      entry->next = head;
+#ifdef CSOUND_WASI_REALTIME
+      /* A later global-init error must not free a published lookup entry. */
+      csoundWasiReleaseAllocation(csound, entry);
+#endif
+      publish_number(bucket, entry);
+    }
+  }
+}
+
+const char *named_instr_name(CSOUND *csound, int32_t number)
+{
+  ENGINE_STATE *state = &csound->engineState;
+  if (!csound->realtime_locks_initialized)
+    return state->instrumentNames == NULL ? "" :
+      cs_inverse_hash_get(csound, state->instrumentNames, number);
+  for (int32_t i = 0; i < 64; i++) {
+    NAMED_INSTR_NUMBER *entry = published_number(&state->instrumentNumbers[i]);
+    for (; entry != NULL; entry = entry->next) {
+      if (entry->number == number) return entry->name;
+    }
+  }
+  return "";
+}
+
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */
 
@@ -71,6 +158,21 @@ cs_float  named_instr_find_in_engine(CSOUND *csound, char *s,
 
 cs_float named_instr_find(CSOUND *csound, char *s)
 {
+  if (csound->realtime_locks_initialized) {
+    int32_t negative = *s == '-';
+    const char *name = s + negative;
+    const char *tag = strchr(name, '.');
+    size_t length = tag != NULL ? (size_t)(tag - name) : strlen(name);
+    NAMED_INSTR_NUMBER *entry = published_number(
+        &csound->engineState.instrumentNumbers[number_bucket(name, length)]);
+    for (; entry != NULL; entry = entry->next) {
+      if (strncmp(entry->name, name, length) == 0 && entry->name[length] == '\0') {
+        cs_float number = entry->number + (tag != NULL ? atof(tag) : FL(0.0));
+        return negative ? -number : number;
+      }
+    }
+    return FL(0.0);
+  }
   return named_instr_find_in_engine(csound, s, &csound->engineState);
 }
 

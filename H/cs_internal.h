@@ -232,6 +232,8 @@ extern "C" {
     int32_t           maxinsno;
     OPCODINFO     *opcodeInfo;
     struct instrument_reference *instrumentRefs; /* pending merge publication */
+    /* Fixed buckets of immutable name/number entries for render-side lookup. */
+    struct named_instr_number *instrumentNumbers[64];
   } ENGINE_STATE;
 
 

@@ -2014,6 +2014,10 @@ static void reset(CSOUND *csound) {
   csound->engineState.stringPool = cs_hash_table_create(csound);
   csound->engineState.constantsPool = cs_hash_table_create(csound);
   csound->engineStatus |= CS_STATE_PRE;
+  if (UNLIKELY(csoundInitChannelDb(csound) != CSOUND_SUCCESS)) {
+    csound->engineStatus |= CS_STATE_JMP;
+    csound->Die(csound, Str("Failed to initialize channel database\n"));
+  }
   csound_aops_init_tables(csound);
   create_opcode_table(csound);
 

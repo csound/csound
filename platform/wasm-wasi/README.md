@@ -284,7 +284,16 @@ slots, including its running request, and accepts at most 1 MiB of UTF-8 text
 per request; calls reject when either limit is exceeded. A resolved note-event
 call confirms dispatch, not note init or audible output. Native queue overflow
 follows Csound's diagnostics.
-A timeout removes pending host work but cannot undo a call already sent. In
+
+The four text buffers reserve 4 MiB, about 1.6% of the shared 256 MiB heap.
+They are allocated before rendering and freed on stop. Keeping them fixed lets
+the render worker submit requests without calling the C allocator or taking a
+native mutex. JavaScript still allocates buffers while encoding the request.
+
+On the shared worker host, compile, eval, and channel calls have no elapsed-time
+deadline, with or without `--realtime`; completion, stop cancellation, or worker
+failure settles them. Short transport calls keep their timeout, which cannot
+undo a call already sent. In
 realtime mode, stop rejects queued control work and lets the running request
 finish before cleanup; a later run never replays old work. Without the flag,
 completion keeps the existing API call behavior. MIDI uses a separate

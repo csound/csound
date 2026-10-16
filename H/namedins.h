@@ -42,6 +42,8 @@ int32_t check_instr_name(char *);
 cs_float named_instr_find(CSOUND *, char *);
 cs_float named_instr_find_in_engine(CSOUND *csound, char *s,
                                  ENGINE_STATE *engineState);
+void named_instr_publish_numbers(CSOUND *csound);
+const char *named_instr_name(CSOUND *csound, int32_t number);
 
 /* convert opcode string argument to instrument number */
 /* return value is -1 if the instrument cannot be found */

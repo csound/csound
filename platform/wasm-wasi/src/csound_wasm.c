@@ -479,22 +479,34 @@ cs_float csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
 char* csoundGetStringChannelWasi(CSOUND* csound, const char *channelName) {
   STRINGDAT *value;
   char *data = NULL;
-  /* Realtime callers run on the control worker. Keep registry lookup apart
-     from init, then measure and copy under the same channel lock: a writer
-     can otherwise grow the string between a size query and the copy. */
+  /* The init mutex is recursive: queued control calls already hold it. */
   if (csound->init_pass_threadlock)
     csoundLockMutex(csound->init_pass_threadlock);
   if (csoundGetChannelPtr(csound, (void **) &value, channelName,
                          CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL) == 0) {
-    csoundLockChannel(csound, channelName);
-    size_t length = value->data == NULL ? 0 : strlen(value->data);
-    data = malloc(length + 1);
-    if (data != NULL) {
-      if (length != 0)
-        memcpy(data, value->data, length);
-      data[length] = '\0';
+    size_t capacity = 0;
+    for (;;) {
+      csoundLockChannel(csound, channelName);
+      size_t length = value->data == NULL ? 0 : strlen(value->data);
+      if (length < capacity) {
+        if (length != 0)
+          memcpy(data, value->data, length);
+        data[length] = '\0';
+        csoundUnlockChannel(csound, channelName);
+        break;
+      }
+      csoundUnlockChannel(csound, channelName);
+      /* Allocation must not hold a lock needed by a perf-time string writer.
+         Recheck the length under the lock after allocating: it may grow. */
+      char *grown = realloc(data, length + 1);
+      if (grown == NULL) {
+        free(data);
+        data = NULL;
+        break;
+      }
+      data = grown;
+      capacity = length + 1;
     }
-    csoundUnlockChannel(csound, channelName);
   }
   if (csound->init_pass_threadlock)
     csoundUnlockMutex(csound->init_pass_threadlock);

@@ -28,14 +28,17 @@ import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.
  */
 export const csoundEvent = (wasm) => (csound, type, pfields) => {
   assertNumericEvent(type, pfields);
-  // The browser bindings use 64-bit sample storage. Check the loaded ABI
-  // before allocating: USE_FLOAT would otherwise get an oversized JS write.
-  if (wasm.exports["csoundGetSizeOfMYFLT"]() !== 8)
-    throw new Error("Numeric events require a double-precision Csound module");
+  const width = wasm.exports["csoundGetSizeOfMYFLT"]();
+  if (width !== 4 && width !== 8) throw new Error("Unsupported Csound sample width");
   const pointer = wasm.exports["allocFloatArray"](Math.max(1, pfields.length));
   if (!pointer) throw new Error("Could not allocate event p-fields");
   try {
-    new Float64Array(wasm.wasi.memory.buffer, pointer, pfields.length).set(pfields);
+    // The native allocator reserves MYFLT entries, including in USE_FLOAT builds.
+    const fields =
+      width === 4
+        ? new Float32Array(wasm.wasi.memory.buffer, pointer, pfields.length)
+        : new Float64Array(wasm.wasi.memory.buffer, pointer, pfields.length);
+    fields.set(pfields);
     wasm.exports["csoundEvent"](csound, type, pointer, pfields.length, 1);
   } finally {
     wasm.exports["freeFloatArrayMem"](pointer);

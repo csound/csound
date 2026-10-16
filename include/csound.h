@@ -958,8 +958,8 @@ extern "C" {
    * the list. In the case of no channels or an error, *lst is set to NULL.
    * Notes: the caller is responsible for freeing the list returned in *lst
    * with csoundDeleteChannelList(). The name pointers may become invalid
-   * after calling csoundReset(). Hints attributes are borrowed from the
-   * channel and may become invalid when its hints are changed.
+   * after calling csoundReset(). Hints attributes belong to the returned
+   * list and remain valid until csoundDeleteChannelList().
    */
   PUBLIC int32_t csoundListChannels(CSOUND *, controlChannelInfo_t **lst);
 

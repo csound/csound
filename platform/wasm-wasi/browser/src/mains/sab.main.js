@@ -75,6 +75,7 @@ class SharedArrayBufferMainThread {
     this.exportApi = {};
 
     this.callbackId = 0;
+    this.callbackOrder = 0;
     this.callbackBuffer = {};
     // End state and stop release arrive on different ports. A generation keeps
     // late messages from an earlier run from completing the current one.
@@ -170,16 +171,23 @@ class SharedArrayBufferMainThread {
       this.callbackId = (this.callbackId + 1) >>> 0;
     const callbackId = this.callbackId;
     this.callbackId = (this.callbackId + 1) >>> 0;
+    if (Object.keys(this.callbackBuffer).length === 0) this.callbackOrder = 0;
     const promise = new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        delete this.callbackBuffer[callbackId];
-        reject(
-          new Error(
-            `Worker timed out during ${csoundApiRename(apiKey)}(); dispatched work may have run`,
-          ),
-        );
-        this.maybeFinishPerformanceEnd();
-      }, 10000 + this.eventPromises.getStartRemainingMs());
+      // Compilation/init may take arbitrarily long on the shared host. Do not
+      // gate this on cached realtimeMode: options/start replies can lag native
+      // admission. Completion, stop cancellation, or worker failure settles it.
+      const timeout =
+        this.threaded && realtimeBackgroundOperations.has(apiKey)
+          ? undefined
+          : setTimeout(() => {
+              delete this.callbackBuffer[callbackId];
+              reject(
+                new Error(
+                  `Worker timed out during ${csoundApiRename(apiKey)}(); dispatched work may have run`,
+                ),
+              );
+              this.maybeFinishPerformanceEnd();
+            }, 10000 + this.eventPromises.getStartRemainingMs());
       this.callbackBuffer[callbackId] = {
         "resolveCallback": (answer) => {
           clearTimeout(timeout);
@@ -191,6 +199,7 @@ class SharedArrayBufferMainThread {
         },
         // eslint-disable-next-line object-shorthand -- Keep wire keys across bundles.
         "apiKey": apiKey,
+        "order": this.callbackOrder++,
         "generation": this.performanceGeneration,
         "argumentz": arguments_,
       };
@@ -198,6 +207,40 @@ class SharedArrayBufferMainThread {
     Atomics.compareExchange(this.audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 0, 1);
     wakeSAB(this.audioStatePointer);
     return this.guardThreadedCall(promise);
+  }
+
+  takeCallbacks() {
+    return (
+      Object.entries(this.callbackBuffer)
+        .filter(([_id, payload]) => !payload["inFlight"])
+        // Integer object keys sort by value, which reorders edits at ID rollover.
+        .sort((left, right) => left[1]["order"] - right[1]["order"])
+        .slice(0, this.threaded ? 32 : undefined)
+        .map(([id, payload]) => {
+          payload["inFlight"] = this.threaded;
+          const request = {};
+          request["id"] = id;
+          request["apiKey"] = payload["apiKey"];
+          request["argumentz"] = payload["argumentz"];
+          request["generation"] = payload["generation"];
+          return request;
+        })
+    );
+  }
+
+  settleCallbackReplies(replies) {
+    for (const payload of replies) {
+      const pending = this.callbackBuffer[payload["id"]];
+      if (!pending || pending["generation"] !== payload["generation"]) continue;
+      if (payload["error"]) pending["rejectCallback"](new Error(payload["error"]));
+      else pending["resolveCallback"](payload["answer"]);
+      delete this.callbackBuffer[payload["id"]];
+    }
+    this.maybeFinishPerformanceEnd();
+    if (Object.values(this.callbackBuffer).some((entry) => !entry["inFlight"])) {
+      Atomics.store(this.audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 1);
+      wakeSAB(this.audioStatePointer);
+    }
   }
 
   async terminateInstance() {
@@ -557,20 +600,7 @@ class SharedArrayBufferMainThread {
       switch (event.data) {
         case "poll": {
           if (this.ipcMessagePorts && this.ipcMessagePorts.sabMainCallbackReply) {
-            this.ipcMessagePorts.sabMainCallbackReply.postMessage(
-              Object.keys(this.callbackBuffer)
-                .filter((id) => !this.callbackBuffer[id]["inFlight"])
-                .slice(0, this.threaded ? 32 : undefined)
-                .map((id) => {
-                  this.callbackBuffer[id]["inFlight"] = this.threaded;
-                  const callbackReplyPayload = {};
-                  callbackReplyPayload["id"] = id;
-                  callbackReplyPayload["apiKey"] = this.callbackBuffer[id]["apiKey"];
-                  callbackReplyPayload["argumentz"] = this.callbackBuffer[id]["argumentz"];
-                  callbackReplyPayload["generation"] = this.callbackBuffer[id]["generation"];
-                  return callbackReplyPayload;
-                }),
-            );
+            this.ipcMessagePorts.sabMainCallbackReply.postMessage(this.takeCallbacks());
           }
 
           break;
@@ -586,18 +616,7 @@ class SharedArrayBufferMainThread {
           break;
         }
         default: {
-          event.data.forEach((payload) => {
-            const pending = this.callbackBuffer[payload["id"]];
-            if (!pending) return;
-            if (payload["error"]) pending["rejectCallback"](new Error(payload["error"]));
-            else pending["resolveCallback"](payload["answer"]);
-            delete this.callbackBuffer[payload["id"]];
-          });
-          this.maybeFinishPerformanceEnd();
-          if (Object.values(this.callbackBuffer).some((entry) => !entry["inFlight"])) {
-            Atomics.store(this.audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 1);
-            wakeSAB(this.audioStatePointer);
-          }
+          this.settleCallbackReplies(event.data);
         }
       }
     });

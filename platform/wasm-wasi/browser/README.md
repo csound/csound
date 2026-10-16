@@ -72,8 +72,12 @@ Channels created later use the control thread. Numeric notes (`event(0,
 wait for `realtimePerformanceEnded` for completed shutdown.
 
 The control queue holds four requests, including the running call, with at most
-1 MiB of UTF-8 text per request. Stop rejects queued work and waits for running
-work before cleanup. Resume before submitting engine calls while paused.
+1 MiB of UTF-8 text per request. Its fixed text buffers use 4 MiB of the shared
+256 MiB heap so submission needs no C allocation on the render worker.
+On the shared host, compile, eval, and channel calls have no elapsed-time
+deadline, with or without `--realtime`. In realtime mode, stop rejects queued
+work and waits for running work before cleanup; worker failure rejects pending calls.
+Resume before submitting engine calls while paused.
 Filesystem APIs, score text, table changes, and full CSD compilation still
 require a stop. Background workers cannot open the render worker's files, so
 live `#include` and file-dependent global init remain unsupported even when

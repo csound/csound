@@ -326,6 +326,7 @@ const initCallbackReplyPort = (response) => {
         const caller = combined.get(apiKey);
         const answerPayload = {};
         answerPayload["id"] = id;
+        answerPayload["generation"] = callerPayload["generation"];
         try {
           if (threadedMode && callerPayload["generation"] !== activeGeneration)
             throw new Error("Call belongs to an ended performance");
