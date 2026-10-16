@@ -105,7 +105,8 @@ csoundReadlineSubmit["toString"] = () => "readlineSubmit = async (requestId, tex
 
 /**
  * Retrieves the value of control channel identified by channelName.
- * Active --realtime accepts numeric channels declared before start.
+ * Active --realtime reads predeclared numeric channels atomically. New channel
+ * names use the ordered background API queue.
  * @function
  */
 export const csoundGetControlChannel = (wasm) => (csound, channelName) => {
@@ -118,7 +119,9 @@ export const csoundGetControlChannel = (wasm) => (csound, channelName) => {
 csoundGetControlChannel["toString"] = () => "getControlChannel = async (channelName) => Number;";
 
 /**
- * Sets the value of control channel identified by channelName
+ * Sets the value of control channel identified by channelName.
+ * Predeclared channels stay independent of background compilation; new names
+ * use the background queue and follow earlier compile/eval calls.
  * @function
  */
 export const csoundSetControlChannel = (wasm) => (csound, channelName, value) => {
@@ -131,7 +134,8 @@ csoundSetControlChannel["toString"] = () =>
   "setControlChannel = async (channelName, value) => void;";
 
 /**
- * Retrieves the string channel identified by channelName
+ * Retrieves the string channel identified by channelName.
+ * Active --realtime copies the value on the background API worker.
  * @function
  */
 export const csoundGetStringChannel = (wasm) => (csound, channelName) => {
@@ -147,7 +151,9 @@ export const csoundGetStringChannel = (wasm) => (csound, channelName) => {
 csoundGetStringChannel["toString"] = () => "getStringChannel = async (channelName) => String;";
 
 /**
- * Sets the string channel value identified by channelName
+ * Sets the string channel value identified by channelName.
+ * Active --realtime writes on the background API worker; completion means the
+ * value is ready for the next queued compile/eval call.
  * @function
  */
 export const csoundSetStringChannel = (wasm) => (csound, channelName, value) => {

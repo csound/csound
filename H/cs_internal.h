@@ -380,6 +380,20 @@ extern "C" {
 #ifdef CSOUND_WASI_REALTIME
   /* Set by the WASI pthread entry wrapper, before calling engine code. */
   int32_t csoundWasiIsWorkerThread(void);
+
+  /* A compiler worker may recover parser errors only on its own stack.
+     Merge/global init disables this target before taking engine locks. */
+  typedef struct {
+    CSOUND *csound;
+    jmp_buf target;
+    int32_t enabled;
+  } CSOUND_WASI_COMPILE_JUMP;
+  CSOUND_WASI_COMPILE_JUMP *csoundWasiCompileJumpContext(CSOUND *csound);
+  CSOUND_WASI_COMPILE_JUMP *csoundWasiSwapCompileJumpContext(
+      CSOUND_WASI_COMPILE_JUMP *context);
+#ifdef CSOUND_WASI_BROWSER
+  void csoundRealtimeApiStopWasi(CSOUND *csound);
+#endif
 #endif
 
 

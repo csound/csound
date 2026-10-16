@@ -2008,6 +2008,14 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
 
 void merge_state_realtime(CSOUND *csound, ENGINE_STATE *engineState,
                           TYPE_TABLE *typetable, OPDS *ids) {
+#ifdef CSOUND_WASI_REALTIME
+  CSOUND_WASI_COMPILE_JUMP *compile = csoundWasiCompileJumpContext(csound);
+  int32_t canRecover = compile != NULL ? compile->enabled : 0;
+  /* Arbitrary global opcodes may fail while holding their own locks. Do not
+     recover those errors by jumping out of a partly merged engine. */
+  if (compile != NULL)
+    compile->enabled = 0;
+#endif
   if (csound->init_pass_threadlock)
     csoundLockMutex(csound->init_pass_threadlock);
   /* Keep the init-lock-before-allocation-lock order used by realtime init. */
@@ -2019,6 +2027,10 @@ void merge_state_realtime(CSOUND *csound, ENGINE_STATE *engineState,
   run_merged_global_init(csound, ids);
   if (csound->init_pass_threadlock)
     csoundUnlockMutex(csound->init_pass_threadlock);
+#ifdef CSOUND_WASI_REALTIME
+  if (compile != NULL)
+    compile->enabled = canRecover;
+#endif
 }
 
 typedef struct init_getter_use {
@@ -2456,13 +2468,17 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     /* merge ENGINE_STATE */
     /* lock to ensure thread-safety */
     if (!async) {
-      /* now add the instruments with names, assigning them fake instr numbers */
-      named_instr_assign_numbers(csound, engineState);
-      if (!csound->oparms->realtime)
+      if (csound->oparms->realtime && csound->realtime_locks_initialized) {
+        /* A synchronous background caller needs the same publication lock
+           as the realtime init queue. Rendering only tries this spinlock. */
+        merge_state_realtime(csound, engineState, typeTable, ids);
+      } else {
+        /* now add the instruments with names, assigning them fake instr numbers */
+        named_instr_assign_numbers(csound, engineState);
         csoundLockMutex(csound->API_lock);
-      merge_state(csound, engineState, typeTable, ids);
-      if (!csound->oparms->realtime)
+        merge_state(csound, engineState, typeTable, ids);
         csoundUnlockMutex(csound->API_lock);
+      }
     } else {
       if (UNLIKELY(merge_state_enqueue(csound, engineState,
                                        typeTable, ids) != CSOUND_SUCCESS)) {
@@ -2570,16 +2586,9 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
    async determines asynchronous operation of the
    merge stage.
 */
-int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
+static int32_t compile_orc(CSOUND *csound, const char *str, int32_t async) {
   TREE *root;
   int32_t retVal = 1;
-  volatile jmp_buf tmpExitJmp;
-
-  memcpy((void *)&tmpExitJmp, (void *)&csound->exitjmp, sizeof(jmp_buf));
-  if ((retVal = setjmp(csound->exitjmp))) {
-    memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
-    return retVal;
-  }
 
   root = csoundParseOrc(csound, str);
   if (LIKELY(root != NULL)) {
@@ -2588,7 +2597,6 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
     if (typeTable == NULL) {
       csound->Message(csound, Str("Error: missing TYPE_TABLE on AST root (markup==NULL)\n"));
       csoundDeleteTree(csound, root);
-      memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
       return CSOUND_ERROR;
     }
     retVal = csound_compile_tree(csound, root, async);
@@ -2601,12 +2609,42 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
     /* csoundParseOrc only returns NULL when parsing itself failed; empty
        input yields a valid sentinel root holding just the TYPE_TABLE, so
        any NULL here is a genuine error and must not be reported as success */
-    memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
     return CSOUND_ERROR;
   }
 
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
     debug_print(csound);
+  return retVal;
+}
+
+int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
+  int32_t retVal;
+#ifdef CSOUND_WASI_REALTIME
+  if (csoundWasiIsWorkerThread()) {
+    CSOUND_WASI_COMPILE_JUMP context;
+    CSOUND_WASI_COMPILE_JUMP *previous;
+    context.csound = csound;
+    context.enabled = 1;
+    previous = csoundWasiSwapCompileJumpContext(&context);
+    /* Never borrow the render caller's jump buffer. Only parser/compiler
+       failures recover here; merge/global init disables the target. */
+    if (setjmp(context.target)) {
+      csoundWasiSwapCompileJumpContext(previous);
+      csound->synterrcnt = 0;
+      return CSOUND_ERROR;
+    }
+    retVal = compile_orc(csound, str, async);
+    csoundWasiSwapCompileJumpContext(previous);
+    return retVal;
+  }
+#endif
+  volatile jmp_buf tmpExitJmp;
+  memcpy((void *)&tmpExitJmp, (void *)&csound->exitjmp, sizeof(jmp_buf));
+  if ((retVal = setjmp(csound->exitjmp))) {
+    memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+    return retVal;
+  }
+  retVal = compile_orc(csound, str, async);
   memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
   return retVal;
 }

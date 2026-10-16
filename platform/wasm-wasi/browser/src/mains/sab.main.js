@@ -27,7 +27,8 @@ import {
 import { logSABMain as log } from "../logger";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
 import { EventPromises } from "../utils/event-promises";
-import { assertRealtimeCallAllowed } from "../utils/realtime-api.js";
+import { assertRealtimeCallAllowed, realtimeBackgroundOperations } from "../utils/realtime-api.js";
+import { settleRealtimeApiCompletion } from "../utils/realtime-api-queue.js";
 import { stopSAB, wakeSAB } from "../utils/sab-transport.js";
 import { enqueueMidiPacket, resetMidiQueue } from "../utils/sab-midi-queue.js";
 import { SABCompletionCoordinator } from "../utils/sab-completion-coordinator.js";
@@ -78,6 +79,7 @@ class SharedArrayBufferMainThread {
     // End state and stop release arrive on different ports. A generation keeps
     // late messages from an earlier run from completing the current one.
     this.performanceGeneration = 0;
+    this.pendingPerformanceEnd = undefined;
     this.performanceCompletion = new SABCompletionCoordinator((performanceEndState) =>
       this.finishPerformanceEnd(performanceEndState),
     );
@@ -123,6 +125,7 @@ class SharedArrayBufferMainThread {
   failThreadedInstance(error) {
     if (this.threadError) return;
     this.threadError = error;
+    this.pendingPerformanceEnd = undefined;
     stopSAB(this.audioStatePointer);
     this.rejectThreadFailure(error);
     for (const payload of Object.values(this.callbackBuffer)) payload["rejectCallback"](error);
@@ -163,7 +166,10 @@ class SharedArrayBufferMainThread {
       if (Object.keys(this.callbackBuffer).length >= 256)
         throw new Error("Threaded control queue is full");
     }
-    const callbackId = this.callbackId++;
+    while (Object.hasOwn(this.callbackBuffer, String(this.callbackId)))
+      this.callbackId = (this.callbackId + 1) >>> 0;
+    const callbackId = this.callbackId;
+    this.callbackId = (this.callbackId + 1) >>> 0;
     const promise = new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         delete this.callbackBuffer[callbackId];
@@ -172,6 +178,7 @@ class SharedArrayBufferMainThread {
             `Worker timed out during ${csoundApiRename(apiKey)}(); dispatched work may have run`,
           ),
         );
+        this.maybeFinishPerformanceEnd();
       }, 10000 + this.eventPromises.getStartRemainingMs());
       this.callbackBuffer[callbackId] = {
         "resolveCallback": (answer) => {
@@ -194,6 +201,7 @@ class SharedArrayBufferMainThread {
   }
 
   async terminateInstance() {
+    this.pendingPerformanceEnd = undefined;
     this.ipcMessagePorts.close();
     if (this.threaded) {
       stopSAB(this.audioStatePointer);
@@ -290,17 +298,28 @@ class SharedArrayBufferMainThread {
   finishPerformanceEnd(performanceEndState) {
     // Both completion signals have arrived, including any earlier callback
     // replies. Send calls the worker did not pick up before it finished.
-    Object.values(this.callbackBuffer).forEach((payload) => {
+    for (const [id, payload] of Object.entries(this.callbackBuffer)) {
       if (this.realtimeMode) {
+        // Native stop joined the API worker, but its direct replies use another
+        // port. Wait for those replies before publishing stop/reset completion.
+        if (payload["inFlight"] && realtimeBackgroundOperations.has(payload["apiKey"])) continue;
         payload["rejectCallback"](new Error("Performance ended before the call completed"));
-        return;
+      } else {
+        this.proxyPort["callUncloned"](payload["apiKey"], payload["argumentz"]).then(
+          payload["resolveCallback"],
+          payload["rejectCallback"],
+        );
       }
-      this.proxyPort["callUncloned"](payload["apiKey"], payload["argumentz"]).then(
-        payload["resolveCallback"],
-        payload["rejectCallback"],
-      );
-    });
-    this.callbackBuffer = {};
+      delete this.callbackBuffer[id];
+    }
+    this.pendingPerformanceEnd = performanceEndState;
+    this.maybeFinishPerformanceEnd();
+  }
+
+  maybeFinishPerformanceEnd() {
+    if (!this.pendingPerformanceEnd || Object.keys(this.callbackBuffer).length > 0) return;
+    const performanceEndState = this.pendingPerformanceEnd;
+    this.pendingPerformanceEnd = undefined;
 
     // A score can finish before acknowledging pause or resume. Settle both
     // here too: releasing stop clears their timeout timers.
@@ -454,10 +473,24 @@ class SharedArrayBufferMainThread {
           this.failThreadedInstance(new Error(event.message)),
         );
         worker.addEventListener("message", ({ data }) => {
-          if (data["type"] === "wasi-thread-fatal")
-            this.failThreadedInstance(new Error(data["message"]));
-          else if (data["type"] === "wasi-thread-message")
-            onThreadMessage({ data: { log: data["message"] } });
+          switch (data["type"]) {
+            case "wasi-thread-fatal": {
+              this.failThreadedInstance(new Error(data["message"]));
+              break;
+            }
+            case "wasi-api-completion": {
+              settleRealtimeApiCompletion(this.callbackBuffer, data);
+              this.maybeFinishPerformanceEnd();
+              break;
+            }
+            case "wasi-thread-message": {
+              onThreadMessage({ data: { log: data["message"] } });
+              break;
+            }
+            default: {
+              break;
+            }
+          }
         });
         const channel = new MessageChannel();
         worker.postMessage({ type: "connect", port: channel.port1 }, [channel.port1]);
@@ -560,6 +593,7 @@ class SharedArrayBufferMainThread {
             else pending["resolveCallback"](payload["answer"]);
             delete this.callbackBuffer[payload["id"]];
           });
+          this.maybeFinishPerformanceEnd();
           if (Object.values(this.callbackBuffer).some((entry) => !entry["inFlight"])) {
             Atomics.store(this.audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 1);
             wakeSAB(this.audioStatePointer);
@@ -693,7 +727,7 @@ class SharedArrayBufferMainThread {
             ) {
               return -1;
             } else {
-              this.performanceGeneration += 1;
+              this.performanceGeneration = (this.performanceGeneration + 1) >>> 0;
               this.performanceCompletion.begin(this.performanceGeneration);
               // The first pooled start links plugins in every child. Allow
               // its 30-second readiness deadline to report a setup failure.

@@ -872,7 +872,11 @@ char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 
   if(tree == NULL) {
    synterr(csound, Str("NULL tree\n"));
+#ifdef CSOUND_WASI_REALTIME
+   csound->LongJmp(csound, 1);
+#else
    longjmp(csound->exitjmp,0);
+#endif
    return 0;
   }
 
@@ -1112,6 +1116,10 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname)
   char *shortName;
   CONS_CELL *head;
   OENTRIES* retVal;
+#ifdef CSOUND_WASI_REALTIME
+  CSOUND_WASI_COMPILE_JUMP *compile = csoundWasiCompileJumpContext(csound);
+  int32_t canRecover = compile != NULL ? compile->enabled : 0;
+#endif
 
   if (UNLIKELY(opname == NULL)) {
     return NULL;
@@ -1120,6 +1128,11 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname)
   shortName = get_opcode_short_name(csound, opname);
 
   /* Lock to protect hash table read during concurrent compilations */
+#ifdef CSOUND_WASI_REALTIME
+  /* Allocation failure must not unwind past a held recursive mutex. */
+  if (compile != NULL)
+    compile->enabled = 0;
+#endif
   if (csound->init_pass_threadlock)
     csoundLockMutex(csound->init_pass_threadlock);
 
@@ -1132,6 +1145,10 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname)
 
   if (csound->init_pass_threadlock)
     csoundUnlockMutex(csound->init_pass_threadlock);
+#ifdef CSOUND_WASI_REALTIME
+  if (compile != NULL)
+    compile->enabled = canRecover;
+#endif
 
   if (shortName != opname) {
     csound->Free(csound, shortName);

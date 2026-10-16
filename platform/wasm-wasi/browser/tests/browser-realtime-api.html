@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="utf-8" />
+  <link rel="icon" href="data:," />
+  <title>WASI realtime live API checks</title>
+  <script type="module">
+    const gated = new URLSearchParams(location.search).has("probe");
+    const { default: Csound } = await import(gated ? "/probe/csound.js" : "/dist/csound.js");
+    const checks = [];
+    const check = (condition, message) => {
+      if (!condition) throw new Error(message);
+    };
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const until = async (predicate, message) => {
+      const deadline = performance.now() + 10000;
+      while (!(await predicate())) {
+        if (performance.now() >= deadline) throw new Error(message);
+        await delay(20);
+      }
+    };
+    const rejects = async (action, message) => {
+      try {
+        await action();
+      } catch (error) {
+        return error;
+      }
+      throw new Error(message);
+    };
+    const source = `
+sr = 48000
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+chn_k "gain", 3
+chnset 0.125, "gain"
+chn_k "registry-ticks", 3
+chn_k "registry-errors", 3
+${Array.from({ length: 16 }, (_, index) => `chn_k "registry-render-${index}", 3`).join("\n")}
+instr 79
+  kcount init 0
+  kerrors init 0
+  kcount += 1
+  Sname sprintfk "registry-render-%d", kcount % 16
+  chnset kcount, Sname
+  kvalue chnget Sname
+  if kvalue != kcount then
+    kerrors += 1
+  endif
+  chnset kcount, "registry-ticks"
+  chnset kerrors, "registry-errors"
+endin
+instr 1
+  kgain chnget "gain"
+  asignal oscils 1, 440, 0
+  out asignal * kgain
+endin
+`;
+    let csound;
+    let probe;
+    let analyser;
+    let silence;
+    const messages = [];
+    let phase = "live APIs";
+    const releaseGate = () => {
+      if (probe) {
+        Atomics.store(probe, 1, 1);
+        Atomics.notify(probe, 1);
+      }
+    };
+    try {
+      check(crossOriginIsolated, "live API test requires isolation headers");
+      csound = await Csound({ autoConnect: false });
+      csound.on("message", (message) => messages.push(message));
+      await csound.setOption("-odac -m0 --daemon --realtime");
+      // Background workers cannot open the parent's files, even if preloaded.
+      await csound.fs.writeFile(
+        "live-include.orc",
+        new TextEncoder().encode("giIncluded init 1\n"),
+      );
+      check((await csound.compileOrc(source)) === 0, "initial compile failed");
+      check((await csound.start()) === 0, "start failed");
+      const context = await csound.getAudioContext();
+      await context.resume();
+      analyser = context.createAnalyser();
+      analyser.fftSize = 2048;
+      silence = context.createGain();
+      silence.gain.value = 0;
+      (await csound.getNode()).connect(analyser);
+      analyser.connect(silence);
+      silence.connect(context.destination);
+      const samples = new Float32Array(analyser.fftSize);
+      const audible = () => {
+        analyser.getFloatTimeDomainData(samples);
+        return (
+          Math.sqrt(samples.reduce((sum, value) => sum + value * value, 0) / samples.length) > 0.02
+        );
+      };
+      await csound.event(0, [1, 0, 60]);
+      await until(audible, "steady voice did not reach the AudioWorklet");
+
+      // Submit without awaiting between calls: completion must preserve writes
+      // and keep each evaluation's result attached to its own request.
+      const ordered = await Promise.all([
+        csound.setStringChannel("source", "abcdefg"),
+        csound.evalCode('return strlen(chnget:S("source"))'),
+        csound.evalCode("return 29"),
+        csound.getStringChannel("source"),
+      ]);
+      check(
+        ordered[1] === 7 && ordered[2] === 29 && ordered[3] === "abcdefg",
+        "live API order or evaluation results were mixed: " + JSON.stringify(ordered),
+      );
+      const text = "λ音".repeat(4096);
+      await csound.setStringChannel("source", text);
+      check(
+        (await csound.getStringChannel("source")) === text,
+        "resized UTF-8 string did not round-trip",
+      );
+      checks.push(
+        "ordered string writes, per-request evaluation results, and resized UTF-8 strings",
+      );
+
+      check(
+        (await csound.compileOrc(`
+chn_k "live-gain", 3
+chn_k "last-note", 3
+instr 77
+  chnset p4, "last-note"
+endin
+`)) === 0,
+        "live instrument/channel compilation failed",
+      );
+      await csound.setControlChannel("live-gain", 0.625);
+      check(
+        (await csound.getControlChannel("live-gain")) === 0.625,
+        "new channel was inaccessible",
+      );
+      await csound.event(0, [77, 0, 0.05, 23]);
+      await until(
+        async () => (await csound.getControlChannel("last-note")) === 23,
+        "new instrument was not ready when compilation resolved",
+      );
+      checks.push("compile completion publishes new instruments and numeric channels");
+
+      // Dynamic render names force registry lookups on every control period.
+      // Global init creates 640 other entries, crossing several hash resizes.
+      await csound.event(0, [79, 0, 60]);
+      await until(
+        async () => (await csound.getControlChannel("registry-ticks")) > 16,
+        "dynamic channel instrument did not start",
+      );
+      const registryClock = Number(await csound.getCurrentTimeSamples());
+      const registryTicks = await csound.getControlChannel("registry-ticks");
+      for (let batch = 0; batch < 8; batch++) {
+        check(
+          (await csound.compileOrc(`
+iRegistry = ${batch * 40}
+while iRegistry < ${(batch + 1) * 40} do
+  SRegistryNumber sprintf "registry-number-%d", iRegistry
+  SRegistryString sprintf "registry-string-%d", iRegistry
+  chnset iRegistry + 1, SRegistryNumber
+  chnset "created", SRegistryString
+  iRegistry += 1
+od
+`)) === 0,
+          "channel registry growth failed",
+        );
+        check(
+          (await csound.getControlChannel(`registry-number-${batch * 40}`)) === batch * 40 + 1,
+          "registry resize lost a numeric channel",
+        );
+        check(
+          (await csound.getStringChannel(`registry-string-${batch * 40}`)) === "created",
+          "registry resize lost a string channel",
+        );
+        await delay(20);
+        check(audible(), "audio stopped while channel registry grew");
+      }
+      check(
+        (await csound.getControlChannel("registry-errors")) === 0,
+        "dynamic channel lookup returned the wrong value during registry growth",
+      );
+      check(
+        (await csound.getControlChannel("registry-ticks")) > registryTicks + 16,
+        "dynamic channel instrument stopped during registry growth",
+      );
+      const alternating = await Promise.all([
+        csound.getControlChannel("registry-render-0"),
+        csound.getControlChannel("registry-render-15"),
+      ]);
+      check(
+        alternating.every((value) => value > 0) && alternating[0] !== alternating[1],
+        "render did not use changing channel names",
+      );
+      check(
+        Number(await csound.getCurrentTimeSamples()) > registryClock + context.sampleRate / 10,
+        "sample clock stopped during registry growth",
+      );
+      checks.push(
+        "dynamic render channel names stay correct while live code grows numeric and string registries",
+      );
+
+      for (const invalid of [
+        "instr 78\nsyntax nonsense @@@\nendin",
+        "#ifdef MISSING_ENDIF\n",
+        '#include "live-include.orc"\n',
+      ]) {
+        const result = await csound.compileOrc(invalid);
+        check(
+          result !== 0,
+          "invalid or file-dependent live compile succeeded: " +
+            JSON.stringify({ invalid, result }),
+        );
+        check(
+          (await csound.compileOrc("instr 78\nendin")) === 0,
+          "valid compile failed after a compiler error: " + messages.join("\n"),
+        );
+        check(
+          (await csound.evalCode("return 41")) === 41,
+          "evaluation failed after compiler recovery",
+        );
+      }
+      checks.push("syntax, preprocessor, and unsupported file errors recover without restart");
+      for (const action of [
+        () => csound.compileOrc("return 0\0return 1"),
+        () => csound.evalCode("return 0\0return 1"),
+        () => csound.setStringChannel("source", "bad\0text"),
+        () => csound.setStringChannel("bad\0name", "text"),
+        () => csound.compileOrc(" ".repeat(1048577)),
+      ])
+        await rejects(action, "invalid live API input was accepted");
+      check((await csound.evalCode("return 43")) === 43, "input rejection broke later calls");
+      checks.push("invalid strings and oversized requests reject without breaking the worker");
+
+      if (gated) {
+        const freeHeap = () => csound.evalCode("return test_wasi_browser_heap_free()");
+        const macroArguments = () => csound.evalCode("return test_wasi_browser_macro_args()");
+        phase = "successful macro evaluation";
+        check(
+          (await csound.evalCode("#define ECHO(value) #return $value#\n$ECHO(31)")) === 31,
+          "parameterized macro evaluation failed",
+        );
+        phase = "macro argument count";
+        check((await macroArguments()) === 0, "successful expansion retained macro arguments");
+        phase = "parameterized macro definition";
+        check(
+          (await csound.compileOrc("#define BROKEN(value) #$value#")) === 0,
+          "parameterized macro definition failed",
+        );
+        const incomplete = [
+          "#ifdef MISSING_ENDIF\n",
+          "#else\n",
+          "#define UNFINISHED #body",
+          "#define UNFINISHED_ARG(value) #body",
+          "#define NESTED #$NESTED#\n$NESTED\n",
+          "$BROKEN(#ifdef MISSING_ENDIF\n)\n",
+        ];
+        // A long comment still makes flex copy almost 1 MiB of source. Every
+        // failure must free both that raw buffer and Csound's expanded text.
+        const paddedFailure = (text) => ";" + "x".repeat(1000000) + "\n" + text;
+        for (const text of incomplete) {
+          phase = "preprocessor recovery: " + text;
+          check(
+            (await csound.compileOrc(paddedFailure(text))) !== 0,
+            "incomplete preprocessing succeeded",
+          );
+        }
+        phase = "free heap before repeated failures";
+        const freeBefore = await freeHeap();
+        check(freeBefore > 128 * 1024 * 1024, "allocator cannot use the shared memory capacity");
+        for (let round = 0; round < 3; round++) {
+          for (const text of incomplete) {
+            phase = "repeated preprocessor recovery: " + text;
+            check(
+              (await csound.compileOrc(paddedFailure(text))) !== 0,
+              "repeated preprocessing succeeded",
+            );
+          }
+        }
+        phase = "macro argument count after failures";
+        check((await macroArguments()) === 0, "failed expansion retained macro arguments");
+        phase = "free heap after repeated failures";
+        const freeAfter = await freeHeap();
+        check(
+          freeBefore - freeAfter < 65536,
+          `recovered preprocessing retained heap: before=${freeBefore}, after=${freeAfter}`,
+        );
+        checks.push(
+          "repeated incomplete preprocessing frees scanners, buffers, and partial macros",
+        );
+        phase = "held evaluation and stop";
+        probe = csound["__threadProbe"];
+        check(probe instanceof Int32Array, "missing private evaluation gate");
+        let evaluationDone = false;
+        const evaluation = csound.evalCode("test_wasi_browser_hold\nreturn 47").then((result) => {
+          evaluationDone = true;
+          return result;
+        });
+        // Observe rejection from the start, including if a worker fails below.
+        const evaluationResult = Promise.allSettled([evaluation]);
+        await until(() => Atomics.load(probe, 0) === 1, "evaluation did not enter its gate");
+        check(Atomics.load(probe, 3) === 1, "evaluation did not run on a Csound pthread");
+        const before = Number(await csound.getCurrentTimeSamples());
+        for (let sample = 0; sample < 6; sample++) {
+          await delay(50);
+          check(audible(), "steady audio stopped while evaluation waited");
+          check(
+            (await csound.getSr()) === context.sampleRate,
+            "scalar query blocked during evaluation",
+          );
+        }
+        check(
+          Number(await csound.getCurrentTimeSamples()) - before > context.sampleRate / 10,
+          "sample clock stopped while evaluation waited",
+        );
+        check(!evaluationDone, "evaluation completed before gate release");
+        await csound.setControlChannel("gain", 0.1);
+        check(
+          (await csound.getControlChannel("gain")) === 0.1,
+          "existing numeric channel blocked behind evaluation",
+        );
+        checks.push(
+          "steady audio, sample clock, and cached numeric channels progress during held evaluation",
+        );
+
+        const pending = Promise.allSettled([
+          csound.setStringChannel("cancelled", "stale"),
+          csound.evalCode("return 53"),
+          csound.getStringChannel("source"),
+        ]);
+        await rejects(
+          () => csound.evalCode("return 59"),
+          "full live API queue accepted another request",
+        );
+        let resetDone = false;
+        const reset = csound
+          .stop()
+          .then(() => csound.reset())
+          .then(() => {
+            resetDone = true;
+          });
+        const resetResult = Promise.allSettled([reset]);
+        await delay(150);
+        check(!resetDone, "reset freed state before the running evaluation finished");
+        releaseGate();
+        const running = (await evaluationResult)[0];
+        check(
+          running.status === "fulfilled" && running.value === 47,
+          "running evaluation lost its result during stop",
+        );
+        check(
+          (await pending).every((result) => result.status === "rejected"),
+          "stop replayed queued API work",
+        );
+        const ended = (await resetResult)[0];
+        if (ended.status === "rejected") throw ended.reason;
+        check(Atomics.load(probe, 2) === 1, "reset completed before the evaluation left its gate");
+        checks.push(
+          "bounded live API queue rejects overflow; stop cancels queued work and joins running work",
+        );
+      } else {
+        await csound.stop();
+        await csound.reset();
+      }
+      await csound.setOption("-odac -m0 --daemon --realtime");
+      check((await csound.compileOrc(source)) === 0, "compile after reset failed");
+      check((await csound.start()) === 0, "restart failed");
+      await (await csound.getAudioContext()).resume();
+      await csound.setStringChannel("cancelled", "fresh");
+      check(
+        (await csound.getStringChannel("cancelled")) === "fresh",
+        "old request changed new performance",
+      );
+      check((await csound.evalCode("return 61")) === 61, "live API failed after restart");
+      await csound.stop();
+      await csound.reset();
+      await csound.terminateInstance();
+      csound = undefined;
+      checks.push("reset and restart accept new work without replaying old requests");
+      window.__csoundRealtimeResult = { ok: true, checks };
+    } catch (error) {
+      releaseGate();
+      if (csound) await csound.terminateInstance().catch(() => {});
+      window.__csoundRealtimeResult = {
+        ok: false,
+        checks,
+        error:
+          phase +
+          ": " +
+          String(error) +
+          "\n" +
+          (error.stack || "") +
+          "\n" +
+          messages.slice(-30).join("\n"),
+      };
+    } finally {
+      analyser?.disconnect();
+      silence?.disconnect();
+    }
+  </script>
+</html>

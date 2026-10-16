@@ -6,6 +6,7 @@
   testHooks ? false,
 }:
 let
+  maxMemory = builtins.fromJSON (builtins.readFile ./shared-memory-max.txt);
   toolchain = import ./wasi-realtime-toolchain.nix { inherit pkgs; };
   base = import ./csound.nix {
     inherit system pkgs gitHash buildDate;
@@ -27,7 +28,9 @@ in base.overrideAttrs (old: {
   NIX_LDFLAGS = builtins.filter
     (flag: !(pkgs.lib.hasPrefix "-z,stack-size=" flag)) old.NIX_LDFLAGS ++ [
     "-z,stack-size=1048576"
-    "--initial-memory=16777216"
+    # dlmalloc uses the linked __heap_end. The host already imports the full
+    # fixed memory, so a smaller heap cannot grow into that reserved space.
+    "--initial-memory=${toString maxMemory}"
     "--export=wasi_thread_start"
     # Side modules use this reactor's jump runtime and exception tag.
     "--export=__c_longjmp"

@@ -15,7 +15,8 @@
 
 import * as Comlink from "../utils/comlink.js";
 import { createRealtimeControlChannels } from "../utils/realtime-control-channels.js";
-import { assertRealtimeCallAllowed } from "../utils/realtime-api.js";
+import { assertRealtimeCallAllowed, realtimeBackgroundOperations } from "../utils/realtime-api.js";
+import { submitRealtimeApiCall } from "../utils/realtime-api-queue.js";
 import { waitForSABResume, waitForSABOutput } from "../utils/sab-transport.js";
 import { drainMidiPackets } from "../utils/sab-midi-queue.js";
 import { tryPushMidiMessage } from "../utils/wasm-midi.js";
@@ -37,6 +38,7 @@ let pollPromise;
 let unlockPromise;
 let threadedMode = false;
 let activeGeneration = -1;
+let realtimeApi;
 let realtimeControls;
 
 const callUncloned = async (k, arguments_) => {
@@ -157,6 +159,10 @@ const sabCreateRealtimeAudioThread =
         lastReturn !== 0 ||
         forceStop
       ) {
+        if (realtimeApi) {
+          wasm.exports["csoundRealtimeApiStopWasi"](csound);
+          realtimeApi = undefined;
+        }
         if (lastReturn === 0) {
           log(`calling csoundStop and one performKsmps to trigger endof logs`)();
           // Trigger "performance ended" logs
@@ -333,14 +339,34 @@ const initCallbackReplyPort = (response) => {
           if (
             realtime &&
             (apiKey === "csoundGetControlChannel" || apiKey === "csoundSetControlChannel") &&
-            !realtimeControls
-          )
-            throw new Error("Control channels are unavailable for this performance phase");
-          if (realtime && apiKey === "csoundGetControlChannel")
-            answerPayload["answer"] = realtimeControls.get(argumentz[1]);
-          else if (realtime && apiKey === "csoundSetControlChannel")
-            answerPayload["answer"] = realtimeControls.set(argumentz[1], argumentz[2]);
-          else answerPayload["answer"] = caller && caller.apply({}, argumentz || []);
+            realtimeControls &&
+            realtimeControls.has(argumentz[1])
+          ) {
+            // Existing numeric channels remain independent of compiler work.
+            // New names use the API queue, which also owns channel creation.
+            answerPayload["answer"] =
+              apiKey === "csoundGetControlChannel"
+                ? realtimeControls.get(argumentz[1])
+                : realtimeControls.set(argumentz[1], argumentz[2]);
+            accumulator.push(answerPayload);
+            return accumulator;
+          }
+          if (realtime && realtimeBackgroundOperations.has(apiKey)) {
+            if (!realtimeApi)
+              throw new Error("Realtime API is unavailable for this performance phase");
+            submitRealtimeApiCall(
+              realtimeApi,
+              argumentz[0],
+              apiKey,
+              argumentz.slice(1),
+              id,
+              activeGeneration,
+            );
+            // Completion comes directly from the API worker. Release this
+            // render callback batch without waiting for compilation or init.
+            return accumulator;
+          }
+          answerPayload["answer"] = caller && caller.apply({}, argumentz || []);
         } catch (error) {
           answerPayload["error"] = error instanceof Error ? error.message : String(error);
         }
@@ -412,6 +438,10 @@ const initialize = async (payload) => {
   const releaseStop = (performanceGeneration, csound) => {
     activeGeneration = -1;
     realtimeControls = undefined;
+    if (realtimeApi) {
+      wasm.exports["csoundRealtimeApiStopWasi"](csound);
+      realtimeApi = undefined;
+    }
     // Score end only stops queue admission. Join init and close native I/O
     // before the second completion signal releases pending host calls.
     if (threadedMode && libraryCsound.csoundIsRealtime(csound))
@@ -464,6 +494,7 @@ const initialize = async (payload) => {
   const startHandler = async (_, arguments_) => {
     // Mirror every plugin before native start can launch an init thread.
     if (threaded) await wasm["prepareThreads"](arguments_["csound"]);
+    realtimeApi = undefined;
     realtimeControls = undefined;
     activeGeneration = arguments_["performanceGeneration"];
     applyUserProvidedAudioParams({
@@ -499,13 +530,18 @@ const initialize = async (payload) => {
         }),
       ),
       () => {
-        // Global chn_k declarations run inside csoundStart. Snapshot after
-        // those inits, before performKsmps can feed the background init queue.
-        if (threaded && libraryCsound.csoundIsRealtime(arguments_["csound"]))
+        if (threaded && libraryCsound.csoundIsRealtime(arguments_["csound"])) {
           realtimeControls = createRealtimeControlChannels(wasm, arguments_["csound"]);
+          const result = wasm.exports["csoundRealtimeApiStartWasi"](arguments_["csound"]);
+          if (result !== 0) throw new Error("Could not start the realtime API worker");
+          realtimeApi = wasm;
+        }
       },
     )(arguments_);
-    if (status !== 0) realtimeControls = undefined;
+    if (status !== 0) {
+      realtimeApi = undefined;
+      realtimeControls = undefined;
+    }
     return threaded
       ? {
           // eslint-disable-next-line object-shorthand -- Keep wire keys across bundles.
@@ -516,6 +552,16 @@ const initialize = async (payload) => {
   };
 
   const allAPI = { ...libraryCsound, csoundStart: startHandler, wasm };
+  if (threaded) {
+    for (const key of ["csoundReset", "csoundDestroy"]) {
+      allAPI[key] = (csound) => {
+        wasm.exports["csoundRealtimeApiStopWasi"](csound);
+        realtimeApi = undefined;
+        realtimeControls = undefined;
+        return libraryCsound[key](csound);
+      };
+    }
+  }
   combined = new Map(Object.entries(allAPI));
 
   libraryCsound["csoundInitialize"](0);

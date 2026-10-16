@@ -35,6 +35,7 @@ export function createRealtimeControlChannels(wasm, csound) {
   // Closure's Atomics externs only describe numeric typed arrays. These calls
   // use BigInt64Array and must preserve all 64 bits without Number conversion.
   return {
+    has: (name) => channels.has(name),
     get: /** @suppress {checkTypes} */ (name) => {
       bits[0] = Atomics.load(channel(name), 0);
       return value[0];

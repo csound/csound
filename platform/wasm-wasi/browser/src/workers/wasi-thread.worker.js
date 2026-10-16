@@ -33,7 +33,11 @@ globalThis.addEventListener("message", ({ data }) => {
       // The render worker may be asleep in Atomics.wait or joining a C thread.
       // Send logs directly to the UI instead of relying on its JS event loop.
       const postMessage = (message) =>
-        globalThis.postMessage({ "type": "wasi-thread-message", "message": message });
+        globalThis.postMessage(
+          message["type"] === "wasi-api-completion"
+            ? message
+            : { "type": "wasi-thread-message", "message": message },
+        );
       const imports = createWasiThreadImports({
         module: data["module"],
         memory: data["memory"],

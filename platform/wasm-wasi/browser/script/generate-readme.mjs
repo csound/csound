@@ -59,6 +59,26 @@ before startup.
 On the shared worker host, set \`--realtime\` before \`start()\` to enable
 background init; omitting the flag keeps synchronous init. Reset clears it.
 
+During realtime playback, \`compileOrc()\`, \`evalCode()\`, and string channel APIs
+run on a separate Csound thread. Their promises resolve when each call finishes;
+compilation includes merging and global init. Existing voices and the sample
+clock continue, but long global init can delay new notes because it shares
+Csound's init mutex. This does not guarantee zero underruns.
+
+Numeric channels declared before \`start()\` use atomic access to saved addresses.
+Channels created later use the control thread. Numeric notes (\`event(0,
+[instrument, start, duration, ...])\`) and end events (\`event(2, [])\` or
+\`event(2, [0, delay])\`) remain available. The end-event promise confirms admission;
+wait for \`realtimePerformanceEnded\` for completed shutdown.
+
+The control queue holds four requests, including the running call, with at most
+1 MiB of UTF-8 text per request. Stop rejects queued work and waits for running
+work before cleanup. Resume before submitting engine calls while paused.
+Filesystem APIs, score text, table changes, and full CSD compilation still
+require a stop. Background workers cannot open the render worker's files, so
+live \`#include\` and file-dependent global init remain unsupported even when
+files are preloaded.
+
 The bundle contains one binary for all APIs. Explicit \`useWorker: false\`,
 \`useSAB: false\`, and the named \`libcsound()\` constructor use it locally with
 synchronous init. They need shared Wasm support but no isolation headers.

@@ -273,20 +273,25 @@ declare interface CsoundObj {
   readlineSubmit: (requestId: number, text: string) => Promise<number>;
   /**
    * Retrieves the value of control channel identified by channelName.
-   * Active --realtime accepts numeric channels declared before start.
+   * Active --realtime reads startup channels atomically; other names use the
+   * background API queue, including channels added by live compilation.
    */
   getControlChannel: (channelName: string) => Promise<number>;
   /**
    * Sets the value of control channel identified by channelName.
-   * Active --realtime accepts finite values for channels declared before start.
+   * Active --realtime accepts finite values. Startup channels use atomic writes;
+   * other names use the background API queue.
    */
   setControlChannel: (channelName: string, value: number) => Promise<undefined>;
   /**
-   * Retrieves the string channel identified by channelName
+   * Retrieves the string channel identified by channelName.
+   * Active --realtime reads it on the background API worker.
    */
-  getStringChannel: (channelName: string) => Promise<undefined>;
+  getStringChannel: (channelName: string) => Promise<string>;
   /**
-   * Sets the string channel value identified by channelName
+   * Sets the string channel value identified by channelName.
+   * Active --realtime resolves after the background write takes effect, so it
+   * can be awaited before evalCode or compileOrc reads the channel.
    */
   setStringChannel: (channelName: string, value: string) => Promise<undefined>;
   /**
@@ -328,11 +333,16 @@ declare interface CsoundObj {
    */
   compileTree: (tree: any) => Promise<number>;
   /**
-   * Compiles a csound orchestra string
+   * Compiles a Csound orchestra string.
+   * Active --realtime compiles on a background worker and resolves after merge
+   * and global initialization. That worker cannot access the browser filesystem.
+   * Compilation can delay new note initialization while existing audio runs.
    */
   compileOrc: (orc: string) => Promise<number>;
   /**
-   * Compiles a csound orchestra string
+   * Compiles and evaluates a Csound orchestra string, returning its value.
+   * Active --realtime shares the ordered background queue with compileOrc and
+   * string channel calls, with the same filesystem and note-init limits.
    */
   evalCode: (orc: string) => Promise<number>;
   /**

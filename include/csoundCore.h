@@ -1940,6 +1940,8 @@ struct CSOUND_ {
   readlineCallback_t readlineCallback;                       /* host readline callback */
   void *readlineUserData;                                    /* readline callback user data */
   uint32_t readlineRequestId;                                /* readline request identifier */
+  void *wasi_realtime_api;                                   /* browser control worker, stopped before cleanup */
+  int32_t wasi_channel_lock;                                /* shared Wasm channel registry spinlock */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

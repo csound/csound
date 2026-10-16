@@ -656,6 +656,12 @@ int32_t csound_cleanup(CSOUND *csound)
     int32   *rngp;
     uint32_t n;
 
+#if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
+    /* The control worker can hold the init mutex or publish new instruments.
+       Join it before cleanup closes the init queue or destroys either lock. */
+    csoundRealtimeApiStopWasi(csound);
+#endif
+
     csoundLockMutex(csound->API_lock);
     if (csound->QueryGlobalVariable(csound,"::UDPCOM")
         != NULL) csoundUDPServerClose(csound);

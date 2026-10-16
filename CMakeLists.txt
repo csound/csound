@@ -1264,6 +1264,8 @@ if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
         list(APPEND libcsound_CFLAGS -DCSOUND_WASI_BROWSER)
         list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/csound_wasm.c)
         list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/csound_wasm.c)
+        list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/realtime_api.c)
+        list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/realtime_api.c)
     else()
         # Standalone WASI has a conventional command entry point and no JS host.
         list(APPEND libcsound_CFLAGS -DCSOUND_WASI_CLI)

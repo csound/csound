@@ -115,15 +115,15 @@ f0 3600
       );
       checks.push(`${mode}: AudioWorklet stereo output`);
       if (enabled) {
-        await rejects(
-          () => csound.compileOrc("instr 77\nendin"),
-          "active realtime compilation was accepted",
+        check(
+          (await csound.compileOrc("instr 77\nendin")) === 0,
+          "active realtime compilation failed",
         );
         await rejects(
           () => csound.fs.writeFile("active.txt", new Uint8Array([1])),
           "active realtime filesystem write was accepted",
         );
-        checks.push(`${mode}: active compile and filesystem changes reject`);
+        checks.push(`${mode}: active compilation succeeds; filesystem changes reject`);
       } else {
         check((await csound.compileOrc("instr 77\nendin")) === 0, "normal live compilation failed");
         await csound.fs.writeFile("active.txt", new Uint8Array([1]));
@@ -143,9 +143,9 @@ f0 3600
       // Keep this transport check silent instead.
       await csound.event(0, [2, 0, 0.05]);
       if (enabled)
-        await rejects(
-          () => csound.compileOrc("instr 77\nendin"),
-          "compilation after resume was accepted",
+        check(
+          (await csound.compileOrc("instr 77\nendin")) === 0,
+          "compilation after resume failed",
         );
       // Hold the render worker before filling its control queue, so a fast
       // worker cannot drain calls before the overflow assertion.
@@ -340,9 +340,9 @@ endin
         await (await csound.getAudioContext()).resume();
         check((await csound.getControlChannel("preset")) === 0.125, "pre-start channel was lost");
         if (pass > 0)
-          await rejects(
-            () => csound.getControlChannel("gain"),
-            "reset retained a stale channel pointer",
+          check(
+            (await csound.getControlChannel("gain")) === 0,
+            "reset retained a stale channel value",
           );
         await csound.event(0, [3, 0, 60]);
         await csound.event(0, [4, 0, 0.01]);
@@ -351,12 +351,16 @@ endin
           async () => (await csound.getControlChannel("meter")) === 0.75,
           "numeric channel write did not reach the orchestra",
         );
+        await csound.setControlChannel("unknown", 1);
+        check((await csound.getControlChannel("unknown")) === 1, "live channel creation failed");
+        await until(
+          async () => (await csound.getControlChannel("late")) === 12,
+          "late numeric channel was inaccessible",
+        );
+        await csound.setStringChannel("label", "text");
+        check((await csound.getStringChannel("label")) === "text", "live string channel failed");
         for (const action of [
-          () => csound.setControlChannel("unknown", 1),
-          () => csound.getControlChannel("late"),
           () => csound.getControlChannel("label"),
-          () => csound.getStringChannel("label"),
-          () => csound.setStringChannel("label", "text"),
           () => csound.event(1, [1, 0, 1024, 10, 1]),
           () => csound.event(2, [NaN]),
         ])
@@ -415,8 +419,8 @@ endin
             "delayed end did not advance score time",
           );
         check(
-          (await csound.getControlChannel("unknown")) === 0,
-          "rejected channel write created a value",
+          (await csound.getControlChannel("unknown")) === 1,
+          "live channel value did not survive end",
         );
         check((await csound.getControlChannel("late")) === 12, "late channel init did not finish");
         await delay(50);
@@ -425,9 +429,7 @@ endin
       }
       await csound.terminateInstance();
       active.splice(active.indexOf(csound), 1);
-      checks.push(
-        "numeric channels use declared values, reject late/string access, and refresh after reset",
-      );
+      checks.push("numeric and string channels support live updates and clear values after reset");
       checks.push("empty, short and delayed end events stop once and settle pending calls");
       if (gatedBundle)
         checks.push("numeric channels progress during blocked init; end waits for its join");
@@ -448,7 +450,7 @@ endin
       active.push(csound);
       await csound.setOption("-odac -m0 --daemon");
       check((await csound.compileOrc(orchestra)) === 0, "race setup compilation failed");
-      // Set the native mode first, then queue unsafe calls during startup.
+      // Set the native mode first, then queue calls during startup.
       // This tests startup admission without racing option delivery.
       check((await csound.setOption("--realtime")) === 0, "startup flag failed");
       const results = await Promise.allSettled([
@@ -468,21 +470,20 @@ endin
           ),
       );
       check(
-        results
-          .slice(1)
-          .every(
-            (result) =>
-              result.status === "rejected" &&
-              /requires? stopped realtime performance/.test(result.reason.message),
-          ),
-        "startup queue admitted compilation or filesystem access after native realtime activation",
+        results[1].status === "fulfilled" && results[1].value === 0,
+        "startup queue did not complete live compilation",
+      );
+      check(
+        results[2].status === "rejected" &&
+          /requires? stopped realtime performance/.test(results[2].reason.message),
+        "startup queue admitted filesystem access after native realtime activation",
       );
       check((await csound.isRealtime()) === 1, "startup lost the realtime flag");
       await csound.stop();
       await csound.reset();
       await csound.terminateInstance();
       active.splice(active.indexOf(csound), 1);
-      checks.push("startup rejects queued compile and filesystem changes");
+      checks.push("startup completes queued compilation and rejects filesystem changes");
     }
     async function localEngine(options) {
       const csound = await Csound(options);

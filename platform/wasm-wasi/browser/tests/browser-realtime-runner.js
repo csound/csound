@@ -15,6 +15,7 @@ if (!existsSync(production) || !probe || !existsSync(probe)) {
 }
 const routes = new Map([
   ["/", [path.join(browserDir, "tests/browser-realtime.html"), "text/html"]],
+  ["/live-api", [path.join(browserDir, "tests/browser-realtime-api.html"), "text/html"]],
   ["/unisolated", [path.join(browserDir, "tests/browser-realtime.html"), "text/html"]],
   ["/dist/csound.js", [production, "text/javascript"]],
   ["/probe/csound.js", [probe, "text/javascript"]],
@@ -92,6 +93,8 @@ try {
     : [
         "/",
         "/?probe",
+        "/live-api",
+        "/live-api?probe",
         "/?mode=singlethread",
         "/?mode=messageport",
         "/?mode=plugins",

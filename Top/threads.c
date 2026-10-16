@@ -196,6 +196,22 @@ typedef struct {
 } CsoundWasiThreadStart;
 
 static _Thread_local int32_t csoundWasiWorker;
+static _Thread_local CSOUND_WASI_COMPILE_JUMP *csoundWasiCompileJump;
+
+CSOUND_WASI_COMPILE_JUMP *csoundWasiCompileJumpContext(CSOUND *csound)
+{
+    return csoundWasiCompileJump != NULL &&
+           csoundWasiCompileJump->csound == csound
+        ? csoundWasiCompileJump : NULL;
+}
+
+CSOUND_WASI_COMPILE_JUMP *csoundWasiSwapCompileJumpContext(
+    CSOUND_WASI_COMPILE_JUMP *context)
+{
+    CSOUND_WASI_COMPILE_JUMP *previous = csoundWasiCompileJump;
+    csoundWasiCompileJump = context;
+    return previous;
+}
 
 int32_t csoundWasiIsWorkerThread(void)
 {

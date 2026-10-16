@@ -211,27 +211,47 @@ The shared host prepares four child Workers against fixed 256 MiB Wasm
 memory. `src/shared-memory-max.txt` sets this limit for the engine, plugins,
 and browser bundle. Change that file and rebuild all three together; CMake
 rejects a conflicting `CSOUND_WASI_MAX_MEMORY` override. Csound uses its existing
-init pthread when the flag is set. The UI owns all five workers, so it can end a failed engine even if the render worker
-waits in a join. The AudioWorklet consumes audio from the shared ring. Wasm
+init pthread when the flag is set. The UI owns all five workers, so it can end a
+failed engine even if the render worker waits in a join. The AudioWorklet
+consumes audio from the shared ring. Wasm
 constructors run once, before the child workers become ready.
 
-With `--realtime`, compile and preload while stopped. During performance the
-wrapper accepts numeric note and end events, numeric control channels, MIDI,
-the sample clock, fixed audio settings, mode queries, and pause/resume/stop.
-`event(2, [])` ends the performance; `[0, delay]` schedules its end in seconds.
-The event promise confirms admission; `realtimePerformanceEnded` fires after
-Csound joins background init and the browser releases the audio node. Queued
-calls settle or reject when performance ends.
+With `--realtime`, the browser accepts `compileOrc()`, `evalCode()`, and string
+channel reads and writes during playback. A separate Csound thread runs these
+calls in order. Compilation resolves after the orchestra has merged and global
+init has finished; evaluation resolves with that request's return value. A
+syntax error returns the native failure result and leaves later calls usable.
 
-Declare numeric channels with global `chn_k` statements or set them before
-`start()`. After global init and before the first render call, the host captures
-their addresses, then uses atomic loads and stores without channel lookup or
-allocation. Declare channels needed during playback before start, including
-those used by later instrument init. Reset clears these saved addresses.
-String channels can allocate and lock, so their APIs require stopped performance.
-Compile and filesystem calls also require a stop. Table events remain restricted
-because the score queue still runs GEN work on the render thread; supporting
-them needs a separate change to table generation.
+```js
+await cs.setStringChannel("source", "new live code");
+const length = await cs.evalCode('return strlen(chnget:S("source"))');
+await cs.compileOrc('instr 2\n a1 oscili 0.1, 660\n out a1\nendin');
+await cs.event(0, [2, 0, 0.25]);
+```
+
+Rendering and the sample clock continue while compilation or evaluation runs.
+Those calls still share Csound's init mutex with note initialization: a long
+edit or global init can delay new notes even while existing voices keep playing.
+This removes parsing and evaluation from the render worker; it does not promise
+zero underruns or a fixed edit latency. Application code must also coordinate
+changes to state that its running instruments read.
+
+Numeric channels declared before `start()` use saved addresses and atomic
+loads/stores. Channels created later use the control thread for safe lookup;
+new channel writes can also create their storage. String reads copy under the
+channel lock so a concurrent resize cannot overrun the result buffer.
+
+Numeric note and end events, MIDI, the sample clock, fixed audio settings, mode
+queries, and pause/resume/stop remain available. `event(2, [])` ends performance;
+`[0, delay]` schedules its end in seconds. The event promise confirms admission;
+`realtimePerformanceEnded` fires after Csound joins background work and the
+browser releases the audio node.
+
+Filesystem calls, score text, table changes, and full CSD compilation still
+require stopped performance. The control thread cannot open the render worker's
+files: live `#include` and file-dependent global init are unsupported, even for
+preloaded files. Expand includes before submitting source, or compile that code
+while stopped. Queuing a table event does not move GEN work off the render thread.
 Resume before submitting engine calls while the shared host is paused.
 
 Dynamic plugins work in all modes. Rebuild plugins with the matching
@@ -259,16 +279,21 @@ background init.
 
 `event(0, pfields)` takes 3–64 finite numbers in active realtime mode and
 requests asynchronous note admission. The shared host holds at most 256 API
-calls and sends at most 32 per batch. A resolved call confirms dispatch, not
-note init or audible output. Native queue overflow follows Csound's diagnostics.
+calls and sends at most 32 per batch. The background control queue has four
+slots, including its running request, and accepts at most 1 MiB of UTF-8 text
+per request; calls reject when either limit is exceeded. A resolved note-event
+call confirms dispatch, not note init or audible output. Native queue overflow
+follows Csound's diagnostics.
 A timeout removes pending host work but cannot undo a call already sent. In
-realtime mode, stop rejects pending work; a later run never replays it. Without
-the flag, completion keeps the existing API call behavior. MIDI uses a separate
+realtime mode, stop rejects queued control work and lets the running request
+finish before cleanup; a later run never replays old work. Without the flag,
+completion keeps the existing API call behavior. MIDI uses a separate
 1,024-packet ring and rejects full writes without replacing unread packets.
 
-Normal stop/reset waits for init to finish. It cannot cancel an arbitrary
-opcode. A transport timeout or fatal worker error rejects pending calls and
-ends the instance. Create a new instance afterward. `terminateInstance()` also
+Normal stop/reset waits for init and the control thread to finish. It cannot
+cancel an arbitrary opcode. A transport timeout or fatal worker error rejects
+pending calls and ends the instance. Create a new instance afterward.
+`terminateInstance()` also
 discards all workers and shared engine state.
 
 To run the Chrome checks, build a second wrapper with the test-only init gate:
@@ -287,7 +312,8 @@ stay outside the published `lib/` directory; the fixture build leaves `dist/` on
 the production engine. The gate is absent from normal artifacts. The checks
 cover flag activation,
 reset, shared C/C++ plugins, local modes without isolation headers, audio and
-clock progress during held init, and shutdown. They do not establish a latency
+clock progress during held init and evaluation, live compiler error recovery,
+ordered API results, and shutdown. They do not establish a latency
 bound or make every opcode safe for concurrent init. Set
 `CSOUND_BROWSER_ENGINE=firefox` to run them in Firefox.
 

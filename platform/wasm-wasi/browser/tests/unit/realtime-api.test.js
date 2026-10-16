@@ -21,7 +21,7 @@ describe("active realtime API", () => {
       assert.throws(() => assertRealtimeCallAllowed("csoundEvent", [type, fields]), TypeError);
   });
 
-  it("allows numeric control access without opening string or compiler APIs", () => {
+  it("validates channel names and values before background submission", () => {
     assert.doesNotThrow(() => assertRealtimeCallAllowed("csoundGetControlChannel", ["gain"]));
     assert.doesNotThrow(() => assertRealtimeCallAllowed("csoundSetControlChannel", ["gain", 0.5]));
     for (const name of ["", "bad\0name", 12, undefined])
@@ -31,12 +31,38 @@ describe("active realtime API", () => {
         () => assertRealtimeCallAllowed("csoundSetControlChannel", ["gain", value]),
         TypeError,
       );
-    for (const name of [
-      "csoundSetStringChannel",
-      "csoundGetStringChannel",
-      "csoundCompileOrc",
-      "csoundInputMessageAsync",
+    assert.doesNotThrow(() => assertRealtimeCallAllowed("csoundGetStringChannel", ["source"]));
+    assert.doesNotThrow(() => assertRealtimeCallAllowed("csoundSetStringChannel", ["source", ""]));
+    for (const value of [undefined, 42, "bad\0value"])
+      assert.throws(
+        () => assertRealtimeCallAllowed("csoundSetStringChannel", ["source", value]),
+        TypeError,
+      );
+  });
+
+  it("admits code and scalar queries but rejects unsafe calls", () => {
+    for (const api of ["csoundCompileOrc", "csoundEvalCode"]) {
+      assert.doesNotThrow(() => assertRealtimeCallAllowed(api, ["return 42"]));
+      for (const value of [undefined, 42, "bad\0code"])
+        assert.throws(() => assertRealtimeCallAllowed(api, [value]), TypeError);
+    }
+    for (const api of [
+      "csoundGetKr",
+      "csoundGetChannels",
+      "csoundGetNchnlsInput",
+      "csoundGet0dBFS",
+      "csoundGetA4",
+      "csoundGetScoreTime",
+      "csoundGetScoreOffsetSeconds",
+      "csoundIsScorePending",
+      "csoundGetVersion",
+      "csoundGetAPIVersion",
+      "csoundGetSizeOfCsFloat",
+      "csoundGetSizeOfCsDouble",
+      "csoundGetSizeOfMYFLT",
     ])
-      assert.throws(() => assertRealtimeCallAllowed(name, []), /requires stopped/);
+      assert.doesNotThrow(() => assertRealtimeCallAllowed(api, []));
+    for (const api of ["csoundInputMessageAsync", "csoundTableCopyIn", "csoundCompileCSD"])
+      assert.throws(() => assertRealtimeCallAllowed(api, []), /requires stopped/);
   });
 });
