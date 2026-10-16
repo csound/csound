@@ -107,7 +107,9 @@ if (
   sharedMemoryMax > 4294967296 ||
   sharedMemoryMax % 65536 !== 0
 )
-  throw new Error("Shared Wasm memory limit must be a positive whole number of pages");
+  throw new Error(
+    "Shared Wasm memory limit must be a positive byte count, a multiple of 65536, and at most 4 GiB",
+  );
 fs.writeFileSync(
   path.join(rootDir, "dist", "__csound_wasm.inline.js"),
   inlineArraybuffer(binaries.threaded || binaries.baseline, "binary.wasm"),

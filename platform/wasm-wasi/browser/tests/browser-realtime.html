@@ -266,7 +266,7 @@ f0 3600
       active.splice(active.indexOf(csound), 1);
       checks.push(`${mode}: reset restores synchronous mode and APIs; restart and teardown`);
     }
-    async function fatalWhileJoining() {
+    async function fatalWhileJoining(useEndEvent = false) {
       const csound = await Csound({ autoConnect: false });
       active.push(csound);
       await csound.setOption("-odac -m0 --daemon --realtime");
@@ -280,8 +280,7 @@ f0 3600
       await csound.event(0, [9, 0, 60]);
       await until(() => Atomics.load(probe, 0) === 1, "fatal probe did not enter init");
       let settled = false;
-      const stop = csound
-        .stop()
+      const stop = (useEndEvent ? csound.event(2, []) : csound.stop())
         .then(() => csound.reset())
         .then(
           () => {
@@ -303,6 +302,135 @@ f0 3600
       await csound.terminateInstance();
       active.splice(active.indexOf(csound), 1);
       checks.push("child trap rejects a blocked join through the direct UI error path");
+    }
+    async function endEventsAndChannels() {
+      const csound = await Csound({ autoConnect: false });
+      active.push(csound);
+      const messages = [];
+      csound.on("message", (message) => messages.push(message));
+      let ends = 0;
+      csound.on("realtimePerformanceEnded", () => {
+        ends++;
+      });
+      const forms = [[], [0], [0, 0.25]];
+      for (let pass = 0; pass < forms.length; pass++) {
+        const input = pass === 0 ? "gain" : "fresh";
+        await csound.setOption("-odac -m0 --daemon --realtime");
+        check(
+          (await csound.compileOrc(
+            orchestra +
+              `
+chn_k "${input}", 3
+chn_k "meter", 3
+chn_S "label", 3
+instr 3
+  kin chnget "${input}"
+  chnset kin * 2, "meter"
+endin
+instr 4
+  chnset 12, "late"
+endin
+` +
+              (gatedBundle && pass === 0 ? "\ninstr 9\n test_wasi_browser_hold\nendin\n" : ""),
+          )) === 0,
+          `channel test compile failed on pass ${pass}: ${messages.join("\n")}`,
+        );
+        await csound.setControlChannel("preset", 0.125);
+        check((await csound.start()) === 0, "channel test start failed");
+        await (await csound.getAudioContext()).resume();
+        check((await csound.getControlChannel("preset")) === 0.125, "pre-start channel was lost");
+        if (pass > 0)
+          await rejects(
+            () => csound.getControlChannel("gain"),
+            "reset retained a stale channel pointer",
+          );
+        await csound.event(0, [3, 0, 60]);
+        await csound.event(0, [4, 0, 0.01]);
+        await csound.setControlChannel(input, 0.375);
+        await until(
+          async () => (await csound.getControlChannel("meter")) === 0.75,
+          "numeric channel write did not reach the orchestra",
+        );
+        for (const action of [
+          () => csound.setControlChannel("unknown", 1),
+          () => csound.getControlChannel("late"),
+          () => csound.getControlChannel("label"),
+          () => csound.getStringChannel("label"),
+          () => csound.setStringChannel("label", "text"),
+          () => csound.event(1, [1, 0, 1024, 10, 1]),
+          () => csound.event(2, [NaN]),
+        ])
+          await rejects(action, "unsafe active call was accepted");
+        const held = gatedBundle && pass === 0;
+        const probe = csound["__threadProbe"];
+        if (held) {
+          await csound.event(0, [9, 0, 60]);
+          await until(() => Atomics.load(probe, 0) === 1, "end test init gate did not close");
+          await csound.setControlChannel(input, 0.25);
+          await until(
+            async () => (await csound.getControlChannel("meter")) === 0.5,
+            "numeric channels blocked behind background init",
+          );
+        }
+        const before = Number(await csound.getCurrentTimeSamples());
+        // Queue more than one callback batch. End must settle every call,
+        // including those left behind when performKsmps reports completion.
+        const admission = csound.event(2, forms[pass]);
+        const pending = Promise.allSettled(
+          Array.from({ length: 128 }, () => csound.getCurrentTimeSamples()),
+        );
+        await admission;
+        let lateStart;
+        if (held) {
+          await delay(150);
+          check(ends === pass, "end returned before joining background init");
+          let startSettled = false;
+          lateStart = csound.start().finally(() => {
+            startSettled = true;
+          });
+          await delay(50);
+          check(!startSettled, "start replaced a performance still waiting for init");
+          Atomics.store(probe, 1, 1);
+          Atomics.notify(probe, 1);
+        }
+        if (forms[pass].length === 2) {
+          await delay(50);
+          check(ends === pass, "delayed end ran immediately");
+        }
+        await until(() => ends === pass + 1, "end event did not finish browser shutdown");
+        if (lateStart)
+          check((await lateStart) !== 0, "restart without reset unexpectedly succeeded");
+        const results = await pending;
+        check(
+          results.every(
+            (result) =>
+              result.status === "fulfilled" ||
+              /ended performance|Performance ended/.test(result.reason.message),
+          ),
+          "end left pending calls timed out or failed for another reason",
+        );
+        if (forms[pass].length === 2)
+          check(
+            Number(await csound.getCurrentTimeSamples()) - before >= 48000 * 0.2,
+            "delayed end did not advance score time",
+          );
+        check(
+          (await csound.getControlChannel("unknown")) === 0,
+          "rejected channel write created a value",
+        );
+        check((await csound.getControlChannel("late")) === 12, "late channel init did not finish");
+        await delay(50);
+        check(ends === pass + 1, "end event completed more than once");
+        await csound.reset();
+      }
+      await csound.terminateInstance();
+      active.splice(active.indexOf(csound), 1);
+      checks.push(
+        "numeric channels use declared values, reject late/string access, and refresh after reset",
+      );
+      checks.push("empty, short and delayed end events stop once and settle pending calls");
+      if (gatedBundle)
+        checks.push("numeric channels progress during blocked init; end waits for its join");
     }
     async function resetBeforeStart() {
       const csound = await Csound({ autoConnect: false });
@@ -763,10 +891,14 @@ endin
         check(crossOriginIsolated, "test server did not isolate the page");
         await resetBeforeStart();
         await queuedCallsDuringStartup();
+        await endEventsAndChannels();
         await run(false);
         await run(true);
         await run(true, true);
-        if (gatedBundle) await fatalWhileJoining();
+        if (gatedBundle) {
+          await fatalWhileJoining();
+          await fatalWhileJoining(true);
+        }
       }
       window.__csoundRealtimeResult = { ok: true, checks };
     } catch (error) {

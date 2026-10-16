@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { assertNumericEvent } from "../utils/numeric-events.js";
 import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.js";
 
 /*
@@ -26,14 +27,7 @@ import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.
  * @function
  */
 export const csoundEvent = (wasm) => (csound, type, pfields) => {
-  if (
-    ![0, 1, 2].includes(type) ||
-    !Array.isArray(pfields) ||
-    pfields.length > 64 ||
-    ![...pfields].every(Number.isFinite) ||
-    (type === 0 && pfields.length < 3)
-  )
-    throw new TypeError("event expects a type (0, 1 or 2) and up to 64 numeric p-fields");
+  assertNumericEvent(type, pfields);
   const pointer = wasm.exports["allocFloatArray"](Math.max(1, pfields.length));
   if (!pointer) throw new Error("Could not allocate event p-fields");
   try {
@@ -107,8 +101,7 @@ csoundReadlineSubmit["toString"] = () => "readlineSubmit = async (requestId, tex
 
 /**
  * Retrieves the value of control channel identified by channelName.
- * If the err argument is not NULL, the error (or success) code finding
- * or accessing the channel is stored in it.
+ * Active --realtime accepts numeric channels declared before start.
  * @function
  */
 export const csoundGetControlChannel = (wasm) => (csound, channelName) => {

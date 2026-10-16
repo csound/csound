@@ -679,6 +679,10 @@ class SharedArrayBufferMainThread {
         case "csoundStart": {
           const csoundStart = async function () {
             if (this.threadError) throw this.threadError;
+            // Natural end can close audio while native cleanup still joins
+            // init. Do not replace that performance's completion generation.
+            if (this.eventPromises.isWaitingToStop())
+              await this.guardThreadedCall(this.eventPromises.waitForStop());
             if (!csoundInstance || typeof csoundInstance !== "number") {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;

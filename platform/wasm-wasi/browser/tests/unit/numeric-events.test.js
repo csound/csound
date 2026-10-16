@@ -53,6 +53,18 @@ describe("numeric score events", () => {
     assert.deepEqual(state.freed, [64]);
   });
 
+  it("submits short end events with valid storage even for no p-fields", () => {
+    for (const fields of [[], [0], [0, 0.25]]) {
+      const state = fixture((memory, csound, type, pointer, length, async) => {
+        assert.deepEqual([type, length, async], [2, fields.length, 1]);
+        assert.deepEqual([...new Float64Array(memory.buffer, pointer, length)], fields);
+      });
+      event(state.wasm)(123, 2, fields);
+      assert.deepEqual(state.allocations, [Math.max(1, fields.length)]);
+      assert.deepEqual(state.freed, [64]);
+    }
+  });
+
   it("rejects invalid or oversized events before allocating", () => {
     const state = fixture(() => assert.fail("native event must not run"));
     for (const [type, fields] of [

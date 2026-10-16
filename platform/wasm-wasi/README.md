@@ -216,9 +216,22 @@ waits in a join. The AudioWorklet consumes audio from the shared ring. Wasm
 constructors run once, before the child workers become ready.
 
 With `--realtime`, compile and preload while stopped. During performance the
-wrapper accepts numeric note events, MIDI, the sample clock, fixed audio
-settings, mode queries, and pause/resume/stop. Compilation, filesystem calls,
-table changes, and other engine APIs reject while realtime mode is active.
+wrapper accepts numeric note and end events, numeric control channels, MIDI,
+the sample clock, fixed audio settings, mode queries, and pause/resume/stop.
+`event(2, [])` ends the performance; `[0, delay]` schedules its end in seconds.
+The event promise confirms admission; `realtimePerformanceEnded` fires after
+Csound joins background init and the browser releases the audio node. Queued
+calls settle or reject when performance ends.
+
+Declare numeric channels with global `chn_k` statements or set them before
+`start()`. After global init and before the first render call, the host captures
+their addresses, then uses atomic loads and stores without channel lookup or
+allocation. Declare channels needed during playback before start, including
+those used by later instrument init. Reset clears these saved addresses.
+String channels can allocate and lock, so their APIs require stopped performance.
+Compile and filesystem calls also require a stop. Table events remain restricted
+because the score queue still runs GEN work on the render thread; supporting
+them needs a separate change to table generation.
 Resume before submitting engine calls while the shared host is paused.
 
 Dynamic plugins work in all modes. Rebuild plugins with the matching

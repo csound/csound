@@ -8,6 +8,7 @@ import { csoundWasiJsMessageCallback } from "./module.js";
 import { createWasiThreadHost } from "./utils/wasi-threads.js";
 import { createThreadedPluginRegistry } from "./utils/threaded-plugins.js";
 import { isWasmBinary } from "./utils/wasm-dylink.js";
+import { assertBrowserReactor } from "./utils/browser-reactor.js";
 import {
   createWasiClockImports,
   createWasiThreadEnvironment,
@@ -26,9 +27,7 @@ export default async function loadRealtimeWasm({
       ? input
       : new Inflate(input).decompress();
   const module = await WebAssembly.compile(binary);
-  const names = new Set(WebAssembly.Module.exports(module).map(({ name }) => name));
-  if (!names.has("wasi_thread_start") || !names.has("_initialize"))
-    throw new Error("Expected the threaded Csound browser reactor");
+  assertBrowserReactor(module);
   const memory = new WebAssembly.Memory({
     initial: sharedMemoryPages,
     maximum: sharedMemoryPages,

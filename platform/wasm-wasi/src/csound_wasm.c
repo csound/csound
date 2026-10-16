@@ -321,6 +321,15 @@ CSOUND *csoundCreateWasi() {
   return csound;
 }
 
+/* A perform return closes admission but does not join the init worker.
+   The browser calls this only after leaving its render loop, before exposing
+   completion or accepting stopped-state APIs. Keep state for reads until reset. */
+int32_t csound_cleanup(CSOUND *csound);
+__attribute__((used))
+int32_t csoundCleanupWasi(CSOUND *csound) {
+  return csound_cleanup(csound);
+}
+
 // same as csoundReset but also loads
 // opcodes which need re-initialization to
 // be callable (aka static_modules)
@@ -410,6 +419,42 @@ char* getMidiOutFileName(CSOUND *csound) {
   } else {
     return params->FMidiname;
   }
+}
+
+/* Snapshot numeric channel addresses after start, before the first perform call.
+   No score events have reached the init worker yet. The browser copies
+   names before freeing this array, then uses atomic values during performance.
+   Calling the generic channel API live would traverse (and may extend) the
+   channel hash table while the init worker can also create channels. */
+__attribute__((used))
+uint32_t *csoundGetControlChannelsWasi(CSOUND *csound) {
+  controlChannelInfo_t *channels = NULL;
+  int32_t count = csoundListChannels(csound, &channels);
+  uint32_t *snapshot = NULL;
+  if (count < 0 || count > (INT_MAX / (int) sizeof(uint32_t) - 1) / 2)
+    goto done;
+  snapshot = malloc((1 + (size_t) count * 2) * sizeof(uint32_t));
+  if (snapshot == NULL)
+    goto done;
+  snapshot[0] = 0;
+  for (int32_t i = 0; i < count; ++i) {
+    void *value;
+    if ((channels[i].type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
+      continue;
+    if (csoundGetChannelPtr(csound, &value, channels[i].name,
+                           CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL |
+                           CSOUND_OUTPUT_CHANNEL) != 0) {
+      free(snapshot);
+      snapshot = NULL;
+      goto done;
+    }
+    uint32_t offset = 1 + snapshot[0]++ * 2;
+    snapshot[offset] = (uint32_t) (uintptr_t) channels[i].name;
+    snapshot[offset + 1] = (uint32_t) (uintptr_t) value;
+  }
+done:
+  csoundDeleteChannelList(csound, channels);
+  return snapshot;
 }
 
 cs_double csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {

@@ -273,12 +273,12 @@ declare interface CsoundObj {
   readlineSubmit: (requestId: number, text: string) => Promise<number>;
   /**
    * Retrieves the value of control channel identified by channelName.
-   * If the err argument is not NULL, the error (or success) code finding
-   * or accessing the channel is stored in it.
+   * Active --realtime accepts numeric channels declared before start.
    */
-  getControlChannel: (channelName: string) => Promise<undefined>;
+  getControlChannel: (channelName: string) => Promise<number>;
   /**
-   * Sets the value of control channel identified by channelName
+   * Sets the value of control channel identified by channelName.
+   * Active --realtime accepts finite values for channels declared before start.
    */
   setControlChannel: (channelName: string, value: number) => Promise<undefined>;
   /**
@@ -499,7 +499,12 @@ declare interface CsoundObj {
    * Terminates an instances and all its workers, making disabling any futher uses of a given instance.
    */
   terminateInstance: () => Promise<void>;
-  /** Queue a numeric event: type 0 = instrument, 1 = table, 2 = end. */
+  /**
+   * Queue a numeric event: type 0 = instrument, 1 = table, 2 = end.
+   * Active --realtime accepts notes and end events, including an empty end
+   * event. The promise confirms admission, not performance completion.
+   * Table events require stopped realtime performance.
+   */
   event: (type: 0 | 1 | 2, pfields: number[]) => Promise<void>;
   /**
    * Sets `-iadc`, requests microphone access, and prepares the input stream.

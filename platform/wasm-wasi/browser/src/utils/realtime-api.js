@@ -6,10 +6,14 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  */
 
+import { assertNumericEvent } from "./numeric-events.js";
+
 const allowed = new Set([
   "csoundSupportsRealtime",
   "csoundIsRealtime",
   "csoundEvent",
+  "csoundGetControlChannel",
+  "csoundSetControlChannel",
   "csoundGetCurrentTimeSamples",
   "csoundGetSr",
   "csoundGetKsmps",
@@ -17,16 +21,18 @@ const allowed = new Set([
 ]);
 
 export function assertRealtimeCallAllowed(apiKey, arguments_) {
-  // Only numeric note events enter the realtime init queue. Table generation
-  // and score-end events keep the generic API's short forms when stopped.
-  if (!allowed.has(apiKey) || (apiKey === "csoundEvent" && arguments_[0] !== 0))
-    throw new Error(`${apiKey} requires stopped realtime performance`);
-  if (
-    apiKey === "csoundEvent" &&
-    (!Array.isArray(arguments_[1]) ||
-      arguments_[1].length > 64 ||
-      arguments_[1].length < 3 ||
-      ![...arguments_[1]].every(Number.isFinite))
-  )
-    throw new TypeError("Instrument events require 3 to 64 finite numeric p-fields");
+  if (!allowed.has(apiKey)) throw new Error(`${apiKey} requires stopped realtime performance`);
+  if (apiKey === "csoundEvent") {
+    assertNumericEvent(arguments_[0], arguments_[1]);
+    // The score queue does not move GEN work off the render thread:
+    // process_score_event still calls csoundFTCreate there for table events.
+    if (arguments_[0] === 1)
+      throw new Error("Table generation requires stopped realtime performance");
+  }
+  if (apiKey === "csoundGetControlChannel" || apiKey === "csoundSetControlChannel") {
+    if (typeof arguments_[0] !== "string" || !arguments_[0] || arguments_[0].includes("\0"))
+      throw new TypeError("Control channel names must be nonempty strings without NUL");
+    if (apiKey === "csoundSetControlChannel" && !Number.isFinite(arguments_[1]))
+      throw new TypeError("Control channel values must be finite numbers");
+  }
 }

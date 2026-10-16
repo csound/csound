@@ -9,6 +9,8 @@ const module = await WebAssembly.compile(fs.readFileSync(process.argv[2]));
 const maximum =
   Number(fs.readFileSync(new URL("../../src/shared-memory-max.txt", import.meta.url), "utf8")) /
   65536;
+const { assertBrowserReactor } = await import("../../browser/src/utils/browser-reactor.js");
+assertBrowserReactor(module);
 const memory = new WebAssembly.Memory({ initial: 256, maximum, shared: true });
 const wasi = new WASI();
 wasi.setMemory(memory);
@@ -91,6 +93,29 @@ assert.equal(compileCsd(), 0);
 assert.equal(api.csoundIsRealtime(csound), 0);
 api.csoundResetWasi(csound);
 hostSupportsThreads = true;
+
+// Global declarations run inside start; pre-start API writes also survive it.
+// Live access will use only these stable addresses, not the channel hash table.
+const { createRealtimeControlChannels } =
+  await import("../../browser/src/utils/realtime-control-channels.js");
+const runtime = { exports: api, wasi: { memory } };
+assert.equal(compile('chn_k "gain", 3\nchn_S "text", 3\nchn_a "audio", 3'), 0);
+stringCall("csoundSetControlChannel", "preset", 0.25);
+assert.equal(stringCall("csoundSetOption", "-n -m0"), 0);
+assert.equal(api.csoundStartWasi(csound), 0);
+const controls = createRealtimeControlChannels(runtime, csound);
+controls.set("gain", 0.5);
+assert.equal(stringCall("csoundGetControlChannelWasi", "gain"), 0.5);
+assert.equal(controls.get("preset"), 0.25);
+stringCall("csoundSetControlChannel", "gain", 0.75);
+assert.equal(controls.get("gain"), 0.75);
+assert.equal(api.csoundCleanupWasi(csound), 0);
+assert.equal(api.csoundCleanupWasi(csound), 0);
+assert.equal(stringCall("csoundGetControlChannelWasi", "gain"), 0.75);
+for (const name of ["text", "audio", "unknown"])
+  assert.throws(() => controls.get(name), /before start/);
+api.csoundResetWasi(csound);
+assert.throws(() => createRealtimeControlChannels(runtime, csound).get("gain"), /before start/);
 
 assert.notEqual(compile("instr 1\nsyntax nonsense @@@\nendin"), 0);
 assert.equal(

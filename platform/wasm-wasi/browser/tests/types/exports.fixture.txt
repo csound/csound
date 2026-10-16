@@ -109,3 +109,9 @@ void numericEvent;
 void browserCsound.event(3, [1, 0, 1]);
 // @ts-expect-error Numeric events do not parse score strings.
 void browserCsound.event(0, "i1 0 1");
+
+async function numericChannelValue() {
+  const csound = await createCsound();
+  const value: number = await csound.getControlChannel("gain");
+  await csound.setControlChannel("gain", value);
+}

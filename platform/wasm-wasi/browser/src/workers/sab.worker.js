@@ -14,6 +14,7 @@
  */
 
 import * as Comlink from "../utils/comlink.js";
+import { createRealtimeControlChannels } from "../utils/realtime-control-channels.js";
 import { assertRealtimeCallAllowed } from "../utils/realtime-api.js";
 import { waitForSABResume, waitForSABOutput } from "../utils/sab-transport.js";
 import { drainMidiPackets } from "../utils/sab-midi-queue.js";
@@ -29,13 +30,14 @@ import { handleCsoundStart } from "../workers/common.utils";
 import { AUDIO_STATE, RING_BUFFER_SIZE, initialSharedState } from "../constants";
 
 /**
- * @type {Map.<LibcsoundUncloned>}
+ * @type {Map<string, *>}
  */
 let combined;
 let pollPromise;
 let unlockPromise;
 let threadedMode = false;
 let activeGeneration = -1;
+let realtimeControls;
 
 const callUncloned = async (k, arguments_) => {
   const caller = combined.get(k);
@@ -161,10 +163,11 @@ const sabCreateRealtimeAudioThread =
           libraryCsound.csoundStop(csound);
           libraryCsound.csoundPerformKsmps(csound);
         }
+        Atomics.store(audioStatePointer, AUDIO_STATE.IS_PERFORMING, 0);
         log(`triggering realtimePerformanceEnded event`)();
         workerMessagePort.broadcastPlayState("realtimePerformanceEnded", performanceGeneration);
         log(`End of realtimePerformance loop!`)();
-        releaseStop(performanceGeneration);
+        releaseStop(performanceGeneration, csound);
         return true;
       } else {
         return false;
@@ -322,9 +325,13 @@ const initCallbackReplyPort = (response) => {
             throw new Error("Call belongs to an ended performance");
           // Options and start can overlap on the UI. Check the native mode
           // here too, before a call admitted under an older mode can execute.
-          if (threadedMode && combined.get("csoundIsRealtime")(argumentz[0]))
-            assertRealtimeCallAllowed(apiKey, argumentz.slice(1));
-          answerPayload["answer"] = caller && caller.apply({}, argumentz || []);
+          const realtime = threadedMode && combined.get("csoundIsRealtime")(argumentz[0]);
+          if (realtime) assertRealtimeCallAllowed(apiKey, argumentz.slice(1));
+          if (realtime && apiKey === "csoundGetControlChannel")
+            answerPayload["answer"] = realtimeControls.get(argumentz[1]);
+          else if (realtime && apiKey === "csoundSetControlChannel")
+            answerPayload["answer"] = realtimeControls.set(argumentz[1], argumentz[2]);
+          else answerPayload["answer"] = caller && caller.apply({}, argumentz || []);
         } catch (error) {
           answerPayload["error"] = error instanceof Error ? error.message : String(error);
         }
@@ -380,7 +387,7 @@ const renderFunction =
     }
     Atomics.store(audioStatePointer, AUDIO_STATE.IS_RENDERING, 0);
     workerMessagePort.broadcastPlayState("renderEnded", performanceGeneration);
-    releaseStop(performanceGeneration);
+    releaseStop(performanceGeneration, csound);
   };
 
 /** @export */
@@ -393,8 +400,13 @@ const initialize = async (payload) => {
   log(`initializing SABWorker and WASM`)();
   const workerMessagePort = initMessagePort({ port: messagePort });
   const callbacksRequest = () => callbackPort.postMessage("poll");
-  const releaseStop = (performanceGeneration) => {
+  const releaseStop = (performanceGeneration, csound) => {
     activeGeneration = -1;
+    realtimeControls = undefined;
+    // Score end only stops queue admission. Join init and close native I/O
+    // before the second completion signal releases pending host calls.
+    if (threadedMode && libraryCsound.csoundIsRealtime(csound))
+      wasm.exports["csoundCleanupWasi"](csound);
     const payload = {};
     payload["type"] = "releaseStop";
     payload["performanceGeneration"] = performanceGeneration;
@@ -443,6 +455,7 @@ const initialize = async (payload) => {
   const startHandler = async (_, arguments_) => {
     // Mirror every plugin before native start can launch an init thread.
     if (threaded) await wasm["prepareThreads"](arguments_["csound"]);
+    realtimeControls = undefined;
     activeGeneration = arguments_["performanceGeneration"];
     applyUserProvidedAudioParams({
       audioStateBuffer: arguments_ && arguments_["audioStateBuffer"],
@@ -476,7 +489,14 @@ const initialize = async (payload) => {
           releaseResumed,
         }),
       ),
+      () => {
+        // Global chn_k declarations run inside csoundStart. Snapshot after
+        // those inits, before performKsmps can feed the background init queue.
+        if (threaded && libraryCsound.csoundIsRealtime(arguments_["csound"]))
+          realtimeControls = createRealtimeControlChannels(wasm, arguments_["csound"]);
+      },
     )(arguments_);
+    if (status !== 0) realtimeControls = undefined;
     return threaded
       ? {
           // eslint-disable-next-line object-shorthand -- Keep wire keys across bundles.

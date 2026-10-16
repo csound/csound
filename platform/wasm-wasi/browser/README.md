@@ -59,6 +59,15 @@ before startup.
 On the shared worker host, set `--realtime` before `start()` to enable
 background init; omitting the flag keeps synchronous init. Reset clears it.
 
+During realtime playback, use numeric notes (`event(0, [instrument, start,
+duration, ...])`), end events (`event(2, [])` or `event(2, [0, delay])`), and
+numeric control channels declared before `start()`. Declare channels globally
+with `chn_k` or call `setControlChannel()` before start; live get/set uses atomic
+access to those values. Channels created later and string channels require a
+stop. Table events and compilation also require a stop: queuing a table event
+does not move GEN work off the render thread. The end-event promise confirms
+admission; wait for `realtimePerformanceEnded` for completed shutdown.
+
 The bundle contains one binary for all APIs. Explicit `useWorker: false`,
 `useSAB: false`, and the named `libcsound()` constructor use it locally with
 synchronous init. They need shared Wasm support but no isolation headers.
@@ -139,7 +148,7 @@ CsoundObj API.
         * [.setDebug(debug)](#CsoundObj.setDebug) ⇒ <code>Promise.&lt;undefined&gt;</code>
         * [.inputMessage(scoreEvent)](#CsoundObj.inputMessage) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.inputMessageAsync(scoreEvent)](#CsoundObj.inputMessageAsync) ⇒ <code>Promise.&lt;number&gt;</code>
-        * [.getControlChannel(channelName)](#CsoundObj.getControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.getControlChannel(channelName)](#CsoundObj.getControlChannel) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.setControlChannel(channelName, value)](#CsoundObj.setControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
         * [.getStringChannel(channelName)](#CsoundObj.getStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
         * [.setStringChannel(channelName, value)](#CsoundObj.setStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
@@ -447,10 +456,9 @@ without any pre-process parsing
 
 <a name="CsoundObj.getControlChannel"></a>
 
-### CsoundObj.getControlChannel(channelName) ⇒ <code>Promise.&lt;undefined&gt;</code>
+### CsoundObj.getControlChannel(channelName) ⇒ <code>Promise.&lt;number&gt;</code>
 Retrieves the value of control channel identified by channelName.
-If the err argument is not NULL, the error (or success) code finding
-or accessing the channel is stored in it.
+Active `--realtime` accepts numeric channels declared before start.
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
