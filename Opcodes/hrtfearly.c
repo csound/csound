@@ -265,8 +265,7 @@ static int32_t early_init(CSOUND *csound, early *p)
     int32_t *skipdel;
 
     /* order calculation */
-    int32_t impulses = 1;
-    int32_t temp = 2;
+    int32_t impulses;
 
     /* defs for delay lines */
     cs_float maxdist = FL(0.0);
@@ -451,23 +450,23 @@ static int32_t early_init(CSOUND *csound, early *p)
     /* how many sources? */
     if (threed)
       {
-        for(i = 1; i <= order; i++)
-          {
-            impulses += (4 * i);
-            if (i <= (order - 1))
-              /* sources = 2d impulses for order, plus 2 * each
-                 preceding no of impulses
-                 eg order 2: 2d = 1 + 4 + 8 = 13, 3d + 2*5 + 2 = 25*/
-              temp += 2*impulses;
-            else
-              impulses = impulses + temp;
-          }
+        /* sources = 2d impulses for order, plus 2 * each preceding no
+           of impulses, eg order 2: 13 + 2*5 + 2*1 = 25, which sums to
+           OEIS A001845: (2n + 1)(2n^2 + 2n + 3) / 3 */
+        int32_t f1 = 2 * order + 1;
+        int32_t f2 = 2 * order * order + 2 * order + 3;
+        if (f1 % 3 == 0)        /* n % 3 == 1 */
+          f1 /= 3;
+        else                    /* n % 3 == 0 or 2 */
+          f2 /= 3;
+        impulses = f1 * f2;
       }
     else
       {
-        for(i = 1; i <= order; i++)
-          /* there will be 4 * order additional impulses for each order*/
-          impulses += (4*i);
+        /* 1 direct impulse, plus 4 * i additional impulses for each
+           order i up to n: 1 + 4(1 + ... + n) = 2n^2 + 2n + 1, which is
+           OEIS A001844 */
+        impulses = 2 * order * (order + 1) + 1;
       }
     p->impulses =  impulses;
 
