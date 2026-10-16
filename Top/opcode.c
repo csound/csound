@@ -1196,12 +1196,15 @@ int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds) {
  */
 static int32_t check_consistency(OPCODEOBJ *obj, cs_float **args,
                           int32_t no, int32_t ni) {
-  int32_t n, i = no + 1;
-  cs_float **oargs = (cs_float **) (obj->dataspace + 1);
+  int32_t n;
+  // setup_args stores these, in udo->ar for UDOs
+  cs_float **oargs = obj->outargp, **iargs = obj->inargp;
+  if(oargs == NULL || iargs == NULL) return 1;
   for(n = 0; n < no; n++)
     if(oargs[n] != args[n]) return 1;
+  // inargs follow the opcode object arg
   for(n = 0; n < ni; n++)
-    if(oargs[i-1] != args[i]) return 1;
+    if(iargs[n] != args[no + 1 + n]) return 1;
   return 0;
 }
 
@@ -1294,9 +1297,12 @@ int32_t opcode_delete(CSOUND *csound, AOP *p) {
   if(obj->dataspace) {
     if(obj->dataspace->deinit != NULL)
       obj->dataspace->deinit(csound, obj->dataspace);
-    csound->Free(csound, obj->dataspace->optext->t.inlist);
-    csound->Free(csound, obj->dataspace->optext);
+    // a UDO dataspace stays linked in the instance's deactivation chain
+    // until after deinit, so it is kept, with its optext, for reuse by
+    // create on the next note
     if(obj->udo_flag == 0) {
+     csound->Free(csound, obj->dataspace->optext->t.inlist);
+     csound->Free(csound, obj->dataspace->optext);
      csound->Free(csound, obj->dataspace);
      obj->dataspace = NULL;
     }
@@ -1383,6 +1389,13 @@ int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
                            obj->dataspace->optext->t.oentry->opname,
                            obj->dataspace->optext->t.oentry->outypes,
                                obj->dataspace->optext->t.oentry->intypes);
+    // a pass-by-ref UDO body still points at the args seen at init
+    if(obj->udo_flag &&
+       user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK)
+      return csound->PerfError(csound, &(p->h),
+                               Str("could not rebind arguments "
+                                   "for opcode obj %s\n"),
+                               obj->dataspace->optext->t.oentry->opname);
    }
    if(obj->dataspace->perf != NULL)
        return obj->dataspace->perf(csound, obj->dataspace);
