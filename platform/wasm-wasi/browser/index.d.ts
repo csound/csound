@@ -588,7 +588,6 @@ declare type UgenFactoryPtr = number;
 declare type UgenPtr = number;
 declare type UgenVarPtr = number;
 declare type UgenGraphPtr = number;
-declare type UgenContextPtr = number;
 
 /**
  * Argument type enum for UGEN variables.
@@ -694,19 +693,39 @@ declare interface LibCsoundObj {
   /** Deletes a UGEN_FACTORY */
   csoundUgenFactoryDelete: (factory: UgenFactoryPtr) => number;
 
-  /* ==== UGEN Context API ==== */
-  /** Creates a new UGEN_CONTEXT for instrument-like state */
-  csoundUgenContextNew: (factory: UgenFactoryPtr) => UgenContextPtr;
-  /** Deletes a UGEN_CONTEXT */
-  csoundUgenContextDelete: (context: UgenContextPtr) => number;
-  /** Associates a UGEN with a context (call before init) */
-  csoundUgenSetContext: (ugen: UgenPtr, context: UgenContextPtr) => number;
-
   /* ==== UGEN Creation/Destruction ==== */
   /** Creates a new UGEN from opcode name and type strings */
   csoundUgenNew: (factory: UgenFactoryPtr, opName: string, outargTypes: string, inargTypes: string) => UgenPtr;
   /** Deletes a UGEN and frees resources */
   csoundUgenDelete: (ugen: UgenPtr) => number;
+
+  /* ==== UGEN Instrument functionality ==== */
+
+  /**
+   * Let ugen know how long the note would play.
+   * Call before init.
+   */
+  csoundUgenSetDuration: (ugen: UgenPtr, p3: number) => bool;
+  /**
+   * Makes ugen know that the note has been released
+   */
+  csoundUgenReleaseNote: (ugen: UgenPtr) => bool;
+  /**
+   * Offset the samples within audio buffer from the start
+   */
+  csoundUgenSetStartOffset: (ugen: UgenPtr, start: number) => bool;
+  /**
+   * Offet the samples within audio buffer from the end
+   */
+  csoundUgenSetEndOffset: (ugen: UgenPtr, end: number) => bool;
+  /**
+   * Sets start and end offsets to zero
+   */
+  csoundUgenResetOffsets: (ugen: UgenPtr) => bool;
+  /**
+   * Returns extra type the ugen will output non-zero values after note release
+   */
+  csoundUgenGetExtraTime: (ugen: UgenPtr) => number;
 
   /* ==== UGEN_VAR Handles ==== */
   /** Gets output variable at index (owned by UGEN) */

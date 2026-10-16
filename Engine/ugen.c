@@ -39,7 +39,6 @@
  * - User calls csoundUgenInit / csoundUgenPerform (or graph equivalents) to
  *   run the processing
  *
- * - context: required for things like hold, releasing, etc.
  * */
 
 #include "ugen_internal.h"
@@ -48,6 +47,7 @@
 #include "csound_orc_semantics.h"
 #include "pstream.h"
 #include <string.h>
+#include "csound_orc_compile.h"
 
 /* ============================================================
  *  Internal helpers
@@ -65,6 +65,85 @@ static const CS_TYPE* ugen_char_to_cs_type(char c) {
         case 'f': return &CS_VAR_TYPE_F;
         default:  return &CS_VAR_TYPE_K;
     }
+}
+
+// see csound_orc_semantics handle_optional_args
+/**
+ * Get default values for optional types
+ */
+static bool ugen_optional_default(char typeLetter, cs_float *out) {
+    switch (typeLetter) {
+        case 'o': case 'O': *out = FL(0.0); return true;
+        case 'p': case 'P': *out = FL(1.0); return true;
+        case 'v': case 'V': *out = FL(0.5); return true;
+        case 'j': case 'J': *out = FL(-1.0); return true;
+        case 'q': *out = FL(10.0); return true;
+        case 'h': *out = FL(127.0); return true;
+        default: return false;
+    }
+
+}
+
+// see csound_orc_semantics.c - handle_optional_args
+/**
+ * Some of the variadic variables allow for caller to supply noting
+ * if we encounter them at the end of the arg types, size of required
+ * concrete types is reduced by one for each such encounter
+ */
+static int32_t ugen_optional_in_varargs_num(CSOUND *csound, char* tps) {
+    char **tokens = split_args(csound, tps);
+    int32_t len = args_required(tps);
+    int32_t res = 0;
+    for (int32_t i = len - 1; i >= 0; i--) {
+        if (tokens[i][1] != '\0') break;
+        if (!strchr("MNmW", tokens[i][0])) break;
+        res += 1;
+    }
+    for (int32_t i = 0; tokens[i] != NULL; i++) {
+        csound->Free(csound, tokens[i]);
+    }
+    csound->Free(csound, tokens);
+    return res;
+}
+static int32_t ugen_optional_out_varargs_num(CSOUND *csound, char* tps) {
+    char **tokens = split_args(csound, tps);
+    int32_t len = args_required(tps);
+    int32_t res = 0;
+    for (int32_t i = len - 1; i >= 0; i--) {
+        if (tokens[i][1] != '\0') break;
+        if (!strchr("mzIXNvVF*", tokens[i][0])) break;
+        res += 1;
+    }
+    for (int32_t i = 0; tokens[i] != NULL; i++) {
+        csound->Free(csound, tokens[i]);
+    }
+    csound->Free(csound, tokens);
+    return res;
+}
+
+/**
+ * Set defaults for ugen optional variables
+ */
+static void ugen_set_default_in_values(
+    UGEN *ugen,
+    char *inargTypes
+) {
+    char **tokens = split_args(ugen->csound, inargTypes);
+    for (int32_t i = 0; tokens[i] != NULL && i < ugen->inCount; i++) {
+        cs_float d;
+        // if variable doesn't have default it doesn't mean it's not optional
+        if (tokens[i][1] == '\0') {
+            bool has_default = ugen_optional_default(tokens[i][0], &d);
+            if (has_default) {
+                UGEN_VAR *v = csoundUgenGetInVar(ugen, i);
+                csoundUgenVarSetValue(v, d);
+            }
+        }
+    }
+    for (int32_t i = 0; tokens[i] != NULL; i++) {
+        ugen->csound->Free(ugen->csound, tokens[i]);
+    }
+    ugen->csound->Free(ugen->csound, tokens);
 }
 
 /**
@@ -126,23 +205,7 @@ static void insds_init_from_csound(INSDS* insds, CSOUND* csound) {
     insds->onedksmps = csound->onedksmps;
     insds->onedkr = csound->onedkr;
     insds->kicvt = csound->kicvt;
-}
-
-/**
- * Copy INSDS fields from a source INSDS.
- */
-static void insds_init_from_insds(INSDS* dest, const INSDS* src) {
-    dest->csound = src->csound;
-    dest->esr = src->esr;
-    dest->pidsr = src->pidsr;
-    dest->sicvt = src->sicvt;
-    dest->onedsr = src->onedsr;
-    dest->ksmps = src->ksmps;
-    dest->ekr = src->ekr;
-    dest->kcounter = src->kcounter;
-    dest->onedksmps = src->onedksmps;
-    dest->onedkr = src->onedkr;
-    dest->kicvt = src->kicvt;
+    insds->csound = csound;
 }
 
 /**
@@ -221,13 +284,7 @@ static cs_float** get_arg_pointers(void* opcodeMem) {
 
 UGEN_FACTORY* csoundUgenFactoryNew(CSOUND* csound) {
     UGEN_FACTORY* factory = csound->Calloc(csound, sizeof(UGEN_FACTORY));
-    INSDS* insds = csound->Calloc(csound, sizeof(INSDS));
-
     factory->csound = csound;
-    factory->insds = insds;
-
-    /* Inherit values from CSOUND */
-    insds_init_from_csound(insds, csound);
 
     return factory;
 }
@@ -235,78 +292,90 @@ UGEN_FACTORY* csoundUgenFactoryNew(CSOUND* csound) {
 bool csoundUgenFactoryDelete(UGEN_FACTORY* factory) {
     if (factory == NULL) return false;
     CSOUND* csound = factory->csound;
-    free_instance_variables(csound, factory->insds);
-    csound->Free(csound, factory->insds);
     csound->Free(csound, factory);
     return true;
 }
 
-/* ============================================================
- *  Context API
- * ============================================================ */
-
-UGEN_CONTEXT* csoundUgenContextNew(UGEN_FACTORY* factory) {
-    CSOUND* csound = factory->csound;
-    UGEN_CONTEXT* ctx = csound->Calloc(csound, sizeof(UGEN_CONTEXT));
-    ctx->csound = csound;
-
-    /* Create a dedicated INSDS for this context so that UGENs
-       using it have their own hold/release state */
-    INSDS* insds = csound->Calloc(csound, sizeof(INSDS));
-    insds_init_from_insds(insds, factory->insds);
-    ctx->insds = insds;
-
-    return ctx;
-}
-
-bool csoundUgenContextDelete(UGEN_CONTEXT* context) {
-    if (context == NULL) return false;
-    CSOUND* csound = context->csound;
-    free_instance_variables(csound, context->insds);
-    csound->Free(csound, context->insds);
-    csound->Free(csound, context);
-    return true;
-}
-
-bool csoundUgenSetContext(UGEN* ugen, UGEN_CONTEXT* context) {
-    if (ugen == NULL || context == NULL) return false;
-    OPDS* opds = (OPDS*)ugen->opcodeMem;
-    ugen->insds = context->insds;
-    opds->insdshead = context->insds;
-    return true;
-}
 
 /* ============================================================
  *  UGEN Creation / Destruction
  * ============================================================ */
-
 UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
                char* outargTypes, char* inargTypes) {
+    if (factory == NULL || opName == NULL) {
+        return NULL;
+    }
     UGEN* ugen;
     OPDS* opds;
     OPTXT* optxt;
     CSOUND* csound = factory->csound;
-    INSDS* insds = factory->insds;
-    int32_t ksmps = insds->ksmps;
+    int32_t ksmps = csound->ksmps;
     int32_t i;
-    int32_t maxArgs = 64; /* max total arg slots */
 
-    /* Reuse the existing exact-match opcode resolver from
-     * csound_orc_semantics.c (find_opcode2 + resolve_opcode_exact) */
-    OENTRY* oentry = find_opcode_exact(csound, opName,
-                                       outargTypes, inargTypes);
+    // empty type strings are part of API
+    if (outargTypes == NULL) outargTypes = (char*)"";
+    if (inargTypes  == NULL) inargTypes  = (char*)"";
+
+    int32_t inArgsRequired = args_required(inargTypes);
+    int32_t outArgsRequired = args_required(outargTypes);
+
+
+    // catch malformed types
+    if (inArgsRequired < 0 || outArgsRequired < 0) {
+        return NULL;
+    }
+
+    int32_t maxInArgs = inArgsRequired + UGEN_MAX_VAR_ARGS; /* max total arg slots */
+    int32_t maxOutArgs = outArgsRequired + UGEN_MAX_VAR_ARGS; /* max total arg slots */
+
+    /**
+     *
+     * calls resolving search api. Host may provide both concrete or polymorphic types both for
+     * inputs and outputs.
+     *
+     * Example: using required outargs for `loscilx` mmmmmmmmmmmm (16 ms)
+     * would resolve to 16 scalars which is likely not host's intension for an oscilator,
+     * while host may want something like four audio channels. so loscilx may be requested with aaaa.
+     *
+     */
+    OENTRY* oentry = find_opcode_new(csound, opName, outargTypes, inargTypes);
     if (oentry == NULL) {
         return NULL;
+    }
+
+    int32_t outArgSlots = args_required(oentry->outypes);
+    int32_t inArgSlots = args_required(oentry->intypes);
+    /* In case we have optional arguments we must either leave them as is in
+     * inargTypes and outargTypes or concretize them otherwise memory won't get
+     * allocated */
+    int32_t requiredIn = inArgSlots - ugen_optional_in_varargs_num(csound, oentry->intypes);
+    if (requiredIn > inArgsRequired) {
+        return NULL;
+    }
+
+    int32_t requiredOut = outArgSlots - ugen_optional_out_varargs_num(csound, oentry->outypes);
+    if (requiredOut > outArgsRequired) {
+        return NULL;
+    }
+    if (outArgSlots < outArgsRequired) {
+        outArgSlots = outArgsRequired;
     }
 
     /* Allocate the UGEN, OPTXT, and opcode memory */
     ugen = csound->Calloc(csound, sizeof(UGEN));
     optxt = (OPTXT*)csound->Calloc(csound, sizeof(OPTXT));
 
+    ugen->outSlots = outArgSlots;
+    ugen->inSlots = inArgSlots;
     ugen->csound = csound;
-    ugen->insds = insds;
     ugen->oentry = oentry;
     ugen->opcodeMem = csound->Calloc(csound, oentry->dsblksiz);
+
+
+    /* create a dedicated instrument instance */
+    INSDS* insds = csound->Calloc(csound, sizeof(INSDS));
+    insds_init_from_csound(insds, csound);
+    ugen->insds = insds;
 
     /* Wire up OPDS header */
     opds = ugen->opcodeMem;
@@ -317,28 +386,32 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
     opds->optext = optxt;
 
     /* Parse output and input type strings */
-    const CS_TYPE** parsedOutTypes = csound->Calloc(csound, maxArgs * sizeof(CS_TYPE*));
-    const CS_TYPE** parsedInTypes = csound->Calloc(csound, maxArgs * sizeof(CS_TYPE*));
+    const CS_TYPE** parsedOutTypes = csound->Calloc(csound,
+            maxOutArgs * sizeof(CS_TYPE*));
+    const CS_TYPE** parsedInTypes = csound->Calloc(csound,
+            maxInArgs * sizeof(CS_TYPE*));
 
-    int32_t outCount = parse_out_types(oentry->outypes, parsedOutTypes, maxArgs);
-    int32_t inCount = parse_in_types(oentry->intypes, parsedInTypes, maxArgs);
 
-    ugen->outCount = outCount;
-    ugen->inCount = inCount;
+    parse_out_types(outargTypes, parsedOutTypes, maxOutArgs);
+    parse_in_types(inargTypes, parsedInTypes, maxInArgs);
+
+    ugen->outCount = outArgsRequired;
+    ugen->inCount = inArgsRequired;
 
     /* Store type arrays as UGEN_ARG_TYPE for the public query API */
-    ugen->outTypes = csound->Calloc(csound, outCount * sizeof(UGEN_ARG_TYPE));
-    ugen->inTypes = csound->Calloc(csound, inCount * sizeof(UGEN_ARG_TYPE));
-    for (i = 0; i < outCount; i++) {
+    ugen->outTypes = csound->Calloc(csound, outArgsRequired * sizeof(UGEN_ARG_TYPE));
+    ugen->inTypes = csound->Calloc(csound, inArgsRequired * sizeof(UGEN_ARG_TYPE));
+    for (i = 0; i < outArgsRequired; i++) {
         ugen->outTypes[i] = ugen_cs_type_to_arg_type(parsedOutTypes[i]);
     }
-    for (i = 0; i < inCount; i++) {
+    for (i = 0; i < inArgsRequired; i++) {
         ugen->inTypes[i] = ugen_cs_type_to_arg_type(parsedInTypes[i]);
     }
 
     /* Set TEXT metadata */
-    optxt->t.outArgCount = outCount;
-    optxt->t.inArgCount = inCount;
+    optxt->t.opcod = oentry->opname;
+    optxt->t.outArgCount = outArgsRequired;
+    optxt->t.inArgCount = inArgsRequired;
     optxt->t.oentry = oentry;
 
     /* Create variable pools using proper csoundCreateVarPool */
@@ -347,7 +420,7 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
 
     /* Create CS_VARIABLEs and add to pools */
     char name[32];
-    for (i = 0; i < outCount; i++) {
+    for (i = 0; i < outArgsRequired; i++) {
         snprintf(name, sizeof(name), "out%d", i);
         CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
                                                 parsedOutTypes[i], name, NULL);
@@ -355,7 +428,7 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
             csoundAddVariable(csound, ugen->outPool, var);
         }
     }
-    for (i = 0; i < inCount; i++) {
+    for (i = 0; i < inArgsRequired; i++) {
         snprintf(name, sizeof(name), "in%d", i);
         CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
                                                 parsedInTypes[i], name, NULL);
@@ -374,12 +447,12 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
      * CS_VAR_TYPE_OFFSET is added per variable for the type header. */
     size_t totalDataSize = (size_t)ugen->outPool->poolSize +
                            (size_t)ugen->inPool->poolSize +
-                           (size_t)(outCount + inCount) *
+                           (size_t)(outArgsRequired + inArgsRequired) *
                                 CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET);
 
     ugen->data = (cs_float*)csound->Calloc(csound, totalDataSize);
     ugen->outDataOffset = (ugen->outPool->poolSize +
-                           outCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET))
+                           outArgsRequired * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET))
                           / sizeof(cs_float);
 
     /* Wire argument pointers in the opcode memory.
@@ -393,7 +466,7 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
 
     int32_t pIdx = 0;
     CS_VARIABLE* var = ugen->outPool->head;
-    while (var != NULL && pIdx < outCount) {
+    while (var != NULL && pIdx < outArgsRequired) {
         /* memBlockIndex already includes per-variable header offsets
          * (set by csoundRecalculateVarPoolMemory), so it points to the
          * value slot.  The CS_VAR_MEM header lives immediately before. */
@@ -408,7 +481,8 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
     }
 
     var = ugen->inPool->head;
-    while (var != NULL && (pIdx - outCount) < inCount) {
+    pIdx = outArgSlots;
+    while (var != NULL && (pIdx - outArgSlots) < inArgsRequired) {
         cs_float* base = ugen->data + ugen->outDataOffset + var->memBlockIndex;
         p[pIdx] = base;
 
@@ -426,8 +500,8 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
                             ugen->inPool);
 
     /* Create UGEN_VAR arrays for output and input vars */
-    ugen->outVars = csound->Calloc(csound, outCount * sizeof(UGEN_VAR));
-    for (i = 0; i < outCount; i++) {
+    ugen->outVars = csound->Calloc(csound, outArgsRequired * sizeof(UGEN_VAR));
+    for (i = 0; i < outArgsRequired; i++) {
         ugen->outVars[i].csound = csound;
         ugen->outVars[i].data = p[i];
         ugen->outVars[i].type = ugen->outTypes[i];
@@ -435,14 +509,17 @@ UGEN* csoundUgenNew(UGEN_FACTORY* factory, char* opName,
         ugen->outVars[i].owned = false;
     }
 
-    ugen->inVars = csound->Calloc(csound, inCount * sizeof(UGEN_VAR));
-    for (i = 0; i < inCount; i++) {
+    ugen->inVars = csound->Calloc(csound, inArgsRequired * sizeof(UGEN_VAR));
+    for (i = 0; i < inArgsRequired; i++) {
         ugen->inVars[i].csound = csound;
-        ugen->inVars[i].data = p[outCount + i];
+        ugen->inVars[i].data = p[outArgSlots + i];
         ugen->inVars[i].type = ugen->inTypes[i];
         ugen->inVars[i].ksmps = ksmps;
         ugen->inVars[i].owned = false;
     }
+
+    /* set defaults for optional variables */
+    ugen_set_default_in_values(ugen, inargTypes);
 
     /* Clean up temporary arrays */
     csound->Free(csound, parsedOutTypes);
@@ -474,6 +551,7 @@ bool csoundUgenDelete(UGEN* ugen) {
             var = var->next;
         }
     }
+
     if (ugen->inPool != NULL) {
         CS_VARIABLE* var = ugen->inPool->head;
         while (var != NULL) {
@@ -490,6 +568,18 @@ bool csoundUgenDelete(UGEN* ugen) {
         csound->Free(csound, opds->optext);
     }
 
+    /* Free auxiliary chain */
+    char *lo = ugen->opcodeMem, *hi = lo + ugen->oentry->dsblksiz;
+    for (AUXCH **pp = &ugen->insds->auxchp; *pp != NULL; ) {
+        AUXCH *a = *pp;
+        if ((char*)a >= lo && (char*)a < hi) {
+            *pp = a->nxtchp;
+            csound->Free(csound, a->auxp);
+        } else pp = &a->nxtchp;
+    }
+
+    free_instance_variables(csound, ugen->insds);
+    csound->Free(csound, ugen->insds);
     csound->Free(csound, ugen->opcodeMem);
 
     if (ugen->outPool != NULL) csoundFreeVarPool(csound, ugen->outPool);
@@ -502,6 +592,47 @@ bool csoundUgenDelete(UGEN* ugen) {
     csound->Free(csound, ugen->inVars);
     csound->Free(csound, ugen);
     return true;
+}
+
+bool csoundUgenSetDuration(UGEN *ugen, cs_float p3) {
+    if (ugen == NULL) return false;
+    ugen->insds->p3.value = p3;
+    return true;
+}
+
+bool csoundUgenSetStartOffset(UGEN *ugen, uint32_t start) {
+    if (ugen == NULL) return false;
+    uint32_t ksmps = ugen->insds->ksmps;
+    if (start > ksmps - ugen->insds->ksmps_no_end) return false;
+    ugen->insds->ksmps_offset = start;
+    return true;
+}
+
+bool csoundUgenSetEndOffset(UGEN *ugen, uint32_t end) {
+    if (ugen == NULL) return false;
+    uint32_t ksmps = ugen->insds->ksmps;
+    if (end > ksmps - ugen->insds->ksmps_offset) return false;
+    ugen->insds->ksmps_no_end = end;
+    return true;
+}
+
+bool csoundUgenResetOffsets(UGEN *ugen) {
+    if (ugen == NULL) return false;
+    ugen->insds->ksmps_offset = 0;
+    ugen->insds->ksmps_no_end = 0;
+    return true;
+}
+
+
+bool csoundUgenReleaseNote(UGEN *ugen) {
+    if (ugen == NULL) return false;
+    ugen->insds->relesing = 1;
+    return true;
+}
+
+int32_t csoundUgenGetExtraTime(UGEN *ugen) {
+    if (ugen == NULL) return -1;
+    return ugen->insds->xtratim;
 }
 
 /* ============================================================
@@ -524,7 +655,7 @@ bool csoundUgenSetInputVar(UGEN* ugen, int32_t inIdx, UGEN_VAR* var) {
 
     /* Wire the opcode's input pointer to the var's data */
     cs_float** p = get_arg_pointers(ugen->opcodeMem);
-    p[ugen->outCount + inIdx] = var->data;
+    p[ugen->outSlots + inIdx] = var->data;
 
     /* Update the UGEN_VAR handle to point at the same data */
     ugen->inVars[inIdx].data = var->data;
@@ -538,7 +669,7 @@ bool csoundUgenSetInputVar(UGEN* ugen, int32_t inIdx, UGEN_VAR* var) {
 UGEN_VAR* csoundUgenVarNew(UGEN_FACTORY* factory, UGEN_ARG_TYPE type) {
     if (factory == NULL) return NULL;
     CSOUND* csound = factory->csound;
-    int32_t ksmps = factory->insds->ksmps;
+    int32_t ksmps = csound->ksmps;
 
     size_t dataSize = CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET) +
                       ugen_arg_type_size(type, ksmps);
@@ -712,22 +843,37 @@ UGEN_ARG_TYPE csoundUgenGetOutType(UGEN* ugen, int32_t index) {
  *  Init / Perform
  * ============================================================ */
 
+/**
+ * Intialize Ugen
+ */
 int32_t csoundUgenInit(UGEN* ugen) {
     if (ugen == NULL) return CSOUND_ERROR;
     OENTRY* oentry = ugen->oentry;
-    if (oentry->init != NULL) {
-        return (*oentry->init)(ugen->csound, ugen->opcodeMem);
-    }
-    return CSOUND_SUCCESS;
+    OPDS *ids_prev = ugen->csound->ids;
+    ugen->csound->ids = (OPDS *)ugen->opcodeMem;
+    INSDS *curip_prev = ugen->csound->curip;
+    ugen->csound->curip = ugen->insds;
+    char* op_prev = ugen->csound->op;
+    ugen->csound->op = ugen->csound->ids->optext->t.oentry->opname;
+
+    int32_t res = (oentry->init != NULL)
+        ? (*oentry->init)(ugen->csound, ugen->opcodeMem)
+        : CSOUND_SUCCESS;
+    ugen->csound->curip = curip_prev;
+    ugen->csound->ids = ids_prev;
+    ugen->csound->op = op_prev;
+    ugen->initialized = (res == CSOUND_SUCCESS);
+    return res == OK ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int32_t csoundUgenPerform(UGEN* ugen) {
     if (ugen == NULL) return CSOUND_ERROR;
+    if (!ugen -> initialized) return CSOUND_ERROR;
     OENTRY* oentry = ugen->oentry;
-    if (oentry->perf != NULL) {
-        return (*oentry->perf)(ugen->csound, ugen->opcodeMem);
-    }
-    return CSOUND_SUCCESS;
+    int32_t res = (oentry->perf != NULL)
+        ? (*oentry->perf)(ugen->csound, ugen->opcodeMem)
+        : CSOUND_SUCCESS;
+    return res;
 }
 
 /* ============================================================
