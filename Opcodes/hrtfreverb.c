@@ -343,6 +343,12 @@ static int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
   p->irlengthpad = irlengthpad;
   p->overlapsize = overlapsize;
 
+  /* create FFT setups before they are first used below */
+  p->setup_pad = csound->RealFFTSetup(csound, p->irlengthpad, FFT_FWD);
+  p->setup = csound->RealFFTSetup(csound, p->irlength, FFT_FWD);
+  p->isetup_pad = csound->RealFFTSetup(csound, p->irlengthpad, FFT_INV);
+  p->isetup = csound->RealFFTSetup(csound, p->irlength, FFT_INV);
+
   /* allocate memory */
   if (!p->power.auxp || p->power.size < irlength * sizeof(cs_float))
     csound->AuxAlloc(csound, irlength * sizeof(cs_float), &p->power);
@@ -877,10 +883,6 @@ static int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
   p->inoldl = 0;
   p->inoldr = 0;
   p->M = M;
-  p->setup_pad = csound->RealFFTSetup(csound, p->irlengthpad, FFT_FWD);
-  p->setup = csound->RealFFTSetup(csound, p->irlength, FFT_FWD);
-  p->isetup_pad = csound->RealFFTSetup(csound, p->irlengthpad, FFT_INV);
-  p->isetup = csound->RealFFTSetup(csound, p->irlength, FFT_INV);
 
   return OK;
 }
