@@ -209,7 +209,7 @@ instr 1
     event "i", "NamedTarget", 0, 0.01
     schedulek "NamedTarget", 0, 0.01
     schedkwhen 1, 0, 4, "NamedTarget", 0, 0.01
-    chnset 0, "named-fire"
+    chnset:k(0, "named-fire")
   endif
 endin
 instr NamedTarget
