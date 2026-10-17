@@ -1114,6 +1114,9 @@ static const CSOUND cenviron_ = {
 
 void csoundLongJmp(CSOUND *csound, int32_t retval) {
 #ifdef CSOUND_WASI_REALTIME
+  CSOUND_WASI_COMPILE_JUMP *compile = csoundWasiCompileJumpContext(csound);
+  if (compile != NULL && compile->enabled)
+    longjmp(compile->target, retval == 0 ? 1 : retval);
   /* exitjmp belongs to the control/render caller. A worker cannot unwind that
      stack or safely recover a partly initialized opcode. P1 proc_exit stops
      all threads; avoid callbacks and cleanup that could wait on held locks. */
@@ -1867,6 +1870,10 @@ static void reset(CSOUND *csound) {
   uintptr_t end, start;
   int32_t n = 0;
 
+#if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
+  csoundRealtimeApiStopWasi(csound);
+#endif
+
   /* Close audio before worker shutdown. csound_cleanup() safely repeats
      this idempotent operation for direct cleanup callers. */
   csound_close_audio(csound);
@@ -2007,6 +2014,10 @@ static void reset(CSOUND *csound) {
   csound->engineState.stringPool = cs_hash_table_create(csound);
   csound->engineState.constantsPool = cs_hash_table_create(csound);
   csound->engineStatus |= CS_STATE_PRE;
+  if (UNLIKELY(csoundInitChannelDb(csound) != CSOUND_SUCCESS)) {
+    csound->engineStatus |= CS_STATE_JMP;
+    csound->Die(csound, Str("Failed to initialize channel database\n"));
+  }
   csound_aops_init_tables(csound);
   create_opcode_table(csound);
 

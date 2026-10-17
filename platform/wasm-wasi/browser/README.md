@@ -59,14 +59,29 @@ before startup.
 On the shared worker host, set `--realtime` before `start()` to enable
 background init; omitting the flag keeps synchronous init. Reset clears it.
 
-During realtime playback, use numeric notes (`event(0, [instrument, start,
-duration, ...])`), end events (`event(2, [])` or `event(2, [0, delay])`), and
-numeric control channels declared before `start()`. Declare channels globally
-with `chn_k` or call `setControlChannel()` before start; live get/set uses atomic
-access to those values. Channels created later and string channels require a
-stop. Table events and compilation also require a stop: queuing a table event
-does not move GEN work off the render thread. The end-event promise confirms
-admission; wait for `realtimePerformanceEnded` for completed shutdown.
+During realtime playback, `compileOrc()`, `evalCode()`, and string channel APIs
+run on a separate Csound thread. Their promises resolve when each call finishes;
+compilation includes merging and global init. Existing voices and the sample
+clock continue, but long global init can delay new notes because it shares
+Csound's init mutex. This does not guarantee zero underruns.
+
+Numeric channels declared before `start()` use atomic access to saved addresses.
+Channels created later use the control thread. Numeric notes (`event(0,
+[instrument, start, duration, ...])`) and end events (`event(2, [])` or
+`event(2, [0, delay])`) remain available. The end-event promise confirms admission;
+wait for `realtimePerformanceEnded` for completed shutdown.
+
+The control queue holds four requests, including the running call, with at most
+1 MiB of UTF-8 text per request. Its fixed text buffers use 4 MiB of the shared
+256 MiB heap so submission needs no C allocation on the render worker.
+On the shared host, compile, eval, and channel calls have no elapsed-time
+deadline, with or without `--realtime`. In realtime mode, stop rejects queued
+work and waits for running work before cleanup; worker failure rejects pending calls.
+Resume before submitting engine calls while paused.
+Filesystem APIs, score text, table changes, and full CSD compilation still
+require a stop. Background workers cannot open the render worker's files, so
+live `#include` and file-dependent global init remain unsupported even when
+files are preloaded.
 
 The bundle contains one binary for all APIs. Explicit `useWorker: false`,
 `useSAB: false`, and the named `libcsound()` constructor use it locally with
@@ -150,7 +165,7 @@ CsoundObj API.
         * [.inputMessageAsync(scoreEvent)](#CsoundObj.inputMessageAsync) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.getControlChannel(channelName)](#CsoundObj.getControlChannel) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.setControlChannel(channelName, value)](#CsoundObj.setControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
-        * [.getStringChannel(channelName)](#CsoundObj.getStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.getStringChannel(channelName)](#CsoundObj.getStringChannel) ⇒ <code>Promise.&lt;string&gt;</code>
         * [.setStringChannel(channelName, value)](#CsoundObj.setStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
         * [.getOutputName()](#CsoundObj.getOutputName) ⇒ <code>Promise.&lt;string&gt;</code>
         * [.getInputName()](#CsoundObj.getInputName) ⇒ <code>Promise.&lt;string&gt;</code>
@@ -458,7 +473,7 @@ without any pre-process parsing
 
 ### CsoundObj.getControlChannel(channelName) ⇒ <code>Promise.&lt;number&gt;</code>
 Retrieves the value of control channel identified by channelName.
-Active `--realtime` accepts numeric channels declared before start.
+Active `--realtime` also supports channels created during playback.
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
@@ -480,7 +495,7 @@ Sets the value of control channel identified by channelName
 
 <a name="CsoundObj.getStringChannel"></a>
 
-### CsoundObj.getStringChannel(channelName) ⇒ <code>Promise.&lt;undefined&gt;</code>
+### CsoundObj.getStringChannel(channelName) ⇒ <code>Promise.&lt;string&gt;</code>
 Retrieves the string channel identified by channelName
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)

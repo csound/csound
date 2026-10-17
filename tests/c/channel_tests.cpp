@@ -901,7 +901,7 @@ TEST_F (ChannelTests, ControlChannelHintsReplacement)
     controlChannelHints_t copy{};
     ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &copy));
 
-    // A caller can pass the channel's borrowed attributes back to the setter.
+    // A caller can pass the list's attribute snapshot back to the setter.
     controlChannelInfo_t *list = nullptr;
     ASSERT_EQ(csoundListChannels(csound, &list), 1);
     EXPECT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", list[0].hints));
@@ -933,6 +933,101 @@ TEST_F (ChannelTests, ControlChannelHintsReplacement)
     ASSERT_EQ(csoundListChannels(csound, &list), 1);
     EXPECT_EQ(list[0].hints.attributes, nullptr);
     csoundDeleteChannelList(csound, list);
+}
+
+TEST_F(ChannelTests, ChannelListKeepsHintSnapshot)
+{
+    csoundSetControlChannel(csound, "gain", 0);
+    controlChannelHints_t hints{};
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.max = 1;
+    char original[] = "label=Original";
+    hints.attributes = original;
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    controlChannelInfo_t *list = nullptr;
+    ASSERT_EQ(csoundListChannels(csound, &list), 1);
+
+    char replacement[] = "label=Replacement";
+    hints.attributes = replacement;
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    EXPECT_STREQ(list[0].hints.attributes, original);
+    hints.behav = CSOUND_CONTROL_CHANNEL_NO_HINTS;
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    EXPECT_STREQ(list[0].hints.attributes, original);
+    csoundDeleteChannelList(csound, list);
+}
+
+TEST_F(ChannelTests, ChannelGrowthKeepsCachedPointersAndSortedList)
+{
+    std::vector<cs_float *> values;
+    for (int index = 0; index < 400; index++) {
+        char name[32];
+        snprintf(name, sizeof(name), "growth-%03d", index);
+        void *value = nullptr;
+        ASSERT_EQ(CSOUND_SUCCESS, csoundGetChannelPtr(
+            csound, &value, name, CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL));
+        auto *number = static_cast<cs_float *>(value);
+        *number = index;
+        values.push_back(number);
+    }
+    controlChannelInfo_t *list = nullptr;
+    ASSERT_EQ(csoundListChannels(csound, &list), 400);
+    for (int index = 0; index < 400; index++) {
+        char name[32];
+        snprintf(name, sizeof(name), "growth-%03d", index);
+        EXPECT_STREQ(list[index].name, name);
+        EXPECT_EQ(csoundGetControlChannel(csound, name, nullptr), index);
+        EXPECT_EQ(*values[index], index);
+    }
+    csoundDeleteChannelList(csound, list);
+    csoundReset(csound);
+    EXPECT_EQ(csoundListChannels(csound, &list), 0);
+    EXPECT_EQ(list, nullptr);
+    csoundSetControlChannel(csound, "after-reset", 7);
+    EXPECT_EQ(csoundGetControlChannel(csound, "after-reset", nullptr), 7);
+}
+
+namespace {
+// Replace hints exactly when the getter allocates its result, after it has
+// taken the metadata snapshot. This avoids relying on thread scheduling.
+thread_local void *(*hintTestMalloc)(CSOUND *, size_t);
+void *replaceHintsDuringAllocation(CSOUND *csound, size_t size)
+{
+    csound->Malloc = hintTestMalloc;
+    controlChannelHints_t hints{};
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.max = 1;
+    hints.dflt = 1;
+    char attributes[] = "label=Second";
+    hints.attributes = attributes;
+    EXPECT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    return hintTestMalloc(csound, size);
+}
+}
+
+TEST_F(ChannelTests, ControlChannelHintsCopyRetainsAttributesDuringAllocation)
+{
+    csoundSetControlChannel(csound, "gain", 0);
+    controlChannelHints_t hints{};
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.max = 1;
+    char original[] = "label=Before";
+    hints.attributes = original;
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+
+    hintTestMalloc = csound->Malloc;
+    csound->Malloc = replaceHintsDuringAllocation;
+    controlChannelHints_t copy{};
+    int result = csoundGetControlChannelHints(csound, "gain", &copy);
+    csound->Malloc = hintTestMalloc;
+    ASSERT_EQ(result, CSOUND_SUCCESS);
+    EXPECT_EQ(copy.dflt, 0);
+    EXPECT_STREQ(copy.attributes, original);
+    csoundDeleteControlChannelHints(csound, &copy);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &copy));
+    EXPECT_EQ(copy.dflt, 1);
+    EXPECT_STREQ(copy.attributes, "label=Second");
+    csoundDeleteControlChannelHints(csound, &copy);
 }
 
 TEST_F (ChannelTests, ChnparamsWithAttributes)

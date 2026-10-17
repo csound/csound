@@ -115,3 +115,12 @@ async function numericChannelValue() {
   const value: number = await csound.getControlChannel("gain");
   await csound.setControlChannel("gain", value);
 }
+
+async function liveCodeValue() {
+  const csound = await createCsound();
+  await csound.setStringChannel("source", "return 42");
+  const source: string = await csound.getStringChannel("source");
+  const result: number = await csound.evalCode(source);
+  const compiled: number = await csound.compileOrc("instr 1\nendin");
+  return { result, compiled };
+}

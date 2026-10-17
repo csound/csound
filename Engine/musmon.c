@@ -656,6 +656,12 @@ int32_t csound_cleanup(CSOUND *csound)
     int32   *rngp;
     uint32_t n;
 
+#if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
+    /* The control worker can hold the init mutex or publish new instruments.
+       Join it before cleanup closes the init queue or destroys either lock. */
+    csoundRealtimeApiStopWasi(csound);
+#endif
+
     csoundLockMutex(csound->API_lock);
     if (csound->QueryGlobalVariable(csound,"::UDPCOM")
         != NULL) csoundUDPServerClose(csound);
@@ -1511,11 +1517,23 @@ int32_t sense_events(CSOUND *csound)
     /* check for pending real time events */
     {
       EVTNODE *event;
-
-      while ((event = rt_event_take_due(csound)) != NULL) {
-        if ((retval = process_rt_score_event(csound, event)) != 0)
-          goto scode;
+      int32_t locked = 0;
+      int32_t ready = 1;
+#if CSOUND_SPINLOCK_AVAILABLE
+      if (csound->realtime_locks_initialized) {
+        ready = csoundSpinTryLock(&csound->alloc_spinlock) == CSOUND_SUCCESS;
+        locked = ready;
       }
+#endif
+      /* A merge may replace or resize the instrument table. Leave due events
+         queued if publication is busy; never wait for it on the audio thread. */
+      if (ready) {
+        while ((event = rt_event_take_due(csound)) != NULL) {
+          if ((retval = process_rt_score_event(csound, event)) != 0) break;
+        }
+      }
+      if (locked) csoundSpinUnLock(&csound->alloc_spinlock);
+      if (retval != 0) goto scode;
     }
     /* RM */
     if ((sinp = getRemoteSocksIn(csound))) {
@@ -1760,7 +1778,10 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     else
       i = (int32_t) fabs((cs_double) pf[1]);
 
-    if (UNLIKELY((uint32_t) i >
+    /* Realtime dispatch checks this under the publication lock. A render
+       opcode must not inspect the table halfway through a background merge. */
+    if (!csound->realtime_locks_initialized &&
+        UNLIKELY((uint32_t) i >
                  (uint32_t) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[i] == NULL)) {
       if (i > INT32_MAX-10)

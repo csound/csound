@@ -8,12 +8,33 @@
 
 import { assertNumericEvent } from "./numeric-events.js";
 
+export const realtimeBackgroundOperations = new Map([
+  ["csoundCompileOrc", 1],
+  ["csoundEvalCode", 2],
+  ["csoundGetStringChannel", 3],
+  ["csoundSetStringChannel", 4],
+  ["csoundGetControlChannel", 5],
+  ["csoundSetControlChannel", 6],
+]);
+
 const allowed = new Set([
+  ...realtimeBackgroundOperations.keys(),
+  "csoundGetVersion",
+  "csoundGetAPIVersion",
+  "csoundGetSizeOfCsFloat",
+  "csoundGetSizeOfCsDouble",
+  "csoundGetSizeOfMYFLT",
+  "csoundGetKr",
+  "csoundGetChannels",
+  "csoundGetNchnlsInput",
+  "csoundGet0dBFS",
+  "csoundGetA4",
+  "csoundGetScoreTime",
+  "csoundGetScoreOffsetSeconds",
+  "csoundIsScorePending",
   "csoundSupportsRealtime",
   "csoundIsRealtime",
   "csoundEvent",
-  "csoundGetControlChannel",
-  "csoundSetControlChannel",
   "csoundGetCurrentTimeSamples",
   "csoundGetSr",
   "csoundGetKsmps",
@@ -29,9 +50,19 @@ export function assertRealtimeCallAllowed(apiKey, arguments_) {
     if (arguments_[0] === 1)
       throw new Error("Table generation requires stopped realtime performance");
   }
-  if (apiKey === "csoundGetControlChannel" || apiKey === "csoundSetControlChannel") {
+  if (
+    (apiKey === "csoundCompileOrc" || apiKey === "csoundEvalCode") &&
+    (typeof arguments_[0] !== "string" || arguments_[0].includes("\0"))
+  )
+    throw new TypeError("Orchestra code must be a string without NUL");
+  if (realtimeBackgroundOperations.get(apiKey) >= 3) {
     if (typeof arguments_[0] !== "string" || !arguments_[0] || arguments_[0].includes("\0"))
-      throw new TypeError("Control channel names must be nonempty strings without NUL");
+      throw new TypeError("Channel names must be nonempty strings without NUL");
+    if (
+      apiKey === "csoundSetStringChannel" &&
+      (typeof arguments_[1] !== "string" || arguments_[1].includes("\0"))
+    )
+      throw new TypeError("String channel values must be strings without NUL");
     if (apiKey === "csoundSetControlChannel" && !Number.isFinite(arguments_[1]))
       throw new TypeError("Control channel values must be finite numbers");
   }

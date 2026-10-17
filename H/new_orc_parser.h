@@ -26,6 +26,7 @@ int32_t csound_prelex_init(void *);
 void csound_preset_extra(void *, void *);
 int32_t csound_prelex(CSOUND*, void*);
 int32_t csound_prelex_destroy(void *);
+void csound_pre_delete_buffers(void *);
 struct yy_buffer_state *csound_orc_scan_buffer(const char *, size_t, void*);
 int csound_orcparse(PARSE_PARM *, void *, CSOUND*, TREE**);
 int32_t csound_orclex_init(void *);

@@ -65,6 +65,7 @@ extern "C" {
   typedef struct channelEntry_s {
     struct channelEntry_s *nxt;
     controlChannelHints_t hints;
+    struct channel_hint_attributes *hintAttributes;
     spin_lock_t lock;      /* Multi-thread protection */
     int32_t     type;
     CS_VARIABLE  *var;     /* channel data */

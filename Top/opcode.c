@@ -312,12 +312,20 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep) {
       ref.entries = find_opcode2(csound, name);
       if(dest->entries == NULL ||
          dest->entries->count < ref.entries->count) {
+#ifdef CSOUND_WASI_REALTIME
+        /* The shallow copy outlives this parse, even if a later statement
+           fails verification. Keep temporary lookups scoped, but transfer
+           this published array to the engine's reset-time allocation list. */
+        csoundWasiReleaseAllocation(csound, ref.entries);
+#endif
         dest->readonly = 0;
         type->copyValue(csound, type, dest, &ref, NULL);
         dest->readonly = 1;  // mark it as readonly
       } else csound->Free(csound, ref.entries);
     } else csound->Warning(csound, Str("could not create opcode ref for %s\n"), name);
   }
+  if (name != ep->opname)
+    csound->Free(csound, name);
 }
 
 /**
@@ -327,15 +335,16 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep) {
  * Variables are initialised to the OENTRIES found.
  */
 void add_opcode_defs(CSOUND *csound) {
-  CONS_CELL *head, *item;
+  CONS_CELL *head, *item, *current;
   OENTRY *ep;
-  head = cs_hash_table_values(csound, csound->opcodes);
-  while (head != NULL) {
-     item = head->value;
+  head = current = cs_hash_table_values(csound, csound->opcodes);
+  while (current != NULL) {
+     item = current->value;
      ep = item->value;
      add_opcode_def(csound, ep);
-     head = head->next;
+     current = current->next;
   }
+  cs_cons_free(csound, head);
 }
 
 /**

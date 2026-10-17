@@ -826,7 +826,9 @@ static void instrdef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* des
   if (UNLIKELY(src == NULL || dest == NULL)) return;
   INSTREF *p = (INSTREF *) dest;
   if(!p->readonly) {
-   memcpy(dest, src, sizeof(INSTREF));
+   INSTREF *source = (INSTREF *) src;
+   p->instr = source->instr;
+   ATOMIC_SET(p->number, ATOMIC_GET(source->number));
    p->readonly = 0; // clear readonly flag (which is not copied)
   }
   else csound->Warning(csound, Str("instr ref var %s is read-only: copy value bypassed\n"),
@@ -1037,6 +1039,11 @@ static CS_VARIABLE* create_opcode(void* csnd, const CS_TYPE *type,
    return var;
 }
 
+static void var_init_instrdef(CSOUND *csound, CS_VARIABLE *var, cs_float *memory) {
+   var_init_memory(csound, var, memory);
+   ((INSTREF *)memory)->number = -1;
+}
+
 static CS_VARIABLE* create_instrdef(void* csnd, const CS_TYPE *type,
                                     const void *typeArg, INSDS *ctx) {
    CSOUND* csound = (CSOUND*)csnd;
@@ -1044,7 +1051,7 @@ static CS_VARIABLE* create_instrdef(void* csnd, const CS_TYPE *type,
    IGN(typeArg);
    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(INSTREF));
-   var->initializeVariableMemory = &var_init_memory;
+   var->initializeVariableMemory = &var_init_instrdef;
    var->ctx = ctx;
    return var;
 }

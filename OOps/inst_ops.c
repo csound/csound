@@ -79,13 +79,7 @@ int32_t nstrnumset_S(CSOUND *csound, NSTRNUM *p)
 
 int32_t nstrstr(CSOUND *csound, NSTRSTR *p)
 {
-  char *ss;
-  if (csound->engineState.instrumentNames) {
-    ss = cs_inverse_hash_get(csound,
-                             csound->engineState.instrumentNames,
-                             (int)*p->num);
-  }
-  else ss= "";
+  const char *ss = named_instr_name(csound, (int32_t)*p->num);
   csoundFree(csound,p->ans->data);
   p->ans->data = csoundStrdup(csound, ss);
   p->ans->size = strlen(ss);
@@ -134,7 +128,7 @@ int32_t delete_instr(CSOUND *csound, DELETEIN *p)
   if (IS_STR_ARG(p->insno))
     n = csound->StringArg2Insno(csound, ((STRINGDAT *)p->insno)->data, 1);
   else if (GetTypeForArg(p->insno) == &CS_VAR_TYPE_INSTR) {
-    n = instr_num(csound, ((INSTREF *)p->insno)->instr);
+    n = instr_num(csound, (INSTREF *)p->insno);
   }
   else
     n = (int32_t) (*p->insno + FL(0.5));
@@ -196,7 +190,7 @@ int32_t delete_instrdef_opcode(CSOUND *csound, DELETE_INSTRDEF *p)
   INSTRTXT  *txtp;
 
 
-  n = instr_num(csound, p->instr->instr);
+  n = instr_num(csound, p->instr);
 
 
   if (UNLIKELY(n == NOT_AN_INSTRUMENT ||
@@ -389,7 +383,7 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
     return
       csound->InitError(csound, Str("cannot write to instance ref for instr %d\n"
                         "- read-only variable\n"),
-                        instr_num(csound, ((INSTREF *) p->args[0])->instr));
+                        instr_num(csound, (INSTREF *) p->args[0]));
   else {
     EVTBLK  evt;
     INSDS *ip;
@@ -397,7 +391,7 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
     INSTREF *ref = (INSTREF *) p->args[0];
     char  pfields[PMAX+1] = {0};
     evt.p = (cs_float *) pfields;
-    res = instr_num(csound, ref->instr);
+    res = instr_num(csound, ref);
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = p->INOCOUNT + 2;
@@ -459,14 +453,14 @@ int32_t create_instance_opcode(CSOUND *csound, CREATE_INSTANCE *p) {
   if(p->out->readonly) return
                          csound->InitError(csound, Str("cannot write to instance ref for instr %d\n"
                                            "- read-only variable\n"),
-                                           instr_num(csound,p->in->instr));
-  INSDS *ip = create_instance(csound, instr_num(csound,p->in->instr));
+                                           instr_num(csound, p->in));
+  INSDS *ip = create_instance(csound, instr_num(csound, p->in));
   if(ip != NULL) {
     p->out->instance = ip;
     return OK;
   } else return csound->InitError(csound,
                                   Str("could not instantiate instr %d\n"),
-                                  instr_num(csound,p->in->instr));
+                                  instr_num(csound, p->in));
 }
 
 /** Instance init opcode

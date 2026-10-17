@@ -16,11 +16,13 @@
 #include <cstring>
 #include <cmath>
 #include <limits>
+#include <string>
 #include <tuple>
 #include <vector>
 extern "C" {
 #include "str_ops.h"
 #include "udo.h"
+#include "namedins.h"
 }
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
@@ -58,6 +60,229 @@ extern "C" {
     extern OENTRY* find_opcode_new (CSOUND* csound, const char* opname,
                                     const char* outArgsFound,
                                     const char* inArgsFound);
+}
+
+TEST_F(OrcCompileTests, RejectedLiveCompilePreservesNamedInstrument)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    ASSERT_EQ(0, csoundCompileOrc(csound, R"(
+sr = 48000
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+chn_k "kept-result", 3
+instr KeepOnError
+  chnset 71, "kept-result"
+endin
+)"));
+    ASSERT_EQ(0, csoundStart(csound));
+    ASSERT_EQ(0, csoundEvalCode(csound,
+                              "schedule KeepOnError, 0, 0.01\nreturn 0"));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    ASSERT_EQ(71, csoundGetControlChannel(csound, "kept-result", &error));
+    csoundSetControlChannel(csound, "kept-result", 0);
+    ASSERT_NE(0, csoundCompileOrc(csound, R"(
+instr KeepOnError
+  chnset 99, "kept-result"
+endin
+instr 98
+  Sarr[] fillarray "x", "y"
+  kidx init 0
+  prints Sarr[kidx]
+endin
+)"));
+    ASSERT_EQ(0, csoundEvalCode(csound,
+                              "schedule KeepOnError, 0, 0.01\nreturn 0"));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_EQ(71, csoundGetControlChannel(csound, "kept-result", &error));
+    EXPECT_EQ(0, error);
+}
+
+TEST_F(OrcCompileTests, AsyncCompilePublishesNamedReferenceAtMerge)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    ASSERT_EQ(0, csoundCompileOrc(csound, R"(
+sr = 48000
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+chn_k "merged-result", 3
+instr MergeTarget
+  chnset 71, "merged-result"
+endin
+)"));
+    ASSERT_EQ(0, csoundStart(csound));
+    CS_VARIABLE *variable = csoundFindVariableWithName(
+        csound, csound->engineState.varPool, "MergeTarget");
+    ASSERT_NE(nullptr, variable);
+    INSTREF *reference = reinterpret_cast<INSTREF *>(&variable->memBlock->value);
+    INSTRTXT *original = reference->instr;
+    int32_t originalNumber = reference->number;
+    // The async API compiles now, but performance has not consumed the merge.
+    ASSERT_EQ(0, (csoundCompileOrc)(csound, R"(
+instr MergeTarget
+  chnset 99, "merged-result"
+endin
+schedule MergeTarget, 0, 0.01
+)", 1));
+    EXPECT_EQ(original, reference->instr);
+    EXPECT_EQ(originalNumber, reference->number);
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_NE(original, reference->instr);
+    EXPECT_EQ(originalNumber, reference->number);
+    int32_t error = 0;
+    for (int block = 0; block < 10 &&
+         csoundGetControlChannel(csound, "merged-result", &error) == 0; block++)
+      ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_EQ(99, csoundGetControlChannel(csound, "merged-result", &error));
+    EXPECT_EQ(0, error);
+}
+
+TEST_F(OrcCompileTests, RealtimeEventWaitsForInstrumentPublication)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#endif
+    csoundSetOption(csound, "-n -d -m0 --realtime --daemon");
+    ASSERT_EQ(0, csoundCompileOrc(csound, R"(
+sr = 48000
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+chn_k "published-note", 3
+instr 2
+  chnset 71, "published-note"
+endin
+)"));
+    ASSERT_EQ(0, csoundStart(csound));
+    ASSERT_TRUE(csound->realtime_locks_initialized);
+    EVTBLK event = {};
+    event.opcod = 'i';
+    event.pcnt = 3;
+    cs_float fields[] = {2, 0, 0.01};
+    int32_t error = 0;
+    csoundSpinLock(&csound->alloc_spinlock);
+    // Reproduce the empty slot inside named_instr_alloc's merge, while the
+    // render caller keeps submitting events and advancing the sample clock.
+    INSTRTXT *original = csound->engineState.instrtxtp[2];
+    csound->engineState.instrtxtp[2] = nullptr;
+    int32_t submitted = insert_event_at_sample(csound, &event, fields, 0);
+    int64_t before = csoundGetCurrentTimeSamples(csound);
+    int32_t performed = csoundPerformKsmps(csound);
+    cs_float seen = csoundGetControlChannel(csound, "published-note", &error);
+    csound->engineState.instrtxtp[2] = original;
+    csoundSpinUnLock(&csound->alloc_spinlock);
+    EXPECT_EQ(0, submitted);
+    EXPECT_EQ(0, performed);
+    EXPECT_EQ(0, seen);
+    EXPECT_GT(csoundGetCurrentTimeSamples(csound), before);
+    for (int attempt = 0; attempt < 1000 &&
+         csoundGetControlChannel(csound, "published-note", &error) == 0; attempt++) {
+      ASSERT_EQ(0, csoundPerformKsmps(csound));
+      csoundSleep(1);
+    }
+    EXPECT_EQ(71, csoundGetControlChannel(csound, "published-note", &error));
+    EXPECT_EQ(0, error);
+}
+
+TEST_F(OrcCompileTests, RealtimeNamedEventsSurviveHashPublication)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#endif
+    csoundSetOption(csound, "-n -d -m0 --realtime --daemon");
+    ASSERT_EQ(0, csoundCompileOrc(csound, R"(
+sr = 48000
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+chn_k "named-ready", 3
+chn_k "named-fire", 3
+chn_k "named-count", 3
+instr 1
+  chnset 1, "named-ready"
+  kFire chnget "named-fire"
+  if kFire == 1 then
+    event "i", "NamedTarget", 0, 0.01
+    schedulek "NamedTarget", 0, 0.01
+    schedkwhen 1, 0, 4, "NamedTarget", 0, 0.01
+    chnset:k(0, "named-fire")
+  endif
+endin
+instr NamedTarget
+  iCount chnget "named-count"
+  chnset iCount + 1, "named-count"
+endin
+schedule 1, 0, -1
+)"));
+    ASSERT_EQ(0, csoundStart(csound));
+    ASSERT_TRUE(csound->realtime_locks_initialized);
+    int32_t error = 0;
+    for (int attempt = 0; attempt < 1000 &&
+         csoundGetControlChannel(csound, "named-ready", &error) == 0; attempt++) {
+      ASSERT_EQ(0, csoundPerformKsmps(csound));
+      csoundSleep(1);
+    }
+    ASSERT_EQ(1, csoundGetControlChannel(csound, "named-ready", &error));
+
+    // Force several compiler hash-table resizes, then replace the target.
+    std::string additions;
+    for (int name = 0; name < 160; name++)
+      additions += "instr AddedName" + std::to_string(name) + "\nendin\n";
+    int32_t oldSize = csound->engineState.instrumentNames->table_size;
+    ASSERT_EQ(0, csoundCompileOrc(csound, additions.c_str()));
+    ASSERT_GT(csound->engineState.instrumentNames->table_size, oldSize);
+    auto number = named_instr_find(csound, const_cast<char *>("NamedTarget"));
+    ASSERT_GT(number, 0);
+    std::vector<void *> buckets;
+    for (auto entry : csound->engineState.instrumentNumbers)
+      buckets.push_back(entry);
+    ASSERT_EQ(0, csoundCompileOrc(csound, R"(
+instr NamedTarget
+  iCount chnget "named-count"
+  chnset iCount + 1, "named-count"
+endin
+)"));
+    for (int bucket = 0; bucket < 64; bucket++)
+      EXPECT_EQ(buckets[bucket], csound->engineState.instrumentNumbers[bucket]);
+    EXPECT_EQ(number, named_instr_find(csound, const_cast<char *>("NamedTarget")));
+
+    csoundSetControlChannel(csound, "named-fire", 1);
+    csoundSpinLock(&csound->alloc_spinlock);
+    // Model a hash/table replacement while the render opcodes submit notes.
+    // Lookups must use the published numbers without waiting for this lock.
+    CS_HASH_TABLE *names = csound->engineState.instrumentNames;
+    INSTRTXT *instrument = csound->engineState.instrtxtp[(int32_t)number];
+    csound->engineState.instrumentNames = nullptr;
+    csound->engineState.instrtxtp[(int32_t)number] = nullptr;
+    cs_float tagged = named_instr_find(csound,
+                                      const_cast<char *>("NamedTarget.25"));
+    cs_float negative = named_instr_find(csound,
+                                       const_cast<char *>("-NamedTarget.25"));
+    std::string inverse = named_instr_name(csound, (int32_t)number);
+    int64_t before = csoundGetCurrentTimeSamples(csound);
+    int32_t performed = csoundPerformKsmps(csound);
+    csound->engineState.instrumentNames = names;
+    csound->engineState.instrtxtp[(int32_t)number] = instrument;
+    csoundSpinUnLock(&csound->alloc_spinlock);
+    EXPECT_EQ(number + FL(0.25), tagged);
+    EXPECT_EQ(-number - FL(0.25), negative);
+    EXPECT_EQ("NamedTarget", inverse);
+    EXPECT_EQ(0, performed);
+    EXPECT_GT(csoundGetCurrentTimeSamples(csound), before);
+    for (int attempt = 0; attempt < 1000 &&
+         csoundGetControlChannel(csound, "named-count", &error) < 3; attempt++) {
+      ASSERT_EQ(0, csoundPerformKsmps(csound));
+      csoundSleep(1);
+    }
+    EXPECT_EQ(3, csoundGetControlChannel(csound, "named-count", &error));
+    EXPECT_EQ(0, error);
+    csoundReset(csound);
+    for (auto entry : csound->engineState.instrumentNumbers)
+      EXPECT_EQ(nullptr, entry);
 }
 
 TEST_F (OrcCompileTests, testSpaceTrajectoryGuardPoint)

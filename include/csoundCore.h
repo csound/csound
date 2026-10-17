@@ -320,6 +320,8 @@ typedef struct {
   typedef struct instrRef {
     INSTRTXT *instr;
     int32_t   readonly;
+    /* Scheduling reads this atomically; it never scans a table being merged. */
+    int32_t   number;
   } INSTREF;
 
 #define MAX_STRINGDAT_SIZE 0xFFFFFFFF
@@ -1940,6 +1942,8 @@ struct CSOUND_ {
   readlineCallback_t readlineCallback;                       /* host readline callback */
   void *readlineUserData;                                    /* readline callback user data */
   uint32_t readlineRequestId;                                /* readline request identifier */
+  void *wasi_realtime_api;                                   /* browser control worker, stopped before cleanup */
+  int32_t wasi_channel_lock;                                /* shared Wasm channel registry spinlock */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

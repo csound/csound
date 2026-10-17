@@ -2799,7 +2799,8 @@ static CS_VAR_MEM *instance_local_memory(CS_VARIABLE *var, cs_float *lclbas)
 }
 
 static void initialize_instance_reserved_variables(CSOUND *csound, INSDS *ip,
-                                                    cs_float *lclbas)
+                                                    cs_float *lclbas,
+                                                    int32_t instrumentNumber)
 {
   static const char *const numericNames[] = { "ksmps", "kr", "sr" };
   cs_float numericValues[] = { csound->ksmps, csound->ekr, csound->esr };
@@ -2825,7 +2826,7 @@ static void initialize_instance_reserved_variables(CSOUND *csound, INSDS *ip,
 
   var = csoundFindVariableWithName(csound, pool, "this_instr");
   if (var != NULL) {
-    INSTREF source = { ip->instr, 0 };
+    INSTREF source = { ip->instr, 0, instrumentNumber };
     INSTREF *destination =
       (INSTREF *)&instance_local_memory(var, lclbas)->value;
 
@@ -2852,7 +2853,11 @@ void recycle_udo_instance(CSOUND *csound, INSDS *ip)
   free_instr_var_memory(csound, ip);
   if (ip->lclbas != NULL) {
     csoundInitializeVarPool(csound, ip->lclbas, ip->instr->varPool);
-    initialize_instance_reserved_variables(csound, ip, ip->lclbas);
+    /* UDOs reuse their caller's insno, but this_instr refers to the opcode's
+       own template. */
+    int32_t number = ip->instr->opcode_info != NULL
+        ? ip->instr->opcode_info->instno : ip->insno;
+    initialize_instance_reserved_variables(csound, ip, ip->lclbas, number);
     csoundReinitInstrumentArgpp(csound, ip);
   }
   deact(csound, ip);
@@ -3031,7 +3036,8 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
     csoundMessage(csound, "endin (instr %d)\n", ip->insno);
   }
 
-  initialize_instance_reserved_variables(csound, ip, lclbas);
+  /* Unlinked instances reach this point before ip->insno is assigned. */
+  initialize_instance_reserved_variables(csound, ip, lclbas, insno);
 
 
   if (UNLIKELY(nxtopds > opdslim))

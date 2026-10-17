@@ -85,6 +85,24 @@ export function createWasiThreadEnvironment({
   return {
     "memory": memory,
     "csoundWasiJsSupportsThreads": () => 1,
+    "csoundWasiApiComplete": (id, generation, status, number, pointer) => {
+      /** @type {number|string} */
+      let answer = number;
+      if (pointer) {
+        const bytes = new Uint8Array(memory.buffer, pointer);
+        const length = bytes.indexOf(0);
+        if (length === -1) throw new Error("Realtime API returned an unterminated string");
+        // The native worker frees its result after this import returns.
+        answer = decodeText(bytes.slice(0, length));
+      }
+      postMessage({
+        "type": "wasi-api-completion",
+        "id": id >>> 0,
+        "generation": generation >>> 0,
+        "status": status,
+        "answer": answer,
+      });
+    },
     // Children call only the plugin functions already mirrored in their table.
     "csoundLoadModules": () => -1,
     "csoundLoadExternals": () => -1,

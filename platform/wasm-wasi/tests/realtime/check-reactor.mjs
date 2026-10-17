@@ -11,7 +11,7 @@ const maximum =
   65536;
 const { assertBrowserReactor } = await import("../../browser/src/utils/browser-reactor.js");
 assertBrowserReactor(module);
-const memory = new WebAssembly.Memory({ initial: 256, maximum, shared: true });
+const memory = new WebAssembly.Memory({ initial: maximum, maximum, shared: true });
 const wasi = new WASI();
 wasi.setMemory(memory);
 let hostSupportsThreads = true;
@@ -29,6 +29,7 @@ imports.env = {
   csoundLoadModules: () => 0,
   csoundLoadExternals: () => 0,
   csoundWasiJsMessageCallback() {},
+  csoundWasiApiComplete() {},
   csoundWasiJsSystem: () => -1,
   csoundWasiJsReadlineCallback() {},
   csoundWasiJsDebugCallback() {},

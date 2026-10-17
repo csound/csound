@@ -308,6 +308,12 @@ int system(const char *command)
 // be callable (aka static_modules)
 __attribute__((used))
 CSOUND *csoundCreateWasi() {
+#ifdef CSOUND_WASI_REALTIME
+  /* wasi-libc discovers preopened paths once in shared process state. Do
+     that on the filesystem-owning parent, before a diagnostic on an init
+     or compiler worker can trigger discovery through unsupported imports. */
+  (void) access("/", F_OK);
+#endif
   CSOUND *csound = csoundCreate(NULL, NULL);
   if (csound == NULL) return NULL;
   // printDebug("DEBUG: csoundCreateWasi called, setting message callback");
@@ -471,10 +477,39 @@ cs_float csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
 }
 
 char* csoundGetStringChannelWasi(CSOUND* csound, const char *channelName) {
-  int len = csoundGetChannelDatasize(csound, channelName);
-  char *data = calloc(1, sizeof(char) * (len + 1));
-
-  csoundGetStringChannel(csound, channelName, data);
+  STRINGDAT *value;
+  char *data = NULL;
+  /* The init mutex is recursive: queued control calls already hold it. */
+  if (csound->init_pass_threadlock)
+    csoundLockMutex(csound->init_pass_threadlock);
+  if (csoundGetChannelPtr(csound, (void **) &value, channelName,
+                         CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL) == 0) {
+    size_t capacity = 0;
+    for (;;) {
+      csoundLockChannel(csound, channelName);
+      size_t length = value->data == NULL ? 0 : strlen(value->data);
+      if (length < capacity) {
+        if (length != 0)
+          memcpy(data, value->data, length);
+        data[length] = '\0';
+        csoundUnlockChannel(csound, channelName);
+        break;
+      }
+      csoundUnlockChannel(csound, channelName);
+      /* Allocation must not hold a lock needed by a perf-time string writer.
+         Recheck the length under the lock after allocating: it may grow. */
+      char *grown = realloc(data, length + 1);
+      if (grown == NULL) {
+        free(data);
+        data = NULL;
+        break;
+      }
+      data = grown;
+      capacity = length + 1;
+    }
+  }
+  if (csound->init_pass_threadlock)
+    csoundUnlockMutex(csound->init_pass_threadlock);
   return data;
 }
 

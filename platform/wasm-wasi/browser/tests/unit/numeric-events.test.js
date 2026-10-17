@@ -45,13 +45,22 @@ describe("numeric score events", () => {
 
   it("copies numeric p-fields into shared memory and requests async admission", () => {
     const fields = [1, 0, 0.125, 660];
-    const state = fixture((memory, csound, type, pointer, length, async) => {
-      assert.deepEqual([csound, type, length, async], [123, 0, 4, 1]);
-      assert.deepEqual([...new Float64Array(memory.buffer, pointer, length)], fields);
-    });
-    event(state.wasm)(123, 0, fields);
-    assert.deepEqual(state.allocations, [4]);
-    assert.deepEqual(state.freed, [64]);
+    for (const precision of [4, 8]) {
+      const View = precision === 4 ? Float32Array : Float64Array;
+      const state = fixture((memory, csound, type, pointer, length, async) => {
+        assert.deepEqual([csound, type, length, async], [123, 0, 4, 1]);
+        assert.deepEqual([...new View(memory.buffer, pointer, length)], fields);
+        const after = new Uint8Array(memory.buffer, pointer + precision * length, 8);
+        assert.ok(
+          after.every((byte) => byte === 0xa5),
+          "do not overwrite the next allocation",
+        );
+      }, precision);
+      new Uint8Array(state.memory.buffer).fill(0xa5);
+      event(state.wasm)(123, 0, fields);
+      assert.deepEqual(state.allocations, [4]);
+      assert.deepEqual(state.freed, [64]);
+    }
   });
 
   it("submits short end events with valid storage even for no p-fields", () => {
@@ -84,14 +93,17 @@ describe("numeric score events", () => {
   });
 
   it("rejects an incompatible sample width before allocating or calling Csound", () => {
-    for (const precision of [4, 16]) {
+    for (const precision of [0, 16]) {
       const state = fixture(() => assert.fail("native event must not run"), precision);
       new Uint8Array(state.memory.buffer).fill(0xa5);
       for (const [type, fields] of [
         [0, [1, 0, 0.1]],
         [2, []],
       ])
-        assert.throws(() => event(state.wasm)(123, type, fields), /double-precision Csound module/);
+        assert.throws(
+          () => event(state.wasm)(123, type, fields),
+          /Unsupported Csound sample width/,
+        );
       assert.deepEqual(state.allocations, []);
       assert.deepEqual(state.freed, []);
       assert.ok(new Uint8Array(state.memory.buffer).every((byte) => byte === 0xa5));

@@ -342,8 +342,9 @@ typedef unsigned long       uintptr_t;
 #  define LIKELY(x)     __builtin_expect(!!(x),1)
 #  define UNLIKELY(x)   __builtin_expect(!!(x),0)
 #else
-#  define LIKELY(x)     x
-#  define UNLIKELY(x)   x
+/* Preserve grouping when a condition contains && or ||. */
+#  define LIKELY(x)     (x)
+#  define UNLIKELY(x)   (x)
 #endif
 
 #if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
