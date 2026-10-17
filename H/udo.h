@@ -123,4 +123,8 @@ void free_opcode_info_chain(CSOUND *);
    instance is active. */
 cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName);
 
+/* Rewire a pass-by-ref UDO body, and the UDOs nested in it, onto the current
+   p->ar locations after an opcode object's arguments change following init. */
+int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p);
+
 #endif

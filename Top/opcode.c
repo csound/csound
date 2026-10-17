@@ -1202,16 +1202,20 @@ int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds) {
 
 /**
  * check consistency of arg pointers (for perf-time)
+ * returns OK if the args are those bound by setup_args, NOTOK otherwise
  */
 static int32_t check_consistency(OPCODEOBJ *obj, cs_float **args,
                           int32_t no, int32_t ni) {
-  int32_t n, i = no + 1;
-  cs_float **oargs = (cs_float **) (obj->dataspace + 1);
+  int32_t n;
+  // setup_args stores these, in udo->ar for UDOs
+  cs_float **oargs = obj->outargp, **iargs = obj->inargp;
+  if(oargs == NULL || iargs == NULL) return NOTOK;
   for(n = 0; n < no; n++)
-    if(oargs[n] != args[n]) return 1;
+    if(oargs[n] != args[n]) return NOTOK;
+  // inargs follow the opcode object arg
   for(n = 0; n < ni; n++)
-    if(oargs[i-1] != args[i]) return 1;
-  return 0;
+    if(iargs[n] != args[no + 1 + n]) return NOTOK;
+  return OK;
 }
 
 
@@ -1239,6 +1243,29 @@ static OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
 }
 
 /**
+ * free opcode dataspace
+ */
+static void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace) {
+  csound->Free(csound, dataspace->optext->t.inlist);
+  csound->Free(csound, dataspace->optext);
+  csound->Free(csound, dataspace);
+}
+
+/**
+ * take back a UDO dataspace kept by delete: reuse it for the same
+ * definition, or free it once its instance has been deactivated
+ */
+static void opcode_take_spare(CSOUND *csound, OPCODEOBJ *obj, OENTRY *entry) {
+  UOPCODE *udo = (UOPCODE *) obj->spare;
+  if(udo == NULL) return;
+  obj->spare = NULL;
+  if(obj->dataspace == NULL && udo->h.optext->t.oentry == entry)
+    obj->dataspace = (OPDS *) udo;
+  else if(udo->ip == NULL)
+    opcode_dataspace_free(csound, (OPDS *) udo);
+}
+
+/**
  *  create single OpcodeObj from OpcodeDef
  *
  *  opc:Opcode create ref:OpcodeDef[,overload:i]
@@ -1251,6 +1278,7 @@ int32_t create_opcode_simple(CSOUND *csound, AOP *p) {
     OENTRY *entry =
       ref->entries->entries[n < ref->entries->count ?
                             n : ref->entries->count-1];
+    opcode_take_spare(csound, obj, entry);
     if(obj->dataspace == NULL || obj->size < entry->dsblksiz) {
       if((obj->dataspace = opcode_dataspace_new(csound, entry, &(p->h)))
           == NULL)
@@ -1280,6 +1308,7 @@ int32_t create_opcode_array(CSOUND *csound, OPARRAY *p) {
       return csound_array_init_resize_error(csound);
     obj = (OPCODEOBJ *) p->r->data;
     for(i = 0; i < n; i++) {
+      opcode_take_spare(csound, &obj[i], entry);
       if(obj[i].dataspace == NULL || obj[i].size < entry->dsblksiz) {
        if((obj[i].dataspace = opcode_dataspace_new(csound, entry, &(p->h)))
           == NULL)
@@ -1303,12 +1332,18 @@ int32_t opcode_delete(CSOUND *csound, AOP *p) {
   if(obj->dataspace) {
     if(obj->dataspace->deinit != NULL)
       obj->dataspace->deinit(csound, obj->dataspace);
-    csound->Free(csound, obj->dataspace->optext->t.inlist);
-    csound->Free(csound, obj->dataspace->optext);
-    if(obj->udo_flag == 0) {
-     csound->Free(csound, obj->dataspace);
-     obj->dataspace = NULL;
+    // a UDO dataspace is the UOPCODE linked in the instance's opcod_deact
+    // chain, which is walked after deinit, so it is kept for create to reuse
+    if(obj->udo_flag) {
+      // an older spare left here by a copied object has been deactivated
+      if(obj->spare != NULL && ((UOPCODE *) obj->spare)->ip == NULL)
+        opcode_dataspace_free(csound, obj->spare);
+      obj->spare = obj->dataspace;
     }
+    else
+      opcode_dataspace_free(csound, obj->dataspace);
+    obj->dataspace = NULL;
+    obj->outargp = obj->inargp = NULL;
   }
   return OK;
 }
@@ -1383,7 +1418,7 @@ int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
                              "cannot perform opcode obj for %s\n"),
                              obj->dataspace->optext->t.oentry->opname);
   set_line_num_and_loc(obj, p);
-  if(check_consistency(obj, pargs, p->OUTOCOUNT, p->INOCOUNT - 1)){
+  if(check_consistency(obj, pargs, p->OUTOCOUNT, p->INOCOUNT - 1) != OK){
     if(setup_args(csound, obj, &(p->h), pargs, NULL, p->OUTOCOUNT,
                 p->INOCOUNT - 1) != OK)
       return csound->PerfError(csound, &(p->h), Str("mismatching arguments\n"
@@ -1392,6 +1427,13 @@ int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
                            obj->dataspace->optext->t.oentry->opname,
                            obj->dataspace->optext->t.oentry->outypes,
                                obj->dataspace->optext->t.oentry->intypes);
+    // a pass-by-ref UDO body still points at the args seen at init
+    if(obj->udo_flag &&
+       user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK)
+      return csound->PerfError(csound, &(p->h),
+                               Str("could not rebind arguments "
+                                   "for opcode obj %s\n"),
+                               obj->dataspace->optext->t.oentry->opname);
    }
    if(obj->dataspace->perf != NULL)
        return obj->dataspace->perf(csound, obj->dataspace);
@@ -1528,6 +1570,9 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
   argn = p->INOCOUNT + p->OUTOCOUNT;
   if (n == 0)
     return OK;
+  for(i = 0; i < n; i++)
+    if(obj[i].dataspace == NULL)
+      return csound->InitError(csound, Str("opcode object not initialised\n"));
   // check that array args split across obj[] are 1-dim and large enough
   for(i = 0; i < argn; i++)
     if(oprun_splits_arg(p, pargs, &obj[0], i)) {

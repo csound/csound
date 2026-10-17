@@ -1695,6 +1695,52 @@ cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
   return target;
 }
 
+int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
+  OPCODINFO *udoinfo;
+  PBR_REWIRE_PLAN *plan;
+  char *op_mem_start;
+  XIN *xin;
+  OPDS *op;
+  int32_t copyResult;
+
+  if (p == NULL || p->ip == NULL || p->buf == NULL) {
+    return OK;
+  }
+
+  udoinfo = p->buf->opcode_info;
+  if (!udo_call_is_pass_by_ref(p, udoinfo)) {
+    return OK;
+  }
+
+  plan = udoinfo->pbr_plan;
+  op_mem_start = pbr_get_opcode_mem_start(p->ip);
+  if (plan == NULL || op_mem_start == NULL) {
+    return OK;
+  }
+
+  /* This runs at perf time, so like useropcd_pass_by_ref it does not
+     allocate: an input that no longer fits its snapshot is an error. */
+  xin = pbr_snapshot_colliding_inputs(csound, p, p->ip, 0, &copyResult);
+  if (UNLIKELY(copyResult != OK)) {
+    return NOTOK;
+  }
+  pbr_apply_entries(csound, p, p->ip->nxti, op_mem_start, xin,
+                    plan->init_entries, plan->init_count);
+  pbr_apply_entries(csound, p, p->ip->nxtp, op_mem_start, xin,
+                    plan->perf_entries, plan->perf_count);
+
+  /* Nested pass-by-ref UDOs wired their own bodies to these locations
+     at init, so they need the same update.  Every UDO call has an init
+     function (useropcdset), so the init chain lists all of them. */
+  for (op = (OPDS *)p->ip->nxti; op != NULL; op = op->nxti) {
+    if (op->optext->t.oentry->useropinfo != NULL &&
+        user_opcode_rebind_args(csound, (UOPCODE *)op) != OK) {
+      return NOTOK;
+    }
+  }
+  return OK;
+}
+
 /*
   UDOs now use the local ksmps/local sr stored in lcurip, and
   all the other dependent parameters are calculated in relation to

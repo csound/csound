@@ -813,8 +813,11 @@ static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     return;
   }
   if(!p->readonly) {
+   // a spare dataspace belongs to the variable that deleted it
+   struct opds *spare = p->spare;
    memcpy(dest, src, sizeof(OPCODEOBJ));
    p->readonly = 0; // clear readonly flag (which is not copied)
+   p->spare = spare;
   }
   else csound->Warning(csound, Str("opcode instance var is read-only:"
                        " copy value bypassed\n"));
