@@ -1718,6 +1718,8 @@ int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
     return OK;
   }
 
+  /* This runs at perf time, so like useropcd_pass_by_ref it does not
+     allocate: an input that no longer fits its snapshot is an error. */
   xin = pbr_snapshot_colliding_inputs(csound, p, p->ip, 0, &copyResult);
   if (UNLIKELY(copyResult != OK)) {
     return NOTOK;
@@ -1728,7 +1730,8 @@ int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
                     plan->perf_entries, plan->perf_count);
 
   /* Nested pass-by-ref UDOs wired their own bodies to these locations
-     at init, so they need the same update. */
+     at init, so they need the same update.  Every UDO call has an init
+     function (useropcdset), so the init chain lists all of them. */
   for (op = (OPDS *)p->ip->nxti; op != NULL; op = op->nxti) {
     if (op->optext->t.oentry->useropinfo != NULL &&
         user_opcode_rebind_args(csound, (UOPCODE *)op) != OK) {

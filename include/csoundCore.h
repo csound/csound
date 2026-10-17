@@ -312,6 +312,7 @@ typedef struct {
     cs_float **inargp;         // ptr to first input arg
     int32_t udo_flag;       // set if opcode is UDO
     int32_t readonly;       // readonly flag
+    struct opds *spare;     // UDO dataspace kept by delete for create to reuse
   } OPCODEOBJ;
 
   /**
