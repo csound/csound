@@ -56,6 +56,7 @@
 #include "lpred.h"
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
+#include "csound_orc_structs.h"
 #include "arrays_internal.h"
 #include "namedins.h"
 #include "find_opcode.h"
@@ -615,12 +616,13 @@ static const CSOUND cenviron_ = {
     csound_array_prepare_opcode_write_impl,
     csound_array_ensure_capacity_impl,
     csoundRegisterStruct,
-    /* space for API expansion: 45 slots */
+    csound_struct_copy_independent_impl,
+    /* space for API expansion: 44 slots */
     {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
      NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-     NULL, NULL, NULL, NULL, NULL},
+     NULL, NULL, NULL, NULL},
     /* ------- private data (not to be used by hosts or externals) ------- */
 
     /* -------- Callback pointers preserved by csoundReset() (between the two markers) -------- */

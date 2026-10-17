@@ -32,6 +32,10 @@ typedef double cs_double;
    Older loaders see an invalid sample size and reject this ABI too. */
 #define CSOUND_MODULE_USE_FLOAT 0x80
 
+/* Rank-aware signatures require this loader capability. Older loaders reject
+   the extra bit as an invalid sample size before calling the plugin. */
+#define CSOUND_MODULE_ARRAY_RANK 0x40
+
 /* Deprecated in CS7. Keep old host and opcode source code valid. */
 #ifndef __MYFLT_DEF
 #define __MYFLT_DEF

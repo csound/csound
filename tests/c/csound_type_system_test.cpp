@@ -415,6 +415,25 @@ TEST_F (TypeSystemTests, testTabinitRejectsNegativeSizeWithoutMutation)
     csound_free_array_storage(csound, &array);
 }
 
+TEST_F (TypeSystemTests, testTabinitKeepsPluginAllocationBehavior)
+{
+    ARRAYDAT array{};
+    array.arrayType = &CS_VAR_TYPE_I;
+    array.dimensions = 2;
+    array.sizes = static_cast<int32_t *>(csound->Calloc(csound, 2 * sizeof(int32_t)));
+    array.sizes[0] = 2;
+    array.sizes[1] = 3;
+
+    // Plugins may allocate the total count with tabinit and manage shape themselves.
+    ASSERT_EQ(OK, tabinit(csound, &array, 6, nullptr));
+    EXPECT_EQ(2, array.dimensions);
+    EXPECT_EQ(2, array.sizes[0]);
+    EXPECT_EQ(3, array.sizes[1]);
+    EXPECT_NE(nullptr, array.data);
+    EXPECT_EQ(NOTOK, csound_array_init_vector(csound, &array, 6, nullptr));
+    csound_free_array_storage(csound, &array);
+}
+
 TEST_F (TypeSystemTests, testTabinitStorageFailureLeavesArrayReusable)
 {
     ARRAYDAT array{};

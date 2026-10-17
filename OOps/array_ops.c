@@ -53,6 +53,11 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
     return
       csound->InitError(csound, "%s\n",
                         Str("Error: no sizes set for array initialization"));
+  if (UNLIKELY(arrayDat->dimensions > 0 &&
+               arrayDat->dimensions != inArgCount))
+    return csound->InitError(
+      csound, Str("array rank mismatch: expected %d, got %d\n"),
+      arrayDat->dimensions, inArgCount);
 
   const char *atype = (arrayDat && arrayDat->arrayType && arrayDat->arrayType->varTypeName)
                         ? arrayDat->arrayType->varTypeName : NULL;
@@ -126,13 +131,34 @@ int32_t array_init(CSOUND *csound, ARRAYINIT *p)
   return OK;
 }
 
+/* Fill an existing matrix in row order. Only vectors take their size from
+   the number of supplied values. */
+static int32_t tabfill_init(CSOUND *csound, ARRAYDAT *array,
+                            int32_t values, INSDS *ctx)
+{
+  size_t count;
+
+  if (array->dimensions <= 1)
+    return csound_array_init_vector(csound, array, values, ctx);
+  if (UNLIKELY(csound_array_member_count(array, &count) != OK))
+    return NOTOK;
+  if (UNLIKELY(count == 0)) {
+    csound->ErrorMsg(csound, "%s\n",
+                     Str("fillarray: initialize matrix sizes before filling it"));
+    return NOTOK;
+  }
+  if (UNLIKELY(csound_array_prepare_write(csound, array, ctx) != OK))
+    return NOTOK;
+  return csound_array_ensure_capacity(csound, array, count, ctx);
+}
+
 int32_t tabfill(CSOUND *csound, TABFILL *p)
 {
   int32_t    nargs = p->INOCOUNT;
   int32_t i, size;
   size_t memMyfltSize;
   cs_float  **valp = p->iargs;
-  if (UNLIKELY(tabinit(csound, p->ans, nargs, p->h.insdshead) != OK))
+  if (UNLIKELY(tabfill_init(csound, p->ans, nargs, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
 
   size = p->ans->sizes[0];
@@ -218,7 +244,7 @@ int32_t tabfillf(CSOUND* csound, TABFILLF* p)
     nextval(infile);
   } while (!feof(infile));
   flen--; // overshoots by 1
-  if (UNLIKELY(tabinit(csound, p->ans, flen, p->h.insdshead) != OK))
+  if (UNLIKELY(tabfill_init(csound, p->ans, flen, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   size = p->ans->sizes[0];
   for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
@@ -274,7 +300,7 @@ int32_t tabsfill(CSOUND *csound, TABFILLF *p)
     if (isnan(x)) break;
     flen++;
   } while (*string!='\0');
-  if (UNLIKELY(tabinit(csound, p->ans, flen, p->h.insdshead) != OK))
+  if (UNLIKELY(tabfill_init(csound, p->ans, flen, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   size = p->ans->sizes[0];
   for (i=1; i<p->ans->dimensions; i++) size *= p->ans->sizes[i];
@@ -515,35 +541,9 @@ static int32_t array_get_common(CSOUND *csound, ARRAY_GET *p,
     /* Allow arrays with no metadata (e.g., signal-as-array views) by treating
        them as flat 1-D arrays addressed with a single index. */
     if (!(dat && dat->dimensions == 0)) {
-      // Check if this looks like an uninitialized array (garbage dimensions value)
-      int32_t orig_dimensions = dat->dimensions;
-      if (dat->dimensions < 0 || dat->dimensions > 1000) {
-        // Try to recover: assume 1-D array if we have valid data
-        if (dat->data != NULL && dat->arrayMemberSize > 0 && indefArgCount == 1) {
-          dat->dimensions = 1;
-          if (dat->sizes == NULL) {
-            dat->sizes = csound->Calloc(csound, sizeof(int32_t));
-          }
-          // Infer size from allocated memory
-          size_t allocated = csound_array_allocated_bytes(csound, dat);
-          if (allocated > 0) {
-            dat->sizes[0] = (int32_t)(allocated /
-                                      (size_t)dat->arrayMemberSize);
-          } else {
-            dat->sizes[0] = 1; // Conservative default
-          }
-          csound->Warning(csound, Str("array_get: recovered from corrupted dimensions (was %d), set to %d with size %d\n"),
-                          orig_dimensions, dat->dimensions, dat->sizes[0]);
-        } else {
-          return ARRAY_PHASE_ERROR(
-            Str("Array dimension %d out of range for dimensions %d\n"),
-            indefArgCount, orig_dimensions);
-        }
-      } else {
-        return ARRAY_PHASE_ERROR(
-          Str("Array dimension %d out of range for dimensions %d\n"),
-          indefArgCount, dat ? dat->dimensions : -1);
-      }
+      return ARRAY_PHASE_ERROR(
+        Str("Array dimension %d out of range for dimensions %d\n"),
+        indefArgCount, dat->dimensions);
     }
   }
   // Check if this is a struct array that needs auto-sizing before bounds checking
@@ -690,6 +690,9 @@ static int32_t array_get_common(CSOUND *csound, ARRAY_GET *p,
 static int32_t tabinit_local(CSOUND *csound, ARRAYDAT *result,
                               const ARRAYDAT *source, INSDS *ctx)
 {
+  if (UNLIKELY(csound_array_check_rank(
+                 csound, result, source->dimensions) != OK))
+    return NOTOK;
   /* A reinitialized UDO may now use a different block size. Its result
      arrays must follow that size just like arrays declared with init. */
   if (result->arrayType == &CS_VAR_TYPE_A &&
@@ -3475,8 +3478,9 @@ int32_t tabcopy(CSOUND *csound, TABCPY *p)
     return csound->InitError(csound, "%s\n", Str("array-variable not initialised"));
   if (UNLIKELY(p->dst->dimensions > 0 &&
                p->src->dimensions != p->dst->dimensions))
-    return csound->InitError(csound, "%s\n",
-                             Str("array-variable dimensions do not match"));
+    return csound->InitError(
+      csound, Str("array rank mismatch: expected %d, got %d\n"),
+      p->dst->dimensions, p->src->dimensions);
   if (p->dst->arrayType == NULL)
     p->dst->arrayType = p->src->arrayType;
   if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
@@ -3510,6 +3514,11 @@ int32_t tabcopyk_init(CSOUND *csound, TABCPY *p) {
   // Ensure destination array metadata and storage match the source
   if (UNLIKELY(p->src == NULL || p->dst == NULL))
     return csound->InitError(csound, Str("tabcopyk_init: null src/dst\n"));
+  if (UNLIKELY(p->dst->dimensions > 0 &&
+               p->src->dimensions != p->dst->dimensions))
+    return csound->InitError(
+      csound, Str("array rank mismatch: expected %d, got %d\n"),
+      p->dst->dimensions, p->src->dimensions);
 
   if (p->src->arrayType && p->src->arrayType->userDefinedType) {
     if (p->dst->arrayType == NULL)
@@ -3538,8 +3547,9 @@ int32_t tabcopyk(CSOUND *csound, TABCPY *p)
     return csound->PerfError(csound, &(p->h), "%s\n", Str("array-variable not initialised"));
   if (UNLIKELY(p->dst->dimensions > 0 &&
                p->src->dimensions != p->dst->dimensions))
-    return csound->PerfError(csound,&(p->h), "%s\n",
-                             Str("array-variable dimensions do not match"));
+    return csound->PerfError(
+      csound, &p->h, Str("array rank mismatch: expected %d, got %d\n"),
+      p->dst->dimensions, p->src->dimensions);
   if (p->dst->arrayType == NULL)
     p->dst->arrayType = p->src->arrayType;
   if (UNLIKELY(p->src->arrayType != p->dst->arrayType))
@@ -3570,8 +3580,9 @@ int32_t tabcopy1(CSOUND *csound, TABCPY *p)
   if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
     return csound->InitError(csound, "%s\n", Str("array-variable not initialised"));
   if (p->dst->dimensions > 0 && p->src->dimensions != p->dst->dimensions)
-    return csound->InitError(csound, "%s\n",
-                             Str("array-variable dimensions do not match"));
+    return csound->InitError(
+      csound, Str("array rank mismatch: expected %d, got %d\n"),
+      p->dst->dimensions, p->src->dimensions);
 
   if (p->src == p->dst) return OK;
 
@@ -3593,8 +3604,13 @@ static int32_t tabcopy_audio(CSOUND *csound, TABCPY *p, int32_t initializing)
     return csound->InitError(csound, "%s\n", Str("array-variable not initialised"));
   if (UNLIKELY(p->dst->dimensions > 0 &&
                p->src->dimensions != p->dst->dimensions))
-    return csound->InitError(csound, "%s\n",
-                             Str("array-variable dimensions do not match"));
+    return initializing
+      ? csound->InitError(
+          csound, Str("array rank mismatch: expected %d, got %d\n"),
+          p->dst->dimensions, p->src->dimensions)
+      : csound->PerfError(
+          csound, &p->h, Str("array rank mismatch: expected %d, got %d\n"),
+          p->dst->dimensions, p->src->dimensions);
   if (UNLIKELY(p->src->arrayType != &CS_VAR_TYPE_A ||
                p->dst->arrayType != &CS_VAR_TYPE_A))
     return csound->InitError(csound, "%s\n",
@@ -3705,7 +3721,7 @@ static const char *array_generate(CSOUND *csound, TABGEN *p)
     return Str("genarray: sequence length out of range");
   int32_t size = (int32_t)count;
 
-  if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->tab, size, p->h.insdshead) != OK))
     return Str("genarray: could not resize output array");
   cs_float *data = p->tab->data;
   for (int32_t i = 0; i < size; i++) {
@@ -3743,7 +3759,7 @@ int32_t ftab2tabi(CSOUND *csound, TABCOPY *p)
     return csound->InitError(csound, "%s\n", Str("No table for copy2ftab"));
   fsize = ftp->flen;
   if (UNLIKELY(p->tab->data==NULL)) {
-    if (UNLIKELY(tabinit(csound, p->tab, fsize, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->tab, fsize, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     p->tab->sizes[0] = fsize;
   }
@@ -3782,7 +3798,7 @@ int32_t trim_i(CSOUND *csound, TRIM *p)
   if (UNLIKELY(csound_array_size_to_int32(*p->size, &size) != OK)) {
     return csound->InitError(csound, "%s\n", Str("Invalid array size"));
   }
-  if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK)) {
+  if (UNLIKELY(csound_array_init_vector(csound, p->tab, size, p->h.insdshead) != OK)) {
     return csound_array_init_resize_error(csound);
   }
   return OK;
@@ -3866,7 +3882,7 @@ int32_t tabslice(CSOUND *csound, TABSLICE *p)
   const char *error = tabslice_bounds(p, &start, &inc, &size);
   if (UNLIKELY(error != NULL))
     return csound->InitError(csound, "%s\n", error);
-  if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->tab, size, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   tabslice_copy(csound, p, start, inc, size);
   return OK;
@@ -3905,7 +3921,7 @@ int32_t tabmap_set(CSOUND *csound, TABMAP *p)
                              Str("maparray: unsupported init-time function: %s\n"),
                              p->str->data);
   int32_t size = p->tabin->sizes[0];
-  if (UNLIKELY(tabinit(csound, p->tab, size, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->tab, size, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   cs_float *data = p->tab->data, *tabin = p->tabin->data;
   AEVAL eval = {0};
@@ -3960,7 +3976,7 @@ int32_t asig2array_init(CSOUND *csound, A2ARR *p) {
     return csound->InitError(csound, "%s\n",
                              Str("Audio-to-array conversion requires a "
                                  "one-dimensional output"));
-  if (UNLIKELY(tabinit(csound, p->res, nsmps, p->h.insdshead) != OK))
+  if (UNLIKELY(csound_array_init_vector(csound, p->res, nsmps, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
 }

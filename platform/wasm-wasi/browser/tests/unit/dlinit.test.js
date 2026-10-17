@@ -8,8 +8,15 @@ const opcodeInit = () => 0;
 
 describe("WASM plugin registration", () => {
   for (const [hostSampleSize, hostDoubleSize] of [[8, 8], [4, 8], [4, 4]]) {
-    for (const info of [undefined, 0, 7 << 16, (7 << 16) | 8,
-      (7 << 16) | 4, (7 << 16) | 0x84]) {
+    // Each tuple declares the plugin's sample size and internal precision.
+    // 0x40 advertises rank-aware signatures, not a larger sample size.
+    for (const [info, sampleSize, doubleSize] of [
+      [undefined, 0, 8], [0, 0, 8], [7 << 16, 0, 8],
+      [(7 << 16) | 8, 8, 8], [(7 << 16) | 4, 4, 8],
+      [(7 << 16) | 0x84, 4, 4],
+      [(7 << 16) | 0x48, 8, 8], [(7 << 16) | 0x44, 4, 8],
+      [(7 << 16) | 0xc4, 4, 4],
+    ]) {
       for (const kind of ["module", "opcode", "fgen"]) {
         it(`checks ${kind} precision ${info} against ${hostSampleSize}/${hostDoubleSize} before registration`, () => {
           let called = false;
@@ -29,8 +36,7 @@ describe("WASM plugin registration", () => {
           // Table changes must also follow the compatibility check.
           const table = { length: 1, grow: register, set: register };
           const load = () => dlinit(host, { exports: pluginExports }, table, 1);
-          const sampleSize = info & 0x7f;
-          const matches = Boolean(info & 0x80) === (hostDoubleSize === 4) &&
+          const matches = doubleSize === hostDoubleSize &&
             (!sampleSize || sampleSize === hostSampleSize);
           if (matches) {
             load();

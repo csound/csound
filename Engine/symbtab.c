@@ -147,6 +147,10 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
             dimensions += 1;
             in_arg += 1;
           }
+          if (*in_arg == '^') {
+            dimensions = 0;
+            in_arg++;
+          }
 
           end = in_arg;
           while (*end != '\0' && *end != ']') {
@@ -220,6 +224,10 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
           while (*out_arg == '[') {
             dimensions += 1;
             out_arg += 1;
+          }
+          if (*out_arg == '^') {
+            dimensions = 0;
+            out_arg++;
           }
 
           end = out_arg;

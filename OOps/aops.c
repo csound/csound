@@ -1595,7 +1595,7 @@ int32_t inarray_set(CSOUND *csound, INA *p){
   if (p->tabout->data != NULL &&
       (size_t)p->tabout->arrayMemberSize < CS_KSMPS * sizeof(cs_float))
     csound_free_array_storage(csound, p->tabout);
-  if (UNLIKELY(tabinit(csound, p->tabout, csound->inchnls,
+  if (UNLIKELY(csound_array_init_vector(csound, p->tabout, csound->inchnls,
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   return OK;
@@ -2593,7 +2593,7 @@ int32_t painit(CSOUND *csound, PAINIT *p)
   if (*p->end!=FL(0.0)) {
     if (k<pargs) pargs = k;
   }
-  if (UNLIKELY(tabinit(csound, p->inits, pargs-start+1,
+  if (UNLIKELY(csound_array_init_vector(csound, p->inits, pargs-start+1,
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   for (n=0; n<=pargs-start; n++) {
@@ -2683,6 +2683,8 @@ int32_t monitora_init(CSOUND *csound, MONITOR_A *p)
                              Str("local sampling rate not supported\n"));
   ARRAYDAT *aa = p->tabin;
   // should call ensure here but it is a-rate
+  if (UNLIKELY(csound_array_check_rank(csound, aa, 1) != OK))
+    return csound->InitError(csound, "%s\n", Str("monitor: invalid output rank"));
   aa->dimensions = 1;
   if (aa->sizes) csound->Free(csound, aa->sizes);
   if (aa->data) csound->Free(csound, aa->data);

@@ -115,7 +115,7 @@ static int32_t linlinarr1_init(CSOUND *csound, LINLINARR1 *p) {
                    p->ys->dimensions > 1))
         return INITERR(Str("linlin: expected one-dimensional arrays\n"));
     int32_t numitems = p->xs->sizes[0];
-    if (UNLIKELY(tabinit(csound, p->ys, numitems,
+    if (UNLIKELY(csound_array_init_vector(csound, p->ys, numitems,
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     return OK;
@@ -181,7 +181,7 @@ blendarray_init(CSOUND *csound, BLENDARRAY *p) {
     int32_t numitemsA = p->A->sizes[0];
     int32_t numitemsB = p->B->sizes[0];
     int32_t numitems = numitemsA < numitemsB ? numitemsA : numitemsB;
-    if (UNLIKELY(tabinit(csound, p->out, numitems,
+    if (UNLIKELY(csound_array_init_vector(csound, p->out, numitems,
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     return OK;
@@ -416,7 +416,7 @@ static int32_t
 ftom_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
     p->freqA4 = csound->GetA4(csound);
     p->rnd = (int)*p->irnd;
-    if (UNLIKELY(tabinit(csound, p->outarr, p->inarr->sizes[0],
+    if (UNLIKELY(csound_array_init_vector(csound, p->outarr, p->inarr->sizes[0],
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     return ftom_arr(csound, p);
@@ -442,7 +442,7 @@ mtof_arr(CSOUND *csound, PITCHCONV_ARR *p) {
 static int32_t
 mtof_arr_init(CSOUND *csound, PITCHCONV_ARR *p) {
     p->freqA4 = csound->GetA4(csound);
-    if (UNLIKELY(tabinit(csound, p->outarr, p->inarr->sizes[0],
+    if (UNLIKELY(csound_array_init_vector(csound, p->outarr, p->inarr->sizes[0],
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     return mtof_arr(csound, p);
@@ -954,7 +954,7 @@ static int32_t bpf_K_Km_init(CSOUND *csound, BPF_K_Km *p) {
     if(datalen >= BPF_MAXPOINTS)
         return INITERR(Str("bpf: too many pargs (max=256)\n"));
     int32_t N = p->in->sizes[0];
-    if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     p->lastidx = -1;
     return OK;
@@ -1455,7 +1455,7 @@ cmp_init(CSOUND *csound, Cmp *p) {
 static int32_t
 cmparray1_init(CSOUND *csound, Cmp_array1 *p) {
     int32_t N = p->in->sizes[0];
-    if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     int32_t mode = op2mode(p->op->data);
     if(mode == -1) {
@@ -1474,7 +1474,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
 
     // make sure that we can put the result in `out`,
     // grow the array if necessary
-    if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     int32_t mode = op2mode(p->op->data);
     if(mode == -1) {
@@ -1488,7 +1488,7 @@ cmparray2_init(CSOUND *csound, Cmp_array2 *p) {
 static int32_t
 cmp2array1_init(CSOUND *csound, Cmp2_array1 *p) {
     int32_t N = p->in->sizes[0];
-    if (UNLIKELY(tabinit(csound, p->out, N, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->out, N, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
 
     int32_t mode1 = op2mode(p->op1->data);
@@ -1987,7 +1987,7 @@ tab2array_common(CSOUND *csound, TAB2ARRAY *p, int32_t init, int32_t copy) {
         end = p->ftp->flen;
     int32_t numitems = end > start ? 1 + (end - start - 1) / step : 0;
     if (init) {
-        if (UNLIKELY(tabinit(csound, p->out, numitems, p->h.insdshead) != OK))
+        if (UNLIKELY(csound_array_init_vector(csound, p->out, numitems, p->h.insdshead) != OK))
             return csound_array_init_resize_error(csound);
     } else if (UNLIKELY(tabcheck(csound, p->out, numitems, &p->h) != OK)) {
         return NOTOK;
@@ -2019,36 +2019,9 @@ tab2array_i(CSOUND *csound, TAB2ARRAY *p) {
 }
 
 
-/*
-
-  reshapearray
-
-  Reshape an array, maintaining the capacity of the array
-  (it does NOT resize the array).
-
-  You can reshape a 2D array to another array of equal capacity
-  of reshape a 1D array to a 2D array, or a 2D array to a 1D
-  array
-
-  reshapearray array[], isize1 [, ..., isizen]
-
-  works with i and k arrays, at i-time
-
-  1:  if the sizes of the array and the size of the reshaped array do not match
-it needs an error message. Currently it is rather silent.
-
-2: in calculating the sizes if numcols is zero (the default value)
-multiplying by zero always leads to an error.
-
-3:  in numrows is 0 you end up with a 0 x 0 array.
-
-(3, 5)
-
-0   1  2  3  4
-10 11 12 13 14
-20 21 22 23 24
-
-*/
+/* Reshape preserves the number and order of elements. The input-only form
+   changes sizes at init while retaining rank. The output form copies into
+   a separately declared array, which may have a different rank. */
 
 enum { ARRAYRESHAPE_MAX_DIMENSIONS = 20 };
 
@@ -2058,11 +2031,18 @@ typedef struct {
     cs_float *dims[ARRAYRESHAPE_MAX_DIMENSIONS];
 } ARRAYRESHAPE;
 
+typedef struct {
+    OPDS h;
+    ARRAYDAT *out, *in;
+    cs_float *dims[ARRAYRESHAPE_MAX_DIMENSIONS];
+    int32_t numdims;
+    int32_t sizes[ARRAYRESHAPE_MAX_DIMENSIONS];
+    size_t count;
+} ARRAYRESHAPECOPY;
+
 static int32_t
-arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
-    ARRAYDAT *a = p->in;
-    int32_t numdims = p->INOCOUNT - 1;
-    int32_t newSizes[ARRAYRESHAPE_MAX_DIMENSIONS];
+arrayreshape_shape(CSOUND *csound, const ARRAYDAT *a, int32_t numdims,
+                   cs_float *const *dims, int32_t *sizes, size_t *count) {
     size_t orig_numitems;
     size_t numitems = 1;
 
@@ -2073,18 +2053,18 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
         return INITERR(Str("reshapearray: invalid array or dimensions\n"));
     }
     for(int i=0; i < numdims; i++) {
-        cs_double dim = (cs_double)*(p->dims[i]);
+        cs_double dim = (cs_double)*dims[i];
         if (UNLIKELY(!isfinite(dim) || dim < 1.0 ||
                      dim > (INT32_MAX + 0.0) || floor(dim) != dim)) {
             return INITERRF(
               Str("reshapearray: dimension %d must be a positive integer, "
                   "got %g\n"), i, dim);
         }
-        newSizes[i] = (int32_t)dim;
-        if (UNLIKELY((size_t)newSizes[i] > SIZE_MAX / numitems)) {
+        sizes[i] = (int32_t)dim;
+        if (UNLIKELY((size_t)sizes[i] > SIZE_MAX / numitems)) {
             return INITERR(Str("reshapearray: dimension product overflow\n"));
         }
-        numitems *= (size_t)newSizes[i];
+        numitems *= (size_t)sizes[i];
     }
 
     if(numitems != orig_numitems)
@@ -2093,6 +2073,26 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
                           "results in %zu total elements\n"),
                       orig_numitems, numitems);
 
+    *count = numitems;
+    return OK;
+}
+
+static int32_t
+arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
+    ARRAYDAT *a = p->in;
+    int32_t numdims = p->INOCOUNT - 1;
+    int32_t newSizes[ARRAYRESHAPE_MAX_DIMENSIONS];
+    size_t count;
+
+    if (UNLIKELY(arrayreshape_shape(csound, a, numdims, p->dims,
+                                    newSizes, &count) != OK))
+        return NOTOK;
+    if (UNLIKELY(!csound_array_rank_matches(a, numdims)))
+        return INITERRF(
+          Str("reshapearray: cannot change array rank in place "
+              "from %d to %d; use a separate output array\n"),
+          a->dimensions, numdims);
+
     if (UNLIKELY(csound_array_prepare_opcode_write(
                    csound, a, &p->h, 1,
                    Str("reshapearray: could not prepare array for writing"))
@@ -2100,19 +2100,109 @@ arrayreshape(CSOUND *csound, ARRAYRESHAPE *p) {
       return NOTOK;
     }
 
-    if(a->dimensions != numdims) {
-        int32_t *resized = csound->ReAlloc(
-          csound, a->sizes, sizeof(int32_t) * (size_t)numdims);
-        if (UNLIKELY(resized == NULL)) {
-            return INITERR(Str("reshapearray: could not resize dimensions\n"));
-        }
-        a->sizes = resized;
-        a->dimensions = numdims;
-    }
-
     memcpy(a->sizes, newSizes, sizeof(int32_t) * (size_t)numdims);
 
     return OK;
+}
+
+static int32_t
+arrayreshape_copy(CSOUND *csound, ARRAYRESHAPECOPY *p, int32_t init) {
+    ARRAYDAT *in = p->in, *out = p->out;
+    size_t count;
+    uint32_t offset = 0, early = 0;
+    int32_t audio = in->arrayType == csound->GetType(csound, "a");
+
+    if (UNLIKELY(csound_array_member_count(in, &count) != OK ||
+                 count != p->count))
+        return INITPERFERR(init,
+          Str("reshapearray: input element count changed\n"));
+    if (UNLIKELY(in->data == NULL || out->data == NULL ||
+                 in->arrayType != out->arrayType ||
+                 in->arrayMemberSize <= 0 || out->arrayMemberSize <= 0 ||
+                 !csound_array_rank_matches(out, p->numdims) ||
+                 out->sizes == NULL ||
+                 count > out->allocated / (size_t)out->arrayMemberSize ||
+                 (in->allocated > 0 &&
+                  count > in->allocated / (size_t)in->arrayMemberSize)))
+        return INITPERFERR(init,
+          Str("reshapearray: invalid array storage or type\n"));
+    if (audio) {
+        size_t bytes = (size_t)CS_KSMPS * sizeof(cs_float);
+        if (!init) {
+            offset = p->h.insdshead->ksmps_offset;
+            early = p->h.insdshead->ksmps_no_end;
+        }
+        if (UNLIKELY(bytes > (size_t)in->arrayMemberSize ||
+                     bytes > (size_t)out->arrayMemberSize ||
+                     offset > CS_KSMPS || early > CS_KSMPS - offset))
+            return INITPERFERR(init,
+              Str("reshapearray: invalid audio array block size\n"));
+    }
+    if (UNLIKELY(csound_array_prepare_opcode_write(
+                   csound, out, &p->h, init,
+                   Str("reshapearray: output requires independent storage"))
+                 != OK))
+        return NOTOK;
+
+    memcpy(out->sizes, p->sizes, sizeof(int32_t) * (size_t)p->numdims);
+    for (size_t i = 0; i < count; ++i) {
+        void *dest = (char *)out->data + i * (size_t)out->arrayMemberSize;
+        const void *src = (char *)in->data + i * (size_t)in->arrayMemberSize;
+        if (dest != src) {
+            if (out->arrayType->userDefinedType) {
+                if (UNLIKELY(csound->StructCopyIndependent == NULL ||
+                    csound->StructCopyIndependent(
+                      csound, out->arrayType, dest, src, p->h.insdshead,
+                      init)
+                             != OK))
+                    return INITPERFERR(init,
+                      Str("reshapearray: could not copy struct element into "
+                          "prepared storage\n"));
+            }
+            else {
+                out->arrayType->copyValue(csound, out->arrayType, dest, src,
+                                          p->h.insdshead);
+            }
+        }
+        if (audio) {
+            memset(dest, 0, (size_t)offset * sizeof(cs_float));
+            memset((cs_float *)dest + CS_KSMPS - early, 0,
+                   (size_t)early * sizeof(cs_float));
+        }
+    }
+    return OK;
+}
+
+static int32_t
+arrayreshape_copy_init(CSOUND *csound, ARRAYRESHAPECOPY *p) {
+    ARRAYDAT shape = {0};
+    p->numdims = p->INOCOUNT - 1;
+    if (UNLIKELY(arrayreshape_shape(csound, p->in, p->numdims, p->dims,
+                                    p->sizes, &p->count) != OK))
+        return NOTOK;
+    if (UNLIKELY(!csound_array_rank_matches(p->out, p->numdims)))
+        return INITERRF(
+          Str("reshapearray: output array rank mismatch: expected %d, got %d\n"),
+          p->out->dimensions, p->numdims);
+    if (UNLIKELY(p->in->arrayType == NULL ||
+                 p->out->arrayType != p->in->arrayType ||
+                 p->out->arrayType->copyValue == NULL))
+        return INITERR(Str("reshapearray: array element types do not match\n"));
+
+    /* This descriptor owns no storage. Only its type and shape guide the
+       output allocation; type callbacks copy each element below. */
+    shape.arrayType = p->in->arrayType;
+    shape.dimensions = p->numdims;
+    shape.sizes = p->sizes;
+    if (UNLIKELY(tabinit_like_context(csound, p->out, &shape,
+                                      p->h.insdshead) != OK))
+        return INITERR(Str("reshapearray: could not prepare output array\n"));
+    return arrayreshape_copy(csound, p, 1);
+}
+
+static int32_t
+arrayreshape_copy_perf(CSOUND *csound, ARRAYRESHAPECOPY *p) {
+    return arrayreshape_copy(csound, p, 0);
 }
 
 
@@ -2572,7 +2662,7 @@ array_binop_prepare(CSOUND *csound, BINOP_AAA *p, int32_t init,
     /* Keep the existing flat output, using the current input lengths. */
     *numitems = (int32_t)count1;
     if (init) {
-        if (UNLIKELY(tabinit(csound, p->out, *numitems,
+        if (UNLIKELY(csound_array_init_vector(csound, p->out, *numitems,
                              p->h.insdshead) != OK))
             return csound_array_init_resize_error(csound);
         return OK;
@@ -3118,6 +3208,10 @@ static OENTRY emugens_localops[] = {
     { "##and", S(BINOP_AAA), 0,  "k[]", "k[]k[]",
       (SUBR)array_binop_init, (SUBR)array_and},
     { "reshapearray", S(ARRAYRESHAPE), 0,  "", ".[]im", (SUBR)arrayreshape},
+    { "reshapearray.i", S(ARRAYRESHAPECOPY), 0, "i[]", "i[]im",
+      (SUBR)arrayreshape_copy_init },
+    { "reshapearray.copy", S(ARRAYRESHAPECOPY), 0, ".[]", ".[]im",
+      (SUBR)arrayreshape_copy_init, (SUBR)arrayreshape_copy_perf },
 
     { "ftslicei", S(TABSLICE), TB,  "", "iioop", (SUBR)tabslice_i },
 

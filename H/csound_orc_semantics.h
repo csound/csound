@@ -44,6 +44,8 @@ void print_tree(CSOUND *, char *, TREE *);
 OENTRIES* find_opcode2(CSOUND*, char*);
 char* resolve_opcode_get_outarg(CSOUND* csound,
                                 OENTRIES* entries, char* inArgTypes);
+char *resolve_expression_type(CSOUND *csound, OENTRIES *entries,
+                              char *inTypes, char *annotation);
 void do_baktrace(CSOUND *csound, uint64_t files);
 char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable);

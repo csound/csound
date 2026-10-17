@@ -20,6 +20,10 @@ opcode ForwardSamples(input:Sample[]):Sample[]
   xout input
 endop
 
+opcode ForwardMatrix(input:Sample[][]):Sample[][]
+  xout input
+endop
+
 instr 1
   source:Sample[] init 4
   first:Sample init 10
@@ -32,10 +36,9 @@ instr 1
   source[2] = third
   source[3] = fourth
 
-  ; A UDO return shares structured backing storage until the first write.
-  ; This specifically exercises reshapearray's detach path.
-  reshaped:Sample[] = ForwardSamples(source)
-  reshapearray reshaped, 2, 2
+  ; Reshape must copy managed elements from a UDO return without changing it.
+  forwarded:Sample[] = ForwardSamples(source)
+  reshaped:Sample[][] reshapearray forwarded, 2, 2
 
   if lenarray(source, 0) != 1 || lenarray(source, 1) != 4 then
     prints "reshaping a copy changed the source array\n"
@@ -64,8 +67,31 @@ instr 1
   endif
 endin
 
+instr 2
+  source:Sample[][] init 2, 2
+  last:Sample init 40
+  source[1][1] = last
+
+  ; The input-only form still detaches a shared copy before changing sizes.
+  copied:Sample[][] = ForwardMatrix(source)
+  reshapearray copied, 1, 4
+  if lenarray(source, 1) != 2 || lenarray(source, 2) != 2 || \
+      lenarray(copied, 1) != 1 || lenarray(copied, 2) != 4 || \
+      copied[0][3].value != 40 then
+    prints "in-place reshape changed a shared source\n"
+    exitnow(1)
+  endif
+  replacement:Sample init 99
+  copied[0][3] = replacement
+  if source[1][1].value != 40 then
+    prints "in-place reshape still aliases its source\n"
+    exitnow(1)
+  endif
+endin
+
 </CsInstruments>
 <CsScore>
 i 1 0 0
+i 2 0 0
 </CsScore>
 </CsoundSynthesizer>
