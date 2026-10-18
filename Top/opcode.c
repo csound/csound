@@ -1234,6 +1234,15 @@ static OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
 }
 
 /**
+ * element i of an Opcode[] array: the array stride is the aligned
+ * member size of the Opcode type, which can exceed sizeof(OPCODEOBJ)
+ */
+static inline OPCODEOBJ *opcode_array_obj(ARRAYDAT *array, int32_t i) {
+  return (OPCODEOBJ *) ((char *) array->data +
+                        (size_t) i * array->arrayMemberSize);
+}
+
+/**
  * free opcode dataspace
  */
 static void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace) {
@@ -1297,16 +1306,16 @@ int32_t create_opcode_array(CSOUND *csound, OPARRAY *p) {
     n  = *p->n;
     if (UNLIKELY(tabinit(csound, p->r, n, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
-    obj = (OPCODEOBJ *) p->r->data;
     for(i = 0; i < n; i++) {
-      opcode_take_spare(csound, &obj[i], entry);
-      if(obj[i].dataspace == NULL || obj[i].size < entry->dsblksiz) {
-       if((obj[i].dataspace = opcode_dataspace_new(csound, entry, &(p->h)))
+      obj = opcode_array_obj(p->r, i);
+      opcode_take_spare(csound, obj, entry);
+      if(obj->dataspace == NULL || obj->size < entry->dsblksiz) {
+       if((obj->dataspace = opcode_dataspace_new(csound, entry, &(p->h)))
           == NULL)
         return csound->InitError(csound, Str("could not allocate opcode object\n"));
       }
-      obj[i].udo_flag = entry->useropinfo == NULL ? 0  : 1;
-      obj[i].size = entry->dsblksiz;
+      obj->udo_flag = entry->useropinfo == NULL ? 0  : 1;
+      obj->size = entry->dsblksiz;
       }
     return OK;
   }
@@ -1455,10 +1464,9 @@ int32_t opcode_run_perf(CSOUND *csound, OPRUN *p) {
 int32_t opcode_delete_array(CSOUND *csound, AOP *p) {
   ARRAYDAT  *array = (ARRAYDAT *) p->r;
   int32_t   n = array->sizes[0], i;
-  OPCODEOBJ *obj= (OPCODEOBJ *) array->data;
   cs_float *r = p->r;
   for(i = 0; i < n; i++) {
-    p->r = (cs_float *) &(obj[i]);
+    p->r = (cs_float *) opcode_array_obj(array, i);
     opcode_delete(csound, p);
   }
   p->r = r;
@@ -1550,23 +1558,22 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
   int32_t i, j, n = 0, m;
   cs_float *args[VARGMAX] = {0};
   const CS_TYPE *types[VARGMAX] = {0};
-  ARRAYDAT  *array;
+  ARRAYDAT  *array, *objects;
   OPCODEOBJ *obj;
   CS_VAR_MEM *argmem = NULL;
   CS_VAR_MEM **slot;
   int32_t ndx, argn;
-  array = (ARRAYDAT *) pargs[p->OUTOCOUNT];
-  obj = (OPCODEOBJ *) array->data;
-  n = array->sizes[0];
+  objects = (ARRAYDAT *) pargs[p->OUTOCOUNT];
+  n = objects->sizes[0];
   argn = p->INOCOUNT + p->OUTOCOUNT;
   if (n == 0)
     return OK;
   for(i = 0; i < n; i++)
-    if(obj[i].dataspace == NULL)
+    if(opcode_array_obj(objects, i)->dataspace == NULL)
       return csound->InitError(csound, Str("opcode object not initialised\n"));
   // check that array args split across obj[] are 1-dim and large enough
   for(i = 0; i < argn; i++)
-    if(oprun_splits_arg(p, pargs, &obj[0], i)) {
+    if(oprun_splits_arg(p, pargs, opcode_array_obj(objects, 0), i)) {
       array = (ARRAYDAT *) pargs[i];
       if(array->dimensions > 1)
         return csound->InitError(csound, Str("only 1-dim arrays are allowed\n"));
@@ -1575,21 +1582,23 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
           return csound_array_init_resize_error(csound);
       }
   }
-  oprun_alloc_slots(csound, p, pargs, obj, n, argn);
+  oprun_alloc_slots(csound, p, pargs, opcode_array_obj(objects, 0),
+                    n, argn);
   slot = (CS_VAR_MEM **) p->mem.auxp;
   for(i = 0; i < n; i++) {
     size_t size;
-    set_line_num_and_loc(&obj[i], p);
-    if(context_check(csound, &obj[i], p->h.insdshead) != OK)
+    obj = opcode_array_obj(objects, i);
+    set_line_num_and_loc(obj, p);
+    if(context_check(csound, obj, p->h.insdshead) != OK)
       return csound->InitError(csound, Str("incompatible context, "
                                "cannot initialise opcode obj for %s\n"),
-                               obj[i].dataspace->optext->t.oentry->opname);
+                               obj->dataspace->optext->t.oentry->opname);
     for(j = 0; j < (int32_t) p->OUTOCOUNT; j++) {
       // if passed an array, check that the outype is not
       // an array first and deal with it 
       if((types[j] = csoundGetTypeForArg(pargs[j]))
           == &CS_VAR_TYPE_ARRAY &&
-         !isTypeArray(&obj[i],j, 0)) {
+         !isTypeArray(obj,j, 0)) {
         /* Scalarize fixed-layout array elements into per-object arguments.
            Managed elements cannot be transferred safely as raw bytes. */
         array = (ARRAYDAT *)pargs[j];
@@ -1614,7 +1623,7 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
       // an array first and deal with it  
       if((types[m] = csoundGetTypeForArg(pargs[m]))
          == &CS_VAR_TYPE_ARRAY &&
-         !isTypeArray(&obj[i],j, 1)) {
+         !isTypeArray(obj,j, 1)) {
         char *data;
         array = (ARRAYDAT *)pargs[m];
         if (UNLIKELY(csound_array_has_managed_elements(array))) {
@@ -1638,10 +1647,10 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
      }
    
     // call setup_args with array flag checked, passing assigned args
-    if(setup_args(csound, &obj[i], &(p->h), args, types,
+    if(setup_args(csound, obj, &(p->h), args, types,
                   p->OUTOCOUNT, p->INOCOUNT - 1) == OK) {
-      if(obj[i].dataspace->init != NULL) {
-        obj[i].dataspace->init(csound, obj[i].dataspace);
+      if(obj->dataspace->init != NULL) {
+        obj->dataspace->init(csound, obj->dataspace);
         // copy array args data out
         for(j = 0; j < GetOutputArgCnt(&p->h); j++) {
            if(csoundGetTypeForArg(pargs[j]) == &CS_VAR_TYPE_ARRAY) {
@@ -1675,9 +1684,9 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
  */
 int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
   cs_float **pargs = oprun_args(p);
-  ARRAYDAT  *array = (ARRAYDAT *) pargs[p->OUTOCOUNT];
-  int32_t   n = array->sizes[0], i, j, ndx, argn = p->OUTOCOUNT + p->INOCOUNT;
-  OPCODEOBJ *obj = (OPCODEOBJ *) array->data;
+  ARRAYDAT  *objects = (ARRAYDAT *) pargs[p->OUTOCOUNT], *array;
+  int32_t   n = objects->sizes[0], i, j, ndx, argn = p->OUTOCOUNT + p->INOCOUNT;
+  OPCODEOBJ *obj;
   CS_VAR_MEM **slot = (CS_VAR_MEM **) p->mem.auxp;
   CS_VAR_MEM *argmem = NULL;
   char *data;
@@ -1700,9 +1709,10 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
     }
   }
 
-  set_line_num_and_loc(&obj[i], p);
-  if(obj[i].dataspace->perf != NULL)
-    obj[i].dataspace->perf(csound, obj[i].dataspace);
+  obj = opcode_array_obj(objects, i);
+  set_line_num_and_loc(obj, p);
+  if(obj->dataspace->perf != NULL)
+    obj->dataspace->perf(csound, obj->dataspace);
 
    // copy array args data out
    for(j = 0; j < GetOutputArgCnt(&p->h); j++) {
