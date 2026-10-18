@@ -24,6 +24,28 @@ const pluginBytes = (tableAlign = 0) =>
     ...compiled.subarray(8),
   ]);
 
+// Add an exception tag with the fixture's existing (i32) -> void type.
+const pluginWithTag = (name) => {
+  const bytes = pluginBytes();
+  const imports = Buffer.from(bytes).indexOf(Buffer.from([2, 91, 4]));
+  assert.ok(imports > 0);
+  const tag = [
+    3,
+    ...new TextEncoder().encode("env"),
+    name.length,
+    ...new TextEncoder().encode(name),
+    4,
+    0,
+    1,
+  ];
+  const end = imports + 2 + bytes[imports + 1];
+  const result = new Uint8Array([...bytes.subarray(0, end), ...tag, ...bytes.subarray(end)]);
+  result[imports + 1] += tag.length;
+  result[imports + 2] += 1;
+  assert.ok(WebAssembly.validate(result));
+  return result;
+};
+
 const setup = (memory = new WebAssembly.Memory({ initial: 1, maximum: 2, shared: true })) => {
   let next = 1024;
   const allocations = [];
@@ -41,7 +63,12 @@ const setup = (memory = new WebAssembly.Memory({ initial: 1, maximum: 2, shared:
     freeByteMem: (pointer) => freed.push(pointer),
     csoundWasiLoadOpcodeLibrary: (csound, fgen, opcode) => registered.push(Number(opcode.value)),
   };
-  const importsForModule = () => ({ env: {} });
+  const importsUsed = [];
+  const importsForModule = () => {
+    const imports = { env: {} };
+    importsUsed.push(imports);
+    return imports;
+  };
   const registry = createThreadedPluginRegistry({
     memory,
     hostExports,
@@ -49,7 +76,17 @@ const setup = (memory = new WebAssembly.Memory({ initial: 1, maximum: 2, shared:
     poolSize: 2,
     wasi: { readFile: () => pluginBytes() },
   });
-  return { memory, table, hostExports, importsForModule, registry, allocations, freed, registered };
+  return {
+    memory,
+    table,
+    hostExports,
+    importsForModule,
+    importsUsed,
+    registry,
+    allocations,
+    freed,
+    registered,
+  };
 };
 
 describe("shared-memory plugin linking", () => {
@@ -89,6 +126,46 @@ describe("shared-memory plugin linking", () => {
     assert.equal(parent.table.get(plan.tableBase)(), 19, "parent TLS did not change");
     initializeTLS();
     assert.equal(child.table.get(plan.tableBase)(), 18, "new pthread gets fresh TLS");
+  });
+
+  it("gives C++ runtimes private exception tags in the parent and workers", () => {
+    const parent = setup();
+    const bytes = pluginWithTag("__cpp_exception");
+    parent.registry.addInitial(bytes);
+    const parentTag = parent.importsUsed[0].env.__cpp_exception;
+    assert.ok(parentTag instanceof WebAssembly.Tag);
+
+    const child = setup(parent.memory);
+    child.hostExports.__cpp_exception = new WebAssembly.Tag({ parameters: ["i32"] });
+    instantiateThreadedPlugins({
+      plugins: parent.registry.snapshot(),
+      memory: parent.memory,
+      hostExports: child.hostExports,
+      importsForModule: child.importsForModule,
+      index: 0,
+    }).initializeTLS();
+    const childTag = child.importsUsed[0].env.__cpp_exception;
+    assert.notEqual(childTag, child.hostExports.__cpp_exception);
+    const exception = new WebAssembly.Exception(parentTag, [42]);
+    assert.equal(exception.getArg(parentTag, 0), 42);
+    assert.equal(exception.is(childTag), false);
+
+    // Distinct plugins also keep their static C++ runtimes separate.
+    parent.registry.addInitial(new Uint8Array([...bytes, 0, 2, 1, 120]));
+    assert.equal(exception.is(parent.importsUsed[1].env.__cpp_exception), false);
+  });
+
+  it("uses the reactor's longjmp tag and rejects missing engine tags", () => {
+    const parent = setup();
+    parent.hostExports.__c_longjmp = new WebAssembly.Tag({ parameters: ["i32"] });
+    parent.registry.addInitial(pluginWithTag("__c_longjmp"));
+    assert.equal(parent.importsUsed[0].env.__c_longjmp, parent.hostExports.__c_longjmp);
+    for (const name of ["__c_longjmp", "unknown_tag"]) {
+      assert.throws(
+        () => setup().registry.addInitial(pluginWithTag(name)),
+        /Missing threaded plugin exception tag/,
+      );
+    }
   });
 
   it("reuses registration slots after reset while rejecting a changed layout", () => {
