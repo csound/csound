@@ -42,6 +42,10 @@ const instantiatePlugin = ({ plan, memory, hostExports, importsForModule }) => {
   const moduleImports = WebAssembly.Module.imports(module);
   for (const item of moduleImports) {
     if (item.module === "env" && item.kind === "tag") {
+      // Each plugin links its own C++ runtime. Let preparePluginImports give
+      // that instance a private tag, including when instantiated in a worker.
+      // C longjmp still uses the reactor's runtime and must share its tag.
+      if (item.name === "__cpp_exception") continue;
       if (!(hostExports[item.name] instanceof WebAssembly.Tag))
         throw new TypeError(`Missing threaded plugin exception tag: ${item.name}`);
       options["env"][item.name] = hostExports[item.name];
