@@ -63,7 +63,10 @@ UDO to the new form.
 
 Array literals use brackets, as in `notes:i[] = [60, 64, 67]`.
 The `for ... in ... do` loop reads array elements and can also provide
-their indices. Audio variables support sample access with an index.
+their indices. With `instanced` before `do`, each iteration gets its own
+opcode instances, so oscillators and filters keep separate state per
+iteration. See the [language article](Csound7/Language.md#give-each-iteration-its-own-opcode-state).
+Audio variables support sample access with an index.
 The `switch`, `case`, `default`, and `endsw` statements select a branch
 from several choices.
 

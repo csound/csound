@@ -43,6 +43,9 @@ typedef struct type_table {
     CS_VAR_POOL* instr0LocalPool;
     CS_VAR_POOL* localPool;
     CONS_CELL* labelList;
+    /* Verified UDOs synthesised from instanced loops, waiting to be placed
+       before the instrument or UDO that contains them. */
+    TREE* instancedDefinitions;
 } TYPE_TABLE;
 
 /* Parser nodes can be detached or share children during rewriting. Track

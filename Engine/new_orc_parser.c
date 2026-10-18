@@ -381,6 +381,7 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
 
       typeTable = csoundParserOwn(csound, csound->Calloc(csound, sizeof(TYPE_TABLE)));
       typeTable->udos = NULL;
+      typeTable->instancedDefinitions = NULL;
 
       typeTable->globalPool = csoundParserCreateVarPool(csound);
       if (typeTable->globalPool == NULL) {
