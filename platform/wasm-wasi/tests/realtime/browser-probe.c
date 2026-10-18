@@ -70,27 +70,77 @@ typedef struct {
     cs_float *result;
 } HEAP_PROBE;
 
-static int32_t free_browser_heap(CSOUND *csound, HEAP_PROBE *opcode)
+static size_t free_browser_heap_capacity(void)
 {
-    (void) csound;
-    /* WASI libc has no mallinfo. Probe reusable capacity without touching the
-       large blocks. Run only in tests, on the background API thread. */
+    /* WASI libc has no mallinfo. Probe reusable capacity at 4 KiB resolution.
+       Touch only the first word of each block to keep a list for cleanup.
+       Run only in tests, on the background API thread. */
     /* Keep these calls observable so Clang cannot fold unused malloc/free. */
     void *(*volatile allocate)(size_t) = malloc;
     void (*volatile release)(void *) = free;
-    size_t low = 0;
+    void **blocks = NULL;
+    size_t total = 0;
     size_t high = (size_t) __builtin_wasm_memory_size(0) * 16;
-    while (low < high) {
-      size_t middle = low + (high - low + 1) / 2;
-      void *memory = allocate(middle * 4096);
-      if (memory != NULL) {
-        release(memory);
-        low = middle;
-      } else {
-        high = middle - 1;
+    while (high > 0) {
+      size_t low = 0;
+      while (low < high) {
+        size_t middle = low + (high - low + 1) / 2;
+        void *memory = allocate(middle * 4096);
+        if (memory != NULL) {
+          release(memory);
+          low = middle;
+        } else {
+          high = middle - 1;
+        }
       }
+      if (low == 0)
+        break;
+      void **memory = allocate(low * 4096);
+      if (memory == NULL)
+        break;
+      /* Keep each block until counting finishes. Measuring only the largest
+         block mistakes fragmentation for a leak after a rejected edit. */
+      *memory = blocks;
+      blocks = memory;
+      total += low * 4096;
+      high = low;
     }
-    *opcode->result = (cs_float) low * 4096;
+    while (blocks != NULL) {
+      void **next = *blocks;
+      release(blocks);
+      blocks = next;
+    }
+    return total;
+}
+
+static int32_t free_browser_heap(CSOUND *csound, HEAP_PROBE *opcode)
+{
+    (void) csound;
+    *opcode->result = (cs_float) free_browser_heap_capacity();
+    return 0;
+}
+
+static int32_t fragmented_browser_heap(CSOUND *csound, HEAP_PROBE *opcode)
+{
+    (void) csound;
+    /* Both blocks exceed the small holes left by compilation. The second
+       keeps the first from merging with the large free block at the end. */
+    const size_t size = 8 * 1024 * 1024;
+    void *(*volatile allocate)(size_t) = malloc;
+    void (*volatile release)(void *) = free;
+    void *hole = allocate(size);
+    void *guard = allocate(size);
+    if (hole == NULL || guard == NULL) {
+      release(hole);
+      release(guard);
+      *opcode->result = -1;
+      return 0;
+    }
+    size_t before = free_browser_heap_capacity();
+    release(hole);
+    size_t after = free_browser_heap_capacity();
+    release(guard);
+    *opcode->result = (cs_float) after - (cs_float) before;
     return 0;
 }
 
@@ -164,6 +214,9 @@ uintptr_t csoundWasiInstallThreadProbe(CSOUND *csound)
         return 0;
     if (csoundAppendOpcode(csound, "test_wasi_browser_heap_free", sizeof(HEAP_PROBE), 0,
                            "i", "", (SUBR) free_browser_heap, NULL, NULL) != 0)
+        return 0;
+    if (csoundAppendOpcode(csound, "test_wasi_browser_heap_fragment", sizeof(HEAP_PROBE), 0,
+                           "i", "", (SUBR) fragmented_browser_heap, NULL, NULL) != 0)
         return 0;
     if (csoundAppendOpcode(csound, "test_wasi_browser_macro_args", sizeof(HEAP_PROBE), 0,
                            "i", "", (SUBR) browser_macro_arguments, NULL, NULL) != 0)
