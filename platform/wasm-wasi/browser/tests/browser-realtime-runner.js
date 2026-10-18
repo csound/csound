@@ -93,6 +93,7 @@ try {
     : [
         "/",
         "/?probe",
+        "/?mode=log-lines",
         "/live-api",
         "/live-api?probe",
         "/?mode=singlethread",

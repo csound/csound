@@ -8,6 +8,8 @@
 
 /* eslint-disable object-shorthand -- Import names and output keys are part of the host ABI. */
 
+import { bufferMessageText } from "./message-stream.js";
+
 const ENOSYS = 52;
 const EINVAL = 28;
 const ENOTSUP = 58;
@@ -80,6 +82,8 @@ export function createWasiThreadEnvironment({
   postMessage,
   decodeText = (bytes) => new TextDecoder().decode(bytes),
 }) {
+  const streamBuffer = [];
+  const messagePort = { post: postMessage };
   const text = (pointer, length) =>
     decodeText(new Uint8Array(memory.buffer, pointer, Math.min(length, MAX_OUTPUT)).slice());
   return {
@@ -108,7 +112,7 @@ export function createWasiThreadEnvironment({
     "csoundLoadExternals": () => -1,
     "csoundWasiJsSystem": () => -1,
     "csoundWasiJsMessageCallback": (csound, attr, length, pointer) =>
-      postMessage({ "log": text(pointer, length) }),
+      bufferMessageText(text(pointer, length), messagePort, streamBuffer),
     "printDebugCallback": (pointer, length) => postMessage({ "log": text(pointer, length) }),
     "csoundWasiJsDebugCallback": () => postMessage({ "debugCallback": true }),
     "csoundWasiJsReadlineCallback": () => {

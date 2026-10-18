@@ -193,6 +193,37 @@ TEST_F(RealtimeLoggingTests, FinalLogDrainRejectsCallbackEnqueue)
   EXPECT_EQ(droppedFromCallback, 2);
 }
 
+TEST(MessageFormattingTests, RealtimePreservesTheHostMessageCallback)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN))
+  GTEST_SKIP() << "Realtime mode requires native atomics and a spinlock backend";
+#endif
+  struct Capture {
+    std::mutex mutex;
+    std::string text;
+  } capture;
+  CSOUND *csound = csoundCreate(&capture, nullptr);
+  ASSERT_NE(csound, nullptr);
+  csoundSetMessageCallback(csound,
+      [](CSOUND *cs, int32_t, const char *format, va_list args) {
+        char buffer[1024];
+        std::vsnprintf(buffer, sizeof(buffer), format, args);
+        auto &state = *static_cast<Capture *>(csoundGetHostData(cs));
+        std::lock_guard<std::mutex> lock(state.mutex);
+        state.text += buffer;
+      });
+  ASSERT_EQ(csoundSetOption(csound, "-n -d --realtime"), 0);
+  ASSERT_EQ(csoundCompileOrc(csound, "instr 1\nendin", 0), 0);
+  ASSERT_EQ(csoundStart(csound), 0);
+  // The queued strings are already formatted. Percent signs must stay literal.
+  csoundMessage(csound, "callback columns:");
+  csoundMessage(csound, "\t%d%%", 25);
+  csoundMessage(csound, "\t%d%%\n", 50);
+  csoundDestroy(csound); // Join and drain before reading the captured output.
+  EXPECT_NE(capture.text.find("callback columns:\t25%\t50%\n"), std::string::npos);
+}
+
 TEST(MessageFormattingTests, ConcurrentStringCallbacksKeepTheirOwnText)
 {
   struct Capture {

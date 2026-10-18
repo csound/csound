@@ -16,7 +16,7 @@
 import { dlinit } from "./dlinit";
 import { WASI } from "./filesystem/wasi";
 import { createSystem } from "./filesystem/system.js";
-import { clearArray } from "./utils/clear-array";
+import { bufferMessageText } from "./utils/message-stream.js";
 import { decoder, uint2String } from "./utils/text-encoders.js";
 import { getBinaryHeaderData as parseBinaryHeaderData } from "./utils/wasm-dylink.js";
 import { Inflate } from "./zlib/inflate.js";
@@ -52,42 +52,7 @@ export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer 
     }
     const buf = new Uint8Array(memory.buffer, offset, length_);
     const string = uint2String(buf);
-    // CR ends a progress update even when no newline follows. Treat CRLF as
-    // one ending; filtering empty chunks also handles it across two writes.
-    const endsWithLineBreak = /[\r\n]$/.test(string);
-    const startsWithLineBreak = /^[\r\n]/.test(string);
-    const chunks = string.split(/\r\n|\r|\n/).filter((item) => item.length > 0);
-    const printableChunks = [];
-    if ((chunks.length === 0 && endsWithLineBreak) || startsWithLineBreak) {
-      printableChunks.push(streamBuffer.join(""));
-      clearArray(streamBuffer);
-    }
-    chunks.forEach((chunk, index) => {
-      // if it's last chunk
-      if (index + 1 === chunks.length) {
-        if (endsWithLineBreak) {
-          if (index === 0) {
-            printableChunks.push(streamBuffer.join("") + chunk);
-            clearArray(streamBuffer);
-          } else {
-            printableChunks.push(chunk);
-          }
-        } else {
-          streamBuffer.push(chunk);
-        }
-      } else if (index === 0) {
-        printableChunks.push(streamBuffer.join("") + chunk);
-        clearArray(streamBuffer);
-      } else {
-        printableChunks.push(chunk);
-      }
-    });
-    printableChunks.forEach((chunk) => {
-      const maybePrintable = chunk.replaceAll(/(\r\n|\n|\r)/gm, "");
-      if (maybePrintable) {
-        messagePort.post({ log: chunk });
-      }
-    });
+    bufferMessageText(string, messagePort, streamBuffer);
   };
 };
 

@@ -380,13 +380,40 @@ endin
       checks.push("invalid strings and oversized requests reject without breaking the worker");
 
       if (gated) {
-        const freeHeap = () => csound.evalCode("return test_wasi_browser_heap_free()");
+        probe = csound["__threadProbe"];
+        check(probe instanceof Int32Array, "missing private evaluation gate");
+        const measureHeap = async (expression) => {
+          // The probe temporarily fills the heap. Stop audio allocations while
+          // measuring, but keep rendering during the compiler recovery checks.
+          // Queue the call before pausing, since paused engines reject new calls.
+          for (let index = 0; index < 4; index++) Atomics.store(probe, index, 0);
+          const measured = csound.evalCode("test_wasi_browser_hold\nreturn " + expression);
+          measured.catch(() => {});
+          try {
+            await until(() => Atomics.load(probe, 0) === 1, "heap evaluation did not reach its gate");
+            check((await csound.pause()) === 0, "could not pause for heap measurement");
+            releaseGate();
+            return await measured;
+          } finally {
+            releaseGate();
+            await measured.catch(() => {});
+            for (let index = 0; index < 4; index++) Atomics.store(probe, index, 0);
+            check((await csound.resume()) === 0, "could not resume after heap measurement");
+          }
+        };
+        const freeHeap = () => measureHeap("test_wasi_browser_heap_free()");
         const macroArguments = () => csound.evalCode("return test_wasi_browser_macro_args()");
         phase = "fragmented heap measurement";
-        const recovered = await csound.evalCode("return test_wasi_browser_heap_fragment()");
+        const recovered = await measureHeap("test_wasi_browser_heap_fragment()");
         check(
           Math.abs(recovered - 8 * 1024 * 1024) < 65536,
           "heap probe did not count a freed block between live allocations: " + recovered,
+        );
+        phase = "small fragmented heap measurement";
+        const smallRecovered = await measureHeap("test_wasi_browser_heap_small_fragments()");
+        check(
+          Math.abs(smallRecovered - 128 * 1024) < 16384,
+          "heap probe did not count freed KiB blocks: " + smallRecovered,
         );
         phase = "successful macro evaluation";
         check(
