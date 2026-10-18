@@ -382,6 +382,12 @@ endin
       if (gated) {
         const freeHeap = () => csound.evalCode("return test_wasi_browser_heap_free()");
         const macroArguments = () => csound.evalCode("return test_wasi_browser_macro_args()");
+        phase = "fragmented heap measurement";
+        const recovered = await csound.evalCode("return test_wasi_browser_heap_fragment()");
+        check(
+          Math.abs(recovered - 8 * 1024 * 1024) < 65536,
+          "heap probe did not count a freed block between live allocations: " + recovered,
+        );
         phase = "successful macro evaluation";
         check(
           (await csound.evalCode("#define ECHO(value) #return $value#\n$ECHO(31)")) === 31,
