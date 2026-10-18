@@ -72,7 +72,8 @@ typedef struct {
 
 static size_t free_browser_heap_capacity(void)
 {
-    /* WASI libc has no mallinfo. Probe reusable capacity at 4 KiB resolution.
+    /* WASI libc has no mallinfo. Count every free block that can hold a link.
+       A 4 KiB minimum misses small holes left by compiler allocations.
        Touch only the first word of each block to keep a list for cleanup.
        Run only in tests, on the background API thread. */
     /* Keep these calls observable so Clang cannot fold unused malloc/free. */
@@ -80,12 +81,13 @@ static size_t free_browser_heap_capacity(void)
     void (*volatile release)(void *) = free;
     void **blocks = NULL;
     size_t total = 0;
-    size_t high = (size_t) __builtin_wasm_memory_size(0) * 16;
+    const size_t unit = sizeof(void *);
+    size_t high = (size_t) __builtin_wasm_memory_size(0) * (65536 / unit);
     while (high > 0) {
       size_t low = 0;
       while (low < high) {
         size_t middle = low + (high - low + 1) / 2;
-        void *memory = allocate(middle * 4096);
+        void *memory = allocate(middle * unit);
         if (memory != NULL) {
           release(memory);
           low = middle;
@@ -95,14 +97,14 @@ static size_t free_browser_heap_capacity(void)
       }
       if (low == 0)
         break;
-      void **memory = allocate(low * 4096);
+      void **memory = allocate(low * unit);
       if (memory == NULL)
         break;
       /* Keep each block until counting finishes. Measuring only the largest
          block mistakes fragmentation for a leak after a rejected edit. */
       *memory = blocks;
       blocks = memory;
-      total += low * 4096;
+      total += low * unit;
       high = low;
     }
     while (blocks != NULL) {
@@ -141,6 +143,32 @@ static int32_t fragmented_browser_heap(CSOUND *csound, HEAP_PROBE *opcode)
     size_t after = free_browser_heap_capacity();
     release(guard);
     *opcode->result = (cs_float) after - (cs_float) before;
+    return 0;
+}
+
+static int32_t small_fragmented_browser_heap(CSOUND *csound, HEAP_PROBE *opcode)
+{
+    (void) csound;
+    /* Keep alternating allocations live so the freed KiB blocks cannot
+       coalesce. Together they exceed the compiler leak check's tolerance. */
+    void *blocks[256] = {0};
+    void *(*volatile allocate)(size_t) = malloc;
+    void (*volatile release)(void *) = free;
+    *opcode->result = -1;
+    for (size_t index = 0; index < 256; index++) {
+      blocks[index] = allocate(1024);
+      if (blocks[index] == NULL)
+        goto cleanup;
+    }
+    size_t before = free_browser_heap_capacity();
+    for (size_t index = 0; index < 256; index += 2) {
+      release(blocks[index]);
+      blocks[index] = NULL;
+    }
+    *opcode->result = (cs_float) free_browser_heap_capacity() - (cs_float) before;
+cleanup:
+    for (size_t index = 0; index < 256; index++)
+      release(blocks[index]);
     return 0;
 }
 
@@ -217,6 +245,9 @@ uintptr_t csoundWasiInstallThreadProbe(CSOUND *csound)
         return 0;
     if (csoundAppendOpcode(csound, "test_wasi_browser_heap_fragment", sizeof(HEAP_PROBE), 0,
                            "i", "", (SUBR) fragmented_browser_heap, NULL, NULL) != 0)
+        return 0;
+    if (csoundAppendOpcode(csound, "test_wasi_browser_heap_small_fragments", sizeof(HEAP_PROBE), 0,
+                           "i", "", (SUBR) small_fragmented_browser_heap, NULL, NULL) != 0)
         return 0;
     if (csoundAppendOpcode(csound, "test_wasi_browser_macro_args", sizeof(HEAP_PROBE), 0,
                            "i", "", (SUBR) browser_macro_arguments, NULL, NULL) != 0)
