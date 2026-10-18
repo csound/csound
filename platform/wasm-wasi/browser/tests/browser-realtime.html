@@ -893,7 +893,7 @@ e
             "amplitude columns were split across messages: " + JSON.stringify(messages),
           );
         } finally {
-          await csound.destroy();
+          await csound.terminateInstance();
           active.splice(active.indexOf(csound), 1);
         }
       }
