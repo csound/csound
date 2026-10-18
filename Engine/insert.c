@@ -660,39 +660,22 @@ static char* get_arg_type_from_arg(ARG *arg, CS_VARIABLE **var) {
     }
 }
 
-static void print_messages(CSOUND *csound, int32_t attr, const char *str){
-#if defined(WIN32)
-  switch (attr & CSOUNDMSG_TYPE_MASK) {
-  case CSOUNDMSG_ERROR:
-  case CSOUNDMSG_WARNING:
-  case CSOUNDMSG_REALTIME:
-    fprintf(stderr, str);
-    break;
-  default:
-    fprintf(stdout, str);
-  }
-#else
-  FILE *fp = stderr;
-  if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_STDOUT)
-    fp = stdout;
-  if (!attr || !csound->enableMsgAttr) {
-    fprintf(fp, "%s", str);
-    return;
-  }
-  if ((attr & CSOUNDMSG_TYPE_MASK) == CSOUNDMSG_ORCH)
-    if (attr & CSOUNDMSG_BG_COLOR_MASK)
-      fprintf(fp, "\033[4%cm", ((attr & 0x70) >> 4) + '0');
-  if (attr & CSOUNDMSG_FG_ATTR_MASK) {
-    if (attr & CSOUNDMSG_FG_BOLD)
-      fprintf(fp, "\033[1m");
-    if (attr & CSOUNDMSG_FG_UNDERLINE)
-      fprintf(fp, "\033[4m");
-  }
-  if (attr & CSOUNDMSG_FG_COLOR_MASK)
-    fprintf(fp, "\033[3%cm", (attr & 7) + '0');
-  fprintf(fp, "%s", str);
-  fprintf(fp, "\033[m");
-#endif
+static void call_message_callback(CSOUND *csound, CSOUND_MESSAGE_CALLBACK callback,
+                                  int32_t attr, const char *format, ...)
+{
+  va_list args;
+  va_start(args, format);
+  callback(csound, attr, format, args);
+  va_end(args);
+}
+
+static void print_messages(CSOUND *csound, int32_t attr, const char *str)
+{
+  CSOUND_MESSAGE_CALLBACK callback = csound->message_string_queue->saved_callback;
+  /* The worker owns the queue until cleanup joins it. Preserve the host's
+     output destination, and pass already formatted text as data. */
+  if (callback != NULL)
+    call_message_callback(csound, callback, attr, "%s", str);
 }
 
 /* Use a word CAS rather than a platform lock: on macOS csoundSpin* uses
@@ -792,8 +775,9 @@ int32_t realtime_message_queue_start(CSOUND *csound)
   ATOMIC_SET(csound->message_string_queue_dropped, 0);
   queue->saved_callback = csoundLoadMessageCallback(csound);
   queue->saved_string_callback = csoundLoadMessageStringCallback(csound);
-  queue->output = queue->saved_string_callback ? queue->saved_string_callback :
-                                                print_messages;
+  /* Match csoundMessageV: the variadic callback takes precedence. */
+  queue->output = queue->saved_callback || !queue->saved_string_callback ?
+                    print_messages : queue->saved_string_callback;
   message_string_unlock(csound);
   if (csound->oparms_.msglevel)
     csoundSetMessageStringCallback(csound, message_string_enqueue);

@@ -850,6 +850,55 @@ endin
         if (context.state !== "closed") await context.close();
       }
     }
+    async function amplitudeLogLines() {
+      for (const realtime of [false, true]) {
+        const csound = await Csound({ autoConnect: false });
+        active.push(csound);
+        const messages = [];
+        csound.on("message", (message) => messages.push(message));
+        let ended = false;
+        csound.on("realtimePerformanceEnded", () => {
+          ended = true;
+        });
+        try {
+          // Two constant channels make the amplitude columns easy to identify.
+          check(
+            (await csound.compileCSD(`<CsoundSynthesizer>
+<CsOptions>
+-odac -d -m1 ${realtime ? "--realtime" : ""}
+</CsOptions>
+<CsInstruments>
+sr = 48000
+ksmps = 32
+nchnls = 2
+0dbfs = 1
+instr 1
+  asignal = 0.25
+  out asignal, asignal * 2
+endin
+</CsInstruments>
+<CsScore>
+i 1 0 0.1
+e
+</CsScore>
+</CsoundSynthesizer>`)) === 0,
+            "amplitude log example did not compile",
+          );
+          check((await csound.start()) === 0, "amplitude log example did not start");
+          await until(() => ended, "amplitude log example did not finish");
+          const rows = messages.filter((message) => message.startsWith("B "));
+          check(rows.length > 0, "no score amplitude row was logged");
+          check(
+            rows.every((row) => /M:\s+0\.25000\s+0\.50000$/.test(row)),
+            "amplitude columns were split across messages: " + JSON.stringify(messages),
+          );
+        } finally {
+          await csound.destroy();
+          active.splice(active.indexOf(csound), 1);
+        }
+      }
+      checks.push("score amplitude columns stay on one line with and without --realtime");
+    }
     async function localLibrary() {
       const api = await libcsound();
       const instance = api.csoundCreate();
@@ -878,7 +927,8 @@ endin
         checks.push("explicit parent-only engine renders without cross-origin isolation");
       } else if (query.has("mode")) {
         const mode = query.get("mode");
-        if (mode === "shared-context") await sharedContext(query.has("localFirst"));
+        if (mode === "log-lines") await amplitudeLogLines();
+        else if (mode === "shared-context") await sharedContext(query.has("localFirst"));
         else if (mode === "libcsound") await localLibrary();
         else if (mode === "bad-plugin") await rejectsLocalPlugin();
         else if (mode === "plugin-payloads") await pluginPayloads();
