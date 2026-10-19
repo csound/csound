@@ -6,7 +6,7 @@ Example (use identical build flags and run before/after in separate processes):
 Construction, common engine setup, tree deletion, and destruction are untimed.
 This synthetic workload measures compile latency, not audio performance.
 Nesting fillarray in lenarray prevents statement rewriting from bypassing
-expression-argument expansion.
+expression-argument expansion. Use --source to measure an existing orchestra.
 """
 import argparse
 import ctypes
@@ -19,6 +19,8 @@ import time
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--library", type=Path, required=True)
+    parser.add_argument("--source", type=Path,
+                        help="measure this orchestra instead of generated expressions")
     parser.add_argument("--phase", choices=("parse", "compile"), default="compile")
     parser.add_argument("--kind", choices=("literals", "expressions", "nested"),
                         default="expressions")
@@ -48,15 +50,15 @@ def main():
         function.argtypes, function.restype = parameters, result
 
     results = []
-    for count in args.arguments:
+    for count in ([None] if args.source else args.arguments):
         values = []
-        for index in range(count):
+        for index in range(count or 0):
             value = str(index) if args.kind == "literals" else f"p4 + {index}"
             if args.kind == "nested":
                 value = f"abs({value})"
             values.append(value)
         expression = ", ".join(values)
-        source = "\n".join(
+        source = args.source.read_bytes() if args.source else "\n".join(
             f"instr {number + 1}\niCount = lenarray(fillarray({expression}))\nendin"
             for number in range(args.instruments)).encode()
         samples = []
@@ -91,7 +93,9 @@ def main():
         results.append({"arguments": count, "median_ms": statistics.median(samples),
                         "samples_ms": samples})
     print(json.dumps({"library": str(args.library.resolve()), "phase": args.phase,
-                      "kind": args.kind, "instruments": args.instruments,
+                      "source": str(args.source) if args.source else None,
+                      "kind": args.kind if not args.source else None,
+                      "instruments": args.instruments if not args.source else None,
                       "repeats": args.repeats, "results": results}, indent=2))
 
 
