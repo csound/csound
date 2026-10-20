@@ -1,6 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
+# Prints locally configured signing identities and certificates
+# for manual GitHub Actions configuration.
+# Does not retrieve secrets from GitHub.
+
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
 DEVELOPER_APP_ID="CsoundTestApplication"
