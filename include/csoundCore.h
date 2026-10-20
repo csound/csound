@@ -454,6 +454,8 @@ typedef struct {
   /** @name Instrument and Opcode instances */
   /**@{ */
 
+  struct insds_private;
+
   /**
    * This struct holds the info for a concrete instrument event
    * instance in performance.
@@ -557,7 +559,12 @@ typedef struct {
     struct insds * nxtinactive;
     /* Render interval in which this instance left the active chain. */
     volatile long retired_epoch;
-    /* Copy of required p-field values for quick access */
+    /* Reserved for engine-owned state added during 7.x. NULL when unused.
+       Keep its definition internal so new state does not change this layout.
+       Plugins must not read or change this pointer or free its data. */
+    struct insds_private *private_data;
+    /* Copy of required p-field values for quick access. Keep these last:
+       extra p-fields follow p3 in the same allocation. */
     CS_VAR_MEM  p0;
     CS_VAR_MEM  p1;
     CS_VAR_MEM  p2;
