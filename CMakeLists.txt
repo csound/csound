@@ -1066,6 +1066,7 @@ set(libcsound_SRCS
     Engine/fgens.c
     Engine/filesys.c
     Engine/insert.c
+    Engine/perf_dispatch.c
     Engine/srconvert.c
     Engine/udo.c
     Engine/linevent.c

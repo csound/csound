@@ -26,6 +26,7 @@
 #include "csoundCore.h" /*  INSERT.C */
 #include "csound_message_callbacks.h"
 #include "oload.h"
+#include "perf_dispatch.h"
 #include "udo.h"
 #include "aops.h"       /* for cond's */
 #include "midiops.h"
@@ -821,6 +822,7 @@ static int32_t init_pass(CSOUND *csound, INSDS *ip) {
     csoundLockMutex(csound->init_pass_threadlock);
   csound->curip = ip;
   csound->ids = (OPDS *)ip;
+  csoundPreparePerfPlan(csound, ip);
   ip->init_pass++;
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL) {
     csound->mode = 1;
@@ -858,6 +860,7 @@ static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   csound->curip = ip;
   csound->ids = ids;
   csound->mode = 1;
+  csoundPreparePerfPlan(csound, ip);
   ip->init_pass++;
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL &&
          (csound->ids->init != (SUBR) rireturn)){
@@ -1048,6 +1051,7 @@ int32_t init0(CSOUND *csound)
   ip->kicvt = csound->kicvt;
   csound->inerrcnt = 0;
   csound->mode = 1;
+  csoundPreparePerfPlan(csound, ip);
   ip->init_pass++;
 
   while ((csound->ids = csound->ids->nxti) != NULL) {
@@ -2477,7 +2481,7 @@ int32_t csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
                ip->insno, ip->insno, t.linenum);
   }
   else{
-    char *name = strip_extension(csound, csound->op);
+    char *name = strip_extension(csound, t.opcod);
     snprintf(buf, 512, Str("PERF ERROR in instr %d (opcode %s) line %d: "),
              ip->insno, name, t.linenum);
    csound->Free(csound, name);
@@ -2485,9 +2489,7 @@ int32_t csoundPerfError(CSOUND *csound, OPDS *h, const char *s, ...)
   va_start(args, s);
   csoundErrMsgV(csound, buf, s, args);
   va_end(args);
-  if (ip->pds) {
-    print_opcall(csound, &(ip->pds->optext->t));
-  }
+  print_opcall(csound, &t);
   csoundErrorMsg(csound, "%s",  Str("...event aborted\n"));
   csound->perferrcnt++;
   xturnoff_now((CSOUND*) csound, ip);       /* rm ins fr actlist */

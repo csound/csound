@@ -24,6 +24,7 @@
 
 #include "csoundCore.h" 
 #include "udo.h"   
+#include "perf_dispatch.h"
 #include "goto_ops.h" 
 #include "aops.h"      
 #include "csound_standard_types.h"
@@ -39,7 +40,7 @@ int32_t igoto(CSOUND *csound, GOTO *p)
 int32_t kgoto(CSOUND *csound, GOTO *p)
 {
   IGN(csound);
-  CS_PDS = p->lblblk->prvp;
+  csoundRequestPerfJump(&p->h, p->lblblk->prvp);
   return OK;
 }
 
@@ -54,7 +55,7 @@ int32_t kcgoto(CSOUND *csound, CGOTO *p)
 {
   IGN(csound);
   if (*p->cond)
-    CS_PDS = p->lblblk->prvp;
+    csoundRequestPerfJump(&p->h, p->lblblk->prvp);
 
   return OK;
 }
@@ -72,7 +73,7 @@ int32_t kngoto(CSOUND *csound, CGOTO *p)
 {
   IGN(csound);
   if (!*p->cond)
-    CS_PDS = p->lblblk->prvp;
+    csoundRequestPerfJump(&p->h, p->lblblk->prvp);
   return OK;
 }
 
@@ -90,7 +91,7 @@ int32_t timout(CSOUND *csound, TIMOUT *p)
   if (p->cnt1)                            /* once delay has expired, */
     p->cnt1--;
   else if (--p->cnt2 >= 0L)               /*  br during idur countdown */
-    CS_PDS = p->lblblk->prvp;
+    csoundRequestPerfJump(&p->h, p->lblblk->prvp);
   return OK;
 }
 
@@ -395,7 +396,7 @@ int32_t loop_l_p(CSOUND *csound, LOOP_OPS *p)
   IGN(csound);
   *(p->ndxvar) += *(p->incr);
   if (*(p->ndxvar) < *(p->limit))
-    CS_PDS = p->l->prvp;
+    csoundRequestPerfJump(&p->h, p->l->prvp);
   return OK;
 }
 
@@ -405,7 +406,7 @@ int32_t loop_le_p(CSOUND *csound, LOOP_OPS *p)
   IGN(csound);
   *(p->ndxvar) += *(p->incr);
   if (*(p->ndxvar) <= *(p->limit))
-    CS_PDS = p->l->prvp;
+    csoundRequestPerfJump(&p->h, p->l->prvp);
   return OK;
 }
 
@@ -415,7 +416,7 @@ int32_t loop_g_p(CSOUND *csound, LOOP_OPS *p)
   IGN(csound);
   *(p->ndxvar) -= *(p->incr);
   if (*(p->ndxvar) > *(p->limit))
-    CS_PDS = p->l->prvp;
+    csoundRequestPerfJump(&p->h, p->l->prvp);
   return OK;
 }
 
@@ -425,6 +426,6 @@ int32_t loop_ge_p(CSOUND *csound, LOOP_OPS *p)
   IGN(csound);
   *(p->ndxvar) -= *(p->incr);
   if (*(p->ndxvar) >= *(p->limit))
-    CS_PDS = p->l->prvp;
+    csoundRequestPerfJump(&p->h, p->l->prvp);
   return OK;
 }

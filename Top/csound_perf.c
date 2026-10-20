@@ -22,6 +22,7 @@
 
 #include "csoundCore.h"
 #include "cs_par_base.h"
+#include "perf_dispatch.h"
 
 int32_t dag_get_task(CSOUND *csound, int32_t index, int32_t numThreads,
                      int32_t next_task);
@@ -76,7 +77,6 @@ static int32_t get_thread_index(CSOUND *csound, void *threadId) {
 inline static int32_t node_perf(CSOUND *csound, int32_t index,
                                int32_t numThreads) {
   INSDS *insds = NULL;
-  OPDS *opstart = NULL;
   int32_t errorcnt = 0;
   int32_t which_task;
   INSDS **task_map = (INSDS **)csound->dag_task_map;
@@ -108,20 +108,13 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
         /* this is the last cycle of performance */
         insds->ksmps_no_end = insds->no_end;
       }
-      opstart = (OPDS *)task_map[which_task];
+      PERF_PLAN *perf_plan = csoundGetPerfPlan(csound, insds);
       if (insds->ksmps == csound->ksmps) {
         insds->spin = csound->spin;
         insds->spout = csound->spout_tmp + index * csound->nspout;
         insds->kcounter = csound->kcounter;
         csound->mode = 2;
-        /* The chain belongs to insds; callbacks may redirect its pds. */
-        while (error == 0 && (opstart = opstart->nxtp) != NULL) {
-          /* In case of jumping need this repeat of opstart */
-          insds->pds = opstart;
-          csound->op = opstart->optext->t.opcod;
-          error = (*opstart->perf)(csound, opstart); /* run each opcode */
-          opstart = insds->pds;
-        }
+        error = csoundRunPerfPlan(csound, insds, perf_plan, NULL);
         csound->mode = 0;
       } else {
         int32_t i, n = csound->nspout, start = 0;
@@ -130,7 +123,6 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
         int32_t insmps = csound->inchnls * lksmps;
         int32_t offset = insds->ksmps_offset;
         int32_t early = insds->ksmps_no_end;
-        OPDS *opstart;
         
         insds->spin = csound->spin;
         insds->spout = csound->spout_tmp + index * csound->nspout;
@@ -150,15 +142,9 @@ inline static int32_t node_perf(CSOUND *csound, int32_t index,
         for (i = start; i < n;
              i += incr, insds->spin += insmps, insds->spout += lksmps) {
           insds->ksmps_no_end = i + incr >= n ? early % lksmps : 0;
-          opstart = (OPDS *)insds;
           csound->mode = 2;
-          while (error == 0 &&
-                 (opstart = opstart->nxtp) != NULL) {
-            insds->pds = opstart;
-            csound->op = opstart->optext->t.opcod;
-            error = (*opstart->perf)(csound, opstart); /* run each opcode */
-            opstart = insds->pds;
-          }
+          if (error == 0)
+            error = csoundRunPerfPlan(csound, insds, perf_plan, NULL);
           csound->mode = 0;
           insds->ksmps_offset = 0;
           insds->kcounter++;
@@ -331,20 +317,13 @@ int32_t kperf(CSOUND *csound) {
             ip->ksmps_no_end = ip->no_end;
           }
           int32_t error = 0;
-          OPDS *opstart = (OPDS *)ip;
+          PERF_PLAN *perf_plan = csoundGetPerfPlan(csound, ip);
           ip->spin = csound->spin;
           ip->spout = csound->spout_tmp;
           ip->kcounter = csound->kcounter;
           if (ip->ksmps == csound->ksmps) {
             csound->mode = 2;
-            /* Keep the owner, but reread pds after callbacks for jumps. */
-            while (error == 0 && opstart != NULL &&
-                   (opstart = opstart->nxtp) != NULL && ip->actflg) {
-              ip->pds = opstart;
-              csound->op = opstart->optext->t.opcod;
-              error = (*opstart->perf)(csound, opstart); /* run each opcode */
-              opstart = ip->pds;
-            }
+            error = csoundRunPerfPlan(csound, ip, perf_plan, NULL);
             csound->mode = 0;
           } else {
             int32_t error = 0;
@@ -354,7 +333,6 @@ int32_t kperf(CSOUND *csound) {
             int32_t insmps = csound->inchnls * lksmps;
             int32_t offset = ip->ksmps_offset;
             int32_t early = ip->ksmps_no_end;
-            OPDS *opstart;
             ip->kcounter = (csound->kcounter - 1) * csound->ksmps / lksmps;
 
             /* we have to deal with sample-accurate code
@@ -373,15 +351,9 @@ int32_t kperf(CSOUND *csound) {
                  i += incr, ip->spin += insmps, ip->spout += lksmps) {
               ip->ksmps_no_end = i + incr >= n ? early % lksmps : 0;
               ip->kcounter++;
-              opstart = (OPDS *)ip;
               csound->mode = 2;
-              while (error == 0 && (opstart = opstart->nxtp) != NULL &&
-                     ip->actflg) {
-                ip->pds = opstart;
-                csound->op = opstart->optext->t.opcod;
-                error = (*opstart->perf)(csound, opstart); /* run each opcode */
-                opstart = ip->pds;
-              }
+              if (error == 0)
+                error = csoundRunPerfPlan(csound, ip, perf_plan, NULL);
               csound->mode = 0;
               ip->ksmps_offset = 0;
             }

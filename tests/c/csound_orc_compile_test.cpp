@@ -23,6 +23,7 @@ extern "C" {
 #include "str_ops.h"
 #include "udo.h"
 #include "namedins.h"
+#include "perf_dispatch.h"
 }
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
@@ -816,6 +817,206 @@ endin
     }
     // Completed branches reuse frames; only recursion depth sets the bound.
     EXPECT_LE(instances, 16);
+}
+
+// An extension-style callback unknown to the dispatcher. Its state and
+// branches cannot be inferred from an opcode name, signature, or function list.
+struct GenericDispatchNode {
+    OPDS h;
+    int id, calls;
+    OPDS *redirect;
+};
+static int32_t genericExtensionPerf(CSOUND *csound, void *data)
+{
+    auto *p = static_cast<GenericDispatchNode *>(data);
+    auto *trace = static_cast<std::vector<int> *>(csoundGetHostData(csound));
+    EXPECT_EQ(&p->h, p->h.insdshead->pds);
+    trace->push_back(p->id);
+    ++p->calls;
+    if (p->id == 0) // Legacy extension: direct cursor write is still supported.
+        p->h.insdshead->pds = p->redirect;
+    else if (p->id == 2 && p->calls < 3)
+        csoundRequestPerfJump(&p->h, p->redirect);
+    return p->id >= 3 ? 37 : OK;
+}
+
+TEST_F(OrcCompileTests, GenericDispatchAcceptsUnknownBranchesAndErrorReturns)
+{
+    INSDS owner = {};
+    owner.csound = csound;
+    owner.actflg = 1;
+    GenericDispatchNode nodes[4] = {};
+    owner.nxtp = &nodes[0].h;
+    for (int i = 0; i < 4; ++i) {
+        nodes[i].id = i;
+        nodes[i].h.insdshead = &owner;
+        nodes[i].h.perf = genericExtensionPerf;
+        nodes[i].h.nxtp = i < 3 ? &nodes[i + 1].h : nullptr;
+    }
+    nodes[0].redirect = &nodes[1].h;
+    nodes[2].redirect = reinterpret_cast<OPDS *>(&owner);
+    std::vector<int> trace;
+    csoundSetHostData(csound, &trace);
+    csoundPreparePerfPlan(csound, &owner);
+    PERF_PLAN *plan = csoundGetPerfPlan(csound, &owner);
+    ASSERT_NE(nullptr, plan);
+    EXPECT_EQ(37, csoundRunPerfPlan(csound, &owner, plan, nullptr));
+    EXPECT_EQ((std::vector<int>{0, 2, 0, 2, 0, 2, 3}), trace);
+
+    // A legacy redirect outside the plan falls back to linked execution.
+    GenericDispatchNode outside[2] = {};
+    outside[0].h.nxtp = &outside[1].h;
+    outside[1].id = 4;
+    outside[1].h.insdshead = &owner;
+    outside[1].h.perf = genericExtensionPerf;
+    nodes[0].redirect = &outside[0].h;
+    trace.clear();
+    EXPECT_EQ(37, csoundRunPerfPlan(csound, &owner, plan, nullptr));
+    EXPECT_EQ((std::vector<int>{0, 4}), trace);
+    free_instance_variables(csound, &owner);
+    csoundSetHostData(csound, nullptr);
+}
+
+class GenericDispatchTests : public OrcCompileTests,
+                            public ::testing::WithParamInterface<const char*> {};
+
+TEST_P(GenericDispatchTests, InstrumentsAndUdosPreserveJumpsReinitAndReuse)
+{
+    ASSERT_EQ(0, csoundSetOption(csound, "-n -d -m0"));
+    std::string orchestra = R"(
+sr = 64
+ksmps = 8
+nchnls = 1
+0dbfs = 1
+opcode GenericLoop(value:k):k
+)";
+    orchestra += GetParam();
+    orchestra += R"(
+  total:k = 0
+  index:k = 0
+  while index < 5 do
+    if index == 2 then
+      index += 1
+      kgoto CONTINUE
+    endif
+    total += value
+    index += 1
+CONTINUE:
+  od
+  xout total
+endop
+instr 1
+  sum:k = 0
+  index:k = 0
+  while index < 5 do
+    if index != 2 then
+      sum += 1
+    endif
+    index += 1
+  od
+  chnset sum, "instrument-loop"
+  cycle:k timeinstk
+  if cycle == 2 then
+    reinit AGAIN
+  endif
+AGAIN:
+  result:k = GenericLoop(1)
+  rireturn
+  chnset result, "generic-loop"
+endin
+)";
+    ASSERT_EQ(0, csoundCompileOrc(csound, orchestra.c_str()));
+    csoundReadScore(csound, "i 1 0 0.375\ni 1 0.5 0.375\nf 0 1\n");
+    ASSERT_EQ(0, csoundStart(csound));
+    for (int block = 0; block < 7; ++block) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        if (block == 0 || block == 4) {
+            int error = 0;
+            EXPECT_EQ(4, csoundGetControlChannel(csound, "generic-loop", &error));
+            EXPECT_EQ(0, error);
+            EXPECT_EQ(4, csoundGetControlChannel(csound, "instrument-loop", &error));
+            EXPECT_EQ(0, error);
+        }
+        OENTRY *entry = find_opcode_new(csound, "GenericLoop", "k", "k");
+        ASSERT_NE(nullptr, entry);
+        INSDS *child = ((OPCODINFO *)entry->useropinfo)->ip->instance;
+        ASSERT_NE(nullptr, child);
+        if (!child->actflg) continue;
+        INSDS *parent = ((OPCOD_IOBUFS *)child->opcod_iobufs)->parent_ip;
+        for (INSDS *ip : {parent, child}) {
+            PERF_PLAN *plan = csoundGetPerfPlan(csound, ip);
+            ASSERT_NE(nullptr, plan);
+            size_t index = 0;
+            for (OPDS *op = ip->nxtp; op != nullptr; op = op->nxtp) {
+                ASSERT_LT(index, plan->count);
+                EXPECT_EQ(op, plan->entries[index].op);
+                ++index;
+            }
+            EXPECT_EQ(index, plan->count);
+        }
+    }
+    EXPECT_EQ(0, csoundErrCnt(csound));
+}
+
+INSTANTIATE_TEST_SUITE_P(DispatchRates, GenericDispatchTests,
+    ::testing::Values("", "setksmps 1\n", "oversample 2, 3, 3\n"));
+
+static SUBR genericOriginalPerf;
+static int genericFirstCalls, genericSecondCalls;
+static int32_t genericSecondPerf(CSOUND *csound, void *data)
+{
+    ++genericSecondCalls;
+    return genericOriginalPerf(csound, data);
+}
+static int32_t genericFirstPerf(CSOUND *csound, void *data)
+{
+    ++genericFirstCalls;
+    ((OPDS *)data)->perf = genericSecondPerf;
+    return genericOriginalPerf(csound, data);
+}
+static int32_t genericErrorPerf(CSOUND *csound, void *data)
+{
+    return csound->PerfError(csound, (OPDS *)data, "generic dispatch test error");
+}
+
+TEST_F(OrcCompileTests, GenericDispatchObservesCallbackReplacementAndPerfError)
+{
+    ASSERT_EQ(0, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(0, csoundCompileOrc(csound, R"(
+sr = 64
+ksmps = 8
+nchnls = 1
+opcode GenericError(signal:a):a
+  oversample 2, 3, 3
+  xout signal * 2
+endop
+instr 1
+  signal:a = 0.25
+  out GenericError(signal)
+endin
+)"));
+    csoundReadScore(csound, "i 1 0 1\nf 0 1\n");
+    ASSERT_EQ(0, csoundStart(csound));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    OENTRY *entry = find_opcode_new(csound, "GenericError", "a", "a");
+    ASSERT_NE(nullptr, entry);
+    INSDS *ip = ((OPCODINFO *)entry->useropinfo)->ip->instance;
+    ASSERT_NE(nullptr, ip);
+    PERF_PLAN *plan = csoundGetPerfPlan(csound, ip);
+    ASSERT_NE(nullptr, plan);
+    OPDS *op = plan->entries[0].op;
+    ASSERT_NE(nullptr, op);
+    genericOriginalPerf = op->perf;
+    genericFirstCalls = genericSecondCalls = 0;
+    op->perf = genericFirstPerf;
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_EQ(1, genericFirstCalls);
+    EXPECT_EQ(1, genericSecondCalls); // second oversampled block sees new callback
+    UOPCODE *call = (UOPCODE *)((OPCOD_IOBUFS *)ip->opcod_iobufs)->uopcode_struct;
+    op->perf = genericErrorPerf;
+    csoundPerformKsmps(csound);
+    EXPECT_EQ(nullptr, call->ip);
+    EXPECT_GT(csoundErrCnt(csound), 0);
 }
 
 TEST_F (OrcCompileTests, UdosAtParentSampleRateDoNotAllocateConverters)
