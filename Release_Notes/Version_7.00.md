@@ -18,13 +18,14 @@ Csound 7.00, as built from the `release/7.0` branch.
 - Opcode and instrument objects let orchestra code store references and
   control separate instances.
 - UDOs can use a local sample rate through `oversample` and `undersample`.
-- The `stm` opcodes build stateful graphs with an explicit and deterministic
-  control flow.
+- State-machine opcodes let orchestra code follow named states, choose
+  transitions, and keep separate runners for the same definition.
 - The host API combines related calls. The unit generator (UGen) API lets
   hosts run individual opcodes.
 - WebAssembly builds add command-line tools and support external score
-  programs in the browser. Native builds can load supported WebAssembly
-  opcode plugins through Wasmtime.
+  programs in the browser. The browser can also initialize notes in the
+  background during realtime playback. Native builds can load supported
+  WebAssembly opcode plugins through Wasmtime.
 
 The following articles explain the main features with examples:
 
@@ -92,8 +93,8 @@ These groups cover the main additions. The
 | Sample playback | `memplay` reads decoded audio from a shared memory cache. |
 | Spatial audio | `dbap` and `dbapgains` provide distance-based amplitude panning. |
 | State machines | `stmcreate`, `stmcompile`, `stminstance`, `stmadvance`, `stmnext`, `stmcall`, and `stmrecall` build and run stateful graphs. |
-| Smoothing | `savgol` fits a polynomial over a sliding window for smoothing or derivatives. |
-| Curve mapping | `remap` maps values through an interpolated breakpoint table. |
+| Filtering | `savgol` applies Savitzky–Golay smoothing or differentiation to audio or control signals. `savgolmat` supplies filter coefficients. |
+| Mapping | `remap` maps control values, control arrays, or audio through breakpoint arrays. |
 
 `memplay` uses the `diskin2` argument order. It supports variable speed,
 reverse playback, bounded loops, and loop crossfades. The first use loads
@@ -106,18 +107,24 @@ mutable topology, `stmcompile` freezes it, and `stminstance` creates a runner
 from the frozen definition. Several runners can share one definition and keep
 their own state. The orchestra reads the current node with `stmcurrent`, runs
 the matching code, and calls `stmadvance` to step the graph. Node code asks
-for a transition with `stmnext`; `stmadvance` applies it only when the graph
+for a transition with `stmnext`. `stmadvance` applies it only when the graph
 allows it. `stmcall` and `stmrecall` checkpoint and resume a runner, and
-`stmpause` and `stmresume` suspend it. The graph has its own clock, read with
-`stmtick`, `stmtime`, and `stmnodetime`. That clock advances only when
-`stmadvance` runs, so it does not follow `times()`.
+`stmpause` and `stmresume` pause and resume it. The family also reports
+transition events. The graph has its own clock, read with `stmtick`,
+`stmtime`, and `stmnodetime`. That clock advances only when
+`stmadvance` runs, so it does not follow `times()`. The graph does not execute
+instrument code by itself. See the [state-machine examples](../tests/commandline/stm/).
 
 `savgol` fits a polynomial of a chosen order over a sliding window and
-outputs the fit or one of its derivatives. The window size must be odd, and
-the output lags the input by half the window. `remap` maps a value through a
-table of breakpoints, with linear, nearest, previous, next, or
-shape-preserving cubic interpolation, and with a policy for values that fall
-outside the table.
+outputs the fit or one of its derivatives. The window size must be odd and at
+least three. The output lags the input by `(window size - 1) / 2` audio samples
+or control cycles, depending on the signal rate. `savgolmat` returns the filter
+coefficients as an array.
+
+`remap` uses breakpoint arrays, with linear, nearest, previous, next, or
+shape-preserving cubic interpolation. Out-of-range inputs can cause an error,
+use the nearest endpoint, use a fill value, or extend the curve beyond its
+endpoints.
 
 ### Score and application input
 
@@ -134,15 +141,13 @@ the orchestra. See the [host input guide](../docs/readline-host-input.md).
 
 ### Changes in behavior
 
-The `print` opcode still ends its output with a newline. The `prints` opcode
-no longer adds one, so its format string must contain `\n`. Works that rely
-on `prints` to terminate a line need the newline added to the format string.
+String `print` adds a trailing newline. `prints` uses the line endings in its
+format string. Add `\n` when a new line is needed.
 
-The DSSI host opcodes are no longer part of the Csound tree. `dssi4cs`,
-`dssiactivate`, `dssiaudio`, `dssictls`, `dssiinit`, and `dssilist` are
-now maintained in the
-[csound/plugins](https://github.com/csound/plugins) repository. Install that
-repository when a work needs them.
+The DSSI hosting opcodes, including `dssiinit` and `dssiaudio`, have moved to
+the separate [Csound plugins repository](https://github.com/csound/plugins).
+They are no longer part of the core build. Install the separate plugin if
+an orchestra uses them. The core build no longer has `BUILD_DSSI_OPCODES`.
 
 The `MYFLT` alias still works, but the deprecation warning for it is paused
 for this release. New code should use `cs_float` and `cs_double`.
@@ -153,9 +158,13 @@ Csound 7 reads `.csound7rc`. Plugin search paths use `OPCODE7DIR` and
 `OPCODE7DIR64`. Update local setup files and plugin paths when you install
 Csound 7 beside Csound 6.
 
-Opcode plugins must be rebuilt for Csound 7. A plugin that reports no
-version information is refused with a warning that names the reason, instead
-of loading and failing later.
+Rebuild opcode plugins for Csound 7. The loader rejects native plugins with
+missing, zero, or incompatible metadata before their entry points run.
+
+Plugin loading waits until compilation, startup, or another operation needs
+the modules. Commands such as `csound --version` no longer scan plugin
+directories. Missing default directories stay quiet unless verbose output
+is enabled. Invalid paths set by the user still produce a warning.
 
 Default orchestra values remain `sr = 44100`, `ksmps = 10`, `nchnls = 1`,
 and `0dbfs = 32768`. Set these values in the orchestra when a piece needs
@@ -171,10 +180,23 @@ an orchestra that uses these opcodes can fail to compile.
 
 Message-level bit 1024 (`CS_NOQQ`) suppresses deprecation warnings from the
 catalog and hard-coded opcodes. `-m1024` replaces the entire message-level
-mask, so it also disables ordinary warnings; combine the bit with the default
+mask, so it also disables ordinary warnings. Combine the bit with the default
 mask (`-m1159`) to suppress deprecation warnings only. Alternatively,
 `--no-deprecated-warnings` does the same while preserving other warnings.
 Neither suppression option overrides `--error-deprecated`.
+
+### Selected fixes
+
+- Compiler diagnostics retain the CSD filename and report score-preprocessor
+  errors before cleanup.
+- Realtime messages preserve their line breaks. Browser output keeps message
+  fragments together instead of displaying each fragment on a separate line.
+- SoundFont playback preserves global-zone pan, attenuation, and scale tuning.
+  Hard pan positions no longer produce invalid samples.
+- `liveconv` clears and reloads its convolution state correctly.
+  `hrtfreverb` creates its FFT setup before use during initialization.
+- Opcode arrays accept array arguments correctly, and reused UDO opcode
+  objects bind their arguments to the current caller.
 
 ## API changes
 
@@ -200,7 +222,7 @@ The following table covers the main changes.
 | Parameter structures passed to get and set calls | Read `csoundGetParams`, which returns a read-only `OPARMS` pointer. Change settings through options. |
 | `csoundGetChannelPtr` with `cs_float **` | Pass `void **`. Use `csoundLockChannel` and `csoundUnlockChannel`, or the typed get and set functions, for shared access. |
 | Table get, set, and named generator helpers | Use `csoundGetTable` and the returned data pointer. The host must control concurrent access. `csoundTableCopyIn` and `csoundTableCopyOut` remain, with a new `async` argument. |
-| `csoundAppendOpcode` without a `deinit` callback | Add the `deinit` callback. Use `csoundAppendOpcodes` to append a list of `OENTRY` entries. |
+| `csoundAppendOpcode` with separate init, k-rate, and a-rate callbacks | Use `init`, `perf`, and `deinit` callbacks and remove the `thread` argument. Use `csoundAppendOpcodes` to append a list of `OENTRY` entries. |
 
 Numeric events use `CS_INSTR_EVENT`, `CS_TABLE_EVENT`, `CS_END_EVENT`, or
 `CS_ADV_EVENT`.
@@ -211,20 +233,22 @@ starts, use `csoundEventString` with `async = 0`.
 positive value when the score has finished, and a negative value on error.
 Call it until it returns a nonzero value. Use one performance thread per
 Csound instance and do not call performance from a Csound callback. A call
-during an active render interval returns `CSOUND_ERROR`; this check does not
+during an active render interval returns `CSOUND_ERROR`. This check does not
 serialize concurrent callers, so the host must prevent overlapping
 performance calls.
 
-Asynchronous calls return without waiting for queue space. When the queue
-rejects a request, the call queues nothing. The calls that return `void`
-report the rejection with at most one warning per instance between resets.
-Asynchronous compilation and table copies report an error instead. In
-realtime mode, synchronous table copies take no mutex, so the host must keep
-them apart from performance, table changes, and other host table copies.
+Asynchronous event and table-copy calls return without waiting for queue
+space. If the queue rejects a request, these `void` calls report at most one
+warning per instance between resets. Asynchronous compilation returns an
+error when it cannot queue the merge. In realtime mode, synchronous table
+copies take no mutex, so the host must keep them apart from performance,
+table changes, and other host table copies.
 
 `csoundMessage` and `csoundMessageS` write the text exactly as formatted and
 add no newline. A host that receives messages through the message callback
-should expect fragments of a line and add its own line endings.
+should preserve the supplied line endings and combine fragments when it
+needs complete lines. Adding a newline after every callback splits columns
+that belong on one line.
 
 The channel API now includes array and spectral data interfaces.
 Use `csoundInitArrayChannel` or `csoundInitPvsChannel` to create these channels.
@@ -268,20 +292,22 @@ and `GetLocalSr`. Rate macros such as `CS_ESR` use the owning instance's
 local rate. Audio backends still register their callbacks through `CSOUND`.
 Utilities access their functions through `csound->GetUtility(csound)`.
 
-A plugin must report its ABI through `csoundModuleInfo`. Csound 7 refuses a
-plugin that reports no version, and it names the reason in a warning. Plugins
-built for Csound 6 are not compatible with Csound 7 and are refused this way.
+A native plugin must report its version and precision through `csoundModuleInfo`.
+The standard `LINKAGE` and `FLINKAGE` macros supply the current value.
+A hand-written function must return `CSOUND_MODULE_INFO`.
 
-A plugin type can now be read and written with `[]`. The plugin registers
+Plugins can register struct types and define `[]` access for their types.
+The plugin registers
 `##array_get`, `##array_set`, and `##array_init` entries, and Csound lowers
-`v[...]` to them. Arrays of built-in types need none of this, because Csound
-indexes them itself. The [plugin indexing guide](../docs/plugin-indexing.md)
+`v[...]` to them. Ordinary arrays, including arrays of plugin types, need none
+of these entries because Csound indexes them itself. The
+[plugin indexing guide](../docs/plugin-indexing.md)
 gives the entry layouts and the rules for when an access runs.
 
 The `INSDS` structure carries a `private_data` pointer for engine-owned
-state. Its definition stays internal, so new engine state does not change
-the structure layout during the 7.x series. Plugins must not read that
-pointer, change it, or free its data.
+state. This lets the engine add private state without adding more public
+fields to `INSDS`. Plugins must not read that pointer, change it, or free
+its data.
 
 The [Module API article](Csound7/Module_API.md) explains these changes, with
 an opcode example and migration guidance for GENs, backends, and utilities.
@@ -316,42 +342,46 @@ Platform sources now live under `platform/`, language bindings under
 `languages/`, and developer guides under `docs/`. See the
 [build guide](../BUILD.md) for platform requirements.
 
-Windows ships a native ARM64 installer next to the x64 one. The macOS
-deployment target is now 12, so the build works with the macOS 27 toolchain.
-macOS release artifacts are signed in the release workflow.
+Windows now has a native ARM64 installer alongside the x64 installer.
+Both include the native WASAPI audio backend and IP MIDI. Extra plugins must
+match the installed architecture. See the [Windows build guide](../BUILD.md#windows-arm64).
 
-The iOS framework now ships a module map, so Swift code can call the Csound
-C API directly.
+The default macOS deployment target is macOS 12. The release workflow can
+sign macOS binaries and installers when signing credentials are configured.
+The iOS build configurations target iOS 15, and generated XCFrameworks
+include a module map so Swift code can call the Csound C API directly.
 
 The CoreMIDI module on macOS supports MIDI output and multiport MIDI input.
 Select it with `-+rtmidi=coremidi`. `-M m` maps each input source to its own
 bank of 16 channels. The output device accepts an index, `a` for all
 destinations, or `m` for all destinations with port mapping.
+JACK MIDI can run with a different audio backend.
 
 ### Realtime mode
 
-`--realtime` gives the engine realtime priority and prepares it for hosts
-that call the API while performance runs. This release keeps the instance
-alive and ready during a render, preserves the order of MIDI events across
-init and shutdown, and bounds the queues that carry host API calls and log
-messages. Concurrent asynchronous calls need a build with atomic operations.
+In `--realtime` mode, supported hosts initialize notes on a background thread.
+This does not make every host API call safe during performance. This release
+protects active instances during render calls, preserves MIDI event order
+across initialization and shutdown, and bounds the queues that carry host
+API calls and log messages. Concurrent asynchronous calls need a build with atomic operations.
 Without one, the host must keep asynchronous calls and performance calls
 apart.
 
 Live compilation works while the engine runs. `csoundCompileOrc` with
 `async = 1` compiles on the calling thread and merges the result into the
 running instance, and the channel functions address the channels of a live
-instance. A rejected compilation leaves the running instance unchanged.
+instance. Errors found before the merge leave the running orchestra in place.
+Keep compilation off an audio callback.
 
-The WASI build gained the same mode. When the toolchain supports WASI
-threads, the browser package ships a shared-memory reactor that runs the
-engine in a worker pool. Csound starts the background init worker only when
-`--realtime` is set before performance. A browser without that support keeps
-synchronous behavior and warns when it receives the flag. The threaded host
-needs a secure context, AudioWorklet, shared memory, and the
+When the toolchain supports WASI threads, the browser package ships an
+engine that supports background initialization. Select the worker host with
+`useWorker: true` and set `--realtime` before `start()` to enable it. Local
+execution uses synchronous initialization and warns when given the flag.
+The threaded host needs a secure context, AudioWorklet, shared memory, and the
 `Cross-Origin-Opener-Policy` and `Cross-Origin-Embedder-Policy` headers.
-See the [WASI guide](../platform/wasm-wasi/README.md) for the build settings
-and the browser requirements.
+Some operations still require a stopped performance. See the
+[WebAssembly article](Csound7/WebAssembly.md) for live API limits and the
+[WASI guide](../platform/wasm-wasi/README.md) for build settings.
 
 ### Internal interfaces
 

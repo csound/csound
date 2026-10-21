@@ -37,15 +37,21 @@ the ABI; rebuild hosts and plugins when changing it. `USE_FLOAT` also reduces
 the precision and range of internal calculations and time values.
 
 Plugins built with `USE_FLOAT` mark that ABI in `csoundModuleInfo()`.
-The loader checks both precisions before calling plugin entry points.
+The loader checks the supplied precision metadata before calling plugin
+entry points.
 `LINKAGE`, `FLINKAGE`, their built-in variants, and `modload.h` supply the
 metadata. Hand-written `csoundModuleInfo()` functions must return
 `CSOUND_MODULE_INFO` from `csdl.h`.
 
 The default and mixed precision modes keep their old metadata values.
-Plugins with missing or partial metadata still use the legacy 64-bit
-`cs_double` ABI; `USE_FLOAT` engines reject them. Rebuild those plugins
-with the new headers and matching options to use them with `USE_FLOAT`.
+Native plugins must export `csoundModuleInfo()` and return a nonzero value
+that passes the loader's version and precision checks. The loader rejects
+missing or zero metadata before calling the plugin's entry points.
+Partial metadata can skip sample-size or version checks, so always return
+the full `CSOUND_MODULE_INFO` value.
+Metadata without the `USE_FLOAT` flag still selects the 64-bit `cs_double`
+ABI, so `USE_FLOAT` engines reject it. Rebuild plugins with the new headers
+and matching options.
 Older native loaders also reject plugins that carry the new `USE_FLOAT` flag.
 
 The aliases control Csound storage and interfaces. They do not change C's
