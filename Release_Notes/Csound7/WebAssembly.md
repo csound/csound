@@ -31,11 +31,9 @@ input during startup. See the
 
 ## Choose the browser host
 
-On pages with cross-origin isolation and the required WebAssembly features,
-`Csound()` now selects a worker host with shared memory. Previously it used one
-AudioWorklet. Pass `useWorker: false` to keep that execution model.
-Pages without isolation still use one AudioWorklet with synchronous note
-initialization.
+Pass `useWorker: true` to select a worker host with shared memory for
+background initialization. This requires cross-origin isolation and the
+required WebAssembly features.
 
 The browser bundle contains one engine, using the shared-memory build when
 available. Applications do not need to load a second engine for realtime mode.

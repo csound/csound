@@ -283,11 +283,10 @@ The browser package uses AudioWorklet for audio output. It no longer
 supports ScriptProcessorNode or the `useSPN` option. Applications must use
 the matching browser wrapper and WebAssembly binary package.
 
-On isolated pages with the required WebAssembly features, the browser now
-selects a worker host with shared memory by default. Set `useWorker: false`
-to keep one AudioWorklet. Background note initialization requires `--realtime` before
-`start()` and has limits on which APIs can run during playback. See the
-[browser host changes](Csound7/WebAssembly.md#choose-the-browser-host).
+Browser applications can use background note initialization with
+`useWorker: true` and `--realtime` before `start()`. This requires cross-origin
+isolation and has limits on which APIs can run during playback. See the
+[browser setup](Csound7/WebAssembly.md#choose-the-browser-host).
 
 The WASI build supplies `csound-cli.wasm` and separate analysis and conversion
 commands. Native Csound can load supported `.wasm` opcode plugins when
