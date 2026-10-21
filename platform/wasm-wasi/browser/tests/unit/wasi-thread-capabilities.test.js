@@ -3,7 +3,7 @@ import { canUseThreadedWasm, canUseSharedWasm } from "../../src/utils/wasi-threa
 
 const supported = { workletSupport: true, sharedMemorySupport: true };
 
-describe("browser thread host selection", () => {
+describe("browser thread support", () => {
   let isolation;
   let validate;
   let sharedArrayBuffer;
@@ -20,7 +20,7 @@ describe("browser thread host selection", () => {
     Object.defineProperty(globalThis, "SharedArrayBuffer", sharedArrayBuffer);
   });
 
-  it("selects the shared host by default only when the required Wasm ABI is supported", () => {
+  it("requires the Wasm ABI needed by the shared host", () => {
     assert.equal(canUseThreadedWasm(supported), true);
     WebAssembly.validate = () => false;
     assert.equal(canUseThreadedWasm(supported), false);

@@ -69,7 +69,7 @@ endin
     };
     try {
       check(crossOriginIsolated, "live API test requires isolation headers");
-      csound = await Csound({ autoConnect: false });
+      csound = await Csound({ useWorker: true, autoConnect: false });
       csound.on("message", (message) => messages.push(message));
       await csound.setOption("-odac -m0 --daemon --realtime");
       // Background workers cannot open the parent's files, even if preloaded.

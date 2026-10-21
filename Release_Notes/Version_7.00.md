@@ -5,8 +5,8 @@ Csound from other programs. It retains the classic orchestra and score
 syntax. The host API and plugin API have changes that require source updates
 and new builds.
 
-These notes cover the main features and changes from Csound 6. They describe
-Csound 7.00, as built from the `release/7.0` branch.
+These notes cover the main features and changes from Csound 6.
+
 
 ## Major changes
 
@@ -95,12 +95,16 @@ These groups cover the main additions. The
 | State machines | `stmcreate`, `stmcompile`, `stminstance`, `stmadvance`, `stmnext`, `stmcall`, and `stmrecall` build and run stateful graphs. |
 | Filtering | `savgol` applies Savitzky–Golay smoothing or differentiation to audio or control signals. `savgolmat` supplies filter coefficients. |
 | Mapping | `remap` maps control values, control arrays, or audio through breakpoint arrays. |
+| Filtering | `savgol` applies Savitzky–Golay smoothing or differentiation to audio or control signals. `savgolmat` supplies filter coefficients. |
+| State machines | `stmcreate`, `stmcompile`, `stminstance`, and related opcodes build state graphs and control their runners. |
+
 
 `memplay` uses the `diskin2` argument order. It supports variable speed,
 reverse playback, bounded loops, and loop crossfades. The first use loads
 the whole file. Later instances share its samples until the engine resets.
 Use `diskin2` when a file must stream from disk. See the
 [memory playback guide](../docs/memplay.md) for memory use and loop options.
+
 
 The `stm` opcodes build a state machine in the orchestra. `stmcreate` makes a
 mutable topology, `stmcompile` freezes it, and `stminstance` creates a runner
@@ -125,6 +129,7 @@ coefficients as an array.
 shape-preserving cubic interpolation. Out-of-range inputs can cause an error,
 use the nearest endpoint, use a fill value, or extend the curve beyond its
 endpoints.
+
 
 ### Score and application input
 
@@ -158,6 +163,7 @@ Csound 7 reads `.csound7rc`. Plugin search paths use `OPCODE7DIR` and
 `OPCODE7DIR64`. Update local setup files and plugin paths when you install
 Csound 7 beside Csound 6.
 
+
 Rebuild opcode plugins for Csound 7. The loader rejects native plugins with
 missing, zero, or incompatible metadata before their entry points run.
 
@@ -173,6 +179,11 @@ other values. Sample-accurate score timing still requires `--sample-accurate`.
 Deprecated opcodes remain available for older works. The
 [replacement catalog](../docs/deprecated-opcodes.md) lists alternatives and
 differences in behavior.
+
+The DSSI hosting opcodes, including `dssiinit` and `dssiaudio`, have moved to
+the separate [Csound plugins repository](https://github.com/csound/plugins).
+They are no longer part of the core build. Install the separate plugin if
+an orchestra uses them. The core build no longer has `BUILD_DSSI_OPCODES`.
 
 `--error-deprecated` rejects every opcode marked as deprecated, including
 older registrations that previously only gave a warning. With this option,
@@ -315,7 +326,8 @@ an opcode example and migration guidance for GENs, backends, and utilities.
 ### Numeric types
 
 Use `cs_float` for sample data and API values. `MYFLT` remains a deprecated
-alias. The `cs_double` type represents calculations that normally need
+alias, with compiler deprecation warnings currently disabled.
+The `cs_double` type represents calculations that normally need
 double precision. Hosts and plugins must match the library's precision.
 
 See the [numeric type guide](../docs/numeric-types.md) for precision options
@@ -325,6 +337,16 @@ and compatibility aliases.
 
 ### Builds and platforms
 
+Windows now has a native ARM64 installer alongside the x64 installer.
+Both include the native WASAPI audio backend and IP MIDI. Extra plugins must
+match the installed architecture. See the [Windows build guide](../BUILD.md#windows-arm64).
+
+CoreMIDI now supports MIDI output and maps multiple input ports to separate
+channel banks. JACK MIDI can run with a different audio backend.
+
+The default macOS deployment target is macOS 12. The iOS build configurations
+target iOS 15, and generated XCFrameworks include a module map for Swift.
+
 The `USE_FLOAT` build option selects single precision for both `cs_float`
 and `cs_double`. It requires `USE_DOUBLE=OFF`. The default build keeps
 double precision. A change in precision requires new host and plugin builds.
@@ -332,6 +354,11 @@ double precision. A change in precision requires new host and plugin builds.
 The browser package uses AudioWorklet for audio output. It no longer
 supports ScriptProcessorNode or the `useSPN` option. Applications must use
 the matching browser wrapper and WebAssembly binary package.
+
+Browser applications can use background note initialization with
+`useWorker: true` and `--realtime` before `start()`. This requires cross-origin
+isolation and has limits on which APIs can run during playback. See the
+[browser setup](Csound7/WebAssembly.md#choose-the-browser-host).
 
 The WASI build supplies `csound-cli.wasm` and separate analysis and conversion
 commands. Native Csound can load supported `.wasm` opcode plugins when

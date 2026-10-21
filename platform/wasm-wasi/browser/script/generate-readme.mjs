@@ -5,13 +5,7 @@ const prettierShield = `[![styled with prettier](https://img.shields.io/badge/st
 const workflowShield = `[![GitHub Workflow Status](https://shields.shivering-isles.com/github/workflow/status/csound/csound/csound_wasm)](https://github.com/csound/csound/actions?query=workflow%3Acsound_wasm)`;
 const breakingChangesSection = `## Breaking Changes
 
-### Default host and startup errors
-
-On pages with cross-origin isolation and the required Wasm features, \`Csound()\`
-now selects the shared worker host. Previously it used one AudioWorklet.
-Pass \`useWorker: false\` to keep the previous execution model. The shared host
-freezes plugins at its first start and uses the realtime API limits only when
-\`--realtime\` is enabled. Pages without isolation still use one AudioWorklet.
+### Startup errors
 
 \`Csound()\` now rejects its promise when AudioWorklet support is missing;
 it previously logged an error and returned \`undefined\`. Catch startup errors
@@ -49,12 +43,12 @@ for browser security and permission rules.
 `;
 const realtimeSection = `## Realtime init
 
-Normal builds include thread support when the toolchain supports it. \`Csound()\`
-uses the shared worker host when the page has isolation headers and the browser
-supports it. Otherwise, it uses the same engine in one AudioWorklet with
-synchronous init. Explicit \`useWorker: true\` requires the shared host unless
-\`useSAB: false\` selects MessagePort mode; missing features cause an error
-before startup.
+Normal builds include thread support when the toolchain supports it.
+\`useWorker\` defaults to \`false\`, so \`Csound()\` runs in one AudioWorklet
+with synchronous init. Set \`useWorker: true\` to use the worker host.
+With the shared engine, this requires isolation headers and thread support
+unless \`useSAB: false\` selects MessagePort mode. Missing features cause an
+error before startup.
 
 On the shared worker host, set \`--realtime\` before \`start()\` to enable
 background init; omitting the flag keeps synchronous init. Reset clears it.

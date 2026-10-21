@@ -48,7 +48,7 @@ endin
     async function run(enabled, viaCsd = false) {
       const gated = gatedBundle;
       const mode = enabled ? (viaCsd ? "CSD --realtime" : "setOption --realtime") : "no flag";
-      const csound = await Csound({ autoConnect: false });
+      const csound = await Csound({ useWorker: true, autoConnect: false });
       active.push(csound);
       const messages = [];
       csound.on("message", (message) => messages.push(message));
@@ -267,7 +267,7 @@ f0 3600
       checks.push(`${mode}: reset restores synchronous mode and APIs; restart and teardown`);
     }
     async function fatalWhileJoining(useEndEvent = false) {
-      const csound = await Csound({ autoConnect: false });
+      const csound = await Csound({ useWorker: true, autoConnect: false });
       active.push(csound);
       await csound.setOption("-odac -m0 --daemon --realtime");
       check(
@@ -304,7 +304,7 @@ f0 3600
       checks.push("child trap rejects a blocked join through the direct UI error path");
     }
     async function endEventsAndChannels() {
-      const csound = await Csound({ autoConnect: false });
+      const csound = await Csound({ useWorker: true, autoConnect: false });
       active.push(csound);
       const messages = [];
       csound.on("message", (message) => messages.push(message));
@@ -435,7 +435,7 @@ endin
         checks.push("numeric channels progress during blocked init; end waits for its join");
     }
     async function resetBeforeStart() {
-      const csound = await Csound({ autoConnect: false });
+      const csound = await Csound({ useWorker: true, autoConnect: false });
       active.push(csound);
       check((await csound.setOption("--realtime")) === 0, "pre-start flag failed");
       check((await csound.isRealtime()) === 1, "pre-start flag was not set");
@@ -446,7 +446,7 @@ endin
       checks.push("reset before first start clears the native flag");
     }
     async function queuedCallsDuringStartup() {
-      const csound = await Csound({ autoConnect: false });
+      const csound = await Csound({ useWorker: true, autoConnect: false });
       active.push(csound);
       await csound.setOption("-odac -m0 --daemon");
       check((await csound.compileOrc(orchestra)) === 0, "race setup compilation failed");
@@ -521,7 +521,7 @@ endin
     async function sharedPlugins(enabled, local) {
       const csound = await Csound({
         autoConnect: false,
-        ...(local ? { useWorker: false } : {}),
+        useWorker: !local,
         withPlugins: ["/plugin_example_shared.wasm", "/plugin_example_cpp_shared.wasm"],
       });
       active.push(csound);
@@ -792,7 +792,8 @@ endin
             audioContext: context,
             autoConnect: false,
             outputChannelCount: 1,
-            ...(local ? { useWorker: true, useSAB: false } : {}),
+            useWorker: true,
+            useSAB: !local,
           });
           active.push(csound);
           engines.push(csound);
@@ -852,7 +853,7 @@ endin
     }
     async function amplitudeLogLines() {
       for (const realtime of [false, true]) {
-        const csound = await Csound({ autoConnect: false });
+        const csound = await Csound({ useWorker: true, autoConnect: false });
         active.push(csound);
         const messages = [];
         csound.on("message", (message) => messages.push(message));
@@ -927,7 +928,8 @@ e
         checks.push("explicit parent-only engine renders without cross-origin isolation");
       } else if (query.has("mode")) {
         const mode = query.get("mode");
-        if (mode === "log-lines") await amplitudeLogLines();
+        if (mode === "default") await localEngine({});
+        else if (mode === "log-lines") await amplitudeLogLines();
         else if (mode === "shared-context") await sharedContext(query.has("localFirst"));
         else if (mode === "libcsound") await localLibrary();
         else if (mode === "bad-plugin") await rejectsLocalPlugin();
