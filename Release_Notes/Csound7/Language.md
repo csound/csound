@@ -94,6 +94,11 @@ Review input assignments when you change declaration forms.
 
 ## Read arrays with a loop
 
+Use one pair of brackets per dimension in an explicit array type.
+For example, `values:i[]` is one-dimensional and `matrix:i[][]` has two
+dimensions. Array types can also appear in UDO declarations and struct
+members. An annotation states the type and dimension count, not the size.
+
 The new `for` loop can provide both an element and its index:
 
 ```csound
