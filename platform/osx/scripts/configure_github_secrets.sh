@@ -1,4 +1,3 @@
-
 #!/bin/bash
 set -euo pipefail
 
@@ -9,7 +8,7 @@ read -rsp "Certificate password [$CERT_PASSWORD]: " INPUT_PASSWORD
 echo ""
 CERT_PASSWORD="${INPUT_PASSWORD:-$CERT_PASSWORD}"
 
-source "$(dirname "$0")/print_github_secrets.sh"
+source "$(dirname "$0")/print_certs_for_github.sh"
 
 echo "Configuring GitHub repository: $REPO"
 

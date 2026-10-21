@@ -11,7 +11,7 @@ cp /path/to/app.p12 certificates/app.p12
 cp /path/to/installer.p12 certificates/installer.p12
 ```
 
-Update `DEVELOPER_APP_ID` and `DEVELOPER_INSTALLER_ID` in `print_github_secrets.sh` to match the certificate identities.
+Update `DEVELOPER_APP_ID` and `DEVELOPER_INSTALLER_ID` in `print_certs_for_github.sh` to match the certificate identities.
 
 **Note:** The `certificates/` directory contains sensitive files and must not be committed to Git.
 
@@ -48,6 +48,32 @@ The script prompts for the certificate password and configures the following:
 - `DEV_ID_APP_PASSWORD`
 - `DEV_ID_INSTALLER_CERT`
 - `DEV_ID_INSTALLER_PASSWORD`
+
+Verify the configuration:
+
+```bash
+gh variable list --repo OWNER/REPO
+gh secret list --repo OWNER/REPO
+```
+
+## 4. Configure GitHub Actions Notarization
+
+Update `APPLE_ID` and `APPLE_TEAM_ID` in `configure_github_notarization.sh` to match the notarization identities.
+Run:
+
+```bash
+./configure_github_notarization.sh
+```
+
+The script prompts for the notarization password and configures the following:
+
+**GitHub Actions variable:**
+- `ENABLE_NOTARIZATION`
+
+**GitHub Actions secrets:**
+- `APPLE_ID`
+- `APPLE_TEAM_ID`
+- `APPLE_APP_PASSWORD`
 
 Verify the configuration:
 
