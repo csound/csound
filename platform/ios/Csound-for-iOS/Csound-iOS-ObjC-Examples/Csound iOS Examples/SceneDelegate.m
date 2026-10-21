@@ -39,7 +39,7 @@
 
     // 3. Mirror your original device layout setup
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        MasterViewController *masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController_iPhone" bundle:nil];
+        MasterViewController *masterViewController = [[MasterViewController alloc] initWithStyle:UITableViewStylePlain];
         UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
         
         // Save references back to appDelegate if your app logic reads them elsewhere
@@ -47,17 +47,14 @@
         
         self.window.rootViewController = navController;
     } else {
-        MasterViewController *masterViewController = [[MasterViewController alloc] initWithNibName:@"MasterViewController_iPad" bundle:nil];
-        UINavigationController *masterNavigationController = [[UINavigationController alloc] initWithRootViewController:masterViewController];
-        
+        MasterViewController *masterViewController = [[MasterViewController alloc] initWithStyle:UITableViewStylePlain];
         SimpleTest1ViewController *detailViewController = [[SimpleTest1ViewController alloc] initWithNibName:@"SimpleTest1ViewController" bundle:nil];
-        
-        UINavigationController *detailNavigationController = [[UINavigationController alloc] initWithRootViewController:detailViewController];
-        
-        UISplitViewController *splitViewController = [[UISplitViewController alloc] init];
-        splitViewController.delegate = detailViewController;
-        splitViewController.viewControllers = @[masterNavigationController, detailNavigationController];
-        detailViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
+
+        // Column-style split views wrap each column in a navigation controller
+        // and manage the sidebar toggle button themselves.
+        UISplitViewController *splitViewController = [[UISplitViewController alloc] initWithStyle:UISplitViewControllerStyleDoubleColumn];
+        [splitViewController setViewController:masterViewController forColumn:UISplitViewControllerColumnPrimary];
+        [splitViewController setViewController:detailViewController forColumn:UISplitViewControllerColumnSecondary];
         
         // Save reference back to appDelegate if needed
         appDelegate.splitViewController = splitViewController;

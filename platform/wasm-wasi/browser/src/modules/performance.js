@@ -51,7 +51,9 @@ csoundCompileTree["toString"] = () => "compileTree = async (tree) => Number;";
 // csoundDeleteTree (CSOUND *csound, TREE *tree)
 
 /**
- * Compiles a csound orchestra string
+ * Compiles a Csound orchestra string.
+ * Active --realtime runs this on a background worker and completes after global
+ * initialization. File access from that worker is not supported.
  * @function
  */
 export const csoundCompileOrc = (wasm) => (csound, orc) => {
@@ -64,7 +66,9 @@ export const csoundCompileOrc = (wasm) => (csound, orc) => {
 csoundCompileOrc["toString"] = () => "compileOrc = async (orchestra) => Number;";
 
 /**
- * Compiles a csound orchestra string
+ * Compiles global code and returns its result.
+ * Active --realtime evaluates each request on the background worker, in order.
+ * File access from that worker is not supported.
  * @function
  */
 export const csoundEvalCode = (wasm) => (csound, orc) => {
@@ -122,8 +126,7 @@ csoundPerformKsmps["toString"] = () => "performKsmps = async (csound) => Number;
 export const csoundSetDebugCallbackWasi = (wasm) => (csound) =>
   wasm.exports["csoundSetDebugCallbackWasi"](csound);
 
-csoundSetDebugCallbackWasi["toString"] = () =>
-  "setDebugCallbackWasi = async (csound) => Number;";
+csoundSetDebugCallbackWasi["toString"] = () => "setDebugCallbackWasi = async (csound) => Number;";
 
 /**
  * Dummy function to enable stop mechanism

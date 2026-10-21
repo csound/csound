@@ -23,6 +23,45 @@ import { beatsCsd, exitCommand } from "./score-command-fixtures.js";
   const resp = await import(url);
   // console.log("RESP", resp);
   const { Csound } = resp;
+  const { sharedEngine } = await import("/dist/__csound_engine.inline.js");
+  const cPlugin = sharedEngine ? "./plugin_example_shared.wasm" : "./plugin_example.wasm";
+  const cppPlugin = sharedEngine ? "./plugin_example_cpp_shared.wasm" : "./plugin_example_cpp.wasm";
+
+  const carriageReturnOrchestra = `
+ksmps = 32
+nchnls = 1
+instr 1
+  kcount init 0
+  if kcount == 0 then
+    printks "[log-test] CR\\r", 0
+    printks "[log-test] CRLF\\r\\n", 0
+    printks "[log-test] split", 0
+    printks "\\r", 0
+    printks "\\n", 0
+    printks "[log-test] frag", 0
+    printks "ment\\r", 0
+    printks "\\r\\n\\r\\n", 0
+    printks "[log-test] first\\r[log-test] second\\n", 0
+  endif
+  printks "[log-test] tick %d\\r", 0.05, kcount
+  kcount += 1
+endin
+schedule(1, 0.02, 60)`;
+
+  function assertCarriageReturnLogs(messages) {
+    const lines = messages.filter((message) => message.startsWith("[log-test]"));
+    assert.deepEqual(lines.slice(0, 6), [
+      "[log-test] CR",
+      "[log-test] CRLF",
+      "[log-test] split",
+      "[log-test] fragment",
+      "[log-test] first",
+      "[log-test] second",
+    ]);
+    assert.isAtLeast(lines.length, 9);
+    assert.isTrue(lines.every((message) => !/[\r\n]/.test(message)));
+    assert.notInclude(messages, "");
+  }
 
   const helloWorld = `
 <CsoundSynthesizer>
@@ -427,6 +466,97 @@ e
         });
       }
 
+      it("starts realtime MIDI and releases notes from browser and API input", async function () {
+        // Run against dist/csound.js: source-only tests miss Closure's property renaming.
+        const previousMidiAccess = Object.getOwnPropertyDescriptor(navigator, "requestMIDIAccess");
+        const input = { name: "Test keyboard", onmidimessage: undefined };
+        Object.defineProperty(navigator, "requestMIDIAccess", {
+          configurable: true,
+          value: async () => ({ inputs: new Map([["test", input]]) }),
+        });
+        let cs;
+        let analyser;
+        let startTimer;
+        const waitFor = async (condition, message) => {
+          const deadline = performance.now() + 2000;
+          while (!condition() && performance.now() < deadline) {
+            await new Promise((resolve) => setTimeout(resolve, 10));
+          }
+          assert.isTrue(condition(), message);
+        };
+        try {
+          cs = await Csound(test);
+          let ended = 0;
+          cs.on("realtimePerformanceEnded", () => ended++);
+          assert.equal(
+            await cs.compileCSD(`
+<CsoundSynthesizer>
+<CsOptions>
+-odac -M0
+</CsOptions>
+<CsInstruments>
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+massign 0, 1
+instr 1
+  aEnvelope madsr 0.01, 0.02, 0.8, 0.05
+  aTone oscili ampmidi(0.2), cpsmidi()
+  out aTone * aEnvelope
+endin
+</CsInstruments>
+<CsScore>
+f 0 z
+</CsScore>
+</CsoundSynthesizer>`),
+            0,
+          );
+          const startup = new Promise((_, reject) => {
+            startTimer = setTimeout(() => reject(new Error("MIDI startup did not finish")), 4000);
+          });
+          assert.equal(await Promise.race([cs.start(), startup]), 0);
+          clearTimeout(startTimer);
+          await waitFor(
+            () => typeof input.onmidimessage === "function",
+            "Web MIDI input connected",
+          );
+          const context = await cs.getAudioContext();
+          analyser = context.createAnalyser();
+          (await cs.getNode()).connect(analyser);
+          const samples = new Float32Array(analyser.fftSize);
+          const peak = () => {
+            analyser.getFloatTimeDomainData(samples);
+            return samples.reduce((maximum, sample) => Math.max(maximum, Math.abs(sample)), 0);
+          };
+          assert.isBelow(peak(), 0.00001, "no notes before MIDI input");
+          for (const send of [
+            (status, note, velocity) =>
+              input.onmidimessage({ data: new Uint8Array([status, note, velocity]) }),
+            (status, note, velocity) => cs.midiMessage(status, note, velocity),
+          ]) {
+            await send(0x90, 69, 100);
+            await waitFor(() => peak() > 0.01, "note-on produces audio");
+            await send(0x80, 69, 0);
+            await waitFor(() => peak() < 0.00001, "note-off releases the voice");
+          }
+          assert.equal(ended, 0, "MIDI keeps running between notes");
+          await cs.stop();
+          assert.equal(ended, 1, "stop ends the performance");
+        } finally {
+          clearTimeout(startTimer);
+          if (analyser) analyser.disconnect();
+          try {
+            if (cs) await cs.terminateInstance();
+          } finally {
+            if (previousMidiAccess) {
+              Object.defineProperty(navigator, "requestMIDIAccess", previousMidiAccess);
+            } else {
+              delete navigator.requestMIDIAccess;
+            }
+          }
+        }
+      });
+
       it("can be started", async function () {
         console.log("initialising Csound object");
         const cs = await Csound(test);
@@ -437,6 +567,42 @@ e
         assert.equal(startReturn, 0);
         await cs.stop();
         cs.terminateInstance && (await cs.terminateInstance());
+      });
+
+      it("delivers carriage-return logs during performance", async function () {
+        const cs = await Csound(test);
+        const messages = [];
+        let ticks = 0;
+        let timer;
+        let onMessage;
+        let rejectProgress;
+        const progress = new Promise((resolve, reject) => {
+          rejectProgress = reject;
+          onMessage = (message) => {
+            messages.push(message);
+            if (message.startsWith("[log-test] tick ") && ++ticks === 3) {
+              clearTimeout(timer);
+              resolve();
+            }
+          };
+          cs.on("message", onMessage);
+        });
+        try {
+          assert.equal(await cs.setOption("-odac"), 0);
+          assert.equal(await cs.compileOrc(carriageReturnOrchestra), 0);
+          assert.equal(await cs.start(), 0);
+          timer = setTimeout(
+            () => rejectProgress(new Error("Carriage-return logs stayed buffered")),
+            4000,
+          );
+          await progress;
+          assertCarriageReturnLogs(messages);
+        } finally {
+          clearTimeout(timer);
+          cs.off("message", onMessage);
+          await cs.stop();
+          await cs.terminateInstance();
+        }
       });
 
       it("readline reports late prompts, accepts a line and closes on stop", async function () {
@@ -548,6 +714,22 @@ schedule(1, 0.05, 10)`), 0);
       });
 
       if (!test.useWorker) {
+        it("releases terminated worklet heaps while the caller's AudioContext stays open", async function () {
+          this.timeout(30000);
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+          try {
+            // Keep the context alive: each terminated processor must release its
+            // own Wasm heap. Chrome 144 exhausted memory before round 80.
+            for (let iteration = 0; iteration < 80; iteration++) {
+              const cs = await Csound({ useWorker: false, audioContext, autoConnect: false });
+              await cs.terminateInstance();
+            }
+            assert.notEqual(audioContext.state, "closed");
+          } finally {
+            if (audioContext.state !== "closed") await audioContext.close();
+          }
+        });
+
         it("preserves Web Audio input when -iadc is requested", async function () {
           const audioContext = new (window.AudioContext || window.webkitAudioContext)({
             latencyHint: "interactive",
@@ -644,7 +826,7 @@ schedule(1, 0.05, 10)`), 0);
       it("can load and run plugins", async function () {
         const testWithPlugin = Object.assign(
           {
-            withPlugins: ["./plugin_example.wasm"],
+            withPlugins: [cPlugin],
           },
           test,
         );
@@ -655,10 +837,31 @@ schedule(1, 0.05, 10)`), 0);
         await cs.terminateInstance();
       });
 
+      it("supports host allocation and WASI exceptions in plugins", async function () {
+        const cs = await Csound(Object.assign({ withPlugins: [cPlugin] }, test));
+        try {
+          const orchestra = `
+            iresult plugin_runtime_check
+            chnset iresult, "plugin_runtime_result"
+          `;
+          assert.equal(0, await cs.compileOrc(orchestra));
+          assert.equal(0, await cs.start());
+          assert.equal(42, await cs.getControlChannel("plugin_runtime_result"));
+          await cs.stop();
+          await cs.reset();
+          assert.equal(0, await cs.compileOrc(orchestra));
+          assert.equal(0, await cs.start());
+          assert.equal(42, await cs.getControlChannel("plugin_runtime_result"));
+          await cs.stop();
+        } finally {
+          await cs.terminateInstance();
+        }
+      });
+
       it("can load and run c++ plugins", async function () {
         const testWithPlugin = Object.assign(
           {
-            withPlugins: ["./plugin_example_cpp.wasm"],
+            withPlugins: [cppPlugin],
           },
           test,
         );
@@ -679,7 +882,7 @@ schedule(1, 0.05, 10)`), 0);
           assert.equal(1, await cs.isRequestingPlugins());
           assert.equal("./plugin_example_cpp.wasm", await cs.getRequestedPlugins());
 
-          const response = await fetch("./plugin_example_cpp.wasm");
+          const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
           await cs.fs.writeFile("./plugin_example_cpp.wasm", pluginBytes);
@@ -711,7 +914,7 @@ schedule(1, 0.05, 10)`), 0);
         const cs = await Csound(test);
 
         try {
-          const response = await fetch("./plugin_example_cpp.wasm");
+          const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
           await cs.fs.writeFile("./plugin_example_cpp.wasm", pluginBytes);
@@ -740,7 +943,7 @@ schedule(1, 0.05, 10)`), 0);
           assert.equal(1, await cs.isRequestingPlugins());
           assert.equal("./plugin_example_cpp.wasm", await cs.getRequestedPlugins());
 
-          const response = await fetch("./plugin_example_cpp.wasm");
+          const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
           await cs.fs.writeFile("./plugin_example_cpp.wasm", pluginBytes);
@@ -802,14 +1005,20 @@ schedule(1, 0.05, 10)`), 0);
       });
 
       if (test.useSAB) {
-        // Match the backend selection in isSabSupported(): Firefox falls back
-        // to message ports even when the caller requests SAB.
-        const sabIt =
-          typeof SharedArrayBuffer !== "undefined" &&
-          typeof Atomics !== "undefined" &&
-          !navigator.userAgent.toLowerCase().includes("firefox")
-            ? it
-            : it.skip;
+        let sharedTransport;
+        const sabIt = (title, run) => it(title, async function () {
+          // Check the selected transport instead of assuming it from the browser.
+          if (sharedTransport === undefined) {
+            const probe = await Csound(test);
+            try {
+              sharedTransport = probe.name === "Csound: Audio Worklet, Shared-Array Buffer";
+            } finally {
+              await probe.terminateInstance();
+            }
+          }
+          if (!sharedTransport) this.skip();
+          await run.call(this);
+        });
         sabIt("keeps SAB score time still while paused and handles repeated transport calls", async function () {
           const cs = await Csound(test);
           try {
@@ -942,11 +1151,10 @@ schedule(1, 0.05, 10)`), 0);
             cs.on("realtimePerformanceResumed", () => events.push("resumed"));
             await cs.compileCSD(shortTone.replace("-odac", "-n").replace("i 1 0 2", "i 1 0 36000"));
             await cs.start();
-            await cs.pause();
-            await new Promise((resolve) => setTimeout(resolve, 50));
+            assert.equal(await cs.pause(), 0);
             assert.deepEqual(events, ["paused"]);
             await cs.resume();
-            await cs.pause();
+            assert.equal(await cs.pause(), 0);
             await cs.stop();
             assert.deepEqual(events, ["paused", "resumed", "paused"]);
           } finally {
@@ -1738,6 +1946,29 @@ e
     });
   });
 
+  describe("standalone csound-no-audio", function () {
+    this.timeout(30000);
+
+    it("delivers carriage-return logs during performance", async function () {
+      const { Csound } = await import("/dist/csound-no-audio.js");
+      const messages = [];
+      const cs = await Csound({ logCallback: (message) => messages.push(message) });
+      try {
+        assert.equal(await cs.setOption("-n"), 0);
+        assert.equal(await cs.compileOrc(carriageReturnOrchestra), 0);
+        assert.equal(await cs.start(), 0);
+        // Read the logs before stop() can flush the buffer with a newline.
+        for (let block = 0; block < 512; block++) {
+          assert.equal(await cs.performKsmps(), 0);
+        }
+        assertCarriageReturnLogs(messages);
+      } finally {
+        await cs.stop();
+        await cs.destroy();
+      }
+    });
+  });
+
   /* ================================================================
    * libcsound + UGEN API tests (no WebAudio node)
    * ================================================================ */
@@ -1778,6 +2009,91 @@ e
       assert.property(cs, "csoundReset");
       assert.property(cs, "wasm");
       assert.property(cs, "getMemory");
+    });
+
+    describe("MIDI queue ownership", function () {
+      function startMidi(csound) {
+        for (const option of ["-n", "-m0", "-M0", "--daemon"]) {
+          assert.equal(cs.csoundSetOption(csound, option), 0);
+        }
+        assert.equal(
+          cs.csoundCompileOrc(
+            csound,
+            `
+sr=48000
+ksmps=32
+nchnls=1
+0dbfs=1
+massign 0, 1
+instr 1
+  ihits chnget "hits"
+  chnset ihits + 1, "hits"
+endin`,
+          ),
+          0,
+        );
+        assert.equal(cs.csoundStart(csound), 0);
+      }
+
+      function hitsAfterPerform(csound) {
+        for (let cycle = 0; cycle < 8; cycle++) cs.csoundPerformKsmps(csound);
+        return cs.csoundGetControlChannel(csound, "hits");
+      }
+
+      for (const action of ["create", "reset", "destroy"]) {
+        it(`keeps pending MIDI across another instance's ${action}`, function () {
+          const first = cs.csoundCreate();
+          let second = action === "create" ? 0 : cs.csoundCreate();
+          try {
+            startMidi(first);
+            if (second) startMidi(second);
+            cs.csoundPushMidiMessage(first, 0x90, 60, 100);
+            if (action === "create") second = cs.csoundCreate();
+            if (action === "reset") cs.csoundReset(second);
+            if (action === "destroy") {
+              cs.csoundDestroy(second);
+              second = 0;
+            }
+            assert.equal(hitsAfterPerform(first), 1);
+          } finally {
+            cs.csoundDestroy(first);
+            if (second) cs.csoundDestroy(second);
+          }
+        });
+      }
+
+      it("delivers MIDI only to its target instance", function () {
+        const first = cs.csoundCreate();
+        const second = cs.csoundCreate();
+        try {
+          startMidi(first);
+          startMidi(second);
+          cs.csoundPushMidiMessage(first, 0x90, 60, 100);
+          cs.csoundPushMidiMessage(second, 0x90, 67, 100);
+          cs.csoundPushMidiMessage(second, 0x90, 72, 100);
+          assert.equal(hitsAfterPerform(first), 1);
+          assert.equal(hitsAfterPerform(second), 2);
+        } finally {
+          cs.csoundDestroy(first);
+          cs.csoundDestroy(second);
+        }
+      });
+
+      it("discards pending MIDI on its own reset and accepts fresh MIDI", function () {
+        const csound = cs.csoundCreate();
+        try {
+          startMidi(csound);
+          cs.csoundPushMidiMessage(csound, 0x90, 60, 100);
+          assert.equal(cs.csoundReset(csound), 0);
+          startMidi(csound);
+          assert.equal(hitsAfterPerform(csound), 0);
+          cs.csoundPushMidiMessage(csound, 0x90, 67, 100);
+          cs.csoundSetMidiCallbacks(csound);
+          assert.equal(hitsAfterPerform(csound), 1);
+        } finally {
+          cs.csoundDestroy(csound);
+        }
+      });
     });
 
     it("rejects invalid WASM allocation sizes", function () {
@@ -1869,7 +2185,87 @@ e
       }
     });
 
-    it("reuses resources after failed plugin loads", async function () {
+    it("resolves a plugin's GOT.mem import to the engine's absolute data address", async function () {
+      const { libcsound } = await import(url);
+      const response = await fetch(cPlugin);
+      assert.isTrue(response.ok);
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      const plugin = await WebAssembly.compile(bytes);
+      // The pinned LLVM/WASI build must exercise this relocation, not optimize it away.
+      assert.deepInclude(WebAssembly.Module.imports(plugin), {
+        module: "GOT.mem",
+        name: "__heap_base",
+        kind: "global",
+      });
+      const api = await libcsound({ withPlugins: [bytes] });
+      const csound = api.csoundCreate();
+      try {
+        api.csoundSetOption(csound, "-n");
+        assert.equal(
+          api.csoundCompileOrc(
+            csound,
+            `
+            iaddress plugin_heap_base
+            chnset iaddress, "plugin_heap_base"
+          `,
+          ),
+          0,
+        );
+        assert.equal(api.csoundStart(csound), 0);
+        assert.equal(
+          api.csoundGetControlChannel(csound, "plugin_heap_base"),
+          api.wasm.exports.__heap_base.value,
+        );
+      } finally {
+        api.csoundDestroy(csound);
+      }
+    });
+
+    it("relocates a plugin's GOT.mem export from its local data offset", async function () {
+      const { libcsound } = await import(url);
+      const response = await fetch(cPlugin);
+      assert.isTrue(response.ok);
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      const plugin = await WebAssembly.compile(bytes);
+      // Keep these checks when updating the toolchain: both imports guard real loader paths.
+      assert.deepInclude(WebAssembly.Module.imports(plugin), {
+        module: "GOT.mem",
+        name: "plugin_local_data",
+        kind: "global",
+      });
+      assert.deepInclude(WebAssembly.Module.exports(plugin), {
+        name: "plugin_local_data",
+        kind: "global",
+      });
+      assert.deepInclude(WebAssembly.Module.imports(plugin), {
+        module: "GOT.func",
+        name: "csoundDestroy",
+        kind: "global",
+      });
+      const api = await libcsound({ withPlugins: [bytes] });
+      const csound = api.csoundCreate();
+      try {
+        api.csoundSetOption(csound, "-n");
+        assert.equal(
+          api.csoundCompileOrc(
+            csound,
+            `
+            iresult plugin_local_data_check
+            chnset iresult, "plugin_local_data_check"
+          `,
+          ),
+          0,
+        );
+        assert.equal(api.csoundStart(csound), 0);
+        // The opcode compares the GOT address with the direct static address,
+        // then writes through the GOT and reads through the static name.
+        assert.equal(api.csoundGetControlChannel(csound, "plugin_local_data_check"), 42);
+      } finally {
+        api.csoundDestroy(csound);
+      }
+    });
+
+    it("recovers after failed plugin loads", async function () {
       const { libcsound } = await import(url);
       const badPlugin = Uint8Array.from(
         atob(
@@ -1877,6 +2273,24 @@ e
         ),
         (char) => char.charCodeAt(0),
       );
+      if (sharedEngine) {
+        for (let index = 0; index < 8; index++) {
+          let rejected = false;
+          try {
+            await libcsound({ withPlugins: [badPlugin] });
+          } catch (error) {
+            rejected = true;
+            assert.match(error.message, /plugin|Csound/i);
+          }
+          assert.isTrue(rejected, "malformed shared plugin must reject the factory");
+        }
+        const valid = await libcsound({
+          withPlugins: [new Uint8Array(await (await fetch(cPlugin)).arrayBuffer())],
+        });
+        const instance = valid.csoundCreate();
+        valid.csoundDestroy(instance);
+        return;
+      }
       const errors = sinon.stub(console, "error");
       try {
         const oneFailure = await libcsound({ withPlugins: [badPlugin] });
@@ -1925,9 +2339,19 @@ e
 
       try {
         for (const unsafePlugin of unsafePlugins) {
-          await libcsound({ withPlugins: [unsafePlugin] });
+          if (sharedEngine) {
+            let rejected = false;
+            try {
+              await libcsound({ withPlugins: [unsafePlugin] });
+            } catch (error) {
+              rejected = true;
+              assert.match(error.message, /plugin|table|Csound/i);
+            }
+            assert.isTrue(rejected, "unsafe plugin must reject the shared factory");
+          } else await libcsound({ withPlugins: [unsafePlugin] });
         }
         assert.isFalse(growCalled);
+        if (sharedEngine) return;
         assert.equal(errors.callCount, unsafePlugins.length);
         assert.deepEqual(
           errors.args.map(([message, error]) => [message, error.name, error.message]),

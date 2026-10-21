@@ -1695,6 +1695,52 @@ cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
   return target;
 }
 
+int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
+  OPCODINFO *udoinfo;
+  PBR_REWIRE_PLAN *plan;
+  char *op_mem_start;
+  XIN *xin;
+  OPDS *op;
+  int32_t copyResult;
+
+  if (p == NULL || p->ip == NULL || p->buf == NULL) {
+    return OK;
+  }
+
+  udoinfo = p->buf->opcode_info;
+  if (!udo_call_is_pass_by_ref(p, udoinfo)) {
+    return OK;
+  }
+
+  plan = udoinfo->pbr_plan;
+  op_mem_start = pbr_get_opcode_mem_start(p->ip);
+  if (plan == NULL || op_mem_start == NULL) {
+    return OK;
+  }
+
+  /* This runs at perf time, so like useropcd_pass_by_ref it does not
+     allocate: an input that no longer fits its snapshot is an error. */
+  xin = pbr_snapshot_colliding_inputs(csound, p, p->ip, 0, &copyResult);
+  if (UNLIKELY(copyResult != OK)) {
+    return NOTOK;
+  }
+  pbr_apply_entries(csound, p, p->ip->nxti, op_mem_start, xin,
+                    plan->init_entries, plan->init_count);
+  pbr_apply_entries(csound, p, p->ip->nxtp, op_mem_start, xin,
+                    plan->perf_entries, plan->perf_count);
+
+  /* Nested pass-by-ref UDOs wired their own bodies to these locations
+     at init, so they need the same update.  Every UDO call has an init
+     function (useropcdset), so the init chain lists all of them. */
+  for (op = (OPDS *)p->ip->nxti; op != NULL; op = op->nxti) {
+    if (op->optext->t.oentry->useropinfo != NULL &&
+        user_opcode_rebind_args(csound, (UOPCODE *)op) != OK) {
+      return NOTOK;
+    }
+  }
+  return OK;
+}
+
 /*
   UDOs now use the local ksmps/local sr stored in lcurip, and
   all the other dependent parameters are calculated in relation to
@@ -2367,10 +2413,10 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
       if ((opstart = (OPDS *) (this_instr->nxtp)) != NULL) {
         int32_t error = 0;
         do {
-          if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
-          opstart->insdshead->pds = opstart;
+          if(UNLIKELY(!ATOMIC_GET8(this_instr->actflg))) goto endop;
+          this_instr->pds = opstart;
           error = (*opstart->perf)(csound, opstart);
-          opstart = opstart->insdshead->pds;
+          opstart = this_instr->pds;
         } while (error == 0 && p->ip != NULL
                  && (opstart = opstart->nxtp));
       }
@@ -2496,10 +2542,10 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
       if ((opstart = (OPDS *) (this_instr->nxtp)) != NULL) {
         int32_t error = 0;
         do {
-          if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
-          opstart->insdshead->pds = opstart;
+          if(UNLIKELY(!ATOMIC_GET8(this_instr->actflg))) goto endop;
+          this_instr->pds = opstart;
           error = (*opstart->perf)(csound, opstart);
-          opstart = opstart->insdshead->pds;
+          opstart = this_instr->pds;
         } while (error == 0 && p->ip != NULL
                  && (opstart = opstart->nxtp));
       }
@@ -2624,6 +2670,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
 // Pass-by-copy, with sample rate conversion when the local sr differs.
 int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
 {
+  /* Opcode ownership is stable; p->ip can still become NULL on turnoff. */
+  INSDS *this_instr = p->ip;
   cs_float   **tmp;
   OPCODINFO   *inm;
   CS_VARIABLE* current;
@@ -2705,10 +2753,10 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
     if ((opstart = (OPDS *) (p->ip->nxtp)) != NULL) {
       p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
       do {
-        if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
-        opstart->insdshead->pds = opstart;
+        if(UNLIKELY(!ATOMIC_GET8(this_instr->actflg))) goto endop;
+        this_instr->pds = opstart;
         error = (*opstart->perf)(csound, opstart);
-        opstart = opstart->insdshead->pds;
+        opstart = this_instr->pds;
       } while (error == 0 && p->ip != NULL
                && (opstart = opstart->nxtp));
     }
@@ -2785,7 +2833,9 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
 /** Runs perf-time chain*/
 int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
 {
-  OPDS    *saved_pds = CS_PDS;
+  /* This caller slot holds the current opcode, including across nested calls. */
+  INSDS *caller_ip = p->h.insdshead;
+  OPDS    *saved_pds = caller_ip->pds;
   int32_t copyResult;
   int32_t seedResult;
   int32_t done;
@@ -2802,7 +2852,7 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
       Str("pass-by-reference UDO value changed capacity during performance\n"));
   }
   p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
-  if (UNLIKELY(!(CS_PDS = (OPDS*) (p->ip->nxtp))))
+  if (UNLIKELY(!(caller_ip->pds = (OPDS*) (p->ip->nxtp))))
     goto writeback; /* no perf code */
 
   /* IV - Nov 16 2002: update release flag */
@@ -2811,19 +2861,23 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
   /*  run each opcode  */
   {
   int error = 0;
-  CS_PDS->insdshead->pds = NULL;
+  caller_ip->pds->insdshead->pds = NULL;
   do {
+    OPDS *opstart;
+    OPDS *jump;
     if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
-    if (CS_PDS->perf) {
-      error = (*CS_PDS->perf)(csound, CS_PDS);
+    opstart = caller_ip->pds;
+    if (opstart->perf) {
+      error = (*opstart->perf)(csound, opstart);
     }
-    if (CS_PDS->insdshead->pds != NULL &&
-        CS_PDS->insdshead->pds->insdshead) {
-      CS_PDS = CS_PDS->insdshead->pds;
-      CS_PDS->insdshead->pds = NULL;
+    /* A callback can change the caller slot as well as the child's jump slot. */
+    jump = caller_ip->pds->insdshead->pds;
+    if (jump != NULL && jump->insdshead) {
+      caller_ip->pds = jump;
+      jump->insdshead->pds = NULL;
     }
   } while (error == 0 && p->ip != NULL
-           && (CS_PDS = CS_PDS->nxtp));
+           && (caller_ip->pds = caller_ip->pds->nxtp));
   }
 
  writeback:
@@ -2831,7 +2885,7 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
                  csound, p, p->ip, 0) != OK ||
                pbr_writeback_pass_through_inputs(
                  csound, p, p->ip, 0) != OK)) {
-    CS_PDS = saved_pds;
+    caller_ip->pds = saved_pds;
     return csound->PerfError(
       csound, &p->h,
       Str("pass-by-reference UDO value changed capacity during performance\n"));
@@ -2839,11 +2893,11 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
 
  endop:
   /* restore globals */
-  CS_PDS = saved_pds;
+  caller_ip->pds = saved_pds;
   /* check if instrument was deactivated (e.g. by perferror) */
   if (!p->ip)  {                   /* loop to last opds */
-    while (CS_PDS && CS_PDS->nxtp) {
-      CS_PDS = CS_PDS->nxtp;
+    while (caller_ip->pds && caller_ip->pds->nxtp) {
+      caller_ip->pds = caller_ip->pds->nxtp;
     }
   }
   return OK;

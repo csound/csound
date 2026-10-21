@@ -23,6 +23,7 @@
 
 #include "csoundCore.h"         /*                         MUSMON.C     */
 #include "midiops.h"
+#include "midifile.h"
 #include "soundfile.h"
 #include "soundio.h"
 #include "namedins.h"
@@ -127,6 +128,10 @@ static EVTNODE *rt_event_take_due(CSOUND *csound)
 
 static int32_t realtime_engine_locks_init(CSOUND *csound)
 {
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+  IGN(csound);
+  return CSOUND_ERROR;
+#else
   if (csound->realtime_locks_initialized)
     return CSOUND_SUCCESS;
   if (alloc_queue_lock_init(csound) != CSOUND_SUCCESS)
@@ -151,6 +156,7 @@ static int32_t realtime_engine_locks_init(CSOUND *csound)
  fail_alloc:
   alloc_queue_lock_destroy(csound);
   return CSOUND_ERROR;
+#endif
 }
 
 static void realtime_engine_locks_destroy(CSOUND *csound)
@@ -218,8 +224,10 @@ cs_float initialise_io(CSOUND *csound) {
       O->outbufsamps = new_b;
       O->inbufsamps = new_b;
     }
-     csound->ErrorMsg(csound, Str("audio buffered in %d sample-frame blocks\n"),
-                    (int32_t) O->outbufsamps);
+    if (O->msglevel > 0) {
+      csound->Message(csound, Str("audio buffered in %d sample-frame blocks\n"),
+                     (int32_t) O->outbufsamps);
+    }
     O->inbufsamps  *= csound->inchnls;    /* now adjusted for n channels  */
     O->outbufsamps *= csound->nchnls;
     set_io_backend(csound);          /* point recv & tran to audio formatter */
@@ -354,7 +362,8 @@ void print_sndfile_version(CSOUND* csound);
 int32_t start_engine(CSOUND *csound)
 {
     OPARMS  *O = csound->oparms;
-    print_sndfile_version(csound);
+    if (O->odebug > 0)
+      print_sndfile_version(csound);
 
     /* initialise search path cache */
     csoundGetSearchPathFromEnv(csound, "SNAPDIR");
@@ -398,9 +407,11 @@ int32_t start_engine(CSOUND *csound)
       csound->ibeatTime = 1;
     }
     csound->cyclesRemaining = 0;
+    STA(score_segment_polling) = 0;
     memset(&(csound->evt), 0, sizeof(EVTBLK));
 
-    print_engine_parameters(csound);
+    if(O->msglevel > 0)
+      print_engine_parameters(csound);
 
     /* Enable musmon to handle external MIDI input, if it has been enabled.
        called before init() so that any file passed -F is the first on the
@@ -419,8 +430,13 @@ int32_t start_engine(CSOUND *csound)
 #ifndef __EMSCRIPTEN__
     if (O->realtime &&
         UNLIKELY(realtime_engine_locks_init(csound) != CSOUND_SUCCESS)) {
+#if !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+      csound->ErrorMsg(csound, "%s", Str("Realtime mode requires atomic "
+                                           "operations in this build\n"));
+#else
       csound->ErrorMsg(csound, "%s", Str("Failed to initialise realtime "
                                            "engine locks\n"));
+#endif
       return CSOUND_ERROR;
     }
 #endif
@@ -457,13 +473,15 @@ int32_t start_engine(CSOUND *csound)
          initialise_io(csound);
 
     if (csound->playscore!=NULL) corfile_flush(csound, csound->playscore);
-     csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    ++STA(sectno);
+    if (O->msglevel > 0)
+      csound->Message(csound, Str("SECTION %d:\n"), STA(sectno));
     /* apply score offset if non-zero */
     if (csound->csoundScoreOffsetSeconds_ > FL(0.0))
       csoundSetScoreOffsetSeconds(csound, csound->csoundScoreOffsetSeconds_);
 
 #ifndef __EMSCRIPTEN__
-    if (csound->oparms->realtime && csound->event_insert_loop == 0){
+    if (csound->oparms->realtime && ATOMIC_GET(csound->event_insert_loop) == 0){
       /* Init-time compile opcodes re-enter this lock while merging state. */
       csound->init_pass_threadlock = csoundCreateMutex(1);
       if (UNLIKELY(csound->init_pass_threadlock == NULL)) {
@@ -481,12 +499,21 @@ int32_t start_engine(CSOUND *csound)
         csound->init_pass_threadlock = NULL;
         return CSOUND_MEMORY;
       }
-      csound->event_insert_loop = 1;
+      int32_t message_queue_result = realtime_message_queue_start(csound);
+      if (message_queue_result != CSOUND_SUCCESS) {
+        csoundDestroyMutex(csound->init_pass_threadlock);
+        csound->init_pass_threadlock = NULL;
+        csound->Free(csound, csound->alloc_queue);
+        csound->alloc_queue = NULL;
+        return message_queue_result;
+      }
+      ATOMIC_SET(csound->event_insert_loop, 1);
       csound->event_insert_thread =
         csound->CreateThread(event_insert_thread,
                              (void*)csound);
       if (UNLIKELY(csound->event_insert_thread == NULL)) {
-        csound->event_insert_loop = 0;
+        ATOMIC_SET(csound->event_insert_loop, 0);
+        realtime_message_queue_stop(csound);
         csoundDestroyMutex(csound->init_pass_threadlock);
         csound->init_pass_threadlock = NULL;
         csound->Free(csound, csound->alloc_queue);
@@ -579,8 +606,9 @@ void delete_selected_rt_events(CSOUND *csound, cs_float instr)
 static void stop_event_insert_thread(CSOUND *csound)
 {
     if (csound->event_insert_thread != NULL) {
-      csound->event_insert_loop = 0;
+      alloc_queue_stop(csound);
       csound->JoinThread(csound->event_insert_thread);
+      realtime_message_queue_stop(csound);
       /* Complete the context reset that csoundLongJmp deferred while this
          thread could still be traversing an init chain. */
       if (csound->engineStatus & CS_STATE_JMP) {
@@ -593,8 +621,10 @@ static void stop_event_insert_thread(CSOUND *csound)
       }
       csound->Free(csound, csound->alloc_queue);
       csound->alloc_queue = NULL;
-      csound->alloc_queue_items = 0;
+      ATOMIC_SET(csound->alloc_queue_items, 0);
       csound->alloc_queue_active = 0;
+      ATOMIC_SET(csound->alloc_queue_midi, 0);
+      csound->midi_event_pending = 0;
       csound->alloc_queue_wp = 0;
       csoundDestroyMutex(csound->init_pass_threadlock);
       csound->init_pass_threadlock = NULL;
@@ -625,6 +655,12 @@ int32_t csound_cleanup(CSOUND *csound)
     cs_float   *maxp;
     int32   *rngp;
     uint32_t n;
+
+#if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
+    /* The control worker can hold the init mutex or publish new instruments.
+       Join it before cleanup closes the init queue or destroys either lock. */
+    csoundRealtimeApiStopWasi(csound);
+#endif
 
     csoundLockMutex(csound->API_lock);
     if (csound->QueryGlobalVariable(csound,"::UDPCOM")
@@ -692,8 +728,7 @@ int32_t csound_cleanup(CSOUND *csound)
     /* print stats only if musmon was actually run */
     /* NOT SURE HOW   ************************** */
     // if(csound->oparms->msglevel)
-    if(!csound->info_message_request){
-      csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
+    if(!csound->info_message_request) {
       corfile_rm(csound, &csound->expanded_sco);
       for (n = 0; n < csound->nchnls; n++) {
         if (csound->smaxamp[n] > csound->omaxamp[n])
@@ -702,12 +737,22 @@ int32_t csound_cleanup(CSOUND *csound)
           csound->omaxamp[n] = csound->maxamp[n];
         STA(orngcnt)[n] += (STA(srngcnt)[n] + csound->rngcnt[n]);
       }
-      for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
-        print_maxamp(csound, *maxp++);
+      if(csound->oparms->msglevel > 0) {
+        csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
+        for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
+          print_maxamp(csound, *maxp++);
+      }
       if (csound->oparms->outformat != AE_FLOAT) {
-        csound->ErrorMsg(csound, Str("\n\t   overall samples out of range:"));
+        // only print samples out of range if there were actually any
+        size_t samples_out_of_range = 0;
         for (rngp = STA(orngcnt), n = csound->nchnls; n--; )
-          csound->ErrorMsg(csound, "%9d", *rngp++);
+          samples_out_of_range += *rngp++;
+        if (samples_out_of_range > 0) {
+          csound->ErrorMsg(csound, Str("\n\t   overall samples out of range:"));
+          for (rngp = STA(orngcnt), n = csound->nchnls; n--; ) {
+            csound->ErrorMsg(csound, "%9d", *rngp++);
+          }
+        }
       }
       if(csound->perferrcnt > 0) {
         csound->ErrorMsg(csound, Str("\n%d errors in performance\n"),
@@ -811,7 +856,8 @@ int32_t turnon_S(CSOUND *csound, TURNON *p)
   return insert_event_at_sample(csound, &evt, pfields, csound->icurTimeSamples);
 }
 
-/* Print current amplitude values, and update section amps. */
+/* Print current amplitude values, and update section amps. A negative
+   score_evt updates the totals without printing a segment. */
 
 static void print_amp_values(CSOUND *csound, int32_t score_evt)
 {
@@ -821,7 +867,8 @@ static void print_amp_values(CSOUND *csound, int32_t score_evt)
   int32         *rngp, *srngp;
   int32_t           n;
 
-  if (UNLIKELY(STA(segamps) || (p->rngflg && STA(sormsg)))) {
+  if (UNLIKELY(score_evt >= 0 &&
+               (STA(segamps) || (p->rngflg && STA(sormsg))))) {
     if (score_evt > 0)
       p->Message(p, "B%7.3f ..%7.3f T%7.3f TT%7.3f M:",
                  p->prvbt - p->beatOffs,  p->curbt - p->beatOffs,
@@ -986,7 +1033,8 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   csound->currevent = evt;
   switch (evt->opcod) {                       /* scorevt or Linevt:     */
   case 'e':           /* quit realtime */
-    csound->event_insert_loop = 0;
+    if (csound->oparms->realtime)
+      alloc_queue_stop(csound);
     /* fall through */
   case 'l':
   case 's':
@@ -1150,11 +1198,16 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
 }
 
 /* RM: this now broken out for access from process_rt_event & sense_events -- bv  */
-static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
+static int32_t process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn,
+                                  int32_t retry_full)
 {
   int32_t n, insno = chn->insno;
   if (mep->type == NOTEON_TYPE && mep->dat2) {      /* midi note ON: */
     if (UNLIKELY((n = insert_midi_event(csound, insno, chn, mep)))) {
+      /* Another producer may have filled the queue after the capacity check.
+         Keep the parsed host event and retry before reading any more bytes. */
+      if (n == CSOUND_ERROR && csound->oparms->realtime && retry_full)
+        return n;
       /* alloc,init,activ */
       char *name = csound->engineState.instrtxtp[insno]->insname;
       csound->ErrorMsg(csound,
@@ -1212,6 +1265,7 @@ static void process_midi_event(CSOUND *csound, MEVENT *mep, MCHNBLK *chn)
     }
     else xturnoff(csound, ip);                    /*  else some kind of off */
   }
+  return 0;
 }
 
 static int32_t process_rt_score_event(CSOUND *csound, EVTNODE *e)
@@ -1236,6 +1290,10 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
 {
   int32_t retval = 0, rfd;
 
+  if (sensType == 3) {
+    m_chanmsg(csound, csound->midiGlobals->Midevtblk);
+    return 0;
+  }
   if (csound->curp2 * csound->esr < (cs_double)csound->icurTimeSamples) {
     csound->curp2 = (cs_double)csound->icurTimeSamples/csound->esr;
     print_amp_values(csound, 0);
@@ -1253,7 +1311,7 @@ static int32_t process_rt_event(CSOUND *csound, int32_t sensType)
       return 0;
     }
     else  /* RM: this part is broken out  -- bv  */
-      process_midi_event(csound, mep, chn);
+      retval = process_midi_event(csound, mep, chn, 1);
   }
   return retval;
 }
@@ -1270,7 +1328,7 @@ int32_t sense_events(CSOUND *csound)
   EVTBLK  *e;
   OPARMS  *O = csound->oparms;
   int32_t     retval =  0, sensType;
-  int32_t     conn, *sinp, end_check=1;
+  int32_t     conn, *sinp;
   int32_t     waiting_for_realtime_work = 0;
 
   csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
@@ -1314,10 +1372,11 @@ int32_t sense_events(CSOUND *csound)
       csound->prvbt = csound->curbt;      /* update beats and times */
       csound->curbt = csound->nxtbt;
       csound->curp2 = csound->nxtim;
-      print_amp_values(csound, 1);        /* print amplitudes for this segment */
+      print_amp_values(csound, STA(score_segment_polling) ? -1 : 1);
     }
     else                                  /* this should only happen at */
       csound->cyclesRemaining = 0;        /* beginning of performance   */
+    STA(score_segment_polling) = 0;
   }
 
  retest:
@@ -1339,6 +1398,8 @@ int32_t sense_events(CSOUND *csound)
            off-time. */
         if (O->realtime && alloc_queue_has_pending(csound)) {
           waiting_for_realtime_work = 1;
+          /* Polling the init worker does not end a score segment. */
+          STA(score_segment_polling) = 1;
           csound->nxtim =
             (csound->icurTimeSamples + csound->ksmps) / csound->esr;
           csound->nxtbt = csound->curBeat + csound->curBeat_inc;
@@ -1356,11 +1417,6 @@ int32_t sense_events(CSOUND *csound)
         }
         /* end of: 1: section, 2: score, 3: lplay list */
         retval = (e->opcod == 'l' ? 3 : (e->opcod == 's' ? 1 : 2));
-        if(csound->oparms->realtime && end_check == 1) {
-          csoundSleep(5); // wait for 5ms for any first events to go through
-          end_check = 0;  // reset first time check
-          goto retest;    // loop back
-        }
         goto scode;
       default:                            /* q, i, f, a:              */
         process_score_event(csound, e, 0);/*   handle event now       */
@@ -1437,8 +1493,10 @@ int32_t sense_events(CSOUND *csound)
        current sample, rounding produces zero cycles and retest would spin
        inside sense_events(), never reaching the note-expiration check at the
        top of the next control cycle. */
-    if (waiting_for_realtime_work && csound->cyclesRemaining <= 0)
+    if (waiting_for_realtime_work && csound->cyclesRemaining <= 0) {
       csound->cyclesRemaining = 1;
+      STA(score_segment_polling) = 1;
+    }
   }
 
   /* handle any real time events now: */
@@ -1459,11 +1517,23 @@ int32_t sense_events(CSOUND *csound)
     /* check for pending real time events */
     {
       EVTNODE *event;
-
-      while ((event = rt_event_take_due(csound)) != NULL) {
-        if ((retval = process_rt_score_event(csound, event)) != 0)
-          goto scode;
+      int32_t locked = 0;
+      int32_t ready = 1;
+#if CSOUND_SPINLOCK_AVAILABLE
+      if (csound->realtime_locks_initialized) {
+        ready = csoundSpinTryLock(&csound->alloc_spinlock) == CSOUND_SUCCESS;
+        locked = ready;
       }
+#endif
+      /* A merge may replace or resize the instrument table. Leave due events
+         queued if publication is busy; never wait for it on the audio thread. */
+      if (ready) {
+        while ((event = rt_event_take_due(csound)) != NULL) {
+          if ((retval = process_rt_score_event(csound, event)) != 0) break;
+        }
+      }
+      if (locked) csoundSpinUnLock(&csound->alloc_spinlock);
+      if (retval != 0) goto scode;
     }
     /* RM */
     if ((sinp = getRemoteSocksIn(csound))) {
@@ -1487,7 +1557,7 @@ int32_t sense_events(CSOUND *csound)
             else if (bp->type == MIDI_EVT) {
               MEVENT *mep = (MEVENT *)bp->data;
               MCHNBLK *chn = csound->m_chnbp[mep->chan];
-              process_midi_event(csound, mep, chn);
+              process_midi_event(csound, mep, chn, 0);
             }
             else if (bp->type == MIDI_MSG) {
               MEVENT *mep = (MEVENT *)bp->data;
@@ -1505,12 +1575,37 @@ int32_t sense_events(CSOUND *csound)
       }
     }
 
+    /* File time advances even when ordered MIDI dispatch must wait for init. */
+    if (O->FMidiin)
+      csoundMIDIFileAdvance(csound);
     /* MIDI note messages */
-    if (O->Midiin || O->FMidiin)
-      while ((sensType = sens_midi(csound)) != 0)
-        if ((retval = process_rt_event(csound, sensType)) != 0) {
-          goto scode;
+    if (O->Midiin || O->FMidiin) {
+      while (!O->realtime || alloc_queue_midi_ready(csound, 0)) {
+        MEVENT *mep;
+        sensType = csound->midi_event_pending ? csound->midi_event_pending :
+                                               sens_midi(csound);
+        if (sensType == 0)
+          break;
+        mep = csound->midiGlobals->Midevtblk;
+        /* Consecutive note-ons may queue together. Keep the first note-off or
+           controller here until all earlier note-ons have finished init.
+           Holding it also delays later transport bytes and preserves parser state. */
+        if (O->realtime &&
+            (sensType == 3 || mep->type != NOTEON_TYPE || mep->dat2 == 0) &&
+            !alloc_queue_midi_ready(csound, 1)) {
+          csound->midi_event_pending = sensType;
+          break;
         }
+        retval = process_rt_event(csound, sensType);
+        if (retval == CSOUND_ERROR && O->realtime) {
+          csound->midi_event_pending = sensType;
+          break;
+        }
+        csound->midi_event_pending = 0;
+        if (retval != 0)
+          goto scode;
+      }
+    }
   }
   /* no score event at this time, return to continue performance */
 
@@ -1543,7 +1638,9 @@ int32_t sense_events(CSOUND *csound)
     free_inactive_instances(csound);                      /*   rtn inactiv spc */
     if (csound->actanchor.nxtact == NULL)   /*   if no indef ins */
       free_memfiles(csound);                  /*    purge memfiles */
-    csound->ErrorMsg(csound, Str("SECTION %d:\n"), ++STA(sectno));
+    STA(sectno)++;
+    if (csound->oparms->msglevel > 0)
+      csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
     RT_SPIN_UNLOCK
     goto retest;                            /*   & back for more */
   }
@@ -1681,7 +1778,10 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     else
       i = (int32_t) fabs((cs_double) pf[1]);
 
-    if (UNLIKELY((uint32_t) i >
+    /* Realtime dispatch checks this under the publication lock. A render
+       opcode must not inspect the table halfway through a background merge. */
+    if (!csound->realtime_locks_initialized &&
+        UNLIKELY((uint32_t) i >
                  (uint32_t) csound->engineState.maxinsno ||
                  csound->engineState.instrtxtp[i] == NULL)) {
       if (i > INT32_MAX-10)
@@ -1817,6 +1917,7 @@ void rewind_score(CSOUND *csound)
     csound->curBeat  = 0.0;
     csound->icurTimeSamples = 0L;
     csound->cyclesRemaining = 0;
+    STA(score_segment_polling) = 0;
     csound->evt.strarg = NULL;
     csound->evt.scnt = 0;
     csound->evt.opcod  = '\0';
@@ -1828,7 +1929,8 @@ void rewind_score(CSOUND *csound)
     /* update section/overall amplitudes, reset to section 1 */
     section_amps(csound, 1);
     STA(sectno) = 1;
-    csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
+    if (csound->oparms->msglevel > 0)
+      csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
   }
 
   /* apply score offset if non-zero */

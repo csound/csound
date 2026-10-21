@@ -623,7 +623,7 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
   }
   else if(isstrcod(*p->ifilcod))
-    csound->Message(csound, "%s\n", csound->GetArgString(csound, *p->ifilcod));
+    csound->Message(csound, "%s", csound->GetArgString(csound, *p->ifilcod));
   else csound->Message(csound, "%f\n", *p->ifilcod);
     return OK;
 }
@@ -645,14 +645,23 @@ int32_t printsset_S(CSOUND *csound, PRINTS *p)
         return
           csound->InitError(csound,
                             Str("Insufficient arguments in formatted printing\n"));
-    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s\n", string);
+    csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     } else {
       csound->Warning(csound,
                       Str("Formatting string too long: %s\n"), pk.txtstring);
     }
-  } else csound->Message(csound, "%s\n", ((STRINGDAT*)p->ifilcod)->data);
+  } else csound->Message(csound, "%s", ((STRINGDAT*)p->ifilcod)->data);
     return OK;
 }
+
+int32_t printset_S(CSOUND *csound, PRINTS *p)
+{
+  csound->Message(csound, "%s\n", ((STRINGDAT*)p->ifilcod)->data);
+  return OK;
+}
+
+
+
 
 /*****************************************************************************/
 

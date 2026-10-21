@@ -24,6 +24,7 @@
  */
 
 #import "ConsoleOutputViewController.h"
+#import "CsoundBindingDispatch.h"
 
 @interface ConsoleOutputViewController() {
     NSArray *csdArray;
@@ -130,7 +131,7 @@
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj
 {
-    dispatch_async(dispatch_get_main_queue(), ^(void) {
+    CsoundRunSyncOnMainQueue(^{
         [self.renderButton setSelected:NO];
     });
 }

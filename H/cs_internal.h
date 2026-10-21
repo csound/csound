@@ -231,6 +231,9 @@ extern "C" {
     CS_HASH_TABLE *instrumentNames; /* instrument names */
     int32_t           maxinsno;
     OPCODINFO     *opcodeInfo;
+    struct instrument_reference *instrumentRefs; /* pending merge publication */
+    /* Fixed buckets of immutable name/number entries for render-side lookup. */
+    struct named_instr_number *instrumentNumbers[64];
   } ENGINE_STATE;
 
 
@@ -261,9 +264,17 @@ extern "C" {
   } ALLOC_DATA;
 
 #define MAX_MESSAGE_STR 1024
-  typedef struct _message_queue_t_ {
+#define MAX_MESSAGE_QUEUE 64
+  typedef struct {
     int32_t attr;
     char str[MAX_MESSAGE_STR];
+  } message_string_t;
+  typedef struct _message_queue_t_ {
+    volatile long accepting;
+    message_string_t messages[MAX_MESSAGE_QUEUE];
+    void (*output)(CSOUND *, int32_t, const char *);
+    void (*saved_string_callback)(CSOUND *, int32_t, const char *);
+    void (*saved_callback)(CSOUND *, int32_t, const char *, va_list);
   } message_string_queue_t;
 
    struct sread__ {
@@ -328,6 +339,7 @@ extern "C" {
       int16   sectno;
       int32_t     lplayed;
       int32_t     segamps, sormsg;
+      int32_t     score_segment_polling;
    };
 
    struct libsndStatics__ {
@@ -367,6 +379,41 @@ extern "C" {
      specific. Should a public API for this be added later, this function can
      be promoted. */
   int32_t csoundIsCurrentThread(void *thread);
+
+#ifdef CSOUND_WASI_REALTIME
+  /* Set by the WASI pthread entry wrapper, before calling engine code. */
+  int32_t csoundWasiIsWorkerThread(void);
+
+  /* A compiler worker may recover parser errors only on its own stack.
+     Merge/global init disables this target before taking engine locks. */
+  typedef struct {
+    CSOUND *csound;
+    jmp_buf target;
+    int32_t enabled;
+  } CSOUND_WASI_COMPILE_JUMP;
+  CSOUND_WASI_COMPILE_JUMP *csoundWasiCompileJumpContext(CSOUND *csound);
+  CSOUND_WASI_COMPILE_JUMP *csoundWasiSwapCompileJumpContext(
+      CSOUND_WASI_COMPILE_JUMP *context);
+  /* Only explicitly owned parser storage belongs to this thread-local scope.
+     Engine definitions and concurrent render allocations never enter it. */
+  typedef struct {
+    CSOUND *csound;
+    void *allocations;
+  } CSOUND_WASI_ALLOC_SCOPE;
+  CSOUND_WASI_ALLOC_SCOPE *csoundWasiSwapAllocScope(
+      CSOUND_WASI_ALLOC_SCOPE *scope);
+  int32_t csoundWasiHasAllocScope(CSOUND *csound);
+  void *csoundWasiOwnAllocation(CSOUND *csound, void *ptr,
+                              void (*dispose)(CSOUND *, void *));
+  void csoundWasiReleaseAllocation(CSOUND *csound, void *ptr);
+  void csoundWasiTransferAllocScope(CSOUND_WASI_ALLOC_SCOPE *source,
+                                   CSOUND_WASI_ALLOC_SCOPE *destination);
+  void csoundWasiFinishAllocScope(CSOUND_WASI_ALLOC_SCOPE *scope,
+                                 int32_t discard);
+#ifdef CSOUND_WASI_BROWSER
+  void csoundRealtimeApiStopWasi(CSOUND *csound);
+#endif
+#endif
 
 
 #ifdef __cplusplus

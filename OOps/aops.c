@@ -2614,18 +2614,18 @@ int32_t init_instr_ref(CSOUND *csound, IREF_INIT *p) {
     if (UNLIKELY(p->out->instr == NULL))
       return csound->InitError(csound, "%s\n",
                               Str("init: instrument is not defined"));
+    ATOMIC_SET(p->out->number, (int32_t)*p->in);
   }
   else csound->Warning(csound, Str("instr ref var %s is read-only: cannot copy\n"),
                               GetOutputArgName(&(p->h),0));
   return OK;
 }
 
-int32_t instr_num(CSOUND *csound, INSTRTXT *instr) {
-   int32_t inum = 0;
-   INSTRTXT **instrs = csound->GetInstrumentList(csound);
-   int32_t max_instrs = csound->engineState.maxinsno + 1;
-   while(inum < max_instrs && instrs[inum] != instr) inum++;
-   return inum;
+int32_t instr_num(CSOUND *csound, INSTREF *reference) {
+   IGN(csound);
+   int32_t number = ATOMIC_GET(reference->number);
+   /* An unset reference must not become a negative p1 (a turnoff event). */
+   return number < 0 ? INT32_MAX : number;
 }
 
 
@@ -2634,7 +2634,7 @@ int32_t get_instr_num(CSOUND *csound, IREF_NUM *p) {
     return csound->InitError(csound,
       Str("instrnum/nstrnum: instrument reference is not initialized\n"));
   }
-  int32_t result = instr_num(csound, p->in->instr);
+  int32_t result = instr_num(csound, p->in);
   *p->out = result + *p->offs;
   return OK;
 }

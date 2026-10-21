@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { assertNumericEvent } from "../utils/numeric-events.js";
 import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.js";
 
 /*
@@ -25,6 +26,26 @@ import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.
  * without any pre-process parsing
  * @function
  */
+export const csoundEvent = (wasm) => (csound, type, pfields) => {
+  assertNumericEvent(type, pfields);
+  const width = wasm.exports["csoundGetSizeOfMYFLT"]();
+  if (width !== 4 && width !== 8) throw new Error("Unsupported Csound sample width");
+  const pointer = wasm.exports["allocFloatArray"](Math.max(1, pfields.length));
+  if (!pointer) throw new Error("Could not allocate event p-fields");
+  try {
+    // The native allocator reserves MYFLT entries, including in USE_FLOAT builds.
+    const fields =
+      width === 4
+        ? new Float32Array(wasm.wasi.memory.buffer, pointer, pfields.length)
+        : new Float64Array(wasm.wasi.memory.buffer, pointer, pfields.length);
+    fields.set(pfields);
+    wasm.exports["csoundEvent"](csound, type, pointer, pfields.length, 1);
+  } finally {
+    wasm.exports["freeFloatArrayMem"](pointer);
+  }
+};
+csoundEvent["toString"] = () => "event = async (type, pfields) => undefined;";
+
 export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
   const result = wasm.exports["csoundEventString"](csound, stringPtr, 0);
@@ -41,7 +62,7 @@ csoundInputMessage["toString"] = () => "inputMessage = async (scoreEvent) => Num
  */
 export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
   const stringPtr = string2ptr(wasm, scoEvent);
-    const result = wasm.exports["csoundEventString"](csound, stringPtr, 1);
+  const result = wasm.exports["csoundEventString"](csound, stringPtr, 1);
   freeStringPtr(wasm, stringPtr);
   return result;
 };
@@ -59,8 +80,7 @@ export const csoundReadlinePushText = (wasm) => (csound, text) => {
   return result;
 };
 
-csoundReadlinePushText["toString"] = () =>
-  "readlinePushText = async (text) => Number;";
+csoundReadlinePushText["toString"] = () => "readlinePushText = async (text) => Number;";
 
 /**
  * Submits one complete line for an open readline request (no newline needed).
@@ -88,8 +108,8 @@ csoundReadlineSubmit["toString"] = () => "readlineSubmit = async (requestId, tex
 
 /**
  * Retrieves the value of control channel identified by channelName.
- * If the err argument is not NULL, the error (or success) code finding
- * or accessing the channel is stored in it.
+ * Active --realtime reads predeclared numeric channels atomically. New channel
+ * names use the ordered background API queue.
  * @function
  */
 export const csoundGetControlChannel = (wasm) => (csound, channelName) => {
@@ -102,7 +122,9 @@ export const csoundGetControlChannel = (wasm) => (csound, channelName) => {
 csoundGetControlChannel["toString"] = () => "getControlChannel = async (channelName) => Number;";
 
 /**
- * Sets the value of control channel identified by channelName
+ * Sets the value of control channel identified by channelName.
+ * Predeclared channels stay independent of background compilation; new names
+ * use the background queue and follow earlier compile/eval calls.
  * @function
  */
 export const csoundSetControlChannel = (wasm) => (csound, channelName, value) => {
@@ -115,7 +137,8 @@ csoundSetControlChannel["toString"] = () =>
   "setControlChannel = async (channelName, value) => void;";
 
 /**
- * Retrieves the string channel identified by channelName
+ * Retrieves the string channel identified by channelName.
+ * Active --realtime copies the value on the background API worker.
  * @function
  */
 export const csoundGetStringChannel = (wasm) => (csound, channelName) => {
@@ -131,7 +154,9 @@ export const csoundGetStringChannel = (wasm) => (csound, channelName) => {
 csoundGetStringChannel["toString"] = () => "getStringChannel = async (channelName) => String;";
 
 /**
- * Sets the string channel value identified by channelName
+ * Sets the string channel value identified by channelName.
+ * Active --realtime writes on the background API worker; completion means the
+ * value is ready for the next queued compile/eval call.
  * @function
  */
 export const csoundSetStringChannel = (wasm) => (csound, channelName, value) => {

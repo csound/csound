@@ -2,5 +2,8 @@ cs6iOS
 *DS_Store
 libcsound.a
 libsndfile.a
-csound-iOS-*/
 *.zip
+
+# build.sh / build_libsndfile.sh outputs
+*.xcframework/
+/libsndfile/

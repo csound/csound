@@ -85,7 +85,7 @@ extern "C" {
   INSDS *allocate_or_take_instance(CSOUND *, INSTRTXT *, int32_t);
   void recycle_inactive_instance(CSOUND *, INSDS *);
   int32_t instance_has_async_refs(const INSDS *);
-  int32_t instance_is_reclaimable(const INSDS *);
+  int32_t instance_is_reclaimable(const CSOUND *, const INSDS *);
   typedef enum {
     INSTANCE_INIT_DEFERRED = 0,
     INSTANCE_INIT_COMPLETE,
@@ -107,7 +107,7 @@ extern "C" {
   void *csoundQueryInstanceVariable(CSOUND *, const INSDS *, const char *);
   void reset_instance_variables(INSDS *);
   void free_instance_variables(CSOUND *, INSDS *);
-  int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
+  int32_t instr_num(CSOUND *csound, INSTREF *reference);
   void free_instr_var_memory(CSOUND* csound, INSDS* ip);
   void recycle_udo_instance(CSOUND* csound, INSDS* ip);
   int32_t init_instance(CSOUND *csound, INSDS *ip, EVTBLK *newevtp);
@@ -115,6 +115,10 @@ extern "C" {
   int32_t alloc_queue_enqueue(CSOUND *csound,
                               const struct _alloc_data_ *data);
   int32_t alloc_queue_has_pending(CSOUND *csound);
+  int32_t alloc_queue_midi_ready(CSOUND *csound, int32_t wait_for_init);
+  void alloc_queue_stop(CSOUND *csound);
+  int32_t realtime_message_queue_start(CSOUND *csound);
+  void realtime_message_queue_stop(CSOUND *csound);
   int32_t alloc_queue_lock_init(CSOUND *csound);
   void alloc_queue_lock_destroy(CSOUND *csound);
   int32_t realtime_spin_lock_init(spin_lock_t *);
@@ -306,6 +310,9 @@ int32_t csoundSetUtilityDescription(CSOUND *, const char *utilName,
  * Return value is CSOUNDCFG_SUCCESS in case of success.
  */
 int32_t csoundDeleteAllConfigurationVariables(CSOUND *);
+
+/* Initialize channels before render and control workers can publish entries. */
+int32_t csoundInitChannelDb(CSOUND *);
 
 #ifdef __cplusplus
 }

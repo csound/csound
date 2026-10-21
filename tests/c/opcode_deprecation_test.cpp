@@ -100,6 +100,25 @@ TEST_F(OpcodeDeprecationCompiler, QuietWarningsDoNotOverrideExplicitErrors)
     EXPECT_NE(messages().find("use sumarray instead"), std::string::npos);
 }
 
+TEST_F(OpcodeDeprecationCompiler, NoDeprecatedWarningsSuppressesAndKeepsErrors)
+{
+    ASSERT_EQ(csoundSetOption(csound, "--no-deprecated-warnings"), CSOUND_SUCCESS);
+    ASSERT_EQ(compile(legacy), CSOUND_SUCCESS);
+    EXPECT_EQ(messages().find("opcode sumtab is deprecated"), std::string::npos);
+    ASSERT_EQ(csoundSetOption(csound, "--error-deprecated"), CSOUND_SUCCESS);
+    EXPECT_NE(compile(legacy), CSOUND_SUCCESS);
+    EXPECT_NE(messages().find("use sumarray instead"), std::string::npos);
+}
+
+TEST_F(OpcodeDeprecationCompiler, HardcodedDeprecationWarningHonoursFlag)
+{
+    csoundDeprecationWarning(csound, "hardcoded deprecation\n");
+    EXPECT_NE(messages().find("hardcoded deprecation"), std::string::npos);
+    ASSERT_EQ(csoundSetOption(csound, "--no-deprecated-warnings"), CSOUND_SUCCESS);
+    csoundDeprecationWarning(csound, "hidden deprecation\n");
+    EXPECT_EQ(messages().find("hidden deprecation"), std::string::npos);
+}
+
 TEST_F(OpcodeDeprecationCompiler, ExistingStatusFlagGivesReplacement)
 {
     ASSERT_EQ(compile("aSig init 0\nouts aSig,aSig"), CSOUND_SUCCESS);

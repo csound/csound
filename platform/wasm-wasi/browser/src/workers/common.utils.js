@@ -14,9 +14,17 @@
  */
 
 import { logCommonUtils as log } from "../logger.js";
+import { AUDIO_STATE } from "../constants.js";
 
 export const handleCsoundStart =
-  (workerMessagePort, libraryCsound, wasi, createRealtimeAudioThread, renderFunction) =>
+  (
+    workerMessagePort,
+    libraryCsound,
+    wasi,
+    createRealtimeAudioThread,
+    renderFunction,
+    beforePerform = undefined,
+  ) =>
   (arguments_) => {
     const csound = arguments_["csound"];
 
@@ -39,6 +47,16 @@ export const handleCsoundStart =
         `error: csoundStart failed while trying to render ${outputName},` +
           " look out for errors in options and syntax",
       );
+      return startError;
+    }
+
+    try {
+      if (beforePerform) beforePerform();
+    } catch (error) {
+      // Native start may have launched idle workers. Join them before exposing
+      // a failed start; no render callback has been scheduled yet.
+      libraryCsound.csoundReset(csound);
+      throw error;
     }
 
     setTimeout(() => {
@@ -53,11 +71,12 @@ export const handleCsoundStart =
       if (isExpectingRealtimePerformance) {
         createRealtimeAudioThread(arguments_);
       } else {
-        // Do rendering
-        workerMessagePort.broadcastPlayState(
-          "renderStarted",
-          arguments_["performanceGeneration"],
-        );
+        // A start listener can pause immediately, before renderFunction runs.
+        const audioStateBuffer = arguments_["audioStateBuffer"];
+        if (audioStateBuffer) {
+          Atomics.store(new Int32Array(audioStateBuffer), AUDIO_STATE.IS_RENDERING, 1);
+        }
+        workerMessagePort.broadcastPlayState("renderStarted", arguments_["performanceGeneration"]);
         if (renderFunction) {
           renderFunction(arguments_);
         } else {

@@ -63,7 +63,7 @@ static void csound_pre_line(CSOUND *, CORFIL*, yyscan_t);
     csound_preset_lineno(csound->orcLineOffset, yyscanner);             \
     yyg->yy_flex_debug_r=1; PARM->macro_stack_size = 0;                 \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
-    PARM->path = ".";                                                   \
+    PARM->initial_path = PARM->path = ".";                               \
   }
 static MACRO *find_definition(MACRO *, char *);
 
@@ -179,6 +179,8 @@ QNAN            "qnan"[ \t]*\(
 
 {RESET}         { csound_preset_lineno(csound->orcLineOffset, yyscanner);
                   csound->Free(csound, PARM->alt_stack);
+                  PARM->alt_stack = NULL;
+                  PARM->macro_stack_size = PARM->macro_stack_ptr = 0;
                 }
 {CONT}          {
                   char bb[80];
@@ -311,8 +313,9 @@ QNAN            "qnan"[ \t]*\(
                        char  term = (j == mm->acnt - 1 ? ')' : '\'');
                        /* Compatability */
                        char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
-                       MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
+                       MACRO *nn = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
                        int   size = 100;
+                       PARM->pending_macro = nn;
                        if (UNLIKELY(nn == NULL)) {
                          csound->Message(csound, Str("Memory exhausted"));
                          csound->LongJmp(csound, 1);
@@ -372,6 +375,9 @@ QNAN            "qnan"[ \t]*\(
                        nn->acnt = 0;       /* No arguments for arguments */
                        nn->next = csound->orc_macros;
                        csound->orc_macros = nn;
+                       PARM->pending_macro = NULL;
+                       PARM->pending_arguments = nn;
+                       PARM->pending_argument_count++;
                      }
                      if (!err) {
                        //csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
@@ -390,13 +396,16 @@ QNAN            "qnan"[ \t]*\(
                          /*        "macro_stack extends alt_stack to %d long\n", */
                          /*                  PARM->macro_stack_size); */
                        }
-                       PARM->alt_stack[PARM->macro_stack_ptr].n =
-                         csound->orc_macros->acnt;
+                       /* The head is an argument macro with acnt == 0. The
+                          definition owns the count needed to free this group. */
+                       PARM->alt_stack[PARM->macro_stack_ptr].n = mm->acnt;
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
                          csound_preget_lineno(yyscanner);
                        PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
                        PARM->alt_stack[PARM->macro_stack_ptr].included = 0;
                        PARM->alt_stack[PARM->macro_stack_ptr++].s = csound->orc_macros;
+                       PARM->pending_arguments = NULL;
+                       PARM->pending_argument_count = 0;
                        PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
                        PARM->alt_stack[PARM->macro_stack_ptr].line =
                          csound_preget_lineno(yyscanner);
@@ -422,6 +431,12 @@ QNAN            "qnan"[ \t]*\(
                        yy_scan_string(mm->body, yyscanner);
                        csound_preset_lineno(0, yyscanner); /* for Valgrind */
                      }
+                     if (PARM->pending_arguments != NULL) {
+                       csound_pre_free_macro_args(csound, PARM->pending_arguments,
+                                                   PARM->pending_argument_count);
+                       PARM->pending_arguments = NULL;
+                       PARM->pending_argument_count = 0;
+                     }
                    }
                  }
 {INCLUDESTR}    {
@@ -446,7 +461,7 @@ QNAN            "qnan"[ \t]*\(
                   //delete_macros(csound, yyscanner);
                   return 0;}
 <<EOF>>         {
-                  MACRO *x, *y=NULL;
+                  MACRO *y=NULL;
                   int n;
                   /* csound->DebugMsg(csound,"*********Leaving buffer %p\n", */
                   /*                  YY_CURRENT_BUFFER); */
@@ -473,26 +488,8 @@ QNAN            "qnan"[ \t]*\(
                   /*        PARM->alt_stack[PARM->macro_stack_ptr].line); */
                   csound->DebugMsg(csound,"n=%d\n", n);
                   if (n!=0) {
-                    /* We need to delete n macros starting with y */
                     y = PARM->alt_stack[PARM->macro_stack_ptr].s;
-                    x = csound->orc_macros;
-                    if (x==y) {
-                      while (n>0) {
-                        csoundFree(csound, y->name); x=y->next;
-                        csoundFree(csound, y); y=x; n--;
-                      }
-                      csound->orc_macros = x;
-                    }
-                    else {
-                      MACRO *nxt = y->next;
-                      while (x->next != y) x = x->next;
-                      while (n>0) {
-                        nxt = y->next;
-                        csoundFree(csound, y->name); csoundFree(csound, y); y=nxt; n--;
-                      }
-                      x->next = nxt;
-                    }
-                    y->next = x;
+                    csound_pre_free_macro_args(csound, y, n);
                   }
                   csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                                        yyscanner);
@@ -947,12 +944,14 @@ static inline int isNameChar(int c, int pos)
 
 static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
-    MACRO *mm = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
+    MACRO *mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
+    PARM->pending_macro = mm;
     int   arg = 0, i, c;
     int   size = 100;
     int mlen = 40;
     char *q = name0;
-    char *mname = malloc(mlen);
+    char *mname = csound->Malloc(csound, mlen);
+    PARM->macro_name_buffer = mname;
 
     if (UNLIKELY(mm == NULL)) {
       csound->Message(csound, Str("Memory exhausted"));
@@ -972,7 +971,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       while ((c = *q++)) {
         mname[i++] = c;
         if (UNLIKELY(i==mlen))
-          mname = (char *)realloc(mname, mlen+=40);
+          PARM->macro_name_buffer = mname = csound->ReAlloc(csound, mname, mlen+=40);
         if (UNLIKELY(mname == NULL)) {
           csound->Message(csound, Str("Memory exhausted"));
           csound->LongJmp(csound, 1);
@@ -980,7 +979,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       }
       mname[i++] = '`';
       if (UNLIKELY(i==mlen)) {
-        mname = (char *)realloc(mname, mlen+=40);
+        PARM->macro_name_buffer = mname = csound->ReAlloc(csound, mname, mlen+=40);
         if (UNLIKELY(mname == NULL)) {
           csound->Message(csound, Str("Memory exhausted"));
           csound->LongJmp(csound, 1);
@@ -988,7 +987,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       }
       mname[i++] = '`';
       if (UNLIKELY(i==mlen)) {
-        mname = (char *)realloc(mname, mlen+=40);
+        PARM->macro_name_buffer = mname = csound->ReAlloc(csound, mname, mlen+=40);
         if (UNLIKELY(mname == NULL)) {
           csound->Message(csound, Str("Memory exhausted"));
           csound->LongJmp(csound, 1);
@@ -999,7 +998,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       while (isNameChar(c, i)) {
         mname[i++] = c;
         if (UNLIKELY(i==mlen)) {
-          mname = (char *)realloc(mname, mlen+=40);
+          PARM->macro_name_buffer = mname = csound->ReAlloc(csound, mname, mlen+=40);
           if (UNLIKELY(mname == NULL)) {
             csound->Message(csound, Str("Memory exhausted"));
             csound->LongJmp(csound, 1);
@@ -1014,6 +1013,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         csound->LongJmp(csound, 1);
       }
       strcpy(mm->arg[arg++], mname);
+      mm->acnt = arg;
       if (UNLIKELY(arg >= mm->margs)) {
         mm = (MACRO*) csound->ReAlloc(csound, mm, sizeof(MACRO)
                                + mm->margs * sizeof(char*));
@@ -1021,6 +1021,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
           csound->Message(csound, Str("Memory exhausted"));
           csound->LongJmp(csound, 1);
         }
+        PARM->pending_macro = mm;
         mm->margs += MARGS;
       }
       while (isspace(c))
@@ -1029,7 +1030,8 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     if (UNLIKELY(c != ')')) {
       csound->Message(csound, Str("macro error\n"));
     }
-    free(mname);
+    csound->Free(csound, mname);
+    PARM->macro_name_buffer = NULL;
     c = input(yyscanner);
     while (c!='#') {
       if (UNLIKELY(c==EOF || c=='\0'))
@@ -1114,11 +1116,13 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     mm->body[i] = '\0';
     mm->next = csound->orc_macros;
     csound->orc_macros = mm;
+    PARM->pending_macro = NULL;
 }
 
 static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
-    MACRO *mm = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
+    MACRO *mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
+    PARM->pending_macro = mm;
     int   i, c;
     int   size = 100;
     if (UNLIKELY(mm == NULL)) {
@@ -1202,6 +1206,7 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     csound->DebugMsg(csound,"Body #%s#\n", mm->body);
     mm->next = csound->orc_macros;
     csound->orc_macros = mm;
+    PARM->pending_macro = NULL;
 }
 
 static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
@@ -1564,3 +1569,41 @@ static void print_csound_predata(CSOUND *csound, char *mesg, void *yyscanner)
     csound->DebugMsg(csound,"*********\n");
 }
 #endif
+
+/* flex's generated destroy clears the current slot before popping it. Clear
+   the buffers here so an error inside nested macro/include buffers frees all
+   of them, including the original source buffer. */
+void csound_pre_delete_buffers(void *yyscanner)
+{
+    struct yyguts_t *yyg = (struct yyguts_t *) yyscanner;
+    YY_BUFFER_STATE previous = NULL;
+    if (yyg->yy_buffer_stack == NULL)
+      return;
+    for (size_t i = yyg->yy_buffer_stack_top + 1; i > 0; --i) {
+      YY_BUFFER_STATE buffer = yyg->yy_buffer_stack[i - 1];
+      yyg->yy_buffer_stack[i - 1] = NULL;
+      /* A failed push/scan can leave the previous buffer in both slots. */
+      if (buffer != NULL && buffer != previous)
+        yy_delete_buffer(buffer, yyscanner);
+      previous = buffer;
+    }
+    yyg->yy_buffer_stack_top = 0;
+}
+
+/* Argument macros are local to one expansion even though lookup uses the
+   shared macro list. Unlink only that group, keeping definitions made by it. */
+void csound_pre_free_macro_args(CSOUND *csound, MACRO *first, int32_t count)
+{
+    MACRO **link = &csound->orc_macros;
+    if (first == NULL || count == 0)
+      return;
+    while (*link != NULL && *link != first)
+      link = &(*link)->next;
+    while (*link != NULL && count-- > 0) {
+      MACRO *argumentMacro = *link;
+      *link = argumentMacro->next;
+      csound->Free(csound, argumentMacro->name);
+      csound->Free(csound, argumentMacro->body);
+      csound->Free(csound, argumentMacro);
+    }
+}

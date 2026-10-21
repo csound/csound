@@ -93,3 +93,8 @@ including its signal rate where applicable.
 The [struct examples](../../tests/commandline/structs/) cover nested members,
 arrays, and assignments. Plugins can also
 [register struct types](../../docs/plugin-structs.md) for orchestra use.
+
+A plugin type can also define how `[]` reads, writes, and initializes its
+values. This differs from an ordinary array containing that type.
+The plugin decides what its indices mean and which operations it supports.
+See the [plugin indexing guide](../../docs/plugin-indexing.md).

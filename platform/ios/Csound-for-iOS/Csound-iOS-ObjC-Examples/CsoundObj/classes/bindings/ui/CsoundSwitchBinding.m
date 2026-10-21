@@ -23,6 +23,7 @@
  */
 
 #import "CsoundSwitchBinding.h"
+#import "CsoundBindingDispatch.h"
 
 @interface CsoundSwitchBinding() {
     float channelValue;
@@ -49,12 +50,14 @@
 
 -(void)setup:(CsoundObj *)csoundObj
 {
-    channelValue = self.switcher.on ? 1 : 0;
-    channelPtr = [csoundObj getInputChannelPtr:self.channelName
-                                   channelType:CSOUND_CONTROL_CHANNEL];
-    [self.switcher addTarget:self
-                      action:@selector(updateChannelValue:)
-            forControlEvents:UIControlEventValueChanged];
+    CsoundRunSyncOnMainQueue(^{
+        channelValue = self.switcher.on ? 1 : 0;
+        channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                       channelType:CSOUND_CONTROL_CHANNEL];
+        [self.switcher addTarget:self
+                          action:@selector(updateChannelValue:)
+                forControlEvents:UIControlEventValueChanged];
+    });
 }
 
 
@@ -63,9 +66,11 @@
 }
 
 -(void)cleanup {
-    [self.switcher removeTarget:self
-                         action:@selector(updateChannelValue:)
-               forControlEvents:UIControlEventValueChanged];
+    CsoundRunSyncOnMainQueue(^{
+        [self.switcher removeTarget:self
+                             action:@selector(updateChannelValue:)
+                   forControlEvents:UIControlEventValueChanged];
+    });
 }
 
 @end

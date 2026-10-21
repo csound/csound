@@ -16,10 +16,11 @@
 import { dlinit } from "./dlinit";
 import { WASI } from "./filesystem/wasi";
 import { createSystem } from "./filesystem/system.js";
-import { clearArray } from "./utils/clear-array";
+import { bufferMessageText } from "./utils/message-stream.js";
 import { decoder, uint2String } from "./utils/text-encoders.js";
 import { getBinaryHeaderData as parseBinaryHeaderData } from "./utils/wasm-dylink.js";
 import { Inflate } from "./zlib/inflate.js";
+import { preparePluginImports } from "./utils/plugin-imports.js";
 
 export const getBinaryHeaderData = (input) => parseBinaryHeaderData(input, decoder);
 
@@ -51,40 +52,7 @@ export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer 
     }
     const buf = new Uint8Array(memory.buffer, offset, length_);
     const string = uint2String(buf);
-    const endsWithNewline = /\n$/g.test(string);
-    const startsWithNewline = /^\n/g.test(string);
-    const chunks = string.split("\n").filter((item) => item.length > 0);
-    const printableChunks = [];
-    if ((chunks.length === 0 && endsWithNewline) || startsWithNewline) {
-      printableChunks.push(streamBuffer.join(""));
-      clearArray(streamBuffer);
-    }
-    chunks.forEach((chunk, index) => {
-      // if it's last chunk
-      if (index + 1 === chunks.length) {
-        if (endsWithNewline) {
-          if (index === 0) {
-            printableChunks.push(streamBuffer.join("") + chunk);
-            clearArray(streamBuffer);
-          } else {
-            printableChunks.push(chunk);
-          }
-        } else {
-          streamBuffer.push(chunk);
-        }
-      } else if (index === 0) {
-        printableChunks.push(streamBuffer.join("") + chunk);
-        clearArray(streamBuffer);
-      } else {
-        printableChunks.push(chunk);
-      }
-    });
-    printableChunks.forEach((chunk) => {
-      const maybePrintable = chunk.replaceAll(/(\r\n|\n|\r)/gm, "");
-      if (maybePrintable) {
-        messagePort.post({ log: chunk });
-      }
-    });
+    bufferMessageText(string, messagePort, streamBuffer);
   };
 };
 
@@ -523,10 +491,34 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
     try {
       let pluginTable = pluginRuntime.table;
       let pluginTableBaseValue = pluginRuntime.table.length;
+      const functionAddresses = pluginImports.filter(({ module }) => module === "GOT.func").length;
+
+      if (
+        !Number.isSafeInteger(pluginTableSize) ||
+        pluginTableSize < 0 ||
+        pluginTableSize > MAX_PLUGIN_TABLE_ENTRIES
+      ) {
+        throw new TypeError("Invalid WebAssembly plugin table size");
+      }
+
+      if (!useIsolatedPluginTable) {
+        const pluginTableAlignment = alignmentFromExponent(pluginTableAlign);
+        pluginTableBaseValue = alignUp(sharedTableEnd, pluginTableAlignment);
+      }
+      const functionTableBase = pluginTableBaseValue + pluginTableSize;
+      const tableLimit = functionTableBase + functionAddresses;
+      if (!Number.isSafeInteger(tableLimit) || tableLimit > MAX_SIGNED_WASM_I32) {
+        throw new TypeError("The WebAssembly plugin table request is too large");
+      }
+      const tableGrowth = tableLimit - pluginRuntime.table.length;
+      if (tableGrowth > MAX_PLUGIN_TABLE_ENTRIES) {
+        throw new TypeError("The WebAssembly plugin table request is too large");
+      }
 
       if (useIsolatedPluginTable) {
         const isolatedInitial = Math.max(
           pluginRuntime.table.length + Math.max(pluginTableSize, 0) + 16,
+          tableLimit,
           16,
         );
         pluginTable = new WebAssembly.Table({ initial: isolatedInitial, element: "anyfunc" });
@@ -537,23 +529,6 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
           }
         }
       } else {
-        if (
-          !Number.isSafeInteger(pluginTableSize) ||
-          pluginTableSize < 0 ||
-          pluginTableSize > MAX_PLUGIN_TABLE_ENTRIES
-        ) {
-          throw new TypeError("Invalid WebAssembly plugin table size");
-        }
-        const pluginTableAlignment = alignmentFromExponent(pluginTableAlign);
-        pluginTableBaseValue = alignUp(sharedTableEnd, pluginTableAlignment);
-        const tableLimit = pluginTableBaseValue + pluginTableSize;
-        if (!Number.isSafeInteger(tableLimit) || tableLimit > MAX_SIGNED_WASM_I32) {
-          throw new TypeError("The WebAssembly plugin table request is too large");
-        }
-        const tableGrowth = tableLimit - pluginRuntime.table.length;
-        if (tableGrowth > MAX_PLUGIN_TABLE_ENTRIES) {
-          throw new TypeError("The WebAssembly plugin table request is too large");
-        }
         if (tableGrowth > 0) {
           pluginRuntime.table.grow(tableGrowth);
         }
@@ -582,16 +557,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
         if (pluginImport.module !== "env") {
           continue;
         }
-        if (pluginImport.kind === "function" && !pluginOptions["env"][pluginImport.name]) {
-          const hostFunction = instance_["exports"][pluginImport.name];
-          if (typeof hostFunction !== "function") {
-            throw new TypeError(`Missing WebAssembly host function: env.${pluginImport.name}`);
-          }
-          pluginOptions["env"][pluginImport.name] = hostFunction;
-        } else if (
-          pluginImport.kind === "global" &&
-          pluginImport.name === "__stack_pointer"
-        ) {
+        if (pluginImport.kind === "global" && pluginImport.name === "__stack_pointer") {
           const hostStackPointer = instance_["exports"]["__stack_pointer"];
           if (!hostStackPointer) {
             throw new Error("The WebAssembly host does not export __stack_pointer");
@@ -599,10 +565,30 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
           pluginOptions["env"]["__stack_pointer"] = hostStackPointer;
         }
       }
+      const linkImports = preparePluginImports({
+        imports: pluginImports,
+        exports: pluginExports,
+        hostExports: instance_["exports"],
+        // Keep API cleanup on direct calls; tables require raw Wasm functions.
+        hostTableExports: instance["exports"],
+        options: pluginOptions,
+        importedSymbols: headerData.importedSymbols,
+        memoryBase: pluginMemory.memoryBaseValue,
+      });
       /**
        * @suppress {checkTypes}
        * @type {WasmInst} */
       const pluginInstance = new WebAssembly.Instance(plugin, pluginOptions);
+
+      let nextFunctionAddress = functionTableBase;
+      linkImports(pluginInstance.exports, (func) => {
+        if (nextFunctionAddress < functionTableBase || nextFunctionAddress >= tableLimit) {
+          throw new RangeError("WebAssembly plugin function address exceeds its table reservation");
+        }
+        const index = nextFunctionAddress++;
+        pluginTable.set(index, func);
+        return index;
+      });
 
       if (typeof pluginInstance.exports["__wasm_apply_data_relocs"] === "function") {
         pluginInstance.exports["__wasm_apply_data_relocs"]();

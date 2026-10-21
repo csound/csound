@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "7.0.0-beta38",
+  "version": "7.0.0-beta41",
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
@@ -54,14 +54,17 @@
     "build:prod": "cross-env NODE_ENV=production node compile.js",
     "build:readme": "node --experimental-modules script/generate-readme.mjs > README.md",
     "build:tools": "node compile-tools.js",
+    "test:closure": "node --test tests/closure-build.test.js",
     "test:types": "node tests/types/run.cjs",
     "test:unit": "mocha \"tests/unit/**/*.test.js\"",
     "test:ci": "npm run test:types && npm run test:unit && node tests/selenium_runner.js",
     "test:ci:firefox": "npm run test:types && npm run test:unit && node tests/selenium_runner_firefox.js",
-    "test:open": "node tests/server.cjs"
+    "test:open": "node tests/server.cjs",
+    "test:fixtures": "node tests/build-realtime-fixture.js",
+    "test:realtime": "node tests/browser-realtime-runner.js"
   },
   "devDependencies": {
-    "@csound/wasm-bin": "7.0.0-beta28",
+    "@csound/wasm-bin": "7.0.0-beta31",
     "@eslint/js": "^10.0.1",
     "browser-or-node": "^3.0.0",
     "chai": "^6.2.2",
@@ -78,7 +81,7 @@
     "jsdoc": "^4.0.5",
     "jsdoc-export-default-interop": "^0.3.1",
     "jsdoc-plugin-typescript": "^3.2.1",
-    "jsdoc-to-markdown": "^9.1.3",
+    "jsdoc-to-markdown": "^8.0.3",
     "lines-logger": "2.1.2",
     "mocha": "^12.0.2",
     "prettier": "^3.9.9",

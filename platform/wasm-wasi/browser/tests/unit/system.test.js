@@ -7,9 +7,9 @@ const encode = (text) => new TextEncoder().encode(text);
 const decode = (bytes) => new TextDecoder().decode(bytes);
 const csbeats = readFileSync(new URL("csbeats.wasm", import.meta.resolve("@csound/wasm-bin")));
 
-function setup() {
+function setup(shared = false) {
   const host = new WASI({});
-  host.setMemory(new WebAssembly.Memory({ initial: 1 }));
+  host.setMemory(new WebAssembly.Memory({ initial: 1, maximum: 1, shared }));
   const logs = [];
   const system = createSystem(host, (message) => logs.push(message));
   return {
@@ -58,6 +58,12 @@ describe("WASI filesystem commands", () => {
     host.writeFile("entrée.ext", encode("i1 m1 b1 D4 q mf\n"));
     assert.equal(run("uploaded.wasm entrée.ext result.sco"), 0);
     assert.match(decode(host.readFile("result.sco")), /293\.664768/);
+  });
+
+  it("runs score commands from the shared engine heap", () => {
+    const { host, run } = setup(true);
+    host.writeFile("entrée.wasm", exitCommand(0));
+    assert.equal(run("entrée"), 0);
   });
 
   it("encodes proc_exit status and invalidates the cache after a file replacement", () => {

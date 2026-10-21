@@ -25,6 +25,7 @@
 
 
 #import "HarmonizerTest.h"
+#import "CsoundBindingDispatch.h"
 
 @implementation HarmonizerTest
 
@@ -89,7 +90,9 @@
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[mSwitch setOn:NO animated:YES];
+    CsoundRunSyncOnMainQueue(^{
+        [self->mSwitch setOn:NO animated:YES];
+    });
 }
 
 @end

@@ -40,7 +40,9 @@ include(cmake/cmake-utilities.cmake)
 # silence RPATH cmake warning
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-set(CMAKE_OSX_DEPLOYMENT_TARGET 11)
+if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 12)
+endif()
 
 option(USE_VCPKG "Use VCPKG to download and manage dependencies" OFF)
 
@@ -97,9 +99,11 @@ if (USE_VCPKG)
         set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-emscripten/wasm32.cmake)
         set(VCPKG_CMAKE_SYSTEM_NAME Emscripten)
     elseif (WIN32)
-        # Detect 32-bit vs 64-bit Windows build
+        # Match dependencies to the Visual Studio target architecture
         if (CMAKE_GENERATOR_PLATFORM STREQUAL "Win32")
             set(VCPKG_TARGET_TRIPLET "x86-windows-static")
+        elseif (CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+            set(VCPKG_TARGET_TRIPLET "arm64-windows-static")
         else()
             set(VCPKG_TARGET_TRIPLET "x64-windows-static")
         endif()
@@ -255,20 +259,73 @@ option(BUILD_TESTS "Build tests" OFF)
 option(LEXER_DEBUG "Build lexer with debug option" OFF)
 option(USE_GIT_COMMIT "Show the git commit in version information" ON)
 option(REQUIRE_PTHREADS "For non-Windows systems, set whether Csound will use threads or not" ON)
+option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
 option(BUILD_DOCS "Build documentation (requires doxygen)" OFF)
 option(DEBUG_ERROR_ON_WARNING "For a debug build, error on a compiler# warning" OFF)
 option(BARE_METAL "To configure for bare metal build" OFF)
 option(CUSTOM_MALLOC "Use custom malloc in bare metal builds" OFF)
 option(BUILD_PLUGINS "Build external opcodes as plugins" OFF)
 if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
+    # Engine, browser host, and side modules share this memory ABI.
+    file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/shared-memory-max.txt"
+         CSOUND_WASI_FIXED_MAX_MEMORY)
+    if(DEFINED CSOUND_WASI_MAX_MEMORY AND
+       NOT CSOUND_WASI_MAX_MEMORY STREQUAL CSOUND_WASI_FIXED_MAX_MEMORY)
+        message(FATAL_ERROR
+            "Set the shared memory limit in platform/wasm-wasi/src/shared-memory-max.txt and rebuild the engine, browser bundle, and plugins together")
+    endif()
+    set(CSOUND_WASI_MAX_MEMORY "${CSOUND_WASI_FIXED_MAX_MEMORY}")
+    set(CSOUND_WASI_LINK_OPTIONS
+        "-pthread;-Wl,--import-memory,--export-memory,--max-memory=${CSOUND_WASI_MAX_MEMORY}")
+    set(BUILD_WASI_REALTIME "AUTO" CACHE STRING
+        "WASI pthread support: AUTO, ON, or OFF")
+    set_property(CACHE BUILD_WASI_REALTIME PROPERTY STRINGS AUTO ON OFF)
+    string(TOUPPER "${BUILD_WASI_REALTIME}" WASI_REALTIME_REQUESTED)
+    if(NOT WASI_REALTIME_REQUESTED MATCHES "^(AUTO|ON|OFF)$")
+        message(FATAL_ERROR "BUILD_WASI_REALTIME must be AUTO, ON, or OFF")
+    endif()
+    set(BUILD_WASI_REALTIME OFF)
+    if(NOT WASI_REALTIME_REQUESTED STREQUAL "OFF" AND REQUIRE_PTHREADS
+       AND NOT BUILD_PLUGINS
+       AND USE_ATOMIC_BUILTIN)
+        set(THREADS_PREFER_PTHREAD_FLAG ON)
+        find_package(Threads)
+        include(cmake/CheckWasiRealtime.cmake)
+        if(HAVE_WASI_REALTIME_RUNTIME AND Threads_FOUND AND CMAKE_USE_PTHREADS_INIT)
+            set(BUILD_WASI_REALTIME ON)
+        endif()
+    endif()
+    if(WASI_REALTIME_REQUESTED STREQUAL "ON" AND NOT BUILD_WASI_REALTIME)
+        message(FATAL_ERROR
+            "WASI realtime requires a threaded libc, lock-free atomics, and statically linked opcodes")
+    endif()
+    message(STATUS "WASI pthread support: ${BUILD_WASI_REALTIME}")
+    option(BUILD_WASI_REALTIME_TESTS
+           "Include private browser realtime test probes" OFF)
     option(BUILD_WASI_BROWSER
            "Build WASI for a browser host instead of as a standalone command"
            OFF)
 else()
+    if(BUILD_WASI_REALTIME STREQUAL "ON")
+        message(FATAL_ERROR "BUILD_WASI_REALTIME requires a WASI toolchain")
+    endif()
+    set(BUILD_WASI_REALTIME OFF)
     # Keep this WASI-only mode out of native platform configurations, including
     # caches left behind by a previous cross-compilation.
     unset(BUILD_WASI_BROWSER CACHE)
     set(BUILD_WASI_BROWSER OFF)
+endif()
+if(BUILD_WASI_REALTIME)
+    if(BUILD_PLUGINS OR NOT REQUIRE_PTHREADS)
+        message(FATAL_ERROR
+            "WASI realtime requires pthreads and statically linked opcodes")
+    endif()
+    # The WASI host uses one render caller and the existing init worker.
+    set(BUILD_MULTI_CORE OFF)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread -DCSOUND_WASI_REALTIME")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -DCSOUND_WASI_REALTIME")
+    string(REPLACE ";" " " wasi_link_flags "${CSOUND_WASI_LINK_OPTIONS}")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${wasi_link_flags}")
 endif()
 option(BUILD_BELA "Build Bela main program" OFF)
 option(BUILD_WITH_LTO "Build with link-time optimisations" OFF)
@@ -588,8 +645,8 @@ csound_check_nonfinite_math()
 
 # C language standard.
 # MSVC only gained /std:c11 in 19.27 and CMake only maps CMAKE_C_STANDARD to it
-# from 3.18, but we are supporting cmake >= 3.13, so probe the switch directly 
-# there. Everywhere else use CMAKE_C_STANDARD, which CMake translates to the 
+# from 3.18, but we are supporting cmake >= 3.13, so probe the switch directly
+# there. Everywhere else use CMAKE_C_STANDARD, which CMake translates to the
 # right compiler option for the toolchain (-std=gnu11 for GCC/Clang, -std=c11, /std:c11 for clang-cl,
 #  and decays to gnu99 when C11 is unavailable.
 if(MSVC)
@@ -623,13 +680,7 @@ if(APPLE)
             set(CMAKE_OSX_SYSROOT ${DEFAULT_OSX_SYSROOT})
         endif()
 
-        if(CMAKE_OSX_SYSROOT AND NOT CMAKE_OSX_SYSROOT MATCHES ".*OSX10.6.*"
-            AND (NOT  CMAKE_OSX_DEPLOYMENT_TARGET))
-            set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
-            message(STATUS "OSX: Setting Deployment Target to 10.7")
-        else()
-            message(STATUS "OSX: Setting Deployment Target to ${CMAKE_OSX_DEPLOYMENT_TARGET}")
-        endif()
+        message(STATUS "OSX: Setting Deployment Target to ${CMAKE_OSX_DEPLOYMENT_TARGET}")
 
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_VECLIB")
         if(NOT VECLIB_PATH)
@@ -796,7 +847,6 @@ if(REQUIRE_PTHREADS)
 endif()
 
 # Now, non required library searches
-option(USE_ATOMIC_BUILTIN "Use Atomic Builtins if supported" ON)
 
 if(USE_ATOMIC_BUILTIN)
     include(cmake/CheckAtomic.cmake)
@@ -809,6 +859,13 @@ if(USE_ATOMIC_BUILTIN)
     endif()
 else()
     message(STATUS "Not using atomic builtins - user disabled")
+endif()
+
+if(BUILD_WASI_REALTIME AND NOT REQUIRE_PTHREADS)
+    message(FATAL_ERROR "WASI realtime requires CMake Threads support")
+endif()
+if(BUILD_WASI_REALTIME AND (NOT HAVE_ATOMIC_BUILTIN OR ATOMIC_LIB))
+    message(FATAL_ERROR "WASI realtime requires lock-free atomic builtins")
 endif()
 
 find_package(Intl)
@@ -926,16 +983,17 @@ list(APPEND libcsound_private_include_dirs
 )
 
 #checking pthread functions
-if(REQUIRE_PTHREADS AND NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
+if(REQUIRE_PTHREADS AND (NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" OR BUILD_WASI_REALTIME))
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_PTHREAD")
 
-  if (NOT VCPKG_TARGET_TRIPLET STREQUAL "x64-mingw-static")
+  if (NOT VCPKG_TARGET_TRIPLET STREQUAL "x64-mingw-static" AND
+      NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
     check_function_exists(pthread_spin_lock PTHREAD_SPIN_LOCK_EXISTS)
   endif()
 
   check_function_exists(pthread_barrier_init PTHREAD_BARRIER_INIT_EXISTS)
 
-  if(PTHREAD_SPIN_LOCK_EXISTS)
+  if(PTHREAD_SPIN_LOCK_EXISTS AND NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
      list(APPEND libcsound_CFLAGS -DHAVE_PTHREAD_SPIN_LOCK)
   endif()
 
@@ -1194,7 +1252,9 @@ set(externs_SRCS
 )
 
 if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
-    set(HAVE_PTHREAD 0)
+    if(NOT BUILD_WASI_REALTIME)
+        set(HAVE_PTHREAD 0)
+    endif()
     # Disable shared libraries for WASI to avoid -shared flag warning
     set(BUILD_SHARED_LIBS OFF)
     list(REMOVE_ITEM externs_SRCS Opcodes/serial.c)
@@ -1204,6 +1264,8 @@ if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
         list(APPEND libcsound_CFLAGS -DCSOUND_WASI_BROWSER)
         list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/csound_wasm.c)
         list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/csound_wasm.c)
+        list(APPEND libcsound_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/realtime_api.c)
+        list(APPEND libcsound_static_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/platform/wasm-wasi/src/realtime_api.c)
     else()
         # Standalone WASI has a conventional command entry point and no JS host.
         list(APPEND libcsound_CFLAGS -DCSOUND_WASI_CLI)
@@ -1276,6 +1338,9 @@ set(stdopcod_SRCS
     Opcodes/wterrain2.c
     Opcodes/stdopcod.c
     Opcodes/dbap.c
+    Opcodes/savgol.c
+    Opcodes/remap.c
+    Opcodes/stm.c
     )
 
 set(sock_ops_SRCS
@@ -1638,7 +1703,7 @@ if(HAVE_WASMTIME)
     set(CSOUND_PRIVATE_LIBS "${CSOUND_PRIVATE_LIBS} -lwasmtime")
 endif()
 
-if(REQUIRE_PTHREADS AND NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
+if(REQUIRE_PTHREADS AND (NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" OR BUILD_WASI_REALTIME))
     list(APPEND libcsound_LIBS Threads::Threads)
 endif()
 
@@ -2068,3 +2133,7 @@ endif()
 add_custom_target(format sh scripts/format.sh  Top/*.c  Top/*.cpp  Engine/*.c
     OOps/*.c Opcodes/*.c  Opcodes/*.cpp Opcodes/*/*.c  Opcodes/*/*.cpp
     util/*.c WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
+
+if(BUILD_WASI_REALTIME AND NOT BUILD_WASI_BROWSER)
+    add_subdirectory(platform/wasm-wasi/tests/realtime)
+endif()

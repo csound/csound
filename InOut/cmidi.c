@@ -40,35 +40,75 @@ typedef struct {
   Byte status;
   Byte data1;
   Byte data2;
+  Byte port;
   Byte flag;
 } MIDIdata;
 
-/* user data for MIDI callbacks */
+/* user data for MIDI input callbacks */
 typedef struct _cdata {
   MIDIdata *mdata;
   int32_t p; int32_t q;
   MIDIClientRef mclient;
+  int32_t multiport;
 } cdata;
+
+/* user data for MIDI output */
+typedef struct _odata {
+  MIDIClientRef mclient;
+  MIDIPortRef mport;
+  MIDIEndpointRef *dest;
+  int32_t ndest;
+  int32_t multiport;
+} odata;
+
+/* used to distinguish between 1 and 2-byte messages */
+static  const   int32_t     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
+
+
+/* copy the name of a CoreMIDI endpoint into a fixed-size buffer */
+static void getEndpointName(MIDIEndpointRef endpoint, char *buf, size_t size)
+{
+  CFStringRef name = NULL;
+  buf[0] = '\0';
+  if (MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name) == noErr
+      && name != NULL) {
+    CFStringGetCString(name, buf, (CFIndex) size, kCFStringEncodingUTF8);
+    CFRelease(name);
+  }
+}
 
 
 /* coremidi callback, called when MIDI data is available */
 static void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
 {
-  IGN(srcConnRefCon);
   cdata *data = (cdata *)refcon;
   MIDIdata *mdata = data->mdata;
   int32_t *p = &data->p;
-  UInt32 i, j;
+  /* the source connection refcon holds the port number for mapping */
+  int32_t port = (int32_t)(long) srcConnRefCon;
+  UInt32 i;
   MIDIPacket *packet = &((MIDIPacketList *)pktlist)->packet[0];
-  Byte *curpack;
 
   for (i = 0; i < pktlist->numPackets; i++) {
-    for (j=0; j < packet->length; j+=3) {
-      curpack = packet->data+j;
-      memcpy(&mdata[*p], curpack, 3);
+    UInt32 j = 0;
+    while (j < packet->length) {
+      Byte *curpack = &packet->data[j];
+      int32_t st = (int32_t) curpack[0];
+      int32_t nb;
+      if (st < 0x80) {          /* stray data byte (running status) */
+        j++;
+        continue;
+      }
+      nb = datbyts[(st - 0x80) >> 4] + 1;
+      if (j + (UInt32) nb > packet->length) break;
+      mdata[*p].status = (Byte) st;
+      mdata[*p].data1 = (nb > 1) ? curpack[1] : 0;
+      mdata[*p].data2 = (nb > 2) ? curpack[2] : 0;
+      mdata[*p].port = (Byte) port;
       mdata[*p].flag = 1;
       (*p)++;
       if (*p == DSIZE) *p = 0;
+      j += nb;
     }
     packet = MIDIPacketNext(packet);
   }
@@ -80,26 +120,23 @@ static int32_t listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput
 {
   int32_t k, endpoints;
   MIDIEndpointRef endpoint;
-  CFStringRef name = NULL;
-  CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
   char tmp[64];
   char *drv = (char*) (csound->QueryGlobalVariable(csound, "_RTMIDI"));
-  if (isOutput) return 0;
-  endpoints = (int32_t) MIDIGetNumberOfSources();
+  endpoints = isOutput ? (int32_t) MIDIGetNumberOfDestinations()
+                       : (int32_t) MIDIGetNumberOfSources();
   if (list == NULL) return endpoints;
   for(k=0; k < endpoints; k++) {
-    endpoint = MIDIGetSource(k);
-    MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-    const char *sn = CFStringGetCStringPtr(name, defaultEncoding);
-    if(sn != NULL)
-      strncpy(list[k].device_name, sn, 63);
+    endpoint = isOutput ? MIDIGetDestination(k) : MIDIGetSource(k);
+    getEndpointName(endpoint, list[k].device_name,
+                    sizeof(list[k].device_name));
     snprintf(tmp, 64, "%d", k);
-    strncpy(list[k].device_id, tmp, 63);
+    snprintf(list[k].device_id, sizeof(list[k].device_id), "%s", tmp);
     list[k].isOutput = isOutput;
-    strcpy(list[k].interface_name, "");
-    strncpy(list[k].midi_module, drv, 63);
+    list[k].interface_name[0] = '\0';
+    list[k].midi_module[0] = '\0';
+    if (drv != NULL)
+      snprintf(list[k].midi_module, sizeof(list[k].midi_module), "%s", drv);
   }
-  if (name) CFRelease(name);
   return endpoints;
 }
 
@@ -107,19 +144,21 @@ static int32_t listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput
 /* csound MIDI input open callback, sets the device for input */
 static int32_t MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
-  int32_t k, endpoints;
-  CFStringRef name = NULL, cname = NULL, pname = NULL;
+  int32_t k, endpoints, port = 0;
+  CFStringRef cname = NULL, pname = NULL;
   CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
   MIDIClientRef mclient = (MIDIClientRef) 0;
   MIDIPortRef mport =  (MIDIPortRef) 0;
   MIDIEndpointRef endpoint;
   MIDIdata *mdata = (MIDIdata *) csound->Malloc(csound, DSIZE*sizeof(MIDIdata));
   OSStatus ret;
+  const OPARMS *O = csound->GetOParms(csound);
   cdata *refcon = (cdata *) csound->Malloc(csound, sizeof(cdata));
   memset(mdata, 0, sizeof(MIDIdata)*DSIZE);
   refcon->mdata = mdata;
   refcon->p = 0;
   refcon->q = 0;
+  refcon->multiport = 0;
   /* MIDI client */
   cname = CFStringCreateWithCString(NULL, "my client", defaultEncoding);
   ret = MIDIClientCreate(cname, NULL, NULL, &mclient);
@@ -130,33 +169,47 @@ static int32_t MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev
     if (!ret){
       /* sources, we connect to all available input sources */
       endpoints = (int32_t) MIDIGetNumberOfSources();
-      const OPARMS *O;
-      O = csound->GetOParms(csound);
       if(O->msglevel || O->odebug)
         csound->Message(csound, Str("%d MIDI sources in system\n"), endpoints);
-      if (!strcmp(dev,"all")) {
+      if (dev == NULL) dev = "0";
+      if (!strcmp(dev,"all") || !strcmp(dev,"a") || !strcmp(dev,"m")) {
+        /* 'm' maps each source to a separate port (16 channels each) */
+        int32_t mapped = !strcmp(dev,"m");
+        refcon->multiport = mapped;
         if(O->msglevel || O->odebug)
-          csound->Message(csound, "%s", Str("receiving from all sources\n"));
+          csound->Message(csound, "%s",
+                          mapped ? Str("receiving from all sources, "
+                                       "mapped to ports\n")
+                                 : Str("receiving from all sources\n"));
         for(k=0; k < endpoints; k++){
           endpoint = MIDIGetSource(k);
-          long srcRefCon = (long) endpoint;
-          MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
-          MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-          if(O->msglevel || O->odebug)
-            csound->Message(csound, Str("connecting midi device %d: %s\n"), k,
-                            CFStringGetCStringPtr(name, defaultEncoding));
+          MIDIPortConnectSource(mport, endpoint, (void *)(long) port);
+          if(O->msglevel || O->odebug) {
+            if (mapped)
+              csound->Message(csound,
+                              Str("device %d mapped to channels %d to %d\n"),
+                              k, port*16+1, (port+1)*16);
+            else {
+              char name[128];
+              getEndpointName(endpoint, name, sizeof(name));
+              csound->Message(csound, Str("connecting midi device %d: %s\n"),
+                              k, name);
+            }
+          }
+          port++;
         }
       }
       else{
         k = atoi(dev);
         if (k < endpoints){
           endpoint = MIDIGetSource(k);
-          long srcRefCon = (long) endpoint;
-          MIDIPortConnectSource(mport, endpoint, (void *) srcRefCon);
-          MIDIObjectGetStringProperty(endpoint, kMIDIPropertyName, &name);
-          if(O->msglevel || O->odebug)
+          MIDIPortConnectSource(mport, endpoint, (void *)(long) 0);
+          if(O->msglevel || O->odebug) {
+            char name[128];
+            getEndpointName(endpoint, name, sizeof(name));
             csound->Message(csound, Str("connecting midi device %d: %s\n"), k,
-                            CFStringGetCStringPtr(name, defaultEncoding));
+                            name);
+          }
         }
         else {
           if(O->msglevel || O->odebug)
@@ -170,7 +223,6 @@ static int32_t MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev
   }
   refcon->mclient = mclient;
   *userData = (void*) refcon;
-  if (name) CFRelease(name);
   if (pname) CFRelease(pname);
   if (cname) CFRelease(cname);
   /* report success */
@@ -179,14 +231,105 @@ static int32_t MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev
 
 static int32_t MidiOutDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
-  IGN(userData); IGN(dev);
-  /*stub for the moment */
-  csound->Message(csound, "%s", Str("output not implemented yet in CoreMIDI\n"));
+  int32_t k, ndest, devnum = 0, openall = 0, multiport = 0;
+  CFStringRef cname = NULL, pname = NULL;
+  CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
+  const OPARMS *O = csound->GetOParms(csound);
+  odata *data = (odata *) csound->Malloc(csound, sizeof(odata));
+  OSStatus ret;
+
+  data->mclient = (MIDIClientRef) 0;
+  data->mport = (MIDIPortRef) 0;
+  data->dest = NULL;
+  data->ndest = 0;
+  data->multiport = 0;
+
+  ndest = (int32_t) MIDIGetNumberOfDestinations();
+
+  if (dev == NULL || dev[0] == '\0')
+    devnum = 0;
+  else if (!strcmp(dev, "all") || !strcmp(dev, "a"))
+    openall = 1;
+  else if (!strcmp(dev, "m")) {
+    openall = 1;
+    multiport = 1;
+  }
+  else if (dev[0] >= '0' && dev[0] <= '9')
+    devnum = atoi(dev);
+  else {
+    if(O->msglevel || O->odebug)
+      csound->Message(csound,
+                      Str("CoreMIDI: invalid output device '%s', "
+                          "no device opened\n"), dev);
+    *userData = (void*) data;
+    return 0;
+  }
+
+  if (openall) {
+    if (ndest < 1) {
+      if(O->msglevel || O->odebug)
+        csound->Message(csound,
+                        Str("CoreMIDI: no MIDI output destinations available\n"));
+      *userData = (void*) data;
+      return 0;
+    }
+  }
+  else if (devnum < 0 || devnum >= ndest) {
+    if(O->msglevel || O->odebug)
+      csound->Message(csound,
+                      Str("MIDI output device number %d is out-of-range, "
+                          "not connected\n"), devnum);
+    *userData = (void*) data;
+    return 0;
+  }
+
+  /* MIDI client and output port */
+  cname = CFStringCreateWithCString(NULL, "csound out client",
+                                    defaultEncoding);
+  ret = MIDIClientCreate(cname, NULL, NULL, &data->mclient);
+  if (!ret) {
+    pname = CFStringCreateWithCString(NULL, "outport", defaultEncoding);
+    ret = MIDIOutputPortCreate(data->mclient, pname, &data->mport);
+  }
+  if (ret) {
+    csound->Message(csound, "%s", Str("CoreMIDI: could not open output port\n"));
+    if (data->mclient) MIDIClientDispose(data->mclient);
+    if (pname) CFRelease(pname);
+    if (cname) CFRelease(cname);
+    csound->Free(csound, data);
+    return -1;
+  }
+
+  if (openall) {
+    data->dest = (MIDIEndpointRef *)
+      csound->Malloc(csound, ndest*sizeof(MIDIEndpointRef));
+    for (k = 0; k < ndest; k++)
+      data->dest[data->ndest++] = MIDIGetDestination(k);
+    data->multiport = multiport;
+    if(O->msglevel || O->odebug)
+      csound->Message(csound,
+                      Str("CoreMIDI: sending to all %d output destinations%s\n"),
+                      data->ndest, multiport ? Str(" (port mapped)") : "");
+  }
+  else {
+    char name[128];
+    data->dest = (MIDIEndpointRef *)
+      csound->Malloc(csound, sizeof(MIDIEndpointRef));
+    data->dest[0] = MIDIGetDestination(devnum);
+    data->ndest = 1;
+    if(O->msglevel || O->odebug) {
+      getEndpointName(data->dest[0], name, sizeof(name));
+      csound->Message(csound, Str("selected MIDI output device %d: %s\n"),
+                      devnum, name);
+    }
+  }
+
+  if (pname) CFRelease(pname);
+  if (cname) CFRelease(cname);
+  *userData = (void*) data;
+  /* report success */
   return 0;
 }
-
-/* used to distinguish between 1 and 2-byte messages */
-static  const   int32_t     datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
 
 /* csound MIDI read callback, called every k-cycle */
 static int32_t MidiDataRead(CSOUND *csound, void *userData,
@@ -195,13 +338,15 @@ static int32_t MidiDataRead(CSOUND *csound, void *userData,
   IGN(csound);
   cdata *data = (cdata *)userData;
   MIDIdata *mdata = data->mdata;
-  int32_t *q = &data->q, st, d1, d2, n = 0;
+  int32_t *q = &data->q, st, d1, d2, port, n = 0;
+  int32_t map = data->multiport ? 1 : 0;
 
   /* check if there is new data in circular queue */
   while (mdata[*q].flag) {
     st = (int32_t) mdata[*q].status;
     d1 = (int32_t) mdata[*q].data1;
     d2 = (int32_t) mdata[*q].data2;
+    port = (int32_t) mdata[*q].port;
 
     if (st < 0x80) goto next;
 
@@ -209,24 +354,33 @@ static int32_t MidiDataRead(CSOUND *csound, void *userData,
         !(st == 0xF8 || st == 0xFA || st == 0xFB ||
           st == 0xFC || st == 0xFF)) goto next;
 
-    nbytes -= (datbyts[(st - 0x80) >> 4] + 1);
-    if (nbytes < 0) break;
+    {
+      /* status-only messages (e.g. real-time clock) carry no port byte */
+      int32_t nd = datbyts[(st - 0x80) >> 4];
+      int32_t len = nd + 1 + ((map && nd > 0) ? 1 : 0);
 
-    /* write to csound midi buffer */
-    n += (datbyts[(st - 0x80) >> 4] + 1);
-    switch (datbyts[(st - 0x80) >> 4]) {
-    case 0:
-      *mbuf++ = (unsigned char) st;
-      break;
-    case 1:
-      *mbuf++ = (unsigned char) st;
-      *mbuf++ = (unsigned char) d1;
-      break;
-    case 2:
-      *mbuf++ = (unsigned char) st;
-      *mbuf++ = (unsigned char) d1;
-      *mbuf++ = (unsigned char) d2;
-      break;
+      nbytes -= len;
+      if (nbytes < 0) break;
+
+      /* write to csound midi buffer */
+      n += len;
+      switch (nd) {
+      case 0:
+        *mbuf++ = (unsigned char) st;
+        break;
+      case 1:
+        *mbuf++ = (unsigned char) st;
+        /* when mapping, a port byte (0x80 | port) follows the status */
+        if (map) *mbuf++ = (unsigned char) (0x80 | port);
+        *mbuf++ = (unsigned char) d1;
+        break;
+      case 2:
+        *mbuf++ = (unsigned char) st;
+        if (map) *mbuf++ = (unsigned char) (0x80 | port);
+        *mbuf++ = (unsigned char) d1;
+        *mbuf++ = (unsigned char) d2;
+        break;
+      }
     }
     /* mark as read */
   next:
@@ -255,19 +409,85 @@ static int32_t MidiInDeviceClose(CSOUND *csound, void *userData)
 static int32_t MidiDataWrite(CSOUND *csound, void *userData,
                              const unsigned char *mbuf, int32_t nbytes)
 {
-  /* stub at the moment */
-  /*
-   */
-  IGN(csound); IGN(userData); IGN(mbuf); IGN(nbytes);
-  return nbytes;
+  odata *data = (odata *)userData;
+  int32_t i, pos, sent = 0, mess_port;
+  UInt32 bufsize;
+  /* module-level MIDI messages are at most a few bytes long, so build the
+     packet list on the stack to avoid allocating on the audio thread */
+  Byte stackbuf[2048];
+  Byte *buf = stackbuf;
+  MIDIPacketList *pktlist;
+  MIDIPacket *packet;
+
+  if (data == NULL || data->mport == (MIDIPortRef) 0 ||
+      data->ndest < 1 || nbytes < 1)
+    return nbytes;
+
+  /* port of the message, used for multiport mapping */
+  mess_port = csound->GetMidiOutPort(csound);
+
+  /* build a packet list, not splitting MIDI messages across packets */
+  bufsize = (UInt32) (sizeof(MIDIPacketList) + (size_t) nbytes +
+                      ((size_t) nbytes / 256 + 1) * sizeof(MIDIPacket));
+  if (bufsize > sizeof(stackbuf)) {
+    buf = (Byte *) csound->Malloc(csound, bufsize);
+    if (UNLIKELY(buf == NULL))
+      return 0;
+  }
+  pktlist = (MIDIPacketList *) buf;
+  packet = MIDIPacketListInit(pktlist);
+
+  pos = 0;
+  while (pos < nbytes) {
+    int32_t len = 0, avail = nbytes - pos;
+    while (len < avail && len < 256) {
+      int32_t st = (int32_t) mbuf[pos + len];
+      int32_t msglen = (st >= 0x80) ? datbyts[(st - 0x80) >> 4] + 1 : 1;
+      if (len + msglen > 256) break;
+      len += msglen;
+    }
+    if (len == 0) len = (avail > 256 ? 256 : avail);
+    packet = MIDIPacketListAdd(pktlist, bufsize, packet, 0,
+                               (ByteCount) len, (const Byte *) (mbuf + pos));
+    if (UNLIKELY(packet == NULL)) {
+      if (buf != stackbuf) csound->Free(csound, buf);
+      return 0;
+    }
+    pos += len;
+  }
+
+  for (i = 0; i < data->ndest; i++) {
+    OSStatus status;
+    if (data->multiport && mess_port != i)
+      continue;
+    status = MIDISend(data->mport, data->dest[i], pktlist);
+    if (UNLIKELY(status != noErr)) {
+      csound->ErrorMsg(csound,
+                       Str(" *** CoreMIDI: error %d sending MIDI message\n"),
+                       (int32_t) status);
+    } else {
+      sent++;
+    }
+  }
+  if (buf != stackbuf) csound->Free(csound, buf);
+
+  /* return the number of bytes written, counting the message as written
+     when it was sent to at least one destination; 0 if all sends failed
+     (or no destination matched the message port) */
+  return sent > 0 ? nbytes : 0;
 }
 
 
 
 static int32_t MidiOutDeviceClose(CSOUND *csound, void *userData)
 {
-  /* stub at the moment */
-  IGN(csound); IGN(userData);
+  odata *data = (odata *)userData;
+  if (data != NULL) {
+    if (data->mport) MIDIPortDispose(data->mport);
+    if (data->mclient) MIDIClientDispose(data->mclient);
+    if (data->dest) csound->Free(csound, data->dest);
+    csound->Free(csound, data);
+  }
   return 0;
 }
 

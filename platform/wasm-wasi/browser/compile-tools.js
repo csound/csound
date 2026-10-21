@@ -15,17 +15,15 @@
 
 import fs from "fs";
 import path from "path";
-import goog from "google-closure-compiler";
-import JarPath from "google-closure-compiler-java";
 import { fileURLToPath } from "url";
 import { inlineArraybuffer } from "./goog/inline-arraybuffer.js";
-
-const { compiler: ClosureCompiler } = goog;
+import { runClosureCompiler } from "./goog/closure-compiler.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = __dirname;
 
+fs.mkdirSync(path.join(rootDir, "dist"), { recursive: true });
 fs.writeFileSync(
   path.join(rootDir, "dist", "__csound_wasm_static_tools.inline.js"),
   inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.wasm.z", "binary.wasm"),
@@ -36,6 +34,7 @@ fs.writeFileSync(
     entry_point: "./tools/csound-no-audio.js",
     js_output_file: path.join(rootDir, "dist", "csound-no-audio.js"),
     browser_featureset_year: 2020,
+    externs: [path.join(rootDir, "externs.js")],
     js: [
       "./tools/csound-no-audio.js",
       "./src/*.js",
@@ -45,11 +44,9 @@ fs.writeFileSync(
       "./goog/mocks/index.js",
       "./node_modules/google-closure-library/package.json",
       "./node_modules/google-closure-library/**/*.js",
-      "./node_modules/pako/package.json",
-      "./node_modules/pako/dist/*.js",
     ],
-    hide_warnings_for: ["./node_modules/pako/dist/pako.min.js"],
-
+    // Match the main bundle's exclusion for upstream Closure-library JSDoc.
+    hide_warnings_for: ["./node_modules/google-closure-library/closure/goog/base.js"],
     jscomp_off: ["accessControls"],
     jscomp_error: ["globalThis"],
     assume_function_wrapper: false,
@@ -65,19 +62,5 @@ fs.writeFileSync(
     output_wrapper: `%output% const Csound = Csound$$module$tools$csound_no_audio; export { Csound };`,
   };
 
-  const closureCompiler = new ClosureCompiler(closureConfig);
-
-  closureCompiler.javaPath = `${process.env.JAVA_HOME}/bin/java`;
-  closureCompiler.JAR_PATH = JarPath;
-  await new Promise((resolve, reject) => {
-    const javaProcess = closureCompiler.run((exitCode, inputString, stderr) => {
-      console.log(stderr);
-      if (exitCode === 0) {
-        resolve();
-      } else {
-        reject();
-        process.exit(1);
-      }
-    });
-  });
+  await runClosureCompiler(closureConfig);
 })();

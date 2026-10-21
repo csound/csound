@@ -32,6 +32,13 @@ jobs:
           authToken: ${{ secrets.CACHIX_TOKEN }}
       - name: Compile Csound and accessory wasm binaries
         run: cd $wasm_bin_dir && yarn build
+      - name: Run WASI pthread checks and build private browser fixtures
+        run: bash "$wasm_bin_dir/scripts/compile-test-fixtures.sh"
+      - name: Archive private realtime fixtures
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: wasm-realtime-test-fixtures
+          path: ${{ env.wasm_bin_dir }}/test-artifacts
       - name: Zip the compilation output
         run: |
           cd $wasm_bin_dir
@@ -104,6 +111,11 @@ jobs:
         uses: actions/download-artifact@v8.0.1
         with:
           name: lib
+      - name: Download private realtime fixtures
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: wasm-realtime-test-fixtures
+          path: ${{ env.wasm_bin_dir }}/test-artifacts
       - name: Uncompress freshly compiled wasm artifacts
         run: |
           nix-env -f '<nixpkgs>' -iA unzip
@@ -121,7 +133,9 @@ jobs:
           cd $wasm_browser_dir
           npm ci
           npm link --no-save --package-lock=false --ignore-scripts ..
-          npm run build:prod
+          npm run test:closure
+          npm run test:fixtures
+          npm run build:tools
       - name: Install test dependencies
         run: |
           cd $wasm_browser_dir
@@ -134,6 +148,10 @@ jobs:
         run: |
           cd $wasm_browser_dir
           nix-shell --pure --run 'npm run test:ci'
+      - name: Run realtime browser integration checks
+        run: |
+          cd $wasm_browser_dir
+          nix-shell --pure --run 'npm run test:realtime'
       - name: Publish Test Report
         if: always()
         uses: mikepenz/action-junit-report@v6.5.0

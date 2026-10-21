@@ -27,11 +27,15 @@ import {
 import { logSABMain as log } from "../logger";
 import { csoundApiRename, fetchPlugins, makeProxyCallback, stopableStates } from "../utils";
 import { EventPromises } from "../utils/event-promises";
-import { stopSAB } from "../utils/sab-transport.js";
+import { assertRealtimeCallAllowed, realtimeBackgroundOperations } from "../utils/realtime-api.js";
+import { settleRealtimeApiCompletion } from "../utils/realtime-api-queue.js";
+import { stopSAB, wakeSAB } from "../utils/sab-transport.js";
+import { enqueueMidiPacket, resetMidiQueue } from "../utils/sab-midi-queue.js";
 import { SABCompletionCoordinator } from "../utils/sab-completion-coordinator.js";
 import { PublicEventAPI } from "../events";
 import { enableAudioInputInWorker } from "./io.utils.js";
 import SABWorker from "../../dist/__compiled.sab.worker.inline.js";
+import WasiThreadWorker from "../../dist/__compiled.wasi-thread.worker.inline.js";
 
 class SharedArrayBufferMainThread {
   constructor({
@@ -42,8 +46,14 @@ class SharedArrayBufferMainThread {
     outputChannelCount,
   }) {
     this.csoundInstance = undefined;
+    this.threaded = false;
+    this.realtimeMode = false;
+    this.threadWorkers = [];
+    this.threadFailure = undefined;
+    this.threadError = undefined;
+    /** @type {function(!Error):void} */
+    this.rejectThreadFailure = () => {};
     this.currentPlayState = undefined;
-    this.wasmTransformerDataURI = undefined;
     this.wasmTransformerDataURI = undefined;
     /**
      * @type {SABMainProxy}
@@ -65,10 +75,12 @@ class SharedArrayBufferMainThread {
     this.exportApi = {};
 
     this.callbackId = 0;
+    this.callbackOrder = 0;
     this.callbackBuffer = {};
     // End state and stop release arrive on different ports. A generation keeps
     // late messages from an earlier run from completing the current one.
     this.performanceGeneration = 0;
+    this.pendingPerformanceEnd = undefined;
     this.performanceCompletion = new SABCompletionCoordinator((performanceEndState) =>
       this.finishPerformanceEnd(performanceEndState),
     );
@@ -111,18 +123,158 @@ class SharedArrayBufferMainThread {
     log(`SharedArrayBufferMainThread got constructed`)();
   }
 
+  failThreadedInstance(error) {
+    if (this.threadError) return;
+    this.threadError = error;
+    this.pendingPerformanceEnd = undefined;
+    stopSAB(this.audioStatePointer);
+    this.rejectThreadFailure(error);
+    for (const payload of Object.values(this.callbackBuffer)) payload["rejectCallback"](error);
+    this.callbackBuffer = {};
+    try {
+      this.publicEvents.triggerMessage({ log: error.message });
+    } finally {
+      // Application listeners must not keep failed native threads alive.
+      this.eventPromises.releaseStartPromise();
+      this.eventPromises.releaseStopPromise();
+      this.eventPromises.releasePausePromise();
+      this.eventPromises.releaseResumePromise();
+      this.terminateInstance().catch((cleanupError) => console.error(cleanupError));
+    }
+  }
+
+  guardThreadedCall(promise) {
+    return this.threadFailure ? Promise.race([promise, this.threadFailure]) : promise;
+  }
+
+  async refreshRealtimeMode() {
+    if (!this.threaded) return;
+    const active =
+      stopableStates.has(this.currentPlayState) || this.eventPromises.isWaitingToStart();
+    this.realtimeMode = Boolean(
+      await (active
+        ? this.enqueueCallback("csoundIsRealtime", [this.csoundInstance])
+        : this.guardThreadedCall(
+            this.proxyPort["callUncloned"]("csoundIsRealtime", [this.csoundInstance]),
+          )),
+    );
+  }
+
+  enqueueCallback(apiKey, arguments_) {
+    if (this.threaded) {
+      if (Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1)
+        throw new Error("Resume performance before calling engine functions");
+      if (Object.keys(this.callbackBuffer).length >= 256)
+        throw new Error("Threaded control queue is full");
+    }
+    while (Object.hasOwn(this.callbackBuffer, String(this.callbackId)))
+      this.callbackId = (this.callbackId + 1) >>> 0;
+    const callbackId = this.callbackId;
+    this.callbackId = (this.callbackId + 1) >>> 0;
+    if (Object.keys(this.callbackBuffer).length === 0) this.callbackOrder = 0;
+    const promise = new Promise((resolve, reject) => {
+      // Compilation/init may take arbitrarily long on the shared host. Do not
+      // gate this on cached realtimeMode: options/start replies can lag native
+      // admission. Completion, stop cancellation, or worker failure settles it.
+      const timeout =
+        this.threaded && realtimeBackgroundOperations.has(apiKey)
+          ? undefined
+          : setTimeout(() => {
+              delete this.callbackBuffer[callbackId];
+              reject(
+                new Error(
+                  `Worker timed out during ${csoundApiRename(apiKey)}(); dispatched work may have run`,
+                ),
+              );
+              this.maybeFinishPerformanceEnd();
+            }, 10000 + this.eventPromises.getStartRemainingMs());
+      this.callbackBuffer[callbackId] = {
+        "resolveCallback": (answer) => {
+          clearTimeout(timeout);
+          resolve(answer);
+        },
+        "rejectCallback": (error) => {
+          clearTimeout(timeout);
+          reject(error);
+        },
+        // eslint-disable-next-line object-shorthand -- Keep wire keys across bundles.
+        "apiKey": apiKey,
+        "order": this.callbackOrder++,
+        "generation": this.performanceGeneration,
+        "argumentz": arguments_,
+      };
+    });
+    Atomics.compareExchange(this.audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 0, 1);
+    wakeSAB(this.audioStatePointer);
+    return this.guardThreadedCall(promise);
+  }
+
+  takeCallbacks() {
+    return (
+      Object.entries(this.callbackBuffer)
+        .filter(([_id, payload]) => !payload["inFlight"])
+        // Integer object keys sort by value, which reorders edits at ID rollover.
+        .sort((left, right) => left[1]["order"] - right[1]["order"])
+        .slice(0, this.threaded ? 32 : undefined)
+        .map(([id, payload]) => {
+          payload["inFlight"] = this.threaded;
+          const request = {};
+          request["id"] = id;
+          request["apiKey"] = payload["apiKey"];
+          request["argumentz"] = payload["argumentz"];
+          request["generation"] = payload["generation"];
+          return request;
+        })
+    );
+  }
+
+  settleCallbackReplies(replies) {
+    for (const payload of replies) {
+      const pending = this.callbackBuffer[payload["id"]];
+      if (!pending || pending["generation"] !== payload["generation"]) continue;
+      if (payload["error"]) pending["rejectCallback"](new Error(payload["error"]));
+      else pending["resolveCallback"](payload["answer"]);
+      delete this.callbackBuffer[payload["id"]];
+    }
+    this.maybeFinishPerformanceEnd();
+    if (Object.values(this.callbackBuffer).some((entry) => !entry["inFlight"])) {
+      Atomics.store(this.audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 1);
+      wakeSAB(this.audioStatePointer);
+    }
+  }
+
   async terminateInstance() {
+    this.pendingPerformanceEnd = undefined;
+    this.ipcMessagePorts.close();
+    if (this.threaded) {
+      stopSAB(this.audioStatePointer);
+      if (!this.threadError) {
+        this.threadError = new Error("Threaded Csound instance terminated");
+        this.rejectThreadFailure(this.threadError);
+      }
+      for (const payload of Object.values(this.callbackBuffer))
+        payload["rejectCallback"](this.threadError);
+      this.callbackBuffer = {};
+      this.eventPromises.releaseStartPromise();
+      this.eventPromises.releaseStopPromise();
+      this.eventPromises.releasePausePromise();
+      this.eventPromises.releaseResumePromise();
+    }
+    if (this.threadWorkers) {
+      for (const worker of this.threadWorkers) worker.terminate();
+      this.threadWorkers = [];
+    }
     if (this.csoundWorker) {
       this.csoundWorker.terminate();
       delete this.csoundWorker;
     }
+    if (this.proxyPort) {
+      this.proxyPort[Comlink.releaseProxy](false);
+      delete this.proxyPort;
+    }
     if (this.audioWorker && this.audioWorker.terminateInstance) {
       await this.audioWorker.terminateInstance();
       delete this.audioWorker.terminateInstance;
-    }
-    if (this.proxyPort) {
-      this.proxyPort[Comlink.releaseProxy]();
-      delete this.proxyPort;
     }
     if (this.publicEvents) {
       this.publicEvents.terminateInstance();
@@ -134,21 +286,11 @@ class SharedArrayBufferMainThread {
   }
 
   handleMidiInput({ data: [status, data1, data2] }) {
-    const currentQueueLength = Atomics.load(
-      this.audioStatePointer,
-      AUDIO_STATE.AVAIL_RTMIDI_EVENTS,
-    );
-    const rtmidiBufferIndex = Atomics.load(this.audioStatePointer, AUDIO_STATE.RTMIDI_INDEX);
-    const nextIndex =
-      (currentQueueLength * MIDI_BUFFER_PAYLOAD_SIZE + rtmidiBufferIndex) % MIDI_BUFFER_SIZE;
-
-    Atomics.store(this.midiBuffer, nextIndex, status);
-    Atomics.store(this.midiBuffer, nextIndex + 1, data1);
-    Atomics.store(this.midiBuffer, nextIndex + 2, data2);
-    Atomics.add(this.audioStatePointer, AUDIO_STATE.AVAIL_RTMIDI_EVENTS, 1);
+    return enqueueMidiPacket(this.audioStatePointer, this.midiBuffer, status, data1, data2);
   }
 
   async csoundPause() {
+    if (this.threadError) throw this.threadError;
     if (
       this.eventPromises.isWaiting("pause") ||
       Atomics.load(this.audioStatePointer, AUDIO_STATE.STOP) === 1 ||
@@ -159,12 +301,14 @@ class SharedArrayBufferMainThread {
     if (Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1) return 0;
     this.eventPromises.createPausePromise();
     Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 1);
-    await this.eventPromises.waitForPause();
+    wakeSAB(this.audioStatePointer);
+    await this.guardThreadedCall(this.eventPromises.waitForPause());
     // Only the worker acknowledgement publishes the transition.
     return 0;
   }
 
   async csoundResume() {
+    if (this.threadError) throw this.threadError;
     if (this.eventPromises.isWaiting("resume")) return -1;
     if (
       Atomics.load(this.audioStatePointer, AUDIO_STATE.IS_PAUSED) === 1 &&
@@ -175,7 +319,7 @@ class SharedArrayBufferMainThread {
       this.eventPromises.createResumePromise();
       Atomics.store(this.audioStatePointer, AUDIO_STATE.IS_PAUSED, 0);
       Atomics.notify(this.audioStatePointer, AUDIO_STATE.IS_PAUSED);
-      await this.eventPromises.waitForResume();
+      await this.guardThreadedCall(this.eventPromises.waitForResume());
     }
     return 0;
   }
@@ -197,13 +341,28 @@ class SharedArrayBufferMainThread {
   finishPerformanceEnd(performanceEndState) {
     // Both completion signals have arrived, including any earlier callback
     // replies. Send calls the worker did not pick up before it finished.
-    Object.values(this.callbackBuffer).forEach((payload) => {
-      this.proxyPort["callUncloned"](payload["apiKey"], payload["argumentz"]).then(
-        payload["resolveCallback"],
-        payload["rejectCallback"],
-      );
-    });
-    this.callbackBuffer = {};
+    for (const [id, payload] of Object.entries(this.callbackBuffer)) {
+      if (this.realtimeMode) {
+        // Native stop joined the API worker, but its direct replies use another
+        // port. Wait for those replies before publishing stop/reset completion.
+        if (payload["inFlight"] && realtimeBackgroundOperations.has(payload["apiKey"])) continue;
+        payload["rejectCallback"](new Error("Performance ended before the call completed"));
+      } else {
+        this.proxyPort["callUncloned"](payload["apiKey"], payload["argumentz"]).then(
+          payload["resolveCallback"],
+          payload["rejectCallback"],
+        );
+      }
+      delete this.callbackBuffer[id];
+    }
+    this.pendingPerformanceEnd = performanceEndState;
+    this.maybeFinishPerformanceEnd();
+  }
+
+  maybeFinishPerformanceEnd() {
+    if (!this.pendingPerformanceEnd || Object.keys(this.callbackBuffer).length > 0) return;
+    const performanceEndState = this.pendingPerformanceEnd;
+    this.pendingPerformanceEnd = undefined;
 
     // A score can finish before acknowledging pause or resume. Settle both
     // here too: releasing stop clears their timeout timers.
@@ -283,6 +442,10 @@ class SharedArrayBufferMainThread {
     try {
       await this.audioWorker.onPlayStateChange(newPlayState, performanceGeneration);
     } catch (error) {
+      if (this.threaded) {
+        this.failThreadedInstance(error);
+        return;
+      }
       console.error(error);
     }
     if (performanceEndState === "realtimePerformanceEnded") {
@@ -327,7 +490,56 @@ class SharedArrayBufferMainThread {
     this.audioWorker.outputsCount = outputsCount;
   }
 
-  async initialize({ wasmDataURI, withPlugins }) {
+  async initialize({ wasmDataURI, withPlugins, threadedBytes }) {
+    this.threaded = Boolean(threadedBytes);
+    this.threadWorkers = [];
+    const threadPorts = [];
+    if (this.threaded) {
+      this.eventPromises = new EventPromises((event) =>
+        this.failThreadedInstance(
+          new Error(`Threaded ${event} timed out; the instance was terminated`),
+        ),
+      );
+      this.threadFailure = new Promise((_resolve, reject) => {
+        this.rejectThreadFailure = reject;
+      });
+      // Some callers only listen for messages. Keep terminal failure observed
+      // even when there is no outstanding API call to race it against.
+      this.threadFailure.catch(() => {});
+      const onThreadMessage = messageEventHandler(this);
+      for (let index = 0; index < 4; index++) {
+        const url = WasiThreadWorker();
+        const worker = new Worker(url);
+        URL.revokeObjectURL(url);
+        this.threadWorkers.push(worker);
+        worker.addEventListener("error", (event) =>
+          this.failThreadedInstance(new Error(event.message)),
+        );
+        worker.addEventListener("message", ({ data }) => {
+          switch (data["type"]) {
+            case "wasi-thread-fatal": {
+              this.failThreadedInstance(new Error(data["message"]));
+              break;
+            }
+            case "wasi-api-completion": {
+              settleRealtimeApiCompletion(this.callbackBuffer, data);
+              this.maybeFinishPerformanceEnd();
+              break;
+            }
+            case "wasi-thread-message": {
+              onThreadMessage({ data: { log: data["message"] } });
+              break;
+            }
+            default: {
+              break;
+            }
+          }
+        });
+        const channel = new MessageChannel();
+        worker.postMessage({ type: "connect", port: channel.port1 }, [channel.port1]);
+        threadPorts.push(channel.port2);
+      }
+    }
     if (withPlugins && withPlugins.length > 0) {
       withPlugins = await fetchPlugins(withPlugins);
     }
@@ -335,6 +547,15 @@ class SharedArrayBufferMainThread {
     log(`initialization: instantiate the SABWorker Thread`)();
     const csoundWorker = new Worker(SABWorker());
     this.csoundWorker = csoundWorker;
+    if (this.threaded) {
+      csoundWorker.addEventListener("error", (event) =>
+        this.failThreadedInstance(new Error(event.message)),
+      );
+      csoundWorker.addEventListener("message", ({ data }) => {
+        if (data["type"] === "wasi-thread-fatal")
+          this.failThreadedInstance(new Error(data["message"]));
+      });
+    }
     const audioStateBuffer = this.audioStateBuffer;
     const audioStatePointer = this.audioStatePointer;
     const audioStreamIn = this.audioStreamIn;
@@ -379,15 +600,7 @@ class SharedArrayBufferMainThread {
       switch (event.data) {
         case "poll": {
           if (this.ipcMessagePorts && this.ipcMessagePorts.sabMainCallbackReply) {
-            this.ipcMessagePorts.sabMainCallbackReply.postMessage(
-              Object.keys(this.callbackBuffer).map((id) => {
-                const callbackReplyPayload = {};
-                callbackReplyPayload["id"] = id;
-                callbackReplyPayload["apiKey"] = this.callbackBuffer[id]["apiKey"];
-                callbackReplyPayload["argumentz"] = this.callbackBuffer[id]["argumentz"];
-                return callbackReplyPayload;
-              }),
-            );
+            this.ipcMessagePorts.sabMainCallbackReply.postMessage(this.takeCallbacks());
           }
 
           break;
@@ -403,10 +616,7 @@ class SharedArrayBufferMainThread {
           break;
         }
         default: {
-          event.data.forEach((payload) => {
-            this.callbackBuffer[payload["id"]]["resolveCallback"](payload["answer"]);
-            delete this.callbackBuffer[payload["id"]];
-          });
+          this.settleCallbackReplies(event.data);
         }
       }
     });
@@ -414,7 +624,7 @@ class SharedArrayBufferMainThread {
     this.ipcMessagePorts.sabMainCallbackReply.start();
 
     const proxyPort = Comlink.wrap(csoundWorker, undefined);
-    const wasmBytes = wasmDataURI();
+    const wasmBytes = threadedBytes || wasmDataURI();
     this.proxyPort = proxyPort;
 
     const initializePayload = {};
@@ -423,14 +633,23 @@ class SharedArrayBufferMainThread {
     initializePayload["messagePort"] = this.ipcMessagePorts.workerMessagePort;
     initializePayload["callbackPort"] = this.ipcMessagePorts.sabWorkerCallbackReply;
     initializePayload["withPlugins"] = withPlugins;
+    initializePayload["threaded"] = this.threaded;
+    initializePayload["threadPorts"] = threadPorts;
 
-    const csoundInstance = await proxyPort["initialize"](
-      Comlink.transfer(initializePayload, [
-        wasmBytes,
-        this.ipcMessagePorts.workerMessagePort,
-        this.ipcMessagePorts.sabWorkerCallbackReply,
-      ]),
+    const initialized = await this.guardThreadedCall(
+      proxyPort["initialize"](
+        Comlink.transfer(initializePayload, [
+          wasmBytes,
+          this.ipcMessagePorts.workerMessagePort,
+          this.ipcMessagePorts.sabWorkerCallbackReply,
+          ...threadPorts,
+        ]),
+      ),
     );
+    const csoundInstance =
+      typeof initialized === "number" ? initialized : initialized["csoundInstance"];
+    if (typeof initialized === "object" && initialized["threadProbe"])
+      this.exportApi["__threadProbe"] = initialized["threadProbe"];
     this.csoundInstance = csoundInstance;
 
     // Ensure Csound aligns with requested audio setup before user compilation/start.
@@ -439,22 +658,28 @@ class SharedArrayBufferMainThread {
     const userProvidedNchnlsInput = Atomics.load(audioStatePointer, AUDIO_STATE.NCHNLS_I);
 
     if (userProvidedSampleRate > -1) {
-      await proxyPort["callUncloned"]("csoundSetOption", [
-        csoundInstance,
-        "--sample-rate=" + userProvidedSampleRate,
-      ]);
+      await this.guardThreadedCall(
+        proxyPort["callUncloned"]("csoundSetOption", [
+          csoundInstance,
+          "--sample-rate=" + userProvidedSampleRate,
+        ]),
+      );
     }
     if (userProvidedNchnls > -1) {
-      await proxyPort["callUncloned"]("csoundSetOption", [
-        csoundInstance,
-        "--nchnls=" + userProvidedNchnls,
-      ]);
+      await this.guardThreadedCall(
+        proxyPort["callUncloned"]("csoundSetOption", [
+          csoundInstance,
+          "--nchnls=" + userProvidedNchnls,
+        ]),
+      );
     }
     if (userProvidedNchnlsInput > -1) {
-      await proxyPort["callUncloned"]("csoundSetOption", [
-        csoundInstance,
-        "--nchnls_i=" + userProvidedNchnlsInput,
-      ]);
+      await this.guardThreadedCall(
+        proxyPort["callUncloned"]("csoundSetOption", [
+          csoundInstance,
+          "--nchnls_i=" + userProvidedNchnlsInput,
+        ]),
+      );
     }
 
     this.ipcMessagePorts.mainMessagePort.start();
@@ -470,13 +695,16 @@ class SharedArrayBufferMainThread {
     this.exportApi["name"] = "Csound: Audio Worklet, Shared-Array Buffer";
 
     this.exportApi["getNode"] = async () => {
+      if (this.threadError) throw this.threadError;
       const maybeNode = this.audioWorker.audioWorkletNode;
       if (maybeNode) {
         return maybeNode;
       } else {
-        const node = await new Promise((resolve) => {
-          this.exportApi.once("onAudioNodeCreated", resolve);
-        });
+        const node = await this.guardThreadedCall(
+          new Promise((resolve) => {
+            this.exportApi.once("onAudioNodeCreated", resolve);
+          }),
+        );
         return node;
       }
     };
@@ -503,17 +731,30 @@ class SharedArrayBufferMainThread {
         }
         case "csoundStart": {
           const csoundStart = async function () {
+            if (this.threadError) throw this.threadError;
+            // Natural end can close audio while native cleanup still joins
+            // init. Do not replace that performance's completion generation.
+            if (this.eventPromises.isWaitingToStop())
+              await this.guardThreadedCall(this.eventPromises.waitForStop());
             if (!csoundInstance || typeof csoundInstance !== "number") {
               console.error("starting csound failed because csound instance wasn't created");
               return -1;
             }
-            if (this.eventPromises.isWaiting("start")) {
+            if (
+              (this.threaded && stopableStates.has(this.currentPlayState)) ||
+              this.eventPromises.isWaiting("start")
+            ) {
               return -1;
             } else {
-              this.performanceGeneration += 1;
+              this.performanceGeneration = (this.performanceGeneration + 1) >>> 0;
               this.performanceCompletion.begin(this.performanceGeneration);
-              this.eventPromises.createStartPromise();
+              // The first pooled start links plugins in every child. Allow
+              // its 30-second readiness deadline to report a setup failure.
+              this.eventPromises.createStartPromise(this.threaded ? 35000 : 2000);
 
+              // Reset on the producer thread before dispatch. The worker must
+              // not tear this pair while MIDI arrives during startup.
+              resetMidiQueue(audioStatePointer);
               const startPayload = {};
               startPayload["audioStateBuffer"] = audioStateBuffer;
               startPayload["audioStreamIn"] = audioStreamIn;
@@ -522,10 +763,36 @@ class SharedArrayBufferMainThread {
               startPayload["csound"] = csoundInstance;
               startPayload["performanceGeneration"] = this.performanceGeneration;
 
-              const startResult = await proxyCallback(startPayload);
+              let startReply;
+              try {
+                startReply = await this.guardThreadedCall(proxyCallback(startPayload));
+              } catch (error) {
+                // Plugin preparation can fail before native start. Settle the
+                // queued calls now instead of leaving them behind a start wait.
+                for (const pending of Object.values(this.callbackBuffer))
+                  pending["rejectCallback"](error);
+                this.callbackBuffer = {};
+                this.eventPromises.releaseStartPromise();
+                throw error;
+              }
+              const startResult = this.threaded ? startReply["status"] : startReply;
+              if (this.threaded) this.realtimeMode = startReply["realtimeMode"];
+              if (startResult !== 0) {
+                if (this.threaded) {
+                  for (const pending of Object.values(this.callbackBuffer))
+                    pending["rejectCallback"](new Error("Threaded performance did not start"));
+                  this.callbackBuffer = {};
+                }
+                this.eventPromises.releaseStartPromise();
+                return startResult;
+              }
 
-              await this.eventPromises.waitForStart();
+              await this.guardThreadedCall(this.eventPromises.waitForStart());
 
+              // Worker startup resets the shared state. Republish calls that
+              // arrived during startup before letting the render loop proceed.
+              if (Object.keys(this.callbackBuffer).length > 0)
+                Atomics.store(audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 1);
               this.ipcMessagePorts &&
                 this.ipcMessagePorts.sabMainCallbackReply.postMessage({ unlock: true });
 
@@ -539,6 +806,7 @@ class SharedArrayBufferMainThread {
         }
         case "csoundStop": {
           const csoundStop = async () => {
+            if (this.threadError) throw this.threadError;
             log(
               [
                 "Checking if it's safe to call stop:",
@@ -549,7 +817,7 @@ class SharedArrayBufferMainThread {
             )();
             // Natural completion may have already started cleanup.
             if (this.eventPromises.isWaitingToStop()) {
-              await this.eventPromises.waitForStop();
+              await this.guardThreadedCall(this.eventPromises.waitForStop());
               return 0;
             }
             if (this.eventPromises.isWaitingToStart()) {
@@ -564,7 +832,7 @@ class SharedArrayBufferMainThread {
               this.eventPromises.releasePausePromise();
               this.eventPromises.releaseResumePromise();
               this.eventPromises.createStopPromise();
-              await this.eventPromises.waitForStop();
+              await this.guardThreadedCall(this.eventPromises.waitForStop());
               return 0;
             } else {
               return -1;
@@ -577,12 +845,21 @@ class SharedArrayBufferMainThread {
 
         case "csoundReset": {
           const csoundReset = async () => {
-            // no start = noReset
+            if (this.threadError) throw this.threadError;
+            // Thread/plugin preparation yields before native start. A reset
+            // must wait until that start has either completed or failed.
+            if (this.eventPromises.isWaitingToStart())
+              await this.guardThreadedCall(this.eventPromises.waitForStart());
             if (!this.currentPlayState) {
-              return;
+              if (!this.threaded) return;
+              // Reset options even before the first start, without replacing
+              // audio ports that the worker has not received yet.
+              const result = await this.guardThreadedCall(proxyCallback([]));
+              await this.refreshRealtimeMode();
+              return result;
             }
 
-            await this.eventPromises.waitForStop();
+            await this.guardThreadedCall(this.eventPromises.waitForStop());
             if (this.eventPromises.isWaiting("reset")) {
               return -1;
             } else {
@@ -594,7 +871,8 @@ class SharedArrayBufferMainThread {
                 await this.audioWorker.terminateInstance();
                 delete this.audioWorker.audioContext;
               }
-              const resetResult = await proxyCallback([]);
+              const resetResult = await this.guardThreadedCall(proxyCallback([]));
+              await this.refreshRealtimeMode();
               return resetResult;
             }
           };
@@ -604,9 +882,11 @@ class SharedArrayBufferMainThread {
         }
         case "csoundPushMidiMessage": {
           const midiMessage = async (status = 0, data1 = 0, data2 = 0) => {
-            this.handleMidiInput({ data: [status, data1, data2] });
+            if (this.threadError) throw this.threadError;
+            if (!this.handleMidiInput({ data: [status, data1, data2] }))
+              throw new Error("MIDI queue is full");
           };
-          this.exportApi.midiMessage = midiMessage.bind(this);
+          this.exportApi["midiMessage"] = midiMessage.bind(this);
           midiMessage["toString"] = () => reference["toString"]();
           break;
         }
@@ -621,7 +901,16 @@ class SharedArrayBufferMainThread {
               this.currentPlayState,
             );
             proxyFsCallback["toString"] = () => reference[method]["toString"]();
-            this.exportApi["fs"][method] = proxyFsCallback;
+            this.exportApi["fs"][method] = async (...args) => {
+              if (this.threadError) throw this.threadError;
+              const active =
+                stopableStates.has(this.currentPlayState) || this.eventPromises.isWaitingToStart();
+              if (this.realtimeMode && active)
+                throw new Error("Filesystem calls require stopped realtime performance");
+              return this.threaded && active
+                ? this.enqueueCallback(method, [csoundInstance, ...args])
+                : this.guardThreadedCall(proxyFsCallback(...args));
+            };
           });
           break;
         }
@@ -630,46 +919,35 @@ class SharedArrayBufferMainThread {
           // avoiding deadlock by sending the IPC callback
           // while thread is unlocked
           const bufferWrappedCallback = async (...arguments_) => {
+            if (this.threadError) throw this.threadError;
+            const active =
+              stopableStates.has(this.currentPlayState) || this.eventPromises.isWaitingToStart();
+            if (this.realtimeMode && active) assertRealtimeCallAllowed(apiKey, arguments_);
             if (
+              (this.threaded && active) ||
               this.currentPlayState === "realtimePerformanceStarted" ||
               this.currentPlayState === "renderStarted" ||
               this.eventPromises.isWaitingToStart()
               // startPromiz indicates that startup is in progress
               // and any events send before it's resolved are swallowed
             ) {
-              const callbackId = this.callbackId;
-              this.callbackId += 1;
-              const returnPromise = new Promise((resolve, reject) => {
-                const timeout = setTimeout(
-                  () =>
-                    reject(
-                      new Error(`Worker timed out so ${csoundApiRename(apiKey)}() wasn't called!`),
-                    ),
-                  10000,
-                );
-                const resolveCallback = (answer) => {
-                  clearTimeout(timeout);
-                  resolve(answer);
-                };
-
-                const rejectCallback = (error) => {
-                  clearTimeout(timeout);
-                  reject(error);
-                };
-
-                const callbackBufferDispatch = {};
-
-                callbackBufferDispatch["resolveCallback"] = resolveCallback;
-                callbackBufferDispatch["rejectCallback"] = rejectCallback;
-                callbackBufferDispatch["apiKey"] = apiKey;
-                callbackBufferDispatch["argumentz"] = [csoundInstance, ...arguments_];
-
-                this.callbackBuffer[callbackId] = callbackBufferDispatch;
-              });
-              Atomics.compareExchange(audioStatePointer, AUDIO_STATE.HAS_PENDING_CALLBACKS, 0, 1);
-              return await returnPromise;
+              return this.enqueueCallback(apiKey, [csoundInstance, ...arguments_]);
             } else {
-              return await proxyCallback.apply(undefined, arguments_);
+              const result = await this.guardThreadedCall(
+                proxyCallback.apply(undefined, arguments_),
+              );
+              // CSD options and rejected setOption calls make requested text
+              // unreliable. Read the setting that the native engine accepted.
+              if (
+                [
+                  "csoundSetOption",
+                  "csoundCompileCSD",
+                  "csoundCompileOrc",
+                  "csoundSetParams",
+                ].includes(apiKey)
+              )
+                await this.refreshRealtimeMode();
+              return result;
             }
           };
           bufferWrappedCallback["toString"] = () => reference["toString"]();

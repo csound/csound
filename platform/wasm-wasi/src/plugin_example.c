@@ -21,6 +21,13 @@
 
 #include "csound.h"
 #include <csdl.h>
+#include <setjmp.h>
+#include <stdint.h>
+#include <stdlib.h>
+#ifdef CSOUND_WASI_SHARED_PLUGIN
+#include <pthread.h>
+#include <stdatomic.h>
+#endif
 
 typedef struct {
   OPDS h;
@@ -61,7 +68,115 @@ int mult_vector(CSOUND *csound, MULT *p) {
    overloads are called "mult"
 */
 
+__attribute__((weak)) int plugin_weak_value(void) { return 42; }
+extern int plugin_optional_value(void) __attribute__((weak));
+static void (*volatile release_bytes)(void *) = free;
+static void (*volatile destroy_instance)(CSOUND *) = csoundDestroy;
+extern unsigned char __heap_base;
+
+static volatile int local_data_storage = 41;
+extern volatile int plugin_local_data
+    __attribute__((weak, visibility("default"), alias("local_data_storage")));
+
+/* This unresolved data address imports GOT.mem.__heap_base from the engine. */
+static int heap_base(CSOUND *csound, MULT *p) {
+  *p->out = (uintptr_t)&__heap_base;
+  return OK;
+}
+
+/* The exported alias uses GOT.mem; the static name uses __memory_base directly. */
+static int local_data_check(CSOUND *csound, MULT *p) {
+  local_data_storage = 41;
+  if (&plugin_local_data != &local_data_storage || plugin_local_data != 41) {
+    *p->out = -1;
+    return OK;
+  }
+  plugin_local_data = 42;
+  *p->out = local_data_storage;
+  return OK;
+}
+
+/* Exercise host allocation, weak symbols, and the private WASI setjmp runtime. */
+static int runtime_check(CSOUND *csound, MULT *p) {
+  unsigned char *bytes = calloc(16, 1);
+  void *aligned = NULL;
+  int ok = bytes != NULL;
+  if (!ok)
+    return NOTOK;
+  for (int i = 0; i < 16; ++i)
+    ok &= bytes[i] == 0;
+  bytes[0] = 42;
+  unsigned char *grown = realloc(bytes, 64);
+  if (!grown) {
+    free(bytes);
+    return NOTOK;
+  }
+  ok &= grown[0] == 42;
+  release_bytes(grown);
+  bytes = malloc(8);
+  if (!bytes)
+    return NOTOK;
+  bytes[0] = 1;
+  free(bytes);
+  if (posix_memalign(&aligned, 64, 64) != 0)
+    return NOTOK;
+  ok &= ((uintptr_t)aligned % 64) == 0;
+  free(aligned);
+  aligned = aligned_alloc(64, 128);
+  if (!aligned)
+    return NOTOK;
+  ok &= ((uintptr_t)aligned % 64) == 0;
+  free(aligned);
+
+  ok &= plugin_weak_value() == 42;
+  ok &= plugin_optional_value == NULL;
+  ok &= destroy_instance != NULL;
+
+  jmp_buf state;
+  int value = setjmp(state);
+  if (value == 0)
+    longjmp(state, 42);
+  *p->out = ok ? value : -1;
+  return OK;
+}
+
+#ifdef CSOUND_WASI_SHARED_PLUGIN
+static pthread_t plugin_owner;
+static _Atomic int plugin_constructor_count;
+static _Thread_local int plugin_thread_value = 41;
+
+__attribute__((constructor)) static void plugin_shared_init(void) {
+#ifdef CSOUND_WASI_PLUGIN_TRAP_CTOR
+  __builtin_trap();
+#endif
+  plugin_owner = pthread_self();
+  atomic_fetch_add(&plugin_constructor_count, 1);
+}
+
+/* Check per-thread TLS and the same relocated callbacks used by the parent. */
+static int thread_check(CSOUND *csound, MULT *p) {
+  int constructors = atomic_load(&plugin_constructor_count);
+  int value = ++plugin_thread_value;
+  int result = runtime_check(csound, p);
+  int runtime_ok = result == OK && *p->out == 42;
+  result = local_data_check(csound, p);
+  int data_ok = result == OK && *p->out == 42;
+  csound->Message(csound, "shared C plugin: ctor=%d tls=%d thread=%s runtime=%d data=%d\n",
+                  constructors, value,
+                  pthread_self() == plugin_owner ? "owner" : "worker",
+                  runtime_ok, data_ok);
+  *p->out = constructors == 1 && runtime_ok && data_ok ? value : -1;
+  return OK;
+}
+#endif
+
 static OENTRY localops[] = {
+#ifdef CSOUND_WASI_SHARED_PLUGIN
+    {"plugin_thread_check", sizeof(MULT), 0, "i", "", (SUBR)thread_check, NULL},
+#endif
+    {"plugin_heap_base", sizeof(MULT), 0, "i", "", (SUBR)heap_base, NULL},
+    {"plugin_local_data_check", sizeof(MULT), 0, "i", "", (SUBR)local_data_check, NULL},
+    {"plugin_runtime_check", sizeof(MULT), 0, "i", "", (SUBR)runtime_check, NULL},
     {"mult.aa", sizeof(MULT), 0, "a", "aa", NULL, (SUBR)mult_vector},
     {"mult.kk", sizeof(MULT), 0, "k", "kk", NULL, (SUBR)mult_scalar},
     {"mult.ii", sizeof(MULT), 0, "i", "ii", (SUBR)mult_scalar, NULL}};

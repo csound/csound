@@ -38,8 +38,8 @@ export const initialSharedState = [
   0, // n = number of input buffers available
   0, // n = number of output buffers available
   0, // n = if 1 then is requesting rtmidi
-  0, // n = rtmidi buffer index
-  0, // n = available rtmidi events in buffer
+  0, // n = consumed MIDI packets (uint32 counter)
+  0, // n = published MIDI packets (uint32 counter)
   0, // n = has pending callbacks
 ];
 
@@ -62,8 +62,8 @@ export const AUDIO_STATE = {
   AVAIL_IN_BUFS: 14,
   AVAIL_OUT_BUFS: 15,
   IS_REQUESTING_RTMIDI: 16,
-  RTMIDI_INDEX: 17,
-  AVAIL_RTMIDI_EVENTS: 18,
+  RTMIDI_READ: 17,
+  RTMIDI_WRITE: 18,
   HAS_PENDING_CALLBACKS: 19,
 };
 

@@ -169,12 +169,17 @@ The [numeric type guide](../../docs/numeric-types.md) gives the build options.
 `LINKAGE` and `FLINKAGE` provide the current `csoundModuleInfo` value.
 A hand-written `csoundModuleInfo` must return `CSOUND_MODULE_INFO`.
 This value includes version and precision information for the loader.
+The loader rejects native opcode plugins with missing, zero, or incompatible
+metadata before their entry points run.
 
 `CreateInstanceVariable` and `QueryInstanceVariable` provide named storage
 for opcodes in the same instrument instance. Use them instead of private
 `INSDS` fields for shared instance state. The engine owns this storage.
 The [instance variable guide](../../docs/instance-variables.md) defines its
 lifetime and access rules.
+
+`INSDS.private_data` is reserved for the engine. Do not read, replace, or
+free it from a plugin.
 
 Plugins can register struct types through `csound->RegisterStruct`.
 Custom `CS_TYPE` constructors and copy callbacks now receive the canonical
@@ -186,3 +191,9 @@ Use the current array write helpers and type copy functions before changes
 that could affect shared data. See the
 [plugin struct guide](../../docs/plugin-structs.md) and
 [array interface](../../include/arrays.h).
+
+Plugin types can also register `##array_get`, `##array_set`, and
+`##array_init` operations to support `[]` reads, assignments, and
+initialization. Ordinary arrays of plugin types use Csound's array handling
+without these operations. The [plugin indexing guide](../../docs/plugin-indexing.md)
+defines the rate, overload, and index rules.

@@ -13,9 +13,12 @@ endif()
 if(BUILD_TESTS)
   add_executable(unittests
         array_matrix_setters_test.cpp
+        atomic_fallback_test.cpp
+        fixtures/atomic_fallback.c
         array_ops_test.cpp
         array_size_conversion_test.cpp
         audio_array_io_test.cpp
+        api_message_queue_test.cpp
         autocorr_test.cpp
         lpc_lifetime_test.cpp
         sfload_test.cpp
@@ -39,6 +42,7 @@ if(BUILD_TESTS)
         csound_message_buffer_test.cpp
         csound_diagnostics_test.cpp
         csound_option_parser_test.cpp
+        plugin_options_test.cpp
         csound_csd_compile_test.cpp
         csound_orc_compile_test.cpp
         csound_orc_semantics_test.cpp
@@ -61,6 +65,8 @@ if(BUILD_TESTS)
         nxtpow2_test.cpp
         dct_test.cpp
         engine_test.cpp
+        realtime_chain_test.cpp
+        realtime_readiness_test.cpp
         instance_variable_test.cpp
         doppler_test.cpp
         io_test.cpp
@@ -105,6 +111,8 @@ if(BUILD_TESTS)
         nreverb_test.cpp
         midi_file_test.cpp
         midi_realtime_input_test.cpp
+        realtime_queue_test.cpp
+        realtime_logging_test.cpp
         midiarp_test.cpp
         tableseg_test.cpp
         table_copy_test.cpp
@@ -182,6 +190,28 @@ if(BUILD_TESTS)
             ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>)
         target_compile_definitions(unittests PRIVATE
             CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN)
+
+        add_library(configuration_test_plugin MODULE
+            fixtures/configuration_plugin.c)
+        target_include_directories(configuration_test_plugin PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_compile_definitions(configuration_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        set_target_properties(configuration_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/configuration-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/configuration-plugin)
+        add_dependencies(unittests configuration_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/configuration_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_CONFIGURATION_PLUGIN_DIR R\"csound($<TARGET_FILE_DIR:configuration_test_plugin>)csound\"\n"
+            TARGET configuration_test_plugin)
+        target_compile_definitions(unittests PRIVATE
+            CSOUND_TEST_HAS_CONFIGURATION_PLUGIN)
     endif()
 
     if(TARGET stdutil)
@@ -219,33 +249,122 @@ if(BUILD_TESTS)
         )
     endif()
 
-    if(TARGET dssi4cs)
-        add_library(dssi_test_plugin MODULE fixtures/dssi_test_plugin.c)
-        add_library(ladspa_test_plugin MODULE fixtures/dssi_test_plugin.c)
-        target_compile_definitions(ladspa_test_plugin PRIVATE DSSI_TEST_LADSPA)
-        include(CheckIncludeFiles)
-        check_include_files("alsa/asoundlib.h;dssi.h" DSSI_TEST_SYSTEM_HEADER)
-        if(NOT DSSI_TEST_SYSTEM_HEADER)
-            target_link_libraries(dssi_test_plugin PRIVATE dssi_headers)
-            target_link_libraries(ladspa_test_plugin PRIVATE dssi_headers)
-        endif()
-        add_executable(dssi_tests dssi_test.cpp)
-        target_link_libraries(dssi_tests PRIVATE GTest::gtest_main ${CSOUNDLIB})
-        target_compile_definitions(dssi_tests PRIVATE
-            CSOUND_TEST_DSSI_HOST="$<TARGET_FILE:dssi4cs>"
-            CSOUND_TEST_DSSI_PLUGIN="$<TARGET_FILE:dssi_test_plugin>"
-            CSOUND_TEST_LADSPA_PLUGIN="$<TARGET_FILE:ladspa_test_plugin>")
-        target_link_libraries(dssi_tests PRIVATE ${CMAKE_DL_LIBS})
-        add_dependencies(dssi_tests dssi4cs dssi_test_plugin ladspa_test_plugin)
-        include(GoogleTest)
-        gtest_discover_tests(dssi_tests)
+    if(APPLE AND TARGET cmidi)
+        add_dependencies(unittests cmidi)
+        # Give the test a directory with only the CoreMIDI plugin.
+        set(TEST_COREMIDI_PLUGIN_DIR
+            ${CMAKE_CURRENT_BINARY_DIR}/coremidi-plugin)
+        add_custom_target(unittests_coremidi_plugin
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+                ${TEST_COREMIDI_PLUGIN_DIR}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:cmidi> ${TEST_COREMIDI_PLUGIN_DIR}/
+            DEPENDS cmidi
+        )
+        add_dependencies(unittests unittests_coremidi_plugin)
+        target_sources(unittests PRIVATE cmidi_output_test.cpp
+                                           cmidi_input_test.cpp)
+        target_link_libraries(unittests PRIVATE
+            "-framework CoreMIDI" "-framework CoreFoundation")
+        target_compile_definitions(unittests PRIVATE
+            CSOUND_TEST_COREMIDI_PLUGIN_DIR="${TEST_COREMIDI_PLUGIN_DIR}"
+        )
+    endif()
+
+    if(TARGET rtjack)
+        add_dependencies(unittests rtjack)
+        # Give the test a directory with only the JACK plugin.
+        set(TEST_JACK_PLUGIN_DIR
+            ${CMAKE_CURRENT_BINARY_DIR}/jack-plugin)
+        add_custom_target(unittests_jack_plugin
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+                ${TEST_JACK_PLUGIN_DIR}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:rtjack> ${TEST_JACK_PLUGIN_DIR}/
+            DEPENDS rtjack
+        )
+        add_dependencies(unittests unittests_jack_plugin)
+        target_sources(unittests PRIVATE rtmidi_jack_module_test.cpp)
+        target_compile_definitions(unittests PRIVATE
+            CSOUND_TEST_JACK_PLUGIN_DIR="${TEST_JACK_PLUGIN_DIR}"
+        )
     endif()
 
     include(GoogleTest)
     gtest_discover_tests(unittests)
+    if(NOT MSVC OR CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
+        foreach(precision IN ITEMS FLOAT DOUBLE)
+            set(conversion_test float_conversion_fallback_${precision})
+            add_executable(${conversion_test} float_conversion_fallback_test.c)
+            target_include_directories(${conversion_test} PRIVATE
+                ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+            target_compile_definitions(${conversion_test} PRIVATE
+                BUILD_PLUGINS USE_${precision})
+            add_test(NAME ${conversion_test} COMMAND ${conversion_test})
+        endforeach()
+    endif()
+    if(WIN32)
+        add_executable(wasapi_format_tests wasapi_format_test.c)
+        target_include_directories(wasapi_format_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_compile_definitions(wasapi_format_tests PRIVATE BUILD_PLUGINS)
+        target_link_libraries(wasapi_format_tests PRIVATE ole32 uuid mmdevapi)
+        add_test(NAME wasapi_format_tests COMMAND wasapi_format_tests)
+    endif()
+    if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND NOT MSVC AND
+       NOT EMSCRIPTEN AND NOT IOS AND NOT BARE_METAL AND
+       NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+        add_executable(realtime_log_noatom_tests
+            realtime_log_noatom_test.cpp fixtures/realtime_log_noatom.c)
+        target_compile_options(realtime_log_noatom_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(realtime_log_noatom_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(realtime_log_noatom_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(realtime_log_noatom_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(realtime_log_noatom_tests PROPERTIES TIMEOUT 15)
+    endif()
     if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND NOT EMSCRIPTEN AND
        USE_ATOMIC_BUILTIN AND HAVE_ATOMIC_BUILTIN AND NOT IOS AND
        NOT BARE_METAL AND NOT CMAKE_SYSTEM_NAME STREQUAL "WASI")
+        add_executable(atomic_spinlock_tests
+            atomic_spinlock_test.cpp fixtures/atomic_spinlock.c)
+        target_include_directories(atomic_spinlock_tests PRIVATE
+            ${PROJECT_SOURCE_DIR}/H)
+        target_link_libraries(atomic_spinlock_tests PRIVATE GTest::gtest_main)
+        target_compile_features(atomic_spinlock_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(atomic_spinlock_tests PROPERTIES TIMEOUT 10)
+
+        add_executable(realtime_lock_tests
+            realtime_lock_test.cpp fixtures/realtime_lock.c)
+        target_compile_options(realtime_lock_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(realtime_lock_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(realtime_lock_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(realtime_lock_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(realtime_lock_tests PROPERTIES TIMEOUT 15)
+
+        add_executable(realtime_score_end_tests
+            realtime_score_end_test.cpp fixtures/realtime_score_end.c)
+        target_compile_options(realtime_score_end_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(realtime_score_end_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(realtime_score_end_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(realtime_score_end_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(realtime_score_end_tests PROPERTIES TIMEOUT 15)
+
+        add_executable(realtime_log_lock_tests
+            realtime_log_lock_test.cpp fixtures/realtime_log_lock.c)
+        target_compile_options(realtime_log_lock_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(realtime_log_lock_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(realtime_log_lock_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(realtime_log_lock_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(realtime_log_lock_tests PROPERTIES TIMEOUT 15)
+
         add_executable(diskin2_concurrency_tests
             diskin2_concurrency_test.cpp fixtures/diskin2_concurrency.c)
         target_compile_options(diskin2_concurrency_tests PRIVATE ${libcsound_CFLAGS})
@@ -255,6 +374,16 @@ if(BUILD_TESTS)
             GTest::gtest_main ${CSOUNDLIB_STATIC})
         target_compile_features(diskin2_concurrency_tests PRIVATE cxx_std_17)
         gtest_discover_tests(diskin2_concurrency_tests)
+
+        add_executable(api_queue_capacity_tests
+            api_queue_capacity_test.cpp fixtures/api_queue_capacity.c)
+        target_compile_options(api_queue_capacity_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(api_queue_capacity_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(api_queue_capacity_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(api_queue_capacity_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(api_queue_capacity_tests PROPERTIES TIMEOUT 15)
     endif()
 
     if(NOT EMSCRIPTEN AND NOT IOS AND NOT BARE_METAL AND
@@ -286,6 +415,34 @@ if(BUILD_TESTS)
         add_dependencies(plugin_struct_tests struct_test_plugin)
         add_dependencies(unittests plugin_struct_tests)
         gtest_discover_tests(plugin_struct_tests)
+
+        add_library(index_test_plugin MODULE fixtures/indexed_plugin.c)
+        # Deliberately expose only installed SDK headers to this plugin.
+        set_property(TARGET index_test_plugin PROPERTY INCLUDE_DIRECTORIES
+            "${Csound_SOURCE_DIR}/include;${PROJECT_BINARY_DIR}/include")
+        if(USE_LIBSNDFILE)
+            target_include_directories(index_test_plugin PRIVATE
+                $<TARGET_PROPERTY:SndFile::sndfile,INTERFACE_INCLUDE_DIRECTORIES>)
+        endif()
+        target_compile_definitions(index_test_plugin PRIVATE BUILD_PLUGINS)
+        set_target_properties(index_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/index-plugin
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/index-plugin)
+        add_executable(plugin_index_tests plugin_index_test.cpp)
+        target_compile_options(plugin_index_tests PRIVATE ${unittests_CFLAGS})
+        target_compile_features(plugin_index_tests PRIVATE cxx_std_17)
+        target_link_libraries(plugin_index_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        file(GENERATE
+            OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/index_plugin_path.hpp
+            CONTENT "#pragma once\n#define CSOUND_TEST_INDEX_PLUGIN_DIR R\"csound($<TARGET_FILE_DIR:index_test_plugin>)csound\"\n"
+            TARGET index_test_plugin)
+        target_include_directories(plugin_index_tests PRIVATE
+            ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>)
+        add_dependencies(plugin_index_tests index_test_plugin)
+        add_dependencies(unittests plugin_index_tests)
+        gtest_discover_tests(plugin_index_tests)
     endif()
 
     add_executable(json_udt_tests json_udt_test.cpp)

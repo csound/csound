@@ -21,6 +21,7 @@
 */
 
 #include "csoundCore.h"
+#include "opcode_deprecation.h"
 #include <stdlib.h>
 #include <ctype.h>
 #ifndef __wasi__
@@ -1260,7 +1261,7 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
       }
 #endif
       else if (strstr(p, "<CsFile filename=") == p) {
-        csoundMessage(csound,
+        csoundDeprecationWarning(csound,
                       Str("CsFile is deprecated and may not work; use CsFileB\n"));
         r = create_filea(csound, buffer, cf);
         result = r && result;

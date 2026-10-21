@@ -41,10 +41,6 @@
         // Update the view.
         [self configureView];
     }
-    
-    if (self.masterPopoverController != nil) {
-        [self.masterPopoverController dismissViewControllerAnimated:YES completion:nil];
-    }        
 }
 
 - (void)configureView
@@ -58,20 +54,10 @@
 
 
 -(void)viewWillDisappear:(BOOL)animated {
-    
-    [super viewWillDisappear:animated];
-    
-    [self.csound stop];
-}
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    // Return YES for supported orientations
-    if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPhone) {
-        return (interfaceOrientation != UIInterfaceOrientationPortraitUpsideDown);
-    } else {
-        return YES;
-    }
+    [super viewWillDisappear:animated];
+
+    [self.csound stop];
 }
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
@@ -89,26 +75,6 @@
 
 -(UIModalPresentationStyle)adaptivePresentationStyleForPresentationController:(UIPresentationController *)controller traitCollection:(UITraitCollection *)traitCollection {
     return UIModalPresentationNone;
-}
-
--(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    [segue destinationViewController].modalPresentationStyle = UIModalPresentationPopover;
-}
-
-#pragma mark - Split view
-
-- (void)splitViewController:(UISplitViewController *)svc willChangeToDisplayMode:(UISplitViewControllerDisplayMode)displayMode
-{
-    self.navigationItem.leftBarButtonItem = [self splitViewController].displayModeButtonItem;
-    self.navigationItem.leftBarButtonItem.title = @"Csound for iOS";
-    self.masterPopoverController = svc;
-    
-}
-
-- (void)splitViewController:(UISplitViewController *)splitController willShowViewController:(UIViewController *)viewController invalidatingBarButtonItem:(UIBarButtonItem *)barButtonItem
-{
-    [self.navigationItem setLeftBarButtonItem:nil animated:YES];
-    self.masterPopoverController = nil;
 }
 
 @end

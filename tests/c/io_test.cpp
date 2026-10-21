@@ -424,6 +424,10 @@ TEST_F (IOTests, testFileCloseRejectsUnknownFlags)
 
 TEST_F (IOTests, testRealtimeFoutTurnoffDoesNotWaitForBorrowedFile)
 {
+#if !defined(__EMSCRIPTEN__) && !defined(__wasi__) && \
+    !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+    GTEST_SKIP() << "Native realtime mode requires atomic operations";
+#endif
     std::string path = ::testing::TempDir() + "csound_fout_" +
                        std::to_string(reinterpret_cast<uintptr_t>(csound)) +
                        ".wav";

@@ -39,6 +39,10 @@ typedef struct pre_parm_s {
     unsigned int macro_stack_ptr;
     unsigned int macro_stack_size;
     IFDEFSTACK      *ifdefStack;
+    MACRO           *pending_macro; /* definition not yet linked to orc_macros */
+    char            *macro_name_buffer; /* temporary argument-name storage */
+    MACRO           *pending_arguments; /* argument group not yet stacked */
+    int32_t         pending_argument_count;
     unsigned char   isIfndef;
     unsigned char   isString;
     uint16_t        line;
@@ -48,6 +52,7 @@ typedef struct pre_parm_s {
     uint16_t        lstack[1024];
     unsigned char   isinclude;
     char            *path;
+    const char      *initial_path; /* borrowed root path */
 } PRE_PARM;
 
 typedef struct parse_parm_s {
@@ -63,6 +68,7 @@ typedef struct parse_parm_s {
     int             xsubstr;    /* count for substr */
 } PARSE_PARM;
 
+void    csound_pre_free_macro_args(CSOUND*, MACRO*, int32_t);
 void    cs_init_math_constants_macros(CSOUND*);
 void    cs_init_omacros(CSOUND*, NAMES*);
 

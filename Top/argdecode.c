@@ -30,6 +30,9 @@ static void list_audio_devices(CSOUND *csound, int32_t output);
 static void list_midi_devices(CSOUND *csound, int32_t output);
 extern void strset_option(CSOUND *csound, char *s); /* from str_ops.c */
 extern void print_csound_version(CSOUND *csound);
+#if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
+extern int csoundSupportsRealtime(void);
+#endif
 
 #define FIND(MSG)                                                              \
   if (*s == '\0')                                                              \
@@ -350,6 +353,7 @@ static const char *longUsageList[] = {
     Str_noop("--run-unit-tests        enable assertion opcodes and report test failures"),
     Str_noop("                          (assertions are ignored by default)"),
     Str_noop("--error-deprecated      trigger compilation error on deprecated opcodes"),
+    Str_noop("--no-deprecated-warnings suppress deprecation warnings"),
     Str_noop("--recursion-depth=n    set max UDO recursion depth to n"),
     Str_noop("--help                  long help"),
     NULL};
@@ -1125,11 +1129,20 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     O->sampleAccurate = 1;
     return 1;
   } else if (!(strcmp(s, "realtime"))) {
-#if defined(__wasi__)
+#if defined(__wasi__) && !defined(CSOUND_WASI_REALTIME)
     csound->Message(csound,
                     Str("--realtime ignored in WASI; using synchronous mode\n"));
     O->realtime = 0;
 #else
+#if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
+    if (!csoundSupportsRealtime()) {
+      csound->Message(csound,
+                     Str("--realtime ignored: this browser host has no worker pool; "
+                         "using synchronous mode\n"));
+      O->realtime = 0;
+      return 1;
+    }
+#endif
     csound->Message(csound, Str("realtime mode enabled\n"));
     O->realtime = 1;
 #endif
@@ -1303,6 +1316,10 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   }
   else if (!(strncmp(s, "error-deprecated", 16))) {
     O->error_deprecated = 1;
+    return 1;
+  }
+  else if (!(strncmp(s, "no-deprecated-warnings", 22))) {
+    O->no_deprecated_warnings = 1;
     return 1;
   }
   else if (!(strncmp(s, "code", 4))) {

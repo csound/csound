@@ -2,12 +2,19 @@
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
   pkgsWasm ? pkgs.pkgsCross.wasi32,
-  stdenvWasm ? pkgsWasm.clangStdenv,
-  csoundSdkArchive ? ../lib/csound-plugin-sdk.tar.gz,
+  # Match the browser binary selected from this package at build time.
+  sharedMemory ? builtins.pathExists ../lib/csound-browser-realtime.wasm.z,
+  stdenvWasm ? if sharedMemory
+    then (import ./wasi-realtime-toolchain.nix { inherit pkgs pkgsWasm; }).stdenv
+    else pkgsWasm.clangStdenv,
+  csoundSdkArchive ? if sharedMemory
+    then ../lib/csound-plugin-sdk.tar.gz
+    else ../lib/csound-plugin-sdk-compat.tar.gz,
   useSdkArchive ? true,
 }: let
+  maxMemory = builtins.fromJSON (builtins.readFile ./shared-memory-max.txt);
   csound-sdk = pkgs.callPackage ./csound_plugin_sdk.nix {
-    inherit pkgs pkgsWasm stdenvWasm csoundSdkArchive useSdkArchive;
+    inherit pkgs pkgsWasm stdenvWasm csoundSdkArchive useSdkArchive sharedMemory;
   };
 in
   stdenvWasm.mkDerivation {
@@ -25,6 +32,7 @@ in
       $CXX \
         -fPIC -fno-exceptions -fno-rtti \
         -mllvm -wasm-enable-sjlj \
+        ${pkgs.lib.optionalString sharedMemory "-mllvm -wasm-use-legacy-eh=false -DCSOUND_WASI_SHARED_PLUGIN=1"} \
         -D__wasi__=1 \
         -D__wasm32__=1 \
         -D_WASI_EMULATED_SIGNAL \
@@ -44,8 +52,10 @@ in
         -Wl,--no-entry \
         -Wl,--import-table \
         -Wl,--import-memory \
+        ${pkgs.lib.optionalString sharedMemory "-Wl,--shared-memory -Wl,--max-memory=${toString maxMemory} -Wl,--export=__wasm_init_tls -Wl,--export=__tls_size -Wl,--export=__tls_align"} \
         -Wl,--import-undefined \
         -Wl,--export=__wasm_call_ctors \
+        -Wl,--export-if-defined=__wasm_apply_data_relocs \
         -Wl,--export=csoundModuleInit \
         -Wl,--export=csoundModuleInfo \
         -Wl,--export-if-defined=csoundModuleCreate \
@@ -55,6 +65,6 @@ in
 
     installPhase = ''
       mkdir -p $out/lib
-      cp ./plugin_example_cpp.wasm $out/lib
+      cp ./plugin_example_cpp.wasm $out/lib/plugin_example_cpp${pkgs.lib.optionalString sharedMemory "_shared"}.wasm
     '';
   }

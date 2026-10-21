@@ -93,6 +93,7 @@ int32_t compile_instr(CSOUND *csound, CINSTR *p) {
   if(csound_compile_orc(csound, code, 0) == CSOUND_SUCCESS) {
     /* Compilation can grow and relocate the instrument table. */
     p->instr->instr = csound->GetInstrumentList(csound)[num];
+    ATOMIC_SET(p->instr->number, num);
     csound->Free(csound, code);
     return OK;
   }

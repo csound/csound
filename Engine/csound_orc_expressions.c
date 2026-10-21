@@ -158,14 +158,14 @@ static char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
       if(*type == '[') { // [type]
         size_t typeLen = strlen(type);
         char *baseType = (typeLen >= 3) ? cs_strndup(csound, type + 1, typeLen - 2)
-                                        : csoundStrdup(csound, type);
+                                        : csoundParserStrdup(csound, type);
         snprintf(s, 256, "#%s%d[]", baseType, argCount);
         add_array_arg(csound, s, baseType, 1, typeTable);
         csound->Free(csound, baseType);
       } else { // type[]
         size_t typeLen = strlen(type);
         char *baseType = (typeLen >= 2) ? cs_strndup(csound, type, typeLen - 2)
-                                        : csoundStrdup(csound, type);
+                                        : csoundParserStrdup(csound, type);
         snprintf(s, 256, "#%s%d[]", baseType, argCount);
         add_array_arg(csound, s,  baseType, 1, typeTable);
         csound->Free(csound, baseType);
@@ -194,7 +194,7 @@ static char * get_boolean_arg(CSOUND *csound, TYPE_TABLE* typeTable, int32_t typ
 static TREE *create_empty_token(CSOUND *csound)
 {
   TREE *ans;
-  ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
+  ans = (TREE*)csoundParserOwn(csound, csound->Malloc(csound, sizeof(TREE)));
   if (UNLIKELY(ans==NULL)) {
     /* fprintf(stderr, "Out of memory\n"); */
     exit(1);
@@ -215,7 +215,7 @@ static TREE *create_empty_token(CSOUND *csound)
 static TREE *create_unary_token(CSOUND *csound, char *sym)
 {
   TREE *ans;
-  ans = (TREE*)csound->Malloc(csound, sizeof(TREE));
+  ans = (TREE*)csoundParserOwn(csound, csound->Malloc(csound, sizeof(TREE)));
   if (UNLIKELY(ans==NULL)) {
    if(csoundGetDebug(csound) & DEBUG_EXPRESSIONS)
     csoundMessage(csound, Str("Out of memory\n"));
@@ -393,11 +393,11 @@ static TREE *create_cond_expression(CSOUND *csound,
   }
 
   typeTable->labelList =
-    cs_cons(csound,
-            csoundStrdup(csound, L1->value->lexeme), typeTable->labelList);
+    csoundParserCons(csound,
+            csoundParserStrdup(csound, L1->value->lexeme), typeTable->labelList);
   typeTable->labelList =
-    cs_cons(csound,
-            csoundStrdup(csound, L2->value->lexeme), typeTable->labelList);
+    csoundParserCons(csound,
+            csoundParserStrdup(csound, L2->value->lexeme), typeTable->labelList);
   left = get_arg_type2(csound, c, typeTable);
   right  = get_arg_type2(csound, d, typeTable);
   if (left == NULL || right == NULL) {
@@ -450,12 +450,12 @@ static TREE *create_cond_expression(CSOUND *csound,
   right = create_out_arg(csound,left,
                          typeTable->localPool->synthArgCount++, typeTable);
   {
-    TREE *C = create_opcode_token(csound, csoundStrdup(csound, eq));
+    TREE *C = create_opcode_token(csound, csoundParserStrdup(csound, eq));
     C->left = create_ans_token(csound, right); C->right = c;
     c = C;
   }
   {
-    TREE *D = create_opcode_token(csound, csoundStrdup(csound, eq));
+    TREE *D = create_opcode_token(csound, csoundParserStrdup(csound, eq));
     D->left = create_ans_token(csound, right); D->right = d;
     d = D;
   }
@@ -466,7 +466,7 @@ static TREE *create_cond_expression(CSOUND *csound,
   last = tree_append_at(last, create_synthetic_label(csound, ln1));
   last = tree_append_at(last, c);
   last = tree_append_at(last, create_synthetic_label(csound, ln2));
-  last = tree_append_at(last, create_opcode_token(csound, csoundStrdup(csound, eq)));
+  last = tree_append_at(last, create_opcode_token(csound, csoundParserStrdup(csound, eq)));
   last->left = create_ans_token(csound, right);
   last->right = create_ans_token(csound, right);
   return b;
@@ -557,6 +557,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   OENTRIES* opentries;
   CS_VARIABLE* var;
   int32_t childContext = initContext;
+  OENTRY *indexEntry = NULL;
 
   /* HANDLE SUB EXPRESSIONS */
   if (root->type=='?') return create_cond_expression(csound, root, line,
@@ -827,6 +828,19 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         } else if (var->varType == &CS_VAR_TYPE_A) {
           strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
           outype = strdup("k");
+        } else if (type_has_index_opcode(csound, var->varType, "##array_get")) {
+          /* As for a built-in array, the read follows changes unless an
+             init-only consumer reads it with i indices; the type's entries
+             for that rate give the element type. */
+          indexEntry = resolve_index_read_entry(csound, var->varType, root->right,
+                                                typeTable, !initArrayRead);
+          if (indexEntry == NULL) {
+            return NULL;
+          }
+          strNcpy(op, "##array_get", 80);
+          char *elementType = remove_type_quoting(csound, indexEntry->outypes);
+          outype = strdup(elementType);
+          csound->Free(csound, elementType);
         } else {
           // Typed array like k[], varType is the element type
           strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
@@ -849,6 +863,8 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   }
   opTree = create_opcode_token(csound, op);
   if (root->value) opTree->value->optype = root->value->optype;
+  /* verify_opcode keeps the entry the type's [] resolution chose */
+  opTree->markup = indexEntry;
   if (root->left != NULL) {
     opTree->right = root->left;
     opTree->right->next = root->right;
@@ -1145,7 +1161,8 @@ void handle_negative_number(CSOUND* csound, TREE* root)
       (root->right->type == INTEGER_TOKEN ||
        root->right->type == NUMBER_TOKEN)) {
     int32_t len = (int32_t) strlen(root->right->value->lexeme);
-    char* negativeNumber = csound->Malloc(csound, len + 3);
+    char* negativeNumber = csoundParserOwn(csound,
+                                          csound->Malloc(csound, len + 3));
     negativeNumber[0] = '-';
     strcpy(negativeNumber + 1, root->right->value->lexeme);
     negativeNumber[len + 2] = '\0';
@@ -1158,7 +1175,8 @@ void handle_negative_number(CSOUND* csound, TREE* root)
            (root->right->type == INTEGER_TOKEN ||
             root->right->type == NUMBER_TOKEN)) {
     int32_t len = (int32_t) strlen(root->right->value->lexeme);
-    char* positiveNumber = csound->Malloc(csound, len + 1);
+    char* positiveNumber = csoundParserOwn(csound,
+                                          csound->Malloc(csound, len + 1));
     strcpy(positiveNumber, root->right->value->lexeme);
     root->type = root->right->type;
     root->value = root->right->type == INTEGER_TOKEN ?
@@ -1883,6 +1901,8 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       char *outType;
       CS_VARIABLE* var;
       int32_t arrayElementIsStruct = 0;
+      int32_t typeIndexed = 0;
+      OENTRY* indexEntry = NULL;
 
       if (array_target_missing_lexeme(currentArg)) {
         const CS_TYPE* outCsType;
@@ -1909,23 +1929,37 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
           // (e.g., "k" for k[], "S" for S[]) because it represents the value being assigned
           if (var->subType) {
             // Generic array, use subType (element type)
-            outType = csoundStrdup(csound, var->subType->varTypeName);
+            outType = csoundParserStrdup(csound, var->subType->varTypeName);
           } else if (var->varType == &CS_VAR_TYPE_A) {
-            outType = csoundStrdup(csound, "k");
+            outType = csoundParserStrdup(csound, "k");
           } else if (var->varType == &CS_VAR_TYPE_ARRAY) {
             synterr(csound,
                     Str("expand_statement: unable to find array sub-type "
                         "for var %s line %d\n"),
                     varBaseName, current->line);
             return NULL;
+          } else if (type_has_index_opcode(csound, var->varType, "##array_set") ||
+                     type_has_index_opcode(csound, var->varType, "##array_init")) {
+            // The type's writer entries name the values they take; only an
+            // assignment's right-hand side is the value written
+            const char* writer = init ? "##array_init" : "##array_set";
+            int32_t assigns = init || !strcmp(current->value->lexeme, "=");
+            indexEntry = resolve_index_set_entry(csound, var->varType, writer,
+                                                 assigns ? current->right : NULL,
+                                                 currentArg->right, typeTable, &outType);
+            if (indexEntry == NULL) {
+              // resolve_index_set_entry said why
+              return NULL;
+            }
+            typeIndexed = 1;
           } else {
             // Typed array like k[], varType is the element type
-            outType = csoundStrdup(csound, var->varType->varTypeName);
+            outType = csoundParserStrdup(csound, var->varType->varTypeName);
           }
-          arrayElementIsStruct =
-            (var->subType && var->subType->userDefinedType) ||
-            (var->subType == NULL && var->varType &&
-             var->varType->userDefinedType);
+          arrayElementIsStruct = !typeIndexed &&
+            ((var->subType && var->subType->userDefinedType) ||
+             (var->subType == NULL && var->varType &&
+              var->varType->userDefinedType));
         }
       }
 
@@ -1955,6 +1989,9 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
       }
 
       TREE* arraySet = create_opcode_token(csound, opcodeNameBase);
+      arraySet->markup = indexEntry;
+      arraySet->line = current->line;
+      arraySet->locn = current->locn;
       arraySet->right = currentArg->left;
       arraySet->right->next =
         make_leaf(csound, temp->line, temp->locn,
@@ -2065,8 +2102,8 @@ TREE* expand_if_statement(CSOUND* csound,
         tempRight->right = label;
 
         typeTable->labelList =
-          cs_cons(csound,
-                  csoundStrdup(csound,
+          csoundParserCons(csound,
+                  csoundParserStrdup(csound,
                             labelEnd->value->lexeme),
                   typeTable->labelList);
         // checking for #B... var name
@@ -2117,8 +2154,8 @@ TREE* expand_if_statement(CSOUND* csound,
                                               endLabelCounter);
       anchor = tree_append(anchor, endLabel);
 
-      typeTable->labelList = cs_cons(csound,
-                                     csoundStrdup(csound,
+      typeTable->labelList = csoundParserCons(csound,
+                                     csoundParserStrdup(csound,
                                                endLabel->value->lexeme),
                                      typeTable->labelList);
     }
@@ -2182,9 +2219,9 @@ TREE* expand_switch_statement(
 
   TREE* endGoto = create_goto_node(csound, isPerfRate);
   TREE* endLabel = create_synthetic_label(csound, csound->genlabs++);
-  typeTable->labelList = cs_cons(
+  typeTable->labelList = csoundParserCons(
     csound,
-    csoundStrdup(csound, endLabel->value->lexeme),
+    csoundParserStrdup(csound, endLabel->value->lexeme),
     typeTable->labelList
   );
   endGoto->right = endLabel;
@@ -2207,9 +2244,9 @@ TREE* expand_switch_statement(
 
     if (caseNode->type == CASE_TOKEN) {
         caseLabel = create_synthetic_label(csound, csound->genlabs++);
-        typeTable->labelList = cs_cons(
+        typeTable->labelList = csoundParserCons(
           csound,
-          csoundStrdup(csound, caseLabel->value->lexeme),
+          csoundParserStrdup(csound, caseLabel->value->lexeme),
           typeTable->labelList
         );
 
@@ -2262,9 +2299,9 @@ TREE* expand_switch_statement(
       }
       gotoChainHeadDefaultCase = create_goto_node(csound, isPerfRate);
       defaultCaseLabel = create_synthetic_label(csound, csound->genlabs++);
-      typeTable->labelList = cs_cons(
+      typeTable->labelList = csoundParserCons(
         csound,
-        csoundStrdup(csound, defaultCaseLabel->value->lexeme),
+        csoundParserStrdup(csound, defaultCaseLabel->value->lexeme),
         typeTable->labelList
       );
       gotoChainHeadDefaultCase->right = defaultCaseLabel;
@@ -2339,8 +2376,8 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   int32_t gotoType;
 
   anchor = create_synthetic_label(csound, topLabelCounter);
-  typeTable->labelList = cs_cons(csound,
-                                 csoundStrdup(csound, anchor->value->lexeme),
+  typeTable->labelList = csoundParserCons(csound,
+                                 csoundParserStrdup(csound, anchor->value->lexeme),
                                  typeTable->labelList);
 
   if (current->left->type == T_IDENT) {
@@ -2371,8 +2408,8 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   }
 
   labelEnd = create_synthetic_label(csound, endLabelCounter);
-  typeTable->labelList = cs_cons(csound,
-                                 csoundStrdup(csound, labelEnd->value->lexeme),
+  typeTable->labelList = csoundParserCons(csound,
+                                 csoundParserStrdup(csound, labelEnd->value->lexeme),
                                  typeTable->labelList);
   gotoToken =
     create_goto_token(csound,
@@ -2510,7 +2547,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
                          loopLabel->value->lexeme, NULL);
   csoundAddVariable(csound, typeTable->localPool, loopLabelVar);
   typeTable->labelList =
-    cs_cons(csound, csoundStrdup(csound, loopLabel->value->lexeme),
+    csoundParserCons(csound, csoundParserStrdup(csound, loopLabel->value->lexeme),
                                  typeTable->labelList);
   arrayLength->next = loopLabel;
 
@@ -2553,19 +2590,21 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
 
   int32_t continueTargetCounter = csound->genlabs++;
   TREE* continueTargetLabel = create_synthetic_label(csound, continueTargetCounter);
-  typeTable->labelList = cs_cons(csound,
-                                 csoundStrdup(csound, continueTargetLabel->value->lexeme),
+  typeTable->labelList = csoundParserCons(csound,
+                                 csoundParserStrdup(csound, continueTargetLabel->value->lexeme),
                                  typeTable->labelList);
   TREE* continueTargetIdent = create_synthetic_ident(csound, continueTargetCounter);
 
   int32_t breakTargetCounter = csound->genlabs++;
   TREE* breakTargetLabel = create_synthetic_label(csound, breakTargetCounter);
-  typeTable->labelList = cs_cons(csound,
-                                 csoundStrdup(csound, breakTargetLabel->value->lexeme),
+  typeTable->labelList = csoundParserCons(csound,
+                                 csoundParserStrdup(csound, breakTargetLabel->value->lexeme),
                                  typeTable->labelList);
   TREE* breakTargetIdent = create_synthetic_ident(csound, breakTargetCounter);
 
   TREE* tail = tree_tail(current->right->right);
+  if (tail == NULL)
+    tail = arrayGetStatement;
   tail->next = continueTargetLabel;
 
   strNcpy(op, isPerfRate ? "looplt.k" : "looplt.i", 10);

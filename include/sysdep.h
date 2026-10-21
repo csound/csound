@@ -342,8 +342,9 @@ typedef unsigned long       uintptr_t;
 #  define LIKELY(x)     __builtin_expect(!!(x),1)
 #  define UNLIKELY(x)   __builtin_expect(!!(x),0)
 #else
-#  define LIKELY(x)     x
-#  define UNLIKELY(x)   x
+/* Preserve grouping when a condition contains && or ||. */
+#  define LIKELY(x)     (x)
+#  define UNLIKELY(x)   (x)
 #endif
 
 #if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
@@ -368,7 +369,7 @@ typedef unsigned long       uintptr_t;
 #    define CS_FLOAT2LRND64(x) (x > LONG_MIN && x < (cs_double)LONG_MAX ? \
                            (int64_t) lrintl((cs_double) (x)) : 0)
 #  endif
-#elif defined(MSVC)
+#elif defined(MSVC) && (defined(_M_IX86) || defined(_M_X64))
 #include <emmintrin.h>
 #  ifndef USE_DOUBLE
 // From Agner Fog optimisation manuals p.144
@@ -411,13 +412,15 @@ static inline int32 CS_FLOAT2LRND(cs_double fval)
     return ((int32) (fval + (fval < 0.0 ? -0.5 : 0.5)));
 }
 
-static inline int64 CS_FLOAT2LRND64(cs_double fval)
-{
-    return ((int64) (fval + (fval < 0.0 ? -0.5 : 0.5)));
-}
-
 #    endif
 #  endif
+
+/* Keep the 64-bit helpers available in both float and double builds. */
+#  define CS_FLOAT2LONG64(x) ((int64_t) (x))
+static inline int64_t CS_FLOAT2LRND64(cs_double fval)
+{
+    return ((int64_t) (fval + (fval < 0.0 ? -0.5 : 0.5)));
+}
 #endif
 
 #ifdef HAVE_C99
@@ -549,6 +552,16 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_ADD(var, val) var += val
 #endif
 
+/* Serialized fallback only; this does not synchronize concurrent callers. */
+static inline int csoundCompareExchangeSerial(volatile long *value,
+                                              long desired, long expected)
+{
+  if (*value != expected)
+    return 1;
+  *value = desired;
+  return 0;
+}
+
 #if defined(MSVC)
 #define ATOMIC_CMP_XCH(val, newVal, oldVal) \
   (InterlockedCompareExchange(val, newVal, oldVal) != oldVal)
@@ -556,8 +569,9 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_CMP_XCH(val, newVal, oldVal) \
   !(__atomic_compare_exchange(val, (long *) &oldVal,  &newVal, 0, \
                               __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
-#else /* FIXME: no atomics, what to do? */
-#define ATOMIC_CMP_XCH(val, newVal, oldVal) (*val = newVal) != oldVal
+#else
+#define ATOMIC_CMP_XCH(val, newVal, oldVal) \
+  csoundCompareExchangeSerial(val, newVal, oldVal)
 #endif
 
 #if defined(WIN32)

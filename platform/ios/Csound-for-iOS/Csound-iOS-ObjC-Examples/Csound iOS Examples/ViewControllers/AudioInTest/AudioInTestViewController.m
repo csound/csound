@@ -24,6 +24,7 @@
  */
 
 #import "AudioInTestViewController.h"
+#import "CsoundBindingDispatch.h"
 
 @implementation AudioInTestViewController
 
@@ -91,6 +92,8 @@
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[_mSwitch setOn:NO animated:YES];
+    CsoundRunSyncOnMainQueue(^{
+        [self->_mSwitch setOn:NO animated:YES];
+    });
 }
 @end

@@ -23,6 +23,7 @@
  */
 
 #import "CsoundSliderBinding.h"
+#import "CsoundBindingDispatch.h"
 
 @interface CsoundSliderBinding() {
     float channelValue;
@@ -51,13 +52,14 @@
 
 -(void)setup:(CsoundObj *)csoundObj
 {
-    channelPtr = [csoundObj getInputChannelPtr:self.channelName
-                                   channelType:CSOUND_CONTROL_CHANNEL];
-    channelValue = self.slider.value;
-    [self.slider addTarget:self
-                    action:@selector(updateChannelValue:)
-          forControlEvents:UIControlEventValueChanged];
-    
+    CsoundRunSyncOnMainQueue(^{
+        channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                       channelType:CSOUND_CONTROL_CHANNEL];
+        channelValue = self.slider.value;
+        [self.slider addTarget:self
+                        action:@selector(updateChannelValue:)
+              forControlEvents:UIControlEventValueChanged];
+    });
 }
 
 
@@ -66,9 +68,11 @@
 }
 
 -(void)cleanup {
-    [self.slider removeTarget:self
-                       action:@selector(updateChannelValue:)
-             forControlEvents:UIControlEventValueChanged];
+    CsoundRunSyncOnMainQueue(^{
+        [self.slider removeTarget:self
+                           action:@selector(updateChannelValue:)
+                 forControlEvents:UIControlEventValueChanged];
+    });
 }
 
 

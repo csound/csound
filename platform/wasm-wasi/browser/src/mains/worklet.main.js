@@ -17,16 +17,11 @@ import * as Comlink from "../utils/comlink.js";
 import { logWorkletMain as log } from "../logger";
 import { WebkitAudioContext } from "../utils";
 import { getGlobalScope } from "../utils/global-scope.js";
+import { nextWorkletNodeId, registerWorkletModule } from "../utils/worklet-context.js";
 import { requestMidi } from "../utils/request-midi";
-import {
-  releaseMicrophoneStream,
-  requestMicrophoneStream,
-} from "./io.utils.js";
+import { releaseMicrophoneStream, requestMicrophoneStream } from "./io.utils.js";
 import { messageEventHandler } from "./messages.main";
 import WorkletWorker from "../../dist/__compiled.worklet.worker.inline.js";
-
-let UID = 0;
-const registeredContexts = new WeakSet();
 
 /**
  * @unrestricted
@@ -75,6 +70,8 @@ class AudioWorkletMainThread {
       try {
         await this.workletProxy["terminate"]();
       } catch {}
+      this.workletProxy[Comlink.releaseProxy](false);
+      delete this.workletProxy;
     }
     if (this.audioWorkletNode) {
       this.audioWorkletNode.disconnect();
@@ -87,10 +84,6 @@ class AudioWorkletMainThread {
         } catch {}
       }
       delete this.audioContext;
-    }
-    if (this.workletProxy) {
-      this.workletProxy[Comlink.releaseProxy]();
-      delete this.workletProxy;
     }
   }
 
@@ -257,16 +250,13 @@ class AudioWorkletMainThread {
     }
     this.workletWorkerUrl = WorkletWorker();
 
-    if (registeredContexts.has(this.audioContext)) {
-      log("Module already registered on this AudioContext, skipping addModule")();
-    } else {
-      try {
-        await this.audioContext.audioWorklet.addModule(this.workletWorkerUrl);
-        registeredContexts.add(this.audioContext);
-      } catch (error) {
-        console.error("Error calling audioWorklet.addModule", error);
-        throw error;
-      }
+    try {
+      await registerWorkletModule(this.audioContext, "csound-worklet-processor", () =>
+        this.audioContext.audioWorklet.addModule(this.workletWorkerUrl),
+      );
+    } catch (error) {
+      console.error("Error calling audioWorklet.addModule", error);
+      throw error;
     }
 
     log("WorkletWorker module added")();
@@ -276,13 +266,13 @@ class AudioWorkletMainThread {
       return;
     }
 
-    const contextUid = `audioWorklet${UID}`;
-    UID += 1;
+    const contextUid = nextWorkletNodeId(this.audioContext);
 
     if (this["isRequestingMidi"]) {
       log("requesting for web-midi connection");
       requestMidi({
-        onMidiMessage: this.csoundWorkerMain["handleMidiInput"].bind(this.csoundWorkerMain),
+        // Let Closure rename this internal call with the worker controller methods.
+        onMidiMessage: this.csoundWorkerMain.handleMidiInput.bind(this.csoundWorkerMain),
       });
     }
 

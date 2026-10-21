@@ -21,6 +21,15 @@ const e = Symbol("Comlink.proxy");
 const t = Symbol("Comlink.endpoint");
 const n = Symbol("Comlink.releaseProxy");
 const r = Symbol("Comlink.thrown");
+const pendingRequests = new WeakMap();
+const releasedEndpoints = new WeakSet();
+function releaseEndpoint(endpoint) {
+  releasedEndpoints.add(endpoint);
+  const pending = pendingRequests.get(endpoint);
+  if (pending) for (const cancel of pending) cancel();
+  pendingRequests.delete(endpoint);
+  i(endpoint);
+}
 const a = (e) => ("object" == typeof e && null !== e) || "function" == typeof e;
 const s = new Map([
   [
@@ -117,10 +126,22 @@ function c(e, r) {
     const c = new Proxy(s, {
       get(t, s) {
         if ((u(o), s === n))
-          return () =>
-            h(r, { type: "RELEASE", path: a.map((e) => e.toString()) }, undefined).then(() => {
-              i(r), (o = !0);
+          return (waitForReply = true) => {
+            // A terminated Worker cannot acknowledge RELEASE. Cancel its local
+            // reply listeners immediately instead of retaining pending calls.
+            if (!waitForReply) {
+              o = true;
+              try {
+                r.postMessage({ "type": "RELEASE", "path": a.map((e) => e.toString()) });
+              } catch {}
+              releaseEndpoint(r);
+              return Promise.resolve();
+            }
+            return h(r, { type: "RELEASE", path: a.map((e) => e.toString()) }, undefined).then(() => {
+              o = true;
+              releaseEndpoint(r);
             });
+          };
         if ("then" === s) {
           if (0 === a.length) return { then: () => c };
           const e = h(r, { type: "GET", path: a.map((e) => e.toString()) }, undefined).then(E);
@@ -210,19 +231,44 @@ function E(e) {
   }
 }
 function h(e, t, n) {
-  return new Promise((r) => {
+  return new Promise((r, reject) => {
+    if (releasedEndpoints.has(e)) {
+      reject(new Error("Proxy has been released and is not useable"));
+      return;
+    }
     const a = new Array(4)
       .fill(0)
       .map(() => Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString(16))
       .join("-");
-    e.addEventListener("message", function t(n) {
-      n.data && n.data.id && n.data.id === a && (e.removeEventListener("message", t), r(n.data));
-    });
+    let pending = pendingRequests.get(e);
+    if (!pending) pendingRequests.set(e, (pending = new Set()));
+    const cleanup = () => {
+      e.removeEventListener("message", listener);
+      pending.delete(cancel);
+      if (pending.size === 0) pendingRequests.delete(e);
+    };
+    const cancel = () => {
+      cleanup();
+      reject(new Error("Proxy has been released and is not useable"));
+    };
+    const listener = (n) => {
+      if (n.data && n.data.id === a) {
+        cleanup();
+        r(n.data);
+      }
+    };
+    pending.add(cancel);
+    e.addEventListener("message", listener);
     e.start && e.start();
     const message = t;
     message["id"] = a;
     // console.trace("message2", message);
-    e.postMessage(message, n);
+    try {
+      e.postMessage(message, n);
+    } catch (error) {
+      cleanup();
+      reject(error);
+    }
   });
 }
 

@@ -6,9 +6,11 @@ Include `csound.h` in hosts or `csdl.h` in plugins; both expose these types.
 Standalone code can include `csound_types.h`.
 
 `MYFLT` remains a typedef alias for `cs_float` in Csound 7. Existing C and C++
-code still compiles, but MSVC, GCC, and Clang warn when it uses `MYFLT`.
-Replace the type name with `cs_float` to remove the warning. Projects that
-treat warnings as errors must migrate or allow deprecated declarations.
+code still compiles, and does not warn yet: the deprecation attributes for
+`MYFLT` are present but currently disabled in `csound_types.h`, and are
+intended to be re-enabled in a future release. Replace the type name with
+`cs_float` to be ready for that; projects that treat warnings as errors
+should migrate or allow deprecated declarations once the attributes return.
 `MYFLT` is now a typedef, so do not test it with `#ifdef` or redefine it.
 
 ## Build options
@@ -35,15 +37,21 @@ the ABI; rebuild hosts and plugins when changing it. `USE_FLOAT` also reduces
 the precision and range of internal calculations and time values.
 
 Plugins built with `USE_FLOAT` mark that ABI in `csoundModuleInfo()`.
-The loader checks both precisions before calling plugin entry points.
+The loader checks the supplied precision metadata before calling plugin
+entry points.
 `LINKAGE`, `FLINKAGE`, their built-in variants, and `modload.h` supply the
 metadata. Hand-written `csoundModuleInfo()` functions must return
 `CSOUND_MODULE_INFO` from `csdl.h`.
 
 The default and mixed precision modes keep their old metadata values.
-Plugins with missing or partial metadata still use the legacy 64-bit
-`cs_double` ABI; `USE_FLOAT` engines reject them. Rebuild those plugins
-with the new headers and matching options to use them with `USE_FLOAT`.
+Native plugins must export `csoundModuleInfo()` and return a nonzero value
+that passes the loader's version and precision checks. The loader rejects
+missing or zero metadata before calling the plugin's entry points.
+Partial metadata can skip sample-size or version checks, so always return
+the full `CSOUND_MODULE_INFO` value.
+Metadata without the `USE_FLOAT` flag still selects the 64-bit `cs_double`
+ABI, so `USE_FLOAT` engines reject it. Rebuild plugins with the new headers
+and matching options.
 Older native loaders also reject plugins that carry the new `USE_FLOAT` flag.
 
 The aliases control Csound storage and interfaces. They do not change C's

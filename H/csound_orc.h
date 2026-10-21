@@ -45,6 +45,40 @@ typedef struct type_table {
     CONS_CELL* labelList;
 } TYPE_TABLE;
 
+/* Parser nodes can be detached or share children during rewriting. Track
+   their allocations directly for worker error recovery, without walking a
+   partially rewritten tree. Native parsing keeps its existing ownership. */
+static inline void *csoundParserOwn(CSOUND *csound, void *ptr)
+{
+#ifdef CSOUND_WASI_REALTIME
+    return csoundWasiOwnAllocation(csound, ptr, NULL);
+#else
+    (void) csound;
+    return ptr;
+#endif
+}
+
+void csoundFreeParserVarPool(CSOUND *csound, void *ptr);
+static inline CS_VAR_POOL *csoundParserCreateVarPool(CSOUND *csound)
+{
+    CS_VAR_POOL *pool = csoundCreateVarPool(csound);
+#ifdef CSOUND_WASI_REALTIME
+    csoundWasiOwnAllocation(csound, pool, csoundFreeParserVarPool);
+#endif
+    return pool;
+}
+
+static inline char *csoundParserStrdup(CSOUND *csound, const char *value)
+{
+    return (char *)csoundParserOwn(csound, csoundStrdup(csound, value));
+}
+
+static inline CONS_CELL *csoundParserCons(CSOUND *csound, void *value,
+                                         CONS_CELL *next)
+{
+    return (CONS_CELL *)csoundParserOwn(csound, cs_cons(csound, value, next));
+}
+
 
 #ifndef PARSER_DEBUG
 

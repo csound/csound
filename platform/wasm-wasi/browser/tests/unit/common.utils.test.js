@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 
 import assert from "node:assert/strict";
+import { AUDIO_STATE, initialSharedState } from "../../src/constants.js";
 
 let handleCsoundStart;
 let originalGoogDescriptor;
@@ -24,9 +25,65 @@ describe("worker performance mode", () => {
     }
   });
 
+  for (const shared of [false, true]) {
+    it(`announces an offline render only when ready (SAB: ${shared})`, async () => {
+      const audioState = shared
+        ? new Int32Array(new SharedArrayBuffer(initialSharedState.length * 4))
+        : undefined;
+      audioState?.set(initialSharedState);
+      const events = [];
+      const libraryCsound = {
+        csoundShouldDaemonize: () => 0,
+        csoundStart: () => 0,
+        csoundGetOutputName: () => "recording.wav",
+        isRequestingRtMidiInput: () => 0,
+        isRequestingRtAudioInput: () => 0,
+      };
+      const workerMessagePort = {
+        broadcastPlayState: (state, generation) => {
+          // The main thread may handle this message before the renderer runs.
+          events.push([
+            state,
+            generation,
+            audioState ? Atomics.load(audioState, AUDIO_STATE.IS_RENDERING) : undefined,
+          ]);
+        },
+      };
+      const start = handleCsoundStart(
+        workerMessagePort,
+        libraryCsound,
+        {},
+        () => events.push("realtime"),
+        () => events.push("render"),
+      );
+
+      assert.equal(
+        start({ csound: 1, performanceGeneration: 7, audioStateBuffer: audioState?.buffer }),
+        0,
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      assert.deepEqual(events, [["renderStarted", 7, shared ? 1 : undefined], "render"]);
+    });
+  }
+
+  it("does not launch a render loop when native start fails", async () => {
+    const start = handleCsoundStart(
+      { post: () => {}, broadcastPlayState: () => assert.fail("no state broadcast") },
+      { csoundShouldDaemonize: () => 0, csoundStart: () => -1, csoundGetOutputName: () => "dac" },
+      {},
+      () => assert.fail("no realtime render"),
+      () => assert.fail("no offline render"),
+    );
+    assert.equal(start({ csound: 1 }), -1);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+
   it("uses the real-time path for microphone input without DAC output", async () => {
     let realtimeStarted = false;
     let renderStarted = false;
+    const audioState = new Int32Array(new SharedArrayBuffer(initialSharedState.length * 4));
+    audioState.set(initialSharedState);
     const libraryCsound = {
       csoundShouldDaemonize: () => 0,
       csoundStart: () => 0,
@@ -49,10 +106,11 @@ describe("worker performance mode", () => {
       () => {},
     );
 
-    assert.equal(start({ csound: 1 }), 0);
+    assert.equal(start({ csound: 1, audioStateBuffer: audioState.buffer }), 0);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     assert.equal(realtimeStarted, true);
     assert.equal(renderStarted, false);
+    assert.equal(Atomics.load(audioState, AUDIO_STATE.IS_RENDERING), 0);
   });
 });

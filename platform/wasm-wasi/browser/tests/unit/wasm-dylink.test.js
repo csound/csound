@@ -32,8 +32,7 @@ const customSection = (name, payload) => {
 
 const subsection = (type, payload) => [type, ...encodeULEB(payload.length), ...payload];
 
-const wasmWith = (...sections) =>
-  new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, ...sections.flat()]);
+const wasmWith = (...sections) => new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0, ...sections.flat()]);
 
 describe("WebAssembly dynamic link metadata", () => {
   it("returns empty metadata for a static module", () => {
@@ -46,6 +45,8 @@ describe("WebAssembly dynamic link metadata", () => {
       tableAlign: 0,
       neededDynlibsCount: 0,
       neededDynlibs: [],
+      importedSymbols: [],
+      exportedSymbols: [],
     });
   });
 
@@ -68,19 +69,16 @@ describe("WebAssembly dynamic link metadata", () => {
       tableAlign: 1,
       neededDynlibsCount: 1,
       neededDynlibs: ["libfoo.so"],
+      importedSymbols: [],
+      exportedSymbols: [],
     });
   });
 
   it("parses dylink.0 subsections and skips unknown ones", () => {
-    const memoryInfo = [
-      ...encodeULEB(2048),
-      ...encodeULEB(5),
-      ...encodeULEB(7),
-      ...encodeULEB(2),
-    ];
+    const memoryInfo = [...encodeULEB(2048), ...encodeULEB(5), ...encodeULEB(7), ...encodeULEB(2)];
     const needed = [...encodeULEB(2), ...encodeName("libfoo.so"), ...encodeName("libbar.so")];
     const payload = [
-      ...subsection(3, [1, 2, 3]),
+      ...subsection(42, [1, 2, 3]),
       ...subsection(1, memoryInfo),
       ...subsection(2, needed),
     ];
@@ -94,7 +92,41 @@ describe("WebAssembly dynamic link metadata", () => {
       tableAlign: 2,
       neededDynlibsCount: 2,
       neededDynlibs: ["libfoo.so", "libbar.so"],
+      importedSymbols: [],
+      exportedSymbols: [],
     });
+  });
+
+  it("reads import flags and rejects truncated or trailing import data", () => {
+    const entry = [...encodeName("GOT.func"), ...encodeName("optional"), 1];
+    const binary = (entries) =>
+      wasmWith(
+        customSection("dylink.0", [
+          ...subsection(1, [0, 0, 0, 0]),
+          ...subsection(4, [1, ...entries]),
+        ]),
+      );
+    assert.deepEqual(getBinaryHeaderData(binary(entry)).importedSymbols, [
+      { module: "GOT.func", name: "optional", flags: 1 },
+    ]);
+    assert.throws(() => getBinaryHeaderData(binary(entry.slice(0, -1))), /Unexpected end/);
+    assert.throws(() => getBinaryHeaderData(binary([...entry, 0])), /Unexpected data/);
+  });
+
+  it("reads exported TLS flags and rejects malformed export metadata", () => {
+    const entry = [...encodeName("thread_value"), ...encodeULEB(0x100)];
+    const binary = (entries) =>
+      wasmWith(
+        customSection("dylink.0", [
+          ...subsection(1, [0, 0, 0, 0]),
+          ...subsection(3, [1, ...entries]),
+        ]),
+      );
+    assert.deepEqual(getBinaryHeaderData(binary(entry)).exportedSymbols, [
+      { name: "thread_value", flags: 0x100 },
+    ]);
+    assert.throws(() => getBinaryHeaderData(binary(entry.slice(0, -1))), /Unexpected end/);
+    assert.throws(() => getBinaryHeaderData(binary([...entry, 0])), /Unexpected data/);
   });
 
   it("rejects a truncated dylink.0 subsection", () => {

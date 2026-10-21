@@ -19,6 +19,11 @@ export const messageEventHandler = (worker) => (event) => {
     if (worker && worker.publicEvents) {
       worker.publicEvents.triggerReadline(event.data.log["readline"]);
     }
+  } else if (event.data.debugCallback || (event.data.log && event.data.log.debugCallback)) {
+    // Worker ports wrap WASM callbacks in `log`, just like readline requests.
+    if (worker && worker.publicEvents && worker.publicEvents.triggerDebugCallback) {
+      worker.publicEvents.triggerDebugCallback();
+    }
   } else if (event.data.log) {
     if (worker && worker.publicEvents && worker.publicEvents.triggerMessage) {
       worker.publicEvents.triggerMessage(event.data.log);
@@ -31,12 +36,10 @@ export const messageEventHandler = (worker) => (event) => {
           : event.data.log,
       );
     }
-  } else if (event.data.debugCallback) {
-    if (worker && worker.publicEvents && worker.publicEvents.triggerDebugCallback) {
-      worker.publicEvents.triggerDebugCallback();
-    }
-  } else if (event.data["playStateChange"] && worker && worker["onPlayStateChange"]) {
-    worker["onPlayStateChange"](
+  } else if (event.data["playStateChange"] && worker && worker.onPlayStateChange) {
+    // Only the event keys cross worker bundles. Let Closure rename this local
+    // method lookup together with the backend class method.
+    worker.onPlayStateChange(
       event.data["playStateChange"],
       event.data["performanceGeneration"],
     );
@@ -65,6 +68,7 @@ const safelyClosePorts = ([p1, p2]) => {
 
 export class IPCMessagePorts {
   constructor() {
+    this.closed = false;
     const { port1: mainMessagePort, port2: workerMessagePort } = new MessageChannel();
     this.mainMessagePort = mainMessagePort;
     this.workerMessagePort = workerMessagePort;
@@ -88,6 +92,16 @@ export class IPCMessagePorts {
     this.sabMainCallbackReply = sabMainCallbackReply;
 
     this.restartAudioWorkerPorts = this.restartAudioWorkerPorts.bind(this);
+  }
+
+  close() {
+    if (this.closed) return;
+    this.closed = true;
+    // Unused channel ends also stay entangled until closed. In particular,
+    // the MIDI listener can otherwise keep a terminated worklet heap alive.
+    for (const port of Object.values(this)) {
+      if (port && typeof port.close === "function") port.close();
+    }
   }
 
   restartAudioWorkerPorts() {

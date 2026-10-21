@@ -79,8 +79,8 @@ int get_next_char(char *, int32_t, void*);
 
 IDENT           [a-zA-Z_][a-zA-Z0-9_]*(@global)?
 IDENTB          [a-zA-Z_][a-zA-Z0-9_]*\([ \t]*\n?
-TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*(@global)?:[a-zA-Z_][a-zA-Z0-9_]*(\[\])?
-TYPED_IDENTIFIERB [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*\[?\]?\([ \t]*\n?
+TYPED_IDENTIFIER  [a-zA-Z_][a-zA-Z0-9_]*(@global)?:[a-zA-Z_][a-zA-Z0-9_]*([ \t]*\[\])*
+TYPED_IDENTIFIERB [a-zA-Z_][a-zA-Z0-9_]*:[a-zA-Z_][a-zA-Z0-9_]*(([ \t]*\[\])+[ \t]*)?\([ \t]*\n?
 XIDENT          0|[aijkftKOJVPopS\[\]]+
 INTGR           [0-9]+
 NUMBER          [0-9]+\.?[0-9]*([eE][-+]?[0-9]+)?|\.[0-9]+([eE][-+]?[0-9]+)?|0[xX][0-9a-fA-F]+
@@ -321,6 +321,7 @@ ERSTR           "}R"
            /* printf("xstrbuff:>>%s<<\n", PARM->xstrbuff); */
            *lvalp = make_string(csound, PARM->xstrbuff, yyscanner);
             free(PARM->xstrbuff);
+            PARM->xstrbuff = NULL;
             return STRING_TOKEN;
           }
   }
@@ -388,6 +389,7 @@ ERSTR           "}R"
            PARM->xstrbuff[PARM->xstrptr] = '\0';
            *lvalp = make_string(csound, PARM->xstrbuff, yyscanner);
             free(PARM->xstrbuff);
+            PARM->xstrbuff = NULL;
             return STRING_TOKEN;
           }
   }
@@ -633,11 +635,18 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
         char* th;
         char* baseName = strtok_r(s, ":", &th);
         char* annotation = strtok_r(NULL, ":", &th);
-        ans->lexeme = csoundStrdup(csound, baseName);
-        ans->optype = csoundStrdup(csound, annotation);
+        ans->lexeme = csoundParserStrdup(csound, baseName);
+        ans->optype = csoundParserStrdup(csound, annotation);
+        /* Normalize the copy. Error locations depend on the scanner buffer. */
+        char *out = ans->optype;
+        for (const char *in = ans->optype; *in != '\0'; in++) {
+            if (*in != ' ' && *in != '\t')
+                *out++ = *in;
+        }
+        *out = '\0';
         type = T_TYPED_IDENT;
     } else {
-        ans->lexeme = csoundStrdup(csound, s);
+        ans->lexeme = csoundParserStrdup(csound, s);
     }
     ans->type = type;
     return ans;
@@ -646,7 +655,7 @@ ORCTOKEN *lookup_token(CSOUND *csound, char *s, void *yyscanner)
 
 ORCTOKEN *new_token(CSOUND *csound, int32_t type, void *yyscanner)
 {
-    ORCTOKEN *ans = (ORCTOKEN*)csound->Calloc(csound, sizeof(ORCTOKEN));
+    ORCTOKEN *ans = (ORCTOKEN*)csoundParserOwn(csound, csound->Calloc(csound, sizeof(ORCTOKEN)));
     ans->type = type;
     if(yyscanner) {
      ans->first_column = PARM->first_column;
@@ -658,7 +667,7 @@ ORCTOKEN *new_token(CSOUND *csound, int32_t type, void *yyscanner)
 ORCTOKEN *make_token(CSOUND *csound, char *s, void *yyscanner)
 {
   ORCTOKEN *ans = new_token(csound, STRING_TOKEN, yyscanner);
-    ans->lexeme = csoundStrdup(csound, s);
+    ans->lexeme = csoundParserStrdup(csound, s);
     return ans;
 }
 
@@ -670,7 +679,7 @@ ORCTOKEN *make_label(CSOUND *csound, char *s, void *yyscanner)
     while (*ps != ':') ps++;
     *(ps+1) = '\0';
     len = (int32_t) strlen(s);
-    ans->lexeme = (char*)csound->Calloc(csound, len);
+    ans->lexeme = (char*)csoundParserOwn(csound, csound->Calloc(csound, len));
     strNcpy(ans->lexeme, s, len); /* Not the trailing colon */
     return ans;
 }
@@ -680,7 +689,7 @@ ORCTOKEN *make_string(CSOUND *csound, char *s, void *yyscanner)
   ORCTOKEN *ans = new_token(csound, STRING_TOKEN, yyscanner);
     int32_t len = (int32_t) strlen(s);
 /* Keep the quote marks */
-    ans->lexeme = (char*)csound->Calloc(csound, len + 1);
+    ans->lexeme = (char*)csoundParserOwn(csound, csound->Calloc(csound, len + 1));
     strcpy(ans->lexeme, s);
     //printf(">>%s<<\n", ans->lexeme);
     return ans;
@@ -698,7 +707,7 @@ ORCTOKEN *do_at(CSOUND *csound, int32_t k, void *yyscanner, char *yytex){
     ans = new_token(csound, INTEGER_TOKEN, yyscanner);
     snprintf(buf, 16, "%d", i+k);
     len = (int32_t) strlen(buf);
-    ans->lexeme = (char*)csound->Calloc(csound, len + 1);
+    ans->lexeme = (char*)csoundParserOwn(csound, csound->Calloc(csound, len + 1));
     strNcpy(ans->lexeme, buf, len+1);
     ans->value = i;
     return ans;
@@ -709,7 +718,7 @@ ORCTOKEN *make_int(CSOUND *csound, char *s, void *yyscanner)
     int n = atoi(s);
     ORCTOKEN *ans = new_token(csound, INTEGER_TOKEN, yyscanner);
     int32_t len = (int32_t) strlen(s);
-    ans->lexeme = (char*)csound->Calloc(csound, len + 1);
+    ans->lexeme = (char*)csoundParserOwn(csound, csound->Calloc(csound, len + 1));
     strNcpy(ans->lexeme, s, len+1);
     ans->value = n;
     return ans;
@@ -720,7 +729,7 @@ ORCTOKEN *make_num(CSOUND *csound, char *s, void *yyscanner)
     cs_double n = atof(s);
     ORCTOKEN *ans = new_token(csound, NUMBER_TOKEN, yyscanner);
     int32_t len = (int32_t) strlen(s);
-    ans->lexeme = (char*)csound->Calloc(csound, len + 1);
+    ans->lexeme = (char*)csoundParserOwn(csound, csound->Calloc(csound, len + 1));
     strNcpy(ans->lexeme, s, len+1);
     ans->fvalue = n;
     return ans;

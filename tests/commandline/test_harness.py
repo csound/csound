@@ -74,6 +74,8 @@ stderr = ["no threads"]
                      'expect = {exit = 0, output = "text"}',
                      'expect = {exit = 0, output = [""]}',
                      'expect = {exit = 0, output_regex = ["["]}',
+                     'expect = {exit = 0, output_excludes = [""]}',
+                     'expect = {exit = 0, stdout_excludes = "crash"}',
                      'expect = {exit = "nonzero", output = ["error"]}',
                      'args = "-n"', 'stack_limit_kb = -1',
                      'profiles.wasm.skip = true'):
@@ -164,6 +166,20 @@ class ResultTests(unittest.TestCase):
         self.assertTrue(self.result(0, "first second", "count=42", expect=expect).passed)
         self.assertFalse(self.result(0, "first", "count=42", expect=expect).passed)
         self.assertFalse(self.result(0, "first second count=42", "", expect=expect).passed)
+
+    def test_excluded_substrings_fail_on_their_stream(self):
+        expect = {"exit": 1, "stderr": ["wanted diagnostic"],
+                  "stderr_excludes": ["AddressSanitizer"],
+                  "output_excludes": ["Segmentation fault"]}
+        self.assertTrue(self.result(expect=expect).passed)
+        self.assertFalse(self.result(
+            stderr="wanted diagnostic\n==1==ERROR: AddressSanitizer",
+            expect=expect).passed)
+        self.assertFalse(self.result(stdout="Segmentation fault", expect=expect).passed)
+        # stderr_excludes looks at stderr only
+        self.assertTrue(self.result(stdout="AddressSanitizer", expect=expect).passed)
+        self.assertIn("contains excluded substring", self.result(
+            stdout="Segmentation fault", expect=expect).get_formatted_output(1))
 
     def test_exact_exit_code(self):
         expect = {"exit": 2, "stderr": ["wanted"]}

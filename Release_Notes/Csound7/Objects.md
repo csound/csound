@@ -46,7 +46,8 @@ Its arguments and outputs must match the selected opcode. To separate these
 stages, use `init` and `perf`.
 
 For opcode objects, `delete` registers cleanup for instrument deinitialization.
-It releases the object after performance ends.
+It releases the object after performance ends. A later note that reuses the
+variable must call `create` before it runs the object.
 
 ## Keep separate state inside a loop
 

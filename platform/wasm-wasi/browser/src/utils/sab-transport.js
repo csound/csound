@@ -34,6 +34,30 @@ export function waitForSABResume(state, onPaused, onResumed) {
   if (Atomics.load(state, AUDIO_STATE.STOP) !== 1) onResumed();
 }
 
+// Publish the state change before waking the render worker. The AudioWorklet
+// never waits; only the producer sleeps when it has filled the output buffer.
+export function wakeSAB(state) {
+  if (Atomics.exchange(state, AUDIO_STATE.CSOUND_LOCK, 0) === 1)
+    Atomics.notify(state, AUDIO_STATE.CSOUND_LOCK);
+}
+
+export function waitForSABOutput(state, observedReadIndex) {
+  const shouldWait = () =>
+    Atomics.load(state, AUDIO_STATE.OUTPUT_READ_INDEX) === observedReadIndex &&
+    Atomics.load(state, AUDIO_STATE.IS_PERFORMING) === 1 &&
+    Atomics.load(state, AUDIO_STATE.STOP) !== 1 &&
+    Atomics.load(state, AUDIO_STATE.IS_PAUSED) !== 1 &&
+    Atomics.load(state, AUDIO_STATE.HAS_PENDING_CALLBACKS) !== 1;
+  while (shouldWait()) {
+    Atomics.store(state, AUDIO_STATE.CSOUND_LOCK, 1);
+    // Arm before checking again: a read/control change just before wait must
+    // either change the predicate or clear the lock, so no wakeup is lost.
+    if (!shouldWait()) break;
+    Atomics.wait(state, AUDIO_STATE.CSOUND_LOCK, 1);
+  }
+  Atomics.store(state, AUDIO_STATE.CSOUND_LOCK, 0);
+}
+
 export function stopSAB(state) {
   Atomics.store(state, AUDIO_STATE.STOP, 1);
   Atomics.store(state, AUDIO_STATE.IS_PERFORMING, 0);

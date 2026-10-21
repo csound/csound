@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-import googClosureCompiler from "google-closure-compiler";
-import JarPath from "google-closure-compiler-java";
 import prettier from "prettier";
 import { Readable } from "stream";
 import { fileURLToPath } from "url";
@@ -22,9 +20,10 @@ import { rimrafSync } from "rimraf";
 import fs from "fs";
 import path from "path";
 import * as R from "ramda";
-const ClosureCompiler = googClosureCompiler.compiler || googClosureCompiler;
 import { inlineWebworker } from "./goog/generate-webworker-module.js";
 import { inlineArraybuffer } from "./goog/inline-arraybuffer.js";
+import { runClosureCompiler } from "./goog/closure-compiler.js";
+import { browserBinaries } from "./goog/browser-binaries.js";
 
 const DEV = process.env.NODE_ENV === "development";
 const __filename = fileURLToPath(import.meta.url);
@@ -59,8 +58,8 @@ const captureClosureExport = (data, exportName, variableName) => {
   return data.replace(marker, () => `${marker}${variableName}=`);
 };
 
-const makeModuleExportsHack = () => {
-  let data = fs.readFileSync(path.join(rootDir, "dist", "csound.js")).toString();
+const makeModuleExportsHack = (filename) => () => {
+  let data = fs.readFileSync(path.join(distDir, filename)).toString();
   const marker = "__GOOGLE_CLOSURE_REPLACEME__";
   if (!data.includes(marker)) {
     throw new Error("Could not find the module export marker");
@@ -80,17 +79,45 @@ const makeModuleExportsHack = () => {
     ` const libcsound = ${libcsoundExport};` +
     ` export { Csound, libcsound }; export default Csound;`;
   const hackedData = data.replace(marker, () => exportStatement);
-  fs.writeFileSync(path.join(rootDir, "dist", "csound.js"), hackedData);
+  fs.writeFileSync(path.join(distDir, filename), hackedData);
 };
 
 if (fs.existsSync(distDir)) {
   rimrafSync(distDir);
 }
 fs.mkdirSync(distDir);
-
+// Repository builds write to ../lib; installed packages provide the same files.
+const binaries = browserBinaries(rootDir, process.env.CSOUND_THREADED_WASM);
+const memoryLimitFile = path.join(rootDir, "../src/shared-memory-max.txt");
+const sharedMemoryMax = binaries.threaded
+  ? Number(
+      fs.readFileSync(
+        fs.existsSync(memoryLimitFile)
+          ? memoryLimitFile
+          : path.join(nodeModulesDir, "@csound/wasm-bin/src/shared-memory-max.txt"),
+        "utf8",
+      ),
+    )
+  : 65536;
+if (
+  !Number.isSafeInteger(sharedMemoryMax) ||
+  sharedMemoryMax <= 0 ||
+  sharedMemoryMax > 4294967296 ||
+  sharedMemoryMax % 65536 !== 0
+)
+  throw new Error(
+    "Shared Wasm memory limit must be a positive byte count, a multiple of 65536, and at most 4 GiB",
+  );
 fs.writeFileSync(
   path.join(rootDir, "dist", "__csound_wasm.inline.js"),
-  inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.wasm.z", "binary.wasm"),
+  inlineArraybuffer(binaries.threaded || binaries.baseline, "binary.wasm"),
+);
+
+// Workers need the engine kind, but must not embed another copy of its bytes.
+fs.writeFileSync(
+  path.join(distDir, "__csound_engine.inline.js"),
+  `export const sharedEngine = ${Boolean(binaries.threaded)};\n` +
+    `export const sharedMemoryPages = ${sharedMemoryMax / 65536};\n`,
 );
 
 // const polyfills = {
@@ -101,6 +128,12 @@ fs.writeFileSync(
 // };
 
 const compilationSequence = [
+  {
+    entry_point: "./src/workers/wasi-thread.worker.js",
+    js_output_file: path.join(rootDir, "dist", "__compiled.wasi-thread.worker.js"),
+    postbuild: () => inlineWebworker("wasi-thread.worker.js", "worker.wasi-thread", false),
+    output_wrapper: "(function(){%output%}).call(this);",
+  },
   {
     entry_point: "./src/workers/sab.worker",
     js_output_file: path.join(rootDir, "dist", "__compiled.sab.worker.js"),
@@ -157,7 +190,7 @@ const compilationSequence = [
     create_source_map: path.join(rootDir, "dist", "csound.js.map"),
     define: DEV ? [] : ["PRODUCTION=1"],
     output_manifest: "output.manifest.txt",
-    postbuild: makeModuleExportsHack,
+    postbuild: makeModuleExportsHack("csound.js"),
     output_wrapper: trimString(`%output%
       __GOOGLE_CLOSURE_REPLACEME__
       //# sourceMappingURL=csound.js.map`),
@@ -214,21 +247,7 @@ const compile = async (config) => {
     debug: false,
     source_map_include_content: true,
   };
-  const closureCompiler = new ClosureCompiler(deepMerge(defaultConfig, config));
-
-  closureCompiler.javaPath = process.env.JAVA_HOME ? `${process.env.JAVA_HOME}/bin/java` : "java";
-  closureCompiler.JAR_PATH = JarPath;
-  await new Promise((resolve, reject) => {
-    const javaProcess = closureCompiler.run((exitCode, inputString, stderr) => {
-      console.log(stderr);
-      if (exitCode === 0) {
-        resolve();
-      } else {
-        reject();
-        process.exit(1);
-      }
-    });
-  });
+  await runClosureCompiler(deepMerge(defaultConfig, config), { failOnWarnings: !DEV });
 };
 
 (async () => {

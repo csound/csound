@@ -25,19 +25,15 @@ import { PublicEventAPI } from "../events.js";
 import { enableAudioInput, releaseMicrophoneStream } from "./io.utils.js";
 import { requestMidi } from "../utils/request-midi.js";
 import { EventPromises } from "../utils/event-promises.js";
+import { registerWorkletModule } from "../utils/worklet-context.js";
 import WorkletWorker from "../../dist/__compiled.worklet.singlethread.worker.inline.js";
 
-const registeredContexts = new WeakSet();
-
 const initializeModule = async (audioContext) => {
-  if (registeredContexts.has(audioContext)) {
-    log("Module already registered on this AudioContext, skipping addModule")();
-    return true;
-  }
   log("Initialize Module")();
   try {
-    await audioContext.audioWorklet.addModule(WorkletWorker());
-    registeredContexts.add(audioContext);
+    await registerWorkletModule(audioContext, "csound-singlethread-worklet-processor", () =>
+      audioContext.audioWorklet.addModule(WorkletWorker()),
+    );
   } catch (error) {
     console.error("Error calling audioWorklet.addModule", error);
     return false;
@@ -82,10 +78,13 @@ class SingleThreadAudioWorkletMainThread {
 
   async terminateInstance() {
     releaseMicrophoneStream(this);
+    this.ipcMessagePorts.close();
     if (this.workletProxy) {
       try {
         await this.workletProxy["terminate"]();
       } catch {}
+      this.workletProxy[Comlink.releaseProxy](false);
+      delete this.workletProxy;
     }
     if (this.node) {
       this.node.disconnect();
@@ -96,10 +95,6 @@ class SingleThreadAudioWorkletMainThread {
         await this.audioContext.close();
       }
       delete this.audioContext;
-    }
-    if (this.workletProxy) {
-      this.workletProxy[Comlink.releaseProxy]();
-      delete this.workletProxy;
     }
     if (this.publicEvents) {
       this.publicEvents.terminateInstance();

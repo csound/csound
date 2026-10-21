@@ -43,7 +43,7 @@ instr 1
 endin
 
 instr 99
-  if i(gkchecks) != 27 then
+  if i(gkchecks) != 28 then
     prints "not all mirror checks ran\n"
     exitnow(-1)
   endif
@@ -74,7 +74,9 @@ i 1 0 .004 3 -1 1 -1 126
 i 1 0 .004 3 -3 2 1 126
 i 1 0 .004 3 -3 -2 -3 126
 i 1 0 .004 2.5 -3 -2 -2.5 126
+; Exercise remquo with a zero lower bound and with a zero input.
 i 1 0 .004 7 0 3 1 -120
+i 1 0 .004 0 3 6 6 -120
 ; Check notes that start and end within a control block.
 i 1 .000125 .003375 4 -2 3 2 0
 i 1 .000625 .003375 4 -2 3 2 0

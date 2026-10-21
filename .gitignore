@@ -271,3 +271,5 @@ tmp
 .zed
 _codeql_detected_source_root
 tests/commandline/test_async_file.wav
+.vs
+Android/CsoundForAndroid/.gradle/

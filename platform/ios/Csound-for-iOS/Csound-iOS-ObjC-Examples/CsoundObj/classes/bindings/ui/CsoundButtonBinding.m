@@ -24,6 +24,7 @@
  */
 
 #import "CsoundButtonBinding.h"
+#import "CsoundBindingDispatch.h"
 
 @interface CsoundButtonBinding () {
     float channelValue;
@@ -55,18 +56,20 @@
 
 -(void)setup:(CsoundObj *)csoundObj
 {
-    channelValue = self.button.selected ? 1 : 0;
-    channelPtr = [csoundObj getInputChannelPtr:self.channelName
-                                   channelType:CSOUND_CONTROL_CHANNEL];
-    [self.button addTarget:self
-                    action:@selector(updateChannelValueButtonIsDown:)
-          forControlEvents:UIControlEventTouchDown];
-    [self.button addTarget:self
-                    action:@selector(updateChannelValueButtonIsUp:)
-          forControlEvents:UIControlEventTouchUpInside];
-    [self.button addTarget:self
-                    action:@selector(updateChannelValueButtonIsUp:)
-          forControlEvents:UIControlEventTouchUpOutside];
+    CsoundRunSyncOnMainQueue(^{
+        channelValue = self.button.selected ? 1 : 0;
+        channelPtr = [csoundObj getInputChannelPtr:self.channelName
+                                       channelType:CSOUND_CONTROL_CHANNEL];
+        [self.button addTarget:self
+                        action:@selector(updateChannelValueButtonIsDown:)
+              forControlEvents:UIControlEventTouchDown];
+        [self.button addTarget:self
+                        action:@selector(updateChannelValueButtonIsUp:)
+              forControlEvents:UIControlEventTouchUpInside];
+        [self.button addTarget:self
+                        action:@selector(updateChannelValueButtonIsUp:)
+              forControlEvents:UIControlEventTouchUpOutside];
+    });
 }
 
 
@@ -77,15 +80,17 @@
 
 -(void)cleanup
 {
-    [self.button removeTarget:self
-                       action:@selector(updateChannelValueButtonIsDown:)
-             forControlEvents:UIControlEventTouchDown];
-    [self.button removeTarget:self
-                       action:@selector(updateChannelValueButtonIsUp:)
-             forControlEvents:UIControlEventTouchUpInside];
-    [self.button removeTarget:self
-                       action:@selector(updateChannelValueButtonIsUp:)
-             forControlEvents:UIControlEventTouchUpOutside];
+    CsoundRunSyncOnMainQueue(^{
+        [self.button removeTarget:self
+                           action:@selector(updateChannelValueButtonIsDown:)
+                 forControlEvents:UIControlEventTouchDown];
+        [self.button removeTarget:self
+                           action:@selector(updateChannelValueButtonIsUp:)
+                 forControlEvents:UIControlEventTouchUpInside];
+        [self.button removeTarget:self
+                           action:@selector(updateChannelValueButtonIsUp:)
+                 forControlEvents:UIControlEventTouchUpOutside];
+    });
 }
 
 

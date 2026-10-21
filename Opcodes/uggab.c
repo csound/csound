@@ -136,7 +136,8 @@ static int32_t kwrap(CSOUND *csound, WRAP *p)
 #define MIRROR_VALUE(output, input, lower, upper) do {                         \
     cs_double mirror_input = (input), low = (lower), high = (upper);              \
     cs_double width, remainder, lowrem;                                           \
-    int quotient, lowquot, odd;                                                \
+    /* Windows ARM64 remquo can leave the quotient untouched for zero. */      \
+    int quotient = 0, lowquot = 0, odd;                                        \
                                                                                \
     if (low >= high) {                                                         \
       cs_double sum = low + high;                                                 \

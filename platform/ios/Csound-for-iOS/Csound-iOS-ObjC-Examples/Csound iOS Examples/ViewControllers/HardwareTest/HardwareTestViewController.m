@@ -24,6 +24,7 @@
  */
 
 #import "HardwareTestViewController.h"
+#import "CsoundBindingDispatch.h"
 
 @implementation HardwareTestViewController
 
@@ -44,25 +45,25 @@
     [motionManager startAccelerometerUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMAccelerometerData *accData, NSError *error){
         if(error!= nil) NSLog(@"%@", [error localizedDescription]);
         
-        accX.text = [NSString stringWithFormat:@"%.3f", accData.acceleration.x];
-        accY.text = [NSString stringWithFormat:@"%.3f", accData.acceleration.y];
-        accZ.text = [NSString stringWithFormat:@"%.3f", accData.acceleration.z];
+        self->accX.text = [NSString stringWithFormat:@"%.3f", accData.acceleration.x];
+        self->accY.text = [NSString stringWithFormat:@"%.3f", accData.acceleration.y];
+        self->accZ.text = [NSString stringWithFormat:@"%.3f", accData.acceleration.z];
     }];
     
     [motionManager startGyroUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMGyroData *gyroData, NSError *error){
         if(error!= nil) NSLog(@"%@", [error localizedDescription]);
         
-        gyroX.text = [NSString stringWithFormat:@"%.3f", gyroData.rotationRate.x];
-        gyroY.text = [NSString stringWithFormat:@"%.3f", gyroData.rotationRate.y];
-        gyroZ.text = [NSString stringWithFormat:@"%.3f", gyroData.rotationRate.z];
+        self->gyroX.text = [NSString stringWithFormat:@"%.3f", gyroData.rotationRate.x];
+        self->gyroY.text = [NSString stringWithFormat:@"%.3f", gyroData.rotationRate.y];
+        self->gyroZ.text = [NSString stringWithFormat:@"%.3f", gyroData.rotationRate.z];
     }];
     
     [motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue mainQueue] withHandler:^(CMDeviceMotion *motionData, NSError *error) {
         if(error!= nil) NSLog(@"%@", [error localizedDescription]);
         
-        roll.text = [NSString stringWithFormat:@"%.3f", motionData.attitude.roll];
-        pitch.text = [NSString stringWithFormat:@"%.3f", motionData.attitude.pitch];
-        yaw.text = [NSString stringWithFormat:@"%.3f", motionData.attitude.yaw];
+        self->roll.text = [NSString stringWithFormat:@"%.3f", motionData.attitude.roll];
+        self->pitch.text = [NSString stringWithFormat:@"%.3f", motionData.attitude.pitch];
+        self->yaw.text = [NSString stringWithFormat:@"%.3f", motionData.attitude.yaw];
     }];
 }
 
@@ -122,7 +123,9 @@
 #pragma mark CsoundObjListener
 
 -(void)csoundObjCompleted:(CsoundObj *)csoundObj {
-	[mSwitch setOn:NO animated:YES];
+    CsoundRunSyncOnMainQueue(^{
+        [self->mSwitch setOn:NO animated:YES];
+    });
 }
 
 

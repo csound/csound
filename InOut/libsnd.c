@@ -601,17 +601,19 @@ void sf_open_in(CSOUND *csound)           /* init for continuous soundin */
     STA(inbufsiz) = (unsigned) (O->inbufsamps * sizeof(cs_float));
     STA(inbuf) = (cs_float*) csound->Calloc(csound,
                                          STA(inbufsiz)); /* alloc inbuf space */
-    if (STA(pipdevout) == 2) {
-       csound->Message(csound,
-                      Str("reading %d sample blks of %lu-bit floats from %s\n"),
-                      O->inbufsamps * O->sndfileSampleSize,
-                      (unsigned long) sizeof(cs_float)*8, sfname);
-    }
-    else {
-       csound->Message(csound,
-                      Str("reading %d-byte blks of %s from %s (%s)\n"),
-                      O->inbufsamps * (int32_t) sndfileSampleSize(FORMAT2SF(O->informat)),
-                      csoundGetStrFormat(O->informat), sfname, csoundType2String(fileType));
+    if(csound->oparms->msglevel > 0) {
+      if (STA(pipdevout) == 2) {
+        csound->Message(csound,
+                        Str("reading %d sample blks of %lu-bit floats from %s\n"),
+                        O->inbufsamps * O->sndfileSampleSize,
+                        (unsigned long) sizeof(cs_float)*8, sfname);
+      }
+      else {
+        csound->Message(csound,
+                        Str("reading %d-byte blks of %s from %s (%s)\n"),
+                        O->inbufsamps * (int32_t) sndfileSampleSize(FORMAT2SF(O->informat)),
+                        csoundGetStrFormat(O->informat), sfname, csoundType2String(fileType));
+      }
     }
     STA(isfopen) = 1;
 }

@@ -335,6 +335,14 @@ PVSDAT *csoundInitPvsChannel(CSOUND *csound, const char* name,
 }
 
 
+/* Attributes are immutable after publication. Readers retain their storage
+   while holding the registry lock, then allocate and copy after releasing it. */
+typedef struct channel_hint_attributes {
+  size_t size;
+  size_t references;
+  char text[1];
+} CHANNEL_HINT_ATTRIBUTES;
+
 static void delete_channel_varmem(CSOUND *csound, CHNENTRY* entry) {
   if(!entry->varmem_is_external &&
      entry->var &&
@@ -351,20 +359,80 @@ static void delete_channel_varmem(CSOUND *csound, CHNENTRY* entry) {
 static void delete_channel_entry_contents(CSOUND *csound, CHNENTRY *entry) {
   if (entry == NULL)
     return;
-  if (entry->hints.attributes != NULL)
-    csound->Free(csound, entry->hints.attributes);
+  if (entry->hintAttributes != NULL)
+    csound->Free(csound, entry->hintAttributes);
   delete_channel_varmem(csound, entry);
   if (entry->var != NULL)
     csound->Free(csound, entry->var);
 }
 
+/* The init mutex does not cover dynamic-name opcodes on the render thread.
+   Protect bucket traversal and publication separately. Entries stay alive
+   until reset, so callers release this lock before touching channel values. */
+static inline void channel_registry_lock(CSOUND *csound)
+{
+#ifdef CSOUND_WASI_REALTIME
+  while (__atomic_exchange_n(&csound->wasi_channel_lock, 1, __ATOMIC_ACQUIRE)) {
+    while (__atomic_load_n(&csound->wasi_channel_lock, __ATOMIC_RELAXED)) {}
+  }
+#else
+  IGN(csound);
+#endif
+}
+
+static inline void channel_registry_unlock(CSOUND *csound)
+{
+#ifdef CSOUND_WASI_REALTIME
+  __atomic_store_n(&csound->wasi_channel_lock, 0, __ATOMIC_RELEASE);
+#else
+  IGN(csound);
+#endif
+}
+
+static void release_hint_attributes(CSOUND *csound,
+                                    CHANNEL_HINT_ATTRIBUTES *attributes)
+{
+  if (attributes != NULL) {
+    channel_registry_lock(csound);
+    size_t references = --attributes->references;
+    channel_registry_unlock(csound);
+    if (references == 0)
+      csound->Free(csound, attributes);
+  }
+}
+
+static inline int32_t channel_type(const CHNENTRY *channel)
+{
+#ifdef CSOUND_WASI_REALTIME
+  return __atomic_load_n(&channel->type, __ATOMIC_ACQUIRE);
+#else
+  return channel->type;
+#endif
+}
+
+static inline void channel_add_mode(CHNENTRY *channel, int32_t mode)
+{
+#ifdef CSOUND_WASI_REALTIME
+  __atomic_fetch_or(&channel->type, mode, __ATOMIC_RELAXED);
+#else
+  channel->type |= mode;
+#endif
+}
+
 static int32_t delete_channel_db(CSOUND *csound, void *p){
   CONS_CELL *head, *values;
+  CS_HASH_TABLE *channels;
   IGN(p);
-  if (csound->chn_db == NULL) {
+  /* Reset has joined both workers. Detach before invoking value destructors,
+     which must not run while the registry lock is held. */
+  channel_registry_lock(csound);
+  channels = csound->chn_db;
+  csound->chn_db = NULL;
+  channel_registry_unlock(csound);
+  if (channels == NULL) {
     return 0;
   }
-  head = values = cs_hash_table_values(csound, csound->chn_db);
+  head = values = cs_hash_table_values(csound, channels);
   if (head != NULL) {
     while(values != NULL) {
       CHNENTRY* entry = values->value;
@@ -373,12 +441,12 @@ static int32_t delete_channel_db(CSOUND *csound, void *p){
     }
     cs_cons_free(csound, head);
   }
-  cs_hash_table_mfree_complete(csound, csound->chn_db);
-  csound->chn_db = NULL;
+  cs_hash_table_mfree_complete(csound, channels);
   return 0;
 }
 
-static int32_t ensure_channel_db(CSOUND *csound) {
+/* Reset initializes the table and cleanup callback before workers can run. */
+int32_t csoundInitChannelDb(CSOUND *csound) {
   if (csound->chn_db != NULL)
     return CSOUND_SUCCESS;
   csound->chn_db = cs_hash_table_create(csound);
@@ -393,11 +461,120 @@ static int32_t ensure_channel_db(CSOUND *csound) {
   return CSOUND_SUCCESS;
 }
 
-static inline CHNENTRY *find_channel(CSOUND *csound, const char *name){
+static inline CHNENTRY *find_channel_unlocked(CSOUND *csound, const char *name){
   if (csound->chn_db != NULL && name && name[0]) {
     return (CHNENTRY*) cs_hash_table_get(csound, csound->chn_db, (char*) name);
   }
   return NULL;
+}
+
+static inline CHNENTRY *find_channel(CSOUND *csound, const char *name){
+  CHNENTRY *channel;
+  channel_registry_lock(csound);
+  channel = find_channel_unlocked(csound, name);
+  channel_registry_unlock(csound);
+  return channel;
+}
+
+static uint32_t channel_name_hash(const char *name, int32_t tableSize)
+{
+  /* Keep the bucket index compatible with cs_hash_table_get(). */
+  uint32_t hash = 0;
+  while (*name != '\0')
+    hash = (hash << 4) ^ *name++;
+  return hash % tableSize;
+}
+
+/* Constructors run before this call; no partially initialized entry is
+   visible. A competing creator wins without replacing any cached pointers. */
+static int32_t publish_channel(CSOUND *csound, CHNENTRY *prepared,
+                               CHNENTRY **published)
+{
+  CS_HASH_TABLE_ITEM *item = csound->Malloc(csound, sizeof(*item));
+  CS_HASH_TABLE_ITEM **buckets = NULL, **oldBuckets = NULL;
+  int32_t capacity = 0;
+  int32_t result = CSOUND_SUCCESS;
+  *published = NULL;
+  if (UNLIKELY(item == NULL))
+    return CSOUND_MEMORY;
+  item->key = csoundStrdup(csound, prepared->name);
+  item->value = prepared;
+  if (UNLIKELY(item->key == NULL)) {
+    csound->Free(csound, item);
+    return CSOUND_MEMORY;
+  }
+
+  for (;;) {
+    channel_registry_lock(csound);
+    *published = find_channel_unlocked(csound, prepared->name);
+    if (*published != NULL) {
+      channel_registry_unlock(csound);
+      break;
+    }
+    CS_HASH_TABLE *table = csound->chn_db;
+    if (UNLIKELY(table == NULL)) {
+      channel_registry_unlock(csound);
+      result = CSOUND_ERROR;
+      break;
+    }
+    if (table->count + 1 > table->table_size / 4 * 3) {
+      if (UNLIKELY(table->table_size > INT32_MAX / 2)) {
+        channel_registry_unlock(csound);
+        result = CSOUND_MEMORY;
+        break;
+      }
+      int32_t needed = table->table_size * 2;
+      if (UNLIKELY((size_t) needed > SIZE_MAX / sizeof(*buckets))) {
+        channel_registry_unlock(csound);
+        result = CSOUND_MEMORY;
+        break;
+      }
+      if (capacity < needed) {
+        channel_registry_unlock(csound);
+        csound->Free(csound, buckets);
+        capacity = needed;
+        buckets = csound->Calloc(csound, (size_t) capacity * sizeof(*buckets));
+        if (UNLIKELY(buckets == NULL)) {
+          result = CSOUND_MEMORY;
+          break;
+        }
+        continue;
+      }
+      /* Rehash only links existing nodes. Allocate replacement storage before
+         locking and free old storage after unlocking: render lookups must
+         never wait for the allocator or a destructor. This pointer work still
+         grows with the number of channels. */
+      oldBuckets = table->buckets;
+      for (int32_t index = 0; index < table->table_size; index++) {
+        CS_HASH_TABLE_ITEM *entry = oldBuckets[index];
+        while (entry != NULL) {
+          CS_HASH_TABLE_ITEM *next = entry->next;
+          uint32_t bucket = channel_name_hash(entry->key, capacity);
+          entry->next = buckets[bucket];
+          buckets[bucket] = entry;
+          entry = next;
+        }
+      }
+      table->buckets = buckets;
+      table->table_size = capacity;
+      buckets = NULL;
+    }
+    uint32_t bucket = channel_name_hash(item->key, table->table_size);
+    item->next = table->buckets[bucket];
+    table->buckets[bucket] = item;
+    table->count++;
+    *published = prepared;
+    item = NULL;
+    channel_registry_unlock(csound);
+    break;
+  }
+  if (item != NULL) {
+    csound->Free(csound, item->key);
+    csound->Free(csound, item);
+  }
+  csound->Free(csound, buckets);
+  csound->Free(csound, oldBuckets);
+  return result;
 }
 
 static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
@@ -481,7 +658,8 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
 
 static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
                                               int32_t type){
-  CHNENTRY      *pp;
+  CHNENTRY      *pp, *published;
+  int32_t result;
 
   if(strlen(name) > MAX_CHAN_NAME) {
     csound->Message(csound, Str("channel name %s\n"
@@ -494,8 +672,6 @@ static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
   if (UNLIKELY(!(type & 48)))
     return CSOUND_ERROR;
 
-  if (UNLIKELY(ensure_channel_db(csound) != CSOUND_SUCCESS))
-    return CSOUND_MEMORY;
   /* allocate new entry */
   pp = alloc_channel(csound, name, type);
   if (UNLIKELY(pp == NULL))
@@ -503,8 +679,12 @@ static CS_NOINLINE int32_t create_new_channel(CSOUND *csound, const char *name,
   pp->hints.behav = 0;
   pp->type = type;
   strcpy(&(pp->name[0]), name);
-  cs_hash_table_put(csound, csound->chn_db, (char*)name, pp);
-  return CSOUND_SUCCESS;
+  result = publish_channel(csound, pp, &published);
+  if (published != pp) {
+    delete_channel_entry_contents(csound, pp);
+    csound->Free(csound, pp);
+  }
+  return result;
 }
 
 const char *csoundGetChannelVarTypeName(CSOUND *csound, const char *name) {
@@ -542,9 +722,10 @@ int32_t csoundGetChannelPtr(CSOUND *csound, void **p,
       pp->var != NULL && // protect for failed var creation
       pp->var->memBlock != NULL // protect for failed memblock alloc
       ) {
-    if ((pp->type ^ type) & CSOUND_CHANNEL_TYPE_MASK)
-      return pp->type;
-    pp->type |= (type & (CSOUND_INPUT_CHANNEL | CSOUND_OUTPUT_CHANNEL));
+    int32_t declaredType = channel_type(pp);
+    if ((declaredType ^ type) & CSOUND_CHANNEL_TYPE_MASK)
+      return declaredType;
+    channel_add_mode(pp, type & (CSOUND_INPUT_CHANNEL | CSOUND_OUTPUT_CHANNEL));
     *p = &(pp->var->memBlock->value);
     return CSOUND_SUCCESS;
   }
@@ -561,11 +742,11 @@ int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name){
       || pp->var->memBlock == NULL)
     return 0;
   else {
-    if ((pp->type & CSOUND_STRING_CHANNEL) == CSOUND_STRING_CHANNEL) {
+    if ((channel_type(pp) & CSOUND_STRING_CHANNEL) == CSOUND_STRING_CHANNEL) {
       STRINGDAT *dat = (STRINGDAT *) &(pp->var->memBlock->value);
       return (int32_t) dat->size;
     }
-    if((pp->type & CSOUND_ARRAY_CHANNEL) == CSOUND_ARRAY_CHANNEL) {
+    if((channel_type(pp) & CSOUND_ARRAY_CHANNEL) == CSOUND_ARRAY_CHANNEL) {
       ARRAYDAT *dat = (ARRAYDAT *) &(pp->var->memBlock->value);
       return (int32_t)dat->allocated;
     }
@@ -592,40 +773,88 @@ static int cmp_func(const void *p1, const void *p2){
 }
 
 int32_t csoundListChannels(CSOUND *csound, controlChannelInfo_t **lst){
-  CHNENTRY  *pp;
-  size_t     n;
-  CONS_CELL* channels;
+  typedef struct {
+    controlChannelInfo_t info;
+    CHANNEL_HINT_ATTRIBUTES *attributes;
+  } CHANNEL_SNAPSHOT;
+  CHANNEL_SNAPSHOT *snapshot = NULL;
+  size_t n = 0, capacity = 0, bytes;
 
   *lst = (controlChannelInfo_t*) NULL;
-  if (csound->chn_db == NULL)
-    return 0;
-
-  channels = cs_hash_table_values(csound, csound->chn_db);
-  n = cs_cons_length(channels);
-
-  if (!n)
-    return 0;
-
-  /* create list, initially in unsorted order */
-  *lst = (controlChannelInfo_t*)
-    csound->Malloc(csound, n * sizeof(controlChannelInfo_t));
-  if (UNLIKELY(*lst == NULL))
-    return CSOUND_MEMORY;
-
-  n = 0;
-  while (channels != NULL) {
-    pp = channels->value;
-    (*lst)[n].name = pp->name;
-    (*lst)[n].type = pp->type;
-    (*lst)[n].hints = pp->hints;
-    channels = channels->next;
-    n++;
+  for (;;) {
+    channel_registry_lock(csound);
+    CS_HASH_TABLE *table = csound->chn_db;
+    size_t count = table != NULL ? (size_t) table->count : 0;
+    if (count > capacity) {
+      channel_registry_unlock(csound);
+      csound->Free(csound, snapshot);
+      if (UNLIKELY(count > SIZE_MAX / sizeof(*snapshot)))
+        return CSOUND_MEMORY;
+      snapshot = csound->Malloc(csound, count * sizeof(*snapshot));
+      if (UNLIKELY(snapshot == NULL))
+        return CSOUND_MEMORY;
+      capacity = count;
+      continue; /* A creator may have added more while allocation ran. */
+    }
+    /* Copy only fixed-size records under the lock. Retained, immutable
+       attributes allow allocation and string copying after release. */
+    if (table != NULL) {
+      for (int32_t index = 0; index < table->table_size; index++) {
+        for (CS_HASH_TABLE_ITEM *item = table->buckets[index];
+             item != NULL; item = item->next) {
+          CHNENTRY *channel = item->value;
+          snapshot[n].info.name = channel->name;
+          snapshot[n].info.type = channel_type(channel);
+          snapshot[n].info.hints = channel->hints;
+          snapshot[n].attributes = channel->hintAttributes;
+          if (snapshot[n].attributes != NULL)
+            snapshot[n].attributes->references++;
+          n++;
+        }
+      }
+    }
+    channel_registry_unlock(csound);
+    break;
   }
+  if (n == 0) {
+    csound->Free(csound, snapshot);
+    return 0;
+  }
+  bytes = n * sizeof(controlChannelInfo_t);
+  for (size_t index = 0; index < n; index++) {
+    CHANNEL_HINT_ATTRIBUTES *attributes = snapshot[index].attributes;
+    if (attributes != NULL) {
+      if (UNLIKELY(attributes->size > SIZE_MAX - bytes))
+        goto failed;
+      bytes += attributes->size;
+    }
+  }
+  *lst = csound->Malloc(csound, bytes);
+  if (UNLIKELY(*lst == NULL))
+    goto failed;
+  char *text = (char *) (*lst + n);
+  for (size_t index = 0; index < n; index++) {
+    CHANNEL_HINT_ATTRIBUTES *attributes = snapshot[index].attributes;
+    (*lst)[index] = snapshot[index].info;
+    if (attributes != NULL) {
+      memcpy(text, attributes->text, attributes->size);
+      (*lst)[index].hints.attributes = text;
+      text += attributes->size;
+      release_hint_attributes(csound, attributes);
+    }
+  }
+  csound->Free(csound, snapshot);
 
   /* sort list */
   qsort((void*) (*lst), n, sizeof(controlChannelInfo_t), cmp_func);
   /* return the number of channels */
   return (int32_t)n;
+
+ failed:
+  for (size_t index = 0; index < n; index++)
+    release_hint_attributes(csound, snapshot[index].attributes);
+  csound->Free(csound, snapshot);
+  return CSOUND_MEMORY;
 }
 
 void csoundDeleteChannelList(CSOUND *csound, controlChannelInfo_t *lst)
@@ -635,12 +864,17 @@ void csoundDeleteChannelList(CSOUND *csound, controlChannelInfo_t *lst)
 
 static int32_t set_control_channel_hints(CSOUND *csound, CHNENTRY *pp,
                                          controlChannelHints_t hints) {
-  if (UNLIKELY((pp->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL))
+  CHANNEL_HINT_ATTRIBUTES *oldAttributes;
+  if (UNLIKELY((channel_type(pp) & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL))
     return CSOUND_ERROR;
   if  (hints.behav == CSOUND_CONTROL_CHANNEL_NO_HINTS) {
-    csound->Free(csound, pp->hints.attributes);
+    channel_registry_lock(csound);
+    oldAttributes = pp->hintAttributes;
+    pp->hintAttributes = NULL;
     pp->hints.attributes = NULL;
     pp->hints.behav = CSOUND_CONTROL_CHANNEL_NO_HINTS;
+    channel_registry_unlock(csound);
+    release_hint_attributes(csound, oldAttributes);
     return 0;
   }
   if  (hints.behav == CSOUND_CONTROL_CHANNEL_INT) {
@@ -655,17 +889,25 @@ static int32_t set_control_channel_hints(CSOUND *csound, CHNENTRY *pp,
     return CSOUND_ERROR;
   }
 
-  /* Copy first: hints may come from csoundListChannels() and alias pp. */
-  char *attributes = NULL;
+  CHANNEL_HINT_ATTRIBUTES *attributes = NULL;
   if (hints.attributes) {
-    attributes
-      = (char *) csound->Malloc(csound,
-                                (strlen(hints.attributes) + 1)* sizeof(char));
-    strcpy(attributes, hints.attributes);
+    size_t size = strlen(hints.attributes) + 1;
+    if (UNLIKELY(size > SIZE_MAX - sizeof(*attributes)))
+      return CSOUND_MEMORY;
+    attributes = csound->Malloc(csound, sizeof(*attributes) + size);
+    if (UNLIKELY(attributes == NULL))
+      return CSOUND_MEMORY;
+    attributes->size = size;
+    attributes->references = 1;
+    memcpy(attributes->text, hints.attributes, size);
   }
-  csound->Free(csound, pp->hints.attributes);
-  hints.attributes = attributes;
+  hints.attributes = attributes != NULL ? attributes->text : NULL;
+  channel_registry_lock(csound);
+  oldAttributes = pp->hintAttributes;
+  pp->hintAttributes = attributes;
   pp->hints = hints;
+  channel_registry_unlock(csound);
+  release_hint_attributes(csound, oldAttributes);
   return CSOUND_SUCCESS;
 }
 
@@ -696,17 +938,28 @@ int32_t csoundGetControlChannelHints(CSOUND *csound, const char *name,
   pp = find_channel(csound, name);
   if (pp == NULL)
     return CSOUND_ERROR;
-  if ((pp->type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
+  if ((channel_type(pp) & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
     return CSOUND_ERROR;
-  if (pp->hints.behav == 0)
+  channel_registry_lock(csound);
+  if (pp->hints.behav == 0) {
+    channel_registry_unlock(csound);
     return CSOUND_ERROR;
-  *hints = pp->hints;
-  if (pp->hints.attributes) {
-    hints->attributes
-      = (char *) csound->Malloc(csound,
-                                strlen(pp->hints.attributes) + 1);
-    strcpy(hints->attributes, pp->hints.attributes);
   }
+  controlChannelHints_t copy = pp->hints;
+  CHANNEL_HINT_ATTRIBUTES *attributes = pp->hintAttributes;
+  if (attributes != NULL)
+    attributes->references++;
+  channel_registry_unlock(csound);
+  if (attributes != NULL) {
+    copy.attributes = csound->Malloc(csound, attributes->size);
+    if (UNLIKELY(copy.attributes == NULL)) {
+      release_hint_attributes(csound, attributes);
+      return CSOUND_MEMORY;
+    }
+    memcpy(copy.attributes, attributes->text, attributes->size);
+    release_hint_attributes(csound, attributes);
+  }
+  *hints = copy;
   return 0;
 }
 
@@ -769,20 +1022,20 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
   }
 
   if(pp == NULL) {
-    // channel does not exist yet
-    if((err = create_new_channel(csound, p->iname->data, CSOUND_VAR_CHANNEL |
-                                 accessMode)) == 0)
-      pp = find_channel(csound, p->iname->data);
-    else {
-      print_chn_err(p, err);
+    CHNENTRY *published;
+    if (strlen(p->iname->data) > MAX_CHAN_NAME) {
+      print_chn_err(p, CSOUND_ERROR);
       return NULL;
     }
-  }
-
-  pp->type |= accessMode;
-
-  if(pp->var == NULL) {
-    // channel exists but not set up
+    pp = alloc_channel(csound, p->iname->data, CSOUND_VAR_CHANNEL | accessMode);
+    if (pp == NULL) {
+      print_chn_err(p, CSOUND_MEMORY);
+      return NULL;
+    }
+    pp->type = CSOUND_VAR_CHANNEL | accessMode;
+    strcpy(pp->name, p->iname->data);
+    /* Build the entire descriptor before publication. A render lookup must
+       never observe var != NULL while its memBlock is still being built. */
     ARRAY_VAR_INIT varInit;
     if(argtype == &CS_VAR_TYPE_ARRAY) {
       // support for arrays (not currently used)
@@ -795,6 +1048,7 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
       argtype == &CS_VAR_TYPE_ARRAY ? (const void *) &varInit : NULL,
       p->h.insdshead);
     if (UNLIKELY(pp->var == NULL)) {
+      csound->Free(csound, pp);
       csound->InitError(csound, Str("failed to create channel storage for type %s\n"),
                         argtype->varTypeName);
       return NULL;
@@ -805,6 +1059,8 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
                                                     + CS_VAR_TYPE_OFFSET);
     if (UNLIKELY(pp->var->memBlock == NULL)) {
       pp->var->ctx = NULL;
+      delete_channel_entry_contents(csound, pp);
+      csound->Free(csound, pp);
       csound->InitError(csound, Str("memory allocation failure\n"));
       return NULL;
     }
@@ -819,11 +1075,23 @@ static CHNENTRY *chn_generic_initialise(CSOUND *csound, CHNGET *p,
     /* Constructors and initializers may need the note's local ksmps, but the
        channel descriptor outlives that note. Do not retain its INSDS. */
     pp->var->ctx = NULL;
-  } else if(pp->var->varType != argtype) {
+    err = publish_channel(csound, pp, &published);
+    if (published != pp) {
+      delete_channel_entry_contents(csound, pp);
+      csound->Free(csound, pp);
+    }
+    if (err != CSOUND_SUCCESS) {
+      print_chn_err(p, err);
+      return NULL;
+    }
+    pp = published;
+  }
+  if(pp->var == NULL || pp->var->varType != argtype) {
     csound->InitError(csound,
                       Str("channel type did not match argument\n"));
     return NULL;
   }
+  channel_add_mode(pp, accessMode);
 
   return pp;
 }
@@ -1594,7 +1862,7 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
   const char *channelName = p->iname->data;
   int32_t  type = CSOUND_CONTROL_CHANNEL, mode, err;
   controlChannelHints_t hints;
-  CHNENTRY *chn;
+  CHNENTRY *chn, *published;
   CS_VARIABLE *var;
 
   if (UNLIKELY(GetOutputArgCnt((OPDS *)p) != 1))
@@ -1636,9 +1904,6 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     return csound->InitError(csound, Str("invalid channel name\n"));
   if (UNLIKELY(var->memBlock == NULL))
     return csound->InitError(csound, Str("export variable is not initialised\n"));
-  if (UNLIKELY((err = ensure_channel_db(csound)) != CSOUND_SUCCESS))
-    return print_chn_err(p, err);
-
   /* Prepare the complete entry before making it visible to channel readers. */
   chn = alloc_channel(csound, channelName, type);
   if (UNLIKELY(chn == NULL))
@@ -1675,7 +1940,15 @@ int32_t chnexport_opcode_init(CSOUND *csound, CHNEXPORT_OPCODE *p)
     }
   }
 
-  cs_hash_table_put(csound, csound->chn_db, (char*)channelName, chn);
+  err = publish_channel(csound, chn, &published);
+  if (UNLIKELY(err != CSOUND_SUCCESS)) {
+    print_chn_err(p, err);
+    goto failed;
+  }
+  if (UNLIKELY(published != chn)) {
+    err = csound->InitError(csound, Str("channel already exists\n"));
+    goto failed;
+  }
   return OK;
 
  failed:
@@ -3253,7 +3526,7 @@ int32_t csoundSetChannel(CSOUND *csound, const char *name,
   }
 
   // control channels use atomics if available
-  if((pp->type & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_CONTROL_CHANNEL) {
+  if((channel_type(pp) & CSOUND_CHANNEL_TYPE_MASK) == CSOUND_CONTROL_CHANNEL) {
     cs_float *fp = &pp->var->memBlock->value;
 #if defined(MSVC)
     volatile union {

@@ -204,7 +204,7 @@ int32_t turnoff(CSOUND *csound, LINK *p)/* terminate the current instrument  */
 }
 
 
-int32_t instr_num(CSOUND *csound, INSTRTXT *instr);
+int32_t instr_num(CSOUND *csound, INSTREF *reference);
 /* turnoff2 opcode */
 int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
 {
@@ -217,7 +217,7 @@ int32_t turnoff2(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
   }
   else if (isStringArg == 2) {
     INSTREF *ref = (INSTREF *) p->kInsNo;
-    p1 = (cs_float) instr_num(csound, ref->instr);
+    p1 = (cs_float) instr_num(csound, ref);
   }
   else if (IsStringCode(*p->kInsNo)) {
     p1 = (cs_float) csoundStringArg2Insno(csound, csoundGetArgString(csound, *p->kInsNo), 1);
@@ -320,7 +320,7 @@ int32_t turnoff3(CSOUND *csound, TURNOFF2 *p, int32_t isStringArg)
   }
   else if (isStringArg == 2) {
     INSTREF *ref = (INSTREF *) p->kInsNo;
-    p1 = (cs_float) instr_num(csound, ref->instr);
+    p1 = (cs_float) instr_num(csound, ref);
   }
   else if (IsStringCode(*p->kInsNo)) {
     p1 = (cs_float) csoundStringArg2Insno(csound, csoundGetArgString(csound, *p->kInsNo), 1);

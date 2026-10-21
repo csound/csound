@@ -5,6 +5,12 @@
 
 ## Breaking Changes
 
+### Startup errors
+
+`Csound()` now rejects its promise when AudioWorklet support is missing;
+it previously logged an error and returned `undefined`. Catch startup errors
+around `await Csound()` instead of checking its result for `undefined`.
+
 ### ScriptProcessorNode Support Removed (v7.0.0+)
 
 ScriptProcessorNode support has been removed from the library. ScriptProcessorNode was deprecated in 2014 and provides inferior performance compared to AudioWorklet. All modern browsers (Chrome 64+, Firefox 76+, Safari 14.1+) support AudioWorklet.
@@ -35,6 +41,55 @@ See the
 [MediaDevices.getUserMedia documentation](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia#privacy_and_security)
 for browser security and permission rules.
 
+## Realtime init
+
+Normal builds include thread support when the toolchain supports it.
+`useWorker` defaults to `false`, so `Csound()` runs in one AudioWorklet
+with synchronous init. Set `useWorker: true` to use the worker host.
+With the shared engine, this requires isolation headers and thread support
+unless `useSAB: false` selects MessagePort mode. Missing features cause an
+error before startup.
+
+On the shared worker host, set `--realtime` before `start()` to enable
+background init; omitting the flag keeps synchronous init. Reset clears it.
+
+During realtime playback, `compileOrc()`, `evalCode()`, and string channel APIs
+run on a separate Csound thread. Their promises resolve when each call finishes;
+compilation includes merging and global init. Existing voices and the sample
+clock continue, but long global init can delay new notes because it shares
+Csound's init mutex. This does not guarantee zero underruns.
+
+Numeric channels declared before `start()` use atomic access to saved addresses.
+Channels created later use the control thread. Numeric notes (`event(0,
+[instrument, start, duration, ...])`) and end events (`event(2, [])` or
+`event(2, [0, delay])`) remain available. The end-event promise confirms admission;
+wait for `realtimePerformanceEnded` for completed shutdown.
+
+The control queue holds four requests, including the running call, with at most
+1 MiB of UTF-8 text per request. Its fixed text buffers use 4 MiB of the shared
+256 MiB heap so submission needs no C allocation on the render worker.
+On the shared host, compile, eval, and channel calls have no elapsed-time
+deadline, with or without `--realtime`. In realtime mode, stop rejects queued
+work and waits for running work before cleanup; worker failure rejects pending calls.
+Resume before submitting engine calls while paused.
+Filesystem APIs, score text, table changes, and full CSD compilation still
+require a stop. Background workers cannot open the render worker's files, so
+live `#include` and file-dependent global init remain unsupported even when
+files are preloaded.
+
+The bundle contains one binary for all APIs. Explicit `useWorker: false`,
+`useSAB: false`, and the named `libcsound()` constructor use it locally with
+synchronous init. They need shared Wasm support but no isolation headers.
+
+Plugins work with the shared engine. Rebuild them with the matching plugin
+SDK, then load them before the first `start()`. The shared worker host keeps
+that plugin set across reset; create a new instance to change it.
+
+`supportsRealtime()` reports whether the selected engine supports the mode;
+`isRealtime()` reports its native setting. Both return a promise for 0 or 1.
+See the [build guide](../README.md#wasi-realtime-browser) for headers, limits,
+and setup.
+
 ## Api Documentation
 
 ## Objects
@@ -48,10 +103,9 @@ for browser security and permission rules.
 ## Functions
 
 <dl>
-<dt><a href="#Csound">Csound([params])</a> ⇒ <code>Promise.&lt;(CsoundObj|undefined)&gt;</code></dt>
+<dt><a href="#Csound">Csound([params])</a> ⇒ <code>Promise.&lt;CsoundObj&gt;</code></dt>
 <dd><p>The default entry for @csound/wasm/browser module.
-If loaded successfully, it returns CsoundObj,
-otherwise undefined.</p>
+Returns CsoundObj, or rejects if the host lacks required audio or Wasm support.</p>
 </dd>
 <dt><a href="#getTable">getTable(tableNum)</a> ⇒ <code>Promise.&lt;(Float64Array|undefined)&gt;</code></dt>
 <dd></dd>
@@ -103,9 +157,9 @@ CsoundObj API.
         * [.setDebug(debug)](#CsoundObj.setDebug) ⇒ <code>Promise.&lt;undefined&gt;</code>
         * [.inputMessage(scoreEvent)](#CsoundObj.inputMessage) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.inputMessageAsync(scoreEvent)](#CsoundObj.inputMessageAsync) ⇒ <code>Promise.&lt;number&gt;</code>
-        * [.getControlChannel(channelName)](#CsoundObj.getControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.getControlChannel(channelName)](#CsoundObj.getControlChannel) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.setControlChannel(channelName, value)](#CsoundObj.setControlChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
-        * [.getStringChannel(channelName)](#CsoundObj.getStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
+        * [.getStringChannel(channelName)](#CsoundObj.getStringChannel) ⇒ <code>Promise.&lt;string&gt;</code>
         * [.setStringChannel(channelName, value)](#CsoundObj.setStringChannel) ⇒ <code>Promise.&lt;undefined&gt;</code>
         * [.getOutputName()](#CsoundObj.getOutputName) ⇒ <code>Promise.&lt;string&gt;</code>
         * [.getInputName()](#CsoundObj.getInputName) ⇒ <code>Promise.&lt;string&gt;</code>
@@ -411,10 +465,9 @@ without any pre-process parsing
 
 <a name="CsoundObj.getControlChannel"></a>
 
-### CsoundObj.getControlChannel(channelName) ⇒ <code>Promise.&lt;undefined&gt;</code>
+### CsoundObj.getControlChannel(channelName) ⇒ <code>Promise.&lt;number&gt;</code>
 Retrieves the value of control channel identified by channelName.
-If the err argument is not NULL, the error (or success) code finding
-or accessing the channel is stored in it.
+Active `--realtime` also supports channels created during playback.
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
 
@@ -436,7 +489,7 @@ Sets the value of control channel identified by channelName
 
 <a name="CsoundObj.getStringChannel"></a>
 
-### CsoundObj.getStringChannel(channelName) ⇒ <code>Promise.&lt;undefined&gt;</code>
+### CsoundObj.getStringChannel(channelName) ⇒ <code>Promise.&lt;string&gt;</code>
 Retrieves the string channel identified by channelName
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
@@ -873,10 +926,9 @@ return undefined.
 
 <a name="Csound"></a>
 
-## Csound([params]) ⇒ <code>Promise.&lt;(CsoundObj\|undefined)&gt;</code>
+## Csound([params]) ⇒ <code>Promise.&lt;CsoundObj&gt;</code>
 The default entry for @csound/wasm/browser module.
-If loaded successfully, it returns CsoundObj,
-otherwise undefined.
+Returns CsoundObj, or rejects if the host lacks required audio or Wasm support.
 
 **Kind**: global function
 
@@ -887,9 +939,9 @@ otherwise undefined.
 | [params.inputChannelCount] | <code>Number</code> |  | Optional input channel count for AudioNode used with WebAudio graph. Defaults to the value of nchnls_i in useWorker but 2 otherwise. |
 | [params.outputChannelCount] | <code>Number</code> |  | Optional output channel count AudioNode used with WebAudio graph. Defaults to the value of nchnls in useWorker but 2 otherwise. |
 | [params.autoConnect] | <code>Boolean</code> | <code>true</code> | Set to configure Csound to automatically connect to the audioContext.destination output. |
-| [params.withPlugins] | <code>Array.&lt;Object&gt;</code> |  | Array of WebAssembly Csound plugin libraries to use with Csound. |
-| [params.useWorker] | <code>Boolean</code> | <code>false</code> | Configure to use backend using Web Workers to run Csound in a thread separate from audio callback. |
-| [params.useSAB] | <code>Boolean</code> | <code>true</code> | Configure to use SharedArrayBuffers for WebWorker communications if platform supports it. |
+| [params.withPlugins] | <code>Array.&lt;Object&gt;</code> |  | WebAssembly Csound plugins built with the matching SDK. The shared worker host fixes its plugin set at first start. |
+| [params.useWorker] | <code>Boolean</code> |  | Defaults to false, running in one AudioWorklet with synchronous init. Set true to use a worker. With the shared engine, this requires the shared host unless useSAB is false. |
+| [params.useSAB] | <code>Boolean</code> | <code>true</code> | Setting false keeps the existing transport without shared audio buffers and uses synchronous init. |
 
 
 <a name="CSOUND_PARAMS"></a>

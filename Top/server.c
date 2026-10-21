@@ -27,6 +27,7 @@
 #define __HAIKU_CONFLICT
 
 #include "csoundCore.h"
+#include "csound_message_callbacks.h"
 #include <ctype.h>
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
@@ -587,7 +588,7 @@ int32_t csoundUDPConsole(CSOUND *csound, const char *addr, int32_t port, int
       p->addr = csoundStrdup(csound, (char *) addr);
       p->sock = 0;
       if(mirror)
-        p->cb = csound->csoundMessageCallback_;
+        p->cb = csoundLoadMessageCallback(csound);
       csound->SetMessageCallback(csound, udp_msg_callback);
       csound->RegisterResetCallback(csound, p, udp_console_stop);
     } else {
