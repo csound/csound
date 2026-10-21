@@ -5,13 +5,7 @@
 
 ## Breaking Changes
 
-### Default host and startup errors
-
-On pages with cross-origin isolation and the required Wasm features, `Csound()`
-now selects the shared worker host. Previously it used one AudioWorklet.
-Pass `useWorker: false` to keep the previous execution model. The shared host
-freezes plugins at its first start and uses the realtime API limits only when
-`--realtime` is enabled. Pages without isolation still use one AudioWorklet.
+### Startup errors
 
 `Csound()` now rejects its promise when AudioWorklet support is missing;
 it previously logged an error and returned `undefined`. Catch startup errors
@@ -49,12 +43,12 @@ for browser security and permission rules.
 
 ## Realtime init
 
-Normal builds include thread support when the toolchain supports it. `Csound()`
-uses the shared worker host when the page has isolation headers and the browser
-supports it. Otherwise, it uses the same engine in one AudioWorklet with
-synchronous init. Explicit `useWorker: true` requires the shared host unless
-`useSAB: false` selects MessagePort mode; missing features cause an error
-before startup.
+Normal builds include thread support when the toolchain supports it.
+`useWorker` defaults to `false`, so `Csound()` runs in one AudioWorklet
+with synchronous init. Set `useWorker: true` to use the worker host.
+With the shared engine, this requires isolation headers and thread support
+unless `useSAB: false` selects MessagePort mode. Missing features cause an
+error before startup.
 
 On the shared worker host, set `--realtime` before `start()` to enable
 background init; omitting the flag keeps synchronous init. Reset clears it.
@@ -946,7 +940,7 @@ Returns CsoundObj, or rejects if the host lacks required audio or Wasm support.
 | [params.outputChannelCount] | <code>Number</code> |  | Optional output channel count AudioNode used with WebAudio graph. Defaults to the value of nchnls in useWorker but 2 otherwise. |
 | [params.autoConnect] | <code>Boolean</code> | <code>true</code> | Set to configure Csound to automatically connect to the audioContext.destination output. |
 | [params.withPlugins] | <code>Array.&lt;Object&gt;</code> |  | WebAssembly Csound plugins built with the matching SDK. The shared worker host fixes its plugin set at first start. |
-| [params.useWorker] | <code>Boolean</code> |  | Use the shared worker host. If omitted, use it when supported; otherwise run the same engine in one AudioWorklet with synchronous init. Setting true requires the shared host unless useSAB is false. Setting false always uses one AudioWorklet. |
+| [params.useWorker] | <code>Boolean</code> |  | Defaults to false, running in one AudioWorklet with synchronous init. Set true to use a worker. With the shared engine, this requires the shared host unless useSAB is false. |
 | [params.useSAB] | <code>Boolean</code> | <code>true</code> | Setting false keeps the existing transport without shared audio buffers and uses synchronous init. |
 
 
