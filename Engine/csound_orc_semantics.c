@@ -1320,18 +1320,26 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
   {
     int32_t argsFoundCount = args_required(inArgsFound);
     int32_t args_requiredCount = args_required(opInArgs);
-    char** args_required = split_args(csound, opInArgs);
+    char** args_required;
     char** argsFound;
     int32_t i;
     int32_t argTypeIndex = 0;
     char* varArg = NULL;
     int32_t returnVal = 1;
 
-    if (args_required == NULL) {
+    if (argsFoundCount < 0 || args_requiredCount < 0) {
       return 0;
+    }
+    if (args_requiredCount == 0) {
+      return argsFoundCount == 0;
     }
     if (argsFoundCount>=VARGMAX) {
       return -1;
+    }
+
+    args_required = split_args(csound, opInArgs);
+    if (args_required == NULL) {
+      return 0;
     }
 
     if ((argsFoundCount > args_requiredCount) &&
@@ -1474,15 +1482,31 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
     return 1;
   }
 
+  if (UNLIKELY(opOutArgs == NULL)) {
+    return 0;
+  }
+
   {
     int32_t argsFoundCount = args_required(outArgsFound);
     int32_t argsRequiredCount = args_required(opOutArgs);
-    char** argsRequired = split_args(csound, opOutArgs);
+    char** argsRequired;
     char** argsFound;
     int32_t i;
     int32_t argTypeIndex = 0;
     char* varArg = NULL;
     int32_t returnVal = 1;
+
+    if (argsFoundCount < 0 || argsRequiredCount < 0) {
+      return 0;
+    }
+    if (argsRequiredCount == 0) {
+      return argsFoundCount == 0;
+    }
+
+    argsRequired = split_args(csound, opOutArgs);
+    if (argsRequired == NULL) {
+      return 0;
+    }
 
     if ((argsFoundCount > argsRequiredCount) &&
         !(is_out_var_arg(argsRequired[argsRequiredCount - 1]))) {
