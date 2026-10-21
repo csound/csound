@@ -888,6 +888,11 @@ jobs:
     needs: update_version
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
+      # A release build (a PR carrying the "release" label merged into main)
+      # must not be qualified as beta; every other build keeps the qualifier.
+      # Note: the "&& a || b" idiom needs a *truthy* first operand, hence the
+      # negated condition - an empty string would be falsy and fall back to b.
+      BETA_SUFFIX: ${{ !(github.ref == 'refs/heads/main' && needs.update_version.outputs.release == 'true') && '-beta' || '' }}
       DEV_ID_APP_CERT: ${{ secrets.DEV_ID_APP_CERT }}
       DEV_ID_APP_PASSWORD: ${{ secrets.DEV_ID_APP_PASSWORD }}
       DEV_ID_INSTALLER_CERT: ${{ secrets.DEV_ID_INSTALLER_CERT }}
@@ -1099,17 +1104,17 @@ jobs:
               --root csound_install/PkgContents \
               --sign "$DEVELOPER_INSTALLER_ID" \
               "${timestamp_args[@]}" \
-              CsoundLib64-${{ env.CSOUND_VERSION }}-beta-universal.pkg
+              "CsoundLib64-${{ env.CSOUND_VERSION }}${{ env.BETA_SUFFIX }}-universal.pkg"
           else
             pkgbuild \
               --identifier com.csound.csound7Environment.csoundLib64 \
               --root csound_install/PkgContents \
-              CsoundLib64-${{ env.CSOUND_VERSION }}-beta-universal.pkg
+              "CsoundLib64-${{ env.CSOUND_VERSION }}${{ env.BETA_SUFFIX }}-universal.pkg"
           fi
 
           if [[ "$SIGN_CERTIFICATES" == "true" ]]; then
             pkgutil --check-signature \
-            CsoundLib64-${{ env.CSOUND_VERSION }}-beta-universal.pkg
+              "CsoundLib64-${{ env.CSOUND_VERSION }}${{ env.BETA_SUFFIX }}-universal.pkg"
           fi
 
       - name: Notarize macOS installer
@@ -1121,7 +1126,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          PKG="CsoundLib64-${{ env.CSOUND_VERSION }}-beta-universal.pkg"
+          PKG="CsoundLib64-${{ env.CSOUND_VERSION }}${{ env.BETA_SUFFIX }}-universal.pkg"
 
           [[ -n "$APPLE_ID" && -n "$APPLE_APP_PASSWORD" && -n "$APPLE_TEAM_ID" ]] || {
             echo "::error::Apple notarization credentials are missing"
@@ -1140,8 +1145,8 @@ jobs:
       - name: Upload zip
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-beta
-          path: ./CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx${{env.BETA_SUFFIX}}
+          path: ./CsoundLib64-${{env.CSOUND_VERSION}}${{env.BETA_SUFFIX}}-universal.pkg
 
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
@@ -1842,6 +1847,9 @@ jobs:
       ]
     env:
       CSOUND_VERSION: ${{ needs.update_version.outputs.version }}
+      # Must match the qualifier used by the macos_build_installer job so the
+      # artifact downloaded below has the name it was uploaded with.
+      BETA_SUFFIX: ${{ !(github.ref == 'refs/heads/main' && needs.update_version.outputs.release == 'true') && '-beta' || '' }}
     steps:
       - name: Download Windows installer
         uses: actions/download-artifact@v8.0.1
@@ -1882,7 +1890,7 @@ jobs:
       - name: Download macOS installer
         uses: actions/download-artifact@v8.0.1
         with:
-          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-beta
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx${{env.BETA_SUFFIX}}
           path: csound-macos-${{env.CSOUND_VERSION}}
 
       - name: Download arm-cortex-m7 package
