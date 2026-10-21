@@ -42,15 +42,10 @@ const Csound = async function (options = {}) {
     outputChannelCount,
     autoConnect = true,
     withPlugins = [],
+    useWorker = false,
     useSAB = true,
   } = options;
-  // Keep the default usable without isolation, but honor an explicit worker request.
-  const threaded =
-    sharedEngine &&
-    options.useWorker !== false &&
-    useSAB &&
-    (options.useWorker === true || canUseThreadedWasm());
-  const useWorker = threaded || Boolean(options.useWorker);
+  const threaded = sharedEngine && useWorker && useSAB;
   if (threaded && !canUseThreadedWasm())
     throw new Error(
       "Csound requires cross-origin isolation, SharedArrayBuffer, AudioWorklet, and " +

@@ -161,9 +161,9 @@ Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: require-corp
 ```
 
-The default entry selects the shared host when these features are available.
-Otherwise, it uses the same engine in one AudioWorklet with synchronous init.
-Explicit `useWorker: true` requires the shared host unless `useSAB: false`
+`useWorker` defaults to `false`, running the engine in one AudioWorklet with
+synchronous init. Set `useWorker: true` to use a worker. With the shared engine,
+this requires the shared host unless `useSAB: false`
 selects MessagePort mode; missing support causes an error before opening an
 AudioContext. All modes still require the Wasm features of the bundled engine.
 A failed worker startup closes the instance and any context it owns.
@@ -179,7 +179,7 @@ atomics, and standard Wasm exceptions. They use synchronous init and ignore
 ```js
 import Csound from "/csound.js";
 
-const cs = await Csound();
+const cs = await Csound({ useWorker: true });
 await cs.setOption("-odac -m0 --daemon");
 await cs.setOption("--realtime");
 await cs.compileOrc(`
