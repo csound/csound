@@ -5,8 +5,7 @@ Csound from other programs. It retains the classic orchestra and score
 syntax. The host API and plugin API have changes that require source updates
 and new builds.
 
-These notes cover the main features and changes from Csound 6. They describe
-the Csound 7 beta on the `develop` branch.
+These notes cover the main features and changes from Csound 6.
 
 ## Major changes
 
@@ -18,11 +17,14 @@ the Csound 7 beta on the `develop` branch.
 - Opcode and instrument objects let orchestra code store references and
   control separate instances.
 - UDOs can use a local sample rate through `oversample` and `undersample`.
+- State-machine opcodes let orchestra code follow named states, choose
+  transitions, and keep separate runners for the same definition.
 - The host API combines related calls. The unit generator (UGen) API lets
   hosts run individual opcodes.
 - WebAssembly builds add command-line tools and support external score
-  programs in the browser. Native builds can load supported WebAssembly
-  opcode plugins through Wasmtime.
+  programs in the browser. The browser can also initialize notes in the
+  background during realtime playback. Native builds can load supported
+  WebAssembly opcode plugins through Wasmtime.
 
 The following articles explain these features with examples:
 
@@ -89,12 +91,22 @@ These groups cover the main additions. The
 | Complex numbers | `complex`, `polar`, `real`, `imag`, and `arg` construct or inspect complex values. |
 | Sample playback | `memplay` reads decoded audio from a shared memory cache. |
 | Spatial audio | `dbap` and `dbapgains` provide distance-based amplitude panning. |
+| Mapping | `remap` maps control values, control arrays, or audio through breakpoint arrays. |
+| Filtering | `savgol` applies Savitzky–Golay smoothing or differentiation to audio or control signals. `savgolmat` supplies filter coefficients. |
+| State machines | `stmcreate`, `stmcompile`, `stminstance`, and related opcodes build state graphs and control their runners. |
 
 `memplay` uses the `diskin2` argument order. It supports variable speed,
 reverse playback, bounded loops, and loop crossfades. The first use loads
 the whole file. Later instances share its samples until the engine resets.
 Use `diskin2` when a file must stream from disk. See the
 [memory playback guide](../docs/memplay.md) for memory use and loop options.
+
+The state-machine opcodes separate a graph definition from its running state.
+Orchestra code reads the current node, performs the work for that node, and
+uses `stmadvance` to apply a requested transition. The graph does not execute
+instrument code by itself. The family also supports transition events,
+clocks, checkpoints, and pause and resume. See the
+[state-machine examples](../tests/commandline/stm/).
 
 ### Score and application input
 
@@ -115,6 +127,11 @@ Csound 7 reads `.csound7rc`. Plugin search paths use `OPCODE7DIR` and
 `OPCODE7DIR64`. Update local setup files and plugin paths when you install
 Csound 7 beside Csound 6.
 
+Plugin loading waits until compilation, startup, or another operation needs
+the modules. Commands such as `csound --version` no longer scan plugin
+directories. Missing default directories stay quiet unless verbose output
+is enabled. Invalid paths set by the user still produce a warning.
+
 Default orchestra values remain `sr = 44100`, `ksmps = 10`, `nchnls = 1`,
 and `0dbfs = 32768`. Set these values in the orchestra when a piece needs
 other values. Sample-accurate score timing still requires `--sample-accurate`.
@@ -123,16 +140,36 @@ Deprecated opcodes remain available for older works. The
 [replacement catalog](../docs/deprecated-opcodes.md) lists alternatives and
 differences in behavior.
 
+The DSSI hosting opcodes, including `dssiinit` and `dssiaudio`, have moved to
+the separate [Csound plugins repository](https://github.com/csound/plugins).
+They are no longer part of the core build. Install the separate plugin if
+an orchestra uses them. The core build no longer has `BUILD_DSSI_OPCODES`.
+
 `--error-deprecated` rejects every opcode marked as deprecated, including
 older registrations that previously only gave a warning. With this option,
 an orchestra that uses these opcodes can fail to compile.
 
 Message-level bit 1024 (`CS_NOQQ`) suppresses deprecation warnings from the
 catalog and hard-coded opcodes. `-m1024` replaces the entire message-level
-mask, so it also disables ordinary warnings; combine the bit with the default
+mask, so it also disables ordinary warnings. Combine the bit with the default
 mask (`-m1159`) to suppress deprecation warnings only. Alternatively,
 `--no-deprecated-warnings` does the same while preserving other warnings.
 Neither suppression option overrides `--error-deprecated`.
+
+### Selected fixes
+
+- Compiler diagnostics retain the CSD filename and report score-preprocessor
+  errors before cleanup.
+- `prints` uses the line endings in its format string. Add `\n` when a new
+  line is needed. String `print` adds a trailing newline.
+- Realtime messages preserve their line breaks. Browser output keeps message
+  fragments together instead of displaying each fragment on a separate line.
+- SoundFont playback preserves global-zone pan, attenuation, and scale tuning.
+  Hard pan positions no longer produce invalid samples.
+- `liveconv` clears and reloads its convolution state correctly.
+  `hrtfreverb` creates its FFT setup before use during initialization.
+- Opcode arrays accept array arguments correctly, and reused UDO opcode
+  objects bind their arguments to the current caller.
 
 ## API changes
 
@@ -206,13 +243,19 @@ and `GetLocalSr`. Rate macros such as `CS_ESR` use the owning instance's
 local rate. Audio backends still register their callbacks through `CSOUND`.
 Utilities access their functions through `csound->GetUtility(csound)`.
 
+Plugins can register struct types and define `[]` reads, assignments, and
+initialization for their types. Native opcode plugins must provide valid
+`csoundModuleInfo` metadata so the loader can check their version and precision.
+The standard `LINKAGE` and `FLINKAGE` macros supply it.
+
 The [Module API article](Csound7/Module_API.md) explains these changes, with
 an opcode example and migration guidance for GENs, backends, and utilities.
 
 ### Numeric types
 
 Use `cs_float` for sample data and API values. `MYFLT` remains a deprecated
-alias. The `cs_double` type represents calculations that normally need
+alias, with compiler deprecation warnings currently disabled.
+The `cs_double` type represents calculations that normally need
 double precision. Hosts and plugins must match the library's precision.
 
 See the [numeric type guide](../docs/numeric-types.md) for precision options
@@ -222,6 +265,16 @@ and compatibility aliases.
 
 ### Builds and platforms
 
+Windows now has a native ARM64 installer alongside the x64 installer.
+Both include the native WASAPI audio backend and IP MIDI. Extra plugins must
+match the installed architecture. See the [Windows build guide](../BUILD.md#windows-arm64).
+
+CoreMIDI now supports MIDI output and maps multiple input ports to separate
+channel banks. JACK MIDI can run with a different audio backend.
+
+The default macOS deployment target is macOS 12. The iOS build configurations
+target iOS 15, and generated XCFrameworks include a module map for Swift.
+
 The `USE_FLOAT` build option selects single precision for both `cs_float`
 and `cs_double`. It requires `USE_DOUBLE=OFF`. The default build keeps
 double precision. A change in precision requires new host and plugin builds.
@@ -229,6 +282,12 @@ double precision. A change in precision requires new host and plugin builds.
 The browser package uses AudioWorklet for audio output. It no longer
 supports ScriptProcessorNode or the `useSPN` option. Applications must use
 the matching browser wrapper and WebAssembly binary package.
+
+On isolated pages with the required WebAssembly features, the browser now
+selects a worker host with shared memory by default. Set `useWorker: false`
+to keep one AudioWorklet. Background note initialization requires `--realtime` before
+`start()` and has limits on which APIs can run during playback. See the
+[browser host changes](Csound7/WebAssembly.md#choose-the-browser-host).
 
 The WASI build supplies `csound-cli.wasm` and separate analysis and conversion
 commands. Native Csound can load supported `.wasm` opcode plugins when

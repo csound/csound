@@ -8,7 +8,8 @@ opcode plugin through Wasmtime. Each form has a different host interface.
 
 | Form | Main use |
 | --- | --- |
-| `csound.wasm` | The Csound engine inside a browser host. |
+| `csound.wasm` | The baseline browser engine. |
+| `csound-browser-realtime.wasm` | The shared-memory browser engine, built when the toolchain supports threads. |
 | `csound-cli.wasm` | The Csound command in a WASI runtime. |
 | Utility commands such as `pvanal.wasm` | Separate analysis or conversion tasks. |
 | An opcode `.wasm` file | Extra opcodes loaded by a compatible host. |
@@ -27,6 +28,51 @@ Call `enableAudioInput` before `start` when the application must handle
 microphone errors before performance. A CSD with `-iadc` can also request
 input during startup. See the
 [browser guide](../../platform/wasm-wasi/browser/README.md) for input setup.
+
+## Choose the browser host
+
+On pages with cross-origin isolation and the required WebAssembly features,
+`Csound()` now selects a worker host with shared memory. Previously it used one
+AudioWorklet. Pass `useWorker: false` to keep that execution model.
+Pages without isolation still use one AudioWorklet with synchronous note
+initialization.
+
+The browser bundle contains one engine, using the shared-memory build when
+available. Applications do not need to load a second engine for realtime mode.
+`Csound()` now rejects its promise when AudioWorklet support is missing.
+Catch errors around `await Csound()` instead of checking for `undefined`.
+
+## Initialize notes in the background
+
+On the worker host with shared memory, set `--realtime` before `start()` to enable
+background note initialization. Without the flag, initialization stays
+synchronous. Reset clears the flag.
+
+During realtime playback, `compileOrc()`, `evalCode()`, and string channel
+calls run on a separate Csound thread. Their promises resolve when each call
+finishes. Numeric channels declared before startup use atomic access.
+Existing voices can continue while new code compiles, but long global
+initialization can delay new notes. This does not guarantee uninterrupted
+audio for every orchestra.
+
+Filesystem access, score text, table changes, and full CSD compilation require
+the performance to stop. Live `#include` and file-dependent global
+initialization are not supported, even with preloaded files. See the
+[realtime browser guide](../../platform/wasm-wasi/README.md#wasi-realtime-browser)
+for supported calls and shutdown rules.
+
+## Load browser opcode plugins
+
+Rebuild browser plugins with the matching Csound SDK. On the worker host with
+shared memory, load them before the first `start()`. The plugin set stays fixed across
+reset, with or without `--realtime`. Create a new Csound instance to change it.
+
+Browser plugins can link static runtime libraries, including C++ libraries
+with exception handling. They share the engine's memory and allocator.
+Separate plugins cannot catch each other's C++ exceptions, and shared
+dynamic-library dependencies are not supported. The
+[plugin build guide](../../platform/wasm-wasi/PLUGIN_COMPILATION.md)
+describes the required toolchain and linking rules.
 
 ## Run external score programs in the browser
 
@@ -58,6 +104,11 @@ wasmtime run -Wexceptions=y --dir=. ./lib/csound-cli.wasm -nd example.csd
 
 The `--dir=.` option gives the command access to files in the current
 directory. Select directories that contain the CSD and its input files.
+
+The published `csound-cli.wasm` remains compatible with unthreaded WASI hosts.
+Browser realtime support does not enable background initialization in this
+command. A separate threaded command target is available for developers in
+the [WASI realtime guide](../../platform/wasm-wasi/README.md#wasi-realtime-command-host).
 
 The build also supplies standalone analysis and conversion commands.
 For example, `src_conv.wasm` converts a sound file's sample rate:
