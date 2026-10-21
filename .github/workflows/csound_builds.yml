@@ -1112,6 +1112,31 @@ jobs:
             CsoundLib64-${{ env.CSOUND_VERSION }}-beta-universal.pkg
           fi
 
+      - name: Notarize macOS installer
+        if: ${{ vars.ENABLE_NOTARIZATION == 'true' && steps.keychain.outcome == 'success' }}
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          set -euo pipefail
+
+          PKG="CsoundLib64-${{ env.CSOUND_VERSION }}-beta-universal.pkg"
+
+          [[ -n "$APPLE_ID" && -n "$APPLE_APP_PASSWORD" && -n "$APPLE_TEAM_ID" ]] || {
+            echo "::error::Apple notarization credentials are missing"
+            exit 1
+          }
+
+          xcrun notarytool submit "$PKG" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+
+          xcrun stapler staple "$PKG"
+          xcrun stapler validate "$PKG"
+
       - name: Upload zip
         uses: actions/upload-artifact@v7.0.1
         with:
