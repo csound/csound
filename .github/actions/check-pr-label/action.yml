@@ -32,26 +32,38 @@ runs:
       run: |
         set -uo pipefail
 
+        PR_NUMBER=""
+
         # Primary lookup: the commits -> pulls endpoint also resolves rebase
         # merges, where the mergeCommit field of a PR is null.
-        PR_NUMBER=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" \
-          --jq '[.[] | select(.merged_at != null) | .number] | sort | last // empty' 2>/dev/null || true)
-
-        # Fallback: match on the merge commit recorded in the PR.
-        if [ -z "$PR_NUMBER" ]; then
-          PR_NUMBER=$(gh pr list --state merged --limit 100 --json number,mergeCommit \
-            -q ".[] | select(.mergeCommit.oid==\"${GITHUB_SHA}\") | .number" 2>/dev/null | tail -n 1)
+        if [ -n "${GITHUB_REPOSITORY:-}" ] && [ -n "${GITHUB_SHA:-}" ]; then
+          PR_NUMBER="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" --jq '[.[] | select((.merged_at // "") != "") | .number] | sort | last // empty' 2>/dev/null | tr -d '[:space:]' || true)"
         fi
 
-        if [ -z "$PR_NUMBER" ]; then
+        # Fallback: match on the merge commit recorded in the PR.
+        if [ -z "${PR_NUMBER:-}" ] || ! [[ "${PR_NUMBER:-}" =~ ^[0-9]+$ ]]; then
+          PR_NUMBER="$(gh pr list --state merged --limit 100 --json number,mergeCommit -q ".[] | select((.mergeCommit // null) != null and .mergeCommit.oid == \"${GITHUB_SHA}\") | .number" 2>/dev/null | tail -n 1 | tr -d '[:space:]' || true)"
+        fi
+
+        if [ -z "${PR_NUMBER:-}" ] || ! [[ "${PR_NUMBER:-}" =~ ^[0-9]+$ ]]; then
           echo "No PR found for commit $GITHUB_SHA"
           echo "has_label=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
 
-        LABELS=$(gh pr view "$PR_NUMBER" --json labels -q '.labels[].name' 2>/dev/null || true)
+        if ! LABELS="$(gh pr view "$PR_NUMBER" --json labels -q '.labels[].name' 2>/dev/null)"; then
+          echo "Failed to fetch labels for PR #$PR_NUMBER"
+          echo "has_label=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
 
-        if echo "$LABELS" | grep -qw "$LABEL_TO_CHECK"; then
+        if [ -z "${LABELS:-}" ]; then
+          echo "Label $LABEL_TO_CHECK not found for commit $GITHUB_SHA (PR #$PR_NUMBER)"
+          echo "has_label=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        if grep -qiw -- "$LABEL_TO_CHECK" <<< "$LABELS"; then
           echo "Label $LABEL_TO_CHECK found for commit $GITHUB_SHA (PR #$PR_NUMBER)"
           echo "has_label=true" >> "$GITHUB_OUTPUT"
         else
