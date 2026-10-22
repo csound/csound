@@ -1,7 +1,7 @@
 {
   "name": "@csound/wasm-bin",
-  "version": "7.0.0-beta31",
-  "description": "A package containing csound wasm binaries which can be bundled into other csound packages 📂",
+  "version": "7.0.0",
+  "description": "A package containing csound wasm binaries which can be bundled into other csound packages",
   "main": "./lib/csound.wasm",
   "files": [
     "src",
@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/csound/csound/issues"
   },
-  "homepage": "https://github.com/csound/csound/tree/master/wasm",
+  "homepage": "https://github.com/csound/csound/tree/main/platform/wasm-wasi",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/csound/csound.git"
