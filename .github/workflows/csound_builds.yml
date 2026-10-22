@@ -1033,6 +1033,49 @@ jobs:
           mv csound_install/bin/csound csound_install/PkgContents/Applications/Csound/.
           mv csound_install/CsoundLib64.framework csound_install/PkgContents/Applications/Csound/.
 
+      - name: Create macOS bundle
+        run: |
+          set -euo pipefail
+
+          FRAMEWORK_DIR="csound_install/PkgContents/Applications/Csound/CsoundLib64.framework"
+          BUNDLE_DIR="CsoundLib64.bundle"
+
+          mkdir -p "$BUNDLE_DIR/Contents/MacOS"
+          cp "$FRAMEWORK_DIR/Versions/Current/CsoundLib64"* "$BUNDLE_DIR/Contents/MacOS"
+          cp "$FRAMEWORK_DIR/libs/"* "$BUNDLE_DIR/Contents/MacOS"
+          install_name_tool -id CsoundLib64 "$BUNDLE_DIR/Contents/MacOS/CsoundLib64"
+
+          cat > "$BUNDLE_DIR/Contents/Info.plist" <<'EOL'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleDevelopmentRegion</key>
+            <string>en</string>
+            <key>CFBundleExecutable</key>
+            <string>CsoundLib64</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.csound.CsoundLib64</string>
+            <key>CFBundleInfoDictionaryVersion</key>
+            <string>7.0</string>
+            <key>CFBundleName</key>
+            <string>CsoundLib64</string>
+            <key>CFBundlePackageType</key>
+            <string>BNDL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.0</string>
+            <key>CFBundleSupportedPlatforms</key>
+            <array>
+              <string>MacOSX</string>
+            </array>
+            <key>CFBundleVersion</key>
+            <string>1</string>
+          </dict>
+          </plist>
+          EOL
+
+          ditto -c -k --keepParent "$BUNDLE_DIR" "csound-macos-bundle-${CSOUND_VERSION}.zip"
+
       - name: Verify signing identities
         if: ${{ steps.keychain.outcome == 'success' }}
         env:
@@ -1142,6 +1185,13 @@ jobs:
         with:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-beta
           path: ./CsoundLib64-${{env.CSOUND_VERSION}}-beta-universal.pkg
+
+      - name: Upload macOS bundle
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-bundle
+          path: csound-macos-bundle-${{env.CSOUND_VERSION}}.zip
+          if-no-files-found: error
 
   macos_build_vcpkg:
     name: MacOS build (vcpkg)
@@ -1885,6 +1935,12 @@ jobs:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-beta
           path: csound-macos-${{env.CSOUND_VERSION}}
 
+      - name: Download macOS bundle
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-macosx-bundle
+          path: .
+
       - name: Download arm-cortex-m7 package
         uses: actions/download-artifact@v8.0.1
         with:
@@ -1952,6 +2008,7 @@ jobs:
             csound-windows-arm64-installer-${{env.CSOUND_VERSION}}.zip
             csound-windows-arm64-${{env.CSOUND_VERSION}}.zip
             csound-macos-${{env.CSOUND_VERSION}}.zip
+            csound-macos-bundle-${{env.CSOUND_VERSION}}.zip
             csound-ios-${{env.CSOUND_VERSION}}.zip
             csound-android-${{env.CSOUND_VERSION}}.zip
             csound-arm-cortex-m7-${{env.CSOUND_VERSION}}.zip
