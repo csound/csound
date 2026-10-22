@@ -199,6 +199,7 @@ TEST_F (OrcSemanticsTest, CheckInArgs2Test)
     ASSERT_TRUE (check_in_args(csound, "", NULL));
     ASSERT_TRUE (check_in_args(csound, NULL, NULL));
     ASSERT_TRUE (check_in_args(csound, "", ""));
+    ASSERT_FALSE (check_in_args(csound, "S", ""));
 
     ASSERT_TRUE (check_in_args(csound, "akiSakiS", "N"));
     ASSERT_TRUE (check_in_args(csound, "akiSakiS", "aN"));
@@ -253,6 +254,7 @@ TEST_F (OrcSemanticsTest, CheckOutArgs2Test)
     ASSERT_TRUE (check_out_args(csound, "", NULL));
     ASSERT_TRUE (check_out_args(csound, NULL, NULL));
     ASSERT_TRUE (check_out_args(csound, "", ""));
+    ASSERT_FALSE (check_out_args(csound, "S", ""));
 
     ASSERT_TRUE (check_out_args(csound, "akiSakiS", "N"));
     ASSERT_TRUE (check_out_args(csound, "akiSakiS", "aN"));
