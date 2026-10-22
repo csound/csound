@@ -1,6 +1,6 @@
 {
   "name": "@csound/browser",
-  "version": "7.0.0-beta41",
+  "version": "7.0.0",
   "module": "./dist/csound.js",
   "typings": "index.d.ts",
   "type": "module",
@@ -23,7 +23,7 @@
   "bugs": {
     "url": "https://github.com/csound/csound/issues"
   },
-  "homepage": "https://github.com/csound/csound/tree/develop/platform/wasm-wasi/browser",
+  "homepage": "https://github.com/csound/csound/tree/main/platform/wasm-wasi/browser",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/csound/csound.git"
@@ -64,7 +64,7 @@
     "test:realtime": "node tests/browser-realtime-runner.js"
   },
   "devDependencies": {
-    "@csound/wasm-bin": "7.0.0-beta31",
+    "@csound/wasm-bin": "7.0.0",
     "@eslint/js": "^10.0.1",
     "browser-or-node": "^3.0.0",
     "chai": "^6.2.2",
