@@ -1874,6 +1874,14 @@ int32_t inch_set(CSOUND *csound, INCH *p)
   return OK;
 }
 
+int32_t inall_set(CSOUND *csound, INALL *p)
+{
+  if(CS_ESR != csound->esr)
+    return csound->InitError(csound,
+                             Str("local sampling rate not supported\n"));
+  return OK;
+}
+
 int32_t inch_opcode(CSOUND *csound, INCH *p)
 {                               /* Rewritten to allow multiple args upto 40 */
   uint32_t nc, nChannels = p->INOCOUNT;

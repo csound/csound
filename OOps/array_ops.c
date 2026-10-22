@@ -1144,7 +1144,7 @@ int32_t tabarkrddin(CSOUND *csound, TABARITHIN *p)
 }
 
 // a[]-=k[]
-int32_t tabarkrsbin(CSOUND *csound, TABARITH *p)
+int32_t tabarkrsbin(CSOUND *csound, TABARITHIN *p)
 {
   ARRAYDAT *ans = p->ans;
   ARRAYDAT *r   = p->right;
@@ -1604,7 +1604,7 @@ int32_t tabarkrmulin(CSOUND *csound, TABARITHIN *p)
 }
 
 // a[]/=k[]
-int32_t tabarkrdivin(CSOUND *csound, TABARITH *p)
+int32_t tabarkrdivin(CSOUND *csound, TABARITHIN *p)
 {
   ARRAYDAT *ans = p->ans;
   ARRAYDAT *r   = p->right;

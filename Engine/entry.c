@@ -1570,7 +1570,7 @@ const OENTRY opcodlst_1[] = {
   { "inch.m",   S(INCH),0,          "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
     "z",    inch_set,   inch_opcode },
   { "_in",    S(INALL),0,         "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
-    "",     inch_set,   inall_opcode },
+    "",     inall_set,   inall_opcode },
   /* Note that there is code in rdorch.c that assumes that opcodes starting
      with the characters out followed by a s, q, h, o or x are in this group
      ***BEWARE***
