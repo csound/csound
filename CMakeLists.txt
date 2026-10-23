@@ -541,12 +541,29 @@ endif()
 # library installation directories
 option(USE_LIB64 "Set to on to set installation directory for libraries to lib64" OFF)
 if(USE_LIB64)
-	set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib64")
+    if(WIN32)
+        set(LIBRARY_INSTALL_DIR "lib64")
+    else()
+        set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib64")
+    endif()
     add_definitions("-DLIB64")
 elseif(NOT DEFINED LIBRARY_INSTALL_DIR)
-    set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+    if(WIN32)
+        set(LIBRARY_INSTALL_DIR "lib")
+    else()
+        set(LIBRARY_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/lib")
+    endif()
 endif()
 message(STATUS "LIBRARY INSTALL DIR: ${LIBRARY_INSTALL_DIR}")
+
+if(WIN32)
+    # Keep the Inno Setup library destination in sync with the exported targets.
+    string(REPLACE "/" "\\" CSOUND_INSTALLER_LIBRARY_DIR "${LIBRARY_INSTALL_DIR}")
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/installer/windows/csound_library_dir.iss.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/csound_library_dir.iss"
+        @ONLY)
+endif()
 
 if(USE_DOUBLE)
     message(STATUS "Building with 64-bit floats")
@@ -694,6 +711,8 @@ if(USE_DOUBLE)
     if(APPLE)
         set(CSOUNDLIB "CsoundLib64")
         set(PLUGIN_INSTALL_DIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
+    elseif(WIN32)
+        set(CSOUNDLIB "csound${CS_VERSION}_64")
     else()
         set(CSOUNDLIB "csound64")
     endif()
@@ -701,6 +720,8 @@ else()
     if(APPLE)
         set(CSOUNDLIB "CsoundLib")
         set(PLUGIN_INSTALL_DIR "${CS_FRAMEWORK_DEST}/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes")
+    elseif(WIN32)
+        set(CSOUNDLIB "csound${CS_VERSION}")
     else()
         set(CSOUNDLIB "csound")
     endif()
@@ -2035,12 +2056,19 @@ endif()
 # install CMake package configuration files
 include(CMakePackageConfigHelpers)
 
+# Match the Windows installer layout so exported paths remain relative.
+if(WIN32)
+    set(CSOUND_CMAKE_INSTALL_DIR "cmake")
+else()
+    set(CSOUND_CMAKE_INSTALL_DIR "share/csound")
+endif()
+
 # export targets to CsoundTargets.cmake (separate from config wrapper)
 if(WIN32 OR NOT IOS OR OSXCROSS_TARGET)
     install(EXPORT CsoundPackageExports
         FILE "CsoundTargets.cmake"
         NAMESPACE "Csound::"
-        DESTINATION "share/csound"
+        DESTINATION "${CSOUND_CMAKE_INSTALL_DIR}"
     )
 endif()
 
@@ -2049,7 +2077,7 @@ if(BUILD_STATIC_LIBRARY AND NOT BARE_METAL)
     install(EXPORT CsoundStaticExports
         FILE "CsoundStaticTargets.cmake"
         NAMESPACE "Csound::"
-        DESTINATION "share/csound"
+        DESTINATION "${CSOUND_CMAKE_INSTALL_DIR}"
     )
 endif()
 
@@ -2057,10 +2085,10 @@ endif()
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/CsoundConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfig.cmake"
-    INSTALL_DESTINATION "share/csound"
+    INSTALL_DESTINATION "${CSOUND_CMAKE_INSTALL_DIR}"
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfig.cmake"
-    DESTINATION "share/csound"
+    DESTINATION "${CSOUND_CMAKE_INSTALL_DIR}"
 )
 
 # generate and install CsoundConfigVersion.cmake
@@ -2070,18 +2098,24 @@ write_basic_package_version_file(
     COMPATIBILITY AnyNewerVersion
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/CsoundConfigVersion.cmake"
-    DESTINATION "share/csound"
+    DESTINATION "${CSOUND_CMAKE_INSTALL_DIR}"
 )
 
 # install FindCsound.cmake for projects using Module mode
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindCsound.cmake"
-    DESTINATION "share/csound"
+    DESTINATION "${CSOUND_CMAKE_INSTALL_DIR}"
 )
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/FindWasmtime.cmake"
-    DESTINATION "share/csound"
+    DESTINATION "${CSOUND_CMAKE_INSTALL_DIR}"
 )
 
 # configure and install pkg-config file
+if(IS_ABSOLUTE "${LIBRARY_INSTALL_DIR}")
+    set(CSOUND_PKGCONFIG_LIBDIR "${LIBRARY_INSTALL_DIR}")
+else()
+    set(CSOUND_PKGCONFIG_LIBDIR "\${prefix}/${LIBRARY_INSTALL_DIR}")
+endif()
+
 # Set appropriate link flags for different platforms
 if(APPLE AND NOT IOS)
     # On macOS, use framework flags when building as framework

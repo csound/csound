@@ -67,8 +67,13 @@ if(APPLE)
             ${CSOUND_LIBRARY_DIR_HINT}
     )
 else()
+    if(WIN32)
+        set(_csound_library_names csound7_64 csound7)
+    else()
+        set(_csound_library_names csound64 csound)
+    endif()
     find_library(CSOUND_LIBRARY
-        NAMES csound64 csound
+        NAMES ${_csound_library_names}
         PATH_SUFFIXES lib lib64
         HINTS
             ${CSOUND_LIBRARY_DIR_HINT}
@@ -77,6 +82,7 @@ else()
             "$ENV{ProgramFiles}/Csound7/bin"
             "$ENV{ProgramW6432}/Csound7/bin"
     )
+    unset(_csound_library_names)
 endif()
 
 # Extract version information from version.h if available
