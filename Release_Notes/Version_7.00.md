@@ -66,7 +66,25 @@ UDO to the new form.
 
 Array literals use brackets, as in `notes:i[] = [60, 64, 67]`.
 The `for ... in ... do` loop reads array elements and can also provide
-their indices. Audio variables support sample access with an index.
+their indices. A newly introduced **element variable** uses its explicit type
+annotation first, then its implicit name prefix, then the array element type
+if neither supplies a type. This changes the earlier behavior in which a new,
+unannotated element variable always inherited the array element type. Thus
+`for k0 in [0 ... 10] do` is a k-rate loop. Use `for k0:i in [0 ... 10] do`
+to retain init-time iteration. Names such as `freq` and `wave` also carry
+the standard `f` (f-sig) and `w` (spectral) prefixes; use `freq:i` or `wave:i`
+when iterating numeric values at init time. The `g` global prefix is skipped
+when determining the implicit type, so `gkvalue` implies k-type. Element and
+array types must match, except that i- and k-types can be converted.
+
+This prefix inference applies only to the element variable. An unannotated
+**index variable** follows the loop rate regardless of its name: in
+`for value, kndx in [1,2,3] do`, both variables are i-type. Use an explicit
+index annotation, as in `for value, kndx:k in [1,2,3] do`, to select k-rate
+iteration. An existing element variable follows the previous type and
+shadowing rules; a conflicting inline annotation is ignored with a warning.
+
+Audio variables support sample access with an index.
 The `switch`, `case`, `default`, and `endsw` statements select a branch
 from several choices.
 

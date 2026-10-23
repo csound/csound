@@ -17,7 +17,7 @@ instr 1
     reinit read
   endif
 read:
-  for attempt in [1 ... 5] do
+  for attempt:i in [1 ... 5] do
     line:S, lineNumber:i readfi "readf_lines.txt"
     numberedLine:S, numberedLineNumber:i readfi 9177
     expectedNumber:i = (attempt <= 2 ? attempt : -1)
