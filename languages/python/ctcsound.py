@@ -2134,8 +2134,9 @@ class CsoundPerformanceThread:
         return libcspt.csoundPerformanceThreadIsRunning(self.cpt) != 0
 
     def process_cb(self):
-        """Returns the process callback."""
-        return PROCESSFUNC(libcspt.csoundPerformanceThreadGetProcessCB(self.cpt))
+        """Returns the process callback, or None if there is none."""
+        cb = libcspt.csoundPerformanceThreadGetProcessCB(self.cpt)
+        return PROCESSFUNC(cb) if cb else None
 
     def set_process_cb(self, function, data):
         """Sets the process callback."""
