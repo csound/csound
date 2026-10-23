@@ -356,106 +356,112 @@ NM              [nm][ \t]+
                 }
 
 "{"             {
-                  int c=' ', i;
-                  PARM->repeat_index++;
-                  if (UNLIKELY(PARM->repeat_index >= RPTDEPTH))
-                    csound->Die(csound, Str("Loops are nested too deeply\n"));
-                  PARM->repeat_mm_n[PARM->repeat_index] =
-                    (MACRO*)csound->Malloc(csound, sizeof(MACRO));
-                  if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index] == NULL)) {
-                    csound->Message(csound, Str("Memory exhausted"));
-                    csound->LongJmp(csound, 1);
-                  }
-                  PARM->repeat_cnt_n[PARM->repeat_index] =
-                    extract_int(csound, yyscanner, &c);
-                  if (UNLIKELY(PARM->repeat_cnt_n[PARM->repeat_index] <= 0))
-                    csound->Die(csound, Str("{: invalid repeat count\n"));
-                  if (PARM->repeat_index > 1) {
-                    char st[41];
-                    int j;
-                    for (j = 0; j < PARM->repeat_index; j++) {
-                      st[j] = ' ';
-                      st[j+1] = '\0';
-                    }
-                    if (UNLIKELY(csound->oparms->odebug))
-                      csound->Message(csound, Str("%s Nested LOOP=%d Level:%d\n"),
-                                      st, PARM->repeat_cnt_n[PARM->repeat_index],
-                              PARM->repeat_index);
-                  }
+                  if (PARM->isString) corfile_puts(csound, yytext, PARM->cf);
                   else {
-                    if (UNLIKELY(csound->oparms->odebug))
-                      csound->Message(csound, Str("External LOOP=%d Level:%d\n"),
-                              PARM->repeat_cnt_n[PARM->repeat_index],
-                              PARM->repeat_index);
+                    int c=' ', i;
+                    PARM->repeat_index++;
+                    if (UNLIKELY(PARM->repeat_index >= RPTDEPTH))
+                      csound->Die(csound, Str("Loops are nested too deeply\n"));
+                    PARM->repeat_mm_n[PARM->repeat_index] =
+                      (MACRO*)csound->Malloc(csound, sizeof(MACRO));
+                    if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index] == NULL)) {
+                      csound->Message(csound, Str("Memory exhausted"));
+                      csound->LongJmp(csound, 1);
+                    }
+                    PARM->repeat_cnt_n[PARM->repeat_index] =
+                      extract_int(csound, yyscanner, &c);
+                    if (UNLIKELY(PARM->repeat_cnt_n[PARM->repeat_index] <= 0))
+                      csound->Die(csound, Str("{: invalid repeat count\n"));
+                    if (PARM->repeat_index > 1) {
+                      char st[41];
+                      int j;
+                      for (j = 0; j < PARM->repeat_index; j++) {
+                        st[j] = ' ';
+                        st[j+1] = '\0';
+                      }
+                      if (UNLIKELY(csound->oparms->odebug))
+                        csound->Message(csound, Str("%s Nested LOOP=%d Level:%d\n"),
+                                        st, PARM->repeat_cnt_n[PARM->repeat_index],
+                                PARM->repeat_index);
+                    }
+                    else {
+                      if (UNLIKELY(csound->oparms->odebug))
+                        csound->Message(csound, Str("External LOOP=%d Level:%d\n"),
+                                PARM->repeat_cnt_n[PARM->repeat_index],
+                                PARM->repeat_index);
+                    }
+                    while (isblank(c)) {
+                      c = input(yyscanner);
+                    }
+                    for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
+                      PARM->repeat_name_n[PARM->repeat_index][i] = c;
+                      c = input(yyscanner);
+                    }
+                    PARM->repeat_name_n[PARM->repeat_index][i] = '\0';
+                    unput(c);
+                    /* Define macro for counter */
+                    PARM->repeat_mm_n[PARM->repeat_index]->name =
+                      csound->Malloc(csound,
+                                 strlen(PARM->repeat_name_n[PARM->repeat_index])+1);
+                    if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index]->name==NULL)) {
+                      csound->Message(csound, Str("Memory exhausted"));
+                      csound->LongJmp(csound, 1);
+                    }
+                    strcpy(PARM->repeat_mm_n[PARM->repeat_index]->name,
+                           PARM->repeat_name_n[PARM->repeat_index]);
+                    PARM->repeat_mm_n[PARM->repeat_index]->acnt = -1;
+                    PARM->repeat_mm_n[PARM->repeat_index]->body =
+                      csound->Calloc(csound, 16); // ensure nulls
+                    PARM->repeat_mm_n[PARM->repeat_index]->body[0] = '0';
+                    PARM->repeat_indx[PARM->repeat_index] = 0;
+                    csound->DebugMsg(csound,"csound_prs(%d): repeat %s zero %p\n",
+                                     __LINE__,
+                                     PARM->repeat_name_n[PARM->repeat_index],
+                                     PARM->repeat_mm_n[PARM->repeat_index]->body);
+                    PARM->repeat_mm_n[PARM->repeat_index]->next = PARM->macros;
+                    PARM->macros = PARM->repeat_mm_n[PARM->repeat_index];
+                    while (input(yyscanner)!='\n') {}
+                    PARM->cf_stack[PARM->repeat_index] = PARM->cf;
+                    PARM->cf = corfile_create_w(csound);
                   }
-                  while (isblank(c)) {
-                    c = input(yyscanner);
-                  }
-                  for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
-                    PARM->repeat_name_n[PARM->repeat_index][i] = c;
-                    c = input(yyscanner);
-                  }
-                  PARM->repeat_name_n[PARM->repeat_index][i] = '\0';
-                  unput(c);
-                  /* Define macro for counter */
-                  PARM->repeat_mm_n[PARM->repeat_index]->name =
-                    csound->Malloc(csound,
-                               strlen(PARM->repeat_name_n[PARM->repeat_index])+1);
-                  if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index]->name==NULL)) {
-                    csound->Message(csound, Str("Memory exhausted"));
-                    csound->LongJmp(csound, 1);
-                  }
-                  strcpy(PARM->repeat_mm_n[PARM->repeat_index]->name,
-                         PARM->repeat_name_n[PARM->repeat_index]);
-                  PARM->repeat_mm_n[PARM->repeat_index]->acnt = -1;
-                  PARM->repeat_mm_n[PARM->repeat_index]->body =
-                    csound->Calloc(csound, 16); // ensure nulls
-                  PARM->repeat_mm_n[PARM->repeat_index]->body[0] = '0';
-                  PARM->repeat_indx[PARM->repeat_index] = 0;
-                  csound->DebugMsg(csound,"csound_prs(%d): repeat %s zero %p\n",
-                                   __LINE__,
-                                   PARM->repeat_name_n[PARM->repeat_index],
-                                   PARM->repeat_mm_n[PARM->repeat_index]->body);
-                  PARM->repeat_mm_n[PARM->repeat_index]->next = PARM->macros;
-                  PARM->macros = PARM->repeat_mm_n[PARM->repeat_index];
-                  while (input(yyscanner)!='\n') {}
-                  PARM->cf_stack[PARM->repeat_index] = PARM->cf;
-                  PARM->cf = corfile_create_w(csound);
         }
 "}"     {
-          int temp;
-          CORFIL *bdy = PARM->cf;
-          if (UNLIKELY((temp=PARM->repeat_cnt_n[PARM->repeat_index])==0)) {
-            csound->Message(csound, Str("unmatched } in score\n"));
-            csound->LongJmp(csound, 1);
-          }
-          corfile_puts(csound, "#loop", PARM->cf);
-          corfile_putc(csound, '\0', PARM->cf);
-          corfile_putc(csound, '\0', PARM->cf);
-          PARM->cf = PARM->cf_stack[PARM->repeat_index];
-          //printf("****Repeat body\n>>>%s<<<\n", bdy->body);
-          PARM->repeat_mm_n[PARM->repeat_index]->acnt = 0; /* uninhibit */
-          if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
-            //trace_alt_stack(csound, PARM, __LINE__);
-            PARM->alt_stack =
-              (MACRON*)csound->ReAlloc(csound, PARM->alt_stack,
-                                   sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
-            if (UNLIKELY(PARM->alt_stack == NULL)) {
-              csound->Message(csound, Str("Memory exhausted"));
+          if (PARM->isString) corfile_puts(csound, yytext, PARM->cf);
+          else {
+            int temp;
+            CORFIL *bdy = PARM->cf;
+            if (UNLIKELY((temp=PARM->repeat_cnt_n[PARM->repeat_index])==0)) {
+              csound->Message(csound, Str("unmatched } in score\n"));
               csound->LongJmp(csound, 1);
             }
+            corfile_puts(csound, "#loop", PARM->cf);
+            corfile_putc(csound, '\0', PARM->cf);
+            corfile_putc(csound, '\0', PARM->cf);
+            PARM->cf = PARM->cf_stack[PARM->repeat_index];
+            //printf("****Repeat body\n>>>%s<<<\n", bdy->body);
+            PARM->repeat_mm_n[PARM->repeat_index]->acnt = 0; /* uninhibit */
+            if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
+              //trace_alt_stack(csound, PARM, __LINE__);
+              PARM->alt_stack =
+                (MACRON*)csound->ReAlloc(csound, PARM->alt_stack,
+                                     sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
+              if (UNLIKELY(PARM->alt_stack == NULL)) {
+                csound->Message(csound, Str("Memory exhausted"));
+                csound->LongJmp(csound, 1);
+              }
+            }
+            csound->DebugMsg(csound,"csound_ps(%d): stacking line %d at %d\n",
+                             __LINE__,
+                             csound_prsget_lineno(yyscanner),PARM->macro_stack_ptr);
+            PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
+            PARM->alt_stack[PARM->macro_stack_ptr].line =
+              csound_prsget_lineno(yyscanner);
+            PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
+            PARM->depth++;
+            csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+            csound_prs_scan_string(bdy->body, yyscanner);
+            PARM->cf_stack[PARM->repeat_index] = bdy;
           }
-          csound->DebugMsg(csound,"csound_ps(%d): stacking line %d at %d\n",
-                           __LINE__,
-                           csound_prsget_lineno(yyscanner),PARM->macro_stack_ptr);
-          PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
-          PARM->alt_stack[PARM->macro_stack_ptr].line =
-            csound_prsget_lineno(yyscanner);
-          PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-          PARM->depth++;
-          csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-          csound_prs_scan_string(bdy->body, yyscanner);
-          PARM->cf_stack[PARM->repeat_index] = bdy;
        }
 
 {LOOP} {
