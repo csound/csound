@@ -30,6 +30,8 @@
 #include "arrays_internal.h"
 #include "namedins.h"
 #include "cs_internal.h"
+#include "csound_orc.h"
+#include "csound_orc_compile.h"
 
 #if defined(MSVC)
 #include <malloc.h>
@@ -702,6 +704,19 @@ static int32_t pbr_can_rewire_xout_source(const char *raw_name) {
   return strchr(raw_name, '[') == NULL && strchr(raw_name, '@') == NULL;
 }
 
+static int32_t pbr_is_literal_output(CSOUND *csound, OPCODINFO *info,
+                                     const ARG *arg, const char *name) {
+  if (arg != NULL)
+    return arg->type == ARG_CONSTANT || arg->type == ARG_PFIELD ||
+           arg->type == ARG_STRING;
+  /* The first plan is built before ARG records exist. Match create_arg's
+     literal forms, preserving the system variable named 0dbfs. */
+  if (name == NULL || *name == '\0') return 0;
+  return *name == '"' || *name == '.' || *name == '-' || *name == '+' ||
+         (*name >= '0' && *name <= '9' && strcmp(name, "0dbfs") != 0) ||
+         get_pfield(csound, &csound->engineState, info->ip, (char *)name) >= 0;
+}
+
 /* xout processing rewrites aliases to output slots.  Query the original xin
    declaration so duplicate pass-through detection is not affected by earlier
    xout entries mutating the alias table. */
@@ -792,6 +807,11 @@ static void pbr_collect_io_aliases(CSOUND *csound,
       const char *raw_name = xout_inlist->arg[i];
       const char *resolved_name = pbr_get_arg_name(xout_arg, raw_name);
       int32_t source_ar_index = -1;
+
+      /* Literals and p-fields have no producer to redirect into the caller's
+         output. Keep their source pointers and copy their values instead. */
+      if (pbr_is_literal_output(csound, udoinfo, xout_arg, raw_name))
+        continue;
 
       if (pbr_can_rewire_xout_source(raw_name)) {
         source_ar_index = pbr_lookup_xin_alias(udoinfo, xin_optxt,
@@ -1224,6 +1244,16 @@ static int32_t pbr_sync_pass_through_outputs(CSOUND *csound,
   }
 
   udoinfo = p->buf->opcode_info;
+  for (i = 0; i < udoinfo->outchns; i++) {
+    cs_float *src = p->buf->iobufp_ptrs[i];
+    cs_float *dst = p->ar[i];
+    if (src != NULL &&
+        (allowAllocation || csoundGetTypeForArg(dst) == &CS_VAR_TYPE_K)) {
+      if (UNLIKELY(pbr_copy_value(csound, dst, src, ctx,
+                                  allowAllocation) != OK))
+        return NOTOK;
+    }
+  }
   plan = udoinfo->pbr_plan;
   if (plan == NULL || plan->seed_entries == NULL) {
     return OK;
@@ -1972,6 +2002,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   inm->passByRef = udo_call_is_pass_by_ref(p, inm);
 
   if(inm->passByRef) {
+    memset(buf->iobufp_ptrs, 0, inm->outchns * sizeof(cs_float *));
     if (UNLIKELY(handle_pass_by_ref(csound, p, lcurip) != OK)) {
       err = csound->InitError(
         csound, Str("could not prepare pass-by-reference UDO buffers\n"));
@@ -2281,6 +2312,10 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   current = inm->out_arg_pool->head;
 
   if(inm->passByRef) {
+    ARG *arg = p->h.optext->t.inArgs;
+    for (i = 0; i < inm->outchns; i++, arg = arg->next) {
+      tmp[i] = pbr_is_literal_output(csound, inm, arg, NULL) ? p->args[i] : NULL;
+    }
     return OK;
   }
 

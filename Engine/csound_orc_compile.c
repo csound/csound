@@ -390,43 +390,58 @@ static OPTXT *last_optxt(OPTXT *optxt) {
   return current;
 }
 
-/** Counts number of args in argString, taking into account array identifiers */
-int32_t args_required(char* argString)
+/* Read one scalar or array descriptor. Counting and splitting share this
+   parser so they agree on both valid descriptors and malformed suffixes. */
+static const char *next_arg_type(const char *start, const char **type,
+                                 size_t *typeLen, size_t *dimensions)
 {
-  int32_t retVal = 0;
-  char* t = argString;
-  if (t != NULL) {
-    while (*t != '\0') {
-      retVal++;
-
-      if (*t == '[') {
-        // Handle internal array encoding like "[[a]"
-        while (*t == '[') t++;
-        if (*t == '\0') return -1; // malformed
-        t++; // skip base type char
-        if (*t != ']') return -1;
-        t++; // skip closing bracket
-        continue;
-      }
-
-      if (*t == ':') {
-        while (*t != '\0' && *t != ';') {
-          t++;
-        }
-      }
-      if (*t == '\0') break;
-      t++;
-      while (*t == '[') { // external form like "a[][]"
-        t++;
-        if (*t != ']') {
-          // ERROR HERE, unmatched array identifier, perhaps should report...
-          return -1;
-        }
-        t++;
-      }
-    }
+  const char *t = start;
+  int32_t internal = *t == '[';
+  *dimensions = 0;
+  while (*t == '[') {
+    (*dimensions)++;
+    t++;
   }
-  return retVal;
+  *type = t;
+  if (*t == ':') {
+    t++;
+    if (*t == ';') return NULL;
+    while (*t != ';') {
+      if (*t == '\0' || *t == ':' || *t == '[' || *t == ']' ||
+          isspace((unsigned char)*t)) return NULL;
+      t++;
+    }
+    t++;
+  } else {
+    if (*t == '\0' || *t == ']' || *t == ';' ||
+        isspace((unsigned char)*t)) return NULL;
+    t++;
+  }
+  *typeLen = (size_t)(t - *type);
+  if (internal) {
+    if (*t != ']') return NULL;
+    return t + 1;
+  }
+  while (*t == '[') {
+    if (t[1] != ']') return NULL;
+    (*dimensions)++;
+    t += 2;
+  }
+  return t;
+}
+
+/** Return the argument count, or -1 for a malformed type string. */
+int32_t args_required(const char* argString)
+{
+  int32_t count = 0;
+  const char *t = argString, *type;
+  size_t typeLen, dimensions;
+  while (t != NULL && *t != '\0') {
+    t = next_arg_type(t, &type, &typeLen, &dimensions);
+    if (t == NULL || count == INT32_MAX) return -1;
+    count++;
+  }
+  return count;
 }
 
 /**
@@ -438,6 +453,8 @@ int32_t args_required(char* argString)
  *         Examples: "ik[]", "aS", ":MyType;[]", "k[]k[]"
  *         - Primitive arrays: type char followed by brackets ("k[]", "a[][]")
  *         - UDT arrays: ":TypeName;[]" format
+ *         Internal descriptors such as "[[a]" and "[:MyType;]" are also
+ *         accepted. Malformed strings return NULL without allocating.
  *
  * OUTPUT: Array of strings in INTERNAL format
  *         Examples: "[k]", "[[a]", "[:MyType;]"
@@ -447,93 +464,40 @@ int32_t args_required(char* argString)
  * This function is the bridge between human-readable OENTRY definitions
  * and the internal representation used by parse_opcode_args().
  */
-char** split_args(CSOUND* csound, char* argString)
+char** split_args(CSOUND* csound, const char* argString)
 {
   int32_t argCount = args_required(argString);
-  char** args = csound->Malloc(csound, sizeof(char*) * (argCount + 1));
-  char* start = argString;
+  char** args;
+  const char *start = argString;
   int32_t i = 0;
 
-  if (start != NULL) {
-    while (*start != '\0' ) {
-      // Support internal array encoding starting with '[' (e.g., "[[a]")
-      if (*start == '[') {
-        char* t = start;
-        while (*t == '[') t++;
-        if (*t == '\0') {
-          csound->Message(csound, Str("ERROR: Malformed internal array type (missing base type)\n"));
-          return NULL;
-        }
-        t++; // skip base type char
-        if (*t != ']') {
-          csound->Message(csound, Str("ERROR: Malformed internal array type (missing ']')\n"));
-          return NULL;
-        }
-        t++; // move past closing ']'
-        args[i++] = cs_strndup(csound, start, (size_t)(t - start));
-        start = t;
-        continue;
-      }
-
-      char* current = start;
-      char* part;
-      int32_t dimensions = 0;
-
-      if (*current == ':') {
-        current++;
-        while (*current != ';' && *current != '\0') {
-          current++;
-        }
-        // If we found ';', move past it; otherwise stay at '\0'
-        if (*current == ';') {
-          current++;
-        }
-      } else {
-        // For non-UDT types, move past the single character
-        current++;
-      }
-
-      if (*current == '[') { // external array form like "a[][]"
-        uint64_t len = current - start;
-        // Don't strip : and ; from UDT array types - they need the full :TypeName; format
-        char* t = current;
-
-        while (*t == '[') {
-          t++;
-
-          if (*t != ']') {
-            // FIXME: needs more precise error information
-            csound->Message(csound,
-                            Str("ERROR: Unmatched bracket found in array"
-                                "argument type specification\n"));
-            return NULL;
-          }
-
-          t++;
-          dimensions++;
-        }
-        part = csound->Malloc(csound, sizeof(char) * (dimensions + len + 2));
-
-        memset(part, '[', dimensions);
-        strNcpy((part + dimensions), start, len + 1);
-        part[dimensions + len] = ']';
-        part[dimensions + len + 1] = '\0';
-
-        args[i] = part;
-
-        start = t;
-      } else {
-        uint64_t len = current - start;
-        // Don't strip : and ; from UDT types - they need the full :TypeName; format
-        args[i] = cs_strndup(csound, start, len);
-
-        start = current;
-      }
-      i++;
-    }
+  /* Validate the whole string before allocating or writing any tokens. */
+  if (argCount < 0 || (size_t)argCount >= SIZE_MAX / sizeof(char*)) {
+    return NULL;
+  }
+  args = csound->Malloc(csound, sizeof(char*) * ((size_t)argCount + 1));
+  for (i = 0; i < argCount; i++) {
+    const char *type;
+    size_t len, dimensions;
+    char *part;
+    start = next_arg_type(start, &type, &len, &dimensions);
+    part = csound->Malloc(csound, dimensions + len + (dimensions ? 2 : 1));
+    memset(part, '[', dimensions);
+    memcpy(part + dimensions, type, len);
+    if (dimensions) part[dimensions + len++] = ']';
+    part[dimensions + len] = '\0';
+    args[i] = part;
   }
   args[argCount] = NULL;
   return args;
+}
+
+void free_split_args(CSOUND *csound, char **args)
+{
+  int32_t i;
+  if (args == NULL) return;
+  for (i = 0; args[i] != NULL; i++) csound->Free(csound, args[i]);
+  csound->Free(csound, args);
 }
 char* get_struct_expr_string(CSOUND* csound, TREE* structTree) {
   char temp[512];
