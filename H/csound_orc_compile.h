@@ -26,6 +26,7 @@
 int32_t get_pfield(CSOUND *csound, ENGINE_STATE *engineState,
                    INSTRTXT *ip, char *s);
 int32_t tree_arg_list_count(TREE *root);
+void csound_unquote_string(char *dst, const char *src);
 int32_t args_required(char* argString);
 char** split_args(CSOUND* csound, char* argString);
 char* get_struct_expr_string(CSOUND* csound, TREE* structTree);
