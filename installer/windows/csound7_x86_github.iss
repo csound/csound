@@ -28,6 +28,7 @@
 #define AppURL "https://csound.com/"
 #define BuildRoot "build"
 #define ReleaseDir "build\Release"
+#include "..\..\build\csound_library_dir.iss"
 
 ChangesEnvironment=yes
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -66,8 +67,8 @@ Name: "core"; Description: "Core Csound"; Types: full custom; Flags: fixed
 Name: "{app}\bin"; Permissions: users-modify
 #define APP_BIN "{app}\bin\"
 ; ALL static and import libraries for the Csound and CsoundAC SDKs go here.
-Name: "{app}\lib"; Permissions: users-modify
-#define APP_LIB "{app}\lib\"
+#define APP_LIB "{app}\" + CsoundLibraryDir + "\"
+Name: "{#APP_LIB}"; Permissions: users-modify
 ; ALL Csound opcodes and other Csound modules go here.
 Name: "{app}\plugins"; Permissions: users-modify
 #define APP_PLUGINS "{app}\plugins\"
@@ -105,6 +106,12 @@ Name: "{app}\doc\tutorial"
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
+[InstallDelete]
+; Remove old names only from a registered Csound 7 installation.
+Type: files; Name: "{#APP_BIN}csound.dll"; Check: IsCsound7Upgrade
+Type: files; Name: "{#APP_LIB}csound.lib"; Check: IsCsound7Upgrade
+Type: files; Name: "{#APP_LIB}libcsound.lib"; Check: IsCsound7Upgrade
+
 [Files]
 Source: "*.md"; DestDir: "{app}"; Flags: ignoreversion; Components: core;
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
@@ -126,9 +133,9 @@ Source: "{#ReleaseDir}\csb64enc.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversio
 Source: "{#ReleaseDir}\csbeats.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion skipifsourcedoesntexist; Components: core;
 Source: "{#ReleaseDir}\csdebugger.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\csound.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\csound.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\csound.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
-Source: "{#ReleaseDir}\libcsound.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\csound7.dll"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\csound7.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
+Source: "{#ReleaseDir}\libcsound7.lib"; DestDir: "{#APP_LIB}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\cvanal.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\dnoise.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
 Source: "{#ReleaseDir}\envext.exe"; DestDir: "{#APP_BIN}"; Flags: ignoreversion; Components: core;
@@ -177,8 +184,8 @@ Source: "{#BuildRoot}\include\version.h"; DestDir: "{#APP_INCLUDE}\csound"; Flag
 Source: "cmake\FindCsound.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
 Source: "{#BuildRoot}\CsoundConfig.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
 Source: "{#BuildRoot}\CsoundConfigVersion.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
-Source: "{#BuildRoot}\install\share\csound\CsoundTargets.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
-Source: "{#BuildRoot}\install\share\csound\CsoundTargets-release.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion skipifsourcedoesntexist;  Components: core
+Source: "{#BuildRoot}\install\cmake\CsoundTargets.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion;  Components: core
+Source: "{#BuildRoot}\install\cmake\CsoundTargets-release.cmake"; DestDir: "{#APP_CMAKE}"; Flags: ignoreversion skipifsourcedoesntexist;  Components: core
 
 [Icons]
 Name: "{group}\{cm:ProgramOnTheWeb,Csound}"; Filename: "{#AppURL}";  Components: core;
@@ -193,6 +200,17 @@ Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Session Manager\Environmen
 Name: modifypath; Description: &Add application directory to your PATH environment variable; Components: core;
 
 [Code]
+function IsCsound7Upgrade(): Boolean;
+var
+  PreviousDir, UninstallKey: String;
+begin
+  UninstallKey := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\{#emit SetupSetting("AppId")}_is1');
+  Result := False;
+  if RegQueryStringValue(HKA, UninstallKey, 'Inno Setup: App Path', PreviousDir) then
+    Result := CompareText(RemoveBackslashUnlessRoot(PreviousDir),
+      RemoveBackslashUnlessRoot(ExpandConstant('{app}'))) = 0;
+end;
+
 // VC++ Redistributable detection — x86
 // Registry keys used by VS 2015-2022 redist (HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x86).
 // On 64-bit OS the 32-bit runtime is under WOW6432Node — Inno's HKLM32 handles redirection.
