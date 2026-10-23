@@ -105,13 +105,11 @@ SEND            ^[ \t]*[es]
 ROP             ^[ \t]*r
 
 NP              np[0-9]+
-NM              [nm][ \t]+
 
 %X incl
 %x macro
 %x umacro
 %x ifdef
-%x lname
 
 %%
 
@@ -339,20 +337,6 @@ NM              [nm][ \t]+
                   else {
                     corfile_puts(csound, yytext, PARM->cf);
                   }
-                }
-{NM}            {
-                  if (PARM->isString) {
-                    corfile_putc(csound, yytext[0], PARM->cf);
-                    BEGIN(lname);
-                  } else {
-                    corfile_puts(csound, yytext, PARM->cf);
-                  }
-                }
-<lname>[ \t]*     /* eat the whitespace */
-<lname>{IDENT}   {
-                  corfile_putc(csound, ' ', PARM->cf);
-                  corfile_puts(csound, yytext, PARM->cf);
-                  BEGIN(INITIAL);
                 }
 
 "{"             {
