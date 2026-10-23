@@ -714,7 +714,16 @@ class Csound:
     def __del__(self):
         """Destroys an instance of Csound."""
         if not self.from_pointer and libcsound:
+            self.destroy()
+
+    def destroy(self):
+        """Destroys an instance of Csound now, not when it is collected.
+
+        Calling it again does nothing.
+        """
+        if self.cs:
             libcsound.csoundDestroy(self.cs)
+            self.cs = None
 
     def csound(self):
         """Returns the opaque pointer to the underlying CSOUND struct.
