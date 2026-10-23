@@ -1109,7 +1109,7 @@ class Csound:
             s = fmt % args
         libcsound.csoundMessageS(self.cs, ct.c_int32(attr), cstring("%s"), cstring(s))
 
-    def set_message_string_callback(self, attr, function):
+    def set_message_string_callback(self, function):
         """Sets an alternative message print function.
 
         This function is to be called by Csound to print an
@@ -1118,8 +1118,7 @@ class Csound:
         This callback is cleared after reset.
         """
         self.message_string_cb = MSGSTRFUNC(function)
-        libcsound.csoundSetMessageStringCallback(self.cs, ct.c_int32(attr),
-            self.message_string_cb)
+        libcsound.csoundSetMessageStringCallback(self.cs, self.message_string_cb)
 
     def create_message_buffer(self, to_stdout):
         """Creates a buffer for storing messages printed by Csound.
