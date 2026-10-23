@@ -2163,7 +2163,7 @@ class CsoundPerformanceThread:
 
     def toggle_pause(self):
         """Pauses or continues performance, depending on current state."""
-        libcspt.csoundPerformanceThreadtogglePause(self.cpt)
+        libcspt.csoundPerformanceThreadTogglePause(self.cpt)
 
     def stop(self):
         """Stops performance (cannot be continued)."""
