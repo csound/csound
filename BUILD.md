@@ -251,6 +251,25 @@ Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x86.exe -OutFile i
 iscc /o. installer\windows\csound7_x86_github.iss
 ```
 
+### Windows library names
+
+Csound 7 uses `csound7_64.dll` for double-precision samples and `csound7.dll`
+for single-precision samples. The `_64` suffix refers to sample precision,
+not CPU architecture. The x64 and ARM64 installers use double precision;
+the x86 installer uses single precision.
+
+Link against `csound7_64.lib` or `csound7.lib`, or use the CMake target
+`Csound::Csound`. Hosts that load the DLL at runtime must use the new name.
+Rebuild Csound 7 hosts and plugins that link against the old DLL name.
+Do not alias the new DLL to `csound64.dll` or `csound.dll`: those names
+belong to Csound 6 and would restore the conflict.
+
+When updating a registered Csound 7 installation in the same folder, the
+installer removes its old DLL and library names. For a manual ZIP update,
+remove those old files from the Csound 7 folder yourself. Keep Csound 6
+and Csound 7 in separate folders. The command-line program remains
+`csound.exe`, so PATH order still chooses which version runs.
+
 ### Windows ARM64
 
 The ARM64 package runs natively on Windows on Arm. It includes the command-line

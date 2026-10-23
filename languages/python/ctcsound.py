@@ -39,10 +39,21 @@ else:
 if sys.platform.startswith('linux'):
     libcsound = ct.CDLL("libcsound64.so")
 elif sys.platform.startswith('win'):
-    if sys.version_info.major <=3 and sys.version_info.minor < 8:
-        libcsound = ct.cdll.csound64
+    # Try both sample precisions, without loading a Csound 6 DLL.
+    for library_name in ("csound7_64", "csound7"):
+        if sys.version_info < (3, 8):
+            library_path = library_name + ".dll"
+        else:
+            library_path = ctypes.util.find_library(library_name)
+        if not library_path:
+            continue
+        try:
+            libcsound = ct.CDLL(library_path)
+            break
+        except OSError:
+            continue
     else:
-        libcsound = ct.CDLL(ctypes.util.find_library("csound64"))
+        raise OSError("Could not load csound7_64.dll or csound7.dll")
 elif sys.platform.startswith('darwin'):
     libcsound = ct.CDLL(ctypes.util.find_library("CsoundLib64"))
     print("imported");
