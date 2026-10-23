@@ -11,6 +11,7 @@ on:
       - develop
   pull_request:
     branches:
+      - main
       - develop
 
 concurrency:
@@ -22,7 +23,7 @@ jobs:
     name: Update Csound Version
     runs-on: ubuntu-latest
     outputs:
-      version: ${{ steps.tag.outputs.new_tag }}
+      version: ${{ steps.package_version.outputs.version }}
       release: ${{ steps.check_pr.outputs.has_label }}
     steps:
       - name: Checkout code
@@ -37,6 +38,32 @@ jobs:
           PRERELEASE: ${{ github.ref != 'refs/heads/main' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: true
+
+      - name: Select package version
+        id: package_version
+        shell: bash
+        env:
+          PR_BASE_REF: ${{ github.base_ref }}
+          NEXT_VERSION: ${{ steps.tag.outputs.new_tag }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          version = os.environ["NEXT_VERSION"]
+          if os.environ["PR_BASE_REF"] == "main":
+              source = Path("CMakeLists.txt").read_text()
+              parts = []
+              for name in ("CS_VERSION", "CS_SUBVER", "CS_PATCHLEVEL"):
+                  match = re.search(r'set\s*\(\s*' + name + r'\s+"([0-9]+)"\s*\)', source)
+                  if not match:
+                      raise SystemExit(f"Cannot read {name} from CMakeLists.txt")
+                  parts.append(match.group(1))
+              version = ".".join(parts)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"version={version}\n")
+          PY
 
       - name: Check for release label
         id: check_pr
@@ -1364,7 +1391,7 @@ jobs:
             ./build/Release/*.exe
             ./build/Release/*.dll
             ./build/Release/*.pyd
-            ./build/Release/csound64.lib
+            ./build/Release/csound7_64.lib
             ./build/*.jar
             ./build/*.py
             ./include/
@@ -1455,7 +1482,7 @@ jobs:
             ./build/Release/*.exe
             ./build/Release/*.dll
             ./build/Release/*.pyd
-            ./build/Release/csound64.lib
+            ./build/Release/csound7_64.lib
             ./build/*.jar
             ./build/*.py
             ./include/
@@ -1551,7 +1578,7 @@ jobs:
             ./build/Release/*.exe
             ./build/Release/*.dll
             ./build/Release/*.pyd
-            ./build/Release/csound.lib
+            ./build/Release/csound7.lib
             ./build/*.jar
             ./build/*.py
             ./include/
