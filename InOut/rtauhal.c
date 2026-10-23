@@ -174,7 +174,6 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       kAudioObjectPropertyElementMain
     };
     CFStringRef devName;
-    CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
 
 
 
@@ -208,10 +207,8 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
       prop.mSelector = kAudioObjectPropertyName;
       AudioObjectGetPropertyData(sysdevs[i],
                                  &prop, 0, NULL, &psize, &devName);
-      if(CFStringGetCStringPtr(devName, defaultEncoding))
-        strNcpy(devinfo[i].name,
-                CFStringGetCStringPtr(devName, defaultEncoding), 127);
-      else
+      if(!CFStringGetCString(devName, devinfo[i].name, 128,
+                             kCFStringEncodingUTF8))
         strNcpy(devinfo[i].name, "unnamed device", 127);
       CFRelease(devName);
 
@@ -361,13 +358,14 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     AudioObjectGetPropertyData(dev,
                                &prop, 0, NULL, &psize, &devName);
     if(O->msglevel || O->odebug) {
+    char name[128];
+    if(!CFStringGetCString(devName, name, 128, kCFStringEncodingUTF8))
+      strNcpy(name, "unnamed device", 127);
     if(isInput)
-      csound->Message(csound, Str("selected input device: %s\n"),
-                      CFStringGetCStringPtr(devName, defaultEncoding));
+      csound->Message(csound, Str("selected input device: %s\n"), name);
 
     else
-      csound->Message(csound, Str("selected output device: %s\n"),
-                      CFStringGetCStringPtr(devName, defaultEncoding));
+      csound->Message(csound, Str("selected output device: %s\n"), name);
     }
     CFRelease(devName);
 
@@ -541,7 +539,6 @@ int32_t listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int32_t isOutput){
       kAudioObjectPropertyElementMain
     };
     CFStringRef devName;
-    CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
     prop.mSelector = kAudioHardwarePropertyDevices;
     AudioObjectGetPropertyDataSize(kAudioObjectSystemObject,
                                    &prop, 0, NULL, &psize);
@@ -561,9 +558,9 @@ int32_t listDevices(CSOUND *csound, CS_AUDIODEVICE *list, int32_t isOutput){
       AudioObjectGetPropertyData(sysdevs[i],
                                  &prop, 0, NULL, &psize, &devName);
       memset(devinfo[i].name,0,128);
-      if(CFStringGetCStringPtr(devName, defaultEncoding) != NULL)
-        strNcpy(devinfo[i].name,
-                CFStringGetCStringPtr(devName, defaultEncoding),127);
+      if(!CFStringGetCString(devName, devinfo[i].name, 128,
+                             kCFStringEncodingUTF8))
+        devinfo[i].name[0] = '\0';
       CFRelease(devName);
 
       devchannels = 0;
