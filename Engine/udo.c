@@ -220,8 +220,52 @@ static void free_rate_converters(CSOUND *csound, SR_CONVERTER **converters)
   csound->Free(csound, converters);
 }
 
-void free_user_opcode_converters(CSOUND *csound, UOPCODE *opcode)
+struct udo_output_snapshot {
+  CS_VARIABLE *variable;
+  cs_float *source;
+  UDO_OUTPUT_SNAPSHOT *next;
+};
+
+static void udo_free_output_snapshots(CSOUND *csound, UOPCODE *opcode)
 {
+  UDO_OUTPUT_SNAPSHOT *snapshot = opcode->output_snapshots;
+  while (snapshot != NULL) {
+    UDO_OUTPUT_SNAPSHOT *next = snapshot->next;
+    CS_VARIABLE *var = snapshot->variable;
+    if (var->varType->freeVariableMemory != NULL)
+      var->varType->freeVariableMemory(csound, &var->memBlock->value);
+    csound->Free(csound, var->memBlock);
+    csound->Free(csound, var);
+    csound->Free(csound, snapshot);
+    snapshot = next;
+  }
+  opcode->output_snapshots = NULL;
+}
+
+/* Save every overlapping source before writing any caller output. Storage
+   comes from init and follows the same copy rules as other UDO buffers. */
+static int32_t udo_snapshot_outputs(CSOUND *csound, UOPCODE *p,
+                                     int32_t allowAllocation)
+{
+  UDO_OUTPUT_SNAPSHOT *snapshot;
+  for (snapshot = p->output_snapshots; snapshot != NULL;
+       snapshot = snapshot->next) {
+    CS_VARIABLE *var = snapshot->variable;
+    if (!allowAllocation && (var->varType == &CS_VAR_TYPE_I ||
+                             var->varType == &CS_VAR_TYPE_b ||
+                             var->subType == &CS_VAR_TYPE_I))
+      continue;
+    if (UNLIKELY(udo_copy_value(csound, var, &var->memBlock->value,
+                                 snapshot->source, p->ip,
+                                 1, allowAllocation) != OK))
+      return NOTOK;
+  }
+  return OK;
+}
+
+void free_user_opcode_buffers(CSOUND *csound, UOPCODE *opcode)
+{
+  udo_free_output_snapshots(csound, opcode);
   free_rate_converters(csound, opcode->cvt_in);
   free_rate_converters(csound, opcode->cvt_out);
   opcode->cvt_in = NULL;
@@ -296,6 +340,7 @@ void recycle_init_only_udo_instances(CSOUND *csound, INSDS *parent)
     }
     parent->opcod_deact = child->opcod_deact;
     child->opcod_deact = NULL;
+    udo_free_output_snapshots(csound, opcode);
     recycle_udo_instance(csound, child);
     opcode->ip = NULL;
     opcode->buf = NULL;
@@ -862,6 +907,10 @@ static void pbr_collect_io_aliases(CSOUND *csound,
 
       /* Repeated local outputs share the first writer. xout records that
          pointer for each position and the output copy fills the other slots. */
+      /* A member must keep the storage owned by its local struct. Rewiring
+         the whole struct's writer onto a scalar output loses that storage. */
+      if (pbr_arg_has_struct_path(xout_arg, raw_name))
+        continue;
       if (pbr_alias_lookup_exact(builder->aliases, builder->alias_count,
                                   raw_name) >= 0)
         continue;
@@ -1258,6 +1307,9 @@ static int32_t pbr_sync_pass_through_outputs(CSOUND *csound,
 
   udoinfo = p->buf->opcode_info;
   CS_VARIABLE *output = udoinfo->out_arg_pool->head;
+  if (!allowAllocation &&
+      UNLIKELY(udo_snapshot_outputs(csound, p, 0) != OK))
+    return NOTOK;
   for (i = 0; i < udoinfo->outchns; i++, output = output->next) {
     cs_float *src = p->buf->iobufp_ptrs[i];
     cs_float *dst = p->ar[i];
@@ -1666,7 +1718,7 @@ static int32_t udo_prepare_rate(CSOUND *csound, UOPCODE *p, OPDS **rate_op) {
 
   /* Reinitialization may change the ratio or converter mode. Do not retain
      converters prepared for an earlier invocation of this instance. */
-  free_user_opcode_converters(csound, p);
+  free_user_opcode_buffers(csound, p);
   return OK;
 }
 
@@ -2327,18 +2379,49 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   tmp = buf->iobufp_ptrs;
   current = inm->out_arg_pool->head;
 
+  udo_free_output_snapshots(csound, udo);
+  for (i = 0; i < inm->outchns; i++, current = current->next) {
+    tmp[i] = p->args[i];
+    for (int32_t j = 0; j < inm->outchns; j++) {
+      if (p->args[i] == bufs[j] && p->args[j] != bufs[j]) {
+        ARRAY_VAR_INIT array = { .dimensions = current->dimensions,
+                                 .type = current->subType };
+        CS_VARIABLE *var = csoundCreateVariableForType(
+          csound, current->varType,
+          current->varType == &CS_VAR_TYPE_ARRAY ? &array : NULL,
+          p->h.insdshead);
+        if (UNLIKELY(var == NULL))
+          return csound->InitError(csound, Str("could not prepare UDO output\n"));
+        UDO_OUTPUT_SNAPSHOT *snapshot = csound->Calloc(csound, sizeof(*snapshot));
+        var->memBlock = csound->Calloc(csound,
+                                       CS_VAR_TYPE_OFFSET + var->memBlockSize);
+        var->memBlock->varType = var->varType;
+        if (var->initializeVariableMemory != NULL)
+          var->initializeVariableMemory(csound, var, &var->memBlock->value);
+        snapshot->variable = var;
+        snapshot->source = p->args[i];
+        snapshot->next = udo->output_snapshots;
+        udo->output_snapshots = snapshot;
+        tmp[i] = &var->memBlock->value;
+        break;
+      }
+    }
+  }
+  if (UNLIKELY(udo_snapshot_outputs(csound, udo, 1) != OK))
+    return csound->InitError(csound, Str("could not prepare UDO output\n"));
+  current = inm->out_arg_pool->head;
+
   if(inm->passByRef) {
     for (i = 0; i < inm->outchns; i++) {
-      tmp[i] = p->args[i] != bufs[i] ? p->args[i] : NULL;
+      if (tmp[i] == bufs[i]) tmp[i] = NULL;
     }
     return OK;
   }
 
   for (i = 0; i < inm->outchns; i++) {
-    void* in = (void*) p->args[i];
+    void* in = (void*) tmp[i];
     void* out = (void*) bufs[i];
     const CS_TYPE* outType = csoundGetTypeForArg(out);
-    tmp[i] = in;
     if (outType != &CS_VAR_TYPE_K && outType != &CS_VAR_TYPE_A) {
       if (UNLIKELY(udo_copy_value(csound, current, out, in,
                                   buf->parent_ip,
@@ -2471,6 +2554,12 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                  && (opstart = opstart->nxtp));
       }
 
+      if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(this_instr->actflg)))
+        goto endop;
+      if (UNLIKELY(udo_snapshot_outputs(csound, p, 0) != OK))
+        return csound->PerfError(csound, &p->h,
+                                 Str("UDO output changed capacity during performance\n"));
+
       /* copy a-sig outputs, accounting for offset */
       current = inm->out_arg_pool->head;
       for (i = 0; i < inm->outchns; i++) {
@@ -2599,6 +2688,12 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
         } while (error == 0 && p->ip != NULL
                  && (opstart = opstart->nxtp));
       }
+
+      if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(this_instr->actflg)))
+        goto endop;
+      if (UNLIKELY(udo_snapshot_outputs(csound, p, 0) != OK))
+        return csound->PerfError(csound, &p->h,
+                                 Str("UDO output changed capacity during performance\n"));
 
       /* copy a-sig outputs, accounting for offset */
       current = inm->out_arg_pool->head;
@@ -2752,9 +2847,6 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
 
-  if (UNLIKELY(p->ip->nxtp == NULL))
-    goto endop; /* no perf code */
-
   p->ip->relesing = p->parent_ip->relesing;
   tmp = p->buf->iobufp_ptrs;
   inm = p->buf->opcode_info;
@@ -2810,6 +2902,12 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
       } while (error == 0 && p->ip != NULL
                && (opstart = opstart->nxtp));
     }
+
+    if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(this_instr->actflg)))
+      goto endop;
+    if (UNLIKELY(udo_snapshot_outputs(csound, p, 0) != OK))
+      return csound->PerfError(csound, &p->h,
+                               Str("UDO output changed capacity during performance\n"));
 
     /* copy outputs */
     current = inm->out_arg_pool->head;
@@ -2917,9 +3015,12 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
     OPDS *jump;
     if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
     opstart = caller_ip->pds;
+    opstart->insdshead->pds = opstart;
     if (opstart->perf) {
       error = (*opstart->perf)(csound, opstart);
     }
+    if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(p->ip->actflg)))
+      goto endop;
     /* A callback can change the caller slot as well as the child's jump slot. */
     jump = caller_ip->pds->insdshead->pds;
     if (jump != NULL && jump->insdshead) {
@@ -2931,6 +3032,8 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
   }
 
  writeback:
+  if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(p->ip->actflg)))
+    goto endop;
   if (UNLIKELY(pbr_sync_pass_through_outputs(
                  csound, p, p->ip, 0) != OK ||
                pbr_writeback_pass_through_inputs(

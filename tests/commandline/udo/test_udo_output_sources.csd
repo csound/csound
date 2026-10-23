@@ -14,6 +14,13 @@ nchnls=1
 0dbfs=1
 giSource init 23
 gkSource init 0
+struct Pair first:i, second:i
+struct ControlMembers first:k, second:k
+
+opcode MemberPair():(i,i)
+  value:Pair init 3, 8
+  xout value.first, value.second
+endop
 
 opcode GlobalValue():i
   xout giSource
@@ -24,6 +31,12 @@ endop
 opcode LocalPair():(i,i)
   value:i init 5
   xout value, value
+endop
+opcode ControlMemberPair(value:k):(k,k)
+  pair:ControlMembers init 0, 0
+  pair.first = value
+  pair.second = value + 10
+  xout pair.first, pair.second
 endop
 opcode ControlGlobal():k
   gkSource += 2
@@ -47,6 +60,11 @@ opcode StringPair():(S,S)
 endop
 
 instr 1
+  iMember1, iMember2 = MemberPair()
+  if iMember1 != 3 || iMember2 != 8 then
+    prints "Wrong local struct member output\n"
+    exitnow -1
+  endif
   iGlobal = GlobalValue()
   iSr, iKr, iKsmps, iScale = SystemValues()
   iFirst, iSecond = LocalPair()
@@ -62,6 +80,11 @@ instr 1
   endif
   gkSource += 1
   kGlobal = ControlGlobal()
+  kMember1, kMember2 = ControlMemberPair(gkSource)
+  if kMember1 != gkSource || kMember2 != gkSource + 10 then
+    printks "Wrong control struct member output\n", 0
+    exitnowk -1
+  endif
   kFirst, kSecond = ControlPair(gkSource)
   aFirst, aSecond = AudioPair(gkSource)
   kAudio1 downsamp aFirst
