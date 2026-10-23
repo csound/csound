@@ -321,8 +321,8 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
         }
         else {
           if(O->msglevel || O->odebug)
-          csound->Warning(csound, Str("requested device %d (%s) out of range\n"),
-                             devnum, devinfo[CoreAudioDev].name);
+          csound->Warning(csound, Str("requested device %d out of range\n"),
+                             devnum);
         }
       }
     }
