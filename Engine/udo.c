@@ -30,6 +30,7 @@
 #include "arrays_internal.h"
 #include "namedins.h"
 #include "cs_internal.h"
+#include "perf_dispatch.h"
 
 #if defined(MSVC)
 #include <malloc.h>
@@ -1962,6 +1963,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   ATOMIC_SET(p->ip->init_done, 0);
   csound->mode = 1;
   buf->iflag = 0;
+  csoundPreparePerfPlan(csound, lcurip);
   lcurip->init_pass++;
   int err = udo_prepare_rate(csound, p, &rate_op);
   if (UNLIKELY(err != OK))
@@ -2319,10 +2321,10 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
 int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
 {
   int32_t    g_ksmps, ofs, early, offset, i;
-  OPDS *opstart;
   OPCODINFO   *inm;
   CS_VARIABLE* current;
   INSDS    *this_instr = p->ip;
+  PERF_PLAN *perf_plan = csoundGetPerfPlan(csound, this_instr);
   cs_float** internal_ptrs = p->buf->iobufp_ptrs;
   cs_float** external_ptrs = p->ar;
   int32_t done;
@@ -2410,16 +2412,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
         current = current->next;
       }
 
-      if ((opstart = (OPDS *) (this_instr->nxtp)) != NULL) {
-        int32_t error = 0;
-        do {
-          if(UNLIKELY(!ATOMIC_GET8(this_instr->actflg))) goto endop;
-          this_instr->pds = opstart;
-          error = (*opstart->perf)(csound, opstart);
-          opstart = this_instr->pds;
-        } while (error == 0 && p->ip != NULL
-                 && (opstart = opstart->nxtp));
-      }
+      if (csoundRunPerfPlan(csound, this_instr, perf_plan, &p->ip) != OK)
+        goto endop;
 
       /* copy a-sig outputs, accounting for offset */
       current = inm->out_arg_pool->head;
@@ -2539,16 +2533,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
       this_instr->ksmps_no_end = ofs + lksmps >= g_ksmps ? early % lksmps : 0;
 
       /*  run each opcode  */
-      if ((opstart = (OPDS *) (this_instr->nxtp)) != NULL) {
-        int32_t error = 0;
-        do {
-          if(UNLIKELY(!ATOMIC_GET8(this_instr->actflg))) goto endop;
-          this_instr->pds = opstart;
-          error = (*opstart->perf)(csound, opstart);
-          opstart = this_instr->pds;
-        } while (error == 0 && p->ip != NULL
-                 && (opstart = opstart->nxtp));
-      }
+      if (csoundRunPerfPlan(csound, this_instr, perf_plan, &p->ip) != OK)
+        goto endop;
 
       /* copy a-sig outputs, accounting for offset */
       current = inm->out_arg_pool->head;
@@ -2672,6 +2658,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
 {
   /* Opcode ownership is stable; p->ip can still become NULL on turnoff. */
   INSDS *this_instr = p->ip;
+  PERF_PLAN *perf_plan = csoundGetPerfPlan(csound, this_instr);
   cs_float   **tmp;
   OPCODINFO   *inm;
   CS_VARIABLE* current;
@@ -2715,9 +2702,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
 
   /*  run each opcode, oversampling if necessary  */
   for(ocnt = 0; ocnt < os; ocnt++){
-    int error = 0;
     int cvt;
-    OPDS *opstart;
     /* copy inputs */
     current = inm->in_arg_pool->head;
     for (i = cvt = 0; i < inm->inchns; i++, cvt++) {
@@ -2750,16 +2735,9 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
       current = current->next;
     }
 
-    if ((opstart = (OPDS *) (p->ip->nxtp)) != NULL) {
-      p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
-      do {
-        if(UNLIKELY(!ATOMIC_GET8(this_instr->actflg))) goto endop;
-        this_instr->pds = opstart;
-        error = (*opstart->perf)(csound, opstart);
-        opstart = this_instr->pds;
-      } while (error == 0 && p->ip != NULL
-               && (opstart = opstart->nxtp));
-    }
+    this_instr->kcounter++;
+    if (csoundRunPerfPlan(csound, this_instr, perf_plan, &p->ip) != OK)
+      goto endop;
 
     /* copy outputs */
     current = inm->out_arg_pool->head;
@@ -2852,35 +2830,11 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
       Str("pass-by-reference UDO value changed capacity during performance\n"));
   }
   p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
-  if (UNLIKELY(!(caller_ip->pds = (OPDS*) (p->ip->nxtp))))
-    goto writeback; /* no perf code */
-
-  /* IV - Nov 16 2002: update release flag */
   p->ip->relesing = p->parent_ip->relesing;
+  if (csoundRunPerfPlan(csound, p->ip,
+                       csoundGetPerfPlan(csound, p->ip), &p->ip) != OK)
+    goto endop;
 
-  /*  run each opcode  */
-  {
-  int error = 0;
-  caller_ip->pds->insdshead->pds = NULL;
-  do {
-    OPDS *opstart;
-    OPDS *jump;
-    if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
-    opstart = caller_ip->pds;
-    if (opstart->perf) {
-      error = (*opstart->perf)(csound, opstart);
-    }
-    /* A callback can change the caller slot as well as the child's jump slot. */
-    jump = caller_ip->pds->insdshead->pds;
-    if (jump != NULL && jump->insdshead) {
-      caller_ip->pds = jump;
-      jump->insdshead->pds = NULL;
-    }
-  } while (error == 0 && p->ip != NULL
-           && (caller_ip->pds = caller_ip->pds->nxtp));
-  }
-
- writeback:
   if (UNLIKELY(pbr_sync_pass_through_outputs(
                  csound, p, p->ip, 0) != OK ||
                pbr_writeback_pass_through_inputs(
@@ -3278,6 +3232,7 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   ATOMIC_SET(p->ip->init_done, 0);
   csound->ids = (OPDS *)p->ip;
   csound->mode = 1;
+  csoundPreparePerfPlan(csound, p->ip);
   p->ip->init_pass++;
   while ((csound->ids = csound->ids->nxti) != NULL) {
     csound->op = csound->ids->optext->t.oentry->opname;
@@ -3331,6 +3286,7 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
   uint32_t frame, chan;
   uint32_t nsmps = CS_KSMPS;
   INSDS *ip = p->ip;
+  PERF_PLAN *perf_plan = csoundGetPerfPlan(csound, ip);
   if (UNLIKELY(ip == NULL)) {                /* IV - Oct 26 2002 */
     return csoundPerfError(csound, &(p->h), "%s\n",
                            Str("subinstr: not initialised"));
@@ -3351,20 +3307,9 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
   ip->relesing = p->parent_ip->relesing;   /* IV - Nov 16 2002 */
   /* Run one parent block, splitting it only for a smaller child block. */
   if (nsmps == ip->ksmps) {
-    int32_t error = 0;
     ip->kcounter++;
-    if ((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
-      CS_PDS->insdshead->pds = NULL;
-      do {
-        if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(ip->actflg)))
-          goto clear_outputs;
-        error = (*CS_PDS->perf)(csound, CS_PDS);
-        if (CS_PDS->insdshead->pds != NULL) {
-          CS_PDS = CS_PDS->insdshead->pds;
-          CS_PDS->insdshead->pds = NULL;
-        }
-      } while (error == 0 && (CS_PDS = CS_PDS->nxtp));
-    }
+    if (csoundRunPerfPlan(csound, ip, perf_plan, &p->ip) != OK)
+      goto clear_outputs;
 
   }
   else {
@@ -3391,19 +3336,8 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
     for (i=start; i < n; i+=incr, ip->spin+=insmps, ip->spout+=lksmps) {
       ip->ksmps_no_end = i + incr >= n ? early % lksmps : 0;
       ip->kcounter++;
-      if ((CS_PDS = (OPDS *) (ip->nxtp)) != NULL) {
-        int32_t error = 0;
-        CS_PDS->insdshead->pds = NULL;
-        do {
-          if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(ip->actflg)))
-            goto clear_outputs;
-          error = (*CS_PDS->perf)(csound, CS_PDS);
-          if (CS_PDS->insdshead->pds != NULL) {
-            CS_PDS = CS_PDS->insdshead->pds;
-            CS_PDS->insdshead->pds = NULL;
-          }
-        } while (error == 0 && (CS_PDS = CS_PDS->nxtp));
-      }
+      if (csoundRunPerfPlan(csound, ip, perf_plan, &p->ip) != OK)
+        goto clear_outputs;
       ip->ksmps_offset = 0;
     }
   }
