@@ -762,13 +762,13 @@ int isDir(char *path) { return 0;}
 
 void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 {
-    char buffer[100];
+    char buffer[1024];
     int p=0;
     int c;
     CORFIL *cf;
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
     while ((c=input(yyscanner))!=term) {
-      if (c=='\n' || c==EOF || c=='\0') {
+      if (c=='\n' || c==EOF || c=='\0' || p==1023) {
         csound->Warning(csound, Str("Ill formed #include ignored\n"));
         return;
       }
