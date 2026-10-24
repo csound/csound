@@ -110,7 +110,8 @@ if(USE_PULSEAUDIO)
     make_plugin(rtpulse rtpulse.c PulseAudio::PulseAudio)
 endif()
 
-find_package(PipeWire)
+# rtpw uses pw_buffer.requested, first released in PipeWire 0.3.50.
+find_package(PipeWire 0.3.50)
 check_deps(USE_PIPEWIRE PipeWire_FOUND)
 
 if(USE_PIPEWIRE)

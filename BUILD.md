@@ -201,6 +201,12 @@ sudo make install
 See "Useful CMake Options" above for common options to customise the
 build.
 
+The optional PipeWire backend requires PipeWire 0.3.50 or newer, provided by
+`libpipewire-0.3-dev` on Debian and Ubuntu. CMake skips this backend when a
+suitable version is unavailable. To disable it explicitly, add
+`-DUSE_PIPEWIRE=OFF` to the CMake command. Other enabled audio backends remain
+available.
+
 Windows (Visual Studio / vcpkg)
 ----
 
