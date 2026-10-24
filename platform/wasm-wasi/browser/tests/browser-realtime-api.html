@@ -77,9 +77,10 @@ endin
         "live-include.orc",
         new TextEncoder().encode("giIncluded init 1\n"),
       );
-      check((await csound.compileOrc(source)) === 0, "initial compile failed");
+      // A second compile before start would replace the header's global init.
       check(
         (await csound.compileOrc(`
+${source}
 opcode SignatureInput(value:i):i
   xout value + 1
 endop
@@ -103,6 +104,8 @@ endin
       );
       checks.push("fixed-memory overload lookup skips empty signatures");
       check((await csound.start()) === 0, "start failed");
+      const initialGain = await csound.getControlChannel("gain");
+      check(initialGain === 0.125, `initial gain was not initialized: ${initialGain}`);
       check(
         (await csound.evalCode('schedule "SignatureChecks", 0, 0.01\nreturn 0')) === 0,
         "could not schedule overload assertions",
