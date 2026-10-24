@@ -23,6 +23,12 @@ if(Python3_FOUND)
         endif()
     endif()
     if(BUILD_TESTS)
+        if(UNIX AND NOT CMAKE_CROSSCOMPILING)
+            add_test(NAME pipewire_detection
+                COMMAND ${Python3_EXECUTABLE}
+                    ${CMAKE_SOURCE_DIR}/tests/pipewire_detection.py
+                    --cmake ${CMAKE_COMMAND})
+        endif()
         add_test(NAME opcode_deprecation_catalog
             COMMAND ${Python3_EXECUTABLE}
                 ${CMAKE_SOURCE_DIR}/scripts/opcode_deprecations.py --check)
