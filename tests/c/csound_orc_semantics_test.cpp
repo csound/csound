@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string>
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "gtest/gtest.h"
@@ -22,7 +23,7 @@ extern "C" {
     extern OENTRY* resolve_opcode_exact (CSOUND*, OENTRIES* entries, const char* outArgTypes, const char* inArgTypes);
     extern OENTRY* find_opcode_new (CSOUND* csound,  const char* opname, const char* outArgsFound, const char* inArgsFound);
     extern bool check_in_arg (const char* found, const char* required);
-    extern bool check_in_args (CSOUND* csound, const char* outArgsFound, const char* opOutArgs);
+    extern int32_t check_in_args (CSOUND* csound, const char* outArgsFound, const char* opOutArgs);
     extern bool check_out_arg (const char* found, const char* required);
     extern bool check_out_args (CSOUND* csound,const  char* outArgsFound, const char* opOutArgs);
 }
@@ -208,6 +209,68 @@ TEST_F (OrcSemanticsTest, CheckInArgs2Test)
     ASSERT_TRUE (check_in_args(csound, "cc", "kkoM"));
     ASSERT_TRUE (check_in_args(csound, "k[]kk", ".[].M"));
     ASSERT_TRUE (check_in_args(csound, "a", "az"));
+}
+
+TEST_F(OrcSemanticsTest, InputSignatureOptionalVariadicAndComplexTypes)
+{
+    const struct {
+        const char *found;
+        const char *required;
+        int32_t expected;
+    } cases[] = {
+        {"cc", "kkjo", 1},
+        {"kc", "kkjo", 1},
+        {"k", "kkjo", 0},
+        {"kkic", "kkjo", 1},
+        {"kkicc", "kkjo", 0},
+        {"kkS", "kkjo", 0},
+        {"", "jo", 1},
+        {"", "ko", 0},
+        {"", "z", 1},
+        {"", "kz", 0},
+        {"k", "kz", 1},
+        {"kkk", "kz", 1},
+        {"kkS", "kz", 0},
+        {"akiS", "N", 1},
+        {"cc", "kkoM", 1},
+        {"k", "aN", 0},
+        {"k[]kk", ".[].M", 1},
+        {"[k]k", "k[]k", 1},
+        {"i[]i", "k[]k", 1},
+        {"a[]k", "k[]k", 0},
+        {":Point;i", ":Point;k", 1},
+        {":Other;i", ":Point;k", 0},
+        {":Point;[]k", ":Point;[]k", 1},
+    };
+    for (const auto &test : cases) {
+        EXPECT_EQ(test.expected, check_in_args(csound, test.found, test.required))
+            << "found=" << test.found << " required=" << test.required;
+    }
+    std::string largest(VARGMAX - 1, 'k');
+    EXPECT_EQ(1, check_in_args(csound, largest.c_str(), "z"));
+    largest += 'k';
+    EXPECT_EQ(-1, check_in_args(csound, largest.c_str(), "z"));
+}
+
+TEST_F(OrcSemanticsTest, ConcreteSignaturePrecedesCompatibleAndVariadicEntries)
+{
+    OENTRY exact = {};
+    OENTRY compatible = {};
+    OENTRY variadic = {};
+    exact.outypes = compatible.outypes = variadic.outypes = (char *) "k";
+    exact.intypes = (char *) "ii";
+    compatible.intypes = (char *) "kk";
+    variadic.intypes = (char *) "M";
+    OENTRIES *entries = (OENTRIES *) csound->Calloc(
+        csound, sizeof(OENTRIES) + 3 * sizeof(OENTRY *));
+    entries->count = 3;
+    entries->entries[0] = &variadic;
+    entries->entries[1] = &compatible;
+    entries->entries[2] = &exact;
+    EXPECT_EQ(&exact, resolve_opcode(csound, entries, "k", "ii"));
+    EXPECT_EQ(&compatible, resolve_opcode(csound, entries, "k", "kk"));
+    EXPECT_EQ(&variadic, resolve_opcode(csound, entries, "k", "ci"));
+    csound->Free(csound, entries);
 }
 
 TEST_F (OrcSemanticsTest, CheckOutArgTest)
