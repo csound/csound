@@ -225,6 +225,7 @@ struct udo_output_snapshot {
   cs_float *source;
   int32_t output_index;
   int32_t active;
+  AUXCH *auxchp;
   UDO_OUTPUT_SNAPSHOT *next;
 };
 
@@ -234,6 +235,12 @@ static void udo_free_output_snapshots(CSOUND *csound, UOPCODE *opcode)
   while (snapshot != NULL) {
     UDO_OUTPUT_SNAPSHOT *next = snapshot->next;
     CS_VARIABLE *var = snapshot->variable;
+    while (snapshot->auxchp != NULL) {
+      AUXCH *aux = snapshot->auxchp;
+      snapshot->auxchp = aux->nxtchp;
+      csound->Free(csound, aux->auxp);
+      memset(aux, 0, sizeof(*aux));
+    }
     if (var->varType->freeVariableMemory != NULL)
       var->varType->freeVariableMemory(csound, &var->memBlock->value);
     csound->Free(csound, var->memBlock);
@@ -292,7 +299,8 @@ static void udo_bind_output_sources(UOPCODE *p, XOUT *xout, int32_t passByRef)
         break;
       }
     }
-    p->buf->iobufp_ptrs[i] = snapshot->active ? p->output_work[i] :
+    p->buf->iobufp_ptrs[i] = snapshot->active ?
+      &snapshot->variable->memBlock->value :
       (passByRef && source == p->ar[i] ? NULL : source);
   }
 }
@@ -321,9 +329,20 @@ static int32_t udo_snapshot_outputs(CSOUND *csound, UOPCODE *p,
                              var->varType == &CS_VAR_TYPE_b ||
                              var->subType == &CS_VAR_TYPE_I))
       continue;
-    if (UNLIKELY(udo_copy_value(csound, var, &var->memBlock->value,
-                                 snapshot->source, p->ip,
-                                 1, allowAllocation) != OK))
+    /* Type callbacks such as f-sig copying attach AUXCH nodes through curip.
+       Those nodes live inside this snapshot and must be freed with it. */
+    INSDS *saved_curip = csound->curip;
+    INSDS *owner = saved_curip != NULL ? saved_curip : p->ip;
+    AUXCH *saved_aux = owner->auxchp;
+    csound->curip = owner;
+    owner->auxchp = snapshot->auxchp;
+    int32_t result = udo_copy_value(csound, var, &var->memBlock->value,
+                                    snapshot->source, p->ip,
+                                    1, allowAllocation);
+    snapshot->auxchp = owner->auxchp;
+    owner->auxchp = saved_aux;
+    csound->curip = saved_curip;
+    if (UNLIKELY(result != OK))
       return NOTOK;
   }
   return OK;
@@ -1293,6 +1312,23 @@ static int32_t pbr_needs_output_work(CSOUND *csound, UOPCODE *p)
   return 0;
 }
 
+static void pbr_use_local_output_storage(CSOUND *csound, UOPCODE *p)
+{
+  XOUT *xout = udo_find_xout(p->ip);
+  if (xout == NULL) return;
+  ARG *arg = xout->h.optext->t.inArgs;
+  for (int32_t i = 0; i < p->buf->opcode_info->outchns && arg != NULL;
+       i++, arg = arg->next) {
+    if (arg->type == ARG_LOCAL && arg->argPtr != NULL) {
+      CS_VARIABLE *var = arg->argPtr;
+      /* The body's own variable storage also owns any AUXCH nodes its
+         opcodes create. Do not move those nodes into disposable snapshots. */
+      p->output_work[i] = pbr_resolve_struct_target(
+        csound, p->ip->lclbas + var->memBlockIndex, arg->structPath);
+    }
+  }
+}
+
 static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
                                           UOPCODE *p,
                                           INSDS *lcurip,
@@ -2173,6 +2209,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     goto finish_init;
   }
   p->isolate_outputs = inm->passByRef && pbr_needs_output_work(csound, p);
+  if (p->isolate_outputs) pbr_use_local_output_storage(csound, p);
 
   if(inm->passByRef) {
     memset(buf->iobufp_ptrs, 0, inm->outchns * sizeof(cs_float *));
