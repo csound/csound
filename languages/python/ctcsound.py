@@ -365,8 +365,9 @@ libcsound.csoundSetExternalMidiErrorStringCallback.argtypes = [CSOUND_p, MIDIERR
 libcsound.csoundSetMIDIDeviceListCallback.argtypes = [CSOUND_p, MIDIDEVLISTFUNC]
 
 # Messages
-libcsound.csoundMessage.argtypes = [CSOUND_p, ct.c_char_p, ct.c_char_p]
-libcsound.csoundMessageS.argtypes = [CSOUND_p, ct.c_int32, ct.c_char_p, ct.c_char_p]
+# Declare only fixed arguments. Apple ARM64 passes variadic arguments differently.
+libcsound.csoundMessage.argtypes = [CSOUND_p, ct.c_char_p]
+libcsound.csoundMessageS.argtypes = [CSOUND_p, ct.c_int32, ct.c_char_p]
 MSGSTRFUNC = ct.CFUNCTYPE(None, CSOUND_p, ct.c_int32, ct.c_char_p)
 libcsound.csoundSetMessageStringCallback.argtypes = [CSOUND_p, MSGSTRFUNC]
 libcsound.csoundCreateMessageBuffer.argtypes = [CSOUND_p, ct.c_int32]
