@@ -4,6 +4,8 @@
 #include "csoundCore.h"
 #include "srconvert.h"
 
+typedef struct udo_output_snapshot UDO_OUTPUT_SNAPSHOT;
+
 typedef struct {
     OPCODINFO *opcode_info;
     void    *uopcode_struct;
@@ -19,6 +21,9 @@ typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
     OPCOD_IOBUFS  *buf;
     SR_CONVERTER  **cvt_in;
     SR_CONVERTER  **cvt_out;
+    UDO_OUTPUT_SNAPSHOT *output_snapshots;
+    cs_float **output_work;
+    int32_t isolate_outputs;
     /* special case: the argument list is stored at the end of the */
     /* opcode data structure */
     cs_float         *ar[1];
@@ -112,15 +117,15 @@ int32_t useropcdset(CSOUND *, UOPCODE *p);
 int32_t useropcd_local_ksmps(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_copy(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_ref(CSOUND *, UOPCODE *);
-void free_user_opcode_converters(CSOUND *, UOPCODE *);
+void free_user_opcode_buffers(CSOUND *, UOPCODE *);
 void recycle_init_only_udo_instances(CSOUND *, INSDS *);
 void build_user_opcode_rewire_plan(CSOUND *, OPCODINFO *);
 void free_opcode_info_chain(CSOUND *);
 
-/* Caller storage a pass-by-ref UDO argument was rewired onto, or NULL when
-   varName is an ordinary local of the UDO instance (or the call does not use
-   pass-by-ref).  The returned pointer is borrowed and only valid while the
-   instance is active. */
+/* Storage a pass-by-ref UDO argument was rewired onto (a caller argument or
+   output work buffer), or NULL for an ordinary local or a pass-by-copy call.
+   The returned pointer is borrowed and only valid while the instance is
+   active. */
 cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName);
 
 /* Rewire a pass-by-ref UDO body, and the UDOs nested in it, onto the current

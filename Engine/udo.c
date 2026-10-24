@@ -220,8 +220,135 @@ static void free_rate_converters(CSOUND *csound, SR_CONVERTER **converters)
   csound->Free(csound, converters);
 }
 
-void free_user_opcode_converters(CSOUND *csound, UOPCODE *opcode)
+struct udo_output_snapshot {
+  CS_VARIABLE *variable;
+  cs_float *source;
+  int32_t output_index;
+  int32_t active;
+  AUXCH *auxchp;
+  UDO_OUTPUT_SNAPSHOT *next;
+};
+
+static void udo_free_output_snapshots(CSOUND *csound, UOPCODE *opcode)
 {
+  UDO_OUTPUT_SNAPSHOT *snapshot = opcode->output_snapshots;
+  while (snapshot != NULL) {
+    UDO_OUTPUT_SNAPSHOT *next = snapshot->next;
+    CS_VARIABLE *var = snapshot->variable;
+    while (snapshot->auxchp != NULL) {
+      AUXCH *aux = snapshot->auxchp;
+      snapshot->auxchp = aux->nxtchp;
+      csound->Free(csound, aux->auxp);
+      memset(aux, 0, sizeof(*aux));
+    }
+    if (var->varType->freeVariableMemory != NULL)
+      var->varType->freeVariableMemory(csound, &var->memBlock->value);
+    csound->Free(csound, var->memBlock);
+    csound->Free(csound, var);
+    csound->Free(csound, snapshot);
+    snapshot = next;
+  }
+  opcode->output_snapshots = NULL;
+  csound->Free(csound, opcode->output_work);
+  opcode->output_work = NULL;
+}
+
+static int32_t udo_prepare_output_buffers(CSOUND *csound, UOPCODE *p)
+{
+  OPCODINFO *info = p->buf->opcode_info;
+  CS_VARIABLE *output = info->out_arg_pool->head;
+  udo_free_output_snapshots(csound, p);
+  if (info->outchns == 0) return OK;
+  p->output_work = csound->Calloc(csound, info->outchns * sizeof(cs_float *));
+  for (int32_t i = 0; i < info->outchns; i++, output = output->next) {
+    ARRAY_VAR_INIT array = { .dimensions = output->dimensions,
+                             .type = output->subType };
+    CS_VARIABLE *var = csoundCreateVariableForType(
+      csound, output->varType,
+      output->varType == &CS_VAR_TYPE_ARRAY ? &array : NULL, p->ip);
+    if (UNLIKELY(var == NULL)) return NOTOK;
+    UDO_OUTPUT_SNAPSHOT *snapshot = csound->Calloc(csound, sizeof(*snapshot));
+    var->memBlock = csound->Calloc(csound,
+                                   CS_VAR_TYPE_OFFSET + var->memBlockSize);
+    var->memBlock->varType = var->varType;
+    if (var->initializeVariableMemory != NULL)
+      var->initializeVariableMemory(csound, var, &var->memBlock->value);
+    snapshot->variable = var;
+    snapshot->output_index = i;
+    snapshot->next = p->output_snapshots;
+    p->output_snapshots = snapshot;
+    p->output_work[i] = &var->memBlock->value;
+  }
+  return OK;
+}
+
+/* Output arguments can change at perf time. Reserve storage at init, then
+   update both the copy sources and overlap checks without allocating. */
+static void udo_bind_output_sources(UOPCODE *p, XOUT *xout, int32_t passByRef)
+{
+  OPCODINFO *info = p->buf->opcode_info;
+  for (UDO_OUTPUT_SNAPSHOT *snapshot = p->output_snapshots;
+       snapshot != NULL; snapshot = snapshot->next) {
+    int32_t i = snapshot->output_index;
+    cs_float *source = xout->args[i];
+    snapshot->source = source;
+    snapshot->active = 0;
+    for (int32_t j = 0; j < info->outchns; j++) {
+      if (source == p->ar[j] && xout->args[j] != p->ar[j]) {
+        snapshot->active = 1;
+        break;
+      }
+    }
+    p->buf->iobufp_ptrs[i] = snapshot->active ?
+      &snapshot->variable->memBlock->value :
+      (passByRef && source == p->ar[i] ? NULL : source);
+  }
+}
+
+static cs_float *pbr_output_target(const UOPCODE *p, int32_t index)
+{
+  return p->isolate_outputs ? p->output_work[index] : p->ar[index];
+}
+
+/* Save every overlapping source before writing any caller output. Storage
+   comes from init and follows the same copy rules as other UDO buffers. */
+static int32_t udo_snapshot_outputs(CSOUND *csound, UOPCODE *p,
+                                     int32_t allowAllocation)
+{
+  UDO_OUTPUT_SNAPSHOT *snapshot;
+  for (snapshot = p->output_snapshots; snapshot != NULL;
+       snapshot = snapshot->next) {
+    CS_VARIABLE *var = snapshot->variable;
+    if (snapshot->source == NULL ||
+        snapshot->source == &var->memBlock->value ||
+        (!allowAllocation && !snapshot->active))
+      continue;
+    if (!allowAllocation && (var->varType == &CS_VAR_TYPE_I ||
+                             var->varType == &CS_VAR_TYPE_b ||
+                             var->subType == &CS_VAR_TYPE_I))
+      continue;
+    /* Type callbacks such as f-sig copying attach AUXCH nodes through curip.
+       Those nodes live inside this snapshot and must be freed with it. */
+    INSDS *saved_curip = csound->curip;
+    INSDS *owner = saved_curip != NULL ? saved_curip : p->ip;
+    AUXCH *saved_aux = owner->auxchp;
+    csound->curip = owner;
+    owner->auxchp = snapshot->auxchp;
+    int32_t result = udo_copy_value(csound, var, &var->memBlock->value,
+                                    snapshot->source, p->ip,
+                                    1, allowAllocation);
+    snapshot->auxchp = owner->auxchp;
+    owner->auxchp = saved_aux;
+    csound->curip = saved_curip;
+    if (UNLIKELY(result != OK))
+      return NOTOK;
+  }
+  return OK;
+}
+
+void free_user_opcode_buffers(CSOUND *csound, UOPCODE *opcode)
+{
+  udo_free_output_snapshots(csound, opcode);
   free_rate_converters(csound, opcode->cvt_in);
   free_rate_converters(csound, opcode->cvt_out);
   opcode->cvt_in = NULL;
@@ -296,6 +423,7 @@ void recycle_init_only_udo_instances(CSOUND *csound, INSDS *parent)
     }
     parent->opcod_deact = child->opcod_deact;
     child->opcod_deact = NULL;
+    udo_free_output_snapshots(csound, opcode);
     recycle_udo_instance(csound, child);
     opcode->ip = NULL;
     opcode->buf = NULL;
@@ -702,6 +830,29 @@ static int32_t pbr_can_rewire_xout_source(const char *raw_name) {
   return strchr(raw_name, '[') == NULL && strchr(raw_name, '@') == NULL;
 }
 
+static int32_t pbr_output_has_local_writer(CSOUND *csound, OPCODINFO *info,
+                                           const ARG *arg, const char *name) {
+  CS_VARIABLE *variable;
+  OPTXT *text = (OPTXT *)info->ip;
+  if (arg != NULL && arg->type != ARG_LOCAL) return 0;
+  if (name == NULL || *name == '\0' || strchr(name, '@') != NULL) return 0;
+  /* The first plan precedes ARG creation. Search only the local pool: global
+     writes must keep targeting the global, even when it is also an output. */
+  char *base = cs_strndup(csound, name, pbr_name_key_length(name));
+  variable = cs_hash_table_get(csound, info->ip->varPool->table, base);
+  csound->Free(csound, base);
+  if (variable == NULL) return 0;
+  while ((text = text->nxtop) != NULL) {
+    ARGLST *outputs = text->t.outlist;
+    if (outputs == NULL) continue;
+    for (int32_t i = 0; i < outputs->count; i++) {
+      if (pbr_names_match(outputs->arg[i], name)) return 1;
+    }
+  }
+  /* System values such as sr are set outside the UDO's opcode chain. */
+  return 0;
+}
+
 /* xout processing rewrites aliases to output slots.  Query the original xin
    declaration so duplicate pass-through detection is not affected by earlier
    xout entries mutating the alias table. */
@@ -793,6 +944,11 @@ static void pbr_collect_io_aliases(CSOUND *csound,
       const char *resolved_name = pbr_get_arg_name(xout_arg, raw_name);
       int32_t source_ar_index = -1;
 
+      /* Only redirect local writers. Other sources retain their own storage
+         and are copied into the caller's output after the body runs. */
+      if (!pbr_output_has_local_writer(csound, udoinfo, xout_arg, raw_name))
+        continue;
+
       if (pbr_can_rewire_xout_source(raw_name)) {
         source_ar_index = pbr_lookup_xin_alias(udoinfo, xin_optxt,
                                                resolved_name);
@@ -832,6 +988,15 @@ static void pbr_collect_io_aliases(CSOUND *csound,
         continue;
       }
 
+      /* Repeated local outputs share the first writer. xout records that
+         pointer for each position and the output copy fills the other slots. */
+      /* A member must keep the storage owned by its local struct. Rewiring
+         the whole struct's writer onto a scalar output loses that storage. */
+      if (pbr_arg_has_struct_path(xout_arg, raw_name))
+        continue;
+      if (pbr_alias_lookup_exact(builder->aliases, builder->alias_count,
+                                  raw_name) >= 0)
+        continue;
       pbr_add_alias(csound, builder, raw_name, i);
       pbr_add_alias(csound, builder, resolved_name, i);
     }
@@ -1035,7 +1200,8 @@ static void pbr_apply_entries(CSOUND *csound,
       continue;
     }
 
-    target = p->ar[entry->ar_index];
+    target = entry->ar_index < p->buf->opcode_info->outchns ?
+      pbr_output_target(p, entry->ar_index) : p->ar[entry->ar_index];
     if (xin != NULL &&
         entry->ar_index >= p->buf->opcode_info->outchns) {
       int32_t input_index = entry->ar_index - p->buf->opcode_info->outchns;
@@ -1115,6 +1281,50 @@ static XIN *pbr_find_xin(INSDS *lcurip) {
   }
 
   return NULL;
+}
+
+static XOUT *udo_find_xout(INSDS *instance)
+{
+  for (OPDS *op = instance->nxti; op != NULL; op = op->nxti) {
+    if (strcmp(op->optext->t.oentry->opname, "xout") == 0)
+      return (XOUT *)op;
+  }
+  return NULL;
+}
+
+/* A source outside the local writer chain can share storage with a caller
+   output. Keep body writes in work buffers until all outputs are ready. */
+static int32_t pbr_needs_output_work(CSOUND *csound, UOPCODE *p)
+{
+  XOUT *xout = udo_find_xout(p->ip);
+  if (xout != NULL) {
+    TEXT *text = &xout->h.optext->t;
+    ARG *arg = text->inArgs;
+    for (int32_t i = 0; i < text->inlist->count;
+         i++, arg = arg != NULL ? arg->next : NULL) {
+      if (!pbr_output_has_local_writer(csound, p->buf->opcode_info,
+                                        arg, text->inlist->arg[i]))
+        return 1;
+    }
+  }
+  return 0;
+}
+
+static void pbr_use_local_output_storage(CSOUND *csound, UOPCODE *p)
+{
+  XOUT *xout = udo_find_xout(p->ip);
+  if (xout == NULL) return;
+  ARG *arg = xout->h.optext->t.inArgs;
+  for (int32_t i = 0; i < p->buf->opcode_info->outchns && arg != NULL;
+       i++, arg = arg->next) {
+    if (arg->type == ARG_LOCAL && arg->argPtr != NULL) {
+      CS_VARIABLE *var = arg->argPtr;
+      /* The body's own variable storage also owns any AUXCH nodes its
+         opcodes create. Do not move those nodes into disposable snapshots. */
+      p->output_work[i] = pbr_resolve_struct_target(
+        csound, p->ip->lclbas + var->memBlockIndex, arg->structPath);
+    }
+  }
 }
 
 static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
@@ -1199,7 +1409,7 @@ static int32_t pbr_seed_pass_through_outputs(CSOUND *csound,
       continue;
     }
 
-    dst = p->ar[entry->output_ar_index];
+    dst = pbr_output_target(p, entry->output_ar_index);
     src = pbr_resolve_struct_target(csound, p->ar[entry->input_ar_index],
                                     entry->input_struct_path);
     if (UNLIKELY(pbr_copy_value(csound, dst, src, ctx,
@@ -1224,6 +1434,22 @@ static int32_t pbr_sync_pass_through_outputs(CSOUND *csound,
   }
 
   udoinfo = p->buf->opcode_info;
+  CS_VARIABLE *output = udoinfo->out_arg_pool->head;
+  if (!allowAllocation &&
+      UNLIKELY(udo_snapshot_outputs(csound, p, 0) != OK))
+    return NOTOK;
+  for (i = 0; i < udoinfo->outchns; i++, output = output->next) {
+    cs_float *src = p->buf->iobufp_ptrs[i];
+    cs_float *dst = p->ar[i];
+    if (src != NULL && src != dst &&
+        (allowAllocation || (output->varType != &CS_VAR_TYPE_I &&
+                             output->varType != &CS_VAR_TYPE_b &&
+                             output->subType != &CS_VAR_TYPE_I))) {
+      if (UNLIKELY(udo_copy_value(csound, output, dst, src, p->parent_ip,
+                                   1, allowAllocation) != OK))
+        return NOTOK;
+    }
+  }
   plan = udoinfo->pbr_plan;
   if (plan == NULL || plan->seed_entries == NULL) {
     return OK;
@@ -1243,7 +1469,7 @@ static int32_t pbr_sync_pass_through_outputs(CSOUND *csound,
     }
 
     dst = p->ar[entry->output_ar_index];
-    src = p->ar[entry->work_ar_index];
+    src = pbr_output_target(p, entry->work_ar_index);
     if (UNLIKELY(pbr_copy_value(csound, dst, src, ctx,
                                 allowAllocation) != OK)) {
       return NOTOK;
@@ -1315,7 +1541,7 @@ static int32_t pbr_writeback_pass_through_inputs(CSOUND *csound,
 
     dst = pbr_resolve_struct_target(csound, input_base,
                                     entry->input_struct_path);
-    src = p->ar[entry->work_ar_index];
+    src = pbr_output_target(p, entry->work_ar_index);
     if (UNLIKELY(pbr_copy_value(csound, dst, src, ctx,
                                 allowAllocation) != OK)) {
       return NOTOK;
@@ -1620,7 +1846,7 @@ static int32_t udo_prepare_rate(CSOUND *csound, UOPCODE *p, OPDS **rate_op) {
 
   /* Reinitialization may change the ratio or converter mode. Do not retain
      converters prepared for an earlier invocation of this instance. */
-  free_user_opcode_converters(csound, p);
+  free_user_opcode_buffers(csound, p);
   return OK;
 }
 
@@ -1673,7 +1899,8 @@ cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
     return NULL;
   }
 
-  target = p->ar[ar_index];
+  target = ar_index < outchns ? pbr_output_target(p, ar_index) :
+    p->ar[ar_index];
   if (target == NULL) {
     return NULL;
   }
@@ -1709,6 +1936,8 @@ int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
 
   udoinfo = p->buf->opcode_info;
   if (!udo_call_is_pass_by_ref(p, udoinfo)) {
+    XOUT *xout = udo_find_xout(p->ip);
+    if (xout != NULL) udo_bind_output_sources(p, xout, 0);
     return OK;
   }
 
@@ -1728,6 +1957,8 @@ int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
                     plan->init_entries, plan->init_count);
   pbr_apply_entries(csound, p, p->ip->nxtp, op_mem_start, xin,
                     plan->perf_entries, plan->perf_count);
+  XOUT *xout = udo_find_xout(p->ip);
+  if (xout != NULL) udo_bind_output_sources(p, xout, 1);
 
   /* Nested pass-by-ref UDOs wired their own bodies to these locations
      at init, so they need the same update.  Every UDO call has an init
@@ -1971,7 +2202,15 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
      read this back: the next init of the same UDO overwrites it. */
   inm->passByRef = udo_call_is_pass_by_ref(p, inm);
 
+  if (UNLIKELY(udo_prepare_output_buffers(csound, p) != OK)) {
+    err = csound->InitError(csound, Str("could not prepare UDO output\n"));
+    goto finish_init;
+  }
+  p->isolate_outputs = inm->passByRef && pbr_needs_output_work(csound, p);
+  if (p->isolate_outputs) pbr_use_local_output_storage(csound, p);
+
   if(inm->passByRef) {
+    memset(buf->iobufp_ptrs, 0, inm->outchns * sizeof(cs_float *));
     if (UNLIKELY(handle_pass_by_ref(csound, p, lcurip) != OK)) {
       err = csound->InitError(
         csound, Str("could not prepare pass-by-reference UDO buffers\n"));
@@ -2280,15 +2519,15 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   tmp = buf->iobufp_ptrs;
   current = inm->out_arg_pool->head;
 
-  if(inm->passByRef) {
-    return OK;
-  }
+  udo_bind_output_sources(udo, p, inm->passByRef);
+  if (UNLIKELY(udo_snapshot_outputs(csound, udo, 1) != OK))
+    return csound->InitError(csound, Str("could not prepare UDO output\n"));
+  if (inm->passByRef) return OK;
 
   for (i = 0; i < inm->outchns; i++) {
-    void* in = (void*) p->args[i];
+    void* in = (void*) tmp[i];
     void* out = (void*) bufs[i];
     const CS_TYPE* outType = csoundGetTypeForArg(out);
-    tmp[i] = in;
     if (outType != &CS_VAR_TYPE_K && outType != &CS_VAR_TYPE_A) {
       if (UNLIKELY(udo_copy_value(csound, current, out, in,
                                   buf->parent_ip,
@@ -2421,6 +2660,12 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
                  && (opstart = opstart->nxtp));
       }
 
+      if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(this_instr->actflg)))
+        goto endop;
+      if (UNLIKELY(udo_snapshot_outputs(csound, p, 0) != OK))
+        return csound->PerfError(csound, &p->h,
+                                 Str("UDO output changed capacity during performance\n"));
+
       /* copy a-sig outputs, accounting for offset */
       current = inm->out_arg_pool->head;
       for (i = 0; i < inm->outchns; i++) {
@@ -2549,6 +2794,12 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
         } while (error == 0 && p->ip != NULL
                  && (opstart = opstart->nxtp));
       }
+
+      if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(this_instr->actflg)))
+        goto endop;
+      if (UNLIKELY(udo_snapshot_outputs(csound, p, 0) != OK))
+        return csound->PerfError(csound, &p->h,
+                                 Str("UDO output changed capacity during performance\n"));
 
       /* copy a-sig outputs, accounting for offset */
       current = inm->out_arg_pool->head;
@@ -2702,9 +2953,6 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
 
-  if (UNLIKELY(p->ip->nxtp == NULL))
-    goto endop; /* no perf code */
-
   p->ip->relesing = p->parent_ip->relesing;
   tmp = p->buf->iobufp_ptrs;
   inm = p->buf->opcode_info;
@@ -2760,6 +3008,12 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
       } while (error == 0 && p->ip != NULL
                && (opstart = opstart->nxtp));
     }
+
+    if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(this_instr->actflg)))
+      goto endop;
+    if (UNLIKELY(udo_snapshot_outputs(csound, p, 0) != OK))
+      return csound->PerfError(csound, &p->h,
+                               Str("UDO output changed capacity during performance\n"));
 
     /* copy outputs */
     current = inm->out_arg_pool->head;
@@ -2867,9 +3121,12 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
     OPDS *jump;
     if(UNLIKELY(!ATOMIC_GET8(p->ip->actflg))) goto endop;
     opstart = caller_ip->pds;
+    opstart->insdshead->pds = opstart;
     if (opstart->perf) {
       error = (*opstart->perf)(csound, opstart);
     }
+    if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(p->ip->actflg)))
+      goto endop;
     /* A callback can change the caller slot as well as the child's jump slot. */
     jump = caller_ip->pds->insdshead->pds;
     if (jump != NULL && jump->insdshead) {
@@ -2881,6 +3138,8 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
   }
 
  writeback:
+  if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(p->ip->actflg)))
+    goto endop;
   if (UNLIKELY(pbr_sync_pass_through_outputs(
                  csound, p, p->ip, 0) != OK ||
                pbr_writeback_pass_through_inputs(
