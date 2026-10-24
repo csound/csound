@@ -2031,7 +2031,7 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
         continue;
 
       udo = (UOPCODE *) current->opcod_deact;
-      free_user_opcode_converters(csound, udo);
+      free_user_opcode_buffers(csound, udo);
 
       if (udo->ip == NULL || ATOMIC_GET8(udo->ip->actflg) == 0 ||
           !instance_turnoff_claim(csound, udo->ip))
@@ -3142,7 +3142,7 @@ static void free_unlinked_instance(CSOUND *csound, INSDS *ip)
   // as opcodes exist in the instr act_instance chain
   if (ip->opcod_deact) {
     UOPCODE *p = (UOPCODE*) ip->opcod_deact;
-    free_user_opcode_converters(csound, p);
+    free_user_opcode_buffers(csound, p);
 
     deact(csound, p->ip);     /* deactivate */
     p->ip = NULL;

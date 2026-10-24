@@ -26,8 +26,9 @@
 int32_t get_pfield(CSOUND *csound, ENGINE_STATE *engineState,
                    INSTRTXT *ip, char *s);
 int32_t tree_arg_list_count(TREE *root);
-int32_t args_required(char* argString);
-char** split_args(CSOUND* csound, char* argString);
+int32_t args_required(const char* argString);
+char** split_args(CSOUND* csound, const char* argString);
+void free_split_args(CSOUND *csound, char **args);
 char* get_struct_expr_string(CSOUND* csound, TREE* structTree);
 CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
                                  const CS_TYPE *type, char *name,

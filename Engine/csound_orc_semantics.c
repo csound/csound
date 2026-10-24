@@ -743,6 +743,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
       if (args_required(out) == 1) {
         char** args = split_args(csound, out);
         char *ret = csoundStrdup(csound, args[0]);
+        free_split_args(csound, args);
         csound->Free(csound, argTypeRight);
         csound->Free(csound, entries);
         return ret;
@@ -1174,17 +1175,17 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname)
 
 }
 
-inline static int32_t is_in_optional_arg(char* arg) {
+inline static int32_t is_in_optional_arg(const char* arg) {
   return (strlen(arg) == 1) && (strchr("opqvjhOJVP?", *arg) != NULL);
 }
 
-inline static int32_t is_in_var_arg(char* arg) {
+inline static int32_t is_in_var_arg(const char* arg) {
   return (strlen(arg) == 1) && (strchr("mMNnWyzZ*", *arg) != NULL);
 }
 
-static int32_t check_array_arg(char* found, char* required) {
-  char* f = found;
-  char* r = required;
+static int32_t check_array_arg(const char* found, const char* required) {
+  const char* f = found;
+  const char* r = required;
 
   while (*r == '[') r++;
 
@@ -1194,12 +1195,14 @@ static int32_t check_array_arg(char* found, char* required) {
 
   while (*f == '[') f++;
 
-  return (*f == *r);
+  /* Array signatures accept any rank, but the whole element type must
+     match: every named type starts with ':'. */
+  return strcmp(f, r) == 0;
 }
 
-static int32_t check_array_arg_in(char* found, char* required) {
-  char* f = found;
-  char* r = required;
+static int32_t check_array_arg_in(const char* found, const char* required) {
+  const char* f = found;
+  const char* r = required;
 
   while (*r == '[') r++;
 
@@ -1210,15 +1213,15 @@ static int32_t check_array_arg_in(char* found, char* required) {
   while (*f == '[') f++;
 
   // special case: k args with i inputs
-  if(*r == 'k' && *f == 'i') return 1;
-  return (*f == *r);
+  if (strcmp(r, "k]") == 0 && strcmp(f, "i]") == 0) return 1;
+  return strcmp(f, r) == 0;
 }
 
 
 
 
 /* Helper function to normalize type names for comparison */
-static char* normalize_type_for_comparison(char* typeName) {
+static char* normalize_type_for_comparison(const char* typeName) {
   if (!typeName) return NULL;
 
   // If it's in internal format (:TypeName;), extract the core name
@@ -1234,10 +1237,11 @@ static char* normalize_type_for_comparison(char* typeName) {
   return strdup(typeName);
 }
 
-int32_t check_in_arg(char* found, char* required) {
+int32_t check_in_arg(const char* found, const char* required) {
   char* t;
   int32_t i;
-  if (UNLIKELY(found == NULL || required == NULL)) {
+  if (UNLIKELY(found == NULL || required == NULL ||
+               *found == '\0' || *required == '\0')) {
     return 0;
   }
 
@@ -1307,7 +1311,7 @@ int32_t check_in_arg(char* found, char* required) {
   return 0;
 }
 
-int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
+int32_t check_in_args(CSOUND* csound, const char* inArgsFound, const char* opInArgs) {
   if ((inArgsFound == NULL || strlen(inArgsFound) == 0) &&
       (opInArgs == NULL || strlen(opInArgs) == 0)) {
     return 1;
@@ -1344,7 +1348,7 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
 
     if ((argsFoundCount > args_requiredCount) &&
         !(is_in_var_arg(args_required[args_requiredCount - 1]))) {
-      csound->Free(csound, args_required);
+      free_split_args(csound, args_required);
       return 0;
     }
 
@@ -1388,29 +1392,23 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
 
     }
 
-    int32_t n;
-    for (n=0; argsFound[n] != NULL; n++) {
-      csound->Free(csound, argsFound[n]);
-    }
-    csound->Free(csound, argsFound);
-    for (n=0; args_required[n] != NULL; n++) {
-      csound->Free(csound, args_required[n]);
-    }
-    csound->Free(csound, args_required);
+    free_split_args(csound, argsFound);
+    free_split_args(csound, args_required);
 
     return returnVal;
   }
 }
 
-inline static int32_t is_out_var_arg(char* arg) {
+inline static int32_t is_out_var_arg(const char* arg) {
   return strlen(arg) == 1 && (strchr("mzIXNvVF*", *arg) != NULL);
 }
 
-int32_t check_out_arg(char* found, char* required) {
+int32_t check_out_arg(const char* found, const char* required) {
   char* t;
   int32_t i;
 
-  if (UNLIKELY(found == NULL || required == NULL)) {
+  if (UNLIKELY(found == NULL || required == NULL ||
+               *found == '\0' || *required == '\0')) {
     return 0;
   }
 
@@ -1474,7 +1472,7 @@ int32_t check_out_arg(char* found, char* required) {
   return 0;
 }
 
-int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
+int32_t check_out_args(CSOUND* csound, const char* outArgsFound, const char* opOutArgs)
 {
 
   if ((outArgsFound == NULL || strlen(outArgsFound) == 0) &&
@@ -1510,7 +1508,7 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
 
     if ((argsFoundCount > argsRequiredCount) &&
         !(is_out_var_arg(argsRequired[argsRequiredCount - 1]))) {
-      csound->Free(csound, argsRequired);
+      free_split_args(csound, argsRequired);
       return 0;
     }
 
@@ -1545,15 +1543,8 @@ int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs)
         returnVal = 1;
       }
     }
-    int32_t n;
-    for (n=0; argsFound[n] != NULL; n++) {
-      csound->Free(csound, argsFound[n]);
-    }
-    csound->Free(csound, argsFound);
-    for (n=0; argsRequired[n] != NULL; n++) {
-      csound->Free(csound, argsRequired[n]);
-    }
-    csound->Free(csound, argsRequired);
+    free_split_args(csound, argsFound);
+    free_split_args(csound, argsRequired);
 
     return returnVal;
   }
@@ -1570,6 +1561,9 @@ OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
                           "" : outArgTypes;
   const char* inTest = (inArgTypes == NULL || !strcmp("0", inArgTypes)) ?
                          "" : inArgTypes;
+  int32_t inCount = args_required(inTest);
+  if (inCount < 0 || inCount >= VARGMAX ||
+      args_required(outTest) < 0) return NULL;
   for (i = 0; i < entries->count; i++) {
     OENTRY* temp = entries->entries[i];
     if (temp->intypes != NULL && !strcmp(inTest, temp->intypes) &&
@@ -1588,9 +1582,15 @@ OENTRY* resolve_opcode_exact(CSOUND* csound, OENTRIES* entries,
  */
 OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
                        char* outArgTypes, char* inArgTypes) {
-  int32_t i, check;
+  int32_t i, inCount = args_required(inArgTypes);
   OENTRY* exact;
 
+  if (inCount < 0 || args_required(outArgTypes) < 0) return NULL;
+  if (inCount >= VARGMAX) {
+    synterr(csound, Str("Found %d inputs, maximum is %d\n"),
+            inCount, VARGMAX - 1);
+    return NULL;
+  }
   /* A polymorphic or variadic entry must not shadow a concrete signature. */
   if ((exact = resolve_opcode_exact(csound, entries,
                                     outArgTypes, inArgTypes)) != NULL) {
@@ -1599,15 +1599,8 @@ OENTRY* resolve_opcode(CSOUND* csound, OENTRIES* entries,
 
   for (i = 0; i < entries->count; i++) {
     OENTRY* temp = entries->entries[i];
-    if ((check = check_in_args(csound, inArgTypes, temp->intypes)) &&
+    if (check_in_args(csound, inArgTypes, temp->intypes) > 0 &&
         check_out_args(csound, outArgTypes, temp->outypes)) {
-      if (check == -1) {
-        synterr(csound,
-                Str("Found %d inputs for %s which is more than "
-                    "the %d allowed\n"),
-                args_required(inArgTypes), temp->opname, VARGMAX);
-        return NULL;
-      }
       return temp;
     }
   }
@@ -1632,7 +1625,7 @@ static OENTRY *resolve_inplace_rate_opcode(CSOUND *csound,
     OENTRY *entry = entries->entries[i];
     const char *suffix = strchr(entry->opname, '.');
     if (suffix != NULL && suffix[1] == rate && suffix[2] == '.' &&
-        check_in_args(csound, inArgTypes, entry->intypes) &&
+        check_in_args(csound, inArgTypes, entry->intypes) > 0 &&
         check_out_args(csound, outArgTypes, entry->outypes)) {
       return entry;
     }
@@ -1650,7 +1643,8 @@ char* resolve_opcode_get_outarg(CSOUND* csound, OENTRIES* entries,
     if (temp->intypes == NULL && temp->outypes == NULL) {
       continue;
     }
-    if (check_in_args(csound, inArgTypes, temp->intypes)) {
+    if (check_in_args(csound, inArgTypes, temp->intypes) > 0 &&
+        args_required(temp->outypes) >= 0) {
       // FIXME this is only returning the first match, we need to check
       // if there are multiple matches and if so, return NULL to signify
       // ambiguity
@@ -4137,7 +4131,7 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
   char* outArgsFound = get_arg_string_from_tree(csound, xoutArgs, typeTable);
 
 
-  if (!check_in_args(csound, inArgsFound, inArgs)) {
+  if (check_in_args(csound, inArgsFound, inArgs) <= 0) {
     if (UNLIKELY(!(strcmp("0", inArgs) == 0 && xinArgs == NULL))) {
       synterr(csound,
               Str("invalid xin statement for UDO: defined '%s', found '%s'\n"),
@@ -4146,7 +4140,7 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
     }
   }
 
-  if (!check_in_args(csound, outArgsFound, outArgs)) {
+  if (check_in_args(csound, outArgsFound, outArgs) <= 0) {
     if (UNLIKELY(!(strcmp("0", outArgs) == 0 && xoutArgs == NULL))) {
       synterr(csound,
               Str("invalid xout statement for UDO: defined '%s', found '%s'\n"),
