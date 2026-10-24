@@ -48,7 +48,10 @@ void do_baktrace(CSOUND *csound, uint64_t files);
 char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
                                TYPE_TABLE* typeTable);
 char* convert_external_to_internal(CSOUND* csound, char* arg);
-int32_t check_out_args(CSOUND* csound, char* outArgsFound, char* opOutArgs);
+int32_t check_in_arg(const char* found, const char* required);
+int32_t check_out_arg(const char* found, const char* required);
+int32_t check_in_args(CSOUND* csound, const char* inArgsFound, const char* opInArgs);
+int32_t check_out_args(CSOUND* csound, const char* outArgsFound, const char* opOutArgs);
 void handle_optional_args(CSOUND *, TREE *);
 char* resolve_opcode_get_outarg(CSOUND* , OENTRIES* , char*);
 /* grammar-rule variant of tree_append(); only for use in parser rules */
