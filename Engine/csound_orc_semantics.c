@@ -1307,6 +1307,47 @@ int32_t check_in_arg(char* found, char* required) {
   return 0;
 }
 
+/* Single-character scalar types need no split strings. Keep the general
+   matcher below for arrays and named types, which have multi-byte tokens. */
+static int32_t check_scalar_in_args(const char *found, const char *required)
+{
+  size_t foundCount = found == NULL ? 0 : strlen(found);
+  size_t requiredCount = strlen(required);
+  char foundArg[2] = {0, 0};
+  char requiredArg[2] = {0, 0};
+  int32_t varArg = 0;
+
+  if (foundCount >= VARGMAX)
+    return -1;
+  if (foundCount > requiredCount) {
+    requiredArg[0] = requiredCount == 0 ? '\0' : required[requiredCount - 1];
+    if (!is_in_var_arg(requiredArg))
+      return 0;
+  }
+  if (foundCount == 0) {
+    requiredArg[0] = *required;
+    if (is_in_var_arg(requiredArg))
+      return 1;
+  }
+  while (found != NULL && *found != '\0') {
+    foundArg[0] = *found++;
+    requiredArg[0] = *required;
+    if (!check_in_arg(foundArg, requiredArg))
+      return 0;
+    varArg = is_in_var_arg(requiredArg);
+    if (!varArg)
+      required++;
+  }
+  if (varArg)
+    return 1;
+  while (*required != '\0') {
+    requiredArg[0] = *required++;
+    if (!is_in_optional_arg(requiredArg) && !is_in_var_arg(requiredArg))
+      return 0;
+  }
+  return 1;
+}
+
 int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
   if ((inArgsFound == NULL || strlen(inArgsFound) == 0) &&
       (opInArgs == NULL || strlen(opInArgs) == 0)) {
@@ -1315,6 +1356,11 @@ int32_t check_in_args(CSOUND* csound, char* inArgsFound, char* opInArgs) {
 
   if (UNLIKELY(opInArgs == NULL)) {
     return 0;
+  }
+
+  if ((inArgsFound == NULL || strpbrk(inArgsFound, "[:") == NULL) &&
+      strpbrk(opInArgs, "[:") == NULL) {
+    return check_scalar_in_args(inArgsFound, opInArgs);
   }
 
   {

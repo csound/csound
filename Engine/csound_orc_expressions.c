@@ -506,6 +506,8 @@ static TREE *expand_expression_arg_list(CSOUND *csound, TREE *current,
                                         int32_t initContext)
 {
   TREE *newArgList = NULL;
+  TREE *newArgTail = NULL;
+  TREE *anchorTail = tree_tail(*anchor);
 
   while (current != NULL) {
     TREE *expanded = NULL;
@@ -530,11 +532,22 @@ static TREE *expand_expression_arg_list(CSOUND *csound, TREE *current,
     }
 
     if (expanded != NULL) {
-      *anchor = tree_append(*anchor, expanded);
-      expanded = tree_tail(*anchor);
-      newArg = create_ans_token(csound, expanded->left->value->lexeme);
+      if (anchorTail == NULL) {
+        *anchor = expanded;
+        anchorTail = tree_tail(expanded);
+      }
+      else {
+        anchorTail = tree_append_at(anchorTail, expanded);
+      }
+      newArg = create_ans_token(csound, anchorTail->left->value->lexeme);
     }
-    newArgList = tree_append(newArgList, newArg);
+    if (newArgTail == NULL) {
+      newArgList = newArg;
+    }
+    else {
+      newArgTail->next = newArg;
+    }
+    newArgTail = newArg;
     current = next;
   }
 
