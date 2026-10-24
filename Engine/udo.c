@@ -242,8 +242,10 @@ static void udo_free_output_snapshots(CSOUND *csound, UOPCODE *opcode)
   opcode->output_snapshots = NULL;
 }
 
-/* Save every overlapping source before writing any caller output. Storage
-   comes from init and follows the same copy rules as other UDO buffers. */
+/* Save every overlapping source before writing any caller output. Returning
+   (gB, gA) into (gA, gB) must read both old values before either write. The
+   output-copy pass reads these snapshots instead of the shared sources.
+   Storage comes from init and follows the same copy rules as other UDO buffers. */
 static int32_t udo_snapshot_outputs(CSOUND *csound, UOPCODE *p,
                                      int32_t allowAllocation)
 {
