@@ -963,6 +963,7 @@ static const CSOUND cenviron_ = {
     .rt_event_spinlock = SPINLOCK_INIT,
     .diskin2_async_lock = SPINLOCK_INIT,
     .osc_spinlock = SPINLOCK_INIT,
+    .channel_spinlock = SPINLOCK_INIT,
     .realtime_locks_initialized = 0,
     /* -------- Threads, parallel execution and DAG -------- */
     .event_insert_thread = NULL,
@@ -1963,6 +1964,7 @@ static void reset(CSOUND *csound) {
   csound->spinlock1 = saved_env->spinlock1;
   csound->array_storage_spinlock = saved_env->array_storage_spinlock;
   csound->open_files_lock = saved_env->open_files_lock;
+  csound->channel_spinlock = saved_env->channel_spinlock;
 #endif
   csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
   memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
@@ -1992,6 +1994,7 @@ static void reset(CSOUND *csound) {
     csoundSpinLockInit(&csound->spinlock1);
     csoundSpinLockInit(&csound->array_storage_spinlock);
     csoundSpinLockInit(&csound->open_files_lock);
+    csoundSpinLockInit(&csound->channel_spinlock);
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "init spinlocks\n");
   }

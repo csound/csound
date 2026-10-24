@@ -376,7 +376,7 @@ static inline void channel_registry_lock(CSOUND *csound)
     while (__atomic_load_n(&csound->wasi_channel_lock, __ATOMIC_RELAXED)) {}
   }
 #else
-  IGN(csound);
+  csoundSpinLock(&csound->channel_spinlock);
 #endif
 }
 
@@ -385,7 +385,7 @@ static inline void channel_registry_unlock(CSOUND *csound)
 #ifdef CSOUND_WASI_REALTIME
   __atomic_store_n(&csound->wasi_channel_lock, 0, __ATOMIC_RELEASE);
 #else
-  IGN(csound);
+  csoundSpinUnLock(&csound->channel_spinlock);
 #endif
 }
 
