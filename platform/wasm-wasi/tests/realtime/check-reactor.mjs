@@ -95,6 +95,32 @@ assert.equal(api.csoundIsRealtime(csound), 0);
 api.csoundResetWasi(csound);
 hostSupportsThreads = true;
 
+// Exercise overload lookup in the fixed-memory reactor, including the
+// empty signatures that previously read before the required-type array.
+const signatureCsd = fs
+  .readFileSync(new URL("../../../../tests/commandline/test_opcode_empty_signatures.csd", import.meta.url), "utf8")
+  .replace(/<CsTest>[\s\S]*?<\/CsTest>/, "");
+api.csoundCreateMessageBuffer(csound, 0);
+assert.equal(stringCall("csoundCompileCSD", signatureCsd, 1, 0), 0);
+assert.equal(api.csoundStartWasi(csound), 0);
+let signatureStatus = 0;
+for (let block = 0; block < 100 && signatureStatus === 0; block++) {
+  signatureStatus = api.csoundPerformKsmps(csound);
+}
+assert(signatureStatus > 0, "signature score did not finish");
+assert.equal(api.csoundCleanupWasi(csound), 0);
+let signatureMessages = "";
+while (api.csoundGetMessageCnt(csound) > 0) {
+  const pointer = api.csoundGetFirstMessage(csound);
+  const bytes = new Uint8Array(memory.buffer);
+  signatureMessages += new TextDecoder().decode(bytes.subarray(pointer, bytes.indexOf(0, pointer)));
+  api.csoundPopFirstMessage(csound);
+}
+assert.match(signatureMessages, /Total assertions: 3/);
+assert.match(signatureMessages, /Failed: 0/);
+api.csoundDestroyMessageBuffer(csound);
+api.csoundResetWasi(csound);
+
 // Global declarations run inside start; pre-start API writes also survive it.
 // Live access will use only these stable addresses, not the channel hash table.
 const { createRealtimeControlChannels } =
