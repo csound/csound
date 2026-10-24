@@ -22,6 +22,8 @@ typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
     SR_CONVERTER  **cvt_in;
     SR_CONVERTER  **cvt_out;
     UDO_OUTPUT_SNAPSHOT *output_snapshots;
+    cs_float **output_work;
+    int32_t isolate_outputs;
     /* special case: the argument list is stored at the end of the */
     /* opcode data structure */
     cs_float         *ar[1];
@@ -120,10 +122,10 @@ void recycle_init_only_udo_instances(CSOUND *, INSDS *);
 void build_user_opcode_rewire_plan(CSOUND *, OPCODINFO *);
 void free_opcode_info_chain(CSOUND *);
 
-/* Caller storage a pass-by-ref UDO argument was rewired onto, or NULL when
-   varName is an ordinary local of the UDO instance (or the call does not use
-   pass-by-ref).  The returned pointer is borrowed and only valid while the
-   instance is active. */
+/* Storage a pass-by-ref UDO argument was rewired onto (a caller argument or
+   output work buffer), or NULL for an ordinary local or a pass-by-copy call.
+   The returned pointer is borrowed and only valid while the instance is
+   active. */
 cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName);
 
 /* Rewire a pass-by-ref UDO body, and the UDOs nested in it, onto the current

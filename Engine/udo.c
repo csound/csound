@@ -223,6 +223,8 @@ static void free_rate_converters(CSOUND *csound, SR_CONVERTER **converters)
 struct udo_output_snapshot {
   CS_VARIABLE *variable;
   cs_float *source;
+  int32_t output_index;
+  int32_t active;
   UDO_OUTPUT_SNAPSHOT *next;
 };
 
@@ -240,6 +242,64 @@ static void udo_free_output_snapshots(CSOUND *csound, UOPCODE *opcode)
     snapshot = next;
   }
   opcode->output_snapshots = NULL;
+  csound->Free(csound, opcode->output_work);
+  opcode->output_work = NULL;
+}
+
+static int32_t udo_prepare_output_buffers(CSOUND *csound, UOPCODE *p)
+{
+  OPCODINFO *info = p->buf->opcode_info;
+  CS_VARIABLE *output = info->out_arg_pool->head;
+  udo_free_output_snapshots(csound, p);
+  if (info->outchns == 0) return OK;
+  p->output_work = csound->Calloc(csound, info->outchns * sizeof(cs_float *));
+  for (int32_t i = 0; i < info->outchns; i++, output = output->next) {
+    ARRAY_VAR_INIT array = { .dimensions = output->dimensions,
+                             .type = output->subType };
+    CS_VARIABLE *var = csoundCreateVariableForType(
+      csound, output->varType,
+      output->varType == &CS_VAR_TYPE_ARRAY ? &array : NULL, p->ip);
+    if (UNLIKELY(var == NULL)) return NOTOK;
+    UDO_OUTPUT_SNAPSHOT *snapshot = csound->Calloc(csound, sizeof(*snapshot));
+    var->memBlock = csound->Calloc(csound,
+                                   CS_VAR_TYPE_OFFSET + var->memBlockSize);
+    var->memBlock->varType = var->varType;
+    if (var->initializeVariableMemory != NULL)
+      var->initializeVariableMemory(csound, var, &var->memBlock->value);
+    snapshot->variable = var;
+    snapshot->output_index = i;
+    snapshot->next = p->output_snapshots;
+    p->output_snapshots = snapshot;
+    p->output_work[i] = &var->memBlock->value;
+  }
+  return OK;
+}
+
+/* Output arguments can change at perf time. Reserve storage at init, then
+   update both the copy sources and overlap checks without allocating. */
+static void udo_bind_output_sources(UOPCODE *p, XOUT *xout, int32_t passByRef)
+{
+  OPCODINFO *info = p->buf->opcode_info;
+  for (UDO_OUTPUT_SNAPSHOT *snapshot = p->output_snapshots;
+       snapshot != NULL; snapshot = snapshot->next) {
+    int32_t i = snapshot->output_index;
+    cs_float *source = xout->args[i];
+    snapshot->source = source;
+    snapshot->active = 0;
+    for (int32_t j = 0; j < info->outchns; j++) {
+      if (source == p->ar[j] && xout->args[j] != p->ar[j]) {
+        snapshot->active = 1;
+        break;
+      }
+    }
+    p->buf->iobufp_ptrs[i] = snapshot->active ? p->output_work[i] :
+      (passByRef && source == p->ar[i] ? NULL : source);
+  }
+}
+
+static cs_float *pbr_output_target(const UOPCODE *p, int32_t index)
+{
+  return p->isolate_outputs ? p->output_work[index] : p->ar[index];
 }
 
 /* Save every overlapping source before writing any caller output. Returning
@@ -253,6 +313,10 @@ static int32_t udo_snapshot_outputs(CSOUND *csound, UOPCODE *p,
   for (snapshot = p->output_snapshots; snapshot != NULL;
        snapshot = snapshot->next) {
     CS_VARIABLE *var = snapshot->variable;
+    if (snapshot->source == NULL ||
+        snapshot->source == &var->memBlock->value ||
+        (!allowAllocation && !snapshot->active))
+      continue;
     if (!allowAllocation && (var->varType == &CS_VAR_TYPE_I ||
                              var->varType == &CS_VAR_TYPE_b ||
                              var->subType == &CS_VAR_TYPE_I))
@@ -1119,7 +1183,8 @@ static void pbr_apply_entries(CSOUND *csound,
       continue;
     }
 
-    target = p->ar[entry->ar_index];
+    target = entry->ar_index < p->buf->opcode_info->outchns ?
+      pbr_output_target(p, entry->ar_index) : p->ar[entry->ar_index];
     if (xin != NULL &&
         entry->ar_index >= p->buf->opcode_info->outchns) {
       int32_t input_index = entry->ar_index - p->buf->opcode_info->outchns;
@@ -1199,6 +1264,33 @@ static XIN *pbr_find_xin(INSDS *lcurip) {
   }
 
   return NULL;
+}
+
+static XOUT *udo_find_xout(INSDS *instance)
+{
+  for (OPDS *op = instance->nxti; op != NULL; op = op->nxti) {
+    if (strcmp(op->optext->t.oentry->opname, "xout") == 0)
+      return (XOUT *)op;
+  }
+  return NULL;
+}
+
+/* A source outside the local writer chain can share storage with a caller
+   output. Keep body writes in work buffers until all outputs are ready. */
+static int32_t pbr_needs_output_work(CSOUND *csound, UOPCODE *p)
+{
+  XOUT *xout = udo_find_xout(p->ip);
+  if (xout != NULL) {
+    TEXT *text = &xout->h.optext->t;
+    ARG *arg = text->inArgs;
+    for (int32_t i = 0; i < text->inlist->count;
+         i++, arg = arg != NULL ? arg->next : NULL) {
+      if (!pbr_output_has_local_writer(csound, p->buf->opcode_info,
+                                        arg, text->inlist->arg[i]))
+        return 1;
+    }
+  }
+  return 0;
 }
 
 static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
@@ -1283,7 +1375,7 @@ static int32_t pbr_seed_pass_through_outputs(CSOUND *csound,
       continue;
     }
 
-    dst = p->ar[entry->output_ar_index];
+    dst = pbr_output_target(p, entry->output_ar_index);
     src = pbr_resolve_struct_target(csound, p->ar[entry->input_ar_index],
                                     entry->input_struct_path);
     if (UNLIKELY(pbr_copy_value(csound, dst, src, ctx,
@@ -1343,7 +1435,7 @@ static int32_t pbr_sync_pass_through_outputs(CSOUND *csound,
     }
 
     dst = p->ar[entry->output_ar_index];
-    src = p->ar[entry->work_ar_index];
+    src = pbr_output_target(p, entry->work_ar_index);
     if (UNLIKELY(pbr_copy_value(csound, dst, src, ctx,
                                 allowAllocation) != OK)) {
       return NOTOK;
@@ -1415,7 +1507,7 @@ static int32_t pbr_writeback_pass_through_inputs(CSOUND *csound,
 
     dst = pbr_resolve_struct_target(csound, input_base,
                                     entry->input_struct_path);
-    src = p->ar[entry->work_ar_index];
+    src = pbr_output_target(p, entry->work_ar_index);
     if (UNLIKELY(pbr_copy_value(csound, dst, src, ctx,
                                 allowAllocation) != OK)) {
       return NOTOK;
@@ -1773,7 +1865,8 @@ cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
     return NULL;
   }
 
-  target = p->ar[ar_index];
+  target = ar_index < outchns ? pbr_output_target(p, ar_index) :
+    p->ar[ar_index];
   if (target == NULL) {
     return NULL;
   }
@@ -1809,6 +1902,8 @@ int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
 
   udoinfo = p->buf->opcode_info;
   if (!udo_call_is_pass_by_ref(p, udoinfo)) {
+    XOUT *xout = udo_find_xout(p->ip);
+    if (xout != NULL) udo_bind_output_sources(p, xout, 0);
     return OK;
   }
 
@@ -1828,6 +1923,8 @@ int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
                     plan->init_entries, plan->init_count);
   pbr_apply_entries(csound, p, p->ip->nxtp, op_mem_start, xin,
                     plan->perf_entries, plan->perf_count);
+  XOUT *xout = udo_find_xout(p->ip);
+  if (xout != NULL) udo_bind_output_sources(p, xout, 1);
 
   /* Nested pass-by-ref UDOs wired their own bodies to these locations
      at init, so they need the same update.  Every UDO call has an init
@@ -2070,6 +2167,12 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   /* Per-definition flag for perf-routine selection.  The debugger must not
      read this back: the next init of the same UDO overwrites it. */
   inm->passByRef = udo_call_is_pass_by_ref(p, inm);
+
+  if (UNLIKELY(udo_prepare_output_buffers(csound, p) != OK)) {
+    err = csound->InitError(csound, Str("could not prepare UDO output\n"));
+    goto finish_init;
+  }
+  p->isolate_outputs = inm->passByRef && pbr_needs_output_work(csound, p);
 
   if(inm->passByRef) {
     memset(buf->iobufp_ptrs, 0, inm->outchns * sizeof(cs_float *));
@@ -2381,44 +2484,10 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
   tmp = buf->iobufp_ptrs;
   current = inm->out_arg_pool->head;
 
-  udo_free_output_snapshots(csound, udo);
-  for (i = 0; i < inm->outchns; i++, current = current->next) {
-    tmp[i] = p->args[i];
-    for (int32_t j = 0; j < inm->outchns; j++) {
-      if (p->args[i] == bufs[j] && p->args[j] != bufs[j]) {
-        ARRAY_VAR_INIT array = { .dimensions = current->dimensions,
-                                 .type = current->subType };
-        CS_VARIABLE *var = csoundCreateVariableForType(
-          csound, current->varType,
-          current->varType == &CS_VAR_TYPE_ARRAY ? &array : NULL,
-          p->h.insdshead);
-        if (UNLIKELY(var == NULL))
-          return csound->InitError(csound, Str("could not prepare UDO output\n"));
-        UDO_OUTPUT_SNAPSHOT *snapshot = csound->Calloc(csound, sizeof(*snapshot));
-        var->memBlock = csound->Calloc(csound,
-                                       CS_VAR_TYPE_OFFSET + var->memBlockSize);
-        var->memBlock->varType = var->varType;
-        if (var->initializeVariableMemory != NULL)
-          var->initializeVariableMemory(csound, var, &var->memBlock->value);
-        snapshot->variable = var;
-        snapshot->source = p->args[i];
-        snapshot->next = udo->output_snapshots;
-        udo->output_snapshots = snapshot;
-        tmp[i] = &var->memBlock->value;
-        break;
-      }
-    }
-  }
+  udo_bind_output_sources(udo, p, inm->passByRef);
   if (UNLIKELY(udo_snapshot_outputs(csound, udo, 1) != OK))
     return csound->InitError(csound, Str("could not prepare UDO output\n"));
-  current = inm->out_arg_pool->head;
-
-  if(inm->passByRef) {
-    for (i = 0; i < inm->outchns; i++) {
-      if (tmp[i] == bufs[i]) tmp[i] = NULL;
-    }
-    return OK;
-  }
+  if (inm->passByRef) return OK;
 
   for (i = 0; i < inm->outchns; i++) {
     void* in = (void*) tmp[i];
