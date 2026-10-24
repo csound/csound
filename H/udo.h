@@ -4,6 +4,8 @@
 #include "csoundCore.h"
 #include "srconvert.h"
 
+typedef struct udo_output_snapshot UDO_OUTPUT_SNAPSHOT;
+
 typedef struct {
     OPCODINFO *opcode_info;
     void    *uopcode_struct;
@@ -19,6 +21,7 @@ typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
     OPCOD_IOBUFS  *buf;
     SR_CONVERTER  **cvt_in;
     SR_CONVERTER  **cvt_out;
+    UDO_OUTPUT_SNAPSHOT *output_snapshots;
     /* special case: the argument list is stored at the end of the */
     /* opcode data structure */
     cs_float         *ar[1];
@@ -112,7 +115,7 @@ int32_t useropcdset(CSOUND *, UOPCODE *p);
 int32_t useropcd_local_ksmps(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_copy(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_ref(CSOUND *, UOPCODE *);
-void free_user_opcode_converters(CSOUND *, UOPCODE *);
+void free_user_opcode_buffers(CSOUND *, UOPCODE *);
 void recycle_init_only_udo_instances(CSOUND *, INSDS *);
 void build_user_opcode_rewire_plan(CSOUND *, OPCODINFO *);
 void free_opcode_info_chain(CSOUND *);
