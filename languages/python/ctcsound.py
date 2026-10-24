@@ -725,7 +725,16 @@ class Csound:
     def __del__(self):
         """Destroys an instance of Csound."""
         if not self.from_pointer and libcsound:
+            self.destroy()
+
+    def destroy(self):
+        """Destroys an instance of Csound now, not when it is collected.
+
+        Calling it again does nothing.
+        """
+        if self.cs:
             libcsound.csoundDestroy(self.cs)
+            self.cs = None
 
     def csound(self):
         """Returns the opaque pointer to the underlying CSOUND struct.
@@ -1120,7 +1129,7 @@ class Csound:
             s = fmt % args
         libcsound.csoundMessageS(self.cs, ct.c_int32(attr), cstring("%s"), cstring(s))
 
-    def set_message_string_callback(self, attr, function):
+    def set_message_string_callback(self, function):
         """Sets an alternative message print function.
 
         This function is to be called by Csound to print an
@@ -1129,8 +1138,7 @@ class Csound:
         This callback is cleared after reset.
         """
         self.message_string_cb = MSGSTRFUNC(function)
-        libcsound.csoundSetMessageStringCallback(self.cs, ct.c_int32(attr),
-            self.message_string_cb)
+        libcsound.csoundSetMessageStringCallback(self.cs, self.message_string_cb)
 
     def create_message_buffer(self, to_stdout):
         """Creates a buffer for storing messages printed by Csound.
@@ -2146,8 +2154,9 @@ class CsoundPerformanceThread:
         return libcspt.csoundPerformanceThreadIsRunning(self.cpt) != 0
 
     def process_cb(self):
-        """Returns the process callback."""
-        return PROCESSFUNC(libcspt.csoundPerformanceThreadGetProcessCB(self.cpt))
+        """Returns the process callback, or None if there is none."""
+        cb = libcspt.csoundPerformanceThreadGetProcessCB(self.cpt)
+        return PROCESSFUNC(cb) if cb else None
 
     def set_process_cb(self, function, data):
         """Sets the process callback."""
@@ -2175,7 +2184,7 @@ class CsoundPerformanceThread:
 
     def toggle_pause(self):
         """Pauses or continues performance, depending on current state."""
-        libcspt.csoundPerformanceThreadtogglePause(self.cpt)
+        libcspt.csoundPerformanceThreadTogglePause(self.cpt)
 
     def stop(self):
         """Stops performance (cannot be continued)."""
