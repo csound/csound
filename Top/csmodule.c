@@ -545,13 +545,6 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
     }
     return CSOUND_ERROR;
   }
-  /* check if the library is compatible with this version of Csound */
-  infoFunc = (int32_t (*)(void)) get_library_symbol(h, InfoFunc_Name);
-  if (UNLIKELY(check_plugin_compatibility(csound, fname,
-                                          infoFunc != NULL ? infoFunc() : 0) != 0)) {
-    close_library(h);
-    return CSOUND_ERROR;
-  }
   /* was this plugin already loaded ? */
   for (mp = (csoundModule_t*) csound->csmodule_db; mp != NULL; mp = mp->nxt) {
     if (UNLIKELY(mp->h == h)) {
@@ -591,6 +584,13 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
                         libraryPath);
       return CSOUND_ERROR;
     }
+  }
+  /* check if the library is compatible with this version of Csound */
+  infoFunc = (int32_t (*)(void)) get_library_symbol(h, InfoFunc_Name);
+  if (UNLIKELY(check_plugin_compatibility(csound, fname,
+                                          infoFunc != NULL ? infoFunc() : 0) != 0)) {
+    close_library(h);
+    return CSOUND_ERROR;
   }
   /* set up module info structure */
   /* (note: space for NUL character is already included in size of struct) */
