@@ -102,8 +102,16 @@ def main():
                             '-DSpa_INCLUDE_DIRS=' + str(old / 'include')]
             env = dict(os.environ, PKG_CONFIG_PATH='', PKG_CONFIG_SYSROOT_DIR='',
                        PKG_CONFIG_LIBDIR=str(prefix / 'lib/pkgconfig'))
-            result = subprocess.run(command, env=env, text=True,
-                                    stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            try:
+                result = subprocess.run(command, env=env, text=True, timeout=60,
+                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            except subprocess.TimeoutExpired as error:
+                failures.append(name)
+                print(f'{name}: FAIL (CMake configure timed out after {error.timeout}s)')
+                if error.stdout:
+                    print(error.stdout.decode(errors='replace')
+                          if isinstance(error.stdout, bytes) else error.stdout)
+                continue
             print(f'{name}: {"PASS" if result.returncode == 0 else "FAIL"}')
             if result.returncode:
                 failures.append(name)

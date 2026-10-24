@@ -28,6 +28,9 @@ if(Python3_FOUND)
                 COMMAND ${Python3_EXECUTABLE}
                     ${CMAKE_SOURCE_DIR}/tests/pipewire_detection.py
                     --cmake ${CMAKE_COMMAND})
+            add_test(NAME pipewire_detection_timeout
+                COMMAND ${Python3_EXECUTABLE}
+                    ${CMAKE_CURRENT_SOURCE_DIR}/test_pipewire_detection.py)
         endif()
         add_test(NAME opcode_deprecation_catalog
             COMMAND ${Python3_EXECUTABLE}
