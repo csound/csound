@@ -212,7 +212,7 @@ NP              np[0-9]+
                   if (PARM->isString != 1)
                     PARM->isinclude = 1;
                   else
-                    corfile_puts(csound, yytext, csound->expanded_orc);
+                    corfile_puts(csound, yytext, PARM->cf);
                 }
 {INCLUDE}       {
                   if (PARM->isString != 1)
