@@ -1899,13 +1899,8 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
      waits for the start, which runs every compilation's global code in
      order (init0_pending). */
   if (current_state->instrtxtp[0] != NULL &&
-      current_state->instrtxtp[0]->instance == NULL) {
-    csound->instr0_waiting = (INSTRTXT **)
-      csound->ReAlloc(csound, csound->instr0_waiting,
-                      (csound->instr0_waiting_no + 1) * sizeof(INSTRTXT *));
-    csound->instr0_waiting[csound->instr0_waiting_no++] =
-      current_state->instrtxtp[0];
-  }
+      current_state->instrtxtp[0]->instance == NULL)
+    instr0_wait(csound, current_state->instrtxtp[0]);
   /* merge opcodinfo */
   insert_instrtxt(csound, engineState->instrtxtp[0], 0, current_state, 1);
   for (i = 1; i < end; i++) {

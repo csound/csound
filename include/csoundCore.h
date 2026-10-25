@@ -1684,8 +1684,6 @@ struct CSOUND_ {
   INSTRTXT *instr0;                                          /* compiled global instrument 0 */
   INSTRTXT **dead_instr_pool;                                /* pool of deactivated instrument definitions */
   int32_t dead_instr_no;                                     /* number of pooled deactivated instruments */
-  INSTRTXT **instr0_waiting;                                 /* global instruments replaced before they ran, oldest first */
-  int32_t instr0_waiting_no;                                 /* number of waiting global instruments */
   INSDS *frstoff;                                            /* first deactivated instrument instance */
   INSDS actanchor;                                           /* anchor of the active instrument instance list */
   TYPE_POOL *typePool;                                       /* variable type pool */
