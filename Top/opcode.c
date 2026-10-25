@@ -307,7 +307,9 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep) {
       var = add_global_variable(csound, &csound->engineState, type, varName,
                               NULL);
     } else csound->Free(csound, varName);
-    if(var != NULL) {
+    /* A global of the orchestra's own with this name shadows the opcode: it
+       is not an opcode reference, and is not to be written as one. */
+    if(var != NULL && var->varType == type) {
       dest = (OPCODEREF *) &(var->memBlock->value);
       ref.entries = find_opcode2(csound, name);
       if(dest->entries == NULL ||
@@ -322,7 +324,8 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep) {
         type->copyValue(csound, type, dest, &ref, NULL);
         dest->readonly = 1;  // mark it as readonly
       } else csound->Free(csound, ref.entries);
-    } else csound->Warning(csound, Str("could not create opcode ref for %s\n"), name);
+    } else if (var == NULL)
+      csound->Warning(csound, Str("could not create opcode ref for %s\n"), name);
   }
   if (name != ep->opname)
     csound->Free(csound, name);
