@@ -124,6 +124,10 @@ extern "C" {
    *          but should be even and not have too many factors.
    * d:       direction (FFT_FWD or FFT_INV). Scaling by 1/FFTsize is done on
    *          the inverse direction (as with the other RealFFT functions above).
+   * The selected backend uses the build's sample precision. Small transforms
+   * and non-power-of-two sizes can fall back to the built-in FFT. Callers do
+   * not need SIMD-aligned buffers. PFFFT keeps aligned data and scratch
+   * buffers in the setup.
    *
    *  returns: a pointer to the FFT setup.
    */

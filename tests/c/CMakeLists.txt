@@ -66,6 +66,7 @@ if(BUILD_TESTS)
         schedule_string_test.cpp
         nxtpow2_test.cpp
         dct_test.cpp
+        fft_backend_test.cpp
         engine_test.cpp
         realtime_chain_test.cpp
         realtime_readiness_test.cpp
