@@ -126,11 +126,17 @@ int32_t interp(CSOUND *csound, INTERP *p)
       p->prev = *p->xsig;
     }
     val = p->prev;
+    /* A block after one whose input was not a number - NaN, or infinite -
+       has no start to ramp from, and begins on its own input: from the NaN,
+       every sample after it was NaN, to the end of the note. */
+    if (UNLIKELY(!isfinite(val))) val = *p->xsig;
     incr = (*p->xsig - val) / (nsmps-offset);
     for (n=offset; n<nsmps; n++) {
       ar[n] = val += incr;
     }
-    p->prev = val;
+    /* Ended on the input, where the ramp was heading, rather than on the
+       sum of its increments, which drifts from it by their rounding. */
+    p->prev = *p->xsig;
     return OK;
 }
 
