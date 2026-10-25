@@ -1185,6 +1185,11 @@ set(libcsound_static_SRCS  ${libcsound_SRCS})
 
 set_source_files_properties(OOps/pffft.c OOps/pffft_double.c PROPERTIES
     INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/third_party/pffft/include/pffft")
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    # Suppress upstream SIMD selection messages without changing vendored files.
+    set_property(SOURCE OOps/pffft.c OOps/pffft_double.c APPEND PROPERTY
+        COMPILE_OPTIONS "-Wno-#pragma-messages")
+endif()
 
 # Keep JSON numbers precise even when DSP code uses fast-math. The parser is
 # private to Csound, not a new exported library interface.

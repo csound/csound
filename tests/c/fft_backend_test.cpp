@@ -45,8 +45,12 @@ TEST_P(FftBackendTests, PackedBinsAndInverseScale)
         EXPECT_NEAR(size * .03125, data[6], size * tolerance);
         EXPECT_NEAR(0, data[7], size * tolerance);
         csound->RealFFT(csound, inverse, data);
+        // Allow roundoff to grow with the number of FFT stages.
+        const cs_double roundtripTolerance =
+            8 * std::ceil(std::log2(size)) *
+            std::numeric_limits<cs_float>::epsilon();
         for (int i = 0; i < size; ++i)
-            ASSERT_NEAR(input[i], data[i], tolerance) << "sample " << i;
+            ASSERT_NEAR(input[i], data[i], roundtripTolerance) << "sample " << i;
     }
 }
 
