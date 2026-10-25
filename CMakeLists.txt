@@ -233,7 +233,7 @@ endif()
 
 ### COMPILER OPTIMIZATION FLAGS
 option(USE_COMPILER_OPTIMIZATIONS "Use the default Csound compiler optimization flags" ON)
-option(USE_AVX2 "Enable AVX2 SIMD instructions on x86-64 (ignored on other architectures)" ON)
+option(USE_AVX2 "Require AVX2 instructions on x86-64 (no runtime CPU dispatch)" OFF)
 option(USE_APPLE_M1_BASELINE "On macOS arm64, tune for Apple M1 as the baseline CPU (-mcpu=apple-m1)" ON)
 ## USER OPTIONS ##
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
@@ -471,7 +471,8 @@ else()
     message(STATUS  "NOT USING COMPILER OPTIMISATIONS")
 endif()
 
-# AVX2 support – x86-64 only, optional, enabled by default
+# AVX2 is opt-in. Compiler support does not establish that the user's CPU
+# supports these instructions, and global flags provide no runtime fallback.
 if(USE_AVX2)
     # Restrict to x86-64; CMAKE_SYSTEM_PROCESSOR may be "x86_64" or "AMD64"
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
@@ -480,7 +481,7 @@ if(USE_AVX2)
             if(COMPILER_SUPPORTS_AVX2)
                 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   /arch:AVX2")
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX2")
-                message(STATUS "AVX2 enabled (/arch:AVX2)")
+                message(STATUS "AVX2 enabled (/arch:AVX2): binaries require an AVX2-capable CPU and OS")
             else()
                 message(STATUS "AVX2 requested but compiler does not support /arch:AVX2 – skipping")
             endif()
@@ -489,7 +490,7 @@ if(USE_AVX2)
             if(COMPILER_SUPPORTS_AVX2)
                 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -mavx2")
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx2")
-                message(STATUS "AVX2 enabled (-mavx2)")
+                message(STATUS "AVX2 enabled (-mavx2): binaries require an AVX2-capable CPU and OS")
             else()
                 message(STATUS "AVX2 requested but compiler does not support -mavx2 – skipping")
             endif()

@@ -89,7 +89,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install cmake curl xz-utils libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk liblo-dev bison flex gettext libsamplerate0-dev libpipewire-0.3-dev
+          sudo apt-get install cmake curl xz-utils libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk liblo-dev bison flex gettext libsamplerate0-dev libpipewire-0.3-dev qemu-user
 
       - name: Install WASI SDK
         run: |
@@ -120,12 +120,21 @@ jobs:
       - name: Configure without Wasmtime
         run: |
           cmake -S . -B build-no-wasmtime -DUSE_WASMTIME=OFF -DUSE_MP3=0 \
+            -DCMAKE_BUILD_TYPE=Release \
             -DWasmtime_ROOT="${CSOUND_WASMTIME_ROOT}"
           if grep -Eq '^Wasmtime_(INCLUDE_DIR|LIBRARY):' build-no-wasmtime/CMakeCache.txt; then
             echo "USE_WASMTIME=OFF must skip Wasmtime discovery"
             exit 1
           fi
           cmake --build build-no-wasmtime --target csound-bin --parallel
+
+      - name: Run the default build on a CPU without AVX
+        timeout-minutes: 2
+        run: |
+          # Nehalem has SSE2 but no AVX or AVX2. Leave USE_AVX2 unset above
+          # so this checks the default used by a fresh build directory.
+          qemu-x86_64 -cpu Nehalem build-no-wasmtime/csound \
+            tests/commandline/test_oscil1i.csd
 
       - name: Configure build
         run: |
