@@ -544,53 +544,13 @@ int32_t modak(CSOUND *csound, AOP *p)
     }                                                                   \
   }
 
-/* VL
-   experimental code using SSE for operations
-   needs memory alignment - 16 bytes
-*/
-#ifdef USE_SSE
-#include "emmintrin.h"
-#define AA_VEC(OPNAME,OP)                                               \
-  int32_t OPNAME(CSOUND *csound, AOP *p){                               \
-    cs_float   *r, *a, *b;                                                 \
-    __m128d va, vb;                                                     \
-    uint32_t n, nsmps = CS_KSMPS, end;                                  \
-    if (LIKELY(nsmps!=1)) {                                             \
-      uint32_t offset = p->h.insdshead->ksmps_offset;                   \
-      uint32_t early  = p->h.insdshead->ksmps_no_end;                   \
-      r = p->r; a = p->a; b = p->b;                                     \
-      if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));      \
-      if (UNLIKELY(early)) {                                            \
-        nsmps -= early;                                                 \
-        memset(&r[nsmps], '\0', early*sizeof(cs_float));                   \
-      }                                                                 \
-      end = nsmps;                                                      \
-      for (n=offset; n<end; n+=2) {                                     \
-        va = _mm_loadu_pd(&a[n]);                                       \
-        vb = _mm_loadu_pd(&b[n]);                                       \
-        va = OP(va,vb);                                                 \
-        _mm_storeu_pd(&r[n],va);                                        \
-      }                                                                 \
-      return OK;                                                        \
-    }                                                                   \
-    else {                                                              \
-      *p->r = *p->a + *p->b;                                            \
-      return OK;                                                        \
-    }                                                                   \
-  }                                                                     \
-
-AA_VEC(addaa,_mm_add_pd)
-AA_VEC(subaa,_mm_sub_pd)
-AA_VEC(mulaa,_mm_mul_pd)
-AA_VEC(divaa,_mm_div_pd)
-
-#else
+/* Any vector replacement must support both sample types, ksmps=1, and
+   odd active ranges after sample-accurate start and end offsets. */
 AA(addaa,+)
 AA(subaa,-)
 AA(mulaa,*)
-//AA(divaa,/)
-#endif
 
+/* Division stays separate to report zero divisors. */
 int32_t divaa(CSOUND *csound, AOP *p)
 {
   cs_float   *r, *a, *b;
