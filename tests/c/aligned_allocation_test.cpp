@@ -70,7 +70,7 @@ TEST_F(AlignedAllocationTests, AuxiliaryBufferHonoursAChangedAlignment)
     // Choose an alignment the existing buffer does not already have.
     size_t alignment = 32;
     while (reinterpret_cast<uintptr_t>(aux.auxp) % alignment == 0) {
-        ASSERT_LE(alignment, std::numeric_limits<size_t>::max() / 2);
+        ASSERT_LE(alignment, (std::numeric_limits<size_t>::max)() / 2);
         alignment *= 2;
     }
     memset(aux.auxp, 0x5a, 80);
@@ -106,7 +106,7 @@ TEST_F(AlignedAllocationTests, OrdinaryReallocStillPreservesContents)
 
 TEST_F(AlignedAllocationTests, RejectsInvalidAlignmentAndSizeOverflow)
 {
-    const size_t maxSize = std::numeric_limits<size_t>::max();
+    const size_t maxSize = (std::numeric_limits<size_t>::max)();
     const size_t requests[][2] = {{80, 0}, {80, 3}, {0, 0}, {0, 3}, {80, maxSize},
                                  {maxSize, 64}};
     for (const auto &request : requests) {
@@ -127,7 +127,7 @@ TEST_F(AlignedAllocationTests, FailedAuxiliaryAllocationKeepsTheOldBuffer)
     void *previous = aux.auxp;
     memset(previous, 0x5a, 80);
     const size_t requests[][2] = {{80, 0}, {80, 3}, {81, 3},
-                                 {std::numeric_limits<size_t>::max(), 64}};
+                                 {(std::numeric_limits<size_t>::max)(), 64}};
     for (const auto &request : requests) {
         if (setjmp(csound->exitjmp) == 0) {
             csound->AuxAllocAligned(csound, request[0], request[1], &aux);
@@ -162,7 +162,7 @@ TEST_F(AlignedAllocationTests, OrdinaryAllocationsRejectSizeOverflow)
 {
     for (auto allocate : {csound->Malloc, csound->Calloc}) {
         if (setjmp(csound->exitjmp) == 0) {
-            void *data = allocate(csound, std::numeric_limits<size_t>::max());
+            void *data = allocate(csound, (std::numeric_limits<size_t>::max)());
             csound->Free(csound, data);
             FAIL() << "Allocation accepted a size that overflows";
         }
@@ -177,7 +177,7 @@ TEST_F(AlignedAllocationTests, FailedReallocLeavesTheOldBlockUsable)
             ? csound->CallocAligned(csound, 80, 4096)
             : csound->Malloc(csound, 80));
         memset(data, 0x5a, 80);
-        const size_t maxSize = std::numeric_limits<size_t>::max();
+        const size_t maxSize = (std::numeric_limits<size_t>::max)();
         // The second request fits the ordinary header but not aligned padding.
         const size_t requests[] = {maxSize, aligned ? maxSize - 128 : maxSize - 1};
         for (size_t size : requests) {
