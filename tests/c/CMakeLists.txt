@@ -12,6 +12,7 @@ endif()
 
 if(BUILD_TESTS)
   add_executable(unittests
+        aligned_allocation_test.cpp
         array_matrix_setters_test.cpp
         atomic_fallback_test.cpp
         fixtures/atomic_fallback.c

@@ -1219,11 +1219,19 @@ struct CSOUND_ {
   /** @name Memory allocation */
   /**@{ */
   void (*AuxAlloc)(CSOUND *, size_t nbytes, AUXCH *auxchp);
+  /** Clear or replace an auxiliary buffer to meet size and alignment.
+      align must be a nonzero power of two. Invalid alignment, size overflow
+      or allocation failure raises a fatal memory error through LongJmp.
+      A failed request leaves the existing buffer and its metadata intact. */
   void (*AuxAllocAligned)(CSOUND *, size_t nbytes, size_t align, AUXCH *auxchp);
   int32_t (*AuxAllocAsync)(CSOUND *, size_t, AUXCH *, AUXASYNC *, aux_cb,
                            void *);
   void *(*Malloc)(CSOUND *, size_t nbytes);
   void *(*Calloc)(CSOUND *, size_t nbytes);
+  /** Allocate zeroed data aligned to a nonzero power of two, in bytes.
+      Free and ReAlloc accept the returned pointer. ReAlloc keeps its alignment.
+      Invalid alignment, size overflow or allocation failure raises a fatal
+      memory error through LongJmp. */
   void *(*CallocAligned)(CSOUND *, size_t nbytes, size_t align);
   void *(*ReAlloc)(CSOUND *, void *oldp, size_t nbytes);
   char *(*Strdup)(CSOUND *, const char *);
