@@ -1569,10 +1569,13 @@ cs_float csoundEvalCode(CSOUND *csound, const char *str)
   int32_t async = 0;
   if (str && csound_compile_orc(csound,str,async)
       == CSOUND_SUCCESS){
+    /* The block evaluated: before the start its global code runs below, and
+       a compilestr in it puts another global instrument in instr 0's place. */
+    INSTRTXT *evaluated = csound->instr0;
     if(!(csound->engineStatus & CS_STATE_COMP)) {
       init0_pending(csound);
     }
-      return csound->instr0->instance[0].retval;
+    return evaluated->instance != NULL ? evaluated->instance[0].retval : FL(0.0);
     }
   else return 0; // always return 0 on failure
 }

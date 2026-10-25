@@ -1107,25 +1107,35 @@ void instr0_wait(CSOUND *csound, INSTRTXT *tp)
    instr 0, and the one it replaces waits (instr0_wait). */
 int32_t init0_pending(CSOUND *csound)
 {
-  INSTR0_WAITING *waiting =
-    (INSTR0_WAITING *) csound->QueryGlobalVariable(csound, INSTR0_WAITING_NAME);
+  INSTR0_WAITING *waiting;
   INSTRTXT  *tp;
   int32_t   errors = 0;
 
   if (UNLIKELY(current_instr0(csound) == NULL))
     return csound->InitError(csound, "%s\n",
                              Str("instrument 0 is not compiled"));
-  while (waiting != NULL && waiting->count > 0) {
-    tp = waiting->instr[0];
-    waiting->count--;
-    memmove(waiting->instr, waiting->instr + 1,
-            waiting->count * sizeof(INSTRTXT *));
+  /* Global code can compile more - a compilestr - whose own global code
+     waits too, and the list it waits in can be made meanwhile: until none
+     is left unrun, the waiting first, then instr 0, which csoundEvalCode
+     can have run. */
+  for (;;) {
+    waiting = (INSTR0_WAITING *)
+      csound->QueryGlobalVariable(csound, INSTR0_WAITING_NAME);
+    if (waiting != NULL && waiting->count > 0) {
+      tp = waiting->instr[0];
+      waiting->count--;
+      memmove(waiting->instr, waiting->instr + 1,
+              waiting->count * sizeof(INSTRTXT *));
+      errors += init_instr0(csound, tp);
+      continue;
+    }
+    tp = current_instr0(csound);
+    if (tp->instance != NULL)
+      break;
     errors += init_instr0(csound, tp);
+    if (UNLIKELY(tp->instance == NULL))
+      break;                      /* could not be allocated: an error said */
   }
-  /* Global code can compile more, and csoundEvalCode can have run this. */
-  tp = current_instr0(csound);
-  if (tp->instance == NULL)
-    errors += init_instr0(csound, tp);
   return errors;
 }
 

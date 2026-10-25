@@ -72,6 +72,20 @@ class TestCompileBeforeStart(unittest.TestCase):
         self.perform()
         self.assertEqual(self.cs.control_channel("order")[0], 12)
 
+    def test_eval_code_before_the_start_runs_what_its_code_compiles(self):
+        """A compilestr in code evaluated before the start puts another global
+        instrument in instr 0's place, whose global code waits as every
+        compilation's does then: it runs too, and the value returned is the
+        evaluated block's. Read through instr 0, it was the nested one's, which
+        had not run - a null instance."""
+        self.assertEqual(self.cs.eval_code(HEADER + """
+            iResult compilestr {{
+            chnset 7, "nested"
+            }}
+            return 11
+        """), 11)
+        self.assertEqual(self.cs.control_channel("nested")[0], 7)
+
     def test_a_compilation_after_the_start_runs_at_once(self):
         self.compile(HEADER + mark(1))
         self.perform()
