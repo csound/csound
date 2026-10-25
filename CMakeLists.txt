@@ -615,6 +615,12 @@ if (HAS_CXX_VISIBILITY_HIDDEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden ")
 endif()
 
+# Keep NaN and infinity checks valid even when -ffast-math is enabled.
+# With GCC, this override also undefines __FAST_MATH__, which hides glibc's
+# automatic vector-math declarations. Do not restore finite-only assumptions
+# or define that macro by hand to recover SIMD calls. An explicit vector
+# library can support nonfinite inputs, but needs accuracy, platform support
+# and Csound workload checks. See the investigation in #3491.
 if (PRESERVE_NAN)
     message(STATUS "Preserving NaNs")
     check_c_compiler_flag(-fno-finite-math-only HAS_NO_FINITE_MATH_ONLY)
