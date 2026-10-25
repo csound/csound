@@ -1713,7 +1713,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   EVTNODE       *prv;
   CSOUND        *st = csound;
   uint32        start_kcnt;
-  int32_t       i, retval = -1;
+  int32_t       i, named, retval = -1;
   EVTBLK        *evt = &(e->evt);
   cs_float         *pf = evt->p;
 
@@ -1759,6 +1759,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     /* fall through */
   case 'q':                         /* mute instrument */
     /* check for a valid instrument number or name */
+    named = (evt->strarg != NULL && IsStringCode(pf[1]));
     if (evt->opcod=='d') {
       if (evt->strarg != NULL && IsStringCode(pf[1])) {
         i = (int32_t) named_instr_find(csound, evt->strarg);
@@ -1777,6 +1778,13 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     }
     else
       i = (int32_t) fabs((cs_double) pf[1]);
+    /* A name not found is 0, which p1 now holds: a note for instr 0, which
+       runs the global code again. */
+    if (UNLIKELY(named && i == 0)) {
+      csoundErrorMsg(csound, Str("event: instrument %s undefined\n"),
+                     evt->strarg);
+      goto err_return;
+    }
 
     /* Realtime dispatch checks this under the publication lock. A render
        opcode must not inspect the table halfway through a background merge. */
