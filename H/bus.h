@@ -81,19 +81,19 @@ extern "C" {
     spin_lock_t *lock;
     int32_t     pos;
     char        chname[MAX_CHAN_NAME+1];
+    CHNENTRY    *channel;
   } CHNGET;
 
   typedef struct {
     OPDS        h;
     ARRAYDAT    *arrayDat;
     STRINGDAT   *iname;
-    cs_float       *fp;
-    spin_lock_t *lock;
     int32_t     pos;
     int32_t     arraySize;
     cs_float**     channelPtrs;
     ARRAYDAT    *channels;
-    char        chname[MAX_CHAN_NAME+1];
+    CHNENTRY    **entries;
+    AUXCH       bindingStorage;
   } CHNGETARRAY;
 
   typedef struct {
