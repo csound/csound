@@ -40,6 +40,8 @@
 #include "opcode_deprecation.h"
 
 
+static void note_closed_block_var(CSOUND *csound, TYPE_TABLE *typeTable,
+                                  const char *name);
 static CS_VAR_POOL *find_global_annotation(char *varName,
                                            TYPE_TABLE* typeTable);
 static int32_t is_label(char* ident, CONS_CELL* labelList);
@@ -456,6 +458,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
   if (UNLIKELY(var == NULL)) {
     synterr(csound, Str("Variable '%s' used before defined at line %d\n"), s, tree->line);
     do_baktrace(csound, tree->locn);
+    note_closed_block_var(csound, typeTable, s);
     return NULL;
   }
 
@@ -1031,6 +1034,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
       synterr(csound, Str("get_arg_type2: Variable '%s' used before defined, line %d\n"),
               tree->value->lexeme, tree->line);
       do_baktrace(csound, tree->locn);
+      note_closed_block_var(csound, typeTable, tree->value->lexeme);
       return NULL;
     }
 
@@ -2557,6 +2561,7 @@ static int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
                     Str("ArgCheck: variable '%s' used before defined\nline %d\n"),
                     varName, tree->line);
             do_baktrace(csound, tree->locn);
+            note_closed_block_var(csound, typeTable, varName);
             return 0;
         }
         break;
@@ -2571,6 +2576,7 @@ static int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
                       Str("ArgCheck: variable '%s' used before defined at line %d\n"),
                       varName, current->left->line);
               do_baktrace(csound, current->left->locn);
+              note_closed_block_var(csound, typeTable, varName);
               return 0;
           }
         } else {
@@ -4200,6 +4206,405 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
   return 1;
 }
 
+/* Block scope for typed declarations.
+
+   Control-flow statements are lowered to labels and jumps, so a block body
+   ends up in the same flat statement list and the same variable pool as the
+   code around it. To stop a typed declaration (name:type) made inside an
+   if/elseif/else, while/until, switch case or for body from leaking out of
+   the block, verify_tree brackets each body with T_SCOPE_BEGIN/T_SCOPE_END
+   markers before lowering it. Inside an open scope, a typed declaration of
+   a name that is not visible yet is given a unique pool name (name~N), and
+   identifiers are rewritten to that name until the scope closes. Afterwards
+   the name as written no longer resolves, so a use after the block is
+   reported as undefined instead of reading whatever the previous note left
+   in the slot. A typed declaration of a name that is already visible keeps
+   referring to that variable, and implicitly typed variables are not
+   affected. The variable a for loop introduces is scoped to the loop.
+
+   The branches of an if/elseif/else or of a switch form a group. A name
+   declared with the same type directly in every branch shares one pool
+   variable across the branches, and when the if has an else (the switch a
+   default) it stays visible after the statement, since every path through
+   it declares the name. */
+
+typedef struct block_scope_var {
+  char *name;        /* name as written */
+  char *poolName;    /* unique name in the variable pool */
+  int32_t line;
+} BLOCK_SCOPE_VAR;
+
+typedef struct block_group_var {
+  char *name;
+  char *type;
+  char *poolName;
+  int32_t line;
+  int32_t branches;  /* branches declaring it */
+} BLOCK_GROUP_VAR;
+
+typedef struct block_group {
+  int32_t branches;  /* paths through the statement */
+  int32_t wrapped;   /* branches with a scoped body */
+  int32_t closed;    /* scoped bodies verified so far */
+  int32_t complete;  /* has an else or default */
+  CONS_CELL *vars;   /* BLOCK_GROUP_VAR* */
+} BLOCK_GROUP;
+
+typedef struct block_scope {
+  CONS_CELL *vars;   /* BLOCK_SCOPE_VAR* */
+  BLOCK_GROUP *group;
+  int32_t isRoot;    /* holds names merged out of a group at top level */
+  struct block_scope *parent;
+} BLOCK_SCOPE;
+
+static BLOCK_SCOPE_VAR *find_block_scope_var(BLOCK_SCOPE *scope,
+                                             const char *name) {
+  for (; scope != NULL; scope = scope->parent) {
+    CONS_CELL *cell;
+    for (cell = scope->vars; cell != NULL; cell = cell->next) {
+      BLOCK_SCOPE_VAR *var = (BLOCK_SCOPE_VAR *) cell->value;
+      if (strcmp(var->name, name) == 0) return var;
+    }
+  }
+  return NULL;
+}
+
+static BLOCK_GROUP_VAR *find_block_group_var(BLOCK_GROUP *group,
+                                             const char *name,
+                                             const char *type) {
+  CONS_CELL *cell;
+  for (cell = group->vars; cell != NULL; cell = cell->next) {
+    BLOCK_GROUP_VAR *var = (BLOCK_GROUP_VAR *) cell->value;
+    if (strcmp(var->name, name) == 0 && strcmp(var->type, type) == 0)
+      return var;
+  }
+  return NULL;
+}
+
+static BLOCK_SCOPE_VAR *new_block_scope_var(CSOUND *csound, const char *name,
+                                            const char *poolName,
+                                            int32_t line) {
+  BLOCK_SCOPE_VAR *var = csound->Calloc(csound, sizeof(BLOCK_SCOPE_VAR));
+  var->name = csoundStrdup(csound, name);
+  var->poolName = csoundStrdup(csound, poolName);
+  var->line = line;
+  return var;
+}
+
+static void free_block_scope_vars(CSOUND *csound, CONS_CELL *vars) {
+  while (vars != NULL) {
+    CONS_CELL *next = vars->next;
+    BLOCK_SCOPE_VAR *var = (BLOCK_SCOPE_VAR *) vars->value;
+    csound->Free(csound, var->name);
+    csound->Free(csound, var->poolName);
+    csound->Free(csound, var);
+    csound->Free(csound, vars);
+    vars = next;
+  }
+}
+
+static void free_block_group(CSOUND *csound, BLOCK_GROUP *group) {
+  CONS_CELL *vars = group->vars;
+  while (vars != NULL) {
+    CONS_CELL *next = vars->next;
+    BLOCK_GROUP_VAR *var = (BLOCK_GROUP_VAR *) vars->value;
+    csound->Free(csound, var->name);
+    csound->Free(csound, var->type);
+    csound->Free(csound, var->poolName);
+    csound->Free(csound, var);
+    csound->Free(csound, vars);
+    vars = next;
+  }
+  csound->Free(csound, group);
+}
+
+static void reset_closed_block_vars(CSOUND *csound, TYPE_TABLE *typeTable) {
+  free_block_scope_vars(csound, typeTable->closedBlockVars);
+  typeTable->closedBlockVars = NULL;
+}
+
+static void note_closed_block_var(CSOUND *csound, TYPE_TABLE *typeTable,
+                                  const char *name) {
+  CONS_CELL *cell;
+  if (name == NULL) return;
+  for (cell = typeTable->closedBlockVars; cell != NULL; cell = cell->next) {
+    BLOCK_SCOPE_VAR *var = (BLOCK_SCOPE_VAR *) cell->value;
+    if (strcmp(var->name, name) == 0) {
+      csound->ErrorMsg(csound,
+                       Str("  '%s' is declared inside a block at line %d "
+                           "and is not visible outside it\n"),
+                       name, var->line);
+      return;
+    }
+  }
+}
+
+/* Add a name to a scope, and count it for the branch group the scope
+   belongs to */
+static void add_block_scope_var(CSOUND *csound, BLOCK_SCOPE *scope,
+                                BLOCK_SCOPE_VAR *var, const char *type) {
+  scope->vars = cs_cons(csound, var, scope->vars);
+  if (scope->group != NULL) {
+    BLOCK_GROUP_VAR *groupVar = find_block_group_var(scope->group,
+                                                     var->name, type);
+    if (groupVar == NULL) {
+      groupVar = csound->Calloc(csound, sizeof(BLOCK_GROUP_VAR));
+      groupVar->name = csoundStrdup(csound, var->name);
+      groupVar->type = csoundStrdup(csound, type);
+      groupVar->poolName = csoundStrdup(csound, var->poolName);
+      groupVar->line = var->line;
+      scope->group->vars = cs_cons(csound, groupVar, scope->group->vars);
+    }
+    groupVar->branches++;
+  }
+}
+
+/* Give a typed identifier a block-local pool name when the name is not
+   visible yet. A sibling branch that declared the same name and type
+   already chose the pool name. Returns the new entry, or NULL if the
+   identifier keeps its name. */
+static BLOCK_SCOPE_VAR *scope_typed_ident(CSOUND *csound, TREE *ident,
+                                          BLOCK_SCOPE *scope,
+                                          TYPE_TABLE *typeTable) {
+  char poolName[256];
+  const char *type;
+  char *name;
+  BLOCK_GROUP_VAR *groupVar = NULL;
+  BLOCK_SCOPE_VAR *var;
+
+  if (ident->value == NULL || ident->value->lexeme == NULL) return NULL;
+  name = ident->value->lexeme;
+  /* already scoped, or a global */
+  if (strchr(name, '~') != NULL || strchr(name, '@') != NULL) return NULL;
+  if (is_reserved(name) || is_pfield_name(name)) return NULL;
+  if (find_block_scope_var(scope, name) != NULL ||
+      find_var_from_pools(csound, name, name, typeTable) != NULL)
+    return NULL;
+
+  type = ident->value->optype != NULL ? ident->value->optype : "";
+  if (scope != NULL && scope->group != NULL)
+    groupVar = find_block_group_var(scope->group, name, type);
+  if (groupVar != NULL)
+    snprintf(poolName, sizeof(poolName), "%s", groupVar->poolName);
+  else
+    snprintf(poolName, sizeof(poolName), "%s~%d", name, csound->genlabs++);
+  var = new_block_scope_var(csound, name, poolName, ident->line);
+  ident->value->lexeme = csoundParserStrdup(csound, var->poolName);
+  return var;
+}
+
+/* Called when the last scoped branch of a group closes: names declared in
+   every path become visible in the enclosing scope. Returns the enclosing
+   scope, which is created if the statement is at top level. */
+static BLOCK_SCOPE *merge_block_group(CSOUND *csound, BLOCK_GROUP *group,
+                                      BLOCK_SCOPE *enclosing,
+                                      TYPE_TABLE *typeTable) {
+  CONS_CELL *cell;
+
+  if (!group->complete || group->wrapped != group->branches)
+    return enclosing;
+  for (cell = group->vars; cell != NULL; cell = cell->next) {
+    BLOCK_GROUP_VAR *groupVar = (BLOCK_GROUP_VAR *) cell->value;
+    if (groupVar->branches != group->branches) continue;
+    if (find_block_scope_var(enclosing, groupVar->name) != NULL ||
+        find_var_from_pools(csound, groupVar->name, groupVar->name,
+                            typeTable) != NULL)
+      continue;
+    if (enclosing == NULL) {
+      enclosing = csound->Calloc(csound, sizeof(BLOCK_SCOPE));
+      enclosing->isRoot = 1;
+    }
+    add_block_scope_var(csound, enclosing,
+                        new_block_scope_var(csound, groupVar->name,
+                                            groupVar->poolName,
+                                            groupVar->line),
+                        groupVar->type);
+  }
+  return enclosing;
+}
+
+static void rename_block_scope_list(CSOUND *csound, TREE *tree,
+                                    BLOCK_SCOPE *scope, TYPE_TABLE *typeTable);
+
+/* Rewrite references to block-scoped names in one node and its children */
+static void rename_block_scope_node(CSOUND *csound, TREE *tree,
+                                    BLOCK_SCOPE *scope, TYPE_TABLE *typeTable) {
+  if (tree == NULL) return;
+  if ((tree->type == T_IDENT || tree->type == T_TYPED_IDENT ||
+       tree->type == T_ARRAY_IDENT) &&
+      tree->value != NULL && tree->value->lexeme != NULL &&
+      !is_label(tree->value->lexeme, typeTable->labelList)) {
+    BLOCK_SCOPE_VAR *var = find_block_scope_var(scope, tree->value->lexeme);
+    if (var != NULL)
+      tree->value->lexeme = csoundParserStrdup(csound, var->poolName);
+  }
+  rename_block_scope_list(csound, tree->left, scope, typeTable);
+  rename_block_scope_list(csound, tree->right, scope, typeTable);
+}
+
+static void rename_block_scope_list(CSOUND *csound, TREE *tree,
+                                    BLOCK_SCOPE *scope, TYPE_TABLE *typeTable) {
+  for (; tree != NULL; tree = tree->next)
+    rename_block_scope_node(csound, tree, scope, typeTable);
+}
+
+static void declare_block_scope_list(CSOUND *csound, TREE *tree,
+                                     BLOCK_SCOPE *scope, TYPE_TABLE *typeTable);
+
+/* Register the typed declarations made by one node and its children */
+static void declare_block_scope_node(CSOUND *csound, TREE *tree,
+                                     BLOCK_SCOPE *scope, TYPE_TABLE *typeTable) {
+  if (tree == NULL) return;
+  if (tree->type == T_TYPED_IDENT) {
+    BLOCK_SCOPE_VAR *var = scope_typed_ident(csound, tree, scope, typeTable);
+    if (var != NULL)
+      add_block_scope_var(csound, scope, var,
+                          tree->value->optype != NULL ?
+                          tree->value->optype : "");
+  }
+  declare_block_scope_list(csound, tree->left, scope, typeTable);
+  declare_block_scope_list(csound, tree->right, scope, typeTable);
+}
+
+static void declare_block_scope_list(CSOUND *csound, TREE *tree,
+                                     BLOCK_SCOPE *scope, TYPE_TABLE *typeTable) {
+  for (; tree != NULL; tree = tree->next)
+    declare_block_scope_node(csound, tree, scope, typeTable);
+}
+
+/* Apply the open block scopes to the statement about to be verified.
+   Control-flow statements only have their conditions rewritten here, their
+   bodies are handled statement by statement once they are lowered. */
+static void apply_block_scope(CSOUND *csound, TREE *current,
+                              BLOCK_SCOPE *scope, TYPE_TABLE *typeTable) {
+  TREE *branch;
+
+  switch (current->type) {
+  case IF_TOKEN:
+    rename_block_scope_node(csound, current->left, scope, typeTable);
+    if (current->right != NULL &&
+        (current->right->type == THEN_TOKEN ||
+         current->right->type == ITHEN_TOKEN ||
+         current->right->type == KTHEN_TOKEN)) {
+      for (branch = current->right->next;
+           branch != NULL && branch->type == ELSEIF_TOKEN;
+           branch = branch->right != NULL ? branch->right->next : NULL)
+        rename_block_scope_node(csound, branch->left, scope, typeTable);
+    }
+    break;
+  case UNTIL_TOKEN:
+  case WHILE_TOKEN:
+    rename_block_scope_node(csound, current->left, scope, typeTable);
+    break;
+  case SWITCH_TOKEN:
+    rename_block_scope_node(csound, current->left, scope, typeTable);
+    for (branch = current->right; branch != NULL; branch = branch->next)
+      rename_block_scope_list(csound, branch->left, scope, typeTable);
+    break;
+  case FOR_TOKEN:
+    rename_block_scope_list(csound, current->left, scope, typeTable);
+    rename_block_scope_node(csound, current->right->left, scope, typeTable);
+    break;
+  case T_SCOPE_BEGIN:
+  case T_SCOPE_END:
+  case LABEL_TOKEN:
+  case INSTR_TOKEN:
+  case UDO_TOKEN:
+  case T_DECLARE:
+  case STRUCT_TOKEN:
+    break;
+  default:
+    /* uses first, so the right-hand side of a declaration still sees
+       the outer meaning of the name */
+    rename_block_scope_node(csound, current, scope, typeTable);
+    if (!scope->isRoot)
+      declare_block_scope_node(csound, current, scope, typeTable);
+    break;
+  }
+}
+
+static TREE *wrap_block_scope(CSOUND *csound, TREE *body, CONS_CELL *vars,
+                              BLOCK_GROUP *group) {
+  TREE *begin, *end, *tail;
+  BLOCK_SCOPE *scope;
+
+  if (body == NULL) {
+    free_block_scope_vars(csound, vars);
+    return NULL;
+  }
+  scope = csound->Calloc(csound, sizeof(BLOCK_SCOPE));
+  scope->vars = vars;
+  scope->group = group;
+  if (group != NULL) group->wrapped++;
+  begin = make_node(csound, body->line, body->locn, T_SCOPE_BEGIN, NULL, NULL);
+  begin->markup = scope;
+  end = make_node(csound, body->line, body->locn, T_SCOPE_END, NULL, NULL);
+  for (tail = body; tail->next != NULL; tail = tail->next);
+  tail->next = end;
+  begin->next = body;
+  return begin;
+}
+
+/* Bracket the bodies of an if, while/until or switch statement with scope
+   markers. for loops are handled in verify_tree, which also scopes the
+   loop variables. */
+static void wrap_block_bodies(CSOUND *csound, TREE *current) {
+  TREE *branch;
+  BLOCK_GROUP *group;
+
+  switch (current->type) {
+  case IF_TOKEN:
+    if (current->right == NULL ||
+        (current->right->type != THEN_TOKEN &&
+         current->right->type != ITHEN_TOKEN &&
+         current->right->type != KTHEN_TOKEN))
+      break;
+    group = csound->Calloc(csound, sizeof(BLOCK_GROUP));
+    for (branch = current; branch != NULL;
+         branch = branch->right != NULL ? branch->right->next : NULL) {
+      group->branches++;
+      if (branch->type == ELSE_TOKEN) {
+        group->complete = 1;
+        branch->right = wrap_block_scope(csound, branch->right, NULL, group);
+        break;
+      }
+      branch->right->right = wrap_block_scope(csound, branch->right->right,
+                                              NULL, group);
+    }
+    if (group->wrapped == 0) free_block_group(csound, group);
+    break;
+  case UNTIL_TOKEN:
+  case WHILE_TOKEN:
+    current->right = wrap_block_scope(csound, current->right, NULL, NULL);
+    break;
+  case SWITCH_TOKEN:
+    /* each case body is a path. Duplicate defaults are dropped by
+       expand_switch_statement; an empty case falls through or jumps to
+       the end, so names are only merged when every case has a body */
+    {
+      int32_t emptyCase = 0;
+      group = csound->Calloc(csound, sizeof(BLOCK_GROUP));
+      for (branch = current->right; branch != NULL; branch = branch->next) {
+        if (branch->type == DEFAULT_TOKEN) {
+          if (group->complete) continue;
+          group->complete = 1;
+        }
+        if (branch->right == NULL) {
+          emptyCase = 1;
+          continue;
+        }
+        group->branches++;
+        branch->right = wrap_block_scope(csound, branch->right, NULL, group);
+      }
+      if (emptyCase) group->complete = 0;
+      if (group->wrapped == 0) free_block_group(csound, group);
+    }
+    break;
+  default:
+    break;
+  }
+}
+
 TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 {
   TREE *anchor = NULL;
@@ -4214,6 +4619,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
   TREE* top;
   char *udo_name = NULL;
   CONS_CELL* activeLoopStack = NULL;
+  BLOCK_SCOPE* blockScope = NULL;
 
   CONS_CELL* parentLabelList = typeTable->labelList;
   typeTable->labelList = get_label_list(csound, root);
@@ -4221,7 +4627,49 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           csound->Message(csound, "Verifying AST\n");
 
   while (current != NULL) {
+    if (blockScope != NULL)
+      apply_block_scope(csound, current, blockScope, typeTable);
+    wrap_block_bodies(csound, current);
+
     switch(current->type) {
+    case T_SCOPE_BEGIN: {
+      TREE *next = current->next;
+      BLOCK_SCOPE *scope = (BLOCK_SCOPE *) current->markup;
+      scope->parent = blockScope;
+      blockScope = scope;
+      if (previous != NULL) {
+        previous->next = next;
+      }
+      current = next;
+      continue;
+    }
+
+    case T_SCOPE_END: {
+      TREE *next = current->next;
+      BLOCK_SCOPE *scope = blockScope;
+      if (scope != NULL) {
+        /* keep the names around for diagnostics */
+        while (scope->vars != NULL) {
+          CONS_CELL *cell = scope->vars;
+          scope->vars = cell->next;
+          cell->next = typeTable->closedBlockVars;
+          typeTable->closedBlockVars = cell;
+        }
+        BLOCK_GROUP *group = scope->group;
+        blockScope = scope->parent;
+        csound->Free(csound, scope);
+        if (group != NULL && ++group->closed == group->wrapped) {
+          blockScope = merge_block_group(csound, group, blockScope, typeTable);
+          free_block_group(csound, group);
+        }
+      }
+      if (previous != NULL) {
+        previous->next = next;
+      }
+      current = next;
+      continue;
+    }
+
     case STRUCT_TOKEN:
       if (csoundGetDebug(csound) & DEBUG_SEMANTICS)
 	csound->Message(csound, "Struct definition found\n");
@@ -4237,6 +4685,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
 	csound->Message(csound, "Instrument found\n");
       typeTable->localPool = csoundParserCreateVarPool(csound);
+      reset_closed_block_vars(csound, typeTable);
       current->markup = typeTable->localPool;
 
       if (current->right) {
@@ -4255,12 +4704,14 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
 
       typeTable->localPool = typeTable->instr0LocalPool;
+      reset_closed_block_vars(csound, typeTable);
 
       break;
     case UDO_TOKEN:
       if (csoundGetDebug(csound) & DEBUG_SEMANTICS)
 	csound->Message(csound, "UDO found\n");
       typeTable->localPool = csoundParserCreateVarPool(csound);
+      reset_closed_block_vars(csound, typeTable);
       current->markup = typeTable->localPool;
       top = current->left;
       if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
@@ -4327,6 +4778,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
 
       typeTable->localPool = typeTable->instr0LocalPool;
+      reset_closed_block_vars(csound, typeTable);
 
       break;
 
@@ -4343,6 +4795,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 	csound->Message(csound, "UDO declared\n");
 
       typeTable->localPool = csoundParserCreateVarPool(csound);
+      reset_closed_block_vars(csound, typeTable);
       current->markup = typeTable->localPool;
 
       if (current->right != NULL) {
@@ -4360,6 +4813,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       }
 
       typeTable->localPool = typeTable->instr0LocalPool;
+      reset_closed_block_vars(csound, typeTable);
 
       break;
     }
@@ -4428,6 +4882,19 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           1) if loop variable does not exist, it takes the type of the array
           2) if it exists, the loop type follows the variable type when conversion is possible
       */
+
+      /* loop and index variables the loop introduces live in the body scope */
+      CONS_CELL* loopVars = NULL;
+      TREE* loopIdent;
+      for (loopIdent = current->left; loopIdent != NULL;
+           loopIdent = loopIdent->next) {
+        BLOCK_SCOPE_VAR* loopVar = scope_typed_ident(csound, loopIdent,
+                                                     blockScope, typeTable);
+        if (loopVar != NULL)
+          loopVars = cs_cons(csound, loopVar, loopVars);
+      }
+      current->right->right = wrap_block_scope(csound, current->right->right,
+                                               loopVars, NULL);
 
       char* arrayArgType = get_arg_type2(csound, current->right->left,
                                          typeTable);
@@ -4672,6 +5139,12 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
     csound->Message(csound, "[End Verifying AST]\n");
 
 cleanup:
+  while (blockScope != NULL) {
+    BLOCK_SCOPE *parent = blockScope->parent;
+    free_block_scope_vars(csound, blockScope->vars);
+    csound->Free(csound, blockScope);
+    blockScope = parent;
+  }
   cs_cons_free_complete(csound, activeLoopStack);
   cs_cons_free(csound, typeTable->labelList);
   typeTable->labelList = parentLabelList;

@@ -42,11 +42,11 @@ instr 1
   assert(strcmp(words[1][2], "last cell") == 0, "string array copy failed\n")
 
   ; Skipping init leaves the declared rank intact at every numeric rate.
-  if 0 == 1 then
+  igoto skip_declarations
     declared:i[][] init 2, 3
     controls:k[][] init 2, 3
     audio:a[][] init 2, 3
-  endif
+  skip_declarations:
   assert(strcmp(typeof(declared), "i[][]") == 0, "i-rate declaration rank\n")
   assert(strcmp(typeof(controls), "k[][]") == 0, "k-rate declaration rank\n")
   assert(strcmp(typeof(audio), "a[][]") == 0, "a-rate declaration rank\n")

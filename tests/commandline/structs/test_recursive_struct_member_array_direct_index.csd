@@ -83,9 +83,9 @@ opcode LookupInstrument(shelf:InstrumentShelf, name:S):InstrumentNote
   if (index >= 0) then
     note:InstrumentNote = shelf.notes[index]
   elseif (shelf.hasParent == 1) then
-    note = LookupInstrument(shelf.parent[0], name)
+    note:InstrumentNote = LookupInstrument(shelf.parent[0], name)
   else
-    note = MakeNote(-999)
+    note:InstrumentNote = MakeNote(-999)
   endif
 
   xout note

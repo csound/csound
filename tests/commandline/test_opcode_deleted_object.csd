@@ -21,9 +21,9 @@ endop
 
 ; only the first note creates the objects, the second reuses the instance
 instr 1
-  if p4 == 0 then
+  if p4 != 0 igoto reuse1
     voice:Opcode = create(oscili)
-  endif
+  reuse1:
   sig:a init 0
   sig init voice, 0.1, 440
   sig perf voice, 0.1, 440
@@ -31,9 +31,9 @@ instr 1
 endin
 
 instr 2
-  if p4 == 0 then
+  if p4 != 0 igoto reuse2
     voice:Opcode = create(opcoderef("Voice"))
-  endif
+  reuse2:
   sig:a init 0
   sig init voice, 440
   sig perf voice, 440
@@ -41,9 +41,9 @@ instr 2
 endin
 
 instr 3
-  if p4 == 0 then
+  if p4 != 0 igoto reuse3
     voices:Opcode[] = create(opcoderef("Voice"), 2)
-  endif
+  reuse3:
   freqs:i[] fillarray 220, 330
   sigs:a[] init 2
   sigs = run(voices, freqs)
