@@ -32,7 +32,7 @@
 #include "csoundCore.h"
 #include "csound.h"
 #include "fftlib.h"
-#include "pffft.h"
+#include "pffft-csound.h"
 
 #define POW2(m) ((uint32) (1 << (m)))       /* integer power of 2 for m<32 */
 
@@ -3364,17 +3364,14 @@ static
 void pffft_execute(CSOUND_FFT_SETUP *setup,
                    cs_float *sig) {
   int32_t i, N = setup->N;
-  float s, *buf;
-#ifdef USE_DOUBLE
-  buf = (float *) setup->buffer;
+  cs_float s, *buf = setup->buffer;
+  /* Callers need not provide SIMD alignment. Use aligned storage at the
+     build's sample precision, with scratch allocated during setup. */
   for(i=0;i<N;i++)
     buf[i] = sig[i];
-#else
-  buf = sig;
-#endif
-  pffft_transform_ordered((PFFFT_Setup *)
+  cs_pffft_transform_ordered((CS_PFFFT_Setup *)
                           setup->setup,
-                          buf,buf,NULL,setup->d);
+                          buf,buf,buf+N,setup->d);
   s = (setup->d == PFFFT_BACKWARD ?
        (cs_float) (1./setup->N) : FL(1.0));
   for(i=0;i<N;i++)
@@ -3444,7 +3441,7 @@ static int32_t setupDispose(CSOUND *csound, void *pp){
     break;
 #endif
   case PFFT_LIB:
-    pffft_destroy_setup((PFFFT_Setup *)setup->setup);
+    cs_pffft_destroy_setup((CS_PFFFT_Setup *)setup->setup);
     break;
   }
   return OK;
@@ -3487,7 +3484,12 @@ void *csoundRealFFT2Setup(CSOUND *csound,
 #endif
   case PFFT_LIB:
     setup->setup = (void *)
-      pffft_new_setup(FFTsize,PFFFT_REAL);
+      cs_pffft_new_setup(FFTsize,PFFFT_REAL);
+    if (UNLIKELY(setup->setup == NULL)) {
+      csound->Die(csound, Str("Could not create PFFFT setup for size %d\n"),
+                  FFTsize);
+      return NULL;
+    }
     setup->d = (d ==  FFT_FWD ?
                 PFFFT_FORWARD :
                 PFFFT_BACKWARD);
@@ -3502,7 +3504,12 @@ void *csoundRealFFT2Setup(CSOUND *csound,
     return setup;
   }
   
-  setup->buffer = (cs_float *) align_alloc(csound, sizeof(cs_float)*(FFTsize+2));
+  /* PFFFT needs N samples of data and N samples of scratch. Keeping both
+     here avoids a size-dependent stack allocation on the audio thread.
+     N is a power of two >= 32, so the scratch address is aligned too. */
+  setup->buffer = (cs_float *) align_alloc(csound, sizeof(cs_float) *
+                                         (lib == PFFT_LIB ? (size_t) FFTsize*2 :
+                                          (size_t) FFTsize+2));
   csound->RegisterResetCallback(csound, (void*) setup,
                                 (int32_t (*)(CSOUND *, void *))
                                 setupDispose);
@@ -3575,7 +3582,7 @@ static void pffft_DCT_execute(CSOUND *csound,
   CSOUND_FFT_SETUP *setup =
         (CSOUND_FFT_SETUP *) p;
   int32_t i,j, N= setup->N;
-  float *buffer = (float *)setup->buffer;
+  cs_float *buffer = setup->buffer;
   if(setup->d == FFT_FWD){
   for(i=j = 0; i < N/2; i+=2, j++){
     buffer[i] = FL(0.0);
@@ -3585,10 +3592,10 @@ static void pffft_DCT_execute(CSOUND *csound,
     buffer[i] = FL(0.0);
     buffer[i+1] = sig[j];
   }
-  pffft_transform_ordered((PFFFT_Setup *)
+  cs_pffft_transform_ordered((CS_PFFFT_Setup *)
                           setup->setup,
                           buffer,buffer,
-                          NULL,PFFFT_FORWARD);
+                          buffer+N,PFFFT_FORWARD);
   for(i=j=0; i < N/2; i+=2, j++){
     sig[j] = buffer[i];
   }
@@ -3604,10 +3611,10 @@ static void pffft_DCT_execute(CSOUND *csound,
     buffer[i] = -sig[j];
     buffer[i+1] = FL(0.0);
   }
-  pffft_transform_ordered((PFFFT_Setup *)
+  cs_pffft_transform_ordered((CS_PFFFT_Setup *)
                           setup->setup,
                           buffer,buffer,
-                          NULL,PFFFT_BACKWARD);
+                          buffer+N,PFFFT_BACKWARD);
   for(i=j=0; i < N/2; i+=2, j++){
     sig[j] = buffer[i+1]/N;
   }

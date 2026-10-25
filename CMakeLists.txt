@@ -1129,6 +1129,7 @@ set(libcsound_SRCS
     OOps/inst_ops.c
     OOps/lpred.c
     OOps/pffft.c
+    OOps/pffft_double.c
     OOps/goto_ops.c
     OOps/midiinterop.c
     OOps/midiops.c
@@ -1181,6 +1182,9 @@ set(vbap_ops
 )
 
 set(libcsound_static_SRCS  ${libcsound_SRCS})
+
+set_source_files_properties(OOps/pffft.c OOps/pffft_double.c PROPERTIES
+    INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/third_party/pffft/include/pffft")
 
 # Keep JSON numbers precise even when DSP code uses fast-math. The parser is
 # private to Csound, not a new exported library interface.
