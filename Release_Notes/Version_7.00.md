@@ -337,6 +337,11 @@ and compatibility aliases.
 
 ### Builds and platforms
 
+AVX2 is now an explicit build option on x86-64. `USE_AVX2` defaults to `OFF`
+so Csound does not add an AVX2 requirement to general packages. Builders who
+enable it must target systems with AVX2 support. See
+[CPU compatibility](../BUILD.md#cpu-compatibility).
+
 Windows now has a native ARM64 installer alongside the x64 installer.
 Both include the native WASAPI audio backend and IP MIDI. Extra plugins must
 match the installed architecture. See the [Windows build guide](../BUILD.md#windows-arm64).

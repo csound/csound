@@ -47,6 +47,10 @@ use linear interpolation for sample rate conversion. Default is ON.
 - `BUILD_PLUGINS=`: build all external opcodes as plugin libraries.
 This option is disabled by default.
 
+- `USE_AVX2=` opts x86-64 builds into AVX2 instructions. It defaults to `OFF`.
+Only enable it when all target CPUs and operating systems support AVX2.
+Csound does not check CPU support at runtime for code built with this option.
+
 - `USE_WASMTIME=`: allow CMake to build native WebAssembly opcode support when
 it finds the Wasmtime C API. This option is enabled by default. Set it to
 `OFF` to disable the feature even when Wasmtime is installed. Set
@@ -62,6 +66,30 @@ command from the CMake build directory:
 ```
 cmake -LAH
 ```
+
+CPU compatibility
+--------------
+
+By default, Csound does not add AVX or AVX2 requirements to the toolchain's
+x86-64 target. GCC's [`-march=x86-64`](https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html)
+and the [default MSVC x64 target](https://learn.microsoft.com/en-us/cpp/build/reference/arch-x64)
+use an SSE2 baseline.
+The operating system, compiler target and linked libraries may set a higher
+minimum. ARM and WebAssembly builds do not use `USE_AVX2`.
+
+Keep AVX2 disabled for general x86-64 packages. Use dependencies built for
+the same CPU baseline, and avoid host-specific flags such as `-march=native`.
+An existing CMake build directory keeps its cached options, so set this
+explicitly when reusing a build directory for a portable package.
+
+```sh
+cmake -S . -B build -DUSE_AVX2=OFF
+```
+
+For a local build on a system with AVX2 support, use `-DUSE_AVX2=ON`.
+This permits AVX2 throughout Csound and has no runtime fallback.
+`USE_AVX2=OFF` does not remove CPU flags supplied by a toolchain
+or through `CFLAGS` and `CXXFLAGS`.
 
 Build Instructions
 ----
