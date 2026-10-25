@@ -21,6 +21,7 @@
   Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
+#include "pfield.h"
 #include "udo.h"
 #include "Opcodes/biquad.h"
 #include "csound_data_structures.h"
@@ -3471,57 +3472,29 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   if (UNLIKELY(p->INOCOUNT >
                (unsigned int)(csound->engineState.instrtxtp[instno]->pmax + 1)))
     return csoundInitError(csound, "%s\n", Str("subinstr: too many p-fields"));
-#ifdef USE_DOUBLE
-  union {
-    cs_float d;
-    int32 i[2];
-  } ch;
-  int32_t sel = byte_order()==0? 1 :0;
-  int32_t str_cnt = 0, len = 0;
-  char *argstr;
-  for (n = 1; (uint32_t) n < p->INOCOUNT; n++){
-    if (IS_STR_ARG(p->ar[inarg_ofs + n])) {
-      ch.d = SSTRCOD;
-      ch.i[sel] += str_cnt & 0xffff;
-      (pfield + n)->value = ch.d;
-      argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
-      if (str_cnt == 0)
-        p->ip->strarg = csound->Calloc(csound, strlen(argstr)+1);
-      else
-        p->ip->strarg = csound->ReAlloc(csound, p->ip->strarg,
-                                        len+strlen(argstr)+1);
-      strcpy(p->ip->strarg + len, argstr);
-      len += strlen(argstr)+1;
-      str_cnt++;
+  CS_PFIELDS *fields = csoundPFieldsCreate(csound, (size_t)p->INOCOUNT + 3);
+  if (fields == NULL) return CSOUND_MEMORY;
+  fields->fields[1].value.number = p->ip->p1.value;
+  fields->fields[2].value.number = p->ip->p2.value;
+  fields->fields[3].value.number = p->ip->p3.value;
+  for (n = 1; (uint32_t)n < p->INOCOUNT; ++n) {
+    cs_float *arg = p->ar[inarg_ofs + n];
+    if (IS_STR_ARG(arg)) {
+      int32_t result = csoundPFieldsSetString(csound, fields, n + 3,
+                                             ((STRINGDAT *)arg)->data);
+      if (result != CSOUND_SUCCESS) {
+        csoundPFieldsDestroy(csound, fields);
+        return result;
+      }
+      (pfield + n)->value = csoundPFieldStringCode(
+          fields->fields[n + 3].value.string_index);
     }
-
-    else (pfield + n)->value = *p->ar[inarg_ofs + n];
+    else fields->fields[n + 3].value.number = (pfield + n)->value = *arg;
   }
-#else
-  union {
-    cs_float d;
-    int32 j;
-  } ch;
-  int32_t str_cnt = 0, len = 0;
-  char *argstr;
-  for (n = 1; (uint32_t) n < p->INOCOUNT; n++){
-    if (IS_STR_ARG(p->ar[inarg_ofs + n])) {
-      ch.d = SSTRCOD;
-      ch.j += str_cnt & 0xffff;
-      (pfield + n)->value = ch.d;
-      argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
-      if (str_cnt == 0)
-        p->ip->strarg = csound->Calloc(csound, strlen(argstr)+1);
-      else
-        p->ip->strarg = csound->ReAlloc(csound, p->ip->strarg,
-                                        len+strlen(argstr)+1);
-      strcpy(p->ip->strarg + len, argstr);
-      len += strlen(argstr)+1;
-      str_cnt++;
-    }
-    else (pfield + n)->value = *p->ar[inarg_ofs + n];
+  if (csoundInstancePFieldsTake(csound, p->ip, fields) != CSOUND_SUCCESS) {
+    csoundPFieldsDestroy(csound, fields);
+    return CSOUND_MEMORY;
   }
-#endif
 
   // allocate memory for a temporary store of spout buffers
   if (!init_op && !(pip->reinitflag | pip->tieflag))

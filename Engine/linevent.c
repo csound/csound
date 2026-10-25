@@ -20,6 +20,7 @@
     Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
+#include "pfield.h"
 #include "csoundCore.h"     /*                              LINEVENT.C      */
 #include <ctype.h>
 
@@ -388,36 +389,13 @@ static void sense_line(CSOUND *csound, void *userData)
               }
             }
             sstrp[n] = '\0';
-            {
-#ifdef USE_DOUBLE
-              int32_t sel = (byte_order()+1)&1;
-              union {
-                cs_float d;
-                int32 i[2];
-              } ch;
-              ch.d = SSTRCOD; ch.i[sel] += scnt++;
-              /* ensure capacity before writing */
-              if (pcnt >= STA(msize)) {
-                STA(msize) += PMAX;
-                STA(pfields) = e.p = csound->ReAlloc(csound, e.p,
-                                  sizeof(cs_float) * (STA(msize) + 1));
-              }
-              e.p[pcnt] = ch.d;           /* set as string with count */
-#else
-              union {
-                cs_float d;
-                int32 i;
-              } ch;
-              ch.d = SSTRCOD; ch.i += scnt++;
-              /* ensure capacity before writing */
-              if (pcnt >= STA(msize)) {
-                STA(msize) += PMAX;
-                STA(pfields) = e.p = csound->ReAlloc(csound, e.p,
-                                  sizeof(cs_float) * (STA(msize) + 1));
-              }
-              e.p[pcnt] = ch.d;           /* set as string with count */
-#endif
+            if (UNLIKELY(scnt >= CS_PFIELD_STRING_LIMIT)) goto Lerr;
+            if (pcnt >= STA(msize)) {
+              STA(msize) += PMAX;
+              STA(pfields) = e.p = csound->ReAlloc(csound, e.p,
+                                sizeof(cs_float) * (STA(msize) + 1));
             }
+            e.p[pcnt] = csoundPFieldStringCode(scnt++);
             e.scnt = scnt;
 
             // printf("string: %s\n", sstrp);

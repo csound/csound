@@ -23,6 +23,7 @@
   Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
+#include "pfield.h"
 #include "csoundCore.h" /*  INSERT.C */
 #include "csound_message_callbacks.h"
 #include "oload.h"
@@ -579,22 +580,6 @@ static void alloc_queue_complete(CSOUND *csound, int32_t type)
   alloc_queue_unlock(csound);
 }
 
-static size_t evtblk_strarg_size(const EVTBLK *src)
-{
-  char *end = src->strarg;
-  int32_t n = src->scnt;
-
-  if (end == NULL)
-    return 0;
-
-  if (n <= 0)
-    return strlen(end) + 1;
-
-  while (n--)
-    end += strlen(end) + 1;
-  return (size_t)(end - src->strarg);
-}
-
 static void free_queued_evtblk_pfields(CSOUND *csound, EVTBLK *evt)
 {
   if (evt->p != NULL) {
@@ -628,7 +613,11 @@ static int32_t copy_evtblk_for_queue(CSOUND *csound, EVTBLK *dst,
   }
 
   if (src->strarg != NULL) {
-    size_t bytes = evtblk_strarg_size(src);
+    size_t bytes = csoundEventStringBytes(src);
+    if (UNLIKELY(bytes == 0)) {
+      free_queued_evtblk(csound, dst);
+      return CSOUND_ERROR;
+    }
     dst->strarg = (char *) csound->Malloc(csound, bytes);
     if (UNLIKELY(dst->strarg == NULL)) {
       free_queued_evtblk(csound, dst);
@@ -971,18 +960,11 @@ uintptr_t event_insert_thread(void *p) {
 
         case ALLOC_DATA_SCORE_EVENT:
         {
-          int32_t result;
           csoundSpinLock(&csound->alloc_spinlock);
-          result = insert(csound, data.insno, &data.blk);
+          insert(csound, data.insno, &data.blk);
           csoundSpinUnLock(&csound->alloc_spinlock);
-          if (result == 0) {
-            /* insert() copies p-fields, but keeps strarg for INSDS::strarg. */
-            free_queued_evtblk_pfields(csound, &data.blk);
-            data.blk.strarg = NULL;
-          }
-          else {
-            free_queued_evtblk(csound, &data.blk);
-          }
+          /* The instance owns a typed copy, including its string buffer. */
+          free_queued_evtblk(csound, &data.blk);
           break;
         }
       }
@@ -1433,7 +1415,6 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
   ip->m_sust       = 0;
   ip->nxtolap      = NULL;
   ip->opcod_iobufs = NULL;
-  ip->strarg       = newevtp->strarg;  /* copy strarg so it does not get lost */
 
   /* new code for sample-accurate timing, not for tied notes */
   /* VL 18 Dec 24 - needs to be set before init pass to propagate to UDOS */
@@ -1461,8 +1442,15 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
 
   // current event needs to be reset here
   csound->init_event = newevtp;
-  error = csound->oparms->realtime ? realtime_init_pass(csound, ip) :
-    init_pass(csound, ip);
+  error = csoundInstancePFields(csound, ip, newevtp);
+  if (error != CSOUND_SUCCESS) {
+    csound->ErrorMsg(csound, Str("invalid string p-fields for instrument %d\n"),
+                     ip->insno);
+    ++csound->inerrcnt;
+  }
+  else
+    error = csound->oparms->realtime ? realtime_init_pass(csound, ip) :
+      init_pass(csound, ip);
   initResult = instance_init_finish(csound, ip);
   ATOMIC_SET(ip->init_done, 0);
   if (initResult == INSTANCE_INIT_TURNOFF) {
@@ -1793,6 +1781,8 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
    }
   } else csound->init_event = NULL;
 
+  csoundResetInstancePFields(csound, ip);
+  ip->strarg = NULL;
   error = csound->oparms->realtime ? realtime_init_pass(csound, ip) :
     init_pass(csound, ip);
   if(evt.p) csound->Free(csound, evt.p);
@@ -2078,6 +2068,7 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
       INSDS *nxtp;
 
       reset_instance_variables(current);
+      csoundResetInstancePFields(csound, current);
 
       if (current->subins_deact != NULL) {
         SUBINST *subinstr = (SUBINST *) current->subins_deact;
@@ -2382,6 +2373,7 @@ void free_inactive_instances(CSOUND *csound)
       auxchfree(csound, ip);
     free_instr_var_memory(csound, ip);
     free_instance_variables(csound, ip);
+    csoundFreeInstancePrivate(csound, ip);
     csound->Free(csound, (char *) ip);
   }
   /* check current items in deadpool to see if they need deleting */
@@ -3172,6 +3164,7 @@ static void free_unlinked_instance(CSOUND *csound, INSDS *ip)
                        (unsigned long long) ip->instance_id, ip->insno);
   }
   free_instance_variables(csound, ip);
+  csoundFreeInstancePrivate(csound, ip);
   csound->Free(csound, ip);
 }
 
@@ -3235,7 +3228,6 @@ int32_t init_instance(CSOUND *csound, INSDS *ip,
   }
 
   csound->inerrcnt = 0;
-  ip->strarg = newevtp->strarg;
   csound->init_event = newevtp;
   if (UNLIKELY(instance_init_begin(csound, ip) != CSOUND_SUCCESS)) {
     csound->init_event = initevt;
@@ -3243,7 +3235,14 @@ int32_t init_instance(CSOUND *csound, INSDS *ip,
                              Str("cannot initialize instrument %d while "
                                  "it is being turned off\n"), ip->insno);
   }
-  error = init_pass(csound, ip);
+  error = csoundInstancePFields(csound, ip, newevtp);
+  if (error != CSOUND_SUCCESS) {
+    csound->ErrorMsg(csound, Str("invalid string p-fields for instrument %d\n"),
+                     ip->insno);
+    ++csound->inerrcnt;
+  }
+  else
+    error = init_pass(csound, ip);
   initResult = instance_init_finish(csound, ip);
   if (initResult == INSTANCE_INIT_COMPLETE && error == 0) {
     ATOMIC_SET(ip->init_done, 1);

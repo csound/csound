@@ -20,6 +20,7 @@
    Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
+#include "pfield.h"
 #include "csoundCore.h" /*                                      AOPS.C  */
 #include "aops.h"
 #include "arrays.h"
@@ -2476,9 +2477,10 @@ int32_t pvaluestr(CSOUND *csound, PFIELDSTR *p)
 
   /* The value and its string storage must come from the same event, including
      in subinstruments where pindex reads the host's p-fields. */
-  char *str = csound->Strdup(csound,
-                           get_string_arg_from_evt(csound, value,
-                                                   csound->init_event));
+  const char *source = csoundEventPFieldString(csound->init_event, n);
+  if (source == NULL)
+    return csound->InitError(csound, "%s\n", Str("invalid string p-field"));
+  char *str = csound->Strdup(csound, source);
   if (p->ians->data!=NULL) csound->Free(csound, p->ians->data);
   p->ians->data = str;
   p->ians->size = strlen(str) + 1;

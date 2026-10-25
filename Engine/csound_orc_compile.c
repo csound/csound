@@ -22,6 +22,7 @@
   Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
+#include "pfield.h"
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "parse_param.h"
@@ -1323,6 +1324,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt) {
     if (active->opcod_iobufs != NULL)
       csound->Free(csound, active->opcod_iobufs);
     free_instance_variables(csound, active);
+    csoundFreeInstancePrivate(csound, active);
     csound->Free(csound, active);
     active = nxt;
   }

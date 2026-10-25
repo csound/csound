@@ -1101,6 +1101,7 @@ set(libcsound_SRCS
     Engine/musmon.c
     Engine/namedins.c
     Engine/rdscor.c
+    Engine/pfield.c
     Engine/scsort.c
     Engine/scxtract.c
     Engine/sort.c

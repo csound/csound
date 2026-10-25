@@ -131,6 +131,7 @@ if(BUILD_TESTS)
         csound_test_sndfile.cpp
         analysis_file_safety_test.cpp
         test_new_type.cpp
+        pfield_string_test.cpp
         test_pfields.cpp
         pfield_names_test.cpp
         userrnd_test.cpp
