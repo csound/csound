@@ -62,6 +62,8 @@ extern "C" {
   TEXT *getoptxt(CSOUND *, int32_t *);
   void  csoundInitDisplay(CSOUND *);
   int32_t init0(CSOUND *);
+  int32_t init0_pending(CSOUND *);
+  void instr0_wait(CSOUND *, INSTRTXT *);
   void scsort(CSOUND *, FILE *, FILE *);
   char *scsortstr(CSOUND *, CORFIL *);
   int32_t scxtract(CSOUND *, CORFIL *, FILE *);
