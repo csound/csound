@@ -53,5 +53,43 @@ class TestBlockingEventsFromAnotherThread(unittest.TestCase):
         self.assertEqual(int(self.cs.control_channel("count")[0]), EVENTS)
 
 
+    def test_a_message_callback_may_send_an_event(self):
+        """What sense_line says - here an -L line it cannot read - reaches
+        the message callback on the performance thread, and a callback may
+        send an event from there: the line-event lock is not held while the
+        lines are read, as it is not recursive."""
+        import tempfile
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as lines:
+            lines.write("z 1 0 0\n")
+        try:
+            self.cs.set_option(f"--score-in={lines.name}")
+            sent = []
+
+            def callback(_csound, _attr, message):
+                if b"unknown opcode" in message and not sent:
+                    sent.append(True)
+                    self.cs.event_string('i "Count" 0 0', False)
+
+            self.cs.set_message_string_callback(callback)
+            self.assertEqual(self.cs.compile_orc('''
+                sr = 48000
+                ksmps = 64
+                nchnls = 1
+                0dbfs = 1
+                instr Count
+                    chnset:i(chnget:i("count") + 1, "count")
+                    turnoff
+                endin
+            '''), ctcsound.CSOUND_SUCCESS)
+            self.assertEqual(self.cs.start(), ctcsound.CSOUND_SUCCESS)
+            self.cs.set_control_channel("count", 0)
+            for _ in range(8):
+                self.cs.perform_ksmps()
+        finally:
+            os.remove(lines.name)
+        self.assertTrue(sent, "the bad line was not reported")
+        self.assertEqual(int(self.cs.control_channel("count")[0]), 1)
+
+
 if __name__ == '__main__':
     unittest.main()

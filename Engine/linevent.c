@@ -230,7 +230,11 @@ static void input_message(CSOUND *csound, const char *message);
    a host's csoundEventString or csoundReadScore among them - and emptied by
    the performance thread's sense_line, at the top of each k-cycle: an append
    between the two was overwritten or cut off, or reallocated the buffer
-   under the pointers sense_line held. Both take line_event_spinlock. */
+   under the pointers sense_line held. Both take line_event_spinlock, and
+   sense_line only for as long as it takes the complete lines out of the
+   buffer (take_lines), so that what the lines then do - an orchestra block
+   compiled, its global scorelinei appending again, a message callback - is
+   never done under the lock, which is not recursive. */
 void csoundInputMessage(CSOUND *csound, const char *message) {
     csoundSpinLock(&csound->line_event_spinlock);
     input_message(csound, message);
@@ -271,34 +275,57 @@ static void input_message(CSOUND *csound, const char *message) {
     STA(Linep) += size;
 }
 
+/* The complete lines waiting in the line-event buffer, with what the -L
+   input has to give, moved into sense_line's own work buffer under the lock,
+   and the rest - a line not ended yet - moved down to the buffer's start.
+   Returns the end of what was taken, or NULL when no line is complete. */
+static char *take_lines(CSOUND *csound)
+{
+    char    *cp, *last = NULL;
+    int32_t len = 0, n;
+
+    csoundSpinLock(&csound->line_event_spinlock);
+    if (csound->Linefd >= 0) {
+      n = (int32_t) read(csound->Linefd, STA(Linep), STA(Linebufend) - STA(Linep));
+      STA(Linep) += (n > 0 ? n : 0);
+    }
+    for (cp = STA(Linep); cp > STA(Linebuf); cp--)
+      if (cp[-1] == LF) {
+        last = cp;
+        break;
+      }
+    if (last != NULL) {
+      len = (int32_t) (last - STA(Linebuf));
+      if (STA(work) == NULL || len + 1 > STA(worksiz)) {
+        STA(work) = (char *) (STA(work) == NULL
+                              ? csound->Calloc(csound, len + 1)
+                              : csound->ReAlloc(csound, STA(work), len + 1));
+        STA(worksiz) = len + 1;
+      }
+      memcpy(STA(work), STA(Linebuf), len);
+      STA(work)[len] = '\0';
+      n = (int32_t) (STA(Linep) - last);
+      memmove(STA(Linebuf), last, n);
+      STA(Linep) = STA(Linebuf) + n;
+    }
+    csoundSpinUnLock(&csound->line_event_spinlock);
+    return last == NULL ? NULL : STA(work) + len;
+}
+
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
 /* does more syntax checking than rdscor, since not preprocessed  */
 
-static void sense_line_locked(CSOUND *csound);
-
 static void sense_line(CSOUND *csound, void *userData)
-{
-    IGN(userData);
-    csoundSpinLock(&csound->line_event_spinlock);
-    sense_line_locked(csound);
-    csoundSpinUnLock(&csound->line_event_spinlock);
-}
-
-static void sense_line_locked(CSOUND *csound)
 {
     char    *cp, *Linestart, *Linend;
     int32_t     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
+    IGN(userData);
 
     while (1) {
       if(STA(oflag) > oflag) break;
-      Linend = STA(Linep);
-      if (csound->Linefd >= 0) {
-        n = (int32_t) read(csound->Linefd, Linend, STA(Linebufend) - Linend);
-        Linend += (n > 0 ? n : 0);
-      }
-      if (Linend <= STA(Linebuf))
+      if ((Linend = take_lines(csound)) == NULL)
         break;
-      Linestart = STA(Linebuf);
+      Linestart = STA(work);
       cp = Linestart;
 
       while (containsLF(Linestart, Linend)) {
@@ -519,18 +546,9 @@ static void sense_line_locked(CSOUND *csound)
                                  Linestart, n + 1, "^");  /* mark the error */
         Linestart = (++cp);
       }
-      if (Linestart != &(STA(Linebuf)[0])) {
-        int32_t len = (int32_t) (Linend - Linestart);
-        /* move any remaining characters to the beginning of the buffer */
-        for (n = 0; n < len; n++)
-          STA(Linebuf)[n] = Linestart[n];
-        n = (int32_t) (Linestart - &(STA(Linebuf)[0]));
-        STA(Linep) -= n;
-        Linend -= n;
-      }
-      if (Linend == STA(Linep))      /* return if no more data is available  */
-        break;
-      STA(Linep) = Linend;                       /* accum the chars          */
+      /* Every line taken ends with LF, so all were read: the next turn
+         takes what has come since - from the -L input, from a host, or
+         appended by what these lines did. */
     }
 
 }

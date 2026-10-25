@@ -327,6 +327,8 @@ extern "C" {
       EVTBLK    prve;
       char      *Linebuf;
       int32_t   linebufsiz;
+      char      *work;        /* the lines sense_line takes, its alone */
+      int32_t   worksiz;
       char      *orchestra, *orchestrab;
       int32_t   oflag;
       cs_float     *pfields;
