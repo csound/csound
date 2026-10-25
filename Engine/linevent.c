@@ -224,7 +224,20 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
 /* insert text from an external source,
    to be interpreted as if coming in from stdin/Linefd for -L */
 
+static void input_message(CSOUND *csound, const char *message);
+
+/* The line-event buffer is appended to by whichever thread sends a message -
+   a host's csoundEventString or csoundReadScore among them - and emptied by
+   the performance thread's sense_line, at the top of each k-cycle: an append
+   between the two was overwritten or cut off, or reallocated the buffer
+   under the pointers sense_line held. Both take line_event_spinlock. */
 void csoundInputMessage(CSOUND *csound, const char *message) {
+    csoundSpinLock(&csound->line_event_spinlock);
+    input_message(csound, message);
+    csoundSpinUnLock(&csound->line_event_spinlock);
+}
+
+static void input_message(CSOUND *csound, const char *message) {
     int32  size = (int32) strlen(message);
 #if 1
     int32_t n;
@@ -261,11 +274,20 @@ void csoundInputMessage(CSOUND *csound, const char *message) {
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
 /* does more syntax checking than rdscor, since not preprocessed  */
 
+static void sense_line_locked(CSOUND *csound);
+
 static void sense_line(CSOUND *csound, void *userData)
+{
+    IGN(userData);
+    csoundSpinLock(&csound->line_event_spinlock);
+    sense_line_locked(csound);
+    csoundSpinUnLock(&csound->line_event_spinlock);
+}
+
+static void sense_line_locked(CSOUND *csound)
 {
     char    *cp, *Linestart, *Linend;
     int32_t     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
-    IGN(userData);
 
     while (1) {
       if(STA(oflag) > oflag) break;

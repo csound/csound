@@ -1865,6 +1865,7 @@ struct CSOUND_ {
   spin_lock_t diskin2_async_lock;                            /* diskin2 asynchronous read lock */
   spin_lock_t osc_spinlock;                                  /* OSC message spinlock */
   spin_lock_t channel_spinlock;                              /* channel registry spinlock */
+  spin_lock_t line_event_spinlock;                           /* line-event buffer spinlock */
   int32_t realtime_locks_initialized;                        /* realtime locks initialised flag */
 
   /* -------- Threads, parallel execution and DAG -------- */
