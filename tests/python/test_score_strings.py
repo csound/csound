@@ -41,6 +41,25 @@ class TestScoreStringsFromAHost(unittest.TestCase):
             self.assertEqual(self.cs.string_channel(f"given{n}"), text)
             self.assertEqual(self.cs.control_channel(f"after{n}")[0], n + 10)
 
+    def test_directives_arrive_whole(self):
+        """#exit and #loop are text inside a string: #exit ended the score
+        there, and #loop - the marker a repeat's body ends with - popped the
+        buffer it was read in, which through this call is a segfault."""
+        self.assertEqual(self.cs.compile_orc('''
+            instr 1
+                given:S = p4
+                chnset(given, sprintf("given%d", p5))
+            endin
+        '''), ctcsound.CSOUND_SUCCESS)
+        self.assertEqual(self.cs.start(), ctcsound.CSOUND_SUCCESS)
+        directives = ["/pad/#exit/0/0/out", "#loop", "a #exit b #loop c"]
+        for n, text in enumerate(directives):
+            self.cs.event_string(f'i 1 0 0 "{text}" {n}')
+        for _ in range(2):
+            self.cs.perform_ksmps()
+        for n, text in enumerate(directives):
+            self.assertEqual(self.cs.string_channel(f"given{n}"), text)
+
 
 if __name__ == '__main__':
     unittest.main()
