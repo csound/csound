@@ -73,7 +73,7 @@ typedef struct {
     int32_t         seedVal;
     int32_t         randLine_cnt;
     cs_double      filterState;
-    cs_float       buf[1];
+    cs_float       *buf; /* samples follow the eight state records in auxData */
 } delayLine;
 
 typedef struct {
@@ -97,12 +97,11 @@ static int32_t delay_line_max_samples(SC_REVERB *p, int32_t n)
     return (int32_t) (maxDel * p->sampleRate + 16.5);
 }
 
-static int32_t delay_line_bytes_alloc(SC_REVERB *p, int32_t n)
+static int32_t delay_line_buffer_bytes(SC_REVERB *p, int32_t n)
 {
     int32_t nBytes;
 
-    nBytes = (int32_t) sizeof(delayLine) - (int32_t) sizeof(cs_float);
-    nBytes += (delay_line_max_samples(p, n) * (int32_t) sizeof(cs_float));
+    nBytes = delay_line_max_samples(p, n) * (int32_t) sizeof(cs_float);
     nBytes = (nBytes + 15) & (~15);
     return nBytes;
 }
@@ -180,21 +179,24 @@ static int32_t sc_reverb_init(CSOUND *csound, SC_REVERB *p)
       return csound->InitError(csound,
                                "%s\n", Str("reverbsc: invalid pitch modulation factor"));
     }
-    /* calculate the number of bytes to allocate */
-    nBytes = 0;
+    /* One allocation owns all eight state records and their sample buffers.
+       Both performance loops read the records for every sample, so keep them
+       together. The buffers have different lengths and read positions. */
+    nBytes = (int32_t) (8 * sizeof(delayLine));
     for (i = 0; i < 8; i++)
-      nBytes += delay_line_bytes_alloc(p, i);
+      nBytes += delay_line_buffer_bytes(p, i);
     if (nBytes != (int32_t)p->auxData.size)
       csound->AuxAlloc(csound, (size_t) nBytes, &(p->auxData));
     else if (p->initDone && *(p->iSkipInit) != FL(0.0))
       return OK;    /* skip initialisation if requested */
-    /* set up delay lines */
-    nBytes = 0;
+    /* Put the buffers after the state records, rounding each length to 16 bytes. */
+    nBytes = (int32_t) (8 * sizeof(delayLine));
     for (i = 0; i < 8; i++) {
-      p->delayLines[i] = (delayLine*) ((unsigned char*) (p->auxData.auxp)
-                                       + (int32_t) nBytes);
+      p->delayLines[i] = ((delayLine*) p->auxData.auxp) + i;
+      p->delayLines[i]->buf = (cs_float*) ((unsigned char*) p->auxData.auxp
+                                          + nBytes);
       init_delay_line(p, p->delayLines[i], i);
-      nBytes += delay_line_bytes_alloc(p, i);
+      nBytes += delay_line_buffer_bytes(p, i);
     }
     p->dampFact = 1.0;
     p->prv_LPFreq = FL(0.0);
@@ -233,7 +235,8 @@ static int32_t sc_reverb_perf(CSOUND *csound, SC_REVERB *p)
     }
     /* update delay lines */
     for (i = offset; i < nsmps; i++) {
-      /* calculate "resultant junction pressure" and mix to input signals */
+      /* Sum all eight previous filter states before updating any delay line.
+         This shared feedback couples the lines at each sample. */
       ainL = aoutL = aoutR = 0.0;
       for (n = 0; n < 8; n++)
         ainL += p->delayLines[n]->filterState;
@@ -342,7 +345,8 @@ static int32_t sc_reverb_perf2(CSOUND *csound, SC_REVERB *p)
     }
     /* update delay lines */
     for (i = offset; i < nsmps; i++) {
-      /* calculate "resultant junction pressure" and mix to input signals */
+      /* Sum all eight previous filter states before updating any delay line.
+         This shared feedback couples the lines at each sample. */
       ainL = aoutL = aoutR = 0.0;
       for (n = 0; n < 8; n++)
         ainL += lp[n]->filterState;
