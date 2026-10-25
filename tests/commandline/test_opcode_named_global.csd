@@ -22,8 +22,14 @@ nchnls = 1
 table@global:i = 5
 oscil@global:i[] = fillarray(1, 2, 3)
 
+; The compile after the one that declared them: without it there is nothing
+; to keep a value through, and the check would pass on none.
 instr Recompile
   compiled:i = compilestr("instr Later\nendin\n")
+  if compiled != 0 then
+    prints("compilestr failed\n")
+    exitnow(1)
+  endif
 endin
 
 instr Check
