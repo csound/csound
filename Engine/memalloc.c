@@ -60,22 +60,11 @@ void my_free(void *old) {
 #define CS_CALLOC mycalloc
 #define CS_REALLOC myrealloc
 #define CS_FREE myfree
-#define CS_ALIGNED_ALLOC(align,size) mycalloc(size, 1)
 #else
 #define CS_MALLOC malloc
 #define CS_CALLOC calloc
 #define CS_REALLOC realloc
 #define CS_FREE free
-
-#if defined(WIN32) || defined(ANDROID)
-#define CS_ALIGNED_ALLOC(size, align) calloc(size, 1)
-#else
-#if __STDC_VERSION__ >= 201112L
-#define CS_ALIGNED_ALLOC(size, align) aligned_alloc(align,size)
-#else
-#define CS_ALIGNED_ALLOC(size, align) calloc(size, 1)
-#endif
-#endif
 #endif
 
 /* This code wraps malloc etc with maintaining a list of allocated memory
@@ -98,6 +87,7 @@ typedef struct memAllocBlock_s {
 #endif
     struct memAllocBlock_s  *prv;       /* previous structure in chain  */
     struct memAllocBlock_s  *nxt;       /* next structure in chain      */
+    void                    *base;      /* address to pass to CS_FREE   */
 #ifdef CSOUND_WASI_REALTIME
     CSOUND_WASI_ALLOC_SCOPE *owner;
     struct memAllocBlock_s *owner_prv, *owner_nxt;
@@ -110,11 +100,42 @@ typedef struct memAllocBlock_s {
  #define MALIGN 0
 #endif
 
-#define HDR_SIZE    (((size_t) sizeof(memAllocBlock_t) + 7) & (~7))
+/* Keep the data offset a multiple of 16 as the private header grows. */
+#define HDR_SIZE    (((size_t) sizeof(memAllocBlock_t) + 15) & (~(size_t)15))
 #define ALLOC_BYTES(n)  (((size_t) HDR_SIZE + (size_t) (n) + MALIGN) & (~ MALIGN))
 #define DATA_PTR(p) ((void*) ((unsigned char*) (p) + (int32_t) HDR_SIZE))
 #define HDR_PTR(p)  ((memAllocBlock_t*) ((unsigned char*) (p) - (int32_t) HDR_SIZE))
-#define ALIGN_BYTES(n,a)  (((size_t) (n) + (a-1)) & (~ (a-1)))
+
+/* Only aligned blocks need a stored size and alignment for ReAlloc. This
+   record lives at base, before the padding and the regular block header. */
+typedef struct {
+    size_t size, align;
+} alignedAllocInfo_t;
+
+static memAllocBlock_t *alloc_aligned(size_t size, size_t align)
+{
+    const size_t overhead = sizeof(alignedAllocInfo_t) + HDR_SIZE;
+    alignedAllocInfo_t *base;
+    memAllocBlock_t *block;
+    uintptr_t data;
+
+    if (UNLIKELY(align == 0 || (align & (align - 1)) != 0)) return NULL;
+    /* The header also needs alignment, even for a one-byte data request. */
+    if (align < 16) align = 16;
+    if (UNLIKELY(align - 1 > SIZE_MAX - overhead ||
+                 size > SIZE_MAX - overhead - (align - 1))) return NULL;
+    base = CS_CALLOC(overhead + align - 1 + size, 1);
+    if (UNLIKELY(base == NULL)) return NULL;
+
+    base->size = size;
+    base->align = align;
+    /* Align the data, not the allocation base. Keep the regular header
+       immediately before it so Free, ReAlloc and ownership tracking agree. */
+    data = ((uintptr_t)base + overhead + align - 1) & ~(uintptr_t)(align - 1);
+    block = HDR_PTR((void *)data);
+    block->base = base;
+    return block;
+}
 
 #define MEMALLOC_DB (csound->memalloc_db)
 
@@ -241,6 +262,7 @@ void *csoundMalloc(CSOUND *csound, size_t size)
         memdie(csound, size);     /* does a long jump */
     }
     /* link into chain */
+    ((memAllocBlock_t*) p)->base = p;
 #ifdef CSOUND_WASI_REALTIME
     ((memAllocBlock_t*) p)->owner = NULL;
 #endif
@@ -284,6 +306,7 @@ void *csoundCalloc(CSOUND *csound, size_t size)
       memdie(csound, size);     /* does longjump */
     }
     /* link into chain */
+    ((memAllocBlock_t*) p)->base = p;
 #ifdef CSOUND_WASI_REALTIME
     ((memAllocBlock_t*) p)->owner = NULL;
 #endif
@@ -320,12 +343,11 @@ void *csoundCallocAligned(CSOUND *csound, size_t size, size_t align) {
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = CS_ALIGNED_ALLOC(ALIGN_BYTES(size+HDR_SIZE,align), align)) == NULL)) {
+    if (UNLIKELY((p = alloc_aligned(size, align)) == NULL)) {
       csound->ErrorMsg(csound, Str("CallocAligned failed: "));
       memdie(csound, size);     /* does longjump */
+      return NULL;
     }
-    
-    memset(p,0,ALIGN_BYTES(size+HDR_SIZE,align));
     /* link into chain */
 #ifdef CSOUND_WASI_REALTIME
     ((memAllocBlock_t*) p)->owner = NULL;
@@ -391,7 +413,7 @@ void csoundFree(CSOUND *csound, void *p)
         MEMALLOC_DB = (void*)nxt;
     }
     /* free memory */
-    CS_FREE((void*) pp);
+    CS_FREE(pp->base);
     CSOUND_MEM_SPINUNLOCK
 }
 
@@ -430,7 +452,24 @@ void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
     pp->ptr = NULL;
 #endif
     /* allocate memory */
-    p = CS_REALLOC((void*) pp, ALLOC_BYTES(size));
+    if (pp->base == pp) {
+      p = CS_REALLOC((void*) pp, ALLOC_BYTES(size));
+      if (p != NULL) ((memAllocBlock_t*)p)->base = p;
+    }
+    else {
+      alignedAllocInfo_t *info = (alignedAllocInfo_t*)pp->base;
+      memAllocBlock_t *newblock = alloc_aligned(size, info->align);
+      p = newblock;
+      if (newblock != NULL) {
+        void *base = newblock->base;
+        memcpy(DATA_PTR(newblock), oldp, size < info->size ? size : info->size);
+        /* Preserve list links and any WASI allocation owner. The common
+           code below repairs their pointers after moving the header. */
+        *newblock = *pp;
+        newblock->base = base;
+        CS_FREE(pp->base);
+      }
+    }
     if (UNLIKELY(p == NULL)) {
 #ifdef MEMDEBUG
       /* alloc failed, restore original header */
@@ -487,7 +526,7 @@ void memreset(CSOUND *csound)
 #ifdef MEMDEBUG
       pp->magic = 0;
 #endif
-      CS_FREE((void*) pp);
+      CS_FREE(pp->base);
       pp = nxtp;
     }
 }

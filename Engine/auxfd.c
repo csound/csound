@@ -60,14 +60,16 @@ void csoundAuxAllocAligned(CSOUND *csound, size_t nbytes, size_t align,
                            AUXCH *auxchp)
 {
   if (auxchp->auxp != NULL) {
-    /* if allocd with same size, just clear to zero */
-    if (nbytes == (size_t)auxchp->size) {
+    /* A same-sized buffer can still need a stricter alignment. */
+    if (nbytes == (size_t)auxchp->size && align != 0 &&
+        (align & (align - 1)) == 0 &&
+        (uintptr_t)auxchp->auxp % align == 0) {
       memset(auxchp->auxp, 0, nbytes);
       return;
     }
     else {
       void  *tmp = auxchp->auxp;
-      /* if size change only, free the old space and re-allocate */
+      /* Replace buffers that do not meet both size and alignment. */
       auxchp->auxp = NULL;
       csound->Free(csound, tmp);
     }
