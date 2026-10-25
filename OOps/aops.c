@@ -919,6 +919,12 @@ int32_t atan21(CSOUND *csound, AOP *p)
   return OK;
 }
 
+/* Inputs may include NaNs, infinities and values outside a function's domain.
+   A future vector-math path must preserve those cases, in-place operation,
+   inactive samples and short tails. Do not use finite-only compiler flags.
+   Explicit vector libraries need per-function and whole-Csound benchmarks at
+   several ksmps sizes: a vectorized-loop remark need not mean vector math
+   calls, and actual vector calls can still be slower (see #3491). */
 #define LIBA(OPNAME,LIBNAME) int32_t OPNAME(CSOUND *csound, EVAL *p) {  \
     IGN(csound);                                                        \
     uint32_t offset = p->h.insdshead->ksmps_offset;                     \
