@@ -1,4 +1,4 @@
-/* Private PFFFT build settings. Keep the installed H/pffft.h API intact. */
+/* Private PFFFT build settings and sample precision selection. */
 #ifndef CSOUND_PFFFT_H
 #define CSOUND_PFFFT_H
 

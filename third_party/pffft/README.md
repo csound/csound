@@ -11,6 +11,7 @@ Csound builds these through the wrappers in OOps. The wrappers select SIMD
 only when the target enables it and honour PFFFT_SIMD_DISABLE. They do not
 add AVX or WebAssembly SIMD requirements to a build.
 
-The installed H/pffft.h remains the legacy float API. Csound's private FFT
-adapter uses the float or double API to match its sample type. The default
+Csound's private adapter in H/pffft-csound.h uses the float or double API
+to match its sample type. The Windows installers still ship H/pffft.h for
+users of the legacy float API; the core no longer includes it. The default
 FFT remains Csound's original implementation.
