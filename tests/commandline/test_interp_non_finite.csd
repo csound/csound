@@ -32,14 +32,17 @@ opcode Recovers(name:S, sig:a, want:k, at:k):void
   endif
 endop
 
+; Checked in the k-period right after the bad one: a block that starts from
+; a value that is not finite begins on its input. Ending each block on its
+; input alone would leave this one NaN too, and recover a period later.
 instr Bad
   zero:k = 0
   nan:k = (timeinstk() == 2) ? zero / zero : 0.5
   inf:k = (timeinstk() == 2) ? 1 / zero : 0.5
-  Recovers("a() after a NaN", a(nan), 0.5, 4)
-  Recovers("a() after an infinity", a(inf), 0.5, 4)
-  Recovers("interp after a NaN", interp(nan), 0.5, 4)
-  Recovers("interp after an infinity", interp(inf), 0.5, 4)
+  Recovers("a() after a NaN", a(nan), 0.5, 3)
+  Recovers("a() after an infinity", a(inf), 0.5, 3)
+  Recovers("interp after a NaN", interp(nan), 0.5, 3)
+  Recovers("interp after an infinity", interp(inf), 0.5, 3)
 endin
 
 ; A ramp to a third, then held: each block began on the sum of the last
