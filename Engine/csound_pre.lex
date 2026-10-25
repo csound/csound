@@ -68,6 +68,9 @@ static void csound_pre_line(CSOUND *, CORFIL*, yyscan_t);
 static MACRO *find_definition(MACRO *, char *);
 
 #define S_INC (10)
+/* The longest #include or #includestr name, with its NUL: a longer one is
+   ignored, with the rest of its line. */
+#define INCLUDE_NAME_SIZE (1024)
 
 %}
 %option reentrant
@@ -760,24 +763,39 @@ int isDir(char *path) {
 int isDir(char *path) { return 0;}
 #endif
 
+/* The rest of a directive's line: to its newline, or to the end of the
+   text, where waiting for a newline alone never ended. */
+static void skip_line(yyscan_t yyscanner)
+{
+    int c;
+    do c = input(yyscanner); while (c != '\n' && c != EOF && c != '\0');
+}
+
 void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 {
-    char buffer[1024];
+    char buffer[INCLUDE_NAME_SIZE];
     int p=0;
     int c;
     CORFIL *cf;
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
     while ((c=input(yyscanner))!=term) {
-      if (c=='\n' || c==EOF || c=='\0' || p==1023) {
+      if (c=='\n' || c==EOF || c=='\0') {
         csound->Warning(csound, Str("Ill formed #include ignored\n"));
+        return;
+      }
+      if (UNLIKELY(p >= (int)sizeof(buffer) - 1)) {
+        csound->Warning(csound,
+                        Str("#include file name longer than %d bytes ignored\n"),
+                        (int)sizeof(buffer) - 1);
+        skip_line(yyscanner);
+        csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
         return;
       }
       buffer[p] = c;
       p++;
     }
     buffer[p] = '\0';
-    //printf("****buffer >>%s<<\n", buffer);
-    while ((c=input(yyscanner))!='\n');
+    skip_line(yyscanner);
     if (UNLIKELY(PARM->depth++>=1024)) {
       csound->Die(csound, Str("Includes nested too deeply\n"));
     }
@@ -788,11 +806,9 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including\n"), buffer);
     if (PARM->path && buffer[0]!= DIRSEP) { // if nested included directories
-      char tmp[1024];
+      char tmp[2*INCLUDE_NAME_SIZE];
       csound->DebugMsg(csound, "using path %s\n", PARM->path);
-      strncpy(tmp, PARM->path, 1023);
-      strcat(tmp, "/");
-      strncat(tmp, buffer, 1022-strlen(tmp));
+      snprintf(tmp, sizeof(tmp), "%s/%s", PARM->path, buffer);
       if ((cf = copy_to_corefile(csound, tmp, "INCDIR", 0))==NULL)
           cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     }
@@ -853,7 +869,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 
 void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
 {
-    char buffer[128];
+    char buffer[INCLUDE_NAME_SIZE];
     CORFIL *cf = csound->expanded_orc;
     int p = cf->p-2;
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
@@ -863,10 +879,17 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     while (cf->body[p]!='"') p--;
     //printf("*** name is >>%s<<\n", &cf->body[p]);
     cf->body[p] = '\0';
-    strncpy(buffer, &cf->body[p+1],127); buffer[127]='\0';
     cf->p = p;
-    //printf("****buffer >>%s<<\n", buffer);
-    while ((input(yyscanner))!='\n');
+    if (UNLIKELY(strlen(&cf->body[p+1]) >= sizeof(buffer))) {
+      csound->Warning(csound,
+                      Str("#include file name longer than %d bytes ignored\n"),
+                      (int)sizeof(buffer) - 1);
+      skip_line(yyscanner);
+      csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
+      return;
+    }
+    strcpy(buffer, &cf->body[p+1]);
+    skip_line(yyscanner);
     if (UNLIKELY(PARM->depth++>=1024)) {
       csound->Die(csound, Str("Includes nested too deeply\n"));
     }
@@ -877,10 +900,8 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including\n"), buffer);
     if (PARM->path && buffer[0]!=DIRSEP) {
-      char tmp[1024];
-      strncpy(tmp, PARM->path, 1023);
-      strcat(tmp, "/");
-      strncat(tmp, buffer, 1022-strlen(tmp));
+      char tmp[2*INCLUDE_NAME_SIZE];
+      snprintf(tmp, sizeof(tmp), "%s/%s", PARM->path, buffer);
       cf = copy_to_corefile(csound, tmp, "INCDIR", 0);
     }
     else cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
