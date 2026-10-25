@@ -215,7 +215,7 @@ NP              np[0-9]+
                   if (PARM->isString != 1)
                     PARM->isinclude = 1;
                   else
-                    corfile_puts(csound, yytext, csound->expanded_orc);
+                    corfile_puts(csound, yytext, PARM->cf);
                 }
 {INCLUDE}       {
                   if (PARM->isString != 1)
@@ -233,10 +233,13 @@ NP              np[0-9]+
                 }
 {EXIT}          {
                  //printf("exit found: >>>%s<<<\n", PARM->cf->body);
-                  corfile_putc(csound, '\0', PARM->cf);
-                  corfile_putc(csound, '\0', PARM->cf);
-                  delete_macros(csound, yyscanner);
-                  return 0;
+                  if (PARM->isString) corfile_puts(csound, yytext, PARM->cf);
+                  else {
+                    corfile_putc(csound, '\0', PARM->cf);
+                    corfile_putc(csound, '\0', PARM->cf);
+                    delete_macros(csound, yyscanner);
+                    return 0;
+                  }
                 }
 <<EOF>>         {
                   if (on_EOF(csound, yyscanner)==0) yyterminate();
@@ -452,30 +455,36 @@ NP              np[0-9]+
        }
 
 {LOOP} {
-          //printf("#loop found\n");
-          yypop_buffer_state(yyscanner);
-          PARM->depth--;
-          PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
-          /* printf("Loop structures: count = %d, name = %s, indx = %d\n", */
-          /*        PARM->repeat_cnt_n[PARM->repeat_index], */
-          /*        PARM->repeat_name_n[PARM->repeat_index], */
-          /*        PARM->repeat_indx[PARM->repeat_index]); */
-          if (++PARM->repeat_indx[PARM->repeat_index] !=
-              PARM->repeat_cnt_n[PARM->repeat_index]) {
-            snprintf(PARM->repeat_mm_n[PARM->repeat_index]->body, 16, "%d",
-                     PARM->repeat_indx[PARM->repeat_index]);
-            //printf(">>%s<<\n", PARM->cf_stack[PARM->repeat_index]->body);
-            PARM->depth++;
-            csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-            csound_prs_scan_string(PARM->cf_stack[PARM->repeat_index]->body,
-                                   yyscanner);
-          }
+          /* The marker "}" puts at the end of a repeat's body, which is
+             always read outside a string: inside one it is the string's
+             text, and popped the buffer it was in. */
+          if (PARM->isString) corfile_puts(csound, yytext, PARM->cf);
           else {
-            //printf("*** end loop\n");
-            //printf(">>%s<<\n", PARM->cf->body);
-            corfile_rm(csound, &PARM->cf_stack[PARM->repeat_index]);
-            PARM->repeat_index--;
-            PARM->macro_stack_ptr--;
+            //printf("#loop found\n");
+            yypop_buffer_state(yyscanner);
+            PARM->depth--;
+            PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
+            /* printf("Loop structures: count = %d, name = %s, indx = %d\n", */
+            /*        PARM->repeat_cnt_n[PARM->repeat_index], */
+            /*        PARM->repeat_name_n[PARM->repeat_index], */
+            /*        PARM->repeat_indx[PARM->repeat_index]); */
+            if (++PARM->repeat_indx[PARM->repeat_index] !=
+                PARM->repeat_cnt_n[PARM->repeat_index]) {
+              snprintf(PARM->repeat_mm_n[PARM->repeat_index]->body, 16, "%d",
+                       PARM->repeat_indx[PARM->repeat_index]);
+              //printf(">>%s<<\n", PARM->cf_stack[PARM->repeat_index]->body);
+              PARM->depth++;
+              csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+              csound_prs_scan_string(PARM->cf_stack[PARM->repeat_index]->body,
+                                     yyscanner);
+            }
+            else {
+              //printf("*** end loop\n");
+              //printf(">>%s<<\n", PARM->cf->body);
+              corfile_rm(csound, &PARM->cf_stack[PARM->repeat_index]);
+              PARM->repeat_index--;
+              PARM->macro_stack_ptr--;
+            }
           }
        }
 {ROP}  {

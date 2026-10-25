@@ -459,10 +459,16 @@ QNAN            "qnan"[ \t]*\(
                   do_include(csound, yytext[0], yyscanner);
                   BEGIN(INITIAL);
                 }
-#exit           { corfile_putc(csound, '\0', csound->expanded_orc);
-                  corfile_putc(csound, '\0', csound->expanded_orc);
-                  //delete_macros(csound, yyscanner);
-                  return 0;}
+#exit           {
+                  if (PARM->isString)
+                    corfile_puts(csound, yytext, csound->expanded_orc);
+                  else {
+                    corfile_putc(csound, '\0', csound->expanded_orc);
+                    corfile_putc(csound, '\0', csound->expanded_orc);
+                    //delete_macros(csound, yyscanner);
+                    return 0;
+                  }
+                }
 <<EOF>>         {
                   MACRO *y=NULL;
                   int n;
