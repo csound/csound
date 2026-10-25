@@ -72,6 +72,7 @@
 #include <time.h>
 
 int32_t init0(CSOUND *csound);
+int32_t init0_pending(CSOUND *csound);
 int32_t kperf(CSOUND *csound);
 void csound_close_audio(CSOUND *);
 int32_t csound_cleanup(CSOUND *);
@@ -747,6 +748,8 @@ static const CSOUND cenviron_ = {
     .instr0 = (INSTRTXT *) NULL,
     .dead_instr_pool = (INSTRTXT**)NULL,
     .dead_instr_no = 0,
+    .instr0_waiting = (INSTRTXT**)NULL,
+    .instr0_waiting_no = 0,
     .frstoff = NULL,
     .actanchor = {0},
     .typePool = (TYPE_POOL*)NULL,
@@ -1569,7 +1572,7 @@ cs_float csoundEvalCode(CSOUND *csound, const char *str)
   if (str && csound_compile_orc(csound,str,async)
       == CSOUND_SUCCESS){
     if(!(csound->engineStatus & CS_STATE_COMP)) {
-      init0(csound);
+      init0_pending(csound);
     }
       return csound->instr0->instance[0].retval;
     }

@@ -1895,6 +1895,17 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   cs_hash_table_merge(csound, current_state->constantsPool,
                       engineState->constantsPool);
   varpool_merge(csound, current_state, engineState->varPool);
+  /* An instr 0 replaced before it ran - a compilation's before the start -
+     waits for the start, which runs every compilation's global code in
+     order (init0_pending). */
+  if (current_state->instrtxtp[0] != NULL &&
+      current_state->instrtxtp[0]->instance == NULL) {
+    csound->instr0_waiting = (INSTRTXT **)
+      csound->ReAlloc(csound, csound->instr0_waiting,
+                      (csound->instr0_waiting_no + 1) * sizeof(INSTRTXT *));
+    csound->instr0_waiting[csound->instr0_waiting_no++] =
+      current_state->instrtxtp[0];
+  }
   /* merge opcodinfo */
   insert_instrtxt(csound, engineState->instrtxtp[0], 0, current_state, 1);
   for (i = 1; i < end; i++) {
@@ -2093,8 +2104,9 @@ static void merge_engine_state(CSOUND *csound, ENGINE_STATE *engineState,
 }
 
 static void run_merged_global_init(CSOUND *csound, OPDS *ids) {
-  /* run global i-time code */
-  init0(csound);
+  /* run global i-time code, which before the start waits for it */
+  if (csound->engineStatus & CS_STATE_COMP)
+    init0(csound);
   csound->ids = ids;
 }
 

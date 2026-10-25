@@ -450,8 +450,8 @@ int32_t start_engine(CSOUND *csound)
       return CSOUND_ERROR;
     }
 
-    /* run instr 0 inits */
-    if (UNLIKELY(init0(csound) != 0))
+    /* run instr 0 inits: those of every compilation so far, in order */
+    if (UNLIKELY(init0_pending(csound) != 0))
       csoundDie(csound, Str("header init errors\n"));
 
     /* open MIDI output (moved here from argdecode) */

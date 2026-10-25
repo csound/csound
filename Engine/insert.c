@@ -47,7 +47,8 @@ static int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn,
                            MEVENT *mep);
 static int32_t insert(CSOUND *csound, int32_t insno, EVTBLK *newevtp);
 static void maxalloc_turnoff(CSOUND *csound, int32_t insno);
-static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link);
+static INSDS *instantiate(CSOUND *csound, INSTRTXT *tp, int32_t insno,
+                          int32_t link);
 
 /* An instrument normally needs only a few entries, one per opcode family.
    Keep this list private so its representation can change without another
@@ -421,7 +422,7 @@ INSDS *allocate_or_take_instance(CSOUND *csound, INSTRTXT *tp,
      Do that work before taking the instance-list lock, then publish the
      completed instance in one short critical section. It is returned directly,
      so it never enters the free list. */
-  ip = instantiate(csound, insno, 0);
+  ip = instantiate(csound, tp, insno, 0);
   if (UNLIKELY(ip == NULL))
     return NULL;
 
@@ -1019,15 +1020,10 @@ uintptr_t event_insert_thread(void *p) {
   return (uintptr_t) NULL;
 }
 
-int32_t init0(CSOUND *csound)
+/* Runs one compilation's global code: an instance of its instr 0. */
+static int32_t init_instr0(CSOUND *csound, INSTRTXT *tp)
 {
-  INSTRTXT  *tp = (csound->engineState.instrtxtp != NULL)
-                    ? csound->engineState.instrtxtp[0] : NULL;
   INSDS     *ip;
-
-  if (UNLIKELY(tp == NULL))
-    return csound->InitError(csound, "%s\n",
-                             Str("instrument 0 is not compiled"));
 
   csound->curip = ip = allocate_or_take_instance(csound, tp, 0);
   if (UNLIKELY(ip == NULL))
@@ -1056,6 +1052,50 @@ int32_t init0(CSOUND *csound)
   }
   csound->mode = 0;
   return csound->inerrcnt;                        /*   return errcnt      */
+}
+
+static INSTRTXT *current_instr0(CSOUND *csound)
+{
+  return (csound->engineState.instrtxtp != NULL)
+           ? csound->engineState.instrtxtp[0] : NULL;
+}
+
+/* Runs the latest compilation's global code. */
+int32_t init0(CSOUND *csound)
+{
+  INSTRTXT  *tp = current_instr0(csound);
+
+  if (UNLIKELY(tp == NULL))
+    return csound->InitError(csound, "%s\n",
+                             Str("instrument 0 is not compiled"));
+  return init_instr0(csound, tp);
+}
+
+/* Runs the global code of every compilation that has not run yet, oldest
+   first: at the start, or for csoundEvalCode before it. A compilation
+   before the start leaves its global code to the start and replaces
+   instr 0, and the one it replaces waits in instr0_waiting
+   (enginestate_merge). */
+int32_t init0_pending(CSOUND *csound)
+{
+  INSTRTXT  *tp;
+  int32_t   errors = 0;
+
+  if (UNLIKELY(current_instr0(csound) == NULL))
+    return csound->InitError(csound, "%s\n",
+                             Str("instrument 0 is not compiled"));
+  while (csound->instr0_waiting_no > 0) {
+    tp = csound->instr0_waiting[0];
+    csound->instr0_waiting_no--;
+    memmove(csound->instr0_waiting, csound->instr0_waiting + 1,
+            csound->instr0_waiting_no * sizeof(INSTRTXT *));
+    errors += init_instr0(csound, tp);
+  }
+  /* Global code can compile more, and csoundEvalCode can have run this. */
+  tp = current_instr0(csound);
+  if (tp->instance == NULL)
+    errors += init_instr0(csound, tp);
+  return errors;
 }
 
 static int32_t print_opcall(CSOUND *csound, TEXT *tp)
@@ -2847,9 +2887,9 @@ void recycle_udo_instance(CSOUND *csound, INSDS *ip)
   deact(csound, ip);
 }
 
-static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
+static INSDS *instantiate(CSOUND *csound, INSTRTXT *tp, int32_t insno,
+                          int32_t link)
 {
-  INSTRTXT  *tp;
   INSDS     *ip;
   OPTXT     *optxt;
   OPDS      *opds, *prvids, *prvpds, *prvpdd;
@@ -2864,7 +2904,6 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
   int32_t   odebug = csoundGetDebug(csound) & DEBUG_RUNTIME;
   CS_VARIABLE* current;
 
-  tp = csound->engineState.instrtxtp[insno];
   n = 3;
   if (O->midiKey>n) n = O->midiKey;
   if (O->midiKeyCps>n) n = O->midiKeyCps;
@@ -3049,7 +3088,7 @@ static INSDS *instantiate(CSOUND *csound, int32_t insno, int32_t link)
 }
 
 INSDS *instance(CSOUND *csound, int32_t insno) {
-  return instantiate(csound, insno, 1);
+  return instantiate(csound, csound->engineState.instrtxtp[insno], insno, 1);
 }
 
 /**
@@ -3074,7 +3113,7 @@ INSDS *create_instance(CSOUND *csound, int32_t insno)
   INSDS     *ip;
 
   // create instance but don't link into act_instance chain
-  ip = instantiate(csound, insno, 0);
+  ip = instantiate(csound, csound->engineState.instrtxtp[insno], insno, 0);
   if(ip != NULL) {
     ip->init_done = 0;
     ip->insno = (int16_t) insno;
