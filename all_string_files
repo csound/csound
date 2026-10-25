@@ -84,7 +84,6 @@
 ./H/new_opts.h
 ./H/oload.h
 ./H/oscils.h
-./H/pffft.h
 ./H/prototyp.h
 ./H/remote.h
 ./H/resize.h
