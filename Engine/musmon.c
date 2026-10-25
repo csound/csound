@@ -1758,10 +1758,14 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
       evt->p3orig = (cs_float) ((cs_double) evt->p3orig / st->ibeatTime);
     /* fall through */
   case 'q':                         /* mute instrument */
-    /* check for a valid instrument number or name */
+    /* check for a valid instrument number or name: a name not found is 0,
+       which in p1 would be a note for instr 0, the global code run again */
     if (evt->opcod=='d') {
       if (evt->strarg != NULL && IsStringCode(pf[1])) {
-        i = (int32_t) named_instr_find(csound, evt->strarg);
+        cs_float n = named_instr_find(csound, evt->strarg);
+        if (UNLIKELY(n == FL(0.0)))
+          goto missing_name;
+        i = (int32_t) n;
         pf[1] = -i;
       }
       else {
@@ -1771,6 +1775,8 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     }
     else if (evt->strarg != NULL && IsStringCode(pf[1])) {
       cs_float n = named_instr_find(csound, evt->strarg);
+      if (UNLIKELY(n == FL(0.0)))
+        goto missing_name;
       pf[1] = n;
       i =(int32_t) n;
       if (n<0) {i= -i;}
@@ -1833,6 +1839,9 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
 
   return 0;
 
+ missing_name:
+  csoundErrorMsg(csound, Str("event: instrument %s undefined\n"), evt->strarg);
+  goto err_return;
  pfld_err:
   csoundErrorMsg(csound, Str("event insert: insufficient p-fields\n"));
  err_return:
