@@ -9,6 +9,8 @@ namespace {
 class AlignedAllocationTests : public ::testing::Test {
 protected:
     CSOUND *csound;
+    INSDS instance {};
+    AUXCH aux {};
 
     void SetUp() override {
         csound = csoundCreate(nullptr, nullptr);
@@ -62,15 +64,15 @@ TEST_F(AlignedAllocationTests, ReallocPreservesAlignmentAndContents)
 
 TEST_F(AlignedAllocationTests, AuxiliaryBufferHonoursAChangedAlignment)
 {
-    INSDS instance {};
-    AUXCH aux {};
     csound->curip = &instance;
     csound->AuxAlloc(csound, 80, &aux);
 
     // Choose an alignment the existing buffer does not already have.
     size_t alignment = 32;
-    while (reinterpret_cast<uintptr_t>(aux.auxp) % alignment == 0)
+    while (reinterpret_cast<uintptr_t>(aux.auxp) % alignment == 0) {
+        ASSERT_LE(alignment, std::numeric_limits<size_t>::max() / 2);
         alignment *= 2;
+    }
     memset(aux.auxp, 0x5a, 80);
     csound->AuxAllocAligned(csound, 80, alignment, &aux);
     EXPECT_EQ(0u, reinterpret_cast<uintptr_t>(aux.auxp) % alignment);
@@ -105,32 +107,92 @@ TEST_F(AlignedAllocationTests, OrdinaryReallocStillPreservesContents)
 TEST_F(AlignedAllocationTests, RejectsInvalidAlignmentAndSizeOverflow)
 {
     const size_t maxSize = std::numeric_limits<size_t>::max();
-    const size_t requests[][2] = {{80, 0}, {80, 3}, {80, maxSize},
+    const size_t requests[][2] = {{80, 0}, {80, 3}, {0, 0}, {0, 3}, {80, maxSize},
                                  {maxSize, 64}};
     for (const auto &request : requests) {
         // Allocation errors use Csound's normal longjmp exit path.
-        int result = setjmp(csound->exitjmp);
-        if (result == 0) {
+        if (setjmp(csound->exitjmp) == 0) {
             void *data = csound->CallocAligned(csound, request[0], request[1]);
             csound->Free(csound, data);
+            FAIL() << "CallocAligned accepted an invalid request";
         }
-        EXPECT_NE(0, result);
+        csound->engineStatus &= ~CS_STATE_JMP;
+    }
+}
+
+TEST_F(AlignedAllocationTests, FailedAuxiliaryAllocationKeepsTheOldBuffer)
+{
+    csound->curip = &instance;
+    csound->AuxAllocAligned(csound, 80, 64, &aux);
+    void *previous = aux.auxp;
+    memset(previous, 0x5a, 80);
+    const size_t requests[][2] = {{80, 0}, {80, 3}, {81, 3},
+                                 {std::numeric_limits<size_t>::max(), 64}};
+    for (const auto &request : requests) {
+        if (setjmp(csound->exitjmp) == 0) {
+            csound->AuxAllocAligned(csound, request[0], request[1], &aux);
+            FAIL() << "AuxAllocAligned accepted an invalid request";
+        }
+        csound->engineStatus &= ~CS_STATE_JMP;
+        ASSERT_EQ(previous, aux.auxp);
+        EXPECT_EQ(80u, aux.size);
+        EXPECT_EQ(static_cast<char *>(previous) + 80, aux.endp);
+        EXPECT_EQ(&aux, instance.auxchp);
+        EXPECT_EQ(nullptr, aux.nxtchp);
+        for (size_t i = 0; i < 80; ++i)
+            EXPECT_EQ(0x5a, static_cast<unsigned char *>(aux.auxp)[i]);
+    }
+}
+
+TEST_F(AlignedAllocationTests, FailedAuxiliaryAllocationDoesNotLinkAnEmptyBuffer)
+{
+    csound->curip = &instance;
+    if (setjmp(csound->exitjmp) == 0) {
+        csound->AuxAllocAligned(csound, 80, 3, &aux);
+        FAIL() << "AuxAllocAligned accepted an invalid alignment";
+    }
+    csound->engineStatus &= ~CS_STATE_JMP;
+    EXPECT_EQ(nullptr, instance.auxchp);
+    EXPECT_EQ(nullptr, aux.auxp);
+    EXPECT_EQ(nullptr, aux.endp);
+    EXPECT_EQ(0u, aux.size);
+}
+
+TEST_F(AlignedAllocationTests, OrdinaryAllocationsRejectSizeOverflow)
+{
+    for (auto allocate : {csound->Malloc, csound->Calloc}) {
+        if (setjmp(csound->exitjmp) == 0) {
+            void *data = allocate(csound, std::numeric_limits<size_t>::max());
+            csound->Free(csound, data);
+            FAIL() << "Allocation accepted a size that overflows";
+        }
         csound->engineStatus &= ~CS_STATE_JMP;
     }
 }
 
 TEST_F(AlignedAllocationTests, FailedReallocLeavesTheOldBlockUsable)
 {
-    auto *data = static_cast<unsigned char *>(
-        csound->CallocAligned(csound, 80, 64));
-    memset(data, 0x5a, 80);
-    int result = setjmp(csound->exitjmp);
-    if (result == 0)
-        csound->ReAlloc(csound, data, std::numeric_limits<size_t>::max());
-    ASSERT_NE(0, result);
-    csound->engineStatus &= ~CS_STATE_JMP;
-    for (size_t i = 0; i < 80; ++i) EXPECT_EQ(0x5a, data[i]);
-    csound->Free(csound, data);
+    for (bool aligned : {false, true}) {
+        auto *data = static_cast<unsigned char *>(aligned
+            ? csound->CallocAligned(csound, 80, 4096)
+            : csound->Malloc(csound, 80));
+        memset(data, 0x5a, 80);
+        const size_t maxSize = std::numeric_limits<size_t>::max();
+        // The second request fits the ordinary header but not aligned padding.
+        const size_t requests[] = {maxSize, aligned ? maxSize - 128 : maxSize - 1};
+        for (size_t size : requests) {
+            if (setjmp(csound->exitjmp) == 0) {
+                csound->ReAlloc(csound, data, size);
+                FAIL() << "ReAlloc accepted a size that overflows";
+            }
+            csound->engineStatus &= ~CS_STATE_JMP;
+            for (size_t i = 0; i < 80; ++i) EXPECT_EQ(0x5a, data[i]);
+        }
+        // A valid resize must still work after the rejected request.
+        data = static_cast<unsigned char *>(csound->ReAlloc(csound, data, 160));
+        for (size_t i = 0; i < 80; ++i) EXPECT_EQ(0x5a, data[i]);
+        csound->Free(csound, data);
+    }
 }
 
 TEST_F(AlignedAllocationTests, ResetReleasesMixedAllocations)

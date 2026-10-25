@@ -102,9 +102,15 @@ typedef struct memAllocBlock_s {
 
 /* Keep the data offset a multiple of 16 as the private header grows. */
 #define HDR_SIZE    (((size_t) sizeof(memAllocBlock_t) + 15) & (~(size_t)15))
-#define ALLOC_BYTES(n)  (((size_t) HDR_SIZE + (size_t) (n) + MALIGN) & (~ MALIGN))
 #define DATA_PTR(p) ((void*) ((unsigned char*) (p) + (int32_t) HDR_SIZE))
 #define HDR_PTR(p)  ((memAllocBlock_t*) ((unsigned char*) (p) - (int32_t) HDR_SIZE))
+
+/* Zero signals overflow. Even a zero-byte request needs its header. */
+static size_t alloc_bytes(size_t size)
+{
+    if (UNLIKELY(size > SIZE_MAX - HDR_SIZE - MALIGN)) return 0;
+    return (HDR_SIZE + size + MALIGN) & ~(size_t)MALIGN;
+}
 
 /* Only aligned blocks need a stored size and alignment for ReAlloc. This
    record lives at base, before the padding and the regular block header. */
@@ -112,19 +118,29 @@ typedef struct {
     size_t size, align;
 } alignedAllocInfo_t;
 
-static memAllocBlock_t *alloc_aligned(size_t size, size_t align)
+static size_t aligned_alloc_bytes(size_t size, size_t align)
+{
+    const size_t overhead = sizeof(alignedAllocInfo_t) + HDR_SIZE;
+
+    if (UNLIKELY(align == 0 || (align & (align - 1)) != 0)) return 0;
+    /* The header also needs alignment, even for a one-byte data request. */
+    if (align < 16) align = 16;
+    if (UNLIKELY(align - 1 > SIZE_MAX - overhead ||
+                 size > SIZE_MAX - overhead - (align - 1))) return 0;
+    return overhead + align - 1 + size;
+}
+
+static memAllocBlock_t *alloc_aligned(size_t size, size_t align, size_t bytes)
 {
     const size_t overhead = sizeof(alignedAllocInfo_t) + HDR_SIZE;
     alignedAllocInfo_t *base;
     memAllocBlock_t *block;
     uintptr_t data;
 
-    if (UNLIKELY(align == 0 || (align & (align - 1)) != 0)) return NULL;
-    /* The header also needs alignment, even for a one-byte data request. */
+    /* bytes comes from aligned_alloc_bytes, which also checks align. */
+    if (UNLIKELY(bytes == 0)) return NULL;
     if (align < 16) align = 16;
-    if (UNLIKELY(align - 1 > SIZE_MAX - overhead ||
-                 size > SIZE_MAX - overhead - (align - 1))) return NULL;
-    base = CS_CALLOC(overhead + align - 1 + size, 1);
+    base = CS_CALLOC(bytes, 1);
     if (UNLIKELY(base == NULL)) return NULL;
 
     base->size = size;
@@ -240,7 +256,7 @@ static void memdie(CSOUND *csound, size_t nbytes)
     CSOUND_WASI_COMPILE_JUMP *context = csoundWasiCompileJumpContext(csound);
     if (context != NULL) context->enabled = 0;
 #endif
-    csound->ErrorMsg(csound, Str("memory allocate failure for %zd \n"),
+    csound->ErrorMsg(csound, Str("memory allocate failure for %zu \n"),
                              nbytes);
     csound->LongJmp(csound, CSOUND_MEMORY);
 }
@@ -248,6 +264,7 @@ static void memdie(CSOUND *csound, size_t nbytes)
 void *csoundMalloc(CSOUND *csound, size_t size)
 {
     void  *p;
+    size_t bytes = alloc_bytes(size);
 
 #ifdef MEMDEBUG
     if (UNLIKELY(size == (size_t) 0)) {
@@ -257,9 +274,10 @@ void *csoundMalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = CS_MALLOC(ALLOC_BYTES(size))) == NULL)) {
+    if (UNLIKELY(bytes == 0 || (p = CS_MALLOC(bytes)) == NULL)) {
         csound->ErrorMsg(csound, Str("Malloc failed: "));
         memdie(csound, size);     /* does a long jump */
+        return NULL;
     }
     /* link into chain */
     ((memAllocBlock_t*) p)->base = p;
@@ -292,6 +310,7 @@ void *csoundMalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
 void *csoundCalloc(CSOUND *csound, size_t size)
 {
     void  *p;
+    size_t bytes = alloc_bytes(size);
 
 #ifdef MEMDEBUG
     if (UNLIKELY(size == (size_t) 0)) {
@@ -301,9 +320,10 @@ void *csoundCalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = CS_CALLOC(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
+    if (UNLIKELY(bytes == 0 || (p = CS_CALLOC(bytes, (size_t) 1)) == NULL)) {
       csound->ErrorMsg(csound, Str("Calloc failed: "));
       memdie(csound, size);     /* does longjump */
+      return NULL;
     }
     /* link into chain */
     ((memAllocBlock_t*) p)->base = p;
@@ -334,16 +354,18 @@ void *csoundCalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
 
 void *csoundCallocAligned(CSOUND *csound, size_t size, size_t align) {
     void  *p;
+    size_t bytes = aligned_alloc_bytes(size, align);
 
 #ifdef MEMDEBUG
-    if (UNLIKELY(size == (size_t) 0)) {
+    /* Invalid requests must still fail before the zero-size shortcut. */
+    if (UNLIKELY(size == (size_t) 0 && bytes != 0)) {
       csound->DebugMsg(csound,
               " *** internal error: csound->Calloc() called with zero nbytes\n");
       return NULL;
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = alloc_aligned(size, align)) == NULL)) {
+    if (UNLIKELY((p = alloc_aligned(size, align, bytes)) == NULL)) {
       csound->ErrorMsg(csound, Str("CallocAligned failed: "));
       memdie(csound, size);     /* does longjump */
       return NULL;
@@ -427,11 +449,19 @@ void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
 {
     memAllocBlock_t *pp;
     void            *p;
+    size_t bytes;
 
     if (UNLIKELY(oldp == NULL))
       return csoundMalloc(csound, size);
     if (UNLIKELY(size == (size_t) 0)) {
       csoundFree(csound, oldp);
+      return NULL;
+    }
+    /* Reject overflow before locking or changing the live block's header. */
+    bytes = alloc_bytes(size);
+    if (UNLIKELY(bytes == 0)) {
+      csound->ErrorMsg(csound, Str("Realloc failed: "));
+      memdie(csound, size);
       return NULL;
     }
     pp = HDR_PTR(oldp);
@@ -453,12 +483,13 @@ void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
 #endif
     /* allocate memory */
     if (pp->base == pp) {
-      p = CS_REALLOC((void*) pp, ALLOC_BYTES(size));
+      p = CS_REALLOC((void*) pp, bytes);
       if (p != NULL) ((memAllocBlock_t*)p)->base = p;
     }
     else {
       alignedAllocInfo_t *info = (alignedAllocInfo_t*)pp->base;
-      memAllocBlock_t *newblock = alloc_aligned(size, info->align);
+      memAllocBlock_t *newblock = alloc_aligned(
+          size, info->align, aligned_alloc_bytes(size, info->align));
       p = newblock;
       if (newblock != NULL) {
         void *base = newblock->base;
