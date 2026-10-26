@@ -19,10 +19,13 @@ Engine engine(int passes, bool dump = false) {
     Engine cs(csoundCreate(nullptr, nullptr), csoundDestroy);
     csoundCreateMessageBuffer(cs.get(), 0);
     EXPECT_EQ(0, csoundSetOption(cs.get(), "-n -d -m4"));
-    EXPECT_EQ(0, passes & ~(CSOUND_OPT_LEGACY | CSOUND_OPT_COPY_REMOVAL));
+    EXPECT_EQ(0, passes & ~(CSOUND_OPT_LEGACY | CSOUND_OPT_CONSTANT_FOLDING |
+                          CSOUND_OPT_COPY_REMOVAL));
     EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize=none"));
     if (passes & CSOUND_OPT_LEGACY)
         EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-legacy"));
+    if (passes & CSOUND_OPT_CONSTANT_FOLDING)
+        EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-constant-folding"));
     if (passes & CSOUND_OPT_COPY_REMOVAL)
         EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-copy-removal"));
     if (dump) EXPECT_EQ(0, csoundSetOption(cs.get(), "--verbose=0x200"));
@@ -333,8 +336,13 @@ TEST(OrcOptimizer, NamedOptionsComposeAndSupportAllAndNone) {
         {"--optimize=none", 0},
         {"--optimize=copy-removal,legacy,copy-removal", 5},
         {"--optimize=none", 0},
-        {"--optimize=all", 5},
-        {"--optimize-copy-removal --optimize-legacy", 5},
+        {"--optimize=constant-folding", 2},
+        {"--optimize-copy-removal", 6},
+        {"--optimize-legacy", 7},
+        {"--optimize=none", 0},
+        {"--optimize=legacy,constant-folding", 3},
+        {"--optimize=all", 7},
+        {"--optimize-copy-removal --optimize-legacy", 7},
         {"--optimize=all --optimize=none --optimize-legacy", 1}
     };
     for (const auto &test : cases) {
@@ -356,7 +364,11 @@ TEST(OrcOptimizer, InvalidNamesLeaveTheSelectionUnchanged) {
                               "--optimize=,legacy", "--optimize=legacy,,copy-removal",
                               "--optimize=all,legacy", "--optimize=none,legacy",
                               "--optimize-legacy,copy-removal", "--optimize=3",
-                              "--optimize-copy-removal=0"}) {
+                              "--optimize-copy-removal=0",
+                              "--optimize=constant-folding,unknown",
+                              "--optimize=legacy,,constant-folding",
+                              "--optimize-legacy,constant-folding",
+                              "--optimize-constant-folding=0"}) {
         SCOPED_TRACE(option);
         EXPECT_NE(0, csoundSetOption(cs.get(), option));
         EXPECT_EQ(1, *selection);
@@ -367,7 +379,7 @@ TEST(OrcOptimizer, InvalidNamesLeaveTheSelectionUnchanged) {
                                                : "optimization name"));
     }
     EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize=all"));
-    EXPECT_EQ(5, *selection);
+    EXPECT_EQ(7, *selection);
 }
 
 TEST(OrcOptimizer, MissingSettingsReportAnOptionError) {

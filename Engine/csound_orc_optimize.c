@@ -947,7 +947,7 @@ TREE *csound_orc_optimize(CSOUND *csound, TREE *root, TYPE_TABLE *types)
       csound->Message(csound, "ORC-OPT end\n");
     }
     if (passes & CSOUND_OPT_LEGACY) root = optimize_legacy(csound, root);
-    if (passes & 2)
+    if (passes & CSOUND_OPT_CONSTANT_FOLDING)
       root = fold_scalar_literals(csound, root, types->instr0LocalPool);
     if (passes & CSOUND_OPT_COPY_REMOVAL) remove_scalar_copies(csound, root);
     if (dump) {

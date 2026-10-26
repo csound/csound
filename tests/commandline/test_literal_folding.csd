@@ -1,6 +1,6 @@
 <CsTest>
 description = "Literal folding keeps note inputs, branches and division warnings"
-args = ["-n", "-d", "-m4", "--orc-opt-passes=3"]
+args = ["-n", "-d", "-m4", "--optimize=constant-folding"]
 [expect]
 exit = 0
 output = ["first=15 second=30", "first=15 second=20", "Division by zero"]

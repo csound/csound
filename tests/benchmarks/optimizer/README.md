@@ -32,6 +32,7 @@ Per-engine options (experimental):
 - `--optimize=none` disables the optional passes.
 - `--optimize=legacy` or `--optimize-legacy` enables the existing TREE pass.
   This is the default.
+- `--optimize=constant-folding` or `--optimize-constant-folding` enables constant folding.
 - `--optimize=copy-removal` or `--optimize-copy-removal` enables scalar copy removal.
 - `--optimize=legacy,copy-removal` enables both named passes.
 - `--optimize=all` enables every pass implemented in this build.
