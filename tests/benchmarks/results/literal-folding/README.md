@@ -98,13 +98,18 @@ CSOUND7RC=/dev/null python3 tests/benchmarks/literal_folding.py \
 On Linux prefix the command with `taskset -c 14` after setting the environment
 variable, or choose another available CPU. Repeat with `--voices 1` for the
 single-note comparison. Add `--case literal512` for the repeated large case.
+Each worker has a five-minute timeout. Use `--timeout SECONDS` for slower
+builds. A timeout stops the run and leaves its report marked incomplete.
 
 The runner saves sources, dumps, audio hashes, messages, raw pairs, build flags
 and library hashes in its JSON report. Keep generated reports and charts outside
 the repository.
 
-To draw charts, save the 128-note reports from macOS and Linux to the paths below
-and install Matplotlib in a temporary environment. Run from this folder.
+To draw charts, use complete reports from macOS and Linux with 128 notes,
+21 measured pairs and all four cases in the default order. Focused `--case`
+runs and other counts cannot use this fixed chart layout. The script rejects
+them before writing charts. Install Matplotlib in a temporary environment
+and run from this folder.
 
 ```sh
 python3 plot.py /tmp/literal-folding-charts \

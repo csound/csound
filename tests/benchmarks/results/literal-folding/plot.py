@@ -133,6 +133,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
     DATA = {"macos-double": json.loads(args.macos_report.read_text()),
             "linux-double": json.loads(args.linux_report.read_text())}
+    expected_cases = ["musical", "dynamic64", "literal64", "literal512"]
+    for host, report in DATA.items():
+        metadata = report.get("metadata", {})
+        rows = report.get("results", [])
+        if (report.get("complete") is not True
+                or metadata.get("voices") != 128
+                or metadata.get("repeats") != 21
+                or [row.get("case") for row in rows] != expected_cases
+                or any(len(row.get("pairs", [])) != 21 for row in rows)):
+            parser.error(
+                f"{host} report must be complete, with 128 voices, 21 pairs "
+                "per case, and all four cases in the recorded order")
     output = args.output
     output.mkdir(parents=True, exist_ok=True)
     timing(output)

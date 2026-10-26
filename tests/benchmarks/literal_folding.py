@@ -99,14 +99,17 @@ def main():
     parser.add_argument("--output", type=Path)
     parser.add_argument("--repeats", type=int, default=21)
     parser.add_argument("--warmups", type=int, default=3)
+    parser.add_argument("--timeout", type=float, default=300,
+                        help="maximum seconds per worker (default: 300)")
     parser.add_argument("--voices", type=int, default=128)
     parser.add_argument("--case", choices=("musical", "dynamic64", "literal64", "literal512"))
     parser.add_argument("--passes", type=int, choices=(1, 3), default=1)
     parser.add_argument("--worker", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--capture", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if args.voices < 1 or args.voices > 1024 or args.repeats < 1 or args.warmups < 0:
-        parser.error("invalid counts")
+    if (args.voices < 1 or args.voices > 1024 or args.repeats < 1 or args.warmups < 0
+            or not 0 < args.timeout < float("inf")):
+        parser.error("invalid counts or worker timeout")
     if args.worker:
         if not args.case:
             parser.error("worker needs a case")
@@ -121,15 +124,27 @@ def main():
                    "--passes", str(passes), "--voices", str(args.voices)]
         if capture:
             command.append("--capture")
-        return json.loads(subprocess.check_output(command, text=True))
+        try:
+            return json.loads(subprocess.check_output(
+                command, text=True, timeout=args.timeout))
+        except subprocess.TimeoutExpired:
+            parser.error(f"{case} worker with pass mask {passes} exceeded "
+                         f"{args.timeout:g} seconds")
 
     root = Path(__file__).resolve().parents[2]
-    git = lambda *a: subprocess.check_output(["git", "-C", str(root), *a], text=True).strip()
+    def git(*arguments):
+        try:
+            return subprocess.check_output(
+                ["git", "-C", str(root), *arguments], text=True, timeout=30).strip()
+        except subprocess.TimeoutExpired:
+            parser.error("git metadata command exceeded 30 seconds")
+
     report = {"complete": False, "metadata": {
         "command": sys.argv, "platform": platform.platform(),
         "python": sys.version, "revision": git("rev-parse", "HEAD"),
         "diff": git("diff", "HEAD"), "sample_rate": 48000, "ksmps": 64,
         "voices": args.voices, "repeats": args.repeats, "warmups": args.warmups,
+        "worker_timeout_seconds": args.timeout,
         "library_sha256": hashlib.sha256(args.library.read_bytes()).hexdigest(),
         "cmake_cache": (args.build_dir / "CMakeCache.txt").read_text(),
         "compile_commands": [e for e in json.loads(
@@ -139,6 +154,7 @@ def main():
                         ("CSOUND7RC", "OPCODE7DIR64", "OPCODE7DIR")},
         "affinity": sorted(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else None,
     }, "results": []}
+    args.output.write_text(json.dumps(report, indent=2) + "\n")
     lib = library(args.library)
     for case in ([args.case] if args.case else ["musical", "dynamic64", "literal64", "literal512"]):
         print(case, file=sys.stderr)

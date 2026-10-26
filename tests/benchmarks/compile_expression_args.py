@@ -17,6 +17,8 @@ from pathlib import Path
 import statistics
 import time
 
+from optimizer_bench import optimizer_options
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -76,9 +78,9 @@ def main():
                 if lib.csoundSetOption(csound, b"-n -d -m0") != 0:
                     raise RuntimeError("csoundSetOption failed")
                 if args.passes is not None:
-                    option = b"--optimize=none" if args.passes == 0 else b"--optimize-legacy"
-                    if lib.csoundSetOption(csound, option):
-                        raise RuntimeError("optimizer option failed")
+                    for option in optimizer_options(args.passes):
+                        if lib.csoundSetOption(csound, option.encode()):
+                            raise RuntimeError("optimizer option failed")
                     controls = lib.csoundQueryGlobalVariable(csound, b"__orc_optimizer")
                     if not controls or controls[0] != args.passes:
                         raise RuntimeError("optimizer option was not applied")
