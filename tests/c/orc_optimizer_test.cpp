@@ -7,6 +7,7 @@ extern "C" {
 #include "csound_orc.h"
 #include "new_orc_parser.h"
 }
+#include "csound_standard_types.h"
 #include "gtest/gtest.h"
 #include <cstring>
 #include <cmath>
@@ -25,7 +26,7 @@ Engine engine(int passes, bool dump = false) {
     EXPECT_EQ(0, csoundSetOption(cs.get(), "-n -d -m4"));
     EXPECT_EQ(0, passes & ~(CSOUND_OPT_LEGACY | CSOUND_OPT_CONSTANT_FOLDING |
                           CSOUND_OPT_COPY_REMOVAL | CSOUND_OPT_CSE |
-                          CSOUND_OPT_AUDIO_MUL_ADD));
+                          CSOUND_OPT_UNUSED_TEMPORARY_REMOVAL | CSOUND_OPT_AUDIO_MUL_ADD));
     EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize=none"));
     if (passes & CSOUND_OPT_LEGACY)
         EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-legacy"));
@@ -37,6 +38,8 @@ Engine engine(int passes, bool dump = false) {
         EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-common-subexpression-elimination"));
     if (passes & CSOUND_OPT_AUDIO_MUL_ADD)
         EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-audio-mul-add"));
+    if (passes & CSOUND_OPT_UNUSED_TEMPORARY_REMOVAL)
+        EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-unused-temporary-removal"));
     if (dump) EXPECT_EQ(0, csoundSetOption(cs.get(), "--verbose=0x200"));
     return cs;
 }
@@ -131,7 +134,7 @@ int32_t traceDeinit(CSOUND *cs, void *) {
 }
 
 TEST(OrcOptimizer, UdoPreservesObservableLifecycle) {
-    for (int pass : {0, 1, 9}) {
+    for (int pass : {0, 1, 9, 17, 63}) {
         std::string trace;
         auto cs = engine(pass);
         csoundSetHostData(cs.get(), &trace);
@@ -214,7 +217,7 @@ TEST(OrcOptimizer, RecordsExpectedNonzeroExitAndStopsRendering) {
 
 TEST(OrcOptimizer, StableDumpsAndLiteralOperationsRemain) {
     std::string reference;
-    for (int pass : {0, 1, 9}) {
+    for (int pass : {0, 1, 9, 17, 63}) {
         auto cs = engine(pass, true);
         std::string source = header(16) +
             "instr 1\nkx = (2+3)*4\nif kx > 1 then\nkx += 1\nendif\nendin\n";
@@ -248,7 +251,7 @@ instr 1
 endin
 )";
     std::string reference;
-    for (int pass : {0, 1, 9}) {
+    for (int pass : {0, 1, 9, 17, 63}) {
         auto cs = engine(pass, true);
         std::string source = header(16) + body;
         ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
@@ -288,7 +291,7 @@ instr 1
 endin
 )";
     std::string reference;
-    for (int pass : {0, 1, 9}) {
+    for (int pass : {0, 1, 9, 17, 63}) {
         auto cs = engine(pass, true);
         std::string source = header(16) + body;
         ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
@@ -362,8 +365,12 @@ TEST(OrcOptimizer, NamedOptionsComposeAndSupportAllAndNone) {
         {"--optimize=none", 0},
         {"--optimize=legacy,common-subexpression-elimination", 9},
         {"--optimize-audio-mul-add", 41},
-        {"--optimize=all", 47},
-        {"--optimize-constant-folding --optimize-legacy", 47},
+        {"--optimize=none", 0},
+        {"--optimize-unused-temporary-removal", 16},
+        {"--optimize-copy-removal", 20},
+        {"--optimize-legacy", 21},
+        {"--optimize=all", 63},
+        {"--optimize-copy-removal --optimize-legacy", 63},
         {"--optimize=all --optimize=none --optimize-legacy", 1}
     };
     for (const auto &test : cases) {
@@ -404,7 +411,7 @@ TEST(OrcOptimizer, InvalidNamesLeaveTheSelectionUnchanged) {
                                                : "optimization name"));
     }
     EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize=all"));
-    EXPECT_EQ(47, *selection);
+    EXPECT_EQ(63, *selection);
 }
 
 TEST(OrcOptimizer, MissingSettingsReportAnOptionError) {
@@ -468,8 +475,7 @@ TEST(OrcOptimizer, VerboseMaskSelectsOptimizerDumps) {
 }
 
 TEST(OrcOptimizer, ParseCompileDeleteAndInvalidInput) {
-    for (int pass = 0; pass < 48; ++pass) {
-        if (pass & 16) continue; // Slot pruning is a separate pass and PR.
+    for (int pass = 0; pass < 64; ++pass) {
         auto cs = engine(pass);
         ASSERT_EQ(0, csoundCompileOrc(cs.get(), header(16).c_str(), 0));
         for (int i = 0; i < 20; ++i) {
@@ -1256,6 +1262,302 @@ TEST(OrcOptimizer, FusionKeepsUdoAndGlobalAudioUnchanged) {
         EXPECT_EQ(std::string::npos, messages(cs.get()).find("op ##muladd.aka"));
         identical(render(1, 16, body), render(33, 16, body));
     }
+}
+
+
+// Model the lowered-tree rewrite made by scalar copy removal. The producer now
+// writes the named result, but its old temporary still belongs to the pool.
+// This keeps the storage tests independent of expression rewrites.
+std::string redirectResult(CSOUND *cs, TREE *scope, const char *name) {
+    for (TREE *node = scope->right; node && node->next; node = node->next) {
+        TREE *copy = node->next;
+        if (!node->left || !node->left->value || !copy->left ||
+            !copy->left->value || !copy->right || !copy->right->value ||
+            std::strcmp(copy->left->value->lexeme, name) ||
+            std::strcmp(node->left->value->lexeme, copy->right->value->lexeme))
+            continue;
+        std::string temporary = node->left->value->lexeme;
+        EXPECT_EQ('#', temporary[0]);
+        csoundDeleteTree(cs, node->left);
+        node->left = copy->left;
+        copy->left = nullptr;
+        node->next = copy->next;
+        copy->next = nullptr;
+        csoundDeleteTree(cs, copy);
+        return temporary;
+    }
+    ADD_FAILURE() << "No generated result/copy pair for " << name;
+    return {};
+}
+
+TREE *firstInstrument(TREE *tree) {
+    for (TREE *scope = tree->next; scope; scope = scope->next)
+        if (scope->type == INSTR_TOKEN) return scope;
+    return nullptr;
+}
+
+void pruneTree(CSOUND *cs, TREE *tree) {
+    auto *passes = static_cast<int32_t *>(csoundQueryGlobalVariable(cs, "__orc_optimizer"));
+    if (!(*passes & 16))
+        ASSERT_EQ(0, csoundSetOption(cs, "--optimize-unused-temporary-removal"));
+    csound_orc_optimize(cs, tree->next, static_cast<TYPE_TABLE *>(tree->markup));
+}
+
+TEST(OrcOptimizer, PruningCompactsRewrittenInstrumentSlots) {
+    for (char rate : {'i', 'k', 'a'}) {
+        SCOPED_TRACE(rate);
+        auto cs = engine(0);
+        const std::string r(1, rate);
+        const auto source = header(64) + "instr 1\n" + r + "Input=2\n" +
+            r + "Result=(" + r + "Input+1)*2\naOut=" + r + "Result\nout aOut\nendin\n";
+        TREE *tree = csoundParseOrc(cs.get(), source.c_str());
+        ASSERT_NE(nullptr, tree);
+        TREE *scope = firstInstrument(tree);
+        ASSERT_NE(nullptr, scope);
+        auto *pool = static_cast<CS_VAR_POOL *>(scope->markup);
+        const auto temporary = redirectResult(cs.get(), scope, (r + "Result").c_str());
+        ASSERT_FALSE(temporary.empty());
+        auto *removed = csoundFindVariableWithName(cs.get(), pool, temporary.c_str());
+        ASSERT_NE(nullptr, removed);
+        const int slotBytes = (removed->memBlockSize + sizeof(void *) - 1) /
+                              sizeof(void *) * sizeof(void *);
+        const int oldSize = pool->poolSize, oldCount = pool->varCount;
+        pruneTree(cs.get(), tree);
+        EXPECT_EQ(nullptr, csoundFindVariableWithName(cs.get(), pool, temporary.c_str()));
+        EXPECT_EQ(oldSize - slotBytes, pool->poolSize);
+        EXPECT_EQ(oldCount - 1, pool->varCount);
+        EXPECT_EQ(pool->varCount, pool->table->count);
+        int count = 0;
+        CS_VARIABLE *last = nullptr;
+        for (auto *var = pool->head; var; var = var->next) {
+            EXPECT_EQ(var, csoundFindVariableWithName(cs.get(), pool, var->varName));
+            EXPECT_GT(var->memBlockIndex, 0);
+            last = var;
+            ++count;
+        }
+        EXPECT_EQ(count, pool->varCount);
+        EXPECT_EQ(last, pool->tail);
+        // Repeating the pass must not change the pool again.
+        pruneTree(cs.get(), tree);
+        EXPECT_EQ(oldSize - slotBytes, pool->poolSize);
+        ASSERT_EQ(0, csoundCompileTree(cs.get(), tree, 0));
+        csoundDeleteTree(cs.get(), tree);
+        ASSERT_EQ(0, csoundStart(cs.get()));
+        csoundEventString(cs.get(), "i 1 0 1\ni 1 0 1", 0);
+        for (int block = 0; block < 4; ++block) {
+            ASSERT_EQ(0, csoundPerformKsmps(cs.get()));
+            for (int sample = 0; sample < 64; ++sample)
+                EXPECT_EQ(FL(12), csoundGetSpout(cs.get())[sample]);
+        }
+    }
+}
+
+TEST(OrcOptimizer, PruningKeepsReferencesInOtherRegionsAndMetadata) {
+    for (int reference : {0, 1, 2, 3}) {
+        auto cs = engine(0);
+        const auto source = header(16) +
+            "instr 1\niResult=(2+1)*2\nkCount init 0\n"
+            "later:\nkCount=kCount+1\nendin\n";
+        TREE *tree = csoundParseOrc(cs.get(), source.c_str());
+        ASSERT_NE(nullptr, tree);
+        TREE *scope = firstInstrument(tree);
+        auto *pool = static_cast<CS_VAR_POOL *>(scope->markup);
+        const auto temporary = redirectResult(cs.get(), scope, "iResult");
+        auto *var = csoundFindVariableWithName(cs.get(), pool, temporary.c_str());
+        ASSERT_NE(nullptr, var);
+        const int count = pool->varCount;
+        TREE *last = scope->right;
+        while (last->next) last = last->next;
+        if (reference == 0 || reference == 3) {
+            // A performance-time read after a label still needs the init slot.
+            cs->Free(cs.get(), last->right->value->lexeme);
+            const auto name = temporary + (reference == 3 ? ".member" : "");
+            last->right->value->lexeme = csoundStrdup(cs.get(), name.c_str());
+        } else if (reference == 1) {
+            // Opaque leaf metadata may retain a binding outside the name walk.
+            last->right->markup = var;
+        } else {
+            // An extra hash key can make a variable escape under another name.
+            cs_hash_table_put(cs.get(), pool->table, const_cast<char *>("alias"), var);
+        }
+        pruneTree(cs.get(), tree);
+        EXPECT_EQ(var, csoundFindVariableWithName(cs.get(), pool, temporary.c_str()));
+        EXPECT_EQ(count, pool->varCount);
+        if (reference == 1) last->right->markup = nullptr;
+        if (reference == 2) {
+            char *key = cs_hash_table_get_key(cs.get(), pool->table, const_cast<char *>("alias"));
+            cs_hash_table_remove(cs.get(), pool->table, const_cast<char *>("alias"));
+            cs->Free(cs.get(), key);
+        }
+        csoundDeleteTree(cs.get(), tree);
+    }
+}
+
+TEST(OrcOptimizer, PruningLeavesNamedAggregateAndOwnedVariables) {
+    auto cs = engine(0);
+    TREE *tree = csoundParseOrc(cs.get(), (header(16) +
+        "instr 1\niUnused=2\nkValues[] fillarray 1,2\nendin\n").c_str());
+    ASSERT_NE(nullptr, tree);
+    auto *pool = static_cast<CS_VAR_POOL *>(firstInstrument(tree)->markup);
+    // Unknown ownership, malformed names and nonnumeric types are retained.
+    for (const char *name : {"#i900", "#i901", "#i902", "#i903", "#i904", "#i_reserved"}) {
+        auto *v = csoundCreateVariable(cs.get(), csoundGetTypePool(cs.get()),
+            &CS_VAR_TYPE_I, const_cast<char *>(name), nullptr);
+        ASSERT_EQ(0, csoundAddVariable(cs.get(), pool, v));
+        if (!strcmp(name, "#i900")) v->refCount = 1;
+        if (!strcmp(name, "#i901")) v->ctx = reinterpret_cast<INSDS *>(1);
+        if (!strcmp(name, "#i902")) v->dimensions = 1;
+        if (!strcmp(name, "#i903")) v->subType = &CS_VAR_TYPE_I;
+        if (!strcmp(name, "#i904")) v->memBlock = reinterpret_cast<CS_VAR_MEM *>(1);
+    }
+    auto *string = csoundCreateVariable(cs.get(), csoundGetTypePool(cs.get()),
+        &CS_VAR_TYPE_S, const_cast<char *>("#S905"), nullptr);
+    ASSERT_EQ(0, csoundAddVariable(cs.get(), pool, string));
+    const int count = pool->varCount;
+    pruneTree(cs.get(), tree);
+    EXPECT_EQ(count, pool->varCount);
+    ASSERT_NE(nullptr, csoundFindVariableWithName(cs.get(), pool, "iUnused"));
+    ASSERT_NE(nullptr, csoundFindVariableWithName(cs.get(), pool, "kValues"));
+    csoundFindVariableWithName(cs.get(), pool, "#i901")->ctx = nullptr;
+    csoundFindVariableWithName(cs.get(), pool, "#i904")->memBlock = nullptr;
+    csoundDeleteTree(cs.get(), tree);
+}
+
+TEST(OrcOptimizer, PruningSurvivesLocalKsmpsReinitAndLiveReplacement) {
+    auto cs = engine(0);
+    ASSERT_EQ(0, csoundCompileOrc(cs.get(), header(64).c_str(), 0));
+    const char *body = "instr 1\nsetksmps 8\nkCount init 0\nkCount += 1\n"
+        "if kCount == 2 then\nreinit again\nendif\nagain:\n"
+        "iInput = p4\niResult = (iInput+1)*2\nrireturn\n"
+        "aOut = iResult\nout aOut\nendin\n";
+    // Keep the first template unpruned, then replace it while its note lives.
+    ASSERT_EQ(0, csoundCompileOrc(cs.get(), body, 0));
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize-unused-temporary-removal"));
+    ASSERT_EQ(0, csoundStart(cs.get()));
+    csoundEventString(cs.get(), "i 1 0 1 2", 0);
+    ASSERT_EQ(0, csoundPerformKsmps(cs.get()));
+    auto *old = cs->engineState.instrtxtp[1];
+    const int oldSize = old->varPool->poolSize, oldCount = old->varPool->varCount;
+    auto *oldInstance = old->instance;
+    ASSERT_NE(nullptr, oldInstance);
+    auto *oldStorage = oldInstance->lclbas;
+    TREE *tree = csoundParseOrc(cs.get(), body);
+    ASSERT_NE(nullptr, tree);
+    auto name = redirectResult(cs.get(), firstInstrument(tree), "iResult");
+    ASSERT_FALSE(name.empty());
+    pruneTree(cs.get(), tree);
+    ASSERT_EQ(0, csoundCompileTree(cs.get(), tree, 0));
+    csoundDeleteTree(cs.get(), tree);
+    EXPECT_NE(old, cs->engineState.instrtxtp[1]);
+    EXPECT_EQ(oldSize, old->varPool->poolSize);
+    EXPECT_EQ(oldCount, old->varPool->varCount);
+    EXPECT_EQ(oldStorage, oldInstance->lclbas);
+    csoundEventString(cs.get(), "i 1 0 1 3", 0);
+    for (int block = 0; block < 8; ++block) {
+        ASSERT_EQ(0, csoundPerformKsmps(cs.get()));
+        for (int sample = 0; sample < 64; ++sample)
+            EXPECT_EQ(FL(14), csoundGetSpout(cs.get())[sample]);
+    }
+}
+
+TEST(OrcOptimizer, PruningPreservesDebuggerNamedValuesAndLines) {
+    auto cs = engine(0);
+    TREE *tree = csoundParseOrc(cs.get(), (header(16) +
+        "instr 1\niInput=2\niResult=(iInput+1)*2\naOut=iResult\nout aOut\nendin\n").c_str());
+    ASSERT_NE(nullptr, tree);
+    ASSERT_FALSE(redirectResult(cs.get(), firstInstrument(tree), "iResult").empty());
+    pruneTree(cs.get(), tree);
+    ASSERT_EQ(0, csoundCompileTree(cs.get(), tree, 0));
+    csoundDeleteTree(cs.get(), tree);
+    ASSERT_EQ(0, csoundStart(cs.get()));
+    csoundEventString(cs.get(), "i 1 0 1", 0);
+    csoundDebuggerInit(cs.get());
+    int hits = 0;
+    csoundSetBreakpointCallback(cs.get(), [](CSOUND *, debug_bkpt_info_t *info, void *data) {
+        ++*static_cast<int *>(data);
+        ASSERT_NE(nullptr, info->currentOpcode);
+        EXPECT_EQ(10, info->currentOpcode->line);
+        bool found = false;
+        for (auto *v = info->instrVarList; v; v = v->next) {
+            if (!strcmp(v->name, "iResult")) {
+                EXPECT_EQ(FL(6), *static_cast<cs_float *>(v->data));
+                found = true;
+            }
+        }
+        EXPECT_TRUE(found);
+    }, &hits);
+    csoundSetBreakpoint(cs.get(), 10, 1, 0);
+    ASSERT_EQ(0, csoundPerformKsmps(cs.get()));
+    EXPECT_EQ(1, hits);
+    csoundDebuggerClean(cs.get());
+}
+
+TEST(OrcOptimizer, PruningHandlesEmptyPoolAndKeepsNameCounter) {
+    auto cs = engine(0);
+    TREE *tree = csoundParseOrc(cs.get(), (header(16) + "instr 1\nendin\n").c_str());
+    ASSERT_NE(nullptr, tree);
+    auto *pool = static_cast<CS_VAR_POOL *>(firstInstrument(tree)->markup);
+    ASSERT_EQ(0, pool->varCount);
+    for (const char *name : {"#i0", "#k1", "#a2"}) {
+        const CS_TYPE *type = name[1] == 'i' ? &CS_VAR_TYPE_I :
+                              name[1] == 'k' ? &CS_VAR_TYPE_K : &CS_VAR_TYPE_A;
+        auto *var = csoundCreateVariable(cs.get(), csoundGetTypePool(cs.get()),
+                                        type, const_cast<char *>(name), nullptr);
+        ASSERT_EQ(0, csoundAddVariable(cs.get(), pool, var));
+    }
+    pool->synthArgCount = 3;
+    // Without the opt-in bit, even proven unused generated slots stay allocated.
+    csound_orc_optimize(cs.get(), tree->next, static_cast<TYPE_TABLE *>(tree->markup));
+    EXPECT_EQ(3, pool->varCount);
+    pruneTree(cs.get(), tree);
+    EXPECT_EQ(0, pool->varCount);
+    EXPECT_EQ(0, pool->table->count);
+    EXPECT_EQ(0, pool->poolSize);
+    EXPECT_EQ(nullptr, pool->head);
+    EXPECT_EQ(nullptr, pool->tail);
+    EXPECT_EQ(3, pool->synthArgCount);
+    csoundDeleteTree(cs.get(), tree);
+}
+
+TEST(OrcOptimizer, PruningLeavesGlobalUdoAndParentPoolsAlone) {
+    auto cs = engine(0);
+    TREE *tree = csoundParseOrc(cs.get(), (header(16) +
+        "opcode Value,i,0\niValue=1\nxout iValue\nendop\ninstr 1\nendin\n").c_str());
+    ASSERT_NE(nullptr, tree);
+    auto *types = static_cast<TYPE_TABLE *>(tree->markup);
+    auto *instrument = static_cast<CS_VAR_POOL *>(firstInstrument(tree)->markup);
+    CS_VAR_POOL *udo = nullptr;
+    for (auto *node = tree->next; node; node = node->next)
+        if (node->type == UDO_TOKEN) udo = static_cast<CS_VAR_POOL *>(node->markup);
+    ASSERT_NE(nullptr, udo);
+    instrument->parent = types->instr0LocalPool;
+    for (auto *pool : {types->globalPool, types->instr0LocalPool, udo, instrument}) {
+        auto *var = csoundCreateVariable(cs.get(), csoundGetTypePool(cs.get()),
+                                        &CS_VAR_TYPE_I, const_cast<char *>("#i999"), nullptr);
+        ASSERT_EQ(0, csoundAddVariable(cs.get(), pool, var));
+    }
+    pruneTree(cs.get(), tree);
+    for (auto *pool : {types->globalPool, types->instr0LocalPool, udo, instrument})
+        EXPECT_NE(nullptr, cs_hash_table_get(cs.get(), pool->table, const_cast<char *>("#i999")));
+    instrument->parent = nullptr;
+    csoundDeleteTree(cs.get(), tree);
+}
+
+TEST(OrcOptimizer, NamedPassSelectionAccumulatesAndRejectsInvalidLists) {
+    auto cs = engine(0);
+    auto *passes = static_cast<int32_t *>(csoundQueryGlobalVariable(cs.get(), "__orc_optimizer"));
+    for (const char *option : {"--optimize=unused-temporary-removal", "--optimize-legacy"})
+        ASSERT_EQ(0, csoundSetOption(cs.get(), option));
+    EXPECT_EQ(17, *passes);
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize=none"));
+    EXPECT_EQ(0, *passes);
+    for (const char *option : {"--optimize=legacy,wrong", "--optimize=legacy,",
+                              "--optimize=", "--optimize-wrong"}) {
+        EXPECT_NE(0, csoundSetOption(cs.get(), option));
+        EXPECT_EQ(0, *passes);
+    }
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize=all"));
+    EXPECT_EQ(63, *passes);
 }
 
 } // namespace

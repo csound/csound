@@ -23,7 +23,8 @@ DEBUG_OPTIMIZER = 0x200
 def optimizer_options(passes):
     # Keep numeric labels in the benchmark data, but use the public named options.
     names = {1: "legacy", 2: "constant-folding", 4: "copy-removal",
-             8: "common-subexpression-elimination", 32: "audio-mul-add"}
+             8: "common-subexpression-elimination", 16: "unused-temporary-removal",
+             32: "audio-mul-add"}
     if passes < 0 or passes & ~sum(names):
         raise ValueError(f"unsupported optimizer mask {passes}")
     return ["--optimize=none"] + [
