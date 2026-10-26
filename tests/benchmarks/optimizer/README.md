@@ -61,6 +61,31 @@ auxiliary storage, dynamic arrays, nested UDO instance totals, or peak RSS. They
 must not be described as measured total instance allocation. Dumps are diagnostic,
 not a public interchange format, and are excluded from timed runs.
 
+## When unused-result cleanup is needed
+
+Removing a generated calculation and reclaiming its variable-pool slot are
+separate changes. A simplification can unlink the opcode while leaving its slot
+allocated. Compare the instruction chains as well as the storage counts before
+adding another cleanup pass.
+
+Start with an actual producer that an earlier pass leaves without a consumer.
+Count reads across the whole scope, including initialization, performance,
+branches and reinit. A use in another phase still keeps the result live. For a
+chain of unused producers, deleting a consumer can make its inputs unused too.
+A work queue can handle that without repeatedly scanning the whole scope.
+
+Only remove generated results from resolved built-ins whose complete lifecycle
+has no observable effects. An unused return value does not make a warning,
+failure, random-state change, allocation or init/deinit action disposable.
+Preserve named assignments and unknown, plugin and UDO calls. A spelling such as
+`##add` is not proof of which implementation was resolved.
+
+For the performance comparison, keep the earlier simplification enabled on both
+sides and toggle only cleanup. Show the leftover chain and the callbacks removed,
+then compare output and ordered diagnostics. If the earlier pass already unlinks
+its redundant producers, there is no execution cost for cleanup to remove. Keep
+this follow-up pending until a concrete case exists.
+
 ## Paired throughput matrix
 
 On macOS this build produces a framework; on other systems use the shared-library
