@@ -19,14 +19,18 @@ static void report_library(void)
 #ifdef _WIN32
   HMODULE module;
   char path[32768];
+  HMODULE linked = GetModuleHandleA(CSOUND_BENCH_DLL);
+  FARPROC create = linked ? GetProcAddress(linked, "csoundCreate") : NULL;
+  if (!create) exit(1);
   if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
                          GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                         (LPCSTR)csoundCreate, &module)) exit(1);
+                         (LPCSTR)create, &module)) exit(1);
   DWORD size = GetModuleFileNameA(module, path, sizeof(path));
   if (!size || size >= sizeof(path)) exit(1);
 #else
   Dl_info info;
-  if (!dladdr((void *)csoundCreate, &info) || !info.dli_fname) exit(1);
+  void *create = dlsym(RTLD_DEFAULT, "csoundCreate");
+  if (!create || !dladdr(create, &info) || !info.dli_fname) exit(1);
   const char *path = info.dli_fname;
 #endif
   fprintf(stderr, "CSOUND_BENCH_LIBRARY %s\n", path);
