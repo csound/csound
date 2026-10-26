@@ -1610,12 +1610,15 @@ class Csound:
             ct.c_int32(async_))
 
     def async_status(self):
-        """The status of the last async request of event, event_string or a
-        table copy.
+        """The status of the last async request of event, event_string or
+        the score an async compile_csd queues.
 
-        CSOUND_SUCCESS if the API queue took it, CSOUND_ERROR if the queue
-        could not and it was dropped. Success means queued, not yet run.
-        Async requests from several threads share it.
+        CSOUND_SUCCESS if the API queue took it, CSOUND_ERROR if it was
+        dropped. Success means queued, not yet run. One status serves the
+        instance, whichever thread makes the request: a host sending from
+        several threads pairs each request with its check under a lock - one
+        its message callback can take again, since a rejection's warning may
+        reach that callback inside the rejected call.
         """
         return libcsound.csoundGetAsyncStatus(self.cs)
 

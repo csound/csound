@@ -1911,7 +1911,6 @@ struct CSOUND_ {
   volatile long msg_queue_write;                             /* reserved API queue positions */
   volatile long msg_queue_read;                              /* consumed API queue positions */
   volatile long msg_queue_warned;                            /* queue rejection reported since reset */
-  volatile long msg_queue_status;                            /* the last async request's, csoundGetAsyncStatus */
   char *delayederrormessages;                                /* queued error messages */
   void *printerrormessagesflag;                              /* deferred error printing flag */
   OSC_MESS osc_message_anchor;                               /* anchored OSC message storage */
@@ -1963,6 +1962,7 @@ struct CSOUND_ {
   uint32_t readlineRequestId;                                /* readline request identifier */
   void *wasi_realtime_api;                                   /* browser control worker, stopped before cleanup */
   int32_t wasi_channel_lock;                                /* shared Wasm channel registry spinlock */
+  volatile long msg_queue_status;                           /* the last async request's, csoundGetAsyncStatus */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

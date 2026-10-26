@@ -435,7 +435,11 @@ An async request the API queue has no room for is dropped. Call
 `csoundGetAsyncStatus()` after it to know: `CSOUND_SUCCESS` if it was
 queued, `CSOUND_ERROR` if it was dropped. It reports the last async request
 of `csoundEvent()`, `csoundEventString()`, `csoundTableCopyIn()` or
-`csoundTableCopyOut()`; success means queued, not yet run.
+`csoundTableCopyOut()`, or the score an async `csoundCompileCSD()` queues;
+success means queued, not yet run. One status
+serves the instance, whichever thread makes the request, Csound's UDP
+server included: a host sending from several threads pairs each request
+with its check under a lock.
 
 During performance, both `csoundEvent()` and `csoundEventString()`
 treat the start time as relative to the current time: the value is
