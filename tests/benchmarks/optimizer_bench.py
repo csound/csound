@@ -168,7 +168,7 @@ def main():
     parser.add_argument("--repeats", type=int, default=21)
     parser.add_argument("--warmups", type=int, default=3)
     parser.add_argument("--live-compile", action="store_true",
-                        help="separate live compilation experiment; excludes local-ksmps UDO fixture")
+                        help="separate live compilation experiment")
     parser.add_argument("--block-times", action="store_true",
                         help="separate block timing experiment; at least 10000 blocks")
     args = parser.parse_args()
@@ -184,8 +184,6 @@ def main():
         if set(args.cases) - known:
             parser.error(f"unknown cases: {set(args.cases)-known}")
         files = [f for f in files if f.stem in args.cases]
-    if args.live_compile and any(f.stem == "udo" for f in files):
-        parser.error("live compilation with active local-ksmps UDOs crashes the reference; select other cases")
     lib = library(args.library)
     root = Path(__file__).resolve().parents[2]
     git = lambda *a: subprocess.check_output(["git", "-C", str(root), *a], text=True).strip()

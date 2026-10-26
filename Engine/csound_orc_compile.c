@@ -1533,6 +1533,14 @@ static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
 }
 
 
+/* Numbered instruments and UDOs share one table. Neither kind of growth may
+   shrink storage reserved for the other. Both maxima are inclusive indices. */
+static size_t instrtxtp_alloc_size(const ENGINE_STATE *state) {
+  int32_t last = state->maxinsno > state->maxopcno
+                   ? state->maxinsno : state->maxopcno;
+  return ((size_t)last + 1) * sizeof(INSTRTXT *);
+}
+
 /**
    assign instrument numbers to all named instruments
 */
@@ -1594,7 +1602,7 @@ void named_instr_assign_numbers(CSOUND *csound,
           engineState->maxinsno += MAXINSNO; /* Expand */
           engineState->instrtxtp = (INSTRTXT **)
             csound->ReAlloc(csound, engineState->instrtxtp,
-                            (1 + engineState->maxinsno) * sizeof(INSTRTXT *));
+                            instrtxtp_alloc_size(engineState));
           /* Array expected to be nulled so.... */
           while (++m <= engineState->maxinsno)
             engineState->instrtxtp[m] = NULL;
@@ -1666,7 +1674,7 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
     }
     engineState->instrtxtp = (INSTRTXT **)
       csound->ReAlloc(csound, engineState->instrtxtp,
-                      (1 + engineState->maxinsno) * sizeof(INSTRTXT *));
+                      instrtxtp_alloc_size(engineState));
     /* Array expected to be nulled so.... */
     for (i = old_maxinsno + 1; i <= engineState->maxinsno; i++) {
       engineState->instrtxtp[i] = NULL;
@@ -1751,15 +1759,22 @@ static void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
       /* we may need to expand the instrument array */
       if (UNLIKELY(++num > engineState->maxopcno)) {
         int32_t i;
-        i = (engineState->maxopcno > 0 ? engineState->maxopcno
-             : engineState->maxinsno);
+        /* Numbered instruments may have grown past the old UDO capacity. */
+        i = (engineState->maxopcno > engineState->maxinsno
+             ? engineState->maxopcno : engineState->maxinsno);
         engineState->maxopcno = i + MAXINSNO;
         engineState->instrtxtp = (INSTRTXT **)
           csound->ReAlloc(csound, engineState->instrtxtp,
-                          (1 + engineState->maxopcno) * sizeof(INSTRTXT *));
+                          instrtxtp_alloc_size(engineState));
         /* Array expected to be nulled so.... */
         while (++i <= engineState->maxopcno)
           engineState->instrtxtp[i] = NULL;
+      }
+      /* A live compile can relocate UDOs. Active and reusable frames must
+         follow their template so deactivation and p-field lookup stay valid. */
+      if (inm->instno != num && inm->ip != NULL) {
+        for (INSDS *ip = inm->ip->instance; ip != NULL; ip = ip->nxtinstance)
+          ip->insno = (int16_t) num;
       }
       inm->instno = num;
       if(csound->GetDebug(csound) & DEBUG_COMPILER)
