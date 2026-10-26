@@ -452,7 +452,7 @@ typedef struct {
     int32_t temporaries, labels, operations, init, perf, deinit;
 } ORC_DUMP;
 
-static void dump_name(CSOUND *csound, ORC_DUMP *dump, const char *name)
+static void dump_name(CSOUND *csound, ORC_DUMP *dump, char *name)
 {
     int temporary = name[0] == '#';
     int label = !strncmp(name, "__synthetic_", 12);
