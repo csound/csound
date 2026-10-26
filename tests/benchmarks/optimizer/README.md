@@ -271,7 +271,7 @@ lower activation time.
 CSE reuses resolved built-in scalar addition, subtraction and multiplication
 inside instruments. It compares the exact implementation, ordered operands and
 execution phase. Writes invalidate saved inputs or results. Calls, labels,
-jumps and phase changes end reuse. It leaves globals, UDO bodies, audio, arrays,
+jumps, compound assignments such as `+=`, and phase changes end reuse. It leaves globals, UDO bodies, audio, arrays,
 structs, division and overloaded operations alone.
 
 The first version only removes a generated result with one definition and all
@@ -292,7 +292,8 @@ CSOUND7RC=/dev/null taskset -c 14 python3 tests/benchmarks/scalar_cse_bench.py \
 ```
 
 Each generated expression is `(input + offset) * 0.75 - 0.25`. Its result goes
-into a sum that controls an oscillator. Repeated cases use one offset. `--unique`
+into `sum = sum + value`, which controls an oscillator. Explicit addition keeps
+this within the initial allowlist, while `sum += value` would end reuse. Repeated cases use one offset. `--unique`
 uses a distinct offset for each expression as a negative control. Also run
 `--expressions 0`, `--expressions 32`, and `--rate i` to separate steady control
 work from note initialization.

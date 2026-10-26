@@ -114,8 +114,8 @@ int main(int argc, char **argv)
                      "instr 1\n%cInput init p4\n%cSum=0\n", rate, rate);
   for (int i = 0; i < expressions; i++)
     used += sprintf(source + used,
-        "%cValue%d=(%cInput+%.12f)*0.75-0.25\n%cSum+=%cValue%d\n",
-        rate, i, rate, .125 + (unique ? i / 4096.0 : 0), rate, rate, i);
+        "%cValue%d=(%cInput+%.12f)*0.75-0.25\n%cSum=%cSum+%cValue%d\n",
+        rate, i, rate, .125 + (unique ? i / 4096.0 : 0), rate, rate, rate, i);
   sprintf(source + used, "aTone oscili .0001, 220+%cSum*.001\nout aTone\nendin\n", rate);
   CSOUND *csound = csoundCreate(NULL, "");
   if (!csound) return 1;

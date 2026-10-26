@@ -38,6 +38,7 @@ def main():
         result = subprocess.run(invocation, env=environment, check=True,
                                 capture_output=True)
         marker, messages = result.stderr.split(b"\n", 1)
+        marker = marker.rstrip(b"\r")
         prefix = b"CSOUND_BENCH_LIBRARY "
         if not marker.startswith(prefix):
             raise RuntimeError("native runner did not report its loaded library")
