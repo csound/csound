@@ -103,6 +103,8 @@ extern "C" {
      DEBUG_OPCODES = 0x80,
      /* parcs messages. */
      DEBUG_PARCS = 0x100,
+     /* normalized optimizer trees, templates and counters (explicit opt-in). */
+     DEBUG_OPTIMIZER = 0x200,
      /* all messages. */
      DEBUG_FULL = 0x7FFFFFFF
    } DEBUG_STATUS;

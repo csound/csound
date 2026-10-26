@@ -1012,7 +1012,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   }
   /* -v */
   else if (!strncmp(s, "verbose", 7)) {
-    O->odebug = DEBUG_FULL;
+    /* Optimizer comparison dumps require an explicit numeric mask. */
+    O->odebug = DEBUG_FULL & ~DEBUG_OPTIMIZER;
     if (strlen(s) > 7) {
       s += 7;
       if (*s == '=' || *s == ':' || *s == ' ')
@@ -1498,7 +1499,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             /* verbose level, "0x" prefix means hexadecimal */
             s += parse_odebug(s, &(O->odebug));
           } else
-            O->odebug = 0xFFFFFFF; /* full verbose  */
+            O->odebug = 0xFFFFFFF & ~DEBUG_OPTIMIZER; /* explicit opt-in dumps */
           break;
         case 'm':
           FIND(Str("no message level\n"));
