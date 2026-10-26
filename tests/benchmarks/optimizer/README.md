@@ -52,6 +52,8 @@ Operands carry their resolved metadata types, such as `control:k`, `values:k[]`,
 and `1:c`, alongside the registration signature (which may contain wildcards).
 `p` denotes a p-field and `?` denotes unavailable type metadata; types are read
 without rerunning semantic analysis.
+TREE dumps preserve structured member references (including nested read/write
+bindings such as `thing.field.value`) instead of leaving an empty operand slot.
 TREE phases are provisional. `phase=resolved` follows UDO rate classification.
 Callback presence is not a proof of purity or actual execution count. Storage
 metrics describe variable-pool/template payloads, not allocator overhead, opcode

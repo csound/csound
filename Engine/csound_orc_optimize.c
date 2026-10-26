@@ -476,6 +476,16 @@ static CS_VARIABLE *dump_variable(CSOUND *csound, ORC_DUMP *dump, char *name)
     return var;
 }
 
+static void dump_variable_type(CSOUND *csound, CS_VARIABLE *var)
+{
+    const CS_TYPE *actual = var && var->varType == &CS_VAR_TYPE_ARRAY
+                             ? var->subType : var ? var->varType : NULL;
+    char *display = csoundFormatTypeName(csound,
+        actual ? actual->varTypeName : NULL, var ? var->dimensions : 0);
+    csound->Message(csound, ":%s", display);
+    csound->Free(csound, display);
+}
+
 static void dump_type(CSOUND *csound, ORC_DUMP *dump, char *name)
 {
     const char *type = NULL;
@@ -489,19 +499,20 @@ static void dump_type(CSOUND *csound, ORC_DUMP *dump, char *name)
       return;
     }
     CS_VARIABLE *var = dump_variable(csound, dump, name);
-    if (var) {
-      const CS_TYPE *actual = var->varType == &CS_VAR_TYPE_ARRAY
-                               ? var->subType : var->varType;
-      char *display = csoundFormatTypeName(csound,
-          actual ? actual->varTypeName : NULL, var->dimensions);
-      csound->Message(csound, ":%s", display);
-      csound->Free(csound, display);
-    }
+    if (var) dump_variable_type(csound, var);
     else csound->Message(csound, ":%s", is_pfield_name(name) ? "p" : "?");
 }
 
 static void dump_name(CSOUND *csound, ORC_DUMP *dump, char *name)
 {
+    char *member = *name == '#' ? strchr(name, '.') : NULL;
+    if (member) {
+      char *base = cs_strndup(csound, name, member - name);
+      dump_name(csound, dump, base);
+      csound->Message(csound, "%s", member);
+      csound->Free(csound, base);
+      return;
+    }
     int temporary = name[0] == '#';
     int label = !strncmp(name, "__synthetic_", 12);
     if (temporary || label) {
@@ -537,14 +548,57 @@ static void dump_end(CSOUND *csound, ORC_DUMP *dump)
     cs_hash_table_free(csound, dump->names);
 }
 
+/* Preserve the reference shape without populating cached struct markup. */
+static void dump_tree_reference(CSOUND *csound, ORC_DUMP *dump, TREE *arg)
+{
+    if (arg->type == STRUCT_EXPR) {
+      dump_tree_reference(csound, dump, arg->left);
+      for (TREE *member = arg->right; member; member = member->next) {
+        csound->Message(csound, ".");
+        dump_tree_reference(csound, dump, member);
+      }
+    }
+    else if (arg->type == T_ARRAY) {
+      dump_tree_reference(csound, dump, arg->left);
+      csound->Message(csound, "[");
+      for (TREE *index = arg->right; index; index = index->next) {
+        dump_tree_reference(csound, dump, index);
+        if (index->next) csound->Message(csound, ",");
+      }
+      csound->Message(csound, "]");
+    }
+    else if (arg->value) dump_name(csound, dump, arg->value->lexeme);
+    else csound->Message(csound, "<node:%d>", arg->type);
+}
+
+static CS_VARIABLE *dump_tree_variable(CSOUND *csound, ORC_DUMP *dump, TREE *arg)
+{
+    if (arg->type == STRUCT_EXPR) {
+      CS_VARIABLE *var = dump_tree_variable(csound, dump, arg->left);
+      const CS_TYPE *container = var ? var->varType : NULL;
+      if (container == &CS_VAR_TYPE_ARRAY && arg->left->type == T_ARRAY)
+        container = var->subType;
+      for (TREE *member = arg->right; container && member; member = member->next) {
+        var = getStructMember(container->members, member->value->lexeme);
+        container = var ? var->varType : NULL;
+      }
+      return var;
+    }
+    if (arg->type == T_ARRAY) return dump_tree_variable(csound, dump, arg->left);
+    return arg->value ? dump_variable(csound, dump, arg->value->lexeme) : NULL;
+}
+
 static void dump_tree_args(CSOUND *csound, ORC_DUMP *dump, TREE *args,
                            int32_t typed)
 {
     csound->Message(csound, "[");
     for (; args; args = args->next) {
-      if (args->value) {
-        dump_name(csound, dump, args->value->lexeme);
-        if (typed) dump_type(csound, dump, args->value->lexeme);
+      dump_tree_reference(csound, dump, args);
+      if (typed) {
+        if (args->type == STRUCT_EXPR)
+          dump_variable_type(csound, dump_tree_variable(csound, dump, args));
+        else if (args->value) dump_type(csound, dump, args->value->lexeme);
+        else csound->Message(csound, ":?");
       }
       if (args->next) csound->Message(csound, ",");
     }
