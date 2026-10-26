@@ -848,6 +848,28 @@ endin
     for (auto value : result.samples) EXPECT_EQ(FL(1), value);
 }
 
+TEST(OrcOptimizer, ConstantFoldingAndScalarCseWorkTogether) {
+    const char *body = R"(
+instr 1
+  iInput = 2
+  iFirst = (iInput + 3) * 4
+  iSecond = (iInput + 3) * 4
+  iConstant = (2 + 3) * (4 - 1)
+  aOut = iFirst + iSecond + iConstant
+  out aOut
+endin
+)";
+    // Folding and CSE must run with or without legacy and copy removal.
+    for (int pass : {10, 11, 14, 15}) {
+        const auto dump = cseDump(pass, body);
+        EXPECT_NE(std::string::npos, dump.find("[iConstant:i] <- [15:c]"));
+        EXPECT_EQ(1u, occurrences(dump, "op ##mul"));
+        auto result = render(pass, 16, body);
+        identical(render(1, 16, body), result);
+        for (auto value : result.samples) EXPECT_EQ(FL(55), value);
+    }
+}
+
 TEST(OrcOptimizer, ScalarCseStopsAtCallsLabelsAndPhaseChanges) {
     const char *bodies[] = {
         "instr 1\nkValue init 2\nkFirst=kValue+1\n"
@@ -945,6 +967,57 @@ TEST(OrcOptimizer, ScalarCseKeepsATemporaryWithALaterRead) {
     EXPECT_EQ(duplicate, scope->right->next->next->next);
     EXPECT_EQ(temp, duplicate->left->value->lexeme);
     csoundDeleteTree(cs.get(), tree);
+}
+
+TEST(OrcOptimizer, ScalarCseReplacesBothReadsInOneConsumer) {
+    for (int pass : {1, 8, 9, 10, 11}) {
+        auto cs = engine(1);
+        const auto source = header(16) + R"(
+instr 1
+  iInput = 2
+  iFirst = iInput + 1
+  iSecond = (iInput + 1) * 2
+  aOut = iSecond
+  out aOut
+endin
+)";
+        TREE *tree = csoundParseOrc(cs.get(), source.c_str());
+        ASSERT_NE(nullptr, tree);
+        TREE *scope = tree->next;
+        while (scope && scope->type != INSTR_TOKEN) scope = scope->next;
+        ASSERT_NE(nullptr, scope);
+        TREE *first = scope->right->next;
+        TREE *duplicate = first->next->next;
+        ASSERT_NE(nullptr, duplicate);
+        ASSERT_EQ(first->markup, duplicate->markup);
+        TREE *consumer = duplicate->next;
+        ASSERT_NE(nullptr, consumer);
+        ASSERT_NE(nullptr, consumer->right->next);
+
+        // Generated names cannot appear in source. Make the multiplication
+        // read the second addition's temporary twice, as temp * temp.
+        const std::string temp = duplicate->left->value->lexeme;
+        ASSERT_EQ(0, temp.find("#i"));
+        TREE *secondRead = consumer->right->next;
+        cs->Free(cs.get(), secondRead->value->lexeme);
+        secondRead->value->lexeme = csoundStrdup(cs.get(), temp.c_str());
+        secondRead->type = consumer->right->type;
+        secondRead->markup = consumer->right->markup;
+        *static_cast<int32_t *>(csoundQueryGlobalVariable(cs.get(), "__orc_optimizer")) = pass;
+        csound_orc_optimize(cs.get(), tree->next, static_cast<TYPE_TABLE *>(tree->markup));
+        if (pass & 8) {
+            EXPECT_EQ(consumer, first->next->next);
+            EXPECT_STREQ(first->left->value->lexeme, consumer->right->value->lexeme);
+            EXPECT_STREQ(first->left->value->lexeme, secondRead->value->lexeme);
+        }
+        ASSERT_EQ(0, csoundCompileTree(cs.get(), tree, 0));
+        csoundDeleteTree(cs.get(), tree);
+        ASSERT_EQ(0, csoundStart(cs.get()));
+        csoundEventString(cs.get(), "i 1 0 1", 0);
+        ASSERT_EQ(0, csoundPerformKsmps(cs.get()));
+        for (int sample = 0; sample < 16; ++sample)
+            EXPECT_EQ(FL(9), csoundGetSpout(cs.get())[sample]);
+    }
 }
 
 void cseBreakpoint(CSOUND *, debug_bkpt_info_t *info, void *data) {

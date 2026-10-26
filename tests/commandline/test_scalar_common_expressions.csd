@@ -39,6 +39,14 @@ instr 1
   assert kAfter == 4
   assert kReversed == -4
 
+  ; Adding to an input must also stop reuse of its old value.
+  kValue = 2
+  kBefore = kValue + 1
+  kValue += 3
+  kAfter = kValue + 1
+  assert kBefore == 3
+  assert kAfter == 6
+
   ; Each loop iteration needs its own current value.
   kSum = 0
   kIndex = 0

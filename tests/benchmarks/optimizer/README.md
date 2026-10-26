@@ -50,9 +50,13 @@ which transformations run, not their execution order.
 
 The benchmark runners keep numeric labels in their output to compare with earlier
 measurements. They translate those labels to the named options before compilation.
+The bits are 1 for legacy, 2 for constant folding, 4 for copy removal and 8 for
+CSE. Selecting all four gives 15. The CSE comparison still uses 1 and 9 to keep
+constant folding and copy removal off.
 
 The earlier `orc_opt_passes` configuration variable was an unreleased benchmark
-control. Use the named options above instead.
+control. These options replace it, so callers of that control must switch to
+the names above. Public function signatures and structure layouts stay unchanged.
 
 Diagnostic options:
 
@@ -272,15 +276,18 @@ lower activation time.
 CSE reuses resolved built-in scalar addition, subtraction and multiplication
 inside instruments. It compares the exact implementation, ordered operands and
 execution phase. Writes invalidate saved inputs or results. Calls, labels,
-jumps, compound assignments such as `+=`, and phase changes end reuse. It leaves globals, UDO bodies, audio, arrays,
-structs, division and overloaded operations alone.
+jumps, compound assignments such as `+=`, and phase changes end reuse. It leaves
+globals, UDO bodies, audio, arrays, structs, division and overloaded operations
+alone.
 
 The first version only removes a generated result with one definition and all
 its reads in the next known arithmetic or scalar-copy operation in the same
 phase. Named assignments retain their source locations and bindings. This
 restriction prevents a temporary alias from crossing an unknown call or branch.
 It can still reuse nested expressions. A 64-entry table bounds lookup cost.
-Unused temporary slots remain in the variable pool. The default stays unchanged.
+Unused temporary slots remain in the variable pool. Cascading replacements can
+also leave computations whose results are no longer read. Removing those
+computations needs a separate dead-code pass. The default stays unchanged.
 
 ### Native Linux comparison
 

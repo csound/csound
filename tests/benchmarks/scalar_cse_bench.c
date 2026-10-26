@@ -98,7 +98,8 @@ int main(int argc, char **argv)
     fprintf(stderr, "Usage: %s mask expressions voices windows unique rate [audio_capture]\n", argv[0]);
     return 2;
   }
-  int mask = count(argv[1], 0, 9), expressions = count(argv[2], 0, 4096);
+  int mask = count(argv[1], 0, 11), expressions = count(argv[2], 0, 4096);
+  if (mask & ~11) return 2;
   int voices = count(argv[3], 1, 512), windows = count(argv[4], 1, 60);
   report_library();
   if (csoundGetSizeOfMYFLT() != sizeof(cs_float)) return 1;
@@ -121,8 +122,9 @@ int main(int argc, char **argv)
   if (!csound) return 1;
   csoundCreateMessageBuffer(csound, 0);
   check(csound, csoundSetOption(csound, "-n -d -m0 --optimize=none"));
-  if (mask & ~9) return 2;
   if (mask & 1) check(csound, csoundSetOption(csound, "--optimize-legacy"));
+  if (mask & 2)
+    check(csound, csoundSetOption(csound, "--optimize-constant-folding"));
   if (mask & 8)
     check(csound, csoundSetOption(csound, "--optimize-common-subexpression-elimination"));
   int32_t *selection = csoundQueryGlobalVariable(csound, "__orc_optimizer");
