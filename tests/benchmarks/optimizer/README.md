@@ -222,6 +222,9 @@ results. Run on an idle machine and pin the runner to one CPU on Linux if useful
 
 ## Literal folding
 
+The [recorded macOS and Linux comparison](../results/literal-folding/README.md)
+includes initialization gains, compile costs and a steady-rendering regression.
+
 Run the focused comparison on macOS or Linux with the same strict build above.
 
 ```sh

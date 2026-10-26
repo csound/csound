@@ -617,7 +617,10 @@ TEST(OrcOptimizer, LiteralFoldingPreservesSamplePrecisionAndSignedZero) {
         {"(16777216+1)-16777216", sizeof(cs_float) == 4 ? FL(0) : FL(1)},
         {"(9007199254740992+1)-9007199254740992", FL(0)},
         {"(-0.0)*2", -FL(0.0)}, {"(-0.0)+(-0.0)", -FL(0.0)},
-        {"0.1+0.2", FL(0.1)+FL(0.2)}, {"1e-20*2", FL(1e-20)*FL(2)}
+        {"0.1+0.2", FL(0.1)+FL(0.2)}, {"1e-20*2", FL(1e-20)*FL(2)},
+        // Stay finite near the upper bound of the configured sample type.
+        {sizeof(cs_float) == 4 ? "1e38*2" : "1e308*1.5",
+         sizeof(cs_float) == 4 ? (cs_float)2e38 : (cs_float)1.5e308}
     };
     for (const auto &test : cases) {
         SCOPED_TRACE(test.expression);
@@ -638,6 +641,11 @@ TEST(OrcOptimizer, LiteralFoldingLeavesUncertainOperationsAlone) {
         "instr 1\niValue = 1/0\nendin\n",
         "instr 1\niValue = 1e300*1e300\nendin\n",
         "instr 1\niValue = 1e-300*1e-300\nendin\n",
+        // Finite inputs can still produce overflow or a subnormal result.
+        sizeof(cs_float) == 4 ? "instr 1\niValue = 3e38*2\nendin\n"
+                              : "instr 1\niValue = 1e308*2\nendin\n",
+        sizeof(cs_float) == 4 ? "instr 1\niValue = 2e-38*0.5\nendin\n"
+                              : "instr 1\niValue = 3e-308*0.5\nendin\n",
         "instr 1\niValue = p4+3\nendin\n",
         "instr 1\niSource init 2\niValue = iSource+3\nendin\n",
         // Preserve the temporary when its consumer runs at a different phase.
