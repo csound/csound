@@ -119,6 +119,150 @@ static void remove_scalar_copies(CSOUND *csound, TREE *root)
       cs_hash_table_mfree_complete(csound, uses);
     }
 }
+#include "entry.h"
+
+/* Only these resolved built-ins may produce a folded value. Comparing callback
+   identities, rather than names, keeps plugin and UDO overloads out. */
+static int32_t literal_operator(const TREE *node)
+{
+    if (node->type != T_OPCALL || !node->markup) return 0;
+    const OENTRY *op = node->markup;
+    if (op->perf || op->deinit || !op->outypes || !op->intypes ||
+        strcmp(op->outypes, "i") || strcmp(op->intypes, "ii")) return 0;
+    if (op->init == (SUBR)addkk) return '+';
+    if (op->init == (SUBR)subkk) return '-';
+    if (op->init == (SUBR)mulkk) return '*';
+    return 0;
+}
+
+/* A literal must not replace writable storage passed to an unknown opcode.
+   Keep both producer and consumer in the same init-only straight-line block.
+   In particular, do not move an init result into a performance-time read. */
+static int32_t literal_consumer(const TREE *node)
+{
+    if (literal_operator(node)) return 1;
+    if ((node->type != T_OPCALL && node->type != T_ASSIGNMENT) ||
+        !node->markup) return 0;
+    const OENTRY *op = node->markup;
+    return (op->init == (SUBR)assign || op->init == (SUBR)minit) &&
+           !op->perf && !op->deinit;
+}
+
+typedef struct {
+    TREE *first, *last;
+    int32_t count, firstBlock, lastBlock, input;
+} LITERAL_USE;
+
+static void count_literal_uses(CSOUND *csound, CS_HASH_TABLE *uses,
+                               TREE *args, int32_t block, int32_t input)
+{
+    for (; args; args = args->next) {
+      if (args->value && !strncmp(args->value->lexeme, "#i", 2)) {
+        char *name = args->value->lexeme;
+        LITERAL_USE *use = cs_hash_table_get(csound, uses, name);
+        if (!use) {
+          use = csound->Calloc(csound, sizeof(*use));
+          use->first = args;
+          use->firstBlock = block;
+          cs_hash_table_put(csound, uses, name, use);
+        }
+        use->count++;
+        use->last = args;
+        use->lastBlock = block;
+        use->input = input;
+      }
+      /* Count nested references too, but never replace them as plain scalars. */
+      count_literal_uses(csound, uses, args->left, block, 0);
+      count_literal_uses(csound, uses, args->right, block, 0);
+    }
+}
+
+static int32_t literal_value(TREE *arg, cs_float *value)
+{
+    if (!arg || !arg->value || arg->left || arg->right ||
+        (arg->type != INTEGER_TOKEN && arg->type != NUMBER_TOKEN)) return 0;
+    char *end;
+    /* Match the conversion used by the runtime constant pool, including large
+       integer spellings that do not fit ORCTOKEN's integer value member. */
+    cs_double parsed = csoundStrtod(arg->value->lexeme, &end);
+    *value = (cs_float)parsed;
+    if (*value == FL(0.0)) {
+      /* csoundStrtod itself returns sample precision in a pure-float build.
+         Accept an explicit zero, not a nonzero mantissa that underflowed. */
+      const char *tail = arg->value->lexeme + strspn(arg->value->lexeme, "+-0.");
+      if (*tail != '\0' && *tail != 'e' && *tail != 'E') return 0;
+    }
+    return *end == '\0' && isfinite(*value) &&
+           (*value == FL(0.0) || isnormal(*value));
+}
+
+static TREE *fold_scalar_literals(CSOUND *csound, TREE *root, CS_VAR_POOL *pool)
+{
+    CS_HASH_TABLE *uses = cs_hash_table_create(csound);
+    int32_t block = 0;
+    for (TREE *node = root; node; node = node->next) {
+      if (node->type == INSTR_TOKEN || node->type == UDO_TOKEN) {
+        node->right = fold_scalar_literals(csound, node->right, node->markup);
+        ++block;
+        continue;
+      }
+      int32_t safe = literal_consumer(node);
+      if (!safe) ++block;
+      count_literal_uses(csound, uses, node->left, block, 0);
+      count_literal_uses(csound, uses, node->right, block, safe);
+      if (!safe) ++block;
+    }
+
+    TREE **link = &root;
+    while (*link) {
+      TREE *node = *link;
+      int32_t operation = literal_operator(node);
+      TREE *out = node->left, *left = node->right;
+      TREE *right = left ? left->next : NULL;
+      cs_float a, b, result;
+      if (!operation || !out || !out->value || out->next || out->left ||
+          out->right || !right || right->next ||
+          !literal_value(left, &a) || !literal_value(right, &b)) goto next;
+      LITERAL_USE *use = cs_hash_table_get(csound, uses, out->value->lexeme);
+      if (!use || use->count != 2 || use->first != out || !use->input ||
+          use->firstBlock != use->lastBlock || use->last->left ||
+          use->last->right) goto next;
+      CS_VARIABLE *var = pool ? csoundFindVariableWithName(csound, pool,
+                                                         out->value->lexeme) : NULL;
+      if (!var || var->varType != &CS_VAR_TYPE_I) goto next;
+
+      /* Each operation rounds to sample precision, just as its runtime callback
+         does. Do not reassociate a chain or combine multiply and add. */
+      if (operation == '+') result = a + b;
+      else if (operation == '-') result = a - b;
+      else result = a * b;
+      if (!isfinite(result) || (result != FL(0.0) && !isnormal(result))) goto next;
+      if (operation == '*' && a != FL(0.0) && b != FL(0.0) && result == FL(0.0))
+        goto next;
+      char text[64];
+      snprintf(text, sizeof(text), sizeof(cs_float) == 4 ? "%.9g" : "%.17g",
+               result);
+      cs_float roundTrip = (cs_float)csoundStrtod(text, NULL);
+      if (memcmp(&result, &roundTrip, sizeof(result))) goto next;
+
+      /* Retain the use node's source location and siblings and the consumer's
+         resolved opcode. The now-unused variable slot stays for a later pass. */
+      TREE *arg = use->last;
+      csound->Free(csound, arg->value->lexeme);
+      csound->Free(csound, arg->value);
+      arg->value = make_num(csound, text, NULL);
+      arg->type = NUMBER_TOKEN;
+      arg->markup = NULL;
+      *link = node->next;
+      node->next = NULL;
+      csoundDeleteTree(csound, node);
+      continue;
+next:
+      link = &node->next;
+    }
+    cs_hash_table_mfree_complete(csound, uses);
+    return root;
+}
 
 static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
 {
@@ -800,6 +944,8 @@ TREE *csound_orc_optimize(CSOUND *csound, TREE *root, TYPE_TABLE *types)
       csound->Message(csound, "ORC-OPT end\n");
     }
     if (passes & CSOUND_OPT_LEGACY) root = optimize_legacy(csound, root);
+    if (passes & 2)
+      root = fold_scalar_literals(csound, root, types->instr0LocalPool);
     if (passes & CSOUND_OPT_COPY_REMOVAL) remove_scalar_copies(csound, root);
     if (dump) {
       csound->Message(csound, "ORC-OPT after phase=provisional\n");

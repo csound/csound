@@ -62,6 +62,15 @@ with the engine.
 Configure them before compilation; do not mutate controls concurrently with a
 compile.
 
+Literal folding handles resolved built-in scalar addition, subtraction and
+multiplication. It substitutes a generated i-rate temporary only when one
+known, init-only consumer reads it in the same straight-line block. Other
+opcodes and control-flow boundaries stop propagation. Division, non-finite and
+subnormal arithmetic, overloads and performance-time consumers remain unchanged.
+Each operation uses sample precision and keeps its original grouping. Unused
+variable-pool slots remain allocated. This pass is experimental and stays off by
+default.
+
 Dumps renumber generated temporaries/labels per scope and expose resolved opcode
 name/signature, callback phases, operation counts, and template storage counts.
 Operands carry their resolved metadata types, such as `control:k`, `values:k[]`,
@@ -210,3 +219,39 @@ and audio processing. Compilation is measured separately. A copy count of zero
 is a control for the harness and scheduling cost. Keep generated reports and
 charts outside the source tree. Record the compiler, CPU and build flags with
 results. Run on an idle machine and pin the runner to one CPU on Linux if useful.
+
+## Literal folding
+
+Run the focused comparison on macOS or Linux with the same strict build above.
+
+```sh
+CSOUND7RC=/dev/null python3 tests/benchmarks/literal_folding.py \
+  --library build/optimizer/CsoundLib64.framework/CsoundLib64 \
+  --build-dir build/optimizer --output /tmp/literal-folding.json
+```
+
+On Linux use the built `libcsound64.so` path. A CPU affinity tool such as
+`taskset -c 14` can pin the runner and its children to one available core.
+Run this without another build or benchmark on the same host.
+
+The runner compares mask 1 against mask 3 in fresh processes, alternating order,
+with three warmup pairs and 21 measured pairs. It uses 128 simultaneous notes at
+48 kHz and ksmps 64. The cases are a small musical instrument, a dynamic-input
+control, and generated instruments with 64 or 512 literal expressions. Every
+generated value contributes to the output. Use `--voices 1` to check the small
+case separately.
+
+The activation measurement includes fresh note allocation, initialization, and
+one audio block. It does not isolate arithmetic dispatch or instance reuse.
+Compilation, engine start, activation, and one second of steady rendering each
+have separate wall and process CPU times. The steady rendering loop includes
+Python/ctypes overhead. Audio and ordered diagnostics must match in separate
+untimed capture runs before timing starts. Dumps and raw paired measurements
+remain in the JSON report with build flags and the library hash.
+
+Memory readings are process peak RSS at each stage, including Python, the loaded
+library, compiler storage, and allocator overhead. They are cumulative high-water
+marks, not current memory or per-note allocation. Fresh processes keep one
+candidate's allocations out of the other's measurement. Do not describe retained
+variable-pool slots as reclaimed memory, or infer a steady DSP speedup from a
+lower activation time.

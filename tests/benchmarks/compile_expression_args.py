@@ -21,7 +21,7 @@ import time
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--library", type=Path, required=True)
-    parser.add_argument("--passes", type=int, choices=(0, 1),
+    parser.add_argument("--passes", type=int, choices=range(4),
                         help="optional optimizer mask; omit for older reference libraries")
     parser.add_argument("--source", type=Path,
                         help="measure this orchestra instead of generated expressions")

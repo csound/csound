@@ -7,6 +7,7 @@
 extern "C" TREE *csound_orc_optimize(CSOUND *, TREE *, TYPE_TABLE *);
 #include "gtest/gtest.h"
 #include <cstring>
+#include <cmath>
 #include <memory>
 #include <string>
 #include <utility>
@@ -406,7 +407,7 @@ TEST(OrcOptimizer, VerboseMaskSelectsOptimizerDumps) {
 }
 
 TEST(OrcOptimizer, ParseCompileDeleteAndInvalidInput) {
-    for (int pass : {0, 1, 5}) {
+    for (int pass : {0, 1, 3, 5, 7}) {
         auto cs = engine(pass);
         ASSERT_EQ(0, csoundCompileOrc(cs.get(), header(16).c_str(), 0));
         for (int i = 0; i < 20; ++i) {
@@ -583,6 +584,115 @@ TEST(OrcOptimizer, ScalarCopiesKeepDebuggerLinesAndNamedValues) {
         csoundPerformKsmps(cs.get());
         EXPECT_EQ(1, hits);
         csoundDebuggerClean(cs.get());
+    }
+}
+
+std::string foldedDump(int passes, const std::string &body) {
+    auto cs = engine(passes, true);
+    const std::string source = header(16) + body;
+    EXPECT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
+    const auto log = optimizerDumps(messages(cs.get()));
+    const auto begin = log.find("ORC-OPT after");
+    EXPECT_NE(std::string::npos, begin);
+    return begin == std::string::npos ? "" :
+        log.substr(begin, log.find("ORC-OPT end", begin) - begin);
+}
+
+TEST(OrcOptimizer, LiteralFoldingRemovesOnlyTheArithmetic) {
+    const char *body = "instr 1\niValue = (2+3)*(4-1)\n"
+                       "prints \"value=%g\\n\", iValue\nendin\n";
+    const auto before = foldedDump(1, body);
+    const auto after = foldedDump(3, body);
+    EXPECT_NE(std::string::npos, before.find("op ##add.ii"));
+    for (const char *op : {"op ##add.ii", "op ##sub.ii", "op ##mul.ii"})
+        EXPECT_EQ(std::string::npos, after.find(op));
+    EXPECT_NE(std::string::npos, after.find("[iValue:i] <- [15:c]"));
+    identical(render(1, 16, body), render(3, 16, body));
+}
+
+TEST(OrcOptimizer, LiteralFoldingPreservesSamplePrecisionAndSignedZero) {
+    struct Case { const char *expression; cs_float expected; };
+    const Case cases[] = {
+        {"2+3", FL(5)}, {"(2+3)*(4-1)", FL(15)},
+        {"(16777216+1)-16777216", sizeof(cs_float) == 4 ? FL(0) : FL(1)},
+        {"(9007199254740992+1)-9007199254740992", FL(0)},
+        {"(-0.0)*2", -FL(0.0)}, {"(-0.0)+(-0.0)", -FL(0.0)},
+        {"0.1+0.2", FL(0.1)+FL(0.2)}, {"1e-20*2", FL(1e-20)*FL(2)}
+    };
+    for (const auto &test : cases) {
+        SCOPED_TRACE(test.expression);
+        cs_float values[2];
+        for (int mode = 0; mode < 2; ++mode) {
+            auto cs = engine(mode ? 3 : 1);
+            const std::string source = header(16) + "iResult = " +
+                                       test.expression + "\nreturn iResult\n";
+            values[mode] = csoundEvalCode(cs.get(), source.c_str());
+            EXPECT_EQ(0, std::memcmp(&values[mode], &test.expected, sizeof(cs_float)));
+        }
+        EXPECT_EQ(0, std::memcmp(&values[0], &values[1], sizeof(cs_float)));
+    }
+}
+
+TEST(OrcOptimizer, LiteralFoldingLeavesUncertainOperationsAlone) {
+    const char *bodies[] = {
+        "instr 1\niValue = 1/0\nendin\n",
+        "instr 1\niValue = 1e300*1e300\nendin\n",
+        "instr 1\niValue = 1e-300*1e-300\nendin\n",
+        "instr 1\niValue = p4+3\nendin\n",
+        "instr 1\niSource init 2\niValue = iSource+3\nendin\n",
+        // Preserve the temporary when its consumer runs at a different phase.
+        "instr 1\nkValue = 2+3\nendin\n",
+        // Unknown opcodes may retain or write their input storage.
+        "instr 1\nprints \"value=%g\\n\", 2+3\nendin\n"
+    };
+    for (const auto *body : bodies) {
+        SCOPED_TRACE(body);
+        EXPECT_EQ(foldedDump(1, body), foldedDump(3, body));
+    }
+}
+
+TEST(OrcOptimizer, LiteralFoldingPreservesControlFlowAndUdoInitialization) {
+    const char *bodies[] = {
+        "instr 1\niValue init 0\nif p4 == 0 then\niValue=(2+3)*4\n"
+        "else\niValue=(7-2)*3\nendif\naOut=iValue\nout aOut\nendin\n",
+        "opcode Value,i,0\niValue=(2+3)*4\nxout iValue\nendop\n"
+        "instr 1\niValue Value\naOut=iValue\nout aOut\nendin\n",
+        "instr 1\nkCount init 0\nkCount+=1\nif kCount==2 then\nreinit again\n"
+        "endif\nagain:\niValue=(2+3)*4\nprints \"init=%g\\n\",iValue\n"
+        "rireturn\naOut=iValue\nout aOut\nendin\n"
+    };
+    for (const auto *body : bodies)
+        for (int block : {1, 64}) identical(render(1, block, body), render(3, block, body));
+}
+
+struct LiteralOverload { OPDS h; cs_float *out, *left, *right; };
+int32_t literalOverload(CSOUND *cs, void *data) {
+    ++*static_cast<int *>(csoundGetHostData(cs));
+    static_cast<LiteralOverload *>(data)->out[0] = FL(42);
+    return OK;
+}
+
+TEST(OrcOptimizer, LiteralFoldingDoesNotCallOrReplaceOverloads) {
+    for (int pass : {1, 3}) {
+        int calls = 0;
+        auto cs = engine(pass);
+        csoundSetHostData(cs.get(), &calls);
+        OENTRY overload = {};
+        overload.opname = const_cast<char *>("##add.ii");
+        overload.dsblksiz = sizeof(LiteralOverload);
+        overload.outypes = const_cast<char *>("i");
+        overload.intypes = const_cast<char *>("ii");
+        overload.init = literalOverload;
+        ASSERT_EQ(0, csoundPrependOpcodes(cs.get(), &overload, 1));
+        const std::string source = header(16) +
+            "iValue=2+3\nchnset iValue,\"result\"\n";
+        ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
+        EXPECT_EQ(0, calls);
+        ASSERT_EQ(0, csoundStart(cs.get()));
+        EXPECT_EQ(1, calls);
+        int32_t error = 0;
+        EXPECT_EQ(FL(42), csoundGetControlChannel(cs.get(), "result", &error));
+        EXPECT_EQ(0, error);
     }
 }
 } // namespace
