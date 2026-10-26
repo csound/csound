@@ -31,6 +31,22 @@
 # define hypot _hypot
 #endif
 
+/* The display opcodes below are pure visualisation. When displays are
+   suppressed (-d / --nodisplays) the graph callback is a no-op, so any
+   analysis they perform (sample buffering, FFTs, rect->polar conversion)
+   would be thrown away. Switch them off at init instead. */
+
+static int32_t dspnoop(CSOUND *csound, void *p)
+{
+    IGN(csound); IGN(p);
+    return OK;
+}
+
+static inline int32_t displays_off(CSOUND *csound)
+{
+    return !csound->oparms->displays;
+}
+
 int32_t printv(CSOUND *csound, PRINTV *p)
 {
     int32_t    nargs = p->INOCOUNT;
@@ -61,6 +77,10 @@ int32_t printv(CSOUND *csound, PRINTV *p)
 
 int32_t fdspset(CSOUND *csound, FSIGDISP *p){
     char strmsg[256];
+    if (displays_off(csound)) {       /* nothing to display: no-op */
+      p->h.perf = dspnoop;
+      return OK;
+    }
     p->size = p->fin->N/2 + 1;
     if ((*p->points != (cs_float) 0) && (p->size > (int32_t) *p->points)) {
       p->size = *p->points;
@@ -98,6 +118,10 @@ int32_t dspset(CSOUND *csound, DSPLAY *p)
     char   *auxp;
     char   strmsg[256];
 
+    if (displays_off(csound)) {                    /* nothing to display: no-op */
+      p->h.perf = dspnoop;
+      return OK;
+    }
     if (csoundGetTypeForArg(p->signal) == &CS_VAR_TYPE_K)
       npts = (int32)(*p->iprd * CS_EKR);
     else npts = (int32)(*p->iprd * CS_ESR);
@@ -248,6 +272,11 @@ int32_t fftset(CSOUND *csound, DSPFFT *p) /* fftset, dspfft -- calc Fast Fourier
     int32_t   hanning;
     char  strmsg[256];
     int32_t  minbin, maxbin;
+
+    if (displays_off(csound)) {                    /* nothing to display: no-op */
+      p->h.perf = dspnoop;
+      return OK;
+    }
     minbin = *p->imin;
     maxbin = *p->imax;
 
@@ -739,16 +768,18 @@ int32_t tempest(CSOUND *csound, TEMPEST *p)
       p->fwdmask = p->fwdmask * p->fwdcoef + kin;
     }
     if (!(--p->dcntdown)) {                 /* on displaycountdown    */
-      cs_float *linp = p->linexp;
-      cs_float *xcur = p->xcur;
-      cs_float *xend = p->xend;
-      long wrap = xcur - p->xbeg;
-      while (xcur < xend)                   /* lineariz the circ xbuf */
-        *linp++ = *xcur++;                  /*  into linexp buf       */
-      for (xcur=p->xbeg; wrap--; )
-        *linp++ = *xcur++;
-      csoundDisplay(csound, &p->dwindow);         /* displaydouble window  */
       p->dcntdown = p->dtimcnt;             /*   & reset the counter  */
+      if (!displays_off(csound)) {          /* only for the display   */
+        cs_float *linp = p->linexp;
+        cs_float *xcur = p->xcur;
+        cs_float *xend = p->xend;
+        long wrap = xcur - p->xbeg;
+        while (xcur < xend)                   /* lineariz the circ xbuf */
+          *linp++ = *xcur++;                  /*  into linexp buf       */
+        for (xcur=p->xbeg; wrap--; )
+          *linp++ = *xcur++;
+        csoundDisplay(csound, &p->dwindow);         /* displaydouble window  */
+      }
     }
 /*  if (p->tempo != 0.0)  */
     *p->kout = p->tempo;                    /* put current tempo */
