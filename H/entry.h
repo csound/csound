@@ -76,9 +76,8 @@
 int32_t ihold(CSOUND *, void *), turnoff(CSOUND *, void *);
 int32_t gaassign(CSOUND *, void *), rassign(CSOUND *, void *);
 int32_t aassign(CSOUND *, void *), laassign(CSOUND *, void *);
-int32_t assign(CSOUND *, void *);
 int32_t init(CSOUND *, void *), ainit(CSOUND *, void *);
-int32_t minit(CSOUND *, void *), mainit(CSOUND *, void *);
+int32_t mainit(CSOUND *, void *);
 /* int32_t tinit(CSOUND *, void *), tassign(CSOUND *, void *); */
 /* int32_t tabref_check(CSOUND *, void *), tabref(CSOUND *, void *); */
 int32_t gt(CSOUND *, void *), ge(CSOUND *, void *);
@@ -87,8 +86,7 @@ int32_t eq(CSOUND *, void *), ne(CSOUND *, void *);
 int32_t and(CSOUND *, void *), or(CSOUND *, void *);
 int32_t b_not(CSOUND *, void*);
 int32_t conval(CSOUND *, void *), aconval(CSOUND *, void *);
-int32_t addkk(CSOUND *, void *), subkk(CSOUND *, void *);
-int32_t mulkk(CSOUND *, void *), divkk(CSOUND *, void *);
+int32_t divkk(CSOUND *, void *);
 int32_t modkk(CSOUND *, void *);
 int32_t addka(CSOUND *, void *), subka(CSOUND *, void *);
 int32_t mulka(CSOUND *, void *), divka(CSOUND *, void *);

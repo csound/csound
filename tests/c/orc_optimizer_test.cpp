@@ -3,6 +3,7 @@
 #include "prototyp.h"
 #include "csdebug.h"
 #include "csound_orc.h"
+#include "csound_orc_optimize.h"
 extern "C" TREE *csound_orc_optimize(CSOUND *, TREE *, TYPE_TABLE *);
 #include "gtest/gtest.h"
 #include <cstring>
@@ -17,10 +18,11 @@ Engine engine(int passes, bool dump = false) {
     Engine cs(csoundCreate(nullptr, nullptr), csoundDestroy);
     csoundCreateMessageBuffer(cs.get(), 0);
     EXPECT_EQ(0, csoundSetOption(cs.get(), "-n -d -m4"));
-    EXPECT_EQ(0, passes & ~5);
+    EXPECT_EQ(0, passes & ~(CSOUND_OPT_LEGACY | CSOUND_OPT_COPY_REMOVAL));
     EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize=none"));
-    if (passes & 1) EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-legacy"));
-    if (passes & 4)
+    if (passes & CSOUND_OPT_LEGACY)
+        EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-legacy"));
+    if (passes & CSOUND_OPT_COPY_REMOVAL)
         EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-copy-removal"));
     if (dump) EXPECT_EQ(0, csoundSetOption(cs.get(), "--verbose=0x200"));
     return cs;
@@ -367,6 +369,15 @@ TEST(OrcOptimizer, InvalidNamesLeaveTheSelectionUnchanged) {
     EXPECT_EQ(5, *selection);
 }
 
+TEST(OrcOptimizer, MissingSettingsReportAnOptionError) {
+    auto cs = engine(1);
+    ASSERT_EQ(0, csoundDestroyGlobalVariable(cs.get(), "__orc_optimizer"));
+    messages(cs.get());
+    EXPECT_NE(0, csoundSetOption(cs.get(), "--optimize-copy-removal"));
+    EXPECT_NE(std::string::npos,
+              messages(cs.get()).find("optimizer settings are unavailable"));
+}
+
 TEST(OrcOptimizer, VerboseMaskSelectsOptimizerDumps) {
     const std::pair<const char *, int32_t> cases[] = {
         {"--verbose=0", 0}, {"--verbose=0x10", DEBUG_PARSER},
@@ -424,11 +435,17 @@ std::string copyDump(int passes, const char *body) {
 
 TEST(OrcOptimizer, ScalarCopyWritesTheLocalDestination) {
     const char *body = "instr 1\niValue=p4+1\naOut=iValue\nout aOut\nendin\n";
-    const auto before = copyDump(1, body), after = copyDump(5, body);
+    const auto before = copyDump(1, body);
     EXPECT_NE(std::string::npos, before.find("[iValue:i] <- [t1:i]"));
-    EXPECT_NE(std::string::npos, after.find("[iValue:i] <- [p4:p,1:c]"));
-    EXPECT_EQ(std::string::npos, after.find("[iValue:i] <- [t1:i]"));
-    for (int block : {1, 16, 64}) identical(render(1, block, body), render(5, block, body));
+    // Copy removal must work both alone and with the default legacy pass.
+    for (int passes : {4, 5}) {
+        SCOPED_TRACE(passes);
+        const auto after = copyDump(passes, body);
+        EXPECT_NE(std::string::npos, after.find("[iValue:i] <- [p4:p,1:c]"));
+        EXPECT_EQ(std::string::npos, after.find("[iValue:i] <- [t1:i]"));
+        for (int block : {1, 16, 64})
+            identical(render(1, block, body), render(passes, block, body));
+    }
 }
 
 TEST(OrcOptimizer, ScalarCopiesKeepAliasedInputsAndExpressionOrder) {

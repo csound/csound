@@ -6,6 +6,7 @@
 #include "csound_misc.h"
 #include <errno.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <time.h>
 #ifdef _WIN32
@@ -92,6 +93,20 @@ static void check(CSOUND *csound, int status)
   exit(1);
 }
 
+static void append_source(char *source, size_t capacity, size_t *used,
+                          const char *format, ...)
+{
+  va_list args;
+  va_start(args, format);
+  int written = vsnprintf(source + *used, capacity - *used, format, args);
+  va_end(args);
+  if (written < 0 || (size_t)written >= capacity - *used) {
+    fputs("Benchmark orchestra exceeds its source buffer\n", stderr);
+    exit(1);
+  }
+  *used += (size_t)written;
+}
+
 int main(int argc, char **argv)
 {
   if (argc != 5 && argc != 6) {
@@ -109,18 +124,20 @@ int main(int argc, char **argv)
   FILE *capture = argc == 6 ? fopen(argv[5], "wb") : NULL;
   if (argc == 6 && !capture) return 1;
   /* Each generated line needs fewer than 64 bytes at the allowed limits. */
-  char *source = calloc((size_t)copies * 64 + 512, 1);
+  const size_t capacity = (size_t)copies * 64 + 512;
+  char *source = calloc(capacity, 1);
   if (!source) return 1;
-  int used = sprintf(source, "sr=48000\nksmps=64\nnchnls=1\n0dbfs=1\n"
+  size_t used = 0;
+  append_source(source, capacity, &used, "sr=48000\nksmps=64\nnchnls=1\n0dbfs=1\n"
                      "instr 1\niValue=p4\n");
   for (int i = 0; i < copies; i++) {
     char input[32];
     if (i) snprintf(input, sizeof(input), "iValue%d", i - 1);
     else snprintf(input, sizeof(input), "p4");
-    used += sprintf(source + used, "iValue%d=%s+%.6f\n", i, input, i * .001);
+    append_source(source, capacity, &used, "iValue%d=%s+%.6f\n", i, input, i * .001);
   }
-  if (copies) used += sprintf(source + used, "iValue=iValue%d\n", copies - 1);
-  sprintf(source + used, "aTone oscili .0001, iValue\nout aTone\nendin\n");
+  if (copies) append_source(source, capacity, &used, "iValue=iValue%d\n", copies - 1);
+  append_source(source, capacity, &used, "aTone oscili .0001, iValue\nout aTone\nendin\n");
   CSOUND *csound = csoundCreate(NULL, "");
   if (!csound) return 1;
   csoundCreateMessageBuffer(csound, 0);

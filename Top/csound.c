@@ -30,6 +30,7 @@
 
 #include "csoundCore.h"
 #include "csmodule.h"
+#include "csound_orc_optimize.h"
 #include "corfile.h"
 #include "csound_standard_types.h"
 #include "csGblMtx.h"
@@ -2143,7 +2144,7 @@ static void reset(CSOUND *csound) {
   {
     csoundCreateGlobalVariable(csound, "__orc_optimizer", sizeof(int32_t));
     int32_t *passes = csoundQueryGlobalVariable(csound, "__orc_optimizer");
-    *passes = 1;
+    *passes = CSOUND_OPT_LEGACY;
   }
   max_len = 256; /* should be the same as in csoundCore.h */
   csoundCreateConfigurationVariable(

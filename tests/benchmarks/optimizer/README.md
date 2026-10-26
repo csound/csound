@@ -167,12 +167,22 @@ infer scalability from a single small instrument or treat noisy CI timings as ga
 
 ## Scalar copy removal
 
-Mask 5 lets built-in i-rate addition, subtraction and multiplication write a
+`--optimize=copy-removal` adds copy removal to the default `legacy` pass.
+Use `--optimize=none --optimize-copy-removal` to run copy removal alone.
+
+The pass lets built-in i-rate addition, subtraction and multiplication write a
 local scalar destination directly when the next operation copies their generated
 result there. The result must have exactly one use. This runs after overload
 resolution and leaves plugins, UDOs, globals, other rates and structured values
 alone. It does not change arithmetic order or remove temporary variable slots.
-Default compilation remains mask 1.
+Default compilation remains `--optimize=legacy`.
+
+`--optimize=all` includes this experimental pass. The recorded macOS runs
+showed a 26–32% slowdown in the 32-addition workload, although that machine
+was also running other tasks. Those results need a repeat on an idle machine.
+The large workload improved on both hosts, and the Linux 32-addition workload
+also improved. Keep the pass opt-in and measure your own workload before
+enabling it.
 
 The native `optimizer_timeline` benchmark measures repeated note starts and audio
 processing in consecutive 1.024-second score windows. Each note lasts 16 blocks

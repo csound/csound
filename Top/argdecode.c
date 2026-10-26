@@ -21,6 +21,7 @@
 */
 #include "csoundCore.h" /*                      ARGDECODE.C     */
 #include "soundio.h"
+#include "csound_orc_optimize.h"
 #include "new_opts.h"
 #include "csmodule.h"
 #include "corfile.h"
@@ -562,8 +563,8 @@ static const struct {
   const char *name;
   int32_t bit;
 } optimizer_passes[] = {
-    {"legacy", 1},
-    {"copy-removal", 4},
+    {"legacy", CSOUND_OPT_LEGACY},
+    {"copy-removal", CSOUND_OPT_COPY_REMOVAL},
 };
 
 static int32_t optimizer_pass(CSOUND *csound, const char *name, size_t length) {
@@ -1053,6 +1054,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       dieu(csound, Str("--optimize requires =NAME[,NAME], =all or =none\n"));
     const char *name = s + 9;
     int32_t *selection = csoundQueryGlobalVariable(csound, "__orc_optimizer");
+    if (UNLIKELY(selection == NULL))
+      dieu(csound, Str("optimizer settings are unavailable\n"));
     int32_t passes = *selection;
     if (s[8] == '-') {
       passes |= optimizer_pass(csound, name, strlen(name));

@@ -27,7 +27,7 @@
 #include "csound_orc_structs.h"
 #include "csound_standard_types.h"
 #include "aops.h"
-#include "entry.h"
+#include "csound_orc_optimize.h"
 
 static int32_t copy_leaf(const TREE *arg)
 {
@@ -792,15 +792,15 @@ void csound_orc_dump_templates(CSOUND *csound, ENGINE_STATE *state)
 TREE *csound_orc_optimize(CSOUND *csound, TREE *root, TYPE_TABLE *types)
 {
     int32_t *selection = csoundQueryGlobalVariable(csound, "__orc_optimizer");
-    int32_t passes = selection ? *selection : 1;
+    int32_t passes = selection ? *selection : CSOUND_OPT_LEGACY;
     int32_t dump = csoundGetDebug(csound) & DEBUG_OPTIMIZER;
     if (dump) {
       csound->Message(csound, "ORC-OPT before phase=provisional\n");
       dump_tree(csound, root, types->instr0LocalPool, types->globalPool);
       csound->Message(csound, "ORC-OPT end\n");
     }
-    if (passes & 1) root = optimize_legacy(csound, root);
-    if (passes & 4) remove_scalar_copies(csound, root);
+    if (passes & CSOUND_OPT_LEGACY) root = optimize_legacy(csound, root);
+    if (passes & CSOUND_OPT_COPY_REMOVAL) remove_scalar_copies(csound, root);
     if (dump) {
       csound->Message(csound, "ORC-OPT after phase=provisional\n");
       dump_tree(csound, root, types->instr0LocalPool, types->globalPool);
