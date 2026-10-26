@@ -12,8 +12,8 @@
 
 extern "C" void message_dequeue(CSOUND *csound);
 extern "C" void input_message_async(CSOUND *, const char *);
-extern "C" int32_t read_score_async(CSOUND *, const char *);
-extern "C" int32_t score_event_async(CSOUND *, char, const cs_float *, long);
+extern "C" void read_score_async(CSOUND *, const char *);
+extern "C" void score_event_async(CSOUND *, char, const cs_float *, long);
 extern "C" int32_t csoundKillInstance(CSOUND *, cs_float, char *, int32_t,
                                       int32_t, int32_t);
 extern "C" void free_inactive_instances(CSOUND *csound);
@@ -141,17 +141,6 @@ protected:
         }
     }
 
-    int32_t tryRequest(int api)
-    {
-        const cs_float fields[] = { 1, 0, 1 };
-        switch (api) {
-        case 0: return csoundTryTableCopyOut(csound, 1, &output, 1);
-        case 1: return csoundTryTableCopyIn(csound, 1, input, 1);
-        case 2: return csoundTryEvent(csound, CS_INSTR_EVENT, fields, 3, 1);
-        default: return csoundTryEventString(csound, "i 1 0 1", 1);
-        }
-    }
-
     int takeWarnings()
     {
         int count = 0;
@@ -202,28 +191,31 @@ TEST_P(ApiQueueRejectionTests, VoidApiWarnsOnceUntilReset)
 INSTANTIATE_TEST_SUITE_P(EachVoidApi, ApiQueueRejectionTests,
                         ::testing::Range(0, 7));
 
-TEST_F(ApiQueueRejectionTests, TryApiSaysWhetherTheQueueTookIt)
+TEST_F(ApiQueueRejectionTests, AsyncStatusSaysWhetherTheQueueTookIt)
 {
+    // rejectRequest makes the request; with room, the queue takes it.
     for (int api = 0; api < 4; ++api) {
         SCOPED_TRACE(api);
         fillQueue();
-        EXPECT_EQ(tryRequest(api), CSOUND_ERROR);
+        EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
+        rejectRequest(api);
+        EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
         message_dequeue(csound);
-        EXPECT_EQ(tryRequest(api), CSOUND_SUCCESS);
+        rejectRequest(api);
+        EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
         message_dequeue(csound);
     }
 }
 
-TEST_F(ApiQueueRejectionTests, TrySyncApiSaysWhatItDid)
+TEST_F(ApiQueueRejectionTests, AsyncStatusIsTheLastAsyncRequests)
 {
-    cs_float copy[2] = { 0, 0 };
-    const cs_float fields[] = { 1, 0, 1 };
-    EXPECT_EQ(csoundTryTableCopyOut(csound, 1, copy, 0), CSOUND_SUCCESS);
-    EXPECT_EQ(copy[0], 1);
-    EXPECT_EQ(csoundTryTableCopyIn(csound, 1, input, 0), CSOUND_SUCCESS);
-    EXPECT_EQ(csoundTryTableCopyOut(csound, 99, copy, 0), CSOUND_ERROR);
-    EXPECT_EQ(csoundTryTableCopyIn(csound, 99, input, 0), CSOUND_ERROR);
-    EXPECT_EQ(csoundTryEvent(csound, 99, fields, 3, 0), CSOUND_ERROR);
+    cs_float copy = 0;
+    fillQueue();
+    rejectRequest(0);
+    csoundTableCopyOut(csound, 1, &copy, 0);
+    EXPECT_EQ(copy, 1);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+    message_dequeue(csound);
 }
 
 TEST_F(ApiQueueRejectionTests, WarningCallbackCanRejectAnotherRequest)

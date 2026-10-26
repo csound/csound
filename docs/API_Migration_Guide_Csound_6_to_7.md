@@ -431,12 +431,11 @@ where type is one of
     };
 ```
 
-`csoundTryEvent()` and `csoundTryEventString()` take the same arguments
-and return a status, as `csoundScoreEvent()` did: `CSOUND_SUCCESS` when a
-synchronous event is scheduled or an async request is queued, and
-`CSOUND_ERROR` for an unknown type, a synchronous event that could not be
-scheduled, or an async request the queue rejects. Async success does not
-mean the event has been scheduled.
+An async request the API queue has no room for is dropped. Call
+`csoundGetAsyncStatus()` after it to know: `CSOUND_SUCCESS` if it was
+queued, `CSOUND_ERROR` if it was dropped. It reports the last async request
+of `csoundEvent()`, `csoundEventString()`, `csoundTableCopyIn()` or
+`csoundTableCopyOut()`; success means queued, not yet run.
 
 During performance, both `csoundEvent()` and `csoundEventString()`
 treat the start time as relative to the current time: the value is
@@ -521,11 +520,8 @@ PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
 ```
 
 Pass `0` to copy immediately under the API lock, or `1` to enqueue
-the copy for the performance thread. `csoundTryTableCopyOut()` and
-`csoundTryTableCopyIn()` return `CSOUND_SUCCESS` when a synchronous copy
-succeeds or an async request is queued. They return `CSOUND_ERROR` when
-a synchronous copy refers to a missing table or the queue rejects an
-async request. Async success does not mean the copy has completed.
+the copy for the performance thread; `csoundGetAsyncStatus()` then says
+whether the queue took it.
 
 The list of named generators returned by `csoundGetNamedGens()`
 remains available to modules as `csound->GetNamedGens()`.

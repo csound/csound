@@ -1260,19 +1260,10 @@ extern "C" {
    * If the queue cannot accept the request, no event is queued.
    * Rejected async calls issue at most one warning per instance between resets.
    * NB: This is non-op before csoundStart() is called.
-   * csoundTryEvent() does the same and returns its status.
+   * csoundGetAsyncStatus() says whether an async request was queued.
    */
   PUBLIC void  csoundEvent(CSOUND *, int32_t type, const cs_float *params,
                            int32_t nparams, int32_t async);
-
-  /**
-   * As csoundEvent(), returning CSOUND_SUCCESS, or a negative error code:
-   * CSOUND_ERROR for an unknown type, a synchronous event that could not be
-   * scheduled or an async request the queue could not accept. An async
-   * request's success means it was queued, not yet scheduled.
-   */
-  PUBLIC int32_t csoundTryEvent(CSOUND *, int32_t type, const cs_float *params,
-                                int32_t nparams, int32_t async);
 
   /**
    * Schedule new score or realtime event(s) as a NULL-terminated string
@@ -1288,16 +1279,21 @@ extern "C" {
    * Async calls copy the string and return without waiting for queue space.
    * If the queue cannot accept the request, no events are queued.
    * Rejected async calls issue at most one warning per instance between resets.
-   * csoundTryEventString() does the same and returns its status.
+   * csoundGetAsyncStatus() says whether an async request was queued.
    */
   PUBLIC void  csoundEventString(CSOUND *, const char *message, int32_t async);
 
   /**
-   * As csoundEventString(), returning CSOUND_SUCCESS, or CSOUND_ERROR for an
-   * async request the queue could not accept.
+   * The status of the last async request made by csoundEvent(),
+   * csoundEventString(), csoundTableCopyIn() or csoundTableCopyOut():
+   * CSOUND_SUCCESS if the API queue took it, CSOUND_ERROR if the queue could
+   * not and it was dropped. Success means queued, not yet run. Synchronous
+   * calls leave it as it is, and a reset sets it to CSOUND_SUCCESS.
+   * Async requests from several threads share it: a host making them from
+   * more than one thread pairs each request with its check under a lock of
+   * its own.
    */
-  PUBLIC int32_t csoundTryEventString(CSOUND *, const char *message,
-                                      int32_t async);
+  PUBLIC int32_t csoundGetAsyncStatus(CSOUND *);
 
   /**
    * Get the instrument number for a given instrument name string
@@ -1459,18 +1455,10 @@ extern "C" {
    * runs. The queue stores its address, not a copy of its contents.
    * If the queue cannot accept the request, the call returns without copying.
    * Rejected async calls issue at most one warning per instance between resets.
-   * csoundTryTableCopyIn() does the same and returns its status.
+   * csoundGetAsyncStatus() says whether an async request was queued.
    */
   PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
 				 const cs_float *ptable, int32_t async);
-
-  /**
-   * As csoundTableCopyIn(), returning CSOUND_SUCCESS, or CSOUND_ERROR for a
-   * synchronous copy into a table that does not exist or an async request
-   * the queue could not accept.
-   */
-  PUBLIC int32_t csoundTryTableCopyIn(CSOUND *csound, int32_t table,
-                                      const cs_float *ptable, int32_t async);
 
 
    /** 
@@ -1486,18 +1474,10 @@ extern "C" {
    * do not read or write it concurrently with the copy.
    * If the queue cannot accept the request, the call returns without copying.
    * Rejected async calls issue at most one warning per instance between resets.
-   * csoundTryTableCopyOut() does the same and returns its status.
+   * csoundGetAsyncStatus() says whether an async request was queued.
    */
   PUBLIC void csoundTableCopyOut(CSOUND *csound, int32_t table,
 				cs_float *ptable, int32_t async);
-
-  /**
-   * As csoundTableCopyOut(), returning CSOUND_SUCCESS, or CSOUND_ERROR for
-   * a synchronous copy from a table that does not exist or an async request
-   * the queue could not accept.
-   */
-  PUBLIC int32_t csoundTryTableCopyOut(CSOUND *csound, int32_t table,
-                                       cs_float *ptable, int32_t async);
   
 
   /** @}*/
