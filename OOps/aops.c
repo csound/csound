@@ -79,8 +79,10 @@ int32_t retrievek(CSOUND *csound, STOREI *p) {
 
 
 int32_t b2s(CSOUND *csound, ASSIGN *p){
-  // B may use cs_float storage when it represents a k-rate boolean.
-  *p->r = *p->a;
+  // B is stored as int32_t, like b (see create_bool).
+  int32_t value;
+  memcpy(&value, p->a, sizeof(value));
+  *p->r = (cs_float) value;
   return OK;
 }
 
@@ -301,7 +303,7 @@ RELATN(eq,==)
 RELATN(ne,!=)
 
 int32_t bassign(CSOUND *csound, RELAT *p) {
-  *p->rbool = ((int32_t) *p->a != 0) ? 1 : 0;
+  *p->rbool = (*p->a != FL(0.0)) ? 1 : 0;
   return OK;
 }
 
