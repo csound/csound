@@ -26,6 +26,7 @@
 #include "csmodule.h"
 #include "corfile.h"
 #include <ctype.h>
+#include <errno.h>
 
 static void list_audio_devices(CSOUND *csound, int32_t output);
 static void list_midi_devices(CSOUND *csound, int32_t output);
