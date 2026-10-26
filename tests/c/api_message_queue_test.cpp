@@ -141,6 +141,17 @@ protected:
         }
     }
 
+    int32_t tryRequest(int api)
+    {
+        const cs_float fields[] = { 1, 0, 1 };
+        switch (api) {
+        case 0: return csoundTryTableCopyOut(csound, 1, &output, 1);
+        case 1: return csoundTryTableCopyIn(csound, 1, input, 1);
+        case 2: return csoundTryEvent(csound, CS_INSTR_EVENT, fields, 3, 1);
+        default: return csoundTryEventString(csound, "i 1 0 1", 1);
+        }
+    }
+
     int takeWarnings()
     {
         int count = 0;
@@ -190,6 +201,30 @@ TEST_P(ApiQueueRejectionTests, VoidApiWarnsOnceUntilReset)
 
 INSTANTIATE_TEST_SUITE_P(EachVoidApi, ApiQueueRejectionTests,
                         ::testing::Range(0, 7));
+
+TEST_F(ApiQueueRejectionTests, TryApiSaysWhetherTheQueueTookIt)
+{
+    for (int api = 0; api < 4; ++api) {
+        SCOPED_TRACE(api);
+        fillQueue();
+        EXPECT_EQ(tryRequest(api), CSOUND_ERROR);
+        message_dequeue(csound);
+        EXPECT_EQ(tryRequest(api), CSOUND_SUCCESS);
+        message_dequeue(csound);
+    }
+}
+
+TEST_F(ApiQueueRejectionTests, TrySyncApiSaysWhatItDid)
+{
+    cs_float copy[2] = { 0, 0 };
+    const cs_float fields[] = { 1, 0, 1 };
+    EXPECT_EQ(csoundTryTableCopyOut(csound, 1, copy, 0), CSOUND_SUCCESS);
+    EXPECT_EQ(copy[0], 1);
+    EXPECT_EQ(csoundTryTableCopyIn(csound, 1, input, 0), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundTryTableCopyOut(csound, 99, copy, 0), CSOUND_ERROR);
+    EXPECT_EQ(csoundTryTableCopyIn(csound, 99, input, 0), CSOUND_ERROR);
+    EXPECT_EQ(csoundTryEvent(csound, 99, fields, 3, 0), CSOUND_ERROR);
+}
 
 TEST_F(ApiQueueRejectionTests, WarningCallbackCanRejectAnotherRequest)
 {

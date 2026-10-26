@@ -1464,8 +1464,9 @@ extern "C" {
 				 const cs_float *ptable, int32_t async);
 
   /**
-   * As csoundTableCopyIn(), returning CSOUND_SUCCESS, or CSOUND_ERROR for an
-   * async request the queue could not accept.
+   * As csoundTableCopyIn(), returning CSOUND_SUCCESS, or CSOUND_ERROR for a
+   * synchronous copy into a table that does not exist or an async request
+   * the queue could not accept.
    */
   PUBLIC int32_t csoundTryTableCopyIn(CSOUND *csound, int32_t table,
                                       const cs_float *ptable, int32_t async);
@@ -1491,7 +1492,8 @@ extern "C" {
 
   /**
    * As csoundTableCopyOut(), returning CSOUND_SUCCESS, or CSOUND_ERROR for
-   * an async request the queue could not accept.
+   * a synchronous copy from a table that does not exist or an async request
+   * the queue could not accept.
    */
   PUBLIC int32_t csoundTryTableCopyOut(CSOUND *csound, int32_t table,
                                        cs_float *ptable, int32_t async);

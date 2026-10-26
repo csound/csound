@@ -431,6 +431,11 @@ where type is one of
     };
 ```
 
+`csoundTryEvent()` and `csoundTryEventString()` take the same arguments
+and return a status, as `csoundScoreEvent()` did: `CSOUND_SUCCESS`, or
+`CSOUND_ERROR` for an event that could not be scheduled or an async
+request the queue could not accept.
+
 During performance, both `csoundEvent()` and `csoundEventString()`
 treat the start time as relative to the current time: the value is
 added to the current sample position when the event is inserted. A
@@ -514,7 +519,10 @@ PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
 ```
 
 Pass `0` to copy immediately under the API lock, or `1` to enqueue
-the copy for the performance thread.
+the copy for the performance thread. `csoundTryTableCopyOut()` and
+`csoundTryTableCopyIn()` do the same and return `CSOUND_SUCCESS`, or
+`CSOUND_ERROR` for a table that does not exist or an async request the
+queue could not accept.
 
 The list of named generators returned by `csoundGetNamedGens()`
 remains available to modules as `csound->GetNamedGens()`.
