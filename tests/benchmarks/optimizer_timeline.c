@@ -1,12 +1,36 @@
 /* Repeated note-start benchmark. See optimizer/README.md for its limits. */
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 #include "csound.h"
+#include "csound_misc.h"
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <dlfcn.h>
 #endif
+
+static void report_library(void)
+{
+#ifdef _WIN32
+  HMODULE module;
+  char path[32768];
+  if (!GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                         GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                         (LPCSTR)csoundCreate, &module)) exit(1);
+  DWORD size = GetModuleFileNameA(module, path, sizeof(path));
+  if (!size || size >= sizeof(path)) exit(1);
+#else
+  Dl_info info;
+  if (!dladdr((void *)csoundCreate, &info) || !info.dli_fname) exit(1);
+  const char *path = info.dli_fname;
+#endif
+  fprintf(stderr, "CSOUND_BENCH_LIBRARY %s\n", path);
+}
 
 static double wall_time(void)
 {
@@ -72,6 +96,8 @@ int main(int argc, char **argv)
   }
   int mask = count(argv[1], 0, 7), copies = count(argv[2], 0, 4096);
   int voices = count(argv[3], 1, 512), windows = count(argv[4], 1, 60);
+  report_library();
+  if (csoundGetSizeOfMYFLT() != sizeof(cs_float)) return 1;
   FILE *capture = argc == 6 ? fopen(argv[5], "wb") : NULL;
   if (argc == 6 && !capture) return 1;
   /* Each generated line needs fewer than 64 bytes at the allowed limits. */
@@ -79,8 +105,12 @@ int main(int argc, char **argv)
   if (!source) return 1;
   int used = sprintf(source, "sr=48000\nksmps=64\nnchnls=1\n0dbfs=1\n"
                      "instr 1\niValue=p4\n");
-  for (int i = 0; i < copies; i++)
-    used += sprintf(source + used, "iValue%d=p4+%.6f\n", i, i * .001);
+  for (int i = 0; i < copies; i++) {
+    char input[32];
+    if (i) snprintf(input, sizeof(input), "iValue%d", i - 1);
+    else snprintf(input, sizeof(input), "p4");
+    used += sprintf(source + used, "iValue%d=%s+%.6f\n", i, input, i * .001);
+  }
   if (copies) used += sprintf(source + used, "iValue=iValue%d\n", copies - 1);
   sprintf(source + used, "aTone oscili .0001, iValue\nout aTone\nendin\n");
   CSOUND *csound = csoundCreate(NULL, "");
@@ -90,6 +120,8 @@ int main(int argc, char **argv)
   snprintf(option, sizeof(option), "-+orc_opt_passes=%d", mask);
   check(csound, csoundSetOption(csound, "-n -d -m0"));
   check(csound, csoundSetOption(csound, option));
+  int32_t *selection = csoundQueryGlobalVariable(csound, "__orc_optimizer");
+  if (!selection || *selection != mask) return 1;
   double start = wall_time();
   check(csound, csoundCompileOrc(csound, source, 0));
   double compile_ms = (wall_time() - start) * 1000;

@@ -163,7 +163,8 @@ Default compilation remains mask 1.
 The native `optimizer_timeline` benchmark measures repeated note starts and audio
 processing in consecutive 1.024-second score windows. Each note lasts 16 blocks
 at 48 kHz with ksmps 64. Three warmup windows precede measurement. The fixture
-generates a chosen number of local i-rate additions and plays a sine tone. This
+generates a chain of local i-rate additions whose final value sets a sine tone's
+frequency. This
 is a synthetic initialization workload, not a prediction for all instruments.
 
 ```sh
@@ -177,6 +178,8 @@ CSOUND7RC=/dev/null python3 tests/benchmarks/optimizer_timeline.py \
 
 The runner checks complete audio and messages in separate untimed runs, then
 alternates masks 1 and 5 in fresh processes for each pair. The native loop
+reports the loaded library, checks sample precision and reads back the pass mask.
+The runner rejects a library that differs from `--library`. The native loop
 measures process CPU and wall time, including event submission, note activation
 and audio processing. Compilation is measured separately. A copy count of zero
 is a control for the harness and scheduling cost. Keep generated reports and

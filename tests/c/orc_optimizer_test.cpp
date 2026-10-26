@@ -2,6 +2,8 @@
 #include "csoundCore.h"
 #include "prototyp.h"
 #include "csdebug.h"
+#include "csound_orc.h"
+extern "C" TREE *csound_orc_optimize(CSOUND *, TREE *, TYPE_TABLE *);
 #include "gtest/gtest.h"
 #include <cstring>
 #include <memory>
@@ -447,6 +449,37 @@ TEST(OrcOptimizer, ScalarCopiesKeepAnOverloadedProducer) {
         EXPECT_EQ(FL(42), csoundGetControlChannel(cs.get(), "value", &error));
         EXPECT_EQ(0, error);
     }
+}
+
+TEST(OrcOptimizer, ScalarCopiesKeepATemporaryWithAnotherRead) {
+    auto cs = engine(1);
+    const auto source = header(16) +
+        "instr 1\niValue=p4+1\niOther=iValue\nendin\n";
+    TREE *tree = csoundParseOrc(cs.get(), source.c_str());
+    ASSERT_NE(nullptr, tree);
+    TREE *instrument = tree->next;
+    while (instrument && instrument->type != INSTR_TOKEN) instrument = instrument->next;
+    ASSERT_NE(nullptr, instrument);
+    TREE *producer = instrument->right;
+    ASSERT_NE(nullptr, producer);
+    ASSERT_NE(nullptr, producer->left);
+    const std::string temporary = producer->left->value->lexeme;
+    ASSERT_EQ(0, temporary.find("#i"));
+    TREE *copy = producer->next;
+    ASSERT_NE(nullptr, copy);
+    TREE *otherRead = copy->next;
+    ASSERT_NE(nullptr, otherRead);
+    ASSERT_NE(nullptr, otherRead->right);
+
+    // Generated names cannot be written in orchestra source. Point the second
+    // assignment at the same temporary to test the single-read guard directly.
+    cs->Free(cs.get(), otherRead->right->value->lexeme);
+    otherRead->right->value->lexeme = csoundStrdup(cs.get(), temporary.c_str());
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "-+orc_opt_passes=5"));
+    csound_orc_optimize(cs.get(), tree->next, static_cast<TYPE_TABLE *>(tree->markup));
+    EXPECT_EQ(copy, producer->next);
+    EXPECT_EQ(temporary, producer->left->value->lexeme);
+    csoundDeleteTree(cs.get(), tree);
 }
 
 void copyBreakpoint(CSOUND *, debug_bkpt_info_t *info, void *data) {

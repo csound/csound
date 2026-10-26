@@ -35,7 +35,14 @@ def main():
             invocation.append(str(capture))
         result = subprocess.run(invocation, env=environment, check=True,
                                 capture_output=True)
-        return json.loads(result.stdout), result.stderr
+        marker, messages = result.stderr.split(b"\n", 1)
+        prefix = b"CSOUND_BENCH_LIBRARY "
+        if not marker.startswith(prefix):
+            raise RuntimeError("native runner did not report its loaded library")
+        loaded = Path(os.fsdecode(marker[len(prefix):]))
+        if not loaded.samefile(args.library):
+            raise RuntimeError(f"loaded {loaded}, expected {args.library}")
+        return json.loads(result.stdout), messages
 
     # Capture every block, including note activation and warmups. Do not use
     # these timings. Native timed runs have no audio file I/O.
