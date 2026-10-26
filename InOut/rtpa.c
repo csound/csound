@@ -919,7 +919,8 @@ static void PaNoOpDebugPrint(const char* msg) {
     if (strcmp(drv, "PA_BL") == 0)
 #endif
       {
-        csound->ErrorMsg(csound, "%s", Str("using blocking interface\n"));
+        csound->MessageS(csound, CSOUNDMSG_INFO, "%s",
+                         Str("using blocking interface\n"));
         csound->SetPlayopenCallback(csound, playopen_blocking);
         csound->SetRecopenCallback(csound, recopen_blocking);
         csound->SetRtplayCallback(csound, rtplay_blocking);
@@ -928,7 +929,8 @@ static void PaNoOpDebugPrint(const char* msg) {
         csound->SetAudioDeviceListCallback(csound, list_devices);
       }
     else {
-      csound->ErrorMsg(csound, "%s", Str("using callback interface\n"));
+      csound->MessageS(csound, CSOUNDMSG_INFO, "%s",
+                       Str("using callback interface\n"));
       csound->SetPlayopenCallback(csound, playopen_noblock);
       csound->SetRecopenCallback(csound, recopen_noblock);
       csound->SetRtplayCallback(csound, rtplay_noblock);

@@ -1373,9 +1373,11 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
       if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
         char *name = csound->engineState.instrtxtp[insno]->insname;
         if (UNLIKELY(name))
-          csound->ErrorMsg(csound, Str("new alloc for instr %s:\n"), name);
+          csound->MessageS(csound, CSOUNDMSG_INFO,
+                           Str("new alloc for instr %s:\n"), name);
         else
-          csound->ErrorMsg(csound, Str("new alloc for instr %d:\n"), insno);
+          csound->MessageS(csound, CSOUNDMSG_INFO,
+                           Str("new alloc for instr %d:\n"), insno);
       }
       instance(csound, insno);
       tp->isNew=0;
