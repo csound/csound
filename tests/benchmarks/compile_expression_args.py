@@ -11,6 +11,8 @@ expression-argument expansion. Use --source to measure an existing orchestra.
 import argparse
 import ctypes
 import json
+import platform
+import hashlib
 from pathlib import Path
 import statistics
 import time
@@ -19,6 +21,8 @@ import time
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--library", type=Path, required=True)
+    parser.add_argument("--passes", type=int, choices=(0, 1),
+                        help="optional optimizer mask; omit for older reference libraries")
     parser.add_argument("--source", type=Path,
                         help="measure this orchestra instead of generated expressions")
     parser.add_argument("--phase", choices=("parse", "compile"), default="compile")
@@ -35,6 +39,7 @@ def main():
 
     lib = ctypes.CDLL(str(args.library.resolve()))
     signatures = {
+        "csoundQueryGlobalVariable": ([ctypes.c_void_p, ctypes.c_char_p], ctypes.POINTER(ctypes.c_int32)),
         "csoundCreate": ([ctypes.c_void_p, ctypes.c_char_p], ctypes.c_void_p),
         "csoundDestroy": ([ctypes.c_void_p], None),
         "csoundSetOption": ([ctypes.c_void_p, ctypes.c_char_p], ctypes.c_int),
@@ -70,6 +75,12 @@ def main():
             try:
                 if lib.csoundSetOption(csound, b"-n -d -m0") != 0:
                     raise RuntimeError("csoundSetOption failed")
+                if args.passes is not None:
+                    if lib.csoundSetOption(csound, f"-+orc_opt_passes={args.passes}".encode()):
+                        raise RuntimeError("optimizer option failed")
+                    controls = lib.csoundQueryGlobalVariable(csound, b"__orc_optimizer")
+                    if not controls or controls[0] != args.passes:
+                        raise RuntimeError("optimizer option was not applied")
                 if lib.csoundCompileOrc(csound, b"sr=48000\nksmps=64\nnchnls=1\n0dbfs=1", 0):
                     raise RuntimeError("engine setup failed")
                 start = time.perf_counter_ns()
@@ -96,7 +107,10 @@ def main():
                       "source": str(args.source) if args.source else None,
                       "kind": args.kind if not args.source else None,
                       "instruments": args.instruments if not args.source else None,
-                      "repeats": args.repeats, "results": results}, indent=2))
+                      "repeats": args.repeats, "warmups": args.warmups,
+                      "passes": args.passes, "platform": platform.platform(),
+                      "library_sha256": hashlib.sha256(args.library.read_bytes()).hexdigest(),
+                      "results": results}, indent=2))
 
 
 if __name__ == "__main__":

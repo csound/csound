@@ -24,6 +24,8 @@
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "csound_orc_semantics.h"
+#include "csound_orc_structs.h"
+#include "csound_standard_types.h"
 #include "aops.h"
 
 static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
@@ -424,8 +426,9 @@ TREE* constant_fold(CSOUND *csound, TREE* root)
     return root;
 }
 
-/* Optimizes tree (expressions, etc.) */
-TREE * csound_orc_optimize(CSOUND *csound, TREE *root)
+/* Historical pass. Kept separate so the reference path still performs all
+   semantic lowering and later execution-rate resolution. */
+static TREE * optimize_legacy(CSOUND *csound, TREE *root)
 {
     TREE *original=root, *last = NULL;
     while (root) {
@@ -440,5 +443,276 @@ TREE * csound_orc_optimize(CSOUND *csound, TREE *root)
     }
     return original;
     // return remove_excess_assigns(csound,original);
+}
+
+/* Dumps are deliberately opt-in and never run in the performance callback.
+   Names are numbered by first occurrence within a scope, without addresses or
+   source locations. Types and callback phases describe the resolved overload;
+   TREE phases are provisional until UDO classification finishes. */
+typedef struct {
+    CS_HASH_TABLE *names;
+    CS_VAR_POOL *localPool, *globalPool;
+    int32_t temporaries, labels, operations, init, perf, deinit;
+} ORC_DUMP;
+
+/* Read resolved metadata without rerunning semantic checking or creating ARGs. */
+static CS_VARIABLE *dump_variable(CSOUND *csound, ORC_DUMP *dump, char *name)
+{
+    char *copy = csoundStrdup(csound, name);
+    char *annotation = strstr(copy, "@global");
+    if (annotation)
+      memmove(annotation, annotation + 7, strlen(annotation + 7) + 1);
+    char *state;
+    char *base = cs_strtok_r(copy, ".", &state);
+    CS_VAR_POOL *pools[] = {annotation ? NULL : dump->localPool,
+                            dump->globalPool, csound->engineState.varPool};
+    CS_VARIABLE *var = NULL;
+    for (int32_t i = 0; base && !var && i < 3; i++)
+      if (pools[i]) var = csoundFindVariableWithName(csound, pools[i], base);
+    char *member;
+    while (var && (member = cs_strtok_r(NULL, ".", &state)) != NULL)
+      var = getStructMember(var->varType->members, member);
+    csound->Free(csound, copy);
+    return var;
+}
+
+static void dump_variable_type(CSOUND *csound, CS_VARIABLE *var)
+{
+    const CS_TYPE *actual = var && var->varType == &CS_VAR_TYPE_ARRAY
+                             ? var->subType : var ? var->varType : NULL;
+    char *display = csoundFormatTypeName(csound,
+        actual ? actual->varTypeName : NULL, var ? var->dimensions : 0);
+    csound->Message(csound, ":%s", display);
+    csound->Free(csound, display);
+}
+
+static void dump_type(CSOUND *csound, ORC_DUMP *dump, char *name)
+{
+    const char *type = NULL;
+    char c = *name;
+    if (c == '"') type = "S";
+    else if (((c >= '0' && c <= '9') && strcmp(name, "0dbfs")) ||
+             c == '.' || c == '-' || c == '+') type = "c";
+    else if (!strncmp(name, "__synthetic_", 12)) type = "l";
+    if (type) {
+      csound->Message(csound, ":%s", type);
+      return;
+    }
+    CS_VARIABLE *var = dump_variable(csound, dump, name);
+    if (var) dump_variable_type(csound, var);
+    else csound->Message(csound, ":%s", is_pfield_name(name) ? "p" : "?");
+}
+
+static void dump_name(CSOUND *csound, ORC_DUMP *dump, char *name)
+{
+    char *member = *name == '#' ? strchr(name, '.') : NULL;
+    if (member) {
+      char *base = cs_strndup(csound, name, member - name);
+      dump_name(csound, dump, base);
+      csound->Message(csound, "%s", member);
+      csound->Free(csound, base);
+      return;
+    }
+    int temporary = name[0] == '#';
+    int label = !strncmp(name, "__synthetic_", 12);
+    if (temporary || label) {
+      intptr_t id = (intptr_t)cs_hash_table_get(csound, dump->names, name);
+      if (!id) {
+        id = temporary ? ++dump->temporaries : ++dump->labels;
+        cs_hash_table_put(csound, dump->names, name, (void *)id);
+      }
+      csound->Message(csound, "%s%d", temporary ? "t" : "L", (int)id);
+    }
+    else csound->Message(csound, "%s", name);
+}
+
+static void dump_entry(CSOUND *csound, ORC_DUMP *dump, OENTRY *entry)
+{
+    dump->operations++;
+    dump->init += entry->init != NULL;
+    dump->perf += entry->perf != NULL;
+    dump->deinit += entry->deinit != NULL;
+    csound->Message(csound, "  op %s out=%s in=%s phase=%s%s%s ",
+                    entry->opname, entry->outypes ? entry->outypes : "",
+                    entry->intypes ? entry->intypes : "",
+                    entry->init ? "i" : "", entry->perf ? "p" : "",
+                    entry->deinit ? "d" : "");
+}
+
+static void dump_end(CSOUND *csound, ORC_DUMP *dump)
+{
+    csound->Message(csound,
+        "  counts ops=%d init=%d perf=%d deinit=%d temps=%d labels=%d\n",
+        dump->operations, dump->init, dump->perf, dump->deinit,
+        dump->temporaries, dump->labels);
+    cs_hash_table_free(csound, dump->names);
+}
+
+/* Preserve the reference shape without populating cached struct markup. */
+static void dump_tree_reference(CSOUND *csound, ORC_DUMP *dump, TREE *arg)
+{
+    if (arg->type == STRUCT_EXPR) {
+      dump_tree_reference(csound, dump, arg->left);
+      for (TREE *member = arg->right; member; member = member->next) {
+        csound->Message(csound, ".");
+        dump_tree_reference(csound, dump, member);
+      }
+    }
+    else if (arg->type == T_ARRAY) {
+      dump_tree_reference(csound, dump, arg->left);
+      csound->Message(csound, "[");
+      for (TREE *index = arg->right; index; index = index->next) {
+        dump_tree_reference(csound, dump, index);
+        if (index->next) csound->Message(csound, ",");
+      }
+      csound->Message(csound, "]");
+    }
+    else if (arg->value) dump_name(csound, dump, arg->value->lexeme);
+    else csound->Message(csound, "<node:%d>", arg->type);
+}
+
+static CS_VARIABLE *dump_tree_variable(CSOUND *csound, ORC_DUMP *dump, TREE *arg)
+{
+    if (arg->type == STRUCT_EXPR) {
+      CS_VARIABLE *var = dump_tree_variable(csound, dump, arg->left);
+      const CS_TYPE *container = var ? var->varType : NULL;
+      if (container == &CS_VAR_TYPE_ARRAY && arg->left->type == T_ARRAY)
+        container = var->subType;
+      for (TREE *member = arg->right; container && member; member = member->next) {
+        var = getStructMember(container->members, member->value->lexeme);
+        container = var ? var->varType : NULL;
+      }
+      return var;
+    }
+    if (arg->type == T_ARRAY) return dump_tree_variable(csound, dump, arg->left);
+    return arg->value ? dump_variable(csound, dump, arg->value->lexeme) : NULL;
+}
+
+static void dump_tree_args(CSOUND *csound, ORC_DUMP *dump, TREE *args,
+                           int32_t typed)
+{
+    csound->Message(csound, "[");
+    for (; args; args = args->next) {
+      dump_tree_reference(csound, dump, args);
+      if (typed) {
+        if (args->type == STRUCT_EXPR)
+          dump_variable_type(csound, dump_tree_variable(csound, dump, args));
+        else if (args->value) dump_type(csound, dump, args->value->lexeme);
+        else csound->Message(csound, ":?");
+      }
+      if (args->next) csound->Message(csound, ",");
+    }
+    csound->Message(csound, "]");
+}
+
+static void dump_tree(CSOUND *csound, TREE *root, CS_VAR_POOL *localPool,
+                       CS_VAR_POOL *globalPool)
+{
+    ORC_DUMP dump = {0};
+    dump.names = cs_hash_table_create(csound);
+    dump.localPool = localPool;
+    dump.globalPool = globalPool;
+    for (; root; root = root->next) {
+      if (root->type == INSTR_TOKEN || root->type == UDO_TOKEN) {
+        csound->Message(csound, " scope %s\n",
+                        root->type == INSTR_TOKEN ? "instrument" : "udo");
+        dump_tree_args(csound, &dump, root->left, 0);
+        csound->Message(csound, "\n");
+        dump_tree(csound, root->right, (CS_VAR_POOL *)root->markup, globalPool);
+        csound->Message(csound, " endscope\n");
+      }
+      else if (root->type == LABEL_TOKEN) {
+        csound->Message(csound, "  label ");
+        dump_name(csound, &dump, root->value->lexeme);
+        csound->Message(csound, "\n");
+      }
+      else if ((root->type == T_OPCALL || root->type == T_ASSIGNMENT ||
+                root->type == '=' || root->type == GOTO_TOKEN ||
+                root->type == IGOTO_TOKEN || root->type == KGOTO_TOKEN ||
+                root->type == S_ADDIN || root->type == S_SUBIN ||
+                root->type == S_MULIN || root->type == S_DIVIN) && root->markup) {
+        dump_entry(csound, &dump, (OENTRY *)root->markup);
+        dump_tree_args(csound, &dump, root->left, 1);
+        csound->Message(csound, " <- ");
+        dump_tree_args(csound, &dump, root->right, 1);
+        csound->Message(csound, "\n");
+      }
+    }
+    dump_end(csound, &dump);
+}
+
+static void dump_args(CSOUND *csound, ORC_DUMP *dump, ARGLST *args)
+{
+    csound->Message(csound, "[");
+    if (args) for (int32_t i = 0; i < args->count; i++) {
+      dump_name(csound, dump, args->arg[i]);
+      dump_type(csound, dump, args->arg[i]);
+      if (i + 1 < args->count) csound->Message(csound, ",");
+    }
+    csound->Message(csound, "]");
+}
+
+void csound_orc_dump_templates(CSOUND *csound, ENGINE_STATE *state)
+{
+    if (!(csoundGetDebug(csound) & DEBUG_OPTIMIZER)) return;
+    csound->Message(csound, "ORC-OPT templates phase=resolved\n");
+    for (INSTRTXT *ip = state->instxtanchor.nxtinstxt; ip; ip = ip->nxtinstxt) {
+      ORC_DUMP dump = {0};
+      dump.names = cs_hash_table_create(csound);
+      dump.localPool = ip->varPool;
+      dump.globalPool = state->varPool;
+      csound->Message(csound, " scope %s\n", ip->insname ? ip->insname : "instrument");
+      for (OPTXT *op = ip->nxtop; op; op = op->nxtop) {
+        if (!op->t.oentry) continue;
+        if (!strcmp(op->t.oentry->opname, "$label")) {
+          csound->Message(csound, "  label ");
+          dump_name(csound, &dump, op->t.opcod);
+          csound->Message(csound, "\n");
+          continue;
+        }
+        dump_entry(csound, &dump, op->t.oentry);
+        dump_args(csound, &dump, op->t.outlist);
+        csound->Message(csound, " <- ");
+        dump_args(csound, &dump, op->t.inlist);
+        csound->Message(csound, "\n");
+      }
+      if (ip->varPool) {
+        size_t audioBytes = 0;
+        int32_t audioVariables = 0, allocatedTemps = 0;
+        for (CS_VARIABLE *v = ip->varPool->head; v; v = v->next) {
+          if (v->varName[0] == '#') allocatedTemps++;
+          if (!strcmp(v->varType->varTypeName, "a")) {
+            audioVariables++;
+            audioBytes += v->memBlockSize;
+          }
+        }
+        csound->Message(csound,
+            "  storage pool_bytes=%d allocated_temps=%d audio_vars=%d "
+            "audio_template_bytes=%zu\n", ip->varPool->poolSize,
+            allocatedTemps, audioVariables, audioBytes);
+      }
+      dump_end(csound, &dump);
+      csound->Message(csound, " endscope\n");
+    }
+    csound->Message(csound, "ORC-OPT end\n");
+}
+
+TREE *csound_orc_optimize(CSOUND *csound, TREE *root, TYPE_TABLE *types)
+{
+    int32_t *selection = csoundQueryGlobalVariable(csound, "__orc_optimizer");
+    int32_t passes = selection ? *selection : 1;
+    int32_t dump = csoundGetDebug(csound) & DEBUG_OPTIMIZER;
+    if (dump) {
+      csound->Message(csound, "ORC-OPT before phase=provisional\n");
+      dump_tree(csound, root, types->instr0LocalPool, types->globalPool);
+      csound->Message(csound, "ORC-OPT end\n");
+    }
+    if (passes & 1) root = optimize_legacy(csound, root);
+    if (dump) {
+      csound->Message(csound, "ORC-OPT after phase=provisional\n");
+      dump_tree(csound, root, types->instr0LocalPool, types->globalPool);
+      csound->Message(csound, "ORC-OPT end\n");
+    }
+    return root;
 }
 

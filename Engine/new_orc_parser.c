@@ -460,7 +460,7 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
         return NULL;
       }
 
-      astTree = csound_orc_optimize(csound, astTree);
+      astTree = csound_orc_optimize(csound, astTree, typeTable);
       /* Prepend a sentinel node to the statement list to carry the
          TYPE_TABLE across to the compilation step, which receives only the
          tree root and reads the table back from root->markup. The node is

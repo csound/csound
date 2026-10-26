@@ -46,6 +46,7 @@ if(BUILD_TESTS)
         plugin_options_test.cpp
         csound_csd_compile_test.cpp
         csound_orc_compile_test.cpp
+        orc_optimizer_test.cpp
         csound_orc_semantics_test.cpp
         opcode_signature_test.cpp
         assertion_rate_test.cpp

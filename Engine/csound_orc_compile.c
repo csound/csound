@@ -2555,6 +2555,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     classify_udo_rates(csound, engineState);
   }
   verify_array_read_phases(csound, engineState);
+  csound_orc_dump_templates(csound, engineState);
 
   if (UNLIKELY(csound->synterrcnt)) {
     print_opcodedir_warning(csound);
