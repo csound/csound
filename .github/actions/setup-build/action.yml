@@ -41,6 +41,12 @@ runs:
           mkdir -p "$cache_root/vcpkg"
           echo "VCPKG_BINARY_SOURCES=clear;files,$cache_root/vcpkg,readwrite" >> "$GITHUB_ENV"
           echo "vcpkg-revision=$(git rev-parse HEAD:vcpkg)" >> "$GITHUB_OUTPUT"
+          # Some platform trees contain dangling symlinks. Hash Git's tracked
+          # tree entries without following links into absent build outputs.
+          build_inputs=$(git ls-tree HEAD -- CMakeLists.txt CMakePresets.json \
+            vcpkg.json vcpkg-configuration.json cmake platform \
+            .github/workflows .github/actions/setup-build | git hash-object --stdin)
+          echo "build-inputs=$build_inputs" >> "$GITHUB_OUTPUT"
         fi
         if [[ "$CACHE_COMPILER" == true ]]; then
           mkdir -p "$cache_root/ccache"
@@ -56,7 +62,7 @@ runs:
       uses: actions/cache@v6.1.0
       with:
         path: .ci-cache/vcpkg
-        key: vcpkg-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.config.outputs.image }}-${{ github.job }}-${{ inputs.variant }}-${{ steps.config.outputs.vcpkg-revision }}-${{ hashFiles('vcpkg*.json', 'CMakeLists.txt', 'CMakePresets.json', 'cmake/**', 'platform/**', '.github/workflows/**', '.github/actions/setup-build/**') }}
+        key: vcpkg-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.config.outputs.image }}-${{ github.job }}-${{ inputs.variant }}-${{ steps.config.outputs.vcpkg-revision }}-${{ steps.config.outputs.build-inputs }}
         restore-keys: |
           vcpkg-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.config.outputs.image }}-${{ github.job }}-${{ inputs.variant }}-${{ steps.config.outputs.vcpkg-revision }}-
 
