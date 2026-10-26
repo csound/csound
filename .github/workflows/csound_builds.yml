@@ -1923,10 +1923,13 @@ jobs:
 
       - name: Configure Build
         run: |
-          cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/wasm-emscripten/Custom-wasm.cmake" -DCMAKE_SYSTEM_NAME=Emscripten -DEMSDK=$EMSDK -DEMSDK_NODE=$EMSDK_NODE
+          # This legacy toolchain emits libcsound.a from both library targets.
+          # Keep its existing generator and build order until those outputs
+          # are separated. The vcpkg binary cache still applies to this job.
+          cmake -B build -S . -G "Unix Makefiles" -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/wasm-emscripten/Custom-wasm.cmake" -DCMAKE_SYSTEM_NAME=Emscripten -DEMSDK=$EMSDK -DEMSDK_NODE=$EMSDK_NODE
 
       - name: Build Csound
-        run: cmake --build build --config Release
+        run: cmake --build build --config Release --parallel 1
 
       #- name: Run unit tests
       #  run: ctest --test-dir build -j$(nproc) --output-on-failure

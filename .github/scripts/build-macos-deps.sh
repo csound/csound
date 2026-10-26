@@ -34,7 +34,7 @@ done
 
 # Reject incomplete universal libraries before saving the cache.
 while IFS= read -r -d '' library; do
-  lipo -verify_arch arm64 x86_64 "$library"
+  lipo "$library" -verify_arch arm64 x86_64
 done < <(find platform/osx/libsndfile_build/dependencies portmidi_install \
   portaudio_install samplerate_install liblo_install \
   -type f \( -name '*.a' -o -name '*.dylib' \) -print0)

@@ -2,7 +2,9 @@
 
 `setup-build` sets a CPU-based build limit. Unix jobs use Ninja; Windows
 jobs also enable parallel compilation within MSBuild targets. Docker build
-steps pass the limit and vcpkg cache path into their containers.
+steps pass the limit and vcpkg cache path into their containers. The legacy
+Emscripten job keeps serial Make builds because its library targets write the
+same archive. Its dependency cache remains enabled.
 
 The vcpkg cache stores binary archives, not an installed dependency tree.
 vcpkg still checks each package's build inputs before reusing it. Cache keys
