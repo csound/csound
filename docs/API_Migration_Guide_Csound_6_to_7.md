@@ -432,9 +432,11 @@ where type is one of
 ```
 
 `csoundTryEvent()` and `csoundTryEventString()` take the same arguments
-and return a status, as `csoundScoreEvent()` did: `CSOUND_SUCCESS`, or
-`CSOUND_ERROR` for an event that could not be scheduled or an async
-request the queue could not accept.
+and return a status, as `csoundScoreEvent()` did: `CSOUND_SUCCESS` when a
+synchronous event is scheduled or an async request is queued, and
+`CSOUND_ERROR` for an unknown type, a synchronous event that could not be
+scheduled, or an async request the queue rejects. Async success does not
+mean the event has been scheduled.
 
 During performance, both `csoundEvent()` and `csoundEventString()`
 treat the start time as relative to the current time: the value is
@@ -520,9 +522,10 @@ PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
 
 Pass `0` to copy immediately under the API lock, or `1` to enqueue
 the copy for the performance thread. `csoundTryTableCopyOut()` and
-`csoundTryTableCopyIn()` do the same and return `CSOUND_SUCCESS`, or
-`CSOUND_ERROR` for a table that does not exist or an async request the
-queue could not accept.
+`csoundTryTableCopyIn()` return `CSOUND_SUCCESS` when a synchronous copy
+succeeds or an async request is queued. They return `CSOUND_ERROR` when
+a synchronous copy refers to a missing table or the queue rejects an
+async request. Async success does not mean the copy has completed.
 
 The list of named generators returned by `csoundGetNamedGens()`
 remains available to modules as `csound->GetNamedGens()`.

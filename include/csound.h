@@ -1267,8 +1267,9 @@ extern "C" {
 
   /**
    * As csoundEvent(), returning CSOUND_SUCCESS, or a negative error code:
-   * CSOUND_ERROR for an unknown type, an event that could not be scheduled or
-   * an async request the queue could not accept.
+   * CSOUND_ERROR for an unknown type, a synchronous event that could not be
+   * scheduled or an async request the queue could not accept. An async
+   * request's success means it was queued, not yet scheduled.
    */
   PUBLIC int32_t csoundTryEvent(CSOUND *, int32_t type, const cs_float *params,
                                 int32_t nparams, int32_t async);
