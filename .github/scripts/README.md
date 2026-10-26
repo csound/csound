@@ -1,8 +1,10 @@
 # CI build reuse and test groups
 
-`setup-build` sets a CPU-based build limit. Unix jobs use Ninja; Windows
-jobs also enable parallel compilation within MSBuild targets. Docker build
-steps pass the limit and vcpkg cache path into their containers. The legacy
+`setup-build` sets a CPU-based build limit. Unix jobs use Ninja. Windows jobs
+build one MSBuild project at a time and let `/MP` use the runner's CPUs to
+compile that project's source files. This keeps the combined compiler worker
+count within the CPU limit. Docker build steps pass the limit and vcpkg cache
+path into their containers. The legacy
 Emscripten job keeps serial Make builds because its library targets write the
 same archive. Its dependency cache remains enabled.
 

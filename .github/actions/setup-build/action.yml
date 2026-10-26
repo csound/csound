@@ -26,13 +26,14 @@ runs:
           Windows) jobs=$NUMBER_OF_PROCESSORS ;;
           *) echo "Unsupported runner: $RUNNER_OS"; exit 1 ;;
         esac
-        echo "CMAKE_BUILD_PARALLEL_LEVEL=$jobs" >> "$GITHUB_ENV"
         if [[ "$RUNNER_OS" == Windows ]]; then
-          # MSBuild's project parallelism alone does not compile a target's
-          # source files in parallel. Bound both levels to the runner's CPUs.
+          # Build one MSBuild project at a time so /MP can use the CPU budget
+          # for its source files without multiplying it by concurrent projects.
+          echo "CMAKE_BUILD_PARALLEL_LEVEL=1" >> "$GITHUB_ENV"
           echo "CL=${CL:-} /MP$jobs" >> "$GITHUB_ENV"
           cache_root=$(cygpath -m "$GITHUB_WORKSPACE")/.ci-cache
         else
+          echo "CMAKE_BUILD_PARALLEL_LEVEL=$jobs" >> "$GITHUB_ENV"
           cache_root="$GITHUB_WORKSPACE/.ci-cache"
           echo "CMAKE_GENERATOR=Ninja" >> "$GITHUB_ENV"
         fi
