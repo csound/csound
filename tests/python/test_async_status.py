@@ -1,7 +1,8 @@
 """What an asynchronous API call says when the queue between the host and
 the performance, API_MAX_QUEUE requests a k-cycle, has no room for it: the
-request is dropped, as it was, and the call now returns CSOUND_ERROR rather
-than nothing, so a host can tell. Each case fills the queue without
+request is dropped, as it is by csoundEvent and the others, and their Try
+forms return CSOUND_ERROR, so a host can tell. ctcsound's event and
+event_string are the Try forms. Each case fills the queue without
 performing, so nothing drains it until the k-cycle the case asks for."""
 
 import ctypes as ct
@@ -58,8 +59,8 @@ class AsyncStatusTests(unittest.TestCase):
         self.filled(lambda: self.cs.event(ctcsound.CS_INSTR_EVENT, (1, 0, 0), True))
 
     def test_a_table_copy_without_room_is_refused(self):
-        for function in (ctcsound.libcsound.csoundTableCopyIn,
-                         ctcsound.libcsound.csoundTableCopyOut):
+        for function in (ctcsound.libcsound.csoundTryTableCopyIn,
+                         ctcsound.libcsound.csoundTryTableCopyOut):
             function.restype = ct.c_int32
             with self.subTest(function=function.__name__):
                 self.filled(self.copy(function))

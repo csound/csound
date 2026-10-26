@@ -12,8 +12,8 @@
 
 extern "C" void message_dequeue(CSOUND *csound);
 extern "C" void input_message_async(CSOUND *, const char *);
-extern "C" void read_score_async(CSOUND *, const char *);
-extern "C" void score_event_async(CSOUND *, char, const cs_float *, long);
+extern "C" int32_t read_score_async(CSOUND *, const char *);
+extern "C" int32_t score_event_async(CSOUND *, char, const cs_float *, long);
 extern "C" int32_t csoundKillInstance(CSOUND *, cs_float, char *, int32_t,
                                       int32_t, int32_t);
 extern "C" void free_inactive_instances(CSOUND *csound);

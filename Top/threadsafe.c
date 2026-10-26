@@ -388,8 +388,8 @@ int32_t score_event_async(CSOUND *csound, char type,
   return CSOUND_SUCCESS;
 }
 
-int32_t csoundTableCopyOut(CSOUND *csound, int32_t table, cs_float *ptable,
-                           int32_t async){
+int32_t csoundTryTableCopyOut(CSOUND *csound, int32_t table, cs_float *ptable,
+                              int32_t async){
   if(async)
     return table_copy_out_enqueue(csound, table, ptable);
   if (!csound->oparms->realtime)
@@ -400,8 +400,13 @@ int32_t csoundTableCopyOut(CSOUND *csound, int32_t table, cs_float *ptable,
   return CSOUND_SUCCESS;
 }
 
-int32_t csoundTableCopyIn(CSOUND *csound, int32_t table, const
-		       cs_float *ptable, int32_t async){
+void csoundTableCopyOut(CSOUND *csound, int32_t table, cs_float *ptable,
+                        int32_t async){
+  csoundTryTableCopyOut(csound, table, ptable, async);
+}
+
+int32_t csoundTryTableCopyIn(CSOUND *csound, int32_t table,
+                             const cs_float *ptable, int32_t async){
   if(async)
     return table_copy_in_enqueue(csound, table, ptable);
   if (!csound->oparms->realtime)
@@ -410,6 +415,11 @@ int32_t csoundTableCopyIn(CSOUND *csound, int32_t table, const
   if (!csound->oparms->realtime)
     csoundUnlockMutex(csound->API_lock);
   return CSOUND_SUCCESS;
+}
+
+void csoundTableCopyIn(CSOUND *csound, int32_t table, const
+		       cs_float *ptable, int32_t async){
+  csoundTryTableCopyIn(csound, table, ptable, async);
 }
 
 /* Legacy internal entry point, no longer part of the public API. Callers must

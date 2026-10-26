@@ -99,15 +99,19 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   return CSOUND_SUCCESS;
 }
 
- int32_t csoundEventString(CSOUND *csound, const char *message,
-                              int32_t async) {
+int32_t csoundTryEventString(CSOUND *csound, const char *message,
+                             int32_t async) {
   if (async)
     return read_score_async(csound, message);
   return csoundReadScore(csound, message);
 }
 
- int32_t csoundEvent(CSOUND *csound, int32_t type, const cs_float *params,
-                        int32_t nparams, int32_t async) {
+void csoundEventString(CSOUND *csound, const char *message, int32_t async) {
+  csoundTryEventString(csound, message, async);
+}
+
+int32_t csoundTryEvent(CSOUND *csound, int32_t type, const cs_float *params,
+                       int32_t nparams, int32_t async) {
   char c;
   if (type == CS_INSTR_EVENT)
     c = 'i';
@@ -122,6 +126,11 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   if (async)
     return score_event_async(csound, c, params, nparams);
   return csound_score_event(csound, c, params, nparams);
+}
+
+void csoundEvent(CSOUND *csound, int32_t type, const cs_float *params,
+                 int32_t nparams, int32_t async) {
+  csoundTryEvent(csound, type, params, nparams, async);
 }
 
 /*

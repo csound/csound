@@ -1260,12 +1260,18 @@ extern "C" {
    * If the queue cannot accept the request, no event is queued.
    * Rejected async calls issue at most one warning per instance between resets.
    * NB: This is non-op before csoundStart() is called.
-   * Returns CSOUND_SUCCESS, or a negative error code: CSOUND_ERROR for an
-   * unknown type, an event that could not be scheduled or an async request the
-   * queue could not accept.
+   * csoundTryEvent() does the same and returns its status.
    */
-  PUBLIC int32_t csoundEvent(CSOUND *, int32_t type, const cs_float *params,
-                             int32_t nparams, int32_t async);
+  PUBLIC void  csoundEvent(CSOUND *, int32_t type, const cs_float *params,
+                           int32_t nparams, int32_t async);
+
+  /**
+   * As csoundEvent(), returning CSOUND_SUCCESS, or a negative error code:
+   * CSOUND_ERROR for an unknown type, an event that could not be scheduled or
+   * an async request the queue could not accept.
+   */
+  PUBLIC int32_t csoundTryEvent(CSOUND *, int32_t type, const cs_float *params,
+                                int32_t nparams, int32_t async);
 
   /**
    * Schedule new score or realtime event(s) as a NULL-terminated string
@@ -1281,10 +1287,16 @@ extern "C" {
    * Async calls copy the string and return without waiting for queue space.
    * If the queue cannot accept the request, no events are queued.
    * Rejected async calls issue at most one warning per instance between resets.
-   * Returns CSOUND_SUCCESS, or CSOUND_ERROR for an async request the queue
-   * could not accept.
+   * csoundTryEventString() does the same and returns its status.
    */
-  PUBLIC int32_t csoundEventString(CSOUND *, const char *message, int32_t async);
+  PUBLIC void  csoundEventString(CSOUND *, const char *message, int32_t async);
+
+  /**
+   * As csoundEventString(), returning CSOUND_SUCCESS, or CSOUND_ERROR for an
+   * async request the queue could not accept.
+   */
+  PUBLIC int32_t csoundTryEventString(CSOUND *, const char *message,
+                                      int32_t async);
 
   /**
    * Get the instrument number for a given instrument name string
@@ -1446,11 +1458,17 @@ extern "C" {
    * runs. The queue stores its address, not a copy of its contents.
    * If the queue cannot accept the request, the call returns without copying.
    * Rejected async calls issue at most one warning per instance between resets.
-   * Returns CSOUND_SUCCESS, or CSOUND_ERROR for an async request the queue
-   * could not accept.
+   * csoundTryTableCopyIn() does the same and returns its status.
    */
-  PUBLIC int32_t csoundTableCopyIn(CSOUND *csound, int32_t table,
+  PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
 				 const cs_float *ptable, int32_t async);
+
+  /**
+   * As csoundTableCopyIn(), returning CSOUND_SUCCESS, or CSOUND_ERROR for an
+   * async request the queue could not accept.
+   */
+  PUBLIC int32_t csoundTryTableCopyIn(CSOUND *csound, int32_t table,
+                                      const cs_float *ptable, int32_t async);
 
 
    /** 
@@ -1466,11 +1484,17 @@ extern "C" {
    * do not read or write it concurrently with the copy.
    * If the queue cannot accept the request, the call returns without copying.
    * Rejected async calls issue at most one warning per instance between resets.
-   * Returns CSOUND_SUCCESS, or CSOUND_ERROR for an async request the queue
-   * could not accept.
+   * csoundTryTableCopyOut() does the same and returns its status.
    */
-  PUBLIC int32_t csoundTableCopyOut(CSOUND *csound, int32_t table,
+  PUBLIC void csoundTableCopyOut(CSOUND *csound, int32_t table,
 				cs_float *ptable, int32_t async);
+
+  /**
+   * As csoundTableCopyOut(), returning CSOUND_SUCCESS, or CSOUND_ERROR for
+   * an async request the queue could not accept.
+   */
+  PUBLIC int32_t csoundTryTableCopyOut(CSOUND *csound, int32_t table,
+                                       cs_float *ptable, int32_t async);
   
 
   /** @}*/

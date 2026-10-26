@@ -446,11 +446,14 @@ libcsound.csoundGetChannelDatasize.argtypes = [CSOUND_p, ct.c_char_p]
 CHANNELFUNC = ct.CFUNCTYPE(None, CSOUND_p, ct.c_char_p, ct.c_void_p, ct.c_void_p)
 libcsound.csoundSetInputChannelCallback.argtypes = [CSOUND_p, CHANNELFUNC]
 libcsound.csoundSetOutputChannelCallback.argtypes = [CSOUND_p, CHANNELFUNC]
-libcsound.csoundEvent.restype = ct.c_int32
 libcsound.csoundEvent.argtypes = [CSOUND_p, ct.c_int32, ct.POINTER(cs_float),
                                   ct.c_int32, ct.c_int32]
-libcsound.csoundEventString.restype = ct.c_int32
+libcsound.csoundTryEvent.restype = ct.c_int32
+libcsound.csoundTryEvent.argtypes = [CSOUND_p, ct.c_int32, ct.POINTER(cs_float),
+                                     ct.c_int32, ct.c_int32]
 libcsound.csoundEventString.argtypes = [CSOUND_p, ct.c_char_p, ct.c_int32]
+libcsound.csoundTryEventString.restype = ct.c_int32
+libcsound.csoundTryEventString.argtypes = [CSOUND_p, ct.c_char_p, ct.c_int32]
 libcsound.csoundGetInstrNumber.argtypes = [CSOUND_p, ct.c_char_p]
 libcsound.csoundKeyPress.argtypes = [CSOUND_p, ct.c_char]
 KEYBOARDFUNC = ct.CFUNCTYPE(ct.c_int32, ct.py_object, ct.c_void_p, ct.c_uint32)
@@ -1593,7 +1596,7 @@ class Csound:
         p = np.asarray(params, dtype=cs_float)
         ptr = p.ctypes.data_as(ct.POINTER(cs_float))
         n_fields = ct.c_int32(p.size)
-        return libcsound.csoundEvent(self.cs, ct.c_int32(type_), ptr, n_fields,
+        return libcsound.csoundTryEvent(self.cs, ct.c_int32(type_), ptr, n_fields,
             ct.c_int32(async_))
 
     def event_string(self, message, async_=False):
@@ -1611,7 +1614,7 @@ class Csound:
         Returns CSOUND_SUCCESS, or CSOUND_ERROR for an async request the
         queue could not accept.
         """
-        return libcsound.csoundEventString(self.cs, cstring(message),
+        return libcsound.csoundTryEventString(self.cs, cstring(message),
             ct.c_int32(async_))
 
     def instr_number(self, name):
