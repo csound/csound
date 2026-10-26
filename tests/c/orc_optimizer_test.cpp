@@ -45,32 +45,54 @@ std::string header(int block) {
     return "sr=48000\nksmps=" + std::to_string(block) +
            "\nnchnls=1\n0dbfs=1\nseed 12345\n";
 }
+enum class RenderStage { Compilation, Startup, Performance };
+struct RenderStep {
+    RenderStage stage;
+    int32_t status;
+    std::string log;
+};
 struct Render {
     std::vector<cs_float> samples;
-    std::string log;
+    std::vector<RenderStep> steps;
 };
 Render render(int passes, int block, const std::string &body) {
     auto cs = engine(passes);
     Render result;
+    auto record = [&](RenderStage stage, int32_t status) {
+        result.steps.push_back({stage, status, messages(cs.get())});
+        return status;
+    };
     std::string source = header(block) + body;
-    EXPECT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
-    EXPECT_EQ(0, csoundStart(cs.get()));
-    messages(cs.get());
+    if (record(RenderStage::Compilation,
+               csoundCompileOrc(cs.get(), source.c_str(), 0)) != 0) return result;
+    if (record(RenderStage::Startup, csoundStart(cs.get())) != 0) return result;
     csoundEventString(cs.get(), "i 1 0 1", 0);
     for (int i = 0; i < 8; ++i) {
-        EXPECT_EQ(0, csoundPerformKsmps(cs.get()));
+        if (record(RenderStage::Performance, csoundPerformKsmps(cs.get())) != 0)
+            break;
         const cs_float *out = csoundGetSpout(cs.get());
         result.samples.insert(result.samples.end(), out, out + block);
     }
-    result.log = messages(cs.get());
     return result;
 }
-void identical(const Render &a, const Render &b) {
+void identical(const Render &a, const Render &b, int32_t expectedExit = 0) {
+    ASSERT_GE(a.steps.size(), 3u);
+    ASSERT_EQ(a.steps.size(), b.steps.size());
+    EXPECT_EQ(RenderStage::Compilation, a.steps[0].stage);
+    EXPECT_EQ(RenderStage::Startup, a.steps[1].stage);
+    for (size_t i = 0; i < a.steps.size(); ++i) {
+        EXPECT_EQ(a.steps[i].stage, b.steps[i].stage);
+        EXPECT_EQ(a.steps[i].status, b.steps[i].status);
+        EXPECT_EQ(i + 1 == a.steps.size() ? expectedExit : 0, a.steps[i].status);
+        EXPECT_EQ(a.steps[i].log, b.steps[i].log);
+        if (i >= 2) EXPECT_EQ(RenderStage::Performance, a.steps[i].stage);
+    }
+    if (expectedExit == 0) EXPECT_EQ(10u, a.steps.size());
     ASSERT_EQ(a.samples.size(), b.samples.size());
     // Bit comparison intentionally catches signed zero and rounding changes.
-    EXPECT_EQ(0, std::memcmp(a.samples.data(), b.samples.data(),
-                            a.samples.size() * sizeof(cs_float)));
-    EXPECT_EQ(a.log, b.log);
+    if (!a.samples.empty())
+        EXPECT_EQ(0, std::memcmp(a.samples.data(), b.samples.data(),
+                                a.samples.size() * sizeof(cs_float)));
 }
 
 int32_t traceInit(CSOUND *cs, void *) {
@@ -137,7 +159,35 @@ TEST(OrcOptimizer, UnusedDivisionStillWarns) {
     const char *source = "instr 1\nkzero init 0\nkunused = 1/kzero\naout = 0\nout aout\nendin\n";
     auto off = render(0, 16, source);
     identical(off, render(1, 16, source));
-    EXPECT_NE(std::string::npos, off.log.find("Division by zero"));
+    ASSERT_GE(off.steps.size(), 3u);
+    EXPECT_NE(std::string::npos, off.steps[2].log.find("Division by zero"));
+}
+
+TEST(OrcOptimizer, PreservesStartupMessagesAndTheirOrder) {
+    const char *source =
+        "prints \"global-first\\n\"\nprints \"global-second\\n\"\n"
+        "instr 1\nprints \"note-init-message\\n\"\naout = 0\nout aout\nendin\n";
+    auto off = render(0, 16, source);
+    identical(off, render(1, 16, source));
+    ASSERT_GE(off.steps.size(), 3u);
+    const auto &startup = off.steps[1].log;
+    const auto first = startup.find("global-first\n");
+    const auto second = startup.find("global-second\n");
+    ASSERT_NE(std::string::npos, first);
+    ASSERT_NE(std::string::npos, second);
+    EXPECT_LT(first, second);
+    EXPECT_NE(std::string::npos, off.steps[2].log.find("note-init-message\n"));
+}
+
+TEST(OrcOptimizer, RecordsExpectedNonzeroExitAndStopsRendering) {
+    const char *source =
+        "instr 1\nprintf \"performance-exit-message\\n\", 1\nexitnowk 7\nendin\n";
+    auto off = render(0, 16, source);
+    identical(off, render(1, 16, source), -7);
+    ASSERT_EQ(3u, off.steps.size());
+    EXPECT_EQ(-7, off.steps.back().status);
+    EXPECT_TRUE(off.samples.empty());
+    EXPECT_NE(std::string::npos, off.steps.back().log.find("performance-exit-message\n"));
 }
 
 TEST(OrcOptimizer, StableDumpsAndLiteralOperationsRemain) {
