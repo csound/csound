@@ -16,6 +16,7 @@ SOURCE = Path(__file__).resolve().parents[2]
 
 
 def require_same(actual, expected, label):
+    """Raise ValueError for missing or extra entries, including duplicates."""
     missing = Counter(expected) - Counter(actual)
     extra = Counter(actual) - Counter(expected)
     if missing or extra:
@@ -23,6 +24,7 @@ def require_same(actual, expected, label):
 
 
 def inventory(build):
+    """Return configured CTest cases and CSD names allowed by native skip rules."""
     result = subprocess.run(
         ["ctest", "--test-dir", str(build), "--show-only=json-v1"],
         check=True, capture_output=True, text=True,
@@ -37,6 +39,7 @@ def inventory(build):
 
 
 def partition(ctest, csd, count):
+    """Assign every test once, keeping linked CTest fixtures on the same shard."""
     if count < 1:
         raise ValueError("Shard count must be positive")
     names = [test["name"] for test in ctest]
@@ -70,6 +73,7 @@ def partition(ctest, csd, count):
 
 
 def validate_plan(plan):
+    """Require nonempty, unique inventories with exactly one slot per test."""
     if not plan["shards"]:
         raise ValueError("No test shards")
     for suite in ("ctest", "csd"):
@@ -81,11 +85,13 @@ def validate_plan(plan):
 
 
 def write_json(path, value):
+    """Write formatted JSON, creating any missing parent directories."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(value, indent=2) + "\n")
 
 
 def make_plan(args):
+    """Save test assignments with the build paths and source commit they need."""
     ctest, csd = inventory(args.build)
     plan = partition(ctest, csd, args.count)
     # CTest files and linked libraries can hold absolute build paths. Fail
@@ -98,12 +104,18 @@ def make_plan(args):
 
 
 def read_plan(path):
+    """Load a JSON plan and reject missing or repeated test assignments."""
     plan = json.loads(path.read_text())
     validate_plan(plan)
     return plan
 
 
 def run_shard(args):
+    """Run one shard, check what ran, and return a nonzero status on failure.
+
+    The restored build must match the plan's paths, commit and test inventory.
+    Both suites run even if CTest fails; saved reports support the final audit.
+    """
     plan = read_plan(args.plan)
     if not 0 <= args.shard < len(plan["shards"]):
         raise ValueError("Shard index is out of range")
@@ -162,6 +174,7 @@ def run_shard(args):
 
 
 def audit(args):
+    """Require all shards to report every planned test once at the same commit."""
     plan = read_plan(args.plan)
     reports = [json.loads(path.read_text())
                for path in args.results.rglob("executed.json")]
@@ -180,6 +193,7 @@ def audit(args):
 
 
 def main():
+    """Dispatch plan, run or audit commands and report errors with a failing exit."""
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     plan = commands.add_parser("plan")
