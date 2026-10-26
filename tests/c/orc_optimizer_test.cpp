@@ -209,6 +209,47 @@ TEST(OrcOptimizer, StableDumpsAndLiteralOperationsRemain) {
     }
 }
 
+TEST(OrcOptimizer, DumpsResolvedOperandTypesAlongsideWildcardSignatures) {
+    const char *body = R"(
+opcode CopyValue,k,k
+  inputValue:k xin
+  xout inputValue
+endop
+instr 1
+  initial:i = 1
+  control:k init 2
+  signal:a init 0
+  text:S = "value"
+  values:k[] init 2
+  control = initial
+  control = CopyValue(control)
+endin
+)";
+    std::string reference;
+    for (int pass : {0, 1}) {
+        auto cs = engine(pass, true);
+        std::string source = header(16) + body;
+        ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
+        const auto log = optimizerDumps(messages(cs.get()));
+        EXPECT_NE(std::string::npos, log.find("op xin out=*"));
+        EXPECT_NE(std::string::npos, log.find("op xout out= in=*"));
+        size_t position = 0;
+        for (int stage = 0; stage < 3; ++stage) {
+            const auto end = log.find("ORC-OPT end\n", position);
+            ASSERT_NE(std::string::npos, end);
+            const auto dump = log.substr(position, end - position);
+            for (const char *operand : {"inputValue:k", "initial:i", "control:k",
+                                        "signal:a", "text:S", "values:k[]", "1:c"}) {
+                EXPECT_NE(std::string::npos, dump.find(operand)) << operand;
+            }
+            EXPECT_NE(std::string::npos, dump.find("[control:k] <- [initial:i]"));
+            position = end + std::strlen("ORC-OPT end\n");
+        }
+        if (reference.empty()) reference = log;
+        else EXPECT_EQ(reference, log);
+    }
+}
+
 TEST(OrcOptimizer, ControlsArePerEngineAndResetToLegacyDefault) {
     auto off = engine(0), on = engine(1, true);
     auto controls = [](CSOUND *cs) {

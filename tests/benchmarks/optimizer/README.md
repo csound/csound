@@ -48,6 +48,10 @@ return success. Tests check the underlying API and actual stored controls.
 
 Dumps renumber generated temporaries/labels per scope and expose resolved opcode
 name/signature, callback phases, operation counts, and template storage counts.
+Operands carry their resolved metadata types, such as `control:k`, `values:k[]`,
+and `1:c`, alongside the registration signature (which may contain wildcards).
+`p` denotes a p-field and `?` denotes unavailable type metadata; types are read
+without rerunning semantic analysis.
 TREE phases are provisional. `phase=resolved` follows UDO rate classification.
 Callback presence is not a proof of purity or actual execution count. Storage
 metrics describe variable-pool/template payloads, not allocator overhead, opcode
