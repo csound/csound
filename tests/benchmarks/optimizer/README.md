@@ -29,9 +29,9 @@ through `USE_COMPILER_OPTIMIZATIONS`; `RelWithDebInfo` alone is not a strict bui
 
 Per-engine options (experimental):
 
-- `-+orc_opt_passes=0`: skip the optional legacy TREE optimizer.
-- `-+orc_opt_passes=1`: existing default, the legacy TREE pass.
-- `-+orc_opt_passes=5`: legacy pass plus scalar copy removal (bit 2).
+- `--orc-opt-passes=0`: skip the optional legacy TREE optimizer.
+- `--orc-opt-passes=1`: existing default, the legacy TREE pass.
+- `--orc-opt-passes=5`: legacy pass plus scalar copy removal (bit 2).
   Bit 1 is reserved for the separate constant-folding pass.
 - `--verbose=0x200`: normalized input/output TREE and resolved opcode-template dumps
   through the `DEBUG_OPTIMIZER` bit in the existing debug mask.
@@ -44,9 +44,8 @@ Per-engine options (experimental):
 These do not disable semantic lowering, type checks, UDO rate classification,
 getter phase specialization, or phase diagnostics. They reset with the engine.
 Configure them before compilation; do not mutate controls concurrently with a
-compile. Invalid masks are rejected by the configuration-variable API; the
-existing CLI option parser reports configuration errors as warnings and may still
-return success. Tests check the underlying API and actual stored controls.
+compile. The pass mask is a nonnegative decimal integer. Missing, malformed and
+out-of-range values produce an option error and leave the current mask unchanged.
 
 Dumps renumber generated temporaries/labels per scope and expose resolved opcode
 name/signature, callback phases, operation counts, and template storage counts.

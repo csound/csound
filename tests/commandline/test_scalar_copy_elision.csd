@@ -1,6 +1,6 @@
 <CsTest>
 description = "Scalar copy removal preserves local values and execution rates"
-args = ["-n", "-d", "-m0", "--test", "-+orc_opt_passes=5"]
+args = ["-n", "-d", "-m0", "--test", "--orc-opt-passes=5"]
 [expect]
 exit = 0
 output = ["scalar copies passed"]

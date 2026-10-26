@@ -2138,18 +2138,12 @@ static void reset(CSOUND *csound) {
   csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING, 0,
                                     NULL, &max_len,
                                     Str("Real time MIDI module name"), NULL);
-  /* Per-engine compiler pass selection, owned/reset with global variables.
-     Bit 0 is the legacy TREE pass, bit 1 is reserved for constant folding,
-     and bit 2 removes checked scalar copies. New passes are opt-in. */
+  /* Private compiler state for --orc-opt-passes, reset with the engine.
+     Keep this outside OPARMS so the public parameter layout stays unchanged. */
   {
-    int32_t minimum = 0, maximum = 7;
-    int32_t *passes;
     csoundCreateGlobalVariable(csound, "__orc_optimizer", sizeof(int32_t));
-    passes = csoundQueryGlobalVariable(csound, "__orc_optimizer");
+    int32_t *passes = csoundQueryGlobalVariable(csound, "__orc_optimizer");
     *passes = 1;
-    csoundCreateConfigurationVariable(csound, "orc_opt_passes", passes,
-        CSOUNDCFG_INTEGER, 0, &minimum, &maximum,
-        Str("Orchestra optimizer pass mask (1: legacy TREE pass, 4: scalar copies)"), NULL);
   }
   max_len = 256; /* should be the same as in csoundCore.h */
   csoundCreateConfigurationVariable(

@@ -17,7 +17,7 @@ Engine engine(int passes, bool dump = false) {
     Engine cs(csoundCreate(nullptr, nullptr), csoundDestroy);
     csoundCreateMessageBuffer(cs.get(), 0);
     EXPECT_EQ(0, csoundSetOption(cs.get(), "-n -d -m4"));
-    std::string option = "-+orc_opt_passes=" + std::to_string(passes);
+    std::string option = "--orc-opt-passes=" + std::to_string(passes);
     EXPECT_EQ(0, csoundSetOption(cs.get(), option.c_str()));
     if (dump) EXPECT_EQ(0, csoundSetOption(cs.get(), "--verbose=0x200"));
     return cs;
@@ -303,12 +303,39 @@ TEST(OrcOptimizer, ControlsArePerEngineAndResetToLegacyDefault) {
     EXPECT_EQ(1, controls(on.get())[0]);
     EXPECT_EQ(0, csoundGetDebug(off.get()) & DEBUG_OPTIMIZER);
     EXPECT_NE(0, csoundGetDebug(on.get()) & DEBUG_OPTIMIZER);
-    EXPECT_NE(0, off->ParseConfigurationVariable(off.get(), "orc_opt_passes", "8"));
+    EXPECT_EQ(nullptr, off->QueryConfigurationVariable(off.get(), "orc_opt_passes"));
     csoundSetDebug(off.get(), DEBUG_OPTIMIZER);
     csoundReset(off.get());
     ASSERT_NE(nullptr, controls(off.get()));
     EXPECT_EQ(1, controls(off.get())[0]);
     EXPECT_EQ(0, csoundGetDebug(off.get()) & DEBUG_OPTIMIZER);
+}
+
+TEST(OrcOptimizer, LongOptionRejectsInvalidMasksWithoutChangingSelection) {
+    auto cs = engine(1);
+    auto selection = static_cast<int32_t *>(
+        csoundQueryGlobalVariable(cs.get(), "__orc_optimizer"));
+    ASSERT_NE(nullptr, selection);
+    for (int mask = 0; mask <= 7; ++mask) {
+        const std::string option = "--orc-opt-passes=" + std::to_string(mask);
+        EXPECT_EQ(0, csoundSetOption(cs.get(), option.c_str()));
+        EXPECT_EQ(mask, *selection);
+    }
+    messages(cs.get());
+    for (const char *option : {"--orc-opt-passes", "--orc-opt-passes=",
+                              "--orc-opt-passes=-1", "--orc-opt-passes=8",
+                              "--orc-opt-passes=1.5", "--orc-opt-passes=1junk",
+                              "--orc-opt-passes=0x1",
+                              "--orc-opt-passes=99999999999999999999999999999"}) {
+        SCOPED_TRACE(option);
+        EXPECT_NE(0, csoundSetOption(cs.get(), option));
+        EXPECT_EQ(7, *selection);
+        EXPECT_NE(std::string::npos, messages(cs.get()).find(
+            "--orc-opt-passes requires an integer from 0 to 7"));
+    }
+    // A failed option must not prevent a later valid selection.
+    EXPECT_EQ(0, csoundSetOption(cs.get(), "--orc-opt-passes=0"));
+    EXPECT_EQ(0, *selection);
 }
 
 TEST(OrcOptimizer, VerboseMaskSelectsOptimizerDumps) {
@@ -475,7 +502,7 @@ TEST(OrcOptimizer, ScalarCopiesKeepATemporaryWithAnotherRead) {
     // assignment at the same temporary to test the single-read guard directly.
     cs->Free(cs.get(), otherRead->right->value->lexeme);
     otherRead->right->value->lexeme = csoundStrdup(cs.get(), temporary.c_str());
-    ASSERT_EQ(0, csoundSetOption(cs.get(), "-+orc_opt_passes=5"));
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--orc-opt-passes=5"));
     csound_orc_optimize(cs.get(), tree->next, static_cast<TYPE_TABLE *>(tree->markup));
     EXPECT_EQ(copy, producer->next);
     EXPECT_EQ(temporary, producer->left->value->lexeme);

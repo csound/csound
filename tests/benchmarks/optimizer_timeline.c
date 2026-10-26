@@ -121,7 +121,7 @@ int main(int argc, char **argv)
   if (!csound) return 1;
   csoundCreateMessageBuffer(csound, 0);
   char option[64];
-  snprintf(option, sizeof(option), "-+orc_opt_passes=%d", mask);
+  snprintf(option, sizeof(option), "--orc-opt-passes=%d", mask);
   check(csound, csoundSetOption(csound, "-n -d -m0"));
   check(csound, csoundSetOption(csound, option));
   int32_t *selection = csoundQueryGlobalVariable(csound, "__orc_optimizer");

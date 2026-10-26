@@ -27,7 +27,7 @@ class Engine:
         if not self.cs:
             raise RuntimeError("csoundCreate failed")
         lib.csoundCreateMessageBuffer(self.cs, 0)
-        for option in ["-n -d -m4", f"-+orc_opt_passes={passes}"] + (
+        for option in ["-n -d -m4", f"--orc-opt-passes={passes}"] + (
                 [f"--verbose={DEBUG_OPTIMIZER}"] if dump else ["--verbose=0"]):
             self.check(lib.csoundSetOption(self.cs, option.encode()))
         controls = lib.csoundQueryGlobalVariable(self.cs, b"__orc_optimizer")

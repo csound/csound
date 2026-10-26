@@ -25,6 +25,7 @@
 #include "csmodule.h"
 #include "corfile.h"
 #include <ctype.h>
+#include <errno.h>
 
 static void list_audio_devices(CSOUND *csound, int32_t output);
 static void list_midi_devices(CSOUND *csound, int32_t output);
@@ -283,6 +284,8 @@ static const char *longUsageList[] = {
     Str_noop("--strsetN=VALUE         set strset table at index N to VALUE"),
     Str_noop("--utility=NAME          run utility program"),
     Str_noop("--verbose               verbose orch translation"),
+    Str_noop("--orc-opt-passes=N       orchestra optimizer pass mask (default 1)"),
+    Str_noop("                          0=off, 1=legacy TREE pass, 4=scalar copy removal"),
     Str_noop("--list-opcodes          list opcodes in this version"),
     Str_noop("--list-opcodesN         list opcodes in style N in this version"),
     Str_noop("--dither                dither output"),
@@ -1020,6 +1023,19 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
         s++;
       parse_odebug(s, &(O->odebug));
     }
+    return 1;
+  }
+  else if (!strcmp(s, "orc-opt-passes") ||
+           !strncmp(s, "orc-opt-passes=", 15)) {
+    const char *value = s[14] == '=' ? s + 15 : "";
+    char *end;
+    errno = 0;
+    long passes = strtol(value, &end, 10);
+    if (!isdigit((unsigned char)*value) || errno == ERANGE ||
+        *end || passes < 0 || passes > 7)
+      dieu(csound, Str("--orc-opt-passes requires an integer from 0 to 7\n"));
+    int32_t *selection = csoundQueryGlobalVariable(csound, "__orc_optimizer");
+    *selection = (int32_t)passes;
     return 1;
   }
   /* -x fnam extract from score.srt using extract file 'fnam' */

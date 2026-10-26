@@ -1,6 +1,6 @@
 <CsTest>
 description = "Optimizer-off preserves lowering, arithmetic and runtime warnings"
-args = ["-n", "-d", "-m4", "-+orc_opt_passes=0", "--verbose=0x200"]
+args = ["-n", "-d", "-m4", "--orc-opt-passes=0", "--verbose=0x200"]
 [expect]
 exit = 0
 output = ["ORC-OPT before", "ORC-OPT after", "ORC-OPT templates phase=resolved", "Division by zero", "optimizer-result=10"]
