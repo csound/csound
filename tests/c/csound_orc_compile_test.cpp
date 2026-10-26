@@ -62,6 +62,84 @@ extern "C" {
                                     const char* inArgsFound);
 }
 
+class UdoLiveCompileTests : public OrcCompileTests,
+    public ::testing::WithParamInterface<std::tuple<int, int, bool>> {};
+
+TEST_P(UdoLiveCompileTests, PreservesActiveAndReusableFrames)
+{
+    const int block = std::get<0>(GetParam());
+    const int instrument = std::get<1>(GetParam());
+    const bool addUdo = std::get<2>(GetParam());
+    csoundSetOption(csound, "-n -d -m0");
+    std::string definitions;
+    if (instrument == 201) {
+        // Existing UDO capacity exceeds the next numbered-instrument range.
+        for (int i = 0; i <= MAXINSNO; ++i)
+            definitions += "opcode Extra" + std::to_string(i) +
+                ",i,i\n iValue xin\n xout iValue\nendop\n";
+    }
+    const std::string orchestra = definitions + R"(
+sr=48000
+ksmps=64
+nchnls=1
+0dbfs=1
+opcode Gain,a,ak
+)" + std::string("  setksmps ") + std::to_string(block) + R"(
+  aSignal,kGain xin
+  xout aSignal*kGain
+endop
+instr 1
+  aSignal init 0.5
+  aOut Gain aSignal,0.5
+  out aOut
+endin
+)";
+    ASSERT_EQ(0, csoundCompileOrc(csound, orchestra.c_str()));
+    ASSERT_EQ(0, csoundStart(csound));
+    csoundEventString(csound, "i 1 0 .004\ni 1 0 10", 0);
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    INSDS *parent = csound->actanchor.nxtact;
+    while (parent != nullptr && (parent->insno != 1 || parent->p3.value < 1))
+        parent = parent->nxtact;
+    ASSERT_NE(nullptr, parent);
+    auto *call = static_cast<UOPCODE *>(parent->opcod_deact);
+    ASSERT_NE(nullptr, call);
+    ASSERT_NE(nullptr, call->ip);
+    INSTRTXT *udo = call->ip->instr;
+    std::vector<INSDS *> frames;
+    for (INSDS *ip = udo->instance; ip != nullptr; ip = ip->nxtinstance)
+        frames.push_back(ip);
+    ASSERT_EQ(2u, frames.size());
+    for (int i = 0; i < 4; ++i) ASSERT_EQ(0, csoundPerformKsmps(csound));
+    ASSERT_EQ(1, udo->active); // One frame is active, one is reusable.
+
+    std::string additional = addUdo ? R"(
+opcode Added,a,a
+  aSignal xin
+  xout aSignal
+endop
+)" : "";
+    additional += "instr " + std::to_string(instrument) + "\nkx=(2+3)*4\nendin\n";
+    ASSERT_EQ(0, csoundCompileOrc(csound, additional.c_str()));
+    for (INSDS *ip : frames) {
+        EXPECT_EQ(udo->opcode_info->instno, ip->insno);
+        EXPECT_EQ(udo, csound->engineState.instrtxtp[ip->insno]);
+    }
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    for (int i = 0; i < 64; ++i)
+        EXPECT_EQ(FL(0.25), csoundGetSpout(csound)[i]);
+    csoundEventString(csound, "i 1 0 10", 0); // Reuse the inactive frame.
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_EQ(2, udo->active);
+    for (int i = 0; i < 64; ++i)
+        EXPECT_EQ(FL(0.5), csoundGetSpout(csound)[i]);
+    // TearDown destroys the engine while both notes and their UDOs are active.
+}
+
+INSTANTIATE_TEST_SUITE_P(RegistryChanges, UdoLiveCompileTests,
+    ::testing::Combine(::testing::Values(1, 64), ::testing::Values(2, 201, 999),
+                       ::testing::Bool()));
+
 TEST_F(OrcCompileTests, RejectedLiveCompilePreservesNamedInstrument)
 {
     csoundSetOption(csound, "-n -d -m0");

@@ -108,11 +108,12 @@ steady note-allocation benchmark. Record these limitations when interpreting dat
 
 ## Live-compilation experiment
 
-Use `--live-compile --cases audio_chain` in a separate invocation. Live compilation
-is excluded from the default render matrix. The untouched reference crashes during
-engine destruction after live compilation with an active local-ksmps UDO; the runner
-rejects that known failing combination. The other render fixtures remain available.
-This failure was reproduced on reference `215d8c0c56b6fefd4be641dc001c4262e4eda45f`.
+Use `--live-compile --cases audio_chain udo` in a separate invocation. Live
+compilation is excluded from the default render matrix, but all fixtures are
+supported in this experiment. Active local-ksmps UDOs survive table relocation and
+engine cleanup; `UdoLiveCompileTests` covers this along with inactive-frame reuse.
+Reference `215d8c0c56b6fefd4be641dc001c4262e4eda45f` has a table-growth/relocation
+bug that can crash this sequence, so use a build containing the cleanup fix.
 
 ## Block-time experiment
 
