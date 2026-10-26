@@ -2,10 +2,9 @@
 #include "csoundCore.h"
 #include "prototyp.h"
 #include "csdebug.h"
-#include "csound_orc.h"
 #include "csound_orc_optimize.h"
-extern "C" TREE *csound_orc_optimize(CSOUND *, TREE *, TYPE_TABLE *);
 extern "C" {
+#include "csound_orc.h"
 #include "new_orc_parser.h"
 }
 #include "gtest/gtest.h"
@@ -469,7 +468,8 @@ TEST(OrcOptimizer, VerboseMaskSelectsOptimizerDumps) {
 }
 
 TEST(OrcOptimizer, ParseCompileDeleteAndInvalidInput) {
-    for (int pass = 0; pass < 16; ++pass) {
+    for (int pass = 0; pass < 48; ++pass) {
+        if (pass & 16) continue; // Slot pruning is a separate pass and PR.
         auto cs = engine(pass);
         ASSERT_EQ(0, csoundCompileOrc(cs.get(), header(16).c_str(), 0));
         for (int i = 0; i < 20; ++i) {

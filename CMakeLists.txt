@@ -1568,16 +1568,16 @@ list(APPEND libcsound_static_SRCS
 # The private audio multiply/add kernel must round twice, never contract to FMA.
 # Non-CMake builds use its volatile fallback instead.
 if(MSVC)
-    check_c_compiler_flag("/fp:strict" HAS_STRICT_ORC_FP)
-    set(ORC_STRICT_FP_OPTIONS "/fp:strict")
+    check_c_compiler_flag("/fp:strict" HAS_STRICT_AOPS_FP)
+    set(AOPS_STRICT_FP_OPTIONS "/fp:strict")
 elseif(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
-    check_c_compiler_flag("-fno-fast-math -ffp-contract=off" HAS_STRICT_ORC_FP)
-    set(ORC_STRICT_FP_OPTIONS "-fno-fast-math;-ffp-contract=off")
+    check_c_compiler_flag("-fno-fast-math -ffp-contract=off" HAS_STRICT_AOPS_FP)
+    set(AOPS_STRICT_FP_OPTIONS "-fno-fast-math;-ffp-contract=off")
 endif()
-if(HAS_STRICT_ORC_FP)
-    set_property(SOURCE Engine/csound_orc_optimize.c APPEND PROPERTY
-        COMPILE_OPTIONS ${ORC_STRICT_FP_OPTIONS})
-    set_property(SOURCE Engine/csound_orc_optimize.c APPEND PROPERTY
+if(HAS_STRICT_AOPS_FP)
+    set_property(SOURCE OOps/aops.c APPEND PROPERTY
+        COMPILE_OPTIONS ${AOPS_STRICT_FP_OPTIONS})
+    set_property(SOURCE OOps/aops.c APPEND PROPERTY
         COMPILE_DEFINITIONS CSOUND_FUSION_STRICT_FP=1)
 endif()
 

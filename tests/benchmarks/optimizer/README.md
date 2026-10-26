@@ -86,8 +86,8 @@ have its own storage. It leaves UDOs, global audio inputs, other rate combinatio
 shared intermediates and uncertain bindings unchanged.
 
 The private kernel still rounds after multiplication and then adds. It does not
-use an FMA or the `mac` family. CMake disables contraction and fast-math for this
-source file when the compiler supports those flags. Other builds use a volatile
+use an FMA or the `mac` family. CMake disables contraction and fast-math for
+`OOps/aops.c` when the compiler supports those flags. Other builds use a volatile
 product to force the intermediate rounding. Local block sizes and inactive note
 samples follow the original callbacks. Both operations must come from the same
 source line so that fusion does not remove a line boundary in the debugger.
