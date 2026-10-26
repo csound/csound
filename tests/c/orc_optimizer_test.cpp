@@ -123,7 +123,7 @@ int32_t traceDeinit(CSOUND *cs, void *) {
 }
 
 TEST(OrcOptimizer, UdoPreservesObservableLifecycle) {
-    for (int pass : {0, 1}) {
+    for (int pass : {0, 1, 9}) {
         std::string trace;
         auto cs = engine(pass);
         csoundSetHostData(cs.get(), &trace);
@@ -206,7 +206,7 @@ TEST(OrcOptimizer, RecordsExpectedNonzeroExitAndStopsRendering) {
 
 TEST(OrcOptimizer, StableDumpsAndLiteralOperationsRemain) {
     std::string reference;
-    for (int pass : {0, 1}) {
+    for (int pass : {0, 1, 9}) {
         auto cs = engine(pass, true);
         std::string source = header(16) +
             "instr 1\nkx = (2+3)*4\nif kx > 1 then\nkx += 1\nendif\nendin\n";
@@ -240,7 +240,7 @@ instr 1
 endin
 )";
     std::string reference;
-    for (int pass : {0, 1}) {
+    for (int pass : {0, 1, 9}) {
         auto cs = engine(pass, true);
         std::string source = header(16) + body;
         ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
@@ -280,7 +280,7 @@ instr 1
 endin
 )";
     std::string reference;
-    for (int pass : {0, 1}) {
+    for (int pass : {0, 1, 9}) {
         auto cs = engine(pass, true);
         std::string source = header(16) + body;
         ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
@@ -420,7 +420,7 @@ TEST(OrcOptimizer, VerboseMaskSelectsOptimizerDumps) {
 }
 
 TEST(OrcOptimizer, ParseCompileDeleteAndInvalidInput) {
-    for (int pass : {0, 1, 3, 5, 7}) {
+    for (int pass = 0; pass < 16; ++pass) {
         auto cs = engine(pass);
         ASSERT_EQ(0, csoundCompileOrc(cs.get(), header(16).c_str(), 0));
         for (int i = 0; i < 20; ++i) {
@@ -770,4 +770,215 @@ TEST(OrcOptimizer, LiteralFoldingDoesNotCallOrReplaceOverloads) {
         EXPECT_EQ(0, error);
     }
 }
+std::string cseDump(int passes, const std::string &body) {
+    auto cs = engine(passes, true);
+    EXPECT_EQ(0, csoundCompileOrc(cs.get(), (header(16) + body).c_str(), 0));
+    const auto log = optimizerDumps(messages(cs.get()));
+    const auto begin = log.find("ORC-OPT after");
+    EXPECT_NE(std::string::npos, begin);
+    return begin == std::string::npos ? "" :
+        log.substr(begin, log.find("ORC-OPT end", begin) - begin);
+}
+size_t occurrences(const std::string &text, const std::string &part) {
+    size_t count = 0, at = 0;
+    while ((at = text.find(part, at)) != std::string::npos) {
+        ++count;
+        at += part.size();
+    }
+    return count;
+}
+
+TEST(OrcOptimizer, ReusesResolvedScalarExpressionsAtEachRate) {
+    for (const char rate : {'i', 'k'}) {
+        const std::string input(1, rate);
+        const auto body = "instr 1\n" + input + "Input init 2\n" +
+            input + "First=(" + input + "Input+3)*4\n" +
+            input + "Second=(" + input + "Input+3)*4\n" +
+            input + "Third=(" + input + "Input+3)*4\n" +
+            "aOut=" + input + "Second\nout aOut\nendin\n";
+        const auto before = cseDump(1, body), after = cseDump(9, body);
+        for (const char *operation : {"op ##add", "op ##mul"}) {
+            EXPECT_EQ(3u, occurrences(before, operation));
+            EXPECT_EQ(1u, occurrences(after, operation));
+        }
+        for (int block : {1, 16, 64, 256}) {
+            auto result = render(9, block, body);
+            identical(render(1, block, body), result);
+            for (auto value : result.samples) EXPECT_EQ(FL(20), value);
+        }
+    }
+    // Explicit type annotations need not follow the old i/k name prefixes.
+    const char *body = "instr 1\nvalue:k init 2\nfirst:k=value+3\n"
+                       "second:k=value+3\nendin\n";
+    EXPECT_EQ(1u, occurrences(cseDump(9, body), "op ##add"));
+}
+
+TEST(OrcOptimizer, ScalarCseInvalidatesWritesAndKeepsOperandOrder) {
+    const char *body = R"(
+instr 1
+  kInput = 2
+  kFirst = kInput - 1
+  kInput = 5
+  kSecond = kInput - 1
+  kReversed = 1 - kInput
+  aOut = kFirst + kSecond + kReversed
+  out aOut
+endin
+)";
+    EXPECT_EQ(3u, occurrences(cseDump(9, body), "op ##sub"));
+    auto result = render(9, 16, body);
+    identical(render(1, 16, body), result);
+    for (auto value : result.samples) EXPECT_EQ(FL(1), value);
+}
+
+TEST(OrcOptimizer, ScalarCseStopsAtCallsLabelsAndPhaseChanges) {
+    const char *bodies[] = {
+        "instr 1\nkValue init 2\nkFirst=kValue+1\n"
+        "printks \"barrier\\n\",0\nkSecond=kValue+1\nendin\n",
+        "instr 1\nkValue init 2\nkFirst=kValue+1\n"
+        "boundary:\nkSecond=kValue+1\nendin\n",
+        "instr 1\niValue init 2\niFirst=iValue+1\nkValue=3\n"
+        "iSecond=iValue+1\nendin\n",
+        "giValue init 2\ninstr 1\niFirst=giValue+1\niSecond=giValue+1\nendin\n",
+        "instr 1\naValue init 2\naFirst=aValue+1\naSecond=aValue+1\nendin\n",
+        "instr 1\nkValues[] fillarray 1,2\nkFirst=kValues[0]+1\n"
+        "kSecond=kValues[0]+1\nendin\n",
+        "struct Item value:k\ninstr 1\nitem:Item init 2\n"
+        "kFirst=item.value+1\nkSecond=item.value+1\nendin\n",
+        "opcode Pair,k,k\nkInput xin\nkFirst=kInput+1\n"
+        "kSecond=kInput+1\nxout kSecond\nendop\ninstr 1\nkResult=Pair(2)\nendin\n",
+        "instr 1\nkZero init 0\nkFirst=1/kZero\nkSecond=1/kZero\nendin\n"
+    };
+    for (const char *body : bodies) {
+        SCOPED_TRACE(body);
+        EXPECT_EQ(cseDump(1, body), cseDump(9, body));
+        identical(render(1, 16, body), render(9, 16, body));
+    }
+}
+
+TEST(OrcOptimizer, ScalarCseKeepsLoopReinitAndExceptionalValues) {
+    const char *bodies[] = {
+        "instr 1\nkCount init 0\nkCount+=1\nkSum=0\nkIndex=0\n"
+        "while kIndex<3 do\nkFirst=kIndex+1\nkSecond=kIndex+1\n"
+        "kSum+=kFirst+kSecond\nkIndex+=1\nod\naOut=kSum+kCount\nout aOut\nendin\n",
+        "instr 1\nkCount init 0\nkCount+=1\nif kCount==2 then\nreinit again\n"
+        "endif\nagain:\niValue init 2\niFirst=iValue+1\niSecond=iValue+1\n"
+        "prints \"value=%g\\n\",iSecond\nrireturn\naOut=iSecond\nout aOut\nendin\n",
+        "instr 1\nkValue init -0.0\nkFirst=kValue*2\nkSecond=kValue*2\n"
+        "aOut=kSecond\nout aOut\nendin\n",
+        "instr 1\nkValue init 1e300\nkFirst=kValue*kValue\nkSecond=kValue*kValue\n"
+        "kNan=kFirst-kSecond\nkOne=kNan+1\nkTwo=kNan+1\n"
+        "aOut=kTwo\nout aOut\nendin\n"
+    };
+    for (const char *body : bodies) {
+        SCOPED_TRACE(body);
+        identical(render(1, 16, body), render(9, 16, body));
+    }
+}
+
+struct CseOverload { OPDS h; cs_float *out, *left, *right; };
+int32_t cseOverload(CSOUND *cs, void *data) {
+    auto *counter = static_cast<int *>(csoundGetHostData(cs));
+    *static_cast<CseOverload *>(data)->out = ++*counter;
+    return OK;
+}
+TEST(OrcOptimizer, ScalarCseDoesNotTrustAnOverloadedName) {
+    for (int pass : {1, 9}) {
+        int calls = 0;
+        auto cs = engine(pass);
+        csoundSetHostData(cs.get(), &calls);
+        OENTRY op = {};
+        op.opname = const_cast<char *>("##add.kk");
+        op.dsblksiz = sizeof(CseOverload);
+        op.outypes = const_cast<char *>("k");
+        op.intypes = const_cast<char *>("kk");
+        op.perf = cseOverload;
+        ASSERT_EQ(0, csoundPrependOpcodes(cs.get(), &op, 1));
+        const auto source = header(16) +
+            "instr 1\nkValue init 2\nkFirst=kValue+1\nkSecond=kValue+1\nendin\n";
+        ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
+        ASSERT_EQ(0, csoundStart(cs.get()));
+        csoundEventString(cs.get(), "i 1 0 1", 0);
+        ASSERT_EQ(0, csoundPerformKsmps(cs.get()));
+        EXPECT_EQ(2, calls);
+    }
+}
+
+TEST(OrcOptimizer, PassOptionRejectsMalformedAndUnsupportedMasks) {
+    for (const char *value : {"", "-1", "+1", "2", "4", "16", "9x", "1.5",
+                              "9999999999999999999999999999999999"}) {
+        auto cs = engine(1);
+        const std::string option = std::string("--orc-opt-passes=") + value;
+        EXPECT_NE(0, csoundSetOption(cs.get(), option.c_str())) << value;
+        EXPECT_EQ(1, *static_cast<int32_t *>(
+            csoundQueryGlobalVariable(cs.get(), "__orc_optimizer")));
+        EXPECT_NE(std::string::npos, messages(cs.get()).find("--orc-opt-passes requires"));
+    }
+    auto cs = engine(9);
+    EXPECT_NE(0, csoundSetOption(cs.get(), "--orc-opt-passes"));
+    EXPECT_EQ(0, csoundSetOption(cs.get(), "--orc-opt-passes=8"));
+    EXPECT_EQ(8, *static_cast<int32_t *>(
+        csoundQueryGlobalVariable(cs.get(), "__orc_optimizer")));
+    csoundReset(cs.get());
+    EXPECT_EQ(1, *static_cast<int32_t *>(
+        csoundQueryGlobalVariable(cs.get(), "__orc_optimizer")));
+}
+
+TEST(OrcOptimizer, ScalarCseKeepsATemporaryWithALaterRead) {
+    auto cs = engine(1);
+    const auto source = header(16) +
+        "instr 1\niInput=2\niFirst=iInput+1\niSecond=iInput+1\niLater=iSecond\nendin\n";
+    TREE *tree = csoundParseOrc(cs.get(), source.c_str());
+    ASSERT_NE(nullptr, tree);
+    TREE *scope = tree->next;
+    while (scope && scope->type != INSTR_TOKEN) scope = scope->next;
+    ASSERT_NE(nullptr, scope);
+    TREE *duplicate = scope->right->next->next->next;
+    ASSERT_NE(nullptr, duplicate);
+    const std::string temp = duplicate->left->value->lexeme;
+    ASSERT_EQ(0, temp.find("#i"));
+    TREE *later = duplicate->next->next;
+    ASSERT_NE(nullptr, later);
+    // Generated names cannot be written in a score. Add a second use to the
+    // lowered tree to check that the pass does not leave that use uninitialized.
+    cs->Free(cs.get(), later->right->value->lexeme);
+    later->right->value->lexeme = csoundStrdup(cs.get(), temp.c_str());
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--orc-opt-passes=9"));
+    csound_orc_optimize(cs.get(), tree->next, static_cast<TYPE_TABLE *>(tree->markup));
+    EXPECT_EQ(duplicate, scope->right->next->next->next);
+    EXPECT_EQ(temp, duplicate->left->value->lexeme);
+    csoundDeleteTree(cs.get(), tree);
+}
+
+void cseBreakpoint(CSOUND *, debug_bkpt_info_t *info, void *data) {
+    ++*static_cast<int *>(data);
+    EXPECT_EQ(11, info->currentOpcode->line);
+    int found = 0;
+    for (auto *var = info->instrVarList; var; var = var->next) {
+        if (!strcmp(var->name, "iFirst") || !strcmp(var->name, "iSecond")) {
+            EXPECT_EQ(FL(3), *static_cast<cs_float *>(var->data));
+            ++found;
+        }
+    }
+    EXPECT_EQ(2, found);
+}
+TEST(OrcOptimizer, ScalarCseKeepsDebuggerLinesAndNamedValues) {
+    for (int pass : {1, 9}) {
+        auto cs = engine(pass);
+        const auto source = header(16) +
+            "instr 1\niInput=2\niFirst=iInput+1\niSecond=iInput+1\n"
+            "kCount init 0\nkCount=kCount+1\nendin\n";
+        ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
+        ASSERT_EQ(0, csoundStart(cs.get()));
+        csoundEventString(cs.get(), "i 1 0 1", 0);
+        int hits = 0;
+        ASSERT_EQ(0, csoundDebuggerInit(cs.get()));
+        csoundSetBreakpointCallback(cs.get(), cseBreakpoint, &hits);
+        csoundSetBreakpoint(cs.get(), 11, 1, 0);
+        csoundPerformKsmps(cs.get());
+        EXPECT_EQ(1, hits);
+        csoundDebuggerClean(cs.get());
+    }
+}
+
 } // namespace

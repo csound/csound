@@ -265,3 +265,48 @@ marks, not current memory or per-note allocation. Fresh processes keep one
 candidate's allocations out of the other's measurement. Do not describe retained
 variable-pool slots as reclaimed memory, or infer a steady DSP speedup from a
 lower activation time.
+
+## Scalar common-subexpression elimination
+
+CSE reuses resolved built-in scalar addition, subtraction and multiplication
+inside instruments. It compares the exact implementation, ordered operands and
+execution phase. Writes invalidate saved inputs or results. Calls, labels,
+jumps and phase changes end reuse. It leaves globals, UDO bodies, audio, arrays,
+structs, division and overloaded operations alone.
+
+The first version only removes a generated result with one definition and all
+its reads in the next known arithmetic or scalar-copy operation in the same
+phase. Named assignments retain their source locations and bindings. This
+restriction prevents a temporary alias from crossing an unknown call or branch.
+It can still reuse nested expressions. A 64-entry table bounds lookup cost.
+Unused temporary slots remain in the variable pool. The default stays unchanged.
+
+### Native Linux comparison
+
+```sh
+ninja -C build/optimizer scalar_cse_bench
+CSOUND7RC=/dev/null taskset -c 14 python3 tests/benchmarks/scalar_cse_bench.py \
+  --binary build/optimizer/tests/benchmarks/scalar_cse_bench \
+  --library build/optimizer/libcsound64.so --build-dir build/optimizer \
+  --expressions 512 --output /tmp/cse-repeated-512.json
+```
+
+Each generated expression is `(input + offset) * 0.75 - 0.25`. Its result goes
+into a sum that controls an oscillator. Repeated cases use one offset. `--unique`
+uses a distinct offset for each expression as a negative control. Also run
+`--expressions 0`, `--expressions 32`, and `--rate i` to separate steady control
+work from note initialization.
+
+The runner compares masks 1 and 9 in 21 alternating pairs of fresh processes.
+It checks the loaded library path and sample size. Separate capture runs compare
+all samples and ordered messages before timing. Each process schedules 32 voices,
+measures the activation block, warms up for three windows, then records 12
+windows of 128 blocks at 48 kHz and ksmps 64. CPU and wall time come from a native
+loop. The chart's time axis is score time after warmup, not real-time playback.
+Compilation and the first block are reported separately. These synthetic cases
+measure callback savings, not whole-composition or hardware audio latency.
+
+Pin the process to a quiet CPU and avoid concurrent builds or benchmarks.
+Record the host, compiler flags and precision. Output includes source, revision,
+local diff, binary/library hashes, CMake configuration and raw paired timings.
+Keep results and charts outside the repository.
