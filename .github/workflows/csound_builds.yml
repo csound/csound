@@ -164,7 +164,7 @@ jobs:
           ninja csdtests
 
   linux_sanitizer_build:
-    name: Linux/Ubuntu full tests (ASan + UBSan) - compile
+    name: Linux ASan + UBSan - build
     runs-on: ubuntu-latest
     env:
       CC: clang
@@ -211,13 +211,21 @@ jobs:
           name: linux-sanitizer
 
   linux_sanitizer_tests:
-    name: Linux/Ubuntu full tests (ASan + UBSan) - group ${{ matrix.shard }}
+    name: Linux ASan + UBSan - tests ${{ matrix.part }} of 4
     needs: linux_sanitizer_build
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3]
+        include:
+          - shard: 0
+            part: 1
+          - shard: 1
+            part: 2
+          - shard: 2
+            part: 3
+          - shard: 3
+            part: 4
     env:
       CC: clang
       CXX: clang++
@@ -805,7 +813,7 @@ jobs:
             '
 
   macos_build_brew_build:
-    name: MacOS build (brew) - compile
+    name: macOS ASan - build
     runs-on: macos-latest
     steps:
       - name: Checkout source code
@@ -858,13 +866,21 @@ jobs:
           name: macos-brew
 
   macos_build_brew_tests:
-    name: MacOS build (brew) - group ${{ matrix.shard }}
+    name: macOS ASan - tests ${{ matrix.part }} of 4
     needs: macos_build_brew_build
     runs-on: macos-latest
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3]
+        include:
+          - shard: 0
+            part: 1
+          - shard: 1
+            part: 2
+          - shard: 2
+            part: 3
+          - shard: 3
+            part: 4
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: ./.github/actions/native-test-deps
