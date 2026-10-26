@@ -26,7 +26,6 @@
 #include "csmodule.h"
 #include "corfile.h"
 #include <ctype.h>
-#include <errno.h>
 
 static void list_audio_devices(CSOUND *csound, int32_t output);
 static void list_midi_devices(CSOUND *csound, int32_t output);
@@ -286,7 +285,8 @@ static const char *longUsageList[] = {
     Str_noop("--utility=NAME          run utility program"),
     Str_noop("--verbose               verbose orch translation"),
     Str_noop("--optimize=NAME[,NAME]  enable named orchestra optimizer passes"),
-    Str_noop("                          names: legacy, constant-folding, copy-removal (default: legacy)"),
+    Str_noop("                          names: legacy, constant-folding, copy-removal,"),
+    Str_noop("                          common-subexpression-elimination (default: legacy)"),
     Str_noop("--optimize=all          enable all optimizer passes in this build"),
     Str_noop("--optimize=none         disable optional optimizer passes"),
     Str_noop("--optimize-legacy       enable the legacy TREE pass"),
@@ -294,6 +294,8 @@ static const char *longUsageList[] = {
     Str_noop("                          enable constant folding"),
     Str_noop("--optimize-copy-removal"),
     Str_noop("                          enable scalar copy removal"),
+    Str_noop("--optimize-common-subexpression-elimination"),
+    Str_noop("                          enable scalar common-subexpression elimination"),
     Str_noop("--list-opcodes          list opcodes in this version"),
     Str_noop("--list-opcodesN         list opcodes in style N in this version"),
     Str_noop("--dither                dither output"),
@@ -569,6 +571,7 @@ static const struct {
     {"legacy", CSOUND_OPT_LEGACY},
     {"constant-folding", CSOUND_OPT_CONSTANT_FOLDING},
     {"copy-removal", CSOUND_OPT_COPY_REMOVAL},
+    {"common-subexpression-elimination", CSOUND_OPT_CSE},
 };
 
 static int32_t optimizer_pass(CSOUND *csound, const char *name, size_t length) {

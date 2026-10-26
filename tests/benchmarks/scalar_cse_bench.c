@@ -120,10 +120,11 @@ int main(int argc, char **argv)
   CSOUND *csound = csoundCreate(NULL, "");
   if (!csound) return 1;
   csoundCreateMessageBuffer(csound, 0);
-  char option[64];
-  snprintf(option, sizeof(option), "--orc-opt-passes=%d", mask);
-  check(csound, csoundSetOption(csound, "-n -d -m0"));
-  check(csound, csoundSetOption(csound, option));
+  check(csound, csoundSetOption(csound, "-n -d -m0 --optimize=none"));
+  if (mask & ~9) return 2;
+  if (mask & 1) check(csound, csoundSetOption(csound, "--optimize-legacy"));
+  if (mask & 8)
+    check(csound, csoundSetOption(csound, "--optimize-common-subexpression-elimination"));
   int32_t *selection = csoundQueryGlobalVariable(csound, "__orc_optimizer");
   if (!selection || *selection != mask) return 1;
   double start = wall_time();

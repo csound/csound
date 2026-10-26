@@ -1,6 +1,6 @@
 <CsTest>
 description = "Scalar expression reuse keeps each input value and execution rate"
-args = ["-n", "-d", "-m0", "--run-unit-tests", "--orc-opt-passes=9"]
+args = ["-n", "-d", "-m0", "--run-unit-tests", "--optimize-common-subexpression-elimination"]
 [expect]
 exit = 0
 </CsTest>

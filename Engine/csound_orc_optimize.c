@@ -1106,7 +1106,7 @@ TREE *csound_orc_optimize(CSOUND *csound, TREE *root, TYPE_TABLE *types)
     if (passes & CSOUND_OPT_LEGACY) root = optimize_legacy(csound, root);
     if (passes & CSOUND_OPT_CONSTANT_FOLDING)
       root = fold_scalar_literals(csound, root, types->instr0LocalPool);
-    if (passes & 8) reuse_scalar_expressions(csound, root);
+    if (passes & CSOUND_OPT_CSE) reuse_scalar_expressions(csound, root);
     if (passes & CSOUND_OPT_COPY_REMOVAL) remove_scalar_copies(csound, root);
     if (dump) {
       csound->Message(csound, "ORC-OPT after phase=provisional\n");

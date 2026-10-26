@@ -36,6 +36,7 @@ Per-engine options (experimental):
 - `--optimize=copy-removal` or `--optimize-copy-removal` enables scalar copy removal.
 - `--optimize=legacy,copy-removal` enables both named passes.
 - `--optimize=legacy,constant-folding` enables both named passes.
+- `--optimize-common-subexpression-elimination` enables local scalar CSE.
 - `--optimize=all` enables every pass implemented in this build, including
   experimental passes. Constant folding has a reported steady-render slowdown
   on macOS. Measure your workload before enabling it.
@@ -298,7 +299,8 @@ uses a distinct offset for each expression as a negative control. Also run
 `--expressions 0`, `--expressions 32`, and `--rate i` to separate steady control
 work from note initialization.
 
-The runner compares masks 1 and 9 in 21 alternating pairs of fresh processes.
+The runner labels the legacy-only and legacy-plus-CSE selections as 1 and 9
+in its raw data. It sets those selections through the named options and compares them in 21 alternating pairs of fresh processes.
 It checks the loaded library path and sample size. Separate capture runs compare
 all samples and ordered messages before timing. Each process schedules 32 voices,
 measures the activation block, warms up for three windows, then records 12

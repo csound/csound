@@ -21,7 +21,7 @@ Engine engine(int passes, bool dump = false) {
     csoundCreateMessageBuffer(cs.get(), 0);
     EXPECT_EQ(0, csoundSetOption(cs.get(), "-n -d -m4"));
     EXPECT_EQ(0, passes & ~(CSOUND_OPT_LEGACY | CSOUND_OPT_CONSTANT_FOLDING |
-                          CSOUND_OPT_COPY_REMOVAL));
+                          CSOUND_OPT_COPY_REMOVAL | CSOUND_OPT_CSE));
     EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize=none"));
     if (passes & CSOUND_OPT_LEGACY)
         EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-legacy"));
@@ -29,6 +29,8 @@ Engine engine(int passes, bool dump = false) {
         EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-constant-folding"));
     if (passes & CSOUND_OPT_COPY_REMOVAL)
         EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-copy-removal"));
+    if (passes & CSOUND_OPT_CSE)
+        EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-common-subexpression-elimination"));
     if (dump) EXPECT_EQ(0, csoundSetOption(cs.get(), "--verbose=0x200"));
     return cs;
 }
@@ -342,8 +344,19 @@ TEST(OrcOptimizer, NamedOptionsComposeAndSupportAllAndNone) {
         {"--optimize-legacy", 7},
         {"--optimize=none", 0},
         {"--optimize=legacy,constant-folding", 3},
-        {"--optimize=all", 7},
-        {"--optimize-copy-removal --optimize-legacy", 7},
+        {"--optimize=none", 0},
+        {"--optimize=constant-folding,legacy,constant-folding", 3},
+        {"--optimize=none", 0},
+        {"--optimize-common-subexpression-elimination", 8},
+        {"--optimize-constant-folding", 10},
+        {"--optimize-legacy", 11},
+        {"--optimize=none", 0},
+        {"--optimize=common-subexpression-elimination", 8},
+        {"--optimize=constant-folding,legacy,common-subexpression-elimination", 11},
+        {"--optimize=none", 0},
+        {"--optimize=legacy,common-subexpression-elimination", 9},
+        {"--optimize=all", 15},
+        {"--optimize-constant-folding --optimize-legacy", 15},
         {"--optimize=all --optimize=none --optimize-legacy", 1}
     };
     for (const auto &test : cases) {
@@ -369,7 +382,11 @@ TEST(OrcOptimizer, InvalidNamesLeaveTheSelectionUnchanged) {
                               "--optimize=constant-folding,unknown",
                               "--optimize=legacy,,constant-folding",
                               "--optimize-legacy,constant-folding",
-                              "--optimize-constant-folding=0"}) {
+                              "--optimize-constant-folding=0",
+                              "--optimize=common-subexpression-elimination,unknown",
+                              "--optimize=legacy,,common-subexpression-elimination",
+                              "--optimize-legacy,common-subexpression-elimination",
+                              "--optimize-common-subexpression-elimination=0"}) {
         SCOPED_TRACE(option);
         EXPECT_NE(0, csoundSetOption(cs.get(), option));
         EXPECT_EQ(1, *selection);
@@ -380,7 +397,7 @@ TEST(OrcOptimizer, InvalidNamesLeaveTheSelectionUnchanged) {
                                                : "optimization name"));
     }
     EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize=all"));
-    EXPECT_EQ(7, *selection);
+    EXPECT_EQ(15, *selection);
 }
 
 TEST(OrcOptimizer, MissingSettingsReportAnOptionError) {
@@ -904,26 +921,6 @@ TEST(OrcOptimizer, ScalarCseDoesNotTrustAnOverloadedName) {
     }
 }
 
-TEST(OrcOptimizer, PassOptionRejectsMalformedAndUnsupportedMasks) {
-    for (const char *value : {"", "-1", "+1", "2", "4", "16", "9x", "1.5",
-                              "9999999999999999999999999999999999"}) {
-        auto cs = engine(1);
-        const std::string option = std::string("--orc-opt-passes=") + value;
-        EXPECT_NE(0, csoundSetOption(cs.get(), option.c_str())) << value;
-        EXPECT_EQ(1, *static_cast<int32_t *>(
-            csoundQueryGlobalVariable(cs.get(), "__orc_optimizer")));
-        EXPECT_NE(std::string::npos, messages(cs.get()).find("--orc-opt-passes requires"));
-    }
-    auto cs = engine(9);
-    EXPECT_NE(0, csoundSetOption(cs.get(), "--orc-opt-passes"));
-    EXPECT_EQ(0, csoundSetOption(cs.get(), "--orc-opt-passes=8"));
-    EXPECT_EQ(8, *static_cast<int32_t *>(
-        csoundQueryGlobalVariable(cs.get(), "__orc_optimizer")));
-    csoundReset(cs.get());
-    EXPECT_EQ(1, *static_cast<int32_t *>(
-        csoundQueryGlobalVariable(cs.get(), "__orc_optimizer")));
-}
-
 TEST(OrcOptimizer, ScalarCseKeepsATemporaryWithALaterRead) {
     auto cs = engine(1);
     const auto source = header(16) +
@@ -943,7 +940,7 @@ TEST(OrcOptimizer, ScalarCseKeepsATemporaryWithALaterRead) {
     // lowered tree to check that the pass does not leave that use uninitialized.
     cs->Free(cs.get(), later->right->value->lexeme);
     later->right->value->lexeme = csoundStrdup(cs.get(), temp.c_str());
-    ASSERT_EQ(0, csoundSetOption(cs.get(), "--orc-opt-passes=9"));
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize-common-subexpression-elimination"));
     csound_orc_optimize(cs.get(), tree->next, static_cast<TYPE_TABLE *>(tree->markup));
     EXPECT_EQ(duplicate, scope->right->next->next->next);
     EXPECT_EQ(temp, duplicate->left->value->lexeme);
