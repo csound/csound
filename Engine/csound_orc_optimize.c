@@ -119,7 +119,6 @@ static void remove_scalar_copies(CSOUND *csound, TREE *root)
       cs_hash_table_mfree_complete(csound, uses);
     }
 }
-#include "entry.h"
 
 /* Only these resolved built-ins may produce a folded value. Comparing callback
    identities, rather than names, keeps plugin and UDO overloads out. */

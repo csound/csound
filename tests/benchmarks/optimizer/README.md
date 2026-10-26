@@ -35,7 +35,10 @@ Per-engine options (experimental):
 - `--optimize=constant-folding` or `--optimize-constant-folding` enables constant folding.
 - `--optimize=copy-removal` or `--optimize-copy-removal` enables scalar copy removal.
 - `--optimize=legacy,copy-removal` enables both named passes.
-- `--optimize=all` enables every pass implemented in this build.
+- `--optimize=legacy,constant-folding` enables both named passes.
+- `--optimize=all` enables every pass implemented in this build, including
+  experimental passes. Constant folding has a reported steady-render slowdown
+  on macOS. Measure your workload before enabling it.
 
 Named lists and individual flags add to the current selection. Options take effect
 in command-line order. Use `--optimize=none` first to select a pass without the
@@ -46,6 +49,9 @@ which transformations run, not their execution order.
 
 The benchmark runners keep numeric labels in their output to compare with earlier
 measurements. They translate those labels to the named options before compilation.
+
+The earlier `orc_opt_passes` configuration variable was an unreleased benchmark
+control. Use the named options above instead.
 
 Diagnostic options:
 
