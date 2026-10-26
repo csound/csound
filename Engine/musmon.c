@@ -258,7 +258,7 @@ void print_benchmark_info(CSOUND *csound, const char *s)
     return;
   rt = csoundGetRealTime(csound->csRtClock);
   ct = csoundGetCPUTime(csound->csRtClock);
-  csound->ErrorMsg(csound,
+  csound->MessageS(csound, CSOUNDMSG_INFO,
                   Str("Elapsed time at %s: real: %.3fs, CPU: %.3fs\n"),
                   (char*) s, rt, ct);
 }
@@ -688,7 +688,8 @@ int32_t csound_cleanup(CSOUND *csound)
       csound_close_audio(csound);
       if (UNLIKELY(!csound->oparms->sfwrite)) {
         if(csound->oparms->msglevel ||csoundGetDebug(csound) & DEBUG_RUNTIME)
-         csound->ErrorMsg(csound, Str("no sound written to disk\n"));
+         csound->MessageS(csound, CSOUNDMSG_INFO,
+                          Str("no sound written to disk\n"));
       }
     }
 
@@ -738,7 +739,7 @@ int32_t csound_cleanup(CSOUND *csound)
         STA(orngcnt)[n] += (STA(srngcnt)[n] + csound->rngcnt[n]);
       }
       if(csound->oparms->msglevel > 0) {
-        csound->ErrorMsg(csound, Str("\t\t   overall amps:"));
+        csound->MessageS(csound, CSOUNDMSG_INFO, Str("\t\t   overall amps:"));
         for (maxp = csound->omaxamp, n = csound->nchnls; n--; )
           print_maxamp(csound, *maxp++);
       }
@@ -757,7 +758,7 @@ int32_t csound_cleanup(CSOUND *csound)
       if(csound->perferrcnt > 0) {
         csound->ErrorMsg(csound, Str("\n%d errors in performance\n"),
                          csound->perferrcnt);
-      } else  csound->ErrorMsg(csound, "\n");
+      } else  csound->MessageS(csound, CSOUNDMSG_INFO, "\n");
       
       /* Print unit test report if enabled */
       if (csound->oparms->runUnitTests) {
@@ -1640,7 +1641,7 @@ int32_t sense_events(CSOUND *csound)
       free_memfiles(csound);                  /*    purge memfiles */
     STA(sectno)++;
     if (csound->oparms->msglevel > 0)
-      csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
+      csound->MessageS(csound, CSOUNDMSG_INFO, Str("SECTION %d:\n"), STA(sectno));
     RT_SPIN_UNLOCK
     goto retest;                            /*   & back for more */
   }
@@ -1939,7 +1940,7 @@ void rewind_score(CSOUND *csound)
     section_amps(csound, 1);
     STA(sectno) = 1;
     if (csound->oparms->msglevel > 0)
-      csound->ErrorMsg(csound, Str("SECTION %d:\n"), STA(sectno));
+      csound->MessageS(csound, CSOUNDMSG_INFO, Str("SECTION %d:\n"), STA(sectno));
   }
 
   /* apply score offset if non-zero */

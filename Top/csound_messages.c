@@ -30,6 +30,7 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
   case CSOUNDMSG_ERROR:
   case CSOUNDMSG_WARNING:
   case CSOUNDMSG_REALTIME:
+  case CSOUNDMSG_INFO:
     vfprintf(stderr, format, args);
     break;
   default:
@@ -410,6 +411,7 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int32_t attr,
   case CSOUNDMSG_ERROR:
   case CSOUNDMSG_REALTIME:
   case CSOUNDMSG_WARNING:
+  case CSOUNDMSG_INFO:
     vfprintf(stderr, fmt, args_copy);
     break;
   default:

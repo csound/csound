@@ -190,13 +190,13 @@ static const char *csoundFileError(CSOUND *csound, void *ff) {
 void print_csound_version(CSOUND *csound) {
 #ifdef USE_DOUBLE
 #ifdef BETA
-  csoundErrorMsg(csound,
+  csoundMessageS(csound, CSOUNDMSG_INFO,
                  Str("--Csound version %s beta (double samples) %s\n"
                      "[commit: %s]\n"),
                  CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                  STRING_HASH(GIT_HASH_VALUE));
 #else
-  csoundErrorMsg(csound,
+  csoundMessageS(csound, CSOUNDMSG_INFO,
                  Str("--Csound version %s (double samples) %s\n"
                      "[commit: %s]\n"),
                  CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
@@ -204,13 +204,13 @@ void print_csound_version(CSOUND *csound) {
 #endif
 #else
 #ifdef BETA
-  csoundErrorMsg(csound,
+  csoundMessageS(csound, CSOUNDMSG_INFO,
                  Str("--Csound version %s beta (float samples) %s\n"
                      "[commit: %s]\n"),
                  CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
                  STRING_HASH(GIT_HASH_VALUE));
 #else
-  csoundErrorMsg(csound,
+  csoundMessageS(csound, CSOUNDMSG_INFO,
                  Str("--Csound version %s (float samples) %s\n"
                      "[commit: %s]\n"),
                  CS_PACKAGE_VERSION, CS_PACKAGE_DATE,
@@ -223,18 +223,18 @@ void print_sndfile_version(CSOUND *csound) {
 #ifdef USE_LIBSNDFILE
   char buffer[128];
   csound->SndfileCommand(csound, NULL, SFC_GET_LIB_VERSION, buffer, 128);
-  csoundErrorMsg(csound, Str("using %s\n"), buffer);
+  csoundMessageS(csound, CSOUNDMSG_INFO, Str("using %s\n"), buffer);
 #else
-  csoundErrorMsg(csound, "%s\n", Str("not using libsndfile"));
+  csoundMessageS(csound, CSOUNDMSG_INFO, "%s\n", Str("not using libsndfile"));
 #endif
 }
 
 void print_engine_parameters(CSOUND *csound) {
-  csoundErrorMsg(csound, Str("sr = %.1f,"), csound->esr);
-  csoundErrorMsg(csound, Str(" kr = %.3f,"), csound->ekr);
-  csoundErrorMsg(csound, Str(" ksmps = %d\n"), csound->ksmps);
-  csoundErrorMsg(csound, Str("0dBFS level = %.1f,"), csound->e0dbfs);
-  csoundErrorMsg(csound, Str(" A4 tuning = %.1f\n"), csound->A4);
+  csoundMessageS(csound, CSOUNDMSG_INFO, Str("sr = %.1f,"), csound->esr);
+  csoundMessageS(csound, CSOUNDMSG_INFO, Str(" kr = %.3f,"), csound->ekr);
+  csoundMessageS(csound, CSOUNDMSG_INFO, Str(" ksmps = %d\n"), csound->ksmps);
+  csoundMessageS(csound, CSOUNDMSG_INFO, Str("0dBFS level = %.1f,"), csound->e0dbfs);
+  csoundMessageS(csound, CSOUNDMSG_INFO, Str(" A4 tuning = %.1f\n"), csound->A4);
 }
 
 static void free_opcode_table(CSOUND *csound) {

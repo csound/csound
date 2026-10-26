@@ -37,6 +37,9 @@
 #define CSOUNDMSG_WARNING       (0x4000)
 /* stdount messages */
 #define CSOUNDMSG_STDOUT        (0x5000)
+/* informational messages (the version banner, the engine's settings,
+   performance statistics): sent where errors go, not reporting one */
+#define CSOUNDMSG_INFO          (0x6000)
 
 /* format attributes (colors etc.), use the bitwise OR of any of these: */
 
