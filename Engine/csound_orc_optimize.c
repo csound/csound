@@ -415,7 +415,10 @@ static inline int32_t same_type(char *var, char ty)
 //    return root;
 //}
 
-/* Called directly from the parser; constant fold and some alebraic identities */
+/* Historical, unused parser-level folder. Keep it disabled: unlike the resolved
+   scalar pass above, it cannot check operator overloads, reads integer
+   token values rather than their original spelling, and changes division
+   diagnostics and bitwise evaluation through broader algebraic rewrites. */
 TREE* constant_fold(CSOUND *csound, TREE* root)
 {
     TREE* current = root;
