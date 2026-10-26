@@ -721,6 +721,154 @@ endop
 }
 
 
+TEST_F(OrcCompileTests, UdoRateChainsIgnoreDeclarationOrder)
+{
+    // A performance-only leaf must reach every caller, in either source order.
+    // Without that leaf, the same graph must remain init-only.
+    for (bool performance : {false, true}) for (bool callerFirst : {false, true}) {
+        csoundReset(csound);
+        const int count = 64;
+        std::string source;
+        for (int i = 0; i < count; ++i)
+            source += "declare RateChain" + std::to_string(i) + "(input:i):(i)\n";
+        for (int index = 0; index < count; ++index) {
+            int i = callerFirst ? index : count - 1 - index;
+            source += "opcode RateChain" + std::to_string(i) + "(input:i):i\n";
+            if (i + 1 < count) {
+                // Two calls to the same definition must not enqueue it twice.
+                source += "left:i = RateChain" + std::to_string(i+1) + "(input)\n";
+                source += "right:i = RateChain" + std::to_string(i+1) + "(input)\n";
+                source += "xout left + right\n";
+            } else {
+                if (performance) source += "printks \"\", 1\n";
+                source += "xout input\n";
+            }
+            source += "endop\n";
+        }
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, source.c_str()));
+        for (int i = 0; i < count; ++i) {
+            auto name = "RateChain" + std::to_string(i);
+            OENTRY *entry = find_opcode_new(csound, name.c_str(), "i", "i");
+            ASSERT_NE(nullptr, entry) << name;
+            EXPECT_EQ(performance, entry->perf != nullptr) << name;
+        }
+    }
+}
+
+TEST_F(OrcCompileTests, UdoRatesUseResolvedOverloadsAndEarlierDefinitions)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+opcode EarlierInit(input:i):i
+  xout input
+endop
+opcode EarlierPerf(input:i):i
+  printks "", 1
+  xout input
+endop
+)"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+opcode RateOverload(input:i):i
+  xout input
+endop
+opcode RateOverload(input:S):i
+  printks "", 1
+  xout strlen(input)
+endop
+opcode LocalInitCaller(input:i):i
+  xout RateOverload(input)
+endop
+opcode LocalPerfCaller(input:i):i
+  xout RateOverload("hello")
+endop
+opcode EarlierInitCaller(input:i):i
+  xout EarlierInit(input)
+endop
+opcode EarlierPerfCaller(input:i):i
+  xout EarlierPerf(input)
+endop
+)"));
+    for (const char *name : {"LocalInitCaller", "EarlierInitCaller"}) {
+        OENTRY *entry = find_opcode_new(csound, name, "i", "i");
+        ASSERT_NE(nullptr, entry);
+        EXPECT_EQ(nullptr, entry->perf) << name;
+    }
+    for (const char *name : {"LocalPerfCaller", "EarlierPerfCaller"}) {
+        OENTRY *entry = find_opcode_new(csound, name, "i", "i");
+        ASSERT_NE(nullptr, entry);
+        EXPECT_NE(nullptr, entry->perf) << name;
+    }
+    // The allocation-free single-definition case also sees earlier callees.
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound,
+        "opcode SingleCaller(input:i):i\nxout EarlierPerf(input)\nendop\n"));
+    OENTRY *single = find_opcode_new(csound, "SingleCaller", "i", "i");
+    ASSERT_NE(nullptr, single);
+    EXPECT_NE(nullptr, single->perf);
+}
+
+TEST_F(OrcCompileTests, UdoRatesReachCallersOfSharedEntries)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+declare Helper0(input:i):(i)
+declare Helper1(input:i):(i)
+declare Leaf(input:i):(i)
+; Registering the void overload first can make these definitions share an entry.
+opcode Shared,0,0
+  value:i = Helper0(1)
+endop
+opcode Shared(input:i):i
+  xout input
+endop
+opcode Outer(input:i):i
+  xout Shared(input)
+endop
+opcode Helper0(input:i):i
+  xout Helper1(input)
+endop
+opcode Helper1(input:i):i
+  xout Leaf(input)
+endop
+opcode Leaf(input:i):i
+  printks "", 1
+  xout input
+endop
+)"));
+    for (const char *name : {"Helper0", "Helper1", "Shared", "Outer"}) {
+        OENTRY *entry = find_opcode_new(csound, name, "i", "i");
+        ASSERT_NE(nullptr, entry);
+        EXPECT_NE(nullptr, entry->perf) << name;
+    }
+}
+
+
+TEST_F(OrcCompileTests, UdoCycleReclassifiesAfterGetterSpecialization)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+words@global:S[] fillarray "hello"
+declare ReadCycle(depth:i):(i)
+declare CallCycle(depth:i):(i)
+opcode InitLength(input:S):i
+  xout strlen(input)
+endop
+opcode ReadCycle(depth:i):i
+  ; This getter starts with a perf callback. Its only consumer runs at init.
+  result:i = InitLength(words[0])
+  if (depth > 0) ithen
+    result += CallCycle(depth - 1)
+  endif
+  xout result
+endop
+opcode CallCycle(depth:i):i
+  xout ReadCycle(depth)
+endop
+)"));
+    for (const char *name : {"ReadCycle", "CallCycle"}) {
+        OENTRY *entry = find_opcode_new(csound, name, "i", "i");
+        ASSERT_NE(nullptr, entry);
+        EXPECT_EQ(nullptr, entry->perf) << name;
+    }
+}
+
+
 TEST_F (OrcCompileTests, testStructArrayMemberAssignmentRates)
 {
     const char* orchestra = R"(

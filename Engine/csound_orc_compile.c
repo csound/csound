@@ -156,33 +156,129 @@ static int32_t udo_calls_perf_definition(OPCODINFO *opinfo) {
   return 0;
 }
 
+typedef struct {
+  OENTRY *entry;
+  size_t callers; /* First reverse edge, one-based. Zero ends the list. */
+} UDO_RATE_NODE;
+
+typedef struct {
+  size_t caller;
+  size_t next;
+} UDO_RATE_EDGE;
+
+static int compare_udo_rate_nodes(const void *left, const void *right) {
+  uintptr_t a = (uintptr_t)((const UDO_RATE_NODE *)left)->entry;
+  uintptr_t b = (uintptr_t)((const UDO_RATE_NODE *)right)->entry;
+  return (a > b) - (a < b);
+}
+
 static void classify_udo_rates(CSOUND *csound, ENGINE_STATE *engineState) {
   INSTRTXT *instrument;
-  int32_t changed;
+  size_t count = 0;
 
-  /* Seed each definition from its own body. Calls are ignored in this pass so
-     an init-only recursion cycle starts at the all-init fixed point. */
+  /* Start from intrinsic work on every invocation. Getter specialization can
+     remove that work between invocations. Init-only recursive groups must not
+     inherit a performance callback from an earlier classification. */
   for (instrument = engineState->instxtanchor.nxtinstxt;
        instrument != NULL; instrument = instrument->nxtinstxt) {
     if (instrument->opcode_info != NULL) {
       OPCODINFO *opinfo = instrument->opcode_info;
       opinfo->oentry->perf = udo_has_intrinsic_perf(
         csound, instrument, opinfo) ? (SUBR)useropcd : NULL;
+      count++;
     }
   }
-
-  do {
-    changed = 0;
-    for (instrument = engineState->instxtanchor.nxtinstxt;
-         instrument != NULL; instrument = instrument->nxtinstxt) {
-      OPCODINFO *opinfo = instrument->opcode_info;
-      if (opinfo != NULL && opinfo->oentry->perf == NULL &&
-          udo_calls_perf_definition(opinfo)) {
-        opinfo->oentry->perf = (SUBR)useropcd;
-        changed = 1;
-      }
+  /* One scan often settles small or callee-first graphs. Avoid allocating a
+     graph when no rate changes, or when every definition is already perf. */
+  int32_t changed = 0;
+  size_t unresolved = 0;
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    OPCODINFO *opinfo = instrument->opcode_info;
+    if (opinfo == NULL || opinfo->oentry->perf != NULL) continue;
+    if (udo_calls_perf_definition(opinfo)) {
+      opinfo->oentry->perf = (SUBR)useropcd;
+      changed = 1;
+    } else {
+      unresolved++;
     }
-  } while (changed);
+  }
+  if (!changed || unresolved == 0) return;
+
+  UDO_RATE_NODE *nodes = csound->Calloc(csound, count * sizeof(*nodes));
+  size_t used = 0;
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    if (instrument->opcode_info != NULL)
+      nodes[used++].entry = instrument->opcode_info->oentry;
+  }
+  /* Use resolved definitions, never names. Some UDO overloads share an entry
+     and therefore a perf flag. Group that storage so a change reaches callers
+     of every such definition, including those compiled earlier. */
+  qsort(nodes, count, sizeof(*nodes), compare_udo_rate_nodes);
+  used = 0;
+  for (size_t i = 0; i < count; i++) {
+    if (used == 0 || nodes[i].entry != nodes[used-1].entry)
+      nodes[used++] = nodes[i];
+  }
+  count = used;
+
+  size_t *queue = csound->Malloc(csound, count * sizeof(*queue));
+  size_t head = 0, tail = 0, edgeCount = 0, capacity = count;
+  UDO_RATE_EDGE *edges = csound->Malloc(csound, capacity * sizeof(*edges));
+  for (size_t i = 0; i < count; i++) {
+    if (nodes[i].entry->perf != NULL) queue[tail++] = i;
+  }
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    OPCODINFO *opinfo = instrument->opcode_info;
+    if (opinfo == NULL || opinfo->oentry->perf != NULL) continue;
+    UDO_RATE_NODE key = {opinfo->oentry, 0};
+    UDO_RATE_NODE *caller = bsearch(&key, nodes, count, sizeof(*nodes),
+                                   compare_udo_rate_nodes);
+    size_t i = (size_t)(caller - nodes);
+    OPTXT *op = (OPTXT *)opinfo->ip;
+    while (op != NULL && (op = op->nxtop) != NULL) {
+      OPCODINFO *called = udo_called_definition(op->t.oentry);
+      if (called == NULL || called->oentry == NULL ||
+          called->oentry == opinfo->oentry) continue;
+      key.entry = called->oentry;
+      UDO_RATE_NODE *callee = bsearch(&key, nodes, count, sizeof(*nodes),
+                                     compare_udo_rate_nodes);
+      if (callee == NULL) {
+        if (called->oentry != NULL && called->oentry->perf != NULL) {
+          opinfo->oentry->perf = (SUBR)useropcd;
+          queue[tail++] = i;
+          break;
+        }
+        continue;
+      }
+      if (edgeCount == capacity) {
+        capacity *= 2;
+        edges = csound->ReAlloc(csound, edges, capacity * sizeof(*edges));
+      }
+      edges[edgeCount].caller = i;
+      edges[edgeCount].next = callee->callers;
+      callee->callers = ++edgeCount;
+    }
+  }
+  /* Each shared perf flag enters the queue once. Revisit only its callers, rather
+     than rescanning every body for each link of a caller-first chain. */
+  while (head < tail) {
+    size_t edge = nodes[queue[head++]].callers;
+    while (edge != 0) {
+      UDO_RATE_EDGE *link = &edges[edge-1];
+      OENTRY *caller = nodes[link->caller].entry;
+      if (caller->perf == NULL) {
+        caller->perf = (SUBR)useropcd;
+        queue[tail++] = link->caller;
+      }
+      edge = link->next;
+    }
+  }
+  csound->Free(csound, edges);
+  csound->Free(csound, queue);
+  csound->Free(csound, nodes);
 }
 
 /* Expression lowering sees provisional UDO callbacks. Once their rates are

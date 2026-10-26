@@ -380,3 +380,30 @@ Pin the process to a quiet CPU and avoid concurrent builds or benchmarks.
 Record the host, compiler flags and precision. Output includes source, revision,
 local diff, binary/library hashes, CMake configuration and raw paired timings.
 Keep results and charts outside the repository.
+
+## UDO rate classification
+
+Generate call graphs to compare compiler builds with the same flags. The
+benchmark compiles the definitions without calling them, so even large recursive
+cycles do not consume a runtime stack.
+
+```sh
+python3 tests/benchmarks/udo_rates.py --count 1024 > /tmp/udo-chain.orc
+CSOUND7RC=/dev/null python3 tests/benchmarks/compile_expression_args.py \
+  --library build/libcsound64.so --source /tmp/udo-chain.orc \
+  > /tmp/udo-compile.json
+```
+
+Use `--order callee-first` to reverse definition order, `--graph branching`
+for a tree of calls, or `--graph cycle` for mutual recursion. `--init-only`
+omits the performance-time leaf. Include small graphs as well as long chains.
+Alternate before/after builds over repeated trials and keep setup outside the
+compile timer. `--source` measures a new compilation on an initialized engine.
+
+Rate classification is required compiler work, so optimizer pass options do not
+turn it off. One scan settles simple graphs without allocating a worklist.
+The graph follows resolved calls and groups definitions that share an opcode
+entry. Already compiled callees keep their established rates unless they share
+such an entry with a current definition. Classification starts again from
+intrinsic work after getter specialization. The temporary graph is freed before
+compilation continues and adds no work to audio rendering.
