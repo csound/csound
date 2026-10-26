@@ -27,6 +27,98 @@
 #include "csound_orc_structs.h"
 #include "csound_standard_types.h"
 #include "aops.h"
+#include "entry.h"
+
+static int32_t copy_leaf(const TREE *arg)
+{
+    return arg && arg->value && arg->value->lexeme &&
+           !arg->left && !arg->right;
+}
+
+/* Do not search parent/global pools. A local name with an explicit type need
+   not start with 'i', so use its resolved type rather than its spelling. */
+static int32_t copy_local_scalar(CSOUND *csound, CS_VAR_POOL *pool, TREE *arg)
+{
+    if (!copy_leaf(arg) || arg->type != T_IDENT || !pool) return 0;
+    CS_VARIABLE *var = cs_hash_table_get(csound, pool->table, arg->value->lexeme);
+    return var && var->varType == &CS_VAR_TYPE_I && var->dimensions == 0;
+}
+
+static int32_t copy_scalar_input(CSOUND *csound, CS_VAR_POOL *pool, TREE *arg)
+{
+    return copy_leaf(arg) && (arg->type == INTEGER_TOKEN ||
+           arg->type == NUMBER_TOKEN || is_pfield_name(arg->value->lexeme) ||
+           copy_local_scalar(csound, pool, arg));
+}
+
+static void count_copy_references(CSOUND *csound, CS_HASH_TABLE *uses, TREE *args)
+{
+    for (; args; args = args->next) {
+      if (args->value && args->value->lexeme &&
+          !strncmp(args->value->lexeme, "#i", 2)) {
+        int32_t *count = cs_hash_table_get(csound, uses, args->value->lexeme);
+        if (!count) {
+          count = csound->Calloc(csound, sizeof(*count));
+          cs_hash_table_put(csound, uses, args->value->lexeme, count);
+        }
+        ++*count;
+      }
+      count_copy_references(csound, uses, args->left);
+      count_copy_references(csound, uses, args->right);
+    }
+}
+
+/* This runs after overload resolution. The earlier expression-expansion helper
+   still handles strings; extending it to scalars would bypass these checks. */
+static void remove_scalar_copies(CSOUND *csound, TREE *root)
+{
+    for (TREE *scope = root; scope; scope = scope->next) {
+      /* UDO arguments may alias caller storage. Leave UDOs and instr 0 alone. */
+      if (scope->type != INSTR_TOKEN || !scope->markup) continue;
+      CS_VAR_POOL *pool = scope->markup;
+      CS_HASH_TABLE *uses = cs_hash_table_create(csound);
+      for (TREE *node = scope->right; node; node = node->next) {
+        count_copy_references(csound, uses, node->left);
+        count_copy_references(csound, uses, node->right);
+      }
+      for (TREE *node = scope->right; node && node->next; node = node->next) {
+        TREE *copy = node->next;
+        OENTRY *producer = node->markup, *consumer = copy->markup;
+        TREE *temp = node->left, *dest = copy->left;
+        if (node->type != T_OPCALL || copy->type != T_ASSIGNMENT ||
+            !producer || !consumer || producer->perf || producer->deinit ||
+            consumer->perf || consumer->deinit ||
+            (consumer->init != (SUBR)assign && consumer->init != (SUBR)minit) ||
+            !producer->outypes || strcmp(producer->outypes, "i") ||
+            !producer->intypes || strcmp(producer->intypes, "ii") ||
+            (producer->init != (SUBR)addkk && producer->init != (SUBR)subkk &&
+             producer->init != (SUBR)mulkk) ||
+            !copy_local_scalar(csound, pool, temp) || temp->next ||
+            strncmp(temp->value->lexeme, "#i", 2) ||
+            !copy_local_scalar(csound, pool, dest) || dest->next ||
+            dest->value->lexeme[0] == '#' ||
+            !copy_leaf(copy->right) || copy->right->next ||
+            strcmp(temp->value->lexeme, copy->right->value->lexeme) ||
+            !copy_scalar_input(csound, pool, node->right) ||
+            !copy_scalar_input(csound, pool, node->right->next) ||
+            node->right->next->next) continue;
+        int32_t *count = cs_hash_table_get(csound, uses, temp->value->lexeme);
+        if (!count || *count != 2) continue; /* one definition, one read */
+
+        /* These three built-ins read both operands before storing the result,
+           including iValue = iValue + 1. Keep the producer's resolved callback
+           and location and the destination leaf's metadata. Only its output
+           binding changes; the unused temporary's pool slot stays allocated. */
+        node->left = dest;
+        copy->left = NULL;
+        node->next = copy->next;
+        copy->next = NULL;
+        csoundDeleteTree(csound, temp);
+        csoundDeleteTree(csound, copy);
+      }
+      cs_hash_table_mfree_complete(csound, uses);
+    }
+}
 
 static TREE * create_fun_token(CSOUND *csound, TREE *right, char *fname)
 {
@@ -708,6 +800,7 @@ TREE *csound_orc_optimize(CSOUND *csound, TREE *root, TYPE_TABLE *types)
       csound->Message(csound, "ORC-OPT end\n");
     }
     if (passes & 1) root = optimize_legacy(csound, root);
+    if (passes & 4) remove_scalar_copies(csound, root);
     if (dump) {
       csound->Message(csound, "ORC-OPT after phase=provisional\n");
       dump_tree(csound, root, types->instr0LocalPool, types->globalPool);

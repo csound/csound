@@ -1,5 +1,7 @@
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
+#include "prototyp.h"
+#include "csdebug.h"
 #include "gtest/gtest.h"
 #include <cstring>
 #include <memory>
@@ -299,7 +301,7 @@ TEST(OrcOptimizer, ControlsArePerEngineAndResetToLegacyDefault) {
     EXPECT_EQ(1, controls(on.get())[0]);
     EXPECT_EQ(0, csoundGetDebug(off.get()) & DEBUG_OPTIMIZER);
     EXPECT_NE(0, csoundGetDebug(on.get()) & DEBUG_OPTIMIZER);
-    EXPECT_NE(0, off->ParseConfigurationVariable(off.get(), "orc_opt_passes", "2"));
+    EXPECT_NE(0, off->ParseConfigurationVariable(off.get(), "orc_opt_passes", "8"));
     csoundSetDebug(off.get(), DEBUG_OPTIMIZER);
     csoundReset(off.get());
     ASSERT_NE(nullptr, controls(off.get()));
@@ -335,7 +337,7 @@ TEST(OrcOptimizer, VerboseMaskSelectsOptimizerDumps) {
 }
 
 TEST(OrcOptimizer, ParseCompileDeleteAndInvalidInput) {
-    for (int pass : {0, 1}) {
+    for (int pass : {0, 1, 5}) {
         auto cs = engine(pass);
         ASSERT_EQ(0, csoundCompileOrc(cs.get(), header(16).c_str(), 0));
         for (int i = 0; i < 20; ++i) {
@@ -348,6 +350,133 @@ TEST(OrcOptimizer, ParseCompileDeleteAndInvalidInput) {
         EXPECT_EQ(nullptr, csoundParseOrc(cs.get(),
             "instr 2\nkx = no_such_optimizer_function(1)\nendin\n"));
         EXPECT_FALSE(messages(cs.get()).empty());
+    }
+}
+
+std::string copyDump(int passes, const char *body) {
+    auto cs = engine(passes, true);
+    const std::string source = header(16) + body;
+    EXPECT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
+    const auto log = optimizerDumps(messages(cs.get()));
+    const auto begin = log.find("ORC-OPT after");
+    EXPECT_NE(std::string::npos, begin);
+    return begin == std::string::npos ? "" :
+        log.substr(begin, log.find("ORC-OPT end", begin) - begin);
+}
+
+TEST(OrcOptimizer, ScalarCopyWritesTheLocalDestination) {
+    const char *body = "instr 1\niValue=p4+1\naOut=iValue\nout aOut\nendin\n";
+    const auto before = copyDump(1, body), after = copyDump(5, body);
+    EXPECT_NE(std::string::npos, before.find("[iValue:i] <- [t1:i]"));
+    EXPECT_NE(std::string::npos, after.find("[iValue:i] <- [p4:p,1:c]"));
+    EXPECT_EQ(std::string::npos, after.find("[iValue:i] <- [t1:i]"));
+    for (int block : {1, 16, 64}) identical(render(1, block, body), render(5, block, body));
+}
+
+TEST(OrcOptimizer, ScalarCopiesKeepAliasedInputsAndExpressionOrder) {
+    const char *bodies[] = {
+        "instr 1\niValue init 7\niValue=iValue+1\niValue=20-iValue\n"
+        "iValue=iValue*2\naOut=iValue\nout aOut\nendin\n",
+        "instr 1\niValue=(p4+1)*(p4-2)\naOut=iValue\nout aOut\nendin\n",
+        "instr 1\nvalue:i = p4+1\naOut=value\nout aOut\nendin\n",
+        "instr 1\niValue=(16777216+1)-16777216\naOut=iValue\nout aOut\nendin\n",
+        "instr 1\niValue init 0\nif p4==0 then\niValue=p4+2\n"
+        "else\niValue=p4-3\nendif\naOut=iValue\nout aOut\nendin\n",
+        "instr 1\nkCount init 0\nkCount+=1\nif kCount==2 then\nreinit again\n"
+        "endif\nagain:\niValue=p4+2\nprints \"value=%g\\n\",iValue\n"
+        "rireturn\naOut=iValue\nout aOut\nendin\n"
+    };
+    for (const char *body : bodies) {
+        SCOPED_TRACE(body);
+        identical(render(1, 16, body), render(5, 16, body));
+    }
+}
+
+TEST(OrcOptimizer, ScalarCopiesLeaveOtherRatesAndStorageAlone) {
+    const char *bodies[] = {
+        "instr 1\nkValue=p4+1\nendin\n",
+        "instr 1\naValue=p4+1\nendin\n",
+        "giValue init 0\ninstr 1\ngiValue=p4+1\nendin\n",
+        "giSource init 2\ninstr 1\niValue=giSource+1\nendin\n",
+        "iGlobal=2+3\ninstr 1\nendin\n",
+        "opcode Value,i,i\niIn xin\niOut=iIn+1\nxout iOut\nendop\n"
+        "instr 1\niValue=Value(2)\nendin\n",
+        "instr 1\niValue=1/0\nendin\n",
+        "instr 1\niArray[] init 2\niArray[0]=p4+1\nendin\n",
+        "struct Record value:i\ninstr 1\nrecord:Record init 0\n"
+        "record.value=p4+1\niValue=record.value+1\nendin\n",
+        "value@global:i init 0\ninstr 1\nvalue=p4+1\nendin\n",
+        "instr 1\nSValue=strcat(\"a\",\"b\")\nendin\n",
+        // The ternary's shared temporary has multiple definitions and a label.
+        "instr 1\niValue=(p4>0 ? p4+1 : p4-1)\nendin\n"
+    };
+    for (const char *body : bodies) {
+        SCOPED_TRACE(body);
+        EXPECT_EQ(copyDump(1, body), copyDump(5, body));
+    }
+}
+
+struct CopyOverload { OPDS h; cs_float *out, *left, *right; };
+int32_t copyOverload(CSOUND *, void *data) {
+    static_cast<CopyOverload *>(data)->out[0] = FL(42);
+    return OK;
+}
+
+TEST(OrcOptimizer, ScalarCopiesKeepAnOverloadedProducer) {
+    for (int pass : {1, 5}) {
+        auto cs = engine(pass, true);
+        OENTRY op = {};
+        op.opname = const_cast<char *>("##add.ii");
+        op.dsblksiz = sizeof(CopyOverload);
+        op.outypes = const_cast<char *>("i");
+        op.intypes = const_cast<char *>("ii");
+        op.init = copyOverload;
+        ASSERT_EQ(0, csoundPrependOpcodes(cs.get(), &op, 1));
+        const auto source = header(16) +
+            "instr 1\niValue=p4+1\nchnset iValue,\"value\"\nendin\n";
+        ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
+        const auto log = optimizerDumps(messages(cs.get()));
+        const auto after = log.find("ORC-OPT after");
+        ASSERT_NE(std::string::npos, after);
+        EXPECT_NE(std::string::npos, log.substr(after).find(
+            "[iValue:i] <- [t1:i]"));
+        ASSERT_EQ(0, csoundStart(cs.get()));
+        csoundEventString(cs.get(), "i 1 0 1 2", 0);
+        ASSERT_EQ(0, csoundPerformKsmps(cs.get()));
+        int32_t error = 0;
+        EXPECT_EQ(FL(42), csoundGetControlChannel(cs.get(), "value", &error));
+        EXPECT_EQ(0, error);
+    }
+}
+
+void copyBreakpoint(CSOUND *, debug_bkpt_info_t *info, void *data) {
+    ++*static_cast<int *>(data);
+    EXPECT_EQ(9, info->currentOpcode->line);
+    bool found = false;
+    for (auto *var = info->instrVarList; var; var = var->next) {
+        if (!strcmp(var->name, "iValue")) {
+            EXPECT_EQ(FL(3), *static_cast<cs_float *>(var->data));
+            found = true;
+        }
+    }
+    EXPECT_TRUE(found);
+}
+
+TEST(OrcOptimizer, ScalarCopiesKeepDebuggerLinesAndNamedValues) {
+    for (int pass : {1, 5}) {
+        auto cs = engine(pass);
+        const auto source = header(16) +
+            "instr 1\niValue=p4+1\nkCount init 0\nkCount=kCount+1\nendin\n";
+        ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
+        ASSERT_EQ(0, csoundStart(cs.get()));
+        csoundEventString(cs.get(), "i 1 0 1 2", 0);
+        int hits = 0;
+        ASSERT_EQ(0, csoundDebuggerInit(cs.get()));
+        csoundSetBreakpointCallback(cs.get(), copyBreakpoint, &hits);
+        csoundSetBreakpoint(cs.get(), 9, 1, 0);
+        csoundPerformKsmps(cs.get());
+        EXPECT_EQ(1, hits);
+        csoundDebuggerClean(cs.get());
     }
 }
 } // namespace

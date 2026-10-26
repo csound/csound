@@ -30,7 +30,9 @@ through `USE_COMPILER_OPTIMIZATIONS`; `RelWithDebInfo` alone is not a strict bui
 Per-engine options (experimental):
 
 - `-+orc_opt_passes=0`: skip the optional legacy TREE optimizer.
-- `-+orc_opt_passes=1`: existing default; only bit 0 is currently supported.
+- `-+orc_opt_passes=1`: existing default, the legacy TREE pass.
+- `-+orc_opt_passes=5`: legacy pass plus scalar copy removal (bit 2).
+  Bit 1 is reserved for the separate constant-folding pass.
 - `--verbose=0x200`: normalized input/output TREE and resolved opcode-template dumps
   through the `DEBUG_OPTIMIZER` bit in the existing debug mask.
 - `--verbose=0x210`: combine optimizer and parser (`0x10`) diagnostics.
@@ -148,3 +150,35 @@ Run both phases and masks, then repeat against an untouched baseline build with
 identical flags, omitting `--passes` (older libraries lack the control). The default
 argument counts are 8/64/256/1024. Compare raw trials and absolute latency; do not
 infer scalability from a single small instrument or treat noisy CI timings as gates.
+
+## Scalar copy removal
+
+Mask 5 lets built-in i-rate addition, subtraction and multiplication write a
+local scalar destination directly when the next operation copies their generated
+result there. The result must have exactly one use. This runs after overload
+resolution and leaves plugins, UDOs, globals, other rates and structured values
+alone. It does not change arithmetic order or remove temporary variable slots.
+Default compilation remains mask 1.
+
+The native `optimizer_timeline` benchmark measures repeated note starts and audio
+processing in consecutive 1.024-second score windows. Each note lasts 16 blocks
+at 48 kHz with ksmps 64. Three warmup windows precede measurement. The fixture
+generates a chosen number of local i-rate additions and plays a sine tone. This
+is a synthetic initialization workload, not a prediction for all instruments.
+
+```sh
+ninja -C build/optimizer optimizer_timeline
+CSOUND7RC=/dev/null python3 tests/benchmarks/optimizer_timeline.py \
+  --binary build/optimizer/tests/benchmarks/optimizer_timeline \
+  --library build/optimizer/CsoundLib64.framework/CsoundLib64 \
+  --build-dir build/optimizer --copies 512 --voices 128 --windows 12 \
+  --output /tmp/scalar-copies.json
+```
+
+The runner checks complete audio and messages in separate untimed runs, then
+alternates masks 1 and 5 in fresh processes for each pair. The native loop
+measures process CPU and wall time, including event submission, note activation
+and audio processing. Compilation is measured separately. A copy count of zero
+is a control for the harness and scheduling cost. Keep generated reports and
+charts outside the source tree. Record the compiler, CPU and build flags with
+results. Run on an idle machine and pin the runner to one CPU on Linux if useful.
