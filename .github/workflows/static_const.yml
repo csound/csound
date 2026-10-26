@@ -27,11 +27,14 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
+      - uses: ./.github/actions/setup-build
+        with:
+          compiler-cache: 'true'
       - name: Install Clang and build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y clang-19 clang-tidy-19 python3-clang-19 \
-            cmake ninja-build bison flex gettext libasound2-dev \
+            cmake ninja-build ccache bison flex gettext libasound2-dev \
             libsndfile1-dev libsamplerate0-dev
       - name: Check the lint runner
         run: /usr/bin/python3 tests/test_static_const.py
@@ -46,8 +49,8 @@ jobs:
           -DUSE_MP3=OFF
           -DUSE_CURL=OFF
       - name: Build and generate parser sources
-        run: cmake --build build-lint --parallel 2
+        run: cmake --build build-lint --parallel "$(nproc)"
       - name: Check static and const declarations
         run: >
           /usr/bin/python3 scripts/check_static_const.py -p build-lint
-          --clang clang-19 --clang-tidy clang-tidy-19 --jobs 2
+          --clang clang-19 --clang-tidy clang-tidy-19 --jobs "$(nproc)"
