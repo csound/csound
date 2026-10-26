@@ -22,9 +22,9 @@
 #include "csoundCore.h"
 #include "corfile.h"
 
-void score_event_async(CSOUND *csound, char type, const cs_float *pfields,
-                           long numFields);
-void read_score_async(CSOUND *csound, const char *message);
+int32_t score_event_async(CSOUND *csound, char type, const cs_float *pfields,
+                          long numFields);
+int32_t read_score_async(CSOUND *csound, const char *message);
 void csoundInputMessage(CSOUND *csound, const char *message);
 
 void rewind_score(CSOUND *csound);   /* musmon.c */
@@ -99,15 +99,14 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   return CSOUND_SUCCESS;
 }
 
- void csoundEventString(CSOUND *csound, const char *message,
+ int32_t csoundEventString(CSOUND *csound, const char *message,
                               int32_t async) {
-  if (async) {
-    read_score_async(csound, message);
-  } else
-    csoundReadScore(csound, message);
+  if (async)
+    return read_score_async(csound, message);
+  return csoundReadScore(csound, message);
 }
 
- void csoundEvent(CSOUND *csound, int32_t type, const cs_float *params,
+ int32_t csoundEvent(CSOUND *csound, int32_t type, const cs_float *params,
                         int32_t nparams, int32_t async) {
   char c;
   if (type == CS_INSTR_EVENT)
@@ -118,12 +117,11 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
     c = 'e';
   else if (type == CS_ADV_EVENT)
     c = 'a';
-  else return;
+  else return CSOUND_ERROR;
 
   if (async)
-    score_event_async(csound, c, params, nparams);
-  else
-    csound_score_event(csound, c, params, nparams);
+    return score_event_async(csound, c, params, nparams);
+  return csound_score_event(csound, c, params, nparams);
 }
 
 /*

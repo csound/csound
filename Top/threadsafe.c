@@ -285,24 +285,30 @@ static inline int32_t read_score_enqueue(CSOUND *csound, const char *str){
   return message_enqueue(csound, READ_SCORE, str, strlen(str)+1);
 }
 
-static inline void table_copy_out_enqueue(CSOUND *csound, int32_t table,
-                                              cs_float *ptable){
+static inline int32_t table_copy_out_enqueue(CSOUND *csound, int32_t table,
+                                             cs_float *ptable){
   const int32_t argsize = ARG_ALIGN*2;
   char args[ARG_ALIGN*2] = { 0 };
   memcpy(args, &table, sizeof(int32_t));
   memcpy(args+ARG_ALIGN, &ptable, sizeof(cs_float *));
-  if (message_enqueue(csound, TABLE_COPY_OUT, args, argsize) != CSOUND_SUCCESS)
+  if (message_enqueue(csound, TABLE_COPY_OUT, args, argsize) != CSOUND_SUCCESS) {
     report_api_queue_rejection(csound);
+    return CSOUND_ERROR;
+  }
+  return CSOUND_SUCCESS;
 }
 
-static inline void table_copy_in_enqueue(CSOUND *csound, int32_t table,
-                                             const cs_float *ptable){
+static inline int32_t table_copy_in_enqueue(CSOUND *csound, int32_t table,
+                                            const cs_float *ptable){
   const int32_t argsize = ARG_ALIGN*2;
   char args[ARG_ALIGN*2] = { 0 };
   memcpy(args, &table, sizeof(int32_t));
   memcpy(args+ARG_ALIGN, &ptable, sizeof(cs_float *));
-  if (message_enqueue(csound, TABLE_COPY_IN, args, argsize) != CSOUND_SUCCESS)
+  if (message_enqueue(csound, TABLE_COPY_IN, args, argsize) != CSOUND_SUCCESS) {
     report_api_queue_rejection(csound);
+    return CSOUND_ERROR;
+  }
+  return CSOUND_SUCCESS;
 }
 
 static inline int32_t score_event_enqueue(CSOUND *csound, char type,
@@ -365,40 +371,45 @@ void input_message_async(CSOUND *csound, const char *message){
   input_message_enqueue(csound, message);
 }
 
-void read_score_async(CSOUND *csound, const char *message){
-  if (read_score_enqueue(csound, message) != CSOUND_SUCCESS)
+int32_t read_score_async(CSOUND *csound, const char *message){
+  if (read_score_enqueue(csound, message) != CSOUND_SUCCESS) {
     report_api_queue_rejection(csound);
-}
-
-void score_event_async(CSOUND *csound, char type,
-                           const cs_float *pfields, long numFields){
-  if (score_event_enqueue(csound, type, pfields, numFields) != CSOUND_SUCCESS)
-    report_api_queue_rejection(csound);
-}
-
-void csoundTableCopyOut(CSOUND *csound, int32_t table, cs_float *ptable, int32_t async){
-  if(async) {
-    table_copy_out_enqueue(csound, table, ptable);
-    return;
+    return CSOUND_ERROR;
   }
+  return CSOUND_SUCCESS;
+}
+
+int32_t score_event_async(CSOUND *csound, char type,
+                          const cs_float *pfields, long numFields){
+  if (score_event_enqueue(csound, type, pfields, numFields) != CSOUND_SUCCESS) {
+    report_api_queue_rejection(csound);
+    return CSOUND_ERROR;
+  }
+  return CSOUND_SUCCESS;
+}
+
+int32_t csoundTableCopyOut(CSOUND *csound, int32_t table, cs_float *ptable,
+                           int32_t async){
+  if(async)
+    return table_copy_out_enqueue(csound, table, ptable);
   if (!csound->oparms->realtime)
     csoundLockMutex(csound->API_lock);
   csound_table_copy_out(csound, table, ptable);
   if (!csound->oparms->realtime)
     csoundUnlockMutex(csound->API_lock);
+  return CSOUND_SUCCESS;
 }
 
-void csoundTableCopyIn(CSOUND *csound, int32_t table, const
+int32_t csoundTableCopyIn(CSOUND *csound, int32_t table, const
 		       cs_float *ptable, int32_t async){
-  if(async) {
-    table_copy_in_enqueue(csound, table, ptable);
-    return;
-  }
+  if(async)
+    return table_copy_in_enqueue(csound, table, ptable);
   if (!csound->oparms->realtime)
     csoundLockMutex(csound->API_lock);
   csound_table_copy_in(csound, table, ptable);
   if (!csound->oparms->realtime)
     csoundUnlockMutex(csound->API_lock);
+  return CSOUND_SUCCESS;
 }
 
 /* Legacy internal entry point, no longer part of the public API. Callers must
