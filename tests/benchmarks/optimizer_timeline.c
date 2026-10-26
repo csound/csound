@@ -100,6 +100,10 @@ int main(int argc, char **argv)
   }
   int mask = count(argv[1], 0, 7), copies = count(argv[2], 0, 4096);
   int voices = count(argv[3], 1, 512), windows = count(argv[4], 1, 60);
+  if (mask & ~5) {
+    fputs("Unsupported optimizer mask in this build\n", stderr);
+    return 2;
+  }
   report_library();
   if (csoundGetSizeOfMYFLT() != sizeof(cs_float)) return 1;
   FILE *capture = argc == 6 ? fopen(argv[5], "wb") : NULL;
@@ -120,10 +124,9 @@ int main(int argc, char **argv)
   CSOUND *csound = csoundCreate(NULL, "");
   if (!csound) return 1;
   csoundCreateMessageBuffer(csound, 0);
-  char option[64];
-  snprintf(option, sizeof(option), "--orc-opt-passes=%d", mask);
-  check(csound, csoundSetOption(csound, "-n -d -m0"));
-  check(csound, csoundSetOption(csound, option));
+  check(csound, csoundSetOption(csound, "-n -d -m0 --optimize=none"));
+  if (mask & 1) check(csound, csoundSetOption(csound, "--optimize-legacy"));
+  if (mask & 4) check(csound, csoundSetOption(csound, "--optimize-copy-removal"));
   int32_t *selection = csoundQueryGlobalVariable(csound, "__orc_optimizer");
   if (!selection || *selection != mask) return 1;
   double start = wall_time();

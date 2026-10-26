@@ -29,10 +29,25 @@ through `USE_COMPILER_OPTIMIZATIONS`; `RelWithDebInfo` alone is not a strict bui
 
 Per-engine options (experimental):
 
-- `--orc-opt-passes=0`: skip the optional legacy TREE optimizer.
-- `--orc-opt-passes=1`: existing default, the legacy TREE pass.
-- `--orc-opt-passes=5`: legacy pass plus scalar copy removal (bit 2).
-  Bit 1 is reserved for the separate constant-folding pass.
+- `--optimize=none` disables the optional passes.
+- `--optimize=legacy` or `--optimize-legacy` enables the existing TREE pass.
+  This is the default.
+- `--optimize=copy-removal` or `--optimize-copy-removal` enables scalar copy removal.
+- `--optimize=legacy,copy-removal` enables both named passes.
+- `--optimize=all` enables every pass implemented in this build.
+
+Named lists and individual flags add to the current selection. Options take effect
+in command-line order. Use `--optimize=none` first to select a pass without the
+legacy optimizer. `all` and `none` must appear alone after `--optimize=`.
+Unknown names, missing names and empty list entries produce an option error. A
+bad name anywhere in a list leaves the selection unchanged. Pass names select
+which transformations run, not their execution order.
+
+The benchmark runners keep numeric labels in their output to compare with earlier
+measurements. They translate those labels to the named options before compilation.
+
+Diagnostic options:
+
 - `--verbose=0x200`: normalized input/output TREE and resolved opcode-template dumps
   through the `DEBUG_OPTIMIZER` bit in the existing debug mask.
 - `--verbose=0x210`: combine optimizer and parser (`0x10`) diagnostics.
@@ -41,11 +56,11 @@ Per-engine options (experimental):
   with other categories. `DEBUG_FULL` retains its existing value; explicitly passing
   `--verbose=0x7fffffff` includes optimizer dumps too.
 
-These do not disable semantic lowering, type checks, UDO rate classification,
-getter phase specialization, or phase diagnostics. They reset with the engine.
+The optimizer controls do not disable semantic lowering, type checks, UDO rate
+classification, getter phase specialization, or phase diagnostics. They reset
+with the engine.
 Configure them before compilation; do not mutate controls concurrently with a
-compile. The pass mask is a nonnegative decimal integer. Missing, malformed and
-out-of-range values produce an option error and leave the current mask unchanged.
+compile.
 
 Dumps renumber generated temporaries/labels per scope and expose resolved opcode
 name/signature, callback phases, operation counts, and template storage counts.

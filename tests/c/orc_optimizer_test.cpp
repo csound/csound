@@ -17,8 +17,11 @@ Engine engine(int passes, bool dump = false) {
     Engine cs(csoundCreate(nullptr, nullptr), csoundDestroy);
     csoundCreateMessageBuffer(cs.get(), 0);
     EXPECT_EQ(0, csoundSetOption(cs.get(), "-n -d -m4"));
-    std::string option = "--orc-opt-passes=" + std::to_string(passes);
-    EXPECT_EQ(0, csoundSetOption(cs.get(), option.c_str()));
+    EXPECT_EQ(0, passes & ~5);
+    EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize=none"));
+    if (passes & 1) EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-legacy"));
+    if (passes & 4)
+        EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-copy-removal"));
     if (dump) EXPECT_EQ(0, csoundSetOption(cs.get(), "--verbose=0x200"));
     return cs;
 }
@@ -311,31 +314,57 @@ TEST(OrcOptimizer, ControlsArePerEngineAndResetToLegacyDefault) {
     EXPECT_EQ(0, csoundGetDebug(off.get()) & DEBUG_OPTIMIZER);
 }
 
-TEST(OrcOptimizer, LongOptionRejectsInvalidMasksWithoutChangingSelection) {
+TEST(OrcOptimizer, NamedOptionsComposeAndSupportAllAndNone) {
     auto cs = engine(1);
     auto selection = static_cast<int32_t *>(
         csoundQueryGlobalVariable(cs.get(), "__orc_optimizer"));
     ASSERT_NE(nullptr, selection);
-    for (int mask = 0; mask <= 7; ++mask) {
-        const std::string option = "--orc-opt-passes=" + std::to_string(mask);
-        EXPECT_EQ(0, csoundSetOption(cs.get(), option.c_str()));
-        EXPECT_EQ(mask, *selection);
+    // Run these in order to check accumulation, clearing and duplicate names.
+    const std::pair<const char *, int> cases[] = {
+        {"--optimize-copy-removal", 5},
+        {"--optimize=none", 0},
+        {"--optimize=copy-removal", 4},
+        {"--optimize-legacy", 5},
+        {"--optimize=none", 0},
+        {"--optimize=legacy,copy-removal", 5},
+        {"--optimize=none", 0},
+        {"--optimize=copy-removal,legacy,copy-removal", 5},
+        {"--optimize=none", 0},
+        {"--optimize=all", 5},
+        {"--optimize-copy-removal --optimize-legacy", 5},
+        {"--optimize=all --optimize=none --optimize-legacy", 1}
+    };
+    for (const auto &test : cases) {
+        SCOPED_TRACE(test.first);
+        ASSERT_EQ(0, csoundSetOption(cs.get(), test.first));
+        EXPECT_EQ(test.second, *selection);
     }
+}
+
+TEST(OrcOptimizer, InvalidNamesLeaveTheSelectionUnchanged) {
+    auto cs = engine(1);
+    auto selection = static_cast<int32_t *>(
+        csoundQueryGlobalVariable(cs.get(), "__orc_optimizer"));
+    ASSERT_NE(nullptr, selection);
     messages(cs.get());
-    for (const char *option : {"--orc-opt-passes", "--orc-opt-passes=",
-                              "--orc-opt-passes=-1", "--orc-opt-passes=8",
-                              "--orc-opt-passes=1.5", "--orc-opt-passes=1junk",
-                              "--orc-opt-passes=0x1",
-                              "--orc-opt-passes=99999999999999999999999999999"}) {
+    for (const char *option : {"--optimize", "--optimize=", "--optimize-",
+                              "--optimize=unknown", "--optimize-unknown",
+                              "--optimize=copy-removal,unknown", "--optimize=legacy,",
+                              "--optimize=,legacy", "--optimize=legacy,,copy-removal",
+                              "--optimize=all,legacy", "--optimize=none,legacy",
+                              "--optimize-legacy,copy-removal", "--optimize=3",
+                              "--optimize-copy-removal=0"}) {
         SCOPED_TRACE(option);
         EXPECT_NE(0, csoundSetOption(cs.get(), option));
-        EXPECT_EQ(7, *selection);
-        EXPECT_NE(std::string::npos, messages(cs.get()).find(
-            "--orc-opt-passes requires an integer from 0 to 7"));
+        EXPECT_EQ(1, *selection);
+        const auto log = messages(cs.get());
+        EXPECT_NE(std::string::npos, log.find("Csound Command ERROR"));
+        EXPECT_NE(std::string::npos, log.find(
+            !std::strcmp(option, "--optimize") ? "--optimize requires"
+                                               : "optimization name"));
     }
-    // A failed option must not prevent a later valid selection.
-    EXPECT_EQ(0, csoundSetOption(cs.get(), "--orc-opt-passes=0"));
-    EXPECT_EQ(0, *selection);
+    EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize=all"));
+    EXPECT_EQ(5, *selection);
 }
 
 TEST(OrcOptimizer, VerboseMaskSelectsOptimizerDumps) {
@@ -502,7 +531,7 @@ TEST(OrcOptimizer, ScalarCopiesKeepATemporaryWithAnotherRead) {
     // assignment at the same temporary to test the single-read guard directly.
     cs->Free(cs.get(), otherRead->right->value->lexeme);
     otherRead->right->value->lexeme = csoundStrdup(cs.get(), temporary.c_str());
-    ASSERT_EQ(0, csoundSetOption(cs.get(), "--orc-opt-passes=5"));
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize-copy-removal"));
     csound_orc_optimize(cs.get(), tree->next, static_cast<TYPE_TABLE *>(tree->markup));
     EXPECT_EQ(copy, producer->next);
     EXPECT_EQ(temporary, producer->left->value->lexeme);

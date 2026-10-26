@@ -2138,7 +2138,7 @@ static void reset(CSOUND *csound) {
   csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING, 0,
                                     NULL, &max_len,
                                     Str("Real time MIDI module name"), NULL);
-  /* Private compiler state for --orc-opt-passes, reset with the engine.
+  /* Private compiler state for --optimize, reset with the engine.
      Keep this outside OPARMS so the public parameter layout stays unchanged. */
   {
     csoundCreateGlobalVariable(csound, "__orc_optimizer", sizeof(int32_t));

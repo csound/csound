@@ -20,14 +20,24 @@ import time
 DEBUG_OPTIMIZER = 0x200
 
 
+def optimizer_options(passes):
+    # Keep numeric labels in the benchmark data, but use the public named options.
+    names = {1: "legacy", 4: "copy-removal"}
+    if passes < 0 or passes & ~sum(names):
+        raise ValueError(f"unsupported optimizer mask {passes}")
+    return ["--optimize=none"] + [
+        f"--optimize-{name}" for bit, name in names.items() if passes & bit]
+
+
 class Engine:
     def __init__(self, lib, passes, dump=False):
+        options = optimizer_options(passes)
         self.lib = lib
         self.cs = lib.csoundCreate(None, b"")
         if not self.cs:
             raise RuntimeError("csoundCreate failed")
         lib.csoundCreateMessageBuffer(self.cs, 0)
-        for option in ["-n -d -m4", f"--orc-opt-passes={passes}"] + (
+        for option in ["-n -d -m4"] + options + (
                 [f"--verbose={DEBUG_OPTIMIZER}"] if dump else ["--verbose=0"]):
             self.check(lib.csoundSetOption(self.cs, option.encode()))
         controls = lib.csoundQueryGlobalVariable(self.cs, b"__orc_optimizer")

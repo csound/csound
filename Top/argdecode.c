@@ -25,7 +25,6 @@
 #include "csmodule.h"
 #include "corfile.h"
 #include <ctype.h>
-#include <errno.h>
 
 static void list_audio_devices(CSOUND *csound, int32_t output);
 static void list_midi_devices(CSOUND *csound, int32_t output);
@@ -284,8 +283,13 @@ static const char *longUsageList[] = {
     Str_noop("--strsetN=VALUE         set strset table at index N to VALUE"),
     Str_noop("--utility=NAME          run utility program"),
     Str_noop("--verbose               verbose orch translation"),
-    Str_noop("--orc-opt-passes=N       orchestra optimizer pass mask (default 1)"),
-    Str_noop("                          0=off, 1=legacy TREE pass, 4=scalar copy removal"),
+    Str_noop("--optimize=NAME[,NAME]  enable named orchestra optimizer passes"),
+    Str_noop("                          names: legacy, copy-removal (default: legacy)"),
+    Str_noop("--optimize=all          enable all optimizer passes in this build"),
+    Str_noop("--optimize=none         disable optional optimizer passes"),
+    Str_noop("--optimize-legacy       enable the legacy TREE pass"),
+    Str_noop("--optimize-copy-removal"),
+    Str_noop("                          enable scalar copy removal"),
     Str_noop("--list-opcodes          list opcodes in this version"),
     Str_noop("--list-opcodesN         list opcodes in style N in this version"),
     Str_noop("--dither                dither output"),
@@ -551,6 +555,24 @@ static int parse_odebug(const char *s, int32_t *odebug) {
   }
   *odebug = (int32_t)v;
   return (int)(end - s);
+}
+
+/* Only list implemented passes. --optimize=all uses this same table. */
+static const struct {
+  const char *name;
+  int32_t bit;
+} optimizer_passes[] = {
+    {"legacy", 1},
+    {"copy-removal", 4},
+};
+
+static int32_t optimizer_pass(CSOUND *csound, const char *name, size_t length) {
+  for (size_t i = 0; i < sizeof(optimizer_passes) / sizeof(optimizer_passes[0]); i++)
+    if (strlen(optimizer_passes[i].name) == length &&
+        !strncmp(name, optimizer_passes[i].name, length))
+      return optimizer_passes[i].bit;
+  dieu(csound, Str("unknown or empty optimization name '%.*s'\n"),
+       (int)length, name);
 }
 
 static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
@@ -1025,17 +1047,31 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     }
     return 1;
   }
-  else if (!strcmp(s, "orc-opt-passes") ||
-           !strncmp(s, "orc-opt-passes=", 15)) {
-    const char *value = s[14] == '=' ? s + 15 : "";
-    char *end;
-    errno = 0;
-    long passes = strtol(value, &end, 10);
-    if (!isdigit((unsigned char)*value) || errno == ERANGE ||
-        *end || passes < 0 || passes > 7)
-      dieu(csound, Str("--orc-opt-passes requires an integer from 0 to 7\n"));
+  else if (!strcmp(s, "optimize") || !strncmp(s, "optimize=", 9) ||
+           !strncmp(s, "optimize-", 9)) {
+    if (!strcmp(s, "optimize"))
+      dieu(csound, Str("--optimize requires =NAME[,NAME], =all or =none\n"));
+    const char *name = s + 9;
     int32_t *selection = csoundQueryGlobalVariable(csound, "__orc_optimizer");
-    *selection = (int32_t)passes;
+    int32_t passes = *selection;
+    if (s[8] == '-') {
+      passes |= optimizer_pass(csound, name, strlen(name));
+    } else if (!strcmp(name, "none")) {
+      passes = 0;
+    } else if (!strcmp(name, "all")) {
+      passes = 0;
+      for (size_t i = 0; i < sizeof(optimizer_passes) / sizeof(optimizer_passes[0]); i++)
+        passes |= optimizer_passes[i].bit;
+    } else {
+      do {
+        const char *comma = strchr(name, ',');
+        passes |= optimizer_pass(csound, name, comma ? (size_t)(comma - name)
+                                                     : strlen(name));
+        name = comma ? comma + 1 : NULL;
+      } while (name);
+    }
+    /* A bad name anywhere in a list must leave the selection unchanged. */
+    *selection = passes;
     return 1;
   }
   /* -x fnam extract from score.srt using extract file 'fnam' */
