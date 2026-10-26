@@ -120,6 +120,171 @@ static void remove_scalar_copies(CSOUND *csound, TREE *root)
       cs_hash_table_mfree_complete(csound, uses);
     }
 }
+#include "entry.h"
+#include <float.h>
+
+typedef struct {
+    OPDS h;
+    cs_float *out, *input, *gain, *other;
+} AUDIO_MUL_ADD;
+
+static int32_t audio_mul_add(CSOUND *csound, AUDIO_MUL_ADD *p)
+{
+    IGN(csound);
+    uint32_t count = CS_KSMPS, offset = 0;
+    const cs_float gain = *p->gain;
+    /* Match mulak/addaa, including their ksmps=1 path. */
+    if (count != 1) {
+      offset = p->h.insdshead->ksmps_offset;
+      uint32_t early = p->h.insdshead->ksmps_no_end;
+      if (offset) memset(p->out, 0, offset * sizeof(cs_float));
+      if (early) {
+        count -= early;
+        memset(p->out + count, 0, early * sizeof(cs_float));
+      }
+    }
+    for (uint32_t n = offset; n < count; n++) {
+      /* CMake disables contraction for this source. Other build systems, or
+         targets with excess evaluation precision, need a rounded volatile
+         store. An ordinary C temporary alone does not prevent an FMA. */
+#if defined(CSOUND_FUSION_STRICT_FP) && defined(FLT_EVAL_METHOD) && FLT_EVAL_METHOD == 0
+      cs_float product = p->input[n] * gain;
+#else
+      volatile cs_float product = p->input[n] * gain;
+#endif
+      p->out[n] = product + p->other[n];
+    }
+    return OK;
+}
+
+/* Private resolved entry. No registration, new public opcode or ABI member. */
+static const OENTRY audio_mul_add_entry = {
+    "##muladd.aka", sizeof(AUDIO_MUL_ADD), 0, "a", "aka",
+    NULL, (SUBR)audio_mul_add, NULL, NULL, 0
+};
+
+static CS_VARIABLE *fusion_local(CSOUND *csound, CS_VAR_POOL *pool,
+                                TREE *arg, const CS_TYPE *type)
+{
+    if (!arg || arg->type != T_IDENT || !arg->value || !arg->value->lexeme ||
+        arg->left || arg->right || arg->markup) return NULL;
+    CS_VARIABLE *var = cs_hash_table_get(csound, pool->table, arg->value->lexeme);
+    return var && var->varType == type && !var->dimensions && !var->subType &&
+        !var->ctx && !var->memBlock && !var->refCount ? var : NULL;
+}
+
+static int32_t generated_audio(const char *name)
+{
+    if (name[0] != '#' || name[1] != 'a' || name[2] < '0' || name[2] > '9')
+      return 0;
+    name += 3;
+    while (*name >= '0' && *name <= '9') name++;
+    return *name == '\0';
+}
+
+extern const char *SYNTHESIZED_ARG;
+
+/* Count both definitions and reads across all phases and control-flow regions.
+   Opaque metadata could retain another reference, so reject that scope. */
+static int32_t count_fusion_references(CSOUND *csound, CS_HASH_TABLE *uses,
+                                     TREE *node)
+{
+    for (; node; node = node->next) {
+      int32_t opcode = node->type == T_OPCALL || node->type == T_ASSIGNMENT ||
+          node->type == '=' || node->type == GOTO_TOKEN ||
+          node->type == IGOTO_TOKEN || node->type == KGOTO_TOKEN ||
+          node->type == S_ADDIN || node->type == S_SUBIN ||
+          node->type == S_MULIN || node->type == S_DIVIN;
+      if (node->markup && !opcode && node->markup != &SYNTHESIZED_ARG) return 0;
+      if (node->value && node->value->lexeme &&
+          !strncmp(node->value->lexeme, "#a", 2)) {
+        char *name = node->value->lexeme;
+        char *base = cs_strndup(csound, name, strcspn(name, ".@"));
+        int32_t *count = cs_hash_table_get(csound, uses, base);
+        if (!count) {
+          count = csound->Calloc(csound, sizeof(*count));
+          cs_hash_table_put(csound, uses, base, count);
+        }
+        ++*count;
+        csound->Free(csound, base);
+      }
+      if (!count_fusion_references(csound, uses, node->left) ||
+          !count_fusion_references(csound, uses, node->right)) return 0;
+    }
+    return 1;
+}
+
+static int32_t fusion_operator(TREE *node, SUBR perf, const char *inputs)
+{
+    const OENTRY *entry = node->markup;
+    return node->type == T_OPCALL && entry && entry->perf == perf &&
+        !entry->init && !entry->deinit && entry->dsblksiz == sizeof(AOP) &&
+        entry->outypes && !strcmp(entry->outypes, "a") &&
+        entry->intypes && !strcmp(entry->intypes, inputs);
+}
+
+static void fuse_audio_mul_add(CSOUND *csound, TREE *root)
+{
+    for (TREE *scope = root; scope; scope = scope->next) {
+      /* UDO inputs can alias caller storage. Keep global/shared pools too. */
+      if (scope->type != INSTR_TOKEN || !scope->markup) continue;
+      CS_VAR_POOL *pool = scope->markup;
+      if (!pool->table || pool->parent || pool->varCount != pool->table->count)
+        continue;
+      CS_VARIABLE *var;
+      int32_t count = 0;
+      for (var = pool->head; var; var = var->next)
+        if (++count > pool->varCount || !var->varName ||
+            cs_hash_table_get(csound, pool->table, var->varName) != var) break;
+      if (var || count != pool->varCount) continue;
+      CS_HASH_TABLE *uses = cs_hash_table_create(csound);
+      if (count_fusion_references(csound, uses, scope->right)) {
+        TREE **link = &scope->right;
+        while (*link && (*link)->next) {
+          TREE *mul = *link, *add = mul->next;
+          TREE *input = mul->right, *gain = input ? input->next : NULL;
+          TREE *product = add->right, *other = product ? product->next : NULL;
+          if (fusion_operator(mul, (SUBR)mulak, "ak") &&
+              fusion_operator(add, (SUBR)addaa, "aa") &&
+              mul->line == add->line &&
+              mul->left && !mul->left->next && add->left && !add->left->next &&
+              gain && !gain->next && other && !other->next) {
+            CS_VARIABLE *temp = fusion_local(csound, pool, mul->left, &CS_VAR_TYPE_A);
+            CS_VARIABLE *out = fusion_local(csound, pool, add->left, &CS_VAR_TYPE_A);
+            CS_VARIABLE *a = fusion_local(csound, pool, input, &CS_VAR_TYPE_A);
+            CS_VARIABLE *k = fusion_local(csound, pool, gain, &CS_VAR_TYPE_K);
+            CS_VARIABLE *b = fusion_local(csound, pool, other, &CS_VAR_TYPE_A);
+            CS_VARIABLE *read = fusion_local(csound, pool, product, &CS_VAR_TYPE_A);
+            if (temp && out && a && k && b && read == temp &&
+                generated_audio(temp->varName) && generated_audio(out->varName) &&
+                out != temp && out != a && out != b && temp != a && temp != b) {
+              int32_t *refs = cs_hash_table_get(csound, uses, temp->varName);
+              if (refs && *refs == 2) {
+                /* Keep the add's output and source location. The old temporary
+                   stays allocated unless a later storage pass removes it. */
+                gain->next = other;
+                product->next = NULL;
+                add->right = input;
+                mul->right = NULL;
+                add->markup = (void *)&audio_mul_add_entry;
+                csound->Free(csound, add->value->lexeme);
+                add->value->lexeme =
+                    csoundParserStrdup(csound, audio_mul_add_entry.opname);
+                *link = add;
+                mul->next = NULL;
+                csoundDeleteTree(csound, product);
+                csoundDeleteTree(csound, mul);
+                continue;
+              }
+            }
+          }
+          link = &(*link)->next;
+        }
+      }
+      cs_hash_table_mfree_complete(csound, uses);
+    }
+}
+
 
 /* Only these resolved built-ins may participate in scalar CSE. Unknown calls
    are barriers, even when their names look like arithmetic or assignment. */
@@ -1108,6 +1273,7 @@ TREE *csound_orc_optimize(CSOUND *csound, TREE *root, TYPE_TABLE *types)
       root = fold_scalar_literals(csound, root, types->instr0LocalPool);
     if (passes & CSOUND_OPT_CSE) reuse_scalar_expressions(csound, root);
     if (passes & CSOUND_OPT_COPY_REMOVAL) remove_scalar_copies(csound, root);
+    if (passes & CSOUND_OPT_AUDIO_MUL_ADD) fuse_audio_mul_add(csound, root);
     if (dump) {
       csound->Message(csound, "ORC-OPT after phase=provisional\n");
       dump_tree(csound, root, types->instr0LocalPool, types->globalPool);

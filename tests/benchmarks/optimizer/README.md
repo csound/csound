@@ -35,6 +35,7 @@ Per-engine options (experimental):
 - `--optimize=constant-folding` or `--optimize-constant-folding` enables constant folding.
 - `--optimize=copy-removal` or `--optimize-copy-removal` enables scalar copy removal.
 - `--optimize=legacy,copy-removal` enables both named passes.
+- `--optimize=audio-mul-add` or `--optimize-audio-mul-add` enables audio multiply-then-add.
 - `--optimize=legacy,constant-folding` enables both named passes.
 - `--optimize-common-subexpression-elimination` enables local scalar CSE.
 - `--optimize=all` enables every pass implemented in this build, including
@@ -72,7 +73,39 @@ The optimizer controls do not disable semantic lowering, type checks, UDO rate
 classification, getter phase specialization, or phase diagnostics. They reset
 with the engine.
 Configure them before compilation; do not mutate controls concurrently with a
-compile.
+compile. Named options add passes to the current selection. `all` and `none`
+replace it. An unknown or empty name rejects the whole option without changing
+the selection. The old `orc_opt_passes` configuration variable is no longer used.
+
+### Audio multiply-then-add
+
+`audio_gain_mix.orc` is a small synth example of `aInput * kGain + aOther`.
+The pass combines only adjacent generated operations with the built-in `mulak`
+and `addaa` callbacks. The intermediate must have one reader, and the output must
+have its own storage. It leaves UDOs, global audio inputs, other rate combinations,
+shared intermediates and uncertain bindings unchanged.
+
+The private kernel still rounds after multiplication and then adds. It does not
+use an FMA or the `mac` family. CMake disables contraction and fast-math for this
+source file when the compiler supports those flags. Other builds use a volatile
+product to force the intermediate rounding. Local block sizes and inactive note
+samples follow the original callbacks. Both operations must come from the same
+source line so that fusion does not remove a line boundary in the debugger.
+The debugger still sees fewer internal opcode steps on that line, and the removed
+multiply's generated temporary is no longer written. Use `--optimize=none` when
+inspecting generated temporaries or stepping through each generated operation.
+
+This removes a dispatch and the intermediate audio buffer write/read. It does
+not reclaim the unused buffer allocation. Compare `legacy` with
+`legacy,audio-mul-add` at small and large block sizes. The Python benchmark
+helpers retain numeric result labels, with 1 for legacy and 33 for both passes.
+
+```sh
+CSOUND7RC=/dev/null python3 tests/benchmarks/optimizer_bench.py \
+  --library build/libcsound64.so --build-dir build \
+  --output /tmp/audio-mul-add.json --cases audio_gain_mix \
+  --passes 1 33 --ksmps 1 16 64 256 --voices 32
+```
 
 Literal folding handles resolved built-in scalar addition, subtraction and
 multiplication. It substitutes a generated i-rate temporary only when one

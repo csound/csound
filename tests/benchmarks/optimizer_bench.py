@@ -23,7 +23,7 @@ DEBUG_OPTIMIZER = 0x200
 def optimizer_options(passes):
     # Keep numeric labels in the benchmark data, but use the public named options.
     names = {1: "legacy", 2: "constant-folding", 4: "copy-removal",
-             8: "common-subexpression-elimination"}
+             8: "common-subexpression-elimination", 32: "audio-mul-add"}
     if passes < 0 or passes & ~sum(names):
         raise ValueError(f"unsupported optimizer mask {passes}")
     return ["--optimize=none"] + [
@@ -178,11 +178,19 @@ def main():
     parser.add_argument("--seconds", type=float, default=0.25)
     parser.add_argument("--repeats", type=int, default=21)
     parser.add_argument("--warmups", type=int, default=3)
+    parser.add_argument("--passes", nargs=2, type=int, default=[0, 1],
+                        metavar=("BEFORE", "AFTER"),
+                        help="comparison masks: 1 is legacy, 33 adds audio-mul-add")
     parser.add_argument("--live-compile", action="store_true",
                         help="separate live compilation experiment")
     parser.add_argument("--block-times", action="store_true",
                         help="separate block timing experiment; at least 10000 blocks")
     args = parser.parse_args()
+    try:
+        for passes in args.passes:
+            optimizer_options(passes)
+    except ValueError as error:
+        parser.error(str(error))
     if (min(args.ksmps + args.voices) < 1 or args.seconds <= 0 or
             not math.isfinite(args.seconds) or args.repeats < 1 or args.warmups < 0):
         parser.error("positive counts and finite seconds required; warmups >= 0")
@@ -210,6 +218,7 @@ def main():
                     cmake_cache=(args.build_dir / "CMakeCache.txt").read_text(),
                     seed=12345, sample_rate=48000, warmups=args.warmups,
                     repeats=args.repeats, seconds=args.seconds, block_times=args.block_times,
+                    passes=args.passes,
                     live_compile=args.live_compile,
                     environment={k: os.environ.get(k) for k in ("OPCODE7DIR64", "OPCODE7DIR", "CSOUND_HOME", "CSOUND7RC")})
     results = []
@@ -220,17 +229,17 @@ def main():
                 print(f"{file.stem}: ksmps={block} voices={voices}", file=sys.stderr)
                 # Correctness/dumps are outside all measured trials.
                 verification = [trial(lib, body, block, voices, args.seconds, p,
-                                      capture=True, live_compile=args.live_compile) for p in (0, 1)]
+                                      capture=True, live_compile=args.live_compile) for p in args.passes]
                 if verification[0][0]["audio_sha256"] != verification[1][0]["audio_sha256"]:
                     raise RuntimeError(f"differential audio mismatch: {file}")
                 if verification[0][1] != verification[1][1]:
                     raise RuntimeError(f"differential diagnostics mismatch: {file}")
-                dumps = [compile_dump(lib, body, block, p) for p in (0, 1)]
+                dumps = [compile_dump(lib, body, block, p) for p in args.passes]
                 pairs = []
                 for repeat in range(args.warmups + args.repeats):
                     pair = [None, None]
                     for mode in ((0, 1) if repeat % 2 == 0 else (1, 0)):
-                        pair[mode], _ = trial(lib, body, block, voices, args.seconds, mode,
+                        pair[mode], _ = trial(lib, body, block, voices, args.seconds, args.passes[mode],
                                              block_times=args.block_times, live_compile=args.live_compile)
                     if repeat >= args.warmups:
                         pairs.append(pair)

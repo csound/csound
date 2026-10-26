@@ -5,10 +5,14 @@
 #include "csound_orc.h"
 #include "csound_orc_optimize.h"
 extern "C" TREE *csound_orc_optimize(CSOUND *, TREE *, TYPE_TABLE *);
+extern "C" {
+#include "new_orc_parser.h"
+}
 #include "gtest/gtest.h"
 #include <cstring>
 #include <cmath>
 #include <clocale>
+#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
@@ -21,7 +25,8 @@ Engine engine(int passes, bool dump = false) {
     csoundCreateMessageBuffer(cs.get(), 0);
     EXPECT_EQ(0, csoundSetOption(cs.get(), "-n -d -m4"));
     EXPECT_EQ(0, passes & ~(CSOUND_OPT_LEGACY | CSOUND_OPT_CONSTANT_FOLDING |
-                          CSOUND_OPT_COPY_REMOVAL | CSOUND_OPT_CSE));
+                          CSOUND_OPT_COPY_REMOVAL | CSOUND_OPT_CSE |
+                          CSOUND_OPT_AUDIO_MUL_ADD));
     EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize=none"));
     if (passes & CSOUND_OPT_LEGACY)
         EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-legacy"));
@@ -31,6 +36,8 @@ Engine engine(int passes, bool dump = false) {
         EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-copy-removal"));
     if (passes & CSOUND_OPT_CSE)
         EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-common-subexpression-elimination"));
+    if (passes & CSOUND_OPT_AUDIO_MUL_ADD)
+        EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize-audio-mul-add"));
     if (dump) EXPECT_EQ(0, csoundSetOption(cs.get(), "--verbose=0x200"));
     return cs;
 }
@@ -355,8 +362,9 @@ TEST(OrcOptimizer, NamedOptionsComposeAndSupportAllAndNone) {
         {"--optimize=constant-folding,legacy,common-subexpression-elimination", 11},
         {"--optimize=none", 0},
         {"--optimize=legacy,common-subexpression-elimination", 9},
-        {"--optimize=all", 15},
-        {"--optimize-constant-folding --optimize-legacy", 15},
+        {"--optimize-audio-mul-add", 41},
+        {"--optimize=all", 47},
+        {"--optimize-constant-folding --optimize-legacy", 47},
         {"--optimize=all --optimize=none --optimize-legacy", 1}
     };
     for (const auto &test : cases) {
@@ -397,7 +405,7 @@ TEST(OrcOptimizer, InvalidNamesLeaveTheSelectionUnchanged) {
                                                : "optimization name"));
     }
     EXPECT_EQ(0, csoundSetOption(cs.get(), "--optimize=all"));
-    EXPECT_EQ(15, *selection);
+    EXPECT_EQ(47, *selection);
 }
 
 TEST(OrcOptimizer, MissingSettingsReportAnOptionError) {
@@ -407,6 +415,30 @@ TEST(OrcOptimizer, MissingSettingsReportAnOptionError) {
     EXPECT_NE(0, csoundSetOption(cs.get(), "--optimize-copy-removal"));
     EXPECT_NE(std::string::npos,
               messages(cs.get()).find("optimizer settings are unavailable"));
+}
+
+TEST(OrcOptimizer, NamedPassesAreAdditiveAndRejectBadListsAtomically) {
+    auto cs = engine(0);
+    auto selected = [&] {
+        return *static_cast<int32_t *>(csoundQueryGlobalVariable(cs.get(), "__orc_optimizer"));
+    };
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize=audio-mul-add"));
+    EXPECT_EQ(32, selected());
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize-legacy"));
+    EXPECT_EQ(33, selected());
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize=none"));
+    EXPECT_EQ(0, selected());
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize=legacy,audio-mul-add"));
+    EXPECT_EQ(33, selected());
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize=none"));
+    for (const char *option : {"--optimize=legacy,unknown", "--optimize=legacy,",
+                              "--optimize=", "--optimize", "--optimize-unknown"}) {
+        SCOPED_TRACE(option);
+        EXPECT_NE(0, csoundSetOption(cs.get(), option));
+        EXPECT_EQ(0, selected());
+    }
+    ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize=all"));
+    EXPECT_EQ(47, selected());
 }
 
 TEST(OrcOptimizer, VerboseMaskSelectsOptimizerDumps) {
@@ -1048,6 +1080,175 @@ TEST(OrcOptimizer, ScalarCseKeepsDebuggerLinesAndNamedValues) {
         csoundPerformKsmps(cs.get());
         EXPECT_EQ(1, hits);
         csoundDebuggerClean(cs.get());
+    }
+}
+
+TEST(OrcOptimizer, FusesOnlyAudioControlAudioExpression) {
+    const std::pair<const char *, bool> cases[] = {
+        {"aResult = aInput*kGain+aOther", true},
+        {"aResult = aOther+aInput*kGain", false},
+        {"aResult = kGain*aInput+aOther", false},
+        {"aResult = aInput*0.5+aOther", false},
+        {"aResult = aInput*aOther+aOther", false},
+        {"aResult = aInput*kGain-aOther", false},
+        {"aProduct = aInput*kGain\naResult = aProduct+aOther", false},
+    };
+    for (const auto &test : cases) {
+        SCOPED_TRACE(test.first);
+        const auto source = header(64) + "instr 1\naInput init 0.5\n"
+            "aOther init 0.25\nkGain init 0.5\n" + test.first + "\nout aResult\nendin\n";
+        for (int passes : {1, 33}) {
+            auto cs = engine(passes, true);
+            ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
+            const auto log = messages(cs.get());
+            EXPECT_EQ(test.second && passes == 33,
+                      log.find("op ##muladd.aka") != std::string::npos);
+        }
+    }
+}
+
+TEST(OrcOptimizer, FusedAudioPreservesRoundingZerosAndNonfiniteValues) {
+    const cs_float inf = std::numeric_limits<cs_float>::infinity();
+    const cs_float nan = std::numeric_limits<cs_float>::quiet_NaN();
+    const cs_float epsilon = std::numeric_limits<cs_float>::epsilon();
+    const cs_float tiny = std::numeric_limits<cs_float>::denorm_min();
+    const std::vector<cs_float> input = {FL(1)+epsilon, -FL(0), FL(0), inf,
+        -inf, nan, tiny, -tiny, std::numeric_limits<cs_float>::max(), FL(0.25)};
+    const std::vector<cs_float> other = {-FL(1), -FL(0), FL(0), -inf,
+        inf, FL(1), FL(0), -FL(0), -inf, nan};
+    for (int block : {1, 16, 64, 257}) {
+        auto before = engine(1), after = engine(33);
+        for (auto *cs : {before.get(), after.get()}) {
+            const auto source = header(block) + "instr 1\n"
+                "aInput chnget \"input\"\nkGain chnget \"gain\"\n"
+                "aOther chnget \"other\"\naResult = aInput*kGain+aOther\n"
+                "chnset aResult, \"result\"\nendin\n";
+            ASSERT_EQ(0, csoundCompileOrc(cs, source.c_str(), 0));
+            ASSERT_EQ(0, csoundStart(cs));
+            csoundEventString(cs, "i 1 0 1", 0);
+        }
+        std::vector<cs_float> a(block), b(block), expected(block), actual(block);
+        for (cs_float gain : {FL(1)-epsilon, FL(0), -FL(0), FL(1), FL(-1), inf, nan}) {
+            for (size_t shift = 0; shift < input.size(); ++shift) {
+                for (int i = 0; i < block; ++i) {
+                    a[i] = input[(i + shift) % input.size()];
+                    b[i] = other[(i + shift) % other.size()];
+                }
+                for (auto *cs : {before.get(), after.get()}) {
+                    csoundSetAudioChannel(cs, "input", a.data());
+                    csoundSetAudioChannel(cs, "other", b.data());
+                    csoundSetControlChannel(cs, "gain", gain);
+                    ASSERT_EQ(0, csoundPerformKsmps(cs));
+                }
+                csoundGetAudioChannel(before.get(), "result", expected.data());
+                csoundGetAudioChannel(after.get(), "result", actual.data());
+                for (int i = 0; i < block; ++i) {
+                    SCOPED_TRACE(i);
+                    // NaN payload choice is not specified, but all other bits,
+                    // including the sign of zero, must match the two callbacks.
+                    if (std::isnan(expected[i])) EXPECT_TRUE(std::isnan(actual[i]));
+                    else EXPECT_EQ(0, std::memcmp(&expected[i], &actual[i], sizeof(cs_float)));
+                    if (a[i] == FL(1)+epsilon && gain == FL(1)-epsilon && b[i] == -FL(1))
+                        EXPECT_EQ(FL(0), actual[i]); // an FMA would return -epsilon^2
+                }
+            }
+        }
+    }
+}
+
+TEST(OrcOptimizer, FusedAudioKeepsLocalBlocksAndSampleAccurateBounds) {
+    for (int local : {0, 1, 8}) {
+        auto before = engine(1), after = engine(33);
+        for (auto *cs : {before.get(), after.get()}) {
+            ASSERT_EQ(0, csoundSetOption(cs, "--sample-accurate"));
+            const auto source = header(64) + "instr 1\n" +
+                (local ? "setksmps " + std::to_string(local) + "\n" : "") +
+                "aInput init 0.5\naOther init 0.25\nkGain init 0.5\n"
+                "aResult = aInput*kGain+aOther\nout aResult\nendin\n";
+            ASSERT_EQ(0, csoundCompileOrc(cs, source.c_str(), 0));
+            ASSERT_EQ(0, csoundStart(cs));
+            // Start at sample 3 and stop at sample 54 of the first block.
+            csoundEventString(cs, "i 1 0.0000625 0.0010625", 0);
+        }
+        for (int n = 0; n < 3; ++n) {
+            ASSERT_EQ(0, csoundPerformKsmps(before.get()));
+            ASSERT_EQ(0, csoundPerformKsmps(after.get()));
+            EXPECT_EQ(0, std::memcmp(csoundGetSpout(before.get()), csoundGetSpout(after.get()),
+                                    64 * sizeof(cs_float)));
+            if (n == 0 && local == 0) {
+                const cs_float *out = csoundGetSpout(after.get());
+                for (int i = 0; i < 64; ++i)
+                    EXPECT_EQ(i >= 3 && i < 54 ? FL(0.5) : FL(0), out[i]);
+            }
+        }
+    }
+}
+
+TEST(OrcOptimizer, FusionRejectsSharedResultsAliasesAndUnknownMetadata) {
+    for (int guard = 0; guard < 6; ++guard) {
+        auto cs = engine(1, true);
+        TREE *tree = csoundParseOrc(cs.get(), (header(64) + "instr 1\n"
+            "aInput init 0.5\naOther init 0.25\nkGain init 0.5\n"
+            "aResult = aInput*kGain+aOther\nout aResult\nendin\n").c_str());
+        ASSERT_NE(nullptr, tree);
+        TREE *scope = tree->next;
+        while (scope && scope->type != INSTR_TOKEN) scope = scope->next;
+        ASSERT_NE(nullptr, scope);
+        TREE *mul = scope->right;
+        while (mul && (!mul->value || strcmp(mul->value->lexeme, "##mul"))) mul = mul->next;
+        ASSERT_NE(nullptr, mul);
+        TREE *add = mul->next, *last = add;
+        while (last->next) last = last->next;
+        auto *pool = static_cast<CS_VAR_POOL *>(scope->markup);
+        OENTRY impostor = *static_cast<OENTRY *>(mul->markup);
+        if (guard == 0) {
+            // Another read, even after the add, makes the intermediate shared.
+            cs->Free(cs.get(), last->right->value->lexeme);
+            last->right->value->lexeme = csoundStrdup(cs.get(), mul->left->value->lexeme);
+        } else if (guard == 1) {
+            // Distinct names in the tree must not hide an in-place output.
+            cs->Free(cs.get(), add->left->value->lexeme);
+            add->left->value->lexeme = csoundStrdup(cs.get(), mul->right->value->lexeme);
+        } else if (guard == 2) {
+            last->right->markup = pool; // opaque metadata may retain a binding
+        } else if (guard == 3) {
+            // Same spelling/signature, but a different implementation.
+            impostor.perf = tracePerf;
+            mul->markup = &impostor;
+        } else if (guard == 4) {
+            auto *var = cs_hash_table_get(cs.get(), pool->table, mul->left->value->lexeme);
+            cs_hash_table_put(cs.get(), pool->table, const_cast<char *>("alias"), var);
+        } else {
+            // A source boundary must not disappear when stepping by line.
+            ++add->line;
+        }
+        messages(cs.get());
+        ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize-audio-mul-add"));
+        csound_orc_optimize(cs.get(), tree->next, static_cast<TYPE_TABLE *>(tree->markup));
+        EXPECT_EQ(std::string::npos, messages(cs.get()).find("op ##muladd.aka"));
+        if (guard == 2) last->right->markup = nullptr;
+        if (guard == 4) {
+            char *key = cs_hash_table_get_key(cs.get(), pool->table, const_cast<char *>("alias"));
+            cs_hash_table_remove(cs.get(), pool->table, const_cast<char *>("alias"));
+            cs->Free(cs.get(), key);
+        }
+        csoundDeleteTree(cs.get(), tree);
+    }
+}
+
+TEST(OrcOptimizer, FusionKeepsUdoAndGlobalAudioUnchanged) {
+    const char *bodies[] = {
+        "opcode Mix,a,aka\naInput,kGain,aOther xin\naResult=aInput*kGain+aOther\n"
+        "xout aResult\nendop\ninstr 1\naInput init 0.5\naOther init 0.25\n"
+        "kGain init 0.5\naResult Mix aInput,kGain,aOther\nout aResult\nendin\n",
+        "gaInput init 0.5\ninstr 1\naOther init 0.25\nkGain init 0.5\n"
+        "aResult=gaInput*kGain+aOther\nout aResult\nendin\n"
+    };
+    for (const char *body : bodies) {
+        auto cs = engine(33, true);
+        ASSERT_EQ(0, csoundCompileOrc(cs.get(), (header(16) + body).c_str(), 0));
+        EXPECT_EQ(std::string::npos, messages(cs.get()).find("op ##muladd.aka"));
+        identical(render(1, 16, body), render(33, 16, body));
     }
 }
 
