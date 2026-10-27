@@ -2,6 +2,8 @@
 #include <dirent.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdint.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -9,7 +11,26 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
+#ifdef __wasm64__
+  assert(sizeof(void *) == 8);
+  // Use an address that would wrap to a different string if the bridge
+  // truncated a pointer to 32 bits.
+  const size_t pages = __builtin_wasm_memory_size(0);
+  assert(__builtin_wasm_memory_grow(0, 65537 - pages) != (size_t) -1);
+  char *high = (char *) (uintptr_t) 0x100001000ULL;
+  strcpy(high, "above-4GiB");
+  FILE *high_file = fopen(high, "w+");
+  assert(high_file);
+  assert(fwrite(high, 1, 10, high_file) == 10);
+  assert(fseek(high_file, 0, SEEK_SET) == 0);
+  assert(fread(high + 64, 1, 10, high_file) == 10);
+  assert(memcmp(high, high + 64, 10) == 0);
+  assert(fclose(high_file) == 0 && unlink(high) == 0);
+#else
   assert(sizeof(void *) == 4);
+#endif
+  volatile long double a = 1.5L, b = 2.5L;
+  assert(a < b && a != b && lrintl(a) == 2);
   assert(argc == 2 && strcmp(argv[1], "preview2") == 0);
   assert(mkdir("files", 0700) == 0);
   FILE *file = fopen("files/audio", "w+");

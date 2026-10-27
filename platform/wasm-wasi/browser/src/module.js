@@ -22,6 +22,13 @@ import { getBinaryHeaderData as parseBinaryHeaderData } from "./utils/wasm-dylin
 import { Inflate } from "./zlib/inflate.js";
 import { preparePluginImports } from "./utils/plugin-imports.js";
 import { assertBrowserPrecision } from "./utils/browser-reactor.js";
+import {
+  moduleABI,
+  nativeExports,
+  nativeCallbacks,
+  memory64Imports,
+  tableNumbers,
+} from "./utils/wasm64.js";
 
 export const getBinaryHeaderData = (input) => parseBinaryHeaderData(input, decoder);
 
@@ -142,6 +149,9 @@ export default async function loadWasm({
   const wasmZlib = new Inflate(wasmCompressed);
 
   const wasmBytes = wasmZlib.decompress();
+  const module = await WebAssembly.compile(wasmBytes);
+  const abi = moduleABI(module);
+  const memory64 = abi?.["pointerSize"] === 8;
 
   const magicData = getBinaryHeaderData(wasmBytes);
   // if (magicData === "static") {
@@ -197,21 +207,31 @@ export default async function loadWasm({
 
   // Request a max of 1gb of memory so devices use less CPU when growing memory. This has a noticeable effect on low-
   // powered devices like the Oculus Quest 2.
+  /** @suppress {checkTypes} */
   const memory = new WebAssembly.Memory({
-    initial: totalInitialMemory,
-    maximum: 1024 * PAGES_PER_MB,
+    "address": memory64 ? "i64" : "i32",
+    initial: memory64
+      ? BigInt(Math.max(totalInitialMemory, abi["memoryMinimum"]))
+      : totalInitialMemory,
+    maximum: memory64 ? BigInt(8192 * PAGES_PER_MB) : 1024 * PAGES_PER_MB,
   });
 
   // const table = new WebAssembly.Table({ initial: tableSize + 1, element: "anyfunc" });
 
   wasi.setMemory(memory);
 
-  const memoryBase = new WebAssembly.Global({ value: "i32", mutable: false }, fixedMemoryBase);
-  const tableBase = new WebAssembly.Global({ value: "i32", mutable: false }, 1);
+  const memoryBase = new WebAssembly.Global(
+    { value: memory64 ? "i64" : "i32", mutable: false },
+    memory64 ? BigInt(fixedMemoryBase) : fixedMemoryBase,
+  );
+  const tableBase = new WebAssembly.Global(
+    { value: abi?.["table64"] ? "i64" : "i32", mutable: false },
+    abi?.["table64"] ? BigInt(1) : 1,
+  );
 
   /** @suppress {checkTypes} */
-  const module = await WebAssembly.compile(wasmBytes);
-  const options = wasi.getImports(module);
+  const bridge = memory64 ? memory64Imports(module, memory, wasi) : undefined;
+  const options = bridge ? bridge.imports : wasi.getImports(module);
   const withPlugins_ = [];
   const cachedPlugins = [];
   const pluginByRequestedPath = new Map();
@@ -384,12 +404,11 @@ export default async function loadWasm({
   // options["GOT.mem"] = options["GOT.mem"] || {};
   // options["GOT.func"] = options["GOT.func"] || {};
 
-  /**
-   * @suppress {checkTypes}
-   * @type {WasmInst} */
+  nativeCallbacks(options, abi);
   const instance = await WebAssembly.instantiate(module, options);
-  assertBrowserPrecision(instance.exports);
-  const moduleExports = Object.assign({}, instance["exports"]);
+  if (bridge) bridge.connect(instance);
+  assertBrowserPrecision(instance.exports, memory64 ? 8 : 4);
+  const moduleExports = nativeExports(instance["exports"], abi);
   /**
    * @suppress {checkTypes}
    * @type {WasmInst} */
@@ -474,7 +493,14 @@ export default async function loadWasm({
 
     /** @suppress {checkTypes} */
     const plugin = precompiledPlugin || new WebAssembly.Module(wasmPluginBytes);
-    const pluginOptions = wasi.getImports(plugin);
+    const pluginAbi = moduleABI(plugin);
+    if ((pluginAbi?.["pointerSize"] || 4) !== (memory64 ? 8 : 4))
+      throw new TypeError(
+        "Plugin pointer width does not match the Csound engine; rebuild it with the matching SDK",
+      );
+    const pluginOptions = memory64
+      ? Object.fromEntries(Object.entries(options).filter(([name]) => name.startsWith("wasi:")))
+      : wasi.getImports(plugin);
     const pluginImports = WebAssembly.Module.imports(plugin);
     const pluginExports = WebAssembly.Module.exports(plugin);
     if (!assertPluginExports(pluginExports)) {
@@ -524,7 +550,13 @@ export default async function loadWasm({
           tableLimit,
           16,
         );
-        pluginTable = new WebAssembly.Table({ initial: isolatedInitial, element: "anyfunc" });
+        /** @suppress {checkTypes} */
+        const rawTable = new WebAssembly.Table({
+          initial: abi?.["table64"] ? BigInt(isolatedInitial) : isolatedInitial,
+          element: "anyfunc",
+          "address": abi?.["table64"] ? "i64" : "i32",
+        });
+        pluginTable = tableNumbers(rawTable, abi?.["table64"]);
         for (let tableIndex = 0; tableIndex < pluginRuntime.table.length; tableIndex += 1) {
           const tableFn = pluginRuntime.table.get(tableIndex);
           if (tableFn) {
@@ -542,18 +574,18 @@ export default async function loadWasm({
 
       pluginOptions["env"] = Object.assign({}, pluginOptions["env"]);
       pluginOptions["env"]["memory"] = memory;
-      pluginOptions["env"]["__indirect_function_table"] = pluginTable;
+      pluginOptions["env"]["__indirect_function_table"] = pluginTable["raw"] || pluginTable;
       const pluginMemory = hasDylink
         ? allocatePluginMemory(pluginMemorySize, pluginMemoryAlign)
         : { allocation: 0, memoryBaseValue: 0 };
       pluginMemoryAllocation = pluginMemory.allocation;
       pluginOptions["env"]["__memory_base"] = new WebAssembly.Global(
-        { value: "i32", mutable: false },
-        pluginMemory.memoryBaseValue,
+        { value: memory64 ? "i64" : "i32", mutable: false },
+        memory64 ? BigInt(pluginMemory.memoryBaseValue) : pluginMemory.memoryBaseValue,
       );
       pluginOptions["env"]["__table_base"] = new WebAssembly.Global(
-        { value: "i32", mutable: false },
-        pluginTableBaseValue,
+        { value: abi?.["table64"] ? "i64" : "i32", mutable: false },
+        abi?.["table64"] ? BigInt(pluginTableBaseValue) : pluginTableBaseValue,
       );
 
       for (const pluginImport of pluginImports) {
@@ -571,12 +603,13 @@ export default async function loadWasm({
       const linkImports = preparePluginImports({
         imports: pluginImports,
         exports: pluginExports,
-        hostExports: instance_["exports"],
+        hostExports: memory64 ? instance["exports"] : instance_["exports"],
         // Keep API cleanup on direct calls; tables require raw Wasm functions.
         hostTableExports: instance["exports"],
         options: pluginOptions,
         importedSymbols: headerData.importedSymbols,
         memoryBase: pluginMemory.memoryBaseValue,
+        memory64,
       });
       /**
        * @suppress {checkTypes}
@@ -602,7 +635,11 @@ export default async function loadWasm({
         sharedTableEnd = sharedTableLimit;
         sharedTableReserved = false;
       }
-      return { instance: pluginInstance, table: pluginTable, wasmPluginBytes };
+      return {
+        instance: { exports: nativeExports(pluginInstance.exports, pluginAbi) },
+        table: pluginTable,
+        wasmPluginBytes,
+      };
     } finally {
       if (sharedTableReserved) {
         for (let tableIndex = sharedTableBase; tableIndex < sharedTableLimit; tableIndex += 1) {

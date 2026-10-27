@@ -18,14 +18,18 @@ describe("realtime numeric channel snapshot", () => {
   });
   const fixture = (precision = 4) => {
     const memory = new WebAssembly.Memory({ initial: 1, maximum: 1, shared: true });
-    new Uint32Array(memory.buffer, 64, 3).set([1, 128, 256]);
+    const wide = precision === 8;
+    if (wide) new BigUint64Array(memory.buffer, 64, 3).set([1n, 128n, 256n]);
+    else new Uint32Array(memory.buffer, 64, 3).set([1, 128, 256]);
     new Uint8Array(memory.buffer, 128, 5).set(new TextEncoder().encode("gain\0"));
-    const values = new Float32Array(memory.buffer, 256, 1);
+    const Values = wide ? Float64Array : Float32Array;
+    const values = new Values(memory.buffer, 256, 1);
     values[0] = 0.125;
     const freed = [];
     const wasm = {
       wasi: { memory },
       exports: {
+        __pointerSize: wide ? 8 : 4,
         csoundGetControlChannelsWasi: (csound) => {
           assert.equal(csound, 42);
           return 64;
@@ -38,27 +42,28 @@ describe("realtime numeric channel snapshot", () => {
     };
     return { wasm, values, freed };
   };
-  it("copies names once and uses atomic values without further native calls", () => {
-    const { wasm, values, freed } = fixture();
-    const controls = createRealtimeControlChannels(wasm, 42);
-    assert.deepEqual(freed, [64]);
-    wasm.exports = new Proxy(
-      {},
-      {
-        get() {
-          assert.fail("live access called native code");
+  for (const precision of [4, 8])
+    it(`uses ${precision}-byte atomic values without further native calls`, () => {
+      const { wasm, values, freed } = fixture(precision);
+      const controls = createRealtimeControlChannels(wasm, 42);
+      assert.deepEqual(freed, [64]);
+      wasm.exports = new Proxy(
+        {},
+        {
+          get() {
+            assert.fail("live access called native code");
+          },
         },
-      },
-    );
-    new Uint8Array(wasm.wasi.memory.buffer, 64, 100).fill(0);
-    assert.equal(controls.get("gain"), 0.125);
-    controls.set("gain", -0.75);
-    assert.equal(values[0], -0.75);
-    values[0] = 0.625;
-    assert.equal(controls.get("gain"), 0.625);
-    assert.throws(() => controls.get("new"), /before start/);
-    assert.throws(() => controls.set("new", 1), /before start/);
-  });
+      );
+      new Uint8Array(wasm.wasi.memory.buffer, 64, 100).fill(0);
+      assert.equal(controls.get("gain"), 0.125);
+      controls.set("gain", -0.75);
+      assert.equal(values[0], -0.75);
+      values[0] = 0.625;
+      assert.equal(controls.get("gain"), 0.625);
+      assert.throws(() => controls.get("new"), /before start/);
+      assert.throws(() => controls.set("new", 1), /before start/);
+    });
   it("keeps instance snapshots separate", () => {
     const first = createRealtimeControlChannels(fixture().wasm, 42);
     const second = createRealtimeControlChannels(fixture().wasm, 42);
@@ -66,8 +71,8 @@ describe("realtime numeric channel snapshot", () => {
     assert.equal(second.get("gain"), 0.125);
   });
   it("frees the snapshot if ABI validation fails", () => {
-    const { wasm, freed } = fixture(8);
-    assert.throws(() => createRealtimeControlChannels(wasm, 42), /single precision/);
+    const { wasm, freed } = fixture(16);
+    assert.throws(() => createRealtimeControlChannels(wasm, 42), /sample width/);
     assert.deepEqual(freed, [64]);
     wasm.exports.csoundGetControlChannelsWasi = () => 0;
     assert.throws(() => createRealtimeControlChannels(wasm, 42), /Could not snapshot/);

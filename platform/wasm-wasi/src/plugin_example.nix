@@ -1,15 +1,16 @@
 {
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
-  wasiToolchain ? import ./wasi-preview2-toolchain.nix {inherit system pkgs;},
+  wasm64 ? false,
+  wasiToolchain ? import (if wasm64 then ./wasi64-toolchain.nix else ./wasi-preview2-toolchain.nix) {inherit system pkgs;},
   pkgsWasm ? wasiToolchain.pkgsWasm,
   # Match the browser binary selected from this package at build time.
-  sharedMemory ? builtins.pathExists ../lib/csound-browser-realtime.wasm.z,
+  sharedMemory ? !wasm64 && builtins.pathExists ../lib/csound-browser-realtime.wasm.z,
   testVariant ? "",
   stdenvWasm ? if sharedMemory
     then (import ./wasi-realtime-toolchain.nix { inherit pkgs pkgsWasm; }).stdenv
     else wasiToolchain.stdenv,
-  csoundSdkArchive ? if sharedMemory
+  csoundSdkArchive ? if wasm64 then ../lib/csound_x64-plugin-sdk.tar.gz else if sharedMemory
     then ../lib/csound-plugin-sdk.tar.gz
     else ../lib/csound-plugin-sdk-compat.tar.gz,
   useSdkArchive ? true,
@@ -18,12 +19,13 @@
 let
   maxMemory = builtins.fromJSON (builtins.readFile ./shared-memory-max.txt);
   csound-sdk = pkgs.callPackage ./csound_plugin_sdk.nix {
-    inherit pkgs pkgsWasm stdenvWasm csoundSdkArchive useSdkArchive sharedMemory;
+    inherit pkgs pkgsWasm stdenvWasm csoundSdkArchive useSdkArchive sharedMemory wasm64;
   };
 
 in assert builtins.elem testVariant [ "" "missing_tls" "trap_ctor" ];
 stdenvWasm.mkDerivation {
   name = "csound-wasm-plugin-example";
+  nativeBuildInputs = [pkgs.python3];
   buildInputs = [ csound-sdk ];
   unpackPhase = "true";
   dontStrip = true;
@@ -38,7 +40,6 @@ stdenvWasm.mkDerivation {
       ${pkgs.lib.optionalString sharedMemory "-mllvm -wasm-use-legacy-eh=false -DCSOUND_WASI_SHARED_PLUGIN=1"} \
       ${pkgs.lib.optionalString (testVariant == "trap_ctor") "-DCSOUND_WASI_PLUGIN_TRAP_CTOR=1"} \
       -D__wasi__=1 \
-      -D__wasm32__=1 \
       -D_WASI_EMULATED_SIGNAL \
       -D_WASI_EMULATED_MMAN \
       -I${csound-sdk}/include \
@@ -81,6 +82,7 @@ stdenvWasm.mkDerivation {
 
   installPhase = ''
     mkdir -p $out/lib
-    cp ./plugin_example.wasm $out/lib/plugin_example${pkgs.lib.optionalString sharedMemory "_shared"}${pkgs.lib.optionalString (testVariant != "") "_${testVariant}"}.wasm
+    ${pkgs.lib.optionalString wasm64 "python3 ${../scripts/wasm64/wasm.py} plugin_example.wasm plugin_example.wasm"}
+    cp ./plugin_example.wasm $out/lib/plugin_example${pkgs.lib.optionalString wasm64 "_x64"}${pkgs.lib.optionalString sharedMemory "_shared"}${pkgs.lib.optionalString (testVariant != "") "_${testVariant}"}.wasm
   '';
 }

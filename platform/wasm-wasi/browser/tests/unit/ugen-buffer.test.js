@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 
-describe("float UGen sample views", () => {
+describe("UGen sample views", () => {
   let floatView, doubleCopy;
   before(async () => {
     const previous = Object.getOwnPropertyDescriptor(globalThis, "goog");
@@ -21,6 +21,7 @@ describe("float UGen sample views", () => {
     const wasm = {
       exports: {
         memory,
+        csoundGetSizeOfMYFLT: () => 4,
         csoundUgenVarGetData: () => 4,
         csoundUgenVarGetKsmps: () => 3,
       },
@@ -32,5 +33,23 @@ describe("float UGen sample views", () => {
     view[1] = 0.75;
     assert.equal(native[1], 0.75);
     assert.deepEqual([...copy], [0.125, 0.25, 0.5]);
+  });
+  it("writes through double views and returns separate float copies", () => {
+    const memory = new WebAssembly.Memory({ initial: 1 });
+    const native = new Float64Array(memory.buffer, 8, 2);
+    native.set([0.1, 0.2]);
+    const wasm = {
+      exports: {
+        memory,
+        csoundGetSizeOfMYFLT: () => 8,
+        csoundUgenVarGetData: () => 8,
+        csoundUgenVarGetKsmps: () => 2,
+      },
+    };
+    const view = doubleCopy(wasm)(1);
+    const copy = floatView(wasm)(1);
+    view[0] = 1 / 3;
+    assert.equal(native[0], 1 / 3);
+    assert.equal(copy[0], Math.fround(0.1));
   });
 });

@@ -2,73 +2,43 @@
 
 This document explains how to compile Csound WASM plugins without rebuilding Csound from source for every plugin change.
 
-## What Changed
+## Choose the target
 
-The WASM build now produces an SDK archive:
+The build supplies two Csound SDK archives. Neither is a compiler SDK bundle.
+They contain generated headers and the matching static Csound library.
 
-- `lib/csound-plugin-sdk.tar.gz`
+| Engine | SDK | Plugin build option |
+| --- | --- | --- |
+| wasm32 float `csound.wasm` | `csound-plugin-sdk.tar.gz` (`libcsound.a`) | `--arg wasm64 false` |
+| wasm64 double `csound_x64.wasm` | `csound_x64-plugin-sdk.tar.gz` (`libcsound64.a`) | `--arg wasm64 true` |
 
-The archive contains:
+The browser uses the x64 engine. Its plugins need 64-bit pointers and double
+samples. The loader rejects a plugin with a different pointer or sample size.
+Let the SDK's generated `float-version.h` set the precision macros. Do not
+pass `-DUSE_DOUBLE=0` to the compiler; Csound checks whether it is defined.
 
-- `include/csound/*` headers
-- `lib/libcsound.a` (for SDK completeness)
+## Build
 
-Plugin derivations (`plugin_example.nix`, `plugin_example_cpp.nix`) are configured to use this SDK archive by default.
-
-The SDK matches the float browser build (`USE_DOUBLE=0`, `USE_FLOAT=1` in
-CMake). Let its generated `float-version.h` select the C macros. Remove any
-compiler `-DUSE_DOUBLE` flag, including `-DUSE_DOUBLE=0`, because the headers
-test whether that macro is defined. Plugins built for the old double engine
-must be rebuilt before loading them into the float engine.
-
-## Why This Helps
-
-When iterating on plugins, rebuilding full Csound is expensive.
-
-With the SDK archive, plugin builds only need:
-
-1. WASI toolchain
-2. Csound headers from the archive
-
-This significantly reduces iteration time for plugin development.
-
-## Build Flow
-
-From `platform/wasm-wasi/`:
+From `platform/wasm-wasi`, `npm run build` creates both engines, commands,
+SDKs and C/C++ example plugins. To rebuild only an x64 plugin:
 
 ```sh
-bash ./scripts/compile.sh
+source scripts/nixpkgs-pin.sh
+nix-build src/plugin_example.nix --arg wasm64 true
+nix-build src/plugin_example_cpp.nix --arg wasm64 true
 ```
 
-This does:
+The outputs are `plugin_example_x64.wasm` and `plugin_example_cpp_x64.wasm`.
+For an external archive, also pass
+`--arg csoundSdkArchive /absolute/path/to/csound_x64-plugin-sdk.tar.gz`.
+`--arg useSdkArchive false` builds the matching engine's headers from source.
 
-1. Build the browser module and SDK (`result`)
-2. Build the standalone command module (`result_cli`)
-3. Build C and C++ plugin examples against the SDK archive
-4. Copy all outputs to `platform/wasm-wasi/lib/`
-
-Expected outputs:
-
-- `lib/csound.wasm`
-- `lib/csound.wasm.z`
-- `lib/csound-cli.wasm`
-- `lib/csound-plugin-sdk.tar.gz`
-- `lib/plugin_example.wasm`
-- `lib/plugin_example_cpp.wasm`
-
-## Building a Plugin Against an SDK Archive
-
-You can point plugin builds at any SDK archive path (including one distributed externally).
-
-Example:
-
-```sh
-source ./scripts/nixpkgs-pin.sh
-nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example_cpp.nix {
-  csoundSdkArchive = /absolute/path/to/csound-plugin-sdk.tar.gz;
-  useSdkArchive = true;
-})'
-```
+The example builds use the source-built wasm64 Preview 2 toolchain and append
+`csound.abi` metadata with `scripts/wasm64/wasm.py`. External builds must do the
+same so the loader can read native signatures and pointer widths. The engine
+provides its Preview 2 imports to plugins; a plugin that adds a WASI import
+outside that set requires changes to the engine adapter and loader.
+Shared-library dependencies remain unsupported.
 
 ## Static runtime libraries in browser plugins
 
@@ -115,27 +85,3 @@ export `__wasm_apply_data_relocs` when present. Each plugin gets private
 `__c_longjmp` and `__cpp_exception` tags for its statically linked runtime.
 Exceptions cannot be caught across plugins with separate runtimes. Shared
 dynamic-library dependencies remain unsupported.
-
-## Fallback Mode (Rebuild from Source)
-
-If needed, disable SDK usage:
-
-```sh
-source ./scripts/nixpkgs-pin.sh
-nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example_cpp.nix {
-  useSdkArchive = false;
-})'
-```
-
-This falls back to `src/csound.nix`.
-
-## Distribution for Other Users
-
-Yes, the SDK archive can be distributed.
-
-A user with:
-
-- `csound-plugin-sdk.tar.gz`
-- WASI toolchain (via Nix in this setup)
-
-can compile compatible plugins without building Csound itself.

@@ -1,11 +1,11 @@
-export function assertBrowserPrecision(exports) {
+export function assertBrowserPrecision(exports, sampleSize = 4) {
   if (
     typeof exports["csoundGetSizeOfCsFloat"] !== "function" ||
     typeof exports["csoundGetSizeOfCsDouble"] !== "function" ||
-    exports["csoundGetSizeOfCsFloat"]() !== 4 ||
-    exports["csoundGetSizeOfCsDouble"]() !== 4
+    exports["csoundGetSizeOfCsFloat"]() !== sampleSize ||
+    exports["csoundGetSizeOfCsDouble"]() !== sampleSize
   )
-    throw new Error("The browser requires a Csound binary built with USE_DOUBLE=0 and USE_FLOAT=1");
+    throw new Error(`The browser requires a Csound binary with ${sampleSize}-byte samples`);
 }
 
 export function assertBrowserReactor(module) {

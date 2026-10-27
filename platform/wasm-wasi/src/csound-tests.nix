@@ -2,7 +2,7 @@
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
   threaded ? false,
-  csoundWasm ? if threaded then ../test-artifacts/csound-realtime.wasm else ../lib/csound-cli.wasm,
+  csoundWasm ? if threaded then ../test-artifacts/csound-realtime.wasm else ../lib/csound_x64-cli.wasm,
   commandlineTests ? ../../../tests/commandline,
   workers ? 4,
   testTimeout ? 60,
@@ -34,6 +34,7 @@ pkgs.runCommand "csound-wasm-commandline-tests" {
     --runtime-arg=--allow-precompiled \
     --runtime-arg=--dir=. \
     --csound-executable="$csound_module" \
+    --profile=${if threaded then "wasm" else "wasip2"} \
     --source-dir=. \
     --workers=${toString workers} \
     --timeout=${toString testTimeout}

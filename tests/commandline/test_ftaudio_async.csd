@@ -1,6 +1,9 @@
 <CsTest>
 description = "ftaudio starts a background write and cleans it up"
 
+[profiles.wasip2]
+skip = "Preview 2 has no native thread spawning"
+
 [expect]
 exit = 0
 
