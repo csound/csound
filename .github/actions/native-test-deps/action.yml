@@ -5,13 +5,12 @@ runs:
   steps:
     - name: Install Linux dependencies
       if: runner.os == 'Linux'
-      shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          build-essential clang cmake ninja-build ccache python3 libgtest-dev \
-          libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev \
-          libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk \
+      uses: ./.github/actions/install-apt
+      with:
+        packages: >-
+          build-essential clang cmake ninja-build ccache python3 libgtest-dev
+          libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev
+          libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk
           liblo-dev libsamplerate0-dev libpipewire-0.3-dev bison flex gettext
 
     - name: Install macOS dependencies

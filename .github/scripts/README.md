@@ -14,6 +14,18 @@ include the runner image, architecture, job, vcpkg revision and build files.
 Compiler caches also separate matrix variants, and ccache checks source,
 headers, compiler contents and flags. Each compiler cache is limited to 256 MB.
 
+`install-apt` shares downloaded packages between jobs with the same package
+list, recommendation setting and runner image. APT still refreshes repository
+metadata and checks package versions and hashes. It uses the runner's CMake
+and Ninja when present. Recommendations stay enabled unless a caller opts out.
+Native builds and their test groups use the same package list and cache key.
+Downloads use Ubuntu's HTTPS archive on hosted x64 runners, with timeouts and
+retries. Save package archives right after installation so later failures do
+not discard them.
+
+`fetch-archive` caches the pinned WASI, Wasmtime and ESP32 downloads by SHA-256.
+It checks the checksum on every use, including cache hits, before extraction.
+
 The macOS installer uses source revisions from `platform/osx/dependencies.env`.
 Its cache key includes the SDK, compiler, build tools, both target architectures
 and dependency build scripts. Save these libraries before packaging changes

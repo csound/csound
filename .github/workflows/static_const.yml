@@ -31,10 +31,12 @@ jobs:
         with:
           compiler-cache: 'true'
       - name: Install Clang and build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-19 clang-tidy-19 python3-clang-19 \
-            cmake ninja-build ccache bison flex gettext libasound2-dev \
+        uses: ./.github/actions/install-apt
+        with:
+          install-recommends: 'false'
+          packages: >-
+            clang-19 clang-tidy-19 python3-clang-19
+            cmake ninja-build ccache bison flex gettext libasound2-dev
             libsndfile1-dev libsamplerate0-dev
       - name: Check the lint runner
         run: /usr/bin/python3 tests/test_static_const.py

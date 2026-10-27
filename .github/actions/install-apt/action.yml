@@ -1,0 +1,80 @@
+name: Install cached APT packages
+description: Reuse package downloads while letting APT check current dependencies.
+inputs:
+  packages:
+    description: Whitespace-separated package names.
+    required: true
+  install-recommends:
+    description: Keep recommended packages unless the caller has checked they are unneeded.
+    default: 'true'
+runs:
+  using: composite
+  steps:
+    - name: Prepare package cache
+      id: config
+      shell: bash
+      env:
+        APT_PACKAGES: ${{ inputs.packages }}
+        APT_RECOMMENDS: ${{ inputs.install-recommends }}
+      run: |
+        case "$APT_RECOMMENDS" in
+          true|false) ;;
+          *) echo 'install-recommends must be true or false'; exit 1 ;;
+        esac
+        packages=$(printf '%s\n' "$APT_PACKAGES" | tr '[:space:]' '\n' | sed '/^$/d' | LC_ALL=C sort -u)
+        test -n "$packages"
+        digest=$(printf '%s\n' "$packages" "$APT_RECOMMENDS" | sha256sum | cut -d ' ' -f 1)
+        echo "packages=$digest" >> "$GITHUB_OUTPUT"
+        echo "image=${ImageOS:-$RUNNER_OS}-${ImageVersion:-unknown}" >> "$GITHUB_OUTPUT"
+        mkdir -p "$RUNNER_TEMP/apt-archives/partial"
+        # The x64 hosted runner's Azure mirror can serve very slow downloads.
+        if [[ "$RUNNER_ARCH" == X64 && -f /etc/apt/apt-mirrors.txt ]]; then
+          printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt
+        fi
+    - name: Restore package archives
+      id: cache
+      uses: actions/cache/restore@v6.1.0
+      with:
+        path: ${{ runner.temp }}/apt-archives/*.deb
+        key: apt-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.config.outputs.image }}-${{ steps.config.outputs.packages }}-${{ hashFiles('.github/actions/install-apt/action.yml') }}
+        restore-keys: |
+          apt-v2-${{ runner.os }}-${{ runner.arch }}-${{ steps.config.outputs.image }}-${{ steps.config.outputs.packages }}-
+    - name: Install packages
+      id: install
+      shell: bash
+      env:
+        APT_PACKAGES: ${{ inputs.packages }}
+        APT_RECOMMENDS: ${{ inputs.install-recommends }}
+      run: |
+        options=(
+          -o "Dir::Cache::archives=$RUNNER_TEMP/apt-archives"
+          -o "APT::Install-Recommends=$APT_RECOMMENDS"
+          -o Acquire::Retries=3
+          -o Acquire::http::Timeout=30
+          -o Acquire::https::Timeout=30
+        )
+        mapfile -t requested < <(printf '%s\n' "$APT_PACKAGES" | tr '[:space:]' '\n' | sed '/^$/d' | LC_ALL=C sort -u)
+        packages=()
+        for package in "${requested[@]}"; do
+          # These tools are installed outside APT on the hosted images.
+          case "$package" in
+            cmake) command -v cmake >/dev/null && continue ;;
+            ninja-build) command -v ninja >/dev/null && continue ;;
+          esac
+          packages+=("$package")
+        done
+        if (( ${#packages[@]} )); then
+          sudo apt-get "${options[@]}" update
+          sudo apt-get "${options[@]}" install -y "${packages[@]}"
+        fi
+        shopt -s nullglob
+        archives=("$RUNNER_TEMP"/apt-archives/*.deb)
+        if (( ${#archives[@]} )); then
+          echo 'has-archives=true' >> "$GITHUB_OUTPUT"
+        fi
+    - name: Save package archives
+      if: steps.cache.outputs.cache-hit != 'true' && steps.install.outputs.has-archives == 'true'
+      uses: actions/cache/save@v6.1.0
+      with:
+        path: ${{ runner.temp }}/apt-archives/*.deb
+        key: ${{ steps.cache.outputs.cache-primary-key }}
