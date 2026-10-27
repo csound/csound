@@ -147,7 +147,7 @@ jobs:
           # Build and run with baseline packages from the matching release.
           # Leave USE_AVX2 unset to check the default in a fresh build directory.
           . /etc/os-release
-          docker run --rm --volume "$PWD:/src:ro" --workdir /src \
+          docker run --rm --volume "$PWD:/src" --workdir /src \
             --env CC=clang --env CXX=clang++ --env DEBIAN_FRONTEND=noninteractive \
             "ubuntu:$VERSION_ID" bash -euc '
               apt-get update -qq
