@@ -13,6 +13,7 @@
 #include <thread>
 #include <type_traits>
 #include <vector>
+#include <string>
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
 #include "arrays_internal.h"
@@ -54,6 +55,7 @@ int32_t perfErrorCalls;
 int32_t rangeConstructorCalls;
 int32_t rangeInitializerCalls;
 size_t structAllocationCount;
+size_t structAllocationBytes;
 void *(*allocateStructMemory)(CSOUND *, size_t);
 size_t structFreeCount;
 void (*freeStructMemory)(CSOUND *, void *);
@@ -61,6 +63,12 @@ void (*freeStructMemory)(CSOUND *, void *);
 void *countStructAllocation(CSOUND *csound, size_t bytes)
 {
     structAllocationCount++;
+    return allocateStructMemory(csound, bytes);
+}
+
+void *countStructAllocationBytes(CSOUND *csound, size_t bytes)
+{
+    structAllocationBytes += bytes;
     return allocateStructMemory(csound, bytes);
 }
 
@@ -793,6 +801,96 @@ TEST_F (TypeSystemTests, testManagedArrayCapacityInitializesOnlyNewElements)
     EXPECT_EQ(secondMembers, elementAt(1)->members);
 
     csound_free_array_storage(csound, &array);
+}
+
+TEST_F (TypeSystemTests, InitAggregateCopiesHaveBoundedAllocation)
+{
+    csoundSetOption(csound, "-n");
+    csoundSetOption(csound, "-d");
+    std::string source =
+      "struct CopyItem value:i\n"
+      "struct CopyBox items:CopyItem[]\n"
+      "items:CopyItem[] init 4096\n"
+      "original:CopyBox init items\n";
+    for (int i = 0; i < 32; i++) {
+        source += "copy" + std::to_string(i) + ":CopyBox init original\n";
+        source += "arrayCopy" + std::to_string(i) +
+                  ":CopyItem[] init items\n";
+    }
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, source.c_str(), 0));
+    allocateStructMemory = csound->Calloc;
+    structAllocationBytes = 0;
+    csound->Calloc = countStructAllocationBytes;
+    int result = csoundStart(csound);
+    csound->Calloc = allocateStructMemory;
+
+    ASSERT_EQ(CSOUND_SUCCESS, result);
+    // Deep copies of these unchanged arrays exceed this budget even before
+    // allocator overhead. The limit leaves room for either sample precision.
+    EXPECT_LT(structAllocationBytes, 4u * 1024u * 1024u);
+}
+
+TEST_F (TypeSystemTests, InitAggregateCopiesDetachBeforeMutation)
+{
+    csoundSetOption(csound, "-n");
+    csoundSetOption(csound, "-d");
+    const char *source = R"(
+struct CopyItem value:i
+struct CopyBox items:CopyItem[]
+items:CopyItem[] init 2
+original:CopyBox init items
+copied:CopyBox init original
+arrayCopy:CopyItem[] init items
+changed:CopyItem init 11
+arrayCopy[0] init changed
+copied.items[1] init changed
+chnset original.items[0].value, "original-first"
+chnset original.items[1].value, "original-last"
+chnset copied.items[0].value, "copied-first"
+chnset copied.items[1].value, "copied-last"
+chnset arrayCopy[0].value, "array-first"
+chnset arrayCopy[1].value, "array-last"
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, source, 0));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "original-first", nullptr));
+    EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "original-last", nullptr));
+    EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "copied-first", nullptr));
+    EXPECT_EQ(FL(11.0), csoundGetControlChannel(csound, "copied-last", nullptr));
+    EXPECT_EQ(FL(11.0), csoundGetControlChannel(csound, "array-first", nullptr));
+    EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "array-last", nullptr));
+}
+
+TEST_F (TypeSystemTests, InitCopiesSurviveLaterPerformanceWrites)
+{
+    csoundSetOption(csound, "-n");
+    csoundSetOption(csound, "-d");
+    const char *source = R"(
+struct RateItem value:k
+struct RateBox items:RateItem[]
+items@global:RateItem[] init 1
+original@global:RateBox init items
+snapshot@global:RateBox init original
+instr Change
+  index:k init 0
+  copied:RateBox = original
+  replacement:RateItem init 11
+  original.items[index] = replacement
+  chnset snapshot.items[index].value, "snapshot"
+  chnset copied.items[index].value, "copied"
+  chnset original.items[index].value, "original"
+endin
+schedule("Change", 0, 1)
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, source, 0));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "snapshot", nullptr));
+    EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "copied", nullptr));
+    EXPECT_EQ(FL(11.0), csoundGetControlChannel(csound, "original", nullptr));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "snapshot", nullptr));
+    EXPECT_EQ(FL(11.0), csoundGetControlChannel(csound, "copied", nullptr));
 }
 
 TEST_F (TypeSystemTests, StructFieldsShareOneAllocation)
