@@ -5,7 +5,7 @@ description = "PARCS kcounter test with local ksmps"
 exit = 0
 
 [profiles.wasm]
-skip = "PARCS requires native worker threads."
+skip = "WASI builds disable PARCS (--num-threads)."
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
