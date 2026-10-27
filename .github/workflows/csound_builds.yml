@@ -1824,8 +1824,17 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install mingw-w64-i686-dev gcc-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64-tools flex bison
+          apt_options=(
+            -o Acquire::Retries=3
+            -o Acquire::http::Timeout=30
+            -o Acquire::https::Timeout=30
+          )
+          sudo apt-get "${apt_options[@]}" update
+          # The generic compiler packages also pull in the unused Win32 thread
+          # variant. Install only the POSIX compilers selected below.
+          sudo apt-get "${apt_options[@]}" install -y --no-install-recommends \
+            mingw-w64-i686-dev gcc-mingw-w64-i686-posix \
+            g++-mingw-w64-i686-posix mingw-w64-tools flex bison
 
       - name: Use posix mingw for 32-bit
         run: |
