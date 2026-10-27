@@ -123,20 +123,19 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
     /* Guard against NULL data pointers */
     if (UNLIKELY(sSrc->data == NULL)) return;
+    /* size is buffer capacity, not text length. Copying that capacity into
+       structs and arrays propagates the largest past value to every copy. */
+    size_t bytes = strlen(sSrc->data) + 1;
     if (UNLIKELY(sDest->data == NULL)) {
-        /* Destination has no buffer; allocate one to match source size */
-        sDest->data = csound->Calloc(csound, sSrc->size);
-        sDest->size = sSrc->size;
+        sDest->data = csound->Calloc(csound, bytes);
+        sDest->size = bytes;
         sDest->refcount = 0;
+    } else if (sDest->refcount == -1 || bytes > sDest->size) {
+        /* Borrowed storage must detach even when the new text fits. Keep
+           owned spare capacity so repeated assignments do not shrink/grow. */
+        string_resize_internal(csound, sDest, bytes);
     }
-
-    if (sSrc->size > sDest->size) {
-      string_resize_internal(csound, sDest, sSrc->size);
-      memcpy(sDest->data, sSrc->data, sSrc->size);
-    } else {
-        strncpy(sDest->data, sSrc->data, sDest->size-1);
-        sDest->data[sDest->size-1] = '\0';
-    }
+    memcpy(sDest->data, sSrc->data, bytes);
 }
 
 /* The ownership implementation is private to the engine. A short-held lock
