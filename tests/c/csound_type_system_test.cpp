@@ -236,6 +236,71 @@ TEST_F (TypeSystemTests, testStandardCopyCallbacksDefendAgainstNullPointers)
     }
 }
 
+TEST_F (TypeSystemTests, testStringCopyDoesNotPropagateSpareCapacity)
+{
+    STRINGDAT source{};
+    STRINGDAT copy{};
+    source.size = 1024 * 1024;
+    source.data = static_cast<char *>(csound->Calloc(csound, source.size));
+    strcpy(source.data, "x");
+
+    CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, &copy, &source, nullptr);
+    EXPECT_STREQ("x", copy.data);
+    EXPECT_EQ(2u, copy.size);
+    EXPECT_EQ(1024u * 1024u, source.size);
+    source.data[0] = 'y';
+    EXPECT_STREQ("x", copy.data);
+    CS_VAR_TYPE_S.freeVariableMemory(csound, &copy);
+    CS_VAR_TYPE_S.freeVariableMemory(csound, &source);
+}
+
+TEST_F (TypeSystemTests, testStringCopyReusesOwnedCapacity)
+{
+    STRINGDAT source{};
+    STRINGDAT copy{};
+    char text[] = "short";
+    source.data = text;
+    source.size = sizeof(text);
+    source.refcount = -1;
+    copy.size = 1024;
+    copy.data = static_cast<char *>(csound->Calloc(csound, copy.size));
+    char *buffer = copy.data;
+
+    CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, &copy, &source, nullptr);
+    EXPECT_EQ(buffer, copy.data);
+    EXPECT_EQ(1024u, copy.size);
+    EXPECT_STREQ("short", copy.data);
+    text[0] = '\0';
+    CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, &copy, &source, nullptr);
+    EXPECT_EQ(buffer, copy.data);
+    EXPECT_STREQ("", copy.data);
+    CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, &copy, &copy, nullptr);
+    EXPECT_EQ(buffer, copy.data);
+    CS_VAR_TYPE_S.freeVariableMemory(csound, &copy);
+}
+
+TEST_F (TypeSystemTests, testStringCopyDetachesBorrowedCapacity)
+{
+    char borrowed[1024] = "original";
+    char text[] = "x";
+    STRINGDAT source{};
+    source.data = text;
+    source.size = sizeof(text);
+    source.refcount = -1;
+    STRINGDAT copy{};
+    copy.data = borrowed;
+    copy.size = sizeof(borrowed);
+    copy.refcount = -1;
+
+    CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, &copy, &source, nullptr);
+    EXPECT_STREQ("original", borrowed);
+    EXPECT_NE(borrowed, copy.data);
+    EXPECT_EQ(0, copy.refcount);
+    EXPECT_EQ(2u, copy.size);
+    EXPECT_STREQ("x", copy.data);
+    CS_VAR_TYPE_S.freeVariableMemory(csound, &copy);
+}
+
 TEST_F (TypeSystemTests, testTypeSystem)
 {
   TYPE_POOL* pool = csound->typePool;
