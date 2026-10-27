@@ -372,7 +372,17 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
     return insert_score_args_at_sample(csound, &evt, p->argums,
                                       csound->icurTimeSamples);
 
-  else return csound->InitError(csound, Str("invalid instrument argument\n"));
+  else
+    return p->h.init ?
+      csound->InitError(csound, Str("%s is of :%s type,\n"
+                                    "expected :S,:i,:k,:p, or :InstrDef\n"),
+                        GetInputArgName((OPDS*)p, 0),
+                        argType->varTypeName) :
+      csound->PerfError(csound, &p->h, Str("%s is of :%s type,\n"
+                                    "expected :S,:i,:k,:p, or :InstrDef\n"),
+                        GetInputArgName((OPDS*)p, 0),
+                        argType->varTypeName);
+  
 }
 
 
@@ -446,7 +456,11 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
              type == &CS_VAR_TYPE_P || type == &CS_VAR_TYPE_K)
       insno = *p->which;
     else
-      return csound->InitError(csound, Str("instrument argument invalid\n"));
+      return
+        csound->InitError(csound, Str("%s is of :%s type,\n"
+                                      "expected :S,:i,:k,:p, or :InstrDef\n"),
+                          GetInputArgName((OPDS*)p, 0),
+                          type->varTypeName);
     return schedule_string_event(csound, p, insno);
 }
 
@@ -470,6 +484,7 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
     if (p->todo && *p->trigger != FL(0.0)) {
       LINEVENT pp = {0};
       int32_t i;
+      const CS_TYPE *type = GetTypeForArg(p->which);
       pp.h = p->h;
       pp.args[0] = p->which;
       pp.args[1] = p->when;
@@ -479,15 +494,22 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
         pp.args[i] = p->argums[i-3];
       }
       p->todo = 0;
-      if (IS_STR_ARG(p->which)){
+      if (type == &CS_VAR_TYPE_S){
         return event_opcode_perf(csound, &pp, pp.argno, 1, 'i');
       }
-      if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR){
+      else if (type == &CS_VAR_TYPE_INSTR){
         return event_opcode_perf(csound, &pp, pp.argno, 2, 'i');
       }
-      else {
+      else if (type == &CS_VAR_TYPE_I || type == &CS_VAR_TYPE_C ||
+          type == &CS_VAR_TYPE_P || type == &CS_VAR_TYPE_K) {
         return event_opcode_perf(csound, &pp, pp.argno, 0, 'i');
       }
+      else
+       return 
+         csound->PerfError(csound, &p->h, Str("%s is of :%s type,\n"
+                                    "expected :S,:i,:k,:p, or :InstrDef\n"),
+                        GetInputArgName((OPDS*)p, 0),
+                        type->varTypeName);
     }
     else return OK;
 }
