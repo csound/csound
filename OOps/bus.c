@@ -1594,8 +1594,10 @@ static int32_t chnset_opcode_perf_k(CSOUND *csound, CHNGET *p)
         get_channel_lock(csound, (char*) p->iname->data);
       strNcpy(p->chname, p->iname->data, MAX_CHAN_NAME);
     }
-    else
+    else {
       print_chn_err_perf(p, err);
+      return OK;
+    }
   }
 
 #if defined(MSVC)
@@ -2092,6 +2094,8 @@ static int32_t init_channel_bindings(CSOUND *csound, CHNGETARRAY *p)
   }
   csound->AuxAlloc(csound, (size_t)p->arraySize * memberSize,
                     &p->bindingStorage);
+  if (UNLIKELY(p->bindingStorage.auxp == NULL))
+    return print_chn_err(p, CSOUND_MEMORY);
   p->entries = (CHNENTRY **)p->bindingStorage.auxp;
   p->channelPtrs = (cs_float **)(p->entries + p->arraySize);
   return OK;
@@ -2190,6 +2194,13 @@ int32_t chnget_array_opcode_perf_k(CSOUND* csound, CHNGETARRAY* p)
 
   for (index = 0; index<p->arraySize; index++)
     {
+      int32_t err = bind_array_channel(csound, p, index,
+                                       CSOUND_CONTROL_CHANNEL |
+                                       CSOUND_INPUT_CHANNEL);
+      if (UNLIKELY(err)) {
+        print_chn_err_perf(p, err);
+        return OK;
+      }
 #if defined(MSVC)
       volatile union {
         cs_float d;
@@ -2212,7 +2223,9 @@ int32_t chnget_array_opcode_perf_k(CSOUND* csound, CHNGETARRAY* p)
                             __ATOMIC_SEQ_CST);
       p->arrayDat->data[index] = x.d;
 #else
+      csoundSpinLock(&p->entries[index]->lock);
       p->arrayDat->data[index] = *(p->channelPtrs[index]);
+      csoundSpinUnLock(&p->entries[index]->lock);
 #endif
 
     }
@@ -2227,6 +2240,13 @@ int32_t chnget_array_opcode_perf_a(CSOUND *csound, CHNGETARRAY *p)
 
   int32_t index = 0;
   for (index = 0; index<p->arraySize; index++) {
+    int32_t err = bind_array_channel(csound, p, index,
+                                     CSOUND_AUDIO_CHANNEL |
+                                     CSOUND_INPUT_CHANNEL);
+    if (UNLIKELY(err)) {
+      print_chn_err_perf(p, err);
+      return OK;
+    }
     size_t blockIndex = (size_t) CS_KSMPS * (size_t) index;
     cs_float *outPtr = &p->arrayDat->data[blockIndex];
 
@@ -2442,6 +2462,13 @@ int32_t chnset_array_opcode_perf_a(CSOUND *csound, CHNGETARRAY *p)
   int32_t index = 0;
 
   for (index = 0; index<p->arraySize; index++) {
+    int32_t err = bind_array_channel(csound, p, index,
+                                     CSOUND_AUDIO_CHANNEL |
+                                     CSOUND_INPUT_CHANNEL);
+    if (UNLIKELY(err)) {
+      print_chn_err_perf(p, err);
+      return OK;
+    }
     /* the source array's members are CS_KSMPS samples long, so stride
        by the instrument's ksmps in both branches; the old code left
        blockIndex stale in the local-ksmps branch */
