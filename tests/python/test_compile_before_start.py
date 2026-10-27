@@ -28,6 +28,9 @@ class TestCompileBeforeStart(unittest.TestCase):
 
     def setUp(self):
         self.cs = ctcsound.Csound()
+        self.set_options()
+
+    def set_options(self):
         for option in ('-n', '-d', '-m0'):
             self.cs.set_option(option)
 
@@ -80,10 +83,12 @@ class TestCompileBeforeStart(unittest.TestCase):
         had not run - a null instance."""
         self.assertEqual(self.cs.eval_code(HEADER + """
             iResult compilestr {{
-            chnset 7, "nested"
+            chnset(chnget:i("nested") * 10 + 7, "nested")
             }}
             return 11
         """), 11)
+        self.assertEqual(self.cs.control_channel("nested")[0], 7)
+        self.perform()
         self.assertEqual(self.cs.control_channel("nested")[0], 7)
 
     def test_a_compilation_after_the_start_runs_at_once(self):
@@ -91,6 +96,44 @@ class TestCompileBeforeStart(unittest.TestCase):
         self.perform()
         self.compile(mark(2))
         self.assertEqual(self.cs.control_channel("order")[0], 12)
+
+    def test_nested_compilation_extends_the_queue_during_eval(self):
+        # The first queued block appends two more while the second still waits.
+        self.compile(HEADER + mark(1) + '''
+            iFirst compilestr {{
+                chnset(chnget:i("order") * 10 + 4, "order")
+            }}
+            iSecond compilestr {{
+                chnset(chnget:i("order") * 10 + 5, "order")
+            }}
+        ''', mark(2))
+        self.assertEqual(self.cs.control_channel("order")[0], 0)
+        self.assertEqual(self.cs.eval_code(mark(3) + 'return 11\n'), 11)
+        self.assertEqual(self.cs.control_channel("order")[0], 12345)
+        self.perform()
+        self.assertEqual(self.cs.control_channel("order")[0], 12345)
+
+    def test_reset_discards_globals_that_have_not_run(self):
+        self.compile(HEADER + mark(1), mark(2), mark(3))
+        self.cs.reset()
+        self.set_options()
+
+        self.compile(HEADER + mark(4), mark(5))
+        self.assertEqual(self.cs.control_channel("order")[0], 0)
+        self.perform()
+        self.assertEqual(self.cs.control_channel("order")[0], 45)
+
+    def test_reset_clears_the_queue_after_it_has_run(self):
+        self.compile(HEADER + mark(1), mark(2), mark(3))
+        self.perform()
+        self.assertEqual(self.cs.control_channel("order")[0], 123)
+        self.cs.reset()
+        self.set_options()
+
+        self.compile(HEADER + mark(4), mark(5))
+        self.assertEqual(self.cs.control_channel("order")[0], 0)
+        self.perform()
+        self.assertEqual(self.cs.control_channel("order")[0], 45)
 
 
 if __name__ == '__main__':
