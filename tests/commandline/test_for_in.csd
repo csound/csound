@@ -20,7 +20,7 @@ seed(0)
 */
 
 /* case 1
-   loop var is not declared and type not given
+   loop element var is not declared, has no type prefix, and type not given
    loop type follows array type
    (i-type in this case)
 */

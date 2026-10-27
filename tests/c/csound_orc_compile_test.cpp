@@ -1051,6 +1051,57 @@ TEST_F (OrcCompileTests, testNestedExpressionFailurePropagates)
     ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument));
 }
 
+// Incompatible prefixes and explicit types must fail during compilation,
+// before a synthetic array assignment can raise an unrelated runtime error.
+TEST_F (OrcCompileTests, ForLoopElementTypeMismatchDiagnostics)
+{
+    const struct { const char *name; const char *type; } cases[] = {
+        {"S0", "S"}, {"a0", "a"}, {"freq", "f"}, {"wave", "w"},
+        {"gS0", "S"}, {"gfreq", "f"}, {"gwave", "w"}, {"value:S", "S"}
+    };
+    for (const auto &test : cases) {
+        SCOPED_TRACE(test.name);
+        CSOUND *engine = csoundCreate(nullptr, nullptr);
+        csoundCreateMessageBuffer(engine, 0);
+        csoundSetOption(engine, "-n -d -m0");
+        const std::string orchestra = "instr 1\n  iarr[] fillarray 1,2,3\n  for " +
+            std::string(test.name) + " in iarr do\n  od\nendin\n";
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(engine, orchestra.c_str()));
+        std::string messages;
+        while (csoundGetMessageCnt(engine)) {
+            messages += csoundGetFirstMessage(engine);
+            csoundPopFirstMessage(engine);
+        }
+        const std::string name = std::string(test.name).substr(0,
+            std::string(test.name).find(':'));
+        EXPECT_NE(std::string::npos, messages.find("for-loop variable '" + name +
+            "' has type '" + test.type + "', incompatible with array element type 'i'"));
+        csoundDestroy(engine);
+    }
+}
+
+TEST_F (OrcCompileTests, ForLoopSpectralPrefixes)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+instr 1
+  fsigs:f[] init 2
+  spectra:w[] init 2
+  for freq in fsigs do
+  od
+  for wave in spectra do
+  od
+endin
+)"));
+    // Inspect the inferred types without running a spectral analysis.
+    CS_VAR_POOL *pool = csound->engineState.instrtxtp[1]->varPool;
+    CS_VARIABLE *freq = csoundFindVariableWithName(csound, pool, "freq");
+    CS_VARIABLE *wave = csoundFindVariableWithName(csound, pool, "wave");
+    ASSERT_NE(nullptr, freq);
+    ASSERT_NE(nullptr, wave);
+    EXPECT_STREQ("f", freq->varType->varTypeName);
+    EXPECT_STREQ("w", wave->varType->varTypeName);
+}
+
 TEST_F (OrcCompileTests, testRejectsKRateIndexStructAggregateInit)
 {
     const char *instrument = R"(
