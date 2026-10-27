@@ -77,6 +77,12 @@ jobs:
       CXX: clang++
       CFLAGS: -Wshorten-64-to-32 -Wpointer-sign -Wformat-security -Wimplicit-const-int-float-conversion
       CXXFLAGS: -Wshorten-64-to-32 -Wformat-security -Wimplicit-const-int-float-conversion -Wwritable-strings
+      CSOUND_WASI_SDK_VERSION: '34'
+      CSOUND_WASI_SDK_FULL_VERSION: '34.0'
+      CSOUND_WASI_SDK_SHA256: b761e3a0721dbae9c09a0059e5fdb2bf917d1b4a8a7b430fb3b5aafb0984b2c4
+      # Stay on the supported 48 LTS line and take its patch updates.
+      CSOUND_WASMTIME_VERSION: '48.0.5'
+      CSOUND_WASMTIME_SHA256: 81fffe5fe895c7f8f84a744f4d4d165dda28793d00ee943ee71fcfb6ab5ed923
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v7.0.1
@@ -89,35 +95,39 @@ jobs:
           compiler-cache: 'true'
 
       - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install ninja-build ccache cmake curl xz-utils libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk liblo-dev bison flex gettext libsamplerate0-dev libpipewire-0.3-dev qemu-user
+        uses: ./.github/actions/install-apt
+        with:
+          packages: >-
+            ninja-build ccache cmake curl xz-utils libgtest-dev libsndfile1-dev
+            libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev
+            swig liblua5.1-0-dev default-jdk liblo-dev bison flex gettext
+            libsamplerate0-dev libpipewire-0.3-dev qemu-user
 
+      - name: Download WASI SDK
+        id: wasi-sdk
+        uses: ./.github/actions/fetch-archive
+        with:
+          url: https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${{ env.CSOUND_WASI_SDK_VERSION }}/wasi-sdk-${{ env.CSOUND_WASI_SDK_FULL_VERSION }}-x86_64-linux.tar.gz
+          sha256: ${{ env.CSOUND_WASI_SDK_SHA256 }}
       - name: Install WASI SDK
+        env:
+          ARCHIVE_PATH: ${{ steps.wasi-sdk.outputs.path }}
         run: |
-          CSOUND_WASI_SDK_VERSION=34
-          CSOUND_WASI_SDK_FULL_VERSION=34.0
-          CSOUND_WASI_SDK_SHA256=b761e3a0721dbae9c09a0059e5fdb2bf917d1b4a8a7b430fb3b5aafb0984b2c4
-          CSOUND_WASI_SDK_ARCHIVE="wasi-sdk-${CSOUND_WASI_SDK_FULL_VERSION}-x86_64-linux.tar.gz"
-          curl --fail --location --retry 3 \
-            --output "${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE}" \
-            "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${CSOUND_WASI_SDK_VERSION}/${CSOUND_WASI_SDK_ARCHIVE}"
-          echo "${CSOUND_WASI_SDK_SHA256}  ${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE}" | sha256sum --check
-          tar -xzf "${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE}" -C "${RUNNER_TEMP}"
-          echo "WASI_SDK_PATH=${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE%.tar.gz}" >> "${GITHUB_ENV}"
+          tar -xzf "$ARCHIVE_PATH" -C "$RUNNER_TEMP"
+          echo "WASI_SDK_PATH=$RUNNER_TEMP/wasi-sdk-$CSOUND_WASI_SDK_FULL_VERSION-x86_64-linux" >> "$GITHUB_ENV"
 
+      - name: Download Wasmtime C API
+        id: wasmtime
+        uses: ./.github/actions/fetch-archive
+        with:
+          url: https://github.com/bytecodealliance/wasmtime/releases/download/v${{ env.CSOUND_WASMTIME_VERSION }}/wasmtime-v${{ env.CSOUND_WASMTIME_VERSION }}-x86_64-linux-c-api.tar.xz
+          sha256: ${{ env.CSOUND_WASMTIME_SHA256 }}
       - name: Install Wasmtime C API
+        env:
+          ARCHIVE_PATH: ${{ steps.wasmtime.outputs.path }}
         run: |
-          # Stay on the supported 48 LTS line and take its patch updates.
-          CSOUND_WASMTIME_VERSION=48.0.5
-          CSOUND_WASMTIME_SHA256=81fffe5fe895c7f8f84a744f4d4d165dda28793d00ee943ee71fcfb6ab5ed923
-          CSOUND_WASMTIME_ARCHIVE="wasmtime-v${CSOUND_WASMTIME_VERSION}-x86_64-linux-c-api.tar.xz"
-          curl --fail --location --retry 3 \
-            --output "${RUNNER_TEMP}/${CSOUND_WASMTIME_ARCHIVE}" \
-            "https://github.com/bytecodealliance/wasmtime/releases/download/v${CSOUND_WASMTIME_VERSION}/${CSOUND_WASMTIME_ARCHIVE}"
-          echo "${CSOUND_WASMTIME_SHA256}  ${RUNNER_TEMP}/${CSOUND_WASMTIME_ARCHIVE}" | sha256sum --check
-          tar -xJf "${RUNNER_TEMP}/${CSOUND_WASMTIME_ARCHIVE}" -C "${RUNNER_TEMP}"
-          echo "CSOUND_WASMTIME_ROOT=${RUNNER_TEMP}/${CSOUND_WASMTIME_ARCHIVE%.tar.xz}" >> "${GITHUB_ENV}"
+          tar -xJf "$ARCHIVE_PATH" -C "$RUNNER_TEMP"
+          echo "CSOUND_WASMTIME_ROOT=$RUNNER_TEMP/wasmtime-v$CSOUND_WASMTIME_VERSION-x86_64-linux-c-api" >> "$GITHUB_ENV"
 
       - name: Configure without Wasmtime
         run: |
@@ -281,10 +291,10 @@ jobs:
           variant: float-${{ matrix.use_float }}
 
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential clang cmake ninja-build ccache python3 libgtest-dev \
+        uses: ./.github/actions/install-apt
+        with:
+          packages: >-
+            build-essential clang cmake ninja-build ccache python3 libgtest-dev
             libsndfile1-dev libasound2-dev bison flex gettext
 
       - name: Configure 32-bit floats on 64-bit Linux
@@ -341,9 +351,9 @@ jobs:
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install ninja-build ccache cmake libjack-dev libpulse-dev autoconf libtool
+        uses: ./.github/actions/install-apt
+        with:
+          packages: ninja-build ccache cmake libjack-dev libpulse-dev autoconf libtool
 
       - name: Configure Build
         run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/linux/custom.cmake"
@@ -989,16 +999,21 @@ jobs:
         uses: ./.github/actions/setup-build
 
       - name: Install build tools
-        run: sudo apt-get update && sudo apt-get install -y bison flex ninja-build
+        uses: ./.github/actions/install-apt
+        with:
+          packages: bison flex ninja-build
 
+      - name: Download Espressif GCC
+        id: esp-toolchain
+        uses: ./.github/actions/fetch-archive
+        with:
+          url: https://github.com/espressif/crosstool-NG/releases/download/esp-${{ env.ESP_GCC_VERSION }}/${{ env.ESP_TOOLCHAIN }}-${{ env.ESP_GCC_VERSION }}-x86_64-linux-gnu.tar.xz
+          sha256: ${{ env.ESP_TOOLCHAIN_SHA256 }}
       - name: Install Espressif GCC
+        env:
+          ARCHIVE_PATH: ${{ steps.esp-toolchain.outputs.path }}
         run: |
-          set -euo pipefail
-          archive="${ESP_TOOLCHAIN}-${ESP_GCC_VERSION}-x86_64-linux-gnu.tar.xz"
-          url="https://github.com/espressif/crosstool-NG/releases/download/esp-${ESP_GCC_VERSION}/${archive}"
-          curl --fail --location --retry 3 "$url" -o "$RUNNER_TEMP/$archive"
-          printf '%s  %s\n' "$ESP_TOOLCHAIN_SHA256" "$RUNNER_TEMP/$archive" | sha256sum --check -
-          tar -xJf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP"
+          tar -xJf "$ARCHIVE_PATH" -C "$RUNNER_TEMP"
           echo "$RUNNER_TEMP/$ESP_TOOLCHAIN/bin" >> "$GITHUB_PATH"
 
       - name: Configure Csound
@@ -1769,9 +1784,12 @@ jobs:
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install mingw-w64-x86-64-dev gcc-mingw-w64 g++-mingw-w64 mingw-w64-tools wine
+        uses: ./.github/actions/install-apt
+        with:
+          # Only the x86-64 POSIX compilers are selected by this build.
+          packages: >-
+            mingw-w64-x86-64-dev gcc-mingw-w64-x86-64-posix
+            g++-mingw-w64-x86-64-posix mingw-w64-tools wine
 
       - name: Use posix mingw
         run: |
@@ -1823,17 +1841,11 @@ jobs:
           cp -r libsndfile-win32/libsndfile-1.2.2-win32/cmake $HOME/libsndfile-i686/
 
       - name: Install dependencies
-        run: |
-          apt_options=(
-            -o Acquire::Retries=3
-            -o Acquire::http::Timeout=30
-            -o Acquire::https::Timeout=30
-          )
-          sudo apt-get "${apt_options[@]}" update
-          # The generic compiler packages also pull in the unused Win32 thread
-          # variant. Install only the POSIX compilers selected below.
-          sudo apt-get "${apt_options[@]}" install -y --no-install-recommends \
-            mingw-w64-i686-dev gcc-mingw-w64-i686-posix \
+        uses: ./.github/actions/install-apt
+        with:
+          install-recommends: 'false'
+          packages: >-
+            mingw-w64-i686-dev gcc-mingw-w64-i686-posix
             g++-mingw-w64-i686-posix mingw-w64-tools flex bison
 
       - name: Use posix mingw for 32-bit

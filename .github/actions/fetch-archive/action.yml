@@ -1,0 +1,53 @@
+name: Fetch a checked archive
+description: Cache a pinned download and verify its checksum on every use.
+inputs:
+  url:
+    description: Download URL.
+    required: true
+  sha256:
+    description: Expected SHA-256 digest.
+    required: true
+outputs:
+  path:
+    description: Local path to the checked archive.
+    value: ${{ steps.config.outputs.path }}
+runs:
+  using: composite
+  steps:
+    - name: Set archive path
+      id: config
+      shell: bash
+      env:
+        ARCHIVE_SHA256: ${{ inputs.sha256 }}
+      run: |
+        [[ "$ARCHIVE_SHA256" =~ ^[0-9a-f]{64}$ ]]
+        directory="$RUNNER_TEMP/checked-archives/$ARCHIVE_SHA256"
+        mkdir -p "$directory"
+        echo "path=$directory/archive" >> "$GITHUB_OUTPUT"
+    - name: Restore archive
+      id: cache
+      uses: actions/cache/restore@v6.1.0
+      with:
+        path: ${{ steps.config.outputs.path }}
+        key: checked-archive-v1-${{ inputs.sha256 }}
+    - name: Download archive
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        ARCHIVE_URL: ${{ inputs.url }}
+        ARCHIVE_PATH: ${{ steps.config.outputs.path }}
+      run: |
+        curl --fail --location --retry 3 --connect-timeout 30 --max-time 600 \
+          "$ARCHIVE_URL" --output "$ARCHIVE_PATH"
+    - name: Verify archive
+      shell: bash
+      env:
+        ARCHIVE_PATH: ${{ steps.config.outputs.path }}
+        ARCHIVE_SHA256: ${{ inputs.sha256 }}
+      run: printf '%s  %s\n' "$ARCHIVE_SHA256" "$ARCHIVE_PATH" | sha256sum --check -
+    - name: Save archive
+      if: steps.cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6.1.0
+      with:
+        path: ${{ steps.config.outputs.path }}
+        key: ${{ steps.cache.outputs.cache-primary-key }}
