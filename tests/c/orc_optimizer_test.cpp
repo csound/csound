@@ -8,6 +8,7 @@ extern "C" TREE *csound_orc_optimize(CSOUND *, TREE *, TYPE_TABLE *);
 #include "gtest/gtest.h"
 #include <cstring>
 #include <cmath>
+#include <clocale>
 #include <memory>
 #include <string>
 #include <utility>
@@ -620,6 +621,60 @@ TEST(OrcOptimizer, LiteralFoldingRemovesOnlyTheArithmetic) {
         EXPECT_EQ(std::string::npos, after.find(op));
     EXPECT_NE(std::string::npos, after.find("[iValue:i] <- [15:c]"));
     identical(render(1, 16, body), render(3, 16, body));
+}
+
+TEST(OrcOptimizer, LiteralFoldingKeepsCommaDecimalHostLocale) {
+    // Restore the host locale even when an assertion fails or the test skips.
+    struct LocaleGuard {
+        std::string saved = std::setlocale(LC_NUMERIC, nullptr);
+        ~LocaleGuard() { std::setlocale(LC_NUMERIC, saved.c_str()); }
+    } guard;
+    auto cs = engine(3, true);
+    bool found = false;
+    for (const char *name : {"de_DE.UTF-8", "de_DE.utf8", "de_DE",
+                             "fr_FR.UTF-8", "fr_FR.utf8", "fr_FR",
+                             "German_Germany.1252", "German_Germany.65001"}) {
+        if (std::setlocale(LC_NUMERIC, name) &&
+            !std::strcmp(std::localeconv()->decimal_point, ",")) {
+            found = true;
+            break;
+        }
+    }
+    if (!found) GTEST_SKIP() << "No comma-decimal locale is installed";
+
+    // Some targets only have the host's strtod. This checks folding on builds
+    // where the constant-pool reader already supports a different host locale.
+    char input[] = "1.5", *end;
+    if (csoundStrtod(input, &end) != FL(1.5) || *end != '\0')
+        GTEST_SKIP() << "No locale-independent constant-pool reader in this build";
+    const std::string hostLocale = std::setlocale(LC_NUMERIC, nullptr);
+    const auto source = header(16) +
+        "iValue = (1.2 + 3.4) * 2\nreturn iValue\n";
+    const cs_float expected = (FL(1.2) + FL(3.4)) * FL(2);
+    const cs_float result = csoundEvalCode(cs.get(), source.c_str());
+    EXPECT_EQ(0, std::memcmp(&expected, &result, sizeof(result)));
+    const auto log = optimizerDumps(messages(cs.get()));
+    const auto begin = log.find("ORC-OPT after");
+    ASSERT_NE(std::string::npos, begin);
+    const auto after = log.substr(begin, log.find("ORC-OPT end", begin) - begin);
+    EXPECT_EQ(std::string::npos, after.find("op ##add.ii"));
+    EXPECT_EQ(std::string::npos, after.find("op ##mul.ii"));
+
+    // The generated token's cached value must also use the folded result,
+    // rather than reading the dot-decimal spelling through the host's atof.
+    TREE *tree = csoundParseOrc(cs.get(), source.c_str());
+    ASSERT_NE(nullptr, tree);
+    TREE *assignment = tree->next;
+    while (assignment && (!assignment->left || !assignment->left->value ||
+           std::strcmp(assignment->left->value->lexeme, "iValue")))
+        assignment = assignment->next;
+    ASSERT_NE(nullptr, assignment);
+    ASSERT_NE(nullptr, assignment->right);
+    EXPECT_EQ(NUMBER_TOKEN, assignment->right->type);
+    EXPECT_EQ(expected, assignment->right->value->fvalue);
+    csoundDeleteTree(cs.get(), tree);
+    EXPECT_EQ(hostLocale, std::setlocale(LC_NUMERIC, nullptr));
+    EXPECT_STREQ(",", std::localeconv()->decimal_point);
 }
 
 TEST(OrcOptimizer, LiteralFoldingPreservesSamplePrecisionAndSignedZero) {

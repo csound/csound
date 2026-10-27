@@ -28,6 +28,7 @@
 #include "csound_standard_types.h"
 #include "aops.h"
 #include "csound_orc_optimize.h"
+#include <locale.h>
 
 static int32_t copy_leaf(const TREE *arg)
 {
@@ -239,10 +240,23 @@ static TREE *fold_scalar_literals(CSOUND *csound, TREE *root, CS_VAR_POOL *pool)
       if (operation == '*' && a != FL(0.0) && b != FL(0.0) && result == FL(0.0))
         goto next;
       char text[64];
-      snprintf(text, sizeof(text), sizeof(cs_float) == 4 ? "%.9g" : "%.17g",
-               result);
-      cs_float roundTrip = (cs_float)csoundStrtod(text, NULL);
-      if (memcmp(&result, &roundTrip, sizeof(result))) goto next;
+      int length = snprintf(text, sizeof(text),
+                            sizeof(cs_float) == 4 ? "%.9g" : "%.17g", result);
+      if (length < 0 || (size_t)length >= sizeof(text)) goto next;
+      /* Generated literals use C syntax. Normalize the possibly multibyte
+         decimal separator without changing the host's global/thread locale. */
+      const char *point = localeconv()->decimal_point;
+      if (*point && strcmp(point, ".")) {
+        char *decimal = strstr(text, point);
+        if (decimal) {
+          char *fraction = decimal + strlen(point);
+          *decimal = '.';
+          memmove(decimal + 1, fraction, strlen(fraction) + 1);
+        }
+      }
+      char *end;
+      cs_float roundTrip = (cs_float)csoundStrtod(text, &end);
+      if (*end || memcmp(&result, &roundTrip, sizeof(result))) goto next;
 
       /* Retain the use node's source location and siblings and the consumer's
          resolved opcode. The now-unused variable slot stays for a later pass. */
@@ -250,6 +264,8 @@ static TREE *fold_scalar_literals(CSOUND *csound, TREE *root, CS_VAR_POOL *pool)
       csound->Free(csound, arg->value->lexeme);
       csound->Free(csound, arg->value);
       arg->value = make_num(csound, text, NULL);
+      /* make_num uses the host's atof; retain the value already computed. */
+      arg->value->fvalue = result;
       arg->type = NUMBER_TOKEN;
       arg->markup = NULL;
       *link = node->next;
