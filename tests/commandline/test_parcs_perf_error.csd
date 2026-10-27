@@ -6,7 +6,7 @@ exit = "nonzero"
 stderr = ["Array index 2 out of range (0,0) for dimension 1"]
 
 [profiles.wasm]
-skip = "PARCS requires native worker threads."
+skip = "WASI builds disable PARCS (--num-threads)."
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

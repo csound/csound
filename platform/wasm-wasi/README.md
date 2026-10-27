@@ -96,20 +96,28 @@ Native Csound can also use Wasmtime to load supported opcode plugins passed as
 [Native Csound WebAssembly plugins](NATIVE_OPCODE_PLUGINS.md) for the build
 option, current ABI limits, and compile-cache rules.
 
-To run the command-line CSD suite against an already-built
-`lib/csound-cli.wasm`:
+The command-line CSD suite uses the threaded WASI command so that CSDs with
+`--realtime` exercise real-time mode. To build it and run the suite:
 
 ```bash
 source ./scripts/nixpkgs-pin.sh
-nix-build ./src/csound-tests.nix
+nix-build ./src/csound-realtime.nix -o result_realtime
+nix-build ./src/csound-tests.nix \
+  --arg csoundWasm ./result_realtime/lib/csound-realtime.wasm
 ```
 
 The test derivation also defaults to the local Nix system. Pass
 `--argstr system x86_64-linux` to select a configured Linux builder explicitly.
-It uses Wasmtime from the pinned Nixpkgs, disables audio with `-nd`, and runs the
-CSD files discovered under `tests/commandline`. Each file declares its own
-expectations, including WebAssembly overrides. The OSC and asynchronous
-`ftaudio` cases check the diagnostics for unavailable sockets and threads.
+It uses Wasmtime from the pinned Nixpkgs with WASI threads and shared memory
+enabled, and runs the CSD files discovered under `tests/commandline`. Tests
+default to `-nd`; real-time tests can select the dummy audio driver and their
+own options. Each file declares its own expectations, including WebAssembly
+overrides for unavailable features such as sockets and PARCS. Real-time and
+asynchronous file-writing tests use the same expectations as native builds.
+
+CI reuses `test-artifacts/csound-realtime.wasm` from
+`scripts/compile-test-fixtures.sh`. This is a private test artifact; the
+published `csound-cli.wasm` remains the non-threaded command.
 
 For releases, publish a new `@csound/wasm-bin` version before updating and
 publishing `@csound/browser`; older binary packages do not contain the new

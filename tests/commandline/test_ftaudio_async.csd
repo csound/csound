@@ -4,9 +4,6 @@ description = "ftaudio starts a background write and cleans it up"
 [expect]
 exit = 0
 
-[profiles.wasm.expect]
-exit = "nonzero"
-stderr = ["Error creating thread"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
