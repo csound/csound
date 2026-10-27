@@ -77,6 +77,50 @@ protected:
   cs_float start = 0, end = 0, stride = 1;
 };
 
+TEST_F(SliceArrayTests, RealtimeGrowthFailsBeforeRequestingStorage)
+{
+  ASSERT_EQ(OK, tabslice(csound, &opcode));
+  csound->oparms->realtime = 1;
+  cs_float *const data = output.data;
+  end = 2;
+  auto ensureCapacity = csound->ArrayEnsureCapacity;
+  csound->ArrayEnsureCapacity = [](CSOUND *, ARRAYDAT *, size_t, INSDS *) {
+    ADD_FAILURE() << "Real-time performance must not request more storage";
+    return NOTOK;
+  };
+  EXPECT_EQ(NOTOK, tabslice_perf(csound, &opcode));
+  csound->ArrayEnsureCapacity = ensureCapacity;
+  EXPECT_EQ(data, output.data);
+  EXPECT_EQ(sizeof(cs_float), output.allocated);
+  expectValues(1);
+  const std::string error = messages();
+  EXPECT_NE(std::string::npos, error.find("Array too small"));
+  EXPECT_NE(std::string::npos, error.find("Allocate a bigger array at init time"));
+  EXPECT_EQ(std::string::npos, error.find("warning: realloc"));
+}
+
+TEST_F(SliceArrayTests, RealtimeSlicesCanChangeLengthWithinReservedCapacity)
+{
+  ASSERT_EQ(OK, tabinit(csound, &output, 4, nullptr));
+  ASSERT_EQ(OK, tabslice(csound, &opcode));
+  csound->oparms->realtime = 1;
+  cs_float *const data = output.data;
+  auto ensureCapacity = csound->ArrayEnsureCapacity;
+  csound->ArrayEnsureCapacity = [](CSOUND *, ARRAYDAT *, size_t, INSDS *) {
+    ADD_FAILURE() << "A preallocated slice must reuse its storage";
+    return NOTOK;
+  };
+  for (int last : {2, 1, 3, 0}) {
+    end = (cs_float)last;
+    EXPECT_EQ(OK, tabslice_perf(csound, &opcode));
+    expectValues(last + 1);
+    EXPECT_EQ(data, output.data);
+    EXPECT_EQ(4 * sizeof(cs_float), output.allocated);
+  }
+  csound->ArrayEnsureCapacity = ensureCapacity;
+  EXPECT_EQ(std::string::npos, messages().find("warning: realloc"));
+}
+
 TEST_F(SliceArrayTests, GrowsOnlyToRequestedSizeAndWarnsOnce)
 {
   ASSERT_EQ(OK, tabslice(csound, &opcode));
@@ -91,7 +135,7 @@ TEST_F(SliceArrayTests, GrowsOnlyToRequestedSizeAndWarnsOnce)
   const std::string warning = messages();
   EXPECT_NE(std::string::npos, warning.find("warning: realloc: slicearray"));
   EXPECT_NE(std::string::npos, warning.find("kSlice[] init 3"));
-  EXPECT_NE(std::string::npos, warning.find("audio dropouts"));
+  EXPECT_NE(std::string::npos, warning.find("Growth is disabled with --realtime"));
 
   // Shrinking keeps capacity; neither regrowth nor later allocation spams.
   for (int last : {1, 2, 3}) {

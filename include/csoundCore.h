@@ -1562,9 +1562,15 @@ struct CSOUND_ {
   /**@}*/
   /** @name Arrays & Structs */
   /**@{ */
+  /** Prepare an array for writing. Pass zero as the last argument in real-time
+   * performance callbacks to prevent cloning shared storage. Reserve capacity
+   * during initialization; performance callers must report an error if it is
+   * too small, without growing the array.
+   */
   int32_t (*ArrayPrepareWrite)(CSOUND *, ARRAYDAT *, INSDS *, int32_t);
   int32_t (*ArrayPrepareOpcodeWrite)(CSOUND *, ARRAYDAT *, OPDS *, int32_t,
                                      const char *);
+  /** May allocate or reallocate storage; not for real-time performance calls. */
   int32_t (*ArrayEnsureCapacity)(CSOUND *, ARRAYDAT *, size_t, INSDS *);
   const CS_TYPE *(*RegisterStruct)(CSOUND *, const char *,
                                     const CSOUND_STRUCT_MEMBER *, size_t);

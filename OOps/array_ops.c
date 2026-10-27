@@ -3882,7 +3882,7 @@ int32_t tabslice_perf(CSOUND *csound, TABSLICE *p)
     return csound->PerfError(csound, &p->h, "%s\n", error);
   /* Validate the existing output and retain the shared-storage write guard.
      slicearray historically rereads i-rate globals and can grow at perf time;
-     allow that here without changing other opcodes' no-growth contract. */
+     preserve that outside real-time mode only. */
   if (UNLIKELY(tabcheck(csound, p->tab,
                          p->tab->sizes != NULL ? p->tab->sizes[0] : 0,
                          &p->h) != OK))
@@ -3891,6 +3891,9 @@ int32_t tabslice_perf(CSOUND *csound, TABSLICE *p)
                  p->tab->arrayMemberSize, (size_t)size, &bytes) != OK))
     return csound->PerfError(csound, &p->h, "%s\n", Str("Array size overflow"));
   if (UNLIKELY(bytes > p->tab->allocated)) {
+    /* Keep the usual capacity error in --realtime, before any allocation. */
+    if (csound->oparms->realtime)
+      return tabcheck(csound, p->tab, size, &p->h);
     size_t oldBytes = p->tab->allocated;
     if (UNLIKELY(csound_array_ensure_capacity(
                    csound, p->tab, (size_t)size, p->h.insdshead) != OK))
@@ -3900,7 +3903,7 @@ int32_t tabslice_perf(CSOUND *csound, TABSLICE *p)
       const char *name = GetOutputArgName(&p->h, 0);
       csound->Warning(csound,
         Str("realloc: slicearray output '%s' grew from %zu to %zu bytes during "
-            "performance. This may cause audio dropouts.\n"
+            "performance. Growth is disabled with --realtime.\n"
             "To avoid this reallocation, predeclare the output array with init "
             "for the largest slice you will need (at least %d elements here), "
             "e.g. '%s[] init %d'.\n"),
