@@ -390,9 +390,12 @@ cycles do not consume a runtime stack.
 ```sh
 python3 tests/benchmarks/udo_rates.py --count 1024 > /tmp/udo-chain.orc
 CSOUND7RC=/dev/null python3 tests/benchmarks/compile_expression_args.py \
-  --library build/libcsound64.so --source /tmp/udo-chain.orc \
+  --library build/optimizer/CsoundLib64.framework/CsoundLib64 \
+  --source /tmp/udo-chain.orc \
   > /tmp/udo-compile.json
 ```
+
+On Linux use `build/optimizer/libcsound64.so` for the library path.
 
 Use `--order callee-first` to reverse definition order, `--graph branching`
 for a tree of calls, or `--graph cycle` for mutual recursion. `--init-only`
@@ -403,7 +406,8 @@ compile timer. `--source` measures a new compilation on an initialized engine.
 Rate classification is required compiler work, so optimizer pass options do not
 turn it off. One scan settles simple graphs without allocating a worklist.
 The graph follows resolved calls and groups definitions that share an opcode
-entry. Already compiled callees keep their established rates unless they share
+entry. Each shared entry keeps intrinsic performance work from any of its bodies.
+Already compiled callees keep their established rates unless they share
 such an entry with a current definition. Classification starts again from
 intrinsic work after getter specialization. The temporary graph is freed before
 compilation continues and adds no work to audio rendering.

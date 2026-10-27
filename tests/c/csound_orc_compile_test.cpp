@@ -832,11 +832,44 @@ opcode Leaf(input:i):i
   xout input
 endop
 )"));
+    std::vector<OPCODINFO *> shared;
+    for (OPCODINFO *info = csound->opcodeInfo; info != nullptr; info = info->prv)
+        if (strcmp(info->name, "Shared") == 0) shared.push_back(info);
+    ASSERT_EQ(2u, shared.size());
+    ASSERT_NE(shared[0]->ip, shared[1]->ip);
+    ASSERT_EQ(shared[0]->oentry, shared[1]->oentry);
     for (const char *name : {"Helper0", "Helper1", "Shared", "Outer"}) {
         OENTRY *entry = find_opcode_new(csound, name, "i", "i");
         ASSERT_NE(nullptr, entry);
         EXPECT_NE(nullptr, entry->perf) << name;
     }
+}
+
+TEST_F(OrcCompileTests, UdoRatesKeepIntrinsicWorkInSharedEntries)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+opcode Shared,0,0
+  printks "", 1
+endop
+opcode Shared(input:i):i
+  xout input
+endop
+opcode Outer(input:i):i
+  xout Shared(input)
+endop
+)"));
+    // These are distinct bodies sharing one callback flag. The second body's
+    // init-only work must not erase the first body's performance-time work.
+    std::vector<OPCODINFO *> shared;
+    for (OPCODINFO *info = csound->opcodeInfo; info != nullptr; info = info->prv)
+        if (strcmp(info->name, "Shared") == 0) shared.push_back(info);
+    ASSERT_EQ(2u, shared.size());
+    ASSERT_NE(shared[0]->ip, shared[1]->ip);
+    ASSERT_EQ(shared[0]->oentry, shared[1]->oentry);
+    EXPECT_NE(nullptr, shared[0]->oentry->perf);
+    OENTRY *outer = find_opcode_new(csound, "Outer", "i", "i");
+    ASSERT_NE(nullptr, outer);
+    EXPECT_NE(nullptr, outer->perf);
 }
 
 

@@ -182,11 +182,17 @@ static void classify_udo_rates(CSOUND *csound, ENGINE_STATE *engineState) {
   for (instrument = engineState->instxtanchor.nxtinstxt;
        instrument != NULL; instrument = instrument->nxtinstxt) {
     if (instrument->opcode_info != NULL) {
-      OPCODINFO *opinfo = instrument->opcode_info;
-      opinfo->oentry->perf = udo_has_intrinsic_perf(
-        csound, instrument, opinfo) ? (SUBR)useropcd : NULL;
+      instrument->opcode_info->oentry->perf = NULL;
       count++;
     }
+  }
+  /* Clear every flag before seeding. Definitions sharing an entry contribute
+     together, so a later init-only body cannot erase earlier intrinsic work. */
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    OPCODINFO *opinfo = instrument->opcode_info;
+    if (opinfo != NULL && udo_has_intrinsic_perf(csound, instrument, opinfo))
+      opinfo->oentry->perf = (SUBR)useropcd;
   }
   /* One scan often settles small or callee-first graphs. Avoid allocating a
      graph when no rate changes, or when every definition is already perf. */
@@ -236,6 +242,7 @@ static void classify_udo_rates(CSOUND *csound, ENGINE_STATE *engineState) {
     UDO_RATE_NODE key = {opinfo->oentry, 0};
     UDO_RATE_NODE *caller = bsearch(&key, nodes, count, sizeof(*nodes),
                                    compare_udo_rate_nodes);
+    if (caller == NULL) continue;
     size_t i = (size_t)(caller - nodes);
     OPTXT *op = (OPTXT *)opinfo->ip;
     while (op != NULL && (op = op->nxtop) != NULL) {
@@ -245,18 +252,14 @@ static void classify_udo_rates(CSOUND *csound, ENGINE_STATE *engineState) {
       key.entry = called->oentry;
       UDO_RATE_NODE *callee = bsearch(&key, nodes, count, sizeof(*nodes),
                                      compare_udo_rate_nodes);
-      if (callee == NULL) {
-        if (called->oentry != NULL && called->oentry->perf != NULL) {
-          opinfo->oentry->perf = (SUBR)useropcd;
-          queue[tail++] = i;
-          break;
-        }
-        continue;
-      }
+      /* The initial scan already handled calls to earlier definitions. */
+      if (callee == NULL) continue;
       if (edgeCount == capacity) {
         capacity *= 2;
         edges = csound->ReAlloc(csound, edges, capacity * sizeof(*edges));
       }
+      /* Keep one edge per call, including repeats. This stays linear in the
+         call count; the perf check below enqueues each caller only once. */
       edges[edgeCount].caller = i;
       edges[edgeCount].next = callee->callers;
       callee->callers = ++edgeCount;
