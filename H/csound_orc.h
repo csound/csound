@@ -35,6 +35,10 @@
 enum {
   S_ANDTHEN = T_HIGHEST+1,
   S_APPLY,
+  /* compile-time markers bracketing a control-flow block body,
+     removed again by verify_tree */
+  T_SCOPE_BEGIN,
+  T_SCOPE_END,
 };
 
 typedef struct type_table {
@@ -43,6 +47,9 @@ typedef struct type_table {
     CS_VAR_POOL* instr0LocalPool;
     CS_VAR_POOL* localPool;
     CONS_CELL* labelList;
+    /* typed declarations from block scopes that have been closed in the
+       current instrument, kept for "not visible here" diagnostics */
+    CONS_CELL* closedBlockVars;
 } TYPE_TABLE;
 
 /* Parser nodes can be detached or share children during rewriting. Track
