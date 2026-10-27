@@ -696,6 +696,19 @@ int32_t copy_var_generic_init(CSOUND *csound, void *p)
     const CS_TYPE *destType = csoundGetTypeForArg(assign->r);
     const CS_TYPE *srcType = csoundGetTypeForArg(assign->a);
 
+    /* Explicit init copies do not run at performance time. Their nested
+       structured arrays can share storage and detach on later init writes.
+       K-rate assignments still prepare independent storage here so their
+       performance copies do not need to allocate. */
+    if (assign->h.perf == NULL && destType != NULL &&
+        (destType->userDefinedType ||
+         (destType == &CS_VAR_TYPE_ARRAY && srcType == &CS_VAR_TYPE_ARRAY &&
+          ((ARRAYDAT *)assign->a)->arrayType != NULL &&
+          ((ARRAYDAT *)assign->a)->arrayType->userDefinedType))) {
+      return copy_var_generic_impl(
+        csound, p, CSOUND_STRUCT_COPY_SHARED_ARRAYS, 1);
+    }
+
     // If destination is an array, handle array-specific init/copy paths.
     if (destType == &CS_VAR_TYPE_ARRAY) {
         ARRAYDAT *dstArr = (ARRAYDAT *)assign->r;
