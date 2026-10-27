@@ -30,12 +30,47 @@ jobs:
       - uses: ./.github/actions/setup-build
         with:
           compiler-cache: 'true'
+      - name: Prepare dependency downloads
+        id: apt-config
+        run: |
+          echo "image=${ImageOS}-${ImageVersion}" >> "$GITHUB_OUTPUT"
+          mkdir -p "$RUNNER_TEMP/apt-archives/partial"
+          # Avoid the slow Azure mirror used by the hosted runner's mirror list.
+          if [[ -f /etc/apt/apt-mirrors.txt ]]; then
+            printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt
+          fi
+      - name: Restore dependency packages
+        id: apt-cache
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: ${{ runner.temp }}/apt-archives/*.deb
+          key: apt-lint-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.apt-config.outputs.image }}-${{ hashFiles('.github/workflows/static_const.yml') }}
+          restore-keys: |
+            apt-lint-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.apt-config.outputs.image }}-
       - name: Install Clang and build dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-19 clang-tidy-19 python3-clang-19 \
-            cmake ninja-build ccache bison flex gettext libasound2-dev \
+          apt_options=(
+            -o "Dir::Cache::archives=$RUNNER_TEMP/apt-archives"
+            -o Acquire::Retries=3
+            -o Acquire::http::Timeout=30
+            -o Acquire::https::Timeout=30
+          )
+          packages=(
+            clang-19 clang-tidy-19 python3-clang-19
+            ccache bison flex gettext libasound2-dev
             libsndfile1-dev libsamplerate0-dev
+          )
+          # CMake and Ninja are already on the hosted runner's PATH.
+          command -v cmake >/dev/null || packages+=(cmake)
+          command -v ninja >/dev/null || packages+=(ninja-build)
+          sudo apt-get "${apt_options[@]}" update
+          sudo apt-get "${apt_options[@]}" install -y --no-install-recommends "${packages[@]}"
+      - name: Save dependency packages
+        if: steps.apt-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: ${{ runner.temp }}/apt-archives/*.deb
+          key: ${{ steps.apt-cache.outputs.cache-primary-key }}
       - name: Check the lint runner
         run: /usr/bin/python3 tests/test_static_const.py
       - name: Configure source analysis
