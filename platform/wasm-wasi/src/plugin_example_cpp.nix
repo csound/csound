@@ -1,12 +1,13 @@
 {
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
-  pkgsWasm ? pkgs.pkgsCross.wasi32,
+  wasiToolchain ? import ./wasi-preview2-toolchain.nix {inherit system pkgs;},
+  pkgsWasm ? wasiToolchain.pkgsWasm,
   # Match the browser binary selected from this package at build time.
   sharedMemory ? builtins.pathExists ../lib/csound-browser-realtime.wasm.z,
   stdenvWasm ? if sharedMemory
     then (import ./wasi-realtime-toolchain.nix { inherit pkgs pkgsWasm; }).stdenv
-    else pkgsWasm.clangStdenv,
+    else wasiToolchain.stdenv,
   csoundSdkArchive ? if sharedMemory
     then ../lib/csound-plugin-sdk.tar.gz
     else ../lib/csound-plugin-sdk-compat.tar.gz,
@@ -37,7 +38,6 @@ in
         -D__wasm32__=1 \
         -D_WASI_EMULATED_SIGNAL \
         -D_WASI_EMULATED_MMAN \
-        -DUSE_DOUBLE=1 \
         -I${csound-sdk}/include \
         -I${csound-sdk}/include/csound \
         -c plugin_example_cpp.cpp \

@@ -11,9 +11,15 @@ The WASM build now produces an SDK archive:
 The archive contains:
 
 - `include/csound/*` headers
-- `lib/libcsound64.a` (for SDK completeness)
+- `lib/libcsound.a` (for SDK completeness)
 
 Plugin derivations (`plugin_example.nix`, `plugin_example_cpp.nix`) are configured to use this SDK archive by default.
+
+The SDK matches the float browser build (`USE_DOUBLE=0`, `USE_FLOAT=1` in
+CMake). Let its generated `float-version.h` select the C macros. Remove any
+compiler `-DUSE_DOUBLE` flag, including `-DUSE_DOUBLE=0`, because the headers
+test whether that macro is defined. Plugins built for the old double engine
+must be rebuilt before loading them into the float engine.
 
 ## Why This Helps
 
@@ -68,7 +74,7 @@ nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example_c
 
 Use the Csound 7 SDK and the nixpkgs revision in
 [`scripts/nixpkgs-pin.sh`](scripts/nixpkgs-pin.sh). That revision provides
-wasi-libc SDK 27 and Clang 21. Build side modules and their static dependencies
+wasi-libc SDK 32 and Clang 21. Build side modules and their static dependencies
 as position-independent code (`-fPIC`). Import the engine's memory, table, and
 stack pointer.
 
@@ -84,7 +90,7 @@ loading.
 All plugins share the engine's allocator. The browser engine exports `malloc`,
 `calloc`, `realloc`, `free`, `aligned_alloc`, and `posix_memalign`. The loader maps
 `__libc_malloc`, `__libc_calloc`, and `__libc_free` to those public Wasm functions;
-the engine need not export these internal names. SDK 27 defines them as aliases
+the engine need not export these internal names. SDK 32 defines them as aliases
 with the same signatures. The engine still exports
 `__wasilibc_find_relpath_alloc` so plugin file operations use its working
 directory. This internal function has no public alias. Recheck its name and
@@ -102,7 +108,7 @@ to CMake.
 For WASI `setjmp`/`longjmp`, compile with `-mllvm -wasm-enable-sjlj` and link PIC
 setjmp support. The C example compiles the pinned wasi-libc source at
 `libc-top-half/musl/src/setjmp/wasm32/rt.c`. Both the source path and the exception
-tag ABI depend on the toolchain version. SDK 27 uses the `C_LONGJMP` tag without
+tag ABI depend on the toolchain version. SDK 32 uses the `C_LONGJMP` tag without
 a Clang-version branch; recheck newer source and compiler versions together.
 Use `--allow-undefined` when linking side modules that import exception tags, and
 export `__wasm_apply_data_relocs` when present. Each plugin gets private

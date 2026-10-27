@@ -219,9 +219,9 @@ const sabCreateRealtimeAudioThread =
       const outputBufferPtr = libraryCsound.csoundGetSpout(csound);
 
       const csoundInputBuffer =
-        hasInput && new Float64Array(wasm.wasi.memory.buffer, inputBufferPtr, ksmps * nchnlsInput);
+        hasInput && new Float32Array(wasm.wasi.memory.buffer, inputBufferPtr, ksmps * nchnlsInput);
 
-      const csoundOutputBuffer = new Float64Array(
+      const csoundOutputBuffer = new Float32Array(
         wasm.wasi.memory.buffer,
         outputBufferPtr,
         ksmps * nchnls,

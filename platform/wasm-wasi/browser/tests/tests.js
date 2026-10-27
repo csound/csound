@@ -385,7 +385,7 @@ e
         const cs = await Csound(test);
         const { messages, stop } = collectCsoundMessages(cs);
         try {
-          const response = await fetch("/wasm-bin/csbeats.wasm");
+          const response = await fetch("/wasm-bin/csbeats.core.wasm");
           assert.isTrue(response.ok);
           await cs.fs.mkdir("/project");
           await cs.fs.chdir("/project");
@@ -1049,7 +1049,6 @@ schedule(1, 0.05, 10)`), 0);
             await cs.terminateInstance();
           }
         });
-
         sabIt("rejects SAB resume while a pause acknowledgement is pending", async function () {
           const cs = await Csound(test);
           const errors = sinon.stub(console, "error");
@@ -1369,21 +1368,21 @@ schedule(1, 0.05, 10)`), 0);
 
         const tableLength = await csoundObj.tableLength(1);
 
-        // we initialize a float64 typed array
+        // we initialize a float32 typed array
         // using the length of the original csound table
-        const float64array = new Float64Array(tableLength);
+        const float32array = new Float32Array(tableLength);
         // we then fill the arrays with test values
-        float64array.set([1, 1.1, 1.01, 1.001]);
+        float32array.set([1, 1.1, 1.01, 1.001]);
 
         // then we copy the the array from js into csound's runtime onto table 1
-        await csoundObj.tableCopyIn(1, float64array);
+        await csoundObj.tableCopyIn(1, float32array);
 
-        const csoundTableOneFloat64 = await csoundObj.tableCopyOut(1);
+        const csoundTableOneFloat32 = await csoundObj.tableCopyOut(1);
         // we convert it to normal Array for readability
-        const csoundTableOneArray = Array.from(csoundTableOneFloat64);
+        const csoundTableOneArray = Array.from(csoundTableOneFloat32);
         assert.deepEqual(
           csoundTableOneArray,
-          [1, 1.1, 1.01, 1.001, 0, 0, 0, 0],
+          [1, 1.1, 1.01, 1.001, 0, 0, 0, 0].map(Math.fround),
           "The current csound table matches the 4 numbers we copied into it followed by 4 empty values (0)",
         );
         await csoundObj.stop();
@@ -1796,10 +1795,10 @@ e
 
       it("can #include a file from parent directory", async function () {
         const csoundObj = await Csound(test);
-        const csdPath = "/folder1/test.csd";
+        const csdPath = "/folder1/folder2/test.csd";
 
-        await csoundObj.fs.writeFile("/test.orc", "i1 0 .1");
-        await csoundObj.fs.mkdir("/folder1");
+        await csoundObj.fs.mkdir("/folder1/folder2");
+        await csoundObj.fs.writeFile("/folder1/test.orc", "i1 0 .1");
         await csoundObj.fs.writeFile(
           csdPath,
           `
@@ -2755,12 +2754,12 @@ schedule(1, 0, 1)`), 0);
       assert.equal(0, cs.csoundUgenInit(osc), "init returns 0");
       assert.equal(0, cs.csoundUgenPerform(osc), "perform returns 0");
 
-      // Get audio output as Float64Array
+      // Get audio output as Float32Array
       const outVar = cs.csoundUgenGetOutVar(osc, 0);
       assert.notEqual(outVar, 0, "output var pointer is valid");
 
-      const samples = cs.csoundUgenVarGetFloat64Array(outVar);
-      assert.instanceOf(samples, Float64Array, "returns Float64Array");
+      const samples = cs.csoundUgenVarGetFloat32Array(outVar);
+      assert.instanceOf(samples, Float32Array, "returns Float32Array");
       assert.isAbove(samples.length, 0, "samples array is non-empty");
 
       // After perform, some samples should be non-zero (oscillator output)
@@ -2805,8 +2804,8 @@ schedule(1, 0, 1)`), 0);
 
       // Check output of gain
       const gainOutVar = cs.csoundUgenGetOutVar(gain, 0);
-      const gainSamples = cs.csoundUgenVarGetFloat64Array(gainOutVar);
-      assert.instanceOf(gainSamples, Float64Array);
+      const gainSamples = cs.csoundUgenVarGetFloat32Array(gainOutVar);
+      assert.instanceOf(gainSamples, Float32Array);
       assert.isAbove(gainSamples.length, 0);
 
       cs.csoundUgenVarDelete(gainVar);
@@ -2899,8 +2898,8 @@ schedule(1, 0, 1)`), 0);
       // Verify oscils output has non-zero samples after graph perform
       // (product with A-rate gainVar set via scalar won't produce non-zero
       // because csoundUgenVarSetValue only sets data[0] and sin(0)=0)
-      const oscOutSamples = cs.csoundUgenVarGetFloat64Array(oscOut);
-      assert.instanceOf(oscOutSamples, Float64Array);
+      const oscOutSamples = cs.csoundUgenVarGetFloat32Array(oscOut);
+      assert.instanceOf(oscOutSamples, Float32Array);
       assert.isAbove(oscOutSamples.length, 0);
       const hasNonZero = oscOutSamples.some((s) => Math.abs(s) > 1e-10);
       assert.isTrue(hasNonZero, "graph produces non-zero output from oscils");

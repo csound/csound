@@ -22,6 +22,15 @@ COMMON_ARGS=(
 
 # The selected system controls where Nix builds these derivations. Set
 # NIX_SYSTEM to a remote builder's system when a non-native build is desired.
+nix-build ./src/wasi-preview2-support.nix \
+  --impure --argstr system "$NIX_SYSTEM" --show-trace -o result_preview2_support
+nix-build ./src/wasi64-support.nix \
+  --impure --argstr system "$NIX_SYSTEM" --show-trace -o result_wasi64_support
+if [ "$(cat ./result_wasi64_support/supported)" = 0 ]; then
+  printf '%s\n' "Preview 2 memory64 host check failed; csound_x64 remains reserved."
+else
+  printf '%s\n' "Preview 2 memory64 host check passed; the wasm64 libc port is still required."
+fi
 nix-build ./src/csound.nix "${COMMON_ARGS[@]}" --argstr moduleKind browser -o result
 # The wrapper bundles the shared reactor when this toolchain can build it;
 # otherwise it bundles the baseline reactor. --realtime still controls init.

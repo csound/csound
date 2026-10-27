@@ -1,196 +1,203 @@
 import assert from "node:assert/strict";
-
-let WASI, constants, previousGoog;
-const encode = (text) => new TextEncoder().encode(text);
-const decode = (bytes) => new TextDecoder().decode(bytes);
-const memory = () => new WebAssembly.Memory({ initial: 1 });
-function open(wasi, path, flags = 0, rights = constants.RIGHTS_REGULAR_FILE_BASE) {
-  const bytes = encode(path);
-  new Uint8Array(wasi.memory.buffer).set(bytes, 128);
-  assert.equal(wasi.path_open(3, 0, 128, bytes.length, flags, rights, 0n, 0, 8), 0);
-  return wasi.getMemory().getUint32(8, true);
+import { WASI } from "../../src/filesystem/preview2.js";
+import { setupHost, importsFor } from "../preview2-host-fixture.js";
+const encode = (s) => new TextEncoder().encode(s);
+const decode = (b) => new TextDecoder().decode(b);
+function open(f, path, flags = 0, access = 3) {
+  f.host.bytes(128, encode(path).length).set(encode(path));
+  f.call("open-at", f.root, 0, 128, encode(path).length, flags, access, 32);
+  assert.equal(f.host.getMemory().getUint8(32), 0);
+  return f.host.getMemory().getUint32(36, true);
 }
-function io(wasi, fd, text) {
+function output(f, fd, position = 0n) {
+  f.call("write-via-stream", fd, position, 32);
+  assert.equal(f.host.getMemory().getUint8(32), 0);
+  return f.host.getMemory().getUint32(36, true);
+}
+function write(f, stream, text) {
   const bytes = encode(text);
-  new Uint8Array(wasi.memory.buffer).set(bytes, 256);
-  wasi.getMemory().setUint32(32, 256, true);
-  wasi.getMemory().setUint32(36, bytes.length, true);
-  assert.equal(wasi.fd_write(fd, 32, 1, 16), 0);
+  f.host.bytes(256, bytes.length).set(bytes);
+  f.host.writeStream(stream, 256, bytes.length, 32);
+  assert.equal(f.host.getMemory().getUint8(32), 0);
 }
-
-describe("shared WASI filesystem", () => {
-  before(async () => {
-    previousGoog = Object.getOwnPropertyDescriptor(globalThis, "goog");
-    globalThis.goog = { global: globalThis, define: (_name, value) => value };
-    ({ WASI } = await import("../../src/filesystem/wasi.js"));
-    constants = await import("../../src/filesystem/constants.js");
-  });
-  after(() => {
-    if (previousGoog) Object.defineProperty(globalThis, "goog", previousGoog);
-    else delete globalThis.goog;
-  });
-  let host;
+describe("Preview 2 filesystem", () => {
+  let f;
   beforeEach(() => {
-    host = new WASI();
-    host.setMemory(memory());
+    f = setupHost();
   });
-
-  it("opens UTF-8 paths and fills random bytes in shared Wasm memory", () => {
-    host.setMemory(new WebAssembly.Memory({ initial: 2, maximum: 2, shared: true }));
-    host.writeFile("音", encode("audio"));
-    assert.ok(open(host, "音") >= 4);
-    assert.equal(host.random_get(65520, 65540), 0);
-    const bytes = new Uint8Array(host.memory.buffer, 65520, 65540);
-    assert.ok(bytes.some((byte) => byte !== 0));
-    assert.ok(bytes.subarray(65536).some((byte) => byte !== 0));
+  it("waits for a clock without the SharedArrayBuffer global", () => {
+    const SharedBuffer = globalThis.SharedArrayBuffer;
+    globalThis.SharedArrayBuffer = undefined;
+    try {
+      const deadline = performance.now() + 5;
+      f.host.block(f.host.add("pollable", { deadline }));
+      assert(performance.now() >= deadline);
+    } finally {
+      globalThis.SharedArrayBuffer = SharedBuffer;
+    }
   });
-
-  it("shares writes while preserving each parent's and child's open position", () => {
-    host.writeFile("score", encode("abcdef"));
-    const parentFd = open(host, "score");
-    assert.equal(host.fd_seek(parentFd, 4n, 0, 16), 0);
-    const child = host.createCommand(["tool"]);
-    child.setMemory(memory());
-    const childFd = open(child, "score");
-    io(child, childFd, "XY");
-    assert.equal(decode(host.readFile("score")), "XYcdef");
-    assert.equal(host.fd[parentFd].seekPos, 4n);
-    assert.equal(child.fd[childFd].seekPos, 2n);
-    child.fd_close(childFd);
-    assert.equal(host.fd_tell(parentFd, 16), 0);
-    assert.equal(host.getMemory().getBigUint64(16, true), 4n);
+  it("explains why a UI or AudioWorklet host cannot wait", () => {
+    const wait = Atomics.wait;
+    Atomics.wait = () => {
+      throw new TypeError("Atomics.wait cannot be called in this context");
+    };
+    try {
+      assert.throws(
+        () => f.host.block(f.host.add("pollable", { deadline: performance.now() + 100 })),
+        /require a worker/,
+      );
+    } finally {
+      Atomics.wait = wait;
+    }
   });
-
-  it("overwrites a file header without inserting bytes or losing its tail", () => {
-    host.writeFile("audio", encode("HEADsamples"));
-    const fd = open(host, "audio");
-    io(host, fd, "RIFF");
-    assert.equal(decode(host.readFile("audio")), "RIFFsamples");
-    assert.equal(host.fd_seek(fd, 14n, 0, 16), 0);
-    io(host, fd, "end");
+  it("opens UTF-8 paths and allocates large random lists across memory growth", () => {
+    f.host.writeFile("音", encode("audio"));
+    assert(open(f, "音"));
+    const random = importsFor(f.host, "wasi:random/random@0.2.0", ["get-random-bytes"]);
+    random["get-random-bytes"](140000n, 32);
+    const view = f.host.getMemory(),
+      data = view.getUint32(32, true);
+    assert.equal(view.getUint32(36, true), 140000);
+    assert(f.host.bytes(data + 65536, 70000).some((v) => v !== 0));
+  });
+  it("shares writes while keeping independent stream positions", () => {
+    f.host.writeFile("score", encode("abcdef"));
+    const parent = output(f, open(f, "score"), 4n);
+    const child = setupHost(f.host.createCommand(["tool"]));
+    const childStream = output(child, open(child, "score"));
+    write(child, childStream, "XY");
+    assert.equal(decode(f.host.readFile("score")), "XYcdef");
+    write(f, parent, "Z");
+    assert.equal(decode(f.host.readFile("score")), "XYcdZf");
+  });
+  it("overwrites headers and zero-fills gaps without losing the tail", () => {
+    f.host.writeFile("audio", encode("HEADsamples"));
+    const fd = open(f, "audio");
+    write(f, output(f, fd), "RIFF");
+    assert.equal(decode(f.host.readFile("audio")), "RIFFsamples");
+    write(f, output(f, fd, 14n), "end");
     assert.deepEqual(
-      [...host.readFile("audio")],
+      [...f.host.readFile("audio")],
       [...encode("RIFFsamples"), 0, 0, 0, ...encode("end")],
     );
   });
-
-  it("reads across chunks and iovecs and leaves bytes after EOF untouched", () => {
-    host.writeFile("input", encode("abc"));
-    host.appendFile("input", encode("def"));
-    const fd = open(host, "input");
-    const view = host.getMemory();
-    view.setUint32(32, 256, true);
-    view.setUint32(36, 2, true);
-    view.setUint32(40, 300, true);
-    view.setUint32(44, 8, true);
-    new Uint8Array(host.memory.buffer, 300, 8).fill(99);
-    assert.equal(host.fd_read(fd, 32, 2, 16), 0);
-    assert.equal(view.getUint32(16, true), 6);
-    assert.equal(decode(new Uint8Array(host.memory.buffer, 256, 2)), "ab");
-    assert.equal(decode(new Uint8Array(host.memory.buffer, 300, 8)), "cdefcccc");
-    assert.equal(host.fd_read(fd, 32, 2, 16), 0);
-    assert.equal(view.getUint32(16, true), 0);
-    assert.equal(decode(new Uint8Array(host.memory.buffer, 256, 2)), "ab");
-  });
-
-  it("preserves open files after unlink and gives recreated paths a new node", () => {
-    host.writeFile("score", encode("old"));
-    const fd = open(host, "score");
-    assert.equal(host.path_unlink_file(3, 128, 5), 0);
-    host.writeFile("score", encode("new"));
-    io(host, fd, "OLD");
-    assert.equal(decode(host.readFile("score")), "new");
-    assert.equal(decode(host.fd[fd].node.buffers[0]), "OLD");
-  });
-
-  it("does not expose files above the command's mounted directory", () => {
-    host.writeFile("secret", encode("private"));
-    host.mkdir("project");
-    host.chdir("project");
-    const child = host.createCommand(["tool"]);
-    child.setMemory(memory());
-    assert.equal(child.readFile("../secret"), undefined);
-    assert.equal(child.readFile("/secret"), undefined);
-    new Uint8Array(child.memory.buffer).set(encode("../secret"), 128);
-    assert.notEqual(child.path_open(3, 0, 128, 9, 0, 2n, 0n, 0, 8), 0);
-    child.writeFile("result", encode("score"));
-    assert.equal(decode(host.readFile("result")), "score");
-  });
-
-  it("writes UTF-8 argv sizes, pointers and terminators after memory growth", () => {
-    const child = host.createCommand(["tool", "entrée", ""]);
-    child.setMemory(memory());
-    child.getMemory();
-    child.memory.grow(1);
-    assert.equal(child.args_sizes_get(0, 4), 0);
-    assert.equal(child.getMemory().getUint32(0, true), 3);
-    assert.equal(child.getMemory().getUint32(4, true), 14);
-    assert.equal(child.args_get(16, 65536), 0);
-    assert.deepEqual(
-      [16, 20, 24].map((p) => child.getMemory().getUint32(p, true)),
-      [65536, 65541, 65549],
+  it("reads across storage chunks and reports a closed stream after EOF", () => {
+    f.host.writeFile("input", encode("abc"));
+    f.host.appendFile("input", encode("def"));
+    f.call("read-via-stream", open(f, "input"), 0n, 32);
+    const stream = f.host.getMemory().getUint32(36, true);
+    f.host.readStream(stream, 20n, 32);
+    const view = f.host.getMemory();
+    assert.equal(view.getUint8(32), 0);
+    assert.equal(
+      decode(f.host.bytes(view.getUint32(36, true), view.getUint32(40, true))),
+      "abcdef",
     );
-    assert.equal(decode(new Uint8Array(child.memory.buffer, 65536, 14)), "tool\0entrée\0\0");
+    f.host.readStream(stream, 1n, 32);
+    assert.equal(view.getUint8(32), 1);
+    assert.equal(view.getUint8(36), 1);
   });
-
-  it("returns ENOSYS for unsupported imports without exposing JS helper methods", () => {
-    for (const name of ["poll_oneoff", "writeFile"]) {
-      const string = (value) => [value.length, ...encode(value)];
-      const section = (id, bytes) => [id, bytes.length, ...bytes];
-      const module = new WebAssembly.Module(
-        new Uint8Array([
-          0,
-          97,
-          115,
-          109,
-          1,
-          0,
-          0,
-          0,
-          ...section(1, [1, 0x60, 0, 1, 0x7f]),
-          ...section(2, [1, ...string("wasi_snapshot_preview1"), ...string(name), 0, 0]),
-          ...section(7, [1, ...string("call"), 0, 0]),
-        ]),
+  it("does not extend a file on an empty write beyond EOF", () => {
+    f.host.writeFile("audio", encode("head"));
+    write(f, output(f, open(f, "audio"), 100n), "");
+    assert.equal(decode(f.host.readFile("audio")), "head");
+  });
+  it("shares the supplied entropy source with child commands", () => {
+    let next = 1;
+    const parent = new WASI({ getRandomValues: (bytes) => bytes.fill(next++) });
+    for (const host of [parent, parent.createCommand(["tool"])]) {
+      setupHost(host);
+      importsFor(host, "wasi:random/random@0.2.0", ["get-random-bytes"])["get-random-bytes"](
+        8n,
+        32,
       );
-      const instance = new WebAssembly.Instance(module, host.getImports(module));
-      assert.equal(instance.exports.call(), constants.WASI_ENOSYS);
+      const ptr = host.getMemory().getUint32(32, true);
+      assert.equal(host.bytes(ptr, 8)[0], next - 1);
     }
+    assert.equal(next, 3);
   });
-
-  it("uses the WASI fdstat and filestat layouts", () => {
-    host.writeFile("file", encode("abc"));
-    const fd = open(host, "file");
-    assert.equal(host.fd_fdstat_get(fd, 400), 0);
-    const view = host.getMemory();
-    assert.equal(view.getUint8(400), constants.WASI_FILETYPE_REGULAR_FILE);
-    assert.equal(view.getBigUint64(408, true), constants.RIGHTS_REGULAR_FILE_BASE);
-    assert.equal(host.fd_filestat_get(fd, 440), 0);
-    assert.equal(view.getUint8(456), constants.WASI_FILETYPE_REGULAR_FILE);
-    assert.equal(view.getBigUint64(464, true), 1n);
-    assert.equal(view.getBigUint64(472, true), 3n);
+  it("preserves open files after unlink and gives recreated paths new storage", () => {
+    f.host.writeFile("score", encode("old"));
+    const fd = open(f, "score"),
+      stream = output(f, fd);
+    f.call("unlink-file-at", f.root, 128, 5, 32);
+    assert.equal(f.host.getMemory().getUint8(32), 0);
+    f.host.writeFile("score", encode("new"));
+    write(f, stream, "OLD");
+    assert.equal(decode(f.host.readFile("score")), "new");
+    assert.equal(decode(f.host.resource(stream, "output-stream").node.buffers[0]), "OLD");
   });
-
-  it("truncates shared storage without resetting other open positions", () => {
-    host.writeFile("file", encode("abcdef"));
-    const first = open(host, "file");
-    host.fd_seek(first, 5n, 0, 16);
-    const second = open(host, "file", constants.WASI_O_TRUNC);
-    assert.equal(host.readFile("file").length, 0);
-    io(host, second, "x");
-    assert.equal(host.fd[first].seekPos, 5n);
-    assert.equal(host.fd_filestat_set_size(second, 3n), 0);
-    assert.deepEqual([...host.readFile("file")], [120, 0, 0]);
+  it("rejects paths above a command's mount and writes within its root", () => {
+    f.host.writeFile("secret", encode("private"));
+    f.host.mkdir("project");
+    f.host.chdir("project");
+    const child = setupHost(f.host.createCommand(["tool"]));
+    assert.equal(child.host.readFile("../secret"), undefined);
+    assert.equal(child.host.readFile("/secret"), undefined);
+    child.host.bytes(128, 9).set(encode("../secret"));
+    child.call("open-at", child.root, 0, 128, 9, 0, 1, 32);
+    assert.equal(child.host.getMemory().getUint8(32), 1);
+    child.host.writeFile("result", encode("score"));
+    assert.equal(decode(f.host.readFile("result")), "score");
   });
-
-  it("keeps positioned writes from changing the file position", () => {
-    host.writeFile("file", encode("abcdef"));
-    const fd = open(host, "file");
-    host.fd_seek(fd, 5n, 0, 16);
-    new Uint8Array(host.memory.buffer).set(encode("XY"), 256);
-    host.getMemory().setUint32(32, 256, true);
-    host.getMemory().setUint32(36, 2, true);
-    assert.equal(host.fd_pwrite(fd, 32, 1, 1n, 16), 0);
-    assert.equal(decode(host.readFile("file")), "aXYdef");
-    assert.equal(host.fd[fd].seekPos, 5n);
+  it("uses canonical string lists after memory growth", () => {
+    const child = setupHost(f.host.createCommand(["tool", "entrée", ""]));
+    child.host.memory.grow(1);
+    importsFor(child.host, "wasi:cli/environment@0.2.0", ["get-arguments"])["get-arguments"](32);
+    const view = child.host.getMemory(),
+      pointer = view.getUint32(32, true);
+    assert.equal(view.getUint32(36, true), 3);
+    assert.deepEqual(
+      [0, 1, 2].map((i) =>
+        decode(
+          child.host.bytes(
+            view.getUint32(pointer + i * 8, true),
+            view.getUint32(pointer + i * 8 + 4, true),
+          ),
+        ),
+      ),
+      ["tool", "entrée", ""],
+    );
+  });
+  it("rejects Preview 1 and unknown imports instead of exposing JS methods", () => {
+    assert.throws(() => importsFor(f.host, "wasi_snapshot_preview1", ["proc_exit"]), /Preview 1/);
+    assert.throws(
+      () => importsFor(f.host, "wasi:filesystem/types@0.2.0", ["writeFile"]),
+      /Unsupported/,
+    );
+    assert.throws(() => f.host.drop(999, "descriptor"), /Invalid/);
+  });
+  it("returns canonical descriptor metadata and respects read-only handles", () => {
+    f.host.writeFile("file", encode("abc"));
+    const fd = open(f, "file", 0, 1);
+    f.call("get-flags", fd, 32);
+    assert.equal(f.host.getMemory().getUint8(33), 1);
+    f.call("stat", fd, 400);
+    const view = f.host.getMemory();
+    assert.equal(view.getUint8(400), 0);
+    assert.equal(view.getUint8(408), 6);
+    assert.equal(view.getBigUint64(416, true), 1n);
+    assert.equal(view.getBigUint64(424, true), 3n);
+    f.call("write-via-stream", fd, 0n, 32);
+    assert.equal(view.getUint8(32), 1);
+  });
+  it("truncates shared storage without resetting existing streams", () => {
+    f.host.writeFile("file", encode("abcdef"));
+    const stream = output(f, open(f, "file"), 5n);
+    const second = open(f, "file", 8);
+    assert.equal(f.host.readFile("file").length, 0);
+    f.call("set-size", second, 3n, 32);
+    assert.deepEqual([...f.host.readFile("file")], [0, 0, 0]);
+    write(f, stream, "x");
+    assert.deepEqual([...f.host.readFile("file")], [0, 0, 0, 0, 0, 120]);
+  });
+  it("keeps positioned writes from changing stream positions", () => {
+    f.host.writeFile("file", encode("abcdef"));
+    const fd = open(f, "file"),
+      stream = output(f, fd, 5n);
+    f.host.bytes(256, 2).set(encode("XY"));
+    f.call("write", fd, 256, 2, 1n, 32);
+    write(f, stream, "Z");
+    assert.equal(decode(f.host.readFile("file")), "aXYdeZ");
   });
 });

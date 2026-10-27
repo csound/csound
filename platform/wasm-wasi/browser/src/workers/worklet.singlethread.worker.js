@@ -20,6 +20,7 @@ import * as Comlink from "../utils/comlink.js";
 import MessagePortState from "../utils/message-port-state";
 import libcsoundFactory from "../libcsound";
 import loadWasm from "../module.loader.js";
+import { RandomPool } from "../utils/random-pool.js";
 import { clearArray } from "../utils/clear-array";
 import {
   createAudioFade,
@@ -93,6 +94,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     this.options = options;
     /** @export */
     this.initialize = this.initialize.bind(this);
+    this.refillRandom = undefined;
     /** @export */
     this.pause = this.pause.bind(this);
     /** @export */
@@ -153,8 +155,10 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
     };
   }
 
-  async initialize(wasmDataURI, withPlugins) {
+  async initialize(wasmDataURI, withPlugins, randomBytes, refillRandom) {
     log("initializing worklet.singlethread.worker")();
+    this.refillRandom = refillRandom;
+    const randomPool = new RandomPool(randomBytes, refillRandom);
 
     // Let Comlink carry loader failures back to the factory. A separate
     // resolve-only promise would leave a rejected plugin load pending forever.
@@ -162,6 +166,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       wasmDataURI,
       withPlugins,
       messagePort: this.workerMessagePort,
+      getRandomValues: (bytes) => randomPool.fill(bytes),
     });
     if (this.isTerminated) throw new Error("Csound instance terminated during initialization");
     this.wasm = wasm;
@@ -252,6 +257,10 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
   }
 
   terminate() {
+    if (this.refillRandom) {
+      this.refillRandom[Comlink.releaseProxy](false);
+      this.refillRandom = undefined;
+    }
     if (this.isTerminated) {
       return;
     }
@@ -373,7 +382,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       /* Check if MEMGROWTH occured from csoundPerformKsmps or otherwise. If so,
       rest output ant input buffers to new pointer locations. */
       if (!csOut || csOut.length === 0) {
-        csOut = this.csoundOutputBuffer = new Float64Array(
+        csOut = this.csoundOutputBuffer = new Float32Array(
           this.wasm.wasi.memory.buffer,
           this.libraryCsound.csoundGetSpout(this.csound),
           ksmps * nchnls,
@@ -381,7 +390,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       }
 
       if (!csIn || csIn.length === 0) {
-        csIn = this.csoundInputBuffer = new Float64Array(
+        csIn = this.csoundInputBuffer = new Float32Array(
           this.wasm.wasi.memory.buffer,
           this.libraryCsound.csoundGetSpin(this.csound),
           ksmps * nchnlsIn,
@@ -497,12 +506,12 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       const isExpectingRealtimeOutput = this.isRequestingRealtimeOutput();
 
       if (isExpectingRealtimeOutput) {
-        this.csoundOutputBuffer = new Float64Array(
+        this.csoundOutputBuffer = new Float32Array(
           this.wasm.wasi.memory.buffer,
           this.libraryCsound.csoundGetSpout(cs),
           ksmps * this.nchnls,
         );
-        this.csoundInputBuffer = new Float64Array(
+        this.csoundInputBuffer = new Float32Array(
           this.wasm.wasi.memory.buffer,
           this.libraryCsound.csoundGetSpin(cs),
           ksmps * this.nchnls_i,

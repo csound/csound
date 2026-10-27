@@ -7,6 +7,8 @@
  * to the worklet via MessagePort.
  */
 
+import { randomBytes, serveRandomBytes } from "../../../src/utils/random-pool.js";
+
 const logEl = document.getElementById("log");
 const startBtn = document.getElementById("startBtn");
 const stopBtn = document.getElementById("stopBtn");
@@ -40,6 +42,7 @@ startBtn.addEventListener("click", async () => {
     workletNode = new AudioWorkletNode(audioCtx, "csound-ugen-processor", {
       outputChannelCount: [1],
       processorOptions: {
+        randomBytes: randomBytes(),
         sr,
         ksmps,
         freq: Number(freqSlider.value),
@@ -47,6 +50,7 @@ startBtn.addEventListener("click", async () => {
       },
     });
 
+    serveRandomBytes(workletNode.port);
     workletNode.port.onmessage = (e) => {
       if (e.data.type === "ready") {
         log(

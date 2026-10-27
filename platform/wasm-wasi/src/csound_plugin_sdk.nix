@@ -1,8 +1,9 @@
 {
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
-  pkgsWasm ? pkgs.pkgsCross.wasi32,
-  stdenvWasm ? pkgsWasm.clangStdenv,
+  wasiToolchain ? import ./wasi-preview2-toolchain.nix {inherit system pkgs;},
+  pkgsWasm ? wasiToolchain.pkgsWasm,
+  stdenvWasm ? wasiToolchain.stdenv,
   # Match the browser binary selected from this package at build time.
   sharedMemory ? builtins.pathExists ../lib/csound-browser-realtime.wasm.z,
   csoundSdkArchive ? if sharedMemory

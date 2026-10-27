@@ -121,7 +121,7 @@ export const ORCTOKEN = [
   ["type", "int"],
   ["lexme", "ptr"],
   ["value", "int"],
-  ["fvalue", "double"],
+  ["fvalue", "cs_double"],
   ["optype", "ptr"],
   ["next", "ptr"],
 ];

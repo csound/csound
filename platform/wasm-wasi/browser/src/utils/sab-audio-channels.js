@@ -5,9 +5,9 @@ export const sharedAudioChannels = (buffer, count) =>
   Array.from(
     { length: count },
     (_, index) =>
-      new Float64Array(
+      new Float32Array(
         buffer,
-        index * RING_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
+        index * RING_BUFFER_SIZE * Float32Array.BYTES_PER_ELEMENT,
         RING_BUFFER_SIZE,
       ),
   );

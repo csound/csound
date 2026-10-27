@@ -14,13 +14,14 @@
  */
 
 import { dlinit } from "./dlinit";
-import { WASI } from "./filesystem/wasi";
+import { WASI } from "./filesystem/preview2";
 import { createSystem } from "./filesystem/system.js";
 import { bufferMessageText } from "./utils/message-stream.js";
 import { decoder, uint2String } from "./utils/text-encoders.js";
 import { getBinaryHeaderData as parseBinaryHeaderData } from "./utils/wasm-dylink.js";
 import { Inflate } from "./zlib/inflate.js";
 import { preparePluginImports } from "./utils/plugin-imports.js";
+import { assertBrowserPrecision } from "./utils/browser-reactor.js";
 
 export const getBinaryHeaderData = (input) => parseBinaryHeaderData(input, decoder);
 
@@ -106,8 +107,13 @@ const assertPluginExports = (pluginExports) => {
   }
 };
 
-export default async function loadWasm({ wasmDataURI, withPlugins = [], messagePort }) {
-  const wasi = new WASI({ preopens: { "/": "/" } });
+export default async function loadWasm({
+  wasmDataURI,
+  withPlugins = [],
+  messagePort,
+  getRandomValues,
+}) {
+  const wasi = new WASI({ preopens: { "/": "/" }, getRandomValues });
   const jumpTable = new Map(); // maps jmpbuf pointers to JS frames
   let tempRet0 = 0; // for 64-bit return value handling
 
@@ -178,15 +184,11 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   // write over anything if it overflows.
   //
   const fixedMemoryBase = 128 * PAGES_PER_MB;
-  const initialMemory = Math.ceil(
-    (memorySize + alignmentFromExponent(memoryAlign)) / PAGE_SIZE,
-  );
+  const initialMemory = Math.ceil((memorySize + alignmentFromExponent(memoryAlign)) / PAGE_SIZE);
   const pluginsMemory = Math.ceil(
     withPlugins.reduce(
       (accumulator, { headerData }) =>
-        accumulator +
-        headerData.memorySize +
-        alignmentFromExponent(headerData.memoryAlign),
+        accumulator + headerData.memorySize + alignmentFromExponent(headerData.memoryAlign),
       0,
     ) / PAGE_SIZE,
   );
@@ -292,7 +294,9 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
       try {
         const wasmPluginBytes = wasi.readFile(path);
         if (!isWasmBinary(wasmPluginBytes)) {
-          console.error(`Unable to load requested Csound plugin '${path}' from the WASI filesystem.`);
+          console.error(
+            `Unable to load requested Csound plugin '${path}' from the WASI filesystem.`,
+          );
           result = -1;
           return;
         }
@@ -340,9 +344,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
   options["env"]["__table_base"] = tableBase;
   options["env"]["csoundLoadModules"] = csoundLoadModules;
   options["env"]["csoundLoadExternals"] = csoundLoadExternals;
-  options["env"]["csoundWasiJsSystem"] = createSystem(wasi, (log) =>
-    messagePort.post({ log }),
-  );
+  options["env"]["csoundWasiJsSystem"] = createSystem(wasi, (log) => messagePort.post({ log }));
 
   // Add setjmp/longjmp functions to the environment
   options["env"]["saveSetjmp"] = saveSetjmp;
@@ -386,6 +388,7 @@ export default async function loadWasm({ wasmDataURI, withPlugins = [], messageP
    * @suppress {checkTypes}
    * @type {WasmInst} */
   const instance = await WebAssembly.instantiate(module, options);
+  assertBrowserPrecision(instance.exports);
   const moduleExports = Object.assign({}, instance["exports"]);
   /**
    * @suppress {checkTypes}

@@ -1,13 +1,14 @@
 {
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
-  pkgsWasm ? pkgs.pkgsCross.wasi32,
+  wasiToolchain ? import ./wasi-preview2-toolchain.nix {inherit system pkgs;},
+  pkgsWasm ? wasiToolchain.pkgsWasm,
   # Match the browser binary selected from this package at build time.
   sharedMemory ? builtins.pathExists ../lib/csound-browser-realtime.wasm.z,
   testVariant ? "",
   stdenvWasm ? if sharedMemory
     then (import ./wasi-realtime-toolchain.nix { inherit pkgs pkgsWasm; }).stdenv
-    else pkgsWasm.clangStdenv,
+    else wasiToolchain.stdenv,
   csoundSdkArchive ? if sharedMemory
     then ../lib/csound-plugin-sdk.tar.gz
     else ../lib/csound-plugin-sdk-compat.tar.gz,
@@ -40,16 +41,15 @@ stdenvWasm.mkDerivation {
       -D__wasm32__=1 \
       -D_WASI_EMULATED_SIGNAL \
       -D_WASI_EMULATED_MMAN \
-      -DUSE_DOUBLE=1 \
       -I${csound-sdk}/include \
       -I${csound-sdk}/include/csound \
       -c  plugin_example.c \
       -o plugin_example.o
 
     ${pkgs.lib.optionalString (!sharedMemory) ''
-    # scripts/nixpkgs-pin.sh pins nixpkgs 4db2c220f32fd162658ed1b7bb2f46a82996ddbe
-    # (wasi-libc SDK 27, Clang 21). This source path and its C_LONGJMP tag ABI
-    # are version-sensitive; recheck both when changing that pin. SDK 27's
+    # scripts/nixpkgs-pin.sh pins nixpkgs d3b13ad75cc492690728f9307e443dec9ef9a20e
+    # (wasi-libc SDK 32, Clang 21). This source path and its C_LONGJMP tag ABI
+    # are version-sensitive; recheck both when changing that pin. SDK 32's
     # rt.c uses __builtin_wasm_throw(1, ...) without a Clang-version branch.
     # Compile it as PIC. The loader supplies a private exception tag, and the
     # plugin owns its jump buffers.

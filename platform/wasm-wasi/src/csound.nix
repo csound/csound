@@ -1,8 +1,9 @@
 {
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
-  pkgsWasm ? pkgs.pkgsCross.wasi32,
-  stdenvWasm ? pkgsWasm.clangStdenv,
+  wasiToolchain ? import ./wasi-preview2-toolchain.nix {inherit system pkgs;},
+  pkgsWasm ? wasiToolchain.pkgsWasm,
+  stdenvWasm ? wasiToolchain.stdenv,
   moduleKind ? "command",
   gitHash ? "",
   buildDate ? "",
@@ -54,7 +55,9 @@ in
       ninja
       zopfli
       pkg-config
-    ] ++ lib.optionals (!browserHosted) [pkgs.wasmtime];
+      wasm-tools
+    ] ++ lib.optionals browserHosted [pkgs.nodejs]
+      ++ lib.optionals (!browserHosted) [pkgs.wasmtime];
 
     buildInputs = [
       libsndfile
@@ -65,19 +68,21 @@ in
       libsamplerate
     ];
 
-    enableParallelBuilding = false;
+    enableParallelBuilding = true;
 
     cmakeFlags =
       [
         "-GNinja"
         "-DBUILD_DIR=build"
+        "-DUSE_DOUBLE=0"
+        "-DUSE_FLOAT=1"
         "-DUSE_IPMIDI=OFF"
         "-DUSE_LIBSAMPLERATE=ON"
         # Fail configuration rather than silently using linear conversion.
         "-DCMAKE_REQUIRE_FIND_PACKAGE_SampleRate=ON"
         "-DBUILD_SHARED_LIBS=OFF"
         # WASI makes the primary Csound library static; a second static target
-        # would generate the same libcsound64.a output and Ninja rejects it.
+        # would generate the same libcsound.a output and Ninja rejects it.
         "-DBUILD_STATIC_LIBRARY=OFF"
         "-DBUILD_CSOUND_COMMAND=ON"
         # This artifact supports unshared hosts and the existing plugin ABI.
@@ -143,6 +148,7 @@ in
         "--import-memory"
         "--export=__stack_pointer"
         "--export-if-defined=sin"
+        "--export=sinf"
         "--export-if-defined=strcmp"
         # Side modules must share the engine's heap. Unlike export-if-defined,
         # these exports pull allocator functions from the runtime archive.
@@ -154,7 +160,7 @@ in
         "--export=posix_memalign"
         # The loader maps wasi-libc's __libc_malloc/calloc/free aliases to the
         # public functions above, so they need no separate engine exports.
-        # wasi-libc SDK 27 (scripts/nixpkgs-pin.sh) defines this cwd-aware
+        # wasi-libc SDK 32 (scripts/nixpkgs-pin.sh) defines this cwd-aware
         # resolver in libc-bottom-half/sources/chdir.c. It has no public alias:
         # keep a hard export and recheck its name/signature when updating Nix.
         "--export=__wasilibc_find_relpath_alloc"
@@ -176,7 +182,7 @@ in
       if browserHosted
       then ''
         # This reactor is instantiated by the browser host.
-        zopfli --zlib -c $out/bin/csound > $out/lib/csound.wasm.z
+        node --experimental-wasm-exnref ../platform/wasm-wasi/tests/check-precision.mjs $out/bin/csound
         cp $out/bin/csound $out/lib/csound.wasm
 
         # Build a lightweight SDK archive for compiling external WASM plugins.
@@ -184,7 +190,7 @@ in
         mkdir -p $out/share/csound-plugin-sdk/include
         mkdir -p $out/share/csound-plugin-sdk/lib
         cp -R $out/include/csound $out/share/csound-plugin-sdk/include/
-        cp $out/lib/libcsound64.a $out/share/csound-plugin-sdk/lib/
+        cp $out/lib/libcsound.a $out/share/csound-plugin-sdk/lib/
         cat > $out/share/csound-plugin-sdk/README.md <<'EOF'
         Csound WASM Plugin SDK
         ======================
@@ -195,10 +201,12 @@ in
         tar -C $out/share -czf $out/lib/csound-plugin-sdk.tar.gz csound-plugin-sdk
       ''
       else ''
-        # This command module owns its memory and has a real WASI _start entry.
-        cp $out/bin/csound $out/lib/csound-cli.wasm
+        # Keep the core command for JS hosts and encode its Preview 2 component.
+        cp $out/bin/csound $out/lib/csound-cli.core.wasm
+        wasm-tools component new $out/bin/csound -o $out/lib/csound-cli.wasm
         for tool in ${lib.escapeShellArgs tools}; do
-          cp "$out/bin/$tool" "$out/lib/$tool.wasm"
+          cp "$out/bin/$tool" "$out/lib/$tool.core.wasm"
+          wasm-tools component new "$out/bin/$tool" -o "$out/lib/$tool.wasm"
         done
 
         # Most tools report usage with a nonzero status and have no --help mode.
@@ -216,6 +224,10 @@ in
         run_tool src_conv -r22050 -oconverted.wav sweep.wav
         test -s converted.wav
       '';
+    # Compress after stripping so both derivatives contain the same module.
+    postFixup = lib.optionalString browserHosted ''
+      zopfli --zlib -c "$out/lib/csound.wasm" > "$out/lib/csound.wasm.z"
+    '';
   } // lib.optionalAttrs (!browserHosted) {
     # Build Csound and the requested tools together, without native launchers.
     buildPhase = ''

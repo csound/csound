@@ -46,6 +46,51 @@ These modules are published in `@csound/wasm-bin`. The package `main`
 entry remains the browser reactor, `csound.wasm`. Command-line runtimes should
 load `csound-cli.wasm` explicitly.
 
+The standard outputs use wasm32 pointers and single-precision audio and score values.
+The build sets CMake `USE_DOUBLE=0` and `USE_FLOAT=1` for the baseline reactor,
+command, and tools. Browser modules bundle one float engine and
+use `Float32Array` views. Rebuild plugins with the matching SDK; its generated
+`float-version.h` supplies the precision flags. Do not pass `-DUSE_DOUBLE=0`
+as a C compiler flag: Csound headers test whether that macro is defined.
+
+All new builds target WASI Preview 2. The Nix toolchain builds wasi-libc from
+source with `wasm32-wasip2`; it does not download a WASI SDK bundle. The pin is
+`d3b13ad75cc492690728f9307e443dec9ef9a20e` (wasi-libc 32, LLVM 21).
+Browser reactors and plugins are core modules with Preview 2 imports.
+Standalone commands are components; their `.core.wasm` derivatives run in the
+browser's Preview 2 host, including score preprocessing through `system()`.
+
+`csound_x64.wasm` and its derivatives remain reserved for true
+`wasm64-wasip2`, with eight-byte pointers and double samples. They are not
+published yet. On 2026-10-27, the source port reached the component encoder,
+but wasm-tools 1.261 rejected its 64-bit `get-arguments` pointer. Wasmtime 49
+also read an empty string from a valid memory64 component that should return
+`"ok"`. A 32-bit control returned the expected string.
+
+These limits match the open
+[Component Model memory64 work](https://github.com/WebAssembly/component-model/issues/22)
+and the [WASI SDK target policy](https://github.com/WebAssembly/wasi-sdk#notable-limitations).
+Updating or overriding nixpkgs alone cannot resolve the component ABI.
+
+Check the source-built Preview 2 host and memory64 status with:
+
+```bash
+source scripts/nixpkgs-pin.sh
+nix-build ./src/wasi-preview2-support.nix -o result_preview2_support
+nix-build ./src/wasi64-support.nix -o result_wasi64_support
+cat result_wasi64_support/supported
+```
+
+The browser keeps one float engine until true wasm64 Preview 2 works.
+Preview 2 does not yet support `pthread_create`; the strict pthread build
+probe selects the baseline engine. Audio playback still runs in the browser's
+workers and AudioWorklet. Csound's native background init worker remains
+unavailable. The build does not fall back to Preview 1 threads.
+
+The UGen API provides `csoundUgenVarGetFloat32Array` for live sample views.
+The older `csoundUgenVarGetFloat64Array` returns a converted copy; use the new
+helper to write directly to the native buffer. Table copies return `Float32Array`.
+
 The command build also places these tools in `lib`. Each file uses the tool
 name followed by `.wasm`.
 
@@ -64,8 +109,7 @@ libsamplerate build lives in `src/libsamplerate.nix`. Both the command and
 browser builds link it, so `oversample` and `undersample` can use the sinc
 converters. Configuration fails if CMake cannot find the library.
 
-Each tool is a standalone WASI Preview 1 command with an exported `_start`
-entry point and its own exported memory. It includes its utility code and
+Each tool is a WASI Preview 2 component exporting `wasi:cli/run@0.2.0`. It includes its utility code and
 libraries, so it does not need a native Csound installation or a utility plugin.
 For example, convert a sound file to 48 kHz with Wasmtime.
 
@@ -73,9 +117,9 @@ For example, convert a sound file to 48 kHz with Wasmtime.
 wasmtime run -Wexceptions=y --dir=. ./lib/src_conv.wasm -r48000 -ooutput.wav input.wav
 ```
 
-A browser WASI host can load the same commands as its main module. The host
-must provide WASI Preview 1 imports, arguments, files and standard streams,
-then call `_start` once on a fresh instance. The browser must support standard
+The browser host loads each command's `.core.wasm` derivative. It provides
+Preview 2 imports, arguments, files and streams, then calls
+`wasi:cli/run@0.2.0#run` once on a fresh instance. The browser must support standard
 WebAssembly exception handling. These commands are separate from the
 `@csound/browser` audio reactor and its plugin loader.
 
@@ -96,28 +140,28 @@ Native Csound can also use Wasmtime to load supported opcode plugins passed as
 [Native Csound WebAssembly plugins](NATIVE_OPCODE_PLUGINS.md) for the build
 option, current ABI limits, and compile-cache rules.
 
-The command-line CSD suite uses the threaded WASI command so that CSDs with
-`--realtime` exercise real-time mode. To build it and run the suite:
+To run the command-line CSD suite against an already-built Preview 2
+`lib/csound-cli.wasm`:
 
 ```bash
 source ./scripts/nixpkgs-pin.sh
-nix-build ./src/csound-realtime.nix -o result_realtime
-nix-build ./src/csound-tests.nix \
-  --arg csoundWasm ./result_realtime/lib/csound-realtime.wasm
+nix-build ./src/csound-tests.nix
 ```
 
 The test derivation also defaults to the local Nix system. Pass
 `--argstr system x86_64-linux` to select a configured Linux builder explicitly.
-It uses Wasmtime from the pinned Nixpkgs with WASI threads and shared memory
-enabled, and runs the CSD files discovered under `tests/commandline`. Tests
+It uses Wasmtime from the pinned Nixpkgs and runs the CSD files discovered
+under `tests/commandline`. Tests
 default to `-nd`; real-time tests can select the dummy audio driver and their
 own options. Each file declares its own expectations, including WebAssembly
-overrides for unavailable features such as sockets and PARCS. Real-time and
-asynchronous file-writing tests use the same expectations as native builds.
+overrides for unavailable features such as sockets and PARCS. Preview 2 lacks
+native thread support, so tests that require it cannot pass yet.
 
-CI reuses `test-artifacts/csound-realtime.wasm` from
-`scripts/compile-test-fixtures.sh`. This is a private test artifact; the
-published `csound-cli.wasm` remains the non-threaded command.
+When the toolchain supports native threads, CI instead reuses
+`test-artifacts/csound-realtime.wasm` from `scripts/compile-test-fixtures.sh`
+and passes `--arg threaded true` to the test derivation. This keeps the
+threaded tests ready for a future Preview 2 toolchain. The published
+`csound-cli.wasm` remains the non-threaded command.
 
 For releases, publish a new `@csound/wasm-bin` version before updating and
 publishing `@csound/browser`; older binary packages do not contain the new
@@ -126,6 +170,10 @@ publishing `@csound/browser`; older binary packages do not contain the new
 ---
 
 ## WASI realtime support
+
+The Preview 2 build currently selects the baseline engine. The background
+worker features below require thread spawning, which this target cannot yet
+provide. Browser audio playback remains available.
 
 `npm run build` builds the compatible browser module and, when the toolchain
 supports WASI threads, a shared-memory browser reactor. Both ship in
@@ -336,38 +384,17 @@ bound or make every opcode safe for concurrent init. Set
 
 ## WASI realtime command host
 
-The published command module remains compatible with unthreaded WASI hosts.
-For a WASI Preview 1 threads command host, build the internal Nix target:
-
-```bash
-# From platform/wasm-wasi
-source scripts/nixpkgs-pin.sh
-nix-build src/csound-realtime.nix -o result_realtime
-wasmtime run -Sthreads=y -Wthreads=y -Wshared-memory=y -Wexceptions=y \
-  -Ccache=n --dir=. result_realtime/lib/csound-realtime.wasm \
-  --realtime -nd example.csd
-```
-
-This target keeps its static library and headers and runs the pthread and
-Csound worker checks. It does not replace published command modules. It needs
-a host with WASI P1 threads, shared memory, and Wasm exceptions.
-
-An unpaced render can advance score time while background init waits. Compile
-instruments before performance and use numeric events. Concurrent compilation
-still needs an audit of shared compiler state. Dynamic plugins, external
-processes, and parallel DSP remain outside this target.
-
-Normal init errors keep Csound's note-error behavior. A fatal worker error
-ends the command with failure: the worker cannot use the render thread's jump
-buffer or safely clean up a half-finished opcode. The browser reactor uses the
-same rule.
+The command components use an unthreaded Preview 2 host. The internal
+threaded targets fail their capability checks with this toolchain because
+Preview 2 does not supply `pthread_create`. They do not build Preview 1
+commands as a fallback.
 
 ---
 
 ## External score programs in the browser
 
 The browser build supports `<CsScore bin="csbeats">` through the usual
-Csound score parser. Upload a WASI Preview 1 command to Csound's filesystem
+Csound score parser. Upload a WASI Preview 2 core command to Csound's filesystem
 before compiling the document:
 
 ```js
@@ -380,11 +407,11 @@ The binding first looks for the exact `bin` program path, relative to
 and compiles the file only when Csound calls it. It caches up to four compiled
 modules and checks the bytes again on each call, so replacing an uploaded
 file takes effect. No command binaries or URLs are built into the binding.
-An app such as the Web IDE can fetch its bundled `csbeats.wasm` on demand
+An app such as the Web IDE can fetch `csbeats.core.wasm` on demand
 and write it through the same filesystem API.
 
 Other uploaded commands use the same path. They must export `memory` and
-`_start` and use WASI Preview 1 imports. Each run has fresh memory and file
+`cabi_realloc` and `wasi:cli/run@0.2.0#run`, and use Preview 2 imports. Each run has fresh memory and file
 descriptors. The command sees Csound's current directory at `/`, like a
 WASI runtime preopening one directory; files outside that directory are
 not mounted. Csound passes the score input and output filenames as the last
@@ -399,14 +426,18 @@ The call is synchronous because Csound reads the generated score as soon as
 can use quotes and backslash escapes, but there is no shell, pipe,
 redirection, variable expansion or process spawning. A nonzero exit status,
 missing command, invalid module or trap fails score generation. Unsupported
-WASI calls return `ENOSYS`.
+imports fail at instantiation. The host returns typed Preview 2 errors for
+failed file and stream operations.
+Timed clock waits require a worker that supports `Atomics.wait`; UI threads and
+AudioWorklet cannot run commands that wait on a clock.
 
 This is a Csound browser extension, not a WASI syscall. The pinned wasi-libc
-declares `system()` but does not define it, and Preview 1 has no `exec` or
+declares `system()` but does not define it, and Preview 2 has no `exec` or
 `system` import. The browser binary supplies `system()` through the explicit
 `env.csoundWasiJsSystem(commandPointer)` import. The host reads a NUL-terminated
 UTF-8 string from Csound memory and returns `exitCode << 8`, or `-1` on a host
-error. `system(NULL)` returns zero because no shell is available. Use the
+error. Preview 2.0 commands report status 0 for success or 1 for failure.
+`system(NULL)` returns zero because no shell is available. Use the
 matching browser wrapper with this binary. The standalone WASI command has
 no new host import and reports external score generation as unsupported.
 
