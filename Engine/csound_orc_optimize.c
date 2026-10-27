@@ -789,6 +789,15 @@ void csound_orc_dump_templates(CSOUND *csound, ENGINE_STATE *state)
     csound->Message(csound, "ORC-OPT end\n");
 }
 
+/* Simplification may unlink a producer as soon as it replaces the producer's
+   last use. An unused variable-pool slot then does not imply that the opcode
+   still runs; pool storage and the instruction chain have separate lifetimes.
+
+   Add a separate unused-result pass only for a concrete chain left by an earlier
+   transform. It must count uses across the whole scope, including init, perf and
+   reinit, and prove the producer's entire lifecycle unobservable. An ignored
+   result alone does not justify dropping warnings, state changes, or init/deinit
+   work. Preserve named assignments and unknown/plugin/UDO calls. */
 TREE *csound_orc_optimize(CSOUND *csound, TREE *root, TYPE_TABLE *types)
 {
     int32_t *selection = csoundQueryGlobalVariable(csound, "__orc_optimizer");
