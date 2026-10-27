@@ -29,7 +29,7 @@ through `USE_COMPILER_OPTIMIZATIONS`; `RelWithDebInfo` alone is not a strict bui
 
 Per-engine options (experimental):
 
-- `--optimize=none` disables every named pass, including `legacy`.
+- `--optimize=none` disables every named optimizer pass, including `legacy`.
 - `--optimize=legacy` or `--optimize-legacy` enables the existing TREE pass.
   This is the default.
 - `--optimize=constant-folding` or `--optimize-constant-folding` enables constant folding.
@@ -41,6 +41,9 @@ Per-engine options (experimental):
 - `--optimize=all` enables every pass implemented in this build, including
   experimental passes. Constant folding has a reported steady-render slowdown
   on macOS. Measure your workload before enabling it.
+- `--optimize-unused-temporary-removal` removes unused generated numeric slots
+  after expression rewrites. It leaves named variables and UDO pools alone.
+- `--optimize=legacy,copy-removal,unused-temporary-removal` enables all three.
 
 Named lists and individual flags add to the current selection. Options take effect
 in command-line order. Use `--optimize=none` first to select a pass without the
@@ -51,9 +54,10 @@ which transformations run, not their execution order.
 
 The benchmark runners keep numeric labels in their output to compare with earlier
 measurements. They translate those labels to the named options before compilation.
-The bits are 1 for legacy, 2 for constant folding, 4 for copy removal and 8 for
-CSE. Selecting all four gives 15. The CSE comparison still uses 1 and 9 to keep
-constant folding and copy removal off.
+The bits are 1 for legacy, 2 for constant folding, 4 for copy removal, 8 for
+CSE, 16 for unused temporary removal and 32 for audio multiply-then-add. Selecting
+all six gives 63. The CSE comparison still uses 1 and 9 to keep the other passes
+off.
 
 The earlier `orc_opt_passes` configuration variable was an unreleased benchmark
 control. These options replace it, so callers of that control must switch to
@@ -411,3 +415,36 @@ Already compiled callees keep their established rates unless they share
 such an entry with a current definition. Classification starts again from
 intrinsic work after getter specialization. The temporary graph is freed before
 compilation continues and adds no work to audio rendering.
+
+## Instance storage after expression rewrites
+
+`../optimizer_storage.cpp` records the byte count passed to Csound's allocator
+for each instrument instance. It then renders eight intervals, adding 16 notes
+before each interval. Output includes allocated instance bytes, variable-pool
+bytes, voice count and render time. The two byte counts describe different
+things. Instance allocations also contain the instrument header, opcode data
+and variable metadata. Neither count includes allocator headers, auxiliary
+allocations or process RSS.
+
+Build the probe against the matching source and library. For a Linux double
+build, from the source root, use
+
+```sh
+c++ -O2 -std=c++17 -DUSE_DOUBLE -Iinclude -IH -Ibuild/include -Ibuild \
+  tests/benchmarks/optimizer_storage.cpp -Lbuild -lcsound64 \
+  -Wl,-rpath,"$PWD/build" -o /tmp/optimizer-storage
+CSOUND7RC=/dev/null taskset -c 14 /tmp/optimizer-storage \
+  legacy,copy-removal,unused-temporary-removal literals
+```
+
+Omit `-DUSE_DOUBLE` and select the matching library for a float build. Use a free
+CPU on your own machine. The probe supports `repeated`, `unique` and `literals`
+workloads, each with 512 expressions. Without a preceding rewrite that removes
+a temporary, pruning should save no bytes. To measure useful work, compare the
+same build and expression passes with and without `unused-temporary-removal`.
+
+Alternate run order, warm up, and retain individual measurements. Allocation
+tracking runs only during note activation and stays outside the render timer.
+The audio hash samples activation and interval-end blocks. Use the full-render
+comparisons above to check behavior. Keep charts and raw results outside the
+source tree and attach them to the PR.

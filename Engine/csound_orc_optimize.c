@@ -1231,6 +1231,101 @@ void csound_orc_dump_templates(CSOUND *csound, ENGINE_STATE *state)
    reinit, and prove the producer's entire lifecycle unobservable. An ignored
    result alone does not justify dropping warnings, state changes, or init/deinit
    work. Preserve named assignments and unknown/plugin/UDO calls. */
+
+/* Mark reads and writes in every phase, including branches and reinit regions.
+   Opaque argument metadata could retain a binding that this walk cannot see. */
+static int32_t mark_pool_references(CSOUND *csound, TREE *node,
+                                    CS_HASH_TABLE *used)
+{
+    for (; node; node = node->next) {
+      int32_t opcode = node->type == T_OPCALL || node->type == T_ASSIGNMENT ||
+          node->type == '=' || node->type == GOTO_TOKEN ||
+          node->type == IGOTO_TOKEN || node->type == KGOTO_TOKEN ||
+          node->type == S_ADDIN || node->type == S_SUBIN ||
+          node->type == S_MULIN || node->type == S_DIVIN;
+      if (node->markup && !opcode && node->markup != &SYNTHESIZED_ARG)
+        return 0;
+      if (node->value && node->value->lexeme && node->value->lexeme[0] == '#') {
+        /* Also retain a base named through a member or scope annotation. */
+        char *name = node->value->lexeme;
+        size_t length = strcspn(name, ".@");
+        char *base = cs_strndup(csound, name, length);
+        if (!cs_hash_table_get_key(csound, used, base))
+          cs_hash_table_put(csound, used, base, NULL);
+        csound->Free(csound, base);
+      }
+      if (!mark_pool_references(csound, node->left, used) ||
+          !mark_pool_references(csound, node->right, used)) return 0;
+    }
+    return 1;
+}
+
+static int32_t unused_numeric_temporary(CSOUND *csound, CS_VARIABLE *var,
+                                        CS_HASH_TABLE *used)
+{
+    const char *name = var->varName;
+    if (!name || name[0] != '#' || !name[1] || !name[2] ||
+        !((name[1] == 'i' && var->varType == &CS_VAR_TYPE_I) ||
+          (name[1] == 'k' && var->varType == &CS_VAR_TYPE_K) ||
+          (name[1] == 'a' && var->varType == &CS_VAR_TYPE_A))) return 0;
+    const char *digit = name + 2;
+    if (*digit < '0' || *digit > '9') return 0;
+    while (*digit >= '0' && *digit <= '9') digit++;
+    return !*digit && !var->dimensions && !var->subType && !var->refCount &&
+        !var->ctx && !var->memBlock &&
+        !cs_hash_table_get_key(csound, used, var->varName);
+}
+
+/* Run after expression rewrites, before instr_prep creates runtime bindings.
+   These are the new parse's instrument pools, never a live instance's storage.
+   Leave UDO, global and parent pools alone until their ownership is as clear.
+   Keeping synthArgCount avoids reusing a generated name later in compilation. */
+static void prune_unused_temporaries(CSOUND *csound, TREE *root,
+                                     TYPE_TABLE *types)
+{
+    for (; root; root = root->next) {
+      if (root->type != INSTR_TOKEN) continue;
+      CS_VAR_POOL *pool = root->markup;
+      if (!pool || !pool->table || pool->parent ||
+          pool == types->instr0LocalPool || pool == types->globalPool) continue;
+
+      /* Extra hash aliases or replaced entries make ownership uncertain. */
+      int32_t count = 0;
+      CS_VARIABLE *last = NULL, *var;
+      for (var = pool->head; var; var = var->next) {
+        if (!var->varName || ++count > pool->varCount ||
+            cs_hash_table_get(csound, pool->table, var->varName) != var) break;
+        last = var;
+      }
+      if (var || count != pool->varCount || count != pool->table->count ||
+          last != pool->tail) continue;
+
+      CS_HASH_TABLE *used = cs_hash_table_create(csound);
+      if (mark_pool_references(csound, root->right, used)) {
+        CS_VARIABLE **link = &pool->head;
+        last = NULL;
+        while ((var = *link) != NULL) {
+          if (unused_numeric_temporary(csound, var, used)) {
+            char *key = cs_hash_table_get_key(csound, pool->table, var->varName);
+            cs_hash_table_remove(csound, pool->table, var->varName);
+            csound->Free(csound, key); /* remove does not free the key/value */
+            *link = var->next;
+            csound->Free(csound, var->varName);
+            csound->Free(csound, var);
+            pool->varCount--;
+          }
+          else {
+            last = var;
+            link = &var->next;
+          }
+        }
+        pool->tail = last;
+        if (pool->varCount != count) csoundRecalculateVarPoolMemory(csound, pool);
+      }
+      cs_hash_table_free(csound, used);
+    }
+}
+
 TREE *csound_orc_optimize(CSOUND *csound, TREE *root, TYPE_TABLE *types)
 {
     int32_t *selection = csoundQueryGlobalVariable(csound, "__orc_optimizer");
@@ -1247,6 +1342,8 @@ TREE *csound_orc_optimize(CSOUND *csound, TREE *root, TYPE_TABLE *types)
     if (passes & CSOUND_OPT_CSE) reuse_scalar_expressions(csound, root);
     if (passes & CSOUND_OPT_COPY_REMOVAL) remove_scalar_copies(csound, root);
     if (passes & CSOUND_OPT_AUDIO_MUL_ADD) fuse_audio_mul_add(csound, root);
+    if (passes & CSOUND_OPT_UNUSED_TEMPORARY_REMOVAL)
+      prune_unused_temporaries(csound, root, types);
     if (dump) {
       csound->Message(csound, "ORC-OPT after phase=provisional\n");
       dump_tree(csound, root, types->instr0LocalPool, types->globalPool);
