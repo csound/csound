@@ -81,6 +81,11 @@ typedef struct {
 } AOP;
 
 typedef struct {
+    OPDS h;
+    cs_float *out, *input, *gain, *other;
+} AUDIO_MUL_ADD;
+
+typedef struct {
     OPDS    h;
     cs_float   *r, *a, *b, *def;
 } DIVZ;
@@ -257,6 +262,9 @@ int32_t minit(CSOUND *csound, ASSIGNM *p);
 int32_t addkk(CSOUND *csound, AOP *p);
 int32_t subkk(CSOUND *csound, AOP *p);
 int32_t mulkk(CSOUND *csound, AOP *p);
+int32_t mulak(CSOUND *csound, AOP *p);
+int32_t addaa(CSOUND *csound, AOP *p);
+int32_t audio_mul_add(CSOUND *csound, AUDIO_MUL_ADD *p);
 void csound_aops_init_tables(CSOUND *);
 cs_float MOD(cs_float, cs_float);
 int32_t inarray_set(CSOUND *csound, INA *p);

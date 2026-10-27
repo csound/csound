@@ -1125,6 +1125,7 @@ set(libcsound_SRCS
     InOut/circularbuffer.c
     OOps/array_ops.c
     OOps/aops.c
+    OOps/audio_mul_add.c
     OOps/assert_ops.c
     OOps/bus.c
     OOps/cmath.c
@@ -1563,6 +1564,24 @@ list(APPEND libcsound_static_SRCS
     Engine/csound_orc_structs.c
     Engine/new_orc_parser.c
     Engine/symbtab.c)
+
+
+# The private audio multiply/add kernel must round twice, never contract to FMA.
+# Scope these flags to the kernel, leaving the other arithmetic opcodes alone.
+# Non-CMake builds use its volatile fallback instead.
+if(MSVC)
+    check_c_compiler_flag("/fp:strict" HAS_STRICT_AUDIO_MUL_ADD_FP)
+    set(AUDIO_MUL_ADD_STRICT_FP_OPTIONS "/fp:strict")
+elseif(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    check_c_compiler_flag("-fno-fast-math -ffp-contract=off" HAS_STRICT_AUDIO_MUL_ADD_FP)
+    set(AUDIO_MUL_ADD_STRICT_FP_OPTIONS "-fno-fast-math;-ffp-contract=off")
+endif()
+if(HAS_STRICT_AUDIO_MUL_ADD_FP)
+    set_property(SOURCE OOps/audio_mul_add.c APPEND PROPERTY
+        COMPILE_OPTIONS ${AUDIO_MUL_ADD_STRICT_FP_OPTIONS})
+    set_property(SOURCE OOps/audio_mul_add.c APPEND PROPERTY
+        COMPILE_DEFINITIONS CSOUND_FUSION_STRICT_FP=1)
+endif()
 
 
 set_source_files_properties(${YACC_OUT} GENERATED)

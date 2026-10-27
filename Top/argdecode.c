@@ -286,9 +286,10 @@ static const char *longUsageList[] = {
     Str_noop("--verbose               verbose orch translation"),
     Str_noop("--optimize=NAME[,NAME]  enable named orchestra optimizer passes"),
     Str_noop("                          names: legacy, constant-folding, copy-removal,"),
-    Str_noop("                          common-subexpression-elimination (default: legacy)"),
+    Str_noop("                          common-subexpression-elimination, audio-mul-add"),
+    Str_noop("                          (default: legacy)"),
     Str_noop("--optimize=all          enable all optimizer passes in this build"),
-    Str_noop("--optimize=none         disable optional optimizer passes"),
+    Str_noop("--optimize=none         disable optimizer passes, including legacy"),
     Str_noop("--optimize-legacy       enable the legacy TREE pass"),
     Str_noop("--optimize-constant-folding"),
     Str_noop("                          enable constant folding"),
@@ -296,6 +297,8 @@ static const char *longUsageList[] = {
     Str_noop("                          enable scalar copy removal"),
     Str_noop("--optimize-common-subexpression-elimination"),
     Str_noop("                          enable scalar common-subexpression elimination"),
+    Str_noop("--optimize-audio-mul-add"),
+    Str_noop("                          fuse adjacent audio multiply-then-add operations"),
     Str_noop("--list-opcodes          list opcodes in this version"),
     Str_noop("--list-opcodesN         list opcodes in style N in this version"),
     Str_noop("--dither                dither output"),
@@ -572,6 +575,7 @@ static const struct {
     {"constant-folding", CSOUND_OPT_CONSTANT_FOLDING},
     {"copy-removal", CSOUND_OPT_COPY_REMOVAL},
     {"common-subexpression-elimination", CSOUND_OPT_CSE},
+    {"audio-mul-add", CSOUND_OPT_AUDIO_MUL_ADD},
 };
 
 static int32_t optimizer_pass(CSOUND *csound, const char *name, size_t length) {
