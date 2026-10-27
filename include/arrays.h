@@ -176,6 +176,31 @@ static inline int32_t csound_array_member_count(const ARRAYDAT *array,
     return OK;
 }
 
+/* Declared arrays keep their rank. Internal arrays start at rank zero and
+   acquire a rank when an opcode first gives them a shape. */
+static inline int32_t csound_array_rank_matches(const ARRAYDAT *array,
+                                                 int32_t rank)
+{
+    return array != NULL && array->dimensions >= 0 && rank >= 0 &&
+      (array->dimensions == 0 || array->dimensions == rank);
+}
+
+static inline int32_t csound_array_check_rank(CSOUND *csound,
+                                               const ARRAYDAT *array,
+                                               int32_t rank)
+{
+    if (array == NULL || array->dimensions < 0 || rank < 0) {
+        return NOTOK;
+    }
+    if (!csound_array_rank_matches(array, rank)) {
+        csound->ErrorMsg(csound,
+                         Str("array rank mismatch: expected %d, got %d\n"),
+                         array->dimensions, rank);
+        return NOTOK;
+    }
+    return OK;
+}
+
 static inline int32_t csound_array_allocation_size(int32_t memberSize,
                                                    size_t count,
                                                    size_t *result)
@@ -199,7 +224,7 @@ static inline int32_t csound_array_ensure_capacity(CSOUND *csound,
     return csound->ArrayEnsureCapacity(csound, array, capacity, ctx);
 }
 
-/* Resize an array. Return NOTOK without publishing a new logical size when
+/* Resize a vector. Return NOTOK without publishing a new logical size when
    validation, detachment, or allocation fails. */
 static inline int32_t tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size,
                               INSDS *ctx)
@@ -208,9 +233,6 @@ static inline int32_t tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size,
     size_t capacity;
 
     if (UNLIKELY(p == NULL || size < 0 || p->dimensions < 0)) {
-        return NOTOK;
-    }
-    if (UNLIKELY(p->dimensions > 1 && p->sizes == NULL)) {
         return NOTOK;
     }
     if (p->dimensions <= 1 && p->sizes == NULL) {
@@ -239,6 +261,16 @@ static inline int32_t tabinit(CSOUND *csound, ARRAYDAT *p, int32_t size,
     return OK;
 }
 
+/* Core vector outputs use this helper. Keep tabinit's allocation-only
+   behavior for plugins that set dimensions and sizes themselves. */
+static inline int32_t csound_array_init_vector(CSOUND *csound, ARRAYDAT *p,
+                                               int32_t size, INSDS *ctx)
+{
+    if (UNLIKELY(csound_array_check_rank(csound, p, 1) != OK))
+        return NOTOK;
+    return tabinit(csound, p, size, ctx);
+}
+
 /* Match another array's shape, allocating elements for the receiving context.
    Return NOTOK without publishing partial size metadata on failure. */
 static inline int32_t tabinit_like_context(CSOUND *csound, ARRAYDAT *p,
@@ -257,6 +289,9 @@ static inline int32_t tabinit_like_context(CSOUND *csound, ARRAYDAT *p,
     }
     if (p == tp) {
         return OK;
+    }
+    if (UNLIKELY(csound_array_check_rank(csound, p, tp->dimensions) != OK)) {
+        return NOTOK;
     }
     originalArrayType = p->arrayType;
     targetArrayType = originalArrayType != NULL
@@ -281,7 +316,7 @@ static inline int32_t tabinit_like_context(CSOUND *csound, ARRAYDAT *p,
         csound->Free(csound, newSizes);
         return NOTOK;
     }
-    if (p->data == tp->data) {
+    if (p->data != NULL && p->data == tp->data) {
         p->arrayType = targetArrayType;
         csound->Free(csound, newSizes);
         return OK;

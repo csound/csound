@@ -393,13 +393,20 @@ static OPTXT *last_optxt(OPTXT *optxt) {
 /* Read one scalar or array descriptor. Counting and splitting share this
    parser so they agree on both valid descriptors and malformed suffixes. */
 static const char *next_arg_type(const char *start, const char **type,
-                                 size_t *typeLen, size_t *dimensions)
+                                 size_t *typeLen, size_t *dimensions,
+                                 int32_t *generic)
 {
   const char *t = start;
   int32_t internal = *t == '[';
   *dimensions = 0;
+  *generic = 0;
   while (*t == '[') {
     (*dimensions)++;
+    t++;
+  }
+  if (internal && *t == '^') {
+    if (*dimensions != 1) return NULL;
+    *generic = 1;
     t++;
   }
   *type = t;
@@ -423,6 +430,14 @@ static const char *next_arg_type(const char *start, const char **type,
     return t + 1;
   }
   while (*t == '[') {
+    if (t[1] == '*' && t[2] == ']') {
+      if (*dimensions != 0) return NULL;
+      *generic = 1;
+      *dimensions = 1;
+      t += 3;
+      if (*t == '[') return NULL;
+      break;
+    }
     if (t[1] != ']') return NULL;
     (*dimensions)++;
     t += 2;
@@ -433,11 +448,11 @@ static const char *next_arg_type(const char *start, const char **type,
 /** Return the argument count, or -1 for a malformed type string. */
 int32_t args_required(const char* argString)
 {
-  int32_t count = 0;
+  int32_t count = 0, generic;
   const char *t = argString, *type;
   size_t typeLen, dimensions;
   while (t != NULL && *t != '\0') {
-    t = next_arg_type(t, &type, &typeLen, &dimensions);
+    t = next_arg_type(t, &type, &typeLen, &dimensions, &generic);
     if (t == NULL || count == INT32_MAX) return -1;
     count++;
   }
@@ -461,6 +476,9 @@ int32_t args_required(const char* argString)
  *         - Brackets precede the type, single closing bracket at end
  *         - Dimension count = number of leading '[' chars
  *
+ * Any-rank i[*] uses [^i] internally. The marker is separate from the
+ * existing any-element type * (whose array encoding is [*]).
+ *
  * This function is the bridge between human-readable OENTRY definitions
  * and the internal representation used by parse_opcode_args().
  */
@@ -478,14 +496,17 @@ char** split_args(CSOUND* csound, const char* argString)
   args = csound->Malloc(csound, sizeof(char*) * ((size_t)argCount + 1));
   for (i = 0; i < argCount; i++) {
     const char *type;
-    size_t len, dimensions;
+    size_t len, dimensions, prefix;
+    int32_t generic;
     char *part;
-    start = next_arg_type(start, &type, &len, &dimensions);
-    part = csound->Malloc(csound, dimensions + len + (dimensions ? 2 : 1));
-    memset(part, '[', dimensions);
-    memcpy(part + dimensions, type, len);
-    if (dimensions) part[dimensions + len++] = ']';
-    part[dimensions + len] = '\0';
+    start = next_arg_type(start, &type, &len, &dimensions, &generic);
+    prefix = generic ? 2 : dimensions;
+    part = csound->Malloc(csound, prefix + len + (dimensions ? 2 : 1));
+    memset(part, '[', prefix);
+    if (generic) part[1] = '^';
+    memcpy(part + prefix, type, len);
+    if (dimensions) part[prefix + len++] = ']';
+    part[prefix + len] = '\0';
     args[i] = part;
   }
   args[argCount] = NULL;

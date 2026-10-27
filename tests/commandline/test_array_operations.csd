@@ -107,7 +107,7 @@ instr Fillarray
     iArr2d fillarray 1, 2, 3, 4, 5, 6
     kArr2d[][] init 3, 2
     kArr2d fillarray 1, 2, 3, 4, 5, 6
-    SArr2d[] init 2, 3
+    SArr2d[][] init 2, 3
     SArr2d fillarray "a", "b", "c", "e", "f", "g"
 ;two dims, arrays as arguments
 ;    iArr1[] fillarray 1, 2, 3

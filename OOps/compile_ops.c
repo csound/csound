@@ -283,7 +283,7 @@ int32_t readOSC_perf(CSOUND *csound, ROSC *p) {
 #include "arrays.h"
 
 int32_t readOSCarray_init(CSOUND *csound, ROSCA *p) {
-  if (UNLIKELY(tabinit(csound, p->out,
+  if (UNLIKELY(csound_array_init_vector(csound, p->out,
                        (int32_t)strlen(p->type->data),
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);

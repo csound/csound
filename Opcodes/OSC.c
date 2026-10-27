@@ -971,6 +971,10 @@ static int32_t osc_decode_array(CSOUND *csound, OSCLISTEN *p,
          array->storage == NULL)) {
       return osc_malformed_blob(csound, p, 'A');
     }
+    if (UNLIKELY(!csound_array_rank_matches(array, view.dimensions)))
+      return csound->PerfError(csound, &p->h,
+        Str("OSC: array rank mismatch: expected %d, got %d\n"),
+        array->dimensions, view.dimensions);
     newSizes = (int32_t *)csound->Malloc(
       csound, (size_t)view.dimensions * sizeof(int32_t));
     if (UNLIKELY(newSizes == NULL)) {
@@ -1281,7 +1285,7 @@ static int32_t OSC_alist_init(CSOUND *csound, OSCLISTENA *p)
         return csound->InitError(csound, "%s\n", Str("invalid type"));
       }
     }
-    if (UNLIKELY(tabinit(csound, p->args, n, p->h.insdshead) != OK))
+    if (UNLIKELY(csound_array_init_vector(csound, p->args, n, p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     pathLength = strlen(path);
     p->c.saved_path = (char*)csound->Malloc(csound, pathLength + 1);

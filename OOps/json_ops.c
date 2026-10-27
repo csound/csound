@@ -274,7 +274,7 @@ static int decode_value(JSON_CONTEXT *ctx, const CS_TYPE *type, void *value,
       ctx->error = Str_noop("expected a one-dimensional typed array");
       return NOTOK;
     }
-    if (tabinit(csound, array, (int32_t)yyjson_arr_size(json),
+    if (csound_array_init_vector(csound, array, (int32_t)yyjson_arr_size(json),
                 ctx->instance) != OK) {
       ctx->error = Str_noop("could not allocate array");
       return NOTOK;
