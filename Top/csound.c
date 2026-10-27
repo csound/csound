@@ -1114,6 +1114,7 @@ static const CSOUND cenviron_ = {
     .readlineCallback = NULL,
     .readlineUserData = NULL,
     .readlineRequestId = 0,
+    .msg_queue_status = CSOUND_SUCCESS,
 
 };
 

@@ -449,6 +449,8 @@ libcsound.csoundSetOutputChannelCallback.argtypes = [CSOUND_p, CHANNELFUNC]
 libcsound.csoundEvent.argtypes = [CSOUND_p, ct.c_int32, ct.POINTER(cs_float),
                                   ct.c_int32, ct.c_int32]
 libcsound.csoundEventString.argtypes = [CSOUND_p, ct.c_char_p, ct.c_int32]
+libcsound.csoundGetAsyncStatus.restype = ct.c_int32
+libcsound.csoundGetAsyncStatus.argtypes = [CSOUND_p]
 libcsound.csoundGetInstrNumber.argtypes = [CSOUND_p, ct.c_char_p]
 libcsound.csoundKeyPress.argtypes = [CSOUND_p, ct.c_char]
 KEYBOARDFUNC = ct.CFUNCTYPE(ct.c_int32, ct.py_object, ct.c_void_p, ct.c_uint32)
@@ -1606,6 +1608,19 @@ class Csound:
         """
         libcsound.csoundEventString(self.cs, cstring(message),
             ct.c_int32(async_))
+
+    def async_status(self):
+        """The status of the last async request of event, event_string or
+        the score an async compile_csd queues.
+
+        CSOUND_SUCCESS if the API queue took it, CSOUND_ERROR if it was
+        dropped. Success means queued, not yet run. One status serves the
+        instance, whichever thread makes the request: a host sending from
+        several threads pairs each request with its check under a lock - one
+        its message callback can take again, since a rejection's warning may
+        reach that callback inside the rejected call.
+        """
+        return libcsound.csoundGetAsyncStatus(self.cs)
 
     def instr_number(self, name):
         """Get the instrument number for a given instrument name string.

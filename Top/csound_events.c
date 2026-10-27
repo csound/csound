@@ -25,6 +25,7 @@
 void score_event_async(CSOUND *csound, char type, const cs_float *pfields,
                            long numFields);
 void read_score_async(CSOUND *csound, const char *message);
+void async_refused(CSOUND *csound);
 void csoundInputMessage(CSOUND *csound, const char *message);
 
 void rewind_score(CSOUND *csound);   /* musmon.c */
@@ -118,7 +119,11 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
     c = 'e';
   else if (type == CS_ADV_EVENT)
     c = 'a';
-  else return;
+  else {
+    if (async)
+      async_refused(csound);
+    return;
+  }
 
   if (async)
     score_event_async(csound, c, params, nparams);

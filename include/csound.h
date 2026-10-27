@@ -1254,6 +1254,7 @@ extern "C" {
    * type 0 - instrument instance     CS_INSTR_EVENT
    * type 1 - function table instance CS_TABLE_EVENT
    * type 2 - end event               CS_END_EVENT
+   * type 3 - score advance           CS_ADV_EVENT
    * event parameters is nparams cs_float array with the event parameters (p-fields)
    * optionally run asynchronously (async = 1).
    * Async calls copy the parameters and return without waiting for queue space.
@@ -1262,6 +1263,7 @@ extern "C" {
    * If the queue cannot accept the request, no event is queued.
    * Rejected async calls issue at most one warning per instance between resets.
    * NB: This is non-op before csoundStart() is called.
+   * csoundGetAsyncStatus() says whether an async request was queued.
    */
   PUBLIC void  csoundEvent(CSOUND *, int32_t type, const cs_float *params,
                            int32_t nparams, int32_t async);
@@ -1280,8 +1282,28 @@ extern "C" {
    * Async calls copy the string and return without waiting for queue space.
    * If the queue cannot accept the request, no events are queued.
    * Rejected async calls issue at most one warning per instance between resets.
+   * csoundGetAsyncStatus() says whether an async request was queued.
    */
   PUBLIC void  csoundEventString(CSOUND *, const char *message, int32_t async);
+
+  /**
+   * The status of the last async request made by csoundEvent(),
+   * csoundEventString(), csoundTableCopyIn() or csoundTableCopyOut(), or of
+   * the score an async csoundCompileCSD() queues - one that queues none
+   * leaves it as it is: CSOUND_SUCCESS if the API
+   * queue took it, CSOUND_ERROR if it was dropped - the queue had no room for
+   * it, there was none yet (after csoundReset(), before csoundStart()), or
+   * the request was malformed (an unknown csoundEvent() type, a negative
+   * count). Success means queued, not yet run. Synchronous calls leave it as
+   * it is, and a reset sets it to CSOUND_SUCCESS.
+   * One status serves the instance, whichever thread makes the request -
+   * Csound's own included: its UDP server (--port) sends events, and a host
+   * callback may make requests on the performance thread. A host that makes
+   * async requests from several threads of its own pairs each with its check
+   * under a lock - one its message callback can take again, since a
+   * rejection's warning may reach that callback inside the rejected call.
+   */
+  PUBLIC int32_t csoundGetAsyncStatus(CSOUND *);
 
   /**
    * Get the instrument number for a given instrument name string
@@ -1443,6 +1465,7 @@ extern "C" {
    * runs. The queue stores its address, not a copy of its contents.
    * If the queue cannot accept the request, the call returns without copying.
    * Rejected async calls issue at most one warning per instance between resets.
+   * csoundGetAsyncStatus() says whether an async request was queued.
    */
   PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
 				 const cs_float *ptable, int32_t async);
@@ -1461,6 +1484,7 @@ extern "C" {
    * do not read or write it concurrently with the copy.
    * If the queue cannot accept the request, the call returns without copying.
    * Rejected async calls issue at most one warning per instance between resets.
+   * csoundGetAsyncStatus() says whether an async request was queued.
    */
   PUBLIC void csoundTableCopyOut(CSOUND *csound, int32_t table,
 				cs_float *ptable, int32_t async);

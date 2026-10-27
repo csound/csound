@@ -1962,6 +1962,7 @@ struct CSOUND_ {
   uint32_t readlineRequestId;                                /* readline request identifier */
   void *wasi_realtime_api;                                   /* browser control worker, stopped before cleanup */
   int32_t wasi_channel_lock;                                /* shared Wasm channel registry spinlock */
+  volatile long msg_queue_status;                           /* the last async request's, csoundGetAsyncStatus */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

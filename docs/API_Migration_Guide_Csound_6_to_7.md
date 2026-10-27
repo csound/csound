@@ -431,6 +431,16 @@ where type is one of
     };
 ```
 
+An async request the API queue has no room for is dropped. Call
+`csoundGetAsyncStatus()` after it to know: `CSOUND_SUCCESS` if it was
+queued, `CSOUND_ERROR` if it was dropped. It reports the last async request
+of `csoundEvent()`, `csoundEventString()`, `csoundTableCopyIn()` or
+`csoundTableCopyOut()`, or the score an async `csoundCompileCSD()` queues;
+success means queued, not yet run. One status
+serves the instance, whichever thread makes the request, Csound's UDP
+server included: a host sending from several threads pairs each request
+with its check under a lock.
+
 During performance, both `csoundEvent()` and `csoundEventString()`
 treat the start time as relative to the current time: the value is
 added to the current sample position when the event is inserted. A
@@ -514,7 +524,8 @@ PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
 ```
 
 Pass `0` to copy immediately under the API lock, or `1` to enqueue
-the copy for the performance thread.
+the copy for the performance thread; `csoundGetAsyncStatus()` then says
+whether the queue took it.
 
 The list of named generators returned by `csoundGetNamedGens()`
 remains available to modules as `csound->GetNamedGens()`.
