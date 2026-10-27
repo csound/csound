@@ -17,6 +17,7 @@ if(BUILD_TESTS)
         atomic_fallback_test.cpp
         fixtures/atomic_fallback.c
         array_ops_test.cpp
+        slicearray_test.cpp
         array_size_conversion_test.cpp
         audio_array_io_test.cpp
         api_message_queue_test.cpp

@@ -3863,6 +3863,7 @@ static void tabslice_copy(CSOUND *csound, TABSLICE *p, int32_t start,
 int32_t tabslice(CSOUND *csound, TABSLICE *p)
 {
   int32_t start, inc, size;
+  p->warned = 0;
   const char *error = tabslice_bounds(p, &start, &inc, &size);
   if (UNLIKELY(error != NULL))
     return csound->InitError(csound, "%s\n", error);
@@ -3875,11 +3876,42 @@ int32_t tabslice(CSOUND *csound, TABSLICE *p)
 int32_t tabslice_perf(CSOUND *csound, TABSLICE *p)
 {
   int32_t start, inc, size;
+  size_t bytes;
   const char *error = tabslice_bounds(p, &start, &inc, &size);
   if (UNLIKELY(error != NULL))
     return csound->PerfError(csound, &p->h, "%s\n", error);
-  if (UNLIKELY(tabcheck(csound, p->tab, size, &p->h) != OK))
+  /* Validate the existing output and retain the shared-storage write guard.
+     slicearray historically rereads i-rate globals and can grow at perf time;
+     preserve that outside real-time mode only. */
+  if (UNLIKELY(tabcheck(csound, p->tab,
+                         p->tab->sizes != NULL ? p->tab->sizes[0] : 0,
+                         &p->h) != OK))
     return NOTOK;
+  if (UNLIKELY(csound_array_allocation_size(
+                 p->tab->arrayMemberSize, (size_t)size, &bytes) != OK))
+    return csound->PerfError(csound, &p->h, "%s\n", Str("Array size overflow"));
+  if (UNLIKELY(bytes > p->tab->allocated)) {
+    /* Keep the usual capacity error in --realtime, before any allocation. */
+    if (csound->oparms->realtime)
+      return tabcheck(csound, p->tab, size, &p->h);
+    size_t oldBytes = p->tab->allocated;
+    if (UNLIKELY(csound_array_ensure_capacity(
+                   csound, p->tab, (size_t)size, p->h.insdshead) != OK))
+      return csound_array_perf_resize_error(csound, &p->h);
+    /* Warn once per initialization, not on every growing control block. */
+    if (!p->warned) {
+      const char *name = GetOutputArgName(&p->h, 0);
+      csound->Warning(csound,
+        Str("realloc: slicearray output '%s' grew from %zu to %zu bytes during "
+            "performance. Growth is disabled with --realtime.\n"
+            "To avoid this reallocation, predeclare the output array with init "
+            "for the largest slice you will need (at least %d elements here), "
+            "e.g. '%s[] init %d'.\n"),
+        name, oldBytes, p->tab->allocated, size, name, size);
+      p->warned = 1;
+    }
+  }
+  p->tab->sizes[0] = size;
   tabslice_copy(csound, p, start, inc, size);
   return OK;
 }
