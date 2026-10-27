@@ -155,7 +155,7 @@ typedef struct {
   OPDS h;
   ARRAYDAT *tab, *tabin;
   cs_float    *start, *end, *inc;
-  int32_t   len;
+  int32_t   warned;
 } TABSLICE;
 
 typedef struct {
