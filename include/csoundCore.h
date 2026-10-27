@@ -1969,6 +1969,8 @@ struct CSOUND_ {
   void *wasi_realtime_api;                                   /* browser control worker, stopped before cleanup */
   int32_t wasi_channel_lock;                                /* shared Wasm channel registry spinlock */
   volatile long msg_queue_status;                           /* the last async request's, csoundGetAsyncStatus */
+  INSTRTXT **instr0_waiting;                                /* managed queue of globals awaiting init, oldest first */
+  int32_t instr0_waiting_count;                             /* pending entries in instr0_waiting */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */
