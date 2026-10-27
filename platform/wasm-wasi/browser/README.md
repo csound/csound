@@ -17,6 +17,31 @@ ScriptProcessorNode support has been removed from the library. ScriptProcessorNo
 
 **Migration:** If you were using `useSPN: true`, simply remove this parameter. The library will automatically use the superior AudioWorklet API.
 
+## iOS Silent mode
+
+iOS can mute Web Audio when Silent mode is on. Safari on iOS 17 and later can
+[use a playback audio session](https://bugs.webkit.org/show_bug.cgi?id=237322#c6)
+to keep it audible. Run this on the main thread from your Play button handler,
+before `await Csound()` or before creating a custom `AudioContext`:
+
+```js
+try {
+  const session = navigator.audioSession;
+  if (session && session.type !== "play-and-record") {
+    session.type = "playback";
+  }
+} catch {
+  // Keep playback available if the browser rejects this optional setting.
+}
+```
+
+This does not bypass autoplay rules or a media volume of zero. On browsers
+without this API, ask the user to turn Silent mode off. For microphone input,
+use `"play-and-record"` before `enableAudioInput()` or starting with `-iadc`.
+
+Audio sessions affect the whole page. Save the previous type and restore it
+when playback ends or startup fails, only if another audio user has not changed it.
+
 ## Microphone input
 
 Browser microphone access requires a secure context. Use HTTPS for deployed
