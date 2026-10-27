@@ -120,7 +120,6 @@ static void remove_scalar_copies(CSOUND *csound, TREE *root)
       cs_hash_table_mfree_complete(csound, uses);
     }
 }
-#include "entry.h"
 
 /* Private resolved entry. No registration, new public opcode or ABI member. */
 static const OENTRY audio_mul_add_entry = {

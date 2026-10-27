@@ -213,7 +213,8 @@ def main():
                     library_sha256=hashlib.sha256(args.library.read_bytes()).hexdigest(),
                     float_bytes=lib.csoundGetSizeOfMYFLT(),
                     compile_commands=[entry for entry in json.loads((args.build_dir / "compile_commands.json").read_text())
-                                      if entry["file"].endswith("/OOps/aops.c")],
+                                      if entry["file"].endswith(
+                                          ("/OOps/aops.c", "/OOps/audio_mul_add.c"))],
                     compiler_info=[f.read_text() for f in args.build_dir.glob("CMakeFiles/*/CMakeCCompiler.cmake")],
                     cmake_cache=(args.build_dir / "CMakeCache.txt").read_text(),
                     seed=12345, sample_rate=48000, warmups=args.warmups,

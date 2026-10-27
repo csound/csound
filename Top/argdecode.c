@@ -289,7 +289,7 @@ static const char *longUsageList[] = {
     Str_noop("                          common-subexpression-elimination, audio-mul-add"),
     Str_noop("                          (default: legacy)"),
     Str_noop("--optimize=all          enable all optimizer passes in this build"),
-    Str_noop("--optimize=none         disable optional optimizer passes"),
+    Str_noop("--optimize=none         disable optimizer passes, including legacy"),
     Str_noop("--optimize-legacy       enable the legacy TREE pass"),
     Str_noop("--optimize-constant-folding"),
     Str_noop("                          enable constant folding"),

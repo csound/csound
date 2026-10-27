@@ -262,6 +262,8 @@ int32_t minit(CSOUND *csound, ASSIGNM *p);
 int32_t addkk(CSOUND *csound, AOP *p);
 int32_t subkk(CSOUND *csound, AOP *p);
 int32_t mulkk(CSOUND *csound, AOP *p);
+int32_t mulak(CSOUND *csound, AOP *p);
+int32_t addaa(CSOUND *csound, AOP *p);
 int32_t audio_mul_add(CSOUND *csound, AUDIO_MUL_ADD *p);
 void csound_aops_init_tables(CSOUND *);
 cs_float MOD(cs_float, cs_float);

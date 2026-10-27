@@ -23,7 +23,7 @@ from optimizer_bench import optimizer_options
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--library", type=Path, required=True)
-    parser.add_argument("--passes", type=int, choices=range(16),
+    parser.add_argument("--passes", type=int,
                         help="optional optimizer mask; omit for older reference libraries")
     parser.add_argument("--source", type=Path,
                         help="measure this orchestra instead of generated expressions")
@@ -35,6 +35,11 @@ def main():
     parser.add_argument("--repeats", type=int, default=21)
     parser.add_argument("--warmups", type=int, default=3)
     args = parser.parse_args()
+    if args.passes is not None:
+        try:
+            optimizer_options(args.passes)
+        except ValueError as error:
+            parser.error(str(error))
     if (not all(0 < count < 1999 for count in args.arguments) or
             args.instruments < 1 or args.repeats < 1 or args.warmups < 0):
         parser.error("counts must be positive, arguments < 1999, warmups >= 0")

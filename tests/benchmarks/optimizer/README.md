@@ -29,7 +29,7 @@ through `USE_COMPILER_OPTIMIZATIONS`; `RelWithDebInfo` alone is not a strict bui
 
 Per-engine options (experimental):
 
-- `--optimize=none` disables the optional passes.
+- `--optimize=none` disables every named pass, including `legacy`.
 - `--optimize=legacy` or `--optimize-legacy` enables the existing TREE pass.
   This is the default.
 - `--optimize=constant-folding` or `--optimize-constant-folding` enables constant folding.
@@ -87,8 +87,8 @@ shared intermediates and uncertain bindings unchanged.
 
 The private kernel still rounds after multiplication and then adds. It does not
 use an FMA or the `mac` family. CMake disables contraction and fast-math for
-`OOps/aops.c` when the compiler supports those flags. Other builds use a volatile
-product to force the intermediate rounding. Local block sizes and inactive note
+`OOps/audio_mul_add.c` when the compiler supports those flags. Other builds use
+a volatile product to force the intermediate rounding. Local block sizes and inactive note
 samples follow the original callbacks. Both operations must come from the same
 source line so that fusion does not remove a line boundary in the debugger.
 The debugger still sees fewer internal opcode steps on that line, and the removed
@@ -98,7 +98,9 @@ inspecting generated temporaries or stepping through each generated operation.
 This removes a dispatch and the intermediate audio buffer write/read. It does
 not reclaim the unused buffer allocation. Compare `legacy` with
 `legacy,audio-mul-add` at small and large block sizes. The Python benchmark
-helpers retain numeric result labels, with 1 for legacy and 33 for both passes.
+helpers retain numeric result labels, with 1 for legacy, 33 for legacy plus
+fusion, and 47 for all five passes (legacy, constant folding, copy removal, CSE
+and audio multiply-add).
 
 ```sh
 CSOUND7RC=/dev/null python3 tests/benchmarks/optimizer_bench.py \

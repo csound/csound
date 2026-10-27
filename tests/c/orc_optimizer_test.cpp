@@ -1097,11 +1097,11 @@ TEST(OrcOptimizer, FusesOnlyAudioControlAudioExpression) {
         SCOPED_TRACE(test.first);
         const auto source = header(64) + "instr 1\naInput init 0.5\n"
             "aOther init 0.25\nkGain init 0.5\n" + test.first + "\nout aResult\nendin\n";
-        for (int passes : {1, 33}) {
+        for (int passes : {1, 33, 47}) {
             auto cs = engine(passes, true);
             ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
             const auto log = messages(cs.get());
-            EXPECT_EQ(test.second && passes == 33,
+            EXPECT_EQ(test.second && (passes & CSOUND_OPT_AUDIO_MUL_ADD),
                       log.find("op ##muladd.aka") != std::string::npos);
         }
     }
@@ -1117,13 +1117,16 @@ TEST(OrcOptimizer, FusedAudioPreservesRoundingZerosAndNonfiniteValues) {
     const std::vector<cs_float> other = {-FL(1), -FL(0), FL(0), -inf,
         inf, FL(1), FL(0), -FL(0), -inf, nan};
     for (int block : {1, 16, 64, 257}) {
-        auto before = engine(1), after = engine(33);
+        auto before = engine(1, true), after = engine(33, true);
         for (auto *cs : {before.get(), after.get()}) {
             const auto source = header(block) + "instr 1\n"
                 "aInput chnget \"input\"\nkGain chnget \"gain\"\n"
                 "aOther chnget \"other\"\naResult = aInput*kGain+aOther\n"
                 "chnset aResult, \"result\"\nendin\n";
             ASSERT_EQ(0, csoundCompileOrc(cs, source.c_str(), 0));
+            const auto dump = optimizerDumps(messages(cs));
+            ASSERT_EQ(cs == after.get(),
+                      dump.find("op ##muladd.aka") != std::string::npos);
             ASSERT_EQ(0, csoundStart(cs));
             csoundEventString(cs, "i 1 0 1", 0);
         }
@@ -1158,7 +1161,7 @@ TEST(OrcOptimizer, FusedAudioPreservesRoundingZerosAndNonfiniteValues) {
 
 TEST(OrcOptimizer, FusedAudioKeepsLocalBlocksAndSampleAccurateBounds) {
     for (int local : {0, 1, 8}) {
-        auto before = engine(1), after = engine(33);
+        auto before = engine(1, true), after = engine(33, true);
         for (auto *cs : {before.get(), after.get()}) {
             ASSERT_EQ(0, csoundSetOption(cs, "--sample-accurate"));
             const auto source = header(64) + "instr 1\n" +
@@ -1166,6 +1169,9 @@ TEST(OrcOptimizer, FusedAudioKeepsLocalBlocksAndSampleAccurateBounds) {
                 "aInput init 0.5\naOther init 0.25\nkGain init 0.5\n"
                 "aResult = aInput*kGain+aOther\nout aResult\nendin\n";
             ASSERT_EQ(0, csoundCompileOrc(cs, source.c_str(), 0));
+            const auto dump = optimizerDumps(messages(cs));
+            ASSERT_EQ(cs == after.get(),
+                      dump.find("op ##muladd.aka") != std::string::npos);
             ASSERT_EQ(0, csoundStart(cs));
             // Start at sample 3 and stop at sample 54 of the first block.
             csoundEventString(cs, "i 1 0.0000625 0.0010625", 0);
