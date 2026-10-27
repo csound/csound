@@ -1113,7 +1113,7 @@ TEST(OrcOptimizer, FusedAudioPreservesRoundingZerosAndNonfiniteValues) {
     const cs_float epsilon = std::numeric_limits<cs_float>::epsilon();
     const cs_float tiny = std::numeric_limits<cs_float>::denorm_min();
     const std::vector<cs_float> input = {FL(1)+epsilon, -FL(0), FL(0), inf,
-        -inf, nan, tiny, -tiny, std::numeric_limits<cs_float>::max(), FL(0.25)};
+        -inf, nan, tiny, -tiny, (std::numeric_limits<cs_float>::max)(), FL(0.25)};
     const std::vector<cs_float> other = {-FL(1), -FL(0), FL(0), -inf,
         inf, FL(1), FL(0), -FL(0), -inf, nan};
     for (int block : {1, 16, 64, 257}) {
