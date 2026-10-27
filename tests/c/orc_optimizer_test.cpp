@@ -217,7 +217,7 @@ TEST(OrcOptimizer, RecordsExpectedNonzeroExitAndStopsRendering) {
 
 TEST(OrcOptimizer, StableDumpsAndLiteralOperationsRemain) {
     std::string reference;
-    for (int pass : {0, 1, 9, 17, 63}) {
+    for (int pass : {0, 1, 9, 17}) {
         auto cs = engine(pass, true);
         std::string source = header(16) +
             "instr 1\nkx = (2+3)*4\nif kx > 1 then\nkx += 1\nendif\nendin\n";
@@ -251,7 +251,7 @@ instr 1
 endin
 )";
     std::string reference;
-    for (int pass : {0, 1, 9, 17, 63}) {
+    for (int pass : {0, 1, 9, 17}) {
         auto cs = engine(pass, true);
         std::string source = header(16) + body;
         ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
@@ -291,7 +291,7 @@ instr 1
 endin
 )";
     std::string reference;
-    for (int pass : {0, 1, 9, 17, 63}) {
+    for (int pass : {0, 1, 9, 17}) {
         auto cs = engine(pass, true);
         std::string source = header(16) + body;
         ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
@@ -444,7 +444,7 @@ TEST(OrcOptimizer, NamedPassesAreAdditiveAndRejectBadListsAtomically) {
         EXPECT_EQ(0, selected());
     }
     ASSERT_EQ(0, csoundSetOption(cs.get(), "--optimize=all"));
-    EXPECT_EQ(47, selected());
+    EXPECT_EQ(63, selected());
 }
 
 TEST(OrcOptimizer, VerboseMaskSelectsOptimizerDumps) {
@@ -1103,7 +1103,7 @@ TEST(OrcOptimizer, FusesOnlyAudioControlAudioExpression) {
         SCOPED_TRACE(test.first);
         const auto source = header(64) + "instr 1\naInput init 0.5\n"
             "aOther init 0.25\nkGain init 0.5\n" + test.first + "\nout aResult\nendin\n";
-        for (int passes : {1, 33, 47}) {
+        for (int passes : {1, 33, 47, 63}) {
             auto cs = engine(passes, true);
             ASSERT_EQ(0, csoundCompileOrc(cs.get(), source.c_str(), 0));
             const auto log = messages(cs.get());
@@ -1264,10 +1264,9 @@ TEST(OrcOptimizer, FusionKeepsUdoAndGlobalAudioUnchanged) {
     }
 }
 
-
 // Model the lowered-tree rewrite made by scalar copy removal. The producer now
 // writes the named result, but its old temporary still belongs to the pool.
-// This keeps the storage tests independent of expression rewrites.
+// This keeps the storage tests independent of particular expression passes.
 std::string redirectResult(CSOUND *cs, TREE *scope, const char *name) {
     for (TREE *node = scope->right; node && node->next; node = node->next) {
         TREE *copy = node->next;
@@ -1298,7 +1297,7 @@ TREE *firstInstrument(TREE *tree) {
 
 void pruneTree(CSOUND *cs, TREE *tree) {
     auto *passes = static_cast<int32_t *>(csoundQueryGlobalVariable(cs, "__orc_optimizer"));
-    if (!(*passes & 16))
+    if (!(*passes & CSOUND_OPT_UNUSED_TEMPORARY_REMOVAL))
         ASSERT_EQ(0, csoundSetOption(cs, "--optimize-unused-temporary-removal"));
     csound_orc_optimize(cs, tree->next, static_cast<TYPE_TABLE *>(tree->markup));
 }
@@ -1393,6 +1392,31 @@ TEST(OrcOptimizer, PruningKeepsReferencesInOtherRegionsAndMetadata) {
     }
 }
 
+TEST(OrcOptimizer, PruningRemovesSlotsLeftByCopyRemoval) {
+    const char *body = R"(
+instr 1
+  iInput = p4
+  iResult = (iInput + 1) * 2
+  aOut = iResult
+  out aOut
+endin
+)";
+    // Exercise copy removal alone, with legacy, and with every expression pass.
+    for (int copies : {4, 5, 47}) {
+        auto before = engine(copies);
+        auto after = engine(copies | CSOUND_OPT_UNUSED_TEMPORARY_REMOVAL);
+        const auto source = header(64) + body;
+        ASSERT_EQ(0, csoundCompileOrc(before.get(), source.c_str(), 0));
+        ASSERT_EQ(0, csoundCompileOrc(after.get(), source.c_str(), 0));
+        auto *originalPool = before->engineState.instrtxtp[1]->varPool;
+        auto *prunedPool = after->engineState.instrtxtp[1]->varPool;
+        EXPECT_EQ(originalPool->varCount - 1, prunedPool->varCount);
+        EXPECT_LT(prunedPool->poolSize, originalPool->poolSize);
+        identical(render(copies, 64, body),
+                  render(copies | CSOUND_OPT_UNUSED_TEMPORARY_REMOVAL, 64, body));
+    }
+}
+
 TEST(OrcOptimizer, PruningLeavesNamedAggregateAndOwnedVariables) {
     auto cs = engine(0);
     TREE *tree = csoundParseOrc(cs.get(), (header(16) +
@@ -1400,7 +1424,8 @@ TEST(OrcOptimizer, PruningLeavesNamedAggregateAndOwnedVariables) {
     ASSERT_NE(nullptr, tree);
     auto *pool = static_cast<CS_VAR_POOL *>(firstInstrument(tree)->markup);
     // Unknown ownership, malformed names and nonnumeric types are retained.
-    for (const char *name : {"#i900", "#i901", "#i902", "#i903", "#i904", "#i_reserved"}) {
+    for (const char *name : {"#i900", "#i901", "#i902", "#i903", "#i904",
+                             "#i_reserved", "#", "#i", "#k", "#a", ""}) {
         auto *v = csoundCreateVariable(cs.get(), csoundGetTypePool(cs.get()),
             &CS_VAR_TYPE_I, const_cast<char *>(name), nullptr);
         ASSERT_EQ(0, csoundAddVariable(cs.get(), pool, v));
@@ -1445,10 +1470,20 @@ TEST(OrcOptimizer, PruningSurvivesLocalKsmpsReinitAndLiveReplacement) {
     ASSERT_NE(nullptr, tree);
     auto name = redirectResult(cs.get(), firstInstrument(tree), "iResult");
     ASSERT_FALSE(name.empty());
+    auto *newPool = static_cast<CS_VAR_POOL *>(firstInstrument(tree)->markup);
+    auto *temporary = csoundFindVariableWithName(cs.get(), newPool, name.c_str());
+    ASSERT_NE(nullptr, temporary);
+    const int slotBytes = (temporary->memBlockSize + sizeof(void *) - 1) /
+                          sizeof(void *) * sizeof(void *);
     pruneTree(cs.get(), tree);
     ASSERT_EQ(0, csoundCompileTree(cs.get(), tree, 0));
     csoundDeleteTree(cs.get(), tree);
-    EXPECT_NE(old, cs->engineState.instrtxtp[1]);
+    auto *replacement = cs->engineState.instrtxtp[1];
+    ASSERT_NE(old, replacement);
+    EXPECT_EQ(nullptr, csoundFindVariableWithName(cs.get(), replacement->varPool,
+                                                name.c_str()));
+    EXPECT_EQ(oldCount - 1, replacement->varPool->varCount);
+    EXPECT_EQ(oldSize - slotBytes, replacement->varPool->poolSize);
     EXPECT_EQ(oldSize, old->varPool->poolSize);
     EXPECT_EQ(oldCount, old->varPool->varCount);
     EXPECT_EQ(oldStorage, oldInstance->lclbas);

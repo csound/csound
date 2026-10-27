@@ -29,7 +29,7 @@ through `USE_COMPILER_OPTIMIZATIONS`; `RelWithDebInfo` alone is not a strict bui
 
 Per-engine options (experimental):
 
-- `--optimize=none` disables every named pass, including `legacy`.
+- `--optimize=none` disables every named optimizer pass, including `legacy`.
 - `--optimize=legacy` or `--optimize-legacy` enables the existing TREE pass.
   This is the default.
 - `--optimize=constant-folding` or `--optimize-constant-folding` enables constant folding.
@@ -54,9 +54,10 @@ which transformations run, not their execution order.
 
 The benchmark runners keep numeric labels in their output to compare with earlier
 measurements. They translate those labels to the named options before compilation.
-The bits are 1 for legacy, 2 for constant folding, 4 for copy removal and 8 for
-CSE. Selecting all four gives 15. The CSE comparison still uses 1 and 9 to keep
-constant folding and copy removal off.
+The bits are 1 for legacy, 2 for constant folding, 4 for copy removal, 8 for
+CSE, 16 for unused temporary removal and 32 for audio multiply-then-add. Selecting
+all six gives 63. The CSE comparison still uses 1 and 9 to keep the other passes
+off.
 
 The earlier `orc_opt_passes` configuration variable was an unreleased benchmark
 control. These options replace it, so callers of that control must switch to
@@ -433,7 +434,7 @@ c++ -O2 -std=c++17 -DUSE_DOUBLE -Iinclude -IH -Ibuild/include -Ibuild \
   tests/benchmarks/optimizer_storage.cpp -Lbuild -lcsound64 \
   -Wl,-rpath,"$PWD/build" -o /tmp/optimizer-storage
 CSOUND7RC=/dev/null taskset -c 14 /tmp/optimizer-storage \
-  legacy,unused-temporary-removal repeated
+  legacy,copy-removal,unused-temporary-removal literals
 ```
 
 Omit `-DUSE_DOUBLE` and select the matching library for a float build. Use a free
@@ -441,7 +442,6 @@ CPU on your own machine. The probe supports `repeated`, `unique` and `literals`
 workloads, each with 512 expressions. Without a preceding rewrite that removes
 a temporary, pruning should save no bytes. To measure useful work, compare the
 same build and expression passes with and without `unused-temporary-removal`.
-If those passes are not merged yet, keep the integration patch with the report.
 
 Alternate run order, warm up, and retain individual measurements. Allocation
 tracking runs only during note activation and stays outside the render timer.

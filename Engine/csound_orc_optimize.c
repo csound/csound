@@ -1232,8 +1232,6 @@ void csound_orc_dump_templates(CSOUND *csound, ENGINE_STATE *state)
    result alone does not justify dropping warnings, state changes, or init/deinit
    work. Preserve named assignments and unknown/plugin/UDO calls. */
 
-extern const char *SYNTHESIZED_ARG;
-
 /* Mark reads and writes in every phase, including branches and reinit regions.
    Opaque argument metadata could retain a binding that this walk cannot see. */
 static int32_t mark_pool_references(CSOUND *csound, TREE *node,
@@ -1266,7 +1264,7 @@ static int32_t unused_numeric_temporary(CSOUND *csound, CS_VARIABLE *var,
                                         CS_HASH_TABLE *used)
 {
     const char *name = var->varName;
-    if (!name || name[0] != '#' ||
+    if (!name || name[0] != '#' || !name[1] || !name[2] ||
         !((name[1] == 'i' && var->varType == &CS_VAR_TYPE_I) ||
           (name[1] == 'k' && var->varType == &CS_VAR_TYPE_K) ||
           (name[1] == 'a' && var->varType == &CS_VAR_TYPE_A))) return 0;

@@ -286,7 +286,7 @@ static const char *longUsageList[] = {
     Str_noop("--verbose               verbose orch translation"),
     Str_noop("--optimize=NAME[,NAME]  enable named orchestra optimizer passes"),
     Str_noop("                          names: legacy, constant-folding, copy-removal,"),
-    Str_noop("                          common-subexpression-elimination, audio-mul-add"),
+    Str_noop("                          common-subexpression-elimination, audio-mul-add,"),
     Str_noop("                          unused-temporary-removal (default: legacy)"),
     Str_noop("--optimize=all          enable all optimizer passes in this build"),
     Str_noop("--optimize=none         disable optimizer passes, including legacy"),
