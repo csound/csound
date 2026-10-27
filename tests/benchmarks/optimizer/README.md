@@ -32,9 +32,14 @@ Per-engine options (experimental):
 - `--optimize=none` disables the optional passes.
 - `--optimize=legacy` or `--optimize-legacy` enables the existing TREE pass.
   This is the default.
+- `--optimize=constant-folding` or `--optimize-constant-folding` enables constant folding.
 - `--optimize=copy-removal` or `--optimize-copy-removal` enables scalar copy removal.
 - `--optimize=legacy,copy-removal` enables both named passes.
-- `--optimize=all` enables every pass implemented in this build.
+- `--optimize=legacy,constant-folding` enables both named passes.
+- `--optimize-common-subexpression-elimination` enables local scalar CSE.
+- `--optimize=all` enables every pass implemented in this build, including
+  experimental passes. Constant folding has a reported steady-render slowdown
+  on macOS. Measure your workload before enabling it.
 
 Named lists and individual flags add to the current selection. Options take effect
 in command-line order. Use `--optimize=none` first to select a pass without the
@@ -45,6 +50,13 @@ which transformations run, not their execution order.
 
 The benchmark runners keep numeric labels in their output to compare with earlier
 measurements. They translate those labels to the named options before compilation.
+The bits are 1 for legacy, 2 for constant folding, 4 for copy removal and 8 for
+CSE. Selecting all four gives 15. The CSE comparison still uses 1 and 9 to keep
+constant folding and copy removal off.
+
+The earlier `orc_opt_passes` configuration variable was an unreleased benchmark
+control. These options replace it, so callers of that control must switch to
+the names above. Public function signatures and structure layouts stay unchanged.
 
 Diagnostic options:
 
@@ -61,6 +73,15 @@ classification, getter phase specialization, or phase diagnostics. They reset
 with the engine.
 Configure them before compilation; do not mutate controls concurrently with a
 compile.
+
+Literal folding handles resolved built-in scalar addition, subtraction and
+multiplication. It substitutes a generated i-rate temporary only when one
+known, init-only consumer reads it in the same straight-line block. Other
+opcodes and control-flow boundaries stop propagation. Division, non-finite and
+subnormal arithmetic, overloads and performance-time consumers remain unchanged.
+Each operation uses sample precision and keeps its original grouping. Unused
+variable-pool slots remain allocated. This pass is experimental and stays off by
+default.
 
 Dumps renumber generated temporaries/labels per scope and expose resolved opcode
 name/signature, callback phases, operation counts, and template storage counts.
@@ -235,3 +256,92 @@ and audio processing. Compilation is measured separately. A copy count of zero
 is a control for the harness and scheduling cost. Keep generated reports and
 charts outside the source tree. Record the compiler, CPU and build flags with
 results. Run on an idle machine and pin the runner to one CPU on Linux if useful.
+
+## Literal folding
+
+The [recorded macOS and Linux comparison](../results/literal-folding/README.md)
+includes initialization gains, compile costs and a steady-rendering regression.
+
+Run the focused comparison on macOS or Linux with the same strict build above.
+
+```sh
+CSOUND7RC=/dev/null python3 tests/benchmarks/literal_folding.py \
+  --library build/optimizer/CsoundLib64.framework/CsoundLib64 \
+  --build-dir build/optimizer --output /tmp/literal-folding.json
+```
+
+On Linux use the built `libcsound64.so` path. A CPU affinity tool such as
+`taskset -c 14` can pin the runner and its children to one available core.
+Run this without another build or benchmark on the same host.
+
+The runner compares mask 1 against mask 3 in fresh processes, alternating order,
+with three warmup pairs and 21 measured pairs. It uses 128 simultaneous notes at
+48 kHz and ksmps 64. The cases are a small musical instrument, a dynamic-input
+control, and generated instruments with 64 or 512 literal expressions. Every
+generated value contributes to the output. Use `--voices 1` to check the small
+case separately.
+
+The activation measurement includes fresh note allocation, initialization, and
+one audio block. It does not isolate arithmetic dispatch or instance reuse.
+Compilation, engine start, activation, and one second of steady rendering each
+have separate wall and process CPU times. The steady rendering loop includes
+Python/ctypes overhead. Audio and ordered diagnostics must match in separate
+untimed capture runs before timing starts. Dumps and raw paired measurements
+remain in the JSON report with build flags and the library hash.
+
+Memory readings are process peak RSS at each stage, including Python, the loaded
+library, compiler storage, and allocator overhead. They are cumulative high-water
+marks, not current memory or per-note allocation. Fresh processes keep one
+candidate's allocations out of the other's measurement. Do not describe retained
+variable-pool slots as reclaimed memory, or infer a steady DSP speedup from a
+lower activation time.
+
+## Scalar common-subexpression elimination
+
+CSE reuses resolved built-in scalar addition, subtraction and multiplication
+inside instruments. It compares the exact implementation, ordered operands and
+execution phase. Writes invalidate saved inputs or results. Calls, labels,
+jumps, compound assignments such as `+=`, and phase changes end reuse. It leaves
+globals, UDO bodies, audio, arrays, structs, division and overloaded operations
+alone.
+
+The first version only removes a generated result with one definition and all
+its reads in the next known arithmetic or scalar-copy operation in the same
+phase. Named assignments retain their source locations and bindings. This
+restriction prevents a temporary alias from crossing an unknown call or branch.
+It can still reuse nested expressions. A 64-entry table bounds lookup cost.
+Unused temporary slots remain in the variable pool. Cascading replacements can
+also leave computations whose results are no longer read. Removing those
+computations needs a separate dead-code pass. The default stays unchanged.
+
+### Native Linux comparison
+
+```sh
+ninja -C build/optimizer scalar_cse_bench
+CSOUND7RC=/dev/null taskset -c 14 python3 tests/benchmarks/scalar_cse_bench.py \
+  --binary build/optimizer/tests/benchmarks/scalar_cse_bench \
+  --library build/optimizer/libcsound64.so --build-dir build/optimizer \
+  --expressions 512 --output /tmp/cse-repeated-512.json
+```
+
+Each generated expression is `(input + offset) * 0.75 - 0.25`. Its result goes
+into `sum = sum + value`, which controls an oscillator. Explicit addition keeps
+this within the initial allowlist, while `sum += value` would end reuse. Repeated cases use one offset. `--unique`
+uses a distinct offset for each expression as a negative control. Also run
+`--expressions 0`, `--expressions 32`, and `--rate i` to separate steady control
+work from note initialization.
+
+The runner labels the legacy-only and legacy-plus-CSE selections as 1 and 9
+in its raw data. It sets those selections through the named options and compares them in 21 alternating pairs of fresh processes.
+It checks the loaded library path and sample size. Separate capture runs compare
+all samples and ordered messages before timing. Each process schedules 32 voices,
+measures the activation block, warms up for three windows, then records 12
+windows of 128 blocks at 48 kHz and ksmps 64. CPU and wall time come from a native
+loop. The chart's time axis is score time after warmup, not real-time playback.
+Compilation and the first block are reported separately. These synthetic cases
+measure callback savings, not whole-composition or hardware audio latency.
+
+Pin the process to a quiet CPU and avoid concurrent builds or benchmarks.
+Record the host, compiler flags and precision. Output includes source, revision,
+local diff, binary/library hashes, CMake configuration and raw paired timings.
+Keep results and charts outside the repository.
