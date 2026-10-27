@@ -351,6 +351,9 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Release
 
+      - name: Compile optimizer benchmark
+        run: cmake --build build --config Release --target optimizer_timeline
+
       - name: Run unit tests
         run: ctest --test-dir build -j$(nproc) --output-on-failure
       - name: Run CSD tests
@@ -1498,6 +1501,9 @@ jobs:
 
       - name: Build Csound
         run: cmake --build build --config Release
+
+      - name: Compile optimizer benchmark
+        run: cmake --build build --config Release --target optimizer_timeline
 
       - name: Run tests
         run: cmake --build build --config Release --target csdtests

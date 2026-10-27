@@ -29,8 +29,25 @@ through `USE_COMPILER_OPTIMIZATIONS`; `RelWithDebInfo` alone is not a strict bui
 
 Per-engine options (experimental):
 
-- `-+orc_opt_passes=0`: skip the optional legacy TREE optimizer.
-- `-+orc_opt_passes=1`: existing default; only bit 0 is currently supported.
+- `--optimize=none` disables the optional passes.
+- `--optimize=legacy` or `--optimize-legacy` enables the existing TREE pass.
+  This is the default.
+- `--optimize=copy-removal` or `--optimize-copy-removal` enables scalar copy removal.
+- `--optimize=legacy,copy-removal` enables both named passes.
+- `--optimize=all` enables every pass implemented in this build.
+
+Named lists and individual flags add to the current selection. Options take effect
+in command-line order. Use `--optimize=none` first to select a pass without the
+legacy optimizer. `all` and `none` must appear alone after `--optimize=`.
+Unknown names, missing names and empty list entries produce an option error. A
+bad name anywhere in a list leaves the selection unchanged. Pass names select
+which transformations run, not their execution order.
+
+The benchmark runners keep numeric labels in their output to compare with earlier
+measurements. They translate those labels to the named options before compilation.
+
+Diagnostic options:
+
 - `--verbose=0x200`: normalized input/output TREE and resolved opcode-template dumps
   through the `DEBUG_OPTIMIZER` bit in the existing debug mask.
 - `--verbose=0x210`: combine optimizer and parser (`0x10`) diagnostics.
@@ -39,12 +56,11 @@ Per-engine options (experimental):
   with other categories. `DEBUG_FULL` retains its existing value; explicitly passing
   `--verbose=0x7fffffff` includes optimizer dumps too.
 
-These do not disable semantic lowering, type checks, UDO rate classification,
-getter phase specialization, or phase diagnostics. They reset with the engine.
+The optimizer controls do not disable semantic lowering, type checks, UDO rate
+classification, getter phase specialization, or phase diagnostics. They reset
+with the engine.
 Configure them before compilation; do not mutate controls concurrently with a
-compile. Invalid masks are rejected by the configuration-variable API; the
-existing CLI option parser reports configuration errors as warnings and may still
-return success. Tests check the underlying API and actual stored controls.
+compile.
 
 Dumps renumber generated temporaries/labels per scope and expose resolved opcode
 name/signature, callback phases, operation counts, and template storage counts.
@@ -149,3 +165,48 @@ Run both phases and masks, then repeat against an untouched baseline build with
 identical flags, omitting `--passes` (older libraries lack the control). The default
 argument counts are 8/64/256/1024. Compare raw trials and absolute latency; do not
 infer scalability from a single small instrument or treat noisy CI timings as gates.
+
+## Scalar copy removal
+
+`--optimize=copy-removal` adds copy removal to the default `legacy` pass.
+Use `--optimize=none --optimize-copy-removal` to run copy removal alone.
+
+The pass lets built-in i-rate addition, subtraction and multiplication write a
+local scalar destination directly when the next operation copies their generated
+result there. The result must have exactly one use. This runs after overload
+resolution and leaves plugins, UDOs, globals, other rates and structured values
+alone. It does not change arithmetic order or remove temporary variable slots.
+Default compilation remains `--optimize=legacy`.
+
+`--optimize=all` includes this experimental pass. The recorded macOS runs
+showed a 26–32% slowdown in the 32-addition workload, although that machine
+was also running other tasks. Those results need a repeat on an idle machine.
+The large workload improved on both hosts, and the Linux 32-addition workload
+also improved. Keep the pass opt-in and measure your own workload before
+enabling it.
+
+The native `optimizer_timeline` benchmark measures repeated note starts and audio
+processing in consecutive 1.024-second score windows. Each note lasts 16 blocks
+at 48 kHz with ksmps 64. Three warmup windows precede measurement. The fixture
+generates a chain of local i-rate additions whose final value sets a sine tone's
+frequency. This
+is a synthetic initialization workload, not a prediction for all instruments.
+
+```sh
+ninja -C build/optimizer optimizer_timeline
+CSOUND7RC=/dev/null python3 tests/benchmarks/optimizer_timeline.py \
+  --binary build/optimizer/tests/benchmarks/optimizer_timeline \
+  --library build/optimizer/CsoundLib64.framework/CsoundLib64 \
+  --build-dir build/optimizer --copies 512 --voices 128 --windows 12 \
+  --output /tmp/scalar-copies.json
+```
+
+The runner checks complete audio and messages in separate untimed runs, then
+alternates masks 1 and 5 in fresh processes for each pair. The native loop
+reports the loaded library, checks sample precision and reads back the pass mask.
+The runner rejects a library that differs from `--library`. The native loop
+measures process CPU and wall time, including event submission, note activation
+and audio processing. Compilation is measured separately. A copy count of zero
+is a control for the harness and scheduling cost. Keep generated reports and
+charts outside the source tree. Record the compiler, CPU and build flags with
+results. Run on an idle machine and pin the runner to one CPU on Linux if useful.

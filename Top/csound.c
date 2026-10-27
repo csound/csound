@@ -30,6 +30,7 @@
 
 #include "csoundCore.h"
 #include "csmodule.h"
+#include "csound_orc_optimize.h"
 #include "corfile.h"
 #include "csound_standard_types.h"
 #include "csGblMtx.h"
@@ -2138,17 +2139,12 @@ static void reset(CSOUND *csound) {
   csoundCreateConfigurationVariable(csound, "rtmidi", s, CSOUNDCFG_STRING, 0,
                                     NULL, &max_len,
                                     Str("Real time MIDI module name"), NULL);
-  /* Per-engine compiler pass selection, owned/reset with global variables.
-     Bit 0 is the existing TREE optimizer; no new transformations are enabled. */
+  /* Private compiler state for --optimize, reset with the engine.
+     Keep this outside OPARMS so the public parameter layout stays unchanged. */
   {
-    int32_t minimum = 0, maximum = 1;
-    int32_t *passes;
     csoundCreateGlobalVariable(csound, "__orc_optimizer", sizeof(int32_t));
-    passes = csoundQueryGlobalVariable(csound, "__orc_optimizer");
-    *passes = 1;
-    csoundCreateConfigurationVariable(csound, "orc_opt_passes", passes,
-        CSOUNDCFG_INTEGER, 0, &minimum, &maximum,
-        Str("Orchestra optimizer pass mask (0: off, 1: legacy TREE pass)"), NULL);
+    int32_t *passes = csoundQueryGlobalVariable(csound, "__orc_optimizer");
+    *passes = CSOUND_OPT_LEGACY;
   }
   max_len = 256; /* should be the same as in csoundCore.h */
   csoundCreateConfigurationVariable(
