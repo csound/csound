@@ -674,11 +674,11 @@ int32_t csoundLoadModules(CSOUND *csound)
 #if (defined(HAVE_DIRENT_H) && (TARGET_OS_IPHONE == 0))
   DIR *dir;
   struct dirent *f;
-  const char *dname, *fname;
+  const char *dname, *fname, *end;
   enum { searchpath_buflen = 2048, buflen = 1024 };
   char buf[buflen];
   int32_t i, n, len, err = CSOUND_SUCCESS;
-  char *dname1, *end;
+  char *dname1;
   int32_t read_directory = 1;
   int32_t warn_bad_directory = 0;
   const char *userplugindir_start = NULL;
@@ -768,11 +768,11 @@ int32_t csoundLoadModules(CSOUND *csound)
   while(read_directory) {
     /* find separator */
     if((end = strchr(dname, sep)) != NULL) {
-      *end = '\0';
-      /* copy directory name */
-      dname1 = csoundStrdup(csound, (char *) dname);
-
-      *end = sep;  /* restore for re-execution */
+      /* Copy the directory without changing the source search path. */
+      size_t dirlen = (size_t) (end - dname);
+      dname1 = csound->Malloc(csound, dirlen + 1);
+      memcpy(dname1, dname, dirlen);
+      dname1[dirlen] = '\0';
       /* move to next directory name */
       dname = end + 1;
       if (dname == userplugindir_start)
@@ -780,7 +780,7 @@ int32_t csoundLoadModules(CSOUND *csound)
 
     } else {
       /* copy last directory name) */
-      dname1 = csoundStrdup(csound, (char *) dname);
+      dname1 = csoundStrdup(csound, dname);
       read_directory = 0;
     }
 
@@ -1059,10 +1059,10 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
 #if (defined(HAVE_DIRENT_H) && (TARGET_OS_IPHONE == 0))
   DIR             *dir;
   struct dirent   *f;
-  const char      *dname, *fname;
+  const char      *dname, *fname, *end;
   char            buf[1024];
   int32_t         i, n, len, err = CSOUND_SUCCESS;
-  char            *dname1, *end;
+  char            *dname1;
   int32_t         read_directory = 1;
   char sep =
 #ifdef WIN32
@@ -1108,15 +1108,16 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
   while(read_directory) {
     /* find separator */
     if((end = strchr(dname, sep)) != NULL) {
-      *end = '\0';
-      /* copy directory name */
-      dname1 = csoundStrdup(csound, (char *) dname);
-      *end = sep;  /* restore for re-execution */
+      /* Copy the directory without changing the source search path. */
+      size_t dirlen = (size_t) (end - dname);
+      dname1 = csound->Malloc(csound, dirlen + 1);
+      memcpy(dname1, dname, dirlen);
+      dname1[dirlen] = '\0';
       /* move to next directory name */
       dname = end + 1;
     } else {
       /* copy last directory name) */
-      dname1 = csoundStrdup(csound, (char *) dname);
+      dname1 = csoundStrdup(csound, dname);
       read_directory = 0;
     }
 

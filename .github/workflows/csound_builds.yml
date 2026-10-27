@@ -101,7 +101,7 @@ jobs:
             ninja-build ccache cmake curl xz-utils libgtest-dev libsndfile1-dev
             libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev
             swig liblua5.1-0-dev default-jdk liblo-dev bison flex gettext
-            libsamplerate0-dev libpipewire-0.3-dev qemu-user
+            libsamplerate0-dev libpipewire-0.3-dev
 
       - name: Download WASI SDK
         id: wasi-sdk
@@ -141,12 +141,21 @@ jobs:
           cmake --build build-no-wasmtime --target csound-bin --parallel "$(nproc)"
 
       - name: Run the default build on a CPU without AVX
-        timeout-minutes: 2
+        timeout-minutes: 5
         run: |
           # Nehalem has SSE2 but no AVX or AVX2. Leave USE_AVX2 unset above
           # so this checks the default used by a fresh build directory.
-          qemu-x86_64 -cpu Nehalem build-no-wasmtime/csound \
-            tests/commandline/test_oscil1i.csd
+          # Ubuntu runners can use amd64v3 libraries, which need AVX2. Run
+          # the same binary with baseline libraries from the matching release.
+          . /etc/os-release
+          docker run --rm --volume "$PWD:$PWD" --workdir "$PWD" \
+            "ubuntu:$VERSION_ID" bash -euc '
+              apt-get update -qq
+              apt-get install -y --no-install-recommends \
+                qemu-user libsndfile1 libsamplerate0 libstdc++6
+              qemu-x86_64 -cpu Nehalem build-no-wasmtime/csound \
+                tests/commandline/test_oscil1i.csd
+            '
 
       - name: Configure build
         run: |

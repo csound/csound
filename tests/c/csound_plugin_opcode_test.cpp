@@ -42,6 +42,17 @@ public:
     CSOUND* csound {nullptr};
 };
 
+TEST_F(PluginTests, LoadsReadOnlyDirectoryList)
+{
+  // The loader must split the list without writing into the caller's string.
+#ifdef WIN32
+  const char *directories = "missing-plugin-dir-a;missing-plugin-dir-b";
+#else
+  const char *directories = "missing-plugin-dir-a:missing-plugin-dir-b";
+#endif
+  ASSERT_EQ(csoundLoadPlugins(csound, directories), CSOUND_SUCCESS);
+}
+
 struct OPC {
   OPDS h;
   cs_float *r,*a,*b,*c;
