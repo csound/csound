@@ -3,7 +3,8 @@ description = "chnset stops safely when a changed name refers to a string channe
 
 [expect]
 exit = "nonzero"
-stderr = ["channel already exists with incompatible type", "end of Performance"]
+stderr = ["channel already exists with incompatible type"]
+output = ["end of Performance"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
