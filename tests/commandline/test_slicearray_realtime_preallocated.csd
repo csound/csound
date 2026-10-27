@@ -20,19 +20,26 @@ nchnls = 1
 
 instr 1
   aSource[] init 3
-  aSource[0] = 10
-  aSource[1] = 20
-  aSource[2] = 30
   trimi aSource, 1
 
   ; Reserving the largest output at init avoids growth during performance.
   aSlice[] init 3
   aSlice slicearray aSource, 0
+
+  ; Fill the source for the next block only after restoring its length.
+  ; Indexed audio writes beyond the current length would allocate storage.
   trim aSource, 3
+  aSource[0] = 10
+  aSource[1] = 20
+  aSource[2] = 30
 
   kCycle timeinstk
   kLength lenarray aSlice
   kLastIndex init 2
+  if kCycle == 1 && kLength != 1 then
+    printks "expected one element in the first slice, got %d\n", 0, kLength
+    exitnowk -1
+  endif
   if kCycle == 2 then
     if kLength != 3 then
       exitnowk -1
