@@ -26,38 +26,11 @@ nix-build ./src/wasi-preview2-support.nix \
   --impure --argstr system "$NIX_SYSTEM" --show-trace -o result_preview2_support
 nix-build ./src/wasi64-support.nix \
   --impure --argstr system "$NIX_SYSTEM" --show-trace -o result_wasi64_support
-if [ "$(cat ./result_wasi64_support/supported)" = 0 ]; then
-  printf '%s\n' "Preview 2 memory64 host check failed; csound_x64 remains reserved."
-else
-  printf '%s\n' "Preview 2 memory64 host check passed; the wasm64 libc port is still required."
-fi
 nix-build ./src/csound.nix "${COMMON_ARGS[@]}" --argstr moduleKind browser -o result
-# The wrapper bundles the shared reactor when this toolchain can build it;
-# otherwise it bundles the baseline reactor. --realtime still controls init.
-nix-build ./src/wasi-realtime-support.nix \
-  --impure --argstr system "$NIX_SYSTEM" --show-trace -o result_realtime_support
-realtime_supported=$(cat ./result_realtime_support/supported)
-case "$realtime_supported" in
-  1)
-    nix-build ./src/csound-browser-realtime.nix "${COMMON_ARGS[@]}" -o result_browser_realtime
-    nix-build ./src/plugin_example.nix \
-      --impure --argstr system "$NIX_SYSTEM" --arg sharedMemory true \
-      --arg csoundSdkArchive ./result_browser_realtime/lib/csound-plugin-sdk-shared.tar.gz \
-      -o result_plugin_c_shared --show-trace
-    nix-build ./src/plugin_example_cpp.nix \
-      --impure --argstr system "$NIX_SYSTEM" --arg sharedMemory true \
-      --arg csoundSdkArchive ./result_browser_realtime/lib/csound-plugin-sdk-shared.tar.gz \
-      -o result_plugin_cpp_shared --show-trace
-    ;;
-  0)
-    printf '%s\n' "WASI threads unavailable; packaging the baseline browser artifact."
-    cat ./result_realtime_support/probe.log
-    ;;
-  *)
-    printf '%s\n' "Invalid WASI thread capability result" >&2
-    exit 1
-    ;;
-esac
+# Both pointer widths use Preview 2. The x64 adapter keeps canonical calls
+# in memory32 while the Csound engine and its libc use memory64.
+nix-build ./src/csound-x64.nix "${COMMON_ARGS[@]}" --argstr moduleKind browser -o result_x64
+nix-build ./src/csound-x64.nix "${COMMON_ARGS[@]}" --argstr moduleKind command -o result_cli_x64
 nix-build ./src/csound.nix "${COMMON_ARGS[@]}" --argstr moduleKind command -o result_cli
 nix-build ./src/plugin_example.nix \
   --arg sharedMemory false \
@@ -74,24 +47,26 @@ nix-build ./src/plugin_example_cpp.nix \
   -o result_plugin_cpp \
   --show-trace
 
+nix-build ./src/plugin_example.nix \
+  --impure --argstr system "$NIX_SYSTEM" --arg wasm64 true --arg sharedMemory false \
+  --arg csoundSdkArchive ./result_x64/lib/csound_x64-plugin-sdk.tar.gz \
+  -o result_plugin_c_x64 --show-trace
+nix-build ./src/plugin_example_cpp.nix \
+  --impure --argstr system "$NIX_SYSTEM" --arg wasm64 true --arg sharedMemory false \
+  --arg csoundSdkArchive ./result_x64/lib/csound_x64-plugin-sdk.tar.gz \
+  -o result_plugin_cpp_x64 --show-trace
+
+# Replace published files only after both builds and plugin SDKs succeed.
 if [ -d "./lib" ]; then
-    printf '%s\n' "Cleaning directory lib"
-    rm -rf "./lib"
+  rm -rf "./lib"
 fi
 mkdir lib
-cp ./result_cli/lib/*.wasm lib
-cp ./result/lib/csound.wasm lib
-cp ./result/lib/csound.wasm.z lib
-if [ "$realtime_supported" = 1 ]; then
-  cp ./result_browser_realtime/lib/csound-browser-realtime.wasm lib
-  cp ./result_browser_realtime/lib/csound-browser-realtime.wasm.z lib
-  cp ./result_browser_realtime/lib/csound-plugin-sdk-shared.tar.gz lib/csound-plugin-sdk.tar.gz
-  cp ./result_plugin_c_shared/lib/plugin_example_shared.wasm lib
-  cp ./result_plugin_cpp_shared/lib/plugin_example_cpp_shared.wasm lib
-else
-  cp ./result/lib/csound-plugin-sdk.tar.gz lib
-fi
+cp ./result_cli/lib/*.wasm ./result_cli_x64/lib/*.wasm lib
+cp ./result/lib/csound.wasm ./result/lib/csound.wasm.z lib
+cp ./result_x64/lib/csound_x64.wasm ./result_x64/lib/csound_x64.wasm.z lib
+cp ./result/lib/csound-plugin-sdk.tar.gz lib
 cp ./result/lib/csound-plugin-sdk.tar.gz lib/csound-plugin-sdk-compat.tar.gz
-cp ./result_plugin_c/lib/plugin_example.wasm lib
-cp ./result_plugin_cpp/lib/plugin_example_cpp.wasm lib
+cp ./result_x64/lib/csound_x64-plugin-sdk.tar.gz lib
+cp ./result_plugin_c/lib/plugin_example.wasm ./result_plugin_cpp/lib/plugin_example_cpp.wasm lib
+cp ./result_plugin_c_x64/lib/plugin_example_x64.wasm ./result_plugin_cpp_x64/lib/plugin_example_cpp_x64.wasm lib
 chmod 0644 lib/*

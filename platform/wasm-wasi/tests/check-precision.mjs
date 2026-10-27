@@ -7,17 +7,30 @@ const { assertBrowserPrecision } = await import("../browser/src/utils/browser-re
 const { csoundTableCopyIn, csoundTableCopyOut, csoundGetTableArgs } =
   await import("../browser/src/modules/table.js");
 const { csoundEvent } = await import("../browser/src/modules/control-events.js");
+const { moduleABI, memory64Imports, nativeExports, nativeCallbacks } =
+  await import("../browser/src/utils/wasm64.js");
 const shared = process.argv[3] === "shared";
 const module = await WebAssembly.compile(fs.readFileSync(process.argv[2]));
-const memory = new WebAssembly.Memory({ initial: 4096, maximum: shared ? 4096 : 16384, shared });
+const abi = moduleABI(module);
+const wide = abi?.pointerSize === 8;
+const Samples = wide ? Float64Array : Float32Array;
+const memory = new WebAssembly.Memory(
+  wide
+    ? { address: "i64", initial: 4096n, maximum: 131072n }
+    : { initial: 4096, maximum: shared ? 4096 : 16384, shared },
+);
 const wasi = new WASI();
 wasi.setMemory(memory);
-const imports = wasi.getImports(module);
+const bridge = wide ? memory64Imports(module, memory, wasi) : undefined;
+const imports = bridge ? bridge.imports : wasi.getImports(module);
 imports.wasi = { "thread-spawn": () => -6 };
 imports.env = {
   memory,
-  __memory_base: new WebAssembly.Global({ value: "i32" }, 0),
-  __table_base: new WebAssembly.Global({ value: "i32" }, 1),
+  __memory_base: new WebAssembly.Global({ value: wide ? "i64" : "i32" }, wide ? 0n : 0),
+  __table_base: new WebAssembly.Global(
+    { value: abi?.table64 ? "i64" : "i32" },
+    abi?.table64 ? 1n : 1,
+  ),
   csoundWasiJsSupportsThreads: () => 0,
   csoundLoadModules: () => 0,
   csoundLoadExternals: () => 0,
@@ -28,13 +41,16 @@ imports.env = {
   csoundWasiJsDebugCallback() {},
   printDebugCallback() {},
 };
-const instance = await WebAssembly.instantiate(module, imports);
-assertBrowserPrecision(instance.exports);
+nativeCallbacks(imports, abi);
+const raw = await WebAssembly.instantiate(module, imports);
+bridge?.connect(raw);
+const instance = { exports: nativeExports(raw.exports, abi) };
+assertBrowserPrecision(instance.exports, wide ? 8 : 4);
 wasi.start(instance);
 const api = instance.exports;
 const wasm = { exports: api, wasi };
 const csound = api.csoundCreateWasi();
-assert.equal(typeof csound, "number", "wasm32 pointers remain 32-bit values");
+assert.equal(typeof csound, "number", "the JS API exposes exact numeric pointers");
 assert(csound);
 function stringCall(name, text, ...args) {
   const bytes = new TextEncoder().encode(text);
@@ -53,11 +69,17 @@ try {
   wasi.mkdir("/project");
   wasi.writeFile("/project/relative.orc", encode("giRelative init 2"));
   assert.equal(wasi.chdir("/project"), 0);
-  assert.equal(stringCall("csoundCompileOrc", '#include "/root.orc"\n#include "relative.orc"', 0), 0);
+  assert.equal(
+    stringCall("csoundCompileOrc", '#include "/root.orc"\n#include "relative.orc"', 0),
+    0,
+  );
   assert.equal(wasi.chdir("/"), 0);
   api.csoundResetWasi(csound);
   assert.equal(stringCall("csoundSetOption", "-n -m0"), 0);
-  assert.equal(stringCall("csoundCompileOrc", `
+  assert.equal(
+    stringCall(
+      "csoundCompileOrc",
+      `
 sr=48000
 ksmps=32
 nchnls=1
@@ -66,20 +88,26 @@ giTable ftgen 1, 0, 8, -2, 0
 instr 1
   a1 = p4
   out a1
-endin`, 0), 0);
+endin`,
+      0,
+    ),
+    0,
+  );
   assert.equal(api.csoundStartWasi(csound), 0);
-  const values = new Float32Array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]);
+  const values = new Samples([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]);
   csoundTableCopyIn(wasm)(csound, 1, values);
   assert.deepEqual(csoundTableCopyOut(wasm)(csound, 1), values);
-  assert(csoundGetTableArgs(wasm)(csound, 1) instanceof Float32Array);
+  assert(csoundGetTableArgs(wasm)(csound, 1) instanceof Samples);
   assert.equal(csoundGetTableArgs(wasm)(csound, 999), undefined);
   csoundEvent(wasm)(csound, 0, [1, 0, 1, 0.125]);
   // The asynchronous event enters the next control block.
   assert.equal(api.csoundPerformKsmps(csound), 0);
   assert.equal(api.csoundPerformKsmps(csound), 0);
-  const samples = new Float32Array(memory.buffer, api.csoundGetSpout(csound), 32);
-  assert.deepEqual(samples, new Float32Array(32).fill(0.125));
+  const samples = new Samples(memory.buffer, api.csoundGetSpout(csound), 32);
+  assert.deepEqual(samples, new Samples(32).fill(0.125));
 } finally {
   api.csoundDestroy(csound);
 }
-console.log(`Float WASI ${shared ? "shared" : "baseline"} audio, tables, and events passed`);
+console.log(
+  `${wide ? "Double wasm64" : "Float wasm32"} WASI ${shared ? "shared" : "baseline"} audio, tables, and events passed`,
+);

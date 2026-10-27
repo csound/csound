@@ -1,3 +1,4 @@
+import { sampleArrayType } from "../utils/wasm64.js";
 /*
     worklet.singlethread.worker.js
 
@@ -382,7 +383,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       /* Check if MEMGROWTH occured from csoundPerformKsmps or otherwise. If so,
       rest output ant input buffers to new pointer locations. */
       if (!csOut || csOut.length === 0) {
-        csOut = this.csoundOutputBuffer = new Float32Array(
+        csOut = this.csoundOutputBuffer = new (sampleArrayType(this.wasm))(
           this.wasm.wasi.memory.buffer,
           this.libraryCsound.csoundGetSpout(this.csound),
           ksmps * nchnls,
@@ -390,7 +391,7 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       }
 
       if (!csIn || csIn.length === 0) {
-        csIn = this.csoundInputBuffer = new Float32Array(
+        csIn = this.csoundInputBuffer = new (sampleArrayType(this.wasm))(
           this.wasm.wasi.memory.buffer,
           this.libraryCsound.csoundGetSpin(this.csound),
           ksmps * nchnlsIn,
@@ -506,12 +507,12 @@ class WorkletSinglethreadWorker extends AudioWorkletProcessor {
       const isExpectingRealtimeOutput = this.isRequestingRealtimeOutput();
 
       if (isExpectingRealtimeOutput) {
-        this.csoundOutputBuffer = new Float32Array(
+        this.csoundOutputBuffer = new (sampleArrayType(this.wasm))(
           this.wasm.wasi.memory.buffer,
           this.libraryCsound.csoundGetSpout(cs),
           ksmps * this.nchnls,
         );
-        this.csoundInputBuffer = new Float32Array(
+        this.csoundInputBuffer = new (sampleArrayType(this.wasm))(
           this.wasm.wasi.memory.buffer,
           this.libraryCsound.csoundGetSpin(cs),
           ksmps * this.nchnls_i,

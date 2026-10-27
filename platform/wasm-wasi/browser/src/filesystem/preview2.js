@@ -81,8 +81,7 @@ export class WASI extends MemoryFilesystem {
       this.cwd = previous;
       throw error;
     } finally {
-      if (pointer !== undefined)
-        nativeExports["cabi_realloc"](pointer, bytes.length, 1, 0);
+      if (pointer !== undefined) nativeExports["cabi_realloc"](pointer, bytes.length, 1, 0);
     }
   }
 
@@ -115,7 +114,8 @@ export class WASI extends MemoryFilesystem {
   allocate(length, alignment = 1) {
     if (!length) return 0;
     if (!Number.isSafeInteger(length) || length < 0 || length > MAX_FILE_SIZE) fail(E.tooLarge);
-    return this.instance["exports"]["cabi_realloc"](0, 0, alignment, length) >>> 0;
+    const pointer = this.instance["exports"]["cabi_realloc"](0, 0, alignment, length);
+    return this.pointerSize === 8 ? pointer : pointer >>> 0;
   }
 
   u8(pointer, value) {

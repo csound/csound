@@ -6,7 +6,7 @@ import { exitCommand, swapCommand } from "../score-command-fixtures.js";
 let WASI, createSystem, commandArguments, previousGoog;
 const encode = (text) => new TextEncoder().encode(text);
 const decode = (bytes) => new TextDecoder().decode(bytes);
-const csbeats = readFileSync(new URL("csbeats.core.wasm", import.meta.resolve("@csound/wasm-bin")));
+const csbeats = readFileSync(new URL("../../../lib/csbeats_x64.core.wasm", import.meta.url));
 
 function setup(shared = false) {
   const host = new WASI({});
@@ -54,7 +54,7 @@ describe("WASI filesystem commands", () => {
     host.writeFile("entrée.ext", encode("i1 m1 b1 C4 q mf\n"));
     host.writeFile("result.sco", encode("old data".repeat(100)));
     assert.equal(run("uploaded entrée.ext result.sco"), 0);
-    assert.match(decode(host.readFile("result.sco")), /i1 0\.000000 1\.000000 261\.625580 -3/);
+    assert.match(decode(host.readFile("result.sco")), /i1 0\.000000 1\.000000 261\.625565 -3/);
     assert.ok(!decode(host.readFile("result.sco")).includes("old data"));
     host.writeFile("entrée.ext", encode("i1 m1 b1 D4 q mf\n"));
     assert.equal(run("uploaded.wasm entrée.ext result.sco"), 0);

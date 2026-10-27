@@ -1,3 +1,4 @@
+import { sampleArrayType } from "../utils/wasm64.js";
 /*
  * Copyright (c) The Csound Developers
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,13 +76,13 @@ const createRealtimeAudioThread =
     const outputBufferPtr = libraryCsound.csoundGetSpout(csound);
     const ksmps = libraryCsound.csoundGetKsmps(csound);
 
-    let csoundInputBuffer = new Float32Array(
+    let csoundInputBuffer = new (sampleArrayType(wasm))(
       wasm.wasi.memory.buffer,
       inputBufferPtr,
       ksmps * nchnlsInput,
     );
 
-    let csoundOutputBuffer = new Float32Array(
+    let csoundOutputBuffer = new (sampleArrayType(wasm))(
       wasm.wasi.memory.buffer,
       outputBufferPtr,
       ksmps * nchnls,
@@ -130,14 +131,14 @@ const createRealtimeAudioThread =
         // MEMGROW KILLS REFERENCES!
         // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
         if (csoundInputBuffer.length === 0) {
-          csoundInputBuffer = new Float32Array(
+          csoundInputBuffer = new (sampleArrayType(wasm))(
             wasm.wasi.memory.buffer,
             libraryCsound.csoundGetSpin(csound),
             ksmps * nchnlsInput,
           );
         }
         if (csoundOutputBuffer.length === 0) {
-          csoundOutputBuffer = new Float32Array(
+          csoundOutputBuffer = new (sampleArrayType(wasm))(
             wasm.wasi.memory.buffer,
             libraryCsound.csoundGetSpout(csound),
             ksmps * nchnls,

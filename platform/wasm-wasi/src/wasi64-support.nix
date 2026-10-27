@@ -1,17 +1,18 @@
 { system ? builtins.currentSystem, pkgs ? import <nixpkgs> {inherit system;} }:
-pkgs.runCommand "csound-wasip2-memory64-support" {
-  nativeBuildInputs = [pkgs.wasm-tools pkgs.wasmtime];
-} ''
-  mkdir -p "$out"
-  wasm-tools validate --features=cm64 ${../tests/preview2/string64.wat}
-  wasmtime run -Ccache=n --invoke 'get-string()' ${../tests/preview2/string32.wat} > control.log
-  test "$(cat control.log)" = '"ok"'
-  if wasmtime run -Ccache=n -Wcomponent-model-memory64=y --invoke 'get-string()' \
-      ${../tests/preview2/string64.wat} > memory64.log 2>&1 && \
-      test "$(cat memory64.log)" = '"ok"'; then
-    echo 1 > "$out/supported"
-  else
-    echo 0 > "$out/supported"
-  fi
-  cp control.log memory64.log "$out/"
-''
+let
+  adapterSource = pkgs.lib.sourceFilesBySuffices ../scripts/wasm64 [".py"];
+  toolchain = import ./wasi64-toolchain.nix {inherit system pkgs;};
+in toolchain.stdenv.mkDerivation {
+  pname = "csound-wasip2-memory64-support";
+  version = "1";
+  dontUnpack = true;
+  nativeBuildInputs = [pkgs.wasm-tools pkgs.wasmtime pkgs.nodejs pkgs.python3];
+  buildPhase = ''
+    $CC ${../tests/preview2-host.c} -Wl,--export=cabi_realloc -o probe.raw.wasm
+    python3 ${adapterSource}/bridge.py probe.raw.wasm probe.wasm
+    mkdir files-root
+    wasmtime run -Ccache=n --dir=files-root::. probe.wasm preview2
+    node ${../tests/check-preview2-host.mjs} probe.core.wasm ${../browser/src}
+  '';
+  installPhase = ''mkdir -p "$out"; cp probe*.wasm "$out/"'';
+}

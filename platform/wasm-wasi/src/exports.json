@@ -11,6 +11,8 @@
   "chdir",
   "csoundSetMidiCallbacks",
   "sizeOfMidiStruct",
+  "csoundWasiOentrySize",
+  "csoundWasiOentryFunctionOffset",
   "isRequestingRtMidiInput",
   "isRequestingRtAudioInput",
   "isRequestingPlugins",

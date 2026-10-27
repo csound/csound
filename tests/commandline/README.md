@@ -45,8 +45,11 @@ Other optional fields:
   when passing application arguments. Spaces and empty arguments are preserved.
 - `stack_limit_kb`: a positive POSIX stack limit; ignored on Windows.
 - `skip`: a reason for a manual test or known blocker. Skips appear in the report.
-- `profiles`: `native` or `wasm` overrides containing `expect` or `skip`.
+- `profiles`: `native`, `wasm` or `wasip2` overrides containing `expect` or `skip`.
   The runner selects `wasm` for `.wasm`, `.cwasm`, or `.js` executables;
+  `--profile=wasip2` inherits the `wasm` overrides, then applies `wasip2`
+  overrides. It maps expected errors to status 1 because Preview 2 commands
+  return success or failure, while keeping output checks unchanged.
   `--profile` overrides that choice. This replaces the old
   `--expected-failure=<file>` argument; keep platform exceptions in the CSD too.
 

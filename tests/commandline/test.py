@@ -422,7 +422,7 @@ STANDARD OPTIONS:
     --runtime-arg=<arg>            Runtime argument; repeat once per argument
     --test=<relative.csd>          Run one test; repeat to select several
     --list                         List discovered tests and skip reasons
-    --profile=native|wasm          Select in-file platform expectations
+    --profile=native|wasm|wasip2          Select in-file platform expectations
     --runtime-environment=<path>   Deprecated executable-path-only alias
     --help                         Show this help message
 
@@ -629,7 +629,7 @@ if __name__ == "__main__":
                 listOnly = True
             elif arg.startswith("--profile="):
                 testProfile = arg[10:]
-                if testProfile not in ("native", "wasm"):
+                if testProfile not in ("native", "wasm", "wasip2"):
                     sys.exit("Unknown profile: " + testProfile)
             elif arg.startswith("--workers="):
                 try:

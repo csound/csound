@@ -1,4 +1,10 @@
 # @csound/browser
+
+The browser bundles one `csound_x64.wasm` engine: true 64-bit pointers, double
+samples and WASI Preview 2. It requires memory64, table64 and multiple-memory
+support. Use Node.js 24 or newer for builds and host tests. The separate `csound.wasm` artifact uses 32-bit pointers and float
+samples. See [the build guide](../README.md) for outputs and host requirements.
+
 [![npm (scoped with tag)](https://shields.shivering-isles.com/npm/v/@csound/browser/latest)](https://www.npmjs.com/package/@csound/browser)
 [![GitHub Workflow Status](https://shields.shivering-isles.com/github/workflow/status/csound/csound/csound_wasm)](https://github.com/csound/csound/actions?query=workflow%3Acsound_wasm)
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
@@ -132,7 +138,7 @@ and setup.
 <dd><p>The default entry for @csound/wasm/browser module.
 Returns CsoundObj, or rejects if the host lacks required audio or Wasm support.</p>
 </dd>
-<dt><a href="#getTable">getTable(tableNum)</a> ⇒ <code>Promise.&lt;(Float32Array|undefined)&gt;</code></dt>
+<dt><a href="#getTable">getTable(tableNum)</a> ⇒ <code>Promise.&lt;(Float64Array|undefined)&gt;</code></dt>
 <dd></dd>
 </dl>
 
@@ -154,7 +160,7 @@ CsoundObj API.
 
 * [CsoundObj](#CsoundObj) : <code>object</code>
     * _global_
-        * [getTable(tableNum)](#getTable) ⇒ <code>Promise.&lt;(Float32Array\|undefined)&gt;</code>
+        * [getTable(tableNum)](#getTable) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
     * _static_
         * [.fs](#CsoundObj.fs) : <code>IFs:memfs</code>
         * [.eventNames()](#CsoundObj.eventNames) ⇒ <code>Array.&lt;string&gt;</code>
@@ -224,14 +230,14 @@ CsoundObj API.
         * [.tableGet(tableNum, tableIndex)](#CsoundObj.tableGet) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.tableSet(tableNum, tableIndex, value)](#CsoundObj.tableSet) ⇒ <code>Promise.&lt;undefined&gt;</code>
         * [.tableCopyIn(tableNum, tableIndex, array)](#CsoundObj.tableCopyIn) ⇒ <code>Promise.&lt;undefined&gt;</code>
-        * [.tableCopyOut(tableNum)](#CsoundObj.tableCopyOut) ⇒ <code>Promise.&lt;(Float32Array\|undefined)&gt;</code>
-        * [.getTableArgs(tableNum)](#CsoundObj.getTableArgs) ⇒ <code>Promise.&lt;(Float32Array\|undefined)&gt;</code>
+        * [.tableCopyOut(tableNum)](#CsoundObj.tableCopyOut) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
+        * [.getTableArgs(tableNum)](#CsoundObj.getTableArgs) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
         * [.isNamedGEN(tableNum)](#CsoundObj.isNamedGEN) ⇒ <code>Promise.&lt;number&gt;</code>
         * [.getNamedGEN(tableNum)](#CsoundObj.getNamedGEN) ⇒ <code>Promise.&lt;(string\|undefined)&gt;</code>
 
 <a name="getTable"></a>
 
-### CsoundObjgetTable(tableNum) ⇒ <code>Promise.&lt;(Float32Array\|undefined)&gt;</code>
+### CsoundObjgetTable(tableNum) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
 **Kind**: global method of [<code>CsoundObj</code>](#CsoundObj)
 
 | Param | Type |
@@ -878,9 +884,9 @@ The table number and index are assumed to be valid.
 
 <a name="CsoundObj.tableCopyOut"></a>
 
-### CsoundObj.tableCopyOut(tableNum) ⇒ <code>Promise.&lt;(Float32Array\|undefined)&gt;</code>
-Copies the contents of a function table from csound into Float32Array.
-The function returns a Float32Array if the table exists, otherwise
+### CsoundObj.tableCopyOut(tableNum) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
+Copies the contents of a function table from csound into Float64Array.
+The function returns a Float64Array if the table exists, otherwise
 it returns undefined.
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)
@@ -891,9 +897,9 @@ it returns undefined.
 
 <a name="CsoundObj.getTableArgs"></a>
 
-### CsoundObj.getTableArgs(tableNum) ⇒ <code>Promise.&lt;(Float32Array\|undefined)&gt;</code>
-Copies the contents of a function table from csound into Float32Array.
-The function returns a Float32Array if the table exists, otherwise
+### CsoundObj.getTableArgs(tableNum) ⇒ <code>Promise.&lt;(Float64Array\|undefined)&gt;</code>
+Copies the contents of a function table from csound into Float64Array.
+The function returns a Float64Array if the table exists, otherwise
 it returns undefined.
 
 **Kind**: static method of [<code>CsoundObj</code>](#CsoundObj)

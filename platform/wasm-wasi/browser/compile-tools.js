@@ -14,6 +14,7 @@
  */
 
 import fs from "fs";
+import { browserBinaries } from "./goog/browser-binaries.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { inlineArraybuffer } from "./goog/inline-arraybuffer.js";
@@ -26,7 +27,7 @@ const rootDir = __dirname;
 fs.mkdirSync(path.join(rootDir, "dist"), { recursive: true });
 fs.writeFileSync(
   path.join(rootDir, "dist", "__csound_wasm_static_tools.inline.js"),
-  inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.wasm.z", "binary.wasm"),
+  inlineArraybuffer(browserBinaries(rootDir).baseline, "binary.wasm"),
 );
 
 (async () => {

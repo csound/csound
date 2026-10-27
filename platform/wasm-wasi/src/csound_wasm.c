@@ -49,6 +49,13 @@ cs_double *allocFloatArray(int length) {
 void freeFloatArrayMem(cs_double *ptr) { free(ptr); }
 
 int sizeOfMidiStruct() { return sizeof(CS_MIDIDEVICE); }
+int csoundWasiOentrySize(void) { return sizeof(OENTRY); }
+int csoundWasiOentryFunctionOffset(int index) {
+  static const size_t offsets[] = {
+    offsetof(OENTRY, init), offsetof(OENTRY, perf), offsetof(OENTRY, deinit)
+  };
+  return index >= 0 && index < 3 ? (int) offsets[index] : -1;
+}
 CS_MIDIDEVICE *allocCsMidiDeviceStruct(int num) {
   return allocWasmArray(num, sizeof(CS_MIDIDEVICE));
 }

@@ -24,8 +24,10 @@ import { beatsCsd, exitCommand } from "./score-command-fixtures.js";
   // console.log("RESP", resp);
   const { Csound } = resp;
   const { sharedEngine } = await import("/dist/__csound_engine.inline.js");
-  const cPlugin = sharedEngine ? "./plugin_example_shared.wasm" : "./plugin_example.wasm";
-  const cppPlugin = sharedEngine ? "./plugin_example_cpp_shared.wasm" : "./plugin_example_cpp.wasm";
+  const cPlugin = sharedEngine ? "./plugin_example_shared.wasm" : "./plugin_example_x64.wasm";
+  const cppPlugin = sharedEngine
+    ? "./plugin_example_cpp_shared.wasm"
+    : "./plugin_example_cpp_x64.wasm";
 
   const carriageReturnOrchestra = `
 ksmps = 32
@@ -385,7 +387,7 @@ e
         const cs = await Csound(test);
         const { messages, stop } = collectCsoundMessages(cs);
         try {
-          const response = await fetch("/wasm-bin/csbeats.core.wasm");
+          const response = await fetch("/wasm-bin/csbeats_x64.core.wasm");
           assert.isTrue(response.ok);
           await cs.fs.mkdir("/project");
           await cs.fs.chdir("/project");
@@ -429,7 +431,9 @@ e
             assert.include(output, "External generation failed");
             if (uploaded) assert.notInclude(output, "Cannot run score command", output);
             else assert.include(output, "WASI command not found");
-            assert.isFalse((await cs.fs.readdir("/")).some((name) => /csound-.*\.(ext|sco)$/.test(name)));
+            assert.isFalse(
+              (await cs.fs.readdir("/")).some((name) => /csound-.*\.(ext|sco)$/.test(name)),
+            );
           } finally {
             stop();
             await cs.terminateInstance();
@@ -438,12 +442,21 @@ e
       }
 
       for (const [name, score, expected] of [
-        ["unquoted score command", beatsCsd("custom").replace('bin="custom"', "bin=custom"),
-          /^Missing program in tag <CsScore>$/],
-        ["unterminated score command", beatsCsd("custom").replace('bin="custom"', 'bin="custom'),
-          /^Missing program in tag <CsScore>$/],
-        ["missing score end tag", beatsCsd("custom").replace("</CsScore>", ""),
-          /^Missing end tag <\/CsScore>$/],
+        [
+          "unquoted score command",
+          beatsCsd("custom").replace('bin="custom"', "bin=custom"),
+          /^Missing program in tag <CsScore>$/,
+        ],
+        [
+          "unterminated score command",
+          beatsCsd("custom").replace('bin="custom"', 'bin="custom'),
+          /^Missing program in tag <CsScore>$/,
+        ],
+        [
+          "missing score end tag",
+          beatsCsd("custom").replace("</CsScore>", ""),
+          /^Missing end tag <\/CsScore>$/,
+        ],
         ["missing generated score", beatsCsd("custom"), /^cannot open .*\.sco$/],
       ]) {
         it(`reports ${name} before cleanup`, async function () {
@@ -455,10 +468,16 @@ e
             await cs.fs.writeFile("custom.wasm", exitCommand(0));
             assert.notEqual(await cs.compileCSD(score), 0);
             const deadline = performance.now() + 2000;
-            while (!messages.some((message) => expected.test(message)) && performance.now() < deadline) {
+            while (
+              !messages.some((message) => expected.test(message)) &&
+              performance.now() < deadline
+            ) {
               await new Promise((resolve) => setTimeout(resolve, 10));
             }
-            assert.isTrue(messages.some((message) => expected.test(message)), messages.join("\n"));
+            assert.isTrue(
+              messages.some((message) => expected.test(message)),
+              messages.join("\n"),
+            );
           } finally {
             stop();
             await cs.terminateInstance();
@@ -609,18 +628,20 @@ f 0 z
         const cs = await Csound(test);
         const events = [];
         cs.on("readline", (event) => events.push(event));
-        const nextPrompt = () => new Promise((resolve) => {
-          const listener = (event) => {
-            if (event.prompt !== null) {
-              cs.off("readline", listener);
-              resolve(event);
-            }
-          };
-          cs.on("readline", listener);
-        });
+        const nextPrompt = () =>
+          new Promise((resolve) => {
+            const listener = (event) => {
+              if (event.prompt !== null) {
+                cs.off("readline", listener);
+                resolve(event);
+              }
+            };
+            cs.on("readline", listener);
+          });
         try {
           assert.equal(await cs.setOption("-odac"), 0);
-          assert.equal(await cs.compileOrc(`
+          assert.equal(
+            await cs.compileOrc(`
 ksmps = 32
 nchnls = 1
 chnS "answer", 2
@@ -630,7 +651,9 @@ instr 1
     chnset Sline, "answer"
   endif
 endin
-schedule(1, 0.05, 10)`), 0);
+schedule(1, 0.05, 10)`),
+            0,
+          );
           assert.deepEqual(events, []);
           const firstPending = nextPrompt();
           assert.equal(await cs.start(), 0);
@@ -877,19 +900,19 @@ schedule(1, 0.05, 10)`), 0);
         const cs = await Csound(test);
 
         try {
-          assert.isFalse(await cs.fs.pathExists("./plugin_example_cpp.wasm"));
-          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp.wasm"));
+          assert.isFalse(await cs.fs.pathExists("./plugin_example_cpp_x64.wasm"));
+          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp_x64.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal("./plugin_example_cpp.wasm", await cs.getRequestedPlugins());
+          assert.equal("./plugin_example_cpp_x64.wasm", await cs.getRequestedPlugins());
 
           const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
-          await cs.fs.writeFile("./plugin_example_cpp.wasm", pluginBytes);
+          await cs.fs.writeFile("./plugin_example_cpp_x64.wasm", pluginBytes);
 
-          assert.isTrue(await cs.fs.pathExists("./plugin_example_cpp.wasm"));
+          assert.isTrue(await cs.fs.pathExists("./plugin_example_cpp_x64.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal("./plugin_example_cpp.wasm", await cs.getRequestedPlugins());
+          assert.equal("./plugin_example_cpp_x64.wasm", await cs.getRequestedPlugins());
           assert.equal(0, await cs.compileCSD(filesystemPluginTest()));
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
@@ -899,7 +922,7 @@ schedule(1, 0.05, 10)`), 0);
           await cs.reset();
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
-          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp.wasm"));
+          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp_x64.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
           assert.equal(0, await cs.compileCSD(filesystemPluginTest()));
           assert.equal(0, await cs.isRequestingPlugins());
@@ -917,13 +940,13 @@ schedule(1, 0.05, 10)`), 0);
           const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
-          await cs.fs.writeFile("./plugin_example_cpp.wasm", pluginBytes);
+          await cs.fs.writeFile("./plugin_example_cpp_x64.wasm", pluginBytes);
 
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
           assert.equal(
             0,
-            await cs.compileCSD(filesystemPluginTest("--opcode-lib=./plugin_example_cpp.wasm")),
+            await cs.compileCSD(filesystemPluginTest("--opcode-lib=./plugin_example_cpp_x64.wasm")),
           );
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
@@ -936,17 +959,17 @@ schedule(1, 0.05, 10)`), 0);
         const cs = await Csound(test);
 
         try {
-          assert.isFalse(await cs.fs.pathExists("./plugin_example_cpp.wasm"));
-          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp.wasm"));
+          assert.isFalse(await cs.fs.pathExists("./plugin_example_cpp_x64.wasm"));
+          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp_x64.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
           assert.equal(0, await cs.parseOrc(filesystemPluginOrchestra));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal("./plugin_example_cpp.wasm", await cs.getRequestedPlugins());
+          assert.equal("./plugin_example_cpp_x64.wasm", await cs.getRequestedPlugins());
 
           const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
-          await cs.fs.writeFile("./plugin_example_cpp.wasm", pluginBytes);
+          await cs.fs.writeFile("./plugin_example_cpp_x64.wasm", pluginBytes);
 
           const tree = await cs.parseOrc(filesystemPluginOrchestra);
           assert.isOk(tree);
@@ -1006,49 +1029,53 @@ schedule(1, 0.05, 10)`), 0);
 
       if (test.useSAB) {
         let sharedTransport;
-        const sabIt = (title, run) => it(title, async function () {
-          // Check the selected transport instead of assuming it from the browser.
-          if (sharedTransport === undefined) {
-            const probe = await Csound(test);
+        const sabIt = (title, run) =>
+          it(title, async function () {
+            // Check the selected transport instead of assuming it from the browser.
+            if (sharedTransport === undefined) {
+              const probe = await Csound(test);
+              try {
+                sharedTransport = probe.name === "Csound: Audio Worklet, Shared-Array Buffer";
+              } finally {
+                await probe.terminateInstance();
+              }
+            }
+            if (!sharedTransport) this.skip();
+            await run.call(this);
+          });
+        sabIt(
+          "keeps SAB score time still while paused and handles repeated transport calls",
+          async function () {
+            const cs = await Csound(test);
             try {
-              sharedTransport = probe.name === "Csound: Audio Worklet, Shared-Array Buffer";
-            } finally {
-              await probe.terminateInstance();
-            }
-          }
-          if (!sharedTransport) this.skip();
-          await run.call(this);
-        });
-        sabIt("keeps SAB score time still while paused and handles repeated transport calls", async function () {
-          const cs = await Csound(test);
-          try {
-            const events = [];
-            cs.on("realtimePerformancePaused", () => events.push("paused"));
-            cs.on("realtimePerformanceResumed", () => events.push("resumed"));
-            await cs.compileCSD(shortTone.replace("i 1 0 2", "i 1 0 30"));
-            await cs.start();
-            const before = await cs.getScoreTime();
-            await cs.pause();
-            await cs.pause();
-            await new Promise((resolve) => setTimeout(resolve, 600));
-            await cs.resume();
-            await cs.resume();
-            const after = await cs.getScoreTime();
-            assert.isBelow(after - before, 0.3, "paused wall time must not advance the score");
-            assert.deepEqual(events, ["paused", "resumed"]);
-            for (let i = 0; i < 5; i++) {
+              const events = [];
+              cs.on("realtimePerformancePaused", () => events.push("paused"));
+              cs.on("realtimePerformanceResumed", () => events.push("resumed"));
+              await cs.compileCSD(shortTone.replace("i 1 0 2", "i 1 0 30"));
+              await cs.start();
+              const before = await cs.getScoreTime();
               await cs.pause();
+              await cs.pause();
+              await new Promise((resolve) => setTimeout(resolve, 600));
               await cs.resume();
+              await cs.resume();
+              const after = await cs.getScoreTime();
+              assert.isBelow(after - before, 0.3, "paused wall time must not advance the score");
+              assert.deepEqual(events, ["paused", "resumed"]);
+              for (let i = 0; i < 5; i++) {
+                await cs.pause();
+                await cs.resume();
+              }
+              assert.equal(events.length, 12, "one event per transition");
+              await cs.pause();
+              const beforeStop = events.slice();
+              await cs.stop();
+              assert.deepEqual(events, beforeStop, "stop must not report resume");
+            } finally {
+              await cs.terminateInstance();
             }
-            assert.equal(events.length, 12, "one event per transition");
-            await cs.pause();
-            const beforeStop = events.slice();
-            await cs.stop();
-            assert.deepEqual(events, beforeStop, "stop must not report resume");
-          } finally {
-            await cs.terminateInstance();
-          }
-        });
+          },
+        );
         sabIt("rejects SAB resume while a pause acknowledgement is pending", async function () {
           const cs = await Csound(test);
           const errors = sinon.stub(console, "error");
@@ -1437,10 +1464,9 @@ schedule(1, 0.05, 10)`), 0);
             assert.equal(await cs.compileCSD(shortOfflineScore), 0);
             const failure = new Promise((resolve) => {
               // null makes the worker throw before it accesses any table memory.
-              cs.once("renderStarted", () => cs.tableCopyIn(1, null).then(
-                () => resolve(undefined),
-                resolve,
-              ));
+              cs.once("renderStarted", () =>
+                cs.tableCopyIn(1, null).then(() => resolve(undefined), resolve),
+              );
             });
             assert.equal(await cs.start(), 0);
             const error = await failure;
@@ -2169,7 +2195,7 @@ endin`,
         // A lone surrogate cannot be encoded as a multibyte character.
         data.setUint32(wideString, 0xd800, true);
         data.setUint32(wideString + 4, 0, true);
-        data.setUint32(args, wideString, true);
+        data.setBigUint64(args, BigInt(wideString), true);
         new Uint8Array(memory, followingMessage, 4).set([111, 107, 10, 0]);
         assert.doesNotThrow(() => wasm.csoundMessageS(csound, 0, format, args));
         wasm.csoundMessageS(csound, 0, followingMessage, 0);
@@ -2268,7 +2294,7 @@ endin`,
       const { libcsound } = await import(url);
       const badPlugin = Uint8Array.from(
         atob(
-          "AGFzbQEAAAAADAZkeWxpbmtAAAEAAAEEAWAAAAI3AgNlbnYZX19pbmRpcmVjdF9mdW5jdGlvbl90YWJsZQFwAAADZW52DF9fdGFibGVfYmFzZQN/AAMDAgAAByoCEV9fd2FzbV9jYWxsX2N0b3JzAAASY3NvdW5kTW9kdWxlQ3JlYXRlAAEJBwEAIwALAQEKCAIDAAALAgAL",
+          "AGFzbQEAAAAADAZkeWxpbmtAAAEAAAEEAWAAAAJFAwNlbnYGbWVtb3J5AgQAA2VudhlfX2luZGlyZWN0X2Z1bmN0aW9uX3RhYmxlAXAEAANlbnYMX190YWJsZV9iYXNlA34AAwMCAAAHKgIRX193YXNtX2NhbGxfY3RvcnMAABJjc291bmRNb2R1bGVDcmVhdGUAAQkHAQAjAAsBAQoIAgMAAAsCAAsAtAEKY3NvdW5kLmFiaXsicG9pbnRlclNpemUiOiA4LCAibWVtb3J5TWluaW11bSI6IDAsICJtZW1vcnlNYXhpbXVtIjogbnVsbCwgInRhYmxlNjQiOiB0cnVlLCAiaW1wb3J0cyI6IHt9LCAiZXhwb3J0cyI6IHsiX193YXNtX2NhbGxfY3RvcnMiOiBbW10sIFtdXSwgImNzb3VuZE1vZHVsZUNyZWF0ZSI6IFtbXSwgW11dfX0=",
         ),
         (char) => char.charCodeAt(0),
       );
@@ -2324,8 +2350,8 @@ endin`,
       const { libcsound } = await import(url);
       const unsafePlugins = [
         // The dylink headers ask for 1,000,001 entries and 2^30 alignment.
-        "AGFzbQEAAAAADgZkeWxpbmtAAMGEPQAAAQQBYAAAAjcCA2VudhlfX2luZGlyZWN0X2Z1bmN0aW9uX3RhYmxlAXAAAANlbnYMX190YWJsZV9iYXNlA38AAwMCAAAHKgIRX193YXNtX2NhbGxfY3RvcnMAABJjc291bmRNb2R1bGVDcmVhdGUAAQkHAQAjAAsBAQoIAgMAAAsCAAs=",
-        "AGFzbQEAAAAADAZkeWxpbmtAAAEeAAEEAWAAAAI3AgNlbnYZX19pbmRpcmVjdF9mdW5jdGlvbl90YWJsZQFwAAADZW52DF9fdGFibGVfYmFzZQN/AAMDAgAAByoCEV9fd2FzbV9jYWxsX2N0b3JzAAASY3NvdW5kTW9kdWxlQ3JlYXRlAAEJBwEAIwALAQEKCAIDAAALAgAL",
+        "AGFzbQEAAAAADgZkeWxpbmtAAMGEPQAAAQQBYAAAAkUDA2VudgZtZW1vcnkCBAADZW52GV9faW5kaXJlY3RfZnVuY3Rpb25fdGFibGUBcAQAA2VudgxfX3RhYmxlX2Jhc2UDfgADAwIAAAcqAhFfX3dhc21fY2FsbF9jdG9ycwAAEmNzb3VuZE1vZHVsZUNyZWF0ZQABCQcBACMACwEBCggCAwAACwIACwC0AQpjc291bmQuYWJpeyJwb2ludGVyU2l6ZSI6IDgsICJtZW1vcnlNaW5pbXVtIjogMCwgIm1lbW9yeU1heGltdW0iOiBudWxsLCAidGFibGU2NCI6IHRydWUsICJpbXBvcnRzIjoge30sICJleHBvcnRzIjogeyJfX3dhc21fY2FsbF9jdG9ycyI6IFtbXSwgW11dLCAiY3NvdW5kTW9kdWxlQ3JlYXRlIjogW1tdLCBbXV19fQ==",
+        "AGFzbQEAAAAADAZkeWxpbmtAAAEeAAEEAWAAAAJFAwNlbnYGbWVtb3J5AgQAA2VudhlfX2luZGlyZWN0X2Z1bmN0aW9uX3RhYmxlAXAEAANlbnYMX190YWJsZV9iYXNlA34AAwMCAAAHKgIRX193YXNtX2NhbGxfY3RvcnMAABJjc291bmRNb2R1bGVDcmVhdGUAAQkHAQAjAAsBAQoIAgMAAAsCAAsAtAEKY3NvdW5kLmFiaXsicG9pbnRlclNpemUiOiA4LCAibWVtb3J5TWluaW11bSI6IDAsICJtZW1vcnlNYXhpbXVtIjogbnVsbCwgInRhYmxlNjQiOiB0cnVlLCAiaW1wb3J0cyI6IHt9LCAiZXhwb3J0cyI6IHsiX193YXNtX2NhbGxfY3RvcnMiOiBbW10sIFtdXSwgImNzb3VuZE1vZHVsZUNyZWF0ZSI6IFtbXSwgW11dfX0=",
       ].map((encodedPlugin) => Uint8Array.from(atob(encodedPlugin), (char) => char.charCodeAt(0)));
       assert.isTrue(unsafePlugins.every((plugin) => WebAssembly.validate(plugin)));
       const tableGrow = WebAssembly.Table.prototype.grow;
@@ -2446,12 +2472,18 @@ schedule(1, 0, 1)`,
       const csound = api.csoundCreate();
       const start = () => {
         assert.equal(api.csoundSetOption(csound, "-n"), 0);
-        assert.equal(api.csoundCompileOrc(csound, `
+        assert.equal(
+          api.csoundCompileOrc(
+            csound,
+            `
 ksmps = 1
 instr 1
   Sline, kstatus readline ""
 endin
-schedule(1, 0, 1)`), 0);
+schedule(1, 0, 1)`,
+          ),
+          0,
+        );
         assert.equal(api.csoundStart(csound), 0);
         assert.equal(api.csoundPerformKsmps(csound), 0);
       };

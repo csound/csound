@@ -111,7 +111,7 @@ class CsoundUgenProcessor extends AudioWorkletProcessor {
 
     // Render one ksmps block (ksmps=128 = rendering quantum)
     cs.csoundUgenGraphPerform(this.graph);
-    const samples = cs.csoundUgenVarGetFloat32Array(this.outVar);
+    const samples = cs.csoundUgenVarGetFloat64Array(this.outVar);
 
     // Copy to output (mono source duplicated to all channels)
     for (let ch = 0; ch < output.length; ch++) {
