@@ -92,7 +92,7 @@ export const handleCsoundStart =
 export const instantiateAudioPacket = (numberChannels, numberFrames) => {
   const channels = [];
   for (let chn = 0; chn < numberChannels; chn++) {
-    channels.push(new Float64Array(numberFrames));
+    channels.push(new Float32Array(numberFrames));
   }
   return channels;
 };

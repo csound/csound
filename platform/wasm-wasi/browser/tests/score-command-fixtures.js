@@ -1,6 +1,4 @@
-// A standalone uploaded WASI command: (memory (export "memory") 1),
-// (import "wasi_snapshot_preview1" "proc_exit" (func (param i32))),
-// (func (export "_start") (call 0 (i32.const status))).
+// Preview 2 commands return result<(), ()>; any failure has status 1.
 export function exitCommand(status) {
   const name = (text) => [text.length, ...new TextEncoder().encode(text)];
   const section = (id, bytes) => [id, bytes.length, ...bytes];
@@ -13,12 +11,22 @@ export function exitCommand(status) {
     0,
     0,
     0,
-    ...section(1, [2, 0x60, 1, 0x7f, 0, 0x60, 0, 0]),
-    ...section(2, [1, ...name("wasi_snapshot_preview1"), ...name("proc_exit"), 0, 0]),
-    ...section(3, [1, 1]),
+    ...section(1, [2, 0x60, 0, 1, 0x7f, 0x60, 4, 0x7f, 0x7f, 0x7f, 0x7f, 1, 0x7f]),
+    ...section(3, [2, 0, 1]),
     ...section(5, [1, 0, 1]),
-    ...section(7, [2, ...name("memory"), 2, 0, ...name("_start"), 0, 1]),
-    ...section(10, [1, 6, 0, 0x41, status, 0x10, 0, 0x0b]),
+    ...section(7, [
+      3,
+      ...name("memory"),
+      2,
+      0,
+      ...name("wasi:cli/run@0.2.0#run"),
+      0,
+      0,
+      ...name("cabi_realloc"),
+      0,
+      1,
+    ]),
+    ...section(10, [2, 4, 0, 0x41, status ? 1 : 0, 0x0b, 3, 0, 0, 0x0b]),
   ]);
 }
 
@@ -43,32 +51,25 @@ i1 m1 b1 C4 q mf
 </CsoundSynthesizer>
 `;
 
-// A second uploaded command swaps files through the real path_rename import.
+// Compiled from score-swap.wat with wasm-tools parse.
 export function swapCommand() {
-  const name = (text) => [text.length, ...new TextEncoder().encode(text)];
-  const section = (id, bytes) => [id, bytes.length, ...bytes];
-  const rename = (from, fromLength, to, toLength) => [
-    ...[3, from, fromLength, 3, to, toLength].flatMap((value) => [0x41, value]),
-    0x10,
-    0,
-    0x1a,
-  ];
-  const body = [0, ...rename(0, 1, 4, 4), ...rename(2, 1, 0, 1), ...rename(4, 4, 2, 1), 0x0b];
   return new Uint8Array([
-    0,
-    97,
-    115,
-    109,
-    1,
-    0,
-    0,
-    0,
-    ...section(1, [2, 0x60, 6, ...Array(6).fill(0x7f), 1, 0x7f, 0x60, 0, 0]),
-    ...section(2, [1, ...name("wasi_snapshot_preview1"), ...name("path_rename"), 0, 0]),
-    ...section(3, [1, 1]),
-    ...section(5, [1, 0, 1]),
-    ...section(7, [2, ...name("memory"), 2, 0, ...name("_start"), 0, 1]),
-    ...section(10, [1, body.length, ...body]),
-    ...section(11, [1, 0, 0x41, 0, 0x0b, ...name("a\0b\0temp")]),
+    0, 97, 115, 109, 1, 0, 0, 0, 1, 27, 4, 96, 1, 127, 0, 96, 7, 127, 127, 127, 127, 127, 127, 127,
+    0, 96, 4, 127, 127, 127, 127, 1, 127, 96, 0, 1, 127, 2, 109, 2, 30, 119, 97, 115, 105, 58, 102,
+    105, 108, 101, 115, 121, 115, 116, 101, 109, 47, 112, 114, 101, 111, 112, 101, 110, 115, 64, 48,
+    46, 50, 46, 48, 15, 103, 101, 116, 45, 100, 105, 114, 101, 99, 116, 111, 114, 105, 101, 115, 0,
+    0, 27, 119, 97, 115, 105, 58, 102, 105, 108, 101, 115, 121, 115, 116, 101, 109, 47, 116, 121,
+    112, 101, 115, 64, 48, 46, 50, 46, 48, 28, 91, 109, 101, 116, 104, 111, 100, 93, 100, 101, 115,
+    99, 114, 105, 112, 116, 111, 114, 46, 114, 101, 110, 97, 109, 101, 45, 97, 116, 0, 1, 3, 3, 2,
+    2, 3, 5, 3, 1, 0, 1, 6, 7, 1, 127, 1, 65, 128, 8, 11, 7, 50, 3, 6, 109, 101, 109, 111, 114, 121,
+    2, 0, 12, 99, 97, 98, 105, 95, 114, 101, 97, 108, 108, 111, 99, 0, 2, 22, 119, 97, 115, 105, 58,
+    99, 108, 105, 47, 114, 117, 110, 64, 48, 46, 50, 46, 48, 35, 114, 117, 110, 0, 3, 10, 109, 2,
+    11, 0, 35, 0, 35, 0, 32, 3, 106, 36, 0, 11, 95, 1, 1, 127, 65, 32, 16, 0, 65, 32, 40, 2, 0, 40,
+    2, 0, 33, 0, 32, 0, 65, 0, 65, 1, 32, 0, 65, 4, 65, 4, 65, 192, 0, 16, 1, 65, 192, 0, 45, 0, 0,
+    4, 64, 0, 11, 32, 0, 65, 2, 65, 1, 32, 0, 65, 0, 65, 1, 65, 192, 0, 16, 1, 65, 192, 0, 45, 0, 0,
+    4, 64, 0, 11, 32, 0, 65, 4, 65, 4, 32, 0, 65, 2, 65, 1, 65, 192, 0, 16, 1, 65, 192, 0, 45, 0, 0,
+    11, 11, 14, 1, 0, 65, 0, 11, 8, 97, 0, 98, 0, 116, 101, 109, 112, 0, 41, 4, 110, 97, 109, 101,
+    1, 15, 2, 0, 4, 100, 105, 114, 115, 1, 6, 114, 101, 110, 97, 109, 101, 2, 8, 1, 3, 1, 0, 3, 100,
+    105, 114, 7, 7, 1, 0, 4, 104, 101, 97, 112,
   ]);
 }

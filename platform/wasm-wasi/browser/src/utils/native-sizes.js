@@ -18,7 +18,8 @@ import { TREE, ORCTOKEN, CS_MIDIDEVICE, CSOUND_PARAMS } from "../structures.js";
 export const sizeOfPrimitive = {
   int: 4,
   uint64: 8,
-  cs_float: 8,
+  cs_float: 4,
+  cs_double: 4,
   char: 1,
   double: 8,
   ptr: 4,

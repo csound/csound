@@ -29,6 +29,10 @@ build. It supports the following.
   arguments
 - opcode init, perf, and deinit callbacks
 
+The default WASI package now uses 32-bit `cs_float` and `cs_double` values.
+Its browser plugins do not match this native bridge. Keep double-precision
+headers and flags when building plugins for the native bridge.
+
 It does not yet support strings, arrays, function tables, spectral values,
 custom argument types, optional or variable arguments, or general access to
 the native `CSOUND` function table. The host-call bridge covers the allocation
@@ -50,7 +54,7 @@ the wasm32 Csound layout in guest memory. It does not pass native host pointers
 or native host layouts to the plugin.
 
 The frozen wasm32 offsets live in the private `Top/wasm_opcode_abi.h` header.
-Browser builds check each bridged size and offset at compile time. The native
+Double-precision wasm builds check each bridged size and offset at compile time. The native
 loader reserves a 256-byte `INSDS` prefix, but supplies values only for `esr`,
 `ekr`, `ksmps`, `ksmps_offset`, and `ksmps_no_end`. Guest code must not use
 other `INSDS` fields, even within that prefix. In particular, helpers such as

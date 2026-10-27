@@ -11,6 +11,8 @@ in
     nativeBuildInputs = [
       pkgs.pkg-config
     ];
+    # Csound uses libmpg123 for decoding and links only LAME's encoder.
+    configureFlags = ["--disable-decoder" "--disable-frontend"];
 
     NIX_CFLAGS_COMPILE = [
       "-D_WASI_EMULATED_SIGNAL=1"

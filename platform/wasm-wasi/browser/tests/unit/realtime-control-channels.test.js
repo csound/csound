@@ -16,11 +16,11 @@ describe("realtime numeric channel snapshot", () => {
     if (originalGoogDescriptor) Object.defineProperty(globalThis, "goog", originalGoogDescriptor);
     else delete globalThis.goog;
   });
-  const fixture = (precision = 8) => {
+  const fixture = (precision = 4) => {
     const memory = new WebAssembly.Memory({ initial: 1, maximum: 1, shared: true });
     new Uint32Array(memory.buffer, 64, 3).set([1, 128, 256]);
     new Uint8Array(memory.buffer, 128, 5).set(new TextEncoder().encode("gain\0"));
-    const values = new Float64Array(memory.buffer, 256, 1);
+    const values = new Float32Array(memory.buffer, 256, 1);
     values[0] = 0.125;
     const freed = [];
     const wasm = {
@@ -66,8 +66,8 @@ describe("realtime numeric channel snapshot", () => {
     assert.equal(second.get("gain"), 0.125);
   });
   it("frees the snapshot if ABI validation fails", () => {
-    const { wasm, freed } = fixture(4);
-    assert.throws(() => createRealtimeControlChannels(wasm, 42), /double precision/);
+    const { wasm, freed } = fixture(8);
+    assert.throws(() => createRealtimeControlChannels(wasm, 42), /single precision/);
     assert.deepEqual(freed, [64]);
     wasm.exports.csoundGetControlChannelsWasi = () => 0;
     assert.throws(() => createRealtimeControlChannels(wasm, 42), /Could not snapshot/);

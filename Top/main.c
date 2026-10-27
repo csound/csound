@@ -477,6 +477,17 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
   int32_t res = read_unified_file4(csound, corfile_create_r(csound, csd_text));
   int32_t scoreErrCnt;
   if (LIKELY(res)) {
+    /* Match the command-line CSD search paths in file mode. In particular,
+     * relative score includes must start in the CSD's directory, rather than
+     * relying on a host filesystem to clamp ../ at its root. */
+    if (strcmp(csd_name, "*string*") != 0 && !csound->oparms->noDefaultPaths) {
+      char *fileDir = csound_get_directory_for_path(csound, csd_name);
+      csoundAppendEnv(csound, "SADIR", fileDir);
+      csoundAppendEnv(csound, "SSDIR", fileDir);
+      csoundAppendEnv(csound, "INCDIR", fileDir);
+      csoundAppendEnv(csound, "MFDIR", fileDir);
+      csound->Free(csound, fileDir);
+    }
     /* File mode supplies its path; text mode supplies "*string*". */
     char *name = csoundStrdup(csound, csd_name);
     if (csound->csdname != NULL)

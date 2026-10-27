@@ -167,9 +167,8 @@ export const csoundUgenVarGetData = (wasm) => (var_) =>
   wasm.exports["csoundUgenVarGetData"](var_);
 
 /**
- * Gets the data pointer for creating a Float64Array view.
- * Same as csoundUgenVarGetData but named for clarity in JS usage.
- * Use: new Float64Array(wasm.exports.memory.buffer, ptr, ksmps)
+ * Legacy alias for the raw sample pointer.
+ * Use csoundUgenVarGetData and a Float32Array with the float browser build.
  * @function
  */
 export const csoundUgenVarGetDataAsFloat64Array = (wasm) => (var_) =>
@@ -408,16 +407,20 @@ export const csoundUgenGraphDeleteAll = (wasm) => (graph) =>
 /* ==== High-level JS helpers ==== */
 
 /**
- * Creates a Float64Array view over a UGEN_VAR's audio data buffer.
+ * Creates a Float32Array view over a UGEN_VAR's audio data buffer.
  * The view is only valid until the next wasm memory growth.
  * For a-rate vars, returns ksmps samples. For i/k, returns 1 sample.
  * @function
  */
-export const csoundUgenVarGetFloat64Array = (wasm) => (var_) => {
-  const ptr = wasm.exports["csoundUgenVarGetDataAsFloat64Array"](var_);
+export const csoundUgenVarGetFloat32Array = (wasm) => (var_) => {
+  const ptr = wasm.exports["csoundUgenVarGetData"](var_);
   const ksmps = wasm.exports["csoundUgenVarGetKsmps"](var_);
-  if (ptr === 0 || ksmps === 0) return new Float64Array(0);
+  if (ptr === 0 || ksmps === 0) return new Float32Array(0);
   const memory = wasm.exports["memory"];
-  // ptr is byte offset, Float64Array constructor needs byte offset divisible by 8
-  return new Float64Array(memory.buffer, ptr, ksmps);
+  // ptr is byte offset, Float32Array constructor needs byte offset divisible by 4
+  return new Float32Array(memory.buffer, ptr, ksmps);
 };
+
+/** @deprecated Use csoundUgenVarGetFloat32Array for a live view. Returns a copy. */
+export const csoundUgenVarGetFloat64Array = (wasm) => (var_) =>
+  Float64Array.from(csoundUgenVarGetFloat32Array(wasm)(var_));

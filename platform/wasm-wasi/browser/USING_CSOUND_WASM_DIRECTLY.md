@@ -20,15 +20,16 @@ responsibility of the Web Audio graph. Csound output device names such as
 
 ## Choose the correct WASM artifact
 
-`@csound/wasm-bin` contains two different WASI modules:
+`@csound/wasm-bin` contains these Preview 2 artifacts:
 
 - `lib/csound.wasm` is the browser-hosted WASI reactor. It has an
   `_initialize` entry point, imports its memory and host callbacks, and is the
   module used by `@csound/browser`.
 - `lib/csound.wasm.z` is the compressed form used when building the browser
   package.
-- `lib/csound-cli.wasm` is a standalone WASI command. It has a command-style
-  `_start` entry point and is intended for runtimes such as Wasmtime.
+- `lib/csound-cli.wasm` is a standalone WASI component exporting
+  `wasi:cli/run@0.2.0`, for runtimes such as Wasmtime.
+- `lib/csound-cli.core.wasm` contains the command’s core module for JavaScript hosts.
 
 The package's default entry remains the browser reactor for compatibility.
 Command-line runtimes must load `csound-cli.wasm` explicitly.
@@ -220,7 +221,7 @@ schedule(1, 0, -1, ${frequency})
         voice.memoryBuffer !== memoryBuffer ||
         voice.spoutPointer !== spoutPointer
       ) {
-        voice.spout = new Float64Array(memoryBuffer, spoutPointer, voice.ksmps * voice.channels);
+        voice.spout = new Float32Array(memoryBuffer, spoutPointer, voice.ksmps * voice.channels);
 
         voice.memoryBuffer = memoryBuffer;
         voice.spoutPointer = spoutPointer;
@@ -319,12 +320,10 @@ runtime.
 import { libcsound } from "@csound/browser";
 import { makeMultiCsoundProcessor } from "./multi-csound-processor.js";
 
-let sharedApiPromise = null;
+import { workletRandomValues } from "@csound/browser/src/utils/random-pool.js";
 
-async function loadApi() {
-  // Shared by every processor created in this AudioWorkletGlobalScope.
-  sharedApiPromise ??= libcsound();
-  return sharedApiPromise;
+async function loadApi(config, port) {
+  return libcsound({ getRandomValues: workletRandomValues(config.randomBytes, port) });
 }
 
 registerProcessor("multi-csound-libcsound", makeMultiCsoundProcessor(loadApi));
@@ -334,10 +333,16 @@ Bundle this file and its imports into an AudioWorklet-compatible module. The
 worklet example in `examples/worklet-demo/` demonstrates the required build
 setup and global polyfills for `@csound/browser`.
 
+AudioWorklet has no Web Crypto API. These examples pass a pool of secure random
+bytes from the main thread and refill it through the message port. The host
+throws if a synchronous request exhausts the pool before a refill can arrive.
+
 ### Main-thread AudioWorklet setup
 
 ```js
 // main-libcsound.js
+
+import { randomBytes, serveRandomBytes } from "@csound/browser/src/utils/random-pool.js";
 
 export async function startLibcsoundExample() {
   const frequencies = [220, 330, 440];
@@ -351,6 +356,7 @@ export async function startLibcsoundExample() {
     outputChannelCount: frequencies.map(() => 2),
 
     processorOptions: {
+      randomBytes: randomBytes(),
       sampleRate: context.sampleRate,
       ksmps: 64,
       frequencies,
@@ -372,6 +378,7 @@ export async function startLibcsoundExample() {
     return { frequency, gain, pan };
   });
 
+  serveRandomBytes(node.port);
   node.port.onmessage = ({ data }) => {
     if (data.type === "ready") {
       console.log(`${data.voiceCount} Csound instances running`);
@@ -408,15 +415,14 @@ connect each output to a different processing chain or destination.
 
 ## Approach 2: instantiate `@csound/wasm-bin` directly
 
-Install the binary package and a browser WASI Preview 1 implementation:
+Install the binary package and the matching Preview 2 host:
 
 ```bash
-npm install @csound/wasm-bin @bjorn3/browser_wasi_shim
+npm install @csound/wasm-bin @csound/browser
 ```
 
-The example below uses
-[`@bjorn3/browser_wasi_shim`](https://www.npmjs.com/package/@bjorn3/browser_wasi_shim)
-as an independent WASI host. Other WASI implementations can be used instead.
+The example uses the Preview 2 resource host shipped with `@csound/browser`.
+It runs the core reactor and shares the same ABI as the bundled browser modules.
 
 ### Load and compile the browser reactor
 
@@ -426,6 +432,8 @@ URL by the mechanism appropriate to that tool.
 
 ```js
 // main-wasm-bin.js
+
+import { randomBytes, serveRandomBytes } from "@csound/browser/src/utils/random-pool.js";
 
 import reactorUrl from "@csound/wasm-bin/lib/csound.wasm?url";
 
@@ -450,6 +458,7 @@ export async function startRawWasmExample() {
     outputChannelCount: frequencies.map(() => 2),
 
     processorOptions: {
+      randomBytes: randomBytes(),
       // WebAssembly.Module supports structured cloning into the worklet.
       wasmModule,
       sampleRate: context.sampleRate,
@@ -472,6 +481,7 @@ export async function startRawWasmExample() {
     return { gain, pan };
   });
 
+  serveRandomBytes(node.port);
   node.port.onmessage = ({ data }) => {
     if (data.type === "ready") {
       console.log(`${data.voiceCount} raw Csound instances running`);
@@ -515,7 +525,7 @@ The raw module does not accept JavaScript strings and cannot be instantiated
 with an empty imports object. The following loader provides:
 
 - imported WebAssembly memory;
-- WASI Preview 1 functions and a small in-memory filesystem;
+- WASI Preview 2 functions and a small in-memory filesystem;
 - Csound message and debug callbacks;
 - no-op dynamic module callbacks for a no-plugin setup;
 - C-string allocation and marshalling; and
@@ -524,34 +534,21 @@ with an empty imports object. The following loader provides:
 ```js
 // wasm-bin.processor.js
 
-import { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory } from "@bjorn3/browser_wasi_shim";
+import { WASI } from "@csound/browser/src/filesystem/preview2.js";
+import { workletRandomValues } from "@csound/browser/src/utils/random-pool.js";
 
 import { makeMultiCsoundProcessor } from "./multi-csound-processor.js";
 
-const textEncoder = new TextEncoder();
-const textDecoder = new TextDecoder();
+import { encoder as textEncoder, decoder as textDecoder } from "@csound/browser/src/utils/utf8.js";
 
 async function loadRawCsound(config, port) {
   if (!(config.wasmModule instanceof WebAssembly.Module)) {
     throw new TypeError("processorOptions.wasmModule is required");
   }
 
-  const fds = [
-    new OpenFile(new File([])),
-
-    ConsoleStdout.lineBuffered((message) => {
-      port.postMessage({ type: "log", message });
-    }),
-
-    ConsoleStdout.lineBuffered((message) => {
-      port.postMessage({ type: "log", message });
-    }),
-
-    // Empty in-memory filesystem rooted at "/".
-    new PreopenDirectory("/", []),
-  ];
-
-  const wasi = new WASI(["csound.wasm"], [], fds, { debug: false });
+  const wasi = new WASI({
+    getRandomValues: workletRandomValues(config.randomBytes, port),
+  });
 
   const pagesPerMiB = 16;
 
@@ -589,6 +586,8 @@ async function loadRawCsound(config, port) {
     },
 
     csoundWasiJsDebugCallback() {},
+    csoundWasiJsReadlineCallback() {},
+    csoundWasiJsSystem() { return -1; },
 
     printDebugCallback(pointer, length) {
       const bytes = new Uint8Array(memory.buffer, pointer, length);
@@ -599,8 +598,9 @@ async function loadRawCsound(config, port) {
     },
   };
 
+  wasi.setMemory(memory);
   const instance = await WebAssembly.instantiate(config.wasmModule, {
-    wasi_snapshot_preview1: wasi.wasiImport,
+    ...wasi.getImports(config.wasmModule),
     env,
   });
 
@@ -610,7 +610,7 @@ async function loadRawCsound(config, port) {
   const runtime = { exports };
 
   // csound.wasm is a reactor: initialize it, do not call _start.
-  wasi.initialize(runtime);
+  wasi.start(runtime);
 
   exports.__wasi_js_csoundSetMessageStringCallback?.();
 

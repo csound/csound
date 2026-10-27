@@ -140,6 +140,7 @@ import {
   csoundUgenGraphPerform,
   csoundUgenGraphDelete,
   csoundUgenGraphDeleteAll,
+  csoundUgenVarGetFloat32Array,
   csoundUgenVarGetFloat64Array,
 } from "./modules/ugen";
 import fs from "./filesystem/worker-fs";
@@ -282,6 +283,7 @@ export const api = {
   csoundUgenGraphPerform,
   csoundUgenGraphDelete,
   csoundUgenGraphDeleteAll,
+  csoundUgenVarGetFloat32Array,
   csoundUgenVarGetFloat64Array,
   // filesystem
   fs,

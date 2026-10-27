@@ -29,7 +29,7 @@ const rtmidiQueue = [];
 
 const createAudioInputBuffers = (audioInputs, inputsCount) => {
   for (let channelIndex = 0; channelIndex < inputsCount; ++channelIndex) {
-    audioInputs.buffers.push(new Float64Array(RING_BUFFER_SIZE));
+    audioInputs.buffers.push(new Float32Array(RING_BUFFER_SIZE));
   }
 };
 
@@ -75,13 +75,13 @@ const createRealtimeAudioThread =
     const outputBufferPtr = libraryCsound.csoundGetSpout(csound);
     const ksmps = libraryCsound.csoundGetKsmps(csound);
 
-    let csoundInputBuffer = new Float64Array(
+    let csoundInputBuffer = new Float32Array(
       wasm.wasi.memory.buffer,
       inputBufferPtr,
       ksmps * nchnlsInput,
     );
 
-    let csoundOutputBuffer = new Float64Array(
+    let csoundOutputBuffer = new Float32Array(
       wasm.wasi.memory.buffer,
       outputBufferPtr,
       ksmps * nchnls,
@@ -130,14 +130,14 @@ const createRealtimeAudioThread =
         // MEMGROW KILLS REFERENCES!
         // https://github.com/emscripten-core/emscripten/issues/6747#issuecomment-400081465
         if (csoundInputBuffer.length === 0) {
-          csoundInputBuffer = new Float64Array(
+          csoundInputBuffer = new Float32Array(
             wasm.wasi.memory.buffer,
             libraryCsound.csoundGetSpin(csound),
             ksmps * nchnlsInput,
           );
         }
         if (csoundOutputBuffer.length === 0) {
-          csoundOutputBuffer = new Float64Array(
+          csoundOutputBuffer = new Float32Array(
             wasm.wasi.memory.buffer,
             libraryCsound.csoundGetSpout(csound),
             ksmps * nchnls,
