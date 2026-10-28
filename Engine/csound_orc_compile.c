@@ -2584,9 +2584,17 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
               CS_VARIABLE *ivar =
                 csoundFindVariableWithName(csound, globalPool, c);
               // set it
-              if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
+              if(ivar != NULL) {
+                if(ivar->varType == &CS_VAR_TYPE_INSTR) {
                 stage_instr_reference(csound, engineState,
                     (INSTREF *) &ivar->memBlock->value, instrtxt);
+                } else {
+                  // if a different type (e.g. OpcodeDef) was found, reject it
+                  csound->Warning(csound, Str("InstrDef %s name clash"
+                                              " with existing variable %s of type %s\n"), c, c,
+                                  ivar->varType->varTypeName);
+                  csound->Warning(csound, Str("InstrDef %s not added\n"), c);
+                }
               }
             }
           }
