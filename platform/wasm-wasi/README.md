@@ -37,16 +37,19 @@ npm run build         # builds Csound, plugins and accessory commands with Nix
 | Output | Target | Pointers | Audio and score values |
 | --- | --- | --- | --- |
 | `csound.wasm`, `csound.wasm.z` | wasm32-wasip2 | 32-bit | float (`USE_DOUBLE=0`, `USE_FLOAT=1`) |
-| `csound_x64.wasm`, `csound_x64.wasm.z` | wasm64-wasip2 | 64-bit | double (`USE_DOUBLE=1`, `USE_FLOAT=0`) |
-| `csound-cli.wasm`, `csound_x64-cli.wasm` | Preview 2 components | as above | as above |
-| `csound-plugin-sdk.tar.gz`, `csound_x64-plugin-sdk.tar.gz` | matching plugin headers and static library | as above | as above |
+| `csound-wasm64.wasm`, `csound-wasm64.wasm.z` | wasm64-wasip2 | 64-bit | double (`USE_DOUBLE=1`, `USE_FLOAT=0`) |
+| `csound-cli.wasm`, `csound-wasm64-cli.wasm` | Preview 2 components | as above | as above |
+| `csound-plugin-sdk.tar.gz`, `csound-wasm64-plugin-sdk.tar.gz` | matching plugin headers and static library | as above | as above |
+
+The `wasm64` label names the WebAssembly pointer width. It does not mean
+x86-64 or sample precision. All WebAssembly binaries keep the `.wasm` extension.
 
 The package entry remains `csound.wasm`. Browser modules explicitly bundle
-`csound_x64.wasm.z`, with one engine per module. They return `Float64Array`
+`csound-wasm64.wasm.z`, with one engine per module. They return `Float64Array`
 table copies. `csoundUgenVarGetFloat64Array` gives a live view until memory
 grows; `csoundUgenVarGetFloat32Array` gives a converted copy. Web Audio transport
 buffers remain float. The build also supplies matching C and C++ example
-plugins, with `_x64` in the names of the 64-bit versions.
+plugins, with `-wasm64` in the names of the 64-bit versions.
 
 Both targets use WASI Preview 2. Nix builds LLVM runtimes and wasi-libc from
 source; it does not download a WASI SDK bundle. The shared nixpkgs pin is
@@ -54,7 +57,7 @@ source; it does not download a WASI SDK bundle. The shared nixpkgs pin is
 The wasm64 port patches libc's pointer atomics, stack declaration and WIT
 metadata object, plus compiler-rt's floating comparison return types.
 
-The Component Model's direct memory64 ABI remains unfinished. The x64 build
+The Component Model's direct memory64 ABI remains unfinished. The wasm64 build
 therefore includes a small core adapter with its own memory32 heap. It copies
 WASI strings, lists and records between that heap and the engine's memory64
 heap. Resource handles and fixed-width scalars keep their WIT types. The
@@ -89,7 +92,7 @@ sets precision. Do not pass `-DUSE_DOUBLE=0` as a C compiler flag: the headers
 test whether that macro is defined. See [plugin compilation](PLUGIN_COMPILATION.md).
 
 The command build also places these tools in `lib`. Each file uses the tool
-name followed by `.wasm` for float, or `_x64.wasm` for double. Each also has
+name followed by `.wasm` for float, or `-wasm64.wasm` for double. Each also has
 a `.core.wasm` derivative for the browser command host.
 
 ```text
@@ -139,7 +142,7 @@ Native Csound can also use Wasmtime to load supported opcode plugins passed as
 option, current ABI limits, and compile-cache rules.
 
 To run the command-line CSD suite against an already-built Preview 2
-`lib/csound_x64-cli.wasm`:
+`lib/csound-wasm64-cli.wasm`:
 
 ```bash
 source ./scripts/nixpkgs-pin.sh
@@ -164,14 +167,14 @@ threaded tests ready for a future Preview 2 toolchain. The published
 
 For releases, publish a new `@csound/wasm-bin` version before updating and
 publishing `@csound/browser`; older binary packages do not contain the new
-`csound_x64.wasm` engine and its SDK.
+`csound-wasm64.wasm` engine and its SDK.
 
 ---
 
 ## Browser playback and threads
 
 `@csound/browser` supports AudioWorklet playback and worker playback, with
-SharedArrayBuffer or MessagePort transport. These modes use the same x64
+SharedArrayBuffer or MessagePort transport. These modes use the same wasm64
 engine. `useWorker` defaults to `false`; set it to `true` to run Csound in a
 worker. SharedArrayBuffer transport needs cross-origin isolation headers.
 

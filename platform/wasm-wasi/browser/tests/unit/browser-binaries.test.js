@@ -26,7 +26,7 @@ describe("browser binary packaging", () => {
   };
 
   it("builds one baseline entry when the installed package has no companion", () => {
-    const baseline = put(installed, "csound_x64.wasm.z", "baseline-only");
+    const baseline = put(installed, "csound-wasm64.wasm.z", "baseline-only");
     const selected = browserBinaries(root);
     assert.deepEqual(selected, {
       baseline,
@@ -40,9 +40,9 @@ describe("browser binary packaging", () => {
   });
 
   it("does not mix a local baseline-only build with a package companion", () => {
-    put(installed, "csound_x64.wasm.z");
-    put(installed, "csound_x64-browser-realtime.wasm.z");
-    const baseline = put(local, "csound_x64.wasm.z");
+    put(installed, "csound-wasm64.wasm.z");
+    put(installed, "csound-wasm64-browser-realtime.wasm.z");
+    const baseline = put(local, "csound-wasm64.wasm.z");
     assert.deepEqual(browserBinaries(root), {
       baseline,
       threaded: undefined,
@@ -50,14 +50,14 @@ describe("browser binary packaging", () => {
   });
 
   it("selects matching local artifacts and the threaded main entry", () => {
-    put(installed, "csound_x64.wasm.z");
-    const baseline = put(local, "csound_x64.wasm.z");
-    const threaded = put(local, "csound_x64-browser-realtime.wasm.z");
+    put(installed, "csound-wasm64.wasm.z");
+    const baseline = put(local, "csound-wasm64.wasm.z");
+    const threaded = put(local, "csound-wasm64-browser-realtime.wasm.z");
     assert.deepEqual(browserBinaries(root), { baseline, threaded });
   });
 
   it("accepts an explicit raw fixture but rejects a missing override", () => {
-    put(local, "csound_x64.wasm.z");
+    put(local, "csound-wasm64.wasm.z");
     const fixture = put(directory, "probe.wasm");
     assert.equal(browserBinaries(root, fixture).threaded, fixture);
     assert.throws(

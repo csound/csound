@@ -2,7 +2,7 @@
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
   threaded ? false,
-  csoundWasm ? if threaded then ../test-artifacts/csound-realtime.wasm else ../lib/csound_x64-cli.wasm,
+  csoundWasm ? if threaded then ../test-artifacts/csound-realtime.wasm else ../lib/csound-wasm64-cli.wasm,
   commandlineTests ? ../../../tests/commandline,
   workers ? 4,
   testTimeout ? 60,
