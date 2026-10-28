@@ -456,9 +456,13 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
              type == &CS_VAR_TYPE_P || type == &CS_VAR_TYPE_K)
       insno = *p->which;
     else
-      return
+      return p->h.init ?
         csound->InitError(csound, Str("%s is of :%s type,\n"
                                       "expected :S,:i,:k,:p, or :InstrDef\n"),
+                          GetInputArgName((OPDS*)p, 0),
+                          type->varTypeName) :
+        csound->PerfError(csound, &p->h, Str("%s is of :%s type,\n"
+                                             "expected :S,:i,:k,:p, or :InstrDef\n"),
                           GetInputArgName((OPDS*)p, 0),
                           type->varTypeName);
     return schedule_string_event(csound, p, insno);
