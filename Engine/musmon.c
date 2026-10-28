@@ -1516,6 +1516,10 @@ int32_t sense_events(CSOUND *csound)
     }
 
     /* check for pending real time events */
+    /* Do not inherit a section end (retval 1/2/3) from an earlier score read
+       in this same call: the loop below only assigns retval when a due
+       realtime event is actually dispatched. */
+    retval = 0;
     {
       EVTNODE *event;
       int32_t locked = 0;
