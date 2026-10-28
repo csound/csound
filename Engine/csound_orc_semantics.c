@@ -25,6 +25,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "interlocks.h"
@@ -3691,6 +3692,22 @@ static int32_t verify_until_statement(CSOUND* csound, TREE* root,
   return 1;
 }
 
+static void apply_struct_member_default(CSOUND *csound,
+                                         const CS_VARIABLE *field,
+                                         CS_VAR_MEM *mem, INSDS *ctx) {
+  if (field->memBlock != NULL) {
+    field->varType->copyValue(csound, field->varType, &mem->value,
+                              &field->memBlock->value, ctx);
+  }
+  else if (field->varType->userDefinedType) {
+    CS_STRUCT_VAR *nested = (CS_STRUCT_VAR *)&mem->value;
+    CONS_CELL *member = field->varType->members;
+    for (int32_t i = 0; member != NULL; i++, member = member->next) {
+      apply_struct_member_default(csound, member->value, nested->members[i], ctx);
+    }
+  }
+}
+
 int32_t initStructVar(CSOUND* csound, void* p) {
   INIT_STRUCT_VAR* init = (INIT_STRUCT_VAR*)p;
   CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)init->out;
@@ -3702,13 +3719,17 @@ int32_t initStructVar(CSOUND* csound, void* p) {
      csound->Message(csound, "Initializing Struct...\n");
      csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
   }
-  if (incnt == 0) {
-    return CSOUND_SUCCESS;
-  }
-  for (i = 0; i < len; i++) {
+  CONS_CELL *member = type->members;
+  for (i = 0; i < len; i++, member = member->next) {
     CS_VAR_MEM* mem = structVar->members[i];
-    mem->varType->copyValue(csound, mem->varType, &mem->value,
-                            init->inArgs[i], init->h.insdshead);
+    if (i < incnt) {
+      mem->varType->copyValue(csound, mem->varType, &mem->value,
+                              init->inArgs[i], init->h.insdshead);
+    }
+    else {
+      apply_struct_member_default(csound, member->value, mem,
+                                    init->h.insdshead);
+    }
   }
 
   return CSOUND_SUCCESS;
@@ -3761,6 +3782,9 @@ void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, cs_float* mem) {
     if (field->initializeVariableMemory != NULL) {
       field->initializeVariableMemory(csound, field,
                                       &structVar->members[i]->value);
+    }
+    if (field->memBlock != NULL) {
+      apply_struct_member_default(csound, field, structVar->members[i], var->ctx);
     }
   }
 }
@@ -3903,6 +3927,65 @@ static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) 
   return 1;
 }
 
+/* Struct definitions are resolved before orchestra expressions. Keep their
+   defaults independent of runtime values and of the orchestra header. */
+static int32_t set_struct_member_default(CSOUND *csound, CS_VARIABLE *field,
+                                          TREE *declaration) {
+  TREE *value = declaration->left;
+  if (value == NULL) {
+    return 1;
+  }
+  if (declaration->type == T_ARRAY_IDENT ||
+      (field->varType != &CS_VAR_TYPE_I &&
+       field->varType != &CS_VAR_TYPE_K && field->varType != &CS_VAR_TYPE_S)) {
+    csound->ErrorMsg(csound,
+                     Str("[struct] default for '%s' requires type i, k or S\n"),
+                     field->varName);
+    return 0;
+  }
+  if (field->varType == &CS_VAR_TYPE_S) {
+    if (value->type != STRING_TOKEN || value->value == NULL) {
+      csound->ErrorMsg(csound,
+                       Str("[struct] default for '%s' must be a string literal\n"),
+                       field->varName);
+      return 0;
+    }
+    CS_VAR_MEM *mem = csound->Calloc(csound,
+                                    CS_VAR_TYPE_OFFSET + sizeof(STRINGDAT));
+    STRINGDAT *str = (STRINGDAT *)&mem->value;
+    mem->varType = field->varType;
+    str->data = csound->Calloc(csound, strlen(value->value->lexeme) + 1);
+    csound_unquote_string(str->data, value->value->lexeme);
+    str->size = strlen(str->data) + 1;
+    field->memBlock = mem;
+    return 1;
+  }
+  int32_t sign = 1;
+  while (value != NULL &&
+         (value->type == S_UMINUS || value->type == S_UPLUS)) {
+    if (value->type == S_UMINUS) sign = -sign;
+    value = value->right;
+  }
+  if (value == NULL || value->value == NULL ||
+      (value->type != INTEGER_TOKEN && value->type != NUMBER_TOKEN)) {
+    csound->ErrorMsg(csound,
+                     Str("[struct] default for '%s' must be a numeric literal\n"),
+                     field->varName);
+    return 0;
+  }
+  cs_float number = (cs_float)(sign * csoundStrtod(value->value->lexeme, NULL));
+  if (!isfinite(number)) {
+    csound->ErrorMsg(csound,
+                     Str("[struct] default for '%s' must be finite\n"),
+                     field->varName);
+    return 0;
+  }
+  field->memBlock = csound->Calloc(csound, sizeof(CS_VAR_MEM));
+  field->memBlock->varType = field->varType;
+  field->memBlock->value = number;
+  return 1;
+}
+
 int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   TREE* current = structDefTree->right;
   size_t index = 0;
@@ -3983,6 +4066,11 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     csound->Free(csound, inferredAnnotation);
 
     var->varName = csoundStrdup(csound, memberName);
+    if (!set_struct_member_default(csound, var, current)) {
+      csound->Free(csound, var->varName);
+      csound->Free(csound, var);
+      return 0;
+    }
     CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
    member->value = var;
     type->members = cs_cons_append(type->members, member);
@@ -4031,6 +4119,11 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentry.outypes = csoundStrdup(csound, temp);
 
   CONS_CELL* member = type->members;
+  int32_t member_count = cs_cons_length(type->members);
+  int32_t required_count = 0;
+  int32_t member_index = 0;
+  size_t *prefix_ends = csound->Calloc(csound,
+                                      (member_count + 1) * sizeof(size_t));
   while (member != NULL) {
     CS_VARIABLE* memberVar = (CS_VARIABLE*)member->value;
     int32_t isArray = (memberVar->subType != NULL);
@@ -4067,6 +4160,10 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
       }
     }
 
+    prefix_ends[++member_index] = index;
+    if (memberVar->memBlock == NULL) {
+      required_count = member_index;
+    }
     member = member->next;
   }
   temp[index] = 0;
@@ -4076,6 +4173,20 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentry.outypes = csoundStrdup(csound, oentry.outypes);
   oentry.intypes = csoundStrdup(csound, temp);
   csoundAppendOpcodes(csound, &oentry, 1);
+
+  /* Omit only a suffix whose members all have declared defaults. Exact
+     signatures keep required members and their types checked as before. */
+  for (int32_t count = required_count; count < member_count; count++) {
+    if (count == 0) continue; /* The zero-argument constructor already exists. */
+    char saved = temp[prefix_ends[count]];
+    temp[prefix_ends[count]] = '\0';
+    oentry.opname = csoundStrdup(csound, oentry.opname);
+    oentry.outypes = csoundStrdup(csound, oentry.outypes);
+    oentry.intypes = csoundStrdup(csound, temp);
+    csoundAppendOpcodes(csound, &oentry, 1);
+    temp[prefix_ends[count]] = saved;
+  }
+  csound->Free(csound, prefix_ends);
 
   /* Register an exact copy constructor without shadowing member-based
      constructors for the same struct. */
