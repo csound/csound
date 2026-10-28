@@ -353,7 +353,6 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
   evt.pcnt = p->INOCOUNT;
 
   const CS_TYPE *argType = GetTypeForArg(p->argums[0]);
-  const char *argName = GetInputArgName((OPDS *) p, 0);
   if (argType == &CS_VAR_TYPE_INSTR) {
     // handling argum[0] as instrument type
     cs_float insno;
@@ -385,7 +384,8 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
                                       csound->icurTimeSamples);
 
   else
-    return schedule_type_error(csound, (OPDS *) p, argName, argType);
+    return schedule_type_error(csound, (OPDS *) p,
+                               GetInputArgName((OPDS *) p, 0), argType);
 }
 
 
