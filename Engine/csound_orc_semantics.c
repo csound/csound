@@ -5342,7 +5342,10 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
                                                  csound->engineState.varPool,
                                                  varname);
     /* Keep the running reference until the compiler publishes a valid merge. */
-    if (var != NULL && var->varType == &CS_VAR_TYPE_INSTR) return;
+    if (var != NULL) {
+      if (var->varType == &CS_VAR_TYPE_INSTR) return;
+      if (var->varType != &CS_VAR_TYPE_OPCODEREF) return;
+    }
     var = add_global_variable(csound, &csound->engineState,
                                          &CS_VAR_TYPE_INSTR, varname,
                                            NULL);

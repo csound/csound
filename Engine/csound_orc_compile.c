@@ -1928,7 +1928,32 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
                       gVar->varName, gVar->varType->varTypeName);
     var = csoundFindVariableWithName(csound, current_state->varPool,
                                      gVar->varName);
-    if (var == NULL) {
+    if (gVar->varType == &CS_VAR_TYPE_INSTR && var != NULL &&
+        var->varType == &CS_VAR_TYPE_OPCODEREF) {
+      /* An instrument shadows the OpcodeDef the parser created for the same
+         name. Add the InstrDef so the hash publishes it instead of the opcode. */
+      ARRAY_VAR_INIT varInit;
+      varInit.dimensions = gVar->dimensions;
+      varInit.type = gVar->subType;
+      var = csoundCreateVariable(csound, csound->typePool,
+                                 (void *) gVar->varType,
+                                 gVar->varName, &varInit);
+      csoundAddVariable(csound, current_state->varPool, var);
+      var->memBlock = gVar->memBlock;
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
+        csound->Message(csound, Str(" shadowing %p %d) %s:%s\n"), var, count,
+                        gVar->varName, gVar->varType->varTypeName);
+      gVar = gVar->next;
+    } else if (gVar->varType == &CS_VAR_TYPE_OPCODEREF && var != NULL &&
+               var->varType == &CS_VAR_TYPE_INSTR) {
+      /* The parser's OpcodeDef is still in the linked list, but the hash now
+         holds the InstrDef created for an instrument with the same name.
+         Publish the current definition instead of the stale OpcodeDef. */
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
+        csound->Message(csound, Str(" skipping stale %p %d) %s:%s\n"), gVar,
+                        count, gVar->varName, gVar->varType->varTypeName);
+      gVar = gVar->next;
+    } else if (var == NULL) {
       ARRAY_VAR_INIT varInit;
       varInit.dimensions = gVar->dimensions;
       varInit.type = gVar->subType;
@@ -1970,6 +1995,26 @@ static void stage_instr_reference(CSOUND *csound, ENGINE_STATE *state,
     state->instrumentRefs = reference;
   }
   reference->instrument = instrument;
+}
+
+static void bind_instr_variable(CSOUND *csound, ENGINE_STATE *state,
+                                CS_VAR_POOL *pool, INSTRTXT *instrument,
+                                const char *name) {
+  CS_VARIABLE *variable = csoundFindVariableWithName(csound, pool, name);
+  if (variable == NULL) return;
+  if (variable->varType == &CS_VAR_TYPE_INSTR) {
+    stage_instr_reference(csound, state,
+                          (INSTREF *) &variable->memBlock->value, instrument);
+    return;
+  }
+  csound->Warning(csound,
+                  Str("instr %s: cannot bind :InstrDef because %s is already"
+                      " a :%s; refer to the instrument by string name \"%s\""
+                      " instead\n"),
+                  name, name,
+                  variable->varType != NULL ?
+                    variable->varType->varTypeName : "unknown",
+                  name);
 }
 
 static void finish_instr_references(CSOUND *csound, ENGINE_STATE *state,
@@ -2550,13 +2595,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
             instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
             strcpy(instrtxt->insname, c);
             // the parser has created a variable with the instrument name
-            CS_VARIABLE *ivar = csoundFindVariableWithName(csound,
-                                                           csound->engineState.varPool, c);
-            // set it
-            if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
-              stage_instr_reference(csound, engineState,
-                  (INSTREF *) &ivar->memBlock->value, instrtxt);
-            }
+            bind_instr_variable(csound, engineState,
+                                csound->engineState.varPool, instrtxt, c);
           }
         } else {
           if (p->type == INTEGER_TOKEN) {
@@ -2581,21 +2621,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 
               // the parser has created a variable with the instrument name
               // in globalPool
-              CS_VARIABLE *ivar =
-                csoundFindVariableWithName(csound, globalPool, c);
-              // set it
-              if(ivar != NULL) {
-                if(ivar->varType == &CS_VAR_TYPE_INSTR) {
-                stage_instr_reference(csound, engineState,
-                    (INSTREF *) &ivar->memBlock->value, instrtxt);
-                } else {
-                  // if a different type (e.g. OpcodeDef) was found, reject it
-                  csound->Warning(csound, Str("InstrDef %s name clash"
-                                              " with existing variable %s of type %s\n"), c, c,
-                                  ivar->varType->varTypeName);
-                  csound->Warning(csound, Str("InstrDef %s not added\n"), c);
-                }
-              }
+              bind_instr_variable(csound, engineState, globalPool, instrtxt, c);
             }
           }
         }
