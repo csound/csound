@@ -1,6 +1,6 @@
 <CsTest>
 description = "Offline score sections finish when MIDI input is enabled but idle"
-args = ["-n", "-d", "-m0", "--test", "-+rtmidi=null", "-M0"]
+args = ["-n", "-d", "-m0", "--run-unit-tests", "-+rtmidi=null", "-M0"]
 
 [expect]
 exit = 0

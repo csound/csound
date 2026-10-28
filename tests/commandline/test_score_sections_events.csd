@@ -1,6 +1,6 @@
 <CsTest>
 description = "Offline score sections finish after a queued realtime note"
-args = ["-n", "-d", "-m0", "--test"]
+args = ["-n", "-d", "-m0", "--run-unit-tests"]
 
 [expect]
 exit = 0
