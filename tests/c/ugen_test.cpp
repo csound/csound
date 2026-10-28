@@ -341,6 +341,36 @@ TEST_F(UGenTests, InitPerformOscils) {
 }
 
 /* ------------------------------------------------------------------
+ *  Schedule with numeric instrument arguments
+ * ------------------------------------------------------------------ */
+
+TEST_F(UGenTests, ScheduleNumericArguments) {
+    UGEN_FACTORY* factory = csoundUgenFactoryNew(csound);
+
+    UGEN* schedule = csoundUgenNew(factory, (char*)"schedule",
+                                   (char*)"", (char*)"iiim");
+    ASSERT_NE(schedule, nullptr);
+    csoundUgenSetValue(schedule, 0, 1.0);    /* instrument */
+    csoundUgenSetValue(schedule, 1, 0.0);    /* when */
+    csoundUgenSetValue(schedule, 2, 0.01);   /* duration */
+    EXPECT_EQ(csoundUgenInit(schedule), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundUgenPerform(schedule), CSOUND_SUCCESS);
+    csoundUgenDelete(schedule);
+
+    UGEN* schedulek = csoundUgenNew(factory, (char*)"schedulek",
+                                    (char*)"", (char*)"kkkM");
+    ASSERT_NE(schedulek, nullptr);
+    csoundUgenSetValue(schedulek, 0, 1.0);   /* instrument */
+    csoundUgenSetValue(schedulek, 1, 0.0);   /* when */
+    csoundUgenSetValue(schedulek, 2, 0.01);  /* duration */
+    EXPECT_EQ(csoundUgenInit(schedulek), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundUgenPerform(schedulek), CSOUND_SUCCESS);
+    csoundUgenDelete(schedulek);
+
+    csoundUgenFactoryDelete(factory);
+}
+
+/* ------------------------------------------------------------------
  *  Opcode listing
  * ------------------------------------------------------------------ */
 
