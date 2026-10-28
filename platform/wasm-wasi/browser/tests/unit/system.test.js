@@ -6,7 +6,7 @@ import { exitCommand, swapCommand } from "../score-command-fixtures.js";
 let WASI, createSystem, commandArguments, previousGoog;
 const encode = (text) => new TextEncoder().encode(text);
 const decode = (bytes) => new TextDecoder().decode(bytes);
-const csbeats = readFileSync(new URL("../../../lib/csbeats_x64.core.wasm", import.meta.url));
+const csbeats = readFileSync(new URL("../../../lib/csbeats-wasm64.core.wasm", import.meta.url));
 
 function setup(shared = false) {
   const host = new WASI({});

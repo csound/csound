@@ -14,24 +14,24 @@ in base.overrideAttrs (old: {
   nativeBuildInputs = old.nativeBuildInputs ++ [pkgs.python3];
   postInstall = if moduleKind == "browser" then ''
     mkdir -p "$out/lib"
-    python3 ${adapterSource}/bridge.py "$out/bin/csound" "$out/lib/csound_x64.wasm" --browser
-    node --experimental-wasm-exnref ../platform/wasm-wasi/tests/check-precision.mjs "$out/lib/csound_x64.wasm"
+    python3 ${adapterSource}/bridge.py "$out/bin/csound" "$out/lib/csound-wasm64.wasm" --browser
+    node --experimental-wasm-exnref ../platform/wasm-wasi/tests/check-precision.mjs "$out/lib/csound-wasm64.wasm"
     mkdir -p "$out/share/csound-plugin-sdk/include" "$out/share/csound-plugin-sdk/lib"
     cp -R "$out/include/csound" "$out/share/csound-plugin-sdk/include/"
     cp "$out/lib/libcsound64.a" "$out/share/csound-plugin-sdk/lib/"
-    tar -C "$out/share" -czf "$out/lib/csound_x64-plugin-sdk.tar.gz" csound-plugin-sdk
+    tar -C "$out/share" -czf "$out/lib/csound-wasm64-plugin-sdk.tar.gz" csound-plugin-sdk
   '' else ''
-    python3 ${adapterSource}/bridge.py "$out/bin/csound" "$out/lib/csound_x64-cli.wasm"
+    python3 ${adapterSource}/bridge.py "$out/bin/csound" "$out/lib/csound-wasm64-cli.wasm"
     for tool in "$out/bin/"*; do
       name=$(basename "$tool")
       if [ "$name" != csound ]; then
-        python3 ${adapterSource}/bridge.py "$tool" "$out/lib/''${name}_x64.wasm"
+        python3 ${adapterSource}/bridge.py "$tool" "$out/lib/''${name}-wasm64.wasm"
       fi
     done
     run_tool() {
       local tool="$1"
       shift
-      wasmtime run -Wexceptions=y -Ccache=n --dir=. "$out/lib/''${tool}_x64.wasm" "$@"
+      wasmtime run -Wexceptions=y -Ccache=n --dir=. "$out/lib/''${tool}-wasm64.wasm" "$@"
     }
     printf 'i1 m1 b1 C4 q mf\n' | run_tool csbeats >beats.sco
     printf 'i 1 0 1\ne\n' | run_tool scsort >sorted.sco
@@ -41,6 +41,6 @@ in base.overrideAttrs (old: {
     test -s converted.wav
   '';
   postFixup = pkgs.lib.optionalString (moduleKind == "browser") ''
-    zopfli --zlib -c "$out/lib/csound_x64.wasm" > "$out/lib/csound_x64.wasm.z"
+    zopfli --zlib -c "$out/lib/csound-wasm64.wasm" > "$out/lib/csound-wasm64.wasm.z"
   '';
 })

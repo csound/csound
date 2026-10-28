@@ -9,7 +9,7 @@
   stdenvWasm ? if sharedMemory
     then (import ./wasi-realtime-toolchain.nix { inherit pkgs pkgsWasm; }).stdenv
     else wasiToolchain.stdenv,
-  csoundSdkArchive ? if wasm64 then ../lib/csound_x64-plugin-sdk.tar.gz else if sharedMemory
+  csoundSdkArchive ? if wasm64 then ../lib/csound-wasm64-plugin-sdk.tar.gz else if sharedMemory
     then ../lib/csound-plugin-sdk.tar.gz
     else ../lib/csound-plugin-sdk-compat.tar.gz,
   useSdkArchive ? true,
@@ -67,6 +67,6 @@ in
     installPhase = ''
       mkdir -p $out/lib
       ${pkgs.lib.optionalString wasm64 "python3 ${../scripts/wasm64/wasm.py} plugin_example_cpp.wasm plugin_example_cpp.wasm"}
-      cp ./plugin_example_cpp.wasm $out/lib/plugin_example_cpp${pkgs.lib.optionalString wasm64 "_x64"}${pkgs.lib.optionalString sharedMemory "_shared"}.wasm
+      cp ./plugin_example_cpp.wasm $out/lib/plugin_example_cpp${pkgs.lib.optionalString wasm64 "-wasm64"}${pkgs.lib.optionalString sharedMemory "_shared"}.wasm
     '';
   }

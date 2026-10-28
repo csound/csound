@@ -7,7 +7,7 @@
   stdenvWasm ? wasiToolchain.stdenv,
   # Match the browser binary selected from this package at build time.
   sharedMemory ? !wasm64 && builtins.pathExists ../lib/csound-browser-realtime.wasm.z,
-  csoundSdkArchive ? if wasm64 then ../lib/csound_x64-plugin-sdk.tar.gz else if sharedMemory
+  csoundSdkArchive ? if wasm64 then ../lib/csound-wasm64-plugin-sdk.tar.gz else if sharedMemory
     then ../lib/csound-plugin-sdk.tar.gz
     else ../lib/csound-plugin-sdk-compat.tar.gz,
   useSdkArchive ? true,
@@ -35,7 +35,7 @@ in
       '';
     }
   else if wasm64
-  then pkgs.callPackage ./csound-x64.nix { inherit pkgs; moduleKind = "browser"; }
+  then pkgs.callPackage ./csound-wasm64.nix { inherit pkgs; moduleKind = "browser"; }
   else if sharedMemory
   then
     pkgs.callPackage ./csound-browser-realtime.nix { inherit pkgs; }

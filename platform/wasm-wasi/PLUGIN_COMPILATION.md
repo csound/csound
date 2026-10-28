@@ -10,9 +10,9 @@ They contain generated headers and the matching static Csound library.
 | Engine | SDK | Plugin build option |
 | --- | --- | --- |
 | wasm32 float `csound.wasm` | `csound-plugin-sdk.tar.gz` (`libcsound.a`) | `--arg wasm64 false` |
-| wasm64 double `csound_x64.wasm` | `csound_x64-plugin-sdk.tar.gz` (`libcsound64.a`) | `--arg wasm64 true` |
+| wasm64 double `csound-wasm64.wasm` | `csound-wasm64-plugin-sdk.tar.gz` (`libcsound64.a`) | `--arg wasm64 true` |
 
-The browser uses the x64 engine. Its plugins need 64-bit pointers and double
+The browser uses the wasm64 engine. Its plugins need 64-bit pointers and double
 samples. The loader rejects a plugin with a different pointer or sample size.
 Let the SDK's generated `float-version.h` set the precision macros. Do not
 pass `-DUSE_DOUBLE=0` to the compiler; Csound checks whether it is defined.
@@ -20,7 +20,7 @@ pass `-DUSE_DOUBLE=0` to the compiler; Csound checks whether it is defined.
 ## Build
 
 From `platform/wasm-wasi`, `npm run build` creates both engines, commands,
-SDKs and C/C++ example plugins. To rebuild only an x64 plugin:
+SDKs and C/C++ example plugins. To rebuild only a wasm64 plugin:
 
 ```sh
 source scripts/nixpkgs-pin.sh
@@ -28,9 +28,9 @@ nix-build src/plugin_example.nix --arg wasm64 true
 nix-build src/plugin_example_cpp.nix --arg wasm64 true
 ```
 
-The outputs are `plugin_example_x64.wasm` and `plugin_example_cpp_x64.wasm`.
+The outputs are `plugin_example-wasm64.wasm` and `plugin_example_cpp-wasm64.wasm`.
 For an external archive, also pass
-`--arg csoundSdkArchive /absolute/path/to/csound_x64-plugin-sdk.tar.gz`.
+`--arg csoundSdkArchive /absolute/path/to/csound-wasm64-plugin-sdk.tar.gz`.
 `--arg useSdkArchive false` builds the matching engine's headers from source.
 
 The example builds use the source-built wasm64 Preview 2 toolchain and append

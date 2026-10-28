@@ -1,6 +1,6 @@
 # @csound/browser
 
-The browser bundles one `csound_x64.wasm` engine: true 64-bit pointers, double
+The browser bundles one `csound-wasm64.wasm` engine: true 64-bit pointers, double
 samples and WASI Preview 2. It requires memory64, table64 and multiple-memory
 support. Use Node.js 24 or newer for builds and host tests. The separate `csound.wasm` artifact uses 32-bit pointers and float
 samples. See [the build guide](../README.md) for outputs and host requirements.

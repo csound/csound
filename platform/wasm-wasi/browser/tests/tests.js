@@ -24,10 +24,10 @@ import { beatsCsd, exitCommand } from "./score-command-fixtures.js";
   // console.log("RESP", resp);
   const { Csound } = resp;
   const { sharedEngine } = await import("/dist/__csound_engine.inline.js");
-  const cPlugin = sharedEngine ? "./plugin_example_shared.wasm" : "./plugin_example_x64.wasm";
+  const cPlugin = sharedEngine ? "./plugin_example_shared.wasm" : "./plugin_example-wasm64.wasm";
   const cppPlugin = sharedEngine
     ? "./plugin_example_cpp_shared.wasm"
-    : "./plugin_example_cpp_x64.wasm";
+    : "./plugin_example_cpp-wasm64.wasm";
 
   const carriageReturnOrchestra = `
 ksmps = 32
@@ -387,7 +387,7 @@ e
         const cs = await Csound(test);
         const { messages, stop } = collectCsoundMessages(cs);
         try {
-          const response = await fetch("/wasm-bin/csbeats_x64.core.wasm");
+          const response = await fetch("/wasm-bin/csbeats-wasm64.core.wasm");
           assert.isTrue(response.ok);
           await cs.fs.mkdir("/project");
           await cs.fs.chdir("/project");
@@ -900,19 +900,19 @@ schedule(1, 0.05, 10)`),
         const cs = await Csound(test);
 
         try {
-          assert.isFalse(await cs.fs.pathExists("./plugin_example_cpp_x64.wasm"));
-          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp_x64.wasm"));
+          assert.isFalse(await cs.fs.pathExists("./plugin_example_cpp-wasm64.wasm"));
+          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp-wasm64.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal("./plugin_example_cpp_x64.wasm", await cs.getRequestedPlugins());
+          assert.equal("./plugin_example_cpp-wasm64.wasm", await cs.getRequestedPlugins());
 
           const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
-          await cs.fs.writeFile("./plugin_example_cpp_x64.wasm", pluginBytes);
+          await cs.fs.writeFile("./plugin_example_cpp-wasm64.wasm", pluginBytes);
 
-          assert.isTrue(await cs.fs.pathExists("./plugin_example_cpp_x64.wasm"));
+          assert.isTrue(await cs.fs.pathExists("./plugin_example_cpp-wasm64.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal("./plugin_example_cpp_x64.wasm", await cs.getRequestedPlugins());
+          assert.equal("./plugin_example_cpp-wasm64.wasm", await cs.getRequestedPlugins());
           assert.equal(0, await cs.compileCSD(filesystemPluginTest()));
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
@@ -922,7 +922,7 @@ schedule(1, 0.05, 10)`),
           await cs.reset();
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
-          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp_x64.wasm"));
+          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp-wasm64.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
           assert.equal(0, await cs.compileCSD(filesystemPluginTest()));
           assert.equal(0, await cs.isRequestingPlugins());
@@ -940,13 +940,13 @@ schedule(1, 0.05, 10)`),
           const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
-          await cs.fs.writeFile("./plugin_example_cpp_x64.wasm", pluginBytes);
+          await cs.fs.writeFile("./plugin_example_cpp-wasm64.wasm", pluginBytes);
 
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
           assert.equal(
             0,
-            await cs.compileCSD(filesystemPluginTest("--opcode-lib=./plugin_example_cpp_x64.wasm")),
+            await cs.compileCSD(filesystemPluginTest("--opcode-lib=./plugin_example_cpp-wasm64.wasm")),
           );
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
@@ -959,17 +959,17 @@ schedule(1, 0.05, 10)`),
         const cs = await Csound(test);
 
         try {
-          assert.isFalse(await cs.fs.pathExists("./plugin_example_cpp_x64.wasm"));
-          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp_x64.wasm"));
+          assert.isFalse(await cs.fs.pathExists("./plugin_example_cpp-wasm64.wasm"));
+          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp-wasm64.wasm"));
           assert.equal(1, await cs.isRequestingPlugins());
           assert.equal(0, await cs.parseOrc(filesystemPluginOrchestra));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal("./plugin_example_cpp_x64.wasm", await cs.getRequestedPlugins());
+          assert.equal("./plugin_example_cpp-wasm64.wasm", await cs.getRequestedPlugins());
 
           const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
-          await cs.fs.writeFile("./plugin_example_cpp_x64.wasm", pluginBytes);
+          await cs.fs.writeFile("./plugin_example_cpp-wasm64.wasm", pluginBytes);
 
           const tree = await cs.parseOrc(filesystemPluginOrchestra);
           assert.isOk(tree);
