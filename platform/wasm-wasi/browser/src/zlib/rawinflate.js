@@ -1,6 +1,6 @@
 /* eslint-disable camelcase,no-unused-expressions */
 
-import { Huffman } from "./huffman";
+import { Huffman } from "./huffman.js";
 
 /** @define {number} buffer block size. */
 const ZLIB_RAW_INFLATE_BUFFER_SIZE = 0x8000; // [ 0x8000 >= ZLIB_BUFFER_BLOCK_SIZE ]

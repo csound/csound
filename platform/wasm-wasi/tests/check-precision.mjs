@@ -7,6 +7,9 @@ const { assertBrowserPrecision } = await import("../browser/src/utils/browser-re
 const { csoundTableCopyIn, csoundTableCopyOut, csoundGetTableArgs } =
   await import("../browser/src/modules/table.js");
 const { csoundEvent } = await import("../browser/src/modules/control-events.js");
+const { csoundGetParams } = await import("../browser/src/modules/attributes.js");
+const { CS_MIDIDEVICE } = await import("../browser/src/structures.js");
+const { sizeOfStruct } = await import("../browser/src/utils/native-sizes.js");
 const { moduleABI, memory64Imports, nativeExports, nativeCallbacks } =
   await import("../browser/src/utils/wasm64.js");
 const shared = process.argv[3] === "shared";
@@ -64,6 +67,37 @@ function stringCall(name, text, ...args) {
   }
 }
 try {
+  assert.equal(sizeOfStruct(CS_MIDIDEVICE, wasm), api.sizeOfMidiStruct());
+  assert.equal(
+    stringCall(
+      "csoundSetOption",
+      "-b512 -B2048 -m300 -t123.5 --sample-rate=48000.5 --control-rate=1500.25 " +
+        "--nchnls=3 --nchnls_i=2 --0dbfs=2048 --midi-key=73 --midi-velocity=74 --fftlib=2",
+    ),
+    0,
+  );
+  const parameters = csoundGetParams(wasm)(csound);
+  for (const [name, value] of Object.entries({
+    buffer_frames: 512,
+    hardware_buffer_frames: 2048,
+    message_level: 300,
+    tempo: 123.5,
+    sample_rate_override: 48000.5,
+    control_rate_override: 1500.25,
+    nchnls_override: 3,
+    nchnls_i_override: 2,
+    e0dbfs_override: 2048,
+    midi_key: 73,
+    midi_velocity: 74,
+    FFT_library: 2,
+    use_cscore: 0,
+    compute_weights: 0,
+  }))
+    assert.equal(parameters[name], value, `getParams ${name}`);
+  assert.equal(stringCall("csoundSetOption", "--0dbfs=1024"), 0);
+  assert.equal(csoundGetParams(wasm)(csound).e0dbfs_override, 1024);
+  assert.equal(parameters.e0dbfs_override, 2048, "getParams returns a copy");
+  api.csoundResetWasi(csound);
   const encode = (text) => new TextEncoder().encode(text);
   wasi.writeFile("/root.orc", encode("giRoot init 1"));
   wasi.mkdir("/project");
