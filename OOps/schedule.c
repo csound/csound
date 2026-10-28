@@ -508,7 +508,7 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
        return 
          csound->PerfError(csound, &p->h, Str("%s is of :%s type,\n"
                                     "expected :S,:i,:k,:p, or :InstrDef\n"),
-                        GetInputArgName((OPDS*)p, 0),
+                        GetInputArgName((OPDS*)p, 1),
                         type->varTypeName);
     }
     else return OK;
