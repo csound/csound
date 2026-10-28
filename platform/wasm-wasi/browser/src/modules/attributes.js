@@ -16,7 +16,7 @@
 import { freeStringPtr, string2ptr } from "../utils/string-pointers.js";
 import { structBufferToObject } from "../utils/structure-buffer-to-object.js";
 import { sizeOfStruct } from "../utils/native-sizes.js";
-import { CSOUND_PARAMS } from "../structures.js";
+import { OPARMS } from "../structures.js";
 
 /*
    csound attribute module from <csound.h>
@@ -187,17 +187,55 @@ csoundSetParams["toString"] = () => "setParams = async (csoundParams) => undefin
  * Get the current set of parameters
  * from a Csound instance
  * in a CSOUND_PARAMS structure.
+ * Keeps the JavaScript field names used before Csound 7. The removed
+ * use_cscore option and unused compute_weights field always return zero.
  * @function
  */
 export const csoundGetParams = (wasm) => (csound) => {
-  const { buffer } = wasm.wasi.memory;
-  const structLength = sizeOfStruct(CSOUND_PARAMS);
-  const structOffset = wasm.exports["allocCsoundParamsStruct"]();
-  const structBuffer = new Uint8Array(buffer, structOffset, structLength);
-  wasm.exports["csoundGetParams"](csound, structOffset);
-  const currentCsoundParameters = structBufferToObject(CSOUND_PARAMS, structBuffer);
-  wasm.exports["freeCsoundParams"](structOffset);
-  return currentCsoundParameters;
+  // Csound owns this const OPARMS pointer; copy its fields without freeing it.
+  const structOffset = wasm.exports["csoundGetParams"](csound);
+  const structBuffer = new Uint8Array(
+    wasm.wasi.memory.buffer,
+    structOffset,
+    sizeOfStruct(OPARMS, wasm),
+  );
+  const parameters = structBufferToObject(OPARMS, structBuffer, wasm);
+  return {
+    "debug_mode": parameters["odebug"],
+    "buffer_frames": parameters["outbufsamps"],
+    "hardware_buffer_frames": parameters["oMaxLag"],
+    "displays": parameters["displays"],
+    "ascii_graphs": parameters["graphsoff"],
+    "postscript_graphs": parameters["postscript"],
+    "message_level": parameters["msglevel"],
+    "tempo": parameters["cmdTempo"],
+    "ring_bell": parameters["ringbell"],
+    "use_cscore": 0,
+    "terminate_on_midi": parameters["termifend"],
+    "heartbeat": parameters["heartbeat"],
+    "defer_gen01_load": parameters["gen01defer"],
+    "midi_key": parameters["midiKey"],
+    "midi_key_cps": parameters["midiKeyCps"],
+    "midi_key_oct": parameters["midiKeyOct"],
+    "midi_key_pch": parameters["midiKeyPch"],
+    "midi_velocity": parameters["midiVelocity"],
+    "midi_velocity_amp": parameters["midiVelocityAmp"],
+    "no_default_paths": parameters["noDefaultPaths"],
+    "number_of_threads": parameters["numThreads"],
+    "syntax_check_only": parameters["syntaxCheckOnly"],
+    "csd_line_counts": parameters["useCsdLineCounts"],
+    "compute_weights": 0,
+    "realtime_mode": parameters["realtime"],
+    "sample_accurate": parameters["sampleAccurate"],
+    "sample_rate_override": parameters["sr_override"],
+    "control_rate_override": parameters["kr_override"],
+    "nchnls_override": parameters["nchnls_override"],
+    "nchnls_i_override": parameters["nchnls_i_override"],
+    "e0dbfs_override": parameters["e0dbfs_override"],
+    "daemon": parameters["daemon"],
+    "ksmps_override": parameters["ksmps_override"],
+    "FFT_library": parameters["fft_lib"],
+  };
 };
 
 csoundGetParams["toString"] = () => "getParams = async () => CSOUND_PARAMS;";

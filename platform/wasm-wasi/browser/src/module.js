@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { dlinit } from "./dlinit";
-import { WASI } from "./filesystem/preview2";
+import { dlinit } from "./dlinit.js";
+import { WASI } from "./filesystem/preview2.js";
 import { createSystem } from "./filesystem/system.js";
 import { bufferMessageText } from "./utils/message-stream.js";
 import { decoder, uint2String } from "./utils/text-encoders.js";

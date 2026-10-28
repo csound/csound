@@ -2036,6 +2036,37 @@ e
       assert.property(cs, "getMemory");
     });
 
+    it("reads native parameters with the public JavaScript field names", function () {
+      const csound = cs.csoundCreate();
+      try {
+        assert.equal(
+          cs.csoundSetOption(
+            csound,
+            "-b512 -B2048 -m300 -t123.5 --sample-rate=48000.5 --control-rate=1500.25 " +
+              "--nchnls=3 --nchnls_i=2 --0dbfs=2048 --midi-key=73 --fftlib=2",
+          ),
+          0,
+        );
+        assert.include(cs.csoundGetParams(csound), {
+          buffer_frames: 512,
+          hardware_buffer_frames: 2048,
+          message_level: 300,
+          tempo: 123.5,
+          sample_rate_override: 48000.5,
+          control_rate_override: 1500.25,
+          nchnls_override: 3,
+          nchnls_i_override: 2,
+          e0dbfs_override: 2048,
+          midi_key: 73,
+          FFT_library: 2,
+          use_cscore: 0,
+          compute_weights: 0,
+        });
+      } finally {
+        cs.csoundDestroy(csound);
+      }
+    });
+
     describe("MIDI queue ownership", function () {
       function startMidi(csound) {
         for (const option of ["-n", "-m0", "-M0", "--daemon"]) {

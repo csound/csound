@@ -144,7 +144,7 @@ var WasiFS;
  * csoundGetSizeOfMYFLT: function(CsoundInst): number,
  * csoundSetOption: function(CsoundInst, string): number,
  * csoundSetParams: function(CsoundInst, Object): number,
- * csoundGetParams: function(CsoundInst, number): number,
+ * csoundGetParams: function(CsoundInst): number,
  * csoundGetDebug: function(CsoundInst): number,
  * csoundSetDebug: function(CsoundInst, number): number,
  * csoundGetInputBufferSize: function(CsoundInst, number): number,

@@ -586,6 +586,7 @@ declare type CSOUND_PARAMS = {
   message_level: number;
   tempo: number;
   ring_bell: number;
+  /** Removed Csound option; always zero. */
   use_cscore: number;
   terminate_on_midi: number;
   heartbeat: number;
@@ -595,6 +596,23 @@ declare type CSOUND_PARAMS = {
   midi_key_oct: number;
   midi_key_pch: number;
   midi_velocity: number;
+  midi_velocity_amp: number;
+  no_default_paths: number;
+  number_of_threads: number;
+  syntax_check_only: number;
+  csd_line_counts: number;
+  /** Unused compatibility field; always zero. */
+  compute_weights: number;
+  realtime_mode: number;
+  sample_accurate: number;
+  sample_rate_override: number;
+  control_rate_override: number;
+  nchnls_override: number;
+  nchnls_i_override: number;
+  e0dbfs_override: number;
+  daemon: number;
+  ksmps_override: number;
+  FFT_library: number;
 };
 
 /* ==== UGEN Types ==== */
