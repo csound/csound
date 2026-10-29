@@ -34,30 +34,6 @@ export const csoundUgenFactoryNew = (wasm) => (csound) =>
 export const csoundUgenFactoryDelete = (wasm) => (factory) =>
   wasm.exports["csoundUgenFactoryDelete"](factory);
 
-/* ==== Context API ==== */
-
-/**
- * Creates a new UGEN_CONTEXT for instrument-like state management.
- * @function
- */
-export const csoundUgenContextNew = (wasm) => (factory) =>
-  wasm.exports["csoundUgenContextNew"](factory);
-
-/**
- * Deletes a UGEN_CONTEXT.
- * @function
- */
-export const csoundUgenContextDelete = (wasm) => (context) =>
-  wasm.exports["csoundUgenContextDelete"](context);
-
-/**
- * Associates a UGEN with a context.
- * Must be called before csoundUgenInit() if the opcode needs instrument-like state.
- * @function
- */
-export const csoundUgenSetContext = (wasm) => (ugen, context) =>
-  wasm.exports["csoundUgenSetContext"](ugen, context);
-
 /* ==== UGEN Creation/Destruction ==== */
 
 /**
@@ -83,6 +59,24 @@ export const csoundUgenDelete = (wasm) => (ugen) =>
   wasm.exports["csoundUgenDelete"](ugen);
 
 /* ==== UGEN_VAR: Typed Variable Handles ==== */
+
+export const csoundUgenSetDuration = (wasm) => (ugen, dur) =>
+  wasm.exports["csoundUgenSetDuration"](ugen, dur);
+
+export const csoundUgenReleaseNote = (wasm) => (ugen) =>
+  wasm.exports["csoundUgenReleaseNote"](ugen);
+
+export const csoundUgenSetStartOffset = (wasm) => (ugen, start) =>
+  wasm.exports["csoundUgenSetStartOffset"](ugen, start);
+
+export const csoundUgenSetEndOffset = (wasm) => (ugen, end) =>
+  wasm.exports["csoundUgenSetEndOffset"](ugen, end);
+
+export const csoundUgenResetOffsets = (wasm) => (ugen) =>
+  wasm.exports["csoundUgenResetOffsets"](ugen);
+
+export const csoundUgenGetExtraTime = (wasm) => (ugen) =>
+  wasm.exports["csoundUgenGetExtraTime"](ugen);
 
 /**
  * Gets the output variable at the given index.
