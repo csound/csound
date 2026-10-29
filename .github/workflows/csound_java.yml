@@ -38,7 +38,7 @@ jobs:
           fi
           cmake -S . -B build-java -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DBUILD_JAVA_INTERFACE=ON \
-            -DBUILD_UTILITIES=OFF -DUSE_GETTEXT=OFF $precision
+            -DBUILD_UTILITIES=OFF -DUSE_GETTEXT=OFF -DUSE_ALSA=OFF $precision
           ninja -C build-java csnd7 csnd7-smoke
       - name: Exercise Java API
         run: ctest --test-dir build-java -R '^java-api$' --output-on-failure
