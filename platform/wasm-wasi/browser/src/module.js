@@ -498,9 +498,18 @@ export default async function loadWasm({
       throw new TypeError(
         "Plugin pointer width does not match the Csound engine; rebuild it with the matching SDK",
       );
-    const pluginOptions = memory64
-      ? Object.fromEntries(Object.entries(options).filter(([name]) => name.startsWith("wasi:")))
-      : wasi.getImports(plugin);
+    // A plugin's private libc can need WASI functions absent from the engine.
+    // Its adapter shares the engine heap and filesystem, but owns its handles.
+    const pluginBridge =
+      memory64 && WebAssembly.Module.customSections(plugin, "csound.wasi-bridge").length > 0
+        ? memory64Imports(plugin, memory, wasi)
+        : undefined;
+    if (pluginBridge) pluginBridge.connect(instance);
+    const pluginOptions = pluginBridge
+      ? pluginBridge.imports
+      : memory64
+        ? Object.fromEntries(Object.entries(options).filter(([name]) => name.startsWith("wasi:")))
+        : wasi.getImports(plugin);
     const pluginImports = WebAssembly.Module.imports(plugin);
     const pluginExports = WebAssembly.Module.exports(plugin);
     if (!assertPluginExports(pluginExports)) {

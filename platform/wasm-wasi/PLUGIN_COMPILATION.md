@@ -36,8 +36,10 @@ For an external archive, also pass
 The example builds use the source-built wasm64 Preview 2 toolchain and append
 `csound.abi` metadata with `scripts/wasm64/wasm.py`. External builds must do the
 same so the loader can read native signatures and pointer widths. The engine
-provides its Preview 2 imports to plugins; a plugin that adds a WASI import
-outside that set requires changes to the engine adapter and loader.
+provides its Preview 2 imports to plugins. A plugin with additional WASI imports
+can embed its own adapter with `scripts/wasm64/bridge.py --browser`. The loader
+connects that adapter to the engine's allocator and memory and shares its
+filesystem. Each adapter keeps its own WASI resource handles.
 Shared-library dependencies remain unsupported.
 
 ## Static runtime libraries in browser plugins
