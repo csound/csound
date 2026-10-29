@@ -1,7 +1,7 @@
 /*
   wasm_opcode_abi.h:
 
-  Frozen wasm32 structure layout used by OPCODE.WASM plugins.
+  Frozen double-precision wasm32 layout used by OPCODE.WASM plugins.
 
   Top/wasm_plugins.c and platform/wasm-wasi/browser/src/dlinit.js read these
   structures from guest memory. These offsets form a frozen ABI. Do not change
@@ -94,11 +94,14 @@ CSOUND_WASM_ABI_ASSERT(offsetof(OPDS, insdshead) == WASM32_OPDS_INSDS_OFFSET,
 
 CSOUND_WASM_ABI_ASSERT(sizeof(CS_TYPE) == WASM32_CS_TYPE_SIZE,
                        "OPCODE.WASM CS_TYPE size changed");
-CSOUND_WASM_ABI_ASSERT(CS_VAR_TYPE_OFFSET == WASM32_VAR_TYPE_OFFSET,
-                       "OPCODE.WASM variable type offset changed");
 CSOUND_WASM_ABI_ASSERT(offsetof(CSOUND, Calloc) == WASM32_CSOUND_CALLOC_OFFSET,
                        "OPCODE.WASM CSOUND.Calloc offset changed");
 
+/* The frozen sample layout describes double-precision guests. Float reactors
+   share the pointer-only layouts above, but have their own sample layout. */
+#ifdef USE_DOUBLE
+CSOUND_WASM_ABI_ASSERT(CS_VAR_TYPE_OFFSET == WASM32_VAR_TYPE_OFFSET,
+                       "OPCODE.WASM variable type offset changed");
 /* Only the five INSDS fields checked below have values in the native bridge. */
 CSOUND_WASM_ABI_ASSERT(sizeof(INSDS) >= WASM32_INSDS_PREFIX_SIZE,
                        "OPCODE.WASM INSDS prefix no longer fits");
@@ -114,6 +117,7 @@ CSOUND_WASM_ABI_ASSERT(
 CSOUND_WASM_ABI_ASSERT(
     offsetof(INSDS, ksmps_no_end) == WASM32_INSDS_KSMPS_NO_END_OFFSET,
     "OPCODE.WASM INSDS.ksmps_no_end offset changed");
+#endif
 
 #undef CSOUND_WASM_ABI_ASSERT
 #endif

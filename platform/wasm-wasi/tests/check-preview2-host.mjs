@@ -1,0 +1,22 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import { pathToFileURL } from "node:url";
+globalThis.goog = { define: (_name, value) => value, global: globalThis };
+const { WASI } = await import(pathToFileURL(process.argv[3] + "/filesystem/preview2.js"));
+const module = new WebAssembly.Module(fs.readFileSync(process.argv[2]));
+const imports = WebAssembly.Module.imports(module);
+assert(imports.length > 0);
+assert(
+  imports.every(
+    ({ module, kind }) =>
+      (module === "env" && kind === "memory") ||
+      (module.startsWith("wasi:") && module.endsWith("@0.2.0")),
+  ),
+);
+const { instantiateCommand } = await import(pathToFileURL(process.argv[3] + "/utils/wasm64.js"));
+const wasi = new WASI({ args: ["probe", "preview2"] });
+const instance = instantiateCommand(module, wasi);
+assert.equal(wasi.startCommand(instance), 0, wasi.readOutput(2));
+assert.match(wasi.readOutput(1), /Preview 2 arguments, files, streams, clocks and random passed/);
+assert.deepEqual(wasi.readdir("/"), []);
+console.log(wasi.readOutput(1));

@@ -80,8 +80,8 @@ def load_test(path, root, profile="native"):
         if set(data) - allowed:
             raise ValueError(f"unknown metadata keys: {sorted(set(data) - allowed)}")
         profiles = data.pop("profiles", {})
-        if not isinstance(profiles, dict) or set(profiles) - {"native", "wasm"}:
-            raise ValueError("profiles must contain native or wasm overrides")
+        if not isinstance(profiles, dict) or set(profiles) - {"native", "wasm", "wasip2"}:
+            raise ValueError("profiles must contain native, wasm or wasip2 overrides")
         for name, override in profiles.items():
             if not isinstance(override, dict) or set(override) - {"expect", "skip"}:
                 raise ValueError(f"profile {name} may override expect or skip")
@@ -91,7 +91,16 @@ def load_test(path, root, profile="native"):
                 raise ValueError("skip must be a reason string")
         # Validate the default too, even if this profile overrides it.
         validate_expectation(data.get("expect", {"exit": 0}))
+        if profile == "wasip2":
+            data.update(profiles.get("wasm", {}))
         data.update(profiles.get(profile, {}))
+        # WASI Preview 2 commands return result<(), ()>, not a POSIX status.
+        # Keep output expectations and require exactly 1 for a declared error;
+        # runtime traps must not satisfy that expectation.
+        if profile == "wasip2" and "expect" in data:
+            expected = data["expect"]["exit"]
+            if expected == "nonzero" or (type(expected) is int and expected > 0):
+                data["expect"] = dict(data["expect"], exit=1)
         for key in ("description", "skip"):
             if key in data and not isinstance(data[key], str):
                 raise ValueError(f"{key} must be a string")

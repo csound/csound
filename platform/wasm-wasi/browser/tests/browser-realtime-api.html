@@ -619,7 +619,7 @@ endin
         check(!evaluationDone, "evaluation completed before gate release");
         await csound.setControlChannel("gain", 0.1);
         check(
-          (await csound.getControlChannel("gain")) === 0.1,
+          (await csound.getControlChannel("gain")) === Math.fround(0.1),
           "existing numeric channel blocked behind evaluation",
         );
         checks.push(

@@ -20,18 +20,22 @@ responsibility of the Web Audio graph. Csound output device names such as
 
 ## Choose the correct WASM artifact
 
-`@csound/wasm-bin` contains two different WASI modules:
+`@csound/wasm-bin` contains these Preview 2 artifacts:
 
 - `lib/csound.wasm` is the browser-hosted WASI reactor. It has an
   `_initialize` entry point, imports its memory and host callbacks, and is the
   module used by `@csound/browser`.
 - `lib/csound.wasm.z` is the compressed form used when building the browser
   package.
-- `lib/csound-cli.wasm` is a standalone WASI command. It has a command-style
-  `_start` entry point and is intended for runtimes such as Wasmtime.
+- `lib/csound-cli.wasm` is a standalone WASI component exporting
+  `wasi:cli/run@0.2.0`, for runtimes such as Wasmtime.
+- `lib/csound-cli.core.wasm` contains the command’s core module for JavaScript hosts.
 
-The package's default entry remains the browser reactor for compatibility.
-Command-line runtimes must load `csound-cli.wasm` explicitly.
+The package and these examples default to wasm32 float `csound.wasm`.
+To opt into wasm64, use `@csound/browser/wasm64.js` with `libcsound()`, or load
+`csound-wasm64.wasm` in the raw host below. Its embedded memory32 WASI adapter
+requires memory64, table64 and multiple-memory support. Command-line runtimes
+must load the matching `csound-cli.wasm` or `csound-wasm64-cli.wasm` component.
 
 ## Architecture
 
@@ -220,7 +224,8 @@ schedule(1, 0, -1, ${frequency})
         voice.memoryBuffer !== memoryBuffer ||
         voice.spoutPointer !== spoutPointer
       ) {
-        voice.spout = new Float64Array(memoryBuffer, spoutPointer, voice.ksmps * voice.channels);
+        const Samples = this.api.csoundGetSizeOfMYFLT() === 8 ? Float64Array : Float32Array;
+        voice.spout = new Samples(memoryBuffer, spoutPointer, voice.ksmps * voice.channels);
 
         voice.memoryBuffer = memoryBuffer;
         voice.spoutPointer = spoutPointer;
@@ -319,12 +324,10 @@ runtime.
 import { libcsound } from "@csound/browser";
 import { makeMultiCsoundProcessor } from "./multi-csound-processor.js";
 
-let sharedApiPromise = null;
+import { workletRandomValues } from "@csound/browser/src/utils/random-pool.js";
 
-async function loadApi() {
-  // Shared by every processor created in this AudioWorkletGlobalScope.
-  sharedApiPromise ??= libcsound();
-  return sharedApiPromise;
+async function loadApi(config, port) {
+  return libcsound({ getRandomValues: workletRandomValues(config.randomBytes, port) });
 }
 
 registerProcessor("multi-csound-libcsound", makeMultiCsoundProcessor(loadApi));
@@ -334,10 +337,16 @@ Bundle this file and its imports into an AudioWorklet-compatible module. The
 worklet example in `examples/worklet-demo/` demonstrates the required build
 setup and global polyfills for `@csound/browser`.
 
+AudioWorklet has no Web Crypto API. These examples pass a pool of secure random
+bytes from the main thread and refill it through the message port. The host
+throws if a synchronous request exhausts the pool before a refill can arrive.
+
 ### Main-thread AudioWorklet setup
 
 ```js
 // main-libcsound.js
+
+import { randomBytes, serveRandomBytes } from "@csound/browser/src/utils/random-pool.js";
 
 export async function startLibcsoundExample() {
   const frequencies = [220, 330, 440];
@@ -351,6 +360,7 @@ export async function startLibcsoundExample() {
     outputChannelCount: frequencies.map(() => 2),
 
     processorOptions: {
+      randomBytes: randomBytes(),
       sampleRate: context.sampleRate,
       ksmps: 64,
       frequencies,
@@ -372,6 +382,7 @@ export async function startLibcsoundExample() {
     return { frequency, gain, pan };
   });
 
+  serveRandomBytes(node.port);
   node.port.onmessage = ({ data }) => {
     if (data.type === "ready") {
       console.log(`${data.voiceCount} Csound instances running`);
@@ -408,15 +419,14 @@ connect each output to a different processing chain or destination.
 
 ## Approach 2: instantiate `@csound/wasm-bin` directly
 
-Install the binary package and a browser WASI Preview 1 implementation:
+Install the binary package and the matching Preview 2 host:
 
 ```bash
-npm install @csound/wasm-bin @bjorn3/browser_wasi_shim
+npm install @csound/wasm-bin @csound/browser
 ```
 
-The example below uses
-[`@bjorn3/browser_wasi_shim`](https://www.npmjs.com/package/@bjorn3/browser_wasi_shim)
-as an independent WASI host. Other WASI implementations can be used instead.
+The example uses the Preview 2 resource host shipped with `@csound/browser`.
+It runs the core reactor and shares the same ABI as the bundled browser modules.
 
 ### Load and compile the browser reactor
 
@@ -426,6 +436,8 @@ URL by the mechanism appropriate to that tool.
 
 ```js
 // main-wasm-bin.js
+
+import { randomBytes, serveRandomBytes } from "@csound/browser/src/utils/random-pool.js";
 
 import reactorUrl from "@csound/wasm-bin/lib/csound.wasm?url";
 
@@ -450,6 +462,7 @@ export async function startRawWasmExample() {
     outputChannelCount: frequencies.map(() => 2),
 
     processorOptions: {
+      randomBytes: randomBytes(),
       // WebAssembly.Module supports structured cloning into the worklet.
       wasmModule,
       sampleRate: context.sampleRate,
@@ -472,6 +485,7 @@ export async function startRawWasmExample() {
     return { gain, pan };
   });
 
+  serveRandomBytes(node.port);
   node.port.onmessage = ({ data }) => {
     if (data.type === "ready") {
       console.log(`${data.voiceCount} raw Csound instances running`);
@@ -515,7 +529,7 @@ The raw module does not accept JavaScript strings and cannot be instantiated
 with an empty imports object. The following loader provides:
 
 - imported WebAssembly memory;
-- WASI Preview 1 functions and a small in-memory filesystem;
+- WASI Preview 2 functions and a small in-memory filesystem;
 - Csound message and debug callbacks;
 - no-op dynamic module callbacks for a no-plugin setup;
 - C-string allocation and marshalling; and
@@ -524,51 +538,47 @@ with an empty imports object. The following loader provides:
 ```js
 // wasm-bin.processor.js
 
-import { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory } from "@bjorn3/browser_wasi_shim";
+import { WASI } from "@csound/browser/src/filesystem/preview2.js";
+import { moduleABI, memory64Imports, nativeExports, nativeCallbacks } from "@csound/browser/src/utils/wasm64.js";
+import { workletRandomValues } from "@csound/browser/src/utils/random-pool.js";
 
 import { makeMultiCsoundProcessor } from "./multi-csound-processor.js";
 
-const textEncoder = new TextEncoder();
-const textDecoder = new TextDecoder();
+import { encoder as textEncoder, decoder as textDecoder } from "@csound/browser/src/utils/utf8.js";
 
 async function loadRawCsound(config, port) {
   if (!(config.wasmModule instanceof WebAssembly.Module)) {
     throw new TypeError("processorOptions.wasmModule is required");
   }
 
-  const fds = [
-    new OpenFile(new File([])),
-
-    ConsoleStdout.lineBuffered((message) => {
-      port.postMessage({ type: "log", message });
-    }),
-
-    ConsoleStdout.lineBuffered((message) => {
-      port.postMessage({ type: "log", message });
-    }),
-
-    // Empty in-memory filesystem rooted at "/".
-    new PreopenDirectory("/", []),
-  ];
-
-  const wasi = new WASI(["csound.wasm"], [], fds, { debug: false });
+  const wasi = new WASI({
+    getRandomValues: workletRandomValues(config.randomBytes, port),
+  });
 
   const pagesPerMiB = 16;
+  const abi = moduleABI(config.wasmModule);
+  const memory64 = abi?.pointerSize === 8;
 
   // This mirrors the current no-plugin reservation in Csound's browser
   // loader. A direct host becomes responsible for tracking future changes
   // to memory sizing.
   const memory = new WebAssembly.Memory({
-    initial: 128 * pagesPerMiB,
-    maximum: 1024 * pagesPerMiB,
+    address: memory64 ? "i64" : "i32",
+    initial: memory64 ? BigInt(Math.max(128 * pagesPerMiB, abi.memoryMinimum)) : 128 * pagesPerMiB,
+    maximum: memory64 ? BigInt(8192 * pagesPerMiB) : 1024 * pagesPerMiB,
   });
 
   const env = {
     memory,
 
-    __memory_base: new WebAssembly.Global({ value: "i32", mutable: false }, 128 * pagesPerMiB),
+    __memory_base: new WebAssembly.Global(
+      { value: memory64 ? "i64" : "i32", mutable: false },
+      memory64 ? BigInt(128 * pagesPerMiB) : 128 * pagesPerMiB,
+    ),
 
-    __table_base: new WebAssembly.Global({ value: "i32", mutable: false }, 1),
+    __table_base: new WebAssembly.Global(
+      { value: abi?.table64 ? "i64" : "i32", mutable: false }, abi?.table64 ? 1n : 1,
+    ),
 
     csoundLoadModules() {
       // This minimal example does not load dynamic WASM plugins.
@@ -589,6 +599,8 @@ async function loadRawCsound(config, port) {
     },
 
     csoundWasiJsDebugCallback() {},
+    csoundWasiJsReadlineCallback() {},
+    csoundWasiJsSystem() { return -1; },
 
     printDebugCallback(pointer, length) {
       const bytes = new Uint8Array(memory.buffer, pointer, length);
@@ -599,18 +611,17 @@ async function loadRawCsound(config, port) {
     },
   };
 
-  const instance = await WebAssembly.instantiate(config.wasmModule, {
-    wasi_snapshot_preview1: wasi.wasiImport,
-    env,
-  });
-
-  // The Csound module imports memory instead of exporting it. Supply a
-  // facade containing that memory to the WASI implementation.
-  const exports = Object.assign({}, instance.exports, { memory });
+  wasi.setMemory(memory);
+  const bridge = memory64 ? memory64Imports(config.wasmModule, memory, wasi) : undefined;
+  const imports = { ...(bridge ? bridge.imports : wasi.getImports(config.wasmModule)), env };
+  nativeCallbacks(imports, abi);
+  const instance = await WebAssembly.instantiate(config.wasmModule, imports);
+  bridge?.connect(instance);
+  const exports = nativeExports(instance.exports, abi);
   const runtime = { exports };
 
   // csound.wasm is a reactor: initialize it, do not call _start.
-  wasi.initialize(runtime);
+  wasi.start(runtime);
 
   exports.__wasi_js_csoundSetMessageStringCallback?.();
 
@@ -666,6 +677,10 @@ async function loadRawCsound(config, port) {
 
     csoundGet0dBFS(csound) {
       return exports.csoundGet0dBFS(csound);
+    },
+
+    csoundGetSizeOfMYFLT() {
+      return exports.csoundGetSizeOfMYFLT();
     },
 
     csoundGetSpout(csound) {

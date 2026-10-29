@@ -1,8 +1,8 @@
 /* eslint-disable camelcase,no-unused-expressions */
 
-import { CompressionMethod } from "./zlib";
-import { RawInflate } from "./rawinflate";
-import { Adler32 } from "./adler32";
+import { CompressionMethod } from "./zlib.js";
+import { RawInflate } from "./rawinflate.js";
+import { Adler32 } from "./adler32.js";
 
 /**
  * @constructor

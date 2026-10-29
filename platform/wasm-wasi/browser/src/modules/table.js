@@ -1,3 +1,4 @@
+import { pointerSize, readPointer, sampleArrayType } from "../utils/wasm64.js";
 /*
  * Copyright (c) The Csound Developers
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,18 +38,27 @@ csoundTableLength.toString = () => "tableLength = async (tableNum) => Number;";
  */
 export const csoundTableCopyIn =
   (wasm) => (csound /* CsoundInst */, tableNumber /* string */, array /* ArrayLike<number> */) => {
-    const arrayPtr = wasm.exports["allocFloatArray"](array.length);
-    const buffer = new Float64Array(wasm.wasi.memory.buffer, arrayPtr, array.length);
-    buffer.set(array);
-    wasm.exports["csoundTableCopyIn"](csound, tableNumber, arrayPtr);
-    wasm.exports["freeFloatArrayMem"](arrayPtr);
+    const sourceLength = array.length;
+    const length = wasm.exports["csoundTableLength"](csound, tableNumber);
+    if (length < 0) return;
+    if (sourceLength < length) throw new RangeError("The source must fill the Csound table");
+    // The C API also reads the guard point after the table's last sample.
+    const arrayPtr = wasm.exports["allocFloatArray"](length + 1);
+    try {
+      const buffer = new (sampleArrayType(wasm))(wasm.wasi.memory.buffer, arrayPtr, length + 1);
+      for (let index = 0; index < length; index++) buffer[index] = array[index];
+      buffer[length] = sourceLength > length ? array[length] : array[0];
+      wasm.exports["csoundTableCopyIn"](csound, tableNumber, arrayPtr, 0);
+    } finally {
+      wasm.exports["freeFloatArrayMem"](arrayPtr);
+    }
   };
 
-csoundTableCopyIn.toString = () => "tableCopyIn = async (tableNum, float64Array) => undefined;";
+csoundTableCopyIn.toString = () => "tableCopyIn = async (tableNum, array) => undefined;";
 
 /**
- * Copies the contents of a function table from csound into Float64Array.
- * The function returns a Float64Array if the table exists, otherwise
+ * Copies the contents of a function table from csound into Float32Array (Float64Array for wasm64).
+ * The function returns a sample array if the table exists, otherwise
  * it returns undefined.
  * @function
  */
@@ -58,8 +68,8 @@ export const csoundTableCopyOut = (wasm) => (csound /* CsoundInst */, tableNumbe
     const arrayPtr = wasm.exports["allocFloatArray"](tableLength);
     wasm.exports["csoundTableCopyOut"](csound, tableNumber, arrayPtr);
     const { buffer } = wasm.wasi.memory;
-    const freeableArray = new Float64Array(buffer, arrayPtr, tableLength);
-    const clonedArray = new Float64Array(freeableArray.length);
+    const freeableArray = new (sampleArrayType(wasm))(buffer, arrayPtr, tableLength);
+    const clonedArray = new (sampleArrayType(wasm))(freeableArray.length);
     /* eslint-disable-next-line unicorn/no-for-loop */
     for (let i = 0; i < freeableArray.length; i++) {
       clonedArray[i] = freeableArray[i];
@@ -69,7 +79,8 @@ export const csoundTableCopyOut = (wasm) => (csound /* CsoundInst */, tableNumbe
   }
 };
 
-csoundTableCopyOut.toString = () => "tableCopyOut = async (tableNum) => ?Float64Array;";
+csoundTableCopyOut.toString = () =>
+  "tableCopyOut = async (tableNum) => ?(Float32Array|Float64Array);";
 
 /**
  * @name getTable
@@ -81,18 +92,23 @@ export const csoundGetTable = csoundTableCopyOut;
 csoundGetTable.toString = csoundTableCopyOut.toString;
 
 /**
- * Copies the contents of a function table from csound into Float64Array.
- * The function returns a Float64Array if the table exists, otherwise
+ * Copies the contents of a function table from csound into Float32Array (Float64Array for wasm64).
+ * The function returns a sample array if the table exists, otherwise
  * it returns undefined.
  */
 export const csoundGetTableArgs = (wasm) => (csound /* CsoundInst */, tableNumber /* string */) => {
-  const arrayPtr = wasm.exports["allocFloatArray"](1024);
-  wasm.exports["csoundGetTableArgs"](csound, arrayPtr, tableNumber);
-  const { buffer } = wasm.wasi.memory;
-  const jsArray = new Float64Array(buffer, arrayPtr, 1024);
-  wasm.exports["freeFloatArrayMem"](arrayPtr);
-  return jsArray;
+  const pointerSlot = wasm.exports["allocByteMem"](pointerSize(wasm));
+  try {
+    const length = wasm.exports["csoundGetTableArgs"](csound, pointerSlot, tableNumber);
+    if (length < 0) return;
+    const { buffer } = wasm.wasi.memory;
+    const pointer = readPointer(wasm, new DataView(buffer), pointerSlot);
+    const Samples = sampleArrayType(wasm);
+    return new Samples(new Samples(buffer, pointer, length));
+  } finally {
+    wasm.exports["freeByteMem"](pointerSlot);
+  }
 };
 
-csoundGetTableArgs["toString"] = () => "getTableArgs = async (tableNum) => ?Float64Array;";
-
+csoundGetTableArgs["toString"] = () =>
+  "getTableArgs = async (tableNum) => ?(Float32Array|Float64Array);";

@@ -1,3 +1,4 @@
+import { pointerSize, readPointer, sampleArrayType } from "../utils/wasm64.js";
 import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.js";
 
 /*
@@ -5,7 +6,7 @@ import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.
    API for creating and using Csound Opcodes as individual unit generators.
 
    All opaque types (UGEN_FACTORY*, UGEN*, UGEN_VAR*, UGEN_GRAPH*, UGEN_CONTEXT*)
-   are represented as i32 pointers in wasm.
+   use the engine's native pointer width.
 */
 
 /** @enum {number} */
@@ -79,8 +80,7 @@ export const csoundUgenNew = (wasm) => (factory, opName, outargTypes, inargTypes
  * Deletes a UGEN and frees all associated resources.
  * @function
  */
-export const csoundUgenDelete = (wasm) => (ugen) =>
-  wasm.exports["csoundUgenDelete"](ugen);
+export const csoundUgenDelete = (wasm) => (ugen) => wasm.exports["csoundUgenDelete"](ugen);
 
 /* ==== UGEN_VAR: Typed Variable Handles ==== */
 
@@ -121,8 +121,7 @@ export const csoundUgenVarNew = (wasm) => (factory, type) =>
  * Do NOT call on vars from csoundUgenGetOutVar/GetInVar.
  * @function
  */
-export const csoundUgenVarDelete = (wasm) => (var_) =>
-  wasm.exports["csoundUgenVarDelete"](var_);
+export const csoundUgenVarDelete = (wasm) => (var_) => wasm.exports["csoundUgenVarDelete"](var_);
 
 /* ==== UGEN_VAR: Query ==== */
 
@@ -130,15 +129,13 @@ export const csoundUgenVarDelete = (wasm) => (var_) =>
  * Gets the type of a UGEN_VAR.
  * @function
  */
-export const csoundUgenVarGetType = (wasm) => (var_) =>
-  wasm.exports["csoundUgenVarGetType"](var_);
+export const csoundUgenVarGetType = (wasm) => (var_) => wasm.exports["csoundUgenVarGetType"](var_);
 
 /**
  * Gets the size in bytes of a UGEN_VAR's data.
  * @function
  */
-export const csoundUgenVarGetSize = (wasm) => (var_) =>
-  wasm.exports["csoundUgenVarGetSize"](var_);
+export const csoundUgenVarGetSize = (wasm) => (var_) => wasm.exports["csoundUgenVarGetSize"](var_);
 
 /* ==== UGEN_VAR: Numeric Access (i/k) ==== */
 
@@ -163,13 +160,11 @@ export const csoundUgenVarGetValue = (wasm) => (var_) =>
  * Use with wasm memory to create typed array views.
  * @function
  */
-export const csoundUgenVarGetData = (wasm) => (var_) =>
-  wasm.exports["csoundUgenVarGetData"](var_);
+export const csoundUgenVarGetData = (wasm) => (var_) => wasm.exports["csoundUgenVarGetData"](var_);
 
 /**
- * Gets the data pointer for creating a Float64Array view.
- * Same as csoundUgenVarGetData but named for clarity in JS usage.
- * Use: new Float64Array(wasm.exports.memory.buffer, ptr, ksmps)
+ * Legacy alias for the raw sample pointer.
+ * Use csoundUgenVarGetData with a view matching the engine’s sample width.
  * @function
  */
 export const csoundUgenVarGetDataAsFloat64Array = (wasm) => (var_) =>
@@ -250,8 +245,7 @@ export const csoundUgenGetString = (wasm) => (ugen, index) => {
  * Gets the number of input arguments.
  * @function
  */
-export const csoundUgenGetInCount = (wasm) => (ugen) =>
-  wasm.exports["csoundUgenGetInCount"](ugen);
+export const csoundUgenGetInCount = (wasm) => (ugen) => wasm.exports["csoundUgenGetInCount"](ugen);
 
 /**
  * Gets the number of output arguments.
@@ -280,15 +274,13 @@ export const csoundUgenGetOutType = (wasm) => (ugen, index) =>
  * Runs the init-pass for the opcode instance.
  * @function
  */
-export const csoundUgenInit = (wasm) => (ugen) =>
-  wasm.exports["csoundUgenInit"](ugen);
+export const csoundUgenInit = (wasm) => (ugen) => wasm.exports["csoundUgenInit"](ugen);
 
 /**
  * Runs the perf-pass for the opcode instance.
  * @function
  */
-export const csoundUgenPerform = (wasm) => (ugen) =>
-  wasm.exports["csoundUgenPerform"](ugen);
+export const csoundUgenPerform = (wasm) => (ugen) => wasm.exports["csoundUgenPerform"](ugen);
 
 /* ==== Opcode Listing API ==== */
 
@@ -299,7 +291,8 @@ export const csoundUgenPerform = (wasm) => (ugen) =>
  */
 export const csoundUgenListOpcodes = (wasm) => (factory) => {
   // Allocate space for the list pointer and count
-  const listPtrPtr = wasm.exports["allocStringMem"](4);
+  const width = pointerSize(wasm);
+  const listPtrPtr = wasm.exports["allocStringMem"](width);
   const countPtr = wasm.exports["allocStringMem"](4);
 
   const result = wasm.exports["csoundUgenListOpcodes"](factory, listPtrPtr, countPtr);
@@ -312,29 +305,23 @@ export const csoundUgenListOpcodes = (wasm) => (factory) => {
 
   const memory = wasm.exports["memory"];
   const view = new DataView(memory.buffer);
-  const listPtr = view.getInt32(listPtrPtr, true);
+  const listPtr = readPointer(wasm, view, listPtrPtr);
   const count = view.getInt32(countPtr, true);
 
-  // UGEN_OPCODE_INFO struct layout (wasm32):
-  // offset 0: const char* opname (4 bytes)
-  // offset 4: const char* outypes (4 bytes)
-  // offset 8: const char* intypes (4 bytes)
-  // offset 12: size_t dsblksiz (4 bytes)
-  // offset 16: int32_t flags (4 bytes)
-  // Total: 20 bytes per entry
-  const STRUCT_SIZE = 20;
+  // Four pointer-sized fields followed by flags and alignment padding.
+  const STRUCT_SIZE = width * 5;
 
   const opcodes = [];
   for (let i = 0; i < count; i++) {
     const base = listPtr + i * STRUCT_SIZE;
-    const opnamePtr = view.getInt32(base, true);
-    const outypesPtr = view.getInt32(base + 4, true);
-    const intypesPtr = view.getInt32(base + 8, true);
+    const opnamePtr = readPointer(wasm, view, base);
+    const outypesPtr = readPointer(wasm, view, base + width);
+    const intypesPtr = readPointer(wasm, view, base + 2 * width);
 
     opcodes.push({
-      "opname": opnamePtr ? ptr2string(wasm, opnamePtr) : "",
-      "outypes": outypesPtr ? ptr2string(wasm, outypesPtr) : "",
-      "intypes": intypesPtr ? ptr2string(wasm, intypesPtr) : "",
+      opname: opnamePtr ? ptr2string(wasm, opnamePtr) : "",
+      outypes: outypesPtr ? ptr2string(wasm, outypesPtr) : "",
+      intypes: intypesPtr ? ptr2string(wasm, intypesPtr) : "",
     });
   }
 
@@ -381,8 +368,7 @@ export const csoundUgenGraphAdd = (wasm) => (graph, ugen) =>
  * Initializes all UGENs in graph order.
  * @function
  */
-export const csoundUgenGraphInit = (wasm) => (graph) =>
-  wasm.exports["csoundUgenGraphInit"](graph);
+export const csoundUgenGraphInit = (wasm) => (graph) => wasm.exports["csoundUgenGraphInit"](graph);
 
 /**
  * Performs one ksmps block for all UGENs in graph order.
@@ -408,16 +394,26 @@ export const csoundUgenGraphDeleteAll = (wasm) => (graph) =>
 /* ==== High-level JS helpers ==== */
 
 /**
- * Creates a Float64Array view over a UGEN_VAR's audio data buffer.
- * The view is only valid until the next wasm memory growth.
+ * Returns float samples, converting double engine buffers to a copy.
  * For a-rate vars, returns ksmps samples. For i/k, returns 1 sample.
  * @function
  */
-export const csoundUgenVarGetFloat64Array = (wasm) => (var_) => {
-  const ptr = wasm.exports["csoundUgenVarGetDataAsFloat64Array"](var_);
-  const ksmps = wasm.exports["csoundUgenVarGetKsmps"](var_);
-  if (ptr === 0 || ksmps === 0) return new Float64Array(0);
-  const memory = wasm.exports["memory"];
-  // ptr is byte offset, Float64Array constructor needs byte offset divisible by 8
-  return new Float64Array(memory.buffer, ptr, ksmps);
+const sampleView = (wasm, variable) => {
+  const pointer = wasm.exports["csoundUgenVarGetData"](variable);
+  const count = wasm.exports["csoundUgenVarGetKsmps"](variable);
+  const Samples = sampleArrayType(wasm);
+  return pointer && count
+    ? new Samples(wasm.exports["memory"].buffer, pointer, count)
+    : new Samples(0);
+};
+
+export const csoundUgenVarGetFloat32Array = (wasm) => (variable) => {
+  const view = sampleView(wasm, variable);
+  return view instanceof Float32Array ? view : Float32Array.from(view);
+};
+
+/** Returns a live view for double engines, or a converted copy for float engines. */
+export const csoundUgenVarGetFloat64Array = (wasm) => (variable) => {
+  const view = sampleView(wasm, variable);
+  return view instanceof Float64Array ? view : Float64Array.from(view);
 };

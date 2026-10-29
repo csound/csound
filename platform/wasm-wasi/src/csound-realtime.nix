@@ -34,8 +34,9 @@ in base.overrideAttrs (old: {
     runHook preInstall
     mkdir -p "$out/bin" "$out/lib" "$out/include/csound"
     install -m755 csound "$out/bin/csound"
-    cp csound "$out/lib/csound-realtime.wasm"
-    cp libcsound64.a "$out/lib/"
+    cp csound "$out/lib/csound-realtime.core.wasm"
+    wasm-tools component new csound -o "$out/lib/csound-realtime.wasm"
+    cp libcsound.a "$out/lib/"
     cp ../include/*.h include/*.h "$out/include/csound/"
     runHook postInstall
   '';

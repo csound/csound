@@ -49,6 +49,13 @@ cs_double *allocFloatArray(int length) {
 void freeFloatArrayMem(cs_double *ptr) { free(ptr); }
 
 int sizeOfMidiStruct() { return sizeof(CS_MIDIDEVICE); }
+int csoundWasiOentrySize(void) { return sizeof(OENTRY); }
+int csoundWasiOentryFunctionOffset(int index) {
+  static const size_t offsets[] = {
+    offsetof(OENTRY, init), offsetof(OENTRY, perf), offsetof(OENTRY, deinit)
+  };
+  return index >= 0 && index < 3 ? (int) offsets[index] : -1;
+}
 CS_MIDIDEVICE *allocCsMidiDeviceStruct(int num) {
   return allocWasmArray(num, sizeof(CS_MIDIDEVICE));
 }
@@ -433,13 +440,13 @@ char* getMidiOutFileName(CSOUND *csound) {
    Calling the generic channel API live would traverse (and may extend) the
    channel hash table while the init worker can also create channels. */
 __attribute__((used))
-uint32_t *csoundGetControlChannelsWasi(CSOUND *csound) {
+uintptr_t *csoundGetControlChannelsWasi(CSOUND *csound) {
   controlChannelInfo_t *channels = NULL;
   int32_t count = csoundListChannels(csound, &channels);
-  uint32_t *snapshot = NULL;
-  if (count < 0 || count > (INT_MAX / (int) sizeof(uint32_t) - 1) / 2)
+  uintptr_t *snapshot = NULL;
+  if (count < 0 || count > (INT_MAX / (int) sizeof(uintptr_t) - 1) / 2)
     goto done;
-  snapshot = malloc((1 + (size_t) count * 2) * sizeof(uint32_t));
+  snapshot = malloc((1 + (size_t) count * 2) * sizeof(uintptr_t));
   if (snapshot == NULL)
     goto done;
   snapshot[0] = 0;
@@ -454,9 +461,9 @@ uint32_t *csoundGetControlChannelsWasi(CSOUND *csound) {
       snapshot = NULL;
       goto done;
     }
-    uint32_t offset = 1 + snapshot[0]++ * 2;
-    snapshot[offset] = (uint32_t) (uintptr_t) channels[i].name;
-    snapshot[offset + 1] = (uint32_t) (uintptr_t) value;
+    size_t offset = 1 + snapshot[0]++ * 2;
+    snapshot[offset] = (uintptr_t) channels[i].name;
+    snapshot[offset + 1] = (uintptr_t) value;
   }
 done:
   csoundDeleteChannelList(csound, channels);
@@ -591,8 +598,8 @@ char* csoundGetStringChannelWasi(CSOUND* csound, const char *channelName) {
 
 /**
  * Returns the raw data pointer for a UGEN_VAR so JS can create
- * a Float64Array view over wasm memory.
- * JS usage: new Float64Array(memory.buffer, ptr, size / 8)
+ * a sample view over wasm memory. This legacy name does not set precision.
+ * Float builds use Float32Array(memory.buffer, ptr, size / sizeof(cs_float)).
  */
 __attribute__((used))
 void* csoundUgenVarGetDataAsFloat64Array(UGEN_VAR* var) {
@@ -638,7 +645,7 @@ void printDebug(const char *log) {
 }
 
 
-#if !defined(CSOUND_WASI_REALTIME)
+#if !defined(CSOUND_WASI_REALTIME) && !defined(__wasm64__)
 // WASI setjmp/longjmp stubs for the linker
 // These are weak symbols to allow the linker to resolve them
 // Function signatures match what's expected by the linker
@@ -665,4 +672,4 @@ void __wasm_longjmp(void *env, int val) {
   printDebug(message);
   __builtin_trap();
 }
-#endif /* !CSOUND_WASI_REALTIME: threaded builds use libc libsetjmp. */
+#endif /* Threaded and wasm64 builds use libc libsetjmp. */

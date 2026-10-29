@@ -17,7 +17,7 @@ import { range } from "../utils.js";
 import { freeStringPtr } from "../utils/string-pointers.js";
 import { trimNull } from "../utils/trim-null.js";
 import { structBufferToObject } from "../utils/structure-buffer-to-object.js";
-import { CS_MIDIDEVICE_SIZE } from "../utils/native-sizes.js";
+import { sizeOfStruct } from "../utils/native-sizes.js";
 import { uint2String } from "../utils/text-encoders.js";
 import { CS_MIDIDEVICE } from "../structures.js";
 
@@ -32,23 +32,32 @@ export const csoundSetMidiCallbacks = (wasm) => (csound /* CsoundInst */) => {
  * @function
  */
 export const csoundGetMIDIDevList = (wasm) => (csound /* CsoundInst */, isOutput /* number */) => {
-  const { buffer } = wasm.wasi.memory;
   const numberOfDevices = wasm["exports"]["csoundGetMIDIDevList"](
     csound,
     undefined,
     isOutput ? 1 : 0,
   );
-  if (numberOfDevices === 0) return [];
-  const structLength = CS_MIDIDEVICE_SIZE;
+  if (numberOfDevices <= 0) return [];
+  const structLength = sizeOfStruct(CS_MIDIDEVICE, wasm);
   const structOffset = wasm["exports"]["allocCsMidiDeviceStruct"](numberOfDevices);
-  wasm["exports"]["csoundGetMIDIDevList"](csound, structOffset, isOutput ? 1 : 0);
-  const structBuffer = new Uint8Array(buffer, structOffset, structLength * numberOfDevices);
-  /** @type CS_MIDIDEVICE */
-  const out = range(0, numberOfDevices).map((index) =>
-    structBufferToObject(CS_MIDIDEVICE, structBuffer.subarray(index * structLength, structLength)),
-  );
-  wasm["exports"]["freeCsMidiDeviceStruct"](structOffset);
-  return out;
+  if (!structOffset) throw new Error("Unable to allocate MIDI device list");
+  try {
+    wasm["exports"]["csoundGetMIDIDevList"](csound, structOffset, isOutput ? 1 : 0);
+    const structBuffer = new Uint8Array(
+      wasm.wasi.memory.buffer,
+      structOffset,
+      structLength * numberOfDevices,
+    );
+    return range(0, numberOfDevices).map((index) =>
+      structBufferToObject(
+        CS_MIDIDEVICE,
+        structBuffer.subarray(index * structLength, (index + 1) * structLength),
+        wasm,
+      ),
+    );
+  } finally {
+    wasm["exports"]["freeCsMidiDeviceStruct"](structOffset);
+  }
 };
 
 csoundGetMIDIDevList["toString"] = () => "getMIDIDevList = async (isOutput) => Object;";

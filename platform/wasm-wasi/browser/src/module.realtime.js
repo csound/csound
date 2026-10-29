@@ -8,7 +8,7 @@ import { csoundWasiJsMessageCallback } from "./module.js";
 import { createWasiThreadHost } from "./utils/wasi-threads.js";
 import { createThreadedPluginRegistry } from "./utils/threaded-plugins.js";
 import { isWasmBinary } from "./utils/wasm-dylink.js";
-import { assertBrowserReactor } from "./utils/browser-reactor.js";
+import { assertBrowserReactor, assertBrowserPrecision } from "./utils/browser-reactor.js";
 import {
   createWasiClockImports,
   createWasiThreadEnvironment,
@@ -86,6 +86,7 @@ export default async function loadRealtimeWasm({
   imports["wasi_snapshot_preview1"] ??= {};
   Object.assign(imports["wasi_snapshot_preview1"], clocks);
   const instance = await WebAssembly.instantiate(module, imports);
+  assertBrowserPrecision(instance.exports);
   // Constructors and the main thread's TLS run once, never on child instances.
   wasi.start(instance);
   const importsForModule = (pluginModule) => {

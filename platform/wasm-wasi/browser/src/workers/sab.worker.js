@@ -1,3 +1,4 @@
+import { sampleArrayType } from "../utils/wasm64.js";
 /*
  * Copyright (c) The Csound Developers
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -219,9 +220,10 @@ const sabCreateRealtimeAudioThread =
       const outputBufferPtr = libraryCsound.csoundGetSpout(csound);
 
       const csoundInputBuffer =
-        hasInput && new Float64Array(wasm.wasi.memory.buffer, inputBufferPtr, ksmps * nchnlsInput);
+        hasInput &&
+        new (sampleArrayType(wasm))(wasm.wasi.memory.buffer, inputBufferPtr, ksmps * nchnlsInput);
 
-      const csoundOutputBuffer = new Float64Array(
+      const csoundOutputBuffer = new (sampleArrayType(wasm))(
         wasm.wasi.memory.buffer,
         outputBufferPtr,
         ksmps * nchnls,

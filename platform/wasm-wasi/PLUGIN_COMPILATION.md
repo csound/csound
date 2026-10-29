@@ -2,73 +2,52 @@
 
 This document explains how to compile Csound WASM plugins without rebuilding Csound from source for every plugin change.
 
-## What Changed
+## Choose the target
 
-The WASM build now produces an SDK archive:
+The build supplies two Csound SDK archives. Neither is a compiler SDK bundle.
+They contain generated headers and the matching static Csound library.
 
-- `lib/csound-plugin-sdk.tar.gz`
+| Engine | SDK | Plugin build option |
+| --- | --- | --- |
+| wasm32 float `csound.wasm` | `csound-plugin-sdk.tar.gz` (`libcsound.a`) | `--arg wasm64 false` |
+| wasm64 double `csound-wasm64.wasm` | `csound-wasm64-plugin-sdk.tar.gz` (`libcsound64.a`) | `--arg wasm64 true` |
 
-The archive contains:
+The default browser uses wasm32 with float samples. The opt-in
+`@csound/browser/wasm64.js` module needs wasm64 plugins with double samples. The loader rejects a plugin
+with a different pointer or sample size.
+Let the SDK's generated `float-version.h` set the precision macros. Do not
+pass `-DUSE_DOUBLE=0` to the compiler; Csound checks whether it is defined.
 
-- `include/csound/*` headers
-- `lib/libcsound64.a` (for SDK completeness)
+## Build
 
-Plugin derivations (`plugin_example.nix`, `plugin_example_cpp.nix`) are configured to use this SDK archive by default.
-
-## Why This Helps
-
-When iterating on plugins, rebuilding full Csound is expensive.
-
-With the SDK archive, plugin builds only need:
-
-1. WASI toolchain
-2. Csound headers from the archive
-
-This significantly reduces iteration time for plugin development.
-
-## Build Flow
-
-From `platform/wasm-wasi/`:
+From `platform/wasm-wasi`, `npm run build` creates both engines, commands,
+SDKs and C/C++ example plugins. To rebuild only a wasm64 plugin:
 
 ```sh
-bash ./scripts/compile.sh
+source scripts/nixpkgs-pin.sh
+nix-build src/plugin_example.nix --arg wasm64 true
+nix-build src/plugin_example_cpp.nix --arg wasm64 true
 ```
 
-This does:
+The outputs are `plugin_example-wasm64.wasm` and `plugin_example_cpp-wasm64.wasm`.
+For an external archive, also pass
+`--arg csoundSdkArchive /absolute/path/to/csound-wasm64-plugin-sdk.tar.gz`.
+`--arg useSdkArchive false` builds the matching engine's headers from source.
 
-1. Build the browser module and SDK (`result`)
-2. Build the standalone command module (`result_cli`)
-3. Build C and C++ plugin examples against the SDK archive
-4. Copy all outputs to `platform/wasm-wasi/lib/`
-
-Expected outputs:
-
-- `lib/csound.wasm`
-- `lib/csound.wasm.z`
-- `lib/csound-cli.wasm`
-- `lib/csound-plugin-sdk.tar.gz`
-- `lib/plugin_example.wasm`
-- `lib/plugin_example_cpp.wasm`
-
-## Building a Plugin Against an SDK Archive
-
-You can point plugin builds at any SDK archive path (including one distributed externally).
-
-Example:
-
-```sh
-source ./scripts/nixpkgs-pin.sh
-nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example_cpp.nix {
-  csoundSdkArchive = /absolute/path/to/csound-plugin-sdk.tar.gz;
-  useSdkArchive = true;
-})'
-```
+The example builds use the source-built wasm64 Preview 2 toolchain and append
+`csound.abi` metadata with `scripts/wasm64/wasm.py`. External builds must do the
+same so the loader can read native signatures and pointer widths. The engine
+provides its Preview 2 imports to plugins. A plugin with additional WASI imports
+can embed its own adapter with `scripts/wasm64/bridge.py --browser`. The loader
+connects that adapter to the engine's allocator and memory and shares its
+filesystem. Each adapter keeps its own WASI resource handles.
+Shared-library dependencies remain unsupported.
 
 ## Static runtime libraries in browser plugins
 
 Use the Csound 7 SDK and the nixpkgs revision in
 [`scripts/nixpkgs-pin.sh`](scripts/nixpkgs-pin.sh). That revision provides
-wasi-libc SDK 27 and Clang 21. Build side modules and their static dependencies
+wasi-libc SDK 32 and Clang 21. Build side modules and their static dependencies
 as position-independent code (`-fPIC`). Import the engine's memory, table, and
 stack pointer.
 
@@ -84,7 +63,7 @@ loading.
 All plugins share the engine's allocator. The browser engine exports `malloc`,
 `calloc`, `realloc`, `free`, `aligned_alloc`, and `posix_memalign`. The loader maps
 `__libc_malloc`, `__libc_calloc`, and `__libc_free` to those public Wasm functions;
-the engine need not export these internal names. SDK 27 defines them as aliases
+the engine need not export these internal names. SDK 32 defines them as aliases
 with the same signatures. The engine still exports
 `__wasilibc_find_relpath_alloc` so plugin file operations use its working
 directory. This internal function has no public alias. Recheck its name and
@@ -102,34 +81,10 @@ to CMake.
 For WASI `setjmp`/`longjmp`, compile with `-mllvm -wasm-enable-sjlj` and link PIC
 setjmp support. The C example compiles the pinned wasi-libc source at
 `libc-top-half/musl/src/setjmp/wasm32/rt.c`. Both the source path and the exception
-tag ABI depend on the toolchain version. SDK 27 uses the `C_LONGJMP` tag without
+tag ABI depend on the toolchain version. SDK 32 uses the `C_LONGJMP` tag without
 a Clang-version branch; recheck newer source and compiler versions together.
 Use `--allow-undefined` when linking side modules that import exception tags, and
 export `__wasm_apply_data_relocs` when present. Each plugin gets private
 `__c_longjmp` and `__cpp_exception` tags for its statically linked runtime.
 Exceptions cannot be caught across plugins with separate runtimes. Shared
 dynamic-library dependencies remain unsupported.
-
-## Fallback Mode (Rebuild from Source)
-
-If needed, disable SDK usage:
-
-```sh
-source ./scripts/nixpkgs-pin.sh
-nix-build -E '(with import <nixpkgs> {}; pkgs.callPackage ./src/plugin_example_cpp.nix {
-  useSdkArchive = false;
-})'
-```
-
-This falls back to `src/csound.nix`.
-
-## Distribution for Other Users
-
-Yes, the SDK archive can be distributed.
-
-A user with:
-
-- `csound-plugin-sdk.tar.gz`
-- WASI toolchain (via Nix in this setup)
-
-can compile compatible plugins without building Csound itself.

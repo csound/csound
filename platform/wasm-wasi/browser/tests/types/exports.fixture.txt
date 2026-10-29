@@ -124,3 +124,16 @@ async function liveCodeValue() {
   const compiled: number = await csound.compileOrc("instr 1\nendin");
   return { result, compiled };
 }
+
+import { Csound as createCsound64, libcsound as libcsound64 } from "@csound/browser/wasm64.js";
+async function sampleWidths() {
+  const normal = await libcsound();
+  const wide = await libcsound64();
+  const floatTable: Float32Array | undefined = normal.csoundGetTable(0, 1);
+  const doubleTable: Float64Array | undefined = wide.csoundGetTable(0, 1);
+  const normalBrowser = await createCsound();
+  const wideBrowser = await createCsound64();
+  const browserFloatTable: Float32Array | undefined = await normalBrowser.getTable("1");
+  const browserDoubleTable: Float64Array | undefined = await wideBrowser.getTable("1");
+  return [floatTable, doubleTable, browserFloatTable, browserDoubleTable];
+}

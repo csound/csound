@@ -2,7 +2,7 @@ name: csound_wasm
 run-name: "WASM | ${{ github.event_name == 'pull_request' && format('PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) || format('{0} push', github.ref_name) }}"
 
 env:
-  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/4db2c220f32fd162658ed1b7bb2f46a82996ddbe.tar.gz
+  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/d3b13ad75cc492690728f9307e443dec9ef9a20e.tar.gz
 
 on:
   pull_request:
@@ -20,6 +20,8 @@ jobs:
       wasm_bin_dir: ./platform/wasm-wasi
     name: Compiling wasm bins
     runs-on: ubuntu-latest
+    outputs:
+      realtime-supported: ${{ steps.realtime.outputs.supported }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7.0.1
@@ -33,8 +35,12 @@ jobs:
       - name: Compile Csound and accessory wasm binaries
         run: cd $wasm_bin_dir && yarn build
       - name: Run WASI pthread checks and build private browser fixtures
-        run: bash "$wasm_bin_dir/scripts/compile-test-fixtures.sh"
+        id: realtime
+        run: |
+          bash "$wasm_bin_dir/scripts/compile-test-fixtures.sh"
+          echo "supported=$(cat "$wasm_bin_dir/test-artifacts/realtime-supported")" >> "$GITHUB_OUTPUT"
       - name: Archive private realtime fixtures
+        if: steps.realtime.outputs.supported == '1'
         uses: actions/upload-artifact@v7.0.1
         with:
           name: wasm-realtime-test-fixtures
@@ -60,15 +66,22 @@ jobs:
 
   commandline-tests:
     needs: csound-wasm
-    name: CSD tests with Wasmtime (WASI threads)
+    name: CSD tests with Wasmtime
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Download threaded WASI command from build job
+        if: needs.csound-wasm.outputs.realtime-supported == '1'
         uses: actions/download-artifact@v8.0.1
         with:
           name: wasm-realtime-test-fixtures
           path: ${{ runner.temp }}/wasm-commandline-source/platform/wasm-wasi/test-artifacts
+      - name: Download Preview 2 command from build job
+        if: needs.csound-wasm.outputs.realtime-supported != '1'
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: lib
+          path: ${{ runner.temp }}/wasm-commandline-source/platform/wasm-wasi
       - name: Download matching command-line test sources
         uses: actions/download-artifact@v8.0.1
         with:
@@ -79,7 +92,14 @@ jobs:
           nix_path: ${{ env.nix_path }}
       - name: Run command-line CSD tests with Wasmtime
         working-directory: ${{ runner.temp }}/wasm-commandline-source
-        run: nix-build ./platform/wasm-wasi/src/csound-tests.nix --no-out-link --show-trace --option log-lines 10000
+        run: |
+          if [ "${{ needs.csound-wasm.outputs.realtime-supported }}" = 1 ]; then
+            threaded=true
+          else
+            threaded=false
+            unzip platform/wasm-wasi/lib.zip -d platform/wasm-wasi
+          fi
+          nix-build ./platform/wasm-wasi/src/csound-tests.nix --arg threaded "$threaded" --no-out-link --show-trace --option log-lines 10000
 
   browser-test:
     permissions:
@@ -107,6 +127,7 @@ jobs:
         with:
           name: lib
       - name: Download private realtime fixtures
+        if: needs.csound-wasm.outputs.realtime-supported == '1'
         uses: actions/download-artifact@v8.0.1
         with:
           name: wasm-realtime-test-fixtures
@@ -129,7 +150,11 @@ jobs:
           npm ci
           npm link --no-save --package-lock=false --ignore-scripts ..
           npm run test:closure
-          npm run test:fixtures
+          if [ "${{ needs.csound-wasm.outputs.realtime-supported }}" = 1 ]; then
+            npm run test:fixtures
+          else
+            npm run build:prod
+          fi
           npm run build:tools
       - name: Install test dependencies
         run: |
@@ -144,6 +169,7 @@ jobs:
           cd $wasm_browser_dir
           nix-shell --pure --run 'npm run test:ci'
       - name: Run realtime browser integration checks
+        if: needs.csound-wasm.outputs.realtime-supported == '1'
         run: |
           cd $wasm_browser_dir
           nix-shell --pure --run 'npm run test:realtime'

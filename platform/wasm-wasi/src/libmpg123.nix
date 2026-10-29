@@ -21,7 +21,6 @@ in
     configureFlags = [
       "--disable-components"
       "--enable-libmpg123"
-      "--host=wasm32-wasi"
       "--libdir=${placeholder "out"}/lib"
       "--with-pkgconfigdir=${placeholder "out"}/lib/pkgconfig"
     ];
