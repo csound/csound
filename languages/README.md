@@ -1,7 +1,7 @@
 # Language bindings
 
-- `java/`: SWIG bindings still used by the Android build. See its
-  [README](java/README.md) for the desktop bindings' status.
+- `java/`: Optional desktop `csnd7` SWIG bindings. See the
+  [README](java/README.md) for build instructions. Android has its own build.
 - `python/`: the `ctcsound.py` interface.
 - `lisp/`: the SBCL interface.
 
