@@ -381,6 +381,32 @@ void instance_process_pending_turnoffs(CSOUND *csound)
   }
 }
 
+/* Plain value types own no memory, so they can be cleared in place. Types
+   that hold allocations or AUXCH nodes (strings, arrays, fsigs, wsigs,
+   objects) are left untouched: clearing them would leak or unlink memory. */
+static int32_t is_plain_value_type(const CS_TYPE *type)
+{
+  return type == &CS_VAR_TYPE_A || type == &CS_VAR_TYPE_K ||
+         type == &CS_VAR_TYPE_I || type == &CS_VAR_TYPE_B ||
+         type == &CS_VAR_TYPE_b || type == &CS_VAR_TYPE_COMPLEX;
+}
+
+/* A reused instance would otherwise expose the previous note's values in
+   any variable not assigned on the current path (issue #3474). */
+static void clear_reused_instance_values(CSOUND *csound, INSDS *ip)
+{
+  CS_VARIABLE *var;
+
+  if (UNLIKELY(ip->lclbas == NULL || ip->instr->varPool == NULL))
+    return;
+  for (var = ip->instr->varPool->head; var != NULL; var = var->next) {
+    if (is_plain_value_type(var->varType) &&
+        var->initializeVariableMemory != NULL)
+      var->initializeVariableMemory(csound, var,
+                                    ip->lclbas + var->memBlockIndex);
+  }
+}
+
 static INSDS *take_inactive_instance(CSOUND *csound, INSTRTXT *tp)
 {
   INSDS *current;
@@ -406,6 +432,7 @@ static INSDS *take_inactive_instance(CSOUND *csound, INSTRTXT *tp)
      asynchronous reader released the instance. No reader remains here. */
   if (current->fdchp != NULL)
     fdchclose(csound, current);
+  clear_reused_instance_values(csound, current);
   return current;
 }
 
