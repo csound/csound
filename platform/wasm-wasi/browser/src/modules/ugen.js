@@ -164,7 +164,7 @@ export const csoundUgenVarGetData = (wasm) => (var_) => wasm.exports["csoundUgen
 
 /**
  * Legacy alias for the raw sample pointer.
- * Use csoundUgenVarGetData and a Float64Array with the browser build.
+ * Use csoundUgenVarGetData with a view matching the engine’s sample width.
  * @function
  */
 export const csoundUgenVarGetDataAsFloat64Array = (wasm) => (var_) =>
@@ -319,9 +319,9 @@ export const csoundUgenListOpcodes = (wasm) => (factory) => {
     const intypesPtr = readPointer(wasm, view, base + 2 * width);
 
     opcodes.push({
-      "opname": opnamePtr ? ptr2string(wasm, opnamePtr) : "",
-      "outypes": outypesPtr ? ptr2string(wasm, outypesPtr) : "",
-      "intypes": intypesPtr ? ptr2string(wasm, intypesPtr) : "",
+      opname: opnamePtr ? ptr2string(wasm, opnamePtr) : "",
+      outypes: outypesPtr ? ptr2string(wasm, outypesPtr) : "",
+      intypes: intypesPtr ? ptr2string(wasm, intypesPtr) : "",
     });
   }
 

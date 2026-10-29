@@ -1,5 +1,12 @@
 import jsdoc2md from "jsdoc-to-markdown";
 const title = `# @csound/browser`;
+const engineSection = `\`@csound/browser\` uses wasm32 with float samples and WASI Preview 2 by default.
+To opt into true 64-bit pointers and double samples, import \`Csound\` or
+\`libcsound\` from \`@csound/browser/wasm64.js\`. Each module bundles one engine;
+there is no automatic switch to wasm64. The opt-in module requires memory64,
+table64 and multiple-memory support. Use Node.js 24 or newer for builds.
+See [the build guide](../README.md) for outputs and host requirements.
+`;
 const npmShield = `[![npm (scoped with tag)](https://shields.shivering-isles.com/npm/v/@csound/browser/latest)](https://www.npmjs.com/package/@csound/browser)`;
 const prettierShield = `[![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)`;
 const workflowShield = `[![GitHub Workflow Status](https://shields.shivering-isles.com/github/workflow/status/csound/csound/csound_wasm)](https://github.com/csound/csound/actions?query=workflow%3Acsound_wasm)`;
@@ -68,48 +75,17 @@ for browser security and permission rules.
 `;
 const realtimeSection = `## Realtime init
 
-Normal builds include thread support when the toolchain supports it.
-\`useWorker\` defaults to \`false\`, so \`Csound()\` runs in one AudioWorklet
-with synchronous init. Set \`useWorker: true\` to use the worker host.
-With the shared engine, this requires isolation headers and thread support
-unless \`useSAB: false\` selects MessagePort mode. Missing features cause an
-error before startup.
+Both published Preview 2 engines use synchronous init. \`supportsRealtime()\`
+returns 0; \`--realtime\` cannot start a native background init thread with the
+current toolchain.
 
-On the shared worker host, set \`--realtime\` before \`start()\` to enable
-background init; omitting the flag keeps synchronous init. Reset clears it.
+AudioWorklet playback and worker playback still work. \`useWorker\` defaults to
+\`false\`; set it to \`true\` to run Csound in a worker. \`useSAB: true\` uses shared
+audio transport when available, while \`useSAB: false\` uses MessagePort transport.
+Neither option changes the selected engine or enables native Csound threads.
 
-During realtime playback, \`compileOrc()\`, \`evalCode()\`, and string channel APIs
-run on a separate Csound thread. Their promises resolve when each call finishes;
-compilation includes merging and global init. Existing voices and the sample
-clock continue, but long global init can delay new notes because it shares
-Csound's init mutex. This does not guarantee zero underruns.
-
-Numeric channels declared before \`start()\` use atomic access to saved addresses.
-Channels created later use the control thread. Numeric notes (\`event(0,
-[instrument, start, duration, ...])\`) and end events (\`event(2, [])\` or
-\`event(2, [0, delay])\`) remain available. The end-event promise confirms admission;
-wait for \`realtimePerformanceEnded\` for completed shutdown.
-
-The control queue holds four requests, including the running call, with at most
-1 MiB of UTF-8 text per request. Stop rejects queued work and waits for running
-work before cleanup. Resume before submitting engine calls while paused.
-Filesystem APIs, score text, table changes, and full CSD compilation still
-require a stop. Background workers cannot open the render worker's files, so
-live \`#include\` and file-dependent global init remain unsupported even when
-files are preloaded.
-
-The bundle contains one binary for all APIs. Explicit \`useWorker: false\`,
-\`useSAB: false\`, and the named \`libcsound()\` constructor use it locally with
-synchronous init. They need shared Wasm support but no isolation headers.
-
-Plugins work with the shared engine. Rebuild them with the matching plugin
-SDK, then load them before the first \`start()\`. The shared worker host keeps
-that plugin set across reset; create a new instance to change it.
-
-\`supportsRealtime()\` reports whether the selected engine supports the mode;
-\`isRealtime()\` reports its native setting. Both return a promise for 0 or 1.
-See the [build guide](../README.md#wasi-realtime-browser) for headers, limits,
-and setup.
+Private thread fixtures remain for future toolchain support. See the
+[build guide](../README.md#browser-playback-and-threads) for details.
 
 `;
 const apiDocTitle = `## Api Documentation\n\n`;
@@ -124,7 +100,7 @@ jsdoc2md
   .render({ files: "src/**/*.js" })
   .then((jsdocMarkdown) =>
     console.log(
-      `${title}\n` +
+      `${title}\n\n${engineSection}\n` +
         `${npmShield}\n` +
         `${workflowShield}\n` +
         `${prettierShield}\n` +

@@ -29,6 +29,10 @@ fs.writeFileSync(
     2,
   ),
 );
+fs.writeFileSync(
+  path.join(fixturePackageDir, "wasm64.d.ts"),
+  `export * from ${JSON.stringify(path.join(packageRoot, "wasm64.js"))};`,
+);
 fs.writeFileSync(testFile, fs.readFileSync(fixtureSourceFile, "utf8"));
 
 const result = spawnSync(

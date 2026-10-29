@@ -22,19 +22,20 @@ responsibility of the Web Audio graph. Csound output device names such as
 
 `@csound/wasm-bin` contains these Preview 2 artifacts:
 
-- `lib/csound-wasm64.wasm` is the browser-hosted WASI reactor. It has an
+- `lib/csound.wasm` is the browser-hosted WASI reactor. It has an
   `_initialize` entry point, imports its memory and host callbacks, and is the
   module used by `@csound/browser`.
-- `lib/csound-wasm64.wasm.z` is the compressed form used when building the browser
+- `lib/csound.wasm.z` is the compressed form used when building the browser
   package.
-- `lib/csound-wasm64-cli.wasm` is a standalone WASI component exporting
+- `lib/csound-cli.wasm` is a standalone WASI component exporting
   `wasi:cli/run@0.2.0`, for runtimes such as Wasmtime.
-- `lib/csound-wasm64-cli.core.wasm` contains the command’s core module for JavaScript hosts.
+- `lib/csound-cli.core.wasm` contains the command’s core module for JavaScript hosts.
 
-The package entry is the separate wasm32 float `csound.wasm`. These examples
-explicitly load the wasm64 double reactor. Command-line runtimes must load
-`csound-wasm64-cli.wasm` explicitly. The reactor embeds a memory32 WASI adapter;
-it still requires memory64, table64 and multiple-memory support.
+The package and these examples default to wasm32 float `csound.wasm`.
+To opt into wasm64, use `@csound/browser/wasm64.js` with `libcsound()`, or load
+`csound-wasm64.wasm` in the raw host below. Its embedded memory32 WASI adapter
+requires memory64, table64 and multiple-memory support. Command-line runtimes
+must load the matching `csound-cli.wasm` or `csound-wasm64-cli.wasm` component.
 
 ## Architecture
 
@@ -59,7 +60,7 @@ The two loading approaches are:
 1. Use `libcsound()` from `@csound/browser`. This reuses Csound's WASI,
    filesystem, callback, memory, and API-binding code while avoiding the
    high-level Web Audio wrapper.
-2. Load `@csound/wasm-bin/lib/csound-wasm64.wasm` directly. The application
+2. Load `@csound/wasm-bin/lib/csound.wasm` directly. The application
    must then provide WASI, memory, callbacks, string marshalling, filesystem
    behavior, and any desired plugin loading.
 
@@ -223,7 +224,8 @@ schedule(1, 0, -1, ${frequency})
         voice.memoryBuffer !== memoryBuffer ||
         voice.spoutPointer !== spoutPointer
       ) {
-        voice.spout = new Float64Array(memoryBuffer, spoutPointer, voice.ksmps * voice.channels);
+        const Samples = this.api.csoundGetSizeOfMYFLT() === 8 ? Float64Array : Float32Array;
+        voice.spout = new Samples(memoryBuffer, spoutPointer, voice.ksmps * voice.channels);
 
         voice.memoryBuffer = memoryBuffer;
         voice.spoutPointer = spoutPointer;
@@ -322,7 +324,6 @@ runtime.
 import { libcsound } from "@csound/browser";
 import { makeMultiCsoundProcessor } from "./multi-csound-processor.js";
 
-import { moduleABI, memory64Imports, nativeExports, nativeCallbacks } from "@csound/browser/src/utils/wasm64.js";
 import { workletRandomValues } from "@csound/browser/src/utils/random-pool.js";
 
 async function loadApi(config, port) {
@@ -430,7 +431,7 @@ It runs the core reactor and shares the same ABI as the bundled browser modules.
 ### Load and compile the browser reactor
 
 The `?url` import below is Vite syntax. Other build tools should copy
-`lib/csound-wasm64.wasm` to the application's assets and provide its public
+`lib/csound.wasm` to the application's assets and provide its public
 URL by the mechanism appropriate to that tool.
 
 ```js
@@ -438,7 +439,7 @@ URL by the mechanism appropriate to that tool.
 
 import { randomBytes, serveRandomBytes } from "@csound/browser/src/utils/random-pool.js";
 
-import reactorUrl from "@csound/wasm-bin/lib/csound-wasm64.wasm?url";
+import reactorUrl from "@csound/wasm-bin/lib/csound.wasm?url";
 
 export async function startRawWasmExample() {
   const frequencies = [220, 330, 440];
@@ -556,22 +557,28 @@ async function loadRawCsound(config, port) {
 
   const pagesPerMiB = 16;
   const abi = moduleABI(config.wasmModule);
+  const memory64 = abi?.pointerSize === 8;
 
   // This mirrors the current no-plugin reservation in Csound's browser
   // loader. A direct host becomes responsible for tracking future changes
   // to memory sizing.
   const memory = new WebAssembly.Memory({
-    address: "i64",
-    initial: BigInt(Math.max(128 * pagesPerMiB, abi.memoryMinimum)),
-    maximum: BigInt(8192 * pagesPerMiB),
+    address: memory64 ? "i64" : "i32",
+    initial: memory64 ? BigInt(Math.max(128 * pagesPerMiB, abi.memoryMinimum)) : 128 * pagesPerMiB,
+    maximum: memory64 ? BigInt(8192 * pagesPerMiB) : 1024 * pagesPerMiB,
   });
 
   const env = {
     memory,
 
-    __memory_base: new WebAssembly.Global({ value: "i64", mutable: false }, BigInt(128 * pagesPerMiB)),
+    __memory_base: new WebAssembly.Global(
+      { value: memory64 ? "i64" : "i32", mutable: false },
+      memory64 ? BigInt(128 * pagesPerMiB) : 128 * pagesPerMiB,
+    ),
 
-    __table_base: new WebAssembly.Global({ value: "i64", mutable: false }, 1n),
+    __table_base: new WebAssembly.Global(
+      { value: abi?.table64 ? "i64" : "i32", mutable: false }, abi?.table64 ? 1n : 1,
+    ),
 
     csoundLoadModules() {
       // This minimal example does not load dynamic WASM plugins.
@@ -605,15 +612,15 @@ async function loadRawCsound(config, port) {
   };
 
   wasi.setMemory(memory);
-  const bridge = memory64Imports(config.wasmModule, memory, wasi);
-  const imports = { ...bridge.imports, env };
+  const bridge = memory64 ? memory64Imports(config.wasmModule, memory, wasi) : undefined;
+  const imports = { ...(bridge ? bridge.imports : wasi.getImports(config.wasmModule)), env };
   nativeCallbacks(imports, abi);
   const instance = await WebAssembly.instantiate(config.wasmModule, imports);
-  bridge.connect(instance);
+  bridge?.connect(instance);
   const exports = nativeExports(instance.exports, abi);
   const runtime = { exports };
 
-  // csound-wasm64.wasm is a reactor: initialize it, do not call _start.
+  // csound.wasm is a reactor: initialize it, do not call _start.
   wasi.start(runtime);
 
   exports.__wasi_js_csoundSetMessageStringCallback?.();
@@ -670,6 +677,10 @@ async function loadRawCsound(config, port) {
 
     csoundGet0dBFS(csound) {
       return exports.csoundGet0dBFS(csound);
+    },
+
+    csoundGetSizeOfMYFLT() {
+      return exports.csoundGetSizeOfMYFLT();
     },
 
     csoundGetSpout(csound) {
@@ -736,7 +747,7 @@ Use `libcsound()` when the application wants direct C API access while
 retaining Csound's existing browser bootstrap, filesystem, callbacks, plugin
 support, and memory setup.
 
-Use `csound-wasm64.wasm` directly when the application needs full ownership
+Use `csound.wasm` directly when the application needs full ownership
 of the WASI host and accepts responsibility for maintaining that integration.
 
 If isolated memory is more important than sharing live runtime state, compile
