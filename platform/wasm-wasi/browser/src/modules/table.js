@@ -57,8 +57,8 @@ export const csoundTableCopyIn =
 csoundTableCopyIn.toString = () => "tableCopyIn = async (tableNum, array) => undefined;";
 
 /**
- * Copies the contents of a function table from csound into Float64Array.
- * The function returns a Float64Array if the table exists, otherwise
+ * Copies the contents of a function table from csound into Float32Array (Float64Array for wasm64).
+ * The function returns a sample array if the table exists, otherwise
  * it returns undefined.
  * @function
  */
@@ -79,7 +79,8 @@ export const csoundTableCopyOut = (wasm) => (csound /* CsoundInst */, tableNumbe
   }
 };
 
-csoundTableCopyOut.toString = () => "tableCopyOut = async (tableNum) => ?Float64Array;";
+csoundTableCopyOut.toString = () =>
+  "tableCopyOut = async (tableNum) => ?(Float32Array|Float64Array);";
 
 /**
  * @name getTable
@@ -91,8 +92,8 @@ export const csoundGetTable = csoundTableCopyOut;
 csoundGetTable.toString = csoundTableCopyOut.toString;
 
 /**
- * Copies the contents of a function table from csound into Float64Array.
- * The function returns a Float64Array if the table exists, otherwise
+ * Copies the contents of a function table from csound into Float32Array (Float64Array for wasm64).
+ * The function returns a sample array if the table exists, otherwise
  * it returns undefined.
  */
 export const csoundGetTableArgs = (wasm) => (csound /* CsoundInst */, tableNumber /* string */) => {
@@ -109,4 +110,5 @@ export const csoundGetTableArgs = (wasm) => (csound /* CsoundInst */, tableNumbe
   }
 };
 
-csoundGetTableArgs["toString"] = () => "getTableArgs = async (tableNum) => ?Float64Array;";
+csoundGetTableArgs["toString"] = () =>
+  "getTableArgs = async (tableNum) => ?(Float32Array|Float64Array);";

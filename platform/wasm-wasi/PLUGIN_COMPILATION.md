@@ -12,8 +12,9 @@ They contain generated headers and the matching static Csound library.
 | wasm32 float `csound.wasm` | `csound-plugin-sdk.tar.gz` (`libcsound.a`) | `--arg wasm64 false` |
 | wasm64 double `csound-wasm64.wasm` | `csound-wasm64-plugin-sdk.tar.gz` (`libcsound64.a`) | `--arg wasm64 true` |
 
-The browser uses the wasm64 engine. Its plugins need 64-bit pointers and double
-samples. The loader rejects a plugin with a different pointer or sample size.
+The default browser uses wasm32 with float samples. The opt-in
+`@csound/browser/wasm64.js` module needs wasm64 plugins with double samples. The loader rejects a plugin
+with a different pointer or sample size.
 Let the SDK's generated `float-version.h` set the precision macros. Do not
 pass `-DUSE_DOUBLE=0` to the compiler; Csound checks whether it is defined.
 

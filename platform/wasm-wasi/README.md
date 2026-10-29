@@ -44,12 +44,17 @@ npm run build         # builds Csound, plugins and accessory commands with Nix
 The `wasm64` label names the WebAssembly pointer width. It does not mean
 x86-64 or sample precision. All WebAssembly binaries keep the `.wasm` extension.
 
-The package entry remains `csound.wasm`. Browser modules explicitly bundle
-`csound-wasm64.wasm.z`, with one engine per module. They return `Float64Array`
-table copies. `csoundUgenVarGetFloat64Array` gives a live view until memory
-grows; `csoundUgenVarGetFloat32Array` gives a converted copy. Web Audio transport
-buffers remain float. The build also supplies matching C and C++ example
-plugins, with `-wasm64` in the names of the 64-bit versions.
+The package entry and default browser module use wasm32 float `csound.wasm`.
+`@csound/browser/wasm64.js` opts into `csound-wasm64.wasm` with double samples.
+The build writes separate `dist/csound.js` and `dist/csound-wasm64.js` bundles,
+and matching `csound-no-audio.js` and `csound-wasm64-no-audio.js` tools bundles.
+Each module contains one engine.
+
+Table copies use `Float32Array` by default and `Float64Array` for wasm64.
+The UGen helper matching the engine's sample width gives a live view until
+memory grows; the other helper gives a converted copy. Web Audio transport
+buffers remain float. Matching C and C++ example plugins use `-wasm64` in the
+names of the 64-bit versions.
 
 Both targets use WASI Preview 2. Nix builds LLVM runtimes and wasi-libc from
 source; it does not download a WASI SDK bundle. The shared nixpkgs pin is
@@ -174,14 +179,13 @@ publishing `@csound/browser`; older binary packages do not contain the new
 ## Browser playback and threads
 
 `@csound/browser` supports AudioWorklet playback and worker playback, with
-SharedArrayBuffer or MessagePort transport. These modes use the same wasm64
-engine. `useWorker` defaults to `false`; set it to `true` to run Csound in a
-worker. SharedArrayBuffer transport needs cross-origin isolation headers.
+SharedArrayBuffer or MessagePort transport. These modes use wasm32 by default
+and wasm64 only through the opt-in module. `useWorker` defaults to `false`;
+set it to `true` to run Csound in a worker. SharedArrayBuffer transport needs cross-origin isolation headers.
 
 Preview 2 does not supply native thread spawning in this toolchain.
 `supportsRealtime()` returns 0, and `--realtime` cannot start Csound's native
-background init worker. Browser playback still works. The build does not
-substitute a Preview 1 engine or a 32-bit browser engine.
+background init worker. Browser playback still works. Both browser modules keep their selected Preview 2 engine.
 
 The internal thread probes remain available through
 `scripts/compile-test-fixtures.sh`. They skip thread fixtures when the target
@@ -251,14 +255,14 @@ npm link            # registers this directory as the local @csound/wasm-bin
 
 Then wire the browser wrapper to pick up the local binary:
 
-The browser package requires Node.js 22.13 or later. Its npm settings enforce
+The browser package requires Node.js 24 or later. Its npm settings enforce
 the Node version and peer dependencies. Use `npm ci` for a clean install from
 the lockfile; do not use `--legacy-peer-deps` or `--force`.
 
-For nvm users, `platform/wasm-wasi/browser/.nvmrc` pins Node 22.23.2. Run `nvm install` and
+For nvm users, `platform/wasm-wasi/browser/.nvmrc` pins Node 24.22.1. Run `nvm install` and
 `nvm use` from that directory before installing dependencies. CI reads the
 same file. The file does not change your shell or PATH on its own; Nix users
-can keep using `nix-shell`, which supplies Node 22 without nvm.
+can keep using `nix-shell`, which supplies Node 24 without nvm.
 
 ```bash
 cd browser

@@ -41,12 +41,15 @@ if (CI_BIN && fs.existsSync(CI_BIN)) {
 }
 
 try {
-  const success = await runBrowserTests({
-    capabilities: webDriverCapabilities,
-    port: 8081,
-    output: "tests/GOOGLE_CHROME.junit.xml",
-  });
-  process.exitCode = success ? 0 : 1;
+  for (const target of ["wasm32", "wasm64"]) {
+    const success = await runBrowserTests({
+      capabilities: webDriverCapabilities,
+      port: 8081,
+      output: `tests/GOOGLE_CHROME.${target}.junit.xml`,
+      page: `/index.html?ci=true&target=${target}`,
+    });
+    if (!success) process.exitCode = 1;
+  }
 } catch (error) {
   console.error(error);
   process.exitCode = 1;

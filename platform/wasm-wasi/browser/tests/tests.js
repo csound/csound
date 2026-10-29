@@ -19,15 +19,18 @@ import { beatsCsd, exitCommand } from "./score-command-fixtures.js";
 
 (async () => {
   const isCI = ["8081", "8082"].includes(location.port) && location.search.includes("ci=true");
-  const url = "/dist/csound.js"; // isCI ? "/csound.esm.js" : "/csound.dev.esm.js";
+  const target = new URLSearchParams(location.search).get("target") || "wasm32";
+  const wide = target === "wasm64";
+  const suffix = wide ? "-wasm64" : "";
+  const url = `/dist/csound${suffix}.js`;
   const resp = await import(url);
   // console.log("RESP", resp);
   const { Csound } = resp;
-  const { sharedEngine } = await import("/dist/__csound_engine.inline.js");
-  const cPlugin = sharedEngine ? "./plugin_example_shared.wasm" : "./plugin_example-wasm64.wasm";
+  const { sharedEngine } = await import(`/dist/__csound_engine.${target}.js`);
+  const cPlugin = sharedEngine ? "./plugin_example_shared.wasm" : `./plugin_example${suffix}.wasm`;
   const cppPlugin = sharedEngine
     ? "./plugin_example_cpp_shared.wasm"
-    : "./plugin_example_cpp-wasm64.wasm";
+    : `./plugin_example_cpp${suffix}.wasm`;
 
   const carriageReturnOrchestra = `
 ksmps = 32
@@ -387,7 +390,7 @@ e
         const cs = await Csound(test);
         const { messages, stop } = collectCsoundMessages(cs);
         try {
-          const response = await fetch("/wasm-bin/csbeats-wasm64.core.wasm");
+          const response = await fetch(`/wasm-bin/csbeats${suffix}.core.wasm`);
           assert.isTrue(response.ok);
           await cs.fs.mkdir("/project");
           await cs.fs.chdir("/project");
@@ -900,19 +903,19 @@ schedule(1, 0.05, 10)`),
         const cs = await Csound(test);
 
         try {
-          assert.isFalse(await cs.fs.pathExists("./plugin_example_cpp-wasm64.wasm"));
-          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp-wasm64.wasm"));
+          assert.isFalse(await cs.fs.pathExists(`./plugin_example_cpp${suffix}.wasm`));
+          assert.equal(0, await cs.setOption(`--opcode-lib=./plugin_example_cpp${suffix}.wasm`));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal("./plugin_example_cpp-wasm64.wasm", await cs.getRequestedPlugins());
+          assert.equal(`./plugin_example_cpp${suffix}.wasm`, await cs.getRequestedPlugins());
 
           const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
-          await cs.fs.writeFile("./plugin_example_cpp-wasm64.wasm", pluginBytes);
+          await cs.fs.writeFile(`./plugin_example_cpp${suffix}.wasm`, pluginBytes);
 
-          assert.isTrue(await cs.fs.pathExists("./plugin_example_cpp-wasm64.wasm"));
+          assert.isTrue(await cs.fs.pathExists(`./plugin_example_cpp${suffix}.wasm`));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal("./plugin_example_cpp-wasm64.wasm", await cs.getRequestedPlugins());
+          assert.equal(`./plugin_example_cpp${suffix}.wasm`, await cs.getRequestedPlugins());
           assert.equal(0, await cs.compileCSD(filesystemPluginTest()));
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
@@ -922,7 +925,7 @@ schedule(1, 0.05, 10)`),
           await cs.reset();
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
-          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp-wasm64.wasm"));
+          assert.equal(0, await cs.setOption(`--opcode-lib=./plugin_example_cpp${suffix}.wasm`));
           assert.equal(1, await cs.isRequestingPlugins());
           assert.equal(0, await cs.compileCSD(filesystemPluginTest()));
           assert.equal(0, await cs.isRequestingPlugins());
@@ -940,13 +943,15 @@ schedule(1, 0.05, 10)`),
           const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
-          await cs.fs.writeFile("./plugin_example_cpp-wasm64.wasm", pluginBytes);
+          await cs.fs.writeFile(`./plugin_example_cpp${suffix}.wasm`, pluginBytes);
 
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
           assert.equal(
             0,
-            await cs.compileCSD(filesystemPluginTest("--opcode-lib=./plugin_example_cpp-wasm64.wasm")),
+            await cs.compileCSD(
+              filesystemPluginTest(`--opcode-lib=./plugin_example_cpp${suffix}.wasm`),
+            ),
           );
           assert.equal(0, await cs.isRequestingPlugins());
           assert.equal("", await cs.getRequestedPlugins());
@@ -959,17 +964,17 @@ schedule(1, 0.05, 10)`),
         const cs = await Csound(test);
 
         try {
-          assert.isFalse(await cs.fs.pathExists("./plugin_example_cpp-wasm64.wasm"));
-          assert.equal(0, await cs.setOption("--opcode-lib=./plugin_example_cpp-wasm64.wasm"));
+          assert.isFalse(await cs.fs.pathExists(`./plugin_example_cpp${suffix}.wasm`));
+          assert.equal(0, await cs.setOption(`--opcode-lib=./plugin_example_cpp${suffix}.wasm`));
           assert.equal(1, await cs.isRequestingPlugins());
           assert.equal(0, await cs.parseOrc(filesystemPluginOrchestra));
           assert.equal(1, await cs.isRequestingPlugins());
-          assert.equal("./plugin_example_cpp-wasm64.wasm", await cs.getRequestedPlugins());
+          assert.equal(`./plugin_example_cpp${suffix}.wasm`, await cs.getRequestedPlugins());
 
           const response = await fetch(cppPlugin);
           assert.isTrue(response.ok, "plugin fixture is available");
           const pluginBytes = new Uint8Array(await response.arrayBuffer());
-          await cs.fs.writeFile("./plugin_example_cpp-wasm64.wasm", pluginBytes);
+          await cs.fs.writeFile(`./plugin_example_cpp${suffix}.wasm`, pluginBytes);
 
           const tree = await cs.parseOrc(filesystemPluginOrchestra);
           assert.isOk(tree);
@@ -1975,7 +1980,7 @@ e
     this.timeout(30000);
 
     it("delivers carriage-return logs during performance", async function () {
-      const { Csound } = await import("/dist/csound-no-audio.js");
+      const { Csound } = await import(`/dist/csound${suffix}-no-audio.js`);
       const messages = [];
       const cs = await Csound({ logCallback: (message) => messages.push(message) });
       try {
@@ -2021,6 +2026,12 @@ e
       cs.csoundStart(csound);
       return csound;
     }
+
+    it("uses the requested pointer width and sample precision", function () {
+      assert.equal(cs.csoundGetSizeOfCsFloat(), wide ? 8 : 4);
+      assert.equal(cs.csoundGetSizeOfCsDouble(), wide ? 8 : 4);
+      assert.equal(cs.wasm.exports.__pointerSize || 4, wide ? 8 : 4);
+    });
 
     it("can instantiate via libcsound()", function () {
       assert.isObject(cs, "libcsound() returns an object");
@@ -2325,7 +2336,9 @@ endin`,
       const { libcsound } = await import(url);
       const badPlugin = Uint8Array.from(
         atob(
-          "AGFzbQEAAAAADAZkeWxpbmtAAAEAAAEEAWAAAAJFAwNlbnYGbWVtb3J5AgQAA2VudhlfX2luZGlyZWN0X2Z1bmN0aW9uX3RhYmxlAXAEAANlbnYMX190YWJsZV9iYXNlA34AAwMCAAAHKgIRX193YXNtX2NhbGxfY3RvcnMAABJjc291bmRNb2R1bGVDcmVhdGUAAQkHAQAjAAsBAQoIAgMAAAsCAAsAtAEKY3NvdW5kLmFiaXsicG9pbnRlclNpemUiOiA4LCAibWVtb3J5TWluaW11bSI6IDAsICJtZW1vcnlNYXhpbXVtIjogbnVsbCwgInRhYmxlNjQiOiB0cnVlLCAiaW1wb3J0cyI6IHt9LCAiZXhwb3J0cyI6IHsiX193YXNtX2NhbGxfY3RvcnMiOiBbW10sIFtdXSwgImNzb3VuZE1vZHVsZUNyZWF0ZSI6IFtbXSwgW11dfX0=",
+          wide
+            ? "AGFzbQEAAAAADAZkeWxpbmtAAAEAAAEEAWAAAAJFAwNlbnYGbWVtb3J5AgQAA2VudhlfX2luZGlyZWN0X2Z1bmN0aW9uX3RhYmxlAXAEAANlbnYMX190YWJsZV9iYXNlA34AAwMCAAAHKgIRX193YXNtX2NhbGxfY3RvcnMAABJjc291bmRNb2R1bGVDcmVhdGUAAQkHAQAjAAsBAQoIAgMAAAsCAAsAtAEKY3NvdW5kLmFiaXsicG9pbnRlclNpemUiOiA4LCAibWVtb3J5TWluaW11bSI6IDAsICJtZW1vcnlNYXhpbXVtIjogbnVsbCwgInRhYmxlNjQiOiB0cnVlLCAiaW1wb3J0cyI6IHt9LCAiZXhwb3J0cyI6IHsiX193YXNtX2NhbGxfY3RvcnMiOiBbW10sIFtdXSwgImNzb3VuZE1vZHVsZUNyZWF0ZSI6IFtbXSwgW11dfX0="
+            : "AGFzbQEAAAAADAZkeWxpbmtAAAEAAAEEAWAAAAI3AgNlbnYZX19pbmRpcmVjdF9mdW5jdGlvbl90YWJsZQFwAAADZW52DF9fdGFibGVfYmFzZQN/AAMDAgAAByoCEV9fd2FzbV9jYWxsX2N0b3JzAAASY3NvdW5kTW9kdWxlQ3JlYXRlAAEJBwEAIwALAQEKCAIDAAALAgAL",
         ),
         (char) => char.charCodeAt(0),
       );
@@ -2381,8 +2394,12 @@ endin`,
       const { libcsound } = await import(url);
       const unsafePlugins = [
         // The dylink headers ask for 1,000,001 entries and 2^30 alignment.
-        "AGFzbQEAAAAADgZkeWxpbmtAAMGEPQAAAQQBYAAAAkUDA2VudgZtZW1vcnkCBAADZW52GV9faW5kaXJlY3RfZnVuY3Rpb25fdGFibGUBcAQAA2VudgxfX3RhYmxlX2Jhc2UDfgADAwIAAAcqAhFfX3dhc21fY2FsbF9jdG9ycwAAEmNzb3VuZE1vZHVsZUNyZWF0ZQABCQcBACMACwEBCggCAwAACwIACwC0AQpjc291bmQuYWJpeyJwb2ludGVyU2l6ZSI6IDgsICJtZW1vcnlNaW5pbXVtIjogMCwgIm1lbW9yeU1heGltdW0iOiBudWxsLCAidGFibGU2NCI6IHRydWUsICJpbXBvcnRzIjoge30sICJleHBvcnRzIjogeyJfX3dhc21fY2FsbF9jdG9ycyI6IFtbXSwgW11dLCAiY3NvdW5kTW9kdWxlQ3JlYXRlIjogW1tdLCBbXV19fQ==",
-        "AGFzbQEAAAAADAZkeWxpbmtAAAEeAAEEAWAAAAJFAwNlbnYGbWVtb3J5AgQAA2VudhlfX2luZGlyZWN0X2Z1bmN0aW9uX3RhYmxlAXAEAANlbnYMX190YWJsZV9iYXNlA34AAwMCAAAHKgIRX193YXNtX2NhbGxfY3RvcnMAABJjc291bmRNb2R1bGVDcmVhdGUAAQkHAQAjAAsBAQoIAgMAAAsCAAsAtAEKY3NvdW5kLmFiaXsicG9pbnRlclNpemUiOiA4LCAibWVtb3J5TWluaW11bSI6IDAsICJtZW1vcnlNYXhpbXVtIjogbnVsbCwgInRhYmxlNjQiOiB0cnVlLCAiaW1wb3J0cyI6IHt9LCAiZXhwb3J0cyI6IHsiX193YXNtX2NhbGxfY3RvcnMiOiBbW10sIFtdXSwgImNzb3VuZE1vZHVsZUNyZWF0ZSI6IFtbXSwgW11dfX0=",
+        wide
+          ? "AGFzbQEAAAAADgZkeWxpbmtAAMGEPQAAAQQBYAAAAkUDA2VudgZtZW1vcnkCBAADZW52GV9faW5kaXJlY3RfZnVuY3Rpb25fdGFibGUBcAQAA2VudgxfX3RhYmxlX2Jhc2UDfgADAwIAAAcqAhFfX3dhc21fY2FsbF9jdG9ycwAAEmNzb3VuZE1vZHVsZUNyZWF0ZQABCQcBACMACwEBCggCAwAACwIACwC0AQpjc291bmQuYWJpeyJwb2ludGVyU2l6ZSI6IDgsICJtZW1vcnlNaW5pbXVtIjogMCwgIm1lbW9yeU1heGltdW0iOiBudWxsLCAidGFibGU2NCI6IHRydWUsICJpbXBvcnRzIjoge30sICJleHBvcnRzIjogeyJfX3dhc21fY2FsbF9jdG9ycyI6IFtbXSwgW11dLCAiY3NvdW5kTW9kdWxlQ3JlYXRlIjogW1tdLCBbXV19fQ=="
+          : "AGFzbQEAAAAADgZkeWxpbmtAAMGEPQAAAQQBYAAAAjcCA2VudhlfX2luZGlyZWN0X2Z1bmN0aW9uX3RhYmxlAXAAAANlbnYMX190YWJsZV9iYXNlA38AAwMCAAAHKgIRX193YXNtX2NhbGxfY3RvcnMAABJjc291bmRNb2R1bGVDcmVhdGUAAQkHAQAjAAsBAQoIAgMAAAsCAAs=",
+        wide
+          ? "AGFzbQEAAAAADAZkeWxpbmtAAAEeAAEEAWAAAAJFAwNlbnYGbWVtb3J5AgQAA2VudhlfX2luZGlyZWN0X2Z1bmN0aW9uX3RhYmxlAXAEAANlbnYMX190YWJsZV9iYXNlA34AAwMCAAAHKgIRX193YXNtX2NhbGxfY3RvcnMAABJjc291bmRNb2R1bGVDcmVhdGUAAQkHAQAjAAsBAQoIAgMAAAsCAAsAtAEKY3NvdW5kLmFiaXsicG9pbnRlclNpemUiOiA4LCAibWVtb3J5TWluaW11bSI6IDAsICJtZW1vcnlNYXhpbXVtIjogbnVsbCwgInRhYmxlNjQiOiB0cnVlLCAiaW1wb3J0cyI6IHt9LCAiZXhwb3J0cyI6IHsiX193YXNtX2NhbGxfY3RvcnMiOiBbW10sIFtdXSwgImNzb3VuZE1vZHVsZUNyZWF0ZSI6IFtbXSwgW11dfX0="
+          : "AGFzbQEAAAAADAZkeWxpbmtAAAEeAAEEAWAAAAI3AgNlbnYZX19pbmRpcmVjdF9mdW5jdGlvbl90YWJsZQFwAAADZW52DF9fdGFibGVfYmFzZQN/AAMDAgAAByoCEV9fd2FzbV9jYWxsX2N0b3JzAAASY3NvdW5kTW9kdWxlQ3JlYXRlAAEJBwEAIwALAQEKCAIDAAALAgAL",
       ].map((encodedPlugin) => Uint8Array.from(atob(encodedPlugin), (char) => char.charCodeAt(0)));
       assert.isTrue(unsafePlugins.every((plugin) => WebAssembly.validate(plugin)));
       const tableGrow = WebAssembly.Table.prototype.grow;

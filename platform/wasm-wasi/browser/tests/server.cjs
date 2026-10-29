@@ -23,9 +23,14 @@ const serve = serveStatic(process.cwd() + "/tests", {
 });
 const { existsSync } = require("node:fs");
 const localWasm = process.cwd() + "/../lib";
-const serveWasm = serveStatic(existsSync(localWasm + "/csound-wasm64.wasm.z") ? localWasm : process.cwd() + "/node_modules/@csound/wasm-bin/lib", {
-  setHeaders: setHeaders,
-});
+const serveWasm = serveStatic(
+  existsSync(localWasm + "/csound.wasm.z")
+    ? localWasm
+    : process.cwd() + "/node_modules/@csound/wasm-bin/lib",
+  {
+    setHeaders: setHeaders,
+  },
+);
 
 function setHeaders(res, path) {
   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");

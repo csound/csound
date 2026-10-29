@@ -477,18 +477,18 @@ declare interface CsoundObj {
    */
   tableCopyIn: (tableNum: string, array: number[] | ArrayLike<number>) => Promise<undefined>;
   /**
-   * Copies the contents of a table from csound into Float64Array.
-   * The returns a Float64Array if the table exists, otherwise
+   * Copies the contents of a table from csound into Float32Array.
+   * Returns a Float32Array if the table exists, otherwise
    * it returns undefined.
    */
-  tableCopyOut: (tableNum: string) => Promise<Float64Array | undefined>;
-  getTable: (tableNum: string) => Promise<Float64Array | undefined>;
+  tableCopyOut: (tableNum: string) => Promise<Float32Array | undefined>;
+  getTable: (tableNum: string) => Promise<Float32Array | undefined>;
   /**
-   * Copies the contents of a table from csound into Float64Array.
-   * The returns a Float64Array if the table exists, otherwise
+   * Copies the contents of a table from csound into Float32Array.
+   * Returns a Float32Array if the table exists, otherwise
    * it returns undefined.
    */
-  getTableArgs: (tableNum: string) => Promise<Float64Array | undefined>;
+  getTableArgs: (tableNum: string) => Promise<Float32Array | undefined>;
   /**
    * Checks if a given GEN number num is a named GEN if so,
    * it returns the string length (excluding terminating NULL char).
@@ -619,7 +619,7 @@ declare type CSOUND_PARAMS = {
 
 /**
  * Opaque pointer types for the UGEN API.
- * These are wasm i32 pointers represented as numbers in JS.
+ * These are pointers represented as exact numbers in JS for both engine widths.
  */
 declare type UgenFactoryPtr = number;
 declare type UgenPtr = number;
@@ -658,7 +658,7 @@ declare interface UgenOpcodeInfo {
  * LibCsoundObj — synchronous C-library-like API object returned by libcsound().
  * All functions are synchronous (not async/Promise-based).
  * Opaque Csound pointer is returned by csoundCreate() and passed as first arg.
- * UGEN pointers are integers (wasm i32).
+ * UGEN pointers are exact integers represented as JS numbers.
  */
 declare interface LibCsoundObj {
   /* ==== Csound Core API ==== */
@@ -720,9 +720,9 @@ declare interface LibCsoundObj {
   csoundRewindScore: (csound: number) => void;
   csoundTableLength: (csound: number, table: number) => number;
   csoundTableCopyIn: (csound: number, table: number, src: ArrayLike<number>) => void;
-  csoundTableCopyOut: (csound: number, table: number) => Float64Array;
-  csoundGetTable: (csound: number, table: number) => Float64Array;
-  csoundGetTableArgs: (csound: number, table: number) => Float64Array;
+  csoundTableCopyOut: (csound: number, table: number) => Float32Array | undefined;
+  csoundGetTable: (csound: number, table: number) => Float32Array | undefined;
+  csoundGetTableArgs: (csound: number, table: number) => Float32Array | undefined;
   csoundGetInputName: (csound: number) => string;
   csoundGetOutputName: (csound: number) => string;
   csoundAppendEnv: (name: string, value: string) => void;
@@ -779,7 +779,7 @@ declare interface LibCsoundObj {
   /* ==== UGEN_VAR Data Access ==== */
   /** Gets raw pointer to var's data buffer */
   csoundUgenVarGetData: (var_: UgenVarPtr) => number;
-  /** Legacy data pointer alias. Use csoundUgenVarGetData with Float64Array. */
+  /** Legacy data pointer alias. Use csoundUgenVarGetData with the engine’s sample width. */
   csoundUgenVarGetDataAsFloat64Array: (var_: UgenVarPtr) => number;
   /** Gets ksmps (block size) for the var */
   csoundUgenVarGetKsmps: (var_: UgenVarPtr) => number;
@@ -842,9 +842,9 @@ declare interface LibCsoundObj {
   csoundUgenGraphDeleteAll: (graph: UgenGraphPtr) => number;
 
   /* ==== JS Helpers ==== */
-  /** Returns a converted Float32Array copy of the audio data. */
+  /** Returns a live view for wasm32, or a converted copy for wasm64. Recreate views after memory grows. */
   csoundUgenVarGetFloat32Array: (var_: UgenVarPtr) => Float32Array;
-  /** Creates a live Float64Array view over the audio data. */
+  /** Returns a converted copy for wasm32, or a live view for wasm64. Recreate views after memory grows. */
   csoundUgenVarGetFloat64Array: (var_: UgenVarPtr) => Float64Array;
 
   /** UGEN_ARG_TYPE constants */

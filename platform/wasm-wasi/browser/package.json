@@ -16,6 +16,7 @@
     "tests/index.html",
     "tests/*.js",
     "index.d.ts",
+    "wasm64.*",
     "LICENSE",
     "THIRD_PARTY.md"
   ],
