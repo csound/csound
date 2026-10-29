@@ -21,6 +21,7 @@
   Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
+#include "pfield.h"
 #include "csoundCore.h"         /*                         MUSMON.C     */
 #include "midiops.h"
 #include "midifile.h"
@@ -1681,15 +1682,17 @@ static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
   e->nxt = NULL;
   if (ep->strarg != NULL) {  /* copy string argument if present */
     /* NEED TO COPY WHOLE STRING STRUCTURE */
-    int32_t n = ep->scnt;
-    char *s = ep->strarg;
-    while (n--) { s += strlen(s)+1; };
-    e->evt.strarg = (char*) csound->Malloc(csound, (size_t) (s-ep->strarg)+1);
+    size_t bytes = csoundEventStringBytes(ep);
+    if (UNLIKELY(bytes == 0)) {
+      recycle_rt_event(csound, e);
+      return NULL;
+    }
+    e->evt.strarg = (char*) csound->Malloc(csound, bytes);
     if (UNLIKELY(e->evt.strarg == NULL)) {
       recycle_rt_event(csound, e);
       return NULL;
     }
-    memcpy(e->evt.strarg, ep->strarg, s-ep->strarg+1 );
+    memcpy(e->evt.strarg, ep->strarg, bytes);
     e->evt.scnt = ep->scnt;
   } else e->evt.strarg = NULL;
   e->evt.pinstance = ep->pinstance;
