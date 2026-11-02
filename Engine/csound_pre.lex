@@ -44,6 +44,7 @@ static void comment(yyscan_t);
 static void do_comment(yyscan_t);
 static void do_include(CSOUND *, int, yyscan_t);
 static void do_new_include(CSOUND *, yyscan_t);
+static int macro_input(yyscan_t);
 static void do_macro_arg(CSOUND *, char *, yyscan_t);
 static void do_macro(CSOUND *, char *, yyscan_t);
 static void do_umacro(CSOUND *, char *, yyscan_t);
@@ -339,7 +340,7 @@ QNAN            "qnan"[ \t]*\(
                          csound->LongJmp(csound, 1);
                        }
                        while (1) {
-                         c = input(yyscanner);
+                         c = macro_input(yyscanner);
                          if (cnt==0 && ( c==term || c==trm1)) break;
                          if (UNLIKELY(cnt==0 && c == ')')) {
                            csound->Message(csound,
@@ -350,7 +351,7 @@ QNAN            "qnan"[ \t]*\(
                          if (c=='(') cnt++;
                          if (c==')') cnt--;
                          if (c == '\\') {
-                           int newc = input(yyscanner);
+                           int newc = macro_input(yyscanner);
                            if (newc == ')')
                              nn->body[i++] = c;
                            c = newc;
@@ -968,7 +969,7 @@ static inline int isNameChar(int c, int pos)
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
 
-/* Count definition lines even while reading outside the lexer rules. */
+/* Count macro source lines even while reading outside the lexer rules. */
 static int macro_input(yyscan_t yyscanner)
 {
     struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;

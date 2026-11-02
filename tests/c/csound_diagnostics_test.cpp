@@ -2,7 +2,6 @@
 #include "csoundCore.h"
 #include "filesys.h"
 #include "gtest/gtest.h"
-#include <algorithm>
 #include <string>
 
 extern "C" {
@@ -168,7 +167,12 @@ TEST_P(MacroDiagnosticLineTests, ErrorAfterMacroKeepsSourceLine)
   std::string source = "<CsoundSynthesizer>\n<CsInstruments>\n";
   source += GetParam();
   source += "instr 1\n";
-  const auto line = std::count(source.begin(), source.end(), '\n') + 1;
+  int line = 1;
+  for (size_t i = 0; i < source.size(); ++i) {
+    if (source[i] == '\n' ||
+        (source[i] == '\r' && source[i + 1] != '\n'))
+      ++line;
+  }
   source += "iAmp = iErrorTest\nendin\n</CsInstruments>\n"
             "<CsScore>\ne\n</CsScore>\n</CsoundSynthesizer>\n";
   ASSERT_EQ(0, csoundSetOption(csound, "-n -d -m0 --csd-line-nums=1"));
@@ -197,4 +201,14 @@ INSTANTIATE_TEST_SUITE_P(MacroSources, MacroDiagnosticLineTests,
     "#define TEST\r\n#\r\niTmp = 1\r\n#\r\n$TEST\r\n",
     "#define TEST(x)\r\n#\r\niTmp = $x\r\n#\r\n$TEST(1)\r\n",
     "#define INNER #\niTmp = 1\n#\n"
-      "#define OUTER #\n$INNER\n#\n$OUTER\n"));
+      "#define OUTER #\n$INNER\n#\n$OUTER\n",
+    "#define TEST(x) #iTmp = ($x)#\n$TEST(\n1\n)\n",
+    "#define TEST(x) #iTmp = ($x)#\r\n$TEST(\r\n1\r\n)\r\n",
+    "#define TEST(x) #iTmp = ($x)#\r$TEST(\r1\r)\r",
+    "#define TEST(x) #iTmp = ($x + $x)#\n$TEST(\n1\n)\n",
+    "#define VALUE #1#\n#define TEST(x) #iTmp = ($x)#\n"
+      "$TEST(\n$VALUE\n)\n",
+    "#define VALUE #1#\r\n#define TEST(x) #iTmp = ($x)#\r\n"
+      "$TEST(\r\n$VALUE\r\n)\r\n",
+    "#define TEST(x) #iTmp = ($x)#\n$TEST(\\\n1\\\n)\n",
+    "#define TEST(x) #iTmp = ($x)#\r\n$TEST(\\\r\n1\\\r\n)\r\n"));
