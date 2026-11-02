@@ -185,7 +185,8 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   RTPW *rtpw;
   cs_float sysr;
 
-  list_outputs(csound);
+  if (csound->GetDebug(csound))
+    list_outputs(csound);
   p = (void**) csound->GetRtPlayUserData(csound);
   if(*p != NULL) return 0;
   if (UNLIKELY(parm->nChannels < 1)) {
@@ -202,7 +203,7 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   rtpw->is_input = 0;
   rtpw->buframes = parm->bufSamp_HW;
   rtpw->csound = csound;
-  csound->Message(csound, Str("hw frames: %d sw frames: %d\n"), rtpw->buframes,
+  csound->DebugMsg(csound, Str("hw frames: %d sw frames: %d\n"), rtpw->buframes,
 		  parm->bufSamp_SW);
 
   rtpw->loop = pw_thread_loop_new("csound-out", NULL);
@@ -391,7 +392,8 @@ parm_callback(void *p, uint32_t id, const struct spa_pod *param)
     rtpw->nchnls = rtpw->format.info.raw.channels;
     rtpw->cbuffer = csound->ReAlloc(csound,rtpw->cbuffer,sizeof(cs_float)*rtpw->buframes*
 				    rtpw->nchnls);
-    csound->Message(csound, Str("pw - reallocated hw buffer: %d\n"), rtpw->buframes);
+    csound->DebugMsg(csound, Str("pw - reallocated hw buffer: %d\n"),
+		     rtpw->buframes);
   }
 
 }
@@ -428,7 +430,7 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   rtpw->is_input = 1;
   rtpw->buframes = parm->bufSamp_HW;
   rtpw->csound = csound;
-  csound->Message(csound, Str("pwin - hw frames: %d sw frames: %d\n"), rtpw->buframes,
+  csound->DebugMsg(csound, Str("pwin - hw frames: %d sw frames: %d\n"), rtpw->buframes,
 		  parm->bufSamp_SW);
 
   rtpw->loop = pw_thread_loop_new("csound-in", NULL);
