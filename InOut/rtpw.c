@@ -48,11 +48,9 @@ typedef struct {
   int32_t cbflag;
   int32_t drained;
   int32_t is_input;
+  enum pw_stream_state state;
   CSOUND *csound;
 } RTPW;
-
-/* Poll interval used while waiting for the stream to become ready. */
-#define RTPW_POLL_MS 5
 
 /* The system rate is whatever the graph runs at, unless the stream itself
    was asked to follow the system rate, in which case the negotiated rate is
@@ -65,30 +63,37 @@ static cs_float rtpw_system_sr(RTPW *rtpw) {
   return rtpw->sr;
 }
 
-/* Wait for the negotiated format and, when the stream has a fixed rate, for
-   the graph clock rate. This runs on the opening thread, not on the PipeWire
-   data thread: the negotiated rate is read under the loop lock because it is
-   published by the param_changed callback, while the graph rate is queried
-   directly with pw_stream_get_time_n(). No callback needs to wake us up. */
+/* Wait for format negotiation and, for fixed-rate streams, the graph clock.
+   The PipeWire callbacks signal the loop when format or stream state changes. */
 static int32_t rtpw_wait_ready(RTPW *rtpw, int32_t timeout_ms) {
   struct pw_time t;
-  int32_t waited = 0, need_graph = rtpw->sr > 0, ready = 0;
+  struct timespec deadline;
+  int32_t need_graph = rtpw->sr > 0, ready = 0, err;
 
-  while (waited < timeout_ms) {
-    pw_thread_loop_lock(rtpw->loop);
-    if (need_graph && rtpw->graphr <= 0 &&
-        pw_stream_get_time_n(rtpw->stream, &t, sizeof(t)) >= 0 &&
-        t.rate.num != 0 && t.rate.denom != 0)
-      rtpw->graphr = (cs_float) t.rate.denom / (cs_float) t.rate.num;
-    ready = rtpw->sysr > 0 && (!need_graph || rtpw->graphr > 0);
-    pw_thread_loop_unlock(rtpw->loop);
-    if (ready)
-      return 1;
+  if (pw_thread_loop_get_time(rtpw->loop, &deadline,
+                              (int64_t) timeout_ms * 1000000) < 0)
+    return 0;
 
-    rtpw->csound->Sleep(RTPW_POLL_MS);
-    waited += RTPW_POLL_MS;
+  pw_thread_loop_lock(rtpw->loop);
+  while (!ready && rtpw->state != PW_STREAM_STATE_ERROR) {
+    if (rtpw->sysr > 0) {
+      if (!need_graph)
+        ready = 1;
+      else if (rtpw->state == PW_STREAM_STATE_STREAMING &&
+               pw_stream_get_time_n(rtpw->stream, &t, sizeof(t)) >= 0 &&
+               t.rate.num != 0 && t.rate.denom != 0) {
+        rtpw->graphr = (cs_float) t.rate.denom / (cs_float) t.rate.num;
+        ready = 1;
+      }
+    }
+    if (ready || rtpw->state == PW_STREAM_STATE_ERROR)
+      break;
+    err = pw_thread_loop_timed_wait_full(rtpw->loop, &deadline);
+    if (err != 0)
+      break;
   }
-  return 0;
+  pw_thread_loop_unlock(rtpw->loop);
+  return ready;
 }
 
 
@@ -140,6 +145,15 @@ static void rtpw_drained(void *p) {
   pw_thread_loop_signal(rtpw->loop, false);
 }
 
+static void rtpw_state_changed(void *p, enum pw_stream_state old,
+                               enum pw_stream_state state, const char *error) {
+  RTPW *rtpw = (RTPW *) p;
+  IGN(old);
+  IGN(error);
+  rtpw->state = state;
+  pw_thread_loop_signal(rtpw->loop, false);
+}
+
 static void rtpw_play(CSOUND *csound, const cs_float *outbuf, int32_t nbytes){
   RTPW *rtpw = (RTPW *) *csound->GetRtPlayUserData(csound);
   int32_t nframes = nbytes/(sizeof(cs_float)*rtpw->nchnls);
@@ -169,6 +183,7 @@ static void parm_callback(void *p, uint32_t id, const struct spa_pod *param);
 static void rtpw_close_one(CSOUND *csound, void **data, int32_t output);
 static const struct pw_stream_events stream_events_out = {
   PW_VERSION_STREAM_EVENTS,
+  .state_changed = rtpw_state_changed,
   .process = rtpw_out_callback,
   .param_changed = parm_callback,
   .drained = rtpw_drained,
@@ -201,6 +216,7 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   rtpw->sysr = -1.0f;
   rtpw->graphr = -1.0f;
   rtpw->is_input = 0;
+  rtpw->state = PW_STREAM_STATE_UNCONNECTED;
   rtpw->buframes = parm->bufSamp_HW;
   rtpw->csound = csound;
   csound->DebugMsg(csound, Str("hw frames: %d sw frames: %d\n"), rtpw->buframes,
@@ -396,10 +412,12 @@ parm_callback(void *p, uint32_t id, const struct spa_pod *param)
 		     rtpw->buframes);
   }
 
+  pw_thread_loop_signal(rtpw->loop, false);
 }
 
 static const struct pw_stream_events stream_events_in = {
   PW_VERSION_STREAM_EVENTS,
+  .state_changed = rtpw_state_changed,
   .process = rtpw_in_callback,
   .param_changed = parm_callback,
 };
@@ -428,6 +446,7 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   rtpw->sysr = -1.0f;
   rtpw->graphr = -1.0f;
   rtpw->is_input = 1;
+  rtpw->state = PW_STREAM_STATE_UNCONNECTED;
   rtpw->buframes = parm->bufSamp_HW;
   rtpw->csound = csound;
   csound->DebugMsg(csound, Str("pwin - hw frames: %d sw frames: %d\n"), rtpw->buframes,
