@@ -2,6 +2,7 @@
 #include "csoundCore.h"
 #include "filesys.h"
 #include "gtest/gtest.h"
+#include <algorithm>
 #include <string>
 
 extern "C" {
@@ -158,3 +159,42 @@ TEST_F(DiagnosticLineTests, PublicMessageCallsPreserveFragments)
   }
   EXPECT_EQ(output, "left middle right\n");
 }
+
+class MacroDiagnosticLineTests : public DiagnosticLineTests,
+    public ::testing::WithParamInterface<const char *> {};
+
+TEST_P(MacroDiagnosticLineTests, ErrorAfterMacroKeepsSourceLine)
+{
+  std::string source = "<CsoundSynthesizer>\n<CsInstruments>\n";
+  source += GetParam();
+  source += "instr 1\n";
+  const auto line = std::count(source.begin(), source.end(), '\n') + 1;
+  source += "iAmp = iErrorTest\nendin\n</CsInstruments>\n"
+            "<CsScore>\ne\n</CsScore>\n</CsoundSynthesizer>\n";
+  ASSERT_EQ(0, csoundSetOption(csound, "-n -d -m0 --csd-line-nums=1"));
+  EXPECT_NE(0, csoundCompileCSD(csound, source.c_str(), 1, 0));
+  const auto expected = "Variable 'iErrorTest' used before defined, line " +
+                        std::to_string(line) + "\n";
+  expectLine(expected.c_str());
+}
+
+INSTANTIATE_TEST_SUITE_P(MacroSources, MacroDiagnosticLineTests,
+  ::testing::Values(
+    "",
+    "#define TEST # 1 #\n",
+    "#define TEST\n# 1 #\n",
+    "#define TEST(x)\n\n# $x #\n",
+    "#define TEST ; comment\n# 1 #\n",
+    "#define TEST(x) // comment\n# $x #\n",
+    "#define TEST /* comment\ncontinued */\n# 1 #\n",
+    "#define TEST(x) /* comment\ncontinued */\n# $x #\n",
+    "#define TEST # iTmp = 1 #\n$TEST\n",
+    "#define TEST(x) # iTmp = $x #\n$TEST(1)\n",
+    "#define TEST #\niTmp = 1#\n$TEST\n",
+    "#define TEST #\niTmp = 1\n#\n$TEST\n",
+    "#define TEST(x) #\niTmp = $x\n#\n$TEST(1)\n",
+    "#define TEST(x)\n#\niTmp = $x\n#\n$TEST(1)\n",
+    "#define TEST\r\n#\r\niTmp = 1\r\n#\r\n$TEST\r\n",
+    "#define TEST(x)\r\n#\r\niTmp = $x\r\n#\r\n$TEST(1)\r\n",
+    "#define INNER #\niTmp = 1\n#\n"
+      "#define OUTER #\n$INNER\n#\n$OUTER\n"));
