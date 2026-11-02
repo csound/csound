@@ -44,6 +44,7 @@ static void comment(yyscan_t);
 static void do_comment(yyscan_t);
 static void do_include(CSOUND *, int, yyscan_t);
 static void do_new_include(CSOUND *, yyscan_t);
+static int macro_input(yyscan_t);
 static void do_macro_arg(CSOUND *, char *, yyscan_t);
 static void do_macro(CSOUND *, char *, yyscan_t);
 static void do_umacro(CSOUND *, char *, yyscan_t);
@@ -339,7 +340,7 @@ QNAN            "qnan"[ \t]*\(
                          csound->LongJmp(csound, 1);
                        }
                        while (1) {
-                         c = input(yyscanner);
+                         c = macro_input(yyscanner);
                          if (cnt==0 && ( c==term || c==trm1)) break;
                          if (UNLIKELY(cnt==0 && c == ')')) {
                            csound->Message(csound,
@@ -350,7 +351,7 @@ QNAN            "qnan"[ \t]*\(
                          if (c=='(') cnt++;
                          if (c==')') cnt--;
                          if (c == '\\') {
-                           int newc = input(yyscanner);
+                           int newc = macro_input(yyscanner);
                            if (newc == ')')
                              nn->body[i++] = c;
                            c = newc;
@@ -485,7 +486,6 @@ QNAN            "qnan"[ \t]*\(
                   if ( !YY_CURRENT_BUFFER ) yyterminate();
                   csound->DebugMsg(csound,"End of input; popping to %p\n",
                           YY_CURRENT_BUFFER);
-                  csound_pre_line(csound, csound->expanded_orc, yyscanner);
                   n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
                   if (PARM->alt_stack[PARM->macro_stack_ptr].path) {
                     //printf("restoring path from %s to %s\n",
@@ -513,7 +513,7 @@ QNAN            "qnan"[ \t]*\(
                   //csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                   //                     yyscanner);
                   //print_csound_predata(csound,"Before pre_line", yyscanner);
-                  csound_pre_line(csound, csound->orchstr, yyscanner);
+                  csound_pre_line(csound, csound->expanded_orc, yyscanner);
                   //print_csound_predata(csound,"After pre_line", yyscanner);
                   if (PARM->alt_stack[PARM->macro_stack_ptr].included) {
                     char bb[80];
@@ -969,6 +969,22 @@ static inline int isNameChar(int c, int pos)
     return (isalpha(c) || (pos && (c == '_' || isdigit(c))));
 }
 
+/* Count macro source lines even while reading outside the lexer rules. */
+static int macro_input(yyscan_t yyscanner)
+{
+    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
+    int c = input(yyscanner);
+    if (c == '\r') {
+      int next = input(yyscanner);
+      if (next != '\n' && next != EOF && next != '\0')
+        unput(next);
+      c = '\n';
+    }
+    if (c == '\n')
+      csound_preset_lineno(1+csound_preget_lineno(yyscanner), yyscanner);
+    return c;
+}
+
 static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     MACRO *mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
@@ -1020,7 +1036,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
           csound->LongJmp(csound, 1);
         }
       }
-      while (isspace((c = input(yyscanner))));
+      while (isspace((c = macro_input(yyscanner))));
 
       while (isNameChar(c, i)) {
         mname[i++] = c;
@@ -1031,7 +1047,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
             csound->LongJmp(csound, 1);
           }
         }
-        c = input(yyscanner);
+        c = macro_input(yyscanner);
       }
       mname[i] = '\0';
       mm->arg[arg] = csound->Malloc(csound, i + 1);
@@ -1052,43 +1068,43 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         mm->margs += MARGS;
       }
       while (isspace(c))
-        c = input(yyscanner);
+        c = macro_input(yyscanner);
     } while (c == '\'' || c == '#');
     if (UNLIKELY(c != ')')) {
       csound->Message(csound, Str("macro error\n"));
     }
     csound->Free(csound, mname);
     PARM->macro_name_buffer = NULL;
-    c = input(yyscanner);
+    c = macro_input(yyscanner);
     while (c!='#') {
       if (UNLIKELY(c==EOF || c=='\0'))
         csound->Die(csound, Str("define macro runaway\n"));
       else if (c==';') {
-        while ((c=input(yyscanner))!= '\n')
+        while ((c=macro_input(yyscanner))!= '\n')
           if (UNLIKELY(c==EOF || c=='\0')) {
             csound->Die(csound, Str("define macro runaway\n"));
           }
       }
       else if (c=='/') {
-        if ((c=input(yyscanner))=='/') {
-          while ((c=input(yyscanner))!= '\n')
+        if ((c=macro_input(yyscanner))=='/') {
+          while ((c=macro_input(yyscanner))!= '\n')
             if (UNLIKELY(c==EOF || c=='\0'))
               csound->Die(csound, Str("define macro runaway\n"));
         }
         else if (c=='*') {
-          while ((c=input(yyscanner))!='*') {
+          while ((c=macro_input(yyscanner))!='*') {
           again:
             if (UNLIKELY(c==EOF || c=='\0'))
               csound->Die(csound, Str("define macro runaway\n"));
           }
-          if ((c=input(yyscanner))!='/') goto again;
+          if ((c=macro_input(yyscanner))!='/') goto again;
         }
       }
       else if (UNLIKELY(!isspace(c)))
         csound->Die(csound,
                Str("define macro unexpected character %c(0x%.2x) awaiting #\n"),
                     c, c);
-      c = input(yyscanner); /* skip to start of body */
+      c = macro_input(yyscanner); /* skip to start of body */
     }
     mm->acnt = arg;
     i = 0;
@@ -1098,7 +1114,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       csound->LongJmp(csound, 1);
     }
 
-    while ((c = input(yyscanner)) != '#') { /* read body */
+    while ((c = macro_input(yyscanner)) != '#') { /* read body */
       if (UNLIKELY(c == EOF || c == '\0'))
         csound->Die(csound, Str("define macro with args: unexpected EOF\n"));
       if (c=='$') {             /* munge macro name? */
@@ -1116,7 +1132,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         i+=n;
         continue;
       }
-      mm->body[i++] = c=='\r'?'\n':c;
+      mm->body[i++] = c;
       if (UNLIKELY(i >= size)) {
         mm->body = csound->ReAlloc(csound, mm->body, size += 100);
         if (UNLIKELY(mm->body == NULL)) {
@@ -1125,7 +1141,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         }
       }
       if (c == '\\') {                    /* allow escaped # */
-        mm->body[i++] = c = input(yyscanner);
+        mm->body[i++] = c = macro_input(yyscanner);
         if (UNLIKELY(i >= size)) {
           mm->body = csound->ReAlloc(csound, mm->body, size += 100);
           if (UNLIKELY(mm->body == NULL)) {
@@ -1134,8 +1150,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
           }
         }
       }
-      if (UNLIKELY(c == '\n' || c == '\r')) {
-        csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
+      if (UNLIKELY(c == '\n')) {
         corfile_putc(csound, '\n', csound->expanded_orc);
         csound_pre_line(csound, csound->expanded_orc, yyscanner);
       }
@@ -1167,28 +1182,28 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     strcpy(mm->name, name0);
     mm->acnt = 0;
     i = 0;
-    while ((c = input(yyscanner)) != '#') {
+    while ((c = macro_input(yyscanner)) != '#') {
       if (UNLIKELY(c==EOF || c=='\0'))
         csound->Die(csound, Str("define macro runaway\n"));
       else if (c==';') {
-        while ((c=input(yyscanner))!= '\n')
+        while ((c=macro_input(yyscanner))!= '\n')
           if (UNLIKELY(c==EOF || c=='\0')) {
             csound->Die(csound, Str("define macro runaway\n"));
           }
       }
       else if (c=='/') {
-        if ((c=input(yyscanner))=='/') {
-          while ((c=input(yyscanner))!= '\n')
+        if ((c=macro_input(yyscanner))=='/') {
+          while ((c=macro_input(yyscanner))!= '\n')
             if (UNLIKELY(c==EOF || c=='\0'))
               csound->Die(csound, Str("define macro runaway\n"));
         }
         else if (c=='*') {
-          while ((c=input(yyscanner))!='*') {
+          while ((c=macro_input(yyscanner))!='*') {
           again:
             if (UNLIKELY(c==EOF || c=='\0'))
               csound->Die(csound, Str("define macro runaway\n"));
           }
-          if ((c=input(yyscanner))!='/') goto again;
+          if ((c=macro_input(yyscanner))!='/') goto again;
         }
       }
       else if (UNLIKELY(!isspace(c)))
@@ -1202,10 +1217,10 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
       csound->Message(csound, Str("Memory exhausted"));
       csound->LongJmp(csound, 1);
     }
-    while ((c = input(yyscanner)) != '#') {
+    while ((c = macro_input(yyscanner)) != '#') {
       if (UNLIKELY(c == EOF || c=='\0'))
         csound->Die(csound, Str("define macro: unexpected EOF\n"));
-      mm->body[i++] = c=='\r'?'\n':c;
+      mm->body[i++] = c;
       if (UNLIKELY(i >= size)) {
         mm->body = csound->ReAlloc(csound, mm->body, size += 100);
         if (UNLIKELY(mm->body == NULL)) {
@@ -1214,7 +1229,7 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
         }
       }
       if (c == '\\') {                    /* allow escaped # */
-        mm->body[i++] = c = input(yyscanner);
+        mm->body[i++] = c = macro_input(yyscanner);
         if (UNLIKELY(i >= size)) {
           mm->body = csound->ReAlloc(csound, mm->body, size += 100);
           if (UNLIKELY(mm->body == NULL)) {
@@ -1223,8 +1238,7 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
           }
         }
       }
-      if (UNLIKELY(c == '\n' || c == '\r')) {
-        csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
+      if (UNLIKELY(c == '\n')) {
         corfile_putc(csound, '\n', csound->expanded_orc);
         csound_pre_line(csound, csound->expanded_orc, yyscanner);
       }
@@ -1509,8 +1523,8 @@ void csound_pre_line(CSOUND *csound, CORFIL* cf, void *yyscanner)
         snprintf(bb, 80, "#line   %d\n", n);
         corfile_puts(csound, bb, cf);
       }
+      PARM->line = n;
     }
-    PARM->line = n;
 }
 
 static void do_function(CSOUND *csound, char *text, CORFIL *cf,
