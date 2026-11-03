@@ -793,7 +793,7 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
                        unsigned char *buf, int32_t nBytes)
 {
   midifile_t  *mf;
-  int32_t     i, j, n, nRead;
+  int32_t     i, j, n, nRead, mapped;
   uint8_t     port;
 
 
@@ -853,7 +853,10 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
       // also if number of databytes is less than 1
       i++; continue;
     }
-    nBytes -= n + (port != 0);
+    /* a port byte follows a channel message's status alone: the parser
+       takes none after a system message */
+    mapped = port != 0 && mf->eventList[i].st < 0xF0;
+    nBytes -= n + mapped;
     if (UNLIKELY(nBytes < 0)) {
       csound->Message(csound, Str(" *** buffer overflow while reading "
                                   "MIDI file events\n"));
@@ -861,7 +864,7 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
     }
     nRead += n;
     *buf++ = mf->eventList[i].st;
-    if (port)  {
+    if (mapped)  {
       // optional port mapping offset
       *buf++ = (uint8_t) (0x80 | port);
       nRead++;
