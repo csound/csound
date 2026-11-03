@@ -49,46 +49,72 @@ typedef struct {
   int32_t drained;
   int32_t is_input;
   enum pw_stream_state state;
+  uint32_t progress_seq;
   CSOUND *csound;
 } RTPW;
 
-/* The system rate is whatever the graph runs at, unless the stream itself
-   was asked to follow the system rate, in which case the negotiated rate is
-   the one Csound is actually running at. */
+/* The PipeWire graph rate is distinct from the client stream's negotiated
+   rate; PipeWire may resample between them. */
 static cs_float rtpw_system_sr(RTPW *rtpw) {
-  if (rtpw->sr > 0)
-    return rtpw->graphr > 0 ? rtpw->graphr : -1.0f;
-  if (rtpw->sysr > 0)
-    return rtpw->sysr;
-  return rtpw->sr;
+  return rtpw->graphr > 0 ? rtpw->graphr : -1.0f;
 }
 
-/* Wait for format negotiation and, for fixed-rate streams, the graph clock.
-   The PipeWire callbacks signal the loop when format or stream state changes. */
+static int32_t rtpw_rate_matches(cs_float actual, cs_float required) {
+  cs_float diff = actual - required;
+  if (diff < 0)
+    diff = -diff;
+  return actual > 0 && required > 0 && diff < FL(0.01);
+}
+
+/* Validate the negotiated client rate against Csound's chosen rate. In
+   system-rate mode, the graph rate is the chosen rate. */
+static int32_t rtpw_validate_rates(RTPW *rtpw, cs_float *system_sr) {
+  cs_float graph_sr = rtpw_system_sr(rtpw);
+  cs_float required_sr = rtpw->sr > 0 ? rtpw->sr : graph_sr;
+
+  if (!rtpw_rate_matches(rtpw->sysr, required_sr))
+    return 0;
+  if (rtpw->sr <= 0)
+    rtpw->sr = graph_sr;
+  *system_sr = graph_sr;
+  return 1;
+}
+
+/* Wait for format negotiation and the graph clock. The timeout is restarted
+   when PipeWire reports meaningful progress, rather than being a fixed
+   deadline from the start of the connection. */
 static int32_t rtpw_wait_ready(RTPW *rtpw, int32_t timeout_ms) {
   struct pw_time t;
   struct timespec deadline;
-  int32_t need_graph = rtpw->sr > 0, ready = 0, err;
+  uint32_t progress;
+  int32_t ready = 0, err;
 
   if (pw_thread_loop_get_time(rtpw->loop, &deadline,
                               (int64_t) timeout_ms * 1000000) < 0)
     return 0;
 
   pw_thread_loop_lock(rtpw->loop);
+  progress = rtpw->progress_seq;
   while (!ready && rtpw->state != PW_STREAM_STATE_ERROR) {
-    if (rtpw->sysr > 0) {
-      if (!need_graph)
-        ready = 1;
-      else if (rtpw->state == PW_STREAM_STATE_STREAMING &&
-               pw_stream_get_time_n(rtpw->stream, &t, sizeof(t)) >= 0 &&
-               t.rate.num != 0 && t.rate.denom != 0) {
-        rtpw->graphr = (cs_float) t.rate.denom / (cs_float) t.rate.num;
-        ready = 1;
-      }
-    }
+    if (rtpw->state == PW_STREAM_STATE_STREAMING && rtpw->graphr <= 0 &&
+        pw_stream_get_time_n(rtpw->stream, &t, sizeof(t)) >= 0 &&
+        t.rate.num != 0 && t.rate.denom != 0)
+      rtpw->graphr = (cs_float) t.rate.denom / (cs_float) t.rate.num;
+
+    ready = rtpw->sysr > 0 && rtpw->graphr > 0;
     if (ready || rtpw->state == PW_STREAM_STATE_ERROR)
       break;
+
+    if (progress != rtpw->progress_seq) {
+      progress = rtpw->progress_seq;
+      if (pw_thread_loop_get_time(rtpw->loop, &deadline,
+                                  (int64_t) timeout_ms * 1000000) < 0)
+        break;
+      continue;
+    }
     err = pw_thread_loop_timed_wait_full(rtpw->loop, &deadline);
+    if (err == -EINTR)
+      continue;
     if (err != 0)
       break;
   }
@@ -151,6 +177,7 @@ static void rtpw_state_changed(void *p, enum pw_stream_state old,
   IGN(old);
   IGN(error);
   rtpw->state = state;
+  rtpw->progress_seq++;
   pw_thread_loop_signal(rtpw->loop, false);
 }
 
@@ -198,7 +225,7 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   struct pw_properties *props;
   const struct spa_pod *params[1];
   RTPW *rtpw;
-  cs_float sysr;
+  cs_float sysr, required_sr;
 
   if (csound->GetDebug(csound))
     list_outputs(csound);
@@ -259,22 +286,22 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   pw_thread_loop_start(rtpw->loop);
   pw_thread_loop_unlock(rtpw->loop);
 
-  /* Wait for the format and, for fixed-rate streams, the graph clock. */
+  /* Wait for both the negotiated format and the graph clock. */
   if (UNLIKELY(!rtpw_wait_ready(rtpw, 2000))) {
-    csound->ErrorMsg(csound, Str("rtpw: could not determine the output "
-				 "stream sampling rate\n"));
+    csound->ErrorMsg(csound, Str("rtpw: timed out waiting for the output "
+				 "stream and graph rate\n"));
     rtpw_close_one(csound, (void **) &rtpw, 1);
     return CSOUND_ERROR;
   }
-  sysr = rtpw_system_sr(rtpw);
-  if (sysr > 0) {
-    if (rtpw->sr <= 0)      /* stream followed the system rate */
-      rtpw->sr = sysr;
-    csound->GetSystemSr(csound, sysr);
-  } else {
-    csound->Warning(csound, Str("rtpw: could not get the system "
-				"sampling rate\n"));
+  required_sr = rtpw->sr > 0 ? rtpw->sr : rtpw->graphr;
+  if (UNLIKELY(!rtpw_validate_rates(rtpw, &sysr))) {
+    csound->ErrorMsg(csound,
+		     Str("rtpw: negotiated output rate %.2f does not match "
+			 "required rate %.2f\n"), rtpw->sysr, required_sr);
+    rtpw_close_one(csound, (void **) &rtpw, 1);
+    return CSOUND_ERROR;
   }
+  csound->GetSystemSr(csound, sysr);
   *p = (void *) rtpw;
   return CSOUND_SUCCESS;
 }
@@ -412,6 +439,7 @@ parm_callback(void *p, uint32_t id, const struct spa_pod *param)
 		     rtpw->buframes);
   }
 
+  rtpw->progress_seq++;
   pw_thread_loop_signal(rtpw->loop, false);
 }
 
@@ -430,7 +458,7 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   struct pw_properties *props;
   const struct spa_pod *params[1];
   RTPW *rtpw;
-  cs_float sysr;
+  cs_float sysr, required_sr;
 
   p = (void**) csound->GetRtRecordUserData(csound);
   if(*p != NULL) return 0;
@@ -490,22 +518,22 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   pw_thread_loop_start(rtpw->loop);
   pw_thread_loop_unlock(rtpw->loop);
 
-  /* Wait for the format and, for fixed-rate streams, the graph clock. */
+  /* Wait for both the negotiated format and the graph clock. */
   if (UNLIKELY(!rtpw_wait_ready(rtpw, 2000))) {
-    csound->ErrorMsg(csound, Str("rtpw: could not determine the input "
-				 "stream sampling rate\n"));
+    csound->ErrorMsg(csound, Str("rtpw: timed out waiting for the input "
+				 "stream and graph rate\n"));
     rtpw_close_one(csound, (void **) &rtpw, 0);
     return CSOUND_ERROR;
   }
-  sysr = rtpw_system_sr(rtpw);
-  if (sysr > 0) {
-    if (rtpw->sr <= 0)      /* stream followed the system rate */
-      rtpw->sr = sysr;
-    csound->GetSystemSr(csound, sysr);
-  } else {
-    csound->Warning(csound, Str("rtpw: could not get the system "
-				"sampling rate\n"));
+  required_sr = rtpw->sr > 0 ? rtpw->sr : rtpw->graphr;
+  if (UNLIKELY(!rtpw_validate_rates(rtpw, &sysr))) {
+    csound->ErrorMsg(csound,
+		     Str("rtpw: negotiated input rate %.2f does not match "
+			 "required rate %.2f\n"), rtpw->sysr, required_sr);
+    rtpw_close_one(csound, (void **) &rtpw, 0);
+    return CSOUND_ERROR;
   }
+  csound->GetSystemSr(csound, sysr);
   *p = (void *) rtpw;
   return OK;
 }
@@ -569,6 +597,21 @@ struct pw_dev {
   int32_t n_channels;
 };
 
+struct pw_dev_snapshot {
+  struct pw_dev_snapshot *next;
+  struct pw_dev *devs;
+  void *thread_id;
+  int32_t count;
+  int32_t is_output;
+};
+
+struct pw_dev_snapshots {
+  void *mutex;
+  struct pw_dev_snapshot *pending;
+};
+
+#define RTPW_DEVICE_SNAPSHOTS "_rtpw_device_snapshots"
+
 struct pw_dev_query {
   struct pw_thread_loop *tloop;
   struct pw_context *context;
@@ -589,15 +632,24 @@ struct pw_dev_query {
 
 /* A node can be used for output if it is a sink, for input if it is a
    source. Duplex nodes provide both. */
+/* Match a class or a subtype separated by '/'; reject plain prefixes such as
+   Audio/SinkFilter. */
+static int32_t media_class_is_or_subclass(const char *media_class,
+                                          const char *base) {
+  size_t n = strlen(base);
+  return !strncmp(media_class, base, n) &&
+         (media_class[n] == '\0' || media_class[n] == '/');
+}
+
 static int32_t device_matches(const char *media_class, int32_t flags) {
   if (media_class == NULL)
     return 0;
   if ((flags & PW_DEV_OUTPUT) &&
-      (!strncmp(media_class, "Audio/Sink", 10) ||
+      (media_class_is_or_subclass(media_class, "Audio/Sink") ||
        !strcmp(media_class, "Audio/Duplex")))
     return 1;
   if ((flags & PW_DEV_INPUT) &&
-      (!strncmp(media_class, "Audio/Source", 12) ||
+      (media_class_is_or_subclass(media_class, "Audio/Source") ||
        !strcmp(media_class, "Audio/Duplex")))
     return 1;
   return 0;
@@ -615,6 +667,14 @@ static void add_pipewire_device(struct pw_dev_query *q, uint32_t id,
     return;
   }
   name = spa_dict_lookup(props, PW_KEY_NODE_NAME);
+  if (name == NULL)
+    return;
+  if (strlen(name) > sizeof(((CS_AUDIODEVICE *) 0)->device_id) - 5) {
+    if (q->display)
+      csound->Warning(csound, Str("PipeWire: skipping node name too long "
+                                  "to use as a device ID\n"));
+    return;
+  }
   description = spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);
   if (description == NULL)
     description = spa_dict_lookup(props, PW_KEY_NODE_NICK);
@@ -718,13 +778,16 @@ static int32_t query_sync(struct pw_dev_query *q) {
   return q->status;
 }
 
-/* Enumerate the audio devices of the requested direction(s). If list is
-   non-NULL it is filled with one CS_AUDIODEVICE per device. Returns the
-   number of devices found, or 0 on failure. */
+/* Enumerate the audio devices of the requested direction(s). If snapshot is
+   non-NULL, transfer the device snapshot to the caller. Returns the number
+   of devices found, or 0 on failure. */
 static int32_t query_pipewire(CSOUND *csound, int32_t flags, int32_t display,
-                              CS_AUDIODEVICE *list) {
+                              struct pw_dev **snapshot) {
   struct pw_dev_query q;
-  int32_t i, n = 0, status, is_output = (flags & PW_DEV_OUTPUT) != 0;
+  int32_t n = 0, status;
+
+  if (snapshot != NULL)
+    *snapshot = NULL;
 
   memset(&q, 0, sizeof(q));
   q.csound = csound;
@@ -774,7 +837,7 @@ static int32_t query_pipewire(CSOUND *csound, int32_t flags, int32_t display,
   pw_thread_loop_stop(q.tloop);
 
   if (UNLIKELY(status < 0)) {
-    if (list == NULL)   /* only report on the counting pass */
+    if (snapshot != NULL)   /* only report on the counting pass */
       csound->Message(csound, Str("Failed to query PipeWire devices\n"));
     goto cleanup;
   }
@@ -786,20 +849,9 @@ static int32_t query_pipewire(CSOUND *csound, int32_t flags, int32_t display,
     csound->Message(csound, Str("found %d devices\n"), q.no_devs);
 
   n = q.no_devs;
-  if (list != NULL) {
-    for (i = 0; i < n; i++) {
-      CS_AUDIODEVICE *dev = &(list[i]);
-      memset(dev, 0, sizeof(CS_AUDIODEVICE));
-      snprintf(dev->device_name, sizeof(dev->device_name), "%.*s",
-               (int) sizeof(dev->device_name) - 1, q.devs[i].description);
-      /* the node name can be given as -odac:<name> / -iadc:<name> */
-      snprintf(dev->device_id, sizeof(dev->device_id), "%s:%.*s",
-               is_output ? "dac" : "adc",
-               (int) sizeof(dev->device_id) - 5, q.devs[i].name);
-      snprintf(dev->rt_module, sizeof(dev->rt_module), "%s", "rtpw");
-      dev->max_nchnls = q.devs[i].n_channels;
-      dev->isOutput = is_output;
-    }
+  if (snapshot != NULL && n > 0) {
+    *snapshot = q.devs;
+    q.devs = NULL;
   }
 
  cleanup:
@@ -823,10 +875,113 @@ static int32_t list_outputs(CSOUND *csound) {
   return query_pipewire(csound, PW_DEV_OUTPUT, 1, NULL);
 }
 
+static void rtpw_fill_audio_device(CS_AUDIODEVICE *dest,
+                                   const struct pw_dev *src,
+                                   int32_t is_output) {
+  memset(dest, 0, sizeof(CS_AUDIODEVICE));
+  snprintf(dest->device_name, sizeof(dest->device_name), "%.*s",
+           (int) sizeof(dest->device_name) - 1, src->description);
+  /* The node name can be given as -odac:<name> / -iadc:<name>. */
+  snprintf(dest->device_id, sizeof(dest->device_id), "%s:%.*s",
+           is_output ? "dac" : "adc",
+           (int) sizeof(dest->device_id) - 5, src->name);
+  snprintf(dest->rt_module, sizeof(dest->rt_module), "%s", "rtpw");
+  dest->max_nchnls = src->n_channels;
+  dest->isOutput = is_output;
+}
+
+static void rtpw_discard_snapshot(CSOUND *csound,
+                                  struct pw_dev_snapshots *snapshots,
+                                  void *thread_id, int32_t is_output) {
+  struct pw_dev_snapshot **link, *old;
+
+  csound->LockMutex(snapshots->mutex);
+  link = &snapshots->pending;
+  while (*link != NULL) {
+    if ((*link)->thread_id == thread_id &&
+        (*link)->is_output == is_output) {
+      old = *link;
+      *link = old->next;
+      csound->Free(csound, old->devs);
+      csound->Free(csound, old);
+      break;
+    }
+    link = &(*link)->next;
+  }
+  csound->UnlockMutex(snapshots->mutex);
+}
+
 static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
-			 int32_t isOutput){
-  return query_pipewire(csound, isOutput ? PW_DEV_OUTPUT : PW_DEV_INPUT,
-                        0, list);
+			 int32_t isOutput) {
+  struct pw_dev_snapshots *snapshots =
+    (struct pw_dev_snapshots *) csound->QueryGlobalVariable(
+        csound, RTPW_DEVICE_SNAPSHOTS);
+  struct pw_dev_snapshot *snapshot, **link;
+  struct pw_dev *devs = NULL;
+  void *thread_id = csound->GetCurrentThreadID();
+  int32_t i, n, flags = isOutput ? PW_DEV_OUTPUT : PW_DEV_INPUT;
+
+  if (UNLIKELY(snapshots == NULL || snapshots->mutex == NULL))
+    return 0;
+
+  if (list == NULL) {
+    n = query_pipewire(csound, flags, 0, &devs);
+    if (n <= 0 || devs == NULL) {
+      csound->Free(csound, devs);
+      rtpw_discard_snapshot(csound, snapshots, thread_id, isOutput);
+      return 0;
+    }
+    snapshot = (struct pw_dev_snapshot *) csound->Calloc(
+        csound, sizeof(struct pw_dev_snapshot));
+    if (UNLIKELY(snapshot == NULL)) {
+      csound->Free(csound, devs);
+      rtpw_discard_snapshot(csound, snapshots, thread_id, isOutput);
+      return 0;
+    }
+    snapshot->devs = devs;
+    snapshot->thread_id = thread_id;
+    snapshot->count = n;
+    snapshot->is_output = isOutput;
+
+    csound->LockMutex(snapshots->mutex);
+    link = &snapshots->pending;
+    while (*link != NULL) {
+      if ((*link)->thread_id == thread_id &&
+          (*link)->is_output == isOutput) {
+        struct pw_dev_snapshot *old = *link;
+        *link = old->next;
+        csound->Free(csound, old->devs);
+        csound->Free(csound, old);
+        break;
+      }
+      link = &(*link)->next;
+    }
+    snapshot->next = snapshots->pending;
+    snapshots->pending = snapshot;
+    csound->UnlockMutex(snapshots->mutex);
+    return n;
+  }
+
+  csound->LockMutex(snapshots->mutex);
+  link = &snapshots->pending;
+  while (*link != NULL &&
+         ((*link)->thread_id != thread_id ||
+          (*link)->is_output != isOutput))
+    link = &(*link)->next;
+  snapshot = *link;
+  if (snapshot != NULL)
+    *link = snapshot->next;
+  csound->UnlockMutex(snapshots->mutex);
+
+  if (snapshot == NULL)
+    return 0;  /* No matching count pass, so the caller's capacity is unknown. */
+
+  n = snapshot->count;
+  for (i = 0; i < n; i++)
+    rtpw_fill_audio_device(&list[i], &snapshot->devs[i], isOutput);
+  csound->Free(csound, snapshot->devs);
+  csound->Free(csound, snapshot);
+  return n;
 }
 
 
@@ -839,7 +994,8 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
   return 0;
 }
 
- int32_t csoundModuleInit(CSOUND *csound) {
+int32_t csoundModuleInit(CSOUND *csound) {
+  struct pw_dev_snapshots *snapshots;
   csound->ModuleListAdd(csound, "rtpw", "audio");
   char buf[32];
   char *s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
@@ -853,6 +1009,29 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
       strcmp(&(buf[0]), "pw") == 0 ||
       strcmp(&(buf[0]), "pipewire") == 0){
 
+    snapshots = (struct pw_dev_snapshots *) csound->QueryGlobalVariable(
+        csound, RTPW_DEVICE_SNAPSHOTS);
+    if (snapshots == NULL) {
+      if (UNLIKELY(csound->CreateGlobalVariable(
+                       csound, RTPW_DEVICE_SNAPSHOTS,
+                       sizeof(struct pw_dev_snapshots)) != 0)) {
+        csound->ErrorMsg(csound, Str("rtpw: could not create device-list state\n"));
+        return CSOUND_ERROR;
+      }
+      snapshots = (struct pw_dev_snapshots *) csound->QueryGlobalVariable(
+          csound, RTPW_DEVICE_SNAPSHOTS);
+    }
+    if (UNLIKELY(snapshots == NULL)) {
+      csound->ErrorMsg(csound, Str("rtpw: could not access device-list state\n"));
+      return CSOUND_ERROR;
+    }
+    if (snapshots->mutex == NULL)
+      snapshots->mutex = csound->Create_Mutex(0);
+    if (UNLIKELY(snapshots->mutex == NULL)) {
+      csound->ErrorMsg(csound, Str("rtpw: could not create device-list mutex\n"));
+      return CSOUND_ERROR;
+    }
+
     csound->DebugMsg(csound, Str("rtaudio: pipewire module enabled\n"));
     csound->SetPlayopenCallback(csound, rtpw_open_out);
     csound->SetRecopenCallback(csound, rtpw_open_in);
@@ -865,7 +1044,25 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
   return CSOUND_SUCCESS;
 }
 
- int32_t csoundModuleDestroy(CSOUND *csound){
+int32_t csoundModuleDestroy(CSOUND *csound){
+  struct pw_dev_snapshots *snapshots =
+    (struct pw_dev_snapshots *) csound->QueryGlobalVariable(
+        csound, RTPW_DEVICE_SNAPSHOTS);
+  if (snapshots != NULL && snapshots->mutex != NULL) {
+    struct pw_dev_snapshot *pending, *next;
+    csound->LockMutex(snapshots->mutex);
+    pending = snapshots->pending;
+    snapshots->pending = NULL;
+    csound->UnlockMutex(snapshots->mutex);
+    while (pending != NULL) {
+      next = pending->next;
+      csound->Free(csound, pending->devs);
+      csound->Free(csound, pending);
+      pending = next;
+    }
+    csound->DestroyMutex(snapshots->mutex);
+    snapshots->mutex = NULL;
+  }
   return 0;
 }
 
