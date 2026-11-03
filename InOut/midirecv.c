@@ -105,7 +105,7 @@
 
 #define MGLOB(x) (csound->midiGlobals->x)
 
-static  void    midNotesOff(CSOUND *);
+static  void    midNotesOff(CSOUND *, int32_t);
 
 static const cs_float dsctl_map[12] = {
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0),
@@ -321,7 +321,8 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       else if (n == 122) {                      /* absorb lcl ctrl data */
 /*      int32_t lcl_ctrl = mep->dat2;  ?? */        /* 0:off, 127:on */
       }
-      else if (n == 123) midNotesOff(csound);   /* allchnl AllNotesOff */
+      else if (n == 123)                        /* AllNotesOff, its port's */
+        midNotesOff(csound, mep->chan / MAXCHAN);
       else if (n == 126) {                      /* MONO mode */
         if (chn->monobas == NULL) {
           MONPCH *mnew, *mend;
@@ -478,15 +479,14 @@ void AllNotesOff(CSOUND *csound, MCHNBLK *chn)
     }
 }
 
-/* turn off ALL curr midi notes, ALL chnls */
-/*  called by musmon, ctrl 123 & sensMidi  */
+/* turn off ALL curr midi notes, ALL chnls of a port */
+/*  called by ctrl 123 on any of them               */
 
-static void midNotesOff(CSOUND *csound)
+static void midNotesOff(CSOUND *csound, int32_t port)
 {
-    int32_t chan = 0;
-    do {
-      AllNotesOff(csound, csound->m_chnbp[chan]);
-    } while (++chan < MAXCHAN);
+    int32_t chan;
+    for (chan = 0; chan < MAXCHAN; chan++)
+      AllNotesOff(csound, csound->m_chnbp[chan + MAXCHAN * port]);
 }
 
 /* sense a MIDI event, collect the data & dispatch */
