@@ -410,41 +410,57 @@ void m_chn_init_all(CSOUND *csound)
     }
 }
 
-/* assign an insno to a chnl */
+/* assign an insno to a chnl, or to every chnl of every port if chan < 0 */
 /* =massign: called from i0  */
 
 int32_t m_chinsno(CSOUND *csound, int32_t chan, int32_t insno, int32_t reset_ctls)
 {
     MCHNBLK  *chn;
     MEVENT   mev;
+    int32_t  last, all = chan < 0;
 
-    if (chan < 0 || chan >= MAXCHAN)
+    if (all) {
+      chan = 0;
+      last = MIDIMAXPORTS * MAXCHAN;
+    }
+    else if (chan >= MIDIMAXPORTS * MAXCHAN)
       return csound->InitError(csound, Str("illegal channel number\n"));
-    chn = csound->m_chnbp[chan];
-    if (insno <= 0) {
-      chn->insno = -1;
+    else
+      last = chan + 1;
+    if (insno > 0 &&
+        (insno > csound->engineState.maxinsno ||
+         csound->engineState.instrtxtp[insno] == NULL)) {
+      csound->Message(csound, Str("Insno = %d\n"), insno);
+      return csound->InitError(csound, Str("unknown instr\n"));
+    }
+    if (all) {
+      if (insno <= 0)
+        csound->Message(csound, Str("all MIDI channels muted\n"));
+      else
+        csound->Message(csound, Str("all MIDI channels using instr %d\n"), insno);
+    }
+    else if (insno <= 0)
       csound->Message(csound, Str("MIDI channel %d muted\n"), chan + 1);
-    }
-    else {
-      if (insno > csound->engineState.maxinsno ||
-          csound->engineState.instrtxtp[insno] == NULL) {
-        csound->Message(csound, Str("Insno = %d\n"), insno);
-        return csound->InitError(csound, Str("unknown instr\n"));
+    else
+      csound->Message(csound, Str("chnl %d using instr %d\n"), chan + 1, insno);
+    for ( ; chan < last; chan++) {
+      chn = csound->m_chnbp[chan];
+      if (insno <= 0)
+        chn->insno = -1;
+      else {
+        chn->insno = (int16_t) insno;
+        /* check for program change: will override massign if enabled */
+        if (chn->pgmno >= 0) {
+          mev.type = PROGRAM_TYPE;
+          mev.chan = (int16_t) chan;
+          mev.dat1 = chn->pgmno;
+          mev.dat2 = 0;
+          m_chanmsg(csound, &mev);
+        }
       }
-      chn->insno = (int16_t) insno;
-      csound->Message(csound, Str("chnl %d using instr %d\n"),
-                              chan + 1, chn->insno);
-      /* check for program change: will override massign if enabled */
-      if (chn->pgmno >= 0) {
-        mev.type = PROGRAM_TYPE;
-        mev.chan = (int16_t) chan;
-        mev.dat1 = chn->pgmno;
-        mev.dat2 = 0;
-        m_chanmsg(csound, &mev);
-      }
+      if (reset_ctls)
+        midi_ctl_reset(csound, (int16_t) chan);
     }
-    if (reset_ctls)
-      midi_ctl_reset(csound, (int16_t) chan);
     return OK;
 }
 

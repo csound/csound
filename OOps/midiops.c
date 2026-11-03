@@ -54,42 +54,19 @@ int32_t midibset(CSOUND*, MIDIKMB*);
 
 int32_t massign_p(CSOUND *csound, MASSIGN *p)
 {
-    int32_t   chnl = (int32_t)(*p->chnl + FL(0.5));
-    int32_t   resetCtls;
-    int32_t   retval = OK;
-
-    resetCtls = (*p->iresetctls == FL(0.0) ? 0 : 1);
-    if (--chnl >= 0)
-      retval = m_chinsno(csound, chnl, (int32_t) *p->insno, resetCtls);
-    else {
-      for (chnl = 0; chnl < 16; chnl++) {
-        if (m_chinsno(csound, chnl, (int32_t) *p->insno, resetCtls) != OK)
-          retval = NOTOK;
-      }
-    }
-    return retval;
+    /* channel 0 is every channel of every port */
+    return m_chinsno(csound, (int32_t)(*p->chnl + FL(0.5)) - 1,
+                     (int32_t) *p->insno, *p->iresetctls != FL(0.0));
 }
 
 int32_t massign_S(CSOUND *csound, MASSIGNS *p)
 {
-    int32_t   chnl = (int32_t)(*p->chnl + FL(0.5));
-    int32_t   instno = 0L;
-    int32_t   resetCtls;
-    int32_t   retval = OK;
+    int32_t   instno;
 
     if (UNLIKELY((instno = csoundStringArg2Insno(csound, p->insno->data, 1)) <= 0L))
       return NOTOK;
-
-    resetCtls = (*p->iresetctls == FL(0.0) ? 0 : 1);
-    if (--chnl >= 0)
-      retval = m_chinsno(csound, chnl, (int32_t) instno, resetCtls);
-    else {
-      for (chnl = 0; chnl < 16; chnl++) {
-        if (m_chinsno(csound, chnl, (int32_t) instno, resetCtls) != OK)
-          retval = NOTOK;
-      }
-    }
-    return retval;
+    return m_chinsno(csound, (int32_t)(*p->chnl + FL(0.5)) - 1,
+                     instno, *p->iresetctls != FL(0.0));
 }
 
 
@@ -479,7 +456,7 @@ static int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
     int32_t pgm, ins, chn;
 
     chn = (int32_t)(*p->ichn + 0.5);
-    if (UNLIKELY(chn < 0 || chn > 16))
+    if (UNLIKELY(chn < 0 || chn > MIDIMAXPORTS * MAXCHAN))
       return csound->InitError(csound, Str("illegal channel number\n"));
     /* IV - Oct 31 2002: allow named instruments */
     if (instname || IsStringCode(*p->inst)) {
@@ -490,8 +467,8 @@ static int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
     else
       ins = (int32_t)(*(p->inst) + FL(0.5));
     if (*(p->ipgm) < FL(0.5)) {         /* program <= 0: assign all pgms */
-      if (!chn) {                           /* on all channels */
-        for (chn = 0; chn < 16; chn++)
+      if (!chn) {                   /* on all channels of every port */
+        for (chn = 0; chn < MIDIMAXPORTS * MAXCHAN; chn++)
           for (pgm = 0; pgm < 128; pgm++)
             csound->m_chnbp[chn]->pgm2ins[pgm] = ins;
       }
@@ -506,8 +483,8 @@ static int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
       if (UNLIKELY(pgm < 0 || pgm > 127)) {
         return csound->InitError(csound, Str("pgmassign: invalid program number\n"));
       }
-      if (!chn) {                           /* on all channels */
-        for (chn = 0; chn < 16; chn++)
+      if (!chn) {                   /* on all channels of every port */
+        for (chn = 0; chn < MIDIMAXPORTS * MAXCHAN; chn++)
           csound->m_chnbp[chn]->pgm2ins[pgm] = ins;
       }
       else {                                /* or selected channel only */
