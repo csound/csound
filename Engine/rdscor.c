@@ -33,6 +33,8 @@ char* csoundGetArgString(CSOUND *csound, cs_float p)
       ip = ((OPCOD_IOBUFS*)ip->opcod_iobufs)->parent_ip;
     }
     ss = ip->strarg;  /* look at this instr's strarg */
+    if (ss == NULL)   /* none: no string behind the code */
+      return NULL;
 
 #ifdef USE_DOUBLE
     {

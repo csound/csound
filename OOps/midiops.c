@@ -482,10 +482,14 @@ static int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
     if (UNLIKELY(chn < 0 || chn > 16))
       return csound->InitError(csound, Str("illegal channel number\n"));
     /* IV - Oct 31 2002: allow named instruments */
-    if (instname || IsStringCode(*p->inst)) {
-      cs_float buf[128];
-      csound->StringArg2Name(csound, (char*) buf, p->inst, "", 1);
-      ins = (int32_t)csoundStringArg2Insno(csound, buf, 1);
+    if (instname)
+      ins = (int32_t)csoundStringArg2Insno(csound,
+                                           ((STRINGDAT *) p->inst)->data, 1);
+    else if (IsStringCode(*p->inst)) {
+      /* no string behind the code: an empty name, not found */
+      char *name = csoundGetArgString(csound, *p->inst);
+      ins = (int32_t)csoundStringArg2Insno(csound,
+                                           name != NULL ? name : (char *) "", 1);
     }
     else
       ins = (int32_t)(*(p->inst) + FL(0.5));
