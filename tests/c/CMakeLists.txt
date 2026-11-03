@@ -297,6 +297,16 @@ if(BUILD_TESTS)
         )
     endif()
 
+    if(TARGET pmidi AND NOT WIN32)
+        # The PortMIDI module on stand-in PortMidi functions: its fixture
+        # takes PortMidi's headers from the plugin, and not its library.
+        target_sources(unittests PRIVATE pmidi_messages_test.cpp
+                                         fixtures/pmidi_test_module.c)
+        set_source_files_properties(fixtures/pmidi_test_module.c PROPERTIES
+            INCLUDE_DIRECTORIES $<TARGET_PROPERTY:pmidi,INCLUDE_DIRECTORIES>)
+        target_compile_definitions(unittests PRIVATE CSOUND_TEST_PMIDI)
+    endif()
+
     include(GoogleTest)
     gtest_discover_tests(unittests)
     if(NOT MSVC OR CMAKE_GENERATOR_PLATFORM STREQUAL "ARM64")
