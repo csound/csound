@@ -600,14 +600,14 @@ int32_t midiin_set(CSOUND *csound, MIDIIN *p)
 
 int32_t midiin(CSOUND *csound, MIDIIN *p)
 {
-    unsigned char *temp;                        /* IV - Nov 30 2002 */
+    const MIDIMESSAGE *msg;
     if (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
-      temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
+      msg = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++]);
       p->local_buf_index &= MIDIINBUFMSK;
-      *p->status = (cs_float) *temp; //(*temp & (unsigned char) 0xf0);
-      *p->chan   = (cs_float) *++temp; //((*temp & 0x0f) + 1);
-      *p->data1  = (cs_float) *++temp;
-      *p->data2  = (cs_float) *++temp;
+      *p->status = (cs_float) msg->status;
+      *p->chan   = (cs_float) msg->chan;
+      *p->data1  = (cs_float) msg->data1;
+      *p->data2  = (cs_float) msg->data2;
     }
     else *p->status = FL(0.0);
     return OK;
@@ -622,14 +622,14 @@ int32_t pgmin_set(CSOUND *csound, PGMIN *p)
 
 int32_t pgmin(CSOUND *csound, PGMIN *p)
 {
-    const unsigned char *temp;
+    const MIDIMESSAGE *msg;
     if (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
       int32_t st,ch,d1;
-      temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
+      msg = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++]);
       /* The input buffer stores status and channel separately. */
-      st = temp[0];
-      ch = temp[1];
-      d1 = temp[2];
+      st = msg->status;
+      ch = msg->chan;
+      d1 = msg->data1;
       if (st == 0xC0 && (p->watch==0 || p->watch==ch)) {
         *p->pgm = (cs_float)1+d1;
         *p->chn = (cs_float)ch;
@@ -657,14 +657,14 @@ int32_t ctlin_set(CSOUND *csound, CTLIN *p)
 
 int32_t ctlin(CSOUND *csound, CTLIN *p)
 {
-    const unsigned char *temp;
+    const MIDIMESSAGE *msg;
     if  (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
       int32_t st,ch,d1,d2;
-      temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
-      st = temp[0];
-      ch = temp[1];
-      d1 = temp[2];
-      d2 = temp[3];
+      msg = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++]);
+      st = msg->status;
+      ch = msg->chan;
+      d1 = msg->data1;
+      d2 = msg->data2;
       if (st == 0xB0 &&
           (p->watch1==0 || p->watch1==ch) &&
           (p->watch2==0 || p->watch2==d1)) {
@@ -716,28 +716,27 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
     mode = (int32_t) *p->arpMode;
 
     /* Drain the messages already received before choosing a held note.
-       The buffer stores status, channel, key, velocity as separate bytes. */
+       The buffer stores status, channel, key, velocity as separate fields. */
     while (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
-      const unsigned char *msg =
-        MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData;
+      const MIDIMESSAGE *msg = &MGLOB(MIDIINbuffer2)[p->local_buf_index++];
       int32_t i, j;
       p->local_buf_index &= MIDIINBUFMSK;
-      if (msg[0] != NOTEON_TYPE && msg[0] != NOTEOFF_TYPE)
+      if (msg->status != NOTEON_TYPE && msg->status != NOTEOFF_TYPE)
         continue;
       for (i = 0; i < p->noteCnt; i++)
-        if (p->notes[i] == msg[2] && p->channels[i] == msg[1])
+        if (p->notes[i] == msg->data1 && p->channels[i] == msg->chan)
           break;
-      if (msg[0] == NOTEON_TYPE && msg[3] != 0) {
+      if (msg->status == NOTEON_TYPE && msg->data2 != 0) {
         /* Retriggers do not add another held key. Keep the first ten keys
            when full; ignored keys must not change the count on release. */
         if (i < p->noteCnt || p->noteCnt == 10)
           continue;
-        for (i = p->noteCnt; i > 0 && p->notes[i - 1] > msg[2]; i--) {
+        for (i = p->noteCnt; i > 0 && p->notes[i - 1] > msg->data1; i--) {
           p->notes[i] = p->notes[i - 1];
           p->channels[i] = p->channels[i - 1];
         }
-        p->notes[i] = msg[2];
-        p->channels[i] = msg[1];
+        p->notes[i] = msg->data1;
+        p->channels[i] = msg->chan;
         if (p->noteCnt != 0 && i <= p->noteIndex)
           p->noteIndex++;
         p->noteCnt++;
