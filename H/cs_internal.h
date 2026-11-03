@@ -99,9 +99,11 @@ extern "C" {
   } NAME;
 
 
-  typedef union {
-    uint32 dwData;
-    unsigned char bData[4];
+  /* A message as midiin and its kin read it. The channel counts from 1,
+     and port-mapped input takes it past 255. */
+  typedef struct {
+    unsigned char status, data1, data2;
+    int16         chan;
   } MIDIMESSAGE;
 
   /* MIDI globals */

@@ -611,13 +611,12 @@ int32_t sens_midi(CSOUND *csound)
     /* Enter the input event into a buffer used by 'midiin'. */
     /* VL -- changed to allow higher-mapped channels */
     if (mep->type != SYSTEM_TYPE) {
-      unsigned char *pMessage =
-                    &(p->MIDIINbuffer2[p->MIDIINbufIndex++].bData[0]);
-       p->MIDIINbufIndex &= MIDIINBUFMSK;
-      *pMessage++ = mep->type; // | mep->chan;
-      *pMessage++ = mep->chan + 1;
-      *pMessage++ = (unsigned char) mep->dat1;
-      *pMessage = (p->datreq < 2 ? (unsigned char) 0 : mep->dat2);
+      MIDIMESSAGE *msg = &(p->MIDIINbuffer2[p->MIDIINbufIndex++]);
+      p->MIDIINbufIndex &= MIDIINBUFMSK;
+      msg->status = (unsigned char) mep->type;
+      msg->chan = mep->chan + 1;
+      msg->data1 = (unsigned char) mep->dat1;
+      msg->data2 = (p->datreq < 2 ? 0 : (unsigned char) mep->dat2);
     }
     p->datcnt = 0;                      /* else allow a repeat  */
     /* NB:  this allows repeat in syscom 1,2,3 too */
