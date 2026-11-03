@@ -404,7 +404,7 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
 static int32_t ReadMidiData_(CSOUND *csound, void *userData,
                          unsigned char *mbuf, int32_t nbytes)
 {
-  int32_t   n, retval, st, d1, d2;
+  int32_t   n, retval, st, d1, d2, nd, len;
   unsigned char port = 0, map = 0;
     PmEvent         mev;
     pmall_data *data;
@@ -433,14 +433,17 @@ static int32_t ReadMidiData_(CSOUND *csound, void *userData,
                        !(st == 0xF8 || st == 0xFA || st == 0xFB ||
                          st == 0xFC || st == 0xFF)))
             continue;
-          nbytes -= (datbyts[(st - 0x80) >> 4] + 1 + map);
+          /* a port byte follows the status only if data bytes do */
+          nd = datbyts[(st - 0x80) >> 4];
+          len = nd + 1 + ((map && nd > 0) ? 1 : 0);
+          nbytes -= len;
           if (UNLIKELY(nbytes < 0)) {
             portMidiErrMsg(csound, Str("buffer overflow in MIDI input\n"));
             break;
           }
-          /* channel messages */
-          n += (datbyts[(st - 0x80) >> 4] + 1 + map);
-          switch (datbyts[(st - 0x80) >> 4]) {
+          n += len;
+          /* channel messages, and the system ones with no data */
+          switch (nd) {
             case 0:
               *mbuf++ = (unsigned char) st;
               /* don't add port if there is no data byte to follow */
