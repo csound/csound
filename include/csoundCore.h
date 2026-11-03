@@ -933,7 +933,8 @@ static inline const CS_TYPE *GetTypeForArg(const void *argPtr) {
 }
 
 /**
- * Returns MIDI channel number (0 to 15) for the instrument instance
+ * Returns MIDI channel number (0 to 15, or up to 1023 for port-mapped
+ * input) for the instrument instance
  * that called opcode 'p'.
  * In the case of score notes, -1 is returned.
  */
