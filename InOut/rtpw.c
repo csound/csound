@@ -250,6 +250,7 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   const struct spa_pod *params[1];
   RTPW *rtpw;
   cs_float sysr, required_sr;
+  int32_t valid, format_error;
 
   if (csound->GetDebug(csound))
     list_outputs(csound);
@@ -317,15 +318,26 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   }
   required_sr = rtpw->sr > 0 ? (cs_float) rtpw_offered_rate(rtpw->sr)
                              : rtpw->graphr;
-  if (UNLIKELY(!rtpw_validate_rates(rtpw, &sysr))) {
-    csound->ErrorMsg(csound,
-		     Str("rtpw: negotiated output rate %.2f does not match "
-			 "required rate %.2f\n"), rtpw->sysr, required_sr);
+  /* rtpw_wait_ready() releases the loop lock: a format callback could
+     still set format_error before the stream is published. publish
+     under the lock so csound never receives such a stream. */
+  pw_thread_loop_lock(rtpw->loop);
+  format_error = rtpw->format_error;
+  valid = !format_error && rtpw_validate_rates(rtpw, &sysr);
+  if (valid)
+    rtpw->published = 1;
+  pw_thread_loop_unlock(rtpw->loop);
+  if (UNLIKELY(!valid)) {
+    if (format_error)
+      rtpw_report_open_error(csound, rtpw, "output");
+    else
+      csound->ErrorMsg(csound,
+		       Str("rtpw: negotiated output rate %.2f does not match "
+			   "required rate %.2f\n"), rtpw->sysr, required_sr);
     rtpw_close_one(csound, (void **) &rtpw, 1);
     return CSOUND_ERROR;
   }
   csound->GetSystemSr(csound, sysr);
-  rtpw->published = 1;
   *p = (void *) rtpw;
   return CSOUND_SUCCESS;
 }
@@ -455,10 +467,8 @@ parm_callback(void *p, uint32_t id, const struct spa_pod *param)
 
   if(rtpw->nchnls != (int32_t) rtpw->format.info.raw.channels &&
      rtpw->format.info.raw.channels > 0) {
-    /* Csound's channel layout is fixed for the performance, so the stream
-       cannot be reconfigured while the playback/record paths and the RT
-       process callback are using cbuffer and nchnls. Reallocating either
-       one here would race with those consumers. */
+    /* csound's channel layout is fixed for the performance, so the stream
+       cannot be reconfigured during performance. */
     rtpw->format_error = 1;
     if (rtpw->published)
       csound->ErrorMsg(csound, Str("rtpw: stream channel count changed from "
@@ -490,6 +500,7 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   const struct spa_pod *params[1];
   RTPW *rtpw;
   cs_float sysr, required_sr;
+  int32_t valid, format_error;
 
   p = (void**) csound->GetRtRecordUserData(csound);
   if(*p != NULL) return 0;
@@ -556,15 +567,26 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   }
   required_sr = rtpw->sr > 0 ? (cs_float) rtpw_offered_rate(rtpw->sr)
                              : rtpw->graphr;
-  if (UNLIKELY(!rtpw_validate_rates(rtpw, &sysr))) {
-    csound->ErrorMsg(csound,
-		     Str("rtpw: negotiated input rate %.2f does not match "
-			 "required rate %.2f\n"), rtpw->sysr, required_sr);
+  /* rtpw_wait_ready() releases the loop lock, a format callback could
+     still set format_error before the stream is published. publish
+     under the lock so csound never receives such a stream. */
+  pw_thread_loop_lock(rtpw->loop);
+  format_error = rtpw->format_error;
+  valid = !format_error && rtpw_validate_rates(rtpw, &sysr);
+  if (valid)
+    rtpw->published = 1;
+  pw_thread_loop_unlock(rtpw->loop);
+  if (UNLIKELY(!valid)) {
+    if (format_error)
+      rtpw_report_open_error(csound, rtpw, "input");
+    else
+      csound->ErrorMsg(csound,
+		       Str("rtpw: negotiated input rate %.2f does not match "
+			   "required rate %.2f\n"), rtpw->sysr, required_sr);
     rtpw_close_one(csound, (void **) &rtpw, 0);
     return CSOUND_ERROR;
   }
   csound->GetSystemSr(csound, sysr);
-  rtpw->published = 1;
   *p = (void *) rtpw;
   return OK;
 }
@@ -642,18 +664,29 @@ struct pw_dev {
   int32_t n_channels;
 };
 
-struct pw_dev_snapshot {
-  struct pw_dev_snapshot *next;
-  struct pw_dev *devs;
-  void *thread_id;
-  int32_t count;
-  int32_t is_output;
+/* A host obtains the device count with list == NULL, allocates that many
+   entries, then calls again to fill them. The count and the fill come from
+   the same thread, so the snapshot is kept in thread-local storage rather
+   than in a list keyed by pthread_t: pthread_t values can be reused after a
+   thread exits, which would let an unrelated fill consume a stale snapshot
+   and overflow its smaller array. The destructor releases whatever the
+   thread leaves behind. */
+struct pw_dev_list_cache {
+  struct pw_dev_snapshots *owner;
+  struct pw_dev *devs[2];   /* [0] = output, [1] = input */
+  int32_t count[2];         /* -1 when no count pass is pending */
 };
 
 struct pw_dev_snapshots {
-  void *mutex;
-  struct pw_dev_snapshot *pending;
+  pthread_key_t key;
+  int32_t key_valid;
+  int32_t pending;          /* threads currently holding a list cache */
 };
+
+/* Upper bound on the number of threads holding a device-list snapshot.
+   A host that counts from many threads without filling would otherwise
+   keep one device array per thread alive until those threads exit. */
+#define RTPW_MAX_PENDING_LISTS 32
 
 #define RTPW_DEVICE_SNAPSHOTS "_rtpw_device_snapshots"
 
@@ -843,8 +876,7 @@ static int32_t query_pipewire(CSOUND *csound, int32_t flags, int32_t display,
   q.flags = flags;
   q.display = display;
 
-  q.devs = (struct pw_dev *) csound->Calloc(csound,
-                                   PW_MAX_DEVS * sizeof(struct pw_dev));
+  q.devs = (struct pw_dev *) calloc(PW_MAX_DEVS, sizeof(struct pw_dev));
   if (UNLIKELY(q.devs == NULL))
     return 0;
 
@@ -916,7 +948,7 @@ static int32_t query_pipewire(CSOUND *csound, int32_t flags, int32_t display,
     pw_context_destroy(q.context);
   if (q.tloop != NULL)
     pw_thread_loop_destroy(q.tloop);
-  csound->Free(csound, q.devs);
+  free(q.devs);
   return n;
 }
 
@@ -939,113 +971,109 @@ static void rtpw_fill_audio_device(CS_AUDIODEVICE *dest,
   dest->isOutput = is_output;
 }
 
-/* GetCurrentThreadID returns a separately allocated pthread_t wrapper. */
-static int32_t rtpw_same_thread(void *a, void *b) {
-  return a != NULL && b != NULL &&
-         pthread_equal(*(pthread_t *) a, *(pthread_t *) b);
+/* A snapshot belongs to the thread that performed its count pass; freeing it
+   from TLS means a recycled pthread_t can never match an abandoned one. */
+static void rtpw_free_list_cache(struct pw_dev_list_cache *cache) {
+  if (cache == NULL)
+    return;
+  if (cache->owner != NULL)
+    ATOMIC_DECR(cache->owner->pending);
+  free(cache->devs[0]);
+  free(cache->devs[1]);
+  free(cache);
 }
 
-static void rtpw_discard_snapshot(CSOUND *csound,
-                                  struct pw_dev_snapshots *snapshots,
-                                  void *thread_id, int32_t is_output) {
-  struct pw_dev_snapshot **link, *old;
+static void rtpw_list_cache_destructor(void *value) {
+  rtpw_free_list_cache((struct pw_dev_list_cache *) value);
+}
 
-  csound->LockMutex(snapshots->mutex);
-  link = &snapshots->pending;
-  while (*link != NULL) {
-    if (rtpw_same_thread((*link)->thread_id, thread_id) &&
-        (*link)->is_output == is_output) {
-      old = *link;
-      *link = old->next;
-      csound->Free(csound, old->devs);
-      free(old->thread_id);
-      csound->Free(csound, old);
-      break;
-    }
-    link = &(*link)->next;
+static struct pw_dev_list_cache *rtpw_get_list_cache(
+    struct pw_dev_snapshots *state, int32_t create) {
+  struct pw_dev_list_cache *cache;
+
+  if (UNLIKELY(state == NULL || !state->key_valid))
+    return NULL;
+  cache = (struct pw_dev_list_cache *) pthread_getspecific(state->key);
+  if (cache != NULL || !create)
+    return cache;
+
+  cache = (struct pw_dev_list_cache *) calloc(1, sizeof(*cache));
+  if (UNLIKELY(cache == NULL))
+    return NULL;
+  cache->owner = state;
+  if (UNLIKELY(ATOMIC_INCR(state->pending) > RTPW_MAX_PENDING_LISTS)) {
+    rtpw_free_list_cache(cache);
+    return NULL;
   }
-  csound->UnlockMutex(snapshots->mutex);
+  cache->count[0] = -1;
+  cache->count[1] = -1;
+  if (UNLIKELY(pthread_setspecific(state->key, cache) != 0)) {
+    rtpw_free_list_cache(cache);
+    return NULL;
+  }
+  return cache;
 }
 
 static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
 			 int32_t isOutput) {
-  struct pw_dev_snapshots *snapshots =
+  struct pw_dev_snapshots *state =
     (struct pw_dev_snapshots *) csound->QueryGlobalVariable(
         csound, RTPW_DEVICE_SNAPSHOTS);
-  struct pw_dev_snapshot *snapshot, **link;
+  struct pw_dev_list_cache *cache;
   struct pw_dev *devs = NULL;
-  void *thread_id = csound->GetCurrentThreadID();
   int32_t i, n, flags = isOutput ? PW_DEV_OUTPUT : PW_DEV_INPUT;
+  int32_t slot = isOutput ? 0 : 1;
 
-  if (UNLIKELY(thread_id == NULL))
+  if (UNLIKELY(state == NULL))
     return 0;
-  if (UNLIKELY(snapshots == NULL || snapshots->mutex == NULL)) {
-    free(thread_id);
-    return 0;
-  }
 
   if (list == NULL) {
     n = query_pipewire(csound, flags, 0, &devs);
-    if (n <= 0 || devs == NULL) {
-      csound->Free(csound, devs);
-      rtpw_discard_snapshot(csound, snapshots, thread_id, isOutput);
-      free(thread_id);
-      return 0;
+    if (n < 0)
+      n = 0;
+    cache = rtpw_get_list_cache(state, 1);
+    if (UNLIKELY(cache == NULL)) {
+      /* Still report the true count; the fill will re-enumerate. */
+      if (n > 0)
+        csound->Warning(csound, Str("rtpw: could not cache the device list; "
+                                    "the next fill will re-enumerate\n"));
+      free(devs);
+      return n;
     }
-    snapshot = (struct pw_dev_snapshot *) csound->Calloc(
-        csound, sizeof(struct pw_dev_snapshot));
-    if (UNLIKELY(snapshot == NULL)) {
-      csound->Free(csound, devs);
-      rtpw_discard_snapshot(csound, snapshots, thread_id, isOutput);
-      free(thread_id);
-      return 0;
-    }
-    snapshot->devs = devs;
-    snapshot->thread_id = thread_id;
-    snapshot->count = n;
-    snapshot->is_output = isOutput;
-
-    csound->LockMutex(snapshots->mutex);
-    link = &snapshots->pending;
-    while (*link != NULL) {
-      if (rtpw_same_thread((*link)->thread_id, thread_id) &&
-          (*link)->is_output == isOutput) {
-        struct pw_dev_snapshot *old = *link;
-        *link = old->next;
-        csound->Free(csound, old->devs);
-        free(old->thread_id);
-        csound->Free(csound, old);
-        break;
-      }
-      link = &(*link)->next;
-    }
-    snapshot->next = snapshots->pending;
-    snapshots->pending = snapshot;
-    csound->UnlockMutex(snapshots->mutex);
+    free(cache->devs[slot]);
+    cache->devs[slot] = devs;
+    cache->count[slot] = n;
     return n;
   }
 
-  csound->LockMutex(snapshots->mutex);
-  link = &snapshots->pending;
-  while (*link != NULL &&
-         (!rtpw_same_thread((*link)->thread_id, thread_id) ||
-          (*link)->is_output != isOutput))
-    link = &(*link)->next;
-  snapshot = *link;
-  if (snapshot != NULL)
-    *link = snapshot->next;
-  csound->UnlockMutex(snapshots->mutex);
-  free(thread_id);
+  cache = rtpw_get_list_cache(state, 0);
+  if (UNLIKELY(cache == NULL || cache->count[slot] < 0)) {
+    /* The API also permits filling a caller-provided list without a preceding
+       count on this thread. Enumeration is the only available capacity
+       source in that case, so fill everything found. */
+    n = query_pipewire(csound, flags, 0, &devs);
+    if (n <= 0 || devs == NULL) {
+      free(devs);
+      return 0;
+    }
+    for (i = 0; i < n; i++)
+      rtpw_fill_audio_device(&list[i], &devs[i], isOutput);
+    free(devs);
+    return n;
+  }
 
-  if (snapshot == NULL)
-    return 0;  /* No matching count pass, so the caller's capacity is unknown. */
-
-  n = snapshot->count;
+  n = cache->count[slot];
+  if (UNLIKELY(n > 0 && cache->devs[slot] == NULL))
+    n = 0;
   for (i = 0; i < n; i++)
-    rtpw_fill_audio_device(&list[i], &snapshot->devs[i], isOutput);
-  csound->Free(csound, snapshot->devs);
-  free(snapshot->thread_id);
-  csound->Free(csound, snapshot);
+    rtpw_fill_audio_device(&list[i], &cache->devs[slot][i], isOutput);
+  free(cache->devs[slot]);
+  cache->devs[slot] = NULL;
+  cache->count[slot] = -1;
+  /* Release the thread's slot once neither direction is pending. */
+  if (cache->count[0] < 0 && cache->count[1] < 0 &&
+      pthread_setspecific(state->key, NULL) == 0)
+    rtpw_free_list_cache(cache);
   return n;
 }
 
@@ -1090,11 +1118,14 @@ int32_t csoundModuleInit(CSOUND *csound) {
       csound->ErrorMsg(csound, Str("rtpw: could not access device-list state\n"));
       return CSOUND_ERROR;
     }
-    if (snapshots->mutex == NULL)
-      snapshots->mutex = csound->Create_Mutex(0);
-    if (UNLIKELY(snapshots->mutex == NULL)) {
-      csound->ErrorMsg(csound, Str("rtpw: could not create device-list mutex\n"));
-      return CSOUND_ERROR;
+    if (!snapshots->key_valid) {
+      if (UNLIKELY(pthread_key_create(&snapshots->key,
+                                      rtpw_list_cache_destructor) != 0)) {
+        csound->ErrorMsg(csound, Str("rtpw: could not create device-list key\n"));
+        return CSOUND_ERROR;
+      }
+      snapshots->pending = 0;
+      snapshots->key_valid = 1;
     }
 
     csound->DebugMsg(csound, Str("rtaudio: pipewire module enabled\n"));
@@ -1113,21 +1144,16 @@ int32_t csoundModuleDestroy(CSOUND *csound){
   struct pw_dev_snapshots *snapshots =
     (struct pw_dev_snapshots *) csound->QueryGlobalVariable(
         csound, RTPW_DEVICE_SNAPSHOTS);
-  if (snapshots != NULL && snapshots->mutex != NULL) {
-    struct pw_dev_snapshot *pending, *next;
-    csound->LockMutex(snapshots->mutex);
-    pending = snapshots->pending;
-    snapshots->pending = NULL;
-    csound->UnlockMutex(snapshots->mutex);
-    while (pending != NULL) {
-      next = pending->next;
-      csound->Free(csound, pending->devs);
-      free(pending->thread_id);
-      csound->Free(csound, pending);
-      pending = next;
-    }
-    csound->DestroyMutex(snapshots->mutex);
-    snapshots->mutex = NULL;
+  if (snapshots != NULL && snapshots->key_valid) {
+    /* Release the destroying thread's snapshot, then drop the key. Values
+       left in still-running threads are leaked, but deleting the key stops
+       their exit from calling into an unloaded module. */
+    rtpw_free_list_cache(
+        (struct pw_dev_list_cache *) pthread_getspecific(snapshots->key));
+    pthread_setspecific(snapshots->key, NULL);
+    pthread_key_delete(snapshots->key);
+    snapshots->key_valid = 0;
+    snapshots->pending = 0;
   }
   return 0;
 }
