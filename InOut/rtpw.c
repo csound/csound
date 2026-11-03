@@ -77,13 +77,12 @@ static int32_t rtpw_wait_ready(RTPW *rtpw, int32_t timeout_ms) {
   pw_thread_loop_lock(rtpw->loop);
   while (!ready && rtpw->state != PW_STREAM_STATE_ERROR) {
     if (rtpw->sysr > 0) {
-      if (!need_graph)
-        ready = 1;
-      else if (rtpw->state == PW_STREAM_STATE_STREAMING &&
-               pw_stream_get_time_n(rtpw->stream, &t, sizeof(t)) >= 0 &&
-               t.rate.num != 0 && t.rate.denom != 0) {
+      ready = 1;  /* A negotiated format is sufficient, even while PAUSED. */
+      if (need_graph && rtpw->state == PW_STREAM_STATE_STREAMING &&
+          rtpw->graphr <= 0 &&
+          pw_stream_get_time_n(rtpw->stream, &t, sizeof(t)) >= 0 &&
+          t.rate.num != 0 && t.rate.denom != 0) {
         rtpw->graphr = (cs_float) t.rate.denom / (cs_float) t.rate.num;
-        ready = 1;
       }
     }
     if (ready || rtpw->state == PW_STREAM_STATE_ERROR)
