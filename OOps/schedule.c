@@ -21,6 +21,7 @@
     Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
+#include "pfield.h"
 #include <math.h>
 #include "csoundCore.h"
 #include "namedins.h"
@@ -393,57 +394,30 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
 /* Keep string p-fields in the event, without converting numbers to text. */
 static int32_t schedule_string_event(CSOUND *csound, SCHED *p, cs_float insno)
 {
-    EVTBLK evt = {0};
-    cs_float pfields[VARGMAX];
-    size_t bytes = 1;
-    int32_t i, result;
-    char *next;
-
-    evt.opcod = 'i';
-    evt.pcnt = p->INOCOUNT;
-    pfields[0] = insno;
-    pfields[1] = *p->when;
-    pfields[2] = *p->dur;
-    for (i = 3; i < evt.pcnt; ++i) {
-      cs_float *arg = p->argums[i - 3];
+    CS_PFIELDS *fields = csoundPFieldsCreate(csound, (size_t)p->INOCOUNT + 1);
+    EVTBLK event = {0};
+    int32_t result = CSOUND_MEMORY;
+    if (fields == NULL) return result;
+    fields->fields[1].value.number = insno;
+    fields->fields[2].value.number = *p->when;
+    fields->fields[3].value.number = *p->dur;
+    for (size_t i = 4; i < fields->count; ++i) {
+      cs_float *arg = p->argums[i - 4];
       if (GetTypeForArg(arg) == &CS_VAR_TYPE_S) {
-        size_t length = strlen(((STRINGDAT *) arg)->data) + 1;
-        if (UNLIKELY(length > SIZE_MAX - bytes))
-          return CSOUND_MEMORY;
-        bytes += length;
+        result = csoundPFieldsSetString(csound, fields, i, ((STRINGDAT *)arg)->data);
+        if (result != CSOUND_SUCCESS) goto done;
       }
+      else fields->fields[i].value.number = *arg;
     }
-    evt.strarg = csound->Malloc(csound, bytes);
-    if (UNLIKELY(evt.strarg == NULL))
-      return CSOUND_MEMORY;
-    next = evt.strarg;
-    for (i = 3; i < evt.pcnt; ++i) {
-      cs_float *arg = p->argums[i - 3];
-      if (GetTypeForArg(arg) == &CS_VAR_TYPE_S) {
-        const char *text = ((STRINGDAT *) arg)->data;
-        size_t length = strlen(text) + 1;
-        /* Use the same string indices as score events. */
-        union {
-          cs_float value;
-          int32_t word[sizeof(cs_float) / sizeof(int32_t)];
-        } code;
-        code.value = SSTRCOD;
-#ifdef USE_DOUBLE
-        code.word[(byte_order() + 1) & 1] += evt.scnt++;
-#else
-        code.word[0] += evt.scnt++;
-#endif
-        pfields[i] = code.value;
-        memcpy(next, text, length);
-        next += length;
-      }
-      else
-        pfields[i] = *arg;
-    }
-    *next = '\0';
-    result = insert_event_at_sample(csound, &evt, pfields,
-                                    csound->icurTimeSamples);
-    csound->Free(csound, evt.strarg);
+    /* Csound 7 queues and plugins retain the legacy event layout. */
+    event.opcod = 'i';
+    result = csoundPFieldsExport(csound, fields, &event);
+    if (result == CSOUND_SUCCESS)
+      result = insert_event_at_sample(csound, &event, event.p + 1,
+                                      csound->icurTimeSamples);
+done:
+    csoundPFieldsFreeEvent(csound, &event);
+    csoundPFieldsDestroy(csound, fields);
     return result;
 }
 

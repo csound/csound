@@ -42,6 +42,7 @@
  * - context: required for things like hold, releasing, etc.
  * */
 
+#include "pfield.h"
 #include "ugen_internal.h"
 #include "csound_standard_types.h"
 #include "csound_orc.h"
@@ -236,6 +237,7 @@ bool csoundUgenFactoryDelete(UGEN_FACTORY* factory) {
     if (factory == NULL) return false;
     CSOUND* csound = factory->csound;
     free_instance_variables(csound, factory->insds);
+    csoundFreeInstancePrivate(csound, factory->insds);
     csound->Free(csound, factory->insds);
     csound->Free(csound, factory);
     return true;
@@ -263,6 +265,7 @@ bool csoundUgenContextDelete(UGEN_CONTEXT* context) {
     if (context == NULL) return false;
     CSOUND* csound = context->csound;
     free_instance_variables(csound, context->insds);
+    csoundFreeInstancePrivate(csound, context->insds);
     csound->Free(csound, context->insds);
     csound->Free(csound, context);
     return true;

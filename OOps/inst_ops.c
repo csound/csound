@@ -21,6 +21,7 @@
 */
 
 
+#include "pfield.h"
 #include "csoundCore.h"
 #include "inst_ops.h"
 #include "namedins.h"
@@ -160,6 +161,7 @@ int32_t delete_instr(CSOUND *csound, DELETEIN *p)
       auxchfree(csound, active);
     free_instr_var_memory(csound, active);
     free_instance_variables(csound, active);
+    csoundFreeInstancePrivate(csound, active);
     csound->Free(csound, active);
     active = nxt;
   }
@@ -220,6 +222,7 @@ int32_t delete_instrdef_opcode(CSOUND *csound, DELETE_INSTRDEF *p)
       auxchfree(csound, active);
     free_instr_var_memory(csound, active);
     free_instance_variables(csound, active);
+    csoundFreeInstancePrivate(csound, active);
     csound->Free(csound, active);
     active = nxt;
   }

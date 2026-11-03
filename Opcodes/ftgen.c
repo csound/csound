@@ -91,6 +91,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
   ftevt->p = (cs_float*) csound->Malloc(csound, sizeof(cs_float)*(ftevt->pcnt+1));
   ftevt->opcod = 'f';
   ftevt->strarg = NULL;
+  ftevt->scnt = 0;
   fp = &ftevt->p[0];
   fp[0] = FL(0.0);
   fp[1] = *p->p1;                                     /* copy p1 - p5 */
@@ -132,6 +133,7 @@ static int32_t ftgen_(CSOUND *csound, FTGEN *p, int32_t istring1, int32_t istrin
     case 44:
     case 49:
       ftevt->strarg = ((STRINGDAT *) p->p5)->data;
+      ftevt->scnt = 1;
       break;
     default:
       csound->Free(csound, ftevt);
@@ -637,6 +639,7 @@ static int32_t ftgen_list(CSOUND *csound, FTGEN *p, int32_t istring)
   ftevt->p = (cs_float*) csound->Malloc(csound, sizeof(cs_float)*(ftevt->pcnt+1));
   ftevt->opcod = 'f';
   ftevt->strarg = NULL;
+  ftevt->scnt = 0;
   fp = &ftevt->p[0];
   fp[0] = FL(0.0);
   fp[1] = *p->p1;                                     /* copy p1 - p5 */

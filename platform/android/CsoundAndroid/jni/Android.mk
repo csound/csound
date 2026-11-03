@@ -63,6 +63,7 @@ $(CSOUND_SRC_ROOT)/Engine/musmon.c \
 $(CSOUND_SRC_ROOT)/Engine/namedins.c \
 $(CSOUND_SRC_ROOT)/Engine/opcode_deprecation.c \
 $(CSOUND_SRC_ROOT)/Engine/rdscor.c \
+$(CSOUND_SRC_ROOT)/Engine/pfield.c \
 $(CSOUND_SRC_ROOT)/Engine/scsort.c \
 $(CSOUND_SRC_ROOT)/Engine/scxtract.c \
 $(CSOUND_SRC_ROOT)/Engine/sort.c \
