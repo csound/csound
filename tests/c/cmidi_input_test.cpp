@@ -198,9 +198,14 @@ TEST_F(CoreMidiInputTests, OpensASourceByItsNumber) {
 #if !defined(CSOUND_TEST_COREMIDI_PLUGIN_DIR)
   GTEST_SKIP() << "The coremidi plugin is not built";
 #else
+  /* Open the source whose number is not 0: code that opens source 0,
+     whatever the number, then fails. */
   const int indexA = sourceIndex(sources[0]);
-  if (indexA < 0)
+  const int indexB = sourceIndex(sources[1]);
+  if (indexA < 0 || indexB < 0)
     GTEST_SKIP() << "virtual CoreMIDI sources are not visible";
+  const int opened = indexA > 0 ? 0 : 1;
+  const int index = opened == 0 ? indexA : indexB;
 
   csound = csoundCreate(nullptr, nullptr);
   ASSERT_NE(csound, nullptr);
@@ -209,19 +214,19 @@ TEST_F(CoreMidiInputTests, OpensASourceByItsNumber) {
     GTEST_SKIP() << "The coremidi module is not available";
 
   ASSERT_EQ(csoundSetOption(csound, "-n"), 0);
-  ASSERT_EQ(csoundSetOption(csound, ("-M" + std::to_string(indexA)).c_str()),
+  ASSERT_EQ(csoundSetOption(csound, ("-M" + std::to_string(index)).c_str()),
             0);
   ASSERT_EQ(csoundCompileOrc(csound, kOrc, 0), 0);
   csoundEventString(csound, "i2 0 10\n", 0);
   ASSERT_EQ(csoundStart(csound), 0);
 
-  /* Source A's note arrives, unmapped, on its own channel... */
-  sendNote(sources[0], 0x90, 60, 100);
+  /* Its note arrives, unmapped, on the channel it was sent on... */
+  sendNote(sources[opened], 0x90, 60, 100);
   performUntil(1);
-  EXPECT_EQ(channel(), 1);
+  ASSERT_EQ(channel(), 1);
 
-  /* ...and source B, which is not open, is not heard. */
-  sendNote(sources[1], 0x91, 62, 100);
+  /* ...and the other source, which is not open, is not heard. */
+  sendNote(sources[1 - opened], 0x91, 62, 100);
   performUntil(2);
   EXPECT_EQ(channel(), 1);
 #endif
