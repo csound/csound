@@ -22,7 +22,6 @@
 #include <spa/param/audio/format-utils.h>
 #include <pipewire/pipewire.h>
 #include <spa/utils/ringbuffer.h>
-#include <errno.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include "csdl.h"
@@ -674,42 +673,20 @@ struct pw_dev_node {
 };
 
 /* A host obtains the device count with list == NULL, allocates that many
-   entries, then calls again to fill them. The count and the fill come from
-   the same thread, so the snapshot is kept in thread-local storage rather
-   than in a list keyed by pthread_t: pthread_t values can be reused after a
-   thread exits, which would let an unrelated fill consume a stale snapshot
-   and overflow its smaller array. The destructor releases whatever the
-   thread leaves behind. */
-struct pw_dev_list_cache {
-  struct pw_dev_list_cache *next;   /* per-instance live-cache list */
-  struct pw_dev_snapshots *owner;
-  struct pw_dev *devs[2];     /* cached count pass, or NULL */
+   entries, then calls again to fill them. The count may be obtained on one
+   thread and the fill performed on another, so the pending snapshot and the
+   capacity it implies live in the instance state rather than in thread-local
+   storage. The fill writes at most that many entries. Concurrent count
+   passes for the same direction replace the pending snapshot; callers are
+   expected to complete a count/fill pair before another count for the same
+   direction starts. */
+struct pw_dev_snapshots {
+  pthread_mutex_t mutex;      /* protects devs[] and capacity[] */
+  int32_t mutex_valid;
+  int32_t destroying;
+  struct pw_dev *devs[2];     /* pending count pass per direction, or NULL */
   int32_t capacity[2];        /* count last reported to the host, or -1 */
 };
-
-/* TLS holds a small wrapper rather than the cache itself: csoundModuleDestroy
-   frees every tracked cache, and a destructor that runs afterwards must be
-   able to find the owning state without dereferencing a freed cache. */
-struct pw_dev_tls {
-  struct pw_dev_snapshots *state;
-  struct pw_dev_list_cache *cache;
-};
-
-struct pw_dev_snapshots {
-  pthread_mutex_t mutex;      /* protects caches and key_valid */
-  int32_t mutex_valid;
-  int32_t key_valid;
-  int32_t destroying;
-  int32_t pending;            /* cached device arrays across threads */
-  pthread_key_t key;
-  struct pw_dev_list_cache *caches;
-};
-
-/* Upper bound on cached device arrays. A host that counts from many threads
-   without filling would otherwise keep one array per direction per thread
-   alive until those threads exit. The reported count is still remembered
-   when the array is dropped, so those fills can re-enumerate safely. */
-#define RTPW_MAX_CACHED_LISTS 32
 
 #define RTPW_DEVICE_SNAPSHOTS "_rtpw_device_snapshots"
 
@@ -1043,104 +1020,11 @@ static void rtpw_fill_audio_device(CS_AUDIODEVICE *dest,
   dest->isOutput = is_output;
 }
 
-/* A snapshot belongs to the thread that performed its count pass; freeing it
-   from TLS means a recycled pthread_t can never match an abandoned one. */
-static void rtpw_drop_cached_devs(struct pw_dev_list_cache *cache,
-                                  int32_t slot) {
-  if (cache->devs[slot] != NULL) {
-    if (cache->owner != NULL)
-      ATOMIC_DECR(cache->owner->pending);
-    free(cache->devs[slot]);
-    cache->devs[slot] = NULL;
-  }
-}
-
-static void rtpw_free_cache(struct pw_dev_list_cache *cache) {
-  if (cache == NULL)
-    return;
-  rtpw_drop_cached_devs(cache, 0);
-  rtpw_drop_cached_devs(cache, 1);
-  free(cache);
-}
-
 /* The caller must hold state->mutex. */
-static void rtpw_unlink_cache(struct pw_dev_snapshots *state,
-                              struct pw_dev_list_cache *cache) {
-  struct pw_dev_list_cache **link = &state->caches;
-
-  while (*link != NULL) {
-    if (*link == cache) {
-      *link = cache->next;
-      return;
-    }
-    link = &(*link)->next;
-  }
-}
-
-static void rtpw_list_cache_destructor(void *value) {
-  struct pw_dev_tls *tls = (struct pw_dev_tls *) value;
-  struct pw_dev_snapshots *state;
-
-  if (tls == NULL)
-    return;
-  state = tls->state;
-  if (state != NULL && state->mutex_valid) {
-    pthread_mutex_lock(&state->mutex);
-    /* csoundModuleDestroy may already have freed the tracked caches; the
-       wrapper is not on that list, so checking the flag is safe here. */
-    if (!state->destroying && tls->cache != NULL) {
-      rtpw_unlink_cache(state, tls->cache);
-      rtpw_free_cache(tls->cache);
-      tls->cache = NULL;
-    }
-    pthread_mutex_unlock(&state->mutex);
-  }
-  free(tls);
-}
-
-static struct pw_dev_tls *rtpw_get_tls(struct pw_dev_snapshots *state,
-                                       int32_t create) {
-  struct pw_dev_tls *tls;
-  struct pw_dev_list_cache *cache;
-
-  if (UNLIKELY(state == NULL || !state->mutex_valid))
-    return NULL;
-
-  pthread_mutex_lock(&state->mutex);
-  if (UNLIKELY(!state->key_valid || state->destroying)) {
-    pthread_mutex_unlock(&state->mutex);
-    return NULL;
-  }
-  tls = (struct pw_dev_tls *) pthread_getspecific(state->key);
-  if (tls != NULL || !create) {
-    pthread_mutex_unlock(&state->mutex);
-    return tls;
-  }
-
-  tls = (struct pw_dev_tls *) calloc(1, sizeof(*tls));
-  cache = (struct pw_dev_list_cache *) calloc(1, sizeof(*cache));
-  if (UNLIKELY(tls == NULL || cache == NULL)) {
-    free(tls);
-    free(cache);
-    pthread_mutex_unlock(&state->mutex);
-    return NULL;
-  }
-  tls->state = state;
-  tls->cache = cache;
-  cache->owner = state;
-  cache->capacity[0] = -1;
-  cache->capacity[1] = -1;
-  cache->next = state->caches;
-  state->caches = cache;
-  if (UNLIKELY(pthread_setspecific(state->key, tls) != 0)) {
-    state->caches = cache->next;
-    free(cache);
-    free(tls);
-    pthread_mutex_unlock(&state->mutex);
-    return NULL;
-  }
-  pthread_mutex_unlock(&state->mutex);
-  return tls;
+static void rtpw_clear_snapshot(struct pw_dev_snapshots *state, int32_t slot) {
+  free(state->devs[slot]);
+  state->devs[slot] = NULL;
+  state->capacity[slot] = -1;
 }
 
 static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
@@ -1148,60 +1032,51 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
   struct pw_dev_snapshots *state =
     (struct pw_dev_snapshots *) csound->QueryGlobalVariable(
         csound, RTPW_DEVICE_SNAPSHOTS);
-  struct pw_dev_tls *tls;
-  struct pw_dev_list_cache *cache;
+  struct pw_dev *snapshot;
   struct pw_dev *devs = NULL;
   int32_t i, m, n, flags = isOutput ? PW_DEV_OUTPUT : PW_DEV_INPUT;
   int32_t slot = isOutput ? 0 : 1;
 
-  if (UNLIKELY(state == NULL))
+  if (UNLIKELY(state == NULL || !state->mutex_valid))
     return 0;
 
   if (list == NULL) {
     n = query_pipewire(csound, flags, 0, &devs);
     if (n < 0)
       n = 0;
-    tls = rtpw_get_tls(state, 1);
-    if (UNLIKELY(tls == NULL)) {
-      /* Without somewhere to remember the count, a later fill cannot know
-         the caller's capacity; report no devices instead of risking an
-         overrun. */
+    pthread_mutex_lock(&state->mutex);
+    if (UNLIKELY(state->destroying)) {
+      pthread_mutex_unlock(&state->mutex);
       free(devs);
       return 0;
     }
-    cache = tls->cache;
-    rtpw_drop_cached_devs(cache, slot);
-    cache->capacity[slot] = n;
-    if (devs != NULL) {
-      if (UNLIKELY(ATOMIC_INCR(state->pending) > RTPW_MAX_CACHED_LISTS)) {
-        ATOMIC_DECR(state->pending);
-        free(devs);
-        if (n > 0)
-          csound->Warning(csound, Str("rtpw: too many cached device lists; "
-                                      "the next fill will re-enumerate\n"));
-      } else {
-        cache->devs[slot] = devs;
-      }
-    }
+    rtpw_clear_snapshot(state, slot);
+    state->devs[slot] = devs;
+    state->capacity[slot] = n;
+    pthread_mutex_unlock(&state->mutex);
     return n;
   }
 
-  tls = rtpw_get_tls(state, 0);
-  cache = tls != NULL ? tls->cache : NULL;
-  /* The count pass tells us how large the caller's array is. Without it a
-     fill has no capacity to bound its writes with. */
-  if (UNLIKELY(cache == NULL || cache->capacity[slot] < 0))
+  /* Any thread may perform the fill. The capacity comes from the count pass
+     recorded in the instance state above; without one there is no value to
+     bound the writes with. */
+  pthread_mutex_lock(&state->mutex);
+  if (UNLIKELY(state->destroying || state->capacity[slot] < 0)) {
+    pthread_mutex_unlock(&state->mutex);
     return 0;
+  }
+  n = state->capacity[slot];
+  snapshot = state->devs[slot];
+  state->devs[slot] = NULL;
+  state->capacity[slot] = -1;
+  pthread_mutex_unlock(&state->mutex);
 
-  n = cache->capacity[slot];
-  cache->capacity[slot] = -1;
-
-  if (cache->devs[slot] != NULL) {
+  if (snapshot != NULL) {
     for (i = 0; i < n; i++)
-      rtpw_fill_audio_device(&list[i], &cache->devs[slot][i], isOutput);
-    rtpw_drop_cached_devs(cache, slot);
+      rtpw_fill_audio_device(&list[i], &snapshot[i], isOutput);
+    free(snapshot);
   } else if (n > 0) {
-    /* The array was not cached, so enumerate again but never write past the
+    /* The array was not stored, so enumerate again but never write past the
        count the host was given. */
     m = query_pipewire(csound, flags, 0, &devs);
     if (UNLIKELY(m <= 0 || devs == NULL)) {
@@ -1221,8 +1096,6 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
   }
   return n;
 }
-
-
 
 
  int32_t csoundModuleCreate(CSOUND *csound)
@@ -1269,18 +1142,12 @@ int32_t csoundModuleInit(CSOUND *csound) {
         return CSOUND_ERROR;
       }
       snapshots->mutex_valid = 1;
+      snapshots->devs[0] = NULL;
+      snapshots->devs[1] = NULL;
+      snapshots->capacity[0] = -1;
+      snapshots->capacity[1] = -1;
     }
-    if (!snapshots->key_valid) {
-      if (UNLIKELY(pthread_key_create(&snapshots->key,
-                                      rtpw_list_cache_destructor) != 0)) {
-        csound->ErrorMsg(csound, Str("rtpw: could not create device-list key\n"));
-        return CSOUND_ERROR;
-      }
-      snapshots->destroying = 0;
-      snapshots->pending = 0;
-      snapshots->caches = NULL;
-      snapshots->key_valid = 1;
-    }
+    snapshots->destroying = 0;
 
     csound->DebugMsg(csound, Str("rtaudio: pipewire module enabled\n"));
     csound->SetPlayopenCallback(csound, rtpw_open_out);
@@ -1298,36 +1165,17 @@ int32_t csoundModuleDestroy(CSOUND *csound){
   struct pw_dev_snapshots *snapshots =
     (struct pw_dev_snapshots *) csound->QueryGlobalVariable(
         csound, RTPW_DEVICE_SNAPSHOTS);
-  struct pw_dev_list_cache *caches;
 
   if (snapshots == NULL || !snapshots->mutex_valid)
     return 0;
 
-  /* Stop new list work and thread-exit cleanup, then take ownership of every
-     cache that is still alive. Hosts must not run list calls concurrently
-     with instance destruction; threads that are alive but idle are handled
-     here. */
+  /* Hosts must not run list calls concurrently with instance destruction.
+     Any count/fill snapshot still pending is released here. */
   pthread_mutex_lock(&snapshots->mutex);
   snapshots->destroying = 1;
-  caches = snapshots->caches;
-  snapshots->caches = NULL;
-  if (snapshots->key_valid) {
-    /* Deleting the key prevents later thread exits from calling into a
-       module that may be unloaded. Destructors already in flight check
-       "destroying" under the mutex and leave the cache to us. */
-    pthread_key_delete(snapshots->key);
-    snapshots->key_valid = 0;
-  }
+  rtpw_clear_snapshot(snapshots, 0);
+  rtpw_clear_snapshot(snapshots, 1);
   pthread_mutex_unlock(&snapshots->mutex);
-
-  while (caches != NULL) {
-    struct pw_dev_list_cache *next = caches->next;
-    rtpw_free_cache(caches);
-    caches = next;
-  }
-  snapshots->pending = 0;
-  /* Leave the mutex initialized: an in-flight destructor may still use it
-     while this instance is torn down. It is released with the variable. */
   return 0;
 }
 
