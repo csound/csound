@@ -676,18 +676,23 @@ struct pw_dev_node {
    entries, then calls again to fill them. The count may be obtained on one
    thread and the fill performed on another, so the pending snapshot and the
    capacity it implies live in the instance state rather than in thread-local
-   storage. Because a fill only has the direction to identify it, at most one
-   count/fill pair can be pending per direction. Callers must complete the
-   fill before counting again for the same direction: if a positive count is
-   still pending, a new count returns 0 and discards its newly enumerated
-   snapshot instead of returning a count that no fill could satisfy. A zero
-   count never blocks a later count. */
+   storage. Because a fill only has the direction to identify it, a positive
+   snapshot is shared by every count made before that direction's fills
+   complete: each such count returns the same count, and each fill copies at
+   most that many entries from the shared initialized snapshot. `pending`
+   counts the count calls still waiting for a fill. The count path owns the
+   snapshot: it replaces and frees it only when `pending` is zero, so fills
+   can read it without managing its lifetime. Callers should still complete a
+   count/fill pair before counting again, because a pending snapshot does not
+   reflect later device changes. A zero count has no snapshot and never blocks
+   a later count. */
 struct pw_dev_snapshots {
-  pthread_mutex_t mutex;      /* protects devs[] and capacity[] */
+  pthread_mutex_t mutex;      /* protects devs[], capacity[], pending[] */
   int32_t mutex_valid;
   int32_t destroying;
   struct pw_dev *devs[2];     /* pending count pass per direction, or NULL */
   int32_t capacity[2];        /* count paired with devs[slot], or -1 */
+  int32_t pending[2];         /* count calls awaiting this snapshot */
 };
 
 #define RTPW_DEVICE_SNAPSHOTS "_rtpw_device_snapshots"
@@ -1027,6 +1032,7 @@ static void rtpw_clear_snapshot(struct pw_dev_snapshots *state, int32_t slot) {
   free(state->devs[slot]);
   state->devs[slot] = NULL;
   state->capacity[slot] = -1;
+  state->pending[slot] = 0;
 }
 
 static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
@@ -1036,7 +1042,7 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
         csound, RTPW_DEVICE_SNAPSHOTS);
   struct pw_dev *snapshot;
   struct pw_dev *devs = NULL;
-  int32_t i, m, n, flags = isOutput ? PW_DEV_OUTPUT : PW_DEV_INPUT;
+  int32_t i, n, flags = isOutput ? PW_DEV_OUTPUT : PW_DEV_INPUT;
   int32_t slot = isOutput ? 0 : 1;
 
   if (UNLIKELY(state == NULL || !state->mutex_valid))
@@ -1052,58 +1058,45 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
       free(devs);
       return 0;
     }
-    /* Only one pending pair per direction can be matched with a fill. The
-       count returned to a second caller could not be filled later, so report
-       no devices rather than a count whose array would stay uninitialized. */
-    if (state->capacity[slot] > 0) {
+    /* A positive snapshot is still waiting for fills. Return its count so
+       every caller allocates an array matching the snapshot its fill will
+       use; do not replace it with the newly enumerated data. */
+    if (state->pending[slot] > 0) {
+      n = state->capacity[slot];
+      state->pending[slot]++;
       pthread_mutex_unlock(&state->mutex);
       free(devs);
-      return 0;
+      return n;
     }
     rtpw_clear_snapshot(state, slot);
-    state->devs[slot] = devs;
-    state->capacity[slot] = n;
+    if (n > 0 && devs != NULL) {
+      state->devs[slot] = devs;
+      state->capacity[slot] = n;
+      state->pending[slot] = 1;
+    } else {
+      free(devs);
+      n = 0;
+    }
     pthread_mutex_unlock(&state->mutex);
     return n;
   }
 
-  /* Any thread may perform the fill. The capacity comes from the count pass
-     recorded in the instance state above; without one there is no value to
-     bound the writes with. */
+  /* Any thread may perform the fill. `pending` counts the count calls still
+     waiting for this snapshot, so each fill consumes one and writes at most
+     the count its caller received. */
   pthread_mutex_lock(&state->mutex);
-  if (UNLIKELY(state->destroying || state->capacity[slot] < 0)) {
+  if (UNLIKELY(state->destroying || state->pending[slot] <= 0)) {
     pthread_mutex_unlock(&state->mutex);
     return 0;
   }
   n = state->capacity[slot];
   snapshot = state->devs[slot];
-  state->devs[slot] = NULL;
-  state->capacity[slot] = -1;
+  state->pending[slot]--;
+  /* The count path owns the snapshot and only replaces it while `pending` is
+     zero, so it stays valid across this copy. */
+  for (i = 0; i < n; i++)
+    rtpw_fill_audio_device(&list[i], &snapshot[i], isOutput);
   pthread_mutex_unlock(&state->mutex);
-
-  if (snapshot != NULL) {
-    for (i = 0; i < n; i++)
-      rtpw_fill_audio_device(&list[i], &snapshot[i], isOutput);
-    free(snapshot);
-  } else if (n > 0) {
-    /* The array was not stored, so enumerate again but never write past the
-       count the host was given. */
-    m = query_pipewire(csound, flags, 0, &devs);
-    if (UNLIKELY(m <= 0 || devs == NULL)) {
-      free(devs);
-      for (i = 0; i < n; i++)
-        memset(&list[i], 0, sizeof(list[i]));
-      return 0;
-    }
-    if (m > n)
-      m = n;
-    for (i = 0; i < m; i++)
-      rtpw_fill_audio_device(&list[i], &devs[i], isOutput);
-    free(devs);
-    /* Keep the caller's remaining entries defined if the list shrank. */
-    for (i = m; i < n; i++)
-      memset(&list[i], 0, sizeof(list[i]));
-  }
   return n;
 }
 
@@ -1156,6 +1149,8 @@ int32_t csoundModuleInit(CSOUND *csound) {
       snapshots->devs[1] = NULL;
       snapshots->capacity[0] = -1;
       snapshots->capacity[1] = -1;
+      snapshots->pending[0] = 0;
+      snapshots->pending[1] = 0;
     }
     snapshots->destroying = 0;
 

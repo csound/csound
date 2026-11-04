@@ -565,8 +565,9 @@ extern "C" {
    * one CS_AUDIODEVICE structure per device.
    * Each count call describes the size for the immediately following fill
    * call. Callers should complete that fill before requesting another count
-   * for the same direction; a backend may return 0 instead of a new count
-   * while a previous count is still pending.
+   * for the same direction. A backend may return the same count for a
+   * repeated count while the previous count is pending, so every fill
+   * remains bounded by the count its caller received.
    * Hosts will typically call this function twice: first to obtain
    * a number of devices, then, after allocating space for each
    * device information structure, pass an array of CS_AUDIODEVICE
