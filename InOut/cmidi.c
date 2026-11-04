@@ -78,6 +78,53 @@ static void getEndpointName(MIDIEndpointRef endpoint, char *buf, size_t size)
 }
 
 
+/* what a device name chooses */
+enum { ALL_DEVICES = -1, NO_DEVICE = -2 };
+
+/* The number of the device `dev` names among `count` sources, or
+   destinations for `output`; ALL_DEVICES for "all", 'a' and 'm', setting
+   *mapped for 'm'; or NO_DEVICE, said as an error, for a name, or for a
+   number past the last device. */
+static int32_t chooseDevice(CSOUND *csound, const char *dev, int32_t count,
+                            int32_t output, int32_t *mapped)
+{
+  long n = 0;
+  *mapped = 0;
+  if (dev != NULL && dev[0] != '\0') {
+    char *end = NULL;
+    if (!strcmp(dev, "all") || !strcmp(dev, "a") || !strcmp(dev, "m")) {
+      *mapped = !strcmp(dev, "m");
+      return ALL_DEVICES;
+    }
+    if (dev[0] >= '0' && dev[0] <= '9')
+      n = strtol(dev, &end, 10);
+    if (end == NULL || *end != '\0') {
+      csound->ErrorMsg(csound, output
+                       ? Str("CoreMIDI: invalid MIDI output device '%s': give "
+                             "a number (>=0), 'a' for all or 'm' for port "
+                             "mapped\n")
+                       : Str("CoreMIDI: invalid MIDI input device '%s': give "
+                             "a number (>=0), 'a' for all or 'm' for port "
+                             "mapped\n"), dev);
+      return NO_DEVICE;
+    }
+  }
+  if (n >= count) {
+    if (count < 1)
+      csound->ErrorMsg(csound, "%s", output
+                       ? Str("CoreMIDI: no MIDI output destinations available\n")
+                       : Str("CoreMIDI: no MIDI input sources available\n"));
+    else  /* a number, as it was given */
+      csound->ErrorMsg(csound, output
+                       ? Str("CoreMIDI: MIDI output device %s is out of range\n")
+                       : Str("CoreMIDI: MIDI input device %s is out of range\n"),
+                       dev);
+    return NO_DEVICE;
+  }
+  return (int32_t) n;
+}
+
+
 /* coremidi callback, called when MIDI data is available */
 static void ReadProc(const MIDIPacketList *pktlist, void *refcon, void *srcConnRefCon)
 {
@@ -144,16 +191,24 @@ static int32_t listDevices(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput
 /* csound MIDI input open callback, sets the device for input */
 static int32_t MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev)
 {
-  int32_t k, endpoints, port = 0;
+  int32_t k, endpoints, port = 0, mapped;
   CFStringRef cname = NULL, pname = NULL;
   CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
   MIDIClientRef mclient = (MIDIClientRef) 0;
   MIDIPortRef mport =  (MIDIPortRef) 0;
   MIDIEndpointRef endpoint;
-  MIDIdata *mdata = (MIDIdata *) csound->Malloc(csound, DSIZE*sizeof(MIDIdata));
+  MIDIdata *mdata;
   OSStatus ret;
   const OPARMS *O = csound->GetOParms(csound);
-  cdata *refcon = (cdata *) csound->Malloc(csound, sizeof(cdata));
+  cdata *refcon;
+
+  endpoints = (int32_t) MIDIGetNumberOfSources();
+  k = chooseDevice(csound, dev, endpoints, 0, &mapped);
+  if (k == NO_DEVICE)
+    return -1;
+
+  mdata = (MIDIdata *) csound->Malloc(csound, DSIZE*sizeof(MIDIdata));
+  refcon = (cdata *) csound->Malloc(csound, sizeof(cdata));
   memset(mdata, 0, sizeof(MIDIdata)*DSIZE);
   refcon->mdata = mdata;
   refcon->p = 0;
@@ -168,13 +223,10 @@ static int32_t MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev
     ret = MIDIInputPortCreate(mclient, pname, ReadProc, refcon, &mport);
     if (!ret){
       /* sources, we connect to all available input sources */
-      endpoints = (int32_t) MIDIGetNumberOfSources();
       if(O->msglevel || O->odebug)
         csound->Message(csound, Str("%d MIDI sources in system\n"), endpoints);
-      if (dev == NULL) dev = "0";
-      if (!strcmp(dev,"all") || !strcmp(dev,"a") || !strcmp(dev,"m")) {
+      if (k == ALL_DEVICES) {
         /* 'm' maps each source to a separate port (16 channels each) */
-        int32_t mapped = !strcmp(dev,"m");
         refcon->multiport = mapped;
         if(O->msglevel || O->odebug)
           csound->Message(csound, "%s",
@@ -200,22 +252,13 @@ static int32_t MidiInDeviceOpen(CSOUND *csound, void **userData, const char *dev
         }
       }
       else{
-        k = atoi(dev);
-        if (k < endpoints){
-          endpoint = MIDIGetSource(k);
-          MIDIPortConnectSource(mport, endpoint, (void *)(long) 0);
-          if(O->msglevel || O->odebug) {
-            char name[128];
-            getEndpointName(endpoint, name, sizeof(name));
-            csound->Message(csound, Str("connecting midi device %d: %s\n"), k,
-                            name);
-          }
-        }
-        else {
-          if(O->msglevel || O->odebug)
-            csound->Message(csound,
-                            Str("MIDI device number %d is out-of-range, "
-                                "not connected\n"), k);
+        endpoint = MIDIGetSource(k);
+        MIDIPortConnectSource(mport, endpoint, (void *)(long) 0);
+        if(O->msglevel || O->odebug) {
+          char name[128];
+          getEndpointName(endpoint, name, sizeof(name));
+          csound->Message(csound, Str("connecting midi device %d: %s\n"), k,
+                          name);
         }
       }
 
@@ -235,50 +278,26 @@ static int32_t MidiOutDeviceOpen(CSOUND *csound, void **userData, const char *de
   CFStringRef cname = NULL, pname = NULL;
   CFStringEncoding defaultEncoding = CFStringGetSystemEncoding();
   const OPARMS *O = csound->GetOParms(csound);
-  odata *data = (odata *) csound->Malloc(csound, sizeof(odata));
+  odata *data;
   OSStatus ret;
 
+  ndest = (int32_t) MIDIGetNumberOfDestinations();
+  devnum = chooseDevice(csound, dev, ndest, 1, &multiport);
+  if (devnum == NO_DEVICE)
+    return -1;
+  openall = devnum == ALL_DEVICES;
+
+  data = (odata *) csound->Malloc(csound, sizeof(odata));
   data->mclient = (MIDIClientRef) 0;
   data->mport = (MIDIPortRef) 0;
   data->dest = NULL;
   data->ndest = 0;
   data->multiport = 0;
 
-  ndest = (int32_t) MIDIGetNumberOfDestinations();
-
-  if (dev == NULL || dev[0] == '\0')
-    devnum = 0;
-  else if (!strcmp(dev, "all") || !strcmp(dev, "a"))
-    openall = 1;
-  else if (!strcmp(dev, "m")) {
-    openall = 1;
-    multiport = 1;
-  }
-  else if (dev[0] >= '0' && dev[0] <= '9')
-    devnum = atoi(dev);
-  else {
+  if (openall && ndest < 1) {
     if(O->msglevel || O->odebug)
       csound->Message(csound,
-                      Str("CoreMIDI: invalid output device '%s', "
-                          "no device opened\n"), dev);
-    *userData = (void*) data;
-    return 0;
-  }
-
-  if (openall) {
-    if (ndest < 1) {
-      if(O->msglevel || O->odebug)
-        csound->Message(csound,
-                        Str("CoreMIDI: no MIDI output destinations available\n"));
-      *userData = (void*) data;
-      return 0;
-    }
-  }
-  else if (devnum < 0 || devnum >= ndest) {
-    if(O->msglevel || O->odebug)
-      csound->Message(csound,
-                      Str("MIDI output device number %d is out-of-range, "
-                          "not connected\n"), devnum);
+                      Str("CoreMIDI: no MIDI output destinations available\n"));
     *userData = (void*) data;
     return 0;
   }
