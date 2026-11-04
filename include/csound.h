@@ -563,6 +563,10 @@ extern "C" {
    * (isOutput=1 for out devices, 0 for in devices).
    * If list is non-NULL, then it should contain enough memory for
    * one CS_AUDIODEVICE structure per device.
+   * Each count call describes the size for the immediately following fill
+   * call. Callers should complete that fill before requesting another count
+   * for the same direction; a backend may return 0 instead of a new count
+   * while a previous count is still pending.
    * Hosts will typically call this function twice: first to obtain
    * a number of devices, then, after allocating space for each
    * device information structure, pass an array of CS_AUDIODEVICE

@@ -677,10 +677,11 @@ struct pw_dev_node {
    thread and the fill performed on another, so the pending snapshot and the
    capacity it implies live in the instance state rather than in thread-local
    storage. Because a fill only has the direction to identify it, at most one
-   count/fill pair can be pending per direction: a count for a direction that
-   already has a positive pending count returns that count and keeps its
-   snapshot, rather than pairing a later, possibly larger, count with an
-   earlier caller's array. A zero count never blocks a later count. */
+   count/fill pair can be pending per direction. Callers must complete the
+   fill before counting again for the same direction: if a positive count is
+   still pending, a new count returns 0 and discards its newly enumerated
+   snapshot instead of returning a count that no fill could satisfy. A zero
+   count never blocks a later count. */
 struct pw_dev_snapshots {
   pthread_mutex_t mutex;      /* protects devs[] and capacity[] */
   int32_t mutex_valid;
@@ -1051,14 +1052,13 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
       free(devs);
       return 0;
     }
-    /* A positive count is still waiting for its fill. Keep that pair intact:
-       replacing it would let the waiting fill write this count's entries into
-       an array sized for the earlier count. */
+    /* Only one pending pair per direction can be matched with a fill. The
+       count returned to a second caller could not be filled later, so report
+       no devices rather than a count whose array would stay uninitialized. */
     if (state->capacity[slot] > 0) {
-      n = state->capacity[slot];
       pthread_mutex_unlock(&state->mutex);
       free(devs);
-      return n;
+      return 0;
     }
     rtpw_clear_snapshot(state, slot);
     state->devs[slot] = devs;
