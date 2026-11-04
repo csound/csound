@@ -198,6 +198,19 @@ TEST_F(PortMidiMessageTests, TheDefaultDeviceWithNoDeviceIsStillAnError) {
   }
 }
 
+TEST_F(PortMidiMessageTests, ANumberWithNoDeviceSaysThereIsNone) {
+  csound_test_pmidi_no_devices = 1;
+  for (const char *dev : {"0", "99"}) {
+    void *data = nullptr;
+    EXPECT_NE(csound_test_pmidi_open_input(csound, &data, dev), 0) << dev;
+    EXPECT_NE(take()[CSOUNDMSG_ERROR].find("no input devices are available"),
+              std::string::npos) << dev;
+    EXPECT_NE(csound_test_pmidi_open_output(csound, &data, dev), 0) << dev;
+    EXPECT_NE(take()[CSOUNDMSG_ERROR].find("no output devices are available"),
+              std::string::npos) << dev;
+  }
+}
+
 }  // namespace
 
 #endif  // CSOUND_TEST_PMIDI

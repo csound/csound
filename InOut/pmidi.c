@@ -229,6 +229,11 @@ static int32_t OpenMidiInDevice_(CSOUND *csound, void **userData, const char *de
   /* check if there are any devices available */
   cntdev = portMidi_getDeviceCount(0);
   portMidi_listDevices(csound, 0);
+  if (UNLIKELY(cntdev < 1)) {
+    if (dev == NULL || (dev[0] != 'a' && dev[0] != 'm'))
+      return portMidiErrMsg(csound, Str("no input devices are available\n"));
+    csound->Warning(csound, Str("PortMIDI: no input devices are available\n"));
+  }
   /* look up device in list */
   if (dev == NULL || dev[0] == '\0')
     devnum =
@@ -251,11 +256,6 @@ static int32_t OpenMidiInDevice_(CSOUND *csound, void **userData, const char *de
     devnum = -1;
   }
 
-  if (UNLIKELY(cntdev < 1)) {
-    if (dev == NULL || (dev[0] != 'a' && dev[0] != 'm'))
-      return portMidiErrMsg(csound, Str("no input devices are available\n"));
-    csound->Warning(csound, Str("PortMIDI: no input devices are available\n"));
-  }
   opendevs = 0;
   for (i = 0; i < cntdev; i++) {
     if (devnum == i || devnum == -1) {
