@@ -222,6 +222,7 @@ static int32_t OpenMidiInDevice_(CSOUND *csound, void **userData, const char *de
   pmall_data *data = NULL;
   pmall_data *next = NULL;
   int32_t port = 0;
+  const int32_t mapped = dev != NULL && dev[0] == 'm';
 
   if (UNLIKELY(start_portmidi(csound) != 0))
     return -1;
@@ -276,7 +277,7 @@ static int32_t OpenMidiInDevice_(CSOUND *csound, void **userData, const char *de
           csound->MessageS(csound, CSOUNDMSG_INFO,
                            Str("PortMIDI: Activated input device %d: '%s' (%s)\n"),
                            i, info->name, info->interf);
-          if(dev[0] == 'm')
+          if(mapped)
             csound->MessageS(csound, CSOUNDMSG_INFO,
                              Str("Device mapped to channels %d to %d \n"),
                              port*16+1, (port+1)*16);
@@ -285,15 +286,14 @@ static int32_t OpenMidiInDevice_(CSOUND *csound, void **userData, const char *de
           csound->MessageS(csound, CSOUNDMSG_INFO,
                            Str("PortMIDI: Activated input device %d: '%s'\n"),
                            i, info->name);
-          if(dev[0] == 'm')
+          if(mapped)
             csound->MessageS(csound, CSOUNDMSG_INFO,
                              Str("Device mapped to channels %d to %d \n"),
                              port*16+1, (port+1)*16);
         }
       }
       /* set multiport mapping if asked */
-      if(dev[0] == 'm') next->multiport_flag = 1;
-      else next->multiport_flag = 0;
+      next->multiport_flag = mapped;
       port++;
       retval = Pm_OpenInput(&next->midistream,
                             (PmDeviceID) portMidi_getRealDeviceID(i, 0),
@@ -327,6 +327,7 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
   PmDeviceInfo *info;
   pmall_data *data = NULL;
   pmall_data *next = NULL;
+  const int32_t mapped = dev != NULL && dev[0] == 'm';
 
   if (UNLIKELY(start_portmidi(csound) != 0))
     return -1;
@@ -349,6 +350,10 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
   }
   else if (dev[0] != 'a' && dev[0] != 'm') {
     devnum = (int32_t)atoi(dev);
+    if (UNLIKELY(devnum < 0 || devnum >= cntdev)) {
+      portMidiErrMsg(csound, Str("error: device number is out of range\n"));
+      return -1;
+    }
   }
   else {
     devnum = -1;
@@ -380,8 +385,7 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
                          Str("PortMIDI: selected output device %d: '%s'\n"),
                          i, info->name);
       /* set multiport mapping if asked */
-      if(dev[0] == 'm') next->multiport_flag = 1;
-      else next->multiport_flag = 0;
+      next->multiport_flag = mapped;
 
       retval = Pm_OpenOutput(&(next->midistream),
                              (PmDeviceID) portMidi_getRealDeviceID(i, 1),

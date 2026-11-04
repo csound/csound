@@ -7,7 +7,9 @@
   types saw errors on every start with a MIDI device. With no device at
   all, 'a' and 'm' open none, input or output, with a warning, as the
   module's comment says they may: they were refused, and Csound stopped at
-  its start.
+  its start. An output device's number out of range is an error, as an
+  input's is: it opened nothing, and said nothing. And no device name opens
+  the default device: the module read the name it had just found missing.
 
   The module runs on stand-in PortMidi functions
   (fixtures/pmidi_test_module.c), so no MIDI hardware is required.
@@ -101,6 +103,34 @@ TEST_F(PortMidiMessageTests, AFailureIsStillAnError) {
   EXPECT_NE(text[CSOUNDMSG_ERROR].find("device number is out of range"),
             std::string::npos);
   EXPECT_EQ(text[CSOUNDMSG_INFO].find("out of range"), std::string::npos);
+}
+
+TEST_F(PortMidiMessageTests, AnOutputOutOfRangeIsAnError) {
+  void *data = nullptr;
+  ASSERT_EQ(csound_test_pmidi_open_output(csound, &data, "1"), 0);
+  EXPECT_NE(take()[CSOUNDMSG_INFO].find("selected output device 1: 'Box'"),
+            std::string::npos);
+  EXPECT_EQ(csound_test_pmidi_close_output(csound, data), 0);
+  data = nullptr;
+  EXPECT_NE(csound_test_pmidi_open_output(csound, &data, "2"), 0);
+  EXPECT_EQ(data, nullptr);
+  EXPECT_NE(take()[CSOUNDMSG_ERROR].find("device number is out of range"),
+            std::string::npos);
+}
+
+TEST_F(PortMidiMessageTests, NoNameOpensTheDefaultDevices) {
+  void *data = nullptr;
+  ASSERT_EQ(csound_test_pmidi_open_input(csound, &data, nullptr), 0);
+  auto text = take();
+  EXPECT_NE(text[CSOUNDMSG_INFO].find("Activated input device 0: 'Keys'"),
+            std::string::npos);
+  EXPECT_EQ(text[CSOUNDMSG_INFO].find("Device mapped"), std::string::npos);
+  EXPECT_EQ(csound_test_pmidi_close_input(csound, data), 0);
+  data = nullptr;
+  ASSERT_EQ(csound_test_pmidi_open_output(csound, &data, nullptr), 0);
+  EXPECT_NE(take()[CSOUNDMSG_INFO].find("selected output device 0: 'Synth'"),
+            std::string::npos);
+  EXPECT_EQ(csound_test_pmidi_close_output(csound, data), 0);
 }
 
 TEST_F(PortMidiMessageTests, AllOrMappedDevicesOpenNoneWithNoDevice) {
