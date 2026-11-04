@@ -206,7 +206,7 @@ static void portMidi_listDevices(CSOUND *csound, int32_t output)
   listDevices(csound, devs, output);
   {
     for(i=0; i < n; i++)
-      csound->ErrorMsg(csound, "%s: %s (%s)\n",
+      csound->MessageS(csound, CSOUNDMSG_INFO, "%s: %s (%s)\n",
                        devs[i].device_id, devs[i].device_name, devs[i].midi_module);
   }
   csound->Free(csound, devs);
@@ -271,19 +271,21 @@ static int32_t OpenMidiInDevice_(CSOUND *csound, void **userData, const char *de
       info = portMidi_getDeviceInfo(i, 0);
       {
         if (info->interf != NULL) {
-          csound->ErrorMsg(csound,
+          csound->MessageS(csound, CSOUNDMSG_INFO,
                            Str("PortMIDI: Activated input device %d: '%s' (%s)\n"),
                            i, info->name, info->interf);
           if(dev[0] == 'm')
-            csound->ErrorMsg(csound, Str("Device mapped to channels %d to %d \n"),
+            csound->MessageS(csound, CSOUNDMSG_INFO,
+                             Str("Device mapped to channels %d to %d \n"),
                              port*16+1, (port+1)*16);
         }
         else {
-          csound->ErrorMsg(csound,
+          csound->MessageS(csound, CSOUNDMSG_INFO,
                            Str("PortMIDI: Activated input device %d: '%s'\n"),
                            i, info->name);
           if(dev[0] == 'm')
-            csound->ErrorMsg(csound,Str("Device mapped to channels %d to %d \n"),
+            csound->MessageS(csound, CSOUNDMSG_INFO,
+                             Str("Device mapped to channels %d to %d \n"),
                              port*16+1, (port+1)*16);
         }
       }
@@ -370,11 +372,11 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
     
       info = portMidi_getDeviceInfo(i, 1);
       if (info->interf != NULL)
-        csound->ErrorMsg(csound,
+        csound->MessageS(csound, CSOUNDMSG_INFO,
                          Str("PortMIDI: selected output device %d: '%s' (%s)\n"),
                          i, info->name, info->interf);
       else
-        csound->ErrorMsg(csound,
+        csound->MessageS(csound, CSOUNDMSG_INFO,
                          Str("PortMIDI: selected output device %d: '%s'\n"),
                          i, info->name);
       /* set multiport mapping if asked */
