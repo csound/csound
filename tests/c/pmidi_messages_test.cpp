@@ -10,6 +10,7 @@
   its start. An output device's number out of range is an error, as an
   input's is: it opened nothing, and said nothing. And no device name opens
   the default device: the module read the name it had just found missing.
+  Under 'm', a message for an output's port reaches that output alone.
 
   The module runs on stand-in PortMidi functions
   (fixtures/pmidi_test_module.c), so no MIDI hardware is required.
@@ -23,6 +24,8 @@
 
 #include "csound.h"
 
+#include <algorithm>
+#include <iterator>
 #include <map>
 #include <string>
 
@@ -31,7 +34,10 @@ int32_t csound_test_pmidi_open_input(CSOUND *, void **, const char *);
 int32_t csound_test_pmidi_close_input(CSOUND *, void *);
 int32_t csound_test_pmidi_open_output(CSOUND *, void **, const char *);
 int32_t csound_test_pmidi_close_output(CSOUND *, void *);
+int32_t csound_test_pmidi_write(CSOUND *, void *, int32_t,
+                                const unsigned char *, int32_t);
 extern int csound_test_pmidi_no_devices;
+extern int csound_test_pmidi_writes[4];
 }
 
 namespace {
@@ -48,6 +54,8 @@ class PortMidiMessageTests : public ::testing::Test {
 
   void TearDown() override {
     csound_test_pmidi_no_devices = 0;
+    std::fill(std::begin(csound_test_pmidi_writes),
+              std::end(csound_test_pmidi_writes), 0);
     if (csound != nullptr) {
       csoundDestroyMessageBuffer(csound);
       csoundDestroy(csound);
@@ -130,6 +138,29 @@ TEST_F(PortMidiMessageTests, NoNameOpensTheDefaultDevices) {
   ASSERT_EQ(csound_test_pmidi_open_output(csound, &data, nullptr), 0);
   EXPECT_NE(take()[CSOUNDMSG_INFO].find("selected output device 0: 'Synth'"),
             std::string::npos);
+  EXPECT_EQ(csound_test_pmidi_close_output(csound, data), 0);
+}
+
+TEST_F(PortMidiMessageTests, MappedOutputsWriteToTheirOwnPortAlone) {
+  const unsigned char note_on[] = {0x90, 60, 100};
+  void *data = nullptr;
+  // 'm': port 0 is the first output, Synth, alone, and port 1 the second, Box
+  ASSERT_EQ(csound_test_pmidi_open_output(csound, &data, "m"), 0);
+  EXPECT_EQ(csound_test_pmidi_write(csound, data, 0, note_on, 3), 3);
+  EXPECT_EQ(csound_test_pmidi_writes[2], 1);
+  EXPECT_EQ(csound_test_pmidi_writes[3], 0);
+  EXPECT_EQ(csound_test_pmidi_write(csound, data, 1, note_on, 3), 3);
+  EXPECT_EQ(csound_test_pmidi_writes[2], 1);
+  EXPECT_EQ(csound_test_pmidi_writes[3], 1);
+  EXPECT_EQ(csound_test_pmidi_close_output(csound, data), 0);
+  // 'a': every output, whatever the port
+  std::fill(std::begin(csound_test_pmidi_writes),
+            std::end(csound_test_pmidi_writes), 0);
+  data = nullptr;
+  ASSERT_EQ(csound_test_pmidi_open_output(csound, &data, "a"), 0);
+  EXPECT_EQ(csound_test_pmidi_write(csound, data, 1, note_on, 3), 3);
+  EXPECT_EQ(csound_test_pmidi_writes[2], 1);
+  EXPECT_EQ(csound_test_pmidi_writes[3], 1);
   EXPECT_EQ(csound_test_pmidi_close_output(csound, data), 0);
 }
 
