@@ -1176,6 +1176,10 @@ int32_t csoundModuleDestroy(CSOUND *csound){
   rtpw_clear_snapshot(snapshots, 0);
   rtpw_clear_snapshot(snapshots, 1);
   pthread_mutex_unlock(&snapshots->mutex);
+  /* The mutex is intentionally not destroyed; it is released with the
+     instance's global variable. Hosts must stop list-calling threads before
+     destruction: this function does not synchronize with calls already in
+     flight. */
   return 0;
 }
 
