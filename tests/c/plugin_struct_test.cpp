@@ -1,5 +1,7 @@
 /* Public plugin interface integration tests. SPDX-License-Identifier: LGPL-2.1-or-later */
 #include "gtest/gtest.h"
+#include <filesystem>
+#include <fstream>
 #include <string>
 
 // Load C++ headers before csdl.h: its _CR macro conflicts with libstdc++.
@@ -149,6 +151,46 @@ TEST_F(PluginStruct, DefinitionsAreCopiedAndOwnedByEachInstance) {
   csoundDestroy(other);
   run("value:LocalType init 42\nchnset value.value, \"value\"\n");
   channel("value", 42);
+}
+
+TEST_F(PluginStruct, ListStructsPrintsPluginTypesInOrchestraSyntax) {
+  const CSOUND_STRUCT_MEMBER fields[] = {
+      {"note", "NoteTuplet"}, {"notes", "NoteTuplet[]"}, {"values", "k[]"}};
+  ASSERT_NE(csound->RegisterStruct(csound, "ListedGroup", fields, 3), nullptr);
+  messages();
+  const char *args[] = {"csound", "--list-structs"};
+  csoundCompile(csound, 2, args);
+  const std::string listing = messages();
+  EXPECT_NE(listing.find("struct NoteTuplet inote:i, ivelocity:i\n"),
+            std::string::npos) << listing;
+  EXPECT_NE(listing.find("struct ListedGroup note:NoteTuplet, "
+                         "notes:NoteTuplet[], values:k[]\n"),
+            std::string::npos) << listing;
+  EXPECT_NE(listing.find("2 structs\n"), std::string::npos) << listing;
+}
+
+TEST_F(PluginStruct, ListStructsStopsBeforeCompilingAFile) {
+  const std::filesystem::path file =
+      std::filesystem::temp_directory_path() / "csound_list_structs_test.csd";
+  {
+    std::ofstream csd(file);
+    csd << "<CsoundSynthesizer>\n<CsInstruments>\n"
+           "struct FromFile value:i\n"
+           "instr 1\n  prints \"performed\\n\"\nendin\n"
+           "</CsInstruments>\n<CsScore>\ni 1 0 0\n</CsScore>\n"
+           "</CsoundSynthesizer>\n";
+  }
+  messages();
+  const std::string path = file.string();
+  const char *args[] = {"csound", "-n", "--list-structs", path.c_str()};
+  csoundCompile(csound, 4, args);
+  const std::string listing = messages();
+  std::filesystem::remove(file);
+  EXPECT_NE(listing.find("struct NoteTuplet inote:i, ivelocity:i\n"),
+            std::string::npos) << listing;
+  EXPECT_EQ(listing.find("FromFile"), std::string::npos) << listing;
+  EXPECT_EQ(listing.find("performed"), std::string::npos) << listing;
+  EXPECT_NE(listing.find("1 structs\n"), std::string::npos) << listing;
 }
 
 TEST_F(PluginStruct, PluginTypesCanBeRegisteredAgainAfterReset) {
