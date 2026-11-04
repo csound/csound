@@ -4,7 +4,8 @@
   InOut/pmidi.c compiled against stand-in PortMidi and PortTime functions,
   so the PortMIDI module opens devices without MIDI hardware and without
   the PortMidi library: only its headers are used. The stand-ins offer two
-  inputs and two outputs, one of each without an interface name.
+  inputs and two outputs, one of each without an interface name, or no
+  device at all while csound_test_pmidi_no_devices is set.
 */
 
 #define Pm_Initialize csound_test_Pm_Initialize
@@ -39,16 +40,27 @@ static const PmDeviceInfo devices[] = {
   { .interf = NULL, .name = "Box", .output = 1 },
 };
 static int stream;
+int csound_test_pmidi_no_devices = 0;
 
 PmError Pm_Initialize(void) { return pmNoError; }
 PmError Pm_Terminate(void) { return pmNoError; }
-int Pm_CountDevices(void) { return (int) (sizeof(devices) / sizeof(devices[0])); }
+int Pm_CountDevices(void)
+{
+    return csound_test_pmidi_no_devices
+               ? 0 : (int) (sizeof(devices) / sizeof(devices[0]));
+}
 const PmDeviceInfo *Pm_GetDeviceInfo(PmDeviceID id)
 {
     return id >= 0 && id < Pm_CountDevices() ? &devices[id] : NULL;
 }
-PmDeviceID Pm_GetDefaultInputDeviceID(void) { return 0; }
-PmDeviceID Pm_GetDefaultOutputDeviceID(void) { return 2; }
+PmDeviceID Pm_GetDefaultInputDeviceID(void)
+{
+    return csound_test_pmidi_no_devices ? pmNoDevice : 0;
+}
+PmDeviceID Pm_GetDefaultOutputDeviceID(void)
+{
+    return csound_test_pmidi_no_devices ? pmNoDevice : 2;
+}
 PmError Pm_OpenInput(PortMidiStream **s, PmDeviceID id, void *info,
                      int32_t size, PmTimeProcPtr time, void *time_info)
 {

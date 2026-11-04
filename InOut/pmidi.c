@@ -250,8 +250,10 @@ static int32_t OpenMidiInDevice_(CSOUND *csound, void **userData, const char *de
     devnum = -1;
   }
 
-  if (UNLIKELY(cntdev < 1 && (dev==NULL || dev[0] != 'a' || dev[0] != 'm'))) {
-    return portMidiErrMsg(csound, Str("no input devices are available\n"));
+  if (UNLIKELY(cntdev < 1)) {
+    if (dev == NULL || (dev[0] != 'a' && dev[0] != 'm'))
+      return portMidiErrMsg(csound, Str("no input devices are available\n"));
+    csound->Warning(csound, Str("PortMIDI: no input devices are available\n"));
   }
   opendevs = 0;
   for (i = 0; i < cntdev; i++) {
@@ -331,7 +333,9 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
   /* check if there are any devices available */
   cntdev = portMidi_getDeviceCount(1);
   if (UNLIKELY(cntdev < 1)) {
-    return portMidiErrMsg(csound, Str("no output devices are available\n"));
+    if (dev == NULL || (dev[0] != 'a' && dev[0] != 'm'))
+      return portMidiErrMsg(csound, Str("no output devices are available\n"));
+    csound->Warning(csound, Str("PortMIDI: no output devices are available\n"));
   }
   /* look up device in list */
   portMidi_listDevices(csound, 1);
@@ -349,11 +353,7 @@ static int32_t OpenMidiOutDevice_(CSOUND *csound, void **userData, const char *d
   else {
     devnum = -1;
   }
-    
-  if (UNLIKELY(cntdev < 1 && (dev==NULL || dev[0] != 'a' || dev[0] != 'm'))) {
-    portMidiErrMsg(csound, Str("error: device number is out of range\n"));
-    return -1;
-  }
+
   for (i = 0; i < cntdev; i++) {
     if (devnum == i || devnum == -1) {
       if (opendevs == 0) {
