@@ -4,7 +4,10 @@
   InOut/pmidi.c compiled against stand-in PortMidi and PortTime functions,
   so the PortMIDI module opens devices without MIDI hardware and without
   the PortMidi library: only its headers are used. The stand-ins offer two
-  inputs and two outputs, one of each without an interface name.
+  inputs and two outputs, one of each without an interface name, or no
+  device at all while csound_test_pmidi_no_devices is set. Each device has
+  a stream of its own, and csound_test_pmidi_writes counts the messages
+  written to each.
 */
 
 #define Pm_Initialize csound_test_Pm_Initialize
@@ -38,31 +41,43 @@ static const PmDeviceInfo devices[] = {
   { .interf = "Stand-in", .name = "Synth", .output = 1 },
   { .interf = NULL, .name = "Box", .output = 1 },
 };
-static int stream;
+static int streams[4];  /* one per device */
+int csound_test_pmidi_writes[4];
+int csound_test_pmidi_no_devices = 0;
 
 PmError Pm_Initialize(void) { return pmNoError; }
 PmError Pm_Terminate(void) { return pmNoError; }
-int Pm_CountDevices(void) { return (int) (sizeof(devices) / sizeof(devices[0])); }
+int Pm_CountDevices(void)
+{
+    return csound_test_pmidi_no_devices
+               ? 0 : (int) (sizeof(devices) / sizeof(devices[0]));
+}
 const PmDeviceInfo *Pm_GetDeviceInfo(PmDeviceID id)
 {
     return id >= 0 && id < Pm_CountDevices() ? &devices[id] : NULL;
 }
-PmDeviceID Pm_GetDefaultInputDeviceID(void) { return 0; }
-PmDeviceID Pm_GetDefaultOutputDeviceID(void) { return 2; }
+PmDeviceID Pm_GetDefaultInputDeviceID(void)
+{
+    return csound_test_pmidi_no_devices ? pmNoDevice : 0;
+}
+PmDeviceID Pm_GetDefaultOutputDeviceID(void)
+{
+    return csound_test_pmidi_no_devices ? pmNoDevice : 2;
+}
 PmError Pm_OpenInput(PortMidiStream **s, PmDeviceID id, void *info,
                      int32_t size, PmTimeProcPtr time, void *time_info)
 {
-    (void) id; (void) info; (void) size; (void) time; (void) time_info;
-    *s = &stream;
+    (void) info; (void) size; (void) time; (void) time_info;
+    *s = &streams[id];
     return pmNoError;
 }
 PmError Pm_OpenOutput(PortMidiStream **s, PmDeviceID id, void *info,
                       int32_t size, PmTimeProcPtr time, void *time_info,
                       int32_t latency)
 {
-    (void) id; (void) info; (void) size; (void) time; (void) time_info;
+    (void) info; (void) size; (void) time; (void) time_info;
     (void) latency;
-    *s = &stream;
+    *s = &streams[id];
     return pmNoError;
 }
 PmError Pm_SetFilter(PortMidiStream *s, int32_t filters)
@@ -78,7 +93,8 @@ int Pm_Read(PortMidiStream *s, PmEvent *buffer, int32_t length)
 }
 PmError Pm_Write(PortMidiStream *s, PmEvent *buffer, int32_t length)
 {
-    (void) s; (void) buffer; (void) length;
+    (void) buffer; (void) length;
+    csound_test_pmidi_writes[(int *) s - streams]++;
     return pmNoError;
 }
 PmError Pm_Close(PortMidiStream *s) { (void) s; return pmNoError; }
@@ -110,4 +126,23 @@ int32_t csound_test_pmidi_open_output(CSOUND *csound, void **data,
 int32_t csound_test_pmidi_close_output(CSOUND *csound, void *data)
 {
     return CloseMidiOutDevice_(csound, data);
+}
+
+static int32_t out_port;
+static int32_t get_out_port(CSOUND *csound) { (void) csound; return out_port; }
+
+/* Writes a message for `port`. csoundSendMidiMsg keeps the port in a
+   member of CSOUND a module cannot see, which the module reads back
+   through GetMidiOutPort: the instance's GetMidiOutPort answers here,
+   for this write alone. */
+int32_t csound_test_pmidi_write(CSOUND *csound, void *data, int32_t port,
+                                const unsigned char *mbuf, int32_t nbytes)
+{
+    int32_t (*own)(CSOUND *) = csound->GetMidiOutPort;
+    int32_t n;
+    out_port = port;
+    csound->GetMidiOutPort = get_out_port;
+    n = WriteMidiData_(csound, data, mbuf, nbytes);
+    csound->GetMidiOutPort = own;
+    return n;
 }
