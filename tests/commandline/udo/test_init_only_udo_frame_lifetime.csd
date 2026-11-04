@@ -21,7 +21,7 @@ opcode CountScoreBranches(depth:i):i
   else
     left:i = CountScoreBranches(depth - 1)
     right:i = CountScoreBranches(depth - 1)
-    result = left + right
+    result:i = left + right
   endif
   result += lenarray(temporary.children)
   xout result
