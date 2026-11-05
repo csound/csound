@@ -70,6 +70,36 @@ private:
   std::filesystem::path path_;
 };
 
+void writeFile(const std::filesystem::path &path, const std::string &text) {
+  std::ofstream file(path, std::ios::binary);
+  file << text;
+  file.close();
+  ASSERT_TRUE(file.good()) << path;
+}
+
+std::string csdDeclaringStruct(const std::string &options) {
+  return "<CsoundSynthesizer>\n<CsOptions>\n" + options +
+         "\n</CsOptions>\n<CsInstruments>\n"
+         "struct FromFile value:i\n"
+         "instr 1\n  prints \"performed\\n\"\nendin\n"
+         "</CsInstruments>\n<CsScore>\ni 1 0 0\n</CsScore>\n"
+         "</CsoundSynthesizer>\n";
+}
+
+// Csound copies the global environment when it creates an instance.
+class ConfigurationFile {
+public:
+  explicit ConfigurationFile(const std::string &options) {
+    const std::filesystem::path file = directory_.path() / "csound7rc";
+    writeFile(file, options + "\n");
+    csoundSetGlobalEnv("CSOUND7RC", file.string().c_str());
+  }
+  ~ConfigurationFile() { csoundSetGlobalEnv("CSOUND7RC", nullptr); }
+
+private:
+  UniqueTempDir directory_;
+};
+
 const char *const kFixtureStruct = "struct NoteTuplet inote:i, ivelocity:i\n";
 
 std::string pluginDirectoryOption() {
@@ -98,6 +128,35 @@ void expectOptionsListFixture(const std::vector<std::string> &options) {
   EXPECT_NE(listing.text.find(kFixtureStruct), std::string::npos)
       << listing.text;
   expectTotalMatchesListing(listing.text);
+}
+
+void expectConfiguredOptionIsListed(const std::string &option) {
+  const ConfigurationFile configuration(option);
+  const UniqueTempDir empty;
+  const StructListing listing =
+      listStructs(empty.path().string(), {"--list-structs"});
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_NE(listing.text.find(kFixtureStruct), std::string::npos)
+      << listing.text;
+  expectTotalMatchesListing(listing.text);
+}
+
+void expectConfiguredOptionCompiles(const std::string &option) {
+  const ConfigurationFile configuration(option);
+  const UniqueTempDir empty;
+  const UniqueTempDir directory;
+  const std::filesystem::path file = directory.path() / "uses_plugin_struct.csd";
+  ASSERT_NO_FATAL_FAILURE(writeFile(
+      file, "<CsoundSynthesizer>\n<CsInstruments>\n"
+            "instr 1\n  note:NoteTuplet init 60, 100\nendin\n"
+            "</CsInstruments>\n<CsScore>\ni 1 0 0\n</CsScore>\n"
+            "</CsoundSynthesizer>\n"));
+  CSOUND *csound = csoundCreate(nullptr, empty.path().string().c_str());
+  csoundCreateMessageBuffer(csound, 0);
+  const std::string path = file.string();
+  const char *args[] = {"csound", "-n", path.c_str()};
+  EXPECT_EQ(csoundCompile(csound, 3, args), 0) << drainMessages(csound);
+  csoundDestroy(csound);
 }
 
 class PluginStruct : public ::testing::Test {
@@ -257,16 +316,7 @@ TEST_F(PluginStruct, ListStructsPrintsPluginTypesInOrchestraSyntax) {
 TEST_F(PluginStruct, ListStructsStopsBeforeCompilingAFile) {
   const UniqueTempDir directory;
   const std::filesystem::path file = directory.path() / "list_structs.csd";
-  {
-    std::ofstream csd(file);
-    csd << "<CsoundSynthesizer>\n<CsInstruments>\n"
-           "struct FromFile value:i\n"
-           "instr 1\n  prints \"performed\\n\"\nendin\n"
-           "</CsInstruments>\n<CsScore>\ni 1 0 0\n</CsScore>\n"
-           "</CsoundSynthesizer>\n";
-    csd.close();
-    ASSERT_TRUE(csd.good()) << file;
-  }
+  ASSERT_NO_FATAL_FAILURE(writeFile(file, csdDeclaringStruct("")));
   messages();
   const std::string path = file.string();
   const char *args[] = {"csound", "-n", "--list-structs", path.c_str()};
@@ -302,6 +352,61 @@ TEST(PluginStructListing, AppliesPluginLibraryGivenAfterTheOption) {
 
 TEST(PluginStructListing, AppliesPluginLibraryGivenBeforeTheOption) {
   expectOptionsListFixture({pluginLibraryOption(), "--list-structs"});
+}
+
+TEST(PluginStructListing, ListsPluginDirectoryFromConfiguration) {
+  expectConfiguredOptionIsListed(pluginDirectoryOption());
+}
+
+TEST(PluginStructListing, ListsPluginLibraryFromConfiguration) {
+  expectConfiguredOptionIsListed(pluginLibraryOption());
+}
+
+TEST(PluginStructListing, CompilesWithPluginDirectoryFromConfiguration) {
+  expectConfiguredOptionCompiles(pluginDirectoryOption());
+}
+
+TEST(PluginStructListing, CompilesWithPluginLibraryFromConfiguration) {
+  expectConfiguredOptionCompiles(pluginLibraryOption());
+}
+
+TEST(PluginStructListing, OptionInCsdStopsBeforeCompilingIt) {
+  const UniqueTempDir directory;
+  const std::filesystem::path file = directory.path() / "lists_structs.csd";
+  ASSERT_NO_FATAL_FAILURE(writeFile(file, csdDeclaringStruct("--list-structs")));
+  const StructListing listing =
+      listStructs(CSOUND_TEST_STRUCT_PLUGIN_DIR, {"-n", file.string()});
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_NE(listing.text.find(kFixtureStruct), std::string::npos)
+      << listing.text;
+  EXPECT_EQ(listing.text.find("FromFile"), std::string::npos) << listing.text;
+  EXPECT_EQ(listing.text.find("performed"), std::string::npos) << listing.text;
+  expectTotalMatchesListing(listing.text);
+}
+
+TEST(PluginStructListing, SetOptionDefersListingToCompile) {
+  CSOUND *csound = csoundCreate(nullptr, CSOUND_TEST_STRUCT_PLUGIN_DIR);
+  csoundCreateMessageBuffer(csound, 0);
+  EXPECT_EQ(csoundSetOption(csound, "--list-structs"), 0);
+  EXPECT_EQ(drainMessages(csound).find(" structs\n"), std::string::npos);
+  const char *args[] = {"csound", "-n"};
+  EXPECT_EQ(csoundCompile(csound, 2, args), CSOUND_EXITJMP_SUCCESS);
+  const std::string listing = drainMessages(csound);
+  EXPECT_NE(listing.find(kFixtureStruct), std::string::npos) << listing;
+  csoundDestroy(csound);
+}
+
+TEST(PluginStructListing, ResetClearsListingRequest) {
+  const UniqueTempDir directory;
+  const std::filesystem::path file = directory.path() / "after_reset.csd";
+  ASSERT_NO_FATAL_FAILURE(writeFile(file, csdDeclaringStruct("")));
+  CSOUND *csound = csoundCreate(nullptr, CSOUND_TEST_STRUCT_PLUGIN_DIR);
+  EXPECT_EQ(csoundSetOption(csound, "--list-structs"), 0);
+  csoundReset(csound);
+  const std::string path = file.string();
+  const char *args[] = {"csound", "-n", path.c_str()};
+  EXPECT_EQ(csoundCompile(csound, 3, args), 0);
+  csoundDestroy(csound);
 }
 
 TEST_F(PluginStruct, PluginTypesCanBeRegisteredAgainAfterReset) {

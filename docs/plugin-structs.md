@@ -96,4 +96,5 @@ struct NoteTuplet inote:i, ivelocity:i
 Like `--list-opcodes`, it works without an orchestra. Structs declared in a file
 are not listed, and the option stops before compiling or performing any file.
 Plugin options such as `--opcode-dir` and `--opcode-lib` apply wherever they
-appear on the command line.
+appear on the command line, and also when they come from `CSOUND7RC` or
+`.csound7rc`.
