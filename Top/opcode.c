@@ -235,6 +235,49 @@ void list_opcodes(CSOUND *csound, int32_t level) {
   csoundDisposeOpcodeList(csound, lst);
 }
 
+/* The type pool stores struct names as :Name; */
+static void print_type_name(CSOUND *csound, const char *name) {
+  size_t len = strlen(name);
+  if (len > 2 && name[0] == ':' && name[len - 1] == ';')
+    csound->Message(csound, "%.*s", (int)(len - 2), name + 1);
+  else
+    csound->Message(csound, "%s", name);
+}
+
+/* Print the user-defined types known to this Csound, in orchestra syntax */
+void list_structs(CSOUND *csound) {
+  const CS_TYPE_ITEM *item;
+  int32_t count = 0;
+
+  for (item = csound->typePool->head; item != NULL; item = item->next) {
+    const CS_TYPE *type = item->cstype;
+    const CONS_CELL *member;
+    if (!type->userDefinedType)
+      continue;
+    csound->Message(csound, "struct ");
+    print_type_name(csound, type->varTypeName);
+    csound->Message(csound, " ");
+    for (member = type->members; member != NULL; member = member->next) {
+      const CS_VARIABLE *var = (const CS_VARIABLE *)member->value;
+      csound->Message(csound, "%s:", var->varName);
+      if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        int32_t dimensions = var->dimensions > 0 ? var->dimensions : 1;
+        print_type_name(csound, var->subType->varTypeName);
+        while (dimensions-- > 0)
+          csound->Message(csound, "[]");
+      } else {
+        print_type_name(csound, var->varType->varTypeName);
+      }
+      if (member->next != NULL)
+        csound->Message(csound, ", ");
+    }
+    csound->Message(csound, "\n");
+    count++;
+  }
+  csound->Message(csound, "\n");
+  csound->Message(csound, Str("%d structs\n\n"), count);
+}
+
 /**
  * Opcodes for OpcodeDef and Opcode types
  *

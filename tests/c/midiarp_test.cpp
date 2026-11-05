@@ -39,12 +39,12 @@ class MidiarpTests : public ::testing::Test {
   void message(int status, int key, int velocity, int channel = 1)
   {
     auto *midi = csound->midiGlobals;
-    auto *data = midi->MIDIINbuffer2[midi->MIDIINbufIndex++].bData;
+    auto *data = &midi->MIDIINbuffer2[midi->MIDIINbufIndex++];
     midi->MIDIINbufIndex &= MIDIINBUFMSK;
-    data[0] = status;
-    data[1] = channel;
-    data[2] = key;
-    data[3] = velocity;
+    data->status = status;
+    data->chan = channel;
+    data->data1 = key;
+    data->data2 = velocity;
   }
 
   void tick(int expected)

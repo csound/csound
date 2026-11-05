@@ -933,7 +933,8 @@ static inline const CS_TYPE *GetTypeForArg(const void *argPtr) {
 }
 
 /**
- * Returns MIDI channel number (0 to 15) for the instrument instance
+ * Returns MIDI channel number (0 to 15, or up to 1023 for port-mapped
+ * input) for the instrument instance
  * that called opcode 'p'.
  * In the case of score notes, -1 is returned.
  */
@@ -1801,6 +1802,7 @@ struct CSOUND_ {
   int32_t inChar_;                                           /* next input character */
   int32_t enableMsgAttr;                                     /* message attributes enabled */
   int32_t info_message_request;                              /* information messages requested */
+  int32_t list_structs_request;                              /* --list-structs requested */
 
   /* -------- Realtime audio I/O and buffers -------- */
   cs_float *spin;                                            /* input channel buffer */

@@ -156,6 +156,16 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
   }
 }
 
+/* List only after decoding options, so every plugin option can take effect. */
+static void list_structs_if_requested(CSOUND *csound) {
+  if (LIKELY(!csound->list_structs_request))
+    return;
+  if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
+    csound->LongJmp(csound, 1);
+  list_structs(csound);
+  csound->LongJmp(csound, 0);
+}
+
 int32_t csoundSetCommandLineArgs(CSOUND *csound, int32_t argc,
                                  const char **argv)
 {
@@ -258,6 +268,7 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
     csound->Free(csound, csound->delayederrormessages);
     csound->delayederrormessages = NULL;
   }
+  list_structs_if_requested(csound);
 
   /* check for CSD file */
   if (csound->orchname == NULL) {
@@ -311,6 +322,7 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   /* this assumes that argdecode is safe to run multiple times */
   csound->orcname_mode = 1;      /* ignore orc/sco name */
   argdecode(csound, argc, argv); /* should not fail this time */
+  list_structs_if_requested(csound); /* requested in <CsOptions> */
   if(csound->print_version == 1) {
      print_csound_version(csound);
   }

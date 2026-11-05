@@ -142,12 +142,16 @@ cs_float  named_instr_find_in_engine(CSOUND *csound, char *s,
       return (inm == NULL) ? 0L : (ss ? -inm->instno : inm->instno);
     }
     else {                     /* tagged instrument */
-      char buff[256];
-      int32_t len = (int32_t) (tt-s-ss);
+      char buff[MAXNAME], *name = buff;
+      size_t len = (size_t) (tt-s-ss);
       cs_float frac;
-      strncpy(buff,s+ss, len);
-      buff[len] = '\0';
-      inm = cs_hash_table_get(csound, engineState->instrumentNames, buff);
+      if (len >= sizeof(buff))
+        name = csound->Malloc(csound, len + 1);
+      memcpy(name, s+ss, len);
+      name[len] = '\0';
+      inm = cs_hash_table_get(csound, engineState->instrumentNames, name);
+      if (name != buff)
+        csound->Free(csound, name);
       frac = atof(tt);
       // printf("** fraction found %f\n", frac);
       return (inm == NULL) ? 0L : (ss ? -(inm->instno+frac) : inm->instno+frac);

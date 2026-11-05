@@ -303,6 +303,7 @@ static const char *longUsageList[] = {
     Str_noop("                          remove unused generated variable slots"),
     Str_noop("--list-opcodes          list opcodes in this version"),
     Str_noop("--list-opcodesN         list opcodes in style N in this version"),
+    Str_noop("--list-structs          list user-defined types (structs)"),
     Str_noop("--dither                dither output"),
     Str_noop(
         "--dither-triangular     dither output with triangular distribution"),
@@ -1100,6 +1101,9 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strcmp(s, "wave"))) {
     O->filetyp = TYP_WAV; /* WAV output request */
+    return 1;
+  } else if (!(strcmp(s, "list-structs"))) {
+    csound->list_structs_request = 1;
     return 1;
   } else if (!(strncmp(s, "list-opcodes", 12))) {
     int32_t full = 0;

@@ -781,9 +781,13 @@ static void setprv(CSOUND *csound)      /*  set insno = (int32_t) p1val         
         *(csound->sread.sp) == '"') {
       /* IV - Oct 31 2002 */
       int32_t sign = 0;
-      char name[MAXNAME], *c, *s = (csound->sread.sp);
+      char buff[MAXNAME], *name = buff, *s = (csound->sread.sp) + 1;
+      size_t len = strcspn(s, "\"");
       /* unquote instrument name */
-      c = name; while (*++s != '"') *c++ = *s; *c = '\0';
+      if (len >= sizeof(buff))
+        name = csound->Malloc(csound, len + 1);
+      memcpy(name, s, len);
+      name[len] = '\0';
       if (*name=='-') {
         sign = 1;
         printf("negative name %s\n", name); }
@@ -794,6 +798,8 @@ static void setprv(CSOUND *csound)      /*  set insno = (int32_t) p1val         
         n = -1;
       }
       if (sign) n = -n;
+      if (name != buff)
+        csound->Free(csound, name);
     }
     else n = (int16) (csound->sread.bp)->p1val;         /* set current insno */
     (csound->sread.bp)->insno = n;
