@@ -257,11 +257,14 @@ static int decode_value(JSON_CONTEXT *ctx, const CS_TYPE *type, void *value,
       const CS_VARIABLE *field = cell->value;
       size_t saved = field_path(ctx, field->varName);
       if (bindings->values[i] == NULL) {
-        ctx->error = Str_noop("missing field");
-        return NOTOK;
+        if (field->memBlock == NULL) {
+          ctx->error = Str_noop("missing field");
+          return NOTOK;
+        }
+        /* Fresh struct storage already contains the declared default. */
       }
-      if (decode_value(ctx, field->varType, &object->members[i]->value,
-                       bindings->values[i], depth + 1) != OK)
+      else if (decode_value(ctx, field->varType, &object->members[i]->value,
+                            bindings->values[i], depth + 1) != OK)
         return NOTOK;
       ctx->path[saved] = '\0';
     }
