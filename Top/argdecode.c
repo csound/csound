@@ -1102,10 +1102,6 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strcmp(s, "wave"))) {
     O->filetyp = TYP_WAV; /* WAV output request */
     return 1;
-  } else if (!(strcmp(s, "list-structs"))) {
-    csoundLoadDefaultModules(csound);
-    list_structs(csound);
-    csound->LongJmp(csound, 0);
   } else if (!(strncmp(s, "list-opcodes", 12))) {
     int32_t full = 0;
     s += 12;
@@ -1439,6 +1435,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
   char *s, **argv;
   int32_t n;
   char c;
+  int32_t listStructs = 0;
 
   /* make a copy of the option list */
   char *p1, *p2;
@@ -1747,6 +1744,12 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             break;
           }
 #endif
+          if (!(strcmp(s, "list-structs"))) {
+            listStructs = 1;
+            while (*(++s))
+              ;
+            break;
+          }
           if (!decode_long(csound, s, argc, argv)) {
             csound->Message(csound, Str("\n...failing to parse options\n"));
             return 0; // fail
@@ -1788,6 +1791,13 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
       }
     }
   } while (--argc);
+  /* List after every option is decoded, so plugin options can come later. */
+  if (listStructs) {
+    if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
+      csound->LongJmp(csound, 1);
+    list_structs(csound);
+    csound->LongJmp(csound, 0);
+  }
 end:
   return 1;
 }

@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
 
 // Load C++ headers before csdl.h: its _CR macro conflicts with libstdc++.
 #include "csound.h"
@@ -10,6 +11,64 @@
 #include "struct_plugin_path.hpp"
 
 namespace {
+std::string drainMessages(CSOUND *csound) {
+  std::string result;
+  while (csoundGetMessageCnt(csound)) {
+    result += csoundGetFirstMessage(csound);
+    csoundPopFirstMessage(csound);
+  }
+  return result;
+}
+
+// Default plugin directories may add types, so check the total against the
+// listing itself rather than against a fixed number.
+void expectTotalMatchesListing(const std::string &listing) {
+  size_t count = listing.rfind("struct ", 0) == 0 ? 1 : 0;
+  for (size_t at = listing.find("\nstruct "); at != std::string::npos;
+       at = listing.find("\nstruct ", at + 1))
+    ++count;
+  EXPECT_NE(listing.find("\n" + std::to_string(count) + " structs\n"),
+            std::string::npos) << listing;
+}
+
+struct StructListing {
+  int status;
+  std::string text;
+};
+
+// Use a new instance, so that only pluginDir and the options can load plugins.
+StructListing listStructs(const std::string &pluginDir,
+                          const std::vector<std::string> &options) {
+  CSOUND *csound = csoundCreate(nullptr, pluginDir.c_str());
+  csoundCreateMessageBuffer(csound, 0);
+  std::vector<const char *> args{"csound"};
+  for (const std::string &option : options)
+    args.push_back(option.c_str());
+  StructListing listing;
+  listing.status =
+      csoundCompile(csound, static_cast<int>(args.size()), args.data());
+  listing.text = drainMessages(csound);
+  csoundDestroy(csound);
+  return listing;
+}
+
+class EmptyPluginDir {
+public:
+  EmptyPluginDir() {
+    path_ = std::filesystem::temp_directory_path() /
+            (std::string("csound_list_structs_") +
+             ::testing::UnitTest::GetInstance()->current_test_info()->name());
+    std::filesystem::create_directories(path_);
+  }
+  ~EmptyPluginDir() { std::filesystem::remove_all(path_); }
+  std::string string() const { return path_.string(); }
+
+private:
+  std::filesystem::path path_;
+};
+
+const char *const kFixtureStruct = "struct NoteTuplet inote:i, ivelocity:i\n";
+
 class PluginStruct : public ::testing::Test {
 protected:
   CSOUND *csound = nullptr;
@@ -22,12 +81,7 @@ protected:
   }
   void TearDown() override { csoundDestroy(csound); }
   std::string messages() {
-    std::string result;
-    while (csoundGetMessageCnt(csound)) {
-      result += csoundGetFirstMessage(csound);
-      csoundPopFirstMessage(csound);
-    }
-    return result;
+    return drainMessages(csound);
   }
   void run(const std::string &body) {
     std::string code = "sr=44100\nksmps=32\nnchnls=1\ninstr 1\n" + body + "\nendin\n";
@@ -166,7 +220,7 @@ TEST_F(PluginStruct, ListStructsPrintsPluginTypesInOrchestraSyntax) {
   EXPECT_NE(listing.find("struct ListedGroup note:NoteTuplet, "
                          "notes:NoteTuplet[], values:k[]\n"),
             std::string::npos) << listing;
-  EXPECT_NE(listing.find("2 structs\n"), std::string::npos) << listing;
+  expectTotalMatchesListing(listing);
 }
 
 TEST_F(PluginStruct, ListStructsStopsBeforeCompilingAFile) {
@@ -190,7 +244,48 @@ TEST_F(PluginStruct, ListStructsStopsBeforeCompilingAFile) {
             std::string::npos) << listing;
   EXPECT_EQ(listing.find("FromFile"), std::string::npos) << listing;
   EXPECT_EQ(listing.find("performed"), std::string::npos) << listing;
-  EXPECT_NE(listing.find("1 structs\n"), std::string::npos) << listing;
+  expectTotalMatchesListing(listing);
+}
+
+TEST(PluginStructListing, LoadsDefaultPluginsAndReportsSuccess) {
+  const StructListing listing =
+      listStructs(CSOUND_TEST_STRUCT_PLUGIN_DIR, {"--list-structs"});
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_NE(listing.text.find(kFixtureStruct), std::string::npos)
+      << listing.text;
+  expectTotalMatchesListing(listing.text);
+}
+
+TEST(PluginStructListing, AppliesPluginDirectoryGivenAfterTheOption) {
+  const EmptyPluginDir empty;
+  const std::string dir = empty.string();
+  EXPECT_EQ(listStructs(dir, {"--list-structs"}).text.find(kFixtureStruct),
+            std::string::npos);
+  const StructListing listing = listStructs(
+      dir, {"--list-structs",
+            std::string("--opcode-dir=") + CSOUND_TEST_STRUCT_PLUGIN_DIR});
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_NE(listing.text.find(kFixtureStruct), std::string::npos)
+      << listing.text;
+  expectTotalMatchesListing(listing.text);
+}
+
+TEST(PluginStructListing, AppliesPluginLibraryGivenAfterTheOption) {
+  std::string library;
+  for (const auto &entry : std::filesystem::directory_iterator(
+           CSOUND_TEST_STRUCT_PLUGIN_DIR)) {
+    const std::string extension = entry.path().extension().string();
+    if (extension == ".so" || extension == ".dylib" || extension == ".dll")
+      library = entry.path().string();
+  }
+  ASSERT_FALSE(library.empty());
+  const EmptyPluginDir empty;
+  const StructListing listing = listStructs(
+      empty.string(), {"--list-structs", "--opcode-lib=" + library});
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_NE(listing.text.find(kFixtureStruct), std::string::npos)
+      << listing.text;
+  expectTotalMatchesListing(listing.text);
 }
 
 TEST_F(PluginStruct, PluginTypesCanBeRegisteredAgainAfterReset) {
