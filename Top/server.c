@@ -29,6 +29,7 @@
 #include "csoundCore.h"
 #include "csound_message_callbacks.h"
 #include <ctype.h>
+#include <stdlib.h>
 #if defined(WIN32) && !defined(__CYGWIN__)
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -537,6 +538,8 @@ int32_t csoundUDPServerStatus(CSOUND *csound) {
 }
 
 #define UDPMSG 1024
+/* Stay below the default macOS UDP send limit; leave room for the NUL. */
+#define UDP_CONSOLE_MAX_TEXT 8191
 
 typedef struct {
   int32_t port;
@@ -552,13 +555,41 @@ static void udp_msg_callback(CSOUND *csound, int32_t attr, const char *format,
   p = (UDPCONS *) csound->QueryGlobalVariable(csound, "::UDPCONS");
   if(p) {
     char string[UDPMSG];
+    char *allocated = NULL;
+    const char *message = string;
+    int32_t length;
     va_list nargs;
     va_copy(nargs, args);
-    vsnprintf(string, UDPMSG, format, args);
-    udp_socksend(csound, &(p->sock), p->addr, p->port, string);
-    if(p->cb)
-      p->cb(csound, attr, format, nargs);
+    length = vsnprintf(string, sizeof(string), format, nargs);
     va_end(nargs);
+    /* Keep one message per datagram, including its trailing NUL. */
+    if (length < 0)
+      message = Str("UDP console: could not format message\n");
+    else if (length >= UDPMSG && strlen(string) == UDPMSG - 1) {
+      /* One extra text byte distinguishes an embedded NUL at the limit
+         from a message too large for the console datagram. */
+      size_t capacity = (size_t) length + 1;
+      if (capacity > UDP_CONSOLE_MAX_TEXT + 2)
+        capacity = UDP_CONSOLE_MAX_TEXT + 2;
+      allocated = (char *) malloc(capacity);
+      if (allocated != NULL) {
+        va_copy(nargs, args);
+        length = vsnprintf(allocated, capacity, format, nargs);
+        va_end(nargs);
+        if (length < 0)
+          message = Str("UDP console: could not format message\n");
+        else if (strlen(allocated) > UDP_CONSOLE_MAX_TEXT)
+          message = Str("UDP console: message exceeds 8191 bytes\n");
+        else
+          message = allocated;
+      }
+      else
+        message = Str("UDP console: could not allocate message buffer\n");
+    }
+    udp_socksend(csound, &(p->sock), p->addr, p->port, message);
+    free(allocated);
+    if(p->cb)
+      p->cb(csound, attr, format, args);
   }
 }
 
