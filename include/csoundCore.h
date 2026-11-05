@@ -1803,6 +1803,7 @@ struct CSOUND_ {
   int32_t enableMsgAttr;                                     /* message attributes enabled */
   int32_t info_message_request;                              /* information messages requested */
   int32_t list_structs_request;                              /* --list-structs requested */
+  int32_t list_opcodes_request;                              /* --list-opcodesN or -zN requested: N + 1 */
 
   /* -------- Realtime audio I/O and buffers -------- */
   cs_float *spin;                                            /* input channel buffer */
