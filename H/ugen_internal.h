@@ -46,30 +46,23 @@ struct UGEN {
   CS_VAR_POOL* outPool;
   int32_t inCount;          /**< Number of input arguments */
   int32_t outCount;         /**< Number of output arguments */
+  int32_t inSlots;          /**< Number of input memory slots */
+  int32_t outSlots;         /**< Number of output memory slots */
   UGEN_ARG_TYPE* inTypes;   /**< Array of UGEN_ARG_TYPE for each input arg */
   UGEN_ARG_TYPE* outTypes;  /**< Array of UGEN_ARG_TYPE for each output arg */
   int32_t outDataOffset;    /**< Offset in data block where input args begin (in cs_float values) */
   UGEN_VAR* outVars;        /**< Array of UGEN_VAR for output args (owned by UGEN) */
   UGEN_VAR* inVars;         /**< Array of UGEN_VAR for input args (owned by UGEN) */
+  bool initialized;
 };
 
 /**
  * UGEN_FACTORY creates and manages individual opcode instances.
- * A factory shares a single CSOUND and INSDS context across all
+ * A factory shares a single CSOUND context across all
  * UGENs it creates.
  */
 struct UGEN_FACTORY {
   CSOUND* csound;
-  INSDS* insds;
-};
-
-/**
- * UGEN_CONTEXT provides instrument-like context for UGENs
- * (hold/release state, MIDI context, etc.)
- */
-struct UGEN_CONTEXT {
-  CSOUND* csound;
-  INSDS* insds;
 };
 
 /**
