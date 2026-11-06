@@ -12,7 +12,7 @@ nchnls = 1
 
 opcode ReadFile(path:S, fileNumber:i, attempts:i):S
   text:S init ""
-  for attempt in [1 ... attempts] do
+  for attempt:i in [1 ... attempts] do
     line:S, lineNumber:i readfi path
     numberedLine:S, numberedLineNumber:i readfi fileNumber
     if (strcmp(line, numberedLine) != 0 || lineNumber != numberedLineNumber) then

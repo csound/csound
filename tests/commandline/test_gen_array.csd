@@ -16,7 +16,7 @@ instr 1
     print j
   od
   arr:S[] = ["a","b","c","d","e"]
-  for k in [0 ... lenarray(arr)-1] do
+  for k:i in [0 ... lenarray(arr)-1] do
     printf_i("element %d = '%s'\n",k+1,k,arr[k])
   od
 endin

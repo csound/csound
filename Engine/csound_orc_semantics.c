@@ -3106,24 +3106,12 @@ static TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* un
   return retVal;
 }
 
-/* Analyze and restructures the statement node into an opcode call structure.
- * This function will reform the tree such that the top node will contain the
- * name of an opcode, the ->left will hold out-args, and ->right will hold
- * in-args.
- * This function does not try to expand any statements or do any semantic
- * verification, but reshapes trees so that they can all go through the
- * verify_opcode function. This is due to the ambiguous nature of Csound opcode
- * call syntax.
- * To note, this function requires that the typeTable be passed in. This is
- * because variables can (now) have names that shadow opcode names. Lookup needs * to give priority to an identifier being a variable over being an opcode.
- * This maintains future proofing so that if an opcode is later introduced
- * with the same name as a variable in an older project, the older project
- * will continue to work.
- *
- * For further reference, please see the rule for statement and opcall in
- * Engine/csound_orc.y.
+/* Return an explicit annotation first, otherwise the registered type named
+ * by the variable's prefix (after any '#' or 'g'). Constants (c), p-fields
+ * (p), and reserved symbols (r) are not variable prefixes. NULL leaves type
+ * inference to the caller. This does not look up already declared variables.
  */
-static char *get_assignment_lhs_type_hint(CSOUND *csound, TREE *left)
+static char *get_variable_type_hint(CSOUND *csound, TREE *left)
 {
   if (left == NULL || left->value == NULL) {
     return NULL;
@@ -3143,13 +3131,33 @@ static char *get_assignment_lhs_type_hint(CSOUND *csound, TREE *left)
   if (*name == 'g' && name[1] != '\0') {
     name++;
   }
-  if (strchr("aikSKBbf", *name) != NULL) {
-    char type[2] = {*name, '\0'};
-    return csoundStrdup(csound, type);
+  char typeName[2] = {*name, '\0'};
+  const CS_TYPE *type = csoundGetTypeWithVarTypeName(csound->typePool, typeName);
+  // Constants, p-fields and reserved symbols are not variable type prefixes.
+  if (type != NULL && type != &CS_VAR_TYPE_C &&
+      type != &CS_VAR_TYPE_P && type != &CS_VAR_TYPE_R) {
+    return csoundStrdup(csound, type->varTypeName);
   }
   return NULL;
 }
 
+/* Analyze and restructures the statement node into an opcode call structure.
+ * This function will reform the tree such that the top node will contain the
+ * name of an opcode, the ->left will hold out-args, and ->right will hold
+ * in-args.
+ * This function does not try to expand any statements or do any semantic
+ * verification, but reshapes trees so that they can all go through the
+ * verify_opcode function. This is due to the ambiguous nature of Csound opcode
+ * call syntax.
+ * To note, this function requires that the typeTable be passed in. This is
+ * because variables can (now) have names that shadow opcode names. Lookup needs * to give priority to an identifier being a variable over being an opcode.
+ * This maintains future proofing so that if an opcode is later introduced
+ * with the same name as a variable in an older project, the older project
+ * will continue to work.
+ *
+ * For further reference, please see the rule for statement and opcall in
+ * Engine/csound_orc.y.
+ */
 TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
                                   TYPE_TABLE* typeTable) {
   int32_t leftCount, rightCount;
@@ -3175,7 +3183,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
       }
 
       if (hasExpressionArg && tree_arg_list_count(root->left) == 1) {
-        char *leftType = get_assignment_lhs_type_hint(csound, root->left);
+        char *leftType = get_variable_type_hint(csound, root->left);
 
         if (leftType != NULL && strlen(leftType) == 1 &&
             (outType = get_arg_type2(csound, right, typeTable)) != NULL) {
@@ -4425,7 +4433,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
     case FOR_TOKEN: {
       /** for-loop typing:
-          1) if loop variable does not exist, it takes the type of the array
+          1) a new element variable uses its explicit type or name prefix,
+             falling back to the array element type; an unannotated index
+             follows the loop rate regardless of its name prefix
           2) if it exists, the loop type follows the variable type when conversion is possible
       */
 
@@ -4435,6 +4445,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                                              current->left->value->lexeme,
                                              current->left->value->lexeme,
                                              typeTable);
+      if (arrayArgType == NULL) return NULL;
       if (*arrayArgType != '[') {
         if(current->right->left->value != NULL)
         synterr(csound,Str("line:%d invalid argument in for statement: "
@@ -4450,15 +4461,46 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       atype[strlen(atype)-1] = '\0'; // remove ']'
       typ = remove_type_quoting(csound, atype);
       if(var == NULL) {
-       // check for optype
-        if(current->left->value->optype != NULL) {
+        char *varType = get_variable_type_hint(csound, current->left);
+        if (varType != NULL) {
+          const CS_TYPE *elementType =
+            csoundGetTypeWithVarTypeName(csound->typePool, atype);
+          const CS_TYPE *loopType =
+            csoundGetTypeWithVarTypeName(csound->typePool, varType);
+          if (loopType != elementType &&
+              !((loopType == &CS_VAR_TYPE_I && elementType == &CS_VAR_TYPE_K) ||
+                (loopType == &CS_VAR_TYPE_K && elementType == &CS_VAR_TYPE_I))) {
+            char *elementName = csoundFormatTypeName(csound, atype, 0);
+            char *loopName = csoundFormatTypeName(csound, varType, 0);
+            synterr(csound, Str("for-loop variable '%s' has type '%s', "
+                               "incompatible with array element type '%s', line %d\n"),
+                    current->left->value->lexeme, loopName,
+                    elementName, current->line);
+            csoundFree(csound, elementName);
+            csoundFree(csound, loopName);
+            csoundFree(csound, varType);
+            csoundFree(csound, typ);
+            csoundFree(csound, atype);
+            csoundFree(csound, arrayArgType);
+            return NULL;
+          }
           csoundFree(csound, typ);
-          typ = csoundStrdup(csound, current->left->value->optype);
+          typ = varType;
         }
-       // now create the arg based on the array type
+       // create the arg using the resolved variable type
        add_arg(csound, current->left->value->lexeme, typ,
 	       typeTable, current);
        } else {
+        const char *annotation = current->left->value->optype;
+        if (annotation != NULL &&
+            csoundGetTypeWithVarTypeName(csound->typePool, annotation) != var->varType) {
+          char *existingName = csoundFormatTypeName(csound,
+                                                    var->varType->varTypeName, 0);
+          csound->Warning(csound, Str("ignoring type annotation '%s' for existing "
+                                     "loop variable '%s' (type '%s'), line %d\n"),
+                          annotation, var->varName, existingName, current->line);
+          csoundFree(csound, existingName);
+        }
         // now we need to check that the array matches the
         // var type - automatic conversion possible for i and k
         const CS_TYPE *iType = &CS_VAR_TYPE_I;
@@ -4492,6 +4534,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       current = expand_for_statement(csound, current, typeTable, typ, targets);
       csound->Free(csound, atype);
       csound->Free(csound, typ);
+      csound->Free(csound, arrayArgType);
       if (previous != NULL) {
         previous->next = current;
       }
