@@ -160,12 +160,6 @@ CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
 return csoundStrdup(csound, lbuf);
 }
 
-static inline void alloc_globals(CSOUND *csound)
-{
-    /* count lines from 0 so that it adds OK to orc/sco counts */
-    STA(csdlinecount) = 0;
-}
-
 static char *my_fgets(CSOUND *csound, char *s, int32_t n, FILE *stream)
 {
     char *a = s;
@@ -195,7 +189,6 @@ static char *my_fgets(CSOUND *csound, char *s, int32_t n, FILE *stream)
 
 void remove_tmpfiles(CSOUND *csound)            /* IV - Feb 03 2005 */
 {                               /* use one fn to delete all temporary files */
-    alloc_globals(csound);
     while (STA(toremove) != NULL) {
       NAMELST *nxt = STA(toremove)->next;
 #ifdef BETA
@@ -214,7 +207,6 @@ void remove_tmpfiles(CSOUND *csound)            /* IV - Feb 03 2005 */
 void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
 {                               /* add temporary file to delete list */
     NAMELST *tmp;
-    alloc_globals(csound);
     tmp = (NAMELST*) csound->Malloc(csound, sizeof(NAMELST));
     tmp->name = (char*) csound->Malloc(csound, strlen(name) + 1);
     strcpy(tmp->name, name);
@@ -1166,7 +1158,12 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
     //csoundMessage(csound, "Calling unified file system4\n");
 #endif
     if (notrunning==0) {
-      alloc_globals(csound);
+      /* Count lines from 0 so that it adds OK to orc/sco counts. This must
+         only happen when a new CSD starts: adding an embedded file
+         (<CsFileB>, <CsSampleB>, ...) must not reset the count, otherwise
+         all subsequent orchestra/score line numbers are reported relative
+         to that tag instead of the start of the CSD. */
+      STA(csdlinecount) = 0;
       STA(orcname) = STA(sconame) = STA(midname) = NULL;
       STA(midiSet) = FALSE;
     }
