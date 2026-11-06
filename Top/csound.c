@@ -894,6 +894,7 @@ static const CSOUND cenviron_ = {
     .enableMsgAttr = 1,
     .info_message_request = 0,
     .list_structs_request = 0,
+    .list_opcodes_request = 0,
     /* -------- Realtime audio I/O and buffers -------- */
     .spin = NULL,
     .spout = NULL,

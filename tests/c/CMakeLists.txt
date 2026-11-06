@@ -198,6 +198,27 @@ if(BUILD_TESTS)
         target_compile_definitions(unittests PRIVATE
             CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN)
 
+        add_library(failing_init_test_plugin MODULE
+            fixtures/failing_init_plugin.c)
+        target_include_directories(failing_init_test_plugin PRIVATE
+            ${libcsound_private_include_dirs})
+        target_include_directories(failing_init_test_plugin PUBLIC
+            ${libcsound_public_include_dirs})
+        target_compile_definitions(failing_init_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        set_target_properties(failing_init_test_plugin PROPERTIES
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/failing-init-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/failing-init-plugin)
+        add_dependencies(unittests failing_init_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/failing_init_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_FAILING_INIT_PLUGIN R\"csound($<TARGET_FILE:failing_init_test_plugin>)csound\"\n"
+            TARGET failing_init_test_plugin)
+
         add_library(configuration_test_plugin MODULE
             fixtures/configuration_plugin.c)
         target_include_directories(configuration_test_plugin PRIVATE

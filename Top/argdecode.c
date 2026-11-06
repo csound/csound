@@ -1113,10 +1113,9 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       if (isdigit(*s))
         full = *s++ - '0';
     }
-    csoundLoadDefaultModules(csound);
-    list_opcodes(csound, full);
+    /* listed once all options are decoded, so that --opcode-lib counts */
+    csound->list_opcodes_request = full + 1;
     return 1;
-    // csound->LongJmp(csound, 0);
   }
   /* -Z */
   else if (!(strcmp(s, "dither"))) {
@@ -1692,8 +1691,8 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             if (isdigit(*s))
               full = *s++ - '0';
           }
-          csoundLoadDefaultModules(csound);
-          list_opcodes(csound, full);
+          /* listed once all options are decoded, as --list-opcodes */
+          csound->list_opcodes_request = full + 1;
         }
           csound->info_message_request = 1;
           // csound->LongJmp(csound, 0);
@@ -1888,6 +1887,16 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
     csoundFree(csound, options);
     for(i = 1; i < argn; i++) csoundFree(csound, args[i]);
      csoundFree(csound, args);
+
+    /* Hosts get the list at once, as before: a request left pending
+       would make a later csoundCompile() stop after listing. */
+    if (csound->list_opcodes_request) {
+      int32_t level = csound->list_opcodes_request - 1;
+      csound->list_opcodes_request = 0;
+      if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
+        return 1;
+      list_opcodes(csound, level);
+    }
 
     return ret ? 0 : 1;
   }
