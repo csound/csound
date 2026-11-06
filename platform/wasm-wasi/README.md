@@ -58,9 +58,13 @@ names of the 64-bit versions.
 
 Both targets use WASI Preview 2. Nix builds LLVM runtimes and wasi-libc from
 source; it does not download a WASI SDK bundle. The shared nixpkgs pin is
-`d3b13ad75cc492690728f9307e443dec9ef9a20e` (wasi-libc 32, LLVM 21).
+`6dadaf4375be35033e1c84395adbd53ff5fded96` with LLVM 23.1.3.
+[`src/wasi-libc-source.nix`](src/wasi-libc-source.nix) pins wasi-libc to
+`ce2ee9fb7e39c20ae266d294dd2d0afd1bf1f8e2` (2026-11-05), using WASI 0.2.12.
 The wasm64 port patches libc's pointer atomics, stack declaration and WIT
 metadata object, plus compiler-rt's floating comparison return types.
+Both targets apply the libc++ WASI locale fix in
+[`src/libcxx-wasi-locale.patch`](src/libcxx-wasi-locale.patch).
 
 The Component Model's direct memory64 ABI remains unfinished. The wasm64 build
 therefore includes a small core adapter with its own memory32 heap. It copies
@@ -115,7 +119,7 @@ libsamplerate build lives in `src/libsamplerate.nix`. Both the command and
 browser builds link it, so `oversample` and `undersample` can use the sinc
 converters. Configuration fails if CMake cannot find the library.
 
-Each tool is a WASI Preview 2 component exporting `wasi:cli/run@0.2.0`. It includes its utility code and
+Each tool is a WASI Preview 2 component exporting `wasi:cli/run@0.2.12`. It includes its utility code and
 libraries, so it does not need a native Csound installation or a utility plugin.
 For example, convert a sound file to 48 kHz with Wasmtime.
 
@@ -125,7 +129,7 @@ wasmtime run -Wexceptions=y --dir=. ./lib/src_conv.wasm -r48000 -ooutput.wav inp
 
 The browser host loads each command's `.core.wasm` derivative. It provides
 Preview 2 imports, arguments, files and streams, then calls
-`wasi:cli/run@0.2.0#run` once on a fresh instance. The browser must support standard
+`wasi:cli/run@0.2.12#run` once on a fresh instance. The browser must support standard
 WebAssembly exception handling. These commands are separate from the
 `@csound/browser` audio reactor and its plugin loader.
 
@@ -213,7 +217,7 @@ An app such as the Web IDE can fetch `csbeats.core.wasm` on demand
 and write it through the same filesystem API.
 
 Other uploaded commands use the same path. They must export `memory` and
-`cabi_realloc` and `wasi:cli/run@0.2.0#run`, and use Preview 2 imports. Each run has fresh memory and file
+`cabi_realloc` and `wasi:cli/run@0.2.12#run`, and use Preview 2 imports. Each run has fresh memory and file
 descriptors. The command sees Csound's current directory at `/`, like a
 WASI runtime preopening one directory; files outside that directory are
 not mounted. Csound passes the score input and output filenames as the last

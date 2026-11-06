@@ -46,8 +46,8 @@ Shared-library dependencies remain unsupported.
 ## Static runtime libraries in browser plugins
 
 Use the Csound 7 SDK and the nixpkgs revision in
-[`scripts/nixpkgs-pin.sh`](scripts/nixpkgs-pin.sh). That revision provides
-wasi-libc SDK 32 and Clang 21. Build side modules and their static dependencies
+[`scripts/nixpkgs-pin.sh`](scripts/nixpkgs-pin.sh). The toolchain selects
+Clang 23 and the wasi-libc source in [`src/wasi-libc-source.nix`](src/wasi-libc-source.nix). Build side modules and their static dependencies
 as position-independent code (`-fPIC`). Import the engine's memory, table, and
 stack pointer.
 
@@ -63,7 +63,7 @@ loading.
 All plugins share the engine's allocator. The browser engine exports `malloc`,
 `calloc`, `realloc`, `free`, `aligned_alloc`, and `posix_memalign`. The loader maps
 `__libc_malloc`, `__libc_calloc`, and `__libc_free` to those public Wasm functions;
-the engine need not export these internal names. SDK 32 defines them as aliases
+the engine need not export these internal names. The pinned libc defines them as aliases
 with the same signatures. The engine still exports
 `__wasilibc_find_relpath_alloc` so plugin file operations use its working
 directory. This internal function has no public alias. Recheck its name and
@@ -72,7 +72,7 @@ signature when updating the toolchain; a missing symbol stops the engine build.
 The [C example](src/plugin_example.nix) links with `-nostdlib`, imports its libc
 functions from the engine, and includes only its own PIC setjmp support. Plugins
 that need other libc routines must build a private PIC WASI libc with
-`MALLOC_IMPL=none` so they do not link a second allocator into shared memory.
+`MALLOC=none` so they do not link a second allocator into shared memory.
 The [plugins Nix build](https://github.com/hlolli/plugins/blob/cdc51c0842aa17c78a284b64d059cfb4e6950730/wasm/default.nix)
 uses this path for the image, Chua, and linear algebra plugins. It builds the
 private libc and C++ runtime from the same nixpkgs pin and passes their archives
@@ -81,8 +81,9 @@ to CMake.
 For WASI `setjmp`/`longjmp`, compile with `-mllvm -wasm-enable-sjlj` and link PIC
 setjmp support. The C example compiles the pinned wasi-libc source at
 `libc-top-half/musl/src/setjmp/wasm32/rt.c`. Both the source path and the exception
-tag ABI depend on the toolchain version. SDK 32 uses the `C_LONGJMP` tag without
-a Clang-version branch; recheck newer source and compiler versions together.
+tag ABI depend on the toolchain version. With Clang 22 and newer, the pinned
+source declares `__c_longjmp` with an i32 payload on wasm32 and i64 on wasm64.
+Recheck the source and compiler versions together.
 Use `--allow-undefined` when linking side modules that import exception tags, and
 export `__wasm_apply_data_relocs` when present. Each plugin gets private
 `__c_longjmp` and `__cpp_exception` tags for its statically linked runtime.

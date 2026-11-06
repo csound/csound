@@ -646,6 +646,14 @@ void printDebug(const char *log) {
 
 
 #if !defined(CSOUND_WASI_REALTIME) && !defined(__wasm64__)
+// LLVM 22+ requires the setjmp exception tag to be defined explicitly, even
+// when the browser reports longjmp through JS instead of throwing this tag.
+#if __clang_major__ >= 22
+__asm__(".globl __c_longjmp\n"
+        ".tagtype __c_longjmp i32\n"
+        "__c_longjmp:\n");
+#endif
+
 // WASI setjmp/longjmp stubs for the linker
 // These are weak symbols to allow the linker to resolve them
 // Function signatures match what's expected by the linker

@@ -167,6 +167,51 @@ describe("Preview 2 filesystem", () => {
     );
     assert.throws(() => f.host.drop(999, "descriptor"), /Invalid/);
   });
+  it("supports old and current Preview 2 command bindings", () => {
+    const exports = f.host.instance.exports;
+    for (const version of ["0.2.0", "0.2.12"]) {
+      const cli = importsFor(f.host, `wasi:cli/exit@${version}`, ["exit"]);
+      for (const status of [0, 1]) {
+        const instance = {
+          exports: {
+            ...exports,
+            [`wasi:cli/run@${version}#run`]: () => cli.exit(status),
+          },
+        };
+        assert.equal(f.host.startCommand(instance), status);
+      }
+    }
+  });
+  it("preserves the exit code from newer Preview 2 commands", () => {
+    const cli = importsFor(f.host, "wasi:cli/exit@0.2.12", ["exit-with-code"]);
+    assert.equal(
+      f.host.startCommand({
+        exports: {
+          ...f.host.instance.exports,
+          "wasi:cli/run@0.2.12#run": () => cli["exit-with-code"](42),
+        },
+      }),
+      42,
+    );
+  });
+  it("rejects future WASI versions for imports and commands", () => {
+    for (const version of ["0.2.13", "0.3.0", "0.2.12-extra"]) {
+      assert.throws(
+        () => importsFor(f.host, `wasi:cli/exit@${version}`, ["exit"]),
+        /Unsupported Preview 2 import/,
+      );
+      assert.throws(
+        () =>
+          f.host.startCommand({
+            exports: {
+              ...f.host.instance.exports,
+              [`wasi:cli/run@${version}#run`]: () => 0,
+            },
+          }),
+        /Expected a WASI Preview 2 command/,
+      );
+    }
+  });
   it("returns canonical descriptor metadata and respects read-only handles", () => {
     f.host.writeFile("file", encode("abc"));
     const fd = open(f, "file", 0, 1);

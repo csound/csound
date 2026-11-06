@@ -48,10 +48,9 @@ stdenvWasm.mkDerivation {
       -o plugin_example.o
 
     ${pkgs.lib.optionalString (!sharedMemory) ''
-    # scripts/nixpkgs-pin.sh pins nixpkgs d3b13ad75cc492690728f9307e443dec9ef9a20e
-    # (wasi-libc SDK 32, Clang 21). This source path and its C_LONGJMP tag ABI
-    # are version-sensitive; recheck both when changing that pin. SDK 32's
-    # rt.c uses __builtin_wasm_throw(1, ...) without a Clang-version branch.
+    # wasi-libc-source.nix and LLVM 23 provide this setjmp implementation.
+    # Clang >=22 declares __c_longjmp with a pointer-sized payload. Recheck
+    # this source path and tag ABI when changing either dependency.
     # Compile it as PIC. The loader supplies a private exception tag, and the
     # plugin owns its jump buffers.
     $CC -fPIC -mllvm -wasm-enable-sjlj \

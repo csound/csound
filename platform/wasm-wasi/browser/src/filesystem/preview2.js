@@ -4,6 +4,10 @@ import { encoder, decoder } from "../utils/utf8.js";
 
 const monotonic = () => getGlobalScope().performance?.now() ?? Date.now();
 const MAX_FILE_SIZE = 0x7fffffff;
+// WASI 0.2 patch releases keep existing function ABIs. Only bind functions
+// implemented here, and reject versions newer than the pinned libc.
+const supportedVersion = (version) =>
+  /^0\.2\.(0|[1-9][0-9]*)$/.test(version) && Number(version.slice(4)) <= 12;
 // wasi:filesystem/types@0.2.0 error-code discriminants.
 const E = {
   access: 0,
@@ -101,7 +105,14 @@ export class WASI extends MemoryFilesystem {
 
   startCommand(instance) {
     this.setInstance(instance);
-    const run = instance["exports"]["wasi:cli/run@0.2.0#run"];
+    const run = Object.entries(instance["exports"]).find(([name]) => {
+      const [iface, version] = name.split("@");
+      return (
+        iface === "wasi:cli/run" &&
+        version?.endsWith("#run") &&
+        supportedVersion(version.slice(0, -4))
+      );
+    })?.[1];
     if (typeof run !== "function") throw new TypeError("Expected a WASI Preview 2 command");
     try {
       return run() === 0 ? 0 : 1;
@@ -415,6 +426,9 @@ export class WASI extends MemoryFilesystem {
         },
       },
       "wasi:cli/exit": {
+        "exit-with-code": (status) => {
+          throw new CommandExit(status);
+        },
         "exit": (status) => {
           throw new CommandExit(status ? 1 : 0);
         },
@@ -638,7 +652,8 @@ export class WASI extends MemoryFilesystem {
         throw new TypeError("Preview 1 modules cannot run in the Preview 2 host");
       if (!item.module.startsWith("wasi:")) continue;
       const [name, version] = item.module.split("@");
-      const fn = version === "0.2.0" && item.kind === "function" && interfaces[name]?.[item.name];
+      const fn =
+        supportedVersion(version) && item.kind === "function" && interfaces[name]?.[item.name];
       if (!fn) throw new TypeError(`Unsupported Preview 2 import ${item.module}#${item.name}`);
       imports[item.module] ||= {};
       imports[item.module][item.name] = fn;

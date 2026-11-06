@@ -1,4 +1,4 @@
-"""Apply the pinned wasi-libc 32 fixes needed by LLVM's wasm64 target."""
+"""Apply the pinned wasi-libc fixes needed by LLVM's wasm64 target."""
 from pathlib import Path
 
 atomic = Path('libc-top-half/musl/arch/wasm32/atomic_arch.h')

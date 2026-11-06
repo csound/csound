@@ -28,7 +28,7 @@ responsibility of the Web Audio graph. Csound output device names such as
 - `lib/csound.wasm.z` is the compressed form used when building the browser
   package.
 - `lib/csound-cli.wasm` is a standalone WASI component exporting
-  `wasi:cli/run@0.2.0`, for runtimes such as Wasmtime.
+  `wasi:cli/run@0.2.12`, for runtimes such as Wasmtime.
 - `lib/csound-cli.core.wasm` contains the command’s core module for JavaScript hosts.
 
 The package and these examples default to wasm32 float `csound.wasm`.

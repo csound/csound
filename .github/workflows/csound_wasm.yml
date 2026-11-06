@@ -2,7 +2,7 @@ name: csound_wasm
 run-name: "WASM | ${{ github.event_name == 'pull_request' && format('PR #{0}: {1}', github.event.pull_request.number, github.event.pull_request.title) || format('{0} push', github.ref_name) }}"
 
 env:
-  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/d3b13ad75cc492690728f9307e443dec9ef9a20e.tar.gz
+  nix_path: nixpkgs=https://github.com/NixOS/nixpkgs/archive/6dadaf4375be35033e1c84395adbd53ff5fded96.tar.gz
 
 on:
   pull_request:

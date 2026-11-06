@@ -10,7 +10,7 @@ assert(
   imports.every(
     ({ module, kind }) =>
       (module === "env" && kind === "memory") ||
-      (module.startsWith("wasi:") && module.endsWith("@0.2.0")),
+      (module.startsWith("wasi:") && module.endsWith("@0.2.12")),
   ),
 );
 const { instantiateCommand } = await import(pathToFileURL(process.argv[3] + "/utils/wasm64.js"));

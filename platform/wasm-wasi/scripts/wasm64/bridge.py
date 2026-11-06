@@ -8,6 +8,7 @@ can lift and lower. Audio buffers never pass through this adapter.
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import tempfile
@@ -22,6 +23,14 @@ def tool(*args):
 
 def signature(params, results):
     return ('(param ' + ' '.join(params) + ')' if params else '') + ('(result ' + ' '.join(results) + ')' if results else '')
+
+
+def command_export(engine):
+    names = [name for name, (kind, _) in engine.exports.items()
+             if kind == 0 and re.fullmatch(r'wasi:cli/run@0\.2\.\d+#run', name)]
+    if len(names) != 1:
+        raise ValueError('Expected one WASI Preview 2 command export')
+    return names[0]
 
 
 def generate(engine, wit, browser):
@@ -102,8 +111,7 @@ def generate(engine, wit, browser):
     # Memory32 remains the canonical memory named "memory". Browser heaps are
     # imported so the application retains its usual control over growth.
     memory_declarations = (heap if browser else '') + '(memory $abi (export "memory") 1 32768)' + ('' if browser else heap)
-    run_name = 'wasi:cli/run@0.2.0#run'
-    run = '' if browser else f'(func (export {quote(run_name)}) (result i32) (call_indirect (type $run-type) (i32.const 1)))'
+    run = '' if browser else f'(func (export {quote(command_export(engine))}) (result i32) (call_indirect (type $run-type) (i32.const 1)))'
     source = '(module\n' + '\n'.join(imports) + memory_declarations + '''
       (type $alloc-type (func (param i64 i64 i64 i64) (result i64)))
       (type $run-type (func (result i32)))
@@ -181,9 +189,10 @@ def build(core, output, browser=False):
         for module, name, kind, index in engine.imports:
             if kind == 0:
                 stub_imports.append(f'(import {quote(module)} {quote(name)} (func {signature(*engine.types[index])}))')
-        definitions = ['(core module $engine64 ' + '\n'.join(stub_imports) + '''
+        run_name = quote(command_export(engine))
+        definitions = ['(core module $engine64 ' + '\n'.join(stub_imports) + f'''
           (func (export "cabi_realloc") (param i64 i64 i64 i64) (result i64) i64.const 0)
-          (func (export "wasi:cli/run@0.2.0#run") (result i32) i32.const 0))''']
+          (func (export {run_name}) (result i32) i32.const 0))''']
         definitions.append('(alias core export $main "heap" (core memory $engine-heap))')
         definitions.append('(alias core export $main "engine-functions" (core table $engine-functions))')
         groups = {}
@@ -193,10 +202,10 @@ def build(core, output, browser=False):
         arguments = ['(with "env" (instance (export "memory" (memory $engine-heap))))']
         arguments += [f'(with {quote(module)} (instance ' + ' '.join(exports) + '))' for module, exports in groups.items()]
         definitions.append('(core instance $engine64 (instantiate $engine64 ' + ' '.join(arguments) + '))')
-        definitions.append('''(core module $connect-engine
+        definitions.append(f'''(core module $connect-engine
           (import "bridge" "table" (table 2 funcref))
           (import "engine" "cabi_realloc" (func $alloc (param i64 i64 i64 i64) (result i64)))
-          (import "engine" "wasi:cli/run@0.2.0#run" (func $run (result i32)))
+          (import "engine" {run_name} (func $run (result i32)))
           (elem (i32.const 0) func $alloc $run))
           (core instance (instantiate $connect-engine
             (with "bridge" (instance (export "table" (table $engine-functions))))
