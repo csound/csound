@@ -98,3 +98,7 @@ are not listed, and the option stops before compiling or performing any file.
 Plugin options such as `--opcode-dir` and `--opcode-lib` apply wherever they
 appear on the command line, and also when they come from `CSOUND7RC` or
 `.csound7rc`.
+
+`--list-opcodes` (and `-z`) follows the same rules, so the opcodes of a library
+given with `--opcode-lib` are listed too. Both options can be given in one call:
+the opcodes are printed first, then the structs.
