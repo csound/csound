@@ -1893,8 +1893,9 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
     if (csound->list_opcodes_request) {
       int32_t level = csound->list_opcodes_request - 1;
       csound->list_opcodes_request = 0;
-      if (csoundLoadRequestedPlugins(csound) == CSOUND_SUCCESS)
-        list_opcodes(csound, level);
+      if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
+        return 1;
+      list_opcodes(csound, level);
     }
 
     return ret ? 0 : 1;

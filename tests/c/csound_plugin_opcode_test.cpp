@@ -18,6 +18,7 @@
 
 #ifdef CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN
 #include "requested_opcode_plugin_path.hpp"
+#include "failing_init_plugin_path.hpp"
 #endif
 
 
@@ -252,6 +253,32 @@ TEST(ListOpcodes, SetOptionListsAtOnceAndLeavesCompileRunning) {
   EXPECT_EQ(csoundCompile(csound, 3, args), CSOUND_SUCCESS)
       << drainMessages(csound);
   csoundDestroy(csound);
+}
+
+namespace {
+const char *kFailingInitOption =
+    "--opcode-lib=" CSOUND_TEST_FAILING_INIT_PLUGIN;
+} // namespace
+
+TEST(ListOpcodes, SetOptionReportsPluginThatFailsToStart) {
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  csoundCreateMessageBuffer(csound, 0);
+  ASSERT_EQ(csoundSetOption(csound, kFailingInitOption), CSOUND_SUCCESS);
+  EXPECT_NE(csoundSetOption(csound, "--list-opcodes1"), CSOUND_SUCCESS);
+  const std::string listing = drainMessages(csound);
+  EXPECT_NE(listing.find("Error starting module"), std::string::npos)
+      << listing;
+  EXPECT_EQ(listing.find(" opcodes\n"), std::string::npos) << listing;
+  csoundDestroy(csound);
+}
+
+TEST(ListOpcodes, CompileReportsPluginThatFailsToStart) {
+  const OpcodeListing listing =
+      compileWithArgs({"--list-opcodes1", kFailingInitOption});
+  EXPECT_NE(listing.status, CSOUND_SUCCESS) << listing.text;
+  EXPECT_NE(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_EQ(listing.text.find(" opcodes\n"), std::string::npos)
+      << listing.text;
 }
 #endif
 
