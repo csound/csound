@@ -20,8 +20,7 @@
 * Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
-/* module is now csnd6 */
-%module(directors="1") csnd6
+%module(directors="1") csnd7
 
 %feature("director") CsoundCallbackWrapper;
 %feature("nodirector") Csound;
@@ -40,7 +39,7 @@
 
 %apply int { size_t };
 
-typedef unsigned int uint32_t;
+%include "stdint.i"
 
 /* %typemap(freearg) char ** {
   free((char *) $1);
@@ -49,16 +48,11 @@ typedef unsigned int uint32_t;
 // Enable the JNI class to load the required native library.
 %pragma(java) jniclasscode=%{
   static {
-    try {
-        java.lang.System.loadLibrary("_jcsound6");
-    } catch (UnsatisfiedLinkError e) {
-        java.lang.System.err.println("_jcsound6 native code library failed to load.\n" + e);
-        java.lang.System.exit(1);
-    }
+    System.loadLibrary("_jcsound7");
   }
 %}
 
-%apply char **STRING_ARRAY { char **argv };
+%apply char **STRING_ARRAY { char **argv, const char **argv };
 
 %include "exclusions.i"
 
@@ -73,6 +67,7 @@ typedef unsigned int uint32_t;
 
 %ignore CsoundPerformanceThread::SetProcessCallback(void (*Callback)(void *), void *cbdata);
 
+%ignore CsoundMYFLTArray::SetStringValue;
 %include "cs_glue.hpp"
 %include "csPerfThread.hpp"
 

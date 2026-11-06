@@ -1,0 +1,44 @@
+name: Csound Java bindings
+
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - "languages/java/**"
+      - "H/cs_glue.hpp"
+      - "include/**"
+      - "CMakeLists.txt"
+      - ".github/workflows/csound_java.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  java:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        precision: [double, float]
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build swig bison flex \
+            libsndfile1-dev openjdk-17-jdk
+      - name: Build bindings
+        run: |
+          export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+          if [ "${{ matrix.precision }}" = double ]; then
+            precision="-DUSE_DOUBLE=ON -DUSE_FLOAT=OFF"
+          else
+            precision="-DUSE_DOUBLE=OFF -DUSE_FLOAT=ON"
+          fi
+          cmake -S . -B build-java -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DBUILD_JAVA_INTERFACE=ON \
+            -DBUILD_UTILITIES=OFF -DUSE_GETTEXT=OFF -DUSE_ALSA=OFF $precision
+          ninja -C build-java csnd7 csnd7-smoke
+      - name: Exercise Java API
+        run: ctest --test-dir build-java -R '^java-api$' --output-on-failure
