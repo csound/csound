@@ -504,16 +504,26 @@ QNAN            "qnan"[ \t]*\(
                   //csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                   //                     yyscanner);
                   //print_csound_predata(csound,"Before pre_line", yyscanner);
-                  /* Do not reset PARM->line to the restored caller line here.
-                     The macro expansion emitted its own line directives, but
-                     the #line restore can only be written once the scanner
-                     reaches the next newline. Leaving PARM->line at the
-                     expansion's last line makes {NEWLINE} emit the restore
-                     directive, so following code is numbered against the CSD
-                     rather than the macro body. Includes handle their restore
-                     explicitly below. */
+                  /* Restore the caller's line in the preprocessed output.
+                     If the expansion ended at the start of a line (its body
+                     ended with a newline) the #line directive can be emitted
+                     here, so code that follows the invocation on the same
+                     source line is numbered correctly. Otherwise leave
+                     PARM->line at the expansion's last line: the next
+                     {NEWLINE} then emits the restore, keeping following code
+                     numbered against the CSD rather than the macro body.
+                     Includes handle their restore explicitly below. */
                   if (PARM->alt_stack[PARM->macro_stack_ptr].included)
                     csound_pre_line(csound, csound->expanded_orc, yyscanner);
+                  else if (csound->expanded_orc->p > 0 &&
+                           csound->expanded_orc->body[csound->expanded_orc->p - 1] == '\n') {
+                    /* Force the caller directive: PARM->line is still the
+                       expansion's last line, so csound_pre_line() would write
+                       it, but pin it explicitly to avoid the n == line + 1
+                       coincidence skipping the emit. */
+                    PARM->line = csound_preget_lineno(yyscanner);
+                    csound_pre_line(csound, csound->expanded_orc, yyscanner);
+                  }
                   //print_csound_predata(csound,"After pre_line", yyscanner);
                   if (PARM->alt_stack[PARM->macro_stack_ptr].included) {
                     char bb[80];
