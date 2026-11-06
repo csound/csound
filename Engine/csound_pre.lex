@@ -504,7 +504,16 @@ QNAN            "qnan"[ \t]*\(
                   //csound_preset_lineno(PARM->alt_stack[PARM->macro_stack_ptr].line,
                   //                     yyscanner);
                   //print_csound_predata(csound,"Before pre_line", yyscanner);
-                  csound_pre_line(csound, csound->orchstr, yyscanner);
+                  /* Do not reset PARM->line to the restored caller line here.
+                     The macro expansion emitted its own line directives, but
+                     the #line restore can only be written once the scanner
+                     reaches the next newline. Leaving PARM->line at the
+                     expansion's last line makes {NEWLINE} emit the restore
+                     directive, so following code is numbered against the CSD
+                     rather than the macro body. Includes handle their restore
+                     explicitly below. */
+                  if (PARM->alt_stack[PARM->macro_stack_ptr].included)
+                    csound_pre_line(csound, csound->expanded_orc, yyscanner);
                   //print_csound_predata(csound,"After pre_line", yyscanner);
                   if (PARM->alt_stack[PARM->macro_stack_ptr].included) {
                     char bb[80];
