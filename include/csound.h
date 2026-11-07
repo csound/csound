@@ -940,7 +940,8 @@ extern "C" {
    *    when accessing/modifying channel data at **p.
    * See Top/threadsafe.c in the Csound library sources for
    * examples.  Optionally, use the channel get/set functions
-   * provided below, which are threadsafe by default.
+   * provided below, which are threadsafe by default, but see
+   * csoundGetStringChannel() on sizing its buffer.
    * NB: this function cannot be used to create a generic CSOUND_VAR_CHANNEL
    *     but it can access existing channels of that type
    */
@@ -1111,9 +1112,9 @@ extern "C" {
    *   csoundUnlockChannel(csound, name);
    * }
    * \endcode
-   * length says whether the string fitted, and how much room it needs if
-   * it did not. The performance waits for that lock when it uses the
-   * channel, so do nothing slow while holding it, and allocate outside it.
+   * If length is not less than size, the copy was truncated, and the string
+   * needs length + 1 bytes. The performance waits for that lock when it uses
+   * the channel, so do nothing slow while holding it, and allocate outside it.
    * csoundGetStringChannel() takes the lock itself, so it cannot be called
    * between csoundLockChannel() and csoundUnlockChannel().
    */
