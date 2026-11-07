@@ -1191,7 +1191,7 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         return result;
       }
       else if (strstr(p, "<CsOptions>") == p) {
-        if (!notrunning) {
+        if (!notrunning && !csound->disable_csd_options) {
           if(csound->oparms->odebug)
           csoundMessage(csound, Str("Creating options\n"));
           csound->orchname = NULL;  /* allow orchestra/score name in CSD file */
