@@ -1,0 +1,54 @@
+#include "csound.h"
+#include "gtest/gtest.h"
+#include <optional>
+#include <string>
+
+/* csoundSetGlobalEnv() writes one table for the whole process, read by
+ * csoundGetEnv(NULL, ...) and copied by every new instance.
+ */
+
+namespace {
+
+const char *const a = "CSOUND_GLOBAL_ENV_TEST_A";
+const char *const b = "CSOUND_GLOBAL_ENV_TEST_B";
+
+std::optional<std::string> instanceValue(const char *name)
+{
+    CSOUND *csound = csoundCreate(nullptr, nullptr);
+    const char *value = csoundGetEnv(csound, name);
+    std::optional<std::string> result;
+    if (value != nullptr) result = value;
+    csoundDestroy(csound);
+    return result;
+}
+
+class GlobalEnvTests : public ::testing::Test {
+protected:
+    void TearDown() override
+    {
+        /* One delete per entry, whatever a failed test left: 16 slots. */
+        for (int slot = 0; slot < 16; slot++) {
+            csoundSetGlobalEnv(a, nullptr);
+            csoundSetGlobalEnv(b, nullptr);
+        }
+    }
+};
+
+}
+
+/* A's slot comes before B's, and is free when B is set again. */
+TEST_F(GlobalEnvTests, SettingAgainAfterAnEarlierDeleteKeepsOneEntry)
+{
+    ASSERT_EQ(csoundSetGlobalEnv(a, "a"), 0);
+    ASSERT_EQ(csoundSetGlobalEnv(b, "old"), 0);
+    ASSERT_EQ(csoundSetGlobalEnv(a, nullptr), 0);
+
+    ASSERT_EQ(csoundSetGlobalEnv(b, "new"), 0);
+    EXPECT_STREQ(csoundGetEnv(nullptr, b), "new");
+    EXPECT_EQ(instanceValue(b), "new");
+
+    ASSERT_EQ(csoundSetGlobalEnv(b, nullptr), 0);
+    EXPECT_EQ(csoundGetEnv(nullptr, b), nullptr);
+    EXPECT_EQ(instanceValue(b), std::nullopt);
+    EXPECT_NE(csoundSetGlobalEnv(b, nullptr), 0);
+}

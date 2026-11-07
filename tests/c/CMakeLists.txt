@@ -72,6 +72,7 @@ if(BUILD_TESTS)
         dct_test.cpp
         fft_backend_test.cpp
         engine_test.cpp
+        global_env_test.cpp
         realtime_chain_test.cpp
         realtime_readiness_test.cpp
         instance_variable_test.cpp
