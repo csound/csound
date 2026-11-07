@@ -149,6 +149,24 @@ class TestStringChannel(unittest.TestCase):
         self.assertFalse(writer.is_alive())
         self.assertEqual(self.cs.string_channel('text'), 'a' * 65536)
 
+    def test_string_channel_holds_a_writer_off_during_the_copy(self):
+        self.cs.set_string_channel('text', 'short')
+        copy = ctcsound.string_copy
+        writer = threading.Thread(target=self.cs.set_string_channel,
+                                  args=('text', 'x' * 4096), daemon=True)
+
+        def copy_during_a_write(csound, sdata):
+            writer.start()
+            writer.join(0.1)
+            self.assertTrue(writer.is_alive())
+            return copy(csound, sdata)
+
+        with mock.patch.object(ctcsound, 'string_copy', copy_during_a_write):
+            self.assertEqual(self.cs.string_channel('text'), 'short')
+        writer.join(10)
+        self.assertFalse(writer.is_alive())
+        self.assertEqual(self.cs.string_channel('text'), 'x' * 4096)
+
     def test_string_channel_unlocks_when_the_copy_raises(self):
         self.cs.set_string_channel('text', 'short')
         unlock = mock.Mock(wraps=ctcsound.libcsound.csoundUnlockChannel)
