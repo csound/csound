@@ -150,7 +150,9 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
     ff.csound = csound;
 
     memcpy(&(ff.e), evtblkp, sizeof(EVTBLK));
-    ff.e.p = (cs_float *) csound->Calloc(csound, sizeof(cs_float) * (evtblkp->pcnt + 2));
+    /* csoundFtError reads p4 whatever the event gave: f -1 gives p1 alone. */
+    ff.e.p = (cs_float *) csound->Calloc(csound, sizeof(cs_float) *
+                                         ((evtblkp->pcnt < 3 ? 3 : evtblkp->pcnt) + 2));
     ff.e.p[1] = evtblkp->p[1];
     ff.fno = (int32_t) CS_FLOAT2LRND(ff.e.p[1]);
     if (!ff.fno) {

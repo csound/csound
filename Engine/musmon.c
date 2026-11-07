@@ -1667,6 +1667,7 @@ static inline uint64_t time2kcnt(CSOUND *csound, cs_double tval)
 
 static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
   EVTNODE       *e;
+  int32_t       i;
   /* make a copy of the event... */
   csound_rt_event_lock(csound);
   e = csound->freeEvtNodes;
@@ -1699,7 +1700,10 @@ static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
     // alloc memory
      e->evt.pcnt = ep->pcnt;
      if(e->evt.p != NULL) csound->Free(csound, e->evt.p);
-     e->evt.p = csound->Calloc(csound, sizeof(cs_float)*(ep->pcnt+1));
+     /* p1 to p3 are read and p2 written whatever the event gave: f -1 gives
+        one, and d or f 0 two. */
+     e->evt.p = csound->Calloc(csound,
+                               sizeof(cs_float)*((ep->pcnt < 3 ? 3 : ep->pcnt)+1));
      if (UNLIKELY(e->evt.p == NULL)) {
        e->evt.pcnt = 0;
        if (e->evt.strarg != NULL) {
@@ -1710,6 +1714,8 @@ static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
        return NULL;
      }
   } else e->evt.pcnt = ep->pcnt;
+  for (i = ep->pcnt + 1; i <= 3; i++)  /* a recycled block's are its last event's */
+    e->evt.p[i] = FL(0.0);
   return e;
 }
 
