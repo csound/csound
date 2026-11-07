@@ -111,7 +111,6 @@
   "csoundGetSpout",
   "csoundGetSr",
   "csoundGetStringChannel",
-  "csoundGetStringChannelBounded",
   "csoundGetStringChannelWasi",
   "csoundGetTable",
   "csoundGetTableArgs",
