@@ -117,6 +117,8 @@ int32_t binit(CSOUND *csound, ASSIGNM *p)
   int32_t **r = (int32_t **) p->r;
   uint32_t i;
   int32_t *tmp;
+  if (UNLIKELY(nargs == 0))
+    return csound->InitError(csound, Str("init needs a value\n"));
   if (UNLIKELY(nargs > p->OUTOCOUNT))
     return csound->InitError(csound,
                              Str("Cannot be more In arguments than Out in "
@@ -204,6 +206,8 @@ int32_t minit(CSOUND *csound, ASSIGNM *p)
   uint32_t nout = p->OUTOCOUNT;
   uint32_t i;
   cs_float *tmp;
+  if (UNLIKELY(nargs == 0))
+    return csound->InitError(csound, Str("init needs a value\n"));
   if (UNLIKELY(nargs > p->OUTOCOUNT))
     return csound->InitError(csound,
                              Str("Cannot be more In arguments than Out in "
