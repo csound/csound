@@ -509,7 +509,8 @@ extern "C" {
   /**
    * Set csound options (flag). Returns CSOUND_SUCCESS on success.
    * This needs to be called after csoundCreate() and before any code is
-   * compiled. Multiple options are allowed in one string.
+   * compiled. Multiple options are allowed in one string. An empty string,
+   * or one of spaces alone, sets nothing; NULL is refused.
    * Returns zero on success.
    */
   PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *option);

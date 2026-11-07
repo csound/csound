@@ -69,3 +69,28 @@ TEST_F (OptionParserTests, testParseQuotedEnvVar)
 
     corfile_rm(csound, &cf);
 }
+
+TEST_F (OptionParserTests, testEmptyOptionSetsNothing)
+{
+    /* Three calls, as argdecode() takes two names and dies of the third. */
+    EXPECT_EQ (csoundSetOption (csound, ""), 0);
+    EXPECT_EQ (csoundSetOption (csound, "   "), 0);
+    EXPECT_EQ (csoundSetOption (csound, ""), 0);
+    EXPECT_EQ (csound->orchname, nullptr);
+    EXPECT_EQ (csound->scorename, nullptr);
+}
+
+TEST_F (OptionParserTests, testEmptyOptionLeavesRcFilesUnread)
+{
+    /* The fixture's own option has read them, so a new instance. */
+    CSOUND *fresh = csoundCreate (NULL, NULL);
+    csoundCreateMessageBuffer (fresh, 0);
+    EXPECT_EQ (csoundSetOption (fresh, ""), 0);
+    EXPECT_EQ (fresh->options_checked, 0);
+    csoundDestroy (fresh);
+}
+
+TEST_F (OptionParserTests, testNullOptionIsRefused)
+{
+    EXPECT_NE (csoundSetOption (csound, NULL), 0);
+}

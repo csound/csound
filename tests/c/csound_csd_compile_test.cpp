@@ -144,4 +144,13 @@ TEST_F(CsdCompileTests, FileThenFileUsesNewName)
   EXPECT_EQ(std::string::npos, output.find(path("first.csd"))) << output;
   EXPECT_EQ(std::string::npos, output.find("*string*")) << output;
 }
+
+TEST_F(CsdCompileTests, EmptyOptionLeavesFileNameToTheCsd)
+{
+  ASSERT_NO_FATAL_FAILURE(write("piece.csd", csd()));
+  ASSERT_EQ(0, csoundSetOption(csound, ""));
+  const auto file = path("piece.csd");
+  const char *arguments[] = {"csound", file.c_str()};
+  EXPECT_EQ(CSOUND_SUCCESS, csoundCompile(csound, 2, arguments)) << messages();
+}
 }

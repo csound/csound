@@ -1805,9 +1805,12 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
 
 
  int32_t csoundSetOption(CSOUND *csound, const char *opt) {
-  /* if already compiled and running, return */
-  if (csound->engineStatus & CS_STATE_COMP)
+  /* if given no string, or already compiled and running, return */
+  if (opt == NULL || (csound->engineStatus & CS_STATE_COMP))
     return 1;
+  /* nothing to set: argdecode() would take "" for an orchestra name */
+  else if (opt[strspn(opt, " ")] == '\0')
+    return 0;
   else {
     char **args;
     char *options, *sp;
