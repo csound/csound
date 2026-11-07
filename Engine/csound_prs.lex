@@ -468,6 +468,12 @@ NP              np[0-9]+
           if (PARM->isString) corfile_puts(csound, yytext, PARM->cf);
           else {
             //printf("#loop found\n");
+            /* acnt is -1 until "}" starts the repeat playing. */
+            if (UNLIKELY(PARM->repeat_index == 0 ||
+                         PARM->repeat_mm_n[PARM->repeat_index]->acnt != 0)) {
+              csound->ErrorMsg(csound, Str("#loop outside a repeat in score\n"));
+              csound->LongJmp(csound, 1);
+            }
             yypop_buffer_state(yyscanner);
             PARM->depth--;
             PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
@@ -1185,9 +1191,16 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     int i,c;
+    MACRO *found = PARM->macros;
     if (UNLIKELY(csound->oparms->msglevel))
       csound->Message(csound,Str("macro %s undefined\n"), name0);
     csound->DebugMsg(csound, "macro %s undefined\n", name0);
+    while (found != NULL && strcmp(name0, found->name) != 0)
+      found = found->next;
+    if (UNLIKELY(found == NULL)) {
+      csound->Message(csound, "%s\n", Str("Undefining undefined macro"));
+      csound->LongJmp(csound, 1);
+    }
     if (strcmp(name0, PARM->macros->name)==0) {
       MACRO *mm=PARM->macros->next;
       csoundFree(csound, PARM->macros->name); csoundFree(csound, PARM->macros->body);
@@ -1200,10 +1213,6 @@ static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
       MACRO *nn = mm->next;
       while (strcmp(name0, nn->name) != 0) {
         mm = nn; nn = nn->next;
-        if (UNLIKELY(nn == NULL)) {
-          csound->Message(csound, Str("Undefining undefined macro"));
-          csound->LongJmp(csound, 1);
-        }
       }
       csoundFree(csound, nn->name); csoundFree(csound, nn->body);
       for (i=0; i<nn->acnt; i++)
@@ -1517,9 +1526,7 @@ static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
       if (UNLIKELY(PARM->depth>1022)) {
         csound->Message(csound,
                         Str("macros/include nested too deep: "));
-        //csound->LongJmp(csound, 1);
-        corfile_puts(csound, "$error", PARM->cf);
-        err = 1;
+        csound->LongJmp(csound, 1);
       }
     }
     if (!err) {
@@ -1561,9 +1568,11 @@ static void csound_prs_line(CORFIL* cf, void *yyscanner)
 static MACRO *find_definition(MACRO *mmo, char *s)
 {
     MACRO *mm = mmo;
-    if (s[strlen(s)-1]=='.') s[strlen(s)-1]='\0';
-    else if (s[strlen(s)-2]=='.' && s[strlen(s)-1]=='(') {
-      s[strlen(s)-2] = '('; s[strlen(s)-1] = '\0'; }
+    size_t len = strlen(s);
+    if (len == 0) return NULL;
+    if (s[len-1]=='.') s[len-1]='\0';
+    else if (len > 1 && s[len-2]=='.' && s[len-1]=='(') {
+      s[len-2] = '('; s[len-1] = '\0'; }
     //printf("****Looking for %s\n", s);
     while (mm != NULL) {  /* Find the definition */
       //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
@@ -1572,9 +1581,10 @@ static MACRO *find_definition(MACRO *mmo, char *s)
     }
     if (mm == NULL) {
       mm = mmo;
-      s++;                      /* skip _ */
+      if (*s++ == '\0') return NULL; /* skip _ */
     looking:
-      while (*s++!='`') { if (*s=='\0') return NULL; }
+      while (*s!='`') { if (*s++=='\0') return NULL; }
+      s++;
       if (*s++!='`') { s--; goto looking; }
       //printf("now try looking for %s\n", s);
       while (mm != NULL) {  /* Find the definition */
@@ -1825,7 +1835,8 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
       MACRO* mm;
       //printf("*** macro count\n");
       while (isalnum(c=input(yyscanner)) || c=='_') {
-        buf[i++] = c;
+        if (i < (int) sizeof(buf) - 1)
+          buf[i++] = c;
       }
       if (c=='.') c = input(yyscanner);
       buf[i] = '\0';

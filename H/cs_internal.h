@@ -298,7 +298,7 @@ extern "C" {
       int32_t  unused_int3;
       int32_t  unused_int2;
       int32_t  linepos /* = -1 */;
-      MARKED_SECTIONS names[30];
+      MARKED_SECTIONS names[1024];
       char    unused_char0[RPTDEPTH][NAMELEN];
       int32_t unused_int4[RPTDEPTH];
       int32   unused_int7[RPTDEPTH];

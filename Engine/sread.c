@@ -117,6 +117,16 @@ static void sreaderr(CSOUND *csound, const char *s, ...)
     return;
 }
 
+/* A b, B, C or v without its number is said and ignored: there is no p-field
+   to read, and sp is NULL or the last statement's. */
+static int32_t has_number(CSOUND *csound)
+{
+    if (getpfld(csound, 0))
+      return 1;
+    sreaderr(csound, Str("%c without a number ignored\n"), csound->sread.op);
+    return 0;
+}
+
 /* scorerr() - for fatal errors in score parsing */
 static void scorerr(CSOUND *csound, const char *s, ...)
 {
@@ -236,6 +246,7 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
       (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK));
     (csound->sread.input_size) = 20;
     (csound->sread.input_cnt) = 0;
+    (csound->sread.last_name) = -1;      /* a mark is a place in this text */
     (csound->sread.str) = (csound->sread.inputs);
     (csound->sread.str)->is_marked_repeat = 0;
     (csound->sread.str)->line = 1; (csound->sread.str)->mac = NULL;
@@ -288,12 +299,17 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
         {
           char  *p = &((csound->sread.bp)->text[1]);
           char q;
+          int32_t c;
           //char *old_nxp = (csound->sread.nxp)-2;
           //printf("text=%s<<\n", (csound->sread.bp)->text);
           /* Measurement shows isdigit and 3 cases is about 30% */
           /* faster than use of strchr (measured on Suse9.3)    */
           /*         if (strchr("+-.0123456789", *p) != NULL) { */
-          while ((q=getscochar(csound,1))!='\n') *p++ = q;
+          while ((c=getscochar(csound,1))!='\n' && c!=EOF) {
+            *p++ = c;
+            if (p >= (csound->sread.memend))
+              p = (char*) ((uintptr_t) p + expand_nxp(csound));
+          }
           *p = '\0';
           //printf("text=%s<<\n", (csound->sread.bp)->text);
           p = &((csound->sread.bp)->text[1]);
@@ -337,13 +353,14 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
       case 'b': /* Set a clock base */
         {
           char *old_nxp = (csound->sread.nxp)-2;
-          getpfld(csound,0);
-          if (csound->sread.op == 'b')
-            (csound->sread.clock_base) =
-              stof(csound, (csound->sread.sp));
-          else
-            (csound->sread.clock_base) +=
-              stof(csound, (csound->sread.sp));
+          if (has_number(csound)) {
+            if (csound->sread.op == 'b')
+              (csound->sread.clock_base) =
+                stof(csound, (csound->sread.sp));
+            else
+              (csound->sread.clock_base) +=
+                stof(csound, (csound->sread.sp));
+          }
 
           if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound,Str("Clockbase = %f\n"),
@@ -359,9 +376,9 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
       case 'C':                 /* toggle carry */
         {
           char *old_nxp = (csound->sread.nxp)-2;
-          getpfld(csound,0);
-          (csound->sread.nocarry) =
-            stof(csound, (csound->sread.sp))==0.0?1:0;
+          if (has_number(csound))
+            (csound->sread.nocarry) =
+              stof(csound, (csound->sread.sp))==0.0?1:0;
           //printf("nocarry = %d\n", (csound->sread.nocarry));
           flushlin(csound);
           (csound->sread.op) = getop(csound);
@@ -430,7 +447,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           int32_t   c;
           int32_t   i = 0, j;
           while (isblank(c = getscochar(csound, 1)));
-          while (is_name_char(c, i)) {
+          while (is_name_char(c, i) && i < (int32_t) sizeof(buff) - 1) {
             buff[i++] = c;
             c = getscochar(csound, 1);
           }
@@ -445,6 +462,10 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             if (strcmp(buff, (csound->sread.names)[j].name)==0) break;
           }
           if (j>=(csound->sread.last_name)) {
+            if (UNLIKELY((csound->sread.last_name) + 1 >=
+                         (int32_t) (sizeof(csound->sread.names) /
+                                    sizeof(csound->sread.names[0]))))
+              scorerr(csound, Str("too many marked sections\n"));
             j = ++(csound->sread.last_name);
             (csound->sread.names)[j].name =csoundStrdup(csound, buff);
           }
@@ -471,7 +492,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           int32_t c;
           int32_t i = 0;
           while (isblank(c = getscochar(csound, 1)));
-          while (is_name_char(c, i)) {
+          while (is_name_char(c, i) && i < (int32_t) sizeof(buff) - 1) {
             buff[i++] = c;
             c = getscochar(csound, 1);
           }
@@ -490,6 +511,9 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           else {
             //csound->Message(csound, Str("%d: %s (%ld)\n"),
             //                i, buff, (csound->sread.names)[i].posit);
+            if (UNLIKELY((csound->sread.str) - (csound->sread.inputs) >=
+                         MAX_INCLUDE_DEPTH))
+              scorerr(csound, Str("n: marked sections nested too deeply\n"));
             (csound->sread.input_cnt)++;
             if (csound->sread.input_cnt>=csound->sread.input_size) {
               int32_t old = (int32_t)((csound->sread.str)-(csound->sread.inputs));
@@ -502,6 +526,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             }
             (csound->sread.str)++;
             (csound->sread.str)->is_marked_repeat = 1;
+            (csound->sread.str)->mac = NULL;
             (csound->sread.str)->line = (csound->sread.names)[i].line;
             (csound->sread.str)->oposit = corfile_tell(csound->expanded_sco);
             corfile_set(csound->expanded_sco,
@@ -520,9 +545,9 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
       case 'v': /* Suggestion of Bryan Bales */
         {       /* Set local variability of time */
           char *old_nxp = (csound->sread.nxp)-2;
-          getpfld(csound,0);
-          (csound->sread.warp_factor) =
-            stof(csound, (csound->sread.sp));
+          if (has_number(csound))
+            (csound->sread.warp_factor) =
+              stof(csound, (csound->sread.sp));
           if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound, Str("Warp_factor = %f\n"),
                             (csound->sread.warp_factor));
