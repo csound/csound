@@ -118,7 +118,8 @@ static void sreaderr(CSOUND *csound, const char *s, ...)
 }
 
 /* A b, B, C or v without its number is said and ignored: there is no p-field
-   to read, and sp is NULL or the last statement's. */
+   to read, sp is NULL or the last statement's, and getpfld has dealt with the
+   rest of the line. */
 static int32_t has_number(CSOUND *csound)
 {
     if (getpfld(csound, 0))
@@ -360,12 +361,12 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             else
               (csound->sread.clock_base) +=
                 stof(csound, (csound->sread.sp));
+            flushlin(csound);
           }
 
           if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound,Str("Clockbase = %f\n"),
                             csound->sread.clock_base);
-          flushlin(csound);
           (csound->sread.op) = getop(csound);
           (csound->sread.nxp) = old_nxp;
           *(csound->sread.nxp)++ =
@@ -376,11 +377,12 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
       case 'C':                 /* toggle carry */
         {
           char *old_nxp = (csound->sread.nxp)-2;
-          if (has_number(csound))
+          if (has_number(csound)) {
             (csound->sread.nocarry) =
               stof(csound, (csound->sread.sp))==0.0?1:0;
+            flushlin(csound);
+          }
           //printf("nocarry = %d\n", (csound->sread.nocarry));
-          flushlin(csound);
           (csound->sread.op) = getop(csound);
           (csound->sread.nxp) = old_nxp;
           *(csound->sread.nxp)++ =
@@ -545,13 +547,14 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
       case 'v': /* Suggestion of Bryan Bales */
         {       /* Set local variability of time */
           char *old_nxp = (csound->sread.nxp)-2;
-          if (has_number(csound))
+          if (has_number(csound)) {
             (csound->sread.warp_factor) =
               stof(csound, (csound->sread.sp));
+            flushlin(csound);
+          }
           if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound, Str("Warp_factor = %f\n"),
                             (csound->sread.warp_factor));
-          flushlin(csound);
           (csound->sread.op) = getop(csound);
           (csound->sread.nxp) = old_nxp;
           *(csound->sread.nxp)++ =

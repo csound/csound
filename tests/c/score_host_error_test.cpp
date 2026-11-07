@@ -91,6 +91,19 @@ const Refused refused[] = {
     {"r 2\n#define X #r 3#\n$X", "push-back overflow"},
     {"#define R(a) #$R(1)#\n$R(1)", "nested too deep"},
     {"m a\nn a", "marked sections nested too deeply"},
+    {"{ [1)] N\ni 1 0 0\n}", "unmatched ')'"},
+    {"{ [3+[1)]]\ni 1 0 0\n}", "unmatched ')'"},
+    {"{ [(1] N\ni 1 0 0\n}", "unmatched ']'"},
+    {"{ [1/0] N\ni 1 0 0\n}", "division error"},
+    {"{ [1%0] N\ni 1 0 0\n}", "division error"},
+    {"{ [(0-2147483647-1)/(0-1)] N\ni 1 0 0\n}", "division error"},
+    {"r 2\n{ 2 N\ns\n}", "repeat and section cross"},
+    /* A comment hides an s or r from the lexer until the repeat plays. */
+    {"r 2\n/**/r 2\n{ 2 N\n/**/s\n}\n", "repeat and section cross"},
+    {"r 2\n{ 2 A\n{ 2 B\ni 1 0 0\n/**/s\n}\n}\n", "repeat and section cross"},
+    {"#define M #{ 2 N\n/**/s\n}\n#\nr 2\n$/**/M\ni 1 0 0\ns\n}",
+     "repeat and section cross"},
+    {"{ 2 N\nr 2\n}\ns", "repeat and section cross"},
     {"#undef X", "Undefining undefined macro"},
     {"#define Y #1#\n#undef X", "Undefining undefined macro"},
     {"i 1 0 0\n}\ni 1 0 0", "unmatched } in score"},
@@ -133,7 +146,8 @@ INSTANTIATE_TEST_SUITE_P(
    .csd. The last three read and write past an event's p-fields at develop,
    which only a sanitizer shows. */
 const char *warned[] = {
-    "n", "n none", "b", "B", "C", "v", "y { 2 N", "a", "d 1 0", "f -1", "f 0 0",
+    "n", "n none", "b", "B", "C", "v", "y { 2 N", "a", "{ 2 N\ni 1 0 $N(1)\n}",
+    "d 1 0", "f -1", "f 0 0",
 };
 
 class HostScoreWarnings
@@ -170,18 +184,38 @@ INSTANTIATE_TEST_SUITE_P(
 struct Warned {
     const char *line;
     const char *said;
+    int plays;
 };
 
 /* The reader went past the end of these, into what followed them: a lone carry
    letter lost its own note, and a statement with no p-field the next one. */
 const Warned overrun[] = {
-    {"i 1 0 0 n", "illegal reference to n   Zero substituted"},
-    {"i 1 0 0 p", "illegal reference to p   Zero substituted"},
-    {"q\ni 1 0 0", "too few pfields"},
-    {"d\ni 1 0 0", "too few pfields"},
-    {"i\ni 1 0 0", "too few pfields"},
-    {"f\ni 1 0 0", "too few pfields"},
-    {"i 1 0 0\nq", "too few pfields"},
+    {"i 1 0 0 n", "illegal reference to n   Zero substituted", 1},
+    {"i 1 0 0 p", "illegal reference to p   Zero substituted", 1},
+    {"q\ni 1 0 0", "too few pfields", 1},
+    {"d\ni 1 0 0", "too few pfields", 1},
+    {"i\ni 1 0 0", "too few pfields", 1},
+    {"f\ni 1 0 0", "too few pfields", 1},
+    {"i 1 0 0\nq", "too few pfields", 1},
+    /* Two notes that refer to each other went round until the stack ran out. */
+    {"i 1 0 0 np4\ni 1 0 0 pp4", "illegal reference to pp4   Zero substituted", 2},
+    /* #undef freed a counter its repeat goes on using, however it was spelled. */
+    {"{ 2 N\ni 1 0 0\n#undef N\n}", "#undef of a repeat's counter ignored", 2},
+    {"{ 2 N\n#un/**/def N\ni 1 0 0\n}", "#undef of a repeat's counter ignored", 2},
+    {"r 2 N\ni 1 0 0\n#undef N\ns", "#undef of a repeat's counter ignored", 2},
+    /* A statement lacking its number took the next one with it. */
+    {"b\ni 1 0 0", "b without a number", 1},
+    {"C\ni 1 0 0", "C without a number", 1},
+    {"v\ni 1 0 0", "v without a number", 1},
+    /* A macro called with () deleted the macro before it. */
+    {"#define B #1#\n#define A(x) #2#\ni 1 0 0 $B()", "", 1},
+    /* Valid: what ends a macro's text ends at the end of its buffer. */
+    {"#define S #s#\ni 1 0 0\n$S\ni 1 0 0", "", 2},
+    /* An r begun in a repeat's playing outlives it, and crosses nothing. */
+    {"{ 1 A\n/**/r 2\n}\ni 1 0 0\n{ 2 B\ni 1 0 0\n}\ns\n", "", 6},
+    /* An unclosed repeat or section went without a word. */
+    {"{ 2 N\ni 1 0 0", "unclosed repeat", 0},
+    {"r 2\ni 1 0 0", "unclosed repeat", 0},
 };
 
 class HostScoreOverruns
@@ -193,7 +227,7 @@ TEST_P(HostScoreOverruns, StopAtTheirOwnText)
     Host host;
     host.send(line.line, std::get<1>(GetParam()));
     host.perform();
-    EXPECT_EQ(1, host.played());
+    EXPECT_EQ(line.plays, host.played());
     const std::string said = host.said();
     EXPECT_NE(std::string::npos, said.find(line.said)) << said;
 }
@@ -216,7 +250,11 @@ TEST(HostScoreErrors, LongNamesStayInTheirBuffers)
     Host host;
     host.start();
     for (const std::string &line :
-         {"m " + name, "n " + name, "{ $" + name + "\ni 1 0 0\n}"}) {
+         {"m " + name, "n " + name, "{ $" + name + "\ni 1 0 0\n}",
+          "{ [$" + name + "] N\ni 1 0 0\n}",
+          "#define " + std::string(1000, 'a') + "(x) #$x#",
+          "{ [" + std::string(45, '(') + "1] N\ni 1 0 0\n}",
+          "{ " + std::string(120000, '[')}) {
         SCOPED_TRACE(line);
         csoundEventString(host.csound, line.c_str(), 0);
         host.perform();
@@ -319,6 +357,32 @@ TEST(HostScoreErrors, RepeatsStillPlay)
     csoundEventString(host.csound, "{ 2 N\n{ 3 M\ni 1 0 0\n}\n}", 0);
     host.perform();
     EXPECT_EQ(8, host.played());
+    csoundEventString(host.csound, "r 2\n{ 2 N\ni 1 0 0\n}\ns", 0);
+    host.perform();
+    EXPECT_EQ(12, host.played());
+    csoundEventString(host.csound, "{ 2 N\nr 2\ni 1 0 0\ns\n}", 0);
+    host.perform();
+    EXPECT_EQ(16, host.played());
+    /* An expression that fills its stacks exactly. */
+    csoundEventString(host.csound, ("{ [" + std::string(29, '(') + "3" +
+                                    std::string(29, ')') + "]\ni 1 0 0\n}").c_str(), 0);
+    host.perform();
+    EXPECT_EQ(19, host.played());
+}
+
+/* An r ended over a repeat nothing closes crosses nothing that goes on: it
+   plays, as it did. */
+TEST(CsdScores, PlayWithARepeatOpenInASection)
+{
+    Host host;
+    const std::string csd =
+        std::string("<CsoundSynthesizer>\n<CsInstruments>\n") + orchestra +
+        "</CsInstruments>\n<CsScore>\nr 2\n{ 2 N\ni 1 0 0\n"
+        "</CsScore>\n</CsoundSynthesizer>\n";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(host.csound, csd.c_str(), 1, 0));
+    host.start();
+    host.performToScoreEnd();
+    EXPECT_EQ(2, host.played());
 }
 
 TEST(HostScoreErrors, ExitEndsWhatItsCallSent)

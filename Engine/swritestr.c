@@ -278,11 +278,15 @@ static char *nextp(CSOUND *csound, SRTBLK *bp, char *p,
       goto error;
     if (LIKELY((bp = nxtins(bp)) != NULL   /* for nxtins, same p1  */
                && n <= bp->pcnt)) {
-      q = bp->text;
+      char *field = bp->text;
       while (n--)
-        while (*q++ != SP)                 /*   go find the pfield */
+        while (*field++ != SP)             /*   go find the pfield */
           ;
-      pfout(csound,bp,q,lincnt,pcnt,sco);  /*   and put it out     */
+      if (UNLIKELY(*field == '?'))         /* one being followed: a cycle */
+        goto error;
+      *q = '?';
+      pfout(csound,bp,field,lincnt,pcnt,sco); /* and put it out    */
+      *q = 'n';
     }
     else {
     error:
@@ -319,11 +323,15 @@ static char *prevp(CSOUND *csound, SRTBLK *bp, char *p,
       goto error;
     if (LIKELY((bp = prvins(bp)) != NULL   /* for prvins, same p1, */
                && n <= bp->pcnt)) {
-      q = bp->text;
+      char *field = bp->text;
       while (n--)
-        while (*q++ != SP)          /*   go find the pfield */
+        while (*field++ != SP)      /*   go find the pfield */
           ;
-      pfout(csound,bp,q,lincnt,pcnt, sco); /*   and put it out */
+      if (UNLIKELY(*field == '?'))  /* one being followed: a cycle */
+        goto error;
+      *q = '?';
+      pfout(csound,bp,field,lincnt,pcnt, sco); /* and put it out */
+      *q = 'p';
     }
     else {
     error:

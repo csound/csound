@@ -291,7 +291,7 @@ extern "C" {
       cs_float   warp_factor /* = FL(1.0) */;
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
-      MACRO   *unused_ptr2;
+      void    *scanner;               /* the preprocessor's, while it runs    */
       int32_t  last_name /* = -1 */;
       IN_STACK *inputs, *str;
       int32_t  input_size, input_cnt;
@@ -312,7 +312,6 @@ extern "C" {
       int32_t unused_intA;
       MACRO   *unused_ptr1;
       int32_t  nocarry;
-      void    *scanner;               /* the preprocessor's, while it runs    */
    };
 
    struct onefileStatics__ {
