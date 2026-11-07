@@ -323,7 +323,6 @@ csound_orcparse.c \
 rtopensl.c \
 rtaudio.c \
 AndroidCsound.cpp \
-AndroidMidi.c \
 $(CSOUND_SRC_ROOT)/Top/csPerfThread.cpp \
 java_interfaceJAVA_wrap.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c \
@@ -339,7 +338,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/remap.c
 # before compiling any of them, including on a clean parallel build.
 $(addprefix $(LOCAL_PATH)/,$(filter-out csound_orcparse.c,$(LOCAL_SRC_FILES))): | $(LOCAL_PATH)/csound_orcparse.h
 
-LOCAL_LDLIBS += -llog -lOpenSLES -laaudio -lamidi -ldl -lm -lc
+LOCAL_LDLIBS += -llog -lOpenSLES -laaudio -ldl -lm -lc
 
 
 # For building with all plugins use:

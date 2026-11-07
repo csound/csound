@@ -34,7 +34,6 @@ import android.media.AudioAttributes;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
-import android.media.midi.MidiDevice;
 import android.util.Log;
 import android.webkit.JavascriptInterface;
 import com.csounds.bindings.CsoundBinding;
@@ -43,7 +42,6 @@ import csnd7.AndroidCsound;
 import csnd7.Csound;
 import csnd7.CsoundCallbackWrapper;
 import csnd7.CsoundMYFLTArray;
-import csnd7.SWIGTYPE_p_CSOUND_;
 import csnd7.controlChannelType;
 
 public class CsoundObj {
@@ -108,29 +106,6 @@ public class CsoundObj {
             csound = new AndroidCsound(isAsync);
         }
         iomode = io_mode;
-    }
-
-    // JNI midi setup
-    private native void setMidiDevices(SWIGTYPE_p_CSOUND_ csound, MidiDevice in, MidiDevice out);
-
-    private native void deinitMidiDevices(SWIGTYPE_p_CSOUND_ csound);
-
-    // Set MIDI devices
-    // should be called before startCsound()
-    // in: MidiDevice for MIDI input
-    // out: MidiDevice for MIDI output
-    // ports default to 0, 0
-    public void setMidiIO(MidiDevice in, MidiDevice out) {
-        setMidiDevices(csound.GetCsound(), in, out);
-        setMidiPorts(0,0);
-    }
-    // Set MIDI ports
-    public void setMidiPorts(int in, int out) {
-        csound.SetOption(String.format("-M%d -Q%d", in, out));
-    }
-
-    public void closeMidiIO() {
-        deinitMidiDevices(csound.GetCsound());
     }
 
     public boolean isAudioInEnabled() {
