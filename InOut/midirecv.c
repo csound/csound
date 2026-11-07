@@ -522,7 +522,28 @@ int32_t sens_midi(CSOUND *csound)
         return 0;               /* no events were received */
     }
 
-    if ((c = *(p->bufp++)) & 0x80) {    /* STATUS byte:         */
+    c = *(p->bufp++);
+    if (p->portbyte && c < 0xF8) {      /* real time may come before it */
+      p->portbyte = 0;
+      if (c & 0x80) {
+        /*
+          if there is another status byte inserted after
+          a chan msg status byte, this implies a port number
+          has been stored before the data bytes
+          MIDI backend modules can now insert a port number coded in
+          this way to allow for separate mapping of devices
+          A read can end on the status, so the byte is judged here,
+          once it has come, and not by looking past the status
+        */
+        int32_t port = c & 0x7F;
+        if(port >= MIDIMAXPORTS) {
+          csoundWarning(csound, Str("port: %d exceeds max number of ports %d"
+                                    ", mapping to port 0\n"), port, MIDIMAXPORTS);
+        } else mep->chan += 16*port;
+        goto nxtchr;
+      }
+    }
+    if (c & 0x80) {                     /* STATUS byte:         */
       type = c & 0xF0;
       if (type == SYSTEM_TYPE) {
         int16 lo3 = (c & 0x07);
@@ -580,22 +601,7 @@ int32_t sens_midi(CSOUND *csound)
         mep->type = type;               /* & begin new event    */
         mep->chan = chan;
         p->datreq = datbyts[(type>>4) & 0x7];
-        if(*p->bufp & 0x80  && p->datreq > 0)
-        {/*
-            if there is another status byte inserted after
-            a chan msg status byte, this implies a port number
-            has been stored before the data bytes
-            *ONLY* if there are data bytes following
-            (not sure if there are times when this is not the case)
-            MIDI backend modules can now insert a port number coded in
-            this way to allow for separate mapping of devices
-          */
-          int32_t port = *(p->bufp++) & 0x7F;
-          if(port >= MIDIMAXPORTS) {
-            csoundWarning(csound, Str("port: %d exceeds max number of ports %d"
-                                      ", mapping to port 0\n"), port, MIDIMAXPORTS);
-          } else mep->chan += 16*port;
-        }
+        p->portbyte = 1;                /* a port number may come next */
         p->datcnt = 0;
         goto nxtchr;
       }

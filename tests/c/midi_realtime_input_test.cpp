@@ -53,8 +53,17 @@ class MidiRealtimeInputTests : public ::testing::Test {
       instr 2
         chnset midicontinue(), "second"
       endin
+      instr 3
+        kstatus, kchan, kdata1, kdata2 midiin
+        if kstatus != 0 then
+          chnset kstatus, "status"
+          chnset kchan, "channel"
+          chnset kdata1, "data1"
+          chnset kdata2, "data2"
+        endif
+      endin
     )", 0), 0);
-    csoundEventString(csound, "i1 0 1\ni2 0 1\n", 0);
+    csoundEventString(csound, "i1 0 1\ni2 0 1\ni3 0 1\n", 0);
     ASSERT_EQ(csoundStart(csound), 0);
     ASSERT_EQ(csoundPerformKsmps(csound), 0);
   }
@@ -73,6 +82,23 @@ class MidiRealtimeInputTests : public ::testing::Test {
     EXPECT_EQ(csoundGetControlChannel(csound, "clock", nullptr), clock);
     EXPECT_EQ(csoundGetControlChannel(csound, "start", nullptr), start);
     EXPECT_EQ(csoundGetControlChannel(csound, "stop", nullptr), stop);
+  }
+
+  // Each of `reads` is what one read returns, a cycle apart, as a host passing
+  // bytes on as they come does. The last message they make is the one expected.
+  void message(std::initializer_list<std::vector<unsigned char>> reads,
+               int status, int channel, int data1, int data2)
+  {
+    for (const auto &bytes : reads) {
+      SCOPED_TRACE(::testing::PrintToString(bytes));
+      pending = bytes;
+      ASSERT_EQ(csoundPerformKsmps(csound), 0);
+      ASSERT_TRUE(pending.empty());
+    }
+    EXPECT_EQ(csoundGetControlChannel(csound, "status", nullptr), status);
+    EXPECT_EQ(csoundGetControlChannel(csound, "channel", nullptr), channel);
+    EXPECT_EQ(csoundGetControlChannel(csound, "data1", nullptr), data1);
+    EXPECT_EQ(csoundGetControlChannel(csound, "data2", nullptr), data2);
   }
 };
 
@@ -113,4 +139,47 @@ TEST_F(MidiRealtimeInputTests, TransportFlagsSurviveNoteMessages)
         1, 1, 1, 1);
   cycle({0x80, 60, 0}, 0);
   cycle({}, 0);
+}
+
+TEST_F(MidiRealtimeInputTests, ReadEndingOnAStatusIgnoresAnEarlierRead)
+{
+  // The second read leaves the first one's 0x81 right after its status.
+  message({{0xF8, 0x81, 60, 0}}, 0x80, 2, 60, 0);
+  message({{0x90}, {60, 100}}, 0x90, 1, 60, 100);
+  message({{0xF8, 0x81, 61, 0}}, 0x80, 2, 61, 0);
+  message({{0x90, 61, 100}}, 0x90, 1, 61, 100);
+}
+
+TEST_F(MidiRealtimeInputTests, MessageSplitAcrossReadsComesOutWhole)
+{
+  message({{0x90}, {60, 100}}, 0x90, 1, 60, 100);
+  message({{0x91, 61}, {101}}, 0x90, 2, 61, 101);
+  message({{0x92}, {}, {}, {62}, {}, {102}}, 0x90, 3, 62, 102);
+  message({{0xC3}, {5}}, 0xC0, 4, 5, 0);
+}
+
+TEST_F(MidiRealtimeInputTests, PortByteSurvivesAnySplit)
+{
+  message({{0x90, 0x81, 60, 100}}, 0x90, 17, 60, 100);
+  message({{0x90}, {0x81, 61, 100}}, 0x90, 17, 61, 100);
+  message({{0x90, 0x82}, {62, 100}}, 0x90, 33, 62, 100);
+  message({{0x90, 0x83, 63}, {100}}, 0x90, 49, 63, 100);
+  message({{0x90}, {}, {0xBF}, {}, {64}, {100}}, 0x90, 1009, 64, 100);
+  message({{0xC0}, {0x81, 7}}, 0xC0, 17, 7, 0);
+  // A port past the last one is port 0, however the read fell.
+  message({{0x90, 0xC1, 65, 100}}, 0x90, 1, 65, 100);
+  message({{0x90}, {0xC1, 66, 100}}, 0x90, 1, 66, 100);
+}
+
+TEST_F(MidiRealtimeInputTests, RealtimeByteAfterAStatusIsNoPort)
+{
+  message({{0x90, 0xF8, 60, 100}}, 0x90, 1, 60, 100);
+  EXPECT_EQ(csoundGetControlChannel(csound, "clock", nullptr), 1);
+  message({{0x90}, {0xF8, 61, 100}}, 0x90, 1, 61, 100);
+  EXPECT_EQ(csoundGetControlChannel(csound, "clock", nullptr), 1);
+  message({{0x90, 0xFC, 63, 100}}, 0x90, 1, 63, 100);
+  EXPECT_EQ(csoundGetControlChannel(csound, "stop", nullptr), 1);
+  // Nor does one hide the port byte after it.
+  message({{0x90, 0xF8, 0x81, 62, 100}}, 0x90, 17, 62, 100);
+  EXPECT_EQ(csoundGetControlChannel(csound, "clock", nullptr), 1);
 }
