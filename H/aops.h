@@ -276,6 +276,7 @@ int32_t or_kk_bool(CSOUND *csound, LOGCL_KK *p);
 int32_t b2s(CSOUND *csound, ASSIGN *p);
 int32_t b2i(CSOUND *csound, ASSIGN *p);
 int32_t b2b(CSOUND *csound, ASSIGN *p);
+int32_t arg_is_true(const cs_float *arg);
 int32_t binit(CSOUND *csound, ASSIGNM *p);
 int32_t mainit2(CSOUND *csound, ASSIGNM *p);
 int32_t storei(CSOUND *csound, STOREI *p);
