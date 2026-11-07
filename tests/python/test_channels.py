@@ -133,20 +133,18 @@ class TestStringChannel(unittest.TestCase):
 
     def test_string_channel_during_writes_from_another_thread(self):
         self.cs.set_string_channel('text', 'a')
-        finished = threading.Event()
 
         def write():
             for length in range(128, 65537, 128):
                 self.cs.set_string_channel('text', 'a' * length)
-            finished.set()
 
         writer = threading.Thread(target=write, daemon=True)
         writer.start()
-        while not finished.is_set():
+        torn = 0
+        while writer.is_alive():
             value = self.cs.string_channel('text')
-            self.assertEqual(value, 'a' * len(value))
-        writer.join(10)
-        self.assertFalse(writer.is_alive())
+            torn += value != 'a' * len(value)
+        self.assertEqual(torn, 0)
         self.assertEqual(self.cs.string_channel('text'), 'a' * 65536)
 
     def test_string_channel_holds_a_writer_off_during_the_copy(self):
