@@ -85,10 +85,6 @@ _Static_assert(sizeof(long) == 4, "expected 32-bit long on wasm32");
 # endif
 #endif
 
-#if defined(MSVC)
-#include <intrin.h> /* for _InterlockedExchange */
-#endif
-
 #ifndef CABBAGE
 #ifdef MSVC
 typedef __int32 int32;
@@ -477,6 +473,10 @@ size_t strlcat(char *dst, const char *src, size_t siz);
 char *strNcpy(char *dst, const char *src, size_t siz);
 
 /* atomics */
+#if defined(MSVC)
+#include <intrin.h> /* for _InterlockedExchange */
+#endif
+
 #if defined(MSVC)
 #define ATOMIC_SET(var, val)  InterlockedExchange(&var, val);
 #elif defined(HAVE_ATOMIC_BUILTIN)
