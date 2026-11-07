@@ -473,7 +473,8 @@ size_t strlcat(char *dst, const char *src, size_t siz);
 char *strNcpy(char *dst, const char *src, size_t siz);
 
 /* atomics */
-#if defined(MSVC)
+/* Not from C++, which can reach this inside an extern "C" block. */
+#if defined(MSVC) && !defined(__cplusplus)
 #include <intrin.h> /* for _InterlockedExchange */
 #endif
 
