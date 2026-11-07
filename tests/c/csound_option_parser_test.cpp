@@ -90,6 +90,45 @@ TEST_F (OptionParserTests, testEmptyOptionLeavesRcFilesUnread)
     csoundDestroy (fresh);
 }
 
+TEST_F (OptionParserTests, testQuotedFirstArgumentKeepsItsText)
+{
+    EXPECT_EQ (csoundSetOption (csound, "\"my piece.csd\""), 0);
+    EXPECT_STREQ (csound->orchname, "my piece.csd");
+}
+
+TEST_F (OptionParserTests, testQuotedFlagIsAFlag)
+{
+    EXPECT_EQ (csoundSetOption (csound, "\"-n\" -d"), 0);
+    EXPECT_EQ (csound->oparms->sfwrite, 0);
+    EXPECT_EQ (csound->oparms->displays, 0);
+    EXPECT_EQ (csound->orchname, nullptr);
+}
+
+TEST_F (OptionParserTests, testQuotedArgumentAfterASpaceIsOneArgument)
+{
+    EXPECT_EQ (csoundSetOption (csound, "-o \"a b.wav\""), 0);
+    EXPECT_STREQ (csound->oparms->outfilename, "a b.wav");
+    EXPECT_EQ (csound->orchname, nullptr);
+}
+
+TEST_F (OptionParserTests, testOptionAfterAQuotedArgumentIsItsOwn)
+{
+    EXPECT_EQ (csoundSetOption (csound, "-o \"a.wav\" -d"), 0);
+    EXPECT_STREQ (csound->oparms->outfilename, "a.wav");
+    EXPECT_EQ (csound->oparms->displays, 0);
+}
+
+TEST_F (OptionParserTests, testUnquotedAndAttachedFormsSplitAsBefore)
+{
+    EXPECT_EQ (csoundSetOption (csound, "  -o\"a b.wav\"   -d  "), 0);
+    EXPECT_STREQ (csound->oparms->outfilename, "a b.wav");
+    EXPECT_EQ (csound->oparms->displays, 0);
+    EXPECT_EQ (csoundSetOption (csound, "--env:FOO3=\"bar baz\" orc sco"), 0);
+    EXPECT_STREQ (csoundGetEnv (csound, "FOO3"), "bar baz");
+    EXPECT_STREQ (csound->orchname, "orc");
+    EXPECT_STREQ (csound->scorename, "sco");
+}
+
 TEST_F (OptionParserTests, testNullOptionIsRefused)
 {
     EXPECT_NE (csoundSetOption (csound, NULL), 0);
