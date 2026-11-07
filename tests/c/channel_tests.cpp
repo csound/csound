@@ -890,8 +890,11 @@ TEST_F (ChannelTests, BoundedStringChannelReadDuringResize)
     // A copy that ignored its bound lands past the size, and still in here.
     std::vector<char> output(2 * (maxLength + 1));
     csoundSetStringChannel(csound, "shared", "a");
+    std::atomic<bool> reading{false};
     std::atomic<bool> finished{false};
     std::thread writer([&]() {
+        while (!reading.load())
+            std::this_thread::yield();
         for (size_t length = 128; length <= maxLength; length += 128) {
             const std::string value(length, 'a');
             csoundSetStringChannel(csound, "shared", value.c_str());
@@ -904,6 +907,7 @@ TEST_F (ChannelTests, BoundedStringChannelReadDuringResize)
         // The string can outgrow this size before the read below.
         const size_t size = (size_t) csoundGetChannelDatasize(csound, "shared");
         output[size] = 'x';
+        reading.store(true);
         const size_t needed = csoundGetStringChannelBounded(
             csound, "shared", output.data(), size);
         if (output[size] != 'x') overran = true;
