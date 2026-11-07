@@ -414,9 +414,6 @@ libcsound.csoundSetControlChannel.argtypes = [CSOUND_p, ct.c_char_p, cs_float]
 libcsound.csoundGetAudioChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.POINTER(cs_float)]
 libcsound.csoundSetAudioChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.POINTER(cs_float)]
 libcsound.csoundGetStringChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.c_char_p]
-libcsound.csoundGetStringChannelBounded.restype = ct.c_size_t
-libcsound.csoundGetStringChannelBounded.argtypes = [CSOUND_p, ct.c_char_p, ct.c_char_p,
-    ct.c_size_t]
 libcsound.csoundSetStringChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.c_char_p]
 
 libcsound.csoundInitArrayChannel.restype = ARRAYDAT_p
@@ -435,6 +432,10 @@ libcsound.csoundGetArrayData.argtypes = [ARRAYDAT_p]
 libcsound.csoundGetStringData.restype = ct.c_char_p
 libcsound.csoundGetStringData.argtypes = [CSOUND_p, STRINGDAT_p]
 libcsound.csoundSetStringData.argtypes = [CSOUND_p, STRINGDAT_p, ct.c_char_p]
+# For a copy made under a channel's lock: this form keeps the GIL, where
+# libcsound's gives it up and has to wait for it, with the lock held.
+string_copy = ct.PYFUNCTYPE(ct.c_char_p, CSOUND_p, STRINGDAT_p)(
+    ('csoundGetStringData', libcsound))
 libcsound.csoundInitPvsChannel.restype = PVSDAT_p
 libcsound.csoundInitPvsChannel.argtypes = [CSOUND_p, ct.c_char_p,
                                            ct.c_int32, ct.c_int32, ct.c_int32,
@@ -1491,16 +1492,26 @@ class Csound:
         libcsound.csoundSetAudioChannel(self.cs, cstring(name), ptr)
 
     def string_channel(self, name):
-        """Return a string from the string channel identified by name."""
-        n = libcsound.csoundGetChannelDatasize(self.cs, cstring(name))
-        while n > 0:
-            s = ct.create_string_buffer(n)
-            needed = libcsound.csoundGetStringChannelBounded(self.cs, cstring(name),
-                ct.cast(s, ct.POINTER(ct.c_char)), n)
-            if needed <= n:
-                return pstring(ctypes.string_at(s))
-            n = needed  # the performance wrote a longer string: read it again
-        return ""
+        """Return a string from the string channel identified by name.
+
+        The string is copied under the channel's lock. A performance using
+        the channel waits for that lock, and if other Python threads are
+        running this thread can hold it while it waits for the GIL.
+        """
+        channel = cstring(name)
+        if libcsound.csoundGetChannelDatasize(self.cs, channel) <= 0:
+            return ""
+        sdata, _ = self.channel_ptr(
+            name, CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+        if sdata is None:
+            return ""
+        try:
+            # Inside the try: an interrupt as this returns must still unlock.
+            libcsound.csoundLockChannel(self.cs, channel)
+            data = string_copy(self.cs, sdata)
+        finally:
+            libcsound.csoundUnlockChannel(self.cs, channel)
+        return pstring(data) or ""
 
     def set_string_channel(self, name, string):
         """Sets the string channel identified by name with string."""

@@ -824,72 +824,16 @@ TEST_F (ChannelTests, ConcurrentStringChannelResize)
     EXPECT_EQ(strlen(output.data()), maxLength);
 }
 
-TEST_F (ChannelTests, BoundedStringChannelStaysInItsBuffer)
-{
-    csoundSetStringChannel(csound, "text", "abcdefgh");
-    char output[16];
-
-    memset(output, 'x', sizeof(output));
-    EXPECT_EQ(csoundGetStringChannelBounded(csound, "text", output, 4), 9u);
-    EXPECT_STREQ(output, "abc");
-    EXPECT_EQ(output[4], 'x');
-
-    memset(output, 'x', sizeof(output));
-    EXPECT_EQ(csoundGetStringChannelBounded(csound, "text", output, 8), 9u);
-    EXPECT_STREQ(output, "abcdefg");
-    EXPECT_EQ(output[8], 'x');
-
-    memset(output, 'x', sizeof(output));
-    EXPECT_EQ(csoundGetStringChannelBounded(csound, "text", output, 9), 9u);
-    EXPECT_STREQ(output, "abcdefgh");
-    EXPECT_EQ(output[9], 'x');
-
-    memset(output, 'x', sizeof(output));
-    EXPECT_EQ(csoundGetStringChannelBounded(csound, "text", output,
-                                            sizeof(output)), 9u);
-    EXPECT_STREQ(output, "abcdefgh");
-    EXPECT_EQ(output[9], 'x');
-
-    memset(output, 'x', sizeof(output));
-    EXPECT_EQ(csoundGetStringChannelBounded(csound, "text", output, 0), 9u);
-    EXPECT_EQ(output[0], 'x');
-    EXPECT_EQ(csoundGetStringChannelBounded(csound, "text", nullptr, 0), 9u);
-}
-
-TEST_F (ChannelTests, BoundedStringChannelWithNoStringToRead)
-{
-    char output[8];
-    csoundSetControlChannel(csound, "control", 1.0);
-
-    memset(output, 'x', sizeof(output));
-    EXPECT_EQ(csoundGetStringChannelBounded(csound, "control", output,
-                                            sizeof(output)), 0u);
-    EXPECT_STREQ(output, "");
-
-    memset(output, 'x', sizeof(output));
-    EXPECT_EQ(csoundGetStringChannelBounded(csound, "", output,
-                                            sizeof(output)), 0u);
-    EXPECT_STREQ(output, "");
-
-    // The unbounded form still leaves the buffer alone here.
-    memset(output, 'x', sizeof(output));
-    csoundGetStringChannel(csound, "control", output);
-    EXPECT_EQ(output[0], 'x');
-
-    // A read makes a channel that does not exist, empty.
-    memset(output, 'x', sizeof(output));
-    EXPECT_EQ(csoundGetStringChannelBounded(csound, "new", output,
-                                            sizeof(output)), 1u);
-    EXPECT_STREQ(output, "");
-    EXPECT_GT(csoundGetChannelDatasize(csound, "new"), 0);
-}
-
-TEST_F (ChannelTests, BoundedStringChannelReadDuringResize)
+// The read csound.h gives a host whose channel another thread can write.
+TEST_F (ChannelTests, StringChannelReadUnderItsLockDuringResize)
 {
     constexpr size_t maxLength = 65536;
-    // A copy that ignored its bound lands past the size, and still in here.
-    std::vector<char> output(2 * (maxLength + 1));
+    constexpr size_t size = 256;
     csoundSetStringChannel(csound, "shared", "a");
+    STRINGDAT *stringdat;
+    ASSERT_EQ(csoundGetChannelPtr(csound, (void **) &stringdat, "shared",
+                                  CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL),
+              CSOUND_SUCCESS);
     std::atomic<bool> reading{false};
     std::atomic<bool> finished{false};
     std::thread writer([&]() {
@@ -901,22 +845,39 @@ TEST_F (ChannelTests, BoundedStringChannelReadDuringResize)
         }
         finished.store(true);
     });
-    bool overran = false;
-    bool misreported = false;
+    char buffer[size + 1];
+    buffer[size] = 'x';
+    bool moved = false;
+    bool invalid = false;
     do {
-        // The string can outgrow this size before the read below.
-        const size_t size = (size_t) csoundGetChannelDatasize(csound, "shared");
-        output[size] = 'x';
+        csoundLockChannel(csound, "shared");
         reading.store(true);
-        const size_t needed = csoundGetStringChannelBounded(
-            csound, "shared", output.data(), size);
-        if (output[size] != 'x') overran = true;
-        if (strlen(output.data()) + 1 != (needed < size ? needed : size))
-            misreported = true;
+        const char *text = csoundGetStringData(csound, stringdat);
+        const int32_t allocated = csoundGetChannelDatasize(csound, "shared");
+        const size_t length = (size_t) snprintf(buffer, size, "%s", text);
+        // The writer is waiting for the lock, so nothing here can move.
+        std::this_thread::yield();
+        if (csoundGetStringData(csound, stringdat) != text ||
+            csoundGetChannelDatasize(csound, "shared") != allocated ||
+            strlen(text) != length)
+            moved = true;
+        csoundUnlockChannel(csound, "shared");
+        const size_t copied = strlen(buffer);
+        if (copied != (length < size ? length : size - 1) ||
+            buffer[size] != 'x')
+            invalid = true;
+        std::this_thread::yield();
     } while (!finished.load());
     writer.join();
-    EXPECT_FALSE(overran);
-    EXPECT_FALSE(misreported);
+    EXPECT_FALSE(moved);
+    EXPECT_FALSE(invalid);
+    // The last write is longer than the buffer, whatever the scheduling.
+    csoundLockChannel(csound, "shared");
+    const size_t length = (size_t) snprintf(
+        buffer, size, "%s", csoundGetStringData(csound, stringdat));
+    csoundUnlockChannel(csound, "shared");
+    EXPECT_EQ(length, maxLength);
+    EXPECT_EQ(strlen(buffer), size - 1);
 }
 
 TEST_F (ChannelTests, StringOpcodesDuringHostResize)

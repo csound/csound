@@ -2,6 +2,7 @@
 
 import os
 import sys
+import threading
 import unittest
 import ctypes as ct
 from unittest import mock
@@ -129,6 +130,33 @@ class TestStringChannel(unittest.TestCase):
         self.assertEqual(value, grown)
         for whole, size in buffers:
             self.assertEqual(bytes(whole)[size:], b'\xa5' * guard)
+
+    def test_string_channel_during_writes_from_another_thread(self):
+        self.cs.set_string_channel('text', 'a')
+        finished = threading.Event()
+
+        def write():
+            for length in range(128, 65537, 128):
+                self.cs.set_string_channel('text', 'a' * length)
+            finished.set()
+
+        writer = threading.Thread(target=write, daemon=True)
+        writer.start()
+        while not finished.is_set():
+            value = self.cs.string_channel('text')
+            self.assertEqual(value, 'a' * len(value))
+        writer.join(10)
+        self.assertFalse(writer.is_alive())
+        self.assertEqual(self.cs.string_channel('text'), 'a' * 65536)
+
+    def test_string_channel_unlocks_when_the_copy_raises(self):
+        self.cs.set_string_channel('text', 'short')
+        unlock = mock.Mock(wraps=ctcsound.libcsound.csoundUnlockChannel)
+        with mock.patch.object(ctcsound.libcsound, 'csoundUnlockChannel', unlock), \
+             mock.patch.object(ctcsound, 'string_copy', side_effect=MemoryError):
+            with self.assertRaises(MemoryError):
+                self.cs.string_channel('text')
+        unlock.assert_called_once()
 
 
 if __name__ == '__main__':

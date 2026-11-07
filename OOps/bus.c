@@ -3296,14 +3296,13 @@ void csoundSetStringChannel(CSOUND *csound, const char *name,
   }
 }
 
-/* Copy under the channel's lock, and answer the size the whole string needs,
-   its terminator included, or 0 if there is none to read. */
-static size_t copy_string_channel(CSOUND *csound, const char *name,
-                                  char *string, size_t size)
+void csoundGetStringChannel(CSOUND *csound, const char *name,
+                            char *string)
 {
   STRINGDAT  *pstring;
   char *chstring;
-  size_t needed = 0;
+  int32_t n2;
+  if (strlen(name) == 0) return;
   if (csoundGetChannelPtr(csound, (void **) &pstring, name,
                           CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
       == CSOUND_SUCCESS){
@@ -3311,29 +3310,13 @@ static size_t copy_string_channel(CSOUND *csound, const char *name,
     if (lock != NULL)
       csoundSpinLock(lock);
     chstring = pstring->data;
-    if (chstring != NULL) {
-      needed = strlen(chstring) + 1;
-      if (string != NULL)
-        strNcpy(string, chstring, needed < size ? needed : size);
+    if (string != NULL && chstring != NULL) {
+      n2 = (int32_t) strlen(chstring);
+      strNcpy(string,chstring, n2+1);
     }
     if (lock != NULL)
       csoundSpinUnLock(lock);
   }
-  return needed;
-}
-
-void csoundGetStringChannel(CSOUND *csound, const char *name,
-                            char *string)
-{
-  copy_string_channel(csound, name, string, SIZE_MAX);
-}
-
-size_t csoundGetStringChannelBounded(CSOUND *csound, const char *name,
-                                     char *string, size_t size)
-{
-  if (string != NULL && size != 0)
-    string[0] = '\0';
-  return copy_string_channel(csound, name, string, size);
 }
 
 int32_t csoundSetPvsChannel(CSOUND *csound, const char *name,

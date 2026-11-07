@@ -1093,30 +1093,32 @@ extern "C" {
   /**
    * copies the string channel identified by *name into *string
    * which should contain enough memory for the string
-   * (see csoundGetChannelDatasize() below).
-   * The copy is not bounded: if another thread can write the channel,
-   * the string can outgrow a buffer sized before this call, so use
-   * csoundGetStringChannelBounded() instead.
+   * (see csoundGetChannelDatasize() below)
+   *
+   * This function is not told how much memory that is, and it copies the
+   * whole string. If another thread can write the channel, the performance
+   * included, a longer string written after *string was sized is copied
+   * past its end. Such a host reads the channel itself, under its lock,
+   * into a buffer it has already allocated:
+   * \code
+   * STRINGDAT *stringdat;
+   * if (csoundGetChannelPtr(csound, (void **) &stringdat, name,
+   *                         CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+   *     == CSOUND_SUCCESS) {
+   *   csoundLockChannel(csound, name);
+   *   const char *text = csoundGetStringData(csound, stringdat);
+   *   int length = snprintf(buffer, size, "%s", text != NULL ? text : "");
+   *   csoundUnlockChannel(csound, name);
+   * }
+   * \endcode
+   * length says whether the string fitted, and how much room it needs if
+   * it did not. The performance waits for that lock when it uses the
+   * channel, so do nothing slow while holding it, and allocate outside it.
+   * csoundGetStringChannel() takes the lock itself, so it cannot be called
+   * between csoundLockChannel() and csoundUnlockChannel().
    */
   PUBLIC void csoundGetStringChannel(CSOUND *csound,
                                      const char *name, char *string);
-
-  /**
-   * copies the string channel identified by *name into *string, which
-   * holds size bytes, and always terminates it unless size is 0.
-   * Returns the size the whole string needs, its terminator included,
-   * measured with the copy under the channel's lock: if that is more than
-   * size, *string was truncated, and a buffer of that size can hold it.
-   * Returns 0 if there is no string to read, as when the channel is of
-   * another type or cannot be created, and *string is then empty.
-   * A channel that does not exist is created, as csoundGetStringChannel()
-   * does. *string can be NULL if size is 0. Both functions take the
-   * channel's lock, so neither can be called between csoundLockChannel()
-   * and csoundUnlockChannel().
-   */
-  PUBLIC size_t csoundGetStringChannelBounded(CSOUND *csound,
-                                              const char *name,
-                                              char *string, size_t size);
 
   /**
    * sets the string channel identified by *name with *string
@@ -1263,10 +1265,10 @@ extern "C" {
    * this might change if the channel space gets reallocated
    * Since string variables use dynamic memory allocation
    * this function can be called to get the space required for
-   * csoundGetStringChannel(). Another thread can write a longer string as
-   * soon as this returns: csoundGetStringChannelBounded() allows for that.
-   * This function takes no channel lock, so it can be called between
-   * csoundLockChannel() and csoundUnlockChannel().
+   * csoundGetStringChannel(), if no other thread can write the channel:
+   * the answer is out of date as soon as one does.
+   * It takes no channel lock, so it can be called between
+   * csoundLockChannel() and csoundUnlockChannel(), where the answer holds.
    */
   PUBLIC int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name);
 
