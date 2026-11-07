@@ -94,7 +94,7 @@ static void string_resize_internal(CSOUND* csound, STRINGDAT* str, size_t newSiz
     if (str->refcount == -1) {
         char* oldData = str->data;
         str->data = csound->Calloc(csound, newSize);
-        str->size = newSize;
+        ATOMIC_SET_SIZE(str->size, newSize);
         str->refcount = 0;  // Now we own it
         if (oldData) {
             strncpy(str->data, oldData, newSize - 1);
@@ -103,7 +103,7 @@ static void string_resize_internal(CSOUND* csound, STRINGDAT* str, size_t newSiz
     } else {
         // Safe to resize - we own the buffer
         str->data = csound->ReAlloc(csound, str->data, newSize);
-        str->size = newSize;
+        ATOMIC_SET_SIZE(str->size, newSize);
         str->data[newSize - 1] = '\0';
     }
 }
@@ -128,7 +128,7 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     size_t bytes = strlen(sSrc->data) + 1;
     if (UNLIKELY(sDest->data == NULL)) {
         sDest->data = csound->Calloc(csound, bytes);
-        sDest->size = bytes;
+        ATOMIC_SET_SIZE(sDest->size, bytes);
         sDest->refcount = 0;
     } else if (sDest->refcount == -1 || bytes > sDest->size) {
         /* Borrowed storage must detach even when the new text fits. Keep

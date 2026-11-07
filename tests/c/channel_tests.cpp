@@ -864,7 +864,8 @@ TEST_F (ChannelTests, StringChannelReadUnderItsLockDuringResize)
         csoundUnlockChannel(csound, "shared");
         const size_t copied = strlen(buffer);
         if (copied != (length < size ? length : size - 1) ||
-            buffer[size] != 'x')
+            buffer[size] != 'x' ||
+            csoundGetChannelDatasize(csound, "shared") < allocated)
             invalid = true;
         std::this_thread::yield();
     } while (!finished.load());

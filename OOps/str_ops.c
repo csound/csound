@@ -1240,6 +1240,7 @@ int32_t print_type_opcode(CSOUND* csound, PRINT_TYPE_OP* p) {
   else {
     sdata->data = (char *) csound->ReAlloc(csound, (char *)
                                            sdata->data, bytes+1);
+    ATOMIC_SET_SIZE(sdata->size, bytes + 1);
     strcpy(sdata->data, str);
   }
 }

@@ -99,6 +99,14 @@ class TestStringChannel(unittest.TestCase):
         self.assertEqual(ctcsound.libcsound.csoundGetChannelDatasize(
             self.cs.cs, b'missing'), 0)
 
+    def test_set_string_data_keeps_the_channel_size(self):
+        self.cs.set_string_channel('text', 'short')
+        sdata, _ = self.cs.channel_ptr(
+            'text', ctcsound.CSOUND_STRING_CHANNEL | ctcsound.CSOUND_INPUT_CHANNEL)
+        self.cs.set_string_data(sdata, 'x' * 1000)
+        self.assertEqual(ctcsound.libcsound.csoundGetChannelDatasize(
+            self.cs.cs, b'text'), 1001)
+
     def test_string_channel_of_another_type_is_empty(self):
         self.cs.set_control_channel('control', 1.0)
         self.assertEqual(self.cs.string_channel('control'), '')
