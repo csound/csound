@@ -2564,3 +2564,48 @@ endin
     EXPECT_EQ(-2, csoundGetControlChannel(csound, "i_neg", &error));
     EXPECT_EQ(-3, csoundGetControlChannel(csound, "k_classic", &error));
 }
+
+/* Functional init of a computed value used to fail the same way: any expression
+   argument had convert_statement_to_opcall ask what the call returns, and init's
+   multi-out overload answered with an error. The value must also keep state, as
+   the same call with a constant does. */
+TEST_F (OrcCompileTests, testFunctionalInitComputedValue)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    const char *orchestra = R"(
+instr 1
+  values:i[] = fillarray(3, 4)
+  sum:k = init(1 + 2)
+  k_named = init(1 + 2)
+  called:k = init(random:i(3, 3))
+  field:k = init(p4 + 1)
+  element:k = init(values[0])
+  once:i = init(1 + 2)
+  sum += 1
+  k_named += 1
+  called += 1
+  field += 1
+  element += 1
+  chnset sum, "sum"
+  chnset k_named, "k_named"
+  chnset called, "called"
+  chnset field, "field"
+  chnset element, "element"
+  chnset once, "once"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 1 2\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int32_t error = 0;
+    for (int32_t period = 1; period <= 3; period++) {
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+        EXPECT_EQ(3 + period, csoundGetControlChannel(csound, "sum", &error));
+        EXPECT_EQ(CSOUND_SUCCESS, error);
+        EXPECT_EQ(3 + period, csoundGetControlChannel(csound, "k_named", &error));
+        EXPECT_EQ(3 + period, csoundGetControlChannel(csound, "called", &error));
+        EXPECT_EQ(3 + period, csoundGetControlChannel(csound, "field", &error));
+        EXPECT_EQ(3 + period, csoundGetControlChannel(csound, "element", &error));
+        EXPECT_EQ(3, csoundGetControlChannel(csound, "once", &error));
+    }
+}
