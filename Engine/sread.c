@@ -243,7 +243,9 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
     {
       PRS_PARM  qq;
       memset(&qq, '\0', sizeof(PRS_PARM));
+      qq.csound = csound;
       csound_prslex_init(&qq.yyscanner);
+      csound->sread.scanner = qq.yyscanner;
       cs_init_smacros(csound, &qq, csound->smacros);
       csound_prsset_extra(&qq, qq.yyscanner);
       csound->expanded_sco = corfile_create_w(csound);
@@ -253,6 +255,7 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
       csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
       csound_prslex_destroy(qq.yyscanner);
+      csound->sread.scanner = NULL;
       corfile_rm(csound, &csound->scorestr);
       corfile_rewind(csound->expanded_sco);
     }
@@ -922,6 +925,15 @@ void sfree(CSOUND *csound)       /* free all sorter allocated space */
       (csound->sread.str)--;
     }
     corfile_rm(csound, &(csound->scorestr));
+}
+
+void sread_abandon(CSOUND *csound)  /* what a fatal error left in the reader */
+{
+    if (csound->sread.scanner != NULL) {
+      csound_prslex_destroy(csound->sread.scanner);
+      csound->sread.scanner = NULL;
+    }
+    sfree(csound);
 }
 
 static void flushlin(CSOUND *csound)

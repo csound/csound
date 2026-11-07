@@ -1283,6 +1283,8 @@ extern "C" {
    *
    * Multiple events separated by newlines are possible
    * and score preprocessing (carry, etc) is applied.
+   * A message the score reader cannot take is refused whole: Csound says why,
+   * none of it is scheduled, and any performance goes on.
    * optionally run asynchronously (async = 1).
    * Async calls copy the string and return without waiting for queue space.
    * If the queue cannot accept the request, no events are queued.

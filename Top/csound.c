@@ -123,6 +123,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async);
 int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
 int32_t csoundReadScore(CSOUND *csound, const char *message);
+void score_read_unwind(CSOUND *csound);
 void csoundDefaultMessageCallback(CSOUND *, int32_t, const char *,
                                          va_list);
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
@@ -1123,6 +1124,7 @@ static const CSOUND cenviron_ = {
 };
 
 void csoundLongJmp(CSOUND *csound, int32_t retval) {
+  score_read_unwind(csound);
 #ifdef CSOUND_WASI_REALTIME
   CSOUND_WASI_COMPILE_JUMP *compile = csoundWasiCompileJumpContext(csound);
   if (compile != NULL && compile->enabled)

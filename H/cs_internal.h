@@ -312,6 +312,7 @@ extern "C" {
       int32_t unused_intA;
       MACRO   *unused_ptr1;
       int32_t  nocarry;
+      void    *scanner;               /* the preprocessor's, while it runs    */
    };
 
    struct onefileStatics__ {

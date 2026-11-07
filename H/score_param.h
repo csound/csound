@@ -55,6 +55,7 @@ typedef struct IFDEFSTACK_ {
 
 typedef struct prs_parm_s {
     void            *yyscanner;
+    CSOUND          *csound;
     CORFIL          *cf;
     MACRO           *macros;
     MACRON          *alt_stack; //[MAX_INCLUDE_DEPTH];
