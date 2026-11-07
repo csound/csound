@@ -65,6 +65,13 @@ static void expand_macroa(CSOUND*, MACRO*, yyscan_t);
 #define YY_EXTRA_TYPE  PRS_PARM *
 #define PARM    yyget_extra(yyscanner)
 
+/* Every buffer here is a string, and input() gives 0 at its end only once: a
+   loop that reads on reaches flex's read of a NULL yyin. Its fatal errors, such
+   as a push-back overflow, exit the process. All of these are score errors. */
+static void prs_fatal(yyscan_t, const char *);
+#define YY_INPUT(buf, result, max_size) prs_fatal(yyscanner, "unexpected EOF!!")
+#define YY_FATAL_ERROR(msg) prs_fatal(yyscanner, msg)
+
 #define YY_USER_INIT {csound_prs_scan_string(csound->scorestr->body, yyscanner); \
     csound_prsset_lineno(csound->scoLineOffset, yyscanner);             \
     /* yyg->yy_flex_debug_r=1;*/                                        \
@@ -648,6 +655,13 @@ NP              np[0-9]+
 .       { corfile_putc(csound, yytext[0], PARM->cf); }
 
 %%
+static void prs_fatal(yyscan_t yyscanner, const char *msg)
+{
+    CSOUND *csound = PARM->csound;
+    csound->ErrorMsg(csound, "%s\n", msg);
+    csound->LongJmp(csound, 1);
+}
+
 static void comment(yyscan_t yyscanner)              /* Skip until nextline */
 {
     char c;
