@@ -203,6 +203,95 @@ assert len(during) > 1, 'the replaced callback was called %d times while Csound 
 assert set(during) == {7}, during
 '''
 
+# The performance thread holds a callback and a pointer of its own.
+PROCESS_PRELUDE = PRELUDE + '''
+import ctypes
+cs.compile_orc(HEADER + """instr 1
+endin
+""")
+cs.event_string('i 1 0 100')
+cs.start()
+thread = ctcsound.CsoundPerformanceThread(cs.csound())
+def reader(values):
+    return lambda address: values.append(ctypes.c_int.from_address(address).value)
+def wait_for(values):
+    deadline = time.monotonic() + 10
+    while not values and time.monotonic() < deadline:
+        time.sleep(0.001)
+'''
+
+# Neither the callback nor its data is held by anything but the thread.
+PROCESS_CALLBACK = PROCESS_PRELUDE + '''
+values = []
+thread.set_process_cb(reader(values), ctypes.c_int(1))
+thread.play()
+wait_for(values)
+thread.stop()
+thread.join()
+assert set(values) == {1}, set(values)
+thread.set_process_cb(None, None)
+assert thread.process_cb() is None
+thread.set_process_cb(print, None)
+assert thread.process_cb()
+thread.set_process_cb(0, None)
+assert thread.process_cb() is None
+direct = ctcsound.PROCESSFUNC(print)
+ctcsound.libcspt.csoundPerformanceThreadSetProcessCB(thread.cpt, direct, None)
+address = lambda function: ctypes.cast(function, ctypes.c_void_p).value
+assert address(thread.process_cb()) == address(direct)
+'''
+
+# Memory is not reused on demand, so only a weak reference shows data released.
+PROCESS_DATA = PROCESS_PRELUDE + '''
+import weakref
+class Data(ctypes.c_int):
+    pass
+data = Data()
+kept = weakref.ref(data)
+thread.set_process_cb(reader([]), data)
+del data
+assert kept() is not None, 'data was released with the callback set'
+thread.set_process_cb(reader([]), Data())
+assert kept() is not None, 'data was released when it was replaced'
+thread.stop()
+thread.join()
+'''
+
+# What process_cb() returns is the callback, whatever became of the thread.
+PROCESS_CALLBACK_READ_BACK = PROCESS_PRELUDE + '''
+values, data = [], ctypes.c_int(1)
+thread.set_process_cb(reader(values), data)
+try:
+    thread.set_process_cb(print, 'not a ctypes object')
+except TypeError:
+    pass
+callback = thread.process_cb()
+thread.stop()
+thread.join()
+del thread
+reused = [ctcsound.PROCESSFUNC(print) for _ in range(100)]
+callback(ctypes.addressof(data))
+assert values == [1], values
+'''
+
+# As in RESET_WHILE_WAITING, the thread is stopped at the GIL inside the first
+# callback, and has read the first data, when both are replaced.
+PROCESS_REPLACED_WHILE_WAITING = PROCESS_PRELUDE + '''
+sys.setswitchinterval(60)
+first, second = [], []
+thread.set_process_cb(reader(first), ctypes.c_int(1))
+thread.play()
+wait_for(first)
+held = time.monotonic() + 0.05
+while time.monotonic() < held:
+    pass
+thread.set_process_cb(reader(second), ctypes.c_int(2))
+wait_for(second)
+thread.stop()
+thread.join()
+assert set(first) == {1} and set(second) == {2}, (set(first), set(second))
+'''
+
 
 class Callback:
     def __call__(self, *_args):
@@ -293,6 +382,18 @@ class CallbackLifetimeTests(unittest.TestCase):
 
     def test_a_message_callback_csound_saved_lives(self):
         self.run_alone(MESSAGE_REPLACED_IN_REALTIME)
+
+    def test_a_process_callback_lives(self):
+        self.run_alone(PROCESS_CALLBACK)
+
+    def test_a_process_callback_keeps_its_data(self):
+        self.run_alone(PROCESS_DATA)
+
+    def test_a_process_callback_read_back_outlives_its_thread(self):
+        self.run_alone(PROCESS_CALLBACK_READ_BACK)
+
+    def test_a_process_callback_can_be_replaced_while_a_thread_waits_in_it(self):
+        self.run_alone(PROCESS_REPLACED_WHILE_WAITING)
 
 
 if __name__ == '__main__':

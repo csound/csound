@@ -2197,6 +2197,7 @@ class CsoundPerformanceThread:
     """
     def __init__(self, csp):
         self.cpt = libcspt.csoundCreatePerformanceThread(csp)
+        self._kept = []
 
     def __del__(self):
         libcspt.csoundDestroyPerformanceThread(self.cpt)
@@ -2208,11 +2209,30 @@ class CsoundPerformanceThread:
     def process_cb(self):
         """Returns the process callback, or None if there is none."""
         cb = libcspt.csoundPerformanceThreadGetProcessCB(self.cpt)
-        return PROCESSFUNC(cb) if cb else None
+        if not cb:
+            return None
+        # The thunk itself if it is kept: PROCESSFUNC(cb) holds only an address.
+        for thunk, _ in reversed(self._kept):
+            if ct.cast(thunk, ct.c_void_p).value == cb:
+                return thunk
+        return PROCESSFUNC(cb)
 
     def set_process_cb(self, function, data):
-        """Sets the process callback."""
-        libcspt.csoundPerformanceThreadSetProcessCB(self.cpt, PROCESSFUNC(function), ct.byref(data))
+        """Sets the process callback, or clears it if function is None or 0.
+
+        The performance thread calls function before each k-cycle, with the
+        address of data, a ctypes object, or None if data is None. Each time
+        this is called, both stay held until this object goes, for the reason
+        Csound._keep gives. So a function that reaches this object, such as a
+        method of what holds it, makes a cycle that only a collection ends:
+        call stop() rather than just letting go of the thread. Stop and join
+        it before Python exits: __del__ joins it, and a thread that calls
+        Python while Python is finalizing never comes back.
+        """
+        thunk = PROCESSFUNC(0 if function is None else function)
+        pointer = None if data is None else ct.byref(data)
+        self._kept.append((thunk, data))
+        libcspt.csoundPerformanceThreadSetProcessCB(self.cpt, thunk, pointer)
 
     def csound(self):
         """Returns the Csound instance pointer."""
