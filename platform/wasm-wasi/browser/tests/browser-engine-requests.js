@@ -5,6 +5,8 @@ export function extraEngineRequests(requests, expectedBundle) {
       /\.(?:js|wasm)(?:\.z)?$/.test(pathname) &&
       pathname !== expectedBundle &&
       pathname !== "/missing-plugin.wasm" &&
-      !/^\/plugin_example(?:_cpp)?(?:_shared)?(?:_missing_tls|_trap_ctor)?\.wasm$/.test(pathname),
+      !/^\/plugin_example(?:_cpp)?(?:_shared|-wasm64)?(?:_missing_tls|_trap_ctor)?\.wasm$/.test(
+        pathname,
+      ),
   );
 }

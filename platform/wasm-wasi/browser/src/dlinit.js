@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import { addressNumber } from "./utils/wasm64.js";
+
 const tableFunctionIndexes = new WeakMap();
 
 const internTableFunction = (table, func) => {
@@ -42,14 +44,18 @@ export const dlinit = (
   internFunction = internTableFunction,
 ) => {
   const hostExports = hostInstance && hostInstance.exports ? hostInstance.exports : {};
-  const info = typeof pluginInstance.exports["csoundModuleInfo"] === "function"
-    ? pluginInstance.exports["csoundModuleInfo"]() : 0;
+  const info =
+    typeof pluginInstance.exports["csoundModuleInfo"] === "function"
+      ? pluginInstance.exports["csoundModuleInfo"]()
+      : 0;
   // Match the native loader: missing metadata denotes the legacy cs_double ABI.
-  const getSampleSize = hostExports["csoundGetSizeOfCsFloat"] ||
-    hostExports["csoundGetSizeOfMYFLT"];
+  const getSampleSize =
+    hostExports["csoundGetSizeOfCsFloat"] || hostExports["csoundGetSizeOfMYFLT"];
   const sampleSize = info & 0x7f;
-  const doubleSize = typeof hostExports["csoundGetSizeOfCsDouble"] === "function"
-    ? hostExports["csoundGetSizeOfCsDouble"]() : 8;
+  const doubleSize =
+    typeof hostExports["csoundGetSizeOfCsDouble"] === "function"
+      ? hostExports["csoundGetSizeOfCsDouble"]()
+      : 8;
   if (Boolean(info & 0x80) !== (doubleSize === 4)) {
     throw new Error("Incompatible plugin cs_double precision; rebuild with matching USE_FLOAT");
   }
@@ -75,7 +81,10 @@ export const dlinit = (
     );
 
     if (typeof pluginInstance.exports["csoundModuleCreate"] === "function") {
-      csoundModuleCreate.value = internFunction(table, pluginInstance.exports["csoundModuleCreate"]);
+      csoundModuleCreate.value = internFunction(
+        table,
+        pluginInstance.exports["csoundModuleCreate"],
+      );
     }
 
     if (typeof pluginInstance.exports["csoundModuleInit"] === "function") {
@@ -83,11 +92,17 @@ export const dlinit = (
     }
 
     if (typeof pluginInstance.exports["csoundModuleDestroy"] === "function") {
-      csoundModuleDestroy.value = internFunction(table, pluginInstance.exports["csoundModuleDestroy"]);
+      csoundModuleDestroy.value = internFunction(
+        table,
+        pluginInstance.exports["csoundModuleDestroy"],
+      );
     }
 
     if (typeof pluginInstance.exports["csoundModuleErrorCodeToString"] === "function") {
-      csoundModuleErrorCodeToString.value = internFunction(table, pluginInstance.exports["csoundModuleErrorCodeToString"]);
+      csoundModuleErrorCodeToString.value = internFunction(
+        table,
+        pluginInstance.exports["csoundModuleErrorCodeToString"],
+      );
     }
 
     hostExports["csoundWasiLoadPlugin"](
@@ -120,22 +135,35 @@ export const dlinit = (
         missing.push("memory");
       }
 
-      // Frozen wasm32 OENTRY size and offsets. Keep this in sync with
-      // Top/wasm_opcode_abi.h. LINKAGE() returns sizeof(localops) in bytes.
-      const wasm32OentrySize = 40;
+      // Use the engine's native layout; old wasm32 engines keep the frozen ABI.
+      const pointerBytes = hostExports["__pointerSize"] || 4;
+      const entrySize = hostExports["csoundWasiOentrySize"]?.() || 40;
+      const functionOffsets = [0, 1, 2].map(
+        (index) => hostExports["csoundWasiOentryFunctionOffset"]?.(index) ?? 20 + index * 4,
+      );
 
-      if (typeof pluginInstance.exports["csound_opcode_init"] === "function" && missing.length === 0) {
-        const epPointerPtr = allocByteMem(4);
+      if (
+        typeof pluginInstance.exports["csound_opcode_init"] === "function" &&
+        missing.length === 0
+      ) {
+        const epPointerPtr = allocByteMem(pointerBytes);
         if (epPointerPtr === 0) {
           throw new Error("Could not allocate the opcode list pointer");
         }
         try {
-          const bytesRaw = pluginInstance.exports["csound_opcode_init"](csoundInstance, epPointerPtr);
+          const bytesRaw = pluginInstance.exports["csound_opcode_init"](
+            csoundInstance,
+            epPointerPtr,
+          );
           const bytes = Number(bytesRaw);
-          const opcodeListPtr = new DataView(memory.buffer).getUint32(epPointerPtr, true);
-          const entryCount = Math.floor(bytes / wasm32OentrySize);
+          const readPointer = (view, offset) =>
+            pointerBytes === 8
+              ? addressNumber(view.getBigUint64(offset, true))
+              : view.getUint32(offset, true);
+          const opcodeListPtr = readPointer(new DataView(memory.buffer), epPointerPtr);
+          const entryCount = Math.floor(bytes / entrySize);
           if (entryCount > 0 && opcodeListPtr !== 0) {
-            const allocationSize = entryCount * wasm32OentrySize;
+            const allocationSize = entryCount * entrySize;
             if (!Number.isSafeInteger(allocationSize) || allocationSize > 0x7fffffff) {
               throw new RangeError("The opcode list is too large");
             }
@@ -158,31 +186,18 @@ export const dlinit = (
 
             try {
               for (let entryIndex = 0; entryIndex < entryCount; entryIndex += 1) {
-                const sourceOffset = opcodeListPtr + entryIndex * wasm32OentrySize;
-                const targetOffset = patchedOpcodeListPtr + entryIndex * wasm32OentrySize;
+                const sourceOffset = opcodeListPtr + entryIndex * entrySize;
+                const targetOffset = patchedOpcodeListPtr + entryIndex * entrySize;
 
-                // OENTRY layout (wasm32): 10 x 4-byte fields.
-                const opname = dv.getUint32(sourceOffset + 0, true);
-                const dsblksiz = dv.getUint32(sourceOffset + 4, true);
-                const flags = dv.getInt32(sourceOffset + 8, true);
-                const outypes = dv.getUint32(sourceOffset + 12, true);
-                const intypes = dv.getUint32(sourceOffset + 16, true);
-                const init = dv.getUint32(sourceOffset + 20, true);
-                const perf = dv.getUint32(sourceOffset + 24, true);
-                const deinit = dv.getUint32(sourceOffset + 28, true);
-                const useropinfo = dv.getUint32(sourceOffset + 32, true);
-                const deprecated = dv.getInt32(sourceOffset + 36, true);
-
-                dv.setUint32(targetOffset + 0, opname, true);
-                dv.setUint32(targetOffset + 4, dsblksiz, true);
-                dv.setInt32(targetOffset + 8, flags, true);
-                dv.setUint32(targetOffset + 12, outypes, true);
-                dv.setUint32(targetOffset + 16, intypes, true);
-                dv.setUint32(targetOffset + 20, remapToHostTable(init), true);
-                dv.setUint32(targetOffset + 24, remapToHostTable(perf), true);
-                dv.setUint32(targetOffset + 28, remapToHostTable(deinit), true);
-                dv.setUint32(targetOffset + 32, useropinfo, true);
-                dv.setInt32(targetOffset + 36, deprecated, true);
+                new Uint8Array(memory.buffer, targetOffset, entrySize).set(
+                  new Uint8Array(memory.buffer, sourceOffset, entrySize),
+                );
+                for (const offset of functionOffsets) {
+                  const address = remapToHostTable(readPointer(dv, sourceOffset + offset));
+                  if (pointerBytes === 8)
+                    dv.setBigUint64(targetOffset + offset, BigInt(address), true);
+                  else dv.setUint32(targetOffset + offset, address, true);
+                }
               }
 
               appendOpcodes(csoundInstance, patchedOpcodeListPtr, entryCount);
@@ -196,7 +211,9 @@ export const dlinit = (
           freeByteMem(epPointerPtr);
         }
       } else if (typeof pluginInstance.exports["csound_opcode_init"] === "function") {
-        console.error(`Missing required host exports for opcode plugin loading: ${missing.join(", ")}`);
+        console.error(
+          `Missing required host exports for opcode plugin loading: ${missing.join(", ")}`,
+        );
       }
 
       if (typeof pluginInstance.exports["csound_fgen_init"] === "function") {
@@ -216,11 +233,7 @@ export const dlinit = (
       csoundFgenInit.value = internFunction(table, pluginInstance.exports["csound_fgen_init"]);
     }
 
-    hostExports["csoundWasiLoadOpcodeLibrary"](
-      csoundInstance,
-      csoundFgenInit,
-      csoundOpcodeInit,
-    );
+    hostExports["csoundWasiLoadOpcodeLibrary"](csoundInstance, csoundFgenInit, csoundOpcodeInit);
   } else {
     console.error("Plugin doesn't export nececcary functions to quality as csound plugin.");
   }

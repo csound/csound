@@ -1,11 +1,13 @@
 {
+  wasm64 ? false,
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
-  pkgsWasm ? pkgs.pkgsCross.wasi32,
-  stdenvWasm ? pkgsWasm.clangStdenv,
+  wasiToolchain ? import (if wasm64 then ./wasi64-toolchain.nix else ./wasi-preview2-toolchain.nix) {inherit system pkgs;},
+  pkgsWasm ? wasiToolchain.pkgsWasm,
+  stdenvWasm ? wasiToolchain.stdenv,
   # Match the browser binary selected from this package at build time.
-  sharedMemory ? builtins.pathExists ../lib/csound-browser-realtime.wasm.z,
-  csoundSdkArchive ? if sharedMemory
+  sharedMemory ? !wasm64 && builtins.pathExists ../lib/csound-browser-realtime.wasm.z,
+  csoundSdkArchive ? if wasm64 then ../lib/csound-wasm64-plugin-sdk.tar.gz else if sharedMemory
     then ../lib/csound-plugin-sdk.tar.gz
     else ../lib/csound-plugin-sdk-compat.tar.gz,
   useSdkArchive ? true,
@@ -32,6 +34,8 @@ in
         fi
       '';
     }
+  else if wasm64
+  then pkgs.callPackage ./csound-wasm64.nix { inherit pkgs; moduleKind = "browser"; }
   else if sharedMemory
   then
     pkgs.callPackage ./csound-browser-realtime.nix { inherit pkgs; }

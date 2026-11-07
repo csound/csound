@@ -14,6 +14,7 @@
  */
 
 import fs from "fs";
+import { browserBinaries } from "./goog/browser-binaries.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import { inlineArraybuffer } from "./goog/inline-arraybuffer.js";
@@ -24,15 +25,17 @@ const __dirname = path.dirname(__filename);
 const rootDir = __dirname;
 
 fs.mkdirSync(path.join(rootDir, "dist"), { recursive: true });
-fs.writeFileSync(
-  path.join(rootDir, "dist", "__csound_wasm_static_tools.inline.js"),
-  inlineArraybuffer("./node_modules/@csound/wasm-bin/lib/csound.wasm.z", "binary.wasm"),
-);
 
-(async () => {
+for (const target of ["wasm64", "wasm32"]) {
+  const filename = target === "wasm64" ? "csound-wasm64-no-audio.js" : "csound-no-audio.js";
+  fs.writeFileSync(
+    path.join(rootDir, "dist", "__csound_wasm_static_tools.inline.js"),
+    inlineArraybuffer(browserBinaries(rootDir, undefined, target).baseline, "binary.wasm"),
+  );
+
   const closureConfig = {
     entry_point: "./tools/csound-no-audio.js",
-    js_output_file: path.join(rootDir, "dist", "csound-no-audio.js"),
+    js_output_file: path.join(rootDir, "dist", filename),
     browser_featureset_year: 2020,
     externs: [path.join(rootDir, "externs.js")],
     js: [
@@ -63,4 +66,4 @@ fs.writeFileSync(
   };
 
   await runClosureCompiler(closureConfig);
-})();
+}

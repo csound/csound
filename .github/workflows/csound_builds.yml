@@ -1547,27 +1547,9 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $redistUrl = "https://aka.ms/vs/18/release/vc_redist.x64.exe"
-          $redistPath = "installer/windows/vc_redist.x64.exe"
-          Write-Host "Downloading Visual C++ Redistributable (x64) from $redistUrl ..."
-          Invoke-WebRequest -Uri $redistUrl -OutFile $redistPath
-          if (!(Test-Path $redistPath)) {
-            Write-Error "Failed to download vc_redist.x64.exe to $redistPath"
-            exit 1
-          }
-          $hash = (Get-FileHash $redistPath -Algorithm SHA256).Hash
-          $size = (Get-Item $redistPath).Length
-          Write-Host "Downloaded vc_redist.x64.exe - SHA256: $hash Size: $size bytes"
-          $sig = Get-AuthenticodeSignature $redistPath
-          if ($sig.Status -ne 'Valid') {
-            Write-Error "Authenticode signature invalid for $redistPath : $($sig.Status) $($sig.StatusMessage)"
-            exit 1
-          }
-          if ($sig.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') {
-            Write-Error "Unexpected signer for $redistPath : $($sig.SignerCertificate.Subject) - expected Microsoft Corporation"
-            exit 1
-          }
-          Write-Host "Authenticode valid - Subject: $($sig.SignerCertificate.Subject) Issuer: $($sig.SignerCertificate.Issuer)"
+          ./.github/scripts/download-vc-redist.ps1 `
+            -Uri "https://aka.ms/vs/18/release/vc_redist.x64.exe" `
+            -Destination "installer/windows/vc_redist.x64.exe"
           iscc /o. installer\\windows\\csound7_x64_github.iss
 
       - name: Upload installer
@@ -1638,27 +1620,9 @@ jobs:
       - name: Build installer
         shell: powershell
         run: |
-          $redistUrl = "https://aka.ms/vc14/vc_redist.arm64.exe"
-          $redistPath = "installer/windows/vc_redist.arm64.exe"
-          Write-Host "Downloading Visual C++ Redistributable (ARM64) from $redistUrl ..."
-          Invoke-WebRequest -Uri $redistUrl -OutFile $redistPath
-          if (!(Test-Path $redistPath)) {
-            Write-Error "Failed to download vc_redist.arm64.exe to $redistPath"
-            exit 1
-          }
-          $hash = (Get-FileHash $redistPath -Algorithm SHA256).Hash
-          $size = (Get-Item $redistPath).Length
-          Write-Host "Downloaded vc_redist.arm64.exe - SHA256: $hash Size: $size bytes"
-          $sig = Get-AuthenticodeSignature $redistPath
-          if ($sig.Status -ne 'Valid') {
-            Write-Error "Authenticode signature invalid for $redistPath : $($sig.Status) $($sig.StatusMessage)"
-            exit 1
-          }
-          if ($sig.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') {
-            Write-Error "Unexpected signer for $redistPath : $($sig.SignerCertificate.Subject) - expected Microsoft Corporation"
-            exit 1
-          }
-          Write-Host "Authenticode valid - Subject: $($sig.SignerCertificate.Subject) Issuer: $($sig.SignerCertificate.Issuer)"
+          ./.github/scripts/download-vc-redist.ps1 `
+            -Uri "https://aka.ms/vs/18/release/vc_redist.arm64.exe" `
+            -Destination "installer/windows/vc_redist.arm64.exe"
           iscc /o. installer\\windows\\csound7_arm64_github.iss
 
       - name: Upload installer
@@ -1730,27 +1694,9 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $redistUrl = "https://aka.ms/vs/17/release/vc_redist.x86.exe"
-          $redistPath = "installer/windows/vc_redist.x86.exe"
-          Write-Host "Downloading Visual C++ Redistributable (x86) from $redistUrl ..."
-          Invoke-WebRequest -Uri $redistUrl -OutFile $redistPath
-          if (!(Test-Path $redistPath)) {
-            Write-Error "Failed to download vc_redist.x86.exe to $redistPath"
-            exit 1
-          }
-          $hash = (Get-FileHash $redistPath -Algorithm SHA256).Hash
-          $size = (Get-Item $redistPath).Length
-          Write-Host "Downloaded vc_redist.x86.exe - SHA256: $hash Size: $size bytes"
-          $sig = Get-AuthenticodeSignature $redistPath
-          if ($sig.Status -ne 'Valid') {
-            Write-Error "Authenticode signature invalid for $redistPath : $($sig.Status) $($sig.StatusMessage)"
-            exit 1
-          }
-          if ($sig.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') {
-            Write-Error "Unexpected signer for $redistPath : $($sig.SignerCertificate.Subject) - expected Microsoft Corporation"
-            exit 1
-          }
-          Write-Host "Authenticode valid - Subject: $($sig.SignerCertificate.Subject) Issuer: $($sig.SignerCertificate.Issuer)"
+          ./.github/scripts/download-vc-redist.ps1 `
+            -Uri "https://aka.ms/vs/17/release/vc_redist.x86.exe" `
+            -Destination "installer/windows/vc_redist.x86.exe"
           iscc /o. installer\\windows\\csound7_x86_github.iss
 
       - name: Upload installer

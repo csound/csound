@@ -65,4 +65,17 @@ describe("browser binary packaging", () => {
       /CSOUND_THREADED_WASM/,
     );
   });
+  it("requires an explicit target for wasm64 and keeps its companion separate", () => {
+    const baseline = put(local, "csound.wasm.z");
+    const wide = put(local, "csound-wasm64.wasm.z");
+    const threaded = put(local, "csound-wasm64-browser-realtime.wasm.z");
+    assert.deepEqual(browserBinaries(root), { baseline, threaded: undefined });
+    assert.deepEqual(browserBinaries(root, undefined, "wasm64"), { baseline: wide, threaded });
+  });
+
+  it("does not fall back to wasm64 when the default engine is missing", () => {
+    put(local, "csound-wasm64.wasm.z");
+    assert.throws(() => browserBinaries(root), /binary is missing/);
+    assert.throws(() => browserBinaries(root, undefined, "unknown"), /Unknown browser target/);
+  });
 });
