@@ -348,10 +348,10 @@ libcsound.csoundGetSpout.argtypes = [CSOUND_p]
 libcsound.csoundSetHostMIDIIO.argtypes = [CSOUND_p]
 libcsound.csoundSetMIDIModule.argtypes = [CSOUND_p, ct.c_char_p]
 MIDIINOPENFUNC = ct.CFUNCTYPE(ct.c_int32, CSOUND_p, ct.POINTER(ct.c_void_p), ct.c_char_p)
-MIDIREADFUNC = ct.CFUNCTYPE(ct.c_int32, CSOUND_p, ct.c_void_p, ct.c_char_p, ct.c_int32)
+MIDIREADFUNC = ct.CFUNCTYPE(ct.c_int32, CSOUND_p, ct.c_void_p, ct.POINTER(ct.c_ubyte), ct.c_int32)
 MIDIINCLOSEFUNC = ct.CFUNCTYPE(ct.c_int32, CSOUND_p, ct.c_void_p)
 MIDIOUTOPENFUNC = ct.CFUNCTYPE(ct.c_int32, CSOUND_p, ct.POINTER(ct.c_void_p), ct.c_char_p)
-MIDIWRITEFUNC = ct.CFUNCTYPE(ct.c_int32, CSOUND_p, ct.c_void_p, ct.c_char_p, ct.c_int32)
+MIDIWRITEFUNC = ct.CFUNCTYPE(ct.c_int32, CSOUND_p, ct.c_void_p, ct.POINTER(ct.c_ubyte), ct.c_int32)
 MIDIOUTCLOSEFUNC = ct.CFUNCTYPE(ct.c_int32, CSOUND_p, ct.c_void_p)
 MIDIERRORFUNC = ct.CFUNCTYPE(ct.c_char_p, ct.c_int32)
 MIDIDEVLISTFUNC = ct.CFUNCTYPE(ct.c_int32, CSOUND_p, ct.POINTER(CsoundMidiDevice), ct.c_int32)
@@ -1865,7 +1865,17 @@ class Csound:
             self.ext_midi_in_open_cb_ref)
 
     def set_external_midi_read_callback(self, function):
-        """Sets a callback for reading from real time MIDI input."""
+        """Sets a callback for reading from real time MIDI input.
+
+        The callback takes (csound, user_data, buffer, size), buffer a pointer
+        to Csound's buffer of size bytes, unchecked. It writes at most size
+        bytes there, ctypes.memmove(buffer, data, count), and returns their
+        count, 0 for none, or a negative error code. It must return an int and
+        must not raise: ctypes would then pass an arbitrary count, which
+        Csound trusts. Csound calls it when that buffer is empty, which can be
+        straight after a read that returned bytes: until it returns 0 or less,
+        the k-cycle may not end.
+        """
         self.ext_midi_read_cb_ref = MIDIREADFUNC(function)
         libcsound.csoundSetExternalMidiReadCallback(self.cs,
             self.ext_midi_read_cb_ref)
@@ -1877,19 +1887,27 @@ class Csound:
             self.ext_midi_in_close_cb_ref)
 
     def set_external_midi_out_open_callback(self, function):
-        """Sets a callback for opening real-time MIDI input."""
+        """Sets a callback for opening real time MIDI output."""
         self.ext_midi_out_open_cb_ref = MIDIOUTOPENFUNC(function)
         libcsound.csoundSetExternalMidiOutOpenCallback(self.cs,
             self.ext_midi_out_open_cb_ref)
 
-    def set_external_midi_write_callbackk(self, function):
-        """Sets a callback for reading from real time MIDI input."""
+    def set_external_midi_write_callback(self, function):
+        """Sets a callback for writing to real time MIDI output.
+
+        The callback takes (csound, user_data, buffer, count), buffer a pointer
+        to the bytes, good for that call alone: bytes(buffer[:count]) copies
+        them, a zero data byte with the rest. It must return an int, though
+        Csound ignores it.
+        """
         self.ext_midi_write_cb_ref = MIDIWRITEFUNC(function)
         libcsound.csoundSetExternalMidiWriteCallback(self.cs,
             self.ext_midi_write_cb_ref)
 
+    set_external_midi_write_callbackk = set_external_midi_write_callback  # The old spelling.
+
     def set_external_midi_out_close_callback(self, function):
-        """Sets a callback for closing real time MIDI input."""
+        """Sets a callback for closing real time MIDI output."""
         self.ext_midi_out_close_cb_ref = MIDIOUTCLOSEFUNC(function)
         libcsound.csoundSetExternalMidiOutCloseCallback(self.cs,
             self.ext_midi_out_close_cb_ref)
@@ -2136,19 +2154,21 @@ class CsoundPerformanceThread:
             self.ext_midi_in_close_cb_ref)
 
     def set_external_midi_out_open_callback(self, function):
-        """Sets a callback for opening real-time MIDI input."""
+        """Sets a callback for opening real time MIDI output."""
         self.ext_midi_out_open_cb_ref = MIDIOUTOPENFUNC(function)
         libcsound.csoundSetExternalMidiOutOpenCallback(self.cs,
             self.ext_midi_out_open_cb_ref)
 
-    def set_external_midi_write_callbackk(self, function):
-        """Sets a callback for reading from real time MIDI input."""
+    def set_external_midi_write_callback(self, function):
+        """Sets a callback for writing to real time MIDI output."""
         self.ext_midi_write_cb_ref = MIDIWRITEFUNC(function)
         libcsound.csoundSetExternalMidiWriteCallback(self.cs,
             self.ext_midi_write_cb_ref)
 
+    set_external_midi_write_callbackk = set_external_midi_write_callback  # The old spelling.
+
     def set_external_midi_out_close_callback(self, function):
-        """Sets a callback for closing real time MIDI input."""
+        """Sets a callback for closing real time MIDI output."""
         self.ext_midi_out_close_cb_ref = MIDIOUTCLOSEFUNC(function)
         libcsound.csoundSetExternalMidiOutCloseCallback(self.cs,
             self.ext_midi_out_close_cb_ref)
