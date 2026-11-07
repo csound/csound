@@ -23,6 +23,9 @@
 */
 
 #include "csoundCore.h"
+#if defined(MSVC)
+#include <intrin.h> /* for ATOMIC_SET_SIZE */
+#endif
 #define CSOUND_STR_OPS_C    1
 #include "str_ops.h"
 #include "csound_standard_types.h"

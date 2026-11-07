@@ -23,6 +23,9 @@
 
 /*                      BUS.C           */
 #include "csoundCore.h"
+#if defined(MSVC)
+#include <intrin.h> /* for ATOMIC_SET_SIZE */
+#endif
 #include "arrays.h"
 #include "arrays_internal.h"
 #include <setjmp.h>

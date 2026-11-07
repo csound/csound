@@ -85,6 +85,10 @@ _Static_assert(sizeof(long) == 4, "expected 32-bit long on wasm32");
 # endif
 #endif
 
+#if defined(MSVC)
+#include <intrin.h> /* for _InterlockedExchange */
+#endif
+
 #ifndef CABBAGE
 #ifdef MSVC
 typedef __int32 int32;
@@ -473,11 +477,6 @@ size_t strlcat(char *dst, const char *src, size_t siz);
 char *strNcpy(char *dst, const char *src, size_t siz);
 
 /* atomics */
-/* Not from C++, which can reach this inside an extern "C" block. */
-#if defined(MSVC) && !defined(__cplusplus)
-#include <intrin.h> /* for _InterlockedExchange */
-#endif
-
 #if defined(MSVC)
 #define ATOMIC_SET(var, val)  InterlockedExchange(&var, val);
 #elif defined(HAVE_ATOMIC_BUILTIN)
@@ -510,7 +509,8 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_GET8(var) var
 #endif
 
-/* For a size_t: ATOMIC_SET and ATOMIC_GET are 32 bits wide under MSVC. */
+/* For a size_t: ATOMIC_SET and ATOMIC_GET are 32 bits wide under MSVC.
+   A C file using these includes <intrin.h> after csoundCore.h. */
 #if defined(MSVC) && defined(_WIN64)
 #define ATOMIC_SET_SIZE(var, val) \
   ((void) _InterlockedExchange64((volatile __int64 *) &(var), (__int64) (val)))
