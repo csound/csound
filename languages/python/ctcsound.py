@@ -406,6 +406,9 @@ libcsound.csoundSetControlChannel.argtypes = [CSOUND_p, ct.c_char_p, cs_float]
 libcsound.csoundGetAudioChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.POINTER(cs_float)]
 libcsound.csoundSetAudioChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.POINTER(cs_float)]
 libcsound.csoundGetStringChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.c_char_p]
+libcsound.csoundGetStringChannelBounded.restype = ct.c_size_t
+libcsound.csoundGetStringChannelBounded.argtypes = [CSOUND_p, ct.c_char_p, ct.c_char_p,
+    ct.c_size_t]
 libcsound.csoundSetStringChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.c_char_p]
 
 libcsound.csoundInitArrayChannel.restype = ARRAYDAT_p
@@ -1434,11 +1437,13 @@ class Csound:
     def string_channel(self, name):
         """Return a string from the string channel identified by name."""
         n = libcsound.csoundGetChannelDatasize(self.cs, cstring(name))
-        if n > 0:
+        while n > 0:
             s = ct.create_string_buffer(n)
-            libcsound.csoundGetStringChannel(self.cs, cstring(name),
-                ct.cast(s, ct.POINTER(ct.c_char)))
-            return pstring(ctypes.string_at(s))
+            needed = libcsound.csoundGetStringChannelBounded(self.cs, cstring(name),
+                ct.cast(s, ct.POINTER(ct.c_char)), n)
+            if needed <= n:
+                return pstring(ctypes.string_at(s))
+            n = needed  # the performance wrote a longer string: read it again
         return ""
 
     def set_string_channel(self, name, string):

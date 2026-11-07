@@ -1088,10 +1088,27 @@ extern "C" {
   /**
    * copies the string channel identified by *name into *string
    * which should contain enough memory for the string
-   * (see csoundGetChannelDatasize() below)
+   * (see csoundGetChannelDatasize() below).
+   * The copy is not bounded: if another thread can write the channel,
+   * the string can outgrow a buffer sized before this call, so use
+   * csoundGetStringChannelBounded() instead.
    */
   PUBLIC void csoundGetStringChannel(CSOUND *csound,
                                      const char *name, char *string);
+
+  /**
+   * copies the string channel identified by *name into *string, which
+   * holds size bytes, and always terminates it unless size is 0.
+   * Returns the size the whole string needs, its terminator included,
+   * measured with the copy under the channel's lock: if that is more than
+   * size, *string was truncated, and a buffer of that size can hold it.
+   * Returns 0, with *string empty, if name is empty or the channel is not
+   * a string channel. A channel that does not exist is created, as
+   * csoundGetStringChannel() does. *string can be NULL if size is 0.
+   */
+  PUBLIC size_t csoundGetStringChannelBounded(CSOUND *csound,
+                                              const char *name,
+                                              char *string, size_t size);
 
   /**
    * sets the string channel identified by *name with *string
@@ -1238,7 +1255,10 @@ extern "C" {
    * this might change if the channel space gets reallocated
    * Since string variables use dynamic memory allocation
    * this function can be called to get the space required for
-   * csoundGetStringChannel()
+   * csoundGetStringChannel(). Another thread can write a longer string as
+   * soon as this returns: csoundGetStringChannelBounded() allows for that.
+   * This function takes no channel lock, so a host holding the channel
+   * through csoundLockChannel() can call it.
    */
   PUBLIC int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name);
 

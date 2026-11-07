@@ -482,6 +482,18 @@ PUBLIC void csoundLockChannel(CSOUND *csound, const char *channel);
 PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
 ```
 
+`csoundGetStringChannel()` is not told the size of its buffer, so a string
+written after `csoundGetChannelDatasize()` sized it can overrun it. A host
+reading a channel that another thread can write uses
+
+```
+PUBLIC size_t csoundGetStringChannelBounded(CSOUND *csound, const char *name,
+                                            char *string, size_t size);
+```
+
+which never writes more than `size` bytes, terminates what it writes, and
+returns the size the whole string needs.
+
 The function
 
 ```
