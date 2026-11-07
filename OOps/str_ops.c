@@ -25,6 +25,7 @@
 #include "csoundCore.h"
 #define CSOUND_STR_OPS_C    1
 #include "str_ops.h"
+#include "csound_standard_types.h"
 #include "arrays.h"
 #include <ctype.h>
 #ifdef HAVE_CURL
@@ -249,8 +250,17 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 
   }
   else {
-    p->r->data = csound->StringArg2Name(csound, p->r->data, p->indx, "soundin.", 0);
-    p->r->size = (int32_t) strlen(p->r->data) + 1;
+    /* Given a buffer StringArg2Name writes into it whatever its size, and a
+       strset string can be longer: given none, it allocates one that fits.
+       The variable keeps its own buffer unless the text outgrows it, as more
+       than the variable can point there: a literal passed by reference to a
+       UDO is the string pool's too, and printks2 holds on to its format. */
+    STRINGDAT name = {
+      .data = csound->StringArg2Name(csound, NULL, p->indx, "soundin.", 0),
+      .refcount = -1
+    };
+    CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, p->r, &name, p->h.insdshead);
+    csound->Free(csound, name.data);
   }
   return OK;
 }
