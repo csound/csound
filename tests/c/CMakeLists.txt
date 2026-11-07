@@ -45,6 +45,7 @@ if(BUILD_TESTS)
         csound_message_buffer_test.cpp
         csound_diagnostics_test.cpp
         csound_option_parser_test.cpp
+        rc_files_test.cpp
         plugin_options_test.cpp
         csound_csd_compile_test.cpp
         csound_orc_compile_test.cpp
