@@ -4,7 +4,9 @@ be inside one, waiting for the GIL, however late it is replaced: a thunk
 released while C still has it is a crash, so most of these run in a process of
 their own."""
 
+import ctypes
 import os
+import re
 import subprocess
 import sys
 import unittest
@@ -76,6 +78,61 @@ assert calls == ['second'], calls
 cs.remove_keyboard_callback(key)
 cs.perform_ksmps()
 assert calls == ['second'], calls
+'''
+
+# Objects that compare equal are two callbacks, hashable or not, bound or not,
+# and two lookups of a bound method, or two equal addresses, are one.
+KEYBOARD_IDENTITY = PRELUDE + '''
+import ctypes, types
+calls = []
+class Key:
+    def __init__(self, name):
+        self.name = name
+    def __eq__(self, other):
+        return isinstance(other, Key)
+    def __hash__(self):
+        return 1
+    def __call__(self, *args):
+        calls.append((self.name, args[-3]))
+        return 0
+    def __getattr__(self, name):
+        return name
+    def method(self, user_data, _data, _type):
+        calls.append(('method of ' + self.name, user_data))
+        return 0
+class Unhashable(Key):
+    __hash__ = None
+event = ctcsound.CSOUND_CALLBACK_KBD_EVENT.value
+first, second, third = Key('first'), Key('second'), Unhashable('third')
+cs.register_keyboard_callback(first, 'a', event)
+cs.register_keyboard_callback(second, 'b', event)
+cs.register_keyboard_callback(third, 'c', event)
+cs.register_keyboard_callback(first.method, 'd', event)
+cs.register_keyboard_callback(first.method, 'e', event)
+fourth, fifth = Key('fourth'), Key('fifth')
+cs.register_keyboard_callback(types.MethodType(fourth, first), 'f', event)
+cs.register_keyboard_callback(types.MethodType(fifth, first), 'g', event)
+thunk = ctcsound.KEYBOARDFUNC(Key('address'))
+address = ctypes.cast(thunk, ctypes.c_void_p).value
+cs.register_keyboard_callback(address, 'h', event)
+cs.compile_orc(HEADER + """instr 1
+    k_key:k, k_down:k = sensekey()
+endin
+schedule(1, 0, 1)
+""")
+cs.start()
+cs.perform_ksmps()
+assert calls == [('address', 'h'), ('fifth', 'g'), ('fourth', 'f'), ('method of first', 'e'),
+                 ('third', 'c'), ('second', 'b'), ('first', 'a')], calls
+calls.clear()
+cs.remove_keyboard_callback(second)
+cs.remove_keyboard_callback(third)
+cs.remove_keyboard_callback(first.method)
+cs.remove_keyboard_callback(types.MethodType(fourth, first))
+cs.remove_keyboard_callback(types.MethodType(fifth, first))
+cs.remove_keyboard_callback(int(str(address)))
+cs.perform_ksmps()
+assert calls == [('first', 'a')], calls
 '''
 
 # Csound keeps the name and the types as well, which Python would reuse.
@@ -156,6 +213,26 @@ class CallbackLifetimeTests(unittest.TestCase):
 
     def test_a_keyboard_callback_lives_until_it_is_removed(self):
         self.run_alone(KEYBOARD)
+
+    def test_keyboard_callbacks_are_told_apart_by_identity(self):
+        self.run_alone(KEYBOARD_IDENTITY)
+
+    def test_c_functions_and_methods_of_c_types_are_keyboard_callbacks_by_value(self):
+        values = []
+        pattern = re.compile('x')
+        version = ('csoundGetVersion', ctcsound.libcsound)
+        address = ctypes.cast(ctcsound.KEYBOARDFUNC(version), ctypes.c_void_p).value
+        lookups = ((lambda: values.append, lambda: values.append),
+                   (lambda: pattern.match, lambda: pattern.match),
+                   (lambda: len.__call__, lambda: len.__call__),
+                   (lambda: ('csoundGetSr', ctcsound.libcsound),
+                    lambda: ('csoundGetSr', ctcsound.libcsound)),
+                   (lambda: version, lambda: address))
+        for pair in lookups:
+            for lookup in pair:
+                self.cs.register_keyboard_callback(lookup(), None,
+                                                   ctcsound.CSOUND_CALLBACK_KBD_EVENT.value)
+        self.assertEqual(len(self.cs._keyboard_thunks), len(lookups))
 
     def test_a_keyboard_callback_keeps_its_user_data(self):
         user_data = Callback()

@@ -24,6 +24,7 @@ import ctypes as ct
 import ctypes.util
 import numpy as np
 import sys
+import types
 from enum import Enum
 
 # This is a workaround to yield the PEP 3118 problem which appeared with
@@ -1663,8 +1664,9 @@ class Csound:
         callbacks may be set and will be called in reverse order of
         registration. If the same function is set again, it is only moved
         in the list of callbacks so that it will be called first, and the
-        user data and type mask parameters are updated: that removes its
-        entry first, so remove_keyboard_callback()'s rule applies to it too.
+        user data and type mask parameters are updated. The same function
+        means what it does for remove_keyboard_callback(), and as this removes
+        its entry first, that method's limit on when it may run applies here.
         type_mask can be the bitwise OR of callback types for which the
         function should be called, or zero for all types.
 
@@ -1700,7 +1702,8 @@ class Csound:
         """
         # Csound tells callbacks apart by address, so a function has one thunk,
         # and that thunk stays after removal for the reason _keep gives.
-        thunk = self._keyboard_thunks.setdefault(function, KEYBOARDFUNC(function))
+        thunk = self._keyboard_thunks.setdefault(self._keyboard_key(function),
+                                                 KEYBOARDFUNC(function))
         return libcsound.csoundRegisterKeyboardCallback(self.cs, thunk,
             ct.py_object(self._keep(user_data)), ct.c_uint(type_))
 
@@ -1710,9 +1713,34 @@ class Csound:
         Csound frees the callback's entry with no lock, and reads it again
         when a call returns. So neither this nor setting the function again
         may run inside the callback, or while another thread performs.
+
+        A callable goes by identity: give it the object that was registered,
+        or another lookup of the same bound method. One that only compares
+        equal to it removes nothing. A C function, given by its address or as
+        ctypes' (name, dll), goes by its address.
         """
-        if function in self._keyboard_thunks:
-            libcsound.csoundRemoveKeyboardCallback(self.cs, self._keyboard_thunks[function])
+        key = self._keyboard_key(function)
+        if key in self._keyboard_thunks:
+            libcsound.csoundRemoveKeyboardCallback(self.cs, self._keyboard_thunks[key])
+
+    @staticmethod
+    def _keyboard_key(function):
+        """Returns what makes function one keyboard callback.
+
+        That is its identity, which its thunk preserves, as objects that compare
+        equal are still two. A bound method is made anew at each lookup, so it
+        goes by the identity of what it binds, which is how those of C types
+        compare. What is not callable names a C function, which ctypes keeps
+        no hold of, so it goes by its address, as Csound's own list does.
+        """
+        kind = type(function)
+        if kind is types.MethodType:
+            return id(function.__self__), id(function.__func__)
+        if issubclass(kind, (types.BuiltinMethodType, types.MethodWrapperType)):
+            return function
+        if not callable(function):
+            return ct.cast(KEYBOARDFUNC(function), ct.c_void_p).value
+        return id(function)
 
     #
     # Tables
