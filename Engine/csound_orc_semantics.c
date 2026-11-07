@@ -3150,6 +3150,34 @@ static char *get_assignment_lhs_type_hint(CSOUND *csound, TREE *left)
   return NULL;
 }
 
+/* An assignment from a function call goes through a hidden variable, copied to
+ * the left at every k-period. Two calls cannot go that way, and become opcalls,
+ * as they do with no computed argument:
+ * - init writes once: the copy would put its value back at every k-period, and
+ *   in global code, which has no k-period, would never run.
+ * - a call resolving to a form of several outputs has no one type, and
+ *   get_arg_type2 would raise that as an error.
+ */
+static int32_t function_must_be_opcall(CSOUND* csound, TREE* call,
+                                       TYPE_TABLE* typeTable)
+{
+  char *argTypes, *outTypes;
+  OENTRIES* entries;
+
+  if (!strcmp(call->value->lexeme, "init")) {
+    return 1;
+  }
+  if (call->value->optype != NULL) {
+    return 0;
+  }
+  argTypes = get_arg_string_from_tree(csound, call->right, typeTable);
+  entries = find_opcode2(csound, call->value->lexeme);
+  outTypes = resolve_opcode_get_outarg(csound, entries, argTypes);
+  csound->Free(csound, argTypes);
+  csound->Free(csound, entries);
+  return outTypes != NULL && args_required(outTypes) != 1;
+}
+
 TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
                                   TYPE_TABLE* typeTable) {
   int32_t leftCount, rightCount;
@@ -3178,6 +3206,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
         char *leftType = get_assignment_lhs_type_hint(csound, root->left);
 
         if (leftType != NULL && strlen(leftType) == 1 &&
+            !function_must_be_opcall(csound, right, typeTable) &&
             (outType = get_arg_type2(csound, right, typeTable)) != NULL) {
           if (!strcmp(leftType, outType)) {
             csound->Free(csound, leftType);
