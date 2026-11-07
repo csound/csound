@@ -1271,7 +1271,8 @@ extern "C" {
    * csoundGetStringChannel(), if no other thread can write the channel:
    * the answer is out of date as soon as one does.
    * It takes no channel lock, so it can be called between
-   * csoundLockChannel() and csoundUnlockChannel(), where the answer holds.
+   * csoundLockChannel() and csoundUnlockChannel(), where the answer holds,
+   * unless the channel is a variable exported with chnexport.
    */
   PUBLIC int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name);
 

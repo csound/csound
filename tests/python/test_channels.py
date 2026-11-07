@@ -135,21 +135,22 @@ class TestStringChannel(unittest.TestCase):
         self.cs.set_string_channel('text', 'a')
 
         def write():
+            # Each write differs from the last, so a torn read shows.
             for length in range(128, 65537, 128):
-                self.cs.set_string_channel('text', 'a' * length)
+                self.cs.set_string_channel('text', 'ab'[length // 128 % 2] * length)
 
         writer = threading.Thread(target=write, daemon=True)
         writer.start()
         torn = 0
         while writer.is_alive():
             value = self.cs.string_channel('text')
-            torn += value != 'a' * len(value)
+            torn += value != value[:1] * len(value)
         self.assertEqual(torn, 0)
         self.assertEqual(self.cs.string_channel('text'), 'a' * 65536)
 
     def test_string_channel_holds_a_writer_off_during_the_copy(self):
         self.cs.set_string_channel('text', 'short')
-        copy = ctcsound.string_copy
+        copy = ctcsound._string_copy
         writer = threading.Thread(target=self.cs.set_string_channel,
                                   args=('text', 'x' * 4096), daemon=True)
 
@@ -159,7 +160,7 @@ class TestStringChannel(unittest.TestCase):
             self.assertTrue(writer.is_alive())
             return copy(csound, sdata)
 
-        with mock.patch.object(ctcsound, 'string_copy', copy_during_a_write):
+        with mock.patch.object(ctcsound, '_string_copy', copy_during_a_write):
             self.assertEqual(self.cs.string_channel('text'), 'short')
         writer.join(10)
         self.assertFalse(writer.is_alive())
@@ -169,7 +170,7 @@ class TestStringChannel(unittest.TestCase):
         self.cs.set_string_channel('text', 'short')
         unlock = mock.Mock(wraps=ctcsound.libcsound.csoundUnlockChannel)
         with mock.patch.object(ctcsound.libcsound, 'csoundUnlockChannel', unlock), \
-             mock.patch.object(ctcsound, 'string_copy', side_effect=MemoryError):
+             mock.patch.object(ctcsound, '_string_copy', side_effect=MemoryError):
             with self.assertRaises(MemoryError):
                 self.cs.string_channel('text')
         unlock.assert_called_once()

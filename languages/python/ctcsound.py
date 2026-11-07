@@ -434,7 +434,7 @@ libcsound.csoundGetStringData.argtypes = [CSOUND_p, STRINGDAT_p]
 libcsound.csoundSetStringData.argtypes = [CSOUND_p, STRINGDAT_p, ct.c_char_p]
 # For a copy made under a channel's lock: this form keeps the GIL, where
 # libcsound's gives it up and has to wait for it, with the lock held.
-string_copy = ct.PYFUNCTYPE(ct.c_char_p, CSOUND_p, STRINGDAT_p)(
+_string_copy = ct.PYFUNCTYPE(ct.c_char_p, CSOUND_p, STRINGDAT_p)(
     ('csoundGetStringData', libcsound))
 libcsound.csoundInitPvsChannel.restype = PVSDAT_p
 libcsound.csoundInitPvsChannel.argtypes = [CSOUND_p, ct.c_char_p,
@@ -1496,7 +1496,9 @@ class Csound:
 
         The string is copied under the channel's lock. A performance using
         the channel waits for that lock, and if other Python threads are
-        running this thread can hold it while it waits for the GIL.
+        running this thread can hold it while it waits for the GIL. The lock
+        does not cover a variable exported with chnexport: see
+        csoundGetStringChannel() in csound.h.
         """
         channel = cstring(name)
         if libcsound.csoundGetChannelDatasize(self.cs, channel) <= 0:
@@ -1508,7 +1510,7 @@ class Csound:
         try:
             # Inside the try: an interrupt as this returns must still unlock.
             libcsound.csoundLockChannel(self.cs, channel)
-            data = string_copy(self.cs, sdata)
+            data = _string_copy(self.cs, sdata)
         finally:
             libcsound.csoundUnlockChannel(self.cs, channel)
         return pstring(data) or ""
