@@ -3,12 +3,15 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <string>
 #include <vector>
 
 class MidiRealtimeInputTests : public ::testing::Test {
  protected:
   CSOUND *csound = nullptr;
   std::vector<unsigned char> pending;
+  int32_t capacity = 0;  // of the buffer, as the last read was told
+  int32_t excess = 0;    // counted past what a read really wrote
 
   static int32_t open(CSOUND *csound, void **data, const char *)
   {
@@ -19,11 +22,13 @@ class MidiRealtimeInputTests : public ::testing::Test {
   static int32_t read(CSOUND *, void *data, unsigned char *buffer,
                       int32_t capacity)
   {
-    auto &bytes = static_cast<MidiRealtimeInputTests *>(data)->pending;
+    auto *test = static_cast<MidiRealtimeInputTests *>(data);
+    auto &bytes = test->pending;
     const auto count = std::min(bytes.size(), static_cast<size_t>(capacity));
+    test->capacity = capacity;
     std::copy_n(bytes.begin(), count, buffer);
     bytes.erase(bytes.begin(), bytes.begin() + count);
-    return static_cast<int32_t>(count);
+    return static_cast<int32_t>(count) + (count > 0 ? test->excess : 0);
   }
 
   static int32_t close(CSOUND *, void *) { return 0; }
@@ -60,6 +65,16 @@ class MidiRealtimeInputTests : public ::testing::Test {
   }
 
   void TearDown() override { csoundDestroy(csound); }
+
+  std::string messages()
+  {
+    std::string text;
+    while (csoundGetMessageCnt(csound) > 0) {
+      text += csoundGetFirstMessage(csound);
+      csoundPopFirstMessage(csound);
+    }
+    return text;
+  }
 
   void cycle(std::initializer_list<unsigned char> bytes,
              int continued, int clock = 0, int start = 0, int stop = 0)
@@ -98,6 +113,31 @@ TEST_F(MidiRealtimeInputTests, ContinueIsACycleFlagForAllReaders)
   cycle({0xFB, 0xFB}, 1);
   cycle({0xFB}, 1);
   cycle({}, 0);
+}
+
+TEST_F(MidiRealtimeInputTests, ACountPastTheBufferIsAnErrorAndReadsNothing)
+{
+  for (int32_t bytes : {1, 1000000000}) {
+    SCOPED_TRACE(bytes);
+    excess = bytes;
+    pending.assign(capacity, 0xFB);
+    messages();
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    ASSERT_EQ(csoundGetControlChannel(csound, "continue", nullptr), 0);
+    ASSERT_NE(messages().find("error reading MIDI device"), std::string::npos);
+  }
+  excess = 0;
+  cycle({0xFB}, 1);
+  cycle({}, 0);
+}
+
+TEST_F(MidiRealtimeInputTests, ACountThatFillsTheBufferIsRead)
+{
+  pending.assign(capacity, 0xFB);
+  messages();
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "continue", nullptr), 1);
+  EXPECT_EQ(messages().find("error reading MIDI device"), std::string::npos);
 }
 
 TEST_F(MidiRealtimeInputTests, TransportFlagsSurviveNoteMessages)
