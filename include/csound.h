@@ -502,6 +502,10 @@ extern "C" {
    * or delete variable if 'value' is NULL.
    * It is not safe to call this function while any Csound instances
    * are active.
+   * An instance copies these when it is created and at csoundReset().
+   * Setting CSOUND7RC to "" before csoundCreate() stops an instance reading
+   * any rc file, .csound7rc in the working directory included. Those files
+   * take any option, --opcode-lib among them.
    * Returns zero on success.
    */
   PUBLIC int32_t csoundSetGlobalEnv(const char *name, const char *value);
