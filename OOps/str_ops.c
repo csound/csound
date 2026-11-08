@@ -215,6 +215,20 @@ int32_t strcpy_opcode_S(CSOUND *csound, STRCPY_OP *p) {
 }
 
 
+/* The name a number gives a string, by StringArg2Name's rules: the strset
+   string at the number rounded to the nearest integer, borrowed, or else
+   soundin.N, written into buf. */
+static const char *number_name(CSOUND *csound, cs_float value,
+                               char *buf, size_t size)
+{
+  int32_t i = (int32_t) ((cs_double) value + (value >= FL(0.0) ? 0.5 : -0.5));
+  if (i >= 0 && i <= (int32_t) csound->strsmax &&
+      csound->strsets != NULL && csound->strsets[i] != NULL)
+    return csound->strsets[i];
+  snprintf(buf, size, "soundin.%d", i);
+  return buf;
+}
+
 extern char* get_strarg(CSOUND *csound, cs_float p, char *strarg);
 int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 {
@@ -250,17 +264,17 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
 
   }
   else {
-    /* Given a buffer StringArg2Name writes into it whatever its size, and a
-       strset string can be longer: given none, it allocates one that fits.
-       The variable keeps its own buffer unless the text outgrows it, as more
-       than the variable can point there: a literal passed by reference to a
-       UDO is the string pool's too, and printks2 holds on to its format. */
+    /* StringArg2Name copies into a buffer it is given whatever its size, and
+       a strset string can be longer. The string type's own copy keeps the
+       variable's own buffer unless the text outgrows it, as more than the
+       variable can point there: a literal passed by reference to a UDO is
+       the string pool's too, and printks2 holds on to its format. */
+    char buf[32];
     STRINGDAT name = {
-      .data = csound->StringArg2Name(csound, NULL, p->indx, "soundin.", 0),
+      .data = (char *) number_name(csound, *p->indx, buf, sizeof(buf)),
       .refcount = -1
     };
     CS_VAR_TYPE_S.copyValue(csound, &CS_VAR_TYPE_S, p->r, &name, p->h.insdshead);
-    csound->Free(csound, name.data);
   }
   return OK;
 }
