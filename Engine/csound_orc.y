@@ -759,7 +759,7 @@ import_definition : IMPORT_TOKEN STRING_TOKEN NEWLINE
                   }
                 | FROM_TOKEN STRING_TOKEN IMPORT_TOKEN '*' NEWLINE
                   {
-                    TREE *wildcard = make_leaf(csound, LINE, LOCN, T_IDENT,
+                    TREE *wildcard = make_leaf(csound, LINE, LOCN, '*',
                                               make_token(csound, "*", NULL));
                     TREE *path = make_leaf(csound, LINE, LOCN, STRING_TOKEN, (ORCTOKEN *)$2);
                     $$ = make_node(csound, LINE, LOCN, FROM_TOKEN, path, wildcard);

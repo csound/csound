@@ -48,6 +48,7 @@ if(BUILD_TESTS)
         rc_files_test.cpp
         plugin_options_test.cpp
         csound_csd_compile_test.cpp
+        module_tests.cpp
         csound_orc_compile_test.cpp
         orc_optimizer_test.cpp
         csound_orc_semantics_test.cpp

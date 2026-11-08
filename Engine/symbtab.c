@@ -348,12 +348,14 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep);
  */
 int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
                        char *outtypes, char *intypes,
-                       int32_t flags) {
+                       int32_t flags, OPCODINFO **definition) {
 
     OENTRY    tmpEntry, *opc, *newopc;
     OPCODINFO *inm;
     int32_t len;
     int32_t isRedefinition = 0;
+    CS_MODULE *scope = csoundGetModuleState(csound)->current_module;
+    CS_MODULE *module = csoundModuleOwner(scope);
 
     if (UNLIKELY(!check_instr_name(opname))) {
       synterr(csound, Str("invalid name for opcode\n"));
@@ -368,12 +370,16 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
       opc = find_opcode_exact(csound, opname, outtypes, intypes);
     }
 
+    if (opc != NULL && opc->useropinfo != NULL &&
+        ((OPCODINFO *)opc->useropinfo)->module != module) opc = NULL;
+
     /* check if opcode is already defined */
     if (UNLIKELY(opc != NULL)) {
 
       // check if the opcode is already declared
       if (opc->flags & UNDEFINED) {
         opc->flags = 0x0000;
+        if (definition != NULL) *definition = opc->useropinfo;
         return 0;
       }
 
@@ -399,19 +405,13 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
     inm->name = csoundStrdup(csound, opname);
     inm->newStyle = newStyle;
+    inm->module = module;
+    if (definition != NULL) *definition = inm;
     /* Duplicate strings to avoid dangling pointers to parser-allocated memory */
     inm->intypes = csoundStrdup(csound, intypes);
     inm->outtypes = csoundStrdup(csound, outtypes);
     inm->in_arg_pool = csoundCreateVarPool(csound);
     inm->out_arg_pool = csoundCreateVarPool(csound);
-
-    /* Store the module's varPool for namespace isolation */
-    MODULE_STATE *module_state = csoundGetModuleState(csound);
-    if (module_state && module_state->current_module) {
-      inm->module_var_pool = module_state->current_module->varPool;
-    } else {
-      inm->module_var_pool = NULL;
-    }
 
     inm->prv = csound->opcodeInfo;
     csound->opcodeInfo = inm;
@@ -444,15 +444,35 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     if (UNLIKELY(parse_opcode_args(csound, newopc, inm) != 0))
       return -3;
 
-    /* Also register the UDO in the current module's opcodes table for qualified access */
-    if (module_state && module_state->current_module &&
-        module_state->current_module->opcodes != NULL) {
-      cs_hash_table_put(csound, module_state->current_module->opcodes,
-                        (char*)opname, newopc);
+    if (scope != NULL) {
+      CONS_CELL *entries = csoundFindModuleOpcodes(csound, scope, opname);
+      if (entries != NULL) {
+        OPCODINFO *definition = ((OENTRY *)entries->value)->useropinfo;
+        if (definition == NULL || definition->module != module) entries = NULL;
+      }
+      CONS_CELL *replacement = NULL, *tail = NULL;
+      int inserted = 0;
+      for (CONS_CELL *cell = entries; cell != NULL; cell = cell->next) {
+        OENTRY *entry = cell->value;
+        if (strcmp(entry->outypes, newopc->outypes) == 0 &&
+            strcmp(entry->intypes, newopc->intypes) == 0) {
+          entry = newopc;
+          inserted = 1;
+        }
+        CONS_CELL *copy = cs_cons(csound, entry, NULL);
+        if (tail != NULL) tail->next = copy;
+        else replacement = copy;
+        tail = copy;
+      }
+      if (!inserted) {
+        CONS_CELL *copy = cs_cons(csound, newopc, NULL);
+        if (tail != NULL) tail->next = copy;
+        else replacement = copy;
+      }
+      cs_hash_table_put(csound, scope->opcodes, opname, replacement);
     }
-
-    // add opcodeDef for this UDO
-    add_opcode_def(csound, newopc);
+    if (module == NULL || module == csoundGetModuleState(csound)->root_module)
+      add_opcode_def(csound, newopc);
     return 0;
 }
 

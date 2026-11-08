@@ -2032,7 +2032,6 @@ static void reset(CSOUND *csound) {
   csound->engineState.constantsPool = cs_hash_table_create(csound);
   /* Initialize module system */
   csound->module_state = NULL;
-  csound->compilation_depth = 0;  /* Initialize compilation depth for recursive module compilation */
   csound->engineStatus |= CS_STATE_PRE;
   if (UNLIKELY(csoundInitChannelDb(csound) != CSOUND_SUCCESS)) {
     csound->engineStatus |= CS_STATE_JMP;

@@ -50,44 +50,11 @@ static char *check_optional_type(CSOUND *csound, char *name);
 static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
                                       TYPE_TABLE *typeTable);
 
-/* Helper: check if a module's AST declares varName on LHS of an assignment */
-static int ast_defines_global(TREE *node, const char *name) {
-  if (node == NULL || name == NULL) return 0;
-
-  for (TREE *cur = node; cur != NULL; cur = cur->next) {
-    if (cur->type == T_ASSIGNMENT && cur->left && cur->left->value && cur->left->value->lexeme) {
-      const char *lhs = cur->left->value->lexeme;
-      if (lhs == NULL) continue;
-
-      /* Check if lhs is a global variable (starts with 'g' or has @global annotation) */
-      int is_global = (lhs[0] == 'g') || (strstr(lhs, "@global") != NULL);
-      if (!is_global) continue;
-
-      /* For @global variables, we need to compare the base name without the annotation */
-      if (strstr(lhs, "@global") != NULL) {
-        /* Extract base name before @global */
-        const char *at_sign = strchr(lhs, '@');
-        if (at_sign != NULL) {
-          size_t base_len = at_sign - lhs;
-          if (strlen(name) == base_len && strncmp(lhs, name, base_len) == 0) {
-            return 1;
-          }
-        }
-      } else {
-        /* For g-prefixed variables, direct comparison */
-        if (strcmp(lhs, name) == 0) return 1;
-      }
-    }
-    if (cur->left && ast_defines_global(cur->left, name)) return 1;
-    if (cur->right && ast_defines_global(cur->right, name)) return 1;
-  }
-  return 0;
-}
-
 char *csound_orcget_text ( void *scanner );
 uint64_t csound_orcget_locn(void *);
 int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
-                           char *outtypes, char *intypes, int32_t flags);
+                           char *outtypes, char *intypes, int32_t flags,
+                           OPCODINFO **definition);
 
 /**
  * Helper: Find which imported module contains a variable that wasn't imported
@@ -105,8 +72,8 @@ static const char* find_unimported_var_module(CSOUND *csound, const char *varNam
     CS_MODULE *imported = current->imports[i];
     if (imported == NULL) continue;
 
-    /* Check if the variable exists in this module's AST */
-    if (imported->ast && ast_defines_global(imported->ast, varName)) {
+    /* Look up the source definition without reconstructing it from syntax. */
+    if (csoundFindModuleVariable(csound, imported, varName) != NULL) {
       /* Check if this item was NOT imported (i.e., import was selective and excluded it) */
       if (!csoundIsItemImportAllowed(csound, current, imported, varName)) {
         return imported->file_path ? imported->file_path : imported->name;
@@ -292,64 +259,16 @@ static int32_t is_irate(TREE *t)
 // hide global names
 CS_VARIABLE* find_var_from_pools(CSOUND* csound, const char* varName,
                                  const char* varBaseName, TYPE_TABLE* typeTable) {
-  CS_VARIABLE* var = NULL;
-
-    // we first check for local variables
-    var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                     varBaseName);
-    // then check for global variables in engine
-    if(var == NULL)
-    var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                     varBaseName);
-    // and finally newly defined global vars
-    if(var == NULL)
-      var = csoundFindVariableWithName(csound, typeTable->globalPool,
-                                       varBaseName);
-
-    // If still not found, look through imported modules' varPools so that
-    // globals from imported modules are visible during semantic analysis.
-    /* As a last resort, search imported modules' ASTs for a matching global
-     * assignment and, if found, synthesize a placeholder variable in the
-     * current module's global pool so semantic analysis can proceed.
-     *
-     * IMPORTANT: For selective imports (from X import a,b,c), we should only
-     * synthesize placeholders for items that are in the import list. This
-     * allows the user to define their own variable with the same name as a
-     * non-imported module variable. */
-    if (var == NULL) {
-      MODULE_STATE *module_state = csoundGetModuleState(csound);
-      if (module_state && module_state->current_module) {
-        CS_MODULE *current = module_state->current_module;
-        for (int32_t i = 0; i < current->import_count && var == NULL; i++) {
-          CS_MODULE *imported = current->imports[i];
-          if (imported && imported->ast && ast_defines_global(imported->ast, varBaseName)) {
-            /* Check if this variable is allowed by selective import */
-            if (!csoundIsItemImportAllowed(csound, current, imported, varBaseName)) {
-              /* Variable exists in module but is not in the import list - skip it.
-               * This allows the user to define their own variable with this name. */
-              continue;
-            }
-            /* Deduce type from name: expect global form g<i/k/a/S>... */
-            const char *n = varBaseName;
-            const char *typeLetter = NULL;
-            if (n && n[0] == 'g' && n[1] != '\0') {
-              char tl[2] = { n[1], '\0' };
-              typeLetter = csoundStrdup(csound, tl); /* freed by pool type lookup use */
-            }
-            const CS_TYPE *type = NULL;
-            if (typeLetter != NULL)
-              type = csoundGetTypeWithVarTypeName(csound->typePool, typeLetter);
-            if (type == NULL) {
-              /* Fallback to i-rate if undetermined */
-              type = &CS_VAR_TYPE_I;
-            }
-            CS_VARIABLE *synth = csoundCreateVariable(csound, csound->typePool,
-                                                     type, (char *)varBaseName, NULL);
-            var = synth;
-          }
-        }
-      }
-    }
+  CS_VARIABLE *var = csoundFindVariableWithName(csound, typeTable->localPool,
+                                                varBaseName);
+  if (var == NULL)
+    var = csoundFindVariableWithName(csound, typeTable->globalPool, varBaseName);
+  if (var == NULL) {
+    MODULE_STATE *state = csoundGetModuleState(csound);
+    var = typeTable->module == NULL || csoundModuleOwner(typeTable->module) == state->root_module
+        ? csoundFindVariableWithName(csound, csound->engineState.varPool, varBaseName)
+        : csoundFindSystemVariable(csound, varBaseName);
+  }
 
   return var;
 }
@@ -565,7 +484,8 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
     s = tree->left->value->lexeme;
 
     // Check if this is a module alias access (e.g., modX.giVar)
-    CS_MODULE *aliased_module = csoundFindModuleByAlias(csound, s);
+    CS_VARIABLE *local = cs_hash_table_get(csound, typeTable->localPool->table, s);
+    CS_MODULE *aliased_module = local == NULL ? csoundFindModuleByAlias(csound, s) : NULL;
     if (aliased_module != NULL) {
       // This is module member access, look up the member in the module's varPool
       if (tree->right == NULL || tree->right->value == NULL ||
@@ -576,7 +496,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
         return NULL;
       }
       char *memberName = tree->right->value->lexeme;
-      CS_VARIABLE *moduleVar = csoundFindVariableWithName(csound, aliased_module->varPool, memberName);
+      CS_VARIABLE *moduleVar = csoundFindModuleVariable(csound, aliased_module, memberName);
       if (moduleVar == NULL) {
         synterr(csound, Str("No member '%s' found in module '%s' at line %d\n"),
                 memberName, aliased_module->name ? aliased_module->name : s, tree->line);
@@ -1307,37 +1227,23 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname)
     return NULL;
   }
 
-  /* Check for qualified opcode name (e.g., "mod.UDO") */
+  CS_MODULE *scope = csoundGetModuleState(csound)->current_module;
+  CONS_CELL *module_entries = NULL;
   char *dot = strchr(opname, '.');
-  if (dot != NULL && dot != opname && *(dot + 1) != '\0') {
-    /* This is a qualified opcode name - look up via module alias */
-    size_t aliasLen = dot - opname;
-    char *aliasName = csound->Malloc(csound, aliasLen + 1);
-    strncpy(aliasName, opname, aliasLen);
-    aliasName[aliasLen] = '\0';
-    char *localOpname = dot + 1;
-
-    CS_MODULE *module = csoundFindModuleByAlias(csound, aliasName);
-    if (module != NULL) {
-      /* Found the module - look up the opcode in the module's opcode table */
-      OENTRY *modOp = csoundFindModuleOpcode(csound, module, localOpname);
-      csound->Free(csound, aliasName);
-
-      if (modOp != NULL) {
-        /* Found the opcode in the module */
-        retVal = get_entries(csound, 1);
-        retVal->entries[0] = modOp;
-        return retVal;
-      }
-      /* Opcode not in module's table, fall through to global lookup with local name */
-      /* This handles cases where UDO was registered globally but defined in a module */
-      opname = localOpname;
-    } else {
-      csound->Free(csound, aliasName);
-      /* Not a valid module alias - try the full name as-is (might be a struct type) */
+  if (dot != NULL && dot != opname && dot[1] != '\0') {
+    char *alias = cs_strndup(csound, opname, dot - opname);
+    CS_MODULE *source = csoundFindModuleByAlias(csound, alias);
+    csound->Free(csound, alias);
+    if (source != NULL) {
+      module_entries = csoundFindModuleOpcodes(csound, source, dot + 1);
+      retVal = get_entries(csound, cs_cons_length(module_entries));
+      for (CONS_CELL *cell = module_entries; cell != NULL; cell = cell->next)
+        retVal->entries[i++] = cell->value;
+      return retVal;
     }
+  } else {
+    module_entries = csoundFindModuleOpcodes(csound, scope, opname);
   }
-
   shortName = get_opcode_short_name(csound, opname);
 
   /* Lock to protect hash table read during concurrent compilations */
@@ -1350,12 +1256,17 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname)
     csoundLockMutex(csound->init_pass_threadlock);
 
   head = cs_hash_table_get(csound, csound->opcodes, shortName);
-  retVal = get_entries(csound, cs_cons_length(head));
+  retVal = get_entries(csound, cs_cons_length(head) + cs_cons_length(module_entries));
+  for (CONS_CELL *cell = module_entries; cell != NULL; cell = cell->next)
+    retVal->entries[i++] = cell->value;
   while (head != NULL) {
-    retVal->entries[i++] = head->value;
+    OENTRY *entry = head->value;
+    if (scope == NULL || entry->useropinfo == NULL)
+      retVal->entries[i++] = entry;
     head = head->next;
   }
 
+  retVal->count = i;
   if (csound->init_pass_threadlock)
     csoundUnlockMutex(csound->init_pass_threadlock);
 #ifdef CSOUND_WASI_REALTIME
@@ -2825,22 +2736,20 @@ CS_VAR_POOL *find_global_annotation(char *varName, TYPE_TABLE* typeTable) {
   return pool;
 }
 
-static CS_VAR_POOL *get_var_pool(CSOUND *csound, TYPE_TABLE* typeTable,
-				 const char *varBaseName) {
-     // we first check for local variables
-    CS_VARIABLE *var = csoundFindVariableWithName(csound, typeTable->localPool,
-                                     varBaseName);
-    if(var) return typeTable->localPool;
-    // then check for global variables in engine
-    var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                     varBaseName);
-    if(var) return csound->engineState.varPool;
-    // and finally newly defined global vars
-    var = csoundFindVariableWithName(csound, typeTable->globalPool,
-                                       varBaseName);
-    if(var) return typeTable->globalPool;
-
-    return NULL;
+static CS_VAR_POOL *get_var_pool(CSOUND *csound, TYPE_TABLE *typeTable,
+                                  const char *name) {
+  CS_VAR_POOL *pools[] = {typeTable->localPool, typeTable->globalPool};
+  for (int i = 0; i < 2; i++) {
+    CS_VAR_POOL *pool = pools[i];
+    if (cs_hash_table_get(csound, pool->table, (char *)name) != NULL ||
+        (pool->bindings != NULL &&
+         cs_hash_table_get(csound, pool->bindings, (char *)name) != NULL)) return pool;
+  }
+  CS_MODULE *root = csoundGetModuleState(csound)->root_module;
+  if (typeTable->module != NULL && csoundModuleOwner(typeTable->module) != root)
+    return csoundFindSystemVariable(csound, name) != NULL ? typeTable->globalPool : NULL;
+  return csoundFindVariableWithName(csound, csound->engineState.varPool, name) != NULL
+      ? typeTable->globalPool : NULL;
 }
 
 // on new-type UDOS type-annotations can
@@ -4468,6 +4377,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
   TREE* transformed;
   TREE* top;
   char *udo_name = NULL;
+  OPCODINFO *udo_definition = NULL;
   CONS_CELL* activeLoopStack = NULL;
 
   CONS_CELL* parentLabelList = typeTable->labelList;
@@ -4525,7 +4435,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                            top->value->lexeme,
                            top->left->value->lexeme,
                            top->right->value->lexeme,
-                           0x0000);
+                           0x0000, &udo_definition);
         udo_name = top->value->lexeme;
       } else {
         if(UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
@@ -4552,9 +4462,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                            current->left->value->lexeme,
                            outArgString,
                            inArgString,
-                           0x0000);
+                           0x0000, &udo_definition);
         udo_name = current->left->value->lexeme;
       }
+      top->markup = udo_definition;
       csound->inZero = 0;
 
       current->markup = typeTable->localPool;
@@ -4592,7 +4503,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
                                                      current->left->right,
                                                      typeTable);
       add_udo_definition(csound, false, current->value->lexeme,
-                         outArgStringDecl, inArgStringDecl, UNDEFINED);
+                         outArgStringDecl, inArgStringDecl, UNDEFINED, NULL);
       csound->inZero = 0;
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
 	csound->Message(csound, "UDO declared\n");
@@ -5158,8 +5069,16 @@ static void delete_tree(CSOUND *csound, TREE **l)
   }
 }
 
- void csoundDeleteTree(CSOUND *csound, TREE *tree)
+void csoundDeleteTree(CSOUND *csound, TREE *tree)
 {
+  if (tree != NULL && tree->type == 0 && tree->value == NULL &&
+      tree->markup != NULL) {
+    TYPE_TABLE *types = tree->markup;
+    csoundFinishModuleUpdate(csound, types->module_update, 0);
+    cs_cons_free_complete(csound, types->labelList);
+    csound->Free(csound, types);
+    tree->markup = NULL;
+  }
   delete_tree(csound, &tree);
 }
 
@@ -5601,15 +5520,15 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
   */
   if (x->type == T_IDENT) {
     char *varname = x->value->lexeme;
-    CS_VARIABLE *var = csoundFindVariableWithName(csound,
-                                                 csound->engineState.varPool,
-                                                 varname);
+    CS_MODULE *module = csoundGetModuleState(csound)->current_module;
+    CS_VAR_POOL *pool = module != NULL ? module->varPool : csound->engineState.varPool;
+    CS_VARIABLE *var = csoundFindVariableWithName(csound, pool, varname);
     /* Keep the running reference until the compiler publishes a valid merge. */
     if (var != NULL) {
       if (var->varType == &CS_VAR_TYPE_INSTR) return;
       if (var->varType != &CS_VAR_TYPE_OPCODEREF) return;
     }
-    var = add_global_variable(csound, csound->engineState.varPool,
+    var = add_global_variable(csound, pool,
                                          &CS_VAR_TYPE_INSTR, varname,
                                            NULL);
     if(var == NULL)

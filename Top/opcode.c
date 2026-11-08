@@ -28,6 +28,7 @@
 #include "arrays_internal.h"
 #include "opcode.h"
 #include "udo.h"
+#include "csound_module.h"
 #include <ctype.h>
 #include "interlocks.h"
 #include "find_opcode.h"
@@ -336,21 +337,24 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep) {
   OPCODEREF ref = {NULL, 0}, *dest;
   const CS_TYPE *type = &CS_VAR_TYPE_OPCODEREF;
   CS_VARIABLE *var;
+  CS_MODULE *owner = ep->useropinfo != NULL ? ((OPCODINFO *)ep->useropinfo)->module : NULL;
+  CS_MODULE *scope = csoundGetModuleState(csound)->current_module;
+  if (owner != NULL && owner != csoundModuleOwner(scope)) return;
+  CS_VAR_POOL *pool = owner != NULL ? scope->varPool : csound->engineState.varPool;
   name = get_opcode_short_name(csound, ep->opname);
   if(isalpha(*name) != 0 && strlen(name) > 1
      && check_name(name) == OK) { //
     varName = csound->Calloc(csound, strlen(name) + 2);
     // add underscore to opcodes with no inputs
     snprintf(varName, strlen(name) + 2, check_oentry(ep) ? "%s" : "_%s", name);
-    if ((var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                          varName)) == NULL) {
+    if ((var = csoundFindVariableWithName(csound, pool, varName)) == NULL) {
       // printf("var: %s \n", varName);
       // create new variable
       if (csound->engineState.varPool == NULL) {
         csound->engineState.varPool = csoundCreateVarPool(csound);
       }
-      var = add_global_variable(csound, csound->engineState.varPool,
-                                (CS_TYPE *) type, varName, NULL);
+      if (pool == NULL) pool = csound->engineState.varPool;
+      var = add_global_variable(csound, pool, type, varName, NULL);
     } else csound->Free(csound, varName);
     /* A global of the orchestra's own with this name shadows the opcode: it
        is not an opcode reference, and is not to be written as one. */

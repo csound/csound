@@ -670,6 +670,13 @@ extern "C" {
   PUBLIC int32_t csoundCompileOrc(CSOUND *csound, const char *str, int32_t async);
 
   /**
+   * Append a directory to the orchestra module search paths. Paths are searched
+   * in registration order after the importing file and CSD directories.
+   * Returns CSOUND_SUCCESS, or CSOUND_ERROR for a NULL or empty path.
+   */
+  PUBLIC int32_t csoundAddModuleSearchPath(CSOUND *csound, const char *path);
+
+  /**
    *   Parse and compile an orchestra given on a string, synchronously,
    *   evaluating any global space code (i-time only).
    *   On SUCCESS it returns a value passed to the

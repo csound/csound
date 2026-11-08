@@ -39,6 +39,9 @@ enum {
 
 typedef struct type_table {
     OENTRY* udos;
+    CS_MODULE *module;
+    CS_HASH_TABLE *module_aliases;
+    struct cs_module_update *module_update;
     CS_VAR_POOL* globalPool;
     CS_VAR_POOL* instr0LocalPool;
     CS_VAR_POOL* localPool;

@@ -83,7 +83,7 @@ void named_instr_publish_numbers(CSOUND *csound)
         if (strcmp(entry->name, name->name) == 0) break;
       }
       /* named_instr_alloc preserves the assigned number on replacement. */
-      if (entry != NULL) continue;
+      if (entry != NULL && entry->number == name->instno) continue;
       entry = csound->Malloc(csound, sizeof(*entry) + length + 1);
       entry->number = name->instno;
       memcpy(entry->name, name->name, length + 1);

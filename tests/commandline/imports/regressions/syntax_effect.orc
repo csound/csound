@@ -1,0 +1,1 @@
+prints "MODULE_SIDE_EFFECT\n"

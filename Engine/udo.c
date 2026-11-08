@@ -2005,17 +2005,17 @@ int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
 
 static OPCODINFO *find_latest_useropinfo(CSOUND *csound, const char *name,
                                          const char *outtypes,
-                                         const char *intypes) {
-  OPCODINFO *opinfo = csound->opcodeInfo;
-  while (opinfo != NULL) {
-    if (strcmp(opinfo->name, name) == 0 &&
+                                         const char *intypes, CS_MODULE *module) {
+  OPCODINFO *latest = NULL;
+  for (OPCODINFO *opinfo = csound->opcodeInfo; opinfo != NULL; opinfo = opinfo->prv) {
+    if (opinfo->ip != NULL && opinfo->publication != 0 && opinfo->module == module &&
+        (latest == NULL || opinfo->publication > latest->publication) &&
+        strcmp(opinfo->name, name) == 0 &&
         strcmp(opinfo->outtypes, outtypes) == 0 &&
-        inargs_match(opinfo->intypes, intypes) == 0) {
-      return opinfo;
-    }
-    opinfo = opinfo->prv;
+        inargs_match(opinfo->intypes, intypes) == 0)
+      latest = opinfo;
   }
-  return NULL;
+  return latest;
 }
 
 int32_t useropcdset(CSOUND *csound, UOPCODE *p)
@@ -2039,7 +2039,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
      redefined after this instrument was compiled. */
   {
     OPCODINFO *latest = find_latest_useropinfo(csound, inm->name,
-                                               inm->outtypes, inm->intypes);
+                                               inm->outtypes, inm->intypes, inm->module);
     if (latest != NULL) {
       inm = latest;
     }

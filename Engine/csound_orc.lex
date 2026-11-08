@@ -113,6 +113,16 @@ ERSTR           "}R"
 %x importmode
 
 %%
+{IDENT}(\.{IDENT})+\([ \t]*\n? {
+                  PARM->paren_depth++;
+                  if (strchr(yytext, '\n') != NULL) {
+                    yycolumn = 1;
+                    csound_orcset_lineno(1 + csound_orcget_lineno(yyscanner), yyscanner);
+                  }
+                  *strrchr(yytext, '(') = '\0';
+                  *lvalp = lookup_token(csound, yytext, yyscanner);
+                  return T_IDENTB;
+                }
 <*>"\r"            { } /* EATUP THIS PART OF WINDOWS NEWLINE */
 
 {CONT}          {
@@ -264,9 +274,7 @@ ERSTR           "}R"
   {IDENT}              { *lvalp = lookup_token(csound, yytext, yyscanner);
                           return (*lvalp)->type; }
 
-  "*"                  { *lvalp = make_token(csound, "*", yyscanner);
-                          (*lvalp)->type = T_IDENT;
-                          return T_IDENT; }
+  "*"                  { return '*'; }
 
   ","                  { return ','; }
 

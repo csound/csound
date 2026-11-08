@@ -162,6 +162,7 @@ CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound) {
 
 void csoundFreeVarPool(CSOUND* csound, CS_VAR_POOL* pool) {
     if(pool->table) cs_hash_table_mfree_complete(csound, pool->table);
+    if(pool->bindings) cs_hash_table_free(csound, pool->bindings);
     csound->Free(csound, pool);
 }
 
@@ -267,6 +268,9 @@ CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
     }
 
     CS_VARIABLE* returnValue = cs_hash_table_get(csound, pool->table, (char*)name);
+
+    if (returnValue == NULL && pool->bindings != NULL)
+      returnValue = cs_hash_table_get(csound, pool->bindings, (char *)name);
 
     if (returnValue == NULL && pool->parent != NULL) {
       returnValue = csoundFindVariableWithName(csound, pool->parent, name);

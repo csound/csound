@@ -373,8 +373,7 @@ static void verify_array_read_phases(CSOUND *csound,
 
 
 
-static CS_VARIABLE *setup_arg_for_var_name(CSOUND* csound, ARG* arg,
-                                   CS_VAR_POOL* varPool, char* varName);
+
 
 #ifdef FLOAT_COMPARE
 #undef FLOAT_COMPARE
@@ -806,22 +805,6 @@ static OPTXT *create_opcode(CSOUND *csound, TREE *root, INSTRTXT *ip,
       }
     }
     break;
-  case IMPORT_TOKEN:
-  case FROM_TOKEN:
-    /* IMPORT_TOKEN and FROM_TOKEN represent import statements
-       These are handled elsewhere in the compilation process,
-       but we need to create a no-op opcode entry to avoid errors */
-    if (PARSER_DEBUG) {
-      csound->Message(csound, "create_opcode: Handling import statement (type %d)\n", root->type);
-    }
-    /* Create a no-op entry - import processing happens in semantic analysis */
-    tp->oentry = NULL;
-    tp->opcod = NULL;
-    tp->outlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
-    tp->outlist->count = 0;
-    tp->inlist = (ARGLST *)csound->Malloc(csound, sizeof(ARGLST));
-    tp->inlist->count = 0;
-    break;
   default:
     csound->Message(csound, Str("create_opcode: No rule to handle statement of "
                                 "type %d\n"),
@@ -960,7 +943,8 @@ static INSTRTXT *create_instrument0(CSOUND *csound, TREE *root,
   while (current != NULL) {
     uint32_t uval;
     if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN &&
-        current->type != STRUCT_TOKEN && current->type != T_DECLARE) {
+        current->type != STRUCT_TOKEN && current->type != T_DECLARE &&
+        current->type != IMPORT_TOKEN && current->type != FROM_TOKEN) {
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "In INSTR 0: %s\n", current->value->lexeme);
 
@@ -1279,7 +1263,8 @@ static INSTRTXT *create_global_instrument(CSOUND *csound, TREE *root,
 
   while (current != NULL) {
     if (current->type != INSTR_TOKEN && current->type != UDO_TOKEN &&
-        current->type != STRUCT_TOKEN) {
+        current->type != STRUCT_TOKEN &&
+        current->type != IMPORT_TOKEN && current->type != FROM_TOKEN) {
       OENTRY *oentry = (OENTRY *)current->markup;
       if (UNLIKELY(PARSER_DEBUG))
         csound->Message(csound, "In INSTR GLOBAL: %s\n",
@@ -1885,12 +1870,21 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
                     instrNum, engineState->maxinsno, instrtxt);
 }
 
+static void publish_udo_definitions(CSOUND *csound, ENGINE_STATE *state) {
+  uint64_t publication = ++csoundGetModuleState(csound)->next_publication;
+  for (INSTRTXT *instrument = state->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt)
+    if (instrument->opcode_info != NULL)
+      instrument->opcode_info->publication = publication;
+}
+
 static void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
                            ENGINE_STATE *engineState) {
   if (opcodeInfo) {
     int32_t num = engineState->maxinsno; /* store after any other instruments */
     OPCODINFO *inm = opcodeInfo;
     while (inm) {
+      if (inm->publication == 0) { inm = inm->prv; continue; }
       /* we may need to expand the instrument array */
       if (UNLIKELY(++num > engineState->maxopcno)) {
         int32_t i;
@@ -1920,30 +1914,6 @@ static void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
   }
 }
 
-/**
- * Search a linked list of OPCODINFO for a UDO matching name and signature.
- * Returns the matching OPCODINFO or NULL if not found.
- */
-static OPCODINFO *find_opcode_info(CSOUND *csound, OPCODINFO *infoList,
-                                   char *opname, char *outargs, char *inargs) {
-  OPCODINFO *opinfo = infoList;
-  if (UNLIKELY(opinfo == NULL)) {
-    csound->Message(csound, Str("!!! opcodeInfo is NULL !!!\n"));
-    return NULL;
-  }
-
-  while (opinfo != NULL) {
-    if (UNLIKELY(strcmp(opinfo->name, opname) == 0 &&
-                 inargs_match(opinfo->intypes, inargs) == 0 &&
-                 strcmp(opinfo->outtypes, outargs) == 0)) {
-      return opinfo;
-    }
-    opinfo = opinfo->prv; /* Move on: JPff suggestion */
-  }
-
-  return NULL;
-}
-
 static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
                           CS_VAR_POOL *varPool) {
   int32_t count = 0;
@@ -1956,6 +1926,11 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
               current_state, varPool, current_state ? current_state->varPool : NULL);
   }
 
+  if (varPool->bindings != NULL) {
+    if (current_state->varPool->bindings == NULL)
+      current_state->varPool->bindings = cs_hash_table_create(csound);
+    cs_hash_table_merge(csound, current_state->varPool->bindings, varPool->bindings);
+  }
   CS_VARIABLE *gVar = varPool->head;
   while (gVar != NULL) {
     CS_VARIABLE *var;
@@ -1964,32 +1939,13 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
                       gVar->varName, gVar->varType->varTypeName);
     var = csoundFindVariableWithName(csound, current_state->varPool,
                                      gVar->varName);
-    if (gVar->varType == &CS_VAR_TYPE_INSTR && var != NULL &&
-        var->varType == &CS_VAR_TYPE_OPCODEREF) {
-      /* An instrument shadows the OpcodeDef the parser created for the same
-         name. Add the InstrDef so the hash publishes it instead of the opcode. */
-      ARRAY_VAR_INIT varInit;
-      varInit.dimensions = gVar->dimensions;
-      varInit.type = gVar->subType;
-      var = csoundCreateVariable(csound, csound->typePool,
-                                 (void *) gVar->varType,
-                                 gVar->varName, &varInit);
-      csoundAddVariable(csound, current_state->varPool, var);
-      var->memBlock = gVar->memBlock;
-      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
-        csound->Message(csound, Str(" shadowing %p %d) %s:%s\n"), var, count,
-                        gVar->varName, gVar->varType->varTypeName);
+    if (cs_hash_table_get(csound, varPool->table, gVar->varName) != gVar) {
+      /* Replaced declarations remain in the ownership list. */
       gVar = gVar->next;
-    } else if (gVar->varType == &CS_VAR_TYPE_OPCODEREF && var != NULL &&
-               var->varType == &CS_VAR_TYPE_INSTR) {
-      /* The parser's OpcodeDef is still in the linked list, but the hash now
-         holds the InstrDef created for an instrument with the same name.
-         Publish the current definition instead of the stale OpcodeDef. */
-      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
-        csound->Message(csound, Str(" skipping stale %p %d) %s:%s\n"), gVar,
-                        count, gVar->varName, gVar->varType->varTypeName);
-      gVar = gVar->next;
-    } else if (var == NULL) {
+      continue;
+    }
+    if (var == NULL || var->varType != gVar->varType ||
+        var->subType != gVar->subType || var->dimensions != gVar->dimensions) {
       ARRAY_VAR_INIT varInit;
       varInit.dimensions = gVar->dimensions;
       varInit.type = gVar->subType;
@@ -2074,93 +2030,33 @@ static void finish_instr_references(CSOUND *csound, ENGINE_STATE *state,
   state->instrumentRefs = NULL;
 }
 
-/**
- * Selective variable pool merge that respects import restrictions.
- * Only merges variables that are allowed by the CS_IMPORT info.
- * For "from module import x,y,z" only x,y,z are merged.
- * For "from module import *" or plain "import", all are merged.
- */
-static void varpool_merge_selective(CSOUND *csound, ENGINE_STATE *current_state,
-                                    CS_VAR_POOL *varPool, CS_IMPORT *import_info) {
-  int32_t count = 0;
-
-  // Check for null or corrupted pointers to prevent segfault
-  if (current_state == NULL || varPool == NULL ||
-      current_state->varPool == NULL ||
-      (uintptr_t)current_state->varPool < 0x1000) {
-    csoundDie(csound, Str("varpool_merge_selective: pool corruption detected"));
-    return;
-  }
-
-  /* Wildcard imports must refresh placeholders just like selective imports. */
-  int import_all = import_info == NULL || import_info->is_wildcard;
-
-  CS_VARIABLE *gVar = varPool->head;
-  while (gVar != NULL) {
-    /* Check if this variable is in the import list */
-    int allowed = import_all;
-    const char *local_name = NULL;
-    for (int32_t i = 0; !import_all && i < import_info->item_count; i++) {
-      if (strcmp(import_info->items[i].original_name, gVar->varName) == 0) {
-        allowed = 1;
-        local_name = import_info->items[i].local_name;
-        break;
+/* Public import names refer to the same templates as their module definitions. */
+static void publish_imported_instruments(CSOUND *csound) {
+  ENGINE_STATE *state = &csound->engineState;
+  CS_HASH_TABLE *bindings = state->varPool->bindings;
+  if (bindings == NULL) return;
+  for (int32_t i = 0; i < bindings->table_size; i++) {
+    for (CS_HASH_TABLE_ITEM *item = bindings->buckets[i]; item; item = item->next) {
+      CS_VARIABLE *variable = item->value;
+      if (variable->varType != &CS_VAR_TYPE_INSTR || variable->memBlock == NULL ||
+          cs_hash_table_get(csound, state->varPool->table, item->key) != NULL) continue;
+      INSTREF *reference = (INSTREF *)&variable->memBlock->value;
+      if (reference->instr == NULL) continue;
+      INSTRNAME *existing = state->instrumentNames != NULL
+          ? cs_hash_table_get(csound, state->instrumentNames, item->key) : NULL;
+      if (existing == NULL || existing->ip != reference->instr) {
+        INSTRNAME *alias = csound->Calloc(csound, sizeof(*alias));
+        alias->name = csoundStrdup(csound, item->key);
+        alias->ip = reference->instr;
+        alias->instno = reference->number;
+        if (state->instrumentNames == NULL)
+          state->instrumentNames = cs_hash_table_create(csound);
+        cs_hash_table_put(csound, state->instrumentNames, item->key, alias);
       }
     }
-    if (allowed) {
-      /* Use the local_name (alias) if provided, otherwise use original name */
-      const char *target_name = local_name ? local_name : gVar->varName;
-      CS_VARIABLE *var = csoundFindVariableWithName(csound, current_state->varPool,
-                                                     target_name);
-      if (var == NULL) {
-        ARRAY_VAR_INIT varInit;
-        varInit.dimensions = gVar->dimensions;
-        varInit.type = gVar->subType;
-        var = csoundCreateVariable(csound, csound->typePool,
-                                   (void *) gVar->varType,
-                                   (char *)target_name, &varInit);
-        csoundAddVariable(csound, current_state->varPool, var);
-        var->memBlock = gVar->memBlock;
-        var->memBlockSize = gVar->memBlockSize;
-        if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
-          csound->Message(csound,
-                          "DEBUG varpool_merge_selective: added %s:%s%s%s\n",
-                          target_name, gVar->varType->varTypeName,
-                          local_name ? " (alias for " : "",
-                          local_name ? gVar->varName : "");
-        count++;
-      } else {
-        /* Variable already exists (placeholder), just copy the memory block */
-        var->memBlock = gVar->memBlock;
-        var->memBlockSize = gVar->memBlockSize;
-        if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
-          csound->Message(csound,
-                          "DEBUG varpool_merge_selective: updated memblock for %s\n",
-                          target_name);
-      }
-
-      /* CRITICAL: Also update the placeholder in root_module->varPool if it exists.
-       * The root CSD's instruments were compiled to use variables from root_module->varPool,
-       * so we need to ensure those placeholders share the module's memBlock. */
-      MODULE_STATE *module_state = csoundGetModuleState(csound);
-      if (module_state && module_state->root_module && module_state->root_module->varPool) {
-        CS_VARIABLE *root_var = csoundFindVariableWithName(csound,
-                                                           module_state->root_module->varPool,
-                                                           target_name);
-        if (root_var != NULL && root_var->memBlock != gVar->memBlock) {
-          root_var->memBlock = gVar->memBlock;
-          root_var->memBlockSize = gVar->memBlockSize;
-        }
-      }
-    } else {
-      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
-        csound->Message(csound,
-                        "DEBUG varpool_merge_selective: skipping %s (not in import list)\n",
-                        gVar->varName);
-    }
-    gVar = gVar->next;
   }
 }
+
 /**
    Merge a new engineState into csound->engineState
    1) Add to stringPool, constantsPool and varPool (globals)
@@ -2211,9 +2107,6 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     }
   }
 
-  /* inserts after all instruments are merged so
-     that we get the correct number */
-  insert_opcodes(csound, csound->opcodeInfo, current_state);
   /* this needs to be called in a separate loop
      in case of multiple instr numbers, so instr_prep() is called only once */
   current = (&(engineState->instxtanchor));
@@ -2224,6 +2117,10 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
     instr_prep(csound, current, current_state);
     csoundRecalculateVarPoolMemory(csound, current->varPool);
   }
+  /* inserts after all instruments are merged so
+     that we get the correct number */
+  publish_udo_definitions(csound, engineState);
+  insert_opcodes(csound, csound->opcodeInfo, current_state);
   /* now we need to patch up instr order */
   end = current_state->maxinsno;
   end = end < current_state->maxopcno ? current_state->maxopcno : end;
@@ -2245,6 +2142,7 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   }
   (&(current_state->instxtanchor))->nxtinstxt = csound->instr0;
   finish_instr_references(csound, engineState, 1);
+  publish_imported_instruments(csound);
   named_instr_publish_numbers(csound);
 
   // VL 23-09-2022
@@ -2256,7 +2154,8 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
 
 static int32_t enginestate_free(CSOUND *csound, ENGINE_STATE *engineState) {
   cs_hash_table_free(csound, engineState->constantsPool);
-  csoundFreeVarPool(csound, engineState->varPool);
+  /* Parsed trees and queued namespace versions can still borrow this pool.
+     Its variables share published memory and live until engine reset. */
   csound->Free(csound, engineState->instrtxtp);
   csound->Free(csound, engineState);
   return 0;
@@ -2320,6 +2219,7 @@ static void discard_compile_var_pool(CSOUND *csound, CS_VAR_POOL *pool) {
   }
   /* The list also owns variables shadowed by later entries in the table. */
   cs_hash_table_free(csound, pool->table);
+  if (pool->bindings != NULL) cs_hash_table_free(csound, pool->bindings);
   csound->Free(csound, pool);
 }
 
@@ -2372,9 +2272,14 @@ static char *node2string(int32_t type) {
   }
 }
 
+static void publish_modules(INSTRTXT *global_init);
+
 static void merge_engine_state(CSOUND *csound, ENGINE_STATE *engineState,
                                TYPE_TABLE *typetable) {
   enginestate_merge(csound, engineState);
+  publish_modules(csound->engineState.instrtxtp[0]);
+  csoundFinishModuleUpdate(csound, typetable->module_update, 1);
+  typetable->module_update = NULL;
   enginestate_free(csound, engineState);
   free_typetable(csound, typetable);
 }
@@ -2546,379 +2451,6 @@ static int32_t specialize_init_getters(CSOUND *csound,
 }
 
 /**
- * Merge module UDO entries into root instrtxtp array.
- * This is a temporary fix until we implement module-scoped UDO tables.
- * See INSTRTXTP_ARCHITECTURE_ANALYSIS.md for long-term solution.
- */
-static void merge_module_udos_to_root(CSOUND *csound, CS_MODULE *module) {
-  if (module == NULL || module->engineState == NULL) {
-    return;
-  }
-
-  ENGINE_STATE *module_state = module->engineState;
-  ENGINE_STATE *root_state = &csound->engineState;
-
-
-  /* UDOs are typically in the range from some base number up to maxopcno.
-   * However, maxinsno may have been inflated by module instr0 registration.
-   * So we scan the entire array up to maxopcno looking for UDO entries.
-   * UDOs have opcode_info set (they're "fake" instruments for UDO execution). */
-  int32_t udo_end = module_state->maxopcno;
-
-
-  if (udo_end <= 0) {
-    /* No UDOs in this module */
-    return;
-  }
-
-  /* Expand root instrtxtp array if needed */
-  if (udo_end > root_state->maxopcno) {
-    int32_t old_max = root_state->maxopcno;
-    root_state->maxopcno = udo_end;
-
-    /* Ensure maxinsno is also large enough */
-    if (root_state->maxopcno > root_state->maxinsno) {
-      root_state->maxinsno = root_state->maxopcno;
-    }
-
-    /* Expand the array */
-    root_state->instrtxtp = (INSTRTXT **)
-      csound->ReAlloc(csound, root_state->instrtxtp,
-                      (1 + root_state->maxinsno) * sizeof(INSTRTXT *));
-
-    /* Null out new entries */
-    for (int32_t i = old_max + 1; i <= root_state->maxinsno; i++) {
-      root_state->instrtxtp[i] = NULL;
-    }
-  }
-
-  /* Scan entire array for UDO entries (they have opcode_info set) */
-  int udo_count = 0;
-  for (int32_t i = 1; i <= udo_end; i++) {
-    if (module_state->instrtxtp[i] != NULL) {
-      INSTRTXT *instr = module_state->instrtxtp[i];
-
-      /* Check if this is a UDO (has opcode_info set) */
-      if (instr->opcode_info != NULL) {
-        udo_count++;
-        /* Check if this slot is already occupied in root */
-        if (root_state->instrtxtp[i] != NULL && root_state->instrtxtp[i] != instr) {
-          csound->Warning(csound,
-                          "UDO slot %d already occupied in root instrtxtp, "
-                          "overwriting with module UDO\n", i);
-        }
-
-        /* Copy the INSTRTXT pointer */
-        root_state->instrtxtp[i] = instr;
-      }
-    }
-  }
-}
-
-/**
- * Merge module named instruments into root instrtxtp array.
- * This implements "auto-assign on import" for instruments defined in modules.
- *
- * For each named instrument in the module:
- * 1. Check if it's in the import list (or wildcard/import all)
- * 2. Find next available instrument number
- * 3. Register in root's instrtxtp[] array
- * 4. Register in root's instrumentNames hash table
- * 5. Create an InstrDef variable for the imported instrument
- *
- * See INSTRUMENTS_IN_MODULES.md for design rationale.
- */
-static void merge_module_instruments_to_root(CSOUND *csound, CS_MODULE *module,
-                                              CS_IMPORT *import_info) {
-  if (module == NULL || module->engineState == NULL) {
-    return;
-  }
-
-  ENGINE_STATE *module_state = module->engineState;
-  ENGINE_STATE *root_state = &csound->engineState;
-
-  /* Check if module has any named instruments */
-  if (module_state->instrumentNames == NULL) {
-    return;
-  }
-
-  /* Get list of named instruments from module */
-  CONS_CELL *instr_list = cs_hash_table_values(csound, module_state->instrumentNames);
-  if (instr_list == NULL) {
-    return;
-  }
-
-  int instr_count = 0;
-  CONS_CELL *current = instr_list;
-
-  while (current != NULL) {
-    INSTRNAME *inm = (INSTRNAME *)current->value;
-    current = current->next;
-
-    if (inm == NULL || inm->ip == NULL || inm->name == NULL) {
-      continue;
-    }
-
-    /* Skip special entries (like INSTR_NAME_FIRST marker) */
-    if (inm->name[0] == '\0' || strcmp(inm->name, (char*)INSTR_NAME_FIRST) == 0) {
-      continue;
-    }
-
-    /* Skip UDOs - they're handled by merge_module_udos_to_root */
-    if (inm->ip->opcode_info != NULL) {
-      continue;
-    }
-
-    /* Check if this instrument should be imported */
-    int allowed = 0;
-    const char *local_name = NULL;
-
-    if (import_info == NULL || import_info->is_wildcard) {
-      /* Import all or wildcard - include everything */
-      allowed = 1;
-      local_name = inm->name;
-    } else {
-      /* Selective import - check if this instrument is in the list */
-      for (int32_t i = 0; i < import_info->item_count; i++) {
-        if (strcmp(import_info->items[i].original_name, inm->name) == 0) {
-          allowed = 1;
-          local_name = import_info->items[i].local_name
-                       ? import_info->items[i].local_name
-                       : inm->name;
-          break;
-        }
-      }
-    }
-
-    if (!allowed) {
-      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
-        csound->Message(csound,
-                        "DEBUG merge_module_instruments: skipping %s (not in import list)\n",
-                        inm->name);
-      continue;
-    }
-
-    /* Check if already registered in root (by pointer comparison) */
-    int32_t already_registered = 0;
-    int32_t existing_num = 0;
-    for (int32_t i = 1; i <= root_state->maxinsno; i++) {
-      if (root_state->instrtxtp[i] == inm->ip) {
-        already_registered = 1;
-        existing_num = i;
-        break;
-      }
-    }
-
-    int32_t inum;
-    if (already_registered) {
-      inum = existing_num;
-      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
-        csound->Message(csound,
-                        "DEBUG merge_module_instruments: %s already at slot %d\n",
-                        inm->name, inum);
-    } else {
-      /* Find next available instrument number */
-      inum = 1;
-      while (inum <= root_state->maxinsno && root_state->instrtxtp[inum] != NULL) {
-        inum++;
-      }
-
-      /* Expand array if needed */
-      if (inum > root_state->maxinsno) {
-        int32_t old_max = root_state->maxinsno;
-        root_state->maxinsno += MAXINSNO;
-        root_state->instrtxtp = (INSTRTXT **)
-          csound->ReAlloc(csound, root_state->instrtxtp,
-                          (1 + root_state->maxinsno) * sizeof(INSTRTXT *));
-        /* Null out new entries */
-        for (int32_t i = old_max + 1; i <= root_state->maxinsno; i++) {
-          root_state->instrtxtp[i] = NULL;
-        }
-      }
-
-      /* Register in instrtxtp array */
-      root_state->instrtxtp[inum] = inm->ip;
-
-      /* Note: The instrument should already have been added to the chain and prepped
-       * during module compilation (when depth > 0, instruments are added to root's chain).
-       * The main instr_prep loop runs when depth == 0 after all tree walking is done,
-       * so module instruments should already be prepped. We do NOT call instr_prep again
-       * here as that would cause double-prep issues. */
-    }
-
-    /* Register in root instrumentNames hash table with local_name */
-    if (root_state->instrumentNames == NULL) {
-      root_state->instrumentNames = cs_hash_table_create(csound);
-    }
-
-    /* Check if name already exists */
-    INSTRNAME *existing = cs_hash_table_get(csound, root_state->instrumentNames, (char*)local_name);
-    if (existing == NULL) {
-      /* Create new INSTRNAME entry */
-      INSTRNAME *new_inm = (INSTRNAME *)csound->Calloc(csound, sizeof(INSTRNAME));
-      new_inm->name = csoundStrdup(csound, local_name);
-      new_inm->ip = inm->ip;
-      new_inm->instno = inum;
-      cs_hash_table_put(csound, root_state->instrumentNames, (char*)local_name, new_inm);
-    } else if (existing->ip != inm->ip) {
-      csound->Warning(csound,
-                      "Imported instrument '%s' conflicts with existing instrument\n",
-                      local_name);
-    }
-
-    /* Create InstrDef variable in the importing module's varPool */
-    MODULE_STATE *ms = csoundGetModuleState(csound);
-    CS_VAR_POOL *target_pool = NULL;
-    if (ms && ms->root_module && ms->root_module->varPool) {
-      target_pool = ms->root_module->varPool;
-    } else {
-      target_pool = root_state->varPool;
-    }
-
-    /* Check if variable already exists */
-    CS_VARIABLE *ivar = csoundFindVariableWithName(csound, target_pool, local_name);
-    if (ivar == NULL) {
-      /* Create InstrDef variable with properly allocated memBlock */
-      ivar = add_global_variable(csound, target_pool,
-                                 (CS_TYPE*)&CS_VAR_TYPE_INSTR,
-                                 (char*)local_name, NULL);
-    }
-
-    /* Set the INSTREF value */
-    if (ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR && ivar->memBlock != NULL) {
-      INSTREF *ref = (INSTREF *)&ivar->memBlock->value;
-      ref->instr = inm->ip;
-      ref->readonly = 1;
-    }
-
-    instr_count++;
-    if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER) || csound->oparms->msglevel > 0)
-      csound->Message(csound,
-                      Str("Imported instrument '%s' from module '%s' as instr %d\n"),
-                      local_name, module->name ? module->name : "unknown", inum);
-  }
-}
-
-/**
- * Initialize module globals by executing module instr0s depth-first.
- * This ensures dependencies are initialized before dependents.
- *
- * This is called after all modules are compiled but before the main instr0
- * is executed, ensuring module globals (like giTestValue = 42) are properly
- * initialized.
- *
- * @param import_info Optional import metadata for selective imports.
- *        If non-NULL and not wildcard, only the listed items will be merged.
- */
-static int32_t initialize_module_globals_internal(CSOUND *csound, CS_MODULE *module,
-                                                  ENGINE_STATE *engineState,
-                                                  CS_IMPORT *import_info) {
-  if (module == NULL || module->instr0 == NULL) {
-    return CSOUND_SUCCESS;
-  }
-
-  /* First, recursively initialize all imported modules (depth-first).
-   * For nested imports, we pass THEIR import_info (from this module's perspective). */
-  for (int32_t i = 0; i < module->import_count; i++) {
-    CS_IMPORT *nested_info = (module->import_info && i < module->import_count)
-                              ? module->import_info[i] : NULL;
-    int32_t result = initialize_module_globals_internal(csound, module->imports[i],
-                                                        engineState, nested_info);
-    if (result != CSOUND_SUCCESS) {
-      return result;
-    }
-  }
-
-  /* Now initialize this module's globals */
-  INSTRTXT *module_instr0 = module->instr0;
-
-  /* Instantiate the template directly; module globals do not need a score number. */
-  INSDS *ip = allocate_or_take_instance(csound, module_instr0, 0);
-  if (ip == NULL) {
-    csound->Message(csound, "ERROR: Failed to create instance for module instr0\n");
-    return CSOUND_ERROR;
-  }
-
-  /* NOW merge module variables into root varPool with shared memBlock pointers.
-   * This must happen AFTER memBlocks are allocated but BEFORE module instr0 executes.
-   * Use selective merge if import_info restricts which items should be imported.
-   * - For "from module import x,y,z" only x,y,z are merged
-   * - For "from module import *" or plain "import", all are merged */
-  if (module->varPool != NULL) {
-    varpool_merge_selective(csound, engineState, module->varPool, import_info);
-    /* The module instr0 was prepped before merge, so refresh argument pointers
-     * now that memBlocks are shared with the root varPool. */
-    csoundRecalculateVarPoolMemory(csound, module->varPool);
-    if (module_instr0->varPool != module->varPool) {
-      csoundRecalculateVarPoolMemory(csound, module_instr0->varPool);
-    }
-  }
-
-  /* Merge module named instruments into root (auto-assign on import).
-   * This must happen BEFORE module instr0 executes so that InstrDef variables
-   * are available for use in module initialization code.
-   * See INSTRUMENTS_IN_MODULES.md for design rationale. */
-  merge_module_instruments_to_root(csound, module, import_info);
-
-  /* Initialize the instance the same way init0() does */
-  csound->curip = ip;
-  csound->ids = (OPDS*) ip;
-  module_instr0->active++;
-  ip->actflg++;
-  ip->esr = csound->esr;
-  ip->pidsr = csound->pidsr;
-  ip->sicvt = csound->sicvt;
-  ip->onedsr = csound->onedsr;
-  ip->ksmps = csound->ksmps;
-  ip->ekr = csound->ekr;
-  ip->kcounter = csound->kcounter;
-  ip->onedksmps = csound->onedksmps;
-  ip->onedkr = csound->onedkr;
-  ip->kicvt = csound->kicvt;
-  csound->inerrcnt = 0;
-  csound->mode = 1;
-  ip->init_pass++;
-
-  /* Execute all i-time opcodes in the module's instr0 */
-  while ((csound->ids = csound->ids->nxti) != NULL) {
-    csound->op = csound->ids->optext->t.oentry->opname;
-    (*csound->ids->init)(csound, csound->ids);
-  }
-
-  /* Initialize string variables in this module's varPool
-   * String variables need their STRINGDAT structures properly initialized */
-  if (module->varPool != NULL) {
-    CS_VARIABLE *var = module->varPool->head;
-    while (var != NULL) {
-      if (var->varType == &CS_VAR_TYPE_S && var->memBlock != NULL) {
-        STRINGDAT *str = (STRINGDAT *)&var->memBlock->value;
-        /* Initialize empty string if not already set */
-        if (str->data == NULL) {
-          str->data = cs_hash_table_get_key(csound, engineState->stringPool, "");
-          str->size = 1;
-        }
-      }
-      var = var->next;
-    }
-  }
-
-  csound->mode = 0;
-  int32_t error = csound->inerrcnt;
-
-  return error == 0 ? CSOUND_SUCCESS : CSOUND_ERROR;
-}
-
-/**
- * Initialize module globals (public wrapper).
- * This calls the internal function with NULL import_info,
- * which means all variables will be merged (import * semantics).
- */
-static int32_t initialize_module_globals(CSOUND *csound, CS_MODULE *module,
-                                          ENGINE_STATE *engineState) {
-  return initialize_module_globals_internal(csound, module, engineState, NULL);
-}
-
-/**
  * Compile the given TREE node into structs
 
  In the the first compilation run, it:
@@ -2941,179 +2473,22 @@ static int32_t initialize_module_globals(CSOUND *csound, CS_MODULE *module,
 
  * ASSUMES: TREE has been validated prior to compilation
  */
-static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e);
-int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
-{
-  INSTRTXT    *instrtxt = NULL;
-  INSTRTXT    *ip = NULL;
-  INSTRTXT    *prvinstxt;
-  OPTXT       *bp;
-  char        *opname;
-  TREE * current = root;
-  ENGINE_STATE *engineState;
-  CS_VARIABLE* var;
-  TYPE_TABLE* typeTable;
-  CS_VAR_POOL *globalPool = csound->engineState.varPool;
-  INSTRTXT *previousInstr0 = csound->instr0;
-  COMPILE_REFERENCE *references = NULL;
-  int32_t plansBuilt = 0;
-
-  if (current == NULL) {
-    csound->Message(csound, Str("Error: root is NULL in csound_compile_tree\n"));
-    return CSOUND_ERROR;
-  }
-  typeTable = (TYPE_TABLE*)current->markup;
-  if (typeTable == NULL) {
-    csound->Message(csound, Str("Error: missing TYPE_TABLE on AST root\n"));
-    return CSOUND_ERROR;
-  }
-
-  /* Advance past sentinel header node only if this node is the synthetic head
-     created by the parser (type==0 and no value). If verify_tree returned a
-     non-sentinel root (first real statement), do not skip it. */
-  if (current && current->type == 0 && current->value == NULL) {
-    current = current->next;
-  }
-  int firstCompilation = (csound->instr0 == NULL);
-  if (firstCompilation) {
-    /* First compilation - initialize global engine state */
-    engineState = &csound->engineState;
-
-    /* Note: engineState->varPool and root_module already created in csound_compile_orc */
-
-    /* Note: engineState->varPool and root_module already created in csound_compile_orc */
-
-    /* Initialize other engineState fields if needed */
-    if (engineState->stringPool == NULL) {
-      engineState->stringPool = cs_hash_table_create(csound);
-    }
-    if (engineState->constantsPool == NULL) {
-      engineState->constantsPool = cs_hash_table_create(csound);
-    }
-
-    /* For first compilation, instr0 uses instr0LocalPool for its variables.
-     * Set parent to typeTable->globalPool (user globals) which itself has parent
-     * csound->engineState.varPool (system globals). This creates the correct lookup chain:
-     * instr0 locals -> user globals -> system globals */
-    if (typeTable->instr0LocalPool && typeTable->instr0LocalPool->parent == NULL) {
-      typeTable->instr0LocalPool->parent = typeTable->globalPool;
-    }
-    csound->instr0 = create_instrument0(csound, current, engineState,
-                                        typeTable->instr0LocalPool);
-    cs_hash_table_put_key(csound, engineState->stringPool, "\"\"");
-    prvinstxt = &(engineState->instxtanchor);
-    engineState->instrtxtp =
-      (INSTRTXT **) csound->Calloc(csound, (1 + engineState->maxinsno)
-                                   * sizeof(INSTRTXT*));
-    prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
-    insert_instrtxt(csound, csound->instr0, 0, engineState,0);
-
-    /* For first compilation, globalPool points to root module's varPool
-     * We'll merge it into engineState->varPool after tree processing */
-    engineState->opcodeInfo = csound->opcodeInfo;
-
-    globalPool = typeTable->globalPool;
-  }
-  else if (csound->compilation_depth > 0) {
-    /* Recursive module compilation - create a temporary instr0 for the module
-     * The module's instr0 will be executed later (in initialize_module_globals)
-     * to initialize module globals. */
-    engineState = &csound->engineState;
-
-    /* DO NOT merge module variables here!
-     * Variable merging (varpool_merge) must happen AFTER memBlocks are allocated
-     * but BEFORE module instr0 executes. This happens in initialize_module_globals(). */
-
-    engineState->opcodeInfo = csound->opcodeInfo;
-
-    globalPool = typeTable->globalPool;
-
-    /* Set up parent chain: globalPool -> engineState->varPool (system globals) */
-    if (globalPool->parent == NULL) {
-      globalPool->parent = engineState->varPool;
-    }
-
-    /* Set up parent chain: instr0LocalPool -> globalPool -> engineState->varPool
-     * This allows module instr0 to access: locals -> module globals -> system globals */
-    if (typeTable->instr0LocalPool && typeTable->instr0LocalPool->parent == NULL) {
-      typeTable->instr0LocalPool->parent = globalPool;
-    }
-
-    /* Update the module's varPool and engineState to point to the compiled pools
-     * This connects the module structure to its populated variable pool and
-     * constant pool needed for instr_prep */
-    MODULE_STATE *module_state = csoundGetModuleState(csound);
-    if (module_state->current_module != NULL) {
-      module_state->current_module->varPool = globalPool;
-      module_state->current_module->engineState = engineState;
-    }
-
-    /* Create module instr0 using instr0LocalPool (just like root module)
-     * Module instr0 variables are local to the module's instr0, with parent chain
-     * to module globals and system globals */
-    csound->instr0 = create_global_instrument(csound, current, engineState,
-                                        typeTable->instr0LocalPool);
-
-    /* Set module_var_pool BEFORE instr_prep is called so module instr0 can
-     * resolve its own module's globals during compilation, not from merged pools */
-    if (csound->instr0 != NULL && module_state->current_module != NULL) {
-      csound->instr0->insname = csoundStrdup(csound, "#instr0");
-      csound->instr0->module_var_pool = module_state->current_module->varPool;
-    }
-
-    prvinstxt = &(engineState->instxtanchor);
-    /* Find the last instrument in the chain */
-    while (prvinstxt->nxtinstxt != NULL) {
-      prvinstxt = prvinstxt->nxtinstxt;
-    }
-  }
-  else {
-    /* Live coding - create separate engine state for merging
-     * This is used when compiling additional code while the engine is running */
-    engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
-    engineState->stringPool = csound->engineState.stringPool;
-    engineState->constantsPool = cs_hash_table_create(csound);
-
-    // Validate typeTable->globalPool before assignment
-    if (typeTable->globalPool == NULL || (uintptr_t)typeTable->globalPool < 0x1000) {
-      csoundDie(csound, Str("ERROR: typeTable->globalPool pool corruption detected (%p)\n"), typeTable->globalPool);
-    }
-
-    engineState->varPool = typeTable->globalPool;
-    prvinstxt = &(engineState->instxtanchor);
-    engineState->instrtxtp =
-      (INSTRTXT **) csound->Calloc(csound, (1 + engineState->maxinsno) *
-                                   sizeof(INSTRTXT*));
-    typeTable->instr0LocalPool->parent = csound->engineState.varPool;
-    csound->instr0 = create_global_instrument(csound, current, engineState,
-                                              typeTable->instr0LocalPool);
-    insert_instrtxt(csound, csound->instr0, 0, engineState,1);
-    engineState->opcodeInfo = csound->opcodeInfo;
-
-    prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
-  }
-
-
-  // allocate memory for global vars
-  // if this variable already exists,
-  // memory will be freed on merge.
-
-  // Check for null or corrupted globalPool to prevent segfault
-  if (typeTable->globalPool == NULL || (uintptr_t)typeTable->globalPool < 0x1000) {
-    csoundDie(csound, Str("csound_compile_tree: pool corruption detected in globalPool (%p)\n"),
-              typeTable->globalPool);
-  }
-
-/* For module compilation, reset memBlock pointers from cached modules
-   * to prevent state contamination between compilations */
-  if (csound->compilation_depth > 0) {
-    // Reset all global variable memBlocks to ensure clean state
-    CS_VARIABLE *global_var = typeTable->globalPool->head;
-    while (global_var != NULL) {
-      global_var->memBlock = NULL;
-      global_var = global_var->next;
-    }
-  }
+static int32_t compile_definitions(CSOUND *csound, TREE *root,
+                                    ENGINE_STATE *engineState,
+                                    INSTRTXT *global_init,
+                                    COMPILE_REFERENCE **references) {
+  TYPE_TABLE *typeTable = root->markup;
+  CS_VAR_POOL *globalPool = typeTable->globalPool;
+  CS_MODULE *scope = typeTable->module;
+  MODULE_STATE *state = csoundGetModuleState(csound);
+  CS_MODULE *previous = state->current_module;
+  state->current_module = scope;
+  INSTRTXT *prvinstxt = &engineState->instxtanchor;
+  while (prvinstxt->nxtinstxt != NULL) prvinstxt = prvinstxt->nxtinstxt;
+  INSTRTXT *instrtxt;
+  CS_VARIABLE *var;
+  char *opname;
+  TREE *current = root->next;
   var = typeTable->globalPool->head;
   while(var != NULL) {
     // check if variable memory has not yet been allocated
@@ -3135,11 +2510,6 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     }
     var = var->next;
   }
-
-  if (csound->compilation_depth > 0 && csound->instr0 != NULL) {
-    instr_prep(csound, csound->instr0, engineState);
-  }
-
   while (current != NULL) {
     switch (current->type) {
     case T_ASSIGNMENT:
@@ -3156,17 +2526,22 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     case INSTR_TOKEN:
       if(csound->GetDebug(csound) > 99)
         print_tree(csound, "Instrument found\n", current);
+      if (csoundModuleOwner(scope) != csoundGetModuleState(csound)->root_module) {
+        for (TREE *id = current->left; id != NULL; id = id->next) {
+          TREE *name = id->left != NULL ? id->left : id;
+          if (name->type == INTEGER_TOKEN) {
+            synterr(csound, Str("Instruments in modules must be named\n"));
+            goto invalid;
+          }
+        }
+      }
       instrtxt = create_instrument(csound, current, engineState, typeTable);
       if (UNLIKELY(instrtxt == NULL)) {
         goto invalid;
       }
+      instrtxt->module = csoundModuleOwner(scope);
+      instrtxt->module_aliases = typeTable->module_aliases;
       prvinstxt = prvinstxt->nxtinstxt = instrtxt;
-
-      /* For recursive module compilation, prep instruments immediately
-       * to avoid double-prep issues later */
-      if (csound->compilation_depth > 0) {
-        /* Instruments will be prepped in UDO_TOKEN case */
-      }
 
       /* Handle Inserting into CSOUND here by checking ids (name or
        * numbered) and using new insert_instrtxt?
@@ -3189,7 +2564,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
             strcpy(instrtxt->insname, c);
             // the parser has created a variable with the instrument name
             bind_instr_variable(csound, engineState,
-                                csound->engineState.varPool, instrtxt, c);
+                                globalPool, instrtxt, c);
           }
         } else {
           if (p->type == INTEGER_TOKEN) {
@@ -3206,16 +2581,17 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
               synterr(csound, Str("invalid name for instrument: %s\n"), c);
             }
 
-            if(named_instr_alloc(csound, c, instrtxt, insno_priority,
+            char *registered_name = csoundModuleInstrumentName(csound, scope, c);
+            if(named_instr_alloc(csound, registered_name, instrtxt, insno_priority,
                                  engineState, 0) == 0) {
               csound->Free(csound, instrtxt->insname);
-              instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
-              strcpy(instrtxt->insname, c);
+              instrtxt->insname = csoundStrdup(csound, registered_name);
 
               // the parser has created a variable with the instrument name
               // in globalPool
               bind_instr_variable(csound, engineState, globalPool, instrtxt, c);
             }
+            csound->Free(csound, registered_name);
           }
         }
         p = p->next;
@@ -3248,12 +2624,11 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       /* csound->Message(csound, "UDO found\n"); */
       instrtxt = create_instrument(csound, current, engineState, typeTable);
       if (UNLIKELY(instrtxt == NULL)) goto invalid;
+      instrtxt->module = csoundModuleOwner(scope);
+      instrtxt->module_aliases = typeTable->module_aliases;
       prvinstxt = prvinstxt->nxtinstxt = instrtxt;
       opname = current->left->value->lexeme;
-      OPCODINFO *opinfo =
-        find_opcode_info(csound, csound->opcodeInfo, opname,
-                         current->left->left->markup,
-                         current->left->right->markup);
+      OPCODINFO *opinfo = current->left->markup;
 
       if (UNLIKELY(opinfo == NULL)) {
         csound->Message(csound,
@@ -3261,7 +2636,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
                         opname, current->line);
       } else {
         if (engineState != &csound->engineState)
-          save_compile_reference(csound, &references, opinfo);
+          save_compile_reference(csound, references, opinfo);
         opinfo->ip = instrtxt;
         instrtxt->insname = csoundStrdup(csound, opname);
         instrtxt->opcode_info = opinfo;
@@ -3278,83 +2653,31 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       break;
 
     case IMPORT_TOKEN:
-    case FROM_TOKEN:
-      /* Handle import statements - trigger module loading */
-      /* Extract module path from the left child node */
-      if (current->left && current->left->value && current->left->value->lexeme) {
-        char *module_path = current->left->value->lexeme;
-
-        CS_MODULE *module = csoundGetOrLoadModule(csound, module_path);
-
-        if (module) {
-          /* If module has an AST and hasn't been compiled yet, compile it recursively */
-          if (module->ast && !module->is_compiled) {
-            /* Increment compilation depth to signal we're in a recursive module compilation
-             * This tells csound_compile_tree to reuse the global ENGINE_STATE instead of
-             * creating a new one that would need to be merged */
-            csound->compilation_depth++;
-
-            /* CRITICAL: Save csound->instr0 before module compilation
-             * The module's parser may create its own instr0 which would overwrite
-             * csound->instr0, corrupting the main file's instr0 */
-            INSTRTXT *saved_instr0 = csound->instr0;
-
-            /* Set current_module so that g-variables go to module->varPool */
-            MODULE_STATE *module_state = csoundGetModuleState(csound);
-            CS_MODULE *saved_current_module = module_state->current_module;
-            module_state->current_module = module;
-
-            /* Compile the module's AST in the current compilation context
-             * This will recursively handle any imports in the module */
-            int32_t compile_result = csoundCompileTree(csound, module->ast, 0);
-
-            /* Store the module's instr0 for later execution
-             * The module's instr0 contains initialization opcodes (like giTestValue = 42)
-             * that need to be executed after all compilation completes, in dependency order */
-            INSTRTXT *module_instr0 = csound->instr0;
-            if (compile_result == CSOUND_SUCCESS && module_instr0 != NULL &&
-                module_instr0 != saved_instr0) {
-              module->instr0 = module_instr0;
-            }
-
-            /* Restore csound->instr0 to point to main instr0 */
-            csound->instr0 = saved_instr0;
-
-            /* Restore current_module */
-            module_state->current_module = saved_current_module;
-
-            /* Decrement depth after compilation */
-            csound->compilation_depth--;
-
-            if (compile_result == CSOUND_SUCCESS) {
-              module->is_compiled = true;
-
-              /* CRITICAL: Re-find the end of the instrument chain after module compilation.
-               * Module compilation may have added instruments to the chain, but our local
-               * prvinstxt pointer still points to where it was before the recursive call.
-               * We need to update it to point to the actual end of the chain so that
-               * subsequent instruments in this compilation get linked correctly. */
-              while (prvinstxt->nxtinstxt != NULL) {
-                prvinstxt = prvinstxt->nxtinstxt;
-              }
-            } else {
-              csound->Message(csound, "Error: Failed to compile module: %s (code: %d)\n",
-                                         module_path, compile_result);
-              synterr(csound, Str("Failed to compile module: %s"), module_path);
-            }
-          }
-
-          /* Process the import statement to register items from the loaded module */
-          csoundProcessImportStatements(csound, module, current);
-
-          if(csound->GetDebug(csound) > 99) {
-            csound->Message(csound, "Successfully loaded and processed module: %s\n", module_path);
-          }
-        } else {
-          synterr(csound, Str("Failed to load module: %s"), module_path);
-        }
+    case FROM_TOKEN: {
+      CS_MODULE *module = current->markup;
+      if (module == NULL) goto invalid;
+      if (!module->is_compiled && module->instr0 == NULL) {
+        TYPE_TABLE *module_types = module->ast->markup;
+        module_types->instr0LocalPool->parent = module->varPool;
+        INSTRTXT *init = create_global_instrument(csound, module->ast->next,
+                              engineState, module_types->instr0LocalPool);
+        init->module = module;
+        init->module_aliases = module_types->module_aliases;
+        init->insname = csound->Malloc(csound, 48);
+        snprintf(init->insname, 48, "#module_%d_init", module->id);
+        module->instr0 = init;
+        prvinstxt = prvinstxt->nxtinstxt = init;
+        named_instr_alloc(csound, init->insname, init, -1, engineState, 0);
+        if (compile_definitions(csound, module->ast, engineState, global_init,
+                                 references) != CSOUND_SUCCESS) goto invalid;
+        global_init->module_dependencies = csound->ReAlloc(csound,
+            global_init->module_dependencies,
+            (global_init->module_dependency_count + 1) * sizeof(CS_MODULE *));
+        global_init->module_dependencies[global_init->module_dependency_count++] = module;
+        while (prvinstxt->nxtinstxt != NULL) prvinstxt = prvinstxt->nxtinstxt;
       }
       break;
+    }
 
     default:
       csound->Warning(csound,
@@ -3366,10 +2689,113 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     current = current->next;
   }
 
-  if (csound->compilation_depth > 0) {
-    free_typetable(csound, typeTable);
-    return csound->synterrcnt ? CSOUND_ERROR : CSOUND_SUCCESS;
+  state->current_module = previous;
+  return csound->synterrcnt ? CSOUND_ERROR : CSOUND_SUCCESS;
+ invalid:
+  state->current_module = previous;
+  return CSOUND_ERROR;
+}
+
+static void publish_modules(INSTRTXT *global_init) {
+  for (int32_t i = 0; i < global_init->module_dependency_count; i++)
+    global_init->module_dependencies[i]->is_compiled = true;
+}
+
+static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e);
+int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
+{
+  INSTRTXT    *ip = NULL;
+  INSTRTXT    *prvinstxt;
+  OPTXT       *bp;
+  TREE * current = root;
+  ENGINE_STATE *engineState;
+  TYPE_TABLE* typeTable;
+  INSTRTXT *previousInstr0 = csound->instr0;
+  COMPILE_REFERENCE *references = NULL;
+  int32_t plansBuilt = 0;
+
+  if (current == NULL) {
+    csound->Message(csound, Str("Error: root is NULL in csound_compile_tree\n"));
+    return CSOUND_ERROR;
   }
+  typeTable = (TYPE_TABLE*)current->markup;
+  if (typeTable == NULL) {
+    csound->Message(csound, Str("Error: missing TYPE_TABLE on AST root\n"));
+    return CSOUND_ERROR;
+  }
+
+  /* Advance past sentinel header node only if this node is the synthetic head
+     created by the parser (type==0 and no value). If verify_tree returned a
+     non-sentinel root (first real statement), do not skip it. */
+  if (current && current->type == 0 && current->value == NULL) {
+    current = current->next;
+  }
+  int firstCompilation = (csound->instr0 == NULL);
+  if (firstCompilation) {
+    /* First compilation - initialize global engine state */
+    engineState = &csound->engineState;
+
+    /* System globals and the root module are created before parsing. */
+
+    /* Initialize other engineState fields if needed */
+    if (engineState->stringPool == NULL) {
+      engineState->stringPool = cs_hash_table_create(csound);
+    }
+    if (engineState->constantsPool == NULL) {
+      engineState->constantsPool = cs_hash_table_create(csound);
+    }
+
+    /* For first compilation, instr0 uses instr0LocalPool for its variables.
+     * Set parent to typeTable->globalPool (user globals) which itself has parent
+     * csound->engineState.varPool (system globals). This creates the correct lookup chain:
+     * instr0 locals -> user globals -> system globals */
+    if (typeTable->instr0LocalPool && typeTable->instr0LocalPool->parent == NULL) {
+      typeTable->instr0LocalPool->parent = typeTable->globalPool;
+    }
+    csound->instr0 = create_instrument0(csound, current, engineState,
+                                        typeTable->instr0LocalPool);
+    cs_hash_table_put_key(csound, engineState->stringPool, "\"\"");
+    prvinstxt = &(engineState->instxtanchor);
+    engineState->instrtxtp =
+      (INSTRTXT **) csound->Calloc(csound, (1 + engineState->maxinsno)
+                                   * sizeof(INSTRTXT*));
+    prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
+    insert_instrtxt(csound, csound->instr0, 0, engineState,0);
+
+    engineState->opcodeInfo = csound->opcodeInfo;
+  }
+  else {
+    /* Live coding - create separate engine state for merging
+     * This is used when compiling additional code while the engine is running */
+    engineState = (ENGINE_STATE *) csound->Calloc(csound, sizeof(ENGINE_STATE));
+    engineState->stringPool = csound->engineState.stringPool;
+    engineState->constantsPool = cs_hash_table_create(csound);
+
+    // Validate typeTable->globalPool before assignment
+    if (typeTable->globalPool == NULL || (uintptr_t)typeTable->globalPool < 0x1000) {
+      csoundDie(csound, Str("ERROR: typeTable->globalPool pool corruption detected (%p)\n"), typeTable->globalPool);
+    }
+
+    engineState->varPool = typeTable->globalPool;
+    prvinstxt = &(engineState->instxtanchor);
+    engineState->instrtxtp =
+      (INSTRTXT **) csound->Calloc(csound, (1 + engineState->maxinsno) *
+                                   sizeof(INSTRTXT*));
+    typeTable->instr0LocalPool->parent = csound->engineState.varPool;
+    csound->instr0 = create_global_instrument(csound, current, engineState,
+                                              typeTable->instr0LocalPool);
+    insert_instrtxt(csound, csound->instr0, 0, engineState,1);
+    engineState->opcodeInfo = csound->opcodeInfo;
+
+    prvinstxt = prvinstxt->nxtinstxt = csound->instr0;
+  }
+
+
+  csound->instr0->module = csoundModuleOwner(typeTable->module);
+  csound->instr0->module_aliases = typeTable->module_aliases;
+  if (compile_definitions(csound, root, engineState, csound->instr0,
+                           &references) != CSOUND_SUCCESS) goto invalid;
+  root->markup = NULL;
 
   if (firstCompilation) {
     varpool_merge(csound, engineState, typeTable->globalPool);
@@ -3396,6 +2822,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     }
   }
   plansBuilt = 1;
+
+  csoundAcceptModuleUpdate(typeTable->module_update);
 
   if (engineState != &csound->engineState) {
     OPDS *ids = csound->ids;
@@ -3426,6 +2854,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     /* now add the instruments with names, assigning them fake instr numbers */
     named_instr_assign_numbers(csound, engineState);
     /* first compilation */
+    publish_udo_definitions(csound, engineState);
     insert_opcodes(csound, csound->opcodeInfo, engineState);
     ip = engineState->instxtanchor.nxtinstxt;
     /* check for perf opcode in instr0 */
@@ -3462,7 +2891,11 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     }
 
     finish_instr_references(csound, engineState, 1);
+    publish_imported_instruments(csound);
     named_instr_publish_numbers(csound);
+    publish_modules(csound->instr0);
+    csoundFinishModuleUpdate(csound, typeTable->module_update, 1);
+    typeTable->module_update = NULL;
     CS_VARIABLE *var;
     var = csoundFindVariableWithName(csound, engineState->varPool, "sr");
     if (var && var->memBlock) {
@@ -3509,44 +2942,23 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       csound->Message(csound, Str("Warning: Could not find or access 'A4' variable\n"));
     }
   }
-  /* Initialize all module global variables depth-first after AST processing.
-   * This ensures all modules are compiled and their instr0s are stored
-   * before we execute any of them. Module variables like giTestValue = 42
-   * are initialized here. */
-  if (firstCompilation) {
-    MODULE_STATE *module_state = csoundGetModuleState(csound);
-    if (module_state != NULL && module_state->root_module != NULL) {
-      /* Walk imports of root module to initialize all modules depth-first */
-      for (int32_t i = 0; i < module_state->root_module->import_count; i++) {
-        /* Get the import_info for this import to support selective imports */
-        CS_IMPORT *import_info = (module_state->root_module->import_info)
-                                  ? module_state->root_module->import_info[i] : NULL;
-        int32_t init_result = initialize_module_globals_internal(csound,
-                                                        module_state->root_module->imports[i],
-                                                        engineState,
-                                                        import_info);
-        if (init_result != CSOUND_SUCCESS) {
-          return init_result;
-        }
-      }
-    }
-  }
-
-  /* After all module initialization, merge module UDOs into root instrtxtp.
-   * This must happen AFTER insert_opcodes() which may reallocate the array. */
-  if (firstCompilation) {
-    MODULE_STATE *module_state = csoundGetModuleState(csound);
-    if (module_state != NULL && module_state->root_module != NULL) {
-      for (int32_t i = 0; i < module_state->root_module->import_count; i++) {
-        merge_module_udos_to_root(csound, module_state->root_module->imports[i]);
-      }
-    }
-  }
-
+  if (firstCompilation) free_typetable(csound, typeTable);
   finish_compile_references(csound, references, 0, 0);
   return CSOUND_SUCCESS;
 
  invalid:
+  root->markup = NULL;
+  csoundFinishModuleUpdate(csound, typeTable->module_update, 0);
+  typeTable->module_update = NULL;
+  for (INSTRTXT *instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    CS_MODULE *module = instrument->module;
+    if (module != NULL && module != csoundGetModuleState(csound)->root_module &&
+        !module->is_compiled) {
+      cs_hash_table_remove(csound, csoundGetModuleState(csound)->modules, module->file_path);
+      module->instr0 = NULL;
+    }
+  }
   finish_compile_references(csound, references, 1, plansBuilt);
   if (engineState != &csound->engineState) {
     csound->instr0 = previousInstr0;
@@ -3570,29 +2982,6 @@ static int32_t compile_orc(CSOUND *csound, const char *str, int32_t async) {
   TREE *root;
   int32_t retVal = 1;
 
-  add_opcode_defs(csound);
-
-  /* Create root module BEFORE parsing so typeTable->globalPool points to root_module->varPool */
-  if (csound->instr0 == NULL) {
-    csoundCreateRootModule(csound);
-
-    /* Initialize engineState->varPool for system globals */
-    if (csound->engineState.varPool == NULL) {
-      csound->engineState.varPool = csoundCreateVarPool(csound);
-    }
-
-    /* Set up parent chain and current_module */
-    MODULE_STATE *module_state = csoundGetModuleState(csound);
-    if (module_state->root_module) {
-      /* Root module's varPool should have engineState->varPool as parent
-       * This allows root module globals to shadow system globals */
-      module_state->root_module->varPool->parent = csound->engineState.varPool;
-
-      /* Set current_module to root_module so parser creates globals in root_module->varPool */
-      module_state->current_module = module_state->root_module;
-    }
-  }
-
   root = csoundParseOrc(csound, str);
 
   if (LIKELY(root != NULL)) {
@@ -3614,13 +3003,7 @@ static int32_t compile_orc(CSOUND *csound, const char *str, int32_t async) {
     // Sanitise semantic sets here
     sanitize(csound);
 #endif
-    /* Only delete the AST if this is NOT a module compilation
-     * Module ASTs are cached in module->ast and must not be freed */
-    if (csound->compilation_depth == 0) {
-      csoundDeleteTree(csound, root);
-    }
-    /* For module compilations (depth > 0), the AST is already stored in
-     * module->ast and will be freed when the module is cleaned up */
+    csoundDeleteTree(csound, root);
   } else {
     /* csoundParseOrc only returns NULL when parsing itself failed; empty
        input yields a valid sentinel root holding just the TYPE_TABLE, so
@@ -3775,11 +3158,6 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
     TEXT *ttp = &optxt->t;
     ep = ttp->oentry;
 
-    /* Skip opcodes with NULL oentry (e.g., import statements) */
-    if (ep == NULL) {
-      continue;
-    }
-
     if (strcmp(ep->opname, "endin") == 0 /*    (until ENDIN)     */
         || strcmp(ep->opname, "endop") == 0)
       break;
@@ -3896,6 +3274,7 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       csound->Message(csound, "\n");
   }
 
+  tp->module_aliases = NULL;
 }
 
 /* build pool of floating const values  */
@@ -3940,21 +3319,6 @@ static void remove_global_annotation(char *varName) {
   }
 }
 
-static CS_VARIABLE *setup_arg_for_var_name(CSOUND* csound, ARG* arg,
-                                   CS_VAR_POOL* varPool, char* varName) {
-  char* delimit = strchr(varName, '.');
-  if(delimit != NULL) {
-    char *baseName = cs_strndup(csound, varName, delimit - varName);
-    char *structPath = csoundStrdup(csound, delimit + 1);
-    arg->argPtr = csoundFindVariableWithName(csound, varPool, baseName);
-    arg->structPath = structPath;
-    csound->Free(csound, baseName);
-  } else {
-    arg->argPtr = csoundFindVariableWithName(csound, varPool, varName);
-    arg->structPath = NULL;
-  }
-  return arg->argPtr;
-}
 
 static int32_t is_audio_var(CSOUND *csound, CS_VARIABLE *var,
                             const char *structPath) {
@@ -4024,222 +3388,55 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     if(csoundGetDebug(csound) & DEBUG_COMPILER)
       csoundMessage(csound, "pfield found: %s %d\n", s, n);
   }
-  /* Check for module alias access (e.g., modAlias.variable) or struct member access (e.g., gVec.x) */
-  else if (strchr(s, '.') != NULL) {
-    char *dot = strchr(s, '.');
-    char *baseName = cs_strndup(csound, s, dot - s);
-    CS_MODULE *aliasedModule = csoundFindModuleByAlias(csound, baseName);
-    if (aliasedModule != NULL && aliasedModule->varPool != NULL) {
-      /* Module alias access */
-      char *memberName = dot + 1;
-      CS_VARIABLE *moduleVar = csoundFindVariableWithName(csound, aliasedModule->varPool, memberName);
-      if (moduleVar != NULL) {
-        arg->type = ARG_GLOBAL;
-        arg->argPtr = moduleVar;
-        arg->structPath = NULL;
-        csound->Free(csound, baseName);
-      } else {
-        csound->Free(csound, baseName);
-        csoundDie(csound, Str("No variable '%s' found in module alias '%s'"), memberName, baseName);
-      }
-    } else {
-      /* Not a module alias - check if base name is a struct variable in global pools */
-      CS_VARIABLE *structVar = NULL;
-      CS_VAR_POOL *foundPool = NULL;
-      char *structPath = csoundStrdup(csound, dot + 1);
-
-      /* Check engineState->varPool first */
-      if (engineState->varPool != NULL && (uintptr_t)engineState->varPool >= 0x1000) {
-        structVar = csoundFindVariableWithName(csound, engineState->varPool, baseName);
-        if (structVar != NULL) foundPool = engineState->varPool;
-      }
-
-      /* Check csound->engineState.varPool */
-      if (structVar == NULL && csound->engineState.varPool != NULL &&
-          (uintptr_t)csound->engineState.varPool >= 0x1000) {
-        structVar = csoundFindVariableWithName(csound, csound->engineState.varPool, baseName);
-        if (structVar != NULL) foundPool = csound->engineState.varPool;
-      }
-
-      /* Check imported modules' varPools */
-      if (structVar == NULL) {
-        MODULE_STATE *mod_state = csoundGetModuleState(csound);
-        if (mod_state && mod_state->root_module) {
-          CS_MODULE *root = mod_state->root_module;
-          for (int32_t i = 0; i < root->import_count && structVar == NULL; i++) {
-            CS_MODULE *imported = root->imports[i];
-            if (imported && imported->varPool) {
-              structVar = csoundFindVariableWithName(csound, imported->varPool, baseName);
-              if (structVar != NULL && csoundIsItemImportAllowed(csound, root, imported, baseName)) {
-                foundPool = imported->varPool;
-              } else {
-                structVar = NULL;
-              }
-            }
-          }
-        }
-      }
-
-      /* Check root module's varPool */
-      if (structVar == NULL) {
-        MODULE_STATE *mod_state = csoundGetModuleState(csound);
-        if (mod_state && mod_state->root_module && mod_state->root_module->varPool) {
-          structVar = csoundFindVariableWithName(csound, mod_state->root_module->varPool, baseName);
-          if (structVar != NULL) foundPool = mod_state->root_module->varPool;
-        }
-      }
-
-      /* Check local pool for local struct variables */
-      if (structVar == NULL) {
-        structVar = cs_hash_table_get(csound, ip->varPool->table, baseName);
-        if (structVar != NULL) foundPool = ip->varPool;
-      }
-
-      if (structVar != NULL) {
-        arg->type = (foundPool == ip->varPool) ? ARG_LOCAL : ARG_GLOBAL;
-        arg->argPtr = structVar;
-        arg->structPath = structPath;
-        csound->Free(csound, baseName);
-      } else {
-        csound->Free(csound, baseName);
-        csound->Free(csound, structPath);
-        goto handle_struct_or_variable;
-      }
-    }
-  }
-  /* trap local ksmps and kr and sr
-   * Check if they exist in the immediate pool (local) or parent chain (global) */
-  else handle_struct_or_variable: if (strcmp(s, "ksmps") == 0 || strcmp(s, "kr") == 0 || strcmp(s, "sr") == 0) {
-    CS_VARIABLE *var = cs_hash_table_get(csound, ip->varPool->table, s);
-    if (var != NULL) {
-      /* Found in immediate pool - it's a local variable */
-      arg->type = ARG_LOCAL;
-      arg->argPtr = var;
-    } else if (ip->varPool->parent != NULL) {
-      /* Not in immediate pool, check parent chain - it's a global */
-      var = csoundFindVariableWithName(csound, ip->varPool->parent, s);
-      if (var != NULL) {
-        arg->type = ARG_GLOBAL;
-        arg->argPtr = var;
-      }
-    }
-  }
-  /* Check for local variables - search ONLY immediate pool, not parents */
-  else if (cs_hash_table_get(csound, ip->varPool->table, s) != NULL) {
-    /* But if ip->varPool IS the engineState.varPool, treat as global, not local.
-     * This happens when instr0 (live coding) uses engineState.varPool as its pool. */
-    if (ip->varPool == csound->engineState.varPool || ip->varPool == engineState->varPool) {
-      arg->type = ARG_GLOBAL;
-      setup_arg_for_var_name(csound, arg, ip->varPool, s);
-    } else {
-      arg->type = ARG_LOCAL;
-      setup_arg_for_var_name(csound, arg, ip->varPool, s);
-    }
-
-  } else if (s[0] == '#') {
-    const char* t = s + 1; if (*t == '+' || *t == '-') t++;
-    int allDigits = (*t != '\0');
-    for (const char* p = t; *p; ++p) { if (*p < '0' || *p > '9') { allDigits = 0; break; } }
-    if (allDigits) {
-      arg->type = ARG_CONSTANT;
-      arg->argPtr = cs_hash_table_get(csound, csound->engineState.constantsPool, (char*)t);
-      if (arg->argPtr == NULL) {
-        arg->argPtr = find_or_add_constant(csound, engineState->constantsPool, (char*)t,
-                                           csoundStrtod((char*)t, NULL));
-      }
-    } else {
-      if(setup_arg_for_var_name(csound, arg, ip->varPool, s) == NULL) {
-        csoundDie(csound, Str("compile error:"
-                              " missing variable '%s'\n"), s);
-      }
-      arg->type = ARG_LOCAL;
-      setup_arg_for_var_name(csound, arg, ip->varPool, s);
-      if (arg->argPtr == NULL) {
-        csoundDie(csound, Str("Missing temporary variable %s in local pool"), s);
-      }
-    }
-  }
-  /* Check instrument's module_var_pool (for module instr0 and instruments) */
-  else if (ip->module_var_pool != NULL &&
-           csoundFindVariableWithName(csound, ip->module_var_pool, s) != NULL) {
-    arg->type = ARG_GLOBAL;
-    setup_arg_for_var_name(csound, arg, ip->module_var_pool, s);
-  }
-  /* For UDOs: check if the UDO has a module_var_pool (namespace isolation)
-   * If so, search there first for module-specific globals */
-  else if (ip->opcode_info != NULL && ip->opcode_info->module_var_pool != NULL &&
-           csoundFindVariableWithName(csound, ip->opcode_info->module_var_pool, s) != NULL) {
-    arg->type = ARG_GLOBAL;
-    setup_arg_for_var_name(csound, arg, ip->opcode_info->module_var_pool, s);
-  }
-  /* now global vars are searched for */
-  else if(engineState->varPool != NULL && (uintptr_t)engineState->varPool >= 0x1000 &&
-          setup_arg_for_var_name(csound, arg, engineState->varPool, s) != NULL) {
-       arg->type = ARG_GLOBAL;
-    }
-    else if(csound->engineState.varPool != NULL && (uintptr_t)csound->engineState.varPool >= 0x1000 &&
-            setup_arg_for_var_name(csound, arg, csound->engineState.varPool, s) != NULL) {
-    arg->type = ARG_GLOBAL;
-  }
-  /* Prefer imported modules' globals; then parent chain; then root module */
   else {
-    MODULE_STATE *module_state = csoundGetModuleState(csound);
-    CS_VARIABLE *found_var = NULL;
-    CS_VAR_POOL *found_pool = NULL;
-
-    /* First search imported modules' varPools, respecting selective imports */
-    if (module_state && module_state->root_module) {
-      CS_MODULE *root = module_state->root_module;
-      for (int32_t i = 0; i < root->import_count; i++) {
-        CS_MODULE *imported = root->imports[i];
-        if (imported && imported->varPool) {
-          found_var = csoundFindVariableWithName(csound, imported->varPool, s);
-          if (found_var != NULL) {
-            /* Check if this variable is allowed by the import info */
-            if (csoundIsItemImportAllowed(csound, root, imported, s)) {
-              found_pool = imported->varPool;
-              break;
-            } else {
-              /* Variable exists but is not allowed by selective import */
-              found_var = NULL;
-            }
-          }
-        }
-      }
-    }
-    /* If not found, check parent of instrument's varPool */
-    if (found_var == NULL && ip->varPool->parent != NULL) {
-      found_var = csoundFindVariableWithName(csound, ip->varPool->parent, s);
-      if (found_var != NULL) {
-        found_pool = ip->varPool->parent;
-      }
-    }
-
-    /* If still not found, check root module's varPool */
-    if (found_var == NULL && module_state && module_state->root_module && module_state->root_module->varPool) {
-      found_var = csoundFindVariableWithName(csound, module_state->root_module->varPool, s);
-      if (found_var != NULL) {
-        found_pool = module_state->root_module->varPool;
-      }
-    }
-
-    if (found_var != NULL && found_pool != NULL) {
+    char *dot = strchr(s, '.');
+    char *base = dot != NULL ? cs_strndup(csound, s, dot - s) : csoundStrdup(csound, s);
+    CS_VARIABLE *var = cs_hash_table_get(csound, ip->varPool->table, base);
+    arg->type = ARG_LOCAL;
+    if (var != NULL && (ip->varPool == engineState->varPool ||
+                       ip->varPool == csound->engineState.varPool)) arg->type = ARG_GLOBAL;
+    CS_MODULE *source = NULL;
+    if (var == NULL && dot != NULL && ip->module != NULL)
+      source = cs_hash_table_get(csound, ip->module_aliases != NULL
+                                          ? ip->module_aliases : ip->module->aliases, base);
+    if (source != NULL) {
+      const char *member = dot + 1;
+      const char *path = strchr(member, '.');
+      csound->Free(csound, base);
+      base = path != NULL ? cs_strndup(csound, member, path - member)
+                          : csoundStrdup(csound, member);
+      var = csoundFindModuleVariable(csound, source, base);
+      dot = (char *)path;
       arg->type = ARG_GLOBAL;
-      setup_arg_for_var_name(csound, arg, found_pool, s);
-    } else {
-      /* otherwise we have a local arg */
-      arg->type = ARG_LOCAL;
-      setup_arg_for_var_name(csound, arg, ip->varPool, s);
-      if (arg->argPtr == NULL) {
-        if (s[0] == '#') {
-          csoundDie(csound, Str("compile error:"
-                                " missing temporary variable '%s'"), s);
-        } else {
-          csoundDie(csound, Str("compile error:"
-                                " missing variable '%s'"), s);
-        }
+    } else if (var == NULL) {
+      arg->type = ARG_GLOBAL;
+      if (ip->module != NULL && ip->module != csoundGetModuleState(csound)->root_module)
+        var = csoundFindModuleVariable(csound, ip->module, base);
+      if (var == NULL && (ip->module == NULL ||
+                         ip->module == csoundGetModuleState(csound)->root_module)) {
+        var = csoundFindVariableWithName(csound, engineState->varPool, base);
+        if (var == NULL)
+          var = csoundFindVariableWithName(csound, csound->engineState.varPool, base);
+      }
+      if (var == NULL) var = csoundFindSystemVariable(csound, base);
+    }
+    arg->argPtr = var;
+    if (var != NULL && dot != NULL) arg->structPath = csoundStrdup(csound, dot + 1);
+    if (var == NULL && s[0] == '#') {
+      const char *number = s + 1;
+      if (*number == '+' || *number == '-') number++;
+      int digits = *number != '\0';
+      for (const char *p = number; *p; p++)
+        if (*p < '0' || *p > '9') digits = 0;
+      if (digits) {
+        arg->type = ARG_CONSTANT;
+        arg->argPtr = find_or_add_constant(csound, engineState->constantsPool,
+                                            (char *)number, csoundStrtod((char *)number, NULL));
       }
     }
+    csound->Free(csound, base);
+    if (arg->argPtr == NULL)
+      csoundDie(csound, Str("compile error: missing variable '%s'\n"), s);
   }
 
   if (arg->type == ARG_GLOBAL &&

@@ -258,6 +258,7 @@ void csoundFreeParserVarPool(CSOUND *csound, void *ptr)
     }
     /* Hash keys are copies; values were freed above. Never follow parent. */
     cs_hash_table_free(csound, pool->table);
+    if (pool->bindings != NULL) cs_hash_table_free(csound, pool->bindings);
     csound->Free(csound, pool);
 }
 
@@ -391,19 +392,8 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
       typeTable = csoundParserOwn(csound, csound->Calloc(csound, sizeof(TYPE_TABLE)));
       typeTable->udos = NULL;
 
-      /* Get current module's varPool for g-variables and @global variables
-       * For main CSD, this will be root_module->varPool
-       * For imported modules, this will be the module's varPool */
       MODULE_STATE *module_state = csoundGetModuleState(csound);
-
-      if (module_state->current_module && module_state->current_module->varPool &&
-          !(module_state->current_module == module_state->root_module &&
-            csound->instr0 != NULL && csound->compilation_depth == 0)) {
-        typeTable->globalPool = module_state->current_module->varPool;
-      } else {
-        /* Live edits need a private pool until validation and publication. */
-        typeTable->globalPool = csoundParserCreateVarPool(csound);
-      }
+      typeTable->globalPool = module_state->current_module->varPool;
 
       if (typeTable->globalPool == NULL) {
         csound->ErrorMsg(csound, Str("Failed to create globalPool in parser\n"));
@@ -427,179 +417,24 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
 
-      /* Process import statements before semantic analysis
-       * In module files, the root node (astTree) might be an import statement.
-       * In main files, imports are in astTree->next chain.
-       * We need to check both. */
-      TREE *current;
-      if (astTree && (astTree->type == IMPORT_TOKEN || astTree->type == FROM_TOKEN)) {
-        // Root is an import - start from root
-        current = astTree;
-      } else {
-        // Root is not an import - start from next
-        current = astTree ? astTree->next : NULL;
-      }
-      while (current != NULL) {
-        if (current->type == IMPORT_TOKEN || current->type == FROM_TOKEN) {
-          /* Extract module path from the left child node */
-          if (current->left && current->left->value && current->left->value->lexeme) {
-            char *module_path = current->left->value->lexeme;
-
-            CS_MODULE *module = csoundGetOrLoadModule(csound, module_path);
-
-            if (module) {
-              /* Process the import statement to register items from the loaded module */
-              csoundProcessImportStatements(csound, module, current);
-
-              /* Register placeholder globals from imported module so semantic
-               * analysis of this file can resolve names (e.g., giTestValue).
-               *
-               * For selective imports (from X import a,b,c), only add the
-               * explicitly listed items. For wildcard or plain imports, add all. */
-              {
-                int is_selective = 0;
-                CS_HASH_TABLE *allowed_names = NULL;
-                CS_HASH_TABLE *alias_map = NULL;  /* Maps original name -> alias name */
-
-                /* Check if this is a selective import (FROM_TOKEN with non-wildcard list) */
-                if (current->type == FROM_TOKEN && current->right && current->right->type != '*') {
-                  is_selective = 1;
-                  allowed_names = cs_hash_table_create(csound);
-                  alias_map = cs_hash_table_create(csound);
-
-                  /* Build hash sets for allowed names and alias mappings */
-                  TREE *item = current->right;
-                  while (item != NULL) {
-                    if (item->value && item->value->lexeme) {
-                      char *original_name = item->value->lexeme;
-                      cs_hash_table_put(csound, allowed_names, original_name, (void*)1);
-
-                      /* Check if this item has an alias (right child contains alias identifier) */
-                      if (item->right && item->right->value && item->right->value->lexeme) {
-                        char *alias_name = item->right->value->lexeme;
-                        cs_hash_table_put(csound, alias_map, original_name, alias_name);
-                      }
-                    }
-                    item = item->next;
-                  }
-                }
-
-                /* Walk imported module AST and add placeholders for g* identifiers */
-                TREE *it = module->ast;
-                while (it != NULL) {
-                  /* Handle both T_ASSIGNMENT (simple assignment) and T_OPCALL (opcode call like 'init') */
-                  if ((it->type == T_ASSIGNMENT || it->type == T_OPCALL) &&
-                      it->left && it->left->value && it->left->value->lexeme) {
-                    char *name = it->left->value->lexeme;
-                    /* Check if this is a global variable:
-                     * - Traditional globals: start with 'g' followed by type char (gi, gk, ga, gS)
-                     * - Typed globals: use @global annotation (name contains '@global')
-                     */
-                    int is_global = 0;
-                    if (name && name[0] == 'g' && name[1] != '\0') {
-                      /* Traditional g-prefix globals (gi, gk, ga, gS, gf, gw) */
-                      char second = name[1];
-                      if (second == 'i' || second == 'k' || second == 'a' ||
-                          second == 'S' || second == 'f' || second == 'w') {
-                        is_global = 1;
-                      }
-                    }
-                    /* Also check for @global annotation in the lexeme */
-                    if (name && strstr(name, "@global") != NULL) {
-                      is_global = 1;
-                    }
-                    if (is_global) {
-                      /* For selective imports, strip @global annotation for name matching.
-                       * User imports "gVec" but AST contains "gVec@global" */
-                      char *base_name = name;
-                      char *stripped_name = NULL;
-                      char *at_pos = strstr(name, "@global");
-                      if (at_pos != NULL) {
-                        size_t base_len = at_pos - name;
-                        stripped_name = csound->Malloc(csound, base_len + 1);
-                        strncpy(stripped_name, name, base_len);
-                        stripped_name[base_len] = '\0';
-                        base_name = stripped_name;
-                      }
-
-                      /* For selective imports, only add if name is in allowed list */
-                      int should_add = 1;
-                      if (is_selective && allowed_names != NULL) {
-                        should_add = (cs_hash_table_get(csound, allowed_names, base_name) != NULL);
-                      }
-
-                      if (should_add) {
-                        /* Check if this variable has an alias */
-                        char *local_name = base_name;
-                        if (alias_map != NULL) {
-                          char *alias = cs_hash_table_get(csound, alias_map, base_name);
-                          if (alias != NULL) {
-                            local_name = alias;
-                          }
-                        }
-
-                        if (csoundFindVariableWithName(csound, typeTable->globalPool, local_name) == NULL) {
-                          const CS_TYPE *tp = NULL;
-
-                          /* Check if this is a typed identifier (e.g., gVec:Vec2) */
-                          if (it->left->type == T_TYPED_IDENT && it->left->value->optype != NULL) {
-                            /* For user-defined types (structs), look up in typePool */
-                            char *typeName = it->left->value->optype;
-
-                            /* First try the type name directly (for built-in types like i, k, a, S) */
-                            tp = csoundGetTypeWithVarTypeName(csound->typePool, typeName);
-
-                            /* If not found, try internal struct format :TypeName; */
-                            if (tp == NULL) {
-                              size_t len = strlen(typeName);
-                              char *internalName = csound->Malloc(csound, len + 3);
-                              internalName[0] = ':';
-                              strcpy(internalName + 1, typeName);
-                              internalName[len + 1] = ';';
-                              internalName[len + 2] = '\0';
-                              tp = csoundGetTypeWithVarTypeName(csound->typePool, internalName);
-                              csound->Free(csound, internalName);
-                            }
-                          }
-
-                          /* Fall back to inferring type from name prefix if no explicit type */
-                          if (tp == NULL) {
-                            switch (name[1]) {  /* Use original name's type prefix */
-                              case 'i': tp = &CS_VAR_TYPE_I; break;
-                              case 'k': tp = &CS_VAR_TYPE_K; break;
-                              case 'a': tp = &CS_VAR_TYPE_A; break;
-                              case 'S': tp = &CS_VAR_TYPE_S; break;
-                              default:  tp = &CS_VAR_TYPE_I; break;
-                            }
-                          }
-                          CS_VARIABLE *v = csoundCreateVariable(csound, csound->typePool, tp, local_name, NULL);
-                          csoundAddVariable(csound, typeTable->globalPool, v);
-                        }
-                      }
-                      /* Free stripped name if allocated */
-                      if (stripped_name != NULL) {
-                        csound->Free(csound, stripped_name);
-                      }
-                    }
-                  }
-                  it = it->next;
-                }
-
-                /* Free the hash tables if created */
-                if (allowed_names != NULL) {
-                  cs_hash_table_free(csound, allowed_names);
-                }
-                if (alias_map != NULL) {
-                  cs_hash_table_free(csound, alias_map);
-                }
-              }
-            } else {
-              synterr(csound, Str("Failed to load module: %s"), module_path);
-            }
-          }
+      typeTable->module = module_state->current_module;
+      /* Dependencies have already been parsed, so import their typed symbols. */
+      for (TREE *current = astTree; current != NULL; current = current->next) {
+        if (current->type == STRUCT_TOKEN && current->left != NULL) {
+          char *name = current->left->value->lexeme;
+          const CS_TYPE *type = csoundGetTypeWithVarTypeName(csound->typePool, name);
+          cs_hash_table_put(csound, typeTable->module->types, name, (void *)type);
         }
-        current = current->next;
+        if (current->type != IMPORT_TOKEN && current->type != FROM_TOKEN) continue;
+        CS_MODULE *source = csoundGetOrLoadModule(csound, current->left->value->lexeme);
+        if (source == NULL || csoundProcessImportStatements(csound, source, current,
+                                            typeTable->globalPool) != CSOUND_SUCCESS) {
+          err = 3;
+          goto ending;
+        }
       }
+
+      typeTable->module_aliases = typeTable->module->aliases;
 
       /* Empty input parses to no statements, which is valid: the compiler is
          then given just the sentinel root carrying the TYPE_TABLE and can
@@ -679,12 +514,17 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
 
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
-    PARSE_PARM parser = {0};
     if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
       return NULL;
     add_opcode_defs(csound);
-    if (preprocess_orc_scoped(csound, str) != CSOUND_SUCCESS)
+    csoundCreateRootModule(csound);
+    CS_MODULE *previous_module = csoundGetModuleState(csound)->current_module;
+    CS_MODULE_UPDATE *update = csoundBeginModuleUpdate(csound);
+    if (preprocess_orc_scoped(csound, str) != CSOUND_SUCCESS) {
+      csoundGetModuleState(csound)->current_module = previous_module;
+      csoundFinishModuleUpdate(csound, update, 0);
       return NULL;
+    }
 #ifdef CSOUND_WASI_REALTIME
     CSOUND_WASI_COMPILE_JUMP *parent = csoundWasiCompileJumpContext(csound);
     if (parent != NULL && parent->enabled) {
@@ -713,15 +553,22 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csound_orclex_destroy(state->parser.yyscanner);
       free(state->parser.xstrbuff);
       corfile_rm(csound, &csound->expanded_orc);
-      /* A live compiler still needs these allocations until validation ends.
-         Standalone ParseOrc callers keep the usual tree ownership contract. */
+      /* Live compilation retains parser allocations through validation. */
       if (result != NULL && previous != NULL && previous->csound == csound)
         csoundWasiTransferAllocScope(&state->allocations, previous);
       else
         csoundWasiFinishAllocScope(&state->allocations, result == NULL);
       csound->Free(csound, state);
+      csoundGetModuleState(csound)->current_module = previous_module;
+      if (result != NULL) ((TYPE_TABLE *)result->markup)->module_update = update;
+      else csoundFinishModuleUpdate(csound, update, 0);
       return result;
     }
 #endif
-    return parse_orc(csound, &parser);
+    PARSE_PARM parser = {0};
+    TREE *result = parse_orc(csound, &parser);
+    csoundGetModuleState(csound)->current_module = previous_module;
+    if (result != NULL) ((TYPE_TABLE *)result->markup)->module_update = update;
+    else csoundFinishModuleUpdate(csound, update, 0);
+    return result;
 }

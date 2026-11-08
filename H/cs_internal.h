@@ -212,7 +212,8 @@ extern "C" {
     bool passByRef;
     CS_VAR_POOL* out_arg_pool;
     CS_VAR_POOL* in_arg_pool;
-    CS_VAR_POOL* module_var_pool; /* Module globals for UDO namespace isolation. */
+    CS_MODULE *module;
+    uint64_t publication; /* Zero until the compiled definition reaches the engine. */
     struct instr *ip;
     int32_t recurse_depth;
     OENTRY *oentry;

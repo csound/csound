@@ -36,6 +36,7 @@
 #include "csound_standard_types.h"
 #include "csound_orc_semantics.h"
 #include "csound_orc_compile.h"
+#include "csound_module.h"
 #include <inttypes.h>
 
 static void show_allocs(CSOUND *);
@@ -1024,6 +1025,14 @@ uintptr_t event_insert_thread(void *p) {
 static int32_t init_instr0(CSOUND *csound, INSTRTXT *tp)
 {
   INSDS     *ip;
+
+  for (int32_t i = 0; i < tp->module_dependency_count; i++) {
+    CS_MODULE *module = tp->module_dependencies[i];
+    if (module->is_initialized) continue;
+    int32_t error = init_instr0(csound, module->instr0);
+    if (error != 0) return error;
+    module->is_initialized = true;
+  }
 
   csound->curip = ip = allocate_or_take_instance(csound, tp, 0);
   if (UNLIKELY(ip == NULL))

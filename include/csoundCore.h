@@ -51,15 +51,13 @@
 /* Forward declarations for module system */
 typedef struct cs_module CS_MODULE;
 typedef struct {
-    CS_HASH_TABLE *modules;        /* Loaded modules cache */
-    CS_MODULE *current_module;     /* Currently compiling module */
-    CS_MODULE *root_module;        /* Root module (main CSD) */
-    CS_MODULE *global_module;      /* Global module for backward compatibility */
-    CS_HASH_TABLE *module_search_paths; /* Search path directories */
-    CS_HASH_TABLE *import_aliases; /* Import alias mappings */
-    CS_MODULE **module_stack;      /* Stack for circular dependency detection */
-    int32_t module_stack_size;     /* Current stack size */
-    int32_t module_stack_capacity; /* Stack capacity */
+    CS_HASH_TABLE *modules;
+    CS_MODULE *current_module;
+    CS_MODULE *root_module;
+    char **search_paths;
+    int32_t search_path_count;
+    int32_t next_module_id;
+    uint64_t next_publication;
 } MODULE_STATE;
 #include "csound_compiler.h"
 #include "csound_misc.h"
@@ -194,8 +192,10 @@ typedef struct instr {
   int32_t isNew;                 /* is this a new definition */
   int32_t nocheckpcnt;           /* Control checks on pcnt */
   int32_t glbvarcnt;             /* global audio var count */
-  CS_VAR_POOL *module_var_pool; /* Module's varPool for namespace isolation
-                                   (used by module instr0 and UDOs) */
+  CS_MODULE *module;
+  CS_HASH_TABLE *module_aliases; /* This compilation's aliases, until preparation. */
+  CS_MODULE **module_dependencies;
+  int32_t module_dependency_count;
 } INSTRTXT;
 
 /**
@@ -1993,8 +1993,6 @@ struct CSOUND_ {
   int32_t instr0_waiting_count;                             /* pending entries in instr0_waiting */
   /*struct CSOUND_ **self;*/
 
-  /* Module system compilation tracking */
-  int32_t compilation_depth;     /* Tracks recursive compilation depth for modules */
 
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */
