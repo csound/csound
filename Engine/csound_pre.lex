@@ -64,7 +64,7 @@ static void csound_pre_line(CSOUND *, CORFIL*, yyscan_t);
     csound_preset_lineno(PARM->line, yyscanner);                        \
     yyg->yy_flex_debug_r=1; PARM->macro_stack_size = 0;                 \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
-    PARM->path = PARM->initial_path;                                   \
+    PARM->path = (char *)PARM->initial_path;                                   \
   }
 static MACRO *find_definition(MACRO *, char *);
 

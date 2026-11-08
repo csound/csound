@@ -138,7 +138,7 @@ static void free_preprocessor(CSOUND *csound, PRE_PARM *qq)
       if (path != NULL && path != qq->initial_path)
         free(path);
     }
-    csound->Free(csound, qq->initial_path);
+    csound->Free(csound, (void *)qq->initial_path);
     csound->Free(csound, qq->alt_stack);
     corfile_rm(csound, &csound->orchstr);
 }
@@ -278,7 +278,7 @@ void csoundFreeParserVarPool(CSOUND *csound, void *ptr)
     }
     /* Hash keys are copies; values were freed above. Never follow parent. */
     cs_hash_table_free(csound, pool->table);
-    if (pool->bindings != NULL) cs_hash_table_free(csound, pool->bindings);
+    csoundFreeModuleBindings(csound, pool);
     csound->Free(csound, pool);
 }
 

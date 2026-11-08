@@ -48,17 +48,10 @@
 #include "csound_circular_buffer.h"
 #include "csound_threads.h"
 
-/* Forward declarations for module system */
+#ifdef __BUILDING_LIBCSOUND
 typedef struct cs_module CS_MODULE;
-typedef struct {
-    CS_HASH_TABLE *modules;
-    CS_MODULE *current_module;
-    CS_MODULE *root_module;
-    char **search_paths;
-    int32_t search_path_count;
-    int32_t next_module_id;
-    uint64_t next_publication;
-} MODULE_STATE;
+typedef struct cs_module_state MODULE_STATE;
+#endif
 #include "csound_compiler.h"
 #include "csound_misc.h"
 #include "csound_server.h"
@@ -192,10 +185,6 @@ typedef struct instr {
   int32_t isNew;                 /* is this a new definition */
   int32_t nocheckpcnt;           /* Control checks on pcnt */
   int32_t glbvarcnt;             /* global audio var count */
-  CS_MODULE *module;
-  CS_HASH_TABLE *module_aliases; /* This compilation's aliases, until preparation. */
-  CS_MODULE **module_dependencies;
-  int32_t module_dependency_count;
 } INSTRTXT;
 
 /**
@@ -1992,8 +1981,6 @@ struct CSOUND_ {
   INSTRTXT **instr0_waiting;                                /* managed queue of globals awaiting init, oldest first */
   int32_t instr0_waiting_count;                             /* pending entries in instr0_waiting */
   /*struct CSOUND_ **self;*/
-
-
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */
 };

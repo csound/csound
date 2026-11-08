@@ -25,6 +25,7 @@
 #include "csound_module.h"
 #include "csound_orc.h"
 #include "csound_standard_types.h"
+#include "environ.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,6 +45,69 @@ MODULE_STATE *csoundGetModuleState(CSOUND *csound)
     if (csound->module_state == NULL)
         csound->module_state = csound->Calloc(csound, sizeof(MODULE_STATE));
     return csound->module_state;
+}
+
+/* Public structs retain their develop layout; only module-aware objects need
+   these private records. Pointer keys are copied by the existing hash table. */
+static void pointer_key(char *key, size_t size, const void *pointer)
+{
+    snprintf(key, size, "%p", pointer);
+}
+
+CS_HASH_TABLE *csoundModuleBindings(CSOUND *csound, const CS_VAR_POOL *pool, int create)
+{
+    MODULE_STATE *state = csound->module_state;
+    if (state == NULL && !create) return NULL;
+    if (state == NULL) state = csoundGetModuleState(csound);
+    if (state->pool_bindings == NULL) {
+        if (!create) return NULL;
+        state->pool_bindings = cs_hash_table_create(csound);
+    }
+    char key[2 * sizeof(void *) + 3];
+    pointer_key(key, sizeof(key), pool);
+    CS_HASH_TABLE *bindings = cs_hash_table_get(csound, state->pool_bindings, key);
+    if (bindings == NULL && create) {
+        bindings = cs_hash_table_create(csound);
+        cs_hash_table_put(csound, state->pool_bindings, key, bindings);
+    }
+    return bindings;
+}
+
+void csoundFreeModuleBindings(CSOUND *csound, CS_VAR_POOL *pool)
+{
+    CS_HASH_TABLE *bindings = csoundModuleBindings(csound, pool, 0);
+    if (bindings == NULL) return;
+    char key[2 * sizeof(void *) + 3];
+    pointer_key(key, sizeof(key), pool);
+    cs_hash_table_remove(csound, csound->module_state->pool_bindings, key);
+    cs_hash_table_free(csound, bindings);
+}
+
+CS_MODULE_INSTRUMENT *csoundModuleInstrument(CSOUND *csound, const INSTRTXT *instrument)
+{
+    MODULE_STATE *state = csoundGetModuleState(csound);
+    if (state->instruments == NULL) state->instruments = cs_hash_table_create(csound);
+    char key[2 * sizeof(void *) + 3];
+    pointer_key(key, sizeof(key), instrument);
+    CS_MODULE_INSTRUMENT *scope = cs_hash_table_get(csound, state->instruments, key);
+    if (scope == NULL) {
+        scope = csound->Calloc(csound, sizeof(*scope));
+        cs_hash_table_put(csound, state->instruments, key, scope);
+    }
+    return scope;
+}
+
+void csoundFreeModuleInstrument(CSOUND *csound, const INSTRTXT *instrument)
+{
+    MODULE_STATE *state = csound->module_state;
+    if (state == NULL || state->instruments == NULL) return;
+    char key[2 * sizeof(void *) + 3];
+    pointer_key(key, sizeof(key), instrument);
+    CS_MODULE_INSTRUMENT *scope = cs_hash_table_get(csound, state->instruments, key);
+    if (scope == NULL) return;
+    cs_hash_table_remove(csound, state->instruments, key);
+    csound->Free(csound, scope->dependencies);
+    csound->Free(csound, scope);
 }
 
 static void initialize_module_system(CSOUND *csound)
@@ -236,10 +300,11 @@ static char *resolve_module_path(CSOUND *csound, const char *path)
         if (state->current_module != NULL)
             result = relative_path(csound, state->current_module->file_path, name);
         if (result == NULL) result = relative_path(csound, csound->csdname, name);
-        for (int32_t i = 0; result == NULL && i < state->search_path_count; i++) {
-            size_t size = strlen(state->search_paths[i]) + strlen(name) + 2;
+        char **paths = csoundGetSearchPathFromEnv(csound, "INCDIR");
+        for (int32_t i = 0; result == NULL && paths != NULL && paths[i] != NULL; ++i) {
+            size_t size = strlen(paths[i]) + strlen(name) + 2;
             char *candidate = csound->Malloc(csound, size);
-            snprintf(candidate, size, "%s/%s", state->search_paths[i], name);
+            snprintf(candidate, size, "%s/%s", paths[i], name);
             result = canonical_path(csound, candidate);
             csound->Free(csound, candidate);
         }
@@ -254,18 +319,6 @@ static char *resolve_module_path(CSOUND *csound, const char *path)
     }
     csound->Free(csound, name);
     return result;
-}
-
-PUBLIC int32_t csoundAddModuleSearchPath(CSOUND *csound, const char *path)
-{
-    if (path == NULL || *path == '\0') return CSOUND_ERROR;
-    MODULE_STATE *state = csoundGetModuleState(csound);
-    for (int32_t i = 0; i < state->search_path_count; i++)
-        if (strcmp(state->search_paths[i], path) == 0) return CSOUND_SUCCESS;
-    state->search_paths = csound->ReAlloc(csound, state->search_paths,
-                           (state->search_path_count + 1) * sizeof(char *));
-    state->search_paths[state->search_path_count++] = csoundStrdup(csound, path);
-    return CSOUND_SUCCESS;
 }
 
 CS_MODULE *csoundGetOrLoadModule(CSOUND *csound, const char *path)
@@ -331,8 +384,9 @@ CS_VARIABLE *csoundFindModuleVariable(CSOUND *csound, CS_MODULE *module,
 {
     if (module == NULL || name == NULL) return NULL;
     CS_VARIABLE *var = cs_hash_table_get(csound, module->varPool->table, (char *)name);
-    if (var == NULL && module->varPool->bindings != NULL)
-        var = cs_hash_table_get(csound, module->varPool->bindings, (char *)name);
+    CS_HASH_TABLE *bindings = csoundModuleBindings(csound, module->varPool, 0);
+    if (var == NULL && bindings != NULL)
+        var = cs_hash_table_get(csound, bindings, (char *)name);
     return var;
 }
 
@@ -389,8 +443,8 @@ static int bind_item(CSOUND *csound, CS_MODULE *target, CS_MODULE *source,
         return CSOUND_ERROR;
     }
     if (var != NULL) {
-        if (pool->bindings == NULL) pool->bindings = cs_hash_table_create(csound);
-        cs_hash_table_put(csound, pool->bindings, (char *)local, var);
+        cs_hash_table_put(csound, csoundModuleBindings(csound, pool, 1),
+                          (char *)local, var);
     }
     if (opcodes != NULL) cs_hash_table_put(csound, target->opcodes, (char *)local, opcodes);
     if (type != NULL)
@@ -420,7 +474,7 @@ int csoundProcessImportStatements(CSOUND *csound, CS_MODULE *source,
         cs_hash_table_put(csound, target->aliases, (char *)alias, source);
     }
     if (info->is_wildcard) {
-        CS_HASH_TABLE *tables[] = {source->varPool->table, source->varPool->bindings,
+        CS_HASH_TABLE *tables[] = {source->varPool->table, csoundModuleBindings(csound, source->varPool, 0),
                                   source->opcodes, source->types, source->type_bindings};
         for (int t = 0; t < 5; t++) {
             CS_HASH_TABLE *table = tables[t];
@@ -458,4 +512,195 @@ int csoundIsItemImportAllowed(CSOUND *csound, CS_MODULE *target,
             if (strcmp(info->items[j].original_name, name) == 0) return 1;
     }
     return 0;
+}
+
+const char *csoundModuleTypeSignature(CSOUND *csound, const CS_TYPE *type)
+{
+    if (type == NULL) return NULL;
+    MODULE_STATE *state = csound->module_state;
+    if (type->userDefinedType != CS_TYPE_USER_DEFINED || state == NULL ||
+        state->type_signatures == NULL) return type->varTypeName;
+    char key[2 * sizeof(void *) + 3];
+    pointer_key(key, sizeof(key), type);
+    const char *signature = cs_hash_table_get(csound, state->type_signatures, key);
+    return signature != NULL ? signature : type->varTypeName;
+}
+
+int csoundRegisterModuleType(CSOUND *csound, CS_MODULE *module,
+                             const char *name, const CS_TYPE *type)
+{
+    MODULE_STATE *state = csoundGetModuleState(csound);
+    if (state->type_names == NULL) {
+        state->type_names = cs_hash_table_create(csound);
+        state->type_signatures = cs_hash_table_create(csound);
+    }
+    size_t size = strlen(name) + 32;
+    char *signature = csound->Malloc(csound, size);
+    snprintf(signature, size, ":#module_%d_%s;", module->id, name);
+    if (cs_hash_table_get(csound, state->type_names, signature) != NULL) {
+        csound->Free(csound, signature);
+        return 0;
+    }
+    char key[2 * sizeof(void *) + 3];
+    pointer_key(key, sizeof(key), type);
+    cs_hash_table_put(csound, state->type_signatures, key, signature);
+    cs_hash_table_put(csound, state->type_names, signature, (void *)type);
+    cs_hash_table_put(csound, module->types, (char *)name, (void *)type);
+    return 1;
+}
+
+void csoundPublishModuleTypes(CSOUND *csound, CS_MODULE *scope)
+{
+    if (csoundModuleOwner(scope) != csoundGetModuleState(csound)->root_module) return;
+    for (int i = 0; i < scope->types->table_size; ++i) {
+        for (CS_HASH_TABLE_ITEM *item = scope->types->buckets[i]; item; item = item->next) {
+            const CS_TYPE *type = item->value;
+            CS_TYPE_ITEM *slot = csound->typePool->head;
+            while (slot != NULL && strcmp(slot->cstype->varTypeName, type->varTypeName))
+                slot = slot->next;
+            if (slot != NULL) slot->cstype = type;
+            else csoundAddVariableType(csound, csound->typePool, type);
+        }
+    }
+}
+
+const CS_TYPE *csoundResolveModuleType(CSOUND *csound, const char *name)
+{
+    if (name == NULL || *name == '\0') return NULL;
+    MODULE_STATE *state = csound->module_state;
+    if (state == NULL) return csoundGetTypeWithVarTypeName(csound->typePool, name);
+    int canonical = !strncmp(name, ":#module_", 9) || !strncmp(name, "#module_", 8);
+    if (canonical && state->type_names != NULL) {
+        char *quoted = NULL;
+        const char *key = name;
+        if (*name != ':') {
+            quoted = csound->Malloc(csound, strlen(name) + 3);
+            sprintf(quoted, ":%s;", name);
+            key = quoted;
+        }
+        const CS_TYPE *type = cs_hash_table_get(csound, state->type_names, (char *)key);
+        csound->Free(csound, quoted);
+        return type;
+    }
+    CS_MODULE *module = state->current_module;
+    const CS_TYPE *global = csoundGetTypeWithVarTypeName(csound->typePool, name);
+    /* Builtins retain their direct spelling, including one-letter types. */
+    if (global != NULL && (global->userDefinedType != CS_TYPE_USER_DEFINED ||
+        csoundModuleTypeSignature(csound, global) == global->varTypeName)) return global;
+    if (module == NULL) return global;
+    size_t len = strlen(name);
+    const char *start = name;
+    if (len > 2 && name[0] == ':' && name[len - 1] == ';') { ++start; len -= 2; }
+    char *plain = cs_strndup(csound, start, len);
+    const CS_TYPE *type = csoundFindModuleType(csound, module, plain);
+    csound->Free(csound, plain);
+    return type;
+}
+
+/* Translate only quoted descriptors; array rank and scalar rate tokens remain
+   unchanged. Public lookup uses the published root registry, never a parser scope. */
+char *csoundModuleSignature(CSOUND *csound, const char *signature, CS_SIGNATURE_MODE mode)
+{
+    if (signature == NULL) return NULL;
+    char *result = csound->Malloc(csound, strlen(signature) + 1);
+    size_t used = 0;
+    for (const char *p = signature; *p;) {
+        const char *end = *p == ':' ? strchr(p, ';') : NULL;
+        size_t length = end != NULL ? (size_t)(end - p) + 1 : 1;
+        char *token = cs_strndup(csound, p, length);
+        const char *replacement = token;
+        const CS_TYPE *type = NULL;
+        if (end != NULL) {
+            if (mode == CS_SIGNATURE_PUBLIC) {
+                MODULE_STATE *state = csound->module_state;
+                if (state != NULL && state->type_names != NULL)
+                    type = cs_hash_table_get(csound, state->type_names, token);
+                if (type != NULL) replacement = type->varTypeName;
+            } else {
+                MODULE_STATE *state = csound->module_state;
+                if (mode == CS_SIGNATURE_PLUGIN && state != NULL && state->current_module != NULL &&
+                    csoundModuleOwner(state->current_module) == state->root_module)
+                    type = csoundResolveModuleType(csound, token);
+                else type = csoundGetTypeWithVarTypeName(csound->typePool, token);
+                if (type != NULL && csoundModuleTypeSignature(csound, type) != type->varTypeName)
+                    replacement = csoundModuleTypeSignature(csound, type);
+            }
+        }
+        size_t size = strlen(replacement);
+        result = csound->ReAlloc(csound, result, used + size + 1);
+        memcpy(result + used, replacement, size);
+        used += size;
+        csound->Free(csound, token);
+        p += length;
+    }
+    result[used] = '\0';
+    return result;
+}
+
+const OENTRY *csoundPublicOpcode(CSOUND *csound, const OENTRY *entry)
+{
+    if (entry == NULL ||
+        ((entry->intypes == NULL || strstr(entry->intypes, ":#module_") == NULL) &&
+         (entry->outypes == NULL || strstr(entry->outypes, ":#module_") == NULL)))
+        return entry;
+    MODULE_STATE *state = csoundGetModuleState(csound);
+    if (state->public_opcodes == NULL) state->public_opcodes = cs_hash_table_create(csound);
+    char key[2 * sizeof(void *) + 3];
+    pointer_key(key, sizeof(key), entry);
+    OENTRY *view = cs_hash_table_get(csound, state->public_opcodes, key);
+    char *inputs, *outputs;
+    if (view == NULL) {
+        view = csound->Calloc(csound, sizeof(*view));
+        inputs = csoundModuleSignature(csound, entry->intypes, CS_SIGNATURE_PUBLIC);
+        outputs = csoundModuleSignature(csound, entry->outypes, CS_SIGNATURE_PUBLIC);
+        cs_hash_table_put(csound, state->public_opcodes, key, view);
+    } else { inputs = view->intypes; outputs = view->outypes; }
+    *view = *entry;
+    view->intypes = inputs;
+    view->outypes = outputs;
+    return view;
+}
+
+/* Plugin declarations keep public type names; compiler candidates use the
+   root type identity current at the call site. Never mutate a plugin entry. */
+OENTRY *csoundCompilerOpcode(CSOUND *csound, OENTRY *entry)
+{
+    MODULE_STATE *state = csound->module_state;
+    if (state == NULL || state->type_names == NULL || entry->useropinfo != NULL ||
+        (entry->intypes != NULL && strstr(entry->intypes, ":#module_") != NULL) ||
+        (entry->outypes != NULL && strstr(entry->outypes, ":#module_") != NULL) ||
+        ((entry->intypes == NULL || strchr(entry->intypes, ':') == NULL) &&
+         (entry->outypes == NULL || strchr(entry->outypes, ':') == NULL))) return entry;
+    char *inputs = csoundModuleSignature(csound, entry->intypes, CS_SIGNATURE_PLUGIN);
+    char *outputs = csoundModuleSignature(csound, entry->outypes, CS_SIGNATURE_PLUGIN);
+    if ((inputs == NULL || !strcmp(inputs, entry->intypes)) &&
+        (outputs == NULL || !strcmp(outputs, entry->outypes))) {
+        csound->Free(csound, inputs);
+        csound->Free(csound, outputs);
+        return entry;
+    }
+    size_t size = strlen(inputs != NULL ? inputs : "") +
+                  strlen(outputs != NULL ? outputs : "") + 2 * sizeof(void *) + 6;
+    char *key = csound->Malloc(csound, size);
+    snprintf(key, size, "%p|%s|%s", (void *)entry,
+             inputs != NULL ? inputs : "", outputs != NULL ? outputs : "");
+    if (state->compiler_opcodes == NULL) state->compiler_opcodes = cs_hash_table_create(csound);
+    OENTRY *candidate = cs_hash_table_get(csound, state->compiler_opcodes, key);
+    if (candidate == NULL) {
+        candidate = csound->Malloc(csound, sizeof(*candidate));
+        *candidate = *entry;
+        candidate->intypes = inputs;
+        candidate->outypes = outputs;
+        cs_hash_table_put(csound, state->compiler_opcodes, key, candidate);
+    } else {
+        csound->Free(csound, inputs);
+        csound->Free(csound, outputs);
+        inputs = candidate->intypes;
+        outputs = candidate->outypes;
+        *candidate = *entry;
+        candidate->intypes = inputs;
+        candidate->outypes = outputs;
+    }
+    csound->Free(csound, key);
+    return candidate;
 }

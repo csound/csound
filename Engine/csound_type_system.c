@@ -63,30 +63,9 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
     size_t namelen = strlen(typeName);
     if (namelen == 0) return NULL;
 
-    CSOUND *csound = pool->owner;
-    CS_MODULE *module = csound != NULL && csound->module_state != NULL
-        ? csound->module_state->current_module : NULL;
-    /* Canonical signatures retain their descriptor across edits. User-facing
-       names resolve only through the current module and global plugin types. */
-    int canonical = strncmp(typeName, ":#module_", 9) == 0 ||
-                    strncmp(typeName, "#module_", 8) == 0;
-    if (module != NULL && !canonical && namelen > 1 && typeName[0] != '[') {
-      char name[256];
-      size_t len = namelen;
-      const char *start = typeName;
-      if (start[0] == ':' && start[len - 1] == ';') { ++start; len -= 2; }
-      if (len >= sizeof(name)) return NULL;
-      memcpy(name, start, len);
-      name[len] = '\0';
-      const CS_TYPE *type = csoundFindModuleType(csound, module, name);
-      if (type != NULL) return type;
-    }
-
     // First try direct match
     while (current != NULL) {
-      if ((module == NULL || canonical ||
-           current->cstype->userDefinedType != CS_TYPE_USER_DEFINED) &&
-          strcmp(typeName, current->cstype->varTypeName) == 0) {
+      if (strcmp(typeName, current->cstype->varTypeName) == 0) {
         return current->cstype;
       }
       current = current->next;
@@ -98,8 +77,7 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
       snprintf(unquotedName, 256, "%.*s", (int)(namelen - 2), typeName + 1);
       current = pool->head;
       while (current != NULL) {
-        if ((module == NULL || canonical || current->cstype->userDefinedType != CS_TYPE_USER_DEFINED) &&
-            strcmp(unquotedName, current->cstype->varTypeName) == 0) {
+        if (strcmp(unquotedName, current->cstype->varTypeName) == 0) {
           return current->cstype;
         }
         current = current->next;
@@ -112,8 +90,7 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
       snprintf(internalName, 256, ":%s;", typeName);
       current = pool->head;
       while (current != NULL) {
-        if ((module == NULL || canonical || current->cstype->userDefinedType != CS_TYPE_USER_DEFINED) &&
-            strcmp(internalName, current->cstype->varTypeName) == 0) {
+        if (strcmp(internalName, current->cstype->varTypeName) == 0) {
           return current->cstype;
         }
         current = current->next;
@@ -186,7 +163,7 @@ CS_VAR_POOL* csoundCreateVarPool(CSOUND* csound) {
 
 void csoundFreeVarPool(CSOUND* csound, CS_VAR_POOL* pool) {
     if(pool->table) cs_hash_table_mfree_complete(csound, pool->table);
-    if(pool->bindings) cs_hash_table_free(csound, pool->bindings);
+    csoundFreeModuleBindings(csound, pool);
     csound->Free(csound, pool);
 }
 
@@ -258,6 +235,12 @@ CS_VARIABLE* csoundCreateVariable(CSOUND* csound, TYPE_POOL* pool,
                                   const CS_TYPE* type, char* name,
                                   const void* typeArg)
 {
+    if (type != NULL && pool == csound->typePool &&
+        csoundModuleTypeSignature(csound, type) != type->varTypeName) {
+      CS_VARIABLE *var = csoundCreateVariableForType(csound, type, typeArg, NULL);
+      if (var != NULL) var->varName = csoundStrdup(csound, name);
+      return var;
+    }
     CS_TYPE_ITEM* current = pool->head;
     if (LIKELY(type != NULL))
       while (current != NULL) {
@@ -293,8 +276,11 @@ CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
 
     CS_VARIABLE* returnValue = cs_hash_table_get(csound, pool->table, (char*)name);
 
-    if (returnValue == NULL && pool->bindings != NULL)
-      returnValue = cs_hash_table_get(csound, pool->bindings, (char *)name);
+    if (returnValue == NULL) {
+      CS_HASH_TABLE *bindings = csoundModuleBindings(csound, pool, 0);
+      if (bindings != NULL)
+        returnValue = cs_hash_table_get(csound, bindings, (char *)name);
+    }
 
     if (returnValue == NULL && pool->parent != NULL) {
       returnValue = csoundFindVariableWithName(csound, pool->parent, name);
@@ -612,7 +598,8 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
     const CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
 
     // Check for type equivalence, handling both internal (:Type;) and external (Type) formats
-    int types_different = (typeR != typeA) && !types_are_equivalent(csound, typeR->varTypeName, typeA->varTypeName);
+    int types_different = (typeR != typeA) && !types_are_equivalent(csound, csoundModuleTypeSignature(csound, typeR),
+                                                        csoundModuleTypeSignature(csound, typeA));
 
     if(types_different) {
       /* Allow numeric constant 'c' and p-field 'p' to be assigned to numeric variables (i/k).

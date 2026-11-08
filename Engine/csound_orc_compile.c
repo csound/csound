@@ -1476,6 +1476,7 @@ void free_instrtxt(CSOUND *csound, INSTRTXT *instrtxt) {
     csound->Free(csound, tmp->varName);
   }
 
+  csoundFreeModuleInstrument(csound, ip);
   csoundFreeVarPool(csound, ip->varPool);
   csound->Free(csound, ip);
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
@@ -1926,11 +1927,10 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
               current_state, varPool, current_state ? current_state->varPool : NULL);
   }
 
-  if (varPool->bindings != NULL) {
-    if (current_state->varPool->bindings == NULL)
-      current_state->varPool->bindings = cs_hash_table_create(csound);
-    cs_hash_table_merge(csound, current_state->varPool->bindings, varPool->bindings);
-  }
+  CS_HASH_TABLE *bindings = csoundModuleBindings(csound, varPool, 0);
+  if (bindings != NULL)
+    cs_hash_table_merge(csound, csoundModuleBindings(csound, current_state->varPool, 1),
+                        bindings);
   CS_VARIABLE *gVar = varPool->head;
   while (gVar != NULL) {
     CS_VARIABLE *var;
@@ -2033,7 +2033,7 @@ static void finish_instr_references(CSOUND *csound, ENGINE_STATE *state,
 /* Public import names refer to the same templates as their module definitions. */
 static void publish_imported_instruments(CSOUND *csound) {
   ENGINE_STATE *state = &csound->engineState;
-  CS_HASH_TABLE *bindings = state->varPool->bindings;
+  CS_HASH_TABLE *bindings = csoundModuleBindings(csound, state->varPool, 0);
   if (bindings == NULL) return;
   for (int32_t i = 0; i < bindings->table_size; i++) {
     for (CS_HASH_TABLE_ITEM *item = bindings->buckets[i]; item; item = item->next) {
@@ -2219,7 +2219,7 @@ static void discard_compile_var_pool(CSOUND *csound, CS_VAR_POOL *pool) {
   }
   /* The list also owns variables shadowed by later entries in the table. */
   cs_hash_table_free(csound, pool->table);
-  if (pool->bindings != NULL) cs_hash_table_free(csound, pool->bindings);
+  csoundFreeModuleBindings(csound, pool);
   csound->Free(csound, pool);
 }
 
@@ -2239,6 +2239,7 @@ static void discard_compile_state(CSOUND *csound, ENGINE_STATE *state) {
     }
     discard_compile_var_pool(csound, instrument->varPool);
     csound->Free(csound, instrument->insname);
+    csoundFreeModuleInstrument(csound, instrument);
     csound->Free(csound, instrument);
     instrument = next;
   }
@@ -2272,12 +2273,13 @@ static char *node2string(int32_t type) {
   }
 }
 
-static void publish_modules(INSTRTXT *global_init);
+static void publish_modules(CSOUND *csound, INSTRTXT *global_init);
 
 static void merge_engine_state(CSOUND *csound, ENGINE_STATE *engineState,
                                TYPE_TABLE *typetable) {
   enginestate_merge(csound, engineState);
-  publish_modules(csound->engineState.instrtxtp[0]);
+  publish_modules(csound, csound->engineState.instrtxtp[0]);
+  csoundPublishModuleTypes(csound, typetable->module);
   csoundFinishModuleUpdate(csound, typetable->module_update, 1);
   typetable->module_update = NULL;
   enginestate_free(csound, engineState);
@@ -2539,8 +2541,8 @@ static int32_t compile_definitions(CSOUND *csound, TREE *root,
       if (UNLIKELY(instrtxt == NULL)) {
         goto invalid;
       }
-      instrtxt->module = csoundModuleOwner(scope);
-      instrtxt->module_aliases = typeTable->module_aliases;
+      csoundModuleInstrument(csound, instrtxt)->module = csoundModuleOwner(scope);
+      csoundModuleInstrument(csound, instrtxt)->aliases = typeTable->module_aliases;
       prvinstxt = prvinstxt->nxtinstxt = instrtxt;
 
       /* Handle Inserting into CSOUND here by checking ids (name or
@@ -2624,8 +2626,8 @@ static int32_t compile_definitions(CSOUND *csound, TREE *root,
       /* csound->Message(csound, "UDO found\n"); */
       instrtxt = create_instrument(csound, current, engineState, typeTable);
       if (UNLIKELY(instrtxt == NULL)) goto invalid;
-      instrtxt->module = csoundModuleOwner(scope);
-      instrtxt->module_aliases = typeTable->module_aliases;
+      csoundModuleInstrument(csound, instrtxt)->module = csoundModuleOwner(scope);
+      csoundModuleInstrument(csound, instrtxt)->aliases = typeTable->module_aliases;
       prvinstxt = prvinstxt->nxtinstxt = instrtxt;
       opname = current->left->value->lexeme;
       OPCODINFO *opinfo = current->left->markup;
@@ -2661,8 +2663,8 @@ static int32_t compile_definitions(CSOUND *csound, TREE *root,
         module_types->instr0LocalPool->parent = module->varPool;
         INSTRTXT *init = create_global_instrument(csound, module->ast->next,
                               engineState, module_types->instr0LocalPool);
-        init->module = module;
-        init->module_aliases = module_types->module_aliases;
+        csoundModuleInstrument(csound, init)->module = module;
+        csoundModuleInstrument(csound, init)->aliases = module_types->module_aliases;
         init->insname = csound->Malloc(csound, 48);
         snprintf(init->insname, 48, "#module_%d_init", module->id);
         module->instr0 = init;
@@ -2670,10 +2672,10 @@ static int32_t compile_definitions(CSOUND *csound, TREE *root,
         named_instr_alloc(csound, init->insname, init, -1, engineState, 0);
         if (compile_definitions(csound, module->ast, engineState, global_init,
                                  references) != CSOUND_SUCCESS) goto invalid;
-        global_init->module_dependencies = csound->ReAlloc(csound,
-            global_init->module_dependencies,
-            (global_init->module_dependency_count + 1) * sizeof(CS_MODULE *));
-        global_init->module_dependencies[global_init->module_dependency_count++] = module;
+        CS_MODULE_INSTRUMENT *globals = csoundModuleInstrument(csound, global_init);
+        globals->dependencies = csound->ReAlloc(csound, globals->dependencies,
+                                (globals->dependency_count + 1) * sizeof(CS_MODULE *));
+        globals->dependencies[globals->dependency_count++] = module;
         while (prvinstxt->nxtinstxt != NULL) prvinstxt = prvinstxt->nxtinstxt;
       }
       break;
@@ -2696,9 +2698,10 @@ static int32_t compile_definitions(CSOUND *csound, TREE *root,
   return CSOUND_ERROR;
 }
 
-static void publish_modules(INSTRTXT *global_init) {
-  for (int32_t i = 0; i < global_init->module_dependency_count; i++)
-    global_init->module_dependencies[i]->is_compiled = true;
+static void publish_modules(CSOUND *csound, INSTRTXT *global_init) {
+  CS_MODULE_INSTRUMENT *scope = csoundModuleInstrument(csound, global_init);
+  for (int32_t i = 0; i < scope->dependency_count; i++)
+    scope->dependencies[i]->is_compiled = true;
 }
 
 static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e);
@@ -2791,8 +2794,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   }
 
 
-  csound->instr0->module = csoundModuleOwner(typeTable->module);
-  csound->instr0->module_aliases = typeTable->module_aliases;
+  csoundModuleInstrument(csound, csound->instr0)->module = csoundModuleOwner(typeTable->module);
+  csoundModuleInstrument(csound, csound->instr0)->aliases = typeTable->module_aliases;
   if (compile_definitions(csound, root, engineState, csound->instr0,
                            &references) != CSOUND_SUCCESS) goto invalid;
   root->markup = NULL;
@@ -2893,7 +2896,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     finish_instr_references(csound, engineState, 1);
     publish_imported_instruments(csound);
     named_instr_publish_numbers(csound);
-    publish_modules(csound->instr0);
+    publish_modules(csound, csound->instr0);
+    csoundPublishModuleTypes(csound, typeTable->module);
     csoundFinishModuleUpdate(csound, typeTable->module_update, 1);
     typeTable->module_update = NULL;
     CS_VARIABLE *var;
@@ -2952,7 +2956,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   typeTable->module_update = NULL;
   for (INSTRTXT *instrument = engineState->instxtanchor.nxtinstxt;
        instrument != NULL; instrument = instrument->nxtinstxt) {
-    CS_MODULE *module = instrument->module;
+    CS_MODULE *module = csoundModuleInstrument(csound, instrument)->module;
     if (module != NULL && module != csoundGetModuleState(csound)->root_module &&
         !module->is_compiled) {
       cs_hash_table_remove(csound, csoundGetModuleState(csound)->modules, module->file_path);
@@ -3274,7 +3278,7 @@ static void instr_prep(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *engineState)
       csound->Message(csound, "\n");
   }
 
-  tp->module_aliases = NULL;
+  csoundModuleInstrument(csound, tp)->aliases = NULL;
 }
 
 /* build pool of floating const values  */
@@ -3389,6 +3393,7 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
       csoundMessage(csound, "pfield found: %s %d\n", s, n);
   }
   else {
+    CS_MODULE_INSTRUMENT *scope = csoundModuleInstrument(csound, ip);
     char *dot = strchr(s, '.');
     char *base = dot != NULL ? cs_strndup(csound, s, dot - s) : csoundStrdup(csound, s);
     CS_VARIABLE *var = cs_hash_table_get(csound, ip->varPool->table, base);
@@ -3396,9 +3401,9 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     if (var != NULL && (ip->varPool == engineState->varPool ||
                        ip->varPool == csound->engineState.varPool)) arg->type = ARG_GLOBAL;
     CS_MODULE *source = NULL;
-    if (var == NULL && dot != NULL && ip->module != NULL)
-      source = cs_hash_table_get(csound, ip->module_aliases != NULL
-                                          ? ip->module_aliases : ip->module->aliases, base);
+    if (var == NULL && dot != NULL && scope->module != NULL)
+      source = cs_hash_table_get(csound, scope->aliases != NULL
+                                          ? scope->aliases : scope->module->aliases, base);
     if (source != NULL) {
       const char *member = dot + 1;
       const char *path = strchr(member, '.');
@@ -3410,10 +3415,10 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
       arg->type = ARG_GLOBAL;
     } else if (var == NULL) {
       arg->type = ARG_GLOBAL;
-      if (ip->module != NULL && ip->module != csoundGetModuleState(csound)->root_module)
-        var = csoundFindModuleVariable(csound, ip->module, base);
-      if (var == NULL && (ip->module == NULL ||
-                         ip->module == csoundGetModuleState(csound)->root_module)) {
+      if (scope->module != NULL && scope->module != csoundGetModuleState(csound)->root_module)
+        var = csoundFindModuleVariable(csound, scope->module, base);
+      if (var == NULL && (scope->module == NULL ||
+                         scope->module == csoundGetModuleState(csound)->root_module)) {
         var = csoundFindVariableWithName(csound, engineState->varPool, base);
         if (var == NULL)
           var = csoundFindVariableWithName(csound, csound->engineState.varPool, base);

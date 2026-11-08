@@ -29,6 +29,7 @@
 #endif
 
 #include "csoundCore.h"
+#include "csound_module.h"
 #include "csmodule.h"
 #include "csound_orc_optimize.h"
 #include "corfile.h"
@@ -354,10 +355,14 @@ static const CSOUND_UTIL *csoundGetCsoundUtility(CSOUND *csound) {
 static const OENTRY *csoundFindOpcode(CSOUND *csound, int32_t exact,
                                       char *opname, char *outargs,
                                       char *inargs) {
-  if (exact)
-    return find_opcode_exact(csound, opname, outargs, inargs);
-  else
-    return find_opcode_new(csound, opname, outargs, inargs);
+  char *outputs = csoundModuleSignature(csound, outargs, CS_SIGNATURE_COMPILER);
+  char *inputs = csoundModuleSignature(csound, inargs, CS_SIGNATURE_COMPILER);
+  const OENTRY *entry = exact
+      ? find_opcode_exact(csound, opname, outputs, inputs)
+      : find_opcode_new(csound, opname, outputs, inputs);
+  csound->Free(csound, outputs);
+  csound->Free(csound, inputs);
+  return csoundPublicOpcode(csound, entry);
 }
 
 // NB: function naming convention
@@ -2080,7 +2085,6 @@ static void reset(CSOUND *csound) {
     O->filetyp = -1;
     csound->peakchunks = 1;
     csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
-    csound->typePool->owner = csound;
     csound->engineState.varPool = csoundCreateVarPool(csound);
     add_standard_types(csound, csound->typePool);
     /* csoundLoadExternals(csound); */

@@ -21,6 +21,7 @@
   Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
+#include "csound_module.h"
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "csound_orc_expressions.h"
@@ -129,7 +130,7 @@ static int32_t find_brace(char *s) {
   return 0;
 }
 
-static char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
+static char *create_out_arg(CSOUND *csound, const char* outype, int32_t argCount,
                      TYPE_TABLE* typeTable)
 {
   char* s = (char *)csound->Malloc(csound, 256);
@@ -587,7 +588,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
     const CS_TYPE* elementCsType =
       elementType == NULL
         ? NULL
-        : csoundGetTypeWithVarTypeName(csound->typePool, elementType);
+        : csoundResolveModuleType(csound, elementType);
     int32_t elementIsStruct =
       elementCsType != NULL && elementCsType->userDefinedType;
 
@@ -782,7 +783,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         }
 
         elementCsType =
-          csoundGetTypeWithVarTypeName(csound->typePool, elementType);
+          csoundResolveModuleType(csound, elementType);
         if (elementCsType != NULL && elementCsType->userDefinedType) {
           strNcpy(op, "##array_get_struct", 80);
         }
@@ -819,7 +820,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
             strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get",
                     80);
           }
-          outype = strdup(var->subType->varTypeName);
+          outype = strdup(csoundModuleTypeSignature(csound, var->subType));
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
              to provide the correct outype. Works with explicit types
 	  */
@@ -837,7 +838,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         } else if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
           // Generic array with dimensions (but no subType set yet)
           strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
-          outype = strdup(var->subType->varTypeName);
+          outype = strdup(csoundModuleTypeSignature(csound, var->subType));
         } else if (var->varType == &CS_VAR_TYPE_A) {
           strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
           outype = strdup("k");
@@ -857,7 +858,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         } else {
           // Typed array like k[], varType is the element type
           strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
-          outype = strdup(var->varType->varTypeName);
+          outype = strdup(csoundModuleTypeSignature(csound, var->varType));
         }
       }
       if (outype == NULL) {
@@ -1422,7 +1423,7 @@ static int32_t resolve_struct_array_member_path(CSOUND* csound,
   }
 
   currentStructType =
-    csoundGetTypeWithVarTypeName(csound->typePool, elementTypeName);
+    csoundResolveModuleType(csound, elementTypeName);
   if (currentStructType == NULL || !currentStructType->userDefinedType) {
     csound->Free(csound, elementTypeName);
     return 0;
@@ -1613,7 +1614,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
   }
 
   structTemps[0] = create_out_arg(csound,
-                                  path.rootStructType->varTypeName,
+                                  csoundModuleTypeSignature(csound, path.rootStructType),
                                   typeTable->localPool->synthArgCount++,
                                   typeTable);
   assignmentOps =
@@ -1648,7 +1649,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
 
   for (i = 0; i < path.memberCount - 1; i++) {
     structTemps[i + 1] = create_out_arg(csound,
-                                        path.memberVars[i]->varType->varTypeName,
+                                        csoundModuleTypeSignature(csound, path.memberVars[i]->varType),
                                         typeTable->localPool->synthArgCount++,
                                         typeTable);
     assignmentOps =
@@ -1726,7 +1727,7 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
   }
 
   currentStructArg = create_out_arg(csound,
-                                    path.rootStructType->varTypeName,
+                                    csoundModuleTypeSignature(csound, path.rootStructType),
                                     typeTable->localPool->synthArgCount++,
                                     typeTable);
   readOps = tree_append(readOps,
@@ -1736,7 +1737,7 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
 
   for (i = 0; i < path.memberCount - 1; i++) {
     char* nextStructArg = create_out_arg(csound,
-                                         path.memberVars[i]->varType->varTypeName,
+                                         csoundModuleTypeSignature(csound, path.memberVars[i]->varType),
                                          typeTable->localPool->synthArgCount++,
                                          typeTable);
     readOps = tree_append(readOps,
@@ -1758,7 +1759,7 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
     outType = arrayMemberType;
   }
   else {
-    memberType = path.memberVars[path.memberCount - 1]->varType->varTypeName;
+    memberType = csoundModuleTypeSignature(csound, path.memberVars[path.memberCount - 1]->varType);
     outType = memberType;
     if (path.hasKRateIndex && memberType[0] == 'i' && memberType[1] == '\0') {
       outType = "k";
@@ -1923,7 +1924,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
         if (outType == NULL) {
           return NULL;
         }
-        outCsType = csoundGetTypeWithVarTypeName(csound->typePool, outType);
+        outCsType = csoundResolveModuleType(csound, outType);
         arrayElementIsStruct = outCsType != NULL && outCsType->userDefinedType;
       } else {
         char *varBaseName = currentArg->left->value->lexeme;
@@ -1942,7 +1943,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
           // (e.g., "k" for k[], "S" for S[]) because it represents the value being assigned
           if (var->subType) {
             // Generic array, use subType (element type)
-            outType = csoundParserStrdup(csound, var->subType->varTypeName);
+            outType = csoundParserStrdup(csound, csoundModuleTypeSignature(csound, var->subType));
           } else if (var->varType == &CS_VAR_TYPE_A) {
             outType = csoundParserStrdup(csound, "k");
           } else if (var->varType == &CS_VAR_TYPE_ARRAY) {
@@ -1967,7 +1968,7 @@ TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable)
             typeIndexed = 1;
           } else {
             // Typed array like k[], varType is the element type
-            outType = csoundParserStrdup(csound, var->varType->varTypeName);
+            outType = csoundParserStrdup(csound, csoundModuleTypeSignature(csound, var->varType));
           }
           arrayElementIsStruct = !typeIndexed &&
             ((var->subType && var->subType->userDefinedType) ||
@@ -2474,7 +2475,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
   const CS_TYPE *sType = &CS_VAR_TYPE_S;
   const CS_TYPE *xType = &CS_VAR_TYPE_COMPLEX;
   const CS_TYPE *arrayType =
-    csoundGetTypeWithVarTypeName(csound->typePool, arrayArgType);
+    csoundResolveModuleType(csound, arrayArgType);
   int32_t isPerfRate = 0;
 
   // these array types generated perf-time loops
@@ -2578,7 +2579,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     if(var != NULL)
     csound->Warning(csound, Str("redefining variable %s in loop (type: %s)\n"
 		            "\t - now using %s type, line %d\n"),
-		              var->varName,  var->varType->varTypeName,
+		              var->varName,  csoundModuleTypeSignature(csound, var->varType),
 		              isPerfRate ? "k" : "i", current->line);
     add_arg(csound, current->left->next->value->lexeme, isPerfRate ? "k" : "i", typeTable, NULL);
     hasOptionalIndex = 1;

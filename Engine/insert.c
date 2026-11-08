@@ -1026,8 +1026,9 @@ static int32_t init_instr0(CSOUND *csound, INSTRTXT *tp)
 {
   INSDS     *ip;
 
-  for (int32_t i = 0; i < tp->module_dependency_count; i++) {
-    CS_MODULE *module = tp->module_dependencies[i];
+  CS_MODULE_INSTRUMENT *scope = csoundModuleInstrument(csound, tp);
+  for (int32_t i = 0; i < scope->dependency_count; i++) {
+    CS_MODULE *module = scope->dependencies[i];
     if (module->is_initialized) continue;
     int32_t error = init_instr0(csound, module->instr0);
     if (error != 0) return error;

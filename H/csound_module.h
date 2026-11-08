@@ -30,6 +30,28 @@
 extern "C" {
 #endif
 
+typedef struct cs_module_instrument {
+    CS_MODULE *module;
+    CS_HASH_TABLE *aliases;
+    CS_MODULE **dependencies;
+    int32_t dependency_count;
+} CS_MODULE_INSTRUMENT;
+
+struct cs_module_state {
+    CS_HASH_TABLE *modules;
+    CS_MODULE *current_module, *root_module;
+    int32_t next_module_id;
+    uint64_t next_publication;
+    CS_HASH_TABLE *pool_bindings;
+    CS_HASH_TABLE *instruments;
+    CS_HASH_TABLE *type_names, *type_signatures, *public_opcodes, *compiler_opcodes;
+};
+
+CS_HASH_TABLE *csoundModuleBindings(CSOUND *, const CS_VAR_POOL *, int create);
+void csoundFreeModuleBindings(CSOUND *, CS_VAR_POOL *);
+CS_MODULE_INSTRUMENT *csoundModuleInstrument(CSOUND *, const INSTRTXT *);
+void csoundFreeModuleInstrument(CSOUND *, const INSTRTXT *);
+
 typedef struct cs_import_item {
     char *original_name;
     char *local_name;
@@ -77,6 +99,18 @@ static inline CS_MODULE *csoundModuleOwner(CS_MODULE *module) {
     return module != NULL && module->owner != NULL ? module->owner : module;
 }
 
+const char *csoundModuleTypeSignature(CSOUND *, const CS_TYPE *);
+int csoundRegisterModuleType(CSOUND *, CS_MODULE *, const char *, const CS_TYPE *);
+void csoundPublishModuleTypes(CSOUND *, CS_MODULE *);
+typedef enum {
+    CS_SIGNATURE_COMPILER,
+    CS_SIGNATURE_PUBLIC,
+    CS_SIGNATURE_PLUGIN
+} CS_SIGNATURE_MODE;
+char *csoundModuleSignature(CSOUND *, const char *, CS_SIGNATURE_MODE);
+const OENTRY *csoundPublicOpcode(CSOUND *, const OENTRY *);
+OENTRY *csoundCompilerOpcode(CSOUND *, OENTRY *);
+const CS_TYPE *csoundResolveModuleType(CSOUND *, const char *);
 MODULE_STATE *csoundGetModuleState(CSOUND *csound);
 CS_MODULE *csoundCreateRootModule(CSOUND *csound);
 CS_MODULE *csoundGetOrLoadModule(CSOUND *csound, const char *path);

@@ -200,7 +200,7 @@ static char* get_boolean_expression_opcode_type(CSOUND* csound, TREE* tree) {
 char* create_array_arg_type(CSOUND* csound, CS_VARIABLE* arrayVar) {
   if (arrayVar->subType == NULL) return NULL;
 
-  char* varTypeName = arrayVar->subType->varTypeName;
+  const char* varTypeName = csoundModuleTypeSignature(csound, arrayVar->subType);
   int32_t typeLen = (int32_t) strlen(varTypeName);
   int32_t len = arrayVar->dimensions + typeLen + 2;
   char* retVal = csound->Malloc(csound, len);
@@ -326,7 +326,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
       return NULL;
     }
     const CS_TYPE *nestedStructType =
-        csoundGetTypeWithVarTypeName(csound->typePool, nestedType);
+        csoundResolveModuleType(csound, nestedType);
     csound->Free(csound, nestedType);
     if (nestedStructType == NULL) {
       synterr(csound, Str("Cannot find type for nested struct expression\n"));
@@ -359,7 +359,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
       }
       return result;
     }
-    return csoundStrdup(csound, memberVar->varType->varTypeName);
+    return csoundStrdup(csound, csoundModuleTypeSignature(csound, memberVar->varType));
   }
 
   // Handle both simple struct access (struct.member) and array struct access
@@ -408,8 +408,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
             internalElementType = check_optional_type(csound, elementType);
             if (!internalElementType) internalElementType = csoundStrdup(csound, elementType);
           }
-          const CS_TYPE *structType = csoundGetTypeWithVarTypeName(
-              csound->typePool, internalElementType);
+          const CS_TYPE *structType = csoundResolveModuleType(csound, internalElementType);
           csound->Free(csound, elementType);
           csound->Free(csound, internalElementType);
           csound->Free(csound, structArrayType);
@@ -443,7 +442,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
               return NULL;
             }
           } else {
-            result = csoundStrdup(csound, memberVar->varType->varTypeName);
+            result = csoundStrdup(csound, csoundModuleTypeSignature(csound, memberVar->varType));
           }
           return result;
         } else {
@@ -513,7 +512,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
         }
         return result;
       }
-      return csoundStrdup(csound, moduleVar->varType->varTypeName);
+      return csoundStrdup(csound, csoundModuleTypeSignature(csound, moduleVar->varType));
     }
   }
 
@@ -585,7 +584,7 @@ static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
       return NULL;
     }
   } else {
-    result = csoundStrdup(csound, var->varType->varTypeName);
+    result = csoundStrdup(csound, csoundModuleTypeSignature(csound, var->varType));
   }
   return result;
 }
@@ -602,8 +601,8 @@ static char *convert_array_type_string(CSOUND *csound,
   }
   size_t typeLen = strlen(str) - 2 * dim;
   char *base = cs_strndup(csound, str, typeLen);
-  const CS_TYPE *type = csoundGetTypeWithVarTypeName(csound->typePool, base);
-  const char *name = type != NULL ? type->varTypeName : base;
+  const CS_TYPE *type = csoundResolveModuleType(csound, base);
+  const char *name = type != NULL ? csoundModuleTypeSignature(csound, type) : base;
   typeLen = strlen(name);
   char *result;
   if(dim){
@@ -717,10 +716,10 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
           // Generic array (CS_VAR_TYPE_ARRAY) vs typed arrays (dimensions>0 with element varType)
           if (var->varType == &CS_VAR_TYPE_ARRAY) {
             // Generic array: element type in subType
-            return csoundStrdup(csound, var->subType->varTypeName);
+            return csoundStrdup(csound, csoundModuleTypeSignature(csound, var->subType));
           } else if (var->dimensions > 0) {
             // Typed array (e.g., k[], i[], S[]): element type is varType itself
-            return csoundStrdup(csound, var->varType->varTypeName);
+            return csoundStrdup(csound, csoundModuleTypeSignature(csound, var->varType));
           } else if (var->varType == &CS_VAR_TYPE_A) {
             return csoundStrdup(csound, "k");
           } else if (type_has_index_opcode(csound, var->varType, "##array_get")) {
@@ -728,7 +727,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
           } else if (tree->type == T_ARRAY) {
             // If we're accessing as T_ARRAY but have no subType/dimensions,
             // it's a typed array like k[], return the varType (element type)
-            return csoundStrdup(csound, var->varType->varTypeName);
+            return csoundStrdup(csound, csoundModuleTypeSignature(csound, var->varType));
           }
 
           synterr(csound,
@@ -1061,19 +1060,19 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
                                          tree->value->lexeme)) != NULL) {
        if(var->varType == &CS_VAR_TYPE_INSTR)
          // found it, return type.
-         return csoundStrdup(csound, var->varType->varTypeName);
+         return csoundStrdup(csound, csoundModuleTypeSignature(csound, var->varType));
      }
 
     if(!strcmp(tree->value->lexeme, "this_instr")) {
       const CS_TYPE *varType = &CS_VAR_TYPE_INSTR;
        // found this, return type.
-       return csoundStrdup(csound, varType->varTypeName);
+       return csoundStrdup(csound, csoundModuleTypeSignature(csound, varType));
      }
 
      if(!strcmp(tree->value->lexeme, "this")) {
       const CS_TYPE *varType = &CS_VAR_TYPE_INSTR_INSTANCE;
        // found this, return type.
-       return csoundStrdup(csound, varType->varTypeName);
+       return csoundStrdup(csound, csoundModuleTypeSignature(csound, varType));
      }
 
     if (is_reserved(s)) {
@@ -1133,7 +1132,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
         }
         return res;
       } else {
-        return csoundStrdup(csound, var->varType->varTypeName);
+        return csoundStrdup(csound, csoundModuleTypeSignature(csound, var->varType));
       }
 
   case T_TYPED_IDENT:
@@ -1269,7 +1268,7 @@ OENTRIES* find_opcode2(CSOUND* csound, char* opname)
   while (head != NULL) {
     OENTRY *entry = head->value;
     if (scope == NULL || entry->useropinfo == NULL)
-      retVal->entries[i++] = entry;
+      retVal->entries[i++] = csoundCompilerOpcode(csound, entry);
     head = head->next;
   }
 
@@ -1827,12 +1826,13 @@ static int32_t entry_indexes_type(const OENTRY* entry, const char* quoted, size_
 
 /* Struct types are already named ":Name;"; every other type gets quoted. */
 static char* quote_type_name(CSOUND* csound, const CS_TYPE* type) {
-  size_t len = strlen(type->varTypeName);
+  const char *name = csoundModuleTypeSignature(csound, type);
+  size_t len = strlen(name);
   char* quoted;
-  if (type->varTypeName[0] == ':') return csoundStrdup(csound, type->varTypeName);
+  if (name[0] == ':') return csoundStrdup(csound, name);
   quoted = csound->Malloc(csound, len + 3);
   quoted[0] = ':';
-  memcpy(quoted + 1, type->varTypeName, len);
+  memcpy(quoted + 1, name, len);
   quoted[len + 1] = ';';
   quoted[len + 2] = '\0';
   return quoted;
@@ -2448,13 +2448,13 @@ static char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
   for (TREE *current = tree; current != NULL; current = current->next) {
     char *name = current->value->lexeme;
     if (strlen(name) > 1) {
-      const CS_TYPE *type = csoundGetTypeWithVarTypeName(csound->typePool, name);
+      const CS_TYPE *type = csoundResolveModuleType(csound, name);
       if (type == NULL) {
         synterr(csound, Str("Unknown output type: %s\n"), name);
         csound->Free(csound, result);
         return csoundParserStrdup(csound, "0");
       }
-      name = type->varTypeName;
+      name = (char *)csoundModuleTypeSignature(csound, type);
     }
     char *external = convert_internal_to_external(csound, name);
     size_t typeLength = strlen(external);
@@ -2477,10 +2477,20 @@ static char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
 OENTRY* find_opcode_new(CSOUND* csound, char* opname,
                         char* outArgsFound, char* inArgsFound) {
   OENTRIES* opcodes = find_opcode2(csound, opname);
-  if (opcodes->count == 0) {
+  if (opcodes == NULL || opcodes->count == 0) {
+    csound->Free(csound, opcodes);
     return NULL;
   }
-  OENTRY* retVal = resolve_opcode(csound, opcodes, outArgsFound, inArgsFound);
+  char *outputs = outArgsFound != NULL && strchr(outArgsFound, ':') != NULL &&
+                  strstr(outArgsFound, ":#module_") == NULL
+      ? csoundModuleSignature(csound, outArgsFound, CS_SIGNATURE_COMPILER) : NULL;
+  char *inputs = inArgsFound != NULL && strchr(inArgsFound, ':') != NULL &&
+                 strstr(inArgsFound, ":#module_") == NULL
+      ? csoundModuleSignature(csound, inArgsFound, CS_SIGNATURE_COMPILER) : NULL;
+  OENTRY *retVal = resolve_opcode(csound, opcodes,
+      outputs != NULL ? outputs : outArgsFound, inputs != NULL ? inputs : inArgsFound);
+  csound->Free(csound, outputs);
+  csound->Free(csound, inputs);
   csound->Free(csound, opcodes);
   return retVal;
 }
@@ -2489,10 +2499,19 @@ OENTRY* find_opcode_exact(CSOUND* csound, char* opname,
                           char* outArgsFound, char* inArgsFound) {
   OENTRIES* opcodes = find_opcode2(csound, opname);
   if (opcodes == NULL || opcodes->count == 0) {
+    csound->Free(csound, opcodes);
     return NULL;
   }
-  OENTRY* retVal = resolve_opcode_exact(csound, opcodes,
-                                        outArgsFound, inArgsFound);
+  char *outputs = outArgsFound != NULL && strchr(outArgsFound, ':') != NULL &&
+                  strstr(outArgsFound, ":#module_") == NULL
+      ? csoundModuleSignature(csound, outArgsFound, CS_SIGNATURE_COMPILER) : NULL;
+  char *inputs = inArgsFound != NULL && strchr(inArgsFound, ':') != NULL &&
+                 strstr(inArgsFound, ":#module_") == NULL
+      ? csoundModuleSignature(csound, inArgsFound, CS_SIGNATURE_COMPILER) : NULL;
+  OENTRY *retVal = resolve_opcode_exact(csound, opcodes,
+      outputs != NULL ? outputs : outArgsFound, inputs != NULL ? inputs : inArgsFound);
+  csound->Free(csound, outputs);
+  csound->Free(csound, inputs);
   csound->Free(csound, opcodes);
 
   return retVal;
@@ -2630,9 +2649,10 @@ static CS_VAR_POOL *get_var_pool(CSOUND *csound, TYPE_TABLE *typeTable,
   CS_VAR_POOL *pools[] = {typeTable->localPool, typeTable->globalPool};
   for (int i = 0; i < 2; i++) {
     CS_VAR_POOL *pool = pools[i];
+    CS_HASH_TABLE *bindings = csoundModuleBindings(csound, pool, 0);
     if (cs_hash_table_get(csound, pool->table, (char *)name) != NULL ||
-        (pool->bindings != NULL &&
-         cs_hash_table_get(csound, pool->bindings, (char *)name) != NULL)) return pool;
+        (bindings != NULL && cs_hash_table_get(csound, bindings, (char *)name) != NULL))
+      return pool;
   }
   CS_MODULE *root = csoundGetModuleState(csound)->root_module;
   if (typeTable->module != NULL && csoundModuleOwner(typeTable->module) != root)
@@ -2687,7 +2707,7 @@ static const CS_TYPE *resolve_type_annotation(CSOUND *csound,
 
   *typeArg = NULL;
   if (firstBracket == NULL) {
-    type = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
+    type = csoundResolveModuleType(csound, annotation);
     if (type == NULL)
       csound->ErrorMsg(csound, Str("Unknown type annotation: %s\n"), annotation);
     return type;
@@ -2706,7 +2726,7 @@ static const CS_TYPE *resolve_type_annotation(CSOUND *csound,
   baseType[baseLen] = '\0';
 
   const CS_TYPE *elementType =
-    csoundGetTypeWithVarTypeName(csound->typePool, baseType);
+    csoundResolveModuleType(csound, baseType);
   csound->Free(csound, baseType);
   if (elementType == NULL || dimensions == 0 || *p != '\0') {
     csound->ErrorMsg(csound, Str("Invalid array type annotation: %s\n"),
@@ -2717,7 +2737,7 @@ static const CS_TYPE *resolve_type_annotation(CSOUND *csound,
   varInit->dimensions = dimensions;
   varInit->type = elementType;
   *typeArg = varInit;
-  return csoundGetTypeWithVarTypeName(csound->typePool, "[");
+  return csoundResolveModuleType(csound, "[");
 }
 
 /* This function creates a new variable for a rhs argument
@@ -2801,7 +2821,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
         }
         argLetter[0] = *b;
 
-        varType = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        varType = csoundResolveModuleType(csound, argLetter);
 
         varInit.dimensions = dimensions;
         varInit.type =  varType;
@@ -2813,14 +2833,14 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
           *--end = '\0';
         }
         if (strlen(syntheticType) > 1) {
-          type = csoundGetTypeWithVarTypeName(csound->typePool, syntheticType);
+          type = csoundResolveModuleType(csound, syntheticType);
         }
         csound->Free(csound, syntheticType);
       }
 
       if (type == NULL) {
         argLetter[0] = *t;
-        type = csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        type = csoundResolveModuleType(csound, argLetter);
       }
     }
     var = csoundCreateVariable(csound, csound->typePool,
@@ -2892,7 +2912,7 @@ void add_arg(CSOUND* csound, char* varName, char* annotation,
 	   argLetter[0] = *varName;
            if(argLetter[0] == 'g') argLetter[0] = varName[1];
            type =
-	   csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+	   csoundResolveModuleType(csound, argLetter);
            var = csoundCreateVariable(csound, csound->typePool,
    	              type, varName, typeArg);
            csoundAddVariable(csound, typeTable->localPool, var);
@@ -2947,7 +2967,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
                                                     var->varName)->table,
                                var->varName);
       }
-      varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
+      varType = csoundResolveModuleType(csound, annotation);
     } else {
       t = lvarName;
       argLetter[1] = 0;
@@ -2968,7 +2988,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
       argLetter[0] = *t;
 
       varType =
-        csoundGetTypeWithVarTypeName(csound->typePool, argLetter);
+        csoundResolveModuleType(csound, argLetter);
     }
 
 
@@ -2984,7 +3004,7 @@ void add_array_arg(CSOUND* csound, char* varName, char* annotation,
      if (annotation != NULL) {
        // check if a variable is declared with same name
        // and different type array subtype
-       varType = csoundGetTypeWithVarTypeName(csound->typePool, annotation);
+       varType = csoundResolveModuleType(csound, annotation);
        if(varType != var->subType) {
          char *newType = csoundFormatTypeName(csound, annotation, dimensions);
          char *previousType = csoundFormatTypeName(csound,
@@ -3918,21 +3938,19 @@ static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) 
   char *structName = structDefTree->left->value->lexeme;
 
   if (structDefTree->markup != NULL) return 1;
-  const CS_TYPE *existing = csoundGetTypeWithVarTypeName(csound->typePool, structName);
+  const CS_TYPE *existing = csoundResolveModuleType(csound, structName);
   if (existing != NULL && (existing->userDefinedType & CS_TYPE_PLUGIN_DEFINED)) {
     synterr(csound, Str("Cannot redefine plugin struct: %s\n"), structName);
     return 0;
   }
   CS_MODULE *module = csoundGetModuleState(csound)->current_module;
-  if (module != NULL && module->owner == NULL && !module->is_loading) module = NULL;
-  size_t size = strlen(structName) + 32;
+  if (structDefTree->type != STRUCT_TOKEN ||
+      (module != NULL && module->owner == NULL && !module->is_loading)) module = NULL;
+  size_t size = strlen(structName) + 3;
   char *internalName = csound->Malloc(csound, size);
-  if (module != NULL)
-    snprintf(internalName, size, ":#module_%d_%s;", module->id, structName);
-  else
-    snprintf(internalName, size, ":%s;", structName);
-  if (get_struct_type_by_internal_name(csound->typePool, internalName) != NULL) {
-    synterr(csound, Str("Duplicate struct definition: %s\n"), structName);
+  snprintf(internalName, size, ":%s;", structName);
+  if (module == NULL &&
+      get_struct_type_by_internal_name(csound->typePool, internalName) != NULL) {
     csound->Free(csound, internalName);
     return 0;
   }
@@ -3950,15 +3968,14 @@ static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) 
   type->members = NULL; // Will be filled in Phase 2
 
   // Register the placeholder type
-  if (!csoundAddVariableType(csound, csound->typePool, type)) {
+  if (!(module != NULL ? csoundRegisterModuleType(csound, module, structName, type)
+                        : csoundAddVariableType(csound, csound->typePool, type))) {
     csound->Free(csound, type->varTypeName);
     csound->Free(csound, type);
     return 0;
   }
 
   structDefTree->markup = type;
-  if (module != NULL)
-    cs_hash_table_put(csound, module->types, structName, type);
   return 1;
 }
 
@@ -4008,24 +4025,16 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     current = current->next;
   }
 
-  // Only add to type pool if it's a new type (not updating placeholder)
-  const CS_TYPE* existingType =
-      get_struct_type_by_internal_name(csound->typePool, type->varTypeName);
-  if(existingType == NULL) {
-    if(!csoundAddVariableType(csound, csound->typePool, type)) {
-      return 0;
-    }
-  }
-
   OENTRY oentry;
   memset(&oentry, 0, sizeof(OENTRY));
+  const char *signature = csoundModuleTypeSignature(csound, type);
   size_t signature_size = 1;
   for (CONS_CELL *cell = type->members; cell != NULL; cell = cell->next) {
     CS_VARIABLE *field = cell->value;
-    signature_size += strlen(field->subType != NULL
-      ? field->subType->varTypeName : field->varType->varTypeName) + 4;
+    signature_size += strlen(csoundModuleTypeSignature(csound,
+        field->subType != NULL ? field->subType : field->varType)) + 4;
   }
-  size_t temp_size = signature_size + strlen(type->varTypeName) + 8;
+  size_t temp_size = signature_size + strlen(signature) + strlen(type->varTypeName) + 8;
   temp = csound->Calloc(csound, temp_size);
 
   // Extract plain struct name from internal format (:name;) for opcode name
@@ -4046,7 +4055,7 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
 
   /* FIXME - this is not yet implemented */
   memset(temp, 0, temp_size);
-  csoundSprintf(temp, "%s", type->varTypeName);  // Use internal format for outypes
+  csoundSprintf(temp, "%s", signature);  // Use internal format for outypes
   oentry.outypes = csoundStrdup(csound, temp);
 
   CONS_CELL* member = type->members;
@@ -4055,9 +4064,8 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
     int32_t isArray = (memberVar->subType != NULL);
 
     // For arrays, get the base type from subType, otherwise use varType
-    char* memberTypeName = isArray ?
-                           memberVar->subType->varTypeName :
-                           memberVar->varType->varTypeName;
+    const char* memberTypeName = csoundModuleTypeSignature(csound,
+        isArray ? memberVar->subType : memberVar->varType);
     int32_t len = (int32_t) strlen(memberTypeName);
 
     if (len == 1) {
@@ -4099,8 +4107,8 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   /* Register an exact copy constructor without shadowing member-based
      constructors for the same struct. */
   oentry.opname = csoundStrdup(csound, oentry.opname);
-  oentry.outypes = csoundStrdup(csound, type->varTypeName);
-  oentry.intypes = csoundStrdup(csound, type->varTypeName);
+  oentry.outypes = csoundStrdup(csound, signature);
+  oentry.intypes = csoundStrdup(csound, signature);
   oentry.dsblksiz = sizeof(ASSIGN);
   oentry.init = copy_var_generic_init;
   csoundAppendOpcodes(csound, &oentry, 1);
@@ -4483,7 +4491,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         // var type - automatic conversion possible for i and k
         const CS_TYPE *iType = &CS_VAR_TYPE_I;
         const CS_TYPE *kType = &CS_VAR_TYPE_K;
-        const CS_TYPE *avartyp = csoundGetTypeWithVarTypeName(csound->typePool, atype);
+        const CS_TYPE *avartyp = csoundResolveModuleType(csound, atype);
         if(var->varType != avartyp) {
 	  char *otype = var->varType->varTypeName;
           if((avartyp == iType && var->varType == kType) ||
@@ -4506,7 +4514,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           }
 	}
        csoundFree(csound, typ);
-       typ = csoundStrdup(csound, var->varType->varTypeName);
+       typ = csoundStrdup(csound, csoundModuleTypeSignature(csound, var->varType));
       }
       LOOP_JUMP_TARGETS* targets = csoundParserOwn(csound, csound->Calloc(csound, sizeof(LOOP_JUMP_TARGETS)));
       current = expand_for_statement(csound, current, typeTable, typ, targets);

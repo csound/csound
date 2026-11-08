@@ -165,7 +165,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
           }
           memcpy(typeSpecifier, in_arg, length);
           typeSpecifier[length] = '\0';
-          const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+          const CS_TYPE* type = csoundResolveModuleType(csound, typeSpecifier);
 
           if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid input type for opcode %s\n"), in_arg);
@@ -191,7 +191,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
             c = map_udo_in_arg_type(in_arg);  // Map single-char types
           }
 
-          const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, c);
+          const CS_TYPE* type = csoundResolveModuleType(csound, c);
 
           if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid input type for opcode %s\n"), in_args[i]);
@@ -239,7 +239,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
           }
           memcpy(typeSpecifier, out_arg, length);
           typeSpecifier[length] = '\0';
-          const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+          const CS_TYPE* type = csoundResolveModuleType(csound, typeSpecifier);
 
           if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid output type for opcode %s\n"), out_args[i]);
@@ -257,7 +257,7 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
           csoundAddVariable(csound, inm->out_arg_pool, var);
         } else {
           char* c = map_udo_out_arg_type(out_arg);
-          const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, c);
+          const CS_TYPE* type = csoundResolveModuleType(csound, c);
 
           if (UNLIKELY(type == NULL)) {
             synterr(csound, Str("invalid output type for opcode %s\n"), out_arg);

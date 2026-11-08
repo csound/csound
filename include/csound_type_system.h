@@ -99,7 +99,6 @@ extern "C" {
 
   typedef struct typepool {
     CS_TYPE_ITEM* head;
-    CSOUND *owner; /* Optional engine for orchestra type namespaces. */
   } TYPE_POOL;
 
   /** 
@@ -154,7 +153,6 @@ extern "C" {
    */
   typedef struct csvarpool {
     CS_HASH_TABLE* table;
-    CS_HASH_TABLE* bindings; /* Borrowed imported variables; not owned by this pool. */
     CS_VARIABLE* head;
     CS_VARIABLE* tail;
     int32_t poolSize;
