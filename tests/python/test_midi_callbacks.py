@@ -74,11 +74,8 @@ class MidiCallbackTests(unittest.TestCase):
             if not pending:
                 return 0
             message = pending.pop()
-            try:
-                for n, byte in enumerate(message):
-                    buffer[n] = byte
-            except TypeError:  # Raising would pass Csound an arbitrary count.
-                return 0
+            for n, byte in enumerate(message):
+                buffer[n] = byte
             return len(message)
 
         self.cs.set_option('-M0')
