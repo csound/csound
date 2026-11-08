@@ -61,10 +61,10 @@ static void csound_pre_line(CSOUND *, CORFIL*, yyscan_t);
 #define PARM    yyget_extra(yyscanner)
 
 #define YY_USER_INIT {csound_pre_scan_string(csound->orchstr->body, yyscanner); \
-    csound_preset_lineno(csound->orcLineOffset, yyscanner);             \
+    csound_preset_lineno(PARM->line, yyscanner);                        \
     yyg->yy_flex_debug_r=1; PARM->macro_stack_size = 0;                 \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
-    PARM->initial_path = PARM->path = ".";                               \
+    PARM->path = PARM->initial_path;                                   \
   }
 static MACRO *find_definition(MACRO *, char *);
 

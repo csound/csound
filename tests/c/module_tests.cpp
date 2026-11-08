@@ -334,5 +334,38 @@ TEST_F(ModuleSystemTests, SynchronousEditDoesNotPublishQueuedUdos)
     EXPECT_EQ(channel("result"), 22);
 }
 
+TEST_F(ModuleSystemTests, ModuleIncludesResolveFromTheModuleDirectory)
+{
+    ASSERT_TRUE(std::filesystem::create_directory(directory / "nested"));
+    write("nested/header.orc", "#include \"sibling.inc\"\n");
+    write("nested/sibling.inc", "giValue=42\n");
+    initial("from " + path("nested/header.orc") + " import giValue\n"
+            "chnset giValue,\"result\"\n");
+    ASSERT_EQ(csoundStart(csound), 0);
+    EXPECT_EQ(channel("result"), 42);
+}
+
+TEST_F(ModuleSystemTests, PreprocessorFailureDoesNotLeakAnEditNamespace)
+{
+    initial("opcode ReadValue,i,0\n xout 11\nendop\n");
+    ASSERT_EQ(csoundStart(csound), 0);
+    EXPECT_NE(compile("#include \"csound-missing-module-header.inc\"\n"), 0);
+    EXPECT_EQ(csoundGetModuleState(csound)->current_module,
+              csoundGetModuleState(csound)->root_module);
+    ASSERT_EQ(compile("iValue=ReadValue()\nchnset iValue,\"result\"\n"), 0);
+    EXPECT_EQ(channel("result"), 11);
+}
+
+TEST_F(ModuleSystemTests, CachedModuleSurvivesRejectedImporter)
+{
+    write("library.orc", "struct Point x:i\n"
+          "opcode ReadValue,i,0\n p:Point init 42\n xout p.x\nendop\n");
+    initial();
+    ASSERT_EQ(csoundStart(csound), 0);
+    EXPECT_NE(compile("import " + path("library.orc") + "\nUndefinedOpcode\n"), 0);
+    ASSERT_EQ(compile("import " + path("library.orc") + "\niValue=ReadValue()\n"
+                      "chnset iValue,\"result\"\n"), 0);
+    EXPECT_EQ(channel("result"), 42);
+}
 
 }

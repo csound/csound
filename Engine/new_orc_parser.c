@@ -32,6 +32,7 @@
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
 #include "csmodule.h"
+#include "filesys.h"
 void add_opcode_defs(CSOUND *csound);
 
 #if defined(HAVE_DIRENT_H)
@@ -137,6 +138,7 @@ static void free_preprocessor(CSOUND *csound, PRE_PARM *qq)
       if (path != NULL && path != qq->initial_path)
         free(path);
     }
+    csound->Free(csound, qq->initial_path);
     csound->Free(csound, qq->alt_stack);
     corfile_rm(csound, &csound->orchstr);
 }
@@ -149,6 +151,13 @@ static int32_t preprocess_orc(CSOUND *csound, const char *str, PRE_PARM *qq)
       csound_prelex_init(&qq->yyscanner);
       csound_preset_extra(qq, qq->yyscanner);
       qq->line = csound->orcLineOffset;
+      CS_MODULE *module = csoundGetModuleState(csound)->current_module;
+      if (module != NULL && module->is_loading) {
+        qq->initial_path = csound_get_directory_for_path(csound, module->file_path);
+        qq->line = 1;
+      }
+      if (qq->initial_path == NULL)
+        qq->initial_path = csoundStrdup(csound, ".");
       csound->expanded_orc = corfile_create_w(csound);
       file_to_int(csound, "**unknown**");
       if (str==NULL) {
@@ -177,12 +186,17 @@ static int32_t preprocess_orc(CSOUND *csound, const char *str, PRE_PARM *qq)
       }
       else {
         char bb[80];
+        if (module != NULL && module->is_loading) {
+          snprintf(bb, sizeof(bb), "#source %d\n",
+                   qq->lstack[0] = file_to_int(csound, module->file_path));
+          corfile_puts(csound, bb, csound->expanded_orc);
+        }
         if (csound->orchstr == NULL ||
             corfile_body(csound->orchstr) == NULL)
           csound->orchstr = corfile_create_w(csound);
         else
           corfile_reset(csound->orchstr);
-        snprintf(bb, 80, "#line %d\n", csound->orcLineOffset);
+        snprintf(bb, 80, "#line %d\n", qq->line);
         corfile_puts(csound, bb, csound->orchstr);
         corfile_puts(csound, str, csound->orchstr);
         corfile_puts(csound, "\n#exit\n", csound->orchstr);
@@ -235,9 +249,15 @@ static int32_t preprocess_orc_scoped(CSOUND *csound, const char *str)
       return result;
     }
 #endif
-    PRE_PARM qq = {0};
-    int32_t result = preprocess_orc(csound, str, &qq);
-    free_preprocessor(csound, &qq);
+    PRE_PARM *qq = csound->Calloc(csound, sizeof(*qq));
+    jmp_buf saved;
+    memcpy(saved, csound->exitjmp, sizeof(saved));
+    int32_t result = setjmp(csound->exitjmp);
+    if (result == 0) result = preprocess_orc(csound, str, qq);
+    else result = CSOUND_ERROR;
+    memcpy(csound->exitjmp, saved, sizeof(saved));
+    free_preprocessor(csound, qq);
+    csound->Free(csound, qq);
     if (result != CSOUND_SUCCESS)
       corfile_rm(csound, &csound->expanded_orc);
     return result;
@@ -481,8 +501,10 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         csound_orclex_destroy(state->parser.yyscanner);
       free(state->parser.xstrbuff);
       corfile_rm(csound, &csound->expanded_orc);
-      /* Live compilation retains parser allocations through validation. */
-      if (result != NULL && previous != NULL && previous->csound == csound)
+      /* A cached source AST outlives a rejected importing edit. */
+      if (result != NULL && previous_module != NULL && previous_module->is_loading)
+        csoundWasiFinishAllocScope(&state->allocations, 0);
+      else if (result != NULL && previous != NULL && previous->csound == csound)
         csoundWasiTransferAllocScope(&state->allocations, previous);
       else
         csoundWasiFinishAllocScope(&state->allocations, result == NULL);
@@ -493,8 +515,17 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       return result;
     }
 #endif
-    PARSE_PARM parser = {0};
-    TREE *result = parse_orc(csound, &parser);
+    PARSE_PARM *parser = csound->Calloc(csound, sizeof(*parser));
+    jmp_buf saved;
+    memcpy(saved, csound->exitjmp, sizeof(saved));
+    TREE *result;
+    if (setjmp(csound->exitjmp)) result = NULL;
+    else result = parse_orc(csound, parser);
+    memcpy(csound->exitjmp, saved, sizeof(saved));
+    if (parser->yyscanner != NULL) csound_orclex_destroy(parser->yyscanner);
+    free(parser->xstrbuff);
+    corfile_rm(csound, &csound->expanded_orc);
+    csound->Free(csound, parser);
     csoundGetModuleState(csound)->current_module = previous_module;
     if (result != NULL) ((TYPE_TABLE *)result->markup)->module_update = update;
     else csoundFinishModuleUpdate(csound, update, 0);
