@@ -125,9 +125,14 @@ int32_t csoundSetGlobalEnv(const char *name, const char *value)
     if (UNLIKELY(name == NULL || name[0] == '\0' || (int32_t) strlen(name) >= 32))
       return -1;                        /* invalid name             */
     for (i = 0; i < 16; i++) {
-      if ((value != NULL && globalEnvVarName(i)[0] == '\0') ||
-          strcmp(name, globalEnvVarName(i)) == 0)
+      if (strcmp(name, globalEnvVarName(i)) == 0)
         break;
+    }
+    if (i >= 16 && value != NULL) {     /* new variable: first free slot */
+      for (i = 0; i < 16; i++) {
+        if (globalEnvVarName(i)[0] == '\0')
+          break;
+      }
     }
     if (UNLIKELY(i >= 16))              /* not found / no free slot */
       return -1;
