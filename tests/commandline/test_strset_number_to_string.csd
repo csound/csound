@@ -14,6 +14,7 @@ ksmps = 32
 nchnls = 1
 0dbfs = 1
 giChecks init 0
+gkPerformed init 0
 gSformat init "format before %.0f\n"
 
 opcode AssignNumber(Sname:S):void
@@ -47,13 +48,32 @@ instr 1
 endin
 
 instr 2
-  Sperf strcpyk 7
-  if strcmpk(Sperf, strget(7)) != 0 then
+  ; strcpyk follows a number that changes during performance: a short
+  ; strset string, the long one, which outgrows the buffer, an empty one,
+  ; then a number with no strset string.
+  strset 9, "short"
+  strset 10, ""
+  Slong strget 7
+  kCycle init 0
+  kCycle += 1
+  Sperf strcpyk (kCycle == 1 ? 9 : (kCycle == 2 ? 7 : (kCycle == 3 ? 10 : 3)))
+  if kCycle == 1 && strcmpk(Sperf, "short") != 0 then
+    printks "strcpyk did not give the short strset string\n", 0
+    exitnowk -1
+  elseif kCycle == 2 && strcmpk(Sperf, Slong) != 0 then
     printks "strcpyk did not give the long strset string\n", 0
     exitnowk -1
+  elseif kCycle == 3 && strcmpk(Sperf, "") != 0 then
+    printks "strcpyk did not give the empty strset string\n", 0
+    exitnowk -1
+  elseif kCycle == 4 then
+    if strcmpk(Sperf, "soundin.3") != 0 then
+      printks "strcpyk did not give soundin.3\n", 0
+      exitnowk -1
+    endif
+    gkPerformed = 1
+    turnoff
   endif
-  giChecks += 1
-  turnoff
 endin
 
 instr 3
@@ -92,7 +112,7 @@ instr 6
 endin
 
 instr 99
-  if giChecks != 6 then
+  if giChecks != 5 || i(gkPerformed) != 1 then
     prints "string checks did not complete\n"
     exitnow -1
   endif
@@ -100,7 +120,7 @@ endin
 </CsInstruments>
 <CsScore>
 i 1 0 .1 7
-i 2 .1 .1
+i 2 .1 .3
 i 3 .2 .1 3
 i 4 .3 .1
 i 4 .4 .1
