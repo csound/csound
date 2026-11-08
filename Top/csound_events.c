@@ -21,6 +21,7 @@
 */
 #include "csoundCore.h"
 #include "corfile.h"
+#include "sread.h"
 
 void score_event_async(CSOUND *csound, char type, const cs_float *pfields,
                            long numFields);
@@ -71,7 +72,38 @@ int32_t csound_score_event_absolute(CSOUND *csound, char type,
 
 
 
+#if defined(_MSC_VER)
+#define SCORE_READ_LOCAL __declspec(thread)
+#elif defined(BARE_METAL)
+#define SCORE_READ_LOCAL
+#else
+#define SCORE_READ_LOCAL _Thread_local
+#endif
+
+/* Where a fatal error in the score reader lands during csoundReadScore().
+   exitjmp cannot serve: it is the frame of a call that has returned when a host
+   calls from outside a performance, it belongs to the performance thread when
+   a host calls beside one, and a jump to it ends that performance. So each
+   thread has its own target, and another thread's fatal error never finds it. */
+typedef struct score_read_s {
+  CSOUND *csound;
+  jmp_buf target;
+  struct score_read_s *outer;
+} SCORE_READ;
+
+static SCORE_READ_LOCAL SCORE_READ *score_read;
+
+/* Does not return if this thread is reading a score for this instance. */
+void score_read_unwind(CSOUND *csound) {
+  if (score_read != NULL && score_read->csound == csound)
+    longjmp(score_read->target, 1);
+}
+
 int32_t csoundReadScore(CSOUND *csound, const char *str) {
+  SCORE_READ guard;
+  int32_t first;
+  char *sc;
+
   /* protect resource */
   if (csound->scorestr != NULL && csound->scorestr->body != NULL)
     corfile_rewind(csound->scorestr);
@@ -84,15 +116,26 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
     corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
   // #endif
   corfile_flush(csound, csound->scorestr);
+  first = csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0;
+  guard.csound = csound;
+  guard.outer = score_read;
+  if (setjmp(guard.target)) {
+    score_read = guard.outer;
+    sread_abandon(csound);
+    if (first)
+      corfile_rm(csound, &csound->scstr);
+    csound->ErrorMsg(csound, Str("score refused: none of it was scheduled\n"));
+    return CSOUND_ERROR;
+  }
+  score_read = &guard;
+  sc = scsortstr(csound, csound->scorestr);
+  score_read = guard.outer;
   /* copy sorted score name */
-  if (csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
-    scsortstr(csound, csound->scorestr);
+  if (first) {
     csound->playscore = csound->scstr;
     // corfile_rm(csound, &(csound->scorestr));
     // printf("%s\n", O->playscore->body);
   } else {
-
-    char *sc = scsortstr(csound, csound->scorestr);
     csoundInputMessage(csound, (const char *)sc);
     csound->Free(csound, sc);
     corfile_rm(csound, &(csound->scorestr));
