@@ -3588,19 +3588,48 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
    a reader of booleans takes a number as true unless it is 0. A b read at
    performance is converted then too: a global one can change in the meantime. */
 static const char* boolean_conversion(const char* found, const char* required,
-                                      int32_t numeric, int32_t perf, char* type) {
+                                      int32_t numeric, int32_t perf,
+                                      int32_t xoutinit, char* type) {
   if (found[1] != '\0') return NULL;
   if (*found == 'b' || *found == 'B') {
     if (!numeric && (required[1] != '\0' ||
                      strchr("mMNnzZikKa", *required) == NULL)) return NULL;
     *type = *found == 'b' ? 'i' : 'k';
-    return *found == 'B' ? "##b2k" : perf ? "##b2i" : "i";
+    return *found == 'B' ? "##b2k" : xoutinit ? "##xout.i" : perf ? "##b2i" : "i";
   }
   if (numeric || required[1] != '\0' ||
       (*required != 'b' && *required != 'B') ||
       strchr("cikpr", *found) == NULL) return NULL;
   *type = *required;
-  return *required == 'b' ? "b" : "##k2B";
+  return *required == 'B' ? "##k2B" : "##xout.b";
+}
+
+static OENTRY* statement_entry(TREE* node) {
+  return node->type == T_OPCALL || node->type == T_ASSIGNMENT ?
+    (OENTRY*) node->markup : NULL;
+}
+
+static int32_t is_xout_conversion(const OENTRY* entry) {
+  return !strncmp(entry->opname, "##xout", 6);
+}
+
+/* What xout gives an i or b output is converted at performance too: a reinit
+   of this UDO, or of one it calls, can change it and stop at rireturn, short
+   of the end of the body. A UDO with nothing else to do at performance has no
+   reinit, and stays init-only, converting with the plain i() or b(). */
+static void keep_init_only_udo(CSOUND* csound, TREE* body) {
+  TREE* node;
+  OENTRY* entry;
+  for (node = body; node != NULL; node = node->next)
+    if ((entry = statement_entry(node)) != NULL && entry->perf != NULL &&
+        !is_xout_conversion(entry)) return;
+  for (node = body; node != NULL; node = node->next)
+    if ((entry = statement_entry(node)) != NULL && is_xout_conversion(entry)) {
+      OENTRIES* forms = find_opcode2(csound, *entry->outypes == 'i' ? "i" : "b");
+      node->markup = resolve_opcode_exact(csound, forms, entry->outypes,
+                                          entry->intypes);
+      csound->Free(csound, forms);
+    }
 }
 
 /* A b or B holds an int32_t (see create_bool), a number a cs_float, and neither
@@ -3643,7 +3672,8 @@ static TREE* convert_boolean_args(CSOUND* csound, TREE* statement,
     perf = xout ? type[1] == '\0' && strchr("kKaB", *type) != NULL
                 : entry->perf != NULL;
     if ((found = get_arg_type2(csound, *slot, typeTable)) == NULL) continue;
-    opname = boolean_conversion(found, type, numeric, perf, &target);
+    opname = boolean_conversion(found, type, numeric, perf, xout && !perf,
+                                &target);
     csound->Free(csound, found);
     if (opname != NULL) {
       char name[32], before[32];
@@ -4456,6 +4486,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         typeTable->udoOutTypes = top->left->markup;
         newRight = verify_tree(csound, current->right, typeTable);
         typeTable->udoOutTypes = NULL;
+        keep_init_only_udo(csound, newRight);
 
         if (newRight == NULL) {
           cs_cons_free(csound, typeTable->labelList);

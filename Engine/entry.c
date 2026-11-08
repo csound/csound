@@ -159,6 +159,9 @@ const OENTRY opcodlst_1[] = {
   { "##b2k",  S(ASSIGN),0,     "k", "B", (SUBR) b2s, (SUBR) b2s, NULL, NULL  },
   { "##b2i",  S(ASSIGN),0,     "i", "b", (SUBR) b2i, (SUBR) b2i, NULL, NULL  },
   { "##k2B",  S(RELAT),0,      "B", "k", (SUBR) bassign, (SUBR) bassign, NULL, NULL  },
+  /* For xout into an i or b output: see keep_init_only_udo. */
+  { "##xout.i", S(ASSIGN),0,   "i", "b", (SUBR) b2i, (SUBR) b2i, NULL, NULL  },
+  { "##xout.b", S(RELAT),0,    "b", "k", (SUBR) bassign, (SUBR) bassign, NULL, NULL  },
   /* A k given to a UDO's B parameter: the B and the truth it went in with,
      and after the call, the k takes the B if the UDO changed it. */
   { "##k2Bref", S(AOP),0,      "Bk", "k", (SUBR) k2B_ref, (SUBR) k2B_ref, NULL, NULL  },

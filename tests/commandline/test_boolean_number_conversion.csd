@@ -3,7 +3,7 @@ description = "a boolean read as a number is 0 or 1, and a number read as a bool
 
 [expect]
 exit = 0
-output = ["pass init", "pass init a", "pass assign", "pass fillarray", "pass var-arg", "pass schedule", "pass event", "pass B at init", "pass eq i", "pass eq k", "pass switch", "pass xout i", "pass xout k", "pass xout boolean", "pass xout branches", "pass parameter", "pass logic", "pass goto", "pass goto i", "pass k of k", "pass k of k at init", "pass xout late", "pass xout skipped", "pass global b", "pass xout late i", "pass parameter written", "pass parameter not written", "flag = true", "mixed = true"]
+output = ["pass init", "pass init a", "pass assign", "pass fillarray", "pass var-arg", "pass schedule", "pass event", "pass B at init", "pass eq i", "pass eq k", "pass switch", "pass xout i", "pass xout k", "pass xout boolean", "pass xout branches", "pass parameter", "pass logic", "pass goto", "pass goto i", "pass k of k", "pass k of k at init", "pass xout late", "pass xout skipped", "pass global b", "pass xout late i", "pass parameter written", "pass parameter not written", "pass xout reinit number", "pass xout reinit boolean", "pass xout inner reinit", "flag = true", "mixed = true"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -113,6 +113,58 @@ endop
 
 opcode ClearSecond(first:B, second:B):void
   second = timeinstk() < 0
+endop
+
+; a reinit pass ending at rireturn changes what the output carries too
+opcode ReinitNumber():i
+  value:b init false
+  xout value
+  count:k init 0
+  count += 1
+  if count == 2 then
+    reinit CHANGE
+  endif
+  igoto DONE
+CHANGE:
+  value = 1 < 2
+  rireturn
+DONE:
+endop
+
+opcode ReinitBoolean():b
+  value:i init 0
+  xout value
+  count:k init 0
+  count += 1
+  if count == 2 then
+    reinit CHANGE
+  endif
+  igoto DONE
+CHANGE:
+  value = 1
+  rireturn
+DONE:
+endop
+
+; the reinit may be in a UDO it calls
+opcode InnerReinit():b
+  value:b init false
+  xout value
+  count:k init 0
+  count += 1
+  if count == 2 then
+    reinit CHANGE
+  endif
+  igoto DONE
+CHANGE:
+  value = 1 < 2
+  rireturn
+DONE:
+endop
+
+opcode OuterNumber():i
+  held:b InnerReinit
+  xout held
 endop
 
 opcode Truth():i
@@ -499,6 +551,33 @@ instr 28
   turnoff
 endin
 
+instr 29
+  number:i = ReinitNumber()
+  boolean:b = ReinitBoolean()
+  outer:i = OuterNumber()
+  seennumber:k = max(0, number)
+  seenboolean:k = max(0, boolean)
+  seenouter:k = max(0, outer)
+  if timeinstk() == 5 then
+    if seennumber == 1 then
+      printf("pass xout reinit number\n", 1)
+    else
+      printf("xout reinit number failed: %g\n", 1, seennumber)
+    endif
+    if seenboolean == 1 then
+      printf("pass xout reinit boolean\n", 1)
+    else
+      printf("xout reinit boolean failed: %g\n", 1, seenboolean)
+    endif
+    if seenouter == 1 then
+      printf("pass xout inner reinit\n", 1)
+    else
+      printf("xout inner reinit failed: %g\n", 1, seenouter)
+    endif
+    turnoff
+  endif
+endin
+
 ; an opcode reading a global b at performance sees it change
 gstate@global:b = 1 < 2
 
@@ -555,6 +634,7 @@ i25 0.01 0
 i26 0 0
 i27 0 0.01
 i28 0 0.01
+i29 0 0.01
 i19 0 0.01
 i20 0 0
 e 0.1
