@@ -291,7 +291,8 @@ extern "C" {
       cs_float   warp_factor /* = FL(1.0) */;
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
-      void    *scanner;               /* the preprocessor's, while it runs    */
+      void    *prs;                   /* the preprocessor's PRS_PARM, while
+                                         it reads                             */
       int32_t  last_name /* = -1 */;
       IN_STACK *inputs, *str;
       int32_t  input_size, input_cnt;
@@ -310,7 +311,7 @@ extern "C" {
       int32_t unused_int8;
       int32   unused_int9;
       int32_t unused_intA;
-      MACRO   *unused_ptr1;
+      CORFIL  *sorted;                /* scsortstr's output, until returned   */
       int32_t  nocarry;
    };
 

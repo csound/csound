@@ -57,6 +57,7 @@ typedef struct prs_parm_s {
     void            *yyscanner;
     CSOUND          *csound;
     int             past_end;       /* reads past the current buffer's end */
+    MACRO           *defining;      /* a macro being read, until it is linked */
     CORFIL          *cf;
     MACRO           *macros;
     MACRON          *alt_stack; //[MAX_INCLUDE_DEPTH];

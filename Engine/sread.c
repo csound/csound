@@ -253,21 +253,20 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
     (csound->sread.str)->line = 1; (csound->sread.str)->mac = NULL;
     //init_smacros(csound, csound->smacros);
     {
-      PRS_PARM  qq;
-      memset(&qq, '\0', sizeof(PRS_PARM));
-      qq.csound = csound;
-      csound_prslex_init(&qq.yyscanner);
-      csound->sread.scanner = qq.yyscanner;
-      cs_init_smacros(csound, &qq, csound->smacros);
-      csound_prsset_extra(&qq, qq.yyscanner);
+      PRS_PARM  *qq = csound->Calloc(csound, sizeof(PRS_PARM));
+      csound->sread.prs = qq;           /* a fatal error frees it from here */
+      qq->csound = csound;
+      csound_prslex_init(&qq->yyscanner);
+      cs_init_smacros(csound, qq, csound->smacros);
+      csound_prsset_extra(qq, qq->yyscanner);
       csound->expanded_sco = corfile_create_w(csound);
       /* printf("Input:\n%s<<<\n", */
       /*        corfile_body(csound->sread.str->cf)); */
-      csound_prslex(csound, qq.yyscanner);
+      csound_prslex(csound, qq->yyscanner);
       csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
-      csound_prslex_destroy(qq.yyscanner);
-      csound->sread.scanner = NULL;
+      csound->sread.prs = NULL;
+      csound_prs_free(csound, qq);
       corfile_rm(csound, &csound->scorestr);
       corfile_rewind(csound->expanded_sco);
     }
@@ -957,11 +956,15 @@ void sfree(CSOUND *csound)       /* free all sorter allocated space */
 
 void sread_abandon(CSOUND *csound)  /* what a fatal error left in the reader */
 {
-    if (csound->sread.scanner != NULL) {
-      csound_prslex_destroy(csound->sread.scanner);
-      csound->sread.scanner = NULL;
+    if (csound->sread.prs != NULL) {
+      csound_prs_free(csound, csound->sread.prs);
+      csound->sread.prs = NULL;
     }
+    corfile_rm(csound, &csound->sread.sorted);
     sfree(csound);
+    corfile_rm(csound, &csound->expanded_sco);
+    csound->Free(csound, csound->sread.inputs);
+    csound->sread.inputs = csound->sread.str = NULL;
 }
 
 static void flushlin(CSOUND *csound)

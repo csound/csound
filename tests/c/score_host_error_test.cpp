@@ -37,8 +37,12 @@ public:
     /* Before csoundStart a line is the score, and may end. */
     void performToScoreEnd()
     {
-        for (int i = 0; i < 8 && csoundPerformKsmps(csound) == 0; i++)
-            ;
+        for (int i = 0; i < 8; i++) {
+            const int result = csoundPerformKsmps(csound);
+            ASSERT_GE(result, 0) << said();
+            if (result > 0)
+                return;
+        }
     }
     cs_float played() { return csoundGetControlChannel(csound, "played", nullptr); }
     std::string said()
@@ -291,6 +295,64 @@ TEST(HostScoreErrors, MarksEndWithTheirRead)
     csoundEventString(host.csound, "n b", 0);
     EXPECT_NE(std::string::npos, host.said().find("Name b not found"));
     host.perform();
+}
+
+/* Csound's own count of what it holds, through Engine/memalloc.c's block
+   header: a Debug build defines BETA, which turns MEMDEBUG on. */
+size_t trackedBlocks(CSOUND *csound)
+{
+    struct Block {
+#if defined(BETA) || defined(MEMDEBUG)
+        int32_t magic;
+        void *ptr;
+#endif
+        Block *prv, *nxt;
+        void *base;
+    };
+    size_t n = 0;
+    for (auto *b = static_cast<Block *>(csound->memalloc_db); b; b = b->nxt)
+        n++;
+    return n;
+}
+
+/* A refused line takes what it held with it, whatever it was reading when it
+   stopped, so a host can go on sending bad lines. */
+TEST(HostScoreErrors, RefusalsKeepNothing)
+{
+    std::string notes;
+    for (int i = 0; i < 100; i++)
+        notes += "i 1 100 0\n";
+    const std::string lines[] = {
+        "#define M #" + std::string(1000, ' ') + "#\n}", /* the macros, the sort */
+        notes + "}",                                    /* the text expanded */
+        "{ [1)] N\ni 1 0 0\n}",                         /* a counter being read */
+        "#define X(a #",                                /* a definition cut off */
+        "#define Y(a) #$a#\ni 1 0 0 $Y(" + std::string(90, '0'), /* an argument */
+        "i 1 0 0\n{ 2 N\ni 1 0 0\n{ 3 M\ni 1 0 0\n}\n}\n}", /* a repeat's body */
+        "r 2 N\n{ 2 M\ni 1 0 0\n#un/**/def M\n}\n}",     /* an r's and a repeat's */
+    };
+    Host host;
+    host.start();
+    size_t seen = 0;
+    auto refuse = [&](const std::string &line) {
+        csoundEventString(host.csound, line.c_str(), 0);
+        csoundPerformKsmps(host.csound);
+        const std::string said = host.said();
+        EXPECT_NE(std::string::npos, said.find("score refused", seen));
+        seen = said.size();
+    };
+    const size_t blocks = trackedBlocks(host.csound);
+    void *block = host.csound->Malloc(host.csound, 16);
+    EXPECT_EQ(blocks + 1, trackedBlocks(host.csound)) << "the walk is wrong";
+    host.csound->Free(host.csound, block);
+    for (const std::string &line : lines) {
+        SCOPED_TRACE(line.substr(0, 40));
+        refuse(line);
+        const size_t before = trackedBlocks(host.csound);
+        for (int i = 0; i < 5; i++)
+            refuse(line);
+        EXPECT_EQ(before, trackedBlocks(host.csound));
+    }
 }
 
 TEST(HostScoreErrors, ReadScoreReturnsTheRefusal)
