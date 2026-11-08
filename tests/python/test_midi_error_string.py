@@ -126,7 +126,7 @@ class MidiErrorStringTests(unittest.TestCase):
     def test_what_is_no_function_is_still_refused(self):
         cs = ctcsound.Csound()
         with self.assertRaises(TypeError):
-            cs.set_external_midi_error_string_callback(None)
+            cs.set_external_midi_error_string_callback('no function')
 
     def test_the_callback_does_not_keep_csound_alive(self):
         cs = ctcsound.Csound()
