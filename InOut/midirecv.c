@@ -586,7 +586,8 @@ int32_t sens_midi(CSOUND *csound)
         mep->type = type;               /* & begin new event    */
         mep->chan = chan;
         p->datreq = datbyts[(type>>4) & 0x7];
-        if(*p->bufp & 0x80  && p->datreq > 0)
+        if(p->bufp < p->endatp && *p->bufp & 0x80 && *p->bufp < 0xF8
+           && p->datreq > 0)
         {/*
             if there is another status byte inserted after
             a chan msg status byte, this implies a port number
@@ -595,6 +596,9 @@ int32_t sens_midi(CSOUND *csound)
             (not sure if there are times when this is not the case)
             MIDI backend modules can now insert a port number coded in
             this way to allow for separate mapping of devices
+            A module writes it in the same read as its status. A read
+            may end on the status, and what lies past the end is not
+            data, so it is not looked at. A real time byte is no port.
           */
           int32_t port = *(p->bufp++) & 0x7F;
           if(port >= MIDIMAXPORTS) {
