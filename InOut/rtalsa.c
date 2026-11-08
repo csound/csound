@@ -2004,8 +2004,11 @@ static int32_t listDevicesM(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutpu
     csCfgVariable_t *cfg;
 
     cfg = csound->QueryConfigurationVariable(csound, "alsaseq_client");
-    if (cfg != NULL && cfg->s.p != NULL)
+    if (cfg != NULL && cfg->s.p != NULL) {
       csound->Free(csound, cfg->s.p);
+      /* A second copy of this module then finds no variable to free. */
+      csound->DeleteConfigurationVariable(csound, "alsaseq_client");
+    }
     return OK;
 }
 
