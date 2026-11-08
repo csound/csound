@@ -129,7 +129,7 @@ extern "C" {
     char    muteTrackList[256];
     unsigned char mbuf[MBUFSIZ];
     unsigned char *bufp, *endatp;
-    int16   datreq, datcnt, portbyte;
+    int16   datreq, datcnt;
   } MGLOBAL;
 
   typedef struct osc_mess {

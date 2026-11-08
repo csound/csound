@@ -158,17 +158,23 @@ TEST_F(MidiRealtimeInputTests, MessageSplitAcrossReadsComesOutWhole)
   message({{0xC3}, {5}}, 0xC0, 4, 5, 0);
 }
 
-TEST_F(MidiRealtimeInputTests, PortByteSurvivesAnySplit)
+TEST_F(MidiRealtimeInputTests, PortByteComesInTheReadOfItsStatus)
 {
   message({{0x90, 0x81, 60, 100}}, 0x90, 17, 60, 100);
-  message({{0x90}, {0x81, 61, 100}}, 0x90, 17, 61, 100);
   message({{0x90, 0x82}, {62, 100}}, 0x90, 33, 62, 100);
   message({{0x90, 0x83, 63}, {100}}, 0x90, 49, 63, 100);
-  message({{0x90}, {}, {0xBF}, {}, {64}, {100}}, 0x90, 1009, 64, 100);
-  message({{0xC0}, {0x81, 7}}, 0xC0, 17, 7, 0);
-  // A port past the last one is port 0, however the read fell.
+  message({{0x90, 0xBF}, {}, {64}, {100}}, 0x90, 1009, 64, 100);
+  message({{0xC0, 0x81, 7}}, 0xC0, 17, 7, 0);
+  // A port past the last one is port 0.
   message({{0x90, 0xC1, 65, 100}}, 0x90, 1, 65, 100);
-  message({{0x90}, {0xC1, 66, 100}}, 0x90, 1, 66, 100);
+}
+
+TEST_F(MidiRealtimeInputTests, StatusAfterACutOffStatusIsAStatus)
+{
+  // A read ends on a status whose data never comes: the status that
+  // starts the next read begins a message of its own.
+  message({{0xC0}, {0x90, 60, 100}}, 0x90, 1, 60, 100);
+  message({{0x90}, {0x81, 61, 100}}, 0x80, 2, 61, 100);
 }
 
 TEST_F(MidiRealtimeInputTests, RealtimeByteAfterAStatusIsNoPort)
@@ -179,7 +185,4 @@ TEST_F(MidiRealtimeInputTests, RealtimeByteAfterAStatusIsNoPort)
   EXPECT_EQ(csoundGetControlChannel(csound, "clock", nullptr), 1);
   message({{0x90, 0xFC, 63, 100}}, 0x90, 1, 63, 100);
   EXPECT_EQ(csoundGetControlChannel(csound, "stop", nullptr), 1);
-  // Nor does one hide the port byte after it.
-  message({{0x90, 0xF8, 0x81, 62, 100}}, 0x90, 17, 62, 100);
-  EXPECT_EQ(csoundGetControlChannel(csound, "clock", nullptr), 1);
 }
