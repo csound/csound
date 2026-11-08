@@ -2119,9 +2119,12 @@ TREE* expand_if_statement(CSOUND* csound,
                   csoundParserStrdup(csound,
                             labelEnd->value->lexeme),
                   typeTable->labelList);
-        // checking for #B... var name
+        // only a #B... temporary's name gives its rate: a variable has a type,
+        // and ithen and global code have only their init jumps to take
         if (last->type == T_IDENT) {
-          gotoType = (last->value->lexeme[1] == 'B');
+          gotoType = tempRight->type != ITHEN_TOKEN &&
+            typeTable->localPool != typeTable->instr0LocalPool &&
+            !boolean_expression_is_init_rate(csound, last, typeTable);
           gotoToken = create_goto_token(csound,
             last->value->lexeme,
             tempRight,
@@ -2413,9 +2416,11 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
     last = tree_tail(anchor);
   }
 
-  // checking for #B... var name
+  // only a #B... temporary's name gives its rate: a variable has a type,
+  // and global code has only its init jumps to take
   if (current->left->type == T_IDENT) {
-    gotoType = current->left->value->lexeme[1] == 'B';
+    gotoType = typeTable->localPool != typeTable->instr0LocalPool &&
+      !boolean_expression_is_init_rate(csound, current->left, typeTable);
   } else {
     gotoType = last->left->value->lexeme[1] == 'B';
   }
