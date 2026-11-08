@@ -727,6 +727,7 @@ class Csound:
             self.from_pointer = False
         self._kept = []
         self._keyboard_thunks = {}
+        self._destroying = False
 
     def __del__(self):
         """Destroys an instance of Csound."""
@@ -736,11 +737,19 @@ class Csound:
     def destroy(self):
         """Destroys an instance of Csound now, not when it is collected.
 
-        Calling it again does nothing.
+        Once Csound is gone, what this instance kept for it is released, all
+        but the current callback of each set_ method. Calling it again, from a
+        callback Csound calls while it is destroyed included, does nothing.
+        Otherwise it must not run inside a callback.
         """
-        if self.cs:
-            libcsound.csoundDestroy(self.cs)
-            self.cs = None
+        if self.cs and not self._destroying:
+            self._destroying = True
+            try:
+                libcsound.csoundDestroy(self.cs)
+            finally:
+                self.cs = None
+                self._kept.clear()
+                self._keyboard_thunks.clear()
 
     def csound(self):
         """Returns the opaque pointer to the underlying CSOUND struct.
@@ -750,13 +759,13 @@ class Csound:
         return self.cs
 
     def _keep(self, value):
-        """Holds what Csound is handed for as long as this instance lives.
+        """Holds what Csound is handed until this instance is destroyed.
 
         A replaced callback cannot be released, whatever the order: ctypes
         reads a callback's thunk only once it has the GIL, so a thread Csound
         sent into the old one can be waiting for the GIL when its setter
         returns, and crashes on a thunk released by then. Each time a callback
-        is set therefore costs one thunk until this instance goes.
+        is set therefore costs one thunk until this instance is destroyed.
         """
         self._kept.append(value)
         return value

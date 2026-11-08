@@ -5,6 +5,7 @@ released while C still has it is a crash, so most of these run in a process of
 their own."""
 
 import ctypes
+import gc
 import os
 import re
 import subprocess
@@ -177,6 +178,32 @@ cs.reset()
 '''
 
 
+# Csound puts back the message callback it found at the start, and calls it
+# while it is destroyed, once per message: that callback must still be kept
+# then, the instance must still answer it, and a destroy() from inside it must
+# do nothing.
+DESTROY_FROM_A_KEPT_CALLBACK = PRELUDE + '''
+during, errors = [], []
+def first(_csound, _attr, message):
+    try:
+        if cs._destroying:
+            during.append(cs.message_level())
+            cs.destroy()
+    except Exception as error:
+        errors.append(error)
+cs.set_message_string_callback(first)
+cs.set_option('-m7')
+cs.set_option('--realtime')
+assert cs.compile_orc(HEADER) == 0
+assert cs.start() == 0
+cs.set_message_string_callback(lambda *_args: None)
+cs.destroy()
+assert not errors, errors
+assert len(during) > 1, 'the replaced callback was called %d times while Csound was destroyed' % len(during)
+assert set(during) == {7}, during
+'''
+
+
 class Callback:
     def __call__(self, *_args):
         return 0
@@ -241,6 +268,22 @@ class CallbackLifetimeTests(unittest.TestCase):
                                            ctcsound.CSOUND_CALLBACK_KBD_EVENT.value)
         del user_data
         self.assertIsNotNone(kept())
+
+    def test_destroy_releases_what_was_kept(self):
+        replaced, function, user_data = Callback(), Callback(), Callback()
+        kept = [weakref.ref(value) for value in (replaced, function, user_data)]
+        self.cs.set_output_channel_callback(replaced)
+        self.cs.set_output_channel_callback(Callback())
+        self.cs.register_keyboard_callback(function, user_data,
+                                           ctcsound.CSOUND_CALLBACK_KBD_EVENT.value)
+        del replaced, function, user_data
+        self.cs.destroy()
+        self.cs.destroy()
+        gc.collect()
+        self.assertEqual([ref() for ref in kept], [None, None, None])
+
+    def test_destroy_keeps_what_csound_calls_while_it_is_destroyed(self):
+        self.run_alone(DESTROY_FROM_A_KEPT_CALLBACK)
 
     def test_an_appended_opcode_lives(self):
         self.run_alone(APPENDED_OPCODE)
