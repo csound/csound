@@ -1913,8 +1913,32 @@ class Csound:
             self.ext_midi_out_close_cb_ref)
 
     def set_external_midi_error_string_callback(self, function):
-        """ Sets a callback for converting MIDI error codes to strings."""
-        self.ext_midi_err_str_cb_ref = MIDIERRORFUNC(function)
+        """Sets a callback for converting MIDI error codes to strings.
+
+        function(code) returns the message, as a str or as bytes, which
+        ctcsound keeps until the next call, or as an int, the address of a C
+        string the host keeps. Csound reports "Unknown MIDI error" if it
+        returns None, or if it raises or returns anything else. Its exception
+        goes to sys.unraisablehook.
+        """
+        unknown = ct.create_string_buffer(b'Unknown MIDI error')
+        message = None
+
+        # With no result, this leaves C nothing unset if it raises.
+        @ct.CFUNCTYPE(None, ct.c_int32)
+        def read_message(code):
+            nonlocal message
+            message = None
+            text = function(code)
+            message = ct.c_char_p(cstring(text) if isinstance(text, str) else text)
+
+        # C gets an address, as ctypes leaks bytes returned to it.
+        def error_string(code):
+            read_message(code)
+            return ct.cast(message, ct.c_void_p).value or ct.addressof(unknown)
+
+        self.ext_midi_err_str_cb_ref = MIDIERRORFUNC(
+            error_string if callable(function) else function)
         libcsound.csoundSetExternalMidiErrorStringCallback(self.cs,
             self.ext_midi_err_str_cb_ref)
 
