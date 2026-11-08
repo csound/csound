@@ -1,3 +1,9 @@
+<CsTest>
+description = "test newline in statements"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 0dbfs = 1

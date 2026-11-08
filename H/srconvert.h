@@ -23,21 +23,55 @@
 #ifndef SRCONVERT_H
 #define SRCONVERT_H
 
-#include "csound.h"
+#include "csoundCore.h"
+#include "csound_type_system.h"
+#include "csound_standard_types.h"
 
-typedef struct _SR_CONVERTER
-{
-  float *bufferin, *bufferout;
-  float   ratio;
-  int32_t     size;
-  int32_t     cnt;
-  int32_t     mode;
-  void   *data;
+typedef struct {
+  float *bufferin, *bufferout; // buffers
+  void   *data;  // converter state
+  int32_t cnt;   // rw count
+} CVTDAT;
+  
+typedef struct _SR_CONVERTER {
+  float   ratio;  // src ratio
+  int32_t insize, outsize; // input and output block sizes
+  int32_t mode;   // conversion mode
+  CVTDAT *dat; // converter data
+  int32_t ncvt;   // no of converters
+  CS_VARIABLE *var; // argument var
+  CSOUND *csound;   
+  INSDS *ip;  // calling insds
 } SR_CONVERTER;
 
 
-SR_CONVERTER *src_init(CSOUND *, int32_t, float, int32_t);
-void src_deinit(CSOUND *, SR_CONVERTER *);
-int32_t src_convert(CSOUND *, SR_CONVERTER *, MYFLT *, MYFLT *);
+/** the first mode that holds k values: SRC_HELD_K + n is converter n for
+    audio, with k values and k arrays copied instead of converted */
+#define SRC_HELD_K 5
+
+/** converter initialisation
+    one per argument
+    mode - conversion mode (0 - 4), or the same + SRC_HELD_K
+    ratio - conversion ratio (oversampling or 1/oversampling factor)
+    in_ksmps, out_ksmps - audio block sizes on each side of the conversion
+    var - actual variable given to conversion
+    ip - calling insds (context)
+*/
+SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
+                       float ratio, CS_VARIABLE *var,
+                       INSDS *ip, int32_t in_ksmps, int32_t out_ksmps);
+
+/** conversion de-initialisation
+ */  
+void src_deinit(CSOUND *csound, SR_CONVERTER *p);
+
+/** sampling rate conversion
+    in - signal to be converted
+    out - signal to be converted
+
+    src is only performed on time-domain signals (a,k and arrays thereof)
+    other variable types, and k and k arrays in a held mode, are simply copied
+ */
+int32_t src_convert(CSOUND *csoubnd, SR_CONVERTER *p, cs_float *in, cs_float *out);
 
 #endif

@@ -24,7 +24,7 @@
 
 #define HASH_LOAD_FACTOR 0.75
 
-char* cs_hash_table_put_no_key_copy(CSOUND* csound,
+static char* cs_hash_table_put_no_key_copy(CSOUND* csound,
     CS_HASH_TABLE* hashTable,
     char* key, void* value);
 
@@ -97,8 +97,9 @@ CS_HASH_TABLE* cs_hash_table_create(CSOUND* csound) {
     CS_HASH_TABLE* table =
       (CS_HASH_TABLE*) csound->Calloc(csound, sizeof(CS_HASH_TABLE));
     table->count = 0;
-    table->table_size = 8192;
-    table->buckets = csound->Calloc(csound, sizeof(CS_HASH_TABLE_ITEM*) * 8192);
+    table->table_size = 64;
+    table->buckets = csound->Calloc(csound,
+                                  sizeof(CS_HASH_TABLE_ITEM*) * table->table_size);
 
     return table;
 }
@@ -113,6 +114,7 @@ static int32_t cs_hash_table_check_resize(CSOUND* csound, CS_HASH_TABLE* table) 
 
         table->buckets = newTable;
         table->table_size = newSize;
+        table->count = 0;
 
         for (int32_t i = 0; i < oldSize; i++) {
             CS_HASH_TABLE_ITEM* item = oldTable[i];
@@ -189,7 +191,7 @@ void* cs_hash_table_get(CSOUND* csound,
  * If item exists, replace.
  * Else, check for resize, then do insert.
 */
-char* cs_hash_table_put_no_key_copy(CSOUND* csound,
+static char* cs_hash_table_put_no_key_copy(CSOUND* csound,
                                    CS_HASH_TABLE* hashTable,
                                     char* key, void* value) {
     if (key == NULL) {

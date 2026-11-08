@@ -1,3 +1,9 @@
+<CsTest>
+description = "test keyword spacing (if(, elseif(, etc.)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0 

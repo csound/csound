@@ -83,7 +83,7 @@ istor: defaults to 1, initialise the internal delay buffers
 on startup. 0 means no initialisation.
 
 BOB:
-ar bob asig, kcf, kres, ksat [, istor, iosamps]
+ar bob asig, xcf, xres, xsat [, iosamps, istor]
 
 Bob is a port of bob~ filter object from Pd.
 The design is based on the papers by Tim Stilson,
@@ -91,18 +91,17 @@ Timothy E. Stinchcombe, and Antti Huovilainen.
 Ported from PD code by Gleb Rogozinsky, Summer of 2020
 
 asig: input signal
-kcf: cutoff frequency (Hz)
-kres: resonance amount. Nominally, a value of 4 should be the limit
+xcf: cutoff frequency (Hz)
+xres: resonance amount. Nominally, a value of 4 should be the limit
 of stability -- above that, the filter oscillates.
-ksat: saturation. This parameter determines at what signal level
-the "transistors" in the model saturate. The maximum output amplitude
-is about 2/3 of that value.
+xsat: saturation. This parameter determines at what signal level
+the "transistors" in the model saturate.
 iosamps: number of times of oversampling used in the filtering process.
 This will determine the maximum sharpness of the filter resonance (Q).
 More oversampling allows higher Qs, less oversampling will limit the resonance.
-The default is 3 times (iosamps=0).
-istor: defaults to 1, initialise the internal delay buffers
-on startup. 0 means no initialisation.
+The default is 2 times (iosamps=0).
+istor: defaults to 0, which clears the filter state.
+A nonzero value retains the previous state.
 */
 
 #ifndef _NEWFILS_H
@@ -111,18 +110,18 @@ on startup. 0 means no initialisation.
 
 typedef struct _moogladder {
   OPDS    h;
-  MYFLT   *out;
-  MYFLT   *in;
-  MYFLT   *freq;
-  MYFLT   *res;
-  MYFLT   *istor;
+  cs_float   *out;
+  cs_float   *in;
+  cs_float   *freq;
+  cs_float   *res;
+  cs_float   *istor;
 
-  double  delay[6];
-  double  tanhstg[3];
-  MYFLT   oldfreq;
-  MYFLT   oldres;
-  double  oldacr;
-  double  oldtune;
+  cs_double  delay[6];
+  cs_double  tanhstg[3];
+  cs_float   oldfreq;
+  cs_float   oldres;
+  cs_double  oldacr;
+  cs_double  oldtune;
 } moogladder;
 
 static int32_t moogladder_init(CSOUND *csound,moogladder *p);
@@ -130,24 +129,24 @@ static int32_t moogladder_process(CSOUND *csound,moogladder *p);
 
 typedef struct _statevar {
   OPDS    h;
-  MYFLT   *outhp;
-  MYFLT   *outlp;
-  MYFLT   *outbp;
-  MYFLT   *outbr;
-  MYFLT   *in;
-  MYFLT   *freq;
-  MYFLT   *res;
-  MYFLT   *osamp;
-  MYFLT   *istor;
+  cs_float   *outhp;
+  cs_float   *outlp;
+  cs_float   *outbp;
+  cs_float   *outbr;
+  cs_float   *in;
+  cs_float   *freq;
+  cs_float   *res;
+  cs_float   *osamp;
+  cs_float   *istor;
 
-  double  bpd;
-  double  lpd;
-  double  lp;
+  cs_double  bpd;
+  cs_double  lpd;
+  cs_double  lp;
   int32_t     ostimes;
-  MYFLT   oldfreq;
-  MYFLT   oldres;
-  double  oldq;
-  double  oldf;
+  cs_float   oldfreq;
+  cs_float   oldres;
+  cs_double  oldq;
+  cs_double  oldf;
 } statevar;
 
 static int32_t statevar_init(CSOUND *csound,statevar *p);
@@ -155,14 +154,14 @@ static int32_t statevar_process(CSOUND *csound,statevar *p);
 
 typedef struct _fofilter {
   OPDS    h;
-  MYFLT   *out;
-  MYFLT   *in;
-  MYFLT   *freq;
-  MYFLT   *ris;
-  MYFLT   *dec;
-  MYFLT   *istor;
+  cs_float   *out;
+  cs_float   *in;
+  cs_float   *freq;
+  cs_float   *ris;
+  cs_float   *dec;
+  cs_float   *istor;
 
-  double  delay[4];
+  cs_double  delay[4];
 } fofilter;
 
 static int32_t fofilter_init(CSOUND *csound,fofilter *p);
@@ -171,19 +170,16 @@ fofilter_process(CSOUND *csound,fofilter *p);
 
 typedef struct _bob {
   OPDS    h;
-  MYFLT   *out;
-  MYFLT   *in;
-  MYFLT   *freq;
-  MYFLT   *res;
-  MYFLT   *sat;
-  MYFLT   *osamp;
-  MYFLT   *istor;
+  cs_float   *out;
+  cs_float   *in;
+  cs_float   *freq;
+  cs_float   *res;
+  cs_float   *sat;
+  cs_float   *osamp;
+  cs_float   *istor;
 
   int32_t ostimes;
-  MYFLT   oldfreq;
-  MYFLT   oldres;
-  MYFLT   oldsat;
-  double  state[DIM];
+  cs_double  state[DIM];
 } BOB;
 
 static int32_t bob_init(CSOUND *csound,BOB *p);

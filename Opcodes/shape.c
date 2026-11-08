@@ -42,8 +42,8 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *aout, *ain, *kshapeamount, *ifullscale;
-    MYFLT   maxamplitude, one_over_maxamp;
+    cs_float   *aout, *ain, *kshapeamount, *ifullscale;
+    cs_float   maxamplitude, one_over_maxamp;
 } POWER_SHAPE;
 
 static int32_t PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
@@ -52,7 +52,7 @@ static int32_t PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
     if (UNLIKELY(p->maxamplitude<= 0.0))
       return
         csound->InitError(csound,
-                          "%s", Str("powershape: ifullscale must be strictly positive"));
+                          "%s\n", Str("powershape: ifullscale must be strictly positive"));
     p->one_over_maxamp = FL(1.0) / p->maxamplitude;
     return OK;
 }
@@ -60,19 +60,20 @@ static int32_t PowerShapeInit(CSOUND* csound, POWER_SHAPE* p)
 static int32_t PowerShape(CSOUND* csound, POWER_SHAPE* p)
 {
     IGN(csound);
-    MYFLT     cur, amt, maxampl, invmaxampl;
+    cs_float     cur, amt, maxampl, invmaxampl;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t  early  = p->h.insdshead->ksmps_no_end;
     uint32_t  n, nsmps = CS_KSMPS;
-    MYFLT*    out = p->aout;
-    MYFLT*    in = p->ain;
+    cs_float*    out = p->aout;
+    cs_float*    in = p->ain;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     amt = *(p->kshapeamount);
+    maxampl = p->maxamplitude;
     invmaxampl = p->one_over_maxamp;
     if (amt == FL(0.0)) {                    /* treat zero-power with care */
       for (n=offset; n<nsmps; n++) {
@@ -80,11 +81,10 @@ static int32_t PowerShape(CSOUND* csound, POWER_SHAPE* p)
         if (cur == FL(0.0))
           out[n] = FL(0.0);               /* make 0^0 = 0 for continuity */
         else
-          out[n] = FL(1.0)/invmaxampl;    /* otherwise, x^0 = 1.0 */
+          out[n] = cur < FL(0.0) ? -maxampl : maxampl;
       }
     }
     else {
-      maxampl = p->maxamplitude;
       for (n=offset; n<nsmps; n++) {
         cur = in[n] * invmaxampl;
         if (cur < FL(0.0))                /* treat negatives with care */
@@ -100,7 +100,7 @@ static int32_t PowerShape(CSOUND* csound, POWER_SHAPE* p)
 
 typedef struct {
     OPDS    h;
-    MYFLT   *aout, *ain, *kcoefficients[VARGMAX-1];
+    cs_float   *aout, *ain, *kcoefficients[VARGMAX-1];
 } POLYNOMIAL;
 
 /* Efficiently evaluates a polynomial of arbitrary order --   */
@@ -113,15 +113,15 @@ static int32_t Polynomial(CSOUND* csound, POLYNOMIAL* p)
     uint32_t n, nsmps = CS_KSMPS;
     int32_t   ncoeff =    /* index of the last coefficient */
                    GetInputArgCnt((OPDS *)p) - 2;
-    MYFLT *out = p->aout;
-    MYFLT *in = p->ain;
-    MYFLT **coeff = p->kcoefficients;
-    MYFLT sum, x;
+    cs_float *out = p->aout;
+    cs_float *in = p->ain;
+    cs_float **coeff = p->kcoefficients;
+    cs_float sum, x;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
       x = in[n];
@@ -138,8 +138,8 @@ static int32_t Polynomial(CSOUND* csound, POLYNOMIAL* p)
 
 typedef struct {
     OPDS    h;
-    MYFLT   *aout, *ain, *kcoefficients[VARGMAX-1];
-    MYFLT   *chebn;
+    cs_float   *aout, *ain, *kcoefficients[VARGMAX-1];
+    cs_float   *chebn;
     AUXCH   coeff;
 } CHEBPOLY;
 
@@ -147,11 +147,11 @@ static int32_t ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* p)
 {
     int32_t     ncoeff = GetInputArgCnt((OPDS *)p) - 1;
 
-    /* Need two MYFLT arrays of length ncoeff: first for the coefficients
+    /* Need two cs_float arrays of length ncoeff: first for the coefficients
        of the sum of polynomials, and the second for the coefficients of
        the individual chebyshev polynomials as we are adding them up. */
-    csound->AuxAlloc(csound, (2*ncoeff + 1)*sizeof(MYFLT), &(p->coeff));
-    p->chebn = ((MYFLT*)p->coeff.auxp) + ncoeff;
+    csound->AuxAlloc(csound, (2*ncoeff + 1)*sizeof(cs_float), &(p->coeff));
+    p->chebn = ((cs_float*)p->coeff.auxp) + ncoeff;
     return OK;
 }
 
@@ -159,6 +159,12 @@ static int32_t ChebyshevPolyInit(CSOUND* csound, CHEBPOLY* p)
    Coefficients (k0, k1, k2, ... ) are k-rate multipliers of each Chebyshev
    polynomial starting with the zero-order polynomial T0(x) = 1, then
    T1(x) = x, T2(x) = 2x^2 - 1, etc. */
+/*
+ * Known limitation: expanding high-order Chebyshev terms can overflow even
+ * when the final series is finite. Keep this implementation unchanged for
+ * its established behavior and faster low-order sample loop. Use
+ * chebyshevpoly2 for direct evaluation; do not apply that fix here.
+ */
 static int32_t ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
 {
     int32_t     i, j;
@@ -167,12 +173,12 @@ static int32_t ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
     uint32_t n, nsmps = CS_KSMPS;
     int32_t     ncoeff =            /* index of the last coefficient */
                      GetInputArgCnt((OPDS *)p) - 2;
-    MYFLT   *out = p->aout;
-    MYFLT   *in = p->ain;
-    MYFLT   **chebcoeff = p->kcoefficients;
-    MYFLT   *chebn = p->chebn;
-    MYFLT   *coeff = (MYFLT*)p->coeff.auxp;
-    MYFLT   sum, x;
+    cs_float   *out = p->aout;
+    cs_float   *in = p->ain;
+    cs_float   **chebcoeff = p->kcoefficients;
+    cs_float   *chebn = p->chebn;
+    cs_float   *coeff = (cs_float*)p->coeff.auxp;
+    cs_float   sum, x;
 
     /* Every other coefficient in a Cheb. poly. is 0, and
     these zero coeff. alternate positions in successive
@@ -208,10 +214,10 @@ static int32_t ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
     }
 
     /* Use our final coeff. to evaluate the poly. for each input sample */
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
       x = in[n];
@@ -226,24 +232,151 @@ static int32_t ChebyshevPolynomial(CSOUND* csound, CHEBPOLY* p)
     return OK;
 }
 
+typedef struct {
+    OPDS    h;
+    cs_float   *aout, *ain, *kcoefficients[VARGMAX-1];
+    AUXCH   coeff;
+    int32_t count;
+} CHEBPOLY2;
+
+static int32_t ChebyshevPoly2Init(CSOUND* csound, CHEBPOLY2* p)
+{
+    p->count = GetInputArgCnt((OPDS *)p) - 1;
+    if (UNLIKELY(p->count < 1))
+      return csound->InitError(csound, "%s\n",
+                               Str("chebyshevpoly2: no coefficients"));
+    csound->AuxAlloc(csound, (size_t)p->count * sizeof(cs_double), &p->coeff);
+    return OK;
+}
+
+static int32_t ChebyshevPolynomial2(CSOUND* csound, CHEBPOLY2* p)
+{
+    int32_t i, count = p->count;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    cs_float *out = p->aout;
+    cs_float *in = p->ain;
+    cs_double *coeff = (cs_double*)p->coeff.auxp;
+    IGN(csound);
+
+    for (i = 0; i < count; ++i)
+      coeff[i] = (cs_double)*p->kcoefficients[i];
+    if (UNLIKELY(offset)) memset(out, 0, offset * sizeof(cs_float));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], 0, early * sizeof(cs_float));
+    }
+    if (count == 1) {
+      cs_float value = (cs_float)coeff[0];
+      for (n = offset; n < nsmps; ++n) out[n] = value;
+    }
+    else if (count == 2) {
+      cs_double c0 = coeff[0], c1 = coeff[1];
+      for (n = offset; n < nsmps; ++n)
+        out[n] = (cs_float)(c0 + (cs_double)in[n] * c1);
+    }
+    else {
+      int32_t last = count - 1;
+      /* Keep the recurrence here: this loop runs once per audio sample. */
+      for (n = offset; n < nsmps; ++n) {
+        cs_double x = (cs_double)in[n];
+        cs_double b0, b1 = 0.0, b2 = 0.0;
+        for (i = last; i >= 1; --i) {
+          b0 = 2.0 * x * b1 - b2 + coeff[i];
+          b2 = b1;
+          b1 = b0;
+        }
+        out[n] = (cs_float)(x * b1 - b2 + coeff[0]);
+      }
+    }
+    return OK;
+}
+
+typedef struct {
+    OPDS     h;
+    cs_float    *aout, *ain;
+    ARRAYDAT *coefficients;
+} CHEBPOLY2ARRAY;
+
+static int32_t ChebyshevPoly2ArrayInit(CSOUND* csound, CHEBPOLY2ARRAY* p)
+{
+    ARRAYDAT *coeff = p->coefficients;
+    if (UNLIKELY(coeff->data == NULL || coeff->sizes == NULL ||
+                 coeff->dimensions != 1 || coeff->sizes[0] < 1))
+      return csound->InitError(csound, "%s\n",
+                               Str("chebyshevpoly2: coefficients must be "
+                                   "a non-empty one-dimensional array"));
+    return OK;
+}
+
+static int32_t ChebyshevPolynomial2Array(CSOUND* csound, CHEBPOLY2ARRAY* p)
+{
+    ARRAYDAT *coefficients = p->coefficients;
+    int32_t i, count;
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    cs_float *out = p->aout;
+    cs_float *in = p->ain;
+    cs_float *coeff;
+
+    if (UNLIKELY(coefficients->data == NULL || coefficients->sizes == NULL ||
+                 coefficients->dimensions != 1 || coefficients->sizes[0] < 1))
+      return csound->PerfError(csound, &p->h,
+                               Str("chebyshevpoly2: coefficients must be "
+                                   "a non-empty one-dimensional array\n"));
+    count = coefficients->sizes[0];
+    coeff = (cs_float*)coefficients->data;
+    if (UNLIKELY(offset)) memset(out, 0, offset * sizeof(cs_float));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&out[nsmps], 0, early * sizeof(cs_float));
+    }
+    if (count == 1) {
+      cs_float value = coeff[0];
+      for (n = offset; n < nsmps; ++n) out[n] = value;
+    }
+    else if (count == 2) {
+      cs_double c0 = (cs_double)coeff[0], c1 = (cs_double)coeff[1];
+      for (n = offset; n < nsmps; ++n)
+        out[n] = (cs_float)(c0 + (cs_double)in[n] * c1);
+    }
+    else {
+      int32_t last = count - 1;
+      /* Keep the recurrence here: this loop runs once per audio sample. */
+      for (n = offset; n < nsmps; ++n) {
+        cs_double x = (cs_double)in[n];
+        cs_double b0, b1 = 0.0, b2 = 0.0;
+        for (i = last; i >= 1; --i) {
+          b0 = 2.0 * x * b1 - b2 + (cs_double)coeff[i];
+          b2 = b1;
+          b1 = b0;
+        }
+        out[n] = (cs_float)(x * b1 - b2 + (cs_double)coeff[0]);
+      }
+    }
+    return OK;
+}
+
 
 /* Phase distortion opcodes */
 
 typedef struct {
     OPDS    h;
-    MYFLT   *aout, *ain, *kwidth, *kcenter, *ibipolar, *ifullscale;
+    cs_float   *aout, *ain, *kwidth, *kcenter, *ibipolar, *ifullscale;
 } PD_CLIP;
 
 static int32_t PDClip(CSOUND* csound, PD_CLIP* p)
 {
     IGN(csound);
-    MYFLT     cur, low, high, maxampl, width, unwidth, center, outscalar;
+    cs_float     cur, low, high, maxampl, width, unwidth, center, outscalar;
     int32_t       bipolarMode;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT*    out = p->aout;
-    MYFLT*    in = p->ain;
+    cs_float*    out = p->aout;
+    cs_float*    in = p->ain;
 
     bipolarMode = (int32_t) *(p->ibipolar);
     maxampl = *(p->ifullscale);
@@ -268,10 +401,10 @@ static int32_t PDClip(CSOUND* csound, PD_CLIP* p)
     low = center - unwidth*maxampl;       /* min value of unclipped input */
     high = unwidth*maxampl + center;      /* max value of unclipped input */
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
 
     if (bipolarMode) {
@@ -296,27 +429,27 @@ static int32_t PDClip(CSOUND* csound, PD_CLIP* p)
 
 typedef struct {
     OPDS    h;
-    MYFLT   *aout, *ain, *kamount, *ibipolar, *ifullscale;
+    cs_float   *aout, *ain, *kamount, *ibipolar, *ifullscale;
 } PD_HALF;
 
 /* Casio-style phase distortion with "pivot point" on the X axis */
 static int32_t PDHalfX(CSOUND* csound, PD_HALF* p)
 {
     IGN(csound);
-    MYFLT     cur, maxampl, midpoint, leftslope, rightslope;
+    cs_float     cur, maxampl, midpoint, leftslope, rightslope;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT*    out = p->aout;
-    MYFLT*    in = p->ain;
+    cs_float*    out = p->aout;
+    cs_float*    in = p->ain;
 
     maxampl = *(p->ifullscale);
     if (maxampl == FL(0.0))  maxampl = FL(1.0);
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     if (*(p->ibipolar) != FL(0.0)) {    /* bipolar mode */
       /* clamp kamount in range [-1,1] */
@@ -336,7 +469,7 @@ static int32_t PDHalfX(CSOUND* csound, PD_HALF* p)
       }
     }
     else {  /* unipolar mode */
-      MYFLT  halfmaxampl = FL(0.5) * maxampl;
+      cs_float  halfmaxampl = FL(0.5) * maxampl;
 
       /* clamp kamount in range [-1,1] and make unipolar */
       midpoint = (*(p->kamount) >= FL(1.0) ? maxampl :
@@ -362,18 +495,18 @@ static int32_t PDHalfX(CSOUND* csound, PD_HALF* p)
 static int32_t PDHalfY(CSOUND* csound, PD_HALF* p)
 {
     IGN(csound);
-    MYFLT     cur, maxampl, midpoint, leftslope, rightslope;
+    cs_float     cur, maxampl, midpoint, leftslope, rightslope;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT*    out = p->aout;
-    MYFLT*    in = p->ain;
+    cs_float*    out = p->aout;
+    cs_float*    in = p->ain;
 
     maxampl = *(p->ifullscale);
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     if (maxampl == FL(0.0))  maxampl = FL(1.0);
 
@@ -393,7 +526,7 @@ static int32_t PDHalfY(CSOUND* csound, PD_HALF* p)
       }
     }
     else {  /* unipolar mode */
-      MYFLT  halfmaxampl = FL(0.5) * maxampl;
+      cs_float  halfmaxampl = FL(0.5) * maxampl;
 
       /* clamp kamount in range [-1,1] and make unipolar */
       midpoint = (*(p->kamount) >= FL(1.0) ? maxampl :
@@ -419,32 +552,34 @@ static int32_t PDHalfY(CSOUND* csound, PD_HALF* p)
 
 typedef struct {
     OPDS    h;
-    MYFLT   *aphase, *asyncout, *xcps, *asyncin, *initphase;
-    double  curphase;
+    cs_float   *aphase, *asyncout, *xcps, *asyncin, *initphase;
+    cs_double  curphase;
 } SYNCPHASOR;
 
-int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
+static int32_t SyncPhasorInit(CSOUND *csound, SYNCPHASOR *p)
 {
-    MYFLT  phs;
-    int32   longphs;
+    cs_double phs = (cs_double)*p->initphase;
 
-    if ((phs = *p->initphase) >= FL(0.0)) {
-      if (UNLIKELY((longphs = (int32)phs))) {
-        csound->Warning(csound, "%s", Str("init phase truncation\n"));
+    if (UNLIKELY(!isfinite(phs)))
+      return csound->InitError(csound, "%s\n", Str("syncphasor: invalid phase"));
+    if (phs >= 0.0) {
+      if (UNLIKELY(phs >= 1.0)) {
+        csound->Warning(csound, "%s\n", Str("init phase truncation\n"));
       }
-      p->curphase = phs - (MYFLT)longphs;
+      p->curphase = phs - FLOOR(phs);
     }
     return OK;
 }
 
-int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
+static int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
 {
-    double      phase;
+    /* Keep floor() below: FLOOR() would narrow the phase in float builds. */
+    cs_double      phase;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT       *out, *syncout, *syncin;
-    double      incr;
+    cs_float       *out, *syncout, *syncin;
+    cs_double      incr;
     int32_t         cpsIsARate;
 
     out = p->aphase;
@@ -452,60 +587,56 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
     syncin = p->asyncin;
     phase = p->curphase;
     cpsIsARate = IS_ASIG_ARG(p->xcps); /* check first input arg rate */
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) {
+      memset(out, '\0', offset*sizeof(cs_float));
+      memset(syncout, '\0', offset*sizeof(cs_float));
+    }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
+      memset(&syncout[nsmps], '\0', early*sizeof(cs_float));
     }
     if (cpsIsARate) {
-      MYFLT *cps = p->xcps;
+      cs_float *cps = p->xcps;
       for (n=offset; n<nsmps; n++) {
         if (syncin[n] != FL(0.0)) {        /* non-zero triggers reset */
           phase = 0.0;
-          out[n] = (MYFLT)phase;
+          out[n] = (cs_float)phase;
           syncout[n] = FL(1.0);        /* send sync whenever syncin */
         }
         else {
-          incr = (double)(cps[n] * CS_ONEDSR);
-          out[n] = (MYFLT)phase;
-          phase += incr;
-          if (phase >= 1.0) {
-            phase -= 1.0;
-            syncout[n] = FL(1.0);        /* send sync when phase wraps */
-          }
-          else if (phase < 0.0) {
-            phase += 1.0;
-            syncout[n] = FL(1.0);
-          }
-          else syncout[n] = FL(0.0);
+          cs_double next;
+          incr = (cs_double)cps[n] * CS_ONEDSR;
+          out[n] = (cs_float)phase;
+          next = phase + incr;
+          if (UNLIKELY(!isfinite(next))) goto err1;
+          syncout[n] = (next >= 1.0 || next < 0.0) ? FL(1.0) : FL(0.0);
+          phase = next - floor(next);
         }
       }
     }
     else {
-      incr = (double)(*p->xcps * CS_ONEDSR);
+      incr = (cs_double)*p->xcps * CS_ONEDSR;
       for (n=offset; n<nsmps; n++) {
         if (syncin[n] != FL(0.0)) {        /* non-zero triggers reset */
           phase = 0.0;
-          out[n] = (MYFLT)phase;
+          out[n] = (cs_float)phase;
           syncout[n] = FL(1.0);        /* send sync whenever syncin */
         }
         else {
-          out[n] = (MYFLT)phase;
-          phase += incr;
-          if (phase >= 1.0) {
-            phase -= 1.0;
-            syncout[n] = FL(1.0);        /* send sync when phase wraps */
-          }
-          else if (phase < 0.0) {
-            phase += 1.0;
-            syncout[n] = FL(1.0);
-          }
-          else syncout[n] = FL(0.0);
+          cs_double next = phase + incr;
+          out[n] = (cs_float)phase;
+          if (UNLIKELY(!isfinite(next))) goto err1;
+          syncout[n] = (next >= 1.0 || next < 0.0) ? FL(1.0) : FL(0.0);
+          phase = next - floor(next);
         }
       }
     }
     p->curphase = phase;
     return OK;
+ err1:
+    return csound->PerfError(csound, &(p->h),
+                             Str("syncphasor: invalid frequency\n"));
 }
 
 
@@ -515,8 +646,8 @@ int32_t SyncPhasor(CSOUND *csound, SYNCPHASOR *p)
 #if 0
 typedef struct {
     OPDS    h;
-    MYFLT   *aout, *ain, *kphaseadjust, *ifullscale;
-    MYFLT   lastin, maxamplitude;
+    cs_float   *aout, *ain, *kphaseadjust, *ifullscale;
+    cs_float   lastin, maxamplitude;
 } PHASINE;
 
 static int32_t PhasineInit(CSOUND* csound, PHASINE* p)
@@ -528,20 +659,20 @@ static int32_t PhasineInit(CSOUND* csound, PHASINE* p)
 
 static int32_t Phasine(CSOUND* csound, PHASINE* p)
 {
-    MYFLT     last, cur, phase, adjust, maxampl;
+    cs_float     last, cur, phase, adjust, maxampl;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT*    out = p->aout;
-    MYFLT*    in = p->ain;
+    cs_float*    out = p->aout;
+    cs_float*    in = p->ain;
 
     adjust = *(p->kphaseadjust);
     last = p->lastin;
     maxampl = p->maxamplitude;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
       cur = in[n];
@@ -576,6 +707,12 @@ static OENTRY shape_localops[] =
    { "polynomial", S(POLYNOMIAL), 0,  "a", "az", NULL, (SUBR)Polynomial },
    { "chebyshevpoly", S(CHEBPOLY), 0, "a", "az",
      (SUBR)ChebyshevPolyInit, (SUBR)ChebyshevPolynomial },
+   { "chebyshevpoly2", S(CHEBPOLY2), 0, "a", "az",
+     (SUBR)ChebyshevPoly2Init, (SUBR)ChebyshevPolynomial2 },
+   { "chebyshevpoly2", S(CHEBPOLY2ARRAY), 0, "a", "ak[]",
+     (SUBR)ChebyshevPoly2ArrayInit, (SUBR)ChebyshevPolynomial2Array },
+   { "chebyshevpoly2", S(CHEBPOLY2ARRAY), 0, "a", "ai[]",
+     (SUBR)ChebyshevPoly2ArrayInit, (SUBR)ChebyshevPolynomial2Array },
    { "pdclip", S(PD_CLIP), 0,  "a", "akkop", NULL, (SUBR)PDClip },
    { "pdhalf", S(PD_HALF), 0,  "a", "akop", NULL, (SUBR)PDHalfX },
    { "pdhalfy", S(PD_HALF), 0,  "a", "akop", NULL, (SUBR)PDHalfY },

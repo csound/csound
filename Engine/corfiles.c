@@ -155,12 +155,12 @@ void corfile_ungetc(CORFIL *f)
     --f->p;
 }
 
-MYFLT corfile_get_flt(CORFIL *f)
+cs_float corfile_get_flt(CORFIL *f)
 {
     int32_t n = f->p;
-    MYFLT ans;
+    cs_float ans;
     while (!isspace(f->body[(int)(++f->p)]));
-    ans = (MYFLT) atof(&f->body[n]);
+    ans = (cs_float) atof(&f->body[n]);
     return ans;
 }
 
@@ -195,7 +195,7 @@ void corfile_seek(CORFIL *f, int32_t n, int32_t dir)
     else if (dir == SEEK_CUR) f->p += n;
     else if (dir == SEEK_END) f->p = (int32_t)  strlen(f->body)-n;
     if (UNLIKELY(f->p > strlen(f->body))) {
-      printf("INTERNAL ERROR: Corfile seek out of range\n");
+      printf(Str("INTERNAL ERROR: Corfile seek out of range\n"));
       exit(1);
     }
 }
@@ -255,7 +255,7 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
     corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
     if (fromScore) corfile_flush(csound, mm);
-    csoundFileClose(csound, fd);
+    csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
     //if (fromScore) printf("Copy is >>%s<<\n", mm->body);
     return mm;
 }
@@ -354,4 +354,3 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int32_t fromScore)
 }
 
 #endif
-

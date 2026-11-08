@@ -44,34 +44,11 @@
 #  define PUBLIC_DATA
 #endif
 
-#if defined(MSVC)
-#  include <intrin.h> /* for _InterlockedExchange */
-#endif
-
-#if defined(__MACH__)
-// on OSX 10.6 i386 does not have all builtins
-#if defined(MAC_OS_X_VERSION_10_6)
-#ifdef HAVE_ATOMIC_BUILTIN
-#ifndef __x86_64__
-#undef HAVE_ATOMIC_BUILTIN
-#endif
-#endif
-#endif
-#endif
-
 // FOR ANDROID
 #ifdef SWIG
 #define CS_PRINTF2
 #define CS_PRINTF3
-#include "float-version.h"
-#ifndef __MYFLT_DEF
-#define __MYFLT_DEF
-#ifndef USE_DOUBLE
-#define MYFLT float
-#else
-#define MYFLT double
-#endif
-#endif
+#include "csound_types.h"
 #else
 #  include <stdint.h>
 #  include "sysdep.h"
@@ -126,6 +103,8 @@ extern "C" {
      DEBUG_OPCODES = 0x80,
      /* parcs messages. */
      DEBUG_PARCS = 0x100,
+     /* normalized optimizer trees, templates and counters (explicit opt-in). */
+     DEBUG_OPTIMIZER = 0x200,
      /* all messages. */
      DEBUG_FULL = 0x7FFFFFFF
    } DEBUG_STATUS;
@@ -210,11 +189,11 @@ extern "C" {
     /* GEN01 defer allocation flag */
     int32_t     gen01defer;
     /* tempo value (-t)  */
-    double      cmdTempo;
+    cs_double      cmdTempo;
     /* sampling rate override (-r) */
-    MYFLT       sr_override;
+    cs_float       sr_override;
     /* control rate override (-k) */
-    MYFLT       kr_override;
+    cs_float       kr_override;
     /* nchnls override */
     int32_t     nchnls_override;
     /* nchnls_i override */
@@ -260,11 +239,11 @@ extern "C" {
     /* realtime priority flag */
     int32_t     realtime;
     /* 0dbfs override */
-    MYFLT       e0dbfs_override;
+    cs_float       e0dbfs_override;
     /* daemon mode flag */
     int32_t     daemon;
     /* OGG encoding quality */
-    double      quality;
+    cs_double      quality;
     /* ksmps override */
     int32_t     ksmps_override;
     /* FFT library option */
@@ -272,17 +251,21 @@ extern "C" {
     /* UDP echo commands flag */
     int32_t     echo;
     /* audio output limiter option */
-    MYFLT       limiter;
+    cs_float       limiter;
     /* default sampling rate */
-    MYFLT       sr_default;
+    cs_float       sr_default;
     /* default control rate */
-    MYFLT       kr_default;
+    cs_float       kr_default;
     /* MP3 encoding mode  */
     int32_t     mp3_mode;
     /* instr redefinition flag */
     int32_t     redef;
     /* error on deprecated opcodes */
     int32_t     error_deprecated;
+    /* UDO recursion depth */
+    int32_t     recursion_depth;
+    /* suppress deprecated opcode/feature warnings */
+    int32_t     no_deprecated_warnings;
   } OPARMS;
 
   /**
@@ -359,9 +342,9 @@ extern "C" {
    */
   typedef struct controlChannelHints_s {
     controlChannelBehavior    behav;
-    MYFLT   dflt;
-    MYFLT   min;
-    MYFLT   max;
+    cs_float   dflt;
+    cs_float   min;
+    cs_float   max;
     int32_t x;
     int32_t y;
     int32_t width;
@@ -380,6 +363,8 @@ extern "C" {
                                     const char *channelName,
                                     void *channelValuePtr,
                                     const void *channelType);
+
+  typedef struct oentry OENTRY;
   /**
      Event Types
   */
@@ -389,6 +374,9 @@ extern "C" {
     CS_END_EVENT,
     CS_ADV_EVENT
   };
+
+  typedef struct cstype CS_TYPE;
+  typedef struct csvarmem CS_VAR_MEM;
 
 #ifndef CSOUND_CSDL_H
   /** @defgroup INSTANTIATION Instantiation
@@ -434,17 +422,22 @@ extern "C" {
   /**
    * Returns the number of audio sample frames per second.
    */
-  PUBLIC MYFLT csoundGetSr(CSOUND *) ;
+  PUBLIC cs_float csoundGetSr(CSOUND *) ;
 
   /**
    * Returns the number of control samples per second.
    */
-  PUBLIC MYFLT csoundGetKr(CSOUND *);
+  PUBLIC cs_float csoundGetKr(CSOUND *);
 
   /**
    * Returns the audio vector size in frames (= sr/kr)
    */
   PUBLIC uint32_t csoundGetKsmps(CSOUND *);
+
+  /**
+   * Returns the current k-cycle count in control frames
+   */
+  PUBLIC uint64_t csoundGetKcounter(CSOUND *csound);
 
   /**
    * Returns the number of audio channels in the Csound instance.
@@ -457,12 +450,12 @@ extern "C" {
   /**
    * Returns the 0dBFS level of the spin/spout buffers.
    */
-  PUBLIC MYFLT csoundGet0dBFS(CSOUND *);
+  PUBLIC cs_float csoundGet0dBFS(CSOUND *);
 
   /**
    * Returns the A4 frequency reference
    */
-  PUBLIC MYFLT csoundGetA4(CSOUND *);
+  PUBLIC cs_float csoundGetA4(CSOUND *);
 
   /**
    * Return the current performance time in sample frames
@@ -470,8 +463,14 @@ extern "C" {
   PUBLIC int64_t csoundGetCurrentTimeSamples(CSOUND *csound);
 
   /**
-   * Return the size of MYFLT in bytes.
+   * Return the size of cs_float in bytes.
    */
+  PUBLIC int32_t csoundGetSizeOfCsFloat(void);
+
+  /** Return the size of cs_double in bytes. */
+  PUBLIC int32_t csoundGetSizeOfCsDouble(void);
+
+  /** CS7 compatibility name; use csoundGetSizeOfCsFloat in new code. */
   PUBLIC int32_t csoundGetSizeOfMYFLT(void);
 
   /**
@@ -503,6 +502,10 @@ extern "C" {
    * or delete variable if 'value' is NULL.
    * It is not safe to call this function while any Csound instances
    * are active.
+   * An instance copies these when it is created and at csoundReset().
+   * Setting CSOUND7RC to "" before csoundCreate() stops an instance reading
+   * any rc file, .csound7rc in the working directory included. Those files
+   * take any option, --opcode-lib among them.
    * Returns zero on success.
    */
   PUBLIC int32_t csoundSetGlobalEnv(const char *name, const char *value);
@@ -510,7 +513,8 @@ extern "C" {
   /**
    * Set csound options (flag). Returns CSOUND_SUCCESS on success.
    * This needs to be called after csoundCreate() and before any code is
-   * compiled. Multiple options are allowed in one string.
+   * compiled. Multiple options are allowed in one string. An empty string,
+   * or one of spaces alone, sets nothing; NULL is refused.
    * Returns zero on success.
    */
   PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *option);
@@ -537,14 +541,14 @@ extern "C" {
    * If val > 0, sets the internal variable holding the system HW sr.
    * Returns the stored value containing the system HW sr.
    */
-  PUBLIC MYFLT csoundSystemSr(CSOUND *csound, MYFLT val);
+  PUBLIC cs_float csoundSystemSr(CSOUND *csound, cs_float val);
 
 
   /**
-   * retrieves a module name and type ("audio" or "midi") given a
+   * Retrieves a module name and type ("audio" or "midi") given a
    * number Modules are added to list as csound loads them returns
    * CSOUND_SUCCESS on success and CSOUND_ERROR if module number
-   * was not found
+   * was not found. The first call may load the default modules.
    *
    * \code
    *  char *name, *type;
@@ -564,6 +568,11 @@ extern "C" {
    * (isOutput=1 for out devices, 0 for in devices).
    * If list is non-NULL, then it should contain enough memory for
    * one CS_AUDIODEVICE structure per device.
+   * Each count call describes the size for the immediately following fill
+   * call. Callers should complete that fill before requesting another count
+   * for the same direction. A backend may return the same count for a
+   * repeated count while the previous count is pending, so every fill
+   * remains bounded by the count its caller received.
    * Hosts will typically call this function twice: first to obtain
    * a number of devices, then, after allocating space for each
    * device information structure, pass an array of CS_AUDIODEVICE
@@ -617,6 +626,8 @@ extern "C" {
    * Compiles Csound input files (such as an orchestra and score, or CSD)
    * as directed by the supplied command-line arguments,
    * but does not perform them. Returns a non-zero error code on failure.
+   * An exact "--" ends Csound option parsing; following arguments are copied
+   * into the application argument list exposed by the argv opcode and API.
    * In this mode, the sequence of calls should be as follows:
    * /code
    *       csoundCompile(csound, argc, argv);
@@ -628,9 +639,29 @@ extern "C" {
   PUBLIC int32_t csoundCompile(CSOUND *, int32_t argc, const char **argv);
 
   /**
+   * Replace the application arguments exposed to the orchestra. Arguments
+   * passed after "--" to csoundCompile() are stored through this API.
+   * The strings are copied and remain valid until they are replaced or the
+   * Csound instance is reset. Pass zero arguments to clear the list.
+   */
+  PUBLIC int32_t csoundSetCommandLineArgs(CSOUND *csound, int32_t argc,
+                                          const char **argv);
+
+  /** Return the number of application arguments exposed to the orchestra. */
+  PUBLIC int32_t csoundGetCommandLineArgCount(CSOUND *csound);
+
+  /**
+   * Return an application argument by zero-based index, or NULL when the
+   * index is outside the current argument list.
+   */
+  PUBLIC const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index);
+
+  /**
    * Parse, and compile the given orchestra from an ASCII string,
    * also evaluating any global space code (i-time only)
    * in synchronous or asynchronous (async = 1) mode.
+   * Parsing and compilation run on the caller; async mode queues the merge.
+   * Returns an error if the async queue cannot accept the compiled state.
    * /code
    *       char *orc = "instr 1 \n a1 rand 0dbfs/4 \n out a1 \n";
    *       csoundCompileOrc(csound, orc, 0);
@@ -647,12 +678,12 @@ extern "C" {
    *       char *code =
    *           "i1 = 2 + 2 \n"
    *           "return i1 \n";
-   *       MYFLT retval = csoundEvalCode(csound, code);
+   *       cs_float retval = csoundEvalCode(csound, code);
    * /endcode
    *   If the code fails to evaluate, the return value is always 0.
    *
    */
-  PUBLIC MYFLT csoundEvalCode(CSOUND *csound, const char *str);
+  PUBLIC cs_float csoundEvalCode(CSOUND *csound, const char *str);
 
   /**
    * Compiles a Csound input file (CSD, .csd file) or a tx string
@@ -665,10 +696,10 @@ extern "C" {
    * as it is done by csoundEventString())
    * \code
    *
-   * csoundSetOption("-an_option");
-   * csoundSetOption("-another_option");
+   * csoundSetOption(csound, "-an_option");
+   * csoundSetOption(csound, "-another_option");
    * csoundStart(csound);
-   * csoundCompileCSD(csound, csd_filename, 0);
+   * csoundCompileCSD(csound, csd_filename, 0, 0);
    * while (1) {
    *    csoundPerformKsmps(csound);
    *    // Something to break out of the loop
@@ -686,7 +717,7 @@ extern "C" {
    *
    * \code
    *
-   * csoundCompileCSD(csound, csd_filename, 0);
+   * csoundCompileCSD(csound, csd_filename, 0, 0);
    * csoundStart(csound);
    * while (1) {
    *    int32_t finished = csoundPerformKsmps(csound);
@@ -718,10 +749,16 @@ extern "C" {
   /**
    * Senses input events, and performs one block of
    * audio output containing ksmps frames. csoundStart() must be called first.
-   * Returns false during performance, and true when performance is finished.
-   * If called until it returns true, will perform an entire score.
+   * Returns zero during performance, a positive value when performance has
+   * finished, or a negative value on error. Call until it returns nonzero
+   * to perform an entire score.
    * Enables external software to control the execution of Csound,
    * and to synchronize performance with audio input and output.
+   *
+   * Use one performance thread per Csound instance. Do not re-enter performance
+   * from a Csound callback or overlap it with another performance call.
+   * Calls during an active render interval return CSOUND_ERROR. This check
+   * does not serialize concurrent callers; the host must prevent overlap.
    */
   PUBLIC int32_t  csoundPerformKsmps(CSOUND *);
 
@@ -751,14 +788,14 @@ extern "C" {
    * Enables external software to write audio into Csound before calling
    * csoundPerformKsmps.
    */
-  PUBLIC MYFLT *csoundGetSpin(CSOUND *);
+  PUBLIC cs_float *csoundGetSpin(CSOUND *);
 
   /**
    * Returns the address of the Csound audio output working buffer (spout).
    * Enables external software to read audio from Csound after calling
    * csoundPerformKsmps.
    */
-  PUBLIC const MYFLT *csoundGetSpout(CSOUND *csound);
+  PUBLIC const cs_float *csoundGetSpout(CSOUND *csound);
 
   /** @}*/
 
@@ -767,18 +804,20 @@ extern "C" {
    *
    *  @{ */
   /**
-   * Displays an informational message.
+   * Displays an informational message exactly as formatted, without adding
+   * a newline. Calls may supply fragments of a line.
    */
   PUBLIC CS_PRINTF2 void csoundMessage(CSOUND *, const char *format, ...);
 
   /**
    * Print message with special attributes (see msg_attr.h for the list of
    * available attributes). With attr=0, csoundMessageS() is identical to
-   * csoundMessage().
+   * csoundMessage(). No newline is added.
    */
   PUBLIC CS_PRINTF3 void csoundMessageS(CSOUND *,int32_t attr, const char *format,
                                         ...);
 
+  /** The va_list form of csoundMessageS(), with the same newline behavior. */
   PUBLIC void csoundMessageV(CSOUND *, int32_t attr, const char *format,
                              va_list args);
 
@@ -856,9 +895,9 @@ extern "C" {
    * creating the channel first if it does not exist yet.
    * 'type' must be the bitwise OR of exactly one of the following values,
    *   CSOUND_CONTROL_CHANNEL
-   *     control data (one MYFLT value) - (MYFLYT **) pp
+   *     control data (one cs_float value) - (MYFLYT **) pp
    *   CSOUND_AUDIO_CHANNEL
-   *     audio data (csoundGetKsmps(csound) MYFLT values) -(MYFLYT **) pp
+   *     audio data (csoundGetKsmps(csound) cs_float values) -(MYFLYT **) pp
    *   CSOUND_STRING_CHANNEL
    *     string data as a STRINGDAT structure - (STRINGDAT **) pp
    *    (see csoundGetStringData() and csoundSetStringData())
@@ -870,6 +909,8 @@ extern "C" {
    *     pvs data as a PVSDATEXT structure - (PVSDAT **) pp
    *    (see csoundPvsData***(), csoundSetPvsData(),
    *     csoundGetPvsData(), and csoundInitPvsData())
+   *    CSOUND_VAR_CHANNEL
+   *       generic variable channel (pre-existing only)
    * and at least one of these:
    *   CSOUND_INPUT_CHANNEL
    *   CSOUND_OUTPUT_CHANNEL
@@ -900,18 +941,26 @@ extern "C" {
    * See Top/threadsafe.c in the Csound library sources for
    * examples.  Optionally, use the channel get/set functions
    * provided below, which are threadsafe by default.
+   * NB: this function cannot be used to create a generic CSOUND_VAR_CHANNEL
+   *     but it can access existing channels of that type
    */
   PUBLIC int32_t csoundGetChannelPtr(CSOUND *,
                                  void **p, const char *name, int32_t type);
 
   /**
-   *  Returns the var type for a channel name or NULL if the channel
+   *  Returns the var type name for a channel name or NULL if the channel
    *  was not found.
-   *  Currently supported channel var types are 'k' (control), 'a' (audio),
-   *  'S' (string), 'f' (pvs), and '[' (array).
    */
   PUBLIC const char *csoundGetChannelVarTypeName(CSOUND *csound,
                                              const char *name);
+
+
+  /**
+   *  Returns the var type for a channel name or NULL if the channel
+   *  was not found.
+   */
+  PUBLIC const CS_TYPE *csoundGetChannelVarType(CSOUND *csound,
+                                                const char *name); 
 
   /**
    * Returns a list of allocated channels in *lst. A controlChannelInfo_t
@@ -921,7 +970,8 @@ extern "C" {
    * the list. In the case of no channels or an error, *lst is set to NULL.
    * Notes: the caller is responsible for freeing the list returned in *lst
    * with csoundDeleteChannelList(). The name pointers may become invalid
-   * after calling csoundReset().
+   * after calling csoundReset(). Hints attributes belong to the returned
+   * list and remain valid until csoundDeleteChannelList().
    */
   PUBLIC int32_t csoundListChannels(CSOUND *, controlChannelInfo_t **lst);
 
@@ -943,19 +993,28 @@ extern "C" {
                                           controlChannelHints_t hints);
 
   /**
-   * Returns special parameters (assuming there are any) of a control channel,
-   * previously set with csoundSetControlChannelHints() or the chnparams
-   * opcode.
-   * If the channel exists, is a control channel, the channel hints
-   * are stored in the preallocated controlChannelHints_t structure. The
-   * attributes member of the structure will be allocated inside this function
-   * so it is necessary to free it explicitly in the host.
+   * Copies a control channel's hints, previously set with
+   * csoundSetControlChannelHints() or the chn_k opcode, into *hints.
+   * The caller supplies the controlChannelHints_t structure and releases
+   * its attributes with csoundDeleteControlChannelHints(). These attributes
+   * use Csound's allocator, so they must not be passed to free(). Release
+   * them before resetting or destroying the Csound instance.
    *
-   * The return value is zero if the channel exists and is a control
-   * channel, otherwise, an error code is returned.
+   * Returns CSOUND_SUCCESS on success. Returns CSOUND_ERROR and leaves
+   * *hints unchanged if the name is NULL, the channel does not exist,
+   * is not a control channel, or has no hints.
    */
   PUBLIC int32_t csoundGetControlChannelHints(CSOUND *, const char *name,
                                           controlChannelHints_t *hints);
+
+  /**
+   * Releases attributes returned by csoundGetControlChannelHints() using
+   * the same Csound instance, and sets hints->attributes to NULL.
+   * The caller owns the hints structure; this function does not free it.
+   * Calling it again after the attributes have been released is harmless.
+   */
+  PUBLIC void csoundDeleteControlChannelHints(CSOUND *csound,
+                                             controlChannelHints_t *hints);
 
   /**
    * locks access to the channel allowing access to data in
@@ -969,33 +1028,67 @@ extern "C" {
    **/
   PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
 
+
+  /**
+   * Copies a value from a source variable memory block into a channel.
+   * This is a low-level type-system API intended for an already initialized
+   * CS_VAR_MEM block; it does not allocate or initialize source storage.
+   * The source and destination CS_VAR_MEM types must match. The source must
+   * contain enough initialized storage for its declared type; see
+   * csound_type_system.h for the CS_VAR_MEM definition and layout macros.
+   * Returns CSOUND_SUCCESS on success and CSOUND_ERROR for invalid input,
+   * missing channels, invalid channel storage, or type mismatches.
+   * Writes to the destination channel are serialized. If the source is live
+   * engine-owned storage, the caller must separately synchronize access to
+   * it. A type's copyValue function may allocate memory while the channel is
+   * locked. This function is not suitable for a real-time thread, and a host
+   * should avoid managed-value writes while a performance thread uses the
+   * same channel. copyValue is invoked without an instrument context.
+   */
+  PUBLIC int32_t csoundSetChannel(CSOUND *csound, const char *name,
+                                  const CS_VAR_MEM *var);
+
+  /**
+   * Returns a read-only pointer to the engine-owned variable memory block for
+   * a channel, or NULL if the channel has no initialized storage. The caller
+   * must not free the returned pointer. It remains valid until csoundReset()
+   * or destruction of the Csound instance.
+   *
+   * Like csoundGetChannelPtr(), reading the live value is not inherently
+   * thread-safe and requires the channel lock when concurrent writes are
+   * possible, including when passing this pointer to csoundSetChannel(). See
+   * csound_type_system.h for the CS_VAR_MEM definition.
+   */
+  PUBLIC const CS_VAR_MEM *csoundGetChannel(CSOUND *csound,
+                                             const char *name);
+
   /**
    * retrieves the value of control channel identified by *name.
    * If the err argument is not NULL, the error (or success) code
    * finding or accessing the channel is stored in it.
    */
-  PUBLIC MYFLT csoundGetControlChannel(CSOUND *csound, const char *name,
+  PUBLIC cs_float csoundGetControlChannel(CSOUND *csound, const char *name,
                                        int32_t *err);
 
   /**
    * sets the value of control channel identified by *name
    */
   PUBLIC void csoundSetControlChannel(CSOUND *csound,
-                                      const char *name, MYFLT val);
+                                      const char *name, cs_float val);
 
   /**
    * copies the audio channel identified by *name into array
-   * *samples which should contain enough memory for ksmps MYFLTs
+   * *samples which should contain enough memory for ksmps cs_float values
    */
   PUBLIC void csoundGetAudioChannel(CSOUND *csound,
-                                    const char *name, MYFLT *samples);
+                                    const char *name, cs_float *samples);
 
   /**
    * sets the audio channel identified by *name with data from array
-   * *samples which should contain at least ksmps MYFLTs
+   * *samples which should contain at least ksmps cs_float values
    */
   PUBLIC void csoundSetAudioChannel(CSOUND *csound, const char *name,
-                                    const MYFLT *samples);
+                                    const cs_float *samples);
 
   /**
    * copies the string channel identified by *name into *string
@@ -1013,11 +1106,12 @@ extern "C" {
 
   /**
    * Create and initialise an array channel with a given array type
-   * - "a" (audio sigs): each item is a ksmps-size MYFLT array
-   * - "i" (init vars): each item is a MYFLT
+   * - "a" (audio sigs): each item is a ksmps-size cs_float array
+   * - "i" (init vars): each item is a cs_float
    * - "S" (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
-   * - "k" (control sigs): each item is a MYFLT
+   * - "k" (control sigs): each item is a cs_float
+   * - all other standard types are supported
    *  dimensions - number of array dimensions
    *  sizes - sizes for each dimension
    * returns the ARRAYDAT for the requested channel or NULL on error
@@ -1031,11 +1125,12 @@ extern "C" {
 
   /**
    * Get the type of data the ARRAYDAT adat, returning
-   * - "a" (audio sigs): each item is a ksmps-size MYFLT array
-   * - "i" (init vars): each item is a MYFLT
+   * - "a" (audio sigs): each item is a ksmps-size cs_float array
+   * - "i" (init vars): each item is a cs_float
    * - "S" (strings): each item is a STRINGDAT (see csoundGetStringData() and
    *   csoundSetStringData())
-   * - "k" (control sigs): each item is a MYFLT
+   * - "k" (control sigs): each item is a cs_float
+   * - other standard type names
    */
   PUBLIC const char *csoundArrayDataType(const ARRAYDAT *adat);
 
@@ -1051,9 +1146,13 @@ extern "C" {
 
 
   /**
-   * Set the data in the ARRAYDAT adat
+   * Set fixed-layout numeric data in ARRAYDAT adat.
+   *
+   * String, struct, and other managed element types are rejected because
+   * their values require CSOUND-aware type callbacks. Returns
+   * CSOUND_SUCCESS, or CSOUND_ERROR when the input or array is invalid.
    **/
-  PUBLIC void csoundSetArrayData(ARRAYDAT *adat, const void* data);
+  PUBLIC int32_t csoundSetArrayData(ARRAYDAT *adat, const void* data);
 
   /**
    * Get the data from the ARRAYDAT adat
@@ -1084,7 +1183,8 @@ extern "C" {
    * this function is a non-op.
    */
   PUBLIC PVSDAT *csoundInitPvsChannel(CSOUND *csound, const char* name,
-                                      int32_t size, int32_t overlap, int32_t winsize,
+                                      int32_t size, int32_t overlap,
+                                      int32_t winsize,
                                       int32_t wintype, int32_t format);
 
   /**
@@ -1123,6 +1223,22 @@ extern "C" {
   PUBLIC void csoundSetPvsData(PVSDAT *pvsdat, const float *frame);
 
   /**
+   * Copy pvsdat into a named PVS input channel.
+   * The source frame must hold N + 2 float values.
+   * Returns CSOUND_SUCCESS or CSOUND_ERROR if the channel or frame is invalid.
+   */
+  PUBLIC int32_t csoundSetPvsChannel(CSOUND *csound, const char *name,
+                                     const PVSDAT *pvsdat);
+
+  /**
+   * Copy a named PVS output channel into pvsdat.
+   * The destination frame must have space for N + 2 float values.
+   * Returns CSOUND_SUCCESS or CSOUND_ERROR if the channel or frame is invalid.
+   */
+  PUBLIC int32_t csoundGetPvsChannel(CSOUND *csound, const char *name,
+                                     PVSDAT *pvsdat);
+
+  /**
    * returns the size of data stored in a channel; for string channels
    * this might change if the channel space gets reallocated
    * Since string variables use dynamic memory allocation
@@ -1148,11 +1264,18 @@ extern "C" {
    * type 0 - instrument instance     CS_INSTR_EVENT
    * type 1 - function table instance CS_TABLE_EVENT
    * type 2 - end event               CS_END_EVENT
-   * event parameters is nparams MYFLT array with the event parameters (p-fields)
-   * optionally run asynchronously (async = 1)
+   * type 3 - score advance           CS_ADV_EVENT
+   * event parameters is nparams cs_float array with the event parameters (p-fields)
+   * optionally run asynchronously (async = 1).
+   * Async calls copy the parameters and return without waiting for queue space.
+   * Concurrent async API calls require a build with atomic operations. Without
+   * an atomic backend, async calls and performance calls must not overlap.
+   * If the queue cannot accept the request, no event is queued.
+   * Rejected async calls issue at most one warning per instance between resets.
    * NB: This is non-op before csoundStart() is called.
+   * csoundGetAsyncStatus() says whether an async request was queued.
    */
-  PUBLIC void  csoundEvent(CSOUND *, int32_t type, const MYFLT *params,
+  PUBLIC void  csoundEvent(CSOUND *, int32_t type, const cs_float *params,
                            int32_t nparams, int32_t async);
 
   /**
@@ -1165,9 +1288,32 @@ extern "C" {
    *
    * Multiple events separated by newlines are possible
    * and score preprocessing (carry, etc) is applied.
-   * optionally run asynchronously (async = 1)
+   * optionally run asynchronously (async = 1).
+   * Async calls copy the string and return without waiting for queue space.
+   * If the queue cannot accept the request, no events are queued.
+   * Rejected async calls issue at most one warning per instance between resets.
+   * csoundGetAsyncStatus() says whether an async request was queued.
    */
   PUBLIC void  csoundEventString(CSOUND *, const char *message, int32_t async);
+
+  /**
+   * The status of the last async request made by csoundEvent(),
+   * csoundEventString(), csoundTableCopyIn() or csoundTableCopyOut(), or of
+   * the score an async csoundCompileCSD() queues - one that queues none
+   * leaves it as it is: CSOUND_SUCCESS if the API
+   * queue took it, CSOUND_ERROR if it was dropped - the queue had no room for
+   * it, there was none yet (after csoundReset(), before csoundStart()), or
+   * the request was malformed (an unknown csoundEvent() type, a negative
+   * count). Success means queued, not yet run. Synchronous calls leave it as
+   * it is, and a reset sets it to CSOUND_SUCCESS.
+   * One status serves the instance, whichever thread makes the request -
+   * Csound's own included: its UDP server (--port) sends events, and a host
+   * callback may make requests on the performance thread. A host that makes
+   * async requests from several threads of its own pairs each with its check
+   * under a lock - one its message callback can take again, since a
+   * rejection's warning may reach that callback inside the rejected call.
+   */
+  PUBLIC int32_t csoundGetAsyncStatus(CSOUND *);
 
   /**
    * Get the instrument number for a given instrument name string
@@ -1178,16 +1324,64 @@ extern "C" {
 
   /**
    * Set the ASCII code of the most recent key pressed.
-   * This value is used by the 'sensekey' opcode if a callback
-   * for returning keyboard events is not set (see
+   * This value is used by keyboard input opcodes such as 'sensekey' and
+   * 'readline' if a callback for returning keyboard events is not set (see
    * csoundRegisterKeyboardCallback()).
    */
   PUBLIC void csoundKeyPress(CSOUND *, char c);
 
   /**
+   * Queue UTF-8 text for consumption by the readline opcode. A newline
+   * character completes the current line. Text may be queued before or
+   * during performance, allowing hosts without terminal input, such as
+   * Android and WebAssembly applications, to connect their own text input.
+   *
+   * Returns CSOUND_SUCCESS on success or CSOUND_ERROR if the arguments are
+   * invalid or the input queue does not have enough space for the full text.
+   */
+  PUBLIC int32_t csoundReadlinePushText(CSOUND *, const char *text);
+
+  /**
+   * Called when readline opens or closes a host input request. A non-NULL
+   * prompt opens the request (the string may be empty); NULL closes it.
+   * The prompt is UTF-8 and valid only for the duration of the callback.
+   * requestId identifies one line, not one opcode instance.
+   */
+  typedef void (*readlineCallback_t)(CSOUND *csound, void *userData,
+                                     uint32_t requestId, const char *prompt);
+
+  /**
+   * Select host input for readline and report prompt changes through callback.
+   * Set this before performance; pass NULL to restore terminal input.
+   * The callback and userData survive csoundReset(). Requests close on line
+   * completion, EOF, an error, instrument deinitialization, or reset.
+   * Each new line opens a new request, including in instruments started later.
+   *
+   * Called on the thread running Csound, including the audio thread. Do not
+   * block, call UI code, or re-enter Csound from it, except to submit a line
+   * with csoundReadlineSubmit(). Copy the prompt before returning if needed.
+   * Serialize this setter and submissions with Csound performance/reset.
+   */
+  PUBLIC void csoundSetReadlineCallback(CSOUND *, readlineCallback_t callback,
+                                        void *userData);
+
+  /**
+   * Submit one UTF-8 line to the current host request, appending its newline.
+   * Returns CSOUND_ERROR for a stale/closed request, queued input, insufficient
+   * queue space, or text containing control bytes other than tab. Empty text
+   * submits an empty line. On success the request closes immediately; the
+   * opcode consumes the line during subsequent control periods.
+   * Request IDs are nonzero and are not reused, even across csoundReset().
+   * Do not mix this API with keyboard input or csoundReadlinePushText() for
+   * the same line. Call from the performance thread or while it is suspended.
+   */
+  PUBLIC int32_t csoundReadlineSubmit(CSOUND *, uint32_t requestId,
+                                     const char *text);
+
+  /**
    * Registers general purpose callback functions that will be called to query
    * keyboard events. These callbacks are called on every control period by
-   * the sensekey opcode.
+   * opcodes that consume keyboard input.
    * The callback is preserved on csoundReset(), and multiple
    * callbacks may be set and will be called in reverse order of
    * registration. If the same function is set again, it is only moved
@@ -1252,7 +1446,7 @@ extern "C" {
    * -1 is returned.
    * NB: this function and the tablePtr returned are not threadsafe 
    */
-  PUBLIC int32_t csoundGetTable(CSOUND *, MYFLT **tablePtr, int32_t tableNum);
+  PUBLIC int32_t csoundGetTable(CSOUND *, cs_float **tablePtr, int32_t tableNum);
 
   /**
    * Stores pointer to the arguments used to generate
@@ -1264,7 +1458,7 @@ extern "C" {
    * its parameters. eg. f 1 0 1024 10 1 0.5  yields the list {10.0,1.0,0.5}
    * This function and the argsPtr returned are not threadsafe
    */
-  PUBLIC int32_t csoundGetTableArgs(CSOUND *csound, MYFLT **argsPtr,
+  PUBLIC int32_t csoundGetTableArgs(CSOUND *csound, cs_float **argsPtr,
 				    int32_t tableNum);
 
   /** 
@@ -1272,20 +1466,38 @@ extern "C" {
    * number given by table, which should exist in the engine.
    * The input array should be at least as long as the table
    * size plus one (guard point required).
-   * This function is threadsafe and can also be run asynchronously
+   * Does nothing if the table does not exist when the copy runs.
+   * Can also run asynchronously. In realtime mode, synchronous calls must not
+   * overlap performance, table changes or other host table copies; this path
+   * takes no mutex. For either mode, keep table storage valid until the copy
+   * completes.
+   * In async mode, keep the source buffer valid and unchanged until the copy
+   * runs. The queue stores its address, not a copy of its contents.
+   * If the queue cannot accept the request, the call returns without copying.
+   * Rejected async calls issue at most one warning per instance between resets.
+   * csoundGetAsyncStatus() says whether an async request was queued.
    */
   PUBLIC void csoundTableCopyIn(CSOUND *csound, int32_t table,
-				 const MYFLT *ptable, int32_t async);
+				 const cs_float *ptable, int32_t async);
 
 
    /** 
-   * Copies a function table number given by table, 
-   * which should exist in the engine, into the array ptable,
-   * and have enough space to accommodate the array size.
-   * This function is threadsafe and can also be run asynchronously
+   * Copies the function table given by table into the array ptable,
+   * excluding the guard point. The destination must have room for
+   * the full table length returned by csoundTableLength().
+   * Does nothing if the table does not exist when the copy runs.
+   * Can also run asynchronously. In realtime mode, synchronous calls must not
+   * overlap performance, table changes or other host table copies; this path
+   * takes no mutex. For either mode, keep table storage valid until the copy
+   * completes.
+   * In async mode, keep the destination buffer valid until the copy runs;
+   * do not read or write it concurrently with the copy.
+   * If the queue cannot accept the request, the call returns without copying.
+   * Rejected async calls issue at most one warning per instance between resets.
+   * csoundGetAsyncStatus() says whether an async request was queued.
    */
   PUBLIC void csoundTableCopyOut(CSOUND *csound, int32_t table,
-				MYFLT *ptable, int32_t async);
+				cs_float *ptable, int32_t async);
   
 
   /** @}*/
@@ -1297,7 +1509,7 @@ extern "C" {
    * Returns the current score time in seconds
    * since the beginning of performance.
    */
-  PUBLIC double csoundGetScoreTime(CSOUND *);
+  PUBLIC cs_double csoundGetScoreTime(CSOUND *);
 
   /**
    * Sets whether Csound score events are performed or not, independently
@@ -1319,7 +1531,7 @@ extern "C" {
    * Returns the score time beginning at which score events will
    * actually immediately be performed (see csoundSetScoreOffsetSeconds()).
    */
-  PUBLIC MYFLT csoundGetScoreOffsetSeconds(CSOUND *);
+  PUBLIC cs_float csoundGetScoreOffsetSeconds(CSOUND *);
 
   /**
    * Csound score events prior to the specified time are not performed, and
@@ -1330,7 +1542,7 @@ extern "C" {
    * for example to repeat a loop in a sequencer, or to synchronize
    * other events with the Csound score.
    */
-  PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *, MYFLT time);
+  PUBLIC void csoundSetScoreOffsetSeconds(CSOUND *, cs_float time);
 
   /**
    * Rewinds a compiled Csound score to the time specified with
@@ -1390,6 +1602,12 @@ extern "C" {
                                  int32_t (*init)(CSOUND *, void *),
                                  int32_t (*perf)(CSOUND *, void *),
                                  int32_t (*deinit)(CSOUND *, void *));
+
+  /** 
+   * Appends a list of opcodes given as OENTRY array of length lne
+   */
+  PUBLIC int32_t csoundAppendOpcodes(CSOUND *, const OENTRY *oplist, int32_t len);
+  
 
   /** @}*/
 #endif  /* !CSOUND_CSDL_H */

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test wrong annotation case"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
@@ -17,16 +23,12 @@ endop
 instr 1
 k1,k2 = Test:k(1)  // should select 2 outs
 if k1 != k2 then
-  event "i", 2, 0, 0
+  exitnowk(-1)
 else
   printk2 k1
   printk2 k2
 endif
 turnoff
-endin
-
-instr 2
-exitnow(-1)
 endin
 
 </CsInstruments>

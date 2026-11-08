@@ -22,20 +22,36 @@
 #endif
 #include "interlocks.h"
 
+#define TABMORPH_WEIGHT(x) \
+    ((x) < FL(0.0) ? FL(0.0) : ((x) > FL(1.0) ? FL(1.0) : (x)))
+
+/* Keep the usual cast/modulo path; reduce other values before conversion. */
+#define TABMORPH_INDEX(value, length, integer, fraction) do { \
+    cs_double tm_index = (cs_double)(value); \
+    if (UNLIKELY(!(tm_index >= 0.0 && tm_index < 2147483648.0))) { \
+      tm_index = fmod(tm_index, (cs_double)(length)); \
+      if (tm_index < 0.0) tm_index += (cs_double)(length); \
+      if (!(tm_index >= 0.0 && tm_index < (cs_double)(length))) tm_index = 0.0; \
+    } \
+    (integer) = (int32_t)tm_index; \
+    (fraction) = (cs_float)(tm_index - (integer)); \
+    (integer) %= (length); \
+} while (0)
+
 typedef struct {
         OPDS    h;
-        MYFLT   *out, *xindex, *xinterpoint, *xtabndx1, *xtabndx2,
+        cs_float   *out, *xindex, *xinterpoint, *xtabndx1, *xtabndx2,
                 *argums[VARGMAX];
-        MYFLT   *table[VARGMAX];
+        cs_float   *table[VARGMAX];
         int32_t     length;
         int64_t    numOfTabs;
 } TABMORPH;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *out, *xindex, *xinterpoint, *xtabndx1, *xtabndx2;
+    cs_float   *out, *xindex, *xinterpoint, *xtabndx1, *xtabndx2;
     ARRAYDAT *table_array;  // Array input
-    MYFLT   *table[VARGMAX];
+    cs_float   *table[VARGMAX];
     int32_t     length;
     int64_t    numOfTabs;
 } TABMORPH_ARR;
@@ -43,20 +59,25 @@ typedef struct {
 static int32_t tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
 {
     int32_t numOfTabs,j;
-    MYFLT **argp, *first_table = NULL;
+    cs_float **argp, *first_table = NULL;
 
     FUNC *ftp;
     int64_t flength = 0;
 
     numOfTabs = p->numOfTabs =((p->INOCOUNT-4)); /* count segs & alloc if nec */
+    if (UNLIKELY(numOfTabs < 1 || numOfTabs >= VARGMAX))
+      return csound->InitError(csound, "%s\n",
+                               Str("tabmorph: table count out of range"));
     argp = p->argums;
     for (j=0; j< numOfTabs; j++) {
       if (UNLIKELY((ftp = csound->FTFind(csound, *argp++)) == NULL))
-        return csound->InitError(csound, "%s", Str("tabmorph: invalid table number"));
+        return csound->InitError(csound, "%s\n", Str("tabmorph: invalid table number"));
+      if (UNLIKELY(ftp->flen == 0 || ftp->flen > INT32_MAX))
+        return csound->InitError(csound, "%s\n", Str("tabmorph: invalid table length"));
       if (UNLIKELY(ftp->flen != flength && flength  != 0))
         return
           csound->InitError(csound,
-                            "%s", Str("tabmorph: all tables must have the "
+                            "%s\n", Str("tabmorph: all tables must have the "
                                 "same length!"));
       flength = ftp->flen;
       if (j==0) first_table = ftp->ftable;
@@ -70,31 +91,28 @@ static int32_t tabmorph_set (CSOUND *csound, TABMORPH *p) /*Gab 13-March-2005 */
 static int32_t tabmorph(CSOUND *csound, TABMORPH *p)
 {
     IGN(csound);
-    MYFLT /* index, index_frac, */ tabndx1, tabndx2, tabndx1frac, tabndx2frac;
-    MYFLT tab1val1,tab1val2, tab2val1, tab2val2, interpoint, val1, val2;
+    cs_float /* index, index_frac, */ tabndx1, tabndx2, tabndx1frac, tabndx2frac;
+    cs_float tab1val1,tab1val2, tab2val1, tab2val2, interpoint, val1, val2;
     int64_t index_int;
     int32_t tabndx1int, tabndx2int;
-    index_int = (int32_t) *p->xindex % p->length;
+    cs_float index_frac;
+    TABMORPH_INDEX(*p->xindex, p->length, index_int, index_frac);
+    IGN(index_frac);
 
     tabndx1 = *p->xtabndx1;
-    tabndx1int = (int32_t) tabndx1;
-    tabndx1frac = tabndx1 - tabndx1int;
-    tabndx1int %= p->numOfTabs;
+    TABMORPH_INDEX(tabndx1, p->numOfTabs, tabndx1int, tabndx1frac);
     tab1val1 = (p->table[tabndx1int  ])[index_int];
     tab1val2 = (p->table[tabndx1int+1])[index_int];
     val1 = tab1val1 * (1-tabndx1frac) + tab1val2 * tabndx1frac;
 
     tabndx2 = *p->xtabndx2;
-    tabndx2int = (int32_t) tabndx2;
-    tabndx2frac = tabndx2 - tabndx2int;
-    tabndx2int %= p->numOfTabs;
+    TABMORPH_INDEX(tabndx2, p->numOfTabs, tabndx2int, tabndx2frac);
     tab2val1 = (p->table[tabndx2int  ])[index_int];
     tab2val2 = (p->table[tabndx2int+1])[index_int];
     val2 = tab2val1 * (1-tabndx2frac) + tab2val2 * tabndx2frac;
 
     interpoint = *p->xinterpoint;
-    interpoint = (interpoint < 0 ? 0 : (interpoint > 1.0 ? 1.0 : interpoint));
-    /* interpoint -= (int32_t) interpoint;  to limit to zero to 1 range */
+    interpoint = TABMORPH_WEIGHT(interpoint);
 
     *p->out = val1 * (1 - interpoint) + val2 * interpoint;
     return OK;
@@ -103,21 +121,17 @@ static int32_t tabmorph(CSOUND *csound, TABMORPH *p)
 static int32_t tabmorphi(CSOUND *csound, TABMORPH *p) /* interpolation */
 {
     IGN(csound);
-    MYFLT index, index_frac, tabndx1, tabndx2, tabndx1frac, tabndx2frac;
-    MYFLT tab1val1a,tab1val2a, tab2val1a, tab2val2a, interpoint, val1, val2;
-    MYFLT val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
+    cs_float index, index_frac, tabndx1, tabndx2, tabndx1frac, tabndx2frac;
+    cs_float tab1val1a,tab1val2a, tab2val1a, tab2val2a, interpoint, val1, val2;
+    cs_float val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
     int64_t index_int;
     int32_t tabndx1int, tabndx2int;
 
     index = *p->xindex;
-    index_int = (int32_t) index;
-    index_frac = index - index_int;
-    index_int %= p->length;
+    TABMORPH_INDEX(index, p->length, index_int, index_frac);
 
     tabndx1 = *p->xtabndx1;
-    tabndx1int = (int32_t) tabndx1;
-    tabndx1frac = tabndx1 - tabndx1int;
-    tabndx1int %= p->numOfTabs;
+    TABMORPH_INDEX(tabndx1, p->numOfTabs, tabndx1int, tabndx1frac);
 
     tab1val1a = (p->table[tabndx1int  ])[index_int];
     tab1val2a = (p->table[tabndx1int+1])[index_int];
@@ -130,9 +144,7 @@ static int32_t tabmorphi(CSOUND *csound, TABMORPH *p) /* interpolation */
     val1  = val1a + (val1b-val1a) * index_frac;
     /*--------------*/
     tabndx2 = *p->xtabndx2;
-    tabndx2int = (int32_t) tabndx2;
-    tabndx2frac = tabndx2 - tabndx2int;
-    tabndx2int %= p->numOfTabs;
+    TABMORPH_INDEX(tabndx2, p->numOfTabs, tabndx2int, tabndx2frac);
 
     tab2val1a = (p->table[tabndx2int  ])[index_int];
     tab2val2a = (p->table[tabndx2int+1])[index_int];
@@ -145,7 +157,7 @@ static int32_t tabmorphi(CSOUND *csound, TABMORPH *p) /* interpolation */
     val2  = val2a + (val2b-val2a) * index_frac;
 
     interpoint = *p->xinterpoint;
-    interpoint -= (int32_t) interpoint; /* to limit to zero to 1 range */
+    interpoint = TABMORPH_WEIGHT(interpoint);
 
     *p->out = val1 * (1 - interpoint) + val2 * interpoint;
     return OK;
@@ -159,31 +171,27 @@ static int32_t atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-ra
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t      tablen = p->length;
-    MYFLT *out = p->out;
-    MYFLT *index = p->xindex;
-    MYFLT *interpoint = p->xinterpoint;
-    MYFLT *tabndx1 = p->xtabndx1;
-    MYFLT *tabndx2 = p->xtabndx2;
+    cs_float *out = p->out;
+    cs_float *index = p->xindex;
+    const cs_float *interpoint = p->xinterpoint;
+    cs_float *tabndx1 = p->xtabndx1;
+    cs_float *tabndx2 = p->xtabndx2;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT index_frac,tabndx1frac, tabndx2frac;
-      MYFLT tab1val1a,tab1val2a, tab2val1a, tab2val2a, val1, val2;
-      MYFLT val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
+      cs_float index_frac,tabndx1frac, tabndx2frac;
+      cs_float tab1val1a,tab1val2a, tab2val1a, tab2val2a, val1, val2;
+      cs_float val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
       int64_t index_int;
       int32_t tabndx1int, tabndx2int;
-      MYFLT ndx = index[n] * tablen;
-      index_int = (int32_t) ndx;
-      index_frac = ndx - index_int;
-      index_int %= tablen;
+      cs_float ndx = index[n] * tablen;
+      TABMORPH_INDEX(ndx, tablen, index_int, index_frac);
 
-      tabndx1int = (int32_t) tabndx1[n];
-      tabndx1frac = tabndx1[n] - tabndx1int;
-      tabndx1int %= p->numOfTabs;
+      TABMORPH_INDEX(tabndx1[n], p->numOfTabs, tabndx1int, tabndx1frac);
 
       tab1val1a = (p->table[tabndx1int  ])[index_int];
       tab1val2a = (p->table[tabndx1int+1])[index_int];
@@ -196,9 +204,7 @@ static int32_t atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-ra
       val1  = val1a + (val1b-val1a) * index_frac;
       /*--------------*/
 
-      tabndx2int = (int32_t) tabndx2[n];
-      tabndx2frac = tabndx2[n] - tabndx2int;
-      tabndx2int %= p->numOfTabs;
+      TABMORPH_INDEX(tabndx2[n], p->numOfTabs, tabndx2int, tabndx2frac);
 
       tab2val1a = (p->table[tabndx2int  ])[index_int];
       tab2val2a = (p->table[tabndx2int+1])[index_int];
@@ -210,9 +216,9 @@ static int32_t atabmorphia(CSOUND *csound, TABMORPH *p) /* all arguments at a-ra
 
       val2  = val2a + (val2b-val2a) * index_frac;
 
-      interpoint[n] -= (int32_t) interpoint[n]; /* to limit to zero to 1 range */
+      cs_float weight = TABMORPH_WEIGHT(interpoint[n]);
 
-      out[n] = val1 * (1 - interpoint[n]) + val2 * interpoint[n];
+      out[n] = val1 * (1 - weight) + val2 * weight;
     }
     return OK;
 }
@@ -227,41 +233,35 @@ static int32_t atabmorphi(CSOUND *csound, TABMORPH *p)
     uint32_t n, nsmps = CS_KSMPS;
     int32_t      tablen = p->length;
 
-    MYFLT *out = p->out;
-    MYFLT *index;
-    MYFLT tabndx1, tabndx2, tabndx1frac, tabndx2frac, interpoint;
+    cs_float *out = p->out;
+    cs_float *index;
+    cs_float tabndx1, tabndx2, tabndx1frac, tabndx2frac, interpoint;
     int32_t tabndx1int, tabndx2int;
 
     tabndx1 = *p->xtabndx1;
-    tabndx1int = (int32_t) tabndx1;
-    tabndx1frac = tabndx1 - tabndx1int;
-    tabndx1int %= p->numOfTabs;
+    TABMORPH_INDEX(tabndx1, p->numOfTabs, tabndx1int, tabndx1frac);
     index = p->xindex;
 
 
     /*--------------*/
     tabndx2 = *p->xtabndx2;
-    tabndx2int = (int32_t) tabndx2;
-    tabndx2frac = tabndx2 - tabndx2int;
-    tabndx2int %= p->numOfTabs;
+    TABMORPH_INDEX(tabndx2, p->numOfTabs, tabndx2int, tabndx2frac);
 
     interpoint = *p->xinterpoint;
-    interpoint -= (int32_t) interpoint; /* to limit to zero to 1 range */
+    interpoint = TABMORPH_WEIGHT(interpoint);
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT index_frac, tab1val1a,tab1val2a, tab2val1a, tab2val2a, val1, val2;
-      MYFLT val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
+      cs_float index_frac, tab1val1a,tab1val2a, tab2val1a, tab2val2a, val1, val2;
+      cs_float val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
       int64_t index_int;
-      MYFLT ndx = index[n] * tablen;
+      cs_float ndx = index[n] * tablen;
 
-      index_int = (int32_t) ndx;
-      index_frac = ndx - index_int;
-      index_int %= tablen;
+      TABMORPH_INDEX(ndx, tablen, index_int, index_frac);
 
 
       tab1val1a = (p->table[tabndx1int  ])[index_int];
@@ -293,26 +293,30 @@ static int32_t atabmorphi(CSOUND *csound, TABMORPH *p)
 static int32_t tabmorph_set_array (CSOUND *csound, TABMORPH_ARR *p) /*Gab 13-March-2005 */
 {
     int32_t numOfTabs,j;
-    MYFLT *first_table = NULL;
+    cs_float *first_table = NULL;
     ARRAYDAT *arr = p->table_array;
     FUNC *ftp;
     int64_t flength = 0;
 
-    MYFLT *table_nums = (MYFLT*)arr->data;
+    if (UNLIKELY(arr->dimensions != 1 || arr->sizes == NULL || arr->data == NULL))
+      return csound->InitError(csound, "%s\n",
+                               Str("tabmorph: expected a one-dimensional table array"));
     numOfTabs = p->numOfTabs = arr->sizes[0];
-    for (j=0; j< numOfTabs; j++){
-        csound->Message(csound, "Table number: %f", arr->data[j]);
-    }
-    
-    
+    /* One extra pointer closes the interpolation interval at the last table. */
+    if (UNLIKELY(numOfTabs < 1 || numOfTabs >= VARGMAX))
+      return csound->InitError(csound, "%s\n",
+                               Str("tabmorph: table count out of range"));
+    cs_float *table_nums = arr->data;
     for (j=0; j< numOfTabs; j++) {
-        MYFLT table = table_nums[j];
+        cs_float table = table_nums[j];
         if (UNLIKELY((ftp = csound->FTFind(csound, &table)) == NULL))
-        return csound->InitError(csound, "%s", Str("tabmorph: invalid table number"));
+        return csound->InitError(csound, "%s\n", Str("tabmorph: invalid table number"));
+      if (UNLIKELY(ftp->flen == 0 || ftp->flen > INT32_MAX))
+        return csound->InitError(csound, "%s\n", Str("tabmorph: invalid table length"));
       if (UNLIKELY(ftp->flen != flength && flength  != 0))
         return
           csound->InitError(csound,
-                            "%s", Str("tabmorph: all tables must have the "
+                            "%s\n", Str("tabmorph: all tables must have the "
                                 "same length!"));
       flength = ftp->flen;
       if (j==0) first_table = ftp->ftable;
@@ -326,31 +330,28 @@ static int32_t tabmorph_set_array (CSOUND *csound, TABMORPH_ARR *p) /*Gab 13-Mar
 static int32_t tabmorph_array(CSOUND *csound, TABMORPH_ARR *p)
 {
     IGN(csound);
-    MYFLT /* index, index_frac, */ tabndx1, tabndx2, tabndx1frac, tabndx2frac;
-    MYFLT tab1val1,tab1val2, tab2val1, tab2val2, interpoint, val1, val2;
+    cs_float /* index, index_frac, */ tabndx1, tabndx2, tabndx1frac, tabndx2frac;
+    cs_float tab1val1,tab1val2, tab2val1, tab2val2, interpoint, val1, val2;
     int64_t index_int;
     int32_t tabndx1int, tabndx2int;
-    index_int = (int32_t) *p->xindex % p->length;
+    cs_float index_frac;
+    TABMORPH_INDEX(*p->xindex, p->length, index_int, index_frac);
+    IGN(index_frac);
 
     tabndx1 = *p->xtabndx1;
-    tabndx1int = (int32_t) tabndx1;
-    tabndx1frac = tabndx1 - tabndx1int;
-    tabndx1int %= p->numOfTabs;
+    TABMORPH_INDEX(tabndx1, p->numOfTabs, tabndx1int, tabndx1frac);
     tab1val1 = (p->table[tabndx1int  ])[index_int];
     tab1val2 = (p->table[tabndx1int+1])[index_int];
     val1 = tab1val1 * (1-tabndx1frac) + tab1val2 * tabndx1frac;
 
     tabndx2 = *p->xtabndx2;
-    tabndx2int = (int32_t) tabndx2;
-    tabndx2frac = tabndx2 - tabndx2int;
-    tabndx2int %= p->numOfTabs;
+    TABMORPH_INDEX(tabndx2, p->numOfTabs, tabndx2int, tabndx2frac);
     tab2val1 = (p->table[tabndx2int  ])[index_int];
     tab2val2 = (p->table[tabndx2int+1])[index_int];
     val2 = tab2val1 * (1-tabndx2frac) + tab2val2 * tabndx2frac;
 
     interpoint = *p->xinterpoint;
-    interpoint = (interpoint < 0 ? 0 : (interpoint > 1.0 ? 1.0 : interpoint));
-    /* interpoint -= (int32_t) interpoint;  to limit to zero to 1 range */
+    interpoint = TABMORPH_WEIGHT(interpoint);
 
     *p->out = val1 * (1 - interpoint) + val2 * interpoint;
     return OK;
@@ -359,21 +360,17 @@ static int32_t tabmorph_array(CSOUND *csound, TABMORPH_ARR *p)
 static int32_t tabmorphi_array(CSOUND *csound, TABMORPH_ARR *p) /* interpolation */
 {
     IGN(csound);
-    MYFLT index, index_frac, tabndx1, tabndx2, tabndx1frac, tabndx2frac;
-    MYFLT tab1val1a,tab1val2a, tab2val1a, tab2val2a, interpoint, val1, val2;
-    MYFLT val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
+    cs_float index, index_frac, tabndx1, tabndx2, tabndx1frac, tabndx2frac;
+    cs_float tab1val1a,tab1val2a, tab2val1a, tab2val2a, interpoint, val1, val2;
+    cs_float val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
     int64_t index_int;
     int32_t tabndx1int, tabndx2int;
 
     index = *p->xindex;
-    index_int = (int32_t) index;
-    index_frac = index - index_int;
-    index_int %= p->length;
+    TABMORPH_INDEX(index, p->length, index_int, index_frac);
 
     tabndx1 = *p->xtabndx1;
-    tabndx1int = (int32_t) tabndx1;
-    tabndx1frac = tabndx1 - tabndx1int;
-    tabndx1int %= p->numOfTabs;
+    TABMORPH_INDEX(tabndx1, p->numOfTabs, tabndx1int, tabndx1frac);
 
     tab1val1a = (p->table[tabndx1int  ])[index_int];
     tab1val2a = (p->table[tabndx1int+1])[index_int];
@@ -386,9 +383,7 @@ static int32_t tabmorphi_array(CSOUND *csound, TABMORPH_ARR *p) /* interpolation
     val1  = val1a + (val1b-val1a) * index_frac;
     /*--------------*/
     tabndx2 = *p->xtabndx2;
-    tabndx2int = (int32_t) tabndx2;
-    tabndx2frac = tabndx2 - tabndx2int;
-    tabndx2int %= p->numOfTabs;
+    TABMORPH_INDEX(tabndx2, p->numOfTabs, tabndx2int, tabndx2frac);
 
     tab2val1a = (p->table[tabndx2int  ])[index_int];
     tab2val2a = (p->table[tabndx2int+1])[index_int];
@@ -401,7 +396,7 @@ static int32_t tabmorphi_array(CSOUND *csound, TABMORPH_ARR *p) /* interpolation
     val2  = val2a + (val2b-val2a) * index_frac;
 
     interpoint = *p->xinterpoint;
-    interpoint -= (int32_t) interpoint; /* to limit to zero to 1 range */
+    interpoint = TABMORPH_WEIGHT(interpoint);
 
     *p->out = val1 * (1 - interpoint) + val2 * interpoint;
     return OK;
@@ -415,31 +410,27 @@ static int32_t atabmorphia_array(CSOUND *csound, TABMORPH_ARR *p) /* all argumen
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t      tablen = p->length;
-    MYFLT *out = p->out;
-    MYFLT *index = p->xindex;
-    MYFLT *interpoint = p->xinterpoint;
-    MYFLT *tabndx1 = p->xtabndx1;
-    MYFLT *tabndx2 = p->xtabndx2;
+    cs_float *out = p->out;
+    cs_float *index = p->xindex;
+    const cs_float *interpoint = p->xinterpoint;
+    cs_float *tabndx1 = p->xtabndx1;
+    cs_float *tabndx2 = p->xtabndx2;
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT index_frac,tabndx1frac, tabndx2frac;
-      MYFLT tab1val1a,tab1val2a, tab2val1a, tab2val2a, val1, val2;
-      MYFLT val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
+      cs_float index_frac,tabndx1frac, tabndx2frac;
+      cs_float tab1val1a,tab1val2a, tab2val1a, tab2val2a, val1, val2;
+      cs_float val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
       int64_t index_int;
       int32_t tabndx1int, tabndx2int;
-      MYFLT ndx = index[n] * tablen;
-      index_int = (int32_t) ndx;
-      index_frac = ndx - index_int;
-      index_int %= tablen;
+      cs_float ndx = index[n] * tablen;
+      TABMORPH_INDEX(ndx, tablen, index_int, index_frac);
 
-      tabndx1int = (int32_t) tabndx1[n];
-      tabndx1frac = tabndx1[n] - tabndx1int;
-      tabndx1int %= p->numOfTabs;
+      TABMORPH_INDEX(tabndx1[n], p->numOfTabs, tabndx1int, tabndx1frac);
 
       tab1val1a = (p->table[tabndx1int  ])[index_int];
       tab1val2a = (p->table[tabndx1int+1])[index_int];
@@ -452,9 +443,7 @@ static int32_t atabmorphia_array(CSOUND *csound, TABMORPH_ARR *p) /* all argumen
       val1  = val1a + (val1b-val1a) * index_frac;
       /*--------------*/
 
-      tabndx2int = (int32_t) tabndx2[n];
-      tabndx2frac = tabndx2[n] - tabndx2int;
-      tabndx2int %= p->numOfTabs;
+      TABMORPH_INDEX(tabndx2[n], p->numOfTabs, tabndx2int, tabndx2frac);
 
       tab2val1a = (p->table[tabndx2int  ])[index_int];
       tab2val2a = (p->table[tabndx2int+1])[index_int];
@@ -466,9 +455,9 @@ static int32_t atabmorphia_array(CSOUND *csound, TABMORPH_ARR *p) /* all argumen
 
       val2  = val2a + (val2b-val2a) * index_frac;
 
-      interpoint[n] -= (int32_t) interpoint[n]; /* to limit to zero to 1 range */
+      cs_float weight = TABMORPH_WEIGHT(interpoint[n]);
 
-      out[n] = val1 * (1 - interpoint[n]) + val2 * interpoint[n];
+      out[n] = val1 * (1 - weight) + val2 * weight;
     }
     return OK;
 }
@@ -483,41 +472,35 @@ static int32_t atabmorphi_array(CSOUND *csound, TABMORPH_ARR *p)
     uint32_t n, nsmps = CS_KSMPS;
     int32_t      tablen = p->length;
 
-    MYFLT *out = p->out;
-    MYFLT *index;
-    MYFLT tabndx1, tabndx2, tabndx1frac, tabndx2frac, interpoint;
+    cs_float *out = p->out;
+    cs_float *index;
+    cs_float tabndx1, tabndx2, tabndx1frac, tabndx2frac, interpoint;
     int32_t tabndx1int, tabndx2int;
 
     tabndx1 = *p->xtabndx1;
-    tabndx1int = (int32_t) tabndx1;
-    tabndx1frac = tabndx1 - tabndx1int;
-    tabndx1int %= p->numOfTabs;
+    TABMORPH_INDEX(tabndx1, p->numOfTabs, tabndx1int, tabndx1frac);
     index = p->xindex;
 
 
     /*--------------*/
     tabndx2 = *p->xtabndx2;
-    tabndx2int = (int32_t) tabndx2;
-    tabndx2frac = tabndx2 - tabndx2int;
-    tabndx2int %= p->numOfTabs;
+    TABMORPH_INDEX(tabndx2, p->numOfTabs, tabndx2int, tabndx2frac);
 
     interpoint = *p->xinterpoint;
-    interpoint -= (int32_t) interpoint; /* to limit to zero to 1 range */
+    interpoint = TABMORPH_WEIGHT(interpoint);
 
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT index_frac, tab1val1a,tab1val2a, tab2val1a, tab2val2a, val1, val2;
-      MYFLT val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
+      cs_float index_frac, tab1val1a,tab1val2a, tab2val1a, tab2val2a, val1, val2;
+      cs_float val1a, val2a, val1b, val2b, tab1val1b,tab1val2b, tab2val1b, tab2val2b;
       int64_t index_int;
-      MYFLT ndx = index[n] * tablen;
+      cs_float ndx = index[n] * tablen;
 
-      index_int = (int32_t) ndx;
-      index_frac = ndx - index_int;
-      index_int %= tablen;
+      TABMORPH_INDEX(ndx, tablen, index_int, index_frac);
 
 
       tab1val1a = (p->table[tabndx1int  ])[index_int];

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test using a-sig with array get/set syntax"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

@@ -1,3 +1,9 @@
+<CsTest>
+description = "UDO with f-sig arg"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -d  

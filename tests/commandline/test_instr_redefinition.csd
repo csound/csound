@@ -1,3 +1,9 @@
+<CsTest>
+description = "allow instr redefinition"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n --allow-redefinition

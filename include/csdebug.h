@@ -63,9 +63,9 @@
 
 typedef struct debug_instr_s {
     CS_VARIABLE *varPoolHead;
-    MYFLT *lclbas;
+    cs_float *lclbas;
     void *instrptr;
-    MYFLT p1, p2, p3;
+    cs_float p1, p2, p3;
     uint64_t kcounter;
     int32_t line;
     struct debug_instr_s *next;
@@ -85,6 +85,36 @@ typedef struct debug_variable_s {
     void *data;
     struct debug_variable_s *next;
 } debug_variable_t;
+
+/** Active UDO invocation frame (sub-instrument instance behind a UOPCODE call). */
+typedef struct debug_udo_frame_s {
+    const char *udoName;
+    int32_t callLine;
+    int32_t depth;
+    int32_t frameIndex;
+    debug_variable_t *varList;
+    struct debug_udo_frame_s *next;
+} debug_udo_frame_t;
+
+/** f-signal (PVSDAT) metadata, filled by csoundDebugSerializeFsig(). */
+typedef struct debug_fsig_info_s {
+    int32_t N;             /* FFT size */
+    int32_t NB;            /* number of bins = N/2 + 1 */
+    int32_t overlap;       /* hop size */
+    int32_t winsize;       /* analysis window size */
+    int32_t wintype;       /* window type */
+    int32_t format;        /* PVS analysis format (0 = PVS_AMP_FREQ) */
+    uint32_t framecount;   /* increments when a new analysis frame is ready */
+    int32_t sliding;       /* 1 = source frame is cs_float (sliding), 0 = float32 */
+} debug_fsig_info_t;
+
+/** Numeric array (ARRAYDAT) metadata, filled by csoundDebugSerializeArray(). */
+typedef struct debug_array_info_s {
+    int32_t dimensions;        /* number of array dimensions */
+    int32_t arrayMemberSize;   /* bytes per element */
+    int32_t totalElements;     /* total cs_float values in the flat data */
+    char elementTypeName[16];  /* element type name, e.g. "k", "a", "i" */
+} debug_array_info_t;
 
 typedef struct {
     debug_instr_t *breakpointInstr;
@@ -113,7 +143,7 @@ typedef enum {
 
 typedef struct bkpt_node_s {
     int32_t line; /* if line is < 0 breakpoint is for instrument instances */
-    MYFLT instr; /* instrument number (including fractional part */
+    cs_float instr; /* instrument number (including fractional part */
     int32_t skip; /* number of times to skip when arriving at the breakpoint */
     int32_t count; /* current backwards count for skip, when 0 break */
     bkpt_mode_t mode;
@@ -154,6 +184,22 @@ extern "C" {
  * see csoundSetBreakpointCallback() */
 typedef void (*breakpoint_cb_t) (CSOUND *, debug_bkpt_info_t *, void *userdata);
 
+/** Debug k-cycle callback function type
+ *
+ * Called after every k-cycle when the debugger is active (kperf_debug),
+ * after all instruments have run, before audio output is sent.
+ * Use csoundDebugGetInstrInstances() and csoundDebugGetVariables() inside
+ * the callback to inspect active instrument variables in real time.
+ * The callback must return quickly — it fires from within the performance
+ * loop.
+ *
+ * Unlike the breakpoint callback, this callback is non-stopping: Csound
+ * continues performance normally after the callback returns.
+ *
+ * Requires csoundDebuggerInit() to have been called first.
+ */
+typedef void (*debug_cb_t)(CSOUND *csound, void *userdata);
+
 typedef struct csdebug_data_s {
     void *bkpt_buffer; /* for passing breakpoints to the running engine */
     void *cmd_buffer;     /* for passing commands to the running engine */
@@ -177,8 +223,10 @@ typedef struct csdebug_data_s {
  * This call is not thread safe and must be called before performance starts.
  *
  * @param csound A Csound instance
+ *
+ * Returns CSOUND_ERROR on failure, CSOUND_SUCCESS on initialisation completed.
 */
-PUBLIC void csoundDebuggerInit(CSOUND *csound);
+PUBLIC int32_t csoundDebuggerInit(CSOUND *csound);
 
 /** Cleanup debugger facilities
  *
@@ -219,7 +267,7 @@ PUBLIC void csoundRemoveBreakpoint(CSOUND *csound, int32_t line, int32_t instr);
  * @param instr instrument number
  * @param skip number of control blocks to skip
  */
-PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int32_t skip);
+PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, cs_float instr, int32_t skip);
 
 /** Remove instrument breakpoint
  *
@@ -229,7 +277,7 @@ PUBLIC void csoundSetInstrumentBreakpoint(CSOUND *csound, MYFLT instr, int32_t s
  * This call is thread safe, as the breakpoint will be put in a lock free queue
  * that is processed as soon as possible in the kperf function.
  */
-PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, MYFLT instr);
+PUBLIC void csoundRemoveInstrumentBreakpoint(CSOUND *csound, cs_float instr);
 
 /** Clear all breakpoints
  *
@@ -292,7 +340,14 @@ PUBLIC debug_instr_t *csoundDebugGetInstrInstances(CSOUND *csound);
  */
 PUBLIC void csoundDebugFreeInstrInstances(CSOUND *csound, debug_instr_t *instr);
 
-/** Get list of variables for instrument */
+/** Get list of variables for an instrument or UDO instance
+ *
+ * For a top-level instrument this reads the instance pool. For a UDO
+ * instance (breakpointInstr when paused inside a UDO body, or a
+ * debug_instr_t built from that INSDS) typed pass-by-ref arguments are
+ * resolved onto the caller's storage; other locals still come from the
+ * instance pool.
+ */
 PUBLIC debug_variable_t *csoundDebugGetVariables(CSOUND *csound,
                                                  debug_instr_t *instr);
 
@@ -300,6 +355,128 @@ PUBLIC debug_variable_t *csoundDebugGetVariables(CSOUND *csound,
 PUBLIC void csoundDebugFreeVariables(CSOUND *csound,
                                      debug_variable_t *varHead);
 
+/** Get active UDO frames for one top-level instrument instance
+ *
+ * Walks the UOPCODE chain hung off the instrument's opcod_deact list and
+ * returns one entry per active UDO sub-instance (including nested/recursive
+ * frames at greater depth values). Each frame includes a variable list for
+ * that UDO body. Typed pass-by-ref arguments are resolved onto the caller's
+ * storage; other locals are read from the instance pool, matching
+ * csoundDebugGetVariables() on a UDO instance.
+ *
+ * callLine is the source line of the UDO call (from the call-site opcode).
+ * frameIndex orders sibling calls on the same parent (0 = head / most recent
+ * on the parent's opcod_deact chain).
+ *
+ * csoundDebugFreeUdoFrames() must be called when the list is no longer needed.
+ * Not thread-safe; call from the k-cycle callback or between k-cycles.
+ *
+ * truncatedOut (may be NULL) is set to 1 when the walk could not enumerate all
+ * active UDO frames (currently: saved-chain depth safety limit). When
+ * non-zero, the returned list may be incomplete.
+ */
+PUBLIC debug_udo_frame_t *csoundDebugGetUdoFrames(CSOUND *csound,
+                                                  debug_instr_t *instr,
+                                                  int32_t *truncatedOut);
+
+/** Free list from csoundDebugGetUdoFrames() */
+PUBLIC void csoundDebugFreeUdoFrames(CSOUND *csound,
+                                     debug_udo_frame_t *frameHead);
+
+
+/** Get the list of global variables (orchestra-wide symbols)
+ *
+ * Enumerates every variable in csound->engineState.varPool — the global pool
+ * holding gk*, ga*, gi*, gS*, gf*, global arrays, and Csound's internal
+ * globals (sr, kr, ksmps, ...). Returns a debug_variable_t linked list in the
+ * same format as csoundDebugGetVariables(): for scalar/audio/string types the
+ * data pointer is ready to read; for "f" it points to a PVSDAT and for "["
+ * to an ARRAYDAT (decode these with csoundDebugSerializeFsig() /
+ * csoundDebugSerializeArray()).
+ *
+ * Unlike instrument-local variables, each global has its own storage block,
+ * so the data pointers are taken from var->memBlock (not a shared lclbas).
+ *
+ * Returns NULL if the global pool is not available (before compilation).
+ * data pointers are borrowed; free the list with csoundDebugFreeVariables().
+ * Not thread-safe; call from the k-cycle callback or between k-cycles.
+ */
+PUBLIC debug_variable_t *csoundDebugGetGlobalVariables(CSOUND *csound);
+
+/** Serialize an f-signal (PVSDAT) analysis frame into a flat float buffer
+ *
+ * varData must point to a PVSDAT, as provided by csoundDebugGetVariables() or
+ * csoundDebugGetGlobalVariables() for a variable of type "f". The current
+ * analysis frame is written to outBuf as 2*NB interleaved float32 values
+ * (amp0, freq0, amp1, freq1, ...), regardless of whether the source frame is
+ * float32 (normal) or cs_float (sliding). For sliding analysis the most recent
+ * active sub-frame in the current ksmps block is used.
+ *
+ * localKsmps is the producer's current local ksmps (from the instrument or UDO
+ * instance that owns the f-signal). Pass 0 only when that producer is actually
+ * using the engine-global ksmps; otherwise pass the producer's current local
+ * ksmps, whether the producer is a UDO or a top-level instrument.
+ *
+ * infoOut (may be NULL) receives the frame metadata.
+ *
+ * Returns the total number of float values available (2*NB) and copies
+ * min(2*NB, bufMax) of them. Returns 0 (and sets NB=0) when the frame has not
+ * been allocated yet (frame.auxp == NULL, e.g. before the first analysis run)
+ * or on invalid input.
+ */
+PUBLIC int32_t csoundDebugSerializeFsig(CSOUND *csound, void *varData,
+                                        float *outBuf, int32_t bufMax,
+                                        debug_fsig_info_t *infoOut,
+                                        int32_t localKsmps);
+
+/** Serialize a numeric array (ARRAYDAT) into a flat cs_float buffer
+ *
+ * varData must point to an ARRAYDAT, as provided by csoundDebugGetVariables()
+ * or csoundDebugGetGlobalVariables() for a variable of type "[". The flat
+ * element data is copied to outBuf. Non-numeric arrays (e.g. S[] or f[])
+ * return 0 with elementTypeName set so the caller can skip them.
+ *
+ * infoOut (may be NULL) receives the array shape and element type.
+ *
+ * Returns the total number of cs_float values available and copies
+ * min(total, bufMax) of them. Returns 0 on invalid/empty input.
+ */
+PUBLIC int32_t csoundDebugSerializeArray(CSOUND *csound, void *varData,
+                                         cs_float *outBuf, int32_t bufMax,
+                                         debug_array_info_t *infoOut);
+
+
+/** Set a per-k-cycle debug callback
+ *
+ * Registers a function that will be called after every k-cycle when the
+ * debugger is active, once all active instrument instances have been
+ * processed and before the audio output buffer is sent. This provides a
+ * non-stopping hook into the debug performance loop suitable for real-time
+ * variable inspection.
+ *
+ * Requires csoundDebuggerInit() to have been called first — the callback
+ * only fires inside kperf_debug().
+ *
+ * Inside the callback, csoundDebugGetInstrInstances() and
+ * csoundDebugGetVariables() can be used to read the current state of all
+ * active instruments.
+ *
+ * Pass NULL for cb to remove a previously set callback.
+ *
+ * @param csound   Csound instance pointer
+ * @param cb       pointer to callback function (NULL to remove)
+ * @param userdata pointer to user data passed back to the callback
+ */
+PUBLIC void csoundSetDebugCallback(CSOUND *csound,
+                                   debug_cb_t cb, void *userdata);
+
+/** Remove the per-k-cycle debug callback
+ *
+ * Equivalent to calling csoundSetDebugCallback(csound, NULL, NULL).
+ *
+ * @param csound Csound instance pointer
+ */
+PUBLIC void csoundRemoveDebugCallback(CSOUND *csound);
 
 /**  @} */
 

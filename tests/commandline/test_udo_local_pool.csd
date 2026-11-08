@@ -1,3 +1,9 @@
+<CsTest>
+description = "test udos for separate local var pool"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

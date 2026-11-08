@@ -1,3 +1,9 @@
+<CsTest>
+description = "using named instrument from score (testing score strings)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>

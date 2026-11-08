@@ -49,15 +49,15 @@ typedef struct
 typedef struct
 {
     BaboMemory   core;
-    MYFLT       *input;
-    MYFLT         sr;
+    cs_float       *input;
+    cs_float         sr;
 } BaboDelay;
 
 typedef BaboDelay BaboTapline;
 
 typedef struct
 {
-    MYFLT   a0,
+    cs_float   a0,
             a1,
             z1,
             z2,
@@ -72,8 +72,8 @@ typedef struct
 
 typedef struct
 {
-    MYFLT    complementary_early_diffusion;
-    MYFLT    fdn[BABO_NODES][BABO_NODES];
+    cs_float    complementary_early_diffusion;
+    cs_float    fdn[BABO_NODES][BABO_NODES];
     BaboNode node[BABO_NODES] ;
 } BaboMatrix;
 
@@ -113,7 +113,7 @@ typedef struct
 {
     OPDS        h;                              /* defined in cs.h      */
                 /* output args          */
-    MYFLT       *outleft,*outright,
+    cs_float       *outleft,*outright,
                 /* start input args     */
                 *input,
                 *ksource_x,*ksource_y,*ksource_z,
@@ -123,10 +123,10 @@ typedef struct
                 *oexpert_values;
                 /* end input args       */
                 /* backward-logic optional args copy */
-    MYFLT       diffusion_coeff,
+    cs_float       diffusion_coeff,
                 expert_values;
                 /* internal values */
-    MYFLT       decay, hidecay,
+    cs_float       decay, hidecay,
                 receiver_x, receiver_y, receiver_z,
                 inter_receiver_distance,
                 direct,

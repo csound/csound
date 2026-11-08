@@ -24,6 +24,8 @@
 
 #include "csoundCore.h"
 #include "csound_standard_types.h"
+#include "arrays.h"
+#include "arrays_internal.h"
 #include "opcode.h"
 #include "udo.h"
 #include <ctype.h>
@@ -138,9 +140,8 @@ static int opcode_cmp_func(const void *a, const void *b) {
         ((opcodeListEntry *)lst)[cnt].intypes = s;
         s += ((int32_t)strlen(ep->intypes) + 1);
         ((opcodeListEntry *)lst)[cnt].flags = ep->flags;
-        ((opcodeListEntry *)lst)[cnt].deprecated = ep->deprecated;
-        // if (ep->flags&_QQ) printf("DEPRICATED: %s\n", ep->opname);
-        // if (ep->flags&_QQ) *deprec++;
+        ((opcodeListEntry *)lst)[cnt].deprecated =
+          ep->deprecated ? ep->deprecated : ((ep->flags & _QQ) ? 1 : 0);
         cnt++;
       }
       temp = temp->next;
@@ -234,13 +235,56 @@ void list_opcodes(CSOUND *csound, int32_t level) {
   csoundDisposeOpcodeList(csound, lst);
 }
 
+/* The type pool stores struct names as :Name; */
+static void print_type_name(CSOUND *csound, const char *name) {
+  size_t len = strlen(name);
+  if (len > 2 && name[0] == ':' && name[len - 1] == ';')
+    csound->Message(csound, "%.*s", (int)(len - 2), name + 1);
+  else
+    csound->Message(csound, "%s", name);
+}
+
+/* Print the user-defined types known to this Csound, in orchestra syntax */
+void list_structs(CSOUND *csound) {
+  const CS_TYPE_ITEM *item;
+  int32_t count = 0;
+
+  for (item = csound->typePool->head; item != NULL; item = item->next) {
+    const CS_TYPE *type = item->cstype;
+    const CONS_CELL *member;
+    if (!type->userDefinedType)
+      continue;
+    csound->Message(csound, "struct ");
+    print_type_name(csound, type->varTypeName);
+    csound->Message(csound, " ");
+    for (member = type->members; member != NULL; member = member->next) {
+      const CS_VARIABLE *var = (const CS_VARIABLE *)member->value;
+      csound->Message(csound, "%s:", var->varName);
+      if (var->varType == &CS_VAR_TYPE_ARRAY) {
+        int32_t dimensions = var->dimensions > 0 ? var->dimensions : 1;
+        print_type_name(csound, var->subType->varTypeName);
+        while (dimensions-- > 0)
+          csound->Message(csound, "[]");
+      } else {
+        print_type_name(csound, var->varType->varTypeName);
+      }
+      if (member->next != NULL)
+        csound->Message(csound, ", ");
+    }
+    csound->Message(csound, "\n");
+    count++;
+  }
+  csound->Message(csound, "\n");
+  csound->Message(csound, Str("%d structs\n\n"), count);
+}
+
 /**
  * Opcodes for OpcodeDef and Opcode types
  *
  **/
 struct oentries *find_opcode2(CSOUND *, char *);
 void *find_or_add_constant(CSOUND *csound, CS_HASH_TABLE *constantsPool,
-                           const char *name, MYFLT value);
+                           const char *name, cs_float value);
 
 /** exclude some names
  */
@@ -280,8 +324,8 @@ static int32_t check_oentry(OENTRY *ep) {
   else return 0;
 }
 
-CS_VARIABLE *add_global_variable(CSOUND *csound, CS_VAR_POOL *varPool, CS_TYPE *type,
-                               char *name, void *typeArg);
+CS_VARIABLE *add_global_variable(CSOUND *csound, CS_VAR_POOL *varPool, const CS_TYPE *type,
+                               char *name, const void *typeArg);
 
 /** This function takes an OENTRY and adds a corresponding
  *   OpcodeDef global var, if the variable does not exist.
@@ -308,17 +352,28 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep) {
       var = add_global_variable(csound, csound->engineState.varPool,
                                 (CS_TYPE *) type, varName, NULL);
     } else csound->Free(csound, varName);
-    if(var != NULL) {
+    /* A global of the orchestra's own with this name shadows the opcode: it
+       is not an opcode reference, and is not to be written as one. */
+    if(var != NULL && var->varType == type) {
       dest = (OPCODEREF *) &(var->memBlock->value);
       ref.entries = find_opcode2(csound, name);
       if(dest->entries == NULL ||
          dest->entries->count < ref.entries->count) {
+#ifdef CSOUND_WASI_REALTIME
+        /* The shallow copy outlives this parse, even if a later statement
+           fails verification. Keep temporary lookups scoped, but transfer
+           this published array to the engine's reset-time allocation list. */
+        csoundWasiReleaseAllocation(csound, ref.entries);
+#endif
         dest->readonly = 0;
         type->copyValue(csound, type, dest, &ref, NULL);
         dest->readonly = 1;  // mark it as readonly
       } else csound->Free(csound, ref.entries);
-    } else csound->Warning(csound, "could not create opcode ref for %s\n", name);
+    } else if (var == NULL)
+      csound->Warning(csound, Str("could not create opcode ref for %s\n"), name);
   }
+  if (name != ep->opname)
+    csound->Free(csound, name);
 }
 
 /**
@@ -328,15 +383,16 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep) {
  * Variables are initialised to the OENTRIES found.
  */
 void add_opcode_defs(CSOUND *csound) {
-  CONS_CELL *head, *item;
+  CONS_CELL *head, *item, *current;
   OENTRY *ep;
-  head = cs_hash_table_values(csound, csound->opcodes);
-  while (head != NULL) {
-     item = head->value;
+  head = current = cs_hash_table_values(csound, csound->opcodes);
+  while (current != NULL) {
+     item = current->value;
      ep = item->value;
      add_opcode_def(csound, ep);
-     head = head->next;
+     current = current->next;
   }
+  cs_cons_free(csound, head);
 }
 
 /**
@@ -349,7 +405,7 @@ int32_t opcode_ref(CSOUND *csound, ASSIGN *p) {
   STRINGDAT *str = (STRINGDAT *) p->a;
   if(find_opcode(csound, str->data))
     pp->entries = find_opcode2(csound, str->data);
-  else return csound->InitError(csound, "could not find opcode %s", str->data);
+  else return csound->InitError(csound, Str("could not find opcode %s\n"), str->data);
   return OK;
 }
 
@@ -361,12 +417,12 @@ int32_t opcode_ref(CSOUND *csound, ASSIGN *p) {
 int32_t opcode_info(CSOUND *csound, OPINFO *p) {
   OENTRY *ep = p->ref->entries->entries[0];
   int n, nep =  p->ref->entries->count;
-  csound->Message(csound, "%s: %d overloads\n",
+  csound->Message(csound, Str("%s: %d overloads\n"),
                   get_opcode_short_name(csound, ep->opname),
                   nep);
   for(n = 0; n < nep; n++) {
     ep = p->ref->entries->entries[n];
-    csound->Message(csound, "(%d)\t%s\tout-types: %s\tin-types: %s\n",
+    csound->Message(csound, Str("(%d)\t%s\tout-types: %s\tin-types: %s\n"),
                     n, ep->opname, ep->outypes, ep->intypes);
   }
   return OK;
@@ -377,8 +433,8 @@ int32_t opcode_info(CSOUND *csound, OPINFO *p) {
 /**
  * Set a constant (for optional arguments)
  */
-MYFLT *set_constant(CSOUND *csound, const char *name, MYFLT value) {
-  return (MYFLT *)
+static cs_float *set_constant(CSOUND *csound, const char *name, cs_float value) {
+  return (cs_float *)
     ((char *)find_or_add_constant(csound, csound->engineState.constantsPool,
                           name, value) + CS_VAR_TYPE_OFFSET);
 }
@@ -386,7 +442,7 @@ MYFLT *set_constant(CSOUND *csound, const char *name, MYFLT value) {
 /**
  * Check arg type directly or from types list
  */
-CS_TYPE *check_arg_type(void *arg, CS_TYPE **types, int32_t n) {
+static const CS_TYPE *check_arg_type(void *arg, const CS_TYPE **types, int32_t n) {
   if(types == NULL)
   return csoundGetTypeForArg(arg);
   else return types[n];
@@ -400,24 +456,24 @@ CS_TYPE *check_arg_type(void *arg, CS_TYPE **types, int32_t n) {
  * expects inargs to follow outargs + 1 skip (for obj arg)
  * returns an error if args do not match
  */
-int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
-                   CS_TYPE **cstypes, int32_t no, int32_t ni){
+static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *args[],
+                   const CS_TYPE **cstypes, int32_t no, int32_t ni){
   TEXT *t = &(obj->dataspace->optext->t);
   OENTRY *ep = t->oentry;
   char *opname = ep->opname;
   char *types;
-  CS_TYPE *argtype;
+  const CS_TYPE *argtype;
   int32_t n = 0, opt = 0;
   int32_t  len, i = 0;
-  MYFLT **outargs;
-  MYFLT **inargs;
+  cs_float **outargs;
+  cs_float **inargs;
   if(obj->udo_flag) {
     // udo args located at the end of udo struct
     UOPCODE *udo = (UOPCODE *) obj->dataspace;
     outargs = udo->ar;
   } else {
     // opcode args located after OPDS struct
-    outargs = (MYFLT **) (obj->dataspace + 1);
+    outargs = (cs_float **) (obj->dataspace + 1);
   }
   obj->outargp = outargs;
   // out args first
@@ -441,8 +497,8 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
           argtype = check_arg_type(args[n], cstypes, n);
           // if output arg exists, try to connect it
           if(argtype != &CS_VAR_TYPE_A) {
-            csound->Message(csound, "%s outarg %d, expected type: "
-                            "%s, got: %s\n", opname, i+1,CS_VAR_TYPE_A.varTypeName,
+            csound->Message(csound, Str("%s outarg %d, expected type: "
+                            "%s, got: %s\n"), opname, i+1,CS_VAR_TYPE_A.varTypeName,
                             argtype->varTypeName);
             return NOTOK;
           }
@@ -459,8 +515,8 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
           if(argtype != &CS_VAR_TYPE_K){
-            csound->Message(csound, "%s outarg %d, expected type: "
-                            "%s, got: %s\n", opname, i+1, CS_VAR_TYPE_K.varTypeName,
+            csound->Message(csound, Str("%s outarg %d, expected type: "
+                            "%s, got: %s\n"), opname, i+1, CS_VAR_TYPE_K.varTypeName,
                             argtype->varTypeName);
             return NOTOK;
           }
@@ -477,7 +533,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
           if(argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_S){
-            csound->Message(csound, "%s outarg %d, expected type: %s or %s, got: %s\n",
+            csound->Message(csound, Str("%s outarg %d, expected type: %s or %s, got: %s\n"),
                             opname, i+1, CS_VAR_TYPE_I.varTypeName, CS_VAR_TYPE_S.varTypeName,
                             argtype->varTypeName);
             return NOTOK;
@@ -497,8 +553,8 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
           if(argtype != &CS_VAR_TYPE_A && argtype != &CS_VAR_TYPE_K &&
              argtype != &CS_VAR_TYPE_I ){
             csound->Message(csound,
-                            "%s outarg %d, expected types: "
-                            "%s, %s, or %s, got: %s\n",
+                            Str("%s outarg %d, expected types: "
+                            "%s, %s, or %s, got: %s\n"),
                             opname, i+1, CS_VAR_TYPE_A.varTypeName,
                             CS_VAR_TYPE_K.varTypeName,
                             CS_VAR_TYPE_I.varTypeName, argtype->varTypeName);
@@ -517,8 +573,8 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
           if(argtype != &CS_VAR_TYPE_A && argtype != &CS_VAR_TYPE_K &&
              argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_S){
             csound->Message(csound,
-                            "%s outarg %d, expected types: "
-                            "%s, %s, %s, or %s, got: %s\n",
+                            Str("%s outarg %d, expected types: "
+                            "%s, %s, %s, or %s, got: %s\n"),
                             opname, i+1, CS_VAR_TYPE_A.varTypeName,
                             CS_VAR_TYPE_K.varTypeName,
                             CS_VAR_TYPE_I.varTypeName,
@@ -537,8 +593,8 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
           if(argtype != &CS_VAR_TYPE_F) {
-            csound->Message(csound, "%s outarg %d, expected type: "
-                            "%s, got: %s\n", opname, i+1, CS_VAR_TYPE_F.varTypeName,
+            csound->Message(csound, Str("%s outarg %d, expected type: "
+                            "%s, got: %s\n"), opname, i+1, CS_VAR_TYPE_F.varTypeName,
                             argtype->varTypeName);
             return NOTOK;
           }
@@ -557,14 +613,14 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       argtype = check_arg_type(args[n], cstypes, n);
       if(*(types+end+1) != '[' && strncmp(argtype->varTypeName,
                                           typeName, end) != 0) {
-        csound->Message(csound, "%s outarg %d, expect type: "
-                        "%s, got %s\n", opname, i+1, typeName,
+        csound->Message(csound, Str("%s outarg %d, expect type: "
+                        "%s, got %s\n"), opname, i+1, typeName,
                         argtype->varTypeName);
         return NOTOK;
       }
       if(*(types+end+1) == '[' &&
          argtype != &CS_VAR_TYPE_ARRAY){
-        csound->Message(csound, "%s outarg %d, expect array, got %s\n",
+        csound->Message(csound, Str("%s outarg %d, expect array, got %s\n"),
                         opname, i+1, typeName);
         return NOTOK;
       }
@@ -572,8 +628,8 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
         ARRAYDAT *arg = (ARRAYDAT *) args[n];
         const CS_TYPE *atyp = arg->arrayType;
         if(strncmp(atyp->varTypeName, argtype->varTypeName, 1) != 0) {
-          csound->Message(csound, "%s outarg %d, mismatching array subtype"
-                          " expected %s, got %s\n",
+          csound->Message(csound, Str("%s outarg %d, mismatching array subtype"
+                          " expected %s, got %s\n"),
                           opname, i+1, argtype->varTypeName, atyp->varTypeName);
           return NOTOK;
         }
@@ -587,13 +643,13 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
     argtype = check_arg_type(args[n], cstypes, n);
     if(*(types+1) != '[' &&
        strncmp(argtype->varTypeName, types, 1) != 0) {
-      csound->Message(csound, "%s outarg %d, expect type: "
-                      "%c, got %s\n", opname, i+1, *types, argtype->varTypeName);
+      csound->Message(csound, Str("%s outarg %d, expect type: "
+                      "%c, got %s\n"), opname, i+1, *types, argtype->varTypeName);
       return NOTOK;
     }
     if(*(types+1) == '[' &&
        argtype != &CS_VAR_TYPE_ARRAY){
-      csound->Message(csound, "%s outarg %d, expect array, got %c\n",
+      csound->Message(csound, Str("%s outarg %d, expect array, got %c\n"),
                       opname, i+1, *types);
       return NOTOK;
     }
@@ -601,8 +657,8 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       ARRAYDAT *arg = (ARRAYDAT *) args[n];
       const CS_TYPE *atyp = arg->arrayType;
       if(strncmp(atyp->varTypeName, types, 1) != 0) {
-        csound->Message(csound, "%s outarg %d, mismatching array subtype"
-                        " expected %c, got %s\n",
+        csound->Message(csound, Str("%s outarg %d, mismatching array subtype"
+                        " expected %c, got %s\n"),
                         opname, i+1, *types, atyp->varTypeName);
         return NOTOK;
       }
@@ -617,8 +673,8 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
   // n is the outarg count
   if(n != no) {
     // arg number mismatch?
-    csound->Message(csound, "%s outarg number mismatch, "
-                    "expected %d, got %d\n", opname, no, n);
+    csound->Message(csound, Str("%s outarg number mismatch, "
+                    "expected %d, got %d\n"), opname, no, n);
     return NOTOK;
   }
 
@@ -641,7 +697,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       for(; i < ni; n++, i++) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         inargs[i] = args[n];
@@ -653,14 +709,14 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       for(; i < ni; n++, i++) {
         argtype = check_arg_type(args[n], cstypes, n);
          if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(argtype != &CS_VAR_TYPE_A && argtype != &CS_VAR_TYPE_K &&
            argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_C &&
            argtype != &CS_VAR_TYPE_P){
-          csound->Message(csound, "%s inarg %d, expected types: "
-                          "%s, %s, or %s, got: %s\n",
+          csound->Message(csound, Str("%s inarg %d, expected types: "
+                          "%s, %s, or %s, got: %s\n"),
                           opname, i+1,CS_VAR_TYPE_A.varTypeName,
                           CS_VAR_TYPE_K.varTypeName,
                           CS_VAR_TYPE_I.varTypeName, argtype->varTypeName);
@@ -674,15 +730,15 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       for(; i < ni; n++, i++) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(argtype != &CS_VAR_TYPE_A && argtype != &CS_VAR_TYPE_K &&
            argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_S &&
            argtype != &CS_VAR_TYPE_C && argtype != &CS_VAR_TYPE_P){
           csound->Message(csound,
-                          "%s inarg %d, expected types: "
-                          "%s, %s, %s, or %s, got: %s\n",
+                          Str("%s inarg %d, expected types: "
+                          "%s, %s, %s, or %s, got: %s\n"),
                           opname, i+1,CS_VAR_TYPE_A.varTypeName,
                           CS_VAR_TYPE_K.varTypeName,
                           CS_VAR_TYPE_I.varTypeName, CS_VAR_TYPE_S.varTypeName,
@@ -697,12 +753,12 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       for(; i < ni; n++, i++) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_C &&
            argtype != &CS_VAR_TYPE_P){
-          csound->Message(csound, "%s inarg %d, expected type: %s, got: %s\n",
+          csound->Message(csound, Str("%s inarg %d, expected type: %s, got: %s\n"),
                           opname, i+1,CS_VAR_TYPE_I.varTypeName, argtype->varTypeName);
           return NOTOK;
         }
@@ -714,11 +770,11 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       for(; i < ni; n++, i++) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(argtype != &CS_VAR_TYPE_A){
-          csound->Message(csound, "%s inarg %d, expected type: %s, got: %s\n",
+          csound->Message(csound, Str("%s inarg %d, expected type: %s, got: %s\n"),
                           opname, i+1,CS_VAR_TYPE_A.varTypeName, argtype->varTypeName);
           return NOTOK;
         }
@@ -730,12 +786,12 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       for(; i < ni; n++, i++) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(argtype != &CS_VAR_TYPE_K && argtype != &CS_VAR_TYPE_C &&
            argtype != &CS_VAR_TYPE_P && argtype != &CS_VAR_TYPE_I){
-          csound->Message(csound, "%s inarg %d, expected type: %s, got: %s\n",
+          csound->Message(csound, Str("%s inarg %d, expected type: %s, got: %s\n"),
                           opname, i+1,CS_VAR_TYPE_K.varTypeName, argtype->varTypeName);
           return NOTOK;
         }
@@ -747,11 +803,11 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       for(; i < ni; n++, i++) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(argtype != &CS_VAR_TYPE_S){
-          csound->Message(csound, "%s inarg %d, expected type: %s, got: %s\n",
+          csound->Message(csound, Str("%s inarg %d, expected type: %s, got: %s\n"),
                           opname, i+1,CS_VAR_TYPE_S.varTypeName, argtype->varTypeName);
           return NOTOK;
         }
@@ -763,11 +819,11 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       for(; i < ni; n++, i++) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(n%2 && argtype != &CS_VAR_TYPE_A) {
-          csound->Message(csound, "%s inarg %d, expected type: %s, got: %s\n",
+          csound->Message(csound, Str("%s inarg %d, expected type: %s, got: %s\n"),
                           opname, i+1, CS_VAR_TYPE_A.varTypeName,
                           argtype->varTypeName);
           return NOTOK;
@@ -775,7 +831,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
         if(n%2 == 0 && argtype != &CS_VAR_TYPE_K && argtype != &CS_VAR_TYPE_I
            && argtype != &CS_VAR_TYPE_C &&
            argtype != &CS_VAR_TYPE_P) {
-          csound->Message(csound, "%s inarg %d, expected type: %s, got: %s\n",
+          csound->Message(csound, Str("%s inarg %d, expected type: %s, got: %s\n"),
                           opname, i+1, CS_VAR_TYPE_K.varTypeName, argtype->varTypeName);
 
           return NOTOK;
@@ -787,14 +843,14 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
     else if(*types == 'x') {
       argtype = check_arg_type(args[n], cstypes, n);
       if(argtype == NULL) {
-        csound->Message(csound, "missing %s inarg %d", opname, n - no);
+        csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
         return NOTOK;
       }
       if(argtype != &CS_VAR_TYPE_A && argtype != &CS_VAR_TYPE_K &&
          argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_C &&
          argtype != &CS_VAR_TYPE_P){
-        csound->Message(csound, "%s inarg %d, expected types: "
-                        "%s, %s, or %s, got: %s\n",
+        csound->Message(csound, Str("%s inarg %d, expected types: "
+                        "%s, %s, or %s, got: %s\n"),
                         opname, i+1, CS_VAR_TYPE_A.varTypeName,
                         CS_VAR_TYPE_K.varTypeName,CS_VAR_TYPE_I.varTypeName,
                         argtype->varTypeName);
@@ -806,13 +862,13 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
     else if(*types == 'T') {
       argtype = check_arg_type(args[n], cstypes, n);
       if(argtype == NULL) {
-        csound->Message(csound, "missing %s inarg %d", opname, n - no);
+        csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
         return NOTOK;
       }
       if(argtype != &CS_VAR_TYPE_S && argtype != &CS_VAR_TYPE_I
          && argtype != &CS_VAR_TYPE_C && argtype != &CS_VAR_TYPE_P){
-        csound->Message(csound, "%s inarg %d, expected types: "
-                        "%s or %s, got: %s\n",
+        csound->Message(csound, Str("%s inarg %d, expected types: "
+                        "%s or %s, got: %s\n"),
                         opname, i+1, CS_VAR_TYPE_I.varTypeName,
                         CS_VAR_TYPE_S.varTypeName,argtype->varTypeName);
         return NOTOK;
@@ -823,14 +879,14 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
     else if(*types == 'U') {
       argtype = check_arg_type(args[n], cstypes, n);
       if(argtype == NULL) {
-        csound->Message(csound, "missing %s inarg %d", opname, n - no);
+        csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
         return NOTOK;
       }
       if(argtype != &CS_VAR_TYPE_S && argtype != &CS_VAR_TYPE_I &&
          argtype != &CS_VAR_TYPE_K && argtype != &CS_VAR_TYPE_C &&
          argtype != &CS_VAR_TYPE_P){
-        csound->Message(csound, "%s inarg %d, expected types: "
-                        "%s, %s, or %s, got: %s\n",
+        csound->Message(csound, Str("%s inarg %d, expected types: "
+                        "%s, %s, or %s, got: %s\n"),
                         opname, i+1, CS_VAR_TYPE_K.varTypeName,
                         CS_VAR_TYPE_I.varTypeName,CS_VAR_TYPE_S.varTypeName,
                         argtype->varTypeName);
@@ -859,13 +915,13 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       if(n < no + 1 + ni && args[n] != NULL) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-         csound->Message(csound, "missing %s inarg %d", opname, n - no);
+         csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
          return NOTOK;
         }
         if(argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_K &&
            argtype != &CS_VAR_TYPE_C && argtype != &CS_VAR_TYPE_P) {
-          csound->Message(csound, "%s inarg %d, expected types: "
-                          "%s or %s, got: %s\n",
+          csound->Message(csound, Str("%s inarg %d, expected types: "
+                          "%s or %s, got: %s\n"),
                           opname, i+1,CS_VAR_TYPE_I.varTypeName,
                           CS_VAR_TYPE_K.varTypeName,argtype->varTypeName);
           return NOTOK;
@@ -882,13 +938,13 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       if(n < no + 1 + ni && args[n] != NULL) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_K &&
            argtype != &CS_VAR_TYPE_C && argtype != &CS_VAR_TYPE_P) {
-          csound->Message(csound, "%s inarg %d, expected types: "
-                          "%s or %s, got: %s\n",
+          csound->Message(csound, Str("%s inarg %d, expected types: "
+                          "%s or %s, got: %s\n"),
                           opname, i+1,CS_VAR_TYPE_I.varTypeName,
                           CS_VAR_TYPE_K.varTypeName,argtype->varTypeName);
           return NOTOK;
@@ -905,12 +961,12 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       if(n < no + 1 + ni && args[n] != NULL) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_C &&
            argtype != &CS_VAR_TYPE_P) {
-          csound->Message(csound, "%s inarg %d, expected types: %s got: %s\n",
+          csound->Message(csound, Str("%s inarg %d, expected types: %s got: %s\n"),
                           opname, i+1,CS_VAR_TYPE_I.varTypeName, argtype->varTypeName);
           return NOTOK;
         }
@@ -926,13 +982,13 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       if(n < no + 1 + ni && args[n] != NULL) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_K &&
            argtype != &CS_VAR_TYPE_C && argtype != &CS_VAR_TYPE_P) {
-          csound->Message(csound, "%s inarg %d, expected types: "
-                          "%s or %s, got: %s\n", opname, i+1,
+          csound->Message(csound, Str("%s inarg %d, expected types: "
+                          "%s or %s, got: %s\n"), opname, i+1,
                           CS_VAR_TYPE_I.varTypeName, CS_VAR_TYPE_K.varTypeName,
                           argtype->varTypeName);
           return NOTOK;
@@ -949,13 +1005,13 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       if(n < no + 1 + ni && args[n] != NULL) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_K &&
            argtype != &CS_VAR_TYPE_C && argtype != &CS_VAR_TYPE_P) {
-          csound->Message(csound, "%s inarg %d, expected types: "
-                          "%s or %s, got: %s\n",opname, i+1,
+          csound->Message(csound, Str("%s inarg %d, expected types: "
+                          "%s or %s, got: %s\n"),opname, i+1,
                           CS_VAR_TYPE_I.varTypeName, CS_VAR_TYPE_K.varTypeName,
                           argtype->varTypeName);
           return NOTOK;
@@ -972,12 +1028,12 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
       if(n < no + 1 + ni && args[n] != NULL) {
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_C &&
            argtype != &CS_VAR_TYPE_P) {
-          csound->Message(csound, "%s inarg %d, expected type: %s got: %s\n",
+          csound->Message(csound, Str("%s inarg %d, expected type: %s got: %s\n"),
                           opname, i+1,CS_VAR_TYPE_I.varTypeName, argtype->varTypeName);
           return NOTOK;
         }
@@ -992,12 +1048,12 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
     else if(*types == 'k' && *(types+1) !=  '[') {
       argtype = check_arg_type(args[n], cstypes, n);
       if(argtype == NULL) {
-        csound->Message(csound, "missing %s inarg %d", opname, n - no);
+        csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
         return NOTOK;
       }
       if(argtype != &CS_VAR_TYPE_P && argtype != &CS_VAR_TYPE_C
          && argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_K) {
-        csound->Message(csound, "%s inarg %d, expected type: k got: %s\n",
+        csound->Message(csound, Str("%s inarg %d, expected type: k got: %s\n"),
                         opname, i+1,argtype->varTypeName);
         return NOTOK;
       }
@@ -1007,12 +1063,12 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
     else if(*types == 'i' && *(types+1) !=  '[') {
       argtype = check_arg_type(args[n], cstypes, n);
       if(argtype == NULL) {
-        csound->Message(csound, "missing %s inarg %d", opname, n - no);
+        csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
         return NOTOK;
       }
       if(argtype != &CS_VAR_TYPE_P && argtype != &CS_VAR_TYPE_C
          && argtype != &CS_VAR_TYPE_I) {
-        csound->Message(csound, "%s inarg %d, expected type: i got: %s\n",
+        csound->Message(csound, Str("%s inarg %d, expected type: i got: %s\n"),
                         opname, i+1,argtype->varTypeName);
         return NOTOK;
       }
@@ -1029,32 +1085,32 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
         memcpy(typeName, types, end);
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-          csound->Message(csound, "missing %s inarg %d", opname, n - no);
+          csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
         if(*(types+end+1) != '[' && strncmp(argtype->varTypeName,
                                             typeName, end) != 0) {
-          csound->Message(csound, "%s inarg %d, expect type: "
-                          "%s, got %s\n", opname, i+1, typeName,
+          csound->Message(csound, Str("%s inarg %d, expect type: "
+                          "%s, got %s\n"), opname, i+1, typeName,
                           argtype->varTypeName);
           return NOTOK;
         }
         if(*(types+end+1) == '[' &&
            argtype != &CS_VAR_TYPE_ARRAY){
-          csound->Message(csound, "%s inarg %d, expect array, got %s\n",
+          csound->Message(csound, Str("%s inarg %d, expect array, got %s\n"),
                           opname, i+1, typeName);
           return NOTOK;
         }
         if(*(types+end+1) == '[') {
           ARRAYDAT *arg = (ARRAYDAT *) args[n];
           if(arg == NULL) {
-           csound->Message(csound, "missing %s inarg %d", opname, n - no);
+           csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
            return NOTOK;
           }
           const CS_TYPE *atyp = arg->arrayType;
           if(strncmp(atyp->varTypeName, argtype->varTypeName, 1) != 0) {
-            csound->Message(csound, "%s inarg %d, mismatching array subtype"
-                            " expected %s, got %s\n",
+            csound->Message(csound, Str("%s inarg %d, mismatching array subtype"
+                            " expected %s, got %s\n"),
                             opname, i+1, argtype->varTypeName, atyp->varTypeName);
             return NOTOK;
           }
@@ -1067,33 +1123,33 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
         // single-char types
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
-         csound->Message(csound, "missing %s inarg %d", opname, n - no);
+         csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
          return NOTOK;
         }
         if(*(types+1) != '[' &&
            strncmp(argtype->varTypeName, types, 1) != 0) {
-          csound->Message(csound, "%s inarg %d, expect type: "
-                          "%c, got %s\n", opname, i+1, *types, argtype->varTypeName);
+          csound->Message(csound, Str("%s inarg %d, expect type: "
+                          "%c, got %s\n"), opname, i+1, *types, argtype->varTypeName);
           return NOTOK;
         }
         if(*(types+1) == '[' &&
            argtype != &CS_VAR_TYPE_ARRAY){
-          csound->Message(csound, "%s inarg %d, expect array, got %c\n",
+          csound->Message(csound, Str("%s inarg %d, expect array, got %c\n"),
                           opname, i+1, *types);
           return NOTOK;
         }
         if(*(types+1) == '[') {
           ARRAYDAT *arg = (ARRAYDAT *) args[n];
           if(arg == NULL) {
-           csound->Message(csound, "missing %s inarg %d", opname, n - no);
+           csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
            return NOTOK;
           }
           const CS_TYPE *atyp = arg->arrayType;
           /* Allow wildcard array subtype: ".[]" matches any array element type */
           if(*types != '.') {
             if(strncmp(atyp->varTypeName, types, 1) != 0) {
-              csound->Message(csound, "%s inarg %d, mismatching array subtype"
-                              " expected %c, got %s\n",
+              csound->Message(csound, Str("%s inarg %d, mismatching array subtype"
+                              " expected %c, got %s\n"),
                               opname, i+1, *types, atyp->varTypeName);
               return NOTOK;
             }
@@ -1114,7 +1170,7 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
   // The number of provided arguments should equal the number of non-default arguments
 
   if(ni != i - opt) {
-    csound->Message(csound, "%s inarg number mismatch, expected %d, got %d\n",
+    csound->Message(csound, Str("%s inarg number mismatch, expected %d, got %d\n"),
                     opname, i - opt, ni);
     return NOTOK;
   }
@@ -1132,10 +1188,10 @@ int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, MYFLT *args[],
  *  if types do not match or if object was not initialised,
  *  return an error
  */
-int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
-                          MYFLT *arg) {
+static int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
+                          cs_float *arg) {
   if(obj->inargp != NULL) {
-    MYFLT **inargp = obj->inargp;
+    cs_float **inargp = obj->inargp;
     uint32_t n = obj->dataspace->optext->t.inArgCount;
     if(ndx > n) return NOTOK;
     if(csoundGetTypeForArg(inargp[ndx]) != csoundGetTypeForArg(arg)) {
@@ -1166,7 +1222,7 @@ int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
 /**
  * connect caller locn to opcode TXT
  */
-void set_line_num_and_loc(OPCODEOBJ *obj, OPRUN *p) {
+static void set_line_num_and_loc(OPCODEOBJ *obj, OPRUN *p) {
   obj->dataspace->optext->t.linenum = p->h.optext->t.linenum;
   obj->dataspace->optext->t.locn = p->h.optext->t.locn;
 }
@@ -1186,7 +1242,7 @@ int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds) {
   // otherwise there is no context incompatibility
   }
   else {
-    csound->Warning(csound, "no valid context for opcode object\n");
+    csound->Warning(csound, Str("no valid context for opcode object\n"));
     return NOTOK;
   }
   return OK;
@@ -1194,23 +1250,27 @@ int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds) {
 
 /**
  * check consistency of arg pointers (for perf-time)
+ * returns OK if the args are those bound by setup_args, NOTOK otherwise
  */
-int32_t check_consistency(OPCODEOBJ *obj, MYFLT **args,
+static int32_t check_consistency(OPCODEOBJ *obj, cs_float **args,
                           int32_t no, int32_t ni) {
-  int32_t n, i = no + 1;
-  MYFLT **oargs = (MYFLT **) (obj->dataspace + 1);
+  int32_t n;
+  // setup_args stores these, in udo->ar for UDOs
+  cs_float **oargs = obj->outargp, **iargs = obj->inargp;
+  if(oargs == NULL || iargs == NULL) return NOTOK;
   for(n = 0; n < no; n++)
-    if(oargs[n] != args[n]) return 1;
+    if(oargs[n] != args[n]) return NOTOK;
+  // inargs follow the opcode object arg
   for(n = 0; n < ni; n++)
-    if(oargs[i-1] != args[i]) return 1;
-  return 0;
+    if(iargs[n] != args[no + 1 + n]) return NOTOK;
+  return OK;
 }
 
 
 /**
  * allocate and initialise opcode dataspace
  */
-OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
+static OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
     OPDS *dataspace;
     dataspace = (OPDS *) csound->Calloc(csound, entry->dsblksiz);
     if(dataspace != NULL) {
@@ -1231,6 +1291,38 @@ OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
 }
 
 /**
+ * element i of an Opcode[] array: the array stride is the aligned
+ * member size of the Opcode type, which can exceed sizeof(OPCODEOBJ)
+ */
+static inline OPCODEOBJ *opcode_array_obj(ARRAYDAT *array, int32_t i) {
+  return (OPCODEOBJ *) ((char *) array->data +
+                        (size_t) i * array->arrayMemberSize);
+}
+
+/**
+ * free opcode dataspace
+ */
+static void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace) {
+  csound->Free(csound, dataspace->optext->t.inlist);
+  csound->Free(csound, dataspace->optext);
+  csound->Free(csound, dataspace);
+}
+
+/**
+ * take back a UDO dataspace kept by delete: reuse it for the same
+ * definition, or free it once its instance has been deactivated
+ */
+static void opcode_take_spare(CSOUND *csound, OPCODEOBJ *obj, OENTRY *entry) {
+  UOPCODE *udo = (UOPCODE *) obj->spare;
+  if(udo == NULL) return;
+  obj->spare = NULL;
+  if(obj->dataspace == NULL && udo->h.optext->t.oentry == entry)
+    obj->dataspace = (OPDS *) udo;
+  else if(udo->ip == NULL)
+    opcode_dataspace_free(csound, (OPDS *) udo);
+}
+
+/**
  *  create single OpcodeObj from OpcodeDef
  *
  *  opc:Opcode create ref:OpcodeDef[,overload:i]
@@ -1243,19 +1335,18 @@ int32_t create_opcode_simple(CSOUND *csound, AOP *p) {
     OENTRY *entry =
       ref->entries->entries[n < ref->entries->count ?
                             n : ref->entries->count-1];
+    opcode_take_spare(csound, obj, entry);
     if(obj->dataspace == NULL || obj->size < entry->dsblksiz) {
       if((obj->dataspace = opcode_dataspace_new(csound, entry, &(p->h)))
           == NULL)
-        return csound->InitError(csound, "could not allocate opcode object");
+        return csound->InitError(csound, Str("could not allocate opcode object\n"));
      }
       obj->udo_flag = entry->useropinfo == NULL ? 0  : 1;
       obj->size = entry->dsblksiz;
       return OK;
   }
-  return csound->InitError(csound, "invalid opcode reference");
+  return csound->InitError(csound, Str("invalid opcode reference\n"));
 }
-
-#include "arrays.h"
 
 /**
  *  create OpcodeObj array from OpcodeDef
@@ -1270,20 +1361,22 @@ int32_t create_opcode_array(CSOUND *csound, OPARRAY *p) {
     OENTRY *entry =
      ref->entries->entries[n < ref->entries->count ? n : ref->entries->count-1];
     n  = *p->n;
-    tabinit(csound, p->r, n, p->h.insdshead);
-    obj = (OPCODEOBJ *) p->r->data;
+    if (UNLIKELY(tabinit(csound, p->r, n, p->h.insdshead) != OK))
+      return csound_array_init_resize_error(csound);
     for(i = 0; i < n; i++) {
-      if(obj[i].dataspace == NULL || obj[i].size < entry->dsblksiz) {
-       if((obj[i].dataspace = opcode_dataspace_new(csound, entry, &(p->h)))
+      obj = opcode_array_obj(p->r, i);
+      opcode_take_spare(csound, obj, entry);
+      if(obj->dataspace == NULL || obj->size < entry->dsblksiz) {
+       if((obj->dataspace = opcode_dataspace_new(csound, entry, &(p->h)))
           == NULL)
-        return csound->InitError(csound, "could not allocate opcode object");
+        return csound->InitError(csound, Str("could not allocate opcode object\n"));
       }
-      obj[i].udo_flag = entry->useropinfo == NULL ? 0  : 1;
-      obj[i].size = entry->dsblksiz;
+      obj->udo_flag = entry->useropinfo == NULL ? 0  : 1;
+      obj->size = entry->dsblksiz;
       }
     return OK;
   }
-  return csound->InitError(csound, "invalid opcode reference");
+  return csound->InitError(csound, Str("invalid opcode reference\n"));
 }
 
 /**
@@ -1296,12 +1389,18 @@ int32_t opcode_delete(CSOUND *csound, AOP *p) {
   if(obj->dataspace) {
     if(obj->dataspace->deinit != NULL)
       obj->dataspace->deinit(csound, obj->dataspace);
-    csound->Free(csound, obj->dataspace->optext->t.inlist);
-    csound->Free(csound, obj->dataspace->optext);
-    if(obj->udo_flag == 0) {
-     csound->Free(csound, obj->dataspace);
-     obj->dataspace = NULL;
+    // a UDO dataspace is the UOPCODE linked in the instance's opcod_deact
+    // chain, which is walked after deinit, so it is kept for create to reuse
+    if(obj->udo_flag) {
+      // an older spare left here by a copied object has been deactivated
+      if(obj->spare != NULL && ((UOPCODE *) obj->spare)->ip == NULL)
+        opcode_dataspace_free(csound, obj->spare);
+      obj->spare = obj->dataspace;
     }
+    else
+      opcode_dataspace_free(csound, obj->dataspace);
+    obj->dataspace = NULL;
+    obj->outargp = obj->inargp = NULL;
   }
   return OK;
 }
@@ -1315,13 +1414,19 @@ int32_t opcode_object_info(CSOUND *csound, OPINFO *p) {
   OPCODEOBJ *obj = (OPCODEOBJ *) p->ref;
   if(obj->dataspace != NULL) {
     OENTRY *ep = obj->dataspace->optext->t.oentry;
-    csound->Message(csound, "%s %s\tout-types: %s\tin-types: %s \n",
+    csound->Message(csound, Str("%s %s\tout-types: %s\tin-types: %s \n"),
                     ep->opname, obj->udo_flag ? "(UDO)" : "",
                     ep->outypes, ep->intypes);
   }
   return OK;
 }
 
+
+/* Opcodes declared with "*" outputs keep one argument slot even when a call
+   has no outputs, so the object and its inputs then start at args[1]. */
+static cs_float **oprun_args(OPRUN *p) {
+  return p->OUTOCOUNT == 0 ? p->args + 1 : p->args;
+}
 
 /**
  * this opcode connects all args to opcode obj and
@@ -1330,14 +1435,15 @@ int32_t opcode_object_info(CSOUND *csound, OPINFO *p) {
  * outargs  init  opc:Opcode, inargs
  */
 int32_t opcode_object_init(CSOUND *csound, OPRUN *p) {
-  OPCODEOBJ *obj = (OPCODEOBJ *) p->args[p->OUTOCOUNT];
+  cs_float **pargs = oprun_args(p);
+  OPCODEOBJ *obj = (OPCODEOBJ *) pargs[p->OUTOCOUNT];
   if(obj->dataspace != NULL) {
   if(context_check(csound, obj, p->h.insdshead) != OK)
-    return csound->InitError(csound, "incompatible context, "
-                             "cannot initialise opcode obj for %s\n",
+    return csound->InitError(csound, Str("incompatible context, "
+                             "cannot initialise opcode obj for %s\n"),
                              obj->dataspace->optext->t.oentry->opname);
   set_line_num_and_loc(obj, p);
-  if(setup_args(csound, obj, &(p->h), p->args, NULL, p->OUTOCOUNT,
+  if(setup_args(csound, obj, &(p->h), pargs, NULL, p->OUTOCOUNT,
                 p->INOCOUNT - 1) == OK) {
     if(obj->dataspace->init != NULL) {
        int32_t ret = obj->dataspace->init(csound, obj->dataspace);
@@ -1345,14 +1451,14 @@ int32_t opcode_object_init(CSOUND *csound, OPRUN *p) {
     }
     else return OK;
   }
-  return csound->InitError(csound, "mismatching arguments\n"
+  return csound->InitError(csound, Str("mismatching arguments\n"
                            "for opcode obj %s\t"
-                           "outypes: %s\tintypes: %s",
+                           "outypes: %s\tintypes: %s\n"),
                            obj->dataspace->optext->t.oentry->opname,
                            obj->dataspace->optext->t.oentry->outypes,
                            obj->dataspace->optext->t.oentry->intypes);
   }
-  return csound->InitError(csound, "opcode object not initialised\n");
+  return csound->InitError(csound, Str("opcode object not initialised\n"));
 }
 
 /**
@@ -1361,29 +1467,37 @@ int32_t opcode_object_init(CSOUND *csound, OPRUN *p) {
  * outargs perf opc:Opcode, inargs
  */
 int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
-  OPCODEOBJ *obj = (OPCODEOBJ *) p->args[p->OUTOCOUNT];
+  cs_float **pargs = oprun_args(p);
+  OPCODEOBJ *obj = (OPCODEOBJ *) pargs[p->OUTOCOUNT];
   if(obj->dataspace != NULL) {
   if(context_check(csound, obj, p->h.insdshead) != OK)
-    return csound->PerfError(csound, &(p->h), "incompatible context, "
-                             "cannot perform opcode obj for %s\n",
+    return csound->PerfError(csound, &(p->h), Str("incompatible context, "
+                             "cannot perform opcode obj for %s\n"),
                              obj->dataspace->optext->t.oentry->opname);
   set_line_num_and_loc(obj, p);
-  if(check_consistency(obj, p->args, p->OUTOCOUNT, p->INOCOUNT - 1)){
-    if(setup_args(csound, obj, &(p->h), p->args, NULL, p->OUTOCOUNT,
+  if(check_consistency(obj, pargs, p->OUTOCOUNT, p->INOCOUNT - 1) != OK){
+    if(setup_args(csound, obj, &(p->h), pargs, NULL, p->OUTOCOUNT,
                 p->INOCOUNT - 1) != OK)
-      return csound->PerfError(csound, &(p->h), "mismatching arguments\n"
+      return csound->PerfError(csound, &(p->h), Str("mismatching arguments\n"
                            "for opcode obj %s\t"
-                           "outypes: %s\tintypes: %s",
+                           "outypes: %s\tintypes: %s\n"),
                            obj->dataspace->optext->t.oentry->opname,
                            obj->dataspace->optext->t.oentry->outypes,
                                obj->dataspace->optext->t.oentry->intypes);
+    // a pass-by-ref UDO body still points at the args seen at init
+    if(obj->udo_flag &&
+       user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK)
+      return csound->PerfError(csound, &(p->h),
+                               Str("could not rebind arguments "
+                                   "for opcode obj %s\n"),
+                               obj->dataspace->optext->t.oentry->opname);
    }
    if(obj->dataspace->perf != NULL)
        return obj->dataspace->perf(csound, obj->dataspace);
     else return OK; // nothing to do
   }
   return csound->PerfError(csound, &(p->h),
-                           "opcode object not initialised\n");
+                           Str("opcode object not initialised\n"));
 }
 
 /**
@@ -1391,7 +1505,8 @@ int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
  * no checks required
  */
 int32_t opcode_run_perf(CSOUND *csound, OPRUN *p) {
-  OPCODEOBJ *obj = (OPCODEOBJ *) p->args[p->OUTOCOUNT];
+  cs_float **pargs = oprun_args(p);
+  OPCODEOBJ *obj = (OPCODEOBJ *) pargs[p->OUTOCOUNT];
   set_line_num_and_loc(obj, p);
   if(obj->dataspace->perf != NULL)
        return obj->dataspace->perf(csound, obj->dataspace);
@@ -1406,44 +1521,88 @@ int32_t opcode_run_perf(CSOUND *csound, OPRUN *p) {
 int32_t opcode_delete_array(CSOUND *csound, AOP *p) {
   ARRAYDAT  *array = (ARRAYDAT *) p->r;
   int32_t   n = array->sizes[0], i;
-  OPCODEOBJ *obj= (OPCODEOBJ *) array->data;
-  MYFLT *r = p->r;
+  cs_float *r = p->r;
   for(i = 0; i < n; i++) {
-    p->r = (MYFLT *) &(obj[i]);
+    p->r = (cs_float *) opcode_array_obj(array, i);
     opcode_delete(csound, p);
   }
   p->r = r;
   return OK;
 }
 
-// check for array type in intypes
+// check whether argument n of the opcode is declared as an array
 static int32_t isTypeArray(OPCODEOBJ *obj, int32_t n, int32_t isInput) {
-      TEXT *t = &(obj->dataspace->optext->t);
-      OENTRY *ep = t->oentry;
-      char *types = isInput ? ep->intypes : ep->outypes;
-      int32_t i = 0;
-      while(*types) {
-        if(i == n) {
-          // arg n
-          if(*types != ':') {
-            return *(types+1) == '[' ? 1 : 0;
-          }
-          else {
-            while(*types != ';') {
-              types++;
-              if(*types == '[') return 1;
-            }
-            return 0;
-          }
-        }
-        if(*types == ':') {
-          while(*types != ';') types++;
-        }
-        else if(*types == '[') types+=2;
-        else types++;
-        i++;
+  TEXT *t = &(obj->dataspace->optext->t);
+  OENTRY *ep = t->oentry;
+  const char *types = isInput ? ep->intypes : ep->outypes;
+  int32_t i = 0;
+  while (*types) {
+    int32_t array = 0;
+    if (*types == '[') {
+      // internal form: "[k]", "[[k]", "[:Name;]"
+      array = 1;
+      while (*types == '[') types++;
+      if (*types == ':')
+        while (*types && *types != ';') types++;
+      if (*types) types++;
+      if (*types == ']') types++;
+    } else {
+      // external form: "k", "k[]", ":Name;", ":Name;[][]"
+      if (*types == ':')
+        while (*types && *types != ';') types++;
+      if (*types) types++;
+      while (types[0] == '[' && types[1] == ']') {
+        array = 1;
+        types += 2;
       }
-      return 0;
+    }
+    if (i == n) return array;
+    i++;
+  }
+  return 0;
+}
+
+/* Whether run gives each object one element of array argument a, rather
+   than passing the whole array to the opcode. */
+static int32_t oprun_splits_arg(OPRUN *p, cs_float **pargs, OPCODEOBJ *obj,
+                                int32_t a) {
+  int32_t no = (int32_t) p->OUTOCOUNT;
+  if (a == no || csoundGetTypeForArg(pargs[a]) != &CS_VAR_TYPE_ARRAY)
+    return 0;
+  return a < no ? !isTypeArray(obj, a, 0) : !isTypeArray(obj, a - no - 1, 1);
+}
+
+/* Point the slot table at storage for every split array argument. Slots
+   share one block so that re-initialisation reuses it; nesting AUXCH
+   blocks inside p->mem would unlink them when AuxAlloc clears it. */
+static void oprun_alloc_slots(CSOUND *csound, OPRUN *p, cs_float **pargs,
+                              OPCODEOBJ *obj, int32_t n, int32_t argn) {
+  CS_VAR_MEM **slot;
+  size_t total = 0;
+  char *base;
+  int32_t a, i;
+
+  csound->AuxAlloc(csound, sizeof(CS_VAR_MEM *) * n * argn, &p->mem);
+  slot = (CS_VAR_MEM **) p->mem.auxp;
+  for (a = 0; a < argn; a++)
+    if (oprun_splits_arg(p, pargs, obj, a))
+      total += n * (size_t) CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET +
+                       ((ARRAYDAT *) pargs[a])->arrayMemberSize);
+  if (total == 0)
+    return;
+  csound->AuxAlloc(csound, total, &p->slots);
+  base = (char *) p->slots.auxp;
+  for (a = 0; a < argn; a++) {
+    size_t size;
+    if (!oprun_splits_arg(p, pargs, obj, a))
+      continue;
+    size = (size_t) CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET +
+                                   ((ARRAYDAT *) pargs[a])->arrayMemberSize);
+    for (i = 0; i < n; i++) {
+      slot[i + a * n] = (CS_VAR_MEM *) base;
+      base += size;
+    }
+  }
 }
 
 /**
@@ -1452,97 +1611,113 @@ static int32_t isTypeArray(OPCODEOBJ *obj, int32_t n, int32_t isInput) {
  *
  */
 int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
+  cs_float **pargs = oprun_args(p);
   int32_t i, j, n = 0, m;
-  MYFLT *args[VARGMAX] = {0};
-  CS_TYPE *types[VARGMAX] = {0};
-  ARRAYDAT  *array;
+  cs_float *args[VARGMAX] = {0};
+  const CS_TYPE *types[VARGMAX] = {0};
+  ARRAYDAT  *array, *objects;
   OPCODEOBJ *obj;
   CS_VAR_MEM *argmem = NULL;
-  AUXCH *mem;
+  CS_VAR_MEM **slot;
   int32_t ndx, argn;
-  array = (ARRAYDAT *) p->args[p->OUTOCOUNT];
-  obj = (OPCODEOBJ *) array->data;
-  n = array->sizes[0];
+  objects = (ARRAYDAT *) pargs[p->OUTOCOUNT];
+  n = objects->sizes[0];
   argn = p->INOCOUNT + p->OUTOCOUNT;
-  csound->AuxAlloc(csound, sizeof(AUXCH)*n*argn, &p->mem);
-  mem = (AUXCH *) p->mem.auxp;
-  // check all array args are 1-dim arrays of at least same size as obj[]
+  if (n == 0)
+    return OK;
+  for(i = 0; i < n; i++)
+    if(opcode_array_obj(objects, i)->dataspace == NULL)
+      return csound->InitError(csound, Str("opcode object not initialised\n"));
+  // check that array args split across obj[] are 1-dim and large enough
   for(i = 0; i < argn; i++)
-    if(csoundGetTypeForArg(p->args[i]) == &CS_VAR_TYPE_ARRAY) {
-      array = (ARRAYDAT *) p->args[i];
+    if(oprun_splits_arg(p, pargs, opcode_array_obj(objects, 0), i)) {
+      array = (ARRAYDAT *) pargs[i];
       if(array->dimensions > 1)
-        return csound->InitError(csound, "only 1-dim arrays are allowed\n");
-      if(array->dimensions == 0 || n > array->sizes[0])
-        tabinit(csound, array, n, p->h.insdshead);
+        return csound->InitError(csound, Str("only 1-dim arrays are allowed\n"));
+      if (array->dimensions == 0 || n > array->sizes[0]) {
+        if (UNLIKELY(tabinit(csound, array, n, p->h.insdshead) != OK))
+          return csound_array_init_resize_error(csound);
+      }
   }
+  oprun_alloc_slots(csound, p, pargs, opcode_array_obj(objects, 0),
+                    n, argn);
+  slot = (CS_VAR_MEM **) p->mem.auxp;
   for(i = 0; i < n; i++) {
     size_t size;
-    set_line_num_and_loc(&obj[i], p);
-    if(context_check(csound, &obj[i], p->h.insdshead) != OK)
-      return csound->InitError(csound, "incompatible context, "
-                               "cannot initialise opcode obj for %s\n",
-                               obj[i].dataspace->optext->t.oentry->opname);
+    obj = opcode_array_obj(objects, i);
+    set_line_num_and_loc(obj, p);
+    if(context_check(csound, obj, p->h.insdshead) != OK)
+      return csound->InitError(csound, Str("incompatible context, "
+                               "cannot initialise opcode obj for %s\n"),
+                               obj->dataspace->optext->t.oentry->opname);
     for(j = 0; j < (int32_t) p->OUTOCOUNT; j++) {
       // if passed an array, check that the outype is not
-      // an array first and deal with it
-      if((types[j] = csoundGetTypeForArg(p->args[j]))
+      // an array first and deal with it 
+      if((types[j] = csoundGetTypeForArg(pargs[j]))
           == &CS_VAR_TYPE_ARRAY &&
-         !isTypeArray(&obj[i],j, 0)) {
-        // arrays need to be treated separately
-        // data needs to be placed into typed variable memory
-        // unfortunately we need to copy in order to have this correct
-      array = (ARRAYDAT *)  p->args[j]; // each outarg is an array
-      size = array->arrayMemberSize;
-      ndx = i + j*n;
-      csound->AuxAlloc(csound, sizeof(CS_TYPE *) + size, &mem[ndx]);
-      argmem = (CS_VAR_MEM *) mem[ndx].auxp;
-      types[j] = (CS_TYPE *) array->arrayType; // set type
-      argmem->varType = types[j];
-      args[j] = &argmem->value; // set pointer
+         !isTypeArray(obj,j, 0)) {
+        /* Scalarize fixed-layout array elements into per-object arguments.
+           Managed elements cannot be transferred safely as raw bytes. */
+        array = (ARRAYDAT *)pargs[j];
+        if (UNLIKELY(csound_array_has_managed_elements(array))) {
+          return csound->InitError(
+            csound,
+            Str("Opcode[] run does not support managed array output elements\n"));
+        }
+        size = array->arrayMemberSize;
+        ndx = i + j*n;
+        argmem = slot[ndx];
+        types[j] = array->arrayType;
+        argmem->varType = types[j];
+        args[j] = &argmem->value;
       } else // single var
-         args[j] = p->args[j];
+         args[j] = pargs[j];
     }
     for(j = 0; j < (int32_t) p->INOCOUNT - 1; j++) {
       // skip the obj argument
       m = j + p->OUTOCOUNT + 1;
       // if passed an array, check that the intype is not
-      // an array first and deal with it
-      if((types[m] = csoundGetTypeForArg(p->args[m]))
+      // an array first and deal with it  
+      if((types[m] = csoundGetTypeForArg(pargs[m]))
          == &CS_VAR_TYPE_ARRAY &&
-         !isTypeArray(&obj[i],j, 1)) {
-      array = (ARRAYDAT *)  p->args[m]; // each inarg is an array
-      ndx = i + n*m;
-      size = array->arrayMemberSize;
-      csound->AuxAlloc(csound, sizeof(CS_TYPE *) + size, &mem[ndx]);
-      argmem = (CS_VAR_MEM *) mem[ndx].auxp;
-      array = (ARRAYDAT *)  p->args[m]; // each inarg is an array
-      char *data = (char *) array->data; // copy loc pointer to args
-      types[m] = (CS_TYPE *) array->arrayType;
-      argmem->varType = types[m];
-      args[m] = &argmem->value;
-      // copy array args data in - but not k or a vars
-      if(types[m] != &CS_VAR_TYPE_K &&
-         types[m] != &CS_VAR_TYPE_A)
-         memcpy(&argmem->value, data+i*size, size);
-      //printf("arg[%d] %f %d \n", i, argmem->value, j);
-
+         !isTypeArray(obj,j, 1)) {
+        char *data;
+        array = (ARRAYDAT *)pargs[m];
+        if (UNLIKELY(csound_array_has_managed_elements(array))) {
+          return csound->InitError(
+            csound,
+            Str("Opcode[] run does not support managed array input elements\n"));
+        }
+        ndx = i + n*m;
+        size = array->arrayMemberSize;
+        argmem = slot[ndx];
+        data = (char *)array->data;
+        types[m] = array->arrayType;
+        argmem->varType = types[m];
+        args[m] = &argmem->value;
+        // copy array args data in - but not k or a vars
+        if(types[m] != &CS_VAR_TYPE_K &&
+           types[m] != &CS_VAR_TYPE_A)
+          memcpy(&argmem->value, data+i*size, size);
       } else // single var
-        args[m] = p->args[m];
+        args[m] = pargs[m];
      }
 
     // call setup_args with array flag checked, passing assigned args
-    if(setup_args(csound, &obj[i], &(p->h), args, types,
+    if(setup_args(csound, obj, &(p->h), args, types,
                   p->OUTOCOUNT, p->INOCOUNT - 1) == OK) {
-      if(obj[i].dataspace->init != NULL) {
-        obj[i].dataspace->init(csound, obj[i].dataspace);
+      if(obj->dataspace->init != NULL) {
+        obj->dataspace->init(csound, obj->dataspace);
         // copy array args data out
-        for(j = 0; j < p->OUTOCOUNT; j++) {
-           if(csoundGetTypeForArg(p->args[j]) == &CS_VAR_TYPE_ARRAY) {
-            array = (ARRAYDAT *)  p->args[j]; // each inarg is an array
+        for(j = 0; j < GetOutputArgCnt(&p->h); j++) {
+           if(csoundGetTypeForArg(pargs[j]) == &CS_VAR_TYPE_ARRAY) {
+            array = (ARRAYDAT *)  pargs[j]; // each inarg is an array
             size = array->arrayMemberSize;
             ndx = i + j*n;
             char *data = (char *) array->data; // copy loc pointer to args
-            argmem = (CS_VAR_MEM *) mem[ndx].auxp;
+            argmem = slot[ndx];
+            // unallocated: the opcode takes this array whole
+            if (argmem == NULL) continue;
             // copy array args data out - but not k or a vars
            if(array->arrayType != &CS_VAR_TYPE_K &&
              array->arrayType != &CS_VAR_TYPE_A)
@@ -1550,9 +1725,9 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
              }
         }
       }
-    } else return csound->InitError(csound, "mismatching arguments\n"
+    } else return csound->InitError(csound, Str("mismatching arguments\n"
                                     "for opcode obj %s\t"
-                                    "outypes: %s\tintypes: %s",
+                                    "outypes: %s\tintypes: %s\n"),
                                     obj->dataspace->optext->t.oentry->opname,
                                     obj->dataspace->optext->t.oentry->outypes,
                                     obj->dataspace->optext->t.oentry->intypes);
@@ -1565,10 +1740,11 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
  *  no checks required
  */
 int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
-  ARRAYDAT  *array = (ARRAYDAT *) p->args[p->OUTOCOUNT];
-  int32_t   n = array->sizes[0], i, j, ndx, argn = p->OUTOCOUNT + p->INOCOUNT;
-  OPCODEOBJ *obj = (OPCODEOBJ *) array->data;
-  AUXCH *mem = (AUXCH *) p->mem.auxp;
+  cs_float **pargs = oprun_args(p);
+  ARRAYDAT  *objects = (ARRAYDAT *) pargs[p->OUTOCOUNT], *array;
+  int32_t   n = objects->sizes[0], i, j, ndx, argn = p->OUTOCOUNT + p->INOCOUNT;
+  OPCODEOBJ *obj;
+  CS_VAR_MEM **slot = (CS_VAR_MEM **) p->mem.auxp;
   CS_VAR_MEM *argmem = NULL;
   char *data;
 
@@ -1576,30 +1752,35 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
    size_t size;
   // copy array args data in
   for(j = p->OUTOCOUNT + 1; j < argn; j++) {
-    if(csoundGetTypeForArg(p->args[j]) == &CS_VAR_TYPE_ARRAY) {
-      array = (ARRAYDAT *)  p->args[j]; // each inarg is an array
+    if(csoundGetTypeForArg(pargs[j]) == &CS_VAR_TYPE_ARRAY) {
+      array = (ARRAYDAT *)  pargs[j]; // each inarg is an array
       size = array->arrayMemberSize;
       data = (char *) array->data; // copy loc pointer to args
       ndx = i + j*n;
-      argmem = (CS_VAR_MEM *) mem[ndx].auxp;
+      argmem = slot[ndx];
+      // unallocated: the opcode takes this array whole
+      if (argmem == NULL) continue;
       // only perf-time data
       if(array->arrayType != &CS_VAR_TYPE_I)
        memcpy(&argmem->value, data+i*size, size);
     }
   }
 
-  set_line_num_and_loc(&obj[i], p);
-  if(obj[i].dataspace->perf != NULL)
-    obj[i].dataspace->perf(csound, obj[i].dataspace);
+  obj = opcode_array_obj(objects, i);
+  set_line_num_and_loc(obj, p);
+  if(obj->dataspace->perf != NULL)
+    obj->dataspace->perf(csound, obj->dataspace);
 
    // copy array args data out
-   for(j = 0; j < p->OUTOCOUNT; j++) {
-     if(csoundGetTypeForArg(p->args[j]) == &CS_VAR_TYPE_ARRAY) {
-       array = (ARRAYDAT *)  p->args[j]; // each inarg is an array
+   for(j = 0; j < GetOutputArgCnt(&p->h); j++) {
+     if(csoundGetTypeForArg(pargs[j]) == &CS_VAR_TYPE_ARRAY) {
+       array = (ARRAYDAT *)  pargs[j]; // each inarg is an array
        size = array->arrayMemberSize;
        ndx = i + j*n;
        data = (char *) array->data; // copy loc pointer to args
-       argmem = (CS_VAR_MEM *) mem[ndx].auxp;
+       argmem = slot[ndx];
+       // unallocated: the opcode takes this array whole
+       if (argmem == NULL) continue;
        // only perf-time data
        if(array->arrayType != &CS_VAR_TYPE_I)
           memcpy(data+i*size, &argmem->value, size);
@@ -1611,8 +1792,7 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
 
 
 int32_t copy_opcode_obj(CSOUND *csound, ASSIGN *p) {
-  CS_VAR_TYPE_OPCODEOBJ.copyValue(csound, (CS_TYPE *)
-                                  &CS_VAR_TYPE_OPCODEOBJ, p->r,
+  CS_VAR_TYPE_OPCODEOBJ.copyValue(csound, &CS_VAR_TYPE_OPCODEOBJ, p->r,
                                   p->a, p->h.insdshead);
   return OK;
 }
@@ -1620,46 +1800,124 @@ int32_t copy_opcode_obj(CSOUND *csound, ASSIGN *p) {
 int32_t set_opcode_param(CSOUND *csound, AOP *p) {
   OPCODEOBJ *obj = (OPCODEOBJ *) p->r;
   uint32_t ndx = (uint32_t) (*p->a >= 0 ? *p->a : 0);
-  MYFLT *arg  = p->b;
+  cs_float *arg  = p->b;
   // Defensive: object not initialised yet (e.g., wrong overload picked or missing 'create')
   if (UNLIKELY(obj == NULL || obj->dataspace == NULL)) {
-    return csound->PerfError(csound, &(p->h), "opcode object not initialised (setp)\n");
+    return csound->PerfError(csound, &(p->h), Str("opcode object not initialised (setp)\n"));
   }
   if(context_check(csound, obj, p->h.insdshead) != OK)
-    return csound->PerfError(csound, &(p->h), "incompatible context for opcode %s \n",
+    return csound->PerfError(csound, &(p->h), Str("incompatible context for opcode %s \n"),
                              obj->dataspace->optext->t.oentry->opname);
   if(check_and_set_arg(csound, obj, ndx, arg) != 0)
-    return csound->PerfError(csound, &(p->h), "could not set arg %u \n", ndx);
+    return csound->PerfError(csound, &(p->h), Str("could not set arg %u \n"), ndx);
   return OK;
 }
 
-int32_t get_opcode_output(CSOUND *csound, AOP *p) {
+static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
+                                  int32_t initializing) {
   OPCODEOBJ *obj = (OPCODEOBJ *) p->a;
   uint32_t ndx = (uint32_t) (*p->b >= 0 ? *p->b : 0);
-  MYFLT **outarg = obj->outargp;
-  if(outarg != NULL) {
-  if(context_check(csound, obj, p->h.insdshead) != OK)
-    return csound->PerfError(csound, &(p->h), "incompatible context for opcode %s \n",
-                             obj->dataspace->optext->t.oentry->opname);
-  if(ndx < obj->dataspace->optext->t.outArgCount) {
-    CS_TYPE *destype = csoundGetTypeForArg(p->r);
-    if(csoundGetTypeForArg(outarg[ndx]) == destype) {
-      if(csoundGetTypeForArg(p->r) == &CS_VAR_TYPE_ARRAY) {
-        ARRAYDAT *dest = (ARRAYDAT *) p->r;
-        ARRAYDAT *src = (ARRAYDAT *) outarg[ndx];
-        if(dest->allocated < src->allocated)
-         tabinit_like(csound, dest, src);
-      }
-      destype->copyValue(csound, destype, p->r, outarg[ndx], p->h.insdshead);
+  cs_float **outargs;
+  const CS_TYPE *destinationType;
+  const CS_TYPE *sourceType;
+  int32_t result;
+
+  if (UNLIKELY(obj == NULL || obj->dataspace == NULL)) {
+    return initializing
+      ? csound->InitError(csound, Str("object not initialised\n"))
+      : csound->PerfError(csound, &p->h, Str("object not initialised\n"));
+  }
+  outargs = obj->outargp;
+  if (UNLIKELY(outargs == NULL)) {
+    /* A perf-only Opcode object binds its argument pointers on the first
+       performance call. Defer getp validation until that call has run. */
+    OENTRY *entry = obj->dataspace->optext != NULL
+      ? obj->dataspace->optext->t.oentry : NULL;
+    if (initializing && entry != NULL && entry->init == NULL &&
+        entry->perf != NULL) {
+      return OK;
     }
-    else return csound->PerfError(csound, &(p->h), "mimatching argument types: "
-                                  "need %s, got %s \n",
-                                  csoundGetTypeForArg(outarg[ndx])->varTypeName,
-                                  csoundGetTypeForArg(p->r)->varTypeName);
-  } else return csound->PerfError(csound, &(p->h),
-                                   "argument index out of range\n");
-   return OK;
-  } else return csound->PerfError(csound, &(p->h),
-                                   "object not initialised\n");
+    return initializing
+      ? csound->InitError(csound, Str("object not initialised\n"))
+      : csound->PerfError(csound, &p->h,
+                          Str("object not initialised\n"));
+  }
+  if (UNLIKELY(context_check(csound, obj, p->h.insdshead) != OK)) {
+    return initializing
+      ? csound->InitError(csound, Str("incompatible context for opcode %s\n"),
+                          obj->dataspace->optext->t.oentry->opname)
+      : csound->PerfError(csound, &p->h,
+                          Str("incompatible context for opcode %s\n"),
+                          obj->dataspace->optext->t.oentry->opname);
+  }
+  if (UNLIKELY(ndx >= obj->dataspace->optext->t.outArgCount)) {
+    return initializing
+      ? csound->InitError(csound, Str("argument index out of range\n"))
+      : csound->PerfError(csound, &p->h, Str("argument index out of range\n"));
+  }
+
+  destinationType = csoundGetTypeForArg(p->r);
+  sourceType = csoundGetTypeForArg(outargs[ndx]);
+  if (UNLIKELY(sourceType == NULL || destinationType == NULL)) {
+    return initializing
+      ? csound->InitError(csound, Str("could not resolve getp argument types\n"))
+      : csound->PerfError(csound, &p->h,
+                          Str("could not resolve getp argument types\n"));
+  }
+  if (UNLIKELY(sourceType != destinationType)) {
+    return initializing
+      ? csound->InitError(csound, Str("mismatching argument types: need %s, got %s\n"),
+                          sourceType->varTypeName,
+                          destinationType->varTypeName)
+      : csound->PerfError(csound, &p->h,
+                          Str("mismatching argument types: need %s, got %s\n"),
+                          sourceType->varTypeName,
+                          destinationType->varTypeName);
+  }
+
+  if (destinationType == &CS_VAR_TYPE_ARRAY) {
+    ARRAYDAT *destination = (ARRAYDAT *)p->r;
+    ARRAYDAT *source = (ARRAYDAT *)outargs[ndx];
+    if (UNLIKELY(csound_array_has_managed_elements(source))) {
+      return initializing
+        ? csound->InitError(
+            csound, Str("getp does not support managed array outputs\n"))
+        : csound->PerfError(
+            csound, &p->h,
+            Str("getp does not support managed array outputs\n"));
+    }
+    result = csound_array_copy_independent(
+      csound, destination, source, p->h.insdshead,
+      initializing ? CSOUND_ARRAY_COPY_ALLOW_ALLOCATION
+                   : CSOUND_ARRAY_COPY_NO_ALLOCATION);
+    if (UNLIKELY(result != OK)) {
+      return initializing
+        ? csound->InitError(csound,
+                            Str("could not prepare getp array output\n"))
+        : csound->PerfError(
+            csound, &p->h,
+            Str("getp array output changed capacity during performance\n"));
+    }
+    return OK;
+  }
+  if (UNLIKELY(destinationType->userDefinedType ||
+               destinationType->freeVariableMemory != NULL ||
+               destinationType->copyValue == NULL)) {
+    return initializing
+      ? csound->InitError(csound,
+                          Str("getp does not support managed outputs\n"))
+      : csound->PerfError(csound, &p->h,
+                          Str("getp does not support managed outputs\n"));
+  }
+  destinationType->copyValue(csound, destinationType, p->r,
+                             outargs[ndx], p->h.insdshead);
+  return OK;
 }
 
+int32_t get_opcode_output_init(CSOUND *csound, AOP *p) {
+  return copy_opcode_output(csound, p, 1);
+}
+
+int32_t get_opcode_output(CSOUND *csound, AOP *p) {
+  return copy_opcode_output(csound, p, 0);
+}

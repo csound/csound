@@ -1,3 +1,9 @@
+<CsTest>
+description = "test +=, ==, *= and /="
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -47,6 +47,16 @@ use linear interpolation for sample rate conversion. Default is ON.
 - `BUILD_PLUGINS=`: build all external opcodes as plugin libraries.
 This option is disabled by default.
 
+- `USE_AVX2=` opts x86-64 builds into AVX2 instructions. It defaults to `OFF`.
+Only enable it when all target CPUs and operating systems support AVX2.
+Csound does not check CPU support at runtime for code built with this option.
+
+- `USE_WASMTIME=`: allow CMake to build native WebAssembly opcode support when
+it finds the Wasmtime C API. This option is enabled by default. Set it to
+`OFF` to disable the feature even when Wasmtime is installed. Set
+`Wasmtime_ROOT` if the Wasmtime package is outside CMake's normal search paths.
+See [Native Csound WebAssembly plugins](platform/wasm-wasi/NATIVE_OPCODE_PLUGINS.md).
+
 -`DCUSTOM_CMAKE=`: with this option you can specify a custom.cmake
 file containing build options and CMake variables to control the build.
 
@@ -56,6 +66,30 @@ command from the CMake build directory:
 ```
 cmake -LAH
 ```
+
+CPU compatibility
+--------------
+
+By default, Csound does not add AVX or AVX2 requirements to the toolchain's
+x86-64 target. GCC's [`-march=x86-64`](https://gcc.gnu.org/onlinedocs/gcc/x86-Options.html)
+and the [default MSVC x64 target](https://learn.microsoft.com/en-us/cpp/build/reference/arch-x64)
+use an SSE2 baseline.
+The operating system, compiler target and linked libraries may set a higher
+minimum. ARM and WebAssembly builds do not use `USE_AVX2`.
+
+Keep AVX2 disabled for general x86-64 packages. Use dependencies built for
+the same CPU baseline, and avoid host-specific flags such as `-march=native`.
+An existing CMake build directory keeps its cached options, so set this
+explicitly when reusing a build directory for a portable package.
+
+```sh
+cmake -S . -B build -DUSE_AVX2=OFF
+```
+
+For a local build on a system with AVX2 support, use `-DUSE_AVX2=ON`.
+This permits AVX2 throughout Csound and has no runtime fallback.
+`USE_AVX2=OFF` does not remove CPU flags supplied by a toolchain
+or through `CFLAGS` and `CXXFLAGS`.
 
 Build Instructions
 ----
@@ -157,7 +191,7 @@ be installed (`brew install bison` is an alternative to building from
 upstream sources).
 
 ```
-cd iOS
+cd platform/ios
 chmod +x build_libsndfile.sh
 ./build_libsndfile.sh
 build.sh
@@ -176,10 +210,10 @@ installed, then we run the normal cmake build.
 ```
 sudo apt-get update
 sudo apt-get install cmake libsndfile1-dev libasound2-dev libjack-dev \
-portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev \
-default-jdk libfltk1.1-dev libfluidsynth-dev liblo-dev fluid \
-ladspa-sdk libpng-dev dssi-dev libstk0-dev libgmm++-dev bison flex \
-libportsmf-dev libeigen3-dev libcunit1-dev gettext libsamplerate0-dev
+portaudio19-dev libportmidi-dev libpulse-dev swig \
+default-jdk liblo-dev \
+bison flex \
+gettext libsamplerate0-dev
 mkdir build
 cd build
 cmake ..
@@ -194,6 +228,12 @@ sudo make install
 
 See "Useful CMake Options" above for common options to customise the
 build.
+
+The optional PipeWire backend requires PipeWire 0.3.50 or newer, provided by
+`libpipewire-0.3-dev` on Debian and Ubuntu. CMake skips this backend when a
+suitable version is unavailable. To disable it explicitly, add
+`-DUSE_PIPEWIRE=OFF` to the CMake command. Other enabled audio backends remain
+available.
 
 Windows (Visual Studio / vcpkg)
 ----
@@ -229,18 +269,98 @@ cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.c
 cmake --build build --config Release
 ```
 
-If you wish to build the installer, use the following commands. The first four set the location of the MS C/C++ runtime libraries that need to be packaged with Csound. Note that the `C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build` path might need updating depending on your installed version of Visual Studio:
+If you wish to build the installer, download the Visual C++ Redistributable installer (pinned to VS 2022 / `vs/17` stable, bundled offline) and then run Inno Setup. The installer will run `vc_redist.x64.exe` silently during Csound installation so loose VCRUNTIME DLLs are no longer shipped (avoids Windows Defender false positives). The redistributable requires admin elevation (`PrivilegesRequired=admin`).
+
+For 64-bit:
 
 ```powershell
-$Env:RedistVersion = Get-Content "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\Microsoft.VCRedistVersion.default.txt"
-$Env:VCREDIST_CRT_DIR = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CRT"
-$Env:VCREDIST_CXXAMP_DIR = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.CXXAMP"
-$Env:VCREDIST_OPENMP_DIR = "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Redist\MSVC\${Env:RedistVersion}\x64\Microsoft.VC143.OpenMP"
+Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x64.exe -OutFile installer/windows/vc_redist.x64.exe
 iscc /o. installer\windows\csound7_x64_github.iss
 ```
 
+For 32-bit:
+
+```powershell
+Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vc_redist.x86.exe -OutFile installer/windows/vc_redist.x86.exe
+iscc /o. installer\windows\csound7_x86_github.iss
+```
+
+### Windows library names
+
+Csound 7 uses `csound7_64.dll` for double-precision samples and `csound7.dll`
+for single-precision samples. The `_64` suffix refers to sample precision,
+not CPU architecture. The x64 and ARM64 installers use double precision;
+the x86 installer uses single precision.
+
+Link against `csound7_64.lib` or `csound7.lib`, or use the CMake target
+`Csound::Csound`. Hosts that load the DLL at runtime must use the new name.
+Rebuild Csound 7 hosts and plugins that link against the old DLL name.
+Do not alias the new DLL to `csound64.dll` or `csound.dll`: those names
+belong to Csound 6 and would restore the conflict.
+
+When updating a registered Csound 7 installation in the same folder, the
+installer removes its old DLL and library names. For a manual ZIP update,
+remove those old files from the Csound 7 folder yourself. Keep Csound 6
+and Csound 7 in separate folders. The command-line program remains
+`csound.exe`, so PATH order still chooses which version runs.
+
+### Windows ARM64
+
+The ARM64 package runs natively on Windows on Arm. It includes the command-line
+tools, Csound library, plugins and headers. Applications that load the library
+and any extra plugins must also target ARM64.
+
+Build on Windows on Arm with Visual Studio 2026, the ARM64 C++ build tools and a
+Windows SDK. Install the prerequisites and initialize vcpkg as described above. Use a fresh checkout
+or remove an old `build` directory before changing architectures.
+
+```powershell
+cmake -B build -S . -G "Visual Studio 18 2026" -A ARM64 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/windows/Custom-vs.cmake"
+cmake --build build --config Release
+cmake --install build --prefix build\install --config Release
+```
+
+CMake selects `arm64-windows-static` for the dependencies. The CI job uses a
+native `windows-11-arm` runner and runs the existing CSD and C++ tests there.
+The installer and binaries are available as workflow artifacts and release
+assets.
+
+Set the version and build number before packaging a local build. Download the
+ARM64 Visual C++ runtime and compile the installer with Inno Setup 6.3 or later.
+
+```powershell
+$env:CSOUND_VERSION = "7.0-local"
+$env:GITHUB_RUN_NUMBER = "1"
+Invoke-WebRequest -Uri https://aka.ms/vc14/vc_redist.arm64.exe -OutFile installer/windows/vc_redist.arm64.exe
+iscc /o. installer\windows\csound7_arm64_github.iss
+```
+
+The installer accepts only ARM64 Windows and uses `C:\Program Files\Csound7 ARM64`.
+It bundles the ARM64 runtime for offline installation. The Windows installers
+share `PATH`, `OPCODE7DIR64` and `RAWWAVE_PATH`. The last installation sets
+`OPCODE7DIR64` and `RAWWAVE_PATH` for all copies. If you keep an x64 installation
+too, use the full path to the desired executable and set `OPCODE7DIR64` and
+`RAWWAVE_PATH` to its `plugins64` and `samples` directories.
+
+Uninstalling a copy leaves plugin and sample paths that point elsewhere alone.
+If they point to the copy being removed, the uninstaller clears them. Set them
+again for any copy you keep.
+
 If you wish to customize the build in any way, you can modify the `Custom-vs.cmake` file in the `platform\windows` directory. For common options, refer to "Useful CMake Options" above.
 
+### Windows audio backends
+
+The x64 and ARM64 installers include PortAudio, WASAPI and Windows MME.
+Use `-+rtaudio=wasapi` to select the native WASAPI backend. It uses exclusive
+mode when the device accepts Csound's rate, channel count and float format.
+Otherwise it tries shared mode with Windows audio engine conversion enabled
+through `AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM`.
+
+Shared mode requires the audio engine to accept this conversion request for
+playback or capture. If it cannot, Csound reports the HRESULT and stops opening
+the stream. It does not fall back to an unconverted device format, which could
+change pitch, duration or channel layout. Try `-+rtaudio=pa` to use PortAudio
+instead. The Windows ARM64 workflow uses Windows 11.
 
 
 

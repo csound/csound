@@ -1,3 +1,9 @@
+<CsTest>
+description = "contrib/test_pset.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 ;<CsOptions>
 ;</CsOptions>

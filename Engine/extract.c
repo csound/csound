@@ -89,7 +89,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
         case 'f':
           //printf("f: %s\n", s);
 #if defined(USE_DOUBLE)
-          CS_SSCANF(s, "%d:%lf", &extractStatics->onsect, &extractStatics->onbeat);
+          CS_SSCANF(s, "%d:%" CS_DOUBLE_SCAN, &extractStatics->onsect, &extractStatics->onbeat);
 #else
           CS_SSCANF(s, "%d:%f", &extractStatics->onsect, &extractStatics->onbeat);
 #endif
@@ -98,7 +98,7 @@ void readxfil(CSOUND *csound, EXTRACT_STATICS* extractStatics,
           //printf("t: %s\n");
           extractStatics->offsect = extractStatics->onsect; /* default offsect */
 #if defined(USE_DOUBLE)
-          CS_SSCANF(s, "%d:%lf", &extractStatics->offsect,&extractStatics->offbeat);
+          CS_SSCANF(s, "%d:%" CS_DOUBLE_SCAN, &extractStatics->offsect,&extractStatics->offbeat);
 #else
           CS_SSCANF(s, "%d:%f", &extractStatics->offsect, &extractStatics->offbeat);
 #endif
@@ -121,7 +121,7 @@ void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics)
  /* extract instr events within the time period */
 {
     SRTBLK  *bp;
-    MYFLT   turnoff, anticip;
+    cs_float   turnoff, anticip;
     int32_t     warped;
 
     alloc_globals(extractStatics);

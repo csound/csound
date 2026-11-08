@@ -1,3 +1,9 @@
+<CsTest>
+description = "test nested strings works with schedule [issue #861]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>

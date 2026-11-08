@@ -1,3 +1,9 @@
+<CsTest>
+description = "test_asig_array_opassign.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,3 +1,9 @@
+<CsTest>
+description = "mixed numbered and named instruments"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

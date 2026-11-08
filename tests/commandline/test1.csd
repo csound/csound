@@ -1,3 +1,9 @@
+<CsTest>
+description = "Simple Test, Single Channel"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

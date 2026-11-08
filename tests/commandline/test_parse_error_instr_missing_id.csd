@@ -1,3 +1,10 @@
+<CsTest>
+description = "expected failure: instr missing id"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unexpected T_IDENTB", "syntax error, unexpected ENDIN_TOKEN, expecting end of file"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

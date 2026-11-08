@@ -1,3 +1,9 @@
+<CsTest>
+description = "test k-array with single dimension, assignment with number"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

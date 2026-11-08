@@ -25,7 +25,7 @@
 
 
 typedef struct ListItem {
-  double           val;
+  cs_double           val;
   struct ListItem *args;
 } ListItem;
 
@@ -92,7 +92,7 @@ typedef struct prs_parm_s {
 typedef struct scotoken_s {
     int             type;
     int             ival;
-    MYFLT           fval;
+    cs_float           fval;
     char            *strbuff;
 } SCOTOKEN;
 
@@ -103,7 +103,7 @@ typedef struct score_parm_s {
     char            *xstrbuff;
     int             xstrptr,xstrmax;
     int             ival;
-    MYFLT           fval;
+    cs_float           fval;
     SCOTOKEN        *arglist;
 } SCORE_PARM;
 

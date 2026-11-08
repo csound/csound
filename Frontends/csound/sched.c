@@ -94,18 +94,19 @@ static int parse_sched_opt(const char *s, int *priority, int *cpuMax, int *secs)
     return 0;
 }
 
+
 static void *wd_thread_routine(void *dummy)
 {
     uint32_t t0, t1;
-    double   p;
+    cs_double   p;
 
     (void) dummy;
     for ( ; ; ) {
       t0 = (uint32_t) clock();
       csoundSleep((size_t) (secs * 1000));
       t1 = (uint32_t) clock();
-      p = (double) ((int32_t) (t1 - t0)) * (100.0 / (double) CLOCKS_PER_SEC);
-      if ((p / (double) secs) > (double) cpuMax) {
+      p = (cs_double) ((int32_t) (t1 - t0)) * (100.0 / (cs_double) CLOCKS_PER_SEC);
+      if ((p / (cs_double) secs) > (cs_double) cpuMax) {
         kill(getpid(), SIGTERM); csoundSleep(1500);
         kill(getpid(), SIGKILL); csoundSleep(1500);
         exit(-1);
@@ -129,6 +130,12 @@ int set_rt_priority(int argc, const char **argv)
     memset(&p, 0, sizeof(struct sched_param));
     priority = sched_get_priority_max(SCHED_RR);
     rtmode = 0;
+    for (i = 1; i < argc; i++) {
+      if (strcmp(argv[i], "--") == 0) {
+        argc = i;
+        break;
+      }
+    }
     if (argc > 2) {
       for (i = 1; i <= (argc - 2); i++) {
         if (!(strcmp(argv[i], "-o")) &&                 /* check if input   */
@@ -235,4 +242,3 @@ int set_rt_priority(int argc, const char **argv)
     }
     return 0;
 }
-

@@ -1,3 +1,10 @@
+<CsTest>
+description = "Test maxalloc opcode less than 0"
+
+[expect]
+exit = "nonzero"
+stderr = ["maxalloc: invalid mode parameter"]
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

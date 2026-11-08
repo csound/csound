@@ -1,6 +1,12 @@
+<CsTest>
+description = "testing midifile opcodes"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
--F -n 
+-F -n
 </CsOptions>
 <CsInstruments>
 0dbfs=1
@@ -14,7 +20,13 @@ midifilemute gimf
 endin
 
 instr 3
+; Rewind should restore the file's initial tempo before playback resumes.
 midifilerewind gimf
+itempo miditempo gimf
+if int(itempo) != 78 then
+   print itempo
+   exitnow(-1)
+endif
 midifileplay gimf
 endin
 

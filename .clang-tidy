@@ -1,0 +1,5 @@
+Checks: '-*,readability-non-const-parameter,misc-use-internal-linkage'
+WarningsAsErrors: 'readability-non-const-parameter,misc-use-internal-linkage'
+# Only report in the selected source file. The runner excludes vendored code.
+HeaderFilterRegex: '^$'
+FormatStyle: none

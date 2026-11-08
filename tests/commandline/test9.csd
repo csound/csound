@@ -1,3 +1,9 @@
+<CsTest>
+description = "Unused Label (to test labels get parsed)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

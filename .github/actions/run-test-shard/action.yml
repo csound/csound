@@ -1,0 +1,52 @@
+name: Run a native test group
+description: Run a share of both test suites using the original build.
+inputs:
+  build:
+    description: Build directory.
+    required: true
+  name:
+    description: Artifact name suffix.
+    required: true
+  shard:
+    description: Zero-based test group.
+    required: true
+  reject-sanitizers:
+    description: Fail on sanitizer diagnostics in CSD output.
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - uses: actions/download-artifact@v8.0.1
+      with:
+        name: native-build-${{ inputs.name }}
+        path: ${{ runner.temp }}/native-test-build
+    - uses: actions/download-artifact@v8.0.1
+      with:
+        name: native-plan-${{ inputs.name }}
+        path: .ci-test-plans
+    - name: Run tests
+      shell: bash
+      env:
+        BUILD_DIR: ${{ inputs.build }}
+        ARTIFACT_NAME: ${{ inputs.name }}
+        SHARD: ${{ inputs.shard }}
+        REJECT_SANITIZERS: ${{ inputs.reject-sanitizers }}
+      run: |
+        tar -xzf "$RUNNER_TEMP/native-test-build/$ARTIFACT_NAME.tar.gz"
+        extra=()
+        if [[ "$REJECT_SANITIZERS" == true ]]; then
+          extra+=(--reject-sanitizers)
+        fi
+        python3 .github/scripts/ci-test-shards.py run \
+          --build "$BUILD_DIR" --plan ".ci-test-plans/$ARTIFACT_NAME.json" \
+          --shard "$SHARD" --results ".ci-test-results/$ARTIFACT_NAME-$SHARD" \
+          "${extra[@]}"
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v7.0.1
+      with:
+        name: native-results-${{ inputs.name }}-${{ inputs.shard }}
+        path: .ci-test-results/${{ inputs.name }}-${{ inputs.shard }}
+        include-hidden-files: true
+        retention-days: 7
+        if-no-files-found: error

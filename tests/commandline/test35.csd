@@ -1,3 +1,9 @@
+<CsTest>
+description = "test of passign"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac

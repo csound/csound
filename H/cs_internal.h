@@ -30,6 +30,10 @@ extern "C" {
   typedef struct CSFILE_ {
     struct CSFILE_  *nxt;
     struct CSFILE_  *prv;
+    struct CSFILE_  *retired_nxt;
+    uint64_t io_pass;
+    int32_t io_readers;
+    int32_t retired;
     int32_t type;
     int32_t  fd;
     FILE *f;
@@ -38,7 +42,7 @@ extern "C" {
     int32_t async_flag;
     int32_t items;
     int32_t pos;
-    MYFLT *buf;
+    cs_float *buf;
     int32_t bufsize;
     char fullName[1];
   } CSFILE;
@@ -95,9 +99,11 @@ extern "C" {
   } NAME;
 
 
-  typedef union {
-    uint32 dwData;
-    unsigned char bData[4];
+  /* A message as midiin and its kin read it. The channel counts from 1,
+     and port-mapped input takes it past 255. */
+  typedef struct {
+    unsigned char status, data1, data2;
+    int16         chan;
   } MIDIMESSAGE;
 
   /* MIDI globals */
@@ -143,8 +149,8 @@ extern "C" {
 
   typedef struct {
     OPDS    h;
-    MYFLT   *ktempo, *istartempo;
-    MYFLT   prvtempo;
+    cs_float   *ktempo, *istartempo;
+    cs_float   prvtempo;
   } TEMPO;
 
   typedef struct names {
@@ -165,7 +171,55 @@ extern "C" {
 #include "environ.h"
 #include "remote.h"
 
-typedef struct opcodinfo OPCODINFO;
+  /* Holds UDO information, when an instrument is
+     defined as a UDO
+  */
+  typedef struct pbr_rewire_entry {
+    size_t  opcode_mem_offset;
+    int32_t arg_index;
+    int32_t ar_index;
+    char    *structPath;
+  } PBR_REWIRE_ENTRY;
+
+  typedef struct pbr_seed_entry {
+    int32_t output_ar_index;   /* xout position to materialise */
+    int32_t input_ar_index;    /* xin slot to seed from and write back to */
+    int32_t work_ar_index;     /* canonical mutable output slot; duplicates share it */
+    char    *input_struct_path;
+  } PBR_SEED_ENTRY;
+
+  typedef struct pbr_alias_entry {
+    char    *name;             /* owned copy of the UDO-local variable name */
+    int32_t ar_index;          /* slot in UOPCODE.ar holding caller storage */
+  } PBR_ALIAS_ENTRY;
+
+  typedef struct pbr_rewire_plan {
+    int32_t init_count;
+    int32_t perf_count;
+    int32_t seed_count;
+    int32_t alias_count;
+    PBR_REWIRE_ENTRY *init_entries;
+    PBR_REWIRE_ENTRY *perf_entries;
+    PBR_SEED_ENTRY   *seed_entries;
+    PBR_ALIAS_ENTRY  *aliases;
+  } PBR_REWIRE_PLAN;
+
+  typedef struct opcodinfo {
+    int32    instno;
+    char    *name, *intypes, *outtypes;
+    int16   inchns, outchns;
+    bool newStyle;
+    bool passByRef;
+    CS_VAR_POOL* out_arg_pool;
+    CS_VAR_POOL* in_arg_pool;
+    CS_VAR_POOL* module_var_pool; /* Module globals for UDO namespace isolation. */
+    struct instr *ip;
+    int32_t recurse_depth;
+    OENTRY *oentry;
+    PBR_REWIRE_PLAN *pbr_plan;
+    struct opcodinfo *prv;
+  } OPCODINFO;
+
 
   /**
    * This struct will hold the current engine state after compilation
@@ -180,25 +234,11 @@ typedef struct opcodinfo OPCODINFO;
     CS_HASH_TABLE *instrumentNames; /* instrument names */
     int32_t           maxinsno;
     OPCODINFO     *opcodeInfo;
+    struct instrument_reference *instrumentRefs; /* pending merge publication */
+    /* Fixed buckets of immutable name/number entries for render-side lookup. */
+    struct named_instr_number *instrumentNumbers[64];
   } ENGINE_STATE;
 
-
-  /* Holds UDO information, when an instrument is
-     defined as a UDO
-  */
-  typedef struct opcodinfo {
-    int32    instno;
-    char    *name, *intypes, *outtypes;
-    int16   inchns, outchns;
-    bool newStyle;
-    bool passByRef;
-    CS_VAR_POOL* out_arg_pool;
-    CS_VAR_POOL* in_arg_pool;
-    CS_VAR_POOL* module_var_pool;  /* Module's global varPool for namespace isolation */
-    struct instr *ip;
-    OENTRY *oentry;
-    struct opcodinfo *prv;
-  } OPCODINFO;
 
   /**
    * plugin module info
@@ -209,6 +249,11 @@ typedef struct opcodinfo OPCODINFO;
   } MODULE_INFO;
 
 #define MAX_ALLOC_QUEUE 1024
+#define ALLOC_DATA_SCORE_EVENT 0
+#define ALLOC_DATA_MIDI_EVENT 1
+#define ALLOC_DATA_INIT_PASS 2
+#define ALLOC_DATA_REINIT_PASS 3
+#define ALLOC_DATA_MERGE_STATE 4
   typedef struct _alloc_data_ {
     int32_t type;
     int32_t insno;
@@ -217,12 +262,22 @@ typedef struct opcodinfo OPCODINFO;
     MEVENT mep;
     INSDS *ip;
     OPDS *ids;
+    ENGINE_STATE *engine_state;
+    struct type_table *type_table;
   } ALLOC_DATA;
 
 #define MAX_MESSAGE_STR 1024
-  typedef struct _message_queue_t_ {
+#define MAX_MESSAGE_QUEUE 64
+  typedef struct {
     int32_t attr;
     char str[MAX_MESSAGE_STR];
+  } message_string_t;
+  typedef struct _message_queue_t_ {
+    volatile long accepting;
+    message_string_t messages[MAX_MESSAGE_QUEUE];
+    void (*output)(CSOUND *, int32_t, const char *);
+    void (*saved_string_callback)(CSOUND *, int32_t, const char *);
+    void (*saved_callback)(CSOUND *, int32_t, const char *, va_list);
   } message_string_queue_t;
 
    struct sread__ {
@@ -232,9 +287,9 @@ typedef struct opcodinfo OPCODINFO;
       int32_t  warpin;                 /* input format sensor                  */
       int32_t  linpos;                 /* line position sensor                 */
       int32_t  lincnt;                 /* count of lines/section in scorefile  */
-      MYFLT   prvp2 /* = -FL(1.0) */;     /* Last event time                  */
-      MYFLT   clock_base /* = FL(0.0) */;
-      MYFLT   warp_factor /* = FL(1.0) */;
+      cs_float   prvp2 /* = -FL(1.0) */;     /* Last event time                  */
+      cs_float   clock_base /* = FL(0.0) */;
+      cs_float   warp_factor /* = FL(1.0) */;
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
       MACRO   *unused_ptr2;
@@ -275,9 +330,11 @@ typedef struct opcodinfo OPCODINFO;
       EVTBLK    prve;
       char      *Linebuf;
       int32_t   linebufsiz;
+      char      *work;        /* the lines sense_line takes, its alone */
+      int32_t   worksiz;
       char      *orchestra, *orchestrab;
       int32_t   oflag;
-      MYFLT     *pfields;
+      cs_float     *pfields;
      int32_t   msize;
    };
 
@@ -287,15 +344,16 @@ typedef struct opcodinfo OPCODINFO;
       int16   sectno;
       int32_t     lplayed;
       int32_t     segamps, sormsg;
+      int32_t     score_segment_polling;
    };
 
    struct libsndStatics__ {
       void       *outfile;
       void       *infile;
       char       *sfoutname;           /* soundout filename            */
-      MYFLT      *inbuf;
-      MYFLT      *outbuf;              /* contin sndio buffers         */
-      MYFLT      *outbufp;             /* MYFLT pntr                   */
+      cs_float      *inbuf;
+      cs_float      *outbuf;              /* contin sndio buffers         */
+      cs_float      *outbufp;             /* cs_float pntr                   */
       uint32     inbufrem;
       uint32     outbufrem;            /* in monosamps                 */
                                           /* (see openin, iotranset)      */
@@ -306,6 +364,8 @@ typedef struct opcodinfo OPCODINFO;
       uint32  nframes               /* = 1UL */;
       FILE    *pin, *pout;
       int32_t dither;
+      uint32_t outputFadeFrames;
+      uint32_t outputFadePos;
    };
 
   typedef struct evt_cb_func {
@@ -313,6 +373,52 @@ typedef struct opcodinfo OPCODINFO;
   void    *userData;
   struct evt_cb_func  *nxt;
 } EVT_CB_FUNC;
+
+  /* Internal-only helper: returns non-zero when 'thread' is the thread handle
+     returned by csoundCreateThread() for the calling thread.
+
+     NOTE: this is internal because there is currently no public API to compare
+     thread identities. csoundGetCurrentThreadId() returns a freshly allocated
+     id that the caller must free and that cannot be compared with '==', and
+     csoundCreateThread() returns an opaque handle whose layout is platform
+     specific. Should a public API for this be added later, this function can
+     be promoted. */
+  int32_t csoundIsCurrentThread(void *thread);
+
+#ifdef CSOUND_WASI_REALTIME
+  /* Set by the WASI pthread entry wrapper, before calling engine code. */
+  int32_t csoundWasiIsWorkerThread(void);
+
+  /* A compiler worker may recover parser errors only on its own stack.
+     Merge/global init disables this target before taking engine locks. */
+  typedef struct {
+    CSOUND *csound;
+    jmp_buf target;
+    int32_t enabled;
+  } CSOUND_WASI_COMPILE_JUMP;
+  CSOUND_WASI_COMPILE_JUMP *csoundWasiCompileJumpContext(CSOUND *csound);
+  CSOUND_WASI_COMPILE_JUMP *csoundWasiSwapCompileJumpContext(
+      CSOUND_WASI_COMPILE_JUMP *context);
+  /* Only explicitly owned parser storage belongs to this thread-local scope.
+     Engine definitions and concurrent render allocations never enter it. */
+  typedef struct {
+    CSOUND *csound;
+    void *allocations;
+  } CSOUND_WASI_ALLOC_SCOPE;
+  CSOUND_WASI_ALLOC_SCOPE *csoundWasiSwapAllocScope(
+      CSOUND_WASI_ALLOC_SCOPE *scope);
+  int32_t csoundWasiHasAllocScope(CSOUND *csound);
+  void *csoundWasiOwnAllocation(CSOUND *csound, void *ptr,
+                              void (*dispose)(CSOUND *, void *));
+  void csoundWasiReleaseAllocation(CSOUND *csound, void *ptr);
+  void csoundWasiTransferAllocScope(CSOUND_WASI_ALLOC_SCOPE *source,
+                                   CSOUND_WASI_ALLOC_SCOPE *destination);
+  void csoundWasiFinishAllocScope(CSOUND_WASI_ALLOC_SCOPE *scope,
+                                 int32_t discard);
+#ifdef CSOUND_WASI_BROWSER
+  void csoundRealtimeApiStopWasi(CSOUND *csound);
+#endif
+#endif
 
 
 #ifdef __cplusplus

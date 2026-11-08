@@ -1,3 +1,9 @@
+<CsTest>
+description = "Test dynamic allocation of pfields, schedule and ftgen"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

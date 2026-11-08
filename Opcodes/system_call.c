@@ -29,17 +29,13 @@
 #include "csoundCore.h"
 #endif
 
-#if !(defined(__wasi__))
-
 typedef struct {
   OPDS  h;
-  MYFLT *res;
-  MYFLT *ktrig;
+  cs_float *res;
+  cs_float *ktrig;
   STRINGDAT *commandLine;
-  MYFLT *nowait;
-  char *command;
-  MYFLT prv_ktrig;
-  CSOUND *csound;
+  cs_float *nowait;
+  cs_float prv_ktrig;
 } SYSTEM;
 
 #if defined(WIN32)
@@ -47,22 +43,31 @@ typedef struct {
 
 static void threadroutine(void *p)
 {
-    SYSTEM *pp = (SYSTEM *) p;
-    system(pp->command);
-    pp->csound->Free(pp->csound,pp->command);
+    char *command = (char *) p;
+    system(command);
+    free(command);
 }
 
 static int32_t call_system(CSOUND *csound, SYSTEM *p)
 {
+    IGN(csound);
     _flushall();
     if ( (int32_t)*p->nowait != 0 ) {
-       p->command = csound->Strdup(csound, p->commandLine->data);
-       p->csound = csound;
-      _beginthread( threadroutine, 0, p);
+      /* The worker may outlive this opcode and the Csound instance. */
+      char *command = _strdup(p->commandLine->data);
+      if (UNLIKELY(command == NULL)) {
+        *p->res = FL(-1.0);
+        return OK;
+      }
+      if (UNLIKELY(_beginthread(threadroutine, 0, command) == (uintptr_t)-1)) {
+        free(command);
+        *p->res = FL(-1.0);
+        return OK;
+      }
       *p->res = OK;
     }
     else {
-      *p->res = (MYFLT) system( (char *)p->commandLine->data );
+      *p->res = (cs_float) system( (char *)p->commandLine->data );
     }
     return OK;
 }
@@ -70,7 +75,7 @@ static int32_t call_system(CSOUND *csound, SYSTEM *p)
 #else
 #include <unistd.h>
 
-#ifdef __APPLE__  
+#ifdef __APPLE__
 #include <TargetConditionals.h>
 #endif
 
@@ -90,7 +95,7 @@ return OK;
       }
     }
     else {
-      *p->res = (MYFLT)system((char*)p->commandLine->data);
+      *p->res = (cs_float)system((char*)p->commandLine->data);
       return OK;
     }
 #endif
@@ -100,7 +105,7 @@ return OK;
 
 #endif
 
-int32_t call_system_i(CSOUND *csound, SYSTEM *p)
+static int32_t call_system_i(CSOUND *csound, SYSTEM *p)
 {
     if (*p->ktrig <= FL(0.0)) {
       *p->res=FL(0.0);
@@ -110,14 +115,14 @@ int32_t call_system_i(CSOUND *csound, SYSTEM *p)
       return call_system(csound, p);
 }
 
-int32_t call_system_set(CSOUND *csound, SYSTEM *p)
+static int32_t call_system_set(CSOUND *csound, SYSTEM *p)
 {
     IGN(csound);
     p->prv_ktrig = FL(0.0);
     return OK;
 }
 
-int32_t
+static int32_t
 call_system_k(CSOUND *csound, SYSTEM *p)
 {
     if (*p->ktrig == p->prv_ktrig)
@@ -128,35 +133,12 @@ call_system_k(CSOUND *csound, SYSTEM *p)
     return OK;
 }
 
-#else
-
-int32_t call_system_i(CSOUND *csound, void *p)
-{
-  IGN(csound); IGN(p);
-    return OK;
-}
-
-int32_t call_system_set(CSOUND *csound, void *p)
-{
-  IGN(csound); IGN(p);
-    return OK;
-}
-
-int32_t
-call_system_k(CSOUND *csound, void *p)
-{
-  IGN(csound); IGN(p);
-    return OK;
-
-}
-
-#endif // !wasi
-
 #define S(x)    sizeof(x)
 
 static OENTRY system_localops[] = {
   { "system", S(SYSTEM), 0,  "k", "kSO",
                        (SUBR)call_system_set,(SUBR)call_system_k},
+  CSOUND_DEPRECATED_OPCODE("system_i", "systemi", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   { "system_i", S(SYSTEM), 0, "i", "iSo", (SUBR)call_system_i, NULL, NULL, NULL, 2},
   { "systemi", S(SYSTEM), 0,  "i", "iSo", (SUBR)call_system_i} /* alias */
 };

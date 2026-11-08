@@ -1,3 +1,10 @@
+<CsTest>
+description = "fail on redefinition of variable by array"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, Array variable name 'karr' used before as a different type"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>

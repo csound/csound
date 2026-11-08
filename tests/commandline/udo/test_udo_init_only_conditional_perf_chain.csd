@@ -1,3 +1,9 @@
+<CsTest>
+description = "init-only UDOs in conditionals do not install perf chains"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 sr=48000

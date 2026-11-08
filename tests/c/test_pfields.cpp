@@ -91,7 +91,7 @@ TEST_F (PfieldTests, testScoreFTStringEvent)
 
 TEST_F (PfieldTests, testScoreEvent)
 {
-  MYFLT pfields[4050] = {0};
+  cs_float pfields[4050] = {0};
   pfields[0] = 1.0;
   pfields[3] = 1.0;
   int32_t result = csoundCompileOrc(csound,orc, 0);

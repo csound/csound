@@ -392,8 +392,8 @@ static void overwrite_warning(CSOUND *csound, const char *name) {
   int32_t fd;
   fd = open(name, WR_OPTS | O_EXCL);
   if(fd == -1)
-    csoundWarning(csound, "file %s exists...\n...will be overwritten", name);
-  else
+    csoundWarning(csound, Str("file %s exists...\n...will be overwritten\n"), name);
+  else 
     close(fd);
 }
 
@@ -646,9 +646,80 @@ char *csoundFindOutputFile(CSOUND *csound,
  *   On failure, NULL is returned.
  */
 
-void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
-                     const char *name, void *param, const char *env,
-                     int32_t csFileType, int32_t isTemporary)
+/* Realtime init and note deactivation may update this registry concurrently.
+   Pointer updates use the spinlock. When the file worker is running, removed
+   nodes are reclaimed only after its current traversal has completed. */
+enum {
+  FILE_IO_STARTING = -1,
+  FILE_IO_STOPPED,
+  FILE_IO_RUNNING
+};
+
+enum {
+  FILE_ASYNC_NONE = 0,
+  FILE_ASYNC_STARTING = -1,
+  FILE_ASYNC_RUNNING = ASYNC_GLOBAL
+};
+
+static void link_open_file(CSOUND *csound, CSFILE *file,
+                           int32_t setupReaders)
+{
+    csoundSpinLock(&csound->open_files_lock);
+    file->retired_nxt = NULL;
+    file->io_pass = 0;
+    file->io_readers = setupReaders;
+    file->retired = 0;
+    file->prv = NULL;
+    file->nxt = (CSFILE*) csound->open_files;
+    if (file->nxt != NULL)
+      file->nxt->prv = file;
+    csound->open_files = (void*) file;
+    csoundSpinUnLock(&csound->open_files_lock);
+}
+
+static int32_t unlink_open_file(CSOUND *csound, CSFILE *file,
+                                int32_t holdForClose)
+{
+    int32_t deferred;
+
+    csoundSpinLock(&csound->open_files_lock);
+    if (file->retired) {
+      csoundSpinUnLock(&csound->open_files_lock);
+      return 1;
+    }
+    if (file->prv == NULL)
+      csound->open_files = (void*) file->nxt;
+    else
+      file->prv->nxt = file->nxt;
+    if (file->nxt != NULL)
+      file->nxt->prv = file->prv;
+    /* Async writers must drain on the worker when close is deferred.
+       Ordinary unborrowed files can still close immediately. */
+    deferred = file->io_readers != 0 ||
+      (!holdForClose && file->type == CSFILE_SND_W &&
+       file->async_flag == FILE_ASYNC_RUNNING);
+    if (deferred) {
+      /* A synchronous closer keeps one claim so the worker cannot reclaim the
+         node before the closer can report the real close result. */
+      if (holdForClose)
+        file->io_readers++;
+      file->retired = 1;
+      file->retired_nxt = (CSFILE *) csound->retired_files;
+      csound->retired_files = file;
+    }
+    else {
+      file->nxt = file->prv = NULL;
+    }
+    csoundSpinUnLock(&csound->open_files_lock);
+    return deferred;
+}
+
+/* An asynchronous open starts with one setup reader so shutdown can retire,
+   but cannot reclaim, the node before its buffers and worker state are ready. */
+static void *csoundFileOpenInternal(
+  CSOUND *csound, void *fd, int32_t type, const char *name, void *param,
+  const char *env, int32_t csFileType, int32_t isTemporary,
+  int32_t setupReaders)
 {
     CSFILE  *p = NULL;
     char    *fullName = NULL;
@@ -661,7 +732,7 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
     /* check file type */
     if (UNLIKELY((uint32_t) (type - 1) >= (uint32_t) CSFILE_SND_W)) {
       csoundErrorMsg(csound, Str("internal error: csoundFileOpen(): "
-                                 "invalid type: %d"), type);
+                                 "invalid type: %d\n"), type);
       return NULL;
     }
     /* get full name and open file */
@@ -682,6 +753,8 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
             tmp_sf = open_file_snd(csound, name, SFM_READ, &sfinfo);
           if (type == CSFILE_SND_W)
             tmp_sf = open_file_snd(csound, name, SFM_WRITE, &sfinfo);
+          if (tmp_sf != (SNDFILE*) NULL)
+            fullName = (char*) name;
         }
         /* fallback to open with fd */
         if (tmp_sf == (SNDFILE*) NULL) {
@@ -726,12 +799,18 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
     p = (CSFILE*) csound->Malloc(csound, (size_t) nbytes);
     if (UNLIKELY(p == NULL))
       goto err_return;
-    p->nxt = (CSFILE*) csound->open_files;
+    p->nxt = (CSFILE*) NULL;
     p->prv = (CSFILE*) NULL;
     p->type = type;
     p->fd = tmp_fd;
     p->f = tmp_f;
     p->sf = tmp_sf;
+    p->cb = NULL;
+    p->async_flag = FILE_ASYNC_NONE;
+    p->items = 0;
+    p->pos = 0;
+    p->buf = NULL;
+    p->bufsize = 0;
     strcpy(&(p->fullName[0]), fullName);
     if (env != NULL) {
       csound->Free(csound, fullName);
@@ -765,8 +844,11 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
             /* the integer file descriptor is no longer needed */
             close(tmp_fd);
             p->fd = tmp_fd = -1;
-            csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
-                       &csound->oparms->quality, sizeof(double));
+            {
+              double quality = csound->oparms->quality; /* libsndfile requires double. */
+              csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
+                                    &quality, sizeof(quality));
+            }
             goto doneSFOpen;
           }
         }
@@ -806,17 +888,18 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
         }
       }
       csound->SndfileCommand(csound,p->sf, SFC_SET_CLIPPING, NULL, SFLIB_TRUE);
-      csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
-                 &csound->oparms->quality, sizeof(double));
+      {
+        double quality = csound->oparms->quality; /* libsndfile requires double. */
+        csound->SndfileCommand(csound,p->sf, SFC_SET_VBR_ENCODING_QUALITY,
+                              &quality, sizeof(quality));
+      }
       *((SNDFILE**) fd) = p->sf;
       break;
     default:                                  /* low level I/O */
       *((int*) fd) = tmp_fd;
     }
     /* link into chain of open files */
-    if (csound->open_files != NULL)
-      ((CSFILE*) csound->open_files)->prv = p;
-    csound->open_files = (void*) p;
+    link_open_file(csound, p, setupReaders);
     /* notify the host if it asked */
     if (csound->FileOpenCallback_ != NULL) {
       int32_t writing = (type == CSFILE_SND_W || type == CSFILE_FD_W ||
@@ -827,10 +910,6 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
                                 writing, isTemporary);
     }
     /* return with opaque file handle */
-    p->cb = NULL;
-    p->async_flag = 0;
-    p->buf = NULL;
-    p->bufsize = 0;
     return (void*) p;
 
  err_return:
@@ -850,6 +929,14 @@ void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
     else
       *((int*) fd) = -1;
     return NULL;
+}
+
+void *csoundFileOpen(CSOUND *csound, void *fd, int32_t type,
+                     const char *name, void *param, const char *env,
+                     int32_t csFileType, int32_t isTemporary)
+{
+    return csoundFileOpenInternal(csound, fd, type, name, param, env,
+                                  csFileType, isTemporary, 0);
 }
 
 
@@ -878,7 +965,7 @@ void *csoundCreateFileHandle(CSOUND *csound,
     p = (CSFILE*) csound->Calloc(csound, (size_t) nbytes);
     if (p == NULL)
       return NULL;
-    p->nxt = (CSFILE*) csound->open_files;
+    p->nxt = (CSFILE*) NULL;
     p->prv = (CSFILE*) NULL;
     p->type = type;
     p->fd = -1;
@@ -900,15 +987,14 @@ void *csoundCreateFileHandle(CSOUND *csound,
       p->sf = *((SNDFILE**) fd);
       break;
     default:
-      csoundErrorMsg(csound, Str("internal error: csoundCreateFileHandle(): "
-                                 "invalid type: %d"), type);
+      csoundErrorMsg(csound,
+                        Str("internal error: csoundCreateFileHandle(): "
+                                 "invalid type: %d\n"), type);
       csound->Free(csound, p);
       return NULL;
     }
     /* link into chain of open files */
-    if (csound->open_files != NULL)
-      ((CSFILE*) csound->open_files)->prv = p;
-    csound->open_files = (void*) p;
+    link_open_file(csound, p, 0);
     /* return with opaque file handle */
     p->cb = NULL;
     return (void*) p;
@@ -923,90 +1009,206 @@ char *csoundGetFileName(void *fd)
     return &(((CSFILE*) fd)->fullName[0]);
 }
 
-/**
- * Close a file previously opened with csoundFileOpen().
- */
-
-int32_t csoundFileClose(CSOUND *csound, void *fd)
+/* Write one pending block, retaining any samples the backend did not accept.
+   Return zero for an empty queue, a positive count on progress, or an error. */
+static int32_t write_async_output(CSOUND *csound, CSFILE *p)
 {
-    CSFILE  *p = (CSFILE*) fd;
-    int32_t     retval = -1;
-    if (p->async_flag == ASYNC_GLOBAL) {
-      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
-      /* close file */
-      switch (p->type) {
-      case CSFILE_FD_R:
-      case CSFILE_FD_W:
-        retval = close(p->fd);
-        break;
-      case CSFILE_STD:
-        retval = fclose(p->f);
-        break;
-      case CSFILE_SND_R:
-      case CSFILE_SND_W:
-        if (p->sf)
-          retval = csound->SndfileClose(csound,p->sf);
-        p->sf = NULL;
-        if (p->fd >= 0)
-          retval |= close(p->fd);
-        break;
-      }
-      /* unlink from chain of open files */
-      if (p->prv == NULL)
-        csound->open_files = (void*) p->nxt;
-      else
-        p->prv->nxt = p->nxt;
-      if (p->nxt != NULL)
-        p->nxt->prv = p->prv;
-      if (p->buf != NULL) csound->Free(csound, p->buf);
-      p->bufsize = 0;
-      csound->DestroyCircularBuffer(csound, p->cb);
-      csound->NotifyThreadLock(csound->file_io_threadlock);
-    } else {
-      /* close file */
-      switch (p->type) {
-      case CSFILE_FD_R:
-      case CSFILE_FD_W:
-        retval = close(p->fd);
-        break;
-      case CSFILE_STD:
-        retval = fclose(p->f);
-        break;
-      case CSFILE_SND_R:
-      case CSFILE_SND_W:
-        retval = csound->SndfileClose(csound,p->sf);
-        if (p->fd >= 0)
-          retval |= close(p->fd);
-        break;
-      }
-      /* unlink from chain of open files */
-      if (p->prv == NULL)
-        csound->open_files = (void*) p->nxt;
-      else
-        p->prv->nxt = p->nxt;
-      if (p->nxt != NULL)
-        p->nxt->prv = p->prv;
-    }
-    /* free allocated memory */
-    csound->Free(csound, fd);
+    int32_t written;
 
-    /* return with error value */
+    if (p->items == 0) {
+      p->items = csound->ReadCircularBuffer(csound, p->cb, p->buf, p->bufsize);
+      p->pos = 0;
+      if (p->items == 0)
+        return 0;
+    }
+    written = (int32_t) csound->SndfileWriteSamples(csound, p->sf,
+                                                  p->buf + p->pos, p->items);
+    if (written <= 0)
+      return NOTOK;
+    p->pos += written;
+    p->items -= written;
+    return written;
+}
+
+/* Close and release an unlinked file that has no outstanding worker borrow. */
+static int32_t close_file_now(CSOUND *csound, CSFILE *p)
+{
+    int32_t     retval = -1;
+
+    switch (p->type) {
+    case CSFILE_FD_R:
+    case CSFILE_FD_W:
+      retval = close(p->fd);
+      break;
+    case CSFILE_STD:
+      retval = fclose(p->f);
+      break;
+    case CSFILE_SND_R:
+    case CSFILE_SND_W:
+      if (p->sf != NULL) {
+        retval = 0;
+        if (p->type == CSFILE_SND_W && p->cb != NULL && p->buf != NULL) {
+          int32_t written;
+          do {
+            written = write_async_output(csound, p);
+          } while (written > 0);
+          if (written < 0)
+            retval = NOTOK;
+        }
+        retval |= csound->SndfileClose(csound, p->sf);
+      }
+      p->sf = NULL;
+      if (p->fd >= 0)
+        retval |= close(p->fd);
+      break;
+    }
+    if (p->buf != NULL)
+      csound->Free(csound, p->buf);
+    p->bufsize = 0;
+    if (p->cb != NULL)
+      csound->DestroyCircularBuffer(csound, p->cb);
+    csound->Free(csound, p);
     return retval;
+}
+
+static int32_t reclaim_retired_files(CSOUND *csound, int32_t workerShutdown)
+{
+    CSFILE *current, *previous, *reclaim = NULL;
+    int32_t keepRunning;
+
+    /* Only the worker may publish STOPPED. Setup and cancellation paths can
+       reclaim nodes while the current worker is still alive. */
+    csoundSpinLock(&csound->open_files_lock);
+    previous = NULL;
+    current = (CSFILE *) csound->retired_files;
+    while (current != NULL) {
+      CSFILE *next = current->retired_nxt;
+
+      /* Setup callers must leave pending output for the worker to drain. */
+      if (current->io_readers == 0 &&
+          (workerShutdown || current->type != CSFILE_SND_W ||
+           current->async_flag != FILE_ASYNC_RUNNING)) {
+        if (previous == NULL)
+          csound->retired_files = next;
+        else
+          previous->retired_nxt = next;
+        current->retired_nxt = reclaim;
+        reclaim = current;
+      }
+      else
+        previous = current;
+      current = next;
+    }
+    keepRunning = ATOMIC_GET(csound->file_io_start) == FILE_IO_STARTING;
+    for (current = (CSFILE *) csound->open_files;
+         current != NULL && !keepRunning; current = current->nxt) {
+      keepRunning = current->async_flag != FILE_ASYNC_NONE;
+    }
+    if (csound->retired_files != NULL)
+      keepRunning = 1;
+    if (!keepRunning && workerShutdown)
+      ATOMIC_SET(csound->file_io_start, FILE_IO_STOPPED);
+    csoundSpinUnLock(&csound->open_files_lock);
+
+    while (reclaim != NULL) {
+      CSFILE *next = reclaim->retired_nxt;
+
+      reclaim->nxt = reclaim->prv = reclaim->retired_nxt = NULL;
+      close_file_now(csound, reclaim);
+      reclaim = next;
+    }
+    return keepRunning;
+}
+
+static int32_t claim_retired_file_for_close(CSOUND *csound, CSFILE *file)
+{
+    CSFILE *current, *previous;
+    int32_t claimed = 0;
+
+    csoundSpinLock(&csound->open_files_lock);
+    if (file->io_readers == 1) {
+      previous = NULL;
+      current = (CSFILE *) csound->retired_files;
+      while (current != NULL && current != file) {
+        previous = current;
+        current = current->retired_nxt;
+      }
+      if (current != NULL) {
+        if (previous == NULL)
+          csound->retired_files = current->retired_nxt;
+        else
+          previous->retired_nxt = current->retired_nxt;
+        file->nxt = file->prv = file->retired_nxt = NULL;
+        file->io_readers = 0;
+        file->retired = 0;
+        claimed = 1;
+      }
+    }
+    csoundSpinUnLock(&csound->open_files_lock);
+    return claimed;
+}
+
+/**
+ * Close a file previously opened with csoundFileOpen(). Synchronous mode
+ * waits for current file-worker borrowers, drains queued output, and returns
+ * any write or close error. Deferred mode transfers ownership without waiting;
+ * the worker drains queued output before closing. It returns
+ * CSOUND_SUCCESS once accepted and cannot report a later close error.
+ */
+int32_t csoundFileClose(CSOUND *csound, void *fd, uint32_t closeFlags)
+{
+    CSFILE *p = (CSFILE *) fd;
+
+    if (UNLIKELY(closeFlags & ~CSFILE_CLOSE_DEFER)) {
+      csoundErrorMsg(csound,
+                        Str("csoundFileClose: invalid close flags: %u\n"),
+                     closeFlags);
+      return CSOUND_ERROR;
+    }
+
+    if (closeFlags & CSFILE_CLOSE_DEFER) {
+      if (!unlink_open_file(csound, p, 0))
+        (void) close_file_now(csound, p);
+      return CSOUND_SUCCESS;
+    }
+
+    if (unlink_open_file(csound, p, 1)) {
+      while (!claim_retired_file_for_close(csound, p))
+        csoundSleep(1);
+    }
+
+    return close_file_now(csound, p);
 }
 
 /* Close all open files; called by csoundReset(). */
 
 void close_all_files(CSOUND *csound)
 {
-    while (csound->open_files != NULL)
-      csoundFileClose(csound, csound->open_files);
-    if (csound->file_io_start) {
+    CSFILE *file;
+
+    /* A creator publishes the thread handle after CreateThread returns. Do
+       not tear down its registry while that publication is in flight. */
+    while (ATOMIC_GET(csound->file_io_start) == FILE_IO_STARTING)
+      csoundSleep(1);
+    for (;;) {
+      csoundSpinLock(&csound->open_files_lock);
+      file = (CSFILE *) csound->open_files;
+      csoundSpinUnLock(&csound->open_files_lock);
+      if (file == NULL)
+        break;
+      csoundFileClose(csound, file, CSFILE_CLOSE_SYNC);
+    }
+    if (csound->file_io_thread != NULL) {
 #ifndef __EMSCRIPTEN__
       csound->JoinThread(csound->file_io_thread);
 #endif
       if (csound->file_io_threadlock != NULL)
         csound->DestroyThreadLock(csound->file_io_threadlock);
     }
+    reclaim_retired_files(csound, 0);
+    csound->file_io_thread = NULL;
+    csound->file_io_threadlock = NULL;
+    ATOMIC_SET(csound->file_io_start, FILE_IO_STOPPED);
 }
 
 /* The fromScore parameter should be 1 if opening a score include file,
@@ -1043,38 +1245,129 @@ void *fopen_path(CSOUND *csound, FILE **fp, const char *name, const char *basena
 
 static uintptr_t file_iothread(void *p);
 
+static int32_t start_file_io_thread(CSOUND *csound)
+{
+    int32_t lifecycle;
+    int32_t creator = 0;
+
+    for (;;) {
+      csoundSpinLock(&csound->open_files_lock);
+      lifecycle = ATOMIC_GET(csound->file_io_start);
+      if (lifecycle == FILE_IO_STOPPED) {
+        ATOMIC_SET(csound->file_io_start, FILE_IO_STARTING);
+        creator = 1;
+      }
+      csoundSpinUnLock(&csound->open_files_lock);
+      if (lifecycle == FILE_IO_RUNNING)
+        return OK;
+      if (creator)
+        break;
+      csoundSleep(1);
+    }
+
+    if (csound->file_io_thread != NULL) {
+      csound->JoinThread(csound->file_io_thread);
+      csound->file_io_thread = NULL;
+      if (csound->file_io_threadlock != NULL) {
+        csound->DestroyThreadLock(csound->file_io_threadlock);
+        csound->file_io_threadlock = NULL;
+      }
+    }
+    /* STARTING serializes creators while thread creation remains outside the
+       registry spinlock. read_files keeps the new worker alive until this
+       function publishes RUNNING. */
+    csound->file_io_threadlock = csound->CreateThreadLock();
+    if (LIKELY(csound->file_io_threadlock != NULL)) {
+      csound->NotifyThreadLock(csound->file_io_threadlock);
+      csound->file_io_thread =
+        csound->CreateThread(file_iothread, (void *) csound);
+    }
+
+    csoundSpinLock(&csound->open_files_lock);
+    lifecycle = csound->file_io_thread != NULL ? FILE_IO_RUNNING :
+                                                  FILE_IO_STOPPED;
+    ATOMIC_SET(csound->file_io_start, lifecycle);
+    csoundSpinUnLock(&csound->open_files_lock);
+    if (lifecycle == FILE_IO_RUNNING)
+      return OK;
+
+    if (csound->file_io_threadlock != NULL) {
+      csound->DestroyThreadLock(csound->file_io_threadlock);
+      csound->file_io_threadlock = NULL;
+    }
+    reclaim_retired_files(csound, 0);
+    return NOTOK;
+}
+
+static int32_t finish_async_file_setup(CSOUND *csound, CSFILE *file)
+{
+    int32_t retired;
+
+    csoundSpinLock(&csound->open_files_lock);
+    file->io_readers--;
+    retired = file->retired;
+    csoundSpinUnLock(&csound->open_files_lock);
+    if (retired)
+      reclaim_retired_files(csound, 0);
+    return retired;
+}
+
 void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
                            const char *name, void *param, const char *env,
                            int32_t csFileType, int32_t buffsize, int32_t isTemporary)
 {
 #ifndef __EMSCRIPTEN__
     CSFILE *p;
-    if ((p = (CSFILE *) csoundFileOpen(csound,fd,type,name,param,env,
-                                               csFileType,isTemporary)) == NULL)
+    int32_t cancelled;
+    if ((p = (CSFILE *) csoundFileOpenInternal(
+           csound, fd, type, name, param, env, csFileType, isTemporary, 1)) ==
+        NULL)
       return NULL;
 
-    if (csound->file_io_start == 0) {
-      csound->file_io_start = 1;
-      csound->file_io_threadlock = csound->CreateThreadLock();
-      csound->NotifyThreadLock(csound->file_io_threadlock);
-      csound->file_io_thread =
-        csound->CreateThread(file_iothread, (void *) csound);
+    /* Keep the worker alive while this file's circular buffers are prepared,
+       but do not let it process the file before setup is complete. */
+    csoundSpinLock(&csound->open_files_lock);
+    cancelled = p->retired;
+    if (!cancelled)
+      p->async_flag = FILE_ASYNC_STARTING;
+    csoundSpinUnLock(&csound->open_files_lock);
+    if (cancelled) {
+      finish_async_file_setup(csound, p);
+      return NULL;
+    }
+
+    if (UNLIKELY(start_file_io_thread(csound) != OK)) {
+      csoundSpinLock(&csound->open_files_lock);
+      p->async_flag = FILE_ASYNC_NONE;
+      csoundSpinUnLock(&csound->open_files_lock);
+      csoundFileClose(csound, p, CSFILE_CLOSE_DEFER);
+      finish_async_file_setup(csound, p);
+      return NULL;
     }
     csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
-    p->async_flag = ASYNC_GLOBAL;
 
-    p->cb = csound->CreateCircularBuffer(csound, buffsize*4, sizeof(MYFLT));
+    p->cb = csound->CreateCircularBuffer(csound, buffsize*4, sizeof(cs_float));
     p->items = 0;
     p->pos = 0;
     p->bufsize = buffsize;
-    p->buf = (MYFLT *) csound->Calloc(csound, sizeof(MYFLT)*buffsize);
+    p->buf = (cs_float *) csound->Calloc(csound, sizeof(cs_float)*buffsize);
+    csoundSpinLock(&csound->open_files_lock);
+    cancelled = p->retired || p->cb == NULL || p->buf == NULL;
+    if (!cancelled)
+      p->async_flag = FILE_ASYNC_RUNNING;
+    else
+      p->async_flag = FILE_ASYNC_NONE;
+    csoundSpinUnLock(&csound->open_files_lock);
     csound->NotifyThreadLock(csound->file_io_threadlock);
 
-    if (p->cb == NULL || p->buf == NULL) {
-      /* close file immediately */
-      csoundFileClose(csound, (void *) p);
+    if (cancelled) {
+      /* Defer close without waiting for the setup reader below. */
+      csoundFileClose(csound, (void *) p, CSFILE_CLOSE_DEFER);
+      finish_async_file_setup(csound, p);
       return NULL;
     }
+    if (finish_async_file_setup(csound, p))
+      return NULL;
     return (void *) p;
 #else
     return NULL;
@@ -1082,7 +1375,7 @@ void *csoundFileOpenAsync(CSOUND *csound, void *fd, int32_t type,
 }
 
 uint32_t csoundReadAsync(CSOUND *csound, void *handle,
-                             MYFLT *buf, int32_t items)
+                             cs_float *buf, int32_t items)
 {
     CSFILE *p = handle;
     if (p != NULL &&  p->cb != NULL)
@@ -1091,7 +1384,7 @@ uint32_t csoundReadAsync(CSOUND *csound, void *handle,
 }
 
 uint32_t csoundWriteAsync(CSOUND *csound, void *handle,
-                              MYFLT *buf, int32_t items)
+                              cs_float *buf, int32_t items)
 {
     CSFILE *p = handle;
     if (p != NULL &&  p->cb != NULL)
@@ -1124,13 +1417,33 @@ int32_t csoundFSeekAsync(CSOUND *csound, void *handle, int32_t pos, int32_t when
 
 
 static int32_t read_files(CSOUND *csound){
-    CSFILE *current = (CSFILE *) csound->open_files;
-    if (current == NULL) return 0;
-    while (current) {
-      if (current->async_flag == ASYNC_GLOBAL) {
+    CSFILE *current;
+    uint64_t pass;
+
+    csoundSpinLock(&csound->open_files_lock);
+    pass = ++csound->file_io_pass;
+    csoundSpinUnLock(&csound->open_files_lock);
+    /* Restart at the head after each unpinned read. A pass stamp prevents
+       duplicate work while avoiding a cached next pointer that a concurrent
+       close could retire and reclaim. */
+    for (;;) {
+      csoundSpinLock(&csound->open_files_lock);
+      current = (CSFILE *) csound->open_files;
+      while (current != NULL &&
+             (current->async_flag != FILE_ASYNC_RUNNING ||
+              current->io_pass == pass))
+        current = current->nxt;
+      if (current != NULL) {
+        current->io_pass = pass;
+        current->io_readers++;
+      }
+      csoundSpinUnLock(&csound->open_files_lock);
+      if (current == NULL)
+        break;
+      {
         int32_t m = current->pos, l, n = current->items;
         int32_t items = current->bufsize;
-        MYFLT *buf = current->buf;
+        cs_float *buf = current->buf;
         switch (current->type) {
         case CSFILE_FD_R:
           break;
@@ -1151,15 +1464,16 @@ static int32_t read_files(CSOUND *csound){
           current->pos = m;
           break;
         case CSFILE_SND_W:
-          items = csound->ReadCircularBuffer(csound, current->cb, buf, items);
-          if (items == 0) { csoundSleep(10); break;}
-          csound->SndfileWriteSamples(csound, current->sf, buf, items);
+          if (write_async_output(csound, current) == 0)
+            csoundSleep(10);
           break;
         }
       }
-      current = current->nxt;
+      csoundSpinLock(&csound->open_files_lock);
+      current->io_readers--;
+      csoundSpinUnLock(&csound->open_files_lock);
     }
-    return 1;
+    return reclaim_retired_files(csound, 1);
 }
 
 
@@ -1175,6 +1489,8 @@ static uintptr_t file_iothread(void *p){
       res = read_files(csound);
       csound->NotifyThreadLock(csound->file_io_threadlock);
     }
-    csound->file_io_start = 0;
+    /* read_files publishes STOPPED under open_files_lock. A new creator may
+       already have advanced the lifecycle to STARTING by the time this old
+       worker returns, so it must not overwrite that newer generation. */
     return (uintptr_t)NULL;
 }

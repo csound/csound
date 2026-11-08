@@ -1,3 +1,9 @@
+<CsTest>
+description = "tests that empty instruments do not cause compiler issues"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

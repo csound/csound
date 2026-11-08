@@ -1,3 +1,9 @@
+<CsTest>
+description = "test all builtin math constant macros"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0

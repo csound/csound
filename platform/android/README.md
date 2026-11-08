@@ -1,33 +1,58 @@
-Cross compiling Android from Linux
-==================================
+Csound for Android 7.0
+=======================================
 
-This directory contains scripts for compiling a Android version 
-of Csound from Linux.  These scripts were developed using Ubuntu.
+Csound for Android consists of the Csound library, dedicated
+OpenSL audio backends, a java interface, some selected
+plugin libraries, and some test/example applications.
 
-## Instructions
+The following are the required toolchain components to build Csound:
 
-1. Install docker using apt:
+- Android Studio: https://developer.android.com/studio/index.html.
 
-```bash
-sudo apt install docker.io
+- Android Native Development Kit (NDK):
+http://developer.android.com/tools/sdk/ndk/index.html.
+
+Directories
+----------
+
+* CsoundAndroid: Android Csound JNI and java interface sources
+* CsoundForAndroid: Android Studio projects (CsoundAndroid and CsoundAndroidExamples)
+* docs: documentation
+
+
+Build Instructions
+----------------
+
+Run these commands from `platform/android/`.
+
+Before building, make sure ANDROID_NDK_ROOT contains the path to the
+installed NDK. The variable NDK_MODULE_PATH should also be set to
+the location of the NDK modules (libraries) that will be used in the
+build.
+
+```
+$ sh downloadDependencies.sh
+$ cd CsoundAndroid
+$ sh build.sh
 ```
 
-2. Add user to docker group:
+Once this is run, the JNI libs are located in ./CsoundAndroid/libs and
+the Java sources in ./CsoundAndroid/src. These can be imported into
+an Android Studio project.
 
-```bash
-sudo usermod -a -G docker $USER
-```
+`Android.mk` regenerates the parser when its grammar changes, including when
+calling `ndk-build` directly. Bison must be on `PATH`, or set
+`CSOUND_BISON=/path/to/bison` when calling the build. Generated parser files in
+`CsoundAndroid/jni` are local build output and are not checked into Git.
 
-3. Build docker image from csound dir:
+Alternatively, running the `update.sh` script updates the
+CsoundAndroid project on CsoundForAndroid. This should then be
+ready to be used in an Android Studio application.
+Just add it as a dependency.
 
-```bash
-cd csound
-docker build -t csound-android ./platform/android
-```
 
-4. Build csound:
+Release Script
+----
 
-```bash
-docker run -it --rm -v $(pwd):$(pwd) --user ${UID}:${1000} -w $(pwd) csound-android './platform/android/build_release.sh'
-docker run -it --rm -v $(pwd):$(pwd) --user ${UID}:${1000} -w $(pwd) csound-android './platform/android/build_debug.sh'
-```
+The `release.sh` can be used to create a release package containing
+the CsoundForAndroid Android Studio project.

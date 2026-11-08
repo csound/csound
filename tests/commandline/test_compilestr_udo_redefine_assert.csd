@@ -1,3 +1,9 @@
+<CsTest>
+description = "test UDO redefinition via compilestr"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d

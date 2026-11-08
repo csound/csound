@@ -30,22 +30,22 @@ Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 typedef struct {
     OPDS h;
 
-    MYFLT *ires;
-    MYFLT *imod;
-    MYFLT *iparm;
-    MYFLT *imatrix;
-    MYFLT *inummod;
-    MYFLT *inumparm;
-    MYFLT *kupdate;
+    cs_float *ires;
+    cs_float *imod;
+    cs_float *iparm;
+    cs_float *imatrix;
+    cs_float *inummod;
+    cs_float *inumparm;
+    cs_float *kupdate;
 
     FUNC *restab, *modtab, *parmtab, *mattab;
     int32_t nummod, numparm;
     /* Variables for the preprocessed matrix */
     int32_t doscan, scanned;
         AUXCH aux;
-    MYFLT *proc_mat;
+    cs_float *proc_mat;
     int32_t *mod_map, *parm_map;
-    MYFLT *remap_mod, *remap_parm;
+    cs_float *remap_mod, *remap_parm;
     int32_t
     nummod_scanned, numparm_scanned;
 } MODMATRIX;

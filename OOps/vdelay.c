@@ -35,20 +35,51 @@
 
 int32_t vdelset(CSOUND *csound, VDEL *p)            /*  vdelay set-up   */
 {
-    uint32 n = (int32_t)(*p->imaxd * ESR)+1;
+    cs_double samples;
+    int32_t maxd;
+    size_t bytes;
 
-    if (!*p->istod) {
-      if (p->aux.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux.size)
-        /* allocate space for delay buffer */
-        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux);
-      else {     /*    make sure buffer is empty       */
-        memset(p->aux.auxp, '\0', n*sizeof(MYFLT));
-      }
-      p->left = 0;
+    if (*p->istod) {
+      if (UNLIKELY(p->aux.auxp == NULL))
+        return csound->InitError(csound, "%s\n", Str("vdelay: no buffer to preserve"));
+      return OK;
     }
-    p->maxd = n - 1;
+    samples = (cs_double)*p->imaxd * ESR;
+    if (UNLIKELY(!isfinite(samples) || samples < 0.0 || samples >= (INT32_MAX + 0.0)))
+      return csound->InitError(csound, "%s\n", Str("vdelay: invalid maximum delay"));
+    maxd = (int32_t)samples;
+    if (maxd < 1) maxd = 1;
+    if (UNLIKELY((size_t)maxd > SIZE_MAX / sizeof(cs_float) - 1))
+      return csound->InitError(csound, "%s\n", Str("vdelay: delay buffer too large"));
+    bytes = ((size_t)maxd + 1) * sizeof(cs_float);
+    if (p->aux.auxp == NULL || bytes > p->aux.size)
+      csound->AuxAlloc(csound, bytes, &p->aux);
+    else
+      memset(p->aux.auxp, 0, bytes);
+    p->left = 0;
+    p->maxd = maxd;
     return OK;
 }
+
+/* Wrap before converting to an index, including delays beyond imaxd. */
+#define VDELAY_READPOS(result, delay, esr, maxd, indx)                    \
+  do {                                                                   \
+    cs_double vdelay_samples_ = (cs_double)(delay) * (cs_double)(esr);            \
+    cs_double vdelay_maxd_ = (cs_double)(maxd);                                \
+    cs_double vdelay_pos_;                                                  \
+    int32_t vdelay_indx_ = (indx);                                       \
+    if (UNLIKELY(!isfinite(vdelay_samples_)))                            \
+      vdelay_pos_ = -1.0;                                                \
+    else {                                                               \
+      if (UNLIKELY(vdelay_samples_ <= -vdelay_maxd_ ||                   \
+                   vdelay_samples_ >= vdelay_maxd_))                     \
+        vdelay_samples_ = fmod(vdelay_samples_, vdelay_maxd_);           \
+      vdelay_pos_ = vdelay_indx_ - vdelay_samples_;                      \
+      if (vdelay_pos_ < 0.0) vdelay_pos_ += vdelay_maxd_;                \
+      if (vdelay_pos_ >= vdelay_maxd_) vdelay_pos_ -= vdelay_maxd_;      \
+    }                                                                    \
+    (result) = vdelay_pos_;                                              \
+  } while (0)
 
 int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
 {
@@ -56,49 +87,31 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
     int32_t  maxd, indx;
-    MYFLT *out = p->sr;     /* assign object data to local variables   */
-    MYFLT *in = p->ain;
-    MYFLT *del = p->adel;
-    MYFLT *buf = (MYFLT *)p->aux.auxp;
-    MYFLT esr = ESR;
+    cs_float *out = p->sr;     /* assign object data to local variables   */
+    cs_float *in = p->ain;
+    cs_float *del = p->adel;
+    cs_float *buf = (cs_float *)p->aux.auxp;
+    cs_float esr = ESR;
 
     if (UNLIKELY(buf==NULL)) goto err1;        /* RWD fix */
     maxd = p->maxd;
     indx = p->left;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
 
     if (IS_ASIG_ARG(p->adel)) {          /*      if delay is a-rate      */
       for (nn=offset; nn<nsmps; nn++) {
-        MYFLT  fv1, fv2;
+        cs_double fv1;
         int32_t   v1, v2;
 
         buf[indx] = in[nn];
-        fv1 = indx - (del[nn]) * esr;
-        /* Make sure Inside the buffer      */
-        /*
-         * The following has been fixed by adding a cast and making a
-         * ">=" instead of a ">" comparison. The order of the comparisons
-         * has been swapped as well (a bit of a nit, but comparing a
-         * possibly negative number to an unsigned isn't a good idea--and
-         * broke on Alpha).
-         * heh 981101
-         */
-        while (UNLIKELY(fv1 < FL(0.0)))
-          fv1 += (MYFLT)maxd;
-        while (UNLIKELY(fv1 >= (MYFLT)maxd))
-          fv1 -= (MYFLT)maxd;
-
-        if (LIKELY(fv1 < maxd - 1)) /* Find next sample for interpolation      */
-          fv2 = fv1 + FL(1.0);
-        else
-          fv2 = FL(0.0);
-
+        VDELAY_READPOS(fv1, del[nn], esr, maxd, indx);
+        if (UNLIKELY(fv1 < 0.0)) goto errdel;
         v1 = (int32_t)fv1;
-        v2 = (int32_t)fv2;
+        v2 = v1 == maxd - 1 ? 0 : v1 + 1;
         out[nn] = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
 
         if (UNLIKELY(++indx == maxd))
@@ -107,29 +120,16 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
       }
     }
     else {                      /* and, if delay is k-rate */
-      MYFLT fdel=*del;
+      cs_float fdel=*del;
       for (nn=offset; nn<nsmps; nn++) {
-        MYFLT  fv1, fv2;
+        cs_double fv1;
         int32_t   v1, v2;
 
         buf[indx] = in[nn];
-        fv1 = indx - fdel * esr;
-        /* Make sure inside the buffer      */
-        /*
-         * See comment above--same fix applied here.  heh 981101
-         */
-        while (UNLIKELY(fv1 < FL(0.0)))
-          fv1 += (MYFLT)maxd;
-        while (UNLIKELY(fv1 >= (MYFLT)maxd))
-          fv1 -= (MYFLT)maxd;
-
-        if (LIKELY(fv1 < maxd - 1)) /* Find next sample for interpolation      */
-          fv2 = fv1 + FL(1.0);
-        else
-          fv2 = FL(0.0);
-
+        VDELAY_READPOS(fv1, fdel, esr, maxd, indx);
+        if (UNLIKELY(fv1 < 0.0)) goto errdel;
         v1 = (int32_t)fv1;
-        v2 = (int32_t)fv2;
+        v2 = v1 == maxd - 1 ? 0 : v1 + 1;
         out[nn] = buf[v1] + (fv1 - v1) * ( buf[v2] - buf[v1]);
 
         if (UNLIKELY(++indx == maxd)) indx = 0;   /*      Advance current pointer */
@@ -140,7 +140,10 @@ int32_t vdelay(CSOUND *csound, VDEL *p)               /*      vdelay  routine */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
+ errdel:
+    return csound->PerfError(csound, &(p->h),
+                             Str("vdelay: invalid delay\n"));
 }
 
 int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp */
@@ -149,39 +152,31 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
     int32_t  maxd, indx;
-    MYFLT *out = p->sr;  /* assign object data to local variables   */
-    MYFLT *in = p->ain;
-    MYFLT *del = p->adel;
-    MYFLT *buf = (MYFLT *)p->aux.auxp;
-    MYFLT esr = ESR;
+    cs_float *out = p->sr;  /* assign object data to local variables   */
+    cs_float *in = p->ain;
+    cs_float *del = p->adel;
+    cs_float *buf = (cs_float *)p->aux.auxp;
+    cs_float esr = ESR;
 
     if (UNLIKELY(buf==NULL)) goto err1;            /* RWD fix */
     maxd = p->maxd;
-    if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
 
     if (IS_ASIG_ARG(p->adel)) {              /*      if delay is a-rate      */
       for (nn=offset; nn<nsmps; nn++) {
-        MYFLT  fv1;
+        cs_double fv1;
         int32_t   v0, v1, v2, v3;
 
         buf[indx] = in[nn];      /* IV Oct 2001 */
-        fv1 = del[nn] * (-esr);
+        VDELAY_READPOS(fv1, del[nn], esr, maxd, indx);
+        if (UNLIKELY(fv1 < 0.0)) goto errdel;
         v1 = (int32_t)fv1;
-        fv1 -= (MYFLT) v1;
-        v1 += (int32_t)indx;
-        /* Make sure Inside the buffer      */
-        if ((v1 < 0L) || (fv1 < FL(0.0))) {
-          fv1++; v1--; while (UNLIKELY(v1 < 0L)) v1 += (int32_t)maxd;
-        }
-        else {
-          while (UNLIKELY(v1 >= (int32_t)maxd)) v1 -= (int32_t)maxd;
-        }
+        fv1 -= v1;
         /* Find next sample for interpolation      */
         v2 = (v1 == (int32_t)(maxd - 1UL) ? 0L : v1 + 1L);
 
@@ -192,7 +187,7 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
           v0 = (v1==0 ? maxd-1 : v1-1);
           v3 = (v2==(int32_t)maxd-1 ? 0 : v2+1);
           {                     /* optimized by Istvan Varga (Oct 2001) */
-            MYFLT w, x, y, z;
+            cs_float w, x, y, z;
             z = fv1 * fv1; z--; z *= FL(0.1666666667);
             y = fv1; y++; w = (y *= FL(0.5)); w--;
             x = FL(3.0) * z; y -= x; w -= z; x -= fv1;
@@ -206,26 +201,23 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
       };
     }
     else {                      /* and, if delay is k-rate */
-      MYFLT  fv1, w, x, y, z;
+      cs_double fv1;
+      cs_float w, x, y, z;
       int32_t   v0, v1, v2, v3;
 
-      fv1 = *del * -esr; v1 = (int32_t)fv1; fv1 -= (MYFLT) v1;
-      v1 += (int32_t)indx;
-      /* Make sure Inside the buffer      */
-      if ((v1 < 0L) || (fv1 < FL(0.0))) {
-        fv1++; v1--; while (UNLIKELY(v1 < 0L)) v1 += (int32_t)maxd;
-      }
-      else {
-        while (UNLIKELY(v1 >= (int32_t)maxd)) v1 -= (int32_t)maxd;
-      }
+      VDELAY_READPOS(fv1, *del, esr, maxd, indx);
+      if (UNLIKELY(fv1 < 0.0)) goto errdel;
+      v1 = (int32_t)fv1;
+      fv1 -= v1;
 
       if (maxd<4) {
         for (nn=offset; nn<nsmps; nn++) {
+          buf[indx] = in[nn];
           /* Find next sample for interpolation      */
           v2 = (v1 == (int32_t)(maxd - 1UL) ? 0L : v1 + 1L);
           out[nn] = buf[v1] + fv1 * (buf[v2] - buf[v1]);
           if (UNLIKELY(++v1 >= (int32_t)maxd)) v1 -= (int32_t)maxd;
-              if (UNLIKELY(++indx >= maxd)) indx -= maxd;
+          if (UNLIKELY(++indx >= maxd)) indx -= maxd;
         }
       }
       else {
@@ -251,8 +243,13 @@ int32_t vdelay3(CSOUND *csound, VDEL *p)    /*  vdelay routine with cubic interp
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay3: not initialised"));
+                             Str("vdelay3: not initialised\n"));
+ errdel:
+    return csound->PerfError(csound, &(p->h),
+                             Str("vdelay3: invalid delay\n"));
 }
+
+#undef VDELAY_READPOS
 
 /* vdelayx, vdelayxs, vdelayxq, vdelayxw, vdelayxws, vdelayxwq */
 /* coded by Istvan Varga, Mar 2001 */
@@ -264,11 +261,11 @@ int32_t vdelxset(CSOUND *csound, VDELX *p)      /*  vdelayx set-up (1 channel) *
     if (UNLIKELY(n == 0)) n = 1;          /* fix due to Troxler */
 
     if (!*p->istod) {
-      if (p->aux1.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux1.size)
+      if (p->aux1.auxp == NULL || (uint32_t)(n * sizeof(cs_float)) > p->aux1.size)
         /* allocate space for delay buffer */
-        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
+        csound->AuxAlloc(csound, n * sizeof(cs_float), &p->aux1);
       else
-        memset(p->aux1.auxp, 0, n*sizeof(MYFLT));
+        memset(p->aux1.auxp, 0, n*sizeof(cs_float));
       p->left = 0;
       p->interp_size = 4 * (int32_t) (FL(0.5) + FL(0.25) * *(p->iquality));
       p->interp_size = (p->interp_size < 4 ? 4 : p->interp_size);
@@ -285,15 +282,15 @@ int32_t vdelxsset(CSOUND *csound, VDELXS *p)    /*  vdelayxs set-up (stereo) */
     if (UNLIKELY(n == 0)) n = 1;          /* fix due to Troxler */
 
     if (!*p->istod) {
-      if (p->aux1.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux1.size)
+      if (p->aux1.auxp == NULL || (uint32_t)(n * sizeof(cs_float)) > p->aux1.size)
         /* allocate space for delay buffer */
-        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
+        csound->AuxAlloc(csound, n * sizeof(cs_float), &p->aux1);
       else
-        memset(p->aux1.auxp, 0, n*sizeof(MYFLT));
-      if (p->aux2.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux2.size)
-        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux2);
+        memset(p->aux1.auxp, 0, n*sizeof(cs_float));
+      if (p->aux2.auxp == NULL || (uint32_t)(n * sizeof(cs_float)) > p->aux2.size)
+        csound->AuxAlloc(csound, n * sizeof(cs_float), &p->aux2);
       else
-        memset(p->aux2.auxp, 0, n*sizeof(MYFLT));
+        memset(p->aux2.auxp, 0, n*sizeof(cs_float));
 
       p->left = 0;
       p->interp_size = 4 * (int32_t) (FL(0.5) + FL(0.25) * *(p->iquality));
@@ -311,23 +308,23 @@ int32_t vdelxqset(CSOUND *csound, VDELXQ *p) /* vdelayxq set-up (quad channels) 
     if (UNLIKELY(n == 0)) n = 1;          /* fix due to Troxler */
 
     if (!*p->istod) {
-      if (p->aux1.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux1.size)
+      if (p->aux1.auxp == NULL || (uint32_t)(n * sizeof(cs_float)) > p->aux1.size)
         /* allocate space for delay buffer */
-        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux1);
+        csound->AuxAlloc(csound, n * sizeof(cs_float), &p->aux1);
       else
-        memset(p->aux1.auxp, 0, n*sizeof(MYFLT));
-      if (p->aux2.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux2.size)
-        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux2);
+        memset(p->aux1.auxp, 0, n*sizeof(cs_float));
+      if (p->aux2.auxp == NULL || (uint32_t)(n * sizeof(cs_float)) > p->aux2.size)
+        csound->AuxAlloc(csound, n * sizeof(cs_float), &p->aux2);
       else
-        memset(p->aux2.auxp, 0, n*sizeof(MYFLT));
-      if (p->aux3.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux3.size)
-        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux3);
+        memset(p->aux2.auxp, 0, n*sizeof(cs_float));
+      if (p->aux3.auxp == NULL || (uint32_t)(n * sizeof(cs_float)) > p->aux3.size)
+        csound->AuxAlloc(csound, n * sizeof(cs_float), &p->aux3);
       else
-        memset(p->aux3.auxp, 0, n*sizeof(MYFLT));
-      if (p->aux4.auxp == NULL || (uint32_t)(n * sizeof(MYFLT)) > p->aux4.size)
-        csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aux4);
+        memset(p->aux3.auxp, 0, n*sizeof(cs_float));
+      if (p->aux4.auxp == NULL || (uint32_t)(n * sizeof(cs_float)) > p->aux4.size)
+        csound->AuxAlloc(csound, n * sizeof(cs_float), &p->aux4);
       else
-        memset(p->aux4.auxp, 0, n*sizeof(MYFLT));
+        memset(p->aux4.auxp, 0, n*sizeof(cs_float));
 
       p->left = 0;
       p->interp_size = 4 * (int32_t) (FL(0.5) + FL(0.25) * *(p->iquality));
@@ -344,12 +341,12 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
     int32_t indx, maxd;
-    MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
-    MYFLT *in1 = p->ain1;
-    MYFLT *del = p->adel;
-    MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
+    cs_float *out1 = p->sr1;  /* assign object data to local variables   */
+    cs_float *in1 = p->ain1;
+    cs_float *del = p->adel;
+    cs_float *buf1 = (cs_float *)p->aux1.auxp;
     int32_t   wsize = p->interp_size;
-    double x1, x2, w, d, d2x, n1;
+    cs_double x1, x2, w, d, d2x, n1;
     int32_t   i, i2, xpos;
 
     if (UNLIKELY(buf1 == NULL)) goto err1;                          /* RWD fix */
@@ -357,11 +354,11 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
-    d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
-    if (UNLIKELY(offset)) memset(out1, '\0', offset*sizeof(MYFLT));
+    d2x = (1.0 - pow ((cs_double)wsize * 0.85172, -0.89624)) / (cs_double)(i2 * i2);
+    if (UNLIKELY(offset)) memset(out1, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
     }
 
     for (nn=offset; nn<nsmps; nn++) {
@@ -372,29 +369,29 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx - ((double)del[nn] * (double)CS_ESR);
-      while (x1 < 0.0) x1 += (double)maxd;
+      x1 = (cs_double)indx - ((cs_double)del[nn] * (cs_double)CS_ESR);
+      while (x1 < 0.0) x1 += (cs_double)maxd;
       xpos = (int32_t)x1;
-      x1 -= (double)xpos;
+      x1 -= (cs_double)xpos;
       x2 = sin (PI * x1) / PI;
       while (xpos >= maxd) xpos -= maxd;
 
       if (x1 * (1.0 - x1) > 0.00000001) {
         xpos += (1 - i2);
         while (xpos < 0) xpos += maxd;
-        d = (double)(1 - i2) - x1;
+        d = (cs_double)(1 - i2) - x1;
         for (i = i2; i--;) {
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          n1 += (double)buf1[xpos] * w;
+          n1 += (cs_double)buf1[xpos] * w;
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          n1 -= (double)buf1[xpos] * w;
+          n1 -= (cs_double)buf1[xpos] * w;
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
         }
-        out1[nn] = (MYFLT) (n1 * x2);
+        out1[nn] = (cs_float) (n1 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);      /* position */
+        xpos = (int32_t)((cs_double)xpos + x1 + 0.5);      /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         out1[nn] = buf1[xpos];
       }
@@ -406,7 +403,7 @@ int32_t vdelayx(CSOUND *csound, VDELX *p)               /*      vdelayx routine 
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
 }
 
 int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
@@ -415,12 +412,12 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t nn, nsmps = CS_KSMPS;
     int32_t  maxd, indx;
-    MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
-    MYFLT *in1 = p->ain1;
-    MYFLT *del = p->adel;
-    MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
+    cs_float *out1 = p->sr1;  /* assign object data to local variables   */
+    cs_float *in1 = p->ain1;
+    cs_float *del = p->adel;
+    cs_float *buf1 = (cs_float *)p->aux1.auxp;
     int32_t   wsize = p->interp_size;
-    double x1, x2, w, d, d2x, n1;
+    cs_double x1, x2, w, d, d2x, n1;
     int32_t   i, i2, xpos;
 
     if (UNLIKELY(buf1 == NULL)) goto err1;                          /* RWD fix */
@@ -428,41 +425,41 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
-    d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
+    d2x = (1.0 - pow ((cs_double)wsize * 0.85172, -0.89624)) / (cs_double)(i2 * i2);
 
-    if (UNLIKELY(offset)) memset(out1, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out1, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
     }
     for (nn=offset;nn<nsmps;nn++) {
       /* x1: fractional part of delay time */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx + ((double)del[nn] * (double)CS_ESR);
-      while (x1 < 0.0) x1 += (double)maxd;
+      x1 = (cs_double)indx + ((cs_double)del[nn] * (cs_double)CS_ESR);
+      while (x1 < 0.0) x1 += (cs_double)maxd;
       xpos = (int32_t)x1;
-      x1 -= (double)xpos;
+      x1 -= (cs_double)xpos;
       x2 = sin (PI * x1) / PI;
       while (xpos >= maxd) xpos -= maxd;
 
       if (LIKELY(x1 * (1.0 - x1) > 0.00000001)) {
-        n1 = (double)in1[nn] * x2;
+        n1 = (cs_double)in1[nn] * x2;
         xpos += (1 - i2);
         while (xpos < 0) xpos += maxd;
-        d = (double)(1 - i2) - x1;
+        d = (cs_double)(1 - i2) - x1;
         for (i = i2; i--;) {
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          buf1[xpos] += (MYFLT) (n1 * w);
+          buf1[xpos] += (cs_float) (n1 * w);
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          buf1[xpos] -= (MYFLT) (n1 * w);
+          buf1[xpos] -= (cs_float) (n1 * w);
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
         }
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);      /* position */
+        xpos = (int32_t)((cs_double)xpos + x1 + 0.5);      /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         buf1[xpos] += in1[nn];
       }
@@ -475,21 +472,21 @@ int32_t vdelayxw(CSOUND *csound, VDELX *p)      /*      vdelayxw routine  */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
 }
 
 int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
 {
     int32_t  maxd, indx;
-    MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
-    MYFLT *out2 = p->sr2;
-    MYFLT *in1 = p->ain1;
-    MYFLT *in2 = p->ain2;
-    MYFLT *del = p->adel;
-    MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
-    MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
+    cs_float *out1 = p->sr1;  /* assign object data to local variables   */
+    cs_float *out2 = p->sr2;
+    cs_float *in1 = p->ain1;
+    cs_float *in2 = p->ain2;
+    cs_float *del = p->adel;
+    cs_float *buf1 = (cs_float *)p->aux1.auxp;
+    cs_float *buf2 = (cs_float *)p->aux2.auxp;
     int32_t   wsize = p->interp_size;
-    double x1, x2, w, d, d2x, n1, n2;
+    cs_double x1, x2, w, d, d2x, n1, n2;
     int32_t   i, i2, xpos;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -500,15 +497,15 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
-    d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
+    d2x = (1.0 - pow ((cs_double)wsize * 0.85172, -0.89624)) / (cs_double)(i2 * i2);
     if (UNLIKELY(offset)) {
-      memset(out1, '\0', offset*sizeof(MYFLT));
-      memset(out2, '\0', offset*sizeof(MYFLT));
+      memset(out1, '\0', offset*sizeof(cs_float));
+      memset(out2, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out2[nsmps], '\0', early*sizeof(cs_float));
     }
 
     for (n=offset; n<nsmps; n++) {
@@ -519,29 +516,29 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx - ((double)del[n] * (double)CS_ESR);
-      while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
+      x1 = (cs_double)indx - ((cs_double)del[n] * (cs_double)CS_ESR);
+      while (UNLIKELY(x1 < 0.0)) x1 += (cs_double)maxd;
       xpos = (int32_t)x1;
-      x1 -= (double)xpos;
+      x1 -= (cs_double)xpos;
       x2 = sin (PI * x1) / PI;
       while (UNLIKELY(xpos >= maxd)) xpos -= maxd;
 
       if (x1 * (1.0 - x1) > 0.00000001) {
         xpos += (1 - i2);
         while (UNLIKELY(xpos < 0)) xpos += maxd;
-        d = (double)(1 - i2) - x1;
+        d = (cs_double)(1 - i2) - x1;
         for (i = i2; i--;) {
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          n1 += (double)buf1[xpos] * w; n2 += (double)buf2[xpos] * w;
+          n1 += (cs_double)buf1[xpos] * w; n2 += (cs_double)buf2[xpos] * w;
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          n1 -= (double)buf1[xpos] * w; n2 -= (double)buf2[xpos] * w;
+          n1 -= (cs_double)buf1[xpos] * w; n2 -= (cs_double)buf2[xpos] * w;
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
         }
-        out1[n] = (MYFLT) (n1 * x2); out2[n] = (MYFLT) (n2 * x2);
+        out1[n] = (cs_float) (n1 * x2); out2[n] = (cs_float) (n2 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);      /* position */
+        xpos = (int32_t)((cs_double)xpos + x1 + 0.5);      /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         out1[n] = buf1[xpos]; out2[n] = buf2[xpos];
       }
@@ -553,7 +550,7 @@ int32_t vdelayxs(CSOUND *csound, VDELXS *p)     /*      vdelayxs routine  */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
 }
 
 int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
@@ -562,15 +559,15 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t  maxd, indx;
-    MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
-    MYFLT *out2 = p->sr2;
-    MYFLT *in1 = p->ain1;
-    MYFLT *in2 = p->ain2;
-    MYFLT *del = p->adel;
-    MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
-    MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
+    cs_float *out1 = p->sr1;  /* assign object data to local variables   */
+    cs_float *out2 = p->sr2;
+    cs_float *in1 = p->ain1;
+    cs_float *in2 = p->ain2;
+    cs_float *del = p->adel;
+    cs_float *buf1 = (cs_float *)p->aux1.auxp;
+    cs_float *buf2 = (cs_float *)p->aux2.auxp;
     int32_t   wsize = p->interp_size;
-    double x1, x2, w, d, d2x, n1, n2;
+    cs_double x1, x2, w, d, d2x, n1, n2;
     int32_t   i, i2, xpos;
 
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL))) goto err1;     /* RWD fix */
@@ -578,45 +575,45 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
-    d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
+    d2x = (1.0 - pow ((cs_double)wsize * 0.85172, -0.89624)) / (cs_double)(i2 * i2);
 
     if (UNLIKELY(offset)) {
-      memset(out1, '\0', offset*sizeof(MYFLT));
-      memset(out2, '\0', offset*sizeof(MYFLT));
+      memset(out1, '\0', offset*sizeof(cs_float));
+      memset(out2, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out2[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
       /* x1: fractional part of delay time */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx + ((double)del[n] * (double)CS_ESR);
-      while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
+      x1 = (cs_double)indx + ((cs_double)del[n] * (cs_double)CS_ESR);
+      while (UNLIKELY(x1 < 0.0)) x1 += (cs_double)maxd;
       xpos = (int32_t)x1;
-      x1 -= (double)xpos;
+      x1 -= (cs_double)xpos;
       x2 = sin (PI * x1) / PI;
       while (UNLIKELY(xpos >= maxd)) xpos -= maxd;
 
       if (x1 * (1.0 - x1) > 0.00000001) {
-        n1 = (double)in1[n] * x2; n2 = (double)in2[n] * x2;
+        n1 = (cs_double)in1[n] * x2; n2 = (cs_double)in2[n] * x2;
         xpos += (1 - i2);
         while (UNLIKELY(xpos < 0)) xpos += maxd;
-        d = (double)(1 - i2) - x1;
+        d = (cs_double)(1 - i2) - x1;
         for (i = i2; i--;) {
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          buf1[xpos] += (MYFLT) (n1 * w); buf2[xpos] += (MYFLT) (n2 * w);
+          buf1[xpos] += (cs_float) (n1 * w); buf2[xpos] += (cs_float) (n2 * w);
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          buf1[xpos] -= (MYFLT) (n1 * w); buf2[xpos] -= (MYFLT) (n2 * w);
+          buf1[xpos] -= (cs_float) (n1 * w); buf2[xpos] -= (cs_float) (n2 * w);
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
         }
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((cs_double)xpos + x1 + 0.5);       /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         buf1[xpos] += in1[n]; buf2[xpos] += in2[n];
       }
@@ -630,7 +627,7 @@ int32_t vdelayxws(CSOUND *csound, VDELXS *p)    /*      vdelayxws routine  */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
 }
 
 int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
@@ -639,21 +636,21 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t  maxd, indx;
-    MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
-    MYFLT *out2 = p->sr2;
-    MYFLT *out3 = p->sr3;
-    MYFLT *out4 = p->sr4;
-    MYFLT *in1 = p->ain1;
-    MYFLT *in2 = p->ain2;
-    MYFLT *in3 = p->ain3;
-    MYFLT *in4 = p->ain4;
-    MYFLT *del = p->adel;
-    MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
-    MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
-    MYFLT *buf3 = (MYFLT *)p->aux3.auxp;
-    MYFLT *buf4 = (MYFLT *)p->aux4.auxp;
+    cs_float *out1 = p->sr1;  /* assign object data to local variables   */
+    cs_float *out2 = p->sr2;
+    cs_float *out3 = p->sr3;
+    cs_float *out4 = p->sr4;
+    cs_float *in1 = p->ain1;
+    cs_float *in2 = p->ain2;
+    cs_float *in3 = p->ain3;
+    cs_float *in4 = p->ain4;
+    cs_float *del = p->adel;
+    cs_float *buf1 = (cs_float *)p->aux1.auxp;
+    cs_float *buf2 = (cs_float *)p->aux2.auxp;
+    cs_float *buf3 = (cs_float *)p->aux3.auxp;
+    cs_float *buf4 = (cs_float *)p->aux4.auxp;
     int32_t   wsize = p->interp_size;
-    double x1, x2, w, d, d2x, n1, n2, n3, n4;
+    cs_double x1, x2, w, d, d2x, n1, n2, n3, n4;
     int32_t   i, i2, xpos;
     /* RWD fix */
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL) ||
@@ -662,20 +659,20 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
-    d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
+    d2x = (1.0 - pow ((cs_double)wsize * 0.85172, -0.89624)) / (cs_double)(i2 * i2);
 
     if (UNLIKELY(offset)) {
-      memset(out1, '\0', offset*sizeof(MYFLT));
-      memset(out2, '\0', offset*sizeof(MYFLT));
-      memset(out3, '\0', offset*sizeof(MYFLT));
-      memset(out4, '\0', offset*sizeof(MYFLT));
+      memset(out1, '\0', offset*sizeof(cs_float));
+      memset(out2, '\0', offset*sizeof(cs_float));
+      memset(out3, '\0', offset*sizeof(cs_float));
+      memset(out4, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out3[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out4[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out2[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out3[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out4[nsmps], '\0', early*sizeof(cs_float));
     }
 
     for (n=offset; n<nsmps; n++) {
@@ -687,32 +684,32 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx - ((double)*del++ * (double)CS_ESR);
-      while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
+      x1 = (cs_double)indx - ((cs_double)*del++ * (cs_double)CS_ESR);
+      while (UNLIKELY(x1 < 0.0)) x1 += (cs_double)maxd;
       xpos = (int32_t)x1;
-      x1 -= (double)xpos;
+      x1 -= (cs_double)xpos;
       x2 = sin (PI * x1) / PI;
       while (UNLIKELY(xpos >= maxd)) xpos -= maxd;
 
       if (LIKELY(x1 * (1.0 - x1) > 0.00000001)) {
         xpos += (1 - i2);
         while (UNLIKELY(xpos < 0)) xpos += maxd;
-        d = (double)(1 - i2) - x1;
+        d = (cs_double)(1 - i2) - x1;
         for (i = i2; i--;) {
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          n1 += (double)buf1[xpos] * w; n2 += (double)buf2[xpos] * w;
-          n3 += (double)buf3[xpos] * w; n4 += (double)buf4[xpos] * w;
+          n1 += (cs_double)buf1[xpos] * w; n2 += (cs_double)buf2[xpos] * w;
+          n3 += (cs_double)buf3[xpos] * w; n4 += (cs_double)buf4[xpos] * w;
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          n1 -= (double)buf1[xpos] * w; n2 -= (double)buf2[xpos] * w;
-          n3 -= (double)buf3[xpos] * w; n4 -= (double)buf4[xpos] * w;
+          n1 -= (cs_double)buf1[xpos] * w; n2 -= (cs_double)buf2[xpos] * w;
+          n3 -= (cs_double)buf3[xpos] * w; n4 -= (cs_double)buf4[xpos] * w;
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
         }
-        out1[n] = (MYFLT) (n1 * x2); out2[n] = (MYFLT) (n2 * x2);
-        out3[n] = (MYFLT) (n3 * x2); out4[n] = (MYFLT) (n4 * x2);
+        out1[n] = (cs_float) (n1 * x2); out2[n] = (cs_float) (n2 * x2);
+        out3[n] = (cs_float) (n3 * x2); out4[n] = (cs_float) (n4 * x2);
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((cs_double)xpos + x1 + 0.5);       /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         out1[n] = buf1[xpos]; out2[n] = buf2[xpos];
         out3[n] = buf3[xpos]; out4[n] = buf4[xpos];
@@ -725,7 +722,7 @@ int32_t vdelayxq(CSOUND *csound, VDELXQ *p)     /*      vdelayxq routine  */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
 }
 
 int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
@@ -734,21 +731,21 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     int32_t  maxd, indx;
-    MYFLT *out1 = p->sr1;  /* assign object data to local variables   */
-    MYFLT *out2 = p->sr2;
-    MYFLT *out3 = p->sr3;
-    MYFLT *out4 = p->sr4;
-    MYFLT *in1 = p->ain1;
-    MYFLT *in2 = p->ain2;
-    MYFLT *in3 = p->ain3;
-    MYFLT *in4 = p->ain4;
-    MYFLT *del = p->adel;
-    MYFLT *buf1 = (MYFLT *)p->aux1.auxp;
-    MYFLT *buf2 = (MYFLT *)p->aux2.auxp;
-    MYFLT *buf3 = (MYFLT *)p->aux3.auxp;
-    MYFLT *buf4 = (MYFLT *)p->aux4.auxp;
+    cs_float *out1 = p->sr1;  /* assign object data to local variables   */
+    cs_float *out2 = p->sr2;
+    cs_float *out3 = p->sr3;
+    cs_float *out4 = p->sr4;
+    cs_float *in1 = p->ain1;
+    cs_float *in2 = p->ain2;
+    cs_float *in3 = p->ain3;
+    cs_float *in4 = p->ain4;
+    cs_float *del = p->adel;
+    cs_float *buf1 = (cs_float *)p->aux1.auxp;
+    cs_float *buf2 = (cs_float *)p->aux2.auxp;
+    cs_float *buf3 = (cs_float *)p->aux3.auxp;
+    cs_float *buf4 = (cs_float *)p->aux4.auxp;
     int32_t   wsize = p->interp_size;
-    double x1, x2, w, d, d2x, n1, n2, n3, n4;
+    cs_double x1, x2, w, d, d2x, n1, n2, n3, n4;
     int32_t   i, i2, xpos;
     /* RWD fix */
     if (UNLIKELY((buf1 == NULL) || (buf2 == NULL) ||
@@ -757,20 +754,20 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     if (UNLIKELY(maxd == 0)) maxd = 1;    /* Degenerate case */
     indx = p->left;
     i2 = (wsize >> 1);
-    d2x = (1.0 - pow ((double)wsize * 0.85172, -0.89624)) / (double)(i2 * i2);
+    d2x = (1.0 - pow ((cs_double)wsize * 0.85172, -0.89624)) / (cs_double)(i2 * i2);
 
     if (UNLIKELY(offset)) {
-      memset(out1, '\0', offset*sizeof(MYFLT));
-      memset(out2, '\0', offset*sizeof(MYFLT));
-      memset(out3, '\0', offset*sizeof(MYFLT));
-      memset(out4, '\0', offset*sizeof(MYFLT));
+      memset(out1, '\0', offset*sizeof(cs_float));
+      memset(out2, '\0', offset*sizeof(cs_float));
+      memset(out3, '\0', offset*sizeof(cs_float));
+      memset(out4, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out3[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out4[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out2[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out3[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out4[nsmps], '\0', early*sizeof(cs_float));
     }
 
     for (n=offset; n<nsmps; n++) {
@@ -778,32 +775,32 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
       /* x2: sine of x1 (for interpolation) */
       /* xpos: integer part of delay time (buffer position to read from) */
 
-      x1 = (double)indx + ((double)del[n] * (double)CS_ESR);
-      while (UNLIKELY(x1 < 0.0)) x1 += (double)maxd;
+      x1 = (cs_double)indx + ((cs_double)del[n] * (cs_double)CS_ESR);
+      while (UNLIKELY(x1 < 0.0)) x1 += (cs_double)maxd;
       xpos = (int32_t)x1;
-      x1 -= (double)xpos;
+      x1 -= (cs_double)xpos;
       x2 = sin (PI * x1) / PI;
       while (UNLIKELY(xpos >= maxd)) xpos -= maxd;
 
       if (x1 * (1.0 - x1) > 0.00000001) {
-        n1 = (double)in1[n] * x2; n2 = (double)in2[n] * x2;
-        n3 = (double)in3[n] * x2; n4 = (double)in4[n] * x2;
+        n1 = (cs_double)in1[n] * x2; n2 = (cs_double)in2[n] * x2;
+        n3 = (cs_double)in3[n] * x2; n4 = (cs_double)in4[n] * x2;
         xpos += (1 - i2);
         while (UNLIKELY(xpos < 0)) xpos += maxd;
-        d = (double)(1 - i2) - x1;
+        d = (cs_double)(1 - i2) - x1;
         for (i = i2; i--;) {
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          buf1[xpos] += (MYFLT) (n1 * w); buf2[xpos] += (MYFLT) (n2 * w);
-          buf3[xpos] += (MYFLT) (n3 * w); buf4[xpos] += (MYFLT) (n4 * w);
+          buf1[xpos] += (cs_float) (n1 * w); buf2[xpos] += (cs_float) (n2 * w);
+          buf3[xpos] += (cs_float) (n3 * w); buf4[xpos] += (cs_float) (n4 * w);
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
           w = 1.0 - d*d*d2x; w *= (w / d++);
-          buf1[xpos] -= (MYFLT) (n1 * w); buf2[xpos] -= (MYFLT) (n2 * w);
-          buf3[xpos] -= (MYFLT) (n3 * w); buf4[xpos] -= (MYFLT) (n4 * w);
+          buf1[xpos] -= (cs_float) (n1 * w); buf2[xpos] -= (cs_float) (n2 * w);
+          buf3[xpos] -= (cs_float) (n3 * w); buf4[xpos] -= (cs_float) (n4 * w);
           if (UNLIKELY(++xpos >= maxd)) xpos -= maxd;
         }
       }
       else {                                            /* integer sample */
-        xpos = (int32_t)((double)xpos + x1 + 0.5);       /* position */
+        xpos = (int32_t)((cs_double)xpos + x1 + 0.5);       /* position */
         if (UNLIKELY(xpos >= maxd)) xpos -= maxd;
         buf1[xpos] += in1[n]; buf2[xpos] += in2[n];
         buf3[xpos] += in3[n]; buf4[xpos] += in4[n];
@@ -820,33 +817,42 @@ int32_t vdelayxwq(CSOUND *csound, VDELXQ *p)    /*      vdelayxwq routine  */
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("vdelay: not initialised"));
+                             Str("vdelay: not initialised\n"));
 }
 
 int32_t multitap_set(CSOUND *csound, MDEL *p)
 {
-    uint32_t n, i;
-    MYFLT max = FL(0.0);
+    uint32_t i, ntaps = (p->INOCOUNT - 1) / 2;
+    int32_t max = 0;
+    int32_t *delays;
+    size_t bytes;
 
-    //if (UNLIKELY(p->INOCOUNT/2 == (MYFLT)p->INOCOUNT*FL(0.5)))
-    /* Should this test just be p->INOCOUNT&1 ==  */
-    if (UNLIKELY((p->INOCOUNT&1)==0))
+    if (UNLIKELY((p->INOCOUNT & 1) == 0))
       return csound->InitError(csound, Str("Wrong input count in multitap\n"));
 
-    for (i = 0; i < p->INOCOUNT - 1; i += 2) {
-      if (max < *p->ndel[i]) max = *p->ndel[i];
+    bytes = (size_t)ntaps * sizeof(int32_t);
+    if (bytes > p->tapdel.size)
+      csound->AuxAlloc(csound, bytes, &p->tapdel);
+    delays = (int32_t *)p->tapdel.auxp;
+    for (i = 0; i < ntaps; i++) {
+      cs_double samples = (cs_double)(CS_ESR * *p->ndel[2*i]);
+      if (UNLIKELY(!(samples >= 0.0 && samples < (INT32_MAX + 0.0))))
+        return csound->InitError(csound, Str("multitap: invalid delay time\n"));
+      delays[i] = (int32_t)samples;
+      if (max < delays[i]) max = delays[i];
     }
 
-    n = (uint32_t)(CS_ESR * max * sizeof(MYFLT));
-    if (p->aux.auxp == NULL ||    /* allocate space for delay buffer */
-        n > p->aux.size)
-      csound->AuxAlloc(csound, n, &p->aux);
-    else {
-      memset(p->aux.auxp, 0, n);
-    }
+    /* Keep the current input as well as the longest delayed sample. */
+    p->max = max + 1;
+    if (UNLIKELY((size_t)p->max > SIZE_MAX / sizeof(cs_float)))
+      return csound->InitError(csound, Str("multitap: delay buffer too large\n"));
+    bytes = (size_t)p->max * sizeof(cs_float);
+    if (p->aux.auxp == NULL || bytes > p->aux.size)
+      csound->AuxAlloc(csound, bytes, &p->aux);
+    else
+      memset(p->aux.auxp, 0, bytes);
 
     p->left = 0;
-    p->max = (int32_t)(CS_ESR * max);
     return OK;
 }
 
@@ -856,34 +862,36 @@ int32_t multitap_play(CSOUND *csound, MDEL *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, n, nsmps = CS_KSMPS;
-    MYFLT *out = p->sr, *in = p->ain;
-    MYFLT *buf = (MYFLT *)p->aux.auxp;
-    MYFLT max = (MYFLT)p->max;
+    cs_float *out = p->sr, *in = p->ain;
+    cs_float *buf = (cs_float *)p->aux.auxp;
+    int32_t max = p->max;
+    const int32_t *delays = (const int32_t *)p->tapdel.auxp;
+    uint32_t ntaps = (p->INOCOUNT - 1) / 2;
 
     if (UNLIKELY(buf==NULL)) goto err1;           /* RWD fix */
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT v = FL(0.0);
+      cs_float v = FL(0.0);
       buf[indx] = in[n];        /*      Write input     */
 
-      if (UNLIKELY(++indx == max)) indx = 0;   /*      Advance input pointer   */
-      for (i = 0; i < p->INOCOUNT - 1; i += 2) {
-        delay = indx - (int32_t)(CS_ESR * *p->ndel[i]);
+      for (i = 0; i < ntaps; i++) {
+        delay = indx - delays[i];
         if (UNLIKELY(delay < 0))
-          delay += (int32_t)max;
-        v += buf[delay] * *p->ndel[i+1]; /*      Write output    */
+          delay += max;
+        v += buf[delay] * *p->ndel[2*i+1]; /*      Write output    */
       }
       out[n] = v;
+      if (UNLIKELY(++indx == max)) indx = 0;
     }
     p->left = indx;
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("multitap: not initialised"));
+                             Str("multitap: not initialised\n"));
 }
 
 /*      nreverb coded by Paris Smaragdis 1994 and Richard Karpen 1998 */
@@ -940,8 +948,9 @@ static int32_t prime(int32_t val)
         ;
       return (smallprime[i] == val ? 1 : 0);
     }
-    last = (int32_t) sqrt((double)val);
-    for (i = 0; smallprime[i] < (last < 3572 ? last : 3572); i++) {
+    last = (int32_t) sqrt((cs_double)val);
+    for (i = 0; i < (int32_t)(sizeof(smallprime) / sizeof(smallprime[0]))
+                && smallprime[i] <= last; i++) {
       if (UNLIKELY((val % smallprime[i]) == 0))
         return 0;
     }
@@ -969,7 +978,7 @@ static int32_t prime(int32_t val)
 #define orgCombs 6
 #define orgAlpas 5
 
-static const MYFLT cc_time[orgCombs] = {
+static const cs_float cc_time[orgCombs] = {
     FL(0.055887056)     /* 1433.0 / 25641.0 */,
     FL(0.062439062)     /* 1601.0 / 25641.0 */,
     FL(0.072813073)     /* 1867.0 / 25641.0 */,
@@ -978,11 +987,11 @@ static const MYFLT cc_time[orgCombs] = {
     FL(0.093561094)     /* 2399.0 / 25641.0 */
 };
 
-static const MYFLT cc_gain[orgCombs] = {
+static const cs_float cc_gain[orgCombs] = {
     FL(0.822), FL(0.802), FL(0.773), FL(0.753), FL(0.753), FL(0.753)
 };
 
-static const MYFLT ca_time[orgAlpas] = {
+static const cs_float ca_time[orgAlpas] = {
     FL(0.013533014)     /*  347.0 / 25641.0 */,
     FL(0.0044070044)    /*  113.0 / 25641.0 */,
     FL(0.0014430014)    /*   37.0 / 25641.0 */,
@@ -990,17 +999,55 @@ static const MYFLT ca_time[orgAlpas] = {
     FL(0.0016770017)    /*   43.0 / 25641.0 */
 };
 
-static const MYFLT ca_gain[orgAlpas] = {
+static const cs_float ca_gain[orgAlpas] = {
     FL(0.7), FL(0.7), FL(0.7), FL(0.7), FL(0.7)
 };
 
+/* Negative table times specify samples; nonnegative times use odd primes. */
+static int32_t reverb_delay_samples(CSOUND *csound, cs_float time, cs_float sr,
+                                    int32_t *length)
+{
+    cs_double samples = time < FL(0.0) ? -(cs_double)time :
+                                     (cs_double)(time * sr);
+    if (UNLIKELY(!(samples >= 0.0 && samples < (INT32_MAX + 0.0))))
+      return csound->InitError(csound, Str("nreverb: invalid delay length\n"));
+    *length = (int32_t)samples;
+    if (time < FL(0.0)) {
+      if (UNLIKELY(*length == 0))
+        return csound->InitError(csound, Str("nreverb: delay must contain a sample\n"));
+    }
+    else {
+      if ((*length & 1) == 0) ++*length;
+      while (!prime(*length)) {
+        if (UNLIKELY(*length > INT32_MAX - 2))
+          return csound->InitError(csound, Str("nreverb: delay length too large\n"));
+        *length += 2;
+      }
+    }
+    return OK;
+}
+
 int32_t reverbx_set(CSOUND *csound, NREV2 *p)
 {
-    int32_t  i, n;
+    int32_t i;
+    size_t n;
     /* Temp holder of old or user constants. */
-    const MYFLT *c_orgtime, *a_orgtime;
-    int32_t   c_time, a_time;
-    int32_t   cmbAllocSize, alpAllocSize;
+    const cs_float *c_orgtime, *a_orgtime;
+    int32_t c_time, a_time, *c_lengths, *a_lengths;
+    size_t cmbAllocSize, alpAllocSize;
+    const cs_float *c_orggains, *a_orggains;
+    cs_float time = *p->time;
+
+    if (*p->istor != FL(0.0) && p->initialized) {
+      if (p->temp.size < CS_KSMPS * sizeof(cs_float))
+        csound->AuxAlloc(csound, CS_KSMPS * sizeof(cs_float), &p->temp);
+      return OK;
+    }
+    p->initialized = 0;
+    if (UNLIKELY(time <= FL(0.0))) {
+      csound->Warning(csound, Str("Non positive reverb time\n"));
+      time = FL(0.01);
+    }
 
     if (UNLIKELY(*p->hdif > FL(1.0) || *p->hdif < FL(0.0)))
       return
@@ -1011,139 +1058,124 @@ int32_t reverbx_set(CSOUND *csound, NREV2 *p)
       /* Get nreverb defaults */
       p->numCombs = orgCombs;
       c_orgtime = cc_time;
-      p->c_orggains = cc_gain;
+      c_orggains = cc_gain;
     }
     else {                          /* User provided constants */
       FUNC *ftCombs;
-      p->numCombs = (int32_t) *p->inumCombs;
       /* Get user-defined set of comb constants from table */
       if (UNLIKELY((ftCombs = csound->FTFind(csound, p->ifnCombs)) == NULL))
         return NOTOK;
-      if (UNLIKELY(ftCombs->flen < (uint32_t)p->numCombs * 2)) {
-        return csound->InitError(csound, Str("reverbx; Combs ftable must have "
-                                             "%d time and %d gain values"),
-                                 p->numCombs, p->numCombs);
+      if (UNLIKELY(!(*p->inumCombs >= FL(1.0) &&
+                      (cs_double)*p->inumCombs < (INT32_MAX + 0.0) &&
+                      (cs_double)*p->inumCombs < (cs_double)(ftCombs->flen / 2) + 1.0))) {
+        return csound->InitError(csound,
+                                Str("nreverb: invalid comb count or table too short\n"));
       }
+      p->numCombs = (int32_t)*p->inumCombs;
       c_orgtime = ftCombs->ftable;
-      p->c_orggains = (ftCombs->ftable + p->numCombs);
+      c_orggains = (ftCombs->ftable + p->numCombs);
     }
-    /* Alloc a single block and get arrays of comb pointers from that */
-    cmbAllocSize = p->numCombs * sizeof(MYFLT);
-    csound->AuxAlloc(csound,
-                     4 * cmbAllocSize + 2 * (p->numCombs + 1) * sizeof(MYFLT*),
-                     &p->caux2);
-    p->c_time = (MYFLT*) p->caux2.auxp;
-    p->c_gain = (MYFLT*) ((char*) p->caux2.auxp + 1 * cmbAllocSize);
-    p->z = (MYFLT*) ((char*) p->caux2.auxp + 2 * cmbAllocSize);
-    p->g = (MYFLT*) ((char*) p->caux2.auxp + 3 * cmbAllocSize);
-    p->cbuf_cur = (MYFLT**) ((char*) p->caux2.auxp + 4 * cmbAllocSize);
-    p->pcbuf_cur = p->cbuf_cur + (p->numCombs + 1);
+    if (UNLIKELY((size_t)p->numCombs > (SIZE_MAX - 2*sizeof(cs_float*)) /
+                 (5*sizeof(cs_float) + sizeof(int32_t) + 2*sizeof(cs_float*))))
+      return csound->InitError(csound, Str("nreverb: too many comb filters\n"));
+    cmbAllocSize = (size_t)p->numCombs * sizeof(cs_float);
+    csound->AuxAlloc(csound, 5*cmbAllocSize +
+                     (size_t)p->numCombs*sizeof(int32_t) +
+                     2*((size_t)p->numCombs + 1)*sizeof(cs_float*), &p->caux2);
+    p->cbuf_cur = (cs_float**)p->caux2.auxp;
+    p->pcbuf_cur = p->cbuf_cur + p->numCombs + 1;
+    p->c_time = (cs_float*)(p->pcbuf_cur + p->numCombs + 1);
+    p->c_gain = p->c_time + p->numCombs;
+    p->z = p->c_gain + p->numCombs;
+    p->g = p->z + p->numCombs;
+    p->c_orggains = p->g + p->numCombs;
+    c_lengths = (int32_t*)(p->c_orggains + p->numCombs);
+    memcpy(p->c_orggains, c_orggains, cmbAllocSize);
 
     /* ...and allpass constants and allocs */
     if (*p->inumAlpas < FL(1.0)) {
       /* Get nreverb defaults */
       p->numAlpas = orgAlpas;
       a_orgtime = ca_time;
-      p->a_orggains = ca_gain;
+      a_orggains = ca_gain;
     }
     else {    /* Have user-defined set of alpas constants */
       FUNC *ftAlpas;
-      p->numAlpas = (int32_t) *p->inumAlpas;
       if (UNLIKELY((ftAlpas = csound->FTFind(csound, p->ifnAlpas)) == NULL))
         return NOTOK;
-      if (UNLIKELY(ftAlpas->flen < (uint32_t)p->numAlpas * 2)) {
-        return csound->InitError(csound, Str("reverbx; Alpas ftable must have"
-                                             " %d time and %d gain values"),
-                                         p->numAlpas, p->numAlpas);
+      if (UNLIKELY(!(*p->inumAlpas >= FL(1.0) &&
+                      (cs_double)*p->inumAlpas < (INT32_MAX + 0.0) &&
+                      (cs_double)*p->inumAlpas < (cs_double)(ftAlpas->flen / 2) + 1.0))) {
+        return csound->InitError(csound,
+                                Str("nreverb: invalid allpass count or table too short\n"));
       }
+      p->numAlpas = (int32_t)*p->inumAlpas;
       a_orgtime = ftAlpas->ftable;
-      p->a_orggains = (ftAlpas->ftable + p->numAlpas);
+      a_orggains = (ftAlpas->ftable + p->numAlpas);
     }
-    /* Dynamic alloc of alpass space */
-    alpAllocSize = p->numAlpas * sizeof(MYFLT);
-    csound->AuxAlloc(csound,
-                     2 * alpAllocSize + 2 * (p->numAlpas + 1) * sizeof(MYFLT*),
-                     &p->aaux2);
-    p->a_time = (MYFLT*) p->aaux2.auxp;
-    p->a_gain = (MYFLT*) ((char*) p->aaux2.auxp + 1 * alpAllocSize);
-    p->abuf_cur = (MYFLT**) ((char*) p->aaux2.auxp + 2 * alpAllocSize);
-    p->pabuf_cur = (MYFLT**) ((char*) p->aaux2.auxp + 2 * alpAllocSize
-                              + (p->numAlpas + 1) * sizeof(MYFLT*));
+    if (UNLIKELY((size_t)p->numAlpas > (SIZE_MAX - 2*sizeof(cs_float*)) /
+                 (3*sizeof(cs_float) + sizeof(int32_t) + 2*sizeof(cs_float*))))
+      return csound->InitError(csound, Str("nreverb: too many allpass filters\n"));
+    alpAllocSize = (size_t)p->numAlpas * sizeof(cs_float);
+    csound->AuxAlloc(csound, 3*alpAllocSize +
+                     (size_t)p->numAlpas*sizeof(int32_t) +
+                     2*((size_t)p->numAlpas + 1)*sizeof(cs_float*), &p->aaux2);
+    p->abuf_cur = (cs_float**)p->aaux2.auxp;
+    p->pabuf_cur = p->abuf_cur + p->numAlpas + 1;
+    p->a_time = (cs_float*)(p->pabuf_cur + p->numAlpas + 1);
+    p->a_gain = p->a_time + p->numAlpas;
+    p->a_orggains = p->a_gain + p->numAlpas;
+    a_lengths = (int32_t*)(p->a_orggains + p->numAlpas);
+    memcpy(p->a_orggains, a_orggains, alpAllocSize);
 
-    /* Init variables */
-    if (*p->istor == FL(0.0) ||
-        p->temp.auxp == NULL || p->temp.size<CS_KSMPS * sizeof(MYFLT)) {
-      csound->AuxAlloc(csound, CS_KSMPS * sizeof(MYFLT), &p->temp);
-
-      n = 0;
-      for (i = 0; i < p->numCombs; i++) {
-        MYFLT ftime = c_orgtime[i];
-        /* Use directly as num samples if negative */
-        if (ftime < FL(0.0))
-          c_time = (int32_t) -ftime;
-        else {
-          /* convert from to seconds to samples, and make prime */
-          c_time = (int32_t) (ftime * CS_ESR);
-          /* Mangle sample number to primes. */
-          if (c_time % 2 == 0)
-            c_time += 1;
-          while (!prime(c_time))
-            c_time += 2;
-        }
-        p->c_time[i] = (MYFLT) c_time;
-        n += c_time;
-        p->c_gain[i] = (MYFLT) exp((double)(LOG001 * (p->c_time[i]
-                                                       * CS_ONEDSR)
-                                             / (p->c_orggains[i] * *p->time)));
-        p->g[i] = *p->hdif;
-        p->c_gain[i] = p->c_gain[i] * (FL(1.0) - p->g[i]);
-        p->z[i] = FL(0.0);
-      }
-      csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->caux);
-      /* unnecessary as Auxlloc clears to 0 */
-      /* for (i = 0; i < n; i++) { */
-      /*   ((MYFLT*) p->caux.auxp)[i] = FL(0.0); */
-      /* } */
-      p->pcbuf_cur[0] = p->cbuf_cur[0] = (MYFLT*)p->caux.auxp;
-      for (i = 0; i < p->numCombs; i++) {
-        p->pcbuf_cur[i + 1] = p->cbuf_cur[i + 1] =
-          p->cbuf_cur[i] + (int32_t) p->c_time[i];
-        p->c_time[i] *= CS_ONEDSR; /* Scale to save division in reverbx */
-      }
-      n = 0;
-      for (i = 0; i < p->numAlpas; i++) {
-        MYFLT ftime = a_orgtime[i];
-        if (ftime < FL(0.0))
-          a_time = (int32_t) -ftime;
-        else {
-          /* convert seconds to samples and make prime */
-          a_time = (int32_t) (ftime * CS_ESR);
-          if (a_time % 2 == 0)
-            a_time += 1;
-          while (!prime(a_time))
-            a_time += 2;
-        }
-        p->a_time[i] = (MYFLT) a_time;
-        p->a_gain[i] = (MYFLT) exp((double)(LOG001 * (p->a_time[i]
-                                                       * CS_ONEDSR)
-                                             / (p->a_orggains[i] * *p->time)));
-        n += a_time;
-      }
-      csound->AuxAlloc(csound, n * sizeof(MYFLT), &p->aaux);
-      /* unnecessary as AuxAlloc clears */
-      /* for (i = 0; i < n; i++) { */
-      /*   ((MYFLT*) p->aaux.auxp)[i] = FL(0.0); */
-      /* } */
-      p->pabuf_cur[0] = p->abuf_cur[0] = (MYFLT*) p->aaux.auxp;
-      for (i = 0; i < p->numAlpas; i++) {
-        p->pabuf_cur[i + 1] = p->abuf_cur[i + 1] =
-          p->abuf_cur[i] + (int32_t) p->a_time[i];
-        p->a_time[i] *= CS_ONEDSR; /* Scale to save division in reverbx */
-      }
+    csound->AuxAlloc(csound, CS_KSMPS * sizeof(cs_float), &p->temp);
+    n = 0;
+    for (i = 0; i < p->numCombs; i++) {
+      if (reverb_delay_samples(csound, c_orgtime[i], CS_ESR, &c_time) != OK)
+        return NOTOK;
+      if (UNLIKELY((size_t)c_time > SIZE_MAX / sizeof(cs_float) - n))
+        return csound->InitError(csound, Str("nreverb: delay buffer too large\n"));
+      c_lengths[i] = c_time;
+      p->c_time[i] = (cs_float) c_time;
+      n += c_time;
+      p->c_gain[i] = (cs_float) exp((cs_double)(LOG001 * (p->c_time[i]
+                                                     * CS_ONEDSR)
+                                           / (p->c_orggains[i] * time)));
+      p->g[i] = *p->hdif;
+      p->c_gain[i] = p->c_gain[i] * (FL(1.0) - p->g[i]);
+      p->z[i] = FL(0.0);
+    }
+    csound->AuxAlloc(csound, n * sizeof(cs_float), &p->caux);
+    p->pcbuf_cur[0] = p->cbuf_cur[0] = (cs_float*)p->caux.auxp;
+    for (i = 0; i < p->numCombs; i++) {
+      p->pcbuf_cur[i + 1] = p->cbuf_cur[i + 1] =
+        p->cbuf_cur[i] + c_lengths[i];
+      p->c_time[i] *= CS_ONEDSR; /* Scale to save division in reverbx */
+    }
+    n = 0;
+    for (i = 0; i < p->numAlpas; i++) {
+      if (reverb_delay_samples(csound, a_orgtime[i], CS_ESR, &a_time) != OK)
+        return NOTOK;
+      if (UNLIKELY((size_t)a_time > SIZE_MAX / sizeof(cs_float) - n))
+        return csound->InitError(csound, Str("nreverb: delay buffer too large\n"));
+      a_lengths[i] = a_time;
+      p->a_time[i] = (cs_float) a_time;
+      p->a_gain[i] = (cs_float) exp((cs_double)(LOG001 * (p->a_time[i]
+                                                     * CS_ONEDSR)
+                                           / (p->a_orggains[i] * time)));
+      n += a_time;
+    }
+    csound->AuxAlloc(csound, n * sizeof(cs_float), &p->aaux);
+    p->pabuf_cur[0] = p->abuf_cur[0] = (cs_float*) p->aaux.auxp;
+    for (i = 0; i < p->numAlpas; i++) {
+      p->pabuf_cur[i + 1] = p->abuf_cur[i + 1] =
+        p->abuf_cur[i] + a_lengths[i];
+      p->a_time[i] *= CS_ONEDSR; /* Scale to save division in reverbx */
     }
 
     p->prev_time = *p->time;
     p->prev_hdif = *p->hdif;
+    p->initialized = 1;
 
     return OK;
 }
@@ -1154,18 +1186,18 @@ int32_t reverbx(CSOUND *csound, NREV2 *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT   *in, *out = p->out, *buf, *end;
-    MYFLT   gain, z;
-    MYFLT   hdif = *p->hdif;
-    MYFLT   time = *p->time;
+    cs_float   *in, *out = p->out, *buf, *end;
+    cs_float   gain, z;
+    cs_float   hdif = *p->hdif;
+    cs_float   time = *p->time;
     int32_t     numCombs = p->numCombs;
     int32_t     numAlpas = p->numAlpas;
 
-    if (UNLIKELY(p->temp.auxp == NULL)) goto err1;
-    buf = (MYFLT*) p->temp.auxp;
+    if (UNLIKELY(!p->initialized)) goto err1;
+    buf = (cs_float*) p->temp.auxp;
     in = p->in;
-    memcpy(buf, in, nsmps*sizeof(MYFLT));
-    memset(out, 0,  nsmps*sizeof(MYFLT));
+    memcpy(buf, in, nsmps*sizeof(cs_float));
+    memset(out, 0,  nsmps*sizeof(cs_float));
     if (UNLIKELY(early)) nsmps -= early;
     if (*p->time != p->prev_time || *p->hdif != p->prev_hdif) {
       if (UNLIKELY(hdif > FL(1.0))) {
@@ -1178,7 +1210,7 @@ int32_t reverbx(CSOUND *csound, NREV2 *p)
       }
       if (UNLIKELY(time <= FL(0.0))) {
         csound->Warning(csound, Str("Non positive reverb time\n"));
-        time = FL(0.001);
+        time = FL(0.01);
       }
       for (i = 0; i < numCombs; i++) {
         p->c_gain[i] = EXP((LOG001 * p->c_time[i] /
@@ -1192,15 +1224,15 @@ int32_t reverbx(CSOUND *csound, NREV2 *p)
         p->a_gain[i] = EXP((LOG001 * p->a_time[i] /
                             (p->a_orggains[i] * time)));
 
-      p->prev_time = time;
-      p->prev_hdif = hdif;
+      p->prev_time = *p->time;
+      p->prev_hdif = *p->hdif;
     }
 
     for (i = 0; i < numCombs; i++) {
       buf = p->pcbuf_cur[i];
       end = p->cbuf_cur[i + 1];
       gain = p->c_gain[i];
-      in = (MYFLT*) p->temp.auxp;
+      in = (cs_float*) p->temp.auxp;
       out = p->out;
       for (n=offset;n<nsmps;n++) {
         out[n] += *buf;
@@ -1209,15 +1241,15 @@ int32_t reverbx(CSOUND *csound, NREV2 *p)
         *buf *= gain;
         *buf += in[n];
         if (UNLIKELY(++buf >= end))
-          buf = (MYFLT*) p->cbuf_cur[i];
+          buf = (cs_float*) p->cbuf_cur[i];
       }
       p->pcbuf_cur[i] = buf;
     }
 
     for (i = 0; i < numAlpas; i++) {
-      in = (MYFLT*) p->temp.auxp;
+      in = (cs_float*) p->temp.auxp;
       out = p->out;
-      memcpy(in+offset, out+offset, (nsmps-offset)*sizeof(MYFLT));
+      memcpy(in+offset, out+offset, (nsmps-offset)*sizeof(cs_float));
       buf = p->pabuf_cur[i];
       end = p->abuf_cur[i + 1];
       gain = p->a_gain[i];
@@ -1226,7 +1258,7 @@ int32_t reverbx(CSOUND *csound, NREV2 *p)
         *buf = gain * z + in[n];
         out[n] = z - gain * *buf;
         if (UNLIKELY(++buf >= end))
-          buf = (MYFLT*) p->abuf_cur[i];
+          buf = (cs_float*) p->abuf_cur[i];
       }
       p->pabuf_cur[i] = buf;
     }
@@ -1234,6 +1266,6 @@ int32_t reverbx(CSOUND *csound, NREV2 *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             Str("reverbx: not initialised"));
+                             Str("reverbx: not initialised\n"));
 }
 

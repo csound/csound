@@ -1,3 +1,9 @@
+<CsTest>
+description = "tests using boolean data-types"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 
@@ -11,6 +17,12 @@ instr 1
     exitnow(-1)
   else
     prints "pass\n"
+  endif
+
+  result:i = 9 != 10 && 1 == 1
+  if result != 1 then
+    prints "boolean-to-i conversion failed: expected 1, got %d\n", result
+    exitnow(-1)
   endif
 endin
 

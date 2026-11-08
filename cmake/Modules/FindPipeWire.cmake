@@ -62,18 +62,19 @@
 # in the FIND_PATH() and FIND_LIBRARY() calls
 find_package(PkgConfig QUIET)
 
-pkg_search_module(PKG_PipeWire QUIET libpipewire-0.3 libpipewire-0.2)
-pkg_search_module(PKG_Spa QUIET libspa-0.2 libspa-0.1)
+if(PKG_CONFIG_FOUND)
+    pkg_check_modules(PKG_PipeWire QUIET libpipewire-0.3)
+    pkg_check_modules(PKG_Spa QUIET libspa-0.2)
+endif()
 
-set(PipeWire_DEFINITIONS "${PKG_PipeWire_CFLAGS}" "${PKG_Spa_CFLAGS}")
-set(PipeWire_VERSION "${PKG_PipeWire_VERSION}")
+set(PipeWire_DEFINITIONS "${PKG_PipeWire_CFLAGS_OTHER}" "${PKG_Spa_CFLAGS_OTHER}")
 
 find_path(PipeWire_INCLUDE_DIRS
     NAMES
         pipewire/pipewire.h
     HINTS
         ${PKG_PipeWire_INCLUDE_DIRS}
-        ${PKG_PipeWire_INCLUDE_DIRS}/pipewire-0.3
+    PATH_SUFFIXES pipewire-0.3
 )
 
 find_path(Spa_INCLUDE_DIRS
@@ -81,16 +82,26 @@ find_path(Spa_INCLUDE_DIRS
         spa/param/props.h
     HINTS
         ${PKG_Spa_INCLUDE_DIRS}
-        ${PKG_Spa_INCLUDE_DIRS}/spa-0.2
+    PATH_SUFFIXES spa-0.2
 )
 
 find_library(PipeWire_LIBRARIES
     NAMES
         pipewire-0.3
-        pipewire-0.2
     HINTS
         ${PKG_PipeWire_LIBRARY_DIRS}
 )
+
+# Read the selected headers, including when pkg-config is unavailable or a
+# cached include path points at a different installation.
+set(PipeWire_VERSION "")
+if(EXISTS "${PipeWire_INCLUDE_DIRS}/pipewire/version.h")
+    file(STRINGS "${PipeWire_INCLUDE_DIRS}/pipewire/version.h"
+        _PipeWire_version_line REGEX "^#define[ \t]+pw_get_headers_version\\(\\)")
+    string(REGEX MATCH "[0-9]+\\.[0-9]+\\.[0-9]+"
+        PipeWire_VERSION "${_PipeWire_version_line}")
+    unset(_PipeWire_version_line)
+endif()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(PipeWire
@@ -100,6 +111,7 @@ find_package_handle_standard_args(PipeWire
         PipeWire_LIBRARIES
         PipeWire_INCLUDE_DIRS
         Spa_INCLUDE_DIRS
+        PipeWire_VERSION
     VERSION_VAR
         PipeWire_VERSION
 )

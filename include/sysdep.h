@@ -29,8 +29,16 @@
 typedef void *locale_t;
 #endif
 #endif
-
 #include <limits.h>
+#if defined(__wasm__) && !defined(__wasm64__)
+_Static_assert(sizeof(long) == 4, "expected 32-bit long on wasm32");
+#ifndef LONG_MAX
+#  define LONG_MAX 2147483647L
+#endif
+#ifndef LONG_MIN
+#  define LONG_MIN (-2147483647L - 1L)
+#endif
+#endif
 /* this checks for 64BIT builds */
 #if (defined(__WORDSIZE) && __WORDSIZE == 64) || defined(_WIN64) || defined(__x86_64__) || defined(_M_X64) || defined(__ppc64__) || defined(__aarch64__) || (defined(__SIZEOF_POINTER__) && __SIZEOF_POINTER__ == 8)
     #define B64BIT
@@ -77,6 +85,10 @@ typedef void *locale_t;
 # endif
 #endif
 
+#if defined(MSVC)
+#include <intrin.h> /* for _InterlockedExchange */
+#endif
+
 #ifndef CABBAGE
 #ifdef MSVC
 typedef __int32 int32;
@@ -106,9 +118,7 @@ typedef uint_least16_t uint16;
 #include <AvailabilityMacros.h>
 #endif
 
-#if !defined(USE_DOUBLE)
-#include "float-version.h"
-#endif
+#include "csound_types.h"
 
 #ifdef USE_DOUBLE
 /* Defined here as Android does not have log2 functions */
@@ -183,23 +193,12 @@ typedef uint_least16_t uint16;
 #include <unistd.h>
 #endif
 
-/* Experiment with doubles or floats */
-
-#ifndef __MYFLT_DEF
-#  define __MYFLT_DEF
-#  ifndef USE_DOUBLE
-#    define MYFLT float
-#  else
-#    define MYFLT double
-#  endif
-#endif
-
-/* Aligning to double boundaries, should work with MYFLT as float or double */
-#define CS_FLOAT_ALIGN(x) ((int32_t)(x + sizeof(MYFLT)-1) & (~(sizeof(MYFLT)-1)))
+/* Aligning to double boundaries, should work with cs_float as float or double */
+#define CS_FLOAT_ALIGN(x) ((int32_t)(x + sizeof(cs_float)-1) & (~(sizeof(cs_float)-1)))
 
 #if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
 
-#define FL(x) ((MYFLT) (x))
+#define FL(x) ((cs_float) (x))
 
 /* find out operating system if not specified on the command line */
 
@@ -316,12 +315,18 @@ typedef unsigned long       uintptr_t;
 #  define CS_NOINLINE   __attribute__ ((__noinline__))
 /* a function that never returns (e.g. csoundDie()) */
 #  define CS_NORETURN   __attribute__ ((__noreturn__))
+/* MinGW's ANSI stdio supports C99 formats such as %zu and %lld. */
+#  if defined(__MINGW32__) && defined(__USE_MINGW_ANSI_STDIO) && __USE_MINGW_ANSI_STDIO
+#    define CS_PRINTF_FORMAT __gnu_printf__
+#  else
+#    define CS_PRINTF_FORMAT __printf__
+#  endif
 /* printf-style function with first argument as format string */
-#  define CS_PRINTF1    __attribute__ ((__format__ (__printf__, 1, 2)))
+#  define CS_PRINTF1    __attribute__ ((__format__ (CS_PRINTF_FORMAT, 1, 2)))
 /* printf-style function with second argument as format string */
-#  define CS_PRINTF2    __attribute__ ((__format__ (__printf__, 2, 3)))
+#  define CS_PRINTF2    __attribute__ ((__format__ (CS_PRINTF_FORMAT, 2, 3)))
 /* printf-style function with third argument as format string */
-#  define CS_PRINTF3    __attribute__ ((__format__ (__printf__, 3, 4)))
+#  define CS_PRINTF3    __attribute__ ((__format__ (CS_PRINTF_FORMAT, 3, 4)))
 /* a function with no side effects or dependencies on volatile data */
 #  define CS_PURE       __attribute__ ((__pure__))
 #else
@@ -337,88 +342,91 @@ typedef unsigned long       uintptr_t;
 #  define LIKELY(x)     __builtin_expect(!!(x),1)
 #  define UNLIKELY(x)   __builtin_expect(!!(x),0)
 #else
-#  define LIKELY(x)     x
-#  define UNLIKELY(x)   x
+/* Preserve grouping when a condition contains && or ||. */
+#  define LIKELY(x)     (x)
+#  define UNLIKELY(x)   (x)
 #endif
 
 #if defined(__BUILDING_LIBCSOUND) || defined(CSOUND_CSDL_H)
 
 /* macros for converting floats to integers */
-/* MYFLT2LONG: converts with unspecified rounding */
-/* MYFLT2LRND: rounds to nearest integer */
+/* CS_FLOAT2LONG: converts with unspecified rounding */
+/* CS_FLOAT2LRND: rounds to nearest integer */
 
 #ifdef USE_LRINT
 #  ifndef USE_DOUBLE
-#    define MYFLT2LONG(x) (x > LONG_MIN && x < (double)LONG_MAX ? \
+#    define CS_FLOAT2LONG(x) (x > LONG_MIN && x < (cs_double)LONG_MAX ? \
                            (int32) lrintf((float) (x)) : 0)
-#    define MYFLT2LRND(x) (x > LONG_MIN && x < (double)LONG_MAX ? \
+#    define CS_FLOAT2LRND(x) (x > LONG_MIN && x < (cs_double)LONG_MAX ? \
                            (int32) lrintf((float) (x)) : 0)
 #  else
-#    define MYFLT2LONG(x) (x > LONG_MIN && x < LONG_MAX ? \
-                           (int32) lrint((double) (x)) : 0)
-#    define MYFLT2LRND(x) (x > LONG_MIN && x < LONG_MAX ? \
-                           (int32) lrint((double) (x)) : 0)
-#    define MYFLT2LONG64(x) (x > LONG_MIN && x < LONG_MAX ? \
-                           (int64_t) lrintl((double) (x)) : 0)
-#    define MYFLT2LRND64(x) (x > LONG_MIN && x < LONG_MAX ? \
-                           (int64_t) lrintl((double) (x)) : 0)
+#    define CS_FLOAT2LONG(x) (x > LONG_MIN && x < (cs_double)LONG_MAX ? \
+                           (int32) lrint((cs_double) (x)) : 0)
+#    define CS_FLOAT2LRND(x) (x > LONG_MIN && x < (cs_double)LONG_MAX ? \
+                           (int32) lrint((cs_double) (x)) : 0)
+#    define CS_FLOAT2LONG64(x) (x > LONG_MIN && x < (cs_double)LONG_MAX ? \
+                           (int64_t) lrintl((cs_double) (x)) : 0)
+#    define CS_FLOAT2LRND64(x) (x > LONG_MIN && x < (cs_double)LONG_MAX ? \
+                           (int64_t) lrintl((cs_double) (x)) : 0)
 #  endif
-#elif defined(MSVC)
+#elif defined(MSVC) && (defined(_M_IX86) || defined(_M_X64))
 #include <emmintrin.h>
 #  ifndef USE_DOUBLE
 // From Agner Fog optimisation manuals p.144
-static inline int32_t MYFLT2LONG (float const x) {
+static inline int32_t CS_FLOAT2LONG (float const x) {
     return _mm_cvtss_si32 (_mm_load_ss (&x));
 }
 
-static inline int32_t MYFLT2LRND (float const x) {
+static inline int32_t CS_FLOAT2LRND (float const x) {
     return _mm_cvtss_si32 (_mm_load_ss (&x));
 }
 
 #  else
-static inline int32_t MYFLT2LONG (double const x) {
+static inline int32_t CS_FLOAT2LONG (cs_double const x) {
     return _mm_cvtsd_si32 (_mm_load_sd (&x));
 }
 
-static inline int32_t MYFLT2LRND (double const x) {
+static inline int32_t CS_FLOAT2LRND (cs_double const x) {
     return _mm_cvtsd_si32 (_mm_load_sd (&x));
 }
 #  endif
 #else
 #  ifndef USE_DOUBLE
-#    define MYFLT2LONG(x) ((int32) (x))
+#    define CS_FLOAT2LONG(x) ((int32) (x))
 #    if defined(HAVE_GCC3) && defined(__i386__) && !defined(__ICC)
-#      define MYFLT2LRND(x) ((int32) lrintf((float) (x)))
+#      define CS_FLOAT2LRND(x) ((int32) lrintf((float) (x)))
 #    else
-static inline int32 MYFLT2LRND(float fval)
+static inline int32 CS_FLOAT2LRND(float fval)
 {
     return ((int32) (fval + (fval < 0.0f ? -0.5f : 0.5f)));
 }
 #    endif
 #  else
-#    define MYFLT2LONG(x) ((int32) (x))
+#    define CS_FLOAT2LONG(x) ((int32) (x))
 #    if defined(HAVE_GCC3) && defined(__i386__) && !defined(__ICC)
-#      define MYFLT2LRND(x) ((int32) lrint((double) (x)))
+#      define CS_FLOAT2LRND(x) ((int32) lrint((cs_double) (x)))
 #    else
 
-static inline int32 MYFLT2LRND(double fval)
+static inline int32 CS_FLOAT2LRND(cs_double fval)
 {
     return ((int32) (fval + (fval < 0.0 ? -0.5 : 0.5)));
 }
 
-static inline int64 MYFLT2LRND64(double fval)
-{
-    return ((int64) (fval + (fval < 0.0 ? -0.5 : 0.5)));
-}
-
 #    endif
 #  endif
+
+/* Keep the 64-bit helpers available in both float and double builds. */
+#  define CS_FLOAT2LONG64(x) ((int64_t) (x))
+static inline int64_t CS_FLOAT2LRND64(cs_double fval)
+{
+    return ((int64_t) (fval + (fval < 0.0 ? -0.5 : 0.5)));
+}
 #endif
 
 #ifdef HAVE_C99
-#define MYFLT2UINT64(x) ((uint64_t) llrint(x))
+#define CS_FLOAT2UINT64(x) ((uint64_t) llrint(x))
 #else
-#define MYFLT2UINT64(x) ((uint64_t) (tval + 0.5)) 
+#define CS_FLOAT2UINT64(x) ((uint64_t) ((x) + 0.5))
 #endif
 
 /* inline functions and macros for clamping denormals to zero */
@@ -430,10 +438,14 @@ static inline float csoundUndenormalizeFloat(float x)
     return ((x + 1.0e-30f) - tmp);
 }
 
-static inline double csoundUndenormalizeDouble(double x)
+static inline cs_double csoundUndenormalizeDouble(cs_double x)
 {
-    volatile double tmp = 1.0e-200;
+#ifdef USE_FLOAT
+    return csoundUndenormalizeFloat(x);
+#else
+    volatile cs_double tmp = 1.0e-200;
     return ((x + 1.0e-200) - tmp);
+#endif
 }
 #else
 #  define csoundUndenormalizeFloat(x)   x
@@ -441,9 +453,9 @@ static inline double csoundUndenormalizeDouble(double x)
 #endif
 
 #ifndef USE_DOUBLE
-#  define csoundUndenormalizeMYFLT      csoundUndenormalizeFloat
+#  define csoundUndenormalizeCsFloat      csoundUndenormalizeFloat
 #else
-#  define csoundUndenormalizeMYFLT      csoundUndenormalizeDouble
+#  define csoundUndenormalizeCsFloat      csoundUndenormalizeDouble
 #endif
 
 #endif  /* __BUILDING_LIBCSOUND || CSOUND_CSDL_H */
@@ -498,6 +510,17 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #endif
 
 #ifdef MSVC
+#define ATOMIC_SET_BOOL(var, val) \
+  ((void) InterlockedExchange8((volatile char *) &(var), (char) !!(val)))
+#define ATOMIC_GET_BOOL(var) \
+  (InterlockedExchangeAdd8((volatile char *) &(var), 0) != 0)
+#else
+#define ATOMIC_SET_BOOL(var, val) \
+  do { ATOMIC_SET8(var, !!(val)); } while (0)
+#define ATOMIC_GET_BOOL ATOMIC_GET8
+#endif
+
+#ifdef MSVC
 #define ATOMIC_DECR(var) InterlockedExchangeAdd(&var, -1)
 #elif defined(HAVE_ATOMIC_BUILTIN)
 #define ATOMIC_DECR(var) __atomic_sub_fetch(&var, 1, __ATOMIC_SEQ_CST)
@@ -529,6 +552,16 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_ADD(var, val) var += val
 #endif
 
+/* Serialized fallback only; this does not synchronize concurrent callers. */
+static inline int csoundCompareExchangeSerial(volatile long *value,
+                                              long desired, long expected)
+{
+  if (*value != expected)
+    return 1;
+  *value = desired;
+  return 0;
+}
+
 #if defined(MSVC)
 #define ATOMIC_CMP_XCH(val, newVal, oldVal) \
   (InterlockedCompareExchange(val, newVal, oldVal) != oldVal)
@@ -536,8 +569,9 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_CMP_XCH(val, newVal, oldVal) \
   !(__atomic_compare_exchange(val, (long *) &oldVal,  &newVal, 0, \
                               __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST))
-#else /* FIXME: no atomics, what to do? */
-#define ATOMIC_CMP_XCH(val, newVal, oldVal) (*val = newVal) != oldVal
+#else
+#define ATOMIC_CMP_XCH(val, newVal, oldVal) \
+  csoundCompareExchangeSerial(val, newVal, oldVal)
 #endif
 
 #if defined(WIN32)
@@ -555,6 +589,10 @@ typedef int32_t spin_lock_t;
 #define SPINLOCK_INIT 0
 #endif // MAC_OS_X_VERSION_MIN_REQUIRED
 
+#elif defined(__wasi__)
+/* WASI doesn't support pthread spinlocks */
+typedef int32_t spin_lock_t;
+#define SPINLOCK_INIT 0
 #elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
 typedef pthread_spinlock_t spin_lock_t;
 #define SPINLOCK_INIT PTHREAD_SPINLOCK_INITIALIZER
@@ -565,6 +603,14 @@ typedef char spin_lock_t;
 #else
 typedef int32_t spin_lock_t;
 #define SPINLOCK_INIT 0
+#endif
+
+#if defined(MSVC) || defined(MACOSX) || \
+    (defined(__GNUC__) && (defined(HAVE_PTHREAD_SPIN_LOCK) || \
+                           defined(HAVE_ATOMIC_BUILTIN)))
+#define CSOUND_SPINLOCK_AVAILABLE 1
+#else
+#define CSOUND_SPINLOCK_AVAILABLE 0
 #endif
 
 #if (defined(__MACH__) || defined(ANDROID) || defined(NACL) \
@@ -595,4 +641,38 @@ typedef int32_t spin_lock_t;
 #else
 # define ignore_value(x) ((void) (x))
 #endif
+
+#if defined(_WIN32) || defined(_WIN64)
+# define strtok_r strtok_s
+#endif
+
+#if defined(__unix) || defined(__unix__) || defined(__MACH__)
+#  ifdef HAVE_SYS_TIME_H
+#    include <sys/time.h>
+#  endif
+#  ifdef HAVE_SYS_TYPES_H
+#    include <sys/types.h>
+#  endif
+#  ifdef HAVE_TERMIOS_H
+#    include <termios.h>
+#  endif
+#elif defined(WIN32)
+#  include <conio.h>
+#endif
+
+#ifdef USE_DOUBLE
+#  define CS_FLOAT_INT_TYPE int64_t
+#else
+#  define CS_FLOAT_INT_TYPE int32_t
+#endif
+
+/* CS7 source compatibility: use the CS_FLOAT names in new code. */
+#define MYFLT2LONG CS_FLOAT2LONG
+#define MYFLT2LRND CS_FLOAT2LRND
+#define MYFLT2LONG64 CS_FLOAT2LONG64
+#define MYFLT2LRND64 CS_FLOAT2LRND64
+#define MYFLT2UINT64 CS_FLOAT2UINT64
+#define MYFLT_INT_TYPE CS_FLOAT_INT_TYPE
+#define csoundUndenormalizeMYFLT csoundUndenormalizeCsFloat
+
 #endif  /* CSOUND_SYSDEP_H */

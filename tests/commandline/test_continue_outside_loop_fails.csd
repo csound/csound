@@ -1,3 +1,10 @@
+<CsTest>
+description = "testing continue outside loop gives parser error"
+
+[expect]
+exit = "nonzero"
+stderr = ["found continue statement outside of loop."]
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

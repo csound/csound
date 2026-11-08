@@ -29,15 +29,35 @@
 #include "crossfm.h"
 #include <math.h>
 
-int32_t xfmset(CSOUND *csound, CROSSFM *p)
+#define XFM_ADVANCE_INPUTS(offset_)                   \
+  do {                                                \
+    xfrq1 += (offset_) * p->frq1adv;                  \
+    xfrq2 += (offset_) * p->frq2adv;                  \
+    xndx1 += (offset_) * p->ndx1adv;                  \
+    xndx2 += (offset_) * p->ndx2adv;                  \
+  } while (0)
+
+/* A tiny negative phase can round to 1 after wrapping. The ordered
+   bound check also keeps NaN out of the table index conversion. */
+#define XFM_WRAP_PHASE(phase_)                        \
+  do {                                                \
+    (phase_) -= FLOOR(phase_);                        \
+    if (UNLIKELY(!((phase_) < FL(1.0))))              \
+      (phase_) = FL(0.0);                             \
+  } while (0)
+
+static int32_t xfmset(CSOUND *csound, CROSSFM *p)
 {
     FUNC *ftp1 = csound->FTFind(csound, p->ifn1);
     FUNC *ftp2 = csound->FTFind(csound, p->ifn2);
     if (UNLIKELY(ftp1 == NULL  ||  ftp2 == NULL)) {
-      return csound->InitError(csound, "%s", Str("crossfm: ftable not found"));
+      return csound->InitError(csound, "%s\n", Str("crossfm: ftable not found"));
     }
-    p->siz1 = (MYFLT)ftp1->flen;
-    p->siz2 = (MYFLT)ftp2->flen;
+    if (UNLIKELY(ftp1->flen < 1 || ftp2->flen < 1)) {
+      return csound->InitError(csound, "%s\n", Str("crossfm: ftable is empty"));
+    }
+    p->siz1 = (cs_float)ftp1->flen;
+    p->siz2 = (cs_float)ftp2->flen;
     p->ftp1 = ftp1;
     p->ftp2 = ftp2;
     if (*p->iphs1 >= FL(0.0)) {
@@ -55,16 +75,16 @@ int32_t xfmset(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int32_t xfm(CSOUND *csound, CROSSFM *p)
+static int32_t xfm(CSOUND *csound, CROSSFM *p)
 {
-    MYFLT *out1, *out2;
-    MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;
-    MYFLT k, cps;
-    MYFLT frq1, frq2, si1, si2;
-    MYFLT siz1, siz2;
-    MYFLT *tbl1, *tbl2;
-    MYFLT phase1, phase2;
-    MYFLT sig1, sig2;
+    cs_float *out1, *out2;
+    cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;
+    cs_float k, cps;
+    cs_float frq1, frq2, si1, si2;
+    cs_float siz1, siz2;
+    cs_float *tbl1, *tbl2;
+    cs_float phase1, phase2;
+    cs_float sig1, sig2;
     int32_t n1, n2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -89,13 +109,14 @@ int32_t xfm(CSOUND *csound, CROSSFM *p)
     sig2 = p->sig2;
 
     if (UNLIKELY(offset)) {
-      memset(out1, '\0', offset*sizeof(MYFLT));
-      memset(out2, '\0', offset*sizeof(MYFLT));
+      memset(out1, '\0', offset*sizeof(cs_float));
+      memset(out2, '\0', offset*sizeof(cs_float));
+      XFM_ADVANCE_INPUTS(offset);
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out2[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i = offset; i < nsmps; i++) {
       frq1 = *xfrq1 * cps;
@@ -105,9 +126,9 @@ int32_t xfm(CSOUND *csound, CROSSFM *p)
       out1[i] = sig1;
       out2[i] = sig2;
       phase1 += si1;
-      phase1 -= FLOOR(phase1);
+      XFM_WRAP_PHASE(phase1);
       phase2 += si2;
-      phase2 -= FLOOR(phase2);
+      XFM_WRAP_PHASE(phase2);
       n1 = (int32_t)(phase1 * siz1);
       n2 = (int32_t)(phase2 * siz2);
       sig1 = tbl1[n1];
@@ -125,17 +146,17 @@ int32_t xfm(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int32_t xfmi(CSOUND *csound, CROSSFM *p)
+static int32_t xfmi(CSOUND *csound, CROSSFM *p)
 {
-    MYFLT *out1, *out2;
-    MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;
-    MYFLT k, cps;
-    MYFLT frq1, frq2, si1, si2;
-    MYFLT siz1, siz2;
-    MYFLT *tbl1, *tbl2;
-    MYFLT phase1, phase2;
-    MYFLT sig1, sig2;
-    MYFLT x, y1, y2;
+    cs_float *out1, *out2;
+    cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;
+    cs_float k, cps;
+    cs_float frq1, frq2, si1, si2;
+    cs_float siz1, siz2;
+    cs_float *tbl1, *tbl2;
+    cs_float phase1, phase2;
+    cs_float sig1, sig2;
+    cs_float x, y1, y2;
     int32_t n1, n2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -160,13 +181,14 @@ int32_t xfmi(CSOUND *csound, CROSSFM *p)
     sig2 = p->sig2;
 
     if (UNLIKELY(offset)) {
-      memset(out1, '\0', offset*sizeof(MYFLT));
-      memset(out2, '\0', offset*sizeof(MYFLT));
+      memset(out1, '\0', offset*sizeof(cs_float));
+      memset(out2, '\0', offset*sizeof(cs_float));
+      XFM_ADVANCE_INPUTS(offset);
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out2[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i = offset; i < nsmps; i++) {
       frq1 = *xfrq1 * cps;
@@ -176,17 +198,17 @@ int32_t xfmi(CSOUND *csound, CROSSFM *p)
       out1[i] = sig1;
       out2[i] = sig2;
       phase1 += si1;
-      phase1 -= FLOOR(phase1);
+      XFM_WRAP_PHASE(phase1);
       phase2 += si2;
-      phase2 -= FLOOR(phase2);
+      XFM_WRAP_PHASE(phase2);
       x = phase1 * siz1;
       n1 = (int32_t)x;
       y1 = tbl1[n1];
-      sig1 = (tbl1[n1+1]-y1) * (x - FLOOR(x)) + y1;
+      sig1 = (tbl1[n1+1]-y1) * (x - n1) + y1;
       x = phase2 * siz2;
       n2 = (int32_t)x;
       y2 = tbl2[n2];
-      sig2 = (tbl2[n2+1]-y2) * (x - FLOOR(x)) + y2;
+      sig2 = (tbl2[n2+1]-y2) * (x - n2) + y2;
       xfrq1 += p->frq1adv;
       xfrq2 += p->frq2adv;
       xndx1 += p->ndx1adv;
@@ -200,16 +222,16 @@ int32_t xfmi(CSOUND *csound, CROSSFM *p)
     return OK;
 }
 
-int32_t xpm(CSOUND *csound, CROSSFM *p)
+static int32_t xpm(CSOUND *csound, CROSSFM *p)
 {
-    MYFLT *out1, *out2;
-    MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;
-    MYFLT k, cps;
-    MYFLT frq1, frq2, si1, si2;
-    MYFLT siz1, siz2;
-    MYFLT *tbl1, *tbl2;
-    MYFLT phase1, phase2;
-    MYFLT sig1, sig2;
+    cs_float *out1, *out2;
+    cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;
+    cs_float k, cps;
+    cs_float frq1, frq2, si1, si2;
+    cs_float siz1, siz2;
+    cs_float *tbl1, *tbl2;
+    cs_float phase1, phase2;
+    cs_float sig1, sig2;
     int32_t n1, n2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -234,13 +256,14 @@ int32_t xpm(CSOUND *csound, CROSSFM *p)
     sig2 = p->sig2;
 
     if (UNLIKELY(offset)) {
-      memset(out1, '\0', offset*sizeof(MYFLT));
-      memset(out2, '\0', offset*sizeof(MYFLT));
+      memset(out1, '\0', offset*sizeof(cs_float));
+      memset(out2, '\0', offset*sizeof(cs_float));
+      XFM_ADVANCE_INPUTS(offset);
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out2[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i = offset; i < nsmps; i++) {
       frq1 = *xfrq1 * cps;
@@ -249,10 +272,10 @@ int32_t xpm(CSOUND *csound, CROSSFM *p)
       out2[i] = sig2;
       phase1 += (frq1 * k);
       si1 = phase1 + *xndx2 * sig2 / TWOPI_F;
-      si1 -= FLOOR(si1);
+      XFM_WRAP_PHASE(si1);
       phase2 += (frq2 * k);
       si2 = phase2 + *xndx1 * sig1 / TWOPI_F;
-      si2 -= FLOOR(si2);
+      XFM_WRAP_PHASE(si2);
       n1 = (int32_t)(si1 * siz1);
       n2 = (int32_t)(si2 * siz2);
       sig1 = tbl1[n1];
@@ -263,24 +286,26 @@ int32_t xpm(CSOUND *csound, CROSSFM *p)
       xndx2 += p->ndx2adv;
     }
 
-    p->phase1 = phase1 - FLOOR(phase1);
-    p->phase2 = phase2 - FLOOR(phase2);
+    XFM_WRAP_PHASE(phase1);
+    XFM_WRAP_PHASE(phase2);
+    p->phase1 = phase1;
+    p->phase2 = phase2;
     p->sig1 = sig1;
     p->sig2 = sig2;
     return OK;
 }
 
-int32_t xpmi(CSOUND *csound, CROSSFM *p)
+static int32_t xpmi(CSOUND *csound, CROSSFM *p)
 {
-    MYFLT *out1, *out2;
-    MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;
-    MYFLT k, cps;
-    MYFLT frq1, frq2, si1, si2;
-    MYFLT siz1, siz2;
-    MYFLT *tbl1, *tbl2;
-    MYFLT phase1, phase2;
-    MYFLT sig1, sig2;
-    MYFLT x, y1, y2;
+    cs_float *out1, *out2;
+    cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;
+    cs_float k, cps;
+    cs_float frq1, frq2, si1, si2;
+    cs_float siz1, siz2;
+    cs_float *tbl1, *tbl2;
+    cs_float phase1, phase2;
+    cs_float sig1, sig2;
+    cs_float x, y1, y2;
     int32_t n1, n2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -305,13 +330,14 @@ int32_t xpmi(CSOUND *csound, CROSSFM *p)
     sig2 = p->sig2;
 
     if (UNLIKELY(offset)) {
-      memset(out1, '\0', offset*sizeof(MYFLT));
-      memset(out2, '\0', offset*sizeof(MYFLT));
+      memset(out1, '\0', offset*sizeof(cs_float));
+      memset(out2, '\0', offset*sizeof(cs_float));
+      XFM_ADVANCE_INPUTS(offset);
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out2[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i = offset; i < nsmps; i++) {
       frq1 = *xfrq1 * cps;
@@ -320,41 +346,43 @@ int32_t xpmi(CSOUND *csound, CROSSFM *p)
       out2[i] = sig2;
       phase1 += (frq1 * k);
       si1 = phase1 + *xndx2 * sig2 / TWOPI_F;
-      si1 -= FLOOR(si1);
+      XFM_WRAP_PHASE(si1);
       phase2 += (frq2 * k);
       si2 = phase2 + *xndx1 * sig1 / TWOPI_F;
-      si2 -= FLOOR(si2);
+      XFM_WRAP_PHASE(si2);
       x = si1 * siz1;
       n1 = (int32_t)x;
       y1 = tbl1[n1];
-      sig1 = (tbl1[n1+1]-y1) * (x - FLOOR(x)) + y1;
+      sig1 = (tbl1[n1+1]-y1) * (x - n1) + y1;
       x = si2 * siz2;
       n2 = (int32_t)x;
       y2 = tbl2[n2];
-      sig2 = (tbl2[n2+1]-y2) * (x - FLOOR(x)) + y2;
+      sig2 = (tbl2[n2+1]-y2) * (x - n2) + y2;
       xfrq1 += p->frq1adv;
       xfrq2 += p->frq2adv;
       xndx1 += p->ndx1adv;
       xndx2 += p->ndx2adv;
   }
 
-    p->phase1 = phase1 - FLOOR(phase1);
-    p->phase2 = phase2 - FLOOR(phase2);
+    XFM_WRAP_PHASE(phase1);
+    XFM_WRAP_PHASE(phase2);
+    p->phase1 = phase1;
+    p->phase2 = phase2;
     p->sig1 = sig1;
     p->sig2 = sig2;
     return OK;
 }
 
-int32_t xfmpm(CSOUND *csound, CROSSFM *p)
+static int32_t xfmpm(CSOUND *csound, CROSSFM *p)
 {
-    MYFLT *out1, *out2;
-    MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;
-    MYFLT k, cps;
-    MYFLT frq1, frq2, si1, si2;
-    MYFLT siz1, siz2;
-    MYFLT *tbl1, *tbl2;
-    MYFLT phase1, phase2;
-    MYFLT sig1, sig2;
+    cs_float *out1, *out2;
+    cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;
+    cs_float k, cps;
+    cs_float frq1, frq2, si1, si2;
+    cs_float siz1, siz2;
+    cs_float *tbl1, *tbl2;
+    cs_float phase1, phase2;
+    cs_float sig1, sig2;
     int32_t n1, n2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -379,13 +407,14 @@ int32_t xfmpm(CSOUND *csound, CROSSFM *p)
     sig2 = p->sig2;
 
     if (UNLIKELY(offset)) {
-      memset(out1, '\0', offset*sizeof(MYFLT));
-      memset(out2, '\0', offset*sizeof(MYFLT));
+      memset(out1, '\0', offset*sizeof(cs_float));
+      memset(out2, '\0', offset*sizeof(cs_float));
+      XFM_ADVANCE_INPUTS(offset);
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out2[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i = offset; i < nsmps; i++) {
       frq1 = *xfrq1 * cps;
@@ -394,10 +423,10 @@ int32_t xfmpm(CSOUND *csound, CROSSFM *p)
       out2[i] = sig2;
       si1 = (frq1 + *xndx2 * frq2 * sig2) * k;
       phase1 += si1;
-      phase1 -= FLOOR(phase1);
+      XFM_WRAP_PHASE(phase1);
       phase2 += (frq2 * k);
       si2 = phase2 + *xndx1 * sig1 / TWOPI_F;
-      si2 -= FLOOR(si2);
+      XFM_WRAP_PHASE(si2);
       n1 = (int32_t)(phase1 * siz1);
       n2 = (int32_t)(si2 * siz2);
       sig1 = tbl1[n1];
@@ -409,23 +438,24 @@ int32_t xfmpm(CSOUND *csound, CROSSFM *p)
     }
 
     p->phase1 = phase1;
-    p->phase2 = phase2 - FLOOR(phase2);
+    XFM_WRAP_PHASE(phase2);
+    p->phase2 = phase2;
     p->sig1 = sig1;
     p->sig2 = sig2;
     return OK;
 }
 
-int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
+static int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
 {
-    MYFLT *out1, *out2;
-    MYFLT *xfrq1, *xfrq2, *xndx1, *xndx2;
-    MYFLT k, cps;
-    MYFLT frq1, frq2, si1, si2;
-    MYFLT siz1, siz2;
-    MYFLT *tbl1, *tbl2;
-    MYFLT phase1, phase2;
-    MYFLT sig1, sig2;
-    MYFLT x, y1, y2;
+    cs_float *out1, *out2;
+    cs_float *xfrq1, *xfrq2, *xndx1, *xndx2;
+    cs_float k, cps;
+    cs_float frq1, frq2, si1, si2;
+    cs_float siz1, siz2;
+    cs_float *tbl1, *tbl2;
+    cs_float phase1, phase2;
+    cs_float sig1, sig2;
+    cs_float x, y1, y2;
     int32_t n1, n2;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -450,13 +480,14 @@ int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
     sig2 = p->sig2;
 
     if (UNLIKELY(offset)) {
-      memset(out1, '\0', offset*sizeof(MYFLT));
-      memset(out2, '\0', offset*sizeof(MYFLT));
+      memset(out1, '\0', offset*sizeof(cs_float));
+      memset(out2, '\0', offset*sizeof(cs_float));
+      XFM_ADVANCE_INPUTS(offset);
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out1[nsmps], '\0', early*sizeof(MYFLT));
-      memset(&out2[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out1[nsmps], '\0', early*sizeof(cs_float));
+      memset(&out2[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i = offset; i < nsmps; i++) {
       frq1 = *xfrq1 * cps;
@@ -465,19 +496,19 @@ int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
       out2[i] = sig2;
       si1 = (frq1 + *xndx2 * frq2 * sig2) * k;
       phase1 += si1;
-      phase1 -= FLOOR(phase1);
+      XFM_WRAP_PHASE(phase1);
       phase2 += (frq2 * k);
       si2 = phase2 + *xndx1 * sig1 / TWOPI_F;
-      si2 -= FLOOR(si2);
+      XFM_WRAP_PHASE(si2);
       x = phase1 * siz1;
       n1 = (int32_t)x;
       y1 = tbl1[n1];
-      sig1 = (tbl1[n1+1]-y1) * (x - FLOOR(x)) + y1;
+      sig1 = (tbl1[n1+1]-y1) * (x - n1) + y1;
       x = si2 * siz2;
       n2 = (int32_t
             )x;
       y2 = tbl2[n2];
-      sig2 = (tbl2[n2+1]-y2) * (x - FLOOR(x)) + y2;
+      sig2 = (tbl2[n2+1]-y2) * (x - n2) + y2;
       xfrq1 += p->frq1adv;
       xfrq2 += p->frq2adv;
       xndx1 += p->ndx1adv;
@@ -485,7 +516,8 @@ int32_t xfmpmi(CSOUND *csound, CROSSFM *p)
     }
 
     p->phase1 = phase1;
-    p->phase2 = phase2 - FLOOR(phase2);
+    XFM_WRAP_PHASE(phase2);
+    p->phase2 = phase2;
     p->sig1 = sig1;
     p->sig2 = sig2;
     return OK;
@@ -503,5 +535,3 @@ static OENTRY crossfm_localops[] = {
 };
 
 LINKAGE_BUILTIN(crossfm_localops)
-
-

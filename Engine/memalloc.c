@@ -87,18 +87,176 @@ typedef struct memAllocBlock_s {
 #endif
     struct memAllocBlock_s  *prv;       /* previous structure in chain  */
     struct memAllocBlock_s  *nxt;       /* next structure in chain      */
+    void                    *base;      /* address to pass to CS_FREE   */
+#ifdef CSOUND_WASI_REALTIME
+    CSOUND_WASI_ALLOC_SCOPE *owner;
+    struct memAllocBlock_s *owner_prv, *owner_nxt;
+    void (*dispose)(CSOUND *, void *);
+#endif
 } memAllocBlock_t;
+#ifdef ALIGN_MEMORY
+ #define MALIGN (sizeof(cs_float)-1)
+#else 
+ #define MALIGN 0
+#endif
 
-#define HDR_SIZE    (((int32_t) sizeof(memAllocBlock_t) + 7) & (~7))
-#define ALLOC_BYTES(n)  ((size_t) HDR_SIZE + (size_t) (n))
+/* Keep the data offset a multiple of 16 as the private header grows. */
+#define HDR_SIZE    (((size_t) sizeof(memAllocBlock_t) + 15) & (~(size_t)15))
 #define DATA_PTR(p) ((void*) ((unsigned char*) (p) + (int32_t) HDR_SIZE))
 #define HDR_PTR(p)  ((memAllocBlock_t*) ((unsigned char*) (p) - (int32_t) HDR_SIZE))
 
+/* Zero signals overflow. Even a zero-byte request needs its header. */
+static size_t alloc_bytes(size_t size)
+{
+    if (UNLIKELY(size > SIZE_MAX - HDR_SIZE - MALIGN)) return 0;
+    return (HDR_SIZE + size + MALIGN) & ~(size_t)MALIGN;
+}
+
+/* Only aligned blocks need a stored size and alignment for ReAlloc. This
+   record lives at base, before the padding and the regular block header. */
+typedef struct {
+    size_t size, align;
+} alignedAllocInfo_t;
+
+static size_t aligned_alloc_bytes(size_t size, size_t align)
+{
+    const size_t overhead = sizeof(alignedAllocInfo_t) + HDR_SIZE;
+
+    if (UNLIKELY(align == 0 || (align & (align - 1)) != 0)) return 0;
+    /* The header also needs alignment, even for a one-byte data request. */
+    if (align < 16) align = 16;
+    if (UNLIKELY(align - 1 > SIZE_MAX - overhead ||
+                 size > SIZE_MAX - overhead - (align - 1))) return 0;
+    return overhead + align - 1 + size;
+}
+
+static memAllocBlock_t *alloc_aligned(size_t size, size_t align, size_t bytes)
+{
+    const size_t overhead = sizeof(alignedAllocInfo_t) + HDR_SIZE;
+    alignedAllocInfo_t *base;
+    memAllocBlock_t *block;
+    uintptr_t data;
+
+    /* bytes comes from aligned_alloc_bytes, which also checks align. */
+    if (UNLIKELY(bytes == 0)) return NULL;
+    if (align < 16) align = 16;
+    base = CS_CALLOC(bytes, 1);
+    if (UNLIKELY(base == NULL)) return NULL;
+
+    base->size = size;
+    base->align = align;
+    /* Align the data, not the allocation base. Keep the regular header
+       immediately before it so Free, ReAlloc and ownership tracking agree. */
+    data = ((uintptr_t)base + overhead + align - 1) & ~(uintptr_t)(align - 1);
+    block = HDR_PTR((void *)data);
+    block->base = base;
+    return block;
+}
+
 #define MEMALLOC_DB (csound->memalloc_db)
+
+#ifdef CSOUND_WASI_REALTIME
+static _Thread_local CSOUND_WASI_ALLOC_SCOPE *alloc_scope;
+
+CSOUND_WASI_ALLOC_SCOPE *csoundWasiSwapAllocScope(
+    CSOUND_WASI_ALLOC_SCOPE *scope)
+{
+    CSOUND_WASI_ALLOC_SCOPE *previous = alloc_scope;
+    alloc_scope = scope;
+    return previous;
+}
+
+int32_t csoundWasiHasAllocScope(CSOUND *csound)
+{
+    return alloc_scope != NULL && alloc_scope->csound == csound;
+}
+
+/* Called with the allocation list locked. A node may leave the AST during
+   rewriting, so ownership follows its allocation, not its tree links. */
+static void unlink_owner(memAllocBlock_t *block)
+{
+    if (block->owner == NULL) return;
+    if (block->owner_prv != NULL)
+      block->owner_prv->owner_nxt = block->owner_nxt;
+    else
+      block->owner->allocations = block->owner_nxt;
+    if (block->owner_nxt != NULL)
+      block->owner_nxt->owner_prv = block->owner_prv;
+    block->owner = NULL;
+}
+
+void *csoundWasiOwnAllocation(CSOUND *csound, void *ptr,
+                            void (*dispose)(CSOUND *, void *))
+{
+    if (ptr != NULL && csoundWasiHasAllocScope(csound)) {
+      memAllocBlock_t *block = HDR_PTR(ptr);
+      CSOUND_MEM_SPINLOCK
+      if (block->owner == NULL) {
+        block->owner = alloc_scope;
+        block->dispose = dispose;
+        block->owner_prv = NULL;
+        block->owner_nxt = alloc_scope->allocations;
+        if (block->owner_nxt != NULL)
+          block->owner_nxt->owner_prv = block;
+        alloc_scope->allocations = block;
+      }
+      CSOUND_MEM_SPINUNLOCK
+    }
+    return ptr;
+}
+
+void csoundWasiReleaseAllocation(CSOUND *csound, void *ptr)
+{
+    if (ptr == NULL) return;
+    CSOUND_MEM_SPINLOCK
+    unlink_owner(HDR_PTR(ptr));
+    CSOUND_MEM_SPINUNLOCK
+}
+
+void csoundWasiTransferAllocScope(CSOUND_WASI_ALLOC_SCOPE *source,
+                                 CSOUND_WASI_ALLOC_SCOPE *destination)
+{
+    CSOUND *csound = source->csound;
+    CSOUND_MEM_SPINLOCK
+    while (source->allocations != NULL) {
+      memAllocBlock_t *block = source->allocations;
+      unlink_owner(block);
+      block->owner = destination;
+      block->owner_prv = NULL;
+      block->owner_nxt = destination->allocations;
+      if (block->owner_nxt != NULL) block->owner_nxt->owner_prv = block;
+      destination->allocations = block;
+    }
+    CSOUND_MEM_SPINUNLOCK
+}
+
+void csoundWasiFinishAllocScope(CSOUND_WASI_ALLOC_SCOPE *scope,
+                               int32_t discard)
+{
+    CSOUND *csound = scope->csound;
+    while (scope->allocations != NULL) {
+      memAllocBlock_t *block = scope->allocations;
+      void (*dispose)(CSOUND *, void *) = block->dispose;
+      CSOUND_MEM_SPINLOCK
+      unlink_owner(block);
+      CSOUND_MEM_SPINUNLOCK
+      if (discard) {
+        if (dispose != NULL) dispose(csound, DATA_PTR(block));
+        else csoundFree(csound, DATA_PTR(block));
+      }
+    }
+}
+#endif
 
 static void memdie(CSOUND *csound, size_t nbytes)
 {
-    csound->ErrorMsg(csound, Str("memory allocate failure for %zd \n"),
+#ifdef CSOUND_WASI_REALTIME
+    /* Allocation failure can interrupt a persistent engine update too. It
+       must not look like an ordinary, recoverable source error. */
+    CSOUND_WASI_COMPILE_JUMP *context = csoundWasiCompileJumpContext(csound);
+    if (context != NULL) context->enabled = 0;
+#endif
+    csound->ErrorMsg(csound, Str("memory allocate failure for %zu \n"),
                              nbytes);
     csound->LongJmp(csound, CSOUND_MEMORY);
 }
@@ -106,6 +264,7 @@ static void memdie(CSOUND *csound, size_t nbytes)
 void *csoundMalloc(CSOUND *csound, size_t size)
 {
     void  *p;
+    size_t bytes = alloc_bytes(size);
 
 #ifdef MEMDEBUG
     if (UNLIKELY(size == (size_t) 0)) {
@@ -115,11 +274,16 @@ void *csoundMalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = CS_MALLOC(ALLOC_BYTES(size))) == NULL)) {
-        csound->ErrorMsg(csound, "Malloc failed: ");
+    if (UNLIKELY(bytes == 0 || (p = CS_MALLOC(bytes)) == NULL)) {
+        csound->ErrorMsg(csound, Str("Malloc failed: "));
         memdie(csound, size);     /* does a long jump */
+        return NULL;
     }
     /* link into chain */
+    ((memAllocBlock_t*) p)->base = p;
+#ifdef CSOUND_WASI_REALTIME
+    ((memAllocBlock_t*) p)->owner = NULL;
+#endif
 #ifdef MEMDEBUG
     ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
     ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
@@ -142,9 +306,11 @@ void *csoundMalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
     return ans;
 }
 
+
 void *csoundCalloc(CSOUND *csound, size_t size)
 {
     void  *p;
+    size_t bytes = alloc_bytes(size);
 
 #ifdef MEMDEBUG
     if (UNLIKELY(size == (size_t) 0)) {
@@ -154,11 +320,16 @@ void *csoundCalloc(CSOUND *csound, size_t size)
     }
 #endif
     /* allocate memory */
-    if (UNLIKELY((p = CS_CALLOC(ALLOC_BYTES(size), (size_t) 1)) == NULL)) {
-      csound->ErrorMsg(csound, "Calloc failed: ");
+    if (UNLIKELY(bytes == 0 || (p = CS_CALLOC(bytes, (size_t) 1)) == NULL)) {
+      csound->ErrorMsg(csound, Str("Calloc failed: "));
       memdie(csound, size);     /* does longjump */
+      return NULL;
     }
     /* link into chain */
+    ((memAllocBlock_t*) p)->base = p;
+#ifdef CSOUND_WASI_REALTIME
+    ((memAllocBlock_t*) p)->owner = NULL;
+#endif
 #ifdef MEMDEBUG
     ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
     ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
@@ -181,6 +352,44 @@ void *csoundCalloc_debug(CSOUND *csound, size_t size, char *file, int32_t line)
     return ans;
 }
 
+void *csoundCallocAligned(CSOUND *csound, size_t size, size_t align) {
+    void  *p;
+    size_t bytes = aligned_alloc_bytes(size, align);
+
+#ifdef MEMDEBUG
+    /* Invalid requests must still fail before the zero-size shortcut. */
+    if (UNLIKELY(size == (size_t) 0 && bytes != 0)) {
+      csound->DebugMsg(csound,
+              " *** internal error: csound->Calloc() called with zero nbytes\n");
+      return NULL;
+    }
+#endif
+    /* allocate memory */
+    if (UNLIKELY((p = alloc_aligned(size, align, bytes)) == NULL)) {
+      csound->ErrorMsg(csound, Str("CallocAligned failed: "));
+      memdie(csound, size);     /* does longjump */
+      return NULL;
+    }
+    /* link into chain */
+#ifdef CSOUND_WASI_REALTIME
+    ((memAllocBlock_t*) p)->owner = NULL;
+#endif
+#ifdef MEMDEBUG
+    ((memAllocBlock_t*) p)->magic = MEMALLOC_MAGIC;
+    ((memAllocBlock_t*) p)->ptr = DATA_PTR(p);
+#endif
+    CSOUND_MEM_SPINLOCK
+    ((memAllocBlock_t*) p)->prv = (memAllocBlock_t*) NULL;
+    ((memAllocBlock_t*) p)->nxt = (memAllocBlock_t*) MEMALLOC_DB;
+    if (MEMALLOC_DB != NULL)
+      ((memAllocBlock_t*) MEMALLOC_DB)->prv = (memAllocBlock_t*) p;
+    MEMALLOC_DB = (void*) p;
+    CSOUND_MEM_SPINUNLOCK
+    /* return with data pointer */
+    return DATA_PTR(p);
+}
+
+
 
 void csoundFree(CSOUND *csound, void *p)
 {
@@ -201,7 +410,7 @@ void csoundFree(CSOUND *csound, void *p)
     CSOUND_MEM_SPINUNLOCK
     if (UNLIKELY(pp == NULL || pp->magic != MEMALLOC_MAGIC || pp->ptr != p)) {
       if (pp != NULL && pp->magic != MEMALLOC_MAGIC) {
-        csound->Warning(csound, "csound->Free() called with corrupted pointer (%p)",
+        csound->Warning(csound, Str("csound->Free() called with corrupted pointer (%p)\n"),
                         p);
       }
       return;
@@ -213,6 +422,9 @@ void csoundFree(CSOUND *csound, void *p)
     CSOUND_MEM_SPINLOCK
 #endif
     /* unlink from chain */
+#ifdef CSOUND_WASI_REALTIME
+    unlink_owner(pp);
+#endif
     {
       memAllocBlock_t *prv = pp->prv, *nxt = pp->nxt;
       if (nxt != NULL)
@@ -223,7 +435,7 @@ void csoundFree(CSOUND *csound, void *p)
         MEMALLOC_DB = (void*)nxt;
     }
     /* free memory */
-    CS_FREE((void*) pp);
+    CS_FREE(pp->base);
     CSOUND_MEM_SPINUNLOCK
 }
 
@@ -237,6 +449,7 @@ void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
 {
     memAllocBlock_t *pp;
     void            *p;
+    size_t bytes;
 
     if (UNLIKELY(oldp == NULL))
       return csoundMalloc(csound, size);
@@ -244,9 +457,20 @@ void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
       csoundFree(csound, oldp);
       return NULL;
     }
+    /* Reject overflow before locking or changing the live block's header. */
+    bytes = alloc_bytes(size);
+    if (UNLIKELY(bytes == 0)) {
+      csound->ErrorMsg(csound, Str("Realloc failed: "));
+      memdie(csound, size);
+      return NULL;
+    }
     pp = HDR_PTR(oldp);
+    /* Keep the live list locked while realloc can move its block header.
+       Other threads must not follow the old links before we repair them. */
+    CSOUND_MEM_SPINLOCK
 #ifdef MEMDEBUG
     if (UNLIKELY(pp->magic != MEMALLOC_MAGIC || pp->ptr != oldp)) {
+      CSOUND_MEM_SPINUNLOCK
       csound->DebugMsg(csound, " *** internal error: csoundRealloc() called with invalid "
                       "pointer (%p)\n", oldp);
       /* exit() is ugly, but this is a fatal error that can only occur */
@@ -258,23 +482,45 @@ void *csoundRealloc(CSOUND *csound, void *oldp, size_t size)
     pp->ptr = NULL;
 #endif
     /* allocate memory */
-    p = CS_REALLOC((void*) pp, ALLOC_BYTES(size));
-    pp = p;
+    if (pp->base == pp) {
+      p = CS_REALLOC((void*) pp, bytes);
+      if (p != NULL) ((memAllocBlock_t*)p)->base = p;
+    }
+    else {
+      alignedAllocInfo_t *info = (alignedAllocInfo_t*)pp->base;
+      memAllocBlock_t *newblock = alloc_aligned(
+          size, info->align, aligned_alloc_bytes(size, info->align));
+      p = newblock;
+      if (newblock != NULL) {
+        void *base = newblock->base;
+        memcpy(DATA_PTR(newblock), oldp, size < info->size ? size : info->size);
+        /* Preserve list links and any WASI allocation owner. The common
+           code below repairs their pointers after moving the header. */
+        *newblock = *pp;
+        newblock->base = base;
+        CS_FREE(pp->base);
+      }
+    }
     if (UNLIKELY(p == NULL)) {
 #ifdef MEMDEBUG
-      CSOUND_MEM_SPINLOCK
       /* alloc failed, restore original header */
       pp->magic = MEMALLOC_MAGIC;
       pp->ptr = oldp;
-      CSOUND_MEM_SPINUNLOCK
 #endif
-      csound->ErrorMsg(csound, "Realloc failed: ");
+      CSOUND_MEM_SPINUNLOCK
+      csound->ErrorMsg(csound, Str("Realloc failed: "));
       memdie(csound, size);
       return NULL;
     }
-    CSOUND_MEM_SPINLOCK
     /* create new header and update chain pointers */
     pp = (memAllocBlock_t*) p;
+#ifdef CSOUND_WASI_REALTIME
+    if (pp->owner != NULL) {
+      if (pp->owner_prv != NULL) pp->owner_prv->owner_nxt = pp;
+      else pp->owner->allocations = pp;
+      if (pp->owner_nxt != NULL) pp->owner_nxt->owner_prv = pp;
+    }
+#endif
 #ifdef MEMDEBUG
     pp->magic = MEMALLOC_MAGIC;
     pp->ptr = DATA_PTR(pp);
@@ -311,7 +557,7 @@ void memreset(CSOUND *csound)
 #ifdef MEMDEBUG
       pp->magic = 0;
 #endif
-      CS_FREE((void*) pp);
+      CS_FREE(pp->base);
       pp = nxtp;
     }
 }

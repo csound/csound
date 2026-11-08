@@ -1,3 +1,9 @@
+<CsTest>
+description = "test udo with a-array"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 ksmps = 32

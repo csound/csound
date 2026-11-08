@@ -23,18 +23,6 @@
 #include "pvs_ops.h"
 #include "pvsdemix.h"
 
-static int32_t fsigs_equal(const PVSDAT *f1, const PVSDAT *f2)
-{
-    if ((f1->overlap    == f2->overlap)
-        && (f1->winsize == f2->winsize)
-        && (f1->wintype == f2->wintype) /* harsh, maybe... */
-        && (f1->N       == f2->N)
-        && (f1->format  == f2->format)
-        )
-      return 1;
-    return 0;
-}
-
 #define FLOATMAX_ 3.402823466e+38f
 
 static int32_t pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
@@ -45,7 +33,7 @@ static int32_t pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
     p->beta = (int32_t)(*p->slices);
 
     if (UNLIKELY(p->finleft->sliding))
-      return csound->InitError(csound, "%s", Str("SDFT case not implemented yet"));
+      return csound->InitError(csound, "%s\n", Str("SDFT case not implemented yet"));
    M = (N+2)*sizeof(float);
     if (p->fout->frame.auxp==NULL || p->fout->frame.size<M)
       csound->AuxAlloc(csound, M,&p->fout->frame);
@@ -81,7 +69,7 @@ static int32_t pvsdemix_init(CSOUND *csound, PVSDEMIX *p)
     if (!((p->fout->format==PVS_AMP_FREQ) ||
           (p->fout->format==PVS_AMP_PHASE)))
       return csound->InitError(csound,
-                  "pvsdemix: signal format must be amp-phase or amp-freq.\n");
+                  Str("pvsdemix: signal format must be amp-phase or amp-freq.\n"));
 
     return OK;
 }
@@ -101,9 +89,9 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
     float *maxr = (float *) p->maxr.auxp;
     float *minr = (float *) p->minr.auxp;
     float *maxl = (float *) p->maxl.auxp;
-    MYFLT azimuth = *p->pos;
-    MYFLT width = *p->width;
-    MYFLT range;
+    cs_float azimuth = *p->pos;
+    cs_float width = *p->width;
+    cs_float range;
 
     if (UNLIKELY(!fsigs_equal(p->finleft,p->finright))) goto err1;
 
@@ -111,7 +99,7 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
 
     if (p->lastframe < p->finleft->framecount) {
 
-      if (width > beta) width = (MYFLT) beta;
+      if (width > beta) width = (cs_float) beta;
       else if (width < 1) width = FL(1.0);
 
       if (azimuth < -1) azimuth = -FL(1.0);
@@ -180,10 +168,10 @@ static int32_t pvsdemix_process(CSOUND *csound, PVSDEMIX *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("pvsdemix : formats are different.\n"));
+                             "%s\n", Str("pvsdemix : formats are different.\n"));
  err2:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("pvsdemix : not initialised\n"));
+                             "%s\n", Str("pvsdemix : not initialised\n"));
 }
 
 static OENTRY localops[] =

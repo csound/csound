@@ -91,6 +91,16 @@ if(WIN32)
           winmm gdi32 kernel32) # should probably do checks for these libs
       make_plugin(rtwinmm rtwinmm.c "${rtwinmm_LIBS}")
     endif()
+
+    message(STATUS "Building Windows WASAPI plugin(rtwasapi).")
+    make_plugin(rtwasapi rtwasapi.c)
+    target_link_libraries(rtwasapi PRIVATE ole32)
+    target_link_libraries(rtwasapi PRIVATE uuid)
+    if(MSVC)
+        target_link_libraries(rtwasapi PRIVATE Mmdevapi.lib)
+    else()
+        target_link_libraries(rtwasapi PRIVATE mmdevapi)
+    endif()
 endif()
 
 find_package(PulseAudio)
@@ -100,7 +110,8 @@ if(USE_PULSEAUDIO)
     make_plugin(rtpulse rtpulse.c PulseAudio::PulseAudio)
 endif()
 
-find_package(PipeWire)
+# rtpw uses pw_buffer.requested, first released in PipeWire 0.3.50.
+find_package(PipeWire 0.3.50)
 check_deps(USE_PIPEWIRE PipeWire_FOUND)
 
 if(USE_PIPEWIRE)

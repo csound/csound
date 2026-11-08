@@ -37,19 +37,22 @@
 static int32_t nlfiltset(CSOUND *csound, NLFILT *p)
 {
     if (p->delay.auxp == NULL ||
-        p->delay.size<MAX_DELAY * sizeof(MYFLT)) {        /* get newspace    */
-      csound->AuxAlloc(csound, MAX_DELAY * sizeof(MYFLT), &p->delay);
+        p->delay.size<MAX_DELAY * sizeof(cs_float)) {        /* get newspace    */
+      csound->AuxAlloc(csound, MAX_DELAY * sizeof(cs_float), &p->delay);
     }
     else {
-      memset(p->delay.auxp, 0, MAX_DELAY * sizeof(MYFLT));
+      memset(p->delay.auxp, 0, MAX_DELAY * sizeof(cs_float));
     }
     p->point = 0;
     return OK;
 } /* end nlfset(p) */
 
+/* Compatibility: retain nlfilt's historical two-sample feedback delay offset
+   and output clipping. Do not change these audible behaviors here; nlfilt2
+   implements the corrected recurrence. Delay indices must still stay in bounds. */
 static int32_t nlfilt(CSOUND *csound, NLFILT *p)
 {
-    MYFLT   *ar;
+    cs_float   *ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -57,12 +60,12 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
     int32_t     nm1 = point;
     int32_t     nm2 = point - 1;
     int32_t     nmL;
-    MYFLT   ynm1, ynm2, ynmL;
-    MYFLT   a = *p->a, b = *p->b, d = *p->d, C = *p->C;
-    MYFLT   *in = p->in;
-    MYFLT   *fp = (MYFLT*) p->delay.auxp;
-    MYFLT   L = *p->L;
-    MYFLT   maxamp, dvmaxamp, maxampd2;
+    cs_float   ynm1, ynm2, ynmL;
+    cs_float   a = *p->a, b = *p->b, d = *p->d, C = *p->C;
+    cs_float   *in = p->in;
+    cs_float   *fp = (cs_float*) p->delay.auxp;
+    cs_float   L = *p->L;
+    cs_float   maxamp, dvmaxamp, maxampd2;
 
     if (UNLIKELY(fp == NULL)) goto err1;                   /* RWD fix */
     ar   = p->ar;
@@ -70,26 +73,25 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
     if (L < FL(1.0))
       L = FL(1.0);
     else if (L >= MAX_DELAY) {
-      L = (MYFLT) MAX_DELAY;
+      L = (cs_float) MAX_DELAY;
     }
-    nmL = point - (int32_t) (L) - 1;
+    nmL = (point - (int32_t) (L) + 2*MAX_DELAY - 1) % MAX_DELAY;
     if (UNLIKELY(nm1 < 0)) nm1 += MAX_DELAY;      /* Deal with the wrapping */
     if (UNLIKELY(nm2 < 0)) nm2 += MAX_DELAY;
-    if (UNLIKELY(nmL < 0)) nmL += MAX_DELAY;
     ynm1 = fp[nm1];                     /* Pick up running values */
     ynm2 = fp[nm2];
     ynmL = fp[nmL];
     maxamp = csound->Get0dBFS(csound) * FL(1.953125);     /* 64000 with default 0dBFS */
     dvmaxamp = FL(1.0) / maxamp;
     maxampd2 = maxamp * FL(0.5);
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT yn;
-      MYFLT out;
+      cs_float yn;
+      cs_float out;
       yn = a * ynm1 + b * ynm2 + d * ynmL * ynmL - C;
       yn += in[n] * dvmaxamp;           /* Must work in small amplitudes  */
       out = yn * maxampd2;              /* Write output */
@@ -113,7 +115,7 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("nlfilt: not initialised"));
+                             "%s\n", Str("nlfilt: not initialised"));
 } /* end nlfilt(p) */
 
 /* Y{n} = a Y{n-1} + b Y{n-2} + d Y^2{n-L} + X{n} - C */
@@ -123,7 +125,7 @@ static int32_t nlfilt(CSOUND *csound, NLFILT *p)
 
 static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
 {
-    MYFLT   *ar;
+    cs_float   *ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps;
@@ -131,12 +133,12 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     int32_t     nm1 = point;
     int32_t     nm2 = point - 1;
     int32_t     nmL;
-    MYFLT   ynm1, ynm2, ynmL;
-    MYFLT   a = *p->a, b = *p->b, d = *p->d, C = *p->C;
-    MYFLT   *in = p->in;
-    MYFLT   *fp = (MYFLT*) p->delay.auxp;
-    MYFLT   L = *p->L;
-    MYFLT   maxamp, dvmaxamp, maxampd2;
+    cs_float   ynm1, ynm2, ynmL;
+    cs_float   a = *p->a, b = *p->b, d = *p->d, C = *p->C;
+    cs_float   *in = p->in;
+    cs_float   *fp = (cs_float*) p->delay.auxp;
+    cs_float   L = *p->L;
+    cs_float   maxamp, dvmaxamp, maxampd2;
 
     if (UNLIKELY(fp == NULL)) goto err1;                   /* RWD fix */
     ar   = p->ar;
@@ -144,9 +146,10 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     if (L < FL(1.0))
       L = FL(1.0);
     else if (L >= MAX_DELAY) {
-      L = (MYFLT) MAX_DELAY;
+      L = (cs_float) MAX_DELAY;
     }
-    nmL = point - (int32_t) (L) - 1;
+    /* point holds Y[n-1], so Y[n-L] is L-1 places behind it. */
+    nmL = point - (int32_t) (L) + 1;
     if (UNLIKELY(nm1 < 0)) nm1 += MAX_DELAY;      /* Deal with the wrapping */
     if (UNLIKELY(nm2 < 0)) nm2 += MAX_DELAY;
     if (UNLIKELY(nmL < 0)) nmL += MAX_DELAY;
@@ -157,26 +160,20 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     maxamp = csound->Get0dBFS(csound) * FL(1.953125);     /* 64000 with default 0dBFS */
     dvmaxamp = FL(1.0) / maxamp;
     maxampd2 = maxamp * FL(0.5);
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
-      MYFLT yn;
-      MYFLT out;
+      cs_float yn;
       yn = a * ynm1 + b * ynm2 + d * ynmL * ynmL - C;
       yn += in[n] * dvmaxamp;           /* Must work in small amplitudes  */
-      out = yn * maxampd2;              /* Write output */
-      if (out > maxamp)
-        out = maxampd2;
-      else if (out < -maxamp)
-        out = -maxampd2;
-      ar[n] = out;
+      yn = TANH(yn);
+      ar[n] = yn * maxampd2;            /* Output the same state we feed back. */
       if (UNLIKELY(++point == MAX_DELAY)) {
         point = 0;
       }
-      yn = TANH(yn);
       fp[point] = yn;                   /* and delay line */
       if (UNLIKELY(++nmL == MAX_DELAY)) {
         nmL = 0;
@@ -189,7 +186,7 @@ static int32_t nlfilt2(CSOUND *csound, NLFILT *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("nlfilt2: not initialised"));
+                             "%s\n", Str("nlfilt2: not initialised"));
 } /* end nlfilt2(p) */
 
 

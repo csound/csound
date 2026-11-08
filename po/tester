@@ -1,2 +1,13 @@
-(cd .. ; xgettext --keyword=Str --keyword=Str_noop --keyword=STR -o /tmp/str --omit-header -f  all_string_files)
-diff csound.po /tmp/str |more
+#!/bin/sh
+# Check headers and printf arguments, including entries awaiting review.
+set -eu
+cd "$(dirname "$0")/.."
+
+tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/csound-po-check.XXXXXX")
+trap 'rm -rf "$tmpdir"' EXIT HUP INT TERM
+
+for catalog in po/*.po; do
+    printf '%s\n' "$catalog"
+    msgattrib --clear-fuzzy --no-obsolete "$catalog" > "$tmpdir/catalog.po"
+    msgfmt --check --output-file=/dev/null "$tmpdir/catalog.po"
+done

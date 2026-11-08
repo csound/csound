@@ -38,8 +38,9 @@
       Read at most 'nbytes' bytes of MIDI data from input stream
       'userData', and store in 'buf'. Returns the actual number of
       bytes read, which may be zero if there were no events, and
-      negative in case of an error. Note: incomplete messages (such
-      as a note on status without the data bytes) should not be
+      negative in case of an error. A count past 'nbytes' is an error
+      too, and nothing is taken from 'buf'. Note: incomplete messages
+      (such as a note on status without the data bytes) should not be
       returned.
 
     int32_t (*MidiInCloseCallback)(CSOUND *csound, void *userData);
@@ -105,9 +106,9 @@
 
 #define MGLOB(x) (csound->midiGlobals->x)
 
-static  void    midNotesOff(CSOUND *);
+static  void    midNotesOff(CSOUND *, int32_t);
 
-static const MYFLT dsctl_map[12] = {
+static const cs_float dsctl_map[12] = {
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0),
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0)
 };
@@ -128,19 +129,19 @@ void midi_open(CSOUND *csound)
     /* Then open device... */
     if (O->Midiin) {
       if (p->MidiInOpenCallback == NULL)
-        csound->Die(csound, Str(" *** no callback for opening MIDI input"));
+        csound->Die(csound, Str(" *** no callback for opening MIDI input\n"));
       if (p->MidiReadCallback == NULL)
-        csound->Die(csound, Str(" *** no callback for reading MIDI data"));
+        csound->Die(csound, Str(" *** no callback for reading MIDI data\n"));
       err = p->MidiInOpenCallback(csound, &(p->midiInUserData), O->Midiname);
       if (err != 0) {
-        csound->Die(csound, Str(" *** error opening MIDI in device: %d (%s)"),
+        csound->Die(csound, Str(" *** error opening MIDI in device: %d (%s)\n"),
                             err, csoundExternalMidiErrorString(csound, err));
       }
     }
     /* and file. */
     if (O->FMidiin && O->FMidiname != NULL) {
       if (csoundMIDIFileOpen(csound, O->FMidiname) != 0)
-        csound->Die(csound, Str("Failed to load MIDI file."));
+        csound->Die(csound, Str("Failed to load MIDI file.\n"));
     }
 }
 
@@ -208,7 +209,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
 {
     MCHNBLK *chn = csound->m_chnbp[mep->chan];
     int16   n;
-    MYFLT   *fp;
+    cs_float   *fp;
 
     switch (mep->type) {
     case PROGRAM_TYPE:                  /* PROGRAM CHANGE */
@@ -230,7 +231,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
     case CONTROL_TYPE:                  /* CONTROL CHANGE MESSAGES: */
       n = mep->dat1;
       if (MGLOB(rawControllerMode)) {           /* "raw" mode:        */
-        chn->ctl_val[n] = (MYFLT) mep->dat2;    /*   only store value */
+        chn->ctl_val[n] = (cs_float) mep->dat2;    /*   only store value */
         break;
       }
       if (n >= 111)                             /* if special, redirect */
@@ -248,9 +249,9 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       else if (n == DATENTRY && chn->datenabl) {
         int32_t   msb = chn->dpmsb;
         int32_t   lsb = chn->dplsb;
-        MYFLT fval;
+        cs_float fval;
         if (msb == 0 && lsb == 0) {
-          chn->pbensens = (MYFLT) mep->dat2;
+          chn->pbensens = (cs_float) mep->dat2;
         }
         else if (msb == 1) {            /* GS system PART PARAMS */
           int32_t ctl;
@@ -266,7 +267,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
           default: csound->Message(csound, Str("unknown NPRN lsb %d\n"), lsb);
             goto err;
           }
-          fval = (MYFLT) (mep->dat2 - 64);
+          fval = (cs_float) (mep->dat2 - 64);
           chn->ctl_val[ctl] = fval;             /* then store     */
         }
         else {
@@ -279,13 +280,13 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
             static const int32_t drtab[8] = {0,0,1,1,2,3,4,5};
             int32_t parnum = drtab[msb - 24];
             if (parnum == 0)
-              fval = (MYFLT) (mep->dat2 - 64);
+              fval = (cs_float) (mep->dat2 - 64);
             else fval = mep->dat2;
             //            if (dsctl_map != NULL) { always true
-            fp = (MYFLT*) &(dsctl_map[parnum*2]);
+            fp = (cs_float*) &(dsctl_map[parnum*2]);
             //**** FIXME This if statement does nothing as val is not used ****
             if (*fp != FL(0.0)) {
-              MYFLT xx = (fval * *fp++);
+              cs_float xx = (fval * *fp++);
               fval = xx + *fp;                /* optionally map */
               chn->ctl_val[parnum] = fval;        /* VL: 07.09.20 store it? */
             }
@@ -296,7 +297,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
         }
       }
       else
-        chn->ctl_val[n] = (MYFLT) mep->dat2;    /* record data as MYFLT */
+        chn->ctl_val[n] = (cs_float) mep->dat2;    /* record data as cs_float */
     err:
       if (n == SUSTAIN_SW) {                    /* if sustainP changed  */
         if (mep->dat2 > 0)
@@ -321,7 +322,8 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       else if (n == 122) {                      /* absorb lcl ctrl data */
 /*      int32_t lcl_ctrl = mep->dat2;  ?? */        /* 0:off, 127:on */
       }
-      else if (n == 123) midNotesOff(csound);   /* allchnl AllNotesOff */
+      else if (n == 123)                        /* AllNotesOff, its port's */
+        midNotesOff(csound, mep->chan / MAXCHAN);
       else if (n == 126) {                      /* MONO mode */
         if (chn->monobas == NULL) {
           MONPCH *mnew, *mend;
@@ -347,7 +349,7 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       chn->aftouch = mep->dat1;                 /* chanl (all-key) Press */
       break;
     case PCHBEND_TYPE:
-      chn->pchbend = (MYFLT)(((mep->dat2 - 64) << 7) + mep->dat1)/FL(8192.0);
+      chn->pchbend = (cs_float)((mep->dat2 - 64) * 128 + mep->dat1)/FL(8192.0);
       break;
     case SYSTEM_TYPE:           /* sys_common 1-3 only:  chan contains which */
       switch(mep->chan) {
@@ -356,11 +358,11 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       case 3:
         break;
       default:
-        csound->Die(csound, Str("unrecognised sys_common type %d"), mep->chan);
+        csound->Die(csound, Str("unrecognised sys_common type %d\n"), mep->chan);
       }
       break;
     default:
-      csound->Die(csound, Str("unrecognised message type %d"), mep->type);
+      csound->Die(csound, Str("unrecognised message type %d\n"), mep->type);
     }
 }
 
@@ -378,7 +380,7 @@ void m_chn_init_all(CSOUND *csound)
            csound->engineState.instrtxtp[defaultinsno] == NULL);
     if (defaultinsno > (int32_t) csound->engineState.maxinsno)
       defaultinsno = 0;         /* no instruments */
-    for (chan = (int16_t) 0; chan < (int16_t) MIDIMAXPORTS; chan++) {
+    for (chan = (int16_t) 0; chan < (int16_t) (MIDIMAXPORTS * MAXCHAN); chan++) {
       /* alloc a midi control blk for midi channel */
       /*  & assign default instrument number       */
       csound->m_chnbp[chan] =
@@ -410,41 +412,57 @@ void m_chn_init_all(CSOUND *csound)
     }
 }
 
-/* assign an insno to a chnl */
+/* assign an insno to a chnl, or to every chnl of every port if chan < 0 */
 /* =massign: called from i0  */
 
 int32_t m_chinsno(CSOUND *csound, int32_t chan, int32_t insno, int32_t reset_ctls)
 {
     MCHNBLK  *chn;
     MEVENT   mev;
+    int32_t  last, all = chan < 0;
 
-    if (chan < 0 || chan >= MAXCHAN)
-      return csound->InitError(csound, Str("illegal channel number"));
-    chn = csound->m_chnbp[chan];
-    if (insno <= 0) {
-      chn->insno = -1;
+    if (all) {
+      chan = 0;
+      last = MIDIMAXPORTS * MAXCHAN;
+    }
+    else if (chan >= MIDIMAXPORTS * MAXCHAN)
+      return csound->InitError(csound, Str("illegal channel number\n"));
+    else
+      last = chan + 1;
+    if (insno > 0 &&
+        (insno > csound->engineState.maxinsno ||
+         csound->engineState.instrtxtp[insno] == NULL)) {
+      csound->Message(csound, Str("Insno = %d\n"), insno);
+      return csound->InitError(csound, Str("unknown instr\n"));
+    }
+    if (all) {
+      if (insno <= 0)
+        csound->Message(csound, Str("all MIDI channels muted\n"));
+      else
+        csound->Message(csound, Str("all MIDI channels using instr %d\n"), insno);
+    }
+    else if (insno <= 0)
       csound->Message(csound, Str("MIDI channel %d muted\n"), chan + 1);
-    }
-    else {
-      if (insno > csound->engineState.maxinsno ||
-          csound->engineState.instrtxtp[insno] == NULL) {
-        csound->Message(csound, Str("Insno = %d\n"), insno);
-        return csound->InitError(csound, Str("unknown instr"));
+    else
+      csound->Message(csound, Str("chnl %d using instr %d\n"), chan + 1, insno);
+    for ( ; chan < last; chan++) {
+      chn = csound->m_chnbp[chan];
+      if (insno <= 0)
+        chn->insno = -1;
+      else {
+        chn->insno = (int16_t) insno;
+        /* check for program change: will override massign if enabled */
+        if (chn->pgmno >= 0) {
+          mev.type = PROGRAM_TYPE;
+          mev.chan = (int16_t) chan;
+          mev.dat1 = chn->pgmno;
+          mev.dat2 = 0;
+          m_chanmsg(csound, &mev);
+        }
       }
-      chn->insno = (int16_t) insno;
-      csound->Message(csound, Str("chnl %d using instr %d\n"),
-                              chan + 1, chn->insno);
-      /* check for program change: will override massign if enabled */
-      if (chn->pgmno >= 0) {
-        mev.type = PROGRAM_TYPE;
-        mev.chan = (int16_t) chan;
-        mev.dat1 = chn->pgmno;
-        mev.dat2 = 0;
-        m_chanmsg(csound, &mev);
-      }
+      if (reset_ctls)
+        midi_ctl_reset(csound, (int16_t) chan);
     }
-    if (reset_ctls)
-      midi_ctl_reset(csound, (int16_t) chan);
     return OK;
 }
 
@@ -462,19 +480,18 @@ void AllNotesOff(CSOUND *csound, MCHNBLK *chn)
     }
 }
 
-/* turn off ALL curr midi notes, ALL chnls */
-/*  called by musmon, ctrl 123 & sensMidi  */
+/* turn off ALL curr midi notes, ALL chnls of a port */
+/*  called by ctrl 123 on any of them               */
 
-static void midNotesOff(CSOUND *csound)
+static void midNotesOff(CSOUND *csound, int32_t port)
 {
-    int32_t chan = 0;
-    do {
-      AllNotesOff(csound, csound->m_chnbp[chan]);
-    } while (++chan < MAXCHAN);
+    int32_t chan;
+    for (chan = 0; chan < MAXCHAN; chan++)
+      AllNotesOff(csound, csound->m_chnbp[chan + MAXCHAN * port]);
 }
 
 /* sense a MIDI event, collect the data & dispatch */
-/* called from sense_events(), returns 2 if MIDI on/off */
+/* Returns 2 for notes and, in realtime mode, 3 for control/system messages. */
 
 int32_t sens_midi(CSOUND *csound)
 {
@@ -483,12 +500,6 @@ int32_t sens_midi(CSOUND *csound)
    const OPARMS  *O = csound->oparms;
     int32_t     n;
     int16   c, type;
-    // reset sys realtime msgs
-    csound->midi_clock_pulse = 0;
-    csound->midi_start = 0;
-    csound->midi_continue = 0;
-    csound->midi_stop = 0;
-    
  nxtchr:
     if (p->bufp >= p->endatp) {
       p->bufp = &(p->mbuf[0]);
@@ -496,8 +507,14 @@ int32_t sens_midi(CSOUND *csound)
       if (O->Midiin && !csound->advanceCnt) {   /* read MIDI device */
         n = p->MidiReadCallback(csound, p->midiInUserData, p->bufp, MBUFSIZ);
         if (n < 0)
-          csoundErrorMsg(csound, Str(" *** error reading MIDI device: %d (%s)"),
+          csoundErrorMsg(csound,
+                            Str(" *** error reading MIDI device: %d (%s)\n"),
                                  n, csoundExternalMidiErrorString(csound, n));
+        else if (n > MBUFSIZ)
+          csoundErrorMsg(csound,
+                            Str(" *** error reading MIDI device: read returned "
+                                "%d, more than the %d bytes asked for\n"),
+                                 n, MBUFSIZ);
         else
           p->endatp += (int32_t) n;
       }
@@ -569,7 +586,8 @@ int32_t sens_midi(CSOUND *csound)
         mep->type = type;               /* & begin new event    */
         mep->chan = chan;
         p->datreq = datbyts[(type>>4) & 0x7];
-        if(*p->bufp & 0x80  && p->datreq > 0)
+        if(p->bufp < p->endatp && *p->bufp & 0x80 && *p->bufp < 0xF8
+           && p->datreq > 0)
         {/*
             if there is another status byte inserted after
             a chan msg status byte, this implies a port number
@@ -578,11 +596,14 @@ int32_t sens_midi(CSOUND *csound)
             (not sure if there are times when this is not the case)
             MIDI backend modules can now insert a port number coded in
             this way to allow for separate mapping of devices
+            A module writes it in the same read as its status. A read
+            may end on the status, and what lies past the end is not
+            data, so it is not looked at. A real time byte is no port.
           */
-          int32_t port = *(p->bufp++) & 0x0F;
+          int32_t port = *(p->bufp++) & 0x7F;
           if(port >= MIDIMAXPORTS) {
             csoundWarning(csound, Str("port: %d exceeds max number of ports %d"
-                                      ", mapping to port 0"), port, MIDIMAXPORTS);
+                                      ", mapping to port 0\n"), port, MIDIMAXPORTS);
           } else mep->chan += 16*port;
         }
         p->datcnt = 0;
@@ -600,17 +621,20 @@ int32_t sens_midi(CSOUND *csound)
     /* Enter the input event into a buffer used by 'midiin'. */
     /* VL -- changed to allow higher-mapped channels */
     if (mep->type != SYSTEM_TYPE) {
-      unsigned char *pMessage =
-                    &(p->MIDIINbuffer2[p->MIDIINbufIndex++].bData[0]);
-       p->MIDIINbufIndex &= MIDIINBUFMSK;
-      *pMessage++ = mep->type; // | mep->chan;
-      *pMessage++ = mep->chan + 1;
-      *pMessage++ = (unsigned char) mep->dat1;
-      *pMessage = (p->datreq < 2 ? (unsigned char) 0 : mep->dat2);
+      MIDIMESSAGE *msg = &(p->MIDIINbuffer2[p->MIDIINbufIndex++]);
+      p->MIDIINbufIndex &= MIDIINBUFMSK;
+      msg->status = (unsigned char) mep->type;
+      msg->chan = mep->chan + 1;
+      msg->data1 = (unsigned char) mep->dat1;
+      msg->data2 = (p->datreq < 2 ? 0 : (unsigned char) mep->dat2);
     }
     p->datcnt = 0;                      /* else allow a repeat  */
     /* NB:  this allows repeat in syscom 1,2,3 too */
     if (mep->type > NOTEON_TYPE) {      /* if control or syscom */
+      /* The performance thread must wait for earlier asynchronous note-ons
+         before applying controllers, sustain changes, or program changes. */
+      if (O->realtime)
+        return 3;
       m_chanmsg(csound, mep);           /*   handle from here   */
       goto nxtchr;                      /*   & go look for more */
     }
@@ -631,14 +655,16 @@ void midi_close(CSOUND *csound)
     if (p->MidiInCloseCallback != NULL) {
       retval = p->MidiInCloseCallback(csound, p->midiInUserData);
       if (retval != 0)
-        csoundErrorMsg(csound, Str("Error closing MIDI in device: %d (%s)"),
+        csoundErrorMsg(csound,
+                          Str("Error closing MIDI in device: %d (%s)\n"),
                        retval, csoundExternalMidiErrorString(csound, retval));
     }
     p->midiInUserData = NULL;
     if (p->MIDIoutDONE && p->MidiOutCloseCallback != NULL) {
       retval = p->MidiOutCloseCallback(csound, p->midiOutUserData);
       if (retval != 0)
-        csoundErrorMsg(csound, Str("Error closing MIDI out device: %d (%s)"),
+        csoundErrorMsg(csound,
+                          Str("Error closing MIDI out device: %d (%s)\n"),
                        retval, csoundExternalMidiErrorString(csound, retval));
     }
     p->MIDIoutDONE = 0;

@@ -31,6 +31,9 @@ extern "C" {
 
 int32_t csoundMIDIFileOpen(CSOUND *csound, const char *name);
 
+/* Advance file clocks once per control cycle, even when MIDI input is held. */
+void csoundMIDIFileAdvance(CSOUND *csound);
+
 /* read MIDI file event data at performace time */
 
 int32_t csoundMIDIFileRead(CSOUND *csound, unsigned char *buf, int32_t nBytes);
@@ -43,33 +46,34 @@ int32_t csoundMIDIFileClose(CSOUND *csound);
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kResult;
-    MYFLT   *num;
+    cs_float   *kResult;
+    cs_float   *num;
 } MIDITEMPO;
 
 typedef struct {
     OPDS    h;
-    MYFLT *res;
+    cs_float *res;
     STRINGDAT *mfile;
-    MYFLT *port;
+    cs_float *port;
 } MFILE;
 
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kstat;
-    MYFLT   *kchn;
-    MYFLT   *kdat1;
-    MYFLT   *kdat2;
-    MYFLT   *ktime;
-    MYFLT   *kevt;
-    MYFLT   *num;
+    cs_float   *kstat;
+    cs_float   *kchn;
+    cs_float   *kdat1;
+    cs_float   *kdat2;
+    cs_float   *ktime;
+    cs_float   *kevt;
+    cs_float   *num;
 } MIDIFEVT;  
   
 /* miditempo opcode: returns the current tempo of MIDI file */
 
-  int32_t midiTempoOpcode(CSOUND *csound, MIDITEMPO *p);
-  int32_t midiFileStatus(CSOUND *csound, MIDITEMPO *p);
+  int32_t midi_tempo_opcode(CSOUND *csound, MIDITEMPO *p);
+  int32_t midi_file_status(CSOUND *csound, MIDITEMPO *p);
+  int32_t midi_file_loop(CSOUND *csound, MIDITEMPO *p);  
   int32_t midi_file_opcode(CSOUND *csound, void *p);
   int32_t midi_file_mute(CSOUND *csound, void *p);
   int32_t midi_file_pause(CSOUND *csound, void *p);

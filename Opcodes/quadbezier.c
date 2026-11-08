@@ -27,8 +27,7 @@
 #endif
 #include <math.h>
 
-static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c);
-static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t x);
+static cs_float FindTforX(cs_float x1, cs_float x2, cs_float x3, int32_t x);
 
 /*
    This Gen routine fills a table with the values produced by applying the
@@ -57,28 +56,36 @@ static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t x);
 
 static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
 {
-    int32_t nvals, nargs, n;
-    MYFLT   *fp = ftp->ftable;
+    int32_t nvals, nargs, n, j = 0;
+    cs_float   *fp = ftp->ftable;
     CSOUND *csound = ff->csound;
 
     nvals = ff->flen;
     nargs = ff->e.pcnt - 4;
     if (UNLIKELY(nargs < 5)) {
-      return csound->FtError(ff, "%s", Str("insufficient arguments"));
+      return csound->FtError(ff, "%s\n", Str("insufficient arguments"));
     }
+    if (UNLIKELY((nargs - 1) % 4 != 0))
+      return csound->FtError(ff, "%s\n", Str("incomplete quadbezier segment"));
     ff->e.p[4] *= -1;
 
     for (n = 4; n < nargs; n += 4)
     {
-      int32_t j, x1;
-      j = (n < 8) ? 0 : ff->e.p[n];
-      x1 = j;
-      while (j <= ff->e.p[n+4]) {
-        MYFLT t;
-        t = FindTforX(x1, ff->e.p[n+2], ff->e.p[n+4], j);
-        if (j <= nvals)
-          fp[j++] = (FL(1.0) - t) * (FL(1.0) - t) * ff->e.p[n+1] +
-            FL(2.0) * (FL(1.0) - t) * t * ff->e.p[n+3] + t * t * ff->e.p[n+5];
+      cs_float x1 = (n < 8) ? FL(0.0) : ff->e.p[n];
+      cs_float cx = ff->e.p[n+2], x2 = ff->e.p[n+4];
+      if (UNLIKELY(!isfinite(x2) || !(x2 > x1)))
+        return csound->FtError(ff, "%s\n",
+                              Str("quadbezier endpoints must be finite and increasing"));
+      if (UNLIKELY(!(cx >= x1 && cx <= x2)))
+        return csound->FtError(ff, "%s\n",
+                              Str("quadbezier control point must lie within its segment"));
+
+      /* Keep the sample index separate from the curve's fractional coordinates. */
+      while (j <= nvals && j <= x2) {
+        cs_float t;
+        t = FindTforX(x1, cx, x2, j);
+        fp[j++] = (FL(1.0) - t) * (FL(1.0) - t) * ff->e.p[n+1] +
+          FL(2.0) * (FL(1.0) - t) * t * ff->e.p[n+3] + t * t * ff->e.p[n+5];
       }
     }
     return OK;
@@ -86,22 +93,17 @@ static int32_t quadbeziertable (FGDATA *ff, FUNC *ftp)
 
 /* utility functions */
 
-inline static MYFLT SolveQuadratic(MYFLT a, MYFLT b, MYFLT c)
-{
-    MYFLT determinant;
-    determinant = b*b - 4*a*c;
-    if (determinant >= 0)
-      return (-b + SQRT(determinant)) / (FL(2.0)*a);
-    else
-      return 0;
-}
-
-static MYFLT FindTforX(MYFLT x1, MYFLT x2, MYFLT x3, int32_t
+static cs_float FindTforX(cs_float x1, cs_float x2, cs_float x3, int32_t
                        x)
 {
-    MYFLT a =  (x1 - FL(2.0)*x2 + x3), b = FL(2.0)* (-x1 + x2), c = x1 - x;
+    cs_float a =  (x1 - FL(2.0)*x2 + x3), b = FL(2.0)* (-x1 + x2), c = x1 - x;
+    if (x == x1)
+      return FL(0.0);
+    if (x == x3)
+      return FL(1.0);
+    /* Rationalize the root to avoid cancellation for nearly linear segments. */
     if (a)
-      return SolveQuadratic(a, b, c);
+      return -FL(2.0)*c / (b + SQRT(b*b - FL(4.0)*a*c));
     else
       return (x-x1)/b;
 }

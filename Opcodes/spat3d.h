@@ -44,7 +44,7 @@
 /* calculate distance */
 
 #define SPAT3D_XYZ2DIST(x,y,z)  \
-     ((MYFLT) sqrt ((double) ((x) * (x) + (y) * (y) + (z) * (z))))
+     ((cs_float) sqrt ((cs_double) ((x) * (x) + (y) * (y) + (z) * (z))))
 
 /* limit a number to a specified range */
 
@@ -56,12 +56,12 @@ typedef struct {
         int32_t     init;                   /* 1 at first k-cycle           */
         int32_t     cnum;                   /* select coord. to transform:  */
                                         /* -1: none, 0: X, 1: Y, 2: Z   */
-        MYFLT   Xc;                     /* coord. offset                */
-        MYFLT   W0, X0, Y0, Z0;         /* W, X, Y, Z (Ll, Lh, Rl, Rh)  */
-        double  D0, D1;                 /* delay                        */
-        MYFLT   *yn;                    /* output sound                 */
-        MYFLT   a0, a1, a2, b0, b1, b2; /* EQ parameters                */
-        MYFLT   xnm1, xnm2, ynm1, ynm2; /* EQ tmp data                  */
+        cs_float   Xc;                     /* coord. offset                */
+        cs_float   W0, X0, Y0, Z0;         /* W, X, Y, Z (Ll, Lh, Rl, Rh)  */
+        cs_double  D0, D1;                 /* delay                        */
+        cs_float   *yn;                    /* output sound                 */
+        cs_float   a0, a1, a2, b0, b1, b2; /* EQ parameters                */
+        cs_float   xnm1, xnm2, ynm1, ynm2; /* EQ tmp data                  */
 } SPAT3D_WALL;
 
 /* ftable data:                                                 */
@@ -92,7 +92,7 @@ typedef struct {
 
 typedef struct {                /* opcode args */
         OPDS    h;
-        MYFLT   *args[14];                      /* opcode arguments          */
+        cs_float   *args[14];                      /* opcode arguments          */
                                                 /* (see spat3d.README)       */
 /*              spat3di         spat3d          spat3dt         */
 /*                                                              */
@@ -114,22 +114,22 @@ typedef struct {                /* opcode args */
         int32_t     o_num;  /* opcode (0: spat3di, 1: spat3d, 2: spat3dt      */
         int32_t     oversamp;               /* oversample ratio     (spat3d)  */
         int32_t     zout;                   /* output mode                    */
-        MYFLT   mdist;                  /* unit circle distance           */
-        MYFLT   *ftable;                /* ptr. to ftable                 */
+        cs_float   mdist;                  /* unit circle distance           */
+        cs_float   *ftable;                /* ptr. to ftable                 */
         int32   rseed;                  /* random seed                    */
         int32_t     mindep;                 /* min. recursion depth           */
         int32_t     maxdep;                 /* max. recursion depth           */
-        MYFLT   *outft;                 /* ptr to output ftable (spat3dt) */
+        cs_float   *outft;                 /* ptr to output ftable (spat3dt) */
         int32   outftlnth;              /* output ftable length (spat3dt) */
         int32_t     irlen;                  /* IR length            (spat3dt) */
         int32_t     bs;                     /* block size (ksmps or irlen)    */
-        MYFLT   mdel;                   /* max. delay (in seconds)        */
+        cs_float   mdel;                   /* max. delay (in seconds)        */
         int32   mdel_s;                 /* max. delay (in samples)        */
         int32   del_p;                  /* read position in delay buffers */
-        MYFLT   *Wb, *Xb, *Yb, *Zb;     /* delay buffers                  */
+        cs_float   *Wb, *Xb, *Yb, *Zb;     /* delay buffers                  */
         int32_t
         *sample;                /* FIR filter data      (spat3d)  */
-        MYFLT   *window;
+        cs_float   *window;
         AUXCH   fltr;
         AUXCH   ws;                     /* wall structure array           */
         AUXCH   y;                      /* tmp data                       */

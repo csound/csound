@@ -31,6 +31,9 @@
 static const char *envVar_list[] = {
     "CSNOSTOP",
     "CSOUND7RC",
+#ifdef HAVE_WASMTIME
+    "CSOUND_WASMTIME_CACHE_CONFIG",
+#endif
     "CSSTRNGS",
     "CS_LANG",
     "HOME",
@@ -122,9 +125,14 @@ int32_t csoundSetGlobalEnv(const char *name, const char *value)
     if (UNLIKELY(name == NULL || name[0] == '\0' || (int32_t) strlen(name) >= 32))
       return -1;                        /* invalid name             */
     for (i = 0; i < 16; i++) {
-      if ((value != NULL && globalEnvVarName(i)[0] == '\0') ||
-          strcmp(name, globalEnvVarName(i)) == 0)
+      if (strcmp(name, globalEnvVarName(i)) == 0)
         break;
+    }
+    if (i >= 16 && value != NULL) {     /* new variable: first free slot */
+      for (i = 0; i < 16; i++) {
+        if (globalEnvVarName(i)[0] == '\0')
+          break;
+      }
     }
     if (UNLIKELY(i >= 16))              /* not found / no free slot */
       return -1;
@@ -457,7 +465,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
     s += ((int32_t) strlen(envList) + 1);
     p->nxt = (searchPathCacheEntry_t*) csound->searchPathCache;
     if (UNLIKELY(csoundGetDebug(csound) > 99))
-      csound->DebugMsg(csound, Str("Creating search path cache for '%s':"),
+      csound->DebugMsg(csound, Str("Creating search path cache for '%s':\n"),
                                p->name);
     for (i = 0; (i < pathCnt) && (path_lst != NULL); i++) {
       p->lst[i] = s;
@@ -467,7 +475,7 @@ char **csoundGetSearchPathFromEnv(CSOUND *csound, const char *envList)
       csound->Free(csound, path_lst);
       path_lst = nxt;
       if (UNLIKELY(csoundGetDebug(csound) > 99))
-        csound->DebugMsg(csound, "%5d: \"%s\"", (i + 1), p->lst[i]);
+        csound->DebugMsg(csound, "%5d: \"%s\"\n", (i + 1), p->lst[i]);
     }
     p->lst[i] = NULL;
     /* link into database */

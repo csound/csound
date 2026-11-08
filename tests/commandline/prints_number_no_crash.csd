@@ -1,3 +1,9 @@
+<CsTest>
+description = "test prints does not crash when given a number arguments"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>
@@ -10,7 +16,7 @@ ksmps	=	1
 0dbfs	=	1
 
 instr 1
-  prints 1 ;; should give an error and not crash!
+  prints 1 // should not crash ever
 endin
 
 </CsInstruments>

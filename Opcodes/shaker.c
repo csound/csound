@@ -57,9 +57,17 @@ But we're smarter than that!!!  See below
 
 #include "shaker.h"
 
+/* Clamp counts before converting them to integers. */
+static int32_t shaker_count(cs_double value, int32_t minimum, int32_t maximum)
+{
+    if (!(value > minimum)) return minimum;
+    if (value >= maximum) return maximum;
+    return (int32_t)value;
+}
+
 int32_t shakerset(CSOUND *csound, SHAKER *p)
 {
-    MYFLT       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
+    cs_float       amp = (*p->amp)*AMP_RSCALE; /* Normalise */
 
     p->shake_speed = FL(0.0008) + (amp * FL(0.0004));
     make_BiQuad(&p->filter);
@@ -75,37 +83,39 @@ int32_t shakerset(CSOUND *csound, SHAKER *p)
 /*     p->num_beans = 8; */
     ADSR_setAll(csound, &p->envelope,
                 p->shake_speed,  p->shake_speed, FL(0.0),  p->shake_speed);
-    p->num_beans = (int32_t)*p->beancount;
-    if (p->num_beans<1) p->num_beans = 1;
+    p->num_beans = shaker_count(*p->beancount, 1, INT32_MAX);
     p->wait_time = 0x7FFFFFFE / p->num_beans;
     p->gain_norm = FL(0.0005);
-    p->shake_num = (int32_t)*p->times;
+    /* Keep ktimes latched at note initialization, as in the legacy code.
+       Values of 64 or more repeat without a limit. */
+    p->shake_num = shaker_count(*p->times, 0, 64);
     ADSR_keyOn(&p->envelope);
-    p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR)
-               - (int32_t)(CS_EKR * *p->dettack);
+    p->kloop = trunc(p->h.insdshead->offtim * CS_EKR)
+               - trunc(CS_EKR * *p->dettack);
     p->freq = -FL(1.0);        /* So will get changed */
     return OK;
 }
 
 int32_t shaker(CSOUND *csound, SHAKER *p)
 {
-    MYFLT *ar = p->ar;
+    cs_float *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-    MYFLT shake = amp + amp;
-    MYFLT damp = *p->shake_damp;
-    MYFLT gain = p->gain_norm;
-    MYFLT ngain = p->noiseGain;
-    MYFLT sEnergy = p->shakeEnergy;
-    MYFLT shake_speed = FL(0.0008) + amp * FL(0.0004);
+    cs_float fullscale = AMP_SCALE;
+    cs_float amp = *p->amp * (FL(1.0) / fullscale); /* Normalise */
+    cs_float shake = amp + amp;
+    cs_float damp = *p->shake_damp;
+    cs_float gain = p->gain_norm;
+    cs_float ngain = p->noiseGain;
+    cs_float sEnergy = p->shakeEnergy;
+    cs_float shake_speed = FL(0.0008) + amp * FL(0.0004);
 
     if (p->freq != *p->kfreq)
       BiQuad_setFreqAndReson(p->filter, p->freq = *p->kfreq, FL(0.96));
-    if (p->num_beans != (int32_t)*p->beancount) { /* Bean Count */
-      p->num_beans = (int32_t
-                      )*p->beancount;
+    int32_t beans = shaker_count(*p->beancount, 1, INT32_MAX);
+    if (p->num_beans != beans) {
+      p->num_beans = beans;
       p->wait_time = 0x7FFFFFFE / p->num_beans;
     }
     if (shake_speed != p->shake_speed) {
@@ -114,18 +124,18 @@ int32_t shaker(CSOUND *csound, SHAKER *p)
                   &p->envelope, shake_speed, shake_speed, FL(0.0), shake_speed);
     }
     if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-    if ((--p->kloop) == 0) {
+    if (p->kloop > 0 && (--p->kloop) == 0) {
       p->shake_num = 0;
     }
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     gain *= p->num_beans;       /* Save work in loop */
     for (n=offset; n<nsmps; n++) {
-        MYFLT   lastOutput;
-        MYFLT   temp;
+        cs_float   lastOutput;
+        cs_float   temp;
 
         ADSR_tick(&p->envelope);
         temp = p->envelope.value * shake;
@@ -148,14 +158,14 @@ int32_t shaker(CSOUND *csound, SHAKER *p)
           ngain += gain * sEnergy;
         }
         /* Actual Sound is Random */
-        lastOutput = ngain * ((MYFLT) csound->Rand31(csound->RandSeed31(csound))
+        lastOutput = ngain * ((cs_float) csound->Rand31(csound->RandSeed31(csound))
                               - FL(1073741823.5))
-                           * (MYFLT) (1.0 / 1073741823.0);
+                           * (cs_float) (1.0 / 1073741823.0);
         /* Each (all) event(s) decay(s) exponentially */
         ngain *= p->coll_damp;
 
         lastOutput = BiQuad_tick(&p->filter, lastOutput);
-        ar[n] = lastOutput * AMP_SCALE * FL(7.0); /* As too quiet */
+        ar[n] = lastOutput * fullscale * FL(7.0); /* As too quiet */
     }
     p->noiseGain = ngain;
     p->shakeEnergy = sEnergy;

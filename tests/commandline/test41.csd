@@ -1,3 +1,9 @@
+<CsTest>
+description = "if statement with = instead of =="
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

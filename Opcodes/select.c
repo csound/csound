@@ -28,24 +28,24 @@
 
 typedef struct Select {
   OPDS        h;
-  MYFLT       *ar, *in1, *in2, *less, *equal, *more;
+  cs_float       *ar, *in1, *in2, *less, *equal, *more;
 } Selecter;
 
 
 static int32_t selecter(CSOUND *csound, Selecter* p)
 {
     IGN(csound);
-    MYFLT       *ar = p->ar;
+    cs_float       *ar = p->ar;
 
-    MYFLT       *a1=p->in1, *a2=p->in2, *al=p->less, *ae=p->equal, *am=p->more;
+    cs_float       *a1=p->in1, *a2=p->in2, *al=p->less, *ae=p->equal, *am=p->more;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
       ar[n] = a1[n]<a2[n] ? al[n] : a1[n]==a2[n] ? ae[n] : am[n];

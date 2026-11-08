@@ -1,3 +1,9 @@
+<CsTest>
+description = "test use of mapped multiport channels"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>

@@ -1,7 +1,15 @@
 #include <stdio.h>
 #include <string.h>
+#include <atomic>
+#include <filesystem>
+#include <string>
+#include <thread>
+#include <vector>
 #include "gtest/gtest.h"
 #include "csound.h"
+#include "csound_type_system.h"
+#include "csdl.h"
+#include "pstream.h"
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
 #define csoundScoreEvent(a,b,c,d) csoundEvent(a,0,c,d,0)
@@ -22,7 +30,7 @@ public:
     {
       csound = csoundCreate (NULL, NULL);
       csoundCreateMessageBuffer (csound, 0);
-      csoundSetOption (csound, "--logfile=NULL");
+      csoundSetOption (csound, "-n");
     }
 
     virtual void TearDown ()
@@ -32,6 +40,7 @@ public:
     }
 
     CSOUND* csound {nullptr};
+
 };
 
 TEST_F (ChannelTests, ControlChannelParams)
@@ -52,6 +61,29 @@ TEST_F (ChannelTests, ControlChannelParams)
     ASSERT_TRUE(hints2.dflt == 5);
     ASSERT_TRUE(hints2.min == 1);
     ASSERT_TRUE(hints2.max == 10);
+}
+
+TEST_F (ChannelTests, ChnparamsWithoutHints)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        chn_k "plain", 3
+        itype, imode, ictltype, idflt, imin, imax chnparams "plain"
+        chnset itype, "type"
+        chnset imode, "mode"
+        chnset ictltype, "ctltype"
+        chnset idflt, "default"
+        chnset imin, "min"
+        chnset imax, "max"
+    )ORC"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    EXPECT_EQ(CSOUND_CONTROL_CHANNEL,
+              csoundGetControlChannel(csound, "type", nullptr));
+    EXPECT_EQ(3, csoundGetControlChannel(csound, "mode", nullptr));
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "ctltype", nullptr));
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "default", nullptr));
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "min", nullptr));
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "max", nullptr));
 }
 
 TEST_F (ChannelTests, ControlChannel)
@@ -92,7 +124,7 @@ void inputCallback(CSOUND *csound,
                    void *channelType)
 {
     if (strcmp(channelName, "intest") == 0 /*&& channelType == &CS_VAR_TYPE_K*/) {
-        MYFLT *v = (MYFLT *) channelValuePtr;
+        cs_float *v = (cs_float *) channelValuePtr;
         *v = 5.0;
     }
     if (strcmp(channelName, "instrtest") == 0 /*&& channelType == &CS_VAR_TYPE_S*/) {
@@ -107,14 +139,14 @@ void outputCallback(CSOUND *csound,
                    void *channelType)
 {
     if (strcmp(channelName, "intest") == 0 /*&& channelType == &CS_VAR_TYPE_K*/) {
-        MYFLT *v = (MYFLT *) channelValuePtr;
+        cs_float *v = (cs_float *) channelValuePtr;
         ASSERT_DOUBLE_EQ(*v, 5.0);
     }
     if (strcmp(channelName, "instrtest") == 0 /*&& channelType == &CS_VAR_TYPE_S*/) {
         ASSERT_STREQ((char *) channelValuePtr, "hello channels");
     }
     if (strcmp(channelName, "outtest") == 0 /*&& channelType == &CS_VAR_TYPE_K*/) {
-        MYFLT *v = (MYFLT *) channelValuePtr;
+        cs_float *v = (cs_float *) channelValuePtr;
         ASSERT_DOUBLE_EQ(*v, 10.0);
     }
 
@@ -127,9 +159,9 @@ TEST_F (ChannelTests, ChannelCallbacks)
     csoundSetOutputChannelCallback(csound, (channelCallback_t) outputCallback);
     int32_t err = csoundStart(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
-    MYFLT pFields[] = {1.0, 0.0, 1.0};
+    cs_float pFields[] = {1.0, 0.0, 1.0};
     csoundScoreEvent(csound, 'i', pFields, 3);
-    MYFLT pFields2[] = {2.0, 0.0, 1.0};
+    cs_float pFields2[] = {2.0, 0.0, 1.0};
     csoundScoreEvent(csound, 'i', pFields2, 3);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     err = csoundPerformKsmps(csound);
@@ -161,8 +193,8 @@ void inputCallback2(CSOUND *csound,
                    void *channelValuePtr,
                    void *channelType)
 {
-    MYFLT val = csoundGetControlChannel(csound, channelName, NULL);
-    MYFLT *valPtr = (MYFLT *) channelValuePtr;
+    cs_float val = csoundGetControlChannel(csound, channelName, NULL);
+    cs_float *valPtr = (cs_float *) channelValuePtr;
     *valPtr = val;
 }
 
@@ -171,7 +203,7 @@ void outputCallback2(CSOUND *csound,
                    void *channelValuePtr,
                    void *channelType)
 {
-    MYFLT *valPtr = (MYFLT *) channelValuePtr;
+    cs_float *valPtr = (cs_float *) channelValuePtr;
     csoundSetControlChannel(csound, channelName, *valPtr);
 }
 
@@ -185,18 +217,18 @@ TEST_F (ChannelTests, ChannelOpcodes)
     csoundGetControlChannel(csound, "1", &err);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     csoundSetControlChannel(csound, "1", 5.0);
-    MYFLT pFields[] = {1.0, 0.0, 1.0};
+    cs_float pFields[] = {1.0, 0.0, 1.0};
     csoundEvent(csound, 0, pFields, 3, 0);
     err = csoundPerformKsmps(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     ASSERT_EQ(5.0, csoundGetControlChannel(csound, "2", NULL));
-    MYFLT pFields2[] = {2.0, 0.0, 1.0};
+    cs_float pFields2[] = {2.0, 0.0, 1.0};
     csoundEvent(csound, 0, pFields2, 3, 0);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     err = csoundPerformKsmps(csound);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     ASSERT_EQ(6.0, csoundGetControlChannel(csound, "3", NULL));
-    MYFLT pFields3[] = {3.0, 0.0, 1.0};
+    cs_float pFields3[] = {3.0, 0.0, 1.0};
     csoundEvent(csound, 0, pFields3, 3, 0);
     ASSERT_TRUE(err == CSOUND_SUCCESS);
     err = csoundPerformKsmps(csound);
@@ -208,32 +240,75 @@ TEST_F (ChannelTests, ChannelOpcodes)
 
 const char orc5[] = "chn_k \"winsize\", 3\n"
         "instr 1\n"
-        "finput pvsin 1 \n"
+        "finput pvsin \"pvs-input\"\n"
         "ioverlap, inumbins, iwinsize, iformat pvsinfo finput\n"
-        "pvsout finput, 1\n"
+        "pvsout finput, \"pvs-output\"\n"
         "chnset iwinsize, \"winsize\"\n"
         "endin\n";
-/*
- NEEDS TO BE ADAPTED for new API
+
 TEST_F (ChannelTests, PVSOpcodes)
 {
+    constexpr int32_t fftSize = 1024;
+    constexpr int32_t overlap = 256;
+    constexpr int32_t windowSize = 1024;
+    constexpr size_t frameLength = fftSize + 2;
+    float frame[frameLength];
+    for (size_t i = 0; i < frameLength; ++i)
+      frame[i] = static_cast<float>(i) + 0.25f;
+
     int32_t err = csoundCompileOrc(csound, orc5);
-    ASSERT_TRUE(err == CSOUND_SUCCESS);
-    err = csoundStart(csound);
-    PVSDATEXT pvs_data, pvs_data2;
-    memset(&pvs_data,0,sizeof(PVSDATEXT));
-    memset(&pvs_data2,0,sizeof(PVSDATEXT));
-    pvs_data.N = 16;
-    pvs_data.winsize = 32;
-    err = csoundSetPvsChannel(csound, &pvs_data, "1");
-    err = csoundGetPvsChannel(csound, &pvs_data2, "1");
-    ASSERT_EQ(pvs_data.N, pvs_data2.N);
-    MYFLT pFields[] = {1.0, 0.0, 1.0};
-    err = csoundScoreEvent(csound, 'i', pFields, 3);
-    err = csoundPerformKsmps(csound);
-    ASSERT_EQ(32.0, csoundGetControlChannel(csound, "winsize", NULL));
+    ASSERT_EQ(CSOUND_SUCCESS, err);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    PVSDAT *input = csoundInitPvsChannel(csound, "host-input",
+                                         fftSize, overlap, windowSize,
+                                         PVS_WIN_HANN, PVS_AMP_FREQ);
+    ASSERT_NE(nullptr, input);
+    csoundSetPvsData(input, frame);
+
+    PVSDAT *invalidDestination =
+      csoundInitPvsChannel(csound, "invalid-input",
+                           fftSize, overlap, windowSize,
+                           PVS_WIN_HANN, PVS_AMP_FREQ);
+    ASSERT_NE(nullptr, invalidDestination);
+
+    PVSDAT invalidInput = *input;
+    invalidInput.frame.size -= sizeof(float);
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundSetPvsChannel(csound, "invalid-input", &invalidInput));
+    ASSERT_EQ(CSOUND_SUCCESS,
+              csoundSetPvsChannel(csound, "pvs-input", input));
+
+    cs_float pFields[] = {1.0, 0.0, 1.0};
+    csoundScoreEvent(csound, 'i', pFields, 3);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    EXPECT_EQ(windowSize,
+              csoundGetControlChannel(csound, "winsize", nullptr));
+
+    PVSDAT *smallOutput = csoundInitPvsChannel(csound, "host-small-output",
+                                               fftSize / 2, overlap, windowSize,
+                                               PVS_WIN_HANN, PVS_AMP_FREQ);
+    ASSERT_NE(nullptr, smallOutput);
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundGetPvsChannel(csound, "pvs-output", smallOutput));
+    EXPECT_EQ(fftSize / 2, csoundPvsDataFFTSize(smallOutput));
+
+    PVSDAT *output = csoundInitPvsChannel(csound, "host-output",
+                                          fftSize, overlap, windowSize,
+                                          PVS_WIN_HANN, PVS_AMP_FREQ);
+    ASSERT_NE(nullptr, output);
+    ASSERT_EQ(CSOUND_SUCCESS,
+              csoundGetPvsChannel(csound, "pvs-output", output));
+    EXPECT_EQ(fftSize, csoundPvsDataFFTSize(output));
+    EXPECT_EQ(overlap, csoundPvsDataOverlap(output));
+    EXPECT_EQ(windowSize, csoundPvsDataWindowSize(output));
+    EXPECT_EQ(PVS_AMP_FREQ, csoundPvsDataFormat(output));
+
+    const float *outputFrame = csoundGetPvsData(output);
+    ASSERT_NE(nullptr, outputFrame);
+    for (size_t i = 0; i < frameLength; ++i)
+      EXPECT_EQ(frame[i], outputFrame[i]) << "frame index " << i;
 }
-*/
 
 TEST_F (ChannelTests, InvalidChannel)
 {
@@ -242,6 +317,67 @@ TEST_F (ChannelTests, InvalidChannel)
     int32_t err;
     ASSERT_EQ(0.0, csoundGetControlChannel(csound, "nonexistent_channel", &err));
     ASSERT_EQ(err, CSOUND_SUCCESS);
+}
+
+TEST_F (ChannelTests, ArrayDataSetterRejectsManagedElements)
+{
+    const int32_t sizes[] = {1};
+    ARRAYDAT *numbers = csoundInitArrayChannel(
+      csound, "host-numbers", "i", 1, sizes);
+    ARRAYDAT *strings = csoundInitArrayChannel(
+      csound, "host-strings", "S", 1, sizes);
+    const cs_float number = (cs_float)42.0;
+    const void *originalStorage;
+    void *originalString;
+    void *currentString;
+
+    ASSERT_NE(nullptr, numbers);
+    ASSERT_NE(nullptr, strings);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetArrayData(numbers, &number));
+    EXPECT_EQ(number, static_cast<const cs_float *>(
+                        csoundGetArrayData(numbers))[0]);
+
+    originalStorage = csoundGetArrayData(strings);
+    ASSERT_NE(nullptr, originalStorage);
+    memcpy(&originalString, originalStorage, sizeof(originalString));
+    EXPECT_EQ(CSOUND_ERROR, csoundSetArrayData(strings, &number));
+    EXPECT_EQ(originalStorage, csoundGetArrayData(strings));
+    memcpy(&currentString, originalStorage, sizeof(currentString));
+    EXPECT_EQ(originalString, currentString);
+}
+
+TEST_F (ChannelTests, InvalidArrayChannelShapeDoesNotPublishMetadata)
+{
+    const int32_t invalidSizes[] = {-1};
+    const int32_t validSizes[] = {2};
+    void *channelPointer = nullptr;
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetChannelPtr(
+      csound, &channelPointer, "array-shape",
+      CSOUND_ARRAY_CHANNEL | CSOUND_INPUT_CHANNEL |
+      CSOUND_OUTPUT_CHANNEL));
+    ARRAYDAT *array = static_cast<ARRAYDAT *>(channelPointer);
+    ASSERT_NE(nullptr, array);
+    const int32_t oldDimensions = array->dimensions;
+    int32_t *const oldSizes = array->sizes;
+    const CS_TYPE *const oldArrayType = array->arrayType;
+    cs_float *const oldData = array->data;
+    const size_t oldAllocated = array->allocated;
+
+    EXPECT_EQ(nullptr, csoundInitArrayChannel(
+      csound, "array-shape", "k", 1, invalidSizes));
+    EXPECT_EQ(oldDimensions, array->dimensions);
+    EXPECT_EQ(oldSizes, array->sizes);
+    EXPECT_EQ(oldArrayType, array->arrayType);
+    EXPECT_EQ(oldData, array->data);
+    EXPECT_EQ(oldAllocated, array->allocated);
+
+    EXPECT_EQ(array, csoundInitArrayChannel(
+      csound, "array-shape", "k", 1, validSizes));
+    EXPECT_EQ(1, array->dimensions);
+    ASSERT_NE(nullptr, array->sizes);
+    EXPECT_EQ(2, array->sizes[0]);
+    EXPECT_NE(nullptr, array->data);
 }
 
 const char orc6[] = "chn_k \"chan\", 3, 2, 0.5, 0, 1, 10, 10, 50, 100\n"
@@ -270,6 +406,7 @@ TEST_F (ChannelTests, ChnHints)
     ASSERT_EQ(hints.width, 50);
     ASSERT_EQ(hints.height, 100);
     ASSERT_STREQ(hints.attributes, "testattr");
+    csoundDeleteControlChannelHints(csound, &hints);
 }
 
 TEST_F (ChannelTests, StringChannel)
@@ -300,4 +437,745 @@ TEST_F (ChannelTests, StringChannel)
     ASSERT_STREQ(string, "strchan3_val");
 
     delete [] string;
+}
+
+TEST_F (ChannelTests, ChannelVarMem)
+{
+  csoundCompileOrc(csound, R"ORC(
+                 chnset 1, "1"
+                 chnset 0, "2"
+                 instr 1
+                  k1 chnget "2"
+                  chnset k1, "1"
+                 endin
+                 schedule(1,0,1)
+                )ORC");
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    const CS_VAR_MEM *var = csoundGetChannel(csound, "1");
+    cs_float val = csoundGetChannel(csound, "2")->value;
+    ASSERT_EQ(val, 0.0);
+    err = csoundSetChannel(csound, "2", var);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    csoundPerformKsmps(csound);
+    ASSERT_EQ(csoundGetChannel(csound, "2")->value,
+              csoundGetChannel(csound, "1")->value);
+}
+
+TEST_F (ChannelTests, ChannelNewVarMem)
+{
+    const char *name = "testing";
+    csoundCompileOrc(csound, orc1);
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    CS_VAR_MEM memBlock; // memblock value holds enough storage for a cs_float
+    memBlock.varType = csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "k");
+    memBlock.value = 1.0;
+    err = csoundSetChannel(csound, name, &memBlock);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    ASSERT_EQ(memBlock.value, csoundGetChannel(csound,name)->value);
+}
+
+
+TEST_F (ChannelTests, ChannelSetRejectsInvalidState)
+{
+    csoundCompileOrc(csound, orc2);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    const CS_VAR_MEM *channel = csoundGetChannel(csound, "testing");
+    ASSERT_NE(nullptr, channel);
+    EXPECT_EQ(CSOUND_ERROR, csoundSetChannel(csound, nullptr, channel));
+    EXPECT_EQ(CSOUND_ERROR, csoundSetChannel(csound, "testing", nullptr));
+
+    CS_VAR_MEM missingType{};
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundSetChannel(csound, "testing", &missingType));
+
+    CS_VAR_MEM wrongType{};
+    wrongType.varType = csoundGetTypeWithVarTypeName(
+      csoundGetTypePool(csound), "i");
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundSetChannel(csound, "testing", &wrongType));
+    EXPECT_EQ(CSOUND_ERROR,
+              csoundSetChannel(csound, "missing", channel));
+}
+
+
+
+TEST_F (ChannelTests, VarChannelType)
+{
+  csoundCompileOrc(csound, R"ORC(
+                 instr 1
+                  var:Complex init 1,1
+                  chnset var, "cmplx"
+                 endin
+                 schedule(1,0,1)
+                )ORC");
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    csoundPerformKsmps(csound);
+    const CS_VAR_MEM *var = csoundGetChannel(csound, "cmplx");
+    COMPLEXDAT *vardat = (COMPLEXDAT *) (&var->value), cmplx = { 2., 2., 0};
+
+    ASSERT_EQ(vardat->real, 1.0);
+    ASSERT_EQ(vardat->imag, 1.0);
+
+    // set values
+    CS_VAR_MEM *memBlock = (CS_VAR_MEM *) csound->Calloc(csound,
+                                                         CS_VAR_TYPE_OFFSET + sizeof(COMPLEXDAT));
+    memBlock->varType = csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "Complex");
+    memcpy(&memBlock->value, &cmplx, sizeof(COMPLEXDAT));
+    err =  csoundSetChannel(csound,"cmplx", memBlock);
+
+    void *ptr;
+    // can access
+    err = csoundGetChannelPtr(csound, &ptr, "cmplx", CSOUND_VAR_CHANNEL |
+                        CSOUND_OUTPUT_CHANNEL);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    ASSERT_EQ(((COMPLEXDAT *)ptr)->real, 2.0);
+    ASSERT_EQ(((COMPLEXDAT *)ptr)->imag, 2.0);
+
+    controlChannelInfo_t *channels = nullptr;
+    int32_t channelCount = csoundListChannels(csound, &channels);
+    csoundDeleteChannelList(csound, channels);
+
+    // cannot create
+    err = csoundGetChannelPtr(csound, &ptr, "cmplx2", CSOUND_VAR_CHANNEL |
+                        CSOUND_INPUT_CHANNEL);
+    ASSERT_FALSE(err == CSOUND_SUCCESS);
+    channels = nullptr;
+    ASSERT_EQ(channelCount, csoundListChannels(csound, &channels));
+    for(int32_t i = 0; i < channelCount; ++i)
+      ASSERT_STRNE("cmplx2", channels[i].name);
+    csoundDeleteChannelList(csound, channels);
+    csound->Free(csound, memBlock);
+}
+
+
+TEST_F (ChannelTests, ExportedInitChannelKeepsVarType)
+{
+  csoundCompileOrc(csound, R"ORC(
+                 instr 1
+                  value@global:i chnexport "init-export", 3
+                 endin
+                 schedule(1, 0, 1)
+                )ORC");
+  ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+
+  const CS_TYPE *initType = csoundGetTypeWithVarTypeName(
+    csoundGetTypePool(csound), "i");
+  const CS_VAR_MEM *channel = csoundGetChannel(csound, "init-export");
+  ASSERT_NE(nullptr, channel);
+  ASSERT_EQ(initType, channel->varType);
+  ASSERT_EQ(initType, csoundGetChannelVarType(csound, "init-export"));
+
+  CS_VAR_MEM replacement;
+  replacement.varType = initType;
+  replacement.value = 7.0;
+  ASSERT_EQ(CSOUND_SUCCESS,
+            csoundSetChannel(csound, "init-export", &replacement));
+  ASSERT_EQ(replacement.value,
+            csoundGetChannel(csound, "init-export")->value);
+}
+
+
+TEST_F (ChannelTests, ExportedArrayChannelKeepsStorageAndMetadata)
+{
+  csoundCompileOrc(csound, R"ORC(
+                 instr 1
+                  values@global:k[] chnexport "array-export", 3
+                  values fillarray 3, 4
+                 endin
+                 instr 2
+                  values:k[] chnget "array-export"
+                  chnset values[1], "array-export-result"
+                 endin
+                 schedule(1, 0, 1)
+                 schedule(2, 0, 1)
+                )ORC");
+  ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+
+  const CS_VAR_MEM *channel = csoundGetChannel(csound, "array-export");
+  ASSERT_NE(nullptr, channel);
+  ASSERT_STREQ("[", channel->varType->varTypeName);
+  const ARRAYDAT *array = reinterpret_cast<const ARRAYDAT*>(&channel->value);
+  ASSERT_EQ(1, array->dimensions);
+  ASSERT_STREQ("k", array->arrayType->varTypeName);
+  ASSERT_NE(nullptr, array->data);
+  EXPECT_EQ((cs_float)3.0, array->data[0]);
+  EXPECT_EQ((cs_float)4.0, array->data[1]);
+
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+  EXPECT_EQ(channel, csoundGetChannel(csound, "array-export"));
+  EXPECT_EQ((cs_float)4.0,
+            csoundGetControlChannel(csound, "array-export-result", nullptr));
+}
+
+TEST_F (ChannelTests, AudioArrayArithmeticHonorsSampleAccurateNoteEnds)
+{
+  ASSERT_EQ(CSOUND_SUCCESS,
+            csoundSetOption(csound, "--sample-accurate"));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+                 sr = 64
+                 ksmps = 64
+                 nchnls = 1
+                 0dbfs = 1
+
+                 gaSub[] init 1
+                 gaMul[] init 1
+                 gaDiv[] init 1
+                 gaSubIn[] init 1
+                 gaDivIn[] init 1
+
+                 instr 1
+                   a12[] init 1
+                   a3[] init 1
+                   a6[] init 1
+                   a12[0] = 12
+                   a3[0] = 3
+                   a6[0] = 6
+
+                   gaSub = a12 - a3
+                   gaMul = a12 * a3
+                   gaDiv = a12 / a3
+                   gaSubIn -= a6
+                   gaDivIn /= a3
+
+                   chnset gaSub, "array-sub"
+                   chnset gaMul, "array-mul"
+                   chnset gaDiv, "array-div"
+                   chnset gaSubIn, "array-sub-in"
+                   chnset gaDivIn, "array-div-in"
+                 endin
+
+                 instr 2
+                   gaSub[0] = 99
+                   gaMul[0] = 99
+                   gaDiv[0] = 99
+                   gaSubIn[0] = 20
+                   gaDivIn[0] = 21
+                 endin
+
+                 instr 3
+                 endin
+
+                 schedule(2, 0, 1)
+                 schedule(1, 1, 1 / sr)
+                 schedule(2, 2, 1)
+                 schedule(1, 3, 48 / sr)
+                 schedule(3, 0, 5)
+                )ORC"));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+  ASSERT_EQ(64, csoundGetKsmps(csound));
+
+  struct ExpectedChannel {
+    const char *name;
+    cs_float value;
+  };
+  const ExpectedChannel expectedChannels[] = {
+    {"array-sub", 9},
+    {"array-mul", 36},
+    {"array-div", 4},
+    {"array-sub-in", 14},
+    {"array-div-in", 7},
+  };
+  const auto checkChannels = [&](int32_t activeSamples) {
+    for (const ExpectedChannel &expected : expectedChannels) {
+      const CS_VAR_MEM *channel = csoundGetChannel(csound, expected.name);
+      ASSERT_NE(nullptr, channel) << expected.name;
+      ASSERT_STREQ("[", channel->varType->varTypeName) << expected.name;
+      const ARRAYDAT *array =
+        reinterpret_cast<const ARRAYDAT*>(&channel->value);
+      ASSERT_EQ(1, array->dimensions) << expected.name;
+      ASSERT_NE(nullptr, array->sizes) << expected.name;
+      ASSERT_EQ(1, array->sizes[0]) << expected.name;
+      ASSERT_STREQ("a", array->arrayType->varTypeName) << expected.name;
+      ASSERT_EQ(64 * static_cast<int32_t>(sizeof(cs_float)),
+                array->arrayMemberSize) << expected.name;
+      ASSERT_NE(nullptr, array->data) << expected.name;
+      for (int32_t sample = 0; sample < 64; ++sample) {
+        const cs_float expectedValue =
+          sample < activeSamples ? expected.value : 0;
+        EXPECT_EQ(expectedValue, array->data[sample])
+          << expected.name << ", sample " << sample;
+      }
+    }
+  };
+
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+  checkChannels(1);
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+  ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+  checkChannels(48);
+}
+
+TEST_F (ChannelTests, ArrayChannel)
+{
+    const char *name = "testing";
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    int32_t size = 2;
+    ARRAYDAT *adat = csoundInitArrayChannel(csound, name, "k", 1, &size);
+    cs_float data[2] = {1., 2.};
+    csoundSetArrayData(adat, data);
+    const cs_float *dataout = (const cs_float *) csoundGetArrayData(adat);
+    ASSERT_EQ(dataout[0], data[0]);
+    ASSERT_EQ(dataout[1], data[1]);
+    csoundCompileOrc(csound, R"ORC(
+             instr 1
+              var:k[] chnget "testing"
+              chnset var[0], "control"
+             endin
+             schedule(1,0,1);
+                     )ORC");
+    csoundPerformKsmps(csound);
+    cs_float val = csoundGetControlChannel(csound, "control", &err);
+    ASSERT_EQ(val, data[0]);
+}
+
+TEST_F (ChannelTests, ArrayChannelDataType) {
+    ARRAYDAT *adat = NULL;
+    csoundCompileOrc(csound, "instr 1\nendin\n");
+    csoundStart(csound); 
+    csoundGetChannelPtr(csound, (void **) &adat, "never_initialized",
+                              CSOUND_ARRAY_CHANNEL |
+                              CSOUND_INPUT_CHANNEL |
+                              CSOUND_OUTPUT_CHANNEL);
+    const char *type = csoundArrayDataType(adat);  
+    ASSERT_TRUE(type == NULL);
+}
+
+
+TEST_F (ChannelTests, AudioChannel)
+{
+    csoundCompileOrc(csound, R"ORC(
+             instr 1
+              sig:a oscili 0dbfs, A4
+              chnset sig, "audio"
+             endin
+             schedule(1,0,1);
+                     )ORC");
+    int32_t err = csoundStart(csound);
+    ASSERT_TRUE(err == CSOUND_SUCCESS);
+    csoundPerformKsmps(csound);
+    cs_float audio[10], rms = 0.; // ksmps defaults to 10
+    csoundGetAudioChannel(csound, "audio", audio);
+    for(int i = 0; i < 10; i++) {
+      rms += audio[i]*audio[i];
+    }
+    rms = sqrt(rms/10);
+    ASSERT_TRUE(rms > 0);
+    // now let's test getting it as an audio variable
+    cs_float pow = 0;
+    const CS_VAR_MEM *var = csoundGetChannel(csound, "audio");
+    const cs_float *sample = &(var->value);
+    for(int i = 0; i < 10; i++) {
+      pow += sample[i]*sample[i];
+    }
+    ASSERT_TRUE(pow > 0);
+}
+
+TEST_F (ChannelTests, ConcurrentStringChannelResize)
+{
+    constexpr size_t maxLength = 65536;
+    std::vector<char> output(maxLength + 1);
+    csoundSetStringChannel(csound, "shared", "a");
+    csoundGetStringChannel(csound, "shared", output.data());
+    std::atomic<int> ready{0};
+    std::atomic<int> finished{0};
+    std::atomic<bool> invalid{false};
+    auto waitForStart = [&]() {
+        ++ready;
+        while (ready.load() != 3)
+            std::this_thread::yield();
+    };
+    auto write = [&](char fill) {
+        waitForStart();
+        for (size_t length = 128; length <= maxLength; length += 128) {
+            const std::string value(length, fill);
+            csoundSetStringChannel(csound, "shared", value.c_str());
+        }
+        ++finished;
+    };
+    std::thread first(write, 'a');
+    std::thread second(write, 'b');
+    std::thread reader([&]() {
+        waitForStart();
+        do {
+            csoundGetStringChannel(csound, "shared", output.data());
+            const size_t length = strlen(output.data());
+            if (length == 0 || length > maxLength ||
+                (output[0] != 'a' && output[0] != 'b')) {
+                invalid.store(true);
+            } else {
+                for (size_t i = 1; i < length; ++i)
+                    if (output[i] != output[0]) invalid.store(true);
+            }
+        } while (finished.load() != 2);
+    });
+    first.join();
+    second.join();
+    reader.join();
+    EXPECT_FALSE(invalid.load());
+    csoundGetStringChannel(csound, "shared", output.data());
+    EXPECT_EQ(strlen(output.data()), maxLength);
+}
+
+TEST_F (ChannelTests, StringOpcodesDuringHostResize)
+{
+    // Let the host finish the test, regardless of simulated score time.
+    ASSERT_EQ(csoundSetOption(csound, "--daemon"), CSOUND_SUCCESS);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        sr = 48000
+        ksmps = 32
+        nchnls = 1
+        chn_S "read", 3
+        chn_S "write", 3
+        instr 1
+          Svalue chnget "read"
+          chnset Svalue, "write"
+        endin
+    )ORC"));
+    // Keep both string opcodes active throughout all host-side resizes.
+    csoundEventString(csound, "i 1 0 -1", 0);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    std::atomic<bool> finished{false};
+    std::thread writer([&]() {
+        for (size_t length = 128; length <= 65536; length += 128) {
+            const std::string value(length, 'x');
+            csoundSetStringChannel(csound, "read", value.c_str());
+            csoundSetStringChannel(csound, "write", value.c_str());
+        }
+        finished.store(true);
+    });
+    int result = 0;
+    do {
+        result = csoundPerformKsmps(csound);
+    } while (!finished.load() && result == 0);
+    writer.join();
+    EXPECT_EQ(result, 0);
+    // An unchanged string must release its lock before the next block.
+    EXPECT_EQ(csoundPerformKsmps(csound), 0);
+    EXPECT_EQ(csoundPerformKsmps(csound), 0);
+    std::vector<char> output(65537);
+    csoundGetStringChannel(csound, "write", output.data());
+    EXPECT_EQ(std::string(output.data()), std::string(65536, 'x'));
+}
+
+TEST_F (ChannelTests, ControlChannelHintsRelease)
+{
+    csoundSetControlChannel(csound, "gain", 0);
+    controlChannelHints_t hints{};
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.max = 1;
+    hints.dflt = .5;
+    char attributes[] = "label=Gain";
+    hints.attributes = attributes;
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+
+    controlChannelHints_t first{}, second{};
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &first));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &second));
+    EXPECT_NE(first.attributes, second.attributes);
+    EXPECT_STREQ(first.attributes, attributes);
+    csoundDeleteControlChannelHints(csound, &first);
+    EXPECT_EQ(first.attributes, nullptr);
+    EXPECT_EQ(first.dflt, .5);
+    csoundDeleteControlChannelHints(csound, &first);
+    EXPECT_STREQ(second.attributes, attributes);
+    csoundDeleteControlChannelHints(csound, &second);
+}
+
+TEST_F (ChannelTests, ControlChannelHintsReplacement)
+{
+    csoundSetControlChannel(csound, "gain", 0);
+    controlChannelHints_t hints{};
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.max = 1;
+    char attributes[] = "label=Gain";
+    hints.attributes = attributes;
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    controlChannelHints_t copy{};
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &copy));
+
+    // A caller can pass the list's attribute snapshot back to the setter.
+    controlChannelInfo_t *list = nullptr;
+    ASSERT_EQ(csoundListChannels(csound, &list), 1);
+    EXPECT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", list[0].hints));
+    csoundDeleteChannelList(csound, list);
+    EXPECT_STREQ(copy.attributes, attributes);
+    csoundDeleteControlChannelHints(csound, &copy);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &copy));
+    EXPECT_STREQ(copy.attributes, attributes);
+    csoundDeleteControlChannelHints(csound, &copy);
+
+    // Rejecting an update must leave the original attributes intact.
+    hints.min = 2;
+    EXPECT_EQ(CSOUND_ERROR, csoundSetControlChannelHints(csound, "gain", hints));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &copy));
+    EXPECT_STREQ(copy.attributes, attributes);
+    csoundDeleteControlChannelHints(csound, &copy);
+    hints.min = 0;
+    hints.attributes = nullptr;
+    EXPECT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &copy));
+    EXPECT_EQ(copy.attributes, nullptr);
+    csoundDeleteControlChannelHints(csound, &copy);
+
+    hints.attributes = attributes;
+    EXPECT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    hints.behav = CSOUND_CONTROL_CHANNEL_NO_HINTS;
+    EXPECT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    EXPECT_EQ(CSOUND_ERROR, csoundGetControlChannelHints(csound, "gain", &copy));
+    ASSERT_EQ(csoundListChannels(csound, &list), 1);
+    EXPECT_EQ(list[0].hints.attributes, nullptr);
+    csoundDeleteChannelList(csound, list);
+}
+
+TEST_F(ChannelTests, ChannelListKeepsHintSnapshot)
+{
+    csoundSetControlChannel(csound, "gain", 0);
+    controlChannelHints_t hints{};
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.max = 1;
+    char original[] = "label=Original";
+    hints.attributes = original;
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    controlChannelInfo_t *list = nullptr;
+    ASSERT_EQ(csoundListChannels(csound, &list), 1);
+
+    char replacement[] = "label=Replacement";
+    hints.attributes = replacement;
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    EXPECT_STREQ(list[0].hints.attributes, original);
+    hints.behav = CSOUND_CONTROL_CHANNEL_NO_HINTS;
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    EXPECT_STREQ(list[0].hints.attributes, original);
+    csoundDeleteChannelList(csound, list);
+}
+
+TEST_F(ChannelTests, ChannelGrowthKeepsCachedPointersAndSortedList)
+{
+    std::vector<cs_float *> values;
+    for (int index = 0; index < 400; index++) {
+        char name[32];
+        snprintf(name, sizeof(name), "growth-%03d", index);
+        void *value = nullptr;
+        ASSERT_EQ(CSOUND_SUCCESS, csoundGetChannelPtr(
+            csound, &value, name, CSOUND_CONTROL_CHANNEL | CSOUND_INPUT_CHANNEL));
+        auto *number = static_cast<cs_float *>(value);
+        *number = index;
+        values.push_back(number);
+    }
+    controlChannelInfo_t *list = nullptr;
+    ASSERT_EQ(csoundListChannels(csound, &list), 400);
+    for (int index = 0; index < 400; index++) {
+        char name[32];
+        snprintf(name, sizeof(name), "growth-%03d", index);
+        EXPECT_STREQ(list[index].name, name);
+        EXPECT_EQ(csoundGetControlChannel(csound, name, nullptr), index);
+        EXPECT_EQ(*values[index], index);
+    }
+    csoundDeleteChannelList(csound, list);
+    csoundReset(csound);
+    EXPECT_EQ(csoundListChannels(csound, &list), 0);
+    EXPECT_EQ(list, nullptr);
+    csoundSetControlChannel(csound, "after-reset", 7);
+    EXPECT_EQ(csoundGetControlChannel(csound, "after-reset", nullptr), 7);
+}
+
+namespace {
+// Replace hints exactly when the getter allocates its result, after it has
+// taken the metadata snapshot. This avoids relying on thread scheduling.
+thread_local void *(*hintTestMalloc)(CSOUND *, size_t);
+void *replaceHintsDuringAllocation(CSOUND *csound, size_t size)
+{
+    csound->Malloc = hintTestMalloc;
+    controlChannelHints_t hints{};
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.max = 1;
+    hints.dflt = 1;
+    char attributes[] = "label=Second";
+    hints.attributes = attributes;
+    EXPECT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+    return hintTestMalloc(csound, size);
+}
+}
+
+TEST_F(ChannelTests, ControlChannelHintsCopyRetainsAttributesDuringAllocation)
+{
+    csoundSetControlChannel(csound, "gain", 0);
+    controlChannelHints_t hints{};
+    hints.behav = CSOUND_CONTROL_CHANNEL_LIN;
+    hints.max = 1;
+    char original[] = "label=Before";
+    hints.attributes = original;
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetControlChannelHints(csound, "gain", hints));
+
+    hintTestMalloc = csound->Malloc;
+    csound->Malloc = replaceHintsDuringAllocation;
+    controlChannelHints_t copy{};
+    int result = csoundGetControlChannelHints(csound, "gain", &copy);
+    csound->Malloc = hintTestMalloc;
+    ASSERT_EQ(result, CSOUND_SUCCESS);
+    EXPECT_EQ(copy.dflt, 0);
+    EXPECT_STREQ(copy.attributes, original);
+    csoundDeleteControlChannelHints(csound, &copy);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundGetControlChannelHints(csound, "gain", &copy));
+    EXPECT_EQ(copy.dflt, 1);
+    EXPECT_STREQ(copy.attributes, "label=Second");
+    csoundDeleteControlChannelHints(csound, &copy);
+}
+
+TEST_F (ChannelTests, ChnparamsWithAttributes)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        chn_k "hinted", 3, 2, 0.5, 0, 1, 10, 10, 50, 100, "label=Gain"
+        itype, imode, ictltype, idflt, imin, imax chnparams "hinted"
+        chnset ictltype, "behavior"
+        chnset idflt, "default"
+        chnset imax, "maximum"
+    )ORC"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    EXPECT_EQ(csoundGetControlChannel(csound, "behavior", nullptr), 2);
+    EXPECT_EQ(csoundGetControlChannel(csound, "default", nullptr), .5);
+    EXPECT_EQ(csoundGetControlChannel(csound, "maximum", nullptr), 1);
+}
+
+TEST_F(ChannelTests, StringCopyFollowsInputCallback)
+{
+    std::string input = "initial";
+    csoundSetHostData(csound, &input);
+    csoundSetInputChannelCallback(csound,
+        [](CSOUND *cs, const char *, void *output, const void *) {
+            const auto *text = static_cast<const std::string *>(csoundGetHostData(cs));
+            strcpy(static_cast<char *>(output), text->c_str());
+        });
+    const auto path = std::filesystem::path(__FILE__).parent_path() /
+                      "fixtures" / "string_callback_copy.csd";
+    ASSERT_EQ(csoundCompileCSD(csound, path.string().c_str(), 0, 0), 0);
+    ASSERT_EQ(csoundStart(csound), 0);
+
+    // A downstream strcpyk must see changed, repeated and empty text.
+    for (const char *text : {"initial", "changed", "changed", "", "last"}) {
+        input = text;
+        ASSERT_EQ(csoundPerformKsmps(csound), 0);
+        char output[64];
+        csoundGetStringChannel(csound, "copy", output);
+        EXPECT_STREQ(output, text);
+    }
+    csoundSetInputChannelCallback(csound, nullptr);
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    char output[64];
+    csoundGetStringChannel(csound, "copy", output);
+    EXPECT_STREQ(output, "");
+    csoundSetHostData(csound, nullptr);
+}
+
+namespace {
+struct InvalueStringState {
+    std::string value;
+    int calls = 0;
+};
+
+void invalueStringInput(CSOUND* csound, const char* name,
+                        void* value, const void*)
+{
+    auto* state = static_cast<InvalueStringState*>(csoundGetHostData(csound));
+    EXPECT_TRUE(strcmp(name, "text") == 0 || strcmp(name, "7") == 0);
+    EXPECT_LT(state->value.size(), 256u);
+    strcpy(static_cast<char*>(value), state->value.c_str());
+    state->calls++;
+}
+}
+
+class InvalueStringTests : public ChannelTests,
+                           public ::testing::WithParamInterface<int> {};
+
+TEST_P(InvalueStringTests, PublishesCallbackAndEmptyUpdates)
+{
+    InvalueStringState state{"initial"};
+    csoundSetHostData(csound, &state);
+    csoundSetInputChannelCallback(csound, invalueStringInput);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--daemon"));
+    std::string orc = R"ORC(
+        sr = 1024
+        ksmps = 32
+        nchnls = 1
+        instr 1
+          setksmps )ORC" + std::to_string(GetParam()) + R"ORC(
+          Snamed invalue "text"
+          ScopyNamed strcpyk Snamed
+          Snumber invalue 7
+          ScopyNumber strcpyk Snumber
+          chnset Snamed, "named"
+          chnset ScopyNamed, "named-copy"
+          chnset Snumber, "number"
+          chnset ScopyNumber, "number-copy"
+        endin
+    )ORC";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc.c_str()));
+    csoundEventString(csound, "i 1 0 -1", 0);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    const std::vector<std::string> values{
+        "initial", "changed", "changed", "", std::string(200, 'x'), "short"
+    };
+    for (const auto& value : values) {
+        state.value = value;
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        for (const char* name : {"named", "named-copy", "number", "number-copy"}) {
+            char output[256];
+            csoundGetStringChannel(csound, name, output);
+            EXPECT_EQ(value, output) << name;
+        }
+    }
+    EXPECT_GT(state.calls, 0);
+    csoundSetInputChannelCallback(csound, nullptr);
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    for (const char* name : {"named", "named-copy", "number", "number-copy"}) {
+        char output[256];
+        csoundGetStringChannel(csound, name, output);
+        EXPECT_STREQ("", output) << name;
+    }
+    csoundSetHostData(csound, nullptr);
+}
+
+INSTANTIATE_TEST_SUITE_P(ControlBlocks, InvalueStringTests,
+                         ::testing::Values(1, 4, 32));
+
+TEST_F(ChannelTests, IrateInvalueReadsEachChannelOnce)
+{
+    int calls[2] = {0, 0};
+    csoundSetHostData(csound, calls);
+    csoundSetInputChannelCallback(csound,
+        [](CSOUND* cs, const char* name, void* value, const void*) {
+            auto* counts = static_cast<int*>(csoundGetHostData(cs));
+            int index = strcmp(name, "1") == 0 ? 0 : 1;
+            *static_cast<cs_float*>(value) = ++counts[index];
+        });
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--daemon"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        instr 1
+          iNumber invalue 1
+          iNamed invalue "control"
+          chnset iNumber, "number-result"
+          chnset iNamed, "named-result"
+        endin
+    )ORC"));
+    csoundEventString(csound, "i 1 0 -1", 0);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_EQ(1, calls[0]);
+    EXPECT_EQ(1, calls[1]);
+    EXPECT_EQ(cs_float(1.0), csoundGetControlChannel(csound, "number-result", nullptr));
+    EXPECT_EQ(cs_float(1.0), csoundGetControlChannel(csound, "named-result", nullptr));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    EXPECT_EQ(1, calls[0]);
+    EXPECT_EQ(1, calls[1]);
+    csoundSetInputChannelCallback(csound, nullptr);
+    csoundSetHostData(csound, nullptr);
 }

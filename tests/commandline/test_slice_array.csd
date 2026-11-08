@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing slice shorthand"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n 
@@ -10,9 +16,23 @@ arr:i[] = [1,2,3,4,5,6,7]
 sl:i[] = arr[0 : 4, 2]
 printarray(sl)
 endin
+
+instr 2
+i1[] = [1 ... 4]
+i2[] = i1[2:]
+i3[] = i1[:2]
+print(i2)
+print(i3)
+endin
+
+instr 3
+test2:i[] = ([1,2,3,4,5,6,7,8,9])[:5]
+endin
+
 </CsInstruments>
 <CsScore>
-i1 0 0.001
+i1 0 0
+i2 0 0
 </CsScore>
 </CsoundSynthesizer>
 

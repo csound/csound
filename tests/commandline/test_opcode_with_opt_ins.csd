@@ -1,3 +1,9 @@
+<CsTest>
+description = "test opcode with opt ins only"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

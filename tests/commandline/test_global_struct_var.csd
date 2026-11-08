@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing global structure var"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n 

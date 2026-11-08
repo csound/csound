@@ -41,13 +41,13 @@ void SpectralExtract(
     int32    fsize,      /* frame size we're working with */
     int32    MaxFrame,
     int32_t     mode,
-    MYFLT   freqlim
+    cs_float   freqlim
     )
 {
     int32    i, j, k;
     float   *frm_1;
     int32    ampindex, freqindex;
-    MYFLT   freqTemp, freqframes[10]={0.0}, freqdiff=FL(0.0), ampscale;
+    cs_float   freqTemp, freqframes[10]={0.0}, freqdiff=FL(0.0), ampscale;
     int32            framecurb;
 
     memcpy(pvcopy, inp, (fsize+2L)*MaxFrame*sizeof(float));
@@ -65,8 +65,8 @@ void SpectralExtract(
 
         /* average the deviation over framecurb interframe periods */
         for (k=0; k<framecurb; k++) {
-          freqTemp = (MYFLT)fabs(freqframes[k] - freqframes[k+1L]);
-          freqdiff += freqTemp * (FL(1.0)/(MYFLT)framecurb);
+          freqTemp = (cs_float)fabs(freqframes[k] - freqframes[k+1L]);
+          freqdiff += freqTemp * (FL(1.0)/(cs_float)framecurb);
         }
 
         if (mode==1) { /* lets through just the "noisy" parts */
@@ -89,7 +89,7 @@ void SpectralExtract(
     }
 }
 
-MYFLT PvocMaxAmp(
+cs_float PvocMaxAmp(
     float   *inp,       /* pointer to input data */
     int32    fsize,      /* frame size we're working with */
     int32    MaxFrame
@@ -98,7 +98,7 @@ MYFLT PvocMaxAmp(
     int32    j, k;
     float   *frm_0, *frmx;
     int32    ampindex;
-    MYFLT   MaxAmpInData = FL(0.0);
+    cs_float   MaxAmpInData = FL(0.0);
 
     frm_0 = inp;
 
@@ -124,10 +124,10 @@ MYFLT PvocMaxAmp(
 /*********************************************************************/
 
 void PvAmpGate(
-    MYFLT   *buf,       /* where to get our mag/pha pairs */
+    cs_float   *buf,       /* where to get our mag/pha pairs */
     int32    fsize,      /* frame size we're working with */
     FUNC    *ampfunc,
-    MYFLT   MaxAmpInData
+    cs_float   MaxAmpInData
     )
 {
     int32    j;

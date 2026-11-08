@@ -51,7 +51,7 @@ typedef struct {
     uint8_t data_size;        
 } MidiEvent;
 
-int is_valid_mask(CSOUND *csound, const char *mask_str, uint16_t *mask) {
+static int is_valid_mask(CSOUND *csound, const char *mask_str, uint16_t *mask) {
     if (mask_str[0] == '\0') {
         fprintf(stderr, "Error: Mask is empty.\n");
         return 0; // Возвращаем 0 вместо false
@@ -86,7 +86,7 @@ int is_valid_mask(CSOUND *csound, const char *mask_str, uint16_t *mask) {
     return 1; 
 }
 
-int count_tracks_to_write(uint32_t *channel_sizes, uint16_t track_mask) {
+static int count_tracks_to_write(const uint32_t *channel_sizes, uint16_t track_mask) {
     int count = 0;
     for (int i = 0; i < MAX_TRACKS; i++) {
         if (channel_sizes[i] > 0 && (track_mask & (1 << i))) {
@@ -96,7 +96,7 @@ int count_tracks_to_write(uint32_t *channel_sizes, uint16_t track_mask) {
     return count;
 }
 
-uint32_t encode_vlq(uint32_t value, uint8_t *buffer) {
+static uint32_t encode_vlq(uint32_t value, uint8_t *buffer) {
     uint32_t size = 0;
     uint32_t shifted_value = value;
 
@@ -118,22 +118,22 @@ uint32_t encode_vlq(uint32_t value, uint8_t *buffer) {
 }
 
 // Helper functions for reading and writing big-endian values
-uint32_t read_be32(const uint8_t *buffer) {
+static uint32_t read_be32(const uint8_t *buffer) {
     return (buffer[0] << 24) | (buffer[1] << 16) | (buffer[2] << 8) | buffer[3];
 }
 
-uint16_t read_be16(const uint8_t *buffer) {
+static uint16_t read_be16(const uint8_t *buffer) {
     return (buffer[0] << 8) | buffer[1];
 }
 
-void write_be32(uint8_t *buffer, uint32_t value) {
+static void write_be32(uint8_t *buffer, uint32_t value) {
     buffer[0] = (value >> 24) & 0xFF;
     buffer[1] = (value >> 16) & 0xFF;
     buffer[2] = (value >> 8) & 0xFF;
     buffer[3] = value & 0xFF;
 }
 
-void write_be16(uint8_t *buffer, uint16_t value) {
+static void write_be16(uint8_t *buffer, uint16_t value) {
     buffer[0] = (value >> 8) & 0xFF;
     buffer[1] = value & 0xFF;
 }
@@ -145,7 +145,7 @@ typedef struct {
     uint16_t division;
 } Smf0Data;
 
-int read_smf0_file(CSOUND *csound, const char *input_file, Smf0Data *smf0_data) {
+static int read_smf0_file(CSOUND *csound, const char *input_file, Smf0Data *smf0_data) {
     FILE *in = fopen(input_file, "rb");
     if (!in) {
         csound->Message(csound, "%s", Str("Error opening input file"));
@@ -202,7 +202,7 @@ typedef struct {
     uint32_t *channel_capacities;
 } ChannelData;
 
-ChannelData parse_track_data(CSOUND *csound, uint8_t *track_data, uint32_t track_size) {
+static ChannelData parse_track_data(CSOUND *csound, uint8_t *track_data, uint32_t track_size) {
     ChannelData channel_data = {0};
     channel_data.channel_buffers = malloc(MAX_TRACKS * sizeof(MidiEvent*));
     channel_data.channel_sizes = malloc(MAX_TRACKS * sizeof(uint32_t));
@@ -267,7 +267,7 @@ ChannelData parse_track_data(CSOUND *csound, uint8_t *track_data, uint32_t track
     return channel_data;
 }
 
-int write_smf1_file(CSOUND *csound, const char *output_file, uint16_t track_mask, uint16_t division, ChannelData channel_data) {
+static int write_smf1_file(CSOUND *csound, const char *output_file, uint16_t track_mask, uint16_t division, ChannelData channel_data) {
     FILE *out = fopen(output_file, "wb");
     if (!out) {
         csound->Message(csound, "%s", Str("Error opening output file"));
@@ -353,7 +353,7 @@ int write_smf1_file(CSOUND *csound, const char *output_file, uint16_t track_mask
     return 0;
 }
 
-int convert_smf0_to_smf1(CSOUND *csound, const char *input_file, const char *output_file, uint16_t track_mask) {
+static int convert_smf0_to_smf1(CSOUND *csound, const char *input_file, const char *output_file, uint16_t track_mask) {
     Smf0Data smf0_data;
     if (read_smf0_file(csound, input_file, &smf0_data) == -1) {
 	csound->Message(csound, "%s", Str("Failed to read SMF0 file\n"));

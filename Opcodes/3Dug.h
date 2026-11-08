@@ -48,8 +48,8 @@
 /*                               36, 24, 12, 1 };                        */
 
 typedef struct {
-    MYFLT left[256];  /* left and right will hold FFTed values of HRTFs */
-    MYFLT right[256];
+    cs_float left[256];  /* left and right will hold FFTed values of HRTFs */
+    cs_float right[256];
 } HRTF_DATUM;
 
 #endif

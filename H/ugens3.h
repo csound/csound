@@ -26,8 +26,8 @@
 
 typedef struct {
   OPDS    h;
-  MYFLT   *rslt, *xamp, *kcps, *xcar, *xmod, *kndx, *ifn, *iphs;
-  double mphsf, cphsf;
+  cs_float   *rslt, *xamp, *kcps, *xcar, *xmod, *kndx, *ifn, *iphs;
+  cs_double mphsf, cphsf;
   int32   mphs, cphs, floatph;
   int16   ampcod, carcod, modcod;
   FUNC    *ftp;
@@ -35,26 +35,26 @@ typedef struct {
 
 typedef struct {
   OPDS    h;
-  MYFLT   *ar1,*ar2,*xamp,*kcps,*ifn,*ibas,*imod1,*ibeg1,*iend1,
+  cs_float   *ar1,*ar2,*xamp,*kcps,*ifn,*ibas,*imod1,*ibeg1,*iend1,
     *imod2,*ibeg2,*iend2;
-  double   cpscvt;
-  double   lphs;
+  cs_double   cpscvt;
+  cs_double   lphs;
   int16   mod1, mod2;
-  MYFLT   beg1, beg2;
-  MYFLT   end1, end2;
+  cs_float   beg1, beg2;
+  cs_float   end1, end2;
   int16   seg1, curmod, looping, stereo;
   FUNC    *ftp;
 } LOSC;
 
 typedef struct {
   OPDS    h;
-  MYFLT   *sphs, *ar1,*ar2,*xamp,*kcps,*ifn,*ibas,*imod1,*ibeg1,*iend1,
+  cs_float   *sphs, *ar1,*ar2,*xamp,*kcps,*ifn,*ibas,*imod1,*ibeg1,*iend1,
     *imod2,*ibeg2,*iend2;
-  double   cpscvt;
-  double   lphs;
+  cs_double   cpscvt;
+  cs_double   lphs;
   int16   mod1, mod2;
-  MYFLT   beg1, beg2;
-  MYFLT   end1, end2;
+  cs_float   beg1, beg2;
+  cs_float   end1, end2;
   int16   seg1, curmod, looping, stereo;
   FUNC    *ftp;
 } LOSCPHS;
@@ -76,7 +76,7 @@ typedef struct ptlptr {
 
 typedef struct {
   OPDS    h;
-  MYFLT   *rslt, *kamod, *kfmod, *ksmod, *ifilcod, *dum;
+  cs_float   *rslt, *kamod, *kfmod, *ksmod, *ifilcod, *dum;
   MEMFIL  *mfp;
   int32   mksecs;
   AUXCH   aux;            /* PTLPTR  ptlptrs[MAXPTLS + 1]; make dynamic */

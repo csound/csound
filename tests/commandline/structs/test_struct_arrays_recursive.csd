@@ -1,3 +1,9 @@
+<CsTest>
+description = "test recursive struct arrays"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

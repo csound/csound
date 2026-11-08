@@ -35,7 +35,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     int32_t  err = 0;
     p = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                         "STDOPC_GLOBALS");
-    
+
     if(p == NULL) {
       if(UNLIKELY(csound->CreateGlobalVariable(csound,
                                              "STDOPC_GLOBALS", sizeof(STDOPCOD_GLOBALS))
@@ -47,14 +47,13 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
       p = (STDOPCOD_GLOBALS*) csound->QueryGlobalVariable(csound,
                                                             "STDOPC_GLOBALS");
     } else return CSOUND_SUCCESS;  // already initialised
-    
+
     p->csound = csound;
     /* fout.c */
     p->file_opened = (struct fileinTag*) NULL;
     p->file_num = -1;
-    /*p->buf = (MYFLT*) NULL;*/
+    /*p->buf = (cs_float*) NULL;*/
     /* ugnorman.c */
-    p->atsbufreadaddr = NULL;
     err |= ambicode_init_(csound);
     err |= bbcut_init_(csound);
     err |= biquad_init_(csound);
@@ -97,7 +96,11 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
     err |= ugsc_init_(csound);
     err |= wave_terrain_init_(csound);
     err |= wter2_init_(csound);
-    
+    err |= dbap_init_(csound);
+    err |= savgol_init_(csound);
+    err |= remap_init_(csound);
+    err |= stm_init_(csound);
+
     return (err ? CSOUND_ERROR : CSOUND_SUCCESS);
 }
 
@@ -116,7 +119,7 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
 
  int32_t csoundModuleInfo(void)
 {
-    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+  return CSOUND_MODULE_INFO;
 }
 
   int32_t csoundModuleDestroy(CSOUND *csound)
@@ -125,4 +128,3 @@ int32_t stdopc_ModuleInit(CSOUND *csound)
 }
 
 #endif
-

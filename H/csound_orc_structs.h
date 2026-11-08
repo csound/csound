@@ -31,32 +31,43 @@
 
 typedef struct initstructvar {
   OPDS h;
-  MYFLT* out;
-  MYFLT* inArgs[VARGMAX];
+  cs_float* out;
+  cs_float* inArgs[VARGMAX];
 } INIT_STRUCT_VAR;
 
-typedef struct csstructvar {
-  CS_VAR_MEM** members;      /* Pointer array of member memory blocks (owned or aliased) */
-  int32_t      memberCount;  /* Number of members; needed for deallocation without type */
-  int32_t      ownsMembers;  /* 1 if this instance owns members storage and should free */
-} CS_STRUCT_VAR;
+#include "csound_structs.h"
+
+/* Owned member blocks stored with the member pointer table. */
+#define CSOUND_STRUCT_MEMBERS_POOLED 2
 
 typedef struct {
     OPDS          h;
     CS_STRUCT_VAR*   out;
-    MYFLT*        args[VARGMAX];
+    cs_float*        args[VARGMAX];
 } STRUCT_INIT;
 
 /* Returns a dynamically allocated string; caller must free using csound->Free() */
 int findStructMemberIndex(CONS_CELL* members, char* memberName);
 CS_VARIABLE* getStructMember(CONS_CELL* members, char* memberName);
+/* Checks the variable and nested struct or array members for target. */
+int32_t csound_variable_contains_type(const CS_VARIABLE *var,
+                                      const CS_TYPE *target);
 int32_t initStructVar(CSOUND* csound, void* p);
-void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, MYFLT* mem);
+void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, cs_float* mem);
 /* Note: signatures must match CS_TYPE callbacks in csound_type_system.h */
-CS_VARIABLE* createStructVar(void* cs, void* p, INSDS* ctx);
+CS_VARIABLE* createStructVar(void* cs, const CS_TYPE* type,
+                             const void* typeArg, INSDS* ctx);
 void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest,
                    const void* src, INSDS* p);
-OENTRY* new_struct_init_oentry(CSOUND* csound, CS_TYPE* type);
+typedef enum {
+  CSOUND_STRUCT_COPY_SHARED_ARRAYS,
+  CSOUND_STRUCT_COPY_INDEPENDENT_NO_ALLOCATION,
+  CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION
+} CSOUND_STRUCT_COPY_MODE;
+int32_t csound_copy_struct_value(CSOUND *csound,
+                                 const CS_TYPE *structType,
+                                 void *dest, const void *src, INSDS *ctx,
+                                 CSOUND_STRUCT_COPY_MODE mode);
 int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree);
 void freeStructVarMemory(void *csnd, void *p);
 void csound_free_struct_members(CSOUND *csound, CS_STRUCT_VAR *var);

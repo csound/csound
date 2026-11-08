@@ -34,110 +34,143 @@
 
 /* rewritten code for dconv, includes speedup tip from
    Moore: Elements of Computer Music */
-static int32_t dconvset(CSOUND *csound, DCONV *p)
+static int32_t dconvset_common(CSOUND *csound, OPDS *h, DCONV_STATE *p,
+                                cs_float isize, cs_float *ifn)
 {
     FUNC *ftp;
+    cs_double len = (cs_double)isize;
+    size_t nbytes;
+    int32_t channels = p->out.channels;
 
-    p->len = (int32_t)*p->isize;
-    if (LIKELY((ftp = csound->FTFind(csound,
-                                        p->ifn)) != NULL)) {   /* find table */
-      p->ftp = ftp;
-      if ((uint32_t)ftp->flen < p->len)
-        p->len = ftp->flen; /* correct len if flen shorter */
-    }
-    else {
-      return csound->InitError(csound, "%s", Str("No table for dconv"));
-    }
-    if (p->sigbuf.auxp == NULL ||
-        p->sigbuf.size < (uint32_t)(p->len*sizeof(MYFLT)))
-      csound->AuxAlloc(csound, p->len*sizeof(MYFLT), &p->sigbuf);
+    if (UNLIKELY(channels < 1))
+      return csound->InitError(csound, "%s\n", Str("dconv: invalid number of channels"));
+    if (UNLIKELY(!(len >= 1.0)))
+      return csound->InitError(csound, "%s\n", Str("dconv: isize must be at least 1"));
+    if ((ftp = csound->FTFind(csound, ifn)) == NULL)
+      return csound->InitError(csound, "%s\n", Str("No table for dconv"));
+    uint32_t frames = ftp->flen / channels;
+    if (UNLIKELY(frames < 1))
+      return csound->InitError(csound, "%s\n", Str("dconv: insufficient IR data for convolution"));
+    p->ftp = ftp;
+    /* isize counts frames, each containing one tap per output channel. */
+    p->len = len >= frames ? frames : (uint32_t)len;
+    if (UNLIKELY((uint64_t)p->len * sizeof(cs_float) > SIZE_MAX))
+      return csound->InitError(csound, "%s\n", Str("dconv: impulse response too large"));
+    if (conv_output_init(csound, h, &p->out) != OK)
+      return NOTOK;
+    nbytes = (size_t)p->len * sizeof(cs_float);
+    if (p->sigbuf.auxp == NULL || p->sigbuf.size < nbytes)
+      csound->AuxAlloc(csound, nbytes, &p->sigbuf);
     else
-      memset(p->sigbuf.auxp, '\0', p->len*sizeof(MYFLT));
-    p->curp = (MYFLT *)p->sigbuf.auxp;
+      memset(p->sigbuf.auxp, '\0', nbytes);
+    p->curp = (cs_float *)p->sigbuf.auxp;
     return OK;
+}
+
+static int32_t dconv_common(CSOUND *csound, OPDS *h, DCONV_STATE *p, const cs_float *ain)
+{
+    uint32_t offset = h->insdshead->ksmps_offset;
+    uint32_t early = h->insdshead->ksmps_no_end;
+    uint32_t n, nsmps = h->insdshead->ksmps;
+    uint32_t len = p->len;
+    int32_t channels = p->out.channels;
+    cs_float *startp = (cs_float *)p->sigbuf.auxp;
+    cs_float *endp = startp + len;
+    cs_float *curp = p->curp;
+
+    if (conv_output_ready(csound, h, &p->out) != OK)
+      return NOTOK;
+    nsmps -= early;
+    for (int32_t ch = 0; ch < channels; ch++) {
+      cs_float *ar = conv_output_channel(&p->out, ch);
+      if (UNLIKELY(offset)) memset(ar, 0, offset * sizeof(cs_float));
+      if (UNLIKELY(early)) memset(ar + nsmps, 0, early * sizeof(cs_float));
+    }
+    for (n = offset; n < nsmps; n++) {
+      /* Save input before writing any output, including an in-place output. */
+      *curp = ain[n];
+      for (int32_t ch = 0; ch < channels; ch++) {
+        const cs_float *tap = p->ftp->ftable + ch;
+        cs_float *sample = curp;
+        uint32_t i = 1;
+        cs_float sum = *sample++ * tap[0];
+        while (sample < endp)
+          sum += *sample++ * tap[(size_t)i++ * channels];
+        sample = startp;
+        while (i < len)
+          sum += *sample++ * tap[(size_t)i++ * channels];
+        conv_output_channel(&p->out, ch)[n] = sum;
+      }
+      if (curp == startp) curp = endp;
+      --curp;
+    }
+    p->curp = curp;
+    return OK;
+}
+
+static int32_t dconvset(CSOUND *csound, DCONV *p)
+{
+    p->state.out = (CONV_OUTPUT){p->ar, NULL, (int32_t)p->OUTOCOUNT};
+    return dconvset_common(csound, &p->h, &p->state, *p->isize, p->ifn);
+}
+
+static int32_t dconv_array_set(CSOUND *csound, DCONV_ARRAY *p)
+{
+    p->state.out = (CONV_OUTPUT){NULL, p->ar, conv_array_channels(*p->ichannels)};
+    return dconvset_common(csound, &p->h, &p->state, *p->isize, p->ifn);
 }
 
 static int32_t dconv(CSOUND *csound, DCONV *p)
 {
-    IGN(csound);
-    int32_t i = 0;
-    uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    int32_t len = p->len;
-    MYFLT *ar, *ain, *ftp, *startp, *endp, *curp;
-    MYFLT sum;
+    return dconv_common(csound, &p->h, &p->state, p->ain);
+}
 
-    ain = p->ain;                               /* read saved values */
-    ar = p->ar;
-    ftp = p->ftp->ftable;
-    startp = (MYFLT *) p->sigbuf.auxp;
-    endp = startp + len;
-    curp = p->curp;
-
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
-    if (UNLIKELY(early)) {
-      nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
-    }
-    for (n=offset; n<nsmps; n++) {
-      *curp = ain[n];                           /* get next input sample */
-      i = 1, sum = *curp++ * ftp[0];
-      while (curp<endp)
-        sum += (*curp++ * ftp[i++]);            /* start the convolution */
-      curp = startp;                            /* correct the ptr */
-      while (i<len)
-        sum += (*curp++ * ftp[i++]);            /* finish the convolution */
-      if (--curp < startp)
-        curp += len;                            /* correct for last curp++ */
-      ar[n] = sum;
-    }
-
-    p->curp = curp;                             /* save state */
-    return OK;
+static int32_t dconv_array(CSOUND *csound, DCONV_ARRAY *p)
+{
+    return dconv_common(csound, &p->h, &p->state, p->ain);
 }
 
 static int32_t and_kk(CSOUND *csound, AOP *p)
 {
     IGN(csound);
 #ifndef USE_DOUBLE    
-    int32_t input1 = MYFLT2LRND(*p->a);
-    int32_t input2 = MYFLT2LRND(*p->b);
+    int32_t input1 = CS_FLOAT2LRND(*p->a);
+    int32_t input2 = CS_FLOAT2LRND(*p->b);
 #else
-    int64_t input1 = MYFLT2LRND64(*p->a);
-    int64_t input2 = MYFLT2LRND64(*p->b);
+    int64_t input1 = CS_FLOAT2LRND64(*p->a);
+    int64_t input2 = CS_FLOAT2LRND64(*p->b);
 #endif    
-    *p->r = (MYFLT)(input1 & input2);
+    *p->r = (cs_float)(input1 & input2);
     return OK;
 }
 
 static int32_t and_aa(CSOUND *csound, AOP *p)
 {
     IGN(csound);
-    MYFLT *r    = p->r;
-    MYFLT *in1  = p->a;
-    MYFLT *in2  = p->b;
+    cs_float *r    = p->r;
+    cs_float *in1  = p->a;
+    cs_float *in2  = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     int32_t   n, nsmps = CS_KSMPS;
 
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE        
       int32_t  input1, input2;
-      input1 = MYFLT2LRND(in1[n]);
-      input2 = MYFLT2LRND(in2[n]);
+      input1 = CS_FLOAT2LRND(in1[n]);
+      input2 = CS_FLOAT2LRND(in2[n]);
 #else
       int64_t  input1, input2;
-      input1 = MYFLT2LRND64(in1[n]);
-      input2 = MYFLT2LRND64(in2[n]);
+      input1 = CS_FLOAT2LRND64(in1[n]);
+      input2 = CS_FLOAT2LRND64(in2[n]);
 #endif      
-      r[n] = (MYFLT) (input1 & input2);
+      r[n] = (cs_float) (input1 & input2);
     }
     return OK;
 }
@@ -145,30 +178,30 @@ static int32_t and_aa(CSOUND *csound, AOP *p)
 static int32_t and_ak(CSOUND *csound, AOP *p)
 {
     IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in1 = p->a;
+    cs_float *r = p->r;
+    cs_float *in1 = p->a;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->b);
+      int32_t input1 = CS_FLOAT2LRND(*p->b);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->b);
+      int64_t input1 = CS_FLOAT2LRND64(*p->b);
 #endif   
 
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input2 = MYFLT2LRND(in1[n]);
+      int32_t input2 = CS_FLOAT2LRND(in1[n]);
 #else
-      int64_t input2 = MYFLT2LRND64(in1[n]);
+      int64_t input2 = CS_FLOAT2LRND64(in1[n]);
 #endif
-      r[n] = (MYFLT)(input1 & input2);
+      r[n] = (cs_float)(input1 & input2);
     }
     return OK;
 }
@@ -176,29 +209,29 @@ static int32_t and_ak(CSOUND *csound, AOP *p)
 static int32_t and_ka(CSOUND *csound, AOP *p)
 {
     IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in2 = p->b;
+    cs_float *r = p->r;
+    cs_float *in2 = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->a);
+      int32_t input1 = CS_FLOAT2LRND(*p->a);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->a);
+      int64_t input1 = CS_FLOAT2LRND64(*p->a);
 #endif   
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input2 = MYFLT2LRND(in2[n]);
+      int32_t input2 = CS_FLOAT2LRND(in2[n]);
 #else
-      int64_t input2 = MYFLT2LRND64(in2[n]);
+      int64_t input2 = CS_FLOAT2LRND64(in2[n]);
 #endif
-      r[n] = (MYFLT)(input1 & input2);
+      r[n] = (cs_float)(input1 & input2);
     }
     return OK;
 }
@@ -207,42 +240,42 @@ static int32_t or_kk(CSOUND *csound, AOP *p)
 {
     IGN(csound);
 #ifndef USE_DOUBLE    
-    int32_t input1 = MYFLT2LRND(*p->a);
-    int32_t input2 = MYFLT2LRND(*p->b);
+    int32_t input1 = CS_FLOAT2LRND(*p->a);
+    int32_t input2 = CS_FLOAT2LRND(*p->b);
 #else
-    int64_t input1 = MYFLT2LRND64(*p->a);
-    int64_t input2 = MYFLT2LRND64(*p->b);
+    int64_t input1 = CS_FLOAT2LRND64(*p->a);
+    int64_t input2 = CS_FLOAT2LRND64(*p->b);
 #endif  
-    *p->r = (MYFLT)(input1 | input2);
+    *p->r = (cs_float)(input1 | input2);
     return OK;
 }
 
 static int32_t or_aa(CSOUND *csound, AOP *p)
 {
     IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in1 = p->a;
-    MYFLT *in2 = p->b;
+    cs_float *r = p->r;
+    cs_float *in1 = p->a;
+    cs_float *in2 = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE        
       int32_t  input1, input2;
-      input1 = MYFLT2LRND(in1[n]);
-      input2 = MYFLT2LRND(in2[n]);
+      input1 = CS_FLOAT2LRND(in1[n]);
+      input2 = CS_FLOAT2LRND(in2[n]);
 #else
       int64_t  input1, input2;
-      input1 = MYFLT2LRND64(in1[n]);
-      input2 = MYFLT2LRND64(in2[n]);
+      input1 = CS_FLOAT2LRND64(in1[n]);
+      input2 = CS_FLOAT2LRND64(in2[n]);
 #endif      
-      r[n] = (MYFLT)(input1 | input2);
+      r[n] = (cs_float)(input1 | input2);
     }
     return OK;
 }
@@ -250,29 +283,29 @@ static int32_t or_aa(CSOUND *csound, AOP *p)
 static int32_t or_ak(CSOUND *csound, AOP *p)
 {
     IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in1 = p->a;
+    cs_float *r = p->r;
+    cs_float *in1 = p->a;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->b);
+      int32_t input1 = CS_FLOAT2LRND(*p->b);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->b);
+      int64_t input1 = CS_FLOAT2LRND64(*p->b);
 #endif   
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input2 = MYFLT2LRND(in1[n]);
+      int32_t input2 = CS_FLOAT2LRND(in1[n]);
 #else
-      int64_t input2 = MYFLT2LRND64(in1[n]);
+      int64_t input2 = CS_FLOAT2LRND64(in1[n]);
 #endif
-      r[n] = (MYFLT)(input1 | input2);
+      r[n] = (cs_float)(input1 | input2);
     }
     return OK;
 }
@@ -280,29 +313,29 @@ static int32_t or_ak(CSOUND *csound, AOP *p)
 static int32_t or_ka(CSOUND *csound, AOP *p)
 {
     IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in2 = p->b;
+    cs_float *r = p->r;
+    cs_float *in2 = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->a);
+      int32_t input1 = CS_FLOAT2LRND(*p->a);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->a);
+      int64_t input1 = CS_FLOAT2LRND64(*p->a);
 #endif   
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input2 = MYFLT2LRND(in2[n]);
+      int32_t input2 = CS_FLOAT2LRND(in2[n]);
 #else
-      int64_t input2 = MYFLT2LRND64(in2[n]);
+      int64_t input2 = CS_FLOAT2LRND64(in2[n]);
 #endif
-      r[n] = (MYFLT)(input1 | input2);
+      r[n] = (cs_float)(input1 | input2);
     }
     return OK;
 }
@@ -311,42 +344,42 @@ static int32_t xor_kk(CSOUND *csound, AOP *p)
 {
     IGN(csound);
 #ifndef USE_DOUBLE    
-    int32_t input1 = MYFLT2LRND(*p->a);
-    int32_t input2 = MYFLT2LRND(*p->b);
+    int32_t input1 = CS_FLOAT2LRND(*p->a);
+    int32_t input2 = CS_FLOAT2LRND(*p->b);
 #else
-    int64_t input1 = MYFLT2LRND64(*p->a);
-    int64_t input2 = MYFLT2LRND64(*p->b);
+    int64_t input1 = CS_FLOAT2LRND64(*p->a);
+    int64_t input2 = CS_FLOAT2LRND64(*p->b);
 #endif  
-    *p->r = (MYFLT)(input1 ^ input2);
+    *p->r = (cs_float)(input1 ^ input2);
     return OK;
 }
 
 static int32_t xor_aa(CSOUND *csound, AOP *p)
 {
     IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in1 = p->a;
-    MYFLT *in2 = p->b;
+    cs_float *r = p->r;
+    cs_float *in1 = p->a;
+    cs_float *in2 = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = 0; n < nsmps; n++) {
 #ifndef USE_DOUBLE        
       int32_t  input1, input2;
-      input1 = MYFLT2LRND(in1[n]);
-      input2 = MYFLT2LRND(in2[n]);
+      input1 = CS_FLOAT2LRND(in1[n]);
+      input2 = CS_FLOAT2LRND(in2[n]);
 #else
       int64_t  input1, input2;
-      input1 = MYFLT2LRND64(in1[n]);
-      input2 = MYFLT2LRND64(in2[n]);
+      input1 = CS_FLOAT2LRND64(in1[n]);
+      input2 = CS_FLOAT2LRND64(in2[n]);
 #endif  
-      r[n] = (MYFLT)(input1 ^ input2);
+      r[n] = (cs_float)(input1 ^ input2);
     }
     return OK;
 }
@@ -354,29 +387,29 @@ static int32_t xor_aa(CSOUND *csound, AOP *p)
 static int32_t xor_ak(CSOUND *csound, AOP *p)
 {
      IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in1 = p->a;
+    cs_float *r = p->r;
+    cs_float *in1 = p->a;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->b);
+      int32_t input1 = CS_FLOAT2LRND(*p->b);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->b);
+      int64_t input1 = CS_FLOAT2LRND64(*p->b);
 #endif   
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input2 = MYFLT2LRND(in1[n]);
+      int32_t input2 = CS_FLOAT2LRND(in1[n]);
 #else
-      int64_t input2 = MYFLT2LRND64(in1[n]);
+      int64_t input2 = CS_FLOAT2LRND64(in1[n]);
 #endif
-      r[n] = (MYFLT)(input1 ^ input2);
+      r[n] = (cs_float)(input1 ^ input2);
     }
    return OK;
 }
@@ -384,73 +417,91 @@ static int32_t xor_ak(CSOUND *csound, AOP *p)
 static int32_t xor_ka(CSOUND *csound, AOP *p)
 {
      IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in2 = p->b;
+    cs_float *r = p->r;
+    cs_float *in2 = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->a);
+      int32_t input1 = CS_FLOAT2LRND(*p->a);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->a);
+      int64_t input1 = CS_FLOAT2LRND64(*p->a);
 #endif   
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input2 = MYFLT2LRND(in2[n]);
+      int32_t input2 = CS_FLOAT2LRND(in2[n]);
 #else
-      int64_t input2 = MYFLT2LRND64(in2[n]);
+      int64_t input2 = CS_FLOAT2LRND64(in2[n]);
 #endif
-      r[n] = (MYFLT)(input1 ^ input2);
+      r[n] = (cs_float)(input1 ^ input2);
     }
     return OK;
 }
+
+/* Use unsigned left shifts so negative values and discarded high bits do not
+   cause signed overflow. Mask counts to the word width, preserving the usual
+   machine-shift behavior. Right shifts retain their signed arithmetic result. */
+#ifdef USE_DOUBLE
+typedef int64_t BITSHIFT_INT;
+typedef uint64_t BITSHIFT_UINT;
+#define BITSHIFT_MASK 63U
+#else
+typedef int32_t BITSHIFT_INT;
+typedef uint32_t BITSHIFT_UINT;
+#define BITSHIFT_MASK 31U
+#endif
+#define BITSHIFT_LEFT(value, count) \
+    ((BITSHIFT_INT)((BITSHIFT_UINT)(value) << \
+                   ((BITSHIFT_UINT)(count) & BITSHIFT_MASK)))
+#define BITSHIFT_RIGHT(value, count) \
+    ((value) >> ((BITSHIFT_UINT)(count) & BITSHIFT_MASK))
 
 static int32_t shift_left_kk(CSOUND *csound, AOP *p)
 {
     IGN(csound);
 #ifndef USE_DOUBLE    
-    int32_t input1 = MYFLT2LRND(*p->a);
-    int32_t input2 = MYFLT2LRND(*p->b);
+    int32_t input1 = CS_FLOAT2LRND(*p->a);
+    int32_t input2 = CS_FLOAT2LRND(*p->b);
 #else
-    int64_t input1 = MYFLT2LRND64(*p->a);
-    int64_t input2 = MYFLT2LRND64(*p->b);
+    int64_t input1 = CS_FLOAT2LRND64(*p->a);
+    int64_t input2 = CS_FLOAT2LRND64(*p->b);
 #endif 
-    *p->r = (MYFLT) (input1 << input2);
+    *p->r = (cs_float) BITSHIFT_LEFT(input1, input2);
     return OK;
 }
 
 static int32_t shift_left_aa(CSOUND *csound, AOP *p)
 {
     IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in1 = p->a;
-    MYFLT *in2 = p->b;
+    cs_float *r = p->r;
+    cs_float *in1 = p->a;
+    cs_float *in2 = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
-    for (n = 0; n < nsmps; n++) {
+    for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE        
       int32_t  input1, input2;
-      input1 = MYFLT2LRND(in1[n]);
-      input2 = MYFLT2LRND(in2[n]);
+      input1 = CS_FLOAT2LRND(in1[n]);
+      input2 = CS_FLOAT2LRND(in2[n]);
 #else
       int64_t  input1, input2;
-      input1 = MYFLT2LRND64(in1[n]);
-      input2 = MYFLT2LRND64(in2[n]);
+      input1 = CS_FLOAT2LRND64(in1[n]);
+      input2 = CS_FLOAT2LRND64(in2[n]);
 #endif  
-      r[n] = (MYFLT)(input1 << input2);
+      r[n] = (cs_float)BITSHIFT_LEFT(input1, input2);
     }
     return OK;
 }
@@ -458,29 +509,29 @@ static int32_t shift_left_aa(CSOUND *csound, AOP *p)
 static int32_t shift_left_ak(CSOUND *csound, AOP *p)
 {
      IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in1 = p->a;
+    cs_float *r = p->r;
+    cs_float *in1 = p->a;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->b);
+      int32_t input2 = CS_FLOAT2LRND(*p->b);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->b);
+      int64_t input2 = CS_FLOAT2LRND64(*p->b);
 #endif   
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input2 = MYFLT2LRND(in1[n]);
+      int32_t input1 = CS_FLOAT2LRND(in1[n]);
 #else
-      int64_t input2 = MYFLT2LRND64(in1[n]);
+      int64_t input1 = CS_FLOAT2LRND64(in1[n]);
 #endif
-      r[n] = (MYFLT)(input1 << input2);
+      r[n] = (cs_float)BITSHIFT_LEFT(input1, input2);
     }
     return OK;
 }
@@ -488,29 +539,29 @@ static int32_t shift_left_ak(CSOUND *csound, AOP *p)
 static int32_t shift_left_ka(CSOUND *csound, AOP *p)
 {
      IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in2 = p->b;
+    cs_float *r = p->r;
+    cs_float *in2 = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->a);
+      int32_t input1 = CS_FLOAT2LRND(*p->a);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->a);
+      int64_t input1 = CS_FLOAT2LRND64(*p->a);
 #endif   
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input2 = MYFLT2LRND(in2[n]);
+      int32_t input2 = CS_FLOAT2LRND(in2[n]);
 #else
-      int64_t input2 = MYFLT2LRND64(in2[n]);
+      int64_t input2 = CS_FLOAT2LRND64(in2[n]);
 #endif
-      r[n] = (MYFLT)(input1 << input2);
+      r[n] = (cs_float)BITSHIFT_LEFT(input1, input2);
     }
     return OK;
 }
@@ -519,42 +570,42 @@ static int32_t shift_right_kk(CSOUND *csound, AOP *p)
 {
     IGN(csound);
 #ifndef USE_DOUBLE    
-    int32_t input1 = MYFLT2LRND(*p->a);
-    int32_t input2 = MYFLT2LRND(*p->b);
+    int32_t input1 = CS_FLOAT2LRND(*p->a);
+    int32_t input2 = CS_FLOAT2LRND(*p->b);
 #else
-    int64_t input1 = MYFLT2LRND64(*p->a);
-    int64_t input2 = MYFLT2LRND64(*p->b);
+    int64_t input1 = CS_FLOAT2LRND64(*p->a);
+    int64_t input2 = CS_FLOAT2LRND64(*p->b);
 #endif 
-    *p->r = (MYFLT) (input1 >> input2);
+    *p->r = (cs_float) BITSHIFT_RIGHT(input1, input2);
     return OK;
 }
 
 static int32_t shift_right_aa(CSOUND *csound, AOP *p)
 {
     IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in1 = p->a;
-    MYFLT *in2 = p->b;
+    cs_float *r = p->r;
+    cs_float *in1 = p->a;
+    cs_float *in2 = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
-    for (n = 0; n < nsmps; n++) {
+    for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE        
       int32_t  input1, input2;
-      input1 = MYFLT2LRND(in1[n]);
-      input2 = MYFLT2LRND(in2[n]);
+      input1 = CS_FLOAT2LRND(in1[n]);
+      input2 = CS_FLOAT2LRND(in2[n]);
 #else
       int64_t  input1, input2;
-      input1 = MYFLT2LRND64(in1[n]);
-      input2 = MYFLT2LRND64(in2[n]);
+      input1 = CS_FLOAT2LRND64(in1[n]);
+      input2 = CS_FLOAT2LRND64(in2[n]);
 #endif  
-      p->r[n] = (MYFLT) (input1 >> input2);
+      p->r[n] = (cs_float) BITSHIFT_RIGHT(input1, input2);
     }
     return OK;
 }
@@ -562,29 +613,29 @@ static int32_t shift_right_aa(CSOUND *csound, AOP *p)
 static int32_t shift_right_ak(CSOUND *csound, AOP *p)
 {
     IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in1 = p->a;
+    cs_float *r = p->r;
+    cs_float *in1 = p->a;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->b);
+      int32_t input2 = CS_FLOAT2LRND(*p->b);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->b);
+      int64_t input2 = CS_FLOAT2LRND64(*p->b);
 #endif   
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input2 = MYFLT2LRND(in1[n]);
+      int32_t input1 = CS_FLOAT2LRND(in1[n]);
 #else
-      int64_t input2 = MYFLT2LRND64(in1[n]);
+      int64_t input1 = CS_FLOAT2LRND64(in1[n]);
 #endif
-      p->r[n] = (MYFLT) (input1 >> input2);
+      p->r[n] = (cs_float) BITSHIFT_RIGHT(input1, input2);
     }
     return OK;
 }
@@ -592,29 +643,29 @@ static int32_t shift_right_ak(CSOUND *csound, AOP *p)
 static int32_t shift_right_ka(CSOUND *csound, AOP *p)
 {
      IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in2 = p->b;
+    cs_float *r = p->r;
+    cs_float *in2 = p->b;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->a);
+      int32_t input1 = CS_FLOAT2LRND(*p->a);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->a);
+      int64_t input1 = CS_FLOAT2LRND64(*p->a);
 #endif   
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input2 = MYFLT2LRND(in2[n]);
+      int32_t input2 = CS_FLOAT2LRND(in2[n]);
 #else
-      int64_t input2 = MYFLT2LRND64(in2[n]);
+      int64_t input2 = CS_FLOAT2LRND64(in2[n]);
 #endif
-      p->r[n] = (MYFLT) (input1 >> input2);
+      p->r[n] = (cs_float) BITSHIFT_RIGHT(input1, input2);
     }
     return OK;
 }
@@ -623,35 +674,35 @@ static int32_t not_k(CSOUND *csound, AOP *p)    /* Added for completeness by JPf
 {
      IGN(csound);
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(*p->a);
+      int32_t input1 = CS_FLOAT2LRND(*p->a);
 #else
-      int64_t input1 = MYFLT2LRND64(*p->a);
+      int64_t input1 = CS_FLOAT2LRND64(*p->a);
 #endif
-    *p->r = (MYFLT)(~input1);
+    *p->r = (cs_float)(~input1);
     return OK;
 }
 
 static int32_t not_a(CSOUND *csound, AOP *p)
 {
     IGN(csound);
-    MYFLT *r = p->r;
-    MYFLT *in1 = p->a;
+    cs_float *r = p->r;
+    cs_float *in1 = p->a;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
-    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&r[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&r[nsmps], '\0', early*sizeof(cs_float));
     }
      for (n = offset; n < nsmps; n++) {
 #ifndef USE_DOUBLE      
-      int32_t input1 = MYFLT2LRND(in1[n]);
+      int32_t input1 = CS_FLOAT2LRND(in1[n]);
 #else
-      int64_t input1 = MYFLT2LRND64(in1[n]);
+      int64_t input1 = CS_FLOAT2LRND64(in1[n]);
 #endif
-      r[n] = (MYFLT)(~input1);
+      r[n] = (cs_float)(~input1);
     }
     return OK;
 }
@@ -661,90 +712,98 @@ static int32_t not_a(CSOUND *csound, AOP *p)
 
 static int32_t vcombset(CSOUND *csound, VCOMB *p)
 {
-    int32_t        lpsiz, nbytes;
-
-    if (*p->insmps != FL(0.0)) {
-      if (UNLIKELY((lpsiz = MYFLT2LONG(*p->imaxlpt)) <= 0)) {
-        return csound->InitError(csound, "%s", Str("illegal loop time"));
-      }
+    cs_float samples = *p->insmps != FL(0) ? *p->imaxlpt : *p->imaxlpt * CS_ESR;
+    if (UNLIKELY(!((cs_double) samples >= 1.0 &&
+                   (cs_double) samples <= (INT32_MAX + 0.0) &&
+                   (cs_double) samples <= (cs_double)(SIZE_MAX / sizeof(cs_float))))) {
+      return csound->InitError(csound, "%s\n", Str("illegal loop time"));
     }
-    else if (UNLIKELY((lpsiz = (int32)(*p->imaxlpt * CS_ESR)) <= 0)) {
-      return csound->InitError(csound, "%s", Str("illegal loop time"));
-    }
-    nbytes = lpsiz * sizeof(MYFLT);
-    if (p->auxch.auxp == NULL || nbytes != (int32_t)p->auxch.size) {
-      csound->AuxAlloc(csound, (size_t)nbytes, &p->auxch);
-      p->pntr = (MYFLT *) p->auxch.auxp;
+    uint32_t lpsiz = (uint32_t) samples;
+    size_t nbytes = (size_t) lpsiz * sizeof(cs_float);
+    if (p->auxch.auxp == NULL || nbytes != p->auxch.size) {
+      csound->AuxAlloc(csound, nbytes, &p->auxch);
+      p->pntr = (cs_float *) p->auxch.auxp;
       if (UNLIKELY(p->pntr==NULL)) {
-        return csound->InitError(csound, "%s", Str("could not allocate memory"));
+        return csound->InitError(csound, "%s\n", Str("could not allocate memory"));
       }
     }
     else if (!(*p->istor)) {
-      int32_t *fp = (int32_t *) p->auxch.auxp;
-      p->pntr = (MYFLT *) fp;
+      p->pntr = (cs_float *) p->auxch.auxp;
       memset(p->pntr, 0, nbytes);
-      /* do   /\* Seems to assume sizeof(int32)=sizeof(MYFLT) *\/ */
-      /*   *fp++ = 0; */
-      /* while (--lpsiz); */
     }
     p->rvt = FL(0.0);
-    p->lpt = FL(0.0);
+    p->lpt = 0;
     p->g   = FL(0.0);
     p->lpta = IS_ASIG_ARG(p->xlpt) ? 1 : 0;
-    if (*p->insmps == 0) p->maxlpt = *p->imaxlpt * CS_ESR;
-    else p->maxlpt = *p->imaxlpt;
+    p->maxlpt = lpsiz;
     return OK;
 }
+
+/* Feedback requires at least one sample of delay. Bound before conversion. */
+#define VCOMB_DELAY(value, scale, maximum, result) do {                   \
+    cs_float delaySamples = (value) * (scale);                              \
+    (result) = !(delaySamples >= FL(1)) ? 1 :                             \
+      ((cs_double) delaySamples >= (maximum) ? (maximum) :                   \
+       (uint32_t) delaySamples);                                        \
+  } while (0)
+
+/* Wrap an integer index without first forming a pointer before the array. */
+#define VCOMB_READ(write, start, size, delay, read) do {                   \
+    uint32_t writeIndex = (uint32_t) ((write) - (start));                 \
+    (read) = (start) + (writeIndex >= (delay) ? writeIndex - (delay) :     \
+                       (size) - ((delay) - writeIndex));                \
+  } while (0)
 
 static int32_t vcomb(CSOUND *csound, VCOMB *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
-    uint32_t      xlpt, maxlpt = (uint32)p->maxlpt;
-    MYFLT       *ar, *asig, *rp, *endp, *startp, *wp, *lpt;
-    MYFLT       g = p->g;
+    uint32_t      xlpt, maxlpt = p->maxlpt;
+    cs_float       *ar, *asig, *rp, *endp, *startp, *wp, *lpt;
+    cs_float       g = p->g;
+    cs_float sampleScale = *p->insmps != 0 ? FL(1.0) : CS_ESR;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
     asig = p->asig;
-    endp = (MYFLT *) p->auxch.endp;
-    startp = (MYFLT *) p->auxch.auxp;
+    endp = (cs_float *) p->auxch.endp;
+    startp = (cs_float *) p->auxch.auxp;
     wp = p->pntr;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     if (p->lpta) {                               /* if xlpt is a-rate */
-      lpt = p->xlpt;
+      lpt = p->xlpt + offset;
       for (n=offset; n<nsmps; n++) {
-        xlpt = (uint32)((*p->insmps != 0) ? *lpt : *lpt * CS_ESR);
-        if (xlpt > maxlpt) xlpt = maxlpt;
-        if ((rp = wp - xlpt) < startp) rp += maxlpt;
-        if ((p->rvt != *p->krvt) || (p->lpt != *lpt)) {
-          p->rvt = *p->krvt, p->lpt = *lpt;
-          g = p->g = POWER(FL(0.001), (p->lpt / p->rvt));
+        VCOMB_DELAY(*lpt, sampleScale, maxlpt, xlpt);
+        VCOMB_READ(wp, startp, maxlpt, xlpt, rp);
+        if ((p->rvt != *p->krvt) || (p->lpt != xlpt)) {
+          p->rvt = *p->krvt, p->lpt = xlpt;
+          g = p->g = p->rvt == FL(0) ? FL(0) :
+            POWER(FL(0.001), (p->lpt * CS_ONEDSR / p->rvt));
         }
         lpt++;
-        ar[n] = *rp++;
-        *wp++ = (ar[n] * g) + asig[n];
+        cs_float output = *rp++;
+        *wp++ = (output * g) + asig[n];
+        ar[n] = output;
         if (wp >= endp) wp = startp;
-        //if (rp >= endp) rp = startp;
       }
     }
     else {                                       /* if xlpt is k-rate */
-      xlpt = (uint32) ((*p->insmps != 0) ? *p->xlpt
-                                                  : *p->xlpt * CS_ESR);
-      if (xlpt > maxlpt) xlpt = maxlpt;
-      if ((rp = wp - xlpt) < startp) rp += maxlpt;
-      if ((p->rvt != *p->krvt) || (p->lpt != *p->xlpt)) {
-        p->rvt = *p->krvt, p->lpt = *p->xlpt;
-        g = p->g = POWER(FL(0.001), (p->lpt / p->rvt));
+      VCOMB_DELAY(*p->xlpt, sampleScale, maxlpt, xlpt);
+      VCOMB_READ(wp, startp, maxlpt, xlpt, rp);
+      if ((p->rvt != *p->krvt) || (p->lpt != xlpt)) {
+        p->rvt = *p->krvt, p->lpt = xlpt;
+        g = p->g = p->rvt == FL(0) ? FL(0) :
+            POWER(FL(0.001), (p->lpt * CS_ONEDSR / p->rvt));
       }
       for (n=offset; n<nsmps; n++) {
-        ar[n] = *rp++;
-        *wp++ = (ar[n] * g) + asig[n];
+        cs_float output = *rp++;
+        *wp++ = (output * g) + asig[n];
+        ar[n] = output;
         if (wp >= endp) wp = startp;
         if (rp >= endp) rp = startp;
       }
@@ -753,7 +812,7 @@ static int32_t vcomb(CSOUND *csound, VCOMB *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("vcomb: not initialised"));
+                             "%s\n", Str("vcomb: not initialised"));
 }
 
 static int32_t valpass(CSOUND *csound, VCOMB *p)
@@ -761,46 +820,45 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    uint32_t xlpt, maxlpt = (uint32)p->maxlpt;
-    MYFLT       *ar, *asig, *rp, *startp, *endp, *wp, *lpt;
-    MYFLT       y, z, g = p->g;
+    uint32_t xlpt, maxlpt = p->maxlpt;
+    cs_float       *ar, *asig, *rp, *startp, *endp, *wp, *lpt;
+    cs_float       y, z, g = p->g;
+    cs_float sampleScale = *p->insmps != 0 ? FL(1.0) : CS_ESR;
 
     if (UNLIKELY(p->auxch.auxp==NULL)) goto err1;
     ar = p->ar;
     asig = p->asig;
-    endp = (MYFLT *) p->auxch.endp;
-    startp = (MYFLT *) p->auxch.auxp;
+    endp = (cs_float *) p->auxch.endp;
+    startp = (cs_float *) p->auxch.auxp;
     wp = p->pntr;
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     if (p->lpta) {                                      /* if xlpt is a-rate */
       lpt = p->xlpt;
       for (n=offset; n<nsmps; n++) {
-        xlpt = (uint32)((*p->insmps != 0) ? lpt[n] : lpt[n] * CS_ESR);
-        if (xlpt > maxlpt) xlpt = maxlpt;
-        if ((rp = wp - xlpt) < startp) rp += maxlpt;
-        if ((p->rvt != *p->krvt) || (p->lpt != lpt[n])) {
-          p->rvt = *p->krvt, p->lpt = lpt[n];
-          g = p->g = POWER(FL(0.001), (p->lpt / p->rvt));
+        VCOMB_DELAY(lpt[n], sampleScale, maxlpt, xlpt);
+        VCOMB_READ(wp, startp, maxlpt, xlpt, rp);
+        if ((p->rvt != *p->krvt) || (p->lpt != xlpt)) {
+          p->rvt = *p->krvt, p->lpt = xlpt;
+          g = p->g = p->rvt == FL(0) ? FL(0) :
+            POWER(FL(0.001), (p->lpt * CS_ONEDSR / p->rvt));
         }
         y = *rp++;
         *wp++ = z = y * g + asig[n];
         ar[n] = y - g * z;
         if (wp >= endp) wp = startp;
-        //if (rp >= endp) rp = startp;
       }
     }
     else {                                              /* if xlpt is k-rate */
-      xlpt = (uint32) ((*p->insmps != 0) ? *p->xlpt
-                                         : *p->xlpt * CS_ESR);
-      if (xlpt > maxlpt) xlpt = maxlpt;
-      if ((rp = wp - xlpt) < startp) rp += maxlpt;
-      if ((p->rvt != *p->krvt) || (p->lpt != *p->xlpt)) {
-        p->rvt = *p->krvt, p->lpt = *p->xlpt;
-        g = p->g = POWER(FL(0.001), (p->lpt / p->rvt));
+      VCOMB_DELAY(*p->xlpt, sampleScale, maxlpt, xlpt);
+      VCOMB_READ(wp, startp, maxlpt, xlpt, rp);
+      if ((p->rvt != *p->krvt) || (p->lpt != xlpt)) {
+        p->rvt = *p->krvt, p->lpt = xlpt;
+        g = p->g = p->rvt == FL(0) ? FL(0) :
+            POWER(FL(0.001), (p->lpt * CS_ONEDSR / p->rvt));
       }
       for (n=offset; n<nsmps; n++) {
         y = *rp++;
@@ -814,8 +872,11 @@ static int32_t valpass(CSOUND *csound, VCOMB *p)
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h),
-                             "%s", Str("valpass: not initialised"));
+                             "%s\n", Str("valpass: not initialised"));
 }
+
+#undef VCOMB_DELAY
+#undef VCOMB_READ
 
 static int32_t ftmorfset(CSOUND *csound, FTMORF *p)
 {
@@ -827,25 +888,25 @@ static int32_t ftmorfset(CSOUND *csound, FTMORF *p)
       p->resfn = ftp, len = p->resfn->flen;
     }
     else {
-      return csound->InitError(csound, "%s", Str("iresfn for ftmorf does not exist"));
+      return csound->InitError(csound, "%s\n", Str("iresfn for ftmorf does not exist"));
     }
     /* make sure ftfn exists and set it up */
     if (LIKELY((ftp = csound->FTFind(csound, p->iftfn)) != NULL)) {
       p->ftfn = ftp;
     }
     else {
-      return csound->InitError(csound, "%s", Str("iftfn for ftmorf does not exist"));
+      return csound->InitError(csound, "%s\n", Str("iftfn for ftmorf does not exist"));
     }
 
     do {                /* make sure tables in ftfn exist and are right size*/
       if (LIKELY((ftp = csound->FTFind(csound, p->ftfn->ftable + j)) != NULL)) {
         if (UNLIKELY((uint32_t)ftp->flen != len)) {
           return csound->InitError(csound,
-                                   "%s", Str("table in iftfn for ftmorf wrong size"));
+                                   "%s\n", Str("table in iftfn for ftmorf wrong size"));
         }
       }
       else {
-        return csound->InitError(csound, "%s", Str("table in iftfn for ftmorf "
+        return csound->InitError(csound, "%s\n", Str("table in iftfn for ftmorf "
                                              "does not exist"));
       }
     } while (++j < (int32_t)p->ftfn->flen);
@@ -857,25 +918,37 @@ static int32_t ftmorfset(CSOUND *csound, FTMORF *p)
 
 static int32_t ftmorf(CSOUND *csound, FTMORF *p)
 {
-    uint32_t j = 0;
-    int32_t i;
-    MYFLT f;
+    uint32_t j, i;
+    cs_double ndx = *p->kftndx;
+    cs_float f;
     FUNC *ftp1, *ftp2;
 
-    if (*p->kftndx >= p->ftfn->flen) *p->kftndx = (MYFLT)(p->ftfn->flen - 1);
-    i = (int32_t)*p->kftndx;
-    f = *p->kftndx - i;
-    if (p->ftndx != *p->kftndx && p->ftfn->ftable) {
-      p->ftndx = *p->kftndx;
-      MYFLT tbl1 = *(p->ftfn->ftable + i++);
-      MYFLT tbl2 = *(p->ftfn->ftable + i--);
-      ftp1 = csound->FTFind(csound, &tbl1);
-      ftp2 = csound->FTFind(csound, &tbl2);
-     if(ftp2)
-      do {
-            *(p->resfn->ftable + j) = (*(ftp1->ftable + j) * (1-f)) +
-              (*(ftp2->ftable + j) * f);
-      } while (++j < p->len);
+    /* Clamp locally: the input can also be used by other opcodes. */
+    if (ndx < 0.0)
+      ndx = 0.0;
+    else if (ndx > (cs_double)p->ftfn->flen - 1.0)
+      ndx = (cs_double)p->ftfn->flen - 1.0;
+    else if (UNLIKELY(!(ndx >= 0.0)))
+      return csound->PerfError(csound, &(p->h),
+                              "%s\n", Str("ftmorf: invalid index"));
+    if (p->ftndx != ndx) {
+      i = (uint32_t)ndx;
+      f = (cs_float)(ndx - i);
+      ftp1 = csound->FTFind(csound, &p->ftfn->ftable[i]);
+      ftp2 = f != FL(0.0) ?
+        csound->FTFind(csound, &p->ftfn->ftable[i + 1]) : ftp1;
+      /* The table list may have changed since initialisation. */
+      if (UNLIKELY(ftp1 == NULL || ftp2 == NULL))
+        return csound->PerfError(csound, &(p->h),
+                                "%s\n", Str("ftmorf: source table does not exist"));
+      if (UNLIKELY(ftp1->flen != p->len || ftp2->flen != p->len))
+        return csound->PerfError(csound, &(p->h),
+                                "%s\n", Str("ftmorf: source table has wrong size"));
+      /* Interpolating readers also need the source tables' guard points. */
+      for (j = 0; j <= p->len; j++)
+        p->resfn->ftable[j] = ftp1->ftable[j] * (FL(1.0) - f) +
+                             ftp2->ftable[j] * f;
+      p->ftndx = (cs_float)ndx;
     }
     return OK;
 }
@@ -885,7 +958,10 @@ static int32_t ftmorf(CSOUND *csound, FTMORF *p)
 
 static OENTRY localops[] =
   {
-   { "dconv",  S(DCONV), TR, "a", "aii",   (SUBR)dconvset, (SUBR)dconv },
+   { "dconv", S(DCONV), TR, CONV_OUTPUT_TYPES, "aii",
+     (SUBR)dconvset, (SUBR)dconv },
+   { "dconv", S(DCONV_ARRAY), TR, "a[]", "aiii",
+     (SUBR)dconv_array_set, (SUBR)dconv_array },
    { "vcomb", S(VCOMB),  0, "a", "akxioo", (SUBR)vcombset, (SUBR)vcomb   },
    { "valpass", S(VCOMB),0, "a", "akxioo", (SUBR)vcombset, (SUBR)valpass },
    { "ftmorf", S(FTMORF),TR, "",  "kii",  (SUBR)ftmorfset,  (SUBR)ftmorf,    },

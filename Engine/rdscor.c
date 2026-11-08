@@ -24,7 +24,7 @@
 #include "corfile.h"
 #include "udo.h"
 
-char* csoundGetArgString(CSOUND *csound, MYFLT p)
+char* csoundGetArgString(CSOUND *csound, cs_float p)
 {
     int32 n;
     char *ss;
@@ -33,11 +33,13 @@ char* csoundGetArgString(CSOUND *csound, MYFLT p)
       ip = ((OPCOD_IOBUFS*)ip->opcod_iobufs)->parent_ip;
     }
     ss = ip->strarg;  /* look at this instr's strarg */
+    if (ss == NULL)   /* none: no string behind the code */
+      return NULL;
 
 #ifdef USE_DOUBLE
     {
       union {
-        MYFLT d;
+        cs_float d;
         int32 i[2];
       } ch;
       ch.d = p;
@@ -50,7 +52,7 @@ char* csoundGetArgString(CSOUND *csound, MYFLT p)
 #else
     {
       union {
-        MYFLT d;
+        cs_float d;
         int32 j;
       } ch;
       ch.d = p; n = ch.j&0xffff;
@@ -64,14 +66,14 @@ char* csoundGetArgString(CSOUND *csound, MYFLT p)
     return ss;
 }
 
-char* get_string_arg_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt)
+char* get_string_arg_from_evt(CSOUND *csound, cs_float p, EVTBLK *evt)
 {
     int32 n;
     char *ss = evt->strarg;
 #ifdef USE_DOUBLE
     {
       union {
-        MYFLT d;
+        cs_float d;
         int32 i[2];
       } ch;
       ch.d = p;
@@ -84,7 +86,7 @@ char* get_string_arg_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt)
 #else
     {
       union {
-        MYFLT d;
+        cs_float d;
         int32 j;
       } ch;
       ch.d = p; n = ch.j&0xffff;
@@ -102,29 +104,32 @@ char* get_string_arg_from_evt(CSOUND *csound, MYFLT p, EVTBLK *evt)
 void set_evt_strarg(CSOUND *csound, EVTBLK *e, int32_t pcnt, const
                     char *str) {
   int32_t scnt = e->scnt;
-  size_t strsiz = strlen(str);
+  size_t strsiz = strlen(str) + 1;
   if (e->strarg == NULL) {
-    e->strarg = csound->Malloc(csound, strsiz+1);
+    e->strarg = csound->Malloc(csound, strsiz);
     memcpy(e->strarg, str, strsiz);
   }
   else {
-    strsiz = strlen(e->strarg);
-    e->strarg = csound->ReAlloc(csound, e->strarg,
-                                strsiz+strlen(str)+1);
-    memcpy(e->strarg+strsiz, str, strlen(str));
+    size_t offset = 0;
+    int32_t i;
+    /* String codes index a list of NUL-terminated strings. */
+    for (i = 0; i < scnt; ++i)
+      offset += strlen(e->strarg + offset) + 1;
+    e->strarg = csound->ReAlloc(csound, e->strarg, offset + strsiz);
+    memcpy(e->strarg + offset, str, strsiz);
   }
 
 #ifdef USE_DOUBLE              
   int32_t sel = (byte_order()+1)&1;
   union {
-    MYFLT d;
+    cs_float d;
     int32 i[2];
   } ch;
   ch.d = SSTRCOD; ch.i[sel] += scnt++;
   e->p[pcnt] = ch.d;           /* set as string with count */
 #else
   union {
-    MYFLT d;
+    cs_float d;
     int32 i;
   } ch;
   ch.d = SSTRCOD; ch.i += scnt++;
@@ -144,8 +149,8 @@ static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
         ;
 }
 
-static int32_t scanflt(CSOUND *csound, MYFLT *pfld)
-{   /* read a MYFLT from scorefile; return 1 if OK, else 0 */
+static int32_t scanflt(CSOUND *csound, cs_float *pfld)
+{   /* read a cs_float from scorefile; return 1 if OK, else 0 */
     int32_t     c;
 
     while ((c = corfile_getc(csound->scstr)) == ' ' ||
@@ -190,7 +195,7 @@ static int32_t scanflt(CSOUND *csound, MYFLT *pfld)
       {
         int32_t sel = (byte_order()+1)&1;
         union {
-          MYFLT d;
+          cs_float d;
           int32 i[2];
         } ch;
         ch.d = SSTRCOD;
@@ -202,7 +207,7 @@ static int32_t scanflt(CSOUND *csound, MYFLT *pfld)
 #else
       {
         union {
-          MYFLT d;
+          cs_float d;
           int32 j;
         } ch;
         ch.d = SSTRCOD;
@@ -225,7 +230,7 @@ static int32_t scanflt(CSOUND *csound, MYFLT *pfld)
     }
     corfile_ungetc(csound->scstr);
     {
-      MYFLT ans = corfile_get_flt(csound->scstr);
+      cs_float ans = corfile_get_flt(csound->scstr);
       *pfld = ans;
       //printf("%s(%d):%lf %lf\n", __FILE__, __LINE__, ans, *pfld);
     }
@@ -245,14 +250,14 @@ static void dumpline(CSOUND *csound)    /* print the line while flushing it */
 int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile */
 /*  & maintain section warped status   */
 {                                     /*      presumes good format if warped */
-  MYFLT   *pp, *plim;
+  cs_float   *pp, *plim;
   int32_t c;
   int msize = PMAX;
   e->pinstance = NULL;
   if (csound->scstr == NULL ||
       csound->scstr->body[0] == '\0') {   /* if no concurrent scorefile  */
     e->opcod = 'f';             /*     return an 'f 0 3600'    */
-    e->p = csound->Calloc(csound, sizeof(MYFLT)*3);
+    e->p = csound->Calloc(csound, sizeof(cs_float)*3);
     e->p[1] = FL(0.0);
     e->p[2] = FL(INF);
     e->p2orig = FL(INF);
@@ -261,7 +266,7 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
     return(1);
   }
     
-  e->p = csound->Calloc(csound, sizeof(MYFLT)*(msize+1));
+  e->p = csound->Calloc(csound, sizeof(cs_float)*(msize+1));
   /* else read the real score */
   while ((c = corfile_getc(csound->scstr)) != '\0') {
     csound->scnt = 0;
@@ -295,13 +300,14 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
           size_t ofs;
           ofs = pp - e->p;
           msize += PMAX;
-          e->p =  (MYFLT*) csound->ReAlloc(csound, e->p,
-                                           sizeof(MYFLT)*msize);
+          e->p =  (cs_float*) csound->ReAlloc(csound, e->p,
+                                           sizeof(cs_float)*(msize+1));
           if (UNLIKELY(e->p==NULL)) {
             fprintf(stderr, Str("Out of Memory\n"));
             exit(7);
           }
           pp = e->p + ofs;
+          plim = e->p + msize;
         }
       }
       e->p2orig = e->p[2];                 /* now go count the pfields */
@@ -334,13 +340,14 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
                     size_t ofs;
                     ofs = pp - e->p;
                     msize += PMAX;
-                    e->p = (MYFLT*) csound->ReAlloc(csound, e->p,
-                                                     sizeof(MYFLT)*msize);
-                    pp = e->p + ofs;
+                    e->p = (cs_float*) csound->ReAlloc(csound, e->p,
+                                                     sizeof(cs_float)*(msize+1));
                     if (UNLIKELY(e->p==NULL)) {
                       fprintf(stderr, Str("Out of Memory\n"));
                       exit(7);
                     }
+                    pp = e->p + ofs;
+                    plim = e->p + msize;
                   }
                 }
     setp:

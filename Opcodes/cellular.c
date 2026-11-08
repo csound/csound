@@ -33,51 +33,58 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ktrig, *kreinit, *ioutFunc, *initStateFunc,
+    cs_float   *ktrig, *kreinit, *ioutFunc, *initStateFunc,
             *iRuleFunc, *ielements;
-    MYFLT   *currLine, *outVec, *initVec, *ruleVec;
+    cs_float   *currLine, *outVec, *initVec, *ruleVec;
     int32_t     elements, NewOld;
+    uint32_t    rulelen;
   AUXCH   auxch;
 } CELL;
 
 static int32_t cell_set(CSOUND *csound,CELL *p)
 {
     FUNC        *ftp;
-    int32_t elements=0;
-    MYFLT *currLine, *initVec = NULL;
+    cs_double count = *p->ielements;
+    int32_t elements;
+    cs_float *currLine, *initVec = NULL;
+
+    if (UNLIKELY(!(count >= 1.0 && count <= (INT32_MAX + 0.0) &&
+                   count <= (cs_double)(SIZE_MAX / (2 * sizeof(cs_float))))))
+      return csound->InitError(csound, "%s\n", Str("cell: invalid num of elements"));
+    elements = p->elements = (int32_t)count;
 
     if (LIKELY((ftp = csound->FTFind(csound,p->ioutFunc)) != NULL)) {
       p->outVec = ftp->ftable;
-      elements = (p->elements = (int32_t) *p->ielements);
 
-      if (UNLIKELY( elements > (int32_t)ftp->flen ))
-        return csound->InitError(csound, "%s",
+      if (UNLIKELY((uint32_t)elements > ftp->flen))
+        return csound->InitError(csound, "%s\n",
                                  Str("cell: invalid num of elements"));
     }
-    else return csound->InitError(csound, "%s", Str("cell: invalid output table"));
+    else return csound->InitError(csound, "%s\n", Str("cell: invalid output table"));
     if (LIKELY((ftp = csound->FTFind(csound,p->initStateFunc)) != NULL)) {
       initVec = (p->initVec = ftp->ftable);
-      if (UNLIKELY(elements > (int32_t)ftp->flen ))
-        return csound->InitError(csound, "%s",
+      if (UNLIKELY((uint32_t)elements > ftp->flen))
+        return csound->InitError(csound, "%s\n",
                                  Str("cell: invalid num of elements"));
     }
     else
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("cell: invalid initial state table"));
     if (LIKELY((ftp = csound->FTFind(csound,p->iRuleFunc)) != NULL)) {
       p->ruleVec = ftp->ftable;
+      p->rulelen = ftp->flen;
     }
     else
-      return csound->InitError(csound, "%s", Str("cell: invalid rule table"));
+      return csound->InitError(csound, "%s\n", Str("cell: invalid rule table"));
 
-    if (p->auxch.auxp == NULL)
-      csound->AuxAlloc(csound, elements * sizeof(MYFLT) * 2, &p->auxch);
-    currLine = (p->currLine = (MYFLT *) p->auxch.auxp);
+    if (p->auxch.auxp == NULL ||
+        p->auxch.size < elements * sizeof(cs_float) * 2)
+      csound->AuxAlloc(csound, elements * sizeof(cs_float) * 2, &p->auxch);
+    currLine = (p->currLine = (cs_float *) p->auxch.auxp);
     p->NewOld = 0;
-    memcpy(currLine, initVec, sizeof(MYFLT)*elements);
-    /* do { */
-    /*   *currLine++ = *initVec++; */
-    /* } while (--elements); */
+    memcpy(currLine, initVec, sizeof(cs_float)*elements);
+    /* Both the next generation and the held output start at the initial state. */
+    memcpy(currLine + elements, initVec, sizeof(cs_float)*elements);
 
 
     return OK;
@@ -85,17 +92,15 @@ static int32_t cell_set(CSOUND *csound,CELL *p)
 
 static int32_t cell(CSOUND *csound,CELL *p)
 {
-     IGN(csound);
     if (*p->kreinit) {
       p->NewOld = 0;
-      memcpy(p->currLine, p->initVec, sizeof(MYFLT)*p->elements);
-      /* do { */
-      /*   *currLine++ = *initVec++; */
-      /* } while (--elements); */
+      memcpy(p->currLine, p->initVec, sizeof(cs_float)*p->elements);
+      memcpy(p->currLine + p->elements, p->initVec,
+             sizeof(cs_float)*p->elements);
     }
     if (*p->ktrig) {
       int32_t j, elements = p->elements, jm1;
-      MYFLT *actual, *previous, *outVec = p->outVec , *ruleVec = p->ruleVec;
+      cs_float *actual, *previous, *outVec = p->outVec , *ruleVec = p->ruleVec;
 
       previous = &(p->currLine[elements * p->NewOld]);
       p->NewOld += 1;
@@ -106,16 +111,22 @@ static int32_t cell(CSOUND *csound,CELL *p)
       for (j=0; j < elements; j++) {
 
         jm1 = (j < 1) ? elements-1 : j-1;
-        outVec[j] = previous[j];
-        actual[j] = ruleVec[(int32_t)(previous[jm1]*4 + previous[j]*2 +
-                                  previous[(j+1) % elements])];
+        cs_double index = previous[jm1]*4 + previous[j]*2 +
+                       previous[j+1 == elements ? 0 : j+1];
+        /* Truncate fractional indices, as before, but check before converting. */
+        if (UNLIKELY(!(index > -1.0 && index < p->rulelen)))
+          return csound->PerfError(csound, &p->h, "%s\n",
+                                   Str("cell: rule index out of range"));
+        actual[j] = ruleVec[(uint32_t)index];
       }
+      /* Finish reading the rule before writing an output table that may alias it. */
+      memcpy(outVec, previous, sizeof(cs_float)*elements);
 
     } else {
       int32_t
         elements =  p->elements;
-      MYFLT *actual = &(p->currLine[elements * !(p->NewOld)]);
-      memcpy(p->outVec, actual, sizeof(MYFLT)*elements);
+      cs_float *actual = &(p->currLine[elements * !(p->NewOld)]);
+      memcpy(p->outVec, actual, sizeof(cs_float)*elements);
       /* do { */
       /*   *outVec++ = *actual++ ; */
       /* } while (--elements); */

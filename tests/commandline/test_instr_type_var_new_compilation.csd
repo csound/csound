@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing schedule of named instr in new compilations"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

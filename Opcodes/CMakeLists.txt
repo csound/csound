@@ -1,4 +1,3 @@
-option(BUILD_DSSI_OPCODES "Build the DSSI opcodes" OFF)
 option(BUILD_OSC_OPCODES "Build the OSC Opcodes" ON)
 option(BUILD_DEPRECATED_OPCODES "Build deprecated opcodes" ON)
 
@@ -110,18 +109,11 @@ if(LINUX)
     make_plugin(joystick linuxjoystick.c)
 endif()
 
-check_deps(BUILD_DSSI_OPCODES LINUX)
-if(BUILD_DSSI_OPCODES)
-    check_include_file(ladspa.h LADSPA_H)
-    set(dssi_SRC dssi4cs/src/load.c dssi4cs/src/dssi4cs.c)
-    make_plugin(dssi4cs "${dssi_SRC}" dl)
-endif()
-
 # config file shipped by vcpkg isn't working, so use module
 find_package(LibLO MODULE)
 check_deps(BUILD_OSC_OPCODES LibLO_FOUND)
 if(BUILD_OSC_OPCODES)
-    make_plugin(osc OSC.c)
+    make_plugin(osc "OSC.c;osc_blob.c")
     target_link_libraries(osc PRIVATE LibLO::liblo Threads::Threads)
     if(WIN32)
       target_link_libraries(osc PRIVATE wsock32 ws2_32 iphlpapi)

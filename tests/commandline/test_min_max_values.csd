@@ -1,3 +1,9 @@
+<CsTest>
+description = "test MIN_VALUE and MAX_VALUE math constants"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0

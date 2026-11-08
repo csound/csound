@@ -21,7 +21,7 @@ OOps: internal opcodes
 - midiout.c: midi output opcodes
 - mxfft.c: non-radix-2 FFT routines
 - oscils.c: specialist periodic signal generators, table lookup
-- pffft.c: alternative radix-2 FFT routines
+- pffft.c, pffft_double.c: wrappers for the bundled PFFFT library
 - pstream.c: streaming phase vocoder opcodes
 - pvfileio.c: phase vocode file IO
 - pvsanal.c: phase vocoder analysis and synthesis

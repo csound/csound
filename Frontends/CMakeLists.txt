@@ -1,9 +1,18 @@
+# The Tcl slider opcode loads this script from the working directory.
+configure_file(tcltk/nsliders.tk ${CMAKE_BINARY_DIR}/nsliders.tk COPYONLY)
+
 option(BUILD_CSBEATS "Build the beats score frontend" ON)
 option(BUILD_CSOUND_COMMAND "Build the Csound command" ON)
 
+string(TOUPPER "${CMAKE_SYSTEM_NAME}" CMAKE_SYSTEM_NAME_UPPER)
+
 ## Csound Commandline Executable ##
-if(BUILD_CSOUND_COMMAND) 
-  set(CS_MAIN_SRCS csound/csound_main.c)
+if(BUILD_CSOUND_COMMAND)
+  if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" AND BUILD_WASI_BROWSER)
+    set(CS_MAIN_SRCS ${CMAKE_SOURCE_DIR}/platform/wasm-wasi/src/csound_wasm.c)
+  else()
+    set(CS_MAIN_SRCS csound/csound_main.c)
+  endif()
   if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     find_package(Threads)
     list(APPEND CS_MAIN_SRCS csound/sched.c)
@@ -12,12 +21,32 @@ if(BUILD_CSOUND_COMMAND)
   # We need a different name to avoid clashes with float libcsound
   make_executable(csound-bin "${CS_MAIN_SRCS}" "${CSOUNDLIB};${MATH_LIBRARY}" csound)
 
+  if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" AND BUILD_WASI_BROWSER)
+    # Use wasi-libc's reactor startup: it exposes _initialize for the JS host
+    # and deliberately has no command-style _start entry point.
+    # The built-in browser shim accesses the instance's MIDI callback data.
+    target_compile_definitions(csound-bin PRIVATE
+        CSOUND_WASI_BROWSER __BUILDING_LIBCSOUND)
+    target_link_options(csound-bin PRIVATE -mexec-model=reactor)
+    if(BUILD_WASI_REALTIME AND BUILD_WASI_REALTIME_TESTS)
+      target_sources(csound-bin PRIVATE
+          ${CMAKE_SOURCE_DIR}/platform/wasm-wasi/tests/realtime/browser-probe.c)
+      set_source_files_properties(
+          ${CMAKE_SOURCE_DIR}/platform/wasm-wasi/tests/realtime/browser-probe.c
+          PROPERTIES COMPILE_DEFINITIONS __BUILDING_LIBCSOUND)
+      target_link_options(csound-bin PRIVATE
+          LINKER:--export=csoundWasiInstallThreadProbe)
+    endif()
+  endif()
+
   if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     target_link_libraries(csound-bin PRIVATE Threads::Threads)
   endif()
 
   # debugger command line app
-  make_executable(csdebugger debugger/csdebugger.cpp "${CSOUNDLIB}")
+  if(NOT CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI")
+    make_executable(csdebugger debugger/csdebugger.cpp "${CSOUNDLIB}")
+  endif()
 endif()
 
 # CsBeats
@@ -41,10 +70,8 @@ if(BUILD_CSBEATS)
     endif()
     make_executable(csbeats "${csbeats_SRCS}" "${MATH_LIBRARY}")
 
-    target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+    target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+        ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
     target_include_directories(csbeats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/beats)
 endif()
-
-
-
 

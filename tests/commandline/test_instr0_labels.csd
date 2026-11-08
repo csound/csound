@@ -1,3 +1,9 @@
+<CsTest>
+description = "test labels in instr0 space"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 ;<CsOptions>
 ;</CsOptions>

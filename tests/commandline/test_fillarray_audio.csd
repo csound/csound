@@ -1,3 +1,9 @@
+<CsTest>
+description = "test Arr:a[] = [sig:a]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

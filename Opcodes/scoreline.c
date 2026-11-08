@@ -31,32 +31,32 @@
 typedef struct _inmess {
   OPDS h;
   STRINGDAT *SMess;
-  MYFLT *ktrig;
+  cs_float *ktrig;
 } INMESS;
 
 
 typedef struct _scorepos {
   OPDS h;
-  MYFLT *spos;
+  cs_float *spos;
 } SCOREPOS;
 
-int32_t messi(CSOUND *csound, INMESS *p)
+static int32_t messi(CSOUND *csound, INMESS *p)
 {
     csound->InputMessage(csound, (char *)p->SMess->data);
     return OK;
 }
 
-int32_t messk(CSOUND *csound, INMESS *p){
+static int32_t messk(CSOUND *csound, INMESS *p){
     if (*p->ktrig) csound->InputMessage(csound, (char *)p->SMess->data);
     return OK;
 }
 
-int32_t setscorepos(CSOUND *csound, SCOREPOS *p){
+static int32_t setscorepos(CSOUND *csound, SCOREPOS *p){
     csound->SetScoreOffsetSeconds(csound, *p->spos);
     return OK;
 }
 
-int32_t
+static int32_t
 rewindscore(CSOUND *csound, SCOREPOS *p){
     IGN(p);
     csound->RewindScore(csound);
@@ -65,6 +65,7 @@ rewindscore(CSOUND *csound, SCOREPOS *p){
 
 
 static OENTRY scoreline_localops[] = {
+  CSOUND_DEPRECATED_OPCODE("scoreline_i", "scorelinei", ALIAS, "Renamed alias; maintain the shared implementation through its supported name.")
   {"scoreline_i", sizeof(INMESS), 0,  "", "S", (SUBR)messi, NULL, NULL, NULL, 2},
   {"scorelinei", sizeof(INMESS), 0,  "", "S", (SUBR)messi, NULL, NULL}, /* alias */
   {"scoreline", sizeof(INMESS), 0,  "", "Sk", NULL, (SUBR)messk, NULL},

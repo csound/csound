@@ -48,6 +48,9 @@ typedef struct _pulse_globals {
       csound->Message(csound, Str("PulseAudio client RT IO module for Csound"
                                   "by Victor Lazzarini\n"));
 
+    /* A second copy of this module shares the first one's globals. */
+    if (csound->QueryGlobalVariable(csound, "_pulse_globals") != NULL)
+      return 0;
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_pulse_globals",
                                               sizeof(pulse_globals)) != 0)) {
       csound->ErrorMsg(csound, Str(" *** rtpulse: error allocating globals"));
@@ -60,7 +63,7 @@ typedef struct _pulse_globals {
     csound->CreateConfigurationVariable(
         csound,"server", (void*) &(p->server[0]),
         CSOUNDCFG_STRING, 0, NULL, &siz,
-        "PulseAudio server name (default: default server)", NULL);
+        Str("PulseAudio server name (default: default server)"), NULL);
 
     strcpy(&(p->oname[0]), "csound-out");
 
@@ -69,14 +72,14 @@ typedef struct _pulse_globals {
     csound->CreateConfigurationVariable(
         csound,"output_stream", (void*) &(p->oname[0]),
         CSOUNDCFG_STRING, 0, NULL, &siz,
-        "PulseAudio output stream name (default: csound-out)", NULL);
+        Str("PulseAudio output stream name (default: csound-out)"), NULL);
 
     strcpy(&(p->iname[0]), "csound-in");
 
     csound->CreateConfigurationVariable(
         csound,"input_stream", (void*) &(p->iname[0]),
         CSOUNDCFG_STRING, 0, NULL, &siz,
-        "PulseAudio input stream name (default: csound-in)", NULL);
+        Str("PulseAudio input stream name (default: csound-in)"), NULL);
 
 
     return 0;
@@ -85,7 +88,7 @@ typedef struct _pulse_globals {
 
  int32_t csoundModuleInfo(void)
 {
-    return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+  return CSOUND_MODULE_INFO;
 }
 
 static int32_t pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
@@ -154,13 +157,13 @@ static int32_t pulse_playopen(CSOUND *csound, const csRtAudioParams *parm)
 
 }
 
-static void pulse_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
+static void pulse_play(CSOUND *csound, const cs_float *outbuf, int32_t nbytes){
 
   int32_t i, bufsiz, pulserror;
   float *buf;
   pulse_params *pulse = (pulse_params*) *(csound->GetRtPlayUserData(csound));
-  //MYFLT norm = csound->e0dbfs;
-  bufsiz = nbytes/sizeof(MYFLT);
+  //cs_float norm = csound->e0dbfs;
+  bufsiz = nbytes/sizeof(cs_float);
   buf = pulse->buf;
   for (i=0;i<bufsiz;i++) buf[i] = outbuf[i];
   if (UNLIKELY(pa_simple_write(pulse->ps, buf,
@@ -245,13 +248,13 @@ static int32_t pulse_recopen(CSOUND *csound, const csRtAudioParams *parm)
 
 }
 
-static int32_t pulse_record(CSOUND *csound, MYFLT *inbuf, int32_t nbytes)
+static int32_t pulse_record(CSOUND *csound, cs_float *inbuf, int32_t nbytes)
 {
     int32_t i, bufsiz,pulserror;
     float *buf;
     pulse_params *pulse = (pulse_params*) *(csound->GetRtRecordUserData(csound)) ;
-    //MYFLT norm = csound->e0dbfs;
-    bufsiz = nbytes/sizeof(MYFLT);
+    //cs_float norm = csound->e0dbfs;
+    bufsiz = nbytes/sizeof(cs_float);
     buf = pulse->buf;
 
     if (UNLIKELY(pa_simple_read(pulse->ps, buf,

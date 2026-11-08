@@ -1,0 +1,119 @@
+/*
+ * Copyright (c) The Csound Developers
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { logCommonUtils as log } from "../logger.js";
+import { AUDIO_STATE } from "../constants.js";
+
+export const handleCsoundStart =
+  (
+    workerMessagePort,
+    libraryCsound,
+    wasi,
+    createRealtimeAudioThread,
+    renderFunction,
+    beforePerform = undefined,
+  ) =>
+  (arguments_) => {
+    const csound = arguments_["csound"];
+
+    // If no orchestra was given, we assume realtime daemon mode
+    // otherwise we'll end up rendering forever within the while loop
+    const shouldDemonize = libraryCsound.csoundShouldDaemonize(csound) === 1;
+
+    if (shouldDemonize) {
+      let result = libraryCsound.csoundSetOption(csound, "--daemon");
+      result !== 0 && console.error("csoundSetOption daemon failed:", result);
+      result = libraryCsound.csoundSetOption(csound, "-odac");
+      result !== 0 && console.error("csoundSetOption odac failed:", result);
+    }
+    const startError = libraryCsound.csoundStart(csound);
+
+    const outputName = libraryCsound.csoundGetOutputName(csound) || "test.wav";
+    log(`handleCsoundStart: actual csoundStart result ${startError}, outputName: ${outputName}`)();
+    if (startError !== 0) {
+      workerMessagePort.post(
+        `error: csoundStart failed while trying to render ${outputName},` +
+          " look out for errors in options and syntax",
+      );
+      return startError;
+    }
+
+    try {
+      if (beforePerform) beforePerform();
+    } catch (error) {
+      // Native start may have launched idle workers. Join them before exposing
+      // a failed start; no render callback has been scheduled yet.
+      libraryCsound.csoundReset(csound);
+      throw error;
+    }
+
+    setTimeout(() => {
+      const isRequestingRtMidiInput = libraryCsound["isRequestingRtMidiInput"](csound);
+      const isRequestingRtAudioInput = libraryCsound["isRequestingRtAudioInput"](csound);
+      const isExpectingRealtimePerformance =
+        shouldDemonize ||
+        isRequestingRtMidiInput ||
+        isRequestingRtAudioInput ||
+        outputName.includes("dac");
+
+      if (isExpectingRealtimePerformance) {
+        createRealtimeAudioThread(arguments_);
+      } else {
+        // A start listener can pause immediately, before renderFunction runs.
+        const audioStateBuffer = arguments_["audioStateBuffer"];
+        if (audioStateBuffer) {
+          Atomics.store(new Int32Array(audioStateBuffer), AUDIO_STATE.IS_RENDERING, 1);
+        }
+        workerMessagePort.broadcastPlayState("renderStarted", arguments_["performanceGeneration"]);
+        if (renderFunction) {
+          renderFunction(arguments_);
+        } else {
+          // eslint-disable-next-line no-empty
+          while (libraryCsound.csoundPerformKsmps(csound) === 0) {}
+        }
+      }
+    }, 0);
+
+    return startError;
+  };
+
+export const instantiateAudioPacket = (numberChannels, numberFrames) => {
+  const channels = [];
+  for (let chn = 0; chn < numberChannels; chn++) {
+    channels.push(new Float64Array(numberFrames));
+  }
+  return channels;
+};
+
+export const renderFunction =
+  ({ libraryCsound, workerMessagePort, wasi }) =>
+  async (payload) => {
+    const csound = payload["csound"];
+    const kr = libraryCsound.csoundGetKr(csound);
+    let lastResult = 0;
+    let cnt = 0;
+
+    while (workerMessagePort.vanillaWorkerState === "renderStarted" && lastResult === 0) {
+      lastResult = libraryCsound.csoundPerformKsmps(csound);
+      cnt += 1;
+
+      if (typeof setTimeout === "function" && lastResult === 0 && cnt % (kr * 2) === 0) {
+        // this is immediately executed, but allows events to be picked up
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    }
+
+    workerMessagePort.broadcastPlayState("renderEnded", payload["performanceGeneration"]);
+  };

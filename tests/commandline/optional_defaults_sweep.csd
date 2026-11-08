@@ -1,3 +1,9 @@
+<CsTest>
+description = "optional_defaults_sweep.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d -v

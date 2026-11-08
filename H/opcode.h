@@ -32,16 +32,17 @@ typedef struct _opinfo {
 
 typedef struct _oprun {
   OPDS h;
-  MYFLT *args[VARGMAX];
-  AUXCH mem;
+  cs_float *args[VARGMAX];
+  AUXCH mem;    /* Opcode[] run: slot table, one entry per object and arg */
+  AUXCH slots;  /* Opcode[] run: storage for the split array elements */
 } OPRUN;
 
 typedef struct _oparray {
   OPDS h;
   ARRAYDAT *r;
   OPCODEREF *ref;
-  MYFLT  *n;
-  MYFLT  *ovl;
+  cs_float  *n;
+  cs_float  *ovl;
 } OPARRAY;
 
 int32_t opcode_info(CSOUND *csound, OPINFO *p);
@@ -58,4 +59,5 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p);
 int32_t opcode_array_init(CSOUND *csound, OPRUN *p);
 int32_t copy_opcode_obj(CSOUND *csound, ASSIGN *p);
 int32_t set_opcode_param(CSOUND *csound, AOP *p);
+int32_t get_opcode_output_init(CSOUND *csound, AOP *p);
 int32_t get_opcode_output(CSOUND *csound, AOP *p); 

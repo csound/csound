@@ -26,20 +26,20 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ar, *xamp, *ivoice, *iratio;
-        MYFLT   *imode, *ithd, *ifn, *ipshift;
-        MYFLT   *igskip;
-        MYFLT   *igskip_os;
-        MYFLT   *ilength, *kgap, *igap_os, *kgsize, *igsize_os, *iatt, *idec;
-        MYFLT   *iseed, *ipitch1, *ipitch2, *ipitch3, *ipitch4, *ifnenv;
+        cs_float   *ar, *xamp, *ivoice, *iratio;
+        cs_float   *imode, *ithd, *ifn, *ipshift;
+        cs_float   *igskip;
+        cs_float   *igskip_os;
+        cs_float   *ilength, *kgap, *igap_os, *kgsize, *igsize_os, *iatt, *idec;
+        cs_float   *iseed, *ipitch1, *ipitch2, *ipitch3, *ipitch4, *ifnenv;
         int32   fpnt[MAXVOICE], cnt[MAXVOICE], gskip[MAXVOICE], gap[MAXVOICE];
         int32   gsize[MAXVOICE], stretch[MAXVOICE], mode[MAXVOICE];
-        MYFLT   pshift[MAXVOICE], phs[MAXVOICE];
+        cs_float   pshift[MAXVOICE], phs[MAXVOICE];
         int16   grnd;
         //int32   clock;
         int32   gskip_os;
         int32_t gstart, gend, glength;
-        MYFLT   gap_os, gsize_os;
+        cs_float   gap_os, gsize_os;
         FUNC    *ftp, *ftp_env;
 } GRAINV4;
 

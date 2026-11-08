@@ -24,7 +24,7 @@
 
 typedef struct {
     OPDS h;
-    MYFLT *size;                /* Ansser */
-    MYFLT *fn;                  /* which table   */
-    MYFLT *nsize;               /* new size */
+    cs_float *size;                /* Ansser */
+    cs_float *fn;                  /* which table   */
+    cs_float *nsize;               /* new size */
 } RESIZE;

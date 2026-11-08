@@ -1,3 +1,10 @@
+<CsTest>
+description = "expected failure: opcode missing name"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unexpected NEWLINE, expecting ','"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

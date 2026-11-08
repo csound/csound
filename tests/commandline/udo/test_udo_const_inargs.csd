@@ -1,3 +1,9 @@
+<CsTest>
+description = "correct polymorphic UDO entry found"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -m0

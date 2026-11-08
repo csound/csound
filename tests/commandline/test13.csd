@@ -1,3 +1,9 @@
+<CsTest>
+description = "function call"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

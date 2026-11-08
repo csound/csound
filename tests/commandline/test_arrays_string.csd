@@ -1,3 +1,9 @@
+<CsTest>
+description = "test string-array"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 instr 1

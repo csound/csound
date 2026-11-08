@@ -1,3 +1,9 @@
+<CsTest>
+description = "test ambiguous opcall examples"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -o dac

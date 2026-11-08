@@ -1,3 +1,9 @@
+<CsTest>
+description = "Pass-by-ref connects args correctly."
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

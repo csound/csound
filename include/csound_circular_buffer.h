@@ -32,11 +32,16 @@ extern "C" {
    *
    *  @{ */
    /**
-   * Create circular buffer with numelem number of elements. The
-   * element's size is set from elemsize. It should be used like:
+   * Create circular buffer with numelem number of elements.
+   * The buffer supports one writer and one reader at a time. Reading, peeking,
+   * and flushing share the reader role and must not run concurrently.
+   * Cursor updates use atomic operations on targets with atomic support.
+   * The element's size is set from elemsize. It should be used like:
    *@code
-   * void *rb = csoundCreateCircularBuffer(csound, 1024, sizeof(MYFLT));
+   * void *rb = csoundCreateCircularBuffer(csound, 1024, sizeof(cs_float));
    *@endcode
+   * Returns NULL if numelem or elemsize is not positive, the extra slot used
+   * internally cannot be represented, or the allocation size overflows.
    */
   PUBLIC void *csoundCreateCircularBuffer(CSOUND *csound,
                                           int32_t numelem, int32_t elemsize);
@@ -83,6 +88,33 @@ extern "C" {
    */
   PUBLIC void csoundFlushCircularBuffer(CSOUND *csound, void *p);
 
+  
+  /**
+   * Check the available space in a circular buffer
+   * @param csound This value is currently ignored.
+   * @param p pointer to an existing circular buffer
+   * @param flag zero for reading space, non-zero for writing space
+   * @returns the available space for reading or writing
+   */
+  PUBLIC int32_t csoundCheckCircularBuffer(CSOUND *csound, void *p, int32_t flag);
+
+  /**
+   * Get the allocated number of items in a circular buffer
+   * @param csound This value is currently ignored.
+   * @param p pointer to an existing circular buffer
+   * @returns the number of elements allocated in the circular buffer
+   */
+  PUBLIC int32_t csoundGetSizeCircularBuffer(CSOUND *csound, void *p);
+
+  /**
+   * Get the allocated space for each item in a circular buffer
+   * @param csound This value is currently ignored.
+   * @param p pointer to an existing circular buffer
+   * @returns the size of each element in bytes
+   */
+  PUBLIC int32_t csoundGetElementSizeCircularBuffer(CSOUND *csound, void *p);
+  
+  
   /**
    * Free circular buffer
    */

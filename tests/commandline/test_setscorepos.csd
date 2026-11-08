@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing setscorepos and rewindscore"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

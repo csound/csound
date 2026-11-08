@@ -25,6 +25,93 @@
 #include "csound_orc_semantics.h"
 #include <ctype.h>
 
+typedef struct named_instr_number {
+  struct named_instr_number *next;
+  int32_t number;
+  char name[];
+} NAMED_INSTR_NUMBER;
+
+/* The compiler's hash table can rehash during a live edit. Render callers
+   instead read immutable entries, retained until reset. A replacement keeps
+   its number and does not allocate another entry. Fixed buckets never move. */
+static NAMED_INSTR_NUMBER *published_number(NAMED_INSTR_NUMBER **bucket)
+{
+#if defined(MSVC)
+  return (NAMED_INSTR_NUMBER *)InterlockedCompareExchangePointer(
+      (void *volatile *)bucket, NULL, NULL);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+  return __atomic_load_n(bucket, __ATOMIC_ACQUIRE);
+#else
+  return *bucket;
+#endif
+}
+
+static void publish_number(NAMED_INSTR_NUMBER **bucket, NAMED_INSTR_NUMBER *entry)
+{
+#if defined(MSVC)
+  InterlockedExchangePointer((void *volatile *)bucket, entry);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+  __atomic_store_n(bucket, entry, __ATOMIC_RELEASE);
+#else
+  *bucket = entry;
+#endif
+}
+
+static uint32_t number_bucket(const char *name, size_t length)
+{
+  uint32_t hash = 5381;
+  for (size_t i = 0; i < length; i++)
+    hash = hash * 33 + (unsigned char)name[i];
+  return hash % 64;
+}
+
+/* Called only after successful publication, with the compiler/init lock held
+   during playback. Readers need neither a mutex nor a retry on the audio path. */
+void named_instr_publish_numbers(CSOUND *csound)
+{
+  ENGINE_STATE *state = &csound->engineState;
+  CS_HASH_TABLE *names = state->instrumentNames;
+  if (names == NULL) return;
+  for (int32_t i = 0; i < names->table_size; i++) {
+    for (CS_HASH_TABLE_ITEM *item = names->buckets[i]; item; item = item->next) {
+      INSTRNAME *name = (INSTRNAME *)item->value;
+      size_t length = strlen(name->name);
+      NAMED_INSTR_NUMBER **bucket =
+          &state->instrumentNumbers[number_bucket(name->name, length)];
+      NAMED_INSTR_NUMBER *head = published_number(bucket), *entry = head;
+      for (; entry != NULL; entry = entry->next) {
+        if (strcmp(entry->name, name->name) == 0) break;
+      }
+      /* named_instr_alloc preserves the assigned number on replacement. */
+      if (entry != NULL) continue;
+      entry = csound->Malloc(csound, sizeof(*entry) + length + 1);
+      entry->number = name->instno;
+      memcpy(entry->name, name->name, length + 1);
+      entry->next = head;
+#ifdef CSOUND_WASI_REALTIME
+      /* A later global-init error must not free a published lookup entry. */
+      csoundWasiReleaseAllocation(csound, entry);
+#endif
+      publish_number(bucket, entry);
+    }
+  }
+}
+
+const char *named_instr_name(CSOUND *csound, int32_t number)
+{
+  ENGINE_STATE *state = &csound->engineState;
+  if (!csound->realtime_locks_initialized)
+    return state->instrumentNames == NULL ? "" :
+      cs_inverse_hash_get(csound, state->instrumentNames, number);
+  for (int32_t i = 0; i < 64; i++) {
+    NAMED_INSTR_NUMBER *entry = published_number(&state->instrumentNumbers[i]);
+    for (; entry != NULL; entry = entry->next) {
+      if (entry->number == number) return entry->name;
+    }
+  }
+  return "";
+}
+
 /* check if the string s is a valid instrument or opcode name */
 /* return value is zero if the string is not a valid name */
 
@@ -41,7 +128,7 @@ int32_t check_instr_name(char *s)
 }
 
 
-MYFLT  named_instr_find_in_engine(CSOUND *csound, char *s,
+cs_float  named_instr_find_in_engine(CSOUND *csound, char *s,
                                   ENGINE_STATE *engineState) {
 
   INSTRNAME     *inm;
@@ -55,12 +142,16 @@ MYFLT  named_instr_find_in_engine(CSOUND *csound, char *s,
       return (inm == NULL) ? 0L : (ss ? -inm->instno : inm->instno);
     }
     else {                     /* tagged instrument */
-      char buff[256];
-      int32_t len = (int32_t) (tt-s-ss);
-      MYFLT frac;
-      strncpy(buff,s+ss, len);
-      buff[len] = '\0';
-      inm = cs_hash_table_get(csound, engineState->instrumentNames, buff);
+      char buff[MAXNAME], *name = buff;
+      size_t len = (size_t) (tt-s-ss);
+      cs_float frac;
+      if (len >= sizeof(buff))
+        name = csound->Malloc(csound, len + 1);
+      memcpy(name, s+ss, len);
+      name[len] = '\0';
+      inm = cs_hash_table_get(csound, engineState->instrumentNames, name);
+      if (name != buff)
+        csound->Free(csound, name);
       frac = atof(tt);
       // printf("** fraction found %f\n", frac);
       return (inm == NULL) ? 0L : (ss ? -(inm->instno+frac) : inm->instno+frac);
@@ -69,8 +160,23 @@ MYFLT  named_instr_find_in_engine(CSOUND *csound, char *s,
 /* find the instrument number for the specified name */
 /* return value is zero if none was found */
 
-MYFLT named_instr_find(CSOUND *csound, char *s)
+cs_float named_instr_find(CSOUND *csound, char *s)
 {
+  if (csound->realtime_locks_initialized) {
+    int32_t negative = *s == '-';
+    const char *name = s + negative;
+    const char *tag = strchr(name, '.');
+    size_t length = tag != NULL ? (size_t)(tag - name) : strlen(name);
+    NAMED_INSTR_NUMBER *entry = published_number(
+        &csound->engineState.instrumentNumbers[number_bucket(name, length)]);
+    for (; entry != NULL; entry = entry->next) {
+      if (strncmp(entry->name, name, length) == 0 && entry->name[length] == '\0') {
+        cs_float number = entry->number + (tag != NULL ? atof(tag) : FL(0.0));
+        return negative ? -number : number;
+      }
+    }
+    return FL(0.0);
+  }
   return named_instr_find_in_engine(csound, s, &csound->engineState);
 }
 
@@ -89,10 +195,10 @@ int32 csoundStringArg2Insno(CSOUND *csound, void *p, int32_t is_string)
       }
     }
     else {      /* numbered instrument */
-      insno = (int32) *((MYFLT*) p);
+      insno = (int32) *((cs_float*) p);
       if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                    !csound->engineState.instrtxtp[insno])) {
-        csound->Warning(csound, Str("Cannot Find Instrument %d"), (int32_t) insno);
+        csound->Warning(csound, Str("Cannot Find Instrument %d\n"), (int32_t) insno);
         return csound->engineState.maxinsno;
       }
     }
@@ -127,10 +233,10 @@ int32 string_arg_to_opcno(CSOUND *csound, void *p, int32_t is_string, int32_t fo
         insno = named_instr_find(csound, (char*) p);
       }
       else {      /* numbered instrument */
-        insno = (int32) *((MYFLT*) p);
+        insno = (int32) *((cs_float*) p);
         if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                      !csound->engineState.instrtxtp[insno])) {
-          csound->InitError(csound, Str("Cannot Find Instrument %d"), (int32_t) insno);
+          csound->InitError(csound, Str("Cannot Find Instrument %d\n"), (int32_t) insno);
           return NOT_AN_INSTRUMENT;
         }
       }
@@ -142,23 +248,23 @@ int32 string_arg_to_opcno(CSOUND *csound, void *p, int32_t is_string, int32_t fo
     }
     if (UNLIKELY(insno < 1)) {
       csound->InitError(csound,
-                        Str("cannot find the specified instrument or opcode"));
+                        Str("cannot find the specified instrument or opcode\n"));
       insno = NOT_AN_INSTRUMENT;
     }
     return insno;
 }
 
-/* create file name from opcode argument (string or MYFLT)      */
+/* create file name from opcode argument (string or cs_float)      */
 /*   CSOUND *csound:                                            */
 /*      pointer to Csound instance                              */
 /*   char *s:                                                   */
 /*      output buffer, should have enough space; if NULL, the   */
 /*      required amount of memory is allocated and returned     */
 /*   void *p:                                                   */
-/*      opcode argument, is interpreted as char* or MYFLT*,     */
+/*      opcode argument, is interpreted as char* or cs_float*,     */
 /*      depending on the 'is_string' parameter                  */
 /*   const char *baseName:                                      */
-/*      name prefix to be used if the 'p' argument is MYFLT,    */
+/*      name prefix to be used if the 'p' argument is cs_float,    */
 /*      and it is neither SSTRCOD, nor a valid index to strset  */
 /*      space.                                                  */
 /*      For example, if "soundin." is passed as baseName, file  */
@@ -167,7 +273,7 @@ int32 string_arg_to_opcno(CSOUND *csound, void *p, int32_t is_string, int32_t fo
 /*   int32_t is_string:                                             */
 /*      if non-zero, 'p' is interpreted as a char* pointer and  */
 /*      is used as the file name. Otherwise, it is expected to  */
-/*      point to a MYFLT value, and the following are tried:    */
+/*      point to a cs_float value, and the following are tried:    */
 /*        1. if the value is SSTRCOD, the string argument of    */
 /*           the current score event is used (string p-field)   */
 /*        2. if the value, rounded to the nearest integer, is a */
@@ -192,11 +298,11 @@ char *csoundStringArg2Name(CSOUND *csound, char *s, void *p, const char *baseNam
         s = csound->Malloc(csound, strlen((char*) p) + 1);
       strcpy(s, (char*) p);
     }
-    else if (IsStringCode(*((MYFLT*) p))) {
+    else if (IsStringCode(*((cs_float*) p))) {
       /* p-field string, unquote and copy */
-      char  *s2 = csoundGetArgString(csound, *((MYFLT*)p));
+      char  *s2 = csoundGetArgString(csound, *((cs_float*)p));
       int32_t   i = 0;
-      //printf("strarg2name: %g %s\n", *((MYFLT*)p), s2);
+      //printf("strarg2name: %g %s\n", *((cs_float*)p), s2);
       if (s == NULL)
         s = csound->Malloc(csound, strlen(s2) + 1);
       if (*s2 == '"')
@@ -206,8 +312,8 @@ char *csoundStringArg2Name(CSOUND *csound, char *s, void *p, const char *baseNam
       s[i] = '\0';
     }
     else {
-      int32_t   i = (int32_t) ((double) *((MYFLT*) p)
-                       + (*((MYFLT*) p) >= FL(0.0) ? 0.5 : -0.5));
+      int32_t   i = (int32_t) ((cs_double) *((cs_float*) p)
+                       + (*((cs_float*) p) >= FL(0.0) ? 0.5 : -0.5));
       if (i >= 0 && i <= (int32_t) csound->strsmax &&
           csound->strsets != NULL && csound->strsets[i] != NULL) {
         if (s == NULL)

@@ -39,8 +39,8 @@ typedef struct FOUT_FILE_ {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *iflag, *argums[VARGMAX-2];
-    MYFLT   scaleFac;
+    cs_float   *fname, *iflag, *argums[VARGMAX-2];
+    cs_float   scaleFac;
     int32_t     nargs;
     int32_t     buf_pos;
     int32_t     guard_pos;
@@ -50,9 +50,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *iflag;
+    cs_float   *fname, *iflag;
     ARRAYDAT* tabin;
-    MYFLT   scaleFac;
+    cs_float   scaleFac;
     int32_t     buf_pos;
     int32_t     guard_pos;
     AUXCH   buf;
@@ -61,8 +61,8 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *iflag, *argums[VARGMAX-2];
-    MYFLT   scaleFac;
+    cs_float   *fname, *iflag, *argums[VARGMAX-2];
+    cs_float   scaleFac;
     uint32_t     nargs;
     int32_t     buf_pos;
     int32_t     guard_pos;
@@ -72,9 +72,9 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
-    MYFLT   scaleFac;
-    int32   currpos;
+    cs_float   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
+    cs_float   scaleFac;
+    int64_t currpos;
     int32_t     flag;
     int32_t     nargs;
     int32_t     buf_pos;
@@ -87,10 +87,10 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *iskpfrms, *iflag;
+    cs_float   *fname, *iskpfrms, *iflag;
     ARRAYDAT *tabout;
-    MYFLT   scaleFac;
-    int32   currpos;
+    cs_float   scaleFac;
+    int64_t currpos;
     int32_t     flag;
     int32_t     chn;
     int32_t     buf_pos;
@@ -103,70 +103,65 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
-    MYFLT   scaleFac;
-    int32   currpos;
+    cs_float   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
+    cs_float   scaleFac;
+    int64_t currpos;
     int32_t     flag;
     int32_t     nargs;
     int32_t     buf_pos;
     int32_t     guard_pos;
     int32_t     frames;
-    int32_t     remain;
+    uint32_t    remain;
     AUXCH   buf;
     FOUT_FILE f;
 } KINFILE;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
-    int32   currpos;
-    int32_t     flag;
-        FOUT_FILE *f;
+    cs_float   *fname, *iskpfrms, *iflag, *argums[VARGMAX-3];
 } I_INFILE;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *avar, *aincr;
+    cs_float   *avar, *aincr;
 } INCR;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *argums[VARGMAX];
+    cs_float   *argums[VARGMAX];
 } CLEARS;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ihandle, *fname;
-    /* iascii=0 open ascii (default), iflag=1 open binary */
-    MYFLT   *iascii;
-    FOUT_FILE *f;
+    cs_float   *ihandle, *fname;
+    /* 0: text write, 1: text read, 2: binary write, 3: binary read */
+    cs_float   *iascii;
 } FIOPEN;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *iFile;
+    cs_float   *iFile;
 } FICLOSE;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX-3];
+    cs_float   *ihandle, *iascii, *iflag, *argums[VARGMAX-3];
 } IOUTFILE;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *ihandle, *iascii, *iflag, *argums[VARGMAX-3];
+    cs_float   *ihandle, *iascii, *iflag, *argums[VARGMAX-3];
     int64_t   counter;
     int32_t     done;
 } IOUTFILE_R;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *fname;
+    cs_float   *fname;
     STRINGDAT *fmt;
-    MYFLT  *argums[VARGMAX-2];
+    cs_float  *argums[VARGMAX-2];
     FOUT_FILE f;
-    char    txtstring[8192];    /* Place to store the string printed */
+    char    txtstring[8193];    /* Up to 8192 characters plus the terminator. */
 } FPRINTF;
 
 #endif  /* FOUT_H */
-

@@ -1,3 +1,9 @@
+<CsTest>
+description = "Test pfields on all forms of schedule"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

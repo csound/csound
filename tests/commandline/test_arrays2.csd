@@ -1,3 +1,9 @@
+<CsTest>
+description = "test gk-array with single dimension, assignment to expression value"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

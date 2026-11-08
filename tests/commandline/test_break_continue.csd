@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing break/continue statements in while/until/for loops"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

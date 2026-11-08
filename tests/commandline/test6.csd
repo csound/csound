@@ -1,3 +1,9 @@
+<CsTest>
+description = "Testing Pfields"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

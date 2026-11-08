@@ -49,6 +49,10 @@
  * the old and new HRTFs (probably a project in itself).
  ***************************************************************/
 
+/* Legacy opcode behavior in this file is retained for compatibility.
+ * Read the local CSOUND_DEPRECATED_OPCODE markers and docs/opcode-deprecation.md before
+ * correcting historical output; use the supported replacement for new work.
+ */
 #ifdef BUILD_PLUGINS
 #include "csdl.h"
 #else
@@ -69,11 +73,31 @@ static const int32_t elevation_data[N_ELEV] = {56, 60, 72, 72, 72, 72, 72,
 #define ROUND(x) ((int32_t)floor((x)+FL(0.5)))
 #define GET_NFAZ(el_index)      ((elevation_data[el_index] / 2) + 1)
 
+/* LoadMemoryFile calls this only for a newly loaded file, before sharing it. */
+static int32_t hrtfer_prepare_data(CSOUND *csound, MEMFIL *mfp)
+{
+    int32_t i, records = 0;
+    const uint16_t endian = 1;
+    for (i = 0; i < N_ELEV; i++) records += GET_NFAZ(i);
+    if (UNLIKELY(mfp->length < records * BUF_LEN * (int32_t)sizeof(int16))) {
+      csound->Message(csound, "%s", Str("hrtfer: incomplete HRTFcompact data\n"));
+      return NOTOK;
+    }
+    if (*(const unsigned char *)&endian) {
+      unsigned char *bytes = (unsigned char *)mfp->beginp;
+      for (i = 0; i < records * BUF_LEN; i++, bytes += 2) {
+        unsigned char tmp = bytes[0];
+        bytes[0] = bytes[1];
+        bytes[1] = tmp;
+      }
+    }
+    return OK;
+}
+
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("hrtfer")
 static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
 {
-    // int32_t    i; /* standard loop counter */
-    char   filename[MAXNAME];
-    int32_t    bytrev_test;
     MEMFIL *mfp;
 
         /* first check if orchestra's sampling rate is compatible with HRTF
@@ -81,36 +105,21 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
     if (UNLIKELY(CS_ESR != SAMP_RATE)) {
       return csound->InitError(csound,
                   Str("Orchestra sampling rate is not compatible with HRTF.\n"
-                      "Should be %d...exiting."), SAMP_RATE);
+                      "Should be %d...exiting.\n"), SAMP_RATE);
       return NOTOK; /* not reached */
     }
 
-    if (!strcmp("HRTFcompact", p->ifilno->data)) {
-      strncpy(filename, p->ifilno->data, MAXNAME);
-      //filename[MAXNAME-1] = '\0';
-    }
-    else {
+    if (strcmp("HRTFcompact", p->ifilno->data))
       csound->Message(csound, "%s", Str("\nLast argument must be the string "
-                                  "'HRTFcompact' ...correcting.\n"));
-      strncpy(filename, "HRTFcompact", MAXNAME); /* for safety */
-    }
+                                      "'HRTFcompact' ...correcting.\n"));
 
-    if ((mfp = p->mfp) == NULL)
-      mfp = csound->LoadMemoryFile(csound, filename, CSFTYPE_HRTF, NULL);
-    p->mfp = mfp;
-    p->fpbegin = (int16*) mfp->beginp;
-    bytrev_test = 0x1234;
-    if (*((unsigned char*) &bytrev_test) == (unsigned char) 0x34) {
-      /* Byte reverse on data set if necessary */
-      int16 *x = p->fpbegin;
-      int32 len = (mfp->length)/sizeof(int16);
-      while (len != 0) {
-        int16 v = *x;
-        v = ((v & 0xFF) << 8) + ((v >> 8) & 0xFF);  /* Swap bytes */
-        *x = v;
-        x++; len--;
-      }
-    }
+    p->mfp = mfp = csound->LoadMemoryFile(csound, "HRTFcompact", CSFTYPE_HRTF,
+                                        hrtfer_prepare_data);
+    if (UNLIKELY(mfp == NULL))
+      return csound->InitError(csound, "%s\n", Str("hrtfer: cannot load HRTFcompact"));
+    p->fpbegin = (int16 *)mfp->beginp;
+    if (p->aIn == p->aLeft || p->aIn == p->aRight)
+      csound->AuxAlloc(csound, CS_KSMPS * sizeof(cs_float), &p->auxch);
         /* initialize counters and indices */
     p->outcount = 0;
     p->incount = 0;
@@ -129,11 +138,11 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
     /*   p->outl[i]               = FL(0.0); */
     /*   p->outr[i]               = FL(0.0); */
     /* } */
-    memset(p->x, 0, BUF_LEN*sizeof(MYFLT));
-    memset(p->yl, 0, BUF_LEN*sizeof(MYFLT));
-    memset(p->yr, 0, BUF_LEN*sizeof(MYFLT));
-    memset(p->outl, 0, BUF_LEN*sizeof(MYFLT));
-    memset(p->outr, 0, BUF_LEN*sizeof(MYFLT));
+    memset(p->x, 0, BUF_LEN*sizeof(cs_float));
+    memset(p->yl, 0, BUF_LEN*sizeof(cs_float));
+    memset(p->yr, 0, BUF_LEN*sizeof(cs_float));
+    memset(p->outl, 0, BUF_LEN*sizeof(cs_float));
+    memset(p->outr, 0, BUF_LEN*sizeof(cs_float));
 
         /* initialize left overlap buffer */
         /* initialize right overlap buffer */
@@ -141,8 +150,8 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
     /*   p->bl[i] = FL(0.0); */
     /*   p->br[i] = FL(0.0); */
     /* } */
-    memset(p->bl, 0, FILT_LENm1*sizeof(MYFLT));
-    memset(p->br, 0, FILT_LENm1*sizeof(MYFLT));
+    memset(p->bl, 0, FILT_LENm1*sizeof(cs_float));
+    memset(p->br, 0, FILT_LENm1*sizeof(cs_float));
     p->setup = csound->RealFFTSetup(csound, BUF_LEN, FFT_FWD);
     p->isetup = csound->RealFFTSetup(csound, BUF_LEN, FFT_INV);
     return OK;
@@ -150,18 +159,20 @@ static int32_t hrtferxkSet(CSOUND *csound, HRTFER *p)
 
 /********************** a-rate code ***********************************/
 
+/* DO NOT FIX historical behavior here without an explicit maintainer decision. */
+CSOUND_PRESERVE_LEGACY_BEHAVIOR("hrtfer")
 static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 {
-    MYFLT      *aLeft, *aRight; /* audio output streams */
-    MYFLT      *aIn, *kAz, *kElev; /* audio and control input streams */
+    cs_float      *aLeft, *aRight; /* audio output streams */
+    cs_float      *aIn, *kAz, *kElev; /* audio and control input streams */
     int32_t        azim, elev, el_index, az_index;
     int32_t        nsmpsi, nsmpso; /* number of samples in/out */
     /*         input,      out-left,    out-right */
-    MYFLT      *x, *yl, *yr;    /* Local copies of address */
+    cs_float      *x, *yl, *yr;    /* Local copies of address */
     /*         overlap left,   overlap right */
-    MYFLT      *bl, *br;
+    cs_float      *bl, *br;
                         /* copy of current input convolved with old HRTFs */
-    MYFLT      *outl, *outr; /* output left/right */
+    cs_float      *outl, *outr; /* output left/right */
     int32_t        outfront, outend; /* circular output indices */
     int32_t        incount, outcount; /* number of samples in/out */
     uint32_t   toread; /* number of samples to read */
@@ -169,11 +180,11 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
     HRTF_DATUM hrtf_data; /* local hrtf instances */
     int32_t        flip; /* flag - true if we need to flip the channels */
     int16      *fpindex; /* pointer into HRTF file */
-    int16      numskip; /* number of shorts to skip in HRTF file */
+    int32_t    numskip; /* number of shorts to skip in HRTF file */
                         /* short arrays into which HRTFs are stored locally */
     int16      sl[FILT_LEN], sr[FILT_LEN];
                         /* float versions of above to be sent to FFT routines */
-    MYFLT      xl[BUF_LEN], xr[BUF_LEN];
+    cs_float      xl[BUF_LEN], xr[BUF_LEN];
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t ii;
@@ -189,14 +200,14 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
     flip = 0;
 
         /* Convert elevation in degrees to elevation array index. */
-    el_index = ROUND((double)(elev - MIN_ELEV) / ELEV_INC);
+    el_index = ROUND((cs_double)(elev - MIN_ELEV) / ELEV_INC);
     if (el_index < 0)
       el_index = 0;
     else if (el_index >= N_ELEV)
       el_index = N_ELEV-1;
 
         /* Convert azimuth in degrees to azimuth array index. */
-    azim = (int32_t)fmod((double)azim, 360.0);
+    azim = (int32_t)fmod((cs_double)azim, 360.0);
     if (azim < 0)
       azim += 360;
     if (azim > 180) {
@@ -209,32 +220,18 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
         /* azim should be 0<=azim<=180 so calculate az_index and clip
            to legal range
            note - accesses global array elevation_data */
-    az_index = ROUND((double)azim / (360.0 / elevation_data[el_index]));
+    az_index = ROUND((cs_double)azim / (360.0 / elevation_data[el_index]));
     if (az_index < 0)
       az_index = 0;
-    else if (az_index >= elevation_data[el_index])
-      az_index = elevation_data[el_index] - 1;
+    else if (az_index >= GET_NFAZ(el_index))
+      az_index = GET_NFAZ(el_index) - 1;
 
         /* calculate offset into HRTFcompact file */
         /* first get to the first value of the requested elevation */
-    if (el_index == 0)
-      fpindex = (int16 *) p->fpbegin;
-    else
-      for (i=0; i<=el_index; i++) {
-        numskip = (int16)(GET_NFAZ(i) * BUF_LEN);
-        fpindex += numskip;
-      }
-        /* fpindex should now point to first azimuth at requested el_index */
-        /* now get to first value of requested azimuth */
-    if (az_index == 0) {
-   /* csound->Message(csound, "in az_index == 0\n"); */
-      //numskip = 0;
-    }
-    else {
-      for (i=0, numskip=0; i<az_index; i++)
-        numskip += BUF_LEN;
-      fpindex += (int16) (numskip);
-    }
+    numskip = 0;
+    for (i = 0; i < el_index; i++)
+      numskip += GET_NFAZ(i) * BUF_LEN;
+    fpindex += numskip + az_index * BUF_LEN;
 
         /* read in (int16) data from stereo interleave HRTF file.
            Split into left and right channel data. */
@@ -243,13 +240,14 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
       sr[i] = *fpindex++;
     }
     {
-      MYFLT scaleFac;
+      cs_float scaleFac;
+      /* Preserve the legacy gain; the manual calls for output compensation. */
       scaleFac = csound->GetInverseRealFFTScale(csound, BUF_LEN) / FL(256.0);
       scaleFac /= FL(32768.0);
       /* copy int16 buffers into float buffers */
       for (i=0; i<FILT_LEN; i++) {
-        xl[i] = (MYFLT) sl[i] * scaleFac;
-        xr[i] = (MYFLT) sr[i] * scaleFac;
+        xl[i] = (cs_float) sl[i] * scaleFac;
+        xr[i] = (cs_float) sr[i] * scaleFac;
       }
     }
     for (i=FILT_LEN; i<BUF_LEN; i++) {
@@ -295,11 +293,23 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
     yl     = &p->yl[0];
     yr     = &p->yr[0];
 
-    aIn    = p->aIn;
-    aLeft  = p->aLeft;
-    aRight = p->aRight;
-
-    nsmpsi =  nsmpso = CS_KSMPS;
+    nsmpsi = nsmpso = CS_KSMPS - offset - early;
+    aIn = p->aIn + offset;
+    if (p->aIn == p->aLeft || p->aIn == p->aRight) {
+      /* Draining queued output can otherwise overwrite unread input. */
+      memcpy(p->auxch.auxp, aIn, nsmpsi * sizeof(cs_float));
+      aIn = (cs_float *)p->auxch.auxp;
+    }
+    aLeft = p->aLeft + offset;
+    aRight = p->aRight + offset;
+    if (UNLIKELY(offset)) {
+      memset(p->aLeft, 0, offset * sizeof(cs_float));
+      memset(p->aRight, 0, offset * sizeof(cs_float));
+    }
+    if (UNLIKELY(early)) {
+      memset(p->aLeft + CS_KSMPS - early, 0, early * sizeof(cs_float));
+      memset(p->aRight + CS_KSMPS - early, 0, early * sizeof(cs_float));
+    }
 
         /* main loop for a-rate code.  Audio read in, processed,
            and output in this loop.  Loop exits when control period
@@ -312,14 +322,8 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
         toread = FILT_LEN - incount;
 
                 /* reading in audio into x */
-      if (incount == 0) {
-        for (ii = 0; ii < toread; ii++)
-          x[ii] = *aIn++;
-      }
-      else {
-        for (ii = incount; ii<(incount + toread); ii++)
-          x[ii] = *aIn++;
-      }
+      for (ii = 0; ii < toread; ii++)
+        x[incount + ii] = *aIn++;
 
           /* update counters for amount of audio read */
       nsmpsi -= toread;
@@ -349,89 +353,38 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
           br[i]  = yr[FILT_LEN+i];
         }
 
-              /* put convolution ouput into circular output buffer */
-        if (outend <= FILT_LEN) {
-                  /* output will fit in buffer boundaries, therefore
-                     no circular reference required */
-          for (i = outend; i < (outend + FILT_LEN); i++) {
-            outl[i] = yl[i-outend];
-            outr[i] = yr[i-outend];
-          }
-          outcount += FILT_LEN;
-          outend   += FILT_LEN;
+        /* Each convolution produces half of the circular output buffer. */
+        for (i = 0; i < FILT_LEN; i++) {
+          outl[outend + i] = yl[i];
+          outr[outend + i] = yr[i];
         }
-        else {
-                  /* circular reference required due to buffer boundaries */
-          for (i = outend; i < BUF_LEN; i++) {
-            outl[i] = yl[i-outend];
-            outr[i] = yr[i-outend];
-          }
-          for (i = 0; i < (-FILT_LEN + outend); i++) {
-            outl[i] = yl[(BUF_LEN-outend) + i];
-            outr[i] = yr[(BUF_LEN-outend) + i];
-          }
-          outcount += FILT_LEN;
-          outend   -= FILT_LEN;
-        }
+        outcount += FILT_LEN;
+        outend += FILT_LEN;
+        if (outend == BUF_LEN) outend = 0;
       }
 
-          /* output audio to audio stream.
-                  Can only output one control period (ksmps) worth of samples */
-      if (nsmpso < outcount) {
-        if ((outfront+nsmpso) < BUF_LEN) {
-          for (i = 0; i < nsmpso; i++) {
-            *aLeft++ = outl[outfront + i];
-            *aRight++ = outr[outfront + i];
-          }
-          outcount -= nsmpso;
-          outfront += nsmpso;
-          nsmpso = 0;
+      /* Preserve this deprecated opcode's block scheduling: incomplete input
+         frames produce no output, so latency and gaps depend on ksmps.
+         Use hrtfstat for modern scheduling; do not silently change it here. */
+      while (nsmpso > 0 && outcount > 0) {
+        int32_t count = nsmpso < outcount ? nsmpso : outcount;
+        if (count > BUF_LEN - outfront) count = BUF_LEN - outfront;
+        for (i = 0; i < count; i++) {
+          *aLeft++ = outl[outfront + i];
+          *aRight++ = outr[outfront + i];
         }
-        else {
-          uint32 j = 0;
-                  /* account for circular reference */
-          for (i = outfront; i < BUF_LEN; i++, j++) {
-            *aLeft++  = (j<offset || j>early) ? FL(0.0) : outl[i];
-            *aRight++ = (j<offset || j>early) ? FL(0.0) : outr[i];
-          }
-          outcount -= nsmpso;
-          nsmpso -= (BUF_LEN - outfront);
-          for (i = 0; i < nsmpso; i++, j++) {
-            *aLeft++  = (j<offset || j>early) ? FL(0.0) : outl[i];
-            *aRight++ = (j<offset || j>early) ? FL(0.0) : outr[i];
-          }
-          outfront = nsmpso;
-          nsmpso = 0;
-        }
+        nsmpso -= count;
+        outcount -= count;
+        outfront += count;
+        if (outfront == BUF_LEN) outfront = 0;
       }
-      else {
-        uint32 j = 0;
-        if ((outfront+nsmpso) < BUF_LEN) {
-          for (i = 0; i < outcount; i++, j++) {
-            *aLeft++  =  (j<offset || j>early) ? FL(0.0) : outl[outfront + i];
-            *aRight++ =  (j<offset || j>early) ? FL(0.0) : outr[outfront + i];
-          }
-          nsmpso   -= outcount;
-          outfront += outcount;
-          outcount = 0;
-        }
-        else {
-          /* account for circular reference */
-          for (i = outfront; i < BUF_LEN; i++, j++) {
-            *aLeft++  =  (j<offset || j>early) ? FL(0.0) : outl[i];
-            *aRight++ =  (j<offset || j>early) ? FL(0.0) : outr[i];
-          }
-          nsmpso   -= outcount;
-          outcount -= (BUF_LEN - outfront);
-          for (i = 0; i < outcount; i++, j++) {
-            *aLeft++  =  (j<offset || j>early) ? FL(0.0) : outl[i];
-            *aRight++ =  (j<offset || j>early) ? FL(0.0) : outr[i];
-          }
-          outfront = outcount;
-          outcount = 0;
-        }
-      } /* end of audio processing loop - "if" */
     } /* end of control period loop - "while" */
+
+    /* Clear output for which no complete input frame is available. */
+    if (nsmpso > 0) {
+      memset(aLeft, 0, nsmpso * sizeof(cs_float));
+      memset(aRight, 0, nsmpso * sizeof(cs_float));
+    }
 
         /* update state in p */
     p->outcount    = outcount;
@@ -442,12 +395,13 @@ static int32_t hrtferxk(CSOUND *csound, HRTFER *p)
 
     return OK;
  err1:
-    return csound->PerfError(csound, &(p->h), "%s",
+    return csound->PerfError(csound, &(p->h), "%s\n",
                              Str("hrtfer: not initialised"));
 }
 
 static OENTRY hrtferX_localops[] =
   {
+   CSOUND_DEPRECATED_OPCODE("hrtfer", "hrtfstat", FROZEN, "Legacy HRTFcompact behavior is frozen; hrtfstat uses different data and arguments. See PR #3009.")
    { "hrtfer",   sizeof(HRTFER), _QQ,  "aa", "akkS",
      (SUBR)hrtferxkSet, (SUBR)hrtferxk},
 };

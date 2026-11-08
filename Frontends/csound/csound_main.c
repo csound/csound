@@ -22,6 +22,7 @@
 
 /* Console Csound using the Csound API. */
 #include "csound.h"
+#include "text.h"
 #include <stdio.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -65,6 +66,8 @@ static void msg_callback(CSOUND *csound,
 }
 
 static void nomsg_callback(CSOUND *csound,
+    /* Matches the message callback signature. va_list differs between platforms. */
+    /* NOLINTNEXTLINE(readability-non-const-parameter) */
   int attr, const char *format, va_list args){
   IGN(csound); IGN(attr);  IGN(format);  IGN(args);
 }
@@ -87,8 +90,9 @@ static void psignal(int sig, char *str)
 }
 #endif
 
-static CSOUND *_csound = NULL;
-static int perf_flag = 1;
+static volatile sig_atomic_t perf_flag = 1;
+static volatile sig_atomic_t received_signal = 0;
+
 static void signal_handler(int sig) {
 #if defined(SIGPIPE)
     if (sig == (int) SIGPIPE) {
@@ -98,19 +102,21 @@ static void signal_handler(int sig) {
       return;
     }
 #endif
+    if ((sig == (int) SIGINT || sig == (int) SIGTERM)) {
+      if (received_signal) {
+        /* Second Ctrl-C: force-exit immediately */
+        _exit(1);
+      }
+      received_signal = sig;
+      /* Let main() return from csoundPerformKsmps so it can render the
+         interrupt fade and shut down from a safe context. */
+      perf_flag = 0;
+      return;
+    }
 #ifndef __wasm__
     psignal(sig, "\ncsound command");
 #endif
-    if ((sig == (int) SIGINT || sig == (int) SIGTERM)) {
-      if (_csound) {
-        perf_flag = 0;
-        csoundDestroy(_csound);
-      }
-      if (logFile != NULL)
-        fclose(logFile);
-      exit(1);
-    }
-    exit(1);
+    _exit(1);
 }
 
 static const int sigs[] = {
@@ -131,11 +137,13 @@ static void install_signal_handler(void)
 unsigned int i;
 #if defined(__MACH__) || defined(__LINUX__)
   struct sigaction sa;
+  memset(&sa, 0, sizeof(sa));
+  sigemptyset(&sa.sa_mask);
   sa.sa_handler = &signal_handler;
-  for (i = 0; sigs[i] >= 0; i++) 
+  for (i = 0; sigs[i] >= 0; i++)
     sigaction(sigs[i], &sa, NULL);
-#else  
-    for (i = 0; sigs[i] >= 0; i++) 
+#else
+    for (i = 0; sigs[i] >= 0; i++)
       signal(sigs[i], signal_handler);
 #endif
 }
@@ -145,17 +153,17 @@ int main(int argc, char **argv)
     CSOUND  *csound;
     char    *fname = NULL;
     int32_t  i, result, errs, nomessages=0;
-    
+
     install_signal_handler();
     csoundInitialize(CSOUNDINIT_NO_SIGNAL_HANDLER);
 
     /* set stdout to non buffering if not outputing to console window */
-#if !defined(WIN32) && !defined(IOS)
+#if !defined(WIN32) && !defined(IOS) && !defined(__wasi__)
     if (!isatty(fileno(stdout))) {
       setvbuf(stdout, (char*) NULL, _IONBF, 0);
     }
 #endif
-    
+
 #ifdef GNU_GETTEXT
     {
     /* We need to set the locale for the translations to work */
@@ -166,9 +174,7 @@ int main(int argc, char **argv)
     else
         lang = setlocale(LC_MESSAGES, lang);
     if(lang == NULL)
-      csoundMessage(csound, "csould not set the locale\n");
-    /* If the strings for this binary are ever translated,
-     * the textdomain should be set here */
+      fprintf(stderr, "%s", Str("could not set the locale\n"));
     }
 #endif
 
@@ -177,9 +183,11 @@ int main(int argc, char **argv)
     if (set_rt_priority(argc, (const char **)argv) != 0)
       return -1;
 #endif
-    
+
     /* open log file if specified */
     for (i = 1; i < argc; i++) {
+      if (strcmp(argv[i], "--") == 0)
+        break;
       if (strncmp(argv[i], "-O", 2) == 0 && (int) strlen(argv[i]) > 2)
         fname = argv[i] + 2;
       else if (strncmp(argv[i], "--logfile=", 10) == 0 &&
@@ -192,7 +200,7 @@ int main(int argc, char **argv)
       if (!strcmp(fname, "NULL") || !strcmp(fname, "null"))
                nomessages = 1;
       else if ((logFile = fopen(fname, "w")) == NULL) {
-        fprintf(stderr, "Error opening log file '%s': %s\n",
+        fprintf(stderr, Str("Error opening log file '%s': %s\n"),
                         fname, strerror(errno));
         return -1;
       }
@@ -202,24 +210,31 @@ int main(int argc, char **argv)
       csoundSetDefaultMessageCallback(msg_callback);
     else if (nomessages)
       csoundSetDefaultMessageCallback(nomsg_callback);
-  
+
     /*  Create Csound. */
     csound = csoundCreate(NULL, NULL);
-    _csound = csound;
     /*  One complete performance cycle. */
      result = csoundCompile(csound, argc, (const char **)argv);
      if(!result) {
-      result = csoundStart(csound); 
+      result = csoundStart(csound);
       while (!result && perf_flag)
         result = csoundPerformKsmps(csound);
+      if (!result && received_signal) {
+        uint32_t fadeFrames = (uint32_t) (csoundGetSr(csound) / 50.0);
+        result = csoundPerformOutputFade(csound, fadeFrames);
+      }
      }
      errs = csoundErrCnt(csound);
      /* delete Csound instance */
      csoundDestroy(csound);
-     _csound = NULL;
+     if (received_signal) {
+#ifndef __wasm__
+       psignal((int) received_signal, "\ncsound command");
+#endif
+     }
     /* close log file */
     if (logFile != NULL)
       fclose(logFile);
-   
-    return (result >= 0 ? errs : -result);
+
+    return (received_signal ? 1 : (result >= 0 ? errs : -result));
 }

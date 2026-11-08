@@ -1,3 +1,9 @@
+<CsTest>
+description = "until loop and k[]"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>

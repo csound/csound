@@ -23,7 +23,7 @@
 #include "csoundCore.h"
 #include "arrays.h"
 
-MYFLT MOD(MYFLT a, MYFLT bb);
+cs_float MOD(cs_float a, cs_float bb);
 
 typedef struct {
   OPDS    h;
@@ -33,13 +33,13 @@ typedef struct {
 typedef struct {
   OPDS    h;
   ARRAYDAT* arrayDat;
-  MYFLT   *isizes[VARGMAX];
+  cs_float   *isizes[VARGMAX];
 } ARRAYINIT;
 
 typedef struct {
   OPDS    h;
   ARRAYDAT* ans;
-  MYFLT   *iargs[VARGMAX];
+  cs_float   *iargs[VARGMAX];
 } TABFILL;
 
 typedef struct {
@@ -52,14 +52,14 @@ typedef struct {
   OPDS    h;
   ARRAYDAT* arrayDat;
   void    *value;
-  MYFLT   *indexes[VARGMAX];
+  cs_float   *indexes[VARGMAX];
 } ARRAY_SET;
 
 typedef struct {
   OPDS    h;
-  MYFLT*   out;
+  cs_float*   out;
   ARRAYDAT* arrayDat;
-  MYFLT   *indexes[VARGMAX];
+  cs_float   *indexes[VARGMAX];
 } ARRAY_GET;
 
 typedef struct {
@@ -70,13 +70,13 @@ typedef struct {
 typedef struct {
   OPDS h;
   ARRAYDAT *ans, *left;
-  MYFLT *right;
+  cs_float *right;
 } TABARITH1;
 
 typedef struct {
   OPDS h;
   ARRAYDAT *ans;
-  MYFLT *left;
+  cs_float *left;
   ARRAYDAT *right;
 } TABARITH2;
 
@@ -89,41 +89,41 @@ typedef struct {
 typedef struct {
   OPDS h;
   ARRAYDAT *ans;
-  MYFLT *right;
+  cs_float *right;
 } TABARITHIN1;
 
 typedef struct {
   OPDS h;
-  MYFLT  *ans, *pos;
+  cs_float  *ans, *pos;
   ARRAYDAT *tab;
 } TABQUERY;
 
 typedef struct {
   OPDS h;
-  MYFLT  *ans;
+  cs_float  *ans;
   ARRAYDAT *tab;
-  MYFLT  *opt;
+  cs_float  *opt;
 } TABQUERY1;
 
 typedef struct {
   OPDS h;
   ARRAYDAT *tab;
-  MYFLT  *kfn;
+  cs_float  *kfn;
 } TABCOPY;
 
 typedef struct {
   OPDS h;
   ARRAYDAT *tab;
-  MYFLT  *kfn;
-  MYFLT  *offset;
+  cs_float  *kfn;
+  cs_float  *offset;
 } TABCOPY2;
 
 
 typedef struct {
   OPDS h;
   ARRAYDAT *tab;
-  MYFLT  *kmin, *kmax;
-  MYFLT  *kstart, *kend;
+  cs_float  *kmin, *kmax;
+  cs_float  *kstart, *kend;
 } TABSCALE;
 
 typedef struct {
@@ -141,21 +141,21 @@ typedef struct {
 typedef struct {
   OPDS h;
   ARRAYDAT *tab;
-  MYFLT *start, *end, *incr;
+  cs_float *start, *end, *incr;
   int32_t    len;
 } TABGEN;
 
 typedef struct {
   OPDS h;
   ARRAYDAT  *tab;
-  MYFLT     *size;
+  cs_float     *size;
 } TRIM;
 
 typedef struct {
   OPDS h;
   ARRAYDAT *tab, *tabin;
-  MYFLT    *start, *end, *inc;
-  int32_t   len;
+  cs_float    *start, *end, *inc;
+  int32_t   warned;
 } TABSLICE;
 
 typedef struct {
@@ -169,12 +169,12 @@ typedef struct {
 typedef struct {
   OPDS h;
   ARRAYDAT *res;
-  MYFLT *asig;
+  cs_float *asig;
 } A2ARR;
 
 typedef struct {
   OPDS h;
-  MYFLT *asig;
+  cs_float *asig;
   ARRAYDAT *karr;
 } ARR2A;
 
@@ -183,8 +183,10 @@ int32_t tabfill(CSOUND *csound, TABFILL *p);
 int32_t tabfillf(CSOUND* csound, TABFILLF* p);
 int32_t tabsfill(CSOUND *csound, TABFILLF *p);
 int32_t array_err(CSOUND* csound, ARRAY_SET *p);
+int32_t array_set_init(CSOUND* csound, ARRAY_SET *p);
 int32_t array_set(CSOUND* csound, ARRAY_SET *p);
 int32_t array_get(CSOUND* csound, ARRAY_GET *p);
+int32_t array_get_init(CSOUND *csound, ARRAY_GET *p);
 int32_t tabarithset(CSOUND *csound, TABARITH *p);
 int32_t tabarithset1(CSOUND *csound, TABARITH1 *p);
 int32_t tabarithset2(CSOUND *csound, TABARITH2 *p);
@@ -211,8 +213,8 @@ int32_t tabaasubin(CSOUND *csound, TABARITHIN *p);
 int32_t tabaadivin(CSOUND *csound, TABARITHIN *p);
 int32_t tabarkrddin(CSOUND *csound, TABARITHIN *p);
 int32_t tabarkrmulin(CSOUND *csound, TABARITHIN *p);
-int32_t tabarkrsbin(CSOUND *csound, TABARITH *p);
-int32_t tabarkrdivin(CSOUND *csound, TABARITH *p);
+int32_t tabarkrsbin(CSOUND *csound, TABARITHIN *p);
+int32_t tabarkrdivin(CSOUND *csound, TABARITHIN *p);
 int32_t tabakaddin(CSOUND *csound, TABARITHIN1 *p);
 int32_t tabakmulin(CSOUND *csound, TABARITHIN1 *p);
 int32_t tabaksubin(CSOUND *csound, TABARITHIN1 *p);
@@ -284,17 +286,21 @@ int32_t tabcopy(CSOUND *csound, TABCPY *p);
 int32_t tabcopyk_init(CSOUND *csound, TABCPY *p);
 int32_t tabcopyk(CSOUND *csound, TABCPY *p);
 int32_t tabcopy1(CSOUND *csound, TABCPY *p);
+int32_t tabcopy2_init(CSOUND *csound, TABCPY *p);
 int32_t tabcopy2(CSOUND *csound, TABCPY *p);
 int32_t tab2ftab(CSOUND *csound, TABCOPY *p);
 int32_t tab2ftabi(CSOUND *csound, TABCOPY *p);
 int32_t tab2ftab_offset(CSOUND *csound, TABCOPY2 *p);
 int32_t tab2ftab_offset_i(CSOUND *csound, TABCOPY2 *p);
 int32_t tabgen(CSOUND *csound, TABGEN *p);
+int32_t tabgen_perf(CSOUND *csound, TABGEN *p);
 int32_t ftab2tabi(CSOUND *csound, TABCOPY *p);
 int32_t ftab2tab(CSOUND *csound, TABCOPY *p);
 int32_t trim_i(CSOUND *csound, TRIM *p);
+int32_t trim_prepare(CSOUND *csound, TRIM *p);
 int32_t trim(CSOUND *csound, TRIM *p);
 int32_t tabslice(CSOUND *csound, TABSLICE *p);
+int32_t tabslice_perf(CSOUND *csound, TABSLICE *p);
 int32_t tabmap_set(CSOUND *csound, TABMAP *p);
 int32_t tabmap_perf(CSOUND *csound, TABMAP *p);
 int32_t tablength(CSOUND *csound, TABQUERY1 *p);

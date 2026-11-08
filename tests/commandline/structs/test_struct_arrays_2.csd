@@ -1,3 +1,9 @@
+<CsTest>
+description = "test struct-to-struct references"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 sr	=	44100

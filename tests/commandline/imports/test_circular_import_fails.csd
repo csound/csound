@@ -1,3 +1,8 @@
+<CsTest>
+description = "Circular import detection"
+expect.exit = 1
+expect.stderr = ["Circular"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n -d

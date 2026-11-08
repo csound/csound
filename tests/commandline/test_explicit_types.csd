@@ -1,3 +1,9 @@
+<CsTest>
+description = "test typed identifiers (i.e. signals:a[], sigLeft:a)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 ;<CsOptions>
 ;</CsOptions>

@@ -27,79 +27,79 @@
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ihandle, *fname;
+        cs_float   *ihandle, *fname;
 } SFLOAD;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ihandle;
+        cs_float   *ihandle;
         STRINGDAT *Sprefix;
 } SFPLIST;
 
 typedef struct {
         OPDS    h;
-  MYFLT   *startNum,*ihandle, *msgs;
+  cs_float   *startNum,*ihandle, *msgs;
 } SFPASSIGN;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *ipresethandle, *iprog, *ibank, *isfhandle, *iPresetHandle;
+        cs_float   *ipresethandle, *iprog, *ibank, *isfhandle, *iPresetHandle;
 } SFPRESET;
 
 #define MAXSPLT 10
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out1, *out2, *ivel, *inotnum,*xamp, *xfreq;
-        MYFLT   *ipresethandle, *iflag, *ioffset, *ienv, *iskip;
+        cs_float   *out1, *out2, *ivel, *inotnum,*xamp, *xfreq;
+        cs_float   *ipresethandle, *iflag, *ioffset, *ienv, *iskip;
         int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
-        double  si[MAXSPLT],phs[MAXSPLT];
-        MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT], attack[MAXSPLT],
+        cs_double  si[MAXSPLT],phs[MAXSPLT];
+        cs_float   leftlevel[MAXSPLT], rightlevel[MAXSPLT], attack[MAXSPLT],
                 decay[MAXSPLT], sustain[MAXSPLT], release[MAXSPLT];
-        MYFLT   attr[MAXSPLT], decr[MAXSPLT];
-        MYFLT   env[MAXSPLT];
+        cs_float   attr[MAXSPLT], decr[MAXSPLT];
+        cs_float   env[MAXSPLT];
 } SFPLAY;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out1, *ivel, *inotnum,*xamp, *xfreq, *ipresethandle,
+        cs_float   *out1, *ivel, *inotnum,*xamp, *xfreq, *ipresethandle,
                 *iflag, *ioffset, *ienv, *iskip;
         int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
-        double  si[MAXSPLT],phs[MAXSPLT];
-        MYFLT   attenuation[MAXSPLT],attack[MAXSPLT], decay[MAXSPLT],
+        cs_double  si[MAXSPLT],phs[MAXSPLT];
+        cs_float   attenuation[MAXSPLT],attack[MAXSPLT], decay[MAXSPLT],
                 sustain[MAXSPLT], release[MAXSPLT];
-        MYFLT   attr[MAXSPLT], decr[MAXSPLT];
-        MYFLT   env[MAXSPLT];
+        cs_float   attr[MAXSPLT], decr[MAXSPLT];
+        cs_float   env[MAXSPLT];
 } SFPLAYMONO;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out1, *ivel, *inotnum, *xamp, *xfreq, *instrNum;
-        MYFLT   *sfBank, *iflag, *ioffset, *ienv, *iskip;
+        cs_float   *out1, *ivel, *inotnum, *xamp, *xfreq, *instrNum;
+        cs_float   *sfBank, *iflag, *ioffset, *ienv, *iskip;
         int32_t     spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
-        double  si[MAXSPLT],phs[MAXSPLT];
-        MYFLT   attenuation[MAXSPLT],attack[MAXSPLT], decay[MAXSPLT],
+        cs_double  si[MAXSPLT],phs[MAXSPLT];
+        cs_float   attenuation[MAXSPLT],attack[MAXSPLT], decay[MAXSPLT],
                 sustain[MAXSPLT], release[MAXSPLT];
-        MYFLT   attr[MAXSPLT], decr[MAXSPLT];
-        MYFLT   env[MAXSPLT];
+        cs_float   attr[MAXSPLT], decr[MAXSPLT];
+        cs_float   env[MAXSPLT];
 } SFIPLAYMONO;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *out1, *out2, *ivel, *inotnum, *xamp, *xfreq;
-        MYFLT   *instrNum, *sfBank, *iflag, *ioffset, *ienv, *iskip;
+        cs_float   *out1, *out2, *ivel, *inotnum, *xamp, *xfreq;
+        cs_float   *instrNum, *sfBank, *iflag, *ioffset, *ienv, *iskip;
         int32_t spltNum;
         SHORT   *base[MAXSPLT], mode[MAXSPLT];
         DWORD   end[MAXSPLT], startloop[MAXSPLT], endloop[MAXSPLT], ti[MAXSPLT];
-        double  si[MAXSPLT],phs[MAXSPLT];
-        MYFLT   leftlevel[MAXSPLT], rightlevel[MAXSPLT],attack[MAXSPLT],
+        cs_double  si[MAXSPLT],phs[MAXSPLT];
+        cs_float   leftlevel[MAXSPLT], rightlevel[MAXSPLT],attack[MAXSPLT],
                 decay[MAXSPLT], sustain[MAXSPLT], release[MAXSPLT];
-        MYFLT   attr[MAXSPLT], decr[MAXSPLT];
-        MYFLT   env[MAXSPLT];
+        cs_float   attr[MAXSPLT], decr[MAXSPLT];
+        cs_float   env[MAXSPLT];
 } SFIPLAY;

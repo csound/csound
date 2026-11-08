@@ -1,3 +1,9 @@
+<CsTest>
+description = "K-type arguments work with pass-by-ref"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
@@ -35,7 +41,7 @@ instr 1
 
     if (kresult != 6) then
         printks("ERROR: Return value failed for inc_k. kresult=%g\n", .001, kresult)
-        schedulek("FailNow", 0, 0)
+        exitnowk(-1)
         turnoff
     endif
 
@@ -49,7 +55,7 @@ instr 2
 
     if (ksum != 13 || kdiff != 7) then
         printks("ERROR: SumDiffK outputs wrong values. ksum=%g kdiff=%g\n", .001, ksum, kdiff)
-        schedulek("FailNow", 0, 0)
+        exitnowk(-1)
         turnoff
     endif
 endin
@@ -57,7 +63,7 @@ endin
 instr 3
     if (gkResult != 6) then
         printks("ERROR: Global K result incorrect. gkResult=%g\n", .001, gkResult)
-        schedulek("FailNow", 0, 0)
+        exitnowk(-1)
         turnoff
     endif
 endin
@@ -71,7 +77,7 @@ endop
 instr 4
 input:i = 1
 output:k = TestKIO(input)
-if input:i != i(output:k) then
+if input != i(output) then
   exitnow(-1)
 endif
 endin

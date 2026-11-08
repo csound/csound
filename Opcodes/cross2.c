@@ -28,28 +28,29 @@
 
 #define CH_THRESH       1.19209e-7
 #define CHOP(a) (a < CH_THRESH ? CH_THRESH : a)
+/* lineaprox processes the doubled FFT buffer in groups of 16 samples. */
+#define CROSS2_MIN_FFT_SIZE 8U
+/* cross2 transforms 2 * size samples. pfht's trig tables are defined through
+   the k = 15 case, so the largest safe analysis size is 2^16. */
+#define CROSS2_MAX_FFT_SIZE 65536U
 
-static int32 plog2(int32 x)
+static uint32_t cross2_next_power_of_two(uint32_t x)
 {
-    int32 mask, i;
+    uint32_t n = 2U;
 
-    if (x == 0) return (-1);
-    x--;
-
-    for (mask = ~1 , i = 0; ; mask = mask+mask, i++) {
-      if (x == 0) return (i);
-      x = x & mask;
-    }
+    while (n < x)
+      n <<= 1;
+    return n;
 }
 
-static void getmag(MYFLT *x, int32 size)
+static void getmag(cs_float *x, int32 size)
 {
-    MYFLT       *i = x + 1, *j = x + size - 1, max = FL(0.0);
+    cs_float       *i = x + 1, *j = x + size - 1, max = FL(0.0);
     int32        n = size/2 - 1;
 
     do {
-      MYFLT ii = *i;
-      MYFLT jj = *j;
+      cs_float ii = *i;
+      cs_float jj = *j;
       ii = HYPOT(ii,jj);
       if (ii > max)
         max = ii;
@@ -66,23 +67,23 @@ static void getmag(MYFLT *x, int32 size)
     }
 }
 
-static void mult(MYFLT *x, MYFLT *y, int32 size, MYFLT w)
+static void mult(cs_float *x, cs_float *y, int32 size, cs_float w)
 {
-    MYFLT *j = x + size - 1;
+    cs_float *j = x + size - 1;
 
     size = size/2 + 1;
     do {
-      MYFLT z = w * *y++;
+      cs_float z = w * *y++;
       *x++ *= z;
       *j-- *= z;
     } while (--size);
 }
 
-static void lineaprox(MYFLT *x, int32 size, int32 m)
+static void lineaprox(cs_float *x, int32 size, int32 m)
 {
     int32 i, c;
-    MYFLT a, f;
-    MYFLT rm = FL(1.0)/(MYFLT)m;
+    cs_float a, f;
+    cs_float rm = FL(1.0)/(cs_float)m;
 
     f = x[0];
     for (i = 0 ; i < size ; i += m) {
@@ -103,9 +104,9 @@ static void lineaprox(MYFLT *x, int32 size, int32 m)
     }
 }
 
-static void do_fht(MYFLT *real, int32 n)
+static void do_fht(cs_float *real, int32 n)
 {
-    MYFLT       a, b;
+    cs_float       a, b;
     int32        i, j, k;
 
     pfht(real,n);
@@ -117,9 +118,9 @@ static void do_fht(MYFLT *real, int32 n)
     }
 }
 
-static void do_ifht(MYFLT *real, int32 n)
+static void do_ifht(cs_float *real, int32 n)
 {
-    MYFLT       a, b;
+    cs_float       a, b;
     int32        i, j, k;
 
     for (i = 1, j = n-1, k = n/2 ; i < k ; i++, j--) {
@@ -132,16 +133,16 @@ static void do_ifht(MYFLT *real, int32 n)
     pfht(real,n);
 }
 
-static void pfht(MYFLT *fz, int32 n)
+static void pfht(cs_float *fz, int32 n)
 {
     int32_t        i, k, k1, k2, k3, k4, kx;
-    MYFLT       *fi, *fn, *gi;
+    cs_float       *fi, *fn, *gi;
     TRIG_VARS;
 
     k1 = 1;
     k2 = 0;
     do {
-      MYFLT a;
+      cs_float a;
 
       for (k = n >> 1 ; !( (k2 ^= k) & k) ; k >>= 1);
       if (k1 > k2) {
@@ -163,7 +164,7 @@ static void pfht(MYFLT *fz, int32 n)
       fi = fz;
       fn = fz + n;
       do {
-        MYFLT f0, f1, f2, f3;
+        cs_float f0, f1, f2, f3;
         f1 = fi[0] - fi[1];
         f0 = fi[0] + fi[1];
         f3 = fi[2] - fi[3];
@@ -180,7 +181,7 @@ static void pfht(MYFLT *fz, int32 n)
       fn = fz + n;
       gi = fi + 1;
       do {
-        MYFLT s1, c1, s2, c2, s3, c3, s4, c4, g0, f0, f1, g1, f2, g2, f3, g3;
+        cs_float s1, c1, s2, c2, s3, c3, s4, c4, g0, f0, f1, g1, f2, g2, f3, g3;
 
         c1 = fi[0] - gi[0];
         s1 = fi[0] + gi[0];
@@ -214,7 +215,7 @@ static void pfht(MYFLT *fz, int32 n)
     if (n < 16)
       return;
     do {
-      MYFLT s1, c1;
+      cs_float s1, c1;
 
       k += 2;
       k1 = 1 << k;
@@ -226,7 +227,7 @@ static void pfht(MYFLT *fz, int32 n)
       gi = fi + kx;
       fn = fz + n;
       do {
-        MYFLT g0, f0, f1, g1, f2, g2, f3, g3;
+        cs_float g0, f0, f1, g1, f2, g2, f3, g3;
 
         f1 = fi[0] - fi[k1];
         f0 = fi[0] + fi[k1];
@@ -256,7 +257,7 @@ static void pfht(MYFLT *fz, int32 n)
 
       i = 1;
       do {
-        MYFLT c2, s2;
+        cs_float c2, s2;
         TRIG_NEXT(k, c1, s1);
 
         c2 = c1 * c1 - s1 * s1;
@@ -266,7 +267,7 @@ static void pfht(MYFLT *fz, int32 n)
         gi = fz + k1 - i;
 
         do {
-          MYFLT a, b, g0, f0, f1, g1, f2, g2, f3, g3;
+          cs_float a, b, g0, f0, f1, g1, f2, g2, f3, g3;
 
           b = s2 * fi[k1] - c2 * gi[k1];
           a = c2 * fi[k1] + s2 * gi[k1];
@@ -307,29 +308,39 @@ static void pfht(MYFLT *fz, int32 n)
 
 static int32_t Xsynthset(CSOUND *csound, CON *p)
 {
-    uint32_t    flen, bufsize;
-    MYFLT       *b;
+    uint32_t    flen, overlap;
+    size_t      bufsize;
+    cs_float       *b;
     FUNC        *ftp;
-    MYFLT       ovlp = *p->ovlp;
+    cs_float       len = *p->len, ovlp = *p->ovlp;
 
-    flen = (int32)*p->len;
-    if (UNLIKELY(flen<1))
-      return csound->InitError(csound, "%s", Str("cross2: length must be at least 1"));
-    p->m = plog2(flen);
-    flen = 1 << p->m;
+    if (UNLIKELY(!isfinite(len) || len < FL(1.0)))
+      return csound->InitError(csound, "%s\n", Str("cross2: length must be at least 1"));
+    if (UNLIKELY(len > (cs_float)CROSS2_MAX_FFT_SIZE))
+      return csound->InitError(csound, "%s\n",
+                               Str("cross2: length is too large"));
 
-    if (ovlp < FL(2.0)) ovlp = FL(2.0);
-    else if (ovlp > (MYFLT)(flen+flen)) ovlp = (MYFLT)(flen+flen);
-    ovlp = (MYFLT)(1 << (int32_t)plog2((int32)ovlp));
+    flen = cross2_next_power_of_two((uint32_t)len);
+    if (flen < CROSS2_MIN_FFT_SIZE)
+      flen = CROSS2_MIN_FFT_SIZE;
 
-    bufsize = 10 * flen * sizeof(MYFLT);
+    if (UNLIKELY(!isfinite(ovlp)))
+      return csound->InitError(csound, "%s\n",
+                               Str("cross2: overlap must be finite"));
+    if (ovlp < FL(2.0))
+      ovlp = FL(2.0);
+    else if (ovlp > (cs_float)flen)
+      ovlp = (cs_float)flen;
+    overlap = cross2_next_power_of_two((uint32_t)ovlp);
+
+    bufsize = (size_t)10 * flen * sizeof(cs_float);
 
     if (p->mem.auxp == NULL || bufsize > p->mem.size)
       csound->AuxAlloc(csound, bufsize, &p->mem);
     else
       memset(p->mem.auxp, 0, (size_t)bufsize); /* Replaces loop */
 
-    b = (MYFLT*)p->mem.auxp;
+    b = (cs_float*)p->mem.auxp;
     p->buffer_in1 = b;     b += 2 * flen;
     p->buffer_in2 = b;     b += 2 * flen;
     p->buffer_out = b;     b += 2 * flen;
@@ -340,15 +351,17 @@ static int32_t Xsynthset(CSOUND *csound, CON *p)
       p->win = ftp;
     else return NOTOK;
 
+    p->size = (int32_t)flen;
+    p->overlap = (int32_t)overlap;
+    p->hop = (int32_t)(flen / overlap);
     p->count = 0;
-    p->s_ovlp = ovlp;
     return OK;
 }
 
 static int32_t Xsynth(CSOUND *csound, CON *p)
 {
      IGN(csound);
-    MYFLT               *s, *f, *out, *buf1, *buf2, *outbuf, rfn;
+    cs_float               *s, *f, *out, *buf1, *buf2, *outbuf, rfn;
     int32                size, div;
     int32                n, m;
     uint32_t             offset = p->h.insdshead->ksmps_offset;
@@ -363,16 +376,16 @@ static int32_t Xsynth(CSOUND *csound, CON *p)
     buf1 = p->buffer_in1;
     buf2 = p->buffer_in2;
 
-    size = (int32)*p->len;
-    div = size / (int32)p->s_ovlp;
-    rfn = (MYFLT)p->win->flen / (MYFLT)size; /* Moved here for efficiency */
+    size = p->size;
+    div = p->hop;
+    rfn = (cs_float)p->win->flen / (cs_float)size; /* Moved here for efficiency */
 
     n = p->count;
     m = n % div;
-    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(out, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
     }
     for (nn = offset; nn < nsmps; nn++) {
       buf1[n] = s[nn];
@@ -383,8 +396,8 @@ static int32_t Xsynth(CSOUND *csound, CON *p)
       if (n == size) n = 0;     /* Moved to here from inside loop */
       if (m == div) {           /* wrap */
         int32           i, mask, index;
-        MYFLT           window;
-        MYFLT           *x, *y, *win;
+        cs_float           window;
+        cs_float           *x, *y, *win;
         m = 0;
         mask = size - 1;
         win = p->win->ftable;
@@ -400,8 +413,8 @@ static int32_t Xsynth(CSOUND *csound, CON *p)
           y[i] = buf2[index] * window;
         }
 
-        memset(&x[size], 0, sizeof(MYFLT)*size);
-        memset(&y[size], 0, sizeof(MYFLT)*size);
+        memset(&x[size], 0, sizeof(cs_float)*size);
+        memset(&y[size], 0, sizeof(cs_float)*size);
         /* for (; i < 2 * size ; i++) { */
         /*   x[i] = FL(0.0); */
         /*   y[i] = FL(0.0); */
@@ -424,7 +437,7 @@ static int32_t Xsynth(CSOUND *csound, CON *p)
         for (i =  n + size - div ; i < n + size ; i++)
           outbuf[i&mask] = FL(0.0);
 
-        window = FL(5.0) / p->s_ovlp;
+        window = FL(5.0) / (cs_float)p->overlap;
 
         for (i = 0 ; i < size ; i++)
           outbuf[(i+n)&mask] += x[i] * window;

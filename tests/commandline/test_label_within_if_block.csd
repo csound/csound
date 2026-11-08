@@ -1,3 +1,9 @@
+<CsTest>
+description = "test label within if block"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 </CsOptions>

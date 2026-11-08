@@ -4,34 +4,41 @@
 
 // New data type: Tuple
 typedef struct TUPLE {
-  MYFLT data[VARGMAX];
+  cs_float data[VARGMAX];
   size_t size;
 } TUPLE;
 
-static void var_init_memory(CSOUND *csound, CS_VARIABLE* var, MYFLT* memblock) {
+static CS_VARIABLE* create_tuple(void* cs, const CS_TYPE* type,
+                                 const void* typeArg, INSDS *ctx);
+
+static void var_init_memory(CSOUND *csound, CS_VARIABLE* var, cs_float* memblock) {
   memset(memblock, 0, var->memBlockSize);
 }
 
 static void tuple_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                         const void* src, INSDS *ctx) {
-  memcpy(dest, src, sizeof(TUPLE));
-}
-
-static CS_VARIABLE* create_tuple(void* cs, void* p, INSDS *ctx) {
-    CSOUND* csound = (CSOUND*) cs;
-    CS_VARIABLE* var = (CS_VARIABLE *)
-      csound->Calloc(csound, sizeof(CS_VARIABLE));
-    IGN(p);
-    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(TUPLE));
-    var->initializeVariableMemory = &var_init_memory;
-    var->ctx = ctx;
-    return var;
+  if(src && dest)
+    memcpy(dest, src, sizeof(TUPLE));
 }
 
 CS_TYPE CS_VAR_TYPE_TUPLE = {
    "Tuple", "Tuple", CS_ARG_TYPE_BOTH, create_tuple, tuple_copy_value,
     NULL, NULL, 0
 };
+
+static CS_VARIABLE* create_tuple(void* cs, const CS_TYPE* type,
+                                 const void* typeArg, INSDS *ctx) {
+    CSOUND* csound = (CSOUND*) cs;
+    IGN(type);
+    IGN(typeArg);
+    CS_VARIABLE* var = (CS_VARIABLE *)
+      csound->Calloc(csound, sizeof(CS_VARIABLE));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(TUPLE));
+    var->initializeVariableMemory = &var_init_memory;
+    var->ctx = ctx;
+    return var;
+}
+
 
 static int32_t add_tuple(CSOUND *csound) {
   return csound->AddVariableType(csound, csound->GetTypePool(csound),
@@ -43,7 +50,7 @@ static int32_t add_tuple(CSOUND *csound) {
 typedef struct TUPINIT {
   OPDS h;
   TUPLE *r;
-  MYFLT *in[VARGMAX];
+  cs_float *in[VARGMAX];
 } TUPINIT;
 
 static int32_t tuple_init(CSOUND *csound, TUPINIT *p) {
@@ -57,9 +64,9 @@ static int32_t tuple_init(CSOUND *csound, TUPINIT *p) {
 // Access data
 typedef struct TUPGET {
   OPDS h;
-  MYFLT *r;
+  cs_float *r;
   TUPLE *tuple;
-  MYFLT *ndx;
+  cs_float *ndx;
 } TUPGET;
 
 static int32_t tuple_get(CSOUND *csound, TUPGET *p) {
@@ -99,6 +106,5 @@ PUBLIC  int32_t  csoundModuleDestroy(CSOUND *csound){
 }
 
 PUBLIC int32_t csoundModuleInfo(void){
-  return ((CS_VERSION << 16) +
-             (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+  return CSOUND_MODULE_INFO;
 }

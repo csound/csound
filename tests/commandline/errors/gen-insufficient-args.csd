@@ -1,3 +1,10 @@
+<CsTest>
+description = "errors/gen-insufficient-args.csd"
+
+[expect]
+exit = "nonzero"
+stderr = ["insufficient gen arguments"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -m0

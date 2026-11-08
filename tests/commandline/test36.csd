@@ -1,3 +1,9 @@
+<CsTest>
+description = "opcode with all input args optional (passign)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,0 +1,16 @@
+if(BUILD_BELA)
+  message(STATUS "Building belacsound program.")
+  if(NOT DEFINED BELA_HOME)
+    set (BELA_HOME "$ENV{HOME}/Bela")
+  endif(NOT DEFINED BELA_HOME)
+  set (BELA_SRCS ./BelaCsound.cpp ${BELA_HOME}/libraries/Trill/Trill.cpp)
+  make_executable(belacsound "${BELA_SRCS}" ${CSOUNDLIB})
+  set(MAIN_FLAGS "-std=c++11")
+  set_source_files_properties(./BelaCsound.cpp PROPERTIES COMPILE_FLAGS ${MAIN_FLAGS})
+  target_link_libraries(belacsound PRIVATE ${CSOUNDLIB} -L${BELA_HOME}/lib
+    -fno-pie -no-pie ${XENOMAI_POSIX_LDFLAGS} -lbela
+    -lbelaextra)
+  target_include_directories(belacsound PRIVATE ${BELA_HOME}/include ${BELA_HOME}/ )
+else()
+  message(STATUS "Not building belacsound program.")
+endif()

@@ -1,3 +1,9 @@
+<CsTest>
+description = "continuation lines test"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test UDO array setting"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

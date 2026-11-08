@@ -31,6 +31,7 @@
 #include "csound_module.h"
 #include "csound_type_system.h"
 #include "csound_standard_types.h"
+#include "csmodule.h"
 void add_opcode_defs(CSOUND *csound);
 
 #if defined(HAVE_DIRENT_H)
@@ -102,19 +103,52 @@ static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
 #endif
 }
 
-TREE *csoundParseOrc(CSOUND *csound, const char *str)
+static void free_preprocessor(CSOUND *csound, PRE_PARM *qq)
 {
-    int32_t err;
-    add_opcode_defs(csound);  // add global OpcodeDef variables
-    csound->parserNamedInstrFlag = 2;
-    {
-      PRE_PARM    qq;
-      /* Preprocess */
-      memset(&qq, 0, sizeof(PRE_PARM));
+    if (qq->yyscanner != NULL) {
+      csound_pre_delete_buffers(qq->yyscanner);
+      csound_prelex_destroy(qq->yyscanner);
+    }
+    while (qq->ifdefStack != NULL) {
+      IFDEFSTACK *entry = qq->ifdefStack;
+      qq->ifdefStack = entry->prv;
+      csound->Free(csound, entry);
+    }
+    if (qq->pending_macro != NULL) {
+      MACRO *macro = qq->pending_macro;
+      csound->Free(csound, macro->name);
+      csound->Free(csound, macro->body);
+      for (int32_t i = 0; i < macro->acnt; ++i)
+        csound->Free(csound, macro->arg[i]);
+      csound->Free(csound, macro);
+    }
+    csound->Free(csound, qq->macro_name_buffer);
+    csound_pre_free_macro_args(csound, qq->pending_arguments,
+                              qq->pending_argument_count);
+    for (uint32_t i = qq->macro_stack_ptr; i > 0; --i)
+      csound_pre_free_macro_args(csound, qq->alt_stack[i - 1].s,
+                                qq->alt_stack[i - 1].n);
+    /* Includes save their previous path in the macro stack. Compare the
+       borrowed root by identity: an include may also allocate ".". */
+    if (qq->path != NULL && qq->path != qq->initial_path)
+      free(qq->path);
+    for (uint32_t i = 0; i < qq->macro_stack_ptr; ++i) {
+      char *path = qq->alt_stack[i].path;
+      if (path != NULL && path != qq->initial_path)
+        free(path);
+    }
+    csound->Free(csound, qq->alt_stack);
+    corfile_rm(csound, &csound->orchstr);
+}
+
+static int32_t preprocess_orc(CSOUND *csound, const char *str, PRE_PARM *qq)
+{
+      /* A failed live edit must not carry errors into the next request. */
+      csound->synterrcnt = 0;
       //csp_orc_sa_print_list(csound);
-      csound_prelex_init(&qq.yyscanner);
-      csound_preset_extra(&qq, qq.yyscanner);
-      qq.line = csound->orcLineOffset;
+      csound_prelex_init(&qq->yyscanner);
+      csound_preset_extra(qq, qq->yyscanner);
+      qq->line = csound->orcLineOffset;
       csound->expanded_orc = corfile_create_w(csound);
       file_to_int(csound, "**unknown**");
       if (str==NULL) {
@@ -123,7 +157,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
           csound->Die(csound,
                       Str("parser: failed to open input file %s\n"),
                       csound->orchname);
-        else if (csound->orchstr==NULL && csound->oparms->daemon)  return NULL;
+        else if (csound->orchstr==NULL && csound->oparms->daemon)  return CSOUND_ERROR;
 
         add_include_udo_dir(csound, csound->orchstr);
         if (csound->orchname==NULL ||
@@ -136,7 +170,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         }
         /* We know this is the start so stack is empty so far */
         snprintf(bb, 80, "#source %d\n",
-                qq.lstack[0] = file_to_int(csound, csound->orchname));
+                qq->lstack[0] = file_to_int(csound, csound->orchname));
         corfile_puts(csound, bb, csound->expanded_orc);
         snprintf(bb, 80, "#line %d\n", csound->orcLineOffset);
         corfile_puts(csound, bb, csound->expanded_orc);
@@ -160,17 +194,76 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
               corfile_body(csound->orchstr));
       cs_init_math_constants_macros(csound);
       cs_init_omacros(csound, csound->omacros);
-      csound_prelex(csound, qq.yyscanner);
-      if (UNLIKELY(qq.ifdefStack != NULL)) {
+      csound_prelex(csound, qq->yyscanner);
+      if (UNLIKELY(qq->ifdefStack != NULL)) {
         csound->Message(csound, Str("Unmatched #ifdef or #ifndef\n"));
         csound->LongJmp(csound, 1);
       }
-      csound_prelex_destroy(qq.yyscanner);
       if(csoundGetDebug(csound) & DEBUG_PARSER)
 	csoundMessage(csound, "preprocessing result: \n %s\n",
                        corfile_body(csound->expanded_orc));
-      corfile_rm(csound, &csound->orchstr);
+    /* Some WASI file errors return instead of jumping. Reject them before
+       the parser replaces synterrcnt with its own error count. */
+    return csound->synterrcnt ? CSOUND_ERROR : CSOUND_SUCCESS;
+}
+
+static int32_t preprocess_orc_scoped(CSOUND *csound, const char *str)
+{
+#ifdef CSOUND_WASI_REALTIME
+    CSOUND_WASI_COMPILE_JUMP *parent = csoundWasiCompileJumpContext(csound);
+    if (parent != NULL && parent->enabled) {
+      /* Keep resources in heap storage: automatic variables modified after
+         setjmp have indeterminate values after a jump. Recover while the
+         scanner and partial macro definition still have an owner. */
+      PRE_PARM *qq = csound->Calloc(csound, sizeof(PRE_PARM));
+      CSOUND_WASI_COMPILE_JUMP context;
+      int32_t result;
+      context.csound = csound;
+      context.enabled = 1;
+      csoundWasiSwapCompileJumpContext(&context);
+      if (setjmp(context.target)) {
+        result = CSOUND_ERROR;
+        csound->synterrcnt = 0;
+      } else {
+        result = preprocess_orc(csound, str, qq);
+      }
+      csoundWasiSwapCompileJumpContext(parent);
+      free_preprocessor(csound, qq);
+      csound->Free(csound, qq);
+      if (result != CSOUND_SUCCESS)
+        corfile_rm(csound, &csound->expanded_orc);
+      return result;
     }
+#endif
+    PRE_PARM qq = {0};
+    int32_t result = preprocess_orc(csound, str, &qq);
+    free_preprocessor(csound, &qq);
+    if (result != CSOUND_SUCCESS)
+      corfile_rm(csound, &csound->expanded_orc);
+    return result;
+}
+
+/* These pools have not reached compilation. Each variable and name was
+   allocated by csoundCreateVariable; type descriptors are borrowed. Walk the
+   list, since replacing a declaration can remove its old hash entry. */
+void csoundFreeParserVarPool(CSOUND *csound, void *ptr)
+{
+    CS_VAR_POOL *pool = ptr;
+    CS_VARIABLE *var = pool->head;
+    while (var != NULL) {
+      CS_VARIABLE *next = var->next;
+      csound->Free(csound, var->varName);
+      csound->Free(csound, var);
+      var = next;
+    }
+    /* Hash keys are copies; values were freed above. Never follow parent. */
+    cs_hash_table_free(csound, pool->table);
+    csound->Free(csound, pool);
+}
+
+static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
+{
+    int32_t err;
     {
       /* VL 15.3.2015 allocating memory here will cause
          unwanted growth.
@@ -178,18 +271,16 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
          by make leaf */
       TREE* astTree = NULL;
       TREE* newRoot;
-      PARSE_PARM  pp;
       TYPE_TABLE* typeTable = NULL;
+      int32_t hadStatements = 0;
 
       /* Parse */
-      memset(&pp, '\0', sizeof(PARSE_PARM));
+      csound_orclex_init(&pp->yyscanner);
 
-      csound_orclex_init(&pp.yyscanner);
-
-      csound_orcset_extra(&pp, pp.yyscanner);
+      csound_orcset_extra(pp, pp->yyscanner);
       csound_orc_scan_buffer(corfile_body(csound->expanded_orc),
-                             corfile_tell(csound->expanded_orc), pp.yyscanner);
-      err = csound_orcparse(&pp, pp.yyscanner, csound, &astTree);
+                             corfile_tell(csound->expanded_orc), pp->yyscanner);
+      err = csound_orcparse(pp, pp->yyscanner, csound, &astTree);
       corfile_rm(csound, &csound->expanded_orc);
 #ifdef PARCS
       if (UNLIKELY(csoundGetDebug(csound) > 99)) csp_orc_sa_print_list(csound);
@@ -230,9 +321,9 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         while (scan != NULL) {
           if (scan->type == STRUCT_TOKEN) {
             // Create a wrapper node that references the struct node without modifying its next pointer
-            TREE* wrapper = (TREE*)csound->Malloc(csound, sizeof(TREE));
+            TREE* wrapper = (TREE*)csoundParserOwn(csound, csound->Malloc(csound, sizeof(TREE)));
             if (UNLIKELY(wrapper == NULL)) {
-              csound->ErrorMsg(csound, "Memory allocation failed for struct wrapper node\n");
+              csound->ErrorMsg(csound, Str("Memory allocation failed for struct wrapper node\n"));
               err = 3;
 
               // Clean up any already allocated wrapper nodes before jumping to ending
@@ -274,7 +365,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         // Process all struct definitions in two phases
         if (structList != NULL) {
           if (!process_struct_definitions_two_phase(csound, structList)) {
-            csound->ErrorMsg(csound, "Error in early two-phase struct processing\n");
+            csound->ErrorMsg(csound, Str("Error in early two-phase struct processing\n"));
             err = 3;
 
             // Clean up wrapper nodes before exiting
@@ -297,7 +388,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         }
       }
 
-      typeTable = csound->Malloc(csound, sizeof(TYPE_TABLE));
+      typeTable = csoundParserOwn(csound, csound->Calloc(csound, sizeof(TYPE_TABLE)));
       typeTable->udos = NULL;
 
       /* Get current module's varPool for g-variables and @global variables
@@ -305,25 +396,30 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
        * For imported modules, this will be the module's varPool */
       MODULE_STATE *module_state = csoundGetModuleState(csound);
 
-      if (module_state->current_module && module_state->current_module->varPool) {
+      if (module_state->current_module && module_state->current_module->varPool &&
+          !(module_state->current_module == module_state->root_module &&
+            csound->instr0 != NULL && csound->compilation_depth == 0)) {
         typeTable->globalPool = module_state->current_module->varPool;
       } else {
-        /* Fallback: create a new pool if no current module (shouldn't happen) */
-        typeTable->globalPool = csoundCreateVarPool(csound);
+        /* Live edits need a private pool until validation and publication. */
+        typeTable->globalPool = csoundParserCreateVarPool(csound);
       }
 
       if (typeTable->globalPool == NULL) {
-        csound->ErrorMsg(csound, "Failed to create globalPool in parser\n");
+        csound->ErrorMsg(csound, Str("Failed to create globalPool in parser\n"));
         csound->Free(csound, typeTable);
+        typeTable = NULL;
         err = 3;
         goto ending;
       }
 
-      typeTable->instr0LocalPool = csoundCreateVarPool(csound);
+
+      typeTable->instr0LocalPool = csoundParserCreateVarPool(csound);
       if (typeTable->instr0LocalPool == NULL) {
-        csound->ErrorMsg(csound, "Failed to create instr0LocalPool in parser\n");
+        csound->ErrorMsg(csound, Str("Failed to create instr0LocalPool in parser\n"));
         csoundFreeVarPool(csound, typeTable->globalPool);
         csound->Free(csound, typeTable);
+        typeTable = NULL;
         err = 3;
         goto ending;
       }
@@ -505,9 +601,18 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         current = current->next;
       }
 
+      /* Empty input parses to no statements, which is valid: the compiler is
+         then given just the sentinel root carrying the TYPE_TABLE and can
+         still create instr0 and initialise the system constants. Verification
+         returns NULL both for that case and for failure, so remember whether
+         there was anything to verify rather than inferring it from the result.
+         synterrcnt alone is not sufficient: some verify_tree failures, such
+         as a rejected struct definition, report through ErrorMsg only and
+         leave synterrcnt unchanged. */
+      hadStatements = (astTree != NULL);
       astTree = verify_tree(csound, astTree, typeTable);
 
-      if (UNLIKELY(astTree == NULL || csound->synterrcnt)) {
+      if (UNLIKELY(csound->synterrcnt || (hadStatements && astTree == NULL))) {
         err = 3;
         if (astTree)
           csound->Message(csound,
@@ -516,7 +621,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         else if (csound->synterrcnt)
           csoundErrorMsg(csound, Str("Parsing failed due to syntax errors\n"));
         else
-          csoundErrorMsg(csound, Str("Parsing failed due to no input!\n"));
+          csoundErrorMsg(csound, Str("Parsing failed due to semantic errors\n"));
         goto ending;
       }
       err = 0;
@@ -526,9 +631,17 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
       }
 
     ending:
-      csound_orclex_destroy(pp.yyscanner);
+      csound_orclex_destroy(pp->yyscanner);
+      pp->yyscanner = NULL;
+      free(pp->xstrbuff);
+      pp->xstrbuff = NULL;
       if (UNLIKELY(err)) {
         csound->ErrorMsg(csound, "%s", Str("Stopping on parser failure\n"));
+#ifdef CSOUND_WASI_REALTIME
+        /* The scope also owns nodes discarded by Bison or detached during
+           rewriting. A tree walk cannot safely recover those allocations. */
+        if (csoundWasiHasAllocScope(csound)) return NULL;
+#endif
         csoundDeleteTree(csound, astTree);
         if (typeTable != NULL) {
           /* Only free globalPool if it was created as a fallback
@@ -549,9 +662,13 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
         return NULL;
       }
 
-      astTree = csound_orc_optimize(csound, astTree);
-      // small hack: use an extra node as head of tree list to hold the
-      // typeTable, to be used during compilation
+      astTree = csound_orc_optimize(csound, astTree, typeTable);
+      /* Prepend a sentinel node to the statement list to carry the
+         TYPE_TABLE across to the compilation step, which receives only the
+         tree root and reads the table back from root->markup. The node is
+         type 0 with no value, which is how csound_compile_tree recognises and
+         skips it. For empty input astTree is NULL, so this node is the only
+         one in the list and carries the table by itself. */
       newRoot = make_leaf(csound, 0, 0, 0, NULL);
       newRoot->markup = typeTable;
       newRoot->next = astTree;
@@ -560,3 +677,51 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
     }
 }
 
+TREE *csoundParseOrc(CSOUND *csound, const char *str)
+{
+    PARSE_PARM parser = {0};
+    if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
+      return NULL;
+    add_opcode_defs(csound);
+    if (preprocess_orc_scoped(csound, str) != CSOUND_SUCCESS)
+      return NULL;
+#ifdef CSOUND_WASI_REALTIME
+    CSOUND_WASI_COMPILE_JUMP *parent = csoundWasiCompileJumpContext(csound);
+    if (parent != NULL && parent->enabled) {
+      /* The scanner and allocation owner must survive longjmp unchanged. */
+      struct parser_state {
+        PARSE_PARM parser;
+        CSOUND_WASI_ALLOC_SCOPE allocations;
+      } *state = csound->Calloc(csound, sizeof(*state));
+      CSOUND_WASI_COMPILE_JUMP context;
+      CSOUND_WASI_ALLOC_SCOPE *previous;
+      TREE *result;
+      state->allocations.csound = csound;
+      previous = csoundWasiSwapAllocScope(&state->allocations);
+      context.csound = csound;
+      context.enabled = 1;
+      csoundWasiSwapCompileJumpContext(&context);
+      if (setjmp(context.target)) {
+        result = NULL;
+        csound->synterrcnt = 0;
+      } else {
+        result = parse_orc(csound, &state->parser);
+      }
+      csoundWasiSwapCompileJumpContext(parent);
+      csoundWasiSwapAllocScope(previous);
+      if (state->parser.yyscanner != NULL)
+        csound_orclex_destroy(state->parser.yyscanner);
+      free(state->parser.xstrbuff);
+      corfile_rm(csound, &csound->expanded_orc);
+      /* A live compiler still needs these allocations until validation ends.
+         Standalone ParseOrc callers keep the usual tree ownership contract. */
+      if (result != NULL && previous != NULL && previous->csound == csound)
+        csoundWasiTransferAllocScope(&state->allocations, previous);
+      else
+        csoundWasiFinishAllocScope(&state->allocations, result == NULL);
+      csound->Free(csound, state);
+      return result;
+    }
+#endif
+    return parse_orc(csound, &parser);
+}

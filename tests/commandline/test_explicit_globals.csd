@@ -1,3 +1,9 @@
+<CsTest>
+description = "test global declaration of explicit types"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

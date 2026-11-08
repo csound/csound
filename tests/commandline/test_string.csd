@@ -1,3 +1,9 @@
+<CsTest>
+description = "test string assignment and printing"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 instr 1

@@ -14,6 +14,10 @@ import "test_simple.orc"
 
 /* Test instrument that uses the imported functionality */
 instr 1
+    if (sr != 44100 || ksmps != 32 || nchnls != 2 || 0dbfs != 1) then
+        prints "FAIL: Module import changed engine settings\n"
+        exitnow 1
+    endif
     iResult = TestConst(123)
     if (iResult != 123) then
         prints "FAIL: Expected TestConst(123) = 123, got %d\n", iResult

@@ -46,16 +46,16 @@
 
 #include "mandolin.h"
 
-static inline int32_t infoTick(MANDOL *p)
+static inline int32_t infoTick(MANDOL *p, cs_float rate)
 {
     int32 temp;
-    MYFLT temp_time, alpha;
+    cs_float temp_time, alpha;
     int32_t allDone = 0;
 
-    p->s_time += *p->s_rate;    /*  Update current time          */
+    p->s_time += rate;    /*  Update current time          */
 
-    if (p->s_time >= (MYFLT)p->soundfile->flen) { /*  Check for end of sound */
-      p->s_time = (MYFLT)(p->soundfile->flen-1L); /*  stick at end      */
+    if (p->s_time >= (cs_float)p->soundfile->flen) { /*  Check for end of sound */
+      p->s_time = (cs_float)(p->soundfile->flen-1L); /*  stick at end      */
       allDone = 1;                 /* Information for one-shot use  */
     }
     else if (p->s_time < FL(0.0))  /*  Check for end of sound       */
@@ -64,13 +64,10 @@ static inline int32_t infoTick(MANDOL *p)
     temp_time = p->s_time;
 
     temp = (int32) temp_time;       /*  Integer part of time address */
-    alpha = temp_time - (MYFLT) temp; /*  fractional part of time address */
-    p->s_lastOutput =              /* Do linear interpolation       */
-      FL(0.05)*((MYFLT*)(p->soundfile->ftable))[temp];
-    p->s_lastOutput = p->s_lastOutput + /*  same as alpha*data[temp+1]      */
-        (alpha * FL(0.05)*(((MYFLT*)(p->soundfile->ftable))[temp+1] -
-                p->s_lastOutput)); /*  + (1-alpha)data[temp]           */
-    /* p->s_lastOutput *= FL(0.51);*/ /* Scaling hack; see below, and changed */
+    alpha = temp_time - (cs_float) temp; /*  fractional part of time address */
+    p->s_lastOutput = FL(0.05) *
+      (p->soundfile->ftable[temp] + alpha *
+       (p->soundfile->ftable[temp+1] - p->soundfile->ftable[temp]));
     return allDone;
 }
 
@@ -82,42 +79,36 @@ int32_t mandolinset(CSOUND *csound, MANDOL *p)
     if (LIKELY((ftp = csound->FTFind(csound, p->ifn)) != NULL))
       p->soundfile = ftp;
     else {                                      /* Expect pluck wave */
-      return csound->InitError(csound, "%s", Str("No table for Mandolin"));
+      return csound->InitError(csound, "%s\n", Str("No table for Mandolin"));
     }
-    if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation */
-      if (*p->lowestFreq!=FL(0.0)) {
-        p->length = (int32) (CS_ESR / (*p->lowestFreq * FL(0.9)) + FL(1.0));
+    if (*p->lowestFreq>=FL(0.0)) {      /* Skip initialisation if negative. */
+      cs_double frequency = *p->lowestFreq;
+      cs_double length;
+      if (frequency == 0.0) {
+        frequency = *p->frequency;
+        if (frequency == 0.0) {
+          csound->Warning(csound, "%s\n", Str("No base frequency for mandolin"));
+          frequency = 50.0;
+        }
       }
-      else if (LIKELY(*p->frequency!=FL(0.0))) {
-        p->length = (int32) (CS_ESR / *p->frequency + FL(1.0));
-      }
-      else {
-        csound->Warning(csound, "%s", Str("No base frequency for mandolin"));
-        p->length = (int32) (CS_ESR / FL(50.0) + FL(1.0));
-      }
-      p->lastFreq = FL(50.0);
-/*     p->baseLoopGain = 0.995; */
-/*     p->loopGain = 0.999; */
+      /* Allow the documented detuning range down to 0.9. */
+      length = CS_ESR / (frequency * 0.9) + 1.0;
+      if (UNLIKELY(!(length >= 3.0 && length <= (INT32_MAX + 0.0))))
+        return csound->InitError(csound, "%s\n",
+                                 Str("Invalid minimum mandolin frequency"));
+      p->length = (int32_t) length;
+      p->lastFreq = FL(0.0);
+      p->lastDetune = FL(0.0);
+      p->lastPluck = FL(-1.0);
       make_DLineA(csound,&p->delayLine1, p->length);
       make_DLineA(csound,&p->delayLine2, p->length);
       make_DLineL(csound,&p->combDelay, p->length);
       make_OneZero(&p->filter1);
       make_OneZero(&p->filter2);
-      //      p->lastLength = p->length * FL(0.5);
-/*    soundfile->normalize(0.05);    Empirical hack here transferred to use  */
-      p->lastLength = ( CS_ESR / p->lastFreq);        /* length - delays */
-/*    DLineA_setDelay(&p->delayLine1, (p->lastLength / *p->detuning) - 0.5f); */
-/*    DLineA_setDelay(&p->delayLine2, (p->lastLength * *p->detuning) - 0.5f); */
-
-                           /* this function gets interesting here, */
-      p->s_time = FL(0.0); /* because pluck may be longer than     */
-                           /* string length, so we just reset the  */
-                           /* soundfile and add in the pluck in    */
-                           /* the tick method.                     */
-                           /* Set Pick Position                    */
-      DLineL_setDelay(&p->combDelay, FL(0.5) * *p->pluckPos * p->lastLength);
-                           /*   which puts zeroes at pos*length    */
-      p->dampTime = (int32) p->lastLength; /* See tick method below */
+      p->lastLength = 0.0;  /* Force setup on the first control cycle. */
+      p->s_time = FL(0.0);
+      p->s_lastOutput = FL(0.0);
+      p->dampTime = 0;
       p->waveDone = 0;
       {
         int32_t relestim = (int32_t)(CS_EKR * FL(0.1));
@@ -125,48 +116,79 @@ int32_t mandolinset(CSOUND *csound, MANDOL *p)
         if (relestim > p->h.insdshead->xtratim)
           p->h.insdshead->xtratim = relestim;
       }
-      p->kloop = (int32_t)(p->h.insdshead->offtim * CS_EKR);  /* ??? */
     }
+    else if (UNLIKELY(p->length == 0))
+      return csound->InitError(csound, "%s\n", Str("mandolin: not initialised"));
     return OK;
+}
+
+/* Control-rate delay updates stay within the allocated string length. */
+static cs_float mandolin_delay(cs_double delay, int32_t length)
+{
+    if (delay < 0.5) return FL(0.5);
+    if (delay > length - 1.0) return (cs_float)(length - 1);
+    return (cs_float) delay;
 }
 
 int32_t mandolin(CSOUND *csound, MANDOL *p)
 {
-    MYFLT *ar = p->ar;
+    cs_float *ar = p->ar;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT amp = (*p->amp)*AMP_RSCALE; /* Normalise */
-    MYFLT lastOutput;
-    MYFLT loopGain;
+    cs_float fullscale = AMP_SCALE;
+    cs_float amp = *p->amp * (FL(1.0) / fullscale);
+    cs_float lastOutput;
+    cs_float loopGain;
+    cs_float frequency = *p->frequency;
+    cs_float detune = *p->detuning;
+    cs_float rate = *p->s_rate;
+    int32_t frequencyChanged = p->lastLength == 0.0 || frequency != p->lastFreq;
 
-    loopGain = *p->baseLoopGain + (p->lastFreq * FL(0.000005));
-    if (loopGain>FL(1.0)) loopGain = FL(0.99999);
-
-    if (p->kloop>0 && p->h.insdshead->relesing) p->kloop=1;
-
-    if (p->lastFreq != *p->frequency) {
-      p->lastFreq = *p->frequency;
-      p->lastLength = ( CS_ESR / p->lastFreq);        /* length - delays */
+    if (frequencyChanged) {
+      cs_double period = CS_ESR / (cs_double) frequency;
+      if (UNLIKELY(!(period > 0.0 && period <= (INT32_MAX + 0.0))))
+        return csound->PerfError(csound, &(p->h), "%s\n",
+                                 Str("Invalid mandolin frequency"));
+      if (p->lastLength == 0.0)
+        p->dampTime = (int32_t) period;
+      p->lastLength = period;
+      p->lastFreq = frequency;
+    }
+    if (frequencyChanged || detune != p->lastDetune) {
+      if (UNLIKELY(!(detune > FL(0.0))))
+        return csound->PerfError(csound, &(p->h), "%s\n",
+                                 Str("Invalid mandolin detuning"));
       DLineA_setDelay(csound, &p->delayLine1,
-                              (p->lastLength / *p->detuning) - FL(0.5));
+                     mandolin_delay(p->lastLength / detune - 0.5, p->length));
       DLineA_setDelay(csound, &p->delayLine2,
-                              (p->lastLength * *p->detuning) - FL(0.5));
+                     mandolin_delay(p->lastLength * detune - 0.5, p->length));
+      p->lastDetune = detune;
+    }
+    if (frequencyChanged || *p->pluckPos != p->lastPluck) {
+      cs_float pluck = *p->pluckPos;
+      if (UNLIKELY(!(pluck >= FL(0.0) && pluck <= FL(1.0))))
+        return csound->PerfError(csound, &(p->h), "%s\n",
+                                 Str("Invalid mandolin pluck position"));
+      DLineL_setDelay(&p->combDelay, (cs_float)
+                     fmin(0.5 * pluck * p->lastLength, p->length - 1.0));
+      p->lastPluck = pluck;
     }
 
-    if ((--p->kloop) == 0) {
-        loopGain = (FL(1.0) - amp) * FL(0.5);
-    }
+    loopGain = *p->baseLoopGain + frequency * FL(0.000005);
+    if (loopGain>FL(1.0)) loopGain = FL(0.99999);
+    if (p->h.insdshead->relesing)
+      loopGain = (FL(1.0) - amp) * FL(0.5);
 
-    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&ar[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset;n<nsmps;n++) {
-      MYFLT temp = FL(0.0);
+      cs_float temp = FL(0.0);
       if (!p->waveDone) {
-        p->waveDone = infoTick(p);       /* as long as it goes . . .   */
+        p->waveDone = infoTick(p, rate);       /* as long as it goes . . .   */
         temp = p->s_lastOutput * amp;    /* scaled pluck excitation    */
         temp = temp - DLineL_tick(&p->combDelay, temp);/* with comb filtering */
       }
@@ -197,7 +219,7 @@ int32_t mandolin(CSOUND *csound, MANDOL *p)
                                    (p->delayLine2.lastOutput * loopGain)));
       }
       lastOutput *= FL(3.7);
-      ar[n] = lastOutput*AMP_SCALE;
+      ar[n] = lastOutput*fullscale;
     }
     return OK;
 }

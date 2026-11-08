@@ -1,3 +1,9 @@
+<CsTest>
+description = "extended string"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

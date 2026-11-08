@@ -1,3 +1,9 @@
+<CsTest>
+description = "test isactive and isperforming"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

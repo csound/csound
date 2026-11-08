@@ -23,9 +23,10 @@ Csound API public headers
 - csound_rtmidi.h: realtime MIDI interface
 - csound_server.h: UDP server interface
 - csound_threads.h: threading interface
+- csound_types.h: numeric types and CS7 compatibility aliases
 - csound_type_system.h: type system interface
 - cwindow.h: window graphs functionality
-- float-version.h.in: source file for float-version.h (setting MYFLT size)
+- float-version.h.in: source file for float-version.h (setting cs_float size)
 - interlocks.h: locks interface
 - modload.h: plugin loading 
 - msg_attr.h: message printing attributes

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>multiCsound issue #2467 repro</title>
+  </head>
+  <body>
+    <script type="module">
+      import { Csound } from "/dist/csound.js";
+
+      const code = `
+instr 1
+  out linenr(oscili(0dbfs*p4,p5),0.01,0.5,0.01)
+endin
+`;
+
+      const ac = new AudioContext();
+
+      async function getCsoundInstance(ctx) {
+        const c = await Csound({ audioContext: ctx, autoConnect: false });
+        await c.setOption("-odac");
+        await c.compileOrc(code);
+        await c.start();
+        return c;
+      }
+
+      const csound1 = await getCsoundInstance(ac);
+      const csound2 = await getCsoundInstance(ac);
+
+      const node1 = await csound1.getNode();
+      const node2 = await csound2.getNode();
+
+      node1.connect(ac.destination);
+      node2.connect(ac.destination);
+
+      await csound1.inputMessage("i1 0 1 0.2 440");
+      await csound2.inputMessage("i1 0 1 0.2 500");
+    </script>
+  </body>
+</html>

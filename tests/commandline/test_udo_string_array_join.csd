@@ -1,3 +1,9 @@
+<CsTest>
+description = "test udo with S[] arg returning S"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 ksmps = 32

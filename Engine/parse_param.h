@@ -39,6 +39,10 @@ typedef struct pre_parm_s {
     unsigned int macro_stack_ptr;
     unsigned int macro_stack_size;
     IFDEFSTACK      *ifdefStack;
+    MACRO           *pending_macro; /* definition not yet linked to orc_macros */
+    char            *macro_name_buffer; /* temporary argument-name storage */
+    MACRO           *pending_arguments; /* argument group not yet stacked */
+    int32_t         pending_argument_count;
     unsigned char   isIfndef;
     unsigned char   isString;
     uint16_t        line;
@@ -48,6 +52,7 @@ typedef struct pre_parm_s {
     uint16_t        lstack[1024];
     unsigned char   isinclude;
     char            *path;
+    const char      *initial_path; /* borrowed root path */
 } PRE_PARM;
 
 typedef struct parse_parm_s {
@@ -57,9 +62,13 @@ typedef struct parse_parm_s {
     int             xstrptr,xstrmax;
     uint64_t        iline;      /* Line number for start of instrument */
     uint64_t        ilocn;      /* and location */
+    uint32_t        first_column;
+    uint32_t        last_column;  
+    uint32_t        paren_depth;  /* suppress newlines inside parentheses */
     int             xsubstr;    /* count for substr */
 } PARSE_PARM;
 
+void    csound_pre_free_macro_args(CSOUND*, MACRO*, int32_t);
 void    cs_init_math_constants_macros(CSOUND*);
 void    cs_init_omacros(CSOUND*, NAMES*);
 
@@ -69,4 +78,6 @@ extern uint8_t file_to_int(CSOUND*, const char*);
 extern void csound_orcput_ilocn(void *, uint64_t, uint64_t);
 extern uint64_t csound_orcget_iline(void *);
 extern uint64_t csound_orcget_ilocn(void *);
+extern uint32_t csound_orcget_first_column(void *);
+extern uint32_t csound_orcget_last_column(void *);
 #endif

@@ -1,3 +1,9 @@
+<CsTest>
+description = "contrib/multiple_strings_in_scoreline3.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 /*

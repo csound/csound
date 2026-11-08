@@ -1,3 +1,9 @@
+<CsTest>
+description = "Simple Test, using k-rate variables, 2 Channel"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

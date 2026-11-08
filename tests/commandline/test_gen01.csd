@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing GEN01 importing files"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

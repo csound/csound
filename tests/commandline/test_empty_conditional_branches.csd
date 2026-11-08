@@ -1,3 +1,9 @@
+<CsTest>
+description = "tests that empty branches do not cause compiler issues"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

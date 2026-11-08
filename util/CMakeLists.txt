@@ -7,11 +7,20 @@ set(stdutil_SRCS
     lpc_export.c    lpc_import.c    mixer.c     pvanal.c
     pv_export.c     pv_import.c     pvlook.c    scale.c
     sndinfo.c       srconv.c        std_util.c  xtrct.c
-    smf_conv.c
+    smf_conv.c  mkir.c
     SDIF/sdif.c )
 
 if(BUILD_UTILITIES)
-   make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} SndFile::sndfile)
+    if(CMAKE_SYSTEM_NAME_UPPER STREQUAL "WASI" AND NOT BUILD_WASI_BROWSER)
+        # WASI commands cannot load the utility plugin at runtime.
+        # mkir.c already belongs to the command library for its deconv opcode.
+        set(static_util_SRCS ${stdutil_SRCS})
+        list(REMOVE_ITEM static_util_SRCS mkir.c)
+        target_sources(${CSOUNDLIB} PRIVATE ${static_util_SRCS})
+        target_compile_definitions(${CSOUNDLIB} PRIVATE CSOUND_STATIC_UTILITIES)
+    else()
+        make_plugin(stdutil "${stdutil_SRCS}" ${MATH_LIBRARY} SndFile::sndfile)
+    endif()
     make_utility(atsa        atsa_main.c)
     make_utility(csanalyze   csanalyze.c)
     make_utility(cvanal      cvl_main.c)
@@ -33,7 +42,8 @@ if(BUILD_UTILITIES)
     make_utility(sndinfo     sndinfo_main.c)
     make_utility(srconv      srconv_main.c)
     make_utility(smf_conv    smf_conv_main.c)
-
+    make_utility(mkir    mkir_main.c)
+    
     if (BUILD_SRC_CONV AND USE_LIBSAMPLERATE)
         if (USE_VCPKG)
             find_package(SampleRate CONFIG REQUIRED)
@@ -46,6 +56,8 @@ if(BUILD_UTILITIES)
     check_deps(BUILD_SRC_CONV USE_LIBSNDFILE SampleRate_FOUND)
     if (BUILD_SRC_CONV)
         make_executable(src_conv new_srconv.c "SndFile::sndfile;SampleRate::samplerate")
+        target_include_directories(src_conv PRIVATE
+            ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
     endif()
 
 endif()

@@ -38,7 +38,7 @@ static int32_t wtinit(CSOUND *csound, WAVETER *p)
 
     /* CHECK */
     if (UNLIKELY((ftpx == NULL)||(ftpy == NULL))) {
-      return csound->InitError(csound, "%s", Str("wterrain: ftable not found"));
+      return csound->InitError(csound, "%s\n", Str("wterrain: ftable not found"));
     }
 
     /* POINT xarr AND yarr AT THE TABLES */
@@ -46,8 +46,8 @@ static int32_t wtinit(CSOUND *csound, WAVETER *p)
     p->yarr = ftpy->ftable;
 
     /* PUT SIZES INTO STRUCT FOR REFERENCE AT PERF TIME */
-    p->sizx = (MYFLT)ftpx->flen;
-    p->sizy = (MYFLT)ftpy->flen;
+    p->sizx = (cs_float)ftpx->flen;
+    p->sizy = (cs_float)ftpy->flen;
     p->theta = 0.0;
     return OK;
 }
@@ -58,20 +58,20 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
     int32_t xloc, yloc;
-    MYFLT xc, yc;
-    MYFLT amp = *p->kamp;
-    MYFLT pch = *p->kpch;
-    MYFLT kcx = *(p->kcx), kcy = *(p->kcy);
-    MYFLT krx = *(p->krx), kry = *(p->kry);
-    MYFLT sizx = p->sizx, sizy = p->sizy;
-    MYFLT theta = p->theta;
-    MYFLT dtpidsr = CS_TPIDSR;
-    MYFLT *aout = p->aout;
+    cs_float xc, yc;
+    cs_float amp = *p->kamp;
+    cs_float pch = *p->kpch;
+    cs_float kcx = *(p->kcx), kcy = *(p->kcy);
+    cs_float krx = *(p->krx), kry = *(p->kry);
+    cs_float sizx = p->sizx, sizy = p->sizy;
+    cs_float theta = p->theta;
+    cs_float dtpidsr = CS_TPIDSR;
+    cs_float *aout = p->aout;
 
-    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&aout[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i=offset; i<nsmps; i++) {
 
@@ -111,24 +111,48 @@ static int32_t wtPerf(CSOUND *csound, WAVETER *p)
 static int32_t scanhinit(CSOUND *csound, SCANHAMMER *p)
 {
   uint32_t srcpos = 0;
-  uint32_t dstpos = (uint32_t)MYFLT2LONG(*p->ipos);
+  uint32_t dstpos;
+  cs_float *source;
+  cs_float *sourceCopy = NULL;
 
   FUNC *fsrc = csound->FTFind(csound, p->isrc); /* Source table */
   FUNC *fdst = csound->FTFind(csound, p->idst); /* Destination table */
 
+  if (UNLIKELY(fsrc == NULL || fdst == NULL))
+    return NOTOK;
+
   if (UNLIKELY(fsrc->flen > fdst->flen)) {
-    return csound->InitError(csound,  "%s",  Str("Source table must be same size or "
+    return csound->InitError(csound,  "%s\n",  Str("Source table must be same size or "
                                          "smaller than dest table\n"));
+  }
+
+  /* Validate before converting the position or writing the first sample. */
+  if (UNLIKELY(!(*p->ipos >= FL(0.0) &&
+                 (cs_double)*p->ipos < (cs_double)fdst->flen)))
+    return csound->InitError(csound, "%s\n",
+                            Str("scanhammer: position must be within the "
+                                "destination table"));
+
+  /* A fractional position selects the point below it. */
+  dstpos = (uint32_t)*p->ipos;
+
+  source = fsrc->ftable;
+  if (UNLIKELY(fsrc == fdst && dstpos != 0)) {
+    size_t sourceBytes = (size_t)fsrc->flen * sizeof(cs_float);
+    sourceCopy = csound->Malloc(csound, sourceBytes);
+    memcpy(sourceCopy, source, sourceBytes);
+    source = sourceCopy;
   }
 
   for (srcpos=0; srcpos<fsrc->flen; srcpos++) {
 
-    fdst->ftable[dstpos] = fsrc->ftable[srcpos] * *p->imode;
+    fdst->ftable[dstpos] = source[srcpos] * *p->imode;
 
-    if (++dstpos > fdst->flen) {
+    if (++dstpos >= fdst->flen) {
       dstpos = 0;
     }
   }
+  if (sourceCopy != NULL) csound->Free(csound, sourceCopy);
   return OK;
 }
 
@@ -153,23 +177,23 @@ static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
 
     /* CHECK */
     if (UNLIKELY(fpoint == NULL)) {
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("Scantable: point table not found"));
     }
     if (UNLIKELY(fmass == NULL)) {
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("Scantable: mass table not found"));
     }
     if (UNLIKELY(fstiff == NULL)) {
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("Scantable: stiffness table not found"));
     }
     if (UNLIKELY(fdamp == NULL)) {
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("Scantable: damping table not found"));
     }
     if (UNLIKELY(fvel == NULL)) {
-      return csound->InitError(csound, "%s",
+      return csound->InitError(csound, "%s\n",
                                Str("Scantable: velocity table not found"));
     }
 
@@ -178,7 +202,7 @@ static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
           (fdamp->flen==fstiff->flen)  &&
           (fvel->flen==fstiff->flen)   &&
                    (fpoint->flen==fdamp->flen)))) {
-      return csound->InitError(csound, "%s", Str("Table lengths do not agree!!"));
+      return csound->InitError(csound, "%s\n", Str("Table lengths do not agree!!"));
     }
 
     p->fpoint = fpoint;
@@ -187,15 +211,17 @@ static int32_t scantinit(CSOUND *csound, SCANTABLE *p)
     p->fdamp  = fdamp;
     p->fvel   = fvel;
 
-    p->size = (MYFLT)fpoint->flen;
+    if (UNLIKELY(fpoint->flen == 0))
+      return csound->InitError(csound, "%s\n", Str("Scantable: tables must not be empty"));
+    p->size = fpoint->flen;
 
     /* ALLOCATE SPACE FOR NEW POINTS AND VELOCITIES */
-    csound->AuxAlloc(csound, fpoint->flen * sizeof(MYFLT), &p->newloca);
-    csound->AuxAlloc(csound, fvel->flen * sizeof(MYFLT), &p->newvela);
+    csound->AuxAlloc(csound, fpoint->flen * sizeof(cs_float), &p->newloca);
+    csound->AuxAlloc(csound, fvel->flen * sizeof(cs_float), &p->newvela);
 
     /* POINT newloc AND newvel AT THE ALLOCATED SPACE */
-    p->newloc = (MYFLT*)p->newloca.auxp;
-    p->newvel = (MYFLT*)p->newvela.auxp;
+    p->newloc = (cs_float*)p->newloca.auxp;
+    p->newvel = (cs_float*)p->newvela.auxp;
 
     /* SET SCANNING POSITION */
     p->pos = 0;
@@ -208,8 +234,8 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t i, nsmps = CS_KSMPS;
-    MYFLT force, fc1, fc2;
-    int32_t next, last;
+    cs_float force, fc1, fc2;
+    uint32_t next, last;
 
     /* DECLARE */
     FUNC *fpoint = p->fpoint;
@@ -217,10 +243,18 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
     FUNC *fstiff = p->fstiff;
     FUNC *fdamp  = p->fdamp;
     FUNC *fvel   = p->fvel;
-    MYFLT inc    = p->size * *(p->kpch) * CS_ONEDSR;
-    MYFLT amp    = *(p->kamp);
-    MYFLT pos    = p->pos;
-    MYFLT *aout  = p->aout;
+    cs_double pitch = *p->kpch, inc;
+    cs_float amp    = *(p->kamp);
+    cs_double pos   = p->pos;
+    cs_float *aout  = p->aout;
+
+    if (UNLIKELY(!isfinite(pitch)))
+      return csound->PerfError(csound, &(p->h), "%s\n",
+                              Str("Scantable: frequency must be finite"));
+    /* A whole number of scans per sample leaves the same read position. */
+    if (UNLIKELY(pitch >= CS_ESR || pitch <= -CS_ESR))
+      pitch = fmod(pitch, CS_ESR);
+    inc = p->size * (pitch / CS_ESR);
 
 /* CALCULATE NEW POSITIONS
  *
@@ -230,18 +264,10 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
  * a mass of zero means immovable, so as to allow fixed points
  */
 
-    /* For all except end points  */
-    for (i=0; i!=p->size; i++) {
-
-      /* set up conditions for end-points */
-      last = i - 1;
-      next = i + 1;
-      if (UNLIKELY(i == p->size - 1)) {
-        next = 0;
-      }
-      else if (UNLIKELY(i == 0)) {
-        last = (int32_t)p->size - 1;
-      }
+    for (i=0; i<p->size; i++) {
+      /* Circular neighbors, including a one-point string. */
+      last = i == 0 ? p->size - 1 : i - 1;
+      next = i + 1 == p->size ? 0 : i + 1;
 
       if (UNLIKELY(fmass->ftable[i] == 0)) {
         /* if the mass is zero... */
@@ -261,20 +287,21 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
       }
     }
 
-    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(MYFLT));
+    if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&aout[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&aout[nsmps], '\0', early*sizeof(cs_float));
     }
     for (i=offset; i<nsmps; i++) {
 
       /* NO INTERPOLATION */
-      aout[i] = fpoint->ftable[(int32_t)pos] * amp;
+      aout[i] = fpoint->ftable[(uint32_t)pos] * amp;
 
-      pos += inc /* p->size * *(p->kpch) * CS_ONEDSR */;
-      if (UNLIKELY(pos > p->size)) {
+      pos += inc;
+      if (UNLIKELY(pos < 0.0))
+        pos += p->size;
+      if (UNLIKELY(pos >= p->size))
         pos -= p->size;
-      }
     }
     p->pos = pos;
 
@@ -282,8 +309,10 @@ static int32_t scantPerf(CSOUND *csound, SCANTABLE *p)
      *
      * replace current values with new ones
      */
-    memcpy(fpoint->ftable, p->newloc, p->size*sizeof(MYFLT));
-    memcpy(fvel->ftable, p->newvel, p->size*sizeof(MYFLT));
+    memcpy(fpoint->ftable, p->newloc, p->size*sizeof(cs_float));
+    memcpy(fvel->ftable, p->newvel, p->size*sizeof(cs_float));
+    fpoint->ftable[p->size] = fpoint->ftable[0];
+    fvel->ftable[p->size] = fvel->ftable[0];
     return OK;
 }
 

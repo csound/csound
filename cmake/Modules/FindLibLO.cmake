@@ -3,7 +3,13 @@
 
 include(FindPackageHandleStandardArgs)
 
-find_library(LibLO_LIBRARY NAMES lo liblo)
+if(MSVC AND VCPKG_TARGET_TRIPLET MATCHES "-windows-static$")
+	set(LibLO_NAMES liblo_static lo liblo)
+else()
+	set(LibLO_NAMES lo liblo)
+endif()
+
+find_library(LibLO_LIBRARY NAMES ${LibLO_NAMES})
 find_path(LibLO_INCLUDE_DIR NAMES lo/lo.h)
 
 

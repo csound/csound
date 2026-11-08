@@ -1,3 +1,10 @@
+<CsTest>
+description = "expected failure: ternary parse error"
+
+[expect]
+exit = "nonzero"
+stderr = ["syntax error, unexpected ')'"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

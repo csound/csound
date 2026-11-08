@@ -28,7 +28,7 @@ static CS_NOINLINE void fdchprint(CSOUND *, INSDS *);
 /* allocate an auxds, or expand an old one */
 /*    call only from init (xxxset) modules */
 
-void csoundAuxalloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
+void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
 {
   if (auxchp->auxp != NULL) {
     /* if allocd with same size, just clear to zero */
@@ -56,6 +56,37 @@ void csoundAuxalloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
 }
 
 
+void csoundAuxAllocAligned(CSOUND *csound, size_t nbytes, size_t align,
+                           AUXCH *auxchp)
+{
+  void *replacement;
+
+  /* A same-sized buffer can still need a stricter alignment. */
+  if (auxchp->auxp != NULL && nbytes == (size_t)auxchp->size && align != 0 &&
+      (align & (align - 1)) == 0 &&
+      (uintptr_t)auxchp->auxp % align == 0) {
+    memset(auxchp->auxp, 0, nbytes);
+    return;
+  }
+
+  /* Validate and allocate before changing the buffer or its chain. A fatal
+     allocation error must leave the old buffer and its metadata intact. */
+  replacement = csoundCallocAligned(csound, nbytes, align);
+  if (auxchp->auxp != NULL)
+    csound->Free(csound, auxchp->auxp);
+  else {                                  /* else link in new auxch blk */
+    auxchp->nxtchp = csound->curip->auxchp;
+    csound->curip->auxchp = auxchp;
+  }
+  /* Install the replacement only after allocation succeeds. */
+  auxchp->size = nbytes;
+  auxchp->auxp = replacement;
+  auxchp->endp = replacement == NULL ? NULL : (char*)replacement + nbytes;
+  if (UNLIKELY(csoundGetDebug(csound) & 0x01))
+    auxchprint(csound, csound->curip);
+}
+
+
 static uintptr_t alloc_thread(void *p) {
   AUXASYNC *pp = (AUXASYNC *) p;
   CSOUND *csound = pp->csound;
@@ -76,7 +107,7 @@ static uintptr_t alloc_thread(void *p) {
     if (newm.auxp != NULL && newm.auxp != ptr)
       csound->Free(csound, newm.auxp);
   } else {
-    csoundAuxalloc(csound,pp->nbytes,pp->auxchp);
+    csoundAuxAlloc(csound,pp->nbytes,pp->auxchp);
     pp->notify(csound, pp->userData, pp->auxchp);
   }
   return 0;
@@ -125,7 +156,8 @@ void csoundFDClose(CSOUND *csound, FDCH *fdchp)
       void  *fd = fdchp->fd;
       if (LIKELY(fd)) {
 	fdchp->fd = NULL;                     /* then delete the fd   */
-	csoundFileClose(csound, fd);          /*   close the file &   */
+	/* Do not wait for an active asynchronous file-worker borrow. */
+	csoundFileClose(csound, fd, CSFILE_CLOSE_DEFER);
       }
       if (prvchp)
 	prvchp->nxtchp = fdchp->nxtchp;       /* unlnk from fdchain   */
@@ -139,7 +171,7 @@ void csoundFDClose(CSOUND *csound, FDCH *fdchp)
     nxtchp = nxtchp->nxtchp;
   }
   fdchprint(csound, csound->curip);
-  csound->Die(csound, Str("csoundFDClose: no record of fd %p"), fdchp->fd);
+  csound->Die(csound, Str("csoundFDClose: no record of fd %p\n"), fdchp->fd);
 }
 
 /* release all xds in instr auxp chain */
@@ -175,7 +207,8 @@ void fdchclose(CSOUND *csound, INSDS *ip)
     void  *fd = ip->fdchp->fd;
     if (LIKELY(fd)) {
       ip->fdchp->fd = NULL;           /*    delete the fd     */
-      csoundFileClose(csound, fd);    /*    & close the file  */
+      /* Deactivation must not wait for the asynchronous file worker. */
+      csoundFileClose(csound, fd, CSFILE_CLOSE_DEFER);
     }
   }
   if (UNLIKELY(csoundGetDebug(csound) & 0x01))

@@ -33,7 +33,7 @@ int32_t corfile_getc(CORFIL *f);
 void corfile_ungetc(CORFIL *f);
 char *corfile_fgets(char *b, int32_t len, CORFIL *f);
 #define corfile_ungetc(f)  (--f->p)
-MYFLT corfile_get_flt(CORFIL *f);
+cs_float corfile_get_flt(CORFIL *f);
 void corfile_reset(CORFIL *f);
 #define corfile_reset(f) (f->body[f->p=0]='\0')
 void corfile_rewind(CORFIL *f);

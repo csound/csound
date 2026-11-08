@@ -25,41 +25,50 @@
 #include <plugin.h>
 
 
-inline MYFLT logb(MYFLT a, MYFLT b) {
+static inline cs_float logb(cs_float a, cs_float b) {
   return log(a)/log(b);
 }  
 
 // extern
-inline MYFLT frac(MYFLT f) { return std::modf(f, &f); }
+static inline cs_float frac(cs_float f) { return std::modf(f, &f); }
 
 // extern
-inline MYFLT lim1(MYFLT f) {
+static inline cs_float lim1(cs_float f) {
   return f > FL(0.0) ? (f < FL(1.0) ? f : FL(1.0)) : FL(0.0);
 }
 
-inline MYFLT limx(MYFLT f, MYFLT v1, MYFLT v2) {
-  return f > v1 ? (f < v2 ? f : v2) : v1;
-}
+/* Keep output length current without allocating during performance. */
+template <std::size_t Inputs>
+struct ArrayOutput : csnd::Plugin<1, Inputs> {
+  int32_t prepare_output() {
+    auto &in = this->inargs.myfltvec_data(0);
+    auto *out = reinterpret_cast<ARRAYDAT *>(this->outargs(0));
+    return tabcheck(reinterpret_cast<CSOUND *>(this->csound), out,
+                    in.len(), this);
+  }
+};
 
 /** k-rate operator
     kout[] op kin[]
  */
-template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
+template <cs_float (*op)(cs_float)> struct ArrayOp : ArrayOutput<1> {
   int32_t process(csnd::myfltvec &out, csnd::myfltvec &in) {
     std::transform(in.begin(), in.end(), out.begin(),
-                   [](MYFLT f) { return op(f); });
+                   [](cs_float f) { return op(f); });
     return OK;
   }
 
   int32_t init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    out.init(csound, in.len(), this->insdshead);
+    if (out.init(csound, in.len(), this->insdshead) != OK)
+      return csound->init_error(Str_noop("cannot initialize output array\n"));
     if (!is_perf()) process(out, in);
     return OK;
   }
 
   int32_t kperf() {
+    if (prepare_output() != OK) return NOTOK;
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0));
   }
 };
@@ -67,11 +76,11 @@ template <MYFLT (*op)(MYFLT)> struct ArrayOp : csnd::Plugin<1, 1> {
 /** k-rate binary operator
     kout[] op kin1[], kin2[]
  */
-template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
+template <cs_float (*bop)(cs_float, cs_float)> struct ArrayOp2 : ArrayOutput<2> {
 
   int32_t process(csnd::myfltvec &out, csnd::myfltvec &in1, csnd::myfltvec &in2) {
     std::transform(in1.begin(), in1.end(), in2.begin(), out.begin(),
-                   [](MYFLT f1, MYFLT f2) { return bop(f1, f2); });
+                   [](cs_float f1, cs_float f2) { return bop(f1, f2); });
     return OK;
   }
 
@@ -81,11 +90,15 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
     csnd::myfltvec &in2 = inargs.myfltvec_data(1);
     if (UNLIKELY(in2.len() < in1.len()))
       return csound->init_error(Str_noop("second input array is too short\n"));
-    out.init(csound, in1.len(), this->insdshead);
+    if (out.init(csound, in1.len(), this->insdshead) != OK)
+      return csound->init_error(Str_noop("cannot initialize output array\n"));
     if (!is_perf()) process(out, in1, in2);
     return OK;
   }
   int32_t kperf() {
+    if (UNLIKELY(inargs.myfltvec_data(1).len() < inargs.myfltvec_data(0).len()))
+      return csound->perf_error(Str_noop("second input array is too short\n"), this);
+    if (prepare_output() != OK) return NOTOK;
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0),
                    inargs.myfltvec_data(1));
   }
@@ -94,10 +107,10 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp2 : csnd::Plugin<1, 2> {
 /** k-rate binary operator with array and scalar
     kout[] op kin1[], kin2
  */
-template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : csnd::Plugin<1, 2> {
+template <cs_float (*bop)(cs_float, cs_float)> struct ArrayOp3 : ArrayOutput<2> {
 
-  int32_t process(csnd::myfltvec &out, csnd::myfltvec &in, MYFLT v) {
-    for (MYFLT *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
+  int32_t process(csnd::myfltvec &out, csnd::myfltvec &in, cs_float v) {
+    for (cs_float *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
       *o = bop(*s, v);
     return OK;
   }
@@ -105,38 +118,44 @@ template <MYFLT (*bop)(MYFLT, MYFLT)> struct ArrayOp3 : csnd::Plugin<1, 2> {
   int32_t init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    out.init(csound, in.len(), this->insdshead);
+    if (out.init(csound, in.len(), this->insdshead) != OK)
+      return csound->init_error(Str_noop("cannot initialize output array\n"));
     if (!is_perf()) process(out, in, inargs[1]);
     return OK;
   }
 
   int32_t kperf() {
+    if (prepare_output() != OK) return NOTOK;
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0),
                    inargs[1]);
   }
 };
 
-/** k-rate binary operator with array and two scalar
-    kout[] op kin1[], kin2, kin3
- */
-template <MYFLT (*trop)(MYFLT, MYFLT, MYFLT)>
-struct ArrayOp4 : csnd::Plugin<1, 3> {
+/** Limit each array element using two scalar bounds. */
+struct ArrayLimit : ArrayOutput<3> {
 
-  int32_t process(csnd::myfltvec &out, csnd::myfltvec &in, MYFLT v1, MYFLT v2) {
-    for (MYFLT *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
-      *o = trop(*s, v1, v2);
+  int32_t process(csnd::myfltvec &out, csnd::myfltvec &in, cs_float low, cs_float high) {
+    /* Like scalar limit, reversed bounds give their average. The bounds
+       are shared by all elements, so choose this path once per array. */
+    if (UNLIKELY(low > high))
+      std::fill(out.begin(), out.end(), FL(0.5) * (low + high));
+    else
+      for (cs_float *s = in.begin(), *o = out.begin(); s != in.end(); s++, o++)
+        *o = *s > low ? (*s < high ? *s : high) : low;
     return OK;
   }
 
   int32_t init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    out.init(csound, in.len(), this->insdshead);
+    if (out.init(csound, in.len(), this->insdshead) != OK)
+      return csound->init_error(Str_noop("cannot initialize output array\n"));
     if(!is_perf()) process(out, in, inargs[1], inargs[2]);
     return OK;
   }
 
   int32_t kperf() {
+    if (prepare_output() != OK) return NOTOK;
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0), inargs[1],
                    inargs[2]);
   }
@@ -145,9 +164,10 @@ struct ArrayOp4 : csnd::Plugin<1, 3> {
 /** k-rate operator
     kout[] sort[a,d] kin[]
  */
-template <typename T> struct ArraySort : csnd::Plugin<1, 1> {
+template <typename T> struct ArraySort : ArrayOutput<1> {
   int32_t process(csnd::myfltvec &out, csnd::myfltvec &in) {
-    std::copy(in.begin(), in.end(), out.begin());
+    if (out.begin() != in.begin())
+      std::copy(in.begin(), in.end(), out.begin());
     std::sort(out.begin(), out.end(), T());
     return OK;
   }
@@ -155,12 +175,14 @@ template <typename T> struct ArraySort : csnd::Plugin<1, 1> {
   int32_t init() {
     csnd::myfltvec &out = outargs.myfltvec_data(0);
     csnd::myfltvec &in = inargs.myfltvec_data(0);
-    out.init(csound, in.len(), this->insdshead);
+    if (out.init(csound, in.len(), this->insdshead) != OK)
+      return csound->init_error(Str_noop("cannot initialize output array\n"));
     if (!is_perf()) process(out, in);
     return OK;
   }
 
   int32_t kperf() {
+    if (prepare_output() != OK) return NOTOK;
     return process(outargs.myfltvec_data(0), inargs.myfltvec_data(0));
   }
 };
@@ -169,7 +191,7 @@ template <typename T> struct ArraySort : csnd::Plugin<1, 1> {
  */
 struct Dot : csnd::Plugin<1, 2> {
 
-  MYFLT process(csnd::myfltvec &in1, csnd::myfltvec &in2) {
+  cs_float process(csnd::myfltvec &in1, csnd::myfltvec &in2) {
     return std::inner_product(in1.begin(), in1.end(), in2.begin(), 0.0);
   }
 
@@ -183,6 +205,8 @@ struct Dot : csnd::Plugin<1, 2> {
   }
 
   int32_t kperf() {
+    if (UNLIKELY(inargs.myfltvec_data(1).len() < inargs.myfltvec_data(0).len()))
+      return csound->perf_error(Str_noop("second input array is too short\n"), this);
     outargs[0] = process(inargs.myfltvec_data(0), inargs.myfltvec_data(1));
     return OK;
   }
@@ -190,7 +214,7 @@ struct Dot : csnd::Plugin<1, 2> {
 
 template <typename T, int32_t I> struct Accum : csnd::Plugin<1, 1> {
 
-  MYFLT process(csnd::myfltvec &in1) {
+  cs_float process(csnd::myfltvec &in1) {
     return std::accumulate(in1.begin(), in1.end(), FL(I), T());
   }
 
@@ -225,7 +249,7 @@ static void onload(csnd::Csound *csound) {
   csnd::plugin<ArrayOp<std::trunc>>(csound, "int", "i[]", "i[]",
                                     csnd::thread::i);
   csnd::plugin<ArrayOp<std::trunc>>(csound, "int", "k[]", "k[]",
-                                    csnd::thread::i);
+                                    csnd::thread::ik);
   csnd::plugin<ArrayOp<frac>>(csound, "frac", "i[]", "i[]", csnd::thread::i);
   csnd::plugin<ArrayOp<frac>>(csound, "frac", "k[]", "k[]", csnd::thread::ik);
   csnd::plugin<ArrayOp<std::exp2>>(csound, "powoftwo", "i[]", "i[]",
@@ -236,9 +260,9 @@ static void onload(csnd::Csound *csound) {
                                    csnd::thread::i);
   csnd::plugin<ArrayOp<std::fabs>>(csound, "abs", "k[]", "k[]",
                                    csnd::thread::ik);
-  csnd::plugin<ArrayOp<std::log10>>(csound, "log2", "i[]", "i[]",
+  csnd::plugin<ArrayOp<std::log2>>(csound, "log2", "i[]", "i[]",
                                     csnd::thread::i);
-  csnd::plugin<ArrayOp<std::log10>>(csound, "log2", "k[]", "k[]",
+  csnd::plugin<ArrayOp<std::log2>>(csound, "log2", "k[]", "k[]",
                                     csnd::thread::ik);
   csnd::plugin<ArrayOp<std::log10>>(csound, "log10", "i[]", "i[]",
                                     csnd::thread::i);
@@ -316,27 +340,27 @@ static void onload(csnd::Csound *csound) {
                                     csnd::thread::i);
   csnd::plugin<ArrayOp2<std::fmin>>(csound, "fmin", "k[]", "k[]k[]",
                                     csnd::thread::ik);
-  csnd::plugin<ArraySort<std::less<MYFLT>>>(csound, "sorta", "i[]", "i[]",
+  csnd::plugin<ArraySort<std::less<cs_float>>>(csound, "sorta", "i[]", "i[]",
                                             csnd::thread::i);
-  csnd::plugin<ArraySort<std::greater<MYFLT>>>(csound, "sortd", "i[]", "i[]",
+  csnd::plugin<ArraySort<std::greater<cs_float>>>(csound, "sortd", "i[]", "i[]",
                                                csnd::thread::i);
-  csnd::plugin<ArraySort<std::less<MYFLT>>>(csound, "sorta", "k[]", "k[]",
+  csnd::plugin<ArraySort<std::less<cs_float>>>(csound, "sorta", "k[]", "k[]",
                                             csnd::thread::ik);
-  csnd::plugin<ArraySort<std::greater<MYFLT>>>(csound, "sortd", "k[]", "k[]",
+  csnd::plugin<ArraySort<std::greater<cs_float>>>(csound, "sortd", "k[]", "k[]",
                                                csnd::thread::ik);
   csnd::plugin<Dot>(csound, "dot", "i", "i[]i[]", csnd::thread::i);
   csnd::plugin<Dot>(csound, "dot", "k", "k[]k[]", csnd::thread::k);
-  csnd::plugin<Accum<std::multiplies<MYFLT>, 1>>(csound, "product", "k", "k[]",
+  csnd::plugin<Accum<std::multiplies<cs_float>, 1>>(csound, "product", "k", "k[]",
                                                  csnd::thread::k);
-  csnd::plugin<Accum<std::plus<MYFLT>, 0>>(csound, "sum", "k", "k[]",
+  csnd::plugin<Accum<std::plus<cs_float>, 0>>(csound, "sum", "k", "k[]",
                                            csnd::thread::k);
-  csnd::plugin<Accum<std::multiplies<MYFLT>, 1>>(csound, "product", "i", "i[]",
+  csnd::plugin<Accum<std::multiplies<cs_float>, 1>>(csound, "product", "i", "i[]",
                                                  csnd::thread::i);
-  csnd::plugin<Accum<std::plus<MYFLT>, 0>>(csound, "sum", "i", "i[]",
+  csnd::plugin<Accum<std::plus<cs_float>, 0>>(csound, "sum", "i", "i[]",
                                            csnd::thread::i);
-  csnd::plugin<ArrayOp4<limx>>(csound, "limit", "i[]", "i[]ii",
+  csnd::plugin<ArrayLimit>(csound, "limit", "i[]", "i[]ii",
                                csnd::thread::i);
-  csnd::plugin<ArrayOp4<limx>>(csound, "limit", "k[]", "k[]kk",
+  csnd::plugin<ArrayLimit>(csound, "limit", "k[]", "k[]kk",
                                csnd::thread::ik);
   csnd::plugin<ArrayOp3<std::pow>>(csound, "pow", "i[]", "i[]i",
                                    csnd::thread::i);

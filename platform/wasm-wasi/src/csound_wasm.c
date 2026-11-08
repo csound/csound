@@ -1,0 +1,668 @@
+#include "csoundCore.h"
+#include "ugen.h"
+#include <ctype.h>
+#include <limits.h>
+#include "csdebug.h"
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+#define WASI_MESSAGE_BUFFER_SIZE 4096
+
+// Forward declaration for printDebug function
+void printDebug(const char *log);
+
+/* Keep allocation sizes within the signed wasm32 interface, checking before
+   adding a terminator or multiplying an element count. */
+static void *allocWasmArray(int count, size_t elementSize) {
+  if (count <= 0 || (size_t) count > INT_MAX / elementSize)
+    return NULL;
+  return malloc((size_t) count * elementSize);
+}
+
+/* Binary data needs no extra byte. Zero-length requests return NULL. */
+__attribute__((used))
+void *allocByteMem(int length) {
+  return allocWasmArray(length, 1);
+}
+void freeByteMem(void *ptr) { free(ptr); }
+
+/* Allocate a writable string, including its terminating zero. */
+__attribute__((used))
+char *allocStringMem(int length) {
+  if (length < 0 || length >= INT_MAX)
+    return NULL;
+  char *ptr = allocByteMem(length + 1);
+  if (ptr != NULL)
+    ptr[length] = 0;
+  return ptr;
+}
+void freeStringMem(char *ptr) { free(ptr); }
+
+__attribute__((used))
+cs_double *allocFloatArray(int length) {
+  return allocWasmArray(length, sizeof(cs_double));
+}
+void freeFloatArrayMem(cs_double *ptr) { free(ptr); }
+
+int sizeOfMidiStruct() { return sizeof(CS_MIDIDEVICE); }
+CS_MIDIDEVICE *allocCsMidiDeviceStruct(int num) {
+  return allocWasmArray(num, sizeof(CS_MIDIDEVICE));
+}
+void freeCsMidiDeviceStruct(CS_MIDIDEVICE* ptr) {
+  free(ptr);
+}
+
+// internal function to determine
+// if csound has started in daemon mode
+// or without orcCompile*/evalCode* called
+__attribute__((used))
+int csoundShouldDaemonize(CSOUND *csound) {
+  // For WASI, we'll use a simplified check
+  // Since some API functions might not be available, we'll assume daemon mode is not enabled
+  return 0;
+}
+
+#if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
+int csoundWasiJsSupportsThreads(void)
+    __attribute__((__import_module__("env"),
+                   __import_name__("csoundWasiJsSupportsThreads")));
+#endif
+
+/* Host support and the native option are separate: loading a pthread-capable
+   reactor does not turn on background init. Read the option after CSD parsing
+   as well as setOption(), since either can select --realtime. */
+__attribute__((used))
+int csoundSupportsRealtime(void) {
+#if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
+  return csoundWasiJsSupportsThreads() != 0;
+#elif defined(CSOUND_WASI_REALTIME)
+  return 1;
+#else
+  return 0;
+#endif
+}
+
+__attribute__((used))
+int csoundIsRealtime(CSOUND *csound) {
+  return csoundGetParams(csound)->realtime != 0;
+}
+
+int isRequestingRtAudioInput(CSOUND *csound);
+
+// END CS_MIDIDEVICE
+__attribute__((used))
+int csoundStartWasi(CSOUND *csound) {
+  const char *outputName = csoundGetOutputName(csound);
+
+  if ((outputName != NULL && strncmp(outputName, "dac", 3) == 0) ||
+      isRequestingRtAudioInput(csound) ||
+      csoundShouldDaemonize(csound)) {
+    csoundSetHostAudioIO(csound);
+  }
+
+  return csoundStart(csound);
+}
+
+extern int sense_events(CSOUND *);
+
+
+// for message callbacks, probably we don't want this for non-js
+// wasm interpretors
+
+void csoundWasiJsMessageCallback(
+    CSOUND *csound,
+    int attr,
+    int len,
+    const char *str
+) __attribute__((
+     used,
+    __import_module__("env"),
+    __import_name__("csoundWasiJsMessageCallback")
+));
+
+
+void csoundWasiCMessageCallback(CSOUND *csound, int attr, const char *format, va_list args) {
+  char buffer[WASI_MESSAGE_BUFFER_SIZE];
+  int len = vsnprintf(buffer, WASI_MESSAGE_BUFFER_SIZE, format, args);
+  if (len < 0) {
+    return;
+  }
+  /* vsnprintf returns the length before truncation. Only pass stored bytes. */
+  if (len >= WASI_MESSAGE_BUFFER_SIZE) {
+    len = WASI_MESSAGE_BUFFER_SIZE - 1;
+  }
+  (* csoundWasiJsMessageCallback)(csound, attr, len, buffer);
+}
+
+__attribute__((used))
+void __wasi_js_csoundSetMessageStringCallback() {
+  return csoundSetDefaultMessageCallback(&csoundWasiCMessageCallback);
+}
+
+/* ---- per-k-cycle debug callback: C → JS ---- */
+
+/* JS import: signals JS that a k-cycle just completed (debug mode) */
+void csoundWasiJsDebugCallback(void) __attribute__((
+     used,
+    __import_module__("env"),
+    __import_name__("csoundWasiJsDebugCallback")
+));
+
+static void csoundWasiCDebugCallback(CSOUND *csound, void *userdata) {
+  (void)csound;
+  (void)userdata;
+  (* csoundWasiJsDebugCallback)();
+}
+
+// copy/paste from upstream csound-emscripten
+// https://github.com/csound/csound/blob/develop/Emscripten/src/CsoundObj.c
+
+#define MIDI_QUEUE_SIZE 1024
+
+struct MidiData {
+  unsigned char status;
+  unsigned char data1;
+  unsigned char data2;
+  unsigned char flag;
+};
+
+struct MidiCallbackData {
+  struct MidiData midiData[MIDI_QUEUE_SIZE];
+  int p, q;
+};
+
+static const char midiQueueName[] = "__wasiMidiQueue";
+static int midiDataRead(CSOUND *, void *, unsigned char *, int);
+
+/* The engine owner submits and drains this queue. Keep a rejected packet in
+   the host queue until the next k-cycle instead of overwriting a note-off. */
+__attribute__((used))
+int tryPushMidiMessage(CSOUND *csound, unsigned char status,
+                       unsigned char data1, unsigned char data2) {
+  if (csound->midiGlobals->MidiReadCallback != midiDataRead) return 0;
+  struct MidiCallbackData *queue = csound->midiGlobals->midiInUserData;
+  if (queue == NULL) return 0;
+  struct MidiData *slot = &queue->midiData[queue->p];
+  if (slot->flag) return 0;
+  slot->status = status;
+  slot->data1 = data1;
+  slot->data2 = data2;
+  slot->flag = 1;
+  queue->p = (queue->p + 1) % MIDI_QUEUE_SIZE;
+  return 1;
+}
+
+void pushMidiMessage(CSOUND *csound, unsigned char status,
+                     unsigned char data1, unsigned char data2) {
+  (void) tryPushMidiMessage(csound, status, data1, data2);
+}
+
+/* used to distinguish between 1 and 2-byte messages */
+static const int datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0  };
+
+/* csound MIDI read callback, called every k-cycle */
+static int midiDataRead(CSOUND *csound, void *userData, unsigned char *mbuf, int nbytes) {
+  (void) csound;
+  struct MidiCallbackData *queue = userData;
+  if (queue == NULL) return 0;
+  struct MidiData *mdata = queue->midiData;
+  int *q = &queue->q, st, d1, d2, n = 0;
+  /* check if there is new data on circular queue */
+  while (mdata[*q].flag) {
+    st = (int) mdata[*q].status;
+    d1 = (int) mdata[*q].data1;
+    d2 = (int) mdata[*q].data2;
+    if (st < 0x80)
+      goto next;
+    if (st >= 0xF0 &&
+        !(st == 0xF8 || st == 0xFA || st == 0xFB ||
+          st == 0xFC || st == 0xFF))
+      goto next;
+    nbytes -= (datbyts[(st - 0x80) >> 4] + 1);
+    if (nbytes < 0) break;
+    /* write to csound midi buffer */
+    n += (datbyts[(st - 0x80) >> 4] + 1);
+    switch (datbyts[(st - 0x80) >> 4]) {
+    case 0:
+      *mbuf++ = (unsigned char) st;
+      break;
+    case 1:
+      *mbuf++ = (unsigned char) st;
+      *mbuf++ = (unsigned char) d1;
+      break;
+    case 2:
+      *mbuf++ = (unsigned char) st;
+      *mbuf++ = (unsigned char) d1;
+      *mbuf++ = (unsigned char) d2;
+      break;
+    }
+  next:
+    mdata[*q].flag = 0;
+    (*q)++;
+    if(*q== MIDI_QUEUE_SIZE) *q = 0;
+  }
+  /* return the number of bytes read */
+  return n;
+}
+
+static int midiInOpen(CSOUND *csound, void **userData, const char *dev) {
+  (void) dev;
+  *userData = csoundQueryGlobalVariable(csound, midiQueueName);
+  return *userData != NULL ? OK : CSOUND_MEMORY;
+}
+
+static int midiInClose(CSOUND *csound, void *userData) {
+  return OK;
+}
+
+__attribute__((used))
+void csoundSetMidiCallbacks(CSOUND *csound) {
+  struct MidiCallbackData *queue =
+    csoundQueryGlobalVariable(csound, midiQueueName);
+  if (queue == NULL) {
+    if (csoundCreateGlobalVariable(csound, midiQueueName,
+                                  sizeof(struct MidiCallbackData)) != 0)
+      return;
+    queue = csoundQueryGlobalVariable(csound, midiQueueName);
+  }
+  /* Reset/destroy frees this instance's queue. Cache its pointer so the
+     render path never searches the global table while init may change it. */
+  csound->midiGlobals->midiInUserData = queue;
+  csoundSetHostMIDIIO(csound);
+  csoundSetExternalMidiInOpenCallback(csound, midiInOpen);
+  csoundSetExternalMidiReadCallback(csound, midiDataRead);
+  csoundSetExternalMidiInCloseCallback(csound, midiInClose);
+}
+
+
+void csoundWasiJsReadlineCallback(CSOUND *, uint32_t, const char *, size_t)
+  __attribute__((used, __import_module__("env"),
+                 __import_name__("csoundWasiJsReadlineCallback")));
+
+static void csoundWasiCReadlineCallback(CSOUND *csound, void *userData,
+                                       uint32_t requestId, const char *prompt)
+{
+  (void) userData;
+  csoundWasiJsReadlineCallback(csound, requestId, prompt,
+                              prompt != NULL ? strlen(prompt) : 0);
+}
+
+/* wasi-libc declares system(), but Preview 1 has no implementation or exec
+ * syscall. Browser hosts provide this explicit extension; command builds do
+ * not import it. The host returns a system()-style status, not a WASI errno. */
+int csoundWasiJsSystem(const char *)
+  __attribute__((__import_module__("env"),
+                 __import_name__("csoundWasiJsSystem")));
+
+int system(const char *command)
+{
+  return command == NULL ? 0 : csoundWasiJsSystem(command);
+}
+
+// same as csoundCreate but also loads
+// opcodes which need initialization to
+// be callable (aka static_modules)
+__attribute__((used))
+CSOUND *csoundCreateWasi() {
+#ifdef CSOUND_WASI_REALTIME
+  /* wasi-libc discovers preopened paths once in shared process state. Do
+     that on the filesystem-owning parent, before a diagnostic on an init
+     or compiler worker can trigger discovery through unsupported imports. */
+  (void) access("/", F_OK);
+#endif
+  CSOUND *csound = csoundCreate(NULL, NULL);
+  if (csound == NULL) return NULL;
+  // printDebug("DEBUG: csoundCreateWasi called, setting message callback");
+  csoundSetMessageCallback(csound, &csoundWasiCMessageCallback);
+  csoundSetReadlineCallback(csound, csoundWasiCReadlineCallback, NULL);
+  csoundSetMidiCallbacks(csound);
+  if (csound->midiGlobals->midiInUserData == NULL) {
+    csoundDestroy(csound);
+    return NULL;
+  }
+  return csound;
+}
+
+/* A perform return closes admission but does not join the init worker.
+   The browser calls this only after leaving its render loop, before exposing
+   completion or accepting stopped-state APIs. Keep state for reads until reset. */
+int32_t csound_cleanup(CSOUND *csound);
+__attribute__((used))
+int32_t csoundCleanupWasi(CSOUND *csound) {
+  return csound_cleanup(csound);
+}
+
+// same as csoundReset but also loads
+// opcodes which need re-initialization to
+// be callable (aka static_modules)
+// NB: csoundCleanup has been removed from API for 7.0
+int csoundResetWasi(CSOUND *csound) {
+  csoundReset(csound);
+  csoundSetMidiCallbacks(csound);
+  return csound->midiGlobals->midiInUserData != NULL
+    ? CSOUND_SUCCESS : CSOUND_MEMORY;
+}
+
+__attribute__((used))
+int32_t csoundSetDebugCallbackWasi(CSOUND *csound) {
+  /* csoundDebuggerInit is idempotent — safe to call even if already
+     initialized or if called multiple times. */
+  int32_t err = csoundDebuggerInit(csound);
+  if (err != CSOUND_SUCCESS)
+    return err;
+  csoundSetDebugCallback(csound, &csoundWasiCDebugCallback, NULL);
+  return CSOUND_SUCCESS;
+}
+
+// Keep a stable non-null pointer for JS string reads.
+static char emptyString[1] = { 0 };
+
+__attribute__((used))
+int isRequestingRtMidiInput(CSOUND *csound) {
+  const OPARMS *params = csoundGetParams(csound);
+  if (params == NULL) {
+    return 0;
+  }
+
+  if (params->Midiin || params->FMidiin || params->RMidiin) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+static const char *skipInputDeviceNumber(const char *s) {
+  while (isdigit((unsigned char)*s)) {
+    s++;
+  }
+  return s;
+}
+
+static int isRtAudioInputName(const char *inputName) {
+  const char *suffix = NULL;
+
+  if (strncmp(inputName, "adc", 3) == 0) {
+    suffix = inputName + 3;
+  } else if (strncmp(inputName, "devaudio", 8) == 0) {
+    suffix = inputName + 8;
+  } else {
+    return 0;
+  }
+
+  if (*suffix == '\0' || *suffix == ':') {
+    return 1;
+  }
+
+  suffix = skipInputDeviceNumber(suffix);
+  return *suffix == '\0';
+}
+
+__attribute__((used))
+int isRequestingRtAudioInput(CSOUND *csound) {
+  const char *inputName = csoundGetInputName(csound);
+  if (inputName == NULL) {
+    return 0;
+  }
+
+  return isRtAudioInputName(inputName);
+}
+
+__attribute__((used))
+char* getRtMidiName(CSOUND *csound) {
+  char *name = (char *) csoundQueryGlobalVariable(csound, "_RTMIDI");
+  return name == NULL ? emptyString : name;
+}
+
+__attribute__((used))
+char* getMidiOutFileName(CSOUND *csound) {
+  const OPARMS *params = csoundGetParams(csound);
+  if (params == NULL || params->FMidiname == NULL) {
+    return emptyString;
+  } else {
+    return params->FMidiname;
+  }
+}
+
+/* Snapshot numeric channel addresses after start, before the first perform call.
+   No score events have reached the init worker yet. The browser copies
+   names before freeing this array, then uses atomic values during performance.
+   Calling the generic channel API live would traverse (and may extend) the
+   channel hash table while the init worker can also create channels. */
+__attribute__((used))
+uint32_t *csoundGetControlChannelsWasi(CSOUND *csound) {
+  controlChannelInfo_t *channels = NULL;
+  int32_t count = csoundListChannels(csound, &channels);
+  uint32_t *snapshot = NULL;
+  if (count < 0 || count > (INT_MAX / (int) sizeof(uint32_t) - 1) / 2)
+    goto done;
+  snapshot = malloc((1 + (size_t) count * 2) * sizeof(uint32_t));
+  if (snapshot == NULL)
+    goto done;
+  snapshot[0] = 0;
+  for (int32_t i = 0; i < count; ++i) {
+    void *value;
+    if ((channels[i].type & CSOUND_CHANNEL_TYPE_MASK) != CSOUND_CONTROL_CHANNEL)
+      continue;
+    /* Query existing storage without adding direction flags to the channel. */
+    if (csoundGetChannelPtr(csound, &value, channels[i].name,
+                           CSOUND_CONTROL_CHANNEL) != 0) {
+      free(snapshot);
+      snapshot = NULL;
+      goto done;
+    }
+    uint32_t offset = 1 + snapshot[0]++ * 2;
+    snapshot[offset] = (uint32_t) (uintptr_t) channels[i].name;
+    snapshot[offset + 1] = (uint32_t) (uintptr_t) value;
+  }
+done:
+  csoundDeleteChannelList(csound, channels);
+  return snapshot;
+}
+
+cs_float csoundGetControlChannelWasi(CSOUND* csound, char* channelName) {
+  int *error = NULL;
+  cs_float returnValue = csoundGetControlChannel(csound, channelName, error);
+
+//  printf("csoundGetControlChannel: Channel Name %s\n", channelName);
+  if (error != NULL) {
+    printf("csoundGetControlChannel: Error %d\n", *error);
+    return 0;
+  } else {
+    return returnValue;
+  }
+}
+
+char* csoundGetStringChannelWasi(CSOUND* csound, const char *channelName) {
+  STRINGDAT *value;
+  char *data = NULL;
+  /* The init mutex is recursive: queued control calls already hold it. */
+  if (csound->init_pass_threadlock)
+    csoundLockMutex(csound->init_pass_threadlock);
+  if (csoundGetChannelPtr(csound, (void **) &value, channelName,
+                         CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL) == 0) {
+    size_t capacity = 0;
+    for (;;) {
+      csoundLockChannel(csound, channelName);
+      size_t length = value->data == NULL ? 0 : strlen(value->data);
+      if (length < capacity) {
+        if (length != 0)
+          memcpy(data, value->data, length);
+        data[length] = '\0';
+        csoundUnlockChannel(csound, channelName);
+        break;
+      }
+      csoundUnlockChannel(csound, channelName);
+      /* Allocation must not hold a lock needed by a perf-time string writer.
+         Recheck the length under the lock after allocating: it may grow. */
+      char *grown = realloc(data, length + 1);
+      if (grown == NULL) {
+        free(data);
+        data = NULL;
+        break;
+      }
+      data = grown;
+      capacity = length + 1;
+    }
+  }
+  if (csound->init_pass_threadlock)
+    csoundUnlockMutex(csound->init_pass_threadlock);
+  return data;
+}
+
+// Compilation fix for unsupported functions defined
+// wasi-libc/expected/wasm32-wasi/undefined-symbols.txt
+
+// int vsiprintf(char *restrict s, const char *restrict fmt, va_list ap) {
+// 	return vsnprintf(s, INT_MAX, fmt, ap);
+// }
+
+// int __small_vsprintf(char *restrict s, const char *restrict fmt, va_list ap) {
+//   	return vsnprintf(s, INT_MAX, fmt, ap);
+// }
+
+// int siprintf(char *restrict s, const char *restrict fmt, ...) {
+// 	int ret;
+// 	va_list ap;
+// 	va_start(ap, fmt);
+// 	ret = vsiprintf(s, fmt, ap);
+// 	va_end(ap);
+// 	return ret;
+// }
+
+// int __small_sprintf(char *restrict s, const char *restrict fmt, ...) {
+// 	int ret;
+// 	va_list ap;
+// 	va_start(ap, fmt);
+// 	ret = __small_vsprintf(s, fmt, ap);
+// 	va_end(ap);
+// 	return ret;
+// }
+
+
+// int32_t fiprintf(int32_t x, int32_t y, int32_t z) {
+//   printf("ERROR: call to unsupported function fiprintf");
+//   return 0;
+// }
+
+// int32_t __small_fprintf(int32_t x, int32_t y, int32_t z) {
+//   printf("ERROR: call to unsupported function __small_fprintf");
+//   return 0;
+// }
+
+// int32_t __getf2(int64_t x, int64_t y, int64_t z, int64_t zz) {
+//   if (x > y) {
+//     return 1;
+//   } else if (x == y) {
+//     return 0;
+//   } else {
+//     return -1;
+//   }
+// }
+
+// int32_t __netf2(int64_t b, int64_t c, int64_t d, int64_t e) {
+//   return __getf2(b, c, d, e);
+// }
+
+// int32_t __gttf2(int64_t b, int64_t c, int64_t d, int64_t e) {
+//   return __getf2(b, c, d, e);
+// }
+
+// void __extenddftf2(int32_t x, double y) {}
+
+// void __multi3(int32_t a, int64_t b, int64_t c, int64_t d, int64_t e) {}
+
+// void __muloti4(int32_t a, int64_t b, int64_t c, int64_t d, int64_t d_, int32_t e) {}
+
+// int __lttf2(long double a, long double b) {
+//   if (a > b) {
+//     return 1;
+//   } else if (a == b) {
+//     return 0;
+//   } else {
+//     return -1;
+//   }
+// }
+
+// ==== UGEN helpers for WASM/JS ====
+
+/**
+ * Returns the raw data pointer for a UGEN_VAR so JS can create
+ * a Float64Array view over wasm memory.
+ * JS usage: new Float64Array(memory.buffer, ptr, size / 8)
+ */
+__attribute__((used))
+void* csoundUgenVarGetDataAsFloat64Array(UGEN_VAR* var) {
+  return csoundUgenVarGetData(var);
+}
+
+/**
+ * Returns the ksmps value used by this UGEN_VAR.
+ * For a-rate vars, the data buffer contains ksmps cs_float values.
+ * For i/k vars this still returns the factory ksmps (useful for
+ * knowing the audio block size).
+ */
+__attribute__((used))
+int32_t csoundUgenVarGetKsmps(UGEN_VAR* var) {
+  if (var == NULL) return 0;
+  // Access the ksmps field from the UGEN_VAR struct.
+  // We need the internal header for this, but since we include ugen.h
+  // (opaque types only), we use csoundUgenVarGetSize and type to infer:
+  UGEN_ARG_TYPE type = csoundUgenVarGetType(var);
+  size_t size = csoundUgenVarGetSize(var);
+  if (type == UGEN_ARG_TYPE_A) {
+    // a-rate: size = ksmps * sizeof(cs_float)
+    return (int32_t)(size / sizeof(cs_float));
+  }
+  // For i/k/S/F types, return 1 (scalar)
+  return 1;
+}
+
+void printDebugCallback(
+    const char *str,
+    int len
+) __attribute__((
+     used,
+    __import_module__("env"),
+    __import_name__("printDebugCallback")
+));
+
+__attribute__((used))
+void printDebug(const char *log) {
+  if (strlen(log) > 0) {
+    (* printDebugCallback)(log, strlen(log));
+  }
+}
+
+
+#if !defined(CSOUND_WASI_REALTIME)
+// WASI setjmp/longjmp stubs for the linker
+// These are weak symbols to allow the linker to resolve them
+// Function signatures match what's expected by the linker
+__attribute__((weak))
+void __wasm_setjmp(int a, int b, void *env) {
+  // WASI doesn't support setjmp, return failure
+  (void)a; (void)b; // Suppress unused parameter warnings
+}
+
+__attribute__((weak))
+int __wasm_setjmp_test(int a, void *env) {
+  // WASI doesn't support setjmp, return failure
+  (void)a; // Suppress unused parameter warning
+  return -1;
+}
+
+__attribute__((weak))
+void __wasm_longjmp(void *env, int val) {
+  // Report through JS host so callers can catch a normal exception instead
+  // of aborting the entire WASI instance via proc_exit.
+  char message[64];
+  (void) env;
+  snprintf(message, sizeof(message), "CSOUND_WASI_LONGJMP:%d", val);
+  printDebug(message);
+  __builtin_trap();
+}
+#endif /* !CSOUND_WASI_REALTIME: threaded builds use libc libsetjmp. */

@@ -1,3 +1,9 @@
+<CsTest>
+description = "tests for loops over array types"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 sr=44100

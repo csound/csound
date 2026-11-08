@@ -1,3 +1,9 @@
+<CsTest>
+description = "Test ftgen gen01 file input"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

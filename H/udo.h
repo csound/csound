@@ -4,24 +4,29 @@
 #include "csoundCore.h"
 #include "srconvert.h"
 
+typedef struct udo_output_snapshot UDO_OUTPUT_SNAPSHOT;
+
 typedef struct {
     OPCODINFO *opcode_info;
     void    *uopcode_struct;
     INSDS   *parent_ip;
     int32   iflag;
-    MYFLT  **inargs;
-    MYFLT   *iobufp_ptrs[12];  /* expandable IV - Oct 26 2002 */ /* was 8 */
+    cs_float  **inargs;
+    cs_float   *iobufp_ptrs[12];  /* expandable IV - Oct 26 2002 */ /* was 8 */
 } OPCOD_IOBUFS;
 
 typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
     OPDS          h;
     INSDS         *ip, *parent_ip;
     OPCOD_IOBUFS  *buf;
-    SR_CONVERTER  *cvt_in[OPCODENUMOUTS_MAX];
-    SR_CONVERTER  *cvt_out[OPCODENUMOUTS_MAX];
+    SR_CONVERTER  **cvt_in;
+    SR_CONVERTER  **cvt_out;
+    UDO_OUTPUT_SNAPSHOT *output_snapshots;
+    cs_float **output_work;
+    int32_t isolate_outputs;
     /* special case: the argument list is stored at the end of the */
     /* opcode data structure */
-    MYFLT         *ar[1];
+    cs_float         *ar[1];
 } UOPCODE;
 
 /* the number of optional outputs defined in entry.c */
@@ -29,7 +34,7 @@ typedef struct {                /* IV - Sep 8 2002: new structure: UOPCODE */
 
 typedef struct {                        /* IV - Oct 16 2002 */
     OPDS    h;
-    MYFLT   *ar[VARGMAX];
+    cs_float   *ar[VARGMAX];
     INSDS   *ip, *parent_ip;
     AUXCH   saved_spout;
     OPCOD_IOBUFS    buf;
@@ -37,54 +42,54 @@ typedef struct {                        /* IV - Oct 16 2002 */
 
 typedef struct {
     OPDS    h;
-    MYFLT   *i_ksmps;
+    cs_float   *i_ksmps;
 } SETKSMPS;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *os;
-    MYFLT   *in_cvt;
-    MYFLT   *out_cvt;
+    cs_float   *os;
+    cs_float   *in_cvt;
+    cs_float   *out_cvt;
 } OVSMPLE;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *args[1];
+    cs_float   *args[1];
 } XIN;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS_LOW];
+    cs_float   *args[OPCODENUMOUTS_LOW];
 } XIN_LOW;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS_HIGH];
+    cs_float   *args[OPCODENUMOUTS_HIGH];
 } XIN_HIGH;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS_MAX];
+    cs_float   *args[OPCODENUMOUTS_MAX];
 } XIN_MAX;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *args[1];
+    cs_float   *args[1];
 } XOUT;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS_LOW];
+    cs_float   *args[OPCODENUMOUTS_LOW];
 } XOUT_LOW;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS_HIGH];
+    cs_float   *args[OPCODENUMOUTS_HIGH];
 } XOUT_HIGH;
 
 typedef struct {
     OPDS    h;
-    MYFLT   *args[OPCODENUMOUTS_MAX];
+    cs_float   *args[OPCODENUMOUTS_MAX];
 } XOUT_MAX;
 
 /**
@@ -112,5 +117,19 @@ int32_t useropcdset(CSOUND *, UOPCODE *p);
 int32_t useropcd_local_ksmps(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_copy(CSOUND *, UOPCODE*);
 int32_t useropcd_pass_by_ref(CSOUND *, UOPCODE *);
+void free_user_opcode_buffers(CSOUND *, UOPCODE *);
+void recycle_init_only_udo_instances(CSOUND *, INSDS *);
+void build_user_opcode_rewire_plan(CSOUND *, OPCODINFO *);
+void free_opcode_info_chain(CSOUND *);
+
+/* Storage a pass-by-ref UDO argument was rewired onto (a caller argument or
+   output work buffer), or NULL for an ordinary local or a pass-by-copy call.
+   The returned pointer is borrowed and only valid while the instance is
+   active. */
+cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName);
+
+/* Rewire a pass-by-ref UDO body, and the UDOs nested in it, onto the current
+   p->ar locations after an opcode object's arguments change following init. */
+int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p);
 
 #endif

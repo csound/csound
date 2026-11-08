@@ -1,3 +1,9 @@
+<CsTest>
+description = "Testing multi-part expressions, no functions"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

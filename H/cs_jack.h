@@ -56,6 +56,7 @@ typedef struct RtJackGlobals_ {
     int32_t     csndBufPos;                 /* buffer position in Csound thread */
     int32_t     jackBufCnt;                 /* current buffer in JACK callback  */
     int32_t     jackBufPos;                 /* buffer position in JACK callback */
+    volatile int32_t outputBuffersQueued;   /* buffers waiting for JACK         */
     jack_client_t   *client;            /* JACK client pointer              */
     jack_port_t     **inPorts;          /* 'nChannels' ports for capture    */
     jack_default_audio_sample_t **inPortBufs;
@@ -65,5 +66,5 @@ typedef struct RtJackGlobals_ {
     int32_t     xrunFlag;                   /* non-zero if an xrun has occured  */
     jack_client_t   *listclient;
     int32_t outDevNum, inDevNum;            /* select devs by number */
-    MYFLT sr;
+    cs_float sr;
 } RtJackGlobals;

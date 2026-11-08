@@ -1,7 +1,7 @@
 /*
   csound_rtaudio.h: realtime audio module functions
 
-  Copyright (C) 1991-2024 
+  Copyright (C) 1991-2024
 
   This file is part of Csound.
 
@@ -29,7 +29,7 @@ extern "C" {
   /** @defgroup AUDIOIO Audio I/O
    *
    *  @{ */
-  
+
   /**
    * Real-time audio parameters structure
    */
@@ -53,8 +53,8 @@ extern "C" {
   } csRtAudioParams;
 
   typedef int32_t (*devOpenFunc)(CSOUND *, const csRtAudioParams *);
-  typedef void (*audioOutFunc)(CSOUND *, const MYFLT *, int32_t) ;
-  typedef int32_t (*audioInFunc)(CSOUND *, MYFLT *, int32_t);
+  typedef void (*audioOutFunc)(CSOUND *, const cs_float *, int32_t) ;
+  typedef int32_t (*audioInFunc)(CSOUND *, cs_float *, int32_t);
   typedef int32_t (*audioDevListFunc)(CSOUND *,
                                       CS_AUDIODEVICE *, int32_t);
 
@@ -76,13 +76,22 @@ extern "C" {
   PUBLIC void csoundSetHostAudioIO(CSOUND *);
 
   /**
+   * Renders realtime output while applying a linear fade over the specified
+   * number of sample frames. Call this from the thread that owns performance,
+   * after requesting an orderly stop and before destroying the Csound instance.
+   * This function advances performance while rendering the fade and is not
+   * safe to call concurrently with csoundPerform() or csoundPerformKsmps().
+   */
+  PUBLIC int32_t csoundPerformOutputFade(CSOUND *, uint32_t frames);
+
+  /**
    *  Sets the current RT audio module
    */
   PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module);
 
   /** @}*/
 
-  
+
 #ifdef __cplusplus
 }
 #endif /*  __cplusplus */

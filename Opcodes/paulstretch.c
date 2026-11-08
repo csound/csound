@@ -24,12 +24,10 @@
     Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 #include <stdlib.h>
-#include <complex.h>
 
 #ifdef _MSC_VER
 #define _USE_MATH_DEFINES
 #endif
-#include <math.h>
 #include <math.h>
 #ifdef BUILD_PLUGINS
 #include "csdl.h"
@@ -38,23 +36,18 @@
 #endif
 #include "interlocks.h"
 
-#ifdef ANDROID
-float crealf(_Complex float);
-float cimagf(_Complex float);
-#endif
-
 typedef struct {
     OPDS h;
-    MYFLT *out, *stretch, *winsize, *ifn;
-    MYFLT start_pos, displace_pos;
-    MYFLT *window;
-    MYFLT *old_windowed_buf;
-    MYFLT *hinv_buf;
-    MYFLT *output;
+    cs_float *out, *stretch, *winsize, *ifn;
+    cs_double start_pos, displace_pos;
+    cs_float *window;
+    cs_float *old_windowed_buf;
+    cs_float *hinv_buf;
+    cs_float *output;
     FUNC *ft;
     uint32_t windowsize;
     uint32_t half_windowsize;
-    MYFLT *tmp;
+    cs_float *tmp;
     uint32_t counter;
     AUXCH m_window;
     AUXCH m_old_windowed_buf;
@@ -66,17 +59,17 @@ typedef struct {
 
 static void compute_block(CSOUND *csound, PAULSTRETCH *p)
 {
-    uint32_t istart_pos = floor(p->start_pos);
+    uint32_t istart_pos = (uint32_t)p->start_pos;
     uint32_t pos;
     uint32_t i;
     uint32_t windowsize = p->windowsize;
     uint32_t half_windowsize = p->half_windowsize;
-    MYFLT *hinv_buf = p->hinv_buf;
-    MYFLT *old_windowed_buf= p->old_windowed_buf;
-    MYFLT *tbl = p->ft->ftable;
-    MYFLT *window = p->window;
-    MYFLT *output= p->output;
-    MYFLT *tmp = p->tmp;
+    cs_float *hinv_buf = p->hinv_buf;
+    cs_float *old_windowed_buf= p->old_windowed_buf;
+    cs_float *tbl = p->ft->ftable;
+    cs_float *window = p->window;
+    cs_float *output= p->output;
+    cs_float *tmp = p->tmp;
     for (i = 0; i < windowsize; i++) {
       pos = istart_pos + i;
       if (LIKELY(pos < p->ft->flen)) {
@@ -85,25 +78,17 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
         tmp[i] = FL(0.0);
       }
     }
-    /* re-order bins and take FFT */
-    tmp[p->windowsize] = tmp[1];
-    tmp[p->windowsize + 1] = FL(0.0);
     csound->RealFFT(csound, p->setup, tmp);
+    /* Unpack Nyquist after the FFT; DC has no imaginary component. */
+    tmp[p->windowsize] = tmp[1];
+    tmp[1] = FL(0.0);
+    tmp[p->windowsize + 1] = FL(0.0);
     /* randomize phase */
     for (i = 0; i < windowsize + 2; i += 2) {
-      MYFLT mag = HYPOT(tmp[i], tmp[i + 1]);
-      // Android 5.1 does not seem to have cexpf ...
-      // complex ph = cexpf(I * ((MYFLT)rand() / RAND_MAX) * 2 * PI);
-      // so ...
-      MYFLT  x = (((MYFLT)rand() / RAND_MAX) * 2 * PI);
-#ifdef MSVC
-      // TODO - Double check this is equivalent to non-windows complex definition
-          _Fcomplex ph = { cos(x), sin(x) };
-#else
-      complex double ph =  cos(x) + I*sin(x);
-#endif
-      tmp[i] = mag * (MYFLT)crealf(ph);
-      tmp[i + 1] = mag * (MYFLT)cimagf(ph);
+      cs_float mag = HYPOT(tmp[i], tmp[i + 1]);
+      cs_float  x = (((cs_float)rand() / (cs_float)RAND_MAX) * 2 * PI);
+      tmp[i] = mag * COS(x);
+      tmp[i + 1] = mag * SIN(x);
     }
 
     /* re-order bins and take inverse FFT */
@@ -113,32 +98,48 @@ static void compute_block(CSOUND *csound, PAULSTRETCH *p)
     for (i = 0; i < windowsize; i++) {
       tmp[i] *= window[i];
       if (i < half_windowsize) {
-        output[i] = (MYFLT)(tmp[i] + old_windowed_buf[half_windowsize + i]);
+        output[i] = (cs_float)(tmp[i] + old_windowed_buf[half_windowsize + i]);
         output[i] *= hinv_buf[i];
       }
       old_windowed_buf[i] = tmp[i];
     }
-    p->start_pos += p->displace_pos;
+    /* Keep emitting the overlap tail, then silence, after the source ends. */
+    if (p->displace_pos >= (cs_double)p->ft->flen - p->start_pos)
+      p->start_pos = p->ft->flen;
+    else
+      p->start_pos += p->displace_pos;
 }
 
 static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
 {
     FUNC *ftp = csound->FTFind(csound, p->ifn);
     uint32_t i = 0;
-    uint32_t size;
+    size_t size;
+    cs_double samples = (cs_double)CS_ESR * (cs_double)*p->winsize;
+    cs_double stretch = (cs_double)*p->stretch;
 
     if (ftp == NULL)
-      return csound->InitError(csound, "%s", Str("paulstretch: table not found"));
+      return csound->InitError(csound, "%s\n", Str("paulstretch: table not found"));
 
+    if (UNLIKELY(!(stretch > 0.0) || !isfinite(stretch)))
+      return csound->InitError(csound, "%s\n",
+                               Str("paulstretch: stretch must be finite and positive"));
+    /* RealFFT uses signed byte counts internally and needs two spare samples. */
+    if (UNLIKELY(!(samples >= 0.0 &&
+                   samples < (cs_double)(INT32_MAX / sizeof(cs_float) - 2))))
+      return csound->InitError(csound, "%s\n",
+                               Str("paulstretch: invalid window size"));
     p->ft = ftp;
-    p->windowsize = (uint32_t)FLOOR((CS_ESR * *p->winsize));
+    p->windowsize = (uint32_t)samples;
     if (p->windowsize < 16) {
       p->windowsize = 16;
     }
+    /* Real FFT bins and the two equal overlap halves require an even size. */
+    p->windowsize &= ~1u;
     p->half_windowsize = p->windowsize / 2;
-    p->displace_pos = (p->windowsize * FL(0.5)) / *p->stretch;
+    p->displace_pos = (cs_double)p->half_windowsize / stretch;
 
-    size = sizeof(MYFLT) * p->windowsize;
+    size = sizeof(cs_float) * p->windowsize;
     csound->AuxAlloc(csound, size, &(p->m_window));
     p->window = p->m_window.auxp;
 
@@ -146,14 +147,14 @@ static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
     p->old_windowed_buf = p->m_old_windowed_buf.auxp;
 
     csound->AuxAlloc(csound,
-                     (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_hinv_buf);
+                     (size_t)(sizeof(cs_float) * p->half_windowsize), &p->m_hinv_buf);
     p->hinv_buf = p->m_hinv_buf.auxp;
 
     csound->AuxAlloc(csound,
-                     (size_t)(sizeof(MYFLT) * p->half_windowsize), &p->m_output);
+                     (size_t)(sizeof(cs_float) * p->half_windowsize), &p->m_output);
     p->output = p->m_output.auxp;
 
-    csound->AuxAlloc(csound, size + 2 * sizeof(MYFLT), &p->m_tmp);
+    csound->AuxAlloc(csound, size + 2 * sizeof(cs_float), &p->m_tmp);
     p->tmp = p->m_tmp.auxp;
 
     /* Create Hann window */
@@ -162,7 +163,7 @@ static int32_t ps_init(CSOUND* csound, PAULSTRETCH *p)
     }
     /* create inverse Hann window */
     {
-      MYFLT hinv_sqrt2 = (1 + SQRT(FL(0.5))) * FL(0.5);
+      cs_float hinv_sqrt2 = (1 + SQRT(FL(0.5))) * FL(0.5);
       for (i = 0; i < p->half_windowsize; i++) {
         p->hinv_buf[i] =
           hinv_sqrt2 - (FL(1.0) - hinv_sqrt2) *
@@ -181,15 +182,14 @@ static int32_t paulstretch_perf(CSOUND* csound, PAULSTRETCH *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    MYFLT *out = p->out;
+    cs_float *out = p->out;
 
     if (UNLIKELY(offset)) {
-      memset(p->out, '\0', offset*sizeof(MYFLT));
-      memset(p->out, '\0', offset*sizeof(MYFLT));
+      memset(p->out, '\0', offset*sizeof(cs_float));
     }
     if (UNLIKELY(early)) {
       nsmps -= early;
-      memset(&p->out[nsmps], '\0', early*sizeof(MYFLT));
+      memset(&p->out[nsmps], '\0', early*sizeof(cs_float));
     }
 
     for (n = offset; n < nsmps; n++) {

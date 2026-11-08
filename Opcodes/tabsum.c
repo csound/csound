@@ -30,9 +30,9 @@
 
 typedef struct {
     OPDS    h;
-    MYFLT   *kans;
-    MYFLT   *itab;
-    MYFLT   *kmin, *kmax;
+    cs_float   *kans;
+    cs_float   *itab;
+    cs_float   *kmin, *kmax;
   /* Local */
     FUNC    *ftp;
 } TABSUM;
@@ -41,7 +41,7 @@ typedef struct {
 static int32_t tabsuminit(CSOUND *csound, TABSUM *p)
 {
     if (UNLIKELY((p->ftp = csound->FTFind(csound, p->itab)) == NULL)) {
-      return csound->InitError(csound, "%s", Str("tabsum: No table"));
+      return csound->InitError(csound, "%s\n", Str("tabsum: No table"));
     }
     return OK;
 }
@@ -51,17 +51,27 @@ static int32_t tabsuminit(CSOUND *csound, TABSUM *p)
 static int32_t tabsum(CSOUND *csound, TABSUM *p)
 {
     int32_t i, min, max;
-    MYFLT ans = FL(0.0);
+    cs_double min_value = (cs_double)*p->kmin;
+    cs_double max_value = (cs_double)*p->kmax;
+    cs_float ans = FL(0.0);
     FUNC  *ftp = p->ftp;
-    MYFLT *t;
+    cs_float *t;
 
     if (UNLIKELY(ftp==NULL))
 
       return csound->PerfError(csound, &(p->h),
-                               "%s", Str("tabsum: Not initialised"));
+                               "%s\n", Str("tabsum: Not initialised"));
     t = p->ftp->ftable;
-    min = MYFLT2LRND(*p->kmin);
-    max = MYFLT2LRND(*p->kmax);
+    /* Allow rounding to index zero or the allocated guard point. */
+    if (UNLIKELY(!(min_value > -1.0 && min_value < (cs_double)ftp->flen + 1.0 &&
+                   max_value > -1.0 && max_value < (cs_double)ftp->flen + 1.0)))
+      return csound->PerfError(csound, &(p->h), "%s\n",
+                               Str("tabsum: range is outside table bounds"));
+    min = CS_FLOAT2LRND(min_value);
+    max = CS_FLOAT2LRND(max_value);
+    if (UNLIKELY((uint32_t)min > ftp->flen || (uint32_t)max > ftp->flen))
+      return csound->PerfError(csound, &(p->h), "%s\n",
+                               Str("tabsum: range is outside table bounds"));
     if (UNLIKELY(min == 0 && max == 0)) max = ftp->flen-1;
     else if (UNLIKELY(min > max)) {
       int32_t k = min; min = max; max = k;
@@ -80,6 +90,5 @@ static OENTRY tabsum_localops[] = {
 };
 
 LINKAGE_BUILTIN(tabsum_localops)
-
 
 

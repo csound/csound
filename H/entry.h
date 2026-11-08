@@ -63,6 +63,7 @@
 #include "ugtabs.h"
 #include "compile_ops.h"
 #include "lpred.h"
+#include "readline.h"
 #include "midiops3.h"
 #include "midiops2.h"
 #include "pitch.h"
@@ -75,9 +76,8 @@
 int32_t ihold(CSOUND *, void *), turnoff(CSOUND *, void *);
 int32_t gaassign(CSOUND *, void *), rassign(CSOUND *, void *);
 int32_t aassign(CSOUND *, void *), laassign(CSOUND *, void *);
-int32_t assign(CSOUND *, void *);
 int32_t init(CSOUND *, void *), ainit(CSOUND *, void *);
-int32_t minit(CSOUND *, void *), mainit(CSOUND *, void *);
+int32_t mainit(CSOUND *, void *);
 /* int32_t tinit(CSOUND *, void *), tassign(CSOUND *, void *); */
 /* int32_t tabref_check(CSOUND *, void *), tabref(CSOUND *, void *); */
 int32_t gt(CSOUND *, void *), ge(CSOUND *, void *);
@@ -86,16 +86,15 @@ int32_t eq(CSOUND *, void *), ne(CSOUND *, void *);
 int32_t and(CSOUND *, void *), or(CSOUND *, void *);
 int32_t b_not(CSOUND *, void*);
 int32_t conval(CSOUND *, void *), aconval(CSOUND *, void *);
-int32_t addkk(CSOUND *, void *), subkk(CSOUND *, void *);
-int32_t mulkk(CSOUND *, void *), divkk(CSOUND *, void *);
+int32_t divkk(CSOUND *, void *);
 int32_t modkk(CSOUND *, void *);
 int32_t addka(CSOUND *, void *), subka(CSOUND *, void *);
 int32_t mulka(CSOUND *, void *), divka(CSOUND *, void *);
 int32_t modka(CSOUND *, void *);
 int32_t addak(CSOUND *, void *), subak(CSOUND *, void *);
-int32_t mulak(CSOUND *, void *), divak(CSOUND *, void *);
+int32_t divak(CSOUND *, void *);
 int32_t modak(CSOUND *, void *);
-int32_t addaa(CSOUND *, void *), subaa(CSOUND *, void *);
+int32_t subaa(CSOUND *, void *);
 int32_t mulaa(CSOUND *, void *), divaa(CSOUND *, void *);
 int32_t modaa(CSOUND *, void *);
 int32_t addin(CSOUND *, void *), addina(CSOUND *, void *);
@@ -174,6 +173,7 @@ int32_t csgset_bkpt(CSOUND *, void *), cosseg(CSOUND *, void *);
 int32_t csgrset(CSOUND *, void *);
 int32_t kcssegr(CSOUND *, void *), cossegr(CSOUND *, void *);
 int32_t madsrset(CSOUND *, void *), adsrset(CSOUND *, void *);
+int32_t kadsr(CSOUND *, void *), aadsr(CSOUND *, void *);
 int32_t xdsrset(CSOUND *, void *), mxdsrset(CSOUND *, void *);
 int32_t expseg2(CSOUND *, void *), xsgset(CSOUND *, void *);
 int32_t kxpseg(CSOUND *, void *), expseg(CSOUND *, void *);
@@ -227,6 +227,7 @@ int32_t resonx(CSOUND *, void *), aresonx(CSOUND *, void *);
 int32_t rsnsetx(CSOUND *, void *), tonex(CSOUND *, void *);
 int32_t atonex(CSOUND *, void *), tonsetx(CSOUND *, void *);
 int32_t lprdset(CSOUND *, void *), lpread(CSOUND *, void *);
+int32_t lprd_deinit(CSOUND *, void *), lpitp_deinit(CSOUND *, void *);
 int32_t lpformantset(CSOUND *, void *), lpformant(CSOUND *, void*);
 int32_t lprsnset(CSOUND *, void *), lpreson(CSOUND *, void *);
 int32_t lpfrsnset(CSOUND *, void *), lpfreson(CSOUND *, void *);
@@ -245,7 +246,8 @@ int32_t ino(CSOUND *, void *), in16(CSOUND *, void *);
 int32_t in32(CSOUND *, void *), outarr_init(CSOUND *, void *);
 int32_t outarr(CSOUND *, void *), outrep(CSOUND*, void*);
 int32_t inch_opcode(CSOUND *, void *), inall_opcode(CSOUND *, void *);
-int32_t inch_set(CSOUND*, void*), outmultiple(CSOUND *, void *);
+int32_t inch_set(CSOUND*, void*), inall_set(CSOUND*, void*),
+        outmultiple(CSOUND *, void *);
 /* int32_t out(CSOUND *, void *), outs(CSOUND *, void *); */
 int32_t outs1(CSOUND *, void *), outs2(CSOUND *, void *);
 int32_t och2(CSOUND *, void *), och3(CSOUND *, void *);
@@ -506,6 +508,13 @@ int32_t copy_var_generic(CSOUND *csound, void *p);
 int32_t copy_var_generic_init(CSOUND *csound, void *p);
 int32_t gauss_scalar(CSOUND *csound, void *p);
 int32_t gauss_vector(CSOUND *csound, void *p);
+int32_t lpfil_deinit(CSOUND *csound, void *p);
+int32_t lpfil2_deinit(CSOUND *csound, void *p);
+int32_t lpred_deinit(CSOUND *csound, void *p);
+int32_t lpred2_deinit(CSOUND *csound, void *p);
+int32_t lpcpvs_deinit(CSOUND *csound, void *p);
+int32_t pvscoefs_deinit(CSOUND *csound, void *p);
+int32_t coef2parm_deinit(CSOUND *csound, void *p);
 int32_t lpfil_init(CSOUND *csound, void *p);
 int32_t lpfil_perf(CSOUND *csound, void *p);
 int32_t lpfil2_init(CSOUND *csound, void *p);

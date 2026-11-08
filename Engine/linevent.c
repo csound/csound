@@ -44,7 +44,7 @@
 #define LBUFSIZ1 32768
 #define LF        '\n'
 
-void sense_line(CSOUND *csound, void *userData);
+static void sense_line(CSOUND *csound, void *userData);
 static int32_t set_sense_event_callback(CSOUND *csound, void (*func)(CSOUND *, void *),
                  void *userData)
 {
@@ -98,7 +98,7 @@ void linevent_open(CSOUND *csound)
 #else
       STA(stdmode) = fcntl(csound->Linefd, F_GETFL, 0);
       if (UNLIKELY(fcntl(csound->Linefd, F_SETFL, STA(stdmode) | O_NDELAY) < 0))
-        csoundDie(csound, Str("-L stdin fcntl failed"));
+        csoundDie(csound, Str("-L stdin fcntl failed\n"));
 #endif
     }
 #ifdef PIPES
@@ -108,13 +108,13 @@ void linevent_open(CSOUND *csound)
         csound->Linefd = fileno(csound->Linepipe);
         setvbuf(csound->Linepipe, NULL, _IONBF, 0);
       }
-      else csoundDie(csound, Str("Cannot open %s"), O->Linename);
+      else csoundDie(csound, Str("Cannot open %s\n"), O->Linename);
     }
 #endif
 #define MODE ,0
     else
       if (UNLIKELY((csound->Linefd=open(O->Linename, O_RDONLY|O_NDELAY MODE)) < 0))
-        csoundDie(csound, Str("Cannot open %s"), O->Linename);
+        csoundDie(csound, Str("Cannot open %s\n"), O->Linename);
     if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
@@ -122,7 +122,7 @@ void linevent_open(CSOUND *csound)
         // allocate pfield memory
     if(STA(pfields) == NULL) {
      STA(msize) = PMAX;
-     STA(pfields) = csound->Calloc(csound, sizeof(MYFLT)*(STA(msize)+1));
+     STA(pfields) = csound->Calloc(csound, sizeof(cs_float)*(STA(msize)+1));
     }
 
 
@@ -162,7 +162,7 @@ void linevent_close(CSOUND *csound)
 
 /* does string segment contain LF? */
 
-static inline int32_t containsLF(char *cp, char *endp)
+static inline int32_t containsLF(char *cp, const char *endp)
 {
     while (cp < endp) {
       if (UNLIKELY(*cp++ == LF))
@@ -209,7 +209,7 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
     // allocate pfield memory
     if(STA(pfields) == NULL) {
      STA(msize) = PMAX;
-     STA(pfields) = csound->Calloc(csound, sizeof(MYFLT)*(STA(msize)+1));
+     STA(pfields) = csound->Calloc(csound, sizeof(cs_float)*(STA(msize)+1));
     }
 
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
@@ -224,44 +224,97 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
 /* insert text from an external source,
    to be interpreted as if coming in from stdin/Linefd for -L */
 
+static int32_t input_message(CSOUND *csound, const char *message,
+                             int32_t *grown);
+
+/* The line-event buffer is appended to by whichever thread sends a message -
+   a host's csoundEventString or csoundReadScore among them - and emptied by
+   the performance thread's sense_line, at the top of each k-cycle: an append
+   between the two was overwritten or cut off, or reallocated the buffer
+   under the pointers sense_line held. Both take line_event_spinlock, and
+   sense_line only for as long as it takes the complete lines out of the
+   buffer (take_lines), so that what the lines then do - an orchestra block
+   compiled, its global scorelinei appending again, a message callback - is
+   never done under the lock, which is not recursive. The append's own
+   messages wait for the lock to be let go too: they reach the host's
+   callback, which may send a line itself. */
 void csoundInputMessage(CSOUND *csound, const char *message) {
+    int32_t grown = 0, lost;
+
+    csoundSpinLock(&csound->line_event_spinlock);
+    lost = input_message(csound, message, &grown);
+    csoundSpinUnLock(&csound->line_event_spinlock);
+    if (grown)
+      csound->DebugMsg(csound, "realloc %d\n", grown);
+    if (UNLIKELY(lost))
+      csoundErrorMsg(csound, Str("LineBuffer Overflow - "
+                                 "Input Data has been Lost\n"));
+}
+
+/* Appends message to the line-event buffer, under the lock, and so says
+   nothing: what it grew the buffer by goes in *grown, and it returns 1 when
+   the buffer could not grow and the message was lost. */
+static int32_t input_message(CSOUND *csound, const char *message,
+                             int32_t *grown) {
     int32  size = (int32) strlen(message);
-#if 1
-    int32_t n;
-#endif
 
-    if ((n=linevent_alloc(csound, 0)) != 0) return;
+    if (linevent_alloc(csound, 0) != 0) return 0;
 
-    if (!size) return;
+    if (!size) return 0;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       int32_t extralloc = (int32_t) (STA(Linep) + size - STA(Linebufend));
-      csound->Message(csound, "realloc %d\n", extralloc);
-      // csound->Message(csound, "extralloc: %d %d %d\n",
-      //                 extralloc, size, (int)(STA(Linebufend) - STA(Linep)));
-      // FIXME -- Coverity points out that this test is always false
-      // and n is never used
-#if 1
-      if ((n=linevent_alloc(csound, (STA(linebufsiz) + extralloc))) != 0) {
-        csoundErrorMsg(csound, Str("LineBuffer Overflow - "
-                                   "Input Data has been Lost"));
-        return;
-      }
-#else
-      (void) linevent_alloc(csound, (STA(linebufsiz) + extralloc));
-
-#endif
+      *grown = extralloc;
+      if (linevent_alloc(csound, (STA(linebufsiz) + extralloc)) != 0)
+        return 1;
     }
-    //csound->Message(csound, "%u = %u\n", (STA(Linep) + size),  STA(Linebufend) );
     memcpy(STA(Linep), message, size);
     if (STA(Linep)[size - 1] != (char) '\n')
       STA(Linep)[size++] = (char) '\n';
     STA(Linep) += size;
+    return 0;
+}
+
+/* The complete lines waiting in the line-event buffer, with what the -L
+   input has to give, moved into sense_line's own work buffer under the lock,
+   and the rest - a line not ended yet - moved down to the buffer's start.
+   Returns the end of what was taken, or NULL when no line is complete. */
+static char *take_lines(CSOUND *csound)
+{
+    char    *cp, *last = NULL;
+    int32_t len = 0, n;
+
+    csoundSpinLock(&csound->line_event_spinlock);
+    if (csound->Linefd >= 0) {
+      n = (int32_t) read(csound->Linefd, STA(Linep), STA(Linebufend) - STA(Linep));
+      STA(Linep) += (n > 0 ? n : 0);
+    }
+    for (cp = STA(Linep); cp > STA(Linebuf); cp--)
+      if (cp[-1] == LF) {
+        last = cp;
+        break;
+      }
+    if (last != NULL) {
+      len = (int32_t) (last - STA(Linebuf));
+      if (STA(work) == NULL || len + 1 > STA(worksiz)) {
+        STA(work) = (char *) (STA(work) == NULL
+                              ? csound->Calloc(csound, len + 1)
+                              : csound->ReAlloc(csound, STA(work), len + 1));
+        STA(worksiz) = len + 1;
+      }
+      memcpy(STA(work), STA(Linebuf), len);
+      STA(work)[len] = '\0';
+      n = (int32_t) (STA(Linep) - last);
+      memmove(STA(Linebuf), last, n);
+      STA(Linep) = STA(Linebuf) + n;
+    }
+    csoundSpinUnLock(&csound->line_event_spinlock);
+    return last == NULL ? NULL : STA(work) + len;
 }
 
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
 /* does more syntax checking than rdscor, since not preprocessed  */
 
-void sense_line(CSOUND *csound, void *userData)
+static void sense_line(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
     int32_t     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
@@ -269,25 +322,20 @@ void sense_line(CSOUND *csound, void *userData)
 
     while (1) {
       if(STA(oflag) > oflag) break;
-      Linend = STA(Linep);
-      if (csound->Linefd >= 0) {
-        n = (int32_t) read(csound->Linefd, Linend, STA(Linebufend) - Linend);
-        Linend += (n > 0 ? n : 0);
-      }
-      if (Linend <= STA(Linebuf))
+      if ((Linend = take_lines(csound)) == NULL)
         break;
-      Linestart = STA(Linebuf);
+      Linestart = STA(work);
       cp = Linestart;
 
       while (containsLF(Linestart, Linend)) {
         EVTBLK  e;
-        MYFLT *pfields = STA(pfields);
+        cs_float *pfields = STA(pfields);
         char    *sstrp = NULL;
         int32_t     scnt = 0;
         int32_t     strsiz = 0;
         memset(&e, 0, sizeof(EVTBLK));
-        memset(pfields, 0, STA(msize)*sizeof(MYFLT));
-        e.p = (MYFLT *) pfields;
+        memset(pfields, 0, STA(msize)*sizeof(cs_float));
+        e.p = (cs_float *) pfields;
         e.strarg = NULL; e.scnt = 0;
         c = *cp;
         while (isblank(c))              /* skip initial white space */
@@ -306,7 +354,7 @@ void sense_line(CSOUND *csound, void *userData)
             STA(oflag) = 0;
             STA(orchestra) = STA(orchestrab);
             csoundCompileOrc(csound, STA(orchestrab), 0);
-            csound->Message(csound, "::compiling orchestra::\n");
+            csound->Message(csound, Str("::compiling orchestra::\n"));
             Linestart = (++cp);
             continue;
           }
@@ -332,7 +380,7 @@ void sense_line(CSOUND *csound, void *userData)
         } else if(c == '{') {
           STA(oflag) = 1;
           csound->Message(csound,
-                          "::reading orchestra, use '}' to terminate::\n");
+                          Str("::reading orchestra, use '}' to terminate::\n"));
           cp++;
           continue;
         }
@@ -392,7 +440,7 @@ void sense_line(CSOUND *csound, void *userData)
 #ifdef USE_DOUBLE
               int32_t sel = (byte_order()+1)&1;
               union {
-                MYFLT d;
+                cs_float d;
                 int32 i[2];
               } ch;
               ch.d = SSTRCOD; ch.i[sel] += scnt++;
@@ -400,12 +448,12 @@ void sense_line(CSOUND *csound, void *userData)
               if (pcnt >= STA(msize)) {
                 STA(msize) += PMAX;
                 STA(pfields) = e.p = csound->ReAlloc(csound, e.p,
-                                  sizeof(MYFLT) * (STA(msize) + 1));
+                                  sizeof(cs_float) * (STA(msize) + 1));
               }
               e.p[pcnt] = ch.d;           /* set as string with count */
 #else
               union {
-                MYFLT d;
+                cs_float d;
                 int32 i;
               } ch;
               ch.d = SSTRCOD; ch.i += scnt++;
@@ -413,7 +461,7 @@ void sense_line(CSOUND *csound, void *userData)
               if (pcnt >= STA(msize)) {
                 STA(msize) += PMAX;
                 STA(pfields) = e.p = csound->ReAlloc(csound, e.p,
-                                  sizeof(MYFLT) * (STA(msize) + 1));
+                                  sizeof(cs_float) * (STA(msize) + 1));
               }
               e.p[pcnt] = ch.d;           /* set as string with count */
 #endif
@@ -440,13 +488,13 @@ void sense_line(CSOUND *csound, void *userData)
             continue;
           }
           {
-            MYFLT tmpv = (MYFLT) csoundStrtod(cp, &newcp);
+            cs_float tmpv = (cs_float) csoundStrtod(cp, &newcp);
             cp = newcp - 1;
             /* ensure capacity before writing */
             if (pcnt >= STA(msize)) {
               STA(msize) += PMAX;
               STA(pfields) = e.p = csound->ReAlloc(csound, e.p,
-                                sizeof(MYFLT) * (STA(msize) + 1));
+                                sizeof(cs_float) * (STA(msize) + 1));
             }
             e.p[pcnt] = tmpv;
           }
@@ -468,10 +516,10 @@ void sense_line(CSOUND *csound, void *userData)
           // free carry p-fields
           if(STA(prve).p != NULL) csound->Free(csound, STA(prve).p);
           // copy evtblk (except p-field pointer at the end)
-          memcpy((void*) &STA(prve), (void*) &e, sizeof(EVTBLK) - sizeof(MYFLT*));
+          memcpy((void*) &STA(prve), (void*) &e, sizeof(EVTBLK) - sizeof(cs_float*));
           // allocate and copy new carry p-fields
-          STA(prve).p = csound->Calloc(csound, sizeof(MYFLT)*(e.pcnt+1));
-          memcpy(STA(prve).p, e.p, sizeof(MYFLT)*(e.pcnt+1));
+          STA(prve).p = csound->Calloc(csound, sizeof(cs_float)*(e.pcnt+1));
+          memcpy(STA(prve).p, e.p, sizeof(cs_float)*(e.pcnt+1));
 
           /* FIXME: how to carry string args ? */
           STA(prve).strarg = NULL;
@@ -497,18 +545,9 @@ void sense_line(CSOUND *csound, void *userData)
                                  Linestart, n + 1, "^");  /* mark the error */
         Linestart = (++cp);
       }
-      if (Linestart != &(STA(Linebuf)[0])) {
-        int32_t len = (int32_t) (Linend - Linestart);
-        /* move any remaining characters to the beginning of the buffer */
-        for (n = 0; n < len; n++)
-          STA(Linebuf)[n] = Linestart[n];
-        n = (int32_t) (Linestart - &(STA(Linebuf)[0]));
-        STA(Linep) -= n;
-        Linend -= n;
-      }
-      if (Linend == STA(Linep))      /* return if no more data is available  */
-        break;
-      STA(Linep) = Linend;                       /* accum the chars          */
+      /* Every line taken ends with LF, so all were read: the next turn
+         takes what has come since - from the -L input, from a host, or
+         appended by what these lines did. */
     }
 
 }

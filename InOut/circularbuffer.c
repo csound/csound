@@ -28,30 +28,52 @@ typedef struct _circular_buffer {
   int32_t rp;
   int32_t numelem;
   int32_t elemsize; /* in number of bytes */
-  spin_lock_t lock;
 } circular_buffer;
+
+int32_t csoundGetSizeCircularBuffer(CSOUND *csound, void *p) {
+  (void) csound;
+  if(p == NULL) return 0;
+  return ((circular_buffer *)p)->numelem-1; // minus one to match requested size
+}
+
+int32_t csoundGetElementSizeCircularBuffer(CSOUND *csound, void *p) {
+  (void) csound;
+  if(p == NULL) return 0;
+  return ((circular_buffer *)p)->elemsize;
+}
+
+
 
 void *csoundCreateCircularBuffer(CSOUND *csound, int32_t numelem, int32_t elemsize){
     circular_buffer *p;
+    size_t buffer_size;
+    if (UNLIKELY(numelem <= 0 || numelem == INT32_MAX || elemsize <= 0))
+      return NULL;
+    if (UNLIKELY((size_t) (numelem + 1) > SIZE_MAX / (size_t) elemsize))
+      return NULL;
+    buffer_size = (size_t) (numelem + 1) * (size_t) elemsize;
     if ((p = (circular_buffer *)
          csound->Malloc(csound, sizeof(circular_buffer))) == NULL) {
       return NULL;
     }
-    p->numelem = numelem;
+    p->numelem = numelem+1;
     p->wp = p->rp = 0;
     p->elemsize = elemsize;
 
-    if ((p->buffer = (char *) csound->Malloc(csound, numelem*elemsize)) == NULL) {
+    if ((p->buffer = (char *) csound->Malloc(csound, buffer_size)) == NULL) {
+      csound->Free(csound, p);
       return NULL;
     }
-    memset(p->buffer, 0, numelem*elemsize);
-    csoundSpinLockInit(&p->lock);
+    memset(p->buffer, 0, buffer_size);
     return (void *)p;
 }
 
-int32_t checkspace(circular_buffer *p, int32_t writeCheck){
-    csoundSpinLock(&p->lock);
-    int32_t wp = p->wp, rp = p->rp, numelem = p->numelem, res;
+/* Single producer / single consumer. Atomic cursor publication makes sample
+   writes visible before reads, and reads finish before a slot can be reused.
+   Only the owning thread advances each cursor. No audio-side lock is needed. */
+static int32_t checkspace(circular_buffer *p, int32_t writeCheck){
+    int32_t wp = ATOMIC_GET(p->wp), rp = ATOMIC_GET(p->rp);
+    int32_t numelem = p->numelem, res;
     if(writeCheck){
       if (wp > rp) res = rp - wp + numelem - 1;
       else if (wp < rp) res = rp - wp - 1;
@@ -62,38 +84,39 @@ int32_t checkspace(circular_buffer *p, int32_t writeCheck){
       else if (wp < rp) res = wp - rp + numelem;
       else res = 0;
     }
-    csoundSpinUnLock(&p->lock);
     return res;
 }
 
+int32_t csoundCheckCircularBuffer(CSOUND *csound, void *p, int32_t flag){
+  (void) csound;
+  if(p == NULL) return 0;
+  return checkspace(p, flag); // internal space count includes one extra slot
+}
+
+
 int32_t csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int32_t items)
 {
-    IGN(csound);
-    if (p == NULL) return 0;
+    (void)csound;
+    if (p == NULL || items <= 0) return 0;
     {
       int32_t remaining;
       int32_t itemsread, numelem = ((circular_buffer *)p)->numelem;
       int32_t elemsize = ((circular_buffer *)p)->elemsize;
-      int32_t i=0, rp = ((circular_buffer *)p)->rp;
+      int32_t i=0, rp = ATOMIC_GET(((circular_buffer *)p)->rp);
       char *buffer = ((circular_buffer *)p)->buffer;
       if ((remaining = checkspace(p, 0)) == 0) {
         return 0;
       }
       itemsread = items > remaining ? remaining : items;
       for (i=0; i < itemsread; i++){
-        memcpy((char *) out + (i * elemsize),
-               &(buffer[elemsize * rp++]),  elemsize);
+        memcpy((char *) out + (size_t) i * (size_t) elemsize,
+               buffer + (size_t) elemsize * (size_t) rp++,
+               (size_t) elemsize);
         if (rp == numelem) {
           rp = 0;
         }
       }
-#if defined(MSVC)
-      InterlockedExchange(&((circular_buffer *)p)->rp, rp);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-      __atomic_exchange_n(&((circular_buffer *)p)->rp,rp, __ATOMIC_SEQ_CST);
-#else
-      ((circular_buffer *)p)->rp = rp;
-#endif
+      ATOMIC_SET(((circular_buffer *)p)->rp, rp);
       return itemsread;
     }
 }
@@ -101,19 +124,20 @@ int32_t csoundReadCircularBuffer(CSOUND *csound, void *p, void *out, int32_t ite
 int32_t csoundPeekCircularBuffer(CSOUND *csound, void *p, void *out, int32_t items)
 {
     IGN(csound);
-    if (p == NULL) return 0;
+    if (p == NULL || items <= 0) return 0;
     int32_t remaining;
     int32_t itemsread, numelem = ((circular_buffer *)p)->numelem;
     int32_t elemsize = ((circular_buffer *)p)->elemsize;
-    int32_t i=0, rp = ((circular_buffer *)p)->rp;
+    int32_t i=0, rp = ATOMIC_GET(((circular_buffer *)p)->rp);
     char *buffer = ((circular_buffer *)p)->buffer;
     if ((remaining = checkspace(p, 0)) == 0) {
         return 0;
     }
     itemsread = items > remaining ? remaining : items;
     for(i=0; i < itemsread; i++){
-        memcpy((char *) out + (i * elemsize),
-               &(buffer[elemsize * rp++]),  elemsize);
+        memcpy((char *) out + (size_t) i * (size_t) elemsize,
+               buffer + (size_t) elemsize * (size_t) rp++,
+               (size_t) elemsize);
         if (rp == numelem) {
             rp = 0;
         }
@@ -127,8 +151,8 @@ void csoundFlushCircularBuffer(CSOUND *csound, void *p)
     if (p == NULL) return;
     int32_t remaining;
     int32_t itemsread, numelem = ((circular_buffer *)p)->numelem;
-    int32_t i=0, rp = ((circular_buffer *)p)->rp;
-    //MYFLT *buffer = ((circular_buffer *)p)->buffer;
+    int32_t i=0, rp = ATOMIC_GET(((circular_buffer *)p)->rp);
+    //cs_float *buffer = ((circular_buffer *)p)->buffer;
     if ((remaining = checkspace(p, 0)) == 0) {
         return;
     }
@@ -137,40 +161,29 @@ void csoundFlushCircularBuffer(CSOUND *csound, void *p)
         rp++;
         if(rp == numelem) rp = 0;
     }
-#if defined(MSVC)
-      InterlockedExchange(&((circular_buffer *)p)->rp, rp);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-      __atomic_store_n(&((circular_buffer *)p)->rp,rp, __ATOMIC_SEQ_CST);
-#else
-      ((circular_buffer *)p)->rp = rp;
-#endif
+    ATOMIC_SET(((circular_buffer *)p)->rp, rp);
 }
 
 
 int32_t csoundWriteCircularBuffer(CSOUND *csound, void *p, const void *in, int32_t items)
 {
-    if (p == NULL) return 0;
+    if (p == NULL || items <= 0) return 0;
     int32_t remaining;
     int32_t itemswrite, numelem = ((circular_buffer *)p)->numelem;
     int32_t elemsize = ((circular_buffer *)p)->elemsize;
-    int32_t i=0, wp = ((circular_buffer *)p)->wp;
+    int32_t i=0, wp = ATOMIC_GET(((circular_buffer *)p)->wp);
     char *buffer = ((circular_buffer *)p)->buffer;
     if ((remaining = checkspace(p, 1)) == 0) {
         return 0;
     }
     itemswrite = items > remaining ? remaining : items;
     for(i=0; i < itemswrite; i++){
-        memcpy(&(buffer[elemsize * wp++]),
-                ((char *) in) + (i * elemsize),  elemsize);
+        memcpy(buffer + (size_t) elemsize * (size_t) wp++,
+               (const char *) in + (size_t) i * (size_t) elemsize,
+               (size_t) elemsize);
         if(wp == numelem) wp = 0;
     }
-#if defined(MSVC)
-      InterlockedExchange(&((circular_buffer *)p)->wp, wp);
-#elif defined(HAVE_ATOMIC_BUILTIN)
-      __atomic_store_n(&((circular_buffer *)p)->wp,wp, __ATOMIC_SEQ_CST);
-#else
-      ((circular_buffer *)p)->wp = wp;
-#endif
+    ATOMIC_SET(((circular_buffer *)p)->wp, wp);
     return itemswrite;
 }
 

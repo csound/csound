@@ -33,26 +33,39 @@ typedef struct {
     int32_t gotoType;
 } LOOP_JUMP_TARGETS;
 
+static inline int32_t array_target_missing_lexeme(TREE *arrayNode) {
+  return arrayNode == NULL || arrayNode->left == NULL ||
+         arrayNode->left->value == NULL ||
+         arrayNode->left->value->lexeme == NULL;
+}
+
 CONS_CELL* cs_cons(CSOUND* csound, void* val, CONS_CELL* cons);
 CONS_CELL* cs_cons_append(CONS_CELL* cons1, CONS_CELL* cons2);
 
 int32_t is_expression_node(TREE *node);
 int32_t is_boolean_expression_node(TREE *node);
+void handle_negative_number(CSOUND *csound, TREE *root);
 int32_t is_statement_expansion_required(TREE* root);
 void handle_optional_args(CSOUND *csound, TREE *l);
+TREE* tree_append(TREE *head, TREE *node);
 TREE* expand_if_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_until_statement(CSOUND* csound, TREE* current,
                              TYPE_TABLE* typeTable, int32_t, LOOP_JUMP_TARGETS* targets);
 TREE* expand_switch_statement(CSOUND* csound, TREE* current,TYPE_TABLE* typeTable,
-  char* switchArgType);
+  const char* switchArgType);
 TREE* expand_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable);
 TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, char* arrayArgType,
                            LOOP_JUMP_TARGETS* targets);
 char *remove_type_quoting(CSOUND *csound, const char *outype);
 TREE * create_opcode_token(CSOUND *csound, char* op);
+int32_t opcode_is_init_only_value_consumer(const OENTRY* entry);
 TREE* convert_break_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);
 TREE* convert_continue_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);
 int expand_struct_array_member_assignment(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, TREE** anchor);
+TREE* expand_struct_array_member_read(CSOUND* csound, TREE* structExpr,
+                                      int32_t line, uint64_t locn,
+                                      TYPE_TABLE* typeTable,
+                                      int32_t initContext);
 
 
 #endif

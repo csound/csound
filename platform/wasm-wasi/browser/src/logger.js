@@ -1,0 +1,143 @@
+/*
+ * Copyright (c) The Csound Developers
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import LoggerFactoryNS from "lines-logger/lib/index.js";
+
+let logWorkletMain,
+  logWorkletWorker,
+  logSABMain,
+  logSABWorker,
+  logVANMain,
+  logVANWorker,
+  logIndex,
+  logSinglethreadWorkletMain,
+  logSinglethreadWorkletWorker,
+  logCommonUtils,
+  logWasmModule,
+  logMidiRequest;
+
+/** @define {boolean} */
+const isProd = goog.define("PRODUCTION", false);
+
+if (isProd) {
+  /**
+   * @suppress {checkTypes}
+   */
+  logWorkletMain = (ignore1) => (ignore2) => {};
+  /**
+   * @suppress {checkTypes}
+   */
+  logWorkletWorker = (ignore1) => (ignore2) => {};
+  /**
+   * @suppress {checkTypes}
+   */
+  logSABMain = (ignore1) => (ignore2) => {};
+  /**
+   * @suppress {checkTypes}
+   */
+  logSABWorker = (ignore1) => (ignore2) => {};
+  /**
+   * @suppress {checkTypes}
+   */
+  logVANMain = (ignore1) => (ignore2) => {};
+  /**
+   * @suppress {checkTypes}
+   */
+  logVANWorker = (ignore1) => (ignore2) => {};
+  /**
+   * @suppress {checkTypes}
+   */
+  logIndex = (ignore1) => (ignore2) => {};
+  /**
+   * @suppress {checkTypes}
+   */
+
+  /**
+   * @suppress {checkTypes}
+   */
+  logSinglethreadWorkletMain = (ignore1) => (ignore2) => {};
+  /**
+   * @suppress {checkTypes}
+   */
+  logSinglethreadWorkletWorker = (ignore1) => (ignore2) => {};
+  /**
+   * @suppress {checkTypes}
+   */
+  logCommonUtils = (ignore1) => (ignore2) => {};
+  /**
+   * @suppress {checkTypes}
+   */
+  logWasmModule = (ignore1) => (ignore2) => {};
+  /**
+   * @suppress {checkTypes}
+   */
+  logMidiRequest = (ignore1) => (ignore2) => {};
+} else {
+  // catches chromium and chrome
+
+  const loggerFactory = new LoggerFactoryNS.LoggerFactory();
+
+  const indexLogger = loggerFactory.getLoggerColor("index.js", "#1E88E5");
+  const workletMainLogger = loggerFactory.getLoggerColor("WorkletMain", "#6D4C41");
+  const workletWorkerLogger = loggerFactory.getLoggerColor("WorkletWorker", "#D7CCC8");
+  const sabMainLogger = loggerFactory.getLoggerColor("Sab_Main", "#000000");
+  const sabWorkerLogger = loggerFactory.getLoggerColor("Sab_Worker", "#222222");
+  const vanMainLogger = loggerFactory.getLoggerColor("Van_Main", "#F4511E");
+  const vanWorkerLogger = loggerFactory.getLoggerColor("Van_Worker", "#FFAB91");
+  const singleWorkletMainLogger = loggerFactory.getLoggerColor(
+    "WorkletSinglethread_Main",
+    "#1E88E5",
+  );
+  const singleWorkletWorkerLogger = loggerFactory.getLoggerColor(
+    "WorkletSinglethread_Worker",
+    "#90CAF9",
+  );
+  const commonUtilsLogger = loggerFactory.getLoggerColor("common.utils.js", "#FFD600");
+  const wasmModuleLogger = loggerFactory.getLoggerColor("module.js", "#FFF59D");
+  const midiRequestLogger = loggerFactory.getLoggerColor("utils/request-midi.js", "#FFD600");
+
+  logWorkletMain = workletMainLogger.log;
+  logWorkletWorker = workletWorkerLogger.log;
+  logSABMain = sabMainLogger.log;
+  logSABWorker = sabWorkerLogger.log;
+  logVANMain = vanMainLogger.log;
+  logVANWorker = vanWorkerLogger.log;
+  logIndex = indexLogger.log;
+  logSinglethreadWorkletMain = singleWorkletMainLogger.log;
+  logSinglethreadWorkletWorker = singleWorkletWorkerLogger.log;
+  logCommonUtils = commonUtilsLogger.log;
+  logWasmModule = wasmModuleLogger.log;
+  logMidiRequest = midiRequestLogger.log;
+}
+
+/**
+ * @suppress {checkTypes}
+ */
+export default (ignore1) => (ignore2) => {};
+
+export {
+  logWorkletMain,
+  logWorkletWorker,
+  logSABMain,
+  logSABWorker,
+  logVANMain,
+  logVANWorker,
+  logIndex,
+  logSinglethreadWorkletMain,
+  logSinglethreadWorkletWorker,
+  logCommonUtils,
+  logWasmModule,
+  logMidiRequest,
+};

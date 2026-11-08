@@ -1,0 +1,27 @@
+<CsTest>
+description = "reject a negative ftaudio start frame"
+
+[expect]
+exit = "nonzero"
+stderr = ["ftaudio: illegal range"]
+</CsTest>
+<CsoundSynthesizer>
+<CsOptions>
+-n -d -m0
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps = 8
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  iresult ftaudio 1, "test_ftaudio_invalid.wav", 16, -1, 0
+endin
+</CsInstruments>
+<CsScore>
+f 1 0 0 -1 "./test_flooper_stereo_guard.wav" 0 0 0
+i 1 0 0.01
+e
+</CsScore>
+</CsoundSynthesizer>

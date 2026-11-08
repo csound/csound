@@ -1,3 +1,9 @@
+<CsTest>
+description = "test_arrays_fail1.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

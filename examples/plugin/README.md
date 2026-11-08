@@ -49,10 +49,15 @@ OPDS and has the following members:
 * offset: the starting position of an audio vector (for audio opcodes).
 * nsmps: the size of an audio vector (also for audio opcodes only).
 * init(), kperf() and aperf() non-op methods, to be reimplemented as needed.
-* sa_offset((MYFLT *v) method to be used in audio processing to calculate offset and
-nsmps for sample-accurate behaviour. It takes an audio output vector
-as input and returns the updated nsmps value. This method should be
-called for each output in the case of multiple channels.
+
+Note: in Csound 7, `sa_offset()` is called automatically by the framework before each
+aperf() invocation. It sets offset and nsmps to reflect the note's active range within
+the current k-cycle, and zeroes the output buffers outside that range. Your aperf() loop
+should use offset and nsmps as its bounds to process only the active samples:
+
+```
+for (uint32_t i = offset; i < nsmps; i++) { ... }
+```
 
 The other base class in the CPOF is FPlugin, derived from Plugin, which
 provides an extra facility for fsig (streaming frequency-domain) plugins:
@@ -121,8 +126,7 @@ is provide an implementation of the aperf() method:
  */
 struct Simplea : csnd::Plugin<1,1> {
 int aperf() {
-    nsmps = insdshead->ksmps;
-    std::copy(inargs.data(0),inargs.data(0)+nsmps, outargs.data(0));
+    std::copy(inargs.data(0), inargs.data(0)+nsmps, outargs.data(0));
     return OK;
   }
 };
@@ -130,13 +134,12 @@ int aperf() {
 
 Because audio arguments are vectors, we get these using the data() method
 for the inargs and outargs objects, which takes the argument number as
-input and returns a MYFLT pointer to the vector. MYFLT is the internal
+input and returns a cs_float pointer to the vector. cs_float is the internal
 floating-point data type used by Csound.
 
 Note that the OPDS member insdshead holds the value of the instrument
 vector size (ksmps), so we can get it from there. More normally, we
-will just access the nsmps variable after calling sa_offset() to get this
-value. We will demonstrate this in later examples.
+will just use the nsmps variable, which is set automatically before aperf() runs.
 
 Registering opcodes with Csound
 ---------------------------------------
@@ -243,8 +246,8 @@ echo effect:
     asig delayline ain,idel
  */
 struct DelayLine : csnd::Plugin<1,2> {
-  csnd::AuxMem<MYFLT> delay;
-  csnd::AuxMem<MYFLT>::iterator iter;
+  csnd::AuxMem<cs_float> delay;
+  csnd::AuxMem<cs_float>::iterator iter;
 
   int init() {
     delay.allocate(csound, csound->GetSr(csound)*inargs[1]);
@@ -253,10 +256,10 @@ struct DelayLine : csnd::Plugin<1,2> {
   }
   
   int aperf() {
-    MYFLT *out = outargs.data(0);
-    MYFLT *in = inargs.data(0);
+    cs_float *out = outargs.data(0);
+    cs_float *in = inargs.data(0);
     
-    sa_offset(out);
+
     for(uint32_t i=offset; i < nsmps; i++, iter++) {
       if(iter == delay.end()) iter = delay.begin();
       out[i] = *iter;
@@ -315,11 +318,11 @@ struct Oscillator : csnd::Plugin<1,3> {
   }
   
   int aperf() {
-    MYFLT *out = outargs.data(0);
-    MYFLT amp = inargs[0];
-    MYFLT si = inargs[1]*scl;
+    cs_float *out = outargs.data(0);
+    cs_float amp = inargs[0];
+    cs_float si = inargs[1]*scl;
     
-    sa_offset(out);
+
     for(uint32_t i=offset; i < nsmps; i++) {
       out[i] = amp*table[(uint32_t)ndx];
       ndx += si;
@@ -394,7 +397,7 @@ objects, which have the following methods:
 * amp(float a): sets the bin amplitude to a.
 * freq(float f): sets the bin frequency to f.
 * operator*(pv_bin f): multiply the amp of a pvs bin by f.amp.
-* operator*(MYFLT f): multiply the bin amp by f
+* operator*(cs_float f): multiply the bin amp by f
 * operator*=(): unary versions of the above.
 
 The pv_bin class can also be translated into a std::complex<float>
@@ -460,7 +463,7 @@ struct PVGain : csnd::FPlugin<1, 2> {
     uint32_t i;
 
     if (framecount < fin.count()) {
-      MYFLT g = inargs[1];
+      cs_float g = inargs[1];
       std::transform(fin.begin(), fin.end(), fout.begin(),
 		    [g](csnd::pv_bin f){ return f *= g; });
       framecount = fout.count(fin.count());
@@ -508,6 +511,14 @@ argument data. It has the following members:
 the vector.
 * iterator and const_iterator: iterator types for this class.
 * data_array(): returns a pointer to the vector data.
+* writable_data(): prepares mutable storage without allocating, or returns
+  null when a shared managed array cannot be detached during performance.
+* writable_data_init(): prepares mutable storage during initialization and may
+  allocate an independent copy.
+
+The legacy mutable iterators, subscript operator, and data_array() are intended
+for fixed-layout arrays. Plugins handling structs, strings, or other managed
+elements should call writable_data() or writable_data_init() before mutation.
 
 In addition to this, the inargs and outargs objects in the Plugin
 class have a template method that can be used to get a Vector
@@ -520,15 +531,15 @@ class reference. A trivial example is shown below:
  */
 struct SimpleArray : csnd::Plugin<1, 1> {
   int init() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    csnd::Vector<cs_float> &out = outargs.vector_data<cs_float>(0);
+    csnd::Vector<cs_float> &in = inargs.vector_data<cs_float>(0);
     out.init(csound, in.len());
     return OK;
   }
 
   int kperf() {
-    csnd::Vector<MYFLT> &out = outargs.vector_data<MYFLT>(0);
-    csnd::Vector<MYFLT> &in = inargs.vector_data<MYFLT>(0);
+    csnd::Vector<cs_float> &out = outargs.vector_data<cs_float>(0);
+    csnd::Vector<cs_float> &in = inargs.vector_data<cs_float>(0);
     std::copy(in.begin(), in.end(), out.begin());
     return OK;
   }
@@ -552,4 +563,3 @@ library (e.g so in Linux and dylib in OSX), but CPOF does not impose any
 link-time dependencies (not even to Csound).
 
 Victor Lazzarini, 01/2017
-

@@ -20,6 +20,7 @@
     Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 #include "csoundCore.h"
+#include "csound_message_callbacks.h"
 
 extern void (*msgcallback_)(CSOUND *, int32_t, const char *, va_list);
 void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
@@ -29,6 +30,7 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
   case CSOUNDMSG_ERROR:
   case CSOUNDMSG_WARNING:
   case CSOUNDMSG_REALTIME:
+  case CSOUNDMSG_INFO:
     vfprintf(stderr, format, args);
     break;
   default:
@@ -80,10 +82,8 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
                                      const char *str)) {
 
   if (csoundMessageStrCallback) {
-    if (csound->message_string == NULL)
-      csound->message_string = (char *)csound->Calloc(csound, MAX_MESSAGE_STR);
-    csound->csoundMessageStringCallback = csoundMessageStrCallback;
-    csound->csoundMessageCallback_ = NULL;
+    csoundStoreMessageStringCallback(csound, csoundMessageStrCallback);
+    csoundStoreMessageCallback(csound, NULL);
   }
 }
 
@@ -93,51 +93,45 @@ void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
                                   const char *format, va_list args)) {
   /* Protect against a null callback. */
   if (csoundMessageCallback) {
-    csound->csoundMessageCallback_ = csoundMessageCallback;
+    csoundStoreMessageCallback(csound, csoundMessageCallback);
   } else {
-    csound->csoundMessageCallback_ = csoundDefaultMessageCallback;
+    csoundStoreMessageCallback(csound, csoundDefaultMessageCallback);
   }
 }
 
  void csoundMessageV(CSOUND *csound, int32_t attr, const char *format,
                            va_list args) {
   if (!(csound->oparms->msglevel & CS_NOMSG)) {
-    if (csound->csoundMessageCallback_) {
-      csound->csoundMessageCallback_(csound, attr, format, args);
+    CSOUND_MESSAGE_CALLBACK callback = csoundLoadMessageCallback(csound);
+    if (callback) {
+      callback(csound, attr, format, args);
     } else {
-      vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
-      csound->csoundMessageStringCallback(csound, attr, csound->message_string);
+      CSOUND_MESSAGE_STRING_CALLBACK stringCallback =
+          csoundLoadMessageStringCallback(csound);
+      /* Cleanup may restore the callbacks while formatting. Keep the selected
+         callback, and drop a message if the two loads cross that transition. */
+      if (stringCallback) {
+        char message[MAX_MESSAGE_STR];
+        vsnprintf(message, sizeof(message), format, args);
+        stringCallback(csound, attr, message);
+      }
     }
   }
 }
 
  void csoundMessage(CSOUND *csound, const char *format, ...) {
-  if (!(csound->oparms->msglevel & CS_NOMSG)) {
-    va_list args;
-    va_start(args, format);
-    if (csound->csoundMessageCallback_)
-      csound->csoundMessageCallback_(csound, 0, format, args);
-    else {
-      vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
-      csound->csoundMessageStringCallback(csound, 0, csound->message_string);
-    }
-    va_end(args);
-  }
+  va_list args;
+  va_start(args, format);
+  csoundMessageV(csound, 0, format, args);
+  va_end(args);
 }
 
  void csoundMessageS(CSOUND *csound, int32_t attr, const char *format,
                            ...) {
-  if (!(csound->oparms->msglevel & CS_NOMSG)) {
-    va_list args;
-    va_start(args, format);
-    if (csound->csoundMessageCallback_)
-      csound->csoundMessageCallback_(csound, attr, format, args);
-    else {
-      vsnprintf(csound->message_string, MAX_MESSAGE_STR, format, args);
-      csound->csoundMessageStringCallback(csound, attr, csound->message_string);
-    }
-    va_end(args);
-  }
+  va_list args;
+  va_start(args, format);
+  csoundMessageV(csound, attr, format, args);
+  va_end(args);
 }
 
 void csoundDie(CSOUND *csound, const char *msg, ...) {
@@ -157,7 +151,6 @@ void csoundWarning(CSOUND *csound, const char *msg, ...) {
   va_start(args, msg);
   csoundMessageV(csound, CSOUNDMSG_WARNING, msg, args);
   va_end(args);
-  csoundMessageS(csound, CSOUNDMSG_WARNING, "\n");
 }
 
 void csoundDebugMsg(CSOUND *csound, const char *msg, ...) {
@@ -168,7 +161,6 @@ void csoundDebugMsg(CSOUND *csound, const char *msg, ...) {
   va_start(args, msg);
   csoundMessageV(csound, 0, msg, args);
   va_end(args);
-  csoundMessage(csound, "\n");
 }
 
 void csoundErrorMsg(CSOUND *csound, const char *msg, ...) {
@@ -183,11 +175,11 @@ void csoundErrMsgV(CSOUND *csound, const char *hdr, const char *msg,
   if (hdr != NULL)
     csound->MessageS(csound, CSOUNDMSG_ERROR, "%s", hdr);
   csoundMessageV(csound, CSOUNDMSG_ERROR, msg, args);
-  csound->MessageS(csound, CSOUNDMSG_ERROR, "\n");
 }
 
 void csoundErrorMsgS(CSOUND *csound, int32_t attr, const char *msg, ...) {
   va_list args;
+
   va_start(args, msg);
   csoundMessageV(csound, CSOUNDMSG_ERROR | attr, msg, args);
   va_end(args);
@@ -226,8 +218,7 @@ static void csoundMessageBufferCallback_2_(CSOUND *csound, int32_t attr,
 
 /**
  * Creates a buffer for storing messages printed by Csound.
- * Should be called after creating a Csound instance; note that
- * the message buffer uses the host data pointer, and the buffer
+ * Should be called after creating a Csound instance. The buffer
  * should be freed by calling csoundDestroyMessageBuffer() before
  * deleting the Csound instance.
  * If 'toStdOut' is non-zero, the messages are also printed to
@@ -353,7 +344,7 @@ void  csoundDestroyMessageBuffer(CSOUND *csound) {
   csMsgBuffer *pp = (csMsgBuffer *)csound->message_buffer;
   if (!pp) {
     csound->Warning(csound, Str("csoundDestroyMessageBuffer: "
-                                "Message buffer not allocated."));
+                                "Message buffer not allocated.\n"));
     return;
   }
   csMsgStruct *msg = pp->firstMsg;
@@ -367,7 +358,6 @@ void  csoundDestroyMessageBuffer(CSOUND *csound) {
   while (csoundGetMessageCnt(csound) > 0) {
     csoundPopFirstMessage(csound);
   }
-  csoundSetHostData(csound, NULL);
   csoundDestroyMutex(pp->mutex_);
   free((void *)pp);
 }
@@ -377,19 +367,31 @@ static void csoundMessageBufferCallback_1_(CSOUND *csound, int32_t attr,
   csMsgBuffer *pp = (csMsgBuffer *)csound->message_buffer;
   csMsgStruct *p;
   int32_t len;
+  size_t capacity = pp->buf ? 16384 : 0;
+  va_list args_copy;
 
   csoundLockMutex(pp->mutex_);
-  len = vsnprintf(pp->buf, 16384, fmt, args); // FIXEDME: this can overflow
-  va_end(args);
-  if (UNLIKELY((uint32_t)len >= (uint32_t)16384)) {
+  va_copy(args_copy, args);
+  len = vsnprintf(pp->buf, capacity, fmt, args_copy);
+  va_end(args_copy);
+  if (UNLIKELY(len < 0)) {
     csoundUnlockMutex(pp->mutex_);
-    fprintf(stderr, Str("csound: internal error: message buffer overflow\n"));
-    exit(-1);
+    return;
   }
   p = (csMsgStruct *)malloc(sizeof(csMsgStruct) + (size_t)len);
+  if (UNLIKELY(p == NULL)) {
+    csoundUnlockMutex(pp->mutex_);
+    return;
+  }
   p->nxt = (csMsgStruct *)NULL;
   p->attr = attr;
-  strcpy(&(p->s[0]), pp->buf);
+  if ((size_t)len < capacity)
+    memcpy(p->s, pp->buf, (size_t)len + 1);
+  else {
+    va_copy(args_copy, args);
+    vsnprintf(p->s, (size_t)len + 1, fmt, args_copy);
+    va_end(args_copy);
+  }
   if (pp->firstMsg == (csMsgStruct *)0) {
     pp->firstMsg = p;
   } else {
@@ -402,33 +404,20 @@ static void csoundMessageBufferCallback_1_(CSOUND *csound, int32_t attr,
 
 static void csoundMessageBufferCallback_2_(CSOUND *csound, int32_t attr,
                                            const char *fmt, va_list args) {
-  csMsgBuffer *pp = (csMsgBuffer *)csound->message_buffer;
-  csMsgStruct *p;
-  int32_t len = 0;
-  va_list args_save;
+  va_list args_copy;
 
-  va_copy(args_save, args);
+  va_copy(args_copy, args);
   switch (attr & CSOUNDMSG_TYPE_MASK) {
   case CSOUNDMSG_ERROR:
   case CSOUNDMSG_REALTIME:
   case CSOUNDMSG_WARNING:
-    len = vfprintf(stderr, fmt, args);
+  case CSOUNDMSG_INFO:
+    vfprintf(stderr, fmt, args_copy);
     break;
   default:
-    len = vfprintf(stdout, fmt, args);
+    vfprintf(stdout, fmt, args_copy);
   }
-  va_end(args);
-  p = (csMsgStruct *)malloc(sizeof(csMsgStruct) + (size_t)len);
-  p->nxt = (csMsgStruct *)NULL;
-  p->attr = attr;
-  vsnprintf(&(p->s[0]), len, fmt, args_save);
-  va_end(args_save);
-  csoundLockMutex(pp->mutex_);
-  if (pp->firstMsg == (csMsgStruct *)NULL)
-    pp->firstMsg = p;
-  else
-    pp->lastMsg->nxt = p;
-  pp->lastMsg = p;
-  pp->msgCnt++;
-  csoundUnlockMutex(pp->mutex_);
+  va_end(args_copy);
+  /* A failed console write must not affect the buffered message's size. */
+  csoundMessageBufferCallback_1_(csound, attr, fmt, args);
 }

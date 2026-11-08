@@ -7,5 +7,6 @@ set(VCPKG_OSX_ARCHITECTURES arm64)
 
 set(VCPKG_OSX_SYSROOT $ENV{OSXCROSS_SDK})
 
-get_filename_component(TOOLCHAIN_FILE "../platform/ioscross/ios-arm64.cmake" REALPATH BASE_DIR "${CMAKE_SOURCE_DIR}")
+get_filename_component(TOOLCHAIN_FILE
+    "${CMAKE_CURRENT_LIST_DIR}/../../ioscross/ios-arm64.cmake" REALPATH)
 set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE ${TOOLCHAIN_FILE})

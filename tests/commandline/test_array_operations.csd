@@ -1,3 +1,9 @@
+<CsTest>
+description = "test multiple operations on multiple array types"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -ndm0
@@ -153,7 +159,7 @@ instr Slicearray
 endin
 
 instr Slicearray_i
-    prints "\n instr Sclicearray_i\n"
+    prints "\n instr Slicearray_i\n"
 ;i-rate
    iArr[]  fillarray  1, 2, 3, 4, 5, 6, 7, 8, 9
    iArr1[] init       5

@@ -1,3 +1,9 @@
+<CsTest>
+description = "Constants as xout inputs work"
+
+[expect]
+exit = 0
+</CsTest>
 Test that using xout in a UDO with a constant works.
 
 

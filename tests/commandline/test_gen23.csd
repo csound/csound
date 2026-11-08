@@ -1,3 +1,9 @@
+<CsTest>
+description = "test_gen23.csd"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,3 +1,9 @@
+<CsTest>
+description = "read/write to struct member of struct"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 

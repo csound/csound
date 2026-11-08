@@ -1,0 +1,106 @@
+<CsTest>
+description = "Stereo SoundFont players keep the far channel silent for hard-panned zones"
+
+[expect]
+exit = 0
+</CsTest>
+<CsoundSynthesizer>
+<CsOptions>
+-n -d -m0
+</CsOptions>
+<CsFileB filename="pan.sf2">
+UklGRhoFAABzZmJrTElTVDYAAABJTkZPaWZpbAQAAAACAAEAaXNuZwgAAABFTVU4MDAwAElOQU0O
+AAAAUGFuIGVuZHBvaW50cwBMSVNUaAIAAHNkdGFzbXBsXAIAAAAQABAAEAAQABAAEAAQABAAEAAQ
+ABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAA
+EAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQ
+ABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAA
+EAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQ
+ABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAA
+EAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQ
+ABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAA
+EAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQ
+ABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQABAAEAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAABMSVNUYAIAAHBkdGFwaGRyvgAAAExlZnQAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAUmlnaHQAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAAAAAAAAAAAAABMZWZ0
+LCBzdW1tZWQAAAAAAAAAAAIAAAACAAAAAAAAAAAAAAAAAFJpZ2h0LCBzdW1tZWQAAAAAAAAAAwAA
+AAMAAAAAAAAAAAAAAAAARU9QAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAABwYmFn
+FAAAAAAAAAABAAAAAgAAAAQAAAAGAAAAcG1vZAoAAAAAAAAAAAAAAAAAcGdlbhwAAAApAAAAKQAB
+ABEAcP4pAAIAEQCQASkAAwAAAAAAaW5zdG4AAABMZWZ0AAAAAAAAAAAAAAAAAAAAAAAAUmlnaHQA
+AAAAAAAAAAAAAAAAAAABAExlZnQsIHN1bW1lZAAAAAAAAAAAAgBSaWdodCwgc3VtbWVkAAAAAAAA
+AAMARU9JAAAAAAAAAAAAAAAAAAAAAAAEAGliYWcUAAAAAAAAAAMAAAAGAAAACQAAAAwAAABpbW9k
+CgAAAAAAAAAAAAAAAABpZ2VuNAAAABEADP42AAEANQAAABEA9AE2AAEANQAAABEAcP42AAEANQAA
+ABEAkAE2AAEANQAAAAAAAABzaGRyXAAAAENvbnN0YW50AAAAAAAAAAAAAAAAAAAAAAABAAAIAAAA
++AAAAAAEAAA8AAAAAQBFT1MAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAA
+</CsFileB>
+<CsInstruments>
+sr = 1024
+ksmps = 1
+nchnls = 1
+0dbfs = 1
+; The embedded bank contains one constant, looped sample and four presets of
+; one zone each: 0: pan -500 (hard left), 1: pan +500 (hard right), 2 and 3:
+; a preset zone and an instrument zone of -400 or +400 each, which add up past
+; the end and are clamped to it. At -500 the right channel was NaN in gcc
+; -ffast-math builds with FMA (#3403).
+giFont sfload "pan.sf2"
+sfpassign 0, giFont, 0
+gkDone init 0
+
+instr 1
+  kCycle init 0
+  if p4 == 0 then
+    aLeft, aRight sfplay 100, 60, 1, 0, p5, 0, 16
+  elseif p4 == 1 then
+    aLeft, aRight sfplay3 100, 60, 1, 0, p5, 0, 16
+  else
+    aLeft, aRight sflooper 100, 60, 1, 1, p5, .01, .2, .01
+  endif
+  ; The zone at full level, without pan.
+  aFull sfplaym 100, 60, 1, 0, p5, 0, 16
+  kLeft = k(aLeft)
+  kRight = k(aRight)
+  kFull = k(aFull)
+  if p5 % 2 == 0 then
+    kNear = kLeft
+    kFar = kRight
+  else
+    kNear = kRight
+    kFar = kLeft
+  endif
+  ; Both channels finite, the far one exactly silent, the near one at full level.
+  kNaN = (kLeft != kLeft || kRight != kRight ? 1 : 0)
+  if kNaN == 1 || kFar != 0 || kFull <= 0 || abs(kNear - kFull) > kFull*1e-6 then
+    printks "SoundFont pan mismatch: opcode %g, preset %g, cycle %g: %g, %g (full %g)\n", 0, p4, p5, kCycle, kLeft, kRight, kFull
+    exitnowk -1
+  endif
+  if kCycle == 0 then
+    gkDone += 1
+  endif
+  kCycle += 1
+endin
+
+instr 90
+  iOpcode = 0
+  while iOpcode < 3 do
+    iPreset = 0
+    while iPreset < 4 do
+      schedule 1, 0, .25, iOpcode, iPreset
+      iPreset += 1
+    od
+    iOpcode += 1
+  od
+endin
+
+instr 99
+  if i(gkDone) != 12 then
+    exitnow -1
+  endif
+endin
+</CsInstruments>
+<CsScore>
+i 90 0 .001
+i 99 .3 .001
+</CsScore>
+</CsoundSynthesizer>

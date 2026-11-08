@@ -27,12 +27,13 @@
 
 #ifndef HAVE_GETTIMEOFDAY
 #if defined(LINUX)    || defined(__unix)   || defined(__unix__) || \
-    defined(__MACH__) || defined(__HAIKU__)
+    defined(__MACH__) || defined(__HAIKU__) || defined(__wasi__)
 #define HAVE_GETTIMEOFDAY 1
 #endif
 #endif
 
 #include "csoundCore.h"
+#include <errno.h>
 
 #if 0
 static CS_NOINLINE void notImplementedWarning_(const char *name)
@@ -94,7 +95,9 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
 
 #else
 
+#if !defined(__wasi__)
 #include <sys/wait.h>
+#endif
 /**
  * Runs an external command with the arguments specified in 'argv'.
  * argv[0] is the name of the program to execute (if not a full path
@@ -110,6 +113,13 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
 
  long csoundRunCommand(const char * const *argv, int32_t noWait)
 {
+#if defined(__wasi__)
+    /* P1 threads add workers, not processes or a shell. */
+    IGN(argv);
+    IGN(noWait);
+    errno = ENOSYS;
+    return -1L;
+#else
     long    retval;
 
     if (argv == NULL || argv[0] == NULL)
@@ -117,14 +127,18 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
     retval = (long) fork();
     if (retval == 0L) {
       /* child process */
-      if (execvp(argv[0], (char**) argv) != 0)
-        exit(-1);
-      /* this is not actually reached */
-      exit(0);
+      execvp(argv[0], (char**) argv);
+      /* Do not run the host's exit handlers or flush its copied streams. */
+      _exit(255);
     }
     else if (retval > 0L && noWait == 0) {
-      int32_t   status = 0;
-      while (waitpid((pid_t) retval, &status, 0) != (pid_t) ECHILD) {
+      int status;
+      for (;;) {
+        if (waitpid((pid_t) retval, &status, 0) < 0) {
+          if (errno == EINTR)
+            continue;
+          return -1L;
+        }
         if (WIFEXITED(status) != 0) {
           retval = (long) (WEXITSTATUS(status)) & 255L;
           return retval;
@@ -134,9 +148,9 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
           return retval;
         }
       }
-      retval = 255L;
     }
     return retval;
+#endif
 }
 
  void csoundSleep(size_t milliseconds)
@@ -153,10 +167,6 @@ void gettimeofday_(struct timeval* p, void* tz /* IGNORED */)
       ;
 }
 
-#endif
-
-#ifndef __wasi__
-#include <errno.h>
 #endif
 
 #include <pthread.h>
@@ -179,19 +189,91 @@ typedef struct barrier {
 #endif
 
 
+#if defined(CSOUND_WASI_REALTIME)
+typedef struct {
+    uintptr_t (*routine)(void *);
+    void *userdata;
+} CsoundWasiThreadStart;
+
+static _Thread_local int32_t csoundWasiWorker;
+static _Thread_local CSOUND_WASI_COMPILE_JUMP *csoundWasiCompileJump;
+
+CSOUND_WASI_COMPILE_JUMP *csoundWasiCompileJumpContext(CSOUND *csound)
+{
+    return csoundWasiCompileJump != NULL &&
+           csoundWasiCompileJump->csound == csound
+        ? csoundWasiCompileJump : NULL;
+}
+
+CSOUND_WASI_COMPILE_JUMP *csoundWasiSwapCompileJumpContext(
+    CSOUND_WASI_COMPILE_JUMP *context)
+{
+    CSOUND_WASI_COMPILE_JUMP *previous = csoundWasiCompileJump;
+    csoundWasiCompileJump = context;
+    return previous;
+}
+
+int32_t csoundWasiIsWorkerThread(void)
+{
+    return csoundWasiWorker;
+}
+
+static void *csoundWasiThreadEntry(void *data)
+{
+    CsoundWasiThreadStart start = *(CsoundWasiThreadStart *) data;
+    free(data);
+    /* Fatal recovery must not jump to another thread's engine jump buffer. */
+    csoundWasiWorker = 1;
+    return (void *) start.routine(start.userdata);
+}
+
+static int csoundWasiThreadCreate(pthread_t *thread, pthread_attr_t *attr,
+                                 uintptr_t (*routine)(void *), void *userdata)
+{
+    CsoundWasiThreadStart *start = malloc(sizeof(*start));
+    if (start == NULL) return ENOMEM;
+    start->routine = routine;
+    start->userdata = userdata;
+    int status = pthread_create(thread, attr, csoundWasiThreadEntry, start);
+    if (status != 0) free(start);
+    return status;
+}
+#endif
+
  void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *),
                                  uint32_t stack,
                                  void *userdata)
 {
     pthread_attr_t attr;
-    pthread_attr_init(&attr);
-    pthread_attr_setstacksize(&attr, stack);
-    pthread_t *pthread = (pthread_t *) malloc(sizeof(pthread_t));
-    if (!pthread_create(pthread, (pthread_attr_t*) NULL,
-                        (void *(*)(void *))(void*)threadRoutine, userdata)) {
-      return (void*) pthread;
+    pthread_t *thread;
+    int status;
+
+#if defined(CSOUND_WASI_REALTIME)
+    /* wasi-libc defaults to 128 KiB without a guard page; init needs the same
+       stack budget as the command's parser and main thread. */
+    if (stack == 0) stack = 1024U * 1024U;
+#endif
+    if (pthread_attr_init(&attr) != 0)
+      return NULL;
+    if (stack != 0 && pthread_attr_setstacksize(&attr, stack) != 0) {
+      pthread_attr_destroy(&attr);
+      return NULL;
     }
-    free(pthread);
+    thread = (pthread_t *)malloc(sizeof(pthread_t));
+    if (thread == NULL) {
+      pthread_attr_destroy(&attr);
+      return NULL;
+    }
+#if defined(CSOUND_WASI_REALTIME)
+    status = csoundWasiThreadCreate(thread, &attr, threadRoutine, userdata);
+#else
+    status = pthread_create(thread, &attr,
+                            (void *(*)(void *))(void*)threadRoutine, userdata);
+#endif
+    pthread_attr_destroy(&attr);
+    if (status == 0)
+      return thread;
+    free(thread);
     return NULL;
 
 }
@@ -200,21 +282,36 @@ typedef struct barrier {
  void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
                                 void *userdata)
 {
+#if defined(CSOUND_WASI_REALTIME)
+    return csoundCreateThread2(threadRoutine, 0, userdata);
+#else
     pthread_t *pthread = (pthread_t *) malloc(sizeof(pthread_t));
+    if (pthread == NULL)
+      return NULL;
     if (!pthread_create(pthread, (pthread_attr_t*) NULL,
                         (void *(*)(void *))(void*)threadRoutine, userdata)) {
       return (void*) pthread;
     }
     free(pthread);
     return NULL;
+#endif
 
 }
 
  void *csoundGetCurrentThreadId(void)
 {
     pthread_t *ppthread = (pthread_t *)malloc(sizeof(pthread_t));
+    if (ppthread == NULL)
+      return NULL;
     *ppthread = pthread_self(); /* This version wastes space but works */
     return ppthread;
+}
+
+ int32_t csoundIsCurrentThread(void *thread)
+{
+    if (thread == NULL)
+      return 0;
+    return pthread_equal(*(pthread_t *)thread, pthread_self()) ? 1 : 0;
 }
 
  uintptr_t csoundJoinThread(void *thread)
@@ -225,81 +322,13 @@ typedef struct barrier {
     if(thread == NULL) return 0;
     pthreadReturnValue = pthread_join(*pthread,
                                       &threadRoutineReturnValue);
-    free(pthread);
     if (pthreadReturnValue) {
         return (uintptr_t) ((intptr_t) pthreadReturnValue);
     } else {
+        free(pthread);
         return (uintptr_t) threadRoutineReturnValue;
     }
 }
-
-#if !defined(ANDROID) && (/*defined(LINUX) ||*/ defined(__HAIKU__) || defined(WIN32))
-
- void *csoundCreateThreadLock(void)
-{
-    pthread_mutex_t *pthread_mutex;
-
-    pthread_mutex = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
-    if (pthread_mutex == NULL)
-      return NULL;
-    if (pthread_mutex_init(pthread_mutex, NULL) != 0) {
-      free(pthread_mutex);
-      return NULL;
-    }
-    return (void*) pthread_mutex;
-}
-
- int32_t csoundWaitThreadLock(void *lock, size_t milliseconds)
-{
-    {
-      register int32_t retval = pthread_mutex_trylock((pthread_mutex_t*) lock);
-      if (!retval)
-        return retval;
-      if (!milliseconds)
-        return retval;
-    }
-    {
-      struct timeval  tv;
-      struct timespec ts;
-      register size_t n, s;
-
-#ifndef HAVE_GETTIMEOFDAY
-      gettimeofday_(&tv, NULL);
-#else
-      gettimeofday(&tv, NULL);
-#endif
-
-      s = milliseconds / (size_t) 1000;
-      n = milliseconds - (s * (size_t) 1000);
-      s += (size_t) tv.tv_sec;
-      n = (size_t) (((int32_t) n * 1000 + (int32_t) tv.tv_usec) * 1000);
-      ts.tv_nsec = (long) (n < (size_t) 1000000000 ? n : n - 1000000000);
-      ts.tv_sec = (time_t) (n < (size_t) 1000000000 ? s : s + 1);
-      return pthread_mutex_timedlock((pthread_mutex_t*) lock, &ts);
-    }
-
-}
-
- void csoundWaitThreadLockNoTimeout(void *lock)
-{
-    pthread_mutex_lock((pthread_mutex_t*) lock);
-}
-
- void csoundNotifyThreadLock(void *lock)
-{
-    pthread_mutex_unlock((pthread_mutex_t*) lock);
-}
-
- void csoundDestroyThreadLock(void *lock)
-{
-    if (0==pthread_mutex_destroy((pthread_mutex_t*) lock))
-      free(lock);
-    else
-      perror("csoundDestroyThreadLock: ");
-}
-
-
-#else   /* LINUX */
 
 typedef struct CsoundThreadLock_s {
   pthread_mutex_t m;
@@ -358,6 +387,8 @@ typedef struct CsoundThreadLock_s {
       else
         retval = ETIMEDOUT;
     }
+    /* A notification may arrive as the timed wait expires. */
+    if (p->s) retval = 0;
     p->s = (unsigned char) 0;
     pthread_mutex_unlock(&(p->m));
 
@@ -401,8 +432,6 @@ typedef struct CsoundThreadLock_s {
     free(threadLock);
 
 }
-
-#endif  /* !LINUX */
 
 
  void *csoundCreateBarrier(uint32_t max)
@@ -594,75 +623,71 @@ typedef struct CsoundThreadLock_s {
 /* #undef NO_WIN9X_COMPATIBILITY */
 
 typedef struct {
+  HANDLE      handle; /* Keep first: the engine reads the native thread handle. */
   uintptr_t   (*func)(void *);
   void        *userdata;
-  HANDLE      threadLock;
+  uintptr_t   result;
 } threadParams;
 
-static uint32_t __stdcall threadRoutineWrapper(void *p)
+static uint32_t __stdcall threadRoutineWrapper(void *arg)
 {
-  uintptr_t (*threadRoutine)(void *);
-  void      *userData;
-
-  threadRoutine = ((threadParams*) p)->func;
-  userData = ((threadParams*) p)->userdata;
-  SetEvent(((threadParams*) p)->threadLock);
-  return (uint32_t) threadRoutine(userData);
+  threadParams *p = (threadParams *)arg;
+  p->result = p->func(p->userdata);
+  return 0;
 }
 
- void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack, void *userdata) {
-  threadParams  p;
-  void          *h;
-  uint32_t  threadID;
-
-  p.func = threadRoutine;
-  p.userdata = userdata;
-  p.threadLock = CreateEvent(0, 0, 0, 0);
-  if (p.threadLock == (HANDLE) 0)
+ void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack,
+                          void *userdata)
+{
+  threadParams *p = (threadParams *)malloc(sizeof(threadParams));
+  uint32_t threadID;
+  if (p == NULL)
     return NULL;
-  h = (void*) _beginthreadex(NULL, stack, threadRoutineWrapper,
-      (void*) &p, (unsigned) 0, &threadID);
-  if (h != NULL)
-    WaitForSingleObject(p.threadLock, INFINITE);
-  CloseHandle(p.threadLock);
-  return h;
-
+  p->func = threadRoutine;
+  p->userdata = userdata;
+  p->result = 0;
+  p->handle = (HANDLE)_beginthreadex(NULL, stack, threadRoutineWrapper,
+                                    p, 0, &threadID);
+  if (p->handle != NULL)
+    return p;
+  free(p);
+  return NULL;
 }
 
- void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
-    void *userdata)
+ void *csoundCreateThread(uintptr_t (*threadRoutine)(void *), void *userdata)
 {
-  threadParams  p;
-  void          *h;
-  uint32_t  threadID;
-
-  p.func = threadRoutine;
-  p.userdata = userdata;
-  p.threadLock = CreateEvent(0, 0, 0, 0);
-  if (p.threadLock == (HANDLE) 0)
-    return NULL;
-  h = (void*) _beginthreadex(NULL, (unsigned) 0, threadRoutineWrapper,
-      (void*) &p, (unsigned) 0, &threadID);
-  if (h != NULL)
-    WaitForSingleObject(p.threadLock, INFINITE);
-  CloseHandle(p.threadLock);
-  return h;
+  return csoundCreateThread2(threadRoutine, 0, userdata);
 }
 
  void *csoundGetCurrentThreadId(void)
 {
     DWORD* d = malloc(sizeof(DWORD));
+    if (d == NULL)
+      return NULL;
     *d = GetCurrentThreadId();
     return (void*) d;
 }
 
+ int32_t csoundIsCurrentThread(void *thread)
+{
+    threadParams *p = (threadParams *)thread;
+    if (p == NULL || p->handle == NULL)
+      return 0;
+    return (GetThreadId(p->handle) == GetCurrentThreadId()) ? 1 : 0;
+}
+
  uintptr_t csoundJoinThread(void *thread)
 {
-  DWORD   retval = (DWORD) 0;
-  WaitForSingleObject((HANDLE) thread, INFINITE);
-  GetExitCodeThread((HANDLE) thread, &retval);
-  CloseHandle((HANDLE) thread);
-  return (uintptr_t) retval;
+  threadParams *p = (threadParams *)thread;
+  uintptr_t result;
+  if (p == NULL)
+    return 0;
+  if (WaitForSingleObject(p->handle, INFINITE) != WAIT_OBJECT_0)
+    return (uintptr_t)GetLastError();
+  result = p->result;
+  CloseHandle(p->handle);
+  free(p);
+  return result;
 }
 
  void *csoundCreateThreadLock(void)
@@ -925,6 +950,12 @@ typedef struct barrier {
     return NULL;
 }
 
+ int32_t csoundIsCurrentThread(void *thread)
+{
+    (void) thread;
+    return 0;
+}
+
  uintptr_t csoundJoinThread(void *thread)
 {
     //notImplementedWarning_("csoundJoinThread");
@@ -1023,8 +1054,9 @@ typedef struct barrier {
 }
 
  long csoundRunCommand(const char * const *argv, int32_t noWait) {
-    //notImplementedWarning_("csoundRunCommand");
-    return 0;
+    IGN(argv);
+    IGN(noWait);
+    return -1L;
 }
 
  void csoundSleep(size_t milliseconds) {
@@ -1034,106 +1066,156 @@ typedef struct barrier {
 #else // C THREADS
 #include <threads.h>
 
- void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack,
-                                void *userdata)
+typedef struct {
+  thrd_t thread; /* Keep the native thread ID first, as in the pthread backend. */
+  uintptr_t (*func)(void *);
+  void *userdata;
+  uintptr_t result;
+} threadParams;
+
+static int threadRoutineWrapper(void *arg)
 {
-  thrd_t *thread = (thrd_t *) malloc(sizeof(thrd_t));
-  if(thrd_create(thread, (thrd_start_t) threadRoutine, userdata) == thrd_success){
-    return thread;
-  }
-  free(thread);
+  threadParams *p = (threadParams *)arg;
+  p->result = p->func(p->userdata);
+  return 0;
+}
+
+ void *csoundCreateThread(uintptr_t (*threadRoutine)(void *), void *userdata)
+{
+  threadParams *p = (threadParams *)malloc(sizeof(threadParams));
+  if (p == NULL)
+    return NULL;
+  p->func = threadRoutine;
+  p->userdata = userdata;
+  p->result = 0;
+  if (thrd_create(&p->thread, threadRoutineWrapper, p) == thrd_success)
+    return p;
+  free(p);
   return NULL;
 }
 
-
- void *csoundCreateThread(uintptr_t (*threadRoutine)(void *),
-                                void *userdata)
+ void *csoundCreateThread2(uintptr_t (*threadRoutine)(void *), uint32_t stack,
+                          void *userdata)
 {
-  thrd_t *thread = (thrd_t *) malloc(sizeof(thrd_t));
-  if(thrd_create(thread, (thrd_start_t) threadRoutine, userdata) == thrd_success){
-    return thread;
-  }
-  free(thread);
-  return NULL;
+  IGN(stack); /* C11 threads have no stack-size attribute. */
+  return csoundCreateThread(threadRoutine, userdata);
 }
 
  void *csoundGetCurrentThreadId(void)
 {
-  return (void *) thrd_current();
+  thrd_t *thread = (thrd_t *)malloc(sizeof(thrd_t));
+  if (thread == NULL)
+    return NULL;
+  *thread = thrd_current();
+  return thread;
+}
+
+ int32_t csoundIsCurrentThread(void *thread)
+{
+  threadParams *p = (threadParams *)thread;
+  if (p == NULL)
+    return 0;
+  return thrd_equal(p->thread, thrd_current()) ? 1 : 0;
 }
 
  uintptr_t csoundJoinThread(void *thread)
 {
-    int threadRoutineReturnValue;
-    int32_t threadReturnValue;
-    thrd_t *thred = (thrd_t *)thread;
-    if(thred == NULL) return 0;
-    threadReturnValue = thrd_join(*thred,
-                                   &threadRoutineReturnValue);
-    free(thred);
-    if (threadReturnValue) {
-        return (uintptr_t) ((intptr_t) threadReturnValue);
-    } else {
-        return (uintptr_t) threadRoutineReturnValue;
-    }
+  threadParams *p = (threadParams *)thread;
+  uintptr_t result;
+  int status;
+  if (p == NULL)
+    return 0;
+  status = thrd_join(p->thread, NULL);
+  if (status != thrd_success)
+    return (uintptr_t)(intptr_t)status;
+  result = p->result;
+  free(p);
+  return result;
 }
+
+typedef struct {
+  mtx_t mutex;
+  cnd_t condition;
+  int signaled;
+} CsoundThreadLock_t;
 
  void *csoundCreateThreadLock(void)
 {
-    mtx_t *thread_mutex;
-    thread_mutex = (mtx_t*) malloc(sizeof(mtx_t));
-    if (thread_mutex == NULL)
-      return NULL;
-    if (mtx_init(thread_mutex, mtx_timed) != 0) {
-      free(thread_mutex);
-      return NULL;
-    }
-    return (void*) thread_mutex;
+  CsoundThreadLock_t *p = malloc(sizeof(CsoundThreadLock_t));
+  if (p == NULL)
+    return NULL;
+  if (mtx_init(&p->mutex, mtx_plain) != thrd_success) {
+    free(p);
+    return NULL;
+  }
+  if (cnd_init(&p->condition) != thrd_success) {
+    mtx_destroy(&p->mutex);
+    free(p);
+    return NULL;
+  }
+  p->signaled = 1;
+  return p;
 }
-
-#include <sys/time.h>
 
  int32_t csoundWaitThreadLock(void *lock, size_t milliseconds)
 {
-    {
-      register int32_t retval = mtx_trylock((mtx_t*) lock);
-      if (!retval)
-        return retval;
-      if (!milliseconds)
-        return retval;
+  CsoundThreadLock_t *p = lock;
+  int status = thrd_success;
+  mtx_lock(&p->mutex);
+  if (!p->signaled) {
+    if (milliseconds) {
+      struct timespec deadline;
+      if (timespec_get(&deadline, TIME_UTC) != TIME_UTC) {
+        mtx_unlock(&p->mutex);
+        return NOTOK;
+      }
+      deadline.tv_sec += milliseconds / 1000;
+      deadline.tv_nsec += (long)(milliseconds % 1000) * 1000000L;
+      if (deadline.tv_nsec >= 1000000000L) {
+        deadline.tv_nsec -= 1000000000L;
+        deadline.tv_sec++;
+      }
+      do {
+        status = cnd_timedwait(&p->condition, &p->mutex, &deadline);
+      } while (!p->signaled && status == thrd_success);
     }
-    {
-      struct timeval  tv;
-      struct timespec ts;
-      register size_t n, s;
-      gettimeofday(&tv, NULL);
-
-      s = milliseconds / (size_t) 1000;
-      n = milliseconds - (s * (size_t) 1000);
-      s += (size_t) tv.tv_sec;
-      n = (size_t) (((int32_t) n * 1000 + (int32_t) tv.tv_usec) * 1000);
-      ts.tv_nsec = (long) (n < (size_t) 1000000000 ? n : n - 1000000000);
-      ts.tv_sec = (time_t) (n < (size_t) 1000000000 ? s : s + 1);
-      return mtx_timedlock((mtx_t*) lock, &ts);
-    }
+    else
+      status = thrd_timedout;
+  }
+  /* Consume a pending notification even if the timed wait just expired. */
+  if (p->signaled) status = thrd_success;
+  p->signaled = 0;
+  mtx_unlock(&p->mutex);
+  return status == thrd_success ? OK : NOTOK;
 }
 
  void csoundWaitThreadLockNoTimeout(void *lock)
 {
-      mtx_lock((mtx_t *) lock);
+  CsoundThreadLock_t *p = lock;
+  mtx_lock(&p->mutex);
+  while (!p->signaled)
+    cnd_wait(&p->condition, &p->mutex);
+  p->signaled = 0;
+  mtx_unlock(&p->mutex);
 }
 
  void csoundNotifyThreadLock(void *lock)
 {
-      mtx_unlock((mtx_t *) lock);
+  CsoundThreadLock_t *p = lock;
+  mtx_lock(&p->mutex);
+  p->signaled = 1;
+  cnd_signal(&p->condition);
+  mtx_unlock(&p->mutex);
 }
 
  void csoundDestroyThreadLock(void *lock)
 {
-    if(lock != NULL) {
-      mtx_destroy((mtx_t *) lock);
-      free(lock);
-    }
+  CsoundThreadLock_t *p = lock;
+  if (p != NULL) {
+    cnd_destroy(&p->condition);
+    mtx_destroy(&p->mutex);
+    free(p);
+  }
 }
 
  void *csoundCreateMutex(int32_t isRecursive)
@@ -1142,7 +1224,8 @@ typedef struct barrier {
     thread_mutex = (mtx_t*) malloc(sizeof(mtx_t));
     if (thread_mutex == NULL)
       return NULL;
-    if (mtx_init(thread_mutex, isRecursive ? mtx_plain | mtx_recursive : mtx_plain) != 0) {
+    if (mtx_init(thread_mutex, isRecursive ? mtx_plain | mtx_recursive : mtx_plain)
+        != thrd_success) {
       free(thread_mutex);
       return NULL;
     }
@@ -1156,7 +1239,7 @@ typedef struct barrier {
 
  int32_t csoundLockMutexNoWait(void *mutex_)
 {
-    return mtx_trylock((mtx_t *) mutex_);
+    return mtx_trylock((mtx_t *) mutex_) == thrd_success ? OK : NOTOK;
 }
 
  void csoundUnlockMutex(void *mutex_)
@@ -1178,13 +1261,13 @@ typedef struct barrier {
     mtx_t mut;
     cnd_t cond;
     uint32_t count, max, iteration;
-} barrier_t;
+} c11_barrier_t;
 
  void *csoundCreateBarrier(uint32_t max)
 {
-  barrier_t *b;
+  c11_barrier_t *b;
   if (max == 0) return (void*) EINVAL;
-  b = (barrier_t *)malloc(sizeof(barrier_t));
+  b = (c11_barrier_t *)malloc(sizeof(c11_barrier_t));
   mtx_init(&b->mut, mtx_plain);
   cnd_init(&b->cond);
   b->count = 0;
@@ -1195,7 +1278,7 @@ typedef struct barrier {
 
  int32_t csoundDestroyBarrier(void *barrier)
 {
-  barrier_t *b = (barrier_t *)barrier;
+  c11_barrier_t *b = (c11_barrier_t *)barrier;
   if (b->count > 0) return EBUSY;
   cnd_destroy(&b->cond);
   mtx_destroy(&b->mut);
@@ -1206,7 +1289,7 @@ typedef struct barrier {
 {
   int32_t ret;
   uint32_t it;
-    barrier_t *b = (barrier_t *)barrier;
+    c11_barrier_t *b = (c11_barrier_t *)barrier;
     mtx_lock(&b->mut);
     b->count++;
     it = b->iteration;
@@ -1247,18 +1330,10 @@ typedef struct barrier {
 }
 
  long csoundRunCommand(const char * const *argv, int32_t noWait) {
-  char *command = malloc(1024);
-  int cnt = 0, max = 1024;
-  while(argv != NULL) {
-    cnt += snprintf(command, 1024-cnt, "%s \n", *argv);
-    if(cnt > max/2) {
-      command = realloc(command, max*2);
-      max *= 2;
-    }
-  }
-  system(command);
-  free(command);
-  return 0;
+  /* C11 threads provide no process API for executing an argument vector. */
+  IGN(argv);
+  IGN(noWait);
+  return -1L;
 }
 
  void csoundSleep(size_t milliseconds) {
@@ -1363,25 +1438,18 @@ int32_t csoundSpinLockInit(spin_lock_t *spinlock) {
 
 #elif defined(__GNUC__) && defined(HAVE_ATOMIC_BUILTIN)
 // No POSIX spinlocks but GCC intrinsics
-#include <stdbool.h>
+#include "atomic_spinlock.h"
 
 void csoundSpinLock(spin_lock_t *spinlock){
-    spin_lock_t unset = 0;
-    spin_lock_t set = 1;
-    while (!__atomic_compare_exchange_n(spinlock, &unset, set, false,
-                                        __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST)) { };
+    csoundAtomicSpinLock(spinlock);
 }
 
 void csoundSpinUnLock(spin_lock_t *spinlock){
-    __atomic_clear(spinlock, __ATOMIC_SEQ_CST);
+    csoundAtomicSpinUnlock(spinlock);
 }
 
 int32_t csoundSpinTryLock(spin_lock_t *spinlock) {
-    spin_lock_t unset = 0;
-    spin_lock_t set = 1;
-    return __atomic_compare_exchange_n(spinlock, &unset, set, false,
-                                       __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST) ?
-      CSOUND_SUCCESS : CSOUND_ERROR;
+    return csoundAtomicSpinTryLock(spinlock) ? CSOUND_SUCCESS : CSOUND_ERROR;
 }
 
 int32_t csoundSpinLockInit(spin_lock_t *spinlock) {

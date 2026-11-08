@@ -1,0 +1,77 @@
+name: Set up build reuse
+description: Set CPU limits and restore compiler and vcpkg binary caches.
+inputs:
+  vcpkg:
+    description: Cache vcpkg binary archives.
+    default: 'false'
+  compiler-cache:
+    description: Use ccache, installed by the job's dependency step.
+    default: 'false'
+  variant:
+    description: Separate cache entries for matrix build variants.
+    default: default
+runs:
+  using: composite
+  steps:
+    - name: Set build limits and cache paths
+      id: config
+      shell: bash
+      env:
+        CACHE_COMPILER: ${{ inputs.compiler-cache }}
+        CACHE_VCPKG: ${{ inputs.vcpkg }}
+      run: |
+        case "$RUNNER_OS" in
+          Linux) jobs=$(nproc) ;;
+          macOS) jobs=$(sysctl -n hw.ncpu) ;;
+          Windows) jobs=$NUMBER_OF_PROCESSORS ;;
+          *) echo "Unsupported runner: $RUNNER_OS"; exit 1 ;;
+        esac
+        if [[ "$RUNNER_OS" == Windows ]]; then
+          # Build one MSBuild project at a time so /MP can use the CPU budget
+          # for its source files without multiplying it by concurrent projects.
+          echo "CMAKE_BUILD_PARALLEL_LEVEL=1" >> "$GITHUB_ENV"
+          echo "CL=${CL:-} /MP$jobs" >> "$GITHUB_ENV"
+          cache_root=$(cygpath -m "$GITHUB_WORKSPACE")/.ci-cache
+        else
+          echo "CMAKE_BUILD_PARALLEL_LEVEL=$jobs" >> "$GITHUB_ENV"
+          cache_root="$GITHUB_WORKSPACE/.ci-cache"
+          echo "CMAKE_GENERATOR=Ninja" >> "$GITHUB_ENV"
+        fi
+        echo "image=${ImageOS:-$RUNNER_OS}-${ImageVersion:-unknown}" >> "$GITHUB_OUTPUT"
+        if [[ "$CACHE_VCPKG" == true ]]; then
+          mkdir -p "$cache_root/vcpkg"
+          echo "VCPKG_BINARY_SOURCES=clear;files,$cache_root/vcpkg,readwrite" >> "$GITHUB_ENV"
+          echo "vcpkg-revision=$(git rev-parse HEAD:vcpkg)" >> "$GITHUB_OUTPUT"
+          # Some platform trees contain dangling symlinks. Hash Git's tracked
+          # tree entries without following links into absent build outputs.
+          build_inputs=$(git ls-tree HEAD -- CMakeLists.txt CMakePresets.json \
+            vcpkg.json vcpkg-configuration.json cmake platform \
+            .github/workflows .github/actions/setup-build | git hash-object --stdin)
+          echo "build-inputs=$build_inputs" >> "$GITHUB_OUTPUT"
+        fi
+        if [[ "$CACHE_COMPILER" == true ]]; then
+          mkdir -p "$cache_root/ccache"
+          echo "CCACHE_DIR=$cache_root/ccache" >> "$GITHUB_ENV"
+          echo "CCACHE_MAXSIZE=256M" >> "$GITHUB_ENV"
+          echo "CCACHE_COMPILERCHECK=content" >> "$GITHUB_ENV"
+          echo "CMAKE_C_COMPILER_LAUNCHER=ccache" >> "$GITHUB_ENV"
+          echo "CMAKE_CXX_COMPILER_LAUNCHER=ccache" >> "$GITHUB_ENV"
+        fi
+
+    - name: Restore vcpkg binary archives
+      if: inputs.vcpkg == 'true'
+      uses: actions/cache@v6.1.0
+      with:
+        path: .ci-cache/vcpkg
+        key: vcpkg-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.config.outputs.image }}-${{ github.job }}-${{ inputs.variant }}-${{ steps.config.outputs.vcpkg-revision }}-${{ steps.config.outputs.build-inputs }}
+        restore-keys: |
+          vcpkg-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.config.outputs.image }}-${{ github.job }}-${{ inputs.variant }}-${{ steps.config.outputs.vcpkg-revision }}-
+
+    - name: Restore compiler results
+      if: inputs.compiler-cache == 'true'
+      uses: actions/cache@v6.1.0
+      with:
+        path: .ci-cache/ccache
+        key: ccache-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.config.outputs.image }}-${{ github.job }}-${{ inputs.variant }}-${{ github.sha }}
+        restore-keys: |
+          ccache-v1-${{ runner.os }}-${{ runner.arch }}-${{ steps.config.outputs.image }}-${{ github.job }}-${{ inputs.variant }}-

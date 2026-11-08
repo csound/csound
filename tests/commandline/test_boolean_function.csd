@@ -1,3 +1,9 @@
+<CsTest>
+description = "test boolean function in conditionals"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
@@ -24,10 +30,34 @@ endif
 
 endin
 
+opcode Test2(A:i,B:i,C:i):b
+  xout A+B==C
+endop
+
+instr 2
+  if Test2(1+1,2,4)  goto end 
+  prints "hello\n"
+  end:
+endin
+
+opcode Test3(B:b,D:i):b
+  xout B || D==123
+endop
+
+instr 3
+  if Test3(1==1,123) then
+    prints "pass\n"
+  else
+    prints "error\n"
+    exitnow(-1)
+  endif
+endin
+
 
 </CsInstruments>
 <CsScore>
 i1 0 0
+i2 0 0
+i3 0 0
 </CsScore>
 </CsoundSynthesizer>
-

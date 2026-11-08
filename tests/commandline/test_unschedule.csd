@@ -1,3 +1,9 @@
+<CsTest>
+description = "test unscheduling events"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,7 +1,48 @@
 #include <stdio.h>
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <future>
+#include <string>
+#include <thread>
 #include "gtest/gtest.h"
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
+#include "filesys.h"
+
+extern "C" int32_t csoundKillInstance(CSOUND *, cs_float, char *, int32_t,
+                                       int32_t, int32_t);
+
+typedef struct {
+    OPDS h;
+} SLOW_INIT;
+
+static int32_t slowInit(CSOUND *csound, SLOW_INIT *p)
+{
+    (void) p;
+    csoundSleep(25);
+    return CSOUND_SUCCESS;
+}
+
+static int32_t failSndfileClose(CSOUND *, void *)
+{
+    return -1;
+}
+
+static int32_t removeAfterDeferredClose(const std::string &path)
+{
+    int32_t result = -1;
+
+    /* Retired files are detached from the registry before the worker closes
+       them. POSIX permits removing an open file, but Windows requires waiting
+       for that final close to finish. */
+    for (int32_t i = 0; i < 1000 && result != 0; ++i) {
+      result = remove(path.c_str());
+      if (result != 0)
+        csoundSleep(1);
+    }
+    return result;
+}
 
 
 class IOTests : public ::testing::Test {
@@ -90,6 +131,22 @@ TEST_F (IOTests, testDeviceList)
     }
 }
 
+TEST_F (IOTests, testRunUtilityLoadsDefaultModules)
+{
+#ifndef CSOUND_TEST_PLUGIN_DIR
+    GTEST_SKIP() << "The stdutil plugin is not built";
+#else
+    char utility[] = "sndinfo";
+    char *argv[] = {utility};
+
+    // Set the search path without loading plugins before csoundRunUtility().
+    const std::string option = std::string(sizeof(cs_float) == sizeof(float)
+        ? "--env:OPCODE7DIR=" : "--env:OPCODE7DIR64=") + CSOUND_TEST_PLUGIN_DIR;
+    ASSERT_EQ(csoundSetOption(csound, option.c_str()), 0);
+    EXPECT_EQ(csoundRunUtility(csound, "sndinfo", 1, argv), 0);
+#endif
+}
+
 int32_t key_callback_evt(void *userData, void *p, uint32_t type)
 {
     int32_t *prev = (int32_t *) userData;
@@ -104,6 +161,27 @@ int32_t key_callback_txt(void *userData, void *p, uint32_t type)
     *((int32_t *) p) =  *prev;
     *prev += 1;
     return CSOUND_SUCCESS;
+}
+
+struct ReadlineInput {
+    const char *text;
+    size_t position;
+};
+
+int32_t readline_callback(void *userData, void *p, uint32_t type)
+{
+    ReadlineInput *input = (ReadlineInput *) userData;
+    unsigned char character = (unsigned char) input->text[input->position];
+
+    *((int32_t *) p) = (int32_t) character;
+    if (character != '\0')
+        input->position++;
+    return CSOUND_SUCCESS;
+}
+
+int32_t readline_error_callback(void *, void *, uint32_t)
+{
+    return CSOUND_ERROR;
 }
 
 TEST_F (IOTests, testKeyboardIO)
@@ -136,7 +214,7 @@ TEST_F (IOTests, testKeyboardIO)
     ASSERT_TRUE (ret == CSOUND_SUCCESS);
 
     // TODO these assertions are failing
-    // MYFLT val = csoundGetControlChannel(csound, "key", &err);
+    // cs_float val = csoundGetControlChannel(csound, "key", &err);
     // ASSERT_DOUBLE_EQ (val, 100.0);
 
     // val = csoundGetControlChannel(csound, "key2", &err);
@@ -144,6 +222,457 @@ TEST_F (IOTests, testKeyboardIO)
 
     // val = csoundGetControlChannel(csound, "down2", &err);
     // ASSERT_DOUBLE_EQ (val, 1.0);
+}
+
+TEST_F (IOTests, testSynchronousCloseWhileAsyncWorkerRuns)
+{
+    std::string prefix = ::testing::TempDir() + "csound_" +
+                         std::to_string(reinterpret_cast<uintptr_t>(csound));
+    std::string asyncPath = prefix + "_async.tmp";
+    std::string syncPath = prefix + "_sync.tmp";
+    FILE *asyncFile = nullptr;
+    FILE *syncFile = nullptr;
+
+    remove(asyncPath.c_str());
+    remove(syncPath.c_str());
+    void *asyncHandle = csoundFileOpenAsync(
+        csound, &asyncFile, CSFILE_STD, asyncPath.c_str(), (void *) "w+",
+        nullptr, CSFTYPE_OTHER_TEXT, 64, 0);
+    ASSERT_NE(asyncHandle, nullptr);
+    void *syncHandle = csoundFileOpen(
+        csound, &syncFile, CSFILE_STD, syncPath.c_str(), (void *) "w+", nullptr,
+        CSFTYPE_OTHER_TEXT, 0);
+    ASSERT_NE(syncHandle, nullptr);
+    auto retiredFilesEmpty = [&]() {
+      csoundSpinLock(&csound->open_files_lock);
+      const bool empty = csound->retired_files == nullptr;
+      csoundSpinUnLock(&csound->open_files_lock);
+      return empty;
+    };
+
+    ASSERT_EQ(csoundFileClose(csound, syncHandle, CSFILE_CLOSE_SYNC), 0);
+    EXPECT_TRUE(retiredFilesEmpty());
+    EXPECT_EQ(remove(syncPath.c_str()), 0);
+
+    ASSERT_EQ(csoundFileClose(csound, asyncHandle, CSFILE_CLOSE_SYNC), 0);
+    EXPECT_TRUE(retiredFilesEmpty());
+    EXPECT_EQ(remove(asyncPath.c_str()), 0);
+}
+
+TEST_F(IOTests, testAsyncOutputDrainsBeforeClose)
+{
+    struct Writer {
+      int64_t (*write)(CSOUND *, void *, cs_float *, int64_t);
+      int32_t (*close)(CSOUND *, void *);
+      std::thread::id closer;
+    } writer = {csound->SndfileWriteSamples, csound->SndfileClose, {}};
+    std::string path = ::testing::TempDir() + "csound_async_output_" +
+                      std::to_string(reinterpret_cast<uintptr_t>(csound)) + ".wav";
+    cs_float samples[160], result[160];
+    for (int i = 0; i < 160; ++i) samples[i] = i / FL(256.0);
+
+    for (uint32_t flags : {CSFILE_CLOSE_SYNC, CSFILE_CLOSE_DEFER}) {
+      writer.closer = {};
+      csoundSetHostData(csound, &writer);
+      csound->SndfileWriteSamples = [](CSOUND *cs, void *sf, cs_float *data,
+                                      int64_t count) -> int64_t {
+        auto *writer = static_cast<Writer *>(csoundGetHostData(cs));
+        return writer->write(cs, sf, data, std::min<int64_t>(count, 7));
+      };
+      csound->SndfileClose = [](CSOUND *cs, void *sf) -> int32_t {
+        auto *writer = static_cast<Writer *>(csoundGetHostData(cs));
+        writer->closer = std::this_thread::get_id();
+        return writer->close(cs, sf);
+      };
+      SFLIB_INFO info = {};
+      info.samplerate = 48000;
+      info.channels = 1;
+      info.format = TYP2SF(TYP_WAV) | AE_FLOAT;
+      void *sf = nullptr;
+      void *file = csoundFileOpenAsync(csound, &sf, CSFILE_SND_W, path.c_str(),
+                                      &info, nullptr, CSFTYPE_WAVE, 64, 0);
+      ASSERT_NE(file, nullptr);
+      csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+      EXPECT_EQ(csound->WriteAsync(csound, file, samples, 160), 160u);
+      EXPECT_EQ(csoundFileClose(csound, file, flags), 0);
+      if (flags == CSFILE_CLOSE_DEFER)
+        EXPECT_EQ(writer.closer, std::thread::id());
+      csound->NotifyThreadLock(csound->file_io_threadlock);
+      csoundReset(csound);  // Join the worker before reading the closed file.
+      EXPECT_NE(writer.closer, std::thread::id());
+      EXPECT_EQ(writer.closer == std::this_thread::get_id(),
+                flags == CSFILE_CLOSE_SYNC);
+      csound->SndfileWriteSamples = writer.write;
+      csound->SndfileClose = writer.close;
+      csoundSetHostData(csound, nullptr);
+
+      info = {};
+      sf = csound->SndfileOpen(csound, path.c_str(), SFM_READ, &info);
+      ASSERT_NE(sf, nullptr);
+      EXPECT_EQ(info.frames, 160);
+      EXPECT_EQ(csound->SndfileReadSamples(csound, sf, result, 160), 160);
+      for (int i = 0; i < 160; ++i) EXPECT_EQ(result[i], samples[i]);
+      EXPECT_EQ(csound->SndfileClose(csound, sf), 0);
+      EXPECT_EQ(remove(path.c_str()), 0);
+    }
+}
+
+TEST_F(IOTests, testAsyncCloseReportsWriteFailure)
+{
+    std::string path = ::testing::TempDir() + "csound_async_error_" +
+                      std::to_string(reinterpret_cast<uintptr_t>(csound)) + ".wav";
+    SFLIB_INFO info = {};
+    info.samplerate = 48000;
+    info.channels = 1;
+    info.format = TYP2SF(TYP_WAV) | AE_FLOAT;
+    void *sf = nullptr;
+    void *file = csoundFileOpenAsync(csound, &sf, CSFILE_SND_W, path.c_str(),
+                                    &info, nullptr, CSFTYPE_WAVE, 64, 0);
+    ASSERT_NE(file, nullptr);
+    csound->WaitThreadLockNoTimeout(csound->file_io_threadlock);
+    auto savedWrite = csound->SndfileWriteSamples;
+    csound->SndfileWriteSamples = [](CSOUND *, void *, cs_float *, int64_t) -> int64_t {
+      return 0;
+    };
+    cs_float sample = FL(0.5);
+    EXPECT_EQ(csound->WriteAsync(csound, file, &sample, 1), 1u);
+    EXPECT_EQ(csoundFileClose(csound, file, CSFILE_CLOSE_SYNC), NOTOK);
+    csound->SndfileWriteSamples = savedWrite;
+    csound->NotifyThreadLock(csound->file_io_threadlock);
+    csoundReset(csound);
+    EXPECT_EQ(remove(path.c_str()), 0);
+}
+
+TEST_F (IOTests, testSynchronousCloseReportsBorrowedFileError)
+{
+    SNDFILE *fakeSndfile = reinterpret_cast<SNDFILE *>(csound);
+    void *handle = csoundCreateFileHandle(
+        csound, &fakeSndfile, CSFILE_SND_R, "invalid-borrowed-file");
+    ASSERT_NE(handle, nullptr);
+    auto *file = static_cast<CSFILE *>(handle);
+    csound->SndfileClose = failSndfileClose;
+
+    csoundSpinLock(&csound->open_files_lock);
+    file->io_readers++;
+    csoundSpinUnLock(&csound->open_files_lock);
+    std::thread reader([&]() {
+      csoundSleep(10);
+      csoundSpinLock(&csound->open_files_lock);
+      file->io_readers--;
+      csoundSpinUnLock(&csound->open_files_lock);
+    });
+
+    EXPECT_EQ(csoundFileClose(csound, handle, CSFILE_CLOSE_SYNC), -1);
+    reader.join();
+    EXPECT_EQ(csound->retired_files, nullptr);
+}
+
+TEST_F (IOTests, testDeferredCloseDoesNotWaitForBorrowedFile)
+{
+    std::string path = ::testing::TempDir() + "csound_deferred_" +
+                       std::to_string(reinterpret_cast<uintptr_t>(csound)) +
+                       ".tmp";
+    FILE *stream = nullptr;
+
+    remove(path.c_str());
+    void *handle = csoundFileOpenAsync(
+        csound, &stream, CSFILE_STD, path.c_str(), (void *) "w+", nullptr,
+        CSFTYPE_OTHER_TEXT, 64, 0);
+    ASSERT_NE(handle, nullptr);
+    auto *file = static_cast<CSFILE *>(handle);
+
+    csoundSpinLock(&csound->open_files_lock);
+    file->io_readers++;
+    csoundSpinUnLock(&csound->open_files_lock);
+
+    EXPECT_EQ(csoundFileClose(csound, handle, CSFILE_CLOSE_DEFER),
+              CSOUND_SUCCESS);
+    csoundSpinLock(&csound->open_files_lock);
+    EXPECT_TRUE(file->retired);
+    file->io_readers--;
+    csoundSpinUnLock(&csound->open_files_lock);
+
+    bool retiredFilesEmpty = false;
+    for (int32_t i = 0; i < 100 && !retiredFilesEmpty; ++i) {
+      csoundSpinLock(&csound->open_files_lock);
+      retiredFilesEmpty = csound->retired_files == nullptr;
+      csoundSpinUnLock(&csound->open_files_lock);
+      if (!retiredFilesEmpty)
+        csoundSleep(1);
+    }
+    EXPECT_TRUE(retiredFilesEmpty);
+    EXPECT_EQ(removeAfterDeferredClose(path), 0);
+}
+
+TEST_F (IOTests, testFileCloseRejectsUnknownFlags)
+{
+    std::string path = ::testing::TempDir() + "csound_close_flags_" +
+                       std::to_string(reinterpret_cast<uintptr_t>(csound)) +
+                       ".tmp";
+    FILE *stream = nullptr;
+
+    remove(path.c_str());
+    void *handle = csoundFileOpen(
+        csound, &stream, CSFILE_STD, path.c_str(), (void *) "w+", nullptr,
+        CSFTYPE_OTHER_TEXT, 0);
+    ASSERT_NE(handle, nullptr);
+
+    EXPECT_EQ(csoundFileClose(csound, handle, 1U << 8), CSOUND_ERROR);
+    EXPECT_EQ(csoundFileClose(csound, handle, CSFILE_CLOSE_SYNC), 0);
+    EXPECT_EQ(remove(path.c_str()), 0);
+}
+
+TEST_F (IOTests, testRealtimeFoutTurnoffDoesNotWaitForBorrowedFile)
+{
+#if !defined(__EMSCRIPTEN__) && !defined(__wasi__) && \
+    !defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN)
+    GTEST_SKIP() << "Native realtime mode requires atomic operations";
+#endif
+    std::string path = ::testing::TempDir() + "csound_fout_" +
+                       std::to_string(reinterpret_cast<uintptr_t>(csound)) +
+                       ".wav";
+    std::replace(path.begin(), path.end(), '\\', '/');
+    std::string orchestra = R"(
+      sr = 48000
+      ksmps = 64
+      nchnls = 1
+      0dbfs = 1
+      instr 1
+        asig init 0
+        test_sleep_init
+        fout ")" + path + R"(", 14, asig
+      endin
+    )";
+
+    remove(path.c_str());
+    ASSERT_EQ(csoundAppendOpcode(csound, "test_sleep_init", sizeof(SLOW_INIT),
+                                 0, "", "", (SUBR) slowInit, nullptr, nullptr),
+              CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "--realtime"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 10", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    /* Realtime init runs on the event thread. Advance performance until
+       fout's async handle is ready; the short score also verifies that a
+       queued init prevents premature end-of-performance. */
+    CSFILE *file = nullptr;
+    bool borrowed = false;
+    auto initDeadline = std::chrono::steady_clock::now() +
+                        std::chrono::seconds(5);
+    while (!borrowed && std::chrono::steady_clock::now() < initDeadline) {
+      ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+      csoundSpinLock(&csound->open_files_lock);
+      for (file = static_cast<CSFILE *>(csound->open_files);
+           file != nullptr && file->type != CSFILE_SND_W; file = file->nxt) {
+      }
+      if (file != nullptr && file->async_flag != 0) {
+        file->io_readers++;
+        borrowed = true;
+      }
+      csoundSpinUnLock(&csound->open_files_lock);
+      if (!borrowed)
+        csoundSleep(1);
+    }
+    ASSERT_NE(file, nullptr);
+    ASSERT_TRUE(borrowed);
+
+    ASSERT_EQ(csoundKillInstance(csound, FL(1.0), nullptr, 0, 0, 1),
+              CSOUND_SUCCESS);
+    auto turnoff = std::async(std::launch::async, [this]() {
+      return csoundPerformKsmps(csound);
+    });
+    auto status = turnoff.wait_for(std::chrono::seconds(5));
+
+    csoundSpinLock(&csound->open_files_lock);
+    file->io_readers--;
+    csoundSpinUnLock(&csound->open_files_lock);
+
+    EXPECT_EQ(status, std::future_status::ready);
+    EXPECT_EQ(turnoff.get(), CSOUND_SUCCESS);
+
+    bool retiredFilesEmpty = false;
+    for (int32_t i = 0; i < 100 && !retiredFilesEmpty; ++i) {
+      csoundSpinLock(&csound->open_files_lock);
+      retiredFilesEmpty = csound->retired_files == nullptr;
+      csoundSpinUnLock(&csound->open_files_lock);
+      if (!retiredFilesEmpty)
+        csoundSleep(1);
+    }
+    EXPECT_TRUE(retiredFilesEmpty);
+    EXPECT_EQ(removeAfterDeferredClose(path), 0);
+}
+
+TEST_F (IOTests, testReadline)
+{
+    ReadlineInput input = {
+        "acd\033[D\033[Db\033[CX\177\033[C\n", 0
+    };
+    int32_t ret = csoundRegisterKeyboardCallback(
+        csound, readline_callback, &input, CSOUND_CALLBACK_KBD_TEXT);
+    ASSERT_EQ(ret, CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+
+    const char *instrument =
+        "ksmps = 1\n"
+        "chnk \"readline_status\", 2\n"
+        "chnS \"readline_line\", 2\n"
+        "instr 1\n"
+        "  Sline, kstatus readline \"\"\n"
+        "  if (kstatus == 1) then\n"
+        "    chnset Sline, \"readline_line\"\n"
+        "    chnset kstatus, \"readline_status\"\n"
+        "  endif\n"
+        "endin\n";
+
+    ASSERT_EQ(csoundCompileOrc(csound, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    cs_float status = 0;
+    int32_t error = 0;
+    for (int32_t cycle = 0; cycle < 32 && status == 0; cycle++) {
+        ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+        status = csoundGetControlChannel(csound, "readline_status", &error);
+        ASSERT_EQ(error, CSOUND_SUCCESS);
+    }
+
+    char line[32];
+    ASSERT_EQ(status, FL(1.0));
+    csoundGetStringChannel(csound, "readline_line", line);
+    ASSERT_STREQ(line, "abcd");
+}
+
+TEST_F (IOTests, testReadlineHostInput)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+
+    const char *instrument =
+        "ksmps = 1\n"
+        "chnk \"readline_status\", 2\n"
+        "chnS \"readline_line\", 2\n"
+        "instr 1\n"
+        "  Sline, kstatus readline \"\"\n"
+        "  if (kstatus == 1) then\n"
+        "    chnset Sline, \"readline_line\"\n"
+        "    chnset kstatus, \"readline_status\"\n"
+        "  endif\n"
+        "endin\n";
+
+    ASSERT_EQ(csoundCompileOrc(csound, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundReadlinePushText(csound, "from host\n"),
+              CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    cs_float status = 0;
+    int32_t error = 0;
+    for (int32_t cycle = 0; cycle < 32 && status == 0; cycle++) {
+        ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+        status = csoundGetControlChannel(csound, "readline_status", &error);
+        ASSERT_EQ(error, CSOUND_SUCCESS);
+    }
+
+    char line[32];
+    ASSERT_EQ(status, FL(1.0));
+    csoundGetStringChannel(csound, "readline_line", line);
+    ASSERT_STREQ(line, "from host");
+}
+
+TEST_F (IOTests, testReadlineRejectsSecondPrompt)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+
+    const char *instrument =
+        "ksmps = 1\n"
+        "instr 1\n"
+        "  Sfirst, kfirst readline \"first> \"\n"
+        "  Ssecond, ksecond readline \"second> \"\n"
+        "endin\n";
+
+    ASSERT_EQ(csoundCompileOrc(csound, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    ASSERT_NE(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+}
+
+TEST_F (IOTests, testReadlineReportsEof)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+
+    const char *instrument =
+        "ksmps = 1\n"
+        "chnk \"readline_status\", 2\n"
+        "chnk \"second_readline_status\", 2\n"
+        "chnS \"second_readline_line\", 2\n"
+        "instr 1\n"
+        "  Sline, kstatus readline \"\"\n"
+        "  chnset kstatus, \"readline_status\"\n"
+        "endin\n"
+        "instr 2\n"
+        "  Sline, kstatus readline \"\"\n"
+        "  if (kstatus == 1) then\n"
+        "    chnset Sline, \"second_readline_line\"\n"
+        "    chnset kstatus, \"second_readline_status\"\n"
+        "  endif\n"
+        "endin\n";
+
+    ASSERT_EQ(csoundCompileOrc(csound, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    csoundKeyPress(csound, '\004');
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    int32_t error = 0;
+    cs_float status = csoundGetControlChannel(
+        csound, "readline_status", &error);
+    ASSERT_EQ(error, CSOUND_SUCCESS);
+    ASSERT_EQ(status, FL(-1.0));
+
+    csoundEventString(csound, "i 2 0 1", 0);
+    csoundKeyPress(csound, 'x');
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    csoundKeyPress(csound, '\n');
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    status = csoundGetControlChannel(
+        csound, "second_readline_status", &error);
+    ASSERT_EQ(error, CSOUND_SUCCESS);
+    ASSERT_EQ(status, FL(1.0));
+
+    char line[8];
+    csoundGetStringChannel(csound, "second_readline_line", line);
+    ASSERT_STREQ(line, "x");
+}
+
+TEST_F (IOTests, testReadlineReleasesInputAfterError)
+{
+    const char *instrument =
+        "ksmps = 1\n"
+        "instr 1\n"
+        "  Sline, kstatus readline \"\"\n"
+        "endin\n";
+    ASSERT_EQ(csoundRegisterKeyboardCallback(
+        csound, readline_error_callback, nullptr,
+        CSOUND_CALLBACK_KBD_TEXT), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    // A performance error need not change this control period's return value.
+    (void) csoundPerformKsmps(csound);
+
+    CSOUND *other = csoundCreate(NULL, NULL);
+    ASSERT_NE(other, nullptr);
+    csoundCreateMessageBuffer(other, 0);
+    ASSERT_EQ(csoundSetOption(other, "--logfile=NULL"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(other, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(other, instrument, 0), CSOUND_SUCCESS);
+    csoundEventString(other, "i 1 0 1", 0);
+    ASSERT_EQ(csoundStart(other), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundPerformKsmps(other), CSOUND_SUCCESS);
+    csoundDestroy(other);
 }
 
 
@@ -200,6 +729,23 @@ TEST_F (IOTests, testAudioHostBased)
     csoundReset(csound);
 }
 
+TEST_F (IOTests, testCtrl14InitWithTable)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        giTable ftgen 0, 0, 8, -2, 0, 0.25, 0.5, 0.75, 1, 0.75, 0.5, 0.25
+        initc14 1, 1, 33, 1/3
+        iresult ctrl14 1, 1, 33, 2, 10, giTable
+        chnset iresult, "ctrl14-result"
+    )ORC", 0));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    // The table maps 1/3 to 7/12; scaling to [2, 10] gives 20/3.
+    EXPECT_NEAR(20.0 / 3.0,
+                csoundGetControlChannel(csound, "ctrl14-result", nullptr),
+                1e-5);
+}
+
 TEST_F (IOTests, testMidiModules)
 {
     char *name, *type;
@@ -245,4 +791,155 @@ TEST_F (IOTests, testMidiHostBased)
     while(ret == 0) ret = csoundPerformKsmps(csound);
     ASSERT_TRUE (ret > 0);
     csoundReset(csound);
+}
+
+/* Host-implemented audio IO with -n used to leave -b at IOBUFSAMPS.
+   initialise_io() now raises -b to ksmps (and scales -B). This still
+   asserts a continuous spout when the CSD asks for ksmps > the requested
+   -b. The start-relative `end` fix in spout_interleave() remains for the
+   continuation path if that split ever runs. */
+TEST_F (IOTests, testSpoutFilledWhenKsmpsExceedsSoftwareBuffer)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-d"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-b128"), CSOUND_SUCCESS);
+    csoundSetHostAudioIO(csound);
+
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      sr = 48000
+      ksmps = 512
+      nchnls = 2
+      0dbfs = 1
+      instr 1
+        a_out = poscil(0.1, 400)
+        outs(a_out, a_out)
+      endin
+    )", 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1\n", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundGetKsmps(csound), (uint32_t) 512);
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    const cs_float *spout = csoundGetSpout(csound);
+    ASSERT_NE(spout, nullptr);
+    const uint32_t ksmps = csoundGetKsmps(csound);
+    const uint32_t nchnls = csoundGetChannels(csound, 0);
+    ASSERT_EQ(nchnls, (uint32_t) 2);
+
+    int32_t zerosAfterFirst = 0;
+    cs_float peak = FL(0.0);
+    cs_float maxStep = FL(0.0);
+    cs_float prev = spout[0];
+    for (uint32_t i = 0; i < ksmps; ++i) {
+      cs_float sample = spout[i * nchnls];
+      if (i > 0 && sample == FL(0.0))
+        zerosAfterFirst++;
+      if (std::fabs((cs_double) sample) > (cs_double) peak)
+        peak = sample >= FL(0.0) ? sample : -sample;
+      cs_float step = sample - prev;
+      if (step < FL(0.0))
+        step = -step;
+      if (step > maxStep)
+        maxStep = step;
+      prev = sample;
+    }
+
+    /* 0.1 * sin(2*pi*400*t) at 48 kHz: max adjacent step ~ 0.00524. */
+    const cs_float expectedMaxStep =
+      (cs_float) (0.1 * 2.0 * 3.14159265358979323846 * 400.0 / 48000.0 * 1.5);
+    EXPECT_GT(peak, (cs_float) 0.05) << "expected a sounding 400 Hz tone";
+    EXPECT_LT(zerosAfterFirst, 2)
+      << "trailing k-cycle frames were left as kperf zeros (ksmps > -b)";
+    EXPECT_LT(maxStep, expectedMaxStep)
+      << "discontinuity inside the k-cycle (max step " << maxStep << ")";
+}
+
+static std::string ioTestDrainMessages(CSOUND *csound)
+{
+    std::string messages;
+    while (csoundGetMessageCnt(csound)) {
+      messages += csoundGetFirstMessage(csound);
+      csoundPopFirstMessage(csound);
+    }
+    return messages;
+}
+
+/* Host IO with -n skips the -odac clamp in initialise_io(), so default
+   -b stays at IOBUFSAMPS. ksmps > -b should raise -b to ksmps, scale -B
+   to keep the original b:B ratio, and warn. */
+TEST_F (IOTests, testSoftwareBufferClampedToKsmpsPreservesBRatio)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-b128"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-B512"), CSOUND_SUCCESS);
+    csoundSetHostAudioIO(csound);
+
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      sr = 48000
+      ksmps = 512
+      nchnls = 2
+      0dbfs = 1
+      instr 1
+        a_out = poscil(0.1, 400)
+        outs(a_out, a_out)
+      endin
+    )", 0), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1\n", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    const OPARMS *params = csoundGetParams(csound);
+    ASSERT_NE(params, nullptr);
+    const uint32_t nchnls = csoundGetChannels(csound, 0);
+    ASSERT_EQ(nchnls, (uint32_t) 2);
+    EXPECT_EQ(params->outbufsamps, 512 * (int32_t) nchnls)
+      << "expected -b raised from 128 to ksmps";
+    EXPECT_EQ(params->oMaxLag, 2048)
+      << "expected -B scaled 512 * (512/128) to preserve b:B";
+
+    std::string messages = ioTestDrainMessages(csound);
+    EXPECT_NE(std::string::npos, messages.find("increasing -b"))
+      << "expected a warning that -b was raised; got:\n" << messages;
+
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    const cs_float *spout = csoundGetSpout(csound);
+    ASSERT_NE(spout, nullptr);
+    cs_float peak = FL(0.0);
+    for (uint32_t i = 0; i < 512; ++i) {
+      cs_float sample = spout[i * nchnls];
+      if (sample < FL(0.0))
+        sample = -sample;
+      if (sample > peak)
+        peak = sample;
+    }
+    EXPECT_GT(peak, (cs_float) 0.05) << "expected a sounding 400 Hz tone";
+}
+
+TEST_F (IOTests, testSoftwareBufferUnchangedWhenKsmpsFits)
+{
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-b128"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-B512"), CSOUND_SUCCESS);
+    csoundSetHostAudioIO(csound);
+
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      sr = 48000
+      ksmps = 64
+      nchnls = 2
+      0dbfs = 1
+      instr 1
+        a_out = poscil(0.1, 400)
+        outs(a_out, a_out)
+      endin
+    )", 0), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    const OPARMS *params = csoundGetParams(csound);
+    ASSERT_NE(params, nullptr);
+    const uint32_t nchnls = csoundGetChannels(csound, 0);
+    EXPECT_EQ(params->outbufsamps, 128 * (int32_t) nchnls);
+    EXPECT_EQ(params->oMaxLag, 512);
+
+    std::string messages = ioTestDrainMessages(csound);
+    EXPECT_EQ(std::string::npos, messages.find("increasing -b"))
+      << "did not expect a -b clamp warning; got:\n" << messages;
 }

@@ -1,3 +1,9 @@
+<CsTest>
+description = "test arrays with constant index"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -d  

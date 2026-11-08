@@ -1,3 +1,9 @@
+<CsTest>
+description = "test local shadowing of vars in for loop"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

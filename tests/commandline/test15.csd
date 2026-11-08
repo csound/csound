@@ -1,3 +1,9 @@
+<CsTest>
+description = "pluck test, 0xffff (init)"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 
 <CsInstruments>

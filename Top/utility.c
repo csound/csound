@@ -21,6 +21,7 @@
 */
 
 #include "csoundCore.h"
+#include "csmodule.h"
 #include <setjmp.h>
 #include "corfile.h"
 
@@ -91,6 +92,11 @@ void print_sndfile_version(CSOUND* csound);
 
     if (UNLIKELY((n = setjmp(csound->exitjmp)) != 0)) {
       n = (n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS;
+      goto err_return;
+    }
+
+    if (UNLIKELY(csoundLoadDefaultModules(csound) != CSOUND_SUCCESS)) {
+      n = CSOUND_ERROR;
       goto err_return;
     }
 

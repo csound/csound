@@ -101,7 +101,7 @@ static void II_decode_bitalloc(mpadec_t mpadec, uint8_t *bit_alloc,
 }
 
 static void II_decode_samples(mpadec_t mpadec, uint8_t *bit_alloc,
-                              uint8_t *scalefac, MYFLT fraction[2][4][SBLIMIT],
+                              uint8_t *scalefac, cs_float fraction[2][4][SBLIMIT],
                               int32_t x1)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
@@ -119,10 +119,10 @@ static void II_decode_samples(mpadec_t mpadec, uint8_t *bit_alloc,
           k = alloc2->bits;
           d = alloc2->d;
           if (d < 0) {
-            register MYFLT cm = mpa->tables.muls[k][scf[x1]];
-            fraction[j][0][i] = ((MYFLT)((int32_t)GETBITS(k) + d))*cm;
-            fraction[j][1][i] = ((MYFLT)((int32_t)GETBITS(k) + d))*cm;
-            fraction[j][2][i] = ((MYFLT)((int32_t)GETBITS(k) + d))*cm;
+            register cs_float cm = mpa->tables.muls[k][scf[x1]];
+            fraction[j][0][i] = ((cs_float)((int32_t)GETBITS(k) + d))*cm;
+            fraction[j][1][i] = ((cs_float)((int32_t)GETBITS(k) + d))*cm;
+            fraction[j][2][i] = ((cs_float)((int32_t)GETBITS(k) + d))*cm;
           } else {
             unsigned idx = GETBITS(k), m = scf[x1];
             uint8_t *tab = (mpa->tables.mp2tables[d] + 3*idx);
@@ -143,10 +143,10 @@ static void II_decode_samples(mpadec_t mpadec, uint8_t *bit_alloc,
         k = alloc2->bits;
         d = alloc2->d;
         if (d < 0) {
-          register MYFLT cm = mpa->tables.muls[k][scf[x1 + 3]];
-          fraction[1][0][i] = fraction[0][0][i] = ((MYFLT)((int32_t)GETBITS(k) + d))*cm;
-          fraction[1][1][i] = fraction[0][1][i] = ((MYFLT)((int32_t)GETBITS(k) + d))*cm;
-          fraction[1][2][i] = fraction[0][2][i] = ((MYFLT)((int32_t)GETBITS(k) + d))*cm;
+          register cs_float cm = mpa->tables.muls[k][scf[x1 + 3]];
+          fraction[1][0][i] = fraction[0][0][i] = ((cs_float)((int32_t)GETBITS(k) + d))*cm;
+          fraction[1][1][i] = fraction[0][1][i] = ((cs_float)((int32_t)GETBITS(k) + d))*cm;
+          fraction[1][2][i] = fraction[0][2][i] = ((cs_float)((int32_t)GETBITS(k) + d))*cm;
           cm = mpa->tables.muls[k][scf[x1]];
           fraction[0][0][i] *= cm;
           fraction[0][1][i] *= cm;
@@ -176,7 +176,7 @@ void decode_layer2(mpadec_t mpadec, uint8_t *buffer)
 {
     register struct mpadec_t *mpa = (struct mpadec_t *)mpadec;
     int32_t i, j, table, single;
-    MYFLT fraction[2][4][SBLIMIT];
+    cs_float fraction[2][4][SBLIMIT];
     uint8_t bit_alloc[2*SBLIMIT];
     uint8_t scalefac[3*2*SBLIMIT];
     static uint8_t sblimits[5] = { 27 , 30 , 8, 12 , 30 };

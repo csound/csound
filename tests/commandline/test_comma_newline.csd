@@ -1,3 +1,9 @@
+<CsTest>
+description = "test commas followed by newlines"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
 sr = 44100

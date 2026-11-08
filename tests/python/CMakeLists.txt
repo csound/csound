@@ -1,0 +1,77 @@
+
+find_package(Python3 COMPONENTS Interpreter)
+
+if(Python3_FOUND)
+    if(BUILD_TESTS AND CMAKE_C_COMPILER_ID MATCHES "GNU|Clang" AND
+       CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+        add_test(NAME numeric_type_compatibility
+            COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/numeric_types.py
+                --cc ${CMAKE_C_COMPILER} --cxx ${CMAKE_CXX_COMPILER}
+                --include-dir ${CMAKE_SOURCE_DIR}/include
+                --generated-include-dir ${CMAKE_BINARY_DIR}/include)
+        if(UNIX AND NOT CMAKE_CROSSCOMPILING)
+            # Link the host normally so sanitizer runtimes start before Csound.
+            add_executable(plugin_precision_host ../c/plugin_precision_host.c)
+            target_link_libraries(plugin_precision_host PRIVATE
+                ${CSOUNDLIB} ${CMAKE_DL_LIBS})
+            add_test(NAME plugin_precision_compatibility
+                COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/plugin_precision.py
+                    --cc ${CMAKE_C_COMPILER} --cxx ${CMAKE_CXX_COMPILER}
+                    --include-dir ${CMAKE_SOURCE_DIR}/include
+                    --generated-include-dir ${CMAKE_BINARY_DIR}/include
+                    --host $<TARGET_FILE:plugin_precision_host>)
+        endif()
+    endif()
+    if(BUILD_TESTS)
+        if(UNIX AND NOT CMAKE_CROSSCOMPILING)
+            add_test(NAME pipewire_detection
+                COMMAND ${Python3_EXECUTABLE}
+                    ${CMAKE_SOURCE_DIR}/tests/pipewire_detection.py
+                    --cmake ${CMAKE_COMMAND})
+        endif()
+        add_test(NAME opcode_deprecation_catalog
+            COMMAND ${Python3_EXECUTABLE}
+                ${CMAKE_SOURCE_DIR}/scripts/opcode_deprecations.py --check)
+        add_test(NAME opcode_deprecation_source_policy
+            COMMAND ${Python3_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/test_opcode_deprecations.py)
+    endif()
+    # Collect all test_*.py files in this directory
+    file(GLOB PYTHON_TEST_FILES "${CMAKE_CURRENT_SOURCE_DIR}/test_*.py")
+
+    if(PYTHON_TEST_FILES)
+        # On macOS the build-tree framework must be discoverable
+        if(APPLE)
+            set(_pytest_env
+                "DYLD_FRAMEWORK_PATH=${CMAKE_BINARY_DIR}"
+                "PYTHONPATH=${CMAKE_SOURCE_DIR}/languages/python")
+        elseif(WIN32)
+            set(_pytest_env
+                "PATH=${CMAKE_BINARY_DIR};$ENV{PATH}"
+                "PYTHONPATH=${CMAKE_SOURCE_DIR}/languages/python")
+        else()
+            set(_pytest_env
+                "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}"
+                "PYTHONPATH=${CMAKE_SOURCE_DIR}/languages/python")
+        endif()
+
+        if(TARGET csound-bin)
+            list(APPEND _pytest_env "CSOUND_TEST_EXECUTABLE=$<TARGET_FILE:csound-bin>")
+        endif()
+
+        add_custom_target(pytests
+            COMMAND ${CMAKE_COMMAND} -E env ${_pytest_env}
+                    ${Python3_EXECUTABLE} -m unittest discover
+                    -s ${CMAKE_CURRENT_SOURCE_DIR}
+                    -p "test_*.py" -v
+            DEPENDS ${CSOUNDLIB}
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            COMMENT "Running Python tests via unittest"
+            USES_TERMINAL
+        )
+    else()
+        message(STATUS "No Python test files found in ${CMAKE_CURRENT_SOURCE_DIR}")
+    endif()
+else()
+    message(STATUS "Python3 not found – skipping pytests target")
+endif()

@@ -22,12 +22,14 @@
 #include <spa/param/audio/format-utils.h>
 #include <pipewire/pipewire.h>
 #include <spa/utils/ringbuffer.h>
+#include <pthread.h>
+#include <stdlib.h>
 #include "csdl.h"
 
 #ifdef USE_DOUBLE
-#define MYFLT_FORMAT SPA_AUDIO_FORMAT_F64
+#define CS_FLOAT_FORMAT SPA_AUDIO_FORMAT_F64
 #else
-#define MYFLT_FORMAT SPA_AUDIO_FORMAT_F32
+#define CS_FLOAT_FORMAT SPA_AUDIO_FORMAT_F32
 #endif
 
 typedef struct {
@@ -40,11 +42,106 @@ typedef struct {
   uint8_t pbuffer[1024];
   uint8_t *cbuffer;
   int32_t nchnls;
-  MYFLT sr, sysr;
+  cs_float sr;      /* requested stream rate, <= 0 if following the system */
+  cs_float sysr;    /* sampling rate negotiated with PipeWire */
+  cs_float graphr;  /* rate of the PipeWire graph clock (the system rate) */
   int32_t buframes;
   int32_t cbflag;
+  int32_t drained;
+  int32_t is_input;
+  int32_t published;     /* handed to Csound; channel layout must not change */
+  int32_t format_error;  /* negotiated format has an unsupported channel count */
+  enum pw_stream_state state;
+  uint32_t progress_seq;
   CSOUND *csound;
 } RTPW;
+
+/* The PipeWire graph rate is distinct from the client stream's negotiated
+   rate; PipeWire may resample between them. */
+static cs_float rtpw_system_sr(RTPW *rtpw) {
+  return rtpw->graphr > 0 ? rtpw->graphr : -1.0f;
+}
+
+static int32_t rtpw_rate_matches(cs_float actual, cs_float required) {
+  cs_float diff = actual - required;
+  if (diff < 0)
+    diff = -diff;
+  return actual > 0 && required > 0 && diff < FL(0.01);
+}
+
+/* PipeWire rates are integers. Use the value actually offered to PipeWire
+   when validating the negotiated rate as well. */
+static uint32_t rtpw_offered_rate(cs_float rate) {
+  return rate > 0 ? (uint32_t) (rate + FL(0.5)) : 0;
+}
+
+/* Validate the negotiated client rate against Csound's chosen rate. In
+   system-rate mode, the graph rate is the chosen rate. */
+static int32_t rtpw_validate_rates(RTPW *rtpw, cs_float *system_sr) {
+  cs_float graph_sr = rtpw_system_sr(rtpw);
+  cs_float required_sr = rtpw->sr > 0 ?
+                         (cs_float) rtpw_offered_rate(rtpw->sr) : graph_sr;
+
+  if (!rtpw_rate_matches(rtpw->sysr, required_sr))
+    return 0;
+  rtpw->sr = required_sr;
+  *system_sr = graph_sr;
+  return 1;
+}
+
+/* Wait for format negotiation and the graph clock. The timeout is restarted
+   when PipeWire reports meaningful progress, rather than being a fixed
+   deadline from the start of the connection. */
+static int32_t rtpw_wait_ready(RTPW *rtpw, int32_t timeout_ms) {
+  struct pw_time t;
+  struct timespec deadline;
+  uint32_t progress;
+  int32_t ready = 0, err;
+
+  if (pw_thread_loop_get_time(rtpw->loop, &deadline,
+                              (int64_t) timeout_ms * 1000000) < 0)
+    return 0;
+
+  pw_thread_loop_lock(rtpw->loop);
+  progress = rtpw->progress_seq;
+  while (!ready && rtpw->state != PW_STREAM_STATE_ERROR) {
+    if (rtpw->state == PW_STREAM_STATE_STREAMING && rtpw->graphr <= 0 &&
+        pw_stream_get_time_n(rtpw->stream, &t, sizeof(t)) >= 0 &&
+        t.rate.num != 0 && t.rate.denom != 0)
+      rtpw->graphr = (cs_float) t.rate.denom / (cs_float) t.rate.num;
+
+    ready = !rtpw->format_error && rtpw->sysr > 0 && rtpw->graphr > 0;
+    if (ready || rtpw->format_error || rtpw->state == PW_STREAM_STATE_ERROR)
+      break;
+
+    if (progress != rtpw->progress_seq) {
+      progress = rtpw->progress_seq;
+      if (pw_thread_loop_get_time(rtpw->loop, &deadline,
+                                  (int64_t) timeout_ms * 1000000) < 0)
+        break;
+      continue;
+    }
+    err = pw_thread_loop_timed_wait_full(rtpw->loop, &deadline);
+    if (err == -EINTR)
+      continue;
+    if (err != 0)
+      break;
+  }
+  pw_thread_loop_unlock(rtpw->loop);
+  return ready;
+}
+
+/* Report why rtpw_wait_ready() failed. */
+static void rtpw_report_open_error(CSOUND *csound, RTPW *rtpw,
+                                   const char *direction) {
+  if (rtpw->format_error)
+    csound->ErrorMsg(csound, Str("rtpw: %s stream negotiated %d channels; "
+                                 "expected %d\n"), direction,
+                     (int32_t) rtpw->format.info.raw.channels, rtpw->nchnls);
+  else
+    csound->ErrorMsg(csound, Str("rtpw: timed out waiting for the %s "
+                                 "stream and graph rate\n"), direction);
+}
 
 
 static void rtpw_out_callback(void *p) {
@@ -53,7 +150,7 @@ static void rtpw_out_callback(void *p) {
   struct spa_buffer *spabuf;
   uint8_t *bufp;
   uint32_t i, rem, sil;
-  int32_t n, frames, fbytes = (int32_t) (rtpw->nchnls*sizeof(MYFLT));
+  int32_t n, frames, fbytes = (int32_t) (rtpw->nchnls*sizeof(cs_float));
 
   if ((pwbuf = pw_stream_dequeue_buffer(rtpw->stream)) == NULL) {
     pw_log_warn("out of buffers: %m");
@@ -78,7 +175,8 @@ static void rtpw_out_callback(void *p) {
     spa_ringbuffer_read_update(&rtpw->ring, i + rem);
   }
   if(sil  > 0){
-    rtpw->csound->Warning(rtpw->csound, "%d dropped output frames", sil);
+    CSOUND *csound = rtpw->csound;
+    csound->Warning(csound, Str("%d dropped output frames\n"), sil);
     memset(SPA_PTROFF(bufp, rem*fbytes, void), 0, sil*fbytes);
   }
   spabuf->datas[0].chunk->offset = 0;
@@ -88,10 +186,28 @@ static void rtpw_out_callback(void *p) {
   spa_system_eventfd_write(rtpw->cloop->system, rtpw->cbflag, 1);
 }
 
-static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
+static void rtpw_drained(void *p) {
+  RTPW *rtpw = (RTPW *) p;
+  rtpw->drained = 1;
+  pw_thread_loop_signal(rtpw->loop, false);
+}
+
+static void rtpw_state_changed(void *p, enum pw_stream_state old,
+                               enum pw_stream_state state, const char *error) {
+  RTPW *rtpw = (RTPW *) p;
+  IGN(old);
+  IGN(error);
+  rtpw->state = state;
+  rtpw->progress_seq++;
+  pw_thread_loop_signal(rtpw->loop, false);
+}
+
+static void rtpw_play(CSOUND *csound, const cs_float *outbuf, int32_t nbytes){
   RTPW *rtpw = (RTPW *) *csound->GetRtPlayUserData(csound);
-  int32_t nframes = nbytes/(sizeof(MYFLT)*rtpw->nchnls);
-  int32_t rem, fbytes = sizeof(MYFLT)*rtpw->nchnls, n;
+  /* Output setup rejects a negotiated channel count that differs from
+     parm->nChannels, so nchnls is also the channel count of outbuf. */
+  int32_t nframes = nbytes/(sizeof(cs_float)*rtpw->nchnls);
+  int32_t rem, fbytes = sizeof(cs_float)*rtpw->nchnls, n;
   uint32_t i;
   uint64_t cnt;
 
@@ -113,9 +229,14 @@ static void rtpw_play(CSOUND *csound, const MYFLT *outbuf, int32_t nbytes){
   }
 }
 
+static void parm_callback(void *p, uint32_t id, const struct spa_pod *param);
+static void rtpw_close_one(CSOUND *csound, void **data, int32_t output);
 static const struct pw_stream_events stream_events_out = {
   PW_VERSION_STREAM_EVENTS,
+  .state_changed = rtpw_state_changed,
   .process = rtpw_out_callback,
+  .param_changed = parm_callback,
+  .drained = rtpw_drained,
 };
 
 static int32_t list_outputs(CSOUND *csound);
@@ -127,17 +248,29 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
   struct pw_properties *props;
   const struct spa_pod *params[1];
   RTPW *rtpw;
+  cs_float sysr, required_sr;
+  int32_t valid, format_error;
 
-  list_outputs(csound);
+  if (csound->GetDebug(csound))
+    list_outputs(csound);
   p = (void**) csound->GetRtPlayUserData(csound);
   if(*p != NULL) return 0;
+  if (UNLIKELY(parm->nChannels < 1)) {
+    csound->ErrorMsg(csound, Str("rtpw: invalid number of output channels\n"));
+    return CSOUND_ERROR;
+  }
   rtpw = (RTPW *) csound->Calloc(csound, sizeof(RTPW));
-  rtpw->cbuffer = csound->Calloc(csound,sizeof(MYFLT)*parm->bufSamp_HW*
+  rtpw->cbuffer = csound->Calloc(csound,sizeof(cs_float)*parm->bufSamp_HW*
 				 parm->nChannels);
   rtpw->nchnls = parm->nChannels;
   rtpw->sr = parm->sampleRate;
+  rtpw->sysr = -1.0f;
+  rtpw->graphr = -1.0f;
+  rtpw->is_input = 0;
+  rtpw->state = PW_STREAM_STATE_UNCONNECTED;
   rtpw->buframes = parm->bufSamp_HW;
-  csound->Message(csound, "hw frames: %d sw frames: %d\n", rtpw->buframes,
+  rtpw->csound = csound;
+  csound->DebugMsg(csound, Str("hw frames: %d sw frames: %d\n"), rtpw->buframes,
 		  parm->bufSamp_SW);
 
   rtpw->loop = pw_thread_loop_new("csound-out", NULL);
@@ -156,12 +289,13 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
 
 
   rtpw->b = SPA_POD_BUILDER_INIT(rtpw->pbuffer, sizeof(rtpw->pbuffer));
+  /* a non-positive rate means the stream should follow the system rate */
   params[0] = spa_format_audio_raw_build(&rtpw->b, SPA_PARAM_EnumFormat,
 					 &SPA_AUDIO_INFO_RAW_INIT
-					 (.format = MYFLT_FORMAT,
+					 (.format = CS_FLOAT_FORMAT,
 					  .channels = parm->nChannels,
-					  .rate = parm->sampleRate));
-  rtpw->sr = parm->sampleRate;
+					  .rate =
+					    rtpw_offered_rate(parm->sampleRate)));
   rtpw->cbflag =
     spa_system_eventfd_create(rtpw->cloop->system, SPA_FD_CLOEXEC);
   spa_ringbuffer_init(&rtpw->ring);
@@ -173,12 +307,37 @@ static int32_t rtpw_open_out(CSOUND *csound, const csRtAudioParams *parm) {
 		    PW_STREAM_FLAG_RT_PROCESS,
 		    params, 1);
   pw_thread_loop_start(rtpw->loop);
-  rtpw->csound = csound;
-  *p = (void *) rtpw;
   pw_thread_loop_unlock(rtpw->loop);
-  // system sr is the same as sr for output only
-  if(csound->GetSystemSr(csound, 0) == -1.)
-    csound->GetSystemSr(csound, rtpw->sr);
+
+  /* Wait for both the negotiated format and the graph clock. */
+  if (UNLIKELY(!rtpw_wait_ready(rtpw, 2000))) {
+    rtpw_report_open_error(csound, rtpw, "output");
+    rtpw_close_one(csound, (void **) &rtpw, 1);
+    return CSOUND_ERROR;
+  }
+  required_sr = rtpw->sr > 0 ? (cs_float) rtpw_offered_rate(rtpw->sr)
+                             : rtpw->graphr;
+  /* rtpw_wait_ready() releases the loop lock: a format callback could
+     still set format_error before the stream is published. publish
+     under the lock so csound never receives such a stream. */
+  pw_thread_loop_lock(rtpw->loop);
+  format_error = rtpw->format_error;
+  valid = !format_error && rtpw_validate_rates(rtpw, &sysr);
+  if (valid)
+    rtpw->published = 1;
+  pw_thread_loop_unlock(rtpw->loop);
+  if (UNLIKELY(!valid)) {
+    if (format_error)
+      rtpw_report_open_error(csound, rtpw, "output");
+    else
+      csound->ErrorMsg(csound,
+		       Str("rtpw: negotiated output rate %.2f does not match "
+			   "required rate %.2f\n"), rtpw->sysr, required_sr);
+    rtpw_close_one(csound, (void **) &rtpw, 1);
+    return CSOUND_ERROR;
+  }
+  csound->GetSystemSr(csound, sysr);
+  *p = (void *) rtpw;
   return CSOUND_SUCCESS;
 }
 
@@ -188,7 +347,7 @@ static void rtpw_in_callback(void *p) {
   struct spa_buffer *spabuf;
   uint8_t *bufp;
   uint32_t i;
-  int32_t rem, n, frames, fbytes = (int32_t) (rtpw->nchnls*sizeof(MYFLT));
+  int32_t rem, n, frames, fbytes = (int32_t) (rtpw->nchnls*sizeof(cs_float));
 
   if ((pwbuf = pw_stream_dequeue_buffer(rtpw->stream)) == NULL) {
     pw_log_warn("out of buffers: %m");
@@ -197,7 +356,11 @@ static void rtpw_in_callback(void *p) {
 
   spabuf = pwbuf->buffer;
   if ((bufp = spabuf->datas[0].data) == NULL) return;
-  frames = spabuf->datas[0].chunk->size / sizeof(MYFLT);
+  if (UNLIKELY(rtpw->nchnls < 1)) return;
+  frames = (int32_t) (spabuf->datas[0].chunk->size / (uint32_t) fbytes);
+  if (UNLIKELY(frames > (int32_t) (spabuf->datas[0].maxsize /
+				   (uint32_t) fbytes)))
+    frames = (int32_t) (spabuf->datas[0].maxsize / (uint32_t) fbytes);
 
   while(frames > 0) {
     n = spa_ringbuffer_get_write_index(&rtpw->ring, &i);
@@ -219,17 +382,26 @@ static void rtpw_in_callback(void *p) {
 }
 
 
-static int32_t rtpw_record(CSOUND *csound, MYFLT *inbuf, int32_t nbytes) {
+static int32_t rtpw_record(CSOUND *csound, cs_float *inbuf, int32_t nbytes) {
   RTPW *rtpw = (RTPW *) *csound->GetRtRecordUserData(csound);
   uint32_t i, rem, nframes;
-  int32_t n, fbytes = rtpw->nchnls*sizeof(MYFLT);
+  int32_t n, fbytes = rtpw->nchnls*sizeof(cs_float);
   int32_t wbytes = 0;
-  nframes = (uint32_t) (nbytes/(csound->GetNchnls_i(csound)*sizeof(MYFLT)));
+  int32_t nchnls_i = (int32_t) csound->GetNchnls_i(csound);
+
+  if (UNLIKELY(nchnls_i < 1 || rtpw->nchnls < 1))
+    return 0;
+  nframes = (uint32_t) (nbytes/(nchnls_i*sizeof(cs_float)));
 
 
-  if(csound->GetNchnls_i(csound) == (uint32_t) rtpw->nchnls) {
+  if(nchnls_i == rtpw->nchnls) {
     while(nframes > 0) {
       n = spa_ringbuffer_get_read_index(&rtpw->ring, &i);
+      if (n <= 0) {   /* underrun: pad with silence */
+	memset(inbuf, 0, nframes * fbytes);
+	wbytes += (int32_t) nframes * fbytes;
+	break;
+      }
       rem = SPA_MIN(n, nframes);
       spa_ringbuffer_read_data(&rtpw->ring, rtpw->cbuffer,
 			       rtpw->buframes * fbytes,
@@ -240,26 +412,27 @@ static int32_t rtpw_record(CSOUND *csound, MYFLT *inbuf, int32_t nbytes) {
       nframes -= rem;
       wbytes += rem * fbytes;
     }
-  } else { // sample by sample
-    MYFLT samp;
-    int32_t j, k, nchnls = csound->GetNchnls_i(csound);
-    int32_t samps = (int32_t) nframes*nchnls;
-    for(j = 0; j < samps; j+=nchnls){
-      for(k = 0; k < nchnls; k++) {
-	if(k < rtpw->nchnls) {
-	  n = spa_ringbuffer_get_read_index(&rtpw->ring, &i);
-	  if(n > 0) {
-	    spa_ringbuffer_read_data(&rtpw->ring, rtpw->cbuffer,
-				     rtpw->buframes * fbytes,
-				     (i % rtpw->buframes) * sizeof(MYFLT),
-				     &samp, sizeof(MYFLT));
-	    spa_ringbuffer_read_update(&rtpw->ring, i + 1);
-	  } else samp = FL(0.0);
-	} else samp = FL(0.0);
-	inbuf[j + k] = samp;
-	wbytes += sizeof(MYFLT);
-      }
+  } else { // channel-count conversion
+    uint32_t frame, available;
+    int32_t nchnls = nchnls_i;
+    int32_t copy_nchnls = SPA_MIN(nchnls, rtpw->nchnls);
+
+    n = spa_ringbuffer_get_read_index(&rtpw->ring, &i);
+    available = n > 0 ? SPA_MIN((uint32_t) n, nframes) : 0;
+    for (frame = 0; frame < available; frame++) {
+      cs_float *dst = inbuf + (size_t) frame * nchnls;
+      memset(dst, 0, (size_t) nchnls * sizeof(cs_float));
+      spa_ringbuffer_read_data(&rtpw->ring, rtpw->cbuffer,
+			       rtpw->buframes * fbytes,
+			       ((i + frame) % rtpw->buframes) * fbytes,
+			       dst, (uint32_t) copy_nchnls * sizeof(cs_float));
     }
+    if (available > 0)
+      spa_ringbuffer_read_update(&rtpw->ring, i + available);
+    if (available < nframes)
+      memset(inbuf + (size_t) available * nchnls, 0,
+	     (size_t) (nframes - available) * nchnls * sizeof(cs_float));
+    wbytes = (int32_t) (nframes * (uint32_t) nchnls * sizeof(cs_float));
   }
   return wbytes;
 }
@@ -283,25 +456,36 @@ parm_callback(void *p, uint32_t id, const struct spa_pod *param)
     return;
 
   spa_format_audio_raw_parse(param, &rtpw->format.info.raw);
-  rtpw->sysr = (MYFLT) rtpw->format.info.raw.rate;
+  rtpw->sysr = (cs_float) rtpw->format.info.raw.rate;
 
-  if(rtpw->sysr != rtpw->sr && rtpw->sr != -1.0)
-    csound->Warning(csound, "rtpw: mismatched input sampling rate,\n"
-		    "system-sr %.1f csound-sr %.1f", rtpw->sysr,
+  if (rtpw->is_input && rtpw->sr > 0 && rtpw->sysr > 0 &&
+      rtpw->sysr != rtpw->sr)
+    csound->Warning(csound, Str("rtpw: mismatched input sampling rate,\n"
+		    "system-sr %.1f csound-sr %.1f\n"), rtpw->sysr,
 		    rtpw->sr);
 
-  if(rtpw->nchnls != (int32_t) rtpw->format.info.raw.channels) {
-    // update channel count and realloc buffer
-    rtpw->nchnls = rtpw->format.info.raw.channels;
-    rtpw->cbuffer = csound->ReAlloc(csound,rtpw->cbuffer,sizeof(MYFLT)*rtpw->buframes*
-				    rtpw->nchnls);
-    csound->Message(csound, "pw - reallocated hw buffer: %d\n", rtpw->buframes);
+  if(rtpw->nchnls != (int32_t) rtpw->format.info.raw.channels &&
+     rtpw->format.info.raw.channels > 0) {
+    /* csound's channel layout is fixed for the performance, so the stream
+       cannot be reconfigured during performance. */
+    rtpw->format_error = 1;
+    if (rtpw->published)
+      csound->ErrorMsg(csound, Str("rtpw: stream channel count changed from "
+                                   "%d to %d\n"), rtpw->nchnls,
+                       (int32_t) rtpw->format.info.raw.channels);
+    pw_stream_set_error(rtpw->stream, -EINVAL,
+                        "rtpw: unsupported channel count change from %d "
+                        "to %d", rtpw->nchnls,
+                        (int32_t) rtpw->format.info.raw.channels);
   }
 
+  rtpw->progress_seq++;
+  pw_thread_loop_signal(rtpw->loop, false);
 }
 
 static const struct pw_stream_events stream_events_in = {
   PW_VERSION_STREAM_EVENTS,
+  .state_changed = rtpw_state_changed,
   .process = rtpw_in_callback,
   .param_changed = parm_callback,
 };
@@ -314,17 +498,27 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
   struct pw_properties *props;
   const struct spa_pod *params[1];
   RTPW *rtpw;
+  cs_float sysr, required_sr;
+  int32_t valid, format_error;
 
   p = (void**) csound->GetRtRecordUserData(csound);
   if(*p != NULL) return 0;
+  if (UNLIKELY(parm->nChannels < 1)) {
+    csound->ErrorMsg(csound, Str("rtpw: invalid number of input channels\n"));
+    return CSOUND_ERROR;
+  }
   rtpw = (RTPW *) csound->Calloc(csound, sizeof(RTPW));
-  rtpw->cbuffer = csound->Calloc(csound,sizeof(MYFLT)*parm->bufSamp_HW*
+  rtpw->cbuffer = csound->Calloc(csound,sizeof(cs_float)*parm->bufSamp_HW*
 				 parm->nChannels);
   rtpw->nchnls = parm->nChannels;
   rtpw->sr = parm->sampleRate;
-  rtpw->sysr = -1.0;
+  rtpw->sysr = -1.0f;
+  rtpw->graphr = -1.0f;
+  rtpw->is_input = 1;
+  rtpw->state = PW_STREAM_STATE_UNCONNECTED;
   rtpw->buframes = parm->bufSamp_HW;
-  csound->Message(csound, "pwin - hw frames: %d sw frames: %d\n", rtpw->buframes,
+  rtpw->csound = csound;
+  csound->DebugMsg(csound, Str("pwin - hw frames: %d sw frames: %d\n"), rtpw->buframes,
 		  parm->bufSamp_SW);
 
   rtpw->loop = pw_thread_loop_new("csound-in", NULL);
@@ -343,9 +537,13 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
 				      &stream_events_in,rtpw);
 
   rtpw->b = SPA_POD_BUILDER_INIT(rtpw->pbuffer, sizeof(rtpw->pbuffer));
+  /* a non-positive rate means the stream should follow the system rate */
   params[0] = spa_format_audio_raw_build(&rtpw->b, SPA_PARAM_EnumFormat,
 					 &SPA_AUDIO_INFO_RAW_INIT
-					 (.format = MYFLT_FORMAT));
+					 (.format = CS_FLOAT_FORMAT,
+					  .channels = parm->nChannels,
+					  .rate =
+					    rtpw_offered_rate(parm->sampleRate)));
   rtpw->cbflag =
     spa_system_eventfd_create(rtpw->cloop->system, SPA_FD_CLOEXEC);
   spa_ringbuffer_init(&rtpw->ring);
@@ -358,118 +556,285 @@ static int32_t rtpw_open_in(CSOUND *csound, const csRtAudioParams *parm){
 		    params, 1);
 
   pw_thread_loop_start(rtpw->loop);
-  spa_format_audio_raw_parse(params[0], &rtpw->format.info.raw);
-
-  rtpw->csound = csound;
-  *p = (void *) rtpw;
   pw_thread_loop_unlock(rtpw->loop);
-  // wait for params callback to set sr
-  while(rtpw->sysr < 0)
-    ;
-  // set the system sr
-  csound->GetSystemSr(csound, rtpw->sysr);
+
+  /* Wait for both the negotiated format and the graph clock. */
+  if (UNLIKELY(!rtpw_wait_ready(rtpw, 2000))) {
+    rtpw_report_open_error(csound, rtpw, "input");
+    rtpw_close_one(csound, (void **) &rtpw, 0);
+    return CSOUND_ERROR;
+  }
+  required_sr = rtpw->sr > 0 ? (cs_float) rtpw_offered_rate(rtpw->sr)
+                             : rtpw->graphr;
+  /* rtpw_wait_ready() releases the loop lock, a format callback could
+     still set format_error before the stream is published. publish
+     under the lock so csound never receives such a stream. */
+  pw_thread_loop_lock(rtpw->loop);
+  format_error = rtpw->format_error;
+  valid = !format_error && rtpw_validate_rates(rtpw, &sysr);
+  if (valid)
+    rtpw->published = 1;
+  pw_thread_loop_unlock(rtpw->loop);
+  if (UNLIKELY(!valid)) {
+    if (format_error)
+      rtpw_report_open_error(csound, rtpw, "input");
+    else
+      csound->ErrorMsg(csound,
+		       Str("rtpw: negotiated input rate %.2f does not match "
+			   "required rate %.2f\n"), rtpw->sysr, required_sr);
+    rtpw_close_one(csound, (void **) &rtpw, 0);
+    return CSOUND_ERROR;
+  }
+  csound->GetSystemSr(csound, sysr);
+  *p = (void *) rtpw;
   return OK;
 }
 
-static void  rtpw_close(CSOUND *csound) {
-  void **p = csound->GetRtPlayUserData(csound);
-  RTPW *rtpw = (RTPW *) *p;
-  if(rtpw != NULL) {
-    pw_thread_loop_lock(rtpw->loop);
-    pw_stream_destroy(rtpw->stream);
-    pw_thread_loop_unlock(rtpw->loop);
-    pw_thread_loop_stop(rtpw->loop);
-    pw_thread_loop_destroy(rtpw->loop);
-    csound->Free(csound, rtpw->cbuffer);
-    csound->Free(csound, rtpw);
-    *p  = NULL;
+static void rtpw_close_one(CSOUND *csound, void **data, int32_t output) {
+  RTPW *rtpw = (RTPW *) *data;
+  if(rtpw == NULL)
+    return;
+
+  *data = NULL;
+  if(output) {
+    uint32_t index;
+    int32_t queued, timeout;
+    queued = spa_ringbuffer_get_read_index(&rtpw->ring, &index);
+    if(queued < 0) queued = 0;
+    if (rtpw->sr > 0)
+      timeout = ((queued + rtpw->buframes) * 1000) / (int32_t) rtpw->sr + 100;
+    else
+      timeout = 500;
+    if(timeout > 2000) timeout = 2000;
+    while(timeout-- > 0 &&
+          spa_ringbuffer_get_read_index(&rtpw->ring, &index) > 0)
+      csound->Sleep((size_t) 1);
   }
-  p = csound->GetRtRecordUserData(csound);
-  rtpw = (RTPW *) *p;
-  if(rtpw != NULL) {
-    pw_thread_loop_lock(rtpw->loop);
-    pw_stream_destroy(rtpw->stream);
-    pw_thread_loop_unlock(rtpw->loop);
-    pw_thread_loop_stop(rtpw->loop);
-    pw_thread_loop_destroy(rtpw->loop);
-    csound->Free(csound, rtpw->cbuffer);
-    csound->Free(csound, rtpw);
-    *p  = NULL;
+
+  pw_thread_loop_lock(rtpw->loop);
+  if(output) {
+    struct timespec deadline;
+    int32_t err;
+
+    rtpw->drained = 0;
+    if(pw_stream_flush(rtpw->stream, true) == 0 &&
+       pw_thread_loop_get_time(rtpw->loop, &deadline,
+                               (int64_t) 2000 * 1000000) == 0) {
+      /* State and format callbacks also signal the loop, so keep waiting
+         until the drain completes or the deadline expires. */
+      while(!rtpw->drained && rtpw->state != PW_STREAM_STATE_ERROR) {
+        err = pw_thread_loop_timed_wait_full(rtpw->loop, &deadline);
+        if (err == -EINTR)
+          continue;
+        if (err != 0)
+          break;
+      }
+    }
   }
-  return;
+  pw_stream_destroy(rtpw->stream);
+  pw_thread_loop_unlock(rtpw->loop);
+  pw_thread_loop_stop(rtpw->loop);
+  spa_system_close(rtpw->cloop->system, rtpw->cbflag);
+  pw_thread_loop_destroy(rtpw->loop);
+  csound->Free(csound, rtpw->cbuffer);
+  csound->Free(csound, rtpw);
+}
+
+static void rtpw_close(CSOUND *csound) {
+  rtpw_close_one(csound, csound->GetRtPlayUserData(csound), 1);
+  rtpw_close_one(csound, csound->GetRtRecordUserData(csound), 0);
 }
 
 
 
 
-// list outputs
-struct sink_info {
-  uint32_t id;
-  char name[256];
-  char description[512];
-  uint32_t n_channels;
-  bool is_default;
+// device enumeration
+
+#define PW_MAX_DEVS 256
+
+enum {
+  PW_DEV_OUTPUT = 1,
+  PW_DEV_INPUT  = 2
 };
 
+struct pw_dev {
+  char name[128];
+  char description[256];
+  uint32_t id;
+  int32_t n_channels;
+};
 
-struct sink_data {
-  struct pw_loop *loop;
+/* A registry global only carries the properties present when the node was
+   exported. PipeWire adds format properties such as audio.channels later, so
+   the channel count must be read from the bound node's info props. */
+struct pw_dev_node {
+  struct pw_node *node;
+  struct spa_hook listener;
+};
+
+/* A host obtains the device count with list == NULL, allocates that many
+   entries, then calls again to fill them. The count may be obtained on one
+   thread and the fill performed on another, so the pending snapshot and the
+   capacity it implies live in the instance state rather than in thread-local
+   storage. Because a fill only has the direction to identify it, a positive
+   snapshot is shared by every count made before that direction's fills
+   complete: each such count returns the same count, and each fill copies at
+   most that many entries from the shared initialized snapshot. `pending`
+   counts the count calls still waiting for a fill. The count path owns the
+   snapshot: it replaces and frees it only when `pending` is zero, so fills
+   can read it without managing its lifetime. Callers should still complete a
+   count/fill pair before counting again, because a pending snapshot does not
+   reflect later device changes. A zero count has no snapshot and never blocks
+   a later count. */
+struct pw_dev_snapshots {
+  pthread_mutex_t mutex;      /* protects devs[], capacity[], pending[] */
+  int32_t mutex_valid;
+  int32_t destroying;
+  struct pw_dev *devs[2];     /* pending count pass per direction, or NULL */
+  int32_t capacity[2];        /* count paired with devs[slot], or -1 */
+  int32_t pending[2];         /* count calls awaiting this snapshot */
+};
+
+#define RTPW_DEVICE_SNAPSHOTS "_rtpw_device_snapshots"
+
+struct pw_dev_query {
   struct pw_thread_loop *tloop;
   struct pw_context *context;
   struct pw_core *core;
   struct pw_registry *registry;
   struct spa_hook registry_listener;
+  struct spa_hook core_listener;
   CSOUND *csound;
-  int no_devs;
-  int display;
-  struct sink_info sinks[256];
-  int done;
+  int32_t flags;
+  int32_t display;
+  int32_t no_devs;
+  int32_t truncated;
+  int32_t done;
+  int32_t status;
+  int32_t seq;
+  struct pw_dev *devs;
+  struct pw_dev_node nodes[PW_MAX_DEVS];
+  int32_t no_nodes;
 };
+
+/* A node can be used for output if it is a sink, for input if it is a
+   source. Duplex nodes provide both. */
+/* Match a class or a subtype separated by '/'; reject plain prefixes such as
+   Audio/SinkFilter. */
+static int32_t media_class_is_or_subclass(const char *media_class,
+                                          const char *base) {
+  size_t n = strlen(base);
+  return !strncmp(media_class, base, n) &&
+         (media_class[n] == '\0' || media_class[n] == '/');
+}
+
+static int32_t device_matches(const char *media_class, int32_t flags) {
+  if (media_class == NULL)
+    return 0;
+  if ((flags & PW_DEV_OUTPUT) &&
+      (media_class_is_or_subclass(media_class, "Audio/Sink") ||
+       !strcmp(media_class, "Audio/Duplex")))
+    return 1;
+  if ((flags & PW_DEV_INPUT) &&
+      (media_class_is_or_subclass(media_class, "Audio/Source") ||
+       !strcmp(media_class, "Audio/Duplex")))
+    return 1;
+  return 0;
+}
+
+static void node_event_info(void *data, const struct pw_node_info *info) {
+  struct pw_dev *dev = (struct pw_dev *) data;
+  const char *channels;
+  int32_t nch;
+
+  if (info == NULL || info->props == NULL)
+    return;
+  channels = spa_dict_lookup(info->props, PW_KEY_AUDIO_CHANNELS);
+  if (channels == NULL)
+    return;
+  nch = (int32_t) strtol(channels, NULL, 10);
+  if (nch > 0)
+    dev->n_channels = nch;
+}
+
+static const struct pw_node_events node_events = {
+  PW_VERSION_NODE_EVENTS,
+  .info = node_event_info,
+};
+
+static void add_pipewire_device(struct pw_dev_query *q, uint32_t id,
+                                const struct spa_dict *props) {
+  struct pw_dev *dev;
+  CSOUND *csound = q->csound;
+  const char *name, *description, *channels;
+  int32_t nch = -1;
+
+  if (q->no_devs >= PW_MAX_DEVS) {
+    q->truncated = 1;
+    return;
+  }
+  name = spa_dict_lookup(props, PW_KEY_NODE_NAME);
+  if (name == NULL || name[0] == '\0') {
+    if (name != NULL && q->display)
+      csound->Warning(csound, Str("PipeWire: skipping node with an empty "
+                                  "name\n"));
+    return;
+  }
+  if (strlen(name) > sizeof(((CS_AUDIODEVICE *) 0)->device_id) - 5) {
+    if (q->display)
+      csound->Warning(csound, Str("PipeWire: skipping node name too long "
+                                  "to use as a device ID\n"));
+    return;
+  }
+  description = spa_dict_lookup(props, PW_KEY_NODE_DESCRIPTION);
+  if (description == NULL)
+    description = spa_dict_lookup(props, PW_KEY_NODE_NICK);
+  /* The global property is only a fallback; node_event_info() replaces this
+     with the value from the bound node once its info arrives. */
+  channels = spa_dict_lookup(props, PW_KEY_AUDIO_CHANNELS);
+  if (channels != NULL)
+    nch = (int32_t) strtol(channels, NULL, 10);
+
+  dev = &(q->devs[q->no_devs]);
+  dev->id = id;
+  dev->n_channels = nch;
+  snprintf(dev->name, sizeof(dev->name), "%s", name != NULL ? name : "");
+  snprintf(dev->description, sizeof(dev->description), "%s",
+           description != NULL ? description : dev->name);
+
+  /* Bind the node so its current properties, including the channel count,
+     can be read even when the registry global did not carry them. */
+  if (q->no_nodes < PW_MAX_DEVS) {
+    struct pw_dev_node *entry = &q->nodes[q->no_nodes];
+    entry->node = (struct pw_node *) pw_registry_bind(
+        q->registry, id, PW_TYPE_INTERFACE_Node, PW_VERSION_NODE, 0);
+    if (entry->node != NULL) {
+      pw_node_add_listener(entry->node, &entry->listener, &node_events, dev);
+      q->no_nodes++;
+    }
+  }
+  q->no_devs++;
+}
 
 static void registry_event_global(void *data, uint32_t id, uint32_t permissions,
                                   const char *type, uint32_t version,
                                   const struct spa_dict *props) {
-  struct sink_data *sink_data = data;
+  struct pw_dev_query *q = (struct pw_dev_query *) data;
   const char *media_class;
-  const char *node_name;
-  const char *node_description;
-  CSOUND *csound = sink_data->csound;
-  struct sink_info *sinks = sink_data->sinks;
-  int32_t display = sink_data->display;
 
-  // Check if this is an audio sink node
-  if (strcmp(type, PW_TYPE_INTERFACE_Node) == 0) {
-    if (props) {
-      media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
-      if (media_class && strcmp(media_class, "Audio/Sink") == 0) {
-	if(sink_data->no_devs < 256) {
-	  int32_t n = sink_data->no_devs;
-	  node_name = spa_dict_lookup(props, PW_KEY_NODE_NAME);
-	  node_description = spa_dict_lookup(props,
-					     PW_KEY_NODE_DESCRIPTION);
-	  if(display){
-	    csound->Message(csound, "  sink node: %d\n", n);
-	    csound->Message(csound, "  ID: %u\n", id);
-	    csound->Message(csound,"  name: %s\n",
-			    node_name ? node_name : "Unknown");
-	    csound->Message(csound,"  description: %s\n",
-			    node_description ? node_description :
-			    "No description");
-	    csound->Message(csound,"  media class: %s\n ----\n",
-			    media_class);
-	  }
-	  sinks[n].n_channels = 2;
-	  sinks[n].id = id;
-	  strncpy(sinks[n].name, node_name, 256);
-	  strncpy(sinks[n].description, node_description, 512);
-	  sink_data->no_devs++;
-	}
-      }
-    }
-  }
+  IGN(permissions);
+  IGN(version);
+  if (props == NULL || strcmp(type, PW_TYPE_INTERFACE_Node) != 0)
+    return;
+  media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
+  if (!device_matches(media_class, q->flags))
+    return;
+  add_pipewire_device(q, id, props);
 }
 
 static void registry_event_global_remove(void *data, uint32_t id) {
+  IGN(data);
+  IGN(id);
 }
 
 static const struct pw_registry_events registry_events = {
@@ -480,17 +845,26 @@ static const struct pw_registry_events registry_events = {
 
 static void core_event_done(void *data, uint32_t id, int seq)
 {
-  struct sink_data *sink_data = data;
-  sink_data->done = 1;
-  pw_thread_loop_stop(sink_data->tloop);
+  struct pw_dev_query *q = (struct pw_dev_query *) data;
+  if (id != PW_ID_CORE || seq != q->seq)
+    return;
+  q->done = 1;
+  pw_thread_loop_signal(q->tloop, false);
 }
 
-static void core_event_error(void *data, uint32_t id, int seq, int res, const char *message)
+static void core_event_error(void *data, uint32_t id, int seq, int res,
+                             const char *message)
 {
-  struct sink_data *sink_data = data;
-  sink_data->csound->Message(sink_data->csound, "Core error: %s\n", message);
-  sink_data->done = 1;
-  pw_thread_loop_stop(sink_data->tloop);
+  struct pw_dev_query *q = (struct pw_dev_query *) data;
+  CSOUND *csound = q->csound;
+  IGN(id);
+  IGN(seq);
+  IGN(res);
+  csound->Message(csound, Str("PipeWire error: %s\n"),
+                  message != NULL ? message : "unknown");
+  q->status = -1;
+  q->done = 1;
+  pw_thread_loop_signal(q->tloop, false);
 }
 
 static const struct pw_core_events core_events = {
@@ -499,96 +873,232 @@ static const struct pw_core_events core_events = {
   .error = core_event_error,
 };
 
-int32_t query_pipewire_sinks(CSOUND *csound, CS_AUDIODEVICE *list, int32_t display)
-{
-  struct sink_data data = {0};
-  struct spa_hook core_listener;
-  data.csound = csound;
-  data.display = display;
-  data.no_devs = 0;
-
-  data.tloop = pw_thread_loop_new("sink-query", NULL);
-  data.loop = pw_thread_loop_get_loop(data.tloop);
-
-  // Create main loop
-  if (!data.loop) {
-    csound->Message(csound, "Failed to create main loop\n");
-    goto cleanup;
+/* Round-trip to the server so that all registry events have been delivered.
+   The thread loop must be locked by the caller. */
+static int32_t query_sync(struct pw_dev_query *q) {
+  int32_t err;
+  q->done = 0;
+  q->status = 0;
+  q->seq = pw_core_sync(q->core, PW_ID_CORE, 0);
+  if (UNLIKELY(q->seq < 0)) {
+    q->status = -1;
+    return -1;
   }
-
-  // Create context
-  data.context = pw_context_new(pw_thread_loop_get_loop(data.tloop), NULL, 0);
-  if (!data.context) {
-    csound->Message(csound, "Failed to create context\n");
-    goto cleanup;
-  }
-
-  // Connect to PipeWire daemon
-  data.core = pw_context_connect(data.context, NULL, 0);
-  if (!data.core) {
-    csound->Message(csound, "Failed to connect to PipeWire\n");
-    goto cleanup;
-  }
-
-  // Add core event listener
-  pw_core_add_listener(data.core, &core_listener, &core_events, &data);
-
-  // Get registry
-  data.registry = pw_core_get_registry(data.core, PW_VERSION_REGISTRY, 0);
-  if (!data.registry) {
-    csound->Message(csound, "Failed to get registry\n");
-    goto cleanup;
-  }
-
-  // Add registry event listener
-  pw_registry_add_listener(data.registry, &data.registry_listener, &registry_events, &data);
-
-  if(display)
-   csound->Message(csound, "pipewire sinks:\n");
-  pw_thread_loop_start(data.tloop);
-  usleep(100000);
-  if(display)
-    csound->Message(csound, "found %d sinks\n", data.no_devs);
-
- cleanup:
-  pw_thread_loop_stop(data.tloop);
-  // Clean up resources
-  if (data.registry) {
-    spa_hook_remove(&data.registry_listener);
-    pw_proxy_destroy((struct pw_proxy*)data.registry);
-  }
-  if (data.core) {
-    spa_hook_remove(&core_listener);
-    pw_core_disconnect(data.core);
-  }
-  if (data.context)
-    pw_context_destroy(data.context);
-  pw_thread_loop_destroy(data.tloop);
-
-  if(list) {
-    for(int i = 0; i < data.no_devs; i++) {
-      strncpy(list[i].device_name, data.sinks[i].name, 63);
-      snprintf(list[i].device_id, 63, "%s%d",
-	       "dac" , data.sinks[i].id);
-      list[i].max_nchnls = data.sinks[i].n_channels;
-      list[i].isOutput = 1;
+  while (!q->done) {
+    err = pw_thread_loop_timed_wait(q->tloop, 5);
+    if (err != 0 && err != -EINTR) {
+      q->status = -1;
+      break;
     }
   }
-  return data.no_devs;
+  return q->status;
+}
+
+/* Enumerate the audio devices of the requested direction(s). If snapshot is
+   non-NULL, transfer the device snapshot to the caller. Returns the number
+   of devices found, or 0 on failure. */
+static int32_t query_pipewire(CSOUND *csound, int32_t flags, int32_t display,
+                              struct pw_dev **snapshot) {
+  struct pw_dev_query q;
+  int32_t i, n = 0, status;
+
+  if (snapshot != NULL)
+    *snapshot = NULL;
+
+  memset(&q, 0, sizeof(q));
+  q.csound = csound;
+  q.flags = flags;
+  q.display = display;
+
+  q.devs = (struct pw_dev *) calloc(PW_MAX_DEVS, sizeof(struct pw_dev));
+  if (UNLIKELY(q.devs == NULL))
+    return 0;
+
+  q.tloop = pw_thread_loop_new("csound-query", NULL);
+  if (UNLIKELY(q.tloop == NULL)) {
+    csound->Message(csound, Str("Failed to create PipeWire thread loop\n"));
+    goto cleanup;
+  }
+  q.context = pw_context_new(pw_thread_loop_get_loop(q.tloop), NULL, 0);
+  if (UNLIKELY(q.context == NULL)) {
+    csound->Message(csound, Str("Failed to create PipeWire context\n"));
+    goto cleanup;
+  }
+  q.core = pw_context_connect(q.context, NULL, 0);
+  if (UNLIKELY(q.core == NULL)) {
+    csound->Message(csound, Str("Failed to connect to PipeWire\n"));
+    goto cleanup;
+  }
+  pw_core_add_listener(q.core, &q.core_listener, &core_events, &q);
+  q.registry = pw_core_get_registry(q.core, PW_VERSION_REGISTRY, 0);
+  if (UNLIKELY(q.registry == NULL)) {
+    csound->Message(csound, Str("Failed to get PipeWire registry\n"));
+    goto cleanup;
+  }
+  pw_registry_add_listener(q.registry, &q.registry_listener,
+                           &registry_events, &q);
+
+  if (display) {
+    if ((flags & PW_DEV_INPUT) && !(flags & PW_DEV_OUTPUT))
+      csound->Message(csound, Str("pipewire sources:\n"));
+    else
+      csound->Message(csound, Str("pipewire sinks:\n"));
+  }
+
+  pw_thread_loop_start(q.tloop);
+  pw_thread_loop_lock(q.tloop);
+  status = query_sync(&q);
+  /* The registry pass binds each matching node. A second round trip delivers
+     the node info events that carry audio.channels, which the registry
+     global properties generally do not include. The device list is already
+     complete, so failure to collect the extra information does not discard
+     it. */
+  if (status >= 0 && q.no_nodes > 0)
+    query_sync(&q);
+  pw_thread_loop_unlock(q.tloop);
+  pw_thread_loop_stop(q.tloop);
+
+  if (UNLIKELY(status < 0)) {
+    if (snapshot != NULL)   /* only report on the counting pass */
+      csound->Message(csound, Str("Failed to query PipeWire devices\n"));
+    goto cleanup;
+  }
+
+  if (q.truncated)
+    csound->Warning(csound, Str("PipeWire: only the first %d devices are "
+                                "listed\n"), PW_MAX_DEVS);
+  if (display) {
+    for (i = 0; i < q.no_devs; i++) {
+      struct pw_dev *dev = &q.devs[i];
+      csound->Message(csound, Str("  device: %d\n"), i);
+      csound->Message(csound, "  ID: %u\n", dev->id);
+      csound->Message(csound, Str("  name: %s\n"), dev->name);
+      csound->Message(csound, Str("  description: %s\n"), dev->description);
+      if (dev->n_channels > 0)
+        csound->Message(csound, Str("  channels: %d\n"), dev->n_channels);
+      csound->Message(csound, Str(" ----\n"));
+    }
+    csound->Message(csound, Str("found %d devices\n"), q.no_devs);
+  }
+
+  n = q.no_devs;
+  if (snapshot != NULL && n > 0) {
+    *snapshot = q.devs;
+    q.devs = NULL;
+  }
+
+ cleanup:
+  for (i = 0; i < q.no_nodes; i++) {
+    spa_hook_remove(&q.nodes[i].listener);
+    pw_proxy_destroy((struct pw_proxy *) q.nodes[i].node);
+  }
+  if (q.registry != NULL) {
+    spa_hook_remove(&q.registry_listener);
+    pw_proxy_destroy((struct pw_proxy *) q.registry);
+  }
+  if (q.core != NULL) {
+    spa_hook_remove(&q.core_listener);
+    pw_core_disconnect(q.core);
+  }
+  if (q.context != NULL)
+    pw_context_destroy(q.context);
+  if (q.tloop != NULL)
+    pw_thread_loop_destroy(q.tloop);
+  free(q.devs);
+  return n;
 }
 
 static int32_t list_outputs(CSOUND *csound) {
-  return query_pipewire_sinks(csound, NULL, 1);
+  return query_pipewire(csound, PW_DEV_OUTPUT, 1, NULL);
+}
+
+static void rtpw_fill_audio_device(CS_AUDIODEVICE *dest,
+                                   const struct pw_dev *src,
+                                   int32_t is_output) {
+  memset(dest, 0, sizeof(CS_AUDIODEVICE));
+  snprintf(dest->device_name, sizeof(dest->device_name), "%.*s",
+           (int) sizeof(dest->device_name) - 1, src->description);
+  /* The node name can be given as -odac:<name> / -iadc:<name>. */
+  snprintf(dest->device_id, sizeof(dest->device_id), "%s:%.*s",
+           is_output ? "dac" : "adc",
+           (int) sizeof(dest->device_id) - 5, src->name);
+  snprintf(dest->rt_module, sizeof(dest->rt_module), "%s", "rtpw");
+  dest->max_nchnls = src->n_channels;
+  dest->isOutput = is_output;
+}
+
+/* The caller must hold state->mutex. */
+static void rtpw_clear_snapshot(struct pw_dev_snapshots *state, int32_t slot) {
+  free(state->devs[slot]);
+  state->devs[slot] = NULL;
+  state->capacity[slot] = -1;
+  state->pending[slot] = 0;
 }
 
 static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
-			 int32_t isOutput){
-  if(isOutput)
-    return query_pipewire_sinks(csound, list, 0);
-  else return 0;
+			 int32_t isOutput) {
+  struct pw_dev_snapshots *state =
+    (struct pw_dev_snapshots *) csound->QueryGlobalVariable(
+        csound, RTPW_DEVICE_SNAPSHOTS);
+  struct pw_dev *snapshot;
+  struct pw_dev *devs = NULL;
+  int32_t i, n, flags = isOutput ? PW_DEV_OUTPUT : PW_DEV_INPUT;
+  int32_t slot = isOutput ? 0 : 1;
+
+  if (UNLIKELY(state == NULL || !state->mutex_valid))
+    return 0;
+
+  if (list == NULL) {
+    n = query_pipewire(csound, flags, 0, &devs);
+    if (n < 0)
+      n = 0;
+    pthread_mutex_lock(&state->mutex);
+    if (UNLIKELY(state->destroying)) {
+      pthread_mutex_unlock(&state->mutex);
+      free(devs);
+      return 0;
+    }
+    /* A positive snapshot is still waiting for fills. Return its count so
+       every caller allocates an array matching the snapshot its fill will
+       use; do not replace it with the newly enumerated data. */
+    if (state->pending[slot] > 0) {
+      n = state->capacity[slot];
+      state->pending[slot]++;
+      pthread_mutex_unlock(&state->mutex);
+      free(devs);
+      return n;
+    }
+    rtpw_clear_snapshot(state, slot);
+    if (n > 0 && devs != NULL) {
+      state->devs[slot] = devs;
+      state->capacity[slot] = n;
+      state->pending[slot] = 1;
+    } else {
+      free(devs);
+      n = 0;
+    }
+    pthread_mutex_unlock(&state->mutex);
+    return n;
+  }
+
+  /* Any thread may perform the fill. `pending` counts the count calls still
+     waiting for this snapshot, so each fill consumes one and writes at most
+     the count its caller received. */
+  pthread_mutex_lock(&state->mutex);
+  if (UNLIKELY(state->destroying || state->pending[slot] <= 0)) {
+    pthread_mutex_unlock(&state->mutex);
+    return 0;
+  }
+  n = state->capacity[slot];
+  snapshot = state->devs[slot];
+  state->pending[slot]--;
+  /* The count path owns the snapshot and only replaces it while `pending` is
+     zero, so it stays valid across this copy. */
+  for (i = 0; i < n; i++)
+    rtpw_fill_audio_device(&list[i], &snapshot[i], isOutput);
+  pthread_mutex_unlock(&state->mutex);
+  return n;
 }
-
-
 
 
  int32_t csoundModuleCreate(CSOUND *csound)
@@ -598,8 +1108,8 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
   return 0;
 }
 
- int32_t csoundModuleInit(CSOUND *csound) {
-  const OPARMS *O = csound->GetOParms(csound);
+int32_t csoundModuleInit(CSOUND *csound) {
+  struct pw_dev_snapshots *snapshots;
   csound->ModuleListAdd(csound, "rtpw", "audio");
   char buf[32];
   char *s = (char*) csound->QueryGlobalVariable(csound, "_RTAUDIO");
@@ -613,6 +1123,37 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
       strcmp(&(buf[0]), "pw") == 0 ||
       strcmp(&(buf[0]), "pipewire") == 0){
 
+    snapshots = (struct pw_dev_snapshots *) csound->QueryGlobalVariable(
+        csound, RTPW_DEVICE_SNAPSHOTS);
+    if (snapshots == NULL) {
+      if (UNLIKELY(csound->CreateGlobalVariable(
+                       csound, RTPW_DEVICE_SNAPSHOTS,
+                       sizeof(struct pw_dev_snapshots)) != 0)) {
+        csound->ErrorMsg(csound, Str("rtpw: could not create device-list state\n"));
+        return CSOUND_ERROR;
+      }
+      snapshots = (struct pw_dev_snapshots *) csound->QueryGlobalVariable(
+          csound, RTPW_DEVICE_SNAPSHOTS);
+    }
+    if (UNLIKELY(snapshots == NULL)) {
+      csound->ErrorMsg(csound, Str("rtpw: could not access device-list state\n"));
+      return CSOUND_ERROR;
+    }
+    if (!snapshots->mutex_valid) {
+      if (UNLIKELY(pthread_mutex_init(&snapshots->mutex, NULL) != 0)) {
+        csound->ErrorMsg(csound, Str("rtpw: could not create device-list mutex\n"));
+        return CSOUND_ERROR;
+      }
+      snapshots->mutex_valid = 1;
+      snapshots->devs[0] = NULL;
+      snapshots->devs[1] = NULL;
+      snapshots->capacity[0] = -1;
+      snapshots->capacity[1] = -1;
+      snapshots->pending[0] = 0;
+      snapshots->pending[1] = 0;
+    }
+    snapshots->destroying = 0;
+
     csound->DebugMsg(csound, Str("rtaudio: pipewire module enabled\n"));
     csound->SetPlayopenCallback(csound, rtpw_open_out);
     csound->SetRecopenCallback(csound, rtpw_open_in);
@@ -625,10 +1166,28 @@ static int32_t rtpw_list(CSOUND *csound, CS_AUDIODEVICE *list,
   return CSOUND_SUCCESS;
 }
 
- int32_t csoundModuleDestroy(CSOUND *csound){
+int32_t csoundModuleDestroy(CSOUND *csound){
+  struct pw_dev_snapshots *snapshots =
+    (struct pw_dev_snapshots *) csound->QueryGlobalVariable(
+        csound, RTPW_DEVICE_SNAPSHOTS);
+
+  if (snapshots == NULL || !snapshots->mutex_valid)
+    return 0;
+
+  /* Hosts must not run list calls concurrently with instance destruction.
+     Any count/fill snapshot still pending is released here. */
+  pthread_mutex_lock(&snapshots->mutex);
+  snapshots->destroying = 1;
+  rtpw_clear_snapshot(snapshots, 0);
+  rtpw_clear_snapshot(snapshots, 1);
+  pthread_mutex_unlock(&snapshots->mutex);
+  /* The mutex is intentionally not destroyed; it is released with the
+     instance's global variable. Hosts must stop list-calling threads before
+     destruction: this function does not synchronize with calls already in
+     flight. */
   return 0;
 }
 
  int32_t csoundModuleInfo(void){
-  return ((CS_VERSION << 16) + (CS_SUBVER << 8) + (int32_t) sizeof(MYFLT));
+  return CSOUND_MODULE_INFO;
 }

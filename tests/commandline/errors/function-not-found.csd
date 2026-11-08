@@ -1,3 +1,10 @@
+<CsTest>
+description = "errors/function-not-found.csd"
+
+[expect]
+exit = "nonzero"
+stderr = ["unable to find opcode with name: not_a_function"]
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -odac -m0

@@ -1,3 +1,9 @@
+<CsTest>
+description = "tertiary conditional expressions"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -1,0 +1,192 @@
+/*
+ * Copyright (c) The Csound Developers
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { assertNumericEvent } from "../utils/numeric-events.js";
+import { freeStringPtr, ptr2string, string2ptr } from "../utils/string-pointers.js";
+
+/*
+   csound control-events module from <csound.h>
+   https://csound.com/docs/api/modules.html
+*/
+
+/**
+ * Inputs an immediate score event
+ * without any pre-process parsing
+ * @function
+ */
+export const csoundEvent = (wasm) => (csound, type, pfields) => {
+  assertNumericEvent(type, pfields);
+  const width = wasm.exports["csoundGetSizeOfMYFLT"]();
+  if (width !== 4 && width !== 8) throw new Error("Unsupported Csound sample width");
+  const pointer = wasm.exports["allocFloatArray"](Math.max(1, pfields.length));
+  if (!pointer) throw new Error("Could not allocate event p-fields");
+  try {
+    // The native allocator reserves MYFLT entries, including in USE_FLOAT builds.
+    const fields =
+      width === 4
+        ? new Float32Array(wasm.wasi.memory.buffer, pointer, pfields.length)
+        : new Float64Array(wasm.wasi.memory.buffer, pointer, pfields.length);
+    fields.set(pfields);
+    wasm.exports["csoundEvent"](csound, type, pointer, pfields.length, 1);
+  } finally {
+    wasm.exports["freeFloatArrayMem"](pointer);
+  }
+};
+csoundEvent["toString"] = () => "event = async (type, pfields) => undefined;";
+
+export const csoundInputMessage = (wasm) => (csound, scoEvent) => {
+  const stringPtr = string2ptr(wasm, scoEvent);
+  const result = wasm.exports["csoundEventString"](csound, stringPtr, 0);
+  freeStringPtr(wasm, stringPtr);
+  return result;
+};
+
+csoundInputMessage["toString"] = () => "inputMessage = async (scoreEvent) => Number;";
+
+/**
+ * Inputs an immediate score event
+ * without any pre-process parsing
+ * @function
+ */
+export const csoundInputMessageAsync = (wasm) => (csound, scoEvent) => {
+  const stringPtr = string2ptr(wasm, scoEvent);
+  const result = wasm.exports["csoundEventString"](csound, stringPtr, 1);
+  freeStringPtr(wasm, stringPtr);
+  return result;
+};
+
+csoundInputMessageAsync["toString"] = () => "inputMessageAsync = async (scoreEvent) => Number;";
+
+/**
+ * Queues text for the readline opcode. Include a newline to submit the line.
+ * @function
+ */
+export const csoundReadlinePushText = (wasm) => (csound, text) => {
+  const stringPtr = string2ptr(wasm, text);
+  const result = wasm.exports["csoundReadlinePushText"](csound, stringPtr);
+  freeStringPtr(wasm, stringPtr);
+  return result;
+};
+
+csoundReadlinePushText["toString"] = () => "readlinePushText = async (text) => Number;";
+
+/**
+ * Submits one complete line for an open readline request (no newline needed).
+ * Returns an error for a closed request or invalid input.
+ * @function
+ */
+export const csoundReadlineSubmit = (wasm) => (csound, requestId, text) => {
+  if (
+    !Number.isInteger(requestId) ||
+    requestId <= 0 ||
+    requestId > 0xffff_ffff ||
+    typeof text !== "string" ||
+    text.includes("\0")
+  )
+    return -1;
+  const stringPtr = string2ptr(wasm, text);
+  try {
+    return wasm.exports["csoundReadlineSubmit"](csound, requestId, stringPtr);
+  } finally {
+    freeStringPtr(wasm, stringPtr);
+  }
+};
+
+csoundReadlineSubmit["toString"] = () => "readlineSubmit = async (requestId, text) => Number;";
+
+/**
+ * Retrieves the value of control channel identified by channelName.
+ * Active --realtime reads predeclared numeric channels atomically. New channel
+ * names use the ordered background API queue.
+ * @function
+ */
+export const csoundGetControlChannel = (wasm) => (csound, channelName) => {
+  const stringPtr = string2ptr(wasm, channelName);
+  const result = wasm.exports["csoundGetControlChannelWasi"](csound, stringPtr);
+  freeStringPtr(wasm, stringPtr);
+  return result;
+};
+
+csoundGetControlChannel["toString"] = () => "getControlChannel = async (channelName) => Number;";
+
+/**
+ * Sets the value of control channel identified by channelName.
+ * Predeclared channels stay independent of background compilation; new names
+ * use the background queue and follow earlier compile/eval calls.
+ * @function
+ */
+export const csoundSetControlChannel = (wasm) => (csound, channelName, value) => {
+  const stringPtr = string2ptr(wasm, channelName);
+  wasm.exports["csoundSetControlChannel"](csound, stringPtr, value);
+  freeStringPtr(wasm, stringPtr);
+};
+
+csoundSetControlChannel["toString"] = () =>
+  "setControlChannel = async (channelName, value) => void;";
+
+/**
+ * Retrieves the string channel identified by channelName.
+ * Active --realtime copies the value on the background API worker.
+ * @function
+ */
+export const csoundGetStringChannel = (wasm) => (csound, channelName) => {
+  const stringPtr = string2ptr(wasm, channelName);
+  const pointerToResult = wasm.exports["csoundGetStringChannelWasi"](csound, stringPtr);
+  const result = ptr2string(wasm, pointerToResult);
+
+  freeStringPtr(wasm, stringPtr);
+  freeStringPtr(wasm, pointerToResult);
+  return result;
+};
+
+csoundGetStringChannel["toString"] = () => "getStringChannel = async (channelName) => String;";
+
+/**
+ * Sets the string channel value identified by channelName.
+ * Active --realtime writes on the background API worker; completion means the
+ * value is ready for the next queued compile/eval call.
+ * @function
+ */
+export const csoundSetStringChannel = (wasm) => (csound, channelName, value) => {
+  const stringPtr = string2ptr(wasm, channelName);
+  const stringPtr2 = string2ptr(wasm, value);
+  wasm.exports["csoundSetStringChannel"](csound, stringPtr, stringPtr2);
+  freeStringPtr(wasm, stringPtr);
+  freeStringPtr(wasm, stringPtr2);
+};
+
+csoundSetStringChannel["toString"] = () => "setStringChannel = async (channelName, value) => void;";
+
+// csoundGetChannelPtr (CSOUND *, cs_float **p, const char *name, int type)
+// csoundListChannels (CSOUND *, controlChannelInfo_t **lst)
+// csoundDeleteChannelList (CSOUND *, controlChannelInfo_t *lst)
+// csoundSetControlChannelHints (CSOUND *, const char *name, controlChannelHints_t hints)
+// csoundGetControlChannelHints (CSOUND *, const char *name, controlChannelHints_t *hints)
+// csoundGetChannelLock (CSOUND *, const char *name)
+// csoundSetControlChannel (CSOUND *csound, const char *name, cs_float val)
+// csoundGetChannelDatasize (CSOUND *csound, const char *name)
+// csoundSetInputChannelCallback (CSOUND *csound, channelCallback_t inputChannelCalback)
+// csoundSetOutputChannelCallback (CSOUND *csound, channelCallback_t outputChannelCalback)
+// csoundSetPvsChannel (CSOUND *, const PVSDATEXT *fin, const char *name)
+// csoundGetPvsChannel (CSOUND *csound, PVSDATEXT *fout, const char *name)
+// csoundScoreEvent (CSOUND *, char type, const cs_float *pFields, long numFields)
+// csoundScoreEventAsync (CSOUND *, char type, const cs_float *pFields, long numFields)
+// csoundScoreEventAbsolute (CSOUND *, char type, const cs_float *pfields, long numFields, double time_ofs)
+// csoundScoreEventAbsoluteAsync (CSOUND *, char type, const cs_float *pfields, long numFields, double time_ofs)
+// csoundKillInstance (CSOUND *csound, cs_float instr, char *instrName, int mode, int allow_release)
+// csoundRegisterSenseEventCallback (CSOUND *, void(*func)(CSOUND *, void *), void *userData)
+// csoundKeyPress (CSOUND *, char c)
+// csoundRegisterKeyboardCallback (CSOUND *, int(*func)(void *userData, void *p, unsigned int type), void *userData, unsigned int type)
+// csoundRemoveKeyboardCallback (CSOUND *csound, int(*func)(void *, void *, unsigned int))

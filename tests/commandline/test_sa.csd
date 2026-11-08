@@ -1,3 +1,9 @@
+<CsTest>
+description = "test sample accurate mode"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n --sample-accurate
@@ -10,13 +16,13 @@ opcode Test,0,kk
  k2,k1 xin
  koffs offsetsmps
  if koffs != k2 then
-  schedulek(2,0,0)
+  exitnowk(-1)
  else
   printk2 koffs
  endif
  kearly earlysmps
  if kearly != k1 then
-  schedulek(2,0,0)
+  exitnowk(-1)
  else
   printk2 kearly
  endif
@@ -26,7 +32,7 @@ instr 1
 kflag init 1
 koffs offsetsmps
 if koffs == 0 && kflag == 1 then
-  schedulek(2,0,0)
+  exitnowk(-1)
 else
  kflag = 0
  printk2 koffs
@@ -37,16 +43,12 @@ Test koffs,kearly
 
 if release() != 0 then
  if kearly == 0 then
-  schedulek(2,0,0)
+  exitnowk(-1)
  else
   printk2 kearly
  endif
 endif
 
-endin
-
-instr 2
-exitnow(-1)
 endin
 
 schedule(1,6/sr,0.5)

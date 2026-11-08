@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing genarray shorthand"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n

@@ -31,9 +31,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
-#ifndef MYFLT
 #include "sysdep.h"
-#endif
 /*#include "hetro.h"*/
 #include "text.h"
 

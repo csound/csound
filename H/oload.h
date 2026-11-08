@@ -38,16 +38,16 @@ typedef struct {
 
 typedef struct {
         int32_t     lblno;
-        MYFLT   **argpp;
+        cs_float   **argpp;
 } LARGNO;
 
 typedef struct {
-        MYFLT   *sets[PMAX];
+        cs_float   *sets[PMAX];
 } PVSET;
 
 typedef struct {
         OPDS    h;
-        MYFLT   *insno, *itime;
+        cs_float   *insno, *itime;
 } TURNON;
 
 #endif  /* CSOUND_OLOAD_H */

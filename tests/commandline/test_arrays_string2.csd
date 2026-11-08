@@ -1,3 +1,9 @@
+<CsTest>
+description = "test simple string-array assignment"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -dnm0

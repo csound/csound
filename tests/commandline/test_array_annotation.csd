@@ -1,3 +1,9 @@
+<CsTest>
+description = "testing array type annotation for opcodes"
+
+[expect]
+exit = 0
+</CsTest>
 <CsoundSynthesizer>
 <CsOptions>
 -n
