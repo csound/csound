@@ -38,8 +38,9 @@
       Read at most 'nbytes' bytes of MIDI data from input stream
       'userData', and store in 'buf'. Returns the actual number of
       bytes read, which may be zero if there were no events, and
-      negative in case of an error. Note: incomplete messages (such
-      as a note on status without the data bytes) should not be
+      negative in case of an error. A count past 'nbytes' is an error
+      too, and nothing is taken from 'buf'. Note: incomplete messages
+      (such as a note on status without the data bytes) should not be
       returned.
 
     int32_t (*MidiInCloseCallback)(CSOUND *csound, void *userData);
@@ -509,6 +510,11 @@ int32_t sens_midi(CSOUND *csound)
           csoundErrorMsg(csound,
                             Str(" *** error reading MIDI device: %d (%s)\n"),
                                  n, csoundExternalMidiErrorString(csound, n));
+        else if (n > MBUFSIZ)
+          csoundErrorMsg(csound,
+                            Str(" *** error reading MIDI device: read returned "
+                                "%d, more than the %d bytes asked for\n"),
+                                 n, MBUFSIZ);
         else
           p->endatp += (int32_t) n;
       }
