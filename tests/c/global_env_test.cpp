@@ -1,5 +1,6 @@
 #include "csound.h"
 #include "gtest/gtest.h"
+#include <cstdlib>
 #include <optional>
 #include <string>
 
@@ -48,7 +49,8 @@ TEST_F(GlobalEnvTests, SettingAgainAfterAnEarlierDeleteKeepsOneEntry)
     EXPECT_EQ(instanceValue(b), "new");
 
     ASSERT_EQ(csoundSetGlobalEnv(b, nullptr), 0);
-    EXPECT_EQ(csoundGetEnv(nullptr, b), nullptr);
+    /* Gone from the table, so it falls through to the process's own. */
+    EXPECT_STREQ(csoundGetEnv(nullptr, b), std::getenv(b));
     EXPECT_EQ(instanceValue(b), std::nullopt);
     EXPECT_NE(csoundSetGlobalEnv(b, nullptr), 0);
 }
