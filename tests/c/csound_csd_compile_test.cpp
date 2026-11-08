@@ -38,9 +38,10 @@ protected:
     if (!directory.empty()) std::filesystem::remove_all(directory);
   }
 
-  std::string csd(const std::string &orchestra = "instr 1\nendin\n")
+  std::string csd(const std::string &orchestra = "instr 1\nendin\n",
+                  const std::string &options = "")
   {
-    return "<CsoundSynthesizer>\n<CsInstruments>\n"
+    return "<CsoundSynthesizer>\n" + options + "<CsInstruments>\n"
       "sr=44100\nksmps=32\nnchnls=1\n" + orchestra +
       "</CsInstruments>\n<CsScore>\ne\n</CsScore>\n</CsoundSynthesizer>\n";
   }
@@ -71,6 +72,10 @@ protected:
 
   const std::string invalidOrchestra =
     "instr 1\nprints(\"bad\" \"syntax\")\nendin\n";
+
+  // The orchestra in csd() says ksmps=32.
+  const std::string withKsmps16 =
+    csd("instr 1\nendin\n", "<CsOptions>\n--ksmps=16\n</CsOptions>\n");
 };
 
 TEST_F(CsdCompileTests, FileOrchestraErrorNamesCsd)
@@ -152,5 +157,29 @@ TEST_F(CsdCompileTests, EmptyOptionLeavesFileNameToTheCsd)
   const auto file = path("piece.csd");
   const char *arguments[] = {"csound", file.c_str()};
   EXPECT_EQ(CSOUND_SUCCESS, csoundCompile(csound, 2, arguments)) << messages();
+}
+
+TEST_F(CsdCompileTests, CsOptionsAreTakenByDefault)
+{
+  ASSERT_EQ(0, csoundCompileCSD(csound, withKsmps16.c_str(), 1, 0))
+    << messages();
+  EXPECT_EQ(16u, csoundGetKsmps(csound));
+}
+
+TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInText)
+{
+  ASSERT_EQ(0, csoundSetOption(csound, "-+ignore_csopts=1"));
+  ASSERT_EQ(0, csoundCompileCSD(csound, withKsmps16.c_str(), 1, 0))
+    << messages();
+  EXPECT_EQ(32u, csoundGetKsmps(csound));
+}
+
+TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInFile)
+{
+  ASSERT_NO_FATAL_FAILURE(write("options.csd", withKsmps16));
+  ASSERT_EQ(0, csoundSetOption(csound, "-+ignore_csopts=1"));
+  ASSERT_EQ(0, csoundCompileCSD(csound, path("options.csd").c_str(), 0, 0))
+    << messages();
+  EXPECT_EQ(32u, csoundGetKsmps(csound));
 }
 }
