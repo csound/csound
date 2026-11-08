@@ -25,6 +25,7 @@ import ctypes.util
 import numpy as np
 import sys
 import types
+import weakref
 from enum import Enum
 
 # This is a workaround to yield the PEP 3118 problem which appeared with
@@ -300,7 +301,7 @@ libcsound.csoundGetA4.argtypes = [CSOUND_p]
 libcsound.csoundGetCurrentTimeSamples.restype = ct.c_int64
 libcsound.csoundGetCurrentTimeSamples.argtypes = [CSOUND_p]
 libcsound.csoundGetSizeOfMYFLT.restype = ct.c_int32
-libcsound.csoundGetHostData.restype = ct.py_object
+libcsound.csoundGetHostData.restype = ct.c_void_p
 libcsound.csoundGetHostData.argtypes = [CSOUND_p]
 libcsound.csoundSetHostData.argtypes = [CSOUND_p, ct.py_object]
 libcsound.csoundGetEnv.restype = ct.c_char_p
@@ -728,6 +729,14 @@ def _thunk(prototype, function, cleared=0):
 class Csound:
     """A Csound instance. Every set_*_callback method takes None to clear it."""
 
+    # The Csound keeping what each CSOUND is handed, by pointer, so that every
+    # wrapper of a CSOUND keeps it in one place. Weak, or a callback closing
+    # over its Csound would stop that Csound from ever being destroyed.
+    _owners = weakref.WeakValueDictionary()
+    # A CSOUND made in C has no such Csound: its first wrapper stands in, and
+    # stays, as nothing says when C destroys the instance.
+    _c_owned = {}
+
     #
     # Instantiation
     #
@@ -740,17 +749,28 @@ class Csound:
         that is passed to callback routines.
         If not None the opcode_dir parameter sets an override for
         the plugin module/opcode directory search.
+        With pointer_, this wraps an existing CSOUND instead, and does not
+        destroy it when it goes: what is set through it lasts as long as that
+        CSOUND, however short-lived the wrapper.
         """
-        if pointer_:
-            self.cs = pointer_
-            self.from_pointer = True
-        else:
-            self.cs = libcsound.csoundCreate(ct.py_object(host_data),
-                                             cstring(opcode_dir))
-            self.from_pointer = False
         self._kept = []
         self._keyboard_thunks = {}
+        self._threads = set()  # C pointers: a collection clears weakrefs first
         self._destroying = False
+        if pointer_:
+            self.cs = ct.cast(pointer_, ct.c_void_p).value
+            self.from_pointer = True
+            owner = self._owners.get(self.cs)
+            if owner is None:
+                self._owners[self.cs] = self._c_owned[self.cs] = self
+            else:
+                self._kept = owner._kept
+                self._keyboard_thunks = owner._keyboard_thunks
+        else:
+            self.cs = libcsound.csoundCreate(ct.py_object(self._keep(host_data)),
+                                             cstring(opcode_dir))
+            self.from_pointer = False
+            self._owners[self.cs] = self
 
     def __del__(self):
         """Destroys an instance of Csound."""
@@ -760,16 +780,30 @@ class Csound:
     def destroy(self):
         """Destroys an instance of Csound now, not when it is collected.
 
-        Once Csound is gone, what this instance kept for it is released, all
-        but the current callback of each set_ method. Calling it again, from a
-        callback Csound calls while it is destroyed included, does nothing.
-        Otherwise it must not run inside a callback.
+        A performance thread still on it is stopped and joined first, as
+        csoundDestroy needs. Once Csound is gone, what this instance kept for
+        it is released, all but the current callback of each set_ method.
+        Calling it again, from a callback Csound calls while it is destroyed
+        included, does nothing. Otherwise it must not run inside a callback.
         """
-        if self.cs and not self._destroying:
+        owner = self._owners.get(self.cs)
+        if self.from_pointer and owner is not self:
+            # Only the owner knows how far destroying has got. Not found, it
+            # is gone or being collected, and sharing no list, it is another
+            # instance at the same address.
+            if owner is not None and owner._kept is self._kept:
+                owner.destroy()
+            self.cs = None
+        elif self.cs and not self._destroying:
             self._destroying = True
+            for thread in tuple(self._threads):
+                libcspt.csoundPerformanceThreadStop(thread)
+                libcspt.csoundPerformanceThreadJoin(thread)
             try:
                 libcsound.csoundDestroy(self.cs)
             finally:
+                self._c_owned.pop(self.cs, None)
+                self._owners.pop(self.cs, None)
                 self.cs = None
                 self._kept.clear()
                 self._keyboard_thunks.clear()
@@ -847,11 +881,14 @@ class Csound:
 
     def host_data(self):
         """Returns host data."""
-        return libcsound.csoundGetHostData(self.cs)
+        # Not restype = py_object: ctypes takes that for a new reference, and
+        # would take one away from the data at each call.
+        data = libcsound.csoundGetHostData(self.cs)
+        return ct.cast(data, ct.py_object).value if data else None
 
     def set_host_data(self, data):
-        """Sets host data."""
-        libcsound.csoundSetHostData(self.cs, ct.py_object(data))
+        """Sets host data, which stays held until this instance is destroyed."""
+        libcsound.csoundSetHostData(self.cs, ct.py_object(self._keep(data)))
 
     def env(self, name):
         """Gets the value of environment variable name.
@@ -2231,13 +2268,24 @@ class CsoundPerformanceThread:
     that ctcsound.compile_() was called successfully before creating
     the performance thread. Once the playback is stopped for one of the above
     mentioned reasons, the performance thread returns.
+    The Csound stays alive until join() returns or this object goes.
     """
     def __init__(self, csp):
         self.cpt = libcspt.csoundCreatePerformanceThread(csp)
         self._kept = []
+        pointer = ct.cast(csp, ct.c_void_p).value
+        self._csound = Csound._owners.get(pointer) or Csound(pointer_=pointer)
+        self._csound._threads.add(self.cpt)
 
     def __del__(self):
         libcspt.csoundDestroyPerformanceThread(self.cpt)
+        self._release_csound()
+
+    def _release_csound(self):
+        """Lets the Csound go, now that this thread is off it."""
+        if self._csound is not None:
+            self._csound._threads.discard(self.cpt)
+            self._csound = None
 
     def is_running(self):
         """Returns True if the performance thread is running, False otherwise."""
@@ -2342,7 +2390,9 @@ class CsoundPerformanceThread:
         Also releases any resources associated with the performance thread
         object.
         """
-        return libcspt.csoundPerformanceThreadJoin(self.cpt)
+        status = libcspt.csoundPerformanceThreadJoin(self.cpt)
+        self._release_csound()
+        return status
 
     def flush_message_queue(self):
         """Waits until all pending messages are actually received.
