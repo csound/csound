@@ -22,6 +22,7 @@
 
 import ctypes as ct
 import ctypes.util
+import functools
 import numpy as np
 import sys
 import types
@@ -406,7 +407,9 @@ libcsound.csoundSetControlChannelHints.argtypes = [CSOUND_p, ct.c_char_p, Contro
 libcsound.csoundGetControlChannelHints.restype = ct.c_int32
 libcsound.csoundGetControlChannelHints.argtypes = [CSOUND_p, ct.c_char_p,
                                                    ct.POINTER(ControlChannelHints)]
+libcsound.csoundLockChannel.restype = None
 libcsound.csoundLockChannel.argtypes = [CSOUND_p, ct.c_char_p]
+libcsound.csoundUnlockChannel.restype = None
 libcsound.csoundUnlockChannel.argtypes = [CSOUND_p, ct.c_char_p]
 libcsound.csoundGetControlChannel.restype = cs_float
 libcsound.csoundGetControlChannel.argtypes = [CSOUND_p, ct.c_char_p, ct.POINTER(ct.c_int32)]
@@ -1507,12 +1510,18 @@ class Csound:
             name, CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
         if sdata is None:
             return ""
+        # map runs these back to back from C. No Python runs between them, so
+        # no signal handler or trace function can raise with the lock held.
+        steps = iter((
+            functools.partial(libcsound.csoundLockChannel, self.cs, channel),
+            functools.partial(_string_copy, self.cs, sdata),
+            functools.partial(libcsound.csoundUnlockChannel, self.cs, channel)))
         try:
-            # Inside the try: an interrupt as this returns must still unlock.
-            libcsound.csoundLockChannel(self.cs, channel)
-            data = _string_copy(self.cs, sdata)
-        finally:
-            libcsound.csoundUnlockChannel(self.cs, channel)
+            data = list(map(functools.partial.__call__, steps))[1]
+        except BaseException:
+            if steps.__length_hint__() == 1:  # the copy failed: unlock
+                next(steps)()
+            raise
         return pstring(data) or ""
 
     def set_string_channel(self, name, string):

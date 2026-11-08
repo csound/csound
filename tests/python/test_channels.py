@@ -2,7 +2,10 @@
 
 import os
 import sys
+import dis
+import signal
 import threading
+import time
 import unittest
 import ctypes as ct
 from unittest import mock
@@ -173,6 +176,86 @@ class TestStringChannel(unittest.TestCase):
         writer.join(10)
         self.assertFalse(writer.is_alive())
         self.assertEqual(self.cs.string_channel('text'), 'x' * 4096)
+
+    def test_string_channel_balances_its_lock_wherever_an_interrupt_lands(self):
+        code = ctcsound.Csound.string_channel.__code__
+        lines = sorted({line for _, line in dis.findlinestarts(code) if line})
+        real_lock = ctcsound.libcsound.csoundLockChannel
+        real_unlock = ctcsound.libcsound.csoundUnlockChannel
+        self.cs.set_string_channel('text', 'short')
+        for target in lines:
+            held = []
+            without_lock = []
+
+            def lock(csound, name):
+                real_lock(csound, name)
+                held.append(name)
+
+            def unlock(csound, name):
+                # An unlock nobody locked aborts the process on macOS.
+                if held:
+                    real_unlock(csound, held.pop())
+                else:
+                    without_lock.append(name)
+
+            def trace_line(frame, event, arg):
+                if event == 'line' and frame.f_lineno == target:
+                    sys.settrace(None)
+                    raise KeyboardInterrupt
+                return trace_line
+
+            def trace(frame, event, arg):
+                return trace_line if frame.f_code is code else None
+
+            with mock.patch.object(ctcsound.libcsound, 'csoundLockChannel', lock), \
+                 mock.patch.object(ctcsound.libcsound, 'csoundUnlockChannel', unlock):
+                sys.settrace(trace)
+                try:
+                    self.cs.string_channel('text')
+                except KeyboardInterrupt:
+                    pass
+                finally:
+                    sys.settrace(None)
+            leaked = len(held)
+            while held:
+                real_unlock(self.cs.cs, held.pop())
+            self.assertEqual((target - lines[0], leaked, without_lock),
+                             (target - lines[0], 0, []))
+
+    def test_string_channel_unlocks_after_an_interrupt_during_its_wait(self):
+        if threading.current_thread() is not threading.main_thread():
+            self.skipTest('a signal handler runs on the main thread')
+        self.cs.set_string_channel('text', 'short')
+        previous = signal.signal(signal.SIGINT, signal.default_int_handler)
+        self.addCleanup(signal.signal, signal.SIGINT, previous)
+        holding = threading.Event()
+        reading = threading.Event()
+
+        def hold():
+            self.cs.lock_channel('text')
+            holding.set()
+            reading.wait(10)
+            time.sleep(0.2)  # the reader is waiting in csoundLockChannel by now
+            signal.raise_signal(signal.SIGINT)
+            time.sleep(0.1)
+            self.cs.unlock_channel('text')
+
+        holder = threading.Thread(target=hold, daemon=True)
+        holder.start()
+        holding.wait(10)
+        with self.assertRaises(KeyboardInterrupt):
+            reading.set()
+            self.cs.string_channel('text')
+        holder.join(10)
+
+        def probe():
+            self.cs.lock_channel('text')
+            self.cs.unlock_channel('text')
+
+        prober = threading.Thread(target=probe, daemon=True)
+        prober.start()
+        prober.join(5)
+        self.assertFalse(prober.is_alive())
 
     def test_string_channel_unlocks_when_the_copy_raises(self):
         self.cs.set_string_channel('text', 'short')
