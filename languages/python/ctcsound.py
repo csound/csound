@@ -1510,17 +1510,20 @@ class Csound:
             name, CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
         if sdata is None:
             return ""
-        # map runs these back to back from C. No Python runs between them, so
-        # no signal handler or trace function can raise with the lock held.
+        # In CPython map runs these back to back from C, so no signal handler
+        # or trace function can raise between them. int() is the last: the
+        # steps left then say which of them did not finish.
+        unlock = functools.partial(libcsound.csoundUnlockChannel, self.cs, channel)
         steps = iter((
             functools.partial(libcsound.csoundLockChannel, self.cs, channel),
             functools.partial(_string_copy, self.cs, sdata),
-            functools.partial(libcsound.csoundUnlockChannel, self.cs, channel)))
+            unlock,
+            functools.partial(int)))
         try:
             data = list(map(functools.partial.__call__, steps))[1]
         except BaseException:
-            if steps.__length_hint__() == 1:  # the copy failed: unlock
-                next(steps)()
+            if steps.__length_hint__() in (1, 2):  # the copy or the unlock failed
+                unlock()
             raise
         return pstring(data) or ""
 

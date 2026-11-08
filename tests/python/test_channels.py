@@ -257,6 +257,24 @@ class TestStringChannel(unittest.TestCase):
         prober.join(5)
         self.assertFalse(prober.is_alive())
 
+    def test_string_channel_unlocks_when_the_unlock_call_is_interrupted(self):
+        self.cs.set_string_channel('text', 'short')
+        real_unlock = ctcsound.libcsound.csoundUnlockChannel
+        calls = []
+
+        def unlock(csound, name):
+            calls.append(name)
+            if len(calls) == 1:
+                raise KeyboardInterrupt  # before the native call, as in an audit hook
+            real_unlock(csound, name)
+
+        with mock.patch.object(ctcsound.libcsound, 'csoundUnlockChannel', unlock):
+            with self.assertRaises(KeyboardInterrupt):
+                self.cs.string_channel('text')
+        if len(calls) < 2:
+            real_unlock(self.cs.cs, b'text')  # for the tests that follow
+        self.assertEqual(len(calls), 2)
+
     def test_string_channel_unlocks_when_the_copy_raises(self):
         self.cs.set_string_channel('text', 'short')
         unlock = mock.Mock(wraps=ctcsound.libcsound.csoundUnlockChannel)
