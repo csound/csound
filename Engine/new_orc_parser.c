@@ -309,84 +309,12 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
         print_tree(csound, "AST - INITIAL\n", astTree);
       }
 
-      // EARLY two-phase struct processing: must happen before any variable declarations
-      // This ensures struct types are available when parsing variable declarations like john:Person
-      {
-        extern int32_t process_struct_definitions_two_phase(CSOUND* csound, TREE* structDefList);
-
-        // Create a separate list of wrapper nodes to avoid mutating the original AST
-        TREE* structList = NULL;
-        TREE* structTail = NULL;
-        TREE* scan = astTree;
-
-        while (scan != NULL) {
-          if (scan->type == STRUCT_TOKEN) {
-            // Create a wrapper node that references the struct node without modifying its next pointer
-            TREE* wrapper = (TREE*)csoundParserOwn(csound, csound->Malloc(csound, sizeof(TREE)));
-            if (UNLIKELY(wrapper == NULL)) {
-              csound->ErrorMsg(csound, Str("Memory allocation failed for struct wrapper node\n"));
-              err = 3;
-
-              // Clean up any already allocated wrapper nodes before jumping to ending
-              TREE* current = structList;
-              while (current != NULL) {
-                TREE* next = current->next;
-                csound->Free(csound, current);
-                current = next;
-              }
-              structList = NULL;
-
-              goto ending;
-            }
-
-            // Initialize wrapper with minimal information needed for processing
-            wrapper->type = scan->type;
-            wrapper->value = scan->value;
-            wrapper->rate = scan->rate;
-            wrapper->len = scan->len;
-            wrapper->line = scan->line;
-            wrapper->locn = scan->locn;
-            wrapper->left = scan->left;
-            wrapper->right = scan->right;
-            wrapper->markup = scan->markup;
-            wrapper->next = NULL;  // Initialize next to NULL
-
-            // Add wrapper to struct list
-            if (structList == NULL) {
-              structList = wrapper;
-              structTail = wrapper;
-            } else {
-              structTail->next = wrapper;
-              structTail = wrapper;
-            }
-          }
-          scan = scan->next;
-        }
-
-        // Process all struct definitions in two phases
-        if (structList != NULL) {
-          if (!process_struct_definitions_two_phase(csound, structList)) {
-            csound->ErrorMsg(csound, Str("Error in early two-phase struct processing\n"));
-            err = 3;
-
-            // Clean up wrapper nodes before exiting
-            TREE* current = structList;
-            while (current != NULL) {
-              TREE* next = current->next;
-              csound->Free(csound, current);
-              current = next;
-            }
-            goto ending;
-          }
-
-          // Clean up wrapper nodes after successful processing
-          TREE* current = structList;
-          while (current != NULL) {
-            TREE* next = current->next;
-            csound->Free(csound, current);
-            current = next;
-          }
-        }
+      /* Names must exist before imports; layouts may use imported types. */
+      extern int32_t register_struct_placeholders(CSOUND *, TREE *);
+      extern int32_t process_struct_definitions_two_phase(CSOUND *, TREE *);
+      if (!register_struct_placeholders(csound, astTree)) {
+        err = 3;
+        goto ending;
       }
 
       typeTable = csoundParserOwn(csound, csound->Calloc(csound, sizeof(TYPE_TABLE)));
@@ -420,11 +348,6 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
       typeTable->module = module_state->current_module;
       /* Dependencies have already been parsed, so import their typed symbols. */
       for (TREE *current = astTree; current != NULL; current = current->next) {
-        if (current->type == STRUCT_TOKEN && current->left != NULL) {
-          char *name = current->left->value->lexeme;
-          const CS_TYPE *type = csoundGetTypeWithVarTypeName(csound->typePool, name);
-          cs_hash_table_put(csound, typeTable->module->types, name, (void *)type);
-        }
         if (current->type != IMPORT_TOKEN && current->type != FROM_TOKEN) continue;
         CS_MODULE *source = csoundGetOrLoadModule(csound, current->left->value->lexeme);
         if (source == NULL || csoundProcessImportStatements(csound, source, current,
@@ -432,6 +355,11 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
           err = 3;
           goto ending;
         }
+      }
+
+      if (!process_struct_definitions_two_phase(csound, astTree)) {
+        err = 3;
+        goto ending;
       }
 
       typeTable->module_aliases = typeTable->module->aliases;

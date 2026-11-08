@@ -29,6 +29,7 @@
 #include "csoundCore.h"
 #include "aops.h"
 #include "arrays.h"
+#include "csound_module.h"
 
 /* Data sizes already align cs_float. Pad pool slots for pointer-bearing type
    headers and for the opcode state that follows the pool as well. */
@@ -62,9 +63,30 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
     size_t namelen = strlen(typeName);
     if (namelen == 0) return NULL;
 
+    CSOUND *csound = pool->owner;
+    CS_MODULE *module = csound != NULL && csound->module_state != NULL
+        ? csound->module_state->current_module : NULL;
+    /* Canonical signatures retain their descriptor across edits. User-facing
+       names resolve only through the current module and global plugin types. */
+    int canonical = strncmp(typeName, ":#module_", 9) == 0 ||
+                    strncmp(typeName, "#module_", 8) == 0;
+    if (module != NULL && !canonical && namelen > 1 && typeName[0] != '[') {
+      char name[256];
+      size_t len = namelen;
+      const char *start = typeName;
+      if (start[0] == ':' && start[len - 1] == ';') { ++start; len -= 2; }
+      if (len >= sizeof(name)) return NULL;
+      memcpy(name, start, len);
+      name[len] = '\0';
+      const CS_TYPE *type = csoundFindModuleType(csound, module, name);
+      if (type != NULL) return type;
+    }
+
     // First try direct match
     while (current != NULL) {
-      if (strcmp(typeName, current->cstype->varTypeName) == 0) {
+      if ((module == NULL || canonical ||
+           current->cstype->userDefinedType != CS_TYPE_USER_DEFINED) &&
+          strcmp(typeName, current->cstype->varTypeName) == 0) {
         return current->cstype;
       }
       current = current->next;
@@ -76,7 +98,8 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
       snprintf(unquotedName, 256, "%.*s", (int)(namelen - 2), typeName + 1);
       current = pool->head;
       while (current != NULL) {
-        if (strcmp(unquotedName, current->cstype->varTypeName) == 0) {
+        if ((module == NULL || canonical || current->cstype->userDefinedType != CS_TYPE_USER_DEFINED) &&
+            strcmp(unquotedName, current->cstype->varTypeName) == 0) {
           return current->cstype;
         }
         current = current->next;
@@ -89,7 +112,8 @@ const CS_TYPE* csoundGetTypeWithVarTypeName(const TYPE_POOL* pool, const char* t
       snprintf(internalName, 256, ":%s;", typeName);
       current = pool->head;
       while (current != NULL) {
-        if (strcmp(internalName, current->cstype->varTypeName) == 0) {
+        if ((module == NULL || canonical || current->cstype->userDefinedType != CS_TYPE_USER_DEFINED) &&
+            strcmp(internalName, current->cstype->varTypeName) == 0) {
           return current->cstype;
         }
         current = current->next;
@@ -464,6 +488,10 @@ static char *write_type_name(char *out, const char *name, size_t length,
   if (length >= 2 && name[0] == ':' && name[length - 1] == ';') {
     ++name;
     length -= 2;
+    if (length > 8 && !strncmp(name, "#module_", 8)) {
+      const char *end = memchr(name + 8, '_', length - 8);
+      if (end != NULL) { length -= end + 1 - name; name = end + 1; }
+    }
   }
   memcpy(out, name, length);
   out += length;

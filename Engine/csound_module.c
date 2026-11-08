@@ -62,6 +62,7 @@ static CS_MODULE *create_module(CSOUND *csound, const char *name)
     module->opcodes = cs_hash_table_create(csound);
     module->aliases = cs_hash_table_create(csound);
     module->types = cs_hash_table_create(csound);
+    module->type_bindings = cs_hash_table_create(csound);
     module->varPool = csoundCreateVarPool(csound);
     return module;
 }
@@ -119,6 +120,7 @@ CS_MODULE_UPDATE *csoundBeginModuleUpdate(CSOUND *csound)
     scope->opcodes = copy_bindings(csound, module->opcodes);
     scope->aliases = copy_bindings(csound, module->aliases);
     scope->types = copy_bindings(csound, module->types);
+    scope->type_bindings = copy_bindings(csound, module->type_bindings);
     size_t count = module->import_count;
     scope->imports = csound->Malloc(csound, (count + 1) * sizeof(CS_MODULE *));
     scope->import_info = csound->Malloc(csound, (count + 1) * sizeof(CS_IMPORT *));
@@ -132,6 +134,7 @@ CS_MODULE_UPDATE *csoundBeginModuleUpdate(CSOUND *csound)
     update->opcodes = module->opcodes;
     update->aliases = module->aliases;
     update->types = module->types;
+    update->type_bindings = module->type_bindings;
     update->imports = module->imports;
     update->import_info = module->import_info;
     update->import_count = module->import_count;
@@ -147,6 +150,7 @@ void csoundAcceptModuleUpdate(CS_MODULE_UPDATE *update)
     module->opcodes = scope->opcodes;
     module->aliases = scope->aliases;
     module->types = scope->types;
+    module->type_bindings = scope->type_bindings;
     module->imports = scope->imports;
     module->import_info = scope->import_info;
     module->import_count = scope->import_count;
@@ -162,6 +166,7 @@ void csoundFinishModuleUpdate(CSOUND *csound, CS_MODULE_UPDATE *update, int comm
         module->opcodes = update->opcodes;
         module->aliases = update->aliases;
         module->types = update->types;
+        module->type_bindings = update->type_bindings;
         module->imports = update->imports;
         module->import_info = update->import_info;
         module->import_count = update->import_count;
@@ -342,6 +347,15 @@ CS_VARIABLE *csoundFindSystemVariable(CSOUND *csound, const char *name)
     return NULL;
 }
 
+const CS_TYPE *csoundFindModuleType(CSOUND *csound, CS_MODULE *module,
+                                   const char *name)
+{
+    if (module == NULL) return NULL;
+    const CS_TYPE *type = cs_hash_table_get(csound, module->types, (char *)name);
+    return type != NULL ? type
+        : cs_hash_table_get(csound, module->type_bindings, (char *)name);
+}
+
 CONS_CELL *csoundFindModuleOpcodes(CSOUND *csound, CS_MODULE *module,
                                   const char *name)
 {
@@ -369,7 +383,7 @@ static int bind_item(CSOUND *csound, CS_MODULE *target, CS_MODULE *source,
 {
     CS_VARIABLE *var = csoundFindModuleVariable(csound, source, name);
     CONS_CELL *opcodes = csoundFindModuleOpcodes(csound, source, name);
-    void *type = cs_hash_table_get(csound, source->types, (char *)name);
+    const CS_TYPE *type = csoundFindModuleType(csound, source, name);
     if (var == NULL && opcodes == NULL && type == NULL) {
         synterr(csound, Str("Item '%s' not found in module '%s'\n"), name, source->file_path);
         return CSOUND_ERROR;
@@ -379,7 +393,8 @@ static int bind_item(CSOUND *csound, CS_MODULE *target, CS_MODULE *source,
         cs_hash_table_put(csound, pool->bindings, (char *)local, var);
     }
     if (opcodes != NULL) cs_hash_table_put(csound, target->opcodes, (char *)local, opcodes);
-    if (type != NULL) cs_hash_table_put(csound, target->types, (char *)local, type);
+    if (type != NULL)
+        cs_hash_table_put(csound, target->type_bindings, (char *)local, (void *)type);
     return CSOUND_SUCCESS;
 }
 
@@ -406,8 +421,8 @@ int csoundProcessImportStatements(CSOUND *csound, CS_MODULE *source,
     }
     if (info->is_wildcard) {
         CS_HASH_TABLE *tables[] = {source->varPool->table, source->varPool->bindings,
-                                  source->opcodes, source->types};
-        for (int t = 0; t < 4; t++) {
+                                  source->opcodes, source->types, source->type_bindings};
+        for (int t = 0; t < 5; t++) {
             CS_HASH_TABLE *table = tables[t];
             if (table == NULL) continue;
             for (int32_t i = 0; i < table->table_size; i++)

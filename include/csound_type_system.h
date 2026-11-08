@@ -99,6 +99,7 @@ extern "C" {
 
   typedef struct typepool {
     CS_TYPE_ITEM* head;
+    CSOUND *owner; /* Optional engine for orchestra type namespaces. */
   } TYPE_POOL;
 
   /** 

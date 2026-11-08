@@ -993,14 +993,17 @@ TEST_F (TypeSystemTests, StructConstructorsKeepSmallArgumentBlocks)
 {
     ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(
       csound, "struct Pair first:i, second:i\n", 0));
-    char name[] = "init.Pair";
-    char output[] = ":Pair;";
+    const CS_TYPE *type = csoundGetTypeWithVarTypeName(csound->typePool, "Pair");
+    ASSERT_NE(nullptr, type);
+    std::string name = "init." + std::string(type->varTypeName + 1,
+                                                  strlen(type->varTypeName) - 2);
+    char *output = type->varTypeName;
     char fields[] = "ii";
     char defaults[] = "";
 
     for (char *inputs : {fields, defaults}) {
         const OENTRY *constructor = csound->FindOpcode(
-          csound, 1, name, output, inputs);
+          csound, 1, name.data(), output, inputs);
         ASSERT_NE(nullptr, constructor);
         // One output and two fields need three argument pointers.
         EXPECT_LE(constructor->dsblksiz,

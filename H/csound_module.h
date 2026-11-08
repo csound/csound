@@ -50,6 +50,7 @@ struct cs_module {
     CS_HASH_TABLE *opcodes;        /* Name -> complete OENTRY list. */
     CS_HASH_TABLE *aliases;        /* Import aliases in this module only. */
     CS_HASH_TABLE *types;
+    CS_HASH_TABLE *type_bindings;   /* Borrowed imported types, below local definitions. */
     CS_VAR_POOL *varPool;
     TREE *ast;
     INSTRTXT *instr0;
@@ -63,7 +64,7 @@ struct cs_module {
 
 typedef struct cs_module_update {
     CS_MODULE *module, *scope, *previous_scope;
-    CS_HASH_TABLE *opcodes, *aliases, *types;
+    CS_HASH_TABLE *opcodes, *aliases, *types, *type_bindings;
     CS_MODULE **imports;
     CS_IMPORT **import_info;
     int32_t import_count;
@@ -82,6 +83,8 @@ CS_MODULE *csoundGetOrLoadModule(CSOUND *csound, const char *path);
 CS_VARIABLE *csoundFindModuleVariable(CSOUND *csound, CS_MODULE *module,
                                      const char *name);
 CS_VARIABLE *csoundFindSystemVariable(CSOUND *csound, const char *name);
+const CS_TYPE *csoundFindModuleType(CSOUND *csound, CS_MODULE *module,
+                                   const char *name);
 CONS_CELL *csoundFindModuleOpcodes(CSOUND *csound, CS_MODULE *module,
                                   const char *name);
 CS_MODULE *csoundFindModuleByAlias(CSOUND *csound, const char *alias);

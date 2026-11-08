@@ -2080,6 +2080,7 @@ static void reset(CSOUND *csound) {
     O->filetyp = -1;
     csound->peakchunks = 1;
     csound->typePool = csound->Calloc(csound, sizeof(TYPE_POOL));
+    csound->typePool->owner = csound;
     csound->engineState.varPool = csoundCreateVarPool(csound);
     add_standard_types(csound, csound->typePool);
     /* csoundLoadExternals(csound); */

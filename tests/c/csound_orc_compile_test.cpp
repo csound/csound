@@ -1009,7 +1009,9 @@ endop
     ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
     const char* initNames[] = {"GetterMember", "GetterString", "GetterChild",
                               "GetterChildExplicit"};
-    const char* initOutputs[] = {"i", "", ":GetterValue;", ":GetterValue;"};
+    const CS_TYPE *getterType = csoundGetTypeWithVarTypeName(csound->typePool, "GetterValue");
+    ASSERT_NE(nullptr, getterType);
+    const char* initOutputs[] = {"i", "", getterType->varTypeName, getterType->varTypeName};
     for (int i = 0; i < 4; ++i) {
         OENTRY* entry = find_opcode_new(csound, initNames[i], initOutputs[i], "i");
         ASSERT_NE(nullptr, entry) << initNames[i];

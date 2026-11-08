@@ -263,6 +263,41 @@ TEST_F(ModuleSystemTests, DiscardingParsedImportRestoresPreviousBindings)
     EXPECT_EQ(channel("alias"), 11);
 }
 
+TEST_F(ModuleSystemTests, StructAliasesPreserveModuleTypeIdentity)
+{
+    write("first.orc", "struct Point x:i,y:i\n"
+          "opcode Make():Point\n p:Point init 11,12\n xout p\nendop\n");
+    write("second.orc", "struct Point z:i\n"
+          "opcode Make():Point\n p:Point init 22\n xout p\nendop\n");
+    initial("from " + path("first.orc") + " import Point as First,Make as MakeFirst\n"
+            "from " + path("second.orc") + " import Point as Second,Make as MakeSecond\n"
+            "struct Wrapper point:First\n"
+            "p:First=MakeFirst()\nq:Second=MakeSecond()\n"
+            "w:Wrapper init p\nchnset w.point.y,\"first\"\n"
+            "chnset q.z,\"second\"\n");
+    ASSERT_EQ(csoundStart(csound), 0);
+    EXPECT_EQ(channel("first"), 12);
+    EXPECT_EQ(channel("second"), 22);
+}
+
+TEST_F(ModuleSystemTests, SelectiveImportsDoNotExposePrivateStructTypes)
+{
+    write("library.orc", "struct Hidden x:i\ngiValue=1\n");
+    initial("from " + path("library.orc") + " import giValue\n");
+    TREE *tree = csoundParseOrc(csound, "value:Hidden init 1\n");
+    EXPECT_EQ(tree, nullptr);
+    if (tree != nullptr) csoundDeleteTree(csound, tree);
+}
+
+TEST_F(ModuleSystemTests, RejectedStructRedefinitionKeepsExistingLayout)
+{
+    initial("struct Point x:i,y:i\n");
+    ASSERT_EQ(csoundStart(csound), 0);
+    EXPECT_NE(compile("struct Point x:i,y:i,z:i\nUndefinedOpcode\n"), 0);
+    ASSERT_EQ(compile("p:Point init 11,22\nchnset p.y,\"result\"\n"), 0);
+    EXPECT_EQ(channel("result"), 22);
+}
+
 TEST_F(ModuleSystemTests, ParsedDefinitionsKeepTheirOwnNamespace)
 {
     initial();
