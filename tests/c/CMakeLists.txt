@@ -242,6 +242,37 @@ if(BUILD_TESTS)
             TARGET configuration_test_plugin)
         target_compile_definitions(unittests PRIVATE
             CSOUND_TEST_HAS_CONFIGURATION_PLUGIN)
+
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+            # A second copy of each plugin that shares instance variables.
+            set(TEST_TWO_COPIES_DIR ${CMAKE_CURRENT_BINARY_DIR}/two-copies)
+            set(TEST_TWO_COPY_PLUGINS "")
+            foreach(plugin IN ITEMS rtalsa rtjack rtpulse stdutil)
+                if(TARGET ${plugin})
+                    set(plugin_dir ${TEST_TWO_COPIES_DIR}/${plugin})
+                    add_custom_target(unittests_two_copies_${plugin}
+                        COMMAND ${CMAKE_COMMAND} -E make_directory
+                            ${plugin_dir}/first ${plugin_dir}/second
+                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                            $<TARGET_FILE:${plugin}> ${plugin_dir}/first/
+                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                            $<TARGET_FILE:${plugin}> ${plugin_dir}/second/
+                        DEPENDS ${plugin})
+                    add_dependencies(unittests unittests_two_copies_${plugin})
+                    list(APPEND TEST_TWO_COPY_PLUGINS "\"${plugin}\"")
+                endif()
+            endforeach()
+            if(TEST_TWO_COPY_PLUGINS)
+                list(JOIN TEST_TWO_COPY_PLUGINS ", " two_copy_plugins)
+                file(WRITE
+                    ${CMAKE_CURRENT_BINARY_DIR}/generated/two_copies.hpp
+                    "#pragma once\n#define CSOUND_TEST_TWO_COPIES_DIR \"${TEST_TWO_COPIES_DIR}\"\n#define CSOUND_TEST_TWO_COPY_PLUGINS ${two_copy_plugins}\n")
+                target_include_directories(unittests PRIVATE
+                    ${CMAKE_CURRENT_BINARY_DIR}/generated)
+                target_compile_definitions(unittests PRIVATE
+                    CSOUND_TEST_HAS_TWO_COPIES)
+            endif()
+        endif()
     endif()
 
     if(TARGET stdutil)
