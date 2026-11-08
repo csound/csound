@@ -1805,9 +1805,12 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
 
 
  int32_t csoundSetOption(CSOUND *csound, const char *opt) {
-  /* if already compiled and running, return */
-  if (csound->engineStatus & CS_STATE_COMP)
+  /* if given no string, or already compiled and running, return */
+  if (opt == NULL || (csound->engineStatus & CS_STATE_COMP))
     return 1;
+  /* nothing to set: argdecode() would take "" for an orchestra name */
+  else if (opt[strspn(opt, " ")] == '\0')
+    return 0;
   else {
     char **args;
     char *options, *sp;
@@ -1836,51 +1839,27 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
       end--;
     }
 
-    int32_t flag = 0;
     int32_t quote = 0;
-    /* count whitespaces */
-    while (*sp != '\0') {
-      if(*sp == '"') {
-        quote = quote ? 0 : 1;
-      }
-      if(!quote) {
-      // but not when quoted
-      while (*sp == ' ') {
-        if(flag == 0) {
-          cnt++;
-          flag = 1;
-        }
+    /* end each argument at the spaces after it, but not when quoted */
+    for (; *sp != '\0'; sp++) {
+      if (*sp == '"')
+        quote = !quote;
+      else if (*sp == ' ' && !quote) {
         *sp = '\0';
-        sp++;
+        if (sp[1] != ' ')
+          cnt++;
       }
-      flag = 0;
-      sp++;
-      } else sp++;
     }
     argn = cnt;
     args = (char **)csoundCalloc(csound, sizeof(char *) * (cnt + 2));
     args[0] = "csound";
-    args[1] = sp = options;
-    cnt = 1;
-    flag = 1;
-    quote  = 0;
-    /* split into separate args */
-    while (*cursor && cnt < argn + 2) {
-      if(*cursor == '"') quote = quote ? 0 : 1;
-      if(!quote) {
-        while (*cursor == ' ') {
-          cursor++;
-          sp++;
-          flag = 1;
-        }
-        if(flag) {
-          args[cnt++] = unquote_arg(csound, sp);
-
-        }
-        flag = 0;
-      }
-      sp++;
-      cursor++;
+    sp = options;
+    /* take each argument, then step over the zeros its spaces became */
+    for (cnt = 1; cnt <= argn + 1; cnt++) {
+      args[cnt] = unquote_arg(csound, sp);
+      sp += strlen(sp);
+      while (cnt <= argn && *sp == '\0')
+        sp++;
     }
 
     ret = argdecode(csound, argn + 1, (const char **)args);
