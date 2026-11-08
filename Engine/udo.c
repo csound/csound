@@ -3039,7 +3039,10 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
             }
           }
         }
-        else { // under/oversampling
+        /* What is not converted leaves with the last local cycle, as from a
+           local ksmps: an output that is also an input must not change under
+           the cycles still to run. */
+        else if (p->cvt_out[cvt]->ncvt || ocnt == os - 1) {
           void* in = (void*)internal_ptrs[i];
           void* out = (void*)external_ptrs[i];
           if (UNLIKELY(src_convert(csound, p->cvt_out[cvt], in, out) != OK))

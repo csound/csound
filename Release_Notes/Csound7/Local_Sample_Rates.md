@@ -67,6 +67,10 @@ Settings `3` and `4` select zero-order hold and linear conversion.
 The output converter defaults to the input converter.
 Builds without libsamplerate use linear conversion for all converter settings.
 
+A value that can change during performance and is not converted, such as a
+string, is copied as it is with `setksmps`: in at each local control cycle, so
+it holds the parent's value through them, and back from the last of them.
+
 Use positive integer factors. A factor of `1` leaves the rate unchanged.
 Place rate setup before signal processing in the UDO.
 Do not combine it with a different local `ksmps` from `setksmps`.
