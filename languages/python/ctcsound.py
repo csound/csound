@@ -318,6 +318,7 @@ libcsound.csoundGetAudioDevList.argtypes = [CSOUND_p, ct.c_void_p, ct.c_int32]
 libcsound.csoundGetMIDIDevList.restype = ct.c_int32
 libcsound.csoundGetMIDIDevList.argtypes = [CSOUND_p, ct.c_void_p, ct.c_int32]
 libcsound.csoundGetMessageLevel.restype = ct.c_int32
+libcsound.csoundGetMessageLevel.argtypes = [CSOUND_p]
 libcsound.csoundSetMessageLevel.argtypes = [CSOUND_p, ct.c_int32]
 
 # Performance
