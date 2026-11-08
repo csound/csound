@@ -17,7 +17,7 @@ opcode Kept(value:b):b
   xout kept
 endop
 
-; xout copies a number into a boolean as it is, and the low half of 1 is 0
+; xout of a number from a boolean UDO: 1 is true, though the low half of 1.0 is 0
 opcode Number():b
   xout 1
 endop
