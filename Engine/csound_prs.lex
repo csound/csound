@@ -1680,10 +1680,12 @@ static int operate(CSOUND *csound, int a, int b, char c)
 
 static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
 {
-      char  stack[31];
-      int   vv[31];
-      char  *op = stack - 1;
-      int   *pv = vv - 1;
+      /* Slot 0 is below the bottom of each stack, so that op and pv start
+         at an element: a pointer before an array is undefined. */
+      char  stack[32] = {0};
+      int   vv[32] = {0};
+      char  *op = stack;
+      int   *pv = vv;
       int   c;
       struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
       int   type = 0;  /* 1 -> expecting binary operator,')', or ']'; else 0 */
@@ -1697,9 +1699,9 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
         c = input(yyscanner);
       top:
         while (isblank(c)) c = input(yyscanner);
-        /* Every push below comes back through here, so 30 are full and the
-           spare slot is never pushed past. */
-        if (UNLIKELY(op - stack >= 30 || pv - vv >= 30)) {
+        /* Every push below comes back through here before the next, so no
+           push lands past the last slot. */
+        if (UNLIKELY(op - stack >= 31 || pv - vv >= 31)) {
           csound->Message(csound, Str("[] expression too long\n"));
           csound->LongJmp(csound, 1);
         }
@@ -1710,7 +1712,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           //printf("bodmas:number\n");
           int i = 0;
           while (isdigit(c)) {
-            i = 10 * i + c - '0';
+            i = 10 * i + (c - '0');     /* c alone overflows at INT_MAX */
             c = input(yyscanner);
           }
           //printf("Number: %d terminated by %c(%.2x)\n", i, c, c);
@@ -1883,7 +1885,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           return 0;
         }
       } while (c != '~');
-      return pv < vv ? 0 : *pv;
+      return pv == vv ? 0 : *pv;
 }
 //#endif
 
@@ -1936,7 +1938,7 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
     else {
       int i = 0;
       while (isdigit(c)) {
-        i = 10 * i + c - '0';
+        i = 10 * i + (c - '0');
         c = input(yyscanner);
       }
       *term = c;
