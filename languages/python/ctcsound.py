@@ -24,6 +24,7 @@ import ctypes as ct
 import ctypes.util
 import numpy as np
 import sys
+import types
 from enum import Enum
 
 # This is a workaround to yield the PEP 3118 problem which appeared with
@@ -317,6 +318,7 @@ libcsound.csoundGetAudioDevList.argtypes = [CSOUND_p, ct.c_void_p, ct.c_int32]
 libcsound.csoundGetMIDIDevList.restype = ct.c_int32
 libcsound.csoundGetMIDIDevList.argtypes = [CSOUND_p, ct.c_void_p, ct.c_int32]
 libcsound.csoundGetMessageLevel.restype = ct.c_int32
+libcsound.csoundGetMessageLevel.argtypes = [CSOUND_p]
 libcsound.csoundSetMessageLevel.argtypes = [CSOUND_p, ct.c_int32]
 
 # Performance
@@ -724,6 +726,9 @@ class Csound:
             self.cs = libcsound.csoundCreate(ct.py_object(host_data),
                                              cstring(opcode_dir))
             self.from_pointer = False
+        self._kept = []
+        self._keyboard_thunks = {}
+        self._destroying = False
 
     def __del__(self):
         """Destroys an instance of Csound."""
@@ -733,11 +738,19 @@ class Csound:
     def destroy(self):
         """Destroys an instance of Csound now, not when it is collected.
 
-        Calling it again does nothing.
+        Once Csound is gone, what this instance kept for it is released, all
+        but the current callback of each set_ method. Calling it again, from a
+        callback Csound calls while it is destroyed included, does nothing.
+        Otherwise it must not run inside a callback.
         """
-        if self.cs:
-            libcsound.csoundDestroy(self.cs)
-            self.cs = None
+        if self.cs and not self._destroying:
+            self._destroying = True
+            try:
+                libcsound.csoundDestroy(self.cs)
+            finally:
+                self.cs = None
+                self._kept.clear()
+                self._keyboard_thunks.clear()
 
     def csound(self):
         """Returns the opaque pointer to the underlying CSOUND struct.
@@ -745,6 +758,18 @@ class Csound:
         This pointer is needed to instantiate a CsoundPerformanceThread object.
         """
         return self.cs
+
+    def _keep(self, value):
+        """Holds what Csound is handed until this instance is destroyed.
+
+        A replaced callback cannot be released, whatever the order: ctypes
+        reads a callback's thunk only once it has the GIL, so a thread Csound
+        sent into the old one can be waiting for the GIL when its setter
+        returns, and crashes on a thunk released by then. Each time a callback
+        is set therefore costs one thunk until this instance is destroyed.
+        """
+        self._kept.append(value)
+        return value
 
     #
     # Attributes
@@ -1141,7 +1166,7 @@ class Csound:
         This callback is cleared after reset.
         """
         self.message_string_cb = MSGSTRFUNC(function)
-        libcsound.csoundSetMessageStringCallback(self.cs, self.message_string_cb)
+        libcsound.csoundSetMessageStringCallback(self.cs, self._keep(self.message_string_cb))
 
     def create_message_buffer(self, to_stdout):
         """Creates a buffer for storing messages printed by Csound.
@@ -1570,12 +1595,12 @@ class Csound:
     def set_input_channel_callback(self, function):
         """Sets the function to call whenever the invalue opcode is used."""
         self.input_channel_cb_ref = CHANNELFUNC(function)
-        libcsound.csoundSetInputChannelCallback(self.cs, self.input_channel_cb_ref)
+        libcsound.csoundSetInputChannelCallback(self.cs, self._keep(self.input_channel_cb_ref))
 
     def set_output_channel_callback(self, function):
         """Sets the function to call whenever the outvalue opcode is used."""
         self.output_channel_cb_ref = CHANNELFUNC(function)
-        libcsound.csoundSetOutputChannelCallback(self.cs, self.output_channel_cb_ref)
+        libcsound.csoundSetOutputChannelCallback(self.cs, self._keep(self.output_channel_cb_ref))
 
     def event(self, type_, params, async_=False):
         """Send a new event. 'type_' is the event type.
@@ -1649,9 +1674,11 @@ class Csound:
         callbacks may be set and will be called in reverse order of
         registration. If the same function is set again, it is only moved
         in the list of callbacks so that it will be called first, and the
-        user data and type mask parameters are updated. type_mask can be the
-        bitwise OR of callback types for which the function should be called,
-        or zero for all types.
+        user data and type mask parameters are updated. The same function
+        means what it does for remove_keyboard_callback(), and as this removes
+        its entry first, that method's limit on when it may run applies here.
+        type_mask can be the bitwise OR of callback types for which the
+        function should be called, or zero for all types.
 
         Returns zero on success, CSOUND_ERROR if the specified function
         pointer or type mask is invalid, and CSOUND_MEMORY if there is not
@@ -1683,17 +1710,47 @@ class Csound:
         positive if the callback was ignored (for example because the type is
         not known).
         """
-        if type_ == CSOUND_CALLBACK_KBD_EVENT:
-            self.keyboard_cb_event_ref = KEYBOARDFUNC(function)
-        else:
-            self.keyboard_cb_text_ref = KEYBOARDFUNC(function)
-        return libcsound.csoundRegisterKeyboardCallback(self.cs,
-            KEYBOARDFUNC(function),
-            ct.py_object(user_data), ct.c_uint(type_))
+        # Csound tells callbacks apart by address, so a function has one thunk,
+        # and that thunk stays after removal for the reason _keep gives.
+        thunk = self._keyboard_thunks.setdefault(self._keyboard_key(function),
+                                                 KEYBOARDFUNC(function))
+        return libcsound.csoundRegisterKeyboardCallback(self.cs, thunk,
+            ct.py_object(self._keep(user_data)), ct.c_uint(type_))
 
     def remove_keyboard_callback(self, function):
-        """Removes a callback previously set with register_keyboard_callback()."""
-        libcsound.csoundRemoveKeyboardCallback(self.cs, KEYBOARDFUNC(function))
+        """Removes a callback previously set with register_keyboard_callback().
+
+        Csound frees the callback's entry with no lock, and reads it again
+        when a call returns. So neither this nor setting the function again
+        may run inside the callback, or while another thread performs.
+
+        A callable goes by identity: give it the object that was registered,
+        or another lookup of the same bound method. One that only compares
+        equal to it removes nothing. A C function, given by its address or as
+        ctypes' (name, dll), goes by its address.
+        """
+        key = self._keyboard_key(function)
+        if key in self._keyboard_thunks:
+            libcsound.csoundRemoveKeyboardCallback(self.cs, self._keyboard_thunks[key])
+
+    @staticmethod
+    def _keyboard_key(function):
+        """Returns what makes function one keyboard callback.
+
+        That is its identity, which its thunk preserves, as objects that compare
+        equal are still two. A bound method is made anew at each lookup, so it
+        goes by the identity of what it binds, which is how those of C types
+        compare. What is not callable names a C function, which ctypes keeps
+        no hold of, so it goes by its address, as Csound's own list does.
+        """
+        kind = type(function)
+        if kind is types.MethodType:
+            return id(function.__self__), id(function.__func__)
+        if issubclass(kind, (types.BuiltinMethodType, types.MethodWrapperType)):
+            return function
+        if not callable(function):
+            return ct.cast(KEYBOARDFUNC(function), ct.c_void_p).value
+        return id(function)
 
     #
     # Tables
@@ -1819,9 +1876,10 @@ class Csound:
         into the new slot.
         Returns zero on success.
         """
-        return libcsound.csoundAppendOpcode(self.cs, cstring(opname), dsblksiz,
-            flags, cstring(outypes), cstring(intypes),
-            OPCODEFUNC(initfunc), OPCODEFUNC(perffunc), OPCODEFUNC(deinitfunc))
+        return libcsound.csoundAppendOpcode(self.cs, self._keep(cstring(opname)), dsblksiz,
+            flags, self._keep(cstring(outypes)), self._keep(cstring(intypes)),
+            self._keep(OPCODEFUNC(initfunc)), self._keep(OPCODEFUNC(perffunc)),
+            self._keep(OPCODEFUNC(deinitfunc)))
 
     #
     # Realtime Audio I/O
@@ -1862,7 +1920,7 @@ class Csound:
         """Sets a callback for opening real-time MIDI input."""
         self.ext_midi_in_open_cb_ref = MIDIINOPENFUNC(function)
         libcsound.csoundSetExternalMidiInOpenCallback(self.cs,
-            self.ext_midi_in_open_cb_ref)
+            self._keep(self.ext_midi_in_open_cb_ref))
 
     def set_external_midi_read_callback(self, function):
         """Sets a callback for reading from real time MIDI input.
@@ -1878,19 +1936,19 @@ class Csound:
         """
         self.ext_midi_read_cb_ref = MIDIREADFUNC(function)
         libcsound.csoundSetExternalMidiReadCallback(self.cs,
-            self.ext_midi_read_cb_ref)
+            self._keep(self.ext_midi_read_cb_ref))
 
     def set_external_midi_in_close_callback(self, function):
         """Sets a callback for closing real time MIDI input."""
         self.ext_midi_in_close_cb_ref = MIDIINCLOSEFUNC(function)
         libcsound.csoundSetExternalMidiInCloseCallback(self.cs,
-            self.ext_midi_in_close_cb_ref)
+            self._keep(self.ext_midi_in_close_cb_ref))
 
     def set_external_midi_out_open_callback(self, function):
         """Sets a callback for opening real time MIDI output."""
         self.ext_midi_out_open_cb_ref = MIDIOUTOPENFUNC(function)
         libcsound.csoundSetExternalMidiOutOpenCallback(self.cs,
-            self.ext_midi_out_open_cb_ref)
+            self._keep(self.ext_midi_out_open_cb_ref))
 
     def set_external_midi_write_callback(self, function):
         """Sets a callback for writing to real time MIDI output.
@@ -1902,7 +1960,7 @@ class Csound:
         """
         self.ext_midi_write_cb_ref = MIDIWRITEFUNC(function)
         libcsound.csoundSetExternalMidiWriteCallback(self.cs,
-            self.ext_midi_write_cb_ref)
+            self._keep(self.ext_midi_write_cb_ref))
 
     set_external_midi_write_callbackk = set_external_midi_write_callback  # The old spelling.
 
@@ -1910,7 +1968,7 @@ class Csound:
         """Sets a callback for closing real time MIDI output."""
         self.ext_midi_out_close_cb_ref = MIDIOUTCLOSEFUNC(function)
         libcsound.csoundSetExternalMidiOutCloseCallback(self.cs,
-            self.ext_midi_out_close_cb_ref)
+            self._keep(self.ext_midi_out_close_cb_ref))
 
     def set_external_midi_error_string_callback(self, function):
         """Sets a callback for converting MIDI error codes to strings.
@@ -1940,13 +1998,13 @@ class Csound:
         self.ext_midi_err_str_cb_ref = MIDIERRORFUNC(
             error_string if callable(function) else function)
         libcsound.csoundSetExternalMidiErrorStringCallback(self.cs,
-            self.ext_midi_err_str_cb_ref)
+            self._keep(self.ext_midi_err_str_cb_ref))
 
     def set_midi_device_list_callback(self, function):
         """Sets a callback for obtaining a list of MIDI devices."""
         self.midi_dev_list_cb_ref = MIDIDEVLISTFUNC(function)
         libcsound.csoundSetMIDIDeviceListCallback(self.cs,
-            self.midi_dev_list_cb_ref)
+            self._keep(self.midi_dev_list_cb_ref))
 
     #
     # Table Display
@@ -1962,22 +2020,22 @@ class Csound:
     def set_make_graph_callback(self, function):
         """Called by external software to set Csound's MakeGraph function."""
         self.make_graph_cb_ref = MAKEGRAPHFUNC(function)
-        libcsound.csoundSetMakeGraphCallback(self.cs, self.make_graph_cb_ref)
+        libcsound.csoundSetMakeGraphCallback(self.cs, self._keep(self.make_graph_cb_ref))
 
     def set_draw_graph_callback(self, function):
         """Called by external software to set Csound's DrawGraph function."""
         self.draw_graph_cb_ref = DRAWGRAPHFUNC(function)
-        libcsound.csoundSetDrawGraphCallback(self.cs, self.draw_graph_cb_ref)
+        libcsound.csoundSetDrawGraphCallback(self.cs, self._keep(self.draw_graph_cb_ref))
 
     def set_kill_graph_callback(self, function):
         """Called by external software to set Csound's KillGraph function."""
         self.kill_graph_cb_ref = KILLGRAPHFUNC(function)
-        libcsound.csoundSetKillGraphCallback(self.cs, self.kill_graph_cb_ref)
+        libcsound.csoundSetKillGraphCallback(self.cs, self._keep(self.kill_graph_cb_ref))
 
     def set_exit_graph_callback(self, function):
         """Called by external software to set Csound's ExitGraph function."""
         self.exit_graph_cb_ref = EXITGRAPHFUNC(function)
-        libcsound.csoundSetExitGraphCallback(self.cs, self.exit_graph_cb_ref)
+        libcsound.csoundSetExitGraphCallback(self.cs, self._keep(self.exit_graph_cb_ref))
 
     #
     # Circular Buffer Functions
@@ -2077,7 +2135,7 @@ class Csound:
         This callback is retained after a reset() call.
         """
         self.open_sound_file_cb_ref = OPENSOUNDFILEFUNC(function)
-        libcsound.csoundSetOpenSoundFileCallback(self.cs, self.open_sound_file_cb_ref)
+        libcsound.csoundSetOpenSoundFileCallback(self.cs, self._keep(self.open_sound_file_cb_ref))
 
     def set_open_file_callback(self, function):
         """Sets a callback for opening a file.
@@ -2094,7 +2152,7 @@ class Csound:
         This callback is retained after a reset() call.
         """
         self.open_file_cb_ref = OPENFILEFUNC(function)
-        libcsound.csoundSetOpenFileCallback(self.cs, self.open_file_cb_ref)
+        libcsound.csoundSetOpenFileCallback(self.cs, self._keep(self.open_file_cb_ref))
 
 
 CSOUNDPERFTHREAD_p = ct.c_void_p
