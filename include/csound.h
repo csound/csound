@@ -940,7 +940,8 @@ extern "C" {
    *    when accessing/modifying channel data at **p.
    * See Top/threadsafe.c in the Csound library sources for
    * examples.  Optionally, use the channel get/set functions
-   * provided below, which are threadsafe by default.
+   * provided below, which are threadsafe by default, but see
+   * csoundGetStringChannel() on sizing its buffer.
    * NB: this function cannot be used to create a generic CSOUND_VAR_CHANNEL
    *     but it can access existing channels of that type
    */
@@ -1094,6 +1095,30 @@ extern "C" {
    * copies the string channel identified by *name into *string
    * which should contain enough memory for the string
    * (see csoundGetChannelDatasize() below)
+   *
+   * This function is not told how much memory that is, and it copies the
+   * whole string. If another thread can write the channel, the performance
+   * included, a longer string written after *string was sized is copied
+   * past its end. Such a host reads the channel itself, under its lock,
+   * into a buffer it has already allocated:
+   * \code
+   * STRINGDAT *stringdat;
+   * if (csoundGetChannelPtr(csound, (void **) &stringdat, name,
+   *                         CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+   *     == CSOUND_SUCCESS) {
+   *   csoundLockChannel(csound, name);
+   *   const char *text = csoundGetStringData(csound, stringdat);
+   *   int length = snprintf(buffer, size, "%s", text != NULL ? text : "");
+   *   csoundUnlockChannel(csound, name);
+   * }
+   * \endcode
+   * If length is not less than size, the copy was truncated, and the string
+   * needs length + 1 bytes. The performance waits for that lock when it uses
+   * the channel, so do nothing slow while holding it, and allocate outside it.
+   * csoundGetStringChannel() takes the lock itself, so it cannot be called
+   * between csoundLockChannel() and csoundUnlockChannel().
+   * The lock does not cover a variable exported with chnexport: the orchestra
+   * assigns to it without taking the lock.
    */
   PUBLIC void csoundGetStringChannel(CSOUND *csound,
                                      const char *name, char *string);
@@ -1243,7 +1268,11 @@ extern "C" {
    * this might change if the channel space gets reallocated
    * Since string variables use dynamic memory allocation
    * this function can be called to get the space required for
-   * csoundGetStringChannel()
+   * csoundGetStringChannel(), if no other thread can write the channel:
+   * the answer is out of date as soon as one does.
+   * It takes no channel lock, so it can be called between
+   * csoundLockChannel() and csoundUnlockChannel(), where the answer holds,
+   * unless the channel is a variable exported with chnexport.
    */
   PUBLIC int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name);
 
