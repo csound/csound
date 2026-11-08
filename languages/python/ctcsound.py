@@ -1706,8 +1706,8 @@ class Csound:
         registration. If the same function is set again, it is only moved
         in the list of callbacks so that it will be called first, and the
         user data and type mask parameters are updated. The same function
-        means what it does for remove_keyboard_callback(), and as this removes
-        its entry first, that method's limit on when it may run applies here.
+        means what it does for remove_keyboard_callback(), and what that
+        method says of when it may run holds here too.
         type_mask can be the bitwise OR of callback types for which the
         function should be called, or zero for all types.
 
@@ -1751,9 +1751,9 @@ class Csound:
     def remove_keyboard_callback(self, function):
         """Removes a callback previously set with register_keyboard_callback().
 
-        Csound frees the callback's entry with no lock, and reads it again
-        when a call returns. So neither this nor setting the function again
-        may run inside the callback, or while another thread performs.
+        This may run inside the callback, or while another thread performs.
+        It does not wait for a call in progress, so from another thread the
+        callback can still be running, or about to start, when this returns.
 
         A callable goes by identity: give it the object that was registered,
         or another lookup of the same bound method. One that only compares

@@ -80,6 +80,7 @@ if(BUILD_TESTS)
         doppler_test.cpp
         io_test.cpp
         readline_host_test.cpp
+        keyboard_callback_test.cpp
         local_ksmps_test.cpp
         lfsr_test.cpp
         serial_test.cpp

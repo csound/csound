@@ -1423,6 +1423,12 @@ extern "C" {
 
   /**
    * Removes a callback previously set with csoundRegisterKeyboardCallback().
+   * This and csoundRegisterKeyboardCallback() may be called during a
+   * performance, from any thread and from inside a callback. They do not wait
+   * for a call in progress: from another thread, the callback can still be
+   * running, or about to start, when this returns, so what it uses has to
+   * outlive the performance or be protected by the host. A function set again
+   * from another thread can miss the round of calls then in progress.
    */
   PUBLIC void csoundRemoveKeyboardCallback(CSOUND *csound,
                                            int32_t (*func)(void *, void *, uint32_t));
