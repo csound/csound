@@ -534,6 +534,26 @@ static char *convert_array_type_string(CSOUND *csound,
   } else return csoundStrdup(csound, str);
 }
 
+/* Deal with odd case of i(expressions) */
+static void check_i_argument(CSOUND* csound, TREE* tree)
+{
+  if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
+    print_tree(csound, "i()", tree);
+  /* No argument: no form of i matches, which is the caller's error to report */
+  if (tree->right == NULL)
+    return;
+  if (tree->right->type == T_ARRAY &&
+      tree->right->left->type == T_IDENT &&
+      is_irate(tree->right->right)) {
+    synterr(csound, Str("Use of i() with array element ill formed on line %d\n"), tree->line);
+  }
+  else
+    if (UNLIKELY(is_expression_node(tree->right)))
+      synterr(csound,
+              Str("Use of i() with expression not permitted on line %d\n"),
+              tree->line);
+}
+
 /* This function gets arg type with checking type table */
 static char* get_arg_type2_impl(CSOUND* csound, TREE* tree,
                                 TYPE_TABLE* typeTable);
@@ -700,20 +720,8 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
 
     }
 
-    // Deal with odd case of i(expressions)
     if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
-      if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
-        print_tree(csound, "i()", tree);
-      if (tree->right->type == T_ARRAY &&
-          tree->right->left->type == T_IDENT &&
-          is_irate(tree->right->right)) {
-        synterr(csound, Str("Use of i() with array element ill formed on line %d\n"), tree->line);
-      }
-      else
-        if (UNLIKELY(is_expression_node(tree->right)))
-          synterr(csound,
-                  Str("Use of i() with expression not permitted on line %d\n"),
-                  tree->line);
+      check_i_argument(csound, tree);
     }
 
     if (tree->type == T_FUNCTION) {
@@ -3123,61 +3131,6 @@ static TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* un
  * For further reference, please see the rule for statement and opcall in
  * Engine/csound_orc.y.
  */
-static char *get_assignment_lhs_type_hint(CSOUND *csound, TREE *left)
-{
-  if (left == NULL || left->value == NULL) {
-    return NULL;
-  }
-
-  if (left->value->optype != NULL) {
-    return convert_array_type_string(csound, left->value->optype);
-  }
-
-  char *name = left->value->lexeme;
-  if (name == NULL) {
-    return NULL;
-  }
-  if (*name == '#') {
-    name++;
-  }
-  if (*name == 'g' && name[1] != '\0') {
-    name++;
-  }
-  if (strchr("aikSKBbf", *name) != NULL) {
-    char type[2] = {*name, '\0'};
-    return csoundStrdup(csound, type);
-  }
-  return NULL;
-}
-
-/* An assignment from a function call goes through a hidden variable, copied to
- * the left at every k-period. Two calls cannot go that way, and become opcalls,
- * as they do with no computed argument:
- * - init writes once: the copy would put its value back at every k-period, and
- *   in global code, which has no k-period, would never run.
- * - a call resolving to a form of several outputs has no one type, and
- *   get_arg_type2 would raise that as an error.
- */
-static int32_t function_must_be_opcall(CSOUND* csound, TREE* call,
-                                       TYPE_TABLE* typeTable)
-{
-  char *argTypes, *outTypes;
-  OENTRIES* entries;
-
-  if (!strcmp(call->value->lexeme, "init")) {
-    return 1;
-  }
-  if (call->value->optype != NULL) {
-    return 0;
-  }
-  argTypes = get_arg_string_from_tree(csound, call->right, typeTable);
-  entries = find_opcode2(csound, call->value->lexeme);
-  outTypes = resolve_opcode_get_outarg(csound, entries, argTypes);
-  csound->Free(csound, argTypes);
-  csound->Free(csound, entries);
-  return outTypes != NULL && args_required(outTypes) != 1;
-}
-
 TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
                                   TYPE_TABLE* typeTable) {
   int32_t leftCount, rightCount;
@@ -3189,35 +3142,16 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
     if (right->type == T_FUNCTION &&
         right->left == NULL &&
         right->next == NULL) {
-      char *outType = NULL;
       TREE *arg = right->right;
-      int32_t hasExpressionArg = 0;
 
       while (arg != NULL) {
         handle_negative_number(csound, arg);
-        if (!hasExpressionArg) {
-          hasExpressionArg = is_expression_node(arg) ||
-                             is_boolean_expression_node(arg);
-        }
         arg = arg->next;
       }
 
-      if (hasExpressionArg && tree_arg_list_count(root->left) == 1) {
-        char *leftType = get_assignment_lhs_type_hint(csound, root->left);
-
-        if (leftType != NULL && strlen(leftType) == 1 &&
-            !function_must_be_opcall(csound, right, typeTable) &&
-            (outType = get_arg_type2(csound, right, typeTable)) != NULL) {
-          if (!strcmp(leftType, outType)) {
-            csound->Free(csound, leftType);
-            csound->Free(csound, outType);
-            return root;
-          }
-          csound->Free(csound, outType);
-        }
-        if (leftType != NULL) {
-          csound->Free(csound, leftType);
-        }
+      /* Nothing asks an opcall's type, which is where i() is checked. */
+      if (!strcmp(right->value->lexeme, "i")) {
+        check_i_argument(csound, right);
       }
 
       right->next = root->next;
