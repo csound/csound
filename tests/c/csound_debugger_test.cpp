@@ -937,7 +937,7 @@ TEST_F (DebuggerTests, testUdoFramesStringLiteralArgIsTheCopy)
     ASSERT_NE(frames, nullptr);
     debug_variable_t *arg = findDebugVar(frames->varList, "Sx");
     ASSERT_NE(arg, nullptr);
-    ASSERT_STREQ(((STRINGDAT *) arg->data)->data, "written by the body");
+    ASSERT_STREQ((const char *) arg->data, "written by the body");
 
     csoundDebugFreeUdoFrames(csound, frames);
     csoundDebugFreeInstrInstances(csound, instrs);

@@ -63,11 +63,17 @@ opcode Outer(Sx:S):void
 endop
 
 opcode PassThrough(Sx:S):S
+  if strcmp(Sx, "short") != 0 then
+    Fail("a pass-through call was given what an earlier one wrote")
+  endif
   Sx = $LONG
   xout Sx
 endop
 
 opcode PassThroughFit(Sx:S):S
+  if strcmp(Sx, $MEDIUM) != 0 then
+    Fail("a pass-through call was given what an earlier one wrote over a literal")
+  endif
   Sx = "fit"
   xout Sx
 endop
