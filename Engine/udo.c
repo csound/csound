@@ -1201,14 +1201,6 @@ static int32_t pbr_input_uses_xin_copy(const UOPCODE *p, const cs_float *input) 
   return 0;
 }
 
-/* xin's variable is sized at init. A literal given at perf time that does
-   not fit it, as rebinding an Opcode object can, is an error: it cannot grow
-   on the performance path. */
-static int32_t pbr_literal_fits(const cs_float *input, const cs_float *copy) {
-  return !pbr_is_string_literal(input) ||
-    strlen(((const STRINGDAT *)input)->data) < ((const STRINGDAT *)copy)->size;
-}
-
 static void pbr_apply_entries(CSOUND *csound,
                               UOPCODE *p,
                               OPDS *chain,
@@ -1384,8 +1376,7 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
           return NULL;
         }
       }
-      if (UNLIKELY((!allowAllocation && !pbr_literal_fits(input, xin->args[i])) ||
-                   pbr_copy_value(csound, xin->args[i], input,
+      if (UNLIKELY(pbr_copy_value(csound, xin->args[i], input,
                                   lcurip, allowAllocation) != OK)) {
         if (copyResult != NULL) {
           *copyResult = NOTOK;
@@ -1943,6 +1934,28 @@ cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
   return target;
 }
 
+/* xin's variable is sized at init. Rebinding an Opcode object can bring a new
+   literal that does not fit it, and it cannot grow on the performance path. */
+static int32_t pbr_rebound_literals_fit(const UOPCODE *p) {
+  const OPCODINFO *info = p->buf->opcode_info;
+  XIN *xin = NULL;
+  int32_t i;
+
+  for (i = 0; i < info->inchns; i++) {
+    const STRINGDAT *input = (const STRINGDAT *)p->ar[info->outchns + i];
+
+    if (pbr_is_string_literal((const cs_float *)input)) {
+      if (xin == NULL && (xin = pbr_find_xin(p->ip)) == NULL) {
+        return 1;
+      }
+      if (input->size > ((const STRINGDAT *)xin->args[i])->size) {
+        return 0;
+      }
+    }
+  }
+  return 1;
+}
+
 int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
   OPCODINFO *udoinfo;
   PBR_REWIRE_PLAN *plan;
@@ -1970,6 +1983,9 @@ int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
 
   /* This runs at perf time, so like useropcd_pass_by_ref it does not
      allocate: an input that no longer fits its snapshot is an error. */
+  if (UNLIKELY(!pbr_rebound_literals_fit(p))) {
+    return NOTOK;
+  }
   xin = pbr_snapshot_colliding_inputs(csound, p, p->ip, 0, &copyResult);
   if (UNLIKELY(copyResult != OK)) {
     return NOTOK;
