@@ -55,6 +55,34 @@ endop
 
 opcode Outer(val:i):void
   Inner(val)
+  ; What a nested UDO wrote is the body's own, as it would be for a variable.
+  if val != 9 then
+    Fail("the body did not see what a nested UDO wrote to its argument")
+  endif
+endop
+
+opcode ObjectOuter(val:i):void
+  ; The same for an Opcode object given the argument.
+  objects:Opcode[] = create(opcoderef("Inner"), 1)
+  init objects[0], val
+  if val != 9 then
+    Fail("the body did not see what an object wrote to its argument")
+  endif
+endop
+
+opcode InitThenK(val:i):k
+  val = 5
+  kOut = val
+  xout kOut
+endop
+
+opcode WriteReserved(val:i):void
+  val = 7
+endop
+
+opcode ThroughReserved(val:i):i
+  val = 7
+  xout val
 endop
 
 opcode ReadK(val:k):k
@@ -78,6 +106,35 @@ instr 1
   iAfter = 3
   if iBefore != iAfter then
     Fail("a nested write reached the constant")
+  endif
+
+  iBefore = 12
+  ObjectOuter(12)
+  iAfter = 12
+  if iBefore != iAfter then
+    Fail("an object's write reached the constant")
+  endif
+
+  ; A reserved global is written by no one but the header, even by reference.
+  iBefore = 0dbfs
+  WriteReserved(0dbfs)
+  if 0dbfs != iBefore then
+    Fail("a by-reference write reached 0dbfs")
+  endif
+  iResult = ThroughReserved(0dbfs)
+  if 0dbfs != iBefore then
+    Fail("a pass-through writeback reached 0dbfs")
+  endif
+
+  ; Rebinding at performance does not lose what init wrote: the first perf of
+  ; an element of an Opcode array always rebinds.
+  objects:Opcode[] = create(opcoderef("InitThenK"), 1)
+  kThroughObject init 0
+  kThroughObject init objects[0], 4
+  kThroughObject perf objects[0], 4
+  if timeinstk() > 1 && kThroughObject != 5 then
+    printks "FAILED: rebinding an object lost what init wrote to an i-rate argument\n", 0
+    exitnowk -1
   endif
 
   ; An i-rate argument keeps what init wrote through performance.

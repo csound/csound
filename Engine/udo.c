@@ -1075,6 +1075,15 @@ static void pbr_collect_rewire_entries(CSOUND *csound,
         if (ar_index < 0) {
           continue;
         }
+        /* A UDO or an Opcode object given the argument can write it, and the
+           body must see that write, as it does for a variable. */
+        if (ar_index >= (int32_t) udoinfo->outchns &&
+            (ep->useropinfo != NULL ||
+             (ep->intypes != NULL &&
+              strncmp(ep->intypes, ":Opcode;", 8) == 0))) {
+          builder->input_written[ar_index - udoinfo->outchns] = 1;
+        }
+
         if (ep->init != NULL) {
           pbr_append_entry(csound, &builder->init_entries, &builder->init_count,
                            &builder->init_capacity, current_offset,
@@ -1198,16 +1207,21 @@ static int32_t pbr_is_string_literal(const UOPCODE *p, const cs_float *arg) {
   return 0;
 }
 
-/* A numeric constant is the constants pool's own cell; a body that writes the
-   argument may not work on it in place. A UDO or an Opcode object given the
-   argument gets the same cell and answers this for itself. */
+/* A numeric constant or a reserved global (sr, 0dbfs...) is storage the whole
+   orchestra reads; a body that writes the argument may not work on it in
+   place. */
+static int32_t pbr_is_shared_numeric(const cs_float *arg) {
+  const CS_TYPE *type = csoundGetTypeForArg(arg);
+  return type == &CS_VAR_TYPE_C || type == &CS_VAR_TYPE_R;
+}
+
 static int32_t pbr_is_written_constant(const UOPCODE *p, int32_t input_index,
                                        const cs_float *arg) {
   const unsigned char *written = p->buf->opcode_info->pbr_plan != NULL ?
     p->buf->opcode_info->pbr_plan->input_written : NULL;
 
   return arg != NULL && written != NULL && written[input_index] &&
-    csoundGetTypeForArg(arg) == &CS_VAR_TYPE_C;
+    pbr_is_shared_numeric(arg);
 }
 
 /* An input the body works on through xin's own variable, not in place: one
@@ -1305,13 +1319,6 @@ static int32_t pbr_copy_value(CSOUND *csound, cs_float *dst, cs_float *src,
       csound, type, dst, src, ctx,
       allowAllocation ? CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION
                       : CSOUND_STRUCT_COPY_INDEPENDENT_NO_ALLOCATION);
-  }
-  /* The array and struct copies above refuse what does not fit by themselves;
-     a string's own copy would grow the buffer, which --realtime never does. */
-  if (type == &CS_VAR_TYPE_S && !allowAllocation && csound->oparms->realtime &&
-      ((const STRINGDAT *)src)->data != NULL &&
-      strlen(((const STRINGDAT *)src)->data) + 1 > ((const STRINGDAT *)dst)->size) {
-    return NOTOK;
   }
   if (type != NULL && type->copyValue != NULL) {
     type->copyValue(csound, type, dst, src, ctx);
@@ -1418,7 +1425,7 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
           return NULL;
         }
       }
-      if (keepInitRate && csoundGetTypeForArg(input) == &CS_VAR_TYPE_C &&
+      if (keepInitRate && pbr_is_shared_numeric(input) &&
           csoundGetTypeForArg(xin->args[i]) == &CS_VAR_TYPE_I) {
         continue;
       }
@@ -1438,7 +1445,7 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
 static int32_t pbr_is_readonly_source(const UOPCODE *p, cs_float *src) {
   const CS_TYPE *src_type = src != NULL ? csoundGetTypeForArg(src) : NULL;
   return src_type == &CS_VAR_TYPE_C || src_type == &CS_VAR_TYPE_P ||
-    pbr_is_string_literal(p, src);
+    src_type == &CS_VAR_TYPE_R || pbr_is_string_literal(p, src);
 }
 
 static int32_t pbr_seed_pass_through_outputs(CSOUND *csound,
@@ -1984,21 +1991,30 @@ cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
   return target;
 }
 
-/* xin's variable is sized at init. Rebinding an Opcode object can bring a new
-   literal that does not fit it, and it cannot grow on the performance path. */
-static int32_t pbr_rebound_literals_fit(const UOPCODE *p) {
+/* xin's variable is sized at init. Rebinding an Opcode object can bring a text
+   that does not fit it: a literal, whose copy this path adds and which must
+   not allocate here, and under --realtime a string variable read through the
+   copy because it collides with an output (outside --realtime that variable
+   still grows, as it always has). */
+static int32_t pbr_rebound_strings_fit(CSOUND *csound, const UOPCODE *p) {
   const OPCODINFO *info = p->buf->opcode_info;
   XIN *xin = NULL;
   int32_t i;
 
   for (i = 0; i < info->inchns; i++) {
-    const STRINGDAT *input = (const STRINGDAT *)p->ar[info->outchns + i];
+    const cs_float *arg = p->ar[info->outchns + i];
 
-    if (pbr_is_string_literal(p, (const cs_float *)input)) {
+    if (pbr_is_string_literal(p, arg) ||
+        (csound->oparms->realtime && arg != NULL &&
+         csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S &&
+         pbr_input_uses_xin_copy(p, i, arg))) {
+      const STRINGDAT *input = (const STRINGDAT *)arg;
+
       if (xin == NULL && (xin = pbr_find_xin(p->ip)) == NULL) {
         return 1;
       }
-      if (input->size > ((const STRINGDAT *)xin->args[i])->size) {
+      if (input->data != NULL &&
+          strlen(input->data) + 1 > ((const STRINGDAT *)xin->args[i])->size) {
         return 0;
       }
     }
@@ -2032,12 +2048,12 @@ int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
   }
 
   /* This runs at perf time, so like useropcd_pass_by_ref it does not
-     allocate: an input that no longer fits its snapshot is an error, a
-     string's own copy excepted outside --realtime (pbr_copy_value). */
-  if (UNLIKELY(!pbr_rebound_literals_fit(p))) {
+     allocate: an input that no longer fits its snapshot is an error. Outside
+     --realtime a colliding string variable's copy still grows, as on develop. */
+  if (UNLIKELY(!pbr_rebound_strings_fit(csound, p))) {
     return NOTOK;
   }
-  xin = pbr_snapshot_colliding_inputs(csound, p, p->ip, 0, 0, &copyResult);
+  xin = pbr_snapshot_colliding_inputs(csound, p, p->ip, 0, 1, &copyResult);
   if (UNLIKELY(copyResult != OK)) {
     return NOTOK;
   }
