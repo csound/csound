@@ -513,6 +513,7 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
         else {
           int32_t n = 1;
           int32_t written;
+          int32_t needed = 0;
           char check='%';
           tmp[0] = check;
           while (n < (int32_t) sizeof(tmp) - 1 && *(fmt+n) &&
@@ -533,7 +534,7 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
           case 'x':
           case 'X':
           case 'u':
-            snprintf(outstring, len, tmp, CS_FLOAT2LRND(*kvals[j]));
+            needed = snprintf(outstring, len, tmp, CS_FLOAT2LRND(*kvals[j]));
             break;
           case 'c':
             cc  = (char) CS_FLOAT2LRND(*kvals[j]);
@@ -542,20 +543,21 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
               *outstring++ = '%';
               len--;
             }
-            snprintf(outstring, len, tmp, cc);
+            needed = snprintf(outstring, len, tmp, cc);
             break;
           case 's':
             {
               if (csoundGetTypeForArg(kvals[j]) == &CS_VAR_TYPE_S)
-                snprintf(outstring, len, tmp,  ((STRINGDAT*)kvals[j])->data);
-              else snprintf(outstring, len, tmp, "??");
+                needed = snprintf(outstring, len, tmp,  ((STRINGDAT*)kvals[j])->data);
+              else needed = snprintf(outstring, len, tmp, "??");
               break;
             }
           default:
             //puts(fmt);
-            snprintf(outstring, len, tmp, *kvals[j]);
+            needed = snprintf(outstring, len, tmp, *kvals[j]);
             break;
           }
+          if (UNLIKELY(needed >= len)) return NOTOK;   /* it was truncated */
           if (j < numVals-1)
             j++;
           fmt += n;
