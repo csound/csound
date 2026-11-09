@@ -3,7 +3,7 @@ description = "printks2 follows its format variable, even when the text outgrows
 
 [expect]
 exit = 0
-output = ["after, in a string long enough that the variable has to grow", "shorter again 8"]
+output = ["after, in a string long enough that the variable has to grow past the sixty-four bytes it started with 4", "shorter again 8"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
