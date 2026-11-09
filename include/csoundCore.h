@@ -1808,8 +1808,6 @@ struct CSOUND_ {
   int32_t inChar_;                                           /* next input character */
   int32_t enableMsgAttr;                                     /* message attributes enabled */
   int32_t info_message_request;                              /* information messages requested */
-  int32_t list_structs_request;                              /* --list-structs requested */
-  int32_t list_opcodes_request;                              /* --list-opcodesN or -zN requested: N + 1 */
 
   /* -------- Realtime audio I/O and buffers -------- */
   cs_float *spin;                                            /* input channel buffer */
@@ -1984,6 +1982,8 @@ struct CSOUND_ {
   MARKED_SECTIONS marked_sections[1024];                     /* the score's marks, 1024 at most */
   char *line_event_work;                                     /* the lines sense_line takes, its alone */
   int32_t line_event_work_size;                              /* allocated size of line_event_work */
+  int32_t list_structs_request;                              /* --list-structs requested */
+  int32_t list_opcodes_request;                              /* --list-opcodesN or -zN requested: N + 1 */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */
