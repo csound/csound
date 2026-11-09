@@ -539,6 +539,9 @@ static void check_i_argument(CSOUND* csound, TREE* tree)
 {
   if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
     print_tree(csound, "i()", tree);
+  /* No argument: no form of i matches, which is the caller's error to report */
+  if (tree->right == NULL)
+    return;
   if (tree->right->type == T_ARRAY &&
       tree->right->left->type == T_IDENT &&
       is_irate(tree->right->right)) {
@@ -3147,7 +3150,7 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
       }
 
       /* Nothing asks an opcall's type, which is where i() is checked. */
-      if (right->right != NULL && !strcmp(right->value->lexeme, "i")) {
+      if (!strcmp(right->value->lexeme, "i")) {
         check_i_argument(csound, right);
       }
 
