@@ -24,6 +24,7 @@
 #include "dumpf.h"
 #include <ctype.h>
 #include <inttypes.h>
+#include "strarg2name.h"
 
 static const int32_t dumpf_format_table[9] = {
   0,
@@ -76,7 +77,7 @@ int32_t kdmpset_p(CSOUND *csound, KDUMP *p)
     }
     if (IsStringCode(*p->ifilcod))
       strNcpy(soundoname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
+    else strarg2name_bounded(csound, soundoname, sizeof(soundoname), p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname,
@@ -129,7 +130,7 @@ int32_t kdmp2set_p(CSOUND *csound, KDUMP2 *p)
     }
     if (IsStringCode(*p->ifilcod))
       strNcpy(soundoname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
+    else strarg2name_bounded(csound, soundoname, sizeof(soundoname), p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname,
@@ -184,7 +185,7 @@ int32_t kdmp3set_p(CSOUND *csound, KDUMP3 *p)
     }
     if (IsStringCode(*p->ifilcod))
       strNcpy(soundoname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
+    else strarg2name_bounded(csound, soundoname, sizeof(soundoname), p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname,
@@ -236,7 +237,7 @@ int32_t kdmp4set_p(CSOUND *csound, KDUMP4 *p)
     }
     if (IsStringCode(*p->ifilcod))
       strNcpy(soundoname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
+    else strarg2name_bounded(csound, soundoname, sizeof(soundoname), p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname,
@@ -385,7 +386,7 @@ int32_t krdset_p(CSOUND *csound, KREAD *p)
     }
      if (IsStringCode(*p->ifilcod))
        strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -465,7 +466,7 @@ int32_t krd2set_p(CSOUND *csound, KREAD2 *p)
     }
     if (IsStringCode(*p->ifilcod))
       strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -519,7 +520,7 @@ int32_t krd3set_p(CSOUND *csound, KREAD3 *p)
     }
     if (IsStringCode(*p->ifilcod))
       strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -573,7 +574,7 @@ int32_t krd4set_p(CSOUND *csound, KREAD4 *p)
     }
     if (IsStringCode(*p->ifilcod))
       strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -745,7 +746,7 @@ int32_t krdsset_p(CSOUND *csound, KREADS *p)
     char soundiname[1024];
     if (IsStringCode(*p->ifilcod))
       strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",

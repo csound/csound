@@ -25,6 +25,7 @@
 #include <math.h>
 #include <inttypes.h>
 #include <stddef.h>
+#include "strarg2name.h"
 
 /*
  * LPC storage slots
@@ -736,7 +737,7 @@ static int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
     else if (IsStringCode(*p->ifilcod))
       strNcpy(lpfilname, csoundGetArgString(csound, *p->ifilcod), MAXNAME);
     else
-      csound->StringArg2Name(csound, lpfilname, p->ifilcod, "lp.", 0);
+      strarg2name_bounded(csound, lpfilname, sizeof(lpfilname), p->ifilcod, "lp.", 0);
 
     mfp = csoundLoadMemoryfile(csound, lpfilname, CSFTYPE_LPC, NULL);
     if (UNLIKELY(mfp == NULL))

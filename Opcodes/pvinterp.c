@@ -27,6 +27,7 @@
 
 #include "pvoc.h"
 #include <math.h>
+#include "strarg2name.h"
 
 #define WLN   1         /* time window is WLN*2*ksmps long */
 #define OPWLEN (2*WLN*CS_KSMPS)    /* manifest used for final time wdw */
@@ -76,7 +77,7 @@ static int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
   if (stringname==0){
       if (IsStringCode(*p->ifilno))
         strncpy(pvfilnam,csound->GetArgString(csound, *p->ifilno), MAXNAME-1);
-      else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+      else strarg2name_bounded(csound, pvfilnam, sizeof(pvfilnam), p->ifilno, "pvoc.",0);
                 }
   else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 
@@ -204,7 +205,7 @@ static int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
   if (stringname==0){
       if (IsStringCode(*p->ifilno))
         strncpy(pvfilnam,csound->GetArgString(csound, *p->ifilno), MAXNAME-1);
-      else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+      else strarg2name_bounded(csound, pvfilnam, sizeof(pvfilnam), p->ifilno, "pvoc.",0);
                 }
   else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);;
   if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
@@ -397,7 +398,7 @@ static int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
   if (stringname==0){
     if (IsStringCode(*p->ifilno))
       strncpy(pvfilnam,csound->GetArgString(csound, *p->ifilno), MAXNAME-1);
-    else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+    else strarg2name_bounded(csound, pvfilnam, sizeof(pvfilnam), p->ifilno, "pvoc.",0);
   }
   else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 

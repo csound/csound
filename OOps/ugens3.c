@@ -24,6 +24,7 @@
 #include "ugens3.h"
 #include <math.h>
 #include <stddef.h>
+#include "strarg2name.h"
 
 int32_t foscset(CSOUND *csound, FOSC *p)
 {
@@ -1484,7 +1485,7 @@ static int32_t adset_(CSOUND *csound, ADSYN *p, int32_t stringname)
   if (stringname) strNcpy(filnam, ((STRINGDAT*)p->ifilcod)->data, MAXNAME-1);
     else if (IsStringCode(*p->ifilcod))
       strNcpy(filnam, csoundGetArgString(csound, *p->ifilcod), MAXNAME-1);
-    else csound->StringArg2Name(csound, filnam, p->ifilcod, "adsyn.", 0); 
+    else strarg2name_bounded(csound, filnam, sizeof(filnam), p->ifilcod, "adsyn.", 0); 
 
   if ((mfp = p->mfp) == NULL || strcmp(mfp->filename,filnam) != 0) {
     /* readfile if reqd */

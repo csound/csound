@@ -25,6 +25,7 @@
 #else
 #include "csoundCore.h"
 #endif
+#include "strarg2name.h"
 #include <time.h>
 #include <limits.h>
 
@@ -175,7 +176,7 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
       strncpy(name, ((STRINGDAT *)p->Sfile)->data, 1023);
       name[1023] = '\0';
     }
-    else csound->StringArg2Name(csound, name, p->Sfile, "input.", 0);
+    else strarg2name_bounded(csound, name, sizeof(name), p->Sfile, "input.", 0);
     readf_delete(csound, p);
     p->fd = fopen(name, "r");
     p->lineno = 0;

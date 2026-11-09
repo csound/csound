@@ -27,6 +27,7 @@
 
 #include "pvoc.h"
 #include <math.h>
+#include "strarg2name.h"
 
 #define TABLESEG_INSTANCE "csound.tableseg.source"
 
@@ -199,7 +200,7 @@ static int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
   if (stringname==0){
     if (IsStringCode(*p->ifilno))
       strncpy(pvfilnam,csound->GetArgString(csound, *p->ifilno), MAXNAME-1);
-    else csound->StringArg2Name(csound, pvfilnam, p->ifilno, "pvoc.",0);
+    else strarg2name_bounded(csound, pvfilnam, sizeof(pvfilnam), p->ifilno, "pvoc.",0);
   }
   else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
 

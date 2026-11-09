@@ -66,6 +66,7 @@
 #include "ugnorman.h"
 #include <ctype.h>
 #include "interlocks.h"
+#include "strarg2name.h"
 
 #define ATSA_NOISE_VARIANCE 0.04
 
@@ -204,7 +205,7 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
   else {
     if (IsStringCode(*((cs_float*)name_arg)))
       strncpy(fname,csound->GetArgString(csound, *((cs_float*)name_arg)),MAXNAME-1);
-    else csound->StringArg2Name(csound, fname, name_arg, "ats.",0);
+    else strarg2name_bounded(csound, fname, MAXNAME, name_arg, "ats.",0);
   }
   /* load memfile */
   if (UNLIKELY((*mfp = csound->LoadMemoryFile(csound, fname,

@@ -26,6 +26,7 @@
 #else
 #include "csoundCore.h"
 #endif
+#include "strarg2name.h"
 #include "interlocks.h"
 #include "mp3dec.h"
 
@@ -99,11 +100,10 @@ static int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
   }
 
 
-  /* FIXME: name can overflow with very long string -- truncates safely */
   if (stringname==0){
     if (IsStringCode(*p->iFileCode))
       strncpy(name,csound->GetArgString(csound, *p->iFileCode), 1023);
-    else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
+    else strarg2name_bounded(csound, name, sizeof(name), p->iFileCode, "soundin.",0);
   }
   else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
   name[sizeof(name) - 1] = '\0';
@@ -273,11 +273,10 @@ static int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
     mp3dec_uninit(mpa);
     return csound->InitError(csound, "%s\n", mp3dec_error(r));
   }
-  /* FIXME: name can overflow with very long string -- safely truncated */
   if (stringname==0){
     if (IsStringCode(*p->iFileCode))
       strncpy(name,csound->GetArgString(csound, *p->iFileCode), 1023);
-    else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
+    else strarg2name_bounded(csound, name, sizeof(name), p->iFileCode, "soundin.",0);
   }
   else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
   name[sizeof(name) - 1] = '\0';

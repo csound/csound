@@ -22,6 +22,7 @@
 #include "soundio.h"
 #include <math.h>
 #include <errno.h>
+#include "strarg2name.h"
 
 typedef struct ftgentmp_table {
   int32_t fno;
@@ -302,7 +303,7 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
 
   if (!istring) {
     if (IsStringCode(*p->ifilno)) {
-      csound->StringArg2Name(csound, generated_name, p->ifilno, "ftsave.", 0);
+      strarg2name_bounded(csound, generated_name, sizeof(generated_name), p->ifilno, "ftsave.", 0);
       filename = generated_name;
     }
     else filename = csound->GetArgString(csound, *p->ifilno);
@@ -486,7 +487,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
 
   if (!istring) {
     if (IsStringCode(*p->ifilno)) {
-      csound->StringArg2Name(csound, generated_name, p->ifilno, "ftsave.", 0);
+      strarg2name_bounded(csound, generated_name, sizeof(generated_name), p->ifilno, "ftsave.", 0);
       filename = generated_name;
     }
     else filename = csound->GetArgString(csound, *p->ifilno);
