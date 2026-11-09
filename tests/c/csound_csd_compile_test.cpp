@@ -174,6 +174,25 @@ TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInText)
   EXPECT_EQ(32u, csoundGetKsmps(csound));
 }
 
+// On a started engine csoundCompileCSD skips <CsOptions>, by the rules that read it.
+TEST_F(CsdCompileTests, TagsInACommentDoNotEndCsOptionsOnAStartedEngine)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const auto text = csd("instr 1\nendin\n",
+                        "<CsOptions>\n--ksmps=16 /* a comment\n</CsOptions>\n"
+                        "</CsoundSynthesizer>\n*/\n</CsOptions>\n");
+  EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
+}
+
+TEST_F(CsdCompileTests, UnterminatedCommentFailsOnAStartedEngine)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const auto text = csd("instr 1\nendin\n", "<CsOptions>\n/* never closed\n</CsOptions>\n");
+  EXPECT_NE(0, csoundCompileCSD(csound, text.c_str(), 1, 0));
+  const auto output = messages();
+  EXPECT_NE(std::string::npos, output.find("Missing end tag </CsOptions>")) << output;
+}
+
 TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInFile)
 {
   ASSERT_NO_FATAL_FAILURE(write("options.csd", withKsmps16));

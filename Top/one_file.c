@@ -277,17 +277,44 @@ static void remove_special_placeholders(char *s, size_t n)
     }
 }
 
+/* Read past a block comment, from just after its opening. It ends at the
+   first closing delimiter, in this line or a later one, or at end of file.
+   It has its own buffer: the options before the comment are in the caller's. */
+static void skip_block_comment(CSOUND *csound, CORFIL *cf, const char *p)
+{
+    char  buffer[CSD_MAX_LINE_LEN];
+
+    while (strstr(p, "*/") == NULL) {
+      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) == NULL)
+        return;
+      p = buffer;
+    }
+}
+
+#define CSOPTIONS_SKIP (2)
+
 /* readingCsOptions should be non-zero when read_options() is called
-   while reading the <CsOptions> tag, but zero in other cases. */
+   while reading the <CsOptions> tag, but zero in other cases.
+   CSOPTIONS_SKIP reads the tag's lines by the same rules, and applies none. */
 int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
 {
     char  *p;
     int32_t   argc = 0;
+    int32_t   continued, continues = FALSE;  /* a chunk of a too-long line */
     const char  *argv[CSD_MAX_ARGS];
     char  buffer[CSD_MAX_LINE_LEN];
 
     //alloc_globals(csound);
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+      continued = continues;
+      continues = buffer[strlen(buffer)-1] != '\n';
+      p = buffer;
+      while (isblank(*p)) p++;
+      /* Before the trim, which overwrites the last character of a last line
+         that has no newline. */
+      if (readingCsOptions && strstr(p, "</CsOptions>") == p) {
+        return TRUE;
+      }
       p = buffer;
       /* Remove trailing spaces; rather heavy handed */
       {
@@ -296,9 +323,6 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
         p[len+1] = '\n'; p[len+2] = '\0';
       }
       while (isblank(*p)) p++;
-      if (readingCsOptions && strstr(p, "</CsOptions>") == p) {
-        return TRUE;
-      }
       /**
        * Allow command options in unified CSD files
        * to begin with the Csound command, so that
@@ -307,6 +331,10 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
        */
       if (*p==';' || *p=='#' || *p=='\n' || (*p=='/' && *(p+1)=='/'))
         continue; /* empty or comment line? */
+      if (!continued && *p=='/' && *(p+1)=='*') {
+        skip_block_comment(csound, cf, p+2);
+        continue;
+      }
       argc = 0;
       argv[0] = p;
       while (isblank(*p)) p++;  /* Ignore leading space */
@@ -323,6 +351,8 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
                                 argc, argc, argv[argc]);
 #endif
           while (isblank(*p)) p++;
+          if (readingCsOptions == CSOPTIONS_SKIP)
+            argc = 0;           /* a skipped line collects nothing: no limit */
 
           if (*p== '"') {
             if (UNLIKELY(argc == CSD_MAX_ARGS))
@@ -351,17 +381,8 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
             *p = '\0'; break;
           }
           if (*p == '/' && *(p+1) == '*') {  /* Comment line? */
-            p += 2;
-          top:
-            while (*p != '*' && *p != '\0') p++;
-            if (*p == '*' && *(p+1)== '/') {
-              /* p += 2; */ break;
-            }
-            if (*p=='*') {
-              p++; goto top;
-            }
-            my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf);
-            p = buffer; goto top;
+            skip_block_comment(csound, cf, p+2);
+            break;
           }
           if (UNLIKELY(argc == CSD_MAX_ARGS))
             csoundDie(csound, Str("More than %d arguments in <CsOptions>\n"),
@@ -372,7 +393,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
           *p = '\0';
           break;
         }
-        else if (*p=='"' && *(p-1) != '\\') {
+        else if (*p=='"' && (p == buffer || *(p-1) != '\\')) {
           int32_t is_escape = 0;
           char *old = NULL;
           *p=3; /* ETX char used to mark the limits of a string */
@@ -387,6 +408,10 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
             if (isspace(*(p+1))) {
               *p = '\0';
               remove_special_placeholders((char *)argv[argc], strlen(argv[argc]));
+              p++;              /* the rest of the line is ignored, as ever... */
+              while (isblank(*p)) p++;
+              if (*p == '/' && *(p+1) == '*')  /* ...but a comment still opens */
+                skip_block_comment(csound, cf, p+2);
               break;
             }
             else {
@@ -394,7 +419,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
             }
           }
         }
-        p++;
+        if (*p != '\0') p++;   /* a quote left open ends at the line's end */
       }
       //argc++;                /* according to Nicola but wrong */
 #ifdef _DEBUG
@@ -403,6 +428,8 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
         for (i=0;  i<=argc; i++) printf("%d: %s\n", i, argv[i]);
       }
 #endif
+      if (readingCsOptions == CSOPTIONS_SKIP)
+        continue;
       /* Read an argv thing */
       if (UNLIKELY(argc == 0)) {
         if (readingCsOptions)
@@ -1200,16 +1227,8 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         }
         else {
           csoundMessage(csound, Str("Skipping <CsOptions>\n"));
-          do {
-            if (UNLIKELY(my_fgets_cf(csound, buffer,
-                                   CSD_MAX_LINE_LEN, cf) == NULL)) {
-              csoundErrorMsg(csound, Str("Missing end tag </CsOptions>\n"));
-              result = FALSE;
-              break;
-            }
-            p = buffer;
-            while (isblank(*p)) p++;
-          } while (strstr(p, "</CsOptions>") != p);
+          r = read_options(csound, cf, CSOPTIONS_SKIP);
+          result = r && result;
         }
       }
       else if (strstr(p, "<CsInstruments>") == p) {
