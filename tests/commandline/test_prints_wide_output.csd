@@ -17,9 +17,7 @@ nchnls = 1
 0dbfs = 1
 
 instr 1
-  ; No plain character follows the second: it is the conversion's own
-  ; output that does not fit.
-  prints "%8000.0f %8000.0f", 1, 2
+  prints "%8000.0f %8000.0f\n", 1, 2
 endin
 
 </CsInstruments>

@@ -1425,7 +1425,7 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
           return NULL;
         }
       }
-      if (keepInitRate && pbr_is_shared_numeric(input) &&
+      if (keepInitRate && input != NULL && pbr_is_shared_numeric(input) &&
           csoundGetTypeForArg(xin->args[i]) == &CS_VAR_TYPE_I) {
         continue;
       }

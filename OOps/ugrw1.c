@@ -492,8 +492,10 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
 {
     char tmp[64],cc;
     int32_t j = 0;
-    /* What every caller's buffer holds, the terminator included: an output
-       that does not fit, like a conversion too long for tmp, is an error. */
+    /* What every caller's buffer holds, the terminator included: a plain
+       character that does not fit, like a conversion too long for tmp, is an
+       error; a conversion's own output is cut to fit, as snprintf has always
+       done, and what follows it then does not fit either. */
     int32_t len = 8192;
     while (*fmt) {
       if (*fmt == '%') {
@@ -513,7 +515,6 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
         else {
           int32_t n = 1;
           int32_t written;
-          int32_t needed = 0;
           char check='%';
           tmp[0] = check;
           while (n < (int32_t) sizeof(tmp) - 1 && *(fmt+n) &&
@@ -534,7 +535,7 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
           case 'x':
           case 'X':
           case 'u':
-            needed = snprintf(outstring, len, tmp, CS_FLOAT2LRND(*kvals[j]));
+            snprintf(outstring, len, tmp, CS_FLOAT2LRND(*kvals[j]));
             break;
           case 'c':
             cc  = (char) CS_FLOAT2LRND(*kvals[j]);
@@ -543,21 +544,20 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
               *outstring++ = '%';
               len--;
             }
-            needed = snprintf(outstring, len, tmp, cc);
+            snprintf(outstring, len, tmp, cc);
             break;
           case 's':
             {
               if (csoundGetTypeForArg(kvals[j]) == &CS_VAR_TYPE_S)
-                needed = snprintf(outstring, len, tmp,  ((STRINGDAT*)kvals[j])->data);
-              else needed = snprintf(outstring, len, tmp, "??");
+                snprintf(outstring, len, tmp,  ((STRINGDAT*)kvals[j])->data);
+              else snprintf(outstring, len, tmp, "??");
               break;
             }
           default:
             //puts(fmt);
-            needed = snprintf(outstring, len, tmp, *kvals[j]);
+            snprintf(outstring, len, tmp, *kvals[j]);
             break;
           }
-          if (UNLIKELY(needed >= len)) return NOTOK;   /* it was truncated */
           if (j < numVals-1)
             j++;
           fmt += n;
