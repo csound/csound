@@ -193,6 +193,26 @@ TEST_F(CsdCompileTests, UnterminatedCommentFailsOnAStartedEngine)
   EXPECT_NE(std::string::npos, output.find("Missing end tag </CsOptions>")) << output;
 }
 
+TEST_F(CsdCompileTests, CommentClosedAcrossAChunkEndsOnAStartedEngine)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const auto text = csd("instr 1\nendin\n",
+                        "<CsOptions>\n/* a comment\n</CsOptions>\n"
+                        "</CsoundSynthesizer>\n" + std::string(4094, 'x') +
+                        "*/\n</CsOptions>\n");
+  EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
+}
+
+TEST_F(CsdCompileTests, CommentAfterALongCommentOpensOnAStartedEngine)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const auto text = csd("instr 1\nendin\n",
+                        "<CsOptions>\n/* " + std::string(4200, 'x') + "\n*/\n"
+                        "/* the second\n</CsOptions>\n</CsoundSynthesizer>\n*/\n"
+                        "</CsOptions>\n");
+  EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
+}
+
 TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInFile)
 {
   ASSERT_NO_FATAL_FAILURE(write("options.csd", withKsmps16));

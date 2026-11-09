@@ -278,16 +278,25 @@ static void remove_special_placeholders(char *s, size_t n)
 }
 
 /* Read past a block comment, from just after its opening. It ends at the
-   first closing delimiter, in this line or a later one, or at end of file.
-   It has its own buffer: the options before the comment are in the caller's. */
-static void skip_block_comment(CSOUND *csound, CORFIL *cf, const char *p)
+   first closing delimiter, in this line or a later one, or at end of file,
+   and the rest of the line holding that delimiter goes with it. It has its
+   own buffer: the options before the comment are in the caller's. `last` is
+   the last byte read: a delimiter can lie across two chunks of a too-long
+   line, and the caller's next read starts a line. */
+static void skip_block_comment(CSOUND *csound, CORFIL *cf, const char *p,
+                               char *last)
 {
     char  buffer[CSD_MAX_LINE_LEN];
+    int32_t closed = strstr(p, "*/") != NULL;
 
-    while (strstr(p, "*/") == NULL) {
+    if (*p == '\n')             /* the star of the opening closes nothing */
+      *last = '\n';
+    while (!closed || *last != '\n') {
       if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) == NULL)
         return;
-      p = buffer;
+      closed = closed || (*last == '*' && *buffer == '/') ||
+               strstr(buffer, "*/") != NULL;
+      *last = buffer[strlen(buffer)-1];
     }
 }
 
@@ -300,14 +309,14 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
 {
     char  *p;
     int32_t   argc = 0;
-    int32_t   continued, continues = FALSE;  /* a chunk of a too-long line */
-    const char  *argv[CSD_MAX_ARGS];
-    char  buffer[CSD_MAX_LINE_LEN];
+    char  last = '\n';           /* no newline: a chunk of a too-long line */
+    const char  *argv[CSD_MAX_ARGS+1];     /* the command name, then the rest */
+    char  buffer[CSD_MAX_LINE_LEN+1];      /* room for the newline given below */
 
     //alloc_globals(csound);
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
-      continued = continues;
-      continues = buffer[strlen(buffer)-1] != '\n';
+      int32_t continued = last != '\n';
+      last = buffer[strlen(buffer)-1];
       p = buffer;
       while (isblank(*p)) p++;
       /* Before the trim, which overwrites the last character of a last line
@@ -318,7 +327,8 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
       p = buffer;
       /* Remove trailing spaces; rather heavy handed */
       {
-        int32_t len = (int32_t) strlen(p)-2;
+        /* Without a newline to overwrite, the last character is the line's. */
+        int32_t len = (int32_t) strlen(p) - (last == '\n' ? 2 : 1);
         while (len>0 && (isblank(p[len]))) len--;
         p[len+1] = '\n'; p[len+2] = '\0';
       }
@@ -332,7 +342,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
       if (*p==';' || *p=='#' || *p=='\n' || (*p=='/' && *(p+1)=='/'))
         continue; /* empty or comment line? */
       if (!continued && *p=='/' && *(p+1)=='*') {
-        skip_block_comment(csound, cf, p+2);
+        skip_block_comment(csound, cf, p+2, &last);
         continue;
       }
       argc = 0;
@@ -381,7 +391,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
             *p = '\0'; break;
           }
           if (*p == '/' && *(p+1) == '*') {  /* Comment line? */
-            skip_block_comment(csound, cf, p+2);
+            skip_block_comment(csound, cf, p+2, &last);
             break;
           }
           if (UNLIKELY(argc == CSD_MAX_ARGS))
@@ -411,7 +421,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
               p++;              /* the rest of the line is ignored, as ever... */
               while (isblank(*p)) p++;
               if (*p == '/' && *(p+1) == '*')  /* ...but a comment still opens */
-                skip_block_comment(csound, cf, p+2);
+                skip_block_comment(csound, cf, p+2, &last);
               break;
             }
             else {
