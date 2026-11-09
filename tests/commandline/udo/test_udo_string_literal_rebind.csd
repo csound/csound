@@ -4,7 +4,7 @@ description = "Rebinding an Opcode object to a string literal its argument canno
 [expect]
 exit = "nonzero"
 stderr = ["could not rebind arguments"]
-output = ["the body read a literal that fits"]
+output = ["the body read a sixty-three character literal, the most it fits"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -23,14 +23,16 @@ endop
 instr 1
   objects:Opcode[] = create(opcoderef("Show"), 1)
   init objects[0], "short"
-  perf objects[0], "the body read a literal that fits"
+  ; 63 characters and a zero fill the 64 bytes the variable has from init.
+  perf objects[0], "the body read a sixty-three character literal, the most it fits"
 endin
 
 instr 2
   objects:Opcode[] = create(opcoderef("Show"), 1)
   init objects[0], "short"
-  ; Longer than the 64 bytes the argument's variable has from init.
-  perf objects[0], "a literal longer than the sixty-four bytes the variable has from init, which it cannot grow to hold"
+  ; 64 characters and its terminating zero: one byte past the 64 the
+  ; argument's variable has from init.
+  perf objects[0], "a sixty-four character literal is one more than this variable ha"
 endin
 </CsInstruments>
 <CsScore>
