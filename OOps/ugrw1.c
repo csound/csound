@@ -492,10 +492,10 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
 {
     char tmp[64],cc;
     int32_t j = 0;
-    /* What every caller's buffer holds, the terminator included: a plain
-       character that does not fit, like a conversion too long for tmp, is an
-       error; a conversion's own output is cut to fit, as snprintf has always
-       done, and what follows it then does not fit either. */
+    /* What every caller's buffer holds, the terminator included. A conversion
+       too long for tmp is an error, and so is anything that starts when the
+       buffer is already full; a conversion's own output is cut to fit, as
+       snprintf has always done. */
     int32_t len = 8192;
     while (*fmt) {
       if (*fmt == '%') {
@@ -516,6 +516,7 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
           int32_t n = 1;
           int32_t written;
           char check='%';
+          if (UNLIKELY(len < 2)) return NOTOK;
           tmp[0] = check;
           while (n < (int32_t) sizeof(tmp) - 1 && *(fmt+n) &&
                 !isblank(*(fmt+n))) {
@@ -540,7 +541,7 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
           case 'c':
             cc  = (char) CS_FLOAT2LRND(*kvals[j]);
             if (cc == '%') {
-              if (UNLIKELY(len < 2)) return NOTOK;
+              if (UNLIKELY(len < 3)) return NOTOK;
               *outstring++ = '%';
               len--;
             }
