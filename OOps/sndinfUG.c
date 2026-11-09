@@ -375,14 +375,18 @@ int32_t filepeak_S(CSOUND *csound, SNDINFOPEAK *p){
 /* From matt ingalls */
 static int32_t filevalid_(CSOUND *csound, FILEVALID *p, const char *soundiname)
 {
+    char *path;
     *p->r1 = 0;
     if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */
       if (csound->oparms->infilename)  /* commandline inputfile */
         *p->r1 = 1;
       return OK;
     }
-    if (LIKELY(csound->FindInputFile(csound, soundiname, "SFDIR;SSDIR")))
+    path = csound->FindInputFile(csound, soundiname, "SFDIR;SSDIR");
+    if (LIKELY(path != NULL)) {
       *p->r1 = 1;
+      csound->Free(csound, path);
+    }
     return OK;
 }
 
