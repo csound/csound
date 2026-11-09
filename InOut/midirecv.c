@@ -125,7 +125,7 @@ void midi_open(CSOUND *csound)
     int32_t     err;
     /* First set up buffers. */
     p->Midevtblk = (MEVENT*) csound->Calloc(csound, sizeof(MEVENT));
-    p->sexp = 0;
+    p->device.sexp = p->file.sexp = 0;
     /* Then open device... */
     if (O->Midiin) {
       if (p->MidiInOpenCallback == NULL)
@@ -496,7 +496,9 @@ static void midNotesOff(CSOUND *csound, int32_t port)
 int32_t sens_midi(CSOUND *csound)
 {
     MGLOBAL *p = csound->midiGlobals;
-    MEVENT  *mep = p->Midevtblk;
+    MIDIPARSER *src;
+    MEVENT  *mep;
+    unsigned char *srcend;
    const OPARMS  *O = csound->oparms;
     int32_t     n;
     int16   c, type;
@@ -518,6 +520,7 @@ int32_t sens_midi(CSOUND *csound)
         else
           p->endatp += (int32_t) n;
       }
+      p->filep = p->endatp;                     /* the file's bytes start here */
       if (O->FMidiin) {                         /* read MIDI file */
         n = csoundMIDIFileRead(csound, p->endatp,
                                MBUFSIZ - (int32_t) (p->endatp - p->bufp));
@@ -527,6 +530,18 @@ int32_t sens_midi(CSOUND *csound)
       if (p->endatp <= p->bufp)
         return 0;               /* no events were received */
     }
+
+    /* A device and a MIDI file are parsed apart. Either can stop in the middle
+       of a message, and the other's bytes are not its next ones. */
+    if (p->bufp < p->filep) {
+      src = &p->device;
+      srcend = p->filep;
+    }
+    else {
+      src = &p->file;
+      srcend = p->endatp;
+    }
+    mep = &src->event;
 
     if ((c = *(p->bufp++)) & 0x80) {    /* STATUS byte:         */
       type = c & 0xF0;
@@ -554,40 +569,40 @@ int32_t sens_midi(CSOUND *csound)
             goto nxtchr;
           }
         else {                          /* sys_non-realtime status: */
-          p->sexp = 0;                  /* implies sys_exclus end   */
+          src->sexp = 0;                /* implies sys_exclus end   */
           switch (lo3) {                /* dispatch on lo3:     */
           case 7: goto nxtchr;          /* EOX: already done    */
-          case 0: p->sexp = 1;          /* sys_ex begin:        */
+          case 0: src->sexp = 1;        /* sys_ex begin:        */
             goto nxtchr;                /*   goto copy data     */
           /* sys_common: need some data, so build evt */
           case 1:                       /* MTC quarter frame    */
-          case 3: p->datreq = 1;        /* song select          */
+          case 3: src->datreq = 1;      /* song select          */
             break;
-          case 2: p->datreq = 2;        /* song position        */
+          case 2: src->datreq = 2;      /* song position        */
             break;
           case 6:                       /* tune request         */
             goto nxtchr;
           default:
             csound->Message(csound, Str("undefined sys_common msg %x\n"), c);
-            p->datreq = 32767;          /* waste any data following */
-            p->datcnt = 0;
+            src->datreq = 32767;        /* waste any data following */
+            src->datcnt = 0;
             goto nxtchr;
           }
         }
         mep->type = type;               /* begin sys_com event  */
         mep->chan = lo3;                /* holding code in chan */
-        p->datcnt = 0;
+        src->datcnt = 0;
         goto nxtchr;
       }
       else {                            /* other status types:  */
         int16 chan;
-        p->sexp = 0;                    /* also implies sys_exclus end */
+        src->sexp = 0;                  /* also implies sys_exclus end */
         chan = c & 0xF;
         mep->type = type;               /* & begin new event    */
         mep->chan = chan;
-        p->datreq = datbyts[(type>>4) & 0x7];
-        if(p->bufp < p->endatp && *p->bufp & 0x80 && *p->bufp < 0xF8
-           && p->datreq > 0)
+        src->datreq = datbyts[(type>>4) & 0x7];
+        if(p->bufp < srcend && *p->bufp & 0x80 && *p->bufp < 0xF8
+           && src->datreq > 0)
         {/*
             if there is another status byte inserted after
             a chan msg status byte, this implies a port number
@@ -598,7 +613,8 @@ int32_t sens_midi(CSOUND *csound)
             this way to allow for separate mapping of devices
             A module writes it in the same read as its status. A read
             may end on the status, and what lies past the end is not
-            data, so it is not looked at. A real time byte is no port.
+            data, so it is not looked at: nor is a MIDI file's event.
+            A real time byte is no port.
           */
           int32_t port = *(p->bufp++) & 0x7F;
           if(port >= MIDIMAXPORTS) {
@@ -606,18 +622,20 @@ int32_t sens_midi(CSOUND *csound)
                                       ", mapping to port 0\n"), port, MIDIMAXPORTS);
           } else mep->chan += 16*port;
         }
-        p->datcnt = 0;
+        src->datcnt = 0;
         goto nxtchr;
       }
     }
-    if (p->sexp != 0) {                 /* NON-STATUS byte:     */
+    if (src->sexp != 0 ||               /* NON-STATUS byte:     */
+        src->datreq == 0) {             /*   no status yet, so of no message */
       goto nxtchr;
     }
-    if (p->datcnt == 0)
+    if (src->datcnt == 0)
       mep->dat1 = c;                    /* else normal data     */
     else mep->dat2 = c;
-    if (++p->datcnt < p->datreq)        /* if msg incomplete    */
+    if (++src->datcnt < src->datreq)    /* if msg incomplete    */
       goto nxtchr;                      /*   get next char      */
+    *p->Midevtblk = *mep;               /* whole: it is the caller's now */
     /* Enter the input event into a buffer used by 'midiin'. */
     /* VL -- changed to allow higher-mapped channels */
     if (mep->type != SYSTEM_TYPE) {
@@ -626,9 +644,9 @@ int32_t sens_midi(CSOUND *csound)
       msg->status = (unsigned char) mep->type;
       msg->chan = mep->chan + 1;
       msg->data1 = (unsigned char) mep->dat1;
-      msg->data2 = (p->datreq < 2 ? 0 : (unsigned char) mep->dat2);
+      msg->data2 = (src->datreq < 2 ? 0 : (unsigned char) mep->dat2);
     }
-    p->datcnt = 0;                      /* else allow a repeat  */
+    src->datcnt = 0;                    /* else allow a repeat  */
     /* NB:  this allows repeat in syscom 1,2,3 too */
     if (mep->type > NOTEON_TYPE) {      /* if control or syscom */
       /* The performance thread must wait for earlier asynchronous note-ons

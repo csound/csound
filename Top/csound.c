@@ -2120,6 +2120,7 @@ static void reset(CSOUND *csound) {
   /* initialise real time MIDI */
   csound->midiGlobals = (MGLOBAL *)csound->Calloc(csound, sizeof(MGLOBAL));
   csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
+  csound->midiGlobals->filep = csound->midiGlobals->bufp;
   csound->midiGlobals->endatp = csound->midiGlobals->bufp;
   csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t)max_len);
   csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
