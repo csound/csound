@@ -306,7 +306,8 @@ extern "C" {
       int32_t  unused_int3;
       int32_t  unused_int2;
       int32_t  linepos /* = -1 */;
-      MARKED_SECTIONS names[1024];
+      MARKED_SECTIONS unused_names[30]; /* kept for the layout: the marks
+                                           are CSOUND's marked_sections       */
       char    unused_char0[RPTDEPTH][NAMELEN];
       int32_t unused_int4[RPTDEPTH];
       int32   unused_int7[RPTDEPTH];
@@ -337,8 +338,6 @@ extern "C" {
       EVTBLK    prve;
       char      *Linebuf;
       int32_t   linebufsiz;
-      char      *work;        /* the lines sense_line takes, its alone */
-      int32_t   worksiz;
       char      *orchestra, *orchestrab;
       int32_t   oflag;
       cs_float     *pfields;

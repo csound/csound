@@ -459,26 +459,26 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             //printf("*** last_name = %d\n", (csound->sread.last_name));
           for (j=0; j<(csound->sread.last_name); j++) {
             //printf("m: %s %s(%d)\n",
-            //       buff, (csound->sread.names)[j].name, j);
-            if (strcmp(buff, (csound->sread.names)[j].name)==0) break;
+            //       buff, (csound->marked_sections)[j].name, j);
+            if (strcmp(buff, (csound->marked_sections)[j].name)==0) break;
           }
           if (j>=(csound->sread.last_name)) {
             if (UNLIKELY((csound->sread.last_name) + 1 >=
-                         (int32_t) (sizeof(csound->sread.names) /
-                                    sizeof(csound->sread.names[0]))))
+                         (int32_t) (sizeof(csound->marked_sections) /
+                                    sizeof(csound->marked_sections[0]))))
               scorerr(csound, Str("too many marked sections\n"));
             j = ++(csound->sread.last_name);
-            (csound->sread.names)[j].name =csoundStrdup(csound, buff);
+            (csound->marked_sections)[j].name =csoundStrdup(csound, buff);
           }
-          (csound->sread.names)[j].posit =
+          (csound->marked_sections)[j].posit =
             corfile_tell(csound->expanded_sco);
-          //printf("posit=%d\n", (csound->sread.names)[j].posit);
-          (csound->sread.names)[j].line = (csound->sread.str)->line;
-          //printf("line-%d\n",(csound->sread.names)[j].line);
+          //printf("posit=%d\n", (csound->marked_sections)[j].posit);
+          (csound->marked_sections)[j].line = (csound->sread.str)->line;
+          //printf("line-%d\n",(csound->marked_sections)[j].line);
           if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound,Str("%d: %s position %"PRIi32"\n"),
-                            j, (csound->sread.names)[j].name,
-                            (csound->sread.names)[j].posit);
+                            j, (csound->marked_sections)[j].name,
+                            (csound->marked_sections)[j].posit);
           (csound->sread.op) = getop(csound);
           (csound->sread.nxp) = old_nxp;
           *(csound->sread.nxp)++ =
@@ -503,15 +503,15 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           //printf("last_name %d\n", (csound->sread.last_name));
           for (i = 0; i<=(csound->sread.last_name); i++) {
             //printf("n: %s %s(%d)\n",
-            //       buff, (csound->sread.names)[i].name, i);
-            if (strcmp(buff, (csound->sread.names)[i].name)==0) break;
+            //       buff, (csound->marked_sections)[i].name, i);
+            if (strcmp(buff, (csound->marked_sections)[i].name)==0) break;
           }
           //printf("i=%d\n", i);
           if (UNLIKELY(i > (csound->sread.last_name)))
             sreaderr(csound, Str("Name %s not found\n"), buff);
           else {
             //csound->Message(csound, Str("%d: %s (%ld)\n"),
-            //                i, buff, (csound->sread.names)[i].posit);
+            //                i, buff, (csound->marked_sections)[i].posit);
             if (UNLIKELY((csound->sread.str) - (csound->sread.inputs) >=
                          MAX_INCLUDE_DEPTH))
               scorerr(csound, Str("n: marked sections nested too deeply\n"));
@@ -528,13 +528,13 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             (csound->sread.str)++;
             (csound->sread.str)->is_marked_repeat = 1;
             (csound->sread.str)->mac = NULL;
-            (csound->sread.str)->line = (csound->sread.names)[i].line;
+            (csound->sread.str)->line = (csound->marked_sections)[i].line;
             (csound->sread.str)->oposit = corfile_tell(csound->expanded_sco);
             corfile_set(csound->expanded_sco,
-                        (csound->sread.names)[i].posit);
+                        (csound->marked_sections)[i].posit);
             //printf("posit was %d moved to %d\n",
             //       (csound->sread.str)->oposit,
-            //       (csound->sread.names)[i].posit);
+            //       (csound->marked_sections)[i].posit);
           }
               (csound->sread.op) = getop(csound);
           (csound->sread.nxp) = old_nxp;

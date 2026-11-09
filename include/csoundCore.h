@@ -1887,8 +1887,6 @@ struct CSOUND_ {
   spin_lock_t rt_event_spinlock;                             /* realtime event registry spinlock */
   spin_lock_t diskin2_async_lock;                            /* diskin2 asynchronous read lock */
   spin_lock_t osc_spinlock;                                  /* OSC message spinlock */
-  spin_lock_t channel_spinlock;                              /* channel registry spinlock */
-  spin_lock_t line_event_spinlock;                           /* line-event buffer spinlock */
   int32_t realtime_locks_initialized;                        /* realtime locks initialised flag */
 
   /* -------- Threads, parallel execution and DAG -------- */
@@ -1981,6 +1979,11 @@ struct CSOUND_ {
   INSTRTXT **instr0_waiting;                                /* managed queue of globals awaiting init, oldest first */
   int32_t instr0_waiting_count;                             /* pending entries in instr0_waiting */
   uint64_t csoundCallbackSerial;                            /* serial of the last callback registered */
+  spin_lock_t channel_spinlock;                              /* channel registry spinlock */
+  spin_lock_t line_event_spinlock;                           /* line-event buffer spinlock */
+  MARKED_SECTIONS marked_sections[1024];                     /* the score's marks, 1024 at most */
+  char *line_event_work;                                     /* the lines sense_line takes, its alone */
+  int32_t line_event_work_size;                              /* allocated size of line_event_work */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */
