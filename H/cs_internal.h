@@ -106,11 +106,18 @@ extern "C" {
     int16         chan;
   } MIDIMESSAGE;
 
+  /* How far a MIDI source has got with its next message. A device and a MIDI
+     file each have their own: either can stop in the middle of a message. */
+  typedef struct {
+    MEVENT  event;
+    int32_t sexp;
+    int16   datreq, datcnt;
+  } MIDIPARSER;
+
   /* MIDI globals */
 
   typedef struct midiglobals {
     MEVENT  *Midevtblk;
-    int32_t     sexp;
     int32_t     MIDIoutDONE;
     int32_t     MIDIINbufIndex;
     MIDIMESSAGE MIDIINbuffer2[MIDIINBUFMAX];
@@ -128,8 +135,8 @@ extern "C" {
     int32_t     rawControllerMode;
     char    muteTrackList[256];
     unsigned char mbuf[MBUFSIZ];
-    unsigned char *bufp, *endatp;
-    int16   datreq, datcnt;
+    unsigned char *bufp, *filep, *endatp;
+    MIDIPARSER device, file;
   } MGLOBAL;
 
   typedef struct osc_mess {
