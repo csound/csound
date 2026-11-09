@@ -297,22 +297,78 @@ TEST(HostScoreErrors, MarksEndWithTheirRead)
     host.perform();
 }
 
-/* Csound's own count of what it holds, through Engine/memalloc.c's block
-   header: a Debug build defines BETA, which turns MEMDEBUG on. */
+/* The score's marks live past the end of the 7.0.0 layout, in storage of
+   their own: 1024 fit, n finds the last, far past the 30 they once had, and
+   one more does not fit. */
+TEST(HostScoreErrors, MarksFitTo1024AndNoFurther)
+{
+    std::string marks;
+    for (int i = 0; i < 1024; i++)
+        marks += "m a" + std::to_string(i) + "\n";
+    Host host;
+    host.start();
+    EXPECT_EQ(CSOUND_SUCCESS,
+              host.csound->ReadScore(host.csound,
+                                     (marks + "i 1 0 0\ns\nn a1023\n").c_str()));
+    EXPECT_EQ(std::string::npos, host.said().find("too many marked sections"));
+    host.perform(16);
+    EXPECT_EQ(2, host.played()) << host.said();
+    EXPECT_EQ(CSOUND_ERROR,
+              host.csound->ReadScore(host.csound,
+                                     (marks + "m a1024\n").c_str()));
+    EXPECT_NE(std::string::npos, host.said().find("too many marked sections"));
+}
+
+/* Engine/memalloc.c's block header: a Debug build defines BETA, which turns
+   MEMDEBUG on. */
+struct Block {
+#if defined(BETA) || defined(MEMDEBUG)
+    int32_t magic;
+    void *ptr;
+#endif
+    Block *prv, *nxt;
+    void *base;
+};
+
+/* Csound's own count of what it holds. */
 size_t trackedBlocks(CSOUND *csound)
 {
-    struct Block {
-#if defined(BETA) || defined(MEMDEBUG)
-        int32_t magic;
-        void *ptr;
-#endif
-        Block *prv, *nxt;
-        void *base;
-    };
     size_t n = 0;
     for (auto *b = static_cast<Block *>(csound->memalloc_db); b; b = b->nxt)
         n++;
     return n;
+}
+
+/* Whether p is a block Csound holds, which a reset frees. */
+bool isTracked(CSOUND *csound, const void *p)
+{
+    const size_t header = (sizeof(Block) + 15) & ~size_t(15);
+    for (auto *b = static_cast<Block *>(csound->memalloc_db); b; b = b->nxt)
+        if (reinterpret_cast<const char *>(b) + header == p)
+            return true;
+    return false;
+}
+
+/* The buffer sense_line takes lines into is Csound's memory, so a reset frees
+   it, and the reset clears the pointer with it. */
+TEST(HostScoreErrors, LineEventBufferDoesNotOutliveAReset)
+{
+    Host host;
+    host.start();
+    host.csound->InputMessage(host.csound, "i 1 0 0\n");
+    host.perform();
+    EXPECT_EQ(1, host.played()) << host.said();
+    EXPECT_TRUE(isTracked(host.csound, host.csound->line_event_work));
+    csoundReset(host.csound);
+    EXPECT_EQ(nullptr, host.csound->line_event_work);
+    EXPECT_EQ(0, host.csound->line_event_work_size);
+    csoundSetOption(host.csound, "-n");
+    csoundSetOption(host.csound, "-d");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(host.csound, orchestra, 0));
+    host.start();
+    host.csound->InputMessage(host.csound, "i 1 0 0\n");
+    host.perform();
+    EXPECT_EQ(1, host.played()) << host.said();
 }
 
 /* A refused line takes what it held with it, whatever it was reading when it
