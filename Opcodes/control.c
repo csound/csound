@@ -125,6 +125,21 @@ static void start_tcl_tk(CONTROL_GLOBALS *p)
     p->csound->Sleep(1500);
 }
 
+/* Text goes to wish as one word of a Tcl command, in double quotes, where
+   [, $, " and \ all mean something. A backslash before each makes it an
+   ordinary character, whatever the text holds. */
+static void send_text(CONTROL_GLOBALS *p, const char *command, int32_t n,
+                      const char *text)
+{
+    fprintf(p->wish_cmd, "%s %d \"", command, n);
+    for (; *text != '\0'; text++) {
+      if (strchr("[$\"\\", *text) != NULL)
+        putc('\\', p->wish_cmd);
+      putc(*text, p->wish_cmd);
+    }
+    fputs("\"\n", p->wish_cmd);
+}
+
 static void ensure_slider(CONTROL_GLOBALS *p, int32_t n)
 {
 /*  p->csound->Message(p->csound, "Ensure_slider %d\n", n); */
@@ -215,14 +230,15 @@ static int32_t ocontrol_(CSOUND *csound, SCNTRL *p, int32_t istring)
     case 4:
       {
         char buffer[100];
-        if (istring) {
-          strarg2name_bounded(csound, buffer, sizeof(buffer),
-                              ((STRINGDAT *)p->val)->data, "Control ",istring);
-        }
+        if (istring)
+          strname_bounded(csound, buffer, sizeof(buffer), ((STRINGDAT *)p->val)->data);
+        else if (IsStringCode(*p->val))
+          strname_bounded(csound, buffer, sizeof(buffer),
+                          csound->GetArgString(csound, *p->val));
         else
-         strarg2name_bounded(csound, buffer, sizeof(buffer), p->val, "Control ",istring);
+          strarg2name_bounded(csound, buffer, sizeof(buffer), p->val, "Control ", 0);
         csound->Message(csound, Str("Slider %d set to %s\n"), slider, buffer);
-        fprintf(pp->wish_cmd, "setlab %d \"%s\"\n", slider, buffer);
+        send_text(pp, "setlab", slider, buffer);
         break;
       }
     default:
@@ -304,12 +320,13 @@ static int32_t textflash_(CSOUND *csound, TXTWIN *p, int32_t istring)
     if (pp->wish_pid == 0)
       start_tcl_tk(pp);
     if (istring) {
-      strarg2name_bounded(csound, buffer, sizeof(buffer), ((STRINGDAT *)p->val)->data, "", istring);
-      fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);
+      strname_bounded(csound, buffer, sizeof(buffer), ((STRINGDAT *)p->val)->data);
+      send_text(pp, "settext", wind, buffer);
     }
     else if (IsStringCode(*p->val)) {
-      strarg2name_bounded(csound, buffer, sizeof(buffer), p->val, "", 0);
-      fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);
+      strname_bounded(csound, buffer, sizeof(buffer),
+                      csound->GetArgString(csound, *p->val));
+      send_text(pp, "settext", wind, buffer);
     }
     else {
       fprintf(pp->wish_cmd, "deltext %d\n", wind);
