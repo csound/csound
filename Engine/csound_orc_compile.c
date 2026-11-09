@@ -3254,6 +3254,8 @@ static ARG *create_arg(CSOUND *csound, INSTRTXT *ip, char *s,
     unquote_string(temp, s);
     str->data = strsav_string(csound, engineState, temp);
     str->size = strlen(temp) + 1;
+    /* The text is the string pool's, shared by every use of the literal. */
+    str->refcount = -1;
     csound->Free(csound, temp);
     arg->argPtr = str;
   }

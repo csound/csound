@@ -1175,6 +1175,32 @@ static char *pbr_get_opcode_mem_start(INSDS *lcurip) {
     (tp->varPool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET));
 }
 
+/* A string literal's text is the string pool's, shared by every use of the
+   literal (a refcount of -1 says the STRINGDAT does not own it). Nothing in
+   the caller stands behind it for a by-reference write to reach. */
+static int32_t pbr_is_string_literal(const cs_float *arg) {
+  return arg != NULL && csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S &&
+    ((const STRINGDAT *)arg)->refcount == -1;
+}
+
+/* An input the body works on through xin's own variable, not in place: one
+   sharing caller storage with an output, which the body overwrites, and a
+   string literal, which it must not write. pbr_snapshot_colliding_inputs()
+   refreshes that variable before the body runs, as a classic UDO's xin does. */
+static int32_t pbr_input_uses_xin_copy(const UOPCODE *p, const cs_float *input) {
+  int32_t j;
+
+  if (pbr_is_string_literal(input)) {
+    return 1;
+  }
+  for (j = 0; j < p->buf->opcode_info->outchns; j++) {
+    if (p->ar[j] == input) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 static void pbr_apply_entries(CSOUND *csound,
                               UOPCODE *p,
                               OPDS *chain,
@@ -1205,18 +1231,9 @@ static void pbr_apply_entries(CSOUND *csound,
     target = entry->ar_index < p->buf->opcode_info->outchns ?
       pbr_output_target(p, entry->ar_index) : p->ar[entry->ar_index];
     if (xin != NULL &&
-        entry->ar_index >= p->buf->opcode_info->outchns) {
-      int32_t input_index = entry->ar_index - p->buf->opcode_info->outchns;
-      int32_t output_index;
-
-      for (output_index = 0;
-           output_index < p->buf->opcode_info->outchns;
-           output_index++) {
-        if (p->ar[output_index] == target) {
-          target = xin->args[input_index];
-          break;
-        }
-      }
+        entry->ar_index >= p->buf->opcode_info->outchns &&
+        pbr_input_uses_xin_copy(p, target)) {
+      target = xin->args[entry->ar_index - p->buf->opcode_info->outchns];
     }
 
     rewire_argpp(csound,
@@ -1351,24 +1368,20 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
 
   for (i = 0; i < udoinfo->inchns; i++) {
     cs_float *input = p->ar[udoinfo->outchns + i];
-    int32_t j;
 
-    for (j = 0; j < udoinfo->outchns; j++) {
-      if (p->ar[j] == input) {
+    if (pbr_input_uses_xin_copy(p, input)) {
+      if (xin == NULL) {
+        xin = pbr_find_xin(lcurip);
         if (xin == NULL) {
-          xin = pbr_find_xin(lcurip);
-          if (xin == NULL) {
-            return NULL;
-          }
+          return NULL;
         }
-        if (UNLIKELY(pbr_copy_value(csound, xin->args[i], input,
-                                    lcurip, allowAllocation) != OK)) {
-          if (copyResult != NULL) {
-            *copyResult = NOTOK;
-          }
-          return xin;
+      }
+      if (UNLIKELY(pbr_copy_value(csound, xin->args[i], input,
+                                  lcurip, allowAllocation) != OK)) {
+        if (copyResult != NULL) {
+          *copyResult = NOTOK;
         }
-        break;
+        return xin;
       }
     }
   }
@@ -1378,7 +1391,8 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
 
 static int32_t pbr_is_readonly_source(cs_float *src) {
   const CS_TYPE *src_type = src != NULL ? csoundGetTypeForArg(src) : NULL;
-  return src_type == &CS_VAR_TYPE_C || src_type == &CS_VAR_TYPE_P;
+  return src_type == &CS_VAR_TYPE_C || src_type == &CS_VAR_TYPE_P ||
+    pbr_is_string_literal(src);
 }
 
 static int32_t pbr_seed_pass_through_outputs(CSOUND *csound,
@@ -1877,7 +1891,6 @@ cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
   cs_float *target;
   int32_t ar_index;
   int32_t outchns;
-  int32_t i;
 
   if (p == NULL || p->buf == NULL || varName == NULL) {
     return NULL;
@@ -1907,18 +1920,15 @@ cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
     return NULL;
   }
 
-  /* An input sharing caller storage with an output is read through the xin
-     snapshot refreshed each k-cycle; p->ar[] already holds the output the body
-     wrote over it.  Mirrors pbr_apply_entries().  The xin lookup walks the init
-     chain, so only do it once a collision is confirmed. */
-  if (ar_index >= outchns) {
-    for (i = 0; i < outchns; i++) {
-      if (p->ar[i] == target) {
-        XIN *xin = pbr_find_xin(p->ip);
+  /* An input sharing caller storage with an output, or a string literal, is
+     read through the xin snapshot refreshed each k-cycle; p->ar[] holds the
+     output the body wrote over it, or the literal the body never writes.
+     Mirrors pbr_apply_entries().  The xin lookup walks the init chain, so only
+     do it once one of these is confirmed. */
+  if (ar_index >= outchns && pbr_input_uses_xin_copy(p, target)) {
+    XIN *xin = pbr_find_xin(p->ip);
 
-        return xin != NULL ? xin->args[ar_index - outchns] : target;
-      }
-    }
+    return xin != NULL ? xin->args[ar_index - outchns] : target;
   }
 
   return target;

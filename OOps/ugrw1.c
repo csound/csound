@@ -755,7 +755,6 @@ int32_t printk3set(CSOUND *csound, PRINTK3 *p)
 {
     IGN(csound);
     p->oldvalue = FL(-1.12123e35);  /* hack to force printing first value */
-    p->sarg = ((STRINGDAT*)p->iformat)->data;
     return OK;
 }
 
@@ -768,7 +767,9 @@ int32_t printk3(CSOUND *csound, PRINTK3 *p)
       cs_float *vv[1];
       vv[0] = &value;
       buff[0] = '\0';
-      if (sprints(buff, p->sarg, vv, 1)!=OK)
+      /* The format is read from its variable each time: a text that does
+         not fit moves the variable's buffer. */
+      if (sprints(buff, ((STRINGDAT*)p->iformat)->data, vv, 1)!=OK)
         return
           csound->PerfError(csound,  &(p->h),
                             Str("Insufficient arguments in formatted printing\n"));

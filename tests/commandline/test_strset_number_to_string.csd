@@ -92,15 +92,14 @@ instr 3
 endin
 
 instr 4
-  ; A literal passed by reference is the string pool's buffer too, so a text
-  ; that fits stays in it.
+  ; A literal passed by reference stays whatever its argument is given.
   AssignNumber("a literal the string pool holds, and much longer than any soundin name it could be given")
   AssignNumber("a literal the string pool holds, and much longer than any soundin name it could be given")
   giChecks += 1
 endin
 
 instr 5
-  ; printks2 keeps a pointer to its format, so a text that fits stays in it.
+  ; printks2 follows its format's variable.
   kCycle timeinstk
   printks2 gSformat, kCycle
 endin
