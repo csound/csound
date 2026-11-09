@@ -203,6 +203,7 @@ static int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
     else strarg2name_bounded(csound, pvfilnam, sizeof(pvfilnam), p->ifilno, "pvoc.",0);
   }
   else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+  pvfilnam[MAXNAME-1] = '\0';
 
   if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
     return csound->InitError(csound, Str("VPVOC cannot load %s\n"), pvfilnam);

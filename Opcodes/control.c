@@ -308,8 +308,8 @@ static int32_t textflash_(CSOUND *csound, TXTWIN *p, int32_t istring)
       fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);
     }
     else if (IsStringCode(*p->val)) {
-      strarg2name_bounded(csound, buffer, sizeof(buffer),
-                          csound->GetArgString(csound, *p->val), "", 1);
+      strarg2name_bounded(csound, buffer, sizeof(buffer), p->val, "", 0);
+      fprintf(pp->wish_cmd, "settext %d \"%s\"\n", wind, buffer);
     }
     else {
       fprintf(pp->wish_cmd, "deltext %d\n", wind);

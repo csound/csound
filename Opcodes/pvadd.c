@@ -87,6 +87,7 @@ static int32_t pvaddset_(CSOUND *csound, PVADD *p, int32_t stringname)
       else strarg2name_bounded(csound, pvfilnam, sizeof(pvfilnam), p->ifilno, "pvoc.",0);
     }
     else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+    pvfilnam[MAXNAME-1] = '\0';
 
     if (UNLIKELY(pvx_loadfile(csound, pvfilnam, p) != OK))
       return NOTOK;

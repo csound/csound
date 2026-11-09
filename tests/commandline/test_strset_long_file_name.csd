@@ -1,12 +1,12 @@
 <CsTest>
-description = "A strset string or string p-field too long for an opcode's file-name buffer is cut, not written past it"
+description = "A strset string or string p-field too long for an opcode's file-name buffer is refused, not written past it, and one of exactly the limit is used whole"
 
 [expect]
 exit = "nonzero"
 stderr = ["INIT ERROR", "ftload: unable to open file", "ftsave: unable to open file"]
-output = ["string too long, cut to 1023 characters",
-          "string too long, cut to 255 characters",
-          "string too long, cut to 79 characters",
+output = ["string too long, name refused: at most 1023 characters fit",
+          "string too long, name refused: at most 255 characters fit",
+          "string too long, name refused: at most 79 characters fit",
           "reached the end of the run"]
 stderr_regex = ['Cannot open no/such/dir/x{1011}[^x]',
                 'ADSYN cannot load no/such/dir/x{243}[^x]']
@@ -25,11 +25,14 @@ nchnls = 1
 
 ; Every instrument below takes its file name from strset 1 by number, or
 ; (instr 31 and 32) from a string p-field: the two branches of StringArg2Name
-; a string longer than a caller's buffer can come through. The file does not
-; exist and the name cannot be opened, so each of them reports an error.
-; Csound used to write the whole string into the caller's buffer, and a
-; caller's overrun is caught by reaching the last note: an overrun's abort
-; exits with Csound's own status, so the status alone does not tell.
+; a string longer than a caller's buffer can come through. Each is refused,
+; so the name given to the opening call is empty and each opcode reports its
+; own error. Csound used to write the whole string into the caller's buffer,
+; and a caller's overrun is caught by reaching the last note: an overrun's
+; abort exits with Csound's own status, so the status alone does not tell.
+; Instruments 41 to 43 and 45 give a name of exactly the limit of the
+; 1024-byte, MAXNAME and 80-byte buffers: it fits, and the opcode's error
+; shows it whole.
 
 instr 1
   ; Far past every buffer: the largest is 1024 bytes.
@@ -40,6 +43,19 @@ instr 1
     iCount += 1
   od
   strset 1, gSlong
+  ; "no/such/dir/" is 12 characters, so each is the longest name its buffer holds.
+  Sname = "no/such/dir/"
+  iCount = 0
+  while iCount < 1011 do
+    Sname strcat Sname, "x"
+    if iCount == 66 then
+      strset 4, Sname    ; 79 characters
+    elseif iCount == 242 then
+      strset 3, Sname    ; 255 characters
+    endif
+    iCount += 1
+  od
+  strset 2, Sname        ; 1023 characters
 endin
 
 instr 2
@@ -163,7 +179,21 @@ instr 32
   ftsave p4, 0, 1, 1
 endin
 
-instr 40
+; A name of exactly the limit: its opcode's error shows it whole.
+instr 41
+  i_ = filelen(2)
+endin
+instr 42
+  a_ adsyn 1, 1, 1, 3
+endin
+instr 43
+  i_ ftgen 0, 0, 0, 44, 4
+endin
+instr 45
+  dumpk k(1), 2, 8, 0
+endin
+
+instr 44
   prints "reached the end of the run\n"
 endin
 </CsInstruments>
@@ -203,6 +233,10 @@ i 35 0 0.1
 i 36 0 0.1
 i 37 0 0.1
 i 38 0 0.1
-i 40 0.2 0.05
+i 41 0 0.1
+i 42 0 0.1
+i 43 0 0.1
+i 45 0 0.1
+i 44 0.2 0.05
 </CsScore>
 </CsoundSynthesizer>

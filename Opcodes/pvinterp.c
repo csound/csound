@@ -80,6 +80,7 @@ static int32_t pvbufreadset_(CSOUND *csound, PVBUFREAD *p, int32_t stringname)
       else strarg2name_bounded(csound, pvfilnam, sizeof(pvfilnam), p->ifilno, "pvoc.",0);
                 }
   else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+  pvfilnam[MAXNAME-1] = '\0';
 
   if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
     return csound->InitError(csound, Str("PVBUFREAD cannot load %s\n"),
@@ -208,6 +209,7 @@ static int32_t pvinterpset_(CSOUND *csound, PVINTERP *p, int32_t stringname)
       else strarg2name_bounded(csound, pvfilnam, sizeof(pvfilnam), p->ifilno, "pvoc.",0);
                 }
   else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);;
+  pvfilnam[MAXNAME-1] = '\0';
   if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
     return csound->InitError(csound, Str("PVINTERP cannot load %s\n"),
                              pvfilnam);
@@ -401,6 +403,7 @@ static int32_t pvcrossset_(CSOUND *csound, PVCROSS *p, int32_t stringname)
     else strarg2name_bounded(csound, pvfilnam, sizeof(pvfilnam), p->ifilno, "pvoc.",0);
   }
   else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
+  pvfilnam[MAXNAME-1] = '\0';
 
   if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
     return csound->InitError(csound,  Str("PVCROSS cannot load %s\n"), pvfilnam);

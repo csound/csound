@@ -207,6 +207,7 @@ static int32_t load_atsfile(CSOUND *csound, void *p, MEMFIL **mfp, char *fname,
       strncpy(fname,csound->GetArgString(csound, *((cs_float*)name_arg)),MAXNAME-1);
     else strarg2name_bounded(csound, fname, MAXNAME, name_arg, "ats.",0);
   }
+  fname[MAXNAME-1] = '\0';
   /* load memfile */
   if (UNLIKELY((*mfp = csound->LoadMemoryFile(csound, fname,
                                               CSFTYPE_ATS, NULL)) == NULL)) {
