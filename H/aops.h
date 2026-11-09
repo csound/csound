@@ -275,6 +275,8 @@ int32_t and_kk_bool(CSOUND *csound, LOGCL_KK *p);
 int32_t or_kk_bool(CSOUND *csound, LOGCL_KK *p);
 int32_t b2s(CSOUND *csound, ASSIGN *p);
 int32_t b2i(CSOUND *csound, ASSIGN *p);
+int32_t k2B_ref(CSOUND *csound, AOP *p);
+int32_t B2k_back(CSOUND *csound, AOP *p);
 int32_t b2b(CSOUND *csound, ASSIGN *p);
 int32_t arg_is_true(const cs_float *arg);
 int32_t binit(CSOUND *csound, ASSIGNM *p);

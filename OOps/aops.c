@@ -87,6 +87,28 @@ int32_t b2s(CSOUND *csound, ASSIGN *p){
   return OK;
 }
 
+/* A k given to a UDO's B parameter: r is the B, a the truth it goes in with,
+   b the k. */
+int32_t k2B_ref(CSOUND *csound, AOP *p){
+  int32_t value = *p->b != FL(0.0);
+  IGN(csound);
+  *(int32_t *) p->r = value;
+  *p->a = (cs_float) value;
+  return OK;
+}
+
+/* After the call: r is the k, a the B, b the truth it went in with. The k
+   takes the B only if the UDO changed it, so a k it did not write through the
+   B keeps what it holds. */
+int32_t B2k_back(CSOUND *csound, AOP *p){
+  int32_t value;
+  IGN(csound);
+  memcpy(&value, p->a, sizeof(value));
+  if ((cs_float) (value != 0) != *p->b)
+    *p->r = (cs_float) value;
+  return OK;
+}
+
 int32_t b2i(CSOUND *csound, ASSIGN *p){
   int32_t value;
   memcpy(&value, p->a, sizeof(value));
@@ -99,8 +121,9 @@ int32_t b2b(CSOUND *csound, ASSIGN *p){
   return OK;
 }
 
-/* A b or B holds an int32_t (see create_bool), a number a cs_float. A UDO
-   copies a number into a b or B as it is, so they are read both ways. */
+/* A b or B holds an int32_t (see create_bool), a number a cs_float. The
+   compiler gives m a boolean as a number, but fillarray's * form passes it as
+   it is, so they are read both ways. */
 int32_t arg_is_true(const cs_float *arg)
 {
   const CS_TYPE *type = csoundGetTypeForArg(arg);

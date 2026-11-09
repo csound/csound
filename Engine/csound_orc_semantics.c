@@ -3583,6 +3583,126 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   return 1;
 }
 
+/* The opcode that converts a value of type found for a reader of type required,
+   or NULL if it needs none. A reader of numbers takes a boolean as 0 or 1, and
+   a reader of booleans takes a number as true unless it is 0. A b read at
+   performance is converted then too: a global one can change in the meantime. */
+static const char* boolean_conversion(const char* found, const char* required,
+                                      int32_t numeric, int32_t perf, char* type) {
+  if (found[1] != '\0') return NULL;
+  if (*found == 'b' || *found == 'B') {
+    if (!numeric && (required[1] != '\0' ||
+                     strchr("mMNnzZikKa", *required) == NULL)) return NULL;
+    *type = *found == 'b' ? 'i' : 'k';
+    return *found == 'B' ? "##b2k" : perf ? "##b2i" : "i";
+  }
+  if (numeric || required[1] != '\0' ||
+      (*required != 'b' && *required != 'B') ||
+      strchr("cikpr", *found) == NULL) return NULL;
+  *type = *required;
+  return *required == 'B' ? "##k2B" : "##k2b";
+}
+
+/* A b or B holds an int32_t (see create_bool), a number a cs_float, and neither
+   reads as the other. Yet a var-arg code takes a boolean, a k stands in for a B,
+   xout takes anything, and == reads both its sides as numbers. So a value that
+   would be read as the other kind goes through a variable of the right kind
+   first. Only the statements that mix them run anything more. print is left
+   alone: it reads a boolean by its type, and shows the argument's name.
+   A UDO's outputs leave it at the end of its body, wherever xout stands, so
+   what xout gives is converted at the end of the UDO's body, and at
+   performance too: a reinit can change it, and stop at rireturn short of there.
+   classify_udo_rates does not count a conversion as work at performance, so
+   an init-only UDO stays one, and its conversion only runs at init. A UDO takes a
+   parameter by reference and may write it, so a k it took for a B gets the
+   boolean back after the call, if the UDO changed it. */
+static TREE* convert_boolean_args(CSOUND* csound, TREE* statement,
+                                  TYPE_TABLE* typeTable) {
+  OENTRY* entry = statement->markup;
+  TREE* anchor = NULL;
+  TREE* last = statement;
+  TREE** slot;
+  char** required;
+  const char* types;
+  const char* varArg = NULL;
+  int32_t i = 0, xout, numeric;
+
+  if (entry == NULL || entry->init == printv) return statement;
+  xout = !strcmp(entry->opname, "xout");
+  numeric = entry->init == eq || entry->perf == eq;
+  types = xout ? typeTable->udoOutTypes : entry->intypes;
+  if (types == NULL ||
+      (!xout && !numeric && strpbrk(types, "mMNnzZB") == NULL)) return statement;
+  if ((required = split_args(csound, types)) == NULL) return statement;
+
+  for (slot = &statement->right; *slot != NULL; slot = &(*slot)->next) {
+    const char* type = varArg != NULL ? varArg : required[i++];
+    const char* opname;
+    char* found;
+    char target;
+    int32_t perf;
+    if (type == NULL) break;
+    if (is_in_var_arg(type)) varArg = type;
+    perf = xout || entry->perf != NULL;
+    if ((found = get_arg_type2(csound, *slot, typeTable)) == NULL) continue;
+    opname = boolean_conversion(found, type, numeric, perf, &target);
+    csound->Free(csound, found);
+    if (opname != NULL) {
+      char name[32], before[32];
+      TREE* arg = *slot;
+      int32_t back = target == 'B' && entry->useropinfo != NULL &&
+        arg->type == T_IDENT;
+      TREE* out;
+      for (out = statement->left; back && out != NULL; out = out->next)
+        if (out->value != NULL && !strcmp(out->value->lexeme,
+                                          arg->value->lexeme))
+          back = 0; /* what the call returns into the k stands */
+      TREE* convert = create_opcode_token(csound,
+                                          back ? "##k2Bref" : (char*) opname);
+      snprintf(name, sizeof(name), "#%c%d", target,
+               typeTable->localPool->synthArgCount++);
+      add_arg(csound, name, NULL, typeTable, NULL);
+      convert->line = statement->line;
+      convert->locn = statement->locn;
+      convert->left = make_leaf(csound, statement->line, statement->locn,
+                                T_IDENT, make_token(csound, name, NULL));
+      if (back) {
+        TREE* after = create_opcode_token(csound, "##Bback");
+        snprintf(before, sizeof(before), "#k%d",
+                 typeTable->localPool->synthArgCount++);
+        add_arg(csound, before, NULL, typeTable, NULL);
+        convert->left->next = make_leaf(csound, statement->line,
+                                        statement->locn, T_IDENT,
+                                        make_token(csound, before, NULL));
+        after->line = statement->line;
+        after->locn = statement->locn;
+        after->left = make_leaf(csound, statement->line, statement->locn,
+                                T_IDENT, make_token(csound, arg->value->lexeme,
+                                                    NULL));
+        after->right = make_leaf(csound, statement->line, statement->locn,
+                                 T_IDENT, make_token(csound, name, NULL));
+        after->right->next = make_leaf(csound, statement->line,
+                                       statement->locn, T_IDENT,
+                                       make_token(csound, before, NULL));
+        after->next = last->next;
+        last->next = after;
+        last = after;
+      }
+      convert->right = arg;
+      *slot = make_leaf(csound, statement->line, statement->locn,
+                        T_IDENT, make_token(csound, name, NULL));
+      (*slot)->next = arg->next;
+      arg->next = NULL;
+      if (xout)
+        tree_append(statement, convert);
+      else
+        anchor = tree_append(anchor, convert);
+    }
+  }
+  free_split_args(csound, required);
+  return anchor != NULL ? tree_append(anchor, statement) : statement;
+}
+
 /* Walks tree and finds all label: definitions */
 static CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
   CONS_CELL* head = NULL, *ret = NULL;
@@ -4335,7 +4455,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
       if (current->right != NULL) {
 
+        typeTable->udoOutTypes = top->left->markup;
         newRight = verify_tree(csound, current->right, typeTable);
+        typeTable->udoOutTypes = NULL;
 
         if (newRight == NULL) {
           cs_cons_free(csound, typeTable->labelList);
@@ -4684,6 +4806,14 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
         continue;
       } else {
+        TREE* converted = convert_boolean_args(csound, current, typeTable);
+        if (converted != current) {
+          current = converted;
+          if (previous != NULL) {
+            previous->next = current;
+          }
+          continue;
+        }
         handle_optional_args(csound, current);
       }
     }
