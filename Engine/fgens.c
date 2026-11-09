@@ -2619,7 +2619,7 @@ static int32_t gen43(FGDATA *ff, FUNC *ftp)
 
     filno = &ff->e.p[5];
     if (isstrcod(ff->e.p[5]))
-      strNcpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME);
+      strname_bounded(csound, filename, MAXNAME, ff->e.strarg);
     else
       strarg2name_bounded(csound, filename, sizeof(filename), filno, "pvoc.", 0);
 
@@ -2683,8 +2683,7 @@ static int32_t gen44(FGDATA *ff, FUNC *ftp)
     cs_float stiffness;
 
     if (isstrcod(ff->e.p[5])) {
-      strncpy(buff, (char *)(&ff->e.strarg[0]), sizeof(buff) - 1);
-      buff[sizeof(buff) - 1] = '\0';
+      strname_bounded(csound, buff, sizeof(buff), ff->e.strarg);
     }
     else
       strarg2name_bounded(csound, buff, sizeof(buff), &(ff->e.p[5]), "stiff.", 0);

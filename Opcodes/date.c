@@ -173,8 +173,7 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
 {
     char name[1024];
     if (isstring) {
-      strncpy(name, ((STRINGDAT *)p->Sfile)->data, 1023);
-      name[1023] = '\0';
+      strname_bounded(csound, name, sizeof(name), ((STRINGDAT *)p->Sfile)->data);
     }
     else strarg2name_bounded(csound, name, sizeof(name), p->Sfile, "input.", 0);
     readf_delete(csound, p);

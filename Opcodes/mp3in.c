@@ -102,11 +102,10 @@ static int32_t mp3ininit_(CSOUND *csound, MP3IN *p, int32_t stringname)
 
   if (stringname==0){
     if (IsStringCode(*p->iFileCode))
-      strncpy(name,csound->GetArgString(csound, *p->iFileCode), 1023);
+      strname_bounded(csound, name, sizeof(name), csound->GetArgString(csound, *p->iFileCode));
     else strarg2name_bounded(csound, name, sizeof(name), p->iFileCode, "soundin.",0);
   }
-  else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
-  name[sizeof(name) - 1] = '\0';
+  else strname_bounded(csound, name, sizeof(name), ((STRINGDAT *)p->iFileCode)->data);
 
 
   if (UNLIKELY(mp3dec_open_file(mpa, name, &f) == NULL)) {
@@ -275,11 +274,10 @@ static int32_t mp3len_(CSOUND *csound, MP3LEN *p, int32_t stringname)
   }
   if (stringname==0){
     if (IsStringCode(*p->iFileCode))
-      strncpy(name,csound->GetArgString(csound, *p->iFileCode), 1023);
+      strname_bounded(csound, name, sizeof(name), csound->GetArgString(csound, *p->iFileCode));
     else strarg2name_bounded(csound, name, sizeof(name), p->iFileCode, "soundin.",0);
   }
-  else strncpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
-  name[sizeof(name) - 1] = '\0';
+  else strname_bounded(csound, name, sizeof(name), ((STRINGDAT *)p->iFileCode)->data);
 
   if (UNLIKELY(mp3dec_open_file(mpa, name, &f) == NULL)) {
     mp3dec_uninit(mpa);

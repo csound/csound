@@ -387,9 +387,9 @@ static int32_t pvsfreadset_(CSOUND *csound, PVSFREAD *p, int32_t stringname)
     uint32   N;
     char            pvfilnam[MAXNAME];
 
-    if (stringname) strNcpy(pvfilnam, ((STRINGDAT*)p->ifilno)->data, MAXNAME-1);
+    if (stringname) strname_bounded(csound, pvfilnam, MAXNAME-1, ((STRINGDAT*)p->ifilno)->data);
     else if (IsStringCode(*p->ifilno))
-      strNcpy(pvfilnam, csoundGetArgString(csound, *p->ifilno), MAXNAME-1);
+      strname_bounded(csound, pvfilnam, MAXNAME-1, csoundGetArgString(csound, *p->ifilno));
     else strarg2name_bounded(csound, pvfilnam, sizeof(pvfilnam), p->ifilno, "pvoc.", 0);
 
     if (UNLIKELY(csoundPVOCEX_LoadFile(csound, pvfilnam, &pp) != 0)) {

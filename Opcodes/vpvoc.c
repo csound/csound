@@ -199,11 +199,10 @@ static int32_t vpvset_(CSOUND *csound, VPVOC *p, int32_t stringname)
   }
   if (stringname==0){
     if (IsStringCode(*p->ifilno))
-      strncpy(pvfilnam,csound->GetArgString(csound, *p->ifilno), MAXNAME-1);
+      strname_bounded(csound, pvfilnam, sizeof(pvfilnam), csound->GetArgString(csound, *p->ifilno));
     else strarg2name_bounded(csound, pvfilnam, sizeof(pvfilnam), p->ifilno, "pvoc.",0);
   }
-  else strncpy(pvfilnam, ((STRINGDAT *)p->ifilno)->data, MAXNAME-1);
-  pvfilnam[MAXNAME-1] = '\0';
+  else strname_bounded(csound, pvfilnam, sizeof(pvfilnam), ((STRINGDAT *)p->ifilno)->data);
 
   if (UNLIKELY(csound->PVOCEX_LoadFile(csound, pvfilnam, &pp) != 0))
     return csound->InitError(csound, Str("VPVOC cannot load %s\n"), pvfilnam);

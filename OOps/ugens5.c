@@ -733,9 +733,9 @@ static int32_t lprdset_(CSOUND *csound, LPREAD *p, int32_t stringname)
     lprd_deinit(csound, p);
     p->mfp = NULL;
     if (stringname)
-      strNcpy(lpfilname, ((STRINGDAT*)p->ifilcod)->data, MAXNAME);
+      strname_bounded(csound, lpfilname, MAXNAME, ((STRINGDAT*)p->ifilcod)->data);
     else if (IsStringCode(*p->ifilcod))
-      strNcpy(lpfilname, csoundGetArgString(csound, *p->ifilcod), MAXNAME);
+      strname_bounded(csound, lpfilname, MAXNAME, csoundGetArgString(csound, *p->ifilcod));
     else
       strarg2name_bounded(csound, lpfilname, sizeof(lpfilname), p->ifilcod, "lp.", 0);
 

@@ -69,6 +69,22 @@ static inline char *strarg2name_bounded(CSOUND *csound, char *s, size_t size,
     return s;
 }
 
+/* The same refusal for a name a caller holds as a string: a string
+   argument's data, or what GetArgString returned for a string p-field.
+   'size' bounds the copy, terminator included, and can be less than the
+   buffer: the limits of these branches stay where they were, so a name that
+   fitted still fits, and one that was cut is refused. The name is copied as
+   it stands, with no unquoting. NULL, what GetArgString returns for a
+   string code with no string behind it, is an empty name, which the caller's
+   open refuses with its ordinary error. */
+
+static inline char *strname_bounded(CSOUND *csound, char *s, size_t size,
+                                    const char *src)
+{
+    return strarg2name_bounded(csound, s, size,
+                               (void *) (src != NULL ? src : ""), "", 1);
+}
+
 #ifdef __cplusplus
 }
 #endif
