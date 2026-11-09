@@ -30,8 +30,16 @@ table. Plugins using a new entry must require a Csound version that provides it.
 
 `CSOUND` is opaque to hosts, but its public function table is part of the plugin
 ABI. The private data section below that table, guarded by
-`__BUILDING_LIBCSOUND`, is hidden from hosts and plugins. Adding or rearranging
-fields there does not by itself break the supported ABI.
+`__BUILDING_LIBCSOUND`, is hidden from hosts and plugins. Its layout is still
+part of the ABI: existing members must keep their offsets. Append new members
+at the end of `struct CSOUND_`, after the last existing private member, and do
+not insert, remove or reorder existing fields. Otherwise the offsets of later
+members shift and API users have to be recompiled to link against the new
+library.
+
+When adding a private member, also check whether `csoundReset()` must preserve
+it, and on which side of the `first_callback_`/`last_callback_` markers it
+falls.
 
 Static helpers and [private headers in H/](../H/README.md) can also change.
 Check what callers can see. Engine use alone does not make a type private.
