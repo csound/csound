@@ -35,4 +35,5 @@ typedef struct {
 typedef struct {
     OPDS  h;
     cs_float *r1, *ifilno;
+    char  name[1024];       /* k-rate: a string p-field's name, read at init */
 } FILEVALID;

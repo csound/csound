@@ -373,16 +373,9 @@ int32_t filepeak_S(CSOUND *csound, SNDINFOPEAK *p){
 }
 
 /* From matt ingalls */
-int32_t filevalid(CSOUND *csound, FILEVALID *p)
+static int32_t filevalid_(CSOUND *csound, FILEVALID *p, const char *soundiname)
 {
-    char soundiname[1024];
     *p->r1 = 0;
-    if (IsStringCode(*p->ifilno)){
-      strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilno));
-    }
-    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilno,
-                        "soundin.", 0);
-
     if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */
       if (csound->oparms->infilename)  /* commandline inputfile */
         *p->r1 = 1;
@@ -393,18 +386,40 @@ int32_t filevalid(CSOUND *csound, FILEVALID *p)
     return OK;
 }
 
+int32_t filevalid(CSOUND *csound, FILEVALID *p)
+{
+    char soundiname[1024];
+    if (IsStringCode(*p->ifilno)){
+      strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilno));
+    }
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilno,
+                        "soundin.", 0);
+    return filevalid_(csound, p, soundiname);
+}
+
+/* A string p-field can only be looked up at init, so at k-rate its name is
+   read here; a strset number is looked up on the performance path as before. */
+int32_t filevalid_k_set(CSOUND *csound, FILEVALID *p)
+{
+    if (IsStringCode(*p->ifilno))
+      strname_bounded(csound, p->name, 1023, csoundGetArgString(csound, *p->ifilno));
+    return OK;
+}
+
+int32_t filevalid_k(CSOUND *csound, FILEVALID *p)
+{
+    char soundiname[1024];
+    if (IsStringCode(*p->ifilno))
+      return filevalid_(csound, p, p->name);
+    strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilno,
+                        "soundin.", 0);
+    return filevalid_(csound, p, soundiname);
+}
+
 
 int32_t filevalid_S(CSOUND *csound, FILEVALID *p)
 {
     char soundiname[1024];
-    *p->r1 = 0;
     strname_bounded(csound, soundiname, 1023, ((STRINGDAT*)p->ifilno)->data);
-    if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */
-      if (csound->oparms->infilename)  /* commandline inputfile */
-        *p->r1 = 1;
-      return OK;
-    }
-    if (LIKELY(csound->FindInputFile(csound, soundiname, "SFDIR;SSDIR")))
-      *p->r1 = 1;
-    return OK;
+    return filevalid_(csound, p, soundiname);
 }
