@@ -1201,6 +1201,14 @@ static int32_t pbr_input_uses_xin_copy(const UOPCODE *p, const cs_float *input) 
   return 0;
 }
 
+/* xin's variable is sized at init. A literal given at perf time that does
+   not fit it, as rebinding an Opcode object can, is an error: it cannot grow
+   on the performance path. */
+static int32_t pbr_literal_fits(const cs_float *input, const cs_float *copy) {
+  return !pbr_is_string_literal(input) ||
+    strlen(((const STRINGDAT *)input)->data) < ((const STRINGDAT *)copy)->size;
+}
+
 static void pbr_apply_entries(CSOUND *csound,
                               UOPCODE *p,
                               OPDS *chain,
@@ -1376,7 +1384,8 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
           return NULL;
         }
       }
-      if (UNLIKELY(pbr_copy_value(csound, xin->args[i], input,
+      if (UNLIKELY((!allowAllocation && !pbr_literal_fits(input, xin->args[i])) ||
+                   pbr_copy_value(csound, xin->args[i], input,
                                   lcurip, allowAllocation) != OK)) {
         if (copyResult != NULL) {
           *copyResult = NOTOK;
