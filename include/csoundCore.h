@@ -1980,6 +1980,7 @@ struct CSOUND_ {
   volatile long msg_queue_status;                           /* the last async request's, csoundGetAsyncStatus */
   INSTRTXT **instr0_waiting;                                /* managed queue of globals awaiting init, oldest first */
   int32_t instr0_waiting_count;                             /* pending entries in instr0_waiting */
+  uint64_t csoundCallbackSerial;                            /* serial of the last callback registered */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

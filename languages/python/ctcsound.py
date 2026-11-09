@@ -1798,10 +1798,15 @@ class Csound:
         registration. If the same function is set again, it is only moved
         in the list of callbacks so that it will be called first, and the
         user data and type mask parameters are updated. The same function
-        means what it does for remove_keyboard_callback(), and as this removes
-        its entry first, that method's limit on when it may run applies here.
+        means what it does for remove_keyboard_callback().
         type_mask can be the bitwise OR of callback types for which the
         function should be called, or zero for all types.
+
+        This is not thread-safe. Call it when the performance is not running
+        or, if it is, only on the thread performing, which includes from
+        inside a keyboard callback; never from another thread. With -j,
+        callbacks can run on several threads at once, so from inside one this
+        holds only if no other thread can be calling callbacks at that moment.
 
         Returns zero on success, CSOUND_ERROR if the specified function
         pointer or type mask is invalid, and CSOUND_MEMORY if there is not
@@ -1843,9 +1848,11 @@ class Csound:
     def remove_keyboard_callback(self, function):
         """Removes a callback previously set with register_keyboard_callback().
 
-        Csound frees the callback's entry with no lock, and reads it again
-        when a call returns. So neither this nor setting the function again
-        may run inside the callback, or while another thread performs.
+        This is not thread-safe. Call it when the performance is not running
+        or, if it is, only on the thread performing, which includes from
+        inside a keyboard callback; never from another thread. With -j,
+        callbacks can run on several threads at once, so from inside one this
+        holds only if no other thread can be calling callbacks at that moment.
 
         A callable goes by identity: give it the object that was registered,
         or another lookup of the same bound method. One that only compares
