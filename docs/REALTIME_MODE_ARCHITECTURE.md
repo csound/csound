@@ -24,7 +24,7 @@ on its caller. A pointer can remain valid while its contents change elsewhere.
 ## Mode selection
 
 `--realtime` selects Csound's real-time mode. Engine code reads
-`csound->oparms->realtime`; plugins can read the flag through `GetOParms()`.
+`csound->oparms->realtime`. Plugins can read the flag through `GetOParms()`.
 Hosts can set `--realtime` with `csoundSetOption()` before starting Csound.
 Check this mode flag when guarding a compatibility fallback. Audio-device
 output such as `-odac` alone does not select it, and a host can use real-time
@@ -32,7 +32,7 @@ mode without opening a Csound audio device.
 
 Real-time event delivery is also distinct from `--realtime`. For example,
 calling `csoundStart()` before compiling selects the scoreless performance
-flow described in `csound.h`; it does not by itself select the background init
+flow described in `csound.h`. It does not by itself select the background init
 mode. Likewise, the `async` argument on an API call selects that call's queue
 path, not the engine mode.
 
@@ -47,7 +47,7 @@ is off.
 
 Use one host performance thread per Csound instance. Do not overlap calls to
 `csoundPerformKsmps()` or re-enter performance from a Csound callback. The
-active-render check rejects nested rendering; it does not serialize two
+active-render check rejects nested rendering. It does not serialize two
 callers. Internal multicore rendering does not change this host contract.
 See [csound_perf.c](../Top/csound_perf.c) and
 [PR #3434](https://github.com/csound/csound/pull/3434).
@@ -94,7 +94,7 @@ holders, and how contention ends. Keep user callbacks and slow destruction
 outside internal lock sections.
 
 The asynchronous `diskin2` path shows the intended division: performance posts
-a stop flag; workers handle registry changes and deferred closes. Do not move
+a stop flag. Workers handle registry changes and deferred closes. Do not move
 file close, worker joins, or registry locks back to the audio side. See
 [diskin2.c](../OOps/diskin2.c) and
 [PR #3238](https://github.com/csound/csound/pull/3238). The earlier
@@ -107,9 +107,9 @@ These queues have different consumers and completion rules:
 
 | Path | Where the work runs | Limit to keep in mind |
 | --- | --- | --- |
-| Async engine API requests | `message_dequeue()` during a control period | Submission may allocate; acceptance does not mean completion. |
+| Async engine API requests | `message_dequeue()` during a control period | Submission may allocate. Acceptance does not mean completion. |
 | Realtime allocation/init queue | `event_insert_thread()` | Init, reinit, and compiled-state merge can finish after later audio blocks. |
-| Realtime message output | The init worker drains formatted messages | Output can be dropped; it must not make the audio producer wait. |
+| Realtime message output | The init worker drains formatted messages | Output can be dropped. It must not make the audio producer wait. |
 | `CsoundPerformanceThread` commands | The wrapper's performance thread, before rendering a block | This separate queue uses locks and can execute expensive host requests. |
 
 ### Engine API queue
@@ -117,13 +117,13 @@ These queues have different consumers and completion rules:
 [threadsafe.c](../Top/threadsafe.c) reserves slots and publishes each complete
 payload with a readiness flag. Submission bounds both capacity and reservation
 attempts. The audio consumer snapshots the end of the queue and stops at an
-unpublished head; it never waits for a delayed producer. Requests added during
+unpublished head. It never waits for a delayed producer. Requests added during
 the drain wait for a later control period. Preserve those limits when changing
-the queue; draining until producers stop can starve audio.
+the queue. Draining until producers stop can starve audio.
 
 The submitting thread allocates and copies payloads and reclaims old slot
 payloads. Thus `async = 1` is not a promise that submission is safe in a strict
-audio callback. Concurrent async submission needs the atomic backend; without
+audio callback. Concurrent async submission needs the atomic backend. Without
 it, submissions and performance must not overlap.
 
 For `csoundEvent()`, `csoundEventString()`, and the async table-copy calls,
@@ -133,13 +133,13 @@ between resets. Success means **queued**, not run. The status belongs to the
 instance, not to a request or thread. Csound's UDP input and host callbacks
 can also change it. A lock around host calls cannot coordinate Csound's UDP
 producer. Hosts with several submitting threads must coordinate a submission
-and its status check; a rejection can call the message handler inside that
+and its status check. A rejection can call the message handler inside that
 submission, so a host lock used there must allow re-entry. Such a
 lock belongs off the audio path. See `csound.h` and
 [PR #3524](https://github.com/csound/csound/pull/3524).
 
 `csoundEvent()` does nothing before `csoundStart()`. Before start, use
-`csoundEventString(..., async = 0)` to add score text; after start it schedules
+`csoundEventString(..., async = 0)` to add score text. After start it schedules
 realtime events. Async `csoundCompileCSD()` can also set the status when it
 queues score text, but leaves it unchanged if it queues none. Read the return
 value and the score-submission status for their separate purposes.
@@ -148,24 +148,24 @@ Payload ownership differs by call:
 
 | Async call | Data the queue keeps | Caller obligation |
 | --- | --- | --- |
-| `csoundEvent()` | A copy of the p-fields | Check acceptance; do not infer that the note has started. |
-| `csoundEventString()` | A copy of the string | Check acceptance; parsing and scheduling happen later. |
+| `csoundEvent()` | A copy of the p-fields | Check acceptance. Do not infer that the note has started. |
+| `csoundEventString()` | A copy of the string | Check acceptance. Parsing and scheduling happen later. |
 | `csoundTableCopyIn()` | The source address | Keep the full table plus guard point valid and unchanged until the copy runs. |
 | `csoundTableCopyOut()` | The destination address | Reserve the full table length, excluding the guard point, and do not access it concurrently with the copy. |
 
 For table copies, also keep the engine table storage valid and prevent
 concurrent table changes until the copy completes. A missing table when the
-request runs produces no copy. The async status is not a buffer-release signal;
-do not use it to free or reuse a borrowed buffer. Synchronous table copies in
+request runs produces no copy. The async status is not a buffer-release signal.
+Do not use it to free or reuse a borrowed buffer. Synchronous table copies in
 `--realtime` mode take no mutex and must not overlap rendering, table changes,
 or other host table copies. `csoundGetTable()` and `csoundGetTableArgs()`, and
 the pointers they return, are not thread-safe.
 
 Queueing safely and scheduling at the intended musical time are separate
-problems. Use the event API's time rules and the engine's clock; do not assume
+problems. Use the event API's time rules and the engine's clock. Do not assume
 that a host thread submits at an exact block boundary. This distinction also
-appears in the older [issue #772](https://github.com/csound/csound/issues/772);
-use the current headers for API names and contracts.
+appears in the older [issue #772](https://github.com/csound/csound/issues/772).
+Use the current headers for API names and contracts.
 
 ### Background init and compilation
 
@@ -177,7 +177,7 @@ become runnable. See [insert.c](../Engine/insert.c) and
 [PR #3434](https://github.com/csound/csound/pull/3434).
 
 `csoundCompileOrc(..., async = 1)` still parses and compiles on the caller.
-When adding code to a running engine, it queues the merge; in `--realtime`
+When adding code to a running engine, it queues the merge. In `--realtime`
 mode the init worker performs that merge and its global init work. Outside
 that mode, the engine API queue performs the merge. Check the call's return
 value for queue rejection. Do not move compilation into an audio callback
@@ -200,7 +200,7 @@ into a fixed queue. A producer makes one attempt to claim it and drops output
 on contention or lack of space. The worker calls the saved host output
 handler without holding the queue lock and bounds each drain so a callback
 that logs again cannot keep it there forever. Shutdown joins the worker before
-restoring callbacks and freeing the queue; late output must not bypass that
+restoring callbacks and freeing the queue. Late output must not bypass that
 queue and call host logging on the audio producer.
 
 Register output handlers before starting. Keep them alive through shutdown,
@@ -214,7 +214,7 @@ current behavior has regression coverage in
 
 `CsoundPerformanceThread` has its own command queue, separate from the engine
 API and init queues. Its `CompileOrc()` command calls synchronous compilation
-on the performance thread; `EvalCode()` and requested callbacks run there too.
+on the performance thread. `EvalCode()` and requested callbacks run there too.
 Moving a call into this queue prevents some host-thread races but does not
 remove its cost from the audio schedule. The process callback runs before each
 rendered block. See [csPerfThread.cpp](../Top/csPerfThread.cpp).
@@ -225,7 +225,7 @@ discard pending commands, so a completed flush does not prove they all ran.
 It is not a barrier for engine async requests, background init work, the
 process callback, or the next audio block. Never flush or join from the
 performance thread. The flush implementation warns and ignores a call from
-that thread to avoid deadlock. `Stop()` queues a stop; `Join()` waits for exit.
+that thread to avoid deadlock. `Stop()` queues a stop. `Join()` waits for exit.
 Follow the contracts in
 [csPerfThread.hpp](../include/csPerfThread.hpp).
 
@@ -242,12 +242,12 @@ removal thread-safe.
   boundary where no callback walk can run. Self-removal can free the very entry
   the walker will next read. The discussion in
   [PR #3631](https://github.com/csound/csound/pull/3631#issuecomment-6739759454)
-  rejects adding a performance-thread lock; it does not establish a new
+  rejects adding a performance-thread lock. It does not establish a new
   thread-safe removal API.
 - Readline callbacks can run on the audio thread. Do not block, call UI code,
   or re-enter Csound from them except through `csoundReadlineSubmit()`. The
-  prompt is valid only during the callback. Queue any UI work in the host;
-  serialize the setter and submissions with performance/reset as `csound.h`
+  prompt is valid only during the callback. Queue any UI work in the host.
+  Serialize the setter and submissions with performance/reset as `csound.h`
   requires.
 - Keep function pointers, language-binding callback objects, and user data
   alive for every possible call, including one already in flight. Replacing a
@@ -256,11 +256,11 @@ removal thread-safe.
   invokes it after releasing the lock. The binding fixes in
   [PR #3594](https://github.com/csound/csound/pull/3594) and
   [PR #3613](https://github.com/csound/csound/pull/3613) preserve callback
-  objects; they do not make arbitrary host data access safe.
+  objects. They do not make arbitrary host data access safe.
 
 ## Channels and shared data
 
-Channel APIs have their own synchronization; they do not rely on `API_lock`
+Channel APIs have their own synchronization. They do not rely on `API_lock`
 or the engine API queue. Prefer the typed channel APIs when sharing values,
 but check their allocation and locking costs before calling them from audio.
 `csoundGetChannelPtr()` can create a channel. Set up channels and reserve their
@@ -281,7 +281,7 @@ The lock does not protect orchestra assignments to a variable exported with
 `chnexport`. See [PR #3586](https://github.com/csound/csound/pull/3586).
 
 Managed values need more than a byte-copy rule. `csoundSetChannel()` can run a
-type's allocating `copyValue` while holding the destination lock; its source
+type's allocating `copyValue` while holding the destination lock. Its source
 needs separate protection if it is live engine data. `csoundGetChannel()`
 returns engine-owned storage whose changing contents still need protection.
 String setters can also reallocate. Do not treat these calls as safe for the
@@ -290,7 +290,7 @@ performance thread merely because they serialize a write.
 The channel binding cache in [bus.c](../OOps/bus.c) avoids repeated registry
 lookups for unchanged opcode channel names. A name change can still need a
 locked lookup, and value locks remain. Preserve that distinction when
-extending the cache; see [PR #3508](https://github.com/csound/csound/pull/3508).
+extending the cache. See [PR #3508](https://github.com/csound/csound/pull/3508).
 
 ## Allocation and array capacity
 
@@ -337,13 +337,13 @@ The slice can then change length without growing its buffer. Choose a realistic
 maximum: reserving an entire large source for every small slice can waste
 memory across many voices.
 
-`slicearray` rereads its i-rate bounds during performance; it does not freeze
+`slicearray` rereads its i-rate bounds during performance. It does not freeze
 them at initialization. Another note's init pass can change a directly supplied
 global such as `giLast`. Document this behavior and the capacity requirement
 when explaining the opcode.
 
 When changing these paths, check both modes. A real-time growth request must
-fail before reaching an allocating helper; a preallocated output must still
+fail before reaching an allocating helper. A preallocated output must still
 work. Cover any supported non-real-time fallback separately.
 
 ## Reviewing a change
@@ -353,6 +353,13 @@ runs each path, which data it owns, and when another thread can use or release
 that data. Check normal operation, full queues, delayed init, callback
 re-entry, errors, turnoff, reset, and shutdown. A successful uncontended run
 does not check the failure path that could block audio.
+
+Follow the [API and ABI compatibility rules](ABI_API_COMPATIBILITY.md) when
+adding engine state. Existing private `CSOUND` fields must keep their layout.
+Append new private fields only at the end of the entire private data section.
+Do not place new queue, lock, or callback fields beside related existing
+members if that shifts their offsets. Add plugin function-table entries
+through reserved slots so the private section keeps its starting offset.
 
 Keep API comments and this document aligned when changing a contract. Useful
 regressions to read or extend include

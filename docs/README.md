@@ -3,6 +3,7 @@
 - [Csound 7 release notes and feature articles](../Release_Notes/Version_7.00.md)
 - [Building Csound](../BUILD.md)
 - [Real-time mode architecture and API contracts](REALTIME_MODE_ARCHITECTURE.md)
+- [API and ABI compatibility](ABI_API_COMPATIBILITY.md)
 - [Submitting opcodes](Submitting_opcodes.md)
 - [Csound 6 to 7 API migration](API_Migration_Guide_Csound_6_to_7.md)
 - [Numeric types](numeric-types.md)
@@ -28,7 +29,7 @@ ninja -C build doc
 ```
 
 CMake uses `doxygen/config.doxygen` as a template. Generated files go to
-`build/docs/doxygen/`; the HTML entry point is `build/docs/doxygen/html/index.html`.
+`build/docs/doxygen/`. The HTML entry point is `build/docs/doxygen/html/index.html`.
 The standalone configuration also works from the repository root:
 
 ```sh

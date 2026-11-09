@@ -26,16 +26,33 @@ table's total size and every existing entry's offset unchanged.
 When the reserve runs out, make a compatibility decision before growing the
 table. Plugins using a new entry must require a Csound version that provides it.
 
-## Distinguish private implementation details
+## Preserve the private CSOUND layout
 
 `CSOUND` is opaque to hosts, but its public function table is part of the plugin
-ABI. The private data section below that table, guarded by
-`__BUILDING_LIBCSOUND`, is hidden from hosts and plugins. Adding or rearranging
-fields there does not by itself break the supported ABI.
+ABI. Its private data section also has ABI layout requirements. The
+`__BUILDING_LIBCSOUND` guard controls visibility, not binary compatibility.
+Rearranging private fields changes their offsets and breaks the ABI.
 
-Static helpers and [private headers in H/](../H/README.md) can also change.
-Check what callers can see. Engine use alone does not make a type private.
-For example, `INSDS` and `OPDS` are visible to plugins.
+Within a released major version:
+
+- Preserve every existing private field's type, size, alignment, order, and
+  offset. Do not remove fields or insert new ones among them.
+- Append new private fields only at the end of the entire private data
+  section, after all existing fields. The end of a topic group is not the end
+  of the struct.
+- Keep the public function table's size fixed by using its reserved slots as
+  described above. Growing it would shift the private section too.
+
+Appending private fields to the engine-allocated `CSOUND` is permitted. This
+does not relax the rule for public structs that callers allocate or embed.
+Any change to an existing layout needs the compatibility decision described
+below, even if all newly rebuilt code works.
+
+## Check other implementation details
+
+Static helpers and [private headers in H/](../H/README.md) can change when they
+do not affect an ABI layout or a supported interface. Engine use alone does
+not make a type private. For example, `INSDS` and `OPDS` are visible to plugins.
 
 ## Make compatibility decisions explicit
 
@@ -43,6 +60,7 @@ Before merging a break, explain the affected callers in the PR and obtain an
 explicit maintainer decision on the target release and compatibility plan.
 Prefer a new entry point, versioned type or compatibility wrapper when possible.
 
-For public interface changes, compare exported symbols and relevant layouts
-against the released version with the same build settings. Running newly
-rebuilt hosts or plugins does not prove that existing binaries still work.
+For interface or layout changes, compare exported symbols and relevant layouts
+against the released version with the same build settings. Include existing
+private `CSOUND` field offsets in that comparison. Running newly rebuilt hosts
+or plugins does not prove that existing binaries still work.

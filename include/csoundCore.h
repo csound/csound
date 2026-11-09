@@ -1588,13 +1588,19 @@ struct CSOUND_ {
   /** @name Private Data
       Private Data in the CSOUND struct to be used internally by the Csound
       library and should be hidden from plugins.
-      If a new variable member is needed by the library, add it below, as a
-      private data member. If access is required solely by plugins (and not
-      internally by the library), use the CreateGlobalVariable() etc. interface,
-      instead of adding to CSOUND.
+      Within a released major version, preserve the type, size, alignment,
+      order, and offset of every existing private member. Rearranging these
+      fields breaks the ABI even though plugins should not access them.
+      Append new private members only at the end of the entire private data
+      section, after all existing fields, not at the end of a topic group.
+      See docs/ABI_API_COMPATIBILITY.md for the compatibility rules.
+
+      If access is required solely by plugins (and not internally by the
+      library), use the CreateGlobalVariable() etc. interface, instead of
+      adding to CSOUND.
 
       If you find that a plugin needs to access existing private data,
-      first check above for an existing interface; if none is available,
+      first check above for an existing interface. If none is available,
       add one. Please avoid giving full access, or allowing plugins to
       change the values of private members, by using one of the two methods
       below:
