@@ -1,82 +1,77 @@
-/* A keyboard callback removed or registered again while Csound is calling the
-   callbacks: from inside one, and from another thread. */
-#include <atomic>
-#include <thread>
+/* A keyboard callback removed or registered again from inside a keyboard
+   callback, which is on the thread performing. The list is newest first. */
+#include <string>
 #include "gtest/gtest.h"
 #include "csound.h"
 
 namespace {
-struct Counts {
+struct Calls {
     CSOUND *csound;
-    int calls[3];
+    std::string order;
 };
 
 // Csound tells callbacks apart by address, so each must be a function of its own.
-template <int N>
-int32_t counted(void *data, void *, uint32_t)
+template <char Name>
+int32_t named(void *data, void *, uint32_t)
 {
-    static_cast<Counts *>(data)->calls[N]++;
+    static_cast<Calls *>(data)->order += Name;
     return CSOUND_SUCCESS;
 }
 
 int32_t removesItself(void *data, void *, uint32_t)
 {
-    auto *counts = static_cast<Counts *>(data);
-    counts->calls[0]++;
-    csoundRemoveKeyboardCallback(counts->csound, removesItself);
+    auto *calls = static_cast<Calls *>(data);
+    calls->order += 'r';
+    csoundRemoveKeyboardCallback(calls->csound, removesItself);
     return CSOUND_SUCCESS;
 }
 
 int32_t registersItself(void *data, void *, uint32_t type)
 {
-    auto *counts = static_cast<Counts *>(data);
-    counts->calls[0]++;
-    csoundRegisterKeyboardCallback(counts->csound, registersItself, data, type);
+    auto *calls = static_cast<Calls *>(data);
+    calls->order += 'm';
+    csoundRegisterKeyboardCallback(calls->csound, registersItself, data, type);
     return CSOUND_SUCCESS;
 }
 
 int32_t removesItselfAndTheNext(void *data, void *, uint32_t)
 {
-    auto *counts = static_cast<Counts *>(data);
-    counts->calls[0]++;
-    csoundRemoveKeyboardCallback(counts->csound, removesItselfAndTheNext);
-    csoundRemoveKeyboardCallback(counts->csound, counted<1>);
+    auto *calls = static_cast<Calls *>(data);
+    calls->order += 'r';
+    csoundRemoveKeyboardCallback(calls->csound, removesItselfAndTheNext);
+    csoundRemoveKeyboardCallback(calls->csound, named<'a'>);
     return CSOUND_SUCCESS;
 }
 
-struct Held {
-    std::atomic<bool> entered{false};
-    std::atomic<bool> release{false};
-    std::atomic<bool> gaveUp{false};
-    std::atomic<int> calls{0};
-};
-
-const int patience = 5000; // milliseconds: long enough never to be reached
-
-int32_t heldUntilReleased(void *data, void *, uint32_t)
+int32_t removesThePrevious(void *data, void *, uint32_t)
 {
-    auto *held = static_cast<Held *>(data);
-    held->calls++;
-    held->entered = true;
-    int waited = 0;
-    while (!held->release && waited++ < patience)
-        csoundSleep(1);
-    if (!held->release)
-        held->gaveUp = true;
+    auto *calls = static_cast<Calls *>(data);
+    calls->order += 'b';
+    csoundRemoveKeyboardCallback(calls->csound, named<'a'>);
+    return CSOUND_SUCCESS;
+}
+
+int32_t replacesEverything(void *data, void *, uint32_t type)
+{
+    auto *calls = static_cast<Calls *>(data);
+    calls->order += 'x';
+    csoundRemoveKeyboardCallback(calls->csound, replacesEverything);
+    csoundRemoveKeyboardCallback(calls->csound, named<'a'>);
+    csoundRegisterKeyboardCallback(calls->csound, named<'c'>, data, type);
     return CSOUND_SUCCESS;
 }
 
 class KeyboardCallbackTests : public ::testing::Test {
 protected:
     CSOUND *csound = nullptr;
-    Counts counts{};
+    Calls calls{};
 
     void SetUp() override
     {
         csound = csoundCreate(nullptr, nullptr);
         ASSERT_NE(csound, nullptr);
         csoundCreateMessageBuffer(csound, 0);
-        counts.csound = csound;
+        calls.csound = csound;
         start();
     }
 
@@ -95,10 +90,9 @@ protected:
         csoundDestroy(csound);
     }
 
-    // The last one registered is called first.
-    void add(int32_t (*function)(void *, void *, uint32_t), void *data)
+    void add(int32_t (*function)(void *, void *, uint32_t))
     {
-        ASSERT_EQ(csoundRegisterKeyboardCallback(csound, function, data,
+        ASSERT_EQ(csoundRegisterKeyboardCallback(csound, function, &calls,
                                                  CSOUND_CALLBACK_KBD_TEXT),
                   CSOUND_SUCCESS);
     }
@@ -112,83 +106,69 @@ protected:
 
 TEST_F(KeyboardCallbackTests, RemovesItselfDuringItsCall)
 {
-    add(counted<1>, &counts);
-    add(removesItself, &counts);
+    add(named<'a'>);
+    add(removesItself);
     perform(3);
-    EXPECT_EQ(counts.calls[0], 1);
-    EXPECT_EQ(counts.calls[1], 3); // the walk went on past the one removed
+    EXPECT_EQ(calls.order, "ra" "a" "a");
 }
 
 TEST_F(KeyboardCallbackTests, RegistersItselfAgainDuringItsCall)
 {
-    add(counted<1>, &counts);
-    add(registersItself, &counts);
+    add(named<'a'>);
+    add(registersItself);
     perform(3);
-    EXPECT_EQ(counts.calls[0], 3); // once a period, and still registered
-    EXPECT_EQ(counts.calls[1], 3);
+    EXPECT_EQ(calls.order, "ma" "ma" "ma");
+}
+
+TEST_F(KeyboardCallbackTests, RegistersItselfAgainFromTheMiddle)
+{
+    add(named<'a'>);
+    add(registersItself);
+    add(named<'b'>);
+    perform(3);
+    // Moved to the front, it is not called twice in the round that moved it.
+    EXPECT_EQ(calls.order, "bma" "mba" "mba");
 }
 
 TEST_F(KeyboardCallbackTests, RemovesItselfAndTheOneAfterIt)
 {
-    add(counted<2>, &counts);
-    add(counted<1>, &counts);
-    add(removesItselfAndTheNext, &counts);
+    add(named<'c'>);
+    add(named<'a'>);
+    add(removesItselfAndTheNext);
     perform(3);
-    EXPECT_EQ(counts.calls[0], 1);
-    EXPECT_EQ(counts.calls[1], 0); // removed before its turn, so never called
-    EXPECT_EQ(counts.calls[2], 3);
+    EXPECT_EQ(calls.order, "rc" "c" "c");
+}
+
+TEST_F(KeyboardCallbackTests, RemovesTheOneBeforeIt)
+{
+    add(named<'c'>);
+    add(removesThePrevious);
+    add(named<'a'>);
+    perform(2);
+    // Already called this round, so nothing is skipped or repeated.
+    EXPECT_EQ(calls.order, "abc" "bc");
+}
+
+TEST_F(KeyboardCallbackTests, RegistersANewOneAfterRemovingEverything)
+{
+    add(named<'a'>);
+    add(replacesEverything);
+    perform(3);
+    // What is registered during a round has its first call in the next one.
+    EXPECT_EQ(calls.order, "x" "c" "c");
 }
 
 TEST_F(KeyboardCallbackTests, ListStillWorksAfterReset)
 {
-    add(counted<1>, &counts);
+    add(named<'a'>);
     perform(1);
     csoundReset(csound);
     start();
     perform(1);
-    EXPECT_EQ(counts.calls[1], 2); // preserved by csoundReset(), as documented
-    add(counted<2>, &counts);
-    csoundRemoveKeyboardCallback(csound, counted<1>);
+    add(named<'b'>); // newer than 'a', across the reset
     perform(1);
-    EXPECT_EQ(counts.calls[1], 2);
-    EXPECT_EQ(counts.calls[2], 1);
-}
-
-TEST_F(KeyboardCallbackTests, AnotherThreadRemovesOneDuringItsCall)
-{
-    Held held;
-    add(counted<1>, &counts);
-    add(heldUntilReleased, &held);
-    std::thread performer([this] { csoundPerformKsmps(csound); });
-    for (int waited = 0; !held.entered && waited < patience; waited++)
-        csoundSleep(1);
-    bool entered = held.entered;
-    csoundRemoveKeyboardCallback(csound, heldUntilReleased);
-    // Not reached until the callback has given up, if the removal waits for it.
-    held.release = true;
-    performer.join();
-    ASSERT_TRUE(entered);
-    EXPECT_FALSE(held.gaveUp);
-    perform(2);
-    EXPECT_EQ(held.calls, 1);
-    EXPECT_EQ(counts.calls[1], 3); // the walk in progress went on to the next
-}
-
-TEST_F(KeyboardCallbackTests, AnotherThreadRegistersAndRemovesDuringPerformance)
-{
-    const int periods = 20000;
-    std::atomic<bool> done{false};
-    add(counted<0>, &counts);
-    std::thread churn([this, &done] {
-        while (!done) {
-            csoundRegisterKeyboardCallback(csound, counted<1>, &counts,
-                                           CSOUND_CALLBACK_KBD_TEXT);
-            csoundRemoveKeyboardCallback(csound, counted<1>);
-        }
-    });
-    perform(periods);
-    done = true;
-    churn.join();
-    EXPECT_EQ(counts.calls[0], periods); // whatever else came and went
+    csoundRemoveKeyboardCallback(csound, named<'a'>);
+    perform(1);
+    EXPECT_EQ(calls.order, "a" "a" "ba" "b");
 }
 } // namespace

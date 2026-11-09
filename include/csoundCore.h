@@ -1864,7 +1864,7 @@ struct CSOUND_ {
   void *searchPathCache;                                     /* cached file search paths */
   void *reset_list;                                          /* registered reset callback list */
   void *csoundCallbacks_;                                    /* registered event callback list */
-  struct CsoundCallbackWalk_s *csoundCallbackWalks_;        /* walks of that list in progress */
+  uint64_t csoundCallbackSerial;                            /* serial of the last callback registered */
 
   /* -------- Locks and synchronisation -------- */
   void *API_lock;                                            /* serialises public API entry points */
@@ -1884,7 +1884,6 @@ struct CSOUND_ {
   spin_lock_t osc_spinlock;                                  /* OSC message spinlock */
   spin_lock_t channel_spinlock;                              /* channel registry spinlock */
   spin_lock_t line_event_spinlock;                           /* line-event buffer spinlock */
-  spin_lock_t callback_spinlock;                             /* event callback list spinlock */
   int32_t realtime_locks_initialized;                        /* realtime locks initialised flag */
 
   /* -------- Threads, parallel execution and DAG -------- */

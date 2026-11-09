@@ -951,7 +951,7 @@ static const CSOUND cenviron_ = {
     .searchPathCache = NULL,
     .reset_list = NULL,
     .csoundCallbacks_ = NULL,
-    .csoundCallbackWalks_ = NULL,
+    .csoundCallbackSerial = 0,
     /* -------- Locks and synchronisation -------- */
     .API_lock = NULL,
     .array_storage_lock = NULL,
@@ -970,7 +970,6 @@ static const CSOUND cenviron_ = {
     .osc_spinlock = SPINLOCK_INIT,
     .channel_spinlock = SPINLOCK_INIT,
     .line_event_spinlock = SPINLOCK_INIT,
-    .callback_spinlock = SPINLOCK_INIT,
     .realtime_locks_initialized = 0,
     /* -------- Threads, parallel execution and DAG -------- */
     .event_insert_thread = NULL,
@@ -1505,16 +1504,7 @@ struct CsoundCallbackEntry_s {
   CsoundCallbackEntry_t *nxt;
   void *userData;
   int32_t (*func)(void *, void *, uint32_t);
-};
-
-/* callback_spinlock guards the list and is never held across a callback, which
-   may change the list or take locks of its own. A walk, on the stack of the
-   thread doing it, keeps only the entry it calls next, and a removal moves that
-   on: so an entry can be freed at once, even in the middle of its own call. */
-typedef struct CsoundCallbackWalk_s CsoundCallbackWalk_t;
-struct CsoundCallbackWalk_s {
-  CsoundCallbackEntry_t *next;
-  CsoundCallbackWalk_t *outer;
+  uint64_t serial; /* higher than that of every entry registered before it */
 };
 
  void csoundDestroy(CSOUND *csound) {
@@ -1976,6 +1966,7 @@ static void reset(CSOUND *csound) {
   length = (uintptr_t)p2 - (uintptr_t)p1;
   memcpy(p1, (void *)&(saved_env->first_callback_), (size_t)length);
   csound->csoundCallbacks_ = saved_env->csoundCallbacks_;
+  csound->csoundCallbackSerial = saved_env->csoundCallbackSerial;
   csound->readlineCallback = saved_env->readlineCallback;
   csound->readlineUserData = saved_env->readlineUserData;
   csound->readlineRequestId = saved_env->readlineRequestId;
@@ -1990,7 +1981,6 @@ static void reset(CSOUND *csound) {
   csound->open_files_lock = saved_env->open_files_lock;
   csound->channel_spinlock = saved_env->channel_spinlock;
   csound->line_event_spinlock = saved_env->line_event_spinlock;
-  csound->callback_spinlock = saved_env->callback_spinlock;
 #endif
   csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
   memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
@@ -2022,7 +2012,6 @@ static void reset(CSOUND *csound) {
     csoundSpinLockInit(&csound->open_files_lock);
     csoundSpinLockInit(&csound->channel_spinlock);
     csoundSpinLockInit(&csound->line_event_spinlock);
-    csoundSpinLockInit(&csound->callback_spinlock);
     if (UNLIKELY(O->odebug))
       csound->Message(csound, "init spinlocks\n");
   }
@@ -2260,61 +2249,27 @@ static void reset(CSOUND *csound) {
 }
 
 static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
-  CsoundCallbackEntry_t *pp;
-  CsoundCallbackWalk_t walk, **link;
-  int32_t retval = 1;
-
-  csoundSpinLock(&csound->callback_spinlock);
-  walk.outer = csound->csoundCallbackWalks_;
-  csound->csoundCallbackWalks_ = &walk;
-  for (pp = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
-       pp != (CsoundCallbackEntry_t *)NULL; pp = walk.next) {
-    walk.next = pp->nxt;
-    if (pp->typeMask & type) {
-      int32_t (*func)(void *, void *, uint32_t) = pp->func;
-      void *userData = pp->userData;
-      int32_t result;
-      csoundSpinUnLock(&csound->callback_spinlock);
-      result = func(userData, p, type);
-      csoundSpinLock(&csound->callback_spinlock);
-      if (result != CSOUND_SUCCESS) {
-        retval = result;
-        break;
+  if (csound->csoundCallbacks_ != NULL) {
+    CsoundCallbackEntry_t *pp;
+    pp = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
+    do {
+      if (pp->typeMask & type) {
+        uint64_t serial = pp->serial;
+        int32_t retval = pp->func(pp->userData, p, type);
+        if (retval != CSOUND_SUCCESS)
+          return retval;
+        /* The call may have removed this entry or any other, so hold on to
+           nothing across it. The list is newest first: go on to the first
+           entry older than the one just called. */
+        pp = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
+        while (pp != (CsoundCallbackEntry_t *)NULL && pp->serial >= serial)
+          pp = pp->nxt;
+      } else {
+        pp = pp->nxt;
       }
-    }
+    } while (pp != (CsoundCallbackEntry_t *)NULL);
   }
-  for (link = &csound->csoundCallbackWalks_; *link != &walk;
-       link = &(*link)->outer)
-    ;
-  *link = walk.outer;
-  csoundSpinUnLock(&csound->callback_spinlock);
-  return retval;
-}
-
-/* Takes func's entry off the list, with the lock held, and returns it, or NULL.
-   A walk about to call it goes on to the one after. */
-static CsoundCallbackEntry_t *
-unlink_keyboard_callback(CSOUND *csound,
-                         int32_t (*func)(void *, void *, uint32_t)) {
-  CsoundCallbackEntry_t *pp, *prv;
-  CsoundCallbackWalk_t *walk;
-
-  pp = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
-  prv = (CsoundCallbackEntry_t *)NULL;
-  while (pp != (CsoundCallbackEntry_t *)NULL && pp->func != func) {
-    prv = pp;
-    pp = pp->nxt;
-  }
-  if (pp == (CsoundCallbackEntry_t *)NULL)
-    return pp;
-  if (prv != (CsoundCallbackEntry_t *)NULL)
-    prv->nxt = pp->nxt;
-  else
-    csound->csoundCallbacks_ = (void *)pp->nxt;
-  for (walk = csound->csoundCallbackWalks_; walk != NULL; walk = walk->outer)
-    if (walk->next == pp)
-      walk->next = pp->nxt;
-  return pp;
+  return 1;
 }
 
 /**
@@ -2357,24 +2312,22 @@ unlink_keyboard_callback(CSOUND *csound,
  int32_t csoundRegisterKeyboardCallback(
     CSOUND *csound, int32_t (*func)(void *userData, void *p, uint32_t type),
     void *userData, uint32_t typeMask) {
-  CsoundCallbackEntry_t *pp, *old;
+  CsoundCallbackEntry_t *pp;
 
   if (UNLIKELY(func == (int32_t(*)(void *, void *, uint32_t))NULL ||
                (typeMask & (~(CSOUND_CALLBACK_KBD_EVENT |
                               CSOUND_CALLBACK_KBD_TEXT))) != 0U))
     return CSOUND_ERROR;
+  csoundRemoveKeyboardCallback(csound, func);
   pp = (CsoundCallbackEntry_t *)malloc(sizeof(CsoundCallbackEntry_t));
   if (UNLIKELY(pp == (CsoundCallbackEntry_t *)NULL))
     return CSOUND_MEMORY;
   pp->typeMask = (typeMask ? typeMask : 0xFFFFFFFFU);
+  pp->nxt = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
   pp->userData = userData;
   pp->func = func;
-  csoundSpinLock(&csound->callback_spinlock);
-  old = unlink_keyboard_callback(csound, func);
-  pp->nxt = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
+  pp->serial = ++csound->csoundCallbackSerial;
   csound->csoundCallbacks_ = (void *)pp;
-  csoundSpinUnLock(&csound->callback_spinlock);
-  free((void *)old);
 
   return CSOUND_SUCCESS;
 }
@@ -2386,12 +2339,22 @@ unlink_keyboard_callback(CSOUND *csound,
  void csoundRemoveKeyboardCallback(CSOUND *csound,
                                          int32_t (*func)(void *, void *,
                                                          uint32_t)) {
-  CsoundCallbackEntry_t *pp;
+  CsoundCallbackEntry_t *pp, *prv;
 
-  csoundSpinLock(&csound->callback_spinlock);
-  pp = unlink_keyboard_callback(csound, func);
-  csoundSpinUnLock(&csound->callback_spinlock);
-  free((void *)pp);
+  pp = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
+  prv = (CsoundCallbackEntry_t *)NULL;
+  while (pp != (CsoundCallbackEntry_t *)NULL) {
+    if (pp->func == func) {
+      if (prv != (CsoundCallbackEntry_t *)NULL)
+        prv->nxt = pp->nxt;
+      else
+        csound->csoundCallbacks_ = (void *)pp->nxt;
+      free((void *)pp);
+      return;
+    }
+    prv = pp;
+    pp = pp->nxt;
+  }
 }
 
  void csoundSetOpenSoundFileCallback(

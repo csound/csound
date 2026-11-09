@@ -1415,6 +1415,11 @@ extern "C" {
    * The return value should be zero on success, negative on error, and
    * positive if the callback was ignored (for example because the type is
    * not known).
+   * This function is not thread-safe. Call it when the performance is not
+   * running or, if it is, only on the thread performing, which includes from
+   * inside a keyboard callback; never from another thread. With -j, callbacks
+   * can run on several threads at once, so from inside one this holds only if
+   * no other thread can be calling callbacks at that moment.
    */
   PUBLIC int32_t csoundRegisterKeyboardCallback(CSOUND *,
                                             int32_t (*func)(void *userData, void *p,
@@ -1423,12 +1428,11 @@ extern "C" {
 
   /**
    * Removes a callback previously set with csoundRegisterKeyboardCallback().
-   * This and csoundRegisterKeyboardCallback() may be called during a
-   * performance, from any thread and from inside a callback. They do not wait
-   * for a call in progress: from another thread, the callback can still be
-   * running, or about to start, when this returns, so what it uses has to
-   * outlive the performance or be protected by the host. A function set again
-   * from another thread can miss the round of calls then in progress.
+   * This function is not thread-safe. Call it when the performance is not
+   * running or, if it is, only on the thread performing, which includes from
+   * inside a keyboard callback; never from another thread. With -j, callbacks
+   * can run on several threads at once, so from inside one this holds only if
+   * no other thread can be calling callbacks at that moment.
    */
   PUBLIC void csoundRemoveKeyboardCallback(CSOUND *csound,
                                            int32_t (*func)(void *, void *, uint32_t));
