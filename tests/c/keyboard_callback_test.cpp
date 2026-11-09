@@ -51,6 +51,22 @@ int32_t removesThePrevious(void *data, void *, uint32_t)
     return CSOUND_SUCCESS;
 }
 
+int32_t removesAnOlderOne(void *data, void *, uint32_t)
+{
+    auto *calls = static_cast<Calls *>(data);
+    calls->order += 'r';
+    csoundRemoveKeyboardCallback(calls->csound, named<'b'>);
+    return CSOUND_SUCCESS;
+}
+
+int32_t registersAnOlderOne(void *data, void *, uint32_t type)
+{
+    auto *calls = static_cast<Calls *>(data);
+    calls->order += 'm';
+    csoundRegisterKeyboardCallback(calls->csound, named<'b'>, data, type);
+    return CSOUND_SUCCESS;
+}
+
 int32_t replacesEverything(void *data, void *, uint32_t type)
 {
     auto *calls = static_cast<Calls *>(data);
@@ -147,6 +163,27 @@ TEST_F(KeyboardCallbackTests, RemovesTheOneBeforeIt)
     perform(2);
     // Already called this round, so nothing is skipped or repeated.
     EXPECT_EQ(calls.order, "abc" "bc");
+}
+
+TEST_F(KeyboardCallbackTests, RemovesAnOlderOneNotNextToIt)
+{
+    add(named<'c'>);
+    add(named<'b'>);
+    add(named<'a'>);
+    add(removesAnOlderOne);
+    perform(2);
+    // 'a' sits between: what is left is called in order, and only what is left.
+    EXPECT_EQ(calls.order, "rac" "rac");
+}
+
+TEST_F(KeyboardCallbackTests, RegistersAnOlderOneAgainBeforeItsTurn)
+{
+    add(named<'c'>);
+    add(named<'b'>);
+    add(registersAnOlderOne);
+    perform(3);
+    // Moved to the front before its turn, it waits for the next round.
+    EXPECT_EQ(calls.order, "mc" "bmc" "bmc");
 }
 
 TEST_F(KeyboardCallbackTests, RegistersANewOneAfterRemovingEverything)

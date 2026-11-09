@@ -1864,7 +1864,6 @@ struct CSOUND_ {
   void *searchPathCache;                                     /* cached file search paths */
   void *reset_list;                                          /* registered reset callback list */
   void *csoundCallbacks_;                                    /* registered event callback list */
-  uint64_t csoundCallbackSerial;                            /* serial of the last callback registered */
 
   /* -------- Locks and synchronisation -------- */
   void *API_lock;                                            /* serialises public API entry points */
@@ -1975,6 +1974,7 @@ struct CSOUND_ {
   volatile long msg_queue_status;                           /* the last async request's, csoundGetAsyncStatus */
   INSTRTXT **instr0_waiting;                                /* managed queue of globals awaiting init, oldest first */
   int32_t instr0_waiting_count;                             /* pending entries in instr0_waiting */
+  uint64_t csoundCallbackSerial;                            /* serial of the last callback registered */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

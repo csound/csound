@@ -1499,6 +1499,8 @@ static void install_signal_handler(void) {
 }
 
 typedef struct CsoundCallbackEntry_s CsoundCallbackEntry_t;
+/* csoundDoCallback_ depends on entries being inserted only at the head of
+   the list, each with a serial higher than any before it. */
 struct CsoundCallbackEntry_s {
   uint32_t typeMask;
   CsoundCallbackEntry_t *nxt;
@@ -2261,6 +2263,7 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
         /* The call may have removed this entry or any other, so hold on to
            nothing across it. The list is newest first: go on to the first
            entry older than the one just called. */
+        /* O(n) per call, O(n^2) per round, deliberately: callbacks are few. */
         pp = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
         while (pp != (CsoundCallbackEntry_t *)NULL && pp->serial >= serial)
           pp = pp->nxt;
@@ -2307,6 +2310,11 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
  * The return value should be zero on success, negative on error, and
  * positive if the callback was ignored (for example because the type is
  * not known).
+ * This function is not thread-safe. Call it when the performance is not
+ * running or, if it is, only on the thread performing, which includes from
+ * inside a keyboard callback; never from another thread. With -j, callbacks
+ * can run on several threads at once, so from inside one this holds only if
+ * no other thread can be calling callbacks at that moment.
  */
 
  int32_t csoundRegisterKeyboardCallback(
@@ -2333,7 +2341,12 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
 }
 
 /**
- * Removes a callback previously set with csoundSetCallback().
+ * Removes a callback previously set with csoundRegisterKeyboardCallback().
+ * This function is not thread-safe. Call it when the performance is not
+ * running or, if it is, only on the thread performing, which includes from
+ * inside a keyboard callback; never from another thread. With -j, callbacks
+ * can run on several threads at once, so from inside one this holds only if
+ * no other thread can be calling callbacks at that moment.
  */
 
  void csoundRemoveKeyboardCallback(CSOUND *csound,
