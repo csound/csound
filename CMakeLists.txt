@@ -746,7 +746,6 @@ if(APPLE)
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 
-if(CS_OPCODE_DIR STREQUAL "")
 if(APPLE)
     if(BUILD_INSTALLER)
        	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
@@ -754,12 +753,7 @@ if(APPLE)
         get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
     endif()
 
-    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
     set(DEFAULT_OPCODEDIR "${CS_FRAMEWORK_FULL_PATH}")
-endif()
-else()
-   add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_OPCODE_DIR}\"")
-   set(DEFAULT_OPCODEDIR "${CS_OPCODE_DIR}")
 endif()
 
 
@@ -773,7 +767,6 @@ endif()
 
 if(LINUX)
     set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
-    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
     # dir relative to $HOME
     if(USE_DOUBLE)
         set(DEFAULT_USER_PLUGINDIR ".local/lib/csound/${APIVERSION}/plugins64")
@@ -791,6 +784,16 @@ if(WIN32)
         set(DEFAULT_USER_PLUGINDIR "csound/${APIVERSION}/plugin")
     endif()
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
+endif()
+
+if("${DEFAULT_OPCODEDIR}" STREQUAL "")
+    set(DEFAULT_OPCODEDIR "${CS_OPCODE_DIR}")
+elseif(NOT "${CS_OPCODE_DIR}" STREQUAL "")
+    set(DEFAULT_OPCODEDIR "${CS_OPCODE_DIR}:${DEFAULT_OPCODEDIR}")
+endif()
+
+if(NOT "${DEFAULT_OPCODEDIR}" STREQUAL "")
+    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
 endif()
 
 if(APPLE OR LINUX)

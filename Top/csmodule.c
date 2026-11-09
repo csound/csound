@@ -788,7 +788,7 @@ int32_t csoundLoadModules(CSOUND *csound)
        extra separator at the end */
     if(*dname1 == '\0') {
       csound->Free(csound, dname1);
-      break;
+      continue;
     }
     dir = opendir(dname1);
     if (UNLIKELY(dir == (DIR*) NULL)) {
@@ -1125,7 +1125,7 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
        extra separator at the end */
     if(*dname1 == '\0') {
       csound->Free(csound, dname1);
-      break;
+      continue;
     }
 
     dir = opendir(dname1);
