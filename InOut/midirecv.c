@@ -125,7 +125,9 @@ void midi_open(CSOUND *csound)
     int32_t     err;
     /* First set up buffers. */
     p->Midevtblk = (MEVENT*) csound->Calloc(csound, sizeof(MEVENT));
-    p->device.sexp = p->file.sexp = 0;
+    /* A new performance starts with no message from either source. */
+    memset(&p->device, 0, sizeof(MIDIPARSER));
+    memset(&p->file, 0, sizeof(MIDIPARSER));
     /* Then open device... */
     if (O->Midiin) {
       if (p->MidiInOpenCallback == NULL)

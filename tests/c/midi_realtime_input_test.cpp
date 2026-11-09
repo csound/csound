@@ -8,6 +8,12 @@
 #include <string>
 #include <vector>
 
+#if defined(_WIN32)
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
+
 class MidiRealtimeInputTests : public ::testing::Test {
  protected:
   CSOUND *csound = nullptr;
@@ -255,8 +261,14 @@ class MidiDeviceAndFileInputTests : public MidiRealtimeInputTests {
 
   void options() override
   {
+#if defined(_WIN32)
+    const auto pid = _getpid();
+#else
+    const auto pid = getpid();
+#endif
     file = std::string("midi_device_and_file_") +
-      ::testing::UnitTest::GetInstance()->current_test_info()->name() + ".mid";
+      ::testing::UnitTest::GetInstance()->current_test_info()->name() + "_" +
+      std::to_string(pid) + ".mid";
     const unsigned char midi[] = {
       'M', 'T', 'h', 'd', 0, 0, 0, 6, 0, 0, 0, 1, 0x05, 0xDC,
       'M', 'T', 'r', 'k', 0, 0, 0, 12,
