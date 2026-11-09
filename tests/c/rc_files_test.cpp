@@ -214,6 +214,21 @@ TEST_F(RcFileTests, TheCommandLineSaysItWithEnv)
   EXPECT_FALSE(took(csound, "RC_HERE"));
 }
 
+/* A file need not end in a newline; trailing blanks are still trimmed. */
+TEST_F(RcFileTests, ALastLineWithNoNewlineIsReadWhole)
+{
+  const fs::path named = root / "named";
+  ASSERT_EQ(csoundSetGlobalEnv("CSOUND7RC", named.string().c_str()), 0);
+  for (const char *text :
+       {"--env:RC_NAMED=abc", "--env:RC_NAMED=abc  ", "--env:RC_NAMED=abc\n"}) {
+    std::ofstream(named, std::ios::binary) << text;
+    CSOUND *csound = instance();
+    option(csound);
+    ASSERT_TRUE(took(csound, "RC_NAMED")) << text;
+    EXPECT_STREQ(csoundGetEnv(csound, "RC_NAMED"), "abc") << text;
+  }
+}
+
 TEST_F(RcFileTests, AFileItNamesIsReadInPlaceOfHomeAsBefore)
 {
   ASSERT_EQ(csoundSetGlobalEnv("CSOUND7RC", (root / "named").string().c_str()),
