@@ -13,8 +13,9 @@ extern "C" {
    's' comes back empty, with a warning, so that the caller's open fails
    with its ordinary error rather than opening a file named by what fits,
    which might exist and be overwritten. An empty name cannot be opened:
-   every path through FileOpen, FindInputFile and FindOutputFile refuses it,
-   and a direct fopen fails on it. StringArg2Name cannot do this, as it has
+   FileOpen with a non-NULL env, FindInputFile and FindOutputFile refuse it,
+   and a caller using fopen directly must refuse it itself, as wasi-libc
+   opens "" as a directory. StringArg2Name cannot do this, as it has
    no size to go by, so a name from the score can run off the end of any
    buffer given to it; a caller that cannot bound one must pass NULL and
    free the result. Its rules for a name are repeated here because nothing
