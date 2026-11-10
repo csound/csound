@@ -395,7 +395,6 @@ static void tonela_coefficients(TONELA *p)
 
 int32_t tonelaset(CSOUND *csound, TONELA *p)
 {
-    IGN(csound);
     p->prvhp = (cs_double)*p->khp;
     tonela_coefficients(p);
     if (LIKELY(!(*p->istor))) {
@@ -405,6 +404,9 @@ int32_t tonelaset(CSOUND *csound, TONELA *p)
     } else {
       p->settle = 0;
     }
+    csound->AuxAlloc(csound, (size_t)CS_KSMPS * sizeof(cs_float), &p->aux);
+    if (UNLIKELY(p->aux.auxp == NULL))
+      return csound->InitError(csound, Str("tonela: insufficient memory\n"));
     return OK;
 }
 
@@ -433,12 +435,9 @@ static int32_t tonela_process(CSOUND *csound, TONELA *p, int32_t highpass)
       return OK;
     if (UNLIKELY(ar == asig)) {
       size_t bytes = (size_t)nsmps * sizeof(cs_float);
-      if (p->aux.auxp == NULL || p->aux.size < bytes) {
-        csound->AuxAlloc(csound, bytes, &p->aux);
-        if (UNLIKELY(p->aux.auxp == NULL || p->aux.size < bytes))
-          return csound->PerfError(csound, &(p->h),
-                                   Str("tonela: insufficient memory\n"));
-      }
+      if (UNLIKELY(p->aux.auxp == NULL || p->aux.size < bytes))
+        return csound->PerfError(csound, &(p->h),
+                                 Str("tonela: insufficient memory\n"));
       in = (const cs_float*)p->aux.auxp;
       memcpy((void*)in, asig, bytes);
     } else {
