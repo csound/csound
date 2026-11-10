@@ -22,6 +22,7 @@
 
 #include <ctype.h>
 #include <math.h>
+#include "aops.h"
 #include "array_ops.h"
 #include "arrays_internal.h"
 #include "csound_orc_semantics.h"
@@ -144,7 +145,7 @@ int32_t tabfill(CSOUND *csound, TABFILL *p)
     for (i=0; i<nargs; i++) {
       // bool is int32_t but each array slot is sizeof(cs_float)
       int32_t *idat = (int32_t *) (p->ans->data + (i * memMyfltSize));
-      *idat = *valp[i] ? 1 : 0;
+      *idat = arg_is_true(valp[i]);
     }
   }
   else if (p->ans->arrayType == &CS_VAR_TYPE_S) {

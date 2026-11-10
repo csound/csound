@@ -116,7 +116,9 @@ public class CsoundObj {
     private native void deinitMidiDevices(SWIGTYPE_p_CSOUND_ csound);
 
     // Set MIDI devices
-    // should be called before startCsound()
+    // call before each startCsound(): the Reset that ends a run closes
+    // the devices and clears the options; closeMidiIO() closes them
+    // otherwise, or, during a run, when it ends
     // in: MidiDevice for MIDI input
     // out: MidiDevice for MIDI output
     // ports default to 0, 0
@@ -410,6 +412,8 @@ public class CsoundObj {
             }
 
         } else {
+            // a failed Start leaves MIDI ports open: only a Reset closes them
+            csound.Reset();
             synchronized (mLock) {
                 for (int i = 0; i < listeners.size(); i++) {
                     CsoundObjListener listener = listeners.get(i);
@@ -497,6 +501,8 @@ public class CsoundObj {
             }
 
         } else {
+            // a failed Start leaves MIDI ports open: only a Reset closes them
+            csound.Reset();
             synchronized (mLock) {
                 for (int i = 0; i < listeners.size(); i++) {
                     CsoundObjListener listener = listeners.get(i);
@@ -692,6 +698,8 @@ public class CsoundObj {
                 }
             }
         } else {
+            // a failed Start leaves MIDI ports open: only a Reset closes them
+            csound.Reset();
             synchronized (mLock) {
                 for (int i = 0; i < listeners.size(); i++) {
                     CsoundObjListener listener = listeners.get(i);

@@ -57,7 +57,10 @@ void check_options(CSOUND *csound) {
   char *s = NULL;
   /* IV - Feb 17 2005 */
   csrcname = csoundGetEnv(csound, "CSOUND7RC");
-  if (csrcname != NULL && csrcname[0] != '\0') {
+  /* set but empty: no rc file at all, the working directory's included */
+  if (csrcname != NULL && csrcname[0] == '\0')
+    return;
+  if (csrcname != NULL) {
     fd = csound->FileOpen(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
                           CSFTYPE_OPTIONS, 0);
     if (UNLIKELY(fd == NULL)) {

@@ -260,6 +260,15 @@ PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *option);
 This function can now take any number of options, in the command-line
 arguments format, and can include spaces.
 
+An instance reads `.csound7rc` at its first option, so that what a host sets
+overrides it. That file takes any option, and it is looked for in the current
+working directory when options are first read. A host can turn this off: with
+`CSOUND7RC` set but empty, an instance reads no rc file at all.
+
+```
+csoundSetGlobalEnv("CSOUND7RC", "");  /* before csoundCreate() */
+```
+
 ```
 PUBLIC void csoundSetOutput(CSOUND *csound, const char *name,
                               const char *type, const char *format);

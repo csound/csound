@@ -912,6 +912,37 @@ TEST_F (DebuggerTests, testUdoFramesTypedHeaderArgsAreLive)
     csoundDebugFreeInstrInstances(csound, instrs);
 }
 
+/* A string literal argument is the UDO's own variable, not the caller's text,
+   so the frame walker must read that variable or it shows what the body has
+   already overwritten. */
+TEST_F (DebuggerTests, testUdoFramesStringLiteralArgIsTheCopy)
+{
+    const char *orc =
+        "opcode Written(Sx:S):void\n"
+        "  Sx strcpyk \"written by the body\"\n"
+        "endop\n"
+        "instr 1\n"
+        "  Written(\"literal\")\n"
+        "endin\n";
+
+    int32_t compileErr = csoundCompileOrc(csound, orc, 0);
+    ASSERT_EQ(compileErr, 0);
+    csoundStart(csound);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+
+    debug_instr_t *instrs = csoundDebugGetInstrInstances(csound);
+    ASSERT_NE(instrs, nullptr);
+    debug_udo_frame_t *frames = csoundDebugGetUdoFrames(csound, instrs, NULL);
+    ASSERT_NE(frames, nullptr);
+    debug_variable_t *arg = findDebugVar(frames->varList, "Sx");
+    ASSERT_NE(arg, nullptr);
+    ASSERT_STREQ((const char *) arg->data, "written by the body");
+
+    csoundDebugFreeUdoFrames(csound, frames);
+    csoundDebugFreeInstrInstances(csound, instrs);
+}
+
 /* Each recursive invocation owns its own caller-argument pointers, so the
    per-frame values must differ instead of collapsing onto one slot. */
 TEST_F (DebuggerTests, testUdoFramesTypedRecursiveArgsPerFrame)

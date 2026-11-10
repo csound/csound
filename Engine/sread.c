@@ -117,6 +117,17 @@ static void sreaderr(CSOUND *csound, const char *s, ...)
     return;
 }
 
+/* A b, B, C or v without its number is said and ignored: there is no p-field
+   to read, sp is NULL or the last statement's, and getpfld has dealt with the
+   rest of the line. */
+static int32_t has_number(CSOUND *csound)
+{
+    if (getpfld(csound, 0))
+      return 1;
+    sreaderr(csound, Str("%c without a number ignored\n"), csound->sread.op);
+    return 0;
+}
+
 /* scorerr() - for fatal errors in score parsing */
 static void scorerr(CSOUND *csound, const char *s, ...)
 {
@@ -236,23 +247,26 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
       (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK));
     (csound->sread.input_size) = 20;
     (csound->sread.input_cnt) = 0;
+    (csound->sread.last_name) = -1;      /* a mark is a place in this text */
     (csound->sread.str) = (csound->sread.inputs);
     (csound->sread.str)->is_marked_repeat = 0;
     (csound->sread.str)->line = 1; (csound->sread.str)->mac = NULL;
     //init_smacros(csound, csound->smacros);
     {
-      PRS_PARM  qq;
-      memset(&qq, '\0', sizeof(PRS_PARM));
-      csound_prslex_init(&qq.yyscanner);
-      cs_init_smacros(csound, &qq, csound->smacros);
-      csound_prsset_extra(&qq, qq.yyscanner);
+      PRS_PARM  *qq = csound->Calloc(csound, sizeof(PRS_PARM));
+      csound->sread.prs = qq;           /* a fatal error frees it from here */
+      qq->csound = csound;
+      csound_prslex_init(&qq->yyscanner);
+      cs_init_smacros(csound, qq, csound->smacros);
+      csound_prsset_extra(qq, qq->yyscanner);
       csound->expanded_sco = corfile_create_w(csound);
       /* printf("Input:\n%s<<<\n", */
       /*        corfile_body(csound->sread.str->cf)); */
-      csound_prslex(csound, qq.yyscanner);
+      csound_prslex(csound, qq->yyscanner);
       csound->DebugMsg(csound, "yielding >>%s<<\n",
                        corfile_body(csound->expanded_sco));
-      csound_prslex_destroy(qq.yyscanner);
+      csound->sread.prs = NULL;
+      csound_prs_free(csound, qq);
       corfile_rm(csound, &csound->scorestr);
       corfile_rewind(csound->expanded_sco);
     }
@@ -285,12 +299,17 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
         {
           char  *p = &((csound->sread.bp)->text[1]);
           char q;
+          int32_t c;
           //char *old_nxp = (csound->sread.nxp)-2;
           //printf("text=%s<<\n", (csound->sread.bp)->text);
           /* Measurement shows isdigit and 3 cases is about 30% */
           /* faster than use of strchr (measured on Suse9.3)    */
           /*         if (strchr("+-.0123456789", *p) != NULL) { */
-          while ((q=getscochar(csound,1))!='\n') *p++ = q;
+          while ((c=getscochar(csound,1))!='\n' && c!=EOF) {
+            *p++ = c;
+            if (p >= (csound->sread.memend))
+              p = (char*) ((uintptr_t) p + expand_nxp(csound));
+          }
           *p = '\0';
           //printf("text=%s<<\n", (csound->sread.bp)->text);
           p = &((csound->sread.bp)->text[1]);
@@ -334,18 +353,19 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
       case 'b': /* Set a clock base */
         {
           char *old_nxp = (csound->sread.nxp)-2;
-          getpfld(csound,0);
-          if (csound->sread.op == 'b')
-            (csound->sread.clock_base) =
-              stof(csound, (csound->sread.sp));
-          else
-            (csound->sread.clock_base) +=
-              stof(csound, (csound->sread.sp));
+          if (has_number(csound)) {
+            if (csound->sread.op == 'b')
+              (csound->sread.clock_base) =
+                stof(csound, (csound->sread.sp));
+            else
+              (csound->sread.clock_base) +=
+                stof(csound, (csound->sread.sp));
+            flushlin(csound);
+          }
 
           if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound,Str("Clockbase = %f\n"),
                             csound->sread.clock_base);
-          flushlin(csound);
           (csound->sread.op) = getop(csound);
           (csound->sread.nxp) = old_nxp;
           *(csound->sread.nxp)++ =
@@ -356,11 +376,12 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
       case 'C':                 /* toggle carry */
         {
           char *old_nxp = (csound->sread.nxp)-2;
-          getpfld(csound,0);
-          (csound->sread.nocarry) =
-            stof(csound, (csound->sread.sp))==0.0?1:0;
+          if (has_number(csound)) {
+            (csound->sread.nocarry) =
+              stof(csound, (csound->sread.sp))==0.0?1:0;
+            flushlin(csound);
+          }
           //printf("nocarry = %d\n", (csound->sread.nocarry));
-          flushlin(csound);
           (csound->sread.op) = getop(csound);
           (csound->sread.nxp) = old_nxp;
           *(csound->sread.nxp)++ =
@@ -427,7 +448,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           int32_t   c;
           int32_t   i = 0, j;
           while (isblank(c = getscochar(csound, 1)));
-          while (is_name_char(c, i)) {
+          while (is_name_char(c, i) && i < (int32_t) sizeof(buff) - 1) {
             buff[i++] = c;
             c = getscochar(csound, 1);
           }
@@ -438,22 +459,26 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             //printf("*** last_name = %d\n", (csound->sread.last_name));
           for (j=0; j<(csound->sread.last_name); j++) {
             //printf("m: %s %s(%d)\n",
-            //       buff, (csound->sread.names)[j].name, j);
-            if (strcmp(buff, (csound->sread.names)[j].name)==0) break;
+            //       buff, (csound->marked_sections)[j].name, j);
+            if (strcmp(buff, (csound->marked_sections)[j].name)==0) break;
           }
           if (j>=(csound->sread.last_name)) {
+            if (UNLIKELY((csound->sread.last_name) + 1 >=
+                         (int32_t) (sizeof(csound->marked_sections) /
+                                    sizeof(csound->marked_sections[0]))))
+              scorerr(csound, Str("too many marked sections\n"));
             j = ++(csound->sread.last_name);
-            (csound->sread.names)[j].name =csoundStrdup(csound, buff);
+            (csound->marked_sections)[j].name =csoundStrdup(csound, buff);
           }
-          (csound->sread.names)[j].posit =
+          (csound->marked_sections)[j].posit =
             corfile_tell(csound->expanded_sco);
-          //printf("posit=%d\n", (csound->sread.names)[j].posit);
-          (csound->sread.names)[j].line = (csound->sread.str)->line;
-          //printf("line-%d\n",(csound->sread.names)[j].line);
+          //printf("posit=%d\n", (csound->marked_sections)[j].posit);
+          (csound->marked_sections)[j].line = (csound->sread.str)->line;
+          //printf("line-%d\n",(csound->marked_sections)[j].line);
           if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound,Str("%d: %s position %"PRIi32"\n"),
-                            j, (csound->sread.names)[j].name,
-                            (csound->sread.names)[j].posit);
+                            j, (csound->marked_sections)[j].name,
+                            (csound->marked_sections)[j].posit);
           (csound->sread.op) = getop(csound);
           (csound->sread.nxp) = old_nxp;
           *(csound->sread.nxp)++ =
@@ -468,7 +493,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           int32_t c;
           int32_t i = 0;
           while (isblank(c = getscochar(csound, 1)));
-          while (is_name_char(c, i)) {
+          while (is_name_char(c, i) && i < (int32_t) sizeof(buff) - 1) {
             buff[i++] = c;
             c = getscochar(csound, 1);
           }
@@ -478,15 +503,18 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           //printf("last_name %d\n", (csound->sread.last_name));
           for (i = 0; i<=(csound->sread.last_name); i++) {
             //printf("n: %s %s(%d)\n",
-            //       buff, (csound->sread.names)[i].name, i);
-            if (strcmp(buff, (csound->sread.names)[i].name)==0) break;
+            //       buff, (csound->marked_sections)[i].name, i);
+            if (strcmp(buff, (csound->marked_sections)[i].name)==0) break;
           }
           //printf("i=%d\n", i);
           if (UNLIKELY(i > (csound->sread.last_name)))
             sreaderr(csound, Str("Name %s not found\n"), buff);
           else {
             //csound->Message(csound, Str("%d: %s (%ld)\n"),
-            //                i, buff, (csound->sread.names)[i].posit);
+            //                i, buff, (csound->marked_sections)[i].posit);
+            if (UNLIKELY((csound->sread.str) - (csound->sread.inputs) >=
+                         MAX_INCLUDE_DEPTH))
+              scorerr(csound, Str("n: marked sections nested too deeply\n"));
             (csound->sread.input_cnt)++;
             if (csound->sread.input_cnt>=csound->sread.input_size) {
               int32_t old = (int32_t)((csound->sread.str)-(csound->sread.inputs));
@@ -499,13 +527,14 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             }
             (csound->sread.str)++;
             (csound->sread.str)->is_marked_repeat = 1;
-            (csound->sread.str)->line = (csound->sread.names)[i].line;
+            (csound->sread.str)->mac = NULL;
+            (csound->sread.str)->line = (csound->marked_sections)[i].line;
             (csound->sread.str)->oposit = corfile_tell(csound->expanded_sco);
             corfile_set(csound->expanded_sco,
-                        (csound->sread.names)[i].posit);
+                        (csound->marked_sections)[i].posit);
             //printf("posit was %d moved to %d\n",
             //       (csound->sread.str)->oposit,
-            //       (csound->sread.names)[i].posit);
+            //       (csound->marked_sections)[i].posit);
           }
               (csound->sread.op) = getop(csound);
           (csound->sread.nxp) = old_nxp;
@@ -517,13 +546,14 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
       case 'v': /* Suggestion of Bryan Bales */
         {       /* Set local variability of time */
           char *old_nxp = (csound->sread.nxp)-2;
-          getpfld(csound,0);
-          (csound->sread.warp_factor) =
-            stof(csound, (csound->sread.sp));
+          if (has_number(csound)) {
+            (csound->sread.warp_factor) =
+              stof(csound, (csound->sread.sp));
+            flushlin(csound);
+          }
           if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound, Str("Warp_factor = %f\n"),
                             (csound->sread.warp_factor));
-          flushlin(csound);
           (csound->sread.op) = getop(csound);
           (csound->sread.nxp) = old_nxp;
           *(csound->sread.nxp)++ =
@@ -922,6 +952,19 @@ void sfree(CSOUND *csound)       /* free all sorter allocated space */
       (csound->sread.str)--;
     }
     corfile_rm(csound, &(csound->scorestr));
+}
+
+void sread_abandon(CSOUND *csound)  /* what a fatal error left in the reader */
+{
+    if (csound->sread.prs != NULL) {
+      csound_prs_free(csound, csound->sread.prs);
+      csound->sread.prs = NULL;
+    }
+    corfile_rm(csound, &csound->sread.sorted);
+    sfree(csound);
+    corfile_rm(csound, &csound->expanded_sco);
+    csound->Free(csound, csound->sread.inputs);
+    csound->sread.inputs = csound->sread.str = NULL;
 }
 
 static void flushlin(CSOUND *csound)

@@ -45,9 +45,13 @@ typedef struct _SR_CONVERTER {
 } SR_CONVERTER;
 
 
+/** the first mode that holds k values: SRC_HELD_K + n is converter n for
+    audio, with k values and k arrays copied instead of converted */
+#define SRC_HELD_K 5
+
 /** converter initialisation
     one per argument
-    mode - conversion mode (0 - 4)
+    mode - conversion mode (0 - 4), or the same + SRC_HELD_K
     ratio - conversion ratio (oversampling or 1/oversampling factor)
     in_ksmps, out_ksmps - audio block sizes on each side of the conversion
     var - actual variable given to conversion
@@ -66,7 +70,7 @@ void src_deinit(CSOUND *csound, SR_CONVERTER *p);
     out - signal to be converted
 
     src is only performed on time-domain signals (a,k and arrays thereof)
-    other variable types are simply copied
+    other variable types, and k and k arrays in a held mode, are simply copied
  */
 int32_t src_convert(CSOUND *csoubnd, SR_CONVERTER *p, cs_float *in, cs_float *out);
 

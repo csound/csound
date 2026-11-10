@@ -140,6 +140,54 @@ INSTANTIATE_TEST_SUITE_P(RegistryChanges, UdoLiveCompileTests,
     ::testing::Combine(::testing::Values(1, 64), ::testing::Values(2, 201, 999),
                        ::testing::Bool()));
 
+/* A plugin can return a string variable whose text it lends: refcount -1,
+   the mark the string type keeps for storage it does not own. It is still a
+   variable, so a new-style UDO's write reaches it; a literal is told by the
+   call's arguments, not by its STRINGDAT. */
+namespace {
+struct BorrowedStringOut {
+    OPDS h;
+    STRINGDAT *out;
+};
+
+char borrowedText[] = "borrowed text";
+
+int32_t borrowed_string_init (CSOUND *csound, void *dataspace)
+{
+    auto *p = static_cast<BorrowedStringOut *> (dataspace);
+    if (p->out->data != nullptr && p->out->refcount != -1) {
+        csound->Free (csound, p->out->data);
+    }
+    p->out->data = borrowedText;
+    p->out->size = sizeof (borrowedText);
+    p->out->refcount = -1;
+    return 0;
+}
+}
+
+TEST_F (OrcCompileTests, BorrowedStringVariableIsWrittenByUdo)
+{
+    ASSERT_EQ (csoundSetOption (csound, "-n"), 0);
+    ASSERT_EQ (csoundAppendOpcode (csound, "testborrowed", sizeof (BorrowedStringOut),
+                                   0, "S", "", borrowed_string_init, nullptr, nullptr), 0);
+    const char *orc =
+        "opcode Writer(Sx:S):void\n"
+        "  Sx = \"written by the UDO\"\n"
+        "endop\n"
+        "instr 1\n"
+        "  Svar testborrowed\n"
+        "  Writer(Svar)\n"
+        "  chnset Svar, \"result\"\n"
+        "endin\n";
+    ASSERT_EQ (csoundCompileOrc (csound, orc), 0);
+    ASSERT_EQ (csoundStart (csound), 0);
+    csoundEventString (csound, "i 1 0 1", 0);
+    ASSERT_EQ (csoundPerformKsmps (csound), 0);
+    char result[64] = "";
+    csoundGetStringChannel (csound, "result", result);
+    ASSERT_STREQ (result, "written by the UDO");
+}
+
 TEST_F(OrcCompileTests, RejectedLiveCompilePreservesNamedInstrument)
 {
     csoundSetOption(csound, "-n -d -m0");
@@ -2563,4 +2611,49 @@ endin
     EXPECT_EQ(1, csoundGetControlChannel(csound, "k_uplus", &error));
     EXPECT_EQ(-2, csoundGetControlChannel(csound, "i_neg", &error));
     EXPECT_EQ(-3, csoundGetControlChannel(csound, "k_classic", &error));
+}
+
+/* Functional init of a computed value used to fail the same way: any expression
+   argument had convert_statement_to_opcall ask what the call returns, and init's
+   multi-out overload answered with an error. The value must also keep state, as
+   the same call with a constant does. */
+TEST_F (OrcCompileTests, testFunctionalInitComputedValue)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    const char *orchestra = R"(
+instr 1
+  values:i[] = fillarray(3, 4)
+  sum:k = init(1 + 2)
+  k_named = init(1 + 2)
+  called:k = init(random:i(3, 3))
+  field:k = init(p4 + 1)
+  element:k = init(values[0])
+  once:i = init(1 + 2)
+  sum += 1
+  k_named += 1
+  called += 1
+  field += 1
+  element += 1
+  chnset sum, "sum"
+  chnset k_named, "k_named"
+  chnset called, "called"
+  chnset field, "field"
+  chnset element, "element"
+  chnset once, "once"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 1 2\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int32_t error = 0;
+    for (int32_t period = 1; period <= 3; period++) {
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+        EXPECT_EQ(3 + period, csoundGetControlChannel(csound, "sum", &error));
+        EXPECT_EQ(CSOUND_SUCCESS, error);
+        EXPECT_EQ(3 + period, csoundGetControlChannel(csound, "k_named", &error));
+        EXPECT_EQ(3 + period, csoundGetControlChannel(csound, "called", &error));
+        EXPECT_EQ(3 + period, csoundGetControlChannel(csound, "field", &error));
+        EXPECT_EQ(3 + period, csoundGetControlChannel(csound, "element", &error));
+        EXPECT_EQ(3, csoundGetControlChannel(csound, "once", &error));
+    }
 }

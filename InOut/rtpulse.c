@@ -48,6 +48,9 @@ typedef struct _pulse_globals {
       csound->Message(csound, Str("PulseAudio client RT IO module for Csound"
                                   "by Victor Lazzarini\n"));
 
+    /* A second copy of this module shares the first one's globals. */
+    if (csound->QueryGlobalVariable(csound, "_pulse_globals") != NULL)
+      return 0;
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_pulse_globals",
                                               sizeof(pulse_globals)) != 0)) {
       csound->ErrorMsg(csound, Str(" *** rtpulse: error allocating globals"));

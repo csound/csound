@@ -295,20 +295,22 @@ static char *take_lines(CSOUND *csound)
       }
     if (last != NULL) {
       len = (int32_t) (last - STA(Linebuf));
-      if (STA(work) == NULL || len + 1 > STA(worksiz)) {
-        STA(work) = (char *) (STA(work) == NULL
+      if (csound->line_event_work == NULL ||
+          len + 1 > csound->line_event_work_size) {
+        csound->line_event_work = (char *) (csound->line_event_work == NULL
                               ? csound->Calloc(csound, len + 1)
-                              : csound->ReAlloc(csound, STA(work), len + 1));
-        STA(worksiz) = len + 1;
+                              : csound->ReAlloc(csound, csound->line_event_work,
+                                                len + 1));
+        csound->line_event_work_size = len + 1;
       }
-      memcpy(STA(work), STA(Linebuf), len);
-      STA(work)[len] = '\0';
+      memcpy(csound->line_event_work, STA(Linebuf), len);
+      csound->line_event_work[len] = '\0';
       n = (int32_t) (STA(Linep) - last);
       memmove(STA(Linebuf), last, n);
       STA(Linep) = STA(Linebuf) + n;
     }
     csoundSpinUnLock(&csound->line_event_spinlock);
-    return last == NULL ? NULL : STA(work) + len;
+    return last == NULL ? NULL : csound->line_event_work + len;
 }
 
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
@@ -324,7 +326,7 @@ static void sense_line(CSOUND *csound, void *userData)
       if(STA(oflag) > oflag) break;
       if ((Linend = take_lines(csound)) == NULL)
         break;
-      Linestart = STA(work);
+      Linestart = csound->line_event_work;
       cp = Linestart;
 
       while (containsLF(Linestart, Linend)) {

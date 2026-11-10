@@ -23,6 +23,7 @@
 #include "csound_message_callbacks.h"
 
 extern void (*msgcallback_)(CSOUND *, int32_t, const char *, va_list);
+void score_read_unwind(CSOUND *csound);
 void csoundDefaultMessageCallback(CSOUND *csound, int32_t attr,
                                          const char *format, va_list args) {
 #if defined(WIN32)
@@ -139,6 +140,7 @@ void csoundDie(CSOUND *csound, const char *msg, ...) {
   va_start(args, msg);
   csound->ErrMsgV(csound, (char *)0, msg, args);
   va_end(args);
+  score_read_unwind(csound); /* a refused score is no performance error */
   csound->perferrcnt++;
   csound->LongJmp(csound, 1);
 }

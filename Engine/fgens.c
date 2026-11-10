@@ -37,6 +37,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include "fftlib.h"
+#include "strarg2name.h"
 
 static int32_t gen01raw(FGDATA *, FUNC *);
 static int32_t gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);
@@ -150,7 +151,9 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
     ff.csound = csound;
 
     memcpy(&(ff.e), evtblkp, sizeof(EVTBLK));
-    ff.e.p = (cs_float *) csound->Calloc(csound, sizeof(cs_float) * (evtblkp->pcnt + 2));
+    /* csoundFtError reads p4 whatever the event gave: f -1 gives p1 alone. */
+    ff.e.p = (cs_float *) csound->Calloc(csound, sizeof(cs_float) *
+                                         ((evtblkp->pcnt < 3 ? 3 : evtblkp->pcnt) + 2));
     ff.e.p[1] = evtblkp->p[1];
     ff.fno = (int32_t) CS_FLOAT2LRND(ff.e.p[1]);
     if (!ff.fno) {
@@ -2616,9 +2619,9 @@ static int32_t gen43(FGDATA *ff, FUNC *ftp)
 
     filno = &ff->e.p[5];
     if (isstrcod(ff->e.p[5]))
-      strNcpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME);
+      strname_bounded(csound, filename, MAXNAME, ff->e.strarg);
     else
-      csound->StringArg2Name(csound, filename, filno, "pvoc.", 0);
+      strarg2name_bounded(csound, filename, sizeof(filename), filno, "pvoc.", 0);
 
     if (UNLIKELY(csoundPVOCEX_LoadFile(csound, filename, &pp) != 0))
       return csoundFtError(ff, Str("Failed to load PVOC-EX file\n"));
@@ -2680,11 +2683,10 @@ static int32_t gen44(FGDATA *ff, FUNC *ftp)
     cs_float stiffness;
 
     if (isstrcod(ff->e.p[5])) {
-      strncpy(buff, (char *)(&ff->e.strarg[0]), sizeof(buff) - 1);
-      buff[sizeof(buff) - 1] = '\0';
+      strname_bounded(csound, buff, sizeof(buff), ff->e.strarg);
     }
     else
-      csound->StringArg2Name(csound, buff, &(ff->e.p[5]), "stiff.", 0);
+      strarg2name_bounded(csound, buff, sizeof(buff), &(ff->e.p[5]), "stiff.", 0);
     fd = csound->FileOpen(csound, &filp, CSFILE_STD, buff, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL))

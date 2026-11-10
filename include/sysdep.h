@@ -509,6 +509,27 @@ char *strNcpy(char *dst, const char *src, size_t siz);
 #define ATOMIC_GET8(var) var
 #endif
 
+/* For a size_t: ATOMIC_SET and ATOMIC_GET are 32 bits wide under MSVC.
+   A C file using these includes <intrin.h> after csoundCore.h. */
+#if defined(MSVC) && defined(_WIN64)
+#define ATOMIC_SET_SIZE(var, val) \
+  ((void) _InterlockedExchange64((volatile __int64 *) &(var), (__int64) (val)))
+#define ATOMIC_GET_SIZE(var) \
+  ((size_t) _InterlockedExchangeAdd64((volatile __int64 *) &(var), 0))
+#elif defined(MSVC)
+#define ATOMIC_SET_SIZE(var, val) \
+  ((void) _InterlockedExchange((volatile long *) &(var), (long) (val)))
+#define ATOMIC_GET_SIZE(var) \
+  ((size_t) _InterlockedExchangeAdd((volatile long *) &(var), 0))
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define ATOMIC_SET_SIZE(var, val) \
+  __atomic_store_n(&(var), (val), __ATOMIC_RELAXED)
+#define ATOMIC_GET_SIZE(var) __atomic_load_n(&(var), __ATOMIC_RELAXED)
+#else
+#define ATOMIC_SET_SIZE(var, val) ((var) = (val))
+#define ATOMIC_GET_SIZE(var) (var)
+#endif
+
 #ifdef MSVC
 #define ATOMIC_SET_BOOL(var, val) \
   ((void) InterlockedExchange8((volatile char *) &(var), (char) !!(val)))

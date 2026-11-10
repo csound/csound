@@ -38,7 +38,6 @@ static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
                                      float ratio, CS_VARIABLE *var,
                                      INSDS *ip, int32_t in_ksmps,
                                      int32_t out_ksmps) {
-  IGN(mode);
   int32_t n = 1,  i, size;
   const CS_TYPE *typ = var->varType;
   SR_CONVERTER *pp = (SR_CONVERTER *) csound->Calloc(csound,
@@ -61,7 +60,7 @@ static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
   }
   
   if(typ == &CS_VAR_TYPE_A ||
-     (typ == &CS_VAR_TYPE_K && in_ksmps == out_ksmps)) {
+     (typ == &CS_VAR_TYPE_K && in_ksmps == out_ksmps && mode < SRC_HELD_K)) {
     size = typ == &CS_VAR_TYPE_K ? 1 : in_ksmps;
     pp->insize = size;
     pp->outsize = typ == &CS_VAR_TYPE_K ? 1 : out_ksmps;
@@ -215,7 +214,8 @@ typedef struct {
 SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
                        float ratio, CS_VARIABLE *var,
                        INSDS *ip, int32_t in_ksmps, int32_t out_ksmps) {
-  if(mode < 4) {
+  int32_t cvt = mode < SRC_HELD_K ? mode : mode - SRC_HELD_K;
+  if(cvt < 4) {
     int32_t err = 0;
     int32_t n = 1, size;
     int i;
@@ -238,14 +238,15 @@ SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
     }
     
     if(typ == &CS_VAR_TYPE_A ||
-       (typ == &CS_VAR_TYPE_K && in_ksmps == out_ksmps)) {
+       (typ == &CS_VAR_TYPE_K && in_ksmps == out_ksmps &&
+        mode < SRC_HELD_K)) {
       // src conversion
       size = typ == &CS_VAR_TYPE_K ? 1 : in_ksmps;
       pp->dat = (CVTDAT *) csound->Calloc(csound, sizeof(CVTDAT)*n);
       pp->insize = size;
       pp->outsize = typ == &CS_VAR_TYPE_K ? 1 : out_ksmps;
       for(i = 0; i < n; i++) { // one cvt per array item or per asig/ksig var
-        SRC_STATE* stat = src_new(mode > 0 ? mode : 0, 1, &err);
+        SRC_STATE* stat = src_new(cvt > 0 ? cvt : 0, 1, &err);
         if(!err) {
           SRC *p = (SRC *) csound->Calloc(csound, sizeof(SRC));
           p->stat = stat;
@@ -282,7 +283,7 @@ SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
       pp->ncvt = n;
     } else pp->ncvt = 0;
     pp->ratio = ratio;      
-    pp->mode = mode;
+    pp->mode = cvt;
     pp->var = var;
     pp->csound = csound;
     pp->ip = ip;           

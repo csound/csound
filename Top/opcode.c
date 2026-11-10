@@ -1174,7 +1174,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
   }
 
   // connect TEXT args, skipping opcode obj
-  t->inArgs = h->optext->t.inArgs + 1;
+  t->inArgs = h->optext->t.inArgs->next;
   t->inlist->count = ni = t->inArgCount = ni;
   t->inlist->arg[0] = (char *) t->inArgs;
   return OK;

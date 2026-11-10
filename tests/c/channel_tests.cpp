@@ -824,6 +824,63 @@ TEST_F (ChannelTests, ConcurrentStringChannelResize)
     EXPECT_EQ(strlen(output.data()), maxLength);
 }
 
+// The read csound.h gives a host whose channel another thread can write.
+TEST_F (ChannelTests, StringChannelReadUnderItsLockDuringResize)
+{
+    constexpr size_t maxLength = 65536;
+    constexpr size_t size = 256;
+    csoundSetStringChannel(csound, "shared", "a");
+    STRINGDAT *stringdat;
+    ASSERT_EQ(csoundGetChannelPtr(csound, (void **) &stringdat, "shared",
+                                  CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL),
+              CSOUND_SUCCESS);
+    std::atomic<bool> reading{false};
+    std::atomic<bool> finished{false};
+    std::thread writer([&]() {
+        while (!reading.load())
+            std::this_thread::yield();
+        for (size_t length = 128; length <= maxLength; length += 128) {
+            const std::string value(length, 'a');
+            csoundSetStringChannel(csound, "shared", value.c_str());
+        }
+        finished.store(true);
+    });
+    char buffer[size + 1];
+    buffer[size] = 'x';
+    bool moved = false;
+    bool invalid = false;
+    do {
+        csoundLockChannel(csound, "shared");
+        reading.store(true);
+        const char *text = csoundGetStringData(csound, stringdat);
+        const int32_t allocated = csoundGetChannelDatasize(csound, "shared");
+        const size_t length = (size_t) snprintf(buffer, size, "%s", text);
+        // The writer is waiting for the lock, so nothing here can move.
+        std::this_thread::yield();
+        if (csoundGetStringData(csound, stringdat) != text ||
+            csoundGetChannelDatasize(csound, "shared") != allocated ||
+            strlen(text) != length)
+            moved = true;
+        csoundUnlockChannel(csound, "shared");
+        const size_t copied = strlen(buffer);
+        if (copied != (length < size ? length : size - 1) ||
+            buffer[size] != 'x' ||
+            csoundGetChannelDatasize(csound, "shared") < allocated)
+            invalid = true;
+        std::this_thread::yield();
+    } while (!finished.load());
+    writer.join();
+    EXPECT_FALSE(moved);
+    EXPECT_FALSE(invalid);
+    // The last write is longer than the buffer, whatever the scheduling.
+    csoundLockChannel(csound, "shared");
+    const size_t length = (size_t) snprintf(
+        buffer, size, "%s", csoundGetStringData(csound, stringdat));
+    csoundUnlockChannel(csound, "shared");
+    EXPECT_EQ(length, maxLength);
+    EXPECT_EQ(strlen(buffer), size - 1);
+}
+
 TEST_F (ChannelTests, StringOpcodesDuringHostResize)
 {
     // Let the host finish the test, regardless of simulated score time.

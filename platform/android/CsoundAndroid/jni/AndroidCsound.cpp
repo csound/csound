@@ -89,13 +89,36 @@ unsigned long AndroidCsound::getStreamTime(){
 }
 
 
+/* The CSOUND * a SWIG type wrapper, SWIGTYPE_p_CSOUND_, holds */
+static CSOUND *wrapped_csound(JNIEnv* env, jobject csound) {
+  if (csound == NULL)
+    return NULL;
+  jclass wrapper = env->GetObjectClass(csound);
+  jfieldID ptr = env->GetFieldID(wrapper, "swigCPtr", "J");
+  env->DeleteLocalRef(wrapper);
+  if (ptr == NULL) {      /* NoSuchFieldError: R8 or ProGuard renamed it */
+    env->ExceptionClear();
+    __android_log_print(ANDROID_LOG_ERROR, "AndroidCsound",
+                        "MIDI is not set up: SWIGTYPE_p_CSOUND_.swigCPtr is missing, "
+                        "keep it in the R8 or ProGuard rules");
+    return NULL;
+  }
+  return (CSOUND *) (intptr_t) env->GetLongField(csound, ptr);
+}
+
 extern "C" void android_midi_init(CSOUND *csound, JNIEnv* env, jobject obj_in, jobject obj_out);
-void Java_com_csounds_CsoundObj_setMidiDevices(JNIEnv* env, jobject, jobject csound, jobject in, jobject out) {
-  android_midi_init((CSOUND *)csound,env,in,out);
+extern "C" JNIEXPORT void JNICALL
+Java_com_csounds_CsoundObj_setMidiDevices(JNIEnv* env, jobject, jobject csound, jobject in, jobject out) {
+  CSOUND *cs = wrapped_csound(env, csound);
+  if (cs != NULL)
+    android_midi_init(cs, env, in, out);
 }
 
 extern "C" void android_midi_deinit(CSOUND *csound);
 
-void Java_com_csounds_CsoundObj_deinitMidiDevices(JNIEnv* env, jobject, jobject csound) {
-  android_midi_deinit((CSOUND *)csound);
+extern "C" JNIEXPORT void JNICALL
+Java_com_csounds_CsoundObj_deinitMidiDevices(JNIEnv* env, jobject, jobject csound) {
+  CSOUND *cs = wrapped_csound(env, csound);
+  if (cs != NULL)
+    android_midi_deinit(cs);
 }

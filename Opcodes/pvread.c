@@ -27,6 +27,7 @@
 
 #include "pvoc.h"
 #include <math.h>
+#include "strarg2name.h"
 
 /*RWD 10:9:2000 read pvocex file format */
 #include "pvfileio.h"
@@ -76,7 +77,7 @@ static int32_t pvreadset_(CSOUND *csound, PVREAD *p, int32_t stringname)
     if (IsStringCode(*p->ifilno))
       pvfilnam = csound->GetArgString(csound, *p->ifilno);
     else {
-      csound->StringArg2Name(csound, generated_name, p->ifilno, "pvoc.", 0);
+      strarg2name_bounded(csound, generated_name, sizeof(generated_name), p->ifilno, "pvoc.", 0);
       pvfilnam = generated_name;
     }
   }

@@ -23,6 +23,9 @@
 
 /*                      BUS.C           */
 #include "csoundCore.h"
+#if defined(MSVC)
+#include <intrin.h> /* for ATOMIC_SET_SIZE */
+#endif
 #include "arrays.h"
 #include "arrays_internal.h"
 #include <setjmp.h>
@@ -401,9 +404,12 @@ static void release_hint_attributes(CSOUND *csound,
   }
 }
 
+/* Hosts read a channel's type, and add to its mode, from any thread. */
 static inline int32_t channel_type(const CHNENTRY *channel)
 {
-#ifdef CSOUND_WASI_REALTIME
+#if defined(MSVC)
+  return _InterlockedExchangeAdd((volatile long *) &channel->type, 0);
+#elif defined(HAVE_ATOMIC_BUILTIN)
   return __atomic_load_n(&channel->type, __ATOMIC_ACQUIRE);
 #else
   return channel->type;
@@ -412,7 +418,9 @@ static inline int32_t channel_type(const CHNENTRY *channel)
 
 static inline void channel_add_mode(CHNENTRY *channel, int32_t mode)
 {
-#ifdef CSOUND_WASI_REALTIME
+#if defined(MSVC)
+  _InterlockedOr((volatile long *) &channel->type, mode);
+#elif defined(HAVE_ATOMIC_BUILTIN)
   __atomic_fetch_or(&channel->type, mode, __ATOMIC_RELAXED);
 #else
   channel->type |= mode;
@@ -777,8 +785,10 @@ int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name){
     return 0;
   else {
     if ((channel_type(pp) & CSOUND_STRING_CHANNEL) == CSOUND_STRING_CHANNEL) {
+      /* Not under the channel's lock, which the caller may hold: writers
+         store a string channel's size atomically for this read. */
       STRINGDAT *dat = (STRINGDAT *) &(pp->var->memBlock->value);
-      return (int32_t) dat->size;
+      return (int32_t) ATOMIC_GET_SIZE(dat->size);
     }
     if((channel_type(pp) & CSOUND_ARRAY_CHANNEL) == CSOUND_ARRAY_CHANNEL) {
       ARRAYDAT *dat = (ARRAYDAT *) &(pp->var->memBlock->value);
@@ -1707,7 +1717,7 @@ int32_t chnset_opcode_init_S(CSOUND* csound, CHNGET* p)
     if (len >= (uint32_t) dest->size)
       {
         dest->data = csound->ReAlloc(csound, dest->data, len + 1);
-        dest->size = len + 1;
+        ATOMIC_SET_SIZE(dest->size, len + 1);
       }
     if (dest->data != NULL)
       strcpy(dest->data, s);
@@ -1742,7 +1752,7 @@ int32_t chnset_opcode_perf_S(CSOUND* csound, CHNGET* p)
   if (len >= (uint32_t) dest->size)
     {
       dest->data = csound->ReAlloc(csound, dest->data, len + 1);
-      dest->size = len + 1;
+      ATOMIC_SET_SIZE(dest->size, len + 1);
     }
   if (dest->data != NULL)
     strcpy(dest->data, s);
@@ -2535,7 +2545,7 @@ int32_t chnset_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p)
         size_t len = strlen(src->data);
         if (len >= (uint32_t) dest->size) {
           dest->data = csound->ReAlloc(csound, dest->data, len + 1);
-          dest->size = len + 1;
+          ATOMIC_SET_SIZE(dest->size, len + 1);
         }
         if (dest->data != NULL)
           strcpy(dest->data, src->data);
@@ -3285,7 +3295,7 @@ void csoundSetStringChannel(CSOUND *csound, const char *name,
     size_t len = strlen(string);
     if (len >= stringdat->size) {
       stringdat->data = csound->ReAlloc(csound, stringdat->data, len + 1);
-      stringdat->size = len + 1;
+      ATOMIC_SET_SIZE(stringdat->size, len + 1);
     }
     if (stringdat->data != NULL)
       strcpy((char *) stringdat->data, string);

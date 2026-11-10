@@ -334,6 +334,7 @@ int32_t lorenzset(CSOUND *, void *), lorenz(CSOUND *, void *);
 int32_t filelen(CSOUND *, void *), filenchnls(CSOUND *, void *);
 int32_t filesr(CSOUND *, void *), filepeak(CSOUND *, void *);
 int32_t filevalid(CSOUND *, void *);
+int32_t filevalid_k_set(CSOUND *, void *), filevalid_k(CSOUND *, void *);
 int32_t filelen_S(CSOUND *, void *), filenchnls_S(CSOUND *, void *);
 int32_t filesr_S(CSOUND *, void *), filepeak_S(CSOUND *, void *);
 int32_t filevalid_S(CSOUND *, void *);

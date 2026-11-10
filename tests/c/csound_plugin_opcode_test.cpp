@@ -21,6 +21,11 @@
 #include "failing_init_plugin_path.hpp"
 #endif
 
+#ifdef CSOUND_TEST_HAS_TWO_COPIES
+#include <unistd.h>
+#include "two_copies.hpp"
+#endif
+
 
 class PluginTests : public ::testing::Test {
 public:
@@ -280,6 +285,63 @@ TEST(ListOpcodes, CompileReportsPluginThatFailsToStart) {
   EXPECT_EQ(listing.text.find(" opcodes\n"), std::string::npos)
       << listing.text;
 }
+
+#ifdef CSOUND_TEST_HAS_TWO_COPIES
+// One plugin in two directories, as a build tree beside an installed Csound
+// has it. Csound loads both, and they share the instance's variables. Each
+// run is a process of its own, because a double free ends it.
+class TwoCopiesOfAPlugin : public ::testing::TestWithParam<const char *> {
+protected:
+  std::string directory(const char *copy) const {
+    return std::string(CSOUND_TEST_TWO_COPIES_DIR "/") + GetParam() + "/" + copy;
+  }
+
+  void expectCleanRun(const std::vector<std::string> &options) {
+    EXPECT_EXIT(
+        {
+          CSOUND *csound = csoundCreate(nullptr, nullptr);
+          csoundCreateMessageBuffer(csound, 0);
+          csoundSetOption(csound, "-n");
+          for (const std::string &option : options)
+            csoundSetOption(csound, option.c_str());
+          const int32_t status =
+              csoundCompileOrc(csound, "instr 1\nendin\n", 0);
+          const std::string messages = drainMessages(csound);
+          csoundDestroy(csound);
+          if (status != CSOUND_SUCCESS ||
+              messages.find("pre-initialisation") != std::string::npos) {
+            fputs(messages.c_str(), stderr);
+            _exit(1);
+          }
+          _exit(0);
+        },
+        ::testing::ExitedWithCode(0), "");
+  }
+
+  static std::string searchPath(const std::string &path) {
+    return (sizeof(cs_float) == sizeof(float)
+        ? "--env:OPCODE7DIR=" : "--env:OPCODE7DIR64=") + path;
+  }
+};
+
+TEST_P(TwoCopiesOfAPlugin, OnTheSearchPath) {
+  expectCleanRun({searchPath(directory("first") + ":" + directory("second"))});
+}
+
+TEST_P(TwoCopiesOfAPlugin, ThroughOpcodeDir) {
+  expectCleanRun({searchPath(directory("first")),
+                  "--opcode-dir=" + directory("second")});
+}
+
+TEST_P(TwoCopiesOfAPlugin, ThroughOpcodeLib) {
+  expectCleanRun({searchPath(directory("first")),
+                  "--opcode-lib=" + directory("second") + "/lib" + GetParam() +
+                      ".so"});
+}
+
+INSTANTIATE_TEST_SUITE_P(Modules, TwoCopiesOfAPlugin,
+                         ::testing::Values(CSOUND_TEST_TWO_COPY_PLUGINS));
+#endif
 #endif
 
 #include "plugin.h"

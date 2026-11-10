@@ -67,6 +67,10 @@ strNcpy(char *dst, const char *src, size_t siz)
 {
     int32_t   err = 0;
 
+    /* A second copy of this module finds its names taken: not an error. */
+    const int32_t second = (csound->GetUtility(csound))
+                               ->GetUtilityDescription(csound, "atsa") != NULL;
+
     err |= atsa_init_(csound);
     err |= envext_init_(csound);
     err |= het_export_init_(csound);
@@ -88,7 +92,7 @@ strNcpy(char *dst, const char *src, size_t siz)
     err |= srconv_init_(csound);
     err |= smf_conv_init_(csound);
     err |= mkir_init_(csound);
-    return err;
+    return second ? 0 : err;
 }
 
 #ifndef CSOUND_STATIC_UTILITIES
