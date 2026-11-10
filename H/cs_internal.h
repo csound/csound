@@ -209,6 +209,7 @@ extern "C" {
     PBR_REWIRE_ENTRY *perf_entries;
     PBR_SEED_ENTRY   *seed_entries;
     PBR_ALIAS_ENTRY  *aliases;
+    unsigned char    *input_written;   /* per input: the body writes it */
   } PBR_REWIRE_PLAN;
 
   typedef struct opcodinfo {
