@@ -29,6 +29,7 @@
 #include "opcode_deprecation.h"
 #include <math.h>
 #include <inttypes.h>
+#include "strarg2name.h"
 
 /* iwrap semantics:
      0  : no looping (play once)
@@ -1176,13 +1177,12 @@ static int32_t diskin2_init_(CSOUND *csound, DISKIN2 *p, int32_t stringname, int
     sfinfo.format = diskin2_format_table[n];
   }
   /* open file */
-  /* FIXME: name can overflow with very long string */
   if (stringname==0){
     if (IsStringCode(*p->iFileCode))
-      strNcpy(name,csoundGetArgString(csound, *p->iFileCode), 1023);
-    else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
+      strname_bounded(csound, name, 1023, csoundGetArgString(csound, *p->iFileCode));
+    else strarg2name_bounded(csound, name, sizeof(name), p->iFileCode, "soundin.",0);
   }
-  else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
+  else strname_bounded(csound, name, 1023, ((STRINGDAT *)p->iFileCode)->data);
 
   fd = NULL;
   if (memory) {
@@ -2756,13 +2756,12 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
       sfinfo.format = diskin2_format_table[n];
     }
     /* open file */
-    /* FIXME: name can overflow with very long string */
     if (stringname==0){
       if (IsStringCode(*p->iFileCode))
-        strNcpy(name,csoundGetArgString(csound, *p->iFileCode), 1023);
-      else csound->StringArg2Name(csound, name, p->iFileCode, "soundin.",0);
+        strname_bounded(csound, name, 1023, csoundGetArgString(csound, *p->iFileCode));
+      else strarg2name_bounded(csound, name, sizeof(name), p->iFileCode, "soundin.",0);
     }
-    else strNcpy(name, ((STRINGDAT *)p->iFileCode)->data, 1023);
+    else strname_bounded(csound, name, 1023, ((STRINGDAT *)p->iFileCode)->data);
 
     fd = NULL;
     if (memory) {
@@ -3446,10 +3445,10 @@ static int32_t sndo1set_(CSOUND *csound, void *pp, int32_t stringname)
 
     if (stringname==0){
       if (IsStringCode(*ifilcod))
-        strNcpy(name,csoundGetArgString(csound, *ifilcod), 1023);
-      else csound->StringArg2Name(csound, name, ifilcod, "soundout.",0);
+        strname_bounded(csound, name, 1023, csoundGetArgString(csound, *ifilcod));
+      else strarg2name_bounded(csound, name, sizeof(name), ifilcod, "soundout.",0);
     }
-    else strNcpy(name, ((STRINGDAT *)ifilcod)->data, 1023);
+    else strname_bounded(csound, name, 1023, ((STRINGDAT *)ifilcod)->data);
 
     sfname = name;
     memset(&sfinfo, 0, sizeof(SFLIB_INFO));

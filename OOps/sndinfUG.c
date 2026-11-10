@@ -30,6 +30,7 @@
 #include "sndinfUG.h"
 #include "pvfileio.h"
 #include "convolve.h"
+#include "strarg2name.h"
 
 static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t strin)
 {
@@ -41,11 +42,11 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
     memset(hdr, 0, sizeof(SFLIB_INFO));
     /* leap thru std hoops to get the name */
     if (strin)
-      strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
+      strname_bounded(csound, soundiname, 1023, ((STRINGDAT*)p->ifilno)->data);
     else if (IsStringCode(*p->ifilno)){
-      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilno), 1023);
+      strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilno));
     }
-    else csound->StringArg2Name(csound, soundiname, p->ifilno, "soundin.",0);
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilno, "soundin.",0);
 
 
     sfname = soundiname;
@@ -355,9 +356,9 @@ int32_t filepeak(CSOUND *csound, SNDINFOPEAK *p){
 
  char soundiname[1024];
  if (IsStringCode(*p->ifilno)){
-      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilno), 1023);
+      strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilno));
     }
-  else csound->StringArg2Name(csound, soundiname, p->ifilno,
+  else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilno,
                         "soundin.", 0);
 
  return filepeak_(csound, p, soundiname);
@@ -366,7 +367,7 @@ int32_t filepeak(CSOUND *csound, SNDINFOPEAK *p){
 int32_t filepeak_S(CSOUND *csound, SNDINFOPEAK *p){
 
  char soundiname[1024];
- strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
+ strname_bounded(csound, soundiname, 1023, ((STRINGDAT*)p->ifilno)->data);
 
  return filepeak_(csound, p, soundiname);
 }
@@ -374,12 +375,12 @@ int32_t filepeak_S(CSOUND *csound, SNDINFOPEAK *p){
 /* From matt ingalls */
 int32_t filevalid(CSOUND *csound, FILEVALID *p)
 {
-    char soundiname[1024];       /* There is no check on this length */
+    char soundiname[1024];
     *p->r1 = 0;
     if (IsStringCode(*p->ifilno)){
-      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilno), 1023);
+      strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilno));
     }
-    else csound->StringArg2Name(csound, soundiname, p->ifilno,
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilno,
                         "soundin.", 0);
 
     if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */
@@ -395,9 +396,9 @@ int32_t filevalid(CSOUND *csound, FILEVALID *p)
 
 int32_t filevalid_S(CSOUND *csound, FILEVALID *p)
 {
-    char soundiname[1024];       /* There is no check on this length */
+    char soundiname[1024];
     *p->r1 = 0;
-    strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
+    strname_bounded(csound, soundiname, 1023, ((STRINGDAT*)p->ifilno)->data);
     if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */
       if (csound->oparms->infilename)  /* commandline inputfile */
         *p->r1 = 1;
