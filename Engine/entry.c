@@ -1475,7 +1475,7 @@ const OENTRY opcodlst_1[] = {
   { "filepeak.i", S(SNDINFOPEAK),0,  "i",   "io",   filepeak, NULL, NULL       },
   { "filevalid.i", S(FILEVALID),0,   "i",   "i",    filevalid, NULL, NULL      },
   { "filevalid.k", S(FILEVALID),0,    "k",   "S",    NULL, filevalid_S, NULL    },
-  { "filevalid.k", S(FILEVALID),0,    "k",   "i",    NULL, filevalid, NULL    },
+  { "filevalid.k", S(FILEVALID),0,    "k",   "i",    filevalid_k_set, filevalid_k, NULL    },
   /*  { "nlalp", S(NLALP),0,          "a",  "akkoo", nlalp_set, nlalp }, */
   CSOUND_DEPRECATED_OPCODE("ptableiw", "tablew", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "ptableiw",  S(TABLEW),TW|_QQ,  "", "iiiooo", (SUBR)tablew_init, NULL, NULL},
