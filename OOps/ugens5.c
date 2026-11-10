@@ -467,7 +467,7 @@ static int32_t tonela_process(CSOUND *csound, TONELA *p, int32_t highpass)
       n++;
     }
     while (n + 4u <= nsmps) {
-      if (UNLIKELY(n < 3)) {
+      if (UNLIKELY(n - offset < 3)) {
         win[0] = uh[0];
         win[1] = uh[1];
         win[2] = uh[2];
