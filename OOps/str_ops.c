@@ -269,9 +269,7 @@ int32_t strcpy_opcode_p(CSOUND *csound, STRGET_OP *p)
   else {
     /* StringArg2Name copies into a buffer it is given whatever its size, and
        a strset string can be longer. The string type's own copy keeps the
-       variable's own buffer unless the text outgrows it, as more than the
-       variable can point there: a literal passed by reference to a UDO is
-       the string pool's too, and printks2 holds on to its format. */
+       variable's own buffer unless the text outgrows it. */
     char buf[32];
     STRINGDAT name = {
       .data = (char *) number_name(csound, *p->indx, buf, sizeof(buf)),

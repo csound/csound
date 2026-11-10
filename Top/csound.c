@@ -1073,7 +1073,6 @@ static const CSOUND cenviron_ = {
         },
         NULL,
         0,
-        NULL, 0,
         NULL, NULL,
         0, NULL, 0
       },
@@ -1121,6 +1120,9 @@ static const CSOUND cenviron_ = {
     .msg_queue_status = CSOUND_SUCCESS,
     .instr0_waiting = NULL,
     .instr0_waiting_count = 0,
+    .marked_sections = {{NULL, 0, 0}},
+    .line_event_work = NULL,
+    .line_event_work_size = 0,
 
 };
 
@@ -2125,6 +2127,7 @@ static void reset(CSOUND *csound) {
   /* initialise real time MIDI */
   csound->midiGlobals = (MGLOBAL *)csound->Calloc(csound, sizeof(MGLOBAL));
   csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
+  csound->midiGlobals->filep = csound->midiGlobals->bufp;
   csound->midiGlobals->endatp = csound->midiGlobals->bufp;
   csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t)max_len);
   csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);

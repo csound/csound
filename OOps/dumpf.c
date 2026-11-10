@@ -24,6 +24,7 @@
 #include "dumpf.h"
 #include <ctype.h>
 #include <inttypes.h>
+#include "strarg2name.h"
 
 static const int32_t dumpf_format_table[9] = {
   0,
@@ -47,7 +48,7 @@ int32_t kdmpset_S(CSOUND *csound, KDUMP *p) {
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here\n"));
     }
-    strNcpy(soundoname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
+    strname_bounded(csound, soundoname, 1023, ((STRINGDAT *)p->ifilcod)->data);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname,
@@ -75,8 +76,8 @@ int32_t kdmpset_p(CSOUND *csound, KDUMP *p)
                                Str("alaw and ulaw not implemented here\n"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundoname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
+      strname_bounded(csound, soundoname, 1023, csoundGetArgString(csound, *p->ifilcod));
+    else strarg2name_bounded(csound, soundoname, sizeof(soundoname), p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname,
@@ -101,7 +102,7 @@ int32_t kdmp2set_S(CSOUND *csound, KDUMP2 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here\n"));
     }
-    strNcpy(soundoname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
+    strname_bounded(csound, soundoname, 1023, ((STRINGDAT *)p->ifilcod)->data);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname,
@@ -128,8 +129,8 @@ int32_t kdmp2set_p(CSOUND *csound, KDUMP2 *p)
                                Str("alaw and ulaw not implemented here\n"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundoname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
+      strname_bounded(csound, soundoname, 1023, csoundGetArgString(csound, *p->ifilcod));
+    else strarg2name_bounded(csound, soundoname, sizeof(soundoname), p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname,
@@ -155,7 +156,7 @@ int32_t kdmp3set_S(CSOUND *csound, KDUMP3 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here\n"));
     }
-    strNcpy(soundoname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
+    strname_bounded(csound, soundoname, 1023, ((STRINGDAT *)p->ifilcod)->data);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname,
@@ -183,8 +184,8 @@ int32_t kdmp3set_p(CSOUND *csound, KDUMP3 *p)
                                Str("alaw and ulaw not implemented here\n"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundoname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
+      strname_bounded(csound, soundoname, 1023, csoundGetArgString(csound, *p->ifilcod));
+    else strarg2name_bounded(csound, soundoname, sizeof(soundoname), p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname,
@@ -209,7 +210,7 @@ int32_t kdmp4set_S(CSOUND *csound, KDUMP4 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here\n"));
     }
-   strNcpy(soundoname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
+   strname_bounded(csound, soundoname, 1023, ((STRINGDAT *)p->ifilcod)->data);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname,
@@ -235,8 +236,8 @@ int32_t kdmp4set_p(CSOUND *csound, KDUMP4 *p)
                                Str("alaw and ulaw not implemented here\n"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundoname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundoname, p->ifilcod, "dumpk.", 0);
+      strname_bounded(csound, soundoname, 1023, csoundGetArgString(csound, *p->ifilcod));
+    else strarg2name_bounded(csound, soundoname, sizeof(soundoname), p->ifilcod, "dumpk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundoname,
@@ -384,8 +385,8 @@ int32_t krdset_p(CSOUND *csound, KREAD *p)
                                Str("alaw and ulaw not implemented here\n"));
     }
      if (IsStringCode(*p->ifilcod))
-       strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
+       strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilcod));
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -411,7 +412,7 @@ int32_t krdset_S(CSOUND *csound, KREAD *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here\n"));
     }
-    strNcpy(soundiname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
+    strname_bounded(csound, soundiname, 1023, ((STRINGDAT *)p->ifilcod)->data);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -437,7 +438,7 @@ int32_t krd2set_S(CSOUND *csound, KREAD2 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here\n"));
     }
-   strNcpy(soundiname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
+   strname_bounded(csound, soundiname, 1023, ((STRINGDAT *)p->ifilcod)->data);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -464,8 +465,8 @@ int32_t krd2set_p(CSOUND *csound, KREAD2 *p)
                                Str("alaw and ulaw not implemented here\n"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
+      strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilcod));
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -491,7 +492,7 @@ int32_t krd3set_S(CSOUND *csound, KREAD3 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here\n"));
     }
-    strNcpy(soundiname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
+    strname_bounded(csound, soundiname, 1023, ((STRINGDAT *)p->ifilcod)->data);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -518,8 +519,8 @@ int32_t krd3set_p(CSOUND *csound, KREAD3 *p)
                                Str("alaw and ulaw not implemented here\n"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
+      strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilcod));
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -545,7 +546,7 @@ int32_t krd4set_S(CSOUND *csound, KREAD4 *p)
       return csound->InitError(csound,
                                Str("alaw and ulaw not implemented here\n"));
     }
-    strNcpy(soundiname,  ((STRINGDAT *)p->ifilcod)->data, 1023);
+    strname_bounded(csound, soundiname, 1023, ((STRINGDAT *)p->ifilcod)->data);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -572,8 +573,8 @@ int32_t krd4set_p(CSOUND *csound, KREAD4 *p)
                                Str("alaw and ulaw not implemented here\n"));
     }
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
+      strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilcod));
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -722,7 +723,7 @@ int32_t krdsset_S(CSOUND *csound, KREADS *p)
 {
     /* open in curdir or pathname */
     char soundiname[1024];
-    strNcpy(soundiname, ((STRINGDAT *)p->ifilcod)->data, 1023);
+    strname_bounded(csound, soundiname, 1023, ((STRINGDAT *)p->ifilcod)->data);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",
@@ -744,8 +745,8 @@ int32_t krdsset_p(CSOUND *csound, KREADS *p)
     /* open in curdir or pathname */
     char soundiname[1024];
     if (IsStringCode(*p->ifilcod))
-      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilcod), 1023);
-    else csound->StringArg2Name(csound, soundiname, p->ifilcod, "readk.", 0);
+      strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilcod));
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilcod, "readk.", 0);
     if (p->fdch.fd != NULL)
       csoundFDClose(csound, &(p->fdch));
     p->fdch.fd = csound->FileOpen(csound, &(p->f), CSFILE_STD, soundiname, "rb",

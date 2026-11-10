@@ -30,6 +30,7 @@
 #include "sndinfUG.h"
 #include "pvfileio.h"
 #include "convolve.h"
+#include "strarg2name.h"
 
 static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t strin)
 {
@@ -41,11 +42,11 @@ static int32_t getsndinfo(CSOUND *csound, SNDINFO *p, SFLIB_INFO *hdr, int32_t s
     memset(hdr, 0, sizeof(SFLIB_INFO));
     /* leap thru std hoops to get the name */
     if (strin)
-      strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
+      strname_bounded(csound, soundiname, 1023, ((STRINGDAT*)p->ifilno)->data);
     else if (IsStringCode(*p->ifilno)){
-      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilno), 1023);
+      strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilno));
     }
-    else csound->StringArg2Name(csound, soundiname, p->ifilno, "soundin.",0);
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilno, "soundin.",0);
 
 
     sfname = soundiname;
@@ -355,9 +356,9 @@ int32_t filepeak(CSOUND *csound, SNDINFOPEAK *p){
 
  char soundiname[1024];
  if (IsStringCode(*p->ifilno)){
-      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilno), 1023);
+      strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilno));
     }
-  else csound->StringArg2Name(csound, soundiname, p->ifilno,
+  else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilno,
                         "soundin.", 0);
 
  return filepeak_(csound, p, soundiname);
@@ -366,44 +367,63 @@ int32_t filepeak(CSOUND *csound, SNDINFOPEAK *p){
 int32_t filepeak_S(CSOUND *csound, SNDINFOPEAK *p){
 
  char soundiname[1024];
- strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
+ strname_bounded(csound, soundiname, 1023, ((STRINGDAT*)p->ifilno)->data);
 
  return filepeak_(csound, p, soundiname);
 }
 
 /* From matt ingalls */
-int32_t filevalid(CSOUND *csound, FILEVALID *p)
+static int32_t filevalid_(CSOUND *csound, FILEVALID *p, const char *soundiname)
 {
-    char soundiname[1024];       /* There is no check on this length */
+    char *path;
     *p->r1 = 0;
-    if (IsStringCode(*p->ifilno)){
-      strNcpy(soundiname, csoundGetArgString(csound, *p->ifilno), 1023);
-    }
-    else csound->StringArg2Name(csound, soundiname, p->ifilno,
-                        "soundin.", 0);
-
     if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */
       if (csound->oparms->infilename)  /* commandline inputfile */
         *p->r1 = 1;
       return OK;
     }
-    if (LIKELY(csound->FindInputFile(csound, soundiname, "SFDIR;SSDIR")))
+    path = csound->FindInputFile(csound, soundiname, "SFDIR;SSDIR");
+    if (LIKELY(path != NULL)) {
       *p->r1 = 1;
+      csound->Free(csound, path);
+    }
     return OK;
+}
+
+int32_t filevalid(CSOUND *csound, FILEVALID *p)
+{
+    char soundiname[1024];
+    if (IsStringCode(*p->ifilno)){
+      strname_bounded(csound, soundiname, 1023, csoundGetArgString(csound, *p->ifilno));
+    }
+    else strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilno,
+                        "soundin.", 0);
+    return filevalid_(csound, p, soundiname);
+}
+
+/* A string p-field can only be looked up at init, so at k-rate its name is
+   read here; a strset number is looked up on the performance path as before. */
+int32_t filevalid_k_set(CSOUND *csound, FILEVALID *p)
+{
+    if (IsStringCode(*p->ifilno))
+      strname_bounded(csound, p->name, 1023, csoundGetArgString(csound, *p->ifilno));
+    return OK;
+}
+
+int32_t filevalid_k(CSOUND *csound, FILEVALID *p)
+{
+    char soundiname[1024];
+    if (IsStringCode(*p->ifilno))
+      return filevalid_(csound, p, p->name);
+    strarg2name_bounded(csound, soundiname, sizeof(soundiname), p->ifilno,
+                        "soundin.", 0);
+    return filevalid_(csound, p, soundiname);
 }
 
 
 int32_t filevalid_S(CSOUND *csound, FILEVALID *p)
 {
-    char soundiname[1024];       /* There is no check on this length */
-    *p->r1 = 0;
-    strNcpy(soundiname, ((STRINGDAT*)p->ifilno)->data, 1023);
-    if (UNLIKELY(strcmp(soundiname, "-i") == 0)) {    /* get info on the -i    */
-      if (csound->oparms->infilename)  /* commandline inputfile */
-        *p->r1 = 1;
-      return OK;
-    }
-    if (LIKELY(csound->FindInputFile(csound, soundiname, "SFDIR;SSDIR")))
-      *p->r1 = 1;
-    return OK;
+    char soundiname[1024];
+    strname_bounded(csound, soundiname, 1023, ((STRINGDAT*)p->ifilno)->data);
+    return filevalid_(csound, p, soundiname);
 }

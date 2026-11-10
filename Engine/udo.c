@@ -452,6 +452,7 @@ typedef struct pbr_plan_builder {
   PBR_SEED_ENTRY   *seed_entries;
   int32_t seed_count;
   int32_t seed_capacity;
+  unsigned char *input_written;
 } PBR_PLAN_BUILDER;
 
 static size_t pbr_name_key_length(const char *var_name) {
@@ -1044,6 +1045,9 @@ static void pbr_collect_rewire_entries(CSOUND *csound,
         if (ar_index < 0) {
           continue;
         }
+        if (ar_index >= (int32_t) udoinfo->outchns) {
+          builder->input_written[ar_index - udoinfo->outchns] = 1;
+        }
 
         if (ep->init != NULL) {
           pbr_append_entry(csound, &builder->init_entries, &builder->init_count,
@@ -1070,6 +1074,14 @@ static void pbr_collect_rewire_entries(CSOUND *csound,
                                                 ttp->inlist->arg[i]);
         if (ar_index < 0) {
           continue;
+        }
+        /* A UDO or an Opcode object given the argument can write it, and the
+           body must see that write, as it does for a variable. */
+        if (ar_index >= (int32_t) udoinfo->outchns &&
+            (ep->useropinfo != NULL ||
+             (ep->intypes != NULL &&
+              strncmp(ep->intypes, ":Opcode;", 8) == 0))) {
+          builder->input_written[ar_index - udoinfo->outchns] = 1;
         }
 
         if (ep->init != NULL) {
@@ -1146,6 +1158,7 @@ static void pbr_free_plan(CSOUND *csound, PBR_REWIRE_PLAN *plan) {
   pbr_free_entries(csound, plan->perf_entries, plan->perf_count);
   pbr_free_seed_entries(csound, plan->seed_entries, plan->seed_count);
   pbr_free_aliases(csound, plan->aliases, plan->alias_count);
+  csound->Free(csound, plan->input_written);
   csound->Free(csound, plan);
 }
 
@@ -1173,6 +1186,63 @@ static char *pbr_get_opcode_mem_start(INSDS *lcurip) {
   tp = lcurip->instr;
   return (char *)lcurip->lclbas + tp->varPool->poolSize +
     (tp->varPool->varCount * CS_FLOAT_ALIGN(CS_VAR_TYPE_OFFSET));
+}
+
+/* A string literal's text is the string pool's, shared by every use of the
+   literal, and nothing in the caller stands behind it for a by-reference write
+   to reach. The call's arguments say which input is one: a string variable is
+   not a literal whatever its STRINGDAT holds, a plugin's borrowed text
+   included. An Opcode object's TEXT lists its latest init or perf call's. */
+static int32_t pbr_is_string_literal(const UOPCODE *p, const cs_float *arg) {
+  const ARG *a;
+
+  if (arg == NULL || csoundGetTypeForArg(arg) != &CS_VAR_TYPE_S) {
+    return 0;
+  }
+  for (a = p->h.optext->t.inArgs; a != NULL; a = a->next) {
+    if (a->type == ARG_STRING && a->argPtr == arg) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+/* A numeric constant or a reserved global (sr, 0dbfs...) is storage the whole
+   orchestra reads; a body that writes the argument may not work on it in
+   place. */
+static int32_t pbr_is_shared_numeric(const cs_float *arg) {
+  const CS_TYPE *type = csoundGetTypeForArg(arg);
+  return type == &CS_VAR_TYPE_C || type == &CS_VAR_TYPE_R;
+}
+
+static int32_t pbr_is_written_constant(const UOPCODE *p, int32_t input_index,
+                                       const cs_float *arg) {
+  const unsigned char *written = p->buf->opcode_info->pbr_plan != NULL ?
+    p->buf->opcode_info->pbr_plan->input_written : NULL;
+
+  return arg != NULL && written != NULL && written[input_index] &&
+    pbr_is_shared_numeric(arg);
+}
+
+/* An input the body works on through xin's own variable, not in place: one
+   sharing caller storage with an output, which the body overwrites, a string
+   literal, and a numeric constant the body writes, which it must not reach.
+   pbr_snapshot_colliding_inputs() refreshes that variable before the body
+   runs, as a classic UDO's xin does. */
+static int32_t pbr_input_uses_xin_copy(const UOPCODE *p, int32_t input_index,
+                                       const cs_float *input) {
+  int32_t j;
+
+  if (pbr_is_string_literal(p, input) ||
+      pbr_is_written_constant(p, input_index, input)) {
+    return 1;
+  }
+  for (j = 0; j < p->buf->opcode_info->outchns; j++) {
+    if (p->ar[j] == input) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 static void pbr_apply_entries(CSOUND *csound,
@@ -1205,18 +1275,10 @@ static void pbr_apply_entries(CSOUND *csound,
     target = entry->ar_index < p->buf->opcode_info->outchns ?
       pbr_output_target(p, entry->ar_index) : p->ar[entry->ar_index];
     if (xin != NULL &&
-        entry->ar_index >= p->buf->opcode_info->outchns) {
-      int32_t input_index = entry->ar_index - p->buf->opcode_info->outchns;
-      int32_t output_index;
-
-      for (output_index = 0;
-           output_index < p->buf->opcode_info->outchns;
-           output_index++) {
-        if (p->ar[output_index] == target) {
-          target = xin->args[input_index];
-          break;
-        }
-      }
+        entry->ar_index >= p->buf->opcode_info->outchns &&
+        pbr_input_uses_xin_copy(p, entry->ar_index -
+                                p->buf->opcode_info->outchns, target)) {
+      target = xin->args[entry->ar_index - p->buf->opcode_info->outchns];
     }
 
     rewire_argpp(csound,
@@ -1329,10 +1391,14 @@ static void pbr_use_local_output_storage(CSOUND *csound, UOPCODE *p)
   }
 }
 
+/* keepInitRate: this refresh is for an input the body already ran with, so
+   an i-rate constant argument is left as init left it, the way a classic
+   UDO's xin leaves an i-rate input at k-rate: what init wrote lasts. */
 static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
                                           UOPCODE *p,
                                           INSDS *lcurip,
                                           int32_t allowAllocation,
+                                          int32_t keepInitRate,
                                           int32_t *copyResult) {
   OPCODINFO *udoinfo;
   XIN *xin;
@@ -1351,24 +1417,24 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
 
   for (i = 0; i < udoinfo->inchns; i++) {
     cs_float *input = p->ar[udoinfo->outchns + i];
-    int32_t j;
 
-    for (j = 0; j < udoinfo->outchns; j++) {
-      if (p->ar[j] == input) {
+    if (pbr_input_uses_xin_copy(p, i, input)) {
+      if (xin == NULL) {
+        xin = pbr_find_xin(lcurip);
         if (xin == NULL) {
-          xin = pbr_find_xin(lcurip);
-          if (xin == NULL) {
-            return NULL;
-          }
+          return NULL;
         }
-        if (UNLIKELY(pbr_copy_value(csound, xin->args[i], input,
-                                    lcurip, allowAllocation) != OK)) {
-          if (copyResult != NULL) {
-            *copyResult = NOTOK;
-          }
-          return xin;
+      }
+      if (keepInitRate && input != NULL && pbr_is_shared_numeric(input) &&
+          csoundGetTypeForArg(xin->args[i]) == &CS_VAR_TYPE_I) {
+        continue;
+      }
+      if (UNLIKELY(pbr_copy_value(csound, xin->args[i], input,
+                                  lcurip, allowAllocation) != OK)) {
+        if (copyResult != NULL) {
+          *copyResult = NOTOK;
         }
-        break;
+        return xin;
       }
     }
   }
@@ -1376,9 +1442,10 @@ static XIN *pbr_snapshot_colliding_inputs(CSOUND *csound,
   return xin;
 }
 
-static int32_t pbr_is_readonly_source(cs_float *src) {
+static int32_t pbr_is_readonly_source(const UOPCODE *p, cs_float *src) {
   const CS_TYPE *src_type = src != NULL ? csoundGetTypeForArg(src) : NULL;
-  return src_type == &CS_VAR_TYPE_C || src_type == &CS_VAR_TYPE_P;
+  return src_type == &CS_VAR_TYPE_C || src_type == &CS_VAR_TYPE_P ||
+    src_type == &CS_VAR_TYPE_R || pbr_is_string_literal(p, src);
 }
 
 static int32_t pbr_seed_pass_through_outputs(CSOUND *csound,
@@ -1513,7 +1580,7 @@ static int32_t pbr_writeback_pass_through_inputs(CSOUND *csound,
     }
 
     input_base = p->ar[entry->input_ar_index];
-    if (pbr_is_readonly_source(input_base)) {
+    if (pbr_is_readonly_source(p, input_base)) {
       continue;
     }
 
@@ -1602,6 +1669,8 @@ void build_user_opcode_rewire_plan(CSOUND *csound, OPCODINFO *udoinfo) {
 
   pbr_collect_io_aliases(csound, udoinfo, xin_optxt, xout_optxt,
                          xout_opcode_mem_offset, &builder);
+  builder.input_written =
+    csound->Calloc(csound, (size_t) udoinfo->inchns + 1);
   pbr_collect_rewire_entries(csound, udoinfo, &builder);
 
   plan->init_count = builder.init_count;
@@ -1614,6 +1683,7 @@ void build_user_opcode_rewire_plan(CSOUND *csound, OPCODINFO *udoinfo) {
      variable name to the caller storage its opcodes were rewired onto. */
   plan->alias_count = builder.alias_count;
   plan->aliases = builder.aliases;
+  plan->input_written = builder.input_written;
 }
 
 void free_opcode_info_chain(CSOUND *csound) {
@@ -1754,7 +1824,7 @@ static int32_t handle_pass_by_ref(CSOUND* csound, UOPCODE* p,
     return OK;
   }
 
-  xin = pbr_snapshot_colliding_inputs(csound, p, lcurip, 1,
+  xin = pbr_snapshot_colliding_inputs(csound, p, lcurip, 1, 0,
                                       &copyResult);
   if (UNLIKELY(copyResult != OK)) {
     return NOTOK;
@@ -1877,7 +1947,6 @@ cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
   cs_float *target;
   int32_t ar_index;
   int32_t outchns;
-  int32_t i;
 
   if (p == NULL || p->buf == NULL || varName == NULL) {
     return NULL;
@@ -1907,21 +1976,50 @@ cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName) {
     return NULL;
   }
 
-  /* An input sharing caller storage with an output is read through the xin
-     snapshot refreshed each k-cycle; p->ar[] already holds the output the body
-     wrote over it.  Mirrors pbr_apply_entries().  The xin lookup walks the init
-     chain, so only do it once a collision is confirmed. */
-  if (ar_index >= outchns) {
-    for (i = 0; i < outchns; i++) {
-      if (p->ar[i] == target) {
-        XIN *xin = pbr_find_xin(p->ip);
+  /* An input sharing caller storage with an output, or a string literal, is
+     read through the xin snapshot refreshed each k-cycle; p->ar[] holds the
+     output the body wrote over it, or the literal the body never writes.
+     Mirrors pbr_apply_entries().  The xin lookup walks the init chain, so only
+     do it once one of these is confirmed. */
+  if (ar_index >= outchns &&
+      pbr_input_uses_xin_copy(p, ar_index - outchns, target)) {
+    XIN *xin = pbr_find_xin(p->ip);
 
-        return xin != NULL ? xin->args[ar_index - outchns] : target;
-      }
-    }
+    return xin != NULL ? xin->args[ar_index - outchns] : target;
   }
 
   return target;
+}
+
+/* xin's variable is sized at init. Rebinding an Opcode object can bring a text
+   that does not fit it: a literal, whose copy this path adds and which must
+   not allocate here, and under --realtime a string variable read through the
+   copy because it collides with an output (outside --realtime that variable
+   still grows, as it always has). */
+static int32_t pbr_rebound_strings_fit(CSOUND *csound, const UOPCODE *p) {
+  const OPCODINFO *info = p->buf->opcode_info;
+  XIN *xin = NULL;
+  int32_t i;
+
+  for (i = 0; i < info->inchns; i++) {
+    const cs_float *arg = p->ar[info->outchns + i];
+
+    if (pbr_is_string_literal(p, arg) ||
+        (csound->oparms->realtime && arg != NULL &&
+         csoundGetTypeForArg(arg) == &CS_VAR_TYPE_S &&
+         pbr_input_uses_xin_copy(p, i, arg))) {
+      const STRINGDAT *input = (const STRINGDAT *)arg;
+
+      if (xin == NULL && (xin = pbr_find_xin(p->ip)) == NULL) {
+        return 1;
+      }
+      if (input->data != NULL &&
+          strlen(input->data) + 1 > ((const STRINGDAT *)xin->args[i])->size) {
+        return 0;
+      }
+    }
+  }
+  return 1;
 }
 
 int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
@@ -1950,8 +2048,12 @@ int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
   }
 
   /* This runs at perf time, so like useropcd_pass_by_ref it does not
-     allocate: an input that no longer fits its snapshot is an error. */
-  xin = pbr_snapshot_colliding_inputs(csound, p, p->ip, 0, &copyResult);
+     allocate: an input that no longer fits its snapshot is an error. Outside
+     --realtime a colliding string variable's copy still grows, as on develop. */
+  if (UNLIKELY(!pbr_rebound_strings_fit(csound, p))) {
+    return NOTOK;
+  }
+  xin = pbr_snapshot_colliding_inputs(csound, p, p->ip, 0, 1, &copyResult);
   if (UNLIKELY(copyResult != OK)) {
     return NOTOK;
   }
@@ -2266,7 +2368,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     /* Init may grow an output that aliases an input. Refresh the saved input
        after writeback so its nested buffers can be reused without allocation
        when the UDO reaches the performance pass. */
-    pbr_snapshot_colliding_inputs(csound, p, lcurip, 1, &copyResult);
+    pbr_snapshot_colliding_inputs(csound, p, lcurip, 1, 1, &copyResult);
     if (UNLIKELY(copyResult != OK)) {
       err = csound->InitError(
         csound, Str("could not prepare pass-by-reference UDO input\n"));
@@ -3103,7 +3205,7 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
     return OK;
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
-  pbr_snapshot_colliding_inputs(csound, p, p->ip, 0, &copyResult);
+  pbr_snapshot_colliding_inputs(csound, p, p->ip, 0, 1, &copyResult);
   seedResult = pbr_seed_pass_through_outputs(csound, p, p->ip, 0);
   if (UNLIKELY(copyResult != OK || seedResult != OK)) {
     return csound->PerfError(
