@@ -62,7 +62,7 @@ static void csound_pre_line(CSOUND *, CORFIL*, yyscan_t);
 
 #define YY_USER_INIT {csound_pre_scan_string(csound->orchstr->body, yyscanner); \
     csound_preset_lineno(csound->orcLineOffset, yyscanner);             \
-    yyg->yy_flex_debug_r=1; PARM->macro_stack_size = 0;                 \
+    csound_preset_debug(1, yyscanner); PARM->macro_stack_size = 0;      \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
     PARM->initial_path = PARM->path = ".";                               \
   }
