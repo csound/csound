@@ -117,7 +117,7 @@ typedef struct dats1min {
 
 typedef struct {
   cs_float *mag;
-  int32_t *region, *qmap, *cpeaks, *bpeaks;
+  int32_t *region, *cpeaks;
 } PVLOCK_DATA;
 
 static void pv_lock_arrays(AUXCH *lockdata, int32_t N, PVLOCK_DATA *ld)
@@ -128,17 +128,13 @@ static void pv_lock_arrays(AUXCH *lockdata, int32_t N, PVLOCK_DATA *ld)
   base += nbins*sizeof(cs_float);
   ld->region = (int32_t *) base;
   base += nbins*sizeof(int32_t);
-  ld->qmap = (int32_t *) base;
-  base += nbins*sizeof(int32_t);
   ld->cpeaks = (int32_t *) base;
-  base += nbins*sizeof(int32_t);
-  ld->bpeaks = (int32_t *) base;
 }
 
 static int32_t pv_alloc_lock(CSOUND *csound, AUXCH *lockdata, int32_t N)
 {
   int32_t nbins = N/2 + 1;
-  size_t size = (size_t) nbins*(sizeof(cs_float) + 4*sizeof(int32_t));
+  size_t size = (size_t) nbins*(sizeof(cs_float) + 2*sizeof(int32_t));
   if (lockdata->auxp == NULL || lockdata->size < size)
     csound->AuxAlloc(csound, size, lockdata);
   if (UNLIKELY(lockdata->auxp == NULL))
@@ -205,25 +201,28 @@ static void pv_unit(cs_float re, cs_float im, cs_float *ur, cs_float *ui)
   }
 }
 
+static cs_float pv_wrap_phase(cs_float phase)
+{
+  if (phase > PI_F) return phase - FL(2.0)*PI_F;
+  if (phase < -PI_F) return phase + FL(2.0)*PI_F;
+  return phase;
+}
+
 static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
                        cs_float beta, cs_float *bwin, cs_float *fwin,
                        cs_float *prev)
 {
-  int32_t nbins = N/2 + 1, i, b, p, q;
+  int32_t nbins = N/2 + 1, i, b, p;
   cs_float *mag, ph_real, ph_im, tmp_real, tmp_im, div;
   cs_float nr, ni, dr, di, phi_fk, phi_fp, theta, c, s;
-  int32_t *region, *qmap, *cpeaks, *bpeaks;
+  int32_t *region, *cpeaks;
   PVLOCK_DATA ld;
 
   pv_lock_arrays(lockdat, N, &ld);
   mag = ld.mag;
   region = ld.region;
-  qmap = ld.qmap;
   cpeaks = ld.cpeaks;
-  bpeaks = ld.bpeaks;
 
-  pv_find_peaks(bwin, nbins, mag, bpeaks);
-  pv_nearest_peaks(bpeaks, nbins, qmap);
   pv_find_peaks(fwin, nbins, mag, cpeaks);
   pv_nearest_peaks(cpeaks, nbins, region);
   for (b=0; b < nbins; b++)
@@ -246,35 +245,22 @@ static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
     nr = FL(1.0);
     ni = FL(0.0);
     if (p >= 0) {
-      if (mode == 2) {
-        dr = bwin[2*p];
-        di = bwin[2*p + 1];
-        if (HYPOT(dr, di) > 1e-20f) pv_unit(dr, di, &nr, &ni);
-        else p = -1;
-      }
-      else {
-        q = qmap[b];
-        if (q >= 0) {
-          dr = bwin[2*q];
-          di = bwin[2*q + 1];
-          if (HYPOT(dr, di) > 1e-20f) {
-            pv_unit(dr, di, &nr, &ni);
-            ni = -ni;
-            if (beta != FL(1.0)) {
-              phi_fk = ATAN2(fwin[i + 1], fwin[i]);
-              phi_fp = mag[p];
-              theta = (beta - FL(1.0))*(phi_fk - phi_fp);
-              c = COS(theta);
-              s = SIN(theta);
-              tmp_real = nr*c - ni*s;
-              ni = nr*s + ni*c;
-              nr = tmp_real;
-            }
-          }
-          else p = -1;
+      dr = bwin[2*p];
+      di = bwin[2*p + 1];
+      if (HYPOT(dr, di) > 1e-20f) {
+        pv_unit(dr, di, &nr, &ni);
+        if (mode == 3 && beta != FL(1.0)) {
+          phi_fk = ATAN2(fwin[i + 1], fwin[i]);
+          phi_fp = mag[p];
+          theta = (beta - FL(1.0))*pv_wrap_phase(phi_fk - phi_fp);
+          c = COS(theta);
+          s = SIN(theta);
+          tmp_real = nr*c - ni*s;
+          ni = nr*s + ni*c;
+          nr = tmp_real;
         }
-        else p = -1;
       }
+      else p = -1;
     }
     if (p < 0) pv_unit(bwin[i], bwin[i+1], &nr, &ni);
 
