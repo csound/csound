@@ -1513,6 +1513,11 @@ set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.lex)
 set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c
     PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough -Wno-misleading-indentation")
+# Flex 2.6.5's generated input routine narrows a size to int.
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set_property(SOURCE ${LEX_OUT} APPEND_STRING PROPERTY COMPILE_FLAGS
+        " -Wno-shorten-64-to-32")
+endif()
 
 set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
 set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
@@ -1612,6 +1617,12 @@ endif()
 
 set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
 set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
+
+# Flex emits an unused fatal handler when YY_FATAL_ERROR is overridden.
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    set_source_files_properties(${PRELEX_SCOOUT}
+        PROPERTIES COMPILE_FLAGS "-Wno-unused-function")
+endif()
 
 ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c")
 ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")

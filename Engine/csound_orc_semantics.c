@@ -4787,12 +4787,12 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
 
   IGN(pp);
   IGN(astTree);
-  char *p = csound_orcget_current_pointer(yyscanner)-1;
+  int previous_char = csound_orcget_previous_char(yyscanner);
   int32_t line = csound_orcget_lineno(yyscanner);
   uint64_t files = csound_orcget_locn(yyscanner);
   uint32_t column1 = csound_orcget_first_column(yyscanner);
   uint32_t column2 = csound_orcget_last_column(yyscanner);
-  if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
+  if (UNLIKELY(previous_char=='\0' || previous_char=='\n')) line--;
   csound->ErrorMsg(csound, Str("%s (token \"%s\"), "),
                   str, csound_orcget_text(yyscanner));
   csound->ErrorMsg(csound, Str(" line %d, columns %d,%d\n"), line, column1, column2);
