@@ -1227,6 +1227,8 @@ const OENTRY opcodlst_1[] = {
   { "tonex.k",S(TONEX),0,         "a",    "akoo", tonsetx,  tonex   },
   { "atone.k",  S(TONE),0,        "a",    "ako",  tonset,   atone   },
   { "atonex.k", S(TONEX),0,       "a",    "akoo", tonsetx,  atonex  },
+  { "tonela.k", S(TONELA),0,      "a",    "ako",  tonelaset, tonela  },
+  { "atonela.k",S(TONELA),0,      "a",    "ako",  tonelaset, atonela },
   { "reson", S(RESON),   0,       "a",    "axxoo", rsnset,  reson   },
   { "resonx", S(RESONX),0,        "a",    "axxooo", rsnsetx, resonx },
   { "areson.kk", S(RESON),0,      "a",    "akkoo",rsnset,   areson  },
