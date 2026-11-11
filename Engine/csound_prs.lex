@@ -695,7 +695,7 @@ static void prs_fatal(yyscan_t yyscanner, const char *msg)
     CSOUND *csound = PARM->csound;
     csound->ErrorMsg(csound, "%s\n", msg);
     csound->LongJmp(csound, 1);
-    yy_fatal_error(msg, yyscanner);     /* not reached */
+    abort();                           /* not reached */
 }
 
 static int prs_past_end(yyscan_t yyscanner)
