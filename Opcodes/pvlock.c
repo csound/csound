@@ -201,11 +201,12 @@ static void pv_unit(cs_float re, cs_float im, cs_float *ur, cs_float *ui)
   }
 }
 
-static cs_float pv_unwrap_phase(cs_float phase, cs_float last)
+static cs_float pv_phase_delta(cs_float phase, cs_float last)
 {
-  while (phase - last > PI_F) phase -= FL(2.0)*PI_F;
-  while (phase - last < -PI_F) phase += FL(2.0)*PI_F;
-  return phase;
+  cs_float delta = phase - last;
+  if (delta > PI_F) delta -= FL(2.0)*PI_F;
+  else if (delta < -PI_F) delta += FL(2.0)*PI_F;
+  return delta;
 }
 
 static void pv_unwrap_region_phases(cs_float *phase, int32_t nbins,
@@ -214,14 +215,25 @@ static void pv_unwrap_region_phases(cs_float *phase, int32_t nbins,
 {
   int32_t p, b;
   for (p=0; p < nbins; p++) {
-    cs_float last;
+    cs_float last, wrapped, unwrapped;
     if (!peaks[p]) continue;
     last = phase[p];
-    for (b=p+1; b < nbins && region[b] == p; b++)
-      last = phase[b] = pv_unwrap_phase(phase[b], last);
-    last = phase[p];
-    for (b=p-1; b >= 0 && region[b] == p; b--)
-      last = phase[b] = pv_unwrap_phase(phase[b], last);
+    wrapped = last;
+    unwrapped = last;
+    for (b=p+1; b < nbins && region[b] == p; b++) {
+      cs_float current = phase[b];
+      unwrapped += pv_phase_delta(current, wrapped);
+      phase[b] = unwrapped;
+      wrapped = current;
+    }
+    wrapped = last;
+    unwrapped = last;
+    for (b=p-1; b >= 0 && region[b] == p; b--) {
+      cs_float current = phase[b];
+      unwrapped += pv_phase_delta(current, wrapped);
+      phase[b] = unwrapped;
+      wrapped = current;
+    }
   }
 }
 
@@ -242,9 +254,11 @@ static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
 
   pv_find_peaks(fwin, nbins, mag, cpeaks);
   pv_nearest_peaks(cpeaks, nbins, region);
-  for (b=0; b < nbins; b++)
-    mag[b] = ATAN2(fwin[2*b + 1], fwin[2*b]);
-  pv_unwrap_region_phases(mag, nbins, cpeaks, region);
+  if (mode == 3 && beta != FL(1.0)) {
+    for (b=0; b < nbins; b++)
+      mag[b] = ATAN2(fwin[2*b + 1], fwin[2*b]);
+    pv_unwrap_region_phases(mag, nbins, cpeaks, region);
+  }
 
   for (b=0; b < nbins; b++) {
     i = 2*b;
