@@ -290,8 +290,8 @@ QNAN            "qnan"[ \t]*\(
                      pre_push_buffer(csound, yyscanner);
                      csound_preset_lineno(1, yyscanner);
                      if (UNLIKELY(PARM->depth>1022)) {
-                       csound->Message(csound,
-                                       Str("macros/include nested too deep: "));
+                       csound->ErrorMsg(csound,
+                                        Str("macros/include nested too deep: "));
                        csound->LongJmp(csound, 1);
                      }
                      PARM->lstack[++PARM->depth] =
@@ -427,8 +427,8 @@ QNAN            "qnan"[ \t]*\(
                        pre_push_buffer(csound, yyscanner);
                        csound_preset_lineno(1, yyscanner);
                        if (UNLIKELY(PARM->depth>1022)) {
-                         csound->Message(csound,
-                                         Str("macros/include nested too deep: "));
+                         csound->ErrorMsg(csound,
+                                          Str("macros/include nested too deep: "));
                          corfile_puts(csound, "$error", csound->expanded_orc);
                          err = 1;
                        }

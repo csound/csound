@@ -1520,8 +1520,8 @@ static void expand_macro(CSOUND* csound, MACRO* mm, yyscan_t yyscanner)
       prs_push_buffer(csound, yyscanner);
       csound_prsset_lineno(1, yyscanner);
       if (UNLIKELY(PARM->depth>1022)) {
-        csound->Message(csound,
-                        Str("macros/include nested too deep: "));
+        csound->ErrorMsg(csound,
+                         Str("macros/include nested too deep: "));
         csound->LongJmp(csound, 1);
       }
       PARM->lstack[++PARM->depth] =
@@ -1639,8 +1639,8 @@ static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
       prs_push_buffer(csound, yyscanner);
       csound_prsset_lineno(1, yyscanner);
       if (UNLIKELY(PARM->depth>1022)) {
-        csound->Message(csound,
-                        Str("macros/include nested too deep: "));
+        csound->ErrorMsg(csound,
+                         Str("macros/include nested too deep: "));
         csound->LongJmp(csound, 1);
       }
     }
