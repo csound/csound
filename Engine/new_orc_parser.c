@@ -106,6 +106,7 @@ static void free_preprocessor(CSOUND *csound, PRE_PARM *qq)
       csound_pre_delete_buffers(qq->yyscanner);
       csound_prelex_destroy(qq->yyscanner);
     }
+    csound->Free(csound, qq->buffers.parents);
     while (qq->ifdefStack != NULL) {
       IFDEFSTACK *entry = qq->ifdefStack;
       qq->ifdefStack = entry->prv;

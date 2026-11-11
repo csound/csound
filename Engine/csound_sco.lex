@@ -48,8 +48,7 @@ static  SCOTOKEN *make_num(CSOUND *, cs_double);
 
 #define YY_USER_INIT
 
-struct yyguts_t;
-static SCOTOKEN *do_at(CSOUND *, int, struct yyguts_t*);
+static SCOTOKEN *do_at(CSOUND *, int, yyscan_t);
 %}
 %option reentrant
 %option bison-bridge
@@ -126,9 +125,9 @@ ${CPPX}         { return T_CPP; }
 "#"             { return '#'; }
 "~"             { return '~'; }
 "."             { return '.'; }
-"@@"{OPTWHITE}{INTGR}     { lvalp = do_at(csound, 1, yyg);
+"@@"{OPTWHITE}{INTGR}     { lvalp = do_at(csound, 1, yyscanner);
                             return INTEGER_TOKEN; }
-"@"{OPTWHITE}{INTGR}      { lvalp = do_at(csound, 0, yyg);
+"@"{OPTWHITE}{INTGR}      { lvalp = do_at(csound, 0, yyscanner);
                             return INTEGER_TOKEN; }
 
 {STRCONST}      { lvalp = make_string(csound, yytext);
@@ -198,11 +197,11 @@ static SCOTOKEN *make_num(CSOUND *csound, cs_double f)
     return ans;
 }
 
-static SCOTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
+static SCOTOKEN *do_at(CSOUND *csound, int k, yyscan_t yyscanner)
 {
     SCOTOKEN *ans = (SCOTOKEN*)mcalloc(csound, sizeof(SCOTOKEN));
     int n, i = 1;
-    char *s = yytext;
+    char *s = yyget_text(yyscanner);
     while (*s=='@') s++;
     n = atoi(s);
     while (i<=n-k && i< 0x4000000) i <<= 1;
@@ -213,8 +212,7 @@ static SCOTOKEN *do_at(CSOUND *csound, int k, struct yyguts_t *yyg)
 
 char *csound_scoget_current_pointer(void *yyscanner)
 {
-    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
-    return yyg->yy_c_buf_p;
+    return yyget_text(yyscanner) + yyget_leng(yyscanner);
 }
 
 int csound_scoget_locn(void *yyscanner)
