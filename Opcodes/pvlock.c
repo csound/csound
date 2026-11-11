@@ -145,9 +145,9 @@ static int32_t pv_alloc_lock(CSOUND *csound, AUXCH *lockdata, int32_t N)
 
 static int32_t pv_lock_mode(cs_float lock)
 {
-  int32_t mode = (int32_t) lock;
-  if (mode == 2 || mode == 3) return mode;
-  return mode != 0;
+  if (lock == FL(2.0)) return 2;
+  if (lock == FL(3.0)) return 3;
+  return lock != FL(0.0);
 }
 
 static cs_float pv_bin_mag2(const cs_float *buf, int32_t bin)
@@ -201,11 +201,28 @@ static void pv_unit(cs_float re, cs_float im, cs_float *ur, cs_float *ui)
   }
 }
 
-static cs_float pv_wrap_phase(cs_float phase)
+static cs_float pv_unwrap_phase(cs_float phase, cs_float last)
 {
-  if (phase > PI_F) return phase - FL(2.0)*PI_F;
-  if (phase < -PI_F) return phase + FL(2.0)*PI_F;
+  while (phase - last > PI_F) phase -= FL(2.0)*PI_F;
+  while (phase - last < -PI_F) phase += FL(2.0)*PI_F;
   return phase;
+}
+
+static void pv_unwrap_region_phases(cs_float *phase, int32_t nbins,
+                                    const int32_t *peaks,
+                                    const int32_t *region)
+{
+  int32_t p, b;
+  for (p=0; p < nbins; p++) {
+    cs_float last;
+    if (!peaks[p]) continue;
+    last = phase[p];
+    for (b=p+1; b < nbins && region[b] == p; b++)
+      last = phase[b] = pv_unwrap_phase(phase[b], last);
+    last = phase[p];
+    for (b=p-1; b >= 0 && region[b] == p; b--)
+      last = phase[b] = pv_unwrap_phase(phase[b], last);
+  }
 }
 
 static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
@@ -226,7 +243,8 @@ static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
   pv_find_peaks(fwin, nbins, mag, cpeaks);
   pv_nearest_peaks(cpeaks, nbins, region);
   for (b=0; b < nbins; b++)
-    if (cpeaks[b]) mag[b] = ATAN2(fwin[2*b + 1], fwin[2*b]);
+    mag[b] = ATAN2(fwin[2*b + 1], fwin[2*b]);
+  pv_unwrap_region_phases(mag, nbins, cpeaks, region);
 
   for (b=0; b < nbins; b++) {
     i = 2*b;
@@ -250,9 +268,9 @@ static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
       if (HYPOT(dr, di) > 1e-20f) {
         pv_unit(dr, di, &nr, &ni);
         if (mode == 3 && beta != FL(1.0)) {
-          phi_fk = ATAN2(fwin[i + 1], fwin[i]);
+          phi_fk = mag[b];
           phi_fp = mag[p];
-          theta = (beta - FL(1.0))*pv_wrap_phase(phi_fk - phi_fp);
+          theta = (beta - FL(1.0))*(phi_fk - phi_fp);
           c = COS(theta);
           s = SIN(theta);
           tmp_real = nr*c - ni*s;
