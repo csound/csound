@@ -1,4 +1,5 @@
 import { uint2String } from "../utils/text-encoders.js";
+import { instantiateCommand } from "../utils/wasm64.js";
 
 // This is an argv parser, not a shell. Never silently interpret shell syntax
 // as filenames or try to fetch commands from the network.
@@ -63,7 +64,7 @@ export function createSystem(host, log) {
         modules.set(path, cached);
       }
       const wasi = host.createCommand(args);
-      const instance = new WebAssembly.Instance(cached.module, wasi.getImports(cached.module));
+      const instance = instantiateCommand(cached.module, wasi);
       let status;
       try {
         status = wasi.startCommand(instance);
