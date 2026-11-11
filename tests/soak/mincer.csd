@@ -17,12 +17,13 @@ instr 1
 
 idur  = p3
 ilock = p4
+ibeta = p5
 ipitch = 1
 itimescale = 0.5
 iamp  = 0.8
 
 atime line   0,idur,idur*itimescale
-asig  mincer atime, iamp, ipitch, 1, ilock
+asig  mincer atime, iamp, ipitch, 1, ilock, 2048, 4, ibeta
       outs asig, asig
 
 endin
@@ -30,8 +31,11 @@ endin
 <CsScore>
 f 1 0 0 1 "fox.wav" 0 0 0
 
-i 1 0 5 0	;not locked
-i 1 6 5 1	;locked
+i 1 0 5 0 1	;not locked
+i 1 6 5 1 1	;legacy locking
+i 1 12 5 2 1	;Laroche-Dolson identity
+i 1 18 5 3 0.5	;Laroche-Dolson scaled
+i 1 24 5 3 2	;Laroche-Dolson scaled, wider
 
 e
 

@@ -34,13 +34,13 @@
 typedef struct dats {
   OPDS h;
   cs_float *out[MAXOUTS], *time, *kamp, *kpitch, *knum, *klock, *iN,
-    *idecim, *konset, *offset, *dbthresh;
+    *idecim, *konset, *offset, *dbthresh, *ibeta;
   int32_t cnt, hsize, curframe, N, decim,tscale;
   uint32_t nchans;
   cs_double pos;
-  cs_float accum;
+  cs_float accum, beta;
   AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS],
-    nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS], fdata;
+    nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS], fdata, lockdata;
   cs_float *indata[2];
   cs_float *tab;
   int32_t curbuf;
@@ -55,13 +55,13 @@ typedef struct dats {
 typedef struct dats1 {
   OPDS h;
   cs_float *out[1], *time, *kamp, *kpitch, *knum, *klock, *iN,
-    *idecim, *konset, *offset, *dbthresh;
+    *idecim, *konset, *offset, *dbthresh, *ibeta;
   int32_t cnt, hsize, curframe, N, decim,tscale;
   uint32_t nchans;
   cs_double pos;
-  cs_float accum;
+  cs_float accum, beta;
   AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS],
-    nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS], fdata;
+    nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS], fdata, lockdata;
   cs_float *indata[2];
   cs_float *tab;
   int32_t curbuf;
@@ -71,6 +71,219 @@ typedef struct dats1 {
   cs_double tstamp, incr;
   void *fwdsetup, *invsetup;
 } DATASPACEM;
+
+
+typedef struct datsmin {
+  OPDS h;
+  cs_float *out[MAXOUTS], *time, *kamp, *kpitch, *knum, *klock, *iN,
+    *idecim, *ibeta;
+  int32_t cnt, hsize, curframe, N, decim,tscale;
+  uint32_t nchans;
+  cs_double pos;
+  cs_float accum, beta;
+  AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS],
+    nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS], fdata, lockdata;
+  cs_float *indata[2];
+  cs_float *tab;
+  int32_t curbuf;
+  SNDFILE *sf;
+  FDCH    fdch;
+  cs_float resamp;
+  cs_double tstamp, incr;
+  void *fwdsetup, *invsetup;
+} DATASPACE_MIN;
+
+
+typedef struct dats1min {
+  OPDS h;
+  cs_float *out[1], *time, *kamp, *kpitch, *knum, *klock, *iN,
+    *idecim, *ibeta;
+  int32_t cnt, hsize, curframe, N, decim,tscale;
+  uint32_t nchans;
+  cs_double pos;
+  cs_float accum, beta;
+  AUXCH outframe[MAXOUTS], win, bwin[MAXOUTS], fwin[MAXOUTS],
+    nwin[MAXOUTS], prev[MAXOUTS], framecount[MAXOUTS], fdata, lockdata;
+  cs_float *indata[2];
+  cs_float *tab;
+  int32_t curbuf;
+  SNDFILE *sf;
+  FDCH    fdch;
+  cs_float resamp;
+  cs_double tstamp, incr;
+  void *fwdsetup, *invsetup;
+} DATASPACEM_MIN;
+
+
+typedef struct {
+  cs_float *mag;
+  int32_t *region, *qmap, *cpeaks, *bpeaks;
+} PVLOCK_DATA;
+
+static void pv_lock_arrays(AUXCH *lockdata, int32_t N, PVLOCK_DATA *ld)
+{
+  int32_t nbins = N/2 + 1;
+  char *base = (char *) lockdata->auxp;
+  ld->mag = (cs_float *) base;
+  base += nbins*sizeof(cs_float);
+  ld->region = (int32_t *) base;
+  base += nbins*sizeof(int32_t);
+  ld->qmap = (int32_t *) base;
+  base += nbins*sizeof(int32_t);
+  ld->cpeaks = (int32_t *) base;
+  base += nbins*sizeof(int32_t);
+  ld->bpeaks = (int32_t *) base;
+}
+
+static int32_t pv_alloc_lock(CSOUND *csound, AUXCH *lockdata, int32_t N)
+{
+  int32_t nbins = N/2 + 1;
+  size_t size = (size_t) nbins*(sizeof(cs_float) + 4*sizeof(int32_t));
+  if (lockdata->auxp == NULL || lockdata->size < size)
+    csound->AuxAlloc(csound, size, lockdata);
+  if (UNLIKELY(lockdata->auxp == NULL))
+    return csound->InitError(csound, "%s\n",
+                             Str("could not allocate phase-locking data"));
+  return OK;
+}
+
+static int32_t pv_lock_mode(cs_float lock)
+{
+  int32_t mode = (int32_t) lock;
+  if (mode == 2 || mode == 3) return mode;
+  return mode != 0;
+}
+
+static cs_float pv_bin_mag2(const cs_float *buf, int32_t bin)
+{
+  return HYPOT(buf[2*bin], buf[2*bin + 1]);
+}
+
+static int32_t pv_find_peaks(const cs_float *buf, int32_t nbins,
+                             cs_float *mag, int32_t *peaks)
+{
+  int32_t i, count = 0;
+  for (i=0; i < nbins; i++) {
+    mag[i] = pv_bin_mag2(buf, i);
+    peaks[i] = 0;
+  }
+  for (i=2; i < nbins - 2; i++) {
+    if (mag[i] > mag[i-2] && mag[i] > mag[i-1] &&
+        mag[i] > mag[i+1] && mag[i] > mag[i+2]) {
+      peaks[i] = 1;
+      count++;
+    }
+  }
+  return count;
+}
+
+static void pv_nearest_peaks(const int32_t *peaks, int32_t nbins,
+                             int32_t *nearest)
+{
+  int32_t i, last = -1, next = -1;
+  for (i=0; i < nbins; i++) {
+    if (peaks[i]) last = i;
+    nearest[i] = last;
+  }
+  for (i=nbins-1; i >= 0; i--) {
+    if (peaks[i]) next = i;
+    if (next >= 0 && (nearest[i] < 0 || next - i < i - nearest[i]))
+      nearest[i] = next;
+  }
+}
+
+static void pv_unit(cs_float re, cs_float im, cs_float *ur, cs_float *ui)
+{
+  cs_float mag = HYPOT(re, im);
+  if (mag > 1e-20f) {
+    *ur = re/mag;
+    *ui = im/mag;
+  }
+  else {
+    *ur = FL(1.0);
+    *ui = FL(0.0);
+  }
+}
+
+static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
+                       cs_float beta, cs_float *bwin, cs_float *fwin,
+                       cs_float *prev)
+{
+  int32_t nbins = N/2 + 1, i, b, p, q;
+  cs_float *mag, ph_real, ph_im, tmp_real, tmp_im, div;
+  cs_float nr, ni, dr, di, phi_fk, phi_fp, theta, c, s;
+  int32_t *region, *qmap, *cpeaks, *bpeaks;
+  PVLOCK_DATA ld;
+
+  pv_lock_arrays(lockdat, N, &ld);
+  mag = ld.mag;
+  region = ld.region;
+  qmap = ld.qmap;
+  cpeaks = ld.cpeaks;
+  bpeaks = ld.bpeaks;
+
+  pv_find_peaks(bwin, nbins, mag, bpeaks);
+  pv_nearest_peaks(bpeaks, nbins, qmap);
+  pv_find_peaks(fwin, nbins, mag, cpeaks);
+  pv_nearest_peaks(cpeaks, nbins, region);
+  for (b=0; b < nbins; b++)
+    if (cpeaks[b]) mag[b] = ATAN2(fwin[2*b + 1], fwin[2*b]);
+
+  for (b=0; b < nbins; b++) {
+    i = 2*b;
+    div = FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1e-20);
+    ph_real = prev[i]*div;
+    ph_im = prev[i+1]*div;
+    tmp_real = bwin[i]*ph_real + bwin[i+1]*ph_im;
+    tmp_im = bwin[i]*ph_im - bwin[i+1]*ph_real;
+    bwin[i] = tmp_real;
+    bwin[i+1] = tmp_im;
+  }
+
+  for (b=0; b < nbins; b++) {
+    i = 2*b;
+    p = region[b];
+    nr = FL(1.0);
+    ni = FL(0.0);
+    if (p >= 0) {
+      if (mode == 2) {
+        dr = bwin[2*p];
+        di = bwin[2*p + 1];
+        if (HYPOT(dr, di) > 1e-20f) pv_unit(dr, di, &nr, &ni);
+        else p = -1;
+      }
+      else {
+        q = qmap[b];
+        if (q >= 0) {
+          dr = bwin[2*q];
+          di = bwin[2*q + 1];
+          if (HYPOT(dr, di) > 1e-20f) {
+            pv_unit(dr, di, &nr, &ni);
+            ni = -ni;
+            if (beta != FL(1.0)) {
+              phi_fk = ATAN2(fwin[i + 1], fwin[i]);
+              phi_fp = mag[p];
+              theta = (beta - FL(1.0))*(phi_fk - phi_fp);
+              c = COS(theta);
+              s = SIN(theta);
+              tmp_real = nr*c - ni*s;
+              ni = nr*s + ni*c;
+              nr = tmp_real;
+            }
+          }
+          else p = -1;
+        }
+        else p = -1;
+      }
+    }
+    if (p < 0) pv_unit(bwin[i], bwin[i+1], &nr, &ni);
+
+    tmp_real = fwin[i]*nr - fwin[i+1]*ni;
+    tmp_im = fwin[i]*ni + fwin[i+1]*nr;
+    prev[i] = fwin[i] = tmp_real;
+    prev[i+1] = fwin[i+1] = tmp_im;
+  }
+}
 
 
 static int32_t sinit(CSOUND *csound, DATASPACE *p)
@@ -135,11 +348,12 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
 
     p->N = N;
     p->decim = decim;
+    p->beta = *p->ibeta;
 
     p->fwdsetup = csound->RealFFTSetup(csound, N, FFT_FWD);
     p->invsetup = csound->RealFFTSetup(csound, N, FFT_INV);
 
-    return OK;
+    return pv_alloc_lock(csound, &p->lockdata, N);
 }
 
 static int32_t sinitm(CSOUND *csound, DATASPACEM *p)
@@ -204,24 +418,165 @@ static int32_t sinitm(CSOUND *csound, DATASPACEM *p)
 
     p->N = N;
     p->decim = decim;
+    p->beta = *p->ibeta;
 
     p->fwdsetup = csound->RealFFTSetup(csound, N, FFT_FWD);
     p->invsetup = csound->RealFFTSetup(csound, N, FFT_INV);
 
-    return OK;
+    return pv_alloc_lock(csound, &p->lockdata, N);
 }
 
-static int32_t sinit1(CSOUND *csound, DATASPACE *p) {
+static int32_t sinit_min(CSOUND *csound, DATASPACE_MIN *p)
+{
+    int32_t N =  *p->iN, ui;
+    uint32_t nchans, i;
+    uint32_t size;
+    int32_t decim = *p->idecim;
+
+    if (N) {
+      for (i=0; N; i++) {
+        N >>= 1;
+      }
+      N = (int32_t)intpow1(2, i-1);  /* faster than pow fn */
+    } else N = 2048;
+    if (decim == 0) decim = 4;
+
+    p->hsize = N/decim;
+    p->cnt = p->hsize;
+    p->curframe = 0;
+    p->pos = 0;
+
+    nchans = p->nchans;
+
+    if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
+      return csound->InitError(csound, "%s\n", Str("invalid number of output arguments"));
+    p->nchans = nchans;
+
+    for (i=0; i < nchans; i++) {
+
+      size = (N+2)*sizeof(cs_float);
+      if (p->fwin[i].auxp == NULL || p->fwin[i].size < size)
+        csound->AuxAlloc(csound, size, &p->fwin[i]);
+      if (p->bwin[i].auxp == NULL || p->bwin[i].size < size)
+        csound->AuxAlloc(csound, size, &p->bwin[i]);
+      if (p->prev[i].auxp == NULL || p->prev[i].size < size)
+        csound->AuxAlloc(csound, size, &p->prev[i]);
+      size = decim*sizeof(int32_t);
+      if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
+        csound->AuxAlloc(csound, size, &p->framecount[i]);
+      {
+        int32_t k=0;
+        for (k=0; k < decim; k++) {
+          ((int32_t *)(p->framecount[i].auxp))[k] = k*N;
+        }
+      }
+      size = decim*sizeof(cs_float)*N;
+      if (p->outframe[i].auxp == NULL || p->outframe[i].size < size)
+        csound->AuxAlloc(csound, size, &p->outframe[i]);
+      else
+        memset(p->outframe[i].auxp,0,size);
+    }
+    size = N*sizeof(cs_float);
+    if (p->win.auxp == NULL || p->win.size < size)
+      csound->AuxAlloc(csound, size, &p->win);
+
+    {
+      cs_float x = FL(2.0)*PI_F/N;
+      for (ui=0; ui < N; ui++)
+        ((cs_float *)p->win.auxp)[ui] = FL(0.5) - FL(0.5)*COS((cs_float)ui*x);
+    }
+
+    p->N = N;
+    p->decim = decim;
+    p->beta = *p->ibeta;
+
+    p->fwdsetup = csound->RealFFTSetup(csound, N, FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound, N, FFT_INV);
+
+    return pv_alloc_lock(csound, &p->lockdata, N);
+}
+
+static int32_t sinitm_min(CSOUND *csound, DATASPACEM_MIN *p)
+{
+    int32_t N =  *p->iN, ui;
+    uint32_t nchans, i;
+    uint32_t size;
+    int32_t decim = *p->idecim;
+
+    if (N) {
+      for (i=0; N; i++) {
+        N >>= 1;
+      }
+      N = (int32_t)intpow1(2, i-1);  /* faster than pow fn */
+    } else N = 2048;
+    if (decim == 0) decim = 4;
+
+    p->hsize = N/decim;
+    p->cnt = p->hsize;
+    p->curframe = 0;
+    p->pos = 0;
+
+    nchans = p->nchans;
+
+    if (UNLIKELY(nchans < 1 || nchans > MAXOUTS))
+      return csound->InitError(csound, "%s\n", Str("invalid number of output arguments"));
+    p->nchans = nchans;
+
+    for (i=0; i < nchans; i++) {
+
+      size = (N+2)*sizeof(cs_float);
+      if (p->fwin[i].auxp == NULL || p->fwin[i].size < size)
+        csound->AuxAlloc(csound, size, &p->fwin[i]);
+      if (p->bwin[i].auxp == NULL || p->bwin[i].size < size)
+        csound->AuxAlloc(csound, size, &p->bwin[i]);
+      if (p->prev[i].auxp == NULL || p->prev[i].size < size)
+        csound->AuxAlloc(csound, size, &p->prev[i]);
+      size = decim*sizeof(int32_t);
+      if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
+        csound->AuxAlloc(csound, size, &p->framecount[i]);
+      {
+        int32_t k=0;
+        for (k=0; k < decim; k++) {
+          ((int32_t *)(p->framecount[i].auxp))[k] = k*N;
+        }
+      }
+      size = decim*sizeof(cs_float)*N;
+      if (p->outframe[i].auxp == NULL || p->outframe[i].size < size)
+        csound->AuxAlloc(csound, size, &p->outframe[i]);
+      else
+        memset(p->outframe[i].auxp,0,size);
+    }
+    size = N*sizeof(cs_float);
+    if (p->win.auxp == NULL || p->win.size < size)
+      csound->AuxAlloc(csound, size, &p->win);
+
+    {
+      cs_float x = FL(2.0)*PI_F/N;
+      for (ui=0; ui < N; ui++)
+        ((cs_float *)p->win.auxp)[ui] = FL(0.5) - FL(0.5)*COS((cs_float)ui*x);
+    }
+
+    p->N = N;
+    p->decim = decim;
+    p->beta = *p->ibeta;
+
+    p->fwdsetup = csound->RealFFTSetup(csound, N, FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound, N, FFT_INV);
+
+    return pv_alloc_lock(csound, &p->lockdata, N);
+}
+
+static int32_t sinit1(CSOUND *csound, DATASPACE_MIN *p) {
     p->nchans = GetOutputArgCnt((OPDS *)p);
-    return sinit(csound, p);
+    return sinit_min(csound, p);
 }
 
-static int32_t sinit1m(CSOUND *csound, DATASPACEM *p) {
+static int32_t sinit1m(CSOUND *csound, DATASPACEM_MIN *p) {
     p->nchans = 1;
-    return sinitm(csound, p);
+    return sinitm_min(csound, p);
 }
 
-static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
+static int32_t sprocess1(CSOUND *csound, DATASPACE_MIN *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -240,6 +595,8 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
     cs_float ph_real, ph_im, tmp_real, tmp_im, div;
     int32_t *framecnt;
     int32_t curframe = p->curframe, decim = p->decim;
+    int32_t mode = pv_lock_mode(lock);
+    cs_float beta = p->beta;
     cs_double scaling = (8./decim)/3.;
 
     if (UNLIKELY(early)) {
@@ -337,57 +694,62 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
 
           /* phase vocoder processing */
 
-          for (i=0; i < N + 2; i+=2) {
-            /* phases of previous output frame in exponential format,
-               obtained by dividing by magnitude */
-            div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1e-20);
-            ph_real  =    prev[i]*div;
-            ph_im =       prev[i+1]*div;
-
-            /* back window magnitudes, phase differences between
-               prev and back windows */
-            tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
-            tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
-            bwin[i] = tmp_real;
-            bwin[i+1] = tmp_im;
+          if (mode > 1) {
+            pv_lock_ld(&p->lockdata, N, mode, beta, bwin, fwin, prev);
           }
+          else {
+            for (i=0; i < N + 2; i+=2) {
+              /* phases of previous output frame in exponential format,
+                 obtained by dividing by magnitude */
+              div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1e-20);
+              ph_real  =    prev[i]*div;
+              ph_im =       prev[i+1]*div;
 
-          for (i=0; i < N + 2; i+=2) {
-            if (lock) {  /* phase-locking */
-              if (i > 0) {
-                if (i < N) {
-                  tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
-                  tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
-                }
-                else { /* Nyquist */
-                  tmp_real = bwin[i] + bwin[i-2];
-                  tmp_im = FL(0.0);
-                }
-              }
-              else { /* 0 Hz */
-                tmp_real = bwin[i] + bwin[i+2];
-                tmp_im = FL(0.0);
-              }
-            } else { /* no locking */
-              tmp_real = bwin[i];
-              tmp_im = bwin[i+1];
+              /* back window magnitudes, phase differences between
+                 prev and back windows */
+              tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
+              tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
+              bwin[i] = tmp_real;
+              bwin[i+1] = tmp_im;
             }
 
-            tmp_real = (cs_float)(tmp_real + 1e-15);
-            div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
+            for (i=0; i < N + 2; i+=2) {
+              if (mode) {  /* phase-locking */
+                if (i > 0) {
+                  if (i < N) {
+                    tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
+                    tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+                  }
+                  else { /* Nyquist */
+                    tmp_real = bwin[i] + bwin[i-2];
+                    tmp_im = FL(0.0);
+                  }
+                }
+                else { /* 0 Hz */
+                  tmp_real = bwin[i] + bwin[i+2];
+                  tmp_im = FL(0.0);
+                }
+              } else { /* no locking */
+                tmp_real = bwin[i];
+                tmp_im = bwin[i+1];
+              }
 
-            /* phases of tmp frame */
-            ph_real = tmp_real*div;
-            ph_im = tmp_im*div;
+              tmp_real = (cs_float)(tmp_real + 1e-15);
+              div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
 
-            /* front window mags, phase sum of
-               tmp and front windows */
-            tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
-            tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
+              /* phases of tmp frame */
+              ph_real = tmp_real*div;
+              ph_im = tmp_im*div;
 
-            /* phase vocoder output */
-            prev[i] = fwin[i] = tmp_real;
-            prev[i+1] = fwin[i+1] = tmp_im;
+              /* front window mags, phase sum of
+                 tmp and front windows */
+              tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
+              tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
+
+              /* phase vocoder output */
+              prev[i] = fwin[i] = tmp_real;
+              prev[i+1] = fwin[i+1] = tmp_im;
+            }
           }
           /* re-order bins and take inverse FFT */
           fwin[1] = fwin[N];
@@ -426,7 +788,7 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE *p)
 }
 
 
-static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
+static int32_t sprocess1m(CSOUND *csound, DATASPACEM_MIN *p)
 {
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -445,6 +807,8 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
     cs_float ph_real, ph_im, tmp_real, tmp_im, div;
     int32_t *framecnt;
     int32_t curframe = p->curframe, decim = p->decim;
+    int32_t mode = pv_lock_mode(lock);
+    cs_float beta = p->beta;
     cs_double scaling = (8./decim)/3.;
 
     if (UNLIKELY(early)) {
@@ -542,57 +906,62 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM *p)
 
           /* phase vocoder processing */
 
-          for (i=0; i < N + 2; i+=2) {
-            /* phases of previous output frame in exponential format,
-               obtained by dividing by magnitude */
-            div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1e-20);
-            ph_real  =    prev[i]*div;
-            ph_im =       prev[i+1]*div;
-
-            /* back window magnitudes, phase differences between
-               prev and back windows */
-            tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
-            tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
-            bwin[i] = tmp_real;
-            bwin[i+1] = tmp_im;
+          if (mode > 1) {
+            pv_lock_ld(&p->lockdata, N, mode, beta, bwin, fwin, prev);
           }
+          else {
+            for (i=0; i < N + 2; i+=2) {
+              /* phases of previous output frame in exponential format,
+                 obtained by dividing by magnitude */
+              div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1e-20);
+              ph_real  =    prev[i]*div;
+              ph_im =       prev[i+1]*div;
 
-          for (i=0; i < N + 2; i+=2) {
-            if (lock) {  /* phase-locking */
-              if (i > 0) {
-                if (i < N) {
-                  tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
-                  tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
-                }
-                else { /* Nyquist */
-                  tmp_real = bwin[i] + bwin[i-2];
-                  tmp_im = FL(0.0);
-                }
-              }
-              else { /* 0 Hz */
-                tmp_real = bwin[i] + bwin[i+2];
-                tmp_im = FL(0.0);
-              }
-            } else { /* no locking */
-              tmp_real = bwin[i];
-              tmp_im = bwin[i+1];
+              /* back window magnitudes, phase differences between
+                 prev and back windows */
+              tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
+              tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
+              bwin[i] = tmp_real;
+              bwin[i+1] = tmp_im;
             }
 
-            tmp_real = (cs_float)(tmp_real + 1e-15);
-            div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
+            for (i=0; i < N + 2; i+=2) {
+              if (mode) {  /* phase-locking */
+                if (i > 0) {
+                  if (i < N) {
+                    tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
+                    tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+                  }
+                  else { /* Nyquist */
+                    tmp_real = bwin[i] + bwin[i-2];
+                    tmp_im = FL(0.0);
+                  }
+                }
+                else { /* 0 Hz */
+                  tmp_real = bwin[i] + bwin[i+2];
+                  tmp_im = FL(0.0);
+                }
+              } else { /* no locking */
+                tmp_real = bwin[i];
+                tmp_im = bwin[i+1];
+              }
 
-            /* phases of tmp frame */
-            ph_real = tmp_real*div;
-            ph_im = tmp_im*div;
+              tmp_real = (cs_float)(tmp_real + 1e-15);
+              div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
 
-            /* front window mags, phase sum of
-               tmp and front windows */
-            tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
-            tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
+              /* phases of tmp frame */
+              ph_real = tmp_real*div;
+              ph_im = tmp_im*div;
 
-            /* phase vocoder output */
-            prev[i] = fwin[i] = tmp_real;
-            prev[i+1] = fwin[i+1] = tmp_im;
+              /* front window mags, phase sum of
+                 tmp and front windows */
+              tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
+              tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
+
+              /* phase vocoder output */
+              prev[i] = fwin[i] = tmp_real;
+              prev[i+1] = fwin[i+1] = tmp_im;
+            }
           }
           /* re-order bins and take inverse FFT */
           fwin[1] = fwin[N];
@@ -636,7 +1005,7 @@ static int32_t sinit2m(CSOUND *csound, DATASPACEM *p)
 {
     uint32_t size,i;
     p->nchans = GetOutputArgCnt((OPDS *)p);
-    sinitm(csound, p);
+    if (UNLIKELY(sinitm(csound, p) != OK)) return CSOUND_ERROR;
     size = p->N*sizeof(cs_float);
     for (i=0; i < p->nchans; i++)
       if (p->nwin[i].auxp == NULL || p->nwin[i].size < size)
@@ -651,7 +1020,7 @@ static int32_t sinit2(CSOUND *csound, DATASPACE *p)
 {
     uint32_t size,i;
     p->nchans = GetOutputArgCnt((OPDS *)p);
-    sinit(csound, p);
+    if (UNLIKELY(sinit(csound, p) != OK)) return CSOUND_ERROR;
     size = p->N*sizeof(cs_float);
     for (i=0; i < p->nchans; i++)
       if (p->nwin[i].auxp == NULL || p->nwin[i].size < size)
@@ -681,6 +1050,8 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
     cs_float ph_real, ph_im, tmp_real, tmp_im, div;
     int32_t *framecnt, curframe = p->curframe;
     int32_t decim = p->decim;
+    int32_t mode = pv_lock_mode(lock);
+    cs_float beta = p->beta;
     cs_double scaling = (8./decim)/3.;
 
     if (UNLIKELY(early)) {
@@ -800,51 +1171,56 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
           fwin[N] = fwin[1];
           fwin[N+1] = FL(0.0);
 
-          for (i=0; i < N + 2; i+=2) {
-
-            div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1.0e-20);
-            ph_real  =    prev[i]*div;
-            ph_im =       prev[i+1]*div;
-
-            tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
-            tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
-            bwin[i] = tmp_real;
-            bwin[i+1] = tmp_im;
+          if (mode > 1) {
+            pv_lock_ld(&p->lockdata, N, mode, beta, bwin, fwin, prev);
           }
+          else {
+            for (i=0; i < N + 2; i+=2) {
 
-          for (i=0; i < N + 2; i+=2) {
-            if (lock) {
-              if (i > 0) {
-                if (i < N) {
-                  tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
-                  tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+              div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1.0e-20);
+              ph_real  =    prev[i]*div;
+              ph_im =       prev[i+1]*div;
+
+              tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
+              tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
+              bwin[i] = tmp_real;
+              bwin[i+1] = tmp_im;
+            }
+
+            for (i=0; i < N + 2; i+=2) {
+              if (mode) {
+                if (i > 0) {
+                  if (i < N) {
+                    tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
+                    tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+                  }
+                  else {
+                    tmp_real = bwin[i] + bwin[i-2];
+                    tmp_im = FL(0.0);
+                  }
                 }
                 else {
-                  tmp_real = bwin[i] + bwin[i-2];
+                  tmp_real = bwin[i] + bwin[i+2];
                   tmp_im = FL(0.0);
                 }
               }
               else {
-                tmp_real = bwin[i] + bwin[i+2];
-                tmp_im = FL(0.0);
+                tmp_real = bwin[i];
+                tmp_im = bwin[i+1];
               }
+
+              tmp_real = (cs_float)(tmp_real + 1e-15);
+              div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
+
+              ph_real = tmp_real*div;
+              ph_im = tmp_im*div;
+
+              tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
+              tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
+
+              prev[i] = fwin[i] = tmp_real;
+              prev[i+1] = fwin[i+1] = tmp_im;
             }
-            else {
-              tmp_real = bwin[i];
-              tmp_im = bwin[i+1];
-            }
-
-            tmp_real = (cs_float)(tmp_real + 1e-15);
-            div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
-
-            ph_real = tmp_real*div;
-            ph_im = tmp_im*div;
-
-            tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
-            tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
-
-            prev[i] = fwin[i] = tmp_real;
-            prev[i+1] = fwin[i+1] = tmp_im;
           }
 
           fwin[1] = fwin[N];
@@ -901,6 +1277,8 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
     cs_float ph_real, ph_im, tmp_real, tmp_im, div;
     int32_t *framecnt, curframe = p->curframe;
     int32_t decim = p->decim;
+    int32_t mode = pv_lock_mode(lock);
+    cs_float beta = p->beta;
     cs_double scaling = (8./decim)/3.;
 
     if (UNLIKELY(early)) {
@@ -1020,51 +1398,56 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
           fwin[N] = fwin[1];
           fwin[N+1] = FL(0.0);
 
-          for (i=0; i < N + 2; i+=2) {
-
-            div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1.0e-20);
-            ph_real  =    prev[i]*div;
-            ph_im =       prev[i+1]*div;
-
-            tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
-            tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
-            bwin[i] = tmp_real;
-            bwin[i+1] = tmp_im;
+          if (mode > 1) {
+            pv_lock_ld(&p->lockdata, N, mode, beta, bwin, fwin, prev);
           }
+          else {
+            for (i=0; i < N + 2; i+=2) {
 
-          for (i=0; i < N + 2; i+=2) {
-            if (lock) {
-              if (i > 0) {
-                if (i < N) {
-                  tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
-                  tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+              div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1.0e-20);
+              ph_real  =    prev[i]*div;
+              ph_im =       prev[i+1]*div;
+
+              tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
+              tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
+              bwin[i] = tmp_real;
+              bwin[i+1] = tmp_im;
+            }
+
+            for (i=0; i < N + 2; i+=2) {
+              if (mode) {
+                if (i > 0) {
+                  if (i < N) {
+                    tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
+                    tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+                  }
+                  else {
+                    tmp_real = bwin[i] + bwin[i-2];
+                    tmp_im = FL(0.0);
+                  }
                 }
                 else {
-                  tmp_real = bwin[i] + bwin[i-2];
+                  tmp_real = bwin[i] + bwin[i+2];
                   tmp_im = FL(0.0);
                 }
               }
               else {
-                tmp_real = bwin[i] + bwin[i+2];
-                tmp_im = FL(0.0);
+                tmp_real = bwin[i];
+                tmp_im = bwin[i+1];
               }
+
+              tmp_real = (cs_float)(tmp_real + 1e-15);
+              div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
+
+              ph_real = tmp_real*div;
+              ph_im = tmp_im*div;
+
+              tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
+              tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
+
+              prev[i] = fwin[i] = tmp_real;
+              prev[i+1] = fwin[i+1] = tmp_im;
             }
-            else {
-              tmp_real = bwin[i];
-              tmp_im = bwin[i+1];
-            }
-
-            tmp_real = (cs_float)(tmp_real + 1e-15);
-            div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
-
-            ph_real = tmp_real*div;
-            ph_im = tmp_im*div;
-
-            tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
-            tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
-
-            prev[i] = fwin[i] = tmp_real;
-            prev[i+1] = fwin[i+1] = tmp_im;
           }
 
           fwin[1] = fwin[N];
@@ -1130,7 +1513,7 @@ static int32_t sinit3(CSOUND *csound, DATASPACE *p)
                                    "%d outputs, %d inputs\n"),
                                p->OUTOCOUNT, p->nchans);
 
-    sinit(csound, p);
+    if (UNLIKELY(sinit(csound, p) != OK)) return CSOUND_ERROR;
     size = p->N*sizeof(cs_float);
     for (i=0; i < p->nchans; i++)
       if (p->nwin[i].auxp == NULL || p->nwin[i].size < size)
@@ -1196,6 +1579,8 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     cs_float ph_real, ph_im, tmp_real, tmp_im, div;
     int32_t *framecnt, curframe = p->curframe;
     int32_t decim = p->decim;
+    int32_t mode = pv_lock_mode(lock);
+    cs_float beta = p->beta;
     cs_double tstamp = p->tstamp, incrt = p->incr;
  
     if (time < 0) /* negative tempo is not possible */
@@ -1321,51 +1706,56 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
             fwin[N] = fwin[1];
             fwin[N+1] = FL(0.0);
 
-            for (i=0; i < N + 2; i+=2) {
-
-              div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1.0e-20);
-              ph_real  =    prev[i]*div;
-              ph_im =       prev[i+1]*div;
-
-              tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
-              tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
-              bwin[i] = tmp_real;
-              bwin[i+1] = tmp_im;
+            if (mode > 1) {
+              pv_lock_ld(&p->lockdata, N, mode, beta, bwin, fwin, prev);
             }
+            else {
+              for (i=0; i < N + 2; i+=2) {
 
-            for (i=0; i < N + 2; i+=2) {
-              if (lock) {
-                if (i > 0) {
-                  if (i < N) {
-                    tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
-                    tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+                div =  FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1.0e-20);
+                ph_real  =    prev[i]*div;
+                ph_im =       prev[i+1]*div;
+
+                tmp_real =   bwin[i] * ph_real + bwin[i+1] * ph_im;
+                tmp_im =   bwin[i] * ph_im - bwin[i+1] * ph_real;
+                bwin[i] = tmp_real;
+                bwin[i+1] = tmp_im;
+              }
+
+              for (i=0; i < N + 2; i+=2) {
+                if (mode) {
+                  if (i > 0) {
+                    if (i < N) {
+                      tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
+                      tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+                    }
+                    else {
+                      tmp_real = bwin[i] + bwin[i-2];
+                      tmp_im = FL(0.0);
+                    }
                   }
                   else {
-                    tmp_real = bwin[i] + bwin[i-2];
+                    tmp_real = bwin[i] + bwin[i+2];
                     tmp_im = FL(0.0);
                   }
                 }
                 else {
-                  tmp_real = bwin[i] + bwin[i+2];
-                  tmp_im = FL(0.0);
+                  tmp_real = bwin[i];
+                  tmp_im = bwin[i+1];
                 }
+
+                tmp_real = (cs_float)(tmp_real + 1e-15);
+                div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
+
+                ph_real = tmp_real*div;
+                ph_im = tmp_im*div;
+
+                tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
+                tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
+
+                prev[i] = fwin[i] = tmp_real;
+                prev[i+1] = fwin[i+1] = tmp_im;
               }
-              else {
-                tmp_real = bwin[i];
-                tmp_im = bwin[i+1];
-              }
-
-              tmp_real = (cs_float)(tmp_real + 1e-15);
-              div =  FL(1.0)/(HYPOT(tmp_real, tmp_im));
-
-              ph_real = tmp_real*div;
-              ph_im = tmp_im*div;
-
-              tmp_real =   fwin[i] * ph_real - fwin[i+1] * ph_im;
-              tmp_im =   fwin[i] * ph_im + fwin[i+1] * ph_real;
-
-              prev[i] = fwin[i] = tmp_real;
-              prev[i+1] = fwin[i+1] = tmp_im;
             }
 
             fwin[1] = fwin[N];
@@ -1835,15 +2225,15 @@ static int32_t am_fm(CSOUND *csound, AMFM *p) {
 
 static OENTRY pvlock_localops[] =
   {
-   {"mincer", sizeof(DATASPACEM), 0, "a", "akkkkoo",
+   {"mincer", sizeof(DATASPACEM_MIN), 0, "a", "akkkkoop",
     (SUBR)sinit1m,(SUBR)sprocess1m },
-   {"mincer", sizeof(DATASPACE), 0, "mm", "akkkkoo",
+   {"mincer", sizeof(DATASPACE_MIN), 0, "mm", "akkkkoop",
     (SUBR)sinit1,(SUBR)sprocess1 },
-   {"temposcal", sizeof(DATASPACEM), 0, "a", "kkkkkooPOP",
+   {"temposcal", sizeof(DATASPACEM), 0, "a", "kkkkkooPOPp",
     (SUBR)sinit2m,(SUBR)sprocess2m },
-   {"temposcal", sizeof(DATASPACE), 0, "mm", "kkkkkooPOP",
+   {"temposcal", sizeof(DATASPACE), 0, "mm", "kkkkkooPOPp",
     (SUBR)sinit2,(SUBR)sprocess2 },
-   {"filescal", sizeof(DATASPACE), 0, "mm", "kkkSkooPOP",
+   {"filescal", sizeof(DATASPACE), 0, "mm", "kkkSkooPOPp",
     (SUBR)sinit3,(SUBR)sprocess3 },
    {"hilbert2", sizeof(HILB), 0, "aa", "aii", (SUBR) hilbert_init,
     (SUBR) hilbert_proc},
