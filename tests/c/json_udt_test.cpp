@@ -235,6 +235,181 @@ endin
     expectStringChannel("restored-second-label", "end");
 }
 
+TEST_F(JsonUdtTests, UsesDeclaredDefaultsOnlyForMissingFields)
+{
+    ASSERT_NO_FATAL_FAILURE(run(
+        "struct Event pitch:i, velocity:i = 100, transpose:i = 0", R"orc(
+event:Event init 60, 77, 12
+event jsonunmarshal {{ {"pitch":62} }}
+chnset event.pitch, "pitch"
+chnset event.velocity, "default-velocity"
+chnset event.transpose, "zero-default"
+encoded:S jsonmarshal event
+restored:Event jsonunmarshal encoded
+chnset restored.velocity, "restored-velocity"
+chnset restored.transpose, "restored-transpose"
+event jsonunmarshal {{ {"pitch":64,"velocity":0,"transpose":7} }}
+chnset event.pitch, "new-pitch"
+chnset event.velocity, "explicit-zero"
+chnset event.transpose, "explicit-transpose"
+)orc"));
+    ASSERT_EQ(csoundErrCnt(csound), 0) << messages();
+    expectChannel("pitch", 62);
+    expectChannel("default-velocity", 100);
+    expectChannel("zero-default", 0);
+    expectChannel("restored-velocity", 100);
+    expectChannel("restored-transpose", 0);
+    expectChannel("new-pitch", 64);
+    expectChannel("explicit-zero", 0);
+    expectChannel("explicit-transpose", 7);
+}
+
+TEST_F(JsonUdtTests, AppliesDeclaredDefaultsInNestedStructsAndArrays)
+{
+    ASSERT_NO_FATAL_FAILURE(run(
+        "struct Event pitch:i, velocity:i = 100\n"
+        "struct Phrase lead:Event, events:Event[]", R"orc(
+phrase:Phrase jsonunmarshal {{ {
+    "lead":{"pitch":62},
+    "events":[{"pitch":60},{"pitch":64,"velocity":0}]
+} }}
+chnset phrase.lead.velocity, "lead-velocity"
+chnset phrase.events[0].velocity, "nested-default"
+chnset phrase.events[1].velocity, "nested-zero"
+events:Event[] jsonunmarshal {{ [{"pitch":67},{"pitch":69,"velocity":0}] }}
+chnset events[0].velocity, "root-default"
+chnset events[1].velocity, "root-zero"
+encoded:S jsonmarshal phrase
+restored:Phrase jsonunmarshal encoded
+chnset restored.events[0].velocity, "restored-default"
+chnset restored.events[1].velocity, "restored-zero"
+)orc"));
+    ASSERT_EQ(csoundErrCnt(csound), 0) << messages();
+    expectChannel("lead-velocity", 100);
+    expectChannel("nested-default", 100);
+    expectChannel("nested-zero", 0);
+    expectChannel("root-default", 100);
+    expectChannel("root-zero", 0);
+    expectChannel("restored-default", 100);
+    expectChannel("restored-zero", 0);
+}
+
+TEST_F(JsonUdtTests, CopiesDeclaredStringDefaultsIntoEachDecodedValue)
+{
+    ASSERT_NO_FATAL_FAILURE(run(
+        R"orc(struct Text label:S = "note", empty:S = "")orc", R"orc(
+first:Text jsonunmarshal {{ {} }}
+second:Text jsonunmarshal {{ {} }}
+initialLabel:S strcpy first.label
+initialEmpty:S strcpy first.empty
+chnset initialLabel, "default-label"
+chnset initialEmpty, "empty-default"
+first jsonunmarshal {{ {"label":"","empty":"changed"} }}
+third:Text jsonunmarshal {{ {} }}
+chnset first.label, "explicit-empty"
+chnset first.empty, "changed"
+chnset second.label, "second-label"
+chnset third.label, "third-label"
+encoded:S jsonmarshal third
+restored:Text jsonunmarshal encoded
+chnset restored.label, "restored-label"
+chnset restored.empty, "restored-empty"
+)orc"));
+    ASSERT_EQ(csoundErrCnt(csound), 0) << messages();
+    expectStringChannel("default-label", "note");
+    expectStringChannel("empty-default", "");
+    expectStringChannel("explicit-empty", "");
+    expectStringChannel("changed", "changed");
+    expectStringChannel("second-label", "note");
+    expectStringChannel("third-label", "note");
+    expectStringChannel("restored-label", "note");
+    expectStringChannel("restored-empty", "");
+}
+
+TEST_F(JsonUdtTests, ReadsDeclaredDefaultsFromFilesWithExistingFlags)
+{
+    ASSERT_NO_FATAL_FAILURE(writeFile("event.jsonc",
+        "// default velocity\n{\"pitch\":62,}\n"));
+    const std::string path = (directory / "event.jsonc").generic_string();
+    ASSERT_NO_FATAL_FAILURE(run(
+        "struct Event pitch:i, velocity:i = 100", R"orc(
+source:S chnget "source"
+event:Event jsonunmarshalfile source, 3
+chnset event.pitch, "pitch"
+chnset event.velocity, "velocity"
+)orc", path.c_str()));
+    ASSERT_EQ(csoundErrCnt(csound), 0) << messages();
+    expectChannel("pitch", 62);
+    expectChannel("velocity", 100);
+}
+
+TEST_F(JsonUdtTests, DeclaredDefaultsDoNotRelaxOtherFieldChecks)
+{
+    struct Case {
+        const char *source;
+        const char *path;
+        const char *reason;
+    };
+    const Case cases[] = {
+        {R"json({})json", "$.pitch", "missing field"},
+        {R"json({"velocity":100})json", "$.pitch", "missing field"},
+        {R"json({"pitch":62,"velocity":null})json", "$.velocity", "number"},
+        {R"json({"pitch":62,"velocity":"100"})json", "$.velocity", "number"},
+        {R"json({"pitch":62,"velocity":false})json", "$.velocity", "number"},
+        {R"json({"pitch":62,"velocity":0,"velocity":100})json",
+         "$.velocity", "duplicate field"},
+        {R"json({"pitch":62,"extra":0})json", "$.extra", "unknown field"},
+    };
+    for (const Case &item : cases) {
+        SCOPED_TRACE(item.source);
+        ASSERT_NO_FATAL_FAILURE(restart());
+        ASSERT_NO_FATAL_FAILURE(run(
+            "struct Event pitch:i, velocity:i = 100", R"orc(
+source:S chnget "source"
+event:Event jsonunmarshal source
+chnset 1, "completed"
+)orc", item.source));
+        const std::string text = messages();
+        EXPECT_GT(csoundErrCnt(csound), 0) << text;
+        EXPECT_NE(text.find("jsonunmarshal:"), std::string::npos) << text;
+        EXPECT_NE(text.find(item.path), std::string::npos) << text;
+        EXPECT_NE(text.find(item.reason), std::string::npos) << text;
+        expectChannel("completed", 0);
+    }
+}
+
+TEST_F(JsonUdtTests, FailedDecodeDoesNotReplaceValuesWithDeclaredDefaults)
+{
+    const char *orchestra = R"orc(
+sr=44100
+ksmps=32
+nchnls=1
+struct Event pitch:i, velocity:i = 100, duration:i
+target@global:Event init 60, 77, 2
+instr 1
+target jsonunmarshal {{ {"pitch":62,"duration":null} }}
+endin
+instr 2
+chnset target.pitch, "pitch"
+chnset target.velocity, "velocity"
+chnset target.duration, "duration"
+chnset 1, "checked"
+endin
+)orc";
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra, 0), 0) << messages();
+    csoundEventString(csound, "i 1 0 0.02\ni 2 0.025 0.02\ne\n", 0);
+    ASSERT_EQ(csoundStart(csound), 0) << messages();
+    int32_t result = 0;
+    for (int cycle = 0; cycle < 400 && result == 0; ++cycle)
+        result = csoundPerformKsmps(csound);
+    EXPECT_GT(result, 0);
+    expectError("jsonunmarshal:", "$.duration");
+    expectChannel("checked", 1);
+    expectChannel("pitch", 60);
+    expectChannel("velocity", 77);
+    expectChannel("duration", 2);
+}
+
 TEST_F(JsonUdtTests, JsoncExtensionsRequireTheirOwnFlags)
 {
     struct Case {
