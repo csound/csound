@@ -1064,8 +1064,15 @@ static void pbr_collect_rewire_entries(CSOUND *csound,
 
     if (ttp->inlist != NULL) {
       ARG *arg = ttp->inArgs;
+      /* Inputs follow the outputs the call gives, or the slots the opcode
+         declares if those are more, as setup_opcode_argpp lays them out:
+         "*" declares one slot however many outputs the call gives. */
       int32_t actual_outcount = count_args(ep->outypes);
       int32_t i;
+
+      if (ttp->outlist != NULL && ttp->outlist->count > actual_outcount) {
+        actual_outcount = ttp->outlist->count;
+      }
 
       for (i = 0; i < ttp->inlist->count;
            i++, arg = arg != NULL ? arg->next : NULL) {
