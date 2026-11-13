@@ -2581,7 +2581,7 @@ static int32_t set_inbufs(CSOUND *csound,
           udo->cvt_in = (SR_CONVERTER **) csound->Calloc(
             csound, OPCODENUMOUTS_MAX * sizeof(SR_CONVERTER *));
         if((udo->cvt_in[i] = src_init(csound, h->insdshead->in_cvt,
-                                        ratio, current, h->insdshead,
+                                        ratio, current, in, h->insdshead,
                                         buf->parent_ip->ksmps,
                                         h->insdshead->ksmps)) == NULL)
           return csound->InitError(csound, Str("could not initialise sample rate "
@@ -2646,7 +2646,7 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
             csound, OPCODENUMOUTS_MAX * sizeof(SR_CONVERTER *));
         // set up src units one per input arg - non k/a sigs/arrays are bypassed
         if((udo->cvt_out[i] = src_init(csound, p->h.insdshead->out_cvt,
-                                         parent_sr/CS_ESR, current,
+                                         parent_sr/CS_ESR, current, in,
                                          p->h.insdshead, CS_KSMPS,
                                          buf->parent_ip->ksmps)) == 0)
           return csound->InitError(csound, Str("could not initialise sample rate "

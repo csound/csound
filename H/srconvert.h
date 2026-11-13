@@ -54,11 +54,12 @@ typedef struct _SR_CONVERTER {
     mode - conversion mode (0 - 4), or the same + SRC_HELD_K
     ratio - conversion ratio (oversampling or 1/oversampling factor)
     in_ksmps, out_ksmps - audio block sizes on each side of the conversion
-    var - actual variable given to conversion
+    var - the argument's variable, which gives its type
+    value - the argument at init: an array gets a converter per member
     ip - calling insds (context)
 */
 SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
-                       float ratio, CS_VARIABLE *var,
+                       float ratio, CS_VARIABLE *var, const void *value,
                        INSDS *ip, int32_t in_ksmps, int32_t out_ksmps);
 
 /** conversion de-initialisation

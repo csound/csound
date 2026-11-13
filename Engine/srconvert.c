@@ -36,8 +36,8 @@
 // Basic linear converter
 static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
                                      float ratio, CS_VARIABLE *var,
-                                     INSDS *ip, int32_t in_ksmps,
-                                     int32_t out_ksmps) {
+                                     const void *value, INSDS *ip,
+                                     int32_t in_ksmps, int32_t out_ksmps) {
   int32_t n = 1,  i, size;
   const CS_TYPE *typ = var->varType;
   SR_CONVERTER *pp = (SR_CONVERTER *) csound->Calloc(csound,
@@ -46,7 +46,7 @@ static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
   pp->csound = csound;
   pp->ip = ip;
   if(typ == &CS_VAR_TYPE_ARRAY) {
-    ARRAYDAT *array  = (ARRAYDAT *) (ip->lclbas + var->memBlockIndex);
+    const ARRAYDAT *array = (const ARRAYDAT *) value;
     typ = var->subType;
     for(i = 0; i < array->dimensions; i++)
      n *= array->sizes[i];
@@ -180,9 +180,10 @@ int32_t src_linear_convert(CSOUND *csound, SR_CONVERTER *pp,
 #ifndef USE_SRC
 // fallback to linear conversion
 SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
-                       float ratio, CS_VARIABLE *var, INSDS *ip,
-                       int32_t in_ksmps, int32_t out_ksmps) {
-  return src_linear_init(csound, mode, ratio, var, ip, in_ksmps, out_ksmps);
+                       float ratio, CS_VARIABLE *var, const void *value,
+                       INSDS *ip, int32_t in_ksmps, int32_t out_ksmps) {
+  return src_linear_init(csound, mode, ratio, var, value, ip,
+                         in_ksmps, out_ksmps);
 }
 int32_t src_convert(CSOUND *csound, SR_CONVERTER *pp,
                     cs_float *in, cs_float *out){
@@ -212,7 +213,7 @@ typedef struct {
     (SRC linear converter has a bug for single-sample conversion)
 */
 SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
-                       float ratio, CS_VARIABLE *var,
+                       float ratio, CS_VARIABLE *var, const void *value,
                        INSDS *ip, int32_t in_ksmps, int32_t out_ksmps) {
   int32_t cvt = mode < SRC_HELD_K ? mode : mode - SRC_HELD_K;
   if(cvt < 4) {
@@ -224,7 +225,7 @@ SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
       csound->Calloc(csound, sizeof(SR_CONVERTER));
   
     if(typ == &CS_VAR_TYPE_ARRAY) {
-      ARRAYDAT *array  = (ARRAYDAT *) (ip->lclbas + var->memBlockIndex);
+      const ARRAYDAT *array = (const ARRAYDAT *) value;
       typ = var->subType;
       for(i = 0; i < array->dimensions; i++)
          n *= array->sizes[i];
@@ -289,7 +290,8 @@ SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
     pp->ip = ip;           
     return pp;
   } else
-    return src_linear_init(csound, mode, ratio, var, ip, in_ksmps, out_ksmps);
+    return src_linear_init(csound, mode, ratio, var, value, ip,
+                           in_ksmps, out_ksmps);
 }
 
 /* this routine on upsampling feeds a buffer, converts, then outputs it in blocks;
