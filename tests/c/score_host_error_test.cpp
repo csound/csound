@@ -4,6 +4,10 @@
 #include <string>
 #include <thread>
 #include <tuple>
+#if defined(__GLIBC__) && (__GLIBC__ > 2 || __GLIBC_MINOR__ >= 33)
+#include <malloc.h>
+#define HEAP_IN_USE() (mallinfo2().uordblks)
+#endif
 
 namespace {
 const char *orchestra =
@@ -448,6 +452,36 @@ TEST(HostScoreReads, KeepNothing)
         EXPECT_EQ(stack, host.csound->sread.input_size);
         EXPECT_EQ(played + 5 * notesRead, host.played()) << host.said();
     }
+}
+
+/* An r that ends an r left open puts back the text of an s. In a macro, flex
+   may have no room for it, and the read is refused: a copy of the r's text,
+   made with malloc, was kept each time. */
+TEST(HostScoreErrors, PushBackOverflowKeepsNothing)
+{
+#ifndef HEAP_IN_USE
+    GTEST_SKIP() << "counts glibc's heap";
+#else
+    const char *line = "#define X #r 3\n#\nr 2\ni 1 0 0\n$X\ns";
+    Host host;
+    host.start();
+    csoundEventString(host.csound, line, 0);
+    EXPECT_NE(std::string::npos, host.said().find("push-back overflow"));
+    auto refuse = [&](int times) {
+        for (int i = 0; i < times; i++) {
+            csoundEventString(host.csound, line, 0);
+            csoundPerformKsmps(host.csound);
+            while (csoundGetMessageCnt(host.csound) > 0)
+                csoundPopFirstMessage(host.csound);
+        }
+    };
+    refuse(20);
+    const size_t before = HEAP_IN_USE();
+    refuse(200);
+    const long long kept = (long long) HEAP_IN_USE() - (long long) before;
+    EXPECT_LT(kept, 1000) << "bytes kept by 200 refusals";
+    EXPECT_EQ(0, host.played());
+#endif
 }
 
 /* A reset frees what the reads reused, and the next read makes its own. */
