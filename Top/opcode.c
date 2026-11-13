@@ -1474,6 +1474,9 @@ int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
                              obj->dataspace->optext->t.oentry->opname);
   set_line_num_and_loc(obj, p);
   if(check_consistency(obj, pargs, p->OUTOCOUNT, p->INOCOUNT - 1) != OK){
+    if(obj->udo_flag)
+      user_opcode_rebind_constants((UOPCODE *) obj->dataspace,
+                                   pargs + p->OUTOCOUNT + 1, p->INOCOUNT - 1);
     if(setup_args(csound, obj, &(p->h), pargs, NULL, p->OUTOCOUNT,
                 p->INOCOUNT - 1) != OK)
       return csound->PerfError(csound, &(p->h), Str("mismatching arguments\n"

@@ -2029,6 +2029,27 @@ static int32_t pbr_rebound_strings_fit(CSOUND *csound, const UOPCODE *p) {
   return 1;
 }
 
+void user_opcode_rebind_constants(UOPCODE *p, cs_float **inargs,
+                                  int32_t count) {
+  OPCODINFO *info = p->buf != NULL ? p->buf->opcode_info : NULL;
+  XIN *xin = NULL;
+  int32_t i;
+
+  for (i = 0; info != NULL && i < count && i < info->inchns; i++) {
+    if (inargs[i] == p->ar[info->outchns + i] ||
+        !pbr_is_written_constant(p, i, inargs[i])) {
+      continue;
+    }
+    if (xin == NULL && (!udo_call_is_pass_by_ref(p, info) ||
+                        (xin = pbr_find_xin(p->ip)) == NULL)) {
+      return;
+    }
+    if (csoundGetTypeForArg(xin->args[i]) == &CS_VAR_TYPE_I) {
+      *xin->args[i] = *inargs[i];
+    }
+  }
+}
+
 int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
   OPCODINFO *udoinfo;
   PBR_REWIRE_PLAN *plan;
