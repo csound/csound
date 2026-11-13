@@ -243,11 +243,21 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
 {
     /* sread_alloc_globals(csound); */
     IGN(sco);
-    (csound->sread.inputs) =
-      (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK));
-    (csound->sread.input_size) = 20;
+    /* The input stack and the expanded text are reused from one read to the
+       next: each read made its own, and they piled up until the reset. A
+       refusal and a reset free both, and csoundCleanup the expanded text. */
+    if (csound->sread.inputs == NULL) {
+      (csound->sread.inputs) =
+        (IN_STACK*) csound->Malloc(csound, 20 * sizeof(IN_STACK));
+      (csound->sread.input_size) = 20;
+    }
     (csound->sread.input_cnt) = 0;
-    (csound->sread.last_name) = -1;      /* a mark is a place in this text */
+    for ( ; (csound->sread.last_name) >= 0; (csound->sread.last_name)--) {
+      MARKED_SECTIONS *mark =   /* a mark is a place in this text */
+        &(csound->marked_sections)[csound->sread.last_name];
+      csound->Free(csound, mark->name);
+      mark->name = NULL;
+    }
     (csound->sread.str) = (csound->sread.inputs);
     (csound->sread.str)->is_marked_repeat = 0;
     (csound->sread.str)->line = 1; (csound->sread.str)->mac = NULL;
@@ -259,7 +269,9 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
       csound_prslex_init(&qq->yyscanner);
       cs_init_smacros(csound, qq, csound->smacros);
       csound_prsset_extra(qq, qq->yyscanner);
-      csound->expanded_sco = corfile_create_w(csound);
+      if (csound->expanded_sco == NULL)
+        csound->expanded_sco = corfile_create_w(csound);
+      else corfile_reset(csound->expanded_sco);
       /* printf("Input:\n%s<<<\n", */
       /*        corfile_body(csound->sread.str->cf)); */
       csound_prslex(csound, qq->yyscanner);
@@ -422,7 +434,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
         if ((csound->sread.str)->is_marked_repeat) {
           //printf("end of n; return to %d\n", (csound->sread.str)->oposit);
           corfile_set(csound->expanded_sco, (csound->sread.str)->oposit);
-          (csound->sread.str)--;
+          (csound->sread.str)--; (csound->sread.input_cnt)--;
           return rtncod;
         }
         /* while ((csound->sread.str)->is_marked_repeat && */

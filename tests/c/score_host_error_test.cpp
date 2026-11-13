@@ -411,6 +411,66 @@ TEST(HostScoreErrors, RefusalsKeepNothing)
     }
 }
 
+/* A read that succeeds keeps nothing for the next: the expanded text and the
+   input stack are reused, and its marks are freed. Each read kept its own
+   until a reset, about 700 bytes for a short line. */
+TEST(HostScoreReads, KeepNothing)
+{
+    std::string notes, again = "m a\ni 1 0 0\ns\n";
+    for (int i = 0; i < 100; i++)
+        notes += "i 1 0 0\n";
+    for (int i = 0; i < 30; i++)
+        again += "n a\n";
+    const std::pair<std::string, int> reads[] = {
+        {"i 1 0 0", 1},              /* the expanded text, the input stack */
+        {"m a\ni 1 0 0\ns\nn a", 2}, /* a mark, and the stack n reads on */
+        {again, 31},                 /* n after n: one at a time on the stack */
+        {notes, 100},                /* more text than the reads before */
+        {"i 1 0 0", 1},              /* less: none of the longer one plays */
+    };
+    Host host;
+    host.start();
+    csoundEventString(host.csound, "i 1 0 0", 0); /* what a first read makes */
+    for (const auto &[line, notesRead] : reads) {
+        SCOPED_TRACE(line.substr(0, 40));
+        const int32_t stack = host.csound->sread.input_size;
+        csoundEventString(host.csound, line.c_str(), 0);
+        host.perform();
+        const size_t before = trackedBlocks(host.csound);
+        const int32_t text = host.csound->expanded_sco->len;
+        const cs_float played = host.played();
+        for (int i = 0; i < 5; i++) {
+            csoundEventString(host.csound, line.c_str(), 0);
+            host.perform();
+        }
+        EXPECT_EQ(before, trackedBlocks(host.csound));
+        EXPECT_EQ(text, host.csound->expanded_sco->len);
+        EXPECT_EQ(stack, host.csound->sread.input_size);
+        EXPECT_EQ(played + 5 * notesRead, host.played()) << host.said();
+    }
+}
+
+/* A reset frees what the reads reused, and the next read makes its own. */
+TEST(HostScoreReads, AfterAResetMakeTheirOwn)
+{
+    Host host;
+    host.start();
+    csoundEventString(host.csound, "i 1 0 0", 0);
+    host.perform();
+    csoundReset(host.csound);
+    EXPECT_EQ(nullptr, host.csound->expanded_sco);
+    EXPECT_EQ(nullptr, host.csound->sread.inputs);
+    csoundSetOption(host.csound, "-n");
+    csoundSetOption(host.csound, "-d");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(host.csound, orchestra, 0));
+    host.start();
+    csoundEventString(host.csound, "i 1 0 0", 0);
+    host.perform();
+    EXPECT_EQ(1, host.played()) << host.said();
+    EXPECT_TRUE(isTracked(host.csound, host.csound->expanded_sco));
+    EXPECT_TRUE(isTracked(host.csound, host.csound->sread.inputs));
+}
+
 TEST(HostScoreErrors, ReadScoreReturnsTheRefusal)
 {
     Host host;
