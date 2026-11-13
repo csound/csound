@@ -454,6 +454,39 @@ TEST(HostScoreReads, KeepNothing)
     }
 }
 
+/* A .csd compiled into a running instance keeps no more for its score than
+   for none: the score's sorted copy was kept too. Compiling the orchestra
+   keeps blocks of its own, some of the time, so each kind is counted at its
+   least over five compiles. */
+TEST(HostScoreReads, CompiledScoresKeepNothing)
+{
+    const char *withScore = "<CsoundSynthesizer>\n<CsInstruments>\n"
+                            "</CsInstruments>\n<CsScore>\ni 1 0 0\n"
+                            "</CsScore>\n</CsoundSynthesizer>\n";
+    const char *without = "<CsoundSynthesizer>\n<CsInstruments>\n"
+                          "</CsInstruments>\n</CsoundSynthesizer>\n";
+    Host host;
+    host.start();
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(host.csound, withScore, 1, 0));
+    host.perform();
+    auto least = [&](const char *csd) {
+        size_t fewest = SIZE_MAX;
+        for (int i = 0; i < 5; i++) {
+            const size_t before = trackedBlocks(host.csound);
+            EXPECT_EQ(CSOUND_SUCCESS, csoundCompileCSD(host.csound, csd, 1, 0));
+            host.perform();
+            if (trackedBlocks(host.csound) - before < fewest)
+                fewest = trackedBlocks(host.csound) - before;
+        }
+        return fewest;
+    };
+    EXPECT_EQ(least(without), least(withScore));
+    /* Queued, the score is still read from the queue's own copy. */
+    EXPECT_EQ(CSOUND_SUCCESS, csoundCompileCSD(host.csound, withScore, 1, 1));
+    host.perform();
+    EXPECT_EQ(7, host.played()) << host.said();
+}
+
 /* An r that ends an r left open puts back the text of an s. In a macro, flex
    may have no room for it, and the read is refused: a copy of the r's text,
    made with malloc, was kept each time. */
