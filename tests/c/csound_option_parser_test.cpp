@@ -318,3 +318,12 @@ TEST_F (OptionParserTests, testIndirectionFileLeavesTheCsdLineNumbers)
     fs::remove (file);
     EXPECT_EQ (offsets[1], offsets[0]);
 }
+
+TEST_F (OptionParserTests, testHardwareBufferOptionSetsWhatItsShortFormSets)
+{
+    const int32_t software = csound->oparms->outbufsamps;
+    EXPECT_EQ (csoundSetOption (csound, "--hardwarebufsamps=4096"), 0);
+    EXPECT_EQ (csound->oparms->oMaxLag, 4096);
+    EXPECT_EQ (csound->oparms->outbufsamps, software);
+    EXPECT_EQ (csound->oparms->inbufsamps, software);
+}

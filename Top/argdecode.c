@@ -656,7 +656,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     s += 17;
     if (UNLIKELY(*s == '\0'))
       dieu(csound, Str("no hardware bufsamps\n"));
-    O->inbufsamps = O->outbufsamps = atoi(s);
+    O->oMaxLag = atoi(s); /* as -B */
     return 1;
   } else if (!(strcmp(s, "orc"))) {
     csound->use_only_orchfile = 1; /* orchfile without scorefile */
