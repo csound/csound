@@ -37,6 +37,7 @@ if(BUILD_TESTS)
         convolution_outputs_test.cpp
         controller_print_test.cpp
         printsk_test.cpp
+        printks_format_test.cpp
         ftprint_test.cpp
         csound_data_structures_test.cpp
         csound_debug_callback_test.cpp
