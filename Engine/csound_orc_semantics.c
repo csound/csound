@@ -4310,9 +4310,6 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
     xin/xout number of args matches UDO input/output arg specifications
     xin/xout statements exist if UDO in and out args are not 0 */
 static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
-  if (udoTree->right == NULL) {
-    return 1;
-  }
   TREE* outArgsTree = udoTree->left->left;
   TREE* inArgsTree = udoTree->left->right;
   TREE* current = udoTree->right;
@@ -4362,7 +4359,10 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
   char* outArgsFound = get_arg_string_from_tree(csound, xoutArgs, typeTable);
 
 
-  if (check_in_args(csound, inArgsFound, inArgs) <= 0) {
+  /* An empty body does nothing with its inputs, but its outputs still need
+     an xout, or the caller's variables keep what they held. */
+  if (udoTree->right != NULL &&
+      check_in_args(csound, inArgsFound, inArgs) <= 0) {
     if (UNLIKELY(!(strcmp("0", inArgs) == 0 && xinArgs == NULL))) {
       synterr(csound,
               Str("invalid xin statement for UDO: defined '%s', found '%s'\n"),
@@ -4503,15 +4503,16 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         }
 
         current->right = newRight;
-
-        if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
-          if(!verify_xin_xout(csound, current, typeTable)) {
-            synterr(csound, Str("%s UDO\n"), udo_name);
-            return 0;
-          }
-        }
-
         newRight = NULL;
+      }
+
+      if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
+        if(!verify_xin_xout(csound, current, typeTable)) {
+          synterr(csound, Str("%s UDO\n"), udo_name);
+          cs_cons_free(csound, typeTable->labelList);
+          typeTable->labelList = parentLabelList;
+          return NULL;
+        }
       }
 
       /* A new-style UDO's outputs are given only by xout: without one, the
