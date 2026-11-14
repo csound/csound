@@ -1,6 +1,7 @@
 #include "csoundCore.h"
 #include "gtest/gtest.h"
 #include <atomic>
+#include <cstring>
 #include <string>
 #include <thread>
 #include <tuple>
@@ -15,7 +16,8 @@ const char *orchestra =
     "sr=48000\nksmps=32\nnchnls=1\n0dbfs=1\n"
     "instr 1\nchnset chnget:i(\"played\") + 1, \"played\"\nendin\n"
     "instr 2\nchnset readscore(\"}\"), \"read\"\nendin\n"
-    "instr 3\nchnset pcount(), \"fields\"\nchnset p(pcount()), \"last\"\nendin\n";
+    "instr 3\nchnset pcount(), \"fields\"\nchnset p(pcount()), \"last\"\nendin\n"
+    "instr 4\nS1 = p4\nchnset S1, \"text\"\nendin\n";
 
 enum Path { BeforeStart, Blocking, Queued };
 const char *pathNames[] = {"BeforeStart", "Blocking", "Queued"};
@@ -786,4 +788,29 @@ TEST(CsdScores, ReadALongStatementInFull)
     host.performToScoreEnd();
     EXPECT_EQ(12004, csoundGetControlChannel(host.csound, "fields", nullptr));
 }
+
+/* A string p-field arrives whole, however long: from a host's line, the
+   line event's buffer grew under it, and the string went on from the
+   wrong place. */
+class HostLongStrings : public ::testing::TestWithParam<std::tuple<int, Path>> {};
+
+TEST_P(HostLongStrings, ArriveWhole)
+{
+    std::string text;
+    for (int i = 0; i < std::get<0>(GetParam()); i++)
+        text += (char) ('a' + i % 26);
+    Host host;
+    readAll(host, "i 4 0 0 \"" + text + "\"", std::get<1>(GetParam()));
+    std::string got(csoundGetChannelDatasize(host.csound, "text") + 1, '\0');
+    csoundGetStringChannel(host.csound, "text", got.data());
+    got.resize(strlen(got.c_str()));
+    EXPECT_EQ(text.size(), got.size()) << host.said();
+    EXPECT_TRUE(text == got);
+}
+
+INSTANTIATE_TEST_SUITE_P(Lengths, HostLongStrings,
+                         ::testing::Combine(::testing::Values(1013, 1014, 3000,
+                                                              100000),
+                                            ::testing::Values(BeforeStart,
+                                                              Blocking, Queued)));
 } // namespace

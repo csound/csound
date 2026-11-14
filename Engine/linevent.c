@@ -438,8 +438,9 @@ static void sense_line(CSOUND *csound, void *userData)
               sstrp[n++] = c;                   /*   save in private strbuf */
 
               if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
+                size_t start = (size_t) (sstrp-e.strarg);
                 e.strarg = csound->ReAlloc(csound, e.strarg, strsiz+=SSTRSIZ);
-                sstrp = e.strarg+n;
+                sstrp = e.strarg+start;
               }
             }
             sstrp[n] = '\0';
