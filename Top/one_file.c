@@ -292,6 +292,23 @@ static char *my_fgets_cf(CSOUND *csound, char *s, int32_t n, CORFIL *stream)
     return a;
 }
 
+/* A line's leading blanks can fill a chunk, or leave its end to cut a tag or
+   an opening that follows them. A chunk that starts a line and fills `size`
+   with no newline is cut after its blanks, at `p`, and its text is read
+   again as the next chunk, which still starts the line. A full chunk was
+   read byte for byte: no newline or end of file in it to undo. Returns
+   whether the chunk was cut. */
+static int32_t cut_after_blanks(char *buffer, char *p, int32_t size,
+                                CORFIL *cf)
+{
+    if (p == buffer || (int32_t) strlen(buffer) != size - 1 ||
+        buffer[size-2] == '\n')
+      return FALSE;
+    cf->p -= (uint32_t) strlen(p);
+    *p = '\0';
+    return TRUE;
+}
+
 /* Remove the 0x03 and 0x18 characters that the option parser inserted
  * to handle quoted arguments and escaped characters. */
 static void remove_special_placeholders(char *s, size_t n)
@@ -596,6 +613,8 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
       last = buffer[strlen(buffer)-1];
       p = buffer;
       while (isblank(*p)) p++;
+      if (line_start && cut_after_blanks(buffer, p, CSD_MAX_LINE_LEN, cf))
+        last = '\n';
       if (split_close)            /* a closer across two chunks of a line */
         comm = 0;
       else if(!comm && line_start && *p == '/' && *(p+1) == '*') {
@@ -714,6 +733,8 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
       last = buffer[strlen(buffer)-1];
       p = buffer;
       while (isblank(*p)) p++;
+      if (line_start && cut_after_blanks(buffer, p, CSD_MAX_LINE_LEN, cf))
+        last = '\n';
       if (line_start && strstr(p, "</CsScore>") == p) {
         //#ifdef SCORE_PARSER
         /* A started engine takes no e, as csoundReadScore gives it none */
@@ -780,6 +801,8 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
       last = buffer[strlen(buffer)-1];
       p = buffer;
       while (isblank(*p)) p++;    /* as create_score */
+      if (line_start && cut_after_blanks(buffer, p, CSD_MAX_LINE_LEN, cf))
+        last = '\n';
       if (line_start && strstr(p, "</CsScore>") == p) {
         char sys[1024];
         csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
@@ -1142,6 +1165,8 @@ static int32_t create_filea(CSOUND *csound, char *buffer, CORFIL *cf)
       int32_t line_start = last == '\n';
       last = buff[strlen(buff)-1];
       while (isblank(*p)) p++;
+      if (line_start && cut_after_blanks(buff, p, 1024, cf))
+        last = '\n';
       if (line_start &&
           !strncmp(p, "</CsFile>", 9)) { /* stop on antitag at start of line */
         res = TRUE; break;

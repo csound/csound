@@ -6,6 +6,7 @@
 #include <iterator>
 #include <regex>
 #include <string>
+#include <utility>
 #ifdef _WIN32
 #include <process.h>
 #else
@@ -312,6 +313,34 @@ TEST_F(CsdCompileTests, CsFileWritesItsLines)
       exit(written == body ? 0 : 1);
   }()), ::testing::ExitedWithCode(0), "");
 }
+
+// <CsFile>'s end tag after a line's leading blanks, which fill a chunk of
+// 1023 bytes or leave its end to cut the tag. The blanks are written, as a
+// chunk of them always was. In a child with its file size capped, as above.
+TEST_F(CsdCompileTests, CsFileEndsAtATagAfterLongBlanks)
+{
+  const std::pair<std::string, size_t> files[] = {
+    {path("filled.txt"), 1023}, {path("cut.txt"), 1020}};
+  std::string text = "<CsoundSynthesizer>\n";
+  for (const auto &[file, blanks] : files)
+    text += "<CsFile filename=\"" + file + "\">\nhello\n" +
+      std::string(blanks, ' ') + "</CsFile>\n";
+  text += "<CsInstruments>\ninstr 1\nendin\n</CsInstruments>\n"
+    "</CsoundSynthesizer>\n";
+  ASSERT_EXIT(([&] {
+      struct rlimit limit;
+      limit.rlim_cur = limit.rlim_max = 1 << 20;
+      if (setrlimit(RLIMIT_FSIZE, &limit) != 0) exit(2);
+      if (csoundCompileCSD(csound, text.c_str(), 1, 0) != 0) exit(3);
+      for (const auto &[file, blanks] : files) {
+        std::ifstream in(file, std::ios::binary);
+        const std::string written((std::istreambuf_iterator<char>(in)),
+                                  std::istreambuf_iterator<char>());
+        if (written != "hello\n" + std::string(blanks, ' ')) exit(1);
+      }
+      exit(0);
+  }()), ::testing::ExitedWithCode(0), "");
+}
 #endif
 
 TEST_F(CsdCompileTests, ShortLicenseSetsTheCopyright)
@@ -444,6 +473,25 @@ TEST_F(CsdCompileTests, IndentedEndTagEndsAnExternalScore)
     "</CsInstruments>\n<CsScore bin=\"cp\">\ni 1 0 0\n  </CsScore>\n"
     "</CsoundSynthesizer>\n";
   EXPECT_EQ(0, csoundCompileCSD(csound, text, 1, 0)) << messages();
+}
+
+// So does one after a line's leading blanks, which fill a chunk or leave
+// its end to cut the tag. One external score per instance: where a second
+// one aborts (its first's name freed with free()), the test still fails
+// cleanly.
+TEST_F(CsdCompileTests, EndTagAfterLongBlanksEndsAnExternalScore)
+{
+  for (const size_t blanks : {4095, 4090}) {
+    const auto text = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\n"
+      "endin\n</CsInstruments>\n<CsScore bin=\"cp\">\ni 1 0 0\n" +
+      std::string(blanks, ' ') + "</CsScore>\n</CsoundSynthesizer>\n";
+    CSOUND *instance = csoundCreate(nullptr, nullptr);
+    ASSERT_NE(nullptr, instance);
+    csoundSetOption(instance, "-n -d -m0");
+    EXPECT_EQ(0, csoundCompileCSD(instance, text.c_str(), 1, 0))
+      << blanks << " blanks";
+    csoundDestroy(instance);
+  }
 }
 #endif
 
