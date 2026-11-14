@@ -489,11 +489,26 @@ extern "C" {
   PUBLIC int32_t csoundErrCnt(CSOUND *csound);
 
   /**
-   * Get pointer to the value of environment variable 'name', searching
-   * in this order: local environment of 'csound' (if not NULL), variables
-   * set with csoundSetGlobalEnv(), and system environment variables.
-   * If 'csound' is not NULL, should be called after csoundCompile().
+   * Get pointer to the value of environment variable 'name'.
+   * If 'csound' is NULL, this is the value set with csoundSetGlobalEnv(),
+   * or else the system environment's.
+   * If 'csound' is not NULL, only that instance's own copy is read. It is
+   * made when the instance is created and at csoundReset(), from the system
+   * environment variables Csound uses (SFDIR, SSDIR, SADIR, INCDIR,
+   * OPCODE7DIR64 and the like), then from those set with
+   * csoundSetGlobalEnv(), which take precedence. Other system variables
+   * are not in it, nor later changes to either source until a reset.
+   * --env options change it, those of a CSD's <CsOptions> when they are
+   * read, and csoundCompile() can add the directory of the files it
+   * is given to SADIR, SSDIR, INCDIR and MFDIR (see --no-default-paths).
    * Return value is NULL if the variable is not set.
+   * The string is Csound's: copy it to keep it. With 'csound' NULL, it
+   * points into the global table: while 'name' is set, setting it again
+   * rewrites the string in place, and once 'name' is deleted, a later set
+   * of any name may reuse its slot. A value from the system environment
+   * lasts as getenv()'s does. With an instance, any change to 'name' there
+   * frees it, csoundCompile()'s included, and csoundReset() and
+   * csoundDestroy() free them all.
    */
   PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name);
 
@@ -506,6 +521,9 @@ extern "C" {
    * Setting CSOUND7RC to "" before csoundCreate() stops an instance reading
    * any rc file, .csound7rc in the working directory included. Those files
    * take any option, --opcode-lib among them.
+   * A name is letters, digits and underscores, does not start with a
+   * digit, as for --env, and is shorter than 32 characters; any other is
+   * refused.
    * Returns zero on success.
    */
   PUBLIC int32_t csoundSetGlobalEnv(const char *name, const char *value);

@@ -923,17 +923,20 @@ class Csound:
         libcsound.csoundSetHostData(self.cs, ct.py_object(self._keep(data)))
 
     def env(self, name):
-        """Gets the value of environment variable name.
+        """Gets the value of environment variable name in this instance.
 
-        The searching order is: local environment of Csound ,
-        variables set with set_global_env(), and system environment variables.
-        Should be called after compile_().
+        Only the instance's own copy is read. It is made when the instance
+        is created and at reset(), from the system environment variables
+        Csound uses (SFDIR, SSDIR, SADIR, INCDIR, OPCODE7DIR64 and the
+        like), then from those set with set_global_env(), which take
+        precedence. Other system variables are not in it, nor later changes
+        to either source until a reset. --env options change it, those of a
+        CSD's <CsOptions> when they are read, and compile_() can add the
+        directory of the files it is given to SADIR, SSDIR, INCDIR and
+        MFDIR (see --no-default-paths).
         Return value is None if the variable is not set.
         """
-        ret = libcsound.csoundGetEnv(self.cs, cstring(name))
-        if (ret):
-            return pstring(ret)
-        return None
+        return pstring(libcsound.csoundGetEnv(self.cs, cstring(name)))
 
     def set_global_env(self, name, value):
         """Set the global value of environment variable name to value.
@@ -941,6 +944,9 @@ class Csound:
         The variable is deleted if value is None.
         It is not safe to call this function while any Csound instances
         are active.
+        A name is letters, digits and underscores, does not start with a
+        digit, as for --env, and is shorter than 32 characters; any other
+        is refused.
         Returns zero on success..
         """
         return libcsound.csoundSetGlobalEnv(cstring(name), cstring(value))
