@@ -935,7 +935,8 @@ static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
       p = buffer;
       while (isblank(*p)) p++;
-      if (strstr(p, "</CsMidifileB>") == p) {
+      if (strstr(p, "</CsMidifileB>") == p ||
+          strstr(p, "</CsMidiFileB>") == p) {  /* an old error asked for it */
         return TRUE;
       }
     }
@@ -1294,7 +1295,8 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
             }
             p = buffer;
             while (isblank(*p)) p++;
-          } while (strstr(p, "</CsMidifileB>") != p);
+          } while (strstr(p, "</CsMidifileB>") != p &&
+                   strstr(p, "</CsMidiFileB>") != p);
         }
       }
       else if (strstr(p, "<CsSampleB filename=") == p) {
