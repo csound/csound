@@ -191,6 +191,7 @@ int32_t iout_on_dur2(CSOUND *csound, OUT_ON_DUR *p)
         p->fl_extra_dur=TRUE;
       }
       else if (dur <= actual_dur) {
+        p->fl_expired = TRUE;
         note_off(csound, p->chn, p->num, p->vel,
                  p->last_port);
         p->fl_note_on = FALSE;

@@ -26,6 +26,9 @@
 
   A note ended with no release is turned off by a deinit, and a release
   still sends one note-off.
+
+  noteondur2 sends one note-off when its duration ends exactly on a
+  k-cycle. It sent two.
 */
 
 #define __BUILDING_LIBCSOUND
@@ -105,7 +108,7 @@ class MidiOutputTests : public ::testing::Test {
     ASSERT_EQ(csoundStart(csound), 0);
     int cycles = 0;
     while (csoundPerformKsmps(csound) == 0)
-      ASSERT_LT(++cycles, 20);
+      ASSERT_LT(++cycles, 200);
   }
 
   // Plays `body` as instr 1 holding note 60, which instr 9 kills with no
@@ -369,6 +372,15 @@ TEST_F(MidiOutputTests, KilledNoteondur2NoteIsTurnedOff)
 {
   playKilled("noteondur2 2, p4, 100, 1");
   EXPECT_EQ(sent, note60);
+}
+
+TEST_F(MidiOutputTests, Noteondur2SendsOneNoteOffAtAnExactDuration)
+{
+  // Released after 8 k-cycles, the note is held to its 16.
+  header = exactHeader;
+  play("noteondur2 2, 60, 100, 0.25", "i 1 0 0.125\n");
+  EXPECT_EQ(sent, note60);
+  EXPECT_EQ(kcycles, (std::vector<uint64_t>{0, 16}));
 }
 
 }  // namespace
