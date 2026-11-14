@@ -118,18 +118,30 @@ int32_t iout_off(CSOUND *csound, OUT_ON *p)
 
 int32_t iout_on_dur_set(CSOUND *csound, OUT_ON_DUR *p)
 {
-  int32_t temp;
+  int32_t temp, chn, num, vel;
   if (p->h.insdshead->xtratim < EXTRA_TIME)
     /* if not initialised by another opcode */
     p->h.insdshead->xtratim = EXTRA_TIME;
 
-  p->chn = (temp = abs((int32_t)*p->ichn-1)) < NUMCHN ? temp : NUMCHN-1;
-  p->num = (temp = abs((int32_t)*p->inum)) < 128 ? temp : 127;
-  p->vel = (temp = abs((int32_t)*p->ivel)) < 128 ? temp : 127;
+  chn = (temp = abs((int32_t)*p->ichn-1)) < NUMCHN ? temp : NUMCHN-1;
+  num = (temp = abs((int32_t)*p->inum)) < 128 ? temp : 127;
+  vel = (temp = abs((int32_t)*p->ivel)) < 128 ? temp : 127;
 
-  p->last_port = (int32_t)*p->port;
-  note_on(csound, p->chn,p->num, p->vel,
-          p->last_port);
+  /* At a tie, the note still sounding goes on if it is the same, on the
+     same port. Otherwise, at a reinit too, it is turned off first. */
+  if (!(p->fl_note_on && p->h.insdshead->tieflag &&
+        !p->h.insdshead->reinitflag && chn == p->chn && num == p->num &&
+        vel == p->vel && (int32_t)*p->port == p->last_port)) {
+    if (p->fl_note_on)
+      note_off(csound, p->chn, p->num, p->vel, p->last_port);
+    p->chn = chn;
+    p->num = num;
+    p->vel = vel;
+    p->last_port = (int32_t)*p->port;
+    note_on(csound, p->chn,p->num, p->vel,
+            p->last_port);
+    p->fl_note_on = TRUE;
+  }
   p->istart_time = (cs_float)CS_KCNT * CS_ONEDKR;
   p->fl_expired = FALSE;
   p->fl_extra_dur = FALSE;
@@ -146,11 +158,13 @@ int32_t iout_on_dur(CSOUND *csound, OUT_ON_DUR *p)
       p->fl_expired = TRUE;
       note_off(csound, p->chn, p->num, p->vel,
                p->last_port);
+      p->fl_note_on = FALSE;
     }
     else if (p->h.insdshead->relesing) {
       p->fl_expired = TRUE;
       note_off(csound, p->chn, p->num, p->vel,
                p->last_port);
+      p->fl_note_on = FALSE;
     }
   }
   return OK;
@@ -166,6 +180,7 @@ int32_t iout_on_dur2(CSOUND *csound, OUT_ON_DUR *p)
       p->fl_expired = TRUE;
       note_off(csound, p->chn, p->num, p->vel,
                p->last_port);
+      p->fl_note_on = FALSE;
     }
     else if (p->h.insdshead->relesing || p->fl_extra_dur) {
 
@@ -178,6 +193,7 @@ int32_t iout_on_dur2(CSOUND *csound, OUT_ON_DUR *p)
       else if (dur <= actual_dur) {
         note_off(csound, p->chn, p->num, p->vel,
                  p->last_port);
+        p->fl_note_on = FALSE;
       }
     }
   }
@@ -190,6 +206,8 @@ int32_t moscil_set(CSOUND *csound, MOSCIL *p)
   if (p->h.insdshead->xtratim < EXTRA_TIME)
     /* if not initialised by another opcode */
     p->h.insdshead->xtratim = EXTRA_TIME;
+  /* fl_note_on is not reset: after a tie or a reinit, the first k-cycle
+     turns the note still sounding off, and the notes start again. */
   p->istart_time = (cs_float)CS_KCNT * CS_ONEDKR;
   p->fl_first_note   = TRUE;
   p->fl_note_expired = TRUE;
@@ -201,6 +219,10 @@ int32_t moscil(CSOUND *csound, MOSCIL *p)
 {
   if (p->fl_first_note) {
     p->fl_first_note = FALSE;
+    if (p->fl_note_on) {
+      note_off(csound, p->last_chn, p->last_num, p->last_vel, p->last_port);
+      p->fl_note_on = FALSE;
+    }
     goto first_note;
   }
   if (!(p->fl_note_expired)) {
@@ -209,12 +231,14 @@ int32_t moscil(CSOUND *csound, MOSCIL *p)
       p->fl_end_note     = TRUE;
       note_off(csound, p->last_chn, p->last_num, p->last_vel,
                p->last_port);
+      p->fl_note_on = FALSE;
     }
     else if (p->last_dur < (cs_float)CS_KCNT * CS_ONEDKR
              - p->istart_time) {
       p->fl_note_expired = TRUE;
       note_off(csound, p->last_chn, p->last_num, p->last_vel,
                p->last_port);
+      p->fl_note_on = FALSE;
     }
   }
   else {
@@ -239,6 +263,7 @@ int32_t moscil(CSOUND *csound, MOSCIL *p)
       p->last_port = (int32_t)*p->port;
       note_on(csound, p->last_chn, p->last_num, p->last_vel,
               p->last_port);
+      p->fl_note_on = TRUE;
     }
   }
   return OK;
@@ -250,7 +275,12 @@ int32_t kvar_out_on_set(CSOUND *csound, KOUT_ON *p)
   if (p->h.insdshead->xtratim < EXTRA_TIME)
     /* if not initialised by another opcode */
     p->h.insdshead->xtratim = EXTRA_TIME;
-  p->fl_first_note = TRUE;
+  /* At a tie, the note still sounding goes on, and the next k-cycle turns
+     it off first if the channel, note, velocity or port changed. Any other
+     init, a reinit included, turns it off and sends the note again. */
+  if (!(p->fl_note_on && p->h.insdshead->tieflag &&
+        !p->h.insdshead->reinitflag))
+    p->fl_first_note = TRUE;
   return OK;
 }
 
@@ -259,6 +289,8 @@ int32_t kvar_out_on(CSOUND *csound, KOUT_ON *p)
   if (p->fl_first_note) {
     int32_t temp;
 
+    if (p->fl_note_on)
+      note_off(csound, p->last_chn, p->last_num, p->last_vel, p->last_port);
     p->last_chn = (temp = abs((int32_t)*p->kchn-1)) < NUMCHN  ? temp : NUMCHN-1;
     p->last_num = (temp = abs((int32_t)*p->knum)) < 128     ? temp : 127;
     p->last_vel = (temp = abs((int32_t)*p->kvel)) < 128     ? temp : 127;
@@ -268,12 +300,14 @@ int32_t kvar_out_on(CSOUND *csound, KOUT_ON *p)
     p->last_port = (int32_t)*p->port;
     note_on(csound, p->last_chn, p->last_num, p->last_vel,
             p->last_port);
+    p->fl_note_on = TRUE;
   }
   else if (p->fl_note_expired) return OK;
   else {
     if (p->h.insdshead->relesing) {
       note_off(csound, p->last_chn, p->last_num, p->last_vel,
                p->last_port);
+      p->fl_note_on = FALSE;
       p->fl_note_expired = TRUE;
     }
     else {

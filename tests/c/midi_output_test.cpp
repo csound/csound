@@ -18,6 +18,11 @@
 
   A note is turned off on the port it went to, though the port argument
   may change while it sounds: at a tie, or when it is a global variable.
+
+  At a tie, midion, moscil and noteondur turn the held note off before the
+  tied one, and midion and noteondur keep it sounding if the channel, note,
+  velocity and port are the same. A reinit turns it off and sends it again.
+  They sent the new note with no note-off for the held one.
 */
 
 #define __BUILDING_LIBCSOUND
@@ -45,6 +50,11 @@ class MidiOutputTests : public ::testing::Test {
   // A global port, 1 until instr 9 sets it to 2.
   static constexpr const char *portChange =
     "giport init 1\ninstr 9\ngiport = 2\nendin\n";
+  // Note 60 held by instr 1.1, for a tie.
+  static constexpr const char *held = "i 1.1 0 -1 60\n";
+  // Note 60 on channel 2, and its note-off.
+  const std::vector<std::vector<int>> note60 = {
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0}};
 
   static int32_t open(CSOUND *csound, void **data, const char *)
   {
@@ -241,6 +251,83 @@ TEST_F(MidiOutputTests, Noteondur2TurnsOffANoteOnItsPort)
   play("noteondur2 2, 60, 100, 0.03, giport", "i 1 0 0.05\ni 9 0.02 0.01\n");
   EXPECT_EQ(sent, (std::vector<std::vector<int>>{
     {0x91, 60, 100, 1}, {0x81, 60, 100, 1}}));
+}
+
+TEST_F(MidiOutputTests, MidionTiedNoteTurnsOffTheHeldOne)
+{
+  play("midion 2, p4, 100", (std::string(held) + "i 1.1 0.03 0.03 62\n").c_str());
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0},
+    {0x81, 60, 100, 0}, {0x91, 62, 100, 0},
+    {0x81, 62, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, MidionTiedToTheSameNoteGoesOn)
+{
+  play("midion 2, p4, 100", (std::string(held) + "i 1.1 0.03 0.03 60\n").c_str());
+  EXPECT_EQ(sent, note60);
+  EXPECT_EQ(kcycles, (std::vector<uint64_t>{1, 7}));
+}
+
+TEST_F(MidiOutputTests, MidionReinitStrikesTheNoteAgain)
+{
+  play("if timeinstk() == 2 then\n"
+       "  reinit again\n"
+       "endif\n"
+       "again:\n"
+       "midion 2, 60, 100\n"
+       "rireturn");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0},
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, MoscilTiedNoteTurnsOffTheHeldOne)
+{
+  // The tie starts the notes again.
+  play("moscil 2, p4, 100, 1, 1", (std::string(held) + "i 1.1 0.03 0.03 62\n").c_str());
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0},
+    {0x81, 60, 100, 0}, {0x91, 62, 100, 0},
+    {0x81, 62, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, NoteondurTiedNoteTurnsOffTheHeldOne)
+{
+  play("noteondur 2, p4, 100, 1", (std::string(held) + "i 1.1 0.03 0.03 62\n").c_str());
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0},
+    {0x81, 60, 100, 0}, {0x91, 62, 100, 0},
+    {0x81, 62, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, NoteondurTiedToAnotherPortMovesTheNote)
+{
+  play("noteondur 2, p4, 100, 1, p5", "i 1.1 0 -1 60 1\ni 1.1 0.03 0.03 60 2\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 1},
+    {0x81, 60, 100, 1}, {0x91, 60, 100, 2},
+    {0x81, 60, 100, 2}}));
+}
+
+TEST_F(MidiOutputTests, NoteondurTiedToTheSameNoteGoesOn)
+{
+  play("noteondur 2, p4, 100, 1", (std::string(held) + "i 1.1 0.03 0.03 60\n").c_str());
+  EXPECT_EQ(sent, note60);
+  EXPECT_EQ(kcycles, (std::vector<uint64_t>{0, 7}));
+}
+
+TEST_F(MidiOutputTests, NoteondurReinitStrikesTheNoteAgain)
+{
+  play("if timeinstk() == 2 then\n"
+       "  reinit again\n"
+       "endif\n"
+       "again:\n"
+       "noteondur 2, 60, 100, 1\n"
+       "rireturn");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0},
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0}}));
 }
 
 }  // namespace

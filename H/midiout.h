@@ -57,6 +57,7 @@ typedef struct {
   cs_float  istart_time;
   int32_t    chn, num, vel, last_port;
   BOOL   fl_expired, fl_extra_dur;
+  BOOL   fl_note_on;   /* a note sent and not yet turned off */
 } OUT_ON_DUR;
 
 typedef struct {
@@ -66,6 +67,7 @@ typedef struct {
   int32_t    last_chn, last_num, last_vel, last_port;
   cs_float  last_dur, last_pause;
   BOOL   fl_note_expired, fl_first_note, fl_end_note;
+  BOOL   fl_note_on;   /* a note sent and not yet turned off */
 } MOSCIL;
 
 typedef struct {
@@ -73,6 +75,7 @@ typedef struct {
   cs_float  *kchn,*knum,*kvel, *port;
   int32_t    last_chn, last_num, last_vel, last_port;
   BOOL   fl_note_expired, fl_first_note;
+  BOOL   fl_note_on;   /* a note sent and not yet turned off */
 } KOUT_ON;
 
 typedef struct {
