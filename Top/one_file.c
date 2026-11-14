@@ -1231,8 +1231,8 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
 #ifdef _DEBUG
     //csoundMessage(csound, "Calling unified file system4\n");
 #endif
+    alloc_globals(csound);          /* each CSD counts its own lines */
     if (!running) {
-      alloc_globals(csound);
       STA(orcname) = STA(sconame) = STA(midname) = NULL;
       STA(midiSet) = FALSE;
     }

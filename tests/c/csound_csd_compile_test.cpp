@@ -377,6 +377,26 @@ TEST_F(CsdCompileTests, FinalCarriageReturnEndsTheRead)
 }
 #endif
 
+// On a started engine, each CSD counts its lines from its own start, not on
+// from the CSDs compiled before it.
+TEST_F(CsdCompileTests, EachCsdCountsItsOwnLinesOnAStartedEngine)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const auto lineOfError = [&]() {
+    const char *text = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\n"
+      "prints(\"bad\" \"syntax\")\nendin\n</CsInstruments>\n"
+      "</CsoundSynthesizer>\n";
+    EXPECT_NE(0, csoundCompileCSD(csound, text, 1, 0));
+    const auto output = messages();
+    std::smatch line;
+    return std::regex_search(output, line, std::regex("line [0-9]+")) ?
+      line.str() : "no line in: " + output;
+  };
+  const auto first = lineOfError();
+  const auto second = lineOfError();
+  EXPECT_EQ(first, second);
+}
+
 // A base64 section before <CsInstruments> leaves the orchestra's line numbers
 // as blank lines in its place do: registering its file reset the CSD's count.
 TEST_F(CsdCompileTests, Base64SectionKeepsLineNumbers)
