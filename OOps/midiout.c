@@ -127,8 +127,9 @@ int32_t iout_on_dur_set(CSOUND *csound, OUT_ON_DUR *p)
   p->num = (temp = abs((int32_t)*p->inum)) < 128 ? temp : 127;
   p->vel = (temp = abs((int32_t)*p->ivel)) < 128 ? temp : 127;
 
+  p->last_port = (int32_t)*p->port;
   note_on(csound, p->chn,p->num, p->vel,
-          (int32_t)*p->port);
+          p->last_port);
   p->istart_time = (cs_float)CS_KCNT * CS_ONEDKR;
   p->fl_expired = FALSE;
   p->fl_extra_dur = FALSE;
@@ -144,12 +145,12 @@ int32_t iout_on_dur(CSOUND *csound, OUT_ON_DUR *p)
     if (dur < actual_dur) {
       p->fl_expired = TRUE;
       note_off(csound, p->chn, p->num, p->vel,
-               (int32_t)*p->port);
+               p->last_port);
     }
     else if (p->h.insdshead->relesing) {
       p->fl_expired = TRUE;
       note_off(csound, p->chn, p->num, p->vel,
-               (int32_t)*p->port);
+               p->last_port);
     }
   }
   return OK;
@@ -164,7 +165,7 @@ int32_t iout_on_dur2(CSOUND *csound, OUT_ON_DUR *p)
     if (dur < actual_dur) {
       p->fl_expired = TRUE;
       note_off(csound, p->chn, p->num, p->vel,
-               (int32_t)*p->port);
+               p->last_port);
     }
     else if (p->h.insdshead->relesing || p->fl_extra_dur) {
 
@@ -176,7 +177,7 @@ int32_t iout_on_dur2(CSOUND *csound, OUT_ON_DUR *p)
       }
       else if (dur <= actual_dur) {
         note_off(csound, p->chn, p->num, p->vel,
-                 (int32_t)*p->port);
+                 p->last_port);
       }
     }
   }
@@ -207,13 +208,13 @@ int32_t moscil(CSOUND *csound, MOSCIL *p)
       p->fl_note_expired = TRUE;
       p->fl_end_note     = TRUE;
       note_off(csound, p->last_chn, p->last_num, p->last_vel,
-               (int32_t)*p->port);
+               p->last_port);
     }
     else if (p->last_dur < (cs_float)CS_KCNT * CS_ONEDKR
              - p->istart_time) {
       p->fl_note_expired = TRUE;
       note_off(csound, p->last_chn, p->last_num, p->last_vel,
-               (int32_t)*p->port);
+               p->last_port);
     }
   }
   else {
@@ -235,8 +236,9 @@ int32_t moscil(CSOUND *csound, MOSCIL *p)
         p->last_vel = (temp = abs((int32_t)*p->kvel)) < 128    ? temp : 127;
       }
       p->fl_note_expired = FALSE;
+      p->last_port = (int32_t)*p->port;
       note_on(csound, p->last_chn, p->last_num, p->last_vel,
-              (int32_t)*p->port);
+              p->last_port);
     }
   }
   return OK;
@@ -263,14 +265,15 @@ int32_t kvar_out_on(CSOUND *csound, KOUT_ON *p)
     p->fl_first_note   = FALSE;
     p->fl_note_expired = FALSE;
 
+    p->last_port = (int32_t)*p->port;
     note_on(csound, p->last_chn, p->last_num, p->last_vel,
-            (int32_t)*p->port);
+            p->last_port);
   }
   else if (p->fl_note_expired) return OK;
   else {
     if (p->h.insdshead->relesing) {
       note_off(csound, p->last_chn, p->last_num, p->last_vel,
-               (int32_t)*p->port);
+               p->last_port);
       p->fl_note_expired = TRUE;
     }
     else {
@@ -282,16 +285,18 @@ int32_t kvar_out_on(CSOUND *csound, KOUT_ON *p)
       if (  p->last_chn != curr_chn
             || p->last_num != curr_num
             || p->last_vel != curr_vel
+            || p->last_port != (int32_t)*p->port
             ) {
         note_off(csound, p->last_chn, p->last_num, p->last_vel,
-                 (int32_t)*p->port);
+                 p->last_port);
 
         p->last_chn = curr_chn;
         p->last_num = curr_num;
         p->last_vel = curr_vel;
+        p->last_port = (int32_t)*p->port;
 
         note_on(csound, curr_chn, curr_num, curr_vel,
-                (int32_t)*p->port);
+                p->last_port);
       }
     }
   }
@@ -469,7 +474,7 @@ int32_t kon2(CSOUND *csound, KON2 *p)
     if (p->h.insdshead->relesing) {
       if (p->fl_note_on)
         note_off(csound, p->last_chn,p->last_num,p->last_vel,
-                 (int32_t)*p->port);
+                 p->last_port);
       p->fl_note_on = FALSE;
       p->fl_note_expired = TRUE;
     }
@@ -488,12 +493,13 @@ int32_t kon2(CSOUND *csound, KON2 *p)
         {
           if (p->fl_note_on)
             note_off(csound, p->last_chn, p->last_num, p->last_vel,
-                     (int32_t)*p->port);
+                     p->last_port);
           p->last_chn = curr_chn;
           p->last_num = curr_num;
           p->last_vel = curr_vel;
+          p->last_port = (int32_t)*p->port;
           note_on(csound, curr_chn, curr_num, curr_vel,
-                  (int32_t)*p->port);
+                  p->last_port);
           p->fl_note_on = TRUE;
         }
     }

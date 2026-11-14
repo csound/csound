@@ -15,6 +15,9 @@
 
   moscil's first note lasts kdur and is followed by kpause, as the others
   are. It lasted one k-cycle, with no pause, and cut the second one short.
+
+  A note is turned off on the port it went to, though the port argument
+  may change while it sounds: at a tie, or when it is a global variable.
 */
 
 #define __BUILDING_LIBCSOUND
@@ -33,11 +36,15 @@ class MidiOutputTests : public ::testing::Test {
   std::vector<std::vector<int>> sent;
   // The k-cycle each message was sent in.
   std::vector<uint64_t> kcycles;
-  // The orchestra's header.
+  // The orchestra's header, and code between it and instr 1.
   std::string header = "sr = 1000\nksmps = 10\nnchnls = 1\n0dbfs = 1\n";
+  std::string globals;
   // k-cycles of 1/64 s, exact in binary, for durations that end on one.
   static constexpr const char *exactHeader =
     "sr = 1024\nksmps = 16\nnchnls = 1\n0dbfs = 1\n";
+  // A global port, 1 until instr 9 sets it to 2.
+  static constexpr const char *portChange =
+    "giport init 1\ninstr 9\ngiport = 2\nendin\n";
 
   static int32_t open(CSOUND *csound, void **data, const char *)
   {
@@ -79,7 +86,7 @@ class MidiOutputTests : public ::testing::Test {
   void play(const std::string &body, const char *score = "i 1 0 0.03\n")
   {
     const std::string orchestra =
-      header + "instr 1\n" + body + "\nendin\n";
+      header + globals + "instr 1\n" + body + "\nendin\n";
     ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), 0);
     csoundEventString(csound, score, 0);
     ASSERT_EQ(csoundStart(csound), 0);
@@ -178,6 +185,62 @@ TEST_F(MidiOutputTests, MoscilPlaysKdurAndKpauseFromItsFirstNote)
   EXPECT_EQ(sent, (std::vector<std::vector<int>>{
     {0x91, 60, 100, 0}, {0x81, 60, 100, 0},
     {0x91, 60, 100, 0}, {0x81, 60, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, MidionTurnsOffANoteOnItsPort)
+{
+  // The port changes on the third k-cycle, which moves the note, and the
+  // note on the fourth.
+  globals = portChange;
+  play("kn = timeinstk() < 4 ? 60 : 62\n"
+       "midion 2, kn, 100, giport",
+       "i 1 0 0.05\ni 9 0.02 0.01\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 1},
+    {0x81, 60, 100, 1}, {0x91, 60, 100, 2},
+    {0x81, 60, 100, 2}, {0x91, 62, 100, 2},
+    {0x81, 62, 100, 2}}));
+}
+
+TEST_F(MidiOutputTests, Midion2TurnsOffANoteOnItsPort)
+{
+  // The tied note has another port than the held one.
+  play("kt init 1\n"
+       "midion2 2, p4, 100, kt, p5\n"
+       "kt = 0",
+       "i 1.1 0 -1 60 1\ni 1.1 0.03 0.03 62 2\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 1},
+    {0x81, 60, 100, 1}, {0x91, 62, 100, 2},
+    {0x81, 62, 100, 2}}));
+}
+
+TEST_F(MidiOutputTests, MoscilTurnsOffANoteOnItsPort)
+{
+  // The port changes on the second k-cycle, in the first note, and the
+  // second note starts on the fifth.
+  globals = portChange;
+  play("moscil 2, 60, 100, 0.03, 0.01, giport",
+       "i 1 0 0.05\ni 9 0.01 0.01\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 1}, {0x81, 60, 100, 1},
+    {0x91, 60, 100, 2}, {0x81, 60, 100, 2}}));
+}
+
+TEST_F(MidiOutputTests, NoteondurTurnsOffANoteOnItsPort)
+{
+  globals = portChange;
+  play("noteondur 2, 60, 100, 0.03, giport", "i 1 0 0.05\ni 9 0.02 0.01\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 1}, {0x81, 60, 100, 1}}));
+}
+
+TEST_F(MidiOutputTests, Noteondur2TurnsOffANoteOnItsPort)
+{
+  globals = portChange;
+  play("noteondur2 2, 60, 100, 0.03, giport", "i 1 0 0.05\ni 9 0.02 0.01\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 1}, {0x81, 60, 100, 1}}));
 }
 
 }  // namespace

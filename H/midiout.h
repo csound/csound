@@ -55,7 +55,7 @@ typedef struct {
   OPDS   h;
   cs_float  *ichn,*inum,*ivel,*idur, *port;
   cs_float  istart_time;
-  int32_t    chn, num, vel;
+  int32_t    chn, num, vel, last_port;
   BOOL   fl_expired, fl_extra_dur;
 } OUT_ON_DUR;
 
@@ -63,7 +63,7 @@ typedef struct {
   OPDS   h;
   cs_float  *kchn,*knum,*kvel,*kdur,*kpause, *port;
   cs_float  istart_time;
-  int32_t    last_chn, last_num, last_vel;
+  int32_t    last_chn, last_num, last_vel, last_port;
   cs_float  last_dur, last_pause;
   BOOL   fl_note_expired, fl_first_note, fl_end_note;
 } MOSCIL;
@@ -71,7 +71,7 @@ typedef struct {
 typedef struct {
   OPDS   h;
   cs_float  *kchn,*knum,*kvel, *port;
-  int32_t    last_chn, last_num, last_vel;
+  int32_t    last_chn, last_num, last_vel, last_port;
   BOOL   fl_note_expired, fl_first_note;
 } KOUT_ON;
 
@@ -114,7 +114,7 @@ typedef struct {
 typedef struct {
   OPDS   h;
   cs_float  *kchn,*knum,*kvel,*ktrig, *port;
-  int32_t     last_chn, last_num, last_vel;
+  int32_t     last_chn, last_num, last_vel, last_port;
   BOOL fl_note_expired/*, fl_first_note*/;
   BOOL fl_note_on;      /* last_* is a note sent and not yet turned off */
 } KON2;
