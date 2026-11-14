@@ -2008,7 +2008,7 @@ static void reset(CSOUND *csound) {
     csound->Message(csound, Str("resetting Csound instance\n"));
     reset(csound);
     /* clear compiled flag */
-    csound->engineStatus |= ~(CS_STATE_COMP);
+    csound->engineStatus &= ~(CS_STATE_COMP);
   } else {
     csoundSpinLockInit(&csound->spoutlock);
     csoundSpinLockInit(&csound->spinlock);

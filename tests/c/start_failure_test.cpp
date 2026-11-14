@@ -1,3 +1,5 @@
+#include <chrono>
+#include <thread>
 #include "gtest/gtest.h"
 #include "csound.hpp"
 #include "csPerfThread.hpp"
@@ -61,6 +63,36 @@ class StartFailureTests : public ::testing::Test {
     EXPECT_EQ(csoundPerformKsmps(csound), 0);
   }
 
+  /* A --realtime run, on a performance thread, whose last note's init fails.
+   * The thread's cleanup ends it, and errors is the count it leaves.
+   */
+  void realtimeRunWithAnInitError(int32_t &errors)
+  {
+    errors = -1;
+    csoundSetHostAudioIO(csound);
+    ASSERT_EQ(csoundSetOption(csound, "--realtime"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound,
+                               "ksmps = 16\n"
+                               "instr 1\n"
+                               "  chnset(1, \"reached\")\n"
+                               "  iMissing = ftlen(99)\n"
+                               "endin\n", 0),
+              CSOUND_SUCCESS);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    CsoundPerformanceThread thread(csound);
+    thread.Play();
+    /* The init runs on the event thread. Once it has begun, it finishes before
+     * the cleanup, which joins that thread. */
+    for (int32_t i = 0; i < 20000 &&
+         csoundGetControlChannel(csound, "reached", nullptr) != 1; i++)
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    EXPECT_EQ(csoundGetControlChannel(csound, "reached", nullptr), 1);
+    thread.Stop();
+    thread.Join();
+    errors = csoundErrCnt(csound);
+  }
+
   CSOUND *csound = nullptr;
 };
 
@@ -112,6 +144,21 @@ TEST_F(StartFailureTests, PerformBufferFails)
   failToOpenMidiIn();
   EXPECT_EQ(perform_buffer(csound), CSOUND_ERROR);
   expectAResetStartsAgain();
+}
+
+/* csoundReset cleared CS_STATE_COMP with `|=`, which set every other state,
+ * CS_STATE_JMP among them. The cleanup that ends a --realtime performance then
+ * counted the last note's init error as a performance error after a reset,
+ * and not on a fresh instance.
+ */
+TEST_F(StartFailureTests, ARunAfterAResetCountsErrorsAsAFreshOneDoes)
+{
+  int32_t errors;
+  realtimeRunWithAnInitError(errors);
+  EXPECT_EQ(errors, 0);
+  csoundReset(csound);
+  realtimeRunWithAnInitError(errors);
+  EXPECT_EQ(errors, 0);
 }
 
 /* A fresh instance, and one reset after a performance, still perform. */
