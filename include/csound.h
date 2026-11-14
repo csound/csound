@@ -489,10 +489,18 @@ extern "C" {
   PUBLIC int32_t csoundErrCnt(CSOUND *csound);
 
   /**
-   * Get pointer to the value of environment variable 'name', searching
-   * in this order: local environment of 'csound' (if not NULL), variables
-   * set with csoundSetGlobalEnv(), and system environment variables.
-   * If 'csound' is not NULL, should be called after csoundCompile().
+   * Get pointer to the value of environment variable 'name'.
+   * If 'csound' is NULL, this is the value set with csoundSetGlobalEnv(),
+   * or else the system environment's.
+   * If 'csound' is not NULL, only that instance's own copy is read. It is
+   * made when the instance is created and at csoundReset(), from the system
+   * environment variables Csound uses (SFDIR, SSDIR, SADIR, INCDIR,
+   * OPCODE7DIR64 and the like), then from those set with
+   * csoundSetGlobalEnv(), which take precedence. Other system variables
+   * are not in it, nor later changes to either source until a reset.
+   * --env options change it, those of a CSD's <CsOptions> when they are
+   * read, and csoundCompile() can add the directory of the files it
+   * is given to SADIR, SSDIR, INCDIR and MFDIR (see --no-default-paths).
    * Return value is NULL if the variable is not set.
    */
   PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name);
