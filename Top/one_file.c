@@ -942,9 +942,11 @@ static int32_t create_sample(CSOUND *csound, char *buffer, CORFIL *cf)
     FILE  *smpf;
     void  *fd;
     char  sampname[256];
+    const char *tag = buffer;
     /* char  buffer[CSD_MAX_LINE_LEN]; */
 
-    sscanf(buffer, "<CsSampleB filename=\"%d\">", &num);
+    while (isblank(*tag)) tag++;      /* the tag was found after blanks */
+    sscanf(tag, "<CsSampleB filename=\"%d\">", &num);
     snprintf(sampname, 256, "soundin.%d", num);
     if (UNLIKELY((smpf = fopen(sampname, "rb")) != NULL)) {
       fclose(smpf);
@@ -978,6 +980,7 @@ static int32_t create_file(CSOUND *csound, char *buffer, CORFIL *cf)
 
     filename[0] = '\0';
 
+    while (isblank(*p)) p++;          /* the tag was found after blanks */
     p += 18;    /* 18== strlen("<CsFileB filename=  ") */
     if (*p=='"') {
       p++; q = strchr(p, '"');
@@ -1019,6 +1022,7 @@ static int32_t create_corfile(CSOUND *csound, char *buffer, CORFIL *cf)
 
     filename[0] = '\0';
 
+    while (isblank(*p)) p++;          /* the tag was found after blanks */
     p += 18;    /* 18== strlen("<CsFileC filename=  ") */
     if (*p=='"') {
       p++; q = strchr(p, '"');
@@ -1061,6 +1065,7 @@ static int32_t create_filea(CSOUND *csound, char *buffer, CORFIL *cf)
 
     filename[0] = '\0';
 
+    while (isblank(*p)) p++;          /* the tag was found after blanks */
     p += 17;    /* 17== strlen("<CsFile filename=  ") */
     if (*p=='"') {
       p++; q = strchr(p, '"');
