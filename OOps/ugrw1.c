@@ -638,7 +638,6 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
     int32_t err = printksset(csound, &pk);
     if (UNLIKELY(err != OK)) return err;
     memset(string,0,8192);
-    memset(pk.txtstring,0,sizeof(pk.txtstring));
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
         return
           csound->InitError(csound,
