@@ -21,9 +21,14 @@
 */
 
 #include "csound.h"
+#include "csound_threads.h"
+#include "csound_rtmidi.h"
+#include "csound_misc.h"
 //#include "cs_glue.h"
 #include "csound.hpp"
-#include "csdl.h"
+#include <climits>
+#include <cstdlib>
+#include <cstring>
 #include "cs_glue.hpp"
 
 extern "C" {
@@ -295,7 +300,7 @@ void CsoundMYFLTArray::SetStringValue(const char *s, int maxLen)
 
 const char * CsoundMYFLTArray::GetStringValue()
 {
-    return ((STRINGDAT*) p)->data;
+    return p ? csoundGetStringData(NULL, (STRINGDAT*) p) : NULL;
 }
 
 /**
