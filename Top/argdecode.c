@@ -1728,6 +1728,8 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
               CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
               volatile jmp_buf outer;
               volatile int32_t jump;
+              /* read_options() counts the lines it reads as the CSD's */
+              const int32_t lines = csound->onefileStatics.csdlinecount;
               corfile_rewind(cf);
               /* an option the file refuses leaves by csound->LongJmp(): the
                  file is closed before the jump goes on */
@@ -1735,6 +1737,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
               if ((jump = setjmp(csound->exitjmp)) == 0)
                 read_options(csound, cf, 0);
               memcpy((void *)&csound->exitjmp, (void *)&outer, sizeof(jmp_buf));
+              csound->onefileStatics.csdlinecount = lines;
               corfile_rm(csound, &cf);
               csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
               if (jump != 0)

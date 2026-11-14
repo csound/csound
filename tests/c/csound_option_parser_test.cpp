@@ -294,3 +294,27 @@ TEST_F (OptionParserTests, testEmptyFlagValueStaysInItsArgument)
     for (const char *option : {"-r \"\"", "-k \"\"", "-x \"\""})
         EXPECT_EQ (csoundSetOption (csound, option), 0) << option;
 }
+
+TEST_F (OptionParserTests, testIndirectionFileLeavesTheCsdLineNumbers)
+{
+    /* The orchestra starts on the same line, whatever line 3 reads. */
+    namespace fs = std::filesystem;
+    const fs::path file = fs::temp_directory_path () /
+        ("csound-options-" + std::to_string (std::random_device {} ()));
+    std::ofstream (file) << "-d\n; one\n; two\n; three\n; four\n";
+    int32_t offsets[2];
+    const std::string lines[2] = {"-d", "-@ \"" + file.string () + "\""};
+    for (int i = 0; i < 2; i++) {
+        CSOUND *own = csoundCreate (NULL, NULL);
+        csoundCreateMessageBuffer (own, 0);
+        const std::string csd =
+            "<CsoundSynthesizer>\n<CsOptions>\n" + lines[i] +
+            "\n</CsOptions>\n<CsInstruments>\ninstr 1\nendin\n"
+            "</CsInstruments>\n</CsoundSynthesizer>\n";
+        EXPECT_EQ (csoundCompileCSD (own, csd.c_str (), 1, 0), 0) << lines[i];
+        offsets[i] = own->orcLineOffset;
+        csoundDestroy (own);
+    }
+    fs::remove (file);
+    EXPECT_EQ (offsets[1], offsets[0]);
+}
