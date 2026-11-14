@@ -487,4 +487,24 @@ TEST_F(CsdCompileTests, ExternalScoreKeepsLineNumbers)
   EXPECT_EQ(plain, withScore);
 }
 #endif
+
+// A score compiled on a started engine gets no closing e, which would end
+// the performance: with no </CsoundSynthesizer>, or in several sections.
+TEST_F(CsdCompileTests, ScoreOnAStartedEngineDoesNotEndIt)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const std::string orchestra = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "instr 1\nendin\n</CsInstruments>\n";
+  const std::string score = "<CsScore>\ni 1 0 1\n</CsScore>\n";
+  const std::string texts[] = {
+    orchestra + score,
+    orchestra + score + score + "</CsoundSynthesizer>\n"};
+  for (const auto &text : texts) {
+    ASSERT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
+    int ended = 0;
+    for (int i = 0; i < 20 && !ended; i++)
+      ended = csoundPerformKsmps(csound) != 0;
+    EXPECT_EQ(0, ended) << text;
+  }
+}
 }

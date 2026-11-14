@@ -524,10 +524,8 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
           scoreErrCnt = csound->inerrcnt;
           if (csound->scorestr == NULL)
             sc = "#exit";
-          else {
-            csound->scorestr->body[+csound->scorestr->len - 9] = ' ';
+          else
             sc = sorted = scsortstr(csound, csound->scorestr);
-          }
           if (UNLIKELY(csound->inerrcnt > scoreErrCnt)) {
             csound->Free(csound, sorted);
             return CSOUND_ERROR;

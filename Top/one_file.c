@@ -689,7 +689,9 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
       while (isblank(*p)) p++;
       if (line_start && strstr(p, "</CsScore>") == p) {
         //#ifdef SCORE_PARSER
-        corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
+        /* A started engine takes no e, as csoundReadScore gives it none */
+        corfile_puts(csound, csound->engineStatus & CS_STATE_COMP ?
+                     "\n#exit\n" : "\ne\n#exit\n", csound->scorestr);
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
         //#endif
