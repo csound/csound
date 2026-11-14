@@ -1197,12 +1197,14 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
     int32_t   result = TRUE;
     int32_t   r;
     int32_t started = FALSE;
-    int32_t notrunning = csound->engineStatus & CS_STATE_COMP;
+    /* csoundStart sets CS_STATE_COMP. Options and a MIDI file are taken only
+       from a CSD compiled before it: a later one skips them. */
+    int32_t running = csound->engineStatus & CS_STATE_COMP;
     char    buffer[CSD_MAX_LINE_LEN];
 #ifdef _DEBUG
     //csoundMessage(csound, "Calling unified file system4\n");
 #endif
-    if (notrunning==0) {
+    if (!running) {
       alloc_globals(csound);
       STA(orcname) = STA(sconame) = STA(midname) = NULL;
       STA(midiSet) = FALSE;
@@ -1221,14 +1223,14 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         if (csound->scorestr != NULL)
           corfile_flush(csound, csound->scorestr);
         corfile_rm(csound, &cf);
-        if (notrunning && STA(midiSet)) {
+        if (!running && STA(midiSet)) {
           csound->oparms->FMidiname = STA(midname);
           csound->oparms->FMidiin = 1;
         }
         return result;
       }
       else if (strstr(p, "<CsOptions>") == p) {
-        if (!notrunning && !csound->disable_csd_options) {
+        if (!running && !csound->disable_csd_options) {
           if(csound->oparms->odebug)
           csoundMessage(csound, Str("Creating options\n"));
           csound->orchname = NULL;  /* allow orchestra/score name in CSD file */
@@ -1257,7 +1259,7 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         result = r && result;
       }
       else if (strstr(p, "<CsMidifileB>") == p) {
-        if (notrunning) {
+        if (!running) {
           r = create_MIDI2(csound, cf);
           result = r && result;
         }
@@ -1266,13 +1268,13 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
           do {
             if (UNLIKELY(my_fgets_cf(csound, buffer,
                                    CSD_MAX_LINE_LEN, cf) == NULL)) {
-              csoundErrorMsg(csound, Str("Missing end tag </CsMidiFileB>\n"));
+              csoundErrorMsg(csound, Str("Missing end tag </CsMidifileB>\n"));
               result = FALSE;
               break;
             }
             p = buffer;
             while (isblank(*p)) p++;
-          } while (strstr(p, "</CsMidiFileB>") != p);
+          } while (strstr(p, "</CsMidifileB>") != p);
         }
       }
       else if (strstr(p, "<CsSampleB filename=") == p) {
@@ -1320,5 +1322,9 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
       result = FALSE;
     }
     corfile_rm(csound, &cf);
+    if (!running && STA(midiSet)) {     /* no </CsoundSynthesizer> */
+      csound->oparms->FMidiname = STA(midname);
+      csound->oparms->FMidiin = 1;
+    }
     return result;
 }

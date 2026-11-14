@@ -213,6 +213,19 @@ TEST_F(CsdCompileTests, CommentAfterALongCommentOpensOnAStartedEngine)
   EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
 }
 
+// A started engine has its MIDI input: a later CSD skips <CsMidifileB>.
+TEST_F(CsdCompileTests, MidifileBIsSkippedOnAStartedEngine)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const auto text = csd("instr 1\nendin\n",
+                        "<CsMidifileB>\n"
+                        "TVRoZAAAAAYAAAABAGBNVHJrAAAADACQPGRggDwAAP8vAA==\n"
+                        "</CsMidifileB>\n");
+  EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0));
+  const auto output = messages();
+  EXPECT_NE(std::string::npos, output.find("Skipping <CsMidifileB>")) << output;
+}
+
 TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInFile)
 {
   ASSERT_NO_FATAL_FAILURE(write("options.csd", withKsmps16));
