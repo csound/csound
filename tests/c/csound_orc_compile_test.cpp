@@ -1231,26 +1231,6 @@ endin
     EXPECT_EQ(0, csoundErrCnt(csound));
 }
 
-/* Engine/memalloc.c's block header. A Debug build defines BETA, which turns
-   MEMDEBUG on. */
-struct TrackedBlock {
-#if defined(BETA) || defined(MEMDEBUG)
-    int32_t magic;
-    void *ptr;
-#endif
-    TrackedBlock *prv, *nxt;
-};
-
-/* The blocks Csound holds until a reset. */
-static size_t trackedBlocks(const CSOUND *csound)
-{
-    size_t n = 0;
-    for (auto *b = static_cast<TrackedBlock *>(csound->memalloc_db); b;
-         b = b->nxt)
-        n++;
-    return n;
-}
-
 /* A reinit that runs xout or xin again makes that argument's converters
    anew. The ones it replaces were kept until a reset: a converter's blocks
    for every reinit, and libsamplerate's state outside them. */
@@ -1315,13 +1295,13 @@ endin
             int32_t error = 0;
             const cs_float passes = csoundGetControlChannel(cs, "passes",
                                                             &error);
-            const size_t blocks = trackedBlocks(cs);
+            const size_t blocks = csound_tracked_block_count(cs);
             for (int i = 0; i < 20; ++i)
                 ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
             /* One reinit for each caller k-period. */
             EXPECT_EQ(passes + 20, csoundGetControlChannel(cs, "passes",
                                                            &error));
-            EXPECT_EQ(blocks, trackedBlocks(cs));
+            EXPECT_EQ(blocks, csound_tracked_block_count(cs));
             EXPECT_EQ(0, csoundErrCnt(cs));
             csoundDestroy(cs);
         }

@@ -546,6 +546,33 @@ void *csoundRealloc_debug(CSOUND *csound, void *oldp, size_t size, char *file, i
     return p;
 }
 
+/* For tests: what Csound holds until a reset, counted and looked up without
+   knowing the block header above. */
+size_t csound_tracked_block_count(CSOUND *csound)
+{
+    size_t count = 0;
+    memAllocBlock_t *pp;
+
+    CSOUND_MEM_SPINLOCK
+    for (pp = (memAllocBlock_t*) MEMALLOC_DB; pp != NULL; pp = pp->nxt)
+      count++;
+    CSOUND_MEM_SPINUNLOCK
+    return count;
+}
+
+int32_t csound_is_tracked_block(CSOUND *csound, const void *p)
+{
+    int32_t found = 0;
+    memAllocBlock_t *pp;
+
+    CSOUND_MEM_SPINLOCK
+    for (pp = (memAllocBlock_t*) MEMALLOC_DB; pp != NULL && !found;
+         pp = pp->nxt)
+      found = DATA_PTR(pp) == p;
+    CSOUND_MEM_SPINUNLOCK
+    return found;
+}
+
 void memreset(CSOUND *csound)
 {
     memAllocBlock_t *pp, *nxtp;

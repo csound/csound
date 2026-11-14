@@ -323,36 +323,6 @@ TEST(HostScoreErrors, MarksFitTo1024AndNoFurther)
     EXPECT_NE(std::string::npos, host.said().find("too many marked sections"));
 }
 
-/* Engine/memalloc.c's block header: a Debug build defines BETA, which turns
-   MEMDEBUG on. */
-struct Block {
-#if defined(BETA) || defined(MEMDEBUG)
-    int32_t magic;
-    void *ptr;
-#endif
-    Block *prv, *nxt;
-    void *base;
-};
-
-/* Csound's own count of what it holds. */
-size_t trackedBlocks(CSOUND *csound)
-{
-    size_t n = 0;
-    for (auto *b = static_cast<Block *>(csound->memalloc_db); b; b = b->nxt)
-        n++;
-    return n;
-}
-
-/* Whether p is a block Csound holds, which a reset frees. */
-bool isTracked(CSOUND *csound, const void *p)
-{
-    const size_t header = (sizeof(Block) + 15) & ~size_t(15);
-    for (auto *b = static_cast<Block *>(csound->memalloc_db); b; b = b->nxt)
-        if (reinterpret_cast<const char *>(b) + header == p)
-            return true;
-    return false;
-}
-
 /* The buffer sense_line takes lines into is Csound's memory, so a reset frees
    it, and the reset clears the pointer with it. */
 TEST(HostScoreErrors, LineEventBufferDoesNotOutliveAReset)
@@ -362,7 +332,8 @@ TEST(HostScoreErrors, LineEventBufferDoesNotOutliveAReset)
     host.csound->InputMessage(host.csound, "i 1 0 0\n");
     host.perform();
     EXPECT_EQ(1, host.played()) << host.said();
-    EXPECT_TRUE(isTracked(host.csound, host.csound->line_event_work));
+    EXPECT_TRUE(
+        csound_is_tracked_block(host.csound, host.csound->line_event_work));
     csoundReset(host.csound);
     EXPECT_EQ(nullptr, host.csound->line_event_work);
     EXPECT_EQ(0, host.csound->line_event_work_size);
@@ -401,17 +372,20 @@ TEST(HostScoreErrors, RefusalsKeepNothing)
         EXPECT_NE(std::string::npos, said.find("score refused", seen));
         seen = said.size();
     };
-    const size_t blocks = trackedBlocks(host.csound);
+    const size_t blocks = csound_tracked_block_count(host.csound);
     void *block = host.csound->Malloc(host.csound, 16);
-    EXPECT_EQ(blocks + 1, trackedBlocks(host.csound)) << "the walk is wrong";
+    EXPECT_EQ(blocks + 1, csound_tracked_block_count(host.csound));
+    EXPECT_TRUE(csound_is_tracked_block(host.csound, block));
+    EXPECT_FALSE(csound_is_tracked_block(host.csound, &seen));
     host.csound->Free(host.csound, block);
+    EXPECT_EQ(blocks, csound_tracked_block_count(host.csound));
     for (const std::string &line : lines) {
         SCOPED_TRACE(line.substr(0, 40));
         refuse(line);
-        const size_t before = trackedBlocks(host.csound);
+        const size_t before = csound_tracked_block_count(host.csound);
         for (int i = 0; i < 5; i++)
             refuse(line);
-        EXPECT_EQ(before, trackedBlocks(host.csound));
+        EXPECT_EQ(before, csound_tracked_block_count(host.csound));
     }
 }
 
@@ -440,14 +414,14 @@ TEST(HostScoreReads, KeepNothing)
         const int32_t stack = host.csound->sread.input_size;
         csoundEventString(host.csound, line.c_str(), 0);
         host.perform();
-        const size_t before = trackedBlocks(host.csound);
+        const size_t before = csound_tracked_block_count(host.csound);
         const int32_t text = host.csound->expanded_sco->len;
         const cs_float played = host.played();
         for (int i = 0; i < 5; i++) {
             csoundEventString(host.csound, line.c_str(), 0);
             host.perform();
         }
-        EXPECT_EQ(before, trackedBlocks(host.csound));
+        EXPECT_EQ(before, csound_tracked_block_count(host.csound));
         EXPECT_EQ(text, host.csound->expanded_sco->len);
         EXPECT_EQ(stack, host.csound->sread.input_size);
         EXPECT_EQ(played + 5 * notesRead, host.played()) << host.said();
@@ -472,11 +446,11 @@ TEST(HostScoreReads, CompiledScoresKeepNothing)
     auto least = [&](const char *csd) {
         size_t fewest = SIZE_MAX;
         for (int i = 0; i < 5; i++) {
-            const size_t before = trackedBlocks(host.csound);
+            const size_t before = csound_tracked_block_count(host.csound);
             EXPECT_EQ(CSOUND_SUCCESS, csoundCompileCSD(host.csound, csd, 1, 0));
             host.perform();
-            if (trackedBlocks(host.csound) - before < fewest)
-                fewest = trackedBlocks(host.csound) - before;
+            if (csound_tracked_block_count(host.csound) - before < fewest)
+                fewest = csound_tracked_block_count(host.csound) - before;
         }
         return fewest;
     };
@@ -534,8 +508,10 @@ TEST(HostScoreReads, AfterAResetMakeTheirOwn)
     csoundEventString(host.csound, "i 1 0 0", 0);
     host.perform();
     EXPECT_EQ(1, host.played()) << host.said();
-    EXPECT_TRUE(isTracked(host.csound, host.csound->expanded_sco));
-    EXPECT_TRUE(isTracked(host.csound, host.csound->sread.inputs));
+    EXPECT_TRUE(
+        csound_is_tracked_block(host.csound, host.csound->expanded_sco));
+    EXPECT_TRUE(
+        csound_is_tracked_block(host.csound, host.csound->sread.inputs));
 }
 
 TEST(HostScoreErrors, ReadScoreReturnsTheRefusal)
