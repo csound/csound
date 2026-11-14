@@ -235,7 +235,6 @@ static int32_t blank_buffer(/*CSOUND *csound,*/ const char *buffer)
 }
 
 
-/* Consider wrapping corfile_fgets for this function */
 static char *my_fgets_cf(CSOUND *csound, char *s, int32_t n, CORFIL *stream)
 {
     char *a = s;
@@ -1062,6 +1061,7 @@ static int32_t create_filea(CSOUND *csound, char *buffer, CORFIL *cf)
     char  buff[1024];
     char *p = buffer, *q;
     int32_t res=FALSE;
+    char  last = '\n';           /* no newline: a chunk of a too-long line */
 
     filename[0] = '\0';
 
@@ -1084,10 +1084,13 @@ static int32_t create_filea(CSOUND *csound, char *buffer, CORFIL *cf)
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open file (%s) subfile\n"), filename);
     }
-    while (corfile_fgets(buff, 1024, cf)!=NULL) {
+    while (my_fgets_cf(csound, buff, 1024, cf) != NULL) {
       char *p = buff;
+      int32_t line_start = last == '\n';
+      last = buff[strlen(buff)-1];
       while (isblank(*p)) p++;
-      if (!strncmp(p, "</CsFile>", 9)) { /* stop on antitag at start of line */
+      if (line_start &&
+          !strncmp(p, "</CsFile>", 9)) { /* stop on antitag at start of line */
         res = TRUE; break;
       }
       fputs(buff, smpf);

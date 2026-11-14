@@ -2,10 +2,12 @@
 #include "gtest/gtest.h"
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <string>
 #ifdef _WIN32
 #include <process.h>
 #else
+#include <sys/resource.h>
 #include <unistd.h>
 #endif
 
@@ -260,6 +262,32 @@ TEST_F(CsdCompileTests, MidifileBIsSkippedOnAStartedEngine)
   const auto output = messages();
   EXPECT_NE(std::string::npos, output.find("Skipping <CsMidifileB>")) << output;
 }
+
+#if GTEST_HAS_DEATH_TEST && !defined(_WIN32)
+// <CsFile> writes its lines once, and ends only at a line that starts with
+// its end tag. It used to write its first line for ever:
+// in a child with its file size capped, that fails instead of filling a disk.
+TEST_F(CsdCompileTests, CsFileWritesItsLines)
+{
+  const auto file = path("plain.txt");
+  // Its second line is read in two chunks, the second starting with the tag.
+  const auto body = "hello\n" + std::string(1023, 'x') +
+    "</CsFile> stays text\nworld\n";
+  const auto text = "<CsoundSynthesizer>\n<CsFile filename=\"" + file +
+    "\">\n" + body + "</CsFile>\n<CsInstruments>\ninstr 1\nendin\n"
+    "</CsInstruments>\n</CsoundSynthesizer>\n";
+  ASSERT_EXIT(([&] {
+      struct rlimit limit;
+      limit.rlim_cur = limit.rlim_max = 1 << 20;
+      if (setrlimit(RLIMIT_FSIZE, &limit) != 0) exit(2);
+      if (csoundCompileCSD(csound, text.c_str(), 1, 0) != 0) exit(3);
+      std::ifstream in(file, std::ios::binary);
+      const std::string written((std::istreambuf_iterator<char>(in)),
+                                std::istreambuf_iterator<char>());
+      exit(written == body ? 0 : 1);
+  }()), ::testing::ExitedWithCode(0), "");
+}
+#endif
 
 TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInFile)
 {
