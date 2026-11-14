@@ -416,6 +416,11 @@ static void sense_line(CSOUND *csound, void *userData)
             n = scnt;
             while (n-->0) sstrp += strlen(sstrp)+1;
             n = 0;
+            if (UNLIKELY(sstrp-e.strarg >= strsiz-10)) { /* as in rdscor */
+              size_t start = (size_t) (sstrp-e.strarg);
+              e.strarg = csound->ReAlloc(csound, e.strarg, strsiz+=SSTRSIZ);
+              sstrp = e.strarg+start;
+            }
 
             while ((c = *(++cp)) != '"') {
               /* VL: allow strings to be multi-line */

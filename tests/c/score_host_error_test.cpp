@@ -723,6 +723,8 @@ std::vector<LongStatement> longStatements()
         /* and past 32767 the count was negative to the carry */
         {"Over32767FieldsAfterANote",
          "i 3 0 0 5\ni 3 0.002" + longNote(40000, "22").substr(5), 0, 40004},
+        /* each one's end in the string buffer, which only characters grew */
+        {"EmptyStrings", longNote(2000, "\"\""), 0, 2004},
     };
 }
 
