@@ -322,6 +322,16 @@ TEST_F(CsdCompileTests, ShortLicenseSetsTheCopyright)
     << copyright;
 }
 
+TEST_F(CsdCompileTests, ShortLicenceOneEndsAtItsName)
+{
+  const auto copyright =
+    writtenCopyright("<CsShortLicence>\n1\n</CsShortLicence>\n");
+  const std::string name =
+    "Creative Commons Attribution-NonCommercial-NoDerivatives\nCC BY-NC-ND\n";
+  ASSERT_GE(copyright.size(), name.size()) << copyright;
+  EXPECT_EQ(name, copyright.substr(copyright.size() - name.size()));
+}
+
 TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInFile)
 {
   ASSERT_NO_FATAL_FAILURE(write("options.csd", withKsmps16));
