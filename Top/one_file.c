@@ -676,14 +676,17 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
 {
     char   *p;
     char   buffer[CSD_MAX_LINE_LEN];
+    char   last = '\n';         /* no newline: a chunk of a too-long line */
 
     if (csound->scorestr == NULL)
       csound->scorestr = corfile_create_w(csound);
     csound->scoLineOffset = STA(csdlinecount);
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      int32_t line_start = last == '\n';
+      last = buffer[strlen(buffer)-1];
       p = buffer;
       while (isblank(*p)) p++;
-      if (strstr(p, "</CsScore>") == p) {
+      if (line_start && strstr(p, "</CsScore>") == p) {
         //#ifdef SCORE_PARSER
         corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
@@ -711,6 +714,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
     void *fd;
     FILE  *scof;
     char  buffer[CSD_MAX_LINE_LEN];
+    char  last = '\n';          /* no newline: a chunk of a too-long line */
 
     p = strstr(p, "bin=\"");
     if (UNLIKELY(p==NULL)) {
@@ -742,8 +746,10 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
 
     csound->scoLineOffset = STA(csdlinecount);
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      int32_t line_start = last == '\n';
+      last = buffer[strlen(buffer)-1];
       p = buffer;
-      if (strstr(p, "</CsScore>") == p) {
+      if (line_start && strstr(p, "</CsScore>") == p) {
         char sys[1024];
         csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
         snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
