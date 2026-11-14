@@ -830,9 +830,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-amps=", 7))) {
     int32_t n;
     s += 7;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message amps\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_AMPLMSG;
     else
@@ -841,9 +840,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-range=", 8))) {
     int32_t n;
     s += 8;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message range\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_RNGEMSG;
     else
@@ -852,9 +850,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-warnings=", 11))) {
     int32_t n;
     s += 11;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message warnings\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_WARNMSG;
     else
@@ -863,9 +860,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-raw=", 6))) {
     int32_t n;
     s += 6;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message raw\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= 32;
     else
@@ -874,9 +870,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-dB=", 5))) {
     int32_t n;
     s += 5;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message dB\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_RAWMSG;
     else
@@ -885,9 +880,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-colours=", 10)) || !(strncmp(s, "m-colors=", 9))) {
     int32_t n;
     s = strchr(s, '=') + 1;
-    if (*s == '\0')
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message colours\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= 96;
     else
@@ -896,9 +890,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-benchmarks=", 13))) {
     int32_t n;
     s += 13;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no benchmark level\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_TIMEMSG;
     else
@@ -1533,14 +1526,16 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           break;
         case 'b':
           FIND(Str("no iobufsamps\n"));
-          sscanf(s, "%d%n", &(O->outbufsamps), &n);
+          if (UNLIKELY(sscanf(s, "%d%n", &(O->outbufsamps), &n) != 1))
+            dieu(csound, Str("no iobufsamps\n"));
           /* defaults in musmon.c */
           O->inbufsamps = O->outbufsamps;
           s += n;
           break;
         case 'B':
           FIND(Str("no hardware bufsamps\n"));
-          sscanf(s, "%d%n", &(O->oMaxLag), &n);
+          if (UNLIKELY(sscanf(s, "%d%n", &(O->oMaxLag), &n) != 1))
+            dieu(csound, Str("no hardware bufsamps\n"));
           /* defaults in rtaudio.c */
           s += n;
           break;
@@ -1587,7 +1582,8 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           break;
         case 'm':
           FIND(Str("no message level\n"));
-          sscanf(s, "%d%n", &(O->msglevel), &n);
+          if (UNLIKELY(sscanf(s, "%d%n", &(O->msglevel), &n) != 1))
+            dieu(csound, Str("no message level\n"));
           s += n;
           break;
         case 'd':
@@ -1609,7 +1605,9 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           FIND(Str("no tempo value\n"));
           {
             cs_double val;
-            sscanf(s, "%" CS_DOUBLE_SCAN "%n", &val, &n); /* use this tempo .. */
+            /* use this tempo .. */
+            if (UNLIKELY(sscanf(s, "%" CS_DOUBLE_SCAN "%n", &val, &n) != 1))
+              dieu(csound, Str("no tempo value\n"));
             s += n;
             if (UNLIKELY(val < 0.0))
               dieu(csound, Str("illegal tempo\n"));
@@ -1778,7 +1776,8 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           break;
         case 'j':
           FIND(Str("no number of threads\n"));
-          sscanf(s, "%d%n", &(O->numThreads), &n);
+          if (UNLIKELY(sscanf(s, "%d%n", &(O->numThreads), &n) != 1))
+            dieu(csound, Str("no number of threads\n"));
           s += n;
           break;
         case '+': /* IV - Feb 01 2005 */

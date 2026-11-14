@@ -262,3 +262,27 @@ TEST_F (OptionParserTests, testCodeAndEventsTakeTheTextAfterTheirEqualsSign)
     EXPECT_EQ (csoundSetOption (csound, "--code=;"), 0);
     EXPECT_STREQ (csound->orchname, "cmd-string");
 }
+
+TEST_F (OptionParserTests, testMessageLevelOptionsRefuseAValueThatIsNotANumber)
+{
+    for (const char *option : {"--m-amps=x", "--m-range=x", "--m-warnings=x",
+                               "--m-raw=x", "--m-dB=x", "--m-colours=x",
+                               "--m-benchmarks=x"}) {
+        const int32_t level = csound->oparms->msglevel;
+        EXPECT_NE (csoundSetOption (csound, option), 0) << option;
+        EXPECT_EQ (csound->oparms->msglevel, level) << option;
+    }
+    EXPECT_EQ (csoundSetOption (csound, "--m-amps=0"), 0);
+    EXPECT_EQ (csound->oparms->msglevel & CS_AMPLMSG, 0);
+}
+
+TEST_F (OptionParserTests, testNumericFlagsRefuseAValueThatIsNotANumber)
+{
+    /* -b256 left 3 in the count -bx stepped over: past its x, its end and
+       into the next argument, whose d then ran as a flag. */
+    const int32_t displays = csound->oparms->displays;
+    EXPECT_NE (csoundSetOption (csound, "-b256 -bx xd"), 0);
+    EXPECT_EQ (csound->oparms->displays, displays);
+    for (const char *option : {"-mx", "-Bx", "-jx", "-tx"})
+        EXPECT_NE (csoundSetOption (csound, option), 0) << option;
+}
