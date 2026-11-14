@@ -1231,6 +1231,103 @@ endin
     EXPECT_EQ(0, csoundErrCnt(csound));
 }
 
+/* Engine/memalloc.c's block header. A Debug build defines BETA, which turns
+   MEMDEBUG on. */
+struct TrackedBlock {
+#if defined(BETA) || defined(MEMDEBUG)
+    int32_t magic;
+    void *ptr;
+#endif
+    TrackedBlock *prv, *nxt;
+};
+
+/* The blocks Csound holds until a reset. */
+static size_t trackedBlocks(const CSOUND *csound)
+{
+    size_t n = 0;
+    for (auto *b = static_cast<TrackedBlock *>(csound->memalloc_db); b;
+         b = b->nxt)
+        n++;
+    return n;
+}
+
+/* A reinit that runs xout or xin again makes that argument's converters
+   anew. The ones it replaces were kept until a reset: a converter's blocks
+   for every reinit, and libsamplerate's state outside them. */
+TEST_F (OrcCompileTests, UdoReinitFreesTheConvertersItReplaces)
+{
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+giMode init 0
+opcode OutAgain, a, a
+  oversample 2, giMode
+  aIn xin
+  aOut = aIn * 0.5
+  kCycle timeinstk
+  if kCycle % 2 == 0 then
+    reinit Again
+  endif
+Again:
+  chnset chnget:i("passes") + 1, "passes"
+  xout aOut
+  rireturn
+endop
+opcode InAgain, a, a
+  oversample 2, giMode
+Again:
+  chnset chnget:i("passes") + 1, "passes"
+  aIn xin
+  rireturn
+  kCycle timeinstk
+  if kCycle % 2 == 0 then
+    reinit Again
+  endif
+  xout aIn * 0.5
+endop
+instr 1
+  giMode = p4
+  aSig poscil 0.1, 440
+  if p5 == 0 then
+    aOut OutAgain aSig
+  else
+    aOut InAgain aSig
+  endif
+  out aOut
+endin
+)";
+    /* Converter 0 is libsamplerate's, 4 Csound's linear one. */
+    for (const char* side : {"xout", "xin"}) {
+        for (int mode : {0, 4}) {
+            SCOPED_TRACE(std::string(side) + ", converter " +
+                         std::to_string(mode));
+            CSOUND* cs = csoundCreate(NULL, NULL);
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(cs, "-n -d -m0"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, orchestra));
+            const std::string note = "i 1 0 1 " + std::to_string(mode) +
+                (strcmp(side, "xout") == 0 ? " 0" : " 1");
+            csoundReadScore(cs, note.c_str());
+            ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+            for (int i = 0; i < 4; ++i)
+                ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+            int32_t error = 0;
+            const cs_float passes = csoundGetControlChannel(cs, "passes",
+                                                            &error);
+            const size_t blocks = trackedBlocks(cs);
+            for (int i = 0; i < 20; ++i)
+                ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+            /* One reinit for each caller k-period. */
+            EXPECT_EQ(passes + 20, csoundGetControlChannel(cs, "passes",
+                                                           &error));
+            EXPECT_EQ(blocks, trackedBlocks(cs));
+            EXPECT_EQ(0, csoundErrCnt(cs));
+            csoundDestroy(cs);
+        }
+    }
+}
+
 TEST_F (OrcCompileTests, testCompile)
 {
     int32_t result, compile_again = 0;
