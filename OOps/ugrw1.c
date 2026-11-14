@@ -648,8 +648,12 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
                             Str("Insufficient arguments, or a format too long, in formatted printing\n"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
   }
-  else if(isstrcod(*p->ifilcod))
-    csound->Message(csound, "%s", csound->GetArgString(csound, *p->ifilcod));
+  else if(isstrcod(*p->ifilcod)) {
+    const char *s = csound->GetArgString(csound, *p->ifilcod);
+    if (UNLIKELY(s == NULL))
+      return csound->InitError(csound, Str("null string\n"));
+    csound->Message(csound, "%s", s);
+  }
   else csound->Message(csound, "%f\n", *p->ifilcod);
     return OK;
 }
