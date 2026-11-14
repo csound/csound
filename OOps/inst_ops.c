@@ -530,7 +530,8 @@ int32_t perf_instance_opcode(CSOUND *csound, PERF_INSTR *p) {
         evt.pcnt = p->INOCOUNT + 2;
         if (UNLIKELY(evt.pcnt > PMAX))
           return csound->PerfError(csound, &(p->h), Str("too many pfields\n"));
-        for (int32_t i = 4; i <= evt.pcnt; i++) evt.p[i] = *p->args[i-3];
+        // the instance is p->in: the p-fields start at args[0]
+        for (int32_t i = 4; i <= evt.pcnt; i++) evt.p[i] = *p->args[i-4];
         int32_t ierr = init_instance(csound, ip, &evt);
         if (UNLIKELY(ierr != OK))
           return csound->PerfError(csound, &(p->h),
