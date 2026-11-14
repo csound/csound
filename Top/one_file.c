@@ -558,14 +558,21 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
     CORFIL *incore = corfile_create_w(csound);
     char  buffer[CSD_MAX_LINE_LEN];
     int32_t comm = 0;
+    char  last = '\n';           /* no newline: a chunk of a too-long line */
 
     csound->orcLineOffset = STA(csdlinecount)+1;
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      int32_t split_close = comm && last == '*' && *buffer == '/';
+      last = buffer[strlen(buffer)-1];
       p = buffer;
       while (isblank(*p)) p++;
-      if(*p == '/' && *(p+1) == '*') {
+      if (split_close)            /* a closer across two chunks of a line */
+        comm = 0;
+      else if(*p == '/' && *(p+1) == '*') {
         //csound->Message(csound, "comment start\n");
         comm = 1; p += 2;
+        if (*p == '\0')           /* the star of the opening closes nothing */
+          last = ' ';
       }
 
       if (comm == 0 &&
