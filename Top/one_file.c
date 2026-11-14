@@ -563,19 +563,20 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
     csound->orcLineOffset = STA(csdlinecount)+1;
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
       int32_t split_close = comm && last == '*' && *buffer == '/';
+      int32_t line_start = last == '\n';   /* not a chunk's */
       last = buffer[strlen(buffer)-1];
       p = buffer;
       while (isblank(*p)) p++;
       if (split_close)            /* a closer across two chunks of a line */
         comm = 0;
-      else if(*p == '/' && *(p+1) == '*') {
+      else if(line_start && *p == '/' && *(p+1) == '*') {
         //csound->Message(csound, "comment start\n");
         comm = 1; p += 2;
         if (*p == '\0')           /* the star of the opening closes nothing */
           last = ' ';
       }
 
-      if (comm == 0 &&
+      if (comm == 0 && line_start &&
           strstr(p, "</CsInstruments>") == p) {
         corfile_puts(csound, "\n#exit\n", incore);
         corfile_putc(csound, '\0', incore);
