@@ -656,7 +656,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     s += 17;
     if (UNLIKELY(*s == '\0'))
       dieu(csound, Str("no hardware bufsamps\n"));
-    O->inbufsamps = O->outbufsamps = atoi(s);
+    O->oMaxLag = atoi(s); /* as -B */
     return 1;
   } else if (!(strcmp(s, "orc"))) {
     csound->use_only_orchfile = 1; /* orchfile without scorefile */
@@ -830,9 +830,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-amps=", 7))) {
     int32_t n;
     s += 7;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message amps\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_AMPLMSG;
     else
@@ -841,9 +840,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-range=", 8))) {
     int32_t n;
     s += 8;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message range\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_RNGEMSG;
     else
@@ -852,9 +850,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-warnings=", 11))) {
     int32_t n;
     s += 11;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message warnings\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_WARNMSG;
     else
@@ -863,9 +860,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-raw=", 6))) {
     int32_t n;
     s += 6;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message raw\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= 32;
     else
@@ -874,9 +870,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-dB=", 5))) {
     int32_t n;
     s += 5;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message dB\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_RAWMSG;
     else
@@ -884,10 +879,9 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strncmp(s, "m-colours=", 10)) || !(strncmp(s, "m-colors=", 9))) {
     int32_t n;
-    s += 10;
-    if (*s == '\0')
+    s = strchr(s, '=') + 1;
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message colours\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= 96;
     else
@@ -896,9 +890,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-benchmarks=", 13))) {
     int32_t n;
     s += 13;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no benchmark level\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_TIMEMSG;
     else
@@ -1395,7 +1388,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     O->no_deprecated_warnings = 1;
     return 1;
   }
-  else if (!(strncmp(s, "code", 4))) {
+  else if (!(strncmp(s, "code=", 5))) {
     s += 5;
     if(csound->orcname_mode == 0 && // only 1st argdecode pass
        csound->use_only_orchfile == 0) {
@@ -1405,7 +1398,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     }
     return 1;
   }
-  else if (!(strncmp(s, "events", 6))) {
+  else if (!(strncmp(s, "events=", 7))) {
     s += 7;
     if(csound->orcname_mode == 0) {// only 1st argdecode pass
       csoundEventString(csound, s, 0);
@@ -1414,6 +1407,18 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   }  
   csoundWarning(csound, Str("unknown long option: '--%s',\n...ignored.\n"), s);
   return 1;
+}
+
+/* An indirection file stays open while its options are read, so one open
+   already is being read: it names itself, or names a file that names it. */
+static int32_t indirection_is_open(CSOUND *csound, const void *fd) {
+  const CSFILE *file = (const CSFILE *)fd, *p;
+  int32_t found = 0;
+  csoundSpinLock(&csound->open_files_lock);
+  for (p = (const CSFILE *)csound->open_files; p != NULL && !found; p = p->nxt)
+    found = p != file && strcmp(p->fullName, file->fullName) == 0;
+  csoundSpinUnLock(&csound->open_files_lock);
+  return found;
 }
 
 static int32_t capture_application_arguments(CSOUND *csound, int32_t *argc,
@@ -1521,14 +1526,16 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           break;
         case 'b':
           FIND(Str("no iobufsamps\n"));
-          sscanf(s, "%d%n", &(O->outbufsamps), &n);
+          if (UNLIKELY(sscanf(s, "%d%n", &(O->outbufsamps), &n) != 1))
+            dieu(csound, Str("no iobufsamps\n"));
           /* defaults in musmon.c */
           O->inbufsamps = O->outbufsamps;
           s += n;
           break;
         case 'B':
           FIND(Str("no hardware bufsamps\n"));
-          sscanf(s, "%d%n", &(O->oMaxLag), &n);
+          if (UNLIKELY(sscanf(s, "%d%n", &(O->oMaxLag), &n) != 1))
+            dieu(csound, Str("no hardware bufsamps\n"));
           /* defaults in rtaudio.c */
           s += n;
           break;
@@ -1557,14 +1564,12 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
         case 'r':
           FIND(Str("no sample rate\n"));
           O->sr_override = (float)atof(s);
-          while (*++s)
-            ;
+          s += strlen(s); /* the value may be empty: -r "" */
           break;
         case 'k':
           FIND(Str("no control rate\n"));
           O->kr_override = (float)atof(s);
-          while (*++s)
-            ;
+          s += strlen(s); /* the value may be empty: -k "" */
           break;
         case 'v':
           if (isdigit(*s)) {
@@ -1575,7 +1580,8 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           break;
         case 'm':
           FIND(Str("no message level\n"));
-          sscanf(s, "%d%n", &(O->msglevel), &n);
+          if (UNLIKELY(sscanf(s, "%d%n", &(O->msglevel), &n) != 1))
+            dieu(csound, Str("no message level\n"));
           s += n;
           break;
         case 'd':
@@ -1590,14 +1596,15 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
         case 'x':
           FIND(Str("no xfilename\n"));
           csound->xfilename = s; /* extractfile name */
-          while (*++s)
-            ;
+          s += strlen(s); /* the name may be empty: -x "" */
           break;
         case 't':
           FIND(Str("no tempo value\n"));
           {
             cs_double val;
-            sscanf(s, "%" CS_DOUBLE_SCAN "%n", &val, &n); /* use this tempo .. */
+            /* use this tempo .. */
+            if (UNLIKELY(sscanf(s, "%" CS_DOUBLE_SCAN "%n", &val, &n) != 1))
+              dieu(csound, Str("no tempo value\n"));
             s += n;
             if (UNLIKELY(val < 0.0))
               dieu(csound, Str("illegal tempo\n"));
@@ -1714,11 +1721,27 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
                                   CSFTYPE_OPTIONS, 0);
             if (UNLIKELY(fd == NULL)) {
               dieu(csound, Str("Cannot open indirection file %s\n"), s);
+            } else if (UNLIKELY(indirection_is_open(csound, fd))) {
+              csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
+              dieu(csound, Str("Indirection file %s is already being read\n"), s);
             } else {
               CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
-              read_options(csound, cf, 0);
+              volatile jmp_buf outer;
+              volatile int32_t jump;
+              /* read_options() counts the lines it reads as the CSD's */
+              const int32_t lines = csound->onefileStatics.csdlinecount;
+              corfile_rewind(cf);
+              /* an option the file refuses leaves by csound->LongJmp(): the
+                 file is closed before the jump goes on */
+              memcpy((void *)&outer, (void *)&csound->exitjmp, sizeof(jmp_buf));
+              if ((jump = setjmp(csound->exitjmp)) == 0)
+                read_options(csound, cf, 0);
+              memcpy((void *)&csound->exitjmp, (void *)&outer, sizeof(jmp_buf));
+              csound->onefileStatics.csdlinecount = lines;
               corfile_rm(csound, &cf);
               csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
+              if (jump != 0)
+                longjmp(csound->exitjmp, jump);
             }
             while (*s++) {
             };
@@ -1749,19 +1772,18 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             csound->Message(csound, Str("\n...failing to parse options\n"));
             return 0; // fail
           }
-          while (*(++s))
-            ;
+          s += strlen(s); /* the option may be empty: "-d-" */
           break;
         case 'j':
           FIND(Str("no number of threads\n"));
-          sscanf(s, "%d%n", &(O->numThreads), &n);
+          if (UNLIKELY(sscanf(s, "%d%n", &(O->numThreads), &n) != 1))
+            dieu(csound, Str("no number of threads\n"));
           s += n;
           break;
         case '+': /* IV - Feb 01 2005 */
           if (parse_option_as_cfgvar(csound, (char *)s - 2) != 0)
             csound->LongJmp(csound, 1);
-          while (*(++s))
-            ;
+          s += strlen(s); /* the option may be empty: "-d+" */
           break;
         default:
           if (csound->info_message_request == 0)
@@ -1862,10 +1884,21 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
         sp++;
     }
 
-    ret = argdecode(csound, argn + 1, (const char **)args);
+    /* an option argdecode() refuses leaves it by csound->LongJmp(); a jump
+       after it goes back to the setjmp above, as before */
+    volatile jmp_buf top;
+    memcpy((void *)&top, (void *)&csound->exitjmp, sizeof(jmp_buf));
+    if (setjmp(csound->exitjmp) != 0)
+      ret = -1;
+    else
+      ret = argdecode(csound, argn + 1, (const char **)args);
+    memcpy((void *)&csound->exitjmp, (void *)&top, sizeof(jmp_buf));
     csoundFree(csound, options);
-    for(i = 1; i < argn; i++) csoundFree(csound, args[i]);
-     csoundFree(csound, args);
+    for (i = 1; i <= argn + 1; i++)
+      csoundFree(csound, args[i]);
+    csoundFree(csound, args);
+    if (ret < 0)
+      return 1;
 
     /* Hosts get the list at once, as before: a request left pending
        would make a later csoundCompile() stop after listing. */
