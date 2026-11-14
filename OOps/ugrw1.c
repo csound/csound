@@ -278,10 +278,12 @@ static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
     /* This is really a if then else if...
      * construct and is currently grotty -- JPff */
     while (*sarg) {
-      /* Each case writes one byte, and a single tilde two. */
-      if (UNLIKELY(sdest >= send)) return NOTOK;
       temp  = *sarg++;
       tempn = *sarg--;
+      /* A backslash that ends the format escapes nothing. */
+      if (temp == '\\' && tempn == '\0') break;
+      /* Each case writes one byte, and a single tilde two. */
+      if (UNLIKELY(sdest >= send)) return NOTOK;
       /* Look for a single caret and insert an escape char.  */
       if ((temp  == '^') && (tempn != '^')) {
         *sdest++ = ESC;
