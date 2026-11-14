@@ -23,6 +23,9 @@
   tied one, and midion and noteondur keep it sounding if the channel, note,
   velocity and port are the same. A reinit turns it off and sends it again.
   They sent the new note with no note-off for the held one.
+
+  A note ended with no release is turned off by a deinit, and a release
+  still sends one note-off.
 */
 
 #define __BUILDING_LIBCSOUND
@@ -103,6 +106,14 @@ class MidiOutputTests : public ::testing::Test {
     int cycles = 0;
     while (csoundPerformKsmps(csound) == 0)
       ASSERT_LT(++cycles, 20);
+  }
+
+  // Plays `body` as instr 1 holding note 60, which instr 9 kills with no
+  // release on the third k-cycle.
+  void playKilled(const std::string &body)
+  {
+    globals = "instr 9\nturnoff2 1, 0, 0\nendin\n";
+    play(body, "i 1 0 -1 60\ni 9 0.02 0.01\n");
   }
 };
 
@@ -328,6 +339,36 @@ TEST_F(MidiOutputTests, NoteondurReinitStrikesTheNoteAgain)
   EXPECT_EQ(sent, (std::vector<std::vector<int>>{
     {0x91, 60, 100, 0}, {0x81, 60, 100, 0},
     {0x91, 60, 100, 0}, {0x81, 60, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, KilledMidionNoteIsTurnedOff)
+{
+  playKilled("midion 2, p4, 100");
+  EXPECT_EQ(sent, note60);
+}
+
+TEST_F(MidiOutputTests, KilledMidion2NoteIsTurnedOff)
+{
+  playKilled("kt init 1\nmidion2 2, p4, 100, kt\nkt = 0");
+  EXPECT_EQ(sent, note60);
+}
+
+TEST_F(MidiOutputTests, KilledMoscilNoteIsTurnedOff)
+{
+  playKilled("moscil 2, p4, 100, 1, 1");
+  EXPECT_EQ(sent, note60);
+}
+
+TEST_F(MidiOutputTests, KilledNoteondurNoteIsTurnedOff)
+{
+  playKilled("noteondur 2, p4, 100, 1");
+  EXPECT_EQ(sent, note60);
+}
+
+TEST_F(MidiOutputTests, KilledNoteondur2NoteIsTurnedOff)
+{
+  playKilled("noteondur2 2, p4, 100, 1");
+  EXPECT_EQ(sent, note60);
 }
 
 }  // namespace

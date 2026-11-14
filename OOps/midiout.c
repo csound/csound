@@ -200,6 +200,17 @@ int32_t iout_on_dur2(CSOUND *csound, OUT_ON_DUR *p)
   return OK;
 }
 
+/* A note ended with no release (turnoff2 with no release, or a kill) is
+   turned off here; one turned off already leaves fl_note_on FALSE. */
+int32_t iout_on_dur_deinit(CSOUND *csound, OUT_ON_DUR *p)
+{
+  if (p->fl_note_on) {
+    note_off(csound, p->chn, p->num, p->vel, p->last_port);
+    p->fl_note_on = FALSE;
+  }
+  return OK;
+}
+
 int32_t moscil_set(CSOUND *csound, MOSCIL *p)
 {
   IGN(csound);
@@ -269,6 +280,15 @@ int32_t moscil(CSOUND *csound, MOSCIL *p)
   return OK;
 }
 
+int32_t moscil_deinit(CSOUND *csound, MOSCIL *p)
+{
+  if (p->fl_note_on) {
+    note_off(csound, p->last_chn, p->last_num, p->last_vel, p->last_port);
+    p->fl_note_on = FALSE;
+  }
+  return OK;
+}
+
 int32_t kvar_out_on_set(CSOUND *csound, KOUT_ON *p)
 {
   IGN(csound);
@@ -333,6 +353,15 @@ int32_t kvar_out_on(CSOUND *csound, KOUT_ON *p)
                 p->last_port);
       }
     }
+  }
+  return OK;
+}
+
+int32_t kvar_out_on_deinit(CSOUND *csound, KOUT_ON *p)
+{
+  if (p->fl_note_on) {
+    note_off(csound, p->last_chn, p->last_num, p->last_vel, p->last_port);
+    p->fl_note_on = FALSE;
   }
   return OK;
 }
@@ -482,7 +511,8 @@ int32_t kon2_set(CSOUND *csound, KON2 *p)
   p->fl_note_expired = FALSE;
   /* fl_note_on is not reset: after a tie or a reinit, the note still
      sounding is turned off by the next trigger or the release. A new
-     instance starts with it FALSE, and a release leaves it FALSE. */
+     instance starts with it FALSE, and a release or the deinit leaves it
+     FALSE. */
   return OK;
 }
 
@@ -537,6 +567,15 @@ int32_t kon2(CSOUND *csound, KON2 *p)
           p->fl_note_on = TRUE;
         }
     }
+  }
+  return OK;
+}
+
+int32_t kon2_deinit(CSOUND *csound, KON2 *p)
+{
+  if (p->fl_note_on) {
+    note_off(csound, p->last_chn, p->last_num, p->last_vel, p->last_port);
+    p->fl_note_on = FALSE;
   }
   return OK;
 }
