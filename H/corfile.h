@@ -31,7 +31,6 @@ void corfile_flush(CSOUND*,CORFIL *f);
 void corfile_rm(CSOUND*,CORFIL **ff);
 int32_t corfile_getc(CORFIL *f);
 void corfile_ungetc(CORFIL *f);
-char *corfile_fgets(char *b, int32_t len, CORFIL *f);
 #define corfile_ungetc(f)  (--f->p)
 cs_float corfile_get_flt(CORFIL *f);
 void corfile_reset(CORFIL *f);
