@@ -243,17 +243,19 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   char *fileDir;
   volatile int32_t compiledOk = 0;
 
-  if ((n = setjmp(csound->exitjmp)) != 0) {
-    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-  }
-
-  argc = ac;
+  /* refused before the setjmp: exitjmp may be a running performance's */
   if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
     csound->Message(csound,
                     Str("Csound is already started, call csoundReset()\n"
                         "before starting again.\n"));
     return CSOUND_ERROR;
   }
+
+  if ((n = setjmp(csound->exitjmp)) != 0) {
+    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+  }
+
+  argc = ac;
 
   if (UNLIKELY(--argc <= 0)) {
     dieu(csound, Str("insufficient arguments\n"));

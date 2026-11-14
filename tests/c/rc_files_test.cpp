@@ -304,4 +304,20 @@ TEST_F(RcFileTests, ASecondStartLeavesThePerformanceItsJumpTarget)
   EXPECT_EQ(csoundPerformKsmps(csound), 0);
 }
 
+/* So is a csoundCompile on a started engine. It took exitjmp for a frame of
+ * its own before it said so, and the performance's next jump went there.
+ */
+TEST_F(RcFileTests, ACompileOnAStartedEngineLeavesThePerformanceItsJumpTarget)
+{
+  CSOUND *csound = instance();
+  start(csound);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  jmp_buf target;
+  memcpy(target, csound->exitjmp, sizeof(jmp_buf));
+  const char *argv[] = {"csound", "-n", "empty.csd"};
+  EXPECT_EQ(csoundCompile(csound, 3, argv), CSOUND_ERROR);
+  EXPECT_EQ(memcmp(target, csound->exitjmp, sizeof(jmp_buf)), 0);
+  EXPECT_EQ(csoundPerformKsmps(csound), 0);
+}
+
 }  // namespace
