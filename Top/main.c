@@ -594,6 +594,14 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
   OPARMS *O = csound->oparms;
   int32_t n;
 
+  /* The rc file and the plugins below can stop Csound, which jumps to
+     exitjmp: until the engine has started, this call owns it from here.
+     Once it has, a performance may, and a second call is refused below. */
+  if (!(csound->engineStatus & CS_STATE_COMP)) {
+    if ((n = setjmp(csound->exitjmp)) != 0)
+      return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+  }
+
   // Always print version, unless this was supressed
   // or already printed
   // (print_version is set to 1 by default)
@@ -674,10 +682,6 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
                  || csound->instr0 == NULL)) {
       return CSOUND_ERROR;
     }
-  }
-
-  if ((n = setjmp(csound->exitjmp)) != 0) {
-    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
   }
 
   /* if sound file type is still not known, check SFOUTYP */

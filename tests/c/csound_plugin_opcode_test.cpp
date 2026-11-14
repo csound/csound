@@ -286,6 +286,46 @@ TEST(ListOpcodes, CompileReportsPluginThatFailsToStart) {
       << listing.text;
 }
 
+// Started before any orchestra, Csound loads and starts the plugins in
+// csoundStart, which jumped on a failure there before it owned exitjmp: into
+// the frame of the csoundSetOption that had returned.
+namespace {
+void expectStartToFail(const std::string &option, const char *said) {
+  csoundSetGlobalEnv("CSOUND7RC", "");  // no rc file of the user's
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  csoundSetGlobalEnv("CSOUND7RC", nullptr);
+  csoundCreateMessageBuffer(csound, 0);
+  csoundSetHostAudioIO(csound);
+  EXPECT_EQ(csoundSetOption(csound, option.c_str()), CSOUND_SUCCESS);
+  EXPECT_EQ(csoundStart(csound), CSOUND_ERROR);
+  const std::string messages = drainMessages(csound);
+  EXPECT_NE(messages.find(said), std::string::npos) << messages;
+  EXPECT_EQ(csoundPerformKsmps(csound), CSOUND_ERROR);
+  csoundDestroy(csound);
+}
+} // namespace
+
+TEST(PluginThatFailsToStart, FailsCsoundStart) {
+  expectStartToFail(kFailingInitOption, "Error starting module");
+}
+
+// In the plugin directory, the failure stops the directory's scan instead.
+TEST(PluginThatFailsToStart, InThePluginDirectoryFailsCsoundStart) {
+  const std::string directory =
+      std::filesystem::path(CSOUND_TEST_FAILING_INIT_PLUGIN)
+          .parent_path().string();
+  expectStartToFail((sizeof(cs_float) == sizeof(float)
+                         ? "--env:OPCODE7DIR=" : "--env:OPCODE7DIR64=") +
+                        directory,
+                    "Error starting module");
+}
+
+// A library that does not load stops Csound as it is loaded. A .wasm library
+// that is not there does not load in any build, with Wasmtime or without.
+TEST(PluginThatFailsToStart, ALibraryThatDoesNotLoadFailsCsoundStart) {
+  expectStartToFail("--opcode-lib=no-such-library.wasm", "error loading");
+}
+
 #ifdef CSOUND_TEST_HAS_TWO_COPIES
 // One plugin in two directories, as a build tree beside an installed Csound
 // has it. Csound loads both, and they share the instance's variables. Each
