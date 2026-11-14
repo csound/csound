@@ -36,6 +36,8 @@ ORCTOKEN *make_label(CSOUND *, char *, void *);
 
 static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
                                        TYPE_TABLE*, int32_t);
+static int32_t boolean_expression_is_init_rate(CSOUND*, TREE*, TYPE_TABLE*);
+static int32_t tree_has_k_rate_array_index(CSOUND*, TREE*, TYPE_TABLE*);
 static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
                                TYPE_TABLE*, int32_t);
 static int32_t struct_expr_has_array_root(TREE* structExpr);
@@ -371,12 +373,43 @@ int32_t is_boolean_expression_node(TREE *node)
   return 0;
 }
 
+/* Puts a condition's statements on the chain at *anchor, and returns the
+   boolean they leave. create_boolean_expression returns a name, true or
+   false as it is: that is the boolean, and not a statement, so it stays off
+   the chain. */
+static TREE *append_condition(TREE **anchor, TREE *nodes)
+{
+  if (nodes->type == T_IDENT) {
+    return nodes;
+  }
+  *anchor = tree_append(*anchor, nodes);
+  return tree_tail(nodes)->left;
+}
+
+/* Whether the jumps on a condition run at performance, as its type says: a b
+   is read at init, and a B, or the #k a boolean ternary leaves when it
+   selects at performance, is not. An element of a b[] read at a k index
+   changes at performance too. A name in global code, which has no
+   performance, takes init jumps. */
+static int32_t condition_is_perf_rate(CSOUND *csound, TREE *source,
+                                      TREE *nodes, TREE *condition,
+                                      TYPE_TABLE *typeTable)
+{
+  if (nodes->type == T_IDENT) {
+    return typeTable->localPool != typeTable->instr0LocalPool &&
+      !boolean_expression_is_init_rate(csound, condition, typeTable);
+  }
+  return !boolean_expression_is_init_rate(csound, condition, typeTable) ||
+    (source->type == T_ARRAY &&
+     tree_has_k_rate_array_index(csound, source, typeTable));
+}
+
 static TREE *create_cond_expression(CSOUND *csound,
                                     TREE *root, int32_t line, uint64_t locn,
                                     TYPE_TABLE* typeTable,
                                     int32_t initContext)
 {
-  TREE *last = NULL;
+  TREE *anchor = NULL, *last = NULL, *condition;
   int32 ln1 = csound->genlabs++, ln2 = csound->genlabs++;
   TREE *L1 = create_synthetic_label(csound, ln1);
   TREE *L2 = create_synthetic_label(csound, ln2);
@@ -384,7 +417,7 @@ static TREE *create_cond_expression(CSOUND *csound,
                                       typeTable, initContext);
   TREE *c = root->right->left, *d = root->right->right;
   char *left, *right;
-  int32_t type;
+  int32_t type, perfRate;
   TREE *xx;
   char *eq;
 
@@ -407,17 +440,19 @@ static TREE *create_cond_expression(CSOUND *csound,
   }
   if (left[0]=='c') left[0] = 'i';
   if (right[0]=='c') right[0] = 'i';
-  last = tree_tail(b);
+  condition = append_condition(&anchor, b);
 
-  if(last->left == NULL) {
+  if(condition == NULL) {
     csound->Message(csound,
                     Str("missing boolean expression in "
                     "conditional expression, line %d\n"), root->line-1);
     return NULL;
   }
+  perfRate = condition_is_perf_rate(csound, root->left, b, condition,
+                                    typeTable);
 
   if (left[0]=='S' || right[0]=='S') {
-    type = (last->left->value->lexeme[1]=='B') ?2 : 1;
+    type = perfRate ? 2 : 1;
     /* Init-time selection must not put string copies in the perf chain. */
     eq = type == 2 ? "#=.S" : "strcpy";
   }
@@ -430,18 +465,22 @@ static TREE *create_cond_expression(CSOUND *csound,
     return NULL;
   }
   else {
+    /* a B value changes at performance, as a k does, but global code has
+       no performance, and selects at init */
     type =
-      (left[0]=='k' || right[0]=='k' || last->left->value->lexeme[1]=='B') ?2 :   1;
+      (left[0]=='k' || right[0]=='k' || perfRate ||
+       ((left[0]=='B' || right[0]=='B') &&
+        typeTable->localPool != typeTable->instr0LocalPool)) ?2 :   1;
     if (type==2) left[0] = right[0] = 'k';
     eq = "=";
   }
 
-  last->next = create_opcode_token(csound, type==1?"cigoto":"ckgoto");
+  last = create_opcode_token(csound, type==1?"cigoto":"ckgoto");
+  anchor = tree_append(anchor, last);
   xx = create_empty_token(csound);
   xx->type = T_IDENT;
-  xx->value = make_token(csound, last->left->value->lexeme, NULL);
+  xx->value = make_token(csound, condition->value->lexeme, NULL);
   xx->value->type = T_IDENT;
-  last = last->next;
   last->left = NULL;
   last->right = xx;
   last->right->next = L1;
@@ -459,8 +498,8 @@ static TREE *create_cond_expression(CSOUND *csound,
     D->left = create_ans_token(csound, right); D->right = d;
     d = D;
   }
-  /* last is the tail of b here; chain via tree_append_at so no node is
-     walked twice */
+  /* last is the tail of the chain here; chain via tree_append_at so no
+     node is walked twice */
   last = tree_append_at(last, d);
   last = tree_append_at(last, create_simple_goto_token(csound, L2, type==2?0:type));
   last = tree_append_at(last, create_synthetic_label(csound, ln1));
@@ -469,7 +508,7 @@ static TREE *create_cond_expression(CSOUND *csound,
   last = tree_append_at(last, create_opcode_token(csound, csoundParserStrdup(csound, eq)));
   last->left = create_ans_token(csound, right);
   last->right = create_ans_token(csound, right);
-  return b;
+  return anchor;
 }
 
 static char* create_out_arg_for_expression(CSOUND* csound, char* op, TREE* left,
@@ -946,6 +985,11 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     csound->Free(csound, outarg);
     return tree_append(anchor, opTree);
   }
+  /* A call, a ternary or an array element is a value too: create_expression
+     computes its arguments before it, as below would not */
+  if (root->type == T_FUNCTION || root->type == '?' || root->type == T_ARRAY) {
+    return create_expression(csound, root, line, locn, typeTable, initContext);
+  }
   /* HANDLE SUB EXPRESSIONS */
   if (is_boolean_expression_node(root->left)) {
     anchor = create_boolean_expression(csound, root->left,
@@ -1035,12 +1079,6 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
 
   if(root->type == FALSEK_TOKEN)
     return create_ans_token(csound, "falsek");
-
-
-  if(root->type == T_FUNCTION) {
-    return create_expression(csound, root, line,
-                             locn, typeTable, initContext);
-  }
 
 
   op = csound->Calloc(csound, 80);
@@ -2037,7 +2075,7 @@ TREE* expand_if_statement(CSOUND* csound,
 
   TREE* left = current->left;
   TREE* right = current->right;
-  TREE* last;
+  TREE* condition;
   TREE* gotoToken;
 
   if (right->type == IGOTO_TOKEN ||
@@ -2053,17 +2091,15 @@ TREE* expand_if_statement(CSOUND* csound,
       return NULL;
     }
 
-    anchor = tree_append(anchor, expressionNodes);
+    condition = append_condition(&anchor, expressionNodes);
 
     /* reconnect into chain */
-    last = tree_tail(expressionNodes);
-
     gotoToken = create_goto_token(csound,
-                                  last->left->value->lexeme,
+                                  condition->value->lexeme,
                                   right,
-                                  last->left->type == 'k' ||
+                                  condition->type == 'k' ||
                                   right->type =='k');
-    last->next = gotoToken;
+    anchor = tree_append(anchor, gotoToken);
     gotoToken->next = current->next;
   }
   else if (LIKELY(right->type == THEN_TOKEN ||
@@ -2100,9 +2136,7 @@ TREE* expand_if_statement(CSOUND* csound,
         return NULL;
       }
 
-      anchor = tree_append(anchor, expressionNodes);
-
-      last = tree_tail(expressionNodes);
+      condition = append_condition(&anchor, expressionNodes);
 
       /* reconnect into chain */
       {
@@ -2119,30 +2153,28 @@ TREE* expand_if_statement(CSOUND* csound,
                   csoundParserStrdup(csound,
                             labelEnd->value->lexeme),
                   typeTable->labelList);
-        // only a #B... temporary's name gives its rate: a variable has a type,
-        // and ithen and global code have only their init jumps to take
-        if (last->type == T_IDENT) {
-          gotoType = tempRight->type != ITHEN_TOKEN &&
-            typeTable->localPool != typeTable->instr0LocalPool &&
-            !boolean_expression_is_init_rate(csound, last, typeTable);
-          gotoToken = create_goto_token(csound,
-            last->value->lexeme,
-            tempRight,
-            gotoType
-          );
-        } else {
-          gotoType = (last->left->value->lexeme[1] == 'B');
-          gotoToken = create_goto_token(csound,
-            last->left->value->lexeme,
-            tempRight,
-            gotoType
-          );
+        // a name in an ithen has only its init jumps to take
+        gotoType = condition_is_perf_rate(csound, tempLeft, expressionNodes,
+                                          condition, typeTable) &&
+          (expressionNodes->type != T_IDENT || tempRight->type != ITHEN_TOKEN);
+        gotoToken = create_goto_token(csound,
+          condition->value->lexeme,
+          tempRight,
+          gotoType
+        );
+        /* cngoto jumps at init on a b, but an element of a b[] read at a k
+           index has no value then: both branches get their init pass, as on
+           a B */
+        if (gotoType && tempRight->type != ITHEN_TOKEN &&
+            boolean_expression_is_init_rate(csound, condition, typeTable)) {
+          gotoToken->value = make_token(csound, "cnkgoto", NULL);
+          gotoToken->value->type = T_OPCALL;
         }
         gotoToken->next = statements;
         anchor = tree_append(anchor, gotoToken);
 
         /* relinking */
-        last = tree_tail(last);
+        last = tree_tail(gotoToken);
 
         if (endLabelCounter > 0) {
           TREE *endLabel = create_synthetic_ident(csound,
@@ -2183,7 +2215,7 @@ TREE* expand_if_statement(CSOUND* csound,
                     right->line);
   }
 
-  return anchor->type == T_IDENT ? anchor->next : anchor;
+  return anchor;
 }
 
 static TREE* create_equality_statement(
@@ -2389,6 +2421,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   TREE* tempRight = current->right;
   TREE* last = NULL;
   TREE* labelEnd;
+  TREE* condition;
   int32_t gotoType;
 
   anchor = create_synthetic_label(csound, topLabelCounter);
@@ -2396,34 +2429,21 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
                                  csoundParserStrdup(csound, anchor->value->lexeme),
                                  typeTable->labelList);
 
-  if (current->left->type == T_IDENT) {
-    last = tree_tail(anchor);
-  } else {
-    int32_t initContext =
-      boolean_expression_is_init_rate(csound, current->left, typeTable);
-    expressionNodes = create_boolean_expression(
-      csound,
-      current->left,
-      current->line,
-      current->locn,
-      typeTable,
-      initContext
-    );
-    if (expressionNodes == NULL) {
-      return NULL;
-    }
-    anchor = tree_append(anchor, expressionNodes);
-    last = tree_tail(anchor);
+  expressionNodes = create_boolean_expression(
+    csound,
+    current->left,
+    current->line,
+    current->locn,
+    typeTable,
+    boolean_expression_is_init_rate(csound, current->left, typeTable)
+  );
+  if (expressionNodes == NULL) {
+    return NULL;
   }
-
-  // only a #B... temporary's name gives its rate: a variable has a type,
-  // and global code has only its init jumps to take
-  if (current->left->type == T_IDENT) {
-    gotoType = typeTable->localPool != typeTable->instr0LocalPool &&
-      !boolean_expression_is_init_rate(csound, current->left, typeTable);
-  } else {
-    gotoType = last->left->value->lexeme[1] == 'B';
-  }
+  condition = append_condition(&anchor, expressionNodes);
+  last = tree_tail(anchor);
+  gotoType = condition_is_perf_rate(csound, current->left, expressionNodes,
+                                    condition, typeTable);
 
   labelEnd = create_synthetic_label(csound, endLabelCounter);
   typeTable->labelList = csoundParserCons(csound,
@@ -2431,9 +2451,7 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
                                  typeTable->labelList);
   gotoToken =
     create_goto_token(csound,
-                      current->left->type == T_IDENT ?
-                        current->left->value->lexeme :
-                        last->left->value->lexeme,
+                      condition->value->lexeme,
                       labelEnd,
                       gotoType+0x8000*dowhile);
   gotoToken->next = tempRight;
