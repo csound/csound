@@ -11,6 +11,26 @@ extern "C" {
     extern void corfile_rm(CSOUND *csound, CORFIL **ff);
 }
 
+/* Engine/memalloc.c's block header: a Debug build defines BETA, which turns
+   MEMDEBUG on. */
+struct TrackedBlock {
+#if defined(BETA) || defined(MEMDEBUG)
+    int32_t magic;
+    void *ptr;
+#endif
+    TrackedBlock *prv, *nxt;
+};
+
+/* The blocks Csound holds until a reset. */
+static size_t trackedBlocks (const CSOUND *csound)
+{
+    size_t n = 0;
+    for (auto *b = static_cast<TrackedBlock *> (csound->memalloc_db); b;
+         b = b->nxt)
+        n++;
+    return n;
+}
+
 class OptionParserTests : public ::testing::Test {
 public:
     OptionParserTests ()
@@ -142,4 +162,15 @@ TEST_F (OptionParserTests, testClusterEndingInADashOrPlusStaysInItsArgument)
     EXPECT_EQ (csound->oparms->displays, 0);
     EXPECT_EQ (csoundSetOption (csound, "-n+"), 0);
     EXPECT_EQ (csound->oparms->sfwrite, 0);
+}
+
+TEST_F (OptionParserTests, testOptionKeepsOnlyTheDecodedArguments)
+{
+    /* One block: argdecode()'s copy of the arguments, which the options it
+       sets point into. */
+    for (const char *option : {"-d", "-d -m0 -n"}) {
+        const size_t before = trackedBlocks (csound);
+        EXPECT_EQ (csoundSetOption (csound, option), 0);
+        EXPECT_EQ (trackedBlocks (csound) - before, 1u) << option;
+    }
 }

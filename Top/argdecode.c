@@ -1862,8 +1862,9 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
 
     ret = argdecode(csound, argn + 1, (const char **)args);
     csoundFree(csound, options);
-    for(i = 1; i < argn; i++) csoundFree(csound, args[i]);
-     csoundFree(csound, args);
+    for (i = 1; i <= argn + 1; i++)
+      csoundFree(csound, args[i]);
+    csoundFree(csound, args);
 
     /* Hosts get the list at once, as before: a request left pending
        would make a later csoundCompile() stop after listing. */
