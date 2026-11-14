@@ -594,13 +594,19 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
   OPARMS *O = csound->oparms;
   int32_t n;
 
-  /* The rc file and the plugins below can stop Csound, which jumps to
-     exitjmp: until the engine has started, this call owns it from here.
-     Once it has, a performance may, and a second call is refused below. */
-  if (!(csound->engineStatus & CS_STATE_COMP)) {
-    if ((n = setjmp(csound->exitjmp)) != 0)
-      return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+  /* A started engine is refused before anything is read: its rc file would
+     set options on it, and exitjmp may be a running performance's. */
+  if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
+    csound->Message(csound,
+                    Str("Csound is already started, call csoundReset()\n"
+                        "before starting again.\n"));
+    return CSOUND_ERROR;
   }
+
+  /* The rc file and the plugins below can stop Csound, which jumps to
+     exitjmp: this call owns it from here. */
+  if ((n = setjmp(csound->exitjmp)) != 0)
+    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
 
   // Always print version, unless this was supressed
   // or already printed
@@ -624,13 +630,6 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
     O->realtime = 0;
   }
 #endif
-
-  if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
-    csound->Message(csound,
-                    Str("Csound is already started, call csoundReset()\n"
-                        "before starting again.\n"));
-    return CSOUND_ERROR;
-  }
 
   { /* test for dummy module request */
     char *s;

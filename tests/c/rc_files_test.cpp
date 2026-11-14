@@ -283,8 +283,10 @@ TEST_F(RcFileTests, AnOptionThatStopsCsoundFailsTheOptionAndTheStart)
   EXPECT_EQ(csoundPerformKsmps(csound), CSOUND_ERROR);
 }
 
-/* A second csoundStart, which reads the file again, is refused, and leaves
- * exitjmp to the performance, which may be running on another thread.
+/* A second csoundStart is refused before it reads anything, and leaves exitjmp
+ * to the performance, which may be running on another thread. It read the rc
+ * file again first, set its options on the running engine, and jumped from
+ * an option there that stops Csound to a performance's frame.
  */
 TEST_F(RcFileTests, ASecondStartLeavesThePerformanceItsJumpTarget)
 {
@@ -294,6 +296,10 @@ TEST_F(RcFileTests, ASecondStartLeavesThePerformanceItsJumpTarget)
   jmp_buf target;
   memcpy(target, csound->exitjmp, sizeof(jmp_buf));
   EXPECT_EQ(csoundStart(csound), CSOUND_ERROR);
+  EXPECT_EQ(memcmp(target, csound->exitjmp, sizeof(jmp_buf)), 0);
+  std::ofstream(root / "here" / ".csound7rc") << "--env:RC_SECOND=1 -o\n";
+  EXPECT_EQ(csoundStart(csound), CSOUND_ERROR);
+  EXPECT_FALSE(took(csound, "RC_SECOND"));
   EXPECT_EQ(memcmp(target, csound->exitjmp, sizeof(jmp_buf)), 0);
   EXPECT_EQ(csoundPerformKsmps(csound), 0);
 }
