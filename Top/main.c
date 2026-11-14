@@ -759,11 +759,14 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
     csound->WaitBarrier(csound->barrier2);
   }
 #endif
-  csound->engineStatus |= CS_STATE_COMP;
+  csound->engineStatus |= CS_STATE_COMP | CS_STATE_STARTING;
   if (csound->oparms->daemon > 1)
     csoundUDPServerStart(csound, csound->oparms->daemon);
 
   allocate_message_queue(csound); /* if de-alloc by reset */
 
-  return start_engine(csound);
+  n = start_engine(csound);
+  if (n == CSOUND_SUCCESS)
+    csound->engineStatus &= ~CS_STATE_STARTING;
+  return n;
 }

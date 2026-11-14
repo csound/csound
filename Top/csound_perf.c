@@ -438,6 +438,9 @@ static int32_t perform_control_period(CSOUND *csound)
                         "has not been called\n"));
     return CSOUND_ERROR;
   }
+  /* nor after a csoundStart() that failed, and said why */
+  if (UNLIKELY(csound->engineStatus & CS_STATE_STARTING))
+    return CSOUND_ERROR;
   if (csound->jumpset == 0) {
     int32_t returnValue;
     csound->jumpset = 1;
@@ -490,6 +493,9 @@ int32_t perform_buffer(CSOUND *csound) {
                         "has not been called\n"));
     return CSOUND_ERROR;
   }
+  /* nor after a csoundStart() that failed, and said why */
+  if (UNLIKELY(csound->engineStatus & CS_STATE_STARTING))
+    return CSOUND_ERROR;
   /* Setup jmp for return after an exit(). */
   if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
     long epoch = ATOMIC_GET(csound->performance_epoch);
