@@ -4,6 +4,7 @@
 #include <sndfile.h>
 #include <fstream>
 #include <iterator>
+#include <regex>
 #include <string>
 #ifdef _WIN32
 #include <process.h>
@@ -375,4 +376,24 @@ TEST_F(CsdCompileTests, FinalCarriageReturnEndsTheRead)
   }()), ::testing::ExitedWithCode(0), "");
 }
 #endif
+
+// A base64 section before <CsInstruments> leaves the orchestra's line numbers
+// as blank lines in its place do: registering its file reset the CSD's count.
+TEST_F(CsdCompileTests, Base64SectionKeepsLineNumbers)
+{
+  const auto lineOfError = [&](const std::string &before) {
+    const auto text = "<CsoundSynthesizer>\n" + before + "<CsInstruments>\n"
+      "instr 1\nprints(\"bad\" \"syntax\")\nendin\n</CsInstruments>\n"
+      "</CsoundSynthesizer>\n";
+    EXPECT_NE(0, csoundCompileCSD(csound, text.c_str(), 1, 0));
+    const auto output = messages();
+    std::smatch line;
+    return std::regex_search(output, line, std::regex("line [0-9]+")) ?
+      line.str() : "no line in: " + output;
+  };
+  const auto plain = lineOfError("\n\n\n");
+  const auto withFile = lineOfError("<CsFileB filename=\"" + path("b64.bin") +
+                                    "\">\naGk=\n</CsFileB>\n");
+  EXPECT_EQ(plain, withFile);
+}
 }

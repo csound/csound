@@ -214,7 +214,6 @@ void remove_tmpfiles(CSOUND *csound)            /* IV - Feb 03 2005 */
 void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
 {                               /* add temporary file to delete list */
     NAMELST *tmp;
-    alloc_globals(csound);
     tmp = (NAMELST*) csound->Malloc(csound, sizeof(NAMELST));
     tmp->name = (char*) csound->Malloc(csound, strlen(name) + 1);
     strcpy(tmp->name, name);
