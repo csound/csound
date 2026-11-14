@@ -364,7 +364,6 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
       case 'B':
       case 'b': /* Set a clock base */
         {
-          char *old_nxp = (csound->sread.nxp)-2;
           if (has_number(csound)) {
             if (csound->sread.op == 'b')
               (csound->sread.clock_base) =
@@ -379,7 +378,8 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             csound->Message(csound,Str("Clockbase = %f\n"),
                             csound->sread.clock_base);
           (csound->sread.op) = getop(csound);
-          (csound->sread.nxp) = old_nxp;
+          /* From bp: a long number grows the text space, which moves */
+          (csound->sread.nxp) = (csound->sread.bp)->text;
           *(csound->sread.nxp)++ =
             (csound->sread.op); /* Undo this line */
           (csound->sread.nxp)++;
@@ -387,7 +387,6 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
         }
       case 'C':                 /* toggle carry */
         {
-          char *old_nxp = (csound->sread.nxp)-2;
           if (has_number(csound)) {
             (csound->sread.nocarry) =
               stof(csound, (csound->sread.sp))==0.0?1:0;
@@ -395,7 +394,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           }
           //printf("nocarry = %d\n", (csound->sread.nocarry));
           (csound->sread.op) = getop(csound);
-          (csound->sread.nxp) = old_nxp;
+          (csound->sread.nxp) = (csound->sread.bp)->text; /* as for b */
           *(csound->sread.nxp)++ =
             (csound->sread.op); /* Undo this line */
           (csound->sread.nxp)++;
@@ -557,7 +556,6 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
         }
       case 'v': /* Suggestion of Bryan Bales */
         {       /* Set local variability of time */
-          char *old_nxp = (csound->sread.nxp)-2;
           if (has_number(csound)) {
             (csound->sread.warp_factor) =
               stof(csound, (csound->sread.sp));
@@ -567,7 +565,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             csound->Message(csound, Str("Warp_factor = %f\n"),
                             (csound->sread.warp_factor));
           (csound->sread.op) = getop(csound);
-          (csound->sread.nxp) = old_nxp;
+          (csound->sread.nxp) = (csound->sread.bp)->text; /* as for b */
           *(csound->sread.nxp)++ =
             (csound->sread.op);          /* Undo this line */
           (csound->sread.nxp)++;

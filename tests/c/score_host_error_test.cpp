@@ -13,7 +13,8 @@ namespace {
 const char *orchestra =
     "sr=48000\nksmps=32\nnchnls=1\n0dbfs=1\n"
     "instr 1\nchnset chnget:i(\"played\") + 1, \"played\"\nendin\n"
-    "instr 2\nchnset readscore(\"}\"), \"read\"\nendin\n";
+    "instr 2\nchnset readscore(\"}\"), \"read\"\nendin\n"
+    "instr 3\nchnset pcount(), \"fields\"\nchnset p(pcount()), \"last\"\nendin\n";
 
 enum Path { BeforeStart, Blocking, Queued };
 const char *pathNames[] = {"BeforeStart", "Blocking", "Queued"};
@@ -633,4 +634,69 @@ TEST_P(CsdScoreErrors, StopTheCompile)
 }
 
 INSTANTIATE_TEST_SUITE_P(Lines, CsdScoreErrors, ::testing::ValuesIn(refused));
+
+/* 200 short notes fill most of the reader's first 16 KB of text. */
+std::string shortNotes(int count = 200)
+{
+    std::string notes;
+    for (int i = 0; i < count; i++)
+        notes += "i 1 0 0\n";
+    return notes;
+}
+
+/* "i 3 0 0", count copies of field, then 7. */
+std::string longNote(int count, const std::string &field = "1")
+{
+    std::string note = "i 3 0 0";
+    for (int i = 0; i < count; i++)
+        note += " " + field;
+    return note + " 7";
+}
+
+void readAll(Host &host, const std::string &score, Path path)
+{
+    host.send(score.c_str(), path);
+    if (path == BeforeStart)
+        host.performToScoreEnd();
+    else
+        host.perform();
+}
+
+/* A b, B, C or v whose number grows the text space goes on from its own
+   statement, not from the space the growth freed. */
+class HostScoreGrowth
+    : public ::testing::TestWithParam<std::tuple<const char *, Path>> {};
+
+TEST_P(HostScoreGrowth, LeavesBCAndVInPlace)
+{
+    const std::string score = shortNotes() + std::get<0>(GetParam()) +
+                              std::string(1000, '0') + "\n" +
+                              longNote(10000, "22");
+    Host host;
+    readAll(host, score, std::get<1>(GetParam()));
+    EXPECT_EQ(200, host.played()) << host.said();
+    EXPECT_EQ(10004, csoundGetControlChannel(host.csound, "fields", nullptr));
+    EXPECT_EQ(7, csoundGetControlChannel(host.csound, "last", nullptr));
+}
+
+INSTANTIATE_TEST_SUITE_P(Numbers, HostScoreGrowth,
+                         ::testing::Combine(::testing::Values("b 0", "B 0",
+                                                              "C 1", "v 1."),
+                                            ::testing::Values(BeforeStart,
+                                                              Blocking, Queued)));
+
+TEST(CsdScores, LeaveBInPlaceWhenTheSpaceGrows)
+{
+    Host host;
+    const std::string csd =
+        std::string("<CsoundSynthesizer>\n<CsInstruments>\n") + orchestra +
+        "</CsInstruments>\n<CsScore>\n" + shortNotes() + "b 0" +
+        std::string(1000, '0') + "\n" + longNote(10000, "22") +
+        "\n</CsScore>\n</CsoundSynthesizer>\n";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(host.csound, csd.c_str(), 1, 0));
+    host.start();
+    host.performToScoreEnd();
+    EXPECT_EQ(200, host.played());
+    EXPECT_EQ(10004, csoundGetControlChannel(host.csound, "fields", nullptr));
+}
 } // namespace
