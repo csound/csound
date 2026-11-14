@@ -464,4 +464,27 @@ TEST_F(CsdCompileTests, UnendedExternalScoreLeavesNoFile)
   }()), ::testing::ExitedWithCode(0), "");
 }
 #endif
+
+#if !defined(_WIN32)
+// An external score before <CsInstruments> leaves the orchestra's line
+// numbers as blank lines in its place do: reading its generated file back
+// counted that file's lines as the CSD's.
+TEST_F(CsdCompileTests, ExternalScoreKeepsLineNumbers)
+{
+  const auto lineOfError = [&](const std::string &before) {
+    const auto text = "<CsoundSynthesizer>\n" + before + "<CsInstruments>\n"
+      "instr 1\nprints(\"bad\" \"syntax\")\nendin\n</CsInstruments>\n"
+      "</CsoundSynthesizer>\n";
+    EXPECT_NE(0, csoundCompileCSD(csound, text.c_str(), 1, 0));
+    const auto output = messages();
+    std::smatch line;
+    return std::regex_search(output, line, std::regex("line [0-9]+")) ?
+      line.str() : "no line in: " + output;
+  };
+  const auto plain = lineOfError("\n\n\n\n");
+  const auto withScore = lineOfError("<CsScore bin=\"cp\">\ni 1 0 1\ni 1 1 1\n"
+                                     "</CsScore>\n");
+  EXPECT_EQ(plain, withScore);
+}
+#endif
 }

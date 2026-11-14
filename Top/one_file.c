@@ -168,9 +168,11 @@ static inline void alloc_globals(CSOUND *csound)
     STA(csdlinecount) = 0;
 }
 
+/* Reads a generated file, not the CSD: its lines are not counted. */
 static char *my_fgets(CSOUND *csound, char *s, int32_t n, FILE *stream)
 {
     char *a = s;
+    IGN(csound);
     if (UNLIKELY(n <= 1)) return NULL;        /* best of a bad deal */
     do {
       int32_t ch = getc(stream);
@@ -180,7 +182,6 @@ static char *my_fgets(CSOUND *csound, char *s, int32_t n, FILE *stream)
         break; /* add NULL even if ferror(), spec says 'indeterminate' */
       }
       if (ch == '\n' || ch == '\r') {   /* end of line ? */
-        ++(STA(csdlinecount));          /* count the lines */
         *(s++) = '\n';                  /* convert */
         if (ch == '\r') {
           ch = getc(stream);
