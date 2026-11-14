@@ -379,7 +379,7 @@ static uintptr_t udp_recv(void *pdata){
           if (csoundGetChannelPtr(csound, (void **) &stringdat, chn,
                                   CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
               == CSOUND_SUCCESS) {
-            size_t size = stringdat->size + strlen(chn) + 2;
+            size_t size = ATOMIC_GET_SIZE(stringdat->size) + strlen(chn) + 2;
             spin_lock_t *lock =
               (spin_lock_t *) get_channel_lock(csound, (char*) chn);
             msg = (char *) csound->Calloc(csound, size);

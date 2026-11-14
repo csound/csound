@@ -303,6 +303,7 @@ static const char *longUsageList[] = {
     Str_noop("                          remove unused generated variable slots"),
     Str_noop("--list-opcodes          list opcodes in this version"),
     Str_noop("--list-opcodesN         list opcodes in style N in this version"),
+    Str_noop("--list-structs          list user-defined types (structs)"),
     Str_noop("--dither                dither output"),
     Str_noop(
         "--dither-triangular     dither output with triangular distribution"),
@@ -1101,6 +1102,9 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strcmp(s, "wave"))) {
     O->filetyp = TYP_WAV; /* WAV output request */
     return 1;
+  } else if (!(strcmp(s, "list-structs"))) {
+    csound->list_structs_request = 1;
+    return 1;
   } else if (!(strncmp(s, "list-opcodes", 12))) {
     int32_t full = 0;
     s += 12;
@@ -1109,10 +1113,9 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
       if (isdigit(*s))
         full = *s++ - '0';
     }
-    csoundLoadDefaultModules(csound);
-    list_opcodes(csound, full);
+    /* listed once all options are decoded, so that --opcode-lib counts */
+    csound->list_opcodes_request = full + 1;
     return 1;
-    // csound->LongJmp(csound, 0);
   }
   /* -Z */
   else if (!(strcmp(s, "dither"))) {
@@ -1688,8 +1691,8 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             if (isdigit(*s))
               full = *s++ - '0';
           }
-          csoundLoadDefaultModules(csound);
-          list_opcodes(csound, full);
+          /* listed once all options are decoded, as --list-opcodes */
+          csound->list_opcodes_request = full + 1;
         }
           csound->info_message_request = 1;
           // csound->LongJmp(csound, 0);
@@ -1802,9 +1805,12 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
 
 
  int32_t csoundSetOption(CSOUND *csound, const char *opt) {
-  /* if already compiled and running, return */
-  if (csound->engineStatus & CS_STATE_COMP)
+  /* if given no string, or already compiled and running, return */
+  if (opt == NULL || (csound->engineStatus & CS_STATE_COMP))
     return 1;
+  /* nothing to set: argdecode() would take "" for an orchestra name */
+  else if (opt[strspn(opt, " ")] == '\0')
+    return 0;
   else {
     char **args;
     char *options, *sp;
@@ -1833,57 +1839,43 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
       end--;
     }
 
-    int32_t flag = 0;
     int32_t quote = 0;
-    /* count whitespaces */
-    while (*sp != '\0') {
-      if(*sp == '"') {
-        quote = quote ? 0 : 1;
-      }
-      if(!quote) {
-      // but not when quoted
-      while (*sp == ' ') {
-        if(flag == 0) {
-          cnt++;
-          flag = 1;
-        }
+    /* end each argument at the spaces after it, but not when quoted */
+    for (; *sp != '\0'; sp++) {
+      if (*sp == '"')
+        quote = !quote;
+      else if (*sp == ' ' && !quote) {
         *sp = '\0';
-        sp++;
+        if (sp[1] != ' ')
+          cnt++;
       }
-      flag = 0;
-      sp++;
-      } else sp++;
     }
     argn = cnt;
     args = (char **)csoundCalloc(csound, sizeof(char *) * (cnt + 2));
     args[0] = "csound";
-    args[1] = sp = options;
-    cnt = 1;
-    flag = 1;
-    quote  = 0;
-    /* split into separate args */
-    while (*cursor && cnt < argn + 2) {
-      if(*cursor == '"') quote = quote ? 0 : 1;
-      if(!quote) {
-        while (*cursor == ' ') {
-          cursor++;
-          sp++;
-          flag = 1;
-        }
-        if(flag) {
-          args[cnt++] = unquote_arg(csound, sp);
-
-        }
-        flag = 0;
-      }
-      sp++;
-      cursor++;
+    sp = options;
+    /* take each argument, then step over the zeros its spaces became */
+    for (cnt = 1; cnt <= argn + 1; cnt++) {
+      args[cnt] = unquote_arg(csound, sp);
+      sp += strlen(sp);
+      while (cnt <= argn && *sp == '\0')
+        sp++;
     }
 
     ret = argdecode(csound, argn + 1, (const char **)args);
     csoundFree(csound, options);
     for(i = 1; i < argn; i++) csoundFree(csound, args[i]);
      csoundFree(csound, args);
+
+    /* Hosts get the list at once, as before: a request left pending
+       would make a later csoundCompile() stop after listing. */
+    if (csound->list_opcodes_request) {
+      int32_t level = csound->list_opcodes_request - 1;
+      csound->list_opcodes_request = 0;
+      if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
+        return 1;
+      list_opcodes(csound, level);
+    }
 
     return ret ? 0 : 1;
   }

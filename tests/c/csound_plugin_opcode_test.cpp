@@ -7,13 +7,23 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <filesystem>
+#include <fstream>
+#include <random>
 #include <string>
+#include <vector>
 #include "gtest/gtest.h"
 #include "csound.h"
 #include "csdl.h"
 
 #ifdef CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN
 #include "requested_opcode_plugin_path.hpp"
+#include "failing_init_plugin_path.hpp"
+#endif
+
+#ifdef CSOUND_TEST_HAS_TWO_COPIES
+#include <unistd.h>
+#include "two_copies.hpp"
 #endif
 
 
@@ -136,6 +146,202 @@ TEST_F(PluginTests, testMissingOpcodeLibFailsOrchestraChecks)
   ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, option.c_str()));
   ASSERT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, instrument, 0));
 }
+
+namespace {
+const char *kRequestedOpcode = "requested_opcode_fixture";
+const char *kOpcodeLibOption =
+    "--opcode-lib=" CSOUND_TEST_REQUESTED_OPCODE_PLUGIN;
+
+std::string drainMessages(CSOUND *csound) {
+  std::string result;
+  while (csoundGetMessageCnt(csound)) {
+    result += csoundGetFirstMessage(csound);
+    csoundPopFirstMessage(csound);
+  }
+  return result;
+}
+
+struct OpcodeListing {
+  int32_t status;
+  std::string text;
+};
+
+OpcodeListing compileWithArgs(std::vector<const char *> args) {
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  csoundCreateMessageBuffer(csound, 0);
+  args.insert(args.begin(), "csound");
+  const int32_t status =
+      csoundCompile(csound, (int32_t) args.size(), args.data());
+  OpcodeListing listing{status, drainMessages(csound)};
+  csoundDestroy(csound);
+  return listing;
+}
+
+void expectListsRequestedOpcode(std::vector<const char *> args) {
+  const OpcodeListing listing = compileWithArgs(args);
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_NE(listing.text.find(kRequestedOpcode), std::string::npos)
+      << listing.text;
+  EXPECT_NE(listing.text.find(" opcodes\n"), std::string::npos)
+      << listing.text;
+}
+
+class TempCsd {
+public:
+  explicit TempCsd(const std::string &options) {
+    path_ = (std::filesystem::temp_directory_path() /
+             ("csound_list_opcodes_" + std::to_string(std::random_device{}()) +
+              ".csd")).string();
+    std::ofstream file(path_);
+    file << "<CsoundSynthesizer>\n<CsOptions>\n" << options
+         << "\n</CsOptions>\n<CsInstruments>\n"
+            "instr 1\n  prints \"performed\\n\"\nendin\n"
+            "schedule 1, 0, 0\n"
+            "</CsInstruments>\n</CsoundSynthesizer>\n";
+  }
+  ~TempCsd() { std::filesystem::remove(path_); }
+  const char *path() const { return path_.c_str(); }
+private:
+  std::string path_;
+};
+} // namespace
+
+TEST(ListOpcodes, IncludesOpcodeLibGivenAfterTheOption) {
+  expectListsRequestedOpcode({"--list-opcodes1", kOpcodeLibOption});
+}
+
+TEST(ListOpcodes, IncludesOpcodeLibGivenBeforeTheOption) {
+  expectListsRequestedOpcode({kOpcodeLibOption, "--list-opcodes1"});
+}
+
+TEST(ListOpcodes, ShortOptionIncludesOpcodeLib) {
+  expectListsRequestedOpcode({"-z1", kOpcodeLibOption});
+}
+
+TEST(ListOpcodes, DefaultStyleIncludesOpcodeLib) {
+  expectListsRequestedOpcode({"--list-opcodes", kOpcodeLibOption});
+}
+
+TEST(ListOpcodes, OptionsInCsdIncludeOpcodeLibAndStopBeforeCompiling) {
+  const TempCsd csd(std::string(kOpcodeLibOption) + " --list-opcodes1");
+  const OpcodeListing listing = compileWithArgs({"-n", csd.path()});
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_NE(listing.text.find(kRequestedOpcode), std::string::npos)
+      << listing.text;
+  EXPECT_EQ(listing.text.find("performed"), std::string::npos)
+      << listing.text;
+}
+
+TEST(ListOpcodes, ListsOpcodesAndStructsInOneCall) {
+  const OpcodeListing listing = compileWithArgs(
+      {"--list-structs", "--list-opcodes1", kOpcodeLibOption});
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_NE(listing.text.find(kRequestedOpcode), std::string::npos)
+      << listing.text;
+  const size_t opcodes = listing.text.find(" opcodes\n");
+  const size_t structs = listing.text.find(" structs\n");
+  ASSERT_NE(opcodes, std::string::npos) << listing.text;
+  ASSERT_NE(structs, std::string::npos) << listing.text;
+  EXPECT_LT(opcodes, structs) << listing.text;
+}
+
+TEST(ListOpcodes, SetOptionListsAtOnceAndLeavesCompileRunning) {
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  csoundCreateMessageBuffer(csound, 0);
+  ASSERT_EQ(csoundSetOption(csound, kOpcodeLibOption), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundSetOption(csound, "--list-opcodes1"), CSOUND_SUCCESS);
+  const std::string listing = drainMessages(csound);
+  EXPECT_NE(listing.find(kRequestedOpcode), std::string::npos) << listing;
+
+  const TempCsd csd("");
+  const char *args[] = {"csound", "-n", csd.path()};
+  EXPECT_EQ(csoundCompile(csound, 3, args), CSOUND_SUCCESS)
+      << drainMessages(csound);
+  csoundDestroy(csound);
+}
+
+namespace {
+const char *kFailingInitOption =
+    "--opcode-lib=" CSOUND_TEST_FAILING_INIT_PLUGIN;
+} // namespace
+
+TEST(ListOpcodes, SetOptionReportsPluginThatFailsToStart) {
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  csoundCreateMessageBuffer(csound, 0);
+  ASSERT_EQ(csoundSetOption(csound, kFailingInitOption), CSOUND_SUCCESS);
+  EXPECT_NE(csoundSetOption(csound, "--list-opcodes1"), CSOUND_SUCCESS);
+  const std::string listing = drainMessages(csound);
+  EXPECT_NE(listing.find("Error starting module"), std::string::npos)
+      << listing;
+  EXPECT_EQ(listing.find(" opcodes\n"), std::string::npos) << listing;
+  csoundDestroy(csound);
+}
+
+TEST(ListOpcodes, CompileReportsPluginThatFailsToStart) {
+  const OpcodeListing listing =
+      compileWithArgs({"--list-opcodes1", kFailingInitOption});
+  EXPECT_NE(listing.status, CSOUND_SUCCESS) << listing.text;
+  EXPECT_NE(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_EQ(listing.text.find(" opcodes\n"), std::string::npos)
+      << listing.text;
+}
+
+#ifdef CSOUND_TEST_HAS_TWO_COPIES
+// One plugin in two directories, as a build tree beside an installed Csound
+// has it. Csound loads both, and they share the instance's variables. Each
+// run is a process of its own, because a double free ends it.
+class TwoCopiesOfAPlugin : public ::testing::TestWithParam<const char *> {
+protected:
+  std::string directory(const char *copy) const {
+    return std::string(CSOUND_TEST_TWO_COPIES_DIR "/") + GetParam() + "/" + copy;
+  }
+
+  void expectCleanRun(const std::vector<std::string> &options) {
+    EXPECT_EXIT(
+        {
+          CSOUND *csound = csoundCreate(nullptr, nullptr);
+          csoundCreateMessageBuffer(csound, 0);
+          csoundSetOption(csound, "-n");
+          for (const std::string &option : options)
+            csoundSetOption(csound, option.c_str());
+          const int32_t status =
+              csoundCompileOrc(csound, "instr 1\nendin\n", 0);
+          const std::string messages = drainMessages(csound);
+          csoundDestroy(csound);
+          if (status != CSOUND_SUCCESS ||
+              messages.find("pre-initialisation") != std::string::npos) {
+            fputs(messages.c_str(), stderr);
+            _exit(1);
+          }
+          _exit(0);
+        },
+        ::testing::ExitedWithCode(0), "");
+  }
+
+  static std::string searchPath(const std::string &path) {
+    return (sizeof(cs_float) == sizeof(float)
+        ? "--env:OPCODE7DIR=" : "--env:OPCODE7DIR64=") + path;
+  }
+};
+
+TEST_P(TwoCopiesOfAPlugin, OnTheSearchPath) {
+  expectCleanRun({searchPath(directory("first") + ":" + directory("second"))});
+}
+
+TEST_P(TwoCopiesOfAPlugin, ThroughOpcodeDir) {
+  expectCleanRun({searchPath(directory("first")),
+                  "--opcode-dir=" + directory("second")});
+}
+
+TEST_P(TwoCopiesOfAPlugin, ThroughOpcodeLib) {
+  expectCleanRun({searchPath(directory("first")),
+                  "--opcode-lib=" + directory("second") + "/lib" + GetParam() +
+                      ".so"});
+}
+
+INSTANTIATE_TEST_SUITE_P(Modules, TwoCopiesOfAPlugin,
+                         ::testing::Values(CSOUND_TEST_TWO_COPY_PLUGINS));
+#endif
 #endif
 
 #include "plugin.h"

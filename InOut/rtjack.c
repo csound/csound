@@ -1171,6 +1171,9 @@ typedef struct RtJackMIDIGlobals_ {
     if (UNLIKELY(O->msglevel & 0x400))
       csound->Message(csound, "%s",
                       Str("JACK real-time audio module for Csound\n"));
+    /* A second copy of this module shares the first one's globals. */
+    if (csound->QueryGlobalVariable(csound, "_rtjackGlobals") != NULL)
+      return 0;
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_rtjackGlobals",
                                               sizeof(RtJackGlobals)) != 0)) {
       csound->ErrorMsg(csound, "%s", Str(" *** rtjack: error allocating globals"));

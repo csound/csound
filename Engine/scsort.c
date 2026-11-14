@@ -40,7 +40,7 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
       first = 1;
       sco = csound->scstr = corfile_create_w(csound);
     }
-    else sco = corfile_create_w(csound);
+    else sco = csound->sread.sorted = corfile_create_w(csound);
     csound->sectcnt = 0;
     sread_initstr(csound, scin);
 
@@ -74,6 +74,7 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
     else {
       char *str = csoundStrdup(csound,sco->body);
       //printf("body >>%s<<\n", str);
+      csound->sread.sorted = NULL;
       corfile_rm(csound, &(sco));
       return str;
     }

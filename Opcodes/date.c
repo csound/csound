@@ -25,6 +25,7 @@
 #else
 #include "csoundCore.h"
 #endif
+#include "strarg2name.h"
 #include <time.h>
 #include <limits.h>
 
@@ -172,12 +173,13 @@ static int32_t readf_init_(CSOUND *csound, READF *p, int32_t isstring)
 {
     char name[1024];
     if (isstring) {
-      strncpy(name, ((STRINGDAT *)p->Sfile)->data, 1023);
-      name[1023] = '\0';
+      strname_bounded(csound, name, sizeof(name), ((STRINGDAT *)p->Sfile)->data);
     }
-    else csound->StringArg2Name(csound, name, p->Sfile, "input.", 0);
+    else strarg2name_bounded(csound, name, sizeof(name), p->Sfile, "input.", 0);
     readf_delete(csound, p);
-    p->fd = fopen(name, "r");
+    /* An empty name is a failed open: wasi-libc opens "" as a directory,
+       which would succeed here and fail only at the first read. */
+    p->fd = name[0] != '\0' ? fopen(name, "r") : NULL;
     p->lineno = 0;
     p->init_pass = p->h.insdshead->init_pass;
     if (p->Sline->size < MAXLINE) {

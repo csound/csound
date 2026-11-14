@@ -1588,13 +1588,19 @@ struct CSOUND_ {
   /** @name Private Data
       Private Data in the CSOUND struct to be used internally by the Csound
       library and should be hidden from plugins.
-      If a new variable member is needed by the library, add it below, as a
-      private data member. If access is required solely by plugins (and not
-      internally by the library), use the CreateGlobalVariable() etc. interface,
-      instead of adding to CSOUND.
+      Within a released major version, preserve the type, size, alignment,
+      order, and offset of every existing private member. Rearranging these
+      fields breaks the ABI even though plugins should not access them.
+      Append new private members only at the end of the entire private data
+      section, after all existing fields, not at the end of a topic group.
+      See docs/ABI_API_COMPATIBILITY.md for the compatibility rules.
+
+      If access is required solely by plugins (and not internally by the
+      library), use the CreateGlobalVariable() etc. interface, instead of
+      adding to CSOUND.
 
       If you find that a plugin needs to access existing private data,
-      first check above for an existing interface; if none is available,
+      first check above for an existing interface. If none is available,
       add one. Please avoid giving full access, or allowing plugins to
       change the values of private members, by using one of the two methods
       below:
@@ -1879,8 +1885,6 @@ struct CSOUND_ {
   spin_lock_t rt_event_spinlock;                             /* realtime event registry spinlock */
   spin_lock_t diskin2_async_lock;                            /* diskin2 asynchronous read lock */
   spin_lock_t osc_spinlock;                                  /* OSC message spinlock */
-  spin_lock_t channel_spinlock;                              /* channel registry spinlock */
-  spin_lock_t line_event_spinlock;                           /* line-event buffer spinlock */
   int32_t realtime_locks_initialized;                        /* realtime locks initialised flag */
 
   /* -------- Threads, parallel execution and DAG -------- */
@@ -1972,6 +1976,14 @@ struct CSOUND_ {
   volatile long msg_queue_status;                           /* the last async request's, csoundGetAsyncStatus */
   INSTRTXT **instr0_waiting;                                /* managed queue of globals awaiting init, oldest first */
   int32_t instr0_waiting_count;                             /* pending entries in instr0_waiting */
+  uint64_t csoundCallbackSerial;                            /* serial of the last callback registered */
+  spin_lock_t channel_spinlock;                              /* channel registry spinlock */
+  spin_lock_t line_event_spinlock;                           /* line-event buffer spinlock */
+  MARKED_SECTIONS marked_sections[1024];                     /* the score's marks, 1024 at most */
+  char *line_event_work;                                     /* the lines sense_line takes, its alone */
+  int32_t line_event_work_size;                              /* allocated size of line_event_work */
+  int32_t list_structs_request;                              /* --list-structs requested */
+  int32_t list_opcodes_request;                              /* --list-opcodesN or -zN requested: N + 1 */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

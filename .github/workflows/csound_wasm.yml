@@ -127,7 +127,8 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME"
           cd $wasm_browser_dir
           npm ci
-          npm link --no-save --package-lock=false --ignore-scripts ..
+          # Keep locked dependency versions when linking the freshly built WASM.
+          npm link --no-save --ignore-scripts ..
           npm run test:closure
           npm run test:fixtures
           npm run build:tools

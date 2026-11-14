@@ -1010,6 +1010,7 @@ TEST_F (ServerTests, SockrecvKRebindsPortAfterDeinit) {
 }
 
 
+#ifdef HAVE_SOCKETS
 class UdpConsoleTests : public ::testing::TestWithParam<bool> {
 protected:
     void SetUp() override
@@ -1072,7 +1073,7 @@ protected:
                        &timeout) <= 0)
                 break;
             std::array<char, 65536> packet;
-            const int size = recv(receiver, packet.data(),
+            const auto size = recv(receiver, packet.data(),
                                   static_cast<int>(packet.size()), 0);
             EXPECT_GE(size, 1);
             if (size < 1)
@@ -1152,6 +1153,12 @@ TEST_P(UdpConsoleTests, ReportsMessagesTooLargeForOneDatagram)
     csoundMessage(csound, "%s", text.c_str());
     EXPECT_EQ(receive(diagnostic.size()), diagnostic);
     ASSERT_EQ(packets.size(), 1);
+    fd_set ready;
+    FD_ZERO(&ready);
+    FD_SET(receiver, &ready);
+    timeval quiet = {0, 100000};
+    EXPECT_EQ(select(static_cast<int>(receiver) + 1, &ready, nullptr, nullptr,
+                     &quiet), 0);
     if (GetParam()) {
         ASSERT_EQ(csoundGetMessageCnt(csound), 1);
         EXPECT_STREQ(csoundGetFirstMessage(csound), text.c_str());
@@ -1178,3 +1185,4 @@ TEST_P(UdpConsoleTests, KeepsCStringSemanticsForEmbeddedNuls)
 }
 
 INSTANTIATE_TEST_SUITE_P(RedirectAndMirror, UdpConsoleTests, ::testing::Bool());
+#endif // HAVE_SOCKETS

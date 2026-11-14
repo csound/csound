@@ -746,7 +746,6 @@ if(APPLE)
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 
-if(CS_OPCODE_DIR STREQUAL "")
 if(APPLE)
     if(BUILD_INSTALLER)
        	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
@@ -754,12 +753,7 @@ if(APPLE)
         get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
     endif()
 
-    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
     set(DEFAULT_OPCODEDIR "${CS_FRAMEWORK_FULL_PATH}")
-endif()
-else()
-   add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_OPCODE_DIR}\"")
-   set(DEFAULT_OPCODEDIR "${CS_OPCODE_DIR}")
 endif()
 
 
@@ -773,7 +767,6 @@ endif()
 
 if(LINUX)
     set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
-    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
     # dir relative to $HOME
     if(USE_DOUBLE)
         set(DEFAULT_USER_PLUGINDIR ".local/lib/csound/${APIVERSION}/plugins64")
@@ -791,6 +784,16 @@ if(WIN32)
         set(DEFAULT_USER_PLUGINDIR "csound/${APIVERSION}/plugin")
     endif()
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
+endif()
+
+if("${DEFAULT_OPCODEDIR}" STREQUAL "")
+    set(DEFAULT_OPCODEDIR "${CS_OPCODE_DIR}")
+elseif(NOT "${CS_OPCODE_DIR}" STREQUAL "")
+    set(DEFAULT_OPCODEDIR "${CS_OPCODE_DIR}:${DEFAULT_OPCODEDIR}")
+endif()
+
+if(NOT "${DEFAULT_OPCODEDIR}" STREQUAL "")
+    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
 endif()
 
 if(APPLE OR LINUX)
@@ -1510,6 +1513,11 @@ set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.lex)
 set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c
     PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough -Wno-misleading-indentation")
+# Flex 2.6.5's generated input routine narrows a size to int.
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set_property(SOURCE ${LEX_OUT} APPEND_STRING PROPERTY COMPILE_FLAGS
+        " -Wno-shorten-64-to-32")
+endif()
 
 set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
 set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
@@ -1609,6 +1617,12 @@ endif()
 
 set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
 set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
+
+# Flex emits an unused fatal handler when YY_FATAL_ERROR is overridden.
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    set_source_files_properties(${PRELEX_SCOOUT}
+        PROPERTIES COMPILE_FLAGS "-Wno-unused-function")
+endif()
 
 ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c")
 ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")

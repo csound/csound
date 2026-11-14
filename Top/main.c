@@ -57,7 +57,10 @@ void check_options(CSOUND *csound) {
   char *s = NULL;
   /* IV - Feb 17 2005 */
   csrcname = csoundGetEnv(csound, "CSOUND7RC");
-  if (csrcname != NULL && csrcname[0] != '\0') {
+  /* set but empty: no rc file at all, the working directory's included */
+  if (csrcname != NULL && csrcname[0] == '\0')
+    return;
+  if (csrcname != NULL) {
     fd = csound->FileOpen(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
                           CSFTYPE_OPTIONS, 0);
     if (UNLIKELY(fd == NULL)) {
@@ -154,6 +157,19 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
         break;
     }
   }
+}
+
+/* List only after decoding options, so every plugin option can take effect. */
+static void list_if_requested(CSOUND *csound) {
+  if (LIKELY(!csound->list_opcodes_request && !csound->list_structs_request))
+    return;
+  if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
+    csound->LongJmp(csound, 1);
+  if (csound->list_opcodes_request)
+    list_opcodes(csound, csound->list_opcodes_request - 1);
+  if (csound->list_structs_request)
+    list_structs(csound);
+  csound->LongJmp(csound, 0);
 }
 
 int32_t csoundSetCommandLineArgs(CSOUND *csound, int32_t argc,
@@ -258,6 +274,7 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
     csound->Free(csound, csound->delayederrormessages);
     csound->delayederrormessages = NULL;
   }
+  list_if_requested(csound);
 
   /* check for CSD file */
   if (csound->orchname == NULL) {
@@ -311,6 +328,7 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   /* this assumes that argdecode is safe to run multiple times */
   csound->orcname_mode = 1;      /* ignore orc/sco name */
   argdecode(csound, argc, argv); /* should not fail this time */
+  list_if_requested(csound); /* requested in <CsOptions> */
   if(csound->print_version == 1) {
      print_csound_version(csound);
   }

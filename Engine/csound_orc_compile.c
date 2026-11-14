@@ -92,6 +92,13 @@ static int32_t variable_has_perf_type(const CS_VARIABLE *variable) {
          subtype == &CS_VAR_TYPE_W || subtype == &CS_VAR_TYPE_F;
 }
 
+/* What the compiler puts where a boolean meets a number has a performance pass
+   for a UDO that runs at performance. It is no reason for one to. */
+static int32_t udo_entry_is_boolean_conversion(const OENTRY *entry) {
+  return !strncmp(entry->opname, "##b2", 4) ||
+         !strncmp(entry->opname, "##k2", 4);
+}
+
 static int32_t udo_pool_has_perf_types(const CS_VAR_POOL *pool) {
   const CS_VARIABLE *variable = pool != NULL ? pool->head : NULL;
 
@@ -131,7 +138,8 @@ static int32_t udo_has_intrinsic_perf(CSOUND *csound, INSTRTXT *ip,
     if (udo_called_definition(ttp->oentry) != NULL) {
       continue;
     }
-    if (udo_entry_is_init_control(csound, ip, ttp)) {
+    if (udo_entry_is_init_control(csound, ip, ttp) ||
+        udo_entry_is_boolean_conversion(ttp->oentry)) {
       continue;
     }
     if (ttp->oentry->perf != NULL) {

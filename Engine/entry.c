@@ -153,6 +153,17 @@ const OENTRY opcodlst_1[] = {
   { "=.kB",    S(ASSIGN),0,       "k", "B", NULL, (SUBR) b2s, NULL, NULL  },
   { "i",    S(ASSIGN),0,       "i", "b", (SUBR) b2i, NULL, NULL, NULL  },
   { "k",    S(ASSIGN),0,       "k", "B", NULL, (SUBR) b2s, NULL, NULL  },
+  /* What the compiler converts with where a boolean meets a number, in both
+     passes: a k variable has a value at init too, and a global b can change
+     while an opcode reads it at performance. */
+  { "##b2k",  S(ASSIGN),0,     "k", "B", (SUBR) b2s, (SUBR) b2s, NULL, NULL  },
+  { "##b2i",  S(ASSIGN),0,     "i", "b", (SUBR) b2i, (SUBR) b2i, NULL, NULL  },
+  { "##k2B",  S(RELAT),0,      "B", "k", (SUBR) bassign, (SUBR) bassign, NULL, NULL  },
+  { "##k2b",  S(RELAT),0,      "b", "k", (SUBR) bassign, (SUBR) bassign, NULL, NULL  },
+  /* A k given to a UDO's B parameter: the B and the truth it went in with,
+     and after the call, the k takes the B if the UDO changed it. */
+  { "##k2Bref", S(AOP),0,      "Bk", "k", (SUBR) k2B_ref, (SUBR) k2B_ref, NULL, NULL  },
+  { "##Bback", S(AOP),0,       "k", "Bk", (SUBR) B2k_back, (SUBR) B2k_back, NULL, NULL  },
   { "=.k",    S(ASSIGNM),0,        "zzzzzzzzzzzzzzzzzzzzzzzz", "z",
     NULL, (SUBR)minit, NULL, NULL },
   { "=.a",    S(ASSIGN),0,         "a",    "a",    NULL, gaassign, NULL },
@@ -1026,6 +1037,7 @@ const OENTRY opcodlst_1[] = {
      compatibility */
   { "i.kk",   S(STOREI),0,         "k",    "k",   (SUBR) storei, (SUBR) retrievek },
   { "k.i",   S(ASSIGN),0,         "k",    "i",    (SUBR)assign            },
+  { "k.k",   S(ASSIGN),0,         "k",    "k",    (SUBR)assign, (SUBR)assign  },
   { "k.a",   S(DOWNSAMP),0,       "k",    "ao",   (SUBR)downset,(SUBR)downsamp },
   { "=",     S(ASSIGN),0,         "a",    "i",    NULL,    ainit         },
   { "cpsoct.i",S(EVAL),0,         "i",    "i",    cpsoct                  },
@@ -1215,6 +1227,8 @@ const OENTRY opcodlst_1[] = {
   { "tonex.k",S(TONEX),0,         "a",    "akoo", tonsetx,  tonex   },
   { "atone.k",  S(TONE),0,        "a",    "ako",  tonset,   atone   },
   { "atonex.k", S(TONEX),0,       "a",    "akoo", tonsetx,  atonex  },
+  { "tonela.k", S(TONELA),0,      "a",    "ako",  tonelaset, tonela  },
+  { "atonela.k",S(TONELA),0,      "a",    "ako",  tonelaset, atonela },
   { "reson", S(RESON),   0,       "a",    "axxoo", rsnset,  reson   },
   { "resonx", S(RESONX),0,        "a",    "axxooo", rsnsetx, resonx },
   { "areson.kk", S(RESON),0,      "a",    "akkoo",rsnset,   areson  },
@@ -1463,7 +1477,7 @@ const OENTRY opcodlst_1[] = {
   { "filepeak.i", S(SNDINFOPEAK),0,  "i",   "io",   filepeak, NULL, NULL       },
   { "filevalid.i", S(FILEVALID),0,   "i",   "i",    filevalid, NULL, NULL      },
   { "filevalid.k", S(FILEVALID),0,    "k",   "S",    NULL, filevalid_S, NULL    },
-  { "filevalid.k", S(FILEVALID),0,    "k",   "i",    NULL, filevalid, NULL    },
+  { "filevalid.k", S(FILEVALID),0,    "k",   "i",    filevalid_k_set, filevalid_k, NULL    },
   /*  { "nlalp", S(NLALP),0,          "a",  "akkoo", nlalp_set, nlalp }, */
   CSOUND_DEPRECATED_OPCODE("ptableiw", "tablew", LEGACY, "Retained for compatibility; put new behavior in the supported replacement.")
   { "ptableiw",  S(TABLEW),TW|_QQ,  "", "iiiooo", (SUBR)tablew_init, NULL, NULL},

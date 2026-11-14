@@ -81,3 +81,24 @@ endin
 Registered types also support normal orchestra `init` constructors, member
 access, copies and arrays. Existing `jsonmarshal` and `jsonunmarshal` opcodes
 work with them like any other UDT.
+
+## List the registered types
+
+`csound --list-structs` loads the plugins and prints each user-defined type in
+orchestra syntax, so tools such as editors can find types and their members:
+
+```text
+struct NoteTuplet inote:i, ivelocity:i
+
+1 structs
+```
+
+Like `--list-opcodes`, it works without an orchestra. Structs declared in a file
+are not listed, and the option stops before compiling or performing any file.
+Plugin options such as `--opcode-dir` and `--opcode-lib` apply wherever they
+appear on the command line, and also when they come from `CSOUND7RC` or
+`.csound7rc`.
+
+`--list-opcodes` (and `-z`) follows the same rules, so the opcodes of a library
+given with `--opcode-lib` are listed too. Both options can be given in one call:
+the opcodes are printed first, then the structs.

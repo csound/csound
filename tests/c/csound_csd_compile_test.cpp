@@ -38,9 +38,10 @@ protected:
     if (!directory.empty()) std::filesystem::remove_all(directory);
   }
 
-  std::string csd(const std::string &orchestra = "instr 1\nendin\n")
+  std::string csd(const std::string &orchestra = "instr 1\nendin\n",
+                  const std::string &options = "")
   {
-    return "<CsoundSynthesizer>\n<CsInstruments>\n"
+    return "<CsoundSynthesizer>\n" + options + "<CsInstruments>\n"
       "sr=44100\nksmps=32\nnchnls=1\n" + orchestra +
       "</CsInstruments>\n<CsScore>\ne\n</CsScore>\n</CsoundSynthesizer>\n";
   }
@@ -71,6 +72,10 @@ protected:
 
   const std::string invalidOrchestra =
     "instr 1\nprints(\"bad\" \"syntax\")\nendin\n";
+
+  // The orchestra in csd() says ksmps=32.
+  const std::string withKsmps16 =
+    csd("instr 1\nendin\n", "<CsOptions>\n--ksmps=16\n</CsOptions>\n");
 };
 
 TEST_F(CsdCompileTests, FileOrchestraErrorNamesCsd)
@@ -143,5 +148,77 @@ TEST_F(CsdCompileTests, FileThenFileUsesNewName)
             output.find("from file " + path("second.csd"))) << output;
   EXPECT_EQ(std::string::npos, output.find(path("first.csd"))) << output;
   EXPECT_EQ(std::string::npos, output.find("*string*")) << output;
+}
+
+TEST_F(CsdCompileTests, EmptyOptionLeavesFileNameToTheCsd)
+{
+  ASSERT_NO_FATAL_FAILURE(write("piece.csd", csd()));
+  ASSERT_EQ(0, csoundSetOption(csound, ""));
+  const auto file = path("piece.csd");
+  const char *arguments[] = {"csound", file.c_str()};
+  EXPECT_EQ(CSOUND_SUCCESS, csoundCompile(csound, 2, arguments)) << messages();
+}
+
+TEST_F(CsdCompileTests, CsOptionsAreTakenByDefault)
+{
+  ASSERT_EQ(0, csoundCompileCSD(csound, withKsmps16.c_str(), 1, 0))
+    << messages();
+  EXPECT_EQ(16u, csoundGetKsmps(csound));
+}
+
+TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInText)
+{
+  ASSERT_EQ(0, csoundSetOption(csound, "-+ignore_csopts=1"));
+  ASSERT_EQ(0, csoundCompileCSD(csound, withKsmps16.c_str(), 1, 0))
+    << messages();
+  EXPECT_EQ(32u, csoundGetKsmps(csound));
+}
+
+// On a started engine csoundCompileCSD skips <CsOptions>, by the rules that read it.
+TEST_F(CsdCompileTests, TagsInACommentDoNotEndCsOptionsOnAStartedEngine)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const auto text = csd("instr 1\nendin\n",
+                        "<CsOptions>\n--ksmps=16 /* a comment\n</CsOptions>\n"
+                        "</CsoundSynthesizer>\n*/\n</CsOptions>\n");
+  EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
+}
+
+TEST_F(CsdCompileTests, UnterminatedCommentFailsOnAStartedEngine)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const auto text = csd("instr 1\nendin\n", "<CsOptions>\n/* never closed\n</CsOptions>\n");
+  EXPECT_NE(0, csoundCompileCSD(csound, text.c_str(), 1, 0));
+  const auto output = messages();
+  EXPECT_NE(std::string::npos, output.find("Missing end tag </CsOptions>")) << output;
+}
+
+TEST_F(CsdCompileTests, CommentClosedAcrossAChunkEndsOnAStartedEngine)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const auto text = csd("instr 1\nendin\n",
+                        "<CsOptions>\n/* a comment\n</CsOptions>\n"
+                        "</CsoundSynthesizer>\n" + std::string(4094, 'x') +
+                        "*/\n</CsOptions>\n");
+  EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
+}
+
+TEST_F(CsdCompileTests, CommentAfterALongCommentOpensOnAStartedEngine)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const auto text = csd("instr 1\nendin\n",
+                        "<CsOptions>\n/* " + std::string(4200, 'x') + "\n*/\n"
+                        "/* the second\n</CsOptions>\n</CsoundSynthesizer>\n*/\n"
+                        "</CsOptions>\n");
+  EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
+}
+
+TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInFile)
+{
+  ASSERT_NO_FATAL_FAILURE(write("options.csd", withKsmps16));
+  ASSERT_EQ(0, csoundSetOption(csound, "-+ignore_csopts=1"));
+  ASSERT_EQ(0, csoundCompileCSD(csound, path("options.csd").c_str(), 0, 0))
+    << messages();
+  EXPECT_EQ(32u, csoundGetKsmps(csound));
 }
 }

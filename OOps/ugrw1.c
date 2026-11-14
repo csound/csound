@@ -490,17 +490,23 @@ int32_t printksset(CSOUND *csound, PRINTKS *p){
  */
 static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t numVals)
 {
-    char tmp[8],cc;
+    char tmp[64],cc;
     int32_t j = 0;
+    /* What every caller's buffer holds, the terminator included. A conversion
+       too long for tmp is an error, and so is anything that starts when the
+       buffer is already full; a conversion's own output is cut to fit, as
+       snprintf has always done. */
     int32_t len = 8192;
     while (*fmt) {
       if (*fmt == '%') {
         if (*(fmt+1) == '%') {
+          if (UNLIKELY(len < 2)) return NOTOK;
           *outstring++ = *fmt++;
           /* *outstring++ = */ fmt++;
           len-=1;
         }
         else if (*(fmt+1) && isspace(*(fmt+1))) {
+          if (UNLIKELY(len < 4)) return NOTOK;
           *outstring++ = *fmt++;
           *outstring++ = '%';
           *outstring++ = *fmt++;
@@ -508,17 +514,20 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
         }
         else {
           int32_t n = 1;
+          int32_t written;
           char check='%';
+          if (UNLIKELY(len < 2)) return NOTOK;
           tmp[0] = check;
-          while (*(fmt+n) &&
+          while (n < (int32_t) sizeof(tmp) - 1 && *(fmt+n) &&
                 !isblank(*(fmt+n))) {
             tmp[n] = *(fmt+n);
             if (isalpha(tmp[n])) { check = tmp[n]; break;}
             n++;
           }
+          if (UNLIKELY(n >= (int32_t) sizeof(tmp) - 1)) return NOTOK;
           tmp[n] = *(fmt+n);
           tmp[n+1] = '\0';
-          n++;
+          if (*(fmt+n)) n++;    /* not past the format's own terminator */
           if (j>=numVals) return NOTOK;
           switch (check) {
           case 'd':
@@ -532,7 +541,9 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
           case 'c':
             cc  = (char) CS_FLOAT2LRND(*kvals[j]);
             if (cc == '%') {
+              if (UNLIKELY(len < 3)) return NOTOK;
               *outstring++ = '%';
+              len--;
             }
             snprintf(outstring, len, tmp, cc);
             break;
@@ -551,15 +562,18 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
           if (j < numVals-1)
             j++;
           fmt += n;
-          outstring += strlen(outstring);
-          len -= strlen(outstring);
+          written = (int32_t) strlen(outstring);
+          outstring += written;
+          len -= written;
         }
       }
       else {
+        if (UNLIKELY(len < 2)) return NOTOK;
         *outstring++ = *fmt++; *outstring = '\0';
         len--;
       }
     }
+    *outstring = '\0';
     return OK;
 }
 
@@ -595,7 +609,7 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
       if (sprints(string, p->txtstring, p->kvals, p->INOCOUNT-2)!=OK)
         return
           csound->PerfError(csound,  &(p->h),
-                            Str("Insufficient arguments in formatted printing\n"));
+                            Str("Insufficient arguments, or a format too long, in formatted printing\n"));
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
       p->printat = CS_KCNT + p->ctime -1;
     }
@@ -619,7 +633,7 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
         return
           csound->InitError(csound,
-                            Str("Insufficient arguments in formatted printing\n"));
+                            Str("Insufficient arguments, or a format too long, in formatted printing\n"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
   }
   else if(isstrcod(*p->ifilcod))
@@ -644,7 +658,7 @@ int32_t printsset_S(CSOUND *csound, PRINTS *p)
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
         return
           csound->InitError(csound,
-                            Str("Insufficient arguments in formatted printing\n"));
+                            Str("Insufficient arguments, or a format too long, in formatted printing\n"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
     } else {
       csound->Warning(csound,
@@ -755,7 +769,6 @@ int32_t printk3set(CSOUND *csound, PRINTK3 *p)
 {
     IGN(csound);
     p->oldvalue = FL(-1.12123e35);  /* hack to force printing first value */
-    p->sarg = ((STRINGDAT*)p->iformat)->data;
     return OK;
 }
 
@@ -768,10 +781,12 @@ int32_t printk3(CSOUND *csound, PRINTK3 *p)
       cs_float *vv[1];
       vv[0] = &value;
       buff[0] = '\0';
-      if (sprints(buff, p->sarg, vv, 1)!=OK)
+      /* The format is read from its variable each time: a text that does
+         not fit moves the variable's buffer. */
+      if (sprints(buff, ((STRINGDAT*)p->iformat)->data, vv, 1)!=OK)
         return
           csound->PerfError(csound,  &(p->h),
-                            Str("Insufficient arguments in formatted printing\n"));
+                            Str("Insufficient arguments, or a format too long, in formatted printing\n"));
       csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", buff);
       p->oldvalue = value;
     }

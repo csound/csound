@@ -16,11 +16,12 @@ nchnls = 2
 instr 1
 
 ilock  =  p4
+ibeta  =  p5
 itab   =  1
 ipitch =  1
 iamp   =  0.8
 ktime  linseg 0.3, p3/2, 0.8, p3/2, 0.3
-asig   temposcal ktime, iamp, ipitch, itab, ilock
+asig   temposcal ktime, iamp, ipitch, itab, ilock, 2048, 4, 1, 0, 1, ibeta
        outs asig, asig
 
 endin
@@ -28,8 +29,11 @@ endin
 <CsScore>
 f 1 0 0 1 "fox.wav" 0 4 0
 
-i 1 0 3.8 0	;no locking
-i 1 4 3.8 1	;locking
+i 1 0 3.8 0 1	;no locking
+i 1 4 3.8 1 1	;legacy locking
+i 1 8 3.8 2 1	;Laroche-Dolson identity
+i 1 12 3.8 3 0.5	;Laroche-Dolson scaled
+i 1 16 3.8 3 2	;Laroche-Dolson scaled, wider
 e
 </CsScore>
 </CsoundSynthesizer>

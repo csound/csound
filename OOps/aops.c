@@ -24,6 +24,7 @@
 #include "aops.h"
 #include "arrays.h"
 #include "arrays_internal.h"
+#include "csound_standard_types.h"
 #include <math.h>
 #include <time.h>
 
@@ -86,6 +87,28 @@ int32_t b2s(CSOUND *csound, ASSIGN *p){
   return OK;
 }
 
+/* A k given to a UDO's B parameter: r is the B, a the truth it goes in with,
+   b the k. */
+int32_t k2B_ref(CSOUND *csound, AOP *p){
+  int32_t value = *p->b != FL(0.0);
+  IGN(csound);
+  *(int32_t *) p->r = value;
+  *p->a = (cs_float) value;
+  return OK;
+}
+
+/* After the call: r is the k, a the B, b the truth it went in with. The k
+   takes the B only if the UDO changed it, so a k it did not write through the
+   B keeps what it holds. */
+int32_t B2k_back(CSOUND *csound, AOP *p){
+  int32_t value;
+  IGN(csound);
+  memcpy(&value, p->a, sizeof(value));
+  if ((cs_float) (value != 0) != *p->b)
+    *p->r = (cs_float) value;
+  return OK;
+}
+
 int32_t b2i(CSOUND *csound, ASSIGN *p){
   int32_t value;
   memcpy(&value, p->a, sizeof(value));
@@ -98,6 +121,18 @@ int32_t b2b(CSOUND *csound, ASSIGN *p){
   return OK;
 }
 
+/* A b or B holds an int32_t (see create_bool), a number a cs_float. The
+   compiler gives m a boolean as a number, but fillarray's * form passes it as
+   it is, so they are read both ways. */
+int32_t arg_is_true(const cs_float *arg)
+{
+  const CS_TYPE *type = csoundGetTypeForArg(arg);
+  int32_t value = 0;
+  if (type == &CS_VAR_TYPE_b || type == &CS_VAR_TYPE_B)
+    memcpy(&value, arg, sizeof(value));
+  return value != 0 || *arg != FL(0.0);
+}
+
 int32_t binit(CSOUND *csound, ASSIGNM *p)
 {
   uint32_t nargs = p->INOCOUNT;
@@ -105,19 +140,21 @@ int32_t binit(CSOUND *csound, ASSIGNM *p)
   int32_t **r = (int32_t **) p->r;
   uint32_t i;
   int32_t *tmp;
+  if (UNLIKELY(nargs == 0))
+    return csound->InitError(csound, Str("init needs a value\n"));
   if (UNLIKELY(nargs > p->OUTOCOUNT))
     return csound->InitError(csound,
                              Str("Cannot be more In arguments than Out in "
                                  "init (%d,%d)\n"),p->OUTOCOUNT, nargs);
   if (nout==1) {
-    *r[0] =  *p->a[0] != 0 ? 1 : 0;
+    *r[0] = arg_is_true(p->a[0]);
     return OK;
   }
   tmp = (int32_t *)csound->Malloc(csound, sizeof(int32_t)*p->OUTOCOUNT);
   for (i=0; i<nargs; i++)
-    tmp[i] = *p->a[i] != 0 ? 1 : 0;
+    tmp[i] = arg_is_true(p->a[i]);
   for (; i<nout; i++)
-    tmp[i] = *p->a[nargs-1] != 0 ? 1 : 0;;
+    tmp[i] = arg_is_true(p->a[nargs-1]);
   for (i=0; i<nout; i++)
     *r[i] = tmp[i];
   csound->Free(csound, tmp);
@@ -192,6 +229,8 @@ int32_t minit(CSOUND *csound, ASSIGNM *p)
   uint32_t nout = p->OUTOCOUNT;
   uint32_t i;
   cs_float *tmp;
+  if (UNLIKELY(nargs == 0))
+    return csound->InitError(csound, Str("init needs a value\n"));
   if (UNLIKELY(nargs > p->OUTOCOUNT))
     return csound->InitError(csound,
                              Str("Cannot be more In arguments than Out in "

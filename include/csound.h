@@ -502,6 +502,10 @@ extern "C" {
    * or delete variable if 'value' is NULL.
    * It is not safe to call this function while any Csound instances
    * are active.
+   * An instance copies these when it is created and at csoundReset().
+   * Setting CSOUND7RC to "" before csoundCreate() stops an instance reading
+   * any rc file, .csound7rc in the working directory included. Those files
+   * take any option, --opcode-lib among them.
    * Returns zero on success.
    */
   PUBLIC int32_t csoundSetGlobalEnv(const char *name, const char *value);
@@ -509,7 +513,8 @@ extern "C" {
   /**
    * Set csound options (flag). Returns CSOUND_SUCCESS on success.
    * This needs to be called after csoundCreate() and before any code is
-   * compiled. Multiple options are allowed in one string.
+   * compiled. Multiple options are allowed in one string. An empty string,
+   * or one of spaces alone, sets nothing; NULL is refused.
    * Returns zero on success.
    */
   PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *option);
@@ -563,6 +568,11 @@ extern "C" {
    * (isOutput=1 for out devices, 0 for in devices).
    * If list is non-NULL, then it should contain enough memory for
    * one CS_AUDIODEVICE structure per device.
+   * Each count call describes the size for the immediately following fill
+   * call. Callers should complete that fill before requesting another count
+   * for the same direction. A backend may return the same count for a
+   * repeated count while the previous count is pending, so every fill
+   * remains bounded by the count its caller received.
    * Hosts will typically call this function twice: first to obtain
    * a number of devices, then, after allocating space for each
    * device information structure, pass an array of CS_AUDIODEVICE
@@ -930,7 +940,8 @@ extern "C" {
    *    when accessing/modifying channel data at **p.
    * See Top/threadsafe.c in the Csound library sources for
    * examples.  Optionally, use the channel get/set functions
-   * provided below, which are threadsafe by default.
+   * provided below, which are threadsafe by default, but see
+   * csoundGetStringChannel() on sizing its buffer.
    * NB: this function cannot be used to create a generic CSOUND_VAR_CHANNEL
    *     but it can access existing channels of that type
    */
@@ -1084,6 +1095,30 @@ extern "C" {
    * copies the string channel identified by *name into *string
    * which should contain enough memory for the string
    * (see csoundGetChannelDatasize() below)
+   *
+   * This function is not told how much memory that is, and it copies the
+   * whole string. If another thread can write the channel, the performance
+   * included, a longer string written after *string was sized is copied
+   * past its end. Such a host reads the channel itself, under its lock,
+   * into a buffer it has already allocated:
+   * \code
+   * STRINGDAT *stringdat;
+   * if (csoundGetChannelPtr(csound, (void **) &stringdat, name,
+   *                         CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+   *     == CSOUND_SUCCESS) {
+   *   csoundLockChannel(csound, name);
+   *   const char *text = csoundGetStringData(csound, stringdat);
+   *   int length = snprintf(buffer, size, "%s", text != NULL ? text : "");
+   *   csoundUnlockChannel(csound, name);
+   * }
+   * \endcode
+   * If length is not less than size, the copy was truncated, and the string
+   * needs length + 1 bytes. The performance waits for that lock when it uses
+   * the channel, so do nothing slow while holding it, and allocate outside it.
+   * csoundGetStringChannel() takes the lock itself, so it cannot be called
+   * between csoundLockChannel() and csoundUnlockChannel().
+   * The lock does not cover a variable exported with chnexport: the orchestra
+   * assigns to it without taking the lock.
    */
   PUBLIC void csoundGetStringChannel(CSOUND *csound,
                                      const char *name, char *string);
@@ -1233,7 +1268,11 @@ extern "C" {
    * this might change if the channel space gets reallocated
    * Since string variables use dynamic memory allocation
    * this function can be called to get the space required for
-   * csoundGetStringChannel()
+   * csoundGetStringChannel(), if no other thread can write the channel:
+   * the answer is out of date as soon as one does.
+   * It takes no channel lock, so it can be called between
+   * csoundLockChannel() and csoundUnlockChannel(), where the answer holds,
+   * unless the channel is a variable exported with chnexport.
    */
   PUBLIC int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name);
 
@@ -1278,6 +1317,8 @@ extern "C" {
    *
    * Multiple events separated by newlines are possible
    * and score preprocessing (carry, etc) is applied.
+   * A message on which the score reader stops is refused whole: Csound says
+   * why, none of it is scheduled, and any performance goes on.
    * optionally run asynchronously (async = 1).
    * Async calls copy the string and return without waiting for queue space.
    * If the queue cannot accept the request, no events are queued.
@@ -1405,6 +1446,11 @@ extern "C" {
    * The return value should be zero on success, negative on error, and
    * positive if the callback was ignored (for example because the type is
    * not known).
+   * This function is not thread-safe. Call it when the performance is not
+   * running or, if it is, only on the thread performing, which includes from
+   * inside a keyboard callback; never from another thread. With -j, callbacks
+   * can run on several threads at once, so from inside one this holds only if
+   * no other thread can be calling callbacks at that moment.
    */
   PUBLIC int32_t csoundRegisterKeyboardCallback(CSOUND *,
                                             int32_t (*func)(void *userData, void *p,
@@ -1413,6 +1459,11 @@ extern "C" {
 
   /**
    * Removes a callback previously set with csoundRegisterKeyboardCallback().
+   * This function is not thread-safe. Call it when the performance is not
+   * running or, if it is, only on the thread performing, which includes from
+   * inside a keyboard callback; never from another thread. With -j, callbacks
+   * can run on several threads at once, so from inside one this holds only if
+   * no other thread can be calling callbacks at that moment.
    */
   PUBLIC void csoundRemoveKeyboardCallback(CSOUND *csound,
                                            int32_t (*func)(void *, void *, uint32_t));

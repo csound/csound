@@ -123,6 +123,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async);
 int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
 int32_t csoundReadScore(CSOUND *csound, const char *message);
+void score_read_unwind(CSOUND *csound);
 void csoundDefaultMessageCallback(CSOUND *, int32_t, const char *,
                                          va_list);
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
@@ -893,6 +894,8 @@ static const CSOUND cenviron_ = {
     .inChar_ = -1,
     .enableMsgAttr = 1,
     .info_message_request = 0,
+    .list_structs_request = 0,
+    .list_opcodes_request = 0,
     /* -------- Realtime audio I/O and buffers -------- */
     .spin = NULL,
     .spout = NULL,
@@ -949,6 +952,7 @@ static const CSOUND cenviron_ = {
     .searchPathCache = NULL,
     .reset_list = NULL,
     .csoundCallbacks_ = NULL,
+    .csoundCallbackSerial = 0,
     /* -------- Locks and synchronisation -------- */
     .API_lock = NULL,
     .array_storage_lock = NULL,
@@ -1069,7 +1073,6 @@ static const CSOUND cenviron_ = {
         },
         NULL,
         0,
-        NULL, 0,
         NULL, NULL,
         0, NULL, 0
       },
@@ -1117,10 +1120,14 @@ static const CSOUND cenviron_ = {
     .msg_queue_status = CSOUND_SUCCESS,
     .instr0_waiting = NULL,
     .instr0_waiting_count = 0,
+    .marked_sections = {{NULL, 0, 0}},
+    .line_event_work = NULL,
+    .line_event_work_size = 0,
 
 };
 
 void csoundLongJmp(CSOUND *csound, int32_t retval) {
+  score_read_unwind(csound);
 #ifdef CSOUND_WASI_REALTIME
   CSOUND_WASI_COMPILE_JUMP *compile = csoundWasiCompileJumpContext(csound);
   if (compile != NULL && compile->enabled)
@@ -1496,11 +1503,14 @@ static void install_signal_handler(void) {
 }
 
 typedef struct CsoundCallbackEntry_s CsoundCallbackEntry_t;
+/* csoundDoCallback_ depends on entries being inserted only at the head of
+   the list, each with a serial higher than any before it. */
 struct CsoundCallbackEntry_s {
   uint32_t typeMask;
   CsoundCallbackEntry_t *nxt;
   void *userData;
   int32_t (*func)(void *, void *, uint32_t);
+  uint64_t serial; /* higher than that of every entry registered before it */
 };
 
  void csoundDestroy(CSOUND *csound) {
@@ -1962,6 +1972,7 @@ static void reset(CSOUND *csound) {
   length = (uintptr_t)p2 - (uintptr_t)p1;
   memcpy(p1, (void *)&(saved_env->first_callback_), (size_t)length);
   csound->csoundCallbacks_ = saved_env->csoundCallbacks_;
+  csound->csoundCallbackSerial = saved_env->csoundCallbackSerial;
   csound->readlineCallback = saved_env->readlineCallback;
   csound->readlineUserData = saved_env->readlineUserData;
   csound->readlineRequestId = saved_env->readlineRequestId;
@@ -2116,6 +2127,7 @@ static void reset(CSOUND *csound) {
   /* initialise real time MIDI */
   csound->midiGlobals = (MGLOBAL *)csound->Calloc(csound, sizeof(MGLOBAL));
   csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
+  csound->midiGlobals->filep = csound->midiGlobals->bufp;
   csound->midiGlobals->endatp = csound->midiGlobals->bufp;
   csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t)max_len);
   csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
@@ -2249,11 +2261,20 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
     pp = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
     do {
       if (pp->typeMask & type) {
+        uint64_t serial = pp->serial;
         int32_t retval = pp->func(pp->userData, p, type);
         if (retval != CSOUND_SUCCESS)
           return retval;
+        /* The call may have removed this entry or any other, so hold on to
+           nothing across it. The list is newest first: go on to the first
+           entry older than the one just called. */
+        /* O(n) per call, O(n^2) per round, deliberately: callbacks are few. */
+        pp = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
+        while (pp != (CsoundCallbackEntry_t *)NULL && pp->serial >= serial)
+          pp = pp->nxt;
+      } else {
+        pp = pp->nxt;
       }
-      pp = pp->nxt;
     } while (pp != (CsoundCallbackEntry_t *)NULL);
   }
   return 1;
@@ -2294,6 +2315,11 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
  * The return value should be zero on success, negative on error, and
  * positive if the callback was ignored (for example because the type is
  * not known).
+ * This function is not thread-safe. Call it when the performance is not
+ * running or, if it is, only on the thread performing, which includes from
+ * inside a keyboard callback; never from another thread. With -j, callbacks
+ * can run on several threads at once, so from inside one this holds only if
+ * no other thread can be calling callbacks at that moment.
  */
 
  int32_t csoundRegisterKeyboardCallback(
@@ -2313,13 +2339,19 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
   pp->nxt = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
   pp->userData = userData;
   pp->func = func;
+  pp->serial = ++csound->csoundCallbackSerial;
   csound->csoundCallbacks_ = (void *)pp;
 
   return CSOUND_SUCCESS;
 }
 
 /**
- * Removes a callback previously set with csoundSetCallback().
+ * Removes a callback previously set with csoundRegisterKeyboardCallback().
+ * This function is not thread-safe. Call it when the performance is not
+ * running or, if it is, only on the thread performing, which includes from
+ * inside a keyboard callback; never from another thread. With -j, callbacks
+ * can run on several threads at once, so from inside one this holds only if
+ * no other thread can be calling callbacks at that moment.
  */
 
  void csoundRemoveKeyboardCallback(CSOUND *csound,

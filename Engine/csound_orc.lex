@@ -60,6 +60,7 @@ YYLTYPE *yylloc_param;
 #define YY_USER_ACTION \
   PARM->first_column = yycolumn; \
   PARM->last_column = (uint32_t)(yycolumn + yyleng - 1); \
+  PARM->previous_char = yyleng ? (unsigned char)yytext[yyleng - 1] : 0; \
   yycolumn += yyleng;
 #define YY_USER_INIT
 
@@ -155,6 +156,7 @@ ERSTR           "}R"
 "falsek"        { return FALSEK_TOKEN; }
 "truek"         { return TRUEK_TOKEN; }
 "if"\([ \t]*    { yyless(2);
+                  PARM->previous_char = (unsigned char)yytext[yyleng - 1];
                   *lvalp = make_token(csound, "if", yyscanner);
                   (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
@@ -171,6 +173,7 @@ ERSTR           "}R"
                   (*lvalp)->type = KTHEN_TOKEN;
                   return KTHEN_TOKEN; }
 "elseif"\([ \t]* { yyless(6);
+                  PARM->previous_char = (unsigned char)yytext[yyleng - 1];
                   *lvalp = make_token(csound, "elseif", yyscanner);
                   (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
@@ -187,6 +190,7 @@ ERSTR           "}R"
                   (*lvalp)->type = ENDIF_TOKEN;
                   return ENDIF_TOKEN; }
 "until"\([ \t]* { yyless(5);
+                  PARM->previous_char = (unsigned char)yytext[yyleng - 1];
                   *lvalp = make_token(csound, "until", yyscanner);
                   (*lvalp)->type = UNTIL_TOKEN;
                   return UNTIL_TOKEN; }
@@ -194,6 +198,7 @@ ERSTR           "}R"
                   (*lvalp)->type = UNTIL_TOKEN;
                   return UNTIL_TOKEN; }
 "while"\([ \t]* { yyless(5);
+                  PARM->previous_char = (unsigned char)yytext[yyleng - 1];
                   *lvalp = make_token(csound, "while", yyscanner);
                   (*lvalp)->type = WHILE_TOKEN;
                   return WHILE_TOKEN; }
@@ -531,6 +536,8 @@ ERSTR           "}R"
                       buff[n++] = ch;
                     }
                   }
+                  /* input() leaves a NUL after the token for error reporting. */
+                  PARM->previous_char = 0;
                   *lvalp = make_string(csound, buff, yyscanner);
                   free(buff);
                   return (STRING_TOKEN);
@@ -550,7 +557,10 @@ ERSTR           "}R"
                        csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                             yyscanner);
                   }
-                  *strrchr(yytext, '(') = '\0';
+                  char *opening = strrchr(yytext, '(');
+                  if (opening == yytext + yyleng - 1)
+                    PARM->previous_char = '\0';
+                  *opening = '\0';
                   *lvalp = lookup_token(csound, yytext, yyscanner);
                   return (*lvalp)->type+1; }
 {TYPED_IDENTIFIER} { *lvalp = lookup_token(csound, yytext, yyscanner);
@@ -563,7 +573,10 @@ ERSTR           "}R"
                            csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                                 yyscanner);
                       }
-                      *strrchr(yytext, '(') = '\0';
+                      char *opening = strrchr(yytext, '(');
+                      if (opening == yytext + yyleng - 1)
+                        PARM->previous_char = '\0';
+                      *opening = '\0';
                       *lvalp = lookup_token(csound, yytext, yyscanner);
                       return (*lvalp)->type+1; }
 {INTGR}         {
@@ -735,10 +748,9 @@ ORCTOKEN *make_num(CSOUND *csound, char *s, void *yyscanner)
     return ans;
 }
 
-char *csound_orcget_current_pointer(void *yyscanner)
+int csound_orcget_previous_char(void *yyscanner)
 {
-    struct yyguts_t *yyg  = (struct yyguts_t*)yyscanner;
-    return yyg->yy_c_buf_p;
+    return PARM->previous_char;
 }
 
 uint64_t csound_orcget_locn(void *yyscanner)
