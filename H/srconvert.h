@@ -36,6 +36,7 @@ typedef struct {
 typedef struct _SR_CONVERTER {
   float   ratio;  // src ratio
   int32_t insize, outsize; // input and output block sizes
+  int32_t blocks;  // whole chunks staged when insize == outsize
   int32_t mode;   // conversion mode
   CVTDAT *dat; // converter data
   int32_t ncvt;   // no of converters
