@@ -715,7 +715,8 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
     *q = '\0';
     strNcpy(prog, p+5, 256); //prog[255]='\0';/* after "<CsExScore " */
     /* Generate score name */
-    if (STA(sconame)) free(STA(sconame));
+    csound->Free(csound, STA(sconame));        /* a later block replaces it */
+    STA(sconame) = NULL;                    /* if tmp_file_name stops */
     STA(sconame) = tmp_file_name(csound, ".sco");
     extname = tmp_file_name(csound, ".ext");
     fd = csoundFileOpen(csound, &scof, CSFILE_STD, extname, "w", NULL,
@@ -908,7 +909,8 @@ static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
     char  buffer[CSD_MAX_LINE_LEN];
 
     /* Generate MIDI file name */
-    if (STA(midname)) free(STA(midname));
+    csound->Free(csound, STA(midname));        /* a later block replaces it */
+    STA(midname) = NULL;                    /* if tmp_file_name stops */
     STA(midname) = tmp_file_name(csound, ".mid");
     fd = csoundFileOpen(csound, &midf, CSFILE_STD, STA(midname),
                                 "wb", NULL, CSFTYPE_STD_MIDI, 1);

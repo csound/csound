@@ -213,6 +213,41 @@ TEST_F(CsdCompileTests, CommentAfterALongCommentOpensOnAStartedEngine)
   EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
 }
 
+#if GTEST_HAS_DEATH_TEST && !defined(_WIN32)
+// A second <CsScore bin=...> frees the first's file name with Csound's
+// allocator: free() aborted. In a child, with an alarm in case it hangs.
+TEST_F(CsdCompileTests, SecondExternalScoreDoesNotAbort)
+{
+  const std::string score = "<CsScore bin=\"cp\">\ni 1 0 0\n</CsScore>\n";
+  const auto text = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\nendin\n"
+    "</CsInstruments>\n" + score + score + "</CsoundSynthesizer>\n";
+  ASSERT_EXIT(([&] {
+      alarm(10);
+      exit(csoundCompileCSD(csound, text.c_str(), 1, 0) == 0 ? 0 : 1);
+  }()), ::testing::ExitedWithCode(0), "");
+}
+
+// When a <CsScore bin=...> on a started engine cannot make its temporary
+// name, the name it freed is not freed again by the next one.
+TEST_F(CsdCompileTests, ExternalScoreAfterAFailedOneDoesNotAbort)
+{
+  const char *text = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\nendin\n"
+    "</CsInstruments>\n<CsScore bin=\"cp\">\ni 1 0 0\n</CsScore>\n"
+    "</CsoundSynthesizer>\n";
+  const auto missing = path("missing");
+  const auto present = path("");
+  ASSERT_EXIT(([&] {
+      alarm(10);
+      if (csoundStart(csound) != 0) exit(2);
+      if (csoundCompileCSD(csound, text, 1, 0) != 0) exit(3);
+      if (setenv("TMPDIR", missing.c_str(), 1) != 0) exit(4);
+      if (csoundCompileCSD(csound, text, 1, 0) == 0) exit(5);
+      if (setenv("TMPDIR", present.c_str(), 1) != 0) exit(6);
+      exit(csoundCompileCSD(csound, text, 1, 0) == 0 ? 0 : 1);
+  }()), ::testing::ExitedWithCode(0), "");
+}
+#endif
+
 // A started engine has its MIDI input: a later CSD skips <CsMidifileB>.
 TEST_F(CsdCompileTests, MidifileBIsSkippedOnAStartedEngine)
 {
