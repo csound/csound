@@ -966,6 +966,11 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
     csound->Free(csound, outarg);
     return tree_append(anchor, opTree);
   }
+  /* A call, a ternary or an array element is a value too: create_expression
+     computes its arguments before it, as below would not */
+  if (root->type == T_FUNCTION || root->type == '?' || root->type == T_ARRAY) {
+    return create_expression(csound, root, line, locn, typeTable, initContext);
+  }
   /* HANDLE SUB EXPRESSIONS */
   if (is_boolean_expression_node(root->left)) {
     anchor = create_boolean_expression(csound, root->left,
@@ -1055,12 +1060,6 @@ static TREE *create_boolean_expression(CSOUND *csound, TREE *root,
 
   if(root->type == FALSEK_TOKEN)
     return create_ans_token(csound, "falsek");
-
-
-  if(root->type == T_FUNCTION) {
-    return create_expression(csound, root, line,
-                             locn, typeTable, initContext);
-  }
 
 
   op = csound->Calloc(csound, 80);

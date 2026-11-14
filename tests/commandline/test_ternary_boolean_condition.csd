@@ -55,6 +55,16 @@ instr 1
  SPick = v ? "yes" : "no"
  CheckInit(strcmp(SPick, p4 == 1 ? "yes" : "no"), 0, "a b, string")
  CheckInit(PickInit(p4 == 1), p4 == 1 ? 5 : 6, "a b parameter")
+ CheckInit((p4 == 1 ? true : false) ? 10 : 20, p4 == 1 ? 10 : 20,
+           "a b ternary as the condition")
+ iThen, iElse init 0
+ if (p4 == 1 ? true : false) then
+  iThen += 1
+ else
+  iElse += 1
+ endif
+ CheckInit(iThen, p4, "if on a b ternary, then")
+ CheckInit(iElse, 1 - p4, "if on a b ternary, else")
  CheckInit(gName, 1, "a b in global code")
  CheckInit(gFalse, 2, "false in global code")
  CheckInit(gNameB, 1, "a B in global code")

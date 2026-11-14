@@ -29,6 +29,18 @@ opcode Check(kValue:k, kExpected:k, SWhat:S):void
  endif
 endop
 
+opcode IsEven(kValue:k):B
+ xout kValue % 2 == 0
+endop
+
+opcode IsOne(iValue:i):b
+ xout iValue == 1
+endop
+
+opcode Not(v:b):b
+ xout !v
+endop
+
 ; Global code takes init jumps on a name, true or false
 yes@global:b = 1 < 2
 gGoto@global:i = 0
@@ -173,7 +185,40 @@ instr 4
  Check(kNever, 0, "elseif on falsek")
 endin
 
+; An element of a boolean array, and a call with a computed argument
 instr 5
+ kCycle = timeinstk()
+ bk:B[] init 2
+ kOne = 1
+ bk[kOne] = kCycle % 2 == 0
+ bi:b[] fillarray false, p4 == 0
+ kElement, kCall, kCallElse init 0
+ iElement, iCall init 0
+
+ if bk[kOne] then
+  kElement += 1
+ endif
+ if bi[1] then
+  iElement = 1
+ endif
+ if IsEven(kCycle + 1) then
+  kCall += 1
+ else
+  kCallElse += 1
+ endif
+ if IsOne(p4 + 1) then
+  iCall = 1
+ endif
+ if Not(p4 == 0) then
+  iCall += 10
+ endif
+
+ Check(kElement, int(kCycle / 2), "an element of a B[]")
+ CheckInit(iElement, 1 - p4, "an element of a b[]")
+ Check(kCall, kCycle - int(kCycle / 2), "a call with a computed argument")
+ Check(kCallElse, int(kCycle / 2), "a call with a computed argument, else")
+ CheckInit(iCall, 1 + 9 * p4, "an i-rate call with a computed argument")
+
  CheckInit(gGoto, 10, "if-goto in global code")
  CheckInit(gElseif, 2, "elseif in global code")
 endin
