@@ -1319,7 +1319,7 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         result = r && result;
       }
       else if (strstr(p, "<CsShortLicence>") == p ||
-               strstr(p, "<CsSortLicense>") == p) {
+               strstr(p, "<CsShortLicense>") == p) {
         r = check_short_licence(csound, cf);
         result = r && result;
       }

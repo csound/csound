@@ -1,6 +1,7 @@
 #include "csound.h"
 #include "gtest/gtest.h"
 #include <filesystem>
+#include <sndfile.h>
 #include <fstream>
 #include <iterator>
 #include <string>
@@ -69,6 +70,29 @@ protected:
       result += csoundGetFirstMessage(csound);
       csoundPopFirstMessage(csound);
     }
+    return result;
+  }
+
+  // Performs a CSD that holds `licence` into a WAV file, and returns the
+  // copyright the file was given.
+  std::string writtenCopyright(const std::string &licence)
+  {
+    const auto wav = path("licence.wav");
+    const auto text = csd("instr 1\nendin\n", licence +
+                          "<CsOptions>\n-W -o \"" + wav + "\"\n</CsOptions>\n");
+    if (csoundCompileCSD(csound, text.c_str(), 1, 0) != 0 ||
+        csoundStart(csound) != 0)
+      return "not performed: " + messages();
+    while (csoundPerformKsmps(csound) == 0)
+      ;
+    csoundReset(csound);
+    SF_INFO info = {};
+    SNDFILE *file = sf_open(wav.c_str(), SFM_READ, &info);
+    if (file == nullptr)
+      return "no file";
+    const char *copyright = sf_get_string(file, SF_STR_COPYRIGHT);
+    std::string result = copyright != nullptr ? copyright : "";
+    sf_close(file);
     return result;
   }
 
@@ -288,6 +312,15 @@ TEST_F(CsdCompileTests, CsFileWritesItsLines)
   }()), ::testing::ExitedWithCode(0), "");
 }
 #endif
+
+TEST_F(CsdCompileTests, ShortLicenseSetsTheCopyright)
+{
+  const auto copyright =
+    writtenCopyright("<CsShortLicense>\n6\n</CsShortLicense>\n");
+  EXPECT_NE(std::string::npos,
+            copyright.find("Creative Commons Attribution\nCC BY\n"))
+    << copyright;
+}
 
 TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInFile)
 {
