@@ -441,7 +441,9 @@ int32_t kon2_set(CSOUND *csound, KON2 *p)
     p->h.insdshead->xtratim = EXTRA_TIME;
   /*p->fl_first_note = TRUE;*/
   p->fl_note_expired = FALSE;
-
+  /* fl_note_on is not reset: after a tie or a reinit, the note still
+     sounding is turned off by the next trigger or the release. A new
+     instance starts with it FALSE, and a release leaves it FALSE. */
   return OK;
 }
 
@@ -465,8 +467,10 @@ int32_t kon2(CSOUND *csound, KON2 *p)
   if (p->fl_note_expired) return OK;
   else {
     if (p->h.insdshead->relesing) {
-      note_off(csound, p->last_chn,p->last_num,p->last_vel,
-               (int32_t)*p->port);
+      if (p->fl_note_on)
+        note_off(csound, p->last_chn,p->last_num,p->last_vel,
+                 (int32_t)*p->port);
+      p->fl_note_on = FALSE;
       p->fl_note_expired = TRUE;
     }
     else {
@@ -482,13 +486,15 @@ int32_t kon2(CSOUND *csound, KON2 *p)
              || p->last_vel != curr_vel
              ) */
         {
-          note_off(csound, p->last_chn, p->last_num, p->last_vel,
-                   (int32_t)*p->port);
+          if (p->fl_note_on)
+            note_off(csound, p->last_chn, p->last_num, p->last_vel,
+                     (int32_t)*p->port);
           p->last_chn = curr_chn;
           p->last_num = curr_num;
           p->last_vel = curr_vel;
           note_on(csound, curr_chn, curr_num, curr_vel,
                   (int32_t)*p->port);
+          p->fl_note_on = TRUE;
         }
     }
   }

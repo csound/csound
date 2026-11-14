@@ -116,6 +116,7 @@ typedef struct {
   cs_float  *kchn,*knum,*kvel,*ktrig, *port;
   int32_t     last_chn, last_num, last_vel;
   BOOL fl_note_expired/*, fl_first_note*/;
+  BOOL fl_note_on;      /* last_* is a note sent and not yet turned off */
 } KON2;
 
 typedef struct {

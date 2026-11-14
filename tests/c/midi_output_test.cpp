@@ -9,6 +9,9 @@
   state, where the engine never set it, so its first k-cycle read through
   NULL. mrtmsg was allocated at the size of xtratim's struct, one argument
   short, so its port pointer landed in the next opcode's header.
+
+  midion2 turns off only a note it sent. Its first trigger turned off
+  note 0 on channel 1, and a midion2 never triggered did so at its release.
 */
 
 #define __BUILDING_LIBCSOUND
@@ -58,18 +61,19 @@ class MidiOutputTests : public ::testing::Test {
 
   void TearDown() override { csoundDestroy(csound); }
 
-  // Plays `body` as instr 1, a note of three k-cycles, to the score's end.
-  void play(const std::string &body)
+  // Plays `body` as instr 1 to the score's end, k-cycles of 10 ms. By
+  // default the score is a note of three k-cycles.
+  void play(const std::string &body, const char *score = "i 1 0 0.03\n")
   {
     const std::string orchestra =
       "sr = 1000\nksmps = 10\nnchnls = 1\n0dbfs = 1\n"
       "instr 1\n" + body + "\nendin\n";
     ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), 0);
-    csoundEventString(csound, "i 1 0 0.03\n", 0);
+    csoundEventString(csound, score, 0);
     ASSERT_EQ(csoundStart(csound), 0);
     int cycles = 0;
     while (csoundPerformKsmps(csound) == 0)
-      ASSERT_LT(++cycles, 10);
+      ASSERT_LT(++cycles, 20);
   }
 };
 
@@ -108,6 +112,49 @@ TEST_F(MidiOutputTests, MrtmsgBeforeTheLastInitOpcode)
        "noteon 2, 60, 100, 1");
   EXPECT_EQ(sent, (std::vector<std::vector<int>>{
     {0xFA, 3}, {0x91, 60, 100, 1}}));
+}
+
+TEST_F(MidiOutputTests, Midion2TurnsOffOnlyTheNoteItSent)
+{
+  // Triggers on the first and third k-cycles, the second a new channel and
+  // note, which turns off the first.
+  play("kt = timeinstk() == 2 ? 0 : 1\n"
+       "kc = timeinstk() < 3 ? 2 : 3\n"
+       "midion2 kc, 59 + timeinstk(), 100, kt");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0},
+    {0x81, 60, 100, 0}, {0x92, 62, 100, 0},
+    {0x82, 62, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, Midion2NeverTriggeredSendsNothing)
+{
+  play("midion2 2, 60, 100, 0");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{}));
+}
+
+TEST_F(MidiOutputTests, Midion2ReusingAnInstanceSendsNoSecondNoteOff)
+{
+  // The second note takes the first one's instance, released and inactive.
+  play("kt = timeinstk() == 1 ? 1 : 0\n"
+       "midion2 2, 60, 100, kt",
+       "i 1 0 0.03\ni 1 0.06 0.03\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0},
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, Midion2TiedNoteTurnsOffTheSoundingNote)
+{
+  // A tie runs midion2's init again, while the held note still sounds.
+  play("kt init 1\n"
+       "midion2 2, p4, 100, kt\n"
+       "kt = 0",
+       "i 1.1 0 -1 60\ni 1.1 0.03 0.03 62\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0},
+    {0x81, 60, 100, 0}, {0x91, 62, 100, 0},
+    {0x81, 62, 100, 0}}));
 }
 
 }  // namespace
