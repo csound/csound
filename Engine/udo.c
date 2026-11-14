@@ -1064,8 +1064,15 @@ static void pbr_collect_rewire_entries(CSOUND *csound,
 
     if (ttp->inlist != NULL) {
       ARG *arg = ttp->inArgs;
+      /* Inputs follow the outputs the call gives, or the slots the opcode
+         declares if those are more, as setup_opcode_argpp lays them out:
+         "*" declares one slot however many outputs the call gives. */
       int32_t actual_outcount = count_args(ep->outypes);
       int32_t i;
+
+      if (ttp->outlist != NULL && ttp->outlist->count > actual_outcount) {
+        actual_outcount = ttp->outlist->count;
+      }
 
       for (i = 0; i < ttp->inlist->count;
            i++, arg = arg != NULL ? arg->next : NULL) {
@@ -2020,6 +2027,27 @@ static int32_t pbr_rebound_strings_fit(CSOUND *csound, const UOPCODE *p) {
     }
   }
   return 1;
+}
+
+void user_opcode_rebind_constants(UOPCODE *p, cs_float **inargs,
+                                  int32_t count) {
+  OPCODINFO *info = p->buf != NULL ? p->buf->opcode_info : NULL;
+  XIN *xin = NULL;
+  int32_t i;
+
+  for (i = 0; info != NULL && i < count && i < info->inchns; i++) {
+    if (inargs[i] == p->ar[info->outchns + i] ||
+        !pbr_is_written_constant(p, i, inargs[i])) {
+      continue;
+    }
+    if (xin == NULL && (!udo_call_is_pass_by_ref(p, info) ||
+                        (xin = pbr_find_xin(p->ip)) == NULL)) {
+      return;
+    }
+    if (csoundGetTypeForArg(xin->args[i]) == &CS_VAR_TYPE_I) {
+      *xin->args[i] = *inargs[i];
+    }
+  }
 }
 
 int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p) {
