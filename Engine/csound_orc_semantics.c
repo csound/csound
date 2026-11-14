@@ -3662,7 +3662,10 @@ static int32_t array_read_as(const char* want, const char* got) {
    as a number gives the bits of its pointer. So xout must give each output
    one value that reads as its type. What an opcode's input of that type takes
    is taken, and so are a k for an i output and the arrays array_read_as
-   lists. Anything else is refused. The xout of a UDO with no
+   lists. A number for an a output goes through =, as a1 = k1 does, so it
+   fills the block, and an a for a k output gives its first sample, as
+   k1 = a1 does. These go at the end of the body, as the boolean conversions
+   do, and after them. Anything else is refused. The xout of a UDO with no
    outputs gives nothing to anyone, and is left as it is. Old-style UDOs keep
    verify_xin_xout, which is stricter. */
 static int32_t check_xout_args(CSOUND* csound, TREE* statement,
@@ -3697,6 +3700,24 @@ static int32_t check_xout_args(CSOUND* csound, TREE* statement,
         (scalar && *type == 'i' && *found == 'k') ||
         array_read_as(type, found)) {
       /* taken as it is */
+    } else if (scalar && ((*type == 'a' && strchr("ikcpr", *found)) ||
+                          (*type == 'k' && *found == 'a'))) {
+      char name[32];
+      TREE* arg = *slot;
+      TREE* convert = create_opcode_token(csound, "=");
+      snprintf(name, sizeof(name), "#%c%d", *type,
+               typeTable->localPool->synthArgCount++);
+      add_arg(csound, name, NULL, typeTable, NULL);
+      convert->line = statement->line;
+      convert->locn = statement->locn;
+      convert->left = make_leaf(csound, statement->line, statement->locn,
+                                T_IDENT, make_token(csound, name, NULL));
+      convert->right = arg;
+      *slot = make_leaf(csound, statement->line, statement->locn,
+                        T_IDENT, make_token(csound, name, NULL));
+      (*slot)->next = arg->next;
+      arg->next = NULL;
+      tree_append(statement, convert);
     } else {
       char* want = csoundFormatTypeName(csound, type, 0);
       char* got = csoundFormatTypeName(csound, found, 0);
