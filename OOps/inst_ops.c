@@ -578,10 +578,12 @@ int32_t pause_instance_opcode(CSOUND *csound, PAUSE_INSTR *p) {
 int32_t set_instance_parameter(CSOUND *csound, PARM_INSTR *p){
   INSDS *ip = p->in->instance;
   if(ip != NULL) {
-    int32_t n = *p->par;
+    cs_float n = *p->par;
     INSTRTXT *tp = csound->engineState.instrtxtp[ip->insno];
-    if(n <= tp->pmax) {
-      CS_VAR_MEM* pfield = ((CS_VAR_MEM*) &ip->p0) + n;
+    // checked before it is converted, which truncates: an index that
+    // truncates to p0 to pmax, which no NaN does
+    if(n > -1 && n < tp->pmax + 1) {
+      CS_VAR_MEM* pfield = ((CS_VAR_MEM*) &ip->p0) + (int32_t) n;
       pfield->value = *p->val;
     }
   }
