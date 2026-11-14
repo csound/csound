@@ -526,13 +526,12 @@ NP              np[0-9]+
            char buff[120];
            //printf("r detected %d\n",PARM->in_repeat_sect );
            if (PARM->in_repeat_sect==1) {
-             char *tmp = strdup(yytext);
-             // Previous r opcode not terminated so fake an s and redo
+             // Previous r opcode not terminated so fake an s and redo.
+             // The blanks before the r go: nothing writes them, and a copy
+             // of them leaked when unput overflowed and the read stopped.
              //printf("unterminated r loop\n");
-             for (size_t remaining = yyleng; remaining > 0; )
-               unput(tmp[--remaining]);
+             unput('r');
              unput('\n'); unput('s'); unput('\n');
-             free(tmp);
            }
            else {
              PARM->repeat_sect_cnt = 0;

@@ -4,6 +4,10 @@
 #include <string>
 #include <thread>
 #include <tuple>
+#if defined(__GLIBC__) && (__GLIBC__ > 2 || __GLIBC_MINOR__ >= 33)
+#include <malloc.h>
+#define HEAP_IN_USE() (mallinfo2().uordblks)
+#endif
 
 namespace {
 const char *orchestra =
@@ -409,6 +413,129 @@ TEST(HostScoreErrors, RefusalsKeepNothing)
             refuse(line);
         EXPECT_EQ(before, trackedBlocks(host.csound));
     }
+}
+
+/* A read that succeeds keeps nothing for the next: the expanded text and the
+   input stack are reused, and its marks are freed. Each read kept its own
+   until a reset, about 700 bytes for a short line. */
+TEST(HostScoreReads, KeepNothing)
+{
+    std::string notes, again = "m a\ni 1 0 0\ns\n";
+    for (int i = 0; i < 100; i++)
+        notes += "i 1 0 0\n";
+    for (int i = 0; i < 30; i++)
+        again += "n a\n";
+    const std::pair<std::string, int> reads[] = {
+        {"i 1 0 0", 1},              /* the expanded text, the input stack */
+        {"m a\ni 1 0 0\ns\nn a", 2}, /* a mark, and the stack n reads on */
+        {again, 31},                 /* n after n: one at a time on the stack */
+        {notes, 100},                /* more text than the reads before */
+        {"i 1 0 0", 1},              /* less: none of the longer one plays */
+    };
+    Host host;
+    host.start();
+    csoundEventString(host.csound, "i 1 0 0", 0); /* what a first read makes */
+    for (const auto &[line, notesRead] : reads) {
+        SCOPED_TRACE(line.substr(0, 40));
+        const int32_t stack = host.csound->sread.input_size;
+        csoundEventString(host.csound, line.c_str(), 0);
+        host.perform();
+        const size_t before = trackedBlocks(host.csound);
+        const int32_t text = host.csound->expanded_sco->len;
+        const cs_float played = host.played();
+        for (int i = 0; i < 5; i++) {
+            csoundEventString(host.csound, line.c_str(), 0);
+            host.perform();
+        }
+        EXPECT_EQ(before, trackedBlocks(host.csound));
+        EXPECT_EQ(text, host.csound->expanded_sco->len);
+        EXPECT_EQ(stack, host.csound->sread.input_size);
+        EXPECT_EQ(played + 5 * notesRead, host.played()) << host.said();
+    }
+}
+
+/* A .csd compiled into a running instance keeps no more for its score than
+   for none: the score's sorted copy was kept too. Compiling the orchestra
+   keeps blocks of its own, some of the time, so each kind is counted at its
+   least over five compiles. */
+TEST(HostScoreReads, CompiledScoresKeepNothing)
+{
+    const char *withScore = "<CsoundSynthesizer>\n<CsInstruments>\n"
+                            "</CsInstruments>\n<CsScore>\ni 1 0 0\n"
+                            "</CsScore>\n</CsoundSynthesizer>\n";
+    const char *without = "<CsoundSynthesizer>\n<CsInstruments>\n"
+                          "</CsInstruments>\n</CsoundSynthesizer>\n";
+    Host host;
+    host.start();
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(host.csound, withScore, 1, 0));
+    host.perform();
+    auto least = [&](const char *csd) {
+        size_t fewest = SIZE_MAX;
+        for (int i = 0; i < 5; i++) {
+            const size_t before = trackedBlocks(host.csound);
+            EXPECT_EQ(CSOUND_SUCCESS, csoundCompileCSD(host.csound, csd, 1, 0));
+            host.perform();
+            if (trackedBlocks(host.csound) - before < fewest)
+                fewest = trackedBlocks(host.csound) - before;
+        }
+        return fewest;
+    };
+    EXPECT_EQ(least(without), least(withScore));
+    /* Queued, the score is still read from the queue's own copy. */
+    EXPECT_EQ(CSOUND_SUCCESS, csoundCompileCSD(host.csound, withScore, 1, 1));
+    host.perform();
+    EXPECT_EQ(7, host.played()) << host.said();
+}
+
+/* An r that ends an r left open puts back the text of an s. In a macro, flex
+   may have no room for it, and the read is refused: a copy of the r's text,
+   made with malloc, was kept each time. */
+TEST(HostScoreErrors, PushBackOverflowKeepsNothing)
+{
+#ifndef HEAP_IN_USE
+    GTEST_SKIP() << "counts glibc's heap";
+#else
+    const char *line = "#define X #r 3\n#\nr 2\ni 1 0 0\n$X\ns";
+    Host host;
+    host.start();
+    csoundEventString(host.csound, line, 0);
+    EXPECT_NE(std::string::npos, host.said().find("push-back overflow"));
+    auto refuse = [&](int times) {
+        for (int i = 0; i < times; i++) {
+            csoundEventString(host.csound, line, 0);
+            csoundPerformKsmps(host.csound);
+            while (csoundGetMessageCnt(host.csound) > 0)
+                csoundPopFirstMessage(host.csound);
+        }
+    };
+    refuse(20);
+    const size_t before = HEAP_IN_USE();
+    refuse(200);
+    const long long kept = (long long) HEAP_IN_USE() - (long long) before;
+    EXPECT_LT(kept, 1000) << "bytes kept by 200 refusals";
+    EXPECT_EQ(0, host.played());
+#endif
+}
+
+/* A reset frees what the reads reused, and the next read makes its own. */
+TEST(HostScoreReads, AfterAResetMakeTheirOwn)
+{
+    Host host;
+    host.start();
+    csoundEventString(host.csound, "i 1 0 0", 0);
+    host.perform();
+    csoundReset(host.csound);
+    EXPECT_EQ(nullptr, host.csound->expanded_sco);
+    EXPECT_EQ(nullptr, host.csound->sread.inputs);
+    csoundSetOption(host.csound, "-n");
+    csoundSetOption(host.csound, "-d");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(host.csound, orchestra, 0));
+    host.start();
+    csoundEventString(host.csound, "i 1 0 0", 0);
+    host.perform();
+    EXPECT_EQ(1, host.played()) << host.said();
+    EXPECT_TRUE(isTracked(host.csound, host.csound->expanded_sco));
+    EXPECT_TRUE(isTracked(host.csound, host.csound->sread.inputs));
 }
 
 TEST(HostScoreErrors, ReadScoreReturnsTheRefusal)
