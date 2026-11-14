@@ -1181,6 +1181,25 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
 }
 
 /**
+ *  the number of input slots setup_args fills for a call that gave
+ *  so many inputs: one for each type in intypes, given or defaulted,
+ *  and as many as were given for a list of variable length
+ */
+static uint32_t input_slots(const char *types, uint32_t given) {
+  uint32_t slots = 0;
+  while(*types != '\0') {
+    if(strchr("*MNmyzWZ", *types) != NULL)
+      return slots > given ? slots : given;
+    if(*types == ':') types = strchr(types, ';');
+    types++;
+    if(*types == '[') types++;
+    if(*types == ']') types++;
+    slots++;
+  }
+  return slots;
+}
+
+/**
  *  check the type of an existing argument, and set it
  *  this relies on arguments having been previously checked and set
  *  if types do not match or if object was not initialised,
@@ -1190,8 +1209,10 @@ static int32_t check_and_set_arg(CSOUND *csound, OPCODEOBJ *obj, uint32_t ndx,
                           cs_float *arg) {
   if(obj->inargp != NULL) {
     cs_float **inargp = obj->inargp;
-    uint32_t n = obj->dataspace->optext->t.inArgCount;
-    if(ndx > n) return NOTOK;
+    const TEXT *t = &(obj->dataspace->optext->t);
+    // the slots setup_args filled; one a failed call left empty is none
+    if(ndx >= input_slots(t->oentry->intypes, t->inArgCount) ||
+       inargp[ndx] == NULL) return NOTOK;
     if(csoundGetTypeForArg(inargp[ndx]) != csoundGetTypeForArg(arg)) {
       // We check if set arg was k and now we send in a constant or ivar
       if(csoundGetTypeForArg(inargp[ndx]) == &CS_VAR_TYPE_K &&
