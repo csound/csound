@@ -718,6 +718,11 @@ std::vector<LongStatement> longStatements()
         {"Expressions", longNote(3000, "[1]"), 0, 3004},
         {"SectionLine", "i 1 0 0\ns" + std::string(30000, ' ') + "\n" + longNote(1), 1, 5},
         {"CarriedFields", longNote(10000, "11") + "\ni 3 0", 0, 10004},
+        /* p-fields 65537 to 65539 were taken for p1 to p3 */
+        {"Over65535Fields", longNote(66000, "22"), 0, 66004},
+        /* and past 32767 the count was negative to the carry */
+        {"Over32767FieldsAfterANote",
+         "i 3 0 0 5\ni 3 0.002" + longNote(40000, "22").substr(5), 0, 40004},
     };
 }
 
