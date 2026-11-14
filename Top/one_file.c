@@ -945,20 +945,28 @@ static int32_t create_sample(CSOUND *csound, char *buffer, CORFIL *cf)
     /* char  buffer[CSD_MAX_LINE_LEN]; */
 
     while (isblank(*tag)) tag++;      /* the tag was found after blanks */
-    sscanf(tag, "<CsSampleB filename=\"%d\">", &num);
-    snprintf(sampname, 256, "soundin.%d", num);
-    if (UNLIKELY((smpf = fopen(sampname, "rb")) != NULL)) {
-      fclose(smpf);
-      csoundDie(csound, Str("File %s already exists\n"), sampname);
+    tag += 20;  /* 20== strlen("<CsSampleB filename=") */
+    if (*tag == '"') tag++;           /* quoted or not, as for <CsFileB> */
+    if (UNLIKELY(sscanf(tag, "%d", &num) != 1))   /* the loop skips its data */
+      csound->Warning(csound,
+                      Str("<CsSampleB> without a file number, skipped: %s"),
+                      buffer);
+    else {
+      snprintf(sampname, 256, "soundin.%d", num);
+      if (UNLIKELY((smpf = fopen(sampname, "rb")) != NULL)) {
+        fclose(smpf);
+        csoundDie(csound, Str("File %s already exists\n"), sampname);
+      }
+      fd = csoundFileOpen(csound, &smpf, CSFILE_STD, sampname, "wb", NULL,
+                                  CSFTYPE_UNKNOWN_AUDIO, 1);
+      if (UNLIKELY(fd == NULL)) {
+        csoundDie(csound, Str("Cannot open sample file (%s) subfile\n"),
+                  sampname);
+      }
+      read_base64(csound, cf, smpf);
+      csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
+      add_tmpfile(csound, sampname);              /* IV - Feb 03 2005 */
     }
-    fd = csoundFileOpen(csound, &smpf, CSFILE_STD, sampname, "wb", NULL,
-                                CSFTYPE_UNKNOWN_AUDIO, 1);
-    if (UNLIKELY(fd == NULL)) {
-      csoundDie(csound, Str("Cannot open sample file (%s) subfile\n"), sampname);
-    }
-    read_base64(csound, cf, smpf);
-    csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
-    add_tmpfile(csound, sampname);              /* IV - Feb 03 2005 */
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
       char *p = buffer;
       while (isblank(*p)) p++;
