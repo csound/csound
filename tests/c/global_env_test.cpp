@@ -75,3 +75,25 @@ TEST_F(GlobalEnvTests, ANameAnInstanceRefusesIsRefused)
     EXPECT_EQ(instanceValue(accepted), "x");
     EXPECT_EQ(csoundSetGlobalEnv(accepted, nullptr), 0);
 }
+
+/* csoundGetEnv(NULL, ...) points into the name's own slot, so a value taken
+ * from it is copied onto itself: strcpy's overlap mangled it. */
+TEST_F(GlobalEnvTests, AValueFromItsOwnSlotIsCopiedWhole)
+{
+    std::string value;
+    for (int n = 0; value.size() < 400; n++)
+        value += "/" + std::to_string(n);
+    ASSERT_EQ(csoundSetGlobalEnv(b, value.c_str()), 0);
+
+    ASSERT_EQ(csoundSetGlobalEnv(b, csoundGetEnv(nullptr, b) + 7), 0);
+    EXPECT_STREQ(csoundGetEnv(nullptr, b), value.c_str() + 7);
+}
+
+/* A host setting back the pointer it read: a copy onto itself, which glibc's
+ * strcpy survives and AddressSanitizer reports. */
+TEST_F(GlobalEnvTests, ItsOwnValueSetBackIsKept)
+{
+    ASSERT_EQ(csoundSetGlobalEnv(b, "kept"), 0);
+    ASSERT_EQ(csoundSetGlobalEnv(b, csoundGetEnv(nullptr, b)), 0);
+    EXPECT_STREQ(csoundGetEnv(nullptr, b), "kept");
+}

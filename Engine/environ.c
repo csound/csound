@@ -145,7 +145,8 @@ int32_t csoundSetGlobalEnv(const char *name, const char *value)
     if (UNLIKELY(strlen(value) >= 480))
       return -1;                        /* string value is too long */
     strcpy(globalEnvVarName(i), name);
-    strcpy(globalEnvVarValue(i), value);
+    /* value may point into this slot, as csoundGetEnv(NULL, name) does */
+    memmove(globalEnvVarValue(i), value, strlen(value) + 1);
     return 0;
 }
 
