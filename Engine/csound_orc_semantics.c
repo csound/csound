@@ -3637,6 +3637,106 @@ static TREE* convert_boolean_args(CSOUND* csound, TREE* statement,
   return anchor != NULL ? tree_append(anchor, statement) : statement;
 }
 
+/* An array output takes the UDO's array with the element type it has, and
+   these are read right through the output's type: an array of the same
+   element type, whatever its rank or the quoting of a named type ([:Complex;]
+   is [Complex]), an i[] and a k[] for each other, an array of numbers or
+   booleans for a b[] or B[], whose reads take a boolean from either, and an
+   a[] for a k[], read as each member's first sample. */
+static int32_t array_read_as(const char* want, const char* got) {
+  size_t n;
+  if (*want != '[' || *got != '[') return 0;
+  want += strspn(want, "[:");
+  got += strspn(got, "[:");
+  n = strcspn(want, ";]");
+  if (n == strcspn(got, ";]") && !strncmp(want, got, n)) return 1;
+  if (n != 1 || strcspn(got, ";]") != 1) return 0;
+  return (strchr("ik", *want) && strchr("ik", *got)) ||
+         (*want == 'k' && *got == 'a') ||
+         (strchr("bB", *want) && strchr("ikbB", *got));
+}
+
+/* A new-style UDO copies each output by the type it declares, whatever xout
+   gives it: a number read as a block of audio is read past its end, a block
+   of audio written to a number writes over what follows it, and a string read
+   as a number gives the bits of its pointer. So xout must give each output
+   one value that reads as its type. What an opcode's input of that type takes
+   is taken, and so are a k for an i output and the arrays array_read_as
+   lists. A number for an a output goes through =, as a1 = k1 does, so it
+   fills the block, and an a for a k output gives its first sample, as
+   k1 = a1 does. These go at the end of the body, as the boolean conversions
+   do, and after them. Anything else is refused. The xout of a UDO with no
+   outputs gives nothing to anyone, and is left as it is. Old-style UDOs keep
+   verify_xin_xout, which is stricter. */
+static int32_t check_xout_args(CSOUND* csound, TREE* statement,
+                               TYPE_TABLE* typeTable) {
+  OENTRY* entry = statement->markup;
+  const char* types = typeTable->udoOutTypes;
+  char** required;
+  TREE** slot;
+  int32_t i, outputs, given, ok = 1;
+
+  if (typeTable->udoName == NULL || types == NULL || entry == NULL ||
+      strcmp(entry->opname, "xout")) return 1;
+  typeTable->udoHasXout = 1;
+  if (!strcmp(types, "0")) return 1;
+  outputs = args_required(types);
+  given = tree_arg_list_count(statement->right);
+  if (outputs <= 0) return 1;
+  if (UNLIKELY(given != outputs)) {
+    synterr(csound, Str("xout in UDO %s gives %d values for %d outputs, "
+                        "line %d\n"),
+            typeTable->udoName, given, outputs, statement->line);
+    do_baktrace(csound, statement->locn);
+    return 0;
+  }
+  if ((required = split_args(csound, types)) == NULL) return 1;
+  for (i = 0, slot = &statement->right; ok && i < outputs;
+       i++, slot = &(*slot)->next) {
+    const char* type = required[i];
+    char* found = get_arg_type2(csound, *slot, typeTable);
+    int32_t scalar;
+    if (found == NULL) continue;
+    scalar = *found != '\0' && found[1] == '\0' && type[1] == '\0';
+    if (check_in_arg(found, type) ||
+        (scalar && *type == 'i' && *found == 'k') ||
+        array_read_as(type, found)) {
+      /* taken as it is */
+    } else if (scalar && ((*type == 'a' && strchr("ikcpr", *found)) ||
+                          (*type == 'k' && *found == 'a'))) {
+      char name[32];
+      TREE* arg = *slot;
+      TREE* convert = create_opcode_token(csound, "=");
+      snprintf(name, sizeof(name), "#%c%d", *type,
+               typeTable->localPool->synthArgCount++);
+      add_arg(csound, name, NULL, typeTable, NULL);
+      convert->line = statement->line;
+      convert->locn = statement->locn;
+      convert->left = make_leaf(csound, statement->line, statement->locn,
+                                T_IDENT, make_token(csound, name, NULL));
+      convert->right = arg;
+      *slot = make_leaf(csound, statement->line, statement->locn,
+                        T_IDENT, make_token(csound, name, NULL));
+      (*slot)->next = arg->next;
+      arg->next = NULL;
+      tree_append(statement, convert);
+    } else {
+      char* want = csoundFormatTypeName(csound, type, 0);
+      char* got = csoundFormatTypeName(csound, found, 0);
+      synterr(csound, Str("xout in UDO %s gives %s for output %d, which is %s, "
+                          "line %d\n"),
+              typeTable->udoName, got, i + 1, want, statement->line);
+      do_baktrace(csound, statement->locn);
+      csound->Free(csound, want);
+      csound->Free(csound, got);
+      ok = 0;
+    }
+    csound->Free(csound, found);
+  }
+  free_split_args(csound, required);
+  return ok;
+}
+
 /* Walks tree and finds all label: definitions */
 static CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
   CONS_CELL* head = NULL, *ret = NULL;
@@ -4210,9 +4310,6 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
     xin/xout number of args matches UDO input/output arg specifications
     xin/xout statements exist if UDO in and out args are not 0 */
 static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
-  if (udoTree->right == NULL) {
-    return 1;
-  }
   TREE* outArgsTree = udoTree->left->left;
   TREE* inArgsTree = udoTree->left->right;
   TREE* current = udoTree->right;
@@ -4262,7 +4359,10 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
   char* outArgsFound = get_arg_string_from_tree(csound, xoutArgs, typeTable);
 
 
-  if (check_in_args(csound, inArgsFound, inArgs) <= 0) {
+  /* An empty body does nothing with its inputs, but its outputs still need
+     an xout, or the caller's variables keep what they held. */
+  if (udoTree->right != NULL &&
+      check_in_args(csound, inArgsFound, inArgs) <= 0) {
     if (UNLIKELY(!(strcmp("0", inArgs) == 0 && xinArgs == NULL))) {
       synterr(csound,
               Str("invalid xin statement for UDO: defined '%s', found '%s'\n"),
@@ -4386,12 +4486,15 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       csound->inZero = 0;
 
       current->markup = typeTable->localPool;
+      typeTable->udoHasXout = 0;
 
       if (current->right != NULL) {
 
         typeTable->udoOutTypes = top->left->markup;
+        if (top->left->type != UDO_ANS_TOKEN) typeTable->udoName = udo_name;
         newRight = verify_tree(csound, current->right, typeTable);
         typeTable->udoOutTypes = NULL;
+        typeTable->udoName = NULL;
 
         if (newRight == NULL) {
           cs_cons_free(csound, typeTable->labelList);
@@ -4400,15 +4503,30 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         }
 
         current->right = newRight;
-
-        if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
-          if(!verify_xin_xout(csound, current, typeTable)) {
-            synterr(csound, Str("%s UDO\n"), udo_name);
-            return 0;
-          }
-        }
-
         newRight = NULL;
+      }
+
+      if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
+        if(!verify_xin_xout(csound, current, typeTable)) {
+          synterr(csound, Str("%s UDO\n"), udo_name);
+          cs_cons_free(csound, typeTable->labelList);
+          typeTable->labelList = parentLabelList;
+          return NULL;
+        }
+      }
+
+      /* A new-style UDO's outputs are given only by xout: without one, the
+         caller's variables keep what they held. */
+      if (top->left->type != UDO_ANS_TOKEN && strcmp(top->left->markup, "0") &&
+          !typeTable->udoHasXout) {
+        char* outputs = csoundFormatTypeList(csound, top->left->markup);
+        synterr(csound, Str("UDO %s has outputs %s and no xout, line %d\n"),
+                udo_name, outputs, top->line);
+        do_baktrace(csound, top->locn);
+        csound->Free(csound, outputs);
+        cs_cons_free(csound, typeTable->labelList);
+        typeTable->labelList = parentLabelList;
+        return NULL;
       }
 
       typeTable->localPool = typeTable->instr0LocalPool;
@@ -4747,6 +4865,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
             previous->next = current;
           }
           continue;
+        }
+        if (!check_xout_args(csound, current, typeTable)) {
+          return 0;
         }
         handle_optional_args(csound, current);
       }
