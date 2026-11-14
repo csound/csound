@@ -570,7 +570,7 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
       while (isblank(*p)) p++;
       if (split_close)            /* a closer across two chunks of a line */
         comm = 0;
-      else if(line_start && *p == '/' && *(p+1) == '*') {
+      else if(!comm && line_start && *p == '/' && *(p+1) == '*') {
         //csound->Message(csound, "comment start\n");
         comm = 1; p += 2;
         if (*p == '\0')           /* the star of the opening closes nothing */
