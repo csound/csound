@@ -894,7 +894,8 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       inargs[i++] = args[n++];
       types++;
     }
-    else if(*types == '.') {
+    // any type, but an array of any type is checked as an array below
+    else if(*types == '.' && *(types+1) != '[') {
       inargs[i++] = args[n++];
       types++;
     }
