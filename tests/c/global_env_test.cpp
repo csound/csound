@@ -54,3 +54,24 @@ TEST_F(GlobalEnvTests, SettingAgainAfterAnEarlierDeleteKeepsOneEntry)
     EXPECT_EQ(instanceValue(b), std::nullopt);
     EXPECT_NE(csoundSetGlobalEnv(b, nullptr), 0);
 }
+
+/* Every instance copies the table through the check --env makes, and a name
+ * that check refuses made every later csoundCreate() die. */
+TEST_F(GlobalEnvTests, ANameAnInstanceRefusesIsRefused)
+{
+    const char *const refused[] = {
+        "1CSOUND_GLOBAL_ENV_TEST", "CSOUND_GLOBAL_ENV_TEST=X",
+        "CSOUND-GLOBAL-ENV-TEST", "CSOUND GLOBAL ENV TEST"
+    };
+    for (const char *name : refused) {
+        const int result = csoundSetGlobalEnv(name, "x");
+        if (result == 0)
+            csoundSetGlobalEnv(name, nullptr);   /* or csoundCreate dies */
+        EXPECT_NE(result, 0) << name;
+    }
+
+    const char *const accepted = "_CSOUND_GLOBAL_ENV_TEST_1";
+    ASSERT_EQ(csoundSetGlobalEnv(accepted, "x"), 0);
+    EXPECT_EQ(instanceValue(accepted), "x");
+    EXPECT_EQ(csoundSetGlobalEnv(accepted, nullptr), 0);
+}

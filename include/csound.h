@@ -506,6 +506,9 @@ extern "C" {
    * Setting CSOUND7RC to "" before csoundCreate() stops an instance reading
    * any rc file, .csound7rc in the working directory included. Those files
    * take any option, --opcode-lib among them.
+   * A name is letters, digits and underscores, does not start with a
+   * digit, as for --env, and is shorter than 32 characters; any other is
+   * refused.
    * Returns zero on success.
    */
   PUBLIC int32_t csoundSetGlobalEnv(const char *name, const char *value);

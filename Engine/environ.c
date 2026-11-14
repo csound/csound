@@ -122,7 +122,9 @@ int32_t csoundSetGlobalEnv(const char *name, const char *value)
 {
     int32_t   i;
 
-    if (UNLIKELY(name == NULL || name[0] == '\0' || (int32_t) strlen(name) >= 32))
+    /* every instance copies the table with csoundSetEnv(), which refuses
+       what is_valid_envvar_name() refuses */
+    if (UNLIKELY(!is_valid_envvar_name(name) || (int32_t) strlen(name) >= 32))
       return -1;                        /* invalid name             */
     for (i = 0; i < 16; i++) {
       if (strcmp(name, globalEnvVarName(i)) == 0)

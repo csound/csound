@@ -941,6 +941,9 @@ class Csound:
         The variable is deleted if value is None.
         It is not safe to call this function while any Csound instances
         are active.
+        A name is letters, digits and underscores, does not start with a
+        digit, as for --env, and is shorter than 32 characters; any other
+        is refused.
         Returns zero on success..
         """
         return libcsound.csoundSetGlobalEnv(cstring(name), cstring(value))

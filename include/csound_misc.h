@@ -127,6 +127,9 @@ extern "C" {
    * or delete variable if 'value' is NULL.
    * It is not safe to call this function while any Csound instances
    * are active.
+   * A name is letters, digits and underscores, does not start with a
+   * digit, as for --env, and is shorter than 32 characters; any other is
+   * refused.
    * Returns zero on success.
    */
   PUBLIC int32_t csoundSetGlobalEnv(const char *name, const char *value);
