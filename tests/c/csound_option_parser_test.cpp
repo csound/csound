@@ -174,3 +174,23 @@ TEST_F (OptionParserTests, testOptionKeepsOnlyTheDecodedArguments)
         EXPECT_EQ (trackedBlocks (csound) - before, 1u) << option;
     }
 }
+
+TEST_F (OptionParserTests, testRefusedOptionKeepsOnlyTheDecodedArguments)
+{
+    /* argdecode() refuses -% and leaves by a long jump. */
+    const size_t before = trackedBlocks (csound);
+    EXPECT_NE (csoundSetOption (csound, "-d -m0 -%"), 0);
+    EXPECT_EQ (trackedBlocks (csound) - before, 1u);
+}
+
+TEST_F (OptionParserTests, testJumpAfterTheDecodeFreesNothingTwice)
+{
+    /* -z lists the opcodes once the options are decoded, and a .wasm library
+       that does not load stops that with csoundDie(), a long jump. */
+    EXPECT_NE (csoundSetOption (csound, "--opcode-lib=missing.wasm -z"), 0);
+    std::string messages;
+    for (; csoundGetMessageCnt (csound) > 0; csoundPopFirstMessage (csound))
+        messages += csoundGetFirstMessage (csound);
+    EXPECT_NE (messages.find ("error loading 'missing.wasm'"),
+               std::string::npos);
+}

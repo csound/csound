@@ -1860,11 +1860,21 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
         sp++;
     }
 
-    ret = argdecode(csound, argn + 1, (const char **)args);
+    /* an option argdecode() refuses leaves it by csound->LongJmp(); a jump
+       after it goes back to the setjmp above, as before */
+    volatile jmp_buf top;
+    memcpy((void *)&top, (void *)&csound->exitjmp, sizeof(jmp_buf));
+    if (setjmp(csound->exitjmp) != 0)
+      ret = -1;
+    else
+      ret = argdecode(csound, argn + 1, (const char **)args);
+    memcpy((void *)&csound->exitjmp, (void *)&top, sizeof(jmp_buf));
     csoundFree(csound, options);
     for (i = 1; i <= argn + 1; i++)
       csoundFree(csound, args[i]);
     csoundFree(csound, args);
+    if (ret < 0)
+      return 1;
 
     /* Hosts get the list at once, as before: a request left pending
        would make a later csoundCompile() stop after listing. */
