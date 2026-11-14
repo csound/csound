@@ -391,6 +391,16 @@ TEST_F(CsdCompileTests, MidifileBEndTagAfterItsDataIsSkippedOnAStartedEngine)
   EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
 }
 
+// So can a tag that the end of a chunk of a long line cuts: here the first
+// chunk's 4095 bytes end with "</C".
+TEST_F(CsdCompileTests, MidifileBEndTagCutByAChunkIsSkippedOnAStartedEngine)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const auto text = csd("instr 1\nendin\n", "<CsMidifileB>\n" +
+                        std::string(4092, 'A') + "</CsMidifileB>\n");
+  EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
+}
+
 #if GTEST_HAS_DEATH_TEST && !defined(_WIN32)
 // A CSD whose last byte is a bare CR, with no </CsoundSynthesizer>, is read
 // to its end. It used to be read for ever: in a child with an alarm, that
