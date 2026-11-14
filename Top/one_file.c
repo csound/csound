@@ -749,6 +749,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
       int32_t line_start = last == '\n';
       last = buffer[strlen(buffer)-1];
       p = buffer;
+      while (isblank(*p)) p++;    /* as create_score */
       if (line_start && strstr(p, "</CsScore>") == p) {
         char sys[1024];
         csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);

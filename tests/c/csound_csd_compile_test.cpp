@@ -415,4 +415,15 @@ TEST_F(CsdCompileTests, TemporaryFilesLeaveNothing)
   }()), ::testing::ExitedWithCode(0), "");
 }
 #endif
+
+#if !defined(_WIN32)
+// An indented </CsScore> ends an external score, as it ends a score.
+TEST_F(CsdCompileTests, IndentedEndTagEndsAnExternalScore)
+{
+  const char *text = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\nendin\n"
+    "</CsInstruments>\n<CsScore bin=\"cp\">\ni 1 0 0\n  </CsScore>\n"
+    "</CsoundSynthesizer>\n";
+  EXPECT_EQ(0, csoundCompileCSD(csound, text, 1, 0)) << messages();
+}
+#endif
 }
