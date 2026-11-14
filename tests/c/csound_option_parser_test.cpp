@@ -133,3 +133,13 @@ TEST_F (OptionParserTests, testNullOptionIsRefused)
 {
     EXPECT_NE (csoundSetOption (csound, NULL), 0);
 }
+
+TEST_F (OptionParserTests, testClusterEndingInADashOrPlusStaysInItsArgument)
+{
+    /* Each is the last argument, so a read past its end leaves the copy
+       argdecode() makes, which AddressSanitizer reports. */
+    EXPECT_EQ (csoundSetOption (csound, "-d-"), 0);
+    EXPECT_EQ (csound->oparms->displays, 0);
+    EXPECT_EQ (csoundSetOption (csound, "-n+"), 0);
+    EXPECT_EQ (csound->oparms->sfwrite, 0);
+}

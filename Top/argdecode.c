@@ -1749,8 +1749,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             csound->Message(csound, Str("\n...failing to parse options\n"));
             return 0; // fail
           }
-          while (*(++s))
-            ;
+          s += strlen(s); /* the option may be empty: "-d-" */
           break;
         case 'j':
           FIND(Str("no number of threads\n"));
@@ -1760,8 +1759,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
         case '+': /* IV - Feb 01 2005 */
           if (parse_option_as_cfgvar(csound, (char *)s - 2) != 0)
             csound->LongJmp(csound, 1);
-          while (*(++s))
-            ;
+          s += strlen(s); /* the option may be empty: "-d+" */
           break;
         default:
           if (csound->info_message_request == 0)
