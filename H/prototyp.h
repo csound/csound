@@ -37,6 +37,10 @@ extern "C" {
   void *csoundCalloc_debug(CSOUND *, size_t, char*, int32_t);
   void *csoundRealloc_debug(CSOUND *, void *, size_t, char*, int32_t);
   void csoundFree_debug(CSOUND *, void *, char*, int32_t);
+  /* For tests: the number of blocks Csound holds until a reset, and whether
+     a pointer is the data of one of them. */
+  size_t csound_tracked_block_count(CSOUND *);
+  int32_t csound_is_tracked_block(CSOUND *, const void *);
   void csoundAuxAlloc(CSOUND *, size_t, AUXCH *);
   void csoundAuxAllocAligned(CSOUND *, size_t, size_t, AUXCH *);
   void auxchfree(CSOUND *, INSDS *);
