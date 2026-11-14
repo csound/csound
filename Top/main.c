@@ -314,8 +314,8 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
         }
         corfile_rewind(cf);
         if (UNLIKELY(!read_unified_file4(csound, cf))) {
-          csound->Die(csound, Str("Reading CSD failed (%s)... stopping\n"),
-                      strerror(errno));
+          /* It has said why: errno is left from something else. */
+          csound->Die(csound, Str("Reading CSD failed... stopping\n"));
         }
         /* cf is deleted in read_unified_file4 */
       }
