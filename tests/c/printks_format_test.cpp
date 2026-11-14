@@ -54,3 +54,26 @@ TEST(PrintsFormat, KeepsNoCopyOfTheFormat)
     Notes notes("prints \"value %d\\n\", 1");
     EXPECT_EQ(0, notes.kept());
 }
+
+/* printks copies its format at init, to see when it changes, and each note
+   of an instance replaced the copy an earlier note made without freeing it. */
+TEST(PrintksFormat, FreesTheCopyAnEarlierNoteMade)
+{
+    Notes notes("printks \"value %d\\n\", 0, 1");
+    EXPECT_EQ(0, notes.kept());
+}
+
+/* ... and so did a reinit, here one at every k-cycle of one note. */
+TEST(PrintksFormat, FreesTheCopyAReinitReplaces)
+{
+    Notes notes("again:\nprintks \"value %d\\n\", 0, 1\nrireturn\n"
+                "reinit again");
+    csoundEventString(notes.csound, "i 1 0 10", 0);
+    for (int i = 0; i < 3; i++)
+        ASSERT_EQ(0, csoundPerformKsmps(notes.csound));
+    const size_t before = csound_tracked_block_count(notes.csound);
+    for (int i = 0; i < 20; i++)
+        ASSERT_EQ(0, csoundPerformKsmps(notes.csound));
+    EXPECT_EQ(0, (long) csound_tracked_block_count(notes.csound) - (long) before);
+    EXPECT_EQ(0, csoundErrCnt(notes.csound));
+}

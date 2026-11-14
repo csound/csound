@@ -398,6 +398,8 @@ int32_t printksset_S(CSOUND *csound, PRINTKS *p){
     char *sarg = ((STRINGDAT*)p->ifilcod)->data;
     int32_t err = printksset_init(csound, p, sarg);
     if (UNLIKELY(err != OK)) return err;
+    /* An earlier note of this instance, or a reinit, made one. */
+    csound->Free(csound, p->old);
     p->old = csoundStrdup(csound, sarg);
     return OK;
 }
