@@ -936,10 +936,7 @@ class Csound:
         MFDIR (see --no-default-paths).
         Return value is None if the variable is not set.
         """
-        ret = libcsound.csoundGetEnv(self.cs, cstring(name))
-        if (ret):
-            return pstring(ret)
-        return None
+        return pstring(libcsound.csoundGetEnv(self.cs, cstring(name)))
 
     def set_global_env(self, name, value):
         """Set the global value of environment variable name to value.
