@@ -34,6 +34,10 @@
 #  include <sys/types.h>
 #  include <sys/stat.h>
 #endif
+#if defined(WIN32) && !defined(__CYGWIN__)
+#  include <io.h>
+#  include <fcntl.h>
+#endif
 
 #define CSD_MAX_LINE_LEN    4096
 #define CSD_MAX_ARGS        100
@@ -96,21 +100,44 @@ CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
 
 #elif defined(WIN32) && !defined(__CYGWIN__)
 
-    /* Windows: use _tempnam() since mkstemp() is not available. */
+    /* Windows: use _tempnam() since mkstemp() is not available. It gives a
+       name, without extension, that no file has, but creates nothing, so
+       processes running at once were given the same one. The name is
+       reserved by creating its file exclusively, as mkstemp() does, which
+       other processes' _tempnam() then passes over, and that file goes with
+       the other temporary files. A name taken since _tempnam() looked is
+       given up for the next one, its number being sequential. */
     struct _stat tmp;
-    do {
+    int32_t tries = 0;
+    for (;;) {
         char *s = (char*) csoundGetEnv(csound, "SFDIR");
+        int32_t fd;
         if (s == NULL)
             s = (char*) csoundGetEnv(csound, "HOME");
         s = _tempnam(s, "cs");
-        if (UNLIKELY(s == NULL))
+        if (UNLIKELY(s == NULL || strlen(s) >= nBytes))  /* not cut: unique */
             csound->Die(csound, Str(" *** cannot create temporary file\n"));
         strNcpy(lbuf, s, nBytes);
         free(s);
 
-        if (ext && ext[0] != '\0')
-            strlcat(lbuf, ext, nBytes);
-    } while (_stat(lbuf, &tmp) == 0);
+        fd = _open(lbuf, _O_CREAT | _O_EXCL | _O_RDWR | _O_BINARY,
+                   _S_IREAD | _S_IWRITE);
+        if (fd >= 0) {
+            _close(fd);
+            if (ext == NULL || ext[0] == '\0')
+                break;
+            add_tmpfile(csound, lbuf);
+            if (UNLIKELY(strlcat(lbuf, ext, nBytes) >= nBytes))
+                csound->Die(csound, Str(" *** cannot create temporary file\n"));
+            if (_stat(lbuf, &tmp) != 0)     /* free with its extension too */
+                break;
+        }
+        /* EACCES too, as _tempnam() takes it: a file still being deleted */
+        else if (UNLIKELY(errno != EEXIST && errno != EACCES))
+            csound->Die(csound, Str(" *** cannot create temporary file\n"));
+        if (UNLIKELY(++tries >= 100))
+            csound->Die(csound, Str(" *** cannot create temporary file\n"));
+    }
 
     return csoundStrdup(csound, lbuf);
 
