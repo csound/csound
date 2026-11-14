@@ -250,8 +250,10 @@ static char *my_fgets_cf(CSOUND *csound, char *s, int32_t n, CORFIL *stream)
         ++(STA(csdlinecount));          /* count the lines */
         *(s++) = '\n';                  /* convert */
         if (ch == '\r') {
+          int32_t at = stream->p;
           ch = corfile_getc(stream);
-          if (ch != '\n')               /* Mac format */
+          /* Mac format. At the end, corfile_getc read nothing to put back. */
+          if (ch != '\n' && stream->p != at)
             corfile_ungetc(stream);
         }
         break;

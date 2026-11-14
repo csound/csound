@@ -269,4 +269,19 @@ TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInFile)
     << messages();
   EXPECT_EQ(32u, csoundGetKsmps(csound));
 }
+
+#if GTEST_HAS_DEATH_TEST && !defined(_WIN32)
+// A CSD whose last byte is a bare CR, with no </CsoundSynthesizer>, is read
+// to its end. It used to be read for ever: in a child with an alarm, that
+// fails instead of hanging the tests.
+TEST_F(CsdCompileTests, FinalCarriageReturnEndsTheRead)
+{
+  const std::string text = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\n"
+    "endin\n</CsInstruments>\n<CsScore>\ne\n</CsScore>\r";
+  ASSERT_EXIT(([&] {
+      alarm(10);
+      exit(csoundCompileCSD(csound, text.c_str(), 1, 0) == 0 ? 0 : 1);
+  }()), ::testing::ExitedWithCode(0), "");
+}
+#endif
 }
