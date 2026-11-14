@@ -286,3 +286,11 @@ TEST_F (OptionParserTests, testNumericFlagsRefuseAValueThatIsNotANumber)
     for (const char *option : {"-mx", "-Bx", "-jx", "-tx"})
         EXPECT_NE (csoundSetOption (csound, option), 0) << option;
 }
+
+TEST_F (OptionParserTests, testEmptyFlagValueStaysInItsArgument)
+{
+    /* As with -d-, a read past the empty last argument leaves argdecode()'s
+       copy, which AddressSanitizer reports. */
+    for (const char *option : {"-r \"\"", "-k \"\"", "-x \"\""})
+        EXPECT_EQ (csoundSetOption (csound, option), 0) << option;
+}

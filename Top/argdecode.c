@@ -1564,14 +1564,12 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
         case 'r':
           FIND(Str("no sample rate\n"));
           O->sr_override = (float)atof(s);
-          while (*++s)
-            ;
+          s += strlen(s); /* the value may be empty: -r "" */
           break;
         case 'k':
           FIND(Str("no control rate\n"));
           O->kr_override = (float)atof(s);
-          while (*++s)
-            ;
+          s += strlen(s); /* the value may be empty: -k "" */
           break;
         case 'v':
           if (isdigit(*s)) {
@@ -1598,8 +1596,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
         case 'x':
           FIND(Str("no xfilename\n"));
           csound->xfilename = s; /* extractfile name */
-          while (*++s)
-            ;
+          s += strlen(s); /* the name may be empty: -x "" */
           break;
         case 't':
           FIND(Str("no tempo value\n"));
