@@ -3677,7 +3677,9 @@ static int32_t check_xout_args(CSOUND* csound, TREE* statement,
   int32_t i, outputs, given, ok = 1;
 
   if (typeTable->udoName == NULL || types == NULL || entry == NULL ||
-      strcmp(entry->opname, "xout") || !strcmp(types, "0")) return 1;
+      strcmp(entry->opname, "xout")) return 1;
+  typeTable->udoHasXout = 1;
+  if (!strcmp(types, "0")) return 1;
   outputs = args_required(types);
   given = tree_arg_list_count(statement->right);
   if (outputs <= 0) return 1;
@@ -4484,6 +4486,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       csound->inZero = 0;
 
       current->markup = typeTable->localPool;
+      typeTable->udoHasXout = 0;
 
       if (current->right != NULL) {
 
@@ -4509,6 +4512,20 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         }
 
         newRight = NULL;
+      }
+
+      /* A new-style UDO's outputs are given only by xout: without one, the
+         caller's variables keep what they held. */
+      if (top->left->type != UDO_ANS_TOKEN && strcmp(top->left->markup, "0") &&
+          !typeTable->udoHasXout) {
+        char* outputs = csoundFormatTypeList(csound, top->left->markup);
+        synterr(csound, Str("UDO %s has outputs %s and no xout, line %d\n"),
+                udo_name, outputs, top->line);
+        do_baktrace(csound, top->locn);
+        csound->Free(csound, outputs);
+        cs_cons_free(csound, typeTable->labelList);
+        typeTable->labelList = parentLabelList;
+        return NULL;
       }
 
       typeTable->localPool = typeTable->instr0LocalPool;
