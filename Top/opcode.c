@@ -439,10 +439,11 @@ static cs_float *set_constant(CSOUND *csound, const char *name, cs_float value) 
 
 /**
  * Check arg type directly or from types list
+ * an argument the call did not give is NULL, and has no type
  */
 static const CS_TYPE *check_arg_type(void *arg, const CS_TYPE **types, int32_t n) {
   if(types == NULL)
-  return csoundGetTypeForArg(arg);
+  return arg != NULL ? csoundGetTypeForArg(arg) : NULL;
   else return types[n];
 }
 
@@ -1725,6 +1726,10 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
         args[m] = pargs[m];
      }
    
+    // the object's own slot, as a single object's call has it, so that
+    // an output the call did not give meets a type
+    args[p->OUTOCOUNT] = (cs_float *) obj;
+    types[p->OUTOCOUNT] = &CS_VAR_TYPE_OPCODEOBJ;
     // call setup_args with array flag checked, passing assigned args
     if(setup_args(csound, obj, &(p->h), args, types,
                   p->OUTOCOUNT, p->INOCOUNT - 1) == OK) {
