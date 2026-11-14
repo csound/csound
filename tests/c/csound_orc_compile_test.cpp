@@ -1125,6 +1125,120 @@ endin
     EXPECT_LE(instances, 16);
 }
 
+TEST_F (OrcCompileTests, testInitOnlyUdoWithLiteralOrGlobalCondition)
+{
+    const char* orchestra = R"(
+yes@global:b = 1 < 2
+on@global:B init 1
+
+opcode CountWhileTrue(depth:i):i
+  result:i = 1
+  while true do
+    if depth > 0 then
+      left:i = CountWhileTrue(depth - 1)
+      right:i = CountWhileTrue(depth - 1)
+      result = left + right
+    endif
+    break
+  od
+  xout result
+endop
+opcode CountWhileFlag(depth:i):i
+  result:i = 1
+  flag:b = true
+  while flag do
+    if depth > 0 then
+      left:i = CountWhileFlag(depth - 1)
+      right:i = CountWhileFlag(depth - 1)
+      result = left + right
+    endif
+    break
+  od
+  xout result
+endop
+opcode CountIfTrue(depth:i):i
+  result:i = 1
+  if true then
+    if depth > 0 then
+      left:i = CountIfTrue(depth - 1)
+      right:i = CountIfTrue(depth - 1)
+      result = left + right
+    endif
+  endif
+  xout result
+endop
+opcode CountIfGlobal(depth:i):i
+  result:i = 1
+  if yes then
+    if depth > 0 then
+      left:i = CountIfGlobal(depth - 1)
+      right:i = CountIfGlobal(depth - 1)
+      result = left + right
+    endif
+  endif
+  xout result
+endop
+opcode WhileTruek(depth:i):i
+  result:i = depth
+  while truek do
+    break
+  od
+  xout result
+endop
+opcode IfGlobalB(depth:i):i
+  result:i = depth
+  if on then
+    result = depth + 1
+  endif
+  xout result
+endop
+instr 1
+  chnset CountWhileTrue(8), "while-true"
+  chnset CountWhileFlag(8), "while-flag"
+  chnset CountIfTrue(8), "if-true"
+  chnset CountIfGlobal(8), "if-global"
+endin
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+
+    // A b condition, a literal or a global as much as a local, is read at
+    // init: the UDO stays init-only, and a recursion reuses its frames.
+    const char* initOnly[][2] = {{"CountWhileTrue", "while-true"},
+                                 {"CountWhileFlag", "while-flag"},
+                                 {"CountIfTrue", "if-true"},
+                                 {"CountIfGlobal", "if-global"}};
+    for (auto& udo : initOnly) {
+        SCOPED_TRACE(udo[0]);
+        int32_t error = 0;
+        EXPECT_EQ(256, csoundGetControlChannel(csound, udo[1], &error));
+        EXPECT_EQ(CSOUND_SUCCESS, error);
+        OENTRY* entry = find_opcode_new(csound, udo[0], "i", "i");
+        ASSERT_NE(nullptr, entry);
+        EXPECT_EQ(nullptr, entry->perf);
+        OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+        ASSERT_NE(nullptr, info);
+        int instances = 0;
+        for (INSDS* frame = info->ip->instance; frame != nullptr;
+             frame = frame->nxtinstance) {
+            ++instances;
+        }
+        EXPECT_LE(instances, 16);
+    }
+
+    // A B condition, truek or a global, is read at performance.
+    OENTRY* truek = find_opcode_new(csound, "WhileTruek", "i", "i");
+    OENTRY* globalB = find_opcode_new(csound, "IfGlobalB", "i", "i");
+    ASSERT_NE(nullptr, truek);
+    ASSERT_NE(nullptr, globalB);
+    EXPECT_NE(nullptr, truek->perf);
+    EXPECT_NE(nullptr, globalB->perf);
+}
+
 TEST_F (OrcCompileTests, UdosAtParentSampleRateDoNotAllocateConverters)
 {
     const char* orchestra = R"(
