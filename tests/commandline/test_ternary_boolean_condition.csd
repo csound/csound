@@ -60,6 +60,8 @@ gName@global:i = yes ? 1 : 2
 gFalse@global:i = false ? 1 : 2
 gNameB@global:i = on ? 1 : 2
 gFalsek@global:i = falsek ? 1 : 2
+gTrueValue@global:B = (1 < 2) ? truek : falsek
+gFalseValue@global:B = (2 < 1) ? truek : falsek
 
 ; On a b, true or false, the ternary selects at init
 instr 1
@@ -120,6 +122,37 @@ instr 2
   LimitK(kCount, "while on a B ternary")
  od
  Check(kCount, 3, "while on a B ternary")
+
+ ; a b condition with B values selects each cycle too, as with k values
+ iZero = 0
+ yNever:B = (iZero > 0) ? v : falsek
+ yAlways:B = (iZero == 0) ? v : falsek
+ z:B = (2 < 1) ? truek : falsek
+ mixed:B = (iZero > 0) ? true : falsek
+ Check(yNever ? 1 : 0, 0, "a b condition, B values, false")
+ Check(yAlways ? 1 : 0, kEven, "a b condition, B values, true")
+ Check(z ? 1 : 0, 0, "a b condition, truek and falsek")
+ Check(mixed ? 1 : 0, 0, "a b condition, a b and a B value")
+ Check((iZero > 0 ? truek : falsek) ? 1 : 2, 2,
+       "a b condition, B values, as the condition")
+ kThenB init 0
+ if (iZero > 0 ? truek : v) then
+  kThenB += 1
+ endif
+ Check(kThenB, int(kCycle / 2), "if on a b condition with B values")
+ iPassesB init 0
+ kCount = 0
+ while (iZero > 0 ? truek : falsek) do
+  iPassesB += 1
+  Limit(iPassesB, 1, "while on a b condition with B values")
+  kCount += 1
+  LimitK(kCount, "while on a b condition with B values")
+ od
+ Check(kCount, 0, "while on a b condition with B values")
+
+ ; and in global code, at init
+ Check(gTrueValue ? 1 : 0, 1, "B values in global code, true")
+ Check(gFalseValue ? 1 : 0, 0, "B values in global code, false")
 endin
 
 instr 3

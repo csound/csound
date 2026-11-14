@@ -459,8 +459,12 @@ static TREE *create_cond_expression(CSOUND *csound,
     return NULL;
   }
   else {
+    /* a B value changes at performance, as a k does, but global code has
+       no performance, and selects at init */
     type =
-      (left[0]=='k' || right[0]=='k' || perfRate) ?2 :   1;
+      (left[0]=='k' || right[0]=='k' || perfRate ||
+       ((left[0]=='B' || right[0]=='B') &&
+        typeTable->localPool != typeTable->instr0LocalPool)) ?2 :   1;
     if (type==2) left[0] = right[0] = 'k';
     eq = "=";
   }
