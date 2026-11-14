@@ -798,6 +798,8 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
       else fputs(buffer, scof);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>\n"));
+    csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
+    remove(extname);
     csound->Free(csound, extname);
     return FALSE;
 #endif

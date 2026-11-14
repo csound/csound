@@ -426,4 +426,22 @@ TEST_F(CsdCompileTests, IndentedEndTagEndsAnExternalScore)
   EXPECT_EQ(0, csoundCompileCSD(csound, text, 1, 0)) << messages();
 }
 #endif
+
+#if GTEST_HAS_DEATH_TEST && !defined(_WIN32)
+// An external score with no end tag fails and leaves no file of its own. In
+// a child, for its TMPDIR.
+TEST_F(CsdCompileTests, UnendedExternalScoreLeavesNoFile)
+{
+  const auto tmpdir = path("tmp");
+  ASSERT_TRUE(std::filesystem::create_directory(tmpdir));
+  const char *text = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\nendin\n"
+    "</CsInstruments>\n<CsScore bin=\"cp\">\ni 1 0 0\n";
+  ASSERT_EXIT(([&] {
+      if (setenv("TMPDIR", tmpdir.c_str(), 1) != 0) exit(2);
+      if (csoundCompileCSD(csound, text, 1, 0) == 0) exit(3);
+      csoundReset(csound);
+      exit(std::filesystem::is_empty(tmpdir) ? 0 : 1);
+  }()), ::testing::ExitedWithCode(0), "");
+}
+#endif
 }
