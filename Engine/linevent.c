@@ -262,7 +262,8 @@ static int32_t input_message(CSOUND *csound, const char *message,
 
     if (!size) return 0;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
-      int32_t extralloc = (int32_t) (STA(Linep) + size - STA(Linebufend));
+      /* and one more, for the newline added below */
+      int32_t extralloc = (int32_t) (STA(Linep) + size + 1 - STA(Linebufend));
       *grown = extralloc;
       if (linevent_alloc(csound, (STA(linebufsiz) + extralloc)) != 0)
         return 1;

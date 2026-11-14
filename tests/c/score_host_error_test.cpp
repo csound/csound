@@ -789,6 +789,21 @@ TEST(CsdScores, ReadALongStatementInFull)
     EXPECT_EQ(12004, csoundGetControlChannel(host.csound, "fields", nullptr));
 }
 
+/* A line with no newline, as scoreline sends one, that grows the line-event
+   buffer, from 32 KB: the buffer grew to its end, and its newline went past. */
+TEST(HostScoreReads, LinesWithoutANewlineFitTheBufferTheyGrow)
+{
+    Host host;
+    host.start();
+    for (int size = 32760; size <= 32800; size++) {
+        std::string line(size, ' ');
+        line.replace(0, 7, "i 1 0 0");
+        host.csound->InputMessage(host.csound, line.c_str());
+        host.perform(1);
+        ASSERT_EQ(size - 32759, host.played()) << size;
+    }
+}
+
 /* A string p-field arrives whole, however long: from a host's line, the
    line event's buffer grew under it, and the string went on from the
    wrong place. */
