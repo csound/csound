@@ -4,9 +4,11 @@
   What MIDI output opcodes send, read through a host's MIDI output, so no
   MIDI device is required.
 
-  midion sends on the port its last argument names, as every other MIDI
-  output opcode does. It kept its port pointer after its own state, where
-  the engine never set it, so its first k-cycle read through NULL.
+  midion and mrtmsg send on the port their last argument names, as every
+  other MIDI output opcode does. midion kept its port pointer after its own
+  state, where the engine never set it, so its first k-cycle read through
+  NULL. mrtmsg was allocated at the size of xtratim's struct, one argument
+  short, so its port pointer landed in the next opcode's header.
 */
 
 #define __BUILDING_LIBCSOUND
@@ -87,6 +89,25 @@ TEST_F(MidiOutputTests, MidionWithNoPortSendsOnPortZero)
   play("midion 2, 60, 100");
   EXPECT_EQ(sent, (std::vector<std::vector<int>>{
     {0x91, 60, 100, 0}, {0x81, 60, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, MrtmsgSendsOnItsPort)
+{
+  // The port pointer was the next opcode's link to the one after it.
+  play("mrtmsg 1, 3\n"
+       "noteon 2, 60, 100, 1\n"
+       "noteoff 2, 60, 0, 1");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0xFA, 3}, {0x91, 60, 100, 1}, {0x81, 60, 0, 1}}));
+}
+
+TEST_F(MidiOutputTests, MrtmsgBeforeTheLastInitOpcode)
+{
+  // That link is NULL when the next opcode is the last with an init pass.
+  play("mrtmsg 1, 3\n"
+       "noteon 2, 60, 100, 1");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0xFA, 3}, {0x91, 60, 100, 1}}));
 }
 
 }  // namespace

@@ -1449,7 +1449,7 @@ const OENTRY opcodlst_1[] = {
   { "release",S(REL),0,           "k",    "",     release_set, release, NULL },
   { "xtratim",S(XTRADUR),0,       "",     "i",    xtratim,    NULL,     NULL },
   { "mclock", S(MCLOCK),0,        "",     "io",    mclock_set, mclock,   NULL },
-  { "mrtmsg", S(XTRADUR),0,       "",     "io",    mrtmsg,     NULL,     NULL },
+  { "mrtmsg", S(MRT),0,           "",     "io",    mrtmsg,     NULL,     NULL },
   { "midiout",S(MIDIOUT),0,        "",     "kkkko", NULL, midiout,   NULL      },
   { "midiout_i",S(MIDIOUT), 0,       "",     "iiiio", midiout,   NULL, NULL     },
   { "midiouti",S(MIDIOUT), 0,       "",     "iiiio", midiout,   NULL, NULL     }, /* Alias */
