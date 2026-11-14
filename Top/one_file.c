@@ -576,7 +576,7 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
         csound->orchstr = incore;
         return TRUE;
       } else if (comm) {
-        while (p < buffer + CSD_MAX_LINE_LEN){
+        while (*p != '\0') {    /* this line's text, not an older one's */
           if(*p == '*' && *(p+1) == '/') {
            comm = 0;
            // csound->Message(csound, "comment end\n");
