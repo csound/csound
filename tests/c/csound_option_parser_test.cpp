@@ -239,3 +239,15 @@ TEST_F (OptionParserTests, testMessageColoursTakeEitherSpelling)
     EXPECT_EQ (csoundSetOption (csound, "--m-colours=0"), 0);
     EXPECT_EQ (csound->oparms->msglevel & 96, 0);
 }
+
+TEST_F (OptionParserTests, testCodeAndEventsTakeTheTextAfterTheirEqualsSign)
+{
+    /* Without the =, the text was read from one past the option's end: the
+       next argument here, and past the arguments for the last one. */
+    EXPECT_EQ (csoundSetOption (csound, "--code -d"), 0);
+    EXPECT_EQ (csound->orchname, nullptr);
+    EXPECT_EQ (csound->oparms->displays, 0);
+    EXPECT_EQ (csoundSetOption (csound, "--events"), 0);
+    EXPECT_EQ (csoundSetOption (csound, "--code=;"), 0);
+    EXPECT_STREQ (csound->orchname, "cmd-string");
+}

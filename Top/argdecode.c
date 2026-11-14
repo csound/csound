@@ -1395,7 +1395,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     O->no_deprecated_warnings = 1;
     return 1;
   }
-  else if (!(strncmp(s, "code", 4))) {
+  else if (!(strncmp(s, "code=", 5))) {
     s += 5;
     if(csound->orcname_mode == 0 && // only 1st argdecode pass
        csound->use_only_orchfile == 0) {
@@ -1405,7 +1405,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     }
     return 1;
   }
-  else if (!(strncmp(s, "events", 6))) {
+  else if (!(strncmp(s, "events=", 7))) {
     s += 7;
     if(csound->orcname_mode == 0) {// only 1st argdecode pass
       csoundEventString(csound, s, 0);
