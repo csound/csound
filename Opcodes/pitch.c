@@ -1649,18 +1649,16 @@ int32_t GardnerPink_perf(CSOUND *csound, PINKISH *p)
 /*           f(x) = limit * sign(x)                             */
 /* ************************************************************ */
 
-int32_t clip_set(CSOUND *csound, CLIP *p)
+static void clip_setup(CLIP *p)
 {
     /* Select the fallback before calculating its coefficients. Check the
        range before converting so every unsupported value can use method 0. */
-    int32_t meth = (*p->imethod >= FL(0.0) && *p->imethod < FL(3.0))
-      ? (int32_t)CS_FLOAT2LONG(*p->imethod) : 0;
+    cs_float method = *p->imethod;
+    int32_t meth = (method >= FL(0.0) && method < FL(3.0))
+      ? (int32_t)CS_FLOAT2LONG(method) : 0;
     p->meth = meth > 2 ? 0 : meth;
     p->arg = FABS(*p->iarg);
     p->lim = *p->limit;
-    if (UNLIKELY(p->lim < FL(0.0) || !isfinite(p->lim)))
-      return csound->InitError(csound, "%s\n",
-                              Str("clip: limit must be finite and non-negative"));
     switch (p->meth) {
     case 0:                     /* Bram de Jong method */
       if (!(p->arg <= FL(1.0))) p->arg = FL(0.999);
@@ -1672,18 +1670,35 @@ int32_t clip_set(CSOUND *csound, CLIP *p)
       p->k1 = FL(1.0)/TANH(FL(1.0));
       break;
     }
+}
+
+int32_t clip_set(CSOUND *csound, CLIP *p)
+{
+    if (UNLIKELY(*p->limit < FL(0.0) || !isfinite(*p->limit)))
+      return csound->InitError(csound, "%s\n",
+                              Str("clip: limit must be finite and non-negative"));
+    clip_setup(p);
     return OK;
 }
 
 int32_t clip(CSOUND *csound, CLIP *p)
 {
-    IGN(csound);
+    cs_float limit = *p->limit;
+    if (UNLIKELY(limit < FL(0.0) || !isfinite(limit)))
+      return csound->PerfError(csound, &(p->h), "%s\n",
+                              Str("clip: limit must be finite and non-negative"));
+    /* The method, limit and shape are k-rate inputs, so refresh the
+       coefficients once per control cycle. */
+    clip_setup(p);
     cs_float *aout = p->aout, *ain = p->ain;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float a = p->arg, k1 = p->k1, k2 = p->k2;
-    cs_float limit = p->lim;
+    /* Keep fast-math from replacing these divisions with multiplications by
+       a reciprocal, which underflows for very large finite limits. */
+    volatile cs_float limit_div = limit;
+    volatile cs_float k1_div = k1;
 
     if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
@@ -1699,7 +1714,7 @@ int32_t clip(CSOUND *csound, CLIP *p)
           else if (x>a) {
             /* The ratio is at most one. Squaring the unscaled distance
                or its reciprocal can overflow at finite limits. */
-            cs_float distance = x-a, ratio = distance/k1;
+            cs_float distance = x-a, ratio = distance/k1_div;
             x = a + distance/(FL(1.0)+ratio*ratio);
           }
         }
@@ -1707,7 +1722,7 @@ int32_t clip(CSOUND *csound, CLIP *p)
           if (UNLIKELY(x<-limit))
             x = -k2;
           else if (-x>a) {
-            cs_float distance = x+a, ratio = distance/k1;
+            cs_float distance = x+a, ratio = distance/k1_div;
             x = -a + distance/(FL(1.0)+ratio*ratio);
           }
         }
@@ -1722,7 +1737,7 @@ int32_t clip(CSOUND *csound, CLIP *p)
         else if (UNLIKELY(x<= -limit))
           x = -limit;
         else
-            x = limit*SIN((PI_F*FL(0.5))*(x/limit));
+            x = limit*SIN((PI_F*FL(0.5))*(x/limit_div));
         aout[n] = x;
       }
       return OK;
@@ -1735,7 +1750,7 @@ int32_t clip(CSOUND *csound, CLIP *p)
           x = -limit;
         else {
           /* Keep fast-math from forming limit*k1, which can overflow. */
-          volatile cs_float normalized = k1*TANH(x/limit);
+          volatile cs_float normalized = k1*TANH(x/limit_div);
           x = limit*normalized;
         }
         aout[n] = x;
