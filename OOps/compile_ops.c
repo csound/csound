@@ -357,7 +357,10 @@ static CS_VARIABLE* create_csobj_var(void* cs, const CS_TYPE *type,
 }
 
 static int32_t create_csobj(CSOUND *csound, ASSIGN *p) {
-  ((CS_OBJ *) p->r)->csound = csoundCreate(NULL, NULL);  
+  CS_OBJ *csobj = (CS_OBJ *) p->r;
+  /* not started: a reused instance still holds the last object */
+  memset(csobj, 0, sizeof(CS_OBJ));
+  csobj->csound = csoundCreate(NULL, NULL);
   return OK;
 }
 
@@ -411,7 +414,11 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
   cs_float *bufferout = csobj->bufferout;
   cs_float *spin = engine->spin;
   cs_float *bufferin = csobj->bufferin;
-  
+
+  /* start allocates the buffers once the object has started */
+  if (UNLIKELY(bufferout == NULL))
+    return csound->PerfError(csound, &p->h, "%s\n",
+                             Str("Csound perf: the Csound object has not started"));
   if(esmps >= ksmps) {
    for(uint32_t i=0; i < ksmps; i++) {
     if((uint32_t)csobj->nsmps == esmps) {
@@ -498,7 +505,10 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
   uint32_t esmps = engine->ksmps;
   cs_float *out = p->r;
   cs_float *in = csobj->bufferout;
-   
+
+  if (UNLIKELY(in == NULL))
+    return csound->PerfError(csound, &p->h, "%s\n",
+                             Str("Csound inch: the Csound object has not started"));
   if(UNLIKELY(!(*p->b >= FL(1.0) &&
                  (cs_double)*p->b < (cs_double)nchnls + 1))) {
     return csound->PerfError(csound, &p->h,
@@ -531,6 +541,9 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
   uint32_t esmps = engine->ksmps;
   cs_float *in = p->b;
   cs_float *out = csobj->bufferin;
+  if (UNLIKELY(out == NULL))
+    return csound->PerfError(csound, &p->h, "%s\n",
+                             Str("Csound outch: the Csound object has not started"));
   if(UNLIKELY(!(*p->a >= FL(1.0) &&
                  (cs_double)*p->a < (cs_double)nchnls + 1))) {
     return csound->PerfError(csound, &p->h,
