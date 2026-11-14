@@ -1821,7 +1821,8 @@ int32_t copy_opcode_obj(CSOUND *csound, ASSIGN *p) {
 
 int32_t set_opcode_param(CSOUND *csound, AOP *p) {
   OPCODEOBJ *obj = (OPCODEOBJ *) p->r;
-  uint32_t ndx = (uint32_t) (*p->a >= 0 ? *p->a : 0);
+  cs_float index = *p->a;
+  uint32_t ndx;
   cs_float *arg  = p->b;
   // Defensive: object not initialised yet (e.g., wrong overload picked or missing 'create')
   if (UNLIKELY(obj == NULL || obj->dataspace == NULL)) {
@@ -1830,6 +1831,13 @@ int32_t set_opcode_param(CSOUND *csound, AOP *p) {
   if(context_check(csound, obj, p->h.insdshead) != OK)
     return csound->PerfError(csound, &(p->h), Str("incompatible context for opcode %s \n"),
                              obj->dataspace->optext->t.oentry->opname);
+  // a negative index selects the first input; a NaN is none, and no
+  // opcode has VARGMAX inputs: refused before it is converted, as a
+  // larger index might not convert
+  if(index < 0) index = 0;
+  if(UNLIKELY(index != index || index >= VARGMAX))
+    return csound->PerfError(csound, &(p->h), Str("argument index out of range\n"));
+  ndx = (uint32_t) index;
   if(check_and_set_arg(csound, obj, ndx, arg) != 0)
     return csound->PerfError(csound, &(p->h), Str("could not set arg %u \n"), ndx);
   return OK;
@@ -1838,7 +1846,8 @@ int32_t set_opcode_param(CSOUND *csound, AOP *p) {
 static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
                                   int32_t initializing) {
   OPCODEOBJ *obj = (OPCODEOBJ *) p->a;
-  uint32_t ndx = (uint32_t) (*p->b >= 0 ? *p->b : 0);
+  cs_float index = *p->b;
+  uint32_t ndx;
   cs_float **outargs;
   const CS_TYPE *destinationType;
   const CS_TYPE *sourceType;
@@ -1872,11 +1881,16 @@ static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
                           Str("incompatible context for opcode %s\n"),
                           obj->dataspace->optext->t.oentry->opname);
   }
-  if (UNLIKELY(ndx >= obj->dataspace->optext->t.outArgCount)) {
+  // a negative index selects the first output, as the manual says; a NaN
+  // is none, and a larger index is refused before it is converted
+  if (index < 0) index = 0;
+  if (UNLIKELY(index != index ||
+               index >= obj->dataspace->optext->t.outArgCount)) {
     return initializing
       ? csound->InitError(csound, Str("argument index out of range\n"))
       : csound->PerfError(csound, &p->h, Str("argument index out of range\n"));
   }
+  ndx = (uint32_t) index;
 
   destinationType = csoundGetTypeForArg(p->r);
   sourceType = csoundGetTypeForArg(outargs[ndx]);
