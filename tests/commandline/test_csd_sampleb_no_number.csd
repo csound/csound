@@ -21,4 +21,6 @@ i 1 0 0
 <CsSampleB filename="sample">
 aGVsbG8K
 </CsSampleB>
+<CsSampleB filename="another">
+aGVsbG8K</CsSampleB>
 </CsoundSynthesizer>

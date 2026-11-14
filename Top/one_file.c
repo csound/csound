@@ -912,7 +912,6 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
 
 static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
 {
-    char  *p;
     FILE  *midf;
     void  *fd;
     char  buffer[CSD_MAX_LINE_LEN];
@@ -933,10 +932,9 @@ static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
     add_tmpfile(csound, STA(midname));               /* IV - Feb 03 2005 */
     STA(midiSet) = TRUE;
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
-      p = buffer;
-      while (isblank(*p)) p++;
-      if (strstr(p, "</CsMidifileB>") == p ||
-          strstr(p, "</CsMidiFileB>") == p) {  /* an old error asked for it */
+      /* After the data too: read_base64 stops at the first = of padding */
+      if (strstr(buffer, "</CsMidifileB>") != NULL ||
+          strstr(buffer, "</CsMidiFileB>") != NULL) {  /* an old error's */
         return TRUE;
       }
     }
@@ -977,9 +975,9 @@ static int32_t create_sample(CSOUND *csound, char *buffer, CORFIL *cf)
       add_tmpfile(csound, sampname);              /* IV - Feb 03 2005 */
     }
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
-      char *p = buffer;
-      while (isblank(*p)) p++;
-      if (strstr(p, "</CsSampleB>") == p) {
+      /* After the data too: read_base64 stops at the first = of padding,
+         and skipped data is not read by it at all */
+      if (strstr(buffer, "</CsSampleB>") != NULL) {
         return TRUE;
       }
     }
@@ -1019,9 +1017,8 @@ static int32_t create_file(CSOUND *csound, char *buffer, CORFIL *cf)
     add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
 
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
-      char *p = buffer;
-      while (isblank(*p)) p++;
-      if (strstr(p, "</CsFileB>") == p) {
+      /* After the data too: read_base64 stops at the first = of padding */
+      if (strstr(buffer, "</CsFileB>") != NULL) {
         return TRUE;
       }
     }
@@ -1059,9 +1056,8 @@ static int32_t create_corfile(CSOUND *csound, char *buffer, CORFIL *cf)
     add_corfile(csound, smpf, filename);
 
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
-      char *p = buffer;
-      while (isblank(*p)) p++;
-      if (strstr(p, "</CsFileC>") == p) {
+      /* After the data too: read_base64 stops at the first = of padding */
+      if (strstr(buffer, "</CsFileC>") != NULL) {
         return TRUE;
       }
     }
@@ -1286,17 +1282,15 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         }
         else {
           csoundMessage(csound, Str("Skipping <CsMidifileB>\n"));
-          do {
+          do {      /* to an end tag, after the data as read_base64 finds it */
             if (UNLIKELY(my_fgets_cf(csound, buffer,
                                    CSD_MAX_LINE_LEN, cf) == NULL)) {
               csoundErrorMsg(csound, Str("Missing end tag </CsMidifileB>\n"));
               result = FALSE;
               break;
             }
-            p = buffer;
-            while (isblank(*p)) p++;
-          } while (strstr(p, "</CsMidifileB>") != p &&
-                   strstr(p, "</CsMidiFileB>") != p);
+          } while (strstr(buffer, "</CsMidifileB>") == NULL &&
+                   strstr(buffer, "</CsMidiFileB>") == NULL);
         }
       }
       else if (strstr(p, "<CsSampleB filename=") == p) {

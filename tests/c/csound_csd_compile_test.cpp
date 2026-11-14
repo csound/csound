@@ -351,6 +351,16 @@ TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInFile)
   EXPECT_EQ(32u, csoundGetKsmps(csound));
 }
 
+// The end tag of a skipped <CsMidifileB> can follow its data on one line, as
+// it can when the section is read.
+TEST_F(CsdCompileTests, MidifileBEndTagAfterItsDataIsSkippedOnAStartedEngine)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const auto text = csd("instr 1\nendin\n",
+                        "<CsMidifileB>\nAAAA</CsMidifileB>\n");
+  EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
+}
+
 #if GTEST_HAS_DEATH_TEST && !defined(_WIN32)
 // A CSD whose last byte is a bare CR, with no </CsoundSynthesizer>, is read
 // to its end. It used to be read for ever: in a child with an alarm, that
