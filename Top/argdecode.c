@@ -1416,6 +1416,18 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   return 1;
 }
 
+/* An indirection file stays open while its options are read, so one open
+   already is being read: it names itself, or names a file that names it. */
+static int32_t indirection_is_open(CSOUND *csound, const void *fd) {
+  const CSFILE *file = (const CSFILE *)fd, *p;
+  int32_t found = 0;
+  csoundSpinLock(&csound->open_files_lock);
+  for (p = (const CSFILE *)csound->open_files; p != NULL && !found; p = p->nxt)
+    found = p != file && strcmp(p->fullName, file->fullName) == 0;
+  csoundSpinUnLock(&csound->open_files_lock);
+  return found;
+}
+
 static int32_t capture_application_arguments(CSOUND *csound, int32_t *argc,
                                              const char **argv)
 {
@@ -1714,8 +1726,12 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
                                   CSFTYPE_OPTIONS, 0);
             if (UNLIKELY(fd == NULL)) {
               dieu(csound, Str("Cannot open indirection file %s\n"), s);
+            } else if (UNLIKELY(indirection_is_open(csound, fd))) {
+              csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
+              dieu(csound, Str("Indirection file %s is already being read\n"), s);
             } else {
               CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
+              corfile_rewind(cf);
               read_options(csound, cf, 0);
               corfile_rm(csound, &cf);
               csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);

@@ -2,6 +2,10 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <filesystem>
+#include <fstream>
+#include <random>
+#include <string>
 #include "gtest/gtest.h"
 #include "csound.h"
 #include "csoundCore.h"
@@ -193,4 +197,35 @@ TEST_F (OptionParserTests, testJumpAfterTheDecodeFreesNothingTwice)
         messages += csoundGetFirstMessage (csound);
     EXPECT_NE (messages.find ("error loading 'missing.wasm'"),
                std::string::npos);
+}
+
+TEST_F (OptionParserTests, testIndirectionFileOptionsAreRead)
+{
+    namespace fs = std::filesystem;
+    const fs::path file = fs::temp_directory_path () /
+        ("csound-options-" + std::to_string (std::random_device {} ()));
+    std::ofstream (file) << "--env:FROM_AT_FILE=1\n";
+    const std::string option = "-@ \"" + file.string () + "\"";
+    EXPECT_EQ (csoundSetOption (csound, option.c_str ()), 0);
+    fs::remove (file);
+    EXPECT_STREQ (csoundGetEnv (csound, "FROM_AT_FILE"), "1");
+}
+
+TEST_F (OptionParserTests, testIndirectionFileThatNamesItselfIsRefused)
+{
+    namespace fs = std::filesystem;
+    const fs::path file = fs::temp_directory_path () /
+        ("csound-options-" + std::to_string (std::random_device {} ()));
+    const std::string option = "-@ \"" + file.string () + "\"";
+    std::ofstream (file) << option << "\n";
+    /* The refusal leaves the outer file open until the instance goes. */
+    CSOUND *own = csoundCreate (NULL, NULL);
+    csoundCreateMessageBuffer (own, 0);
+    EXPECT_NE (csoundSetOption (own, option.c_str ()), 0);
+    std::string messages;
+    for (; csoundGetMessageCnt (own) > 0; csoundPopFirstMessage (own))
+        messages += csoundGetFirstMessage (own);
+    EXPECT_NE (messages.find ("is already being read"), std::string::npos);
+    csoundDestroy (own);
+    fs::remove (file);
 }
