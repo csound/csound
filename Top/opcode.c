@@ -635,8 +635,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       }
       types += (end+1);
       // skip array type chars
-      if(*types == '[') types++;
-      if(*types == ']') types++;
+      while(types[0] == '[' && types[1] == ']') types += 2;
     } else {
     // single-char types
     argtype = check_arg_type(args[n], cstypes, n);
@@ -664,8 +663,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
     }
     types++;
     // skip array type chars
-    if(*types == '[') types++;
-    if(*types == ']') types++;
+    while(types[0] == '[' && types[1] == ']') types += 2;
     }
     outargs[i++] = args[n++];
   }
@@ -1117,8 +1115,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
         }
         types += (end+1);
         // skip array type chars
-        if(*types == '[') types++;
-        if(*types == ']') types++;
+        while(types[0] == '[' && types[1] == ']') types += 2;
       } else {
         // single-char types
         argtype = check_arg_type(args[n], cstypes, n);
@@ -1157,8 +1154,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
         }
         types++;
         // skip array type chars
-        if(*types == '[') types++;
-        if(*types == ']') types++;
+        while(types[0] == '[' && types[1] == ']') types += 2;
       }
       inargs[i++] = args[n++];
     }
@@ -1194,8 +1190,7 @@ static uint32_t input_slots(const char *types, uint32_t given) {
       return slots > given ? slots : given;
     if(*types == ':') types = strchr(types, ';');
     types++;
-    if(*types == '[') types++;
-    if(*types == ']') types++;
+    while(types[0] == '[' && types[1] == ']') types += 2;
     slots++;
   }
   return slots;
