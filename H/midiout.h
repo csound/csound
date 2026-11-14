@@ -70,8 +70,8 @@ typedef struct {
 
 typedef struct {
   OPDS   h;
-  cs_float  *kchn,*knum,*kvel;
-  int32_t    last_chn, last_num, last_vel, *port;
+  cs_float  *kchn,*knum,*kvel, *port;
+  int32_t    last_chn, last_num, last_vel;
   BOOL   fl_note_expired, fl_first_note;
 } KOUT_ON;
 
