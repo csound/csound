@@ -396,4 +396,23 @@ TEST_F(CsdCompileTests, Base64SectionKeepsLineNumbers)
                                     "\">\naGk=\n</CsFileB>\n");
   EXPECT_EQ(plain, withFile);
 }
+
+#if GTEST_HAS_DEATH_TEST && !defined(_WIN32)
+// The temporary files of a CSD's sections go at a reset, mkstemp's empty
+// file beside each of them too. In a child, for its TMPDIR.
+TEST_F(CsdCompileTests, TemporaryFilesLeaveNothing)
+{
+  const auto tmpdir = path("tmp");
+  ASSERT_TRUE(std::filesystem::create_directory(tmpdir));
+  const char *text = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\nendin\n"
+    "</CsInstruments>\n<CsScore bin=\"cp\">\ni 1 0 0\n</CsScore>\n"
+    "<CsMidifileB>\nAAAA\n</CsMidifileB>\n</CsoundSynthesizer>\n";
+  ASSERT_EXIT(([&] {
+      if (setenv("TMPDIR", tmpdir.c_str(), 1) != 0) exit(2);
+      if (csoundCompileCSD(csound, text, 1, 0) != 0) exit(3);
+      csoundReset(csound);
+      exit(std::filesystem::is_empty(tmpdir) ? 0 : 1);
+  }()), ::testing::ExitedWithCode(0), "");
+}
+#endif
 }

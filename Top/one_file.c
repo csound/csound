@@ -139,6 +139,8 @@ CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
         close(fd);
 
         if (ext && ext[0] != '\0') {
+            /* mkstemp's file keeps the name unique: it goes with the rest */
+            add_tmpfile(csound, lbuf);
             #if !defined(LINUX) && !defined(__MACH__)
             char *p = strrchr(lbuf, '.');
             if (p) *p = '\0';
