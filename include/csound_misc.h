@@ -127,6 +127,13 @@ extern "C" {
    * read, and csoundCompile() can add the directory of the files it
    * is given to SADIR, SSDIR, INCDIR and MFDIR (see --no-default-paths).
    * Return value is NULL if the variable is not set.
+   * The string is Csound's: copy it to keep it. With 'csound' NULL, it
+   * points into the global table: while 'name' is set, setting it again
+   * rewrites the string in place, and once 'name' is deleted, a later set
+   * of any name may reuse its slot. A value from the system environment
+   * lasts as getenv()'s does. With an instance, any change to 'name' there
+   * frees it, csoundCompile()'s included, and csoundReset() and
+   * csoundDestroy() free them all.
    */
   PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name);
 
