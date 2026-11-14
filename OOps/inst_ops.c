@@ -389,12 +389,14 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
     INSDS *ip;
     int32_t res, i;
     INSTREF *ref = (INSTREF *) p->args[0];
-    char  pfields[PMAX+1] = {0};
-    evt.p = (cs_float *) pfields;
+    cs_float pfields[PMAX+1] = {0};
+    evt.p = pfields;
     res = instr_num(csound, ref);
     evt.strarg = NULL; evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = p->INOCOUNT + 2;
+    if (UNLIKELY(evt.pcnt > PMAX))
+      return csound->InitError(csound, Str("too many pfields\n"));
     evt.p[1] = FL(res);
     evt.p[2] = FL(0.0);
     evt.p[3] = -1;
@@ -472,8 +474,8 @@ int32_t create_instance_opcode(CSOUND *csound, CREATE_INSTANCE *p) {
 */
 int32_t init_instance_opcode(CSOUND *csound, INIT_INSTANCE *p) {
   EVTBLK evt;
-  char  pfields[PMAX+1] = {0};
-  evt.p = (cs_float *) pfields;
+  cs_float pfields[PMAX+1] = {0};
+  evt.p = pfields;
   INSTANCEREF *ref = (INSTANCEREF *) p->args[0];
   int32_t i;
   if(ref->instance != NULL) {
@@ -484,6 +486,12 @@ int32_t init_instance_opcode(CSOUND *csound, INIT_INSTANCE *p) {
     evt.scnt = 0;
     evt.opcod = 'i';
     evt.pcnt = p->INOCOUNT + 2;
+    if (UNLIKELY(evt.pcnt > PMAX)) {
+      // an error code, as for the instance's own init errors
+      csound->ErrorMsg(csound, Str("too many pfields\n"));
+      *p->err = NOTOK;
+      return OK;
+    }
     for (i = 4; i <= evt.pcnt; i++)
       evt.p[i] = *p->args[i-3];
     // pass on any init errors to output, do not act on them
@@ -516,10 +524,12 @@ int32_t perf_instance_opcode(CSOUND *csound, PERF_INSTR *p) {
         }
       // Ensure the instance is initialised; if not, try to initialise now using the same args
       if (!ip->init_done) {
-        EVTBLK evt; char pfields[PMAX+1] = {0}; evt.p = (cs_float*) pfields;
+        EVTBLK evt; cs_float pfields[PMAX+1] = {0}; evt.p = pfields;
         evt.p[1] = FL(ip->insno); evt.p[2] = FL(0.0); evt.p[3] = -1;
         evt.strarg = NULL; evt.scnt = 0; evt.opcod = 'i';
         evt.pcnt = p->INOCOUNT + 2;
+        if (UNLIKELY(evt.pcnt > PMAX))
+          return csound->PerfError(csound, &(p->h), Str("too many pfields\n"));
         for (int32_t i = 4; i <= evt.pcnt; i++) evt.p[i] = *p->args[i-3];
         int32_t ierr = init_instance(csound, ip, &evt);
         if (UNLIKELY(ierr != OK))
