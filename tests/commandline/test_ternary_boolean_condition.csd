@@ -86,6 +86,14 @@ instr 1
  CheckInit(gFalse, 2, "false in global code")
  CheckInit(gNameB, 1, "a B in global code")
  CheckInit(gFalsek, 2, "falsek in global code")
+
+ ; array reads at i indices are read at init, so the ternary selects there
+ flagsInit:b[] fillarray p4 == 0, p4 == 1
+ picked:b = (1 == 1) ? flagsInit[1] : flagsInit[0]
+ CheckInit(picked ? 1 : 0, p4, "b[] values at i indices")
+ iValues:i[] fillarray 10, 20
+ CheckInit((p4 == 1) ? iValues[1] : iValues[0], 10 + 10 * p4,
+           "i[] values at i indices")
 endin
 
 ; On a B, truek or falsek, it selects each cycle; v is true on even ones
@@ -153,6 +161,29 @@ instr 2
  ; and in global code, at init
  Check(gTrueValue ? 1 : 0, 1, "B values in global code, true")
  Check(gFalseValue ? 1 : 0, 0, "B values in global code, false")
+
+ ; an array read at a k index in either value changes at performance, so an
+ ; init-time condition selects there too; flags[kIndex] is true on odd cycles
+ flags:b[] fillarray false, true
+ kIndex = kCycle % 2
+ kFirst, kSecond init 0
+ if (true ? flags[kIndex] : false) then
+  kFirst += 1
+ endif
+ if (iZero > 0 ? false : flags[kIndex]) then
+  kSecond += 1
+ endif
+ Check(kFirst, int((kCycle + 1) / 2), "a b[] read at a k index, first value")
+ Check(kSecond, int((kCycle + 1) / 2), "a b[] read at a k index, second value")
+ indexed:B = (1 == 1 ? flags[kIndex] : false)
+ Check(indexed ? 1 : 0, kCycle % 2, "a b[] read at a k index, as a value")
+ iDigits:i[] fillarray 5, 6
+ Check((iZero == 0) ? iDigits[kIndex] : 0, 5 + kCycle % 2,
+       "an i[] read at a k index")
+ SNames:S[] fillarray "even", "odd"
+ SIndexed = (iZero == 0) ? SNames[kIndex] : "none"
+ Check(strcmpk(SIndexed, kEven == 1 ? "even" : "odd"), 0,
+       "an S[] read at a k index")
 endin
 
 instr 3

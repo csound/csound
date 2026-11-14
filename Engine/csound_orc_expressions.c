@@ -417,7 +417,7 @@ static TREE *create_cond_expression(CSOUND *csound,
                                       typeTable, initContext);
   TREE *c = root->right->left, *d = root->right->right;
   char *left, *right;
-  int32_t type, perfRate;
+  int32_t type, perfRate, perfValues;
   TREE *xx;
   char *eq;
 
@@ -450,9 +450,16 @@ static TREE *create_cond_expression(CSOUND *csound,
   }
   perfRate = condition_is_perf_rate(csound, root->left, b, condition,
                                     typeTable);
+  /* a value that changes at performance, a B or an array read at a k index,
+     selects there, as a k does, but global code has no performance, and
+     selects at init. The values are read before they are expanded. */
+  perfValues = typeTable->localPool != typeTable->instr0LocalPool &&
+    (left[0]=='B' || right[0]=='B' ||
+     tree_has_k_rate_array_index(csound, c, typeTable) ||
+     tree_has_k_rate_array_index(csound, d, typeTable));
 
   if (left[0]=='S' || right[0]=='S') {
-    type = perfRate ? 2 : 1;
+    type = (perfRate || perfValues) ? 2 : 1;
     /* Init-time selection must not put string copies in the perf chain. */
     eq = type == 2 ? "#=.S" : "strcpy";
   }
@@ -465,12 +472,8 @@ static TREE *create_cond_expression(CSOUND *csound,
     return NULL;
   }
   else {
-    /* a B value changes at performance, as a k does, but global code has
-       no performance, and selects at init */
     type =
-      (left[0]=='k' || right[0]=='k' || perfRate ||
-       ((left[0]=='B' || right[0]=='B') &&
-        typeTable->localPool != typeTable->instr0LocalPool)) ?2 :   1;
+      (left[0]=='k' || right[0]=='k' || perfRate || perfValues) ?2 :   1;
     if (type==2) left[0] = right[0] = 'k';
     eq = "=";
   }
