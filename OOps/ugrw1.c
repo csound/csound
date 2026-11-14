@@ -518,11 +518,10 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
           len-=1;
         }
         else if (*(fmt+1) && isspace(*(fmt+1))) {
-          if (UNLIKELY(len < 4)) return NOTOK;
+          if (UNLIKELY(len < 3)) return NOTOK;
           *outstring++ = *fmt++;
-          *outstring++ = '%';
           *outstring++ = *fmt++;
-          len-=3;
+          len-=2;
         }
         else {
           int32_t n = 1;
@@ -552,11 +551,6 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
             break;
           case 'c':
             cc  = (char) CS_FLOAT2LRND(*kvals[j]);
-            if (cc == '%') {
-              if (UNLIKELY(len < 3)) return NOTOK;
-              *outstring++ = '%';
-              len--;
-            }
             snprintf(outstring, len, tmp, cc);
             break;
           case 's':
