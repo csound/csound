@@ -332,6 +332,16 @@ TEST_F(CsdCompileTests, ShortLicenceOneEndsAtItsName)
   EXPECT_EQ(name, copyright.substr(copyright.size() - name.size()));
 }
 
+TEST_F(CsdCompileTests, NoInstrumentsIsSaid)
+{
+  const char *text = "<CsoundSynthesizer>\n<CsScore>\ne\n</CsScore>\n"
+    "</CsoundSynthesizer>\n";
+  EXPECT_NE(0, csoundCompileCSD(csound, text, 1, 0));
+  const auto output = messages();
+  EXPECT_NE(std::string::npos,
+            output.find("CSD file *string* has no <CsInstruments>")) << output;
+}
+
 TEST_F(CsdCompileTests, IgnoreCsoptsSkipsCsOptionsInFile)
 {
   ASSERT_NO_FATAL_FAILURE(write("options.csd", withKsmps16));

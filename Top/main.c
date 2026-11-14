@@ -332,6 +332,15 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   if(csound->print_version == 1) {
      print_csound_version(csound);
   }
+  /* Neither <CsInstruments> nor <CsOptions> gave an orchestra. The CSD is
+     not one itself, and only daemon mode starts without one. */
+  if (csdFound && csound->orchstr == NULL &&
+      (csound->orchname == NULL || csound->orchname == csound->csdname)) {
+    if (UNLIKELY(!O->daemon))
+      csound->Die(csound, Str("No orchestra: CSD file %s has no "
+                              "<CsInstruments>\n"), csound->csdname);
+    csound->orchname = NULL;
+  }
   
   /* some error checking */
   if (UNLIKELY(csound->stdin_assign_flg &&
@@ -502,6 +511,11 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
     csound->csdname = name;
     /* Ensure any stale orchname from a previous compile is not used */
     csound->orchname = NULL;
+    if (UNLIKELY(csound->orchstr == NULL)) {
+      csoundErrorMsg(csound, Str("No orchestra: CSD file %s has no "
+                                 "<CsInstruments>\n"), name);
+      return CSOUND_ERROR;
+    }
 
     res = csound_compile_orc(csound, NULL, async);
     if (res == CSOUND_SUCCESS) {
