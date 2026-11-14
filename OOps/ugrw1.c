@@ -277,7 +277,7 @@ static int32_t printksset_(PRINTKS *p, char *sarg)
       tempn = *sarg--;
       /* A backslash that ends the format escapes nothing. */
       if (temp == '\\' && tempn == '\0') break;
-      /* Each case writes one byte, and a single tilde two. */
+      /* Each case writes one byte, and a single tilde or %% two. */
       if (UNLIKELY(sdest >= send)) return NOTOK;
       /* Look for a single caret and insert an escape char.  */
       if ((temp  == '^') && (tempn != '^')) {
@@ -332,6 +332,14 @@ static int32_t printksset_(PRINTKS *p, char *sarg)
           sarg++;
           break;
         }
+      }
+      /* %% goes to sprints whole, which prints one percent sign, and the
+         character after it is not an escape. */
+      else if (temp == '%' && tempn == '%') {
+        if (UNLIKELY(sdest + 1 >= send)) return NOTOK;
+        *sdest++ = '%';
+        *sdest++ = '%';
+        sarg++;
       }
       /* This case is from matt ingalls */
       else if (temp == '%' && tempn != '%' ) {
