@@ -1731,10 +1731,19 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
               dieu(csound, Str("Indirection file %s is already being read\n"), s);
             } else {
               CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
+              volatile jmp_buf outer;
+              volatile int32_t jump;
               corfile_rewind(cf);
-              read_options(csound, cf, 0);
+              /* an option the file refuses leaves by csound->LongJmp(): the
+                 file is closed before the jump goes on */
+              memcpy((void *)&outer, (void *)&csound->exitjmp, sizeof(jmp_buf));
+              if ((jump = setjmp(csound->exitjmp)) == 0)
+                read_options(csound, cf, 0);
+              memcpy((void *)&csound->exitjmp, (void *)&outer, sizeof(jmp_buf));
               corfile_rm(csound, &cf);
               csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
+              if (jump != 0)
+                longjmp(csound->exitjmp, jump);
             }
             while (*s++) {
             };

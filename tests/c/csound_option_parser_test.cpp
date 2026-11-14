@@ -218,16 +218,27 @@ TEST_F (OptionParserTests, testIndirectionFileThatNamesItselfIsRefused)
         ("csound-options-" + std::to_string (std::random_device {} ()));
     const std::string option = "-@ \"" + file.string () + "\"";
     std::ofstream (file) << option << "\n";
-    /* The refusal leaves the outer file open until the instance goes. */
-    CSOUND *own = csoundCreate (NULL, NULL);
-    csoundCreateMessageBuffer (own, 0);
-    EXPECT_NE (csoundSetOption (own, option.c_str ()), 0);
+    EXPECT_NE (csoundSetOption (csound, option.c_str ()), 0);
     std::string messages;
-    for (; csoundGetMessageCnt (own) > 0; csoundPopFirstMessage (own))
-        messages += csoundGetFirstMessage (own);
+    for (; csoundGetMessageCnt (csound) > 0; csoundPopFirstMessage (csound))
+        messages += csoundGetFirstMessage (csound);
     EXPECT_NE (messages.find ("is already being read"), std::string::npos);
-    csoundDestroy (own);
     fs::remove (file);
+}
+
+TEST_F (OptionParserTests, testRefusedIndirectionFileIsClosed)
+{
+    namespace fs = std::filesystem;
+    const fs::path file = fs::temp_directory_path () /
+        ("csound-options-" + std::to_string (std::random_device {} ()));
+    const std::string option = "-@ \"" + file.string () + "\"";
+    std::ofstream (file) << "-%\n";
+    EXPECT_NE (csoundSetOption (csound, option.c_str ()), 0);
+    /* Corrected, the same file is read again. */
+    std::ofstream (file) << "--env:FROM_AT_FILE_AGAIN=1\n";
+    EXPECT_EQ (csoundSetOption (csound, option.c_str ()), 0);
+    fs::remove (file);
+    EXPECT_STREQ (csoundGetEnv (csound, "FROM_AT_FILE_AGAIN"), "1");
 }
 
 TEST_F (OptionParserTests, testMessageColoursTakeEitherSpelling)
