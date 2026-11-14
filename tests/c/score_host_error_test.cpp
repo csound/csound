@@ -4,6 +4,7 @@
 #include <string>
 #include <thread>
 #include <tuple>
+#include <vector>
 #if defined(__GLIBC__) && (__GLIBC__ > 2 || __GLIBC_MINOR__ >= 33)
 #include <malloc.h>
 #define HEAP_IN_USE() (mallinfo2().uordblks)
@@ -698,5 +699,84 @@ TEST(CsdScores, LeaveBInPlaceWhenTheSpaceGrows)
     host.performToScoreEnd();
     EXPECT_EQ(200, host.played());
     EXPECT_EQ(10004, csoundGetControlChannel(host.csound, "fields", nullptr));
+}
+
+/* The reader leaves a margin of 4 KB past its text space at each statement,
+   and checked only long fields against it: each of these outran it. */
+struct LongStatement {
+    const char *name;
+    std::string score;
+    int played; /* instr 1's notes */
+    int fields; /* the last instr 3 note's p-fields */
+};
+
+std::vector<LongStatement> longStatements()
+{
+    return {
+        {"OneCharacterFields", longNote(12000), 0, 12004},
+        {"AfterNotes", shortNotes() + longNote(3000), 200, 3004},
+        {"Expressions", longNote(3000, "[1]"), 0, 3004},
+        {"SectionLine", "i 1 0 0\ns" + std::string(30000, ' ') + "\n" + longNote(1), 1, 5},
+        {"CarriedFields", longNote(10000, "11") + "\ni 3 0", 0, 10004},
+    };
+}
+
+class HostLongStatements
+    : public ::testing::TestWithParam<std::tuple<LongStatement, Path>> {};
+
+TEST_P(HostLongStatements, AreReadInFull)
+{
+    const LongStatement &statement = std::get<0>(GetParam());
+    Host host;
+    readAll(host, statement.score, std::get<1>(GetParam()));
+    EXPECT_EQ(statement.played, host.played()) << host.said();
+    EXPECT_EQ(statement.fields, csoundGetControlChannel(host.csound, "fields", nullptr));
+    EXPECT_EQ(7, csoundGetControlChannel(host.csound, "last", nullptr));
+}
+
+std::string longName(
+    const ::testing::TestParamInfo<HostLongStatements::ParamType> &info)
+{
+    return std::get<0>(info.param).name + std::string("_") +
+           pathNames[std::get<1>(info.param)];
+}
+
+INSTANTIATE_TEST_SUITE_P(Statements, HostLongStatements,
+                         ::testing::Combine(::testing::ValuesIn(longStatements()),
+                                            ::testing::Values(BeforeStart,
+                                                              Blocking, Queued)),
+                         longName);
+
+/* Statements that end on either side of the first text space's end and of
+   its margin's, a field at a time, from its start and from near its end. */
+TEST(HostScoreReads, LongStatementsAroundTheEdges)
+{
+    const std::tuple<int, int, int> ranges[] = {
+        {0, 10190, 10215}, {200, 140, 170}, {200, 2190, 2215}};
+    Host host;
+    host.start();
+    for (const auto &[notes, from, to] : ranges)
+        for (int count = from; count <= to; count++) {
+            SCOPED_TRACE(std::to_string(notes) + " notes, " +
+                         std::to_string(count) + " fields");
+            const std::string score = shortNotes(notes) + longNote(count);
+            csoundEventString(host.csound, score.c_str(), 0);
+            host.perform(1);
+            ASSERT_EQ(count + 4,
+                      csoundGetControlChannel(host.csound, "fields", nullptr));
+        }
+}
+
+TEST(CsdScores, ReadALongStatementInFull)
+{
+    Host host;
+    const std::string csd =
+        std::string("<CsoundSynthesizer>\n<CsInstruments>\n") + orchestra +
+        "</CsInstruments>\n<CsScore>\n" + longNote(12000) +
+        "\n</CsScore>\n</CsoundSynthesizer>\n";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(host.csound, csd.c_str(), 1, 0));
+    host.start();
+    host.performToScoreEnd();
+    EXPECT_EQ(12004, csoundGetControlChannel(host.csound, "fields", nullptr));
 }
 } // namespace
