@@ -2092,7 +2092,11 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
         continue;
 
       udo = (UOPCODE *) current->opcod_deact;
-      free_user_opcode_buffers(csound, udo);
+      /* A reinit of the UDO still queued or running on the realtime init
+         thread uses these buffers. Its caller's next init, or the reset,
+         frees them then. */
+      if (udo->ip == NULL || ATOMIC_GET(udo->ip->init_running) == 0)
+        free_user_opcode_buffers(csound, udo);
 
       if (udo->ip == NULL || ATOMIC_GET8(udo->ip->actflg) == 0 ||
           !instance_turnoff_claim(csound, udo->ip))
