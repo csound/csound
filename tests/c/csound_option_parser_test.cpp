@@ -229,3 +229,13 @@ TEST_F (OptionParserTests, testIndirectionFileThatNamesItselfIsRefused)
     csoundDestroy (own);
     fs::remove (file);
 }
+
+TEST_F (OptionParserTests, testMessageColoursTakeEitherSpelling)
+{
+    EXPECT_EQ (csoundSetOption (csound, "--m-colors=1"), 0);
+    EXPECT_EQ (csound->oparms->msglevel & 96, 96);
+    EXPECT_EQ (csoundSetOption (csound, "--m-colors=10"), 0);
+    EXPECT_EQ (csound->oparms->msglevel & 96, 96);
+    EXPECT_EQ (csoundSetOption (csound, "--m-colours=0"), 0);
+    EXPECT_EQ (csound->oparms->msglevel & 96, 0);
+}

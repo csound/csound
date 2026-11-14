@@ -884,7 +884,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strncmp(s, "m-colours=", 10)) || !(strncmp(s, "m-colors=", 9))) {
     int32_t n;
-    s += 10;
+    s = strchr(s, '=') + 1;
     if (*s == '\0')
       dieu(csound, Str("no message colours\n"));
     sscanf(s, "%d", &n);
