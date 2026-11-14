@@ -383,27 +383,27 @@ static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
     return OK;
 }
 
-int32_t printksset_S(CSOUND *csound, PRINTKS *p){
-    char *sarg;
-    sarg = ((STRINGDAT*)p->ifilcod)->data;
+/* A format given at init: none, or one too long, is an init error. */
+static int32_t printksset_init(CSOUND *csound, PRINTKS *p, char *sarg)
+{
     if (sarg == NULL) return csoundInitError(csound, Str("null string\n"));
-    p->old = csoundStrdup(csound, sarg);
     if (UNLIKELY(printksset_(csound, p, sarg) != OK))
       return csoundInitError(csound,
                              Str("format too long in formatted printing\n"));
     return OK;
 }
 
-int32_t printksset(CSOUND *csound, PRINTKS *p){
-    char* arg_string = csoundGetArgString(csound, *p->ifilcod);
-
-    if (arg_string == NULL) {
-        return csoundInitError(csound, Str("null string\n"));
-    }
-    if (UNLIKELY(printksset_(csound, p, arg_string) != OK))
-      return csoundInitError(csound,
-                             Str("format too long in formatted printing\n"));
+/* printks keeps a copy of its format, to see when it changes. */
+int32_t printksset_S(CSOUND *csound, PRINTKS *p){
+    char *sarg = ((STRINGDAT*)p->ifilcod)->data;
+    int32_t err = printksset_init(csound, p, sarg);
+    if (UNLIKELY(err != OK)) return err;
+    p->old = csoundStrdup(csound, sarg);
     return OK;
+}
+
+int32_t printksset(CSOUND *csound, PRINTKS *p){
+    return printksset_init(csound, p, csoundGetArgString(csound, *p->ifilcod));
 }
 
 
@@ -662,7 +662,8 @@ int32_t printsset_S(CSOUND *csound, PRINTS *p)
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
-    int32_t err = printksset_S(csound, &pk);
+    int32_t err = printksset_init(csound, &pk,
+                                  ((STRINGDAT*)p->ifilcod)->data);
     if (UNLIKELY(err != OK)) return err;
     memset(string,0,8192);
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
