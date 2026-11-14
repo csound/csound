@@ -223,10 +223,10 @@ int32_t moscil(CSOUND *csound, MOSCIL *p)
         && !(p->h.insdshead->relesing)) {
       cs_float ftemp;
       p->istart_time = p->istart_time + p->last_pause + p->last_dur;
+    first_note:
       p->last_dur   =         /* dur must be at least 1/kr */
         (ftemp = *p->kdur) > 0 ? ftemp : CS_ONEDKR;
       p->last_pause = (ftemp = *p->kpause) > 0 ? ftemp : CS_ONEDKR;
-    first_note:
       {
         int32_t temp;
         p->last_chn = (temp = abs((int32_t)*p->kchn-1)) < NUMCHN ? temp :
