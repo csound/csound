@@ -1,5 +1,7 @@
+#define __BUILDING_LIBCSOUND
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <optional>
@@ -7,7 +9,7 @@
 #include <string>
 #include <vector>
 #include "gtest/gtest.h"
-#include "csound.h"
+#include "csoundCore.h"
 
 /* CSOUND7RC set but empty: an instance reads no rc file. Each file here sets a
  * variable of its own, so csoundGetEnv() says what an instance took. HOME is
@@ -238,6 +240,84 @@ TEST_F(RcFileTests, AFileItNamesIsReadInPlaceOfHomeAsBefore)
   EXPECT_TRUE(took(csound, "RC_NAMED"));
   EXPECT_FALSE(took(csound, "RC_HOME"));
   EXPECT_TRUE(took(csound, "RC_HERE"));
+}
+
+/* An option in the file that stops Csound, -o with no name, fails the call
+ * that read it. csoundStart read the file before it owned exitjmp, so the jump
+ * went to whatever an earlier call had left there: nothing, after
+ * csoundCompileOrc, and a crash.
+ */
+TEST_F(RcFileTests, AnOptionThatStopsCsoundFailsTheStart)
+{
+  const fs::path named = root / "named";
+  std::ofstream(named) << "-o\n";
+  ASSERT_EQ(csoundSetGlobalEnv("CSOUND7RC", named.string().c_str()), 0);
+  CSOUND *csound = instance();
+  csoundSetHostAudioIO(csound);
+  ASSERT_EQ(csoundCompileOrc(csound, orchestra, 0), CSOUND_SUCCESS);
+  EXPECT_EQ(csoundStart(csound), CSOUND_ERROR);
+  EXPECT_EQ(csoundPerformKsmps(csound), CSOUND_ERROR);
+
+  /* The instance is whole: with the file put right, it starts. */
+  std::ofstream(named) << "--env:RC_NAMED=1\n";
+  csoundReset(csound);
+  start(csound);
+  EXPECT_TRUE(took(csound, "RC_NAMED"));
+  EXPECT_EQ(csoundPerformKsmps(csound), 0);
+}
+
+/* csoundSetOption reads the file first, and fails in a frame of its own. It
+ * left exitjmp to that frame, and csoundStart's read jumped back into it once
+ * it had returned: a garbage return, or a crash.
+ */
+TEST_F(RcFileTests, AnOptionThatStopsCsoundFailsTheOptionAndTheStart)
+{
+  const fs::path named = root / "named";
+  std::ofstream(named) << "-o\n";
+  ASSERT_EQ(csoundSetGlobalEnv("CSOUND7RC", named.string().c_str()), 0);
+  CSOUND *csound = instance();
+  csoundSetHostAudioIO(csound);
+  EXPECT_NE(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundCompileOrc(csound, orchestra, 0), CSOUND_SUCCESS);
+  EXPECT_EQ(csoundStart(csound), CSOUND_ERROR);
+  EXPECT_EQ(csoundPerformKsmps(csound), CSOUND_ERROR);
+}
+
+/* A second csoundStart is refused before it reads anything, and leaves exitjmp
+ * to the performance, which may be running on another thread. It read the rc
+ * file again first, set its options on the running engine, and jumped from
+ * an option there that stops Csound to a performance's frame.
+ */
+TEST_F(RcFileTests, ASecondStartLeavesThePerformanceItsJumpTarget)
+{
+  CSOUND *csound = instance();
+  start(csound);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  jmp_buf target;
+  memcpy(target, csound->exitjmp, sizeof(jmp_buf));
+  EXPECT_EQ(csoundStart(csound), CSOUND_ERROR);
+  EXPECT_EQ(memcmp(target, csound->exitjmp, sizeof(jmp_buf)), 0);
+  std::ofstream(root / "here" / ".csound7rc") << "--env:RC_SECOND=1 -o\n";
+  EXPECT_EQ(csoundStart(csound), CSOUND_ERROR);
+  EXPECT_FALSE(took(csound, "RC_SECOND"));
+  EXPECT_EQ(memcmp(target, csound->exitjmp, sizeof(jmp_buf)), 0);
+  EXPECT_EQ(csoundPerformKsmps(csound), 0);
+}
+
+/* So is a csoundCompile on a started engine. It took exitjmp for a frame of
+ * its own before it said so, and the performance's next jump went there.
+ */
+TEST_F(RcFileTests, ACompileOnAStartedEngineLeavesThePerformanceItsJumpTarget)
+{
+  CSOUND *csound = instance();
+  start(csound);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  jmp_buf target;
+  memcpy(target, csound->exitjmp, sizeof(jmp_buf));
+  const char *argv[] = {"csound", "-n", "empty.csd"};
+  EXPECT_EQ(csoundCompile(csound, 3, argv), CSOUND_ERROR);
+  EXPECT_EQ(memcmp(target, csound->exitjmp, sizeof(jmp_buf)), 0);
+  EXPECT_EQ(csoundPerformKsmps(csound), 0);
 }
 
 }  // namespace

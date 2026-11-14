@@ -46,6 +46,7 @@ if(BUILD_TESTS)
         csound_diagnostics_test.cpp
         csound_option_parser_test.cpp
         rc_files_test.cpp
+        start_failure_test.cpp
         plugin_options_test.cpp
         csound_csd_compile_test.cpp
         csound_orc_compile_test.cpp
@@ -210,7 +211,9 @@ if(BUILD_TESTS)
             ${libcsound_public_include_dirs})
         target_compile_definitions(failing_init_test_plugin PRIVATE
             BUILD_PLUGINS)
+        # Its directory is scanned too, and a scan takes .dylib on macOS.
         set_target_properties(failing_init_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
             LIBRARY_OUTPUT_DIRECTORY
                 ${CMAKE_CURRENT_BINARY_DIR}/failing-init-plugin
             RUNTIME_OUTPUT_DIRECTORY

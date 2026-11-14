@@ -243,17 +243,19 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   char *fileDir;
   volatile int32_t compiledOk = 0;
 
-  if ((n = setjmp(csound->exitjmp)) != 0) {
-    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-  }
-
-  argc = ac;
+  /* refused before the setjmp: exitjmp may be a running performance's */
   if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
     csound->Message(csound,
                     Str("Csound is already started, call csoundReset()\n"
                         "before starting again.\n"));
     return CSOUND_ERROR;
   }
+
+  if ((n = setjmp(csound->exitjmp)) != 0) {
+    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+  }
+
+  argc = ac;
 
   if (UNLIKELY(--argc <= 0)) {
     dieu(csound, Str("insufficient arguments\n"));
@@ -598,6 +600,23 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
   OPARMS *O = csound->oparms;
   int32_t n;
 
+  /* A started engine is refused before anything is read: its rc file would
+     set options on it, and exitjmp may be a running performance's. */
+  if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
+    csound->Message(csound,
+                    Str("Csound is already started, call csoundReset()\n"
+                        "before starting again.\n"));
+    return CSOUND_ERROR;
+  }
+
+  /* The rc file and the plugins below can stop Csound, which jumps to
+     exitjmp: this call owns it from here. */
+  if ((n = setjmp(csound->exitjmp)) != 0) {
+    if (csound->engineStatus & CS_STATE_COMP) /* in the engine's start */
+      csound->engineStatus |= CS_STATE_START_FAILED;
+    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+  }
+
   // Always print version, unless this was supressed
   // or already printed
   // (print_version is set to 1 by default)
@@ -620,13 +639,6 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
     O->realtime = 0;
   }
 #endif
-
-  if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
-    csound->Message(csound,
-                    Str("Csound is already started, call csoundReset()\n"
-                        "before starting again.\n"));
-    return CSOUND_ERROR;
-  }
 
   { /* test for dummy module request */
     char *s;
@@ -678,10 +690,6 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
                  || csound->instr0 == NULL)) {
       return CSOUND_ERROR;
     }
-  }
-
-  if ((n = setjmp(csound->exitjmp)) != 0) {
-    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
   }
 
   /* if sound file type is still not known, check SFOUTYP */
@@ -765,5 +773,8 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
 
   allocate_message_queue(csound); /* if de-alloc by reset */
 
-  return start_engine(csound);
+  n = start_engine(csound);
+  if (UNLIKELY(n != CSOUND_SUCCESS))
+    csound->engineStatus |= CS_STATE_START_FAILED;
+  return n;
 }

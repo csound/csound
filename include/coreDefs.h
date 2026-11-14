@@ -150,6 +150,9 @@ static const uint32_t PHMASK = (1 << 24) - 1;
 #define CS_STATE_UTIL   (4)
 #define CS_STATE_CLN    (8)
 #define CS_STATE_JMP    (16)
+/* csoundStart() failed after it set CS_STATE_COMP: the performance calls
+   refuse the half-made engine until a reset */
+#define CS_STATE_START_FAILED (32)
 
 /* max number of input/output args for user defined opcodes */
 #define OPCODENUMOUTS_LOW   16

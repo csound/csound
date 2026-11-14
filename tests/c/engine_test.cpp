@@ -404,6 +404,7 @@ TEST_F (EngineTests, testRealtimeLongJmpPreservesInitThreadContext)
       csoundLongJmp(csound, 1);
 
     EXPECT_NE(jumpResult, 0);
+    EXPECT_TRUE(csound->engineStatus & CS_STATE_JMP);
     EXPECT_EQ(csound->curip, &instance);
     EXPECT_EQ(csound->ids, &opcode);
     EXPECT_EQ(csound->reinitflag, 1);

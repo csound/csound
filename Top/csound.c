@@ -1156,7 +1156,10 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
     csound->perferrcnt += csound->inerrcnt;
     csound->inerrcnt = 0;
   }
-  csound->engineStatus |= CS_STATE_JMP;
+  else {
+    /* tells the cleanup that it owes the reset */
+    csound->engineStatus |= CS_STATE_JMP;
+  }
   // printf("**** longjmp with %d\n", n);
 
   longjmp(csound->exitjmp, n);
@@ -2008,7 +2011,7 @@ static void reset(CSOUND *csound) {
     csound->Message(csound, Str("resetting Csound instance\n"));
     reset(csound);
     /* clear compiled flag */
-    csound->engineStatus |= ~(CS_STATE_COMP);
+    csound->engineStatus &= ~(CS_STATE_COMP);
   } else {
     csoundSpinLockInit(&csound->spoutlock);
     csoundSpinLockInit(&csound->spinlock);
