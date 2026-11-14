@@ -251,21 +251,16 @@ int32_t printk(CSOUND *csound, PRINTK *p)
 
 #define ESC (0x1B)
 
-/* printksset is called when the instance of the instrument is initialised.
-   A format that does not fit txtstring is NOTOK, for the caller to report. */
-static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
+/* printksset_ reads a format into txtstring, at init and when printks'
+   format changes during performance. A format that does not fit is NOTOK,
+   for the caller to report. */
+static int32_t printksset_(PRINTKS *p, char *sarg)
 {
     char        *sdest;
     /* The last byte stays the terminator the memset writes. */
     const char  *send = p->txtstring + sizeof(p->txtstring) - 1;
     char        temp, tempn;
 
-    if (*p->ptime < CS_ONEDKR)
-      p->ctime = CS_ONEDKR;
-    else
-      p->ctime = *p->ptime * CS_EKR;
-    if(!p->h.insdshead->reinitflag)
-       p->printat = CS_KCNT;
     memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
     sdest = p->txtstring;
     /* Copy the string to the storage place in PRINTKS.
@@ -377,19 +372,24 @@ static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       /* Increment pointer and process next character until end of string.  */
       ++sarg;
     }
-    if(!p->h.insdshead->reinitflag)
-       p->printat = CS_KCNT;
-    p->initialised = -1;
     return OK;
 }
 
-/* A format given at init: none, or one too long, is an init error. */
+/* printksset is called when the instance of the instrument is initialised.
+   A format given then: none, or one too long, is an init error. */
 static int32_t printksset_init(CSOUND *csound, PRINTKS *p, char *sarg)
 {
+    if (*p->ptime < CS_ONEDKR)
+      p->ctime = CS_ONEDKR;
+    else
+      p->ctime = *p->ptime * CS_EKR;
+    if(!p->h.insdshead->reinitflag)
+       p->printat = CS_KCNT;
     if (sarg == NULL) return csoundInitError(csound, Str("null string\n"));
-    if (UNLIKELY(printksset_(csound, p, sarg) != OK))
+    if (UNLIKELY(printksset_(p, sarg) != OK))
       return csoundInitError(csound,
                              Str("format too long in formatted printing\n"));
+    p->initialised = -1;
     return OK;
 }
 
@@ -604,7 +604,7 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
       if (sarg == NULL)
         return csoundPerfError(csound, &(p->h), Str("null string\n"));
       if (p->old==NULL || strcmp(sarg, p->old) != 0) {
-        if (UNLIKELY(printksset_(csound, p, sarg) != OK))
+        if (UNLIKELY(printksset_(p, sarg) != OK))
           return csound->PerfError(csound, &(p->h),
                                    Str("format too long in formatted printing\n"));
         csound->Free(csound, p->old);
