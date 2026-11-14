@@ -385,6 +385,20 @@ static TREE *append_condition(TREE **anchor, TREE *nodes)
   return tree_tail(nodes)->left;
 }
 
+/* Whether the jumps on a condition run at performance, as its type says: a b
+   is read at init, and a B, or the #k a boolean ternary leaves when it
+   selects at performance, is not. A name in global code, which has no
+   performance, takes init jumps. */
+static int32_t condition_is_perf_rate(CSOUND *csound, TREE *nodes,
+                                      TREE *condition, TYPE_TABLE *typeTable)
+{
+  if (nodes->type == T_IDENT) {
+    return typeTable->localPool != typeTable->instr0LocalPool &&
+      !boolean_expression_is_init_rate(csound, condition, typeTable);
+  }
+  return !boolean_expression_is_init_rate(csound, condition, typeTable);
+}
+
 static TREE *create_cond_expression(CSOUND *csound,
                                     TREE *root, int32_t line, uint64_t locn,
                                     TYPE_TABLE* typeTable,
@@ -429,12 +443,7 @@ static TREE *create_cond_expression(CSOUND *csound,
                     "conditional expression, line %d\n"), root->line-1);
     return NULL;
   }
-  // only a #B... temporary's name gives its rate: a variable has a type,
-  // and global code has only its init jumps to take
-  perfRate = b->type == T_IDENT ?
-    typeTable->localPool != typeTable->instr0LocalPool &&
-      !boolean_expression_is_init_rate(csound, condition, typeTable) :
-    condition->value->lexeme[1] == 'B';
+  perfRate = condition_is_perf_rate(csound, b, condition, typeTable);
 
   if (left[0]=='S' || right[0]=='S') {
     type = perfRate ? 2 : 1;
@@ -2134,15 +2143,10 @@ TREE* expand_if_statement(CSOUND* csound,
                   csoundParserStrdup(csound,
                             labelEnd->value->lexeme),
                   typeTable->labelList);
-        // only a #B... temporary's name gives its rate: a variable has a type,
-        // and ithen and global code have only their init jumps to take
-        if (expressionNodes->type == T_IDENT) {
-          gotoType = tempRight->type != ITHEN_TOKEN &&
-            typeTable->localPool != typeTable->instr0LocalPool &&
-            !boolean_expression_is_init_rate(csound, condition, typeTable);
-        } else {
-          gotoType = (condition->value->lexeme[1] == 'B');
-        }
+        // a name in an ithen has only its init jumps to take
+        gotoType = condition_is_perf_rate(csound, expressionNodes, condition,
+                                          typeTable) &&
+          (expressionNodes->type != T_IDENT || tempRight->type != ITHEN_TOKEN);
         gotoToken = create_goto_token(csound,
           condition->value->lexeme,
           tempRight,
@@ -2420,15 +2424,8 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   }
   condition = append_condition(&anchor, expressionNodes);
   last = tree_tail(anchor);
-
-  // only a #B... temporary's name gives its rate: a variable has a type,
-  // and global code has only its init jumps to take
-  if (expressionNodes->type == T_IDENT) {
-    gotoType = typeTable->localPool != typeTable->instr0LocalPool &&
-      !boolean_expression_is_init_rate(csound, condition, typeTable);
-  } else {
-    gotoType = condition->value->lexeme[1] == 'B';
-  }
+  gotoType = condition_is_perf_rate(csound, expressionNodes, condition,
+                                    typeTable);
 
   labelEnd = create_synthetic_label(csound, endLabelCounter);
   typeTable->labelList = csoundParserCons(csound,

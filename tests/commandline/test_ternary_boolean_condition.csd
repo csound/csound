@@ -29,6 +29,21 @@ opcode Check(kValue:k, kExpected:k, SWhat:S):void
  endif
 endop
 
+; The loop below stops itself if it runs at the wrong rate, so that a wrong
+; rate fails here rather than spinning.
+opcode Limit(iPass:i, iLimit:i, SWhat:S):void
+ if iPass > iLimit then
+  prints("%s: ran %g times at init\n", SWhat, iPass)
+  exitnow(-1)
+ endif
+endop
+
+opcode LimitK(kPass:k, SWhat:S):void
+ if kPass > 8 then
+  printks("%s: ran %g times in one cycle\n", 0, SWhat, kPass)
+  exitnowk(-1)
+ endif
+endop
 
 opcode Pick(v:B):k
  xout v ? 5 : 6
@@ -84,6 +99,27 @@ instr 2
  aPick = v ? a(1) : a(2)
  Check(vaget(3, aPick), 2 - kEven, "a B, audio")
  Check(Pick(kCycle % 2 == 0), 6 - kEven, "a B parameter")
+
+ ; a B ternary as a condition
+ Check((kCycle % 2 == 0 ? truek : falsek) ? 10 : 20, 20 - 10 * kEven,
+       "a B ternary as the condition")
+ kThen, kElse init 0
+ if (kCycle % 2 == 0 ? true : false) then
+  kThen += 1
+ else
+  kElse += 1
+ endif
+ Check(kThen, int(kCycle / 2), "if on a B ternary, then")
+ Check(kElse, kCycle - int(kCycle / 2), "if on a B ternary, else")
+ iPasses init 0
+ kCount = 0
+ while (kCount < 3 ? truek : falsek) do
+  iPasses += 1
+  Limit(iPasses, 1, "while on a B ternary")
+  kCount += 1
+  LimitK(kCount, "while on a B ternary")
+ od
+ Check(kCount, 3, "while on a B ternary")
 endin
 
 instr 3
