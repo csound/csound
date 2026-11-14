@@ -925,13 +925,11 @@ static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
     csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
     add_tmpfile(csound, STA(midname));               /* IV - Feb 03 2005 */
     STA(midiSet) = TRUE;
-    while (TRUE) {
-      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
-        p = buffer;
-        while (isblank(*p)) p++;
-        if (strstr(p, "</CsMidifileB>") == p) {
-          return TRUE;
-        }
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+      p = buffer;
+      while (isblank(*p)) p++;
+      if (strstr(p, "</CsMidifileB>") == p) {
+        return TRUE;
       }
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsMidifileB>\n"));
@@ -960,13 +958,11 @@ static int32_t create_sample(CSOUND *csound, char *buffer, CORFIL *cf)
     read_base64(csound, cf, smpf);
     csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
     add_tmpfile(csound, sampname);              /* IV - Feb 03 2005 */
-    while (TRUE) {
-      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
-        char *p = buffer;
-        while (isblank(*p)) p++;
-        if (strstr(p, "</CsSampleB>") == p) {
-          return TRUE;
-        }
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+      char *p = buffer;
+      while (isblank(*p)) p++;
+      if (strstr(p, "</CsSampleB>") == p) {
+        return TRUE;
       }
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsSampleB>\n"));
@@ -1003,13 +999,11 @@ static int32_t create_file(CSOUND *csound, char *buffer, CORFIL *cf)
     csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
     add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
 
-    while (TRUE) {
-      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
-        char *p = buffer;
-        while (isblank(*p)) p++;
-        if (strstr(p, "</CsFileB>") == p) {
-          return TRUE;
-        }
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+      char *p = buffer;
+      while (isblank(*p)) p++;
+      if (strstr(p, "</CsFileB>") == p) {
+        return TRUE;
       }
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsFileB>\n"));
@@ -1044,13 +1038,11 @@ static int32_t create_corfile(CSOUND *csound, char *buffer, CORFIL *cf)
     corfile_rewind(smpf);
     add_corfile(csound, smpf, filename);
 
-    while (TRUE) {
-      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
-        char *p = buffer;
-        while (isblank(*p)) p++;
-        if (strstr(p, "</CsFileC>") == p) {
-          return TRUE;
-        }
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+      char *p = buffer;
+      while (isblank(*p)) p++;
+      if (strstr(p, "</CsFileC>") == p) {
+        return TRUE;
       }
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsFileC>\n"));
