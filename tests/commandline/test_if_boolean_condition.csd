@@ -29,6 +29,15 @@ opcode Check(kValue:k, kExpected:k, SWhat:S):void
  endif
 endop
 
+; A loop stops itself if it runs at the wrong rate, so that a wrong rate
+; fails here rather than spinning.
+opcode Limit(iPass:i, iLimit:i, SWhat:S):void
+ if iPass > iLimit then
+  prints("%s: ran %g times at init\n", SWhat, iPass)
+  exitnow(-1)
+ endif
+endop
+
 opcode IsEven(kValue:k):B
  xout kValue % 2 == 0
 endop
@@ -218,6 +227,39 @@ instr 5
  Check(kCall, kCycle - int(kCycle / 2), "a call with a computed argument")
  Check(kCallElse, int(kCycle / 2), "a call with a computed argument, else")
  CheckInit(iCall, 1 + 9 * p4, "an i-rate call with a computed argument")
+
+ ; An element of a b[] read at a k index changes at performance
+ bs:b[] fillarray false, true
+ kIndex = kCycle > 1 ? 1 : 0
+ iWhile init 0
+ kWhile = 0
+ while bs[kIndex] do
+  iWhile += 1
+  Limit(iWhile, 1, "while on a b[] element at a k index")
+  kWhile += 1
+  if kWhile == 3 then
+   break
+  endif
+ od
+ Check(kWhile, kCycle > 1 ? 3 : 0, "while on a b[] element at a k index")
+ Check(bs[kIndex] ? 10 : 20, kCycle > 1 ? 10 : 20,
+       "a ternary on a b[] element at a k index")
+ ; it has no value at init, so both branches get their init pass, as on a B
+ iBranches init 0
+ kRamp, kThenIndex, kElseIndex init 0
+ if bs[kIndex] then
+  iBranches += 1
+  kRamp = line(0, 1, 1000)
+  kThenIndex += 1
+ else
+  iBranches += 1
+  kElseIndex += 1
+ endif
+ CheckInit(iBranches, 2, "if on a b[] element at a k index, init")
+ Check(kThenIndex, kCycle - 1, "if on a b[] element at a k index, then")
+ Check(kElseIndex, 1, "if on a b[] element at a k index, else")
+ Check(kRamp > 0 ? 1 : 0, kCycle > 2 ? 1 : 0,
+       "if on a b[] element at a k index, an opcode in the then branch")
 
  CheckInit(gGoto, 10, "if-goto in global code")
  CheckInit(gElseif, 2, "elseif in global code")
