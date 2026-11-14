@@ -161,6 +161,19 @@ TEST_F(StartFailureTests, ARunAfterAResetCountsErrorsAsAFreshOneDoes)
   EXPECT_EQ(errors, 0);
 }
 
+/* csoundLongJmp set CS_STATE_JMP for every jump, also those with no event
+ * thread to leave a reset to, and the cleanup of a later --realtime
+ * performance read it as one still owed: an option refused before the run
+ * made its count take the last note's init error.
+ */
+TEST_F(StartFailureTests, ARefusedOptionLeavesTheErrorCountAlone)
+{
+  EXPECT_NE(csoundSetOption(csound, "-o"), CSOUND_SUCCESS);
+  int32_t errors;
+  realtimeRunWithAnInitError(errors);
+  EXPECT_EQ(errors, 0);
+}
+
 /* A fresh instance, and one reset after a performance, still perform. */
 TEST_F(StartFailureTests, AStartAfterAResetPerforms)
 {
