@@ -29,6 +29,9 @@
 
   noteondur2 sends one note-off when its duration ends exactly on a
   k-cycle. It sent two.
+
+  midion2 clamps a channel past 16 to 16, as the other opcodes do. It sent
+  it on channel 1.
 */
 
 #define __BUILDING_LIBCSOUND
@@ -381,6 +384,13 @@ TEST_F(MidiOutputTests, Noteondur2SendsOneNoteOffAtAnExactDuration)
   play("noteondur2 2, 60, 100, 0.25", "i 1 0 0.125\n");
   EXPECT_EQ(sent, note60);
   EXPECT_EQ(kcycles, (std::vector<uint64_t>{0, 16}));
+}
+
+TEST_F(MidiOutputTests, Midion2ClampsItsChannelTo16)
+{
+  play("midion2 17, 60, 100, timeinstk() == 1 ? 1 : 0");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x9F, 60, 100, 0}, {0x8F, 60, 100, 0}}));
 }
 
 }  // namespace

@@ -546,7 +546,7 @@ int32_t kon2(CSOUND *csound, KON2 *p)
     else {
       int32_t tt;
 
-      int32_t curr_chn = (tt = abs((int32_t)*p->kchn-1)) <= NUMCHN ? tt : NUMCHN;
+      int32_t curr_chn = (tt = abs((int32_t)*p->kchn-1)) < NUMCHN ? tt : NUMCHN-1;
       int32_t curr_num = (tt = abs((int32_t)*p->knum)) < 128    ? tt : 127;
       int32_t curr_vel = (tt = abs((int32_t)*p->kvel)) < 128    ? tt : 127;
 
