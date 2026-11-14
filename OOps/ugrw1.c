@@ -251,10 +251,13 @@ int32_t printk(CSOUND *csound, PRINTK *p)
 
 #define ESC (0x1B)
 
-/* printksset is called when the instance of the instrument is initialised. */
+/* printksset is called when the instance of the instrument is initialised.
+   A format that does not fit txtstring is NOTOK, for the caller to report. */
 static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
 {
     char        *sdest;
+    /* The last byte stays the terminator the memset writes. */
+    const char  *send = p->txtstring + sizeof(p->txtstring) - 1;
     char        temp, tempn;
 
     if (*p->ptime < CS_ONEDKR)
@@ -275,6 +278,8 @@ static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
     /* This is really a if then else if...
      * construct and is currently grotty -- JPff */
     while (*sarg) {
+      /* Each case writes one byte, and a single tilde two. */
+      if (UNLIKELY(sdest >= send)) return NOTOK;
       temp  = *sarg++;
       tempn = *sarg--;
       /* Look for a single caret and insert an escape char.  */
@@ -289,6 +294,7 @@ static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
 /* Look for a single tilde and insert an escape followed by a '['.
  * ESC[ is the escape sequence for ANSI consoles */
       else if ((temp  == '~') && (tempn != '~')) {
+        if (UNLIKELY(sdest + 1 >= send)) return NOTOK;
         *sdest++ = ESC;
         *sdest++ = '[';
       }
@@ -380,7 +386,10 @@ int32_t printksset_S(CSOUND *csound, PRINTKS *p){
     sarg = ((STRINGDAT*)p->ifilcod)->data;
     if (sarg == NULL) return csoundInitError(csound, Str("null string\n"));
     p->old = csoundStrdup(csound, sarg);
-    return printksset_(csound, p, sarg);
+    if (UNLIKELY(printksset_(csound, p, sarg) != OK))
+      return csoundInitError(csound,
+                             Str("format too long in formatted printing\n"));
+    return OK;
 }
 
 int32_t printksset(CSOUND *csound, PRINTKS *p){
@@ -389,7 +398,10 @@ int32_t printksset(CSOUND *csound, PRINTKS *p){
     if (arg_string == NULL) {
         return csoundInitError(csound, Str("null string\n"));
     }
-    return printksset_(csound, p, arg_string);
+    if (UNLIKELY(printksset_(csound, p, arg_string) != OK))
+      return csoundInitError(csound,
+                             Str("format too long in formatted printing\n"));
+    return OK;
 }
 
 
@@ -594,7 +606,9 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
       if (sarg == NULL)
         return csoundPerfError(csound, &(p->h), Str("null string\n"));
       if (p->old==NULL || strcmp(sarg, p->old) != 0) {
-        printksset_(csound, p, sarg);
+        if (UNLIKELY(printksset_(csound, p, sarg) != OK))
+          return csound->PerfError(csound, &(p->h),
+                                   Str("format too long in formatted printing\n"));
         csound->Free(csound, p->old);
         p->old = csoundStrdup(csound, sarg);
       }
@@ -627,7 +641,8 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
-    printksset(csound, &pk);
+    int32_t err = printksset(csound, &pk);
+    if (UNLIKELY(err != OK)) return err;
     memset(string,0,8192);
     memset(pk.txtstring,0,sizeof(pk.txtstring));
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
@@ -652,18 +667,14 @@ int32_t printsset_S(CSOUND *csound, PRINTS *p)
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
-    printksset_S(csound, &pk);
-    if (strlen(pk.txtstring) < 8191){
-      memset(string,0,8192);
+    int32_t err = printksset_S(csound, &pk);
+    if (UNLIKELY(err != OK)) return err;
+    memset(string,0,8192);
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
         return
           csound->InitError(csound,
                             Str("Insufficient arguments, or a format too long, in formatted printing\n"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
-    } else {
-      csound->Warning(csound,
-                      Str("Formatting string too long: %s\n"), pk.txtstring);
-    }
   } else csound->Message(csound, "%s", ((STRINGDAT*)p->ifilcod)->data);
     return OK;
 }
