@@ -439,7 +439,7 @@ static int32_t perform_control_period(CSOUND *csound)
     return CSOUND_ERROR;
   }
   /* nor after a csoundStart() that failed, and said why */
-  if (UNLIKELY(csound->engineStatus & CS_STATE_STARTING))
+  if (UNLIKELY(csound->engineStatus & CS_STATE_START_FAILED))
     return CSOUND_ERROR;
   if (csound->jumpset == 0) {
     int32_t returnValue;
@@ -494,7 +494,7 @@ int32_t perform_buffer(CSOUND *csound) {
     return CSOUND_ERROR;
   }
   /* nor after a csoundStart() that failed, and said why */
-  if (UNLIKELY(csound->engineStatus & CS_STATE_STARTING))
+  if (UNLIKELY(csound->engineStatus & CS_STATE_START_FAILED))
     return CSOUND_ERROR;
   /* Setup jmp for return after an exit(). */
   if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {

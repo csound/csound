@@ -1,6 +1,8 @@
+#define __BUILDING_LIBCSOUND
 #include <chrono>
 #include <thread>
 #include "gtest/gtest.h"
+#include "csoundCore.h"
 #include "csound.hpp"
 #include "csPerfThread.hpp"
 
@@ -22,6 +24,19 @@ const char *const orchestra =
 int32_t refuseMidiIn(CSOUND *, void **, const char *) { return -1; }
 
 int32_t readMidiIn(CSOUND *, void *, unsigned char *, int32_t) { return 0; }
+
+/* The state of the engine while csoundStart opens the audio output. */
+int32_t stateWhileOpening = -1;
+
+int32_t openOutputAndLook(CSOUND *csound, const csRtAudioParams *)
+{
+  stateWhileOpening = csound->engineStatus;
+  return 0;
+}
+
+void playNothing(CSOUND *, const cs_float *, int32_t) {}
+
+void closeNothing(CSOUND *) {}
 
 class StartFailureTests : public ::testing::Test {
  protected:
@@ -172,6 +187,27 @@ TEST_F(StartFailureTests, ARefusedOptionLeavesTheErrorCountAlone)
   int32_t errors;
   realtimeRunWithAnInitError(errors);
   EXPECT_EQ(errors, 0);
+}
+
+/* Android's OpenSL ES output opens inside csoundStart, and its first buffer
+ * can come back and ask for a performance before csoundStart has returned.
+ * Only a start that has failed may be refused, never one under way.
+ */
+TEST_F(StartFailureTests, AStartUnderWayRefusesNoPerformance)
+{
+  stateWhileOpening = -1;
+  csoundSetPlayopenCallback(csound, openOutputAndLook);
+  csoundSetRtplayCallback(csound, playNothing);
+  csoundSetRtcloseCallback(csound, closeNothing);
+  // a module name that no module takes, so these callbacks stay
+  ASSERT_EQ(csoundSetOption(csound, "-+rtaudio=host"), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundSetOption(csound, "-odac"), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundCompileOrc(csound, orchestra, 0), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+  ASSERT_NE(stateWhileOpening, -1);
+  EXPECT_TRUE(stateWhileOpening & CS_STATE_COMP);
+  EXPECT_FALSE(stateWhileOpening & CS_STATE_START_FAILED);
+  EXPECT_EQ(csoundPerformKsmps(csound), 0);
 }
 
 /* A fresh instance, and one reset after a performance, still perform. */

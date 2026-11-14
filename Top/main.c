@@ -605,8 +605,11 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
 
   /* The rc file and the plugins below can stop Csound, which jumps to
      exitjmp: this call owns it from here. */
-  if ((n = setjmp(csound->exitjmp)) != 0)
+  if ((n = setjmp(csound->exitjmp)) != 0) {
+    if (csound->engineStatus & CS_STATE_COMP) /* in the engine's start */
+      csound->engineStatus |= CS_STATE_START_FAILED;
     return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+  }
 
   // Always print version, unless this was supressed
   // or already printed
@@ -758,14 +761,14 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
     csound->WaitBarrier(csound->barrier2);
   }
 #endif
-  csound->engineStatus |= CS_STATE_COMP | CS_STATE_STARTING;
+  csound->engineStatus |= CS_STATE_COMP;
   if (csound->oparms->daemon > 1)
     csoundUDPServerStart(csound, csound->oparms->daemon);
 
   allocate_message_queue(csound); /* if de-alloc by reset */
 
   n = start_engine(csound);
-  if (n == CSOUND_SUCCESS)
-    csound->engineStatus &= ~CS_STATE_STARTING;
+  if (UNLIKELY(n != CSOUND_SUCCESS))
+    csound->engineStatus |= CS_STATE_START_FAILED;
   return n;
 }
