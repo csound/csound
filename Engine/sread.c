@@ -334,14 +334,16 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             tt = csoundStrtod(p, &tmp);
             //printf("tt=%lf q=%c\n", tt, q);
             csound->randSeed1 = (int)tt;
-            printf("seed from score %d\n", csound->randSeed1);
+            csound->Message(csound, Str("seed from score %d\n"),
+                            csound->randSeed1);
           }
           else {
             uint32_t tmp = (uint32_t) csound->GetRandomSeedFromTime();
             while (tmp >= (uint32_t) 0x7FFFFFFE)
               tmp -= (uint32_t) 0x7FFFFFFE;
             csound->randSeed1 = tmp+1;
-            printf("seed from clock %d\n", csound->randSeed1);
+            csound->Message(csound, Str("seed from clock %d\n"),
+                            csound->randSeed1);
           }
           //printf("cleaning up\n");
           break;
@@ -511,7 +513,8 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             c = getscochar(csound, 1);
           }
           buff[i] = '\0';
-          printf("n Named section %s\n", buff);
+          if (csound->oparms->msglevel & CS_TIMEMSG)
+            csound->Message(csound, Str("n Named section %s\n"), buff);
           if (c != '\n' && c != EOF) flushlin(csound);
           //printf("last_name %d\n", (csound->sread.last_name));
           for (i = 0; i<=(csound->sread.last_name); i++) {
@@ -832,7 +835,8 @@ static void setprv(CSOUND *csound)      /*  set insno = (int32_t) p1val         
       name[len] = '\0';
       if (*name=='-') {
         sign = 1;
-        printf("negative name %s\n", name); }
+        csound->DebugMsg(csound, "negative name %s\n", name);
+      }
       /* find corresponding insno */
       if (UNLIKELY(!(n = (int16) named_instr_find(csound, name+sign)))) {
         csound->Message(csound, Str("WARNING: instr %s not found, "

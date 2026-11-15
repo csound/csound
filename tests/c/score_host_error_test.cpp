@@ -351,6 +351,22 @@ TEST(HostScoreErrors, MarksFitTo1024AndNoFurther)
     EXPECT_NE(std::string::npos, host.said().find("too many marked sections"));
 }
 
+/* What the reader says of n and y reaches the host's messages, as m's does,
+   not the process's stdout. */
+TEST(HostScoreReads, SayNAndYThroughTheMessages)
+{
+    Host host;
+    host.start();
+    EXPECT_EQ(CSOUND_SUCCESS,
+              host.csound->ReadScore(host.csound,
+                                     "m a\ni 1 0 0\ns\nn a\ny 5\ny\n"));
+    const std::string said = host.said();
+    EXPECT_NE(std::string::npos, said.find("m Named section >>>a<<<")) << said;
+    EXPECT_NE(std::string::npos, said.find("n Named section a")) << said;
+    EXPECT_NE(std::string::npos, said.find("seed from score 5")) << said;
+    EXPECT_NE(std::string::npos, said.find("seed from clock")) << said;
+}
+
 /* A mark read again, here by a repeat of the section it is in, moves to where
    it is read: it takes no entry of its own, so 1024 marks still fit. */
 TEST(HostScoreErrors, MarksReadAgainTakeNoNewEntry)
