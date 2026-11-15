@@ -587,9 +587,21 @@ TEST_F(CsdCompileTests, SecondScoreBeforeTheStartPlays)
     ASSERT_EQ(0, csoundCompileCSD(instance, first, 1, 0));
     ASSERT_EQ(0, csoundCompileCSD(instance, second, 1, async));
     ASSERT_EQ(0, csoundStart(instance));
+    // A cycle is 32 samples at 48 kHz, so the notes at 0.01 s and 0.02 s
+    // play at cycles 15 and 30: look before, between and after them.
     int cycles = 0;
-    while (cycles < 1000 && csoundPerformKsmps(instance) == 0)
+    double before = -1, between = -1, after = -1;
+    while (cycles < 1000 && csoundPerformKsmps(instance) == 0) {
       cycles++;
+      const double played =
+        csoundGetControlChannel(instance, "played", nullptr);
+      if (cycles == 10) before = played;
+      if (cycles == 20) between = played;
+      if (cycles == 40) after = played;
+    }
+    EXPECT_EQ(1, before) << "async " << async;
+    EXPECT_EQ(2, between) << "async " << async;
+    EXPECT_EQ(12, after) << "async " << async;
     EXPECT_EQ(12, csoundGetControlChannel(instance, "played", nullptr))
       << "async " << async;
     EXPECT_EQ(150, cycles) << "async " << async; /* the first score's 0.1 s */
