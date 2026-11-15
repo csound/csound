@@ -1839,6 +1839,38 @@ endin
     ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
 }
 
+/* A statement is verified again once its expressions are expanded, or a
+   boolean argument is converted to a number, and warned each time that its
+   opcode is deprecated. */
+TEST_F (OrcCompileTests, testDeprecatedOpcodeWarnsOnce)
+{
+    for (const char *statement : {"  values:i[] array 1 + 2, 3\n",
+                                  "  flag:b = 1 < 2\n"
+                                  "  values:i[] array flag, 3\n"}) {
+        CSOUND *instance = csoundCreate(NULL, NULL);
+        std::string orchestra = std::string("instr 1\n") + statement +
+                                "endin\n";
+        std::string messages;
+        size_t count = 0, at = 0;
+        csoundSetOption(instance, "-n");
+        csoundCreateMessageBuffer(instance, 0);
+        EXPECT_EQ(CSOUND_SUCCESS,
+                  csoundCompileOrc(instance, orchestra.c_str()));
+        while (csoundGetMessageCnt(instance) > 0) {
+            messages += csoundGetFirstMessage(instance);
+            csoundPopFirstMessage(instance);
+        }
+        while ((at = messages.find("opcode array is deprecated", at)) !=
+               std::string::npos) {
+            count++;
+            at++;
+        }
+        EXPECT_EQ(1u, count) << statement << messages;
+        csoundDestroyMessageBuffer(instance);
+        csoundDestroy(instance);
+    }
+}
+
 TEST_F (OrcCompileTests, testStringArrayInitAndPerformanceValues)
 {
     const char *orchestra = R"(

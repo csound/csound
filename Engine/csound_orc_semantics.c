@@ -3440,8 +3440,11 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                                root->value->optype, rightArgString);
   }
 
-  /* Check the resolved overload, including legacy _QQ registrations. */
-  if (oentry && (oentry->deprecated || (oentry->flags & _QQ))) {
+  /* Check the resolved overload, including legacy _QQ registrations. A
+     statement verified again, once its expressions are expanded or an
+     argument is converted, warned the first time. */
+  if (oentry && oentry != root->markup &&
+      (oentry->deprecated || (oentry->flags & _QQ))) {
     char message[512];
     csoundOpcodeDeprecationMessage(oentry->opname, oentry->deprecated == 2,
                                   message, sizeof(message));
