@@ -640,13 +640,13 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
                         opname, i+1, argtype->varTypeName);
         return NOTOK;
       }
-      if(*(types+1) == '[') {
+      if(*(types+end+1) == '[') {
         ARRAYDAT *arg = (ARRAYDAT *) args[n];
         const CS_TYPE *atyp = arg->arrayType;
-        if(strncmp(atyp->varTypeName, argtype->varTypeName, 1) != 0) {
+        if(!is_named_type(atyp, types, end)) {
           csound->Message(csound, Str("%s outarg %d, mismatching array subtype"
-                          " expected %s, got %s\n"),
-                          opname, i+1, argtype->varTypeName, atyp->varTypeName);
+                          " expected %.*s, got %s\n"),
+                          opname, i+1, (int) end, types, atyp->varTypeName);
           return NOTOK;
         }
       }
@@ -1120,10 +1120,10 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
            return NOTOK;
           }
           const CS_TYPE *atyp = arg->arrayType;
-          if(strncmp(atyp->varTypeName, argtype->varTypeName, 1) != 0) {
+          if(!is_named_type(atyp, types, end)) {
             csound->Message(csound, Str("%s inarg %d, mismatching array subtype"
-                            " expected %s, got %s\n"),
-                            opname, i+1, argtype->varTypeName, atyp->varTypeName);
+                            " expected %.*s, got %s\n"),
+                            opname, i+1, (int) end, types, atyp->varTypeName);
             return NOTOK;
           }
         }
