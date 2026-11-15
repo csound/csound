@@ -233,6 +233,15 @@ TEST_F(MidiRealtimeInputTests, RunningStatusRepeatsTheLastMessage)
   EXPECT_EQ(csoundGetControlChannel(csound, "clock", nullptr), 1);
 }
 
+TEST_F(MidiRealtimeInputTests, SystemMessagesEndRunningStatus)
+{
+  // A tune request, a system exclusive, an end of exclusive: the data bytes
+  // after each are part of no message.
+  message({{0x90, 60, 100, 0xF6, 61, 101}, {}}, 0x90, 1, 60, 100);
+  message({{0x91, 62, 100, 0xF0, 1, 0xF7, 63, 101}, {}}, 0x90, 2, 62, 100);
+  message({{0x92, 64, 100, 0xF7, 65, 101}, {}}, 0x90, 3, 64, 100);
+}
+
 TEST_F(MidiRealtimeInputTests, StatusAfterACutOffStatusIsAStatus)
 {
   // A read ends on a status whose data never comes: the status that

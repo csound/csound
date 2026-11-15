@@ -573,6 +573,7 @@ int32_t sens_midi(CSOUND *csound)
           }
         else {                          /* sys_non-realtime status: */
           src->sexp = 0;                /* implies sys_exclus end   */
+          src->datreq = 0;              /*   and running status's   */
           switch (lo3) {                /* dispatch on lo3:     */
           case 7: goto nxtchr;          /* EOX: already done    */
           case 0: src->sexp = 1;        /* sys_ex begin:        */
