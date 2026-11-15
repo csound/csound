@@ -4,7 +4,13 @@ args = ["-nd", "--realtime"]
 
 [expect]
 exit = 3
-stderr = ["realtime mode enabled"]
+stderr = ["Initialising realtime allocation queue"]
+
+# WASI ends the process on a jump from a worker thread, the init thread
+# included: csoundLongJmp calls _Exit(EXIT_FAILURE) there (#3438).
+[profiles.wasm.expect]
+exit = 1
+stderr = ["Initialising realtime allocation queue"]
 </CsTest>
 <CsoundSynthesizer>
 <CsInstruments>
