@@ -504,3 +504,35 @@ TEST_F(MidiOrchestraFileTests, ALoopedFilePlaysToItsEndBeforeItStartsAgain)
   EXPECT_EQ(csoundGetControlChannel(csound, "data2", nullptr), 2);
   message({{}}, 0xB0, 1, 9, 1);
 }
+
+TEST_F(MidiOrchestraFileTests, ALoopedFileKeepsItsPhase)
+{
+  // At four times the file's tempo a cycle is 4 ticks and a pass 37.5
+  // cycles: CC 9 = 1, at tick 1, comes on cycles 1, 38 and 76. A pass that
+  // began from tick 0 each time would lose the half cycle past each end.
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileloop 1, 1\nmidifiletempo 480, 1\n", 0), 0);
+  std::vector<int> cycles;
+  for (int cycle = 1; cycle <= 80; ++cycle) {
+    csoundSetControlChannel(csound, "data2", 0);
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    if (csoundGetControlChannel(csound, "data2", nullptr) == 1)
+      cycles.push_back(cycle);
+  }
+  EXPECT_EQ(cycles, (std::vector<int>{1, 38, 76}));
+}
+
+TEST_F(MidiOrchestraFileTests, ALoopedFileSetPastItsEndPlaysOnePass)
+{
+  // 10 s are 200 passes of the file: it goes on at their phase, tick 1 of
+  // the next pass, and does not play them all at once.
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileloop 1, 1\nmidifilepos 10, 1\n", 0), 0);
+  int messages = 0;
+  for (int cycle = 1; cycle <= 20; ++cycle) {
+    csoundSetControlChannel(csound, "data1", 0);
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    if (csoundGetControlChannel(csound, "data1", nullptr) == 9)
+      ++messages;
+  }
+  EXPECT_EQ(messages, 1);
+}
+

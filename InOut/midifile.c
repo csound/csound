@@ -77,6 +77,7 @@ typedef struct midifile_s {
   uint64_t         global_kcounter;    /* local reference to global kcounter */
   int32_t          loop;               /* loop flag */
   struct midifile_s    *nxt;
+  cs_double        length;             /* duration in kperiods, unrounded */
 } midifile_t;
 
 #define MIDIFILE    (csound->midiGlobals->midiFileData)
@@ -563,6 +564,7 @@ static void sortEventLists(CSOUND *csound, midifile_t *midifile)
     }
     /* calculate total file length in k-periods */
     timeVal += ((cs_double) ((long) (MF(totalKcnt) - curTicks)) * tempoVal);
+    MF(length) = timeVal;
     MF(totalKcnt) = (unsigned long) (timeVal + 0.5);
   }
   else {
@@ -585,7 +587,8 @@ static void sortEventLists(CSOUND *csound, midifile_t *midifile)
       MF(tempoList)[i].kcnt = curTicks;
     }
     /* calculate total file length in k-periods */
-    MF(totalKcnt) = (unsigned long) ((cs_double) MF(totalKcnt) * tempoVal + 0.5);
+    MF(length) = (cs_double) MF(totalKcnt) * tempoVal;
+    MF(totalKcnt) = (unsigned long) (MF(length) + 0.5);
   }
 }
 
@@ -827,8 +830,7 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
       }
     }
     return 0;
-    } else if (mf->counter <= 0 ||
-               (unsigned long) mf->counter < mf->totalKcnt) {
+    } else if (mf->counter <= 0 || mf->counter < mf->length) {
       // not at its end yet, or looped already in this cycle, where it
       // would never run dry
       return 0;
@@ -837,7 +839,9 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
       j = mf->eventListIndex = 0;
       i = mf->tempoListIndex = 0;
       mf->currentTempo = initial_tempo(mf);
-      mf->counter = 0;
+      /* the time past the end goes into the next pass: one pass a cycle
+         at most, however far past it is */
+      mf->counter = mf->length > 0 ? fmod(mf->counter, mf->length) : 0;
     }
   }
   /* otherwise read any events with time less than or equal to */
