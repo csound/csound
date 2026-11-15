@@ -447,6 +447,21 @@ static const CS_TYPE *check_arg_type(void *arg, const CS_TYPE **types, int32_t n
   else return types[n];
 }
 
+/**
+ * whether type is the one a long name in a type list names: name is the
+ * text between the ':' and the ';', len its length. A struct type's own
+ * name is the long name ":Name;", a builtin type's the bare name
+ */
+static int32_t is_named_type(const CS_TYPE *type, const char *name, size_t len) {
+  const char *t = type->varTypeName;
+  size_t tlen = strlen(t);
+  if(tlen > 2 && t[0] == ':' && t[tlen-1] == ';') {
+    t++;
+    tlen -= 2;
+  }
+  return tlen == len && strncmp(t, name, len) == 0;
+}
+
 
 /**
  * Set up arguments for opcode using OENTRY type lists
@@ -610,8 +625,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       size_t end = strchr(types, ';') - types;
       memcpy(typeName, types, end);
       argtype = check_arg_type(args[n], cstypes, n);
-      if(*(types+end+1) != '[' && strncmp(argtype->varTypeName,
-                                          typeName, end) != 0) {
+      if(*(types+end+1) != '[' && !is_named_type(argtype, types, end)) {
         csound->Message(csound, Str("%s outarg %d, expect type: "
                         "%s, got %s\n"), opname, i+1, typeName,
                         argtype->varTypeName);
@@ -1086,8 +1100,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
           csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
-        if(*(types+end+1) != '[' && strncmp(argtype->varTypeName,
-                                            typeName, end) != 0) {
+        if(*(types+end+1) != '[' && !is_named_type(argtype, types, end)) {
           csound->Message(csound, Str("%s inarg %d, expect type: "
                           "%s, got %s\n"), opname, i+1, typeName,
                           argtype->varTypeName);
