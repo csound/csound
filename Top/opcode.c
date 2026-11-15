@@ -549,7 +549,8 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       for(; i < len; i++) {
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
-          if(argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_S){
+          if(argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_S &&
+             argtype != &CS_VAR_TYPE_P){
             csound->Message(csound, Str("%s outarg %d, expected type: %s or %s, got: %s\n"),
                             opname, i+1, CS_VAR_TYPE_I.varTypeName, CS_VAR_TYPE_S.varTypeName,
                             argtype->varTypeName);
@@ -568,7 +569,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
           if(argtype != &CS_VAR_TYPE_A && argtype != &CS_VAR_TYPE_K &&
-             argtype != &CS_VAR_TYPE_I ){
+             argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_P){
             csound->Message(csound,
                             Str("%s outarg %d, expected types: "
                             "%s, %s, or %s, got: %s\n"),
@@ -588,7 +589,8 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
           if(argtype != &CS_VAR_TYPE_A && argtype != &CS_VAR_TYPE_K &&
-             argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_S){
+             argtype != &CS_VAR_TYPE_I && argtype != &CS_VAR_TYPE_S &&
+             argtype != &CS_VAR_TYPE_P){
             csound->Message(csound,
                             Str("%s outarg %d, expected types: "
                             "%s, %s, %s, or %s, got: %s\n"),
@@ -675,10 +677,11 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       // skip array type chars
       while(types[0] == '[' && types[1] == ']') types += 2;
     } else {
-    // single-char types
+    // single-char types: an i output takes a p-field too
     argtype = check_arg_type(args[n], cstypes, n);
     if(*(types+1) != '[' &&
-       strncmp(argtype->varTypeName, types, 1) != 0) {
+       strncmp(argtype->varTypeName, types, 1) != 0 &&
+       !(*types == 'i' && argtype == &CS_VAR_TYPE_P)) {
       csound->Message(csound, Str("%s outarg %d, expect type: "
                       "%c, got %s\n"), opname, i+1, *types, argtype->varTypeName);
       return NOTOK;
@@ -1960,6 +1963,9 @@ static int32_t copy_opcode_output(CSOUND *csound, AOP *p,
 
   destinationType = csoundGetTypeForArg(p->r);
   sourceType = csoundGetTypeForArg(outargs[ndx]);
+  // a p-field holds an i, as an output written into one is
+  if (sourceType == &CS_VAR_TYPE_P) sourceType = &CS_VAR_TYPE_I;
+  if (destinationType == &CS_VAR_TYPE_P) destinationType = &CS_VAR_TYPE_I;
   if (UNLIKELY(sourceType == NULL || destinationType == NULL)) {
     return initializing
       ? csound->InitError(csound, Str("could not resolve getp argument types\n"))
