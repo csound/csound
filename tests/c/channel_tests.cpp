@@ -1209,6 +1209,23 @@ TEST_F (ChannelTests, ChngetInitWaitsForTheChannelLock)
     EXPECT_EQ(4, csoundGetControlChannel(csound, "length", nullptr));
 }
 
+TEST_F (ChannelTests, LockingANameThatIsNoChannelIsRefused)
+{
+    csoundLockChannel(csound, "missing");
+    csoundUnlockChannel(csound, "missing");
+    csoundLockChannel(csound, nullptr);
+    csoundUnlockChannel(csound, nullptr);
+    int refused = 0;
+    while (csoundGetMessageCnt(csound) > 0) {
+        // the names, which a translation keeps
+        const char *message = csoundGetFirstMessage(csound);
+        if (strstr(message, "missing") || strstr(message, "(null)"))
+            refused++;
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_EQ(4, refused);
+}
+
 TEST_F (ChannelTests, ControlChannelHintsRelease)
 {
     csoundSetControlChannel(csound, "gain", 0);

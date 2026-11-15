@@ -3539,11 +3539,24 @@ const void *csoundGetArrayData(const ARRAYDAT *adat) {
 }
 
 void csoundLockChannel(CSOUND *csound, const char *channel) {
-  csoundSpinLock((spin_lock_t *) get_channel_lock(csound, (char*) channel));
+  spin_lock_t *lock = (spin_lock_t *) get_channel_lock(csound, channel);
+  if (UNLIKELY(lock == NULL)) {
+    csound->ErrorMsg(csound, Str("could not lock channel %s: no such channel\n"),
+                     channel != NULL ? channel : "(null)");
+    return;
+  }
+  csoundSpinLock(lock);
 }
 
 void csoundUnlockChannel(CSOUND *csound, const char *channel) {
-  csoundSpinUnLock((spin_lock_t *)get_channel_lock(csound, (char*) channel));
+  spin_lock_t *lock = (spin_lock_t *) get_channel_lock(csound, channel);
+  if (UNLIKELY(lock == NULL)) {
+    csound->ErrorMsg(csound,
+                     Str("could not unlock channel %s: no such channel\n"),
+                     channel != NULL ? channel : "(null)");
+    return;
+  }
+  csoundSpinUnLock(lock);
 }
 
 /* ********************************************************************** */
