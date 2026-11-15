@@ -423,6 +423,43 @@ TEST(PluginThatFailsToLoad, ThroughOpcodeDirIsNeitherStartedNorDestroyed) {
        "--opcode-dir=" + directoryOf(CSOUND_TEST_FAILING_CREATE_PLUGIN)});
 }
 
+// --opcode-dir went on past a plugin that does not load or does not start,
+// where --opcode-lib and the plugin directory stop. A process of its own, as
+// the failing-create fixture aborts if it is destroyed.
+namespace {
+void expectOpcodeDirToFail(const char *plugin) {
+  const std::string searchPath =
+      searchPathOption(directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN));
+  const std::string option = "--opcode-dir=" + directoryOf(plugin);
+  EXPECT_EXIT(
+      {
+        CSOUND *csound = createWithoutRcFile();
+        if (csoundSetOption(csound, searchPath.c_str()) != CSOUND_SUCCESS)
+          std::exit(2);
+        const bool refused =
+            csoundSetOption(csound, option.c_str()) != CSOUND_SUCCESS;
+        const std::string messages = drainMessages(csound);
+        csoundDestroy(csound);
+        if (!refused ||
+            messages.find("a plugin failed to load or start") ==
+                std::string::npos) {
+          fputs(messages.c_str(), stderr);
+          std::exit(1);
+        }
+        std::exit(0);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+} // namespace
+
+TEST(PluginThatFailsToLoad, StopsOpcodeDir) {
+  expectOpcodeDirToFail(CSOUND_TEST_FAILING_CREATE_PLUGIN);
+}
+
+TEST(PluginThatFailsToStart, StopsOpcodeDir) {
+  expectOpcodeDirToFail(CSOUND_TEST_FAILING_INIT_PLUGIN);
+}
+
 #ifdef CSOUND_TEST_HAS_TWO_COPIES
 // One plugin in two directories, as a build tree beside an installed Csound
 // has it. Csound loads both, and they share the instance's variables. Each
