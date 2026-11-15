@@ -3285,6 +3285,9 @@ int32_t init_instance(CSOUND *csound, INSDS *ip,
 
   fep = &newevtp->p[0];
   n = newevtp->pcnt;
+  /* the instance holds its instrument's p-fields, up to pmax, as
+     insert_new copies them */
+  if (n > tp->pmax) n = tp->pmax;
   for (i = 1; i < n + 1; i++) {
     CS_VAR_MEM* pfield = pfields + i;
     pfield->varType = &CS_VAR_TYPE_P;
