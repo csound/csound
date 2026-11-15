@@ -1553,6 +1553,8 @@ struct CsoundCallbackEntry_s {
       pp = nxt;
     } while (pp != (CsoundCallbackEntry_t *)NULL);
   }
+  /* no callback is left to call into them */
+  csoundCloseFailedModules(csound);
   if (csound->API_lock != NULL) {
     // csoundLockMutex(csound->API_lock);
     csoundDestroyMutex(csound->API_lock);
@@ -2023,6 +2025,8 @@ static void reset(CSOUND *csound) {
   csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
   memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
   csound->memalloc_db = saved_env->memalloc_db;
+  /* what a failed module left behind may outlive the reset */
+  csound->failed_modules = saved_env->failed_modules;
   csound->message_buffer =
       saved_env->message_buffer; /*VL 19.06.21 keep msg buffer */
   csound->default_modules_loaded = 0;

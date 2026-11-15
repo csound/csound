@@ -27,6 +27,10 @@
 #include "two_copies.hpp"
 #endif
 
+#ifndef WIN32
+#include <dlfcn.h>
+#endif
+
 
 class PluginTests : public ::testing::Test {
 public:
@@ -472,6 +476,80 @@ TEST(PluginThatFailsToLoad, ThroughOpcodeDirIsNeitherStartedNorDestroyed) {
   expectNeitherStartedNorDestroyed(
       {searchPathOption(directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN)),
        "--opcode-dir=" + directoryOf(CSOUND_TEST_FAILING_CREATE_PLUGIN)});
+}
+
+// What a module whose csoundModuleCreate() failed left behind may call into
+// its library, here the fixture's keyboard callback, which a reset keeps. The
+// library was closed at the reset, or, once a failed module was no longer
+// linked, never. It now stays open until csoundDestroy() has dropped the
+// callbacks, and closes then. The fixture's csoundModuleInit() and
+// csoundModuleDestroy() abort if called.
+namespace {
+// Whether the library is loaded, as dlopen() says; not checked on Windows.
+bool loadedIs(const char *library, bool loaded) {
+#ifdef WIN32
+  (void) library;
+  (void) loaded;
+  return true;
+#else
+  void *handle = dlopen(library, RTLD_NOW | RTLD_NOLOAD);
+  if (handle != nullptr)
+    dlclose(handle);
+  return (handle != nullptr) == loaded;
+#endif
+}
+
+// sensekey reads stdin too, and makes a terminal non-canonical.
+bool keepStdinOffTheTerminal() {
+#ifdef WIN32
+  return true;
+#else
+  return freopen("/dev/null", "r", stdin) != nullptr;
+#endif
+}
+
+const char *kSenseKeyInstrument =
+    "instr 1\n"
+    "  kKey sensekey\n"
+    "endin\n"
+    "schedule 1, 0, 1\n";
+} // namespace
+
+TEST(PluginThatFailsToLoad, KeepsItsLibraryUntilCsoundDestroy) {
+  const NoUserPluginDirectory noUserPlugins;
+  const std::string searchPath = searchPathOption("no-such-plugin-directory");
+  const std::string directory =
+      directoryOf(CSOUND_TEST_FAILING_CREATE_PLUGIN);
+  EXPECT_EXIT(
+      {
+        if (!loadedIs(CSOUND_TEST_FAILING_CREATE_PLUGIN, false))
+          std::exit(2);
+        if (!keepStdinOffTheTerminal())
+          std::exit(8);
+        csoundSetGlobalEnv("CSOUND7RC", "");  // across the reset too
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        csoundCreateMessageBuffer(csound, 0);
+        csoundSetOption(csound, searchPath.c_str());
+        if (csoundLoadPlugins(csound, directory.c_str()) != CSOUND_ERROR)
+          std::exit(3);
+        csoundReset(csound);
+        if (!loadedIs(CSOUND_TEST_FAILING_CREATE_PLUGIN, true))
+          std::exit(4);
+        csoundSetOption(csound, searchPath.c_str());
+        csoundSetOption(csound, "-n");
+        if (csoundCompileOrc(csound, kSenseKeyInstrument, 0) != CSOUND_SUCCESS ||
+            csoundStart(csound) != CSOUND_SUCCESS)
+          std::exit(5);
+        csoundPerformKsmps(csound);
+        if (csoundGetControlChannel(csound, "failing_create_calls",
+                                    nullptr) < 1)
+          std::exit(6);
+        csoundDestroy(csound);
+        if (!loadedIs(CSOUND_TEST_FAILING_CREATE_PLUGIN, false))
+          std::exit(7);
+        std::exit(0);
+      },
+      ::testing::ExitedWithCode(0), "");
 }
 
 // --opcode-dir went on past a plugin that does not load or does not start,

@@ -368,6 +368,11 @@ int32_t csoundDestroyModules(CSOUND *csound) {
   return retval;
 }
 
+/* no library is loaded here, so none is kept */
+void csoundCloseFailedModules(CSOUND *csound) {
+  (void) csound;
+}
+
 __attribute__((used))
 int32_t csoundInitModules(CSOUND *csound) {
   csoundModule_t  *m;
@@ -492,6 +497,46 @@ int32_t csoundLoadDefaultModules(CSOUND *csound) {
 #else /* __wasi__ */
 
 
+/* The library of a module whose csoundModuleCreate() failed. What the module
+   registered before it failed, such as a callback, may point into it and
+   outlive a reset, so the instance keeps the library open, without starting
+   or destroying the module, until csoundCloseFailedModules() closes it when
+   the instance is destroyed. */
+typedef struct failedModule_s {
+  struct failedModule_s *nxt;
+  void        *h;
+} failedModule_t;
+
+static void keep_failed_module(CSOUND *csound, void *h)
+{
+  failedModule_t  *f;
+
+  for (f = (failedModule_t*) csound->failed_modules; f != NULL; f = f->nxt) {
+    if (f->h == h) {
+      /* kept open already: drop the reference this load added */
+      close_library(h);
+      return;
+    }
+  }
+  /* malloc, not csound->Malloc, which a reset frees */
+  f = (failedModule_t*) malloc(sizeof(failedModule_t));
+  if (UNLIKELY(f == NULL))
+    return;                     /* the reference stays open, unowned */
+  f->h = h;
+  f->nxt = (failedModule_t*) csound->failed_modules;
+  csound->failed_modules = (void*) f;
+}
+
+void csoundCloseFailedModules(CSOUND *csound)
+{
+  while (csound->failed_modules != NULL) {
+    failedModule_t  *f = (failedModule_t*) csound->failed_modules;
+    csound->failed_modules = (void*) f->nxt;
+    close_library(f->h);
+    free(f);
+  }
+}
+
 /* load a single plugin library, and run csoundModuleCreate() if present */
 /* returns zero on success */
 static CS_NOINLINE int32_t load_external(CSOUND *csound,
@@ -607,8 +652,7 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
   strcpy(&(mp->name[0]), fname);
   /* call csoundModuleCreate() if available; a module whose
      csoundModuleCreate() fails is not linked, so it is neither started nor
-     destroyed. Its library stays open, as what it registered before failing
-     may point into it. */
+     destroyed, and keep_failed_module() keeps its library open. */
   if (m.PreInitFunc != NULL) {
     memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
     if ((err = setjmp(csound->exitjmp)) != 0) {
@@ -616,6 +660,7 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
       print_module_error(csound, Str("Error in pre-initialisation function "
                                      "of module '%s'"), fname, NULL, 0);
       csound->Free(csound, p);
+      keep_failed_module(csound, h);
       return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
               CSOUND_MEMORY : CSOUND_INITIALIZATION);
     }
@@ -625,6 +670,7 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
       print_module_error(csound, Str("Error in pre-initialisation function "
                                      "of module '%s'"), fname, &m, err);
       csound->Free(csound, p);
+      keep_failed_module(csound, h);
       return CSOUND_INITIALIZATION;
     }
   }
