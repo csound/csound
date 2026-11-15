@@ -538,6 +538,31 @@ TEST(HostScoreErrors, RefusedBeforeStartLeavesTheScoreToTheNextLine)
     EXPECT_EQ(1, host.played());
 }
 
+/* Before the start, a read after the first is queued, and its notes play at
+   their times. The e that the read was given ended the performance at once,
+   and so did one of its own. */
+TEST(HostScoreReads, LaterReadsBeforeStartPlay)
+{
+    for (const char *later : {"i 1 0.01 0\ni 1 0.02 0",
+                              "i 1 0.01 0\ni 1 0.02 0\ne"}) {
+        SCOPED_TRACE(later);
+        Host host;
+        csoundEventString(host.csound, "i 1 0 0.1", 0);
+        csoundEventString(host.csound, later, 0);
+        host.start();
+        int cycles = 0;
+        while (cycles < 1000 && csoundPerformKsmps(host.csound) == 0)
+            cycles++;
+        EXPECT_EQ(3, host.played()) << host.said();
+        EXPECT_EQ(150, cycles); /* the first read's 0.1 s */
+    }
+    /* On a started engine, an e still ends it. */
+    Host host;
+    host.start();
+    csoundEventString(host.csound, "i 1 0 1\ne", 0);
+    EXPECT_NE(0, csoundPerformKsmps(host.csound));
+}
+
 TEST(HostScoreErrors, ReadscoreGetsTheRefusalAndItsInstrumentGoesOn)
 {
     Host host;
