@@ -38,7 +38,9 @@ extern "C" {
   PUBLIC void csoundSetHostMIDIIO(CSOUND *csound);
 
   /**
-   *  Sets the current MIDI IO module
+   *  Sets the current MIDI IO module. This loads the plugins if they are
+   *  not loaded yet, and starts them again if they are. If a plugin fails
+   *  to load or start, this returns, and a later csoundStart() fails on it.
    */
   PUBLIC void csoundSetMIDIModule(CSOUND *csound, const char *module);
 

@@ -367,9 +367,16 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
 }
 
 
+/* Loads and starts the plugins, or starts them again once they have been,
+   so that the module just chosen sets its callbacks. */
+static int32_t start_modules(CSOUND *csound) {
+  if (!csound->default_modules_loaded)
+    return csoundLoadDefaultModules(csound);
+  return csoundInitModules(csound);
+}
+
  void csoundSetRTAudioModule(CSOUND *csound, const char *module) {
   char *s;
-  int32_t modules_loaded = csound->default_modules_loaded;
   if ((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
     strNcpy(s, module, 20);
   if (UNLIKELY(s == NULL))
@@ -385,15 +392,16 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
     csound->SetAudioDeviceListCallback(csound, audio_dev_list_dummy);
     return;
   }
-  if (csoundLoadDefaultModules(csound) != CSOUND_SUCCESS)
-    csound->LongJmp(csound, 1);
-  if (modules_loaded && csoundInitModules(csound) != 0)
-    csound->LongJmp(csound, 1);
+  /* A host may call this first, before anything owns exitjmp: a plugin that
+     fails to load or start ends the call. It returns nothing to say so, and
+     csoundStart() starts the plugins again, and fails on it, even after a
+     compile that has started them. */
+  if (csoundCatchJump(csound, start_modules) != CSOUND_SUCCESS)
+    csound->modules_loaded = 0;
 }
 
  void csoundSetMIDIModule(CSOUND *csound, const char *module) {
   char *s;
-  int32_t modules_loaded = csound->default_modules_loaded;
 
   if ((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
     strNcpy(s, module, 20);
@@ -411,8 +419,7 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
 
     return;
   }
-  if (csoundLoadDefaultModules(csound) != CSOUND_SUCCESS)
-    csound->LongJmp(csound, 1);
-  if (modules_loaded && csoundInitModules(csound) != 0)
-    csound->LongJmp(csound, 1);
+  /* as in csoundSetRTAudioModule() */
+  if (csoundCatchJump(csound, start_modules) != CSOUND_SUCCESS)
+    csound->modules_loaded = 0;
 }

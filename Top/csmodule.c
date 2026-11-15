@@ -1293,6 +1293,20 @@ int32_t csoundLoadRequestedPlugins(CSOUND *csound) {
   return retval;
 }
 
+int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *))
+{
+  volatile jmp_buf  saved;
+  int32_t           err;
+
+  memcpy((void*) &saved, (void*) &csound->exitjmp, sizeof(jmp_buf));
+  if (setjmp(csound->exitjmp) != 0)
+    err = CSOUND_ERROR;
+  else
+    err = func(csound);
+  memcpy((void*) &csound->exitjmp, (void*) &saved, sizeof(jmp_buf));
+  return err;
+}
+
 /* ------------------------------------------------------------------------ */
 #if defined(WIN32)
 int32_t open_library(void **library, const char *libraryPath)

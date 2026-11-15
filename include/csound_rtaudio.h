@@ -109,7 +109,9 @@ extern "C" {
   PUBLIC int32_t csoundPerformOutputFade(CSOUND *, uint32_t frames);
 
   /**
-   *  Sets the current RT audio module
+   *  Sets the current RT audio module. This loads the plugins if they are
+   *  not loaded yet, and starts them again if they are. If a plugin fails
+   *  to load or start, this returns, and a later csoundStart() fails on it.
    */
   PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module);
 

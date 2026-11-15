@@ -93,6 +93,14 @@ extern "C" {
   int32_t csoundLoadDefaultModules(CSOUND *csound);
 
   /**
+   * Call func, which may stop Csound with a jump to exitjmp, in a frame of
+   * its own, and return what it returns, or CSOUND_ERROR if it jumps. For
+   * the API calls that load or start the plugins and that a host may make
+   * before anything owns exitjmp.
+   */
+  int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *));
+
+  /**
    * Call initialisation functions of all loaded modules that have a
    * csoundModuleInit symbol, for Csound instance 'csound'.
    * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
