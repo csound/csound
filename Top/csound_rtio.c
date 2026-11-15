@@ -186,6 +186,8 @@ void csoundSetAudioDeviceListCallback(
 
  int32_t csoundGetAudioDevList(CSOUND *csound, CS_AUDIODEVICE *list,
                                      int32_t isOutput) {
+  if (csound->audio_dev_list_callback == NULL)
+    return 0;
   return csound->audio_dev_list_callback(csound, list, isOutput);
 }
 

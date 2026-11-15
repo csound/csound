@@ -65,6 +65,10 @@ extern "C" {
   PUBLIC void csoundSetRecopenCallback(CSOUND *, devOpenFunc);
   PUBLIC void csoundSetRtrecordCallback(CSOUND *, audioInFunc);
   PUBLIC void csoundSetRtcloseCallback(CSOUND *, void (*)(CSOUND *));
+  /**
+   * Sets a function that is called to obtain a list of audio devices.
+   * With NULL, no device is listed. (See csoundGetAudioDevList())
+   */
   PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound, audioDevListFunc);
 
   /**

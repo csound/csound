@@ -194,4 +194,11 @@ TEST_F(NullHostCallbackTests, APerformanceWithNoDisplaysKeepsTheDrawGraph)
   EXPECT_GT(draws, 0);
 }
 
+TEST_F(NullHostCallbackTests, ANullAudioDeviceListListsNoDevice)
+{
+  csoundSetAudioDeviceListCallback(csound, nullptr);
+  EXPECT_EQ(csoundGetAudioDevList(csound, nullptr, 0), 0);
+  EXPECT_EQ(csoundGetAudioDevList(csound, nullptr, 1), 0);
+}
+
 }  // namespace
