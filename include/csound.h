@@ -1373,9 +1373,10 @@ extern "C" {
 
   /**
    * Set the ASCII code of the most recent key pressed.
-   * This value is used by keyboard input opcodes such as 'sensekey' and
-   * 'readline' if no callback for returning keyboard events is set, or each
-   * one ignores the call (see csoundRegisterKeyboardCallback()).
+   * 'sensekey' reads it if no callback for keyboard events is set, or if
+   * each one ignores the call (see csoundRegisterKeyboardCallback()).
+   * 'readline' reads it whenever no callback gives it a key, also when a
+   * callback returns zero with no key.
    */
   PUBLIC void csoundKeyPress(CSOUND *, char c);
 

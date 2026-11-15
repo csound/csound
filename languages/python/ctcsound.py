@@ -1787,9 +1787,10 @@ class Csound:
     def key_press(self, c):
         """Sets the ASCII code of the most recent key pressed.
 
-        This value is used by the sensekey and readline opcodes if no
-        callback for returning keyboard events is set, or each one ignores
-        the call (see register_keyboard_callback()).
+        sensekey reads it if no callback for keyboard events is set, or if
+        each one ignores the call (see register_keyboard_callback()).
+        readline reads it whenever no callback gives it a key, also when a
+        callback returns zero with no key.
         """
         libcsound.csoundKeyPress(self.cs, cchar(c))
 
