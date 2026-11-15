@@ -784,15 +784,16 @@ int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name){
       || pp->var->memBlock == NULL)
     return 0;
   else {
+    /* Not under the channel's lock, which the caller may hold: writers
+       store a string channel's size and an array channel's allocated
+       atomically for this read. */
     if ((channel_type(pp) & CSOUND_STRING_CHANNEL) == CSOUND_STRING_CHANNEL) {
-      /* Not under the channel's lock, which the caller may hold: writers
-         store a string channel's size atomically for this read. */
       STRINGDAT *dat = (STRINGDAT *) &(pp->var->memBlock->value);
       return (int32_t) ATOMIC_GET_SIZE(dat->size);
     }
     if((channel_type(pp) & CSOUND_ARRAY_CHANNEL) == CSOUND_ARRAY_CHANNEL) {
       ARRAYDAT *dat = (ARRAYDAT *) &(pp->var->memBlock->value);
-      return (int32_t)dat->allocated;
+      return (int32_t) ATOMIC_GET_SIZE(dat->allocated);
     }
     return pp->var->memBlockSize;
   }
@@ -2909,7 +2910,7 @@ static void publish_array_channel(CSOUND *csound, ARRAYDAT *destination,
                                   ARRAYDAT *prepared)
 {
   csound_free_array_storage(csound, destination);
-  *destination = *prepared;
+  csound_array_assign(destination, prepared);
   memset(prepared, 0, sizeof(*prepared));
 }
 

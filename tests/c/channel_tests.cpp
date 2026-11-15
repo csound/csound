@@ -922,6 +922,129 @@ TEST_F (ChannelTests, StringOpcodesDuringHostResize)
     EXPECT_EQ(std::string(output.data()), std::string(65536, 'x'));
 }
 
+// csoundGetChannelDatasize() takes no lock, so the writers of an array
+// channel store its allocated size atomically. That race is only seen by
+// ThreadSanitizer: built without it, this test passes either way.
+TEST_F (ChannelTests, ArrayChannelDatasizeDuringResize)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        ksmps = 1
+        instr 1
+          values:k[] init p4
+          chnset values, "written"
+          dimensions:i[] fillarray p4
+          chnarray "declared", 3, "k", dimensions
+        endin
+        instr 2
+          count:k init 8
+          schedulek(1, 0, 1/kr, count)
+          count += 8
+        endin
+        schedule(2, 0, 1)
+    )ORC"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    std::atomic<bool> reading{false};
+    std::atomic<bool> finished{false};
+    std::thread performance([&]() {
+        while (!reading.load())
+            std::this_thread::yield();
+        for (int i = 0; i < 256 && csoundPerformKsmps(csound) == 0; i++)
+            ;
+        finished.store(true);
+    });
+    bool invalid = false;
+    do {
+        reading.store(true);
+        for (const char *name : {"written", "declared"}) {
+            const int32_t size = csoundGetChannelDatasize(csound, name);
+            if (size < 0 || size % (int32_t) sizeof(cs_float) != 0)
+                invalid = true;
+        }
+    } while (!finished.load());
+    performance.join();
+    EXPECT_FALSE(invalid);
+    const int32_t size = csoundGetChannelDatasize(csound, "written");
+    EXPECT_GT(size, (int32_t) (1000 * sizeof(cs_float)));
+    EXPECT_EQ(csoundGetChannelDatasize(csound, "declared"), size);
+}
+
+// The same for struct arrays, which csoundSetChannel() shares between
+// channels until a write gives each its own storage.
+TEST_F (ChannelTests, StructArrayChannelDatasizeDuringSharing)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        ksmps = 1
+        struct Point x:k, y:k
+        instr 1
+          points:Point[] init 4
+          chnset points, "first"
+          chnset points, "second"
+          chnset points, "copied"
+          chnset points, "written"
+          chnset points, "source"
+          schedule(3, 16/kr, 1)
+          turnoff
+        endin
+        instr 2
+          points:Point[] init p4
+          chnset points, "written"
+          chnset points, "source"
+        endin
+        instr 3
+          count:k init 4
+          schedulek(2, 0, 1/kr, count)
+          count += 1
+        endin
+        schedule(1, 0, 1)
+    )ORC"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+    const CS_VAR_MEM *first = csoundGetChannel(csound, "first");
+    const CS_VAR_MEM *second = csoundGetChannel(csound, "second");
+    const CS_VAR_MEM *copied = csoundGetChannel(csound, "copied");
+    const CS_VAR_MEM *written = csoundGetChannel(csound, "written");
+    const CS_VAR_MEM *source = csoundGetChannel(csound, "source");
+    ASSERT_TRUE(first && second && copied && written && source);
+    auto data = [](const CS_VAR_MEM *channel) {
+        return csoundGetArrayData((const ARRAYDAT *) &channel->value);
+    };
+    // Before the performance writes them: "written" takes the storage of
+    // "source", and each one's next write gives it storage of its own.
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetChannel(csound, "written", source));
+    ASSERT_EQ(data(written), data(source));
+    std::atomic<bool> reading{false};
+    std::atomic<bool> sharing{false};
+    std::atomic<bool> finished{false};
+    std::thread performance([&]() {
+        while (!reading.load() || !sharing.load())
+            std::this_thread::yield();
+        for (int i = 0; i < 128 && csoundPerformKsmps(csound) == 0; i++)
+            ;
+        finished.store(true);
+    });
+    // The performance never uses these three.
+    std::thread host([&]() {
+        do {
+            csoundSetChannel(csound, "copied", first);
+            csoundSetChannel(csound, "copied", second);
+            sharing.store(true);
+            std::this_thread::yield();
+        } while (!finished.load());
+    });
+    do {
+        reading.store(true);
+        for (const char *name : {"copied", "written", "source"})
+            (void) csoundGetChannelDatasize(csound, name);
+    } while (!finished.load());
+    performance.join();
+    host.join();
+    // The host's last write shared the storage of "second".
+    EXPECT_EQ(data(copied), data(second));
+    EXPECT_GT(csoundGetChannelDatasize(csound, "written"), 0);
+    EXPECT_EQ(csoundGetChannelDatasize(csound, "source"),
+              csoundGetChannelDatasize(csound, "written"));
+}
+
 TEST_F (ChannelTests, ControlChannelHintsRelease)
 {
     csoundSetControlChannel(csound, "gain", 0);
