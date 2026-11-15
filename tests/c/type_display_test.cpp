@@ -71,30 +71,28 @@ endin
 
 TEST_F(TypeDisplayTests, ReportsScalarAssignmentTypes)
 {
-  ASSERT_EQ(0, compile(R"(
+  EXPECT_NE(0, compile(R"(
 instr 1
   point:Point init 1, 2
   value:i = point
 endin
-)")) << messages();
-  ASSERT_NO_FATAL_FAILURE(perform());
+)"));
   const std::string output = messages();
   EXPECT_NE(std::string::npos, output.find(
-    "Opcode given variables with two different types: i : Point\n")) << output;
+    "cannot assign Point to value, which is i")) << output;
 }
 
 TEST_F(TypeDisplayTests, ReportsArrayAssignmentTypes)
 {
-  ASSERT_EQ(0, compile(R"(
+  EXPECT_NE(0, compile(R"(
 instr 1
   points:Point[][] init 2, 3
   value:i = points
 endin
-)")) << messages();
-  ASSERT_NO_FATAL_FAILURE(perform());
+)"));
   const std::string output = messages();
   EXPECT_NE(std::string::npos, output.find(
-    "Opcode given variables with two different types: i : Point[][]\n")) << output;
+    "cannot assign Point[][] to value, which is i")) << output;
 }
 
 TEST_F(TypeDisplayTests, ReportsOpcodeInputsAndCandidates)

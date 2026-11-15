@@ -582,6 +582,8 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
     // Check for type equivalence, handling both internal (:Type;) and external (Type) formats
     int types_different = (typeR != typeA) && !types_are_equivalent(csound, typeR->varTypeName, typeA->varTypeName);
 
+    /* check_generic_assign (csound_orc_semantics.c) refuses any other pair
+       when an = compiles: keep the two in step */
     if(types_different) {
       /* Allow numeric constant 'c' and p-field 'p' to be assigned to numeric variables (i/k).
          Underlying storage is cs_float-compatible, so a direct copy is valid. */

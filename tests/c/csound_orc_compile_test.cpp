@@ -1763,6 +1763,82 @@ INSTANTIATE_TEST_SUITE_P(
         "printf \"LENGTH=%d\\n\", 1, strlen(Swords[kIndex])",
         "PrintWord Swords[kIndex]"));
 
+/* = between two types it has no entry for resolves to =.generic, which
+   copies a value into a variable of its own type. Such an = stopped each note
+   that reached it at init, and now fails the compile, even in an instrument
+   no note reaches. */
+class AssignmentTypeTests
+    : public OrcCompileTests,
+      public ::testing::WithParamInterface<std::tuple<const char *,
+                                                      const char *>> {};
+
+TEST_P (AssignmentTypeTests, rejectsTypesItCannotCopy)
+{
+    std::string orchestra = R"(
+struct Flag on:b
+struct Holder flags:b[]
+
+instr 2
+  kValue:k init 1
+  held:B = kValue > 0
+  flags:b[] fillarray false, true
+  kIndex:k init 1
+  flag:Flag init
+  holder:Holder init
+  )";
+    orchestra += std::get<0>(GetParam());
+    orchestra += "\nendin\n";
+    csoundCreateMessageBuffer(csound, 0);
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra.c_str()));
+    std::string messages;
+    while (csoundGetMessageCnt(csound) > 0) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_NE(std::string::npos, messages.find(std::get<1>(GetParam())))
+        << messages;
+    csoundDestroyMessageBuffer(csound);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Assignments, AssignmentTypeTests,
+    ::testing::Values(
+        std::make_tuple("x:b = held", "cannot assign B to x, which is b"),
+        std::make_tuple("i1:i = kValue", "cannot assign k to i1, which is i"),
+        std::make_tuple("S1:S = held", "cannot assign B to S1, which is S"),
+        std::make_tuple("a1:a = \"text\"", "cannot assign S to a1, which is a"),
+        std::make_tuple("value:b = flags[kIndex]",
+                        "cannot assign B to value, which is b"),
+        std::make_tuple("value:b = (p4 > 0) ? flags[kIndex] : false",
+                        "cannot assign k to value, which is b"),
+        std::make_tuple("flags[kIndex] = kValue > 0",
+                        "cannot assign B to b, line"),
+        std::make_tuple("holder.flags[kIndex] = kValue > 0",
+                        "cannot assign B to b, line"),
+        std::make_tuple("flag.on = kValue > 0",
+                        "cannot assign B to b, line")));
+
+/* What =.generic copies still compiles: two values of one type, and a
+   boolean for an a, which is read as a number first. */
+TEST_F (OrcCompileTests, testAcceptsAssignmentsItCanCopy)
+{
+    const char *orchestra = R"(
+struct Point x:k, y:k
+
+instr 1
+  kValue:k init 1
+  held:B = kValue > 0
+  copy:B = held
+  first:Point init 1, 2
+  second:Point = first
+  a1 = true
+  a2 = held
+endin
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+}
+
 TEST_F (OrcCompileTests, testStringArrayInitAndPerformanceValues)
 {
     const char *orchestra = R"(

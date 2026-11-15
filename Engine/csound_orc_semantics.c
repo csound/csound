@@ -3765,6 +3765,57 @@ static int32_t check_xout_args(CSOUND* csound, TREE* statement,
   return ok;
 }
 
+/* =.generic copies a value into a variable of its own type. Given two types,
+   it stops the note at init unless they are a number for an i, k or a, or a
+   p-field for a string (copy_var_generic_impl), so an = that resolves to it
+   with any other two, as b1 = kB or i1 = k1, is refused here, when the
+   orchestra compiles. */
+static int32_t check_generic_assign(CSOUND* csound, TREE* statement,
+                                    TYPE_TABLE* typeTable) {
+  OENTRY* entry = statement->markup;
+  char *want, *got, *wantName, *gotName;
+  int32_t ok;
+
+  if (entry == NULL || strcmp(entry->opname, "=.generic") ||
+      statement->left == NULL || statement->right == NULL) return 1;
+  want = get_arg_type2(csound, statement->left, typeTable);
+  got = get_arg_type2(csound, statement->right, typeTable);
+  ok = want == NULL || got == NULL;
+  if (!ok) {
+    /* one type, quoted (:Name;) or not */
+    wantName = remove_type_quoting(csound, want);
+    gotName = remove_type_quoting(csound, got);
+    ok = !strcmp(wantName, gotName);
+    csound->Free(csound, wantName);
+    csound->Free(csound, gotName);
+  }
+  ok = ok || (*want == '[' && *got == '[') ||
+    (want[1] == '\0' && got[1] == '\0' &&
+     (((*want == 'i' || *want == 'k') && (*got == 'c' || *got == 'p')) ||
+      (*want == 'a' && (*got == 'c' || *got == 'i' || *got == 'k')) ||
+      (*want == 'S' && *got == 'p')));
+  if (!ok) {
+    const char* name = statement->left->value != NULL ?
+      statement->left->value->lexeme : NULL;
+    wantName = csoundFormatTypeName(csound, want, 0);
+    gotName = csoundFormatTypeName(csound, got, 0);
+    /* a struct member is not named, nor the temporary that holds what is
+       written into an array element */
+    if (name == NULL || *name == '#')
+      synterr(csound, Str("cannot assign %s to %s, line %d\n"),
+              gotName, wantName, statement->line);
+    else
+      synterr(csound, Str("cannot assign %s to %s, which is %s, line %d\n"),
+              gotName, name, wantName, statement->line);
+    do_baktrace(csound, statement->locn);
+    csound->Free(csound, wantName);
+    csound->Free(csound, gotName);
+  }
+  if (want != NULL) csound->Free(csound, want);
+  if (got != NULL) csound->Free(csound, got);
+  return ok;
+}
+
 /* Walks tree and finds all label: definitions */
 static CONS_CELL* get_label_list(CSOUND* csound, TREE* root) {
   CONS_CELL* head = NULL, *ret = NULL;
@@ -4894,7 +4945,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           }
           continue;
         }
-        if (!check_xout_args(csound, current, typeTable)) {
+        if (!check_xout_args(csound, current, typeTable) ||
+            !check_generic_assign(csound, current, typeTable)) {
           return 0;
         }
         handle_optional_args(csound, current);
