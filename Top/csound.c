@@ -2323,7 +2323,11 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
  *         actual text that is typed.
  * The return value should be zero on success, negative on error, and
  * positive if the callback was ignored (for example because the type is
- * not known).
+ * not known). The callbacks for the type are called in turn until one
+ * returns an error, and sensekey then has no key. Otherwise, if one or
+ * more returned zero, sensekey takes the key they left; if none did, it
+ * reads the key set by csoundKeyPress() or, if none has been set, stdin
+ * (the console on Windows).
  * This function is not thread-safe. Call it when the performance is not
  * running or, if it is, only on the thread performing, which includes from
  * inside a keyboard callback; never from another thread. With -j, callbacks
