@@ -626,13 +626,11 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
     // type delimiter
     if(*types == ':') {
       types++;
-      char typeName[64] = {0};
       size_t end = strchr(types, ';') - types;
-      memcpy(typeName, types, end);
       argtype = check_arg_type(args[n], cstypes, n);
       if(*(types+end+1) != '[' && !is_named_type(argtype, types, end)) {
         csound->Message(csound, Str("%s outarg %d, expect type: "
-                        "%s, got %s\n"), opname, i+1, typeName,
+                        "%.*s, got %s\n"), opname, i+1, (int) end, types,
                         argtype->varTypeName);
         return NOTOK;
       }
@@ -1097,9 +1095,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       // long-name types first
       if(*types == ':') {
         types++;
-        char typeName[64] = {0};
         size_t end = strchr(types, ';') - types;
-        memcpy(typeName, types, end);
         argtype = check_arg_type(args[n], cstypes, n);
         if(argtype == NULL) {
           csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
@@ -1107,7 +1103,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
         }
         if(*(types+end+1) != '[' && !is_named_type(argtype, types, end)) {
           csound->Message(csound, Str("%s inarg %d, expect type: "
-                          "%s, got %s\n"), opname, i+1, typeName,
+                          "%.*s, got %s\n"), opname, i+1, (int) end, types,
                           argtype->varTypeName);
           return NOTOK;
         }
