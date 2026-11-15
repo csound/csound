@@ -20,6 +20,9 @@ class MidiRealtimeInputTests : public ::testing::Test {
   std::vector<unsigned char> pending;
   int32_t capacity = 0;  // of the buffer, as the last read was told
   int32_t excess = 0;    // counted past what a read really wrote
+  bool endless = false;  // every read has a byte more
+  long reads = 0;        // calls to read
+  static constexpr long readLimit = 1000000;  // where an endless read gives up
   std::string extraOrchestra;
 
   static int32_t open(CSOUND *csound, void **data, const char *)
@@ -32,6 +35,10 @@ class MidiRealtimeInputTests : public ::testing::Test {
                       int32_t capacity)
   {
     auto *test = static_cast<MidiRealtimeInputTests *>(data);
+    if (++test->reads <= readLimit && test->endless) {
+      buffer[0] = 0xFE;  // active sensing
+      return 1;
+    }
     auto &bytes = test->pending;
     const auto count = std::min(bytes.size(), static_cast<size_t>(capacity));
     test->capacity = capacity;
@@ -179,6 +186,27 @@ TEST_F(MidiRealtimeInputTests, ACountThatFillsTheBufferIsRead)
   ASSERT_EQ(csoundPerformKsmps(csound), 0);
   EXPECT_EQ(csoundGetControlChannel(csound, "continue", nullptr), 1);
   EXPECT_EQ(messages().find("error reading MIDI device"), std::string::npos);
+}
+
+TEST_F(MidiRealtimeInputTests, AReadThatNeverEndsDoesNotHoldTheCycle)
+{
+  // A read callback that always has a byte more: each cycle reads a bounded
+  // amount and ends, and the next one reads again.
+  endless = true;
+  for (int i = 0; i < 2; ++i) {
+    reads = 0;
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    EXPECT_GT(reads, 0);
+    EXPECT_LT(reads, readLimit);
+  }
+}
+
+TEST_F(MidiRealtimeInputTests, SixteenBuffersAreReadInOneCycle)
+{
+  pending.assign(16 * capacity, 0xF8);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_TRUE(pending.empty());
+  EXPECT_EQ(csoundGetControlChannel(csound, "clock", nullptr), 1);
 }
 
 TEST_F(MidiRealtimeInputTests, TransportFlagsSurviveNoteMessages)

@@ -137,6 +137,7 @@ extern "C" {
     unsigned char mbuf[MBUFSIZ];
     unsigned char *bufp, *filep, *endatp;
     MIDIPARSER device, file;
+    int32_t devbytes;     /* what the device has given this k-cycle */
   } MGLOBAL;
 
   typedef struct osc_mess {

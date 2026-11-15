@@ -1342,6 +1342,7 @@ int32_t sense_events(CSOUND *csound)
   csound->midi_start = 0;
   csound->midi_continue = 0;
   csound->midi_stop = 0;
+  csound->midiGlobals->devbytes = 0;  /* the device may give more again */
   if (UNLIKELY(csound->MTrkend && O->termifend)) {   /* end of MIDI file:  */
     deactivate_all_notes(csound);
     csound->ErrorMsg(csound, Str("terminating.\n"));

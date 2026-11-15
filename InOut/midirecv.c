@@ -41,7 +41,9 @@
       negative in case of an error. A count past 'nbytes' is an error
       too, and nothing is taken from 'buf'. Note: incomplete messages
       (such as a note on status without the data bytes) should not be
-      returned.
+      returned. Csound may read again in the same k-cycle, at most until
+      a read returns zero or it has had 16 times 'nbytes' bytes in that
+      cycle: so a read returns zero when there is nothing more now.
 
     int32_t (*MidiInCloseCallback)(CSOUND *csound, void *userData);
 
@@ -114,6 +116,11 @@ static const cs_float dsctl_map[12] = {
 };
 
 static const int16 datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
+
+/* A device is read again in a k-cycle while it has more, up to this much,
+   so that a reader that always has more cannot hold the cycle. A MIDI
+   cable carries 3125 bytes a second: it would take a 20 s k-cycle. */
+#define MIDI_DEVICE_CYCLE_MAX (16 * MBUFSIZ)
 
 /* open a Midi event stream for reading, alloc bufs */
 /*     callable once from main.c                    */
@@ -509,7 +516,8 @@ int32_t sens_midi(CSOUND *csound)
       p->bufp = &(p->mbuf[0]);
       p->endatp = p->bufp;
       if (O->Midiin && !csound->advanceCnt &&   /* read MIDI device */
-          p->MidiReadCallback != NULL) {
+          p->MidiReadCallback != NULL &&
+          p->devbytes < MIDI_DEVICE_CYCLE_MAX) {
         n = p->MidiReadCallback(csound, p->midiInUserData, p->bufp, MBUFSIZ);
         if (n < 0)
           csoundErrorMsg(csound,
@@ -520,8 +528,10 @@ int32_t sens_midi(CSOUND *csound)
                             Str(" *** error reading MIDI device: read returned "
                                 "%d, more than the %d bytes asked for\n"),
                                  n, MBUFSIZ);
-        else
+        else {
           p->endatp += (int32_t) n;
+          p->devbytes += (int32_t) n;
+        }
       }
       p->filep = p->endatp;                     /* the file's bytes start here */
       if (O->FMidiin) {                         /* read MIDI file */
