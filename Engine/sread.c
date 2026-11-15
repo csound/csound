@@ -37,7 +37,7 @@
 
 //#define MACDEBUG (1)
 
-static void print_input_backtrace(CSOUND *csound, int32_t needLFs,
+static void print_input_backtrace(CSOUND *csound,
                                   void (*msgfunc)(CSOUND*, const char*, ...));
 static  void    copylin(CSOUND *), copypflds(CSOUND *);
 static  void    ifa(CSOUND *), setprv(CSOUND *);
@@ -113,19 +113,21 @@ static void sreaderr(CSOUND *csound, const char *s, ...)
     va_start(args, s);
     csoundMessageV(csound, 0, s, args);
     va_end(args);
-    print_input_backtrace(csound, 1, csoundMessage);
+    print_input_backtrace(csound, csoundMessage);
     return;
 }
 
 /* A b, B, C or v without its number is said and ignored: there is no p-field
    to read, sp is NULL or the last statement's, and getpfld has dealt with the
-   rest of the line. */
+   rest of the line. One whose [] has an error is ignored too: getpfld gives 2
+   when the error has been said and the rest of the line dropped. */
 static int32_t has_number(CSOUND *csound)
 {
-    if (getpfld(csound, 0))
-      return 1;
-    sreaderr(csound, Str("%c without a number ignored\n"), csound->sread.op);
-    return 0;
+    int32_t got = getpfld(csound, 0);
+
+    if (got == 0)
+      sreaderr(csound, Str("%c without a number ignored\n"), csound->sread.op);
+    return got == 1;
 }
 
 /* scorerr() - for fatal errors in score parsing */
@@ -136,48 +138,39 @@ static void scorerr(CSOUND *csound, const char *s, ...)
     va_start(args, s);
     csound->ErrMsgV(csound, Str("score error:  "), s, args);
     va_end(args);
-    print_input_backtrace(csound, 0, csoundErrorMsg);
+    print_input_backtrace(csound, csoundErrorMsg);
     csound->LongJmp(csound, 1);
 }
 
-static void print_input_backtrace(CSOUND *csound, int32_t needLFs,
+/* Where the reader is: the line and position of the last character it read,
+   blanks and line ends aside. It reads the score as one text, its macros,
+   #includes and loops expanded, so there is no stack of inputs to go back
+   through: the line is that text's, where an n reads a marked section again
+   at the section's own lines, and in a .csd it is the file's, unless
+   --csd-line-nums=0. */
+static void print_input_backtrace(CSOUND *csound,
                                   void (*msgfunc)(CSOUND*, const char*, ...))
 {
-    IN_STACK  *curr = (csound->sread.str);
-    char      *m, *lf = (needLFs ? "\n" : "");
-    int32_t       lastinput = 0;
-    int32_t       lastsource = 2; /* 2=current file, 1=macro, 0=#include */
+    const CORFIL *sco = csound->expanded_sco;
+    uint32_t last = sco->p > 0 ? sco->p - 1 : 0, start;
+    int32_t line = csound->sread.str->line;
 
-    msgfunc(csound, Str("  section %d:  at position %d%s"), csound->sectcnt,
-                    (csound->sread.linepos), lf);
-
-    do {
-      if (curr == (csound->sread.inputs)) lastinput = 1;
-      if (UNLIKELY(!curr->mac || !curr->mac->name)){
-        csound->Warning(csound, Str("Internal error in print_input_backtrace()\n"));
-        return;
-      }
-      switch(lastsource) {
-      case 0: m = Str("  included from line %d of macro %s%s"); break;
-      case 1: m = Str("  called from line %d of macro %s%s"); break;
-        //default:
-      case 2: m = Str("  in line %d of macro %s%s"); break;
-      }
-      msgfunc(csound, m, (lastsource == 0 ? curr->line - 1 : curr->line),
-              curr->mac->name, lf);  /* #include is one line before */
-      if (lastinput && csound->oparms->useCsdLineCounts && csound->csdname) {
-        /* print name & line # of CSD instead of temp sco */
-        msgfunc(csound, m,
-                (lastsource == 0 ? csound->scoLineOffset + curr->line - 1 :
-                 csound->scoLineOffset + curr->line), csound->csdname, lf);
-      }
-      /* else { */
-      /*   msgfunc(csound, m, (lastsource == 0 ? curr->line - 1 : curr->line), */
-      /*     corfile_tell(curr->cf), lf);  /\* #include is one line before *\/ */
-      /* } */
-    } while (!lastsource);
-    curr--;
-    return;
+    while (last > 0 && (sco->body[last] == '\n' ||
+                        isblank((unsigned char) sco->body[last]))) {
+      if (sco->body[last] == '\n')
+        line--;
+      last--;
+    }
+    start = last;
+    while (start > 0 && sco->body[start - 1] != '\n')
+      start--;
+    msgfunc(csound, Str("  section %d:  at position %d\n"), csound->sectcnt,
+            (int32_t) (last - start));
+    if (csound->oparms->useCsdLineCounts && csound->csdname)
+      msgfunc(csound, Str("  in line %d of %s\n"),
+              csound->scoLineOffset + line, csound->csdname);
+    else
+      msgfunc(csound, Str("  in line %d of the score\n"), line);
 }
 
 static cs_float operate(CSOUND *csound, cs_float a, cs_float b, char c)
@@ -214,6 +207,8 @@ static inline void ungetscochar(CSOUND *csound, int32_t c)
 {
     corfile_ungetc(csound->expanded_sco);
     csound->expanded_sco->body[csound->expanded_sco->p] = (char)c;
+    if (c == '\n')                /* read again, it would count again */
+      (csound->sread.str)->line--;
 }
 
 static int32_t getscochar(CSOUND *csound, int32_t expand)
@@ -232,10 +227,8 @@ static int32_t getscochar(CSOUND *csound, int32_t expand)
     csound->DebugMsg(csound,"%s(%d): character = %c(%.2d)\n",
                      __FILE__, __LINE__, c, c);
 #endif
-    if (c == '\n') {
-      (csound->sread.str)->line++; (csound->sread.linepos) = -1;
-    }
-    else (csound->sread.linepos)++;
+    if (c == '\n')
+      (csound->sread.str)->line++;
     return c;
 }
 
@@ -284,7 +277,7 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
     }
 }
 
-int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   */
+static int32_t read_section(CSOUND *csound) /* reads from SCOREIN    */
 {                               /*  each score statement gets a sortblock   */
     int32_t  rtncod;                /* return code to calling program:      */
                                 /*   1 = section read                   */
@@ -331,15 +324,27 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             char    *tmp = p;
             tt = csoundStrtod(p, &tmp);
             //printf("tt=%lf q=%c\n", tt, q);
-            csound->randSeed1 = (int)tt;
-            printf("seed from score %d\n", csound->randSeed1);
+            /* A seed is from 0 to 2^32, which an int does not hold, and
+               converting one past it was undefined. It is truncated, as it
+               was, and folded into the generator's range as seed folds what
+               it is given; 0, which would keep the generator at 0, is 1, as
+               a y without a seed is the one that takes the clock. */
+            if (UNLIKELY(!(tt > -1.0 && tt < 4294967296.0)))
+              sreaderr(csound, Str("y: seed %g out of range, ignored\n"), tt);
+            else {
+              uint32_t seed = (uint32_t) tt % (uint32_t) 0x7FFFFFFE;
+              csound->randSeed1 = seed == 0 ? 1 : (int32_t) seed;
+              csound->Message(csound, Str("seed from score %d\n"),
+                              csound->randSeed1);
+            }
           }
           else {
             uint32_t tmp = (uint32_t) csound->GetRandomSeedFromTime();
             while (tmp >= (uint32_t) 0x7FFFFFFE)
               tmp -= (uint32_t) 0x7FFFFFFE;
             csound->randSeed1 = tmp+1;
-            printf("seed from clock %d\n", csound->randSeed1);
+            csound->Message(csound, Str("seed from clock %d\n"),
+                            csound->randSeed1);
           }
           //printf("cleaning up\n");
           break;
@@ -468,12 +473,12 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound,Str("m Named section >>>%s<<<\n"), buff);
             //printf("*** last_name = %d\n", (csound->sread.last_name));
-          for (j=0; j<(csound->sread.last_name); j++) {
+          for (j=0; j<=(csound->sread.last_name); j++) {
             //printf("m: %s %s(%d)\n",
             //       buff, (csound->marked_sections)[j].name, j);
             if (strcmp(buff, (csound->marked_sections)[j].name)==0) break;
           }
-          if (j>=(csound->sread.last_name)) {
+          if (j>(csound->sread.last_name)) {
             if (UNLIKELY((csound->sread.last_name) + 1 >=
                          (int32_t) (sizeof(csound->marked_sections) /
                                     sizeof(csound->marked_sections[0]))))
@@ -509,7 +514,8 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             c = getscochar(csound, 1);
           }
           buff[i] = '\0';
-          printf("n Named section %s\n", buff);
+          if (csound->oparms->msglevel & CS_TIMEMSG)
+            csound->Message(csound, Str("n Named section %s\n"), buff);
           if (c != '\n' && c != EOF) flushlin(csound);
           //printf("last_name %d\n", (csound->sread.last_name));
           for (i = 0; i<=(csound->sread.last_name); i++) {
@@ -613,6 +619,16 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
     /*     undefine_score_macro(csound, (csound->sread.macros)->name); */
     /*   } */
     /* } */
+    return rtncod;
+}
+
+/* Called from main. bp is the statement being read, and NULL after the
+   section, where the sort reads numbers again. */
+int32_t sread(CSOUND *csound)
+{
+    int32_t rtncod = read_section(csound);
+
+    csound->sread.bp = NULL;
     return rtncod;
 }
 
@@ -830,7 +846,8 @@ static void setprv(CSOUND *csound)      /*  set insno = (int32_t) p1val         
       name[len] = '\0';
       if (*name=='-') {
         sign = 1;
-        printf("negative name %s\n", name); }
+        csound->DebugMsg(csound, "negative name %s\n", name);
+      }
       /* find corresponding insno */
       if (UNLIKELY(!(n = (int16) named_instr_find(csound, name+sign)))) {
         csound->Message(csound, Str("WARNING: instr %s not found, "
@@ -841,7 +858,13 @@ static void setprv(CSOUND *csound)      /*  set insno = (int32_t) p1val         
       if (name != buff)
         csound->Free(csound, name);
     }
-    else n = (int16) (csound->sread.bp)->p1val;         /* set current insno */
+    else {                                              /* set current insno */
+      /* An instrument's number is an int16, and so is insno. A p1 outside it
+         names no instrument, and its conversion would be undefined: it gets
+         the one number no instrument or turnoff has. */
+      cs_float p1 = (csound->sread.bp)->p1val;
+      n = (p1 > -FL(32768.0) && p1 < FL(32768.0)) ? (int16) p1 : INT16_MIN;
+    }
     (csound->sread.bp)->insno = n;
 
     while ((p = p->prvblk) != NULL)
@@ -863,7 +886,7 @@ static void carryerror(CSOUND *csound)      /* print offending text line  */
     while (p <= (csound->sread.nxp) - 2)
       csound->Message(csound, "%c", *p++);
     csound->Message(csound, "<=\n");
-    print_input_backtrace(csound, 1, csoundMessage);
+    print_input_backtrace(csound, csoundMessage);
     *((csound->sread.nxp) - 2) = '0';
 }
 
@@ -986,6 +1009,7 @@ void sread_abandon(CSOUND *csound)  /* what a fatal error left in the reader */
     corfile_rm(csound, &csound->sread.sorted);
     sfree(csound);
     corfile_rm(csound, &csound->expanded_sco);
+    csound->sread.bp = NULL;            /* no statement is being read */
     csound->Free(csound, csound->sread.inputs);
     csound->sread.inputs = csound->sread.str = NULL;
 }
@@ -1113,7 +1137,11 @@ static void score_expr_append_char(CSOUND *csound, char *buffer,
   buffer[(*length)++] = (char)c;
 }
 
-static cs_float read_expression(CSOUND *csound, int32_t depth)
+/* An error that is not fatal is said, the rest of its line dropped, and
+   *dropped set: a [] around it ends there too, as the rest of it is gone with
+   the line. */
+static cs_float read_expression(CSOUND *csound, int32_t depth,
+                                int32_t *dropped)
 {
       SCORE_EXPR expr = {{0}, {0}, 0, 0};
       char buffer[SCORE_EXPR_NUMBER_SIZE];
@@ -1232,9 +1260,10 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
           if (UNLIKELY(!type)) {
             csound->inerrcnt++;
             csound->ErrorMsg(csound,
-                             Str("score error: missing operand before ')' in [] expression"));
-            print_input_backtrace(csound, 1, csoundErrorMsg);
+                             Str("score error: missing operand before ')' in [] expression\n"));
+            print_input_backtrace(csound, csoundErrorMsg);
             flushlin(csound);
+            *dropped = 1;
             return FL(0.0);
           }
           while (expr.ops[expr.opCount - 1] != '(' &&
@@ -1244,9 +1273,10 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
           if (UNLIKELY(expr.ops[expr.opCount - 1] != '(')) {
             csound->inerrcnt++;
             csound->ErrorMsg(csound,
-                             Str("score error: unmatched ')' in [] expression"));
-            print_input_backtrace(csound, 1, csoundErrorMsg);
+                             Str("score error: unmatched ')' in [] expression\n"));
+            print_input_backtrace(csound, csoundErrorMsg);
             flushlin(csound);
+            *dropped = 1;
             return expr.values[expr.valueCount - 1];
           }
           type = 1;
@@ -1262,7 +1292,9 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
           }
           type = 1;
           {
-            cs_float x = read_expression(csound, depth + 1);
+            cs_float x = read_expression(csound, depth + 1, dropped);
+            if (UNLIKELY(*dropped))
+              return x;
             score_expr_push_value(csound, &expr, x);
             c = getscochar(csound, 1); break;
           }
@@ -1277,9 +1309,10 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
           if (UNLIKELY(expr.ops[expr.opCount - 1] != '[')) {
             csound->inerrcnt++;
             csound->ErrorMsg(csound,
-                             Str("score error: unmatched ']' in [] expression"));
-            print_input_backtrace(csound, 1, csoundErrorMsg);
+                             Str("score error: unmatched ']' in [] expression\n"));
+            print_input_backtrace(csound, csoundErrorMsg);
             flushlin(csound);
+            *dropped = 1;
             return expr.values[expr.valueCount - 1];
           }
           return expr.values[expr.valueCount - 1];
@@ -1298,9 +1331,20 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
 }
 
 
+/* A statement goes on into the next line when that line begins with a
+   p-field, and linpos is 0 at a line's start. An n there is the n statement,
+   unless p and a digit follow it: np carries a p-field. */
+static int32_t begins_n_statement(const CSOUND *csound, int32_t c)
+{
+    const char *next = &csound->expanded_sco->body[csound->expanded_sco->p];
+
+    return c == 'n' && !csound->sread.linpos &&
+           !(next[0] == 'p' && isdigit((unsigned char) next[1]));
+}
+
 static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOREIN file */
 {                                            /*      set sp, nxp                 */
-    int32_t  c;
+    int32_t  c, dropped = 0;
     char *p;
 
     if ((c = sget1(csound)) == EOF)     /* get 1st non-white,non-comment c  */
@@ -1310,7 +1354,9 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
     if (csound->sread.nxp >= csound->sread.memend)
       expand_nxp(csound);
     if (c=='[') {
-      cs_float xx = read_expression(csound, 0);
+      cs_float xx;
+      (csound->sread.linpos)++;               /* a field, as below      */
+      xx = read_expression(csound, 0, &dropped);
       //printf("****xx=%a\n", xx);
       //printf("nxp = %p\n", (csound->sread.nxp));
       snprintf((csound->sread.sp) = (csound->sread.nxp), 28, "%a$", xx);
@@ -1320,15 +1366,16 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
 
                     /* if non-numeric, and non-carry, and non-special-char: */
     /*    if (strchr("0123456789.+-^np<>()\"~!", c) == NULL) { */
-    if (!isdigit(c) && (type || (c!='.' && c!='+' && c!='-' && c!='^' && c!='n'
+    if ((!isdigit(c) && (type || (c!='.' && c!='+' && c!='-' && c!='^' && c!='n'
                                  && c!='p' && c!='<' && c!='>' && c!='(' && c!=')'
-                                 && c!='"' && c!='~' && c!='!' && c!='z'))) {
-      ungetscochar(csound, c);                /* then no more pfields    */
-      if (UNLIKELY((csound->sread.linpos))) {
+                                 && c!='"' && c!='~' && c!='!' && c!='z'))) ||
+        begins_n_statement(csound, c)) {
+      if (UNLIKELY((csound->sread.linpos))) { /* said where c is      */
         sreaderr(csound, Str("unexpected char %c\n"), c);
         csound->Message(csound, Str("      remainder of line flushed\n"));
         flushlin(csound);
       }
+      else ungetscochar(csound, c);           /* then no more pfields    */
       return(0);                              /*    so return            */
     }
     p = (csound->sread.sp) = (csound->sread.nxp); /* else start copying to text */
@@ -1384,7 +1431,8 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
  blank:
     *p++ = SP;
     (csound->sread.nxp) = p;                            /*  add blank      */
-    return(1);                              /*  and report ok  */
+    return(dropped ? 2 : 1);                /*  and report ok, 2 if an error
+                                                in a [] dropped its line   */
 }
 
 cs_float stof(CSOUND *csound, char s[])            /* convert string to cs_float  */
@@ -1401,7 +1449,8 @@ cs_float stof(CSOUND *csound, char s[])            /* convert string to cs_float
         *p++ = '0';
       }
       csound->Message(csound,Str("   zero substituted.\n"));
-      print_input_backtrace(csound, 1, csoundMessage);
+      if (csound->sread.bp != NULL)   /* the reader is reading a statement */
+        print_input_backtrace(csound, csoundMessage);
       return FL(0.0);
     }
     return x;
