@@ -1,11 +1,18 @@
 #include "csoundCore.h"
 #include "gtest/gtest.h"
 #include <atomic>
+#include <cstdio>
 #include <cstring>
+#include <fstream>
+#include <optional>
 #include <string>
 #include <thread>
 #include <tuple>
 #include <vector>
+#ifndef _WIN32
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 #if defined(__GLIBC__) && (__GLIBC__ > 2 || __GLIBC_MINOR__ >= 33)
 #include <malloc.h>
 #define HEAP_IN_USE() (mallinfo2().uordblks)
@@ -561,6 +568,72 @@ TEST(HostScoreReads, LaterReadsBeforeStartPlay)
     host.start();
     csoundEventString(host.csound, "i 1 0 1\ne", 0);
     EXPECT_NE(0, csoundPerformKsmps(host.csound));
+}
+
+#ifndef _WIN32
+/* While it lives, this process's stdin is /dev/null: -L stdin reads stdin,
+   and leaves it non-blocking until the performance's cleanup. */
+struct NullStdin {
+    int saved = dup(0);
+    bool replaced = false;
+    NullStdin()
+    {
+        const int null = open("/dev/null", O_RDONLY);
+        if (null > 0) {
+            replaced = dup2(null, 0) == 0;
+            close(null);
+        }
+        else
+            replaced = null == 0; /* stdin was closed, and this took its place */
+    }
+    ~NullStdin()
+    {
+        if (saved != -1) {
+            dup2(saved, 0);
+            close(saved);
+        }
+        else
+            close(0);
+    }
+};
+#endif
+
+/* With -L, they play too. The start made a new line buffer for -L, and
+   what was queued before it was lost; it registered the line reader a
+   second time; and with -L stdin it died on the descriptor that the queued
+   line had set to none. */
+TEST(HostScoreReads, LaterReadsBeforeStartPlayWithLineInput)
+{
+    const std::string file = ::testing::TempDir() + "csound-later-reads.sco";
+    std::ofstream(file).close(); /* -L reads nothing from it */
+    std::vector<std::string> inputs = {"\"" + file + "\""};
+#ifndef _WIN32
+    inputs.push_back("stdin");
+#endif
+    for (const auto &input : inputs) {
+        SCOPED_TRACE(input);
+#ifndef _WIN32
+        std::optional<NullStdin> nullStdin;
+        if (input == "stdin" && !nullStdin.emplace().replaced)
+            continue; /* never the real stdin */
+#endif
+        Host host;
+        csoundSetOption(host.csound, ("-L" + input).c_str());
+        csoundEventString(host.csound, "i 1 0 0.1", 0);
+        csoundEventString(host.csound, "i 1 0.01 0\ni 1 0.02 0", 0);
+        ASSERT_NO_FATAL_FAILURE(host.start()) << host.said();
+        int readers = 0;
+        for (auto *fp = (EVT_CB_FUNC *) host.csound->evtFuncChain; fp != nullptr;
+             fp = fp->nxt)
+            readers++;
+        EXPECT_EQ(1, readers);
+        int cycles = 0;
+        while (cycles < 1000 && csoundPerformKsmps(host.csound) == 0)
+            cycles++;
+        EXPECT_EQ(3, host.played()) << host.said();
+        EXPECT_EQ(150, cycles);
+    }
+    std::remove(file.c_str());
 }
 
 TEST(HostScoreErrors, ReadscoreGetsTheRefusalAndItsInstrumentGoesOn)

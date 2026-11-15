@@ -84,14 +84,22 @@ void linevent_open(CSOUND *csound)
     /*                            csound->Calloc(csound, */
     /*                            sizeof(LINEVENT_GLOBALS)); */
 
-    STA(linebufsiz) = LBUFSIZ1;
-    STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
+    /* A line queued before the start has made the buffer, set its
+       position and the callback, and set Linefd to -1, no -L input */
+    int32_t queued = STA(Linep) != NULL;
+
+    if (STA(Linebuf) == NULL) {
+      STA(linebufsiz) = LBUFSIZ1;
+      STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
+    }
+    if (!queued)
+      STA(Linep) = STA(Linebuf);
     STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
     STA(orchestra) = STA(orchestrab);
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
-    STA(Linep) = STA(Linebuf);
     if (strcmp(O->Linename, "stdin") == 0) {
+      csound->Linefd = 0;
 #if defined(DOSGCC) || defined(WIN32)
       setvbuf(stdin, NULL, _IONBF, 0);
       /* WARNING("-L stdin:  system has no fcntl function to get stdin"); */
@@ -125,8 +133,8 @@ void linevent_open(CSOUND *csound)
      STA(pfields) = csound->Calloc(csound, sizeof(cs_float)*(STA(msize)+1));
     }
 
-
-    set_sense_event_callback(csound, sense_line, NULL);
+    if (!queued)
+      set_sense_event_callback(csound, sense_line, NULL);
 }
 
 #ifdef PIPES
