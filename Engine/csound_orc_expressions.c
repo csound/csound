@@ -37,7 +37,6 @@ ORCTOKEN *make_label(CSOUND *, char *, void *);
 static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
                                        TYPE_TABLE*, int32_t);
 static int32_t boolean_expression_is_init_rate(CSOUND*, TREE*, TYPE_TABLE*);
-static int32_t tree_has_k_rate_array_index(CSOUND*, TREE*, TYPE_TABLE*);
 static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
                                TYPE_TABLE*, int32_t);
 static int32_t struct_expr_has_array_root(TREE* structExpr);
@@ -388,20 +387,16 @@ static TREE *append_condition(TREE **anchor, TREE *nodes)
 
 /* Whether the jumps on a condition run at performance, as its type says: a b
    is read at init, and a B, or the #k a boolean ternary leaves when it
-   selects at performance, is not. An element of a b[] read at a k index
-   changes at performance too. A name in global code, which has no
+   selects at performance, is not. A name in global code, which has no
    performance, takes init jumps. */
-static int32_t condition_is_perf_rate(CSOUND *csound, TREE *source,
-                                      TREE *nodes, TREE *condition,
-                                      TYPE_TABLE *typeTable)
+static int32_t condition_is_perf_rate(CSOUND *csound, TREE *nodes,
+                                      TREE *condition, TYPE_TABLE *typeTable)
 {
   if (nodes->type == T_IDENT) {
     return typeTable->localPool != typeTable->instr0LocalPool &&
       !boolean_expression_is_init_rate(csound, condition, typeTable);
   }
-  return !boolean_expression_is_init_rate(csound, condition, typeTable) ||
-    (source->type == T_ARRAY &&
-     tree_has_k_rate_array_index(csound, source, typeTable));
+  return !boolean_expression_is_init_rate(csound, condition, typeTable);
 }
 
 static TREE *create_cond_expression(CSOUND *csound,
@@ -448,8 +443,7 @@ static TREE *create_cond_expression(CSOUND *csound,
                     "conditional expression, line %d\n"), root->line-1);
     return NULL;
   }
-  perfRate = condition_is_perf_rate(csound, root->left, b, condition,
-                                    typeTable);
+  perfRate = condition_is_perf_rate(csound, b, condition, typeTable);
   /* a value that changes at performance, a B or an array read at a k index,
      selects there, as a k does, but global code has no performance, and
      selects at init. The values are read before they are expanded. */
@@ -822,6 +816,8 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
         if (elementType == NULL) {
           return NULL;
         }
+        /* a b element read at a k index is a B, as below */
+        if (hasKRateIndex && !strcmp(elementType, "b")) elementType[0] = 'B';
 
         elementCsType =
           csoundGetTypeWithVarTypeName(csound->typePool, elementType);
@@ -865,17 +861,10 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
 	  /* VL: 9.2.22 pulled code from 6.x to check for array index type
              to provide the correct outype. Works with explicit types
 	  */
-         if (outype[0]== 'i') {
-          TREE* inds = root->right;
-          while (inds) {
-            char *xx = get_arg_string_from_tree(csound, inds, typeTable);
-            if (xx[0]=='k') {
-              outype[0] = 'k';
-              break;
-            }
-            inds = inds->next;
-          }
-        }
+          /* an i or b element read at a k index is a k or a B */
+          if (hasKRateIndex && (outype[0] == 'i' || outype[0] == 'b') &&
+              outype[1] == '\0')
+            outype[0] = outype[0] == 'i' ? 'k' : 'B';
         } else if (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY) {
           // Generic array with dimensions (but no subType set yet)
           strNcpy(op, initArrayRead ? "##array_get_init" : "##array_get", 80);
@@ -1374,8 +1363,8 @@ static int32_t array_has_k_rate_index(CSOUND* csound, TREE* indexExpr,
   return 0;
 }
 
-static int32_t tree_has_k_rate_array_index(CSOUND* csound, TREE* tree,
-                                           TYPE_TABLE* typeTable)
+int32_t tree_has_k_rate_array_index(CSOUND* csound, TREE* tree,
+                                    TYPE_TABLE* typeTable)
 {
   while (tree != NULL) {
     if ((tree->type == T_ARRAY &&
@@ -1471,8 +1460,10 @@ static int32_t resolve_struct_array_member_path(CSOUND* csound,
 
   path->arrayExpr = arrayExpr;
   path->rootStructType = currentStructType;
+  /* an index that reads an array at a k index changes too: fs[iArr[kI]] */
   path->hasKRateIndex =
-    array_has_k_rate_index(csound, arrayExpr->right, typeTable);
+    array_has_k_rate_index(csound, arrayExpr->right, typeTable) ||
+    tree_has_k_rate_array_index(csound, arrayExpr->right, typeTable);
 
   for (i = rawMemberCount - 1; i >= 0; i--) {
     int32_t memberIndex = -1;
@@ -1803,6 +1794,9 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
     outType = memberType;
     if (path.hasKRateIndex && memberType[0] == 'i' && memberType[1] == '\0') {
       outType = "k";
+    }
+    if (path.hasKRateIndex && memberType[0] == 'b' && memberType[1] == '\0') {
+      outType = "B";
     }
   }
 
@@ -2157,7 +2151,7 @@ TREE* expand_if_statement(CSOUND* csound,
                             labelEnd->value->lexeme),
                   typeTable->labelList);
         // a name in an ithen has only its init jumps to take
-        gotoType = condition_is_perf_rate(csound, tempLeft, expressionNodes,
+        gotoType = condition_is_perf_rate(csound, expressionNodes,
                                           condition, typeTable) &&
           (expressionNodes->type != T_IDENT || tempRight->type != ITHEN_TOKEN);
         gotoToken = create_goto_token(csound,
@@ -2165,14 +2159,6 @@ TREE* expand_if_statement(CSOUND* csound,
           tempRight,
           gotoType
         );
-        /* cngoto jumps at init on a b, but an element of a b[] read at a k
-           index has no value then: both branches get their init pass, as on
-           a B */
-        if (gotoType && tempRight->type != ITHEN_TOKEN &&
-            boolean_expression_is_init_rate(csound, condition, typeTable)) {
-          gotoToken->value = make_token(csound, "cnkgoto", NULL);
-          gotoToken->value->type = T_OPCALL;
-        }
         gotoToken->next = statements;
         anchor = tree_append(anchor, gotoToken);
 
@@ -2445,8 +2431,8 @@ TREE* expand_until_statement(CSOUND* csound, TREE* current,
   }
   condition = append_condition(&anchor, expressionNodes);
   last = tree_tail(anchor);
-  gotoType = condition_is_perf_rate(csound, current->left, expressionNodes,
-                                    condition, typeTable);
+  gotoType = condition_is_perf_rate(csound, expressionNodes, condition,
+                                    typeTable);
 
   labelEnd = create_synthetic_label(csound, endLabelCounter);
   typeTable->labelList = csoundParserCons(csound,
@@ -2613,8 +2599,11 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     loopLabel->next = optionalUserIndexAssign;
   }
 
+  /* an i-time loop reads its elements at init only: ##array_get.B also
+     reads a B[] in performance, where the index is past the loop's end */
   char* array_get = isPerfRate ? "##array_get" :
-    (arrayType == sType ? "##array_geti" : "##array_get");
+    (arrayType == sType ? "##array_geti" :
+     arrayType == &CS_VAR_TYPE_B ? "##array_get_init" : "##array_get");
   TREE* arrayGetStatement = create_opcode_token(csound, array_get);
   arrayGetStatement->left = current->left;
 

@@ -48,6 +48,8 @@ static int32_t is_reserved(char*);
 static char *check_optional_type(CSOUND *csound, char *name);
 static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
                                       TYPE_TABLE *typeTable);
+static int32_t index_is_krate(CSOUND* csound, TREE* indices,
+                              TYPE_TABLE* typeTable);
 
 char *csound_orcget_text ( void *scanner );
 uint64_t csound_orcget_locn(void *);
@@ -558,11 +560,30 @@ static void check_i_argument(CSOUND* csound, TREE* tree)
 static char* get_arg_type2_impl(CSOUND* csound, TREE* tree,
                                 TYPE_TABLE* typeTable);
 
+/* Whether tree reads a member of an array element read at a k index. */
+static int32_t is_member_read_at_k_index(CSOUND* csound, TREE* tree,
+                                         TYPE_TABLE* typeTable)
+{
+  if (tree->type != STRUCT_EXPR) return 0;
+  while (tree->type == STRUCT_EXPR && tree->left != NULL) tree = tree->left;
+  return tree->type == T_ARRAY &&
+    (index_is_krate(csound, tree->right, typeTable) > 0 ||
+     tree_has_k_rate_array_index(csound, tree->right, typeTable));
+}
+
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
+  char* type = get_arg_type2_impl(csound, tree, typeTable);
+  /* A b member read through an array element at a k index changes at
+     performance, so it is a B, as expand_struct_array_member_read types it:
+     a statement chooses its entry from this type before the member is
+     expanded, and = from a b to a B runs at init only. */
+  if (type != NULL && !strcmp(type, "b") &&
+      is_member_read_at_k_index(csound, tree, typeTable))
+    type[0] = 'B';
   /* Callers own each returned type string. Register recursive results too,
      since a later argument can fail before its caller releases them. */
-  return csoundParserOwn(csound, get_arg_type2_impl(csound, tree, typeTable));
+  return csoundParserOwn(csound, type);
 }
 
 static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
@@ -3419,8 +3440,11 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                                root->value->optype, rightArgString);
   }
 
-  /* Check the resolved overload, including legacy _QQ registrations. */
-  if (oentry && (oentry->deprecated || (oentry->flags & _QQ))) {
+  /* Check the resolved overload, including legacy _QQ registrations. A
+     statement verified again, once its expressions are expanded or an
+     argument is converted, warned the first time. */
+  if (oentry && oentry != root->markup &&
+      (oentry->deprecated || (oentry->flags & _QQ))) {
     char message[512];
     csoundOpcodeDeprecationMessage(oentry->opname, oentry->deprecated == 2,
                                   message, sizeof(message));
@@ -3549,7 +3573,9 @@ static const char* boolean_conversion(const char* found, const char* required,
    classify_udo_rates does not count a conversion as work at performance, so
    an init-only UDO stays one, and its conversion only runs at init. A UDO takes a
    parameter by reference and may write it, so a k it took for a B gets the
-   boolean back after the call, if the UDO changed it. */
+   boolean back after the call, if the UDO changed it. An a has no = from a
+   boolean, so a1 = s finds =.generic, which copies a value of the a's own
+   type: the boolean is read as a number there too, as a1 init s reads it. */
 static TREE* convert_boolean_args(CSOUND* csound, TREE* statement,
                                   TYPE_TABLE* typeTable) {
   OENTRY* entry = statement->markup;
@@ -3559,14 +3585,19 @@ static TREE* convert_boolean_args(CSOUND* csound, TREE* statement,
   char** required;
   const char* types;
   const char* varArg = NULL;
-  int32_t i = 0, xout, numeric;
+  int32_t i = 0, xout, numeric, audio = 0;
 
   if (entry == NULL || entry->init == printv) return statement;
   xout = !strcmp(entry->opname, "xout");
   numeric = entry->init == eq || entry->perf == eq;
-  types = xout ? typeTable->udoOutTypes : entry->intypes;
-  if (types == NULL ||
-      (!xout && !numeric && strpbrk(types, "mMNnzZB") == NULL)) return statement;
+  if (!strcmp(entry->opname, "=.generic") && statement->left != NULL) {
+    char* out = get_arg_type2(csound, statement->left, typeTable);
+    audio = out != NULL && !strcmp(out, "a");
+    if (out != NULL) csound->Free(csound, out);
+  }
+  types = xout ? typeTable->udoOutTypes : audio ? "a" : entry->intypes;
+  if (types == NULL || (!xout && !numeric && !audio &&
+                        strpbrk(types, "mMNnzZB") == NULL)) return statement;
   if ((required = split_args(csound, types)) == NULL) return statement;
 
   for (slot = &statement->right; *slot != NULL; slot = &(*slot)->next) {
@@ -3734,6 +3765,57 @@ static int32_t check_xout_args(CSOUND* csound, TREE* statement,
     csound->Free(csound, found);
   }
   free_split_args(csound, required);
+  return ok;
+}
+
+/* =.generic copies a value into a variable of its own type. Given two types,
+   it stops the note at init unless they are a number for an i, k or a, or a
+   p-field for a string (copy_var_generic_impl), so an = that resolves to it
+   with any other two, as b1 = kB or i1 = k1, is refused here, when the
+   orchestra compiles. */
+static int32_t check_generic_assign(CSOUND* csound, TREE* statement,
+                                    TYPE_TABLE* typeTable) {
+  OENTRY* entry = statement->markup;
+  char *want, *got, *wantName, *gotName;
+  int32_t ok;
+
+  if (entry == NULL || strcmp(entry->opname, "=.generic") ||
+      statement->left == NULL || statement->right == NULL) return 1;
+  want = get_arg_type2(csound, statement->left, typeTable);
+  got = get_arg_type2(csound, statement->right, typeTable);
+  ok = want == NULL || got == NULL;
+  if (!ok) {
+    /* one type, quoted (:Name;) or not */
+    wantName = remove_type_quoting(csound, want);
+    gotName = remove_type_quoting(csound, got);
+    ok = !strcmp(wantName, gotName);
+    csound->Free(csound, wantName);
+    csound->Free(csound, gotName);
+  }
+  ok = ok || (*want == '[' && *got == '[') ||
+    (want[1] == '\0' && got[1] == '\0' &&
+     (((*want == 'i' || *want == 'k') && (*got == 'c' || *got == 'p')) ||
+      (*want == 'a' && (*got == 'c' || *got == 'i' || *got == 'k')) ||
+      (*want == 'S' && *got == 'p')));
+  if (!ok) {
+    const char* name = statement->left->value != NULL ?
+      statement->left->value->lexeme : NULL;
+    wantName = csoundFormatTypeName(csound, want, 0);
+    gotName = csoundFormatTypeName(csound, got, 0);
+    /* a struct member is not named, nor the temporary that holds what is
+       written into an array element */
+    if (name == NULL || *name == '#')
+      synterr(csound, Str("cannot assign %s to %s, line %d\n"),
+              gotName, wantName, statement->line);
+    else
+      synterr(csound, Str("cannot assign %s to %s, which is %s, line %d\n"),
+              gotName, name, wantName, statement->line);
+    do_baktrace(csound, statement->locn);
+    csound->Free(csound, wantName);
+    csound->Free(csound, gotName);
+  }
+  if (want != NULL) csound->Free(csound, want);
+  if (got != NULL) csound->Free(csound, got);
   return ok;
 }
 
@@ -4866,7 +4948,8 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
           }
           continue;
         }
-        if (!check_xout_args(csound, current, typeTable)) {
+        if (!check_xout_args(csound, current, typeTable) ||
+            !check_generic_assign(csound, current, typeTable)) {
           return 0;
         }
         handle_optional_args(csound, current);
