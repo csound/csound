@@ -52,6 +52,8 @@ extern "C" {
 
   /**
    * Sets callback for reading from real time MIDI input.
+   * The start fails if it is NULL when MIDI input opens. Set to NULL
+   * during a performance, it reads nothing more.
    */
   PUBLIC void csoundSetExternalMidiReadCallback(CSOUND *,int32_t (*func)
                                                 (CSOUND *, void *userData,
@@ -73,6 +75,8 @@ extern "C" {
 
   /**
    * Sets callback for writing to real time MIDI output.
+   * The start fails if it is NULL when MIDI output opens. Set to NULL
+   * during a performance, it writes nothing more.
    */
   PUBLIC void csoundSetExternalMidiWriteCallback(CSOUND *, int32_t (*func)
                                                  (CSOUND *,void *userData,
@@ -96,7 +100,7 @@ extern "C" {
   /**
    * Sets a function that is called to obtain a list of MIDI devices.
    * This should be set by IO plugins, and should not be used by hosts.
-   * (See csoundGetMIDIDevList())
+   * With NULL, no device is listed. (See csoundGetMIDIDevList())
    */
   PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
                                               int32_t (*mididevlist__)

@@ -508,7 +508,8 @@ int32_t sens_midi(CSOUND *csound)
     if (p->bufp >= p->endatp) {
       p->bufp = &(p->mbuf[0]);
       p->endatp = p->bufp;
-      if (O->Midiin && !csound->advanceCnt) {   /* read MIDI device */
+      if (O->Midiin && !csound->advanceCnt &&   /* read MIDI device */
+          p->MidiReadCallback != NULL) {
         n = p->MidiReadCallback(csound, p->midiInUserData, p->bufp, MBUFSIZ);
         if (n < 0)
           csoundErrorMsg(csound,

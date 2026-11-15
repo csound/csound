@@ -124,6 +124,7 @@ if(BUILD_TESTS)
         midi_file_test.cpp
         midi_realtime_input_test.cpp
         midi_output_test.cpp
+        null_host_callback_test.cpp
         realtime_queue_test.cpp
         realtime_logging_test.cpp
         midiarp_test.cpp

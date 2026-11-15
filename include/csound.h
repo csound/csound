@@ -858,6 +858,7 @@ extern "C" {
    * informational message, using a less granular signature.
    *  This callback can be set for --realtime mode.
    *  This callback is cleared after csoundReset
+   *  NULL is ignored, and the callback set before stays.
    */
   PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
                                              void (*csoundMessageStrCallback)
