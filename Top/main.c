@@ -521,7 +521,11 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
 
     res = csound_compile_orc(csound, NULL, async);
     if (res == CSOUND_SUCCESS) {
-      if ((csound->engineStatus & CS_STATE_COMP) != 0) {
+      /* Before the start, the first score sorted is the one played. A later
+         one is queued, as csoundReadScore queues it, and as a started
+         engine's are. */
+      if ((csound->engineStatus & CS_STATE_COMP) != 0 ||
+          csound->scstr != NULL) {
           char *sorted = NULL;
           scoreErrCnt = csound->inerrcnt;
           if (csound->scorestr != NULL) /* with no score, nothing is queued */
@@ -539,8 +543,8 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
             input_message_async(csound, (const char *) sorted);
             else csoundInputMessage(csound, (const char *) sorted);
           }
-          /* As the engine runs, scsortstr returns a copy of its own, and both
-             of those take theirs. */
+          /* Here scsortstr returns a copy of its own, and both of those take
+             theirs. */
           csound->Free(csound, sorted);
       } else {
         if (csound->scorestr == NULL) {

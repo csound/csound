@@ -566,6 +566,37 @@ TEST_F(CsdCompileTests, ScoreOnAStartedEngineDoesNotEndIt)
   }
 }
 
+// Before the start, a second CSD's score is queued, as a second
+// csoundEventString's is, and plays at its times: it was sorted and
+// dropped. Queued async, its notes follow its orchestra into the engine.
+TEST_F(CsdCompileTests, SecondScoreBeforeTheStartPlays)
+{
+  const char *first = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "sr=48000\nksmps=32\nnchnls=1\n0dbfs=1\n"
+    "instr 1\nchnset chnget:i(\"played\") + 1, \"played\"\nendin\n"
+    "</CsInstruments>\n<CsScore>\ni 1 0 0.1\n</CsScore>\n"
+    "</CsoundSynthesizer>\n";
+  const char *second = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "instr 2\nchnset chnget:i(\"played\") + 10, \"played\"\nendin\n"
+    "</CsInstruments>\n<CsScore>\ni 1 0.01 0\ni 2 0.02 0\ne\n</CsScore>\n"
+    "</CsoundSynthesizer>\n";
+  for (const int async : {0, 1}) {
+    CSOUND *instance = csoundCreate(nullptr, nullptr);
+    ASSERT_NE(nullptr, instance);
+    csoundSetOption(instance, "-n -d -m0");
+    ASSERT_EQ(0, csoundCompileCSD(instance, first, 1, 0));
+    ASSERT_EQ(0, csoundCompileCSD(instance, second, 1, async));
+    ASSERT_EQ(0, csoundStart(instance));
+    int cycles = 0;
+    while (cycles < 1000 && csoundPerformKsmps(instance) == 0)
+      cycles++;
+    EXPECT_EQ(12, csoundGetControlChannel(instance, "played", nullptr))
+      << "async " << async;
+    EXPECT_EQ(150, cycles) << "async " << async; /* the first score's 0.1 s */
+    csoundDestroy(instance);
+  }
+}
+
 // A CSD with no score, compiled on a started engine, queues nothing: it
 // queued "#exit", which the realtime reader refused as a line.
 TEST_F(CsdCompileTests, NoScoreOnAStartedEngineQueuesNothing)
