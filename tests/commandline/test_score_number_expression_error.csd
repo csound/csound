@@ -4,7 +4,7 @@ description = "a b, B, C or v whose [] has an error is ignored, the next line is
 [expect]
 exit = 0
 output = ["every note after a b, B, C or v error played, unmoved"]
-output_regex = ['''unmatched '\)' in \[\] expression\n  section 1:  at position 4\n''']
+output_regex = ['''unmatched '\)' in \[\] expression\r?\n  section 1:  at position 4\r?\n''']
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
