@@ -507,21 +507,22 @@ typedef struct failedModule_s {
   void        *h;
 } failedModule_t;
 
-static void keep_failed_module(CSOUND *csound, void *h)
+/* f is the node load_external() reserved before csoundModuleCreate() ran,
+   with malloc, not csound->Malloc, which a reset frees: keeping the library
+   cannot fail once the module may have registered something. */
+static void keep_failed_module(CSOUND *csound, void *h, failedModule_t *f)
 {
-  failedModule_t  *f;
+  failedModule_t  *kept;
 
-  for (f = (failedModule_t*) csound->failed_modules; f != NULL; f = f->nxt) {
-    if (f->h == h) {
+  for (kept = (failedModule_t*) csound->failed_modules; kept != NULL;
+       kept = kept->nxt) {
+    if (kept->h == h) {
       /* kept open already: drop the reference this load added */
       close_library(h);
+      free(f);
       return;
     }
   }
-  /* malloc, not csound->Malloc, which a reset frees */
-  f = (failedModule_t*) malloc(sizeof(failedModule_t));
-  if (UNLIKELY(f == NULL))
-    return;                     /* the reference stays open, unowned */
   f->h = h;
   f->nxt = (failedModule_t*) csound->failed_modules;
   csound->failed_modules = (void*) f;
@@ -545,6 +546,7 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
   csoundModule_t  m;
   volatile jmp_buf tmpExitJmp;
   csoundModule_t  *mp;
+  failedModule_t  *spare = NULL;
   char            *fname;
   void            *h, *p;
   int32_t             (*infoFunc)(void);
@@ -654,13 +656,23 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
      csoundModuleCreate() fails is not linked, so it is neither started nor
      destroyed, and keep_failed_module() keeps its library open. */
   if (m.PreInitFunc != NULL) {
+    /* the node that keeps the library if csoundModuleCreate() fails, taken
+       before it runs, while closing the library is still safe */
+    spare = (failedModule_t*) malloc(sizeof(failedModule_t));
+    if (UNLIKELY(spare == NULL)) {
+      csound->Free(csound, p);
+      close_library(h);
+      csound->ErrorMsg(csound, "%s",
+                       Str("csoundLoadExternal(): memory allocation failure"));
+      return CSOUND_MEMORY;
+    }
     memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
     if ((err = setjmp(csound->exitjmp)) != 0) {
       memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
       print_module_error(csound, Str("Error in pre-initialisation function "
                                      "of module '%s'"), fname, NULL, 0);
       csound->Free(csound, p);
-      keep_failed_module(csound, h);
+      keep_failed_module(csound, h, spare);
       return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
               CSOUND_MEMORY : CSOUND_INITIALIZATION);
     }
@@ -670,9 +682,10 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
       print_module_error(csound, Str("Error in pre-initialisation function "
                                      "of module '%s'"), fname, &m, err);
       csound->Free(csound, p);
-      keep_failed_module(csound, h);
+      keep_failed_module(csound, h, spare);
       return CSOUND_INITIALIZATION;
     }
+    free(spare);
   }
   /* link into database */
   mp->nxt = (csoundModule_t*) csound->csmodule_db;
