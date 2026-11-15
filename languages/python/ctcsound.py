@@ -816,7 +816,9 @@ class Csound:
         csoundDestroy needs. Once Csound is gone, what this instance kept for
         it is released, all but the current callback of each set_ method.
         Calling it again, from a callback Csound calls while it is destroyed
-        included, does nothing. Otherwise it must not run inside a callback.
+        included, does nothing. Otherwise it must not run inside a callback,
+        nor while another thread is in join() of a thread on it: joining a
+        thread is not thread-safe (see CsoundPerformanceThread).
         """
         owner = self._owners.get(self.cs)
         if self.from_pointer and owner is not self:
@@ -2338,10 +2340,29 @@ class CsoundPerformanceThread:
     The playback (which is paused by default) is stopped by calling
     stop(), or if an error occurs.
     The constructor takes a Csound instance pointer as argument; it assumes
-    that ctcsound.compile_() was called successfully before creating
-    the performance thread. Once the playback is stopped for one of the above
-    mentioned reasons, the performance thread returns.
-    The Csound stays alive until join() returns or this object goes.
+    that the Csound was compiled and started (start()) before creating the
+    performance thread.
+    Once the playback is stopped for one of the above mentioned reasons, the
+    performance thread returns.
+    The Csound stays alive until a join() has ended the thread, or this
+    object goes.
+
+    To end it, from a thread of the host's and never from a callback the
+    performance runs: stop() it, join() it, then let this object go.
+    Csound.destroy() stops and joins it too. A thread cannot wait for its own
+    end, so in a callback on it join() returns at once, and the last
+    reference to this object, or to its Csound, must not be let go of there:
+    this object's __del__ would ask C to destroy the thread on itself, which
+    C refuses. The thread is then only stopped, its C object is never freed,
+    its Csound no longer stops and joins it, and what this object kept for
+    it, its process callback included, is released while the thread may
+    still call it. If this object held the last reference to its Csound, the
+    Csound is destroyed there, under the thread: a crash.
+    Joining is not thread-safe: one thread at a time calls join(), and not
+    beside Csound.destroy() on another thread, which joins it as well; nor
+    may any other call on this object, input_message() or
+    flush_message_queue() for instance, run on another thread beside a join,
+    which frees the message queue they use.
     """
     def __init__(self, csp):
         self.cpt = libcspt.csoundCreatePerformanceThread(csp)
@@ -2382,10 +2403,11 @@ class CsoundPerformanceThread:
         address of data, a ctypes object, or None if data is None. Each time
         this is called, both stay held until this object goes, for the reason
         Csound._keep gives. So a function that reaches this object, such as a
-        method of what holds it, makes a cycle that only a collection ends:
-        call stop() rather than just letting go of the thread. Stop and join
-        it before Python exits: __del__ joins it, and a thread that calls
-        Python while Python is finalizing never comes back.
+        method of what holds it, makes a cycle that only a collection ends,
+        and a collection can run on the thread itself: stop() and join() the
+        thread before letting go of it. Stop and join it before Python exits
+        as well: __del__ joins it, and a thread that calls Python while Python
+        is finalizing never comes back.
         """
         thunk = PROCESSFUNC(0 if function is None else function)
         pointer = None if data is None else ct.byref(data)
@@ -2460,8 +2482,11 @@ class CsoundPerformanceThread:
 
         Returns a positive value if the end of score was reached or
         stop() was called, and a negative value if an error occured.
-        Also releases any resources associated with the performance thread
-        object.
+        Also releases the message queue and its locks.
+        Not thread-safe: call it from one thread at a time, and not beside
+        Csound.destroy() on another thread. Called from a callback on the
+        thread itself, it joins nothing and returns the current status at
+        once, 0 while the performance still plays.
         """
         status = libcspt.csoundPerformanceThreadJoin(self.cpt)
         if not self.is_running():  # C refuses a join on the thread itself
