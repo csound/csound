@@ -590,6 +590,50 @@ static TREE *expand_expression_arg_list(CSOUND *csound, TREE *current,
   return newArgList;
 }
 
+/* An array member of a struct array's element read at a k index,
+   fs[kIndex].flags, has no value at init, so an element of it is read in
+   performance only: each i index is copied into a k, and the read takes
+   its entry for k indices, as fs[kIndex].on does. */
+static TREE *k_rate_indices(CSOUND *csound, TREE *indices, TREE **anchor,
+                            int32_t line, uint64_t locn,
+                            TYPE_TABLE *typeTable)
+{
+  TREE *list = NULL, *tail = NULL;
+
+  while (indices != NULL) {
+    TREE *index = indices;
+    char *type = get_arg_type2(csound, index, typeTable);
+
+    indices = indices->next;
+    index->next = NULL;
+    if (type == NULL) {
+      return NULL;
+    }
+    if (type[0] != '\0' && type[1] == '\0' && strchr("icp", *type) != NULL) {
+      char *name = create_out_arg(csound, "k",
+                                  typeTable->localPool->synthArgCount++,
+                                  typeTable);
+      TREE *copy = create_opcode_token(csound, "=");
+      copy->left = create_ans_token(csound, name);
+      copy->right = index;
+      copy->line = line;
+      copy->locn = locn;
+      *anchor = tree_append(*anchor, copy);
+      index = create_ans_token(csound, name);
+      csound->Free(csound, name);
+    }
+    csound->Free(csound, type);
+    if (tail == NULL) {
+      list = index;
+    }
+    else {
+      tail->next = index;
+    }
+    tail = index;
+  }
+  return list;
+}
+
 /**
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
@@ -607,6 +651,9 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   CS_VARIABLE* var;
   int32_t childContext = initContext;
   OENTRY *indexEntry = NULL;
+  int32_t memberReadAtKIndex = root->type == T_ARRAY &&
+    root->left != NULL && root->left->type == STRUCT_EXPR &&
+    tree_has_k_rate_array_index(csound, root->left, typeTable);
 
   /* HANDLE SUB EXPRESSIONS */
   if (root->type=='?') return create_cond_expression(csound, root, line,
@@ -656,6 +703,19 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       return NULL;
     }
     root->right = expandedArgs;
+  }
+  /* a built-in array: a type with its own [] chooses its entries itself */
+  if (memberReadAtKIndex && root->right != NULL &&
+      root->left->value != NULL &&
+      (var = find_var_from_pools(csound, root->left->value->lexeme,
+                                 root->left->value->lexeme,
+                                 typeTable)) != NULL &&
+      (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY)) {
+    root->right = k_rate_indices(csound, root->right, &anchor, line, locn,
+                                 typeTable);
+    if (root->right == NULL) {
+      return NULL;
+    }
   }
 
   switch(root->type) {
@@ -1765,6 +1825,7 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
 {
   STRUCT_ARRAY_MEMBER_PATH path;
   TREE* readOps = NULL;
+  TREE* getOp;
   char* currentStructArg;
   int32_t i;
   const char* memberType;
@@ -1787,13 +1848,20 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
                                     path.rootStructType->varTypeName,
                                     typeTable->localPool->synthArgCount++,
                                     typeTable);
-  readOps = tree_append(readOps,
-                           create_struct_array_get_call(
-                             csound, line, locn, currentStructArg,
-                             path.arrayExpr,
-                             struct_member_follows_at_i_index(&path, initContext)
-                               ? "##array_get_struct_k"
-                               : "##array_get_struct"));
+  getOp = create_struct_array_get_call(
+    csound, line, locn, currentStructArg, path.arrayExpr,
+    struct_member_follows_at_i_index(&path, initContext)
+      ? "##array_get_struct_k" : "##array_get_struct");
+  /* an element of an array member read at a k index, hs[kI].points[1] */
+  if (tree_has_k_rate_array_index(csound, path.arrayExpr->left, typeTable)) {
+    getOp->right->next = k_rate_indices(csound, getOp->right->next, &readOps,
+                                        line, locn, typeTable);
+    if (getOp->right->next == NULL) {
+      csound->Free(csound, currentStructArg);
+      return NULL;
+    }
+  }
+  readOps = tree_append(readOps, getOp);
 
   for (i = 0; i < path.memberCount - 1; i++) {
     char* nextStructArg = create_out_arg(csound,
