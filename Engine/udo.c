@@ -225,6 +225,8 @@ struct udo_output_snapshot {
   cs_float *source;
   int32_t output_index;
   int32_t active;
+  int32_t refresh;
+  cs_float given;
   AUXCH *auxchp;
   UDO_OUTPUT_SNAPSHOT *next;
 };
@@ -291,6 +293,8 @@ static void udo_bind_output_sources(UOPCODE *p, XOUT *xout, int32_t passByRef)
        snapshot != NULL; snapshot = snapshot->next) {
     int32_t i = snapshot->output_index;
     cs_float *source = xout->args[i];
+    const CS_TYPE *type = snapshot->variable->varType;
+    const ARG *arg = xout->h.optext->t.inArgs;
     snapshot->source = source;
     snapshot->active = 0;
     for (int32_t j = 0; j < info->outchns; j++) {
@@ -299,9 +303,46 @@ static void udo_bind_output_sources(UOPCODE *p, XOUT *xout, int32_t passByRef)
         break;
       }
     }
+    for (int32_t j = 0; j < i && arg != NULL; j++)
+      arg = arg->next;
+    /* By reference, a new-style UDO's body writes the caller's output
+       variable whenever it writes its own. By copy, an i or b output is given
+       at init, so mark the ones to give again during performance
+       (udo_refresh_init_rate_outputs): those xout gives from the body's own
+       variable. A global, a constant, a p-field or a struct member (which
+       keeps its struct's storage) is copied at init only by reference too.
+       What is bound now counts as given: only a later change is copied. */
+    snapshot->refresh = !passByRef &&
+      (type == &CS_VAR_TYPE_I || type == &CS_VAR_TYPE_b) &&
+      arg != NULL && arg->type == ARG_LOCAL && arg->structPath == NULL;
+    if (snapshot->refresh)
+      memcpy(&snapshot->given, source, sizeof(cs_float));
     p->buf->iobufp_ptrs[i] = snapshot->active ?
       &snapshot->variable->memBlock->value :
       (passByRef && source == p->ar[i] ? NULL : source);
+  }
+}
+
+/* Give a marked output again when the body's variable has changed since the
+   caller was given it: after a reinit, or from a k it returns. Each copy is
+   one the body makes by reference too, and a change the caller makes to its
+   own variable stays until the body's value changes. given holds what the
+   caller was given, set at the end of the UDO's init (give 0). Either type is
+   one cs_float (myflt_copy_value). */
+static void udo_refresh_init_rate_outputs(const UOPCODE *p, int32_t give)
+{
+  /* an old-style UDO always runs by copy: its xout gives at init only */
+  if (!p->buf->opcode_info->newStyle)
+    return;
+  for (UDO_OUTPUT_SNAPSHOT *snapshot = p->output_snapshots;
+       snapshot != NULL; snapshot = snapshot->next) {
+    if (!snapshot->refresh ||
+        memcmp(&snapshot->given, snapshot->source, sizeof(cs_float)) == 0)
+      continue;
+    memcpy(&snapshot->given, snapshot->source, sizeof(cs_float));
+    if (give)
+      memcpy(p->ar[snapshot->output_index], snapshot->source,
+             sizeof(cs_float));
   }
 }
 
@@ -2478,6 +2519,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 
       cur = cur->next;
     }
+    /* what the caller was given, as the init after xout may change it */
+    udo_refresh_init_rate_outputs(p, 0);
   }
 
   csound->mode = 0;
@@ -3048,6 +3091,7 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
     }
     current = current->next;
   }
+  udo_refresh_init_rate_outputs(p, 1);
  endop:
   /* check if instrument was deactivated (e.g. by perferror) */
   if (!p->ip)                                         /* loop to last opds */
@@ -3210,6 +3254,7 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
       current = current->next;
     }
   }
+  udo_refresh_init_rate_outputs(p, 1);
 
  endop:
   /* check if instrument was deactivated (e.g. by perferror) */
