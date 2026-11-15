@@ -1064,6 +1064,24 @@ static int32_t load_init_module(CSOUND *csound, const char *fname){
   return (err == CSOUND_SUCCESS ? CSOUND_SUCCESS : CSOUND_INITIALIZATION);
 }
 
+/* The default scan stops Csound with a jump when a plugin fails to load or
+   start. A host may call csoundLoadPlugins() first, with no frame for that
+   jump, so take it here and return an error. */
+static int32_t load_default_modules(CSOUND *csound)
+{
+  volatile jmp_buf  tmpExitJmp;
+  int32_t           err;
+
+  memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
+  if (UNLIKELY(setjmp(csound->exitjmp) != 0)) {
+    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+    return CSOUND_ERROR;
+  }
+  err = csoundLoadDefaultModules(csound);
+  memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+  return err;
+}
+
 int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
 #if (defined(HAVE_DIRENT_H) && (TARGET_OS_IPHONE == 0))
   DIR             *dir;
@@ -1084,7 +1102,7 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
 #endif
   /* Scan the default directories first so that loading an explicit
      --opcode-dir adds to, rather than replaces, the default set. */
-  if (UNLIKELY(csoundLoadDefaultModules(csound) != CSOUND_SUCCESS))
+  if (UNLIKELY(load_default_modules(csound) != CSOUND_SUCCESS))
     return CSOUND_ERROR;
   /* open plugin directory */
   // EM'2021: This seems to be dead code since opdir will never be NULL and

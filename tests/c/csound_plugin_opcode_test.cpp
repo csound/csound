@@ -460,6 +460,36 @@ TEST(PluginThatFailsToStart, StopsOpcodeDir) {
   expectOpcodeDirToFail(CSOUND_TEST_FAILING_INIT_PLUGIN);
 }
 
+// Called first, csoundLoadPlugins() scans the plugin directory, which jumps
+// when a plugin there fails: with no frame for it, the host crashed.
+namespace {
+void expectLoadPluginsFirstToFail(const char *plugin) {
+  const char *variable =
+      sizeof(cs_float) == sizeof(float) ? "OPCODE7DIR" : "OPCODE7DIR64";
+  const std::string directory = directoryOf(plugin);
+  EXPECT_EXIT(
+      {
+        csoundSetGlobalEnv(variable, directory.c_str());
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        csoundSetGlobalEnv(variable, nullptr);
+        csoundCreateMessageBuffer(csound, 0);
+        const int32_t loaded = csoundLoadPlugins(
+            csound, directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN).c_str());
+        csoundDestroy(csound);
+        std::exit(loaded == CSOUND_ERROR ? 0 : 1);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+} // namespace
+
+TEST(PluginThatFailsToLoad, InThePluginDirectoryFailsLoadPluginsCalledFirst) {
+  expectLoadPluginsFirstToFail(CSOUND_TEST_FAILING_CREATE_PLUGIN);
+}
+
+TEST(PluginThatFailsToStart, InThePluginDirectoryFailsLoadPluginsCalledFirst) {
+  expectLoadPluginsFirstToFail(CSOUND_TEST_FAILING_INIT_PLUGIN);
+}
+
 #ifdef CSOUND_TEST_HAS_TWO_COPIES
 // One plugin in two directories, as a build tree beside an installed Csound
 // has it. Csound loads both, and they share the instance's variables. Each
