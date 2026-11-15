@@ -1246,7 +1246,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth,
           if (UNLIKELY(!type)) {
             csound->inerrcnt++;
             csound->ErrorMsg(csound,
-                             Str("score error: missing operand before ')' in [] expression"));
+                             Str("score error: missing operand before ')' in [] expression\n"));
             print_input_backtrace(csound, csoundErrorMsg);
             flushlin(csound);
             *dropped = 1;
@@ -1259,7 +1259,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth,
           if (UNLIKELY(expr.ops[expr.opCount - 1] != '(')) {
             csound->inerrcnt++;
             csound->ErrorMsg(csound,
-                             Str("score error: unmatched ')' in [] expression"));
+                             Str("score error: unmatched ')' in [] expression\n"));
             print_input_backtrace(csound, csoundErrorMsg);
             flushlin(csound);
             *dropped = 1;
@@ -1293,7 +1293,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth,
           if (UNLIKELY(expr.ops[expr.opCount - 1] != '[')) {
             csound->inerrcnt++;
             csound->ErrorMsg(csound,
-                             Str("score error: unmatched ']' in [] expression"));
+                             Str("score error: unmatched ']' in [] expression\n"));
             print_input_backtrace(csound, csoundErrorMsg);
             flushlin(csound);
             *dropped = 1;

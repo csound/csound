@@ -1,9 +1,10 @@
 <CsTest>
-description = "a b, B, C or v whose [] has an error is ignored, and the next line is read"
+description = "a b, B, C or v whose [] has an error is ignored, the next line is read, and the message ends its line"
 
 [expect]
 exit = 0
 output = ["every note after a b, B, C or v error played, unmoved"]
+output_regex = ['''unmatched '\)' in \[\] expression\n  section 1:  at position 4\n''']
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -20,7 +21,8 @@ nchnls = 1
 ; which was the next line: the note after each of them was lost. And they set
 ; the clock, the carry or the warp from what the error left: here the clock to
 ; 5, the carry off and the warp to 0. They are ignored now, as without a
-; number. Each note says what it adds up to and the p3 it must have.
+; number. Each note says what it adds up to and the p3 it must have. The
+; message of such an error ran on into where it was.
 giSum init 0
 giWrong init 0
 
