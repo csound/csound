@@ -1039,12 +1039,15 @@ extern "C" {
   /**
    * locks access to the channel allowing access to data in
    * a threadsafe manner
+   * The channel must exist (csoundGetChannelPtr() creates it): on a name
+   * that is no channel, this prints an error and locks nothing.
    **/
   PUBLIC void csoundLockChannel(CSOUND *csound, const char *channel);
 
   /**
    * unlocks access to the channel, allowing access to data from
    * elsewhere.
+   * On a name that is no channel, this prints an error and does nothing.
    **/
   PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
 
@@ -1161,6 +1164,8 @@ extern "C" {
    * returns the ARRAYDAT for the requested channel or NULL on error
    * NB: if the channel exists and has already been initialised,
    * this function is a non-op.
+   * It takes the channel's lock, so it cannot be called between
+   * csoundLockChannel() and csoundUnlockChannel() on the same channel.
    */
   PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
                                           const char *type, int32_t dimensions,
