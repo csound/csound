@@ -940,43 +940,63 @@ int32_t csoundMIDIFileClose(CSOUND *csound)
 /* midirecv.c, resets MIDI controllers on a channel */
 void midi_ctl_reset(CSOUND *csound, int16 chan);
 
-/* called by csoundRewindScore() to reset performance to time zero */
+/* back to its start: its first event and tempo, its clock in step */
+static void midi_file_to_start(midifile_t *mf)
+{
+  mf->counter = 0;
+  mf->currentTempo = initial_tempo(mf);
+  mf->eventListIndex = 0;
+  mf->tempoListIndex = 0;
+  mf->rewound = 1;
+}
+
+/* a file read since it was at its start, that played to its end, which
+   paused it */
+static int32_t midi_file_ended(const midifile_t *mf)
+{
+  return mf->pause && !mf->rewound && mf->eventListIndex >= mf->nEvents &&
+    mf->tempoListIndex >= mf->nTempo &&
+    (unsigned long) mf->counter >= mf->totalKcnt;
+}
+
+/* called by csoundRewindScore() to reset performance to time zero: every
+   open file goes back to its start */
 void midifile_rewind_score(CSOUND *csound)
 {
-  int32_t i;
+  int32_t i, found = 0;
   OPARMS *O = csound->oparms;
   midifile_t *midifile = (midifile_t *) MIDIFILE;
 
-  while(midifile != NULL) { // find -F midifile
-    if(strcmp(midifile->name,
-              csound->oparms->FMidiname) == 0) break;
-    midifile = midifile->nxt;
-  }
   if (midifile != NULL) {
     MGLOBAL *p = csound->midiGlobals;
-    /* the file's bytes not yet parsed, and its event if one waits for a
+    /* the files' bytes not yet parsed, and their event if one waits for a
        note's init, are from before the rewind: drop them */
     if (p->bufp > p->filep)
       csound->midi_event_pending = 0;
     p->endatp = p->bufp > p->filep ? p->bufp : p->filep;
-    /* reset event index and tempo */
-    MF(currentTempo) = initial_tempo(midifile);
-    MF(eventListIndex) = 0;
-    MF(tempoListIndex) = 0;
-    MF(counter) = 0;
-    MF(global_kcounter) = csound->global_kcounter;  /* in step from here */
-    MF(pause) = 0;                      /* as opened, if it had ended */
-    csound->MTrkend = csound->Mxtroffs = csound->Mforcdecs = 0;
-    /* reset controllers on all channels */
+  }
+  for (; midifile != NULL; midifile = midifile->nxt) {
+    if (!found && O->FMidiname != NULL &&
+        strcmp(midifile->name, O->FMidiname) == 0) {
+      found = 1;
+      MF(pause) = 0;                    /* -F: as opened, if it had ended */
+    }
+    else if (midi_file_ended(midifile))
+      MF(pause) = 0;      /* the orchestra's play again if they had ended; */
+                          /*   one it paused stays paused                   */
+    midi_file_to_start(midifile);
+    /* reset controllers on the channels of its port */
     for (i = 0; i < MAXCHAN; i++)
-      midi_ctl_reset(csound, (int16_t) i);
-  } else if (LIKELY(O->FMidiname != NULL)) {
+      midi_ctl_reset(csound, (int16_t) (i + MAXCHAN * MF(port)));
+  }
+  if (found)
+    csound->MTrkend = csound->Mxtroffs = csound->Mforcdecs = 0;
+  else if (O->FMidiname != NULL) {
     csound->MTrkend = 0;
     if (UNLIKELY(csoundMIDIFileOpen(csound, O->FMidiname) != 0))
       csound->Die(csound, Str("Failed to load MIDI file.\n"));
     O->FMidiin = 1;
   }
-  else csound->Warning(csound, Str("Cannot rewind MIDI score\n"));
 }
 
 /* ------------------------------------------------------------------------ */
@@ -1054,11 +1074,7 @@ int32_t midi_file_rewind(CSOUND *csound, void *p) {
       for(int i = 0; i < 16; i++)
         AllNotesOff(csound, csound->m_chnbp[i + MAXCHAN * mf->port]);
     }
-    mf->counter = 0;
-    mf->currentTempo = initial_tempo(mf);
-    mf->eventListIndex = 0;
-    mf->tempoListIndex = 0;
-    mf->rewound = 1;
+    midi_file_to_start(mf);
   }
   return OK;
 }

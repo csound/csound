@@ -222,6 +222,5 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
 
  void csoundRewindScore(CSOUND *csound) {
   rewind_score(csound);
-  if (csound->oparms->FMidiname != NULL)
-    midifile_rewind_score(csound);
+  midifile_rewind_score(csound);
 }

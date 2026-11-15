@@ -136,6 +136,45 @@ TEST_F(MidiFileReadTests, ALoopedFileKeepsALengthBetweenKPeriods)
   EXPECT_EQ(passes, 16);
 }
 
+TEST(MidiFileRewindTests, AnEmptyFileNeverPlayedStaysPaused)
+{
+  // A rewind of the score plays again a file that had played to its end.
+  // A file with no events at all, which the orchestra never played, is at
+  // its end too, and stays paused.
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  ASSERT_NE(csound, nullptr);
+#if defined(_WIN32)
+  const auto pid = _getpid();
+#else
+  const auto pid = getpid();
+#endif
+  const auto path = std::filesystem::temp_directory_path() /
+    ("csound-midi-empty-" + std::to_string(pid) + ".mid");
+  const unsigned char midi[] = {
+    'M', 'T', 'h', 'd', 0, 0, 0, 6, 0, 0, 0, 1, 1, 224,
+    'M', 'T', 'r', 'k', 0, 0, 0, 4, 0, 0xFF, 0x2F, 0
+  };
+  {
+    std::ofstream file(path, std::ios::binary);
+    file.write(reinterpret_cast<const char *>(midi), sizeof(midi));
+  }
+  const std::string orc =
+    "sr=1000\nksmps=1\nnchnls=1\n"
+    "giFile midifileopen {{" + path.generic_string() + "}}\n"
+    "instr 1\nchnset midifilestatus:k(giFile), \"playing\"\nendin\n";
+  EXPECT_EQ(csoundSetOption(csound, "-n"), 0);
+  EXPECT_EQ(csoundCompileOrc(csound, orc.c_str(), 0), 0);
+  EXPECT_EQ(csoundStart(csound), 0);
+  EXPECT_EQ(csoundPerformKsmps(csound), 0);
+  csoundRewindScore(csound);
+  csoundEventString(csound, "i1 0 1", 0);
+  EXPECT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "playing", nullptr), 0);
+  csoundDestroy(csound);
+  std::error_code error;
+  std::filesystem::remove(path, error);
+}
+
 TEST_F(MidiFileReadTests, SharesCapacityAcrossFiles)
 {
   checkRead(10, {0xC0, 0x81, 5, 0x90, 0x81, 60, 100, 0xC0, 0x82, 5});
