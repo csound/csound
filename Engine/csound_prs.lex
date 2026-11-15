@@ -1923,7 +1923,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
             *++pv = bodmas(csound, yyscanner, term, depth + 1);
             //printf("recursion gives %lf (%d)\n", x,*(pv-1));
             //for (i=0;i<pv-vv;i++) printf(" %d ", vv[i]); printf("| %ld\n", pv-vv);
-            c = input(yyscanner);
+            c = *term;               /* the character after its ] */
             goto top;
           }
         case ']':
@@ -1943,7 +1943,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
             csound->LongJmp(csound, 1);
           }
           //printf("done ]*** *op=%c v=%d (%c)\n", *op, *pv, c);
-          *term = '~'; return *pv;
+          *term = input(yyscanner); return *pv;
         case '~':
           break;
         case ' ':               /* Ignore spaces */
