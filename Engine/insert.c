@@ -848,6 +848,11 @@ static INIT_THREAD_LOCAL CSOUND *init_thread;        /* the instance whose
 static INIT_THREAD_LOCAL INIT_LANDING *init_landing; /* the innermost pass's */
 static INIT_THREAD_LOCAL int32_t init_jumped;        /* this thread took a
                                                          jump: the first */
+static INIT_THREAD_LOCAL CSOUND *init_item;          /* the instance whose
+                                                         queued item runs */
+static INIT_THREAD_LOCAL int32_t rewind_asked;       /* that item asked for a
+                                                         rewind of the score */
+static INIT_THREAD_LOCAL long rewind_asked_at;       /* score_rewinds then */
 
 static INIT_THREAD_LOCAL API_CALL *api_call;          /* the innermost */
 
@@ -934,6 +939,15 @@ void init_thread_jump_make(CSOUND *csound)
     ATOMIC_SET(csound->init_thread_jump, 0);
     csoundLongJmp(csound, CSOUND_EXITJMP_SUCCESS - n);
   }
+}
+
+int32_t init_item_asks_rewind(const CSOUND *csound)
+{
+  if (init_item != csound)
+    return 0;
+  rewind_asked = 1;
+  rewind_asked_at = ATOMIC_GET(csound->score_rewinds);
+  return 1;
 }
 
 /* do init pass for this instr */
@@ -1079,6 +1093,7 @@ uintptr_t event_insert_thread(void *p) {
       /* Keep the common lock order: init mutex, then allocation lock. */
       if (csound->init_pass_threadlock)
         csoundLockMutex(csound->init_pass_threadlock);
+      init_item = csound;
       switch (data.type) {
         case ALLOC_DATA_MERGE_STATE: {
           ENGINE_STATE *engine_state = data.engine_state;
@@ -1161,6 +1176,20 @@ uintptr_t event_insert_thread(void *p) {
           }
           break;
         }
+      }
+      init_item = NULL;
+      /* A rewind this item asked for: the performance makes it now, unless
+         a rewind came since it asked, which serves it, or since a note's
+         item was queued, which turned the note off. Under the allocation
+         lock, which the performance holds while it rewinds. */
+      if (rewind_asked) {
+        rewind_asked = 0;
+        csoundSpinLock(&csound->alloc_spinlock);
+        if (ATOMIC_GET(csound->score_rewinds) == rewind_asked_at &&
+            (data.type == ALLOC_DATA_MERGE_STATE ||
+             !queued_before_rewind(csound, &data)))
+          ATOMIC_INCR(csound->score_rewind_request);
+        csoundSpinUnLock(&csound->alloc_spinlock);
       }
       if (csound->init_pass_threadlock)
         csoundUnlockMutex(csound->init_pass_threadlock);

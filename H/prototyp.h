@@ -204,6 +204,11 @@ extern "C" {
   /* On the thread that performs: makes the jump the init thread took, if
      any, and does not return then. */
   void init_thread_jump_make(CSOUND *);
+  /* In an item the realtime init thread runs for the instance (an init, a
+     reinit, global code, and any API call they make), beside the
+     performance: records that the item asks for a rewind of the score,
+     which the performance makes once the item is done, and returns 1. */
+  int32_t init_item_asks_rewind(const CSOUND *);
   /* A call that holds exitjmp while it runs and takes the jumps made inside
      it as its error (csound_compile_orc, csoundCompileTree, csoundCompileCSD,
      linevent_alloc).

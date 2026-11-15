@@ -221,6 +221,15 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
 }
 
  void csoundRewindScore(CSOUND *csound) {
+  /* An item the realtime init thread runs (an init that calls rewindscore,
+     or setscorepos) runs beside the performance, which would go on with the
+     notes the rewind turns off: the performance makes the rewind once the
+     item is done, at the start of a control period (sense_events). */
+  if (init_item_asks_rewind(csound))
+    return;
+  /* this rewind serves the ones asked for so far */
+  ATOMIC_SET(csound->score_rewind_served,
+             ATOMIC_GET(csound->score_rewind_request));
   rewind_score(csound);
   midifile_rewind_score(csound);
 }

@@ -400,6 +400,293 @@ TEST_F(RealtimeQueueTests, AsyncCompileRejectsStoppedWorker)
   alloc_queue_stop(csound);
   EXPECT_EQ(csoundCompileOrc(csound, "instr 10\nendin\n", 1), CSOUND_ERROR);
 }
+// A note performs while another's init runs rewindscore. The note's opcode
+// holds its performance once that init has begun, for at most 200 ms, and
+// sees whether the note was deinitialised in the meantime.
+class RealtimeRewindOpcodeTests : public ::testing::Test {
+ protected:
+  CSOUND *csound = nullptr;
+  std::mutex mutex;
+  std::condition_variable changed;
+  std::atomic<int> performed{0}, hold{0}, deinits{0}, after{0};
+  std::atomic<int> deinitsInInit{-1}, done{0}, waiting{0};
+  bool before = false;
+  int deinitsInPerformance = -1;
+
+  static RealtimeRewindOpcodeTests &host(CSOUND *cs)
+  { return *static_cast<RealtimeRewindOpcodeTests *>(csoundGetHostData(cs)); }
+  static int32_t noteInit(CSOUND *, void *) { return 0; }
+  static int32_t notePerf(CSOUND *cs, void *)
+  {
+    auto &self = host(cs);
+    ++self.performed;
+    if (self.hold.exchange(0) == 0) return 0;
+    std::unique_lock<std::mutex> lock(self.mutex);
+    if (self.changed.wait_for(lock, std::chrono::seconds(5),
+                              [&self] { return self.before; }))
+      self.changed.wait_for(lock, std::chrono::milliseconds(200),
+                            [&self] { return self.deinits > 0; });
+    self.deinitsInPerformance = self.deinits;
+    return 0;
+  }
+  static int32_t noteDeinit(CSOUND *cs, void *)
+  {
+    auto &self = host(cs);
+    std::lock_guard<std::mutex> lock(self.mutex);
+    ++self.deinits;
+    self.changed.notify_all();
+    return 0;
+  }
+  static int32_t markBefore(CSOUND *cs, void *)
+  {
+    auto &self = host(cs);
+    std::lock_guard<std::mutex> lock(self.mutex);
+    self.before = true;
+    self.changed.notify_all();
+    return 0;
+  }
+  // The performance goes on for three periods while this init is not done.
+  static int32_t markAfter(CSOUND *cs, void *)
+  {
+    auto &self = host(cs);
+    const int from = self.performed;
+    const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (self.performed < from + 3 &&
+           std::chrono::steady_clock::now() < deadline)
+      csoundSleep(1);
+    self.deinitsInInit = self.deinits.load();
+    ++self.after;
+    return 0;
+  }
+  // An init that waits for a rewind to turn i1 off.
+  static int32_t waitForTheRewind(CSOUND *cs, void *)
+  {
+    auto &self = host(cs);
+    self.waiting = 1;
+    std::unique_lock<std::mutex> lock(self.mutex);
+    self.changed.wait_for(lock, std::chrono::seconds(5),
+                          [&self] { return self.deinits > 0; });
+    return 0;
+  }
+  static int32_t markDone(CSOUND *cs, void *) { ++host(cs).done; return 0; }
+  static void message(CSOUND *, int32_t, const char *) {}
+  void SetUp() override
+  {
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(MSVC) && !defined(HAVE_ATOMIC_BUILTIN))
+    GTEST_SKIP() << "Realtime mode requires native spinlocks and atomics";
+#endif
+    csound = csoundCreate(this, nullptr);
+    ASSERT_NE(csound, nullptr);
+    csoundSetMessageStringCallback(csound, message);
+    ASSERT_EQ(csoundSetOption(csound, "-n -d --daemon --realtime"), 0);
+    ASSERT_EQ(csoundAppendOpcode(csound, "test_rewind_wait", sizeof(OPDS), 0,
+                                "", "", waitForTheRewind, nullptr, nullptr), 0);
+    ASSERT_EQ(csoundAppendOpcode(csound, "test_rewind_done", sizeof(OPDS), 0,
+                                "", "", markDone, nullptr, nullptr), 0);
+    ASSERT_EQ(csoundAppendOpcode(csound, "test_rewind_note", sizeof(OPDS), 0,
+                                "", "", noteInit, notePerf, noteDeinit), 0);
+    ASSERT_EQ(csoundAppendOpcode(csound, "test_rewind_before", sizeof(OPDS),
+                                0, "", "", markBefore, nullptr, nullptr), 0);
+    ASSERT_EQ(csoundAppendOpcode(csound, "test_rewind_after", sizeof(OPDS),
+                                0, "", "", markAfter, nullptr, nullptr), 0);
+    ASSERT_EQ(csoundCompileOrc(csound, R"(
+      sr = 48000
+      ksmps = 16
+      nchnls = 1
+      0dbfs = 1
+      instr 1
+        test_rewind_note
+      endin
+      instr 2
+        test_rewind_before
+        rewindscore
+        test_rewind_after
+      endin
+      instr 4
+        test_rewind_before
+        iResult compilestr "rewindscore\n"
+        test_rewind_after
+      endin
+      instr 5
+        rewindscore
+      endin
+      instr 6
+        test_rewind_wait
+        rewindscore
+        test_rewind_done
+      endin
+    )", 0), 0);
+    ASSERT_EQ(csoundStart(csound), 0);
+  }
+  void TearDown() override
+  {
+    if (csound != nullptr) csoundDestroy(csound);
+  }
+  // i1 performs; the init of `rewinder` runs while i1's performance is held.
+  void rewindWhileANotePerforms(const char *rewinder)
+  {
+    csoundEventString(csound, "i1 0 -1", 0);
+    auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (performed == 0 && std::chrono::steady_clock::now() < deadline) {
+      ASSERT_EQ(csoundPerformKsmps(csound), 0);
+      csoundSleep(1);
+    }
+    ASSERT_GT(performed, 0);
+    hold = 1;
+    csoundEventString(csound, rewinder, 0);
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    // The rewind did not turn i1 off under its performance, nor before the
+    // init that asked for it was done: the start of a later control period
+    // did.
+    EXPECT_EQ(deinitsInPerformance, 0);
+    deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+    while (deinits == 0 && std::chrono::steady_clock::now() < deadline) {
+      ASSERT_EQ(csoundPerformKsmps(csound), 0);
+      csoundSleep(1);
+    }
+    EXPECT_EQ(after, 1);
+    EXPECT_EQ(deinitsInInit, 0);
+    EXPECT_EQ(deinits, 1);
+    // One rewind: the score's time goes on from it.
+    const int64_t time = csoundGetCurrentTimeSamples(csound);
+    for (int i = 0; i < 10; ++i)
+      ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    EXPECT_EQ(csoundGetCurrentTimeSamples(csound), time + 10 * 16);
+  }
+};
+
+TEST_F(RealtimeRewindOpcodeTests, ThePerformanceMakesTheRewind)
+{
+  rewindWhileANotePerforms("i2 0 0");
+}
+
+TEST_F(RealtimeRewindOpcodeTests, ThePerformanceMakesARewindFromCompilestr)
+{
+  rewindWhileANotePerforms("i4 0 0");
+}
+
+TEST_F(RealtimeRewindOpcodeTests, ARewindServesGlobalCodeThatAskedBeforeIt)
+{
+  // i5 asks for a rewind. Global code compiled after it asks too, and waits
+  // for that rewind, which serves both: there is no second one.
+  csoundEventString(csound, "i1 0 -1", 0);
+  auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (performed == 0 && std::chrono::steady_clock::now() < deadline) {
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    csoundSleep(1);
+  }
+  ASSERT_GT(performed, 0);
+  csoundEventString(csound, "i5 0 0", 0);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  ASSERT_EQ(csoundCompileOrc(csound, "rewindscore\ntest_rewind_wait\n", 1), 0);
+  // No period until the global code waits: i5's rewind comes in the next.
+  deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (waiting == 0 && std::chrono::steady_clock::now() < deadline)
+    csoundSleep(1);
+  ASSERT_EQ(waiting, 1);
+  int periods = 0;
+  deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while ((deinits == 0 || alloc_queue_has_pending(csound)) &&
+         std::chrono::steady_clock::now() < deadline) {
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    ++periods;
+    csoundSleep(1);
+  }
+  ASSERT_EQ(deinits, 1);
+  ASSERT_FALSE(alloc_queue_has_pending(csound));
+  for (int i = 0; i < 10; ++i, ++periods) {
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    csoundSleep(1);
+  }
+  EXPECT_EQ(csoundGetCurrentTimeSamples(csound), periods * 16);
+}
+
+TEST_F(RealtimeRewindOpcodeTests, GlobalCodeAskingAfterARewindGetsItsOwn)
+{
+  // i5 asks for a rewind. Global code compiled after it waits for that
+  // rewind, then asks: global code is not a note the rewind turns off, and
+  // it gets a rewind of its own.
+  csoundEventString(csound, "i1 0 -1", 0);
+  auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (performed == 0 && std::chrono::steady_clock::now() < deadline) {
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    csoundSleep(1);
+  }
+  ASSERT_GT(performed, 0);
+  csoundEventString(csound, "i5 0 0", 0);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  ASSERT_EQ(csoundCompileOrc(csound, "test_rewind_wait\nrewindscore\n", 1), 0);
+  deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (waiting == 0 && std::chrono::steady_clock::now() < deadline)
+    csoundSleep(1);
+  ASSERT_EQ(waiting, 1);
+  int periods = 0;
+  deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while ((deinits == 0 || alloc_queue_has_pending(csound)) &&
+         std::chrono::steady_clock::now() < deadline) {
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    ++periods;
+    csoundSleep(1);
+  }
+  ASSERT_EQ(deinits, 1);
+  ASSERT_FALSE(alloc_queue_has_pending(csound));
+  for (int i = 0; i < 10; ++i, ++periods) {
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    csoundSleep(1);
+  }
+  // The first rewind came at the start of the first period: the second one,
+  // later, set the score's time back again.
+  EXPECT_LT(csoundGetCurrentTimeSamples(csound), periods * 16);
+  EXPECT_GE(csoundGetCurrentTimeSamples(csound), 10 * 16);
+}
+
+TEST_F(RealtimeRewindOpcodeTests, AnInitFromBeforeARewindAsksForNone)
+{
+  // i5 and i6 are queued together. i5 asks for a rewind, which comes while
+  // i6's init waits for it and turns i6 off: i6's rewindscore, after the
+  // rewind, asks for none.
+  csoundEventString(csound, "i1 0 -1", 0);
+  auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (performed == 0 && std::chrono::steady_clock::now() < deadline) {
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    csoundSleep(1);
+  }
+  ASSERT_GT(performed, 0);
+  csoundEventString(csound, "i5 0 0\ni6 0 0", 0);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  // No period until i6's init has begun: i5's rewind comes in the next.
+  deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (waiting == 0 && std::chrono::steady_clock::now() < deadline)
+    csoundSleep(1);
+  ASSERT_EQ(waiting, 1);
+  int periods = 0;
+  deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+  while (done == 0 && std::chrono::steady_clock::now() < deadline) {
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    ++periods;
+    csoundSleep(1);
+  }
+  ASSERT_EQ(done, 1);
+  EXPECT_EQ(deinits, 1);
+  // i6's item is done, and would have asked by now.
+  while (alloc_queue_has_pending(csound) &&
+         std::chrono::steady_clock::now() < deadline) {
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    ++periods;
+    csoundSleep(1);
+  }
+  ASSERT_FALSE(alloc_queue_has_pending(csound));
+  for (int i = 0; i < 10; ++i, ++periods) {
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    csoundSleep(1);
+  }
+  // One rewind, at the start of the first of these periods: the score's
+  // time counts them all.
+  EXPECT_EQ(csoundGetCurrentTimeSamples(csound), periods * 16);
+}
+
 } // namespace
 
 #endif

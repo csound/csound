@@ -1339,6 +1339,18 @@ int32_t sense_events(CSOUND *csound)
   if (UNLIKELY(data && data->status == CSDEBUG_STATUS_STOPPED)) {
     return 0; /* don't process events if we're in debug mode and stopped */
   }
+  /* Rewinds an item of the realtime init thread asked for, once it is
+     done: one rewind serves them. As with turnoffs, it takes a period in
+     which this thread gets the allocation lock at the first try: the init
+     thread links notes in under it. */
+  if (UNLIKELY(ATOMIC_GET(csound->score_rewind_request) !=
+               ATOMIC_GET(csound->score_rewind_served))) {
+    RT_SPIN_TRYLOCK
+    if (ATOMIC_GET(csound->score_rewind_request) !=
+        ATOMIC_GET(csound->score_rewind_served))     /* not served since */
+      csoundRewindScore(csound);
+    RT_SPIN_UNLOCK
+  }
   /* Clear realtime MIDI flags once per control cycle. sens_midi() may return
      for each note message, so clearing there loses flags from earlier bytes. */
   csound->midi_clock_pulse = 0;
@@ -1401,7 +1413,9 @@ int32_t sense_events(CSOUND *csound)
            performance alive while an insertion is queued or in progress so
            the score cannot end before the new instance publishes its
            off-time. */
-        if (O->realtime && alloc_queue_has_pending(csound)) {
+        if (O->realtime && (alloc_queue_has_pending(csound) ||
+                            ATOMIC_GET(csound->score_rewind_request) !=
+                            ATOMIC_GET(csound->score_rewind_served))) {
           waiting_for_realtime_work = 1;
           /* Polling the init worker does not end a score segment. */
           STA(score_segment_polling) = 1;

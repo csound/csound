@@ -1987,6 +1987,8 @@ struct CSOUND_ {
   int32_t init_thread_jump;                                  /* a jump the realtime init thread took: the performance makes it */
   void *failed_modules;                                      /* libraries whose csoundModuleCreate failed, closed by csoundDestroy */
   volatile long score_rewinds;                               /* rewinds of the score: a realtime init queued before the last is dropped */
+  volatile long score_rewind_request;                        /* rewinds the realtime init thread asked for, counted as the asking inits end */
+  volatile long score_rewind_served;                         /* score_rewind_request when a rewind was last made: the performance makes one while they differ */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */
