@@ -112,6 +112,11 @@ const Refused refused[] = {
     {"{ [2+[$U]] N\ni 1 0 0\n}", "Undefined macro: 'U'"},
     /* A ~ ended the count, and what followed it was lost: this played 3 times. */
     {"{ [3~+1] N\ni 1 0 0\n}", "illegal character ~"},
+    /* A number right after another, a ) or a ] was one operand too many, and
+       a value was lost: at develop these played 5, 5 and 3 times. */
+    {"{ [1+2 3] N\ni 1 0 0\n}", "illegal placement of number"},
+    {"{ [[5]2] N\ni 1 0 0\n}", "illegal placement of number"},
+    {"{ [(2)3] N\ni 1 0 0\n}", "illegal placement of number"},
     /* A count past INT_MAX wrapped round: each of these played 2 or 5 times. */
     {"{ 4294967298 N\ni 1 0 0\n}", "invalid repeat count"},
     {"#define C #4294967298#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},

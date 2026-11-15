@@ -1787,7 +1787,13 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9': {
           //printf("bodmas:number\n");
-          int i = read_digits(yyscanner, &c);
+          int i;
+          if (UNLIKELY(type)) {
+            csound->Message(csound, Str("illegal placement of number in [] "
+                                        "expression\n"));
+            csound->LongJmp(csound, 1);
+          }
+          i = read_digits(yyscanner, &c);
           if (UNLIKELY(i < 0)) {
             csound->Message(csound, Str("integer overflow in [] expression\n"));
             csound->LongJmp(csound, 1);
