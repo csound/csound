@@ -2258,8 +2258,9 @@ static void reset(CSOUND *csound) {
   csound->oparms_.odebug = debug;
 }
 
-/* Returns what stopped the walk, else CSOUND_SUCCESS if a callback answered,
-   else 1: no callback is set for type. sensekey reads stdin only on 1. */
+/* Returns the first error, which ends the walk, else CSOUND_SUCCESS if a
+   callback answered, else 1: none is set for type, or each ignored the call.
+   sensekey reads stdin only on 1. */
 static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
   int32_t result = 1;
   if (csound->csoundCallbacks_ != NULL) {
@@ -2269,9 +2270,10 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
       if (pp->typeMask & type) {
         uint64_t serial = pp->serial;
         int32_t retval = pp->func(pp->userData, p, type);
-        if (retval != CSOUND_SUCCESS)
+        if (retval < 0)
           return retval;
-        result = CSOUND_SUCCESS;
+        if (retval == CSOUND_SUCCESS)
+          result = CSOUND_SUCCESS;
         /* The call may have removed this entry or any other, so hold on to
            nothing across it. The list is newest first: go on to the first
            entry older than the one just called. */
