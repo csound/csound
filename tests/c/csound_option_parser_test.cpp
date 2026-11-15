@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <random>
@@ -220,17 +221,31 @@ TEST_F (OptionParserTests, testIndirectionFileOptionsAreRead)
 
 TEST_F (OptionParserTests, testIndirectionFileThatNamesItselfIsRefused)
 {
-    /* Refused under any name: as given, through ./, a hard link and a
-       symbolic one. Each read appends to FROM_AT_CHAIN. Off Windows, which
-       compares names alone, the file is read once under any of them. */
+    /* Refused under any name: as given, through . or .., in capitals on
+       Windows, a hard link and a symbolic one. Each read appends to
+       FROM_AT_CHAIN, and the file is read once under any of them, but for
+       a link on Windows, which compares resolved names there. */
     namespace fs = std::filesystem;
     const fs::path file = fs::temp_directory_path () /
         ("csound-options-" + std::to_string (std::random_device {} ()));
+    const fs::path dir = file.parent_path ();
     const fs::path hard = file.string () + "-hard";
     const fs::path link = file.string () + "-link";
     std::ofstream (file) << "\n";
+#ifdef _WIN32
+    const fs::path real = dir;
+#else
+    const fs::path real = fs::canonical (dir); /* .. as the system takes it */
+#endif
     std::vector<fs::path> names = {
-        file, file.parent_path () / "." / file.filename ()};
+        file, dir / "." / file.filename (),
+        real / ".." / real.filename () / file.filename ()};
+#ifdef _WIN32
+    std::string capitals = file.filename ().string ();
+    for (char &c : capitals)
+        c = (char) toupper ((unsigned char) c);
+    names.push_back (dir / capitals);
+#endif
     std::error_code error; /* a file system without links skips them */
     fs::create_hard_link (file, hard, error);
     if (!error)
@@ -253,7 +268,7 @@ TEST_F (OptionParserTests, testIndirectionFileThatNamesItselfIsRefused)
         EXPECT_NE (messages.find ("is already being read"), std::string::npos)
             << name;
 #ifdef _WIN32
-        if (name == file)
+        if (name != hard)
 #endif
             EXPECT_STREQ (csoundGetEnv (own, "FROM_AT_CHAIN"), "x") << name;
         csoundDestroy (own);

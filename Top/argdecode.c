@@ -26,7 +26,9 @@
 #include "csmodule.h"
 #include "corfile.h"
 #include <ctype.h>
-#if !defined(WIN32) && !defined(BARE_METAL)
+#if defined(WIN32)
+#include <windows.h>
+#elif !defined(BARE_METAL)
 #include <sys/stat.h>
 #endif
 
@@ -1412,22 +1414,60 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   return 1;
 }
 
-/* Whether two open files are one file: the same name, or, where the system
-   says so, another name for it, such as ./opts, or a link to it. Windows has
-   the names alone: st_ino is 0 there, and a stream may belong to another C
-   runtime, whose descriptors this one cannot look up. */
-static int32_t same_file(const CSFILE *a, const CSFILE *b) {
+#if defined(WIN32)
+#define FULL_NAME_LENGTH 1024
+/* The full name Windows resolves a file name to: absolute, with no . or ..
+   parts and no 8.3 short names. Names are UTF-8, as _wfopen gets them
+   (Engine/filesys.c). 0 if it is not UTF-8, or does not fit. */
+static int32_t windows_full_name(const char *name, wchar_t *out) {
+  wchar_t wide[FULL_NAME_LENGTH], full[FULL_NAME_LENGTH];
+  DWORD n;
+  if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, name, -1, wide,
+                          FULL_NAME_LENGTH) == 0)
+    return 0;
+  n = GetFullPathNameW(wide, FULL_NAME_LENGTH, full, NULL);
+  if (n == 0 || n >= FULL_NAME_LENGTH)
+    return 0;
+  n = GetLongPathNameW(full, out, FULL_NAME_LENGTH);
+  if (n == 0 || n >= FULL_NAME_LENGTH) /* not expanded: the full name */
+    memcpy(out, full, sizeof full);
+  return 1;
+}
+#endif
+
+/* Whether two open files are one file: the same name, or another name for
+   it, such as ./opts. On POSIX the system says so, for a link too. On
+   Windows st_ino is 0, and a stream may belong to another C runtime, whose
+   descriptors this one cannot look up: there the names are resolved, and
+   compared without case, as Windows does. A link stays another name, and so
+   does any name while a host's open callback, which may serve names that are
+   not paths, is set. */
+static int32_t same_file(const CSOUND *csound, const CSFILE *a,
+                         const CSFILE *b) {
   if (strcmp(a->fullName, b->fullName) == 0)
     return 1;
-#if !defined(WIN32) && !defined(BARE_METAL)
-  if (a->type == CSFILE_STD && b->type == CSFILE_STD &&
-      a->f != NULL && b->f != NULL) {
+  if (a->type != CSFILE_STD || b->type != CSFILE_STD ||
+      a->f == NULL || b->f == NULL)
+    return 0;
+#if defined(WIN32)
+  if (csound->OpenFileCallback_ == NULL) {
+    wchar_t fa[FULL_NAME_LENGTH], fb[FULL_NAME_LENGTH];
+    return windows_full_name(a->fullName, fa) &&
+           windows_full_name(b->fullName, fb) &&
+           CompareStringOrdinal(fa, -1, fb, -1, TRUE) == CSTR_EQUAL;
+  }
+  return 0;
+#elif !defined(BARE_METAL)
+  {
     struct stat sa, sb;
+    (void)csound;
     return fstat(fileno(a->f), &sa) == 0 && fstat(fileno(b->f), &sb) == 0 &&
            sa.st_ino != 0 && sa.st_dev == sb.st_dev && sa.st_ino == sb.st_ino;
   }
-#endif
+#else
+  (void)csound;
   return 0;
+#endif
 }
 
 /* An indirection file stays open while its options are read, so one open
@@ -1437,7 +1477,7 @@ static int32_t indirection_is_open(CSOUND *csound, const void *fd) {
   int32_t found = 0;
   csoundSpinLock(&csound->open_files_lock);
   for (p = (const CSFILE *)csound->open_files; p != NULL && !found; p = p->nxt)
-    found = p != file && same_file(file, p);
+    found = p != file && same_file(csound, file, p);
   csoundSpinUnLock(&csound->open_files_lock);
   return found;
 }
