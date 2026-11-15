@@ -46,6 +46,7 @@ struct prs_parm_s;
 static void delete_macros(CSOUND*, struct prs_parm_s*);
 static void free_macro(CSOUND*, MACRO*);
 static int extract_int(CSOUND*, yyscan_t, int*);
+static int read_digits(yyscan_t, int*);
 static int on_EOF(CSOUND*, yyscan_t);
 #define MACDEBUG 1
 
@@ -540,11 +541,7 @@ NP              np[0-9]+
              do {
                c = input(yyscanner);
              } while (isblank(c) || c=='\0');
-             while (isdigit(c)) {
-               PARM->repeat_sect_cnt =
-                 10 * PARM->repeat_sect_cnt + c - '0';
-               c = input(yyscanner);
-             }
+             PARM->repeat_sect_cnt = read_digits(yyscanner, &c);
              if (UNLIKELY(PARM->repeat_sect_cnt <= 0
                           || !isspace(c))) {
                csound->Message(csound, Str("r: invalid repeat count %d"),

@@ -118,6 +118,7 @@ const Refused refused[] = {
     {"{ [2147483647+2147483647+4] N\ni 1 0 0\n}", "integer overflow"},
     {"{ [0-2147483647-2147483647+3] N\ni 1 0 0\n}", "integer overflow"},
     {"{ [65536*65536+2] N\ni 1 0 0\n}", "integer overflow"},
+    {"r 4294967298\ni 1 0 0\ns", "r: invalid repeat count"},
     {"r 2\n{ 2 N\ns\n}", "repeat and section cross"},
     /* A comment hides an s or r from the lexer until the repeat plays. */
     {"r 2\n/**/r 2\n{ 2 N\n/**/s\n}\n", "repeat and section cross"},
