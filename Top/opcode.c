@@ -692,11 +692,6 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
     return NOTOK;
   }
 
-  // set argcount for opcode
-  t->outArgCount = no;
-  // connect TEXT args
-  t->outArgs = h->optext->t.outArgs;
-  t->outlist = h->optext->t.outlist;
   // now check inargs
   n++;    // skip opc obj arg
   types = ep->intypes;
@@ -1185,6 +1180,11 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
     return NOTOK;
   }
 
+  // set argcount for opcode, and connect TEXT args: outlist marks a
+  // dataspace a call has bound
+  t->outArgCount = no;
+  t->outArgs = h->optext->t.outArgs;
+  t->outlist = h->optext->t.outlist;
   // connect TEXT args, skipping opcode obj
   t->inArgs = h->optext->t.inArgs->next;
   t->inlist->count = ni = t->inArgCount = ni;
@@ -1366,10 +1366,15 @@ int32_t create_opcode_simple(CSOUND *csound, AOP *p) {
       ref->entries->entries[n < ref->entries->count ?
                             n : ref->entries->count-1];
     opcode_take_spare(csound, obj, entry);
-    if(obj->dataspace == NULL || obj->size < entry->dsblksiz) {
+    // a dataspace is kept for the opcode it was made for, and no other;
+    // one too small is not read
+    if(obj->dataspace == NULL || obj->size < entry->dsblksiz ||
+       obj->dataspace->optext->t.oentry != entry) {
       if((obj->dataspace = opcode_dataspace_new(csound, entry, &(p->h)))
           == NULL)
         return csound->InitError(csound, Str("could not allocate opcode object\n"));
+      // the arguments bound before were the other dataspace's
+      obj->outargp = obj->inargp = NULL;
      }
       obj->udo_flag = entry->useropinfo == NULL ? 0  : 1;
       obj->size = entry->dsblksiz;
@@ -1396,10 +1401,15 @@ int32_t create_opcode_array(CSOUND *csound, OPARRAY *p) {
     for(i = 0; i < n; i++) {
       obj = opcode_array_obj(p->r, i);
       opcode_take_spare(csound, obj, entry);
-      if(obj->dataspace == NULL || obj->size < entry->dsblksiz) {
+      // a dataspace is kept for the opcode it was made for, and no other;
+      // one too small is not read
+      if(obj->dataspace == NULL || obj->size < entry->dsblksiz ||
+         obj->dataspace->optext->t.oentry != entry) {
        if((obj->dataspace = opcode_dataspace_new(csound, entry, &(p->h)))
           == NULL)
         return csound->InitError(csound, Str("could not allocate opcode object\n"));
+       // the arguments bound before were the other dataspace's
+       obj->outargp = obj->inargp = NULL;
       }
       obj->udo_flag = entry->useropinfo == NULL ? 0  : 1;
       obj->size = entry->dsblksiz;
@@ -1540,6 +1550,10 @@ int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
 int32_t opcode_run_perf(CSOUND *csound, OPRUN *p) {
   cs_float **pargs = oprun_args(p);
   OPCODEOBJ *obj = (OPCODEOBJ *) pargs[p->OUTOCOUNT];
+  // no call has bound the dataspace: create made it after this init
+  if(UNLIKELY(obj->dataspace->optext->t.outlist == NULL))
+    return csound->PerfError(csound, &(p->h),
+                             Str("opcode object not initialised\n"));
   set_line_num_and_loc(obj, p);
   if(obj->dataspace->perf != NULL)
        return obj->dataspace->perf(csound, obj->dataspace);
@@ -1810,6 +1824,10 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
   }
 
   obj = opcode_array_obj(objects, i);
+  // no call has bound the dataspace: create made it after this init
+  if(UNLIKELY(obj->dataspace->optext->t.outlist == NULL))
+    return csound->PerfError(csound, &(p->h),
+                             Str("opcode object not initialised\n"));
   set_line_num_and_loc(obj, p);
   if(obj->dataspace->perf != NULL)
     obj->dataspace->perf(csound, obj->dataspace);
