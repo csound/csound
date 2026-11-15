@@ -2,6 +2,7 @@
 #include "csound_graph_display.h"
 #include "gtest/gtest.h"
 
+#include <cstring>
 #include <string>
 
 /* A host callback set to NULL. Csound called some of them with no check,
@@ -10,7 +11,7 @@
 
 namespace {
 
-int32_t reads, writes, draws, exits;
+int32_t reads, writes, draws, exits, plays, records;
 
 int32_t openMidi(CSOUND *, void **userData, const char *)
 {
@@ -40,6 +41,19 @@ int32_t exitGraph(CSOUND *)
   return 0;
 }
 
+int32_t openAudio(CSOUND *, const csRtAudioParams *) { return 0; }
+
+void playAudio(CSOUND *, const cs_float *, int32_t) { plays++; }
+
+int32_t recordAudio(CSOUND *, cs_float *buffer, int32_t nbytes)
+{
+  std::memset(buffer, 0, (size_t) nbytes);
+  records++;
+  return nbytes;
+}
+
+void closeAudio(CSOUND *) {}
+
 const char *const header = "sr = 48000\nksmps = 16\nnchnls = 1\n0dbfs = 1\n";
 
 const std::string displaying = std::string(header) +
@@ -51,7 +65,7 @@ class NullHostCallbackTests : public ::testing::Test {
   /* No rc file of the user's, at the start and at each reset. */
   void SetUp() override
   {
-    reads = writes = draws = exits = 0;
+    reads = writes = draws = exits = plays = records = 0;
     csoundSetGlobalEnv("CSOUND7RC", "");
     csound = csoundCreate(nullptr, nullptr);
     csoundCreateMessageBuffer(csound, 0);
@@ -96,6 +110,27 @@ class NullHostCallbackTests : public ::testing::Test {
     csoundSetExternalMidiOutCloseCallback(csound, closeMidi);
     ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
     ASSERT_EQ(csoundSetOption(csound, option), CSOUND_SUCCESS);
+  }
+
+  /* Audio in through the host, and out with "-odac" or none with "-n". */
+  void hostAudio(const char *output = "-odac")
+  {
+    csoundSetPlayopenCallback(csound, openAudio);
+    csoundSetRtplayCallback(csound, playAudio);
+    csoundSetRecopenCallback(csound, openAudio);
+    csoundSetRtrecordCallback(csound, recordAudio);
+    csoundSetRtcloseCallback(csound, closeAudio);
+    // a module name that no module takes, so these callbacks stay
+    ASSERT_EQ(csoundSetOption(csound, "-+rtaudio=host"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, output), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-iadc"), CSOUND_SUCCESS);
+  }
+
+  void expectTheStartFails()
+  {
+    std::string orchestra = std::string(header) + "instr 1\nendin\n";
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundStart(csound), CSOUND_ERROR);
   }
 
   CSOUND *csound = nullptr;
@@ -199,6 +234,58 @@ TEST_F(NullHostCallbackTests, ANullAudioDeviceListListsNoDevice)
   csoundSetAudioDeviceListCallback(csound, nullptr);
   EXPECT_EQ(csoundGetAudioDevList(csound, nullptr, 0), 0);
   EXPECT_EQ(csoundGetAudioDevList(csound, nullptr, 1), 0);
+}
+
+TEST_F(NullHostCallbackTests, ANullAudioOutputOpenFailsTheStart)
+{
+  hostAudio();
+  csoundSetPlayopenCallback(csound, nullptr);
+  expectTheStartFails();
+}
+
+TEST_F(NullHostCallbackTests, ANullAudioOutputFailsTheStart)
+{
+  hostAudio();
+  csoundSetRtplayCallback(csound, nullptr);
+  expectTheStartFails();
+}
+
+TEST_F(NullHostCallbackTests, ANullAudioInputOpenFailsTheStart)
+{
+  hostAudio();
+  csoundSetRecopenCallback(csound, nullptr);
+  expectTheStartFails();
+}
+
+TEST_F(NullHostCallbackTests, ANullAudioInputFailsTheStart)
+{
+  hostAudio();
+  csoundSetRtrecordCallback(csound, nullptr);
+  expectTheStartFails();
+}
+
+/* With output open, the output closes the device, and the input otherwise. */
+TEST_F(NullHostCallbackTests, ANullAudioCloseIsNotCalled)
+{
+  hostAudio();
+  csoundSetRtcloseCallback(csound, nullptr);
+  std::string orchestra = std::string(header) + "instr 1\nendin\n";
+  start(orchestra.c_str());
+  perform(64);   // more than one buffer
+  EXPECT_GT(plays, 0);
+  EXPECT_GT(records, 0);
+  csoundReset(csound);
+}
+
+TEST_F(NullHostCallbackTests, ANullAudioCloseIsNotCalledForInputAlone)
+{
+  hostAudio("-n");
+  csoundSetRtcloseCallback(csound, nullptr);
+  std::string orchestra = std::string(header) + "instr 1\nendin\n";
+  start(orchestra.c_str());
+  perform(64);
+  EXPECT_GT(records, 0);
+  csoundReset(csound);
 }
 
 }  // namespace
