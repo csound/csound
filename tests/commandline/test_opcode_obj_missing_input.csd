@@ -4,7 +4,7 @@ description = "An Opcode object given fewer inputs than its opcode needs is refu
 [expect]
 exit = 4
 stderr = ["mismatching arguments"]
-output = ["missing lincos inarg 3", "missing oscil.kkk inarg 2", "lincos outarg 1, expect type: k, got Opcode", "the next note ran"]
+output = ["missing lincos inarg 3", "missing oscil.kkk inarg 2", "missing lincos outarg 1", "the next note ran"]
 output_excludes = ["Segmentation fault", "AddressSanitizer"]
 </CsTest>
 <CsoundSynthesizer>

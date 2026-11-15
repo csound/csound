@@ -617,7 +617,12 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       }
       break;
     }
-    // now individual arg types
+    // now individual arg types: past the call's outputs come the object
+    // and the inputs, which an output of their type would take
+    if(n >= no) {
+      csound->Message(csound, Str("missing %s outarg %d\n"), opname, i+1);
+      return NOTOK;
+    }
     // type delimiter
     if(*types == ':') {
       types++;
@@ -1735,10 +1740,6 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
         args[m] = pargs[m];
      }
    
-    // the object's own slot, as a single object's call has it, so that
-    // an output the call did not give meets a type
-    args[p->OUTOCOUNT] = (cs_float *) obj;
-    types[p->OUTOCOUNT] = &CS_VAR_TYPE_OPCODEOBJ;
     // call setup_args with array flag checked, passing assigned args
     if(setup_args(csound, obj, &(p->h), args, types,
                   p->OUTOCOUNT, p->INOCOUNT - 1) == OK) {
