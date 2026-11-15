@@ -741,6 +741,9 @@ static int32_t midi_out_close(CSOUND *csound, void *userData)
       csound->Message(csound, Str("Windows MME real time audio and MIDI module "
                                   "for Csound by Istvan Varga\n"));
 
+    /* A second copy of this module shares the first one's globals. */
+    if (csound->QueryGlobalVariable(csound, "_rtwinmm_globals") != NULL)
+      return 0;
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_rtwinmm_globals",
                                               sizeof(rtWinMMGlobals)) != 0))
       return err_msg(csound, Str("could not allocate global structure\n"));
