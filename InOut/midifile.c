@@ -78,6 +78,8 @@ typedef struct midifile_s {
   int32_t          loop;               /* loop flag */
   struct midifile_s    *nxt;
   cs_double        length;             /* duration in kperiods, unrounded */
+  int32_t          rewound;            /* at its start: the first cycle it */
+                                       /*   plays in reads its tick 0      */
 } midifile_t;
 
 #define MIDIFILE    (csound->midiGlobals->midiFileData)
@@ -745,6 +747,7 @@ static int32_t midi_file_open(CSOUND *csound, const char *name, uint8_t port)
   MF(loop) = 0;
   MF(eventListIndex) = 0;
   MF(tempoListIndex) = 0;
+  MF(rewound) = 1;
   /* read all tracks */
   m = &(csound->midiGlobals->muteTrackList[0]);
   for (i = 0; i < nTracks; i++) {
@@ -893,9 +896,14 @@ void csoundMIDIFileAdvance(CSOUND *csound)
 {
   midifile_t *midifile = MIDIFILE;
   while (midifile != NULL) {
-    if (!midifile->pause &&   /* not <: a rewind sets Csound's count back */
-        midifile->global_kcounter != csound->global_kcounter) {
-      midifile->counter += 1. / midifile->temposcal;
+    if (!midifile->pause) {
+      /* A file at its start reads its tick 0 in the cycle it starts in,
+         then moves on once a cycle (not <: a rewind sets Csound's count
+         back). */
+      if (midifile->rewound)
+        midifile->rewound = 0;
+      else if (midifile->global_kcounter != csound->global_kcounter)
+        midifile->counter += 1. / midifile->temposcal;
       midifile->global_kcounter = csound->global_kcounter;
     }
     midifile = midifile->nxt;
@@ -1124,6 +1132,7 @@ int32_t midi_set_pos(CSOUND *csound, void *p) {
       mf->currentTempo = tempo_at_position(mf, posk, &i);
       mf->tempoListIndex = i;
       mf->counter = posk;
+      mf->rewound = 0;  /* posk is played: the next read moves on */
     }
   }
   return OK;

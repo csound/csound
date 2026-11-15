@@ -476,6 +476,41 @@ class MidiOrchestraFileTests : public MidiRealtimeInputTests {
   }
 };
 
+// The same file, opened but not played until a test plays it.
+class MidiOrchestraFileLaterTests : public MidiOrchestraFileTests {
+ protected:
+  void options() override
+  {
+    MidiOrchestraFileTests::options();
+    extraOrchestra = "giFile midifileopen \"" + file + "\"\n";
+  }
+};
+
+TEST_F(MidiOrchestraFileLaterTests, AFileSetBeforeItPlaysGoesOnFromThere)
+{
+  // midifilepos counts the time it sets as played, and the first cycle the
+  // file plays in moves on from it: set to tick 93.75, it gives CC 9 = 2,
+  // at tick 100, on the 7th cycle it plays in.
+  ASSERT_EQ(csoundCompileOrc(csound, "midifilepos 0.03125, giFile\n"
+                             "midifileplay giFile\n", 0), 0);
+  for (int i = 0; i < 6; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "status", nullptr), 0);
+  message({{}}, 0xB0, 1, 9, 2);
+}
+
+TEST_F(MidiOrchestraFileLaterTests, AFilePlayedLaterStartsAtItsFirstTick)
+{
+  // Played 50 cycles in, the file reads its tick 0 in the cycle it starts
+  // in, and CC 9 = 1, at its tick 1, comes in the cycle after, as it would
+  // from the start of the performance.
+  for (int i = 0; i < 50; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileplay giFile\n", 0), 0);
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
 TEST_F(MidiOrchestraFileTests, RewindDoesNotStopTheFileClock)
 {
   // A rewind of the score leaves the orchestra's file where it was, and its
