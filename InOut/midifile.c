@@ -948,6 +948,7 @@ void midifile_rewind_score(CSOUND *csound)
     MF(tempoListIndex) = 0;
     MF(counter) = 0;
     MF(global_kcounter) = csound->global_kcounter;  /* in step from here */
+    MF(pause) = 0;                      /* as opened, if it had ended */
     csound->MTrkend = csound->Mxtroffs = csound->Mforcdecs = 0;
     /* reset controllers on all channels */
     for (i = 0; i < MAXCHAN; i++)

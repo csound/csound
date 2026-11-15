@@ -344,6 +344,14 @@ TEST_F(MidiDeviceAndFileInputTests, RewindRestartsTheFileOnItsCycles)
   message({{}}, 0xB0, 5, 7, 100);
 }
 
+TEST_F(MidiDeviceAndFileInputTests, RewindReplaysAFileThatHadEnded)
+{
+  message({{}, {}, {}, {}, {}, {}, {}, {}}, 0x90, 1, 60, 100);
+  rewind();
+  message({{}, {}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 5, 7, 100);
+}
+
 TEST_F(MidiDeviceAndFileInputTests, FileEventIsNoPortOfADeviceStatus)
 {
   // The read that holds the status ends there, and the file's event follows
