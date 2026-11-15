@@ -604,6 +604,24 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       }
       break;
     }
+    else if(*types == 'v' || *types == 'V') {
+      // b or B outputs, as init has for booleans
+      const CS_TYPE *want = *types == 'v' ? &CS_VAR_TYPE_b : &CS_VAR_TYPE_B;
+      len = i + (int32_t) strlen(types);
+      for(; i < len; i++) {
+        if(n < no) {
+          argtype = check_arg_type(args[n], cstypes, n);
+          if(argtype != want) {
+            csound->Message(csound, Str("%s outarg %d, expected type: "
+                            "%s, got: %s\n"), opname, i+1, want->varTypeName,
+                            argtype->varTypeName);
+            return NOTOK;
+          }
+          outargs[i] = args[n++];
+        } else outargs[i] = NULL;
+      }
+      break;
+    }
     else if(*types == 'F') {
       len = i + (int32_t) strlen(types);
       for(; i < len; i++) {
