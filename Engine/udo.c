@@ -2201,6 +2201,10 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   INSTANCE_INIT_RESULT initResult;
   OPCODINFO    *inm;
   OPCOD_IOBUFS *buf = p->buf;
+  /* Entered after a jump, by a caller that goes on (an Opcode[] loop): no
+     opcode runs, and nothing is taken or allocated. */
+  if (init_jump_pending(csound))
+    return NOTOK;
   /* look up the 'fake' instr number, and opcode name */
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
   if (inm != NULL) {
@@ -2367,7 +2371,18 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   csound->mode = 1;
   buf->iflag = 0;
   lcurip->init_pass++;
-  int err = udo_prepare_rate(csound, p, &rate_op);
+  int err = OK;
+  /* A jump from the UDO's init, on a thread where an init pass would take
+     it, lands here, and the UDO's init ends as after an init error. */
+  INIT_LANDING landing;
+  int32_t landed = init_landing_push(csound, &landing);
+  if (landed) {
+    if (setjmp(landing.target)) {
+      err = NOTOK;
+      goto finish_init;
+    }
+  }
+  err = udo_prepare_rate(csound, p, &rate_op);
   if (UNLIKELY(err != OK))
     goto finish_init;
 
@@ -2401,6 +2416,10 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   err = 0;
   int32_t rate_prepared = rate_op != NULL;
   while (csound->ids != NULL && err == 0) {
+    if (init_jump_pending(csound)) {
+      err = NOTOK;
+      break;
+    }
     csound->op = csound->ids->optext->t.oentry->opname;
     if (!rate_prepared || strcmp(csound->op, "xin") == 0)
       err = (*csound->ids->init)(csound, csound->ids);
@@ -2409,6 +2428,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     csound->ids = csound->ids->nxti;
   }
  finish_init:
+  if (landed)
+    init_landing_pop(&landing);
   // following init pass, decrement recursion depth count
   inm->recurse_depth--;
 
@@ -3574,8 +3595,14 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   CS_VAR_MEM   *pfield;
   int32_t     n, init_op, inarg_ofs;
   INSTANCE_INIT_RESULT initResult;
+  int32_t jumped, landed;
+  INIT_LANDING landing;
   INSDS  *pip = p->h.insdshead;
 
+  /* Entered after a jump, by a caller that goes on: no opcode runs, and
+     nothing is taken or allocated. */
+  if (init_jump_pending(csound))
+    return NOTOK;
   init_op = (p->h.perf == NULL ? 1 : 0);
   inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
   if (UNLIKELY(instno < 0)) return NOTOK;
@@ -3724,14 +3751,28 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   csound->ids = (OPDS *)p->ip;
   csound->mode = 1;
   p->ip->init_pass++;
-  while ((csound->ids = csound->ids->nxti) != NULL) {
+  /* A jump from its instrument's init, on a thread where an init pass would
+     take it, lands here, and the subinstrument's init ends. */
+  landed = init_landing_push(csound, &landing);
+  if (landed) {
+    if (setjmp(landing.target))
+      goto finish_init;
+  }
+  while ((csound->ids = csound->ids->nxti) != NULL &&
+         !init_jump_pending(csound)) {
     csound->op = csound->ids->optext->t.oentry->opname;
     (*csound->ids->init)(csound, csound->ids);
   }
+ finish_init:
+  if (landed)
+    init_landing_pop(&landing);
   csound->mode = 0;
   initResult = instance_init_finish(csound, p->ip);
-  ATOMIC_SET(p->ip->init_done, initResult == INSTANCE_INIT_COMPLETE);
-  if (initResult == INSTANCE_INIT_TURNOFF) {
+  /* stopped by a jump, as after an init error: not ready */
+  jumped = init_jump_pending(csound);
+  ATOMIC_SET(p->ip->init_done,
+             initResult == INSTANCE_INIT_COMPLETE && !jumped);
+  if (initResult == INSTANCE_INIT_TURNOFF || jumped) {
     csound->ids = saved_ids;
     csound->curip = saved_curip;
     return NOTOK;

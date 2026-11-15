@@ -450,6 +450,9 @@ static int32_t perform_control_period(CSOUND *csound)
       if (epoch & 1L)
         ATOMIC_SET(csound->performance_epoch,
                    (long) ((unsigned long) epoch + 1UL));
+      /* the jump left the k-cycles below, which hold API_lock */
+      if (!csound->oparms->realtime)
+        csoundUnlockMutex(csound->API_lock);
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
   }
@@ -458,6 +461,8 @@ static int32_t perform_control_period(CSOUND *csound)
   do {
     done = sense_events(csound);
     if (UNLIKELY(done)) {
+      /* or one it took while the score ended */
+      init_thread_jump_make(csound);
       if (!csound->oparms->realtime) // no API lock in realtime mode
         csoundUnlockMutex(csound->API_lock);
       if (csound->oparms->numThreads > 1) {
@@ -502,6 +507,9 @@ int32_t perform_buffer(CSOUND *csound) {
     if (epoch & 1L)
       ATOMIC_SET(csound->performance_epoch,
                  (long) ((unsigned long) epoch + 1UL));
+    /* the jump left the k-cycles below, which hold API_lock */
+    if (!csound->oparms->realtime)
+      csoundUnlockMutex(csound->API_lock);
 #ifndef MACOSX
     csoundMessage(csound, Str("Early return from csoundPerformBuffer().\n"));
 #endif
@@ -514,6 +522,8 @@ int32_t perform_buffer(CSOUND *csound) {
     }
     do {
       if (UNLIKELY((done = sense_events(csound)))) {
+        /* or one it took while the score ended */
+        init_thread_jump_make(csound);
         if (!csound->oparms->realtime) // no API lock in realtime mode
           csoundUnlockMutex(csound->API_lock);
         if (csound->oparms->numThreads > 1) {

@@ -78,6 +78,7 @@ if(BUILD_TESTS)
         global_env_test.cpp
         realtime_chain_test.cpp
         realtime_readiness_test.cpp
+        exit_jump_test.cpp
         instance_variable_test.cpp
         doppler_test.cpp
         io_test.cpp

@@ -813,17 +813,145 @@ void realtime_message_queue_stop(CSOUND *csound)
                      Str("%ld realtime messages dropped\n"), dropped);
 }
 
+#if defined(_MSC_VER)
+#define INIT_THREAD_LOCAL __declspec(thread)
+#elif defined(BARE_METAL)
+#define INIT_THREAD_LOCAL
+#else
+#define INIT_THREAD_LOCAL _Thread_local
+#endif
+
+/* Where a fatal jump lands on the realtime init thread. exitjmp belongs to
+   the thread that performs, and a jump to it from here went on running that
+   thread's frames on this one. So each pass on this thread, an init_pass, a
+   reinit_pass or init_instr0's for global code, sets a landing, as do a
+   UDO's and a subinstrument's init (useropcdset, subinstrset_), which run
+   their opcodes themselves. The innermost
+   takes the jump: it puts back what it set, releases its level of the init
+   mutex and ends in error, and what called it unwinds as from an init error.
+   From then on, no pass on this thread runs another opcode: the performance
+   is over. The thread that performs makes the jump at the start of its next
+   control period, or as the score ends (init_thread_jump_make).
+   The passes inside an API call that holds exitjmp (API_CALL) set landings
+   too, on any thread, and the call takes the jump as its error. */
+static INIT_THREAD_LOCAL CSOUND *init_thread;        /* the instance whose
+                                                         init thread this is */
+static INIT_THREAD_LOCAL INIT_LANDING *init_landing; /* the innermost pass's */
+static INIT_THREAD_LOCAL int32_t init_jumped;        /* this thread took a
+                                                         jump: the first */
+
+static INIT_THREAD_LOCAL API_CALL *api_call;          /* the innermost */
+
+/* The innermost API call on this thread, if it holds this instance's
+   exitjmp. */
+API_CALL *api_call_of(const CSOUND *csound)
+{
+  API_CALL *call = api_call;
+  return call != NULL && call->csound == csound ? call : NULL;
+}
+
+void api_call_begin(CSOUND *csound, API_CALL *call)
+{
+  call->csound = csound;
+  call->outer = api_call;
+  call->initThread = init_thread;
+  call->initLanding = init_landing;
+  call->initJumped = init_jumped;
+  call->jumped = 0;
+  init_thread = NULL;
+  init_landing = NULL;
+  init_jumped = 0;
+  api_call = call;
+}
+
+void api_call_end(const API_CALL *call)
+{
+  api_call = call->outer;
+  init_thread = call->initThread;
+  init_landing = call->initLanding;
+  init_jumped = call->initJumped;
+}
+
+/* Sets a pass's landing, if this thread lands this instance's jumps. */
+int32_t init_landing_push(CSOUND *csound, INIT_LANDING *landing)
+{
+  if (init_thread != csound && api_call_of(csound) == NULL)
+    return 0;
+  landing->csound = csound;
+  landing->outer = init_landing;
+  init_landing = landing;
+  return 1;
+}
+
+void init_landing_pop(const INIT_LANDING *landing)
+{
+  init_landing = landing->outer;
+}
+
+/* In the API call that runs the pass, or for good, on the init thread. */
+int32_t init_jump_pending(const CSOUND *csound)
+{
+  const API_CALL *call = api_call_of(csound);
+  if (call != NULL)
+    return call->jumped != 0;
+  return init_jumped;
+}
+
+void init_pass_unwind(CSOUND *csound, int32_t n)
+{
+  INIT_LANDING *landing = init_landing;
+  if (landing != NULL && landing->csound == csound) {
+    API_CALL *call = api_call_of(csound);
+    if (call != NULL) {
+      if (call->jumped == 0)                    /* the first is the call's */
+        call->jumped = n;
+    }
+    else if (!init_jumped) {                    /* the first is made */
+      init_jumped = 1;
+      ATOMIC_SET(csound->init_thread_jump, n);
+    }
+    longjmp(landing->target, 1);
+  }
+}
+
+/* SUCCESS - n is the retval that gives csoundLongJmp the same n. */
+void init_thread_jump_make(CSOUND *csound)
+{
+  int32_t n;
+  if (!csound->oparms->realtime)  /* only the realtime init thread sets it */
+    return;
+  n = ATOMIC_GET(csound->init_thread_jump);
+  if (UNLIKELY(n != 0)) {
+    ATOMIC_SET(csound->init_thread_jump, 0);
+    csoundLongJmp(csound, CSOUND_EXITJMP_SUCCESS - n);
+  }
+}
+
 /* do init pass for this instr */
 static int32_t init_pass(CSOUND *csound, INSDS *ip) {
   int32_t error = 0;
   OPDS *ids = csound->ids;
   INSDS *curip = csound->curip;
+  EVTBLK *initEvent = csound->init_event;
+  INIT_LANDING landing;
+  int32_t landed = init_landing_push(csound, &landing);
   if(csound->oparms->realtime)
     csoundLockMutex(csound->init_pass_threadlock);
   csound->curip = ip;
   csound->ids = (OPDS *)ip;
   ip->init_pass++;
+  if (landed) {
+    if (setjmp(landing.target)) {
+      csound->mode = 0;
+      csound->init_event = initEvent;
+      error = NOTOK;
+    }
+  }
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL) {
+    if (landed && init_jump_pending(csound)) {
+      error = NOTOK;
+      break;
+    }
     csound->mode = 1;
     csound->op = csound->ids->optext->t.oentry->opname;
     if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME)) {
@@ -831,6 +959,11 @@ static int32_t init_pass(CSOUND *csound, INSDS *ip) {
      }
     error = (*csound->ids->init)(csound, csound->ids);
     csound->mode = 0;
+  }
+  if (landed) {
+    if (error == 0 && init_jump_pending(csound))
+      error = NOTOK;
+    init_landing_pop(&landing);
   }
   csound->ids = ids;
   csound->curip = curip;
@@ -850,6 +983,9 @@ int32_t rireturn(CSOUND *csound, void *p);
 /* do reinit pass */
 static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   int32_t error = 0;
+  EVTBLK *initEvent = csound->init_event;
+  INIT_LANDING landing;
+  int32_t landed = init_landing_push(csound, &landing);
   if(csound->oparms->realtime) {
     csoundLockMutex(csound->init_pass_threadlock);
   }
@@ -860,12 +996,29 @@ static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   csound->ids = ids;
   csound->mode = 1;
   ip->init_pass++;
+  if (landed) {
+    if (setjmp(landing.target)) {
+      csound->init_event = initEvent;
+      csound->curip = ip;
+      csound->ids = ids;
+      error = NOTOK;
+    }
+  }
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL &&
          (csound->ids->init != (SUBR) rireturn)){
+    if (landed && init_jump_pending(csound)) {
+      error = NOTOK;
+      break;
+    }
     csound->op = csound->ids->optext->t.oentry->opname;
     if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME))
       csound->Message(csound, "reinit %s:\n", csound->op);
     error = (*csound->ids->init)(csound, csound->ids);
+  }
+  if (landed) {
+    if (error == 0 && init_jump_pending(csound))
+      error = NOTOK;
+    init_landing_pop(&landing);
   }
   csound->mode = 0;
 
@@ -906,6 +1059,7 @@ uintptr_t event_insert_thread(void *p) {
   unsigned long rp = 0, rpm = 0;
   message_string_queue_t *mess = csound->message_string_queue;
 
+  init_thread = csound;
   for (;;) {
     ALLOC_DATA data;
     int32_t stopping;
@@ -1016,6 +1170,7 @@ uintptr_t event_insert_thread(void *p) {
     if (stopping)
       break;
   }
+  init_thread = NULL;
 
   return (uintptr_t) NULL;
 }
@@ -1024,6 +1179,8 @@ uintptr_t event_insert_thread(void *p) {
 static int32_t init_instr0(CSOUND *csound, INSTRTXT *tp)
 {
   INSDS     *ip;
+  INIT_LANDING landing;
+  int32_t   landed, jumped = 0;
 
   csound->curip = ip = allocate_or_take_instance(csound, tp, 0);
   if (UNLIKELY(ip == NULL))
@@ -1045,13 +1202,29 @@ static int32_t init_instr0(CSOUND *csound, INSTRTXT *tp)
   csound->inerrcnt = 0;
   csound->mode = 1;
   ip->init_pass++;
+  landed = init_landing_push(csound, &landing);
+  if (landed) {
+    if (setjmp(landing.target)) {
+      csound->curip = ip;
+      jumped = 1;
+    }
+  }
 
-  while ((csound->ids = csound->ids->nxti) != NULL) {
+  while (!jumped && (csound->ids = csound->ids->nxti) != NULL) {
+    if (landed && init_jump_pending(csound)) {
+      jumped = 1;
+      break;
+    }
     csound->op = csound->ids->optext->t.oentry->opname;
     (*csound->ids->init)(csound, csound->ids);  /*   run all i-code     */
   }
+  if (landed) {
+    if (init_jump_pending(csound))
+      jumped = 1;
+    init_landing_pop(&landing);
+  }
   csound->mode = 0;
-  return csound->inerrcnt;                        /*   return errcnt      */
+  return csound->inerrcnt + jumped;               /*   return errcnt      */
 }
 
 static INSTRTXT *current_instr0(CSOUND *csound)

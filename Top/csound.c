@@ -896,6 +896,7 @@ static const CSOUND cenviron_ = {
     .info_message_request = 0,
     .list_structs_request = 0,
     .list_opcodes_request = 0,
+    .init_thread_jump = 0,
     /* -------- Realtime audio I/O and buffers -------- */
     .spin = NULL,
     .spout = NULL,
@@ -1144,6 +1145,11 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   // printf("**** n = %d\n", n);
   if (!n)
     n = CSOUND_EXITJMP_SUCCESS;
+  init_pass_unwind(csound, n);
+  /* An API call on this thread takes the jump as its error, and the init
+     pass that made the call, if one did, goes on: its context stays. */
+  if (api_call_of(csound) != NULL)
+    longjmp(csound->exitjmp, n);
 
   /* Realtime init owns these fields on the event thread. A performance-time
      exit may arrive while that thread is inside an opcode, so cleanup defers
@@ -1574,8 +1580,31 @@ struct CsoundCallbackEntry_s {
 }
 
 
+/* csound_compile_tree, taking the jumps made inside it: exitjmp is this
+   frame's, and the API_CALL its caller's, as for csound_compile_orc. */
+static CS_NOINLINE int32_t compile_tree_own_jumps(CSOUND *csound, TREE *root,
+                                                  int32_t async)
+{
+  int32_t retVal;
+  volatile jmp_buf tmpExitJmp;
+  memcpy((void *)&tmpExitJmp, (void *)&csound->exitjmp, sizeof(jmp_buf));
+  if ((retVal = setjmp(csound->exitjmp))) {
+    memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+    return retVal;
+  }
+  retVal = csound_compile_tree(csound, root, async);
+  memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+  return retVal;
+}
+
 int32_t csoundCompileTree(CSOUND *csound, TREE *root, int32_t async) {
-  return csound_compile_tree(csound, root, async);
+  API_CALL call;
+  int32_t retVal;
+  api_call_begin(csound, &call);
+  retVal = compile_tree_own_jumps(csound, root, async);
+  api_call_end(&call);
+  /* the first jump that an init pass of the global code took */
+  return call.jumped ? call.jumped : retVal;
 }
 
  int32_t csoundCompileOrc(CSOUND *csound, const char *str,
