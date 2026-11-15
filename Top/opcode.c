@@ -831,13 +831,15 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
           csound->Message(csound, Str("missing %s inarg %d"), opname, n - no);
           return NOTOK;
         }
-        if(n%2 && argtype != &CS_VAR_TYPE_A) {
+        // kaka...: the inputs alternate from the first, whatever the
+        // number of outputs before them
+        if(i%2 && argtype != &CS_VAR_TYPE_A) {
           csound->Message(csound, Str("%s inarg %d, expected type: %s, got: %s\n"),
                           opname, i+1, CS_VAR_TYPE_A.varTypeName,
                           argtype->varTypeName);
           return NOTOK;
         }
-        if(n%2 == 0 && argtype != &CS_VAR_TYPE_K && argtype != &CS_VAR_TYPE_I
+        if(i%2 == 0 && argtype != &CS_VAR_TYPE_K && argtype != &CS_VAR_TYPE_I
            && argtype != &CS_VAR_TYPE_C &&
            argtype != &CS_VAR_TYPE_P) {
           csound->Message(csound, Str("%s inarg %d, expected type: %s, got: %s\n"),
