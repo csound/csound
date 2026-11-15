@@ -470,12 +470,12 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           if (csound->oparms->msglevel & CS_TIMEMSG)
             csound->Message(csound,Str("m Named section >>>%s<<<\n"), buff);
             //printf("*** last_name = %d\n", (csound->sread.last_name));
-          for (j=0; j<(csound->sread.last_name); j++) {
+          for (j=0; j<=(csound->sread.last_name); j++) {
             //printf("m: %s %s(%d)\n",
             //       buff, (csound->marked_sections)[j].name, j);
             if (strcmp(buff, (csound->marked_sections)[j].name)==0) break;
           }
-          if (j>=(csound->sread.last_name)) {
+          if (j>(csound->sread.last_name)) {
             if (UNLIKELY((csound->sread.last_name) + 1 >=
                          (int32_t) (sizeof(csound->marked_sections) /
                                     sizeof(csound->marked_sections[0]))))

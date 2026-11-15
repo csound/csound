@@ -351,6 +351,23 @@ TEST(HostScoreErrors, MarksFitTo1024AndNoFurther)
     EXPECT_NE(std::string::npos, host.said().find("too many marked sections"));
 }
 
+/* A mark read again, here by a repeat of the section it is in, moves to where
+   it is read: it takes no entry of its own, so 1024 marks still fit. */
+TEST(HostScoreErrors, MarksReadAgainTakeNoNewEntry)
+{
+    std::string marks;
+    for (int i = 0; i < 1024; i++)
+        marks += "m a" + std::to_string(i) + "\n";
+    Host host;
+    host.start();
+    EXPECT_EQ(CSOUND_SUCCESS,
+              host.csound->ReadScore(host.csound,
+                                     (marks + "i 1 0 0\ns\nn a0\n").c_str()));
+    EXPECT_EQ(std::string::npos, host.said().find("too many marked sections"));
+    host.perform(16);
+    EXPECT_EQ(2, host.played()) << host.said();
+}
+
 /* The buffer sense_line takes lines into is Csound's memory, so a reset frees
    it, and the reset clears the pointer with it. */
 TEST(HostScoreErrors, LineEventBufferDoesNotOutliveAReset)
