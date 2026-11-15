@@ -1291,6 +1291,9 @@ extern "C" {
    * It takes no channel lock, so it can be called between
    * csoundLockChannel() and csoundUnlockChannel(), where the answer holds,
    * unless the channel is a variable exported with chnexport.
+   * For an array channel it is the size of the storage allocated for the
+   * data, and outside the lock it can be 0 while another thread
+   * reallocates that storage.
    */
   PUBLIC int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name);
 
