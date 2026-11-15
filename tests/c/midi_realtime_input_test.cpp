@@ -242,6 +242,17 @@ TEST_F(MidiRealtimeInputTests, SystemMessagesEndRunningStatus)
   message({{0x92, 64, 100, 0xF7, 65, 101}, {}}, 0x90, 3, 64, 100);
 }
 
+TEST_F(MidiRealtimeInputTests, UndefinedSystemCommonTakesNoData)
+{
+  message({{0x90, 60, 100}}, 0x90, 1, 60, 100);
+  for (unsigned char status : {0xF4, 0xF5}) {
+    SCOPED_TRACE(static_cast<int>(status));
+    std::vector<unsigned char> bytes(1 + 32767, 61);
+    bytes[0] = status;
+    message({bytes, {}}, 0x90, 1, 60, 100);
+  }
+}
+
 TEST_F(MidiRealtimeInputTests, StatusAfterACutOffStatusIsAStatus)
 {
   // A read ends on a status whose data never comes: the status that

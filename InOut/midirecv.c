@@ -586,10 +586,8 @@ int32_t sens_midi(CSOUND *csound)
             break;
           case 6:                       /* tune request         */
             goto nxtchr;
-          default:
+          default:                      /* undefined: so is its data */
             csound->Message(csound, Str("undefined sys_common msg %x\n"), c);
-            src->datreq = 32767;        /* waste any data following */
-            src->datcnt = 0;
             goto nxtchr;
           }
         }
