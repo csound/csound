@@ -31,20 +31,6 @@ extern void MakeAscii(CSOUND *, WINDAT *, const char *);
 extern void DrawAscii(CSOUND *, WINDAT *);
 extern void KillAscii(CSOUND *, WINDAT *);
 
-/* somewhere to invoke for no display */
-
-static void DummyFn1(CSOUND *csound, WINDAT *p, const char *s)
-{
-    IGN(csound); IGN(p); IGN(s);
-}
-
-/* somewhere to invoke for no display */
-
-static void DummyFn2(CSOUND *csound, WINDAT *p)
-{
-    IGN(csound); IGN(p);
-}
-
 /* somewhere to invoke that returns 1 (!) for dummy exit fn */
 /* Used to be 1 but seems silly (MR/JPff) */
 
@@ -74,9 +60,6 @@ void csoundInitDisplay(CSOUND *csound)
     if (!O->displays) {
       if(csound->oparms->msglevel || csound->oparms->odebug)
        csound->Message(csound, Str("displays suppressed\n"));
-      csound->csoundMakeGraphCallback_ = DummyFn1;
-      csound->csoundDrawGraphCallback_ = DummyFn2;
-      csound->csoundKillGraphCallback_ = DummyFn2;
     }
     else {
       if (csound->csoundDrawGraphCallback_ == NULL){

@@ -176,4 +176,22 @@ TEST_F(NullHostCallbackTests, AnExitGraphOutlivesAnFtableDisplay)
   EXPECT_EQ(exits, 1);
 }
 
+/* With displays off, csoundInitDisplay put its own callbacks in place of the
+ * host's, and csoundReset keeps the graph callbacks.
+ */
+TEST_F(NullHostCallbackTests, APerformanceWithNoDisplaysKeepsTheDrawGraph)
+{
+  csoundSetDrawGraphCallback(csound, drawGraph);
+  ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+  ASSERT_EQ(csoundSetOption(csound, "-d"), CSOUND_SUCCESS);
+  start(displaying.c_str());
+  perform(16);
+  EXPECT_EQ(draws, 0);
+  csoundReset(csound);
+  displays();
+  start(displaying.c_str());
+  perform(16);
+  EXPECT_GT(draws, 0);
+}
+
 }  // namespace
