@@ -1765,6 +1765,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
       int   c;
       struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
       int   type = 0;  /* 1 -> expecting binary operator,')', or ']'; else 0 */
+      int   neg = 0;   /* 1 -> a unary minus waits for its number */
       if (UNLIKELY(depth >= 30)) {
         csound->Message(csound, Str("[] expression nested too deeply\n"));
         csound->LongJmp(csound, 1);
@@ -1792,7 +1793,8 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
             csound->LongJmp(csound, 1);
           }
           //printf("Number: %d terminated by %c(%.2x)\n", i, c, c);
-          *++pv = i;
+          *++pv = neg ? -i : i;
+          neg = 0;
           type = 1;
           if (c=='\0') {
             if (on_EOF(csound,yyscanner)==0) return 0;
@@ -1835,8 +1837,10 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
         }
         case '+': case '-':
           //printf("bodmas:arith %d type %d\n", c, type);
-          if (!type)
+          if (!type) {
+            if (c == '-') neg = !neg;
             goto parseNumber;
+          }
           while (*op != '[' && *op != '(') {
             int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
@@ -1879,7 +1883,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           goto parseNumber;
         case '(':
           //printf("bodmas: bra\n");
-          if (UNLIKELY(type)) {
+          if (UNLIKELY(type || neg)) {
             csound->Message(csound,
                             Str("illegal placement of '(' in [] expression"));
             csound->LongJmp(csound, 1);
@@ -1910,7 +1914,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
         //type = 0;
         // *++op = c; c = getscochar(csound, 1); break;
         case '[':
-          if (UNLIKELY(type)) {
+          if (UNLIKELY(type || neg)) {
             csound->Message(csound,
                             Str("illegal placement of '[' in [] expression"));
             csound->LongJmp(csound, 1);

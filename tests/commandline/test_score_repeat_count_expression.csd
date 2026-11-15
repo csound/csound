@@ -1,5 +1,5 @@
 <CsTest>
-description = "a repeat count in [] adds and subtracts left to right, and reads on after a [] inside it, and keeps its counter"
+description = "a repeat count in [] adds and subtracts left to right, and reads on after a [] inside it, keeps its counter, and keeps a minus sign"
 
 [expect]
 exit = 0
@@ -18,7 +18,8 @@ nchnls = 1
 ; Each repeat plays Count with its own number as p4. A + or - took only
 ; the operator above it: [10-2*3+1] was 10-(6+1), and played 3 times.
 ; And a [] inside the count lost the character after it: [[2]*3] was 3.
-giExpected[] fillarray 5, 9, 3, 6, 7, 3
+; A minus sign before a number was dropped: [-2+5] was 7.
+giExpected[] fillarray 5, 9, 3, 6, 7, 3, 3, 3, 3
 giPlayed[] init lenarray(giExpected)
 ; And a count in [] lost the name of its counter, which was then undefined.
 giCounters init 0
@@ -73,6 +74,16 @@ i "Counter" 0 0 $F.
 }
 { [[1]+2] G
 i "Counter" 0 0 $G.
+}
+{ [-2+5] H
+i "Count" 0 0 6
+}
+{ [10*-1+13] I
+i "Count" 0 0 7
+}
+#define MINUS_ONE #-1#
+{ [4+$MINUS_ONE.] J
+i "Count" 0 0 8
 }
 i "Check" 0.1 0
 </CsScore>
