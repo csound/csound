@@ -19,11 +19,17 @@
 #ifdef CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN
 #include "requested_opcode_plugin_path.hpp"
 #include "failing_init_plugin_path.hpp"
+#include "failing_create_plugin_path.hpp"
+#include "jumping_init_plugin_path.hpp"
 #endif
 
 #ifdef CSOUND_TEST_HAS_TWO_COPIES
 #include <unistd.h>
 #include "two_copies.hpp"
+#endif
+
+#ifndef WIN32
+#include <dlfcn.h>
 #endif
 
 
@@ -324,6 +330,405 @@ TEST(PluginThatFailsToStart, InThePluginDirectoryFailsCsoundStart) {
 // that is not there does not load in any build, with Wasmtime or without.
 TEST(PluginThatFailsToStart, ALibraryThatDoesNotLoadFailsCsoundStart) {
   expectStartToFail("--opcode-lib=no-such-library.wasm", "error loading");
+}
+
+namespace {
+std::string directoryOf(const char *plugin) {
+  return std::filesystem::path(plugin).parent_path().string();
+}
+
+// A path in an option for csoundSetOption(), which splits an option at the
+// spaces outside quotes and drops the quotes: a build directory may have a
+// space in its name.
+std::string quoted(const std::string &path) {
+  return "\"" + path + "\"";
+}
+
+std::string searchPathOption(const std::string &path) {
+  return (sizeof(cs_float) == sizeof(float) ? "--env:OPCODE7DIR="
+                                            : "--env:OPCODE7DIR64=") +
+         quoted(path);
+}
+
+// Sets a variable of the process environment, which the loader reads with
+// getenv(). MSVC takes no directive inside a test macro's argument, so the
+// platform's part is done here.
+void setProcessEnv(const char *name, const char *value) {
+#ifdef WIN32
+  _putenv_s(name, value);
+#else
+  setenv(name, value, 1);
+#endif
+}
+
+void unsetProcessEnv(const char *name) {
+#ifdef WIN32
+  _putenv_s(name, "");  // an empty value removes it
+#else
+  unsetenv(name);
+#endif
+}
+
+// The plugin directory's scan also takes CS_USER_PLUGINDIR, which it reads
+// with getenv(), or the default user plugin directory when that is not set.
+// For the life of a test, it names a directory that is not there, so only the
+// fixtures' directories are scanned. Not empty: on Windows, _putenv_s()
+// removes a variable given an empty value.
+class NoUserPluginDirectory {
+public:
+  NoUserPluginDirectory() {
+    const char *value = getenv(kName);
+    saved_ = value != nullptr;
+    if (saved_)
+      value_ = value;
+    setProcessEnv(kName, "no-such-user-plugin-directory");
+  }
+  ~NoUserPluginDirectory() {
+    if (saved_)
+      setProcessEnv(kName, value_.c_str());
+    else
+      unsetProcessEnv(kName);
+  }
+  NoUserPluginDirectory(const NoUserPluginDirectory &) = delete;
+  NoUserPluginDirectory &operator=(const NoUserPluginDirectory &) = delete;
+
+private:
+  static constexpr const char *kName = "CS_USER_PLUGINDIR";
+  bool saved_;
+  std::string value_;
+};
+
+// An instance that reads no rc file of the user's, with a message buffer.
+CSOUND *createWithoutRcFile() {
+  csoundSetGlobalEnv("CSOUND7RC", "");
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  csoundSetGlobalEnv("CSOUND7RC", nullptr);
+  csoundCreateMessageBuffer(csound, 0);
+  return csound;
+}
+} // namespace
+
+// A plugin loaded again links no new module, so nothing is started. Its
+// directory loaded a second time started the newest module instead, here one
+// that fails to start.
+TEST(PluginLoadedAgain, StartsNoOtherPlugin) {
+  const NoUserPluginDirectory noUserPlugins;
+  const std::string requested =
+      directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN);
+  CSOUND *csound = createWithoutRcFile();
+  ASSERT_EQ(csoundSetOption(csound, searchPathOption(requested).c_str()),
+            CSOUND_SUCCESS);
+  csoundLoadPlugins(csound,
+                    directoryOf(CSOUND_TEST_FAILING_INIT_PLUGIN).c_str());
+  drainMessages(csound);
+  EXPECT_EQ(csoundLoadPlugins(csound, requested.c_str()), CSOUND_SUCCESS);
+  const std::string messages = drainMessages(csound);
+  EXPECT_EQ(messages.find("Error starting module"), std::string::npos)
+      << messages;
+  csoundDestroy(csound);
+}
+
+// The directory's scan took a plugin that fails to start for a file that is
+// no plugin, and csoundLoadPlugins() returned CSOUND_SUCCESS.
+TEST(PluginThatFailsToStart, FailsCsoundLoadPlugins) {
+  const NoUserPluginDirectory noUserPlugins;
+  CSOUND *csound = createWithoutRcFile();
+  ASSERT_EQ(csoundSetOption(csound,
+                            searchPathOption(directoryOf(
+                                CSOUND_TEST_REQUESTED_OPCODE_PLUGIN)).c_str()),
+            CSOUND_SUCCESS);
+  EXPECT_EQ(csoundLoadPlugins(
+                csound, directoryOf(CSOUND_TEST_FAILING_INIT_PLUGIN).c_str()),
+            CSOUND_ERROR);
+  const std::string messages = drainMessages(csound);
+  EXPECT_NE(messages.find("Error starting module"), std::string::npos)
+      << messages;
+  csoundDestroy(csound);
+}
+
+// A plugin whose csoundModuleCreate() fails was still linked, so Csound
+// started it and destroyed it. The fixture aborts if either happens, so each
+// route runs in a process of its own.
+namespace {
+void expectNeitherStartedNorDestroyed(
+    const std::vector<std::string> &options) {
+  const NoUserPluginDirectory noUserPlugins;
+  EXPECT_EXIT(
+      {
+        csoundSetGlobalEnv("CSOUND7RC", "");  // no rc file of the user's
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        csoundSetGlobalEnv("CSOUND7RC", nullptr);
+        csoundCreateMessageBuffer(csound, 0);
+        csoundSetHostAudioIO(csound);
+        for (const std::string &option : options)
+          csoundSetOption(csound, option.c_str());
+        csoundStart(csound);
+        csoundDestroy(csound);
+        std::exit(0);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+} // namespace
+
+TEST(PluginThatFailsToLoad, InThePluginDirectoryIsNeitherStartedNorDestroyed) {
+  expectNeitherStartedNorDestroyed(
+      {searchPathOption(directoryOf(CSOUND_TEST_FAILING_CREATE_PLUGIN))});
+}
+
+TEST(PluginThatFailsToLoad, ThroughOpcodeLibIsNeitherStartedNorDestroyed) {
+  expectNeitherStartedNorDestroyed(
+      {searchPathOption(directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN)),
+       "--opcode-lib=" + quoted(CSOUND_TEST_FAILING_CREATE_PLUGIN)});
+}
+
+TEST(PluginThatFailsToLoad, ThroughOpcodeDirIsNeitherStartedNorDestroyed) {
+  expectNeitherStartedNorDestroyed(
+      {searchPathOption(directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN)),
+       "--opcode-dir=" +
+           quoted(directoryOf(CSOUND_TEST_FAILING_CREATE_PLUGIN))});
+}
+
+// What a module whose csoundModuleCreate() failed left behind may call into
+// its library, here the fixture's keyboard callback, which a reset keeps. The
+// library was closed at the reset, or, once a failed module was no longer
+// linked, never. It now stays open until csoundDestroy() has dropped the
+// callbacks, and closes then. The fixture's csoundModuleInit() and
+// csoundModuleDestroy() abort if called.
+namespace {
+// Whether the library is loaded, as dlopen() says; not checked on Windows.
+bool loadedIs(const char *library, bool loaded) {
+#ifdef WIN32
+  (void) library;
+  (void) loaded;
+  return true;
+#else
+  void *handle = dlopen(library, RTLD_NOW | RTLD_NOLOAD);
+  if (handle != nullptr)
+    dlclose(handle);
+  return (handle != nullptr) == loaded;
+#endif
+}
+
+// sensekey reads stdin too, and makes a terminal non-canonical.
+bool keepStdinOffTheTerminal() {
+#ifdef WIN32
+  return true;
+#else
+  return freopen("/dev/null", "r", stdin) != nullptr;
+#endif
+}
+
+const char *kSenseKeyInstrument =
+    "instr 1\n"
+    "  kKey sensekey\n"
+    "endin\n"
+    "schedule 1, 0, 1\n";
+} // namespace
+
+TEST(PluginThatFailsToLoad, KeepsItsLibraryUntilCsoundDestroy) {
+  const NoUserPluginDirectory noUserPlugins;
+  const std::string searchPath = searchPathOption("no-such-plugin-directory");
+  const std::string directory =
+      directoryOf(CSOUND_TEST_FAILING_CREATE_PLUGIN);
+  EXPECT_EXIT(
+      {
+        if (!loadedIs(CSOUND_TEST_FAILING_CREATE_PLUGIN, false))
+          std::exit(2);
+        if (!keepStdinOffTheTerminal())
+          std::exit(8);
+        csoundSetGlobalEnv("CSOUND7RC", "");  // across the reset too
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        csoundCreateMessageBuffer(csound, 0);
+        csoundSetOption(csound, searchPath.c_str());
+        if (csoundLoadPlugins(csound, directory.c_str()) != CSOUND_ERROR)
+          std::exit(3);
+        csoundReset(csound);
+        if (!loadedIs(CSOUND_TEST_FAILING_CREATE_PLUGIN, true))
+          std::exit(4);
+        csoundSetOption(csound, searchPath.c_str());
+        csoundSetOption(csound, "-n");
+        if (csoundCompileOrc(csound, kSenseKeyInstrument, 0) != CSOUND_SUCCESS ||
+            csoundStart(csound) != CSOUND_SUCCESS)
+          std::exit(5);
+        csoundPerformKsmps(csound);
+        if (csoundGetControlChannel(csound, "failing_create_calls",
+                                    nullptr) < 1)
+          std::exit(6);
+        csoundDestroy(csound);
+        if (!loadedIs(CSOUND_TEST_FAILING_CREATE_PLUGIN, false))
+          std::exit(7);
+        std::exit(0);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+
+// --opcode-dir went on past a plugin that does not load or does not start,
+// where --opcode-lib and the plugin directory stop. A process of its own, as
+// the failing-create fixture aborts if it is destroyed.
+namespace {
+void expectOpcodeDirToFail(const char *plugin) {
+  const NoUserPluginDirectory noUserPlugins;
+  const std::string searchPath =
+      searchPathOption(directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN));
+  const std::string option = "--opcode-dir=" + quoted(directoryOf(plugin));
+  EXPECT_EXIT(
+      {
+        CSOUND *csound = createWithoutRcFile();
+        if (csoundSetOption(csound, searchPath.c_str()) != CSOUND_SUCCESS)
+          std::exit(2);
+        const bool refused =
+            csoundSetOption(csound, option.c_str()) != CSOUND_SUCCESS;
+        const std::string messages = drainMessages(csound);
+        csoundDestroy(csound);
+        if (!refused ||
+            messages.find("a plugin failed to load or start") ==
+                std::string::npos) {
+          fputs(messages.c_str(), stderr);
+          std::exit(1);
+        }
+        std::exit(0);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+} // namespace
+
+TEST(PluginThatFailsToLoad, StopsOpcodeDir) {
+  expectOpcodeDirToFail(CSOUND_TEST_FAILING_CREATE_PLUGIN);
+}
+
+TEST(PluginThatFailsToStart, StopsOpcodeDir) {
+  expectOpcodeDirToFail(CSOUND_TEST_FAILING_INIT_PLUGIN);
+}
+
+// Called first, csoundLoadPlugins() scans the plugin directory, which jumps
+// when a plugin there fails: with no frame for it, the host crashed.
+namespace {
+void expectLoadPluginsFirstToFail(const char *plugin) {
+  const NoUserPluginDirectory noUserPlugins;
+  const char *variable =
+      sizeof(cs_float) == sizeof(float) ? "OPCODE7DIR" : "OPCODE7DIR64";
+  const std::string directory = directoryOf(plugin);
+  EXPECT_EXIT(
+      {
+        csoundSetGlobalEnv(variable, directory.c_str());
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        csoundSetGlobalEnv(variable, nullptr);
+        csoundCreateMessageBuffer(csound, 0);
+        const int32_t loaded = csoundLoadPlugins(
+            csound, directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN).c_str());
+        csoundDestroy(csound);
+        std::exit(loaded == CSOUND_ERROR ? 0 : 1);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+} // namespace
+
+TEST(PluginThatFailsToLoad, InThePluginDirectoryFailsLoadPluginsCalledFirst) {
+  expectLoadPluginsFirstToFail(CSOUND_TEST_FAILING_CREATE_PLUGIN);
+}
+
+TEST(PluginThatFailsToStart, InThePluginDirectoryFailsLoadPluginsCalledFirst) {
+  expectLoadPluginsFirstToFail(CSOUND_TEST_FAILING_INIT_PLUGIN);
+}
+
+// A module of the plugin directory whose csoundModuleInit() jumped, as one
+// that calls csound->Die() does, left the scan marked as loaded, so a second
+// csoundLoadPlugins() succeeded on modules that had not all started. It now
+// fails as the first, as when csoundModuleInit() returns an error.
+TEST(PluginThatFailsToStart, ByAJumpFailsEveryLaterLoad) {
+  const NoUserPluginDirectory noUserPlugins;
+  const char *variable =
+      sizeof(cs_float) == sizeof(float) ? "OPCODE7DIR" : "OPCODE7DIR64";
+  const std::string directory = directoryOf(CSOUND_TEST_JUMPING_INIT_PLUGIN);
+  const std::string requested =
+      directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN);
+  EXPECT_EXIT(
+      {
+        csoundSetGlobalEnv(variable, directory.c_str());
+        CSOUND *csound = createWithoutRcFile();
+        csoundSetGlobalEnv(variable, nullptr);
+        if (csoundLoadPlugins(csound, requested.c_str()) != CSOUND_ERROR)
+          std::exit(2);
+        if (csoundLoadPlugins(csound, requested.c_str()) != CSOUND_ERROR)
+          std::exit(3);
+        csoundDestroy(csound);
+        std::exit(0);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+
+// The scans counted the rest of the search path in the length of a plugin's
+// path, so a long search path skipped the plugins of its first directories
+// as "path name too long".
+namespace {
+std::string followedByOtherDirectories(const std::string &directory,
+                                       int count = 48) {
+#ifdef WIN32
+  const char separator = ';';
+#else
+  const char separator = ':';
+#endif
+  std::string path = directory;
+  for (int i = 0; i < count; i++)
+    path += separator + std::string("no-such-plugin-directory-") +
+            std::to_string(i);
+  return path;
+}
+
+const char *kRequestedInstrument =
+    "instr 1\n"
+    "  iValue requested_opcode_fixture 42\n"
+    "endin\n";
+} // namespace
+
+TEST(LongPluginSearchPath, FindsThePluginsOfItsFirstDirectory) {
+  const NoUserPluginDirectory noUserPlugins;
+  CSOUND *csound = createWithoutRcFile();
+  ASSERT_EQ(csoundSetOption(csound,
+                            searchPathOption(followedByOtherDirectories(
+                                directoryOf(
+                                    CSOUND_TEST_REQUESTED_OPCODE_PLUGIN)))
+                                .c_str()),
+            CSOUND_SUCCESS);
+  EXPECT_EQ(csoundCompileOrc(csound, kRequestedInstrument, 0), CSOUND_SUCCESS)
+      << drainMessages(csound);
+  csoundDestroy(csound);
+}
+
+TEST(LongPluginSearchPath, ThroughLoadPluginsFindsThePluginsOfItsFirstDirectory) {
+  const NoUserPluginDirectory noUserPlugins;
+  CSOUND *csound = createWithoutRcFile();
+  ASSERT_EQ(csoundSetOption(
+                csound, searchPathOption("no-such-plugin-directory").c_str()),
+            CSOUND_SUCCESS);
+  EXPECT_EQ(csoundLoadPlugins(csound,
+                              followedByOtherDirectories(directoryOf(
+                                  CSOUND_TEST_REQUESTED_OPCODE_PLUGIN))
+                                  .c_str()),
+            CSOUND_SUCCESS);
+  EXPECT_EQ(csoundCompileOrc(csound, kRequestedInstrument, 0), CSOUND_SUCCESS)
+      << drainMessages(csound);
+  csoundDestroy(csound);
+}
+
+// With a user plugin directory, the scan joined the search path in 2048
+// bytes, and a longer path lost its end: the user directory's plugins with it.
+TEST(LongPluginSearchPath, KeepsTheUserPluginDirectory) {
+  const std::string user = directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN);
+  const std::string option = searchPathOption(
+      followedByOtherDirectories("no-such-plugin-directory", 96));
+  EXPECT_EXIT(
+      {
+        setProcessEnv("CS_USER_PLUGINDIR", user.c_str());
+        CSOUND *csound = createWithoutRcFile();
+        if (csoundSetOption(csound, option.c_str()) != CSOUND_SUCCESS)
+          std::exit(2);
+        const int32_t compiled =
+            csoundCompileOrc(csound, kRequestedInstrument, 0);
+        csoundDestroy(csound);
+        std::exit(compiled == CSOUND_SUCCESS ? 0 : 1);
+      },
+      ::testing::ExitedWithCode(0), "");
 }
 
 #ifdef CSOUND_TEST_HAS_TWO_COPIES

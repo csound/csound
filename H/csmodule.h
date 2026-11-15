@@ -108,6 +108,13 @@ extern "C" {
   int32_t csoundLoadRequestedPlugins(CSOUND *csound);
 
   /**
+   * Close the libraries of the modules whose csoundModuleCreate failed, for
+   * Csound instance 'csound'. They stay open until the instance is destroyed,
+   * as what they registered may outlive a reset.
+   */
+  void csoundCloseFailedModules(CSOUND *csound);
+
+  /**
    * Call destructor functions of all loaded modules that have a
    * csoundModuleDestroy symbol, for Csound instance 'csound'.
    * Return value is CSOUND_SUCCESS if there was no error, and

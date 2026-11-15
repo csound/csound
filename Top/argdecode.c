@@ -1151,7 +1151,9 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strncmp(s, "opcode-dir=", 11))) {
     s += 11;
-    csoundLoadPlugins(csound, s);
+    if (UNLIKELY(csoundLoadPlugins(csound, s) != CSOUND_SUCCESS))
+      csoundDie(csound, Str(" *** --opcode-dir=%s: a plugin failed to load "
+                            "or start\n"), s);
     return 1;
   } else if (!(strncmp(s, "opcode-lib=", 11))) {
     int32_t nbytes;

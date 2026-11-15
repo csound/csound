@@ -189,7 +189,9 @@ if(BUILD_TESTS)
             ${libcsound_public_include_dirs})
         target_compile_definitions(requested_opcode_test_plugin PRIVATE
             BUILD_PLUGINS)
+        # Its directory is scanned too, and a scan takes .dylib on macOS.
         set_target_properties(requested_opcode_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
             LIBRARY_OUTPUT_DIRECTORY
                 ${CMAKE_CURRENT_BINARY_DIR}/requested-opcode-plugin
             RUNTIME_OUTPUT_DIRECTORY
@@ -228,6 +230,50 @@ if(BUILD_TESTS)
             CONTENT
                 "#pragma once\n#define CSOUND_TEST_FAILING_INIT_PLUGIN R\"csound($<TARGET_FILE:failing_init_test_plugin>)csound\"\n"
             TARGET failing_init_test_plugin)
+
+        add_library(jumping_init_test_plugin MODULE
+            fixtures/jumping_init_plugin.c)
+        target_include_directories(jumping_init_test_plugin PRIVATE
+            ${libcsound_private_include_dirs})
+        target_include_directories(jumping_init_test_plugin PUBLIC
+            ${libcsound_public_include_dirs})
+        target_compile_definitions(jumping_init_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        set_target_properties(jumping_init_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/jumping-init-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/jumping-init-plugin)
+        add_dependencies(unittests jumping_init_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/jumping_init_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_JUMPING_INIT_PLUGIN R\"csound($<TARGET_FILE:jumping_init_test_plugin>)csound\"\n"
+            TARGET jumping_init_test_plugin)
+
+        add_library(failing_create_test_plugin MODULE
+            fixtures/failing_create_plugin.c)
+        target_include_directories(failing_create_test_plugin PRIVATE
+            ${libcsound_private_include_dirs})
+        target_include_directories(failing_create_test_plugin PUBLIC
+            ${libcsound_public_include_dirs})
+        target_compile_definitions(failing_create_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        set_target_properties(failing_create_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/failing-create-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/failing-create-plugin)
+        add_dependencies(unittests failing_create_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/failing_create_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_FAILING_CREATE_PLUGIN R\"csound($<TARGET_FILE:failing_create_test_plugin>)csound\"\n"
+            TARGET failing_create_test_plugin)
 
         add_library(configuration_test_plugin MODULE
             fixtures/configuration_plugin.c)
