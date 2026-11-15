@@ -60,9 +60,11 @@ OENTRY* find_opcode(CSOUND*, char*);
 void sanitize(CSOUND *csound);
 
 static int32_t udo_entry_is_init_control(CSOUND *csound,
+                                         const ENGINE_STATE *engineState,
                                          const INSTRTXT *ip,
                                          const TEXT *text) {
   const CS_VARIABLE *variable;
+  const char *name;
 
   if (ip == NULL || text == NULL || text->oentry == NULL) {
     return 0;
@@ -77,8 +79,16 @@ static int32_t udo_entry_is_init_control(CSOUND *csound,
       text->inlist == NULL || text->inlist->count < 1) {
     return 0;
   }
-  variable = csoundFindVariableWithName(csound, ip->varPool,
-                                        text->inlist->arg[0]);
+  name = text->inlist->arg[0];
+  variable = csoundFindVariableWithName(csound, ip->varPool, name);
+  /* true, false and a global are not in the UDO's own pool */
+  if (variable == NULL) {
+    variable = csoundFindVariableWithName(csound, engineState->varPool, name);
+  }
+  if (variable == NULL) {
+    variable = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                          name);
+  }
   return variable != NULL && variable->varType == &CS_VAR_TYPE_b;
 }
 
@@ -122,8 +132,9 @@ static OPCODINFO *udo_called_definition(const OENTRY *entry) {
 /* A UDO call is classified after every definition in this compilation has
    been built. Ignoring calls here lets mutually recursive, init-only UDOs
    reach the same fixed point as direct recursion. */
-static int32_t udo_has_intrinsic_perf(CSOUND *csound, INSTRTXT *ip,
-                                      OPCODINFO *opinfo) {
+static int32_t udo_has_intrinsic_perf(CSOUND *csound,
+                                      const ENGINE_STATE *engineState,
+                                      INSTRTXT *ip, OPCODINFO *opinfo) {
   OPTXT *optxt = (OPTXT *) ip;
   if (opinfo != NULL &&
       (udo_pool_has_perf_types(opinfo->in_arg_pool) ||
@@ -138,7 +149,7 @@ static int32_t udo_has_intrinsic_perf(CSOUND *csound, INSTRTXT *ip,
     if (udo_called_definition(ttp->oentry) != NULL) {
       continue;
     }
-    if (udo_entry_is_init_control(csound, ip, ttp) ||
+    if (udo_entry_is_init_control(csound, engineState, ip, ttp) ||
         udo_entry_is_boolean_conversion(ttp->oentry)) {
       continue;
     }
@@ -199,7 +210,8 @@ static void classify_udo_rates(CSOUND *csound, ENGINE_STATE *engineState) {
   for (instrument = engineState->instxtanchor.nxtinstxt;
        instrument != NULL; instrument = instrument->nxtinstxt) {
     OPCODINFO *opinfo = instrument->opcode_info;
-    if (opinfo != NULL && udo_has_intrinsic_perf(csound, instrument, opinfo))
+    if (opinfo != NULL &&
+        udo_has_intrinsic_perf(csound, engineState, instrument, opinfo))
       opinfo->oentry->perf = (SUBR)useropcd;
   }
   /* One scan often settles small or callee-first graphs. Avoid allocating a
