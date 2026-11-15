@@ -1771,7 +1771,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
         csound->LongJmp(csound, 1);
       }
       *++op = '[';
-      do {
+      for (;;) {
       parseNumber:
         c = input(yyscanner);
       top:
@@ -1949,11 +1949,6 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           }
           //printf("done ]*** *op=%c v=%d (%c)\n", *op, *pv, c);
           *term = input(yyscanner); return *pv;
-        case '~':
-          break;
-        case ' ':               /* Ignore spaces */
-          c = input(yyscanner);
-          continue;
         case EOF:
         case '\0':
           if (on_EOF(csound, yyscanner)==0) {
@@ -1967,8 +1962,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
                           c, c);
           csound->LongJmp(csound, 1);
         }
-      } while (c != '~');
-      return pv == vv ? 0 : *pv;
+      }
 }
 //#endif
 
