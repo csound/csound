@@ -1986,6 +1986,7 @@ struct CSOUND_ {
   int32_t list_opcodes_request;                              /* --list-opcodesN or -zN requested: N + 1 */
   int32_t init_thread_jump;                                  /* a jump the realtime init thread took: the performance makes it */
   void *failed_modules;                                      /* libraries whose csoundModuleCreate failed, closed by csoundDestroy */
+  volatile long score_rewinds;                               /* rewinds of the score: a realtime init queued before the last is dropped */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

@@ -516,6 +516,7 @@ int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
   else {
     wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp] = *data;
+    csound->alloc_queue[wp].rewinds = ATOMIC_GET(csound->score_rewinds);
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
     ATOMIC_INCR(csound->alloc_queue_items);
     if (data->type == ALLOC_DATA_MIDI_EVENT)
@@ -569,6 +570,14 @@ void alloc_queue_stop(CSOUND *csound)
 {
   ATOMIC_SET(csound->alloc_queue_stopping, 1);
   ATOMIC_SET(csound->event_insert_loop, 0);
+}
+
+/* A request queued before the last rewind of the score: the note it would
+   start or reinit, the rewind turns off. */
+static int32_t queued_before_rewind(const CSOUND *csound,
+                                    const ALLOC_DATA *data)
+{
+  return data->rewinds != ATOMIC_GET(csound->score_rewinds);
 }
 
 static void alloc_queue_complete(CSOUND *csound, int32_t type)
@@ -1082,10 +1091,19 @@ uintptr_t event_insert_thread(void *p) {
         case ALLOC_DATA_REINIT_PASS: {
           INSDS *ip = data.ip;
           OPDS *ids = data.ids;
-          int32_t error;
+          int32_t error = NOTOK;
           INSTANCE_INIT_RESULT initResult;
           csoundSpinLock(&csound->alloc_spinlock);
-          error = realtime_reinit_pass(csound, ip, ids);
+          /* A rewind of the score turns notes off, and passes over one in
+             reinit, which is not active: one queued before the rewind, or
+             running when it comes, ends here, as a failed reinit. */
+          if (queued_before_rewind(csound, &data))
+            csound->reinitflag = ip->reinitflag = 0;   /* as the pass would */
+          else {
+            error = realtime_reinit_pass(csound, ip, ids);
+            if (queued_before_rewind(csound, &data))
+              error = NOTOK;
+          }
           initResult = instance_init_finish(csound, ip);
           if (error == 0 && initResult != INSTANCE_INIT_TURNOFF) {
             ATOMIC_SET8(ip->actflg, 1);
@@ -1120,15 +1138,18 @@ uintptr_t event_insert_thread(void *p) {
 
         case ALLOC_DATA_MIDI_EVENT:
           csoundSpinLock(&csound->alloc_spinlock);
-          insert_midi(csound, data.insno, data.chn, &data.mep);
+          /* a note queued before a rewind of the score does not start */
+          if (!queued_before_rewind(csound, &data))
+            insert_midi(csound, data.insno, data.chn, &data.mep);
           csoundSpinUnLock(&csound->alloc_spinlock);
           break;
 
         case ALLOC_DATA_SCORE_EVENT:
         {
-          int32_t result;
+          int32_t result = -1;
           csoundSpinLock(&csound->alloc_spinlock);
-          result = insert(csound, data.insno, &data.blk);
+          if (!queued_before_rewind(csound, &data))
+            result = insert(csound, data.insno, &data.blk);
           csoundSpinUnLock(&csound->alloc_spinlock);
           if (result == 0) {
             /* insert() copies p-fields, but keeps strarg for INSDS::strarg. */

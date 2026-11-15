@@ -1927,6 +1927,8 @@ int32_t insert_score_args_at_sample(CSOUND *csound, const EVTBLK *ep,
 /* called by csoundRewindScore() to reset performance to time zero */
 void rewind_score(CSOUND *csound)
 {
+  /* notes queued for a realtime init are dropped, as they are taken */
+  ATOMIC_INCR(csound->score_rewinds);
   /* deactivate all currently playing notes */
   deactivate_all_notes(csound);
   /* flush any pending real time events */

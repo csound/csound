@@ -272,6 +272,7 @@ extern "C" {
     OPDS *ids;
     ENGINE_STATE *engine_state;
     struct type_table *type_table;
+    long rewinds;               /* score_rewinds when it was queued */
   } ALLOC_DATA;
 
 #define MAX_MESSAGE_STR 1024

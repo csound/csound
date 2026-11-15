@@ -83,6 +83,20 @@ class RealtimeQueueTests : public ::testing::Test {
         asig init 0.25
         out asig
       endin
+      instr 7
+        kGo chnget "go"
+        kDone init 0
+        kCount init 0
+        kCount += 1
+        chnset kCount, "seven"
+        if kGo == 1 && kDone == 0 then
+          kDone = 1
+          reinit again
+        endif
+      again:
+        test_queue_mark
+        rireturn
+      endin
       instr 8
         test_queue_mark
       endin
@@ -245,6 +259,84 @@ TEST_F(RealtimeQueueTests, RewindKeepsDeviceMidiNotYetDispatched)
     ASSERT_EQ(csoundPerformKsmps(csound), 0);
   EXPECT_EQ(controls[7], FL(50.0));
   EXPECT_EQ(controls[8], FL(60.0));
+}
+
+TEST_F(RealtimeQueueTests, RewindDropsANoteQueuedForInit)
+{
+  // The note is due, and waits for its init behind i9's, when the host
+  // rewinds the score: it is from before the rewind, and does not start
+  // after it. One sent after the rewind does.
+  csoundEventString(csound, "i8 0 -1", 0);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  csoundRewindScore(csound);
+  release();
+  ASSERT_TRUE(drain());
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(markers, 0);
+  csoundEventString(csound, "i8 0 0", 0);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  ASSERT_TRUE(drain());
+  EXPECT_EQ(markers, 1);
+}
+
+TEST_F(RealtimeQueueTests, RewindDropsAMidiNoteQueuedForInit)
+{
+  // As it would have been turned off had its init run before the rewind.
+  pending = {0x90, 60, 100};
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  csoundRewindScore(csound);
+  release();
+  ASSERT_TRUE(drain());
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(midiInits, 0);
+  pending = {0x90, 62, 100};
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  ASSERT_TRUE(drain());
+  EXPECT_EQ(midiInits, 1);
+}
+
+TEST_F(RealtimeQueueTests, RewindTurnsOffANoteQueuedForReinit)
+{
+  // i7 performs; its reinit waits behind i9's held init when the host
+  // rewinds the score. The rewind turns i7 off: its reinit does not run,
+  // and it performs no more.
+  release();
+  ASSERT_TRUE(drain());
+  csoundEventString(csound, "i7 0 -1", 0);
+  for (int i = 0; i < 100 && markers == 0; ++i) {
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    csoundSleep(1);
+  }
+  ASSERT_EQ(markers, 1);
+  {
+    std::lock_guard<std::mutex> lock(gateMutex);
+    entered = released = false;
+  }
+  csoundEventString(csound, "i9 0 0", 0);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  {
+    std::unique_lock<std::mutex> lock(gateMutex);
+    ASSERT_TRUE(gateChanged.wait_for(lock, std::chrono::seconds(5),
+                                     [this] { return entered; }));
+  }
+  csoundSetControlChannel(csound, "go", 1);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  csoundRewindScore(csound);
+  release();
+  ASSERT_TRUE(drain());
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  const cs_float count = csoundGetControlChannel(csound, "seven", nullptr);
+  for (int i = 0; i < 4; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(markers, 1);
+  EXPECT_EQ(csoundGetControlChannel(csound, "seven", nullptr), count);
+  // As after a reinit, in Csound and in the note, which a later one reuses.
+  EXPECT_EQ(csound->GetReinitFlag(csound), 0);
+  int notes = 0;
+  for (INSDS *ip = csound->engineState.instrtxtp[7]->act_instance;
+       ip != nullptr; ip = ip->nxtinactive, ++notes)
+    EXPECT_EQ(ip->reinitflag, 0);
+  EXPECT_GT(notes, 0);
 }
 
 TEST_F(RealtimeQueueTests, SustainMessagesKeepTheirOrderAroundDelayedInit)
