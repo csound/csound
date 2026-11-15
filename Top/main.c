@@ -461,7 +461,15 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
       csound->Message(csound, Str("Sorting score ...\n"));
     }
     // printf("score:\n%s", corfile_current(csound->scorestr));
-    scsortstr(csound, csound->scorestr);
+    if (csound->scstr == NULL)
+      scsortstr(csound, csound->scorestr);
+    else {
+      /* A score was sorted before this one, by --events= or an earlier
+         compile: this one is queued, as csoundReadScore queues it. */
+      char *sorted = scsortstr(csound, csound->scorestr);
+      csoundInputMessage(csound, sorted);
+      csound->Free(csound, sorted);
+    }
     // printf("*** keep_tmp = %d\n", csound->keep_tmp);
     if (csound->keep_tmp) {
       FILE *ff = fopen("score.srt", "w");
@@ -521,28 +529,30 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
 
     res = csound_compile_orc(csound, NULL, async);
     if (res == CSOUND_SUCCESS) {
-      if ((csound->engineStatus & CS_STATE_COMP) != 0) {
-          char *sc, *sorted = NULL;
+      /* Before the start, the first score sorted is the one played. A later
+         one is queued, as csoundReadScore queues it, and as a started
+         engine's are. */
+      if ((csound->engineStatus & CS_STATE_COMP) != 0 ||
+          csound->scstr != NULL) {
+          char *sorted = NULL;
           scoreErrCnt = csound->inerrcnt;
-          if (csound->scorestr == NULL)
-            sc = "#exit";
-          else
-            sc = sorted = scsortstr(csound, csound->scorestr);
+          if (csound->scorestr != NULL) /* with no score, nothing is queued */
+            sorted = scsortstr(csound, csound->scorestr);
           if (UNLIKELY(csound->inerrcnt > scoreErrCnt)) {
             csound->Free(csound, sorted);
             return CSOUND_ERROR;
           }
-          if (sc) {
+          if (sorted) {
             if (csound->oparms->odebug)
               csound->Message(
                   csound, Str("Real-time score events (engineStatus: %d).\n"),
                   csound->engineStatus);
             if(async)
-            input_message_async(csound, (const char *) sc);
-            else csoundInputMessage(csound, (const char *) sc);
+            input_message_async(csound, (const char *) sorted);
+            else csoundInputMessage(csound, (const char *) sorted);
           }
-          /* As the engine runs, scsortstr returns a copy of its own, and both
-             of those take theirs. */
+          /* Here scsortstr returns a copy of its own, and both of those take
+             theirs. */
           csound->Free(csound, sorted);
       } else {
         if (csound->scorestr == NULL) {

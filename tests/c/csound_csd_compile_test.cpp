@@ -565,4 +565,64 @@ TEST_F(CsdCompileTests, ScoreOnAStartedEngineDoesNotEndIt)
     EXPECT_EQ(0, ended) << text;
   }
 }
+
+// Before the start, a second CSD's score is queued, as a second
+// csoundEventString's is, and plays at its times: it was sorted and
+// dropped. Queued async, its notes follow its orchestra into the engine.
+TEST_F(CsdCompileTests, SecondScoreBeforeTheStartPlays)
+{
+  const char *first = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "sr=48000\nksmps=32\nnchnls=1\n0dbfs=1\n"
+    "instr 1\nchnset chnget:i(\"played\") + 1, \"played\"\nendin\n"
+    "</CsInstruments>\n<CsScore>\ni 1 0 0.1\n</CsScore>\n"
+    "</CsoundSynthesizer>\n";
+  const char *second = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "instr 2\nchnset chnget:i(\"played\") + 10, \"played\"\nendin\n"
+    "</CsInstruments>\n<CsScore>\ni 1 0.01 0\ni 2 0.02 0\ne\n</CsScore>\n"
+    "</CsoundSynthesizer>\n";
+  for (const int async : {0, 1}) {
+    CSOUND *instance = csoundCreate(nullptr, nullptr);
+    ASSERT_NE(nullptr, instance);
+    csoundSetOption(instance, "-n -d -m0");
+    ASSERT_EQ(0, csoundCompileCSD(instance, first, 1, 0));
+    ASSERT_EQ(0, csoundCompileCSD(instance, second, 1, async));
+    ASSERT_EQ(0, csoundStart(instance));
+    // A cycle is 32 samples at 48 kHz, so the notes at 0.01 s and 0.02 s
+    // play at cycles 15 and 30: look before, between and after them.
+    int cycles = 0;
+    double before = -1, between = -1, after = -1;
+    while (cycles < 1000 && csoundPerformKsmps(instance) == 0) {
+      cycles++;
+      const double played =
+        csoundGetControlChannel(instance, "played", nullptr);
+      if (cycles == 10) before = played;
+      if (cycles == 20) between = played;
+      if (cycles == 40) after = played;
+    }
+    EXPECT_EQ(1, before) << "async " << async;
+    EXPECT_EQ(2, between) << "async " << async;
+    EXPECT_EQ(12, after) << "async " << async;
+    EXPECT_EQ(12, csoundGetControlChannel(instance, "played", nullptr))
+      << "async " << async;
+    EXPECT_EQ(150, cycles) << "async " << async; /* the first score's 0.1 s */
+    csoundDestroy(instance);
+  }
+}
+
+// A CSD with no score, compiled on a started engine, queues nothing: it
+// queued "#exit", which the realtime reader refused as a line.
+TEST_F(CsdCompileTests, NoScoreOnAStartedEngineQueuesNothing)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const char *text = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\nendin\n"
+    "</CsInstruments>\n</CsoundSynthesizer>\n";
+  for (const int async : {0, 1}) {
+    ASSERT_EQ(0, csoundCompileCSD(csound, text, 1, async)) << messages();
+    for (int i = 0; i < 2; i++)
+      ASSERT_EQ(0, csoundPerformKsmps(csound));
+    const auto output = messages();
+    EXPECT_EQ(std::string::npos, output.find("illegal RT scoreline"))
+      << "async " << async << ": " << output;
+  }
+}
 }
