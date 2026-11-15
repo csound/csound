@@ -450,6 +450,9 @@ static int32_t perform_control_period(CSOUND *csound)
       if (epoch & 1L)
         ATOMIC_SET(csound->performance_epoch,
                    (long) ((unsigned long) epoch + 1UL));
+      /* the jump left the k-cycles below, which hold API_lock */
+      if (!csound->oparms->realtime)
+        csoundUnlockMutex(csound->API_lock);
       return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
   }
@@ -504,6 +507,9 @@ int32_t perform_buffer(CSOUND *csound) {
     if (epoch & 1L)
       ATOMIC_SET(csound->performance_epoch,
                  (long) ((unsigned long) epoch + 1UL));
+    /* the jump left the k-cycles below, which hold API_lock */
+    if (!csound->oparms->realtime)
+      csoundUnlockMutex(csound->API_lock);
 #ifndef MACOSX
     csoundMessage(csound, Str("Early return from csoundPerformBuffer().\n"));
 #endif

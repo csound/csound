@@ -19,6 +19,9 @@
  * crashed. Each performance below must end as it does without --realtime.
  */
 
+// Android's OpenSL ES backend performs through this.
+extern "C" int32_t perform_buffer(CSOUND *csound);
+
 namespace {
 
 const char *const header = "sr = 48000\nksmps = 16\nnchnls = 1\n0dbfs = 1\n";
@@ -326,6 +329,80 @@ INSTANTIATE_TEST_SUITE_P(Modes, RealtimeInitJumpTests, ::testing::Bool(),
                          [](const ::testing::TestParamInfo<bool> &info) {
                            return info.param ? "Realtime" : "Default";
                          });
+
+/* Without --realtime, a performance holds API_lock through its k-cycles. A
+ * jump that ended it returned with the lock held, and the thread that had
+ * performed kept it: a CsoundPerformanceThread then ended holding it, and a
+ * csoundDestroy from any other thread waited for ever.
+ */
+class ExitJumpApiLockTests : public ::testing::Test {
+ protected:
+  CSOUND *csound = nullptr;
+
+  void SetUp() override
+  {
+    csound = csoundCreate(nullptr, nullptr);
+    ASSERT_NE(csound, nullptr);
+    ASSERT_EQ(csoundSetOption(csound, "-n -d -m0"), 0);
+    std::string code = std::string(header) + "instr 1\n exitnow 3\nendin\n";
+    ASSERT_EQ(csoundCompileOrc(csound, code.c_str(), 0), 0);
+    ASSERT_EQ(csoundStart(csound), 0);
+    csoundEventString(csound, "i1 0 -1", 0);
+  }
+
+  void TearDown() override
+  {
+    if (csound != nullptr)
+      csoundDestroy(csound);
+  }
+
+  /* Performs on a thread of its own until the jump, and says whether
+     API_lock was still held then, from this thread. That thread gives back
+     what it kept before it ends, so Csound can be destroyed either way. */
+  bool performUntilTheJump(int32_t (*performCall)(CSOUND *), int32_t &result)
+  {
+    std::mutex mutex;
+    std::condition_variable changed;
+    int32_t stage = 0;
+    bool held = false;
+    std::thread performer([&] {
+      const auto deadline = std::chrono::steady_clock::now() + patience;
+      while (result == 0 && std::chrono::steady_clock::now() < deadline)
+        result = performCall(csound);
+      std::unique_lock<std::mutex> lock(mutex);
+      stage = 1;
+      changed.notify_all();
+      changed.wait(lock, [&] { return stage == 2; });
+      if (held)
+        csoundUnlockMutex(csound->API_lock);
+    });
+    {
+      std::unique_lock<std::mutex> lock(mutex);
+      changed.wait(lock, [&] { return stage == 1; });
+      held = csoundLockMutexNoWait(csound->API_lock) != 0;
+      if (!held)
+        csoundUnlockMutex(csound->API_lock);
+      stage = 2;
+      changed.notify_all();
+    }
+    performer.join();
+    return held;
+  }
+};
+
+TEST_F(ExitJumpApiLockTests, PerformKsmps)
+{
+  int32_t result = 0;
+  EXPECT_FALSE(performUntilTheJump(csoundPerformKsmps, result));
+  EXPECT_EQ(result, -3);
+}
+
+TEST_F(ExitJumpApiLockTests, PerformBuffer)
+{
+  int32_t result = 0;
+  EXPECT_FALSE(performUntilTheJump(perform_buffer, result));
+  EXPECT_EQ(result, -3);
+}
 
 } // namespace
 #endif
