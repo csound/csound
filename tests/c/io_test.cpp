@@ -186,7 +186,7 @@ int32_t readline_error_callback(void *, void *, uint32_t)
 
 TEST_F (IOTests, testKeyboardIO)
 {
-    int32_t ret, prev = 100;
+    int32_t ret, err, prev = 100;
 
     ret = csoundRegisterKeyboardCallback(csound, key_callback_evt, &prev, CSOUND_CALLBACK_KBD_EVENT);
     ASSERT_TRUE (ret == CSOUND_SUCCESS);
@@ -210,18 +210,20 @@ TEST_F (IOTests, testKeyboardIO)
     ret = csoundStart(csound);
     ASSERT_TRUE (ret == CSOUND_SUCCESS);
 
+    // A key from csoundKeyPress(), like stdin, is for when no callback
+    // answers. Each sensekey here has one, so this key must not replace it.
+    csoundKeyPress(csound, 'q');
     ret = csoundPerformKsmps(csound);
     ASSERT_TRUE (ret == CSOUND_SUCCESS);
 
-    // TODO these assertions are failing
-    // cs_float val = csoundGetControlChannel(csound, "key", &err);
-    // ASSERT_DOUBLE_EQ (val, 100.0);
+    cs_float val = csoundGetControlChannel(csound, "key", &err);
+    EXPECT_DOUBLE_EQ (val, 100.0);
 
-    // val = csoundGetControlChannel(csound, "key2", &err);
-    // ASSERT_DOUBLE_EQ (val, 101.0);
+    val = csoundGetControlChannel(csound, "key2", &err);
+    EXPECT_DOUBLE_EQ (val, 101.0);
 
-    // val = csoundGetControlChannel(csound, "down2", &err);
-    // ASSERT_DOUBLE_EQ (val, 1.0);
+    val = csoundGetControlChannel(csound, "down2", &err);
+    EXPECT_DOUBLE_EQ (val, 1.0);
 }
 
 TEST_F (IOTests, testSynchronousCloseWhileAsyncWorkerRuns)
