@@ -37,7 +37,6 @@ ORCTOKEN *make_label(CSOUND *, char *, void *);
 static TREE *create_boolean_expression(CSOUND*, TREE*, int32_t,  uint64_t,
                                        TYPE_TABLE*, int32_t);
 static int32_t boolean_expression_is_init_rate(CSOUND*, TREE*, TYPE_TABLE*);
-static int32_t tree_has_k_rate_array_index(CSOUND*, TREE*, TYPE_TABLE*);
 static TREE *create_expression(CSOUND *, TREE *, int32_t,  uint64_t,
                                TYPE_TABLE*, int32_t);
 static int32_t struct_expr_has_array_root(TREE* structExpr);
@@ -1364,8 +1363,8 @@ static int32_t array_has_k_rate_index(CSOUND* csound, TREE* indexExpr,
   return 0;
 }
 
-static int32_t tree_has_k_rate_array_index(CSOUND* csound, TREE* tree,
-                                           TYPE_TABLE* typeTable)
+int32_t tree_has_k_rate_array_index(CSOUND* csound, TREE* tree,
+                                    TYPE_TABLE* typeTable)
 {
   while (tree != NULL) {
     if ((tree->type == T_ARRAY &&
@@ -1461,8 +1460,10 @@ static int32_t resolve_struct_array_member_path(CSOUND* csound,
 
   path->arrayExpr = arrayExpr;
   path->rootStructType = currentStructType;
+  /* an index that reads an array at a k index changes too: fs[iArr[kI]] */
   path->hasKRateIndex =
-    array_has_k_rate_index(csound, arrayExpr->right, typeTable);
+    array_has_k_rate_index(csound, arrayExpr->right, typeTable) ||
+    tree_has_k_rate_array_index(csound, arrayExpr->right, typeTable);
 
   for (i = rawMemberCount - 1; i >= 0; i--) {
     int32_t memberIndex = -1;
@@ -1793,6 +1794,9 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
     outType = memberType;
     if (path.hasKRateIndex && memberType[0] == 'i' && memberType[1] == '\0') {
       outType = "k";
+    }
+    if (path.hasKRateIndex && memberType[0] == 'b' && memberType[1] == '\0') {
+      outType = "B";
     }
   }
 

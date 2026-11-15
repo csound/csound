@@ -48,6 +48,8 @@ static int32_t is_reserved(char*);
 static char *check_optional_type(CSOUND *csound, char *name);
 static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
                                       TYPE_TABLE *typeTable);
+static int32_t index_is_krate(CSOUND* csound, TREE* indices,
+                              TYPE_TABLE* typeTable);
 
 char *csound_orcget_text ( void *scanner );
 uint64_t csound_orcget_locn(void *);
@@ -558,11 +560,30 @@ static void check_i_argument(CSOUND* csound, TREE* tree)
 static char* get_arg_type2_impl(CSOUND* csound, TREE* tree,
                                 TYPE_TABLE* typeTable);
 
+/* Whether tree reads a member of an array element read at a k index. */
+static int32_t is_member_read_at_k_index(CSOUND* csound, TREE* tree,
+                                         TYPE_TABLE* typeTable)
+{
+  if (tree->type != STRUCT_EXPR) return 0;
+  while (tree->type == STRUCT_EXPR && tree->left != NULL) tree = tree->left;
+  return tree->type == T_ARRAY &&
+    (index_is_krate(csound, tree->right, typeTable) > 0 ||
+     tree_has_k_rate_array_index(csound, tree->right, typeTable));
+}
+
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
+  char* type = get_arg_type2_impl(csound, tree, typeTable);
+  /* A b member read through an array element at a k index changes at
+     performance, so it is a B, as expand_struct_array_member_read types it:
+     a statement chooses its entry from this type before the member is
+     expanded, and = from a b to a B runs at init only. */
+  if (type != NULL && !strcmp(type, "b") &&
+      is_member_read_at_k_index(csound, tree, typeTable))
+    type[0] = 'B';
   /* Callers own each returned type string. Register recursive results too,
      since a later argument can fail before its caller releases them. */
-  return csoundParserOwn(csound, get_arg_type2_impl(csound, tree, typeTable));
+  return csoundParserOwn(csound, type);
 }
 
 static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)

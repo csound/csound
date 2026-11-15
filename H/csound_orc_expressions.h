@@ -59,6 +59,8 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
 char *remove_type_quoting(CSOUND *csound, const char *outype);
 TREE * create_opcode_token(CSOUND *csound, char* op);
 int32_t opcode_is_init_only_value_consumer(const OENTRY* entry);
+int32_t tree_has_k_rate_array_index(CSOUND* csound, TREE* tree,
+                                    TYPE_TABLE* typeTable);
 TREE* convert_break_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);
 TREE* convert_continue_to_goto(CSOUND* csound, LOOP_JUMP_TARGETS* targets);
 int expand_struct_array_member_assignment(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable, TREE** anchor);
