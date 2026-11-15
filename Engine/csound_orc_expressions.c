@@ -2613,8 +2613,11 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     loopLabel->next = optionalUserIndexAssign;
   }
 
+  /* an i-time loop reads its elements at init only: ##array_get.B also
+     reads a B[] in performance, where the index is past the loop's end */
   char* array_get = isPerfRate ? "##array_get" :
-    (arrayType == sType ? "##array_geti" : "##array_get");
+    (arrayType == sType ? "##array_geti" :
+     arrayType == &CS_VAR_TYPE_B ? "##array_get_init" : "##array_get");
   TREE* arrayGetStatement = create_opcode_token(csound, array_get);
   arrayGetStatement->left = current->left;
 
