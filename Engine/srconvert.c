@@ -59,18 +59,41 @@ static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
     return NULL;
   }
   
+  pp->blocks = 1;
   if(typ == &CS_VAR_TYPE_A ||
      (typ == &CS_VAR_TYPE_K && in_ksmps == out_ksmps && mode < SRC_HELD_K)) {
     size = typ == &CS_VAR_TYPE_K ? 1 : in_ksmps;
     pp->insize = size;
     pp->outsize = typ == &CS_VAR_TYPE_K ? 1 : out_ksmps;
+    if (pp->insize == pp->outsize) {
+      cs_float factor = ratio > 1.f ? ratio : 1.f / ratio;
+      int32_t blocks;
+      if (!(factor > 0.f) || !isfinite(factor) ||
+          (cs_double) factor > (cs_double) INT32_MAX) {
+        csound->Free(csound, pp);
+        csound->InitError(csound,
+                          Str("linear sample rate converter: "
+                              "invalid conversion ratio\n"));
+        return NULL;
+      }
+      blocks = (int32_t) ceilf(factor);
+      if (blocks < 1) blocks = 1;
+      if (size < 1 || blocks > INT32_MAX / size) {
+        csound->Free(csound, pp);
+        csound->InitError(csound,
+                          Str("linear sample rate converter: "
+                              "conversion buffer too large\n"));
+        return NULL;
+      }
+      pp->blocks = blocks;
+    }
     pp->dat = (CVTDAT *) csound->Calloc(csound, sizeof(CVTDAT)*n);
     for(i = 0; i < n; i++) { // one cvt per array item or per asig/ksig var
       pp->dat[i].data = csound->Calloc(csound, sizeof(cs_float));
       if (pp->insize == pp->outsize)
         pp->dat[i].bufferin =
-          csound->Calloc(csound, size*sizeof(cs_float)*
-                       (ratio > 1 ? ratio : 1./ratio));
+          csound->Calloc(csound, (size_t) size * pp->blocks *
+                         sizeof(cs_float));
     }
     pp->ncvt = n;
     pp->ratio = ratio;
@@ -99,20 +122,22 @@ static inline cs_double mod1(cs_double x){
 
 static
 void src_linear_process(SR_CONVERTER *pp, const cs_float *in, cs_float *out,
-                        cs_float *data, int32_t outsamps){
+                        cs_float *data, int32_t outsamps, int32_t insamps){
 
   int32_t outcnt, incnt;
   cs_float start = *data, frac;
   cs_float ratio = pp->ratio, fac = FL(0.0);
   for(incnt = 0, outcnt = 0; outcnt < outsamps; outcnt++) {
-    out[outcnt] = start + fac*(in[incnt] - start);
+    int32_t index = incnt < insamps ? incnt : insamps - 1;
+    out[outcnt] = start + fac*(in[index] - start);
     fac += 1./ratio;
     frac = mod1(fac);
     incnt += CS_FLOAT2LRND(fac - frac);
     fac = frac;
-    if(incnt >= 1) start = in[incnt-1];
+    if(incnt >= 1)
+      start = in[(incnt <= insamps ? incnt : insamps) - 1];
   }
-  *data = in[incnt-1];
+  *data = in[(incnt < insamps ? incnt : insamps) - 1];
 }
 
 /* A whole input block covers the same time as a whole output block.
@@ -158,16 +183,16 @@ int32_t src_linear_convert(CSOUND *csound, SR_CONVERTER *pp,
         if(!cnt) {
           src_linear_process(pp, in, buff,
                              (cs_float *) pp->dat[n].data,
-                             size*ratio);
+                             size*pp->blocks, size);
         }
         memcpy(out,buff+cnt*size, sizeof(cs_float)*size);
-        cnt = cnt < ratio - 1 ? cnt + 1 : 0;
+        cnt = cnt < pp->blocks - 1 ? cnt + 1 : 0;
       } else {
         memcpy(buff+cnt*size,in,sizeof(cs_float)*size);
-        cnt = cnt < 1/ratio - 1 ? cnt + 1 : 0;
+        cnt = cnt < pp->blocks - 1 ? cnt + 1 : 0;
         if(!cnt) src_linear_process(pp,buff, out,
                                     (cs_float *) pp->dat[n].data,
-                                    size);
+                                    size, size*pp->blocks);
       }
       pp->dat[n].cnt = cnt;
     }
