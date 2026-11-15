@@ -504,8 +504,9 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
     // per optional output, indicating size
     // of output pointer array
     else if(*types == 'm') {
-      // get the size of output array
-      len = (int32_t) strlen(types);
+      // get the size of output array: one slot per letter left, after
+      // the i slots of the outputs before them
+      len = i + (int32_t) strlen(types);
       for(; i < len; i++) {
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
@@ -524,7 +525,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
     }
     // same for all other multi output types
     else if(*types == 'z') {
-      len = (int32_t) strlen(types);
+      len = i + (int32_t) strlen(types);
       for(; i < len; i++) {
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
@@ -542,7 +543,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
     else if(*types == 'I') {
       // 'I' = variable count of i-rate scalar outputs; semantics allows i or S
       // to support passign and similar opcodes that can write numbers or strings
-      len = (int32_t) strlen(types);
+      len = i + (int32_t) strlen(types);
       for(; i < len; i++) {
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
@@ -560,7 +561,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       break;
     }
     else if(*types == 'X') {
-      len = (int32_t) strlen(types);
+      len = i + (int32_t) strlen(types);
       for(; i < len; i++) {
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
@@ -580,7 +581,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       break;
     }
     else if(*types == 'N') {
-      len = (int32_t) strlen(types);
+      len = i + (int32_t) strlen(types);
       for(; i < len; i++) {
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
@@ -602,7 +603,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       break;
     }
     else if(*types == 'F') {
-      len = (int32_t) strlen(types);
+      len = i + (int32_t) strlen(types);
       for(; i < len; i++) {
         if(n < no) {
           argtype = check_arg_type(args[n], cstypes, n);
