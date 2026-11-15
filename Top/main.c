@@ -461,7 +461,15 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
       csound->Message(csound, Str("Sorting score ...\n"));
     }
     // printf("score:\n%s", corfile_current(csound->scorestr));
-    scsortstr(csound, csound->scorestr);
+    if (csound->scstr == NULL)
+      scsortstr(csound, csound->scorestr);
+    else {
+      /* A score was sorted before this one, by --events= or an earlier
+         compile: this one is queued, as csoundReadScore queues it. */
+      char *sorted = scsortstr(csound, csound->scorestr);
+      csoundInputMessage(csound, sorted);
+      csound->Free(csound, sorted);
+    }
     // printf("*** keep_tmp = %d\n", csound->keep_tmp);
     if (csound->keep_tmp) {
       FILE *ff = fopen("score.srt", "w");
