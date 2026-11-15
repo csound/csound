@@ -1924,7 +1924,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
             //printf("recursion gives %lf (%d)\n", x,*(pv-1));
             //for (i=0;i<pv-vv;i++) printf(" %d ", vv[i]); printf("| %ld\n", pv-vv);
             c = input(yyscanner);
-            break;
+            goto top;
           }
         case ']':
           //printf("] case: type = %d *op=%c\n", type, *op);

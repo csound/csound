@@ -1,5 +1,5 @@
 <CsTest>
-description = "a repeat count in [] adds and subtracts left to right"
+description = "a repeat count in [] adds and subtracts left to right, and reads on after a [] inside it"
 
 [expect]
 exit = 0
@@ -17,7 +17,8 @@ nchnls = 1
 
 ; Each repeat plays Count with its own number as p4. A + or - took only
 ; the operator above it: [10-2*3+1] was 10-(6+1), and played 3 times.
-giExpected[] fillarray 5, 9, 3
+; And a [] inside the count lost the character after it: [[2]*3] was 3.
+giExpected[] fillarray 5, 9, 3, 6, 7
 giPlayed[] init lenarray(giExpected)
 
 instr Count
@@ -49,6 +50,12 @@ i "Count" 0 0 1
 }
 { [2*5-4*2+1] C
 i "Count" 0 0 2
+}
+{ [[2]*3] D
+i "Count" 0 0 3
+}
+{ [1+[2]*3] E
+i "Count" 0 0 4
 }
 i "Check" 0.1 0
 </CsScore>
