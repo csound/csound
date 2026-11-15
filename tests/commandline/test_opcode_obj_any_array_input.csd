@@ -3,8 +3,9 @@ description = "An Opcode object takes an opcode whose input is an array of any t
 
 [expect]
 exit = 3
-stderr = ["mismatching arguments", "could not set arg 2", "mismatching array subtype"]
+stderr = ["mismatching arguments", "could not set arg 2"]
 output = [
+  "mismatching array subtype",
   "lenarray: 5",
   "lenarray, first dimension: 5",
   "lenarray, second dimension: 3",
