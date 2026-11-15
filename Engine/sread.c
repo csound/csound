@@ -119,13 +119,15 @@ static void sreaderr(CSOUND *csound, const char *s, ...)
 
 /* A b, B, C or v without its number is said and ignored: there is no p-field
    to read, sp is NULL or the last statement's, and getpfld has dealt with the
-   rest of the line. */
+   rest of the line. One whose [] has an error is ignored too: getpfld gives 2
+   when the error has been said and the rest of the line dropped. */
 static int32_t has_number(CSOUND *csound)
 {
-    if (getpfld(csound, 0))
-      return 1;
-    sreaderr(csound, Str("%c without a number ignored\n"), csound->sread.op);
-    return 0;
+    int32_t got = getpfld(csound, 0);
+
+    if (got == 0)
+      sreaderr(csound, Str("%c without a number ignored\n"), csound->sread.op);
+    return got == 1;
 }
 
 /* scorerr() - for fatal errors in score parsing */
@@ -1113,7 +1115,10 @@ static void score_expr_append_char(CSOUND *csound, char *buffer,
   buffer[(*length)++] = (char)c;
 }
 
-static cs_float read_expression(CSOUND *csound, int32_t depth)
+/* An error that is not fatal is said, the rest of its line dropped, and
+   *dropped set. */
+static cs_float read_expression(CSOUND *csound, int32_t depth,
+                                int32_t *dropped)
 {
       SCORE_EXPR expr = {{0}, {0}, 0, 0};
       char buffer[SCORE_EXPR_NUMBER_SIZE];
@@ -1232,6 +1237,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
                              Str("score error: missing operand before ')' in [] expression"));
             print_input_backtrace(csound, 1, csoundErrorMsg);
             flushlin(csound);
+            *dropped = 1;
             return FL(0.0);
           }
           while (expr.ops[expr.opCount - 1] != '(' &&
@@ -1244,6 +1250,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
                              Str("score error: unmatched ')' in [] expression"));
             print_input_backtrace(csound, 1, csoundErrorMsg);
             flushlin(csound);
+            *dropped = 1;
             return expr.values[expr.valueCount - 1];
           }
           type = 1;
@@ -1259,7 +1266,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
           }
           type = 1;
           {
-            cs_float x = read_expression(csound, depth + 1);
+            cs_float x = read_expression(csound, depth + 1, dropped);
             score_expr_push_value(csound, &expr, x);
             c = getscochar(csound, 1); break;
           }
@@ -1277,6 +1284,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
                              Str("score error: unmatched ']' in [] expression"));
             print_input_backtrace(csound, 1, csoundErrorMsg);
             flushlin(csound);
+            *dropped = 1;
             return expr.values[expr.valueCount - 1];
           }
           return expr.values[expr.valueCount - 1];
@@ -1308,7 +1316,7 @@ static int32_t begins_n_statement(const CSOUND *csound, int32_t c)
 
 static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOREIN file */
 {                                            /*      set sp, nxp                 */
-    int32_t  c;
+    int32_t  c, dropped = 0;
     char *p;
 
     if ((c = sget1(csound)) == EOF)     /* get 1st non-white,non-comment c  */
@@ -1320,7 +1328,7 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
     if (c=='[') {
       cs_float xx;
       (csound->sread.linpos)++;               /* a field, as below      */
-      xx = read_expression(csound, 0);
+      xx = read_expression(csound, 0, &dropped);
       //printf("****xx=%a\n", xx);
       //printf("nxp = %p\n", (csound->sread.nxp));
       snprintf((csound->sread.sp) = (csound->sread.nxp), 28, "%a$", xx);
@@ -1395,7 +1403,8 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
  blank:
     *p++ = SP;
     (csound->sread.nxp) = p;                            /*  add blank      */
-    return(1);                              /*  and report ok  */
+    return(dropped ? 2 : 1);                /*  and report ok, 2 if an error
+                                                in a [] dropped its line   */
 }
 
 cs_float stof(CSOUND *csound, char s[])            /* convert string to cs_float  */
