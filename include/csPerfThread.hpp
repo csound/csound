@@ -277,6 +277,13 @@ class PUBLIC CsoundPerformanceThread {
     CsoundPerformanceThread(Csound *);
     CsoundPerformanceThread(Csound &);
     CsoundPerformanceThread(CSOUND *);
+    /**
+     * Stops the performance, joins the thread and frees the object.
+     * Must not run in a callback the performance runs: the thread cannot
+     * join itself, and the performance would go on in a deleted object.
+     * From C, csoundDestroyPerformanceThread() called on the performance
+     * thread stops the performance and leaves the object.
+     */
     ~CsoundPerformanceThread();
     // --------
     friend class CsoundPerformanceThreadMessage;

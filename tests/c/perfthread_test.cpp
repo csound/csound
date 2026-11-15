@@ -14,6 +14,7 @@
 
 #include "csound.hpp"
 #include "csPerfThread.hpp"
+#include "csPerfThread.h"
 
 namespace {
 
@@ -123,6 +124,15 @@ void onProcessCallbackJoin(void *userdata) {
     int32_t result = pt->Join();
     if (processJoinCalls.fetch_add(1) == 0)
         processJoinResult.store(result);
+}
+
+// State for ProcessCallbackDestroyStopsIt: the process callback destroys the
+// thread through the C API, which the thread cannot do to itself.
+std::atomic<int> processDestroyCalls{0};
+
+void onProcessCallbackDestroy(void *userdata) {
+    if (processDestroyCalls.fetch_add(1) == 0)
+        csoundDestroyPerformanceThread(userdata);
 }
 
 // State for SetProcessCallbackWhileRunning: the callback is set/cleared from
@@ -433,6 +443,38 @@ TEST(PerfThreadsTests, ProcessCallbackJoinIsIgnored) {
     EXPECT_EQ(flushes, 1);
     EXPECT_EQ(joins, 1);
     csound.DestroyMessageBuffer();
+    csound.Reset();
+}
+
+TEST(PerfThreadsTests, ProcessCallbackDestroyStopsIt) {
+    const char *instrument =
+        "sr=48000\n"
+        "ksmps=64\n"
+        "nchnls=1\n"
+        "instr 1\n"
+        "endin\n";
+
+    processDestroyCalls.store(0);
+
+    Csound csound;
+    csound.SetOption("-n");
+    ASSERT_EQ(csound.CompileOrc(instrument), 0);
+    csound.EventString("f 0 z\ni 1 0 -1\n");
+    ASSERT_EQ(csound.Start(), 0);
+
+    CS_PERF_THREAD *pt = csoundCreatePerformanceThread(csound.GetCsound());
+    csoundPerformanceThreadSetProcessCB(pt, onProcessCallbackDestroy, pt);
+    csoundPerformanceThreadPlay(pt);
+
+    // The call stops the performance, and leaves the object to this thread.
+    for (int i = 0; i < 500 && csoundPerformanceThreadIsRunning(pt); ++i)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    EXPECT_FALSE(csoundPerformanceThreadIsRunning(pt));
+    csoundPerformanceThreadStop(pt);
+    EXPECT_GT(csoundPerformanceThreadJoin(pt), 0);
+    EXPECT_EQ(processDestroyCalls.load(), 1);
+    csoundDestroyPerformanceThread(pt);
+    csoundDestroyPerformanceThread(nullptr);  // as delete would: nothing
     csound.Reset();
 }
 

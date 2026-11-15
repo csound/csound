@@ -1148,6 +1148,15 @@ PUBLIC Cpt csoundCreatePerformanceThread(CSOUND *csound)
 PUBLIC void csoundDestroyPerformanceThread(Cpt pt)
 {
   CsoundPerformanceThread *cpt = (CsoundPerformanceThread *)pt;
+  // The thread cannot join itself, and the performance goes on in this
+  // object once the callback returns: stop it, and leave the object.
+  if (cpt && CsPerfThread_PerformScore::OnItsThread(cpt, WARNED_DESTROY,
+          "csoundDestroyPerformanceThread() called from the performance "
+          "thread (in one of its callbacks); stopping it, but not "
+          "destroying it.")) {
+    cpt->Stop();
+    return;
+  }
   delete cpt;
 }
 

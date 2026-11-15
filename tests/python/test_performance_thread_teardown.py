@@ -61,6 +61,22 @@ cs.destroy()
 assert running_at_destroy == [False], 'csoundDestroy ran under the thread'
 '''
 
+# csoundDestroyPerformanceThread in a callback on the thread stops it, and the
+# object, left whole, is joined and destroyed afterwards from this thread.
+DESTROYED_ON_ITS_THREAD = PRELUDE + '''
+destroyed = []
+def callback(*_args):
+    if not destroyed:
+        destroyed.append(1)
+        ctcsound.libcspt.csoundDestroyPerformanceThread(thread.cpt)
+cs.set_output_channel_callback(callback)
+thread.play()
+assert wait_for(lambda: not thread.is_running()), 'the performance went on'
+assert thread.join() > 0
+del thread
+cs.destroy()
+'''
+
 
 class PerformanceThreadTeardownTests(unittest.TestCase):
 
@@ -73,6 +89,9 @@ class PerformanceThreadTeardownTests(unittest.TestCase):
 
     def test_a_join_on_its_thread_returns_at_once(self):
         self.run_alone(JOINED_ON_ITS_THREAD)
+
+    def test_a_destroy_on_its_thread_only_stops_it(self):
+        self.run_alone(DESTROYED_ON_ITS_THREAD)
 
 
 if __name__ == '__main__':

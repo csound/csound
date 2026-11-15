@@ -40,7 +40,16 @@ extern "C" {
   PUBLIC CS_PERF_THREAD* csoundCreatePerformanceThread(CSOUND *csound);
 
   /**
-     Destroys a Csound perfomance thread object
+     Destroys a Csound perfomance thread object.
+     Must not be called from a callback the performance runs. On the
+     performance thread itself, i.e. from a message callback, from the
+     process callback or from a Csound callback called there, it only stops
+     the performance, with a warning the first time: the thread cannot wait
+     for its own end, nor go on in a deleted object. The object is then
+     still to be destroyed, from another thread, once the callback has
+     returned. Csound calls some callbacks from other threads (its worker
+     threads with -j, the recording thread, some audio and MIDI modules):
+     there the call is not seen, and can deadlock.
   */
   PUBLIC void csoundDestroyPerformanceThread(CS_PERF_THREAD* pt);
 
