@@ -2515,7 +2515,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
 
   // these array types generated perf-time loops
   if(arrayType == aType || arrayType == kType ||
-     arrayType == xType) isPerfRate = 1;
+     arrayType == &CS_VAR_TYPE_B || arrayType == xType) isPerfRate = 1;
   else isPerfRate = 0;
 
   // if an index var is given, we use it to define the loop time (i or k)
@@ -2628,11 +2628,8 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     loopLabel->next = optionalUserIndexAssign;
   }
 
-  /* an i-time loop reads its elements at init only: ##array_get.B also
-     reads a B[] in performance, where the index is past the loop's end */
   char* array_get = isPerfRate ? "##array_get" :
-    (arrayType == sType ? "##array_geti" :
-     arrayType == &CS_VAR_TYPE_B ? "##array_get_init" : "##array_get");
+    (arrayType == sType ? "##array_geti" : "##array_get");
   TREE* arrayGetStatement = create_opcode_token(csound, array_get);
   arrayGetStatement->left = current->left;
 
