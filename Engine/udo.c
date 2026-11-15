@@ -2360,6 +2360,10 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   err = 0;
   int32_t rate_prepared = rate_op != NULL;
   while (csound->ids != NULL && err == 0) {
+    if (init_jump_pending(csound)) {
+      err = NOTOK;
+      break;
+    }
     csound->op = csound->ids->optext->t.oentry->opname;
     if (!rate_prepared || strcmp(csound->op, "xin") == 0)
       err = (*csound->ids->init)(csound, csound->ids);
@@ -3529,6 +3533,7 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   CS_VAR_MEM   *pfield;
   int32_t     n, init_op, inarg_ofs;
   INSTANCE_INIT_RESULT initResult;
+  int32_t jumped;
   INSDS  *pip = p->h.insdshead;
 
   init_op = (p->h.perf == NULL ? 1 : 0);
@@ -3679,14 +3684,18 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   csound->ids = (OPDS *)p->ip;
   csound->mode = 1;
   p->ip->init_pass++;
-  while ((csound->ids = csound->ids->nxti) != NULL) {
+  while ((csound->ids = csound->ids->nxti) != NULL &&
+         !init_jump_pending(csound)) {
     csound->op = csound->ids->optext->t.oentry->opname;
     (*csound->ids->init)(csound, csound->ids);
   }
   csound->mode = 0;
   initResult = instance_init_finish(csound, p->ip);
-  ATOMIC_SET(p->ip->init_done, initResult == INSTANCE_INIT_COMPLETE);
-  if (initResult == INSTANCE_INIT_TURNOFF) {
+  /* stopped by a jump, as after an init error: not ready */
+  jumped = init_jump_pending(csound);
+  ATOMIC_SET(p->ip->init_done,
+             initResult == INSTANCE_INIT_COMPLETE && !jumped);
+  if (initResult == INSTANCE_INIT_TURNOFF || jumped) {
     csound->ids = saved_ids;
     csound->curip = saved_curip;
     return NOTOK;

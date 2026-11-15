@@ -896,6 +896,7 @@ static const CSOUND cenviron_ = {
     .info_message_request = 0,
     .list_structs_request = 0,
     .list_opcodes_request = 0,
+    .init_thread_jump = 0,
     /* -------- Realtime audio I/O and buffers -------- */
     .spin = NULL,
     .spout = NULL,
@@ -1144,6 +1145,7 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   // printf("**** n = %d\n", n);
   if (!n)
     n = CSOUND_EXITJMP_SUCCESS;
+  init_pass_unwind(csound, n);
 
   /* Realtime init owns these fields on the event thread. A performance-time
      exit may arrive while that thread is inside an opcode, so cleanup defers

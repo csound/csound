@@ -2936,13 +2936,18 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
   }
 #endif
   volatile jmp_buf tmpExitJmp;
+  /* exitjmp takes this call's jumps, on the realtime init thread too */
+  INIT_THREAD initThread;
+  init_thread_suspend(&initThread);
   memcpy((void *)&tmpExitJmp, (void *)&csound->exitjmp, sizeof(jmp_buf));
   if ((retVal = setjmp(csound->exitjmp))) {
     memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+    init_thread_resume(&initThread);
     return retVal;
   }
   retVal = compile_orc(csound, str, async);
   memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+  init_thread_resume(&initThread);
   return retVal;
 }
 

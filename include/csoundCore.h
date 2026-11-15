@@ -1984,6 +1984,7 @@ struct CSOUND_ {
   int32_t line_event_work_size;                              /* allocated size of line_event_work */
   int32_t list_structs_request;                              /* --list-structs requested */
   int32_t list_opcodes_request;                              /* --list-opcodesN or -zN requested: N + 1 */
+  int32_t init_thread_jump;                                  /* a jump the realtime init thread took: the performance makes it */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

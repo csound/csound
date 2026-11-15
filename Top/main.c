@@ -570,6 +570,9 @@ int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t 
   jmp_buf savedExitJmp;
   CORFIL *volatile input = NULL;
   int32_t result;
+  /* exitjmp takes this call's jumps, on the realtime init thread too */
+  INIT_THREAD initThread;
+  init_thread_suspend(&initThread);
 
   /* Score errors must return to this active API call, not an earlier one. */
   memcpy(savedExitJmp, csound->exitjmp, sizeof(jmp_buf));
@@ -587,6 +590,7 @@ int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t 
     corfile_rm(csound, &file);
   }
   memcpy(csound->exitjmp, savedExitJmp, sizeof(jmp_buf));
+  init_thread_resume(&initThread);
   return result;
 }
 

@@ -184,6 +184,24 @@ extern "C" {
   int32_t realtset(CSOUND *, SRTBLK *);
   cs_float   realt(CSOUND *, cs_float);
   uintptr_t event_insert_thread(void *);
+  /* The realtime init thread's landings for a fatal jump (insert.c). The
+     unwind does not return on that thread inside an init pass. An API call
+     that holds exitjmp sets them aside while it runs. */
+  typedef struct init_landing_s INIT_LANDING;
+  typedef struct {
+    CSOUND *csound;
+    INIT_LANDING *landing;
+    int32_t jumped;
+  } INIT_THREAD;
+  void init_pass_unwind(CSOUND *, int32_t n);
+  /* Whether an init pass on this thread must stop: a pass took a jump. A
+     loop that runs init opcodes of its own (a UDO's, subinstr's) stops too. */
+  int32_t init_jump_pending(const CSOUND *);
+  /* On the thread that performs: makes the jump the init thread took, if
+     any, and does not return then. */
+  void init_thread_jump_make(CSOUND *);
+  void init_thread_suspend(INIT_THREAD *);
+  void init_thread_resume(const INIT_THREAD *);
   int32_t sens_midi(CSOUND *);
   void sort(CSOUND*);
   void twarp(CSOUND*);

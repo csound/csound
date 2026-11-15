@@ -174,6 +174,7 @@ static inline int32_t containsLF(char *cp, const char *endp)
 static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
 {
     volatile jmp_buf tmpExitJmp;
+    INIT_THREAD     initThread;
     int32_t         err;
     uint32_t tmp;
 
@@ -199,9 +200,12 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
     //csound->Message(csound, "1. realloc: %d\n", reallocsize);
     if (STA(Linep)) return 0;
     csound->Linefd = -1;
+    /* exitjmp takes these jumps, on the realtime init thread too */
+    init_thread_suspend(&initThread);
     memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
     if ((err = setjmp(csound->exitjmp)) != 0) {
       memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+      init_thread_resume(&initThread);
       //csound->lineventGlobals = NULL;
       return -1;
     }
@@ -213,6 +217,7 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
     }
 
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+    init_thread_resume(&initThread);
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     STA(Linep) = STA(Linebuf);
