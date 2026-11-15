@@ -1789,9 +1789,10 @@ class Csound:
     def key_press(self, c):
         """Sets the ASCII code of the most recent key pressed.
 
-        This value is used by the sensekey opcode if a callback for
-        returning keyboard events is not set (see
-        register_keyboard_callback()).
+        sensekey reads it if no callback for keyboard events is set, or if
+        each one ignores the call (see register_keyboard_callback()).
+        readline reads it whenever no callback gives it a key, also when a
+        callback returns zero with no key.
         """
         libcsound.csoundKeyPress(self.cs, cchar(c))
 
@@ -1844,7 +1845,12 @@ class Csound:
 
         The return value should be zero on success, negative on error, and
         positive if the callback was ignored (for example because the type is
-        not known). A callback that raises counts as an error.
+        not known). A callback that raises counts as an error. The callbacks
+        for the type are called in turn until one returns an error, and
+        sensekey then has no key. Otherwise, if one or more returned zero,
+        sensekey takes the key they left; if none did, it reads the key set
+        by key_press() or, if none has been set, stdin (the console on
+        Windows).
         """
         # Csound tells callbacks apart by address, so a function has one thunk,
         # and that thunk stays after removal for the reason _keep gives.

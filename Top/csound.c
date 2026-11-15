@@ -2258,7 +2258,11 @@ static void reset(CSOUND *csound) {
   csound->oparms_.odebug = debug;
 }
 
+/* Returns the first error, which ends the walk, else CSOUND_SUCCESS if a
+   callback answered, else 1: none is set for type, or each ignored the call.
+   sensekey reads stdin only on 1. */
 static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
+  int32_t result = 1;
   if (csound->csoundCallbacks_ != NULL) {
     CsoundCallbackEntry_t *pp;
     pp = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
@@ -2266,8 +2270,10 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
       if (pp->typeMask & type) {
         uint64_t serial = pp->serial;
         int32_t retval = pp->func(pp->userData, p, type);
-        if (retval != CSOUND_SUCCESS)
+        if (retval < 0)
           return retval;
+        if (retval == CSOUND_SUCCESS)
+          result = CSOUND_SUCCESS;
         /* The call may have removed this entry or any other, so hold on to
            nothing across it. The list is newest first: go on to the first
            entry older than the one just called. */
@@ -2280,7 +2286,7 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
       }
     } while (pp != (CsoundCallbackEntry_t *)NULL);
   }
-  return 1;
+  return result;
 }
 
 /**
@@ -2317,7 +2323,11 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
  *         actual text that is typed.
  * The return value should be zero on success, negative on error, and
  * positive if the callback was ignored (for example because the type is
- * not known).
+ * not known). The callbacks for the type are called in turn until one
+ * returns an error, and sensekey then has no key. Otherwise, if one or
+ * more returned zero, sensekey takes the key they left; if none did, it
+ * reads the key set by csoundKeyPress() or, if none has been set, stdin
+ * (the console on Windows).
  * This function is not thread-safe. Call it when the performance is not
  * running or, if it is, only on the thread performing, which includes from
  * inside a keyboard callback; never from another thread. With -j, callbacks

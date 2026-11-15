@@ -147,8 +147,14 @@ TEST_F (IOTests, testRunUtilityLoadsDefaultModules)
 #endif
 }
 
+// The two bodies must differ. A linker that folds identical functions, as
+// MSVC's /OPT:ICF does in a release build, would give both one address, and
+// csoundRegisterKeyboardCallback() replaces a callback registered with the
+// same function, so the second registration would remove the first.
 int32_t key_callback_evt(void *userData, void *p, uint32_t type)
 {
+    if (type != CSOUND_CALLBACK_KBD_EVENT)
+        return 1;
     int32_t *prev = (int32_t *) userData;
     *((int32_t *) p) = *prev;
     *prev += 1;
@@ -157,8 +163,10 @@ int32_t key_callback_evt(void *userData, void *p, uint32_t type)
 
 int32_t key_callback_txt(void *userData, void *p, uint32_t type)
 {
+    if (type != CSOUND_CALLBACK_KBD_TEXT)
+        return 1;
     int32_t *prev = (int32_t *) userData;
-    *((int32_t *) p) =  *prev;
+    *((int32_t *) p) = *prev;
     *prev += 1;
     return CSOUND_SUCCESS;
 }
@@ -186,7 +194,7 @@ int32_t readline_error_callback(void *, void *, uint32_t)
 
 TEST_F (IOTests, testKeyboardIO)
 {
-    int32_t ret, prev = 100;
+    int32_t ret, err, prev = 100;
 
     ret = csoundRegisterKeyboardCallback(csound, key_callback_evt, &prev, CSOUND_CALLBACK_KBD_EVENT);
     ASSERT_TRUE (ret == CSOUND_SUCCESS);
@@ -210,18 +218,64 @@ TEST_F (IOTests, testKeyboardIO)
     ret = csoundStart(csound);
     ASSERT_TRUE (ret == CSOUND_SUCCESS);
 
+    // A key from csoundKeyPress(), like stdin, is for when no callback
+    // answers. Each sensekey here has one, so this key must not replace it.
+    csoundKeyPress(csound, 'q');
     ret = csoundPerformKsmps(csound);
     ASSERT_TRUE (ret == CSOUND_SUCCESS);
 
-    // TODO these assertions are failing
-    // cs_float val = csoundGetControlChannel(csound, "key", &err);
-    // ASSERT_DOUBLE_EQ (val, 100.0);
+    cs_float val = csoundGetControlChannel(csound, "key", &err);
+    EXPECT_DOUBLE_EQ (val, 100.0);
 
-    // val = csoundGetControlChannel(csound, "key2", &err);
-    // ASSERT_DOUBLE_EQ (val, 101.0);
+    val = csoundGetControlChannel(csound, "key2", &err);
+    EXPECT_DOUBLE_EQ (val, 101.0);
 
-    // val = csoundGetControlChannel(csound, "down2", &err);
-    // ASSERT_DOUBLE_EQ (val, 1.0);
+    val = csoundGetControlChannel(csound, "down2", &err);
+    EXPECT_DOUBLE_EQ (val, 1.0);
+}
+
+int32_t key_callback_ignores(void *, void *, uint32_t)
+{
+    return 1; // positive: this call is ignored
+}
+
+TEST_F (IOTests, testKeyboardCallbackAfterAnIgnoredCall)
+{
+    int32_t err, prev = 100;
+
+    ASSERT_EQ(csoundRegisterKeyboardCallback(
+        csound, key_callback_txt, &prev, CSOUND_CALLBACK_KBD_TEXT),
+              CSOUND_SUCCESS);
+    ASSERT_EQ(csoundRegisterKeyboardCallback(
+        csound, key_callback_ignores, nullptr, CSOUND_CALLBACK_KBD_TEXT),
+              CSOUND_SUCCESS);
+    ASSERT_EQ(csoundSetOption(csound, "-n"), CSOUND_SUCCESS);
+    ASSERT_EQ(csoundCompileOrc(csound,
+        "instr 1\n kkey sensekey\n chnset kkey, \"key\"\nendin\n", 0),
+              CSOUND_SUCCESS);
+    csoundEventString(csound, "i 1 0 1", 0);
+    ASSERT_EQ(csoundStart(csound), CSOUND_SUCCESS);
+
+    csoundKeyPress(csound, 'q');
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+
+    // The newer callback ignored the call, so the older one answers it.
+    EXPECT_DOUBLE_EQ(csoundGetControlChannel(csound, "key", &err), 100.0);
+
+    // Now no callback answers, so the key comes from csoundKeyPress().
+    csoundRemoveKeyboardCallback(csound, key_callback_txt);
+    csoundKeyPress(csound, 'r');
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    EXPECT_DOUBLE_EQ(csoundGetControlChannel(csound, "key", &err), 114.0);
+
+    // Registered again, it is the newer one: it answers, then the older one
+    // ignores the call, and the answer still stands.
+    ASSERT_EQ(csoundRegisterKeyboardCallback(
+        csound, key_callback_txt, &prev, CSOUND_CALLBACK_KBD_TEXT),
+              CSOUND_SUCCESS);
+    csoundKeyPress(csound, 's');
+    ASSERT_EQ(csoundPerformKsmps(csound), CSOUND_SUCCESS);
+    EXPECT_DOUBLE_EQ(csoundGetControlChannel(csound, "key", &err), 101.0);
 }
 
 TEST_F (IOTests, testSynchronousCloseWhileAsyncWorkerRuns)
