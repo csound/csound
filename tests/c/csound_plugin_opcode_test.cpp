@@ -337,9 +337,17 @@ std::string directoryOf(const char *plugin) {
   return std::filesystem::path(plugin).parent_path().string();
 }
 
+// A path in an option for csoundSetOption(), which splits an option at the
+// spaces outside quotes and drops the quotes: a build directory may have a
+// space in its name.
+std::string quoted(const std::string &path) {
+  return "\"" + path + "\"";
+}
+
 std::string searchPathOption(const std::string &path) {
   return (sizeof(cs_float) == sizeof(float) ? "--env:OPCODE7DIR="
-                                            : "--env:OPCODE7DIR64=") + path;
+                                            : "--env:OPCODE7DIR64=") +
+         quoted(path);
 }
 
 // Sets a variable of the process environment, which the loader reads with
@@ -470,13 +478,14 @@ TEST(PluginThatFailsToLoad, InThePluginDirectoryIsNeitherStartedNorDestroyed) {
 TEST(PluginThatFailsToLoad, ThroughOpcodeLibIsNeitherStartedNorDestroyed) {
   expectNeitherStartedNorDestroyed(
       {searchPathOption(directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN)),
-       "--opcode-lib=" CSOUND_TEST_FAILING_CREATE_PLUGIN});
+       "--opcode-lib=" + quoted(CSOUND_TEST_FAILING_CREATE_PLUGIN)});
 }
 
 TEST(PluginThatFailsToLoad, ThroughOpcodeDirIsNeitherStartedNorDestroyed) {
   expectNeitherStartedNorDestroyed(
       {searchPathOption(directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN)),
-       "--opcode-dir=" + directoryOf(CSOUND_TEST_FAILING_CREATE_PLUGIN)});
+       "--opcode-dir=" +
+           quoted(directoryOf(CSOUND_TEST_FAILING_CREATE_PLUGIN))});
 }
 
 // What a module whose csoundModuleCreate() failed left behind may call into
@@ -561,7 +570,7 @@ void expectOpcodeDirToFail(const char *plugin) {
   const NoUserPluginDirectory noUserPlugins;
   const std::string searchPath =
       searchPathOption(directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN));
-  const std::string option = "--opcode-dir=" + directoryOf(plugin);
+  const std::string option = "--opcode-dir=" + quoted(directoryOf(plugin));
   EXPECT_EXIT(
       {
         CSOUND *csound = createWithoutRcFile();
