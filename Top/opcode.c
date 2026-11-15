@@ -639,7 +639,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       if(*(types+end+1) == '[' &&
          argtype != &CS_VAR_TYPE_ARRAY){
         csound->Message(csound, Str("%s outarg %d, expect array, got %s\n"),
-                        opname, i+1, typeName);
+                        opname, i+1, argtype->varTypeName);
         return NOTOK;
       }
       if(*(types+1) == '[') {
@@ -666,8 +666,8 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
     }
     if(*(types+1) == '[' &&
        argtype != &CS_VAR_TYPE_ARRAY){
-      csound->Message(csound, Str("%s outarg %d, expect array, got %c\n"),
-                      opname, i+1, *types);
+      csound->Message(csound, Str("%s outarg %d, expect array, got %s\n"),
+                      opname, i+1, argtype->varTypeName);
       return NOTOK;
     }
     if(*(types+1) == '[') {
@@ -1114,7 +1114,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
         if(*(types+end+1) == '[' &&
            argtype != &CS_VAR_TYPE_ARRAY){
           csound->Message(csound, Str("%s inarg %d, expect array, got %s\n"),
-                          opname, i+1, typeName);
+                          opname, i+1, argtype->varTypeName);
           return NOTOK;
         }
         if(*(types+end+1) == '[') {
@@ -1149,8 +1149,8 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
         }
         if(*(types+1) == '[' &&
            argtype != &CS_VAR_TYPE_ARRAY){
-          csound->Message(csound, Str("%s inarg %d, expect array, got %c\n"),
-                          opname, i+1, *types);
+          csound->Message(csound, Str("%s inarg %d, expect array, got %s\n"),
+                          opname, i+1, argtype->varTypeName);
           return NOTOK;
         }
         if(*(types+1) == '[') {
