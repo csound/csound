@@ -827,6 +827,9 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
       }
     }
     return 0;
+    } else if (mf->counter <= 0) {
+      // looped already in this cycle: it would never run dry
+      return 0;
     } else {
       // don't stop - loop
       j = mf->eventListIndex = 0;

@@ -91,6 +91,20 @@ TEST_F(MidiFileReadTests, CountsPortBytesAndKeepsEventsThatDoNotFit)
   checkRead(4, {});
 }
 
+TEST_F(MidiFileReadTests, ALoopedFileIsReadAgainOnlyInALaterCycle)
+{
+  // Every event of the files, and their end, are at tick zero. A looped one
+  // is read again once file time has passed, not in the same cycle, where
+  // the reader would never run dry.
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileloop 1, 1\n", 0), 0);
+  checkRead(16, {0xC0, 0x81, 5, 0x90, 0x81, 60, 100,
+                 0xC0, 0x82, 5, 0x90, 0x82, 60, 100});
+  checkRead(16, {});
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  checkRead(16, {0xC0, 0x81, 5, 0x90, 0x81, 60, 100});
+  checkRead(16, {});
+}
+
 TEST_F(MidiFileReadTests, SharesCapacityAcrossFiles)
 {
   checkRead(10, {0xC0, 0x81, 5, 0x90, 0x81, 60, 100, 0xC0, 0x82, 5});
