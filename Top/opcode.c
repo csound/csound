@@ -1781,6 +1781,16 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
   CS_VAR_MEM *argmem = NULL;
   char *data;
 
+  // init made the slot table for the count of objects it saw, which
+  // create may have changed since: the slots are found by that count, and
+  // objects past it have none for an array argument
+  int32_t count = (int32_t) (p->mem.size / (argn * sizeof(CS_VAR_MEM *)));
+  if(UNLIKELY(n > count))
+    for(j = 0; j < argn; j++)
+      if(j != (int32_t) p->OUTOCOUNT &&
+         csoundGetTypeForArg(pargs[j]) == &CS_VAR_TYPE_ARRAY)
+        return csound->PerfError(csound, &(p->h),
+                                 Str("opcode object array resized since init\n"));
   for(i = 0; i < n; i++) {
    size_t size;
   // copy array args data in
@@ -1789,7 +1799,7 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
       array = (ARRAYDAT *)  pargs[j]; // each inarg is an array
       size = array->arrayMemberSize;
       data = (char *) array->data; // copy loc pointer to args
-      ndx = i + j*n;
+      ndx = i + j*count;
       argmem = slot[ndx];
       // unallocated: the opcode takes this array whole
       if (argmem == NULL) continue;
@@ -1809,7 +1819,7 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
      if(csoundGetTypeForArg(pargs[j]) == &CS_VAR_TYPE_ARRAY) {
        array = (ARRAYDAT *)  pargs[j]; // each inarg is an array
        size = array->arrayMemberSize;
-       ndx = i + j*n;
+       ndx = i + j*count;
        data = (char *) array->data; // copy loc pointer to args
        argmem = slot[ndx];
        // unallocated: the opcode takes this array whole
