@@ -46,6 +46,7 @@ struct prs_parm_s;
 static void delete_macros(CSOUND*, struct prs_parm_s*);
 static void free_macro(CSOUND*, MACRO*);
 static int extract_int(CSOUND*, yyscan_t, int*);
+static int read_digits(yyscan_t, int*);
 static int on_EOF(CSOUND*, yyscan_t);
 #define MACDEBUG 1
 
@@ -540,11 +541,7 @@ NP              np[0-9]+
              do {
                c = input(yyscanner);
              } while (isblank(c) || c=='\0');
-             while (isdigit(c)) {
-               PARM->repeat_sect_cnt =
-                 10 * PARM->repeat_sect_cnt + c - '0';
-               c = input(yyscanner);
-             }
+             PARM->repeat_sect_cnt = read_digits(yyscanner, &c);
              if (UNLIKELY(PARM->repeat_sect_cnt <= 0
                           || !isspace(c))) {
                csound->Message(csound, Str("r: invalid repeat count %d"),
@@ -1713,26 +1710,27 @@ static MACRO *find_definition(MACRO *mmo, char *s)
 
 //#if 0
 
-static int powintint(int x, int n)
+/* The number in the digits from *c on, leaving the character after them in
+   *c: -1 when it is past INT_MAX. */
+static int read_digits(yyscan_t yyscanner, int *c)
 {
-    int32 ans = 1;
-    if (n<0) return 0;
-    while (n!=0) {
-      if (n&1) ans = ans * x;
-      n >>= 1;
-      x = x*x;
+    int n = 0;
+    while (isdigit(*c)) {
+      if (n >= 0)
+        n = n > (INT_MAX - (*c - '0')) / 10 ? -1 : 10 * n + (*c - '0');
+      *c = input(yyscanner);
     }
-    return ans;
+    return n;
 }
 
 static int operate(CSOUND *csound, int a, int b, char c)
 {
-    int ans;
+    int64_t ans;
 
     switch (c) {
-    case '+': ans = a + b; break;
-    case '-': ans = a - b; break;
-    case '*': ans = a * b; break;
+    case '+': ans = (int64_t) a + b; break;
+    case '-': ans = (int64_t) a - b; break;
+    case '*': ans = (int64_t) a * b; break;
     case '/':
     case '%':
       if (UNLIKELY(b == 0 || (b == -1 && a == INT_MIN))) {
@@ -1741,7 +1739,6 @@ static int operate(CSOUND *csound, int a, int b, char c)
       }
       ans = c == '/' ? a / b : a % b;
       break;
-    case '^': ans = powintint(a, b); break;
     case '&': ans = a & b; break;
     case '|': ans = a | b; break;
     case '#': ans = a ^ b; break;
@@ -1750,7 +1747,11 @@ static int operate(CSOUND *csound, int a, int b, char c)
       ans = 0;
     }
     //printf("operate: %d %c %d => %d\n", a, c, b, ans);
-    return ans;
+    if (UNLIKELY(ans < INT_MIN || ans > INT_MAX)) {
+      csound->Message(csound, Str("integer overflow in [] expression\n"));
+      csound->LongJmp(csound, 1);
+    }
+    return (int) ans;
 }
 
 static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
@@ -1764,12 +1765,13 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
       int   c;
       struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
       int   type = 0;  /* 1 -> expecting binary operator,')', or ']'; else 0 */
+      int   neg = 0;   /* 1 -> a unary minus waits for its number */
       if (UNLIKELY(depth >= 30)) {
         csound->Message(csound, Str("[] expression nested too deeply\n"));
         csound->LongJmp(csound, 1);
       }
       *++op = '[';
-      do {
+      for (;;) {
       parseNumber:
         c = input(yyscanner);
       top:
@@ -1785,13 +1787,20 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9': {
           //printf("bodmas:number\n");
-          int i = 0;
-          while (isdigit(c)) {
-            i = 10 * i + (c - '0');     /* c alone overflows at INT_MAX */
-            c = input(yyscanner);
+          int i;
+          if (UNLIKELY(type)) {
+            csound->Message(csound, Str("illegal placement of number in [] "
+                                        "expression\n"));
+            csound->LongJmp(csound, 1);
+          }
+          i = read_digits(yyscanner, &c);
+          if (UNLIKELY(i < 0)) {
+            csound->Message(csound, Str("integer overflow in [] expression\n"));
+            csound->LongJmp(csound, 1);
           }
           //printf("Number: %d terminated by %c(%.2x)\n", i, c, c);
-          *++pv = i;
+          *++pv = neg ? -i : i;
+          neg = 0;
           type = 1;
           if (c=='\0') {
             if (on_EOF(csound,yyscanner)==0) return 0;
@@ -1816,7 +1825,10 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           buf[p] = '\0';
           //printf("macro: %s\n", buf);
           mm = find_definition(mm, buf);
-          if (mm==NULL) return 0;
+          if (UNLIKELY(mm==NULL)) {
+            csound->Message(csound, Str("Undefined macro: '%s'"), buf);
+            csound->LongJmp(csound, 1);
+          }
           if (c=='(') {
             expand_macroa(csound, mm, yyscanner);
             goto parseNumber;
@@ -1831,9 +1843,11 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
         }
         case '+': case '-':
           //printf("bodmas:arith %d type %d\n", c, type);
-          if (!type)
+          if (!type) {
+            if (c == '-') neg = !neg;
             goto parseNumber;
-          if (*op != '[' && *op != '(') {
+          }
+          while (*op != '[' && *op != '(') {
             int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
@@ -1847,7 +1861,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           if (UNLIKELY(!type)) {
             csound->Message(csound, Str("illegal placement of operator %c in [] "
                                         "expression"), c);
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           if (*op == '*' || *op == '/' || *op == '%') {
             int v = operate(csound, *(pv-1), *pv, *op);
@@ -1863,7 +1877,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           if (UNLIKELY(!type)) {
             csound->Message(csound, Str("illegal placement of operator %c in [] "
                                         "expression"), c);
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           if (*op == '|' || *op == '&' || *op == '#') {
             int v = operate(csound, *(pv-1), *pv, *op);
@@ -1875,10 +1889,10 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           goto parseNumber;
         case '(':
           //printf("bodmas: bra\n");
-          if (UNLIKELY(type)) {
+          if (UNLIKELY(type || neg)) {
             csound->Message(csound,
                             Str("illegal placement of '(' in [] expression"));
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           type = 0;
           *++op = c;
@@ -1888,7 +1902,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           if (UNLIKELY(!type)) {
             csound->Message(csound,
                             Str("missing operand before ')' in [] expression"));
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           while (*op != '(' && *op != '[') {
             int v = operate(csound, *(pv-1), *pv, *op);
@@ -1906,10 +1920,10 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
         //type = 0;
         // *++op = c; c = getscochar(csound, 1); break;
         case '[':
-          if (UNLIKELY(type)) {
+          if (UNLIKELY(type || neg)) {
             csound->Message(csound,
                             Str("illegal placement of '[' in [] expression"));
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           type = 1;
           {
@@ -1920,15 +1934,15 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
             *++pv = bodmas(csound, yyscanner, term, depth + 1);
             //printf("recursion gives %lf (%d)\n", x,*(pv-1));
             //for (i=0;i<pv-vv;i++) printf(" %d ", vv[i]); printf("| %ld\n", pv-vv);
-            c = input(yyscanner);
-            break;
+            c = *term;               /* the character after its ] */
+            goto top;
           }
         case ']':
           //printf("] case: type = %d *op=%c\n", type, *op);
           if (UNLIKELY(!type)) {
             csound->Message(csound,
                             Str("missing operand before closing bracket in []"));
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           while (*op != '[' && *op != '(') {
             int v = operate(csound, *(pv-1), *pv, *op);
@@ -1940,12 +1954,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
             csound->LongJmp(csound, 1);
           }
           //printf("done ]*** *op=%c v=%d (%c)\n", *op, *pv, c);
-          *term = '~'; return *pv;
-        case '~':
-          break;
-        case ' ':               /* Ignore spaces */
-          c = input(yyscanner);
-          continue;
+          *term = input(yyscanner); return *pv;
         case EOF:
         case '\0':
           if (on_EOF(csound, yyscanner)==0) {
@@ -1957,10 +1966,9 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           csound->Message(csound,
                           Str("illegal character %c(%.2x) in [] expression"),
                           c, c);
-          return 0;
+          csound->LongJmp(csound, 1);
         }
-      } while (c != '~');
-      return pv == vv ? 0 : *pv;
+      }
 }
 //#endif
 
@@ -1997,8 +2005,9 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
         goto top;
       }
       else {
+        long long n = strtoll(mm->body, NULL, 10);
         *term = c;
-        return atoi(mm->body);
+        return n > 0 && n <= INT_MAX ? (int) n : 0;
       }
     }
     else if (c=='[') {
@@ -2011,11 +2020,7 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
       goto top;
     }
     else {
-      int i = 0;
-      while (isdigit(c)) {
-        i = 10 * i + (c - '0');
-        c = input(yyscanner);
-      }
+      int i = read_digits(yyscanner, &c);
       *term = c;
       return i;
     }

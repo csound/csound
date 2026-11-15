@@ -116,6 +116,31 @@ const Refused refused[] = {
     {"{ [1/0] N\ni 1 0 0\n}", "division error"},
     {"{ [1%0] N\ni 1 0 0\n}", "division error"},
     {"{ [(0-2147483647-1)/(0-1)] N\ni 1 0 0\n}", "division error"},
+    /* An error inside a nested [] gave 0, and the count went on with it: the
+       first two played once. */
+    {"{ [1+[*2]] N\ni 1 0 0\n}", "illegal placement of operator *"},
+    {"{ [3*[x]+1] N\ni 1 0 0\n}", "illegal character x"},
+    {"{ [2+[$U]] N\ni 1 0 0\n}", "Undefined macro: 'U'"},
+    /* A ~ ended the count, and what followed it was lost: this played 3 times. */
+    {"{ [3~+1] N\ni 1 0 0\n}", "illegal character ~"},
+    /* A number right after another, a ) or a ] was one operand too many, and
+       a value was lost: at develop these played 5, 5 and 3 times. */
+    {"{ [1+2 3] N\ni 1 0 0\n}", "illegal placement of number"},
+    {"{ [[5]2] N\ni 1 0 0\n}", "illegal placement of number"},
+    {"{ [(2)3] N\ni 1 0 0\n}", "illegal placement of number"},
+    /* A count past INT_MAX wrapped round: each of these played 2 or 5 times. */
+    {"{ 4294967298 N\ni 1 0 0\n}", "invalid repeat count"},
+    {"#define C #4294967298#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
+    {"#define C #-4294967294#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
+    {"{ [4294967298] N\ni 1 0 0\n}", "integer overflow in [] expression"},
+    {"{ [2147483647+2147483647+4] N\ni 1 0 0\n}", "integer overflow"},
+    {"{ [0-2147483647-2147483647+3] N\ni 1 0 0\n}", "integer overflow"},
+    {"{ [65536*65536+2] N\ni 1 0 0\n}", "integer overflow"},
+    {"r 4294967298\ni 1 0 0\ns", "r: invalid repeat count"},
+    /* A minus sign was dropped: these played 13 and 5 times. A p-field's []
+       refuses them too. */
+    {"{ [-(2+3)+8] N\ni 1 0 0\n}", "illegal placement of '('"},
+    {"{ [-[2]+5] N\ni 1 0 0\n}", "illegal placement of '['"},
     {"r 2\n{ 2 N\ns\n}", "repeat and section cross"},
     /* A comment hides an s or r from the lexer until the repeat plays. */
     {"r 2\n/**/r 2\n{ 2 N\n/**/s\n}\n", "repeat and section cross"},
@@ -232,6 +257,9 @@ const Warned overrun[] = {
     {"#define S #s#\ni 1 0 0\n$S\ni 1 0 0", "", 2},
     /* An r begun in a repeat's playing outlives it, and crosses nothing. */
     {"{ 1 A\n/**/r 2\n}\ni 1 0 0\n{ 2 B\ni 1 0 0\n}\ns\n", "", 6},
+    /* Valid: counts that fit play as they did, INT_MAX among their terms. */
+    {"{ [2147483647-2147483645] N\ni 1 0 0\n}", "", 2},
+    {"#define C #2#\n{ $C N\ni 1 0 0\n}", "", 2},
     /* An unclosed repeat or section went without a word. */
     {"{ 2 N\ni 1 0 0", "unclosed repeat", 0},
     {"r 2\ni 1 0 0", "unclosed repeat", 0},

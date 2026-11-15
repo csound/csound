@@ -1124,7 +1124,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
       score_expr_push_op(csound, &expr, '[');
       c = getscochar(csound, 1);
       for (;;) {
-        char top = expr.ops[expr.opCount - 1];
+        char top;
         switch (c) {
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9':
@@ -1190,7 +1190,8 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
         case '+': case '-':
           if (!type)
             goto parseNumber;
-          if (top != '[' && top != '(') {
+          while (expr.ops[expr.opCount - 1] != '[' &&
+                 expr.ops[expr.opCount - 1] != '(') {
             score_expr_reduce(csound, &expr);
           }
           type = 0;
@@ -1202,7 +1203,8 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
             scorerr(csound, Str("illegal placement of operator %c in [] "
                                 "expression\n"), c);
           }
-          if (top == '*' || top == '/' || top == '%') {
+          while ((top = expr.ops[expr.opCount - 1]) == '*' || top == '/' ||
+                 top == '%' || top == '^') {
             score_expr_reduce(csound, &expr);
           }
           type = 0;
@@ -1214,7 +1216,8 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
             scorerr(csound, Str("illegal placement of operator %c in [] "
                                 "expression\n"), c);
           }
-          if (top == '|' || top == '&' || top == '#') {
+          while ((top = expr.ops[expr.opCount - 1]) == '|' || top == '&' ||
+                 top == '#' || top == '^') {
             score_expr_reduce(csound, &expr);
           }
           type = 0;
