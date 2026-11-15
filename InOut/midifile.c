@@ -936,6 +936,12 @@ void midifile_rewind_score(CSOUND *csound)
     midifile = midifile->nxt;
   }
   if (midifile != NULL) {
+    MGLOBAL *p = csound->midiGlobals;
+    /* the file's bytes not yet parsed, and its event if one waits for a
+       note's init, are from before the rewind: drop them */
+    if (p->bufp > p->filep)
+      csound->midi_event_pending = 0;
+    p->endatp = p->bufp > p->filep ? p->bufp : p->filep;
     /* reset event index and tempo */
     MF(currentTempo) = initial_tempo(midifile);
     MF(eventListIndex) = 0;
