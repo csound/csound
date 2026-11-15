@@ -1495,12 +1495,13 @@ static int32_t resolve_struct_array_member_path(CSOUND* csound,
 }
 
 /* At i indices, a member of a type that changes in performance, a k, a B
-   or an a, or an array of one, is read in each cycle too, as an element of
-   a k[], a B[] or an a[] is: through ##array_get_struct_k, where
-   ##array_get_struct reads at init only. At a k index, the read runs in
+   or an a, or an array of one, is read and written in each cycle too, as
+   an element of a k[], a B[] or an a[] is: through ##array_get_struct_k
+   and ##array_set_struct_k, where ##array_get_struct and
+   ##array_set_struct run at init only. At a k index, these run in
    performance in any case. An array member's element, hs[1].points[1], is
-   left as it was: the member is read from its struct at init only, so
-   reading its element again in each cycle would change nothing. */
+   left as it was: the member is read from its struct at init only, and is
+   written into a copy of the member that nothing writes back. */
 static int32_t struct_member_follows_at_i_index(
   const STRUCT_ARRAY_MEMBER_PATH* path, int32_t initContext)
 {
@@ -1612,9 +1613,10 @@ static TREE* create_struct_array_set_call(CSOUND* csound,
                                           int32_t line,
                                           uint64_t locn,
                                           TREE* arrayExpr,
-                                          const char* valueArg)
+                                          const char* valueArg,
+                                          const char* opname)
 {
-  TREE* arraySetOp = create_opcode_token(csound, "##array_set_struct");
+  TREE* arraySetOp = create_opcode_token(csound, (char*)opname);
   arraySetOp->type = T_OPCALL;
   arraySetOp->line = line;
   arraySetOp->locn = locn;
@@ -1656,6 +1658,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
   int32_t i;
   /* Generic member setters need their intermediate reads at performance too. */
   const int32_t initContext = 0;
+  int32_t follows;
 
   if (!current || !current->left || current->left->type != STRUCT_EXPR ||
       current->right == NULL) {
@@ -1667,6 +1670,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
     return 0;
   }
 
+  follows = struct_member_follows_at_i_index(&path, initContext);
   structTemps[0] = create_out_arg(csound,
                                   path.rootStructType->varTypeName,
                                   typeTable->localPool->synthArgCount++,
@@ -1677,7 +1681,8 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                                                 current->locn,
                                                 structTemps[0],
                                                 path.arrayExpr,
-                                                "##array_get_struct"));
+                                                follows ? "##array_get_struct_k"
+                                                : "##array_get_struct"));
 
   const CS_TYPE* memberType = path.memberVars[path.memberCount - 1]->varType;
   int32_t initAssignment = !path.hasKRateIndex &&
@@ -1696,7 +1701,8 @@ int expand_struct_array_member_assignment(CSOUND* csound,
       create_struct_member_assignment(csound, current, structTemps[0], &path));
     assignmentOps = tree_append(assignmentOps,
       create_struct_array_set_call(csound, current->line, current->locn,
-                                    path.arrayExpr, structTemps[0]));
+                                    path.arrayExpr, structTemps[0],
+                                    "##array_set_struct"));
     csound->Free(csound, structTemps[0]);
     *anchor = tree_append(*anchor, assignmentOps);
     return 1;
@@ -1738,7 +1744,9 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                    create_struct_array_set_call(csound, current->line,
                                                 current->locn,
                                                 path.arrayExpr,
-                                                structTemps[0]));
+                                                structTemps[0],
+                                                follows ? "##array_set_struct_k"
+                                                : "##array_set_struct"));
 
   for (i = 0; i < path.memberCount; i++) {
     csound->Free(csound, structTemps[i]);

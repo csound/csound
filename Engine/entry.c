@@ -368,6 +368,9 @@ const OENTRY opcodlst_1[] = {
     (SUBR)array_set_struct_i },
   { "##array_set_struct", sizeof(ARRAY_SET), 0, "", ".[].z",
     (SUBR)array_set_struct_init, (SUBR)array_set_struct },
+  /* at i indices, for a member that changes in performance */
+  { "##array_set_struct_k", sizeof(ARRAY_SET), 0, "", ".[].m",
+    (SUBR)array_set_struct_i, (SUBR)array_set_struct },
 
   { "##array_set.C", sizeof(ARRAY_SET), 0, "", ":Complex;[]Complex;m", NULL,
     (SUBR)array_set},
