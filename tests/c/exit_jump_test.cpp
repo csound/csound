@@ -7,6 +7,8 @@
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -134,6 +136,19 @@ class RealtimeInitJumpTests : public ::testing::TestWithParam<bool> {
     } while (std::chrono::steady_clock::now() < deadline);
     return false;
   }
+
+  /* Whether API_lock is free, from another thread: the thread that performs
+     takes it recursively, without --realtime. */
+  bool apiLockFree()
+  {
+    bool free = false;
+    std::thread([this, &free] {
+      free = csoundLockMutexNoWait(csound->API_lock) == 0;
+      if (free)
+        csoundUnlockMutex(csound->API_lock);
+    }).join();
+    return free;
+  }
 };
 
 /* exitnow 3 gives -3. */
@@ -220,11 +235,11 @@ TEST_P(RealtimeInitJumpTests, GlobalCodeCompiledLaterEndsThePerformance)
 
 /* A jump inside compilestr's compile, here a missing array, is that call's
  * own: compilestr returns an error, and the note and the performance go on.
+ * Without --realtime, the jump cleared the note's init context, and its init
+ * pass went on through a NULL opcode.
  */
 TEST_P(RealtimeInitJumpTests, ACompileErrorInCompilestrIsCompilestrs)
 {
-  if (!GetParam())
-    GTEST_SKIP() << "without --realtime this crashes, a defect of its own";
   start("instr 1\n"
         " iResult = compilestr(\"instr 2\\n kMissing[0] = 1\\nendin\\n\")\n"
         " chnset iResult, \"result\"\n"
@@ -233,6 +248,78 @@ TEST_P(RealtimeInitJumpTests, ACompileErrorInCompilestrIsCompilestrs)
   EXPECT_EQ(perform("after"), 0);
   EXPECT_NE(csoundGetControlChannel(csound, "result", nullptr), 0);
   EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 1);
+}
+
+/* The same for compilecsd, with a CSD that asks for a Csound before 1.0. */
+TEST_P(RealtimeInitJumpTests, AnErrorInCompilecsdIsCompilecsds)
+{
+  const std::string csd = (std::filesystem::temp_directory_path() /
+                           ("exit_jump_test_" +
+                            std::to_string(GetParam()) + ".csd")).generic_string();
+  std::ofstream(csd) << "<CsoundSynthesizer>\n<CsVersion>\nBefore 1.0\n"
+                        "</CsVersion>\n<CsInstruments>\ninstr 2\nendin\n"
+                        "</CsInstruments>\n</CsoundSynthesizer>\n";
+  start(("instr 1\n"
+         " iResult = compilecsd(\"" + csd + "\")\n"
+         " chnset iResult, \"result\"\n"
+         " chnset 1, \"after\"\n"
+         "endin\n").c_str(), "i1 0 -1");
+  EXPECT_EQ(perform("after"), 0);
+  std::remove(csd.c_str());
+  EXPECT_NE(csoundGetControlChannel(csound, "result", nullptr), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 1);
+}
+
+/* A jump from the global code that compilestr compiles is compilestr's too.
+ * It left the lock its merge held, API_lock or the init mutex, and the note
+ * went on from the global code's opcodes, or from NULL.
+ */
+TEST_P(RealtimeInitJumpTests, AJumpInCompiledGlobalCodeIsCompilestrs)
+{
+  start("instr 1\n"
+        " iResult = compilestr(\"exitnow 3\\n\")\n"
+        " chnset iResult, \"result\"\n"
+        " chnset 1, \"after\"\n"
+        "endin\n", "i1 0 -1");
+  EXPECT_EQ(perform("after"), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "result", nullptr),
+            CSOUND_EXITJMP_SUCCESS - 3);
+  EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 1);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_TRUE(initMutexFree());
+}
+
+/* And the pass that called compilestr still takes a jump of its own: under
+ * --realtime, the compile set the init thread's landing aside, so the passes
+ * inside it left none behind, where a second compile would overwrite it.
+ */
+TEST_P(RealtimeInitJumpTests, AJumpAfterCompiledGlobalCodeEndsThePerformance)
+{
+  start("instr 1\n"
+        " iResult = compilestr(\"exitnow 3\\n\")\n"
+        " iResult = compilestr(\"giValue init 1\\n\")\n"
+        " exitnow 4\n"
+        "endin\n", "i1 0 -1");
+  EXPECT_EQ(perform(), -4);
+  EXPECT_TRUE(initMutexFree());
+}
+
+/* csoundCompileTree, from the host, takes the jumps of the global code it
+ * runs as csoundCompileOrc does. It had no frame of its own, and the jump
+ * went to whatever exitjmp held.
+ */
+TEST_P(RealtimeInitJumpTests, ACompiledTreeTakesItsJumps)
+{
+  start("instr 1\n chnset 1, \"after\"\nendin\n", "i1 0 -1");
+  TREE *tree = csoundParseOrc(csound, "exitnow 3\n");
+  ASSERT_NE(tree, nullptr);
+  /* exitnow 3's jump: CSOUND_EXITJMP_SUCCESS - 3 */
+  EXPECT_EQ(csoundCompileTree(csound, tree, 0), CSOUND_EXITJMP_SUCCESS - 3);
+  csoundDeleteTree(csound, tree);
+  EXPECT_EQ(perform("after"), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 1);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_TRUE(initMutexFree());
 }
 
 INSTANTIATE_TEST_SUITE_P(Modes, RealtimeInitJumpTests, ::testing::Bool(),

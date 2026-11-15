@@ -184,15 +184,10 @@ extern "C" {
   int32_t realtset(CSOUND *, SRTBLK *);
   cs_float   realt(CSOUND *, cs_float);
   uintptr_t event_insert_thread(void *);
-  /* The realtime init thread's landings for a fatal jump (insert.c). The
-     unwind does not return on that thread inside an init pass. An API call
-     that holds exitjmp sets them aside while it runs. */
+  /* The landings of the init passes for a fatal jump, on the realtime init
+     thread and in an API call (insert.c). The unwind does not return inside
+     such a pass. */
   typedef struct init_landing_s INIT_LANDING;
-  typedef struct {
-    CSOUND *csound;
-    INIT_LANDING *landing;
-    int32_t jumped;
-  } INIT_THREAD;
   void init_pass_unwind(CSOUND *, int32_t n);
   /* Whether an init pass on this thread must stop: a pass took a jump. A
      loop that runs init opcodes of its own (a UDO's, subinstr's) stops too. */
@@ -200,8 +195,21 @@ extern "C" {
   /* On the thread that performs: makes the jump the init thread took, if
      any, and does not return then. */
   void init_thread_jump_make(CSOUND *);
-  void init_thread_suspend(INIT_THREAD *);
-  void init_thread_resume(const INIT_THREAD *);
+  /* A call that holds exitjmp while it runs and takes the jumps made inside
+     it as its error (csound_compile_orc, csoundCompileTree, csoundCompileCSD,
+     linevent_alloc).
+     The init thread's landings stand aside while it runs. */
+  typedef struct api_call_s {
+    CSOUND *csound;
+    struct api_call_s *outer;
+    CSOUND *initThread;
+    INIT_LANDING *initLanding;
+    int32_t initJumped;
+    int32_t jumped;             /* the jump a pass inside the call took */
+  } API_CALL;
+  void api_call_begin(CSOUND *, API_CALL *);
+  void api_call_end(const API_CALL *);
+  API_CALL *api_call_of(const CSOUND *);
   int32_t sens_midi(CSOUND *);
   void sort(CSOUND*);
   void twarp(CSOUND*);
