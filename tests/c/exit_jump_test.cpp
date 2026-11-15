@@ -325,6 +325,33 @@ TEST_P(RealtimeInitJumpTests, ACompiledTreeTakesItsJumps)
   EXPECT_TRUE(initMutexFree());
 }
 
+/* A jump from a UDO's body, in global code compiled after the start, lands
+ * in the UDO's own init, which ends as after an init error: its recursion
+ * count comes back down, and the next call is not refused. It skipped the
+ * UDO's end, and with --recursion-depth=1 the next call was refused.
+ */
+TEST_P(RealtimeInitJumpTests, AUdoThatJumpsInCompiledGlobalCodeEndsItsInit)
+{
+  ASSERT_EQ(csoundSetOption(csound, "--recursion-depth=1"), 0);
+  start("opcode Maybe, 0, i\n"
+        " iQuit xin\n"
+        " if iQuit == 1 then\n"
+        "  exitnow 3\n"
+        " endif\n"
+        "endop\n"
+        "instr 1\n"
+        " Maybe 0\n"
+        " chnset 1, \"after\"\n"
+        "endin\n", nullptr);
+  EXPECT_EQ(csoundCompileOrc(csound, "Maybe 1\n", 0),
+            CSOUND_EXITJMP_SUCCESS - 3);
+  csoundEventString(csound, "i1 0 -1", 0);
+  EXPECT_EQ(perform("after"), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 1);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_TRUE(initMutexFree());
+}
+
 INSTANTIATE_TEST_SUITE_P(Modes, RealtimeInitJumpTests, ::testing::Bool(),
                          [](const ::testing::TestParamInfo<bool> &info) {
                            return info.param ? "Realtime" : "Default";

@@ -187,8 +187,17 @@ extern "C" {
   /* The landings of the init passes for a fatal jump, on the realtime init
      thread and in an API call (insert.c). The unwind does not return inside
      such a pass. */
-  typedef struct init_landing_s INIT_LANDING;
+  typedef struct init_landing_s {
+    CSOUND *csound;
+    jmp_buf target;
+    struct init_landing_s *outer;
+  } INIT_LANDING;
   void init_pass_unwind(CSOUND *, int32_t n);
+  /* Sets a landing, if this thread lands this instance's jumps, and says
+     whether it did; a frame that runs init opcodes of its own (a UDO's)
+     takes the jumps made in them too. Pop it on every way out. */
+  int32_t init_landing_push(CSOUND *, INIT_LANDING *);
+  void init_landing_pop(const INIT_LANDING *);
   /* Whether an init pass on this thread must stop: a pass took a jump. A
      loop that runs init opcodes of its own (a UDO's, subinstr's) stops too. */
   int32_t init_jump_pending(const CSOUND *);

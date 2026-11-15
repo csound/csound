@@ -824,7 +824,8 @@ void realtime_message_queue_stop(CSOUND *csound)
 /* Where a fatal jump lands on the realtime init thread. exitjmp belongs to
    the thread that performs, and a jump to it from here went on running that
    thread's frames on this one. So each pass on this thread, an init_pass, a
-   reinit_pass or init_instr0's for global code, sets a landing. The innermost
+   reinit_pass or init_instr0's for global code, sets a landing, as does a
+   UDO's init (useropcdset), which runs its body's opcodes. The innermost
    takes the jump: it puts back what it set, releases its level of the init
    mutex and ends in error, and what called it unwinds as from an init error.
    From then on, no pass on this thread runs another opcode: the performance
@@ -832,12 +833,6 @@ void realtime_message_queue_stop(CSOUND *csound)
    control period, or as the score ends (init_thread_jump_make).
    The passes inside an API call that holds exitjmp (API_CALL) set landings
    too, on any thread, and the call takes the jump as its error. */
-struct init_landing_s {
-  CSOUND *csound;
-  jmp_buf target;
-  struct init_landing_s *outer;
-};
-
 static INIT_THREAD_LOCAL CSOUND *init_thread;        /* the instance whose
                                                          init thread this is */
 static INIT_THREAD_LOCAL INIT_LANDING *init_landing; /* the innermost pass's */
@@ -877,7 +872,7 @@ void api_call_end(const API_CALL *call)
 }
 
 /* Sets a pass's landing, if this thread lands this instance's jumps. */
-static int32_t init_landing_push(CSOUND *csound, INIT_LANDING *landing)
+int32_t init_landing_push(CSOUND *csound, INIT_LANDING *landing)
 {
   if (init_thread != csound && api_call_of(csound) == NULL)
     return 0;
@@ -887,7 +882,7 @@ static int32_t init_landing_push(CSOUND *csound, INIT_LANDING *landing)
   return 1;
 }
 
-static void init_landing_pop(const INIT_LANDING *landing)
+void init_landing_pop(const INIT_LANDING *landing)
 {
   init_landing = landing->outer;
 }

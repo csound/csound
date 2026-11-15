@@ -2160,6 +2160,10 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   INSTANCE_INIT_RESULT initResult;
   OPCODINFO    *inm;
   OPCOD_IOBUFS *buf = p->buf;
+  /* Entered after a jump, by a caller that goes on (an Opcode[] loop): no
+     opcode runs, and nothing is taken or allocated. */
+  if (init_jump_pending(csound))
+    return NOTOK;
   /* look up the 'fake' instr number, and opcode name */
   inm = (OPCODINFO*) p->h.optext->t.oentry->useropinfo;
   if (inm != NULL) {
@@ -2326,7 +2330,18 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   csound->mode = 1;
   buf->iflag = 0;
   lcurip->init_pass++;
-  int err = udo_prepare_rate(csound, p, &rate_op);
+  int err = OK;
+  /* A jump from the UDO's init, on a thread where an init pass would take
+     it, lands here, and the UDO's init ends as after an init error. */
+  INIT_LANDING landing;
+  int32_t landed = init_landing_push(csound, &landing);
+  if (landed) {
+    if (setjmp(landing.target)) {
+      err = NOTOK;
+      goto finish_init;
+    }
+  }
+  err = udo_prepare_rate(csound, p, &rate_op);
   if (UNLIKELY(err != OK))
     goto finish_init;
 
@@ -2372,6 +2387,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     csound->ids = csound->ids->nxti;
   }
  finish_init:
+  if (landed)
+    init_landing_pop(&landing);
   // following init pass, decrement recursion depth count
   inm->recurse_depth--;
 
