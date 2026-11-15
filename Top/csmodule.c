@@ -1037,18 +1037,21 @@ int32_t csoundInitModules(CSOUND *csound)
 static int32_t load_init_module(CSOUND *csound, const char *fname){
   volatile jmp_buf  tmpExitJmp;
   volatile int32_t      err;
+  const void        *loaded = csound->csmodule_db;
 
   err = load_external(csound, fname);
   if (UNLIKELY(err != 0))
     return err;
+  /* a plugin already loaded links nothing: there is no new module to start */
+  if (csound->csmodule_db == loaded)
+    return CSOUND_SUCCESS;
   memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
   if (UNLIKELY((err = setjmp(csound->exitjmp)) != 0)) {
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
             CSOUND_MEMORY : CSOUND_INITIALIZATION);
   }
-  /* NOTE: this depends on csound->csmodule_db being the most recently */
-  /* loaded plugin library */
+  /* csound->csmodule_db is the module load_external() has just linked */
   err = init_module(csound, (csoundModule_t*) csound->csmodule_db);
   memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
 

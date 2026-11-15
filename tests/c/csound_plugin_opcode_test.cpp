@@ -326,6 +326,45 @@ TEST(PluginThatFailsToStart, ALibraryThatDoesNotLoadFailsCsoundStart) {
   expectStartToFail("--opcode-lib=no-such-library.wasm", "error loading");
 }
 
+namespace {
+std::string directoryOf(const char *plugin) {
+  return std::filesystem::path(plugin).parent_path().string();
+}
+
+std::string searchPathOption(const std::string &path) {
+  return (sizeof(cs_float) == sizeof(float) ? "--env:OPCODE7DIR="
+                                            : "--env:OPCODE7DIR64=") + path;
+}
+
+// An instance that reads no rc file of the user's, with a message buffer.
+CSOUND *createWithoutRcFile() {
+  csoundSetGlobalEnv("CSOUND7RC", "");
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  csoundSetGlobalEnv("CSOUND7RC", nullptr);
+  csoundCreateMessageBuffer(csound, 0);
+  return csound;
+}
+} // namespace
+
+// A plugin loaded again links no new module, so nothing is started. Its
+// directory loaded a second time started the newest module instead, here one
+// that fails to start.
+TEST(PluginLoadedAgain, StartsNoOtherPlugin) {
+  const std::string requested =
+      directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN);
+  CSOUND *csound = createWithoutRcFile();
+  ASSERT_EQ(csoundSetOption(csound, searchPathOption(requested).c_str()),
+            CSOUND_SUCCESS);
+  csoundLoadPlugins(csound,
+                    directoryOf(CSOUND_TEST_FAILING_INIT_PLUGIN).c_str());
+  drainMessages(csound);
+  EXPECT_EQ(csoundLoadPlugins(csound, requested.c_str()), CSOUND_SUCCESS);
+  const std::string messages = drainMessages(csound);
+  EXPECT_EQ(messages.find("Error starting module"), std::string::npos)
+      << messages;
+  csoundDestroy(csound);
+}
+
 #ifdef CSOUND_TEST_HAS_TWO_COPIES
 // One plugin in two directories, as a build tree beside an installed Csound
 // has it. Csound loads both, and they share the instance's variables. Each

@@ -189,7 +189,9 @@ if(BUILD_TESTS)
             ${libcsound_public_include_dirs})
         target_compile_definitions(requested_opcode_test_plugin PRIVATE
             BUILD_PLUGINS)
+        # Its directory is scanned too, and a scan takes .dylib on macOS.
         set_target_properties(requested_opcode_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
             LIBRARY_OUTPUT_DIRECTORY
                 ${CMAKE_CURRENT_BINARY_DIR}/requested-opcode-plugin
             RUNTIME_OUTPUT_DIRECTORY
