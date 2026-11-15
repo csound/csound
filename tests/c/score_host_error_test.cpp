@@ -110,6 +110,14 @@ const Refused refused[] = {
     {"{ [1+[*2]] N\ni 1 0 0\n}", "illegal placement of operator *"},
     {"{ [3*[x]+1] N\ni 1 0 0\n}", "illegal character x"},
     {"{ [2+[$U]] N\ni 1 0 0\n}", "Undefined macro: 'U'"},
+    /* A count past INT_MAX wrapped round: each of these played 2 or 5 times. */
+    {"{ 4294967298 N\ni 1 0 0\n}", "invalid repeat count"},
+    {"#define C #4294967298#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
+    {"#define C #-4294967294#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
+    {"{ [4294967298] N\ni 1 0 0\n}", "integer overflow in [] expression"},
+    {"{ [2147483647+2147483647+4] N\ni 1 0 0\n}", "integer overflow"},
+    {"{ [0-2147483647-2147483647+3] N\ni 1 0 0\n}", "integer overflow"},
+    {"{ [65536*65536+2] N\ni 1 0 0\n}", "integer overflow"},
     {"r 2\n{ 2 N\ns\n}", "repeat and section cross"},
     /* A comment hides an s or r from the lexer until the repeat plays. */
     {"r 2\n/**/r 2\n{ 2 N\n/**/s\n}\n", "repeat and section cross"},
@@ -226,6 +234,9 @@ const Warned overrun[] = {
     {"#define S #s#\ni 1 0 0\n$S\ni 1 0 0", "", 2},
     /* An r begun in a repeat's playing outlives it, and crosses nothing. */
     {"{ 1 A\n/**/r 2\n}\ni 1 0 0\n{ 2 B\ni 1 0 0\n}\ns\n", "", 6},
+    /* Valid: counts that fit play as they did, INT_MAX among their terms. */
+    {"{ [2147483647-2147483645] N\ni 1 0 0\n}", "", 2},
+    {"#define C #2#\n{ $C N\ni 1 0 0\n}", "", 2},
     /* An unclosed repeat or section went without a word. */
     {"{ 2 N\ni 1 0 0", "unclosed repeat", 0},
     {"r 2\ni 1 0 0", "unclosed repeat", 0},

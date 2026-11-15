@@ -1713,26 +1713,27 @@ static MACRO *find_definition(MACRO *mmo, char *s)
 
 //#if 0
 
-static int powintint(int x, int n)
+/* The number in the digits from *c on, leaving the character after them in
+   *c: -1 when it is past INT_MAX. */
+static int read_digits(yyscan_t yyscanner, int *c)
 {
-    int32 ans = 1;
-    if (n<0) return 0;
-    while (n!=0) {
-      if (n&1) ans = ans * x;
-      n >>= 1;
-      x = x*x;
+    int n = 0;
+    while (isdigit(*c)) {
+      if (n >= 0)
+        n = n > (INT_MAX - (*c - '0')) / 10 ? -1 : 10 * n + (*c - '0');
+      *c = input(yyscanner);
     }
-    return ans;
+    return n;
 }
 
 static int operate(CSOUND *csound, int a, int b, char c)
 {
-    int ans;
+    int64_t ans;
 
     switch (c) {
-    case '+': ans = a + b; break;
-    case '-': ans = a - b; break;
-    case '*': ans = a * b; break;
+    case '+': ans = (int64_t) a + b; break;
+    case '-': ans = (int64_t) a - b; break;
+    case '*': ans = (int64_t) a * b; break;
     case '/':
     case '%':
       if (UNLIKELY(b == 0 || (b == -1 && a == INT_MIN))) {
@@ -1741,7 +1742,6 @@ static int operate(CSOUND *csound, int a, int b, char c)
       }
       ans = c == '/' ? a / b : a % b;
       break;
-    case '^': ans = powintint(a, b); break;
     case '&': ans = a & b; break;
     case '|': ans = a | b; break;
     case '#': ans = a ^ b; break;
@@ -1750,7 +1750,11 @@ static int operate(CSOUND *csound, int a, int b, char c)
       ans = 0;
     }
     //printf("operate: %d %c %d => %d\n", a, c, b, ans);
-    return ans;
+    if (UNLIKELY(ans < INT_MIN || ans > INT_MAX)) {
+      csound->Message(csound, Str("integer overflow in [] expression\n"));
+      csound->LongJmp(csound, 1);
+    }
+    return (int) ans;
 }
 
 static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
@@ -1785,10 +1789,10 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9': {
           //printf("bodmas:number\n");
-          int i = 0;
-          while (isdigit(c)) {
-            i = 10 * i + (c - '0');     /* c alone overflows at INT_MAX */
-            c = input(yyscanner);
+          int i = read_digits(yyscanner, &c);
+          if (UNLIKELY(i < 0)) {
+            csound->Message(csound, Str("integer overflow in [] expression\n"));
+            csound->LongJmp(csound, 1);
           }
           //printf("Number: %d terminated by %c(%.2x)\n", i, c, c);
           *++pv = i;
@@ -2000,8 +2004,9 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
         goto top;
       }
       else {
+        long long n = strtoll(mm->body, NULL, 10);
         *term = c;
-        return atoi(mm->body);
+        return n > 0 && n <= INT_MAX ? (int) n : 0;
       }
     }
     else if (c=='[') {
@@ -2014,11 +2019,7 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
       goto top;
     }
     else {
-      int i = 0;
-      while (isdigit(c)) {
-        i = 10 * i + (c - '0');
-        c = input(yyscanner);
-      }
+      int i = read_digits(yyscanner, &c);
       *term = c;
       return i;
     }
