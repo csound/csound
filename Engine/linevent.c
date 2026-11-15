@@ -262,7 +262,8 @@ static int32_t input_message(CSOUND *csound, const char *message,
 
     if (!size) return 0;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
-      int32_t extralloc = (int32_t) (STA(Linep) + size - STA(Linebufend));
+      /* and one more, for the newline added below */
+      int32_t extralloc = (int32_t) (STA(Linep) + size + 1 - STA(Linebufend));
       *grown = extralloc;
       if (linevent_alloc(csound, (STA(linebufsiz) + extralloc)) != 0)
         return 1;
@@ -416,6 +417,11 @@ static void sense_line(CSOUND *csound, void *userData)
             n = scnt;
             while (n-->0) sstrp += strlen(sstrp)+1;
             n = 0;
+            if (UNLIKELY(sstrp-e.strarg >= strsiz-10)) { /* as in rdscor */
+              size_t start = (size_t) (sstrp-e.strarg);
+              e.strarg = csound->ReAlloc(csound, e.strarg, strsiz+=SSTRSIZ);
+              sstrp = e.strarg+start;
+            }
 
             while ((c = *(++cp)) != '"') {
               /* VL: allow strings to be multi-line */
@@ -433,8 +439,9 @@ static void sense_line(CSOUND *csound, void *userData)
               sstrp[n++] = c;                   /*   save in private strbuf */
 
               if (UNLIKELY((sstrp-e.strarg)+n >= strsiz-10)) {
+                size_t start = (size_t) (sstrp-e.strarg);
                 e.strarg = csound->ReAlloc(csound, e.strarg, strsiz+=SSTRSIZ);
-                sstrp = e.strarg+n;
+                sstrp = e.strarg+start;
               }
             }
             sstrp[n] = '\0';

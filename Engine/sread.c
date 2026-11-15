@@ -364,7 +364,6 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
       case 'B':
       case 'b': /* Set a clock base */
         {
-          char *old_nxp = (csound->sread.nxp)-2;
           if (has_number(csound)) {
             if (csound->sread.op == 'b')
               (csound->sread.clock_base) =
@@ -379,7 +378,8 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             csound->Message(csound,Str("Clockbase = %f\n"),
                             csound->sread.clock_base);
           (csound->sread.op) = getop(csound);
-          (csound->sread.nxp) = old_nxp;
+          /* From bp: a long number grows the text space, which moves */
+          (csound->sread.nxp) = (csound->sread.bp)->text;
           *(csound->sread.nxp)++ =
             (csound->sread.op); /* Undo this line */
           (csound->sread.nxp)++;
@@ -387,7 +387,6 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
         }
       case 'C':                 /* toggle carry */
         {
-          char *old_nxp = (csound->sread.nxp)-2;
           if (has_number(csound)) {
             (csound->sread.nocarry) =
               stof(csound, (csound->sread.sp))==0.0?1:0;
@@ -395,7 +394,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
           }
           //printf("nocarry = %d\n", (csound->sread.nocarry));
           (csound->sread.op) = getop(csound);
-          (csound->sread.nxp) = old_nxp;
+          (csound->sread.nxp) = (csound->sread.bp)->text; /* as for b */
           *(csound->sread.nxp)++ =
             (csound->sread.op); /* Undo this line */
           (csound->sread.nxp)++;
@@ -557,7 +556,6 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
         }
       case 'v': /* Suggestion of Bryan Bales */
         {       /* Set local variability of time */
-          char *old_nxp = (csound->sread.nxp)-2;
           if (has_number(csound)) {
             (csound->sread.warp_factor) =
               stof(csound, (csound->sread.sp));
@@ -567,7 +565,7 @@ int32_t sread(CSOUND *csound)       /*  called from main,  reads from SCOREIN   
             csound->Message(csound, Str("Warp_factor = %f\n"),
                             (csound->sread.warp_factor));
           (csound->sread.op) = getop(csound);
-          (csound->sread.nxp) = old_nxp;
+          (csound->sread.nxp) = (csound->sread.bp)->text; /* as for b */
           *(csound->sread.nxp)++ =
             (csound->sread.op);          /* Undo this line */
           (csound->sread.nxp)++;
@@ -622,10 +620,10 @@ static void copylin(CSOUND *csound)     /* copy source line to srtblk   */
 {
     int32_t c;
     (csound->sread.nxp)--;
-    if (csound->sread.nxp >= csound->sread.memend)
-      /* if this memblk exhausted */
-      expand_nxp(csound);
     do {
+      if (csound->sread.nxp >= csound->sread.memend)
+        /* if this memblk exhausted: a line can outrun the margin */
+        expand_nxp(csound);
       c = getscochar(csound, 1);
       *(csound->sread.nxp)++ = c;
     } while (c != LF && c != EOF);
@@ -869,6 +867,18 @@ static void carryerror(CSOUND *csound)      /* print offending text line  */
     *((csound->sread.nxp) - 2) = '0';
 }
 
+/* pcopy copies within the text space: when the space grows, the text it
+   copies from and the note it belongs to move too */
+static void pcopy_room(CSOUND *csound, char **p, char **pp, SRTBLK **prvbp)
+{
+    if (*p >= csound->sread.memend) {
+      intptr_t offs = expand_nxp(csound);
+      *p += offs;
+      *pp += offs;
+      *prvbp = (SRTBLK*) ((uintptr_t) *prvbp + offs);
+    }
+}
+
 static void pcopy(CSOUND *csound, int32_t pfno, int32_t ncopy, SRTBLK *prvbp)
                                 /* cpy pfields from prev note of this instr */
                                 /*     begin at pfno, copy 'ncopy' fields   */
@@ -885,13 +895,14 @@ static void pcopy(CSOUND *csound, int32_t pfno, int32_t ncopy, SRTBLK *prvbp)
     n = ncopy;
     p = (csound->sread.nxp);
     while (n--) {                           /*      and copy n pflds    */
+      pcopy_room(csound, &p, &pp, &prvbp);
       if (*pp != '"')
         while ((*p++ = c = *pp++) != SP && c != LF)
-          ;
+          pcopy_room(csound, &p, &pp, &prvbp);
       else {
         *p++ = *pp++;
         while ((*p++ = *pp++) != '"')
-          ;
+          pcopy_room(csound, &p, &pp, &prvbp);
         *p++ = *pp++;
       }
       switch (pfno) {
@@ -1291,6 +1302,10 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
 
     if ((c = sget1(csound)) == EOF)     /* get 1st non-white,non-comment c  */
       return(0);
+    /* What a short field or an expression writes is checked nowhere below,
+       and a statement of many outruns the margin salcblk leaves */
+    if (csound->sread.nxp >= csound->sread.memend)
+      expand_nxp(csound);
     if (c=='[') {
       cs_float xx = read_expression(csound, 0);
       //printf("****xx=%a\n", xx);

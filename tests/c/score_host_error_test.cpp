@@ -1,9 +1,11 @@
 #include "csoundCore.h"
 #include "gtest/gtest.h"
 #include <atomic>
+#include <cstring>
 #include <string>
 #include <thread>
 #include <tuple>
+#include <vector>
 #if defined(__GLIBC__) && (__GLIBC__ > 2 || __GLIBC_MINOR__ >= 33)
 #include <malloc.h>
 #define HEAP_IN_USE() (mallinfo2().uordblks)
@@ -13,7 +15,9 @@ namespace {
 const char *orchestra =
     "sr=48000\nksmps=32\nnchnls=1\n0dbfs=1\n"
     "instr 1\nchnset chnget:i(\"played\") + 1, \"played\"\nendin\n"
-    "instr 2\nchnset readscore(\"}\"), \"read\"\nendin\n";
+    "instr 2\nchnset readscore(\"}\"), \"read\"\nendin\n"
+    "instr 3\nchnset pcount(), \"fields\"\nchnset p(pcount()), \"last\"\nendin\n"
+    "instr 4\nS1 = p4\nchnset S1, \"text\"\nendin\n";
 
 enum Path { BeforeStart, Blocking, Queued };
 const char *pathNames[] = {"BeforeStart", "Blocking", "Queued"};
@@ -633,4 +637,195 @@ TEST_P(CsdScoreErrors, StopTheCompile)
 }
 
 INSTANTIATE_TEST_SUITE_P(Lines, CsdScoreErrors, ::testing::ValuesIn(refused));
+
+/* 200 short notes fill most of the reader's first 16 KB of text. */
+std::string shortNotes(int count = 200)
+{
+    std::string notes;
+    for (int i = 0; i < count; i++)
+        notes += "i 1 0 0\n";
+    return notes;
+}
+
+/* "i 3 0 0", count copies of field, then 7. */
+std::string longNote(int count, const std::string &field = "1")
+{
+    std::string note = "i 3 0 0";
+    for (int i = 0; i < count; i++)
+        note += " " + field;
+    return note + " 7";
+}
+
+void readAll(Host &host, const std::string &score, Path path)
+{
+    host.send(score.c_str(), path);
+    if (path == BeforeStart)
+        host.performToScoreEnd();
+    else
+        host.perform();
+}
+
+/* A b, B, C or v whose number grows the text space goes on from its own
+   statement, not from the space the growth freed. */
+class HostScoreGrowth
+    : public ::testing::TestWithParam<std::tuple<const char *, Path>> {};
+
+TEST_P(HostScoreGrowth, LeavesBCAndVInPlace)
+{
+    const std::string score = shortNotes() + std::get<0>(GetParam()) +
+                              std::string(1000, '0') + "\n" +
+                              longNote(10000, "22");
+    Host host;
+    readAll(host, score, std::get<1>(GetParam()));
+    EXPECT_EQ(200, host.played()) << host.said();
+    EXPECT_EQ(10004, csoundGetControlChannel(host.csound, "fields", nullptr));
+    EXPECT_EQ(7, csoundGetControlChannel(host.csound, "last", nullptr));
+}
+
+INSTANTIATE_TEST_SUITE_P(Numbers, HostScoreGrowth,
+                         ::testing::Combine(::testing::Values("b 0", "B 0",
+                                                              "C 1", "v 1."),
+                                            ::testing::Values(BeforeStart,
+                                                              Blocking, Queued)));
+
+TEST(CsdScores, LeaveBInPlaceWhenTheSpaceGrows)
+{
+    Host host;
+    const std::string csd =
+        std::string("<CsoundSynthesizer>\n<CsInstruments>\n") + orchestra +
+        "</CsInstruments>\n<CsScore>\n" + shortNotes() + "b 0" +
+        std::string(1000, '0') + "\n" + longNote(10000, "22") +
+        "\n</CsScore>\n</CsoundSynthesizer>\n";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(host.csound, csd.c_str(), 1, 0));
+    host.start();
+    host.performToScoreEnd();
+    EXPECT_EQ(200, host.played());
+    EXPECT_EQ(10004, csoundGetControlChannel(host.csound, "fields", nullptr));
+}
+
+/* The reader leaves a margin of 4 KB past its text space at each statement,
+   and checked only long fields against it: each of these outran it. */
+struct LongStatement {
+    const char *name;
+    std::string score;
+    int played; /* instr 1's notes */
+    int fields; /* the last instr 3 note's p-fields */
+};
+
+std::vector<LongStatement> longStatements()
+{
+    return {
+        {"OneCharacterFields", longNote(12000), 0, 12004},
+        {"AfterNotes", shortNotes() + longNote(3000), 200, 3004},
+        {"Expressions", longNote(3000, "[1]"), 0, 3004},
+        {"SectionLine", "i 1 0 0\ns" + std::string(30000, ' ') + "\n" + longNote(1), 1, 5},
+        {"CarriedFields", longNote(10000, "11") + "\ni 3 0", 0, 10004},
+        /* p-fields 65537 to 65539 were taken for p1 to p3 */
+        {"Over65535Fields", longNote(66000, "22"), 0, 66004},
+        /* and past 32767 the count was negative to the carry */
+        {"Over32767FieldsAfterANote",
+         "i 3 0 0 5\ni 3 0.002" + longNote(40000, "22").substr(5), 0, 40004},
+        /* each one's end in the string buffer, which only characters grew */
+        {"EmptyStrings", longNote(2000, "\"\""), 0, 2004},
+    };
+}
+
+class HostLongStatements
+    : public ::testing::TestWithParam<std::tuple<LongStatement, Path>> {};
+
+TEST_P(HostLongStatements, AreReadInFull)
+{
+    const LongStatement &statement = std::get<0>(GetParam());
+    Host host;
+    readAll(host, statement.score, std::get<1>(GetParam()));
+    EXPECT_EQ(statement.played, host.played()) << host.said();
+    EXPECT_EQ(statement.fields, csoundGetControlChannel(host.csound, "fields", nullptr));
+    EXPECT_EQ(7, csoundGetControlChannel(host.csound, "last", nullptr));
+}
+
+std::string longName(
+    const ::testing::TestParamInfo<HostLongStatements::ParamType> &info)
+{
+    return std::get<0>(info.param).name + std::string("_") +
+           pathNames[std::get<1>(info.param)];
+}
+
+INSTANTIATE_TEST_SUITE_P(Statements, HostLongStatements,
+                         ::testing::Combine(::testing::ValuesIn(longStatements()),
+                                            ::testing::Values(BeforeStart,
+                                                              Blocking, Queued)),
+                         longName);
+
+/* Statements that end on either side of the first text space's end and of
+   its margin's, a field at a time, from its start and from near its end. */
+TEST(HostScoreReads, LongStatementsAroundTheEdges)
+{
+    const std::tuple<int, int, int> ranges[] = {
+        {0, 10190, 10215}, {200, 140, 170}, {200, 2190, 2215}};
+    Host host;
+    host.start();
+    for (const auto &[notes, from, to] : ranges)
+        for (int count = from; count <= to; count++) {
+            SCOPED_TRACE(std::to_string(notes) + " notes, " +
+                         std::to_string(count) + " fields");
+            const std::string score = shortNotes(notes) + longNote(count);
+            csoundEventString(host.csound, score.c_str(), 0);
+            host.perform(1);
+            ASSERT_EQ(count + 4,
+                      csoundGetControlChannel(host.csound, "fields", nullptr));
+        }
+}
+
+TEST(CsdScores, ReadALongStatementInFull)
+{
+    Host host;
+    const std::string csd =
+        std::string("<CsoundSynthesizer>\n<CsInstruments>\n") + orchestra +
+        "</CsInstruments>\n<CsScore>\n" + longNote(12000) +
+        "\n</CsScore>\n</CsoundSynthesizer>\n";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(host.csound, csd.c_str(), 1, 0));
+    host.start();
+    host.performToScoreEnd();
+    EXPECT_EQ(12004, csoundGetControlChannel(host.csound, "fields", nullptr));
+}
+
+/* A line with no newline, as scoreline sends one, that grows the line-event
+   buffer, from 32 KB: the buffer grew to its end, and its newline went past. */
+TEST(HostScoreReads, LinesWithoutANewlineFitTheBufferTheyGrow)
+{
+    Host host;
+    host.start();
+    for (int size = 32760; size <= 32800; size++) {
+        std::string line(size, ' ');
+        line.replace(0, 7, "i 1 0 0");
+        host.csound->InputMessage(host.csound, line.c_str());
+        host.perform(1);
+        ASSERT_EQ(size - 32759, host.played()) << size;
+    }
+}
+
+/* A string p-field arrives whole, however long: from a host's line, the
+   line event's buffer grew under it, and the string went on from the
+   wrong place. */
+class HostLongStrings : public ::testing::TestWithParam<std::tuple<int, Path>> {};
+
+TEST_P(HostLongStrings, ArriveWhole)
+{
+    std::string text;
+    for (int i = 0; i < std::get<0>(GetParam()); i++)
+        text += (char) ('a' + i % 26);
+    Host host;
+    readAll(host, "i 4 0 0 \"" + text + "\"", std::get<1>(GetParam()));
+    std::string got(csoundGetChannelDatasize(host.csound, "text") + 1, '\0');
+    csoundGetStringChannel(host.csound, "text", got.data());
+    got.resize(strlen(got.c_str()));
+    EXPECT_EQ(text.size(), got.size()) << host.said();
+    EXPECT_TRUE(text == got);
+}
+
+INSTANTIATE_TEST_SUITE_P(Lengths, HostLongStrings,
+                         ::testing::Combine(::testing::Values(1013, 1014, 3000,
+                                                              100000),
+                                            ::testing::Values(BeforeStart,
+                                                              Blocking, Queued)));
 } // namespace
