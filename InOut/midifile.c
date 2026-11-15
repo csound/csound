@@ -1083,8 +1083,8 @@ int32_t midi_file_len(CSOUND *csound, void *p) {
   MFILE *pp = (MFILE *) p;
   int32_t num = (int32_t) *((cs_float *)pp->mfile);
   midifile_t *mf = find_midifile(csound, (int32_t) num);
-  if(mf)
-    *pp->res = mf->totalKcnt/csoundGetKr(csound);
+  if(mf)  /* not rounded to k-periods: a looped file keeps to it */
+    *pp->res = mf->length/csoundGetKr(csound);
   else *pp->res = 0.0;
   return OK;
 }

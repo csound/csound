@@ -181,3 +181,38 @@ TEST_F(MidiFileReadTests, SharesCapacityAcrossFiles)
   checkRead(4, {0x90, 0x82, 60, 100});
   checkRead(10, {});
 }
+
+TEST(MidiFileLengthTests, IsNotRoundedToKPeriods)
+{
+  // 96 ticks a beat at 120 bpm, and the end of the track at tick 384: the
+  // file lasts 2 s, which are 1378.125 k-periods at sr 44100 and ksmps 64.
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  ASSERT_NE(csound, nullptr);
+#if defined(_WIN32)
+  const auto pid = _getpid();
+#else
+  const auto pid = getpid();
+#endif
+  const auto path = std::filesystem::temp_directory_path() /
+    ("csound-midi-length-" + std::to_string(pid) + ".mid");
+  const unsigned char midi[] = {
+    'M', 'T', 'h', 'd', 0, 0, 0, 6, 0, 0, 0, 1, 0, 96,
+    'M', 'T', 'r', 'k', 0, 0, 0, 9,
+    0, 0xB0, 9, 1, 0x83, 0x00, 0xFF, 0x2F, 0
+  };
+  {
+    std::ofstream file(path, std::ios::binary);
+    file.write(reinterpret_cast<const char *>(midi), sizeof(midi));
+  }
+  const std::string orc =
+    "sr=44100\nksmps=64\nnchnls=1\n"
+    "iFile midifileopen {{" + path.generic_string() + "}}\n"
+    "chnset midifilelen(iFile), \"length\"\n";
+  EXPECT_EQ(csoundSetOption(csound, "-n"), 0);
+  EXPECT_EQ(csoundCompileOrc(csound, orc.c_str(), 0), 0);
+  EXPECT_EQ(csoundStart(csound), 0);
+  EXPECT_DOUBLE_EQ(csoundGetControlChannel(csound, "length", nullptr), 2.0);
+  csoundDestroy(csound);
+  std::error_code error;
+  std::filesystem::remove(path, error);
+}
