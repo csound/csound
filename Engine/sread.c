@@ -843,7 +843,13 @@ static void setprv(CSOUND *csound)      /*  set insno = (int32_t) p1val         
       if (name != buff)
         csound->Free(csound, name);
     }
-    else n = (int16) (csound->sread.bp)->p1val;         /* set current insno */
+    else {                                              /* set current insno */
+      /* An instrument's number is an int16, and so is insno. A p1 outside it
+         names no instrument, and its conversion would be undefined: it gets
+         the one number no instrument or turnoff has. */
+      cs_float p1 = (csound->sread.bp)->p1val;
+      n = (p1 > -FL(32768.0) && p1 < FL(32768.0)) ? (int16) p1 : INT16_MIN;
+    }
     (csound->sread.bp)->insno = n;
 
     while ((p = p->prvblk) != NULL)
