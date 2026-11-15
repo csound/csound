@@ -147,8 +147,14 @@ TEST_F (IOTests, testRunUtilityLoadsDefaultModules)
 #endif
 }
 
+// The two bodies must differ. A linker that folds identical functions, as
+// MSVC's /OPT:ICF does in a release build, would give both one address, and
+// csoundRegisterKeyboardCallback() replaces a callback registered with the
+// same function, so the second registration would remove the first.
 int32_t key_callback_evt(void *userData, void *p, uint32_t type)
 {
+    if (type != CSOUND_CALLBACK_KBD_EVENT)
+        return 1;
     int32_t *prev = (int32_t *) userData;
     *((int32_t *) p) = *prev;
     *prev += 1;
@@ -157,8 +163,10 @@ int32_t key_callback_evt(void *userData, void *p, uint32_t type)
 
 int32_t key_callback_txt(void *userData, void *p, uint32_t type)
 {
+    if (type != CSOUND_CALLBACK_KBD_TEXT)
+        return 1;
     int32_t *prev = (int32_t *) userData;
-    *((int32_t *) p) =  *prev;
+    *((int32_t *) p) = *prev;
     *prev += 1;
     return CSOUND_SUCCESS;
 }
