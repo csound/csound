@@ -1685,18 +1685,12 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                                                 : "##array_get_struct"));
 
   const CS_TYPE* memberType = path.memberVars[path.memberCount - 1]->varType;
-  int32_t initAssignment = !path.hasKRateIndex &&
-    (memberType == &CS_VAR_TYPE_I || memberType == &CS_VAR_TYPE_b);
-  if (initAssignment) {
-    char* valueType = get_arg_type2(csound, current->right, typeTable);
-    initAssignment = valueType != NULL && strlen(valueType) == 1 &&
-      strchr("cipb", valueType[0]) != NULL &&
-      !tree_has_k_rate_array_index(csound, current->right, typeTable);
-    if (valueType != NULL) csound->Free(csound, valueType);
-  }
-  if (initAssignment) {
-    /* Use typed assignment when the field and value are both init-rate.
-       A full member path also avoids two-phase getters for nested structs. */
+  if (!path.hasKRateIndex &&
+      (memberType == &CS_VAR_TYPE_I || memberType == &CS_VAR_TYPE_b)) {
+    /* An i or a b member at i indices is written at init, by a typed
+       assignment, which takes a value as an i or a b variable does and
+       refuses one that changes in performance. A full member path also
+       avoids two-phase getters for nested structs. */
     assignmentOps = tree_append(assignmentOps,
       create_struct_member_assignment(csound, current, structTemps[0], &path));
     assignmentOps = tree_append(assignmentOps,
