@@ -688,6 +688,8 @@ const OENTRY opcodlst_1[] = {
   { "fillarray", sizeof(TABCPY), 0, "k[]", "i[]", (SUBR)tabcopy1, NULL },
   { "=.I", sizeof(TABCPY), 0, "i[]", "i[]", (SUBR)tabcopy1, NULL },
   { "=.J", sizeof(TABCPY), 0, "i[]", "k[]", (SUBR)tabcopy1, NULL },
+  { "=.b[]", sizeof(TABCPY), 0, "b[]", "b[]", (SUBR)tabcopy_b_init,
+    (SUBR)tabcopy },
   { "=.IK", sizeof(TABCPY), 0, "k[]", "i[]", (SUBR)tabcopy1, (SUBR)tabcopy1 },
   { "=.S", sizeof(TABCPY), 0, "S[]", "S[]", (SUBR)tabcopy, (SUBR)tabcopyk },
   { "=.K", sizeof(TABCPY), 0, "k[]", "k[]", (SUBR)tabcopyk_init, (SUBR)tabcopyk },
