@@ -494,14 +494,15 @@ TEST(PluginThatFailsToStart, InThePluginDirectoryFailsLoadPluginsCalledFirst) {
 // path, so a long search path skipped the plugins of its first directories
 // as "path name too long".
 namespace {
-std::string followedByOtherDirectories(const std::string &directory) {
+std::string followedByOtherDirectories(const std::string &directory,
+                                       int count = 48) {
 #ifdef WIN32
   const char separator = ';';
 #else
   const char separator = ':';
 #endif
   std::string path = directory;
-  for (int i = 0; i < 48; i++)
+  for (int i = 0; i < count; i++)
     path += separator + std::string("no-such-plugin-directory-") +
             std::to_string(i);
   return path;
@@ -539,6 +540,30 @@ TEST(LongPluginSearchPath, ThroughLoadPluginsFindsThePluginsOfItsFirstDirectory)
   EXPECT_EQ(csoundCompileOrc(csound, kRequestedInstrument, 0), CSOUND_SUCCESS)
       << drainMessages(csound);
   csoundDestroy(csound);
+}
+
+// With a user plugin directory, the scan joined the search path in 2048
+// bytes, and a longer path lost its end: the user directory's plugins with it.
+TEST(LongPluginSearchPath, KeepsTheUserPluginDirectory) {
+  const std::string user = directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN);
+  const std::string option = searchPathOption(
+      followedByOtherDirectories("no-such-plugin-directory", 96));
+  EXPECT_EXIT(
+      {
+#ifdef WIN32
+        _putenv_s("CS_USER_PLUGINDIR", user.c_str());
+#else
+        setenv("CS_USER_PLUGINDIR", user.c_str(), 1);
+#endif
+        CSOUND *csound = createWithoutRcFile();
+        if (csoundSetOption(csound, option.c_str()) != CSOUND_SUCCESS)
+          std::exit(2);
+        const int32_t compiled =
+            csoundCompileOrc(csound, kRequestedInstrument, 0);
+        csoundDestroy(csound);
+        std::exit(compiled == CSOUND_SUCCESS ? 0 : 1);
+      },
+      ::testing::ExitedWithCode(0), "");
 }
 
 #ifdef CSOUND_TEST_HAS_TWO_COPIES

@@ -680,14 +680,15 @@ int32_t csoundLoadModules(CSOUND *csound)
   DIR *dir;
   struct dirent *f;
   const char *dname, *fname, *end;
-  enum { searchpath_buflen = 2048, buflen = 1024 };
+  enum { buflen = 1024 };
   char buf[buflen];
   int32_t i, n, len, err = CSOUND_SUCCESS;
   char *dname1;
   int32_t read_directory = 1;
   int32_t warn_bad_directory = 0;
   const char *userplugindir_start = NULL;
-  char searchpath_buf[searchpath_buflen];
+  char *searchpath = NULL;  /* dname and the user plugin directory */
+  size_t size;
   char sep =
 #ifdef WIN32
     ';';
@@ -732,9 +733,11 @@ int32_t csoundLoadModules(CSOUND *csound)
   // The user set a search path for plugins via an env variable. Paths here
   // should be absolute and should not need variable expansion
   if(userplugindir != NULL) {
-    snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, userplugindir);
-    userplugindir_start = searchpath_buf + pos + 1;
-    dname = searchpath_buf;
+    size = pos + strlen(userplugindir) + 2;
+    searchpath = csound->Malloc(csound, size);
+    snprintf(searchpath, size, "%s%c%s", dname, sep, userplugindir);
+    userplugindir_start = searchpath + pos + 1;
+    dname = searchpath;
   } else {
 #ifdef CS_DEFAULT_USER_PLUGINDIR
     // Use default user path
@@ -751,16 +754,16 @@ int32_t csoundLoadModules(CSOUND *csound)
     size_t prefixlen = prefix ? strlen(prefix) : 0;
     size_t userplugindirlen = userplugindir ? strlen(userplugindir) : 0;
 
-    if(pos + prefixlen + 2 > searchpath_buflen - 1) {
-      csound->ErrorMsg(csound, "%s", Str("Plugins search path too long\n"));
-    } else if(userplugindirlen + prefixlen + 1 >= buflen) {
+    if(userplugindirlen + prefixlen + 1 >= buflen) {
       csound->ErrorMsg(csound, "%s", Str("User plugin dir too long\n"));
     } else {
 
       snprintf(buf, buflen, "%s/%s", prefix, userplugindir);
       if(_dir_exists(buf)) {
-        snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, buf);
-        dname = searchpath_buf;
+        size = pos + strlen(buf) + 2;
+        searchpath = csound->Malloc(csound, size);
+        snprintf(searchpath, size, "%s%c%s", dname, sep, buf);
+        dname = searchpath;
       }
     }
 #endif
@@ -860,6 +863,7 @@ int32_t csoundLoadModules(CSOUND *csound)
     closedir(dir);
     csound->Free(csound, dname1);
   }
+  csound->Free(csound, searchpath);
   return (err == CSOUND_INITIALIZATION ? CSOUND_ERROR : err);
 #else
   return CSOUND_SUCCESS;
