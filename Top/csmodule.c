@@ -1060,7 +1060,8 @@ static int32_t load_init_module(CSOUND *csound, const char *fname){
   err = init_module(csound, (csoundModule_t*) csound->csmodule_db);
   memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
 
-  return err;
+  /* not CSOUND_ERROR, which the scan takes for a file that is no plugin */
+  return (err == CSOUND_SUCCESS ? CSOUND_SUCCESS : CSOUND_INITIALIZATION);
 }
 
 int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){

@@ -366,6 +366,23 @@ TEST(PluginLoadedAgain, StartsNoOtherPlugin) {
   csoundDestroy(csound);
 }
 
+// The directory's scan took a plugin that fails to start for a file that is
+// no plugin, and csoundLoadPlugins() returned CSOUND_SUCCESS.
+TEST(PluginThatFailsToStart, FailsCsoundLoadPlugins) {
+  CSOUND *csound = createWithoutRcFile();
+  ASSERT_EQ(csoundSetOption(csound,
+                            searchPathOption(directoryOf(
+                                CSOUND_TEST_REQUESTED_OPCODE_PLUGIN)).c_str()),
+            CSOUND_SUCCESS);
+  EXPECT_EQ(csoundLoadPlugins(
+                csound, directoryOf(CSOUND_TEST_FAILING_INIT_PLUGIN).c_str()),
+            CSOUND_ERROR);
+  const std::string messages = drainMessages(csound);
+  EXPECT_NE(messages.find("Error starting module"), std::string::npos)
+      << messages;
+  csoundDestroy(csound);
+}
+
 // A plugin whose csoundModuleCreate() fails was still linked, so Csound
 // started it and destroyed it. The fixture aborts if either happens, so each
 // route runs in a process of its own.
