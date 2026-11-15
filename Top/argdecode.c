@@ -26,6 +26,9 @@
 #include "csmodule.h"
 #include "corfile.h"
 #include <ctype.h>
+#if !defined(WIN32) && !defined(BARE_METAL)
+#include <sys/stat.h>
+#endif
 
 static void list_audio_devices(CSOUND *csound, int32_t output);
 static void list_midi_devices(CSOUND *csound, int32_t output);
@@ -1409,6 +1412,24 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   return 1;
 }
 
+/* Whether two open files are one file: the same name, or, where the system
+   says so, another name for it, such as ./opts, or a link to it. Windows has
+   the names alone: st_ino is 0 there, and a stream may belong to another C
+   runtime, whose descriptors this one cannot look up. */
+static int32_t same_file(const CSFILE *a, const CSFILE *b) {
+  if (strcmp(a->fullName, b->fullName) == 0)
+    return 1;
+#if !defined(WIN32) && !defined(BARE_METAL)
+  if (a->type == CSFILE_STD && b->type == CSFILE_STD &&
+      a->f != NULL && b->f != NULL) {
+    struct stat sa, sb;
+    return fstat(fileno(a->f), &sa) == 0 && fstat(fileno(b->f), &sb) == 0 &&
+           sa.st_ino != 0 && sa.st_dev == sb.st_dev && sa.st_ino == sb.st_ino;
+  }
+#endif
+  return 0;
+}
+
 /* An indirection file stays open while its options are read, so one open
    already is being read: it names itself, or names a file that names it. */
 static int32_t indirection_is_open(CSOUND *csound, const void *fd) {
@@ -1416,7 +1437,7 @@ static int32_t indirection_is_open(CSOUND *csound, const void *fd) {
   int32_t found = 0;
   csoundSpinLock(&csound->open_files_lock);
   for (p = (const CSFILE *)csound->open_files; p != NULL && !found; p = p->nxt)
-    found = p != file && strcmp(p->fullName, file->fullName) == 0;
+    found = p != file && same_file(file, p);
   csoundSpinUnLock(&csound->open_files_lock);
   return found;
 }

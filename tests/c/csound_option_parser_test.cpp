@@ -6,6 +6,7 @@
 #include <fstream>
 #include <random>
 #include <string>
+#include <vector>
 #include "gtest/gtest.h"
 #include "csound.h"
 #include "csoundCore.h"
@@ -201,28 +202,64 @@ TEST_F (OptionParserTests, testJumpAfterTheDecodeFreesNothingTwice)
 
 TEST_F (OptionParserTests, testIndirectionFileOptionsAreRead)
 {
+    /* The file names a second one, which is read too: not a cycle. */
     namespace fs = std::filesystem;
     const fs::path file = fs::temp_directory_path () /
         ("csound-options-" + std::to_string (std::random_device {} ()));
-    std::ofstream (file) << "--env:FROM_AT_FILE=1\n";
+    const fs::path second = file.string () + "-second";
+    std::ofstream (file) << "--env:FROM_AT_FILE=1 -@ \"" << second.string ()
+                         << "\"\n";
+    std::ofstream (second) << "--env:FROM_AT_SECOND=1\n";
     const std::string option = "-@ \"" + file.string () + "\"";
     EXPECT_EQ (csoundSetOption (csound, option.c_str ()), 0);
+    fs::remove (second);
     fs::remove (file);
     EXPECT_STREQ (csoundGetEnv (csound, "FROM_AT_FILE"), "1");
+    EXPECT_STREQ (csoundGetEnv (csound, "FROM_AT_SECOND"), "1");
 }
 
 TEST_F (OptionParserTests, testIndirectionFileThatNamesItselfIsRefused)
 {
+    /* Refused under any name: as given, through ./, a hard link and a
+       symbolic one. Each read appends to FROM_AT_CHAIN. Off Windows, which
+       compares names alone, the file is read once under any of them. */
     namespace fs = std::filesystem;
     const fs::path file = fs::temp_directory_path () /
         ("csound-options-" + std::to_string (std::random_device {} ()));
+    const fs::path hard = file.string () + "-hard";
+    const fs::path link = file.string () + "-link";
+    std::ofstream (file) << "\n";
+    std::vector<fs::path> names = {
+        file, file.parent_path () / "." / file.filename ()};
+    std::error_code error; /* a file system without links skips them */
+    fs::create_hard_link (file, hard, error);
+    if (!error)
+        names.push_back (hard);
+#ifndef _WIN32
+    fs::create_symlink (file, link, error);
+    if (!error)
+        names.push_back (link);
+#endif
     const std::string option = "-@ \"" + file.string () + "\"";
-    std::ofstream (file) << option << "\n";
-    EXPECT_NE (csoundSetOption (csound, option.c_str ()), 0);
-    std::string messages;
-    for (; csoundGetMessageCnt (csound) > 0; csoundPopFirstMessage (csound))
-        messages += csoundGetFirstMessage (csound);
-    EXPECT_NE (messages.find ("is already being read"), std::string::npos);
+    for (const fs::path &name : names) {
+        std::ofstream (file) << "--env:FROM_AT_CHAIN+=x -@ \""
+                             << name.string () << "\"\n";
+        CSOUND *own = csoundCreate (NULL, NULL);
+        csoundCreateMessageBuffer (own, 0);
+        EXPECT_NE (csoundSetOption (own, option.c_str ()), 0) << name;
+        std::string messages;
+        for (; csoundGetMessageCnt (own) > 0; csoundPopFirstMessage (own))
+            messages += csoundGetFirstMessage (own);
+        EXPECT_NE (messages.find ("is already being read"), std::string::npos)
+            << name;
+#ifdef _WIN32
+        if (name == file)
+#endif
+            EXPECT_STREQ (csoundGetEnv (own, "FROM_AT_CHAIN"), "x") << name;
+        csoundDestroy (own);
+    }
+    fs::remove (link, error);
+    fs::remove (hard, error);
     fs::remove (file);
 }
 
