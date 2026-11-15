@@ -1816,7 +1816,10 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           buf[p] = '\0';
           //printf("macro: %s\n", buf);
           mm = find_definition(mm, buf);
-          if (mm==NULL) return 0;
+          if (UNLIKELY(mm==NULL)) {
+            csound->Message(csound, Str("Undefined macro: '%s'"), buf);
+            csound->LongJmp(csound, 1);
+          }
           if (c=='(') {
             expand_macroa(csound, mm, yyscanner);
             goto parseNumber;
@@ -1847,7 +1850,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           if (UNLIKELY(!type)) {
             csound->Message(csound, Str("illegal placement of operator %c in [] "
                                         "expression"), c);
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           if (*op == '*' || *op == '/' || *op == '%') {
             int v = operate(csound, *(pv-1), *pv, *op);
@@ -1863,7 +1866,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           if (UNLIKELY(!type)) {
             csound->Message(csound, Str("illegal placement of operator %c in [] "
                                         "expression"), c);
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           if (*op == '|' || *op == '&' || *op == '#') {
             int v = operate(csound, *(pv-1), *pv, *op);
@@ -1878,7 +1881,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           if (UNLIKELY(type)) {
             csound->Message(csound,
                             Str("illegal placement of '(' in [] expression"));
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           type = 0;
           *++op = c;
@@ -1888,7 +1891,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           if (UNLIKELY(!type)) {
             csound->Message(csound,
                             Str("missing operand before ')' in [] expression"));
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           while (*op != '(' && *op != '[') {
             int v = operate(csound, *(pv-1), *pv, *op);
@@ -1909,7 +1912,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           if (UNLIKELY(type)) {
             csound->Message(csound,
                             Str("illegal placement of '[' in [] expression"));
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           type = 1;
           {
@@ -1928,7 +1931,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           if (UNLIKELY(!type)) {
             csound->Message(csound,
                             Str("missing operand before closing bracket in []"));
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           while (*op != '[' && *op != '(') {
             int v = operate(csound, *(pv-1), *pv, *op);
@@ -1957,7 +1960,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           csound->Message(csound,
                           Str("illegal character %c(%.2x) in [] expression"),
                           c, c);
-          return 0;
+          csound->LongJmp(csound, 1);
         }
       } while (c != '~');
       return pv == vv ? 0 : *pv;

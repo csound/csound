@@ -105,6 +105,11 @@ const Refused refused[] = {
     {"{ [1/0] N\ni 1 0 0\n}", "division error"},
     {"{ [1%0] N\ni 1 0 0\n}", "division error"},
     {"{ [(0-2147483647-1)/(0-1)] N\ni 1 0 0\n}", "division error"},
+    /* An error inside a nested [] gave 0, and the count went on with it: the
+       first two played once. */
+    {"{ [1+[*2]] N\ni 1 0 0\n}", "illegal placement of operator *"},
+    {"{ [3*[x]+1] N\ni 1 0 0\n}", "illegal character x"},
+    {"{ [2+[$U]] N\ni 1 0 0\n}", "Undefined macro: 'U'"},
     {"r 2\n{ 2 N\ns\n}", "repeat and section cross"},
     /* A comment hides an s or r from the lexer until the repeat plays. */
     {"r 2\n/**/r 2\n{ 2 N\n/**/s\n}\n", "repeat and section cross"},
