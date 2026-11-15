@@ -1833,7 +1833,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           //printf("bodmas:arith %d type %d\n", c, type);
           if (!type)
             goto parseNumber;
-          if (*op != '[' && *op != '(') {
+          while (*op != '[' && *op != '(') {
             int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
