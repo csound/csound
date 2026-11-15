@@ -1179,7 +1179,8 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
         case '+': case '-':
           if (!type)
             goto parseNumber;
-          if (top != '[' && top != '(') {
+          while (expr.ops[expr.opCount - 1] != '[' &&
+                 expr.ops[expr.opCount - 1] != '(') {
             score_expr_reduce(csound, &expr);
           }
           type = 0;
