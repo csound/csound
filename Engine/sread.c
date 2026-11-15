@@ -324,9 +324,19 @@ static int32_t read_section(CSOUND *csound) /* reads from SCOREIN    */
             char    *tmp = p;
             tt = csoundStrtod(p, &tmp);
             //printf("tt=%lf q=%c\n", tt, q);
-            csound->randSeed1 = (int)tt;
-            csound->Message(csound, Str("seed from score %d\n"),
-                            csound->randSeed1);
+            /* A seed is from 0 to 2^32, which an int does not hold, and
+               converting one past it was undefined. It is truncated, as it
+               was, and folded into the generator's range as seed folds what
+               it is given; 0, which would keep the generator at 0, is 1, as
+               a y without a seed is the one that takes the clock. */
+            if (UNLIKELY(!(tt > -1.0 && tt < 4294967296.0)))
+              sreaderr(csound, Str("y: seed %g out of range, ignored\n"), tt);
+            else {
+              uint32_t seed = (uint32_t) tt % (uint32_t) 0x7FFFFFFE;
+              csound->randSeed1 = seed == 0 ? 1 : (int32_t) seed;
+              csound->Message(csound, Str("seed from score %d\n"),
+                              csound->randSeed1);
+            }
           }
           else {
             uint32_t tmp = (uint32_t) csound->GetRandomSeedFromTime();
