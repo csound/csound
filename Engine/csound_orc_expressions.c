@@ -1460,10 +1460,12 @@ static int32_t resolve_struct_array_member_path(CSOUND* csound,
 
   path->arrayExpr = arrayExpr;
   path->rootStructType = currentStructType;
-  /* an index that reads an array at a k index changes too: fs[iArr[kI]] */
+  /* an index that reads an array at a k index changes too: fs[iArr[kI]],
+     and so does an array member of an element read at one: hs[kI].points[1] */
   path->hasKRateIndex =
     array_has_k_rate_index(csound, arrayExpr->right, typeTable) ||
-    tree_has_k_rate_array_index(csound, arrayExpr->right, typeTable);
+    tree_has_k_rate_array_index(csound, arrayExpr->right, typeTable) ||
+    tree_has_k_rate_array_index(csound, arrayExpr->left, typeTable);
 
   for (i = rawMemberCount - 1; i >= 0; i--) {
     int32_t memberIndex = -1;
@@ -1492,6 +1494,26 @@ static int32_t resolve_struct_array_member_path(CSOUND* csound,
   return path->memberCount > 0;
 }
 
+/* At i indices, a member of a type that changes in performance, a k, a B
+   or an a, or an array of one, is read in each cycle too, as an element of
+   a k[], a B[] or an a[] is: through ##array_get_struct_k, where
+   ##array_get_struct reads at init only. At a k index, the read runs in
+   performance in any case. An array member's element, hs[1].points[1], is
+   left as it was: the member is read from its struct at init only, so
+   reading its element again in each cycle would change nothing. */
+static int32_t struct_member_follows_at_i_index(
+  const STRUCT_ARRAY_MEMBER_PATH* path, int32_t initContext)
+{
+  const CS_VARIABLE* member = path->memberVars[path->memberCount - 1];
+  const CS_TYPE* type = member->varType == &CS_VAR_TYPE_ARRAY ?
+    member->subType : member->varType;
+
+  return !initContext && !path->hasKRateIndex &&
+    !array_target_missing_lexeme(path->arrayExpr) &&
+    (type == &CS_VAR_TYPE_K || type == &CS_VAR_TYPE_B ||
+     type == &CS_VAR_TYPE_A);
+}
+
 static TREE* create_ident_leaf(CSOUND* csound,
                                int32_t line,
                                uint64_t locn,
@@ -1516,9 +1538,10 @@ static TREE* create_struct_array_get_call(CSOUND* csound,
                                           int32_t line,
                                           uint64_t locn,
                                           const char* outArg,
-                                          TREE* arrayExpr)
+                                          TREE* arrayExpr,
+                                          const char* opname)
 {
-  TREE* getOp = create_opcode_token(csound, "##array_get_struct");
+  TREE* getOp = create_opcode_token(csound, (char*)opname);
   getOp->type = T_OPCALL;
   getOp->line = line;
   getOp->locn = locn;
@@ -1653,7 +1676,8 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                    create_struct_array_get_call(csound, current->line,
                                                 current->locn,
                                                 structTemps[0],
-                                                path.arrayExpr));
+                                                path.arrayExpr,
+                                                "##array_get_struct"));
 
   const CS_TYPE* memberType = path.memberVars[path.memberCount - 1]->varType;
   int32_t initAssignment = !path.hasKRateIndex &&
@@ -1762,9 +1786,12 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
                                     typeTable->localPool->synthArgCount++,
                                     typeTable);
   readOps = tree_append(readOps,
-                           create_struct_array_get_call(csound, line, locn,
-                                                        currentStructArg,
-                                                        path.arrayExpr));
+                           create_struct_array_get_call(
+                             csound, line, locn, currentStructArg,
+                             path.arrayExpr,
+                             struct_member_follows_at_i_index(&path, initContext)
+                               ? "##array_get_struct_k"
+                               : "##array_get_struct"));
 
   for (i = 0; i < path.memberCount - 1; i++) {
     char* nextStructArg = create_out_arg(csound,
