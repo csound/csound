@@ -348,6 +348,43 @@ void setProcessEnv(const char *name, const char *value) {
 #endif
 }
 
+void unsetProcessEnv(const char *name) {
+#ifdef WIN32
+  _putenv_s(name, "");  // an empty value removes it
+#else
+  unsetenv(name);
+#endif
+}
+
+// The plugin directory's scan also takes CS_USER_PLUGINDIR, which it reads
+// with getenv(), or the default user plugin directory when that is not set.
+// For the life of a test, it names a directory that is not there, so only the
+// fixtures' directories are scanned. Not empty: on Windows, _putenv_s()
+// removes a variable given an empty value.
+class NoUserPluginDirectory {
+public:
+  NoUserPluginDirectory() {
+    const char *value = getenv(kName);
+    saved_ = value != nullptr;
+    if (saved_)
+      value_ = value;
+    setProcessEnv(kName, "no-such-user-plugin-directory");
+  }
+  ~NoUserPluginDirectory() {
+    if (saved_)
+      setProcessEnv(kName, value_.c_str());
+    else
+      unsetProcessEnv(kName);
+  }
+  NoUserPluginDirectory(const NoUserPluginDirectory &) = delete;
+  NoUserPluginDirectory &operator=(const NoUserPluginDirectory &) = delete;
+
+private:
+  static constexpr const char *kName = "CS_USER_PLUGINDIR";
+  bool saved_;
+  std::string value_;
+};
+
 // An instance that reads no rc file of the user's, with a message buffer.
 CSOUND *createWithoutRcFile() {
   csoundSetGlobalEnv("CSOUND7RC", "");
@@ -362,6 +399,7 @@ CSOUND *createWithoutRcFile() {
 // directory loaded a second time started the newest module instead, here one
 // that fails to start.
 TEST(PluginLoadedAgain, StartsNoOtherPlugin) {
+  const NoUserPluginDirectory noUserPlugins;
   const std::string requested =
       directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN);
   CSOUND *csound = createWithoutRcFile();
@@ -380,6 +418,7 @@ TEST(PluginLoadedAgain, StartsNoOtherPlugin) {
 // The directory's scan took a plugin that fails to start for a file that is
 // no plugin, and csoundLoadPlugins() returned CSOUND_SUCCESS.
 TEST(PluginThatFailsToStart, FailsCsoundLoadPlugins) {
+  const NoUserPluginDirectory noUserPlugins;
   CSOUND *csound = createWithoutRcFile();
   ASSERT_EQ(csoundSetOption(csound,
                             searchPathOption(directoryOf(
@@ -400,6 +439,7 @@ TEST(PluginThatFailsToStart, FailsCsoundLoadPlugins) {
 namespace {
 void expectNeitherStartedNorDestroyed(
     const std::vector<std::string> &options) {
+  const NoUserPluginDirectory noUserPlugins;
   EXPECT_EXIT(
       {
         csoundSetGlobalEnv("CSOUND7RC", "");  // no rc file of the user's
@@ -439,6 +479,7 @@ TEST(PluginThatFailsToLoad, ThroughOpcodeDirIsNeitherStartedNorDestroyed) {
 // the failing-create fixture aborts if it is destroyed.
 namespace {
 void expectOpcodeDirToFail(const char *plugin) {
+  const NoUserPluginDirectory noUserPlugins;
   const std::string searchPath =
       searchPathOption(directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN));
   const std::string option = "--opcode-dir=" + directoryOf(plugin);
@@ -475,6 +516,7 @@ TEST(PluginThatFailsToStart, StopsOpcodeDir) {
 // when a plugin there fails: with no frame for it, the host crashed.
 namespace {
 void expectLoadPluginsFirstToFail(const char *plugin) {
+  const NoUserPluginDirectory noUserPlugins;
   const char *variable =
       sizeof(cs_float) == sizeof(float) ? "OPCODE7DIR" : "OPCODE7DIR64";
   const std::string directory = directoryOf(plugin);
@@ -526,6 +568,7 @@ const char *kRequestedInstrument =
 } // namespace
 
 TEST(LongPluginSearchPath, FindsThePluginsOfItsFirstDirectory) {
+  const NoUserPluginDirectory noUserPlugins;
   CSOUND *csound = createWithoutRcFile();
   ASSERT_EQ(csoundSetOption(csound,
                             searchPathOption(followedByOtherDirectories(
@@ -539,6 +582,7 @@ TEST(LongPluginSearchPath, FindsThePluginsOfItsFirstDirectory) {
 }
 
 TEST(LongPluginSearchPath, ThroughLoadPluginsFindsThePluginsOfItsFirstDirectory) {
+  const NoUserPluginDirectory noUserPlugins;
   CSOUND *csound = createWithoutRcFile();
   ASSERT_EQ(csoundSetOption(
                 csound, searchPathOption("no-such-plugin-directory").c_str()),
