@@ -1058,6 +1058,7 @@ int32_t midi_file_rewind(CSOUND *csound, void *p) {
     mf->currentTempo = initial_tempo(mf);
     mf->eventListIndex = 0;
     mf->tempoListIndex = 0;
+    mf->rewound = 1;
   }
   return OK;
 }

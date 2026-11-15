@@ -526,6 +526,20 @@ TEST_F(MidiOrchestraFileTests, RewindDoesNotStopTheFileClock)
   message({{}}, 0xB0, 1, 9, 2);
 }
 
+TEST_F(MidiOrchestraFileTests, AFileTheOrchestraRewindsReadsItsFirstTickFirst)
+{
+  // Rewound by midifilerewind 50 cycles in, the file reads its tick 0 in
+  // the next cycle, and CC 9 = 1, at its tick 1, in the one after.
+  message({{}}, 0xB0, 1, 9, 1);
+  for (int i = 0; i < 49; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  ASSERT_EQ(csoundCompileOrc(csound, "midifilerewind 1\n", 0), 0);
+  for (const char *name : {"status", "channel", "data1", "data2"})
+    csoundSetControlChannel(csound, name, 0);
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
 TEST_F(MidiOrchestraFileTests, ALoopedFilePlaysToItsEndBeforeItStartsAgain)
 {
   ASSERT_EQ(csoundCompileOrc(csound, "midifileloop 1, 1\n", 0), 0);
