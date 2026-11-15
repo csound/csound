@@ -337,6 +337,17 @@ std::string searchPathOption(const std::string &path) {
                                             : "--env:OPCODE7DIR64=") + path;
 }
 
+// Sets a variable of the process environment, which the loader reads with
+// getenv(). MSVC takes no directive inside a test macro's argument, so the
+// platform's part is done here.
+void setProcessEnv(const char *name, const char *value) {
+#ifdef WIN32
+  _putenv_s(name, value);
+#else
+  setenv(name, value, 1);
+#endif
+}
+
 // An instance that reads no rc file of the user's, with a message buffer.
 CSOUND *createWithoutRcFile() {
   csoundSetGlobalEnv("CSOUND7RC", "");
@@ -550,11 +561,7 @@ TEST(LongPluginSearchPath, KeepsTheUserPluginDirectory) {
       followedByOtherDirectories("no-such-plugin-directory", 96));
   EXPECT_EXIT(
       {
-#ifdef WIN32
-        _putenv_s("CS_USER_PLUGINDIR", user.c_str());
-#else
-        setenv("CS_USER_PLUGINDIR", user.c_str(), 1);
-#endif
+        setProcessEnv("CS_USER_PLUGINDIR", user.c_str());
         CSOUND *csound = createWithoutRcFile();
         if (csoundSetOption(csound, option.c_str()) != CSOUND_SUCCESS)
           std::exit(2);
