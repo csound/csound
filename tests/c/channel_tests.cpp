@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <atomic>
+#include <chrono>
 #include <filesystem>
+#include <functional>
 #include <string>
 #include <thread>
 #include <vector>
@@ -1043,6 +1045,108 @@ TEST_F (ChannelTests, StructArrayChannelDatasizeDuringSharing)
     EXPECT_GT(csoundGetChannelDatasize(csound, "written"), 0);
     EXPECT_EQ(csoundGetChannelDatasize(csound, "source"),
               csoundGetChannelDatasize(csound, "written"));
+}
+
+namespace {
+// Runs writer on a second thread while this one holds the channel's lock.
+// Once started() says that the writer has reached the call under test, it
+// gives the writer 100 ms more, and returns whether the writer returned
+// before the lock was released. whileLocked runs just before the release.
+bool returnsUnderChannelLock(CSOUND *csound, const char *name,
+                             const std::function<void()> &writer,
+                             const std::function<bool()> &started,
+                             const std::function<void()> &whileLocked)
+{
+    std::atomic<bool> returned{false};
+    csoundLockChannel(csound, name);
+    std::thread thread([&]() {
+        writer();
+        returned.store(true);
+    });
+    for (int i = 0; i < 1000 && !started(); i++)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    EXPECT_TRUE(started());
+    for (int i = 0; i < 10 && !returned.load(); i++)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    const bool result = returned.load();
+    whileLocked();
+    csoundUnlockChannel(csound, name);
+    thread.join();
+    return result;
+}
+
+// Whether the orchestra has reached its chnset 1, "started".
+bool orchestraStarted(CSOUND *csound)
+{
+    return csoundGetControlChannel(csound, "started", nullptr) == 1;
+}
+}
+
+// chnarray replaces an array channel's storage under the channel's lock, so
+// a host holding the lock reads data that nothing replaces or frees.
+TEST_F (ChannelTests, ChnarrayWaitsForTheChannelLock)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        ksmps = 1
+        initial:i[] fillarray 4
+        chnarray "shared", 3, "k", initial
+        instr 1
+          larger:i[] fillarray 8
+          chnset 1, "started"
+          chnarray "shared", 3, "k", larger
+          turnoff
+        endin
+        schedule(1, 0, 1)
+    )ORC"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ARRAYDAT *shared = nullptr;
+    ASSERT_EQ(CSOUND_SUCCESS,
+              csoundGetChannelPtr(csound, (void **) &shared, "shared",
+                                  CSOUND_ARRAY_CHANNEL | CSOUND_INPUT_CHANNEL |
+                                  CSOUND_OUTPUT_CHANNEL));
+    const int32_t size = 4 * (int32_t) sizeof(cs_float);
+    const void *data = csoundGetArrayData(shared);
+    ASSERT_NE(nullptr, data);
+    ASSERT_EQ(size, csoundGetChannelDatasize(csound, "shared"));
+    int32_t lockedSize = 0;
+    const void *lockedData = nullptr;
+    EXPECT_FALSE(returnsUnderChannelLock(
+        csound, "shared", [&]() { csoundPerformKsmps(csound); },
+        [&]() { return orchestraStarted(csound); },
+        [&]() {
+            lockedSize = csoundGetChannelDatasize(csound, "shared");
+            lockedData = csoundGetArrayData(shared);
+        }));
+    EXPECT_EQ(size, lockedSize);
+    EXPECT_EQ(data, lockedData);
+    EXPECT_EQ(2 * size, csoundGetChannelDatasize(csound, "shared"));
+}
+
+TEST_F (ChannelTests, InitArrayChannelWaitsForTheChannelLock)
+{
+    ARRAYDAT *shared = nullptr;
+    ASSERT_EQ(CSOUND_SUCCESS,
+              csoundGetChannelPtr(csound, (void **) &shared, "shared",
+                                  CSOUND_ARRAY_CHANNEL | CSOUND_INPUT_CHANNEL |
+                                  CSOUND_OUTPUT_CHANNEL));
+    ASSERT_EQ(nullptr, csoundGetArrayData(shared));
+    const int32_t four = 4;
+    ARRAYDAT *initialised = nullptr;
+    const void *lockedData = &four;
+    std::atomic<bool> calling{false};
+    EXPECT_FALSE(returnsUnderChannelLock(
+        csound, "shared",
+        [&]() {
+            calling.store(true);
+            initialised = csoundInitArrayChannel(csound, "shared", "k", 1,
+                                                 &four);
+        },
+        [&]() { return calling.load(); },
+        [&]() { lockedData = csoundGetArrayData(shared); }));
+    EXPECT_EQ(nullptr, lockedData);
+    EXPECT_EQ(shared, initialised);
+    EXPECT_EQ(4 * (int32_t) sizeof(cs_float),
+              csoundGetChannelDatasize(csound, "shared"));
 }
 
 TEST_F (ChannelTests, ControlChannelHintsRelease)

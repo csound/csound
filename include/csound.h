@@ -1161,6 +1161,8 @@ extern "C" {
    * returns the ARRAYDAT for the requested channel or NULL on error
    * NB: if the channel exists and has already been initialised,
    * this function is a non-op.
+   * It takes the channel's lock, so it cannot be called between
+   * csoundLockChannel() and csoundUnlockChannel() on the same channel.
    */
   PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
                                           const char *type, int32_t dimensions,
