@@ -1149,6 +1149,66 @@ TEST_F (ChannelTests, InitArrayChannelWaitsForTheChannelLock)
               csoundGetChannelDatasize(csound, "shared"));
 }
 
+// At init, chnset gives an empty array channel its storage under the
+// channel's lock.
+TEST_F (ChannelTests, ChnsetInitWaitsForTheChannelLock)
+{
+    ARRAYDAT *shared = nullptr;
+    ASSERT_EQ(CSOUND_SUCCESS,
+              csoundGetChannelPtr(csound, (void **) &shared, "shared",
+                                  CSOUND_ARRAY_CHANNEL | CSOUND_INPUT_CHANNEL |
+                                  CSOUND_OUTPUT_CHANNEL));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        ksmps = 1
+        instr 1
+          values:k[] fillarray 1, 2, 3
+          chnset 1, "started"
+          chnset values, "shared"
+          turnoff
+        endin
+        schedule(1, 0, 1)
+    )ORC"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(nullptr, csoundGetArrayData(shared));
+    const void *lockedData = &shared;
+    // The k-rate chnset waits for the lock too, at develop as well.
+    returnsUnderChannelLock(
+        csound, "shared", [&]() { csoundPerformKsmps(csound); },
+        [&]() { return orchestraStarted(csound); },
+        [&]() { lockedData = csoundGetArrayData(shared); });
+    EXPECT_EQ(nullptr, lockedData);
+    EXPECT_EQ(3 * (int32_t) sizeof(cs_float),
+              csoundGetChannelDatasize(csound, "shared"));
+}
+
+// At init, chnget reads an array channel's shape under the channel's lock.
+TEST_F (ChannelTests, ChngetInitWaitsForTheChannelLock)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"ORC(
+        ksmps = 1
+        dimensions:i[] fillarray 4
+        chnarray "shared", 3, "k", dimensions
+        instr 1
+          chnset 1, "started"
+          values:k[] chnget "shared"
+          chnset lenarray(values), "length"
+          turnoff
+        endin
+        schedule(1, 0, 1)
+    )ORC"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    cs_float lockedLength = -1;
+    // The k-rate chnget waits for the lock too, at develop as well.
+    returnsUnderChannelLock(
+        csound, "shared", [&]() { csoundPerformKsmps(csound); },
+        [&]() { return orchestraStarted(csound); },
+        [&]() {
+            lockedLength = csoundGetControlChannel(csound, "length", nullptr);
+        });
+    EXPECT_EQ(0, lockedLength);
+    EXPECT_EQ(4, csoundGetControlChannel(csound, "length", nullptr));
+}
+
 TEST_F (ChannelTests, ControlChannelHintsRelease)
 {
     csoundSetControlChannel(csound, "gain", 0);

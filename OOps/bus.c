@@ -2941,10 +2941,62 @@ static inline int32_t copy_array(CSOUND *csound, ARRAYDAT *out,
   return result;
 }
 
+/* Give the empty array adat the shape of the array channel chn, and give
+   chn adat's element type if it has none, with no allocation under the
+   channel's lock: the shape is copied under the lock into sizes allocated
+   before it, for adat's declared number of dimensions and then for chn's
+   if they differ, and adat is allocated after it. */
+static int32_t init_array_like_channel(CSOUND *csound, ARRAYDAT *adat,
+                                       ARRAYDAT *chn, spin_lock_t *lock)
+{
+  ARRAYDAT shape = {0};
+  int32_t dimensions = adat->dimensions > 0 ? adat->dimensions : 0;
+  int32_t result;
+
+  for (;;) {
+    cs_float *data;
+
+    if (dimensions > 0) {
+      shape.sizes = (int32_t *)csound->Calloc(
+        csound, sizeof(int32_t) * (size_t)dimensions);
+      if (UNLIKELY(shape.sizes == NULL))
+        return csound_array_init_resize_error(csound);
+    }
+    shape.dimensions = dimensions;
+    csoundSpinLock(lock);
+    if (chn->arrayType == NULL)
+      chn->arrayType = adat->arrayType;
+    data = chn->data;
+    dimensions = chn->dimensions;
+    if (data != NULL && dimensions == shape.dimensions &&
+        (dimensions == 0 || chn->sizes != NULL)) {
+      if (dimensions > 0)
+        memcpy(shape.sizes, chn->sizes,
+               sizeof(int32_t) * (size_t)dimensions);
+      shape.arrayType = chn->arrayType;
+      csoundSpinUnLock(lock);
+      /* tabinit_like() only compares it with adat's, which is NULL */
+      shape.data = data;
+      break;
+    }
+    csoundSpinUnLock(lock);
+    csound->Free(csound, shape.sizes);
+    shape.sizes = NULL;
+    if (data == NULL)
+      return csound->InitError(csound, Str("array channel not allocated\n"));
+    if (UNLIKELY(dimensions < 0 || dimensions == shape.dimensions))
+      return csound_array_init_resize_error(csound);
+  }
+  result = tabinit_like(csound, adat, &shape);
+  csound->Free(csound, shape.sizes);
+  return result == OK ? OK : csound_array_init_resize_error(csound);
+}
+
 static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int32_t type) {
-  int32_t   err;
+  int32_t   err, allocated;
   CHNENTRY *chn;
   ARRAYDAT *adat = (ARRAYDAT *) p->arg, *adat_chn;
+  ARRAYDAT prepared = {0};
   err = csoundGetChannelPtr(csound, (void **)&(p->fp),
                             (char*) p->iname->data,
                             CSOUND_ARRAY_CHANNEL | type);
@@ -2961,21 +3013,21 @@ static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int32_t type) {
     chn->var->dimensions = adat->dimensions;
   }
   adat_chn = (ARRAYDAT *) p->fp;
+  if(adat->data == NULL)
+    return init_array_like_channel(csound, adat, adat_chn, p->lock);
+
+  csoundSpinLock(p->lock);
   if(adat_chn->arrayType == NULL)
    adat_chn->arrayType = adat->arrayType;
-
-  if(adat->data == NULL) {
-    if(adat_chn->data == NULL)
-      return csound->InitError(csound, Str("array channel not allocated\n"));
-    else if (UNLIKELY(tabinit_like(csound, adat, adat_chn) != OK))
+  prepared.arrayType = adat_chn->arrayType;
+  allocated = adat_chn->data != NULL;
+  csoundSpinUnLock(p->lock);
+  if(!allocated) {
+    if (UNLIKELY(tabinit_like(csound, &prepared, adat) != OK)) {
+      csound_free_array_storage(csound, &prepared);
       return csound_array_init_resize_error(csound);
-  }
-
-  if(adat_chn->data == NULL) {
-    if(adat->data == NULL)
-      return csound->InitError(csound, Str("array variable not allocated\n"));
-    else if (UNLIKELY(tabinit_like(csound, adat_chn, adat) != OK))
-      return csound_array_init_resize_error(csound);
+    }
+    publish_array_channel(csound, adat_chn, &prepared, p->lock, 0);
   }
   return OK;
 }
