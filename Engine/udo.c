@@ -3550,9 +3550,14 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   CS_VAR_MEM   *pfield;
   int32_t     n, init_op, inarg_ofs;
   INSTANCE_INIT_RESULT initResult;
-  int32_t jumped;
+  int32_t jumped, landed;
+  INIT_LANDING landing;
   INSDS  *pip = p->h.insdshead;
 
+  /* Entered after a jump, by a caller that goes on: no opcode runs, and
+     nothing is taken or allocated. */
+  if (init_jump_pending(csound))
+    return NOTOK;
   init_op = (p->h.perf == NULL ? 1 : 0);
   inarg_ofs = (init_op ? 0 : SUBINSTNUMOUTS);
   if (UNLIKELY(instno < 0)) return NOTOK;
@@ -3701,11 +3706,21 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   csound->ids = (OPDS *)p->ip;
   csound->mode = 1;
   p->ip->init_pass++;
+  /* A jump from its instrument's init, on a thread where an init pass would
+     take it, lands here, and the subinstrument's init ends. */
+  landed = init_landing_push(csound, &landing);
+  if (landed) {
+    if (setjmp(landing.target))
+      goto finish_init;
+  }
   while ((csound->ids = csound->ids->nxti) != NULL &&
          !init_jump_pending(csound)) {
     csound->op = csound->ids->optext->t.oentry->opname;
     (*csound->ids->init)(csound, csound->ids);
   }
+ finish_init:
+  if (landed)
+    init_landing_pop(&landing);
   csound->mode = 0;
   initResult = instance_init_finish(csound, p->ip);
   /* stopped by a jump, as after an init error: not ready */

@@ -824,8 +824,9 @@ void realtime_message_queue_stop(CSOUND *csound)
 /* Where a fatal jump lands on the realtime init thread. exitjmp belongs to
    the thread that performs, and a jump to it from here went on running that
    thread's frames on this one. So each pass on this thread, an init_pass, a
-   reinit_pass or init_instr0's for global code, sets a landing, as does a
-   UDO's init (useropcdset), which runs its body's opcodes. The innermost
+   reinit_pass or init_instr0's for global code, sets a landing, as do a
+   UDO's and a subinstrument's init (useropcdset, subinstrset_), which run
+   their opcodes themselves. The innermost
    takes the jump: it puts back what it set, releases its level of the init
    mutex and ends in error, and what called it unwinds as from an init error.
    From then on, no pass on this thread runs another opcode: the performance

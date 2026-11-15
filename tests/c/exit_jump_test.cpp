@@ -352,6 +352,21 @@ TEST_P(RealtimeInitJumpTests, AUdoThatJumpsInCompiledGlobalCodeEndsItsInit)
   EXPECT_TRUE(initMutexFree());
 }
 
+/* The same for subinstr: its instrument's init ends, so its instance can be
+ * taken back. Its init stayed open for good.
+ */
+TEST_P(RealtimeInitJumpTests, ASubinstrThatJumpsInCompiledGlobalCodeEndsItsInit)
+{
+  start("instr 2\n exitnow 3\nendin\n", nullptr);
+  EXPECT_EQ(csoundCompileOrc(csound, "subinstrinit 2\n", 0),
+            CSOUND_EXITJMP_SUCCESS - 3);
+  INSDS *child = csound->engineState.instrtxtp[2]->instance;
+  ASSERT_NE(child, nullptr);
+  EXPECT_EQ(ATOMIC_GET(child->init_running), 0);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_TRUE(initMutexFree());
+}
+
 INSTANTIATE_TEST_SUITE_P(Modes, RealtimeInitJumpTests, ::testing::Bool(),
                          [](const ::testing::TestParamInfo<bool> &info) {
                            return info.param ? "Realtime" : "Default";
