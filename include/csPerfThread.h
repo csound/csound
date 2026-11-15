@@ -166,7 +166,13 @@ extern "C" {
      stop() was called, and a negative value if an error occured.
      Also releases any resources associated with the performance thread
      object.
-
+     Must not be called from a callback the performance runs. On the
+     performance thread itself, i.e. from a message callback, from the
+     process callback or from a Csound callback called there, it cannot
+     wait for itself: the call is ignored and returns the current status,
+     with a warning the first time. Csound calls some callbacks from other
+     threads (its worker threads with -j, the recording thread, some audio
+     and MIDI modules): there the call is not seen, and can deadlock.
   */
   PUBLIC int32_t csoundPerformanceThreadJoin(CS_PERF_THREAD* pt);
 

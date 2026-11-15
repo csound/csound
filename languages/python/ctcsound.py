@@ -2464,7 +2464,8 @@ class CsoundPerformanceThread:
         object.
         """
         status = libcspt.csoundPerformanceThreadJoin(self.cpt)
-        self._release_csound()
+        if not self.is_running():  # C refuses a join on the thread itself
+            self._release_csound()
         return status
 
     def flush_message_queue(self):

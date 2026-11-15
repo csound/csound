@@ -774,6 +774,10 @@ int32_t CsoundPerformanceThread::Perform()
     return retval;
 }
 
+// The bits of CsoundPerformanceThread::flushWarned: a call refused on the
+// performance thread says why the first time, once per call.
+enum { WARNED_FLUSH = 1, WARNED_JOIN = 2, WARNED_DESTROY = 4 };
+
 class CsPerfThread_PerformScore {
  private:
     CsoundPerformanceThread *pt;
@@ -785,6 +789,20 @@ class CsPerfThread_PerformScore {
     CsPerfThread_PerformScore(void *p)
     {
       pt = (CsoundPerformanceThread*) p;
+    }
+    // Whether the caller is cpt's own performance thread, which cannot wait
+    // for itself. A call refused there says so the first time, as the bit
+    // `warned` of flushWarned records.
+    static bool OnItsThread(CsoundPerformanceThread *cpt, int32_t warned,
+                            const char *refusal)
+    {
+      if (!cpt->perfThread || !csoundIsCurrentThread(cpt->perfThread))
+        return false;
+      if (!(cpt->flushWarned & warned)) {
+        cpt->flushWarned |= warned;
+        csoundMessage(cpt->csound, "CsoundPerformanceThread: %s\n", refusal);
+      }
+      return true;
     }
     ~CsPerfThread_PerformScore()
     {
@@ -1041,6 +1059,13 @@ int32_t CsoundPerformanceThread::Join()
     int32_t retval;
     retval = status;
 
+    // A thread cannot wait for itself, and the rest of Join() would free
+    // what the performance goes on using once the callback returns. Ignore
+    // the call, as FlushMessageQueue() does.
+    if (CsPerfThread_PerformScore::OnItsThread(this, WARNED_JOIN, "Join() "
+            "called from the performance thread (in one of its callbacks); "
+            "ignoring the call."))
+      return retval;
     if (ATOMIC_GET_BOOL(recordData.running))
       stopRecordThread(&recordData);
     if (perfThread) {
@@ -1094,16 +1119,10 @@ void CsoundPerformanceThread::FlushMessageQueue()
     // A thread cannot wait for itself. The performance thread runs the
     // process and message callbacks, so flushing from one of them would
     // deadlock. Ignore the call and warn once.
-    if (perfThread && csoundIsCurrentThread(perfThread)) {
-      if (!flushWarned) {
-        flushWarned = 1;
-        csoundMessage(csound, "CsoundPerformanceThread: "
-                      "FlushMessageQueue() called from the performance "
-                      "thread (process or message callback); ignoring "
-                      "the call.\n");
-      }
+    if (CsPerfThread_PerformScore::OnItsThread(this, WARNED_FLUSH,
+            "FlushMessageQueue() called from the performance thread "
+            "(process or message callback); ignoring the call."))
       return;
-    }
     // flushLock is cleared when a message is queued and set once the queue
     // has been drained and no message is in flight, so wait for it
     // unconditionally: firstMessage may be NULL while a detached batch of

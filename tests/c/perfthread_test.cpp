@@ -4,6 +4,7 @@
 # include "unistd.h"
 #endif
 #include <stdio.h>
+#include <string.h>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -107,6 +108,21 @@ void onProcessCallbackFlush(void *userdata) {
     pt->FlushMessageQueue();
     processFlushReturned.store(true);
     pt->Stop();
+}
+
+// State for ProcessCallbackJoinIsIgnored: the process callback flushes and
+// joins its own thread at every cycle. The thread cannot wait for itself, and
+// Join() must not free what the performance goes on using.
+std::atomic<int> processJoinCalls{0};
+std::atomic<int> processJoinResult{-1};
+
+void onProcessCallbackJoin(void *userdata) {
+    CsoundPerformanceThread *pt =
+        static_cast<CsoundPerformanceThread *>(userdata);
+    pt->FlushMessageQueue();
+    int32_t result = pt->Join();
+    if (processJoinCalls.fetch_add(1) == 0)
+        processJoinResult.store(result);
 }
 
 // State for SetProcessCallbackWhileRunning: the callback is set/cleared from
@@ -370,6 +386,54 @@ TEST(PerfThreadsTests, ProcessCallbackCanFlush) {
 
     EXPECT_TRUE(processFlushCallbackRan.load());
     EXPECT_TRUE(processFlushReturned.load());
+}
+
+TEST(PerfThreadsTests, ProcessCallbackJoinIsIgnored) {
+    const char *instrument =
+        "sr=48000\n"
+        "ksmps=64\n"
+        "nchnls=1\n"
+        "instr 1\n"
+        "endin\n";
+
+    processJoinCalls.store(0);
+    processJoinResult.store(-1);
+
+    Csound csound;
+    csound.SetOption("-n");
+    csound.CreateMessageBuffer(0);
+    ASSERT_EQ(csound.CompileOrc(instrument), 0);
+    csound.EventString("f 0 z\ni 1 0 -1\n");
+    ASSERT_EQ(csound.Start(), 0);
+
+    CsoundPerformanceThread performanceThread(csound.GetCsound());
+    performanceThread.SetProcessCallback(onProcessCallbackJoin,
+                                         &performanceThread);
+    performanceThread.Play();
+
+    // The performance goes on after the call, through later cycles.
+    for (int i = 0; i < 500 && processJoinCalls.load() < 10; ++i)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    EXPECT_GE(processJoinCalls.load(), 10);
+    // Returned at once, with the status of a performance still playing.
+    EXPECT_EQ(processJoinResult.load(), 0);
+
+    performanceThread.Stop();
+    EXPECT_GT(performanceThread.Join(), 0);
+    performanceThread.SetProcessCallback(nullptr, nullptr);
+
+    // Each refusal is said once, the first time.
+    const char *flush = "FlushMessageQueue() called from the performance";
+    const char *join = "Join() called from the performance thread";
+    int flushes = 0, joins = 0;
+    for (; csound.GetMessageCnt() > 0; csound.PopFirstMessage()) {
+        flushes += strstr(csound.GetFirstMessage(), flush) != nullptr;
+        joins += strstr(csound.GetFirstMessage(), join) != nullptr;
+    }
+    EXPECT_EQ(flushes, 1);
+    EXPECT_EQ(joins, 1);
+    csound.DestroyMessageBuffer();
+    csound.Reset();
 }
 
 TEST(PerfThreadsTests, SetProcessCallbackWhileRunning) {
