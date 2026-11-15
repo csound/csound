@@ -251,6 +251,15 @@ TEST_F(MidiRealtimeInputTests, RealtimeByteAfterAStatusIsNoPort)
   EXPECT_EQ(csoundGetControlChannel(csound, "stop", nullptr), 1);
 }
 
+TEST_F(MidiRealtimeInputTests, SystemStatusAfterAStatusIsNoPort)
+{
+  // The note on is cut off: its data never come. A port byte is 0x80 | port.
+  message({{0x90, 60, 100}}, 0x90, 1, 60, 100);
+  messages();
+  message({{0x90, 0xF0, 1, 2, 0xF7}}, 0x90, 1, 60, 100);
+  EXPECT_EQ(messages().find("port"), std::string::npos);
+}
+
 // A MIDI file alongside the device: the control change 0xB4 7 100 on the
 // second cycle after SetUp's, and a note on channel 1, held, on the fifth. The
 // fixture's sr and ksmps give 3000 k-cycles a second, and at 120 beats a minute

@@ -604,7 +604,7 @@ int32_t sens_midi(CSOUND *csound)
         mep->type = type;               /* & begin new event    */
         mep->chan = chan;
         src->datreq = datbyts[(type>>4) & 0x7];
-        if(p->bufp < srcend && *p->bufp & 0x80 && *p->bufp < 0xF8
+        if(p->bufp < srcend && *p->bufp & 0x80 && *p->bufp < 0xF0
            && src->datreq > 0)
         {/*
             if there is another status byte inserted after
@@ -617,7 +617,8 @@ int32_t sens_midi(CSOUND *csound)
             A module writes it in the same read as its status. A read
             may end on the status, and what lies past the end is not
             data, so it is not looked at: nor is a MIDI file's event.
-            A real time byte is no port.
+            A system status is no port: real time may come anywhere,
+            and any other begins a message of its own.
           */
           int32_t port = *(p->bufp++) & 0x7F;
           if(port >= MIDIMAXPORTS) {
