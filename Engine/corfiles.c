@@ -136,19 +136,6 @@ int32_t corfile_getc(CORFIL *f)
     return c;
 }
 
-char *corfile_fgets(char *buff, int32_t len, CORFIL *f)
-{
-    int32_t i;
-    char *p = &(f->body[f->p]), *q;
-    if (UNLIKELY(*p == '\0')) return NULL;
-    q = strchr(p, '\n');
-    i = (int32_t)  (q-p);
-    if (UNLIKELY(i>=len)) i = len-1;
-    memcpy(buff, p, i);
-    f->p += i;
-    return buff;
-}
-
 #undef corfile_ungetc
 void corfile_ungetc(CORFIL *f)
 {
