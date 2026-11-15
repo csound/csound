@@ -223,9 +223,12 @@ While performance continues, `FlushMessageQueue()` waits until the wrapper
 queue is empty and no queued command or its callback is in flight. Exit can
 discard pending commands, so a completed flush does not prove they all ran.
 It is not a barrier for engine async requests, background init work, the
-process callback, or the next audio block. Never flush or join from the
-performance thread. The flush implementation warns and ignores a call from
-that thread to avoid deadlock. `Stop()` queues a stop. `Join()` waits for exit.
+process callback, or the next audio block. Never flush, join or destroy the
+object from the performance thread. Called there, `FlushMessageQueue()` and
+`Join()` are ignored, and `csoundDestroyPerformanceThread()` only stops the
+performance, each with a warning the first time; a C++ `delete` there cannot
+be refused. `Stop()` queues a stop. `Join()` waits for exit, and is not
+thread-safe: one thread at a time joins or destroys the object.
 Follow the contracts in
 [csPerfThread.hpp](../include/csPerfThread.hpp).
 

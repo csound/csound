@@ -889,10 +889,10 @@ void CsoundPerformanceThread::csPerfThread_constructor(CSOUND *csound_)
  * the playback (which is paused by default) is stopped by calling
  * CsoundPerformanceThread::Stop(), or an error occurs.
  * The constructor takes a Csound instance pointer as argument; it assumes
- * that csoundCompile() was called successfully before creating the
- * performance thread. Once the playback is stopped for one of the above
- * mentioned reasons, the performance thread calls csoundCleanup() and
- * returns.
+ * that the instance was compiled and started (csoundStart()) before creating
+ * the performance thread. Once the playback is stopped for one of
+ * the above mentioned reasons, the performance thread cleans up the
+ * instance and returns.
  */
 
 CsoundPerformanceThread::CsoundPerformanceThread(Csound *csound)
