@@ -51,7 +51,10 @@ extern "C" {
                                                    const char *devName));
 
   /**
-   * Sets callback for reading from real time MIDI input.
+   * Sets callback for reading from real time MIDI input. Csound may call
+   * it again in the same control cycle, at most until it returns 0 or has
+   * given 16 times nBytes bytes in that cycle, so it returns 0 when it has
+   * nothing more for now. What it still has is read in a later cycle.
    * The start fails if it is NULL when MIDI input opens. Set to NULL
    * during a performance, it reads nothing more.
    */

@@ -121,6 +121,29 @@ class RealtimeQueueTests : public ::testing::Test {
     }
     return true;
   }
+  // As -F would: at 100 ms (96 of 480 PPQN), a note on, then volume 50 and
+  // balance 60 on channel 1. The note waits for init behind i9, the volume
+  // waits for the note, and the balance stays in the parser's buffer.
+  void playFileAt100ms()
+  {
+    midiPath = std::filesystem::temp_directory_path() /
+      ("csound-midi-rewind-" + std::to_string(reinterpret_cast<uintptr_t>(csound)) + ".mid");
+    const unsigned char midi[] = {
+      'M', 'T', 'h', 'd', 0, 0, 0, 6, 0, 0, 0, 1, 1, 224,
+      'M', 'T', 'r', 'k', 0, 0, 0, 16,
+      96, 0x90, 60, 100, 0, 0xB0, 7, 50, 0, 0xB0, 8, 60,
+      0, 0xFF, 0x2F, 0
+    };
+    {
+      std::ofstream file(midiPath, std::ios::binary);
+      ASSERT_TRUE(file.is_open());
+      file.write(reinterpret_cast<const char *>(midi), sizeof(midi));
+      ASSERT_TRUE(file.good());
+    }
+    csound->oparms->FMidiname = csoundStrdup(csound, midiPath.string().c_str());
+    ASSERT_EQ(csoundMIDIFileOpen(csound, csound->oparms->FMidiname), 0);
+    csound->oparms->FMidiin = 1;
+  }
   void expectNoteOff()
   {
     for (int i = 0; i < 100 && midiInits == 0; ++i) {
@@ -186,6 +209,42 @@ TEST_F(RealtimeQueueTests, FileClockKeepsAdvancingWhileControlWaitsForInit)
   ASSERT_EQ(csoundPerformKsmps(csound), 0);
   ASSERT_TRUE(drain());
   EXPECT_EQ(midiInits, 2);
+}
+
+TEST_F(RealtimeQueueTests, RewindDropsFileMidiNotYetDispatched)
+{
+  playFileAt100ms();
+  for (int cycle = 0; cycle < 400; ++cycle)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  const cs_float *controls = csound->m_chnbp[0]->ctl_val;
+  ASSERT_NE(controls[7], FL(50.0));
+  csoundRewindScore(csound);
+  ASSERT_EQ(controls[7], FL(127.0));
+  ASSERT_EQ(controls[8], FL(64.0));
+  release();
+  ASSERT_TRUE(drain());
+  // The file's events come again at 100 ms, 300 cycles from the rewind.
+  for (int cycle = 0; cycle < 10; ++cycle)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(controls[7], FL(127.0));
+  EXPECT_EQ(controls[8], FL(64.0));
+}
+
+TEST_F(RealtimeQueueTests, RewindKeepsDeviceMidiNotYetDispatched)
+{
+  // A device is not the score: what it sent before the rewind still comes.
+  playFileAt100ms();
+  pending = {0x90, 60, 100, 0xB0, 7, 50, 0xB0, 8, 60};
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  const cs_float *controls = csound->m_chnbp[0]->ctl_val;
+  ASSERT_NE(controls[7], FL(50.0));
+  csoundRewindScore(csound);
+  release();
+  ASSERT_TRUE(drain());
+  for (int cycle = 0; cycle < 4; ++cycle)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(controls[7], FL(50.0));
+  EXPECT_EQ(controls[8], FL(60.0));
 }
 
 TEST_F(RealtimeQueueTests, SustainMessagesKeepTheirOrderAroundDelayedInit)

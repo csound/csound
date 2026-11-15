@@ -77,6 +77,7 @@ typedef struct midifile_s {
   uint64_t         global_kcounter;    /* local reference to global kcounter */
   int32_t          loop;               /* loop flag */
   struct midifile_s    *nxt;
+  cs_double        length;             /* duration in kperiods, unrounded */
 } midifile_t;
 
 #define MIDIFILE    (csound->midiGlobals->midiFileData)
@@ -563,6 +564,7 @@ static void sortEventLists(CSOUND *csound, midifile_t *midifile)
     }
     /* calculate total file length in k-periods */
     timeVal += ((cs_double) ((long) (MF(totalKcnt) - curTicks)) * tempoVal);
+    MF(length) = timeVal;
     MF(totalKcnt) = (unsigned long) (timeVal + 0.5);
   }
   else {
@@ -585,7 +587,8 @@ static void sortEventLists(CSOUND *csound, midifile_t *midifile)
       MF(tempoList)[i].kcnt = curTicks;
     }
     /* calculate total file length in k-periods */
-    MF(totalKcnt) = (unsigned long) ((cs_double) MF(totalKcnt) * tempoVal + 0.5);
+    MF(length) = (cs_double) MF(totalKcnt) * tempoVal;
+    MF(totalKcnt) = (unsigned long) (MF(length) + 0.5);
   }
 }
 
@@ -827,12 +830,18 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
       }
     }
     return 0;
+    } else if (mf->counter <= 0 || mf->counter < mf->length) {
+      // not at its end yet, or looped already in this cycle, where it
+      // would never run dry
+      return 0;
     } else {
       // don't stop - loop
       j = mf->eventListIndex = 0;
       i = mf->tempoListIndex = 0;
       mf->currentTempo = initial_tempo(mf);
-      mf->counter = 0;
+      /* the time past the end goes into the next pass: one pass a cycle
+         at most, however far past it is */
+      mf->counter = mf->length > 0 ? fmod(mf->counter, mf->length) : 0;
     }
   }
   /* otherwise read any events with time less than or equal to */
@@ -884,8 +893,8 @@ void csoundMIDIFileAdvance(CSOUND *csound)
 {
   midifile_t *midifile = MIDIFILE;
   while (midifile != NULL) {
-    if (!midifile->pause &&
-        midifile->global_kcounter < csound->global_kcounter) {
+    if (!midifile->pause &&   /* not <: a rewind sets Csound's count back */
+        midifile->global_kcounter != csound->global_kcounter) {
       midifile->counter += 1. / midifile->temposcal;
       midifile->global_kcounter = csound->global_kcounter;
     }
@@ -936,11 +945,19 @@ void midifile_rewind_score(CSOUND *csound)
     midifile = midifile->nxt;
   }
   if (midifile != NULL) {
+    MGLOBAL *p = csound->midiGlobals;
+    /* the file's bytes not yet parsed, and its event if one waits for a
+       note's init, are from before the rewind: drop them */
+    if (p->bufp > p->filep)
+      csound->midi_event_pending = 0;
+    p->endatp = p->bufp > p->filep ? p->bufp : p->filep;
     /* reset event index and tempo */
     MF(currentTempo) = initial_tempo(midifile);
     MF(eventListIndex) = 0;
     MF(tempoListIndex) = 0;
     MF(counter) = 0;
+    MF(global_kcounter) = csound->global_kcounter;  /* in step from here */
+    MF(pause) = 0;                      /* as opened, if it had ended */
     csound->MTrkend = csound->Mxtroffs = csound->Mforcdecs = 0;
     /* reset controllers on all channels */
     for (i = 0; i < MAXCHAN; i++)

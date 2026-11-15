@@ -20,7 +20,7 @@
 class MidiFileReadTests : public ::testing::Test {
  protected:
   CSOUND *csound = nullptr;
-  std::filesystem::path path;
+  std::filesystem::path path, loop;
 
   void SetUp() override
   {
@@ -60,10 +60,11 @@ class MidiFileReadTests : public ::testing::Test {
   {
     if (csound != nullptr)
       csoundDestroy(csound);
-    if (!path.empty()) {
-      std::error_code error;
+    std::error_code error;
+    if (!path.empty())
       std::filesystem::remove(path, error);
-    }
+    if (!loop.empty())
+      std::filesystem::remove(loop, error);
   }
 
   void checkRead(int capacity, std::initializer_list<unsigned char> expected)
@@ -89,6 +90,50 @@ TEST_F(MidiFileReadTests, CountsPortBytesAndKeepsEventsThatDoNotFit)
   checkRead(4, {0x90, 0x81, 60, 100});
   checkRead(4, {0x90, 0x82, 60, 100});
   checkRead(4, {});
+}
+
+TEST_F(MidiFileReadTests, ALoopedFileIsReadAgainOnlyInALaterCycle)
+{
+  // Every event of the files, and their end, are at tick zero. A looped one
+  // is read again once file time has passed, not in the same cycle, where
+  // the reader would never run dry.
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileloop 1, 1\n", 0), 0);
+  checkRead(16, {0xC0, 0x81, 5, 0x90, 0x81, 60, 100,
+                 0xC0, 0x82, 5, 0x90, 0x82, 60, 100});
+  checkRead(16, {});
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  checkRead(16, {0xC0, 0x81, 5, 0x90, 0x81, 60, 100});
+  checkRead(16, {});
+}
+
+TEST_F(MidiFileReadTests, ALoopedFileKeepsALengthBetweenKPeriods)
+{
+  // 400 ticks a beat at 120 bpm, and 1000 k-periods a second, make a tick
+  // 1.25 k-periods. Looped, a file whose event is at tick 0 and its end at
+  // tick 1 gives its event 4 times in 5 cycles, not once a cycle.
+  loop = path.parent_path() / ("loop-" + path.filename().string());
+  const unsigned char midi[] = {
+    'M', 'T', 'h', 'd', 0, 0, 0, 6, 0, 0, 0, 1, 1, 0x90,
+    'M', 'T', 'r', 'k', 0, 0, 0, 8,
+    0, 0xB0, 7, 100, 1, 0xFF, 0x2F, 0
+  };
+  {
+    std::ofstream file(loop, std::ios::binary);
+    ASSERT_TRUE(file.is_open());
+    file.write(reinterpret_cast<const char *>(midi), sizeof(midi));
+    ASSERT_TRUE(file.good());
+  }
+  const std::string orc = "iLoop midifileopen {{" + loop.generic_string() +
+    "}}, 3\nmidifileplay iLoop\nmidifileloop 1, iLoop\n";
+  ASSERT_EQ(csoundCompileOrc(csound, orc.c_str(), 0), 0);
+  std::array<unsigned char, 64> buffer;
+  ASSERT_GT(csoundMIDIFileRead(csound, buffer.data(), 64), 0);
+  int passes = 0;
+  for (int cycle = 1; cycle <= 20; ++cycle) {
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    passes += csoundMIDIFileRead(csound, buffer.data(), 64) / 4;
+  }
+  EXPECT_EQ(passes, 16);
 }
 
 TEST_F(MidiFileReadTests, SharesCapacityAcrossFiles)
