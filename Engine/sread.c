@@ -1138,7 +1138,8 @@ static void score_expr_append_char(CSOUND *csound, char *buffer,
 }
 
 /* An error that is not fatal is said, the rest of its line dropped, and
-   *dropped set. */
+   *dropped set: a [] around it ends there too, as the rest of it is gone with
+   the line. */
 static cs_float read_expression(CSOUND *csound, int32_t depth,
                                 int32_t *dropped)
 {
@@ -1289,6 +1290,8 @@ static cs_float read_expression(CSOUND *csound, int32_t depth,
           type = 1;
           {
             cs_float x = read_expression(csound, depth + 1, dropped);
+            if (UNLIKELY(*dropped))
+              return x;
             score_expr_push_value(csound, &expr, x);
             c = getscochar(csound, 1); break;
           }

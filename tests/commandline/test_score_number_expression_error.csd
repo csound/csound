@@ -1,5 +1,5 @@
 <CsTest>
-description = "a b, B, C or v whose [] has an error is ignored, the next line is read, and the message ends its line"
+description = "a b, B, C or v whose [] has an error is ignored, the next line is read, also after a nested [], and the message ends its line"
 
 [expect]
 exit = 0
@@ -22,7 +22,9 @@ nchnls = 1
 ; the clock, the carry or the warp from what the error left: here the clock to
 ; 5, the carry off and the warp to 0. They are ignored now, as without a
 ; number. Each note says what it adds up to and the p3 it must have. The
-; message of such an error ran on into where it was.
+; message of such an error ran on into where it was. In a nested [], the []
+; around it read on into the next line, and stopped the score at its first
+; character.
 giSum init 0
 giWrong init 0
 
@@ -39,8 +41,8 @@ instr Mark
 endin
 
 instr Check
-  if giSum != 18 || giWrong != 0 then
-    prints("the notes added up to %d, not 18\n", giSum)
+  if giSum != 66 || giWrong != 0 then
+    prints("the notes added up to %d, not 66\n", giSum)
     exitnow(1)
   endif
   prints("every note after a b, B, C or v error played, unmoved\n")
@@ -58,6 +60,10 @@ v [)]
 i "Note" 0 0.01 4 0.01
 i "Mark" 0 0 [5)]
 i "Note" 0 0 5 0
+b [[5)]]
+i "Note" 0 0 16 0
+i "Mark" 0 0 [1+[5)]]
+i "Note" 0 0 32 0
 i "Check" 0.1 0
 e
 </CsScore>
