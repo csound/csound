@@ -496,8 +496,10 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
     // deal with multipe out args first
     if(*types == '*') {
       // expecting only a single char here
-      // connect all args
-      for(;n < no; n++) outargs[n] = args[n];
+      // connect all args: with none, the opcode keeps one empty slot (as
+      // oprun_args reads it), and the inputs follow either way
+      for(;n < no; n++) outargs[i++] = args[n];
+      if(i == 0) outargs[i++] = NULL;
       break;
     }
     // other multi output args have one letter
