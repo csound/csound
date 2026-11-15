@@ -231,6 +231,28 @@ if(BUILD_TESTS)
                 "#pragma once\n#define CSOUND_TEST_FAILING_INIT_PLUGIN R\"csound($<TARGET_FILE:failing_init_test_plugin>)csound\"\n"
             TARGET failing_init_test_plugin)
 
+        add_library(failing_create_test_plugin MODULE
+            fixtures/failing_create_plugin.c)
+        target_include_directories(failing_create_test_plugin PRIVATE
+            ${libcsound_private_include_dirs})
+        target_include_directories(failing_create_test_plugin PUBLIC
+            ${libcsound_public_include_dirs})
+        target_compile_definitions(failing_create_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        set_target_properties(failing_create_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/failing-create-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/failing-create-plugin)
+        add_dependencies(unittests failing_create_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/failing_create_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_FAILING_CREATE_PLUGIN R\"csound($<TARGET_FILE:failing_create_test_plugin>)csound\"\n"
+            TARGET failing_create_test_plugin)
+
         add_library(configuration_test_plugin MODULE
             fixtures/configuration_plugin.c)
         target_include_directories(configuration_test_plugin PRIVATE

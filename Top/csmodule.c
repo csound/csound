@@ -605,16 +605,17 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
   mp = (csoundModule_t*) p;
   memcpy(mp, &m, sizeof(csoundModule_t));
   strcpy(&(mp->name[0]), fname);
-  /* link into database */
-  mp->nxt = (csoundModule_t*) csound->csmodule_db;
-  csound->csmodule_db = (void*) mp;
-  /* call csoundModuleCreate() if available */
+  /* call csoundModuleCreate() if available; a module whose
+     csoundModuleCreate() fails is not linked, so it is neither started nor
+     destroyed. Its library stays open, as what it registered before failing
+     may point into it. */
   if (m.PreInitFunc != NULL) {
     memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
     if ((err = setjmp(csound->exitjmp)) != 0) {
       memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
       print_module_error(csound, Str("Error in pre-initialisation function "
                                      "of module '%s'"), fname, NULL, 0);
+      csound->Free(csound, p);
       return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
               CSOUND_MEMORY : CSOUND_INITIALIZATION);
     }
@@ -623,9 +624,13 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
     if (UNLIKELY(err != 0)) {
       print_module_error(csound, Str("Error in pre-initialisation function "
                                      "of module '%s'"), fname, &m, err);
+      csound->Free(csound, p);
       return CSOUND_INITIALIZATION;
     }
   }
+  /* link into database */
+  mp->nxt = (csoundModule_t*) csound->csmodule_db;
+  csound->csmodule_db = (void*) mp;
   /* plugin was loaded successfully */
   return CSOUND_SUCCESS;
 }

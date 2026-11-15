@@ -19,6 +19,7 @@
 #ifdef CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN
 #include "requested_opcode_plugin_path.hpp"
 #include "failing_init_plugin_path.hpp"
+#include "failing_create_plugin_path.hpp"
 #endif
 
 #ifdef CSOUND_TEST_HAS_TWO_COPIES
@@ -363,6 +364,46 @@ TEST(PluginLoadedAgain, StartsNoOtherPlugin) {
   EXPECT_EQ(messages.find("Error starting module"), std::string::npos)
       << messages;
   csoundDestroy(csound);
+}
+
+// A plugin whose csoundModuleCreate() fails was still linked, so Csound
+// started it and destroyed it. The fixture aborts if either happens, so each
+// route runs in a process of its own.
+namespace {
+void expectNeitherStartedNorDestroyed(
+    const std::vector<std::string> &options) {
+  EXPECT_EXIT(
+      {
+        csoundSetGlobalEnv("CSOUND7RC", "");  // no rc file of the user's
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        csoundSetGlobalEnv("CSOUND7RC", nullptr);
+        csoundCreateMessageBuffer(csound, 0);
+        csoundSetHostAudioIO(csound);
+        for (const std::string &option : options)
+          csoundSetOption(csound, option.c_str());
+        csoundStart(csound);
+        csoundDestroy(csound);
+        std::exit(0);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+} // namespace
+
+TEST(PluginThatFailsToLoad, InThePluginDirectoryIsNeitherStartedNorDestroyed) {
+  expectNeitherStartedNorDestroyed(
+      {searchPathOption(directoryOf(CSOUND_TEST_FAILING_CREATE_PLUGIN))});
+}
+
+TEST(PluginThatFailsToLoad, ThroughOpcodeLibIsNeitherStartedNorDestroyed) {
+  expectNeitherStartedNorDestroyed(
+      {searchPathOption(directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN)),
+       "--opcode-lib=" CSOUND_TEST_FAILING_CREATE_PLUGIN});
+}
+
+TEST(PluginThatFailsToLoad, ThroughOpcodeDirIsNeitherStartedNorDestroyed) {
+  expectNeitherStartedNorDestroyed(
+      {searchPathOption(directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN)),
+       "--opcode-dir=" + directoryOf(CSOUND_TEST_FAILING_CREATE_PLUGIN)});
 }
 
 #ifdef CSOUND_TEST_HAS_TWO_COPIES
