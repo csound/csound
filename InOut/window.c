@@ -91,7 +91,8 @@ void csoundInitDisplay(CSOUND *csound)
         csound->csoundKillGraphCallback_ = KillAscii;
       }
     }
-    csound->csoundExitGraphCallback_ = DummyFn3;
+    if (csound->csoundExitGraphCallback_ == NULL)
+      csound->csoundExitGraphCallback_ = DummyFn3;
 }
 
 void csoundSetDisplay(CSOUND *csound,            /* setup a new window       */

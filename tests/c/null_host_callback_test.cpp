@@ -10,7 +10,7 @@
 
 namespace {
 
-int32_t reads, writes, draws;
+int32_t reads, writes, draws, exits;
 
 int32_t openMidi(CSOUND *, void **userData, const char *)
 {
@@ -34,6 +34,12 @@ int32_t closeMidi(CSOUND *, void *) { return 0; }
 
 void drawGraph(CSOUND *, WINDAT *) { draws++; }
 
+int32_t exitGraph(CSOUND *)
+{
+  exits++;
+  return 0;
+}
+
 const char *const header = "sr = 48000\nksmps = 16\nnchnls = 1\n0dbfs = 1\n";
 
 const std::string displaying = std::string(header) +
@@ -45,7 +51,7 @@ class NullHostCallbackTests : public ::testing::Test {
   /* No rc file of the user's, at the start and at each reset. */
   void SetUp() override
   {
-    reads = writes = draws = 0;
+    reads = writes = draws = exits = 0;
     csoundSetGlobalEnv("CSOUND7RC", "");
     csound = csoundCreate(nullptr, nullptr);
     csoundCreateMessageBuffer(csound, 0);
@@ -140,6 +146,34 @@ TEST_F(NullHostCallbackTests, ADrawGraphClearedInAPerformanceIsNotCalled)
   csoundSetDrawGraphCallback(csound, nullptr);
   perform(16);
   EXPECT_EQ(draws, before);
+}
+
+/* csoundInitDisplay set the exit graph callback to its own at the start. */
+TEST_F(NullHostCallbackTests, AnExitGraphSetBeforeTheStartIsCalled)
+{
+  csoundSetExitGraphCallback(csound, exitGraph);
+  displays();
+  std::string orchestra = std::string(header) + "instr 1\nendin\n";
+  start(orchestra.c_str());
+  perform(1);
+  csoundReset(csound);
+  EXPECT_EQ(exits, 1);
+}
+
+/* And again for each ftable displayed with no make graph callback. */
+TEST_F(NullHostCallbackTests, AnExitGraphOutlivesAnFtableDisplay)
+{
+  csoundSetDrawGraphCallback(csound, drawGraph);
+  displays();
+  std::string orchestra = std::string(header) +
+      "instr 1\n i1 = ftgen(0, 0, 16, 10, 1)\nendin\n";
+  start(orchestra.c_str());
+  csoundSetExitGraphCallback(csound, exitGraph);
+  csoundEventString(csound, "i 1 0 0", 0);
+  perform(2);
+  ASSERT_GT(draws, 0);
+  csoundReset(csound);
+  EXPECT_EQ(exits, 1);
 }
 
 }  // namespace
