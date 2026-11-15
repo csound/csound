@@ -3570,7 +3570,9 @@ static const char* boolean_conversion(const char* found, const char* required,
    classify_udo_rates does not count a conversion as work at performance, so
    an init-only UDO stays one, and its conversion only runs at init. A UDO takes a
    parameter by reference and may write it, so a k it took for a B gets the
-   boolean back after the call, if the UDO changed it. */
+   boolean back after the call, if the UDO changed it. An a has no = from a
+   boolean, so a1 = s finds =.generic, which copies a value of the a's own
+   type: the boolean is read as a number there too, as a1 init s reads it. */
 static TREE* convert_boolean_args(CSOUND* csound, TREE* statement,
                                   TYPE_TABLE* typeTable) {
   OENTRY* entry = statement->markup;
@@ -3580,14 +3582,19 @@ static TREE* convert_boolean_args(CSOUND* csound, TREE* statement,
   char** required;
   const char* types;
   const char* varArg = NULL;
-  int32_t i = 0, xout, numeric;
+  int32_t i = 0, xout, numeric, audio = 0;
 
   if (entry == NULL || entry->init == printv) return statement;
   xout = !strcmp(entry->opname, "xout");
   numeric = entry->init == eq || entry->perf == eq;
-  types = xout ? typeTable->udoOutTypes : entry->intypes;
-  if (types == NULL ||
-      (!xout && !numeric && strpbrk(types, "mMNnzZB") == NULL)) return statement;
+  if (!strcmp(entry->opname, "=.generic") && statement->left != NULL) {
+    char* out = get_arg_type2(csound, statement->left, typeTable);
+    audio = out != NULL && !strcmp(out, "a");
+    if (out != NULL) csound->Free(csound, out);
+  }
+  types = xout ? typeTable->udoOutTypes : audio ? "a" : entry->intypes;
+  if (types == NULL || (!xout && !numeric && !audio &&
+                        strpbrk(types, "mMNnzZB") == NULL)) return statement;
   if ((required = split_args(csound, types)) == NULL) return statement;
 
   for (slot = &statement->right; *slot != NULL; slot = &(*slot)->next) {
