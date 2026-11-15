@@ -367,6 +367,59 @@ TEST(HostScoreReads, SayNAndYThroughTheMessages)
     EXPECT_NE(std::string::npos, said.find("seed from clock")) << said;
 }
 
+/* A score error says where it is, each part on a line of its own, where it
+   said there was an internal error and ran on into the next message. */
+TEST(HostScoreErrors, SayTheirLineAndPosition)
+{
+    Host host;
+    host.start();
+    EXPECT_EQ(CSOUND_ERROR,
+              host.csound->ReadScore(host.csound, "i 1 0 0\n\ni 1 0 0 [1 2]\n"));
+    const std::string said = host.said();
+    EXPECT_NE(std::string::npos,
+              said.find("illegal placement of number in [] expression\n")) << said;
+    EXPECT_NE(std::string::npos,
+              said.find(":  at position 11\n  in line 3 of the score\n")) << said;
+    EXPECT_EQ(std::string::npos, said.find("Internal error")) << said;
+}
+
+/* A warning's place is the character it is about, or the statement that lacks
+   something, not a blank line read after it. */
+TEST(HostScoreErrors, WarningsSayTheirLineAndPosition)
+{
+    Host host;
+    host.start();
+    host.csound->ReadScore(host.csound, "i 1 0 0 x\n");
+    host.csound->ReadScore(host.csound, "i 1 0 0\nb\n\ni 1 0 0\n");
+    const std::string said = host.said();
+    EXPECT_NE(std::string::npos,
+              said.find("unexpected char x\n  section ")) << said;
+    EXPECT_NE(std::string::npos,
+              said.find(":  at position 8\n  in line 1 of the score\n")) << said;
+    EXPECT_NE(std::string::npos,
+              said.find("b without a number ignored\n  section ")) << said;
+    EXPECT_NE(std::string::npos,
+              said.find(":  at position 0\n  in line 2 of the score\n")) << said;
+}
+
+/* A malformed number says where it is while the reader reads it, here in a
+   [], and not when the sort reads it again after the reader, here a t
+   statement's, the last of its read: the reader's place is elsewhere then. */
+TEST(HostScoreErrors, NumbersSayTheirPlaceOnlyWhileRead)
+{
+    Host host;
+    host.start();
+    host.csound->ReadScore(host.csound, "i 1 0 0 [1.2.3]\n");
+    host.csound->ReadScore(host.csound, "i 1 0 0\nt 0 6e\n");
+    const std::string said = host.said();
+    EXPECT_NE(std::string::npos,
+              said.find("1.2.3   zero substituted.\n  section")) << said;
+    const std::string number = "6e   zero substituted.\n";
+    const size_t at = said.find(number);
+    ASSERT_NE(std::string::npos, at) << said;
+    EXPECT_NE(0, said.compare(at + number.size(), 9, "  section")) << said;
+}
+
 /* A mark read again, here by a repeat of the section it is in, moves to where
    it is read: it takes no entry of its own, so 1024 marks still fit. */
 TEST(HostScoreErrors, MarksReadAgainTakeNoNewEntry)

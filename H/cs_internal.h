@@ -306,7 +306,7 @@ extern "C" {
       int32_t  input_size, input_cnt;
       int32_t  unused_int3;
       int32_t  unused_int2;
-      int32_t  linepos /* = -1 */;
+      int32_t  linepos;                /* unused: a place is counted in the text */
       MARKED_SECTIONS unused_names[30]; /* kept for the layout: the marks
                                            are CSOUND's marked_sections       */
       char    unused_char0[RPTDEPTH][NAMELEN];
