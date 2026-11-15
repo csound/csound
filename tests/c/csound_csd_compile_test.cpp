@@ -565,4 +565,21 @@ TEST_F(CsdCompileTests, ScoreOnAStartedEngineDoesNotEndIt)
     EXPECT_EQ(0, ended) << text;
   }
 }
+
+// A CSD with no score, compiled on a started engine, queues nothing: it
+// queued "#exit", which the realtime reader refused as a line.
+TEST_F(CsdCompileTests, NoScoreOnAStartedEngineQueuesNothing)
+{
+  ASSERT_EQ(0, csoundStart(csound));
+  const char *text = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\nendin\n"
+    "</CsInstruments>\n</CsoundSynthesizer>\n";
+  for (const int async : {0, 1}) {
+    ASSERT_EQ(0, csoundCompileCSD(csound, text, 1, async)) << messages();
+    for (int i = 0; i < 2; i++)
+      ASSERT_EQ(0, csoundPerformKsmps(csound));
+    const auto output = messages();
+    EXPECT_EQ(std::string::npos, output.find("illegal RT scoreline"))
+      << "async " << async << ": " << output;
+  }
+}
 }

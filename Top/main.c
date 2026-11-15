@@ -522,24 +522,22 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
     res = csound_compile_orc(csound, NULL, async);
     if (res == CSOUND_SUCCESS) {
       if ((csound->engineStatus & CS_STATE_COMP) != 0) {
-          char *sc, *sorted = NULL;
+          char *sorted = NULL;
           scoreErrCnt = csound->inerrcnt;
-          if (csound->scorestr == NULL)
-            sc = "#exit";
-          else
-            sc = sorted = scsortstr(csound, csound->scorestr);
+          if (csound->scorestr != NULL) /* with no score, nothing is queued */
+            sorted = scsortstr(csound, csound->scorestr);
           if (UNLIKELY(csound->inerrcnt > scoreErrCnt)) {
             csound->Free(csound, sorted);
             return CSOUND_ERROR;
           }
-          if (sc) {
+          if (sorted) {
             if (csound->oparms->odebug)
               csound->Message(
                   csound, Str("Real-time score events (engineStatus: %d).\n"),
                   csound->engineStatus);
             if(async)
-            input_message_async(csound, (const char *) sc);
-            else csoundInputMessage(csound, (const char *) sc);
+            input_message_async(csound, (const char *) sorted);
+            else csoundInputMessage(csound, (const char *) sorted);
           }
           /* As the engine runs, scsortstr returns a copy of its own, and both
              of those take theirs. */
