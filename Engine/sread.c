@@ -1295,6 +1295,17 @@ static cs_float read_expression(CSOUND *csound, int32_t depth)
 }
 
 
+/* A statement goes on into the next line when that line begins with a
+   p-field, and linpos is 0 at a line's start. An n there is the n statement,
+   unless p and a digit follow it: np carries a p-field. */
+static int32_t begins_n_statement(const CSOUND *csound, int32_t c)
+{
+    const char *next = &csound->expanded_sco->body[csound->expanded_sco->p];
+
+    return c == 'n' && !csound->sread.linpos &&
+           !(next[0] == 'p' && isdigit((unsigned char) next[1]));
+}
+
 static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOREIN file */
 {                                            /*      set sp, nxp                 */
     int32_t  c;
@@ -1307,7 +1318,9 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
     if (csound->sread.nxp >= csound->sread.memend)
       expand_nxp(csound);
     if (c=='[') {
-      cs_float xx = read_expression(csound, 0);
+      cs_float xx;
+      (csound->sread.linpos)++;               /* a field, as below      */
+      xx = read_expression(csound, 0);
       //printf("****xx=%a\n", xx);
       //printf("nxp = %p\n", (csound->sread.nxp));
       snprintf((csound->sread.sp) = (csound->sread.nxp), 28, "%a$", xx);
@@ -1317,9 +1330,10 @@ static int32_t getpfld(CSOUND *csound, int32_t type) /* get pfield val from SCOR
 
                     /* if non-numeric, and non-carry, and non-special-char: */
     /*    if (strchr("0123456789.+-^np<>()\"~!", c) == NULL) { */
-    if (!isdigit(c) && (type || (c!='.' && c!='+' && c!='-' && c!='^' && c!='n'
+    if ((!isdigit(c) && (type || (c!='.' && c!='+' && c!='-' && c!='^' && c!='n'
                                  && c!='p' && c!='<' && c!='>' && c!='(' && c!=')'
-                                 && c!='"' && c!='~' && c!='!' && c!='z'))) {
+                                 && c!='"' && c!='~' && c!='!' && c!='z'))) ||
+        begins_n_statement(csound, c)) {
       ungetscochar(csound, c);                /* then no more pfields    */
       if (UNLIKELY((csound->sread.linpos))) {
         sreaderr(csound, Str("unexpected char %c\n"), c);

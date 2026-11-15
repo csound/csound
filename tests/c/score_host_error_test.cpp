@@ -312,6 +312,23 @@ TEST(HostScoreErrors, MarksEndWithTheirRead)
     host.perform();
 }
 
+/* A statement goes on into a line that begins with a p-field, a [] too: an n
+   after the [] is no statement, and the rest of a b's line is dropped after
+   it, as after a number. */
+TEST(HostScoreReads, ABracketBeginsAContinuedLineAsAField)
+{
+    Host host;
+    host.start();
+    EXPECT_EQ(CSOUND_SUCCESS,
+              host.csound->ReadScore(host.csound,
+                                     "m a\ni 1 0 0\ns\ni 1 0 0\n[0] n a\n"
+                                     "b\n[0] 7\ni 1 0 0\n"));
+    host.perform(16);
+    const std::string said = host.said();
+    EXPECT_EQ(3, host.played()) << said;
+    EXPECT_EQ(std::string::npos, said.find("illegal opcode")) << said;
+}
+
 /* The score's marks live past the end of the 7.0.0 layout, in storage of
    their own: 1024 fit, n finds the last, far past the 30 they once had, and
    one more does not fit. */
