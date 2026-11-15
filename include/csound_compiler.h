@@ -65,6 +65,9 @@ extern "C" {
   /**
    * Parse the given orchestra from an ASCII string into a TREE.
    * This can be called during performance to parse new code.
+   * It first loads the plugins not loaded yet, those of the plugin
+   * directory and of --opcode-lib, and returns NULL if one fails to load
+   * or start, as it does for code that does not parse.
    */
   PUBLIC TREE *csoundParseOrc(CSOUND *csound, const char *str);
 

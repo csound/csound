@@ -14,6 +14,7 @@
 #include <vector>
 #include "gtest/gtest.h"
 #include "csound.h"
+#include "csound_compiler.h"  // before csdl.h, which hides its host calls
 #include "csdl.h"
 
 #ifdef CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN
@@ -385,10 +386,10 @@ INSTANTIATE_TEST_SUITE_P(Modules, TwoCopiesOfAPlugin,
 #endif
 
 // A host lists or chooses modules first, with csoundGetModule(),
-// csoundSetRTAudioModule() or csoundSetMIDIModule(), and the call scans the
-// plugin directory, which jumps when a plugin there fails to load or start:
-// with nothing owning exitjmp, the host died with signal 11. Each test runs
-// in a process of its own.
+// csoundSetRTAudioModule() or csoundSetMIDIModule(), or parses with
+// csoundParseOrc(), and the call scans the plugin directory, which jumps when
+// a plugin there fails to load or start: with nothing owning exitjmp, the
+// host died with signal 11. Each test runs in a process of its own.
 namespace {
 // The scan reads CS_USER_PLUGINDIR with getenv(), and takes the default user
 // plugin directory when it is not set: one that is not there keeps the
@@ -440,6 +441,20 @@ int32_t setMIDIModule(CSOUND *csound) {
   return start(csound);
 }
 
+int32_t parseOrc(CSOUND *csound) {
+  TREE *tree = csoundParseOrc(csound, "instr 1\nendin\n");
+  if (tree == nullptr)
+    return CSOUND_ERROR;
+  csoundDeleteTree(csound, tree);
+  return CSOUND_SUCCESS;
+}
+
+// csoundCompileOrc() parses through csoundParseOrc(), and took the jump
+// already, but returned its raw value, 255.
+int32_t compileOrc(CSOUND *csound) {
+  return csoundCompileOrc(csound, "instr 1\nendin\n", 0);
+}
+
 void expectCalledFirstToFail(const char *plugin, int32_t (*call)(CSOUND *)) {
   EXPECT_EXIT(
       {
@@ -478,6 +493,22 @@ TEST(PluginThatFailsToLoad,
 TEST(PluginThatFailsToStart,
      InThePluginDirectoryFailsTheStartAfterSetMIDIModuleCalledFirst) {
   expectCalledFirstToFail(CSOUND_TEST_FAILING_INIT_PLUGIN, setMIDIModule);
+}
+
+TEST(PluginThatFailsToLoad, InThePluginDirectoryFailsParseOrcCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_CREATE_ERROR_PLUGIN, parseOrc);
+}
+
+TEST(PluginThatFailsToStart, InThePluginDirectoryFailsParseOrcCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_FAILING_INIT_PLUGIN, parseOrc);
+}
+
+TEST(PluginThatFailsToLoad, InThePluginDirectoryFailsCompileOrcCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_CREATE_ERROR_PLUGIN, compileOrc);
+}
+
+TEST(PluginThatFailsToStart, InThePluginDirectoryFailsCompileOrcCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_FAILING_INIT_PLUGIN, compileOrc);
 }
 
 // Once the plugins are loaded, the setters start them again, and a plugin

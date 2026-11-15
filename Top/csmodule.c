@@ -1298,6 +1298,12 @@ int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *))
   volatile jmp_buf  saved;
   int32_t           err;
 
+#ifdef CSOUND_WASI_REALTIME
+  /* A compiler worker's jump goes to its compile context, or ends the
+     process: exitjmp is the render thread's, and is left alone. */
+  if (csoundWasiIsWorkerThread())
+    return func(csound);
+#endif
   memcpy((void*) &saved, (void*) &csound->exitjmp, sizeof(jmp_buf));
   if (setjmp(csound->exitjmp) != 0)
     err = CSOUND_ERROR;
