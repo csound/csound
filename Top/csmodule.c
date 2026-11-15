@@ -836,7 +836,7 @@ int32_t csoundLoadModules(CSOUND *csound)
       if (buf[i] != '\0')
         continue;
       /* found a dynamic library, attempt to open it */
-      if (UNLIKELY(((int32_t) strlen(dname) + len + 2) > 1024)) {
+      if (UNLIKELY(((int32_t) strlen(dname1) + len + 2) > 1024)) {
         csound->Warning(csound, Str("path name too long, skipping '%s'\n"),
                         fname);
         continue;
@@ -1194,7 +1194,7 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
       if (buf[i] != '\0')
         continue;
       /* found a dynamic library, attempt to open it */
-      if (UNLIKELY(((int32_t) strlen(dname) + len + 2) > 1024)) {
+      if (UNLIKELY(((int32_t) strlen(dname1) + len + 2) > 1024)) {
         csound->Warning(csound, Str("path name too long, skipping '%s'\n"),
                         fname);
         continue;

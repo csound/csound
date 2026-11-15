@@ -490,6 +490,57 @@ TEST(PluginThatFailsToStart, InThePluginDirectoryFailsLoadPluginsCalledFirst) {
   expectLoadPluginsFirstToFail(CSOUND_TEST_FAILING_INIT_PLUGIN);
 }
 
+// The scans counted the rest of the search path in the length of a plugin's
+// path, so a long search path skipped the plugins of its first directories
+// as "path name too long".
+namespace {
+std::string followedByOtherDirectories(const std::string &directory) {
+#ifdef WIN32
+  const char separator = ';';
+#else
+  const char separator = ':';
+#endif
+  std::string path = directory;
+  for (int i = 0; i < 48; i++)
+    path += separator + std::string("no-such-plugin-directory-") +
+            std::to_string(i);
+  return path;
+}
+
+const char *kRequestedInstrument =
+    "instr 1\n"
+    "  iValue requested_opcode_fixture 42\n"
+    "endin\n";
+} // namespace
+
+TEST(LongPluginSearchPath, FindsThePluginsOfItsFirstDirectory) {
+  CSOUND *csound = createWithoutRcFile();
+  ASSERT_EQ(csoundSetOption(csound,
+                            searchPathOption(followedByOtherDirectories(
+                                directoryOf(
+                                    CSOUND_TEST_REQUESTED_OPCODE_PLUGIN)))
+                                .c_str()),
+            CSOUND_SUCCESS);
+  EXPECT_EQ(csoundCompileOrc(csound, kRequestedInstrument, 0), CSOUND_SUCCESS)
+      << drainMessages(csound);
+  csoundDestroy(csound);
+}
+
+TEST(LongPluginSearchPath, ThroughLoadPluginsFindsThePluginsOfItsFirstDirectory) {
+  CSOUND *csound = createWithoutRcFile();
+  ASSERT_EQ(csoundSetOption(
+                csound, searchPathOption("no-such-plugin-directory").c_str()),
+            CSOUND_SUCCESS);
+  EXPECT_EQ(csoundLoadPlugins(csound,
+                              followedByOtherDirectories(directoryOf(
+                                  CSOUND_TEST_REQUESTED_OPCODE_PLUGIN))
+                                  .c_str()),
+            CSOUND_SUCCESS);
+  EXPECT_EQ(csoundCompileOrc(csound, kRequestedInstrument, 0), CSOUND_SUCCESS)
+      << drainMessages(csound);
+  csoundDestroy(csound);
+}
+
 #ifdef CSOUND_TEST_HAS_TWO_COPIES
 // One plugin in two directories, as a build tree beside an installed Csound
 // has it. Csound loads both, and they share the instance's variables. Each
