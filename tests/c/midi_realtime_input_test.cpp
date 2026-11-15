@@ -323,7 +323,26 @@ class MidiDeviceAndFileInputTests : public MidiRealtimeInputTests {
     MidiRealtimeInputTests::TearDown();
     std::remove(file.c_str());
   }
+
+  // A rewind turns every note off, so the midiin reporter starts again, with
+  // nothing reported yet.
+  void rewind()
+  {
+    csoundRewindScore(csound);
+    csoundEventString(csound, "i3 0 1\n", 0);
+    for (const char *name : {"status", "channel", "data1", "data2"})
+      csoundSetControlChannel(csound, name, 0);
+  }
 };
+
+TEST_F(MidiDeviceAndFileInputTests, RewindRestartsTheFileOnItsCycles)
+{
+  message({{}, {}, {}}, 0xB0, 5, 7, 100);
+  rewind();
+  // The cycle that begins again, as SetUp's did, and the one after it.
+  message({{}, {}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 5, 7, 100);
+}
 
 TEST_F(MidiDeviceAndFileInputTests, FileEventIsNoPortOfADeviceStatus)
 {
