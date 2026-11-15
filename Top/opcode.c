@@ -1555,8 +1555,10 @@ int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
 int32_t opcode_run_perf(CSOUND *csound, OPRUN *p) {
   cs_float **pargs = oprun_args(p);
   OPCODEOBJ *obj = (OPCODEOBJ *) pargs[p->OUTOCOUNT];
-  // no call has bound the dataspace: create made it after this init
-  if(UNLIKELY(obj->dataspace->optext->t.outlist == NULL))
+  // no call has bound the dataspace: create made it after this init, or
+  // delete in another note took it away
+  if(UNLIKELY(obj->dataspace == NULL ||
+              obj->dataspace->optext->t.outlist == NULL))
     return csound->PerfError(csound, &(p->h),
                              Str("opcode object not initialised\n"));
   set_line_num_and_loc(obj, p);
@@ -1829,8 +1831,10 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
   }
 
   obj = opcode_array_obj(objects, i);
-  // no call has bound the dataspace: create made it after this init
-  if(UNLIKELY(obj->dataspace->optext->t.outlist == NULL))
+  // no call has bound the dataspace: create made it after this init, or
+  // delete in another note took it away
+  if(UNLIKELY(obj->dataspace == NULL ||
+              obj->dataspace->optext->t.outlist == NULL))
     return csound->PerfError(csound, &(p->h),
                              Str("opcode object not initialised\n"));
   set_line_num_and_loc(obj, p);
