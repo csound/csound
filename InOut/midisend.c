@@ -130,7 +130,7 @@ void csoundSendMidiMsg(CSOUND *csound, int32_t status,
     buf[2] = (unsigned char) data2;
     if (!nbytes)
       return;
-    if (csound->oparms_.Midioutname != NULL)
+    if (csound->oparms_.Midioutname != NULL && p->MidiWriteCallback != NULL)
       p->MidiWriteCallback(csound, p->midiOutUserData, &(buf[0]), (int32_t) nbytes);
     if (p->midiOutFileData != NULL)
       csoundWriteMidiOutFile(csound, &(buf[0]), (int32_t) nbytes);

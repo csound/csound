@@ -47,6 +47,8 @@ extern "C" {
 
   /**
    * Called by external software to set Csound's DrawGraph function.
+   * Set to NULL during a performance, the callback set before is no
+   * longer called.
    */
   PUBLIC void csoundSetDrawGraphCallback(CSOUND *,
                                          void (*drawGraphCallback_)(CSOUND *,

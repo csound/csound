@@ -191,6 +191,8 @@ void csoundSetAudioDeviceListCallback(
 
  int32_t csoundGetMIDIDevList(CSOUND *csound, CS_MIDIDEVICE *list,
                                     int32_t isOutput) {
+  if (csound->midi_dev_list_callback == NULL)
+    return 0;
   return csound->midi_dev_list_callback(csound, list, isOutput);
 }
 

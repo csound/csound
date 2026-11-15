@@ -181,7 +181,8 @@ void csoundDisplay(CSOUND *csound, WINDAT *wdptr)   /* prepare a cs_float array,
 
     if (O->odebug) csound->Message(csound, " calling draw callback \n");
     /* now graph the function */
-    csound->csoundDrawGraphCallback_(csound, wdptr);
+    if (csound->csoundDrawGraphCallback_ != NULL)
+      csound->csoundDrawGraphCallback_(csound, wdptr);
 
 
     /* Write postscript code */
