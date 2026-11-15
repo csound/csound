@@ -827,8 +827,10 @@ static int32_t midi_file_read(CSOUND *csound, midifile_t *midifile,
       }
     }
     return 0;
-    } else if (mf->counter <= 0) {
-      // looped already in this cycle: it would never run dry
+    } else if (mf->counter <= 0 ||
+               (unsigned long) mf->counter < mf->totalKcnt) {
+      // not at its end yet, or looped already in this cycle, where it
+      // would never run dry
       return 0;
     } else {
       // don't stop - loop

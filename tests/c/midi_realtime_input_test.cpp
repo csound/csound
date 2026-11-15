@@ -442,7 +442,7 @@ TEST_F(MidiDeviceAndFileInputTests, DeviceDataBeforeAnyStatusIsNoMessage)
 
 // A file the orchestra opens and plays, read through -F with no file name:
 // CC 9 = 1 on the first cycle after SetUp's and CC 9 = 2 on the 100th, on
-// channel 1. A tick is a k-cycle here too.
+// channel 1, and its end on the 150th. A tick is a k-cycle here too.
 class MidiOrchestraFileTests : public MidiRealtimeInputTests {
  protected:
   std::string file;
@@ -458,7 +458,7 @@ class MidiOrchestraFileTests : public MidiRealtimeInputTests {
     const unsigned char midi[] = {
       'M', 'T', 'h', 'd', 0, 0, 0, 6, 0, 0, 0, 1, 0x05, 0xDC,
       'M', 'T', 'r', 'k', 0, 0, 0, 12,
-      1, 0xB0, 9, 1, 99, 0xB0, 9, 2, 0, 0xFF, 0x2F, 0
+      1, 0xB0, 9, 1, 99, 0xB0, 9, 2, 50, 0xFF, 0x2F, 0
     };
     std::ofstream out(file, std::ios::binary);
     ASSERT_TRUE(out.is_open());
@@ -489,4 +489,18 @@ TEST_F(MidiOrchestraFileTests, RewindDoesNotStopTheFileClock)
     ASSERT_EQ(csoundPerformKsmps(csound), 0);
   EXPECT_EQ(csoundGetControlChannel(csound, "status", nullptr), 0);
   message({{}}, 0xB0, 1, 9, 2);
+}
+
+TEST_F(MidiOrchestraFileTests, ALoopedFilePlaysToItsEndBeforeItStartsAgain)
+{
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileloop 1, 1\n", 0), 0);
+  message({{}}, 0xB0, 1, 9, 1);
+  for (int i = 0; i < 98; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  message({{}}, 0xB0, 1, 9, 2);
+  // The 50 ticks between its last event and its end are part of the loop.
+  for (int i = 0; i < 50; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "data2", nullptr), 2);
+  message({{}}, 0xB0, 1, 9, 1);
 }
