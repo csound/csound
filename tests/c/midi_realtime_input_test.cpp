@@ -137,6 +137,16 @@ class MidiRealtimeInputTests : public ::testing::Test {
     EXPECT_EQ(csoundGetControlChannel(csound, "data1", nullptr), data1);
     EXPECT_EQ(csoundGetControlChannel(csound, "data2", nullptr), data2);
   }
+
+  // A rewind turns every note off, so the midiin reporter starts again, with
+  // nothing reported yet.
+  void rewind()
+  {
+    csoundRewindScore(csound);
+    csoundEventString(csound, "i3 0 1\n", 0);
+    for (const char *name : {"status", "channel", "data1", "data2"})
+      csoundSetControlChannel(csound, name, 0);
+  }
 };
 
 TEST_F(MidiRealtimeInputTests, ContinueIsIndependentOfClock)
@@ -351,16 +361,6 @@ class MidiDeviceAndFileInputTests : public MidiRealtimeInputTests {
     MidiRealtimeInputTests::TearDown();
     std::remove(file.c_str());
   }
-
-  // A rewind turns every note off, so the midiin reporter starts again, with
-  // nothing reported yet.
-  void rewind()
-  {
-    csoundRewindScore(csound);
-    csoundEventString(csound, "i3 0 1\n", 0);
-    for (const char *name : {"status", "channel", "data1", "data2"})
-      csoundSetControlChannel(csound, name, 0);
-  }
 };
 
 TEST_F(MidiDeviceAndFileInputTests, RewindRestartsTheFileOnItsCycles)
@@ -438,4 +438,55 @@ TEST_F(MidiDeviceAndFileInputTests, DeviceDataBeforeAnyStatusIsNoMessage)
   ASSERT_EQ(csoundGetControlChannel(csound, "held", nullptr), 1);
   message({{60}}, 0x90, 1, 60, 100);
   EXPECT_EQ(csoundGetControlChannel(csound, "released", nullptr), 0);
+}
+
+// A file the orchestra opens and plays, read through -F with no file name:
+// CC 9 = 1 on the first cycle after SetUp's and CC 9 = 2 on the 100th, on
+// channel 1. A tick is a k-cycle here too.
+class MidiOrchestraFileTests : public MidiRealtimeInputTests {
+ protected:
+  std::string file;
+
+  void options() override
+  {
+#if defined(_WIN32)
+    const auto pid = _getpid();
+#else
+    const auto pid = getpid();
+#endif
+    file = std::string("midi_orchestra_file_") + std::to_string(pid) + ".mid";
+    const unsigned char midi[] = {
+      'M', 'T', 'h', 'd', 0, 0, 0, 6, 0, 0, 0, 1, 0x05, 0xDC,
+      'M', 'T', 'r', 'k', 0, 0, 0, 12,
+      1, 0xB0, 9, 1, 99, 0xB0, 9, 2, 0, 0xFF, 0x2F, 0
+    };
+    std::ofstream out(file, std::ios::binary);
+    ASSERT_TRUE(out.is_open());
+    out.write(reinterpret_cast<const char *>(midi), sizeof(midi));
+    out.close();
+    ASSERT_TRUE(out.good());
+    ASSERT_EQ(csoundSetOption(csound, "-F"), 0);
+    extraOrchestra = "iFile midifileopen \"" + file + "\"\nmidifileplay iFile\n";
+  }
+
+  void TearDown() override
+  {
+    MidiRealtimeInputTests::TearDown();
+    std::remove(file.c_str());
+  }
+};
+
+TEST_F(MidiOrchestraFileTests, RewindDoesNotStopTheFileClock)
+{
+  // A rewind of the score leaves the orchestra's file where it was, and its
+  // time goes on: its second event comes 100 cycles after SetUp's, rewind or
+  // not.
+  message({{}}, 0xB0, 1, 9, 1);
+  for (int i = 0; i < 49; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  rewind();
+  for (int i = 0; i < 49; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "status", nullptr), 0);
+  message({{}}, 0xB0, 1, 9, 2);
 }

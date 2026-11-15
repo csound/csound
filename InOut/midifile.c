@@ -887,8 +887,8 @@ void csoundMIDIFileAdvance(CSOUND *csound)
 {
   midifile_t *midifile = MIDIFILE;
   while (midifile != NULL) {
-    if (!midifile->pause &&
-        midifile->global_kcounter < csound->global_kcounter) {
+    if (!midifile->pause &&   /* not <: a rewind sets Csound's count back */
+        midifile->global_kcounter != csound->global_kcounter) {
       midifile->counter += 1. / midifile->temposcal;
       midifile->global_kcounter = csound->global_kcounter;
     }
