@@ -20,6 +20,7 @@
 #include "requested_opcode_plugin_path.hpp"
 #include "failing_init_plugin_path.hpp"
 #include "failing_create_plugin_path.hpp"
+#include "jumping_init_plugin_path.hpp"
 #endif
 
 #ifdef CSOUND_TEST_HAS_TWO_COPIES
@@ -619,6 +620,32 @@ TEST(PluginThatFailsToLoad, InThePluginDirectoryFailsLoadPluginsCalledFirst) {
 
 TEST(PluginThatFailsToStart, InThePluginDirectoryFailsLoadPluginsCalledFirst) {
   expectLoadPluginsFirstToFail(CSOUND_TEST_FAILING_INIT_PLUGIN);
+}
+
+// A module of the plugin directory whose csoundModuleInit() jumped, as one
+// that calls csound->Die() does, left the scan marked as loaded, so a second
+// csoundLoadPlugins() succeeded on modules that had not all started. It now
+// fails as the first, as when csoundModuleInit() returns an error.
+TEST(PluginThatFailsToStart, ByAJumpFailsEveryLaterLoad) {
+  const NoUserPluginDirectory noUserPlugins;
+  const char *variable =
+      sizeof(cs_float) == sizeof(float) ? "OPCODE7DIR" : "OPCODE7DIR64";
+  const std::string directory = directoryOf(CSOUND_TEST_JUMPING_INIT_PLUGIN);
+  const std::string requested =
+      directoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN);
+  EXPECT_EXIT(
+      {
+        csoundSetGlobalEnv(variable, directory.c_str());
+        CSOUND *csound = createWithoutRcFile();
+        csoundSetGlobalEnv(variable, nullptr);
+        if (csoundLoadPlugins(csound, requested.c_str()) != CSOUND_ERROR)
+          std::exit(2);
+        if (csoundLoadPlugins(csound, requested.c_str()) != CSOUND_ERROR)
+          std::exit(3);
+        csoundDestroy(csound);
+        std::exit(0);
+      },
+      ::testing::ExitedWithCode(0), "");
 }
 
 // The scans counted the rest of the search path in the length of a plugin's

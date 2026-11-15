@@ -487,6 +487,12 @@ int32_t csoundLoadDefaultModules(CSOUND *csound) {
     csound->default_modules_loaded = 0;
     csound->Die(csound, Str("Failed during csoundLoadModules\n"));
   }
+  /* The native copy starts the modules through init_default_modules(),
+     which clears the flag when a module's csoundModuleInit() jumps. Not
+     here: WASI's csoundLoadModules() does not refuse a module list that is
+     not empty, as the native one does, so a later call would not fail, and
+     with the realtime compile context a jump goes to that context's target,
+     not to exitjmp. */
   if (csoundInitModules(csound) != 0) {
     csound->default_modules_loaded = 0;
     csound->LongJmp(csound, 1);
@@ -496,6 +502,27 @@ int32_t csoundLoadDefaultModules(CSOUND *csound) {
 
 #else /* __wasi__ */
 
+/* Starts the modules of the plugin directory's scan. A module's
+   csoundModuleInit() may stop Csound with a jump instead of returning an
+   error: the scan has failed all the same, so the jump clears
+   default_modules_loaded on its way, as an error does, and a later
+   csoundLoadDefaultModules() fails too, where it took the half-started
+   modules for loaded. */
+static int32_t init_default_modules(CSOUND *csound)
+{
+  volatile jmp_buf  tmpExitJmp;
+  int32_t           n;
+
+  memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
+  if (UNLIKELY((n = setjmp(csound->exitjmp)) != 0)) {
+    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+    csound->default_modules_loaded = 0;
+    longjmp(csound->exitjmp, n);
+  }
+  n = csoundInitModules(csound);
+  memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+  return n;
+}
 
 /* The library of a module whose csoundModuleCreate() failed. What the module
    registered before it failed, such as a callback, may point into it and
@@ -941,8 +968,11 @@ int32_t csoundLoadModules(CSOUND *csound)
  * The default_modules_loaded flag is set while the scan/init runs (so that
  * re-entrant enumeration during csoundModuleInit() does not start a second
  * scan) and stays set on success, even if the directories were empty. It is
- * cleared if loading fails, allowing a later retry. Callers ensure the
- * default scan runs before any explicit plugin load. Safe to call repeatedly.
+ * cleared if loading fails, a module's csoundModuleInit() jumping included:
+ * a later call then scans again only if no module is left loaded, and
+ * otherwise fails too, as csoundLoadModules() refuses a module list that is
+ * not empty, until a reset. Callers ensure the default scan runs before any
+ * explicit plugin load. Safe to call repeatedly.
  */
 int32_t csoundLoadDefaultModules(CSOUND *csound) {
   int32_t err;
@@ -959,7 +989,7 @@ int32_t csoundLoadDefaultModules(CSOUND *csound) {
      call csoundGetModule(), which re-enters here; that call must read the
      module list instead of starting a second scan (csoundLoadModules()
      rejects the non-empty module database and would call Die). The flag is
-     cleared on failure so that a later call can retry. */
+     cleared on failure, as the comment above says. */
   csound->default_modules_loaded = 1;
   err = csoundLoadModules(csound);
   if (csound->delayederrormessages &&
@@ -972,7 +1002,7 @@ int32_t csoundLoadDefaultModules(CSOUND *csound) {
     csound->default_modules_loaded = 0;
     csound->Die(csound, Str("Failed during csoundLoadModules\n"));
   }
-  if (csoundInitModules(csound) != 0) {
+  if (init_default_modules(csound) != 0) {
     csound->default_modules_loaded = 0;
     csound->LongJmp(csound, 1);
   }
