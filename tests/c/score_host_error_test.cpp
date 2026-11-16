@@ -549,6 +549,25 @@ TEST(HostScoreErrors, NameTheirOwnLinesBesideACsd)
     }
 }
 
+/* With --csd-line-nums=0 a .csd's score counts its lines from its first, the
+   lexer as the reader does: the lexer counted the .csd's. */
+TEST(HostScoreErrors, CountFromTheScoreWithCsdLineNumsOff)
+{
+    const std::string errors[] = {"#define 1", "i 1 0 2e"};
+    const std::string expected[] = {"Unexpected character 1(31) line 2\n",
+                                    ":  at position 7\n  in line 2 of the score\n"};
+    for (int error = 0; error < 2; error++) {
+        SCOPED_TRACE(errors[error]);
+        const std::string said = compiling(
+            {{"csound-score-lines.csd",
+              "<CsoundSynthesizer>\n<CsOptions>\n--csd-line-nums=0\n"
+              "</CsOptions>\n<CsInstruments>\ninstr 1\nendin\n"
+              "</CsInstruments>\n<CsScore>\ni 1 0 0\n" + errors[error] +
+                  "\n</CsScore>\n</CsoundSynthesizer>\n"}});
+        EXPECT_NE(std::string::npos, said.find(expected[error])) << said;
+    }
+}
+
 /* A malformed number says where it is while the reader reads it, here in a
    [], and not when the sort reads it again after the reader, here a t
    statement's, the last of its read: the reader's place is elsewhere then. */
