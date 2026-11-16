@@ -292,6 +292,33 @@ static char *my_fgets_cf(CSOUND *csound, char *s, int32_t n, CORFIL *stream)
     return a;
 }
 
+/* Frees what read_line allocated, if it did. */
+static void free_line(CSOUND *csound, char *buf, const char *fixed)
+{
+    if (buf != fixed)
+      csound->Free(csound, buf);
+}
+
+/* Reads a whole line, however long, where my_fgets_cf hands a line longer
+   than its buffer over in chunks. *buf is the caller's `fixed` buffer, until
+   a line does not fit it: then one is allocated with room for the line, its
+   newline, its NUL and a byte more, for the newline read_options gives a
+   last line that has none. free_line frees it. */
+static char *read_line(CSOUND *csound, CORFIL *cf, char **buf, size_t *size,
+                       const char *fixed)
+{
+    size_t n = strcspn(corfile_current(cf), "\r\n") + 2;
+
+    if (UNLIKELY(n > INT32_MAX - 1))  /* my_fgets_cf counts in int32_t: the */
+      n = INT32_MAX - 1;              /* rest comes as a line of its own */
+    if (n + 1 > *size) {
+      free_line(csound, *buf, fixed);  /* no copy: its line is done with */
+      *buf = (char *) csound->Malloc(csound, n + 1);
+      *size = n + 1;
+    }
+    return my_fgets_cf(csound, *buf, (int32_t) n, cf);
+}
+
 /* A line's leading blanks can fill a chunk, or leave its end to cut a tag or
    an opening that follows them. A chunk that starts a line and fills `size`
    with no newline is cut after its blanks, at `p`, and its text is read
@@ -356,19 +383,21 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
 {
     char  *p;
     int32_t   argc = 0;
-    char  last = '\n';           /* no newline: a chunk of a too-long line */
+    char  last;                  /* no newline: the file's last line */
     const char  *argv[CSD_MAX_ARGS+1];     /* the command name, then the rest */
-    char  buffer[CSD_MAX_LINE_LEN+1];      /* room for the newline given below */
+    char  line[CSD_MAX_LINE_LEN+1];        /* a line that fits, as most do */
+    char  *buffer = line;                  /* or one allocated, however long */
+    size_t  size = sizeof(line);
 
     //alloc_globals(csound);
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
-      int32_t continued = last != '\n';
+    while (read_line(csound, cf, &buffer, &size, line) != NULL) {
       last = buffer[strlen(buffer)-1];
       p = buffer;
       while (isblank(*p)) p++;
       /* Before the trim, which overwrites the last character of a last line
          that has no newline. */
       if (readingCsOptions && strstr(p, "</CsOptions>") == p) {
+        free_line(csound, buffer, line);
         return TRUE;
       }
       p = buffer;
@@ -388,7 +417,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
        */
       if (*p==';' || *p=='#' || *p=='\n' || (*p=='/' && *(p+1)=='/'))
         continue; /* empty or comment line? */
-      if (!continued && *p=='/' && *(p+1)=='*') {
+      if (*p=='/' && *(p+1)=='*') {
         skip_block_comment(csound, cf, p+2, &last);
         continue;
       }
@@ -495,6 +524,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
       }
       else argdecode(csound, argc, argv);
     }
+    free_line(csound, buffer, line);
     if (UNLIKELY(readingCsOptions))
       csoundErrorMsg(csound, Str("Missing end tag </CsOptions>\n"));
     return FALSE;
