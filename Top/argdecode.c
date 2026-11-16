@@ -2129,16 +2129,27 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
   strcpy(oparms->Midioutname, name);
 }
 
+/* The fill answers how many it filled, which can be fewer than it counted,
+   or a negative number: list only those. The entries are zeroed, so one a
+   fill claims and does not write prints as empty. */
+static int32_t devices_filled(int32_t counted, int32_t filled) {
+  return filled < 0 ? 0 : (filled < counted ? filled : counted);
+}
+
 static void list_audio_devices(CSOUND *csound, int32_t output) {
 
   int32_t i, n = csoundGetAudioDevList(csound, NULL, output);
-  CS_AUDIODEVICE *devs =
-      (CS_AUDIODEVICE *)csound->Malloc(csound, n * sizeof(CS_AUDIODEVICE));
+  CS_AUDIODEVICE *devs = NULL;
+  if (n > 0) {
+    devs = (CS_AUDIODEVICE *)csound->Calloc(csound, n * sizeof(CS_AUDIODEVICE));
+    n = devices_filled(n, csoundGetAudioDevList(csound, devs, output));
+  }
+  else
+    n = 0;
   if (output)
     csound->Message(csound, Str("%d audio output devices\n"), n);
   else
     csound->Message(csound, Str("%d audio input devices\n"), n);
-  csoundGetAudioDevList(csound, devs, output);
   for (i = 0; i < n; i++) {
     int32_t nchnls = devs[i].max_nchnls;
     if (nchnls > 0)
@@ -2154,13 +2165,17 @@ static void list_audio_devices(CSOUND *csound, int32_t output) {
 static void list_midi_devices(CSOUND *csound, int32_t output) {
 
   int32_t i, n = csoundGetMIDIDevList(csound, NULL, output);
-  CS_MIDIDEVICE *devs =
-      (CS_MIDIDEVICE *)csound->Malloc(csound, n * sizeof(CS_MIDIDEVICE));
+  CS_MIDIDEVICE *devs = NULL;
+  if (n > 0) {
+    devs = (CS_MIDIDEVICE *)csound->Calloc(csound, n * sizeof(CS_MIDIDEVICE));
+    n = devices_filled(n, csoundGetMIDIDevList(csound, devs, output));
+  }
+  else
+    n = 0;
   if (output)
     csound->Message(csound, Str("%d MIDI output devices\n"), n);
   else
     csound->Message(csound, Str("%d MIDI input devices\n"), n);
-  csoundGetMIDIDevList(csound, devs, output);
   for (i = 0; i < n; i++)
     csound->Message(csound, " %d: %s (%s)\n", i, devs[i].device_id,
                     devs[i].device_name);

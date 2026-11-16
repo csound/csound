@@ -379,3 +379,88 @@ TEST_F (OptionParserTests, testHardwareBufferOptionSetsWhatItsShortFormSets)
     EXPECT_EQ (csound->oparms->outbufsamps, software);
     EXPECT_EQ (csound->oparms->inbufsamps, software);
 }
+
+/* A device list that counts devicesCounted devices, then writes the first
+   one if devicesWritten, and answers devicesFilled. */
+static int32_t devicesCounted, devicesFilled, devicesFills;
+static bool devicesWritten;
+
+static int32_t listMidiDevices (CSOUND *, CS_MIDIDEVICE *list, int32_t)
+{
+    if (list == NULL)
+        return devicesCounted;
+    devicesFills++;
+    if (devicesWritten) {
+        strcpy (list[0].device_name, "first");
+        strcpy (list[0].device_id, "hw:0");
+    }
+    return devicesFilled;
+}
+
+static int32_t listAudioDevices (CSOUND *, CS_AUDIODEVICE *list, int32_t)
+{
+    if (list == NULL)
+        return devicesCounted;
+    devicesFills++;
+    if (devicesWritten) {
+        strcpy (list[0].device_name, "first");
+        strcpy (list[0].device_id, "hw:0");
+        list[0].max_nchnls = 2;
+    }
+    return devicesFilled;
+}
+
+/* What --devices and --midi-devices printed, without other messages. */
+static std::string deviceListing (CSOUND *csound)
+{
+    std::string listing;
+    for (; csoundGetMessageCnt (csound) > 0; csoundPopFirstMessage (csound)) {
+        const std::string line = csoundGetFirstMessage (csound);
+        if (line.find (" input devices\n") != std::string::npos ||
+            line.find (" output devices\n") != std::string::npos ||
+            line.compare (0, 4, " 0: ") == 0 || line.compare (0, 4, " 1: ") == 0)
+            listing += line;
+    }
+    return listing;
+}
+
+TEST_F (OptionParserTests, testDeviceListsPrintOnlyTheDevicesFilled)
+{
+    ASSERT_EQ (csoundSetOption (csound, "-+rtaudio=null -+rtmidi=null"), 0);
+    csoundSetAudioDeviceListCallback (csound, listAudioDevices);
+    csoundSetMIDIDeviceListCallback (csound, listMidiDevices);
+    deviceListing (csound);
+    devicesCounted = 2;
+    devicesFilled = 1;
+    devicesWritten = true;
+    ASSERT_EQ (csoundSetOption (csound, "--midi-devices=in --devices=out"), 0);
+    EXPECT_EQ (deviceListing (csound),
+               "1 MIDI input devices\n 0: hw:0 (first)\n"
+               "1 audio output devices\n 0: hw:0 (first) [ch:2]\n");
+    /* One the fill claims and does not write is empty, not what the memory
+       held before: one entry, listed and freed just before. */
+    devicesCounted = 1;
+    for (const bool written : {true, false}) {
+        devicesWritten = written;
+        ASSERT_EQ (csoundSetOption (csound, "--midi-devices=in --devices=out"), 0);
+        EXPECT_EQ (deviceListing (csound), written ?
+                   "1 MIDI input devices\n 0: hw:0 (first)\n"
+                   "1 audio output devices\n 0: hw:0 (first) [ch:2]\n" :
+                   "1 MIDI input devices\n 0:  ()\n"
+                   "1 audio output devices\n 0:  ()\n");
+    }
+    devicesCounted = 2;
+    devicesFilled = CSOUND_ERROR;
+    ASSERT_EQ (csoundSetOption (csound, "--midi-devices=out --devices=in"), 0);
+    EXPECT_EQ (deviceListing (csound),
+               "0 MIDI output devices\n0 audio input devices\n");
+    /* With no device counted, or an error, there is nothing to fill. */
+    devicesFills = 0;
+    for (const int32_t counted : {0, (int32_t) CSOUND_ERROR}) {
+        devicesCounted = counted;
+        ASSERT_EQ (csoundSetOption (csound, "--midi-devices=in --devices=in"), 0);
+        EXPECT_EQ (deviceListing (csound),
+                   "0 MIDI input devices\n0 audio input devices\n") << counted;
+    }
+    EXPECT_EQ (devicesFills, 0);
+}

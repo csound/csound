@@ -87,7 +87,9 @@ extern "C" {
   PUBLIC void csoundSetRtcloseCallback(CSOUND *, void (*)(CSOUND *));
   /**
    * Sets a function that is called to obtain a list of audio devices.
-   * With NULL, no device is listed. (See csoundGetAudioDevList())
+   * With NULL, no device is listed. The function returns how many devices
+   * there are when its list is NULL, and otherwise how many it filled, at
+   * most that many, or a negative number on an error. (See csoundGetAudioDevList())
    */
   PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound, audioDevListFunc);
 

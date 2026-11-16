@@ -103,7 +103,9 @@ extern "C" {
   /**
    * Sets a function that is called to obtain a list of MIDI devices.
    * This should be set by IO plugins, and should not be used by hosts.
-   * With NULL, no device is listed. (See csoundGetMIDIDevList())
+   * With NULL, no device is listed. The function returns how many devices
+   * there are when its list is NULL, and otherwise how many it filled, at
+   * most that many, or a negative number on an error. (See csoundGetMIDIDevList())
    */
   PUBLIC void csoundSetMIDIDeviceListCallback(CSOUND *csound,
                                               int32_t (*mididevlist__)
