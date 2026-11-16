@@ -528,53 +528,106 @@ std::string compiling(const std::vector<std::pair<std::string, std::string>> &fi
     return said;
 }
 
+/* An error on the second line of a score, the lexer's or the reader's, and
+   what it says of its line, in a file or "the score". */
+const char *lineErrors[] = {"#define 1", "i 1 0 2e"};
+const char *lineErrorNames[] = {"Lexer", "Reader"};
+
+std::string saidOfLine(int error, int line, const std::string &file)
+{
+    return error == 0
+        ? "Unexpected character 1(31) line " + std::to_string(line) + "\n"
+        : ":  at position 7\n  in line " + std::to_string(line) + " of " + file +
+              "\n";
+}
+
+/* What a host says after reading a text, on an instance of its own. */
+std::string reading(const std::string &text)
+{
+    Host host;
+    host.start();
+    host.csound->ReadScore(host.csound, text.c_str());
+    return host.said();
+}
+
 /* The lexer's errors and the reader's name the line they are on, in a .csd, a
    score file and a host's text alike. A score file's text began with a line
    end of its own, which the reader counted, and the lexer took the line before
-   the score for its first. */
-TEST(HostScoreErrors, NameTheLineTheyAreOn)
+   the score for its first. One instance each: an instance takes seconds under
+   a sanitizer. */
+enum LineForm { InACsd, InAScoreFile, InAHostsText };
+const char *lineFormNames[] = {"InACsd", "InAScoreFile", "InAHostsText"};
+
+class HostScoreLines
+    : public ::testing::TestWithParam<std::tuple<int, LineForm>> {};
+
+TEST_P(HostScoreLines, NameTheLineTheyAreOn)
 {
-    const std::string csd = ::testing::TempDir() + "csound-lines.csd";
-    /* An error of the lexer's, then the reader's, on the score's line 2 */
-    const std::string errors[] = {"#define 1", "i 1 0 2e"};
-    auto expected = [](int error, int line, const std::string &file) {
-        return error == 0
-            ? "Unexpected character 1(31) line " + std::to_string(line) + "\n"
-            : ":  at position 7\n  in line " + std::to_string(line) + " of " +
-                  file + "\n";
-    };
-    for (int error = 0; error < 2; error++) {
-        SCOPED_TRACE(errors[error]);
-        std::string said = compiling(
-            {{"csound-lines.csd",
+    const int error = std::get<0>(GetParam());
+    const LineForm form = std::get<1>(GetParam());
+    const std::string name = std::string("csound-lines-") +
+                             lineErrorNames[error] + "-" + lineFormNames[form];
+    const std::string line = lineErrors[error];
+    std::string said;
+    switch (form) {
+    case InACsd:
+        said = compiling(
+            {{name + ".csd",
               "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\nendin\n"
-              "</CsInstruments>\n<CsScore>\ni 1 0 0\n" + errors[error] +
+              "</CsInstruments>\n<CsScore>\ni 1 0 0\n" + line +
                   "\n</CsScore>\n</CsoundSynthesizer>\n"}});
-        EXPECT_NE(std::string::npos, said.find(expected(error, 8, csd))) << said;
-        said = compiling({{"csound-lines.orc", "instr 1\nendin\n"},
-                          {"csound-lines.sco", "i 1 0 0\n" + errors[error] + "\n"}});
-        EXPECT_NE(std::string::npos, said.find(expected(error, 2, "the score")))
+        EXPECT_NE(std::string::npos,
+                  said.find(saidOfLine(error, 8, ::testing::TempDir() + name +
+                                                     ".csd")))
             << said;
-        Host host;
-        host.start();
-        host.csound->ReadScore(host.csound, ("i 1 0 0\n" + errors[error]).c_str());
-        said = host.said();
-        EXPECT_NE(std::string::npos, said.find(expected(error, 2, "the score")))
+        break;
+    case InAScoreFile:
+        said = compiling({{name + ".orc", "instr 1\nendin\n"},
+                          {name + ".sco", "i 1 0 0\n" + line + "\n"}});
+        EXPECT_NE(std::string::npos, said.find(saidOfLine(error, 2, "the score")))
             << said;
+        break;
+    case InAHostsText:
+        said = reading("i 1 0 0\n" + line);
+        EXPECT_NE(std::string::npos, said.find(saidOfLine(error, 2, "the score")))
+            << said;
+        break;
     }
 }
+
+std::string lineFormName(
+    const ::testing::TestParamInfo<HostScoreLines::ParamType> &info)
+{
+    return std::string(lineErrorNames[std::get<0>(info.param)]) + "_" +
+           lineFormNames[std::get<1>(info.param)];
+}
+
+INSTANTIATE_TEST_SUITE_P(Lines, HostScoreLines,
+                         ::testing::Combine(::testing::Values(0, 1),
+                                            ::testing::Values(InACsd,
+                                                              InAScoreFile,
+                                                              InAHostsText)),
+                         lineFormName);
 
 /* A host's text read after a .csd, and a score file a .csd's options name,
    have no lines of the .csd's before them, and are not the .csd: their errors
    named the .csd, and a host's line was counted after the .csd's score's. */
-TEST(HostScoreErrors, NameTheirOwnLinesBesideACsd)
+enum OwnForm { AHostsTextAfterACsd, AScoreFileACsdNames };
+const char *ownFormNames[] = {"AHostsTextAfterACsd", "AScoreFileACsdNames"};
+
+class HostScoreOwnLines
+    : public ::testing::TestWithParam<std::tuple<int, OwnForm>> {};
+
+TEST_P(HostScoreOwnLines, NameTheirOwnLinesBesideACsd)
 {
-    const std::string errors[] = {"#define 1", "i 1 0 2e"};
-    const std::string expected[] = {"Unexpected character 1(31) line 2\n",
-                                    ":  at position 7\n  in line 2 of the score\n"};
-    const std::string csd = ::testing::TempDir() + "csound-own-lines.csd";
-    for (int error = 0; error < 2; error++) {
-        SCOPED_TRACE(errors[error]);
+    const int error = std::get<0>(GetParam());
+    const OwnForm form = std::get<1>(GetParam());
+    const std::string name = std::string("csound-own-lines-") +
+                             lineErrorNames[error] + "-" + ownFormNames[form];
+    const std::string line = lineErrors[error];
+    const std::string expected = saidOfLine(error, 2, "the score");
+    if (form == AHostsTextAfterACsd) {
+        const std::string csd = ::testing::TempDir() + name + ".csd";
         std::ofstream(csd, std::ios::binary)
             << "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\nendin\n"
                "</CsInstruments>\n<CsScore>\ni 1 0 0\n</CsScore>\n"
@@ -583,9 +636,9 @@ TEST(HostScoreErrors, NameTheirOwnLinesBesideACsd)
         csoundCreateMessageBuffer(csound, 0);
         csoundSetOption(csound, "-n");
         csoundSetOption(csound, "-d");
-        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(csound, csd.c_str(), 0, 0));
-        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
-        csound->ReadScore(csound, ("i 1 0 0\n" + errors[error]).c_str());
+        EXPECT_EQ(CSOUND_SUCCESS, csoundCompileCSD(csound, csd.c_str(), 0, 0));
+        EXPECT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        csound->ReadScore(csound, ("i 1 0 0\n" + line).c_str());
         std::string said;
         while (csoundGetMessageCnt(csound)) {
             said += csoundGetFirstMessage(csound);
@@ -593,119 +646,191 @@ TEST(HostScoreErrors, NameTheirOwnLinesBesideACsd)
         }
         csoundDestroy(csound);
         std::remove(csd.c_str());
-        EXPECT_NE(std::string::npos, said.find(expected[error])) << said;
-        said = compiling(
-            {{"csound-own-lines.orc", "instr 1\nendin\n"},
-             {"csound-own-lines.sco", "i 1 0 0\n" + errors[error] + "\n"},
-             {"csound-own-lines.csd",
-              "<CsoundSynthesizer>\n<CsOptions>\n-d \"" + ::testing::TempDir() +
-                  "csound-own-lines.orc\" \"" + ::testing::TempDir() +
-                  "csound-own-lines.sco\"\n</CsOptions>\n</CsoundSynthesizer>\n"}},
-            {"csound-own-lines.csd"});
-        EXPECT_NE(std::string::npos, said.find(expected[error])) << said;
+        EXPECT_NE(std::string::npos, said.find(expected)) << said;
     }
+    else {
+        const std::string said = compiling(
+            {{name + ".orc", "instr 1\nendin\n"},
+             {name + ".sco", "i 1 0 0\n" + line + "\n"},
+             {name + ".csd",
+              "<CsoundSynthesizer>\n<CsOptions>\n-d \"" + ::testing::TempDir() +
+                  name + ".orc\" \"" + ::testing::TempDir() + name +
+                  ".sco\"\n</CsOptions>\n</CsoundSynthesizer>\n"}},
+            {name + ".csd"});
+        EXPECT_NE(std::string::npos, said.find(expected)) << said;
+    }
+}
+
+std::string ownFormName(
+    const ::testing::TestParamInfo<HostScoreOwnLines::ParamType> &info)
+{
+    return std::string(lineErrorNames[std::get<0>(info.param)]) + "_" +
+           ownFormNames[std::get<1>(info.param)];
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Lines, HostScoreOwnLines,
+    ::testing::Combine(::testing::Values(0, 1),
+                       ::testing::Values(AHostsTextAfterACsd, AScoreFileACsdNames)),
+    ownFormName);
+
+/* A score text before an error, the lexer's (0) or the reader's (1), and
+   the name of its case. */
+struct LineAfter {
+    const char *name;
+    const char *text;
+    int error;
+};
+
+std::string lineAfterName(const ::testing::TestParamInfo<LineAfter> &info)
+{
+    return info.param.name;
 }
 
 /* The lexer counts the line ends that { and an r section's s read with their
    own line, and not the two an r puts back to end the section before it: each
    of these left the lines after it one fewer, or one more. */
-TEST(HostScoreErrors, LexerCountsTheLinesOfItsStatements)
+const LineAfter statements[] = {
+    {"AfterARepeat", "{ 2 N\ni 1 0 0\n}", 0},
+    {"AfterAnRSection", "r 2\ni 1 0 0\ns", 0},
+    {"AfterAnRStartedAgain", "r 2\ni 1 0 0\nr 2\ni 1 0 0\ns", 0},
+};
+
+class HostScoreStatementLines : public ::testing::TestWithParam<LineAfter> {};
+
+TEST_P(HostScoreStatementLines, LexerCountsTheLinesOfItsStatements)
 {
-    const std::string before[] = {"{ 2 N\ni 1 0 0\n}", "r 2\ni 1 0 0\ns",
-                                  "r 2\ni 1 0 0\nr 2\ni 1 0 0\ns"};
-    for (const auto &text : before) {
-        SCOPED_TRACE(text);
-        const std::string score = text + "\n#define 1\n";
-        const auto line = std::count(score.begin(), score.end(), '\n');
-        Host host;
-        host.start();
-        host.csound->ReadScore(host.csound, score.c_str());
-        const std::string said = host.said();
-        EXPECT_NE(std::string::npos,
-                  said.find("Unexpected character 1(31) line " +
-                            std::to_string(line) + "\n")) << said;
-    }
+    const LineAfter &after = GetParam();
+    const std::string score =
+        std::string(after.text) + "\n" + lineErrors[after.error] + "\n";
+    const auto line = (int) std::count(score.begin(), score.end(), '\n');
+    const std::string said = reading(score);
+    EXPECT_NE(std::string::npos,
+              said.find(saidOfLine(after.error, line, "the score"))) << said;
 }
+
+INSTANTIATE_TEST_SUITE_P(Lines, HostScoreStatementLines,
+                         ::testing::ValuesIn(statements), lineAfterName);
 
 /* The rest of an s or e line is read as any line is, its line end too, which
    the lexer counts and writes once: the lexer's lines after one were one
-   fewer, and the reader's after one with blanks or a carriage return one more. */
-TEST(HostScoreErrors, CountTheLineOfAnSOrE)
+   fewer, and the reader's after one with blanks or a carriage return one more.
+   Each is followed by the lexer's error, or the reader's. */
+const LineAfter afterSOrE[] = {
+    {"LexerAfterS", "s", 0},
+    {"LexerAfterSWithANumber", "s 2", 0},
+    {"LexerAfterSWithABlank", "s ", 0},
+    {"LexerAfterSWithACarriageReturn", "s\r", 0},
+    {"LexerAfterE", "e", 0},
+    {"LexerAfterEWithANumber", "e 2", 0},
+    {"ReaderAfterS", "s", 1},
+    {"ReaderAfterSWithANumber", "s 2", 1},
+    {"ReaderAfterSWithABlank", "s ", 1},
+    {"ReaderAfterSWithACarriageReturn", "s\r", 1},
+};
+
+class HostScoreSOrELines : public ::testing::TestWithParam<LineAfter> {};
+
+TEST_P(HostScoreSOrELines, CountTheLineOfAnSOrE)
 {
-    for (const std::string text : {"s", "s 2", "s ", "s\r", "e", "e 2"}) {
-        SCOPED_TRACE(text);
-        Host host;
-        host.start();
-        host.csound->ReadScore(host.csound, (text + "\n#define 1\n").c_str());
-        const std::string said = host.said();
-        EXPECT_NE(std::string::npos,
-                  said.find("Unexpected character 1(31) line 2\n")) << said;
-    }
-    for (const std::string text : {"s", "s 2", "s ", "s\r"}) {
-        SCOPED_TRACE(text);
-        Host host;
-        host.start();
-        host.csound->ReadScore(host.csound, (text + "\ni 1 0 2e\n").c_str());
-        const std::string said = host.said();
-        EXPECT_NE(std::string::npos,
-                  said.find(":  at position 7\n  in line 2 of the score\n"))
-            << said;
-    }
+    const LineAfter &after = GetParam();
+    const std::string said = reading(std::string(after.text) + "\n" +
+                                     lineErrors[after.error] + "\n");
+    EXPECT_NE(std::string::npos,
+              said.find(saidOfLine(after.error, 2, "the score"))) << said;
 }
+
+INSTANTIATE_TEST_SUITE_P(Lines, HostScoreSOrELines, ::testing::ValuesIn(afterSOrE),
+                         lineAfterName);
 
 #ifndef _WIN32
 /* A score a program writes, <CsScore bin>, has the program's lines, not the
    .csd's: an error on its line 5 named line 11 of this .csd, which has 10.
    With two score blocks the first is the score, the second read after its
-   #exit: the lines are the first one's, whichever kind it is. */
-TEST(HostScoreErrors, NameTheLinesOfAProgramsScore)
+   #exit: the lines are the first one's, whichever kind it is. A .csd whose
+   compile fails leaves its score's text, which the next one writes over from
+   its start: that one's block begins the score. */
+enum ProgramCase {
+    AProgramsScore,
+    AProgramsScoreBeforeABlock,
+    ABlockBeforeAProgramsScore,
+    ABlockAfterAFailedCompile,
+    AProgramsScoreAfterAFailedCompile
+};
+const char *programCaseNames[] = {
+    "AProgramsScore", "AProgramsScoreBeforeABlock", "ABlockBeforeAProgramsScore",
+    "ABlockAfterAFailedCompile", "AProgramsScoreAfterAFailedCompile"};
+
+class HostScoreProgramLines : public ::testing::TestWithParam<ProgramCase> {};
+
+TEST_P(HostScoreProgramLines, NameTheLinesOfAProgramsScore)
 {
-    const std::string csd = ::testing::TempDir() + "csound-program.csd";
+    const std::string name =
+        std::string("csound-program-") + programCaseNames[GetParam()] + ".csd";
+    const std::string csd = ::testing::TempDir() + name;
     const std::string top = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\n"
                             "endin\n</CsInstruments>\n";
     const std::string program =
         "<CsScore bin=\"sh -c '(echo; echo; echo; cat $0) > $1'\">\n";
-    std::string said = compiling(
-        {{"csound-program.csd", top + program +
-                                    "i 1 0 0\ni 1 0 2e\n</CsScore>\n"
-                                    "</CsoundSynthesizer>\n"}});
-    EXPECT_NE(std::string::npos,
-              said.find(":  at position 7\n  in line 5 of the score\n"))
-        << said;
-    said = compiling({{"csound-program.csd",
-                       top + program + "i 1 0 0\ni 1 0 2e\n</CsScore>\n"
-                           "<CsScore>\ni 1 0 0\n</CsScore>\n"
-                           "</CsoundSynthesizer>\n"}});
-    EXPECT_NE(std::string::npos,
-              said.find(":  at position 7\n  in line 5 of the score\n"))
-        << said;
-    said = compiling({{"csound-program.csd",
-                       top + "<CsScore>\ni 1 0 0\ni 1 0 2e\n</CsScore>\n" +
-                           program + "i 1 0 0\n</CsScore>\n"
-                           "</CsoundSynthesizer>\n"}});
-    EXPECT_NE(std::string::npos,
-              said.find(":  at position 7\n  in line 8 of " + csd + "\n"))
-        << said;
-
-    /* A .csd whose compile fails leaves its score's text, which the next one
-       writes over from its start: that one's block begins the score. */
+    const std::string inTheProgramsScore =
+        ":  at position 7\n  in line 5 of the score\n";
     const char *failing = "<CsoundSynthesizer>\n<CsScore>\ni 1 0 0\n"
                           "</CsScore>\n</CsoundSynthesizer>\n";
-    const std::string blocks[] = {
-        "<CsScore>\ni 1 0 0\ni 1 0 2e\n</CsScore>\n",
-        program + "i 1 0 0\ni 1 0 2e\n</CsScore>\n"};
-    const std::string expected[] = {":  at position 7\n  in line 8 of ",
-                                    ":  at position 7\n  in line 5 of the score\n"};
-    for (int i = 0; i < 2; i++) {
+    std::string said;
+    switch (GetParam()) {
+    case AProgramsScore:
+        said = compiling({{name, top + program + "i 1 0 0\ni 1 0 2e\n</CsScore>\n"
+                                                 "</CsoundSynthesizer>\n"}});
+        EXPECT_NE(std::string::npos, said.find(inTheProgramsScore)) << said;
+        break;
+    case AProgramsScoreBeforeABlock:
+        said = compiling({{name, top + program + "i 1 0 0\ni 1 0 2e\n</CsScore>\n"
+                                                 "<CsScore>\ni 1 0 0\n</CsScore>\n"
+                                                 "</CsoundSynthesizer>\n"}});
+        EXPECT_NE(std::string::npos, said.find(inTheProgramsScore)) << said;
+        break;
+    case ABlockBeforeAProgramsScore:
+        said = compiling({{name, top + "<CsScore>\ni 1 0 0\ni 1 0 2e\n</CsScore>\n" +
+                                     program + "i 1 0 0\n</CsScore>\n"
+                                     "</CsoundSynthesizer>\n"}});
+        EXPECT_NE(std::string::npos,
+                  said.find(":  at position 7\n  in line 8 of " + csd + "\n"))
+            << said;
+        break;
+    case ABlockAfterAFailedCompile:
+    case AProgramsScoreAfterAFailedCompile: {
+        const bool block = GetParam() == ABlockAfterAFailedCompile;
         Host host;
         host.start();
         EXPECT_NE(CSOUND_SUCCESS, csoundCompileCSD(host.csound, failing, 1, 0));
         csoundCompileCSD(host.csound,
-                         (top + blocks[i] + "</CsoundSynthesizer>\n").c_str(), 1, 0);
+                         (top +
+                          (block ? "<CsScore>\ni 1 0 0\ni 1 0 2e\n</CsScore>\n"
+                                 : program + "i 1 0 0\ni 1 0 2e\n</CsScore>\n") +
+                          "</CsoundSynthesizer>\n")
+                             .c_str(),
+                         1, 0);
         said = host.said();
-        EXPECT_NE(std::string::npos, said.find(expected[i])) << said;
+        EXPECT_NE(std::string::npos,
+                  said.find(block ? ":  at position 7\n  in line 8 of "
+                                  : inTheProgramsScore))
+            << said;
+        break;
+    }
     }
 }
+
+std::string programCaseName(const ::testing::TestParamInfo<ProgramCase> &info)
+{
+    return programCaseNames[info.param];
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Lines, HostScoreProgramLines,
+    ::testing::Values(AProgramsScore, AProgramsScoreBeforeABlock,
+                      ABlockBeforeAProgramsScore, ABlockAfterAFailedCompile,
+                      AProgramsScoreAfterAFailedCompile),
+    programCaseName);
 #endif
 
 /* With --csd-line-nums=0 a .csd's score counts its lines from its first, the
