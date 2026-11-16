@@ -1686,6 +1686,30 @@ static TREE* create_struct_array_set_call(CSOUND* csound,
   return arraySetOp;
 }
 
+/* ##array_member_set array, value, depth, member indexes..., indexes... */
+static TREE* create_struct_array_member_set_call(
+  CSOUND* csound, TREE* current, const STRUCT_ARRAY_MEMBER_PATH* path)
+{
+  TREE* setOp = create_opcode_token(csound, "##array_member_set");
+  TREE* arg;
+  int32_t i;
+
+  setOp->type = T_OPCALL;
+  setOp->line = current->line;
+  setOp->locn = current->locn;
+  setOp->right = copy_node(csound, path->arrayExpr->left);
+  arg = setOp->right->next = copy_node(csound, current->right);
+  arg = arg->next = create_member_index_leaf(csound, current->line,
+                                             current->locn, path->memberCount);
+  for (i = 0; i < path->memberCount; i++) {
+    arg = arg->next = create_member_index_leaf(csound, current->line,
+                                               current->locn,
+                                               path->memberIndices[i]);
+  }
+  arg->next = copy_node(csound, path->arrayExpr->right);
+  return setOp;
+}
+
 static TREE* create_struct_member_assignment(CSOUND* csound,
                                              TREE* current,
                                              const char* structArg,
@@ -1731,6 +1755,21 @@ int expand_struct_array_member_assignment(CSOUND* csound,
   }
 
   follows = struct_member_follows_at_i_index(&path, initContext);
+  const CS_TYPE* memberType = path.memberVars[path.memberCount - 1]->varType;
+  /* A scalar member written in each cycle, at an i index that follows or at
+     a k index, is written in place: copying the element out and back again
+     wrote the same member, and copied every other member twice. An index
+     that is an i but reads an array at a k index, fs[iArr[kI]] or
+     fs[i(kArr[kI])], keeps the copy and the rate it had. */
+  if ((follows ||
+       array_has_k_rate_index(csound, path.arrayExpr->right, typeTable)) &&
+      current->right->next == NULL &&
+      !array_target_missing_lexeme(path.arrayExpr) &&
+      memberType != &CS_VAR_TYPE_ARRAY && !memberType->userDefinedType) {
+    *anchor = tree_append(*anchor,
+      create_struct_array_member_set_call(csound, current, &path));
+    return 1;
+  }
   structTemps[0] = create_out_arg(csound,
                                   path.rootStructType->varTypeName,
                                   typeTable->localPool->synthArgCount++,
@@ -1744,7 +1783,6 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                                                 follows ? "##array_get_struct_k"
                                                 : "##array_get_struct"));
 
-  const CS_TYPE* memberType = path.memberVars[path.memberCount - 1]->varType;
   if (!path.hasKRateIndex &&
       (memberType == &CS_VAR_TYPE_I || memberType == &CS_VAR_TYPE_b)) {
     /* An i or a b member at i indices is written at init, by a typed

@@ -1006,6 +1006,57 @@ endop
     }
 }
 
+/* A scalar member written in each cycle is written in place: neither the
+   element's copy out (##array_get_struct...) nor its copy back
+   (##array_set_struct...) is left in the UDO. */
+TEST_F (OrcCompileTests, testStructArrayMemberWritesInPlace)
+{
+    const char* orchestra = R"(
+struct Field level:k, on:B, name:S, values:k[]
+struct Record field:Field
+fields@global:Field[] init 2
+records@global:Record[] init 2
+
+opcode WriteAtI(index:i):void
+  fields[index].level = 0.5
+endop
+opcode WriteBooleanAtI(input:i):void
+  value:k init input
+  fields[1].on = value > 0
+endop
+opcode WriteAtK(input:i):void
+  index:k init input
+  fields[index].level = 0.5
+endop
+opcode WriteStringAtK(input:i):void
+  index:k init input
+  fields[index].name = "text"
+endop
+opcode WriteNested(index:i):void
+  records[index].field.level = 0.5
+endop
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    for (const char* name : {"WriteAtI", "WriteBooleanAtI", "WriteAtK",
+                             "WriteStringAtK", "WriteNested"}) {
+        OENTRY* entry = find_opcode_new(csound, name, "", "i");
+        ASSERT_NE(nullptr, entry) << name;
+        OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+        ASSERT_NE(nullptr, info) << name;
+        int inPlace = 0, copies = 0;
+        for (OPTXT* op = info->ip->nxtop; op != nullptr; op = op->nxtop) {
+            const char* opname =
+              op->t.oentry != nullptr ? op->t.oentry->opname : "";
+            inPlace += !strcmp(opname, "##array_member_set");
+            copies += !strncmp(opname, "##array_get_struct", 18) ||
+                      !strncmp(opname, "##array_set_struct", 18);
+        }
+        EXPECT_EQ(1, inPlace) << name;
+        EXPECT_EQ(0, copies) << name;
+    }
+}
+
 TEST_F (OrcCompileTests, testInitOnlyGeneratedGetterConsumers)
 {
     const char* orchestra = R"(
