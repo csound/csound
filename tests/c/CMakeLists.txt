@@ -298,6 +298,29 @@ if(BUILD_TESTS)
         target_compile_definitions(unittests PRIVATE
             CSOUND_TEST_HAS_CONFIGURATION_PLUGIN)
 
+        add_library(create_error_test_plugin MODULE
+            fixtures/create_error_plugin.c)
+        target_include_directories(create_error_test_plugin PRIVATE
+            ${libcsound_private_include_dirs})
+        target_include_directories(create_error_test_plugin PUBLIC
+            ${libcsound_public_include_dirs})
+        target_compile_definitions(create_error_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        # Its directory is scanned, and a scan takes .dylib on macOS.
+        set_target_properties(create_error_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/create-error-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/create-error-plugin)
+        add_dependencies(unittests create_error_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/create_error_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_CREATE_ERROR_PLUGIN R\"csound($<TARGET_FILE:create_error_test_plugin>)csound\"\n"
+            TARGET create_error_test_plugin)
+
         if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
             # A second copy of each plugin that shares instance variables.
             set(TEST_TWO_COPIES_DIR ${CMAKE_CURRENT_BINARY_DIR}/two-copies)

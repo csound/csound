@@ -14,9 +14,11 @@
 #include <vector>
 #include "gtest/gtest.h"
 #include "csound.h"
+#include "csound_compiler.h"  // before csdl.h, which hides its host calls
 #include "csdl.h"
 
 #ifdef CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN
+#include "create_error_plugin_path.hpp"
 #include "requested_opcode_plugin_path.hpp"
 #include "failing_init_plugin_path.hpp"
 #include "failing_create_plugin_path.hpp"
@@ -787,6 +789,197 @@ TEST_P(TwoCopiesOfAPlugin, ThroughOpcodeLib) {
 INSTANTIATE_TEST_SUITE_P(Modules, TwoCopiesOfAPlugin,
                          ::testing::Values(CSOUND_TEST_TWO_COPY_PLUGINS));
 #endif
+
+// A host lists or chooses modules first, with csoundGetModule(),
+// csoundSetRTAudioModule() or csoundSetMIDIModule(), or parses with
+// csoundParseOrc(), and the call scans the plugin directory, which jumps when
+// a plugin there fails to load or start: with nothing owning exitjmp, the
+// host died with signal 11. Each test runs in a process of its own.
+namespace {
+// The scan reads CS_USER_PLUGINDIR with getenv(), and takes the default user
+// plugin directory when it is not set: one that is not there keeps the
+// machine's plugins out. MSVC takes no directive inside a test macro's
+// argument, so this is a function.
+void scanNoUserPluginDirectory() {
+#ifdef WIN32
+  _putenv_s("CS_USER_PLUGINDIR", "no-such-user-plugin-directory");
+#else
+  setenv("CS_USER_PLUGINDIR", "no-such-user-plugin-directory", 1);
+#endif
+}
+
+// In a test's own process: an instance whose plugin directory is the one the
+// plugin is in, that reads no rc file of the user's, and to which no other
+// call has been made.
+CSOUND *createScanningTheDirectoryOf(const char *plugin) {
+  const std::string directory =
+      std::filesystem::path(plugin).parent_path().string();
+  scanNoUserPluginDirectory();
+  csoundSetGlobalEnv(sizeof(cs_float) == sizeof(float) ? "OPCODE7DIR"
+                                                       : "OPCODE7DIR64",
+                     directory.c_str());
+  csoundSetGlobalEnv("CSOUND7RC", "");
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  csoundCreateMessageBuffer(csound, 0);
+  return csound;
+}
+
+// Each makes the call, and returns CSOUND_ERROR if it failed as it should.
+// The setters return nothing, and csoundStart() must fail after them.
+int32_t getModule(CSOUND *csound) {
+  char *name, *type;
+  return csoundGetModule(csound, 0, &name, &type);
+}
+
+int32_t start(CSOUND *csound) {
+  csoundSetOption(csound, "-n");
+  return csoundStart(csound);
+}
+
+int32_t setRTAudioModule(CSOUND *csound) {
+  csoundSetRTAudioModule(csound, "no-such-module");
+  return start(csound);
+}
+
+int32_t setMIDIModule(CSOUND *csound) {
+  csoundSetMIDIModule(csound, "no-such-module");
+  return start(csound);
+}
+
+int32_t parseOrc(CSOUND *csound) {
+  TREE *tree = csoundParseOrc(csound, "instr 1\nendin\n");
+  if (tree == nullptr)
+    return CSOUND_ERROR;
+  csoundDeleteTree(csound, tree);
+  return CSOUND_SUCCESS;
+}
+
+// csoundCompileOrc() parses through csoundParseOrc(), and took the jump
+// already, but returned its raw value, 255.
+int32_t compileOrc(CSOUND *csound) {
+  return csoundCompileOrc(csound, "instr 1\nendin\n", 0);
+}
+
+void expectCalledFirstToFail(const char *plugin, int32_t (*call)(CSOUND *)) {
+  EXPECT_EXIT(
+      {
+        CSOUND *csound = createScanningTheDirectoryOf(plugin);
+        const int32_t result = call(csound);
+        csoundDestroy(csound);
+        std::exit(result == CSOUND_ERROR ? 0 : 1);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+} // namespace
+
+TEST(PluginThatFailsToLoad, InThePluginDirectoryFailsGetModuleCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_CREATE_ERROR_PLUGIN, getModule);
+}
+
+TEST(PluginThatFailsToStart, InThePluginDirectoryFailsGetModuleCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_FAILING_INIT_PLUGIN, getModule);
+}
+
+TEST(PluginThatFailsToLoad,
+     InThePluginDirectoryFailsTheStartAfterSetRTAudioModuleCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_CREATE_ERROR_PLUGIN, setRTAudioModule);
+}
+
+TEST(PluginThatFailsToStart,
+     InThePluginDirectoryFailsTheStartAfterSetRTAudioModuleCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_FAILING_INIT_PLUGIN, setRTAudioModule);
+}
+
+TEST(PluginThatFailsToLoad,
+     InThePluginDirectoryFailsTheStartAfterSetMIDIModuleCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_CREATE_ERROR_PLUGIN, setMIDIModule);
+}
+
+TEST(PluginThatFailsToStart,
+     InThePluginDirectoryFailsTheStartAfterSetMIDIModuleCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_FAILING_INIT_PLUGIN, setMIDIModule);
+}
+
+TEST(PluginThatFailsToLoad, InThePluginDirectoryFailsParseOrcCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_CREATE_ERROR_PLUGIN, parseOrc);
+}
+
+TEST(PluginThatFailsToStart, InThePluginDirectoryFailsParseOrcCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_FAILING_INIT_PLUGIN, parseOrc);
+}
+
+TEST(PluginThatFailsToLoad, InThePluginDirectoryFailsCompileOrcCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_CREATE_ERROR_PLUGIN, compileOrc);
+}
+
+TEST(PluginThatFailsToStart, InThePluginDirectoryFailsCompileOrcCalledFirst) {
+  expectCalledFirstToFail(CSOUND_TEST_FAILING_INIT_PLUGIN, compileOrc);
+}
+
+// Once the plugins are loaded, the setters start them again, and a plugin
+// that fails to start, here one loaded after the scan, jumped there too.
+namespace {
+void expectCalledAfterTheScanToFail(int32_t (*call)(CSOUND *)) {
+  const std::string failing =
+      std::filesystem::path(CSOUND_TEST_FAILING_INIT_PLUGIN)
+          .parent_path().string();
+  EXPECT_EXIT(
+      {
+        CSOUND *csound =
+            createScanningTheDirectoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN);
+        csoundLoadPlugins(csound, failing.c_str());
+        const int32_t result = call(csound);
+        csoundDestroy(csound);
+        std::exit(result == CSOUND_ERROR ? 0 : 1);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+} // namespace
+
+TEST(PluginThatFailsToStart, LoadedAfterTheScanFailsTheStartAfterSetRTAudioModule) {
+  expectCalledAfterTheScanToFail(setRTAudioModule);
+}
+
+TEST(PluginThatFailsToStart, LoadedAfterTheScanFailsTheStartAfterSetMIDIModule) {
+  expectCalledAfterTheScanToFail(setMIDIModule);
+}
+
+// A compile can start the plugins before csoundStart(), here through an
+// --opcode-lib in <CsOptions>, and csoundStart() then does not start them
+// again: a plugin that failed to start as a setter started them again went
+// unreported, as the setters return nothing.
+namespace {
+void expectCalledAfterACompileToFail(int32_t (*call)(CSOUND *)) {
+  const std::string failing =
+      std::filesystem::path(CSOUND_TEST_FAILING_INIT_PLUGIN)
+          .parent_path().string();
+  const std::string csd =
+      "<CsoundSynthesizer>\n<CsOptions>\n-n --opcode-lib=\"" +
+      std::string(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN) +
+      "\"\n</CsOptions>\n<CsInstruments>\ninstr 1\nendin\n"
+      "</CsInstruments>\n</CsoundSynthesizer>\n";
+  EXPECT_EXIT(
+      {
+        CSOUND *csound =
+            createScanningTheDirectoryOf(CSOUND_TEST_REQUESTED_OPCODE_PLUGIN);
+        if (csoundCompileCSD(csound, csd.c_str(), 1, 0) != CSOUND_SUCCESS)
+          std::exit(2);
+        csoundLoadPlugins(csound, failing.c_str());
+        const int32_t result = call(csound);
+        csoundDestroy(csound);
+        std::exit(result == CSOUND_ERROR ? 0 : 1);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+} // namespace
+
+TEST(PluginThatFailsToStart, LoadedAfterACompileFailsTheStartAfterSetRTAudioModule) {
+  expectCalledAfterACompileToFail(setRTAudioModule);
+}
+
+TEST(PluginThatFailsToStart, LoadedAfterACompileFailsTheStartAfterSetMIDIModule) {
+  expectCalledAfterACompileToFail(setMIDIModule);
+}
 #endif
 
 #include "plugin.h"

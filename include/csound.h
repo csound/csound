@@ -566,7 +566,8 @@ extern "C" {
    * Retrieves a module name and type ("audio" or "midi") given a
    * number Modules are added to list as csound loads them returns
    * CSOUND_SUCCESS on success and CSOUND_ERROR if module number
-   * was not found. The first call may load the default modules.
+   * was not found. The first call may load the default modules, and
+   * returns CSOUND_ERROR if a plugin there fails to load or start.
    *
    * \code
    *  char *name, *type;

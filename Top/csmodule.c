@@ -1413,6 +1413,26 @@ int32_t csoundLoadRequestedPlugins(CSOUND *csound) {
   return retval;
 }
 
+int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *))
+{
+  volatile jmp_buf  saved;
+  int32_t           err;
+
+#ifdef CSOUND_WASI_REALTIME
+  /* A compiler worker's jump goes to its compile context, or ends the
+     process: exitjmp is the render thread's, and is left alone. */
+  if (csoundWasiIsWorkerThread())
+    return func(csound);
+#endif
+  memcpy((void*) &saved, (void*) &csound->exitjmp, sizeof(jmp_buf));
+  if (setjmp(csound->exitjmp) != 0)
+    err = CSOUND_ERROR;
+  else
+    err = func(csound);
+  memcpy((void*) &csound->exitjmp, (void*) &saved, sizeof(jmp_buf));
+  return err;
+}
+
 /* ------------------------------------------------------------------------ */
 #if defined(WIN32)
 int32_t open_library(void **library, const char *libraryPath)

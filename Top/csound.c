@@ -1867,8 +1867,12 @@ static int32_t csoundDeprecate(CSOUND *csound, char *name,
  int32_t csoundGetModule(CSOUND *csound, int32_t no, char **module,
                                char **type) {
   MODULE_INFO **modules;
-  /* Module enumeration implies the default directories have been scanned. */
-  if (UNLIKELY(csoundLoadDefaultModules(csound) != CSOUND_SUCCESS))
+  /* Module enumeration implies the default directories have been scanned.
+     A host may call this first, before anything owns exitjmp. Once they
+     have been, exitjmp is left alone: a performance may own it. */
+  if (UNLIKELY(!csound->default_modules_loaded &&
+               csoundCatchJump(csound, csoundLoadDefaultModules)
+                   != CSOUND_SUCCESS))
     return CSOUND_ERROR;
   modules =
       (MODULE_INFO **)csoundQueryGlobalVariable(csound, "_MODULES");
