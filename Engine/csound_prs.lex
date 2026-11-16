@@ -622,8 +622,7 @@ NP              np[0-9]+
               }
               //printf("recording section end %d %c\n>>%s<<\n",
               //       PARM->in_repeat_sect, op, PARM->cf->body);
-              corfile_putc(csound, 's', PARM->cf);
-              corfile_putc(csound, '\n', PARM->cf);
+              corfile_putc(csound, 's', PARM->cf);   /* then its time */
               while (1) {
                 int c = input(yyscanner);
                 //printf("copying >>%c<<(%.2x)", c, c);
