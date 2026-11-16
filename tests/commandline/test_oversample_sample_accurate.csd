@@ -143,6 +143,9 @@ instr Check
   ; the input converter has taken the note's first sample in that block.
   iRampFrom = iSilentTo + (iRuns < iBlocks ? ceil(ksmps / iLocal) + 1 : \
                                              3 * ceil(ksmps / iLocal))
+  ; A float build steps it by 1 within 1.6e-5 at factor 3, a double one 3e-14;
+  ; steps of a half and a quarter are exact in both.
+  iRampError = 1 + 1e-10 == 1 && iFactor == 3 ? 1e-4 : 1e-9
   ; Init clears aSig up to the note's start in its global block, so its last
   ; sample keeps the 1 only when that start is in the caller's block.
   iKept = p4 == 0 && iFirst < ksmps ? 1 : 0
@@ -202,7 +205,7 @@ not %g\n", 0, p4 == 0 ? "oversample" : "undersample", iFactor, p6, \
     ; silent outside the note. Under zero-order hold, a note that starts on
     ; a local cycle's first sample returns the silence of the cycle before,
     ; and so does a block that undersample skips. Through undersample, only
-    ; linear conversion returns a ramp.
+    ; linear conversion returns a ramp, exact to the build's precision.
     kPassed = vaget(kSample, aPass[0])
     if p4 == 0 && p6 % 5 > 2 then
       if (kAt >= iFirst + 4 && kAt < iEnd && kPassed != kPrevious + 1) || \
@@ -214,7 +217,7 @@ as %g after %g\n", 0, iFactor, p6, iFirst, p8, kAt, kPassed, kPrevious
       endif
     elseif p4 == 1 then
       if (p6 % 5 == 4 && kAt >= iRampFrom && kAt < iEnd && \
-          abs(kPassed - kPrevious - 1) > 1e-9) || \
+          abs(kPassed - kPrevious - 1) > iRampError) || \
          ((kAt < iFirst || kAt >= iEnd || \
            (iRuns < iBlocks && kAt < iSilentTo)) && kPassed != 0) then
         printks "undersample %d, converter %d, note %d+%d: sample %d passed \
@@ -266,9 +269,13 @@ endin
 
 giNote init 0
 instr Case
-  ; One note every 10 blocks, each starting p7 samples into its block.
+  ; One note every 10 blocks, each starting p7 samples into its block. Its
+  ; start and length are half and a quarter of a sample over p7 and p8, so
+  ; both truncate to them and its end time is never a whole sample: on a
+  ; block boundary, float and double p-fields round it to different blocks.
+  ; No p7 + p8 is a multiple of ksmps, where the engine plays one block more.
   giNote += 1
-  schedule("Check", (giNote * 10 * ksmps + p7 + 0.5) / sr, (p8 + 0.5) / sr, \
+  schedule("Check", (giNote * 10 * ksmps + p7 + 0.5) / sr, (p8 + 0.25) / sr, \
            p4, p5, p6, p7, p8, p9)
 endin
 
