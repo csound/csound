@@ -272,6 +272,11 @@ const Warned overrun[] = {
     {"#define C(x) #$x#\n#define L #{ $C(2)#\n$L N\ni 1 0 $N\n}", "", 2},
     {"#define L #{ [1+1]#\n$L N\ni 1 0 $N\n}", "", 2},
     {"#define L #{ 2 #\n$L N\ni 1 0 $N\n}", "", 2},
+    /* And its counter's name, the line it read on to past the text's end:
+       the rest of the call's line is the rest of the { line, as written in
+       place. */
+    {"#define L #{ 2 N#\n$L\ni 1 0 $N\n}", "", 2},
+    {"#define L #{ 2 N#\n$L i 1 0 0\ni 1 0 $N\n}", "", 2},
     /* An unclosed repeat or section went without a word. */
     {"{ 2 N\ni 1 0 0", "unclosed repeat", 0},
     {"r 2\ni 1 0 0", "unclosed repeat", 0},

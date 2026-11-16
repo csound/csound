@@ -413,7 +413,6 @@ NP              np[0-9]+
                       c = input(yyscanner);
                     }
                     PARM->repeat_name_n[PARM->repeat_index][i] = '\0';
-                    unput(c);
                     /* Define macro for counter */
                     PARM->repeat_mm_n[PARM->repeat_index]->name =
                       csound->Malloc(csound,
@@ -436,9 +435,13 @@ NP              np[0-9]+
                     PARM->repeat_mm_n[PARM->repeat_index]->next = PARM->macros;
                     PARM->macros = PARM->repeat_mm_n[PARM->repeat_index];
                     PARM->defining = NULL;
-                    while (input(yyscanner)!='\n') {}
-                    csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
-                                         yyscanner);   /* the line end read */
+                    /* The rest of its line, which goes on after the call of
+                       a macro whose text it ends */
+                    while (c!='\n' && (c!='\0' || on_EOF(csound, yyscanner)))
+                      c = input(yyscanner);
+                    if (c=='\n')                      /* the line end read */
+                      csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
+                                           yyscanner);
                     PARM->cf_stack[PARM->repeat_index] = PARM->cf;
                     PARM->cf = corfile_create_w(csound);
                   }
