@@ -465,11 +465,8 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
             if (isspace(*(p+1))) {
               *p = '\0';
               remove_special_placeholders((char *)argv[argc], strlen(argv[argc]));
-              p++;              /* the rest of the line is ignored, as ever... */
-              while (isblank(*p)) p++;
-              if (*p == '/' && *(p+1) == '*')  /* ...but a comment still opens */
-                skip_block_comment(csound, cf, p+2, &last);
-              break;
+              p++;              /* the blank after it ends the argument */
+              continue;
             }
             else {
               *p = 3;
