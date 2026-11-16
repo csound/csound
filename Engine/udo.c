@@ -3305,6 +3305,9 @@ int32_t useropcd_pass_by_ref(CSOUND *csound, UOPCODE *p)
     return OK;
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
+  /* The body runs on the caller's block: take its sample-accurate bounds. */
+  p->ip->ksmps_offset = caller_ip->ksmps_offset;
+  p->ip->ksmps_no_end = caller_ip->ksmps_no_end;
   pbr_snapshot_colliding_inputs(csound, p, p->ip, 0, 1, &copyResult);
   seedResult = pbr_seed_pass_through_outputs(csound, p, p->ip, 0);
   if (UNLIKELY(copyResult != OK || seedResult != OK)) {
