@@ -423,6 +423,7 @@ static void sense_line(CSOUND *csound, void *userData)
             break;
           pcnt++;
           if (c == '"') {                       /* if find character string */
+            char *quote = cp;
             if (e.strarg == NULL)
               e.strarg = csound->Malloc(csound, strsiz=SSTRSIZ);
             sstrp = e.strarg;
@@ -436,11 +437,12 @@ static void sense_line(CSOUND *csound, void *userData)
             }
 
             while ((c = *(++cp)) != '"') {
-              /* VL: allow strings to be multi-line */
-              // if (UNLIKELY(c == LF)) {
-              //  csound->ErrorMsg(csound, Str("unmatched quotes"));
-              //  goto Lerr;
-              //}
+              /* VL: allow strings to be multi-line, within the lines taken */
+              if (UNLIKELY(cp >= Linend)) {
+                csound->ErrorMsg(csound, Str("unmatched quote\n"));
+                cp = quote;
+                goto Lerr;
+              }
 
               if(c == '\\') {
                 cp++;

@@ -1057,4 +1057,30 @@ INSTANTIATE_TEST_SUITE_P(Lengths, HostLongStrings,
                                                               100000),
                                             ::testing::Values(BeforeStart,
                                                               Blocking, Queued)));
+
+std::string channelText(Host &host)
+{
+    std::string text(csoundGetChannelDatasize(host.csound, "text") + 1, '\0');
+    csoundGetStringChannel(host.csound, "text", text.data());
+    text.resize(strlen(text.c_str()));
+    return text;
+}
+
+/* A line event's string goes on over the next lines to its closing quote,
+   but no further than the lines taken: one with no closing quote is refused,
+   and the next line plays. The string read on past the lines' end, and
+   whatever it took in and the lines after it were lost, or the process died. */
+TEST(HostLineEvents, AnUnclosedQuoteIsRefusedAndTheNextLinePlays)
+{
+    Host host;
+    host.start();
+    host.csound->InputMessage(host.csound, "i 1 0 0 \"abc");
+    host.csound->InputMessage(host.csound, "i 1 0 0 7");
+    host.perform(1);
+    EXPECT_EQ(1, host.played()) << host.said();
+    EXPECT_NE(std::string::npos, host.said().find("unmatched quote"));
+    host.csound->InputMessage(host.csound, "i 4 0 0 \"ab\ncd\"");
+    host.perform(1);
+    EXPECT_EQ("ab\ncd", channelText(host)) << host.said();
+}
 } // namespace
