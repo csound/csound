@@ -2430,25 +2430,25 @@ msgstr "::reading orchestra, use '}' to terminate::\n"
 
 #: Engine/linevent.c:350
 #, c-format
-msgid "unknown opcode %c"
-msgstr "unknown opcode %c"
+msgid "unknown opcode %c\n"
+msgstr "unknown opcode %c\n"
 
 #: Engine/linevent.c:432
-msgid "dot carry has no reference"
-msgstr "dot carry has no reference"
+msgid "dot carry has no reference\n"
+msgstr "dot carry has no reference\n"
 
 #: Engine/linevent.c:437
-msgid "cannot carry string p-field"
-msgstr "cannot carry string p-field"
+msgid "cannot carry string p-field\n"
+msgstr "cannot carry string p-field\n"
 
 #: Engine/linevent.c:459
 #, c-format
-msgid "too few pfields (%d)"
-msgstr "too few pfields (%d)"
+msgid "too few pfields (%d)\n"
+msgstr "too few pfields (%d)\n"
 
 #: Engine/linevent.c:463
-msgid "-L with negative p2 illegal"
-msgstr "-L with negative p2 illegal"
+msgid "-L with negative p2 illegal\n"
+msgstr "-L with negative p2 illegal\n"
 
 #: Engine/linevent.c:480
 msgid "too many pfields"
@@ -2459,11 +2459,11 @@ msgstr "too many pfields"
 msgid ""
 "illegal RT scoreline:\n"
 "%s\n"
-"%*s"
+"%*s\n"
 msgstr ""
 "illegal RT scoreline:\n"
 "%s\n"
-"%*s"
+"%*s\n"
 
 #: Engine/memalloc.c:118
 #, c-format

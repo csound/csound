@@ -1234,4 +1234,34 @@ TEST(HostLineEvents, AnOrchestraBlockPastItsBufferIsRefused)
     }
     std::remove(file.c_str());
 }
+
+/* What a refused line says ends its own lines: "unknown opcode x" ran into
+   "illegal RT scoreline:", and the ^ under the line into the next message. */
+TEST(HostLineEvents, RefusalsEndTheirLines)
+{
+    const std::pair<const char *, const char *> lines[] = {
+        {"i 1 0 0 .", "dot carry has no reference"},
+        {"x 1 0 0", "unknown opcode x"},
+        {"i 1", "too few pfields (2)"},
+        {"i 1 -1 0", "-L with negative p2 illegal"},
+        {"i 1 0 0 \"a", "unmatched quote"},
+        {"i 4 0 0 \"a\"\ni 4 0 0 .", "cannot carry string p-field"},
+    };
+    Host host;
+    host.start();
+    size_t seen = 0;
+    for (const auto &[line, what] : lines) {
+        SCOPED_TRACE(line);
+        host.csound->InputMessage(host.csound, line);
+        host.perform(1);
+        const std::string said = host.said().substr(seen);
+        seen += said.size();
+        const char *last = strrchr(line, '\n');
+        const size_t at =
+            said.find(std::string(what) + "\nillegal RT scoreline:\n" +
+                      (last ? last + 1 : line) + "\n");
+        ASSERT_NE(std::string::npos, at) << said;
+        EXPECT_EQ("^\n", said.substr(said.find('^', at), 2)) << said;
+    }
+}
 } // namespace

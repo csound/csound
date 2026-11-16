@@ -2625,28 +2625,28 @@ msgstr "::Leseorchester, mit '}' beenden:\n"
 
 #: Engine/linevent.c:350
 #, fuzzy, c-format
-msgid "unknown opcode %c"
-msgstr "unbekannt opcode %c"
+msgid "unknown opcode %c\n"
+msgstr "unbekannt opcode %c\n"
 
 #: Engine/linevent.c:432
 #, fuzzy
-msgid "dot carry has no reference"
-msgstr "dot carry hat keinen Bezug"
+msgid "dot carry has no reference\n"
+msgstr "dot carry hat keinen Bezug\n"
 
 #: Engine/linevent.c:437
 #, fuzzy
-msgid "cannot carry string p-field"
-msgstr "kann String p-field nicht tragen"
+msgid "cannot carry string p-field\n"
+msgstr "kann String p-field nicht tragen\n"
 
 #: Engine/linevent.c:459
 #, fuzzy, c-format
-msgid "too few pfields (%d)"
-msgstr "zu wenige pfields (%d)"
+msgid "too few pfields (%d)\n"
+msgstr "zu wenige pfields (%d)\n"
 
 #: Engine/linevent.c:463
 #, fuzzy
-msgid "-L with negative p2 illegal"
-msgstr "-L mit negativer p2 illegal"
+msgid "-L with negative p2 illegal\n"
+msgstr "-L mit negativer p2 illegal\n"
 
 #: Engine/linevent.c:480
 #, fuzzy
@@ -2658,11 +2658,11 @@ msgstr "zu viele pfields"
 msgid ""
 "illegal RT scoreline:\n"
 "%s\n"
-"%*s"
+"%*s\n"
 msgstr ""
 "illegaler RT scoreline:\n"
 "%s\n"
-"%*s"
+"%*s\n"
 
 #: Engine/memalloc.c:118
 #, fuzzy, c-format

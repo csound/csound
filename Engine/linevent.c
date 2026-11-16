@@ -440,7 +440,7 @@ static void sense_line(CSOUND *csound, void *userData)
           e.opcod = c;
           break;
         default:
-          csound->ErrorMsg(csound, Str("unknown opcode %c"), c);
+          csound->ErrorMsg(csound, Str("unknown opcode %c\n"), c);
           goto Lerr;
         }                                       /* for params that follow:  */
         pcnt = 0;
@@ -530,12 +530,12 @@ static void sense_line(CSOUND *csound, void *userData)
               (isblank(n = cp[1]) || n == LF)) {
             if (UNLIKELY(e.opcod != 'i' ||
                          STA(prve).opcod != 'i' || pcnt > STA(prve).pcnt)) {
-              csound->ErrorMsg(csound, Str("dot carry has no reference"));
+              csound->ErrorMsg(csound, Str("dot carry has no reference\n"));
               goto Lerr;
             }                                   /*        pfld carry   */
             e.p[pcnt] = STA(prve).p[pcnt];
             if (UNLIKELY(IsStringCode(e.p[pcnt]))) {
-              csound->ErrorMsg(csound, Str("cannot carry string p-field"));
+              csound->ErrorMsg(csound, Str("cannot carry string p-field\n"));
               goto Lerr;
             }
             continue;
@@ -557,11 +557,11 @@ static void sense_line(CSOUND *csound, void *userData)
         if (e.opcod =='f' && e.p[1]<FL(0.0)); /* an OK case */
         else  /* Check for sufficient pfields (0-based, opcode counted already). */
           if (UNLIKELY(pcnt < 2 && e.opcod != 'e')) {
-            csound->ErrorMsg(csound, Str("too few pfields (%d)"), pcnt + 1);
+            csound->ErrorMsg(csound, Str("too few pfields (%d)\n"), pcnt + 1);
             goto Lerr;
           }
         if (UNLIKELY(pcnt > 1 && e.p[2] < FL(0.0))) {
-          csound->ErrorMsg(csound, Str("-L with negative p2 illegal"));
+          csound->ErrorMsg(csound, Str("-L with negative p2 illegal\n"));
           goto Lerr;
         }
         e.pcnt = pcnt;                          /*   &  record pfld count    */
@@ -596,7 +596,7 @@ static void sense_line(CSOUND *csound, void *userData)
         while (*cp != LF)
           cp++;                                 /* go on to LF    */
         *cp = '\0';                             /*  & insert NULL */
-        csound->ErrorMsg(csound, Str("illegal RT scoreline:\n%s\n%*s"),
+        csound->ErrorMsg(csound, Str("illegal RT scoreline:\n%s\n%*s\n"),
                                  Linestart, n + 1, "^");  /* mark the error */
         Linestart = (++cp);
       }

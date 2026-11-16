@@ -2681,28 +2681,28 @@ msgstr "::reading orchestra, '' pentru a termina::\n"
 
 #: Engine/linevent.c:350
 #, fuzzy, c-format
-msgid "unknown opcode %c"
-msgstr "necunoscut opcode %c"
+msgid "unknown opcode %c\n"
+msgstr "necunoscut opcode %c\n"
 
 #: Engine/linevent.c:432
 #, fuzzy
-msgid "dot carry has no reference"
-msgstr "dot carry nu are nicio referință"
+msgid "dot carry has no reference\n"
+msgstr "dot carry nu are nicio referință\n"
 
 #: Engine/linevent.c:437
 #, fuzzy
-msgid "cannot carry string p-field"
-msgstr "nu poate purta șirul p-field"
+msgid "cannot carry string p-field\n"
+msgstr "nu poate purta șirul p-field\n"
 
 #: Engine/linevent.c:459
 #, fuzzy, c-format
-msgid "too few pfields (%d)"
-msgstr "prea puține pfields (%d)"
+msgid "too few pfields (%d)\n"
+msgstr "prea puține pfields (%d)\n"
 
 #: Engine/linevent.c:463
 #, fuzzy
-msgid "-L with negative p2 illegal"
-msgstr "-L cu p2 negativ ilegal"
+msgid "-L with negative p2 illegal\n"
+msgstr "-L cu p2 negativ ilegal\n"
 
 #: Engine/linevent.c:480
 #, fuzzy
@@ -2714,11 +2714,11 @@ msgstr "prea multe pfields"
 msgid ""
 "illegal RT scoreline:\n"
 "%s\n"
-"%*s"
+"%*s\n"
 msgstr ""
 "ilegal RT scoreline:\n"
 "%s\n"
-"%*s"
+"%*s\n"
 
 #: Engine/memalloc.c:118
 #, fuzzy, c-format

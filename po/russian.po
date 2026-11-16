@@ -2677,28 +2677,28 @@ msgstr ":: Читать оркестр, использовать '}, чтобы 
 
 #: Engine/linevent.c:350
 #, fuzzy, c-format
-msgid "unknown opcode %c"
-msgstr "неизвестное opcode %c"
+msgid "unknown opcode %c\n"
+msgstr "неизвестное opcode %c\n"
 
 #: Engine/linevent.c:432
 #, fuzzy
-msgid "dot carry has no reference"
-msgstr "В тазобедренном ящике нет ссылок"
+msgid "dot carry has no reference\n"
+msgstr "В тазобедренном ящике нет ссылок\n"
 
 #: Engine/linevent.c:437
 #, fuzzy
-msgid "cannot carry string p-field"
-msgstr "не могут нести строки p-field"
+msgid "cannot carry string p-field\n"
+msgstr "не могут нести строки p-field\n"
 
 #: Engine/linevent.c:459
 #, fuzzy, c-format
-msgid "too few pfields (%d)"
-msgstr "слишком мало pfields (%d)"
+msgid "too few pfields (%d)\n"
+msgstr "слишком мало pfields (%d)\n"
 
 #: Engine/linevent.c:463
 #, fuzzy
-msgid "-L with negative p2 illegal"
-msgstr "-L с отрицательным p2 незаконным"
+msgid "-L with negative p2 illegal\n"
+msgstr "-L с отрицательным p2 незаконным\n"
 
 #: Engine/linevent.c:480
 #, fuzzy
@@ -2710,11 +2710,11 @@ msgstr "слишком много pfields"
 msgid ""
 "illegal RT scoreline:\n"
 "%s\n"
-"%*s"
+"%*s\n"
 msgstr ""
 "Незаконный RT scoreline:\n"
 "%s\n"
-"%*s"
+"%*s\n"
 
 #: Engine/memalloc.c:118
 #, fuzzy, c-format
