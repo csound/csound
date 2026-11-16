@@ -6,6 +6,7 @@
 #include <cstring>
 #include <fstream>
 #include <optional>
+#include <random>
 #include <string>
 #include <thread>
 #include <tuple>
@@ -1059,6 +1060,22 @@ INSTANTIATE_TEST_SUITE_P(Lengths, HostLongStrings,
                                             ::testing::Values(BeforeStart,
                                                               Blocking, Queued)));
 
+/* A file name of its own in the temporary directory, removed with it: the
+   cases run side by side under ctest -j. */
+struct TempFile {
+    std::string name;
+    TempFile(const char *stem, const char *extension)
+        : name(::testing::TempDir() + stem +
+               std::to_string(
+                   std::chrono::steady_clock::now().time_since_epoch().count()) +
+               "-" + std::to_string(std::random_device{}()) + extension)
+    {
+    }
+    TempFile(const TempFile &) = delete;
+    TempFile &operator=(const TempFile &) = delete;
+    ~TempFile() { std::remove(name.c_str()); }
+};
+
 std::string channelText(Host &host)
 {
     std::string text(csoundGetChannelDatasize(host.csound, "text") + 1, '\0');
@@ -1112,45 +1129,51 @@ cs_float channel(Host &host, const char *name)
 }
 
 /* An orchestra block, from a line starting with { to its }, is compiled
-   from a host's lines, sent before the start or after it, with
-   -L or without. Only -L made the block's buffer: without it, the process
-   died at the block's first line. */
-TEST(HostLineEvents, OrchestraBlocksAreCompiledWithOrWithoutLineInput)
+   from a host's lines, sent before the start or after it, with -L or
+   without, one case each. Only -L made the block's buffer: without it, the
+   process died at the block's first line. */
+class HostOrchestraBlocks
+    : public ::testing::TestWithParam<std::tuple<bool, bool>> {};
+
+TEST_P(HostOrchestraBlocks, AreCompiledWithOrWithoutLineInput)
 {
-    const std::string file = ::testing::TempDir() + "csound-block-lines.sco";
-    std::ofstream(file).close(); /* -L reads nothing from it */
-    for (const bool lineInput : {false, true}) {
-        for (const bool beforeStart : {true, false}) {
-            SCOPED_TRACE(std::string(lineInput ? "-L" : "no -L") +
-                         (beforeStart ? ", before the start" : ", after it"));
-            Host host;
-            if (lineInput)
-                csoundSetOption(host.csound, ("-L\"" + file + "\"").c_str());
-            if (!beforeStart)
-                host.start();
-            if (!lineInput && !beforeStart) {
-                /* A { further on in a line makes no buffer: a host may
-                   send one in quotes, and the queued line made it on the
-                   performance thread. */
-                csoundEventString(host.csound, "i 4 0 0 \"{a}\"", 1);
-                host.perform();
-                EXPECT_EQ("{a}", channelText(host)) << host.said();
-                host.csound->InputMessage(host.csound, "i 4 0 0 \"{b}\"");
-                host.perform();
-                EXPECT_EQ("{b}", channelText(host)) << host.said();
-                EXPECT_EQ(nullptr, host.csound->lineventStatics.orchestrab);
-            }
-            host.csound->InputMessage(host.csound,
-                                      "{\ninstr 100\nchnset 1, \"block\"\n"
-                                      "endin\n}\ni 100 0 0\n");
-            if (beforeStart)
-                host.start();
-            host.perform(1);
-            EXPECT_EQ(1, channel(host, "block")) << host.said();
-        }
+    const bool lineInput = std::get<0>(GetParam());
+    const bool beforeStart = std::get<1>(GetParam());
+    const TempFile file("csound-block-lines-", ".sco");
+    std::ofstream(file.name).close(); /* -L reads nothing from it */
+    Host host;
+    if (lineInput)
+        csoundSetOption(host.csound, ("-L\"" + file.name + "\"").c_str());
+    if (!beforeStart) {
+        ASSERT_NO_FATAL_FAILURE(host.start());
     }
-    std::remove(file.c_str());
+    if (!lineInput && !beforeStart) {
+        /* A { further on in a line makes no buffer: a host may send one in
+           quotes, and the queued line made it on the performance thread. */
+        csoundEventString(host.csound, "i 4 0 0 \"{a}\"", 1);
+        host.perform();
+        EXPECT_EQ("{a}", channelText(host)) << host.said();
+        host.csound->InputMessage(host.csound, "i 4 0 0 \"{b}\"");
+        host.perform();
+        EXPECT_EQ("{b}", channelText(host)) << host.said();
+        EXPECT_EQ(nullptr, host.csound->lineventStatics.orchestrab);
+    }
+    host.csound->InputMessage(host.csound, "{\ninstr 100\nchnset 1, \"block\"\n"
+                                           "endin\n}\ni 100 0 0\n");
+    if (beforeStart) {
+        ASSERT_NO_FATAL_FAILURE(host.start());
+    }
+    host.perform(1);
+    EXPECT_EQ(1, channel(host, "block")) << host.said();
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    Inputs, HostOrchestraBlocks,
+    ::testing::Combine(::testing::Bool(), ::testing::Bool()),
+    [](const ::testing::TestParamInfo<std::tuple<bool, bool>> &info) {
+        return std::string(std::get<0>(info.param) ? "LineInput" : "Host") +
+               (std::get<1>(info.param) ? "BeforeTheStart" : "AfterIt");
+    });
 
 /* A block of no lines compiles nothing: it compiled the block before it
    again, and that block's global code ran a second time. */
@@ -1197,44 +1220,50 @@ std::string blockOf(size_t size)
     return "{\n" + text + "}\n";
 }
 
-/* A block holds 1 MB less a byte, from a host or from -L: a longer one is
-   refused, its text dropped up to its }, and what follows it plays. It ran
-   past its buffer, and the process died. */
-TEST(HostLineEvents, AnOrchestraBlockPastItsBufferIsRefused)
+/* A block holds 1 MB less a byte, from a host or from -L, one case each: a
+   longer one is refused, its text dropped up to its }, and what follows it
+   plays. It ran past its buffer, and the process died. */
+class HostOrchestraBlockSizes
+    : public ::testing::TestWithParam<std::tuple<bool, size_t>> {};
+
+TEST_P(HostOrchestraBlockSizes, PastTheBufferAreRefused)
 {
-    const std::string file = ::testing::TempDir() + "csound-block-size.sco";
-    for (const bool lineInput : {false, true}) {
-        for (const size_t size :
-             {(size_t) 1048575, (size_t) 1048576, (size_t) 1100000}) {
-            const bool fits = size < 1048576;
-            SCOPED_TRACE(std::string(lineInput ? "-L, " : "a host, ") +
-                         std::to_string(size));
-            const std::string lines = blockOf(size) + "i 1 0 0\ni 105 0 0\n";
-            Host host;
-            if (lineInput) {
-                std::ofstream(file, std::ios::binary) << lines;
-                csoundSetOption(host.csound, ("-L\"" + file + "\"").c_str());
-                host.start();
-            }
-            else {
-                host.start();
-                host.csound->InputMessage(host.csound, lines.c_str());
-            }
-            host.perform(100);
-            EXPECT_EQ(1, host.played()) << host.said();
-            EXPECT_EQ(fits ? 5 : 0, channel(host, "block"));
-            EXPECT_EQ(fits, host.said().find("orchestra block longer than "
-                                             "1048575 bytes: not compiled\n") ==
-                                std::string::npos);
-            host.csound->InputMessage(host.csound,
-                                      "{\ninstr 106\nchnset 6, \"block\"\n"
-                                      "endin\n}\ni 106 0 0\n");
-            host.perform(1);
-            EXPECT_EQ(6, channel(host, "block")) << host.said();
-        }
+    const bool lineInput = std::get<0>(GetParam());
+    const size_t size = std::get<1>(GetParam());
+    const bool fits = size < 1048576;
+    const TempFile file("csound-block-size-", ".sco");
+    const std::string lines = blockOf(size) + "i 1 0 0\ni 105 0 0\n";
+    Host host;
+    if (lineInput) {
+        std::ofstream(file.name, std::ios::binary) << lines;
+        csoundSetOption(host.csound, ("-L\"" + file.name + "\"").c_str());
+        ASSERT_NO_FATAL_FAILURE(host.start());
     }
-    std::remove(file.c_str());
+    else {
+        ASSERT_NO_FATAL_FAILURE(host.start());
+        host.csound->InputMessage(host.csound, lines.c_str());
+    }
+    host.perform(100);
+    EXPECT_EQ(1, host.played()) << host.said();
+    EXPECT_EQ(fits ? 5 : 0, channel(host, "block"));
+    EXPECT_EQ(fits, host.said().find("orchestra block longer than "
+                                     "1048575 bytes: not compiled\n") ==
+                        std::string::npos);
+    host.csound->InputMessage(host.csound, "{\ninstr 106\nchnset 6, \"block\"\n"
+                                           "endin\n}\ni 106 0 0\n");
+    host.perform(1);
+    EXPECT_EQ(6, channel(host, "block")) << host.said();
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    InputsAndSizes, HostOrchestraBlockSizes,
+    ::testing::Combine(::testing::Bool(),
+                       ::testing::Values((size_t) 1048575, (size_t) 1048576,
+                                         (size_t) 1100000)),
+    [](const ::testing::TestParamInfo<std::tuple<bool, size_t>> &info) {
+        return std::string(std::get<0>(info.param) ? "LineInput_" : "Host_") +
+               std::to_string(std::get<1>(info.param));
+    });
 
 /* What a refused line says ends its own lines: "unknown opcode x" ran into
    "illegal RT scoreline:", and the ^ under the line into the next message. */
@@ -1298,22 +1327,15 @@ void watchTheStart(CSOUND *, int32_t, const char *format, va_list args)
    Six starts, as one can take a second where many tests run at once. */
 TEST(HostLineEvents, ALineSentAsTheStartOpensLineInputPlays)
 {
-    const std::string file =
-        ::testing::TempDir() + "csound-start-lines-" +
-        std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) +
-        ".sco";
-    std::ofstream(file, std::ios::binary) << "i 1 0 0\n";
-    struct Remove {
-        const std::string &file;
-        ~Remove() { std::remove(file.c_str()); }
-    } remover{file};
+    const TempFile file("csound-start-lines-", ".sco");
+    std::ofstream(file.name, std::ios::binary) << "i 1 0 0\n";
     int duringTheStart = 0;
     startThread = std::this_thread::get_id();
     for (int run = 0; run < 6; run++) {
         SCOPED_TRACE(run);
         Host host;
         csoundSetMessageCallback(host.csound, watchTheStart);
-        csoundSetOption(host.csound, ("-L\"" + file + "\"").c_str());
+        csoundSetOption(host.csound, ("-L\"" + file.name + "\"").c_str());
         openingLineInput = false;
         lineGoing = false;
         startSaid.clear();
@@ -1424,11 +1446,8 @@ TEST(HostLineEvents, AFirstLineLeavesTheStartsJumpAlone)
 {
     Host host;
     csoundSetMessageCallback(host.csound, holdTheStart);
-    const std::string missing =
-        ::testing::TempDir() + "csound-no-such-" +
-        std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) +
-        ".mid";
-    csoundSetOption(host.csound, ("-F\"" + missing + "\"").c_str());
+    const TempFile missing("csound-no-such-", ".mid"); /* never made */
+    csoundSetOption(host.csound, ("-F\"" + missing.name + "\"").c_str());
     setUpStep = 0;
     startHeld = setUpHeld = false;
     callocOfCsound = host.csound->Calloc;
