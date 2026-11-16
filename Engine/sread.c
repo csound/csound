@@ -147,8 +147,8 @@ static void scorerr(CSOUND *csound, const char *s, ...)
    #includes and loops expanded, so there is no stack of inputs to go back
    through: the line is that text's, where an n reads a marked section again
    at the section's own lines, and in a .csd's own score it is the file's,
-   unless --csd-line-nums=0. A score from a file or a host has no lines before
-   it in a .csd, scoLineOffset, though a .csd may have been read. */
+   unless --csd-line-nums=0. A score from a file, a host or a program has no
+   lines before it in a .csd, scoLineOffset, though a .csd may have been read. */
 static void print_input_backtrace(CSOUND *csound,
                                   void (*msgfunc)(CSOUND*, const char*, ...))
 {

@@ -725,9 +725,12 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
     char   buffer[CSD_MAX_LINE_LEN];
     char   last = '\n';         /* no newline: a chunk of a too-long line */
 
+    /* The score's lines are those of the block that begins its text, where
+       nothing is written yet: a later one is read after the first one's #exit */
     if (csound->scorestr == NULL)
       csound->scorestr = corfile_create_w(csound);
-    csound->scoLineOffset = STA(csdlinecount);
+    if (csound->scorestr->p == 0)
+      csound->scoLineOffset = STA(csdlinecount);
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
       int32_t line_start = last == '\n';
       last = buffer[strlen(buffer)-1];
@@ -795,7 +798,10 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
       return FALSE;
     }
 
-    csound->scoLineOffset = STA(csdlinecount);
+    /* The program's output has lines of its own, not the .csd's, when it
+       begins the score's text */
+    if (csound->scorestr == NULL || csound->scorestr->p == 0)
+      csound->scoLineOffset = 0;
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
       int32_t line_start = last == '\n';
       last = buffer[strlen(buffer)-1];

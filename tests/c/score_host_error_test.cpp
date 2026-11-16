@@ -606,6 +606,61 @@ TEST(HostScoreErrors, CountTheLineOfAnSOrE)
     }
 }
 
+#ifndef _WIN32
+/* A score a program writes, <CsScore bin>, has the program's lines, not the
+   .csd's: an error on its line 5 named line 11 of this .csd, which has 10.
+   With two score blocks the first is the score, the second read after its
+   #exit: the lines are the first one's, whichever kind it is. */
+TEST(HostScoreErrors, NameTheLinesOfAProgramsScore)
+{
+    const std::string csd = ::testing::TempDir() + "csound-program.csd";
+    const std::string top = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\n"
+                            "endin\n</CsInstruments>\n";
+    const std::string program =
+        "<CsScore bin=\"sh -c '(echo; echo; echo; cat $0) > $1'\">\n";
+    std::string said = compiling(
+        {{"csound-program.csd", top + program +
+                                    "i 1 0 0\ni 1 0 2e\n</CsScore>\n"
+                                    "</CsoundSynthesizer>\n"}});
+    EXPECT_NE(std::string::npos,
+              said.find(":  at position 7\n  in line 5 of the score\n"))
+        << said;
+    said = compiling({{"csound-program.csd",
+                       top + program + "i 1 0 0\ni 1 0 2e\n</CsScore>\n"
+                           "<CsScore>\ni 1 0 0\n</CsScore>\n"
+                           "</CsoundSynthesizer>\n"}});
+    EXPECT_NE(std::string::npos,
+              said.find(":  at position 7\n  in line 5 of the score\n"))
+        << said;
+    said = compiling({{"csound-program.csd",
+                       top + "<CsScore>\ni 1 0 0\ni 1 0 2e\n</CsScore>\n" +
+                           program + "i 1 0 0\n</CsScore>\n"
+                           "</CsoundSynthesizer>\n"}});
+    EXPECT_NE(std::string::npos,
+              said.find(":  at position 7\n  in line 8 of " + csd + "\n"))
+        << said;
+
+    /* A .csd whose compile fails leaves its score's text, which the next one
+       writes over from its start: that one's block begins the score. */
+    const char *failing = "<CsoundSynthesizer>\n<CsScore>\ni 1 0 0\n"
+                          "</CsScore>\n</CsoundSynthesizer>\n";
+    const std::string blocks[] = {
+        "<CsScore>\ni 1 0 0\ni 1 0 2e\n</CsScore>\n",
+        program + "i 1 0 0\ni 1 0 2e\n</CsScore>\n"};
+    const std::string expected[] = {":  at position 7\n  in line 8 of ",
+                                    ":  at position 7\n  in line 5 of the score\n"};
+    for (int i = 0; i < 2; i++) {
+        Host host;
+        host.start();
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileCSD(host.csound, failing, 1, 0));
+        csoundCompileCSD(host.csound,
+                         (top + blocks[i] + "</CsoundSynthesizer>\n").c_str(), 1, 0);
+        said = host.said();
+        EXPECT_NE(std::string::npos, said.find(expected[i])) << said;
+    }
+}
+#endif
+
 /* With --csd-line-nums=0 a .csd's score counts its lines from its first, the
    lexer as the reader does: the lexer counted the .csd's. */
 TEST(HostScoreErrors, CountFromTheScoreWithCsdLineNumsOff)
