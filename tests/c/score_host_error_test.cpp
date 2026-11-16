@@ -674,49 +674,23 @@ INSTANTIATE_TEST_SUITE_P(
                        ::testing::Values(AHostsTextAfterACsd, AScoreFileACsdNames)),
     ownFormName);
 
-/* A score text before an error, the lexer's (0) or the reader's (1), and
-   the name of its case. */
+/* The lexer counts the line ends that { and an r section's s read with their
+   own line, and not the two an r puts back to end the section before it: each
+   of these left the lines after it one fewer, or one more. The rest of an s or
+   e line is read as any line is, its line end too, which the lexer counts and
+   writes once: the lexer's lines after one were one fewer, and the reader's
+   after one with blanks or a carriage return one more. Each text is followed
+   by the lexer's error (0), or the reader's (1). */
 struct LineAfter {
     const char *name;
     const char *text;
     int error;
 };
 
-std::string lineAfterName(const ::testing::TestParamInfo<LineAfter> &info)
-{
-    return info.param.name;
-}
-
-/* The lexer counts the line ends that { and an r section's s read with their
-   own line, and not the two an r puts back to end the section before it: each
-   of these left the lines after it one fewer, or one more. */
 const LineAfter statements[] = {
-    {"AfterARepeat", "{ 2 N\ni 1 0 0\n}", 0},
-    {"AfterAnRSection", "r 2\ni 1 0 0\ns", 0},
-    {"AfterAnRStartedAgain", "r 2\ni 1 0 0\nr 2\ni 1 0 0\ns", 0},
-};
-
-class HostScoreStatementLines : public ::testing::TestWithParam<LineAfter> {};
-
-TEST_P(HostScoreStatementLines, LexerCountsTheLinesOfItsStatements)
-{
-    const LineAfter &after = GetParam();
-    const std::string score =
-        std::string(after.text) + "\n" + lineErrors[after.error] + "\n";
-    const auto line = (int) std::count(score.begin(), score.end(), '\n');
-    const std::string said = reading(score);
-    EXPECT_NE(std::string::npos,
-              said.find(saidOfLine(after.error, line, "the score"))) << said;
-}
-
-INSTANTIATE_TEST_SUITE_P(Lines, HostScoreStatementLines,
-                         ::testing::ValuesIn(statements), lineAfterName);
-
-/* The rest of an s or e line is read as any line is, its line end too, which
-   the lexer counts and writes once: the lexer's lines after one were one
-   fewer, and the reader's after one with blanks or a carriage return one more.
-   Each is followed by the lexer's error, or the reader's. */
-const LineAfter afterSOrE[] = {
+    {"LexerAfterARepeat", "{ 2 N\ni 1 0 0\n}", 0},
+    {"LexerAfterAnRSection", "r 2\ni 1 0 0\ns", 0},
+    {"LexerAfterAnRStartedAgain", "r 2\ni 1 0 0\nr 2\ni 1 0 0\ns", 0},
     {"LexerAfterS", "s", 0},
     {"LexerAfterSWithANumber", "s 2", 0},
     {"LexerAfterSWithABlank", "s ", 0},
@@ -729,19 +703,26 @@ const LineAfter afterSOrE[] = {
     {"ReaderAfterSWithACarriageReturn", "s\r", 1},
 };
 
-class HostScoreSOrELines : public ::testing::TestWithParam<LineAfter> {};
+class HostScoreStatementLines : public ::testing::TestWithParam<LineAfter> {};
 
-TEST_P(HostScoreSOrELines, CountTheLineOfAnSOrE)
+TEST_P(HostScoreStatementLines, CountTheLinesOfAStatement)
 {
     const LineAfter &after = GetParam();
-    const std::string said = reading(std::string(after.text) + "\n" +
-                                     lineErrors[after.error] + "\n");
+    const std::string score =
+        std::string(after.text) + "\n" + lineErrors[after.error] + "\n";
+    const auto line = (int) std::count(score.begin(), score.end(), '\n');
+    const std::string said = reading(score);
     EXPECT_NE(std::string::npos,
-              said.find(saidOfLine(after.error, 2, "the score"))) << said;
+              said.find(saidOfLine(after.error, line, "the score"))) << said;
 }
 
-INSTANTIATE_TEST_SUITE_P(Lines, HostScoreSOrELines, ::testing::ValuesIn(afterSOrE),
-                         lineAfterName);
+std::string lineAfterName(const ::testing::TestParamInfo<LineAfter> &info)
+{
+    return info.param.name;
+}
+
+INSTANTIATE_TEST_SUITE_P(Lines, HostScoreStatementLines,
+                         ::testing::ValuesIn(statements), lineAfterName);
 
 #ifndef _WIN32
 /* A score a program writes, <CsScore bin>, has the program's lines, not the
@@ -837,18 +818,17 @@ INSTANTIATE_TEST_SUITE_P(
    lexer as the reader does: the lexer counted the .csd's. */
 TEST(HostScoreErrors, CountFromTheScoreWithCsdLineNumsOff)
 {
-    const std::string errors[] = {"#define 1", "i 1 0 2e"};
-    const std::string expected[] = {"Unexpected character 1(31) line 2\n",
-                                    ":  at position 7\n  in line 2 of the score\n"};
     for (int error = 0; error < 2; error++) {
-        SCOPED_TRACE(errors[error]);
+        SCOPED_TRACE(lineErrors[error]);
         const std::string said = compiling(
             {{"csound-score-lines.csd",
               "<CsoundSynthesizer>\n<CsOptions>\n--csd-line-nums=0\n"
               "</CsOptions>\n<CsInstruments>\ninstr 1\nendin\n"
-              "</CsInstruments>\n<CsScore>\ni 1 0 0\n" + errors[error] +
+              "</CsInstruments>\n<CsScore>\ni 1 0 0\n" +
+                  std::string(lineErrors[error]) +
                   "\n</CsScore>\n</CsoundSynthesizer>\n"}});
-        EXPECT_NE(std::string::npos, said.find(expected[error])) << said;
+        EXPECT_NE(std::string::npos, said.find(saidOfLine(error, 2, "the score")))
+            << said;
     }
 }
 
