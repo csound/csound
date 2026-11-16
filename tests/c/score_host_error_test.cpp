@@ -1379,4 +1379,79 @@ TEST(HostLineEvents, TheMarkStandsUnderTheErrorAfterAStringOverLines)
                                "    ^\n"))
         << host.said();
 }
+
+/* The start below is held at its last message until the first line's
+   set-up, held in its p-field allocation, has finished; then the start dies
+   on a MIDI file that cannot be loaded. */
+std::atomic<int> setUpStep{0};
+std::atomic<bool> startHeld{false}, setUpHeld{false};
+std::atomic<std::thread::id> setUpThread;
+void *(*callocOfCsound)(CSOUND *, size_t);
+
+void *holdTheFirstLine(CSOUND *csound, size_t size)
+{
+    if (std::this_thread::get_id() == setUpThread.load() &&
+        size == sizeof(cs_float) * (PMAX + 1)) {
+        setUpStep = 1;
+        const auto from = std::chrono::steady_clock::now();
+        while (setUpStep.load() < 2 && std::chrono::steady_clock::now() - from <
+                                           std::chrono::seconds(10)) {
+        }
+        setUpHeld = setUpStep.load() >= 2;
+    }
+    return callocOfCsound(csound, size);
+}
+
+void holdTheStart(CSOUND *, int32_t, const char *format, va_list args)
+{
+    char text[256];
+    vsnprintf(text, sizeof text, format, args);
+    if (strstr(text, "A4 tuning") != nullptr && setUpStep.load() == 1) {
+        startHeld = true;
+        setUpStep = 2;
+        const auto from = std::chrono::steady_clock::now();
+        while (setUpStep.load() < 3 && std::chrono::steady_clock::now() - from <
+                                           std::chrono::seconds(10)) {
+        }
+    }
+}
+
+/* A host's first line, sent as the start begins, leaves the start's jump
+   alone: its set-up saved csound->exitjmp, set its own setjmp there and
+   put back what it had saved, after the start had taken exitjmp, and the
+   start's fatal error then jumped into a frame that was gone. */
+TEST(HostLineEvents, AFirstLineLeavesTheStartsJumpAlone)
+{
+    Host host;
+    csoundSetMessageCallback(host.csound, holdTheStart);
+    const std::string missing =
+        ::testing::TempDir() + "csound-no-such-" +
+        std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) +
+        ".mid";
+    csoundSetOption(host.csound, ("-F\"" + missing + "\"").c_str());
+    setUpStep = 0;
+    startHeld = setUpHeld = false;
+    callocOfCsound = host.csound->Calloc;
+    host.csound->Calloc = holdTheFirstLine;
+    std::atomic<bool> go{false};
+    std::thread sender([&] {
+        while (!go.load()) {
+        }
+        host.csound->InputMessage(host.csound, "i 1 0 0\n");
+        setUpStep = 3;
+    });
+    setUpThread = sender.get_id();
+    go = true;
+    const auto from = std::chrono::steady_clock::now();
+    while (setUpStep.load() < 1 && std::chrono::steady_clock::now() - from <
+                                       std::chrono::seconds(10)) {
+    }
+    const int result = csoundStart(host.csound);
+    sender.join();
+    host.csound->Calloc = callocOfCsound;
+    EXPECT_NE(CSOUND_SUCCESS, result);
+    /* both held each other as meant, or nothing was tested */
+    if (!startHeld.load() || !setUpHeld.load())
+        GTEST_SKIP() << "the first line's set-up and the start did not meet";
+}
 } // namespace
