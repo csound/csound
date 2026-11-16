@@ -148,6 +148,10 @@ const Refused refused[] = {
     {"#define M #{ 2 N\n/**/s\n}\n#\nr 2\n$/**/M\ni 1 0 0\ns\n}",
      "repeat and section cross"},
     {"{ 2 N\nr 2\n}\ns", "repeat and section cross"},
+    /* A call with too few arguments ends a [] count, as other errors in a []
+       do: it read the next argument to the end of the text, which an
+       earlier version of this change stopped short of, and then went on. */
+    {"#define M(a'b) #$a$b#\n{ [$M(1)+2] x\ni 1 0 0\n}", "Too few arguments"},
     {"#undef X", "Undefining undefined macro"},
     {"#define Y #1#\n#undef X", "Undefining undefined macro"},
     {"i 1 0 0\n}\ni 1 0 0", "unmatched } in score"},

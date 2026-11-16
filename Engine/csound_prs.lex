@@ -1539,7 +1539,7 @@ static int expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
     //mname = buf;
     /* Need to read from macro definition */
     csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
-    for (j = 0; j < mm->acnt; j++) {
+    for (j = 0; j < mm->acnt && !err; j++) {
       char  term = (j == mm->acnt - 1 ? ')' : '\'');
       /* Compatability */
       char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
@@ -1835,7 +1835,8 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
             csound->LongJmp(csound, 1);
           }
           if (c=='(') {
-            expand_macroa(csound, mm, yyscanner);
+            if (UNLIKELY(expand_macroa(csound, mm, yyscanner) != 0))
+              csound->LongJmp(csound, 1);   /* its arguments, refused */
             goto parseNumber;
           }
           else {
