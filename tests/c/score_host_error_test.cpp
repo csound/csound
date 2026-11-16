@@ -1166,4 +1166,22 @@ TEST(HostLineEvents, AnEmptyOrchestraBlockCompilesNothing)
     }
     EXPECT_EQ(1, channel(host, "ran")) << host.said();
 }
+
+/* What follows the { on its line is the block's first line: the { went
+   into the block too, and its compile failed. A } first on a line of a {{
+   string is the string's, when a later } ends the block. */
+TEST(HostLineEvents, TheRestOfTheBraceLineIsTheBlocks)
+{
+    Host host;
+    host.start();
+    host.csound->InputMessage(host.csound, "{ instr 104\nchnset 4, \"block\"\n"
+                                           "endin\n}\ni 104 0 0\n");
+    host.perform(1);
+    EXPECT_EQ(4, channel(host, "block")) << host.said();
+    host.csound->InputMessage(host.csound,
+                              "{\ninstr 103\nS1 = {{ {\"a\": 1\n} }}\n"
+                              "chnset S1, \"text\"\nendin\n}\ni 103 0 0\n");
+    host.perform(1);
+    EXPECT_EQ(" {\"a\": 1\n} ", channelText(host)) << host.said();
+}
 } // namespace
