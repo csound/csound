@@ -199,6 +199,22 @@ long fileSize(const char *path) {
     return size;
 }
 
+#if defined(__linux__)
+// This process's resident memory in kB.
+long residentKb() {
+    long kb = -1;
+    char line[256];
+    FILE *status = fopen("/proc/self/status", "r");
+    if (status == nullptr)
+        return -1;
+    while (fgets(line, sizeof line, status))
+        if (strncmp(line, "VmRSS:", 6) == 0)
+            sscanf(line + 6, "%ld", &kb);
+    fclose(status);
+    return kb;
+}
+#endif
+
 void startRecordedScore(Csound &csound, const char *output) {
     csound.SetOption("-W");
     csound.SetOption("-b256");
@@ -701,4 +717,36 @@ TEST(PerfThreadsTests, RecordingHoldsEachBlockOnce) {
     }
     remove(take);
     remove("perfthread_blocks_output.wav");
+}
+
+TEST(PerfThreadsTests, EachTakeFreesTheBufferOfTheLast) {
+#if !defined(__linux__)
+    GTEST_SKIP() << "Reads resident memory from /proc";
+#else
+    const char *take = "perfthread_takes.wav";
+    const int takes = 20;
+    const long bufferKb = 256L * kRecordBuffers * 40 * sizeof(cs_float) / 1024;
+    Csound csound;
+    csound.SetOption("-+rtaudio=null");
+    csound.SetOption("-odac");
+    csound.SetOption("-b256");
+    ASSERT_EQ(csound.CompileOrc(kRecordedOrchestra), 0);
+    csound.EventString("f 0 z\ni 1 0 -1\n");
+    ASSERT_EQ(csound.Start(), 0);
+    CsoundPerformanceThread performanceThread(csound.GetCsound());
+    performanceThread.Play();
+    long before = 0;
+    for (int i = 0; i < takes; ++i) {
+        performanceThread.Record(take, 16, kRecordBuffers * 40);
+        performanceThread.StopRecord();
+        performanceThread.FlushMessageQueue();
+        if (i == 0)
+            before = residentKb();
+    }
+    // A buffer of 8 MB a take: at most one stays.
+    EXPECT_LT(residentKb() - before, 2 * bufferKb);
+    performanceThread.Stop();
+    EXPECT_GT(performanceThread.Join(), 0);
+    remove(take);
+#endif
 }

@@ -278,6 +278,8 @@ public:
             return;
         }
         recordData->csound = csound;
+        // The last take's buffer: nothing has used it since it stopped.
+        csoundDestroyCircularBuffer(csound, recordData->cbuf);
         int32_t bufsize = (int32_t) (csound->GetOutputBufferSize(csound)
                                      * csoundGetChannels(csound,0) * numbufs);
         recordData->cbuf = csoundCreateCircularBuffer(csound,
