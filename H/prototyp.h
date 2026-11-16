@@ -63,6 +63,10 @@ extern "C" {
   void csoundErrorMsgS(CSOUND *, int32_t attr, const char *, ...);
   void csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
   CS_NORETURN void csoundLongJmp(CSOUND *, int32_t retval);
+  /* Goes on with a jump that setjmp gives as n there, from where it was
+     taken: to the innermost landing on this thread, or to exitjmp. For a
+     frame that took a jump to clean up and passes it on. */
+  CS_NORETURN void jump_to_landing(CSOUND *, int32_t n);
   TEXT *getoptxt(CSOUND *, int32_t *);
   void  csoundInitDisplay(CSOUND *);
   int32_t init0(CSOUND *);
@@ -237,10 +241,16 @@ extern "C" {
   void note_init_leave(const CSOUND *outer);
   int32_t note_init_runs(const CSOUND *);
   void note_inits_reset(const CSOUND *);
-  /* A call that holds exitjmp while it runs and takes the jumps made inside
-     it as its error (csound_compile_orc, csoundCompileTree, csoundCompileCSD);
-     linevent.c's input_message takes them on a landing of its own.
-     The init thread's landings stand aside while it runs. */
+  /* A call that takes the jumps made inside it, on its own thread, as its
+     error: csound_compile_orc, csoundCompileTree, csoundCompileCSD, the
+     plugin loaders and csoundCatchJump, csoundRunUtility, and argdecode's
+     for an options file and for csoundSetOption. A jump lands at the target
+     of the innermost on its thread: exitjmp is left to the call that
+     performs, or starts, on its own, and another thread's jump never finds
+     this one. linevent.c's input_message takes them on an init landing
+     inside its call. The init thread's landings stand aside while it runs.
+     A call that reads jumped after a jump makes its setjmp in a frame of its
+     own, under the record's. */
   typedef struct api_call_s {
     CSOUND *csound;
     struct api_call_s *outer;
@@ -248,6 +258,7 @@ extern "C" {
     INIT_LANDING *initLanding;
     int32_t initJumped;
     int32_t jumped;             /* the jump a pass inside the call took */
+    jmp_buf target;             /* where a jump inside the call lands */
   } API_CALL;
   void api_call_begin(CSOUND *, API_CALL *);
   void api_call_end(const API_CALL *);

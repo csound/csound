@@ -577,15 +577,13 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
 }
 
 int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t async) {
-  jmp_buf savedExitJmp;
   CORFIL *volatile input = NULL;
   int32_t result;
   API_CALL call;
   api_call_begin(csound, &call);
 
   /* Score errors must return to this active API call, not an earlier one. */
-  memcpy(savedExitJmp, csound->exitjmp, sizeof(jmp_buf));
-  if ((result = setjmp(csound->exitjmp)) != 0) {
+  if ((result = setjmp(call.target)) != 0) {
     result = (result - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS;
   } else if (mode == 0) {
     input = copy_to_corefile(csound, str, NULL, 0);
@@ -598,7 +596,6 @@ int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t 
     CORFIL *file = input;
     corfile_rm(csound, &file);
   }
-  memcpy(csound->exitjmp, savedExitJmp, sizeof(jmp_buf));
   api_call_end(&call);
   return result;
 }

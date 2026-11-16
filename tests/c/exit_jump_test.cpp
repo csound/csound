@@ -3,12 +3,15 @@
 #include "csoundCore.h"
 #include "gtest/gtest.h"
 
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <functional>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -102,16 +105,23 @@ class RealtimeInitJumpTests : public ::testing::TestWithParam<bool> {
 
   /* What a k-cycle returns that is not 0. Or 0: after a thousand k-cycles
      more once the channel named is 1, or after patience. A jump returns to
-     the place of csoundPerformKsmps's first call, so a test calls this once.
+     the place of csoundPerformKsmps's first call, so a test calls this once,
+     and does what comes between the first k-cycle and the next ones in
+     afterFirst.
    */
-  int32_t perform(const char *until = nullptr)
+  int32_t perform(const char *until = nullptr,
+                  const std::function<void()> &afterFirst = nullptr)
   {
     const auto deadline = std::chrono::steady_clock::now() + patience;
     int32_t more = -1;
+    bool first = true;
     while (more != 0 && std::chrono::steady_clock::now() < deadline) {
       int32_t result = csoundPerformKsmps(csound);
       if (result != 0)
         return result;
+      if (first && afterFirst)
+        afterFirst();
+      first = false;
       if (more > 0)
         more--;
       else if (until != nullptr &&
@@ -365,6 +375,111 @@ TEST_P(RealtimeInitJumpTests, ASubinstrThatJumpsInCompiledGlobalCodeEndsItsInit)
   EXPECT_EQ(ATOMIC_GET(child->init_running), 0);
   EXPECT_TRUE(apiLockFree());
   EXPECT_TRUE(initMutexFree());
+}
+
+/* A host's csoundCompileOrc on a thread of its own, held in its parse: the
+ * first allocation it makes through the instance's table waits until the
+ * test lets it go, or for patience.
+ */
+std::atomic<std::thread::id> heldThread;
+std::atomic<int> heldStep{0};          /* 1: held, 2: let go */
+void *(*callocOfCsound)(CSOUND *, size_t);
+
+void *holdTheCompile(CSOUND *csound, size_t size)
+{
+  if (std::this_thread::get_id() == heldThread.load()) {
+    heldThread = std::thread::id();
+    heldStep = 1;
+    const auto deadline = std::chrono::steady_clock::now() + patience;
+    while (heldStep.load() < 2 && std::chrono::steady_clock::now() < deadline)
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  return callocOfCsound(csound, size);
+}
+
+class HeldCompile {
+ public:
+  HeldCompile(CSOUND *csound, const char *code) : csound(csound)
+  {
+    heldStep = 0;
+    callocOfCsound = csound->Calloc;
+    csound->Calloc = holdTheCompile;
+    std::atomic<bool> named{false};
+    compiler = std::thread([this, code, &named] {
+      heldThread = std::this_thread::get_id();
+      named = true;
+      result = csoundCompileOrc(this->csound, code, 0);
+    });
+    while (!named.load()) {
+    }
+  }
+
+  ~HeldCompile()
+  {
+    if (compiler.joinable())
+      join();
+  }
+
+  /* Whether the compile is held, within two seconds: it takes the first
+     allocation of its parse at once. */
+  bool held()
+  {
+    const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (heldStep.load() < 1 && std::chrono::steady_clock::now() < deadline)
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    return heldStep.load() == 1;
+  }
+
+  /* Lets it go, and gives what it returned. */
+  int32_t join()
+  {
+    heldStep = 2;
+    compiler.join();
+    csound->Calloc = callocOfCsound;
+    return result;
+  }
+
+ private:
+  CSOUND *csound;
+  std::thread compiler;
+  int32_t result = -1;
+};
+
+/* A jump in the performance while a host compiles is the performance's. The
+ * compile set exitjmp to a frame of its own for its length, on its thread,
+ * and the jump went there: the thread that performed went on in the
+ * compile's frames.
+ */
+TEST_P(RealtimeInitJumpTests, AJumpWhileAHostCompilesIsThePerformances)
+{
+  start("instr 1\n exitnowk 3\nendin\n", nullptr);
+  std::unique_ptr<HeldCompile> compile;
+  bool held = false;
+  EXPECT_EQ(perform(nullptr, [&] {
+    compile.reset(new HeldCompile(csound, "instr 2\nendin\n"));
+    held = compile->held();
+    csoundEventString(csound, "i1 0 -1", 0);
+  }), -3);
+  ASSERT_NE(compile, nullptr);
+  EXPECT_TRUE(held);
+  EXPECT_EQ(compile->join(), 0);
+}
+
+/* A host's compile that begins before the first k-cycle and ends after it
+ * leaves the performance its landing. It put back the exitjmp it had found,
+ * csoundStart's, whose frame was gone, over the one the first k-cycle had
+ * set, and the performance's jump went there.
+ */
+TEST_P(RealtimeInitJumpTests, AHostsCompileLeavesThePerformanceItsLanding)
+{
+  start("instr 1\n exitnowk 3\nendin\n", nullptr);
+  HeldCompile compile(csound, "instr 2\nendin\n");
+  ASSERT_TRUE(compile.held());
+  EXPECT_EQ(perform(nullptr, [&] {
+    EXPECT_EQ(compile.join(), 0);
+    csoundEventString(csound, "i1 0 -1", 0);
+  }), -3);
 }
 
 INSTANTIATE_TEST_SUITE_P(Modes, RealtimeInitJumpTests, ::testing::Bool(),

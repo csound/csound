@@ -1789,22 +1789,22 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
               dieu(csound, Str("Indirection file %s is already being read\n"), s);
             } else {
               CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
-              volatile jmp_buf outer;
+              API_CALL call;
               volatile int32_t jump;
               /* read_options() counts the lines it reads as the CSD's */
               const int32_t lines = csound->onefileStatics.csdlinecount;
               corfile_rewind(cf);
               /* an option the file refuses leaves by csound->LongJmp(): the
                  file is closed before the jump goes on */
-              memcpy((void *)&outer, (void *)&csound->exitjmp, sizeof(jmp_buf));
-              if ((jump = setjmp(csound->exitjmp)) == 0)
+              api_call_begin(csound, &call);
+              if ((jump = setjmp(call.target)) == 0)
                 read_options(csound, cf, 0);
-              memcpy((void *)&csound->exitjmp, (void *)&outer, sizeof(jmp_buf));
+              api_call_end(&call);
               csound->onefileStatics.csdlinecount = lines;
               corfile_rm(csound, &cf);
               csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
               if (jump != 0)
-                longjmp(csound->exitjmp, jump);
+                jump_to_landing(csound, jump);
             }
             while (*s++) {
             };
@@ -1949,13 +1949,13 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
 
     /* an option argdecode() refuses leaves it by csound->LongJmp(); a jump
        after it goes back to the setjmp above, as before */
-    volatile jmp_buf top;
-    memcpy((void *)&top, (void *)&csound->exitjmp, sizeof(jmp_buf));
-    if (setjmp(csound->exitjmp) != 0)
+    API_CALL call;
+    api_call_begin(csound, &call);
+    if (setjmp(call.target) != 0)
       ret = -1;
     else
       ret = argdecode(csound, argn + 1, (const char **)args);
-    memcpy((void *)&csound->exitjmp, (void *)&top, sizeof(jmp_buf));
+    api_call_end(&call);
     csoundFree(csound, options);
     for (i = 1; i <= argn + 1; i++)
       csoundFree(csound, args[i]);

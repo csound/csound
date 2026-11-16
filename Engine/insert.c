@@ -841,8 +841,8 @@ void realtime_message_queue_stop(CSOUND *csound)
    From then on, no pass on this thread runs another opcode: the performance
    is over. The thread that performs makes the jump at the start of its next
    control period, or as the score ends (init_thread_jump_make).
-   The passes inside an API call that holds exitjmp (API_CALL) set landings
-   too, on any thread, and the call takes the jump as its error. */
+   The passes inside an API call that takes its own jumps (API_CALL) set
+   landings too, on any thread, and the call takes the jump as its error. */
 static INIT_THREAD_LOCAL CSOUND *init_thread;        /* the instance whose
                                                          init thread this is */
 static INIT_THREAD_LOCAL INIT_LANDING *init_landing; /* the innermost pass's */
@@ -865,8 +865,8 @@ static INIT_THREAD_LOCAL const CSOUND *note_init_of; /* the instance a note
 
 static INIT_THREAD_LOCAL API_CALL *api_call;          /* the innermost */
 
-/* The innermost API call on this thread, if it holds this instance's
-   exitjmp. */
+/* The innermost API call on this thread, if it takes this instance's
+   jumps. */
 API_CALL *api_call_of(const CSOUND *csound)
 {
   API_CALL *call = api_call;

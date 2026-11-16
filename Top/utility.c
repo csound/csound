@@ -73,7 +73,7 @@ void print_sndfile_version(CSOUND* csound);
 {
     csUtility_t   *p;
     char          **lst;
-    volatile void *saved_exitjmp;
+    API_CALL      call;
     volatile int32_t  n;
 
     if (UNLIKELY(csound == NULL))
@@ -85,12 +85,8 @@ void print_sndfile_version(CSOUND* csound);
       print_sndfile_version(csound);
     }
 
-    saved_exitjmp = (void*) csound->Malloc(csound, sizeof(jmp_buf));
-    if (UNLIKELY(saved_exitjmp == NULL))
-      return -1;
-    memcpy((void*) saved_exitjmp, (void*) &(csound->exitjmp), sizeof(jmp_buf));
-
-    if (UNLIKELY((n = setjmp(csound->exitjmp)) != 0)) {
+    api_call_begin(csound, &call);
+    if (UNLIKELY((n = setjmp(call.target)) != 0)) {
       n = (n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS;
       goto err_return;
     }
@@ -138,8 +134,7 @@ void print_sndfile_version(CSOUND* csound);
     csoundDeleteUtilityList(csound, lst);
     n = -1;
  err_return:
-    memcpy((void*) &(csound->exitjmp), (void*) saved_exitjmp, sizeof(jmp_buf));
-    csound->Free(csound, (void*) saved_exitjmp);
+    api_call_end(&call);
     return n;
 }
 
