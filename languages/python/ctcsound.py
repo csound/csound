@@ -787,6 +787,7 @@ class Csound:
         """
         self._kept = []
         self._keyboard_thunks = {}
+        self._keyboard_data = {}  # the user_data Csound may have, by callback
         self._threads = set()  # C pointers: a collection clears weakrefs first
         self._destroying = False
         if pointer_:
@@ -798,6 +799,7 @@ class Csound:
             else:
                 self._kept = owner._kept
                 self._keyboard_thunks = owner._keyboard_thunks
+                self._keyboard_data = owner._keyboard_data
         else:
             self.cs = libcsound.csoundCreate(ct.py_object(self._keep(host_data)),
                                              cstring(opcode_dir))
@@ -841,6 +843,7 @@ class Csound:
                 self.cs = None
                 self._kept.clear()
                 self._keyboard_thunks.clear()
+                self._keyboard_data.clear()
 
     def csound(self):
         """Returns the opaque pointer to the underlying CSOUND struct.
@@ -1807,7 +1810,9 @@ class Csound:
         registration. If the same function is set again, it is only moved
         in the list of callbacks so that it will be called first, and the
         user data and type mask parameters are updated. The same function
-        means what it does for remove_keyboard_callback().
+        means what it does for remove_keyboard_callback(). user_data is held
+        until another registration of the function is accepted, or it is
+        removed, or this instance is destroyed.
         type_mask can be the bitwise OR of callback types for which the
         function should be called, or zero for all types.
 
@@ -1853,11 +1858,20 @@ class Csound:
         Windows).
         """
         # Csound tells callbacks apart by address, so a function has one thunk,
-        # and that thunk stays after removal for the reason _keep gives.
-        thunk = self._keyboard_thunks.setdefault(self._keyboard_key(function),
-                                                 KEYBOARDFUNC(_checked(function, CSOUND_ERROR)))
-        return libcsound.csoundRegisterKeyboardCallback(self.cs, thunk,
-            ct.py_object(self._keep(user_data)), ct.c_uint(type_))
+        # and that thunk stays after removal for the reason _keep gives. Its
+        # user_data is the one Csound has: the old and the new are both held
+        # until Csound has answered, so that an exception in between, such as
+        # KeyboardInterrupt, leaves neither unheld.
+        key = self._keyboard_key(function)
+        thunk = self._keyboard_thunks.get(key)
+        if thunk is None:
+            thunk = self._keyboard_thunks[key] = KEYBOARDFUNC(_checked(function, CSOUND_ERROR))
+        data, mask = ct.py_object(user_data), ct.c_uint(type_)
+        old = self._keyboard_data.get(key, ())
+        self._keyboard_data[key] = old + (user_data,)
+        result = libcsound.csoundRegisterKeyboardCallback(self.cs, thunk, data, mask)
+        self._keyboard_data[key] = (user_data,) if result == CSOUND_SUCCESS else old
+        return result
 
     def remove_keyboard_callback(self, function):
         """Removes a callback previously set with register_keyboard_callback().
@@ -1876,6 +1890,7 @@ class Csound:
         key = self._keyboard_key(function)
         if key in self._keyboard_thunks:
             libcsound.csoundRemoveKeyboardCallback(self.cs, self._keyboard_thunks[key])
+            self._keyboard_data.pop(key, None)
 
     @staticmethod
     def _keyboard_key(function):
