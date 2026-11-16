@@ -147,6 +147,7 @@ if(BUILD_TESTS)
         pfield_names_test.cpp
         userrnd_test.cpp
         ugen_test.cpp
+        srconvert_linear_test.cpp
         ../../Opcodes/osc_blob.c
     )
 

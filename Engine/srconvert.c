@@ -137,6 +137,9 @@ void src_linear_process(SR_CONVERTER *pp, const cs_float *in, cs_float *out,
     if(incnt >= 1)
       start = in[(incnt <= insamps ? incnt : insamps) - 1];
   }
+  /* Phase rounding can leave incnt at zero after a whole block has been
+     consumed. The last input sample is then the history for the next call. */
+  if(incnt < 1) incnt = 1;
   *data = in[(incnt < insamps ? incnt : insamps) - 1];
 }
 
