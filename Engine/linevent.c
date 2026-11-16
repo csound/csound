@@ -76,6 +76,8 @@ static int32_t set_sense_event_callback(CSOUND *csound, void (*func)(CSOUND *, v
 #define O_NDELAY 0
 #endif
 
+static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize);
+
 void linevent_open(CSOUND *csound)
 /* set up Linebuf & ready the input files */
 { /*     callable once from musmon.c        */
@@ -84,20 +86,15 @@ void linevent_open(CSOUND *csound)
     /*                            csound->Calloc(csound, */
     /*                            sizeof(LINEVENT_GLOBALS)); */
 
-    /* A line queued before the start has made the buffer, set its
-       position and the callback, and set Linefd to -1, no -L input */
-    int32_t queued = STA(Linep) != NULL;
-
-    if (STA(Linebuf) == NULL) {
-      STA(linebufsiz) = LBUFSIZ1;
-      STA(Linebuf) = (char *) csound->Calloc(csound, STA(linebufsiz));
-    }
-    if (!queued)
-      STA(Linep) = STA(Linebuf);
-    if (STA(orchestrab) == NULL)  /* unless a line queued has made it */
+    /* The buffer, its position and the line reader, made as a line sent
+       makes them, under the lock: a line sent before the start has made
+       them, and one sent from another thread now makes them, or finds
+       them, once */
+    csoundSpinLock(&csound->line_event_spinlock);
+    linevent_alloc(csound, 0);
+    if (STA(orchestrab) == NULL)  /* unless a line has made it */
       STA(orchestra) = STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
-    STA(prve).opcod = ' ';
-    STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
+    csoundSpinUnLock(&csound->line_event_spinlock);
     if (strcmp(O->Linename, "stdin") == 0) {
       csound->Linefd = 0;
 #if defined(DOSGCC) || defined(WIN32)
@@ -126,15 +123,6 @@ void linevent_open(CSOUND *csound)
     if(csound->oparms->odebug)
     csound->Message(csound, Str("stdmode = %.8x Linefd = %d\n"),
                     STA(stdmode), csound->Linefd);
-
-        // allocate pfield memory
-    if(STA(pfields) == NULL) {
-     STA(msize) = PMAX;
-     STA(pfields) = csound->Calloc(csound, sizeof(cs_float)*(STA(msize)+1));
-    }
-
-    if (!queued)
-      set_sense_event_callback(csound, sense_line, NULL);
 }
 
 #ifdef PIPES

@@ -1,6 +1,7 @@
 #include "csoundCore.h"
 #include "gtest/gtest.h"
 #include <atomic>
+#include <chrono>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
@@ -1263,5 +1264,70 @@ TEST(HostLineEvents, RefusalsEndTheirLines)
         ASSERT_NE(std::string::npos, at) << said;
         EXPECT_EQ("^\n", said.substr(said.find('^', at), 2)) << said;
     }
+}
+
+/* Set by the message the start gives just before it opens the -L input;
+   what is said is kept, on the thread that starts and performs. */
+std::atomic<bool> openingLineInput{false};
+std::string startSaid;
+
+void watchTheStart(CSOUND *, int32_t, const char *format, va_list args)
+{
+    char text[256];
+    vsnprintf(text, sizeof text, format, args);
+    startSaid += text;
+    if (strstr(text, "A4 tuning") != nullptr)
+        openingLineInput = true;
+}
+
+/* A line another thread sends while csoundStart opens the -L input plays,
+   and so does the -L input. The start set the line buffer up without its
+   lock, and one or both lines were lost, the line reader was registered
+   twice, or the process died. The line goes right after the start's last
+   message before it opens -L, and 0 to 9 us later in turn: at develop most
+   runs went wrong. */
+TEST(HostLineEvents, ALineSentAsTheStartOpensLineInputPlays)
+{
+    const std::string file = ::testing::TempDir() + "csound-start-lines.sco";
+    std::ofstream(file, std::ios::binary) << "i 1 0 0\n";
+    int duringTheStart = 0;
+    for (int run = 0; run < 50; run++) {
+        SCOPED_TRACE(run);
+        Host host;
+        csoundSetMessageCallback(host.csound, watchTheStart);
+        csoundSetOption(host.csound, ("-L\"" + file + "\"").c_str());
+        openingLineInput = false;
+        startSaid.clear();
+        std::atomic<bool> started{false};
+        bool sentDuringTheStart = false;
+        std::thread sender([&] {
+            while (!started.load() && !openingLineInput.load()) {
+            }
+            const auto from = std::chrono::steady_clock::now();
+            while (std::chrono::steady_clock::now() - from <
+                   std::chrono::microseconds(run % 10)) {
+            }
+            host.csound->InputMessage(host.csound, "i 1 0 0\n");
+            sentDuringTheStart = !started.load();
+        });
+        const int result = csoundStart(host.csound);
+        started = true;
+        sender.join();
+        duringTheStart += sentDuringTheStart;
+        ASSERT_EQ(CSOUND_SUCCESS, result) << startSaid;
+        EXPECT_TRUE(openingLineInput.load());
+        host.perform(4);
+        int readers = 0;
+        for (auto *fp = (EVT_CB_FUNC *) host.csound->evtFuncChain; fp != nullptr;
+             fp = fp->nxt)
+            readers++;
+        EXPECT_EQ(1, readers) << startSaid;
+        ASSERT_EQ(2, host.played()) << startSaid;
+    }
+    std::remove(file.c_str());
+    /* a machine where no line was in before the start returned did not
+       test the race: say so rather than pass */
+    if (duringTheStart == 0)
+        GTEST_SKIP() << "no line went out before csoundStart returned";
 }
 } // namespace
