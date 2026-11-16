@@ -140,7 +140,7 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
     csound->playscore = csound->scstr;
     // corfile_rm(csound, &(csound->scorestr));
     // printf("%s\n", O->playscore->body);
-  } else {
+  } else if (sc != NULL) { /* none for a later read before the start: kept */
     csoundInputMessage(csound, (const char *)sc);
     csound->Free(csound, sc);
     corfile_rm(csound, &(csound->scorestr));

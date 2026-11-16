@@ -619,6 +619,140 @@ TEST_F(CsdCompileTests, SecondScoreBeforeTheStartPlays)
   }
 }
 
+// The performance goes on until the second score is done: its notes past
+// the first's 0.1 s play, and its second section follows the first one's
+// end at 0.5 s. It was realtime events, cut off at 0.1 s, and the line
+// reader took no s ("unknown opcode s").
+TEST_F(CsdCompileTests, SecondScoreBeforeTheStartPlaysToItsEnd)
+{
+  const char *first = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "sr=48000\nksmps=32\nnchnls=1\n0dbfs=1\n"
+    "instr 1\nchnset chnget:i(\"played\") + 1, \"played\"\nendin\n"
+    "</CsInstruments>\n<CsScore>\ni 1 0 0.1\n</CsScore>\n"
+    "</CsoundSynthesizer>\n";
+  const char *second = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "instr 2\nchnset chnget:i(\"played\") + 10, \"played\"\nendin\n"
+    "</CsInstruments>\n<CsScore>\ni 2 0.05 0\ni 1 0.5 0\ns\ni 2 0.05 0\n"
+    "</CsScore>\n</CsoundSynthesizer>\n";
+  ASSERT_EQ(0, csoundCompileCSD(csound, first, 1, 0));
+  ASSERT_EQ(0, csoundCompileCSD(csound, second, 1, 0));
+  ASSERT_EQ(0, csoundStart(csound));
+  // A cycle is 32 samples at 48 kHz: 0.5 s is cycle 750, 0.55 s 825.
+  int cycles = 0;
+  double before = -1;
+  while (cycles < 2000 && csoundPerformKsmps(csound) == 0)
+    if (++cycles == 700)
+      before = csoundGetControlChannel(csound, "played", nullptr);
+  EXPECT_EQ(11, before);
+  EXPECT_EQ(22, csoundGetControlChannel(csound, "played", nullptr));
+  EXPECT_EQ(825, cycles);
+  EXPECT_EQ(std::string::npos, messages().find("unknown opcode"))
+    << messages();
+}
+
+// Statements of one time are ordered as if the scores were sorted as one:
+// the second's table before the first's notes, its instr 1 before the
+// first's instr 2, and notes alike in all but their score in the order the
+// scores came. As realtime events, the later ones came after the first's.
+TEST_F(CsdCompileTests, SecondScoreBeforeTheStartIsSortedWithTheFirst)
+{
+  const char *first = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "sr=48000\nksmps=32\nnchnls=1\n0dbfs=1\n"
+    "instr 1\nchnset chnget:i(\"order\") * 10 + 1, \"order\"\nendin\n"
+    "instr 2\nchnset chnget:i(\"order\") * 10 + 2, \"order\"\nendin\n"
+    "instr 3\nchnset ftlen(1), \"length\"\nendin\n"
+    "instr 4\nchnset chnget:i(\"ties\") * 10 + p4, \"ties\"\nendin\n"
+    "</CsInstruments>\n<CsScore>\ni 2 0 0\ni 3 0 0\ni 4 0 0 1\n"
+    "</CsScore>\n</CsoundSynthesizer>\n";
+  const char *second = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "</CsInstruments>\n<CsScore>\nf 1 0 16 10 1\ni 1 0 0\ni 4 0 0 2\n"
+    "</CsScore>\n</CsoundSynthesizer>\n";
+  ASSERT_EQ(0, csoundCompileCSD(csound, first, 1, 0));
+  ASSERT_EQ(0, csoundCompileCSD(csound, second, 1, 0));
+  for (const char *later : {"i 4 0 0 3", "i 4 0 0 4"}) {
+    const std::string text = "<CsoundSynthesizer>\n<CsInstruments>\n"
+      "</CsInstruments>\n<CsScore>\n" + std::string(later) +
+      "\n</CsScore>\n</CsoundSynthesizer>\n";
+    ASSERT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0));
+  }
+  ASSERT_EQ(0, csoundStart(csound));
+  for (int i = 0; i < 3 && csoundPerformKsmps(csound) == 0; i++)
+    ;
+  EXPECT_EQ(12, csoundGetControlChannel(csound, "order", nullptr));
+  EXPECT_EQ(16, csoundGetControlChannel(csound, "length", nullptr))
+    << messages();
+  EXPECT_EQ(1234, csoundGetControlChannel(csound, "ties", nullptr));
+}
+
+// A first score with no statement keeps the performance going after the
+// last section of the scores merged into it, also when they are merged
+// twice: by csoundCompile, and by csoundStart for a read after it.
+TEST_F(CsdCompileTests, EmptyFirstScoreGoesOnAfterEachMerge)
+{
+  ASSERT_NO_FATAL_FAILURE(write("piece.csd",
+    "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "sr=48000\nksmps=32\nnchnls=1\n0dbfs=1\n"
+    "instr 1\nchnset chnget:i(\"played\") + 1, \"played\"\nendin\n"
+    "</CsInstruments>\n<CsScore>\ni 1 0.01 0\n</CsScore>\n"
+    "</CsoundSynthesizer>\n"));
+  csoundEventString(csound, "", 0);
+  const auto file = path("piece.csd");
+  const char *arguments[] = {"csound", file.c_str()};
+  ASSERT_EQ(CSOUND_SUCCESS, csoundCompile(csound, 2, arguments)) << messages();
+  csoundEventString(csound, "i 1 0.02 0\ns\ni 1 0.02 0\ns\ni 1 0.02 0", 0);
+  ASSERT_EQ(0, csoundStart(csound));
+  for (int i = 0; i < 1000; i++)
+    ASSERT_EQ(0, csoundPerformKsmps(csound)) << "cycle " << i;
+  EXPECT_EQ(4, csoundGetControlChannel(csound, "played", nullptr))
+    << messages();
+}
+
+// A later score with an error in a [] is refused with its compile, as the
+// first one's error refuses the compile: none of it plays.
+TEST_F(CsdCompileTests, SecondScoreWithAnErrorBeforeTheStartIsRefused)
+{
+  const char *first = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "sr=48000\nksmps=32\nnchnls=1\n0dbfs=1\n"
+    "instr 1\nchnset chnget:i(\"played\") + 1, \"played\"\nendin\n"
+    "</CsInstruments>\n<CsScore>\ni 1 0 0.1\n</CsScore>\n"
+    "</CsoundSynthesizer>\n";
+  const char *second = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "</CsInstruments>\n<CsScore>\ni 1 0.05 0\ni 1 0.06 0 [2 + )]\n"
+    "</CsScore>\n</CsoundSynthesizer>\n";
+  ASSERT_EQ(0, csoundCompileCSD(csound, first, 1, 0));
+  EXPECT_NE(0, csoundCompileCSD(csound, second, 1, 0));
+  ASSERT_EQ(0, csoundStart(csound));
+  for (int cycles = 0; cycles < 1000 && csoundPerformKsmps(csound) == 0;
+       cycles++)
+    ;
+  EXPECT_EQ(1, csoundGetControlChannel(csound, "played", nullptr))
+    << messages();
+}
+
+// An async compile's orchestra is merged at the first cycle, and its score
+// follows it as realtime events: in the score played, its note at 0 would
+// be read before its instrument is there.
+TEST_F(CsdCompileTests, AsyncSecondScoreBeforeTheStartFollowsItsOrchestra)
+{
+  const char *first = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "sr=48000\nksmps=32\nnchnls=1\n0dbfs=1\n"
+    "instr 1\nchnset chnget:i(\"played\") + 1, \"played\"\nendin\n"
+    "</CsInstruments>\n<CsScore>\ni 1 0 0.1\n</CsScore>\n"
+    "</CsoundSynthesizer>\n";
+  const char *second = "<CsoundSynthesizer>\n<CsInstruments>\n"
+    "instr 2\nchnset chnget:i(\"played\") + 10, \"played\"\nendin\n"
+    "</CsInstruments>\n<CsScore>\ni 2 0 0\n</CsScore>\n"
+    "</CsoundSynthesizer>\n";
+  ASSERT_EQ(0, csoundCompileCSD(csound, first, 1, 0));
+  ASSERT_EQ(0, csoundCompileCSD(csound, second, 1, 1));
+  ASSERT_EQ(0, csoundStart(csound));
+  for (int cycles = 0; cycles < 1000 && csoundPerformKsmps(csound) == 0;
+       cycles++)
+    ;
+  EXPECT_EQ(11, csoundGetControlChannel(csound, "played", nullptr))
+    << messages();
+}
+
 // A CSD with no score, compiled on a started engine, queues nothing: it
 // queued "#exit", which the realtime reader refused as a line.
 TEST_F(CsdCompileTests, NoScoreOnAStartedEngineQueuesNothing)

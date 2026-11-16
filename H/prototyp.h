@@ -70,6 +70,9 @@ extern "C" {
   void instr0_wait(CSOUND *, INSTRTXT *);
   void scsort(CSOUND *, FILE *, FILE *);
   char *scsortstr(CSOUND *, CORFIL *);
+  char *scsortstr_events(CSOUND *, CORFIL *);
+  void scsortstr_merge(CSOUND *);
+  void scsortstr_forget(CSOUND *);
   int32_t scxtract(CSOUND *, CORFIL *, FILE *);
   int32_t rdscor(CSOUND *, EVTBLK *);
   int32_t start_engine(CSOUND *);
