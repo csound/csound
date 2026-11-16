@@ -133,6 +133,22 @@ const Refused refused[] = {
     {"{ 4294967298 N\ni 1 0 0\n}", "invalid repeat count"},
     {"#define C #4294967298#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
     {"#define C #-4294967294#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
+    /* A count in a macro's text may come after line ends and with a plus
+       sign, as develop's strtoll took it there, and one written in place may
+       not, as at develop: these are still refused, as is a macro's text with
+       no count in it, blank or empty, whatever follows the call. */
+    {"{ +2 N\ni 1 0 0\n}", "invalid repeat count"},
+    {"{\n2 N\ni 1 0 0\n}", "invalid repeat count"},
+    {"#define C #\n0#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
+    {"#define C #\n-2#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
+    {"#define C #+x#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
+    {"#define C #+ 2#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
+    {"#define C #\n+4294967298#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
+    {"#define C #\n#\n{ $C 2 N\ni 1 0 0\n}", "invalid repeat count"},
+    {"#define C ##\n{ $C 2 N\ni 1 0 0\n}", "invalid repeat count"},
+    /* What may follow line ends is a number, not a [] or a macro. */
+    {"#define C #\n[2]#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
+    {"#define A #2#\n#define C #\n$A#\n{ $C N\ni 1 0 0\n}", "invalid repeat count"},
     {"{ [4294967298] N\ni 1 0 0\n}", "integer overflow in [] expression"},
     {"{ [2147483647+2147483647+4] N\ni 1 0 0\n}", "integer overflow"},
     {"{ [0-2147483647-2147483647+3] N\ni 1 0 0\n}", "integer overflow"},
@@ -265,6 +281,18 @@ const Warned overrun[] = {
     /* Valid: counts that fit play as they did, INT_MAX among their terms. */
     {"{ [2147483647-2147483645] N\ni 1 0 0\n}", "", 2},
     {"#define C #2#\n{ $C N\ni 1 0 0\n}", "", 2},
+    /* A count in a macro's text may come after line ends, LF or CRLF, and
+       with a plus sign, as develop's strtoll took them in a macro without
+       arguments; an early version of this change refused them. A macro with
+       arguments, whose counts develop could not read, takes the same. */
+    {"#define C #\n2\n#\n{ $C N\ni 1 0 $N\n}", "", 2},
+    {"#define C #\r\n2\r\n#\r\n{ $C N\r\ni 1 0 $N\r\n}\r\n", "", 2},
+    {"#define C #+2#\n{ $C N\ni 1 0 $N\n}", "", 2},
+    {"#define C # \n +2#\n{ $C N\ni 1 0 $N\n}", "", 2},
+    {"#define C(x) #\n+2#\n{ $C(1) N\ni 1 0 $N\n}", "", 2},
+    {"#define B #\n+2#\n#define C #$B#\n{ $C N\ni 1 0 $N\n}", "", 2},
+    /* An empty macro in the text is passed over, as its expansion is. */
+    {"#define B ##\n#define C #$B 2#\n{ $C N\ni 1 0 $N\n}", "", 2},
     /* A { that ends a macro's text takes its count from after the call. */
     {"#define L #{#\n#define C(x) #2#\n$L $C(1) N\ni 1 0 0\n}", "", 2},
     /* And a count that ends it, its counter. These stopped the score. */

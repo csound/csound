@@ -20,8 +20,9 @@ nchnls = 1
 ; start of its text, unexpanded: a text that calls another macro, or holds
 ; a [], gave 0, and the score stopped with "{: invalid repeat count".
 ; What follows the count in the text is ignored, as it was: the counter is
-; the name after the call, after a { that ends a macro's text too.
-giExpected[] fillarray 3, 4, 2, 2, 2
+; the name after the call, after a { that ends a macro's text too. And as
+; strtoll took them, the text may begin with line ends and a plus sign.
+giExpected[] fillarray 3, 4, 2, 2, 2, 2, 3
 giPlayed[] init lenarray(giExpected)
 giCounters init 0
 
@@ -43,9 +44,9 @@ instr Check
     endif
     index += 1
   od
-  ; 0+1+2, 0+1+2+3, 0+1, 0+1 and 0+1
-  if giCounters != 12 then
-    prints("the counters added up to %d, not 12\n", giCounters)
+  ; 0+1+2, 0+1+2+3, 0+1, 0+1, 0+1, 0+1 and 0+1+2
+  if giCounters != 16 then
+    prints("the counters added up to %d, not 16\n", giCounters)
     wrong += 1
   endif
   if wrong != 0 then
@@ -61,6 +62,10 @@ endin
 #define ARG(x) #$x#
 #define TWO_X #2 X#
 #define OPEN #{#
+#define LINES #
+2
+#
+#define PLUS #+3#
 { $ALIAS A
 i "Count" 0 0 0
 i "Counter" 0 0 $A
@@ -80,6 +85,14 @@ i "Counter" 0 0 $D
 $OPEN $TWO_X E
 i "Count" 0 0 4
 i "Counter" 0 0 $E
+}
+{ $LINES F
+i "Count" 0 0 5
+i "Counter" 0 0 $F
+}
+{ $PLUS G
+i "Count" 0 0 6
+i "Counter" 0 0 $G
 }
 i "Check" 0.1 0
 </CsScore>

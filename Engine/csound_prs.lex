@@ -1993,7 +1993,9 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
 
 /* The count after a {, leaving the character after it in *term. A macro's
    count is read from the start of its text, and what follows the count there
-   is ignored: *term is then the character after the call. */
+   is ignored: *term is then the character after the call. In a macro's text
+   a number may come after line ends and with a plus sign, as when it was read
+   with strtoll, and the macro's text with no count gives none. */
 static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
 {
     size_t level = PARM->buffers.count;   /* the text the count is in */
@@ -2002,7 +2004,14 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
     do {
       c = input(yyscanner);
     } while (isblank(c));
-    if (c=='$') { // macro to yield count
+    if (PARM->buffers.count > level && (isspace(c) || c=='+')) {
+      while (isspace(c))
+        c = input(yyscanner);
+      if (c=='+')
+        c = input(yyscanner);
+      n = read_digits(yyscanner, &c);
+    }
+    else if (c=='$') { // macro to yield count
       char buf[256];
       int i=0;
       MACRO* mm;
@@ -2039,6 +2048,8 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
       //printf("** ] case\n");
       n = bodmas(csound, yyscanner, &c, 0);
     }
+    else if (c=='\0' && PARM->buffers.count == level + 1)
+      n = 0;                           /* the macro's text, with no count */
     else if (c=='\0') {
       if (on_EOF(csound, yyscanner)==0) return 0;
       if (PARM->buffers.count < level)
