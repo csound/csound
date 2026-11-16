@@ -1031,10 +1031,13 @@ class Csound:
         to get meaningful information.
         """
         n = libcsound.csoundGetAudioDevList(self.cs, None, ct.c_int32(is_output))
+        if n <= 0:
+            return []
         devs = (CsoundAudioDevice * n)()
-        libcsound.csoundGetAudioDevList(self.cs, ct.byref(devs), ct.c_int32(is_output))
+        # The fill says how many it filled, which can be fewer than it counted.
+        n = libcsound.csoundGetAudioDevList(self.cs, ct.byref(devs), ct.c_int32(is_output))
         lst = []
-        for dev in devs:
+        for dev in devs[:max(n, 0)]:
             d = {}
             d["device_name"] = pstring(dev.device_name)
             d["device_id"] = pstring(dev.device_id)
@@ -1055,10 +1058,13 @@ class Csound:
         to get meaningful information.
         """
         n = libcsound.csoundGetMIDIDevList(self.cs, None, ct.c_int32(is_output))
+        if n <= 0:
+            return []
         devs = (CsoundMidiDevice * n)()
-        libcsound.csoundGetMIDIDevList(self.cs, ct.byref(devs), ct.c_int32(is_output))
+        # The fill says how many it filled, which can be fewer than it counted.
+        n = libcsound.csoundGetMIDIDevList(self.cs, ct.byref(devs), ct.c_int32(is_output))
         lst = []
-        for dev in devs:
+        for dev in devs[:max(n, 0)]:
             d = {}
             d["device_name"] = pstring(dev.device_name)
             d["interface_name"] = pstring(dev.interface_name)
@@ -2163,7 +2169,11 @@ class Csound:
     def set_midi_device_list_callback(self, function):
         """Sets a callback for obtaining a list of MIDI devices.
 
-        With None, there are none.
+        With None, there are none. function(csound, devices, is_output)
+        returns the number of devices: how many there are when devices is a
+        NULL pointer (false, though not None), and otherwise how many it
+        filled, at most that many, or a negative number on an error. Only
+        those are listed.
         """
         self.midi_dev_list_cb_ref = _thunk(MIDIDEVLISTFUNC, _checked(function, 0), _no_callback)
         libcsound.csoundSetMIDIDeviceListCallback(self.cs,
