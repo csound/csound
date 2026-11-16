@@ -1726,7 +1726,11 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
           csound->AuxAlloc(csound, sizeof(hrtf_c), &p->binaural_mem[j]);
         p->binaural[j] = new (p->binaural_mem[j].auxp) hrtf_c;
 
-        p->binaural[j]->hrtfstat_init(csound, elev, angle[j], r, p->ifilel, p->ifiler, CS_ESR);
+        int32_t status =
+          p->binaural[j]->hrtfstat_init(csound, elev, angle[j], r,
+                                        p->ifilel, p->ifiler, CS_ESR);
+        if (UNLIKELY(status != OK))
+          return status;
       }
     }
 
@@ -1745,7 +1749,11 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
         if (p->binaural_mem[j].auxp == NULL)
           csound->AuxAlloc(csound, sizeof(hrtf_c), &p->binaural_mem[j]);
         p->binaural[j] = new (p->binaural_mem[j].auxp) hrtf_c;
-        p->binaural[j]->hrtfstat_init(csound, elev[j], angle[j], r, p->ifilel, p->ifiler, CS_ESR);
+        int32_t status =
+          p->binaural[j]->hrtfstat_init(csound, elev[j], angle[j], r,
+                                        p->ifilel, p->ifiler, CS_ESR);
+        if (UNLIKELY(status != OK))
+          return status;
       }
     }
 
