@@ -429,6 +429,13 @@ if(BUILD_TESTS)
         )
     endif()
 
+    if(TARGET rtalsa)
+        find_package(ALSA MODULE REQUIRED)
+        target_sources(unittests PRIVATE alsaseq_devices_test.cpp
+                                         fixtures/alsaseq_test_module.c)
+        target_link_libraries(unittests PRIVATE ALSA::ALSA)
+    endif()
+
     if(TARGET pmidi AND NOT WIN32)
         # The PortMIDI module on stand-in PortMidi functions: its fixture
         # takes PortMidi's headers from the plugin, and not its library.

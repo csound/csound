@@ -1873,7 +1873,7 @@ static int32_t listAlsaSeq(CSOUND *csound, CS_MIDIDEVICE *list, int32_t isOutput
 
     if (snd_seq_open(&seq, "default", SND_SEQ_OPEN_DUPLEX, 0) < 0) {
       fprintf(stderr, Str("cannot open sequencer\n"));
-      return 1;
+      return 0;
     }
 
     snd_seq_client_info_alloca(&cinfo);
