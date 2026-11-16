@@ -1184,4 +1184,54 @@ TEST(HostLineEvents, TheRestOfTheBraceLineIsTheBlocks)
     host.perform(1);
     EXPECT_EQ(" {\"a\": 1\n} ", channelText(host)) << host.said();
 }
+
+/* An orchestra block whose text, the lines between its { line and its }
+   line, is size bytes: instr 105, then comment lines. */
+std::string blockOf(size_t size)
+{
+    std::string text = "instr 105\nchnset 5, \"block\"\nendin\n";
+    while (text.size() + 1002 < size)
+        text += ";" + std::string(998, 'x') + "\n";
+    text += ";" + std::string(size - text.size() - 2, 'x') + "\n";
+    return "{\n" + text + "}\n";
+}
+
+/* A block holds 1 MB less a byte, from a host or from -L: a longer one is
+   refused, its text dropped up to its }, and what follows it plays. It ran
+   past its buffer, and the process died. */
+TEST(HostLineEvents, AnOrchestraBlockPastItsBufferIsRefused)
+{
+    const std::string file = ::testing::TempDir() + "csound-block-size.sco";
+    for (const bool lineInput : {false, true}) {
+        for (const size_t size :
+             {(size_t) 1048575, (size_t) 1048576, (size_t) 1100000}) {
+            const bool fits = size < 1048576;
+            SCOPED_TRACE(std::string(lineInput ? "-L, " : "a host, ") +
+                         std::to_string(size));
+            const std::string lines = blockOf(size) + "i 1 0 0\ni 105 0 0\n";
+            Host host;
+            if (lineInput) {
+                std::ofstream(file, std::ios::binary) << lines;
+                csoundSetOption(host.csound, ("-L\"" + file + "\"").c_str());
+                host.start();
+            }
+            else {
+                host.start();
+                host.csound->InputMessage(host.csound, lines.c_str());
+            }
+            host.perform(100);
+            EXPECT_EQ(1, host.played()) << host.said();
+            EXPECT_EQ(fits ? 5 : 0, channel(host, "block"));
+            EXPECT_EQ(fits, host.said().find("orchestra block longer than "
+                                             "1048575 bytes: not compiled\n") ==
+                                std::string::npos);
+            host.csound->InputMessage(host.csound,
+                                      "{\ninstr 106\nchnset 6, \"block\"\n"
+                                      "endin\n}\ni 106 0 0\n");
+            host.perform(1);
+            EXPECT_EQ(6, channel(host, "block")) << host.said();
+        }
+    }
+    std::remove(file.c_str());
+}
 } // namespace

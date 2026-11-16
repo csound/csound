@@ -354,7 +354,7 @@ static char *take_lines(CSOUND *csound)
 static void sense_line(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
-    int32_t     c, cm1, cpp1, n, pcnt, oflag = STA(oflag);
+    int32_t     c, cpp1, n, pcnt, oflag = STA(oflag);
     IGN(userData);
 
     while (1) {
@@ -381,37 +381,44 @@ static void sense_line(CSOUND *csound, void *userData)
           Linestart = (++cp);
           continue;
         }
-        cm1 = *(cp-1);
         cpp1 = *(cp+1);
 
         /* new orchestra input
          */
         if(STA(oflag)) {
-          if(c == '}' && cm1 != '}' && cpp1 != '}') {
+          if(c == '}' && cpp1 != '}') {
             STA(oflag) = 0;
+            if (STA(orchestra) != NULL) {
+              csoundCompileOrc(csound, STA(orchestrab), 0);
+              csound->Message(csound, Str("::compiling orchestra::\n"));
+            }
             STA(orchestra) = STA(orchestrab);
-            csoundCompileOrc(csound, STA(orchestrab), 0);
-            csound->Message(csound, Str("::compiling orchestra::\n"));
             Linestart = (++cp);
             continue;
           }
           else {
-            char *pc;
-            memcpy(STA(orchestra), Linestart, Linend - Linestart);
-            STA(orchestra) += (Linend - Linestart);
-            *STA(orchestra) = '\0';
-            STA(oflag)++;
-            if((pc = strrchr(STA(orchestrab), '}')) != NULL) {
-
-              if(*(pc-1) != '}') {
-              *pc = '\0';
-               cp = strrchr(Linestart, '}');
-              } else {
-               Linestart = Linend;
-              }
-              } else {
-              Linestart = Linend;
+            /* the block's text taken: to the last }, unless that ends a {{
+               string, or all of it, with more to come */
+            char *end = strrchr(Linestart, '}');
+            if (end == NULL || *(end-1) == '}')
+              end = Linend;
+            if (STA(orchestra) != NULL &&
+                end - Linestart >= MAXSTR - (STA(orchestra) - STA(orchestrab))) {
+              csound->ErrorMsg(csound, Str("orchestra block longer than %d "
+                                           "bytes: not compiled\n"),
+                               MAXSTR - 1);
+              STA(orchestra) = NULL;            /* its text dropped, to its } */
             }
+            if (STA(orchestra) != NULL) {
+              memcpy(STA(orchestra), Linestart, end - Linestart);
+              STA(orchestra) += end - Linestart;
+              *STA(orchestra) = '\0';
+            }
+            STA(oflag)++;
+            if (end == Linend)
+              Linestart = Linend;
+            else
+              cp = end;                         /* the } that ends it, next */
             continue;
           }
         } else if(c == '{') {
