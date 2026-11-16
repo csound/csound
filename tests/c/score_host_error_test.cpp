@@ -277,6 +277,8 @@ const Warned overrun[] = {
        place. */
     {"#define L #{ 2 N#\n$L\ni 1 0 $N\n}", "", 2},
     {"#define L #{ 2 N#\n$L i 1 0 0\ni 1 0 $N\n}", "", 2},
+    /* A note against its } had each repeat's first line written onto it. */
+    {"{ 3 N\ni 1 0 0}\n", "", 3},
     /* An unclosed repeat or section went without a word. */
     {"{ 2 N\ni 1 0 0", "unclosed repeat", 0},
     {"r 2\ni 1 0 0", "unclosed repeat", 0},

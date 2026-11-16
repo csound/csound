@@ -459,6 +459,14 @@ NP              np[0-9]+
                          (PARM->in_repeat_sect == 1 &&
                           PARM->repeat_index == PARM->repeat_sect_depth)))
               prs_fatal(yyscanner, Str("repeat and section cross in score"));
+            {   /* A statement against the } ends its line, or each
+                   repeat's first one is written onto it */
+              uint32_t end = bdy->p;
+              while (end > 0 && isblank((unsigned char) bdy->body[end - 1]))
+                end--;
+              if (end > 0 && bdy->body[end - 1] != '\n')
+                corfile_putc(csound, '\n', PARM->cf);
+            }
             corfile_puts(csound, "#loop", PARM->cf);
             corfile_putc(csound, '\0', PARM->cf);
             corfile_putc(csound, '\0', PARM->cf);
