@@ -81,8 +81,9 @@ static void prs_pop_buffer(yyscan_t);
 #define YY_INPUT(buf, result, max_size) ((result) = prs_past_end(yyscanner))
 #define YY_FATAL_ERROR(msg) prs_fatal(yyscanner, msg)
 
+/* The score's first line is the one after the lines before it in a .csd. */
 #define YY_USER_INIT {prs_scan_string(csound->scorestr->body, yyscanner); \
-    csound_prsset_lineno(csound->scoLineOffset, yyscanner);             \
+    csound_prsset_lineno(csound->scoLineOffset + 1, yyscanner);         \
     PARM->macro_stack_size = 0;                                         \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
     PARM->path = ".";                                                   \

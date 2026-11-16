@@ -441,6 +441,68 @@ TEST(HostScoreErrors, WarningsSayTheirLineAndPosition)
               said.find(":  at position 0\n  in line 2 of the score\n")) << said;
 }
 
+/* What csoundCompile says of a .csd, or of an orchestra and a score, in the
+   temporary directory. */
+std::string compiling(const std::vector<std::pair<std::string, std::string>> &files)
+{
+    std::vector<std::string> paths;
+    for (const auto &[name, text] : files) {
+        paths.push_back(::testing::TempDir() + name);
+        std::ofstream(paths.back(), std::ios::binary) << text;
+    }
+    std::vector<const char *> arguments = {"csound", "-n", "-d"};
+    for (const auto &path : paths)
+        arguments.push_back(path.c_str());
+    CSOUND *csound = csoundCreate(nullptr, nullptr);
+    csoundCreateMessageBuffer(csound, 0);
+    csoundCompile(csound, (int32_t) arguments.size(), arguments.data());
+    std::string said;
+    while (csoundGetMessageCnt(csound)) {
+        said += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    csoundDestroy(csound);
+    for (const auto &path : paths)
+        std::remove(path.c_str());
+    return said;
+}
+
+/* The lexer's errors and the reader's name the line they are on, in a .csd, a
+   score file and a host's text alike. A score file's text began with a line
+   end of its own, which the reader counted, and the lexer took the line before
+   the score for its first. */
+TEST(HostScoreErrors, NameTheLineTheyAreOn)
+{
+    const std::string csd = ::testing::TempDir() + "csound-lines.csd";
+    /* An error of the lexer's, then the reader's, on the score's line 2 */
+    const std::string errors[] = {"#define 1", "i 1 0 2e"};
+    auto expected = [](int error, int line, const std::string &file) {
+        return error == 0
+            ? "Unexpected character 1(31) line " + std::to_string(line) + "\n"
+            : ":  at position 7\n  in line " + std::to_string(line) + " of " +
+                  file + "\n";
+    };
+    for (int error = 0; error < 2; error++) {
+        SCOPED_TRACE(errors[error]);
+        std::string said = compiling(
+            {{"csound-lines.csd",
+              "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\nendin\n"
+              "</CsInstruments>\n<CsScore>\ni 1 0 0\n" + errors[error] +
+                  "\n</CsScore>\n</CsoundSynthesizer>\n"}});
+        EXPECT_NE(std::string::npos, said.find(expected(error, 8, csd))) << said;
+        said = compiling({{"csound-lines.orc", "instr 1\nendin\n"},
+                          {"csound-lines.sco", "i 1 0 0\n" + errors[error] + "\n"}});
+        EXPECT_NE(std::string::npos, said.find(expected(error, 2, "the score")))
+            << said;
+        Host host;
+        host.start();
+        host.csound->ReadScore(host.csound, ("i 1 0 0\n" + errors[error]).c_str());
+        said = host.said();
+        EXPECT_NE(std::string::npos, said.find(expected(error, 2, "the score")))
+            << said;
+    }
+}
+
 /* A malformed number says where it is while the reader reads it, here in a
    [], and not when the sort reads it again after the reader, here a t
    statement's, the last of its read: the reader's place is elsewhere then. */
