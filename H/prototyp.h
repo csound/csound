@@ -138,6 +138,13 @@ extern "C" {
   void csound_recycle_rt_event_list_with_tail(CSOUND *csound,
                                               EVTNODE *events,
                                               EVTNODE *tail);
+  /* Realtime events held for a rewind of the score (musmon.c): dropped;
+     put in from the rewind's time origin; kept for the rewind; or put in
+     by it. */
+  void rt_events_drop(CSOUND *csound, EVTNODE *events);
+  void rt_events_insert_held(CSOUND *csound, EVTNODE *events);
+  void rt_events_keep_for_rewind(CSOUND *csound, EVTNODE *events);
+  void rt_events_after_rewind(CSOUND *csound);
   int32_t diskin2_async_setup(CSOUND *csound);
   void diskin2_async_drain_deferred(CSOUND *csound);
   void diskin2_async_prepare_shutdown(CSOUND *csound);
@@ -208,7 +215,19 @@ extern "C" {
      reinit, global code, and any API call they make), beside the
      performance: records that the item asks for a rewind of the score,
      which the performance makes once the item is done, and returns 1. */
-  int32_t init_item_asks_rewind(const CSOUND *);
+  int32_t init_item_asks_rewind(CSOUND *);
+  /* Whether this is such an item, which asked, and no rewind came since,
+     or the one that serves it is under way: it holds the events it
+     schedules (init_item_holds_event), which go in from the rewind's new
+     time origin. */
+  int32_t init_item_rewinding(const CSOUND *);
+  void init_item_holds_event(EVTNODE *);
+  /* Whether this thread runs such an item, asking or not. */
+  int32_t init_item_runs(const CSOUND *);
+  /* A rewind since the ask served it and is done: what the item held goes
+     in now, before what it schedules next, or is dropped if a later
+     rewind came too. */
+  void init_item_release_served(CSOUND *);
   /* A call that holds exitjmp while it runs and takes the jumps made inside
      it as its error (csound_compile_orc, csoundCompileTree, csoundCompileCSD,
      linevent_alloc).

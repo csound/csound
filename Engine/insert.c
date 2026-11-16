@@ -853,6 +853,10 @@ static INIT_THREAD_LOCAL CSOUND *init_item;          /* the instance whose
 static INIT_THREAD_LOCAL int32_t rewind_asked;       /* that item asked for a
                                                          rewind of the score */
 static INIT_THREAD_LOCAL long rewind_asked_at;       /* score_rewinds then */
+static INIT_THREAD_LOCAL long rewind_first_asked_at; /*   and at its first  */
+static INIT_THREAD_LOCAL EVTNODE *held_events;       /* what the item       */
+static INIT_THREAD_LOCAL EVTNODE *held_events_last;  /*   scheduled since it
+                                                         asked                */
 
 static INIT_THREAD_LOCAL API_CALL *api_call;          /* the innermost */
 
@@ -941,14 +945,72 @@ void init_thread_jump_make(CSOUND *csound)
   }
 }
 
-int32_t init_item_asks_rewind(const CSOUND *csound)
+int32_t init_item_asks_rewind(CSOUND *csound)
 {
   if (init_item != csound)
     return 0;
+  /* the performance reads no line while an item has asked: a line it sent
+     is read once the performance has rewound */
+  if (!rewind_asked) {
+    ATOMIC_INCR(csound->rewind_asking);
+    rewind_first_asked_at = ATOMIC_GET(csound->score_rewinds);
+  }
+  /* asked again: the events it scheduled since the first ask come before
+     this rewind, which drops them (its lines wait in the line buffer) */
+  rt_events_drop(csound, held_events);
+  held_events = held_events_last = NULL;
   rewind_asked = 1;
   rewind_asked_at = ATOMIC_GET(csound->score_rewinds);
   return 1;
 }
+
+int32_t init_item_rewinding(const CSOUND *csound)
+{
+  long rewinds;
+  if (init_item != csound || !rewind_asked)
+    return 0;
+  /* no rewind since the ask, or the one that serves it is under way */
+  rewinds = ATOMIC_GET(csound->score_rewinds);
+  return rewinds == rewind_asked_at ||
+    rewinds != ATOMIC_GET(csound->score_rewinds_done);
+}
+
+int32_t init_item_runs(const CSOUND *csound)
+{
+  return init_item == csound;
+}
+
+/* What an item held, once a rewind since its ask served it: put in from
+   that rewind's time origin, or, if a later rewind came too, dropped, as
+   that one would have dropped it. */
+static void release_served(CSOUND *csound, EVTNODE *events)
+{
+  if (ATOMIC_GET(csound->score_rewinds) == rewind_asked_at + 1)
+    rt_events_insert_held(csound, events);
+  else
+    rt_events_drop(csound, events);
+}
+
+void init_item_release_served(CSOUND *csound)
+{
+  EVTNODE *events = held_events;
+  if (init_item != csound || events == NULL || init_item_rewinding(csound))
+    return;
+  held_events = held_events_last = NULL;
+  release_served(csound, events);
+}
+
+void init_item_holds_event(EVTNODE *e)
+{
+  e->evt.pinstance = NULL;   /* the init is over when the rewind puts it in */
+  e->nxt = NULL;
+  if (held_events_last != NULL)
+    held_events_last->nxt = e;
+  else
+    held_events = e;
+  held_events_last = e;
+}
+
 
 /* do init pass for this instr */
 static int32_t init_pass(CSOUND *csound, INSDS *ip) {
@@ -1179,17 +1241,36 @@ uintptr_t event_insert_thread(void *p) {
       }
       init_item = NULL;
       /* A rewind this item asked for: the performance makes it now, unless
-         a rewind came since it asked, which serves it, or since a note's
-         item was queued, which turned the note off. Under the allocation
-         lock, which the performance holds while it rewinds. */
+         a rewind came since it last asked, which serves it, or between a
+         note's item being queued and its first ask, which turned the note
+         off. Under the allocation lock, which the performance holds while
+         it rewinds. */
       if (rewind_asked) {
+        EVTNODE *events = held_events;
+        int32_t served, counted;
         rewind_asked = 0;
+        held_events = held_events_last = NULL;
         csoundSpinLock(&csound->alloc_spinlock);
-        if (ATOMIC_GET(csound->score_rewinds) == rewind_asked_at &&
-            (data.type == ALLOC_DATA_MERGE_STATE ||
-             !queued_before_rewind(csound, &data)))
+        served = ATOMIC_GET(csound->score_rewinds) != rewind_asked_at;
+        /* a note a rewind turned off before its first ask asks for none */
+        counted = !served && (data.type == ALLOC_DATA_MERGE_STATE ||
+                              data.rewinds == rewind_first_asked_at);
+        if (counted) {
+          /* its events go in with the rewind */
+          rt_events_keep_for_rewind(csound, events);
+          events = NULL;
           ATOMIC_INCR(csound->score_rewind_request);
+        }
         csoundSpinUnLock(&csound->alloc_spinlock);
+        /* a rewind since the ask served it, and its events go in from that
+           rewind; a note a rewind turned off before it asked takes them
+           with it */
+        if (served)
+          release_served(csound, events);
+        else
+          rt_events_drop(csound, events);
+        /* lines may be read again: once that rewind is made, if counted */
+        ATOMIC_DECR(csound->rewind_asking);
       }
       if (csound->init_pass_threadlock)
         csoundUnlockMutex(csound->init_pass_threadlock);

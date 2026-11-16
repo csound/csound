@@ -1989,6 +1989,9 @@ struct CSOUND_ {
   volatile long score_rewinds;                               /* rewinds of the score: a realtime init queued before the last is dropped */
   volatile long score_rewind_request;                        /* rewinds the realtime init thread asked for, counted as the asking inits end */
   volatile long score_rewind_served;                         /* score_rewind_request when a rewind was last made: the performance makes one while they differ */
+  EVTNODE *rewind_events;                                    /* what the asking inits scheduled after they asked: the rewind puts it in */
+  volatile long rewind_asking;                               /* realtime init items that asked for a rewind and run: no line is read */
+  volatile long score_rewinds_done;                          /* score_rewinds when the last rewind was done: one runs while they differ */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

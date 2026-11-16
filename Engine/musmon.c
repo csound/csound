@@ -545,15 +545,10 @@ static void deactivate_all_notes(CSOUND *csound)
     }
 }
 
-static void delete_pending_rt_events(CSOUND *csound)
+void rt_events_drop(CSOUND *csound, EVTNODE *events)
 {
-  EVTNODE *events, *ep, *tail = NULL;
+  EVTNODE *ep = events, *tail = NULL;
 
-  csound_rt_event_lock(csound);
-  events = csound->OrcTrigEvts;
-  csound->OrcTrigEvts = NULL;
-  csound_rt_event_unlock(csound);
-  ep = events;
   while (ep != NULL) {
     if (ep->evt.strarg != NULL) {
       csound->Free(csound,ep->evt.strarg);
@@ -562,7 +557,19 @@ static void delete_pending_rt_events(CSOUND *csound)
     tail = ep;
     ep = ep->nxt;
   }
-  csound_recycle_rt_event_list_with_tail(csound, events, tail);
+  if (events != NULL)
+    csound_recycle_rt_event_list_with_tail(csound, events, tail);
+}
+
+static void delete_pending_rt_events(CSOUND *csound)
+{
+  EVTNODE *events;
+
+  csound_rt_event_lock(csound);
+  events = csound->OrcTrigEvts;
+  csound->OrcTrigEvts = NULL;
+  csound_rt_event_unlock(csound);
+  rt_events_drop(csound, events);
 }
 
 void delete_selected_rt_events(CSOUND *csound, cs_float instr)
@@ -713,6 +720,9 @@ int32_t csound_cleanup(CSOUND *csound)
     /* Unlinked deletes can wait non-blockingly for the final diskin2 borrow. */
     instance_process_pending_turnoffs(csound);
     delete_pending_rt_events(csound);
+    /* kept for a rewind that was never made */
+    rt_events_drop(csound, csound->rewind_events);
+    csound->rewind_events = NULL;
 
     while (csound->freeEvtNodes != NULL) {
       p = (void*) csound->freeEvtNodes;
@@ -1737,6 +1747,32 @@ static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
   return e;
 }
 
+/* The checks insert_event_node makes of an event before it queues it,
+   below, where it also takes what it checks: keep the two in step. */
+static int32_t event_node_valid(CSOUND *csound, const EVTNODE *e)
+{
+  const EVTBLK *evt = &(e->evt);
+  switch (evt->opcod) {
+  case 'f':
+    return !(evt->pcnt < 4 && evt->p[1] > 0);
+  case 'a':
+    return evt->pcnt >= 3;
+  case 'i':
+  case 'q':
+    if (evt->pcnt < 3)
+      return 0;
+    /* fall through */
+  case 'd':
+    return evt->strarg == NULL || !IsStringCode(evt->p[1]) ||
+      named_instr_find(csound, evt->strarg) != FL(0.0);
+  case 'e':
+  case 's':
+    return 1;
+  default:
+    return 0;
+  }
+}
+
 static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   cs_double        start_time;
   EVTNODE       *prv;
@@ -1745,6 +1781,13 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   int32_t       i, retval = -1;
   EVTBLK        *evt = &(e->evt);
   cs_float         *pf = evt->p;
+
+  /* scheduled by an init that asked for a rewind: it comes after it */
+  if (init_item_rewinding(csound) && event_node_valid(csound, e)) {
+    init_item_holds_event(e);
+    return 0;
+  }
+  init_item_release_served(csound);
 
    /* check for required p-fields */
   switch (evt->opcod) {
@@ -1881,6 +1924,52 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   recycle_rt_event(csound, e);
   return retval;
 
+}
+
+/* Held events go in as if scheduled at the rewind, from its time origin. */
+void rt_events_insert_held(CSOUND *csound, EVTNODE *events)
+{
+  while (events != NULL) {
+    EVTNODE *e = events;
+    events = e->nxt;
+    e->nxt = NULL;
+    insert_event_node(csound, e, 0);
+  }
+}
+
+/* An asking init's held events, kept for the rewind it asked for, newest
+   first. */
+void rt_events_keep_for_rewind(CSOUND *csound, EVTNODE *events)
+{
+  if (events == NULL)
+    return;
+  csound_rt_event_lock(csound);
+  while (events != NULL) {
+    EVTNODE *e = events;
+    events = e->nxt;
+    e->nxt = csound->rewind_events;
+    csound->rewind_events = e;
+  }
+  csound_rt_event_unlock(csound);
+}
+
+/* After a rewind, the events the inits that asked for it scheduled since,
+   oldest first. */
+void rt_events_after_rewind(CSOUND *csound)
+{
+  EVTNODE *events, *ordered = NULL;
+
+  csound_rt_event_lock(csound);
+  events = csound->rewind_events;
+  csound->rewind_events = NULL;
+  csound_rt_event_unlock(csound);
+  while (events != NULL) {
+    EVTNODE *e = events;
+    events = e->nxt;
+    e->nxt = ordered;
+    ordered = e;
+  }
+  rt_events_insert_held(csound, ordered);
 }
 
 /* Schedule new score event to be played. 'time_ofs' is the amount of */

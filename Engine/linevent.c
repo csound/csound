@@ -297,6 +297,16 @@ static char *take_lines(CSOUND *csound)
     int32_t len = 0, n;
 
     csoundSpinLock(&csound->line_event_spinlock);
+    /* An init on the realtime init thread asked for a rewind, or the rewind
+       it asked for is not made yet: the lines wait, and are read once the
+       performance has rewound, as they are without --realtime. Under the
+       lock: a line sent after the ask is never read before it. */
+    if (ATOMIC_GET(csound->rewind_asking) != 0 ||
+        ATOMIC_GET(csound->score_rewind_request) !=
+        ATOMIC_GET(csound->score_rewind_served)) {
+      csoundSpinUnLock(&csound->line_event_spinlock);
+      return NULL;
+    }
     if (csound->Linefd >= 0) {
       n = (int32_t) read(csound->Linefd, STA(Linep), STA(Linebufend) - STA(Linep));
       STA(Linep) += (n > 0 ? n : 0);
