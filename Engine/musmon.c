@@ -394,6 +394,7 @@ int32_t start_engine(CSOUND *csound)
     /* memset(csound->omaxamp, '\0', sizeof(cs_float)*MAXCHNLS); */
 
     /* initialise sense_events state */
+    note_inits_reset(csound);
     csound->prvbt = csound->curbt = csound->nxtbt = 0.0;
     csound->curp2 = csound->nxtim = csound->timeOffs = csound->beatOffs = 0.0;
     csound->icurTimeSamples = 0L;
@@ -1349,6 +1350,8 @@ int32_t sense_events(CSOUND *csound)
   if (UNLIKELY(data && data->status == CSDEBUG_STATUS_STOPPED)) {
     return 0; /* don't process events if we're in debug mode and stopped */
   }
+  /* no note's init runs here now: what a jump out of one left is gone */
+  note_inits_reset(csound);
   /* Rewinds an item of the realtime init thread asked for, once it is
      done: one rewind serves them. As with turnoffs, it takes a period in
      which this thread gets the allocation lock at the first try: the init

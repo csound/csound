@@ -228,6 +228,15 @@ extern "C" {
      in now, before what it schedules next, or is dropped if a later
      rewind came too. */
   void init_item_release_served(CSOUND *);
+  /* The init pass of a note the score or MIDI started, or a reinit, on
+     this thread: entered (giving what to restore) and left; whether one of
+     the instance's runs; reset as a performance starts, at each period
+     and at each item of the realtime init thread, as a jump can leave
+     one. */
+  const CSOUND *note_init_enter(const CSOUND *);
+  void note_init_leave(const CSOUND *outer);
+  int32_t note_init_runs(const CSOUND *);
+  void note_inits_reset(const CSOUND *);
   /* A call that holds exitjmp while it runs and takes the jumps made inside
      it as its error (csound_compile_orc, csoundCompileTree, csoundCompileCSD,
      linevent_alloc).

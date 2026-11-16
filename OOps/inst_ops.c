@@ -532,7 +532,10 @@ int32_t perf_instance_opcode(CSOUND *csound, PERF_INSTR *p) {
           return csound->PerfError(csound, &(p->h), Str("too many pfields\n"));
         // the instance is p->in: the p-fields start at args[0]
         for (int32_t i = 4; i <= evt.pcnt; i++) evt.p[i] = *p->args[i-4];
+        // run by a note's performance: what its init opens is the note's
+        const CSOUND *outer = note_init_enter(csound);
         int32_t ierr = init_instance(csound, ip, &evt);
+        note_init_leave(outer);
         if (UNLIKELY(ierr != OK))
           return csound->PerfError(csound, &(p->h),
                                    Str("instr %d not initialised (init failed)\n"),

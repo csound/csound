@@ -857,6 +857,11 @@ static INIT_THREAD_LOCAL long rewind_first_asked_at; /*   and at its first  */
 static INIT_THREAD_LOCAL EVTNODE *held_events;       /* what the item       */
 static INIT_THREAD_LOCAL EVTNODE *held_events_last;  /*   scheduled since it
                                                          asked                */
+static INIT_THREAD_LOCAL const CSOUND *note_init_of; /* the instance a note
+                                                         of which the score
+                                                         or MIDI started is
+                                                         in its init pass,
+                                                         or in a reinit       */
 
 static INIT_THREAD_LOCAL API_CALL *api_call;          /* the innermost */
 
@@ -1011,6 +1016,28 @@ void init_item_holds_event(EVTNODE *e)
   held_events_last = e;
 }
 
+const CSOUND *note_init_enter(const CSOUND *csound)
+{
+  const CSOUND *outer = note_init_of;
+  note_init_of = csound;
+  return outer;
+}
+
+void note_init_leave(const CSOUND *outer)
+{
+  note_init_of = outer;
+}
+
+int32_t note_init_runs(const CSOUND *csound)
+{
+  return note_init_of == csound;
+}
+
+void note_inits_reset(const CSOUND *csound)
+{
+  if (note_init_of == csound)
+    note_init_of = NULL;
+}
 
 /* do init pass for this instr */
 static int32_t init_pass(CSOUND *csound, INSDS *ip) {
@@ -1068,6 +1095,7 @@ int32_t rireturn(CSOUND *csound, void *p);
 /* do reinit pass */
 static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   int32_t error = 0;
+  const CSOUND *outer;
   EVTBLK *initEvent = csound->init_event;
   INIT_LANDING landing;
   int32_t landed = init_landing_push(csound, &landing);
@@ -1076,6 +1104,7 @@ static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   }
   /* Each queued pass owns a complete reinit interval. An earlier queued pass
      may already have cleared these flags before this one starts. */
+  outer = note_init_enter(csound);
   csound->reinitflag = ip->reinitflag = 1;
   csound->curip = ip;
   csound->ids = ids;
@@ -1108,6 +1137,7 @@ static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   csound->mode = 0;
 
   csound->reinitflag = ip->reinitflag = 0;
+  note_init_leave(outer);
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
   return error;
@@ -1156,6 +1186,8 @@ uintptr_t event_insert_thread(void *p) {
       if (csound->init_pass_threadlock)
         csoundLockMutex(csound->init_pass_threadlock);
       init_item = csound;
+      /* no note's init runs here now: what a jump out of one left is gone */
+      note_inits_reset(csound);
       switch (data.type) {
         case ALLOC_DATA_MERGE_STATE: {
           ENGINE_STATE *engine_state = data.engine_state;
@@ -1199,11 +1231,14 @@ uintptr_t event_insert_thread(void *p) {
           INSDS *ip = data.ip;
           int32_t error;
           INSTANCE_INIT_RESULT initResult;
+          const CSOUND *outer;
           ATOMIC_SET(ip->init_done, 0);
           if (UNLIKELY(instance_init_begin(csound, ip) != CSOUND_SUCCESS))
             break;
           csoundSpinLock(&csound->alloc_spinlock);
+          outer = note_init_enter(csound);
           error = realtime_init_pass(csound, ip);
+          note_init_leave(outer);
           initResult = instance_init_finish(csound, ip);
           if (initResult == INSTANCE_INIT_COMPLETE && error == 0)
             ATOMIC_SET(ip->init_done, 1);
@@ -1579,6 +1614,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
   CS_VAR_MEM *pfields = NULL;        /* *** was uninitialised *** */
   int32_t   tie = 0, i;
   int32_t  n, error = 0;
+  const CSOUND *outer;
   INSTANCE_INIT_RESULT initResult;
   cs_float  *flp, *fep;
 
@@ -1826,8 +1862,10 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
 
   // current event needs to be reset here
   csound->init_event = newevtp;
+  outer = note_init_enter(csound);
   error = csound->oparms->realtime ? realtime_init_pass(csound, ip) :
     init_pass(csound, ip);
+  note_init_leave(outer);
   initResult = instance_init_finish(csound, ip);
   ATOMIC_SET(ip->init_done, 0);
   if (initResult == INSTANCE_INIT_TURNOFF) {
@@ -1927,6 +1965,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   CS_VAR_MEM *pfields;
   int32_t pmax = 0, error = 0;
   INSTANCE_INIT_RESULT initResult;
+  const CSOUND *outer;
 
   if (UNLIKELY(csound->advanceCnt))
     return 0;
@@ -2158,8 +2197,10 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
    }
   } else csound->init_event = NULL;
 
+  outer = note_init_enter(csound);
   error = csound->oparms->realtime ? realtime_init_pass(csound, ip) :
     init_pass(csound, ip);
+  note_init_leave(outer);
   if(evt.p) csound->Free(csound, evt.p);
   csound->init_event = NULL;
   initResult = instance_init_finish(csound, ip);

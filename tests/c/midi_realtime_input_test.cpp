@@ -530,6 +530,34 @@ TEST_F(MidiOrchestraFileTests, RewindTakesTheFileBackToItsStart)
   EXPECT_EQ(csoundGetControlChannel(csound, "c9", nullptr), 1);
 }
 
+// The same file, opened and played by a UDO the orchestra's header calls.
+class MidiOrchestraFileUdoTests : public MidiOrchestraFileTests {
+ protected:
+  void options() override
+  {
+    MidiOrchestraFileTests::options();
+    extraOrchestra =
+      "opcode OpenAndPlay(name:S):i\n"
+      "  iFile midifileopen name\n"
+      "  midifileplay iFile\n"
+      "  xout iFile\n"
+      "endop\n"
+      "giFile OpenAndPlay \"" + file + "\"\n";
+  }
+};
+
+TEST_F(MidiOrchestraFileUdoTests, RewindTakesAFileTheHeadersUdoOpenedBack)
+{
+  // A file the header's UDO opened is the header's: the rewind takes it
+  // back to its start, and CC 9 = 1, at tick 1, comes again.
+  message({{}}, 0xB0, 1, 9, 1);
+  for (int i = 0; i < 49; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  rewind();
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
 TEST_F(MidiOrchestraFileTests, RewindReplaysAFileThatHadEnded)
 {
   // The file ends on the 150th cycle, which pauses it. After a rewind it
