@@ -1462,10 +1462,7 @@ class Csound:
         Currently supported channel var types are 'k' (control), 'a' (audio),
         'S' (string), 'f' (pvs), and '[' (array).
         """
-        ret = libcsound.csoundGetChannelVarTypeName(self.cs, cstring(name))
-        if ret:
-            return cstring(ret)
-        return None
+        return pstring(libcsound.csoundGetChannelVarTypeName(self.cs, cstring(name)))
 
     def list_channels(self):
         """Returns a list of allocated channels and an error message.
