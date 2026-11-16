@@ -3170,11 +3170,6 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
         arg = arg->next;
       }
 
-      /* Nothing asks an opcall's type, which is where i() is checked. */
-      if (!strcmp(right->value->lexeme, "i")) {
-        check_i_argument(csound, right);
-      }
-
       right->next = root->next;
       right->left = root->left;
       right->type = T_OPCALL;
@@ -3369,8 +3364,14 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   add_args(csound, root->left, typeTable);
 
   opcodeName = root->value->lexeme;
+  /* i reads its argument at init, written i(x) or as an opcode; a signed
+     number is a number, as convert_statement_to_opcall makes it for i(-1) */
+  if (!strcmp(opcodeName, "i"))
+    handle_negative_number(csound, right);
   leftArgString = get_arg_string_from_tree(csound, left, typeTable);
   rightArgString = get_arg_string_from_tree(csound, right, typeTable);
+  if (!strcmp(opcodeName, "i"))
+    check_i_argument(csound, root);
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
