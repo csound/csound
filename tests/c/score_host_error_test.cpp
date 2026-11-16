@@ -1083,4 +1083,25 @@ TEST(HostLineEvents, AnUnclosedQuoteIsRefusedAndTheNextLinePlays)
     host.perform(1);
     EXPECT_EQ("ab\ncd", channelText(host)) << host.said();
 }
+
+/* The event copies a line's strings: the buffer they were read into was kept
+   until a reset, 1 KB or more for each line with a string, played or
+   refused. */
+TEST(HostLineEvents, StringsKeepNothing)
+{
+    Host host;
+    host.start();
+    for (const char *line : {"i 4 0 0 \"x\"", "i 4 0 0 \"x\" y"}) {
+        SCOPED_TRACE(line);
+        host.csound->InputMessage(host.csound, line);
+        host.perform(1);
+        const size_t before = csound_tracked_block_count(host.csound);
+        for (int i = 0; i < 5; i++) {
+            host.csound->InputMessage(host.csound, line);
+            host.perform(1);
+        }
+        EXPECT_EQ(before, csound_tracked_block_count(host.csound));
+    }
+    EXPECT_EQ("x", channelText(host)) << host.said();
+}
 } // namespace

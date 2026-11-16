@@ -558,8 +558,10 @@ static void sense_line(CSOUND *csound, void *userData)
           e.pcnt = 2;
         }
         insert_event_at_sample(csound, &e, e.p+1, csound->icurTimeSamples);
+        csound->Free(csound, e.strarg);         /* the event has its copy */
         continue;
       Lerr:
+        csound->Free(csound, e.strarg);
         n = (int32_t) (cp - Linestart);                     /* error position */
         while (*cp != LF)
           cp++;                                 /* go on to LF    */
