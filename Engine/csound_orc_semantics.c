@@ -598,15 +598,20 @@ static void check_i_argument(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 static char* get_arg_type2_impl(CSOUND* csound, TREE* tree,
                                 TYPE_TABLE* typeTable);
 
-/* Whether tree reads a member of an array element read at a k index. */
+/* Whether tree reads a member of an array element read at a k index, or an
+   element of such a member, as fs[kIndex].flags[1] and
+   hs[kIndex].points[1].on. */
 static int32_t is_member_read_at_k_index(CSOUND* csound, TREE* tree,
                                          TYPE_TABLE* typeTable)
 {
+  if (tree->type == T_ARRAY && tree->left != NULL) tree = tree->left;
   if (tree->type != STRUCT_EXPR) return 0;
   while (tree->type == STRUCT_EXPR && tree->left != NULL) tree = tree->left;
   return tree->type == T_ARRAY &&
     (index_is_krate(csound, tree->right, typeTable) > 0 ||
-     tree_has_k_rate_array_index(csound, tree->right, typeTable));
+     tree_has_k_rate_array_index(csound, tree->right, typeTable) ||
+     (tree->left != NULL &&
+      is_member_read_at_k_index(csound, tree->left, typeTable)));
 }
 
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)

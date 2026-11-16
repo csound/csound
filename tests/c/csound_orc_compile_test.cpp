@@ -953,7 +953,7 @@ endop
 TEST_F (OrcCompileTests, testStructArrayMemberAssignmentRates)
 {
     const char* orchestra = R"(
-struct Field value:i, enabled:b
+struct Field value:i, enabled:b, level:k, active:B
 struct Record field:Field
 fields@global:Field[] init 1
 records@global:Record[] init 1
@@ -973,15 +973,15 @@ opcode WriteWithPerformance(index:i):void
 endop
 opcode WriteKValue(input:i):void
   value:k init input
-  fields[0].value = value
+  fields[0].level = value
 endop
 opcode WriteKBoolean(input:i):void
   value:k init input
-  fields[0].enabled = (value > 0)
+  fields[0].active = (value > 0)
 endop
 opcode WriteFromKIndex(input:i):void
   index:k init input
-  fields[0].value = fields[index].value
+  fields[0].level = fields[index].value
 endop
 opcode WriteToKIndex(input:i):void
   index:k init input
@@ -1777,6 +1777,7 @@ TEST_P (AssignmentTypeTests, rejectsTypesItCannotCopy)
     std::string orchestra = R"(
 struct Flag on:b
 struct Holder flags:b[]
+struct Box value:i
 
 instr 2
   kValue:k init 1
@@ -1785,6 +1786,8 @@ instr 2
   kIndex:k init 1
   flag:Flag init
   holder:Holder init
+  boxes:Box[] init 2
+  flagArray:Flag[] init 2
   )";
     orchestra += std::get<0>(GetParam());
     orchestra += "\nendin\n";
@@ -1816,6 +1819,12 @@ INSTANTIATE_TEST_SUITE_P(
         std::make_tuple("holder.flags[kIndex] = kValue > 0",
                         "cannot assign B to b, line"),
         std::make_tuple("flag.on = kValue > 0",
+                        "cannot assign B to b, line"),
+        std::make_tuple("boxes[1].value = kValue",
+                        "cannot assign k to i, line"),
+        std::make_tuple("boxes[1].value = boxes[kIndex].value",
+                        "struct array index must be i-rate during init"),
+        std::make_tuple("flagArray[1].on = kValue > 0",
                         "cannot assign B to b, line")));
 
 /* What =.generic copies still compiles: two values of one type, and a

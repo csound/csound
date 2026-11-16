@@ -590,6 +590,50 @@ static TREE *expand_expression_arg_list(CSOUND *csound, TREE *current,
   return newArgList;
 }
 
+/* An array member of a struct array's element read at a k index,
+   fs[kIndex].flags, has no value at init, so an element of it is read in
+   performance only: each i index is copied into a k, and the read takes
+   its entry for k indices, as fs[kIndex].on does. */
+static TREE *k_rate_indices(CSOUND *csound, TREE *indices, TREE **anchor,
+                            int32_t line, uint64_t locn,
+                            TYPE_TABLE *typeTable)
+{
+  TREE *list = NULL, *tail = NULL;
+
+  while (indices != NULL) {
+    TREE *index = indices;
+    char *type = get_arg_type2(csound, index, typeTable);
+
+    indices = indices->next;
+    index->next = NULL;
+    if (type == NULL) {
+      return NULL;
+    }
+    if (type[0] != '\0' && type[1] == '\0' && strchr("icp", *type) != NULL) {
+      char *name = create_out_arg(csound, "k",
+                                  typeTable->localPool->synthArgCount++,
+                                  typeTable);
+      TREE *copy = create_opcode_token(csound, "=");
+      copy->left = create_ans_token(csound, name);
+      copy->right = index;
+      copy->line = line;
+      copy->locn = locn;
+      *anchor = tree_append(*anchor, copy);
+      index = create_ans_token(csound, name);
+      csound->Free(csound, name);
+    }
+    csound->Free(csound, type);
+    if (tail == NULL) {
+      list = index;
+    }
+    else {
+      tail->next = index;
+    }
+    tail = index;
+  }
+  return list;
+}
+
 /**
  * Create a chain of Opcode (OPTXT) text from the AST node given. Called from
  * create_opcode when an expression node has been found as an argument
@@ -607,6 +651,9 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
   CS_VARIABLE* var;
   int32_t childContext = initContext;
   OENTRY *indexEntry = NULL;
+  int32_t memberReadAtKIndex = root->type == T_ARRAY &&
+    root->left != NULL && root->left->type == STRUCT_EXPR &&
+    tree_has_k_rate_array_index(csound, root->left, typeTable);
 
   /* HANDLE SUB EXPRESSIONS */
   if (root->type=='?') return create_cond_expression(csound, root, line,
@@ -656,6 +703,19 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       return NULL;
     }
     root->right = expandedArgs;
+  }
+  /* a built-in array: a type with its own [] chooses its entries itself */
+  if (memberReadAtKIndex && root->right != NULL &&
+      root->left->value != NULL &&
+      (var = find_var_from_pools(csound, root->left->value->lexeme,
+                                 root->left->value->lexeme,
+                                 typeTable)) != NULL &&
+      (var->dimensions > 0 || var->varType == &CS_VAR_TYPE_ARRAY)) {
+    root->right = k_rate_indices(csound, root->right, &anchor, line, locn,
+                                 typeTable);
+    if (root->right == NULL) {
+      return NULL;
+    }
   }
 
   switch(root->type) {
@@ -1460,10 +1520,12 @@ static int32_t resolve_struct_array_member_path(CSOUND* csound,
 
   path->arrayExpr = arrayExpr;
   path->rootStructType = currentStructType;
-  /* an index that reads an array at a k index changes too: fs[iArr[kI]] */
+  /* an index that reads an array at a k index changes too: fs[iArr[kI]],
+     and so does an array member of an element read at one: hs[kI].points[1] */
   path->hasKRateIndex =
     array_has_k_rate_index(csound, arrayExpr->right, typeTable) ||
-    tree_has_k_rate_array_index(csound, arrayExpr->right, typeTable);
+    tree_has_k_rate_array_index(csound, arrayExpr->right, typeTable) ||
+    tree_has_k_rate_array_index(csound, arrayExpr->left, typeTable);
 
   for (i = rawMemberCount - 1; i >= 0; i--) {
     int32_t memberIndex = -1;
@@ -1492,6 +1554,27 @@ static int32_t resolve_struct_array_member_path(CSOUND* csound,
   return path->memberCount > 0;
 }
 
+/* At i indices, a member of a type that changes in performance, a k, a B
+   or an a, or an array of one, is read and written in each cycle too, as
+   an element of a k[], a B[] or an a[] is: through ##array_get_struct_k
+   and ##array_set_struct_k, where ##array_get_struct and
+   ##array_set_struct run at init only. At a k index, these run in
+   performance in any case. An array member's element, hs[1].points[1], is
+   left as it was: the member is read from its struct at init only, and is
+   written into a copy of the member that nothing writes back. */
+static int32_t struct_member_follows_at_i_index(
+  const STRUCT_ARRAY_MEMBER_PATH* path, int32_t initContext)
+{
+  const CS_VARIABLE* member = path->memberVars[path->memberCount - 1];
+  const CS_TYPE* type = member->varType == &CS_VAR_TYPE_ARRAY ?
+    member->subType : member->varType;
+
+  return !initContext && !path->hasKRateIndex &&
+    !array_target_missing_lexeme(path->arrayExpr) &&
+    (type == &CS_VAR_TYPE_K || type == &CS_VAR_TYPE_B ||
+     type == &CS_VAR_TYPE_A);
+}
+
 static TREE* create_ident_leaf(CSOUND* csound,
                                int32_t line,
                                uint64_t locn,
@@ -1516,9 +1599,10 @@ static TREE* create_struct_array_get_call(CSOUND* csound,
                                           int32_t line,
                                           uint64_t locn,
                                           const char* outArg,
-                                          TREE* arrayExpr)
+                                          TREE* arrayExpr,
+                                          const char* opname)
 {
-  TREE* getOp = create_opcode_token(csound, "##array_get_struct");
+  TREE* getOp = create_opcode_token(csound, (char*)opname);
   getOp->type = T_OPCALL;
   getOp->line = line;
   getOp->locn = locn;
@@ -1589,9 +1673,10 @@ static TREE* create_struct_array_set_call(CSOUND* csound,
                                           int32_t line,
                                           uint64_t locn,
                                           TREE* arrayExpr,
-                                          const char* valueArg)
+                                          const char* valueArg,
+                                          const char* opname)
 {
-  TREE* arraySetOp = create_opcode_token(csound, "##array_set_struct");
+  TREE* arraySetOp = create_opcode_token(csound, (char*)opname);
   arraySetOp->type = T_OPCALL;
   arraySetOp->line = line;
   arraySetOp->locn = locn;
@@ -1633,6 +1718,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
   int32_t i;
   /* Generic member setters need their intermediate reads at performance too. */
   const int32_t initContext = 0;
+  int32_t follows;
 
   if (!current || !current->left || current->left->type != STRUCT_EXPR ||
       current->right == NULL) {
@@ -1644,6 +1730,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
     return 0;
   }
 
+  follows = struct_member_follows_at_i_index(&path, initContext);
   structTemps[0] = create_out_arg(csound,
                                   path.rootStructType->varTypeName,
                                   typeTable->localPool->synthArgCount++,
@@ -1653,26 +1740,23 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                    create_struct_array_get_call(csound, current->line,
                                                 current->locn,
                                                 structTemps[0],
-                                                path.arrayExpr));
+                                                path.arrayExpr,
+                                                follows ? "##array_get_struct_k"
+                                                : "##array_get_struct"));
 
   const CS_TYPE* memberType = path.memberVars[path.memberCount - 1]->varType;
-  int32_t initAssignment = !path.hasKRateIndex &&
-    (memberType == &CS_VAR_TYPE_I || memberType == &CS_VAR_TYPE_b);
-  if (initAssignment) {
-    char* valueType = get_arg_type2(csound, current->right, typeTable);
-    initAssignment = valueType != NULL && strlen(valueType) == 1 &&
-      strchr("cipb", valueType[0]) != NULL &&
-      !tree_has_k_rate_array_index(csound, current->right, typeTable);
-    if (valueType != NULL) csound->Free(csound, valueType);
-  }
-  if (initAssignment) {
-    /* Use typed assignment when the field and value are both init-rate.
-       A full member path also avoids two-phase getters for nested structs. */
+  if (!path.hasKRateIndex &&
+      (memberType == &CS_VAR_TYPE_I || memberType == &CS_VAR_TYPE_b)) {
+    /* An i or a b member at i indices is written at init, by a typed
+       assignment, which takes a value as an i or a b variable does and
+       refuses one that changes in performance. A full member path also
+       avoids two-phase getters for nested structs. */
     assignmentOps = tree_append(assignmentOps,
       create_struct_member_assignment(csound, current, structTemps[0], &path));
     assignmentOps = tree_append(assignmentOps,
       create_struct_array_set_call(csound, current->line, current->locn,
-                                    path.arrayExpr, structTemps[0]));
+                                    path.arrayExpr, structTemps[0],
+                                    "##array_set_struct"));
     csound->Free(csound, structTemps[0]);
     *anchor = tree_append(*anchor, assignmentOps);
     return 1;
@@ -1714,7 +1798,9 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                    create_struct_array_set_call(csound, current->line,
                                                 current->locn,
                                                 path.arrayExpr,
-                                                structTemps[0]));
+                                                structTemps[0],
+                                                follows ? "##array_set_struct_k"
+                                                : "##array_set_struct"));
 
   for (i = 0; i < path.memberCount; i++) {
     csound->Free(csound, structTemps[i]);
@@ -1739,6 +1825,7 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
 {
   STRUCT_ARRAY_MEMBER_PATH path;
   TREE* readOps = NULL;
+  TREE* getOp;
   char* currentStructArg;
   int32_t i;
   const char* memberType;
@@ -1761,10 +1848,20 @@ TREE* expand_struct_array_member_read(CSOUND* csound,
                                     path.rootStructType->varTypeName,
                                     typeTable->localPool->synthArgCount++,
                                     typeTable);
-  readOps = tree_append(readOps,
-                           create_struct_array_get_call(csound, line, locn,
-                                                        currentStructArg,
-                                                        path.arrayExpr));
+  getOp = create_struct_array_get_call(
+    csound, line, locn, currentStructArg, path.arrayExpr,
+    struct_member_follows_at_i_index(&path, initContext)
+      ? "##array_get_struct_k" : "##array_get_struct");
+  /* an element of an array member read at a k index, hs[kI].points[1] */
+  if (tree_has_k_rate_array_index(csound, path.arrayExpr->left, typeTable)) {
+    getOp->right->next = k_rate_indices(csound, getOp->right->next, &readOps,
+                                        line, locn, typeTable);
+    if (getOp->right->next == NULL) {
+      csound->Free(csound, currentStructArg);
+      return NULL;
+    }
+  }
+  readOps = tree_append(readOps, getOp);
 
   for (i = 0; i < path.memberCount - 1; i++) {
     char* nextStructArg = create_out_arg(csound,
@@ -2486,7 +2583,7 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
 
   // these array types generated perf-time loops
   if(arrayType == aType || arrayType == kType ||
-     arrayType == xType) isPerfRate = 1;
+     arrayType == &CS_VAR_TYPE_B || arrayType == xType) isPerfRate = 1;
   else isPerfRate = 0;
 
   // if an index var is given, we use it to define the loop time (i or k)
@@ -2599,11 +2696,8 @@ TREE* expand_for_statement(CSOUND* csound, TREE* current, TYPE_TABLE* typeTable,
     loopLabel->next = optionalUserIndexAssign;
   }
 
-  /* an i-time loop reads its elements at init only: ##array_get.B also
-     reads a B[] in performance, where the index is past the loop's end */
   char* array_get = isPerfRate ? "##array_get" :
-    (arrayType == sType ? "##array_geti" :
-     arrayType == &CS_VAR_TYPE_B ? "##array_get_init" : "##array_get");
+    (arrayType == sType ? "##array_geti" : "##array_get");
   TREE* arrayGetStatement = create_opcode_token(csound, array_get);
   arrayGetStatement->left = current->left;
 

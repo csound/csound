@@ -368,6 +368,9 @@ const OENTRY opcodlst_1[] = {
     (SUBR)array_set_struct_i },
   { "##array_set_struct", sizeof(ARRAY_SET), 0, "", ".[].z",
     (SUBR)array_set_struct_init, (SUBR)array_set_struct },
+  /* at i indices, for a member that changes in performance */
+  { "##array_set_struct_k", sizeof(ARRAY_SET), 0, "", ".[].m",
+    (SUBR)array_set_struct_i, (SUBR)array_set_struct },
 
   { "##array_set.C", sizeof(ARRAY_SET), 0, "", ":Complex;[]Complex;m", NULL,
     (SUBR)array_set},
@@ -685,6 +688,8 @@ const OENTRY opcodlst_1[] = {
   { "fillarray", sizeof(TABCPY), 0, "k[]", "i[]", (SUBR)tabcopy1, NULL },
   { "=.I", sizeof(TABCPY), 0, "i[]", "i[]", (SUBR)tabcopy1, NULL },
   { "=.J", sizeof(TABCPY), 0, "i[]", "k[]", (SUBR)tabcopy1, NULL },
+  { "=.b[]", sizeof(TABCPY), 0, "b[]", "b[]", (SUBR)tabcopy_b_init,
+    (SUBR)tabcopy },
   { "=.IK", sizeof(TABCPY), 0, "k[]", "i[]", (SUBR)tabcopy1, (SUBR)tabcopy1 },
   { "=.S", sizeof(TABCPY), 0, "S[]", "S[]", (SUBR)tabcopy, (SUBR)tabcopyk },
   { "=.K", sizeof(TABCPY), 0, "k[]", "k[]", (SUBR)tabcopyk_init, (SUBR)tabcopyk },
@@ -915,9 +920,12 @@ const OENTRY opcodlst_1[] = {
      (SUBR) complex_array_assign },
   // Builtin struct opcodes
   { "##array_get_struct", sizeof(STRUCT_ARRAY_GET), 0, ".", ".[]m",
-    (SUBR)struct_array_get, NULL, NULL },
+    (SUBR)struct_array_get_init, NULL, NULL },
   { "##array_get_struct", sizeof(STRUCT_ARRAY_GET), 0, ".", ".[]z",
     NULL, (SUBR)struct_array_get, NULL },
+  /* at i indices, for a member that changes in performance */
+  { "##array_get_struct_k", sizeof(STRUCT_ARRAY_GET), 0, ".", ".[]m",
+    (SUBR)struct_array_get_init, (SUBR)struct_array_get, NULL },
   { "##member_get", sizeof(STRUCT_GET), 0, ".", ".i", (SUBR)struct_member_get_init_and_perf, (SUBR)struct_member_get, NULL },
   { "##member_get_init", sizeof(STRUCT_GET), 0, ".", ".i",
     (SUBR)struct_member_get_init_and_perf, NULL, NULL },

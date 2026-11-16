@@ -58,12 +58,12 @@ instr 1
  kWant += kOn
  Check(kThen, kWant, "as an if's condition")
 
- ; a loop over a B[] still runs at init only
- iCount init 0
+ ; a loop over a B[] runs in performance, as one over a k[] does
+ kCount = 0
  for element in flags do
-  iCount += 1
+  kCount += 1
  od
- CheckInit(iCount, 2, "a loop over a B[]")
+ Check(kCount, 2, "a loop over a B[]")
 
  if kc == 4 then
   printks("every B[] element read at an i index checked\n", 0)
