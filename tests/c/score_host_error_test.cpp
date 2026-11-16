@@ -378,6 +378,25 @@ TEST(HostScoreReads, ABracketBeginsAContinuedLineAsAField)
     EXPECT_EQ(std::string::npos, said.find("illegal opcode")) << said;
 }
 
+/* An #include in a score prints nothing on stdout, past the host's messages:
+   it printed "stack pointer = 0". */
+TEST(HostScoreReads, IncludePrintsNothingOnStdout)
+{
+    const std::string file = ::testing::TempDir() + "csound-included.sco";
+    std::ofstream(file, std::ios::binary) << "i 1 0 0\n";
+    Host host;
+    host.start();
+    testing::internal::CaptureStdout();
+    EXPECT_EQ(CSOUND_SUCCESS,
+              host.csound->ReadScore(host.csound,
+                                     ("#include \"" + file + "\"\n").c_str()));
+    const std::string printed = testing::internal::GetCapturedStdout();
+    std::remove(file.c_str());
+    EXPECT_EQ(std::string::npos, printed.find("stack pointer")) << printed;
+    host.perform();
+    EXPECT_EQ(1, host.played()) << host.said();
+}
+
 /* The score's marks live past the end of the 7.0.0 layout, in storage of
    their own: 1024 fit, n finds the last, far past the 30 they once had, and
    one more does not fit. */
