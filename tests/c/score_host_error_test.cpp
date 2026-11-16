@@ -1266,47 +1266,63 @@ TEST(HostLineEvents, RefusalsEndTheirLines)
     }
 }
 
-/* Set by the message the start gives just before it opens the -L input;
-   what is said is kept, on the thread that starts and performs. */
-std::atomic<bool> openingLineInput{false};
+/* Set by the message the start gives just before it opens the -L input,
+   which then waits, 100 ms at most, for the sender to be about to send: the
+   two go on together, on a loaded machine too. What the thread that starts
+   and performs says is kept; another thread's is not looked at. */
+std::atomic<bool> openingLineInput{false}, lineGoing{false};
 std::string startSaid;
+std::thread::id startThread;
 
 void watchTheStart(CSOUND *, int32_t, const char *format, va_list args)
 {
     char text[256];
+    if (std::this_thread::get_id() != startThread)
+        return;
     vsnprintf(text, sizeof text, format, args);
     startSaid += text;
-    if (strstr(text, "A4 tuning") != nullptr)
+    if (strstr(text, "A4 tuning") != nullptr) {
         openingLineInput = true;
+        const auto from = std::chrono::steady_clock::now();
+        while (!lineGoing.load() && std::chrono::steady_clock::now() - from <
+                                        std::chrono::milliseconds(100)) {
+        }
+    }
 }
 
 /* A line another thread sends while csoundStart opens the -L input plays,
    and so does the -L input. The start set the line buffer up without its
    lock, and one or both lines were lost, the line reader was registered
-   twice, or the process died. The line goes right after the start's last
-   message before it opens -L, and 0 to 9 us later in turn: at develop most
-   runs went wrong. */
+   twice, or the process died. The line goes as the start goes on from its
+   last message before it opens -L: at develop the first start went wrong.
+   Six starts, as one can take a second where many tests run at once. */
 TEST(HostLineEvents, ALineSentAsTheStartOpensLineInputPlays)
 {
-    const std::string file = ::testing::TempDir() + "csound-start-lines.sco";
+    const std::string file =
+        ::testing::TempDir() + "csound-start-lines-" +
+        std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) +
+        ".sco";
     std::ofstream(file, std::ios::binary) << "i 1 0 0\n";
+    struct Remove {
+        const std::string &file;
+        ~Remove() { std::remove(file.c_str()); }
+    } remover{file};
     int duringTheStart = 0;
-    for (int run = 0; run < 50; run++) {
+    startThread = std::this_thread::get_id();
+    for (int run = 0; run < 6; run++) {
         SCOPED_TRACE(run);
         Host host;
         csoundSetMessageCallback(host.csound, watchTheStart);
         csoundSetOption(host.csound, ("-L\"" + file + "\"").c_str());
         openingLineInput = false;
+        lineGoing = false;
         startSaid.clear();
         std::atomic<bool> started{false};
         bool sentDuringTheStart = false;
         std::thread sender([&] {
             while (!started.load() && !openingLineInput.load()) {
             }
-            const auto from = std::chrono::steady_clock::now();
-            while (std::chrono::steady_clock::now() - from <
-                   std::chrono::microseconds(run % 10)) {
-            }
+            lineGoing = true;
             host.csound->InputMessage(host.csound, "i 1 0 0\n");
             sentDuringTheStart = !started.load();
         });
@@ -1315,8 +1331,8 @@ TEST(HostLineEvents, ALineSentAsTheStartOpensLineInputPlays)
         sender.join();
         duringTheStart += sentDuringTheStart;
         ASSERT_EQ(CSOUND_SUCCESS, result) << startSaid;
-        EXPECT_TRUE(openingLineInput.load());
-        host.perform(4);
+        for (int cycle = 0; cycle < 4; cycle++)
+            ASSERT_EQ(0, csoundPerformKsmps(host.csound)) << startSaid;
         int readers = 0;
         for (auto *fp = (EVT_CB_FUNC *) host.csound->evtFuncChain; fp != nullptr;
              fp = fp->nxt)
@@ -1324,7 +1340,6 @@ TEST(HostLineEvents, ALineSentAsTheStartOpensLineInputPlays)
         EXPECT_EQ(1, readers) << startSaid;
         ASSERT_EQ(2, host.played()) << startSaid;
     }
-    std::remove(file.c_str());
     /* a machine where no line was in before the start returned did not
        test the race: say so rather than pass */
     if (duringTheStart == 0)
