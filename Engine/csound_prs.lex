@@ -63,7 +63,7 @@ static inline int isNameChar(int cc, int pos)
 #include "score_param.h"
 
 static void expand_macro(CSOUND*, MACRO*, yyscan_t);
-static void expand_macroa(CSOUND*, MACRO*, yyscan_t);
+static int expand_macroa(CSOUND*, MACRO*, yyscan_t);
 //static void trace_alt_stack(CSOUND*, PRS_PARM*, int);
 
 #define YY_EXTRA_TYPE  PRS_PARM *
@@ -1527,7 +1527,9 @@ static void expand_macro(CSOUND* csound, MACRO* mm, yyscan_t yyscanner)
     }
 }
 
-static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
+/* Pushes the macro's text to be read, its arguments read up to their ), and
+   gives 0; or says why its arguments are refused, and gives 1. */
+static int expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
 {
     int err =0;
     //char      *mname;
@@ -1646,6 +1648,7 @@ static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
       prs_scan_string(mm->body, yyscanner);
       csound_prsset_lineno(0, yyscanner);
     }
+    return err;
 }
 
 static void csound_prs_line(CORFIL* cf, void *yyscanner)
@@ -1972,9 +1975,13 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
 }
 //#endif
 
+/* The count after a {, leaving the character after it in *term. A macro's
+   count is read from the start of its text, and what follows the count there
+   is ignored: *term is then the character after the call. */
 static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
 {
-    int c;
+    size_t level = PARM->buffers.count;   /* the text the count is in */
+    int c, n;
  top:
     do {
       c = input(yyscanner);
@@ -1984,7 +1991,8 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
       int i=0;
       MACRO* mm;
       //printf("*** macro count\n");
-      while (isalnum(c=input(yyscanner)) || c=='_') {
+      /* A macro with arguments names them in its text with a ` */
+      while (isalnum(c=input(yyscanner)) || c=='_' || c=='`') {
         if (i < (int) sizeof(buf) - 1)
           buf[i++] = c;
       }
@@ -1995,37 +2003,39 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
         csound->Message(csound,Str("Undefined macro: '%s'"), buf);
         //csound->LongJmp(csound, 1);
         corfile_puts(csound, "$error", PARM->cf);
-        *term = c;
-        return 0;
+        n = 0;
       }
       else if (c=='(') {
-        struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
-        unput(c);
-        expand_macroa(csound, mm, yyscanner);
-        goto top;
+        if (expand_macroa(csound, mm, yyscanner) == 0)
+          goto top;                    /* the count is in its text */
+        n = 0;                         /* its arguments were refused */
       }
       else {
-        long long n = strtoll(mm->body, NULL, 10);
-        *term = c;
-        return n > 0 && n <= INT_MAX ? (int) n : 0;
+        long long v = strtoll(mm->body, NULL, 10);
+        n = v > 0 && v <= INT_MAX ? (int) v : 0;
       }
     }
     else if (c=='[') {
       //printf("** ] case\n");
-      int n =  bodmas(csound, yyscanner, term, 0);
-      return n;
+      n = bodmas(csound, yyscanner, &c, 0);
     }
     else if (c=='\0') {
       if (on_EOF(csound, yyscanner)==0) return 0;
+      if (PARM->buffers.count < level)
+        level = PARM->buffers.count;   /* the { ended its text */
       goto top;
     }
-    else {
-      int i = read_digits(yyscanner, &c);
-      *term = c;
-      return i;
+    else
+      n = read_digits(yyscanner, &c);
+    /* Back to the text the count is in: the rest of each macro's text is
+       read to its end, which input() gives as 0, and popped. */
+    while (PARM->buffers.count > level) {
+      while (c != '\0') c = input(yyscanner);
+      on_EOF(csound, yyscanner);
+      c = input(yyscanner);
     }
     *term = c;
-    return 0;
+    return n;
 }
 
 static int on_EOF(CSOUND* csound, void* yyscanner)
