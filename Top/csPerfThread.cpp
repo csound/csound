@@ -748,7 +748,9 @@ int32_t CsoundPerformanceThread::Perform()
           processCallback(callbackData);
       }
       retval = csoundPerformKsmps(csound);
-      if (ATOMIC_GET_BOOL(recordData.running)) {
+      // A call that ends the performance computes no block: spout still
+      // holds the one recorded last.
+      if (retval == 0 && ATOMIC_GET_BOOL(recordData.running)) {
           const cs_float *spout = csoundGetSpout(csound);
           int len = csoundGetKsmps(csound) * csoundGetChannels(csound,0);
           int written = csoundWriteCircularBuffer(NULL, recordData.cbuf,

@@ -9,6 +9,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
+#include <string>
 #include <thread>
 #include <vector>
 #include "gtest/gtest.h"
@@ -167,6 +168,25 @@ const char *const kRecordedOrchestra =
 const char *const kRecordedScore = "i 1 0 0.1\ne 0.1\n";
 const int32_t kRecordBuffers = 100;
 const long kWholeTake = 44 + 2 * 4800;  // a WAV header and 16-bit frames
+
+// The length of the data chunk of the WAV file at path, or -1.
+long recordedBytes(const char *path) {
+    FILE *file = fopen(path, "rb");
+    if (file == nullptr)
+        return -1;
+    std::string wav;
+    char chunk[4096];
+    size_t got;
+    while ((got = fread(chunk, 1, sizeof chunk, file)) > 0)
+        wav.append(chunk, got);
+    fclose(file);
+    const size_t data = wav.find("data", 12);
+    if (data == std::string::npos || data + 8 > wav.size())
+        return -1;
+    const unsigned char *length = (const unsigned char *) wav.data() + data + 4;
+    return (long) length[0] | (long) length[1] << 8 | (long) length[2] << 16 |
+           (long) length[3] << 24;
+}
 
 // The size of the file at path, or -1 if there is none.
 long fileSize(const char *path) {
@@ -660,4 +680,25 @@ TEST(PerfThreadsTests, JoinRecordsThePerformanceToItsEnd) {
     }
     remove(take);
     remove("perfthread_join_output.wav");
+}
+
+TEST(PerfThreadsTests, RecordingHoldsEachBlockOnce) {
+    const char *take = "perfthread_blocks_take.wav";
+    remove(take);
+    {
+        Csound csound;
+        ASSERT_NO_FATAL_FAILURE(
+            startRecordedScore(csound, "-operfthread_blocks_output.wav"));
+        CsoundPerformanceThread performanceThread(csound.GetCsound());
+        performanceThread.Record(take, 16, kRecordBuffers);
+        performanceThread.Play();
+        for (int i = 0; i < 1000 && performanceThread.GetStatus() == 0; ++i)
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        ASSERT_NE(performanceThread.GetStatus(), 0);
+        EXPECT_GT(performanceThread.Join(), 0);
+        // 75 blocks of 64 frames, not a 76th that repeats the last.
+        EXPECT_EQ(recordedBytes(take), 2 * 4800);
+    }
+    remove(take);
+    remove("perfthread_blocks_output.wav");
 }
