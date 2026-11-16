@@ -437,6 +437,8 @@ NP              np[0-9]+
                     PARM->macros = PARM->repeat_mm_n[PARM->repeat_index];
                     PARM->defining = NULL;
                     while (input(yyscanner)!='\n') {}
+                    csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
+                                         yyscanner);   /* the line end read */
                     PARM->cf_stack[PARM->repeat_index] = PARM->cf;
                     PARM->cf = corfile_create_w(csound);
                   }
@@ -538,6 +540,9 @@ NP              np[0-9]+
              //printf("unterminated r loop\n");
              unput('r');
              unput('\n'); unput('s'); unput('\n');
+             /* line ends of no line, counted when they are read */
+             csound_prsset_lineno(csound_prsget_lineno(yyscanner) - 2,
+                                  yyscanner);
            }
            else {
              PARM->repeat_sect_cnt = 0;
@@ -611,6 +616,9 @@ NP              np[0-9]+
               while (1) {
                 int c = input(yyscanner);
                 //printf("copying >>%c<<(%.2x)", c, c);
+                if (c=='\n')            /* the line end read */
+                  csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
+                                       yyscanner);
                 if (c=='\n' ||c=='\0') break;
                 if (!isblank(c)&&!isdigit(c)&&!strchr(".e+-",c)) { unput(c); break;}
                 corfile_putc(csound, c, PARM->cf);

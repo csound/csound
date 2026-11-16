@@ -1,5 +1,6 @@
 #include "csoundCore.h"
 #include "gtest/gtest.h"
+#include <algorithm>
 #include <atomic>
 #include <cstdio>
 #include <cstring>
@@ -546,6 +547,27 @@ TEST(HostScoreErrors, NameTheirOwnLinesBesideACsd)
                   "csound-own-lines.sco\"\n</CsOptions>\n</CsoundSynthesizer>\n"}},
             {"csound-own-lines.csd"});
         EXPECT_NE(std::string::npos, said.find(expected[error])) << said;
+    }
+}
+
+/* The lexer counts the line ends that { and an r section's s read with their
+   own line, and not the two an r puts back to end the section before it: each
+   of these left the lines after it one fewer, or one more. */
+TEST(HostScoreErrors, LexerCountsTheLinesOfItsStatements)
+{
+    const std::string before[] = {"{ 2 N\ni 1 0 0\n}", "r 2\ni 1 0 0\ns",
+                                  "r 2\ni 1 0 0\nr 2\ni 1 0 0\ns"};
+    for (const auto &text : before) {
+        SCOPED_TRACE(text);
+        const std::string score = text + "\n#define 1\n";
+        const auto line = std::count(score.begin(), score.end(), '\n');
+        Host host;
+        host.start();
+        host.csound->ReadScore(host.csound, score.c_str());
+        const std::string said = host.said();
+        EXPECT_NE(std::string::npos,
+                  said.find("Unexpected character 1(31) line " +
+                            std::to_string(line) + "\n")) << said;
     }
 }
 
