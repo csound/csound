@@ -1104,4 +1104,50 @@ TEST(HostLineEvents, StringsKeepNothing)
     }
     EXPECT_EQ("x", channelText(host)) << host.said();
 }
+
+cs_float channel(Host &host, const char *name)
+{
+    return csoundGetControlChannel(host.csound, name, nullptr);
+}
+
+/* An orchestra block, from a line starting with { to its }, is compiled
+   from a host's lines, sent before the start or after it, with
+   -L or without. Only -L made the block's buffer: without it, the process
+   died at the block's first line. */
+TEST(HostLineEvents, OrchestraBlocksAreCompiledWithOrWithoutLineInput)
+{
+    const std::string file = ::testing::TempDir() + "csound-block-lines.sco";
+    std::ofstream(file).close(); /* -L reads nothing from it */
+    for (const bool lineInput : {false, true}) {
+        for (const bool beforeStart : {true, false}) {
+            SCOPED_TRACE(std::string(lineInput ? "-L" : "no -L") +
+                         (beforeStart ? ", before the start" : ", after it"));
+            Host host;
+            if (lineInput)
+                csoundSetOption(host.csound, ("-L\"" + file + "\"").c_str());
+            if (!beforeStart)
+                host.start();
+            if (!lineInput && !beforeStart) {
+                /* A { further on in a line makes no buffer: a host may
+                   send one in quotes, and the queued line made it on the
+                   performance thread. */
+                csoundEventString(host.csound, "i 4 0 0 \"{a}\"", 1);
+                host.perform();
+                EXPECT_EQ("{a}", channelText(host)) << host.said();
+                host.csound->InputMessage(host.csound, "i 4 0 0 \"{b}\"");
+                host.perform();
+                EXPECT_EQ("{b}", channelText(host)) << host.said();
+                EXPECT_EQ(nullptr, host.csound->lineventStatics.orchestrab);
+            }
+            host.csound->InputMessage(host.csound,
+                                      "{\ninstr 100\nchnset 1, \"block\"\n"
+                                      "endin\n}\ni 100 0 0\n");
+            if (beforeStart)
+                host.start();
+            host.perform(1);
+            EXPECT_EQ(1, channel(host, "block")) << host.said();
+        }
+    }
+    std::remove(file.c_str());
+}
 } // namespace

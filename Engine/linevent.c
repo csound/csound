@@ -94,8 +94,8 @@ void linevent_open(CSOUND *csound)
     }
     if (!queued)
       STA(Linep) = STA(Linebuf);
-    STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
-    STA(orchestra) = STA(orchestrab);
+    if (STA(orchestrab) == NULL)  /* unless a line queued has made it */
+      STA(orchestra) = STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
     if (strcmp(O->Linename, "stdin") == 0) {
@@ -237,7 +237,23 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
    to be interpreted as if coming in from stdin/Linefd for -L */
 
 static int32_t input_message(CSOUND *csound, const char *message,
-                             int32_t *grown);
+                             int32_t block, int32_t *grown);
+
+/* Whether a line of the message starts with a {, as an orchestra block's
+   first line does. A { further on in a line, as in a string p-field, does
+   not count, and a sorted score's lines never start with one. */
+static int32_t starts_block(const char *line)
+{
+    while (line != NULL) {
+      while (isblank((unsigned char) *line))
+        line++;
+      if (*line == '{')
+        return 1;
+      if ((line = strchr(line, LF)) != NULL)
+        line++;
+    }
+    return 0;
+}
 
 /* The line-event buffer is appended to by whichever thread sends a message -
    a host's csoundEventString or csoundReadScore among them - and emptied by
@@ -252,9 +268,11 @@ static int32_t input_message(CSOUND *csound, const char *message,
    callback, which may send a line itself. */
 void csoundInputMessage(CSOUND *csound, const char *message) {
     int32_t grown = 0, lost;
+    /* looked for before the lock, which the performance waits on */
+    const int32_t block = starts_block(message);
 
     csoundSpinLock(&csound->line_event_spinlock);
-    lost = input_message(csound, message, &grown);
+    lost = input_message(csound, message, block, &grown);
     csoundSpinUnLock(&csound->line_event_spinlock);
     if (grown)
       csound->DebugMsg(csound, "realloc %d\n", grown);
@@ -267,12 +285,16 @@ void csoundInputMessage(CSOUND *csound, const char *message) {
    nothing: what it grew the buffer by goes in *grown, and it returns 1 when
    the buffer could not grow and the message was lost. */
 static int32_t input_message(CSOUND *csound, const char *message,
-                             int32_t *grown) {
+                             int32_t block, int32_t *grown) {
     int32  size = (int32) strlen(message);
 
     if (linevent_alloc(csound, 0) != 0) return 0;
 
     if (!size) return 0;
+    /* An orchestra block's buffer, made by the call that sends a { line,
+       on its thread, rather than when sense_line reads the block */
+    if (block && STA(orchestrab) == NULL)
+      STA(orchestra) = STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       /* and one more, for the newline added below */
       int32_t extralloc = (int32_t) (STA(Linep) + size + 1 - STA(Linebufend));
