@@ -1349,4 +1349,19 @@ TEST(HostLineEvents, ASignWithNoNumberIsRefused)
                   host.said().find(std::string("illegal RT scoreline:\n") + line));
     }
 }
+
+/* The ^ under a refused line stands under its error in the error's own
+   line, after a string over two lines too: it was placed by the distance
+   from the first line's start, past the end of the last. */
+TEST(HostLineEvents, TheMarkStandsUnderTheErrorAfterAStringOverLines)
+{
+    Host host;
+    host.start();
+    host.csound->InputMessage(host.csound, "i 4 0 0 \"ab\ncd\" x");
+    host.perform(1);
+    EXPECT_NE(std::string::npos,
+              host.said().find("illegal RT scoreline:\ni 4 0 0 \"ab\ncd\" x\n"
+                               "    ^\n"))
+        << host.said();
+}
 } // namespace

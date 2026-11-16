@@ -582,7 +582,9 @@ static void sense_line(CSOUND *csound, void *userData)
         continue;
       Lerr:
         csound->Free(csound, e.strarg);
-        n = (int32_t) (cp - Linestart);                     /* error position */
+        n = 0;                          /* error position, in its own line */
+        while (cp - n > Linestart && cp[-n - 1] != LF)
+          n++;
         while (*cp != LF)
           cp++;                                 /* go on to LF    */
         *cp = '\0';                             /*  & insert NULL */
