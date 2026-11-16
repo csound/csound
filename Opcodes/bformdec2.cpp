@@ -305,11 +305,8 @@ public:
           overlapsize = (irlength - 1);
         }
 
-      char filel[MAXNAME], filer[MAXNAME];
-
-      /* copy in string name... */
-      strncpy(filel, (char*) ifilel->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
-      strncpy(filer, (char*) ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
+      /* the names as given: LoadMemoryFile refuses one too long to keep */
+      const char *filel = ifilel->data, *filer = ifiler->data;
 
 
 
