@@ -262,6 +262,11 @@ const Warned overrun[] = {
     {"#define C #2#\n{ $C N\ni 1 0 0\n}", "", 2},
     /* A { that ends a macro's text takes its count from after the call. */
     {"#define L #{#\n#define C(x) #2#\n$L $C(1) N\ni 1 0 0\n}", "", 2},
+    /* And a count that ends it, its counter. These stopped the score. */
+    {"#define L #{ 2#\n$L N\ni 1 0 $N\n}", "", 2},
+    {"#define C(x) #$x#\n#define L #{ $C(2)#\n$L N\ni 1 0 $N\n}", "", 2},
+    {"#define L #{ [1+1]#\n$L N\ni 1 0 $N\n}", "", 2},
+    {"#define L #{ 2 #\n$L N\ni 1 0 $N\n}", "", 2},
     /* An unclosed repeat or section went without a word. */
     {"{ 2 N\ni 1 0 0", "unclosed repeat", 0},
     {"r 2\ni 1 0 0", "unclosed repeat", 0},

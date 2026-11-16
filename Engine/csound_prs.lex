@@ -400,9 +400,11 @@ NP              np[0-9]+
                                 PARM->repeat_cnt_n[PARM->repeat_index],
                                 PARM->repeat_index);
                     }
-                    while (isblank(c)) {
+                    /* A count that ends the macro's text the { is in, or
+                       with blanks after it, has its counter after the call,
+                       as a { that ends its text has its count. */
+                    while (isblank(c) || (c=='\0' && on_EOF(csound, yyscanner)))
                       c = input(yyscanner);
-                    }
                     for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
                       PARM->repeat_name_n[PARM->repeat_index][i] = c;
                       c = input(yyscanner);
