@@ -279,6 +279,8 @@ const Warned overrun[] = {
     {"#define L #{ 2 N#\n$L i 1 0 0\ni 1 0 $N\n}", "", 2},
     /* A note against its } had each repeat's first line written onto it. */
     {"{ 3 N\ni 1 0 0}\n", "", 3},
+    /* And an s against it, whose letter took the } with it. */
+    {"{ 2 N\ni 1 0 0\ns}\n", "", 2},
     /* An unclosed repeat or section went without a word. */
     {"{ 2 N\ni 1 0 0", "unclosed repeat", 0},
     {"r 2\ni 1 0 0", "unclosed repeat", 0},
@@ -575,6 +577,32 @@ TEST(HostScoreErrors, LexerCountsTheLinesOfItsStatements)
         EXPECT_NE(std::string::npos,
                   said.find("Unexpected character 1(31) line " +
                             std::to_string(line) + "\n")) << said;
+    }
+}
+
+/* The rest of an s or e line is read as any line is, its line end too, which
+   the lexer counts and writes once: the lexer's lines after one were one
+   fewer, and the reader's after one with blanks or a carriage return one more. */
+TEST(HostScoreErrors, CountTheLineOfAnSOrE)
+{
+    for (const std::string text : {"s", "s 2", "s ", "s\r", "e", "e 2"}) {
+        SCOPED_TRACE(text);
+        Host host;
+        host.start();
+        host.csound->ReadScore(host.csound, (text + "\n#define 1\n").c_str());
+        const std::string said = host.said();
+        EXPECT_NE(std::string::npos,
+                  said.find("Unexpected character 1(31) line 2\n")) << said;
+    }
+    for (const std::string text : {"s", "s 2", "s ", "s\r"}) {
+        SCOPED_TRACE(text);
+        Host host;
+        host.start();
+        host.csound->ReadScore(host.csound, (text + "\ni 1 0 2e\n").c_str());
+        const std::string said = host.said();
+        EXPECT_NE(std::string::npos,
+                  said.find(":  at position 7\n  in line 2 of the score\n"))
+            << said;
     }
 }
 

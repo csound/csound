@@ -689,21 +689,14 @@ NP              np[0-9]+
               }
             }
             else {
-              corfile_putc(csound, op, PARM->cf);
+              /* The rest of its line is read as any line is: its number,
+                 written against it or not, a macro, a comment, its line end */
               int c = input(yyscanner);
-              if (isblank(c)) {
-                while (1) {
-                  //printf("**copy %.2x(%c)\n", c, c);
-                  corfile_putc(csound, c, PARM->cf);
-                  if (c=='\n') break;
-                  if (c=='\0') {
-                    corfile_putc(csound, '\n', PARM->cf);
-                    break;
-                  }
-                  c = input(yyscanner);
-                }
-              }
-              corfile_putc(csound, '\n', PARM->cf);
+              corfile_putc(csound, op, PARM->cf);
+              if (c=='\0')              /* the end of a macro's text ends it */
+                corfile_putc(csound, '\n', PARM->cf);
+              else
+                unput(c);
             }
           }
           else corfile_puts(csound, yytext, PARM->cf);
