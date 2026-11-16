@@ -750,3 +750,28 @@ TEST(PerfThreadsTests, EachTakeFreesTheBufferOfTheLast) {
     remove(take);
 #endif
 }
+
+// A block of 1024 frames of 6 channels is more than the 4096 samples the
+// recording thread reads at a time, and 4096 is no whole number of frames.
+TEST(PerfThreadsTests, RecordingOfSixChannelsKeepsEveryFrame) {
+    const char *take = "perfthread_channels_take.wav";
+    remove(take);
+    {
+        Csound csound;
+        csound.SetOption("-W");
+        csound.SetOption("-b1024");
+        csound.SetOption("-operfthread_channels_output.wav");
+        ASSERT_EQ(csound.CompileOrc("sr=48000\nksmps=1024\nnchnls=6\n0dbfs=1\n"
+                                    "instr 1\nendin\n"), 0);
+        csound.EventString("i 1 0 0.1\ne 0.1\n");
+        ASSERT_EQ(csound.Start(), 0);
+        CsoundPerformanceThread performanceThread(csound.GetCsound());
+        performanceThread.Record(take, 16, kRecordBuffers);
+        performanceThread.Play();
+        EXPECT_GT(performanceThread.Join(), 0);
+        // 0.1 s is 5 blocks of 1024 frames, 6 samples of 2 bytes each.
+        EXPECT_EQ(recordedBytes(take), 5 * 1024 * 6 * 2);
+    }
+    remove(take);
+    remove("perfthread_channels_output.wav");
+}

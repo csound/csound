@@ -210,6 +210,8 @@ extern "C" {
     int retval = 0;
     const int bufsize = 4096;
     cs_float buf[bufsize];
+    // Whole frames at a time: a sound file takes no part of one.
+    const int items = bufsize - bufsize % csoundGetChannels(csound, 0);
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     csoundLockMutex(recordData->mutex);
     for (;;) {
@@ -219,7 +221,7 @@ extern "C" {
         int sampsread;
         do {
             sampsread = csoundReadCircularBuffer(NULL, recordData->cbuf,
-                                                 buf, bufsize);
+                                                 buf, items);
             csound->SndfileWriteSamples(csound, (SNDFILE *) recordData->sfile,
                             buf, sampsread);
         } while(sampsread != 0);
