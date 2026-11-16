@@ -2753,8 +2753,7 @@ class Ugen:
 
             ugen.get_out_var(index).get_string()
         """
-        s = libcsound.csoundUgenGetString(self.ugen, index)
-        return pstring(s) if s else None
+        return pstring(libcsound.csoundUgenGetString(self.ugen, index))
 
     # Query
 
@@ -2958,5 +2957,4 @@ class UgenVar:
 
     def get_string(self):
         """Get the string value (S-type vars only)."""
-        s = libcsound.csoundUgenVarGetString(self.var)
-        return pstring(s) if s else None
+        return pstring(libcsound.csoundUgenVarGetString(self.var))
