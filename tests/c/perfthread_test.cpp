@@ -18,6 +18,9 @@
 #include "csPerfThread.hpp"
 #include "csPerfThread.h"
 
+// A test hook of the library (H/prototyp.h): the blocks Csound holds.
+extern "C" size_t csound_tracked_block_count(CSOUND *);
+
 namespace {
 
 struct EvalCodeResult {
@@ -198,22 +201,6 @@ long fileSize(const char *path) {
     fclose(file);
     return size;
 }
-
-#if defined(__linux__)
-// This process's resident memory in kB.
-long residentKb() {
-    long kb = -1;
-    char line[256];
-    FILE *status = fopen("/proc/self/status", "r");
-    if (status == nullptr)
-        return -1;
-    while (fgets(line, sizeof line, status))
-        if (strncmp(line, "VmRSS:", 6) == 0)
-            sscanf(line + 6, "%ld", &kb);
-    fclose(status);
-    return kb;
-}
-#endif
 
 void startRecordedScore(Csound &csound, const char *output) {
     csound.SetOption("-W");
@@ -720,12 +707,9 @@ TEST(PerfThreadsTests, RecordingHoldsEachBlockOnce) {
 }
 
 TEST(PerfThreadsTests, EachTakeFreesTheBufferOfTheLast) {
-#if !defined(__linux__)
-    GTEST_SKIP() << "Reads resident memory from /proc";
-#else
     const char *take = "perfthread_takes.wav";
     const int takes = 20;
-    const long bufferKb = 256L * kRecordBuffers * 40 * sizeof(cs_float) / 1024;
+    remove(take);
     Csound csound;
     csound.SetOption("-+rtaudio=null");
     csound.SetOption("-odac");
@@ -733,22 +717,38 @@ TEST(PerfThreadsTests, EachTakeFreesTheBufferOfTheLast) {
     ASSERT_EQ(csound.CompileOrc(kRecordedOrchestra), 0);
     csound.EventString("f 0 z\ni 1 0 -1\n");
     ASSERT_EQ(csound.Start(), 0);
-    CsoundPerformanceThread performanceThread(csound.GetCsound());
+    CSOUND *cs = csound.GetCsound();
+    // Declared before the thread, which may still call back as it goes.
+    std::atomic<int> cycles{0};
+    CsoundPerformanceThread performanceThread(cs);
+    // The callback runs before each k-cycle: its fifth call follows four.
+    performanceThread.SetProcessCallback(
+        [](void *data) { ++*static_cast<std::atomic<int> *>(data); }, &cycles);
     performanceThread.Play();
-    long before = 0;
-    for (int i = 0; i < takes; ++i) {
-        performanceThread.Record(take, 16, kRecordBuffers * 40);
+    // The held note's instance is made in the first k-cycles: count after them.
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+    while (cycles.load() < 5) {
+        ASSERT_LT(std::chrono::steady_clock::now(), deadline);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    const size_t idle = csound_tracked_block_count(cs);
+    performanceThread.Record(take, 16, kRecordBuffers);
+    // Record() makes the take's buffer, two blocks, on this thread at once:
+    // a take that was refused, or failed, leaves the count as it was.
+    ASSERT_GE(csound_tracked_block_count(cs), idle + 2);
+    performanceThread.StopRecord();
+    performanceThread.FlushMessageQueue();
+    const size_t before = csound_tracked_block_count(cs);
+    for (int i = 1; i < takes; ++i) {
+        performanceThread.Record(take, 16, kRecordBuffers);
         performanceThread.StopRecord();
         performanceThread.FlushMessageQueue();
-        if (i == 0)
-            before = residentKb();
     }
-    // A buffer of 8 MB a take: at most one stays.
-    EXPECT_LT(residentKb() - before, 2 * bufferKb);
+    // Each take frees the last take's buffer: the count is where it was.
+    EXPECT_EQ(before, csound_tracked_block_count(cs));
     performanceThread.Stop();
     EXPECT_GT(performanceThread.Join(), 0);
     remove(take);
-#endif
 }
 
 // A block of 1024 frames of 6 channels is more than the 4096 samples the
