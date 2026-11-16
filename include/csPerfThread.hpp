@@ -208,6 +208,7 @@ class PUBLIC CsoundPerformanceThread {
     /**
      * Starts recording the output from Csound. The sample rate and number
      * of channels are taken directly from the running Csound instance.
+     * Once GetStatus() is no longer 0, it does nothing, and opens no file.
      */
     void Record(std::string filename, int32_t samplebits = 16, int32_t numbufs = 4);
     

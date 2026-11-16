@@ -258,7 +258,12 @@ public:
         this->filename = filename;
         CsoundPerformanceThreadMessage::lockRecord();
         recordData_t *recordData = CsoundPerformanceThreadMessage::getRecordData();
-        if (ATOMIC_GET_BOOL(recordData->running)) {
+        // Once the performance has ended, nothing would record into the file,
+        // and the instance may be gone: QueueMessage() drops this message
+        // then, as any other, and this is refused before it touches either.
+        // A call that races the end can still pass, and Join() then closes
+        // the file it opened.
+        if (ATOMIC_GET_BOOL(recordData->running) || pt_->GetStatus() != 0) {
             CsoundPerformanceThreadMessage::unlockRecord();
             return;
         }

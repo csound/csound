@@ -2474,7 +2474,8 @@ class CsoundPerformanceThread:
         """Starts recording the output from Csound.
 
         The sample rate and number of channels are taken directly from the
-        running Csound instance.
+        running Csound instance. Once status() is no longer 0, it does
+        nothing, and opens no file.
         """
         libcspt.csoundPerformanceThreadRecord(self.cpt, cstring(filename), samplebits, numbufs)
 

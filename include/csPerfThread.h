@@ -120,6 +120,7 @@ extern "C" {
      Starts recording the output from Csound.
      The sample rate and number of channels are taken directly from the
      running Csound instance.
+     Once the status is no longer 0, it does nothing, and opens no file.
   */
   PUBLIC void csoundPerformanceThreadRecord(CS_PERF_THREAD* pt,
     const char *filename,

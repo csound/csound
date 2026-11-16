@@ -158,6 +158,35 @@ void onSignalProcessCallback(void *userdata) {
     signal->cv.notify_one();
 }
 
+// A score of 0.1 s at 48 kHz, mono, whose take a recording with numbufs
+// 100 holds whole: 100 buffers of 256 frames.
+const char *const kRecordedOrchestra =
+    "sr=48000\nksmps=64\nnchnls=1\n0dbfs=1\n"
+    "instr 1\nout(oscili:a(0.5, 440))\nendin\n";
+const char *const kRecordedScore = "i 1 0 0.1\ne 0.1\n";
+const int32_t kRecordBuffers = 100;
+const long kWholeTake = 44 + 2 * 4800;  // a WAV header and 16-bit frames
+
+// The size of the file at path, or -1 if there is none.
+long fileSize(const char *path) {
+    FILE *file = fopen(path, "rb");
+    if (file == nullptr)
+        return -1;
+    fseek(file, 0, SEEK_END);
+    const long size = ftell(file);
+    fclose(file);
+    return size;
+}
+
+void startRecordedScore(Csound &csound, const char *output) {
+    csound.SetOption("-W");
+    csound.SetOption("-b256");
+    csound.SetOption(output);
+    ASSERT_EQ(csound.CompileOrc(kRecordedOrchestra), 0);
+    csound.EventString(kRecordedScore);
+    ASSERT_EQ(csound.Start(), 0);
+}
+
 }  // namespace
 
 TEST(PerfThreadsTests, PerfThread) {
@@ -548,4 +577,32 @@ TEST(PerfThreadsTests, Record) {
     performanceThread1.Stop();
     performanceThread1.Join();
     csound.Reset();
+}
+
+TEST(PerfThreadsTests, RecordOnceThePerformanceHasEndedLeavesTheTake) {
+    const char *take = "perfthread_record_take.wav";
+    remove(take);
+    long recorded = -1;
+    {
+        Csound csound;
+        ASSERT_NO_FATAL_FAILURE(
+            startRecordedScore(csound, "-operfthread_record_output.wav"));
+        CsoundPerformanceThread performanceThread(csound.GetCsound());
+        performanceThread.Record(take, 16, kRecordBuffers);
+        performanceThread.Play();
+        for (int i = 0; i < 1000 && performanceThread.GetStatus() == 0; ++i)
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        ASSERT_NE(performanceThread.GetStatus(), 0);
+        EXPECT_GT(performanceThread.Join(), 0);
+        recorded = fileSize(take);
+        ASSERT_GE(recorded, kWholeTake);
+
+        // Nothing would record into it: it must not open, and so empty, the
+        // take, nor the destructor close it.
+        performanceThread.Record(take, 16, kRecordBuffers);
+        EXPECT_EQ(fileSize(take), recorded);
+    }
+    EXPECT_EQ(fileSize(take), recorded);
+    remove(take);
+    remove("perfthread_record_output.wav");
 }
