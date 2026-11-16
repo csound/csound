@@ -530,6 +530,8 @@ static void sense_line(CSOUND *csound, void *userData)
           }
           {
             cs_float tmpv = (cs_float) csoundStrtod(cp, &newcp);
+            if (UNLIKELY(newcp == cp))          /* a sign or a dot, no number */
+              goto Lerr;
             cp = newcp - 1;
             /* ensure capacity before writing */
             if (pcnt >= STA(msize)) {

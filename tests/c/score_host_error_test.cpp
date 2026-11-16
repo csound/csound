@@ -1330,4 +1330,23 @@ TEST(HostLineEvents, ALineSentAsTheStartOpensLineInputPlays)
     if (duringTheStart == 0)
         GTEST_SKIP() << "no line went out before csoundStart returned";
 }
+
+/* A p-field of a sign or a dot with no number after it is refused, and the
+   next line plays: the sign was read again and again as a new p-field, and
+   the p-fields grew until memory ran out. */
+TEST(HostLineEvents, ASignWithNoNumberIsRefused)
+{
+    Host host;
+    host.start();
+    for (const char *line : {"i 1 0 0 +", "i 1 0 0 - 5", "i 1 0 0 .x", "i 1 0 0 +."}) {
+        SCOPED_TRACE(line);
+        const cs_float played = host.played();
+        host.csound->InputMessage(host.csound, line);
+        host.csound->InputMessage(host.csound, "i 1 0 0");
+        host.perform(1);
+        EXPECT_EQ(played + 1, host.played()) << host.said();
+        EXPECT_NE(std::string::npos,
+                  host.said().find(std::string("illegal RT scoreline:\n") + line));
+    }
+}
 } // namespace
