@@ -3266,9 +3266,10 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
           if (UNLIKELY(src_convert(csound, p->cvt_out[cvt], in, out) != OK))
             return csound->PerfError(csound, &p->h,
                                      Str("could not convert UDO output sample rate\n"));
-          /* Conversion may retain filter history outside this note. Clear
-             inactive samples in the caller's units after converting. */
-          if (undersample &&
+          /* Conversion may retain filter history outside this note, and its
+             latency carries the note past its end. Clear inactive samples in
+             the caller's units after the cycle that converts them. */
+          if (ocnt == os - 1 &&
               (p->h.insdshead->ksmps_offset || p->h.insdshead->ksmps_no_end)) {
             cs_float *audio = out;
             int32_t count = current->varType == &CS_VAR_TYPE_A ? 1 : 0;

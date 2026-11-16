@@ -131,9 +131,10 @@ instr Check
     ; Silence to the note's first local sample, then two of them late.
     iFullFrom = iSilentTo + 2 * ceil(ksmps / iLocal)
   endif
-  ; The sinc converters ring around the note: check only what the body sees.
+  ; The sinc converters ring through the note and may start on its first
+  ; sample: check only its outside.
   if p6 % 5 < 3 then
-    iSilentTo = 0
+    iSilentTo = iFirst
     iFullFrom = iEnd
   endif
   iSamples = iRuns * iLocal - iOffset - iEarly
@@ -185,7 +186,7 @@ instr Check
     kOne = vaget(kSample, aArr[0])
     kTwo = vaget(kSample, aArr[1])
     kExpected = -1
-    if kAt < iSilentTo || (kAt >= iEnd && p4 == 1) then
+    if kAt < iSilentTo || kAt >= iEnd then
       kExpected = 0
     elseif kAt >= iFullFrom && kAt < iEnd then
       kExpected = 1
@@ -197,16 +198,16 @@ not %g\n", 0, p4 == 0 ? "oversample" : "undersample", iFactor, p6, \
               iFirst, p8, kAt, aOut[kSample], kOne, kTwo, kExpected
       exitnowk -1
     endif
-    ; The ramp comes back a few samples late, rising by 1 a sample. Under
-    ; zero-order hold, a note that starts on a local cycle's first sample
-    ; returns the silence of the cycle before, and so does a block that
-    ; undersample skips, which clears outside the note. Through undersample,
-    ; only linear conversion returns a ramp.
+    ; The ramp comes back a few samples late, rising by 1 a sample, and
+    ; silent outside the note. Under zero-order hold, a note that starts on
+    ; a local cycle's first sample returns the silence of the cycle before,
+    ; and so does a block that undersample skips. Through undersample, only
+    ; linear conversion returns a ramp.
     kPassed = vaget(kSample, aPass[0])
     if p4 == 0 && p6 % 5 > 2 then
       if (kAt >= iFirst + 4 && kAt < iEnd && kPassed != kPrevious + 1) || \
          (kAt == iFirst && iLocalFirst % ksmps == 0 && p6 % 5 == 3 && \
-          kPassed != 0) then
+          kPassed != 0) || ((kAt < iFirst || kAt >= iEnd) && kPassed != 0) then
         printks "oversample %d, converter %d, note %d+%d: sample %d passed \
 as %g after %g\n", 0, iFactor, p6, iFirst, p8, kAt, kPassed, kPrevious
         exitnowk -1
@@ -250,7 +251,8 @@ instr Late
     kSample = 0
     while kSample < ksmps do
       kAt = kPos + kSample
-      if kAt >= ksmps + 2 && kAt < iEnd && aOut[kSample] != 1 then
+      if (kAt >= ksmps + 2 && kAt < iEnd && aOut[kSample] != 1) || \
+         (kAt >= iEnd && aOut[kSample] != 0) then
         printks "oversample %d first called on block 2, note %d+%d: \
 sample %d is %g\n", 0, p4, p5, p6, kAt, aOut[kSample]
         exitnowk -1
