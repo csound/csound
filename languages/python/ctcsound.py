@@ -2511,7 +2511,8 @@ class CsoundPerformanceThread:
 
         Returns a positive value if the end of score was reached or
         stop() was called, and a negative value if an error occured.
-        Also releases the message queue and its locks.
+        Also releases the message queue and its locks, and stops a recording
+        still running once the performance has ended.
         Not thread-safe: call it from one thread at a time, and not beside
         Csound.destroy() on another thread. Called from a callback on the
         thread itself, it joins nothing and returns the current status at

@@ -644,3 +644,20 @@ TEST(PerfThreadsTests, RecordingStoppedBeforeItsThreadRanKeepsTheTake) {
     remove(take);
     remove("perfthread_race_output.wav");
 }
+
+TEST(PerfThreadsTests, JoinRecordsThePerformanceToItsEnd) {
+    const char *take = "perfthread_join_take.wav";
+    remove(take);
+    {
+        Csound csound;
+        ASSERT_NO_FATAL_FAILURE(
+            startRecordedScore(csound, "-operfthread_join_output.wav"));
+        CsoundPerformanceThread performanceThread(csound.GetCsound());
+        performanceThread.Record(take, 16, kRecordBuffers);
+        performanceThread.Play();
+        EXPECT_GT(performanceThread.Join(), 0);
+        EXPECT_GE(fileSize(take), kWholeTake);
+    }
+    remove(take);
+    remove("perfthread_join_output.wav");
+}

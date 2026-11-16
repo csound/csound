@@ -280,7 +280,8 @@ class PUBLIC CsoundPerformanceThread {
      * Waits until the performance is finished or fails, and returns a
      * positive value if the end of score was reached or Stop() was called,
      * and a negative value if an error occured. Also releases the message
-     * queue and its locks.
+     * queue and its locks, and stops a recording still running once the
+     * performance has ended.
      * Must not be called from a callback the performance runs. On the
      * performance thread itself, i.e. from a message callback, from the
      * process callback or from a Csound callback called there, it cannot

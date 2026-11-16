@@ -1076,12 +1076,13 @@ int32_t CsoundPerformanceThread::Join()
             "called from the performance thread (in one of its callbacks); "
             "ignoring the call."))
       return retval;
-    if (ATOMIC_GET_BOOL(recordData.running))
-      stopRecordThread(&recordData);
     if (perfThread) {
       retval = (int32_t) csoundJoinThread(perfThread);
       perfThread = (void*) 0;
     }
+    // Only now that the performance has ended: a recording goes on to its end.
+    if (ATOMIC_GET_BOOL(recordData.running))
+      stopRecordThread(&recordData);
 
     // delete any pending messages
     {
