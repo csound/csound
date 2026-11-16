@@ -86,7 +86,8 @@ static int32_t set_sense_event_callback(CSOUND *csound, void (*func)(CSOUND *, v
 #define O_NDELAY 0
 #endif
 
-static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize);
+static int32_t input_message(CSOUND *csound, const char *message,
+                             int32_t block, int32_t *grown);
 
 void linevent_open(CSOUND *csound)
 /* set up Linebuf & ready the input files */
@@ -96,15 +97,17 @@ void linevent_open(CSOUND *csound)
     /*                            csound->Calloc(csound, */
     /*                            sizeof(LINEVENT_GLOBALS)); */
 
-    /* The buffer, its position and the line reader, made as a line sent
-       makes them, under the lock: a line sent before the start has made
-       them, and one sent from another thread now makes them, or finds
-       them, once */
-    csoundSpinLock(&csound->line_event_spinlock);
-    linevent_alloc(csound, 0);
-    if (STA(orchestrab) == NULL)  /* unless a line has made it */
-      STA(orchestra) = STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
-    csoundSpinUnLock(&csound->line_event_spinlock);
+    int32_t grown = 0;
+
+    /* The buffer, its position, the line reader and a block's buffer, made
+       as a line sent makes them, under the lock: a line sent before the
+       start has made them, and one sent from another thread now makes them,
+       or finds them, once. An allocation that fails there fails the start,
+       once the lock is let go, with no -L input to close. */
+    if (UNLIKELY(input_message(csound, "", 1, &grown))) {
+      O->Linein = 0;
+      csound->LongJmp(csound, CSOUND_MEMORY);
+    }
     if (strcmp(O->Linename, "stdin") == 0) {
       csound->Linefd = 0;
 #if defined(DOSGCC) || defined(WIN32)
@@ -210,17 +213,16 @@ static CS_NOINLINE int32_t linevent_alloc(CSOUND *csound, int32_t reallocsize)
     }
     STA(prve).opcod = ' ';
     STA(Linebufend) = STA(Linebuf) + STA(linebufsiz);
-    STA(Linep) = STA(Linebuf);
     set_sense_event_callback(csound, sense_line, NULL);
+    /* last: the set-up is done once the reader is linked, and an allocation
+       that fails before leaves it to the next line */
+    STA(Linep) = STA(Linebuf);
 
     return 0;
 }
 
 /* insert text from an external source,
    to be interpreted as if coming in from stdin/Linefd for -L */
-
-static int32_t input_message(CSOUND *csound, const char *message,
-                             int32_t block, int32_t *grown);
 
 /* Whether a line of the message starts with a {, as an orchestra block's
    first line does. A { further on in a line, as in a string p-field, does
@@ -254,9 +256,7 @@ void csoundInputMessage(CSOUND *csound, const char *message) {
     /* looked for before the lock, which the performance waits on */
     const int32_t block = starts_block(message);
 
-    csoundSpinLock(&csound->line_event_spinlock);
     lost = input_message(csound, message, block, &grown);
-    csoundSpinUnLock(&csound->line_event_spinlock);
     if (grown)
       csound->DebugMsg(csound, "realloc %d\n", grown);
     if (UNLIKELY(lost))
@@ -267,29 +267,53 @@ void csoundInputMessage(CSOUND *csound, const char *message) {
 /* Appends message to the line-event buffer, under the lock, and so says
    nothing: what it grew the buffer by goes in *grown, and it returns 1 when
    the buffer could not grow and the message was lost. */
-static int32_t input_message(CSOUND *csound, const char *message,
-                             int32_t block, int32_t *grown) {
+static int32_t append_message(CSOUND *csound, const char *message,
+                              int32_t block, int32_t *grown) {
     int32  size = (int32) strlen(message);
 
     if (linevent_alloc(csound, 0) != 0) return 0;
 
-    if (!size) return 0;
     /* An orchestra block's buffer, made by the call that sends a { line,
        on its thread, rather than when sense_line reads the block */
     if (block && STA(orchestrab) == NULL)
       STA(orchestra) = STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
+    if (!size) return 0;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       /* and one more, for the newline added below */
       int32_t extralloc = (int32_t) (STA(Linep) + size + 1 - STA(Linebufend));
-      *grown = extralloc;
       if (linevent_alloc(csound, (STA(linebufsiz) + extralloc)) != 0)
         return 1;
+      *grown = extralloc;
     }
     memcpy(STA(Linep), message, size);
     if (STA(Linep)[size - 1] != (char) '\n')
       STA(Linep)[size++] = (char) '\n';
     STA(Linep) += size;
     return 0;
+}
+
+/* append_message under line_event_spinlock, with a landing of this thread's
+   own, set before the lock is taken: an allocation that fails in the append
+   (memdie) lands there with the lock held, the message is lost, and the lock
+   is let go as on the way out. The landing is this thread's (insert.c), so
+   that csound->exitjmp, which the thread in csoundStart or in the
+   performance holds, is neither used nor set here. */
+static int32_t input_message(CSOUND *csound, const char *message,
+                             int32_t block, int32_t *grown) {
+    API_CALL call;
+    INIT_LANDING landing;
+    volatile int32_t lost = 1;
+
+    api_call_begin(csound, &call);
+    init_landing_push(csound, &landing);
+    if (setjmp(landing.target) == 0) {
+      csoundSpinLock(&csound->line_event_spinlock);
+      lost = append_message(csound, message, block, grown);
+    }
+    csoundSpinUnLock(&csound->line_event_spinlock);
+    init_landing_pop(&landing);
+    api_call_end(&call);
+    return lost;
 }
 
 /* The complete lines waiting in the line-event buffer, with what the -L

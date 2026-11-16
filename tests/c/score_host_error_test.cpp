@@ -1473,4 +1473,106 @@ TEST(HostLineEvents, AFirstLineLeavesTheStartsJumpAlone)
     if (!startHeld.load() || !setUpHeld.load())
         GTEST_SKIP() << "the first line's set-up and the start did not meet";
 }
+
+/* An allocation that fails, made by a wrapped csound->Calloc once, on an
+   allocation of the size given: memdie's jump. */
+std::atomic<size_t> failingSize{0};
+void *(*callocThatWorks)(CSOUND *, size_t);
+
+void *failOnce(CSOUND *csound, size_t size)
+{
+    if (size == failingSize.load()) {
+        failingSize = 0;
+        csound->ErrorMsg(csound, "memory allocate failure for %zu (a test's)\n",
+                         size);
+        csound->LongJmp(csound, CSOUND_MEMORY);
+    }
+    return callocThatWorks(csound, size);
+}
+
+enum Allocation { PFields, Reader, BlockBuffer };
+
+struct FailingAllocation {
+    const char *what;
+    Allocation allocation;
+    size_t size;
+    const char *line;
+};
+
+const FailingAllocation failingAllocations[] = {
+    {"PFields", PFields, sizeof(cs_float) * (PMAX + 1), "i 1 0 0\n"},
+    {"Reader", Reader, sizeof(EVT_CB_FUNC), "i 1 0 0\n"},
+    {"BlockBuffer", BlockBuffer, 1048576,
+     "{\ninstr 100\nchnset 1, \"block\"\nendin\n}\ni 100 0 0\ni 1 0 0\n"},
+};
+
+/* An allocation that fails while a host's line goes into the line buffer,
+   under line_event_spinlock, loses that line and lets the lock go, and the
+   next line plays: the first line's p-field array, its line reader, and an
+   orchestra block's buffer. The jump left through the held lock, and after
+   the start into the start's spent frame; and with the reader's allocation
+   failed, the set-up was taken for done, and no line played again. */
+class HostLineAllocationFailures
+    : public ::testing::TestWithParam<FailingAllocation> {};
+
+TEST_P(HostLineAllocationFailures, LoseTheLineAndLetTheLockGo)
+{
+    const FailingAllocation &failing = GetParam();
+    Host host;
+    ASSERT_NO_FATAL_FAILURE(host.start());
+    callocThatWorks = host.csound->Calloc;
+    host.csound->Calloc = failOnce;
+    failingSize = failing.size;
+    host.csound->InputMessage(host.csound, failing.line);
+    host.csound->Calloc = callocThatWorks;
+    EXPECT_EQ(0u, failingSize.load()) << "the allocation was not made";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSpinTryLock(&host.csound->line_event_spinlock))
+        << host.said();
+    csoundSpinUnLock(&host.csound->line_event_spinlock);
+    /* the failed allocation left its part unmade, for the next line */
+    const auto &lines = host.csound->lineventStatics;
+    if (failing.allocation == BlockBuffer) {
+        EXPECT_EQ(nullptr, lines.orchestrab);
+    }
+    else {
+        EXPECT_EQ(nullptr, lines.Linep);
+    }
+    host.csound->InputMessage(host.csound, failing.line);
+    host.perform(1);
+    EXPECT_EQ(1, host.played()) << host.said();
+    if (failing.allocation == BlockBuffer) {
+        EXPECT_EQ(1, channel(host, "block")) << host.said();
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Allocations, HostLineAllocationFailures,
+    ::testing::ValuesIn(failingAllocations),
+    [](const ::testing::TestParamInfo<FailingAllocation> &info) {
+        return std::string(info.param.what);
+    });
+
+/* The same failure as the start opens -L fails the start, leaves the lock
+   free and gives the -L input up: the jump went to the start's landing with
+   the lock held. */
+TEST(HostLineEvents, AnAllocationThatFailsAsTheStartOpensLineInputFailsIt)
+{
+    const TempFile file("csound-failing-start-", ".sco");
+    std::ofstream(file.name).close(); /* -L reads nothing from it */
+    Host host;
+    csoundSetOption(host.csound, ("-L\"" + file.name + "\"").c_str());
+    callocThatWorks = host.csound->Calloc;
+    host.csound->Calloc = failOnce;
+    failingSize = sizeof(cs_float) * (PMAX + 1);
+    const int result = csoundStart(host.csound);
+    host.csound->Calloc = callocThatWorks;
+    EXPECT_EQ(0u, failingSize.load()) << "the allocation was not made";
+    EXPECT_NE(CSOUND_SUCCESS, result);
+    /* it failed in the line set-up, which -L no longer stands on */
+    EXPECT_NE(nullptr, host.csound->lineventStatics.Linebuf);
+    EXPECT_EQ(nullptr, host.csound->lineventStatics.pfields);
+    EXPECT_EQ(0, host.csound->oparms->Linein);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSpinTryLock(&host.csound->line_event_spinlock));
+    csoundSpinUnLock(&host.csound->line_event_spinlock);
+}
 } // namespace
