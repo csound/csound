@@ -22,6 +22,7 @@
 */
 
 #include "udo.h"
+#include "opcode.h"
 #include "Opcodes/biquad.h"
 #include "csound_data_structures.h"
 #include "csound_type_system.h"
@@ -2756,6 +2757,16 @@ int32_t xoutset(CSOUND *csound, XOUT *p)
 }
 
 
+/* The instances a walk of skipped cycles has come through, from the one
+   it is in back to the one that skipped. */
+typedef struct udo_walk {
+  const INSDS *ip;
+  const struct udo_walk *up;
+} UDO_WALK;
+static void udo_skip_calls(const INSDS *ip, int32_t cycles,
+                           const UDO_WALK *up);
+static void udo_pass_cycles(INSDS *ip, int32_t cycles, const UDO_WALK *up);
+
 // local ksmps and global sr, pass-by-copy
 int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
 {
@@ -3216,8 +3227,11 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
 
     if ((opstart = (OPDS *) (p->ip->nxtp)) != NULL) {
       p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
-      /* A cycle with none of the note keeps time, and runs nothing. */
-      if (active) do {
+      /* A cycle with none of the note keeps time, and runs nothing: what
+         its body calls keeps time with it. */
+      if (!active)
+        udo_skip_calls(p->ip, 1, NULL);
+      else do {
         if(UNLIKELY(!ATOMIC_GET8(this_instr->actflg))) goto endop;
         this_instr->pds = opstart;
         error = (*opstart->perf)(csound, opstart);
@@ -3938,4 +3952,106 @@ int32_t subinstr(CSOUND *csound, SUBINST *p)
     }
   }
   return OK;
+}
+
+/* Whether ip is one of the instances the walk has come through. */
+static int32_t udo_on_walk(const UDO_WALK *walk, const INSDS *ip)
+{
+  for (; walk != NULL; walk = walk->up)
+    if (walk->ip == ip)
+      return 1;
+  return 0;
+}
+
+/* Whether ip, or the instance it was set up from, or that one's, is on
+   the walk: a UDO instance's buffers lead to the instance it was set up
+   from, up to an instrument's. */
+static int32_t udo_set_up_on_walk(const UDO_WALK *walk, const INSDS *ip)
+{
+  for (; ip != NULL; ip = ip->opcod_iobufs != NULL ?
+         ((const OPCOD_IOBUFS *) ip->opcod_iobufs)->parent_ip : NULL)
+    if (udo_on_walk(walk, ip))
+      return 1;
+  return 0;
+}
+
+/* The instance a UDO call or a subinstr call runs, the instance it was
+   set up from, and how many of its cycles a call runs, as its perf path
+   counts them; NULL when op is neither, or its callee has not been set
+   up. */
+static INSDS *udo_callee(const OPDS *op, const INSDS **from,
+                         int32_t *cycles)
+{
+  INSDS *child;
+  if (op->perf == (SUBR) subinstr) {
+    *from = ((const SUBINST *) op)->parent_ip;
+    child = ((const SUBINST *) op)->ip;
+  }
+  else if (op->perf == (SUBR) useropcd_pass_by_copy ||
+           op->perf == (SUBR) useropcd_pass_by_ref ||
+           op->perf == (SUBR) useropcd_local_ksmps) {
+    *from = ((const UOPCODE *) op)->parent_ip;
+    child = ((const UOPCODE *) op)->ip;
+  }
+  else
+    return NULL;
+  /* a callee whose init has not finished does not count a call, nor a
+     subinstrument that has turned itself off */
+  if (child == NULL || *from == NULL || !ATOMIC_GET(child->init_done) ||
+      (op->perf == (SUBR) subinstr && !ATOMIC_GET8(child->actflg)))
+    return NULL;
+  /* a local ksmps and a subinstrument run each of their blocks in the
+     block of the op that calls them, oversample its factor, undersample
+     and the rest once */
+  if (op->perf == (SUBR) useropcd_local_ksmps || op->perf == (SUBR) subinstr)
+    *cycles = (int32_t) ((op->insdshead->ksmps + child->ksmps - 1) /
+                         child->ksmps);
+  else if (op->perf == (SUBR) useropcd_pass_by_copy &&
+           child->esr > (*from)->esr)
+    *cycles = (int32_t) (child->esr / (*from)->esr);
+  else
+    *cycles = 1;
+  return child;
+}
+
+/* ip passes the given number of cycles: advance its clock, and the clocks
+   of the UDOs and subinstruments its body calls, directly or as opcode
+   objects, by the cycles each would have run, without running anything.
+   up holds the instances the walk came through, NULL at its start. */
+static void udo_pass_cycles(INSDS *ip, int32_t cycles, const UDO_WALK *up)
+{
+  ip->kcounter += (uint64_t) cycles;
+  udo_skip_calls(ip, cycles, up);
+}
+
+/* A call op makes, or with object an opcode object op runs, passes the
+   given cycles. A call's instance is its own, set up from the body it is
+   in. An object passes only if it was set up under the walk and is not on
+   it already: one set up elsewhere, such as one running the UDO that
+   skipped, keeps the clock of where it was set up, and one on the walk,
+   which its own body could run, passes once. */
+static void udo_skip_call(const OPDS *op, int32_t object, int32_t cycles,
+                          const UDO_WALK *walk)
+{
+  const INSDS *from;
+  int32_t each;
+  INSDS *child = op != NULL ? udo_callee(op, &from, &each) : NULL;
+  if (child != NULL &&
+      (!object ||
+       (udo_set_up_on_walk(walk, from) && !udo_on_walk(walk, child))))
+    udo_pass_cycles(child, cycles * each, walk);
+}
+
+/* The callees' part of udo_pass_cycles: each op of ip's body, and the
+   objects it runs. */
+static void udo_skip_calls(const INSDS *ip, int32_t cycles,
+                           const UDO_WALK *up)
+{
+  const UDO_WALK walk = { ip, up };
+  for (OPDS *op = ip->nxtp; op != NULL; op = op->nxtp) {
+    int32_t i, n = opcode_run_count(op);
+    udo_skip_call(op, 0, cycles, &walk);
+    for (i = 0; i < n; i++)
+      udo_skip_call(opcode_run_dataspace(op, i), 1, cycles, &walk);
+  }
 }
