@@ -102,6 +102,8 @@ void score_read_unwind(CSOUND *csound) {
 int32_t csoundReadScore(CSOUND *csound, const char *str) {
   SCORE_READ guard;
   int32_t first;
+  /* A host's lines are its own, counted from its first: none is a .csd's. */
+  const int32_t offset = csound->scoLineOffset;
   char *sc;
 
   /* protect resource */
@@ -121,6 +123,7 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   guard.outer = score_read;
   if (setjmp(guard.target)) {
     score_read = guard.outer;
+    csound->scoLineOffset = offset;
     sread_abandon(csound);
     if (first)
       corfile_rm(csound, &csound->scstr);
@@ -128,7 +131,9 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
     return CSOUND_ERROR;
   }
   score_read = &guard;
+  csound->scoLineOffset = 0;
   sc = scsortstr(csound, csound->scorestr);
+  csound->scoLineOffset = offset;
   score_read = guard.outer;
   /* copy sorted score name */
   if (first) {

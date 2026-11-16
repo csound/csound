@@ -441,15 +441,19 @@ TEST(HostScoreErrors, WarningsSayTheirLineAndPosition)
               said.find(":  at position 0\n  in line 2 of the score\n")) << said;
 }
 
-/* What csoundCompile says of a .csd, or of an orchestra and a score, in the
-   temporary directory. */
-std::string compiling(const std::vector<std::pair<std::string, std::string>> &files)
+/* What csoundCompile says of files it is given, written in the temporary
+   directory: all of them, or those named. */
+std::string compiling(const std::vector<std::pair<std::string, std::string>> &files,
+                      std::vector<std::string> named = {})
 {
+    if (named.empty())
+        for (const auto &file : files)
+            named.push_back(file.first);
+    for (const auto &[name, text] : files)
+        std::ofstream(::testing::TempDir() + name, std::ios::binary) << text;
     std::vector<std::string> paths;
-    for (const auto &[name, text] : files) {
+    for (const auto &name : named)
         paths.push_back(::testing::TempDir() + name);
-        std::ofstream(paths.back(), std::ios::binary) << text;
-    }
     std::vector<const char *> arguments = {"csound", "-n", "-d"};
     for (const auto &path : paths)
         arguments.push_back(path.c_str());
@@ -462,8 +466,8 @@ std::string compiling(const std::vector<std::pair<std::string, std::string>> &fi
         csoundPopFirstMessage(csound);
     }
     csoundDestroy(csound);
-    for (const auto &path : paths)
-        std::remove(path.c_str());
+    for (const auto &file : files)
+        std::remove((::testing::TempDir() + file.first).c_str());
     return said;
 }
 
@@ -500,6 +504,48 @@ TEST(HostScoreErrors, NameTheLineTheyAreOn)
         said = host.said();
         EXPECT_NE(std::string::npos, said.find(expected(error, 2, "the score")))
             << said;
+    }
+}
+
+/* A host's text read after a .csd, and a score file a .csd's options name,
+   have no lines of the .csd's before them, and are not the .csd: their errors
+   named the .csd, and a host's line was counted after the .csd's score's. */
+TEST(HostScoreErrors, NameTheirOwnLinesBesideACsd)
+{
+    const std::string errors[] = {"#define 1", "i 1 0 2e"};
+    const std::string expected[] = {"Unexpected character 1(31) line 2\n",
+                                    ":  at position 7\n  in line 2 of the score\n"};
+    const std::string csd = ::testing::TempDir() + "csound-own-lines.csd";
+    for (int error = 0; error < 2; error++) {
+        SCOPED_TRACE(errors[error]);
+        std::ofstream(csd, std::ios::binary)
+            << "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\nendin\n"
+               "</CsInstruments>\n<CsScore>\ni 1 0 0\n</CsScore>\n"
+               "</CsoundSynthesizer>\n";
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        csoundCreateMessageBuffer(csound, 0);
+        csoundSetOption(csound, "-n");
+        csoundSetOption(csound, "-d");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(csound, csd.c_str(), 0, 0));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        csound->ReadScore(csound, ("i 1 0 0\n" + errors[error]).c_str());
+        std::string said;
+        while (csoundGetMessageCnt(csound)) {
+            said += csoundGetFirstMessage(csound);
+            csoundPopFirstMessage(csound);
+        }
+        csoundDestroy(csound);
+        std::remove(csd.c_str());
+        EXPECT_NE(std::string::npos, said.find(expected[error])) << said;
+        said = compiling(
+            {{"csound-own-lines.orc", "instr 1\nendin\n"},
+             {"csound-own-lines.sco", "i 1 0 0\n" + errors[error] + "\n"},
+             {"csound-own-lines.csd",
+              "<CsoundSynthesizer>\n<CsOptions>\n-d \"" + ::testing::TempDir() +
+                  "csound-own-lines.orc\" \"" + ::testing::TempDir() +
+                  "csound-own-lines.sco\"\n</CsOptions>\n</CsoundSynthesizer>\n"}},
+            {"csound-own-lines.csd"});
+        EXPECT_NE(std::string::npos, said.find(expected[error])) << said;
     }
 }
 
