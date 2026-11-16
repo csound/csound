@@ -3155,6 +3155,11 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
     p->ip->ksmps_no_end = local_size -
       (uint32_t) (((uint64_t) end * local_size + parent_size - 1) / parent_size);
   }
+  /* The note's local samples in this call: oversample runs os cycles of
+     ksmps over os times the caller's samples. */
+  uint32_t lksmps = p->ip->ksmps;
+  uint32_t first = p->ip->ksmps_offset * os;
+  uint32_t last = (lksmps - p->ip->ksmps_no_end) * os;
   p->ip->spin = p->parent_ip->spin;
   p->ip->spout = p->parent_ip->spout;
 
@@ -3171,6 +3176,12 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
     int error = 0;
     int cvt;
     OPDS *opstart;
+    /* Each local cycle takes the part of the note that falls in it, and
+       one with none of it does not run, as under setksmps. */
+    uint32_t from = (uint32_t) ocnt * lksmps, to = from + lksmps;
+    int32_t active = first < to && last > from;
+    p->ip->ksmps_offset = active && first > from ? first - from : 0;
+    p->ip->ksmps_no_end = active && last < to ? to - last : 0;
     /* copy inputs */
     current = inm->in_arg_pool->head;
     for (i = cvt = 0; i < inm->inchns; i++, cvt++) {
@@ -3205,7 +3216,8 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
 
     if ((opstart = (OPDS *) (p->ip->nxtp)) != NULL) {
       p->ip->kcounter++;  /* kcount should be incremented BEFORE perf */
-      do {
+      /* A cycle with none of the note keeps time, and runs nothing. */
+      if (active) do {
         if(UNLIKELY(!ATOMIC_GET8(this_instr->actflg))) goto endop;
         this_instr->pds = opstart;
         error = (*opstart->perf)(csound, opstart);
@@ -3246,7 +3258,10 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
            local ksmps: an output that is also an input must not change under
            the cycles still to run. */
         else if (p->cvt_out[cvt]->ncvt || ocnt == os - 1) {
-          void* in = (void*)internal_ptrs[i];
+          /* A cycle the body did not run gives the converter silence, not
+             what the body's audio outputs held from before. */
+          void* in = !active && p->cvt_out[cvt]->silence != NULL ?
+            NULL : (void*)internal_ptrs[i];
           void* out = (void*)external_ptrs[i];
           if (UNLIKELY(src_convert(csound, p->cvt_out[cvt], in, out) != OK))
             return csound->PerfError(csound, &p->h,

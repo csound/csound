@@ -43,6 +43,7 @@ typedef struct _SR_CONVERTER {
   CS_VARIABLE *var; // argument var
   CSOUND *csound;   
   INSDS *ip;  // calling insds
+  cs_float *silence; // a zero input block, for an audio converter
 } SR_CONVERTER;
 
 
@@ -68,7 +69,8 @@ SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
 void src_deinit(CSOUND *csound, SR_CONVERTER *p);
 
 /** sampling rate conversion
-    in - signal to be converted
+    in - signal to be converted, or NULL to convert silence, for a
+         converter that has a silence block
     out - signal to be converted
 
     src is only performed on time-domain signals (a,k and arrays thereof)
