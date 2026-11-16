@@ -1219,13 +1219,17 @@ static int32_t check_version(CSOUND *csound, CORFIL *cf)
     int32_t   major = 0, minor = 0;
     int32_t   result = TRUE;
     int32_t   version = csoundGetVersion();
-    char  buffer[CSD_MAX_LINE_LEN];
+    char  line[CSD_MAX_LINE_LEN];  /* or one read_line allocates */
+    char  *buffer = line;
+    size_t  size = sizeof(line);
 
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (read_line(csound, cf, &buffer, &size, line) != NULL) {
       p = buffer;
       while (isblank(*p)) p++;
-      if (strstr(p, "</CsVersion>") != NULL)
+      if (strstr(p, "</CsVersion>") != NULL) {
+        free_line(csound, buffer, line);
         return result;
+      }
       if (strstr(p, "Before") != NULL) {
         sscanf(p, "Before %d.%d", &major, &minor);
         if (UNLIKELY(version >= ((major * 1000) + (minor*10)))) {
@@ -1258,6 +1262,7 @@ static int32_t check_version(CSOUND *csound, CORFIL *cf)
         }
       }
     }
+    free_line(csound, buffer, line);
     csoundErrorMsg(csound, Str("Missing end tag </CsVersion>\n"));
     return FALSE;
 }
@@ -1266,17 +1271,20 @@ static int32_t check_licence(CSOUND *csound, CORFIL *cf)
 {
     char  *p, *licence;
     int32_t   len = 1;
-    char  buffer[CSD_MAX_LINE_LEN];
+    char  line[CSD_MAX_LINE_LEN];  /* or one read_line allocates */
+    char  *buffer = line;
+    size_t  size = sizeof(line);
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
     licence = (char*) csound->Calloc(csound, len);
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (read_line(csound, cf, &buffer, &size, line) != NULL) {
       p = buffer;
       if (strstr(p, "</CsLicence>") != NULL ||
           strstr(p, "</CsLicense>") != NULL) {
         csoundMessage(csound, Str("**** End of Licence Information ****\n"));
         csound->Free(csound, csound->SF_csd_licence);
         csound->SF_csd_licence = licence;
+        free_line(csound, buffer, line);
         return TRUE;
       }
       csoundMessage(csound, "%s", p);
@@ -1285,6 +1293,7 @@ static int32_t check_licence(CSOUND *csound, CORFIL *cf)
       strlcat(licence, p, len);
     }
     csound->Free(csound, licence);
+    free_line(csound, buffer, line);
     csoundErrorMsg(csound, Str("Missing end tag </CsLicence>\n"));
     return FALSE;
 }
@@ -1292,17 +1301,21 @@ static int32_t check_licence(CSOUND *csound, CORFIL *cf)
 static int32_t check_short_licence(CSOUND *csound, CORFIL *cf)
 {
     int32_t   type = 0;
-    char  buff[CSD_MAX_LINE_LEN];
+    char  line[CSD_MAX_LINE_LEN];  /* or one read_line allocates */
+    char  *buff = line;
+    size_t  size = sizeof(line);
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
-    while (my_fgets_cf(csound, buff, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (read_line(csound, cf, &buff, &size, line) != NULL) {
       if (strstr(buff, "</CsShortLicence>") != NULL ||
           strstr(buff, "</CsShortLicense>") != NULL) {
         csound->SF_id_scopyright = type;
+        free_line(csound, buff, line);
         return TRUE;
       }
       type = atoi(buff);
     }
+    free_line(csound, buff, line);
     csoundErrorMsg(csound, Str("Missing end tag </CsShortLicence>\n"));
     return FALSE;
 }

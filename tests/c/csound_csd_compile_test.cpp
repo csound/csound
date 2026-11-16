@@ -362,6 +362,16 @@ TEST_F(CsdCompileTests, ShortLicenceOneEndsAtItsName)
   EXPECT_EQ(name, copyright.substr(copyright.size() - name.size()));
 }
 
+// A line longer than 4095 bytes is one line: its rest is no licence number.
+TEST_F(CsdCompileTests, ShortLicenceOnALongLineIsItsNumber)
+{
+  const auto copyright = writtenCopyright(
+    "<CsShortLicence>\n6" + std::string(4094, ' ') + "\n</CsShortLicence>\n");
+  EXPECT_NE(std::string::npos,
+            copyright.find("Creative Commons Attribution\nCC BY\n"))
+    << copyright;
+}
+
 TEST_F(CsdCompileTests, NoInstrumentsIsSaid)
 {
   const char *text = "<CsoundSynthesizer>\n<CsScore>\ne\n</CsScore>\n"
