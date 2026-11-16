@@ -1316,6 +1316,7 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
        from a CSD compiled before it: a later one skips them. */
     int32_t running = csound->engineStatus & CS_STATE_COMP;
     char    buffer[CSD_MAX_LINE_LEN];
+    int32_t cut = FALSE;            /* the last chunk was a line's blanks */
 #ifdef _DEBUG
     //csoundMessage(csound, "Calling unified file system4\n");
 #endif
@@ -1324,9 +1325,24 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
       STA(orcname) = STA(sconame) = STA(midname) = NULL;
       STA(midiSet) = FALSE;
     }
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)) {
-      char *p = buffer;
+    for (;;) {
+      char *p;
+      /* A tag counts at a line's start, after its blanks. The rest of a line
+         longer than a chunk is no line of its own, whether this loop or a
+         section's reader stopped in it. */
+      int32_t line_start = cut || cf->p == 0 || cf->body[cf->p-1] == '\n' ||
+                           cf->body[cf->p-1] == '\r';
+      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) == NULL)
+        break;
+      if (!line_start)
+        continue;
+      p = buffer;
       while (isblank(*p)) p++;
+      /* Blanks that fill the chunk, or leave its end to cut a tag: the text
+         after them is read again, as a chunk that starts the line. */
+      cut = cut_after_blanks(buffer, p, CSD_MAX_LINE_LEN, cf);
+      if (cut)
+        continue;
       if (strstr(p, "<CsoundSynthesizer>") == p ||
           strstr(p, "<CsoundSynthesiser>") == p) {
         if(csound->oparms->odebug)
