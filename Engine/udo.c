@@ -3141,7 +3141,9 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
     return OK;
 
   /* VL 18.12.24: ksmps_no_end is copied here as it
-     applies only to last kcycle */
+     applies only to last kcycle, and ksmps_offset as it applies only
+     to the caller's block it was set for */
+  p->ip->ksmps_offset = p->h.insdshead->ksmps_offset;
   p->ip->ksmps_no_end = p->h.insdshead->ksmps_no_end;
   if (undersample) {
     uint32_t parent_size = CS_KSMPS, local_size = p->ip->ksmps;
