@@ -1150,4 +1150,20 @@ TEST(HostLineEvents, OrchestraBlocksAreCompiledWithOrWithoutLineInput)
     }
     std::remove(file.c_str());
 }
+
+/* A block of no lines compiles nothing: it compiled the block before it
+   again, and that block's global code ran a second time. */
+TEST(HostLineEvents, AnEmptyOrchestraBlockCompilesNothing)
+{
+    Host host;
+    host.start();
+    host.csound->InputMessage(host.csound,
+                              "{\nchnset chnget:i(\"ran\") + 1, \"ran\"\n}\n");
+    host.perform(1);
+    for (const char *empty : {"{}\n", "{\n}\n"}) {
+        host.csound->InputMessage(host.csound, empty);
+        host.perform(1);
+    }
+    EXPECT_EQ(1, channel(host, "ran")) << host.said();
+}
 } // namespace

@@ -416,6 +416,7 @@ static void sense_line(CSOUND *csound, void *userData)
           }
         } else if(c == '{') {
           STA(oflag) = 1;
+          *STA(orchestrab) = '\0';             /* none of the block before */
           csound->Message(csound,
                           Str("::reading orchestra, use '}' to terminate::\n"));
           cp++;
