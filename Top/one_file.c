@@ -292,6 +292,33 @@ static char *my_fgets_cf(CSOUND *csound, char *s, int32_t n, CORFIL *stream)
     return a;
 }
 
+/* Frees what read_line allocated, if it did. */
+static void free_line(CSOUND *csound, char *buf, const char *fixed)
+{
+    if (buf != fixed)
+      csound->Free(csound, buf);
+}
+
+/* Reads a whole line, however long, where my_fgets_cf hands a line longer
+   than its buffer over in chunks. *buf is the caller's `fixed` buffer, until
+   a line does not fit it: then one is allocated with room for the line, its
+   newline, its NUL and a byte more, for the newline read_options gives a
+   last line that has none. free_line frees it. */
+static char *read_line(CSOUND *csound, CORFIL *cf, char **buf, size_t *size,
+                       const char *fixed)
+{
+    size_t n = strcspn(corfile_current(cf), "\r\n") + 2;
+
+    if (UNLIKELY(n > INT32_MAX - 1))  /* my_fgets_cf counts in int32_t: the */
+      n = INT32_MAX - 1;              /* rest comes as a line of its own */
+    if (n + 1 > *size) {
+      free_line(csound, *buf, fixed);  /* no copy: its line is done with */
+      *buf = (char *) csound->Malloc(csound, n + 1);
+      *size = n + 1;
+    }
+    return my_fgets_cf(csound, *buf, (int32_t) n, cf);
+}
+
 /* A line's leading blanks can fill a chunk, or leave its end to cut a tag or
    an opening that follows them. A chunk that starts a line and fills `size`
    with no newline is cut after its blanks, at `p`, and its text is read
@@ -356,19 +383,21 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
 {
     char  *p;
     int32_t   argc = 0;
-    char  last = '\n';           /* no newline: a chunk of a too-long line */
+    char  last;                  /* no newline: the file's last line */
     const char  *argv[CSD_MAX_ARGS+1];     /* the command name, then the rest */
-    char  buffer[CSD_MAX_LINE_LEN+1];      /* room for the newline given below */
+    char  line[CSD_MAX_LINE_LEN+1];        /* a line that fits, as most do */
+    char  *buffer = line;                  /* or one allocated, however long */
+    size_t  size = sizeof(line);
 
     //alloc_globals(csound);
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
-      int32_t continued = last != '\n';
+    while (read_line(csound, cf, &buffer, &size, line) != NULL) {
       last = buffer[strlen(buffer)-1];
       p = buffer;
       while (isblank(*p)) p++;
       /* Before the trim, which overwrites the last character of a last line
          that has no newline. */
       if (readingCsOptions && strstr(p, "</CsOptions>") == p) {
+        free_line(csound, buffer, line);
         return TRUE;
       }
       p = buffer;
@@ -388,7 +417,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
        */
       if (*p==';' || *p=='#' || *p=='\n' || (*p=='/' && *(p+1)=='/'))
         continue; /* empty or comment line? */
-      if (!continued && *p=='/' && *(p+1)=='*') {
+      if (*p=='/' && *(p+1)=='*') {
         skip_block_comment(csound, cf, p+2, &last);
         continue;
       }
@@ -465,11 +494,8 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
             if (isspace(*(p+1))) {
               *p = '\0';
               remove_special_placeholders((char *)argv[argc], strlen(argv[argc]));
-              p++;              /* the rest of the line is ignored, as ever... */
-              while (isblank(*p)) p++;
-              if (*p == '/' && *(p+1) == '*')  /* ...but a comment still opens */
-                skip_block_comment(csound, cf, p+2, &last);
-              break;
+              p++;              /* the blank after it ends the argument */
+              continue;
             }
             else {
               *p = 3;
@@ -498,6 +524,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
       }
       else argdecode(csound, argc, argv);
     }
+    free_line(csound, buffer, line);
     if (UNLIKELY(readingCsOptions))
       csoundErrorMsg(csound, Str("Missing end tag </CsOptions>\n"));
     return FALSE;
@@ -871,7 +898,9 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
 
     n = nbits = 0;
     while ((c = corfile_getc(in)) != '=' && c != '<') {
-      while (isspace(c)) {
+      /* The alphabet is ASCII: above it, isspace, isupper, islower and
+         even isdigit depend on the locale, now that a byte comes unsigned */
+      while (c < 0x80 && isspace(c)) {
         if (c == '\n') {               /* count lines */
           ++(STA(csdlinecount));
           c = corfile_getc(in);
@@ -887,11 +916,11 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
         break;
       n <<= 6;
       nbits += 6;
-      if (isupper(c))
+      if (c >= 'A' && c <= 'Z')
         c -= 'A';
-      else if (islower(c))
+      else if (c >= 'a' && c <= 'z')
         c -= ((int32_t) 'a' - 26);
-      else if (isdigit(c))
+      else if (c >= '0' && c <= '9')
         c -= ((int32_t) '0' - 52);
       else if (c == '+')
         c = 62;
@@ -928,7 +957,9 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
 
     n = nbits = 0;
     while ((c = corfile_getc(in)) != '=' && c != '<') {
-      while (isspace(c)) {
+      /* The alphabet is ASCII: above it, isspace, isupper, islower and
+         even isdigit depend on the locale, now that a byte comes unsigned */
+      while (c < 0x80 && isspace(c)) {
         if (c == '\n') {               /* count lines */
           ++(STA(csdlinecount));
           c = corfile_getc(in);
@@ -944,11 +975,11 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
         break;
       n <<= 6;
       nbits += 6;
-      if (isupper(c))
+      if (c >= 'A' && c <= 'Z')
         c -= 'A';
-      else if (islower(c))
+      else if (c >= 'a' && c <= 'z')
         c -= ((int32_t) 'a' - 26);
-      else if (isdigit(c))
+      else if (c >= '0' && c <= '9')
         c -= ((int32_t) '0' - 52);
       else if (c == '+')
         c = 62;
@@ -1198,13 +1229,17 @@ static int32_t check_version(CSOUND *csound, CORFIL *cf)
     int32_t   major = 0, minor = 0;
     int32_t   result = TRUE;
     int32_t   version = csoundGetVersion();
-    char  buffer[CSD_MAX_LINE_LEN];
+    char  line[CSD_MAX_LINE_LEN];  /* or one read_line allocates */
+    char  *buffer = line;
+    size_t  size = sizeof(line);
 
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (read_line(csound, cf, &buffer, &size, line) != NULL) {
       p = buffer;
       while (isblank(*p)) p++;
-      if (strstr(p, "</CsVersion>") != NULL)
+      if (strstr(p, "</CsVersion>") != NULL) {
+        free_line(csound, buffer, line);
         return result;
+      }
       if (strstr(p, "Before") != NULL) {
         sscanf(p, "Before %d.%d", &major, &minor);
         if (UNLIKELY(version >= ((major * 1000) + (minor*10)))) {
@@ -1237,6 +1272,7 @@ static int32_t check_version(CSOUND *csound, CORFIL *cf)
         }
       }
     }
+    free_line(csound, buffer, line);
     csoundErrorMsg(csound, Str("Missing end tag </CsVersion>\n"));
     return FALSE;
 }
@@ -1245,17 +1281,20 @@ static int32_t check_licence(CSOUND *csound, CORFIL *cf)
 {
     char  *p, *licence;
     int32_t   len = 1;
-    char  buffer[CSD_MAX_LINE_LEN];
+    char  line[CSD_MAX_LINE_LEN];  /* or one read_line allocates */
+    char  *buffer = line;
+    size_t  size = sizeof(line);
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
     licence = (char*) csound->Calloc(csound, len);
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (read_line(csound, cf, &buffer, &size, line) != NULL) {
       p = buffer;
       if (strstr(p, "</CsLicence>") != NULL ||
           strstr(p, "</CsLicense>") != NULL) {
         csoundMessage(csound, Str("**** End of Licence Information ****\n"));
         csound->Free(csound, csound->SF_csd_licence);
         csound->SF_csd_licence = licence;
+        free_line(csound, buffer, line);
         return TRUE;
       }
       csoundMessage(csound, "%s", p);
@@ -1264,6 +1303,7 @@ static int32_t check_licence(CSOUND *csound, CORFIL *cf)
       strlcat(licence, p, len);
     }
     csound->Free(csound, licence);
+    free_line(csound, buffer, line);
     csoundErrorMsg(csound, Str("Missing end tag </CsLicence>\n"));
     return FALSE;
 }
@@ -1271,17 +1311,21 @@ static int32_t check_licence(CSOUND *csound, CORFIL *cf)
 static int32_t check_short_licence(CSOUND *csound, CORFIL *cf)
 {
     int32_t   type = 0;
-    char  buff[CSD_MAX_LINE_LEN];
+    char  line[CSD_MAX_LINE_LEN];  /* or one read_line allocates */
+    char  *buff = line;
+    size_t  size = sizeof(line);
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
-    while (my_fgets_cf(csound, buff, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (read_line(csound, cf, &buff, &size, line) != NULL) {
       if (strstr(buff, "</CsShortLicence>") != NULL ||
           strstr(buff, "</CsShortLicense>") != NULL) {
         csound->SF_id_scopyright = type;
+        free_line(csound, buff, line);
         return TRUE;
       }
       type = atoi(buff);
     }
+    free_line(csound, buff, line);
     csoundErrorMsg(csound, Str("Missing end tag </CsShortLicence>\n"));
     return FALSE;
 }
@@ -1295,6 +1339,7 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
        from a CSD compiled before it: a later one skips them. */
     int32_t running = csound->engineStatus & CS_STATE_COMP;
     char    buffer[CSD_MAX_LINE_LEN];
+    int32_t cut = FALSE;            /* the last chunk was a line's blanks */
 #ifdef _DEBUG
     //csoundMessage(csound, "Calling unified file system4\n");
 #endif
@@ -1303,9 +1348,24 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
       STA(orcname) = STA(sconame) = STA(midname) = NULL;
       STA(midiSet) = FALSE;
     }
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)) {
-      char *p = buffer;
+    for (;;) {
+      char *p;
+      /* A tag counts at a line's start, after its blanks. The rest of a line
+         longer than a chunk is no line of its own, whether this loop or a
+         section's reader stopped in it. */
+      int32_t line_start = cut || cf->p == 0 || cf->body[cf->p-1] == '\n' ||
+                           cf->body[cf->p-1] == '\r';
+      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) == NULL)
+        break;
+      if (!line_start)
+        continue;
+      p = buffer;
       while (isblank(*p)) p++;
+      /* Blanks that fill the chunk, or leave its end to cut a tag: the text
+         after them is read again, as a chunk that starts the line. */
+      cut = cut_after_blanks(buffer, p, CSD_MAX_LINE_LEN, cf);
+      if (cut)
+        continue;
       if (strstr(p, "<CsoundSynthesizer>") == p ||
           strstr(p, "<CsoundSynthesiser>") == p) {
         if(csound->oparms->odebug)

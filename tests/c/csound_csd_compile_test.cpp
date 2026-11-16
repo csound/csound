@@ -362,6 +362,16 @@ TEST_F(CsdCompileTests, ShortLicenceOneEndsAtItsName)
   EXPECT_EQ(name, copyright.substr(copyright.size() - name.size()));
 }
 
+// A line longer than 4095 bytes is one line: its rest is no licence number.
+TEST_F(CsdCompileTests, ShortLicenceOnALongLineIsItsNumber)
+{
+  const auto copyright = writtenCopyright(
+    "<CsShortLicence>\n6" + std::string(4094, ' ') + "\n</CsShortLicence>\n");
+  EXPECT_NE(std::string::npos,
+            copyright.find("Creative Commons Attribution\nCC BY\n"))
+    << copyright;
+}
+
 TEST_F(CsdCompileTests, NoInstrumentsIsSaid)
 {
   const char *text = "<CsoundSynthesizer>\n<CsScore>\ne\n</CsScore>\n"
@@ -623,6 +633,79 @@ TEST_F(CsdCompileTests, NoScoreOnAStartedEngineQueuesNothing)
     const auto output = messages();
     EXPECT_EQ(std::string::npos, output.find("illegal RT scoreline"))
       << "async " << async << ": " << output;
+  }
+}
+
+// A byte 0xFF is a character of a CSD, not its end: a line starting with one,
+// here in a Latin-1 comment, ended the orchestra.
+TEST_F(CsdCompileTests, ByteFFIsNoEndOfTheCsd)
+{
+  const auto text = csd("/*\n\xff in a Latin-1 comment\n*/\ninstr 1\nendin\n");
+  EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
+}
+
+// A byte 0xFF in a score's string is kept, in a CSD's score and in a score
+// it includes: the CSD's reader dropped it, and the score's reader took it
+// for the end of the score, losing the next statement.
+TEST_F(CsdCompileTests, ByteFFInAScoreStringIsKept)
+{
+  ASSERT_NO_FATAL_FAILURE(
+    write("ff.sco", "i 1 0 0 \"caf\xff" "e\"\ni 1 0 0 \"abcd\"\n"));
+  const auto text = "<CsoundSynthesizer>\n<CsInstruments>\ninstr 1\n"
+    "S1 = p4\nprints \"len %d\\n\", strlen(S1)\nendin\n</CsInstruments>\n"
+    "<CsScore>\ni 1 0 0 \"caf\xff" "e\"\n#include \"" + path("ff.sco") +
+    "\"\n</CsScore>\n</CsoundSynthesizer>\n";
+  ASSERT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
+  ASSERT_EQ(0, csoundStart(csound)) << messages();
+  while (csoundPerformKsmps(csound) == 0)
+    ;
+  const auto output = messages();
+  std::string lengths;
+  const std::regex length("len [0-9]+");
+  for (std::sregex_iterator i(output.begin(), output.end(), length), end;
+       i != end; ++i)
+    lengths += i->str() + "\n";
+  EXPECT_EQ("len 5\nlen 5\nlen 4\n", lengths) << output;
+}
+
+// A byte 0xFF in base64 data is no base64, as any other byte that is not:
+// the data ended there, and the file was written short without a word.
+TEST_F(CsdCompileTests, ByteFFInBase64DataIsAnError)
+{
+  const auto text = csd("instr 1\nendin\n", "<CsFileB filename=\"" +
+                        path("ff.bin") + "\">\naGVs\xff" "bG8=\n</CsFileB>\n");
+  EXPECT_NE(0, csoundCompileCSD(csound, text.c_str(), 1, 0));
+  const auto output = messages();
+  EXPECT_NE(std::string::npos, output.find("Non base64 character")) << output;
+}
+
+// csoundScoreSort and csoundScoreExtract copy what they read whole: a byte
+// 0xFF in a string ended the score's reading, and their copy of the result.
+TEST_F(CsdCompileTests, ScoreSortAndExtractKeepAByteFF)
+{
+  ASSERT_NO_FATAL_FAILURE(
+    write("in.sco", "i 1 0 1 \"caf\xff" "e\"\ni 1 1 1 \"abcd\"\ne\n"));
+  ASSERT_NO_FATAL_FAILURE(write("all.xtr", ""));
+  for (const bool sort : {true, false}) {
+    FILE *in = fopen(path("in.sco").c_str(), "rb");
+    ASSERT_NE(nullptr, in);
+    FILE *out = fopen(path("out.sco").c_str(), "wb");
+    ASSERT_NE(nullptr, out);
+    FILE *extract = fopen(path("all.xtr").c_str(), "rb");
+    ASSERT_NE(nullptr, extract);
+    EXPECT_EQ(0, sort ? csoundScoreSort(csound, in, out) :
+              csoundScoreExtract(csound, in, out, extract)) << messages();
+    fclose(extract);
+    fclose(out);
+    fclose(in);
+    std::ifstream copy(path("out.sco"), std::ios::binary);
+    const std::string text((std::istreambuf_iterator<char>(copy)),
+                           std::istreambuf_iterator<char>());
+    EXPECT_NE(std::string::npos, text.find("\"caf\xff" "e\""))
+      << (sort ? "sort: " : "extract: ") << text;
+    EXPECT_NE(std::string::npos, text.find("\"abcd\""))
+      << (sort ? "sort: " : "extract: ") << text;
+    csoundReset(csound);
   }
 }
 }

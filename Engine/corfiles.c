@@ -130,7 +130,7 @@ void corfile_rm(CSOUND *csound, CORFIL **ff)
 
 int32_t corfile_getc(CORFIL *f)
 {
-    int32_t c = f->body[f->p];
+    int32_t c = (unsigned char) f->body[f->p];  /* a byte 0xFF is no EOF */
     if (UNLIKELY(c=='\0')) return EOF;
     f->p++;
     return c;
