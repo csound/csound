@@ -212,8 +212,10 @@ extern "C" {
     cs_float buf[bufsize];
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     csoundLockMutex(recordData->mutex);
-    while (ATOMIC_GET_BOOL(recordData->running)) {
-        csoundCondWait(recordData->condvar, recordData->mutex);
+    for (;;) {
+        // Read before draining: a stop can come before this thread first
+        // waits, and what was written until then is drained all the same.
+        const bool going = ATOMIC_GET_BOOL(recordData->running);
         int sampsread;
         do {
             sampsread = csoundReadCircularBuffer(NULL, recordData->cbuf,
@@ -221,6 +223,9 @@ extern "C" {
             csound->SndfileWriteSamples(csound, (SNDFILE *) recordData->sfile,
                             buf, sampsread);
         } while(sampsread != 0);
+        if (!going)
+            break;
+        csoundCondWait(recordData->condvar, recordData->mutex);
     }
     csoundUnlockMutex(recordData->mutex);
     csound->Message(csound, Str("Perf thread: stopped recording,\n"

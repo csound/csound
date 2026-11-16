@@ -10,6 +10,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
+#include <vector>
 #include "gtest/gtest.h"
 
 #include "csound.hpp"
@@ -605,4 +606,41 @@ TEST(PerfThreadsTests, RecordOnceThePerformanceHasEndedLeavesTheTake) {
     EXPECT_EQ(fileSize(take), recorded);
     remove(take);
     remove("perfthread_record_output.wav");
+}
+
+// The recording thread may not have run yet when the recording is stopped,
+// all the more with every core busy: what the performance wrote stays in
+// the take all the same. A race, so it is tried many times.
+TEST(PerfThreadsTests, RecordingStoppedBeforeItsThreadRanKeepsTheTake) {
+    const char *take = "perfthread_race_take.wav";
+    std::atomic<bool> spin{true};
+    std::vector<std::thread> busy;
+    const unsigned cores = std::thread::hardware_concurrency();
+    for (unsigned i = 0; i < (cores > 2 ? cores : 2); ++i)
+        busy.emplace_back([&spin] { while (spin.load()) {} });
+    int lost = 0;
+    // A lambda, so that a failed assertion still stops the spinners below.
+    auto takes = [&] {
+        for (int i = 0; i < 40; ++i) {
+            remove(take);
+            Csound csound;
+            ASSERT_NO_FATAL_FAILURE(
+                startRecordedScore(csound, "-operfthread_race_output.wav"));
+            CsoundPerformanceThread performanceThread(csound.GetCsound());
+            performanceThread.Record(take, 16, kRecordBuffers);
+            performanceThread.Play();
+            for (int j = 0; j < 10000 && performanceThread.GetStatus() == 0; ++j)
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            ASSERT_NE(performanceThread.GetStatus(), 0);
+            ASSERT_GT(performanceThread.Join(), 0);
+            lost += fileSize(take) < kWholeTake;
+        }
+    };
+    takes();
+    spin = false;
+    for (auto &thread : busy)
+        thread.join();
+    EXPECT_EQ(lost, 0);
+    remove(take);
+    remove("perfthread_race_output.wav");
 }
