@@ -988,6 +988,15 @@ static int32_t ihoambdec(CSOUND *csound, HOAMBDEC* p)
       return csound->InitError(csound, "%s\n", Str("3D Binaural configuration only works with first, second and third order"));
     }
 
+    /* the file names are optional arguments of any type, and a binaural
+       setup reads both as strings */
+    if (UNLIKELY((isetup == 21 || isetup == 31) &&
+                 (GetInputArgCnt(&p->h) < 8 || !IS_STR_ARG(p->ifilel) ||
+                  !IS_STR_ARG(p->ifiler))))
+      return csound->InitError(csound, "%s\n",
+                               Str("bformdec2: binaural decoding needs a left "
+                                   "and a right HRTF file name as strings"));
+
     p->horizontal = ((isetup == 1) | (isetup == 2) | (isetup == 3)  | (isetup == 4)  | (isetup == 6) | (isetup == 21));
 
     if (p->horizontal)
