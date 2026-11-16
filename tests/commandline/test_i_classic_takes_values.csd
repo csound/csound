@@ -1,5 +1,5 @@
 <CsTest>
-description = "i written as an opcode still takes a variable, a signed number, a struct member and an array with its index"
+description = "i still takes a variable, a signed number, a struct member, and an array with an index known at init"
 
 [expect]
 exit = 0
@@ -22,6 +22,7 @@ instr 1
   pair:Pair init 7, 8
   values:k[] fillarray 10, 20, 30
   index:k init 2
+  offsets:k[] fillarray 2, 1
   at:i = 1
 
   variable:i i value
@@ -29,12 +30,15 @@ instr 1
   member:i i pair.second
   element:i i values, index
   computed:i i values, at + 1
+  read:i = i(values, offsets[0])
+  chosen:i = i(values, at > 0)
 
   if variable == 5 && negative == -1 && member == 8 && element == 30 &&
-     computed == 30 then
+     computed == 30 && read == 30 && chosen == 20 then
     prints "took every value\n"
   else
-    prints "took %g %g %g %g %g\n", variable, negative, member, element, computed
+    prints "took %g %g %g %g %g %g %g\n", variable, negative, member, element,
+           computed, read, chosen
     exitnow(-1)
   endif
 endin

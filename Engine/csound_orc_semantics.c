@@ -536,9 +536,32 @@ static char *convert_array_type_string(CSOUND *csound,
   } else return csoundStrdup(csound, str);
 }
 
-/* Deal with odd case of i(expressions) */
-static void check_i_argument(CSOUND* csound, TREE* tree)
+/* Whether an index given to i(karray, ...) is computed in performance, and
+   so has no value at init, where i reads it: a k-rate expression or
+   comparison, or one that reads an array at a k index. An element read at
+   i indexes is read at init, whatever its type. */
+static int32_t is_perf_index(CSOUND* csound, TREE* index, TYPE_TABLE* typeTable)
 {
+  char* type;
+  int32_t perf;
+  if (tree_has_k_rate_array_index(csound, index->left, typeTable) ||
+      tree_has_k_rate_array_index(csound, index->right, typeTable))
+    return 1;
+  if (index->type == T_ARRAY)
+    return index_is_krate(csound, index->right, typeTable) > 0;
+  type = get_arg_type2(csound, index, typeTable);
+  perf = type != NULL && (*type == 'k' || *type == 'B');
+  csound->Free(csound, type);
+  return perf;
+}
+
+/* Deal with odd case of i(expressions). Called once the arguments are
+   typed, so each index has a type. */
+static void check_i_argument(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
+{
+  TREE* index;
+  char* type;
+  int32_t array;
   if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
     print_tree(csound, "i()", tree);
   /* No argument: no form of i matches, which is the caller's error to report */
@@ -554,6 +577,21 @@ static void check_i_argument(CSOUND* csound, TREE* tree)
       synterr(csound,
               Str("Use of i() with expression not permitted on line %d\n"),
               tree->line);
+  /* Only the array form, i(karray, index, ...), takes more arguments */
+  if (tree->right->next == NULL)
+    return;
+  type = get_arg_type2(csound, tree->right, typeTable);
+  array = type != NULL && *type == '[';
+  csound->Free(csound, type);
+  if (!array)
+    return;
+  for (index = tree->right->next; index != NULL; index = index->next) {
+    if (UNLIKELY((is_expression_node(index) ||
+                  is_boolean_expression_node(index)) &&
+                 is_perf_index(csound, index, typeTable)))
+      synterr(csound, Str("Use of i() with a k-rate expression as index "
+                          "not permitted on line %d\n"), tree->line);
+  }
 }
 
 /* This function gets arg type with checking type table */
@@ -741,14 +779,13 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
 
     }
 
-    if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
-      check_i_argument(csound, tree);
-    }
-
     if (tree->type == T_FUNCTION) {
       char* argTypeRight = get_arg_string_from_tree(csound,
                                                     tree->right, typeTable);
       char* opname = tree->value->lexeme;
+      if (!strcmp(opname, "i")) {
+        check_i_argument(csound, tree, typeTable);
+      }
       OENTRIES* entries = find_opcode2(csound, opname);
       char * out;
 
@@ -3371,7 +3408,7 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   leftArgString = get_arg_string_from_tree(csound, left, typeTable);
   rightArgString = get_arg_string_from_tree(csound, right, typeTable);
   if (!strcmp(opcodeName, "i"))
-    check_i_argument(csound, root);
+    check_i_argument(csound, root, typeTable);
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
