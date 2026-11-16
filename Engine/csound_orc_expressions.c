@@ -1327,7 +1327,8 @@ static void collapse_last_assigment(CSOUND* csound, TREE* anchor,
 }
 
 /* Expand struct array member assignment: array[index].member = value
- * Transforms into:
+ * A member written in each cycle becomes ##array_member_set, which writes
+ * it in place. Otherwise, it transforms into:
  *   1. temp = ##array_get_struct(array, index)
  *   2. temp.member = value for init-rate scalars, otherwise ##member_set
  *   3. array[index] = temp (standard assignment, becomes ##array_set_struct)
@@ -1556,8 +1557,9 @@ static int32_t resolve_struct_array_member_path(CSOUND* csound,
 
 /* At i indices, a member of a type that changes in performance, a k, a B
    or an a, or an array of one, is read and written in each cycle too, as
-   an element of a k[], a B[] or an a[] is: through ##array_get_struct_k
-   and ##array_set_struct_k, where ##array_get_struct and
+   an element of a k[], a B[] or an a[] is: read through
+   ##array_get_struct_k, which copies the element, and written in place
+   through ##array_member_set, where ##array_get_struct and
    ##array_set_struct run at init only. At a k index, these run in
    performance in any case. An array member's element, hs[1].points[1], is
    left as it was: the member is read from its struct at init only, and is
@@ -1756,16 +1758,20 @@ int expand_struct_array_member_assignment(CSOUND* csound,
 
   follows = struct_member_follows_at_i_index(&path, initContext);
   const CS_TYPE* memberType = path.memberVars[path.memberCount - 1]->varType;
-  /* A scalar member written in each cycle, at an i index that follows or at
-     a k index, is written in place: copying the element out and back again
-     wrote the same member, and copied every other member twice. An index
-     that is an i but reads an array at a k index, fs[iArr[kI]] or
-     fs[i(kArr[kI])], keeps the copy and the rate it had. */
+  /* A scalar member, or an array of scalars, written in each cycle, at an
+     i index that follows or at a k index, is written in place: copying the
+     element out and back again wrote the same member, and copied every
+     other member twice. An index that is an i but reads an array at a k
+     index, fs[iArr[kI]] or fs[i(kArr[kI])], keeps the copy and the rate it
+     had, and so do a struct member and an array of structs, which the copy
+     back copied apart from the value. */
+  const CS_TYPE* elementType = memberType == &CS_VAR_TYPE_ARRAY ?
+    path.memberVars[path.memberCount - 1]->subType : memberType;
   if ((follows ||
        array_has_k_rate_index(csound, path.arrayExpr->right, typeTable)) &&
       current->right->next == NULL &&
       !array_target_missing_lexeme(path.arrayExpr) &&
-      memberType != &CS_VAR_TYPE_ARRAY && !memberType->userDefinedType) {
+      (elementType == NULL || !elementType->userDefinedType)) {
     *anchor = tree_append(*anchor,
       create_struct_array_member_set_call(csound, current, &path));
     return 1;
@@ -1780,8 +1786,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                                                 current->locn,
                                                 structTemps[0],
                                                 path.arrayExpr,
-                                                follows ? "##array_get_struct_k"
-                                                : "##array_get_struct"));
+                                                "##array_get_struct"));
 
   if (!path.hasKRateIndex &&
       (memberType == &CS_VAR_TYPE_I || memberType == &CS_VAR_TYPE_b)) {
@@ -1837,8 +1842,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                                                 current->locn,
                                                 path.arrayExpr,
                                                 structTemps[0],
-                                                follows ? "##array_set_struct_k"
-                                                : "##array_set_struct"));
+                                                "##array_set_struct"));
 
   for (i = 0; i < path.memberCount; i++) {
     csound->Free(csound, structTemps[i]);

@@ -368,10 +368,7 @@ const OENTRY opcodlst_1[] = {
     (SUBR)array_set_struct_i },
   { "##array_set_struct", sizeof(ARRAY_SET), 0, "", ".[].z",
     (SUBR)array_set_struct_init, (SUBR)array_set_struct },
-  /* at i indices, for a member that changes in performance */
-  { "##array_set_struct_k", sizeof(ARRAY_SET), 0, "", ".[].m",
-    (SUBR)array_set_struct_i, (SUBR)array_set_struct },
-  /* a scalar member written in place: the array, the value, the member
+  /* a member written in place: the array, the value, the member
      path's depth and indexes, then the array's indexes */
   { "##array_member_set", sizeof(ARRAY_SET), 0, "", ".[].m",
     (SUBR)array_member_set_i, (SUBR)array_member_set },

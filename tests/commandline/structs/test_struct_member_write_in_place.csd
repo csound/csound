@@ -19,8 +19,11 @@ struct Box gain:k
 struct Wide gain:k, level:k, on:B, name:S, values:k[], sig:a
 struct Named name:S
 struct Holder inner:Box
+struct IBox value:i
 struct Pair gain:k, level:k
 gps@global:Pair[] init 2
+struct Bank values:k[], level:k
+gbs@global:Bank[] init 2
 
 opcode CheckInit(iValue:i, iExpected:i, SWhat:S):void
  if iValue != iExpected then
@@ -41,6 +44,14 @@ opcode Louder(kLevel:k):k
  kIndex = 1
  gps[kIndex].level = kLevel
  xout 0.5
+endop
+
+opcode Fill(kLevel:k):k[]
+ kIndex = 1
+ gbs[kIndex].level = kLevel
+ kOut:k[] init 2
+ kOut[1] = kLevel * 2
+ xout kOut
 endop
 
 instr 1
@@ -66,6 +77,13 @@ instr 1
  gps[1].gain = Louder(kc)
  Check(gps[kIndex].gain, 0.5, "the member written")
  Check(gps[kIndex].level, kc, "a member the value's call writes")
+
+ ; the same for an array member
+ gbs[1].values = Fill(kc)
+ filled:k[] init 2
+ filled = gbs[kIndex].values
+ Check(filled[1], kc * 2, "an array member")
+ Check(gbs[kIndex].level, kc, "a member the array value's call writes")
 
  ; a constant in a branch taken in performance
  bs:Box[] init 2
@@ -100,10 +118,17 @@ instr 1
  ns[kIndex].name = sprintfk("n%d", kc)
  Check(strcmpk(ns[kIndex].name, sprintfk("n%d", kc)), 0, "an S member at a k index")
 
- ; a member of a nested struct
+ ib:IBox[] init 2
+ ib[kIndex].value = kc
+ Check(ib[kIndex].value, kc, "an i member at a k index")
+
+ ; a member of a nested struct, at an i and at a k index
  hs:Holder[] init 2
  hs[1].inner.gain = kc
  Check(hs[kIndex].inner.gain, kc, "a member of a nested struct")
+ hk:Holder[] init 2
+ hk[kIndex].inner.gain = kc * 2
+ Check(hk[kIndex].inner.gain, kc * 2, "a member of a nested struct at a k index")
 
  ; a value written at init lands at init
  is:Box[] init 2

@@ -1006,9 +1006,9 @@ endop
     }
 }
 
-/* A scalar member written in each cycle is written in place: neither the
-   element's copy out (##array_get_struct...) nor its copy back
-   (##array_set_struct...) is left in the UDO. */
+/* A scalar member, or an array of scalars, written in each cycle is
+   written in place: neither the element's copy out (##array_get_struct...)
+   nor its copy back (##array_set_struct...) is left in the UDO. */
 TEST_F (OrcCompileTests, testStructArrayMemberWritesInPlace)
 {
     const char* orchestra = R"(
@@ -1035,11 +1035,26 @@ endop
 opcode WriteNested(index:i):void
   records[index].field.level = 0.5
 endop
+opcode WriteArrayAtI(index:i):void
+  values:k[] init 2
+  fields[index].values = values
+endop
+opcode CopyStructAtK(input:i):void
+  index:k init input
+  field:Field init
+  records[index].field = field
+endop
+opcode CopyThroughIArray(input:i):void
+  slots:i[] fillarray 0, 1
+  index:k init input
+  fields[slots[index]].level = 0.5
+endop
 )";
 
     ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
     for (const char* name : {"WriteAtI", "WriteBooleanAtI", "WriteAtK",
-                             "WriteStringAtK", "WriteNested"}) {
+                             "WriteStringAtK", "WriteNested",
+                             "WriteArrayAtI"}) {
         OENTRY* entry = find_opcode_new(csound, name, "", "i");
         ASSERT_NE(nullptr, entry) << name;
         OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
@@ -1054,6 +1069,20 @@ endop
         }
         EXPECT_EQ(1, inPlace) << name;
         EXPECT_EQ(0, copies) << name;
+    }
+    /* a struct member keeps the copy, and so does an i index that reads an
+       array at a k index, at the rate it had */
+    for (const char* name : {"CopyStructAtK", "CopyThroughIArray"}) {
+        OENTRY* entry = find_opcode_new(csound, name, "", "i");
+        ASSERT_NE(nullptr, entry) << name;
+        OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+        ASSERT_NE(nullptr, info) << name;
+        int inPlace = 0;
+        for (OPTXT* op = info->ip->nxtop; op != nullptr; op = op->nxtop) {
+            inPlace += op->t.oentry != nullptr &&
+                       !strcmp(op->t.oentry->opname, "##array_member_set");
+        }
+        EXPECT_EQ(0, inPlace) << name;
     }
 }
 

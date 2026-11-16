@@ -347,11 +347,12 @@ static const CS_VARIABLE *struct_type_member(const CS_TYPE *type, int32_t nth)
 }
 
 /* ##array_member_set: array, value, the member path's depth, its member
-   indexes, then the array's indexes. It writes the value into that scalar
-   member of the element in place, as the element's copy would have left it,
-   without copying the element out and back. Only the members on the path
-   are checked against the types the struct declares, so the work does not
-   grow with the members it leaves alone. */
+   indexes, then the array's indexes. It writes the value into that member
+   of the element in place, through the member type's copier: a scalar, or
+   an array of scalars, which ##member_set wrote the same way into the
+   element's copy before ##array_set_struct copied it back. Only the members
+   on the path are checked against the types the struct declares, so the
+   work does not grow with the members it leaves alone. */
 static int32_t array_member_set_common(CSOUND *csound, ARRAY_SET *p,
                                        int32_t initializing)
 {
