@@ -2010,9 +2010,13 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
           goto top;                    /* the count is in its text */
         n = 0;                         /* its arguments were refused */
       }
+      else if (mm->acnt < 0)
+        n = 0;                         /* a counter, before its repeat plays */
       else {
-        long long v = strtoll(mm->body, NULL, 10);
-        n = v > 0 && v <= INT_MAX ? (int) v : 0;
+        struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
+        unput(c);                      /* read after the macro's text */
+        expand_macro(csound, mm, yyscanner);
+        goto top;                      /* the count is in its text */
       }
     }
     else if (c=='[') {
