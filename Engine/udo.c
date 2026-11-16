@@ -2807,6 +2807,9 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
     this_instr->ksmps_no_end = 0;
     this_instr->spin += csound->inchnls * ofs;
     this_instr->spout += ofs;
+    /* the samples before the note's start pass without running */
+    if (ofs > 0)
+      udo_pass_cycles(this_instr, ofs, NULL);
     do {
       this_instr->kcounter++; /*kcounter needs to be incremented BEFORE perf */
       /* copy inputs */
@@ -2934,6 +2937,9 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
       this_instr->spin += csound->inchnls * lksmps;
       this_instr->spout += lksmps;
     }
+    /* the blocks before the note's start pass without running */
+    if (start > 0)
+      udo_pass_cycles(this_instr, start / lksmps, NULL);
     this_instr->ksmps_offset = ofs;
     ofs = start;
     do {
