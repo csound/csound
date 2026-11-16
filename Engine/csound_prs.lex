@@ -63,7 +63,7 @@ static inline int isNameChar(int cc, int pos)
 #include "score_param.h"
 
 static void expand_macro(CSOUND*, MACRO*, yyscan_t);
-static void expand_macroa(CSOUND*, MACRO*, yyscan_t);
+static int expand_macroa(CSOUND*, MACRO*, yyscan_t);
 //static void trace_alt_stack(CSOUND*, PRS_PARM*, int);
 
 #define YY_EXTRA_TYPE  PRS_PARM *
@@ -81,8 +81,11 @@ static void prs_pop_buffer(yyscan_t);
 #define YY_INPUT(buf, result, max_size) ((result) = prs_past_end(yyscanner))
 #define YY_FATAL_ERROR(msg) prs_fatal(yyscanner, msg)
 
+/* The score's first line is the one after the lines before it in a .csd,
+   unless --csd-line-nums=0, as the reader counts it. */
 #define YY_USER_INIT {prs_scan_string(csound->scorestr->body, yyscanner); \
-    csound_prsset_lineno(csound->scoLineOffset, yyscanner);             \
+    csound_prsset_lineno((csound->oparms->useCsdLineCounts ?            \
+                          csound->scoLineOffset : 0) + 1, yyscanner);   \
     PARM->macro_stack_size = 0;                                         \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
     PARM->path = ".";                                                   \
@@ -400,15 +403,16 @@ NP              np[0-9]+
                                 PARM->repeat_cnt_n[PARM->repeat_index],
                                 PARM->repeat_index);
                     }
-                    while (isblank(c)) {
+                    /* A count that ends the macro's text the { is in, or
+                       with blanks after it, has its counter after the call,
+                       as a { that ends its text has its count. */
+                    while (isblank(c) || (c=='\0' && on_EOF(csound, yyscanner)))
                       c = input(yyscanner);
-                    }
                     for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
                       PARM->repeat_name_n[PARM->repeat_index][i] = c;
                       c = input(yyscanner);
                     }
                     PARM->repeat_name_n[PARM->repeat_index][i] = '\0';
-                    unput(c);
                     /* Define macro for counter */
                     PARM->repeat_mm_n[PARM->repeat_index]->name =
                       csound->Malloc(csound,
@@ -431,7 +435,13 @@ NP              np[0-9]+
                     PARM->repeat_mm_n[PARM->repeat_index]->next = PARM->macros;
                     PARM->macros = PARM->repeat_mm_n[PARM->repeat_index];
                     PARM->defining = NULL;
-                    while (input(yyscanner)!='\n') {}
+                    /* The rest of its line, which goes on after the call of
+                       a macro whose text it ends */
+                    while (c!='\n' && (c!='\0' || on_EOF(csound, yyscanner)))
+                      c = input(yyscanner);
+                    if (c=='\n')                      /* the line end read */
+                      csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
+                                           yyscanner);
                     PARM->cf_stack[PARM->repeat_index] = PARM->cf;
                     PARM->cf = corfile_create_w(csound);
                   }
@@ -449,6 +459,14 @@ NP              np[0-9]+
                          (PARM->in_repeat_sect == 1 &&
                           PARM->repeat_index == PARM->repeat_sect_depth)))
               prs_fatal(yyscanner, Str("repeat and section cross in score"));
+            {   /* A statement against the } ends its line, or each
+                   repeat's first one is written onto it */
+              uint32_t end = bdy->p;
+              while (end > 0 && isblank((unsigned char) bdy->body[end - 1]))
+                end--;
+              if (end > 0 && bdy->body[end - 1] != '\n')
+                corfile_putc(csound, '\n', PARM->cf);
+            }
             corfile_puts(csound, "#loop", PARM->cf);
             corfile_putc(csound, '\0', PARM->cf);
             corfile_putc(csound, '\0', PARM->cf);
@@ -533,6 +551,9 @@ NP              np[0-9]+
              //printf("unterminated r loop\n");
              unput('r');
              unput('\n'); unput('s'); unput('\n');
+             /* line ends of no line, counted when they are read */
+             csound_prsset_lineno(csound_prsget_lineno(yyscanner) - 2,
+                                  yyscanner);
            }
            else {
              PARM->repeat_sect_cnt = 0;
@@ -601,11 +622,13 @@ NP              np[0-9]+
               }
               //printf("recording section end %d %c\n>>%s<<\n",
               //       PARM->in_repeat_sect, op, PARM->cf->body);
-              corfile_putc(csound, 's', PARM->cf);
-              corfile_putc(csound, '\n', PARM->cf);
+              corfile_putc(csound, 's', PARM->cf);   /* then its time */
               while (1) {
                 int c = input(yyscanner);
                 //printf("copying >>%c<<(%.2x)", c, c);
+                if (c=='\n')            /* the line end read */
+                  csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
+                                       yyscanner);
                 if (c=='\n' ||c=='\0') break;
                 if (!isblank(c)&&!isdigit(c)&&!strchr(".e+-",c)) { unput(c); break;}
                 corfile_putc(csound, c, PARM->cf);
@@ -665,21 +688,14 @@ NP              np[0-9]+
               }
             }
             else {
-              corfile_putc(csound, op, PARM->cf);
+              /* The rest of its line is read as any line is: its number,
+                 written against it or not, a macro, a comment, its line end */
               int c = input(yyscanner);
-              if (isblank(c)) {
-                while (1) {
-                  //printf("**copy %.2x(%c)\n", c, c);
-                  corfile_putc(csound, c, PARM->cf);
-                  if (c=='\n') break;
-                  if (c=='\0') {
-                    corfile_putc(csound, '\n', PARM->cf);
-                    break;
-                  }
-                  c = input(yyscanner);
-                }
-              }
-              corfile_putc(csound, '\n', PARM->cf);
+              corfile_putc(csound, op, PARM->cf);
+              if (c=='\0')              /* the end of a macro's text ends it */
+                corfile_putc(csound, '\n', PARM->cf);
+              else
+                unput(c);
             }
           }
           else corfile_puts(csound, yytext, PARM->cf);
@@ -863,7 +879,6 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
                   Str("Cannot open #include'd file %s\n"), buffer);
 #endif
     }
-    printf("stack pointer = %d\n", PARM->macro_stack_ptr);
     if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
       //trace_alt_stack(csound, PARM, __LINE__);
       PARM->alt_stack =
@@ -1527,7 +1542,9 @@ static void expand_macro(CSOUND* csound, MACRO* mm, yyscan_t yyscanner)
     }
 }
 
-static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
+/* Pushes the macro's text to be read, its arguments read up to their ), and
+   gives 0; or says why its arguments are refused, and gives 1. */
+static int expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
 {
     int err =0;
     //char      *mname;
@@ -1535,7 +1552,7 @@ static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
     //mname = buf;
     /* Need to read from macro definition */
     csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
-    for (j = 0; j < mm->acnt; j++) {
+    for (j = 0; j < mm->acnt && !err; j++) {
       char  term = (j == mm->acnt - 1 ? ')' : '\'');
       /* Compatability */
       char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
@@ -1646,6 +1663,7 @@ static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
       prs_scan_string(mm->body, yyscanner);
       csound_prsset_lineno(0, yyscanner);
     }
+    return err;
 }
 
 static void csound_prs_line(CORFIL* cf, void *yyscanner)
@@ -1830,7 +1848,8 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
             csound->LongJmp(csound, 1);
           }
           if (c=='(') {
-            expand_macroa(csound, mm, yyscanner);
+            if (UNLIKELY(expand_macroa(csound, mm, yyscanner) != 0))
+              csound->LongJmp(csound, 1);   /* its arguments, refused */
             goto parseNumber;
           }
           else {
@@ -1972,19 +1991,33 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
 }
 //#endif
 
+/* The count after a {, leaving the character after it in *term. A macro's
+   count is read from the start of its text, and what follows the count there
+   is ignored: *term is then the character after the call. In a macro's text
+   a number may come after line ends and with a plus sign, as when it was read
+   with strtoll, and the macro's text with no count gives none. */
 static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
 {
-    int c;
+    size_t level = PARM->buffers.count;   /* the text the count is in */
+    int c, n;
  top:
     do {
       c = input(yyscanner);
     } while (isblank(c));
-    if (c=='$') { // macro to yield count
+    if (PARM->buffers.count > level && (isspace(c) || c=='+')) {
+      while (isspace(c))
+        c = input(yyscanner);
+      if (c=='+')
+        c = input(yyscanner);
+      n = read_digits(yyscanner, &c);
+    }
+    else if (c=='$') { // macro to yield count
       char buf[256];
       int i=0;
       MACRO* mm;
       //printf("*** macro count\n");
-      while (isalnum(c=input(yyscanner)) || c=='_') {
+      /* A macro with arguments names them in its text with a ` */
+      while (isalnum(c=input(yyscanner)) || c=='_' || c=='`') {
         if (i < (int) sizeof(buf) - 1)
           buf[i++] = c;
       }
@@ -1995,37 +2028,45 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
         csound->Message(csound,Str("Undefined macro: '%s'"), buf);
         //csound->LongJmp(csound, 1);
         corfile_puts(csound, "$error", PARM->cf);
-        *term = c;
-        return 0;
+        n = 0;
       }
       else if (c=='(') {
-        struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
-        unput(c);
-        expand_macroa(csound, mm, yyscanner);
-        goto top;
+        if (expand_macroa(csound, mm, yyscanner) == 0)
+          goto top;                    /* the count is in its text */
+        n = 0;                         /* its arguments were refused */
       }
+      else if (mm->acnt < 0)
+        n = 0;                         /* a counter, before its repeat plays */
       else {
-        long long n = strtoll(mm->body, NULL, 10);
-        *term = c;
-        return n > 0 && n <= INT_MAX ? (int) n : 0;
+        struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
+        unput(c);                      /* read after the macro's text */
+        expand_macro(csound, mm, yyscanner);
+        goto top;                      /* the count is in its text */
       }
     }
     else if (c=='[') {
       //printf("** ] case\n");
-      int n =  bodmas(csound, yyscanner, term, 0);
-      return n;
+      n = bodmas(csound, yyscanner, &c, 0);
     }
+    else if (c=='\0' && PARM->buffers.count == level + 1)
+      n = 0;                           /* the macro's text, with no count */
     else if (c=='\0') {
       if (on_EOF(csound, yyscanner)==0) return 0;
+      if (PARM->buffers.count < level)
+        level = PARM->buffers.count;   /* the { ended its text */
       goto top;
     }
-    else {
-      int i = read_digits(yyscanner, &c);
-      *term = c;
-      return i;
+    else
+      n = read_digits(yyscanner, &c);
+    /* Back to the text the count is in: the rest of each macro's text is
+       read to its end, which input() gives as 0, and popped. */
+    while (PARM->buffers.count > level) {
+      while (c != '\0') c = input(yyscanner);
+      on_EOF(csound, yyscanner);
+      c = input(yyscanner);
     }
     *term = c;
-    return 0;
+    return n;
 }
 
 static int on_EOF(CSOUND* csound, void* yyscanner)
