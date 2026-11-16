@@ -229,7 +229,7 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
     /* left and right data files: spectral mag, phase format. */
     MEMFIL *fpl = NULL,*fpr = NULL;
     int32_t i;
-    char filel[MAXNAME],filer[MAXNAME];
+    const char *filel, *filer;
 
     int32_t mode = (int32_t)*p->omode;
     int32_t fade = (int32_t)*p->ofade;
@@ -283,9 +283,9 @@ static int32_t hrtfmove_init(CSOUND *csound, hrtfmove *p)
         overlapsize = (irlength - 1);
       }
 
-    /* copy in string name */
-    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
-    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
+    /* the names as given: LoadMemoryFile refuses one too long to keep */
+    filel = p->ifilel->data;
+    filer = p->ifiler->data;
 
     /* reading files, with byte swap */
     fpl = csound->LoadMemoryFile(csound, filel, CSFTYPE_FLOATS_BINARY,
@@ -1400,7 +1400,7 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
 {
     /* left and right data files: spectral mag, phase format. */
     MEMFIL *fpl = NULL, *fpr = NULL;
-    char filel[MAXNAME], filer[MAXNAME];
+    const char *filel, *filer;
 
     /* interpolation values */
     cs_float *lowl1;
@@ -1476,9 +1476,9 @@ static int32_t hrtfstat_init(CSOUND *csound, hrtfstat *p)
         overlapsize = (irlength - 1);
       }
 
-    /* copy in string name... */
-    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
-    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
+    /* the names as given: LoadMemoryFile refuses one too long to keep */
+    filel = p->ifilel->data;
+    filer = p->ifiler->data;
 
     /* reading files, with byte swap */
     fpl = csound->LoadMemoryFile(csound, filel, CSFTYPE_FLOATS_BINARY,
@@ -2071,7 +2071,7 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     /* left and right data files: spectral mag, phase format. */
     MEMFIL *fpl = NULL, *fpr = NULL;
 
-    char filel[MAXNAME], filer[MAXNAME];
+    const char *filel, *filer;
 
     /* time domain impulse length */
     int32_t irlength=0;
@@ -2105,9 +2105,9 @@ static int32_t hrtfmove2_init(CSOUND *csound, hrtfmove2 *p)
     else if(sr == 96000)
       irlength = 256;
 
-    /* copy in string name... */
-    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1] = '\0';
-    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filer[MAXNAME-1] = '\0';
+    /* the names as given: LoadMemoryFile refuses one too long to keep */
+    filel = p->ifilel->data;
+    filer = p->ifiler->data;
 
     /* reading files, with byte swap */
     fpl = csound->LoadMemoryFile(csound, filel, CSFTYPE_FLOATS_BINARY,

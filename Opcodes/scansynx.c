@@ -296,9 +296,9 @@ static int32_t scsnux_init_(CSOUND *csound, PSCSNUX *p, int32_t istring)
       }
     }
     else {                      /* New format matrix */
-      char filnam[256];
+      /* the name as given: LoadMemoryFile refuses one too long to keep */
+      const char *filnam = ((STRINGDAT *) p->i_f)->data;
       MEMFIL *mfp;
-      strncpy(filnam, ((STRINGDAT *) p->i_f)->data, 255); filnam[255]='\0';
       /* readfile if reqd */
       if (UNLIKELY((mfp =
                     csound->LoadMemoryFile(csound, filnam,
