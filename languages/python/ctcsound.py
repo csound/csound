@@ -787,6 +787,7 @@ class Csound:
         """
         self._kept = []
         self._keyboard_thunks = {}
+        self._keyboard_data = {}  # the user_data Csound may have, by callback
         self._threads = set()  # C pointers: a collection clears weakrefs first
         self._destroying = False
         if pointer_:
@@ -798,6 +799,7 @@ class Csound:
             else:
                 self._kept = owner._kept
                 self._keyboard_thunks = owner._keyboard_thunks
+                self._keyboard_data = owner._keyboard_data
         else:
             self.cs = libcsound.csoundCreate(ct.py_object(self._keep(host_data)),
                                              cstring(opcode_dir))
@@ -841,6 +843,7 @@ class Csound:
                 self.cs = None
                 self._kept.clear()
                 self._keyboard_thunks.clear()
+                self._keyboard_data.clear()
 
     def csound(self):
         """Returns the opaque pointer to the underlying CSOUND struct.
@@ -1028,10 +1031,13 @@ class Csound:
         to get meaningful information.
         """
         n = libcsound.csoundGetAudioDevList(self.cs, None, ct.c_int32(is_output))
+        if n <= 0:
+            return []
         devs = (CsoundAudioDevice * n)()
-        libcsound.csoundGetAudioDevList(self.cs, ct.byref(devs), ct.c_int32(is_output))
+        # The fill says how many it filled, which can be fewer than it counted.
+        n = libcsound.csoundGetAudioDevList(self.cs, ct.byref(devs), ct.c_int32(is_output))
         lst = []
-        for dev in devs:
+        for dev in devs[:max(n, 0)]:
             d = {}
             d["device_name"] = pstring(dev.device_name)
             d["device_id"] = pstring(dev.device_id)
@@ -1052,10 +1058,13 @@ class Csound:
         to get meaningful information.
         """
         n = libcsound.csoundGetMIDIDevList(self.cs, None, ct.c_int32(is_output))
+        if n <= 0:
+            return []
         devs = (CsoundMidiDevice * n)()
-        libcsound.csoundGetMIDIDevList(self.cs, ct.byref(devs), ct.c_int32(is_output))
+        # The fill says how many it filled, which can be fewer than it counted.
+        n = libcsound.csoundGetMIDIDevList(self.cs, ct.byref(devs), ct.c_int32(is_output))
         lst = []
-        for dev in devs:
+        for dev in devs[:max(n, 0)]:
             d = {}
             d["device_name"] = pstring(dev.device_name)
             d["interface_name"] = pstring(dev.interface_name)
@@ -1453,10 +1462,7 @@ class Csound:
         Currently supported channel var types are 'k' (control), 'a' (audio),
         'S' (string), 'f' (pvs), and '[' (array).
         """
-        ret = libcsound.csoundGetChannelVarTypeName(self.cs, cstring(name))
-        if ret:
-            return cstring(ret)
-        return None
+        return pstring(libcsound.csoundGetChannelVarTypeName(self.cs, cstring(name)))
 
     def list_channels(self):
         """Returns a list of allocated channels and an error message.
@@ -1807,7 +1813,9 @@ class Csound:
         registration. If the same function is set again, it is only moved
         in the list of callbacks so that it will be called first, and the
         user data and type mask parameters are updated. The same function
-        means what it does for remove_keyboard_callback().
+        means what it does for remove_keyboard_callback(). user_data is held
+        until another registration of the function is accepted, or it is
+        removed, or this instance is destroyed.
         type_mask can be the bitwise OR of callback types for which the
         function should be called, or zero for all types.
 
@@ -1853,11 +1861,20 @@ class Csound:
         Windows).
         """
         # Csound tells callbacks apart by address, so a function has one thunk,
-        # and that thunk stays after removal for the reason _keep gives.
-        thunk = self._keyboard_thunks.setdefault(self._keyboard_key(function),
-                                                 KEYBOARDFUNC(_checked(function, CSOUND_ERROR)))
-        return libcsound.csoundRegisterKeyboardCallback(self.cs, thunk,
-            ct.py_object(self._keep(user_data)), ct.c_uint(type_))
+        # and that thunk stays after removal for the reason _keep gives. Its
+        # user_data is the one Csound has: the old and the new are both held
+        # until Csound has answered, so that an exception in between, such as
+        # KeyboardInterrupt, leaves neither unheld.
+        key = self._keyboard_key(function)
+        thunk = self._keyboard_thunks.get(key)
+        if thunk is None:
+            thunk = self._keyboard_thunks[key] = KEYBOARDFUNC(_checked(function, CSOUND_ERROR))
+        data, mask = ct.py_object(user_data), ct.c_uint(type_)
+        old = self._keyboard_data.get(key, ())
+        self._keyboard_data[key] = old + (user_data,)
+        result = libcsound.csoundRegisterKeyboardCallback(self.cs, thunk, data, mask)
+        self._keyboard_data[key] = (user_data,) if result == CSOUND_SUCCESS else old
+        return result
 
     def remove_keyboard_callback(self, function):
         """Removes a callback previously set with register_keyboard_callback().
@@ -1876,6 +1893,7 @@ class Csound:
         key = self._keyboard_key(function)
         if key in self._keyboard_thunks:
             libcsound.csoundRemoveKeyboardCallback(self.cs, self._keyboard_thunks[key])
+            self._keyboard_data.pop(key, None)
 
     @staticmethod
     def _keyboard_key(function):
@@ -2148,7 +2166,11 @@ class Csound:
     def set_midi_device_list_callback(self, function):
         """Sets a callback for obtaining a list of MIDI devices.
 
-        With None, there are none.
+        With None, there are none. function(csound, devices, is_output)
+        returns the number of devices: how many there are when devices is a
+        NULL pointer (false, though not None), and otherwise how many it
+        filled, at most that many, or a negative number on an error. Only
+        those are listed.
         """
         self.midi_dev_list_cb_ref = _thunk(MIDIDEVLISTFUNC, _checked(function, 0), _no_callback)
         libcsound.csoundSetMIDIDeviceListCallback(self.cs,
@@ -2452,7 +2474,8 @@ class CsoundPerformanceThread:
         """Starts recording the output from Csound.
 
         The sample rate and number of channels are taken directly from the
-        running Csound instance.
+        running Csound instance. Once status() is no longer 0, it does
+        nothing, and opens no file.
         """
         libcspt.csoundPerformanceThreadRecord(self.cpt, cstring(filename), samplebits, numbufs)
 
@@ -2488,7 +2511,8 @@ class CsoundPerformanceThread:
 
         Returns a positive value if the end of score was reached or
         stop() was called, and a negative value if an error occured.
-        Also releases the message queue and its locks.
+        Also releases the message queue and its locks, and stops a recording
+        still running once the performance has ended.
         Not thread-safe: call it from one thread at a time, and not beside
         Csound.destroy() on another thread. Called from a callback on the
         thread itself, it joins nothing and returns the current status at
@@ -2731,8 +2755,7 @@ class Ugen:
 
             ugen.get_out_var(index).get_string()
         """
-        s = libcsound.csoundUgenGetString(self.ugen, index)
-        return pstring(s) if s else None
+        return pstring(libcsound.csoundUgenGetString(self.ugen, index))
 
     # Query
 
@@ -2936,5 +2959,4 @@ class UgenVar:
 
     def get_string(self):
         """Get the string value (S-type vars only)."""
-        s = libcsound.csoundUgenVarGetString(self.var)
-        return pstring(s) if s else None
+        return pstring(libcsound.csoundUgenVarGetString(self.var))

@@ -210,17 +210,24 @@ extern "C" {
     int retval = 0;
     const int bufsize = 4096;
     cs_float buf[bufsize];
+    // Whole frames at a time: a sound file takes no part of one.
+    const int items = bufsize - bufsize % csoundGetChannels(csound, 0);
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     csoundLockMutex(recordData->mutex);
-    while (ATOMIC_GET_BOOL(recordData->running)) {
-        csoundCondWait(recordData->condvar, recordData->mutex);
+    for (;;) {
+        // Read before draining: a stop can come before this thread first
+        // waits, and what was written until then is drained all the same.
+        const bool going = ATOMIC_GET_BOOL(recordData->running);
         int sampsread;
         do {
             sampsread = csoundReadCircularBuffer(NULL, recordData->cbuf,
-                                                 buf, bufsize);
+                                                 buf, items);
             csound->SndfileWriteSamples(csound, (SNDFILE *) recordData->sfile,
                             buf, sampsread);
         } while(sampsread != 0);
+        if (!going)
+            break;
+        csoundCondWait(recordData->condvar, recordData->mutex);
     }
     csoundUnlockMutex(recordData->mutex);
     csound->Message(csound, Str("Perf thread: stopped recording,\n"
@@ -258,7 +265,12 @@ public:
         this->filename = filename;
         CsoundPerformanceThreadMessage::lockRecord();
         recordData_t *recordData = CsoundPerformanceThreadMessage::getRecordData();
-        if (ATOMIC_GET_BOOL(recordData->running)) {
+        // Once the performance has ended, nothing would record into the file,
+        // and the instance may be gone: QueueMessage() drops this message
+        // then, as any other, and this is refused before it touches either.
+        // A call that races the end can still pass, and Join() then closes
+        // the file it opened.
+        if (ATOMIC_GET_BOOL(recordData->running) || pt_->GetStatus() != 0) {
             CsoundPerformanceThreadMessage::unlockRecord();
             return;
         }
@@ -268,6 +280,8 @@ public:
             return;
         }
         recordData->csound = csound;
+        // The last take's buffer: nothing has used it since it stopped.
+        csoundDestroyCircularBuffer(csound, recordData->cbuf);
         int32_t bufsize = (int32_t) (csound->GetOutputBufferSize(csound)
                                      * csoundGetChannels(csound,0) * numbufs);
         recordData->cbuf = csoundCreateCircularBuffer(csound,
@@ -738,7 +752,9 @@ int32_t CsoundPerformanceThread::Perform()
           processCallback(callbackData);
       }
       retval = csoundPerformKsmps(csound);
-      if (ATOMIC_GET_BOOL(recordData.running)) {
+      // A call that ends the performance computes no block: spout still
+      // holds the one recorded last.
+      if (retval == 0 && ATOMIC_GET_BOOL(recordData.running)) {
           const cs_float *spout = csoundGetSpout(csound);
           int len = csoundGetKsmps(csound) * csoundGetChannels(csound,0);
           int written = csoundWriteCircularBuffer(NULL, recordData.cbuf,
@@ -1066,12 +1082,13 @@ int32_t CsoundPerformanceThread::Join()
             "called from the performance thread (in one of its callbacks); "
             "ignoring the call."))
       return retval;
-    if (ATOMIC_GET_BOOL(recordData.running))
-      stopRecordThread(&recordData);
     if (perfThread) {
       retval = (int32_t) csoundJoinThread(perfThread);
       perfThread = (void*) 0;
     }
+    // Only now that the performance has ended: a recording goes on to its end.
+    if (ATOMIC_GET_BOOL(recordData.running))
+      stopRecordThread(&recordData);
 
     // delete any pending messages
     {

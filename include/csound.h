@@ -586,7 +586,9 @@ extern "C" {
    * If list is NULL, the function returns the number of devices
    * (isOutput=1 for out devices, 0 for in devices).
    * If list is non-NULL, then it should contain enough memory for
-   * one CS_AUDIODEVICE structure per device.
+   * one CS_AUDIODEVICE structure per device, and the function returns
+   * the number of structures it filled, which can be fewer than the count
+   * and is negative on an error: list only those.
    * Each count call describes the size for the immediately following fill
    * call. Callers should complete that fill before requesting another count
    * for the same direction. A backend may return the same count for a
@@ -598,14 +600,16 @@ extern "C" {
    * structs to be filled:
    *
    * \code
-   *   int32_t i,n = csoundGetAudioDevList(csound,NULL,1);
-   *   CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
-   *       malloc(n*sizeof(CS_AUDIODEVICE));
-   *   csoundGetAudioDevList(csound,devs,1);
-   *   for(i=0; i < n; i++)
-   *       csound->Message(csound, " %d: %s (%s)\n",
-   *             i, devs[i].device_id, devs[i].device_name);
-   *   free(devs);
+   *   int32_t i, filled, n = csoundGetAudioDevList(csound,NULL,1);
+   *   if (n > 0) {
+   *     CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
+   *         calloc(n, sizeof(CS_AUDIODEVICE));
+   *     filled = csoundGetAudioDevList(csound,devs,1);
+   *     for(i=0; i < n && i < filled; i++)
+   *         csound->Message(csound, " %d: %s (%s)\n",
+   *               i, devs[i].device_id, devs[i].device_name);
+   *     free(devs);
+   *   }
    * \endcode
    */
   PUBLIC int32_t csoundGetAudioDevList(CSOUND *csound,
@@ -617,7 +621,9 @@ extern "C" {
    * will only return the number of devices (isOutput=1 for out
    * devices, 0 for in devices).
    * If list is non-NULL, then it should contain enough memory for
-   * one CS_MIDIDEVICE structure per device.
+   * one CS_MIDIDEVICE structure per device, and the function returns
+   * the number of structures it filled, which can be fewer than the count
+   * and is negative on an error: list only those.
    * Hosts will typically call this function twice: first to obtain
    * a number of devices, then, after allocating space for each
    * device information structure, pass an array of CS_MIDIDEVICE

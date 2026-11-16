@@ -120,6 +120,7 @@ extern "C" {
      Starts recording the output from Csound.
      The sample rate and number of channels are taken directly from the
      running Csound instance.
+     Once the status is no longer 0, it does nothing, and opens no file.
   */
   PUBLIC void csoundPerformanceThreadRecord(CS_PERF_THREAD* pt,
     const char *filename,
@@ -187,7 +188,8 @@ extern "C" {
      Waits until the performance is finished or fails.
      Returns a positive value if the end of score was reached or
      stop() was called, and a negative value if an error occured.
-     Also releases the message queue and its locks.
+     Also releases the message queue and its locks, and stops a recording
+     still running once the performance has ended.
      Must not be called from a callback the performance runs. On the
      performance thread itself, i.e. from a message callback, from the
      process callback or from a Csound callback called there, it cannot
