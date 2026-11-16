@@ -45,25 +45,35 @@
 #define LF        '\n'
 
 static void sense_line(CSOUND *csound, void *userData);
+/* A reader is linked once it is complete: sensevents walks the list on the
+   performance thread with no lock, and a host's first line links one from
+   the host's thread. */
+#if defined(MSVC)
+#define PUBLISH(link, node) \
+  _InterlockedExchangePointer((void *volatile *) &(link), (node))
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define PUBLISH(link, node) __atomic_store_n(&(link), (node), __ATOMIC_RELEASE)
+#else
+#define PUBLISH(link, node) ((link) = (node))
+#endif
+
 static int32_t set_sense_event_callback(CSOUND *csound, void (*func)(CSOUND *, void *),
                  void *userData)
 {
-  EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
-  if (fp == NULL) {
-    fp = (EVT_CB_FUNC*) csound->Calloc(csound, sizeof(EVT_CB_FUNC));
-    csound->evtFuncChain = (void*) fp;
-  }
-  else {
-    while (fp->nxt != NULL)
-      fp = fp->nxt;
-    fp->nxt = (EVT_CB_FUNC*) csound->Calloc(csound, sizeof(EVT_CB_FUNC));
-    fp = fp->nxt;
-  }
+  EVT_CB_FUNC *last = (EVT_CB_FUNC*) csound->evtFuncChain;
+  EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->Calloc(csound, sizeof(EVT_CB_FUNC));
   if (UNLIKELY(fp == NULL))
     return CSOUND_MEMORY;
   fp->func = func;
   fp->userData = userData;
   fp->nxt = NULL;
+  if (last == NULL)
+    PUBLISH(csound->evtFuncChain, (void *) fp);
+  else {
+    while (last->nxt != NULL)
+      last = last->nxt;
+    PUBLISH(last->nxt, fp);
+  }
   csound->oparms->RTevents = 1;
   return 0;
 }
