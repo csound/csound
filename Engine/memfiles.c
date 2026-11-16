@@ -287,6 +287,10 @@ static int32_t load_file(CSOUND *csound, const char *filnam,
 
    Callback signature:     int32_t myfunc(CSOUND* csound, MEMFIL* mfp)
    Callback return value:  OK (0) or NOTOK (-1)
+
+   A file is shared by its name, kept in MEMFIL's filename, so a name too
+   long for it is refused with a warning and NULL: cut, it would be shared
+   with the file its first characters name.
  */
 MEMFIL *csoundLoadMemoryfile(CSOUND *csound, const char *filnam, int32_t csFileType,
                          int32_t (*callback)(CSOUND*, MEMFIL*))
@@ -296,6 +300,12 @@ MEMFIL *csoundLoadMemoryfile(CSOUND *csound, const char *filnam, int32_t csFileT
     int32    len = 0;           /*   then SADIR (if defined).                 */
     char    *pathnam;           /* Used by adsyn, pvoc, and lpread            */
 
+    if (UNLIKELY(strlen(filnam) >= sizeof(mfp->filename))) {
+      csoundWarning(csound, Str("string too long, name refused: at most %d "
+                                "characters fit: %.40s...\n"),
+                    (int32_t) sizeof(mfp->filename) - 1, filnam);
+      return NULL;
+    }
     mfp = csound->memfiles;
     while (mfp != NULL) {                               /* Checking chain */
       if (strcmp(mfp->filename, filnam) == 0)           /*   if match     */
