@@ -205,6 +205,8 @@ static inline int32_t is_name_char(int32_t c, int32_t pos)
 
 static inline void ungetscochar(CSOUND *csound, int32_t c)
 {
+    if (c == EOF)                 /* corfile_getc did not move to give it */
+      return;
     corfile_ungetc(csound->expanded_sco);
     csound->expanded_sco->body[csound->expanded_sco->p] = (char)c;
     if (c == '\n')                /* read again, it would count again */

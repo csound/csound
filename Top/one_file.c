@@ -892,7 +892,9 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
 
     n = nbits = 0;
     while ((c = corfile_getc(in)) != '=' && c != '<') {
-      while (isspace(c)) {
+      /* The alphabet is ASCII: above it, isspace, isupper, islower and
+         even isdigit depend on the locale, now that a byte comes unsigned */
+      while (c < 0x80 && isspace(c)) {
         if (c == '\n') {               /* count lines */
           ++(STA(csdlinecount));
           c = corfile_getc(in);
@@ -908,11 +910,11 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
         break;
       n <<= 6;
       nbits += 6;
-      if (isupper(c))
+      if (c >= 'A' && c <= 'Z')
         c -= 'A';
-      else if (islower(c))
+      else if (c >= 'a' && c <= 'z')
         c -= ((int32_t) 'a' - 26);
-      else if (isdigit(c))
+      else if (c >= '0' && c <= '9')
         c -= ((int32_t) '0' - 52);
       else if (c == '+')
         c = 62;
@@ -949,7 +951,9 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
 
     n = nbits = 0;
     while ((c = corfile_getc(in)) != '=' && c != '<') {
-      while (isspace(c)) {
+      /* The alphabet is ASCII: above it, isspace, isupper, islower and
+         even isdigit depend on the locale, now that a byte comes unsigned */
+      while (c < 0x80 && isspace(c)) {
         if (c == '\n') {               /* count lines */
           ++(STA(csdlinecount));
           c = corfile_getc(in);
@@ -965,11 +969,11 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
         break;
       n <<= 6;
       nbits += 6;
-      if (isupper(c))
+      if (c >= 'A' && c <= 'Z')
         c -= 'A';
-      else if (islower(c))
+      else if (c >= 'a' && c <= 'z')
         c -= ((int32_t) 'a' - 26);
-      else if (isdigit(c))
+      else if (c >= '0' && c <= '9')
         c -= ((int32_t) '0' - 52);
       else if (c == '+')
         c = 62;
