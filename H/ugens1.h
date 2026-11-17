@@ -39,6 +39,7 @@ typedef struct {
 typedef struct {
   int32  cnt, acnt;
   cs_double val, mlt, amlt;
+  cs_double delta, adelta, correction;
 } XSEG;
 
 typedef struct {

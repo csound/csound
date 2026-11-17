@@ -682,24 +682,26 @@ static int32_t expseg_init(CSOUND *csound, cs_float **args, int32_t nargs,
     segp = &segments[n];
     segp->cnt = (int32_t)steps;
     segp->acnt = (int32_t)audio_steps;
+    segp->correction = 0.0;
     if (absolute && count == 0.0) {
       /* Points at the same update jump immediately, including the final point. */
       segp->val = next;
       segp->mlt = segp->amlt = FL(1.0);
+      segp->delta = segp->adelta = FL(0.0);
     }
     else {
       cs_double ratio = (cs_double)next / val;
+      cs_double logratio;
       segp->val = val;
-      if (LIKELY(ratio >= DBL_MIN && ratio <= DBL_MAX)) {
-        segp->mlt = pow(ratio, 1.0 / count);
-        segp->amlt = pow(ratio, 1.0 / audio_count);
-      }
-      else {
+      if (ratio >= FL(0.5) && ratio <= FL(2.0))
+        logratio = log1p(((cs_double)next - val) / val);
+      else
         /* Avoid overflow and underflow in the endpoint ratio. */
-        cs_double logratio = log(fabs((cs_double)next)) - log(fabs((cs_double)val));
-        segp->mlt = exp(logratio / count);
-        segp->amlt = exp(logratio / audio_count);
-      }
+        logratio = log(fabs((cs_double)next)) - log(fabs((cs_double)val));
+      segp->mlt = exp(logratio / count);
+      segp->amlt = exp(logratio / audio_count);
+      segp->delta = expm1(logratio / count);
+      segp->adelta = expm1(logratio / audio_count);
     }
   }
   segp->cnt = segp->acnt = MAXPOS;
@@ -732,6 +734,23 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)
                      &p->cursegp, CS_ESR, CS_ESR, 0);
 }
 
+/* Store a slow curve's change from one directly, then retain updates that
+   fall below the spacing of val. Volatile prevents fast-math reassociation. */
+static inline cs_double expseg_advance(cs_double val, cs_double multiplier,
+                                       cs_double delta, cs_double *correction)
+{
+  if (delta > FL(-0.5) && delta < FL(0.5)) {
+    volatile cs_double update = (val - *correction) * delta;
+    volatile cs_double step = update - *correction;
+    volatile cs_double next = val + step;
+    volatile cs_double applied = next - val;
+    *correction = applied - step;
+    return next;
+  }
+  *correction = FL(0.0);
+  return val * multiplier;
+}
+
 /***************************************/
 
 int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) */
@@ -760,7 +779,7 @@ int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) 
       val = segp->val;
     }
     rs[n] = (cs_float)val;
-    val *=  segp->mlt;
+    val = expseg_advance(val, segp->mlt, segp->delta, &segp->correction);
   }
   segp->val = val;
   return OK;
@@ -778,7 +797,8 @@ int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
   while (segp->cnt != MAXPOS && --segp->cnt < 0)
     p->cursegp = ++segp;
   *p->rslt = (cs_float)segp->val;
-  segp->val *= segp->mlt;
+  segp->val = expseg_advance(segp->val, segp->mlt, segp->delta,
+                             &segp->correction);
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
@@ -811,7 +831,8 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
       //       segp->val,segp->amlt,segp->acnt);
     }
     rs[n] = (cs_float)segp->val;
-    segp->val *= segp->amlt;
+    segp->val = expseg_advance(segp->val, segp->amlt, segp->adelta,
+                               &segp->correction);
   }
   return OK;
  err1:
