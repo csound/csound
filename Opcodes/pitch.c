@@ -1226,45 +1226,45 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
 /* phasorbnk                                                        */
 /*==================================================================*/
 
-/* Wrap output that rounds to one, keeping the cs_double phase for the next call. */
+/* Wrap output that rounds to one, keeping the double phase for the next call. */
 #define PHASORBNK_OUTPUT(phase)                                    \
     ((cs_float)(phase) == FL(1.0) ? FL(0.0) : (cs_float)(phase))
 
 int32_t phsbnkset(CSOUND *csound, PHSORBNK *p)
 {
-    cs_double  phs;
+    double  phs;
     int32_t    n, count;
-    cs_double  *curphs;
+    double  *curphs;
 
     if (UNLIKELY(!((cs_double)*p->icnt <= (INT32_MAX + 0.0) - 0.5)))
       return csound->InitError(csound, "%s\n", Str("phasorbnk: invalid bank size"));
     count = *p->icnt < FL(2.0) ? 2 : (int32_t)CS_FLOAT2LONG(*p->icnt);
-    if (UNLIKELY((size_t)count > SIZE_MAX / sizeof(cs_double)))
+    if (UNLIKELY((size_t)count > SIZE_MAX / sizeof(double)))
       return csound->InitError(csound, "%s\n", Str("phasorbnk: bank size too large"));
 
-    if (p->curphs.auxp==NULL || p->curphs.size < sizeof(cs_double)*(size_t)count) {
+    if (p->curphs.auxp==NULL || p->curphs.size < sizeof(double)*(size_t)count) {
       /* AuxAlloc clears a resized buffer, even when initialization is skipped. */
-      cs_double *saved = NULL;
-      size_t oldBytes = sizeof(cs_double)*(size_t)p->count;
+      double *saved = NULL;
+      size_t oldBytes = sizeof(double)*(size_t)p->count;
       if (*p->iphs < FL(0.0) && p->curphs.auxp != NULL) {
         saved = csound->Malloc(csound, oldBytes);
         memcpy(saved, p->curphs.auxp, oldBytes);
       }
-      csound->AuxAlloc(csound, sizeof(cs_double)*(size_t)count, &p->curphs);
+      csound->AuxAlloc(csound, sizeof(double)*(size_t)count, &p->curphs);
       if (saved != NULL) {
         memcpy(p->curphs.auxp, saved, oldBytes);
         csound->Free(csound, saved);
       }
     }
     else if (*p->iphs < FL(0.0) && count > p->count) {
-      memset((cs_double*)p->curphs.auxp + p->count, 0,
-             sizeof(cs_double)*(size_t)(count - p->count));
+      memset((double*)p->curphs.auxp + p->count, 0,
+             sizeof(double)*(size_t)(count - p->count));
     }
 
-    curphs = (cs_double*)p->curphs.auxp;
+    curphs = (double*)p->curphs.auxp;
     if (*p->iphs > 1) {
       for (n=0; n<count;n++) {
-        curphs[n] = (cs_double) rand_31(csound) / 2147483645.0;
+        curphs[n] = (double) rand_31(csound) / 2147483645.0;
         if (curphs[n] == 1.0) curphs[n] = 0.0;
       }
     }
@@ -1278,8 +1278,8 @@ int32_t phsbnkset(CSOUND *csound, PHSORBNK *p)
 
 int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
 {
-    cs_double  phs;
-    cs_double  *curphs = (cs_double*)p->curphs.auxp;
+    double  phs;
+    double  *curphs = (double*)p->curphs.auxp;
     cs_float   cps;
     int32_t     index;
 
@@ -1312,8 +1312,9 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float   *rs;
-    cs_double  phase, incr;
-    cs_double  *curphs = (cs_double*)p->curphs.auxp;
+    double  phase;
+    cs_double incr;
+    double  *curphs = (double*)p->curphs.auxp;
     int32_t     index;
 
     if (UNLIKELY(curphs == NULL)) {
