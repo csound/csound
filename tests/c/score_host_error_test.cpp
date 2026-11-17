@@ -1158,6 +1158,21 @@ TEST(HostScoreReads, LaterReadsBeforeStartPlayToTheirEnd)
         EXPECT_EQ(2 * reads, host.played());
     }
     EXPECT_EQ(blocks[0], blocks[1]);
+    /* A first read whose second section is a timed e alone, which has no w
+       line, after a later read of one section: that section of the merge
+       has no head to write. Both notes play, and the score ends 0.5 s into
+       its second section. */
+    {
+        Host timedE;
+        csoundEventString(timedE.csound, "i 1 0 0.1\ns\ne 0.5", 0);
+        csoundEventString(timedE.csound, "i 1 0.05 0", 0);
+        timedE.start();
+        int cycles = 0;
+        while (cycles < 2000 && csoundPerformKsmps(timedE.csound) == 0)
+            cycles++;
+        EXPECT_EQ(2, timedE.played()) << timedE.said();
+        EXPECT_EQ(900, cycles); /* 0.1 s, then 0.5 s */
+    }
     /* With -t the score is played in beats, and merged in beats: a read
        whose t puts its beat 0.4 at 0.1 s plays after the other's 0.2. */
     Host host;

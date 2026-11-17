@@ -354,15 +354,17 @@ static CORFIL *merge_two(CSOUND *csound, const CORFIL *a, const CORFIL *b)
     s[1].p = b->body;
     while (s[0].p != NULL || s[1].p != NULL) {
       const char *head[2], *end[2];
-      int32_t i, h;
+      int32_t i;
       for (i = 0; i < 2; i++)
         section_head(&s[i], &head[i], &end[i]);
       /* a's w line, or b's. A section with no w line is one whose first
          statement was a timed s or e: swritestr() writes that as an f 0
          with p2 and its warped value, which a warped section reads as they
          are, as it reads every statement of a sorted score. */
-      h = s[0].p != NULL && end[0] != head[0] ? 0 : 1;
-      put_text(csound, head[h], end[h], out);
+      if (end[0] != head[0])
+        put_text(csound, head[0], end[0], out);
+      else if (end[1] != head[1])
+        put_text(csound, head[1], end[1], out);
       for (i = 0; i < 2; i++)
         next_line(csound, &s[i]);
       while (is_event(&s[0]) || is_event(&s[1])) {
