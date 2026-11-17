@@ -298,7 +298,7 @@ static void csoundWasiCReadlineCallback(CSOUND *csound, void *userData,
                               prompt != NULL ? strlen(prompt) : 0);
 }
 
-/* wasi-libc declares system(), but Preview 1 has no implementation or exec
+/* wasi-libc declares system(), but Preview 2 has no implementation or exec
  * syscall. Browser hosts provide this explicit extension; command builds do
  * not import it. The host returns a system()-style status, not a WASI errno. */
 int csoundWasiJsSystem(const char *)
@@ -643,41 +643,3 @@ void printDebug(const char *log) {
     (* printDebugCallback)(log, strlen(log));
   }
 }
-
-
-#if !defined(CSOUND_WASI_REALTIME) && !defined(__wasm64__)
-// LLVM 22+ requires the setjmp exception tag to be defined explicitly, even
-// when the browser reports longjmp through JS instead of throwing this tag.
-#if __clang_major__ >= 22
-__asm__(".globl __c_longjmp\n"
-        ".tagtype __c_longjmp i32\n"
-        "__c_longjmp:\n");
-#endif
-
-// WASI setjmp/longjmp stubs for the linker
-// These are weak symbols to allow the linker to resolve them
-// Function signatures match what's expected by the linker
-__attribute__((weak))
-void __wasm_setjmp(int a, int b, void *env) {
-  // WASI doesn't support setjmp, return failure
-  (void)a; (void)b; // Suppress unused parameter warnings
-}
-
-__attribute__((weak))
-int __wasm_setjmp_test(int a, void *env) {
-  // WASI doesn't support setjmp, return failure
-  (void)a; // Suppress unused parameter warning
-  return -1;
-}
-
-__attribute__((weak))
-void __wasm_longjmp(void *env, int val) {
-  // Report through JS host so callers can catch a normal exception instead
-  // of aborting the entire WASI instance via proc_exit.
-  char message[64];
-  (void) env;
-  snprintf(message, sizeof(message), "CSOUND_WASI_LONGJMP:%d", val);
-  printDebug(message);
-  __builtin_trap();
-}
-#endif /* Threaded and wasm64 builds use libc libsetjmp. */

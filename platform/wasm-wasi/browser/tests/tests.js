@@ -2163,6 +2163,17 @@ endin`,
       });
     });
 
+    it("returns an option error and keeps the instance usable", function () {
+      const csound = cs.csoundCreate();
+      try {
+        assert.equal(cs.csoundSetOption(csound, "-b"), 1);
+        assert.equal(cs.csoundSetOption(csound, "-n -m0"), 0);
+        assert.equal(cs.csoundCompileOrc(csound, "giRecovered init 1"), 0);
+      } finally {
+        cs.csoundDestroy(csound);
+      }
+    });
+
     it("rejects invalid WASM allocation sizes", function () {
       const wasm = cs.wasm.exports;
       // These sizes must fail before malloc, without exhausting browser memory.

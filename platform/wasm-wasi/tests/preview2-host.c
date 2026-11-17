@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <dirent.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
@@ -40,6 +41,22 @@ int main(int argc, char **argv) {
   assert(fseek(file, 4, SEEK_SET) == 0);
   float value = 0;
   assert(fread(&value, sizeof(float), 1, file) == 1 && value == 0.25f);
+  assert(fclose(file) == 0);
+  // SEEK_END must discard streams positioned before the end of the file.
+  int fd = open("files/audio", O_RDWR);
+  assert(fd >= 0);
+  assert(write(fd, "HEAD", 4) == 4);
+  assert(lseek(fd, 0, SEEK_END) == 16);
+  assert(write(fd, "TAIL", 4) == 4);
+  assert(lseek(fd, 0, SEEK_SET) == 0);
+  char marker[4];
+  assert(read(fd, marker, 4) == 4 && memcmp(marker, "HEAD", 4) == 0);
+  assert(lseek(fd, -4, SEEK_END) == 16);
+  assert(read(fd, marker, 4) == 4 && memcmp(marker, "TAIL", 4) == 0);
+  assert(close(fd) == 0);
+  // Restore the sample data for the remaining file checks.
+  file = fopen("files/audio", "w");
+  assert(file && fwrite(samples, sizeof(float), 4, file) == 4);
   assert(fclose(file) == 0);
   struct stat info;
   assert(stat("files/audio", &info) == 0 && info.st_size == 16);

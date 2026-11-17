@@ -122,6 +122,7 @@ in
 
     NIX_LDFLAGS =
       [
+        "-lsetjmp"
         "-lwasi-emulated-signal"
         "-lwasi-emulated-process-clocks"
         "--lto-O2"
@@ -173,10 +174,7 @@ in
       ++ lib.optionals browserHosted (
         builtins.map (name: "--export-if-defined=" + name)
         (builtins.fromJSON (builtins.readFile ./exports.json))
-      )
-      # wasi-libc provides the exception-handling setjmp implementation as a
-      # separate archive. The browser build uses its JavaScript-oriented stubs.
-      ++ lib.optionals (!browserHosted) ["-lsetjmp"];
+      );
 
     postInstall =
       if browserHosted

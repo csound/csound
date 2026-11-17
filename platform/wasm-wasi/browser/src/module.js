@@ -34,7 +34,6 @@ export const getBinaryHeaderData = (input) => parseBinaryHeaderData(input, decod
 
 const PAGE_SIZE = 65536;
 const PAGES_PER_MB = 16; // 1048576 bytes per MB / PAGE_SIZE
-const WASI_LONGJMP_PREFIX = "CSOUND_WASI_LONGJMP:";
 const MAX_ALIGNMENT_EXPONENT = 30;
 // Bound table growth and failed-load cleanup for one plugin.
 const MAX_PLUGIN_TABLE_ENTRIES = 1000000;
@@ -48,10 +47,6 @@ const alignmentFromExponent = (exponent) => {
 };
 
 const alignUp = (value, alignment) => Math.ceil(value / alignment) * alignment;
-
-const wasmLongjmp = (_, value) => {
-  throw new Error(`csound exit with code: ${value}`);
-};
 
 export const csoundWasiJsMessageCallback = ({ memory, messagePort, streamBuffer }) => {
   return function (_, __, length_, offset) {
@@ -121,30 +116,6 @@ export default async function loadWasm({
   getRandomValues,
 }) {
   const wasi = new WASI({ preopens: { "/": "/" }, getRandomValues });
-  const jumpTable = new Map(); // maps jmpbuf pointers to JS frames
-  let tempRet0 = 0; // for 64-bit return value handling
-
-  const saveSetjmp = (jmpbuf, label) => {
-    jumpTable.set(jmpbuf, label);
-    return 0;
-  };
-
-  const testSetjmp = (jmpbuf) => (jumpTable.has(jmpbuf) ? 1 : 0);
-
-  const longjmp = (jmpbuf, value) => {
-    const label = jumpTable.get(jmpbuf);
-    if (!label) {
-      throw new Error(`Invalid longjmp target ${jmpbuf}`);
-    }
-    throw new Error(`csound exit with code: ${value}`);
-  };
-
-  const getTempRet0 = () => tempRet0;
-
-  const setTempRet0 = (value) => {
-    tempRet0 = value;
-  };
-
   const wasmCompressed = new Uint8Array(wasmDataURI);
   const wasmZlib = new Inflate(wasmCompressed);
 
@@ -366,14 +337,6 @@ export default async function loadWasm({
   options["env"]["csoundLoadExternals"] = csoundLoadExternals;
   options["env"]["csoundWasiJsSystem"] = createSystem(wasi, (log) => messagePort.post({ log }));
 
-  // Add setjmp/longjmp functions to the environment
-  options["env"]["saveSetjmp"] = saveSetjmp;
-  options["env"]["testSetjmp"] = testSetjmp;
-  options["env"]["longjmp"] = longjmp;
-  options["env"]["__wasm_longjmp"] = wasmLongjmp;
-  options["env"]["getTempRet0"] = getTempRet0;
-  options["env"]["setTempRet0"] = setTempRet0;
-
   const streamBuffer = [];
   options["env"]["csoundWasiJsMessageCallback"] = csoundWasiJsMessageCallback({
     memory,
@@ -394,10 +357,6 @@ export default async function loadWasm({
   options["env"]["printDebugCallback"] = (offset, length) => {
     const buf = new Uint8Array(memory.buffer, offset, length);
     const string = uint2String(buf);
-    if (string.startsWith(WASI_LONGJMP_PREFIX)) {
-      const code = Number.parseInt(string.slice(WASI_LONGJMP_PREFIX.length), 10);
-      throw new Error(`csound longjmp with code: ${Number.isNaN(code) ? -1 : code}`);
-    }
     console.log(string);
   };
 

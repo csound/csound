@@ -67,6 +67,9 @@ function stringCall(name, text, ...args) {
   }
 }
 try {
+  // Invalid options use longjmp internally and must return through Csound's
+  // error handler, leaving the instance ready for another API call.
+  assert.equal(stringCall("csoundSetOption", "-b"), 1);
   assert.equal(sizeOfStruct(CS_MIDIDEVICE, wasm), api.sizeOfMidiStruct());
   assert.equal(
     stringCall(

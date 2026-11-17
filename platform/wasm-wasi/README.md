@@ -60,11 +60,13 @@ Both targets use WASI Preview 2. Nix builds LLVM runtimes and wasi-libc from
 source; it does not download a WASI SDK bundle. The shared nixpkgs pin is
 `6dadaf4375be35033e1c84395adbd53ff5fded96` with LLVM 23.1.3.
 [`src/wasi-libc-source.nix`](src/wasi-libc-source.nix) pins wasi-libc to
-`ce2ee9fb7e39c20ae266d294dd2d0afd1bf1f8e2` (2026-11-05), using WASI 0.2.12.
+`f762ab41b0953a4e7340b409697e6625993d60f1` (2026-11-16), using WASI 0.2.12.
 The wasm64 port patches libc's pointer atomics, stack declaration and WIT
 metadata object, plus compiler-rt's floating comparison return types.
 Both targets apply the libc++ WASI locale fix in
 [`src/libcxx-wasi-locale.patch`](src/libcxx-wasi-locale.patch).
+Both engines use wasi-libc's `libsetjmp` so Csound can catch errors and return
+through its C API without a JavaScript jump handler.
 
 The Component Model's direct memory64 ABI remains unfinished. The wasm64 build
 therefore includes a small core adapter with its own memory32 heap. It copies
