@@ -226,7 +226,6 @@ typedef struct {
         cs_float   *iformat;
         cs_float   *val;
         cs_float   oldvalue;
-        char    *sarg;
 } PRINTK3;
 
 typedef struct {

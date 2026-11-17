@@ -22,6 +22,8 @@
 #ifndef __PARSE_PARAM_H
 #define __PARSE_PARAM_H
 
+#include "scanner_buffers.h"
+
 typedef struct IFDEFSTACK_ {
     struct IFDEFSTACK_  *prv;
     unsigned char   isDef;      /* non-zero if #ifdef is true, or #ifndef   */
@@ -34,6 +36,7 @@ typedef struct IFDEFSTACK_ {
 
 typedef struct pre_parm_s {
     void            *yyscanner;
+    SCANNER_BUFFERS buffers;
   //MACRO           *macros;
     MACRON          *alt_stack; //[MAX_INCLUDE_DEPTH];
     unsigned int macro_stack_ptr;
@@ -64,6 +67,7 @@ typedef struct parse_parm_s {
     uint64_t        ilocn;      /* and location */
     uint32_t        first_column;
     uint32_t        last_column;  
+    int             previous_char;
     uint32_t        paren_depth;  /* suppress newlines inside parentheses */
     int             xsubstr;    /* count for substr */
 } PARSE_PARM;

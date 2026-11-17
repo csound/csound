@@ -30,6 +30,8 @@
   void cs_init_smacros(CSOUND*, PRS_PARM*, NAMES*);
   void swritestr(CSOUND*, CORFIL *sco, int32_t first);
   void sfree(CSOUND *csound);
+  void sread_abandon(CSOUND *csound);
+  void csound_prs_free(CSOUND *, PRS_PARM *);
   int32_t  sread(CSOUND *csound);
   void sread_initstr(CSOUND *, CORFIL *sco);
   cs_float stof(CSOUND *, char *);

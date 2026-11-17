@@ -37,6 +37,7 @@ if(BUILD_TESTS)
         convolution_outputs_test.cpp
         controller_print_test.cpp
         printsk_test.cpp
+        printks_format_test.cpp
         ftprint_test.cpp
         csound_data_structures_test.cpp
         csound_debug_callback_test.cpp
@@ -45,6 +46,8 @@ if(BUILD_TESTS)
         csound_message_buffer_test.cpp
         csound_diagnostics_test.cpp
         csound_option_parser_test.cpp
+        rc_files_test.cpp
+        start_failure_test.cpp
         plugin_options_test.cpp
         csound_csd_compile_test.cpp
         csound_orc_compile_test.cpp
@@ -72,12 +75,15 @@ if(BUILD_TESTS)
         dct_test.cpp
         fft_backend_test.cpp
         engine_test.cpp
+        global_env_test.cpp
         realtime_chain_test.cpp
         realtime_readiness_test.cpp
+        exit_jump_test.cpp
         instance_variable_test.cpp
         doppler_test.cpp
         io_test.cpp
         readline_host_test.cpp
+        keyboard_callback_test.cpp
         local_ksmps_test.cpp
         lfsr_test.cpp
         serial_test.cpp
@@ -118,6 +124,8 @@ if(BUILD_TESTS)
         nreverb_test.cpp
         midi_file_test.cpp
         midi_realtime_input_test.cpp
+        midi_output_test.cpp
+        null_host_callback_test.cpp
         realtime_queue_test.cpp
         realtime_logging_test.cpp
         midiarp_test.cpp
@@ -139,6 +147,7 @@ if(BUILD_TESTS)
         pfield_names_test.cpp
         userrnd_test.cpp
         ugen_test.cpp
+        srconvert_linear_test.cpp
         ../../Opcodes/osc_blob.c
     )
 
@@ -181,7 +190,9 @@ if(BUILD_TESTS)
             ${libcsound_public_include_dirs})
         target_compile_definitions(requested_opcode_test_plugin PRIVATE
             BUILD_PLUGINS)
+        # Its directory is scanned too, and a scan takes .dylib on macOS.
         set_target_properties(requested_opcode_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
             LIBRARY_OUTPUT_DIRECTORY
                 ${CMAKE_CURRENT_BINARY_DIR}/requested-opcode-plugin
             RUNTIME_OUTPUT_DIRECTORY
@@ -197,6 +208,73 @@ if(BUILD_TESTS)
             ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>)
         target_compile_definitions(unittests PRIVATE
             CSOUND_TEST_HAS_REQUESTED_OPCODE_PLUGIN)
+
+        add_library(failing_init_test_plugin MODULE
+            fixtures/failing_init_plugin.c)
+        target_include_directories(failing_init_test_plugin PRIVATE
+            ${libcsound_private_include_dirs})
+        target_include_directories(failing_init_test_plugin PUBLIC
+            ${libcsound_public_include_dirs})
+        target_compile_definitions(failing_init_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        # Its directory is scanned too, and a scan takes .dylib on macOS.
+        set_target_properties(failing_init_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/failing-init-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/failing-init-plugin)
+        add_dependencies(unittests failing_init_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/failing_init_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_FAILING_INIT_PLUGIN R\"csound($<TARGET_FILE:failing_init_test_plugin>)csound\"\n"
+            TARGET failing_init_test_plugin)
+
+        add_library(jumping_init_test_plugin MODULE
+            fixtures/jumping_init_plugin.c)
+        target_include_directories(jumping_init_test_plugin PRIVATE
+            ${libcsound_private_include_dirs})
+        target_include_directories(jumping_init_test_plugin PUBLIC
+            ${libcsound_public_include_dirs})
+        target_compile_definitions(jumping_init_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        set_target_properties(jumping_init_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/jumping-init-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/jumping-init-plugin)
+        add_dependencies(unittests jumping_init_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/jumping_init_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_JUMPING_INIT_PLUGIN R\"csound($<TARGET_FILE:jumping_init_test_plugin>)csound\"\n"
+            TARGET jumping_init_test_plugin)
+
+        add_library(failing_create_test_plugin MODULE
+            fixtures/failing_create_plugin.c)
+        target_include_directories(failing_create_test_plugin PRIVATE
+            ${libcsound_private_include_dirs})
+        target_include_directories(failing_create_test_plugin PUBLIC
+            ${libcsound_public_include_dirs})
+        target_compile_definitions(failing_create_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        set_target_properties(failing_create_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/failing-create-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/failing-create-plugin)
+        add_dependencies(unittests failing_create_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/failing_create_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_FAILING_CREATE_PLUGIN R\"csound($<TARGET_FILE:failing_create_test_plugin>)csound\"\n"
+            TARGET failing_create_test_plugin)
 
         add_library(configuration_test_plugin MODULE
             fixtures/configuration_plugin.c)
@@ -219,6 +297,60 @@ if(BUILD_TESTS)
             TARGET configuration_test_plugin)
         target_compile_definitions(unittests PRIVATE
             CSOUND_TEST_HAS_CONFIGURATION_PLUGIN)
+
+        add_library(create_error_test_plugin MODULE
+            fixtures/create_error_plugin.c)
+        target_include_directories(create_error_test_plugin PRIVATE
+            ${libcsound_private_include_dirs})
+        target_include_directories(create_error_test_plugin PUBLIC
+            ${libcsound_public_include_dirs})
+        target_compile_definitions(create_error_test_plugin PRIVATE
+            BUILD_PLUGINS)
+        # Its directory is scanned, and a scan takes .dylib on macOS.
+        set_target_properties(create_error_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/create-error-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/create-error-plugin)
+        add_dependencies(unittests create_error_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/create_error_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_CREATE_ERROR_PLUGIN R\"csound($<TARGET_FILE:create_error_test_plugin>)csound\"\n"
+            TARGET create_error_test_plugin)
+
+        if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+            # A second copy of each plugin that shares instance variables.
+            set(TEST_TWO_COPIES_DIR ${CMAKE_CURRENT_BINARY_DIR}/two-copies)
+            set(TEST_TWO_COPY_PLUGINS "")
+            foreach(plugin IN ITEMS rtalsa rtjack rtpulse stdutil)
+                if(TARGET ${plugin})
+                    set(plugin_dir ${TEST_TWO_COPIES_DIR}/${plugin})
+                    add_custom_target(unittests_two_copies_${plugin}
+                        COMMAND ${CMAKE_COMMAND} -E make_directory
+                            ${plugin_dir}/first ${plugin_dir}/second
+                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                            $<TARGET_FILE:${plugin}> ${plugin_dir}/first/
+                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                            $<TARGET_FILE:${plugin}> ${plugin_dir}/second/
+                        DEPENDS ${plugin})
+                    add_dependencies(unittests unittests_two_copies_${plugin})
+                    list(APPEND TEST_TWO_COPY_PLUGINS "\"${plugin}\"")
+                endif()
+            endforeach()
+            if(TEST_TWO_COPY_PLUGINS)
+                list(JOIN TEST_TWO_COPY_PLUGINS ", " two_copy_plugins)
+                file(WRITE
+                    ${CMAKE_CURRENT_BINARY_DIR}/generated/two_copies.hpp
+                    "#pragma once\n#define CSOUND_TEST_TWO_COPIES_DIR \"${TEST_TWO_COPIES_DIR}\"\n#define CSOUND_TEST_TWO_COPY_PLUGINS ${two_copy_plugins}\n")
+                target_include_directories(unittests PRIVATE
+                    ${CMAKE_CURRENT_BINARY_DIR}/generated)
+                target_compile_definitions(unittests PRIVATE
+                    CSOUND_TEST_HAS_TWO_COPIES)
+            endif()
+        endif()
     endif()
 
     if(TARGET stdutil)
@@ -295,6 +427,13 @@ if(BUILD_TESTS)
         target_compile_definitions(unittests PRIVATE
             CSOUND_TEST_JACK_PLUGIN_DIR="${TEST_JACK_PLUGIN_DIR}"
         )
+    endif()
+
+    if(TARGET rtalsa)
+        find_package(ALSA MODULE REQUIRED)
+        target_sources(unittests PRIVATE alsaseq_devices_test.cpp
+                                         fixtures/alsaseq_test_module.c)
+        target_link_libraries(unittests PRIVATE ALSA::ALSA)
     endif()
 
     if(TARGET pmidi AND NOT WIN32)
@@ -401,6 +540,15 @@ if(BUILD_TESTS)
             GTest::gtest_main ${CSOUNDLIB_STATIC})
         target_compile_features(api_queue_capacity_tests PRIVATE cxx_std_17)
         gtest_discover_tests(api_queue_capacity_tests PROPERTIES TIMEOUT 15)
+
+        add_executable(score_host_error_tests score_host_error_test.cpp)
+        target_compile_options(score_host_error_tests PRIVATE ${libcsound_CFLAGS})
+        target_include_directories(score_host_error_tests PRIVATE
+            ${libcsound_private_include_dirs} ${libcsound_public_include_dirs})
+        target_link_libraries(score_host_error_tests PRIVATE
+            GTest::gtest_main ${CSOUNDLIB_STATIC})
+        target_compile_features(score_host_error_tests PRIVATE cxx_std_17)
+        gtest_discover_tests(score_host_error_tests PROPERTIES TIMEOUT 30)
     endif()
 
     if(NOT EMSCRIPTEN AND NOT IOS AND NOT BARE_METAL AND

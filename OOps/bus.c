@@ -23,6 +23,9 @@
 
 /*                      BUS.C           */
 #include "csoundCore.h"
+#if defined(MSVC)
+#include <intrin.h> /* for ATOMIC_SET_SIZE */
+#endif
 #include "arrays.h"
 #include "arrays_internal.h"
 #include <setjmp.h>
@@ -401,9 +404,12 @@ static void release_hint_attributes(CSOUND *csound,
   }
 }
 
+/* Hosts read a channel's type, and add to its mode, from any thread. */
 static inline int32_t channel_type(const CHNENTRY *channel)
 {
-#ifdef CSOUND_WASI_REALTIME
+#if defined(MSVC)
+  return _InterlockedExchangeAdd((volatile long *) &channel->type, 0);
+#elif defined(HAVE_ATOMIC_BUILTIN)
   return __atomic_load_n(&channel->type, __ATOMIC_ACQUIRE);
 #else
   return channel->type;
@@ -412,7 +418,9 @@ static inline int32_t channel_type(const CHNENTRY *channel)
 
 static inline void channel_add_mode(CHNENTRY *channel, int32_t mode)
 {
-#ifdef CSOUND_WASI_REALTIME
+#if defined(MSVC)
+  _InterlockedOr((volatile long *) &channel->type, mode);
+#elif defined(HAVE_ATOMIC_BUILTIN)
   __atomic_fetch_or(&channel->type, mode, __ATOMIC_RELAXED);
 #else
   channel->type |= mode;
@@ -776,13 +784,16 @@ int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name){
       || pp->var->memBlock == NULL)
     return 0;
   else {
+    /* Not under the channel's lock, which the caller may hold: writers
+       store a string channel's size and an array channel's allocated
+       atomically for this read. */
     if ((channel_type(pp) & CSOUND_STRING_CHANNEL) == CSOUND_STRING_CHANNEL) {
       STRINGDAT *dat = (STRINGDAT *) &(pp->var->memBlock->value);
-      return (int32_t) dat->size;
+      return (int32_t) ATOMIC_GET_SIZE(dat->size);
     }
     if((channel_type(pp) & CSOUND_ARRAY_CHANNEL) == CSOUND_ARRAY_CHANNEL) {
       ARRAYDAT *dat = (ARRAYDAT *) &(pp->var->memBlock->value);
-      return (int32_t)dat->allocated;
+      return (int32_t) ATOMIC_GET_SIZE(dat->allocated);
     }
     return pp->var->memBlockSize;
   }
@@ -1707,7 +1718,7 @@ int32_t chnset_opcode_init_S(CSOUND* csound, CHNGET* p)
     if (len >= (uint32_t) dest->size)
       {
         dest->data = csound->ReAlloc(csound, dest->data, len + 1);
-        dest->size = len + 1;
+        ATOMIC_SET_SIZE(dest->size, len + 1);
       }
     if (dest->data != NULL)
       strcpy(dest->data, s);
@@ -1742,7 +1753,7 @@ int32_t chnset_opcode_perf_S(CSOUND* csound, CHNGET* p)
   if (len >= (uint32_t) dest->size)
     {
       dest->data = csound->ReAlloc(csound, dest->data, len + 1);
-      dest->size = len + 1;
+      ATOMIC_SET_SIZE(dest->size, len + 1);
     }
   if (dest->data != NULL)
     strcpy(dest->data, s);
@@ -2535,7 +2546,7 @@ int32_t chnset_array_opcode_perf_S(CSOUND* csound, CHNGETARRAY* p)
         size_t len = strlen(src->data);
         if (len >= (uint32_t) dest->size) {
           dest->data = csound->ReAlloc(csound, dest->data, len + 1);
-          dest->size = len + 1;
+          ATOMIC_SET_SIZE(dest->size, len + 1);
         }
         if (dest->data != NULL)
           strcpy(dest->data, src->data);
@@ -2895,11 +2906,26 @@ static int32_t prepare_array_channel(CSOUND *csound, ARRAYDAT *prepared,
   return OK;
 }
 
+/* Install storage prepared outside the channel's lock as the channel's,
+   under the lock, and release what it replaces after the lock, so that a
+   host holding csoundLockChannel() never sees it replaced or freed. Unless
+   replace is set, a channel that has storage keeps it, and the prepared
+   storage is released instead. */
 static void publish_array_channel(CSOUND *csound, ARRAYDAT *destination,
-                                  ARRAYDAT *prepared)
+                                  ARRAYDAT *prepared, spin_lock_t *lock,
+                                  int32_t replace)
 {
-  csound_free_array_storage(csound, destination);
-  *destination = *prepared;
+  ARRAYDAT released = {0};
+
+  csoundSpinLock(lock);
+  if (replace || destination->data == NULL) {
+    csound_array_assign(&released, destination);
+    csound_array_assign(destination, prepared);
+  }
+  else
+    csound_array_assign(&released, prepared);
+  csoundSpinUnLock(lock);
+  csound_free_array_storage(csound, &released);
   memset(prepared, 0, sizeof(*prepared));
 }
 
@@ -2915,10 +2941,62 @@ static inline int32_t copy_array(CSOUND *csound, ARRAYDAT *out,
   return result;
 }
 
+/* Give the empty array adat the shape of the array channel chn, and give
+   chn adat's element type if it has none, with no allocation under the
+   channel's lock: the shape is copied under the lock into sizes allocated
+   before it, for adat's declared number of dimensions and then for chn's
+   if they differ, and adat is allocated after it. */
+static int32_t init_array_like_channel(CSOUND *csound, ARRAYDAT *adat,
+                                       ARRAYDAT *chn, spin_lock_t *lock)
+{
+  ARRAYDAT shape = {0};
+  int32_t dimensions = adat->dimensions > 0 ? adat->dimensions : 0;
+  int32_t result;
+
+  for (;;) {
+    cs_float *data;
+
+    if (dimensions > 0) {
+      shape.sizes = (int32_t *)csound->Calloc(
+        csound, sizeof(int32_t) * (size_t)dimensions);
+      if (UNLIKELY(shape.sizes == NULL))
+        return csound_array_init_resize_error(csound);
+    }
+    shape.dimensions = dimensions;
+    csoundSpinLock(lock);
+    if (chn->arrayType == NULL)
+      chn->arrayType = adat->arrayType;
+    data = chn->data;
+    dimensions = chn->dimensions;
+    if (data != NULL && dimensions == shape.dimensions &&
+        (dimensions == 0 || chn->sizes != NULL)) {
+      if (dimensions > 0)
+        memcpy(shape.sizes, chn->sizes,
+               sizeof(int32_t) * (size_t)dimensions);
+      shape.arrayType = chn->arrayType;
+      csoundSpinUnLock(lock);
+      /* tabinit_like() only compares it with adat's, which is NULL */
+      shape.data = data;
+      break;
+    }
+    csoundSpinUnLock(lock);
+    csound->Free(csound, shape.sizes);
+    shape.sizes = NULL;
+    if (data == NULL)
+      return csound->InitError(csound, Str("array channel not allocated\n"));
+    if (UNLIKELY(dimensions < 0 || dimensions == shape.dimensions))
+      return csound_array_init_resize_error(csound);
+  }
+  result = tabinit_like(csound, adat, &shape);
+  csound->Free(csound, shape.sizes);
+  return result == OK ? OK : csound_array_init_resize_error(csound);
+}
+
 static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int32_t type) {
-  int32_t   err;
+  int32_t   err, allocated;
   CHNENTRY *chn;
   ARRAYDAT *adat = (ARRAYDAT *) p->arg, *adat_chn;
+  ARRAYDAT prepared = {0};
   err = csoundGetChannelPtr(csound, (void **)&(p->fp),
                             (char*) p->iname->data,
                             CSOUND_ARRAY_CHANNEL | type);
@@ -2935,21 +3013,21 @@ static int32_t init_chn_array(CSOUND* csound, CHNGET* p, int32_t type) {
     chn->var->dimensions = adat->dimensions;
   }
   adat_chn = (ARRAYDAT *) p->fp;
+  if(adat->data == NULL)
+    return init_array_like_channel(csound, adat, adat_chn, p->lock);
+
+  csoundSpinLock(p->lock);
   if(adat_chn->arrayType == NULL)
    adat_chn->arrayType = adat->arrayType;
-
-  if(adat->data == NULL) {
-    if(adat_chn->data == NULL)
-      return csound->InitError(csound, Str("array channel not allocated\n"));
-    else if (UNLIKELY(tabinit_like(csound, adat, adat_chn) != OK))
+  prepared.arrayType = adat_chn->arrayType;
+  allocated = adat_chn->data != NULL;
+  csoundSpinUnLock(p->lock);
+  if(!allocated) {
+    if (UNLIKELY(tabinit_like(csound, &prepared, adat) != OK)) {
+      csound_free_array_storage(csound, &prepared);
       return csound_array_init_resize_error(csound);
-  }
-
-  if(adat_chn->data == NULL) {
-    if(adat->data == NULL)
-      return csound->InitError(csound, Str("array variable not allocated\n"));
-    else if (UNLIKELY(tabinit_like(csound, adat_chn, adat) != OK))
-      return csound_array_init_resize_error(csound);
+    }
+    publish_array_channel(csound, adat_chn, &prepared, p->lock, 0);
   }
   return OK;
 }
@@ -3064,6 +3142,7 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
 {
   ARRAYDAT prepared = {0};
   ARRAYDAT *adat;
+  CHNENTRY *entry;
   const CS_TYPE *elementType;
   int32_t *sizes;
   size_t dimensionCount;
@@ -3077,9 +3156,10 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
     type |= CSOUND_INPUT_CHANNEL;
   if (mode & 2)
     type |= CSOUND_OUTPUT_CHANNEL;
-  err = csoundGetChannelPtr(csound, (void **) &adat, (char*) p->iname->data, type);
+  err = get_channel_entry(csound, &entry, (char*) p->iname->data, type);
   if (UNLIKELY(err))
     return print_chn_err(p, err);
+  adat = (ARRAYDAT *) &entry->var->memBlock->value;
 
   if (UNLIKELY(p->idim == NULL || p->idim->data == NULL ||
                p->idim->dimensions != 1 || p->idim->sizes == NULL ||
@@ -3112,7 +3192,7 @@ int32_t chn_opcode_init_ARRAY(CSOUND *csound, CHN_OPCODE_ARRAY *p)
     return csound_array_init_resize_error(csound);
   }
   csound->Free(csound, sizes);
-  publish_array_channel(csound, adat, &prepared);
+  publish_array_channel(csound, adat, &prepared, &entry->lock, 1);
   return OK;
 }
 
@@ -3285,7 +3365,7 @@ void csoundSetStringChannel(CSOUND *csound, const char *name,
     size_t len = strlen(string);
     if (len >= stringdat->size) {
       stringdat->data = csound->ReAlloc(csound, stringdat->data, len + 1);
-      stringdat->size = len + 1;
+      ATOMIC_SET_SIZE(stringdat->size, len + 1);
     }
     if (stringdat->data != NULL)
       strcpy((char *) stringdat->data, string);
@@ -3391,17 +3471,24 @@ ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
                                  const int32_t *sizes) {
   ARRAYDAT prepared = {0};
   const CS_TYPE *elementType;
-  int32_t err;
+  int32_t err, initialised;
   ARRAYDAT *adat;
+  CHNENTRY *entry;
+  spin_lock_t *lock;
 
-  err = csoundGetChannelPtr(csound, (void **) &adat, name,
-                            CSOUND_ARRAY_CHANNEL |
-                            CSOUND_INPUT_CHANNEL |
-                            CSOUND_OUTPUT_CHANNEL);
+  err = get_channel_entry(csound, &entry, name,
+                          CSOUND_ARRAY_CHANNEL |
+                          CSOUND_INPUT_CHANNEL |
+                          CSOUND_OUTPUT_CHANNEL);
 
   if(err != CSOUND_SUCCESS) return NULL;
 
-  if(adat->data == NULL) {
+  adat = (ARRAYDAT *) &entry->var->memBlock->value;
+  lock = &entry->lock;
+  csoundSpinLock(lock);
+  initialised = adat->data != NULL;
+  csoundSpinUnLock(lock);
+  if(!initialised) {
     elementType = type != NULL
       ? csoundGetTypeWithVarTypeName(csound->typePool, type) : NULL;
     if (UNLIKELY(prepare_array_channel(
@@ -3410,7 +3497,8 @@ ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
       csound->ErrorMsg(csound, "%s", Str("Could not resize array channel"));
       return NULL;
     }
-    publish_array_channel(csound, adat, &prepared);
+    /* another thread may have initialised it since: then it is kept */
+    publish_array_channel(csound, adat, &prepared, lock, 0);
   }
   return adat;
 }
@@ -3451,11 +3539,24 @@ const void *csoundGetArrayData(const ARRAYDAT *adat) {
 }
 
 void csoundLockChannel(CSOUND *csound, const char *channel) {
-  csoundSpinLock((spin_lock_t *) get_channel_lock(csound, (char*) channel));
+  spin_lock_t *lock = (spin_lock_t *) get_channel_lock(csound, channel);
+  if (UNLIKELY(lock == NULL)) {
+    csound->ErrorMsg(csound, Str("could not lock channel %s: no such channel\n"),
+                     channel != NULL ? channel : "(null)");
+    return;
+  }
+  csoundSpinLock(lock);
 }
 
 void csoundUnlockChannel(CSOUND *csound, const char *channel) {
-  csoundSpinUnLock((spin_lock_t *)get_channel_lock(csound, (char*) channel));
+  spin_lock_t *lock = (spin_lock_t *) get_channel_lock(csound, channel);
+  if (UNLIKELY(lock == NULL)) {
+    csound->ErrorMsg(csound,
+                     Str("could not unlock channel %s: no such channel\n"),
+                     channel != NULL ? channel : "(null)");
+    return;
+  }
+  csoundSpinUnLock(lock);
 }
 
 /* ********************************************************************** */

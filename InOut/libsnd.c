@@ -535,7 +535,9 @@ void sf_open_in(CSOUND *csound)           /* init for continuous soundin */
         parm.sampleRate   = (float) csound->esr;
         parm.ksmps = csound->ksmps;
         /* open devaudio for input */
-        if (UNLIKELY(csound->recopen_callback(csound, &parm) != 0))
+        if (UNLIKELY(csound->recopen_callback == NULL ||
+                     csound->rtrecord_callback == NULL ||
+                     csound->recopen_callback(csound, &parm) != 0))
           csoundDie(csound, Str("Failed to initialise real time audio input\n"));
         /*  & redirect audio gets  */
         csound->audrecv = csound->rtrecord_callback;
@@ -622,7 +624,7 @@ static char* copyrightcode(int32_t n)
 {
       char* a[] = {
         "All Rights Reserved\n",
-        "Creative Commons Attribution-NonCommercial-NoDerivatives\nCC BY-NC-ND\n)",
+        "Creative Commons Attribution-NonCommercial-NoDerivatives\nCC BY-NC-ND\n",
         "Creative Commons Attribution-NonCommercial-ShareAlike\nCC BY-NC-SA\n",
         "Creative Commons Attribution-NonCommercial\nCC BY-NC\n",
         "Creative Commons Attribution-NoDerivatives\nCC BY-ND\n",
@@ -754,7 +756,9 @@ void sf_open_out(CSOUND *csound)                  /* init for sound out       */
         parm.ksmps = csound->ksmps;
         csound->spoutran  = spoutsf;
         /* open devaudio for output */
-        if (UNLIKELY(csound->playopen_callback(csound, &parm) != 0))
+        if (UNLIKELY(csound->playopen_callback == NULL ||
+                     csound->rtplay_callback == NULL ||
+                     csound->playopen_callback(csound, &parm) != 0))
           csoundDie(csound, Str("Failed to initialise real time audio output\n"));
         /*  & redirect audio puts  */
         csound->audtran = csound->rtplay_callback;
@@ -952,7 +956,8 @@ void sf_close_in(CSOUND *csound)
       return;
     if (STA(pipdevin) == 2 && (!STA(osfopen) || STA(pipdevout) != 2)) {
       /* close only if not open for output too */
-      csound->rtclose_callback(csound);
+      if (csound->rtclose_callback != NULL)
+        csound->rtclose_callback(csound);
     }
     else if (STA(pipdevin) != 2) {
       if (STA(infile) != NULL)
@@ -983,7 +988,8 @@ void sf_close_out(CSOUND *csound)
     }
     if (STA(pipdevout) == 2 && (!STA(isfopen) || STA(pipdevin) != 2)) {
       /* close only if not open for input too */
-      csound->rtclose_callback(csound);
+      if (csound->rtclose_callback != NULL)
+        csound->rtclose_callback(csound);
     }
     if (STA(pipdevout) == 2)
       goto report;

@@ -60,9 +60,11 @@ OENTRY* find_opcode(CSOUND*, char*);
 void sanitize(CSOUND *csound);
 
 static int32_t udo_entry_is_init_control(CSOUND *csound,
+                                         const ENGINE_STATE *engineState,
                                          const INSTRTXT *ip,
                                          const TEXT *text) {
   const CS_VARIABLE *variable;
+  const char *name;
 
   if (ip == NULL || text == NULL || text->oentry == NULL) {
     return 0;
@@ -77,8 +79,16 @@ static int32_t udo_entry_is_init_control(CSOUND *csound,
       text->inlist == NULL || text->inlist->count < 1) {
     return 0;
   }
-  variable = csoundFindVariableWithName(csound, ip->varPool,
-                                        text->inlist->arg[0]);
+  name = text->inlist->arg[0];
+  variable = csoundFindVariableWithName(csound, ip->varPool, name);
+  /* true, false and a global are not in the UDO's own pool */
+  if (variable == NULL) {
+    variable = csoundFindVariableWithName(csound, engineState->varPool, name);
+  }
+  if (variable == NULL) {
+    variable = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                          name);
+  }
   return variable != NULL && variable->varType == &CS_VAR_TYPE_b;
 }
 
@@ -90,6 +100,13 @@ static int32_t variable_has_perf_type(const CS_VARIABLE *variable) {
          type == &CS_VAR_TYPE_F || subtype == &CS_VAR_TYPE_A ||
          subtype == &CS_VAR_TYPE_K || subtype == &CS_VAR_TYPE_B ||
          subtype == &CS_VAR_TYPE_W || subtype == &CS_VAR_TYPE_F;
+}
+
+/* What the compiler puts where a boolean meets a number has a performance pass
+   for a UDO that runs at performance. It is no reason for one to. */
+static int32_t udo_entry_is_boolean_conversion(const OENTRY *entry) {
+  return !strncmp(entry->opname, "##b2", 4) ||
+         !strncmp(entry->opname, "##k2", 4);
 }
 
 static int32_t udo_pool_has_perf_types(const CS_VAR_POOL *pool) {
@@ -115,8 +132,9 @@ static OPCODINFO *udo_called_definition(const OENTRY *entry) {
 /* A UDO call is classified after every definition in this compilation has
    been built. Ignoring calls here lets mutually recursive, init-only UDOs
    reach the same fixed point as direct recursion. */
-static int32_t udo_has_intrinsic_perf(CSOUND *csound, INSTRTXT *ip,
-                                      OPCODINFO *opinfo) {
+static int32_t udo_has_intrinsic_perf(CSOUND *csound,
+                                      const ENGINE_STATE *engineState,
+                                      INSTRTXT *ip, OPCODINFO *opinfo) {
   OPTXT *optxt = (OPTXT *) ip;
   if (opinfo != NULL &&
       (udo_pool_has_perf_types(opinfo->in_arg_pool) ||
@@ -131,7 +149,8 @@ static int32_t udo_has_intrinsic_perf(CSOUND *csound, INSTRTXT *ip,
     if (udo_called_definition(ttp->oentry) != NULL) {
       continue;
     }
-    if (udo_entry_is_init_control(csound, ip, ttp)) {
+    if (udo_entry_is_init_control(csound, engineState, ip, ttp) ||
+        udo_entry_is_boolean_conversion(ttp->oentry)) {
       continue;
     }
     if (ttp->oentry->perf != NULL) {
@@ -191,7 +210,8 @@ static void classify_udo_rates(CSOUND *csound, ENGINE_STATE *engineState) {
   for (instrument = engineState->instxtanchor.nxtinstxt;
        instrument != NULL; instrument = instrument->nxtinstxt) {
     OPCODINFO *opinfo = instrument->opcode_info;
-    if (opinfo != NULL && udo_has_intrinsic_perf(csound, instrument, opinfo))
+    if (opinfo != NULL &&
+        udo_has_intrinsic_perf(csound, engineState, instrument, opinfo))
       opinfo->oentry->perf = (SUBR)useropcd;
   }
   /* One scan often settles small or callee-first graphs. Avoid allocating a
@@ -2892,6 +2912,23 @@ static int32_t compile_orc(CSOUND *csound, const char *str, int32_t async) {
   return retVal;
 }
 
+/* compile_orc, taking the jumps made inside it: exitjmp is this frame's. The
+   API_CALL is the caller's, out of this setjmp's frame. */
+static CS_NOINLINE int32_t compile_orc_own_jumps(CSOUND *csound,
+                                                const char *str, int32_t async)
+{
+  int32_t retVal;
+  volatile jmp_buf tmpExitJmp;
+  memcpy((void *)&tmpExitJmp, (void *)&csound->exitjmp, sizeof(jmp_buf));
+  if ((retVal = setjmp(csound->exitjmp))) {
+    memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+    return retVal;
+  }
+  retVal = compile_orc(csound, str, async);
+  memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+  return retVal;
+}
+
 int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
   int32_t retVal;
 #ifdef CSOUND_WASI_REALTIME
@@ -2927,15 +2964,13 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
     return retVal;
   }
 #endif
-  volatile jmp_buf tmpExitJmp;
-  memcpy((void *)&tmpExitJmp, (void *)&csound->exitjmp, sizeof(jmp_buf));
-  if ((retVal = setjmp(csound->exitjmp))) {
-    memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
-    return retVal;
-  }
-  retVal = compile_orc(csound, str, async);
-  memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
-  return retVal;
+  API_CALL call;
+  api_call_begin(csound, &call);
+  retVal = compile_orc_own_jumps(csound, str, async);
+  api_call_end(&call);
+  /* the first jump that an init pass of the global code took, as exitjmp
+     would give it */
+  return call.jumped ? call.jumped : retVal;
 }
 
 static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {

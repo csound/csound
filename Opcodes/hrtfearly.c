@@ -242,7 +242,7 @@ static int32_t early_init(CSOUND *csound, early *p)
 
     /* left and right data files: spectral mag, phase format.*/
     MEMFIL *fpl=NULL, *fpr=NULL;
-    char filel[MAXNAME],filer[MAXNAME];
+    const char *filel, *filer;
 
     /* processing sizes*/
     int32_t irlength = 0, irlengthpad = 0, overlapsize = 0;
@@ -319,9 +319,9 @@ static int32_t early_init(CSOUND *csound, early *p)
       overlapsize = (irlength - 1);
     }
 
-    /* copy in string name...*/
-    strncpy(filel, (char*) p->ifilel->data, MAXNAME-1); //filel[MAXNAME-1]='\0';
-    strncpy(filer, (char*) p->ifiler->data, MAXNAME-1); //filer[MAXNAME-1]='\0';
+    /* the names as given: LoadMemoryFile refuses one too long to keep */
+    filel = p->ifilel->data;
+    filer = p->ifiler->data;
 
     /* reading files, with byte swap */
     fpl = csound->LoadMemoryFile(csound, filel, CSFTYPE_FLOATS_BINARY,

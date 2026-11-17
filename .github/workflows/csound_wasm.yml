@@ -148,7 +148,8 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME"
           cd $wasm_browser_dir
           npm ci
-          npm link --no-save --package-lock=false --ignore-scripts ..
+          # Keep locked dependency versions when linking the freshly built WASM.
+          npm link --no-save --ignore-scripts ..
           npm run test:closure
           if [ "${{ needs.csound-wasm.outputs.realtime-supported }}" = 1 ]; then
             npm run test:fixtures

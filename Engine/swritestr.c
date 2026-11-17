@@ -103,7 +103,9 @@ void swritestr(CSOUND *csound, CORFIL *sco, int32_t first)
     case 'd':
     case 'a':
       corfile_putc(csound, c, sco);
-      corfile_putc(csound, *p++, sco);
+      corfile_putc(csound, *p, sco);
+      if (*p++ == LF)                                /* no p-field   */
+        break;
       while ((c = *p++) != SP && c != LF)
         corfile_putc(csound, c, sco);                /* put p1       */
       corfile_putc(csound, c, sco);
@@ -166,7 +168,10 @@ void swritestr(CSOUND *csound, CORFIL *sco, int32_t first)
         CS_SPRINTF(buffer, "f 0  %f %f\n", bp->p2val, bp->newp2);
         corfile_puts(csound, buffer, sco);
       }
-      else corfile_putc(csound, c, sco);
+      /* Before the start, a score sorted after the first one is queued as
+         realtime events, where an e ends the performance at once. */
+      else if (first || (csound->engineStatus & CS_STATE_COMP))
+        corfile_putc(csound, c, sco);
       corfile_putc(csound, LF, sco);
       break;
     case 'w':
@@ -264,8 +269,9 @@ static char *nextp(CSOUND *csound, SRTBLK *bp, char *p,
 
     q = p;
     p++;                                    /* 1st char     */
-    if (UNLIKELY(*p++ != 'p'))              /* 2nd char     */
+    if (UNLIKELY(*p != 'p'))                /* 2nd char     */
       goto error;
+    p++;
     n = 999;
     if (isdigit(*p))
       n = *p++ - '0';
@@ -275,11 +281,15 @@ static char *nextp(CSOUND *csound, SRTBLK *bp, char *p,
       goto error;
     if (LIKELY((bp = nxtins(bp)) != NULL   /* for nxtins, same p1  */
                && n <= bp->pcnt)) {
-      q = bp->text;
+      char *field = bp->text;
       while (n--)
-        while (*q++ != SP)                 /*   go find the pfield */
+        while (*field++ != SP)             /*   go find the pfield */
           ;
-      pfout(csound,bp,q,lincnt,pcnt,sco);  /*   and put it out     */
+      if (UNLIKELY(*field == '?'))         /* one being followed: a cycle */
+        goto error;
+      *q = '?';
+      pfout(csound,bp,field,lincnt,pcnt,sco); /* and put it out    */
+      *q = 'n';
     }
     else {
     error:
@@ -304,8 +314,9 @@ static char *prevp(CSOUND *csound, SRTBLK *bp, char *p,
 
     q = p;
     p++;                                    /* 1st char     */
-    if (UNLIKELY(*p++ != 'p'))              /* 2nd char     */
+    if (UNLIKELY(*p != 'p'))                /* 2nd char     */
       goto error;
+    p++;
     n = 999;
     if (isdigit(*p))
       n = *p++ - '0';
@@ -315,11 +326,15 @@ static char *prevp(CSOUND *csound, SRTBLK *bp, char *p,
       goto error;
     if (LIKELY((bp = prvins(bp)) != NULL   /* for prvins, same p1, */
                && n <= bp->pcnt)) {
-      q = bp->text;
+      char *field = bp->text;
       while (n--)
-        while (*q++ != SP)          /*   go find the pfield */
+        while (*field++ != SP)      /*   go find the pfield */
           ;
-      pfout(csound,bp,q,lincnt,pcnt, sco); /*   and put it out */
+      if (UNLIKELY(*field == '?'))  /* one being followed: a cycle */
+        goto error;
+      *q = '?';
+      pfout(csound,bp,field,lincnt,pcnt, sco); /* and put it out */
+      *q = 'p';
     }
     else {
     error:

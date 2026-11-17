@@ -489,11 +489,26 @@ extern "C" {
   PUBLIC int32_t csoundErrCnt(CSOUND *csound);
 
   /**
-   * Get pointer to the value of environment variable 'name', searching
-   * in this order: local environment of 'csound' (if not NULL), variables
-   * set with csoundSetGlobalEnv(), and system environment variables.
-   * If 'csound' is not NULL, should be called after csoundCompile().
+   * Get pointer to the value of environment variable 'name'.
+   * If 'csound' is NULL, this is the value set with csoundSetGlobalEnv(),
+   * or else the system environment's.
+   * If 'csound' is not NULL, only that instance's own copy is read. It is
+   * made when the instance is created and at csoundReset(), from the system
+   * environment variables Csound uses (SFDIR, SSDIR, SADIR, INCDIR,
+   * OPCODE7DIR64 and the like), then from those set with
+   * csoundSetGlobalEnv(), which take precedence. Other system variables
+   * are not in it, nor later changes to either source until a reset.
+   * --env options change it, those of a CSD's <CsOptions> when they are
+   * read, and csoundCompile() can add the directory of the files it
+   * is given to SADIR, SSDIR, INCDIR and MFDIR (see --no-default-paths).
    * Return value is NULL if the variable is not set.
+   * The string is Csound's: copy it to keep it. With 'csound' NULL, it
+   * points into the global table: while 'name' is set, setting it again
+   * rewrites the string in place, and once 'name' is deleted, a later set
+   * of any name may reuse its slot. A value from the system environment
+   * lasts as getenv()'s does. With an instance, any change to 'name' there
+   * frees it, csoundCompile()'s included, and csoundReset() and
+   * csoundDestroy() free them all.
    */
   PUBLIC const char *csoundGetEnv(CSOUND *csound, const char *name);
 
@@ -502,6 +517,13 @@ extern "C" {
    * or delete variable if 'value' is NULL.
    * It is not safe to call this function while any Csound instances
    * are active.
+   * An instance copies these when it is created and at csoundReset().
+   * Setting CSOUND7RC to "" before csoundCreate() stops an instance reading
+   * any rc file, .csound7rc in the working directory included. Those files
+   * take any option, --opcode-lib among them.
+   * A name is letters, digits and underscores, does not start with a
+   * digit, as for --env, and is shorter than 32 characters; any other is
+   * refused.
    * Returns zero on success.
    */
   PUBLIC int32_t csoundSetGlobalEnv(const char *name, const char *value);
@@ -509,7 +531,8 @@ extern "C" {
   /**
    * Set csound options (flag). Returns CSOUND_SUCCESS on success.
    * This needs to be called after csoundCreate() and before any code is
-   * compiled. Multiple options are allowed in one string.
+   * compiled. Multiple options are allowed in one string. An empty string,
+   * or one of spaces alone, sets nothing; NULL is refused.
    * Returns zero on success.
    */
   PUBLIC int32_t csoundSetOption(CSOUND *csound, const char *option);
@@ -543,7 +566,8 @@ extern "C" {
    * Retrieves a module name and type ("audio" or "midi") given a
    * number Modules are added to list as csound loads them returns
    * CSOUND_SUCCESS on success and CSOUND_ERROR if module number
-   * was not found. The first call may load the default modules.
+   * was not found. The first call may load the default modules, and
+   * returns CSOUND_ERROR if a plugin there fails to load or start.
    *
    * \code
    *  char *name, *type;
@@ -562,7 +586,9 @@ extern "C" {
    * If list is NULL, the function returns the number of devices
    * (isOutput=1 for out devices, 0 for in devices).
    * If list is non-NULL, then it should contain enough memory for
-   * one CS_AUDIODEVICE structure per device.
+   * one CS_AUDIODEVICE structure per device, and the function returns
+   * the number of structures it filled, which can be fewer than the count
+   * and is negative on an error: list only those.
    * Each count call describes the size for the immediately following fill
    * call. Callers should complete that fill before requesting another count
    * for the same direction. A backend may return the same count for a
@@ -574,14 +600,16 @@ extern "C" {
    * structs to be filled:
    *
    * \code
-   *   int32_t i,n = csoundGetAudioDevList(csound,NULL,1);
-   *   CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
-   *       malloc(n*sizeof(CS_AUDIODEVICE));
-   *   csoundGetAudioDevList(csound,devs,1);
-   *   for(i=0; i < n; i++)
-   *       csound->Message(csound, " %d: %s (%s)\n",
-   *             i, devs[i].device_id, devs[i].device_name);
-   *   free(devs);
+   *   int32_t i, filled, n = csoundGetAudioDevList(csound,NULL,1);
+   *   if (n > 0) {
+   *     CS_AUDIODEVICE *devs = (CS_AUDIODEVICE *)
+   *         calloc(n, sizeof(CS_AUDIODEVICE));
+   *     filled = csoundGetAudioDevList(csound,devs,1);
+   *     for(i=0; i < n && i < filled; i++)
+   *         csound->Message(csound, " %d: %s (%s)\n",
+   *               i, devs[i].device_id, devs[i].device_name);
+   *     free(devs);
+   *   }
    * \endcode
    */
   PUBLIC int32_t csoundGetAudioDevList(CSOUND *csound,
@@ -593,7 +621,9 @@ extern "C" {
    * will only return the number of devices (isOutput=1 for out
    * devices, 0 for in devices).
    * If list is non-NULL, then it should contain enough memory for
-   * one CS_MIDIDEVICE structure per device.
+   * one CS_MIDIDEVICE structure per device, and the function returns
+   * the number of structures it filled, which can be fewer than the count
+   * and is negative on an error: list only those.
    * Hosts will typically call this function twice: first to obtain
    * a number of devices, then, after allocating space for each
    * device information structure, pass an array of CS_MIDIDEVICE
@@ -835,6 +865,7 @@ extern "C" {
    * informational message, using a less granular signature.
    *  This callback can be set for --realtime mode.
    *  This callback is cleared after csoundReset
+   *  NULL is ignored, and the callback set before stays.
    */
   PUBLIC void csoundSetMessageStringCallback(CSOUND *csound,
                                              void (*csoundMessageStrCallback)
@@ -935,7 +966,8 @@ extern "C" {
    *    when accessing/modifying channel data at **p.
    * See Top/threadsafe.c in the Csound library sources for
    * examples.  Optionally, use the channel get/set functions
-   * provided below, which are threadsafe by default.
+   * provided below, which are threadsafe by default, but see
+   * csoundGetStringChannel() on sizing its buffer.
    * NB: this function cannot be used to create a generic CSOUND_VAR_CHANNEL
    *     but it can access existing channels of that type
    */
@@ -1014,12 +1046,15 @@ extern "C" {
   /**
    * locks access to the channel allowing access to data in
    * a threadsafe manner
+   * The channel must exist (csoundGetChannelPtr() creates it): on a name
+   * that is no channel, this prints an error and locks nothing.
    **/
   PUBLIC void csoundLockChannel(CSOUND *csound, const char *channel);
 
   /**
    * unlocks access to the channel, allowing access to data from
    * elsewhere.
+   * On a name that is no channel, this prints an error and does nothing.
    **/
   PUBLIC void csoundUnlockChannel(CSOUND *csound, const char *channel);
 
@@ -1089,6 +1124,30 @@ extern "C" {
    * copies the string channel identified by *name into *string
    * which should contain enough memory for the string
    * (see csoundGetChannelDatasize() below)
+   *
+   * This function is not told how much memory that is, and it copies the
+   * whole string. If another thread can write the channel, the performance
+   * included, a longer string written after *string was sized is copied
+   * past its end. Such a host reads the channel itself, under its lock,
+   * into a buffer it has already allocated:
+   * \code
+   * STRINGDAT *stringdat;
+   * if (csoundGetChannelPtr(csound, (void **) &stringdat, name,
+   *                         CSOUND_STRING_CHANNEL | CSOUND_OUTPUT_CHANNEL)
+   *     == CSOUND_SUCCESS) {
+   *   csoundLockChannel(csound, name);
+   *   const char *text = csoundGetStringData(csound, stringdat);
+   *   int length = snprintf(buffer, size, "%s", text != NULL ? text : "");
+   *   csoundUnlockChannel(csound, name);
+   * }
+   * \endcode
+   * If length is not less than size, the copy was truncated, and the string
+   * needs length + 1 bytes. The performance waits for that lock when it uses
+   * the channel, so do nothing slow while holding it, and allocate outside it.
+   * csoundGetStringChannel() takes the lock itself, so it cannot be called
+   * between csoundLockChannel() and csoundUnlockChannel().
+   * The lock does not cover a variable exported with chnexport: the orchestra
+   * assigns to it without taking the lock.
    */
   PUBLIC void csoundGetStringChannel(CSOUND *csound,
                                      const char *name, char *string);
@@ -1112,6 +1171,8 @@ extern "C" {
    * returns the ARRAYDAT for the requested channel or NULL on error
    * NB: if the channel exists and has already been initialised,
    * this function is a non-op.
+   * It takes the channel's lock, so it cannot be called between
+   * csoundLockChannel() and csoundUnlockChannel() on the same channel.
    */
   PUBLIC ARRAYDAT *csoundInitArrayChannel(CSOUND *csound, const char *name,
                                           const char *type, int32_t dimensions,
@@ -1238,7 +1299,17 @@ extern "C" {
    * this might change if the channel space gets reallocated
    * Since string variables use dynamic memory allocation
    * this function can be called to get the space required for
-   * csoundGetStringChannel()
+   * csoundGetStringChannel(), if no other thread can write the channel:
+   * the answer is out of date as soon as one does.
+   * It takes no channel lock, so it can be called between
+   * csoundLockChannel() and csoundUnlockChannel(), where the answer holds,
+   * unless the channel is a variable exported with chnexport.
+   * For an array channel it is the size of the storage allocated for the
+   * data, and outside the lock it can be 0 while another thread
+   * reallocates that storage. A struct-array channel that shares its data
+   * with another array, as csoundSetChannel() can make it do, owns no
+   * storage and gives 0, inside the lock too, while it holds data: 0 does
+   * not mean that the channel is empty.
    */
   PUBLIC int32_t csoundGetChannelDatasize(CSOUND *csound, const char *name);
 
@@ -1283,6 +1354,8 @@ extern "C" {
    *
    * Multiple events separated by newlines are possible
    * and score preprocessing (carry, etc) is applied.
+   * A message on which the score reader stops is refused whole: Csound says
+   * why, none of it is scheduled, and any performance goes on.
    * optionally run asynchronously (async = 1).
    * Async calls copy the string and return without waiting for queue space.
    * If the queue cannot accept the request, no events are queued.
@@ -1319,9 +1392,10 @@ extern "C" {
 
   /**
    * Set the ASCII code of the most recent key pressed.
-   * This value is used by keyboard input opcodes such as 'sensekey' and
-   * 'readline' if a callback for returning keyboard events is not set (see
-   * csoundRegisterKeyboardCallback()).
+   * 'sensekey' reads it if no callback for keyboard events is set, or if
+   * each one ignores the call (see csoundRegisterKeyboardCallback()).
+   * 'readline' reads it whenever no callback gives it a key, also when a
+   * callback returns zero with no key.
    */
   PUBLIC void csoundKeyPress(CSOUND *, char c);
 
@@ -1409,7 +1483,16 @@ extern "C" {
    *         actual text that is typed.
    * The return value should be zero on success, negative on error, and
    * positive if the callback was ignored (for example because the type is
-   * not known).
+   * not known). The callbacks for the type are called in turn until one
+   * returns an error, and sensekey then has no key. Otherwise, if one or
+   * more returned zero, sensekey takes the key they left; if none did, it
+   * reads the key set by csoundKeyPress() or, if none has been set, stdin
+   * (the console on Windows).
+   * This function is not thread-safe. Call it when the performance is not
+   * running or, if it is, only on the thread performing, which includes from
+   * inside a keyboard callback; never from another thread. With -j, callbacks
+   * can run on several threads at once, so from inside one this holds only if
+   * no other thread can be calling callbacks at that moment.
    */
   PUBLIC int32_t csoundRegisterKeyboardCallback(CSOUND *,
                                             int32_t (*func)(void *userData, void *p,
@@ -1418,6 +1501,11 @@ extern "C" {
 
   /**
    * Removes a callback previously set with csoundRegisterKeyboardCallback().
+   * This function is not thread-safe. Call it when the performance is not
+   * running or, if it is, only on the thread performing, which includes from
+   * inside a keyboard callback; never from another thread. With -j, callbacks
+   * can run on several threads at once, so from inside one this holds only if
+   * no other thread can be calling callbacks at that moment.
    */
   PUBLIC void csoundRemoveKeyboardCallback(CSOUND *csound,
                                            int32_t (*func)(void *, void *, uint32_t));

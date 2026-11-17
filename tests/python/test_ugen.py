@@ -143,6 +143,21 @@ class TestUgenGetValue(unittest.TestCase):
 
         osc.delete()
 
+    def test_get_string_of_an_empty_string_is_empty(self):
+        """An S variable holding "" reads "", and what is no S variable None."""
+        var = self.factory.new_var(ctcsound.UGEN_ARG_TYPE_S)
+        self.assertTrue(var.set_string(''))
+        self.assertEqual(var.get_string(), '')
+        copy = self.factory.new_ugen('strcpy', 'S', 'S')
+        self.assertIsNotNone(copy)
+        self.assertTrue(copy.set_string(0, ''))
+        copy.init()
+        self.assertEqual(copy.get_string(0), '')
+        self.assertIsNone(copy.get_string(1))
+        control = self.factory.new_var(ctcsound.UGEN_ARG_TYPE_K)
+        self.assertIsNone(control.get_string())
+        copy.delete()
+
 
 if __name__ == '__main__':
     unittest.main()

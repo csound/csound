@@ -60,11 +60,37 @@ extern "C" {
 
   PUBLIC void **csoundGetRtRecordUserData(CSOUND *);
   PUBLIC void **csoundGetRtPlayUserData(CSOUND *);
+  /**
+   * Sets the callback that opens real time audio output.
+   * If it is NULL when output opens, the open fails.
+   */
   PUBLIC void csoundSetPlayopenCallback(CSOUND *, devOpenFunc);
+  /**
+   * Sets the callback that writes real time audio output. It is taken
+   * when output opens, and if it is NULL then, the open fails.
+   */
   PUBLIC void csoundSetRtplayCallback(CSOUND *, audioOutFunc);
+  /**
+   * Sets the callback that opens real time audio input.
+   * If it is NULL when input opens, the open fails.
+   */
   PUBLIC void csoundSetRecopenCallback(CSOUND *, devOpenFunc);
+  /**
+   * Sets the callback that reads real time audio input. It is taken
+   * when input opens, and if it is NULL then, the open fails.
+   */
   PUBLIC void csoundSetRtrecordCallback(CSOUND *, audioInFunc);
+  /**
+   * Sets the callback that closes real time audio. With NULL, none is
+   * called.
+   */
   PUBLIC void csoundSetRtcloseCallback(CSOUND *, void (*)(CSOUND *));
+  /**
+   * Sets a function that is called to obtain a list of audio devices.
+   * With NULL, no device is listed. The function returns how many devices
+   * there are when its list is NULL, and otherwise how many it filled, at
+   * most that many, or a negative number on an error. (See csoundGetAudioDevList())
+   */
   PUBLIC void csoundSetAudioDeviceListCallback(CSOUND *csound, audioDevListFunc);
 
   /**
@@ -85,7 +111,9 @@ extern "C" {
   PUBLIC int32_t csoundPerformOutputFade(CSOUND *, uint32_t frames);
 
   /**
-   *  Sets the current RT audio module
+   *  Sets the current RT audio module. This loads the plugins if they are
+   *  not loaded yet, and starts them again if they are. If a plugin fails
+   *  to load or start, this returns, and a later csoundStart() fails on it.
    */
   PUBLIC void csoundSetRTAudioModule(CSOUND *csound, const char *module);
 

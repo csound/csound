@@ -27,6 +27,9 @@ int32_t csound_array_initialize_element_range(
     CSOUND *csound, ARRAYDAT *array, size_t dataBytes, size_t begin,
     size_t end, INSDS *ctx);
 void csound_free_array_storage(CSOUND *csound, ARRAYDAT *array);
+/* *destination = *source, with allocated stored atomically:
+   csoundGetChannelDatasize() reads an array channel's allocated unlocked. */
+void csound_array_assign(ARRAYDAT *destination, const ARRAYDAT *source);
 size_t csound_array_allocated_bytes(CSOUND *csound, const ARRAYDAT *array);
 int32_t csound_array_storage_matches(CSOUND *csound,
                                      const ARRAYDAT *array);

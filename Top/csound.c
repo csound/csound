@@ -123,6 +123,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async);
 int32_t csound_compile_orc(CSOUND *csound, const char *str,
                                  int32_t async);
 int32_t csoundReadScore(CSOUND *csound, const char *message);
+void score_read_unwind(CSOUND *csound);
 void csoundDefaultMessageCallback(CSOUND *, int32_t, const char *,
                                          va_list);
 static INSTRTXT **csoundGetInstrumentList(CSOUND *csound);
@@ -894,6 +895,8 @@ static const CSOUND cenviron_ = {
     .enableMsgAttr = 1,
     .info_message_request = 0,
     .list_structs_request = 0,
+    .list_opcodes_request = 0,
+    .init_thread_jump = 0,
     /* -------- Realtime audio I/O and buffers -------- */
     .spin = NULL,
     .spout = NULL,
@@ -950,6 +953,7 @@ static const CSOUND cenviron_ = {
     .searchPathCache = NULL,
     .reset_list = NULL,
     .csoundCallbacks_ = NULL,
+    .csoundCallbackSerial = 0,
     /* -------- Locks and synchronisation -------- */
     .API_lock = NULL,
     .array_storage_lock = NULL,
@@ -1070,7 +1074,6 @@ static const CSOUND cenviron_ = {
         },
         NULL,
         0,
-        NULL, 0,
         NULL, NULL,
         0, NULL, 0
       },
@@ -1118,10 +1121,14 @@ static const CSOUND cenviron_ = {
     .msg_queue_status = CSOUND_SUCCESS,
     .instr0_waiting = NULL,
     .instr0_waiting_count = 0,
+    .marked_sections = {{NULL, 0, 0}},
+    .line_event_work = NULL,
+    .line_event_work_size = 0,
 
 };
 
 void csoundLongJmp(CSOUND *csound, int32_t retval) {
+  score_read_unwind(csound);
 #ifdef CSOUND_WASI_REALTIME
   CSOUND_WASI_COMPILE_JUMP *compile = csoundWasiCompileJumpContext(csound);
   if (compile != NULL && compile->enabled)
@@ -1138,6 +1145,11 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   // printf("**** n = %d\n", n);
   if (!n)
     n = CSOUND_EXITJMP_SUCCESS;
+  init_pass_unwind(csound, n);
+  /* An API call on this thread takes the jump as its error, and the init
+     pass that made the call, if one did, goes on: its context stays. */
+  if (api_call_of(csound) != NULL)
+    longjmp(csound->exitjmp, n);
 
   /* Realtime init owns these fields on the event thread. A performance-time
      exit may arrive while that thread is inside an opcode, so cleanup defers
@@ -1150,7 +1162,10 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
     csound->perferrcnt += csound->inerrcnt;
     csound->inerrcnt = 0;
   }
-  csound->engineStatus |= CS_STATE_JMP;
+  else {
+    /* tells the cleanup that it owes the reset */
+    csound->engineStatus |= CS_STATE_JMP;
+  }
   // printf("**** longjmp with %d\n", n);
 
   longjmp(csound->exitjmp, n);
@@ -1497,11 +1512,14 @@ static void install_signal_handler(void) {
 }
 
 typedef struct CsoundCallbackEntry_s CsoundCallbackEntry_t;
+/* csoundDoCallback_ depends on entries being inserted only at the head of
+   the list, each with a serial higher than any before it. */
 struct CsoundCallbackEntry_s {
   uint32_t typeMask;
   CsoundCallbackEntry_t *nxt;
   void *userData;
   int32_t (*func)(void *, void *, uint32_t);
+  uint64_t serial; /* higher than that of every entry registered before it */
 };
 
  void csoundDestroy(CSOUND *csound) {
@@ -1535,6 +1553,8 @@ struct CsoundCallbackEntry_s {
       pp = nxt;
     } while (pp != (CsoundCallbackEntry_t *)NULL);
   }
+  /* no callback is left to call into them */
+  csoundCloseFailedModules(csound);
   if (csound->API_lock != NULL) {
     // csoundLockMutex(csound->API_lock);
     csoundDestroyMutex(csound->API_lock);
@@ -1562,8 +1582,31 @@ struct CsoundCallbackEntry_s {
 }
 
 
+/* csound_compile_tree, taking the jumps made inside it: exitjmp is this
+   frame's, and the API_CALL its caller's, as for csound_compile_orc. */
+static CS_NOINLINE int32_t compile_tree_own_jumps(CSOUND *csound, TREE *root,
+                                                  int32_t async)
+{
+  int32_t retVal;
+  volatile jmp_buf tmpExitJmp;
+  memcpy((void *)&tmpExitJmp, (void *)&csound->exitjmp, sizeof(jmp_buf));
+  if ((retVal = setjmp(csound->exitjmp))) {
+    memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+    return retVal;
+  }
+  retVal = csound_compile_tree(csound, root, async);
+  memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+  return retVal;
+}
+
 int32_t csoundCompileTree(CSOUND *csound, TREE *root, int32_t async) {
-  return csound_compile_tree(csound, root, async);
+  API_CALL call;
+  int32_t retVal;
+  api_call_begin(csound, &call);
+  retVal = compile_tree_own_jumps(csound, root, async);
+  api_call_end(&call);
+  /* the first jump that an init pass of the global code took */
+  return call.jumped ? call.jumped : retVal;
 }
 
  int32_t csoundCompileOrc(CSOUND *csound, const char *str,
@@ -1824,8 +1867,12 @@ static int32_t csoundDeprecate(CSOUND *csound, char *name,
  int32_t csoundGetModule(CSOUND *csound, int32_t no, char **module,
                                char **type) {
   MODULE_INFO **modules;
-  /* Module enumeration implies the default directories have been scanned. */
-  if (UNLIKELY(csoundLoadDefaultModules(csound) != CSOUND_SUCCESS))
+  /* Module enumeration implies the default directories have been scanned.
+     A host may call this first, before anything owns exitjmp. Once they
+     have been, exitjmp is left alone: a performance may own it. */
+  if (UNLIKELY(!csound->default_modules_loaded &&
+               csoundCatchJump(csound, csoundLoadDefaultModules)
+                   != CSOUND_SUCCESS))
     return CSOUND_ERROR;
   modules =
       (MODULE_INFO **)csoundQueryGlobalVariable(csound, "_MODULES");
@@ -1963,6 +2010,7 @@ static void reset(CSOUND *csound) {
   length = (uintptr_t)p2 - (uintptr_t)p1;
   memcpy(p1, (void *)&(saved_env->first_callback_), (size_t)length);
   csound->csoundCallbacks_ = saved_env->csoundCallbacks_;
+  csound->csoundCallbackSerial = saved_env->csoundCallbackSerial;
   csound->readlineCallback = saved_env->readlineCallback;
   csound->readlineUserData = saved_env->readlineUserData;
   csound->readlineRequestId = saved_env->readlineRequestId;
@@ -1981,6 +2029,8 @@ static void reset(CSOUND *csound) {
   csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
   memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
   csound->memalloc_db = saved_env->memalloc_db;
+  /* what a failed module left behind may outlive the reset */
+  csound->failed_modules = saved_env->failed_modules;
   csound->message_buffer =
       saved_env->message_buffer; /*VL 19.06.21 keep msg buffer */
   csound->default_modules_loaded = 0;
@@ -1998,7 +2048,7 @@ static void reset(CSOUND *csound) {
     csound->Message(csound, Str("resetting Csound instance\n"));
     reset(csound);
     /* clear compiled flag */
-    csound->engineStatus |= ~(CS_STATE_COMP);
+    csound->engineStatus &= ~(CS_STATE_COMP);
   } else {
     csoundSpinLockInit(&csound->spoutlock);
     csoundSpinLockInit(&csound->spinlock);
@@ -2117,6 +2167,7 @@ static void reset(CSOUND *csound) {
   /* initialise real time MIDI */
   csound->midiGlobals = (MGLOBAL *)csound->Calloc(csound, sizeof(MGLOBAL));
   csound->midiGlobals->bufp = &(csound->midiGlobals->mbuf[0]);
+  csound->midiGlobals->filep = csound->midiGlobals->bufp;
   csound->midiGlobals->endatp = csound->midiGlobals->bufp;
   csoundCreateGlobalVariable(csound, "_RTMIDI", (size_t)max_len);
   csound->SetMIDIDeviceListCallback(csound, midi_dev_list_dummy);
@@ -2244,20 +2295,35 @@ static void reset(CSOUND *csound) {
   csound->oparms_.odebug = debug;
 }
 
+/* Returns the first error, which ends the walk, else CSOUND_SUCCESS if a
+   callback answered, else 1: none is set for type, or each ignored the call.
+   sensekey reads stdin only on 1. */
 static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
+  int32_t result = 1;
   if (csound->csoundCallbacks_ != NULL) {
     CsoundCallbackEntry_t *pp;
     pp = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
     do {
       if (pp->typeMask & type) {
+        uint64_t serial = pp->serial;
         int32_t retval = pp->func(pp->userData, p, type);
-        if (retval != CSOUND_SUCCESS)
+        if (retval < 0)
           return retval;
+        if (retval == CSOUND_SUCCESS)
+          result = CSOUND_SUCCESS;
+        /* The call may have removed this entry or any other, so hold on to
+           nothing across it. The list is newest first: go on to the first
+           entry older than the one just called. */
+        /* O(n) per call, O(n^2) per round, deliberately: callbacks are few. */
+        pp = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
+        while (pp != (CsoundCallbackEntry_t *)NULL && pp->serial >= serial)
+          pp = pp->nxt;
+      } else {
+        pp = pp->nxt;
       }
-      pp = pp->nxt;
     } while (pp != (CsoundCallbackEntry_t *)NULL);
   }
-  return 1;
+  return result;
 }
 
 /**
@@ -2294,7 +2360,16 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
  *         actual text that is typed.
  * The return value should be zero on success, negative on error, and
  * positive if the callback was ignored (for example because the type is
- * not known).
+ * not known). The callbacks for the type are called in turn until one
+ * returns an error, and sensekey then has no key. Otherwise, if one or
+ * more returned zero, sensekey takes the key they left; if none did, it
+ * reads the key set by csoundKeyPress() or, if none has been set, stdin
+ * (the console on Windows).
+ * This function is not thread-safe. Call it when the performance is not
+ * running or, if it is, only on the thread performing, which includes from
+ * inside a keyboard callback; never from another thread. With -j, callbacks
+ * can run on several threads at once, so from inside one this holds only if
+ * no other thread can be calling callbacks at that moment.
  */
 
  int32_t csoundRegisterKeyboardCallback(
@@ -2314,13 +2389,19 @@ static int32_t csoundDoCallback_(CSOUND *csound, void *p, uint32_t type) {
   pp->nxt = (CsoundCallbackEntry_t *)csound->csoundCallbacks_;
   pp->userData = userData;
   pp->func = func;
+  pp->serial = ++csound->csoundCallbackSerial;
   csound->csoundCallbacks_ = (void *)pp;
 
   return CSOUND_SUCCESS;
 }
 
 /**
- * Removes a callback previously set with csoundSetCallback().
+ * Removes a callback previously set with csoundRegisterKeyboardCallback().
+ * This function is not thread-safe. Call it when the performance is not
+ * running or, if it is, only on the thread performing, which includes from
+ * inside a keyboard callback; never from another thread. With -j, callbacks
+ * can run on several threads at once, so from inside one this holds only if
+ * no other thread can be calling callbacks at that moment.
  */
 
  void csoundRemoveKeyboardCallback(CSOUND *csound,

@@ -122,12 +122,19 @@ int32_t csoundSetGlobalEnv(const char *name, const char *value)
 {
     int32_t   i;
 
-    if (UNLIKELY(name == NULL || name[0] == '\0' || (int32_t) strlen(name) >= 32))
+    /* every instance copies the table with csoundSetEnv(), which refuses
+       what is_valid_envvar_name() refuses */
+    if (UNLIKELY(!is_valid_envvar_name(name) || (int32_t) strlen(name) >= 32))
       return -1;                        /* invalid name             */
     for (i = 0; i < 16; i++) {
-      if ((value != NULL && globalEnvVarName(i)[0] == '\0') ||
-          strcmp(name, globalEnvVarName(i)) == 0)
+      if (strcmp(name, globalEnvVarName(i)) == 0)
         break;
+    }
+    if (i >= 16 && value != NULL) {     /* new variable: first free slot */
+      for (i = 0; i < 16; i++) {
+        if (globalEnvVarName(i)[0] == '\0')
+          break;
+      }
     }
     if (UNLIKELY(i >= 16))              /* not found / no free slot */
       return -1;
@@ -138,7 +145,8 @@ int32_t csoundSetGlobalEnv(const char *name, const char *value)
     if (UNLIKELY(strlen(value) >= 480))
       return -1;                        /* string value is too long */
     strcpy(globalEnvVarName(i), name);
-    strcpy(globalEnvVarValue(i), value);
+    /* value may point into this slot, as csoundGetEnv(NULL, name) does */
+    memmove(globalEnvVarValue(i), value, strlen(value) + 1);
     return 0;
 }
 

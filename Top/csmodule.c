@@ -368,6 +368,11 @@ int32_t csoundDestroyModules(CSOUND *csound) {
   return retval;
 }
 
+/* no library is loaded here, so none is kept */
+void csoundCloseFailedModules(CSOUND *csound) {
+  (void) csound;
+}
+
 __attribute__((used))
 int32_t csoundInitModules(CSOUND *csound) {
   csoundModule_t  *m;
@@ -482,6 +487,12 @@ int32_t csoundLoadDefaultModules(CSOUND *csound) {
     csound->default_modules_loaded = 0;
     csound->Die(csound, Str("Failed during csoundLoadModules\n"));
   }
+  /* The native copy starts the modules through init_default_modules(),
+     which clears the flag when a module's csoundModuleInit() jumps. Not
+     here: WASI's csoundLoadModules() does not refuse a module list that is
+     not empty, as the native one does, so a later call would not fail, and
+     with the realtime compile context a jump goes to that context's target,
+     not to exitjmp. */
   if (csoundInitModules(csound) != 0) {
     csound->default_modules_loaded = 0;
     csound->LongJmp(csound, 1);
@@ -491,6 +502,68 @@ int32_t csoundLoadDefaultModules(CSOUND *csound) {
 
 #else /* __wasi__ */
 
+/* Starts the modules of the plugin directory's scan. A module's
+   csoundModuleInit() may stop Csound with a jump instead of returning an
+   error: the scan has failed all the same, so the jump clears
+   default_modules_loaded on its way, as an error does, and a later
+   csoundLoadDefaultModules() fails too, where it took the half-started
+   modules for loaded. */
+static int32_t init_default_modules(CSOUND *csound)
+{
+  volatile jmp_buf  tmpExitJmp;
+  int32_t           n;
+
+  memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
+  if (UNLIKELY((n = setjmp(csound->exitjmp)) != 0)) {
+    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+    csound->default_modules_loaded = 0;
+    longjmp(csound->exitjmp, n);
+  }
+  n = csoundInitModules(csound);
+  memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+  return n;
+}
+
+/* The library of a module whose csoundModuleCreate() failed. What the module
+   registered before it failed, such as a callback, may point into it and
+   outlive a reset, so the instance keeps the library open, without starting
+   or destroying the module, until csoundCloseFailedModules() closes it when
+   the instance is destroyed. */
+typedef struct failedModule_s {
+  struct failedModule_s *nxt;
+  void        *h;
+} failedModule_t;
+
+/* f is the node load_external() reserved before csoundModuleCreate() ran,
+   with malloc, not csound->Malloc, which a reset frees: keeping the library
+   cannot fail once the module may have registered something. */
+static void keep_failed_module(CSOUND *csound, void *h, failedModule_t *f)
+{
+  failedModule_t  *kept;
+
+  for (kept = (failedModule_t*) csound->failed_modules; kept != NULL;
+       kept = kept->nxt) {
+    if (kept->h == h) {
+      /* kept open already: drop the reference this load added */
+      close_library(h);
+      free(f);
+      return;
+    }
+  }
+  f->h = h;
+  f->nxt = (failedModule_t*) csound->failed_modules;
+  csound->failed_modules = (void*) f;
+}
+
+void csoundCloseFailedModules(CSOUND *csound)
+{
+  while (csound->failed_modules != NULL) {
+    failedModule_t  *f = (failedModule_t*) csound->failed_modules;
+    csound->failed_modules = (void*) f->nxt;
+    close_library(f->h);
+    free(f);
+  }
+}
 
 /* load a single plugin library, and run csoundModuleCreate() if present */
 /* returns zero on success */
@@ -500,6 +573,7 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
   csoundModule_t  m;
   volatile jmp_buf tmpExitJmp;
   csoundModule_t  *mp;
+  failedModule_t  *spare = NULL;
   char            *fname;
   void            *h, *p;
   int32_t             (*infoFunc)(void);
@@ -605,16 +679,27 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
   mp = (csoundModule_t*) p;
   memcpy(mp, &m, sizeof(csoundModule_t));
   strcpy(&(mp->name[0]), fname);
-  /* link into database */
-  mp->nxt = (csoundModule_t*) csound->csmodule_db;
-  csound->csmodule_db = (void*) mp;
-  /* call csoundModuleCreate() if available */
+  /* call csoundModuleCreate() if available; a module whose
+     csoundModuleCreate() fails is not linked, so it is neither started nor
+     destroyed, and keep_failed_module() keeps its library open. */
   if (m.PreInitFunc != NULL) {
+    /* the node that keeps the library if csoundModuleCreate() fails, taken
+       before it runs, while closing the library is still safe */
+    spare = (failedModule_t*) malloc(sizeof(failedModule_t));
+    if (UNLIKELY(spare == NULL)) {
+      csound->Free(csound, p);
+      close_library(h);
+      csound->ErrorMsg(csound, "%s",
+                       Str("csoundLoadExternal(): memory allocation failure"));
+      return CSOUND_MEMORY;
+    }
     memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
     if ((err = setjmp(csound->exitjmp)) != 0) {
       memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
       print_module_error(csound, Str("Error in pre-initialisation function "
                                      "of module '%s'"), fname, NULL, 0);
+      csound->Free(csound, p);
+      keep_failed_module(csound, h, spare);
       return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
               CSOUND_MEMORY : CSOUND_INITIALIZATION);
     }
@@ -623,9 +708,15 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
     if (UNLIKELY(err != 0)) {
       print_module_error(csound, Str("Error in pre-initialisation function "
                                      "of module '%s'"), fname, &m, err);
+      csound->Free(csound, p);
+      keep_failed_module(csound, h, spare);
       return CSOUND_INITIALIZATION;
     }
+    free(spare);
   }
+  /* link into database */
+  mp->nxt = (csoundModule_t*) csound->csmodule_db;
+  csound->csmodule_db = (void*) mp;
   /* plugin was loaded successfully */
   return CSOUND_SUCCESS;
 }
@@ -675,14 +766,15 @@ int32_t csoundLoadModules(CSOUND *csound)
   DIR *dir;
   struct dirent *f;
   const char *dname, *fname, *end;
-  enum { searchpath_buflen = 2048, buflen = 1024 };
+  enum { buflen = 1024 };
   char buf[buflen];
   int32_t i, n, len, err = CSOUND_SUCCESS;
   char *dname1;
   int32_t read_directory = 1;
   int32_t warn_bad_directory = 0;
   const char *userplugindir_start = NULL;
-  char searchpath_buf[searchpath_buflen];
+  char *searchpath = NULL;  /* dname and the user plugin directory */
+  size_t size;
   char sep =
 #ifdef WIN32
     ';';
@@ -727,9 +819,11 @@ int32_t csoundLoadModules(CSOUND *csound)
   // The user set a search path for plugins via an env variable. Paths here
   // should be absolute and should not need variable expansion
   if(userplugindir != NULL) {
-    snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, userplugindir);
-    userplugindir_start = searchpath_buf + pos + 1;
-    dname = searchpath_buf;
+    size = pos + strlen(userplugindir) + 2;
+    searchpath = csound->Malloc(csound, size);
+    snprintf(searchpath, size, "%s%c%s", dname, sep, userplugindir);
+    userplugindir_start = searchpath + pos + 1;
+    dname = searchpath;
   } else {
 #ifdef CS_DEFAULT_USER_PLUGINDIR
     // Use default user path
@@ -746,16 +840,16 @@ int32_t csoundLoadModules(CSOUND *csound)
     size_t prefixlen = prefix ? strlen(prefix) : 0;
     size_t userplugindirlen = userplugindir ? strlen(userplugindir) : 0;
 
-    if(pos + prefixlen + 2 > searchpath_buflen - 1) {
-      csound->ErrorMsg(csound, "%s", Str("Plugins search path too long\n"));
-    } else if(userplugindirlen + prefixlen + 1 >= buflen) {
+    if(userplugindirlen + prefixlen + 1 >= buflen) {
       csound->ErrorMsg(csound, "%s", Str("User plugin dir too long\n"));
     } else {
 
       snprintf(buf, buflen, "%s/%s", prefix, userplugindir);
       if(_dir_exists(buf)) {
-        snprintf(searchpath_buf, searchpath_buflen, "%s%c%s", dname, sep, buf);
-        dname = searchpath_buf;
+        size = pos + strlen(buf) + 2;
+        searchpath = csound->Malloc(csound, size);
+        snprintf(searchpath, size, "%s%c%s", dname, sep, buf);
+        dname = searchpath;
       }
     }
 #endif
@@ -788,7 +882,7 @@ int32_t csoundLoadModules(CSOUND *csound)
        extra separator at the end */
     if(*dname1 == '\0') {
       csound->Free(csound, dname1);
-      break;
+      continue;
     }
     dir = opendir(dname1);
     if (UNLIKELY(dir == (DIR*) NULL)) {
@@ -831,7 +925,7 @@ int32_t csoundLoadModules(CSOUND *csound)
       if (buf[i] != '\0')
         continue;
       /* found a dynamic library, attempt to open it */
-      if (UNLIKELY(((int32_t) strlen(dname) + len + 2) > 1024)) {
+      if (UNLIKELY(((int32_t) strlen(dname1) + len + 2) > 1024)) {
         csound->Warning(csound, Str("path name too long, skipping '%s'\n"),
                         fname);
         continue;
@@ -855,6 +949,7 @@ int32_t csoundLoadModules(CSOUND *csound)
     closedir(dir);
     csound->Free(csound, dname1);
   }
+  csound->Free(csound, searchpath);
   return (err == CSOUND_INITIALIZATION ? CSOUND_ERROR : err);
 #else
   return CSOUND_SUCCESS;
@@ -873,8 +968,11 @@ int32_t csoundLoadModules(CSOUND *csound)
  * The default_modules_loaded flag is set while the scan/init runs (so that
  * re-entrant enumeration during csoundModuleInit() does not start a second
  * scan) and stays set on success, even if the directories were empty. It is
- * cleared if loading fails, allowing a later retry. Callers ensure the
- * default scan runs before any explicit plugin load. Safe to call repeatedly.
+ * cleared if loading fails, a module's csoundModuleInit() jumping included:
+ * a later call then scans again only if no module is left loaded, and
+ * otherwise fails too, as csoundLoadModules() refuses a module list that is
+ * not empty, until a reset. Callers ensure the default scan runs before any
+ * explicit plugin load. Safe to call repeatedly.
  */
 int32_t csoundLoadDefaultModules(CSOUND *csound) {
   int32_t err;
@@ -891,7 +989,7 @@ int32_t csoundLoadDefaultModules(CSOUND *csound) {
      call csoundGetModule(), which re-enters here; that call must read the
      module list instead of starting a second scan (csoundLoadModules()
      rejects the non-empty module database and would call Die). The flag is
-     cleared on failure so that a later call can retry. */
+     cleared on failure, as the comment above says. */
   csound->default_modules_loaded = 1;
   err = csoundLoadModules(csound);
   if (csound->delayederrormessages &&
@@ -904,7 +1002,7 @@ int32_t csoundLoadDefaultModules(CSOUND *csound) {
     csound->default_modules_loaded = 0;
     csound->Die(csound, Str("Failed during csoundLoadModules\n"));
   }
-  if (csoundInitModules(csound) != 0) {
+  if (init_default_modules(csound) != 0) {
     csound->default_modules_loaded = 0;
     csound->LongJmp(csound, 1);
   }
@@ -1037,21 +1135,43 @@ int32_t csoundInitModules(CSOUND *csound)
 static int32_t load_init_module(CSOUND *csound, const char *fname){
   volatile jmp_buf  tmpExitJmp;
   volatile int32_t      err;
+  const void        *loaded = csound->csmodule_db;
 
   err = load_external(csound, fname);
   if (UNLIKELY(err != 0))
     return err;
+  /* a plugin already loaded links nothing: there is no new module to start */
+  if (csound->csmodule_db == loaded)
+    return CSOUND_SUCCESS;
   memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
   if (UNLIKELY((err = setjmp(csound->exitjmp)) != 0)) {
     memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
     return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
             CSOUND_MEMORY : CSOUND_INITIALIZATION);
   }
-  /* NOTE: this depends on csound->csmodule_db being the most recently */
-  /* loaded plugin library */
+  /* csound->csmodule_db is the module load_external() has just linked */
   err = init_module(csound, (csoundModule_t*) csound->csmodule_db);
   memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
 
+  /* not CSOUND_ERROR, which the scan takes for a file that is no plugin */
+  return (err == CSOUND_SUCCESS ? CSOUND_SUCCESS : CSOUND_INITIALIZATION);
+}
+
+/* The default scan stops Csound with a jump when a plugin fails to load or
+   start. A host may call csoundLoadPlugins() first, with no frame for that
+   jump, so take it here and return an error. */
+static int32_t load_default_modules(CSOUND *csound)
+{
+  volatile jmp_buf  tmpExitJmp;
+  int32_t           err;
+
+  memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
+  if (UNLIKELY(setjmp(csound->exitjmp) != 0)) {
+    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+    return CSOUND_ERROR;
+  }
+  err = csoundLoadDefaultModules(csound);
+  memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
   return err;
 }
 
@@ -1075,7 +1195,7 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
 #endif
   /* Scan the default directories first so that loading an explicit
      --opcode-dir adds to, rather than replaces, the default set. */
-  if (UNLIKELY(csoundLoadDefaultModules(csound) != CSOUND_SUCCESS))
+  if (UNLIKELY(load_default_modules(csound) != CSOUND_SUCCESS))
     return CSOUND_ERROR;
   /* open plugin directory */
   // EM'2021: This seems to be dead code since opdir will never be NULL and
@@ -1125,7 +1245,7 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
        extra separator at the end */
     if(*dname1 == '\0') {
       csound->Free(csound, dname1);
-      break;
+      continue;
     }
 
     dir = opendir(dname1);
@@ -1167,7 +1287,7 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
       if (buf[i] != '\0')
         continue;
       /* found a dynamic library, attempt to open it */
-      if (UNLIKELY(((int32_t) strlen(dname) + len + 2) > 1024)) {
+      if (UNLIKELY(((int32_t) strlen(dname1) + len + 2) > 1024)) {
         csound->Warning(csound, Str("path name too long, skipping '%s'\n"),
                         fname);
         continue;
@@ -1291,6 +1411,26 @@ int32_t csoundLoadRequestedPlugins(CSOUND *csound) {
     retval = err;
 #endif
   return retval;
+}
+
+int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *))
+{
+  volatile jmp_buf  saved;
+  int32_t           err;
+
+#ifdef CSOUND_WASI_REALTIME
+  /* A compiler worker's jump goes to its compile context, or ends the
+     process: exitjmp is the render thread's, and is left alone. */
+  if (csoundWasiIsWorkerThread())
+    return func(csound);
+#endif
+  memcpy((void*) &saved, (void*) &csound->exitjmp, sizeof(jmp_buf));
+  if (setjmp(csound->exitjmp) != 0)
+    err = CSOUND_ERROR;
+  else
+    err = func(csound);
+  memcpy((void*) &csound->exitjmp, (void*) &saved, sizeof(jmp_buf));
+  return err;
 }
 
 /* ------------------------------------------------------------------------ */

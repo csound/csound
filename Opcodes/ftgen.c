@@ -22,6 +22,7 @@
 #include "soundio.h"
 #include <math.h>
 #include <errno.h>
+#include "strarg2name.h"
 
 typedef struct ftgentmp_table {
   int32_t fno;
@@ -43,6 +44,9 @@ typedef struct {
   OPDS    h;
   cs_float   *ifilno, *ktrig, *iflag, *argums[VARGMAX-2];
   FTLOAD  p;
+  char    name[MAXNAME];    /* the file name of ftsavek and ftloadk's
+                               non-S forms, as read at init */
+  STRINGDAT namestr;
 } FTLOAD_K; /* gab 30 jul 2002 */
 
 typedef struct {
@@ -301,11 +305,9 @@ static int32_t ftload_(CSOUND *csound, FTLOAD *p, int32_t istring)
     goto err2;
 
   if (!istring) {
-    if (IsStringCode(*p->ifilno)) {
-      csound->StringArg2Name(csound, generated_name, p->ifilno, "ftsave.", 0);
-      filename = generated_name;
-    }
-    else filename = csound->GetArgString(csound, *p->ifilno);
+    strarg2name_bounded(csound, generated_name, sizeof(generated_name),
+                        p->ifilno, "ftsave.", 0);
+    filename = generated_name;
   } else {
     filename = ((STRINGDAT *)p->ifilno)->data;
   }
@@ -452,13 +454,6 @@ static int32_t ftload_S(CSOUND *csound, FTLOAD *p)
 static int32_t ftload_k(CSOUND *csound, FTLOAD_K *p)
 {
   if (*p->ktrig != FL(0.0))
-    return ftload_(csound, &(p->p),0);
-  return OK;
-}
-
-static int32_t ftload_kS(CSOUND *csound, FTLOAD_K *p)
-{
-  if (*p->ktrig != FL(0.0))
     return ftload_(csound, &(p->p), 1);
   return OK;
 }
@@ -473,7 +468,7 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
   int32_t   (*err_func)(CSOUND *, OPDS *, const char *, ...);
   void  *fd;
 
-  if (strncmp(GetOpcodeName((OPDS *)p), "ftsave.", 7) != 0) {
+  if (strncmp(GetOpcodeName((OPDS *)p), "ftsavek", 7) == 0) {
     err_func = csound->PerfError;
   }
   else {
@@ -485,11 +480,9 @@ static int32_t ftsave_(CSOUND *csound, FTLOAD *p, int32_t istring)
     goto err2;
 
   if (!istring) {
-    if (IsStringCode(*p->ifilno)) {
-      csound->StringArg2Name(csound, generated_name, p->ifilno, "ftsave.", 0);
-      filename = generated_name;
-    }
-    else filename = csound->GetArgString(csound, *p->ifilno);
+    strarg2name_bounded(csound, generated_name, sizeof(generated_name),
+                        p->ifilno, "ftsave.", 0);
+    filename = generated_name;
   } else {
     filename = ((STRINGDAT *)p->ifilno)->data;
   }
@@ -608,14 +601,19 @@ static int32_t ftsave_k_set(CSOUND *csound, FTLOAD_K *p)
   return OK;
 }
 
-static int32_t ftsave_k(CSOUND *csound, FTLOAD_K *p)
+/* ftsavek and ftloadk with a number or a string p-field for the file name:
+   a p-field string can only be read at init, so the name is read here and
+   the opcode runs as if it had been given it as a string. */
+static int32_t ftsave_k_name_set(CSOUND *csound, FTLOAD_K *p)
 {
-  if (*p->ktrig != FL(0.0))
-    return ftsave_(csound, &(p->p), 0);
+  ftsave_k_set(csound, p);
+  strarg2name_bounded(csound, p->name, sizeof(p->name), p->ifilno, "ftsave.", 0);
+  p->namestr.data = p->name;
+  p->p.ifilno = (cs_float *) &p->namestr;
   return OK;
 }
 
-static int32_t ftsave_kS(CSOUND *csound, FTLOAD_K *p)
+static int32_t ftsave_k(CSOUND *csound, FTLOAD_K *p)
 {
   if (*p->ktrig != FL(0.0))
     return ftsave_(csound, &(p->p), 1);
@@ -798,14 +796,14 @@ static OENTRY localops[] = {
   { "ftsave.S",   S(FTLOAD),  TR,  "",   "Sim",    (SUBR) ftsave_S, NULL, NULL },
   { "ftload",   S(FTLOAD),    TW,  "",   "iim",    (SUBR) ftload, NULL, NULL   },
   { "ftload.S",  S(FTLOAD), TW,  "",   "Sim",    (SUBR) ftload_S, NULL, NULL },
-  { "ftsavek",  S(FTLOAD_K),  TW,   "",   "ikim",   (SUBR) ftsave_k_set,
+  { "ftsavek",  S(FTLOAD_K),  TW,   "",   "ikim",   (SUBR) ftsave_k_name_set,
     (SUBR) ftsave_k, NULL       },
   { "ftsavek.S",  S(FTLOAD_K),  TW,   "",   "Skim",   (SUBR) ftsave_k_set,
-    (SUBR) ftsave_kS, NULL       },
-  { "ftloadk",  S(FTLOAD_K),  TW,   "",   "ikim",   (SUBR) ftsave_k_set,
+    (SUBR) ftsave_k, NULL       },
+  { "ftloadk",  S(FTLOAD_K),  TW,   "",   "ikim",   (SUBR) ftsave_k_name_set,
     (SUBR) ftload_k, NULL       },
   { "ftloadk.S",  S(FTLOAD_K),  TW,   "",   "Skim",   (SUBR) ftsave_k_set,
-    (SUBR) ftload_kS, NULL       },
+    (SUBR) ftload_k, NULL       },
   { "getftargs",   sizeof(FTARGS),  0,  "S", "ik",
     (SUBR)getftargs_init, (SUBR)getftargs_process }
 

@@ -22,6 +22,7 @@
 
 #include <ctype.h>
 #include <math.h>
+#include "aops.h"
 #include "array_ops.h"
 #include "arrays_internal.h"
 #include "csound_orc_semantics.h"
@@ -144,7 +145,7 @@ int32_t tabfill(CSOUND *csound, TABFILL *p)
     for (i=0; i<nargs; i++) {
       // bool is int32_t but each array slot is sizeof(cs_float)
       int32_t *idat = (int32_t *) (p->ans->data + (i * memMyfltSize));
-      *idat = *valp[i] ? 1 : 0;
+      *idat = arg_is_true(valp[i]);
     }
   }
   else if (p->ans->arrayType == &CS_VAR_TYPE_S) {
@@ -3578,6 +3579,17 @@ int32_t tabcopy1(CSOUND *csound, TABCPY *p)
   CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
                               p->dst, p->src, p->h.insdshead);
   return OK;
+}
+
+/* =.b[] copies a b[] at init, as =.I does an i[], and in performance, as
+   =._ did: a b[] can be written at a k index. A source with no value at
+   init, as an array member read at a k index, is only sized, as =._ did,
+   and copied in performance. */
+int32_t tabcopy_b_init(CSOUND *csound, TABCPY *p)
+{
+  if (p->src->data == NULL || p->src->dimensions <= 0)
+    return tabcopyk_init(csound, p);
+  return tabcopy1(csound, p);
 }
 
 static int32_t tabcopy_audio(CSOUND *csound, TABCPY *p, int32_t initializing)

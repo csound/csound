@@ -93,6 +93,14 @@ extern "C" {
   int32_t csoundLoadDefaultModules(CSOUND *csound);
 
   /**
+   * Call func, which may stop Csound with a jump to exitjmp, in a frame of
+   * its own, and return what it returns, or CSOUND_ERROR if it jumps. For
+   * the API calls that load or start the plugins and that a host may make
+   * before anything owns exitjmp.
+   */
+  int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *));
+
+  /**
    * Call initialisation functions of all loaded modules that have a
    * csoundModuleInit symbol, for Csound instance 'csound'.
    * Return value is CSOUND_SUCCESS if there was no error, and CSOUND_ERROR if
@@ -106,6 +114,13 @@ extern "C" {
 
   /** Load and initialise --opcode-lib entries through the active host. */
   int32_t csoundLoadRequestedPlugins(CSOUND *csound);
+
+  /**
+   * Close the libraries of the modules whose csoundModuleCreate failed, for
+   * Csound instance 'csound'. They stay open until the instance is destroyed,
+   * as what they registered may outlive a reset.
+   */
+  void csoundCloseFailedModules(CSOUND *csound);
 
   /**
    * Call destructor functions of all loaded modules that have a

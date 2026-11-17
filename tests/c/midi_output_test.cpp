@@ -1,0 +1,396 @@
+/*
+  midi_output_test.cpp:
+
+  What MIDI output opcodes send, read through a host's MIDI output, so no
+  MIDI device is required.
+
+  midion and mrtmsg send on the port their last argument names, as every
+  other MIDI output opcode does. midion kept its port pointer after its own
+  state, where the engine never set it, so its first k-cycle read through
+  NULL. mrtmsg was allocated at the size of xtratim's struct, one argument
+  short, so its port pointer landed in the next opcode's header.
+
+  midion2 turns off only a note it sent. Its first trigger turned off
+  note 0 on channel 1, and a midion2 never triggered did so at its release.
+
+  moscil's first note lasts kdur and is followed by kpause, as the others
+  are. It lasted one k-cycle, with no pause, and cut the second one short.
+
+  A note is turned off on the port it went to, though the port argument
+  may change while it sounds: at a tie, or when it is a global variable.
+
+  At a tie, midion, moscil and noteondur turn the held note off before the
+  tied one, and midion and noteondur keep it sounding if the channel, note,
+  velocity and port are the same. A reinit turns it off and sends it again.
+  They sent the new note with no note-off for the held one.
+
+  A note ended with no release is turned off by a deinit, and a release
+  still sends one note-off.
+
+  noteondur2 sends one note-off when its duration ends exactly on a
+  k-cycle. It sent two.
+
+  midion2 clamps a channel past 16 to 16, as the other opcodes do. It sent
+  it on channel 1.
+*/
+
+#define __BUILDING_LIBCSOUND
+#include "csoundCore.h"
+#include "gtest/gtest.h"
+
+#include <string>
+#include <vector>
+
+namespace {
+
+class MidiOutputTests : public ::testing::Test {
+ protected:
+  CSOUND *csound = nullptr;
+  // Each message's bytes, then the port it was sent on.
+  std::vector<std::vector<int>> sent;
+  // The k-cycle each message was sent in.
+  std::vector<uint64_t> kcycles;
+  // The orchestra's header, and code between it and instr 1.
+  std::string header = "sr = 1000\nksmps = 10\nnchnls = 1\n0dbfs = 1\n";
+  std::string globals;
+  // k-cycles of 1/64 s, exact in binary, for durations that end on one.
+  static constexpr const char *exactHeader =
+    "sr = 1024\nksmps = 16\nnchnls = 1\n0dbfs = 1\n";
+  // A global port, 1 until instr 9 sets it to 2.
+  static constexpr const char *portChange =
+    "giport init 1\ninstr 9\ngiport = 2\nendin\n";
+  // Note 60 held by instr 1.1, for a tie.
+  static constexpr const char *held = "i 1.1 0 -1 60\n";
+  // Note 60 on channel 2, and its note-off.
+  const std::vector<std::vector<int>> note60 = {
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0}};
+
+  static int32_t open(CSOUND *csound, void **data, const char *)
+  {
+    *data = csoundGetHostData(csound);
+    return 0;
+  }
+
+  static int32_t write(CSOUND *csound, void *data, const unsigned char *bytes,
+                       int32_t count)
+  {
+    std::vector<int> message(bytes, bytes + count);
+    message.push_back(csound->GetMidiOutPort(csound));
+    static_cast<MidiOutputTests *>(data)->sent.push_back(message);
+    static_cast<MidiOutputTests *>(data)->kcycles.push_back(
+      csoundGetKcounter(csound));
+    return count;
+  }
+
+  static int32_t close(CSOUND *, void *) { return 0; }
+
+  void SetUp() override
+  {
+    csound = csoundCreate(this, nullptr);
+    ASSERT_NE(csound, nullptr);
+    csoundCreateMessageBuffer(csound, 0);
+    csoundSetHostMIDIIO(csound);
+    csoundSetExternalMidiOutOpenCallback(csound, open);
+    csoundSetExternalMidiWriteCallback(csound, write);
+    csoundSetExternalMidiOutCloseCallback(csound, close);
+    ASSERT_EQ(csoundSetOption(csound, "-n"), 0);
+    ASSERT_EQ(csoundSetOption(csound, "-Q0"), 0);
+  }
+
+  void TearDown() override { csoundDestroy(csound); }
+
+  // Plays `body` as instr 1 to the score's end, k-cycles of 10 ms unless
+  // the header says otherwise. By default the score is a note of three
+  // k-cycles.
+  void play(const std::string &body, const char *score = "i 1 0 0.03\n")
+  {
+    const std::string orchestra =
+      header + globals + "instr 1\n" + body + "\nendin\n";
+    ASSERT_EQ(csoundCompileOrc(csound, orchestra.c_str(), 0), 0);
+    csoundEventString(csound, score, 0);
+    ASSERT_EQ(csoundStart(csound), 0);
+    int cycles = 0;
+    while (csoundPerformKsmps(csound) == 0)
+      ASSERT_LT(++cycles, 200);
+  }
+
+  // Plays `body` as instr 1 holding note 60, which instr 9 kills with no
+  // release on the third k-cycle.
+  void playKilled(const std::string &body)
+  {
+    globals = "instr 9\nturnoff2 1, 0, 0\nendin\n";
+    play(body, "i 1 0 -1 60\ni 9 0.02 0.01\n");
+  }
+};
+
+TEST_F(MidiOutputTests, MidionSendsOnItsPort)
+{
+  // A note, a new note number on the second k-cycle, and the release.
+  play("kn = timeinstk() < 2 ? 60 : 62\n"
+       "midion 2, kn, 100, 3");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 3},
+    {0x81, 60, 100, 3}, {0x91, 62, 100, 3},
+    {0x81, 62, 100, 3}}));
+}
+
+TEST_F(MidiOutputTests, MidionWithNoPortSendsOnPortZero)
+{
+  play("midion 2, 60, 100");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, MrtmsgSendsOnItsPort)
+{
+  // The port pointer was the next opcode's link to the one after it.
+  play("mrtmsg 1, 3\n"
+       "noteon 2, 60, 100, 1\n"
+       "noteoff 2, 60, 0, 1");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0xFA, 3}, {0x91, 60, 100, 1}, {0x81, 60, 0, 1}}));
+}
+
+TEST_F(MidiOutputTests, MrtmsgBeforeTheLastInitOpcode)
+{
+  // That link is NULL when the next opcode is the last with an init pass.
+  play("mrtmsg 1, 3\n"
+       "noteon 2, 60, 100, 1");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0xFA, 3}, {0x91, 60, 100, 1}}));
+}
+
+TEST_F(MidiOutputTests, Midion2TurnsOffOnlyTheNoteItSent)
+{
+  // Triggers on the first and third k-cycles, the second a new channel and
+  // note, which turns off the first.
+  play("kt = timeinstk() == 2 ? 0 : 1\n"
+       "kc = timeinstk() < 3 ? 2 : 3\n"
+       "midion2 kc, 59 + timeinstk(), 100, kt");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0},
+    {0x81, 60, 100, 0}, {0x92, 62, 100, 0},
+    {0x82, 62, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, Midion2NeverTriggeredSendsNothing)
+{
+  play("midion2 2, 60, 100, 0");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{}));
+}
+
+TEST_F(MidiOutputTests, Midion2ReusingAnInstanceSendsNoSecondNoteOff)
+{
+  // The second note takes the first one's instance, released and inactive.
+  play("kt = timeinstk() == 1 ? 1 : 0\n"
+       "midion2 2, 60, 100, kt",
+       "i 1 0 0.03\ni 1 0.06 0.03\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0},
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, Midion2TiedNoteTurnsOffTheSoundingNote)
+{
+  // A tie runs midion2's init again, while the held note still sounds.
+  play("kt init 1\n"
+       "midion2 2, p4, 100, kt\n"
+       "kt = 0",
+       "i 1.1 0 -1 60\ni 1.1 0.03 0.03 62\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0},
+    {0x81, 60, 100, 0}, {0x91, 62, 100, 0},
+    {0x81, 62, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, MoscilPlaysKdurAndKpauseFromItsFirstNote)
+{
+  // Three k-cycles on and two off, from the first note, for ten k-cycles.
+  header = exactHeader;
+  play("moscil 2, 60, 100, 3/64, 2/64", "i 1 0 0.15625\n");
+  EXPECT_EQ(kcycles, (std::vector<uint64_t>{1, 4, 6, 9}));
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0},
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, MidionTurnsOffANoteOnItsPort)
+{
+  // The port changes on the third k-cycle, which moves the note, and the
+  // note on the fourth.
+  globals = portChange;
+  play("kn = timeinstk() < 4 ? 60 : 62\n"
+       "midion 2, kn, 100, giport",
+       "i 1 0 0.05\ni 9 0.02 0.01\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 1},
+    {0x81, 60, 100, 1}, {0x91, 60, 100, 2},
+    {0x81, 60, 100, 2}, {0x91, 62, 100, 2},
+    {0x81, 62, 100, 2}}));
+}
+
+TEST_F(MidiOutputTests, Midion2TurnsOffANoteOnItsPort)
+{
+  // The tied note has another port than the held one.
+  play("kt init 1\n"
+       "midion2 2, p4, 100, kt, p5\n"
+       "kt = 0",
+       "i 1.1 0 -1 60 1\ni 1.1 0.03 0.03 62 2\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 1},
+    {0x81, 60, 100, 1}, {0x91, 62, 100, 2},
+    {0x81, 62, 100, 2}}));
+}
+
+TEST_F(MidiOutputTests, MoscilTurnsOffANoteOnItsPort)
+{
+  // The port changes on the second k-cycle, in the first note, and the
+  // second note starts on the fifth.
+  globals = portChange;
+  play("moscil 2, 60, 100, 0.03, 0.01, giport",
+       "i 1 0 0.05\ni 9 0.01 0.01\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 1}, {0x81, 60, 100, 1},
+    {0x91, 60, 100, 2}, {0x81, 60, 100, 2}}));
+}
+
+TEST_F(MidiOutputTests, NoteondurTurnsOffANoteOnItsPort)
+{
+  globals = portChange;
+  play("noteondur 2, 60, 100, 0.03, giport", "i 1 0 0.05\ni 9 0.02 0.01\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 1}, {0x81, 60, 100, 1}}));
+}
+
+TEST_F(MidiOutputTests, Noteondur2TurnsOffANoteOnItsPort)
+{
+  globals = portChange;
+  play("noteondur2 2, 60, 100, 0.03, giport", "i 1 0 0.05\ni 9 0.02 0.01\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 1}, {0x81, 60, 100, 1}}));
+}
+
+TEST_F(MidiOutputTests, MidionTiedNoteTurnsOffTheHeldOne)
+{
+  play("midion 2, p4, 100", (std::string(held) + "i 1.1 0.03 0.03 62\n").c_str());
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0},
+    {0x81, 60, 100, 0}, {0x91, 62, 100, 0},
+    {0x81, 62, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, MidionTiedToTheSameNoteGoesOn)
+{
+  play("midion 2, p4, 100", (std::string(held) + "i 1.1 0.03 0.03 60\n").c_str());
+  EXPECT_EQ(sent, note60);
+  EXPECT_EQ(kcycles, (std::vector<uint64_t>{1, 7}));
+}
+
+TEST_F(MidiOutputTests, MidionReinitStrikesTheNoteAgain)
+{
+  play("if timeinstk() == 2 then\n"
+       "  reinit again\n"
+       "endif\n"
+       "again:\n"
+       "midion 2, 60, 100\n"
+       "rireturn");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0},
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, MoscilTiedNoteTurnsOffTheHeldOne)
+{
+  // The tie starts the notes again.
+  play("moscil 2, p4, 100, 1, 1", (std::string(held) + "i 1.1 0.03 0.03 62\n").c_str());
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0},
+    {0x81, 60, 100, 0}, {0x91, 62, 100, 0},
+    {0x81, 62, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, NoteondurTiedNoteTurnsOffTheHeldOne)
+{
+  play("noteondur 2, p4, 100, 1", (std::string(held) + "i 1.1 0.03 0.03 62\n").c_str());
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0},
+    {0x81, 60, 100, 0}, {0x91, 62, 100, 0},
+    {0x81, 62, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, NoteondurTiedToAnotherPortMovesTheNote)
+{
+  play("noteondur 2, p4, 100, 1, p5", "i 1.1 0 -1 60 1\ni 1.1 0.03 0.03 60 2\n");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 1},
+    {0x81, 60, 100, 1}, {0x91, 60, 100, 2},
+    {0x81, 60, 100, 2}}));
+}
+
+TEST_F(MidiOutputTests, NoteondurTiedToTheSameNoteGoesOn)
+{
+  play("noteondur 2, p4, 100, 1", (std::string(held) + "i 1.1 0.03 0.03 60\n").c_str());
+  EXPECT_EQ(sent, note60);
+  EXPECT_EQ(kcycles, (std::vector<uint64_t>{0, 7}));
+}
+
+TEST_F(MidiOutputTests, NoteondurReinitStrikesTheNoteAgain)
+{
+  play("if timeinstk() == 2 then\n"
+       "  reinit again\n"
+       "endif\n"
+       "again:\n"
+       "noteondur 2, 60, 100, 1\n"
+       "rireturn");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0},
+    {0x91, 60, 100, 0}, {0x81, 60, 100, 0}}));
+}
+
+TEST_F(MidiOutputTests, KilledMidionNoteIsTurnedOff)
+{
+  playKilled("midion 2, p4, 100");
+  EXPECT_EQ(sent, note60);
+}
+
+TEST_F(MidiOutputTests, KilledMidion2NoteIsTurnedOff)
+{
+  playKilled("kt init 1\nmidion2 2, p4, 100, kt\nkt = 0");
+  EXPECT_EQ(sent, note60);
+}
+
+TEST_F(MidiOutputTests, KilledMoscilNoteIsTurnedOff)
+{
+  playKilled("moscil 2, p4, 100, 1, 1");
+  EXPECT_EQ(sent, note60);
+}
+
+TEST_F(MidiOutputTests, KilledNoteondurNoteIsTurnedOff)
+{
+  playKilled("noteondur 2, p4, 100, 1");
+  EXPECT_EQ(sent, note60);
+}
+
+TEST_F(MidiOutputTests, KilledNoteondur2NoteIsTurnedOff)
+{
+  playKilled("noteondur2 2, p4, 100, 1");
+  EXPECT_EQ(sent, note60);
+}
+
+TEST_F(MidiOutputTests, Noteondur2SendsOneNoteOffAtAnExactDuration)
+{
+  // Released after 8 k-cycles, the note is held to its 16.
+  header = exactHeader;
+  play("noteondur2 2, 60, 100, 0.25", "i 1 0 0.125\n");
+  EXPECT_EQ(sent, note60);
+  EXPECT_EQ(kcycles, (std::vector<uint64_t>{0, 16}));
+}
+
+TEST_F(MidiOutputTests, Midion2ClampsItsChannelTo16)
+{
+  play("midion2 17, 60, 100, timeinstk() == 1 ? 1 : 0");
+  EXPECT_EQ(sent, (std::vector<std::vector<int>>{
+    {0x9F, 60, 100, 0}, {0x8F, 60, 100, 0}}));
+}
+
+}  // namespace
