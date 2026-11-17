@@ -4,7 +4,9 @@ description = "y takes a seed from 0 to 2^32, as the manual says, and refuses on
 [expect]
 exit = 0
 output = ["seed from score 852516354", "seed from score 852516355",
-          "y: seed -5 out of range, ignored", "every seed gave numbers of its own"]
+          "y: seed -5 out of range, ignored", "seed from score 2",
+          "seed from score 3", "y: seed 4.29497e+09 out of range, ignored",
+          "every seed gave numbers of its own"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -44,6 +46,13 @@ i "Rand" 0 0 [~] 2
 y 123
 i "Rand" 0 0 [~] 3
 y -5
+; The upper two uint32 values remain distinct; the exclusive bound is refused.
+y 4294967294
+y 4294967295
+y 4294967296
+; Decimal and exponent syntax still truncate to the same integer seed.
+y 3000000001.75
+y 3.000000001e9
 i "Check" 0.1 0
 e
 </CsScore>

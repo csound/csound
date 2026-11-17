@@ -325,9 +325,10 @@ static int32_t read_section(CSOUND *csound) /* reads from SCOREIN    */
           p = &((csound->sread.bp)->text[1]);
           while (isblank(q=*p)) p++;
           if (isdigit(q) || q=='+' || q=='-' || q=='.') {
-            cs_double  tt;
-            char    *tmp = p;
-            tt = csoundStrtod(p, &tmp);
+            /* All uint32 seeds must remain distinct, including in float builds.
+               Keep decimal and exponent syntax and the C-locale parser. */
+            double tt = 0.0;
+            csoundSscanf(p, "%lf", &tt);
             //printf("tt=%lf q=%c\n", tt, q);
             /* A seed is from 0 to 2^32, which an int does not hold, and
                converting one past it was undefined. It is truncated, as it
