@@ -1,6 +1,7 @@
 #if defined(CSOUND_TEST_PTHREADS) && !defined(__EMSCRIPTEN__) && !defined(__wasi__)
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
+#include "csmodule.h"
 #include "gtest/gtest.h"
 
 #include <chrono>
@@ -53,6 +54,19 @@ int32_t performChildAndExit(CSOUND *csound, void *)
   csoundSetControlChannel(csound, "child_result", csoundPerformKsmps(child));
   csound->LongJmp(csound, 4);
   return CSOUND_ERROR;
+}
+
+int32_t jumpFive(CSOUND *csound)
+{
+  csound->LongJmp(csound, 5);
+  return CSOUND_ERROR;
+}
+
+int32_t catchJumpInOpcode(CSOUND *csound, void *)
+{
+  int32_t result = csoundCatchJump(csound, jumpFive);
+  csoundSetControlChannel(csound, "caught", result);
+  return CSOUND_SUCCESS;
 }
 
 /* Each case performs until its end, or for ten seconds. */
@@ -231,6 +245,41 @@ TEST_P(RealtimeInitJumpTests, ANestedInstanceRestoresTheOuterJump)
   EXPECT_EQ(ATOMIC_GET(child->performance_epoch) & 1, 0);
   EXPECT_TRUE(initMutexFree());
   csoundSetHostData(csound, nullptr);
+}
+
+TEST_P(RealtimeInitJumpTests, ACatchJumpOnThePerformingThreadLandsLocally)
+{
+  ASSERT_EQ(csoundAppendOpcode(csound, "test_catch_jump", sizeof(OPDS), 0,
+                              "", "", nullptr, catchJumpInOpcode, nullptr), 0);
+  start("instr 1\n"
+        " test_catch_jump\n"
+        " chnset 1, \"after\"\n"
+        " turnoff\n"
+        "endin\n", "i1 0 -1");
+  EXPECT_EQ(perform("after"), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "caught", nullptr), CSOUND_ERROR);
+  EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 1);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
+  EXPECT_TRUE(initMutexFree());
+}
+
+TEST_P(RealtimeInitJumpTests, ACatchJumpDuringInitRestoresTheOuterInitState)
+{
+  ASSERT_EQ(csoundAppendOpcode(csound, "test_catch_jump_init", sizeof(OPDS), 0,
+                              "", "", catchJumpInOpcode, nullptr, nullptr), 0);
+  start("instr 1\n"
+        " test_catch_jump_init\n"
+        " chnset 1, \"between\"\n"
+        " exitnow 4\n"
+        " chnset 1, \"after\"\n"
+        "endin\n", "i1 0 -1");
+  EXPECT_EQ(perform(), -4);
+  EXPECT_EQ(csoundGetControlChannel(csound, "caught", nullptr), CSOUND_ERROR);
+  EXPECT_EQ(csoundGetControlChannel(csound, "between", nullptr), 1);
+  EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 0);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_TRUE(initMutexFree());
 }
 
 /* exitnow 3 gives -3. */

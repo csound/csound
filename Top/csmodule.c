@@ -1413,10 +1413,25 @@ int32_t csoundLoadRequestedPlugins(CSOUND *csound) {
   return retval;
 }
 
-int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *))
+static CS_NOINLINE int32_t catch_jump_own_jumps(
+  CSOUND *csound, int32_t (*func)(CSOUND *))
 {
   volatile jmp_buf  saved;
   int32_t           err;
+
+  memcpy((void*) &saved, (void*) &csound->exitjmp, sizeof(jmp_buf));
+  if (setjmp(csound->exitjmp) != 0)
+    err = CSOUND_ERROR;
+  else
+    err = func(csound);
+  memcpy((void*) &csound->exitjmp, (void*) &saved, sizeof(jmp_buf));
+  return err;
+}
+
+int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *))
+{
+  API_CALL call;
+  int32_t err;
 
 #ifdef CSOUND_WASI_REALTIME
   /* A compiler worker's jump goes to its compile context, or ends the
@@ -1424,12 +1439,9 @@ int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *))
   if (csoundWasiIsWorkerThread())
     return func(csound);
 #endif
-  memcpy((void*) &saved, (void*) &csound->exitjmp, sizeof(jmp_buf));
-  if (setjmp(csound->exitjmp) != 0)
-    err = CSOUND_ERROR;
-  else
-    err = func(csound);
-  memcpy((void*) &csound->exitjmp, (void*) &saved, sizeof(jmp_buf));
+  api_call_begin(csound, &call);
+  err = catch_jump_own_jumps(csound, func);
+  api_call_end(&call);
   return err;
 }
 
