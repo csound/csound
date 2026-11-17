@@ -4937,11 +4937,11 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
         TREE* anchor_expansion = NULL;
         if (expand_struct_array_member_assignment(csound, current, typeTable, &anchor_expansion)) {
-          // Successfully expanded, replace current with the expanded sequence
+          // Successfully expanded, replace current with the expanded sequence;
+          // at the head, the first statement verified below is the anchor,
+          // as for any statement an expansion replaces
           if (previous != NULL) {
             previous->next = anchor_expansion;
-          } else if (anchor == NULL) {
-            anchor = anchor_expansion;
           }
 
           // Reconnect the expansion to the remaining statements.

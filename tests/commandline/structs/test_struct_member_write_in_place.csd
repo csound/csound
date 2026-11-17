@@ -3,7 +3,7 @@ description = "a member written into a struct array's element in place keeps the
 
 [expect]
 exit = 0
-output = ["every member written in place checked"]
+output = ["every member written in place checked", "a first statement checked"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -27,6 +27,8 @@ gkIndexCalls init 0
 giState init 0
 giIndexCalls init 0
 gkSlot init 0
+gkFirst init 3
+gfs@global:Box[] init 2
 struct Bank values:k[], level:k
 gbs@global:Bank[] init 2
 
@@ -197,9 +199,20 @@ instr 1
   printks("every member written in place checked\n", 0)
  endif
 endin
+
+; a member written by the first statement of an instrument's body keeps
+; what its value's expression is computed by
+instr 2
+ gfs[1].gain = gkFirst * 2
+ kIndex = 1
+ Check(gfs[kIndex].gain, 6, "a member written by a body's first statement")
+ printks("a first statement checked\n", 0)
+ turnoff
+endin
 </CsInstruments>
 <CsScore>
 i 1 0 0.04
+i 2 0 0.04
 e
 </CsScore>
 </CsoundSynthesizer>
