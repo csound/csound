@@ -45,11 +45,11 @@ typedef struct {
 typedef struct {        /* this now added from 07/01 */
     OPDS    h;
     cs_float   *ar, *asig, *kdist, *ifn, *ihp, *istor;
-    /* Squared levels and small detector updates need wider state. */
-    double  c1, c2, prvq, prvd, min_rms;
+    cs_double  c1, c2, prvq, prvd, min_rms;
     cs_float   midphs, maxphs, begval, endval;
     FUNC    *ftp;
     int32_t initialized;
+    cs_double rms_scale, rms_correction;
 } DIST;
 
 static int32_t compset(CSOUND *csound, CMPRS *p)
@@ -220,11 +220,11 @@ static int32_t distset(CSOUND *csound, DIST *p)
     p->midphs = p->maxphs * FL(0.5);
     p->begval = ftp->ftable[0];
     p->endval = ftp->ftable[ftp->flen];
-    TONE_COEFFICIENTS((double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
+    TONE_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
     p->min_rms = csound->Get0dBFS(csound) * DV32768;
     if (!*p->istor || !p->initialized || !isfinite(p->prvq) ||
         p->prvq < FL(0.0) || !isfinite(p->prvd) || p->prvd <= FL(0.0)) {
-      p->prvq = FL(0.0);
+      p->prvq = p->rms_scale = p->rms_correction = FL(0.0);
       p->prvd = FL(1000.0) * p->min_rms;
     }
     p->initialized = 1;
@@ -235,7 +235,8 @@ static int32_t distset(CSOUND *csound, DIST *p)
 static int32_t distort(CSOUND *csound, DIST *p)
 {
     cs_float   *ar, *asig;
-    double  q, rms, dist, dnew, dcur, dinc;
+    cs_double  q, rms, dist, dnew, dcur, dinc;
+    cs_double level_scale, correction;
     FUNC    *ftp = p->ftp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -251,13 +252,40 @@ static int32_t distort(CSOUND *csound, DIST *p)
     if (UNLIKELY(offset >= nsmps))
       return OK;
     q = p->prvq;
+    level_scale = p->rms_scale;
+    correction = p->rms_correction;
     for (n=offset; n<nsmps; n++) {
-      q = p->c1 * asig[n] * asig[n] + p->c2 * q;
+      cs_double magnitude = fabs(asig[n]);
+      if (magnitude > level_scale) {
+        cs_double ratio = level_scale / magnitude;
+        q *= ratio * ratio;
+        correction *= ratio * ratio;
+        level_scale = magnitude;
+      }
+      if (level_scale > 0.0) {
+        cs_double normalized = asig[n] / level_scale;
+        /* Squaring a normalized sample cannot overflow. Retain small
+           updates without rounding the complementary pole to one. */
+        volatile cs_double difference = normalized * normalized - q;
+        volatile cs_double update = p->c1 * (difference + correction);
+        volatile cs_double step = update - correction;
+        volatile cs_double next = q + step;
+        volatile cs_double applied = next - q;
+        correction = applied - step;
+        q = next;
+        /* Reduce the scale during decay, before the normalized energy
+           can underflow. Power-of-two rescaling introduces no rounding. */
+        while (q > 0.0 && q < FL(0.25) && magnitude <= level_scale * FL(0.5)) {
+          q *= FL(4.0);
+          correction *= FL(4.0);
+          level_scale *= FL(0.5);
+        }
+      }
     }
     if (UNLIKELY(!isfinite(q)))
       return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("distort: input level is out of range"));
-    rms = sqrt(q);    /* get running rms      */
+    rms = sqrt(q) * level_scale;    /* get running rms      */
     if (rms < p->min_rms)
       rms = p->min_rms;
     dist = *p->kdist;
@@ -271,26 +299,60 @@ static int32_t distort(CSOUND *csound, DIST *p)
       return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("distort: distortion amount is out of range"));
     p->prvq = q;
+    p->rms_scale = level_scale;
+    p->rms_correction = correction;
     dcur = p->prvd;
     dinc = (dnew - dcur) / (nsmps - offset);
     for (n=offset; n<nsmps; n++) {
-      double sig, phs, val;
-      sig = asig[n] / dcur;             /* compress the sample  */
-      phs = p->midphs * (1.0 + sig);     /* as index into table  */
-      if (LIKELY(phs > FL(0.0) && phs < p->maxphs)) {
-        int32  iphs = (int32)phs;
-        double frac = phs - iphs;       /* waveshape the samp   */
-        cs_float *fp = ftp->ftable + iphs;
-        val = *fp++;
-        val += (*fp - val) * frac;
-      }
-      else if (phs <= FL(0.0))
+      cs_double val;
+      /* Check clipping before dividing, so large finite samples need not
+         form an overflowing normalized value. */
+      if (asig[n] <= -dcur)
         val = p->begval;
-      else if (phs >= p->maxphs)                 /* check sticky bits    */
+      else if (asig[n] >= dcur)
         val = p->endval;
-      else                                    /* unordered index: NaN */
-        return csound->PerfError(csound, &(p->h), "%s\n",
-                                 Str("distort: signal produced a non-finite index"));
+      else {
+        cs_double displacement = (asig[n] / dcur) * p->midphs;
+        if (displacement <= -p->midphs)
+          val = p->begval;
+        else if (displacement >= p->midphs)
+          val = p->endval;
+        else if (fabs(displacement) < FL(1.0)) {
+          int32_t index = (int32_t)p->midphs;
+          cs_double fraction = p->midphs - index;
+          cs_double slope;
+          if (displacement < -fraction) {
+            --index;
+            fraction += FL(1.0);
+          }
+          else if (displacement >= FL(1.0) - fraction) {
+            ++index;
+            fraction -= FL(1.0);
+          }
+          slope = ftp->ftable[index + 1] - ftp->ftable[index];
+          /* Keep a quiet signal separate from the large centre index.
+             Volatile intermediates also prevent fast-math reassociation. */
+          volatile cs_double centre = ftp->ftable[index] + fraction * slope;
+          volatile cs_double detail = displacement * slope;
+          val = centre + detail;
+        }
+        else {
+          cs_double phase = p->midphs + displacement;
+          if (LIKELY(phase > FL(0.0) && phase < p->maxphs)) {
+            int32_t index = (int32_t)phase;
+            cs_double fraction = phase - index;
+            cs_float *fp = ftp->ftable + index;
+            val = fp[0] + (fp[1] - fp[0]) * fraction;
+          }
+          else if (phase <= FL(0.0))
+            val = p->begval;
+          else if (phase >= p->maxphs)
+            val = p->endval;
+          else
+            return csound->PerfError(csound, &(p->h), "%s\n",
+                                     Str("distort: signal produced a non-finite index"));
+        }
+      }
       ar[n] = (cs_float)(val * dcur);       /* restore amplitude    */
       dcur += dinc;
     }
