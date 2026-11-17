@@ -2561,14 +2561,14 @@ static int32_t kdel_set(CSOUND *csound,KDEL *p)
 {
     int32_t n;
     size_t maxpts = SIZE_MAX / sizeof(cs_float), bytes;
-    double samples;
+    cs_double samples;
 
     if (*p->istod)
       return OK;
     if (maxpts > INT32_MAX)
       maxpts = INT32_MAX;
-    samples = (double) *p->imaxd * CS_EKR;
-    if (UNLIKELY(!(samples >= 0 && samples < (double) maxpts + 1)))
+    samples = (cs_double) *p->imaxd * CS_EKR;
+    if (UNLIKELY(!(samples >= 0 && samples < (cs_double) maxpts + 1)))
       return csound->InitError(csound, "%s\n", Str("vdelayk: invalid maximum delay"));
     n = (int32_t) samples;
     if (n == 0) n = 1;
@@ -2586,7 +2586,7 @@ static int32_t kdelay(CSOUND *csound,KDEL *p)
 {
     int64_t maxd =  p->maxd, indx, v1, v2;
     cs_float *buf = (cs_float *)p->aux.auxp;
-    double delay, position;
+    cs_double delay, position;
 
     if (UNLIKELY(buf==NULL)) {
       return csound->PerfError(csound, &p->h, "%s\n",
@@ -2594,19 +2594,19 @@ static int32_t kdelay(CSOUND *csound,KDEL *p)
     }
 
     indx = p->left;
-    delay = (double) *p->kdel * CS_EKR;
+    delay = (cs_double) *p->kdel * CS_EKR;
     if (UNLIKELY(!isfinite(delay)))
       return csound->PerfError(csound, &p->h, "%s\n",
                                Str("vdelayk: invalid delay time"));
-    /* Reduce large delays first: subtracting one from the write head can
+    /* Reduce large delays first: subtracting a large delay from the write head can
        otherwise discard the head's low bits before the modulo operation. */
     if (UNLIKELY(delay <= -maxd || delay >= maxd))
-      delay = fmod(delay, (double) maxd);
-    position = (double) indx - delay;
+      delay = fmod(delay, (cs_double) maxd);
+    position = (cs_double) indx - delay;
     /* Like vdelay, the legacy delay wraps at the buffer period, including
        the maximum delay itself. Keep that behavior for existing scores. */
     if (UNLIKELY(!(position >= 0 && position < maxd))) {
-      position = fmod(position, (double) maxd);
+      position = fmod(position, (cs_double) maxd);
       if (position < 0) position += maxd;
       /* Rounding a tiny negative remainder can produce exactly maxd. */
       if (position >= maxd) position = 0;
