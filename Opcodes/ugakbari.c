@@ -45,7 +45,8 @@ typedef struct _scale2 {
   OPDS  h;
   cs_float *koutval;
   cs_float *kinval, *kmin, *kmax, *imin, *imax, *ihtim;
-  cs_double c1, c2, yt1;
+  /* Keep slow updates and wide endpoint differences with float samples. */
+  double c1, c2, yt1;
 } SCALE2;
 
 typedef struct _expcurve {
@@ -100,7 +101,7 @@ static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
                                Str("scale2: smoothing time must be nonnegative"));
     p->yt1 = 0.0;
     if (*p->ihtim != FL(0.0)) {
-      p->c2 = pow(0.5, CS_ONEDKR / (cs_double)*p->ihtim);
+      p->c2 = pow(0.5, CS_ONEDKR / (double)*p->ihtim);
       p->c1 = 1.0 - p->c2;
     } else {
       p->c2 = 0.0; p->c1 = 1.0;
@@ -110,11 +111,11 @@ static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
 
 static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
 {
-    cs_double max = *p->imax;
-    cs_double min = *p->imin;
-    cs_double kmax = *p->kmax;
-    cs_double kmin = *p->kmin;
-    cs_double val = *p->kinval;
+    double max = *p->imax;
+    double min = *p->imin;
+    double kmax = *p->kmax;
+    double kmin = *p->kmin;
+    double val = *p->kinval;
     if (UNLIKELY(!(max > min)))
       return csound->PerfError(csound, &p->h, "%s\n",
                                Str("scale2: input maximum must exceed minimum"));
