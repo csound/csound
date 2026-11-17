@@ -681,6 +681,28 @@ TEST_F(CsdCompileTests, ByteFFInBase64DataIsAnError)
 
 // csoundScoreSort and csoundScoreExtract copy what they read whole: a byte
 // 0xFF in a string ended the score's reading, and their copy of the result.
+// The extract utility writes a section unwarped, its t as it is: the t of
+// a section, which the sort leaves out after the first, stays there.
+TEST_F(CsdCompileTests, ScoreExtractKeepsTheTempo)
+{
+  ASSERT_NO_FATAL_FAILURE(write("in.sco", "t 0 120\ni 1 1 1\ni 2 2 1\ne\n"));
+  ASSERT_NO_FATAL_FAILURE(write("one.xtr", "i 1\n"));
+  FILE *in = fopen(path("in.sco").c_str(), "rb");
+  ASSERT_NE(nullptr, in);
+  FILE *out = fopen(path("out.sco").c_str(), "wb");
+  ASSERT_NE(nullptr, out);
+  FILE *extract = fopen(path("one.xtr").c_str(), "rb");
+  ASSERT_NE(nullptr, extract);
+  EXPECT_EQ(0, csoundScoreExtract(csound, in, out, extract)) << messages();
+  fclose(extract);
+  fclose(out);
+  fclose(in);
+  std::ifstream copy(path("out.sco"), std::ios::binary);
+  const std::string text((std::istreambuf_iterator<char>(copy)),
+                         std::istreambuf_iterator<char>());
+  EXPECT_NE(std::string::npos, text.find("t 0 120")) << text;
+}
+
 TEST_F(CsdCompileTests, ScoreSortAndExtractKeepAByteFF)
 {
   ASSERT_NO_FATAL_FAILURE(

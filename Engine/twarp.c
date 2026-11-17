@@ -45,6 +45,16 @@ void twarp(CSOUND *csound) /* time-warp a score section acc to T-statement */
       if (UNLIKELY((bp = bp->nxtblk) == NULL))
         return;                             /*      we are done      */
     bp->text[0] = 'w';                      /* else mark the t used  */
+    {   /* Only one t is meaningful in a section: the first, which sort()
+           put first. Another one, written as it is, made rdscor() read
+           every line after it unwarped. */
+      SRTBLK *t;
+      for (t = bp->nxtblk; t != NULL; t = t->nxtblk)
+        if (t->text[0] == 't') {
+          t->prvblk->nxtblk = t->nxtblk;
+          if (t->nxtblk != NULL) t->nxtblk->prvblk = t->prvblk;
+        }
+    }
     if (!realtset(csound, bp))              /*  and init the t-array */
       return;                               /* (done if t0 60 or err) */
     bp  = csound->frstbp;

@@ -1122,6 +1122,26 @@ TEST(HostScoreReads, NothingAfterATimedEPlays)
     }
 }
 
+/* Only one t in a section is meaningful, the manual says: the first is used.
+   The sort put two t lines in no order of their own, used the one it put
+   first (the last written), and wrote the other into the sorted score,
+   where the performance's reader refused it ("illegal opcode t") and read
+   every line after it unwarped: a note's p2 and p3, each followed by its
+   warped value, gave it two p-fields more. */
+TEST(HostScoreReads, OnlyTheFirstTempoInASectionIsUsed)
+{
+    Host host;
+    host.send("t 0 120\ni 3 1 0 7\nt 0 30", BeforeStart);
+    int cycles = 0;
+    while (cycles < 4000 && csoundPerformKsmps(host.csound) == 0)
+        cycles++;
+    EXPECT_EQ(4, csoundGetControlChannel(host.csound, "fields", nullptr))
+        << host.said();
+    EXPECT_EQ(7, csoundGetControlChannel(host.csound, "last", nullptr));
+    EXPECT_EQ(750, cycles); /* beat 1 at 120 a minute is 0.5 s */
+    EXPECT_EQ(std::string::npos, host.said().find("illegal opcode"));
+}
+
 #ifndef _WIN32
 /* While it lives, this process's stdin is /dev/null: -L stdin reads stdin,
    and leaves it non-blocking until the performance's cleanup. */
