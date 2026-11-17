@@ -225,13 +225,16 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
       for (j=2; j<Ny+3; j++)  /* Loop from 2,3,...Nf, Nf+1, Nf+2 */
         for (i=2; i<Nx+3; i++) {
           size_t ij = (size_t)i + Nx5*j;
+          /* Pair horizontal neighbours before summing rows, so reflecting
+             the grid does not change the order of floating-point sums. */
+          volatile cs_double diagonal_top = u1[ij-1-Nx5] + u1[ij+1-Nx5];
+          volatile cs_double diagonal_bottom = u1[ij-1+Nx5] + u1[ij+1+Nx5];
           u[ij] = s00*u1[ij]+
                   s10*(u1[ij-Nx5]+u1[ij+Nx5])+
                   s20*(u1[ij-2*Nx5]+u1[ij+2*Nx5])+
                   s01*(u1[ij-1]+u1[ij+1])+
                   s02*(u1[ij-2]+u1[ij+2])+
-                  s11*(u1[ij-1-Nx5]+u1[ij+1+Nx5]+
-                       u1[ij-1+Nx5]+u1[ij+1-Nx5]);
+                  s11*(diagonal_top + diagonal_bottom);
           u[ij] += t00*u2[ij]+
                    t10*(u2[ij-Nx5]+u2[ij+Nx5])+
                    t01*(u2[ij-1]+u2[ij+1]);
@@ -307,14 +310,16 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
         uint32_t yo = (uint32_t)floor(yod)+2u;
         cs_double xf = xod-(cs_double)(xo-2);
         cs_double yf = yod-(cs_double)(yo-2);
-        cs_double xyf = xf*yf;
         size_t uidx;
         p->co[qq] = cv; p->so[qq] = sv;
         uidx = Nx5*yo + xo;
-        (p->aout[qq])[n] = (cs_float)((1.0-xf-yf+xyf)*u[uidx]+
-                                   (yf-xyf)*u[Nx5+uidx]+
-                                   (xf-xyf)*u[1+uidx]+
-                                   xyf*u[1+Nx5+uidx])/FL(25.0);
+        /* Form each row in the same order under horizontal reflection. */
+        volatile cs_double top_left = (FL(1.0)-xf)*u[uidx];
+        volatile cs_double top_right = xf*u[1+uidx];
+        volatile cs_double bottom_left = (FL(1.0)-xf)*u[Nx5+uidx];
+        volatile cs_double bottom_right = xf*u[1+Nx5+uidx];
+        (p->aout[qq])[n] = (cs_float)((FL(1.0)-yf)*(top_left+top_right)+
+                                     yf*(bottom_left+bottom_right))/FL(25.0);
       }
       {
         cs_double *tmp = u2;      /* cycle U*/
