@@ -1420,7 +1420,7 @@ int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *))
 
 #ifdef CSOUND_WASI_REALTIME
   /* A compiler worker's jump goes to its compile context, or ends the
-     process: exitjmp is the render thread's, and is left alone. */
+     process. Leave other API calls' exitjmp alone. */
   if (csoundWasiIsWorkerThread())
     return func(csound);
 #endif

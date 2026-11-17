@@ -63,6 +63,8 @@ extern "C" {
   void csoundErrorMsgS(CSOUND *, int32_t attr, const char *, ...);
   void csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
   CS_NORETURN void csoundLongJmp(CSOUND *, int32_t retval);
+  /* Jump to this thread's active performance call, if it has one. */
+  void perform_jump_make(CSOUND *, int32_t value);
   TEXT *getoptxt(CSOUND *, int32_t *);
   void  csoundInitDisplay(CSOUND *);
   int32_t init0(CSOUND *);

@@ -830,9 +830,9 @@ void realtime_message_queue_stop(CSOUND *csound)
 #define INIT_THREAD_LOCAL _Thread_local
 #endif
 
-/* Where a fatal jump lands on the realtime init thread. exitjmp belongs to
-   the thread that performs, and a jump to it from here went on running that
-   thread's frames on this one. So each pass on this thread, an init_pass, a
+/* Where a fatal jump lands on the realtime init thread. A jump to the
+   performance thread's target used to run that thread's frames on this one.
+   So each pass on this thread, an init_pass, a
    reinit_pass or init_instr0's for global code, sets a landing, as do a
    UDO's and a subinstrument's init (useropcdset, subinstrset_), which run
    their opcodes themselves. The innermost

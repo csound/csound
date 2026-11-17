@@ -482,7 +482,7 @@ TREE *csoundParseOrc(CSOUND *csound, const char *str)
     /* A host may call this first, before anything owns exitjmp. Once the
        plugins are loaded and no --opcode-lib is left, which is what
        csoundLoadRequestedPlugins() tests, there is nothing to load, and
-       exitjmp is left alone: a performance may own it. */
+       exitjmp is left alone: another API call may own it. */
     if (!csound->default_modules_loaded ||
         (csound->dl_opcodes_oplibs != NULL &&
          csound->dl_opcodes_oplibs[0] != '\0')) {

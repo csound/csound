@@ -243,7 +243,7 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   char *fileDir;
   volatile int32_t compiledOk = 0;
 
-  /* refused before the setjmp: exitjmp may be a running performance's */
+  /* Refuse a second compile before changing a started engine. */
   if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
     csound->Message(csound,
                     Str("Csound is already started, call csoundReset()\n"
@@ -625,8 +625,7 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
   OPARMS *O = csound->oparms;
   int32_t n;
 
-  /* A started engine is refused before anything is read: its rc file would
-     set options on it, and exitjmp may be a running performance's. */
+  /* Refuse a started engine before reading its rc file or changing options. */
   if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
     csound->Message(csound,
                     Str("Csound is already started, call csoundReset()\n"
