@@ -45,8 +45,7 @@ typedef struct _scale2 {
   OPDS  h;
   cs_float *koutval;
   cs_float *kinval, *kmin, *kmax, *imin, *imax, *ihtim;
-  /* Keep slow updates and wide endpoint differences with float samples. */
-  double c1, c2, yt1;
+  cs_double c1, yt1, correction;
 } SCALE2;
 
 typedef struct _expcurve {
@@ -94,39 +93,78 @@ static int32_t scale_process(CSOUND *csound, scale *p)
     return OK;
 }
 
+/* A convex combination must not overflow when the endpoints are finite. */
+static inline cs_double scale2_lerp(cs_double low, cs_double high, cs_double t)
+{
+    if (t <= 0.0) return low;
+    if (t >= 1.0) return high;
+    if ((low < 0.0 && high > 0.0) || (low > 0.0 && high < 0.0)) {
+      /* Do not let fast-math rebuild the overflowing endpoint difference. */
+      volatile cs_double left = (FL(1.0) - t) * low;
+      volatile cs_double right = t * high;
+      return left + right;
+    }
+    return low + t * (high - low);
+}
+
 static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
 {
     if (*p->ihtim < FL(0.0))
       return csound->InitError(csound, "%s\n",
                                Str("scale2: smoothing time must be nonnegative"));
-    p->yt1 = 0.0;
-    if (*p->ihtim != FL(0.0)) {
-      p->c2 = pow(0.5, CS_ONEDKR / (double)*p->ihtim);
-      p->c1 = 1.0 - p->c2;
-    } else {
-      p->c2 = 0.0; p->c1 = 1.0;
-    }
+    p->yt1 = p->correction = 0.0;
+    /* Compute the small coefficient directly, without subtracting from one. */
+    p->c1 = *p->ihtim == FL(0.0) ? 1.0 :
+      -expm1(-log(2.0) * CS_ONEDKR / (cs_double)*p->ihtim);
     return OK;
 }
 
 static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
 {
-    double max = *p->imax;
-    double min = *p->imin;
-    double kmax = *p->kmax;
-    double kmin = *p->kmin;
-    double val = *p->kinval;
+    cs_double max = *p->imax;
+    cs_double min = *p->imin;
+    cs_double kmax = *p->kmax;
+    cs_double kmin = *p->kmin;
+    cs_double val = *p->kinval;
+    cs_double span, position;
     if (UNLIKELY(!(max > min)))
       return csound->PerfError(csound, &p->h, "%s\n",
                                Str("scale2: input maximum must exceed minimum"));
     if (val > max) val = max;
     else if (val < min) val = min;
 
-    val = ((val - min)/(max-min))* (kmax - kmin) + kmin;
-    if (p->c2 == 0.0)
+    span = max - min;
+    /* Halving all terms preserves the ratio when the full span overflows. */
+    if (isfinite(span))
+      position = (val - min) / span;
+    else {
+      volatile cs_double halfval = val * FL(0.5);
+      volatile cs_double halfmin = min * FL(0.5);
+      volatile cs_double halfmax = max * FL(0.5);
+      position = (halfval - halfmin) / (halfmax - halfmin);
+    }
+    val = scale2_lerp(kmin, kmax, position);
+    if (p->c1 == 1.0) {
       p->yt1 = val;
-    else
-      p->yt1 = p->c1 * val + p->c2 * p->yt1;
+      p->correction = 0.0;
+    }
+    else {
+      cs_double difference = val - p->yt1;
+      if (UNLIKELY(!isfinite(difference))) {
+        p->yt1 = scale2_lerp(p->yt1, val, p->c1);
+        p->correction = 0.0;
+      }
+      else {
+        /* Keep updates smaller than one ULP in a second cs_double. */
+        /* Force the rounding steps even in a fast-math build. */
+        volatile cs_double update = p->c1 * (difference + p->correction);
+        volatile cs_double step = update - p->correction;
+        volatile cs_double next = p->yt1 + step;
+        volatile cs_double applied = next - p->yt1;
+        p->correction = applied - step;
+        p->yt1 = next;
+      }
+    }
     *p->koutval = (cs_float)p->yt1;
     return OK;
 }
