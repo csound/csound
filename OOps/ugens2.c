@@ -81,7 +81,7 @@ int32_t ephsset(CSOUND *csound, EPHSOR *p)
 
 int32_t ephsor(CSOUND *csound, EPHSOR *p)
 {
-    cs_double      phase;
+    double         phase;
     uint32_t    offset = GetKsmpsOffset(&p->h);
     uint32_t    early  = GetEarlySmps(&p->h);
     uint32_t    n, nsmps = CS_KSMPS;
