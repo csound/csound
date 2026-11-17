@@ -739,6 +739,11 @@ extern "C" {
    * But if csoundCompileCsd is called before csoundStart, the <CsOptions>
    * element is used, the <CsScore> section is pre-processed and dispatched
    * normally, and performance terminates when the score terminates.
+   * A <CsScore> compiled after another score, still before csoundStart,
+   * joins it from its start, as csoundEventString() does. With async = 1,
+   * the orchestra is merged at the first performance cycle, and the score
+   * is dispatched after it as realtime events, which do not lengthen the
+   * score.
    *
    * \code
    *
@@ -1348,7 +1353,11 @@ extern "C" {
    * Schedule new score or realtime event(s) as a NULL-terminated string
    * Two operation modes are supported:
    * - Score events: any calls before csoundStart() add the string events to
-   * the score (before pre-processing) (async should be set to 0).
+   * the score (async should be set to 0). Each string is pre-processed and
+   * sorted on its own, its sections and tempo its own, and joins the score
+   * from its start, section by section: performance goes on until all of it
+   * is done. A first score with no events, which keeps the performance going
+   * until it is stopped, still does so after the others.
    * - Realtime events: after the engine starts, string events are added to
    * the realtime event queue.
    *

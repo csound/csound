@@ -168,8 +168,9 @@ void swritestr(CSOUND *csound, CORFIL *sco, int32_t first)
         CS_SPRINTF(buffer, "f 0  %f %f\n", bp->p2val, bp->newp2);
         corfile_puts(csound, buffer, sco);
       }
-      /* Before the start, a score sorted after the first one is queued as
-         realtime events, where an e ends the performance at once. */
+      /* Before the start, the score of an async compile after the first
+         one is queued as realtime events, where an e ends the performance
+         at once. */
       else if (first || (csound->engineStatus & CS_STATE_COMP))
         corfile_putc(csound, c, sco);
       corfile_putc(csound, LF, sco);

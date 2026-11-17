@@ -1080,9 +1080,9 @@ TEST(HostScoreErrors, RefusedBeforeStartLeavesTheScoreToTheNextLine)
     EXPECT_EQ(1, host.played());
 }
 
-/* Before the start, a read after the first is queued, and its notes play at
-   their times. The e that the read was given ended the performance at once,
-   and so did one of its own. */
+/* Before the start, a read after the first joins the score, and its notes
+   play at their times. The e that the read was given ended the performance
+   at once, and so did one of its own. */
 TEST(HostScoreReads, LaterReadsBeforeStartPlay)
 {
     for (const char *later : {"i 1 0.01 0\ni 1 0.02 0",
@@ -1103,6 +1103,131 @@ TEST(HostScoreReads, LaterReadsBeforeStartPlay)
     host.start();
     csoundEventString(host.csound, "i 1 0 1\ne", 0);
     EXPECT_NE(0, csoundPerformKsmps(host.csound));
+}
+
+/* The performance goes on until a later read's score is done: its notes
+   past the first's 0.1 s play, its e or f 0 lengthens the score, and its
+   sections and tempo are its own. They were realtime events, cut off where
+   the first read ended, and the line reader took no s ("unknown opcode s")
+   or t ("unknown opcode w"). A cycle is 32 samples at 48 kHz. */
+TEST(HostScoreReads, LaterReadsBeforeStartPlayToTheirEnd)
+{
+    const struct {
+        const char *later;
+        int cycles;          /* of the performance */
+        int at, playedAt;    /* how many notes have played after cycle at */
+        int played;          /* in all */
+    } cases[] = {
+        {"i 1 0.5 0", 750, 600, 1, 2},
+        {"i 1 0.05 0\ne 0.5", 750, 600, 2, 2},
+        {"i 1 0.05 0\nf 0 0.5", 750, 600, 2, 2},
+        /* a timed e alone: a section with no w line */
+        {"e 0.5", 750, 600, 1, 1},
+        /* its second section follows the first's end at 0.1 s */
+        {"i 1 0.05 0\ns\ni 1 0.05 0", 225, 200, 2, 3},
+        /* 0.25 beats at 30 a minute is 0.5 s */
+        {"t 0 30\ni 1 0.25 0", 750, 600, 1, 2},
+    };
+    for (const auto &c : cases) {
+        SCOPED_TRACE(c.later);
+        Host host;
+        csoundEventString(host.csound, "i 1 0 0.1", 0);
+        csoundEventString(host.csound, c.later, 0);
+        host.start();
+        int cycles = 0;
+        cs_float playedAt = -1;
+        while (cycles < 2000 && csoundPerformKsmps(host.csound) == 0)
+            if (++cycles == c.at)
+                playedAt = host.played();
+        EXPECT_EQ(c.playedAt, playedAt);
+        EXPECT_EQ(c.played, host.played()) << host.said();
+        EXPECT_EQ(c.cycles, cycles);
+        EXPECT_EQ(std::string::npos, host.said().find("unknown opcode"))
+            << host.said();
+    }
+    /* An empty first read keeps the performance going after the last
+       section of the later ones, and the start keeps no more blocks for six
+       later reads than for one. */
+    size_t blocks[2];
+    for (const int reads : {1, 6}) {
+        Host host;
+        csoundEventString(host.csound, "", 0);
+        for (int i = 0; i < reads; i++)
+            csoundEventString(host.csound, "i 1 0.05 0\ns\ni 1 0.05 0", 0);
+        host.start();
+        blocks[reads > 1] = csound_tracked_block_count(host.csound);
+        host.perform(1000);
+        EXPECT_EQ(2 * reads, host.played());
+    }
+    EXPECT_EQ(blocks[0], blocks[1]);
+    /* A first read whose second section is a timed e alone, which has no w
+       line, after a later read of one section: that section of the merge
+       has no head to write. Both notes play, and the score ends 0.5 s into
+       its second section. */
+    {
+        Host timedE;
+        csoundEventString(timedE.csound, "i 1 0 0.1\ns\ne 0.5", 0);
+        csoundEventString(timedE.csound, "i 1 0.05 0", 0);
+        timedE.start();
+        int cycles = 0;
+        while (cycles < 2000 && csoundPerformKsmps(timedE.csound) == 0)
+            cycles++;
+        EXPECT_EQ(2, timedE.played()) << timedE.said();
+        EXPECT_EQ(900, cycles); /* 0.1 s, then 0.5 s */
+    }
+    /* With -t the score is played in beats, and merged in beats: a read
+       whose t puts its beat 0.4 at 0.1 s plays after the other's 0.2. */
+    Host host;
+    csoundSetOption(host.csound, "-t60");
+    csoundEventString(host.csound, "t 0 240\ni 1 0.4 0", 0);
+    csoundEventString(host.csound, "i 1 0.2 0", 0);
+    host.start();
+    int cycles = 0;
+    cs_float playedAt = -1;
+    while (cycles < 2000 && csoundPerformKsmps(host.csound) == 0)
+        if (++cycles == 450)
+            playedAt = host.played();
+    EXPECT_EQ(1, playedAt);
+    EXPECT_EQ(2, host.played());
+}
+
+/* Nothing after an e plays: the manual says the lines after it are ignored.
+   A timed e is written as an f 0, with no e line to stop the performance's
+   reader, and the lines after it played, from 0 again: a note at 0.01 after
+   an e at 0.05 played at 0.05. Read before the start and on a started
+   engine. */
+TEST(HostScoreReads, NothingAfterATimedEPlays)
+{
+    for (const Path path : {BeforeStart, Blocking}) {
+        SCOPED_TRACE(pathNames[path]);
+        Host host;
+        host.send("i 1 0 0\ne 0.05\ni 1 0.01 0", path);
+        int cycles = 0;
+        while (cycles < 1000 && csoundPerformKsmps(host.csound) == 0)
+            cycles++;
+        EXPECT_EQ(1, host.played()) << host.said();
+        EXPECT_EQ(75, cycles); /* 0.05 s */
+    }
+}
+
+/* Only one t in a section is meaningful, the manual says: the first is used.
+   The sort put two t lines in no order of their own, used the one it put
+   first (the last written), and wrote the other into the sorted score,
+   where the performance's reader refused it ("illegal opcode t") and read
+   every line after it unwarped: a note's p2 and p3, each followed by its
+   warped value, gave it two p-fields more. */
+TEST(HostScoreReads, OnlyTheFirstTempoInASectionIsUsed)
+{
+    Host host;
+    host.send("t 0 120\ni 3 1 0 7\nt 0 30", BeforeStart);
+    int cycles = 0;
+    while (cycles < 4000 && csoundPerformKsmps(host.csound) == 0)
+        cycles++;
+    EXPECT_EQ(4, csoundGetControlChannel(host.csound, "fields", nullptr))
+        << host.said();
+    EXPECT_EQ(7, csoundGetControlChannel(host.csound, "last", nullptr));
+    EXPECT_EQ(750, cycles); /* beat 1 at 120 a minute is 0.5 s */
+    EXPECT_EQ(std::string::npos, host.said().find("illegal opcode"));
 }
 
 #ifndef _WIN32

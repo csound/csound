@@ -474,15 +474,9 @@ static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv) {
       csound->Message(csound, Str("Sorting score ...\n"));
     }
     // printf("score:\n%s", corfile_current(csound->scorestr));
-    if (csound->scstr == NULL)
-      scsortstr(csound, csound->scorestr);
-    else {
-      /* A score was sorted before this one, by --events= or an earlier
-         compile: this one is queued, as csoundReadScore queues it. */
-      char *sorted = scsortstr(csound, csound->scorestr);
-      csoundInputMessage(csound, sorted);
-      csound->Free(csound, sorted);
-    }
+    /* after --events= or an earlier compile, this score joins that one */
+    scsortstr(csound, csound->scorestr);
+    scsortstr_merge(csound);
     // printf("*** keep_tmp = %d\n", csound->keep_tmp);
     if (csound->keep_tmp) {
       FILE *ff = fopen("score.srt", "w");
@@ -542,15 +536,17 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
 
     res = csound_compile_orc(csound, NULL, async);
     if (res == CSOUND_SUCCESS) {
-      /* Before the start, the first score sorted is the one played. A later
-         one is queued, as csoundReadScore queues it, and as a started
-         engine's are. */
+      /* Before the start, the first score sorted is the one played, and a
+         later one joins it. An async compile's orchestra waits in the queue
+         for the performance, and its score follows it there as realtime
+         events, as a started engine's does: in the score played, its notes
+         would come before their instruments. */
       if ((csound->engineStatus & CS_STATE_COMP) != 0 ||
-          csound->scstr != NULL) {
+          (csound->scstr != NULL && async)) {
           char *sorted = NULL;
           scoreErrCnt = csound->inerrcnt;
           if (csound->scorestr != NULL) /* with no score, nothing is queued */
-            sorted = scsortstr(csound, csound->scorestr);
+            sorted = scsortstr_events(csound, csound->scorestr);
           if (UNLIKELY(csound->inerrcnt > scoreErrCnt)) {
             csound->Free(csound, sorted);
             return CSOUND_ERROR;
@@ -564,10 +560,11 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
             input_message_async(csound, (const char *) sorted);
             else csoundInputMessage(csound, (const char *) sorted);
           }
-          /* Here scsortstr returns a copy of its own, and both of those take
-             theirs. */
+          /* Here scsortstr_events returns a copy of its own, and both of
+             those take theirs. */
           csound->Free(csound, sorted);
       } else {
+        const int32_t later = csound->scstr != NULL;
         if (csound->scorestr == NULL) {
           csound->scorestr = corfile_create_w(csound);
           corfile_puts(csound, "\n\n\ne\n#exit\n", csound->scorestr);
@@ -575,6 +572,8 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
         scoreErrCnt = csound->inerrcnt;
         scsortstr(csound, csound->scorestr);
         if (UNLIKELY(csound->inerrcnt > scoreErrCnt)) {
+          if (later) /* a later score with an error is refused */
+            scsortstr_forget(csound);
           return CSOUND_ERROR;
         }
         if (csound->oparms->odebug)
@@ -817,6 +816,7 @@ static int32_t start_csound(CSOUND *csound)
     csound->WaitBarrier(csound->barrier2);
   }
 #endif
+  scsortstr_merge(csound); /* the scores sorted after the first join it */
   csound->engineStatus |= CS_STATE_COMP;
   if (csound->oparms->daemon > 1)
     csoundUDPServerStart(csound, csound->oparms->daemon);
