@@ -1323,7 +1323,8 @@ static OENTRY spectra_localops[] = {
     (SUBR)trnsetr,(SUBR)ktrnsegr,(SUBR)NULL },
   { "transegr.a", S(TRANSEG),0, "a", "iiim",
     (SUBR)trnsetr,(SUBR)trnsegr      },
-  { "clip", S(CLIP),      0,   "a", "akkV", (SUBR)clip_set, (SUBR)clip  },
+  { "clip", S(CLIP),      0,   "a", "aiiv", (SUBR)clip_set, (SUBR)clip  },
+  { "clip", S(CLIP),      0,   "a", "akkV", (SUBR)clip_set, (SUBR)clip_k },
   { "median", S(MEDFILT), 0,      "a", "akio", (SUBR)medfiltset, (SUBR)medfilt },
   { "mediank", S(MEDFILT), 0,     "k", "kkio", (SUBR)medfiltset, (SUBR)kmedfilt},
 };
