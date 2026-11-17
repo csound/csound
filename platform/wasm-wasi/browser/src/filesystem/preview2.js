@@ -21,6 +21,7 @@ const E = {
   notEmpty: 25,
   unsupported: 27,
   notPermitted: 31,
+  readOnly: 33,
 };
 class FilesystemError extends Error {
   constructor(code) {
@@ -211,15 +212,30 @@ export class WASI extends MemoryFilesystem {
     return Number(value);
   }
 
-  pathAt(id, pointer, length) {
-    const handle = this.descriptor(id);
-    if (handle.node.type !== "dir") fail(E.notDirectory);
+  directory(id) {
+    const node = this.descriptor(id).node;
+    if (node.type !== "dir") fail(E.notDirectory);
+    if (this.filesystem.nodes.get(node.path) !== node) fail(E.noEntry);
+    return node;
+  }
+
+  pathAt(id, pointer, length, allowMissingDirectory = false) {
+    const node = this.directory(id);
     if (this.bytes(pointer, length).includes(0)) fail(E.invalid);
     const path = this.text(pointer, length);
+    if (!path) fail(E.noEntry);
     if (path.startsWith("/") || path.includes("\0")) fail(E.notPermitted);
-    const boundary = handle.node.path.split("/").filter(Boolean);
+    const boundary = node.path.split("/").filter(Boolean);
     const parts = [...boundary];
-    for (const part of path.split("/")) {
+    const components = path.split("/").filter(Boolean);
+    if (path.endsWith("/")) components.push("");
+    for (const [index, part] of components.entries()) {
+      const current = this.filesystem.nodes.get("/" + parts.join("/"));
+      if (!current) {
+        if (allowMissingDirectory && index === components.length - 1 && part === "") break;
+        fail(E.noEntry);
+      }
+      if (current.type !== "dir") fail(E.notDirectory);
       if (part === "..") {
         if (parts.length <= boundary.length) fail(E.notPermitted);
         parts.pop();
@@ -241,7 +257,7 @@ export class WASI extends MemoryFilesystem {
   }
 
   mutable(id) {
-    if (!(this.descriptor(id).flags & 32)) fail(E.access);
+    if (!(this.descriptor(id).flags & 32)) fail(E.readOnly);
   }
 
   statResult(pointer, node) {
@@ -302,17 +318,16 @@ export class WASI extends MemoryFilesystem {
       let node = this.filesystem.nodes.get(path);
       if (openFlags & ~15 || flags & ~63 || pathFlags & ~1) fail(E.invalid);
       if (flags & 28) fail(E.unsupported);
+      if (flags & 34 || openFlags & 9) this.mutable(id);
+      if (openFlags & 8 && !(flags & 2)) fail(E.access);
       if (!node) {
         if (!(openFlags & 1)) fail(E.noEntry);
-        this.mutable(id);
         this.requireParent(path);
         if (openFlags & 2) fail(E.notDirectory);
         node = this.makeNode(path, "file");
       } else if (openFlags & 1 && openFlags & 4) fail(E.exist);
       if (openFlags & 2 && node.type !== "dir") fail(E.notDirectory);
-      if (flags & 32 && !(this.descriptor(id).flags & 32)) fail(E.access);
       if (openFlags & 8) {
-        if (!(flags & 2)) fail(E.access);
         if (node.type === "dir") fail(E.isDirectory);
         node.buffers = [];
         node.size = 0;
@@ -340,8 +355,8 @@ export class WASI extends MemoryFilesystem {
       this.mutable(id);
       this.mutable(other);
       const from = this.pathAt(id, pointer, length);
-      const to = this.pathAt(other, target, targetLength);
       const node = this.nodeAt(id, pointer, length);
+      const to = this.pathAt(other, target, targetLength, node.type === "dir");
       const existing = this.filesystem.nodes.get(to);
       if (from === to) return;
       if (from === this.root || to === this.root) fail(E.notPermitted);
@@ -568,8 +583,7 @@ export class WASI extends MemoryFilesystem {
           }),
         "[method]descriptor.read-directory": (id, ret) =>
           this.result(ret, 4, (p) => {
-            const node = this.descriptor(id).node;
-            if (node.type !== "dir") fail(E.notDirectory);
+            const node = this.directory(id);
             const entries = [...this.filesystem.nodes.values()].filter(
               (entry) => entry !== node && parent(entry.path) === node.path,
             );
@@ -588,7 +602,7 @@ export class WASI extends MemoryFilesystem {
         "[method]descriptor.create-directory-at": (id, ptr, len, ret) =>
           this.result(ret, 1, () => {
             this.mutable(id);
-            const path = this.pathAt(id, ptr, len);
+            const path = this.pathAt(id, ptr, len, true);
             if (this.filesystem.nodes.has(path)) fail(E.exist);
             this.requireParent(path);
             this.makeNode(path, "dir");

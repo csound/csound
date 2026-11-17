@@ -236,6 +236,29 @@ describe("Preview 2 filesystem", () => {
     write(f, stream, "x");
     assert.deepEqual([...f.host.readFile("file")], [0, 0, 0, 0, 0, 120]);
   });
+  it("denies writable opens through a read-only directory before changing files", () => {
+    f.host.writeFile("file", encode("keep"));
+    const directory = open(f, ".", 2, 1);
+    for (const [path, openFlags, flags] of [
+      ["file", 0, 2],
+      ["file", 8, 2],
+      ["file", 1, 1],
+      ["new", 1, 2],
+      [".", 2, 33],
+    ]) {
+      f.host.bytes(128, encode(path).length).set(encode(path));
+      f.call("open-at", directory, 0, 128, encode(path).length, openFlags, flags, 32);
+      assert.equal(f.host.getMemory().getUint8(32), 1);
+      assert.equal(f.host.getMemory().getUint8(36), 33); // read-only
+      assert.equal(decode(f.host.readFile("file")), "keep");
+      assert.deepEqual(f.host.readdir("/"), ["file"]);
+    }
+    assert(open({ ...f, root: directory }, "file", 0, 1));
+    f.call("unlink-file-at", directory, 128, 4, 32);
+    assert.equal(f.host.getMemory().getUint8(32), 1);
+    assert.equal(f.host.getMemory().getUint8(33), 33);
+    assert.equal(decode(f.host.readFile("file")), "keep");
+  });
   it("keeps positioned writes from changing stream positions", () => {
     f.host.writeFile("file", encode("abcdef"));
     const fd = open(f, "file"),
@@ -244,5 +267,63 @@ describe("Preview 2 filesystem", () => {
     f.call("write", fd, 256, 2, 1n, 32);
     write(f, stream, "Z");
     assert.equal(decode(f.host.readFile("file")), "aXYdeZ");
+  });
+  it("does not create a file when truncation lacks write access", () => {
+    f.host.bytes(128, 3).set(encode("new"));
+    f.call("open-at", f.root, 0, 128, 3, 9, 1, 32);
+    assert.equal(f.host.getMemory().getUint8(32), 1);
+    assert.equal(f.host.getMemory().getUint8(36), 0); // access
+    assert.deepEqual(f.host.readdir("/"), []);
+  });
+  it("checks path components before resolving dot segments", () => {
+    f.host.writeFile("file", encode("keep"));
+    f.host.mkdir("directory");
+    for (const [path, error] of [
+      ["file/", 24],
+      ["file/.", 24],
+      ["file/../file", 24],
+      ["missing/../file", 20],
+      ["", 20],
+    ]) {
+      f.host.bytes(128, encode(path).length).set(encode(path));
+      f.call("open-at", f.root, 0, 128, encode(path).length, 0, 1, 32);
+      assert.equal(f.host.getMemory().getUint8(32), 1, path);
+      assert.equal(f.host.getMemory().getUint8(36), error, path);
+    }
+    assert(open(f, "directory/../file", 0, 1));
+    assert(open(f, "directory//./", 2, 1));
+    const create = importsFor(f.host, "wasi:filesystem/types@0.2.0", [
+      "[method]descriptor.create-directory-at",
+    ]);
+    f.host.bytes(128, 5).set(encode("new//"));
+    create["[method]descriptor.create-directory-at"](f.root, 128, 5, 32);
+    assert.equal(f.host.getMemory().getUint8(32), 0);
+    assert(open(f, "new/", 2, 1));
+  });
+  it("keeps removed directory handles separate from a replacement at the same path", () => {
+    const methods = importsFor(f.host, "wasi:filesystem/types@0.2.0", [
+      "[method]descriptor.remove-directory-at",
+      "[method]descriptor.read-directory",
+      "[method]descriptor.rename-at",
+    ]);
+    f.host.mkdir("old");
+    const directory = open(f, "old", 2, 35);
+    methods["[method]descriptor.remove-directory-at"](f.root, 128, 3, 32);
+    assert.equal(f.host.getMemory().getUint8(32), 0);
+    f.host.writeFile("old/new", encode("keep"));
+    f.host.bytes(128, 3).set(encode("new"));
+    f.call("open-at", directory, 0, 128, 3, 8, 3, 32);
+    assert.equal(f.host.getMemory().getUint8(32), 1);
+    assert.equal(f.host.getMemory().getUint8(36), 20);
+    methods["[method]descriptor.read-directory"](directory, 32);
+    assert.equal(f.host.getMemory().getUint8(32), 1);
+    assert.equal(f.host.getMemory().getUint8(36), 20);
+    assert.equal(decode(f.host.readFile("old/new")), "keep");
+    // A live directory handle follows a rename.
+    const live = open(f, "old", 2, 35);
+    f.host.bytes(256, 5).set(encode("moved"));
+    methods["[method]descriptor.rename-at"](f.root, 128, 3, f.root, 256, 5, 32);
+    assert.equal(f.host.getMemory().getUint8(32), 0);
+    assert(open({ ...f, root: live }, "new", 0, 1));
   });
 });

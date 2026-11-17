@@ -104,9 +104,14 @@ export function memory64Imports(module, memory, wasi) {
 export function instantiateCommand(module, wasi) {
   const abi = moduleABI(module);
   if (!abi) return new WebAssembly.Instance(module, wasi.getImports(module));
+  const maximum = abi["memoryMaximum"];
   // Closure has not added the memory64 descriptor to its built-in externs.
   /** @suppress {checkTypes} */
-  const memory = new WebAssembly.Memory({ "address": "i64", initial: BigInt(abi["memoryMinimum"]) });
+  const memory = new WebAssembly.Memory({
+    "address": "i64",
+    initial: BigInt(abi["memoryMinimum"]),
+    maximum: maximum === undefined || maximum === null ? undefined : BigInt(maximum),
+  });
   wasi.setMemory(memory);
   const bridge = memory64Imports(module, memory, wasi);
   bridge.imports["env"] = { memory };
