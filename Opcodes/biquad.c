@@ -1690,8 +1690,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
       f0  = p->f0;
       tau = p->tau;
 
-      /* Long decays and repeated rotations need cs_double coefficients and state. */
-      cs_double theta,r1,x1,y1,x,y;
+      /* Retain decay below float spacing and accurate repeated rotations. */
+      double theta,r1,x1,y1,x,y;
       cs_float limit;
       x  = p->x;
       y  = p->y;
@@ -1736,7 +1736,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
           y1     = sin(theta) * r1;
         }
 
-        cs_double x_ = x;
+        double x_ = x;
         x      = (x1 * x)  - (y1 * y) + in[n];
         y      = (y1 * x_) + (x1 * y);
         out[n] = (cs_float)x;
