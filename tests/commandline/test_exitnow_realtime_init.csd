@@ -1,6 +1,7 @@
 <CsTest>
 description = "exitnow at init under --realtime ends the performance with its value"
 args = ["-nd", "--realtime"]
+profiles.wasip2.skip = "Requires a realtime init thread; WASI Preview 2 has no thread spawning"
 
 [expect]
 exit = 3
