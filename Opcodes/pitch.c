@@ -1715,6 +1715,11 @@ static void clip_setup(CLIP *p)
           shift = -CLIP_MAX_SCALE_EXP;
         p->kscale = (cs_float)ldexp(1.0, shift);
         p->k1n = p->k1 * p->kscale;
+        /* Evaluate the curve as a + d/(1 + (d/k1)^2). Keeping the
+           reciprocal of k1n squared avoids a product whose intermediate
+           can overflow when the limit is near the largest cs_float. */
+        p->k1n2inv = p->k1n != FL(0.0)
+          ? FL(1.0)/(p->k1n*p->k1n) : FL(0.0);
       }
       break;
     case 2:
@@ -1752,7 +1757,7 @@ static void clip_process(CLIP *p, cs_float limit)
       /* k1 was scaled at setup so that the curve can be evaluated in
          normal-range units, without forming the reciprocal of a very large
          k1 (which fast-math would make subnormal). */
-      cs_float kscale = p->kscale, k1n2 = p->k1n * p->k1n;
+      cs_float kscale = p->kscale, k1n2inv = p->k1n2inv;
       for (n=offset;n<nsmps;n++) {
         cs_float x = ain[n];
         cs_float magnitude = FABS(x);
@@ -1760,7 +1765,11 @@ static void clip_process(CLIP *p, cs_float limit)
         // a + d/(1 + (d/k1)^2), d and k1 scaled by kscale.
         cs_float distance = magnitude-a;
         cs_float scaled = distance*kscale;
-        cs_float soft = a + distance*(k1n2/(k1n2+scaled*scaled));
+        cs_float ratio2 = scaled*scaled*k1n2inv;
+        /* Division by the bounded denominator keeps fast-math from
+           forming distance*k1n2, which overflows for a limit near the
+           largest cs_float. */
+        cs_float soft = a + distance/(FL(1.0)+ratio2);
         clip_bits above = -(clip_bits)(magnitude > limit);
         clip_bits knee  = -(clip_bits)(magnitude > a);
         cs_float y = clip_blend(knee, soft, magnitude);
@@ -1779,8 +1788,12 @@ static void clip_process(CLIP *p, cs_float limit)
             x = limit;
         else if (UNLIKELY(x<= -limit))
           x = -limit;
-        else
-            x = limit*SIN((PI_F*FL(0.5))*(x/limit_div));
+        else {
+            /* Keep fast-math from reassociating the angle into
+               (PI/2*x)/limit, whose numerator can overflow. */
+            volatile cs_float normalized = x/limit_div;
+            x = limit*SIN((PI_F*FL(0.5))*normalized);
+        }
         aout[n] = x;
       }
       return;

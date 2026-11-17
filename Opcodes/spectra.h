@@ -256,6 +256,7 @@ typedef struct {
         cs_float   *ain, *imethod, *limit, *iarg;
         cs_float   arg, lim, k1, k2;
         cs_float   kscale, k1n; /* power-of-two normalisation of k1 */
+        cs_float   k1n2inv;     /* reciprocal of k1n squared, or zero */
         cs_float   cmethod, climit, cshape; /* inputs the coefficients were built from */
         int32_t     meth;
 } CLIP;
