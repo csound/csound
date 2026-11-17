@@ -2912,21 +2912,16 @@ static int32_t compile_orc(CSOUND *csound, const char *str, int32_t async) {
   return retVal;
 }
 
-/* compile_orc, taking the jumps made inside it: exitjmp is this frame's. The
-   API_CALL is the caller's, out of this setjmp's frame. */
+/* compile_orc, taking the jumps made inside it at the call's target: this
+   frame's. The API_CALL is the caller's, out of this setjmp's frame. */
 static CS_NOINLINE int32_t compile_orc_own_jumps(CSOUND *csound,
+                                                API_CALL *call,
                                                 const char *str, int32_t async)
 {
   int32_t retVal;
-  volatile jmp_buf tmpExitJmp;
-  memcpy((void *)&tmpExitJmp, (void *)&csound->exitjmp, sizeof(jmp_buf));
-  if ((retVal = setjmp(csound->exitjmp))) {
-    memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+  if ((retVal = setjmp(call->target)))
     return retVal;
-  }
-  retVal = compile_orc(csound, str, async);
-  memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
-  return retVal;
+  return compile_orc(csound, str, async);
 }
 
 int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
@@ -2966,7 +2961,7 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
 #endif
   API_CALL call;
   api_call_begin(csound, &call);
-  retVal = compile_orc_own_jumps(csound, str, async);
+  retVal = compile_orc_own_jumps(csound, &call, str, async);
   api_call_end(&call);
   /* the first jump that an init pass of the global code took, as exitjmp
      would give it */

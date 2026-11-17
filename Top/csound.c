@@ -1127,6 +1127,8 @@ static const CSOUND cenviron_ = {
 
 };
 
+static CS_NORETURN void jump_to_landing(CSOUND *csound, int32_t n);
+
 void csoundLongJmp(CSOUND *csound, int32_t retval) {
   score_read_unwind(csound);
 #ifdef CSOUND_WASI_REALTIME
@@ -1145,11 +1147,20 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   // printf("**** n = %d\n", n);
   if (!n)
     n = CSOUND_EXITJMP_SUCCESS;
+  jump_to_landing(csound, n);
+}
+
+static void jump_to_landing(CSOUND *csound, int32_t n) {
+  API_CALL *call;
   init_pass_unwind(csound, n);
   /* An API call on this thread takes the jump as its error, and the init
-     pass that made the call, if one did, goes on: its context stays. */
-  if (api_call_of(csound) != NULL)
-    longjmp(csound->exitjmp, n);
+     pass that made the call, if one did, goes on: its context stays. So
+     does a call that catches its jumps inside a compile's call, as the frame
+     that held exitjmp did then; outside one, it is reset below, as for
+     exitjmp. */
+  call = api_call_of(csound);
+  if (call != NULL && (!call->catching || api_call_takes_passes(csound)))
+    longjmp(call->target, n);
 
   /* Realtime init owns these fields on the event thread. A performance-time
      exit may arrive while that thread is inside an opcode, so cleanup defers
@@ -1168,7 +1179,12 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   }
   // printf("**** longjmp with %d\n", n);
 
-  longjmp(csound->exitjmp, n);
+  longjmp(call != NULL ? call->target : csound->exitjmp, n);
+}
+
+void jump_on(CSOUND *csound, int32_t n) {
+  API_CALL *call = api_call_of(csound);
+  longjmp(call != NULL ? call->target : csound->exitjmp, n);
 }
 
 
@@ -1582,28 +1598,24 @@ struct CsoundCallbackEntry_s {
 }
 
 
-/* csound_compile_tree, taking the jumps made inside it: exitjmp is this
-   frame's, and the API_CALL its caller's, as for csound_compile_orc. */
-static CS_NOINLINE int32_t compile_tree_own_jumps(CSOUND *csound, TREE *root,
+/* csound_compile_tree, taking the jumps made inside it at the call's
+   target: this frame's, and the API_CALL its caller's, as for
+   csound_compile_orc. */
+static CS_NOINLINE int32_t compile_tree_own_jumps(CSOUND *csound,
+                                                  API_CALL *call, TREE *root,
                                                   int32_t async)
 {
   int32_t retVal;
-  volatile jmp_buf tmpExitJmp;
-  memcpy((void *)&tmpExitJmp, (void *)&csound->exitjmp, sizeof(jmp_buf));
-  if ((retVal = setjmp(csound->exitjmp))) {
-    memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
+  if ((retVal = setjmp(call->target)))
     return retVal;
-  }
-  retVal = csound_compile_tree(csound, root, async);
-  memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
-  return retVal;
+  return csound_compile_tree(csound, root, async);
 }
 
 int32_t csoundCompileTree(CSOUND *csound, TREE *root, int32_t async) {
   API_CALL call;
   int32_t retVal;
   api_call_begin(csound, &call);
-  retVal = compile_tree_own_jumps(csound, root, async);
+  retVal = compile_tree_own_jumps(csound, &call, root, async);
   api_call_end(&call);
   /* the first jump that an init pass of the global code took */
   return call.jumped ? call.jumped : retVal;
@@ -1868,8 +1880,8 @@ static int32_t csoundDeprecate(CSOUND *csound, char *name,
                                char **type) {
   MODULE_INFO **modules;
   /* Module enumeration implies the default directories have been scanned.
-     A host may call this first, before anything owns exitjmp. Once they
-     have been, exitjmp is left alone: a performance may own it. */
+     A host may call this first. Once they have been, nothing is loaded
+     again. */
   if (UNLIKELY(!csound->default_modules_loaded &&
                csoundCatchJump(csound, csoundLoadDefaultModules)
                    != CSOUND_SUCCESS))

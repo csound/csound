@@ -427,8 +427,22 @@ static int32_t perform_control_period(CSOUND *csound)
   return result;
 }
 
+/* Where a jump out of a performance's k-cycles lands: what it gives. */
+static int32_t performance_jumped(CSOUND *csound, int32_t returnValue)
+{
+  long epoch = ATOMIC_GET(csound->performance_epoch);
+  if (epoch & 1L)
+    ATOMIC_SET(csound->performance_epoch,
+               (long) ((unsigned long) epoch + 1UL));
+  /* the jump left the k-cycles below, which hold API_lock */
+  if (!csound->oparms->realtime)
+    csoundUnlockMutex(csound->API_lock);
+  return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+}
+
  int32_t csoundPerformKsmps(CSOUND *csound) {
-  int32_t done;
+  int32_t done, nested;
+  API_CALL call;
   if (UNLIKELY(ATOMIC_GET(csound->performance_epoch) & 1L))
     return CSOUND_ERROR;
   /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
@@ -441,20 +455,23 @@ static int32_t perform_control_period(CSOUND *csound)
   /* nor after a csoundStart() that failed, and said why */
   if (UNLIKELY(csound->engineStatus & CS_STATE_START_FAILED))
     return CSOUND_ERROR;
-  if (csound->jumpset == 0) {
+  /* Inside another call on this thread, its landing is a call of its own,
+     set at each call, and exitjmp stays the outer frame's. */
+  nested = api_call_running(csound);
+  if (nested) {
+    int32_t returnValue;
+    api_call_catch(csound, &call);
+    if (UNLIKELY((returnValue = setjmp(call.target)))) {
+      api_call_end(&call);
+      return performance_jumped(csound, returnValue);
+    }
+  }
+  else if (csound->jumpset == 0) {
     int32_t returnValue;
     csound->jumpset = 1;
     /* setup jmp for return after an exit() */
-    if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
-      long epoch = ATOMIC_GET(csound->performance_epoch);
-      if (epoch & 1L)
-        ATOMIC_SET(csound->performance_epoch,
-                   (long) ((unsigned long) epoch + 1UL));
-      /* the jump left the k-cycles below, which hold API_lock */
-      if (!csound->oparms->realtime)
-        csoundUnlockMutex(csound->API_lock);
-      return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-    }
+    if (UNLIKELY((returnValue = setjmp(csound->exitjmp))))
+      return performance_jumped(csound, returnValue);
   }
   if (!csound->oparms->realtime) // no API lock in realtime mode
     csoundLockMutex(csound->API_lock);
@@ -474,11 +491,15 @@ static int32_t perform_control_period(CSOUND *csound)
 #endif
       }
       csoundMessage(csound, Str("end of Performance\n"));
+      if (nested)
+        api_call_end(&call);
       return done;
     }
   } while (perform_control_period(csound));
   if (!csound->oparms->realtime) // no API lock in realtime mode
     csoundUnlockMutex(csound->API_lock);
+  if (nested)
+    api_call_end(&call);
   return 0;
 }
 
@@ -488,7 +509,8 @@ static int32_t perform_control_period(CSOUND *csound)
  */
 int32_t perform_buffer(CSOUND *csound) {
   int32_t returnValue;
-  int32_t done;
+  int32_t done, nested;
+  API_CALL call;
   if (UNLIKELY(ATOMIC_GET(csound->performance_epoch) & 1L))
     return CSOUND_ERROR;
   /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
@@ -501,19 +523,20 @@ int32_t perform_buffer(CSOUND *csound) {
   /* nor after a csoundStart() that failed, and said why */
   if (UNLIKELY(csound->engineStatus & CS_STATE_START_FAILED))
     return CSOUND_ERROR;
-  /* Setup jmp for return after an exit(). */
-  if (UNLIKELY((returnValue = setjmp(csound->exitjmp)))) {
-    long epoch = ATOMIC_GET(csound->performance_epoch);
-    if (epoch & 1L)
-      ATOMIC_SET(csound->performance_epoch,
-                 (long) ((unsigned long) epoch + 1UL));
-    /* the jump left the k-cycles below, which hold API_lock */
-    if (!csound->oparms->realtime)
-      csoundUnlockMutex(csound->API_lock);
+  /* Setup jmp for return after an exit(): in exitjmp, or, inside another
+     call on this thread, in a call of its own. */
+  nested = api_call_running(csound);
+  if (nested)
+    api_call_catch(csound, &call);
+  if (UNLIKELY((returnValue = setjmp(nested ? call.target
+                                            : csound->exitjmp)))) {
+    if (nested)
+      api_call_end(&call);
+    returnValue = performance_jumped(csound, returnValue);
 #ifndef MACOSX
     csoundMessage(csound, Str("Early return from csoundPerformBuffer().\n"));
 #endif
-    return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    return returnValue;
   }
   csound->sampsNeeded += csound->oparms_.outbufsamps;
   while (csound->sampsNeeded > 0) {
@@ -534,6 +557,8 @@ int32_t perform_buffer(CSOUND *csound) {
         ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));
 #endif
         }
+        if (nested)
+          api_call_end(&call);
         return done;
       }
     } while (perform_control_period(csound));
@@ -542,5 +567,7 @@ int32_t perform_buffer(CSOUND *csound) {
     }
     csound->sampsNeeded -= csound->nspout;
   }
+  if (nested)
+    api_call_end(&call);
   return 0;
 }

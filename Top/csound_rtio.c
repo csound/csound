@@ -392,10 +392,10 @@ static int32_t start_modules(CSOUND *csound) {
     csound->SetAudioDeviceListCallback(csound, audio_dev_list_dummy);
     return;
   }
-  /* A host may call this first, before anything owns exitjmp: a plugin that
-     fails to load or start ends the call. It returns nothing to say so, and
-     csoundStart() starts the plugins again, and fails on it, even after a
-     compile that has started them. */
+  /* A host may call this first: a plugin that fails to load or start ends
+     the call. It returns nothing to say so, and csoundStart() starts the
+     plugins again, and fails on it, even after a compile that has started
+     them. */
   if (csoundCatchJump(csound, start_modules) != CSOUND_SUCCESS)
     csound->modules_loaded = 0;
 }

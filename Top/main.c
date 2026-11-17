@@ -233,15 +233,12 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   return csound->commandLineArgs[index];
 }
 
+static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv);
+
  int32_t csoundCompile(CSOUND *csound, int32_t argc, const char **argv) {
-  OPARMS *O = csound->oparms;
-  char *s;
-  FILE *xfile = NULL;
+  API_CALL call;
+  jmp_buf *landing;
   int32_t n;
-  volatile int32_t csdFound = 0;
-  volatile int32_t ac = argc;
-  char *fileDir;
-  volatile int32_t compiledOk = 0;
 
   /* refused before the setjmp: exitjmp may be a running performance's */
   if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
@@ -251,9 +248,25 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
     return CSOUND_ERROR;
   }
 
-  if ((n = setjmp(csound->exitjmp)) != 0) {
-    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-  }
+  /* exitjmp, or, inside another call on this thread, a landing of its own */
+  landing = api_call_nested(csound, &call);
+  if ((n = setjmp(*landing)) != 0)
+    n = ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+  else
+    n = compile_args(csound, argc, argv);
+  api_call_nested_end(&call);
+  return n;
+}
+
+static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv) {
+  OPARMS *O = csound->oparms;
+  char *s;
+  FILE *xfile = NULL;
+  int32_t n;
+  volatile int32_t csdFound = 0;
+  volatile int32_t ac = argc;
+  char *fileDir;
+  volatile int32_t compiledOk = 0;
 
   argc = ac;
 
@@ -577,15 +590,13 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
 }
 
 int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t async) {
-  jmp_buf savedExitJmp;
   CORFIL *volatile input = NULL;
   int32_t result;
   API_CALL call;
   api_call_begin(csound, &call);
 
   /* Score errors must return to this active API call, not an earlier one. */
-  memcpy(savedExitJmp, csound->exitjmp, sizeof(jmp_buf));
-  if ((result = setjmp(csound->exitjmp)) != 0) {
+  if ((result = setjmp(call.target)) != 0) {
     result = (result - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS;
   } else if (mode == 0) {
     input = copy_to_corefile(csound, str, NULL, 0);
@@ -598,7 +609,6 @@ int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t 
     CORFIL *file = input;
     corfile_rm(csound, &file);
   }
-  memcpy(csound->exitjmp, savedExitJmp, sizeof(jmp_buf));
   api_call_end(&call);
   return result;
 }
@@ -620,9 +630,12 @@ extern int32_t DummyMidiOutOpen(CSOUND *csound, void **userData,
 extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
                               const unsigned char *buf, int32_t nbytes);
 
+static int32_t start_csound(CSOUND *csound);
+
  int32_t csoundStart(CSOUND *csound) // DEBUG
 {
-  OPARMS *O = csound->oparms;
+  API_CALL call;
+  jmp_buf *landing;
   int32_t n;
 
   /* A started engine is refused before anything is read: its rc file would
@@ -635,12 +648,24 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
   }
 
   /* The rc file and the plugins below can stop Csound, which jumps to
-     exitjmp: this call owns it from here. */
-  if ((n = setjmp(csound->exitjmp)) != 0) {
-    if (csound->engineStatus & CS_STATE_COMP) /* in the engine's start */
-      csound->engineStatus |= CS_STATE_START_FAILED;
-    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+     exitjmp: this call owns it from here, or, inside another call on this
+     thread, a landing of its own does. */
+  landing = api_call_nested(csound, &call);
+  if ((n = setjmp(*landing)) == 0) {
+    n = start_csound(csound);
+    api_call_nested_end(&call);
+    return n;
   }
+  api_call_nested_end(&call);
+  if (csound->engineStatus & CS_STATE_COMP) /* in the engine's start */
+    csound->engineStatus |= CS_STATE_START_FAILED;
+  return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+}
+
+static int32_t start_csound(CSOUND *csound)
+{
+  OPARMS *O = csound->oparms;
+  int32_t n;
 
   // Always print version, unless this was supressed
   // or already printed
