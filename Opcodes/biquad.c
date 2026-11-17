@@ -979,18 +979,20 @@ static int32_t vco(CSOUND *csound, VCO *p)
     {
       IGN(csound);
       /* Do not round the new sample before saving it in the filter history. */
-      cs_double xn, yn;
+      cs_double xn;
+      double yn;
       uint32_t offset = p->h.insdshead->ksmps_offset;
       uint32_t early  = p->h.insdshead->ksmps_no_end;
       uint32_t n, nsmps = CS_KSMPS;
 
       if (*p->fc != p->prv_fc || *p->v != p->prv_v || *p->q != p->prv_q) {
-        cs_double omega = (cs_double)(CS_TPIDSR * *p->fc), k, kk, vkk, vk, vkdq, a0;
+        double omega = TWOPI * (double)*p->fc / CS_ESR;
+        double k, kk, vkk, vk, vkdq, a0;
         p->prv_fc = *p->fc; p->prv_v = *p->v; p->prv_q = *p->q;
         switch (p->imode) {
           /* Low Shelf */
         case 1: {
-          cs_double sq = sqrt(2.0 * (cs_double) p->prv_v);
+          double sq = sqrt(2.0 * (cs_double) p->prv_v);
           k = tan(omega * 0.5);
           kk = k * k;
           vkk = (cs_double)p->prv_v * kk;
@@ -1004,7 +1006,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
           break;
           /* High Shelf */
         case 2: {
-          cs_double sq = sqrt(2.0 * (cs_double) p->prv_v);
+          double sq = sqrt(2.0 * (cs_double) p->prv_v);
           k = tan((PI - omega) * 0.5);
           kk = k * k;
           vkk = (cs_double)p->prv_v * kk;
@@ -1039,9 +1041,10 @@ static int32_t vco(CSOUND *csound, VCO *p)
         memset(&p->out[nsmps], '\0', early*sizeof(cs_float));
       }
       {
-        cs_double a1 = p->a1, a2 = p->a2;
-        cs_double b0 = p->b0, b1 = p->b1, b2 = p->b2;
-        cs_double xnm1 = p->xnm1, xnm2 = p->xnm2, ynm1 = p->ynm1, ynm2 = p->ynm2;
+        double a1 = p->a1, a2 = p->a2;
+        double b0 = p->b0, b1 = p->b1, b2 = p->b2;
+        cs_double xnm1 = p->xnm1, xnm2 = p->xnm2;
+        double ynm1 = p->ynm1, ynm2 = p->ynm2;
         for (n=offset; n<nsmps; n++) {
           xn = (cs_double)p->in[n];
           yn = b0 * xn + b1 * xnm1 + b2 * xnm2 - a1 * ynm1 - a2 * ynm2;
