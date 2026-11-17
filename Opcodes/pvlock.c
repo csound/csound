@@ -255,8 +255,35 @@ static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
   pv_find_peaks(fwin, nbins, mag, cpeaks);
   pv_nearest_peaks(cpeaks, nbins, region);
   if (mode == 3 && beta != FL(1.0)) {
-    for (b=0; b < nbins; b++)
-      mag[b] = ATAN2(fwin[2*b + 1], fwin[2*b]);
+    for (b=0; b < nbins; b++) {
+      p = region[b];
+      if (p < 0 || b == p) {
+        mag[b] = FL(0.0);
+        continue;
+      }
+      /* Measure phase relative to the peak before unwrapping. A shared
+         phase shift, including input polarity, then cancels in the product
+         instead of being subtracted from two rounded absolute angles. */
+      nr = fwin[2*p];
+      ni = fwin[2*p + 1];
+      /* A detected peak has nonzero magnitude. Retain the direction of
+         every nonzero bin, even below pv_unit's magnitude cutoff. */
+      div = HYPOT(nr, ni);
+      nr /= div;
+      ni /= div;
+      dr = fwin[2*b];
+      di = fwin[2*b + 1];
+      div = HYPOT(dr, di);
+      if (div > FL(0.0)) {
+        dr /= div;
+        di /= div;
+      }
+      else {
+        dr = FL(1.0);
+        di = FL(0.0);
+      }
+      mag[b] = ATAN2(di*nr - dr*ni, dr*nr + di*ni);
+    }
     pv_unwrap_region_phases(mag, nbins, cpeaks, region);
   }
 
