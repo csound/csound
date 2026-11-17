@@ -735,7 +735,7 @@ int32_t adsynt(CSOUND *csound, ADSYNT *p)
     amptbl = amptp->ftable;
     if(floatph) fphs = (cs_double*) p->lphs.auxp;
     else lphs = (int32*) p->lphs.auxp;
-    
+
     cps0 = *p->kcps;
     amp0 = *p->kamp;
     count = p->count;
@@ -751,7 +751,7 @@ int32_t adsynt(CSOUND *csound, ADSYNT *p)
        inc = (int32) (cps * CS_SICVT);
        phs = lphs[c];
       } else {
-      incf = (cps * CS_ONEDSR);   
+      incf = (cps * CS_ONEDSR);
       phsf = fphs[c];
       }
       for (n=offset; n<nsmps; n++) {
@@ -1649,41 +1649,103 @@ int32_t GardnerPink_perf(CSOUND *csound, PINKISH *p)
 /*           f(x) = limit * sign(x)                             */
 /* ************************************************************ */
 
-int32_t clip_set(CSOUND *csound, CLIP *p)
+/* cs_float is either 32 or 64 bits wide. These helpers select and copy the
+   sign through masks, which keeps the curves below branchless. */
+#ifdef USE_DOUBLE
+typedef uint64_t clip_bits;
+#define CLIP_SIGN_BIT ((clip_bits)1 << 63)
+#define CLIP_MAX_SCALE_EXP 1022
+#else
+typedef uint32_t clip_bits;
+#define CLIP_SIGN_BIT ((clip_bits)1 << 31)
+#define CLIP_MAX_SCALE_EXP 126
+#endif
+
+static inline cs_float clip_blend(clip_bits mask, cs_float if_true,
+                                  cs_float if_false)
 {
-    /* Select the fallback before calculating its coefficients. Check the
-       range before converting so every unsupported value can use method 0. */
-    int32_t meth = (*p->imethod >= FL(0.0) && *p->imethod < FL(3.0))
-      ? (int32_t)CS_FLOAT2LONG(*p->imethod) : 0;
+    clip_bits t, f, out;
+    cs_float result;
+    memcpy(&t, &if_true, sizeof t);
+    memcpy(&f, &if_false, sizeof f);
+    out = (t & mask) | (f & ~mask);
+    memcpy(&result, &out, sizeof result);
+    return result;
+}
+
+static inline cs_float clip_copy_sign(cs_float value, cs_float sign)
+{
+    clip_bits v, s;
+    memcpy(&v, &value, sizeof v);
+    memcpy(&s, &sign, sizeof s);
+    v = (v & ~CLIP_SIGN_BIT) | (s & CLIP_SIGN_BIT);
+    memcpy(&value, &v, sizeof value);
+    return value;
+}
+
+static void clip_setup(CLIP *p)
+{
+    // Select the fallback before calculating its coefficients. Check the
+    // range before converting so every unsupported value can use method 0. */
+    cs_float method = *p->imethod;
+    int32_t meth = (method >= FL(0.0) && method < FL(3.0))
+      ? (int32_t)CS_FLOAT2LONG(method) : 0;
     p->meth = meth > 2 ? 0 : meth;
     p->arg = FABS(*p->iarg);
     p->lim = *p->limit;
-    if (UNLIKELY(p->lim < FL(0.0) || !isfinite(p->lim)))
-      return csound->InitError(csound, "%s\n",
-                              Str("clip: limit must be finite and non-negative"));
+    p->cmethod = method;
+    p->climit = p->lim;
+    p->cshape = *p->iarg;
     switch (p->meth) {
     case 0:                     /* Bram de Jong method */
       if (!(p->arg <= FL(1.0))) p->arg = FL(0.999);
       p->arg = p->lim * p->arg;
       p->k1 = p->lim - p->arg;
       p->k2 = p->arg + p->k1*FL(0.5);
+      /* Scale k1 by a power of two so the curve can be evaluated with
+         normal-range numbers. Forming 1/k1 directly would underflow when
+         the limit is near the largest value of cs_float. */
+      {
+        int exp = 0, shift;
+        frexp(p->k1, &exp);
+        shift = -exp;
+        if (shift > CLIP_MAX_SCALE_EXP)
+          shift = CLIP_MAX_SCALE_EXP;
+        else if (shift < -CLIP_MAX_SCALE_EXP)
+          shift = -CLIP_MAX_SCALE_EXP;
+        p->kscale = (cs_float)ldexp(1.0, shift);
+        p->k1n = p->k1 * p->kscale;
+        /* Evaluate the curve as a + d/(1 + (d/k1)^2). Keeping the
+           reciprocal of k1n squared avoids a product whose intermediate
+           can overflow when the limit is near the largest cs_float. */
+        p->k1n2inv = p->k1n != FL(0.0)
+          ? FL(1.0)/(p->k1n*p->k1n) : FL(0.0);
+      }
       break;
     case 2:
       p->k1 = FL(1.0)/TANH(FL(1.0));
       break;
     }
+}
+
+int32_t clip_set(CSOUND *csound, CLIP *p)
+{
+    if (UNLIKELY(*p->limit < FL(0.0) || !isfinite(*p->limit)))
+      return csound->InitError(csound, "%s\n",
+                              Str("clip: limit must be finite and non-negative"));
+    clip_setup(p);
     return OK;
 }
 
-int32_t clip(CSOUND *csound, CLIP *p)
+/* The caller has made sure the coefficients in p and the
+   limit match the current inputs. */
+static void clip_process(CLIP *p, cs_float limit)
 {
-    IGN(csound);
     cs_float *aout = p->aout, *ain = p->ain;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float a = p->arg, k1 = p->k1, k2 = p->k2;
-    cs_float limit = p->lim;
 
     if (UNLIKELY(offset)) memset(aout, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
@@ -1691,42 +1753,55 @@ int32_t clip(CSOUND *csound, CLIP *p)
       memset(&aout[nsmps], '\0', early*sizeof(cs_float));
     }
     switch (p->meth) {
-    case 0:                     /* Soft clip with division */
+    case 0: {                   /* Soft clip with division */
+      /* k1 was scaled at setup so that the curve can be evaluated in
+         normal-range units, without forming the reciprocal of a very large
+         k1 (which fast-math would make subnormal). */
+      cs_float kscale = p->kscale, k1n2inv = p->k1n2inv;
       for (n=offset;n<nsmps;n++) {
         cs_float x = ain[n];
-        if (x>=FL(0.0)) {
-          if (UNLIKELY(x>limit)) x = k2;
-          else if (x>a) {
-            /* The ratio is at most one. Squaring the unscaled distance
-               or its reciprocal can overflow at finite limits. */
-            cs_float distance = x-a, ratio = distance/k1;
-            x = a + distance/(FL(1.0)+ratio*ratio);
-          }
-        }
-        else {
-          if (UNLIKELY(x<-limit))
-            x = -k2;
-          else if (-x>a) {
-            cs_float distance = x+a, ratio = distance/k1;
-            x = -a + distance/(FL(1.0)+ratio*ratio);
-          }
-        }
-        aout[n] = x;
+        cs_float magnitude = FABS(x);
+        // Make the loop branchless. This is the same as
+        // a + d/(1 + (d/k1)^2), d and k1 scaled by kscale.
+        cs_float distance = magnitude-a;
+        cs_float scaled = distance*kscale;
+        cs_float ratio2 = scaled*scaled*k1n2inv;
+        /* Division by the bounded denominator keeps fast-math from
+           forming distance*k1n2, which overflows for a limit near the
+           largest cs_float. */
+        cs_float soft = a + distance/(FL(1.0)+ratio2);
+        clip_bits above = -(clip_bits)(magnitude > limit);
+        clip_bits knee  = -(clip_bits)(magnitude > a);
+        cs_float y = clip_blend(knee, soft, magnitude);
+        y = clip_blend(above, k2, y);
+        aout[n] = clip_copy_sign(y, x);
       }
-      return OK;
-    case 1:
+      return;
+    }
+    case 1: {
+      /* Keep fast-math from replacing this division with a multiplication by
+         a reciprocal, which underflows for very large finite limits. */
+      volatile cs_float limit_div = limit;
       for (n=offset;n<nsmps;n++) {
         cs_float x = ain[n];
         if (UNLIKELY(x>=limit))
             x = limit;
         else if (UNLIKELY(x<= -limit))
           x = -limit;
-        else
-            x = limit*SIN((PI_F*FL(0.5))*(x/limit));
+        else {
+            /* Keep fast-math from reassociating the angle into
+               (PI/2*x)/limit, whose numerator can overflow. */
+            volatile cs_float normalized = x/limit_div;
+            x = limit*SIN((PI_F*FL(0.5))*normalized);
+        }
         aout[n] = x;
       }
-      return OK;
-    case 2:
+      return;
+    }
+    case 2: {
+      /* Keep fast-math from replacing this division with a multiplication by
+         a reciprocal, which underflows for very large finite limits. */
+      volatile cs_float limit_div = limit;
       for (n=offset;n<nsmps;n++) {
         cs_float x = ain[n];
         if (UNLIKELY(x>=limit))
@@ -1735,13 +1810,39 @@ int32_t clip(CSOUND *csound, CLIP *p)
           x = -limit;
         else {
           /* Keep fast-math from forming limit*k1, which can overflow. */
-          volatile cs_float normalized = k1*TANH(x/limit);
+          volatile cs_float normalized = k1*TANH(x/limit_div);
           x = limit*normalized;
         }
         aout[n] = x;
       }
-      return OK;
+      return;
     }
+    }
+}
+
+/* i-rate inputs: the coefficients are fixed at init time. */
+int32_t clip(CSOUND *csound, CLIP *p)
+{
+    IGN(csound);
+    clip_process(p, p->lim);
+    return OK;
+}
+
+/* k-rate inputs: the coefficients follow the k-rate values. */
+int32_t clip_k(CSOUND *csound, CLIP *p)
+{
+    cs_float method = *p->imethod;
+    cs_float limit = *p->limit;
+    cs_float shape = *p->iarg;
+    if (UNLIKELY(limit < FL(0.0) || !isfinite(limit)))
+      return csound->PerfError(csound, &(p->h), "%s\n",
+                              Str("clip: limit must be finite and non-negative"));
+    /* The method, limit and shape are k-rate inputs. Rebuild the
+       coefficients only when one of them changes. */
+    if (UNLIKELY(method != p->cmethod || limit != p->climit ||
+                 shape != p->cshape))
+      clip_setup(p);
+    clip_process(p, limit);
     return OK;
 }
 

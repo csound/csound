@@ -37,6 +37,23 @@ class ClipTests : public ::testing::Test {
         rireturn
         out aSeparate, aInput
       endin
+      instr 2
+        kInput chnget "input"
+        kMethod chnget "method"
+        kLimit chnget "limit"
+        kShape chnget "shape"
+        aInput = kInput
+        aOut clip aInput, kMethod, kLimit, kShape
+        out aOut, aOut
+      endin
+      instr 3
+        kInput chnget "input"
+        kMethod chnget "method"
+        kLimit chnget "limit"
+        aInput = kInput
+        aOut clip aInput, kMethod, kLimit
+        out aOut, aOut
+      endin
     )", 0), 0);
   }
 
@@ -48,6 +65,15 @@ class ClipTests : public ::testing::Test {
     csoundSetControlChannel(csound, "limit", limit);
     csoundSetControlChannel(csound, "shape", shape);
     csoundEventString(csound, "i1 0 1\n", 0);
+    ASSERT_EQ(csoundStart(csound), 0);
+  }
+
+  void StartClipKRate(cs_float method, cs_float limit, cs_float shape = .5)
+  {
+    csoundSetControlChannel(csound, "method", method);
+    csoundSetControlChannel(csound, "limit", limit);
+    csoundSetControlChannel(csound, "shape", shape);
+    csoundEventString(csound, "i2 0 1\n", 0);
     ASSERT_EQ(csoundStart(csound), 0);
   }
 
@@ -131,6 +157,76 @@ static std::vector<ClipCase> CurveCases()
 
 INSTANTIATE_TEST_SUITE_P(Clip, ClippingCurves,
                         ::testing::ValuesIn(CurveCases()));
+
+class KRateClippingCurves : public ClipTests,
+                           public ::testing::WithParamInterface<ClipCase> {};
+
+TEST_P(KRateClippingCurves, MatchesTheCurveWithKRateInputs)
+{
+  const ClipCase &test = GetParam();
+  SCOPED_TRACE(::testing::Message() << "method " << test.method
+               << ", limit " << test.limit << ", shape " << test.shape);
+  StartClipKRate(test.method, test.limit, test.shape);
+  ExpectCurve(test.method, test.limit, test.shape);
+}
+
+INSTANTIATE_TEST_SUITE_P(ClipKRate, KRateClippingCurves,
+                        ::testing::ValuesIn(CurveCases()));
+
+TEST_F(ClipTests, KRateInputsUpdateWithoutReinitialization)
+{
+  StartClipKRate(2, 1, .5);
+  csoundSetControlChannel(csound, "input", .5);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  const cs_float *out = csoundGetSpout(csound);
+  const double first = UnitCurve(.5, 2, .5);
+  for (int n = 0; n < 16; ++n)
+    for (int channel = 0; channel < 2; ++channel)
+      ASSERT_NEAR(out[2 * n + channel], first, 2e-6);
+
+  // Change every argument between control cycles. The opcode must rebuild
+  // its state without a reinit.
+  csoundSetControlChannel(csound, "method", 0);
+  csoundSetControlChannel(csound, "limit", 2);
+  csoundSetControlChannel(csound, "shape", 0);
+  csoundSetControlChannel(csound, "input", 1.5);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  out = csoundGetSpout(csound);
+  const double second = 2 * UnitCurve(.75, 0, 0);
+  for (int n = 0; n < 16; ++n)
+    for (int channel = 0; channel < 2; ++channel)
+      ASSERT_NEAR(out[2 * n + channel], second, 4e-6);
+}
+
+TEST_F(ClipTests, KRateArgumentsDefaultShape)
+{
+  csoundSetControlChannel(csound, "method", 0);
+  csoundSetControlChannel(csound, "limit", 1);
+  csoundEventString(csound, "i3 0 1\n", 0);
+  ASSERT_EQ(csoundStart(csound), 0);
+  csoundSetControlChannel(csound, "input", .5);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  const cs_float *out = csoundGetSpout(csound);
+  const double expected = UnitCurve(.5, 0, .5);
+  for (int n = 0; n < 16; ++n)
+    for (int channel = 0; channel < 2; ++channel)
+      ASSERT_NEAR(out[2 * n + channel], expected, 2e-6);
+}
+
+TEST_F(ClipTests, InvalidKRateLimitReportsAPerformanceError)
+{
+  StartClipKRate(0, 1);
+  csoundSetControlChannel(csound, "limit", -1);
+  csoundSetControlChannel(csound, "input", .5);
+  csoundPerformKsmps(csound);
+  std::string messages;
+  while (csoundGetMessageCnt(csound)) {
+    messages += csoundGetFirstMessage(csound);
+    csoundPopFirstMessage(csound);
+  }
+  EXPECT_NE(messages.find("clip: limit must be finite and non-negative"),
+            std::string::npos) << messages;
+}
 
 TEST_F(ClipTests, UnsupportedMethodUsesBramCurve)
 {
