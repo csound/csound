@@ -1103,6 +1103,25 @@ TEST(HostScoreReads, LaterReadsBeforeStartPlay)
     EXPECT_NE(0, csoundPerformKsmps(host.csound));
 }
 
+/* Nothing after an e plays: the manual says the lines after it are ignored.
+   A timed e is written as an f 0, with no e line to stop the performance's
+   reader, and the lines after it played, from 0 again: a note at 0.01 after
+   an e at 0.05 played at 0.05. Read before the start and on a started
+   engine. */
+TEST(HostScoreReads, NothingAfterATimedEPlays)
+{
+    for (const Path path : {BeforeStart, Blocking}) {
+        SCOPED_TRACE(pathNames[path]);
+        Host host;
+        host.send("i 1 0 0\ne 0.05\ni 1 0.01 0", path);
+        int cycles = 0;
+        while (cycles < 1000 && csoundPerformKsmps(host.csound) == 0)
+            cycles++;
+        EXPECT_EQ(1, host.played()) << host.said();
+        EXPECT_EQ(75, cycles); /* 0.05 s */
+    }
+}
+
 #ifndef _WIN32
 /* While it lives, this process's stdin is /dev/null: -L stdin reads stdin,
    and leaves it non-blocking until the performance's cleanup. */

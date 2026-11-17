@@ -27,6 +27,20 @@
 #include <ctype.h>
 
 
+/* Did the section just read end with a timed e? swritestr() writes it as
+   an f 0, with no e line to end the score as a bare e's does, and the lines
+   after it, which the manual says are ignored, were sorted and played. */
+static int32_t ends_with_timed_e(const CSOUND *csound)
+{
+    const SRTBLK *bp;
+    if (csound->sread.op != 'e')
+      return 0;
+    for (bp = csound->frstbp; bp != NULL; bp = bp->nxtblk)
+      if (bp->text[0] == 'e')
+        return bp->pcnt > 0;
+    return 0;
+}
+
 /* called from smain.c or some other main */
 /* reads,sorts,timewarps each score sect in turn */
 char *scsortstr(CSOUND *csound, CORFIL *scin)
@@ -54,6 +68,8 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
       twarp(csound);
       swritestr(csound, sco, first);
       //printf("sorted: >>>%s<<<\n", sco->body);
+      if (ends_with_timed_e(csound))
+        break;
     }
     //printf("**** first = %d body = >>%s<<\n", first, sco->body);
     if (first) {
