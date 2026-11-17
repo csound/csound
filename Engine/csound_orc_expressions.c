@@ -1327,7 +1327,8 @@ static void collapse_last_assigment(CSOUND* csound, TREE* anchor,
 }
 
 /* Expand struct array member assignment: array[index].member = value
- * Transforms into:
+ * A member written in each cycle becomes ##array_member_set, which writes
+ * it in place. Otherwise, it transforms into:
  *   1. temp = ##array_get_struct(array, index)
  *   2. temp.member = value for init-rate scalars, otherwise ##member_set
  *   3. array[index] = temp (standard assignment, becomes ##array_set_struct)
@@ -1556,8 +1557,9 @@ static int32_t resolve_struct_array_member_path(CSOUND* csound,
 
 /* At i indices, a member of a type that changes in performance, a k, a B
    or an a, or an array of one, is read and written in each cycle too, as
-   an element of a k[], a B[] or an a[] is: through ##array_get_struct_k
-   and ##array_set_struct_k, where ##array_get_struct and
+   an element of a k[], a B[] or an a[] is: read through
+   ##array_get_struct_k, which copies the element, and written in place
+   through ##array_member_set, where ##array_get_struct and
    ##array_set_struct run at init only. At a k index, these run in
    performance in any case. An array member's element, hs[1].points[1], is
    left as it was: the member is read from its struct at init only, and is
@@ -1686,6 +1688,94 @@ static TREE* create_struct_array_set_call(CSOUND* csound,
   return arraySetOp;
 }
 
+static int32_t tree_calls_function(TREE* tree)
+{
+  for (; tree != NULL; tree = tree->next) {
+    if (tree->type == T_FUNCTION || tree_calls_function(tree->left) ||
+        tree_calls_function(tree->right)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+/* ##array_member_set takes the value before the indexes, where the
+   element's copy read them before the value (and once more after it, for
+   the copy back): an index that calls a function, boxes[Index()], is
+   expanded here, before the write, as the write's own expansion would
+   expand it, so the call runs before the value, once. Any other index is
+   read when the member is written, as the copy back read it. An index
+   that does not expand is left to the write's expansion, which reports
+   it. */
+static TREE* struct_array_calls_before_value(CSOUND* csound, TREE* indexes,
+                                             TREE** anchor,
+                                             TYPE_TABLE* typeTable)
+{
+  TREE *list = NULL, *tail = NULL, *next;
+  TREE* mark = tree_tail(*anchor);
+
+  for (TREE* index = copy_node(csound, indexes); index != NULL;
+       index = next) {
+    next = index->next;
+    index->next = NULL;
+    if (tree_calls_function(index)) {
+      if (is_boolean_expression_node(index)) {
+        TREE* expanded = create_boolean_expression(csound, index, index->line,
+                                                   index->locn, typeTable, 0);
+        index = expanded == NULL ? NULL : create_ans_token(
+          csound, tree_tail(expanded)->left->value->lexeme);
+        *anchor = tree_append(*anchor, expanded);
+      }
+      else {
+        index = expand_expression_arg_list(csound, index, anchor, index->line,
+                                           index->locn, typeTable, 0);
+      }
+      if (index == NULL) {
+        if (mark == NULL) {
+          *anchor = NULL;
+        }
+        else {
+          mark->next = NULL;
+        }
+        return copy_node(csound, indexes);
+      }
+    }
+    if (tail == NULL) {
+      list = index;
+    }
+    else {
+      tail->next = index;
+    }
+    tail = index;
+  }
+  return list;
+}
+
+/* ##array_member_set array, value, depth, member indexes..., indexes... */
+static TREE* create_struct_array_member_set_call(
+  CSOUND* csound, TREE* current, const STRUCT_ARRAY_MEMBER_PATH* path,
+  TREE* indexes)
+{
+  TREE* setOp = create_opcode_token(csound, "##array_member_set");
+  TREE* arg;
+  int32_t i;
+
+  setOp->type = T_OPCALL;
+  setOp->line = current->line;
+  setOp->locn = current->locn;
+  setOp->right = copy_node(csound, path->arrayExpr->left);
+  arg = setOp->right->next = copy_node(csound, current->right);
+  arg = arg->next = create_member_index_leaf(csound, current->line,
+                                             current->locn, path->memberCount);
+  for (i = 0; i < path->memberCount; i++) {
+    arg = arg->next = create_member_index_leaf(csound, current->line,
+                                               current->locn,
+                                               path->memberIndices[i]);
+  }
+  arg->next = indexes;
+  return setOp;
+}
+
 static TREE* create_struct_member_assignment(CSOUND* csound,
                                              TREE* current,
                                              const char* structArg,
@@ -1731,6 +1821,27 @@ int expand_struct_array_member_assignment(CSOUND* csound,
   }
 
   follows = struct_member_follows_at_i_index(&path, initContext);
+  const CS_TYPE* memberType = path.memberVars[path.memberCount - 1]->varType;
+  /* A scalar member, or an array of scalars, written in each cycle, at an
+     i index that follows or at a k index, is written in place: copying the
+     element out and back again wrote the same member, and copied every
+     other member twice. An index that is an i but reads an array at a k
+     index, fs[iArr[kI]] or fs[i(kArr[kI])], keeps the copy and the rate it
+     had, and so do a struct member and an array of structs, which the copy
+     back copied apart from the value. */
+  const CS_TYPE* elementType = memberType == &CS_VAR_TYPE_ARRAY ?
+    path.memberVars[path.memberCount - 1]->subType : memberType;
+  if ((follows ||
+       array_has_k_rate_index(csound, path.arrayExpr->right, typeTable)) &&
+      current->right->next == NULL &&
+      !array_target_missing_lexeme(path.arrayExpr) &&
+      (elementType == NULL || !elementType->userDefinedType)) {
+    TREE* indexes = struct_array_calls_before_value(
+      csound, path.arrayExpr->right, anchor, typeTable);
+    *anchor = tree_append(*anchor,
+      create_struct_array_member_set_call(csound, current, &path, indexes));
+    return 1;
+  }
   structTemps[0] = create_out_arg(csound,
                                   path.rootStructType->varTypeName,
                                   typeTable->localPool->synthArgCount++,
@@ -1741,10 +1852,8 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                                                 current->locn,
                                                 structTemps[0],
                                                 path.arrayExpr,
-                                                follows ? "##array_get_struct_k"
-                                                : "##array_get_struct"));
+                                                "##array_get_struct"));
 
-  const CS_TYPE* memberType = path.memberVars[path.memberCount - 1]->varType;
   if (!path.hasKRateIndex &&
       (memberType == &CS_VAR_TYPE_I || memberType == &CS_VAR_TYPE_b)) {
     /* An i or a b member at i indices is written at init, by a typed
@@ -1799,8 +1908,7 @@ int expand_struct_array_member_assignment(CSOUND* csound,
                                                 current->locn,
                                                 path.arrayExpr,
                                                 structTemps[0],
-                                                follows ? "##array_set_struct_k"
-                                                : "##array_set_struct"));
+                                                "##array_set_struct"));
 
   for (i = 0; i < path.memberCount; i++) {
     csound->Free(csound, structTemps[i]);
