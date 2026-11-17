@@ -34,6 +34,17 @@
 #include "fgens.h"
 #include "csdebug.h"
 
+/* The line readers' list, which a host's first line links a reader into from
+   its own thread (linevent.c): taken with acquire loads */
+#if defined(MSVC)
+#define LOAD_LINK(link) \
+  _InterlockedCompareExchangePointer((void *volatile *) &(link), NULL, NULL)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define LOAD_LINK(link) __atomic_load_n(&(link), __ATOMIC_ACQUIRE)
+#else
+#define LOAD_LINK(link) (link)
+#endif
+
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
 
@@ -1538,11 +1549,11 @@ int32_t sense_events(CSOUND *csound)
   if (UNLIKELY(O->RTevents || getRemoteSocksIn(csound))) {
     int32_t nrecvd;
     /* run all registered callback functions */
-    if (csound->evtFuncChain != NULL && !csound->advanceCnt) {
-      EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
+    EVT_CB_FUNC *fp = (EVT_CB_FUNC*) LOAD_LINK(csound->evtFuncChain);
+    if (fp != NULL && !csound->advanceCnt) {
       do {
         fp->func(csound, fp->userData);
-        fp = fp->nxt;
+        fp = (EVT_CB_FUNC*) LOAD_LINK(fp->nxt);
       } while (fp != NULL);
     }
 

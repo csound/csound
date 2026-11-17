@@ -238,8 +238,8 @@ extern "C" {
   int32_t note_init_runs(const CSOUND *);
   void note_inits_reset(const CSOUND *);
   /* A call that holds exitjmp while it runs and takes the jumps made inside
-     it as its error (csound_compile_orc, csoundCompileTree, csoundCompileCSD,
-     linevent_alloc).
+     it as its error (csound_compile_orc, csoundCompileTree, csoundCompileCSD);
+     linevent.c's input_message takes them on a landing of its own.
      The init thread's landings stand aside while it runs. */
   typedef struct api_call_s {
     CSOUND *csound;

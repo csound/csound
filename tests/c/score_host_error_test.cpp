@@ -2,10 +2,12 @@
 #include "gtest/gtest.h"
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <optional>
+#include <random>
 #include <string>
 #include <thread>
 #include <tuple>
@@ -1459,4 +1461,520 @@ INSTANTIATE_TEST_SUITE_P(Lengths, HostLongStrings,
                                                               100000),
                                             ::testing::Values(BeforeStart,
                                                               Blocking, Queued)));
+
+/* A file name of its own in the temporary directory, removed with it: the
+   cases run side by side under ctest -j. */
+struct TempFile {
+    std::string name;
+    TempFile(const char *stem, const char *extension)
+        : name(::testing::TempDir() + stem +
+               std::to_string(
+                   std::chrono::steady_clock::now().time_since_epoch().count()) +
+               "-" + std::to_string(std::random_device{}()) + extension)
+    {
+    }
+    TempFile(const TempFile &) = delete;
+    TempFile &operator=(const TempFile &) = delete;
+    ~TempFile() { std::remove(name.c_str()); }
+};
+
+std::string channelText(Host &host)
+{
+    std::string text(csoundGetChannelDatasize(host.csound, "text") + 1, '\0');
+    csoundGetStringChannel(host.csound, "text", text.data());
+    text.resize(strlen(text.c_str()));
+    return text;
+}
+
+/* A line event's string goes on over the next lines to its closing quote,
+   but no further than the lines taken: one with no closing quote is refused,
+   and the next line plays. The string read on past the lines' end, and
+   whatever it took in and the lines after it were lost, or the process died. */
+TEST(HostLineEvents, AnUnclosedQuoteIsRefusedAndTheNextLinePlays)
+{
+    Host host;
+    host.start();
+    host.csound->InputMessage(host.csound, "i 1 0 0 \"abc");
+    host.csound->InputMessage(host.csound, "i 1 0 0 7");
+    host.perform(1);
+    EXPECT_EQ(1, host.played()) << host.said();
+    EXPECT_NE(std::string::npos, host.said().find("unmatched quote"));
+    host.csound->InputMessage(host.csound, "i 4 0 0 \"ab\ncd\"");
+    host.perform(1);
+    EXPECT_EQ("ab\ncd", channelText(host)) << host.said();
+}
+
+/* The event copies a line's strings: the buffer they were read into was kept
+   until a reset, 1 KB or more for each line with a string, played or
+   refused. */
+TEST(HostLineEvents, StringsKeepNothing)
+{
+    Host host;
+    host.start();
+    for (const char *line : {"i 4 0 0 \"x\"", "i 4 0 0 \"x\" y"}) {
+        SCOPED_TRACE(line);
+        host.csound->InputMessage(host.csound, line);
+        host.perform(1);
+        const size_t before = csound_tracked_block_count(host.csound);
+        for (int i = 0; i < 5; i++) {
+            host.csound->InputMessage(host.csound, line);
+            host.perform(1);
+        }
+        EXPECT_EQ(before, csound_tracked_block_count(host.csound));
+    }
+    EXPECT_EQ("x", channelText(host)) << host.said();
+}
+
+cs_float channel(Host &host, const char *name)
+{
+    return csoundGetControlChannel(host.csound, name, nullptr);
+}
+
+/* An orchestra block, from a line starting with { to its }, is compiled
+   from a host's lines, sent before the start or after it, with -L or
+   without, one case each. Only -L made the block's buffer: without it, the
+   process died at the block's first line. */
+class HostOrchestraBlocks
+    : public ::testing::TestWithParam<std::tuple<bool, bool>> {};
+
+TEST_P(HostOrchestraBlocks, AreCompiledWithOrWithoutLineInput)
+{
+    const bool lineInput = std::get<0>(GetParam());
+    const bool beforeStart = std::get<1>(GetParam());
+    const TempFile file("csound-block-lines-", ".sco");
+    std::ofstream(file.name).close(); /* -L reads nothing from it */
+    Host host;
+    if (lineInput)
+        csoundSetOption(host.csound, ("-L\"" + file.name + "\"").c_str());
+    if (!beforeStart) {
+        ASSERT_NO_FATAL_FAILURE(host.start());
+    }
+    if (!lineInput && !beforeStart) {
+        /* A { further on in a line makes no buffer: a host may send one in
+           quotes, and the queued line made it on the performance thread. */
+        csoundEventString(host.csound, "i 4 0 0 \"{a}\"", 1);
+        host.perform();
+        EXPECT_EQ("{a}", channelText(host)) << host.said();
+        host.csound->InputMessage(host.csound, "i 4 0 0 \"{b}\"");
+        host.perform();
+        EXPECT_EQ("{b}", channelText(host)) << host.said();
+        EXPECT_EQ(nullptr, host.csound->lineventStatics.orchestrab);
+    }
+    host.csound->InputMessage(host.csound, "{\ninstr 100\nchnset 1, \"block\"\n"
+                                           "endin\n}\ni 100 0 0\n");
+    if (beforeStart) {
+        ASSERT_NO_FATAL_FAILURE(host.start());
+    }
+    host.perform(1);
+    EXPECT_EQ(1, channel(host, "block")) << host.said();
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Inputs, HostOrchestraBlocks,
+    ::testing::Combine(::testing::Bool(), ::testing::Bool()),
+    [](const ::testing::TestParamInfo<std::tuple<bool, bool>> &info) {
+        return std::string(std::get<0>(info.param) ? "LineInput" : "Host") +
+               (std::get<1>(info.param) ? "BeforeTheStart" : "AfterIt");
+    });
+
+/* A block of no lines compiles nothing: it compiled the block before it
+   again, and that block's global code ran a second time. */
+TEST(HostLineEvents, AnEmptyOrchestraBlockCompilesNothing)
+{
+    Host host;
+    host.start();
+    host.csound->InputMessage(host.csound,
+                              "{\nchnset chnget:i(\"ran\") + 1, \"ran\"\n}\n");
+    host.perform(1);
+    for (const char *empty : {"{}\n", "{\n}\n"}) {
+        host.csound->InputMessage(host.csound, empty);
+        host.perform(1);
+    }
+    EXPECT_EQ(1, channel(host, "ran")) << host.said();
+}
+
+/* What follows the { on its line is the block's first line: the { went
+   into the block too, and its compile failed. A } first on a line of a {{
+   string is the string's, when a later } ends the block. */
+TEST(HostLineEvents, TheRestOfTheBraceLineIsTheBlocks)
+{
+    Host host;
+    host.start();
+    host.csound->InputMessage(host.csound, "{ instr 104\nchnset 4, \"block\"\n"
+                                           "endin\n}\ni 104 0 0\n");
+    host.perform(1);
+    EXPECT_EQ(4, channel(host, "block")) << host.said();
+    host.csound->InputMessage(host.csound,
+                              "{\ninstr 103\nS1 = {{ {\"a\": 1\n} }}\n"
+                              "chnset S1, \"text\"\nendin\n}\ni 103 0 0\n");
+    host.perform(1);
+    EXPECT_EQ(" {\"a\": 1\n} ", channelText(host)) << host.said();
+}
+
+/* An orchestra block whose text, the lines between its { line and its }
+   line, is size bytes: instr 105, then comment lines. */
+std::string blockOf(size_t size)
+{
+    std::string text = "instr 105\nchnset 5, \"block\"\nendin\n";
+    while (text.size() + 1002 < size)
+        text += ";" + std::string(998, 'x') + "\n";
+    text += ";" + std::string(size - text.size() - 2, 'x') + "\n";
+    return "{\n" + text + "}\n";
+}
+
+/* A block holds 1 MB less a byte, from a host or from -L, one case each: a
+   longer one is refused, its text dropped up to its }, and what follows it
+   plays. It ran past its buffer, and the process died. */
+class HostOrchestraBlockSizes
+    : public ::testing::TestWithParam<std::tuple<bool, size_t>> {};
+
+TEST_P(HostOrchestraBlockSizes, PastTheBufferAreRefused)
+{
+    const bool lineInput = std::get<0>(GetParam());
+    const size_t size = std::get<1>(GetParam());
+    const bool fits = size < 1048576;
+    const TempFile file("csound-block-size-", ".sco");
+    const std::string lines = blockOf(size) + "i 1 0 0\ni 105 0 0\n";
+    Host host;
+    if (lineInput) {
+        std::ofstream(file.name, std::ios::binary) << lines;
+        csoundSetOption(host.csound, ("-L\"" + file.name + "\"").c_str());
+        ASSERT_NO_FATAL_FAILURE(host.start());
+    }
+    else {
+        ASSERT_NO_FATAL_FAILURE(host.start());
+        host.csound->InputMessage(host.csound, lines.c_str());
+    }
+    host.perform(100);
+    EXPECT_EQ(1, host.played()) << host.said();
+    EXPECT_EQ(fits ? 5 : 0, channel(host, "block"));
+    EXPECT_EQ(fits, host.said().find("orchestra block longer than "
+                                     "1048575 bytes: not compiled\n") ==
+                        std::string::npos);
+    host.csound->InputMessage(host.csound, "{\ninstr 106\nchnset 6, \"block\"\n"
+                                           "endin\n}\ni 106 0 0\n");
+    host.perform(1);
+    EXPECT_EQ(6, channel(host, "block")) << host.said();
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    InputsAndSizes, HostOrchestraBlockSizes,
+    ::testing::Combine(::testing::Bool(),
+                       ::testing::Values((size_t) 1048575, (size_t) 1048576,
+                                         (size_t) 1100000)),
+    [](const ::testing::TestParamInfo<std::tuple<bool, size_t>> &info) {
+        return std::string(std::get<0>(info.param) ? "LineInput_" : "Host_") +
+               std::to_string(std::get<1>(info.param));
+    });
+
+/* What a refused line says ends its own lines: "unknown opcode x" ran into
+   "illegal RT scoreline:", and the ^ under the line into the next message. */
+TEST(HostLineEvents, RefusalsEndTheirLines)
+{
+    const std::pair<const char *, const char *> lines[] = {
+        {"i 1 0 0 .", "dot carry has no reference"},
+        {"x 1 0 0", "unknown opcode x"},
+        {"i 1", "too few pfields (2)"},
+        {"i 1 -1 0", "-L with negative p2 illegal"},
+        {"i 1 0 0 \"a", "unmatched quote"},
+        {"i 4 0 0 \"a\"\ni 4 0 0 .", "cannot carry string p-field"},
+    };
+    Host host;
+    host.start();
+    size_t seen = 0;
+    for (const auto &[line, what] : lines) {
+        SCOPED_TRACE(line);
+        host.csound->InputMessage(host.csound, line);
+        host.perform(1);
+        const std::string said = host.said().substr(seen);
+        seen += said.size();
+        const char *last = strrchr(line, '\n');
+        const size_t at =
+            said.find(std::string(what) + "\nillegal RT scoreline:\n" +
+                      (last ? last + 1 : line) + "\n");
+        ASSERT_NE(std::string::npos, at) << said;
+        EXPECT_EQ("^\n", said.substr(said.find('^', at), 2)) << said;
+    }
+}
+
+/* Set by the message the start gives just before it opens the -L input,
+   which then waits, 100 ms at most, for the sender to be about to send: the
+   two go on together, on a loaded machine too. What the thread that starts
+   and performs says is kept; another thread's is not looked at. */
+std::atomic<bool> openingLineInput{false}, lineGoing{false};
+std::string startSaid;
+std::thread::id startThread;
+
+void watchTheStart(CSOUND *, int32_t, const char *format, va_list args)
+{
+    char text[256];
+    if (std::this_thread::get_id() != startThread)
+        return;
+    vsnprintf(text, sizeof text, format, args);
+    startSaid += text;
+    if (strstr(text, "A4 tuning") != nullptr) {
+        openingLineInput = true;
+        const auto from = std::chrono::steady_clock::now();
+        while (!lineGoing.load() && std::chrono::steady_clock::now() - from <
+                                        std::chrono::milliseconds(100)) {
+        }
+    }
+}
+
+/* A line another thread sends while csoundStart opens the -L input plays,
+   and so does the -L input. The start set the line buffer up without its
+   lock, and one or both lines were lost, the line reader was registered
+   twice, or the process died. The line goes as the start goes on from its
+   last message before it opens -L: at develop the first start went wrong.
+   Six starts, as one can take a second where many tests run at once. */
+TEST(HostLineEvents, ALineSentAsTheStartOpensLineInputPlays)
+{
+    const TempFile file("csound-start-lines-", ".sco");
+    std::ofstream(file.name, std::ios::binary) << "i 1 0 0\n";
+    int duringTheStart = 0;
+    startThread = std::this_thread::get_id();
+    for (int run = 0; run < 6; run++) {
+        SCOPED_TRACE(run);
+        Host host;
+        csoundSetMessageCallback(host.csound, watchTheStart);
+        csoundSetOption(host.csound, ("-L\"" + file.name + "\"").c_str());
+        openingLineInput = false;
+        lineGoing = false;
+        startSaid.clear();
+        std::atomic<bool> started{false};
+        bool sentDuringTheStart = false;
+        std::thread sender([&] {
+            while (!started.load() && !openingLineInput.load()) {
+            }
+            lineGoing = true;
+            host.csound->InputMessage(host.csound, "i 1 0 0\n");
+            sentDuringTheStart = !started.load();
+        });
+        const int result = csoundStart(host.csound);
+        started = true;
+        sender.join();
+        duringTheStart += sentDuringTheStart;
+        ASSERT_EQ(CSOUND_SUCCESS, result) << startSaid;
+        for (int cycle = 0; cycle < 4; cycle++)
+            ASSERT_EQ(0, csoundPerformKsmps(host.csound)) << startSaid;
+        int readers = 0;
+        for (auto *fp = (EVT_CB_FUNC *) host.csound->evtFuncChain; fp != nullptr;
+             fp = fp->nxt)
+            readers++;
+        EXPECT_EQ(1, readers) << startSaid;
+        ASSERT_EQ(2, host.played()) << startSaid;
+    }
+    /* a machine where no line was in before the start returned did not
+       test the race: say so rather than pass */
+    if (duringTheStart == 0)
+        GTEST_SKIP() << "no line went out before csoundStart returned";
+}
+
+/* A p-field of a sign or a dot with no number after it is refused, and the
+   next line plays: the sign was read again and again as a new p-field, and
+   the p-fields grew until memory ran out. */
+TEST(HostLineEvents, ASignWithNoNumberIsRefused)
+{
+    Host host;
+    host.start();
+    for (const char *line : {"i 1 0 0 +", "i 1 0 0 - 5", "i 1 0 0 .x", "i 1 0 0 +."}) {
+        SCOPED_TRACE(line);
+        const cs_float played = host.played();
+        host.csound->InputMessage(host.csound, line);
+        host.csound->InputMessage(host.csound, "i 1 0 0");
+        host.perform(1);
+        EXPECT_EQ(played + 1, host.played()) << host.said();
+        EXPECT_NE(std::string::npos,
+                  host.said().find(std::string("illegal RT scoreline:\n") + line));
+    }
+}
+
+/* The ^ under a refused line stands under its error in the error's own
+   line, after a string over two lines too: it was placed by the distance
+   from the first line's start, past the end of the last. */
+TEST(HostLineEvents, TheMarkStandsUnderTheErrorAfterAStringOverLines)
+{
+    Host host;
+    host.start();
+    host.csound->InputMessage(host.csound, "i 4 0 0 \"ab\ncd\" x");
+    host.perform(1);
+    EXPECT_NE(std::string::npos,
+              host.said().find("illegal RT scoreline:\ni 4 0 0 \"ab\ncd\" x\n"
+                               "    ^\n"))
+        << host.said();
+}
+
+/* The start below is held at its last message until the first line's
+   set-up, held in its p-field allocation, has finished; then the start dies
+   on a MIDI file that cannot be loaded. */
+std::atomic<int> setUpStep{0};
+std::atomic<bool> startHeld{false}, setUpHeld{false};
+std::atomic<std::thread::id> setUpThread;
+void *(*callocOfCsound)(CSOUND *, size_t);
+
+void *holdTheFirstLine(CSOUND *csound, size_t size)
+{
+    if (std::this_thread::get_id() == setUpThread.load() &&
+        size == sizeof(cs_float) * (PMAX + 1)) {
+        setUpStep = 1;
+        const auto from = std::chrono::steady_clock::now();
+        while (setUpStep.load() < 2 && std::chrono::steady_clock::now() - from <
+                                           std::chrono::seconds(10)) {
+        }
+        setUpHeld = setUpStep.load() >= 2;
+    }
+    return callocOfCsound(csound, size);
+}
+
+void holdTheStart(CSOUND *, int32_t, const char *format, va_list args)
+{
+    char text[256];
+    vsnprintf(text, sizeof text, format, args);
+    if (strstr(text, "A4 tuning") != nullptr && setUpStep.load() == 1) {
+        startHeld = true;
+        setUpStep = 2;
+        const auto from = std::chrono::steady_clock::now();
+        while (setUpStep.load() < 3 && std::chrono::steady_clock::now() - from <
+                                           std::chrono::seconds(10)) {
+        }
+    }
+}
+
+/* A host's first line, sent as the start begins, leaves the start's jump
+   alone: its set-up saved csound->exitjmp, set its own setjmp there and
+   put back what it had saved, after the start had taken exitjmp, and the
+   start's fatal error then jumped into a frame that was gone. */
+TEST(HostLineEvents, AFirstLineLeavesTheStartsJumpAlone)
+{
+    Host host;
+    csoundSetMessageCallback(host.csound, holdTheStart);
+    const TempFile missing("csound-no-such-", ".mid"); /* never made */
+    csoundSetOption(host.csound, ("-F\"" + missing.name + "\"").c_str());
+    setUpStep = 0;
+    startHeld = setUpHeld = false;
+    callocOfCsound = host.csound->Calloc;
+    host.csound->Calloc = holdTheFirstLine;
+    std::atomic<bool> go{false};
+    std::thread sender([&] {
+        while (!go.load()) {
+        }
+        host.csound->InputMessage(host.csound, "i 1 0 0\n");
+        setUpStep = 3;
+    });
+    setUpThread = sender.get_id();
+    go = true;
+    const auto from = std::chrono::steady_clock::now();
+    while (setUpStep.load() < 1 && std::chrono::steady_clock::now() - from <
+                                       std::chrono::seconds(10)) {
+    }
+    const int result = csoundStart(host.csound);
+    sender.join();
+    host.csound->Calloc = callocOfCsound;
+    EXPECT_NE(CSOUND_SUCCESS, result);
+    /* both held each other as meant, or nothing was tested */
+    if (!startHeld.load() || !setUpHeld.load())
+        GTEST_SKIP() << "the first line's set-up and the start did not meet";
+}
+
+/* An allocation that fails, made by a wrapped csound->Calloc once, on an
+   allocation of the size given: memdie's jump. */
+std::atomic<size_t> failingSize{0};
+void *(*callocThatWorks)(CSOUND *, size_t);
+
+void *failOnce(CSOUND *csound, size_t size)
+{
+    if (size == failingSize.load()) {
+        failingSize = 0;
+        csound->ErrorMsg(csound, "memory allocate failure for %zu (a test's)\n",
+                         size);
+        csound->LongJmp(csound, CSOUND_MEMORY);
+    }
+    return callocThatWorks(csound, size);
+}
+
+enum Allocation { PFields, Reader, BlockBuffer };
+
+struct FailingAllocation {
+    const char *what;
+    Allocation allocation;
+    size_t size;
+    const char *line;
+};
+
+const FailingAllocation failingAllocations[] = {
+    {"PFields", PFields, sizeof(cs_float) * (PMAX + 1), "i 1 0 0\n"},
+    {"Reader", Reader, sizeof(EVT_CB_FUNC), "i 1 0 0\n"},
+    {"BlockBuffer", BlockBuffer, 1048576,
+     "{\ninstr 100\nchnset 1, \"block\"\nendin\n}\ni 100 0 0\ni 1 0 0\n"},
+};
+
+/* An allocation that fails while a host's line goes into the line buffer,
+   under line_event_spinlock, loses that line and lets the lock go, and the
+   next line plays: the first line's p-field array, its line reader, and an
+   orchestra block's buffer. The jump left through the held lock, and after
+   the start into the start's spent frame; and with the reader's allocation
+   failed, the set-up was taken for done, and no line played again. */
+class HostLineAllocationFailures
+    : public ::testing::TestWithParam<FailingAllocation> {};
+
+TEST_P(HostLineAllocationFailures, LoseTheLineAndLetTheLockGo)
+{
+    const FailingAllocation &failing = GetParam();
+    Host host;
+    ASSERT_NO_FATAL_FAILURE(host.start());
+    callocThatWorks = host.csound->Calloc;
+    host.csound->Calloc = failOnce;
+    failingSize = failing.size;
+    host.csound->InputMessage(host.csound, failing.line);
+    host.csound->Calloc = callocThatWorks;
+    EXPECT_EQ(0u, failingSize.load()) << "the allocation was not made";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSpinTryLock(&host.csound->line_event_spinlock))
+        << host.said();
+    csoundSpinUnLock(&host.csound->line_event_spinlock);
+    /* the failed allocation left its part unmade, for the next line */
+    const auto &lines = host.csound->lineventStatics;
+    if (failing.allocation == BlockBuffer) {
+        EXPECT_EQ(nullptr, lines.orchestrab);
+    }
+    else {
+        EXPECT_EQ(nullptr, lines.Linep);
+    }
+    host.csound->InputMessage(host.csound, failing.line);
+    host.perform(1);
+    EXPECT_EQ(1, host.played()) << host.said();
+    if (failing.allocation == BlockBuffer) {
+        EXPECT_EQ(1, channel(host, "block")) << host.said();
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Allocations, HostLineAllocationFailures,
+    ::testing::ValuesIn(failingAllocations),
+    [](const ::testing::TestParamInfo<FailingAllocation> &info) {
+        return std::string(info.param.what);
+    });
+
+/* The same failure as the start opens -L fails the start, leaves the lock
+   free and gives the -L input up: the jump went to the start's landing with
+   the lock held. */
+TEST(HostLineEvents, AnAllocationThatFailsAsTheStartOpensLineInputFailsIt)
+{
+    const TempFile file("csound-failing-start-", ".sco");
+    std::ofstream(file.name).close(); /* -L reads nothing from it */
+    Host host;
+    csoundSetOption(host.csound, ("-L\"" + file.name + "\"").c_str());
+    callocThatWorks = host.csound->Calloc;
+    host.csound->Calloc = failOnce;
+    failingSize = sizeof(cs_float) * (PMAX + 1);
+    const int result = csoundStart(host.csound);
+    host.csound->Calloc = callocThatWorks;
+    EXPECT_EQ(0u, failingSize.load()) << "the allocation was not made";
+    EXPECT_NE(CSOUND_SUCCESS, result);
+    /* it failed in the line set-up, which -L no longer stands on */
+    EXPECT_NE(nullptr, host.csound->lineventStatics.Linebuf);
+    EXPECT_EQ(nullptr, host.csound->lineventStatics.pfields);
+    EXPECT_EQ(0, host.csound->oparms->Linein);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSpinTryLock(&host.csound->line_event_spinlock));
+    csoundSpinUnLock(&host.csound->line_event_spinlock);
+}
 } // namespace
