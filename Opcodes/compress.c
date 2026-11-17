@@ -45,7 +45,8 @@ typedef struct {
 typedef struct {        /* this now added from 07/01 */
     OPDS    h;
     cs_float   *ar, *asig, *kdist, *ifn, *ihp, *istor;
-    cs_double  c1, c2, prvq, prvd, min_rms;
+    /* Squared levels and small detector updates need wider state. */
+    double  c1, c2, prvq, prvd, min_rms;
     cs_float   midphs, maxphs, begval, endval;
     FUNC    *ftp;
     int32_t initialized;
@@ -219,7 +220,7 @@ static int32_t distset(CSOUND *csound, DIST *p)
     p->midphs = p->maxphs * FL(0.5);
     p->begval = ftp->ftable[0];
     p->endval = ftp->ftable[ftp->flen];
-    TONE_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
+    TONE_COEFFICIENTS((double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
     p->min_rms = csound->Get0dBFS(csound) * DV32768;
     if (!*p->istor || !p->initialized || !isfinite(p->prvq) ||
         p->prvq < FL(0.0) || !isfinite(p->prvd) || p->prvd <= FL(0.0)) {
@@ -234,7 +235,7 @@ static int32_t distset(CSOUND *csound, DIST *p)
 static int32_t distort(CSOUND *csound, DIST *p)
 {
     cs_float   *ar, *asig;
-    cs_double  q, rms, dist, dnew, dcur, dinc;
+    double  q, rms, dist, dnew, dcur, dinc;
     FUNC    *ftp = p->ftp;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -273,12 +274,12 @@ static int32_t distort(CSOUND *csound, DIST *p)
     dcur = p->prvd;
     dinc = (dnew - dcur) / (nsmps - offset);
     for (n=offset; n<nsmps; n++) {
-      cs_double sig, phs, val;
+      double sig, phs, val;
       sig = asig[n] / dcur;             /* compress the sample  */
       phs = p->midphs * (1.0 + sig);     /* as index into table  */
       if (LIKELY(phs > FL(0.0) && phs < p->maxphs)) {
         int32  iphs = (int32)phs;
-        cs_double frac = phs - iphs;       /* waveshape the samp   */
+        double frac = phs - iphs;       /* waveshape the samp   */
         cs_float *fp = ftp->ftable + iphs;
         val = *fp++;
         val += (*fp - val) * frac;
