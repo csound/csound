@@ -476,19 +476,128 @@ class MidiOrchestraFileTests : public MidiRealtimeInputTests {
   }
 };
 
-TEST_F(MidiOrchestraFileTests, RewindDoesNotStopTheFileClock)
+// The same file, opened but not played until a test plays it.
+class MidiOrchestraFileLaterTests : public MidiOrchestraFileTests {
+ protected:
+  void options() override
+  {
+    MidiOrchestraFileTests::options();
+    extraOrchestra = "giFile midifileopen \"" + file + "\"\n";
+  }
+};
+
+TEST_F(MidiOrchestraFileLaterTests, AFileSetBeforeItPlaysGoesOnFromThere)
 {
-  // A rewind of the score leaves the orchestra's file where it was, and its
-  // time goes on: its second event comes 100 cycles after SetUp's, rewind or
-  // not.
+  // midifilepos counts the time it sets as played, and the first cycle the
+  // file plays in moves on from it: set to tick 93.75, it gives CC 9 = 2,
+  // at tick 100, on the 7th cycle it plays in.
+  ASSERT_EQ(csoundCompileOrc(csound, "midifilepos 0.03125, giFile\n"
+                             "midifileplay giFile\n", 0), 0);
+  for (int i = 0; i < 6; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "status", nullptr), 0);
+  message({{}}, 0xB0, 1, 9, 2);
+}
+
+TEST_F(MidiOrchestraFileLaterTests, AFilePlayedLaterStartsAtItsFirstTick)
+{
+  // Played 50 cycles in, the file reads its tick 0 in the cycle it starts
+  // in, and CC 9 = 1, at its tick 1, comes in the cycle after, as it would
+  // from the start of the performance.
+  for (int i = 0; i < 50; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileplay giFile\n", 0), 0);
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
+TEST_F(MidiOrchestraFileTests, RewindTakesTheFileBackToItsStart)
+{
+  // A rewind of the score takes the orchestra's file back to its start, as
+  // it does the -F file, and resets the controllers of the file's port:
+  // CC 9 = 1, at tick 1, comes again on the second cycle after it.
+  ASSERT_EQ(csoundCompileOrc(csound, "instr 6\n"
+                             "chnset ctrl7:k(1, 9, 0, 127), \"c9\"\n"
+                             "endin\n", 0), 0);
   message({{}}, 0xB0, 1, 9, 1);
   for (int i = 0; i < 49; ++i)
     ASSERT_EQ(csoundPerformKsmps(csound), 0);
   rewind();
+  csoundEventString(csound, "i6 0 1\n", 0);
+  message({{}}, 0, 0, 0, 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "c9", nullptr), 0);
+  message({{}}, 0xB0, 1, 9, 1);
+  EXPECT_EQ(csoundGetControlChannel(csound, "c9", nullptr), 1);
+}
+
+// The same file, opened and played by a UDO the orchestra's header calls.
+class MidiOrchestraFileUdoTests : public MidiOrchestraFileTests {
+ protected:
+  void options() override
+  {
+    MidiOrchestraFileTests::options();
+    extraOrchestra =
+      "opcode OpenAndPlay(name:S):i\n"
+      "  iFile midifileopen name\n"
+      "  midifileplay iFile\n"
+      "  xout iFile\n"
+      "endop\n"
+      "giFile OpenAndPlay \"" + file + "\"\n";
+  }
+};
+
+TEST_F(MidiOrchestraFileUdoTests, RewindTakesAFileTheHeadersUdoOpenedBack)
+{
+  // A file the header's UDO opened is the header's: the rewind takes it
+  // back to its start, and CC 9 = 1, at tick 1, comes again.
+  message({{}}, 0xB0, 1, 9, 1);
   for (int i = 0; i < 49; ++i)
     ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  rewind();
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
+TEST_F(MidiOrchestraFileTests, RewindReplaysAFileThatHadEnded)
+{
+  // The file ends on the 150th cycle, which pauses it. After a rewind it
+  // plays again, as the -F file does.
+  for (int i = 0; i < 160; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  rewind();
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
+TEST_F(MidiOrchestraFileTests, RewindLeavesAFileTheOrchestraPausedPaused)
+{
+  // Paused by the orchestra, the file stays paused through a rewind, at its
+  // start: played again, it gives CC 9 = 1, at its tick 1, on its second
+  // cycle.
+  for (int i = 0; i < 50; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  ASSERT_EQ(csoundCompileOrc(csound, "midifilepause 1\n", 0), 0);
+  rewind();
+  for (int i = 0; i < 200; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
   EXPECT_EQ(csoundGetControlChannel(csound, "status", nullptr), 0);
-  message({{}}, 0xB0, 1, 9, 2);
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileplay 1\n", 0), 0);
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
+TEST_F(MidiOrchestraFileTests, AFileTheOrchestraRewindsReadsItsFirstTickFirst)
+{
+  // Rewound by midifilerewind 50 cycles in, the file reads its tick 0 in
+  // the next cycle, and CC 9 = 1, at its tick 1, in the one after.
+  message({{}}, 0xB0, 1, 9, 1);
+  for (int i = 0; i < 49; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  ASSERT_EQ(csoundCompileOrc(csound, "midifilerewind 1\n", 0), 0);
+  for (const char *name : {"status", "channel", "data1", "data2"})
+    csoundSetControlChannel(csound, name, 0);
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
 }
 
 TEST_F(MidiOrchestraFileTests, ALoopedFilePlaysToItsEndBeforeItStartsAgain)

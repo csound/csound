@@ -191,7 +191,7 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   csound->csoundIsScorePending_ = pending;
 }
 
- void csoundSetScoreOffsetSeconds(CSOUND *csound, cs_float offset) {
+static void set_score_offset(CSOUND *csound, cs_float offset) {
   cs_double aTime;
   cs_float prv = (cs_float)csound->csoundScoreOffsetSeconds_;
 
@@ -201,6 +201,13 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   /* if csoundCompile() was not called yet, just store the offset */
   if (!(csound->engineStatus & CS_STATE_COMP))
     return;
+  /* an init that asked for a rewind: the rewind takes the score there; a
+     seek back asks again, as it would rewind */
+  if (init_item_rewinding(csound)) {
+    if (offset < prv)
+      csoundRewindScore(csound);
+    return;
+  }
   /* otherwise seek to the requested time now */
   aTime = (cs_double)offset - (csound->icurTimeSamples / csound->esr);
   if (aTime < 0.0 || offset < prv) {
@@ -221,12 +228,35 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   }
 }
 
+ void csoundSetScoreOffsetSeconds(CSOUND *csound, cs_float offset) {
+  /* In an item of the realtime init thread, beside the performance: under
+     the allocation lock, which the performance holds while it rewinds, so
+     that no rewind reads the offset or resets the time in the middle. */
+  const int32_t item = init_item_runs(csound);
+  if (item)
+    csoundSpinLock(&csound->alloc_spinlock);
+  set_score_offset(csound, offset);
+  if (item)
+    csoundSpinUnLock(&csound->alloc_spinlock);
+}
+
  cs_float csoundGetScoreOffsetSeconds(CSOUND *csound) {
   return csound->csoundScoreOffsetSeconds_;
 }
 
  void csoundRewindScore(CSOUND *csound) {
+  /* An item the realtime init thread runs (an init that calls rewindscore,
+     or setscorepos) runs beside the performance, which would go on with the
+     notes the rewind turns off: the performance makes the rewind once the
+     item is done, at the start of a control period (sense_events). */
+  if (init_item_asks_rewind(csound))
+    return;
+  /* this rewind serves the ones asked for so far */
+  ATOMIC_SET(csound->score_rewind_served,
+             ATOMIC_GET(csound->score_rewind_request));
   rewind_score(csound);
-  if (csound->oparms->FMidiname != NULL)
-    midifile_rewind_score(csound);
+  midifile_rewind_score(csound);
+  rt_events_after_rewind(csound);
+  /* done: an init that asked puts in what it held from now on */
+  ATOMIC_SET(csound->score_rewinds_done, ATOMIC_GET(csound->score_rewinds));
 }
