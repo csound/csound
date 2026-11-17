@@ -757,7 +757,9 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
       scale = 0.5 / n;
       pdlen = PI / (cs_double) ff->flen;
       for (phs = 0; fp <= finp; phs++) {
-        x = phs * pdlen;
+        /* The cosine sum is even. Keep the sine quotient away from pi,
+           where float rounding can swamp both numerator and denominator. */
+        x = (phs <= ff->flen / 2 ? phs : ff->flen - phs) * pdlen;
         denom = sin(x);
         if (fabs(denom)<1.0e-10) //(!(denom = (cs_float) sin(x)))
           *fp++ = FL(1.0);
@@ -780,7 +782,7 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
         scale = 1.0 / n;
       else scale = (1.0 - absr) / (1.0 - fabs(rtn));
       for (phs = 0; fp <= finp; phs++) {
-        x = (cs_double) phs * tpdlen;
+        x = (cs_double)(phs <= ff->flen / 2 ? phs : ff->flen - phs) * tpdlen;
         numer = cos(x*k) - r * cos(x*km1) - rtn*cos(x*kpn)
                 + rtnp1 * cos(x*kpnm1);
         if ((denom = rsqp1 - twor * cos(x)) > FL(0.0001)
