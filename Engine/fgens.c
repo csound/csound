@@ -1978,13 +1978,13 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     scl = ff->e.p[7];
     /* frequency mode */
     if (fmode < FL(0.0)) {
-      fmode = TWOPI / (csound->esr * -fmode); /* frequency in Hz */
+      fmode = FL(1.0) / (csound->esr * -fmode); /* cycles per sample from Hz */
     }
     else if (fmode > FL(0.0)) {
-      fmode = TWOPI / fmode;            /* ref. sample rate */
+      fmode = FL(1.0) / fmode;            /* ref. sample rate */
     }
     else {
-      fmode = TWOPI / (cs_double) flen;    /* partial number */
+      fmode = FL(1.0) / (cs_double) flen;    /* partial number */
     }
 
     /* use blocks of 256 samples (2048 bytes) for speed */
@@ -1999,16 +1999,28 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     while (++i < nh) {
       amp = (cs_double) scl * (cs_double) *(srcft++);         /* amplitude */
       frq = (cs_double) fmode * (cs_double) *(srcft++);       /* frequency */
-      if (UNLIKELY(fabs (frq) > PI)) {
+      /* Test Nyquist in cycles, where one half is exact in either precision. */
+      if (UNLIKELY(fabs(frq) > FL(0.5))) {
         xn[i] = cn[i] = vn[i] = 0.0;
         srcft++; continue;      /* skip partial with too high frequency */
       }
       phs = TWOPI * (cs_double) *(srcft++);                /* phase */
       /* calculate coeffs for fast sine oscillator */
       y0 = sin(phs);           /* sample 0 */
-      y1 = sin(phs + frq);     /* sample 1 */
       xn[i] = y0;
-      cn[i] = 2.0 * cos(frq) - 2.0;
+      if (frq == FL(0.0)) {
+        y1 = y0;
+        cn[i] = FL(0.0);
+      }
+      else if (fabs(frq) == FL(0.5)) {
+        y1 = -y0;
+        cn[i] = FL(-4.0);
+      }
+      else {
+        frq *= TWOPI;
+        y1 = sin(phs + frq);     /* sample 1 */
+        cn[i] = 2.0 * cos(frq) - 2.0;
+      }
       vn[i] = y1 - cn[i] * y0 - y0;
       /* amp. scale */
       xn[i] *= amp; vn[i] *= amp;
