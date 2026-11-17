@@ -73,7 +73,7 @@ int32_t foscil(CSOUND *csound, FOSC *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   cs_double   mincf, cincf;
-  cs_double   cphsf, mphsf;
+  double   cphsf, mphsf;
   cs_float    sicvt = CS_SICVT;
 
 
@@ -179,7 +179,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
   uint32_t n, nsmps = CS_KSMPS;
   cs_float    *ft, sicvt = CS_SICVT;
   cs_double   cincf, mincf;
-  cs_double   cphsf = p->cphsf, mphsf = p->mphsf;
+  double   cphsf = p->cphsf, mphsf = p->mphsf;
 
 
   ar = p->rslt;
@@ -228,7 +228,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         cphs += cinc;
       } else {
         mincf = mod * CS_ONEDSR;
-        cs_double siz = mphsf*ftlen;
+        double siz = mphsf*ftlen;
         int32_t i = (int32_t)siz;
         fract = (cs_float)(siz - i);
         v1 = ft[i++];
@@ -271,7 +271,7 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         ar[n] = (v1 + (*ftab - v1) * fract) * amp;
         cphs += cinc;
       } else {
-        cs_double siz = mphsf*ftlen;
+        double siz = mphsf*ftlen;
         int32_t i = (int32_t)siz;
         fract = (cs_float)(siz - i);
         v1 = ft[i++];

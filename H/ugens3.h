@@ -27,7 +27,8 @@
 typedef struct {
   OPDS    h;
   cs_float   *rslt, *xamp, *kcps, *xcar, *xmod, *kndx, *ifn, *iphs;
-  cs_double mphsf, cphsf;
+  /* Preserve small carrier and modulator phase increments. */
+  double mphsf, cphsf;
   int32   mphs, cphs, floatph;
   int16   ampcod, carcod, modcod;
   FUNC    *ftp;
