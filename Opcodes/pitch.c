@@ -1706,7 +1706,7 @@ static void clip_setup(CLIP *p)
          normal-range numbers. Forming 1/k1 directly would underflow when
          the limit is near the largest value of cs_float. */
       {
-        int32_t exp = 0, shift;
+        int exp = 0, shift;
         frexp(p->k1, &exp);
         shift = -exp;
         if (shift > CLIP_MAX_SCALE_EXP)
