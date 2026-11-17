@@ -12,7 +12,6 @@ set(USE_OPEN_MP OFF)
 set(TCL_VERSION 8.5)
 #set(PYTHON_LIBRARY='/Library/Frameworks/Python.framework/Versions/2.7/lib/libpython2.7.dylib')
 #set(PYTHON_INCLUDE='/Library/Frameworks/Python.framework/Headers')
-set(JNI_INCLUDE_DIRS "/Library/Java/JavaVirtualMachines/jdk1.7.0_45.jdk/Contents/Home/include")
 
 set(CMAKE_LINK_FLAGS "${CMAKE_LINK_FLAGS} -stdlib=libc++ -lc++abi")
 
