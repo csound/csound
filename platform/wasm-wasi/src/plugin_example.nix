@@ -2,7 +2,7 @@
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
   wasm64 ? false,
-  wasiToolchain ? import (if wasm64 then ./wasi64-toolchain.nix else ./wasi-preview2-toolchain.nix) {inherit system pkgs;},
+  wasiToolchain ? import (if wasm64 then ./wasi64-toolchain.nix else ./wasi-preview3-toolchain.nix) {inherit system pkgs;},
   pkgsWasm ? wasiToolchain.pkgsWasm,
   # Match the browser binary selected from this package at build time.
   sharedMemory ? !wasm64 && builtins.pathExists ../lib/csound-browser-realtime.wasm.z,

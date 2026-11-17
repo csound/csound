@@ -1,7 +1,7 @@
 {
   system ? builtins.currentSystem,
   pkgs ? import <nixpkgs> {inherit system;},
-  wasiToolchain ? import ./wasi-preview2-toolchain.nix {inherit system pkgs;},
+  wasiToolchain ? import ./wasi-preview3-toolchain.nix {inherit system pkgs;},
   pkgsWasm ? wasiToolchain.pkgsWasm,
   stdenvWasm ? wasiToolchain.stdenv,
   moduleKind ? "command",
@@ -75,7 +75,7 @@ in
         "-GNinja"
         "-DBUILD_DIR=build"
         "-DUSE_DOUBLE=0"
-        "-DUSE_FLOAT=1"
+        "-DUSE_FLOAT=0"
         "-DUSE_IPMIDI=OFF"
         "-DUSE_LIBSAMPLERATE=ON"
         # Fail configuration rather than silently using linear conversion.
@@ -147,7 +147,7 @@ in
         "--export-table" # plugins do the reverse and import
         "--growable-table" # required so dlinit can append plugin function pointers
         "--import-memory"
-        "--export=__stack_pointer"
+        "--export=__init_stack_pointer"
         "--export-if-defined=sin"
         "--export=sinf"
         "--export-if-defined=strcmp"
@@ -199,7 +199,7 @@ in
         tar -C $out/share -czf $out/lib/csound-plugin-sdk.tar.gz csound-plugin-sdk
       ''
       else ''
-        # Keep the core command for JS hosts and encode its Preview 2 component.
+        # Keep the core command for JS hosts and encode its Preview 3 component.
         cp $out/bin/csound $out/lib/csound-cli.core.wasm
         wasm-tools component new $out/bin/csound -o $out/lib/csound-cli.wasm
         for tool in ${lib.escapeShellArgs tools}; do

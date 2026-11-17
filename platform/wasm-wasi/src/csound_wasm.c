@@ -298,7 +298,7 @@ static void csoundWasiCReadlineCallback(CSOUND *csound, void *userData,
                               prompt != NULL ? strlen(prompt) : 0);
 }
 
-/* wasi-libc declares system(), but Preview 2 has no implementation or exec
+/* wasi-libc declares system(), but WASI has no implementation or exec
  * syscall. Browser hosts provide this explicit extension; command builds do
  * not import it. The host returns a system()-style status, not a WASI errno. */
 int csoundWasiJsSystem(const char *)

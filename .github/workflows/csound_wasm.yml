@@ -76,7 +76,7 @@ jobs:
         with:
           name: wasm-realtime-test-fixtures
           path: ${{ runner.temp }}/wasm-commandline-source/platform/wasm-wasi/test-artifacts
-      - name: Download Preview 2 command from build job
+      - name: Download Preview 3 command from build job
         if: needs.csound-wasm.outputs.realtime-supported != '1'
         uses: actions/download-artifact@v8.0.1
         with:
@@ -94,12 +94,15 @@ jobs:
         working-directory: ${{ runner.temp }}/wasm-commandline-source
         run: |
           if [ "${{ needs.csound-wasm.outputs.realtime-supported }}" = 1 ]; then
-            threaded=true
+            nix-build ./platform/wasm-wasi/src/csound-tests.nix --arg threaded true --no-out-link --show-trace --option log-lines 10000
           else
-            threaded=false
             unzip platform/wasm-wasi/lib.zip -d platform/wasm-wasi
+            for command in csound-cli.wasm csound-wasm64-cli.wasm; do
+              nix-build ./platform/wasm-wasi/src/csound-tests.nix \
+                --arg csoundWasm "./platform/wasm-wasi/lib/$command" \
+                --no-out-link --show-trace --option log-lines 10000
+            done
           fi
-          nix-build ./platform/wasm-wasi/src/csound-tests.nix --arg threaded "$threaded" --no-out-link --show-trace --option log-lines 10000
 
   browser-test:
     permissions:

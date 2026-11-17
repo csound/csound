@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 globalThis.goog = { define: (_name, value) => value, global: globalThis };
-const { WASI } = await import("../browser/src/filesystem/preview2.js");
+const { WASI } = await import("../browser/src/filesystem/preview3.js");
 const { assertBrowserPrecision } = await import("../browser/src/utils/browser-reactor.js");
 const { csoundTableCopyIn, csoundTableCopyOut, csoundGetTableArgs } =
   await import("../browser/src/modules/table.js");
@@ -28,6 +28,7 @@ const bridge = wide ? memory64Imports(module, memory, wasi) : undefined;
 const imports = bridge ? bridge.imports : wasi.getImports(module);
 imports.wasi = { "thread-spawn": () => -6 };
 imports.env = {
+  ...imports.env,
   memory,
   __memory_base: new WebAssembly.Global({ value: wide ? "i64" : "i32" }, wide ? 0n : 0),
   __table_base: new WebAssembly.Global(
@@ -47,9 +48,9 @@ imports.env = {
 nativeCallbacks(imports, abi);
 const raw = await WebAssembly.instantiate(module, imports);
 bridge?.connect(raw);
-const instance = { exports: nativeExports(raw.exports, abi) };
-assertBrowserPrecision(instance.exports, wide ? 8 : 4);
+const instance = { exports: wasi.wrapExports(nativeExports(raw.exports, abi)) };
 wasi.start(instance);
+assertBrowserPrecision(instance.exports, wide ? 8 : 4);
 const api = instance.exports;
 const wasm = { exports: api, wasi };
 const csound = api.csoundCreateWasi();

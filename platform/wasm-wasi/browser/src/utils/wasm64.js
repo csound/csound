@@ -1,4 +1,5 @@
-import { WASI } from "../filesystem/preview2.js";
+import { WASI } from "../filesystem/preview3.js";
+import { WASI as Preview2 } from "../filesystem/preview2.js";
 import { decoder } from "./utf8.js";
 
 // JS typed-array offsets use exact Numbers. Keep the native i64 values at the
@@ -55,7 +56,12 @@ export function nativeCallbacks(imports, abi) {
     const module = key.slice(0, separator);
     const name = key.slice(separator + 1);
     // The WASI adapter already has native signatures. Only adapt JS callbacks.
-    if (module !== "env" || typeof imports[module]?.[name] !== "function") continue;
+    if (
+      module !== "env" ||
+      name.startsWith("__wasm_") ||
+      typeof imports[module]?.[name] !== "function"
+    )
+      continue;
     const fn = imports[module][name];
     imports[module][name] = (...args) => {
       const value = fn(
@@ -66,12 +72,16 @@ export function nativeCallbacks(imports, abi) {
   }
 }
 
-export function memory64Imports(module, memory, wasi) {
+export function memory64Imports(module, memory, wasi, plugin = false) {
   const sections = WebAssembly.Module.customSections(module, "csound.wasi-bridge");
   if (sections.length !== 1)
-    throw new TypeError("The wasm64 engine requires its Preview 2 adapter");
+    throw new TypeError("The wasm64 engine requires its WASI adapter");
   const bridgeModule = new WebAssembly.Module(sections[0]);
-  const host = new WASI({
+  const preview3 = WebAssembly.Module.imports(bridgeModule).some(({ module }) =>
+    module.includes("@0.3."),
+  );
+  const Host = preview3 ? WASI : Preview2;
+  const host = new Host({
     filesystem: wasi.filesystem,
     root: wasi.root,
     getRandomValues: wasi.getRandomValues,
@@ -87,17 +97,32 @@ export function memory64Imports(module, memory, wasi) {
   host.setInstance(bridge);
   const engineImports = {};
   for (const item of WebAssembly.Module.imports(module)) {
-    if (!item.module.startsWith("wasi:")) continue;
+    if (
+      !item.module.startsWith("wasi:") &&
+      item.module !== "$root" &&
+      !(item.module === "env" && item.name.startsWith("__wasm_"))
+    )
+      continue;
     const fn = bridge.exports[`${item.module}#${item.name}`];
     if (typeof fn !== "function") throw new TypeError(`Missing wasm64 WASI adapter: ${item.name}`);
     engineImports[item.module] ||= {};
     engineImports[item.module][item.name] = fn;
   }
   wasi.pointerSize = 8;
+  if (preview3 && !plugin) {
+    wasi.getStackPointer = () => bridge.exports["env#__wasm_get_stack_pointer"]();
+    wasi.setStackPointer = (value) => bridge.exports["env#__wasm_set_stack_pointer"](value);
+  }
   return {
     imports: engineImports,
-    connect: (instance) =>
-      bridge.exports["engine-functions"].set(0, instance.exports["cabi_realloc"]),
+    connect: (instance) => {
+      const functions = bridge.exports["engine-functions"];
+      functions.set(0, instance.exports["cabi_realloc"]);
+      if (preview3) {
+        functions.set(2, instance.exports["free"]);
+        functions.set(3, instance.exports["__wasm_task_hook"]);
+      }
+    },
   };
 }
 
@@ -114,10 +139,11 @@ export function instantiateCommand(module, wasi) {
   });
   wasi.setMemory(memory);
   const bridge = memory64Imports(module, memory, wasi);
-  bridge.imports["env"] = { memory };
+  bridge.imports["env"] = { ...bridge.imports["env"], memory };
   const instance = new WebAssembly.Instance(module, bridge.imports);
   bridge.connect(instance);
-  return { exports: nativeExports(instance.exports, abi) };
+  const exports = nativeExports(instance.exports, abi);
+  return { exports: wasi.wrapExports ? wasi.wrapExports(exports) : exports };
 }
 
 export const pointerSize = (wasm) => wasm.exports["__pointerSize"] || 4;

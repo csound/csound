@@ -1,1 +1,1 @@
-export { WASI } from "./preview2.js";
+export { WASI } from "./preview3.js";

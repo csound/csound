@@ -1,4 +1,4 @@
-"""Canonical ABI layouts and copies for the pinned synchronous WASI 0.2 WIT.
+"""Canonical ABI layouts and copies for the pinned WASI 0.3 WIT.
 
 Only pointers and list lengths change width. Handles, flags and scalar integer
 fields retain their WIT widths. Unknown types fail the build.
@@ -33,7 +33,8 @@ def cast(expression, source, target):
 
 
 class ABI:
-    def __init__(self, wit):
+    def __init__(self, wit, free_source=False):
+        self.free_source = free_source
         self.wit = wit
         self.types = wit['types'][:]
         self.copies = {}
@@ -104,7 +105,7 @@ class ABI:
             return 1, 1
         sizes = {'bool': 1, 'u8': 1, 's8': 1, 'u16': 2, 's16': 2,
                  'u32': 4, 's32': 4, 'char': 4, 'f32': 4,
-                 'u64': 8, 's64': 8, 'f64': 8, 'resource': 4, 'handle': 4}
+                 'u64': 8, 's64': 8, 'f64': 8, 'resource': 4, 'handle': 4, 'stream': 4, 'future': 4, 'error-context': 4}
         size = sizes[kind]
         return size, size
 
@@ -245,6 +246,8 @@ class ABI:
                     (i{source_bits}.add (local.get $p) (i{source_bits}.mul {cast('(local.get $i)', 'i32', f'i{source_bits}')} {const(source_bits, size_s)}))
                     (i{target_bits}.add (local.get $q) (i{target_bits}.mul {cast('(local.get $i)', 'i32', f'i{target_bits}')} {const(target_bits, size_d)})))
                   (local.set $i (i32.add (local.get $i) (i32.const 1))) (br $copy)))''')
+            if source_bits == 32 and self.free_source:
+                code.append('(if (local.get $n) (then (call $free32 (local.get $p))))')
         else:
             size = self.layout(ty, source_bits)[0]
             assert size == self.layout(ty, target_bits)[0]

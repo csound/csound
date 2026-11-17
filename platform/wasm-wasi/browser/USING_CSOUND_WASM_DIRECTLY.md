@@ -20,7 +20,7 @@ responsibility of the Web Audio graph. Csound output device names such as
 
 ## Choose the correct WASM artifact
 
-`@csound/wasm-bin` contains these Preview 2 artifacts:
+`@csound/wasm-bin` contains these Preview 3 artifacts:
 
 - `lib/csound.wasm` is the browser-hosted WASI reactor. It has an
   `_initialize` entry point, imports its memory and host callbacks, and is the
@@ -28,10 +28,11 @@ responsibility of the Web Audio graph. Csound output device names such as
 - `lib/csound.wasm.z` is the compressed form used when building the browser
   package.
 - `lib/csound-cli.wasm` is a standalone WASI component exporting
-  `wasi:cli/run@0.2.12`, for runtimes such as Wasmtime.
+  `wasi:cli/run@0.3.2`, for runtimes such as Wasmtime.
 - `lib/csound-cli.core.wasm` contains the command’s core module for JavaScript hosts.
 
-The package and these examples default to wasm32 float `csound.wasm`.
+The package and these examples default to wasm32 `csound.wasm`, with float
+samples and double internal calculations.
 To opt into wasm64, use `@csound/browser/wasm64.js` with `libcsound()`, or load
 `csound-wasm64.wasm` in the raw host below. Its embedded memory32 WASI adapter
 requires memory64, table64 and multiple-memory support. Command-line runtimes
@@ -419,13 +420,13 @@ connect each output to a different processing chain or destination.
 
 ## Approach 2: instantiate `@csound/wasm-bin` directly
 
-Install the binary package and the matching Preview 2 host:
+Install the binary package and the matching Preview 3 host:
 
 ```bash
 npm install @csound/wasm-bin @csound/browser
 ```
 
-The example uses the Preview 2 resource host shipped with `@csound/browser`.
+The example uses the Preview 3 resource host shipped with `@csound/browser`.
 It runs the core reactor and shares the same ABI as the bundled browser modules.
 
 ### Load and compile the browser reactor
@@ -529,7 +530,7 @@ The raw module does not accept JavaScript strings and cannot be instantiated
 with an empty imports object. The following loader provides:
 
 - imported WebAssembly memory;
-- WASI Preview 2 functions and a small in-memory filesystem;
+- WASI Preview 3 functions and a small in-memory filesystem;
 - Csound message and debug callbacks;
 - no-op dynamic module callbacks for a no-plugin setup;
 - C-string allocation and marshalling; and
@@ -538,7 +539,7 @@ with an empty imports object. The following loader provides:
 ```js
 // wasm-bin.processor.js
 
-import { WASI } from "@csound/browser/src/filesystem/preview2.js";
+import { WASI } from "@csound/browser/src/filesystem/preview3.js";
 import { moduleABI, memory64Imports, nativeExports, nativeCallbacks } from "@csound/browser/src/utils/wasm64.js";
 import { workletRandomValues } from "@csound/browser/src/utils/random-pool.js";
 
@@ -565,7 +566,9 @@ async function loadRawCsound(config, port) {
   const memory = new WebAssembly.Memory({
     address: memory64 ? "i64" : "i32",
     initial: memory64 ? BigInt(Math.max(128 * pagesPerMiB, abi.memoryMinimum)) : 128 * pagesPerMiB,
-    maximum: memory64 ? BigInt(8192 * pagesPerMiB) : 1024 * pagesPerMiB,
+    maximum: memory64
+      ? BigInt(abi.memoryMaximum ?? 8192 * pagesPerMiB)
+      : 1024 * pagesPerMiB,
   });
 
   const env = {
@@ -613,11 +616,14 @@ async function loadRawCsound(config, port) {
 
   wasi.setMemory(memory);
   const bridge = memory64 ? memory64Imports(config.wasmModule, memory, wasi) : undefined;
-  const imports = { ...(bridge ? bridge.imports : wasi.getImports(config.wasmModule)), env };
+  const imports = bridge ? bridge.imports : wasi.getImports(config.wasmModule);
+  // Preserve the Preview 3 stack and TLS accessors supplied by the host.
+  imports.env = { ...imports.env, ...env };
   nativeCallbacks(imports, abi);
   const instance = await WebAssembly.instantiate(config.wasmModule, imports);
   bridge?.connect(instance);
-  const exports = nativeExports(instance.exports, abi);
+  // Each C API call needs a Preview 3 task context.
+  const exports = wasi.wrapExports(nativeExports(instance.exports, abi));
   const runtime = { exports };
 
   // csound.wasm is a reactor: initialize it, do not call _start.

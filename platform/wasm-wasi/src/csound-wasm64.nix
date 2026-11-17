@@ -8,9 +8,9 @@ let
   };
 in base.overrideAttrs (old: {
   pname = "csound-wasm64-${moduleKind}";
-  cmakeFlags = builtins.filter (f: f != "-DUSE_DOUBLE=0" && f != "-DUSE_FLOAT=1") old.cmakeFlags
+  cmakeFlags = builtins.filter (f: f != "-DUSE_DOUBLE=0" && f != "-DUSE_FLOAT=0") old.cmakeFlags
     ++ ["-DUSE_DOUBLE=1" "-DUSE_FLOAT=0"];
-  NIX_LDFLAGS = old.NIX_LDFLAGS ++ ["--fatal-warnings" "--import-memory" "--export-memory" "--export=cabi_realloc"];
+  NIX_LDFLAGS = old.NIX_LDFLAGS ++ ["--fatal-warnings" "--import-memory" "--export-memory" "--export=cabi_realloc" "--export=free"];
   nativeBuildInputs = old.nativeBuildInputs ++ [pkgs.python3];
   postInstall = if moduleKind == "browser" then ''
     mkdir -p "$out/lib"

@@ -14,7 +14,7 @@
  */
 
 import { dlinit } from "./dlinit.js";
-import { WASI } from "./filesystem/preview2.js";
+import { WASI } from "./filesystem/preview3.js";
 import { createSystem } from "./filesystem/system.js";
 import { bufferMessageText } from "./utils/message-stream.js";
 import { decoder, uint2String } from "./utils/text-encoders.js";
@@ -367,7 +367,7 @@ export default async function loadWasm({
   const instance = await WebAssembly.instantiate(module, options);
   if (bridge) bridge.connect(instance);
   assertBrowserPrecision(instance.exports, memory64 ? 8 : 4);
-  const moduleExports = nativeExports(instance["exports"], abi);
+  const moduleExports = wasi.wrapExports(nativeExports(instance["exports"], abi));
   /**
    * @suppress {checkTypes}
    * @type {WasmInst} */
@@ -461,7 +461,7 @@ export default async function loadWasm({
     // Its adapter shares the engine heap and filesystem, but owns its handles.
     const pluginBridge =
       memory64 && WebAssembly.Module.customSections(plugin, "csound.wasi-bridge").length > 0
-        ? memory64Imports(plugin, memory, wasi)
+        ? memory64Imports(plugin, memory, wasi, true)
         : undefined;
     if (pluginBridge) pluginBridge.connect(instance);
     const pluginOptions = pluginBridge
@@ -542,6 +542,15 @@ export default async function loadWasm({
 
       pluginOptions["env"] = Object.assign({}, pluginOptions["env"]);
       pluginOptions["env"]["memory"] = memory;
+      // Each side module owns its TLS, but every C call uses the current
+      // engine task's stack, including raw callbacks from the function table.
+      let pluginTls = memory64 ? BigInt(0) : 0;
+      pluginOptions["env"]["__wasm_get_stack_pointer"] = options["env"]["__wasm_get_stack_pointer"];
+      pluginOptions["env"]["__wasm_set_stack_pointer"] = options["env"]["__wasm_set_stack_pointer"];
+      pluginOptions["env"]["__wasm_get_tls_base"] = () => pluginTls;
+      pluginOptions["env"]["__wasm_set_tls_base"] = (value) => {
+        pluginTls = value;
+      };
       pluginOptions["env"]["__indirect_function_table"] = pluginTable["raw"] || pluginTable;
       const pluginMemory = hasDylink
         ? allocatePluginMemory(pluginMemorySize, pluginMemoryAlign)
@@ -560,12 +569,15 @@ export default async function loadWasm({
         if (pluginImport.module !== "env") {
           continue;
         }
-        if (pluginImport.kind === "global" && pluginImport.name === "__stack_pointer") {
-          const hostStackPointer = instance_["exports"]["__stack_pointer"];
+        if (
+          pluginImport.kind === "global" &&
+          ["__stack_pointer", "__init_stack_pointer"].includes(pluginImport.name)
+        ) {
+          const hostStackPointer = instance_["exports"][pluginImport.name];
           if (!hostStackPointer) {
             throw new Error("The WebAssembly host does not export __stack_pointer");
           }
-          pluginOptions["env"]["__stack_pointer"] = hostStackPointer;
+          pluginOptions["env"][pluginImport.name] = hostStackPointer;
         }
       }
       const linkImports = preparePluginImports({
@@ -595,16 +607,16 @@ export default async function loadWasm({
       });
 
       if (typeof pluginInstance.exports["__wasm_apply_data_relocs"] === "function") {
-        pluginInstance.exports["__wasm_apply_data_relocs"]();
+        wasi.task(() => pluginInstance.exports["__wasm_apply_data_relocs"]());
       }
-      pluginInstance.exports.__wasm_call_ctors();
+      wasi.task(() => pluginInstance.exports.__wasm_call_ctors());
       pluginMemoryAllocation = 0;
       if (sharedTableReserved) {
         sharedTableEnd = sharedTableLimit;
         sharedTableReserved = false;
       }
       return {
-        instance: { exports: nativeExports(pluginInstance.exports, pluginAbi) },
+        instance: { exports: wasi.wrapExports(nativeExports(pluginInstance.exports, pluginAbi)) },
         table: pluginTable,
         wasmPluginBytes,
       };

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a WASI Preview 2 memory32 boundary around a real memory64 core.
+"""Build a WASI Preview 3 memory32 boundary around a real memory64 core.
 
 The engine uses its normal 64-bit libc ABI. This module copies only WASI
 values through an independent memory32 heap, which existing component hosts
@@ -13,7 +13,6 @@ from pathlib import Path
 import subprocess
 import tempfile
 
-from abi import ABI
 from wasm import Module, Reader, leb, add_metadata, custom, quote
 
 
@@ -27,121 +26,17 @@ def signature(params, results):
 
 def command_export(engine):
     names = [name for name, (kind, _) in engine.exports.items()
-             if kind == 0 and re.fullmatch(r'wasi:cli/run@0\.2\.\d+#run', name)]
+             if kind == 0 and re.fullmatch(r'wasi:cli/run@0\.3\.\d+#run', name)]
     if len(names) != 1:
-        raise ValueError('Expected one WASI Preview 2 command export')
+        raise ValueError('Expected one WASI Preview 3 command export')
     return names[0]
 
 
 def generate(engine, wit, browser):
-    abi = ABI(wit)
-    interfaces = {}
-    for interface in wit['interfaces']:
-        package = wit['packages'][interface['package']]['name']
-        package, _, version = package.partition('@')
-        module = package + '/' + interface['name'] + ('@' + version if version else '')
-        interfaces[module] = interface
-    imports, wrappers, names = [], [], []
-    for module, name, kind, type_index in engine.imports:
-        if kind != 0:
-            continue
-        if not module.startswith('wasi:'):
-            if browser:
-                continue
-            raise ValueError(f'command has non-WASI import: {module}/{name}')
-        args64, returns64 = engine.types[type_index]
-        index = len(names)
-        exported = f'{module}#{name}'
-        names.append((module, name, exported))
-        if name.startswith('[resource-drop]'):
-            assert (args64, returns64) == (['i32'], [])
-            imports.append(f'(import {quote(module)} {quote(name)} (func $host{index} (param i32)))')
-            wrappers.append(f'(func (export {quote(exported)}) (param i32) (call $host{index} (local.get 0)))')
-            continue
-        function = interfaces[module]['functions'][name]
-        parameters = abi.tuple([p['type'] for p in function['params']])
-        result = function.get('result')
-        flat64, flat32 = abi.flat(parameters, 64), abi.flat(parameters, 32)
-        result64, result32 = abi.flat(result, 64), abi.flat(result, 32)
-        indirect = len(flat64) > 16
-        assert indirect == (len(flat32) > 16)
-        retptr = len(result64) > 1
-        assert retptr == (len(result32) > 1)
-        expected64 = (['i64'] if indirect else list(flat64)) + (['i64'] if retptr else [])
-        expected_result = [] if retptr else list(result64)
-        assert (args64, returns64) == (expected64, expected_result), (module, name, (args64, returns64), (expected64, expected_result))
-        args32 = (['i32'] if indirect else list(flat32)) + (['i32'] if retptr else [])
-        returns32 = [] if retptr else list(result32)
-        imports.append(f'(import {quote(module)} {quote(name)} (func $host{index} {signature(args32, returns32)}))')
-        arguments = ' '.join(f'(param $a{i} {ty})' for i, ty in enumerate(args64))
-        locals_ = '(local $saved i32) (local $p64 i64) (local $p32 i32) (local $r32 i32)'
-        if returns64:
-            locals_ += f'(local $value {returns64[0]})'
-        code = ['(local.set $saved (global.get $next))']
-        if flat64:
-            size64, align64 = abi.layout(parameters, 64)
-            if indirect:
-                code.append('(local.set $p64 (local.get $a0))')
-            else:
-                code.append(f'(local.set $p64 (call $allocate64 (i64.const {size64}) (i64.const {align64})))')
-                code.append(abi.store(parameters, 64, '(local.get $p64)', [f'(local.get $a{i})' for i in range(len(flat64))]))
-            size32, align32 = abi.layout(parameters, 32)
-            code.append(f'(local.set $p32 (call $allocate32 (i32.const {size32}) (i32.const {align32})))')
-            code.append(f'(call {abi.copy(parameters, 64)} (local.get $p64) (local.get $p32))')
-        host_args = ['(local.get $p32)'] if indirect else abi.load(parameters, 32, '(local.get $p32)')
-        if retptr:
-            size, alignment = abi.layout(result, 32)
-            code.append(f'(local.set $r32 (call $allocate32 (i32.const {size}) (i32.const {alignment})))')
-            host_args.append('(local.get $r32)')
-        call = f'(call $host{index} ' + ' '.join(host_args) + ')'
-        code.append(f'(local.set $value {call})' if returns64 else call)
-        if retptr:
-            code.append(f'(call {abi.copy(result, 32)} (local.get $r32) (local.get $a{len(args64) - 1}))')
-        if flat64 and not indirect:
-            code.append(f'(drop (call $realloc64 (local.get $p64) (i64.const {size64}) (i64.const {align64}) (i64.const 0)))')
-        code.append('(global.set $next (local.get $saved))')
-        if returns64:
-            code.append('(local.get $value)')
-        wrappers.append(f'(func (export {quote(exported)}) {arguments} {signature([], returns64)} {locals_}\n' + '\n'.join(code) + ')')
-
-    flags, minimum, maximum = engine.memories[0]
-    assert flags & 4 and not flags & 2, 'expected unshared memory64'
-    memory = f'i64 {minimum}' + (f' {maximum}' if maximum is not None else '')
-    heap = f'(import "env" "memory" (memory $heap {memory}))' if browser else f'(memory $heap (export "heap") {memory})'
-    # Memory32 remains the canonical memory named "memory". Browser heaps are
-    # imported so the application retains its usual control over growth.
-    memory_declarations = (heap if browser else '') + '(memory $abi (export "memory") 1 32768)' + ('' if browser else heap)
-    run = '' if browser else f'(func (export {quote(command_export(engine))}) (result i32) (call_indirect (type $run-type) (i32.const 1)))'
-    source = '(module\n' + '\n'.join(imports) + memory_declarations + '''
-      (type $alloc-type (func (param i64 i64 i64 i64) (result i64)))
-      (type $run-type (func (result i32)))
-      (table (export "engine-functions") 2 funcref)
-      (global $next (mut i32) (i32.const 1024))
-      (func $realloc64 (param i64 i64 i64 i64) (result i64)
-        (call_indirect (type $alloc-type) (local.get 0) (local.get 1) (local.get 2) (local.get 3) (i32.const 0)))
-      (func $allocate64 (param $size i64) (param $align i64) (result i64)
-        (call $realloc64 (i64.const 0) (i64.const 0) (local.get $align) (local.get $size)))
-      (func $allocate32 (param $size i32) (param $align i32) (result i32)
-        (local $ptr i32) (local $end i64) (local $pages i32)
-        (local.set $ptr (i32.and
-          (i32.add (global.get $next) (i32.sub (local.get $align) (i32.const 1)))
-          (i32.sub (i32.const 0) (local.get $align))))
-        (local.set $end (i64.add (i64.extend_i32_u (local.get $ptr)) (i64.extend_i32_u (local.get $size))))
-        (if (i64.gt_u (local.get $end) (i64.const 2147483647)) (then unreachable))
-        (local.set $pages (i32.wrap_i64 (i64.shr_u (i64.add (local.get $end) (i64.const 65535)) (i64.const 16))))
-        (if (i32.gt_u (local.get $pages) (memory.size $abi)) (then
-          (if (i32.eq (memory.grow $abi (i32.sub (local.get $pages) (memory.size $abi))) (i32.const -1)) (then unreachable))))
-        (global.set $next (i32.wrap_i64 (local.get $end)))
-        (local.get $ptr))
-      (func (export "cabi_realloc") (param $old i32) (param $oldsize i32) (param $align i32) (param $size i32) (result i32)
-        (local $ptr i32) (local $length i32)
-        (if (i32.eqz (local.get $size)) (then (return (i32.const 0))))
-        (local.set $ptr (call $allocate32 (local.get $size) (local.get $align)))
-        (local.set $length (select (local.get $oldsize) (local.get $size) (i32.lt_u (local.get $oldsize) (local.get $size))))
-        (if (local.get $old) (then (memory.copy $abi $abi (local.get $ptr) (local.get $old) (local.get $length))))
-        (local.get $ptr))
-    ''' + '\n'.join(wrappers) + '\n'.join(body for _, body in abi.copies.values()) + run + ')'
-    return source, names
+    from preview3 import generate as generate_preview3
+    if not any('@0.3.' in module for module, _, _, _ in engine.imports):
+        raise ValueError('Expected a WASI Preview 3 core module')
+    return generate_preview3(engine, wit, browser)
 
 
 def build(core, output, browser=False):
@@ -178,7 +73,7 @@ def build(core, output, browser=False):
         component = tool('print', encoded).decode().rstrip()
         assert component.endswith(')') and '(core instance $main ' in component
         # Add the memory64 engine after wit-component has connected the
-        # ordinary Preview 2 imports of the bridge. No canonical operation
+        # ordinary Preview 3 imports of the bridge. No canonical operation
         # ever refers to the engine's 64-bit memory.
         # Encode a tiny stand-in to let the WAT parser resolve symbolic core
         # instance names, then replace its core-module section with LLVM's
@@ -190,23 +85,28 @@ def build(core, output, browser=False):
             if kind == 0:
                 stub_imports.append(f'(import {quote(module)} {quote(name)} (func {signature(*engine.types[index])}))')
         run_name = quote(command_export(engine))
+        extra_exports = '(func (export "free") (param i64)) (func (export "__wasm_task_hook") (param i32))'
         definitions = ['(core module $engine64 ' + '\n'.join(stub_imports) + f'''
           (func (export "cabi_realloc") (param i64 i64 i64 i64) (result i64) i64.const 0)
-          (func (export {run_name}) (result i32) i32.const 0))''']
+          (func (export {run_name}) (result i32) i32.const 0) {extra_exports})''']
         definitions.append('(alias core export $main "heap" (core memory $engine-heap))')
         definitions.append('(alias core export $main "engine-functions" (core table $engine-functions))')
         groups = {}
         for index, (module, name, exported) in enumerate(names):
             definitions.append(f'(alias core export $main {quote(exported)} (core func $engine-import{index}))')
             groups.setdefault(module, []).append(f'(export {quote(name)} (func $engine-import{index}))')
-        arguments = ['(with "env" (instance (export "memory" (memory $engine-heap))))']
+        groups.setdefault('env', []).append('(export "memory" (memory $engine-heap))')
+        arguments = []
         arguments += [f'(with {quote(module)} (instance ' + ' '.join(exports) + '))' for module, exports in groups.items()]
         definitions.append('(core instance $engine64 (instantiate $engine64 ' + ' '.join(arguments) + '))')
+        extra_imports = '(import "engine" "free" (func $free (param i64))) (import "engine" "__wasm_task_hook" (func $hook (param i32)))'
+        extra_elements = '$free $hook'
         definitions.append(f'''(core module $connect-engine
-          (import "bridge" "table" (table 2 funcref))
+          (import "bridge" "table" (table 4 funcref))
           (import "engine" "cabi_realloc" (func $alloc (param i64 i64 i64 i64) (result i64)))
           (import "engine" {run_name} (func $run (result i32)))
-          (elem (i32.const 0) func $alloc $run))
+          {extra_imports}
+          (elem (i32.const 0) func $alloc $run {extra_elements}))
           (core instance (instantiate $connect-engine
             (with "bridge" (instance (export "table" (table $engine-functions))))
             (with "engine" (instance $engine64))))''')

@@ -23,13 +23,13 @@ const E = {
   notPermitted: 31,
   readOnly: 33,
 };
-class FilesystemError extends Error {
+export class FilesystemError extends Error {
   constructor(code) {
     super(`WASI filesystem error ${code}`);
     this.code = code;
   }
 }
-class CommandExit extends Error {
+export class CommandExit extends Error {
   constructor(code) {
     super(`WASI command exited with status ${code}`);
     this.code = code;
@@ -86,7 +86,7 @@ export class WASI extends MemoryFilesystem {
       this.cwd = previous;
       throw error;
     } finally {
-      if (pointer !== undefined) nativeExports["cabi_realloc"](pointer, bytes.length, 1, 0);
+      if (pointer !== undefined) nativeExports["free"](pointer);
     }
   }
 
@@ -398,7 +398,7 @@ export class WASI extends MemoryFilesystem {
     }
   }
 
-  getImports(module) {
+  getInterfaces() {
     const clock = (ret) => {
       const ms = Date.now();
       this.u64(ret, Math.floor(ms / 1000));
@@ -660,6 +660,11 @@ export class WASI extends MemoryFilesystem {
       for (const kind of kinds)
         interfaces[name][`[resource-drop]${kind}`] = (id) => this.drop(id, kind);
     }
+    return interfaces;
+  }
+
+  getImports(module) {
+    const interfaces = this.getInterfaces();
     const imports = {};
     for (const item of WebAssembly.Module.imports(module)) {
       if (item.module === "wasi_snapshot_preview1" || item.module === "wasi")

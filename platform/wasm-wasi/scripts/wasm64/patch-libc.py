@@ -6,7 +6,7 @@ atomic.write_text(atomic.read_text() + '\n#ifdef __wasm64__\n#define a_cas_p(p, 
 tls = Path('libc-top-half/musl/src/env/__init_tls.c')
 source = tls.read_text()
 assert source.count('".globaltype __stack_pointer, i32\\n"') == 1
-source = source.replace('".globaltype __stack_pointer, i32\\n"', '".globaltype __stack_pointer, i64\\n"')
+source = source.replace('i32', 'i64')
 tls.write_text(source)
 
 # This object contains only WIT metadata and a no-op force-link function.
@@ -19,7 +19,18 @@ def leb(value):
     result.append(value)
     return result
 
-path = Path('libc-bottom-half/sources/wasip2_component_type.o')
+# These declarations describe pointers, not the task hook's i32 event code.
+for filename in ('libc-bottom-half/crt/wasip3_symbol_references.h',
+                 'libc-top-half/headers/private/wasi/wasip3_tls.h'):
+    path = Path(filename)
+    path.write_text(path.read_text().replace('i32', 'i64'))
+path = Path('libc-bottom-half/sources/__wasm_task_hook.S')
+source = path.read_text().replace('i32', 'i64')
+source = source.replace('__wasilibc_task_hook (i64, i64, i64)', '__wasilibc_task_hook (i32, i64, i64)')
+source = source.replace('__wasm_task_hook (i64)', '__wasm_task_hook (i32)')
+path.write_text(source)
+
+path = Path('libc-bottom-half/sources/wasip3_component_type.o')
 name = b'target_features'
 payload = leb(len(name)) + name + b'\x01+\x08memory64'
 data = path.read_bytes()

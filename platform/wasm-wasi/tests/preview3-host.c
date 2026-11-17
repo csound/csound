@@ -12,6 +12,10 @@
 #include <unistd.h>
 
 int main(int argc, char **argv) {
+  // The input result is a future, even when we close the stream before EOF.
+  char input;
+  assert(read(0, &input, 1) == 1 && input == 'a');
+  assert(close(0) == 0);
 #ifdef __wasm64__
   assert(sizeof(void *) == 8);
   // Use an address that would wrap to a different string if the bridge
@@ -32,7 +36,7 @@ int main(int argc, char **argv) {
 #endif
   volatile long double a = 1.5L, b = 2.5L;
   assert(a < b && a != b && lrintl(a) == 2);
-  assert(argc == 2 && strcmp(argv[1], "preview2") == 0);
+  assert(argc == 2 && strcmp(argv[1], "preview3") == 0);
   assert(mkdir("files", 0700) == 0);
   FILE *file = fopen("files/audio", "w+");
   assert(file);
@@ -80,6 +84,6 @@ int main(int argc, char **argv) {
   assert(clock_gettime(CLOCK_MONOTONIC, &now) == 0);
   unsigned char random[32];
   assert(getentropy(random, sizeof(random)) == 0);
-  puts("Preview 2 arguments, files, streams, clocks and random passed");
+  puts("Preview 3 arguments, files, streams, clocks and random passed");
   return 0;
 }

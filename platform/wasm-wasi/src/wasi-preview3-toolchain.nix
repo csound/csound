@@ -1,6 +1,6 @@
 { system ? builtins.currentSystem, pkgs ? import <nixpkgs> { inherit system; } }:
 let
-  target = "wasm32-wasip2";
+  target = "wasm32-wasip3";
   libcSource = pkgs.callPackage ./wasi-libc-source.nix {};
   pkgsWasm = import pkgs.path {
     localSystem = { inherit system; };
@@ -9,7 +9,7 @@ let
     crossSystem = {
       system = "wasm32-wasi";
       useLLVM = true;
-      # CMake calls this platform WASI, including for Preview 2.
+      # CMake calls this platform WASI, including for Preview 3.
       uname = { system = "WASI"; processor = "wasm32"; release = null; };
     };
     overlays = [(final: prev: {
@@ -20,6 +20,15 @@ let
         } // pkgs.lib.optionalAttrs prev.stdenv.hostPlatform.isWasm {
           libcxx = super.libcxx.overrideAttrs (old: {
             patches = (old.patches or []) ++ [./libcxx-wasi-locale.patch];
+            cmakeFlags = old.cmakeFlags ++ [
+              "-DCMAKE_C_COMPILER_TARGET=${target}"
+              "-DCMAKE_CXX_COMPILER_TARGET=${target}"
+              "-DCMAKE_ASM_COMPILER_TARGET=${target}"
+            ];
+          });
+          compiler-rt = super.compiler-rt.overrideAttrs (old: {
+            cmakeFlags = map (flag: builtins.replaceStrings
+              ["wasm32-unknown-wasip1"] [target] flag) old.cmakeFlags;
           });
         });
       # Keep Darwin's native bootstrap unchanged while using LLVM 23 for WASI.
@@ -29,8 +38,8 @@ let
         inherit (libcSource) src version;
         # Nixpkgs' tool-version patch targets an older libc. Use the checked-in
         # bindings below; their optional regeneration tools are not built.
-        patches = [];
-        pname = "wasilibc-preview2";
+        patches = [./wasi-preview3-stdin-close.patch];
+        pname = "wasilibc-preview3";
         cmakeFlags = builtins.filter
           (flag: !(pkgs.lib.hasPrefix "-DTARGET_TRIPLE=" flag))
           old.cmakeFlags ++ [
@@ -48,17 +57,17 @@ let
   };
   compiler = pkgsWasm.clangStdenv.cc.override (old: {
     extraBuildCommands = (old.extraBuildCommands or "") + ''
-      # Nix's compiler runtime contains no WASI calls, but Clang selects its
-      # path from the full target triple. Give this wrapper a private alias.
-      cp -rL "$out/resource-root/lib" "$out/resource-root/lib-preview2"
-      chmod u+w "$out/resource-root/lib-preview2"
+      # The runtime uses the Preview 3 task ABI. Clang selects it by the
+      # full target triple, so give the rebuilt archive a private alias.
+      cp -rL "$out/resource-root/lib" "$out/resource-root/lib-preview3"
+      chmod u+w "$out/resource-root/lib-preview3"
       rm "$out/resource-root/lib"
-      mv "$out/resource-root/lib-preview2" "$out/resource-root/lib"
-      mkdir -p "$out/resource-root/lib/wasm32-unknown-wasip2"
+      mv "$out/resource-root/lib-preview3" "$out/resource-root/lib"
+      mkdir -p "$out/resource-root/lib/wasm32-unknown-wasip3"
       ln -s ${pkgsWasm.llvmPackages.compiler-rt}/lib/wasi/libclang_rt.builtins-wasm32.a \
-        "$out/resource-root/lib/wasm32-unknown-wasip2/libclang_rt.builtins.a"
+        "$out/resource-root/lib/wasm32-unknown-wasip3/libclang_rt.builtins.a"
       # Build core modules first. Commands become components after linking;
-      # browser reactors retain their C API and use a Preview 2 host.
+      # browser reactors retain their C API and use a Preview 3 host.
       echo " --target=${target} -D_WASI_STRICT_PTHREAD -fuse-ld=${pkgs.llvmPackages_23.lld}/bin/wasm-ld" \
         >> "$out/nix-support/cc-cflags"
     '';

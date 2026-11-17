@@ -34,10 +34,10 @@ For an external archive, also pass
 `--arg csoundSdkArchive /absolute/path/to/csound-wasm64-plugin-sdk.tar.gz`.
 `--arg useSdkArchive false` builds the matching engine's headers from source.
 
-The example builds use the source-built wasm64 Preview 2 toolchain and append
+The example builds use the source-built wasm64 Preview 3 toolchain and append
 `csound.abi` metadata with `scripts/wasm64/wasm.py`. External builds must do the
 same so the loader can read native signatures and pointer widths. The engine
-provides its Preview 2 imports to plugins. A plugin with additional WASI imports
+provides its Preview 3 imports to plugins. A plugin with additional WASI imports
 can embed its own adapter with `scripts/wasm64/bridge.py --browser`. The loader
 connects that adapter to the engine's allocator and memory and shares its
 filesystem. Each adapter keeps its own WASI resource handles.

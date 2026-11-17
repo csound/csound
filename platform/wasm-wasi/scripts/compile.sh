@@ -22,12 +22,12 @@ COMMON_ARGS=(
 
 # The selected system controls where Nix builds these derivations. Set
 # NIX_SYSTEM to a remote builder's system when a non-native build is desired.
-nix-build ./src/wasi-preview2-support.nix \
-  --impure --argstr system "$NIX_SYSTEM" --show-trace -o result_preview2_support
+nix-build ./src/wasi-preview3-support.nix \
+  --impure --argstr system "$NIX_SYSTEM" --show-trace -o result_preview3_support
 nix-build ./src/wasi64-support.nix \
   --impure --argstr system "$NIX_SYSTEM" --show-trace -o result_wasi64_support
 nix-build ./src/csound.nix "${COMMON_ARGS[@]}" --argstr moduleKind browser -o result
-# Both pointer widths use Preview 2. The wasm64 adapter keeps canonical calls
+# Both pointer widths use Preview 3. The wasm64 adapter keeps canonical calls
 # in memory32 while the Csound engine and its libc use memory64.
 nix-build ./src/csound-wasm64.nix "${COMMON_ARGS[@]}" --argstr moduleKind browser -o result_wasm64
 nix-build ./src/csound-wasm64.nix "${COMMON_ARGS[@]}" --argstr moduleKind command -o result_cli_wasm64

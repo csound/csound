@@ -27,16 +27,16 @@ const fixture = (functions, stack = true) =>
   );
 
 describe("browser reactor boundary", () => {
-  it("requires both native float types to use four bytes", () => {
+  it("requires float samples and double internal calculations", () => {
     assert.doesNotThrow(() =>
       assertBrowserPrecision({
         csoundGetSizeOfCsFloat: () => 4,
-        csoundGetSizeOfCsDouble: () => 4,
+        csoundGetSizeOfCsDouble: () => 8,
       }),
     );
     for (const [sampleSize, scoreSize] of [
       [8, 8],
-      [4, 8],
+      [4, 4],
       [8, 4],
     ]) {
       assert.throws(

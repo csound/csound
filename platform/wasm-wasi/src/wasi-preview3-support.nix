@@ -1,16 +1,16 @@
 { system ? builtins.currentSystem, pkgs ? import <nixpkgs> {inherit system;} }:
-let toolchain = import ./wasi-preview2-toolchain.nix {inherit system pkgs;};
+let toolchain = import ./wasi-preview3-toolchain.nix {inherit system pkgs;};
 in toolchain.stdenv.mkDerivation {
-  pname = "csound-wasi-preview2-support";
+  pname = "csound-wasi-preview3-support";
   version = "1";
   dontUnpack = true;
   nativeBuildInputs = [pkgs.wasm-tools pkgs.wasmtime pkgs.nodejs];
   buildPhase = ''
-    $CC ${../tests/preview2-host.c} -o probe.core.wasm
+    $CC ${../tests/preview3-host.c} -Wl,--export=free -o probe.core.wasm
     wasm-tools component new probe.core.wasm -o probe.wasm
     mkdir files-root
-    wasmtime run -Ccache=n --dir=files-root::. probe.wasm preview2
-    node ${../tests/check-preview2-host.mjs} probe.core.wasm ${../browser/src}
+    printf 'abc' | wasmtime run -S p3 -Ccache=n --dir=files-root::. probe.wasm preview3
+    node ${../tests/check-preview3-host.mjs} probe.core.wasm ${../browser/src}
   '';
   installPhase = ''mkdir -p "$out"; cp probe*.wasm "$out/"'';
 }

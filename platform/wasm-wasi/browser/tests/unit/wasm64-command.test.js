@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { WASI } from "../../src/filesystem/preview2.js";
+import { WASI } from "../../src/filesystem/preview3.js";
 import { instantiateCommand } from "../../src/utils/wasm64.js";
 
 const encode = (text) => [...new TextEncoder().encode(text)];
@@ -47,7 +47,7 @@ function commandModule(maximum) {
     ]),
     section(10, [1, 5, 0, 0x41, 0x80, 8, 0x0b]),
   );
-  const run = "wasi:cli/run@0.2.12#run";
+  const run = "wasi:cli/run@0.3.2#run";
   const abi = {
     pointerSize: 8,
     memoryMinimum: 1,

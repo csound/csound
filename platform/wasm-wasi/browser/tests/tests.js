@@ -2029,7 +2029,7 @@ e
 
     it("uses the requested pointer width and sample precision", function () {
       assert.equal(cs.csoundGetSizeOfCsFloat(), wide ? 8 : 4);
-      assert.equal(cs.csoundGetSizeOfCsDouble(), wide ? 8 : 4);
+      assert.equal(cs.csoundGetSizeOfCsDouble(), 8);
       assert.equal(cs.wasm.exports.__pointerSize || 4, wide ? 8 : 4);
     });
 

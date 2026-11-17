@@ -1,6 +1,6 @@
 # @csound/browser
 
-`@csound/browser` uses wasm32 with float samples and WASI Preview 2 by default.
+`@csound/browser` uses wasm32 with float samples and WASI Preview 3 by default.
 To opt into true 64-bit pointers and double samples, import `Csound` or
 `libcsound` from `@csound/browser/wasm64.js`. Each module bundles one engine;
 there is no automatic switch to wasm64. The opt-in module requires memory64,
@@ -76,7 +76,7 @@ for browser security and permission rules.
 
 ## Realtime init
 
-Both published Preview 2 engines use synchronous init. `supportsRealtime()`
+Both published Preview 3 engines use synchronous init. `supportsRealtime()`
 returns 0; `--realtime` cannot start a native background init thread with the
 current toolchain.
 

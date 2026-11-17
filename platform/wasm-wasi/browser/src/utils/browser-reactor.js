@@ -3,9 +3,9 @@ export function assertBrowserPrecision(exports, sampleSize = 4) {
     typeof exports["csoundGetSizeOfCsFloat"] !== "function" ||
     typeof exports["csoundGetSizeOfCsDouble"] !== "function" ||
     exports["csoundGetSizeOfCsFloat"]() !== sampleSize ||
-    exports["csoundGetSizeOfCsDouble"]() !== sampleSize
+    exports["csoundGetSizeOfCsDouble"]() !== 8
   )
-    throw new Error(`The browser requires a Csound binary with ${sampleSize}-byte samples`);
+    throw new Error(`The browser requires a Csound binary with ${sampleSize}-byte samples and 8-byte internal values`);
 }
 
 export function assertBrowserReactor(module) {

@@ -31,7 +31,7 @@ describe("WASI filesystem commands", () => {
       global: globalThis,
       require: () => ({ join: (a, b) => `${a}/${b}` }),
     };
-    ({ WASI } = await import("../../src/filesystem/preview2.js"));
+    ({ WASI } = await import("../../src/filesystem/preview3.js"));
     ({ createSystem, commandArguments } = await import("../../src/filesystem/system.js"));
   });
   after(() => {
@@ -69,7 +69,7 @@ describe("WASI filesystem commands", () => {
     assert.equal(run("entrée"), 0);
   });
 
-  it("encodes Preview 2 failure status and invalidates the cache after a file replacement", () => {
+  it("encodes Preview 3 failure status and invalidates the cache after a file replacement", () => {
     const { host, run } = setup();
     host.writeFile("custom.wasm", exitCommand(7));
     assert.equal(run("custom"), 1 << 8);

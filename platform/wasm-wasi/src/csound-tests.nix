@@ -16,7 +16,7 @@ pkgs.runCommand "csound-wasm-commandline-tests" {
   export HOME="$TMPDIR"
 
   cp ${csoundWasm} csound-command.wasm
-  wasmtime compile ${pkgs.lib.optionalString threaded "-Wthreads=y -Wshared-memory=y"} -Wexceptions=y \
+  wasmtime compile -S p3 ${pkgs.lib.optionalString threaded "-Wthreads=y -Wshared-memory=y"} -Wexceptions=y \
     -Ccache=n -o csound.cwasm csound-command.wasm
   csound_module="$PWD/csound.cwasm"
 
@@ -28,13 +28,14 @@ pkgs.runCommand "csound-wasm-commandline-tests" {
   python3 test.py \
     --runtime-executable=wasmtime \
     --runtime-arg=run \
+    --runtime-arg=-Sp3 \
     ${pkgs.lib.optionalString threaded "--runtime-arg=-Sthreads=y --runtime-arg=-Wthreads=y --runtime-arg=-Wshared-memory=y"} \
     --runtime-arg=-Wexceptions=y \
     --runtime-arg=-Ccache=n \
     --runtime-arg=--allow-precompiled \
     --runtime-arg=--dir=. \
     --csound-executable="$csound_module" \
-    --profile=${if threaded then "wasm" else "wasip2"} \
+    --profile=${if threaded then "wasm" else "wasip3"} \
     --source-dir=. \
     --workers=${toString workers} \
     --timeout=${toString testTimeout}
