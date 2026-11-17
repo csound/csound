@@ -80,7 +80,7 @@ typedef struct {
         OPDS h;
         cs_float *out, *in, *kbf, *kbw, *order, *mode, *ksep, *fbgain, *iskip;
         int32_t loop, modetype;
-        cs_double *nm1, *nm2, feedback;
+        double *nm1, *nm2, feedback;
         AUXCH aux1, aux2;
 } PHASER2;
 

@@ -447,29 +447,30 @@ static int32_t phaser2set(CSOUND *csound, PHASER2 *p)
     loop = p->loop = (int32_t) CS_FLOAT2LONG(*p->order);
 
     if (*p->iskip==0 || p->aux1.auxp==NULL || p->aux2.auxp==NULL) {
-      csound->AuxAlloc(csound, (size_t)loop*sizeof(cs_double), &p->aux1);
-      csound->AuxAlloc(csound, (size_t)loop*sizeof(cs_double), &p->aux2);
+      csound->AuxAlloc(csound, (size_t)loop*sizeof(double), &p->aux1);
+      csound->AuxAlloc(csound, (size_t)loop*sizeof(double), &p->aux2);
       p->feedback = 0.0;
     }
     else {
-      phaser_grow_state(csound, &p->aux1, (size_t)loop*sizeof(cs_double));
-      phaser_grow_state(csound, &p->aux2, (size_t)loop*sizeof(cs_double));
+      phaser_grow_state(csound, &p->aux1, (size_t)loop*sizeof(double));
+      phaser_grow_state(csound, &p->aux2, (size_t)loop*sizeof(double));
     }
-    p->nm1 = (cs_double *) p->aux1.auxp;
-    p->nm2 = (cs_double *) p->aux2.auxp;
+    p->nm1 = (double *) p->aux1.auxp;
+    p->nm2 = (double *) p->aux2.auxp;
     return OK;
 }
 
 static int32_t phaser2(CSOUND *csound, PHASER2 *p)
 {
-    /* Low-frequency allpass sections need cs_double coefficients and state. */
-    cs_double xn = 0.0, yn = 0.0;
+    /* Near DC, large recursive states cancel to give a small allpass output. */
+    double xn = 0.0, yn = 0.0;
     cs_float *out, *in;
     cs_double kbf = *p->kbf, kq = *p->kbw;
     cs_double ksep = *p->ksep, fbgain = *p->fbgain;
-    cs_double b, a, r, freq;
-    cs_double temp;
-    cs_double *nm1, *nm2, feedback;
+    double b, a, r;
+    cs_double freq;
+    double temp;
+    double *nm1, *nm2, feedback;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
