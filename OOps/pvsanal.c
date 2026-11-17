@@ -111,7 +111,7 @@ static int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
   NB = N/2+1;                 /* Number of bins */
   if (UNLIKELY((size_t)(N+2) > SIZE_MAX / CS_KSMPS / sizeof(cs_float) ||
                (size_t)(NB+4) > SIZE_MAX / sizeof(CMPLX) ||
-               (size_t)(2*NB) > SIZE_MAX / sizeof(cs_double)))
+               (size_t)(2*NB) > SIZE_MAX / sizeof(double)))
     return csound->InitError(csound, Str("pvsanal: window size too large\n"));
 
   /* Need space for NB complex numbers for each of ksmps */
@@ -144,27 +144,19 @@ static int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
   p->fsig->sliding = 1;
   /* Need space for NB sines, cosines and a scatch phase area */
   if (p->trig.auxp==NULL ||
-      (size_t)(2*NB)*sizeof(cs_double) > p->trig.size)
-    csound->AuxAlloc(csound, (size_t)(2*NB)*sizeof(cs_double), &p->trig);
+      (size_t)(2*NB)*sizeof(double) > p->trig.size)
+    csound->AuxAlloc(csound, (size_t)(2*NB)*sizeof(double), &p->trig);
   {
-    cs_double dc = cos(TWOPI/(cs_double)N);
-    cs_double ds = sin(TWOPI/(cs_double)N);
-    cs_double *c = (cs_double *)(p->trig.auxp);
-    cs_double *s = c+NB;
+    double *c = (double *)(p->trig.auxp);
+    double *s = c+NB;
     p->cosine = c;
     p->sine = s;
-    c[0] = 1.0; s[0] = 0.0; // assignment to s unnecessary as csoundAuxalloc zeros
-    /*
-      direct computation of c and s may be better for large n
-      c[i] = cos(2*PI*i/n);
-      s[i] = sin(2*PI*i/n);
-      if (i % 16 == 15) {
-      c[i] = cos(2*PI*(i+1)/n);
-      s[i] = sin(2*PI*(i+1)/n);
-    */
+    c[0] = 1.0; s[0] = 0.0;
+    /* Compute each rotation directly. Recurring from rounded coefficients
+       builds a radius and phase error before analysis even begins. */
     for (i=1; i<NB; i++) {
-      c[i] = dc*c[i-1] - ds*s[i-1];
-      s[i] = ds*c[i-1] + dc*s[i-1];
+      c[i] = cos(TWOPI * i / N);
+      s[i] = sin(TWOPI * i / N);
     }
     /* The endpoint coefficients of a real signal stay real. */
     c[NB-1] = -1.0;
@@ -452,8 +444,8 @@ static int32_t pvssanal(CSOUND *csound, PVSANAL *p)
   cs_float *data = (cs_float*)(p->input.auxp);
   CMPLX *output = (CMPLX*)p->fsig->frame.auxp;
   CMPLX *fw = (CMPLX*)(p->analwinbuf.auxp) + 2;
-  cs_double *c = p->cosine;
-  cs_double *s = p->sine;
+  double *c = p->cosine;
+  double *s = p->sine;
   cs_double *h = (cs_double*)p->oldInPhase.auxp;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -484,7 +476,7 @@ static int32_t pvssanal(CSOUND *csound, PVSANAL *p)
     ff = output + (size_t)i*NB;
     /* fw is the current frame at this sample */
     for (j = 0; j < NB; j++) {
-      cs_double ci = c[j], si = s[j];
+      double ci = c[j], si = s[j];
       re = fw[j].re + dx;
       im = fw[j].im;
       fw[j].re = ci*re - si*im;
