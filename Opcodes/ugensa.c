@@ -314,7 +314,8 @@ static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, const cs_float   
     if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0)
       ovp->decincf = (CS_ONEDSR / *p->kdec);
     /* Start at the end of the rise table, as the fixed-point path does. */
-    ovp->decphsf = 1.0 - DBL_EPSILON;
+    ovp->decphsf = sizeof(cs_double) == sizeof(float)
+                    ? nextafterf(1.0f, 0.0f) : nextafter(1.0, 0.0);
   } else {
     if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0)
       ovp->decinc = (int32)(CS_SICVT / *p->kdec);
