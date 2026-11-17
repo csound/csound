@@ -243,8 +243,10 @@ extern "C" {
   void note_inits_reset(const CSOUND *);
   /* A call that takes the jumps made inside it, on its own thread, as its
      error: csound_compile_orc, csoundCompileTree, csoundCompileCSD, the
-     plugin loaders and csoundCatchJump, csoundRunUtility, and argdecode's
-     for an options file and for csoundSetOption. A jump lands at the target
+     plugin loaders and csoundCatchJump, csoundRunUtility, argdecode's for an
+     options file and for csoundSetOption, csoundScoreSort and
+     csoundScoreExtract, and the calls below made inside another call on
+     their thread (api_call_nested). A jump lands at the target
      of the innermost on its thread: exitjmp is left to the call that
      performs, or starts, on its own, and another thread's jump never finds
      this one. In a compile's (api_call_begin), an init pass takes its own
@@ -260,6 +262,7 @@ extern "C" {
     int32_t initJumped;
     int32_t jumped;             /* the jump a pass inside the call took */
     int32_t catching;           /* api_call_catch's */
+    const CSOUND *ownerBefore;  /* api_call_nested's, when it gave exitjmp */
     jmp_buf target;             /* where a jump inside the call lands */
   } API_CALL;
   void api_call_begin(CSOUND *, API_CALL *);
@@ -271,6 +274,18 @@ extern "C" {
      unless a compile's call is open around them (api_call_takes_passes). */
   void api_call_catch(CSOUND *, API_CALL *);
   int32_t api_call_takes_passes(const CSOUND *);
+  /* For the calls that set exitjmp and keep it when they run on their own
+     (csoundCompile, csoundStart, csoundSetOption, csoundPerformKsmps,
+     perform_buffer): whether they run inside another call on this thread
+     (api_call_running); then they catch in a call of their own, and
+     exitjmp stays. api_call_nested gives the landing, exitjmp or the target
+     of a call it began, and marks the thread while it runs on its own;
+     api_call_nested_end ends that, on every way out, after a jump to its
+     landing too. The performance calls use api_call_running and mark
+     nothing, so that their landing reads nothing of a frame left. */
+  int32_t api_call_running(const CSOUND *);
+  jmp_buf *api_call_nested(CSOUND *, API_CALL *);
+  void api_call_nested_end(const API_CALL *);
   int32_t sens_midi(CSOUND *);
   void sort(CSOUND*);
   void twarp(CSOUND*);

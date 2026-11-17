@@ -8,6 +8,7 @@
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -562,22 +563,61 @@ TEST_F(ExitJumpApiLockTests, PerformBuffer)
 }
 
 /* A utility the host adds, which calls the API as a utility may, run by
- * csoundRunUtility(). A jump in code it evaluates is the run's, as one of
- * its own is: an init pass inside the run took it, the utility went on, and
- * the run gave 0.
+ * csoundRunUtility(), or by csoundCompile() given -U. A jump in code it
+ * evaluates is the run's, as one of its own is: an init pass inside the run
+ * took it, the utility went on, and the run gave 0. Each call it makes
+ * takes the jumps made inside it, as when the host makes it, and leaves the
+ * landing of the call around it as it found it: a call that set exitjmp
+ * set it inside the utility, to a frame gone once the utility returned, and
+ * the jump that ends csoundCompile() after -U went there; and such a call's
+ * jumps went to the run's landing, so the utility stopped.
  */
-enum class Nested { EvalCode };
+enum class Nested { EvalCode, SetOption, ScoreSort, Compile, Start, Perform };
 
 std::atomic<bool> utilityWentOn{false};
+std::atomic<int32_t> nestedResult{0};
 Nested nestedCall;
 
 int32_t nestedUtility(CSOUND *csound, int32_t, char **)
 {
+  int32_t result = 0;
   switch (nestedCall) {
   case Nested::EvalCode:
     csoundEvalCode(csound, "exitnow 3\n");
     break;
+  case Nested::SetOption:
+    result = csoundSetOption(csound, "-d");
+    break;
+  case Nested::ScoreSort: {
+    FILE *in = std::tmpfile(), *out = std::tmpfile();
+    std::fputs("#include \"exit_jump_test_no_such_score\"\ne\n", in);
+    std::rewind(in);
+    result = csoundScoreSort(csound, in, out);
+    std::fclose(in);
+    std::fclose(out);
+    break;
   }
+  case Nested::Compile: {
+    const char *argv[] = {"csound", "--exit-jump-test-no-such-option"};
+    result = csoundCompile(csound, 2, argv);
+    break;
+  }
+  case Nested::Start:
+    csoundCompileOrc(csound, "exitnow 3\n", 0);
+    result = csoundStart(csound);
+    break;
+  case Nested::Perform: {
+    csoundCompileOrc(csound, (std::string(header) +
+                              "instr 1\n exitnowk 3\nendin\n").c_str(), 0);
+    if (csoundStart(csound) != 0)
+      return 1;
+    csoundEventString(csound, "i1 0 -1", 0);
+    for (int i = 0; i < 10000 && result == 0; i++)
+      result = csoundPerformKsmps(csound);
+    break;
+  }
+  }
+  nestedResult = result;
   utilityWentOn = true;
   return 0;
 }
@@ -596,6 +636,7 @@ class NestedCallTests : public ::testing::TestWithParam<Nested> {
                                nestedUtility), 0);
     nestedCall = GetParam();
     utilityWentOn = false;
+    nestedResult = 0;
   }
 
   void TearDown() override
@@ -607,21 +648,74 @@ class NestedCallTests : public ::testing::TestWithParam<Nested> {
 
 TEST_P(NestedCallTests, TakesItsJumpsAndLeavesTheOuterLanding)
 {
+  if (GetParam() == Nested::SetOption) {
+    /* -U: once the utility returns, csoundCompile() ends by a jump to its
+       own frame, which the utility's csoundSetOption() replaced by its own */
+    const char *argv[] = {"csound", "-U", "exit_jump_test_utility"};
+    EXPECT_EQ(csoundCompile(csound, 3, argv), CSOUND_EXITJMP_SUCCESS);
+    EXPECT_TRUE(utilityWentOn);
+    EXPECT_EQ(nestedResult, 0);
+    return;
+  }
   const int32_t result =
     csoundRunUtility(csound, "exit_jump_test_utility", 0, nullptr);
-  /* the jump in the code it evaluated before the start is the utility's,
-     as a jump of its own is: it stops there, and its run gives the jump */
-  EXPECT_EQ(result, -3);
-  EXPECT_FALSE(utilityWentOn);
+  if (GetParam() == Nested::EvalCode) {
+    /* the jump in the code it evaluated before the start is the utility's,
+       as a jump of its own is: it stops there, and its run gives the jump */
+    EXPECT_EQ(result, -3);
+    EXPECT_FALSE(utilityWentOn);
+    return;
+  }
+  /* the call it made took the jump, and the utility went on */
+  EXPECT_EQ(result, 0);
+  EXPECT_TRUE(utilityWentOn);
+  if (GetParam() == Nested::Perform)
+    EXPECT_EQ(nestedResult, -3);
+  else
+    EXPECT_NE(nestedResult, 0);
 }
 
-std::string nestedName(const ::testing::TestParamInfo<Nested> &)
+std::string nestedName(const ::testing::TestParamInfo<Nested> &info)
 {
-  return "EvalCode";
+  static const char *const names[] = {"EvalCode", "SetOption", "ScoreSort",
+                                      "Compile", "Start", "Perform"};
+  return names[static_cast<int>(info.param)];
+}
+
+/* csoundScoreSort() and csoundScoreExtract(), which a started engine does
+ * not refuse, leave exitjmp as they found it, a refused score too: they set
+ * it to a frame of their own, gone once they returned, under a performance
+ * that holds it.
+ */
+TEST(ScoreUtilityJumpTests, LeaveExitjmpAsTheyFoundIt)
+{
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  ASSERT_NE(csound, nullptr);
+  ASSERT_EQ(csoundSetOption(csound, "-n -d -m0"), 0);
+  jmp_buf found;
+  std::memcpy(found, csound->exitjmp, sizeof(jmp_buf));
+  for (int extract = 0; extract < 2; extract++) {
+    FILE *in = std::tmpfile(), *out = std::tmpfile(), *x = std::tmpfile();
+    std::fputs("#include \"exit_jump_test_no_such_score\"\ne\n", in);
+    std::rewind(in);
+    std::fputs("i1\n", x);
+    std::rewind(x);
+    EXPECT_NE(extract ? csoundScoreExtract(csound, in, out, x)
+                      : csoundScoreSort(csound, in, out), 0);
+    EXPECT_EQ(std::memcmp(found, csound->exitjmp, sizeof(jmp_buf)), 0)
+      << (extract ? "csoundScoreExtract" : "csoundScoreSort");
+    std::fclose(in);
+    std::fclose(out);
+    std::fclose(x);
+  }
+  csoundDestroy(csound);
 }
 
 INSTANTIATE_TEST_SUITE_P(Calls, NestedCallTests,
-                         ::testing::Values(Nested::EvalCode), nestedName);
+                         ::testing::Values(Nested::EvalCode, Nested::SetOption,
+                                           Nested::ScoreSort, Nested::Compile,
+                                           Nested::Start, Nested::Perform),
+                         nestedName);
 
 } // namespace
 #endif

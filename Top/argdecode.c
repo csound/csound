@@ -1889,6 +1889,8 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
 }
 
 
+static int32_t set_option(CSOUND *csound, const char *opt);
+
  int32_t csoundSetOption(CSOUND *csound, const char *opt) {
   /* if given no string, or already compiled and running, return */
   if (opt == NULL || (csound->engineStatus & CS_STATE_COMP))
@@ -1897,11 +1899,25 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
   else if (opt[strspn(opt, " ")] == '\0')
     return 0;
   else {
+    /* A jump outside argdecode() gives 1. Its landing is exitjmp, or,
+       inside another call on this thread, one of its own. */
+    API_CALL call;
+    jmp_buf *landing = api_call_nested(csound, &call);
+    int32_t ret;
+    if (setjmp(*landing) != 0)
+      ret = 1;
+    else
+      ret = set_option(csound, opt);
+    api_call_nested_end(&call);
+    return ret;
+  }
+}
+
+static int32_t set_option(CSOUND *csound, const char *opt) {
+  {
     char **args;
     char *options, *sp;
     int32_t cnt = 0, ret, argn, i;
-    if ((ret = setjmp(csound->exitjmp) != 0))
-      return ret;
 
     // check .cs7rc before setting any options
     if (!csound->options_checked) {

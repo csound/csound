@@ -865,6 +865,10 @@ static INIT_THREAD_LOCAL const CSOUND *note_init_of; /* the instance a note
                                                          or in a reinit       */
 
 static INIT_THREAD_LOCAL API_CALL *api_call;          /* the innermost */
+static INIT_THREAD_LOCAL const CSOUND *exitjmp_owner; /* a call on this
+                                                         thread set this
+                                                         instance's exitjmp,
+                                                         and runs */
 
 /* The innermost API call on this thread, if it takes this instance's
    jumps. */
@@ -930,6 +934,39 @@ static API_CALL *pass_call_of(const CSOUND *csound)
 int32_t api_call_takes_passes(const CSOUND *csound)
 {
   return pass_call_of(csound) != NULL;
+}
+
+/* Whether a call of this instance runs on this thread: one with a landing,
+   one that set exitjmp (api_call_nested), or the realtime init thread's
+   work. */
+int32_t api_call_running(const CSOUND *csound)
+{
+  return api_call_of(csound) != NULL || init_thread == csound ||
+    exitjmp_owner == csound;
+}
+
+/* A call that sets exitjmp and keeps it when it runs on its own: inside
+   another call on this thread (api_call_running), it catches its jumps in a
+   call of its own instead, and exitjmp stays the outer frame's. On its own,
+   it marks the thread as running a call while it does. */
+jmp_buf *api_call_nested(CSOUND *csound, API_CALL *call)
+{
+  if (api_call_running(csound)) {
+    api_call_catch(csound, call);
+    return &call->target;
+  }
+  call->csound = NULL;
+  call->ownerBefore = exitjmp_owner;
+  exitjmp_owner = csound;
+  return &csound->exitjmp;
+}
+
+void api_call_nested_end(const API_CALL *call)
+{
+  if (call->csound != NULL)
+    api_call_end(call);
+  else
+    exitjmp_owner = call->ownerBefore;
 }
 
 /* Sets a pass's landing, if this thread lands this instance's jumps. */

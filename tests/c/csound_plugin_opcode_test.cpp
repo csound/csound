@@ -1058,6 +1058,42 @@ TEST(PluginThatEvaluatesAJump, InItsInitLoadedByACompileIsTheCompiles) {
       ::testing::ExitedWithCode(0), "");
 }
 
+// A plugin of the plugin directory whose csoundModuleInit() calls
+// csoundSetOption(), as csoundCompile() starts the plugins: the compile's
+// error, an orchestra that does not compile, still comes back from it.
+// csoundSetOption() set exitjmp to its own frame, gone once it returned,
+// and the error jumped there.
+namespace {
+void setAnOption(CSOUND *csound) {
+  csoundSetOption(csound, "-d");
+}
+
+int32_t compileWithoutSound(CSOUND *csound, const std::string &csd) {
+  const char *argv[] = {"csound", "-n", csd.c_str()};
+  return csoundCompile(csound, 3, argv);
+}
+} // namespace
+
+TEST(PluginThatSetsAnOption, InItsInitLeavesTheCompilesLanding) {
+  const std::string csd =
+      (std::filesystem::temp_directory_path() /
+       ("plugin_sets_an_option_" + std::to_string(std::random_device{}()) +
+        ".csd"))
+          .generic_string();
+  std::ofstream(csd) << "<CsoundSynthesizer>\n<CsInstruments>\n"
+                        "instr 1\n no_such_opcode_here\nendin\n"
+                        "</CsInstruments>\n</CsoundSynthesizer>\n";
+  EXPECT_EXIT(
+      {
+        CSOUND *csound = createScanningTheDirectoryOf(CSOUND_TEST_HOOK_PLUGIN);
+        hookPlugin(csound, "hook_plugin_init", setAnOption);
+        const int32_t result = compileWithoutSound(csound, csd);
+        csoundDestroy(csound);
+        std::exit(result == CSOUND_SUCCESS ? 1 : 0);
+      },
+      ::testing::ExitedWithCode(0), "");
+  std::remove(csd.c_str());
+}
 #endif
 
 #include "plugin.h"

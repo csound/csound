@@ -256,7 +256,12 @@ const char *csoundGetUtilityDescription(CSOUND *csound,
     int32_t   err;
     CORFIL *inf = corfile_create_w(csound);
     int32_t c;
-    if ((err = setjmp(csound->exitjmp)) != 0) {
+    API_CALL call;
+    /* a landing of its own: it needs none once it returns, and a
+       performance may hold exitjmp, on this thread or another */
+    api_call_catch(csound, &call);
+    if ((err = setjmp(call.target)) != 0) {
+      api_call_end(&call);
       return ((err - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     while ((c=getc(inFile))!=EOF) corfile_putc(csound, c, inf);
@@ -268,6 +273,7 @@ const char *csoundGetUtilityDescription(CSOUND *csound,
     while ((c=corfile_getc(csound->scstr))!=EOF)
       putc(c, outFile);
     corfile_rm(csound, &csound->scstr);
+    api_call_end(&call);
     return 0;
 }
 
@@ -284,7 +290,12 @@ const char *csoundGetUtilityDescription(CSOUND *csound,
     int32_t   err;
     CORFIL *inf = corfile_create_w(csound);
     int32_t c;
-    if ((err = setjmp(csound->exitjmp)) != 0) {
+    API_CALL call;
+    /* a landing of its own: it needs none once it returns, and a
+       performance may hold exitjmp, on this thread or another */
+    api_call_catch(csound, &call);
+    if ((err = setjmp(call.target)) != 0) {
+      api_call_end(&call);
       return ((err - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
     }
     while ((c=getc(inFile))!=EOF) corfile_putc(csound, c, inf);
@@ -293,5 +304,6 @@ const char *csoundGetUtilityDescription(CSOUND *csound,
     while ((c=corfile_getc(csound->scstr))!=EOF)
       putc(c, outFile);
     corfile_rm(csound, &csound->scstr);
+    api_call_end(&call);
     return 0;
 }
