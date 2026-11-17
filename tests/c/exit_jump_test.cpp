@@ -561,5 +561,67 @@ TEST_F(ExitJumpApiLockTests, PerformBuffer)
   EXPECT_EQ(result, -3);
 }
 
+/* A utility the host adds, which calls the API as a utility may, run by
+ * csoundRunUtility(). A jump in code it evaluates is the run's, as one of
+ * its own is: an init pass inside the run took it, the utility went on, and
+ * the run gave 0.
+ */
+enum class Nested { EvalCode };
+
+std::atomic<bool> utilityWentOn{false};
+Nested nestedCall;
+
+int32_t nestedUtility(CSOUND *csound, int32_t, char **)
+{
+  switch (nestedCall) {
+  case Nested::EvalCode:
+    csoundEvalCode(csound, "exitnow 3\n");
+    break;
+  }
+  utilityWentOn = true;
+  return 0;
+}
+
+class NestedCallTests : public ::testing::TestWithParam<Nested> {
+ protected:
+  Watchdog watchdog;
+  CSOUND *csound = nullptr;
+
+  void SetUp() override
+  {
+    csound = csoundCreate(nullptr, nullptr);
+    ASSERT_NE(csound, nullptr);
+    ASSERT_EQ(csoundSetOption(csound, "-n -d -m0"), 0);
+    ASSERT_EQ(csoundAddUtility(csound, "exit_jump_test_utility",
+                               nestedUtility), 0);
+    nestedCall = GetParam();
+    utilityWentOn = false;
+  }
+
+  void TearDown() override
+  {
+    if (csound != nullptr)
+      csoundDestroy(csound);
+  }
+};
+
+TEST_P(NestedCallTests, TakesItsJumpsAndLeavesTheOuterLanding)
+{
+  const int32_t result =
+    csoundRunUtility(csound, "exit_jump_test_utility", 0, nullptr);
+  /* the jump in the code it evaluated before the start is the utility's,
+     as a jump of its own is: it stops there, and its run gives the jump */
+  EXPECT_EQ(result, -3);
+  EXPECT_FALSE(utilityWentOn);
+}
+
+std::string nestedName(const ::testing::TestParamInfo<Nested> &)
+{
+  return "EvalCode";
+}
+
+INSTANTIATE_TEST_SUITE_P(Calls, NestedCallTests,
+                         ::testing::Values(Nested::EvalCode), nestedName);
+
 } // namespace
 #endif

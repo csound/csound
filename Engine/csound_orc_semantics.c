@@ -961,7 +961,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
 #ifdef CSOUND_WASI_REALTIME
    csound->LongJmp(csound, 1);
 #else
-   jump_to_landing(csound, 1);  /* as longjmp(csound->exitjmp, 0) gave */
+   jump_on(csound, 1);  /* as longjmp(csound->exitjmp, 0) gave */
 #endif
    return 0;
   }

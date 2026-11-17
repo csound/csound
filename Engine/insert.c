@@ -841,8 +841,9 @@ void realtime_message_queue_stop(CSOUND *csound)
    From then on, no pass on this thread runs another opcode: the performance
    is over. The thread that performs makes the jump at the start of its next
    control period, or as the score ends (init_thread_jump_make).
-   The passes inside an API call that takes its own jumps (API_CALL) set
-   landings too, on any thread, and the call takes the jump as its error. */
+   The passes inside a compile's API call (API_CALL) set landings too, on
+   any thread, and the call takes the jump as its error; a call that catches
+   its jumps (api_call_catch) stands aside for them. */
 static INIT_THREAD_LOCAL CSOUND *init_thread;        /* the instance whose
                                                          init thread this is */
 static INIT_THREAD_LOCAL INIT_LANDING *init_landing; /* the innermost pass's */
@@ -881,6 +882,7 @@ void api_call_begin(CSOUND *csound, API_CALL *call)
   call->initLanding = init_landing;
   call->initJumped = init_jumped;
   call->jumped = 0;
+  call->catching = 0;
   init_thread = NULL;
   init_landing = NULL;
   init_jumped = 0;
@@ -890,15 +892,50 @@ void api_call_begin(CSOUND *csound, API_CALL *call)
 void api_call_end(const API_CALL *call)
 {
   api_call = call->outer;
-  init_thread = call->initThread;
   init_landing = call->initLanding;
-  init_jumped = call->initJumped;
+  if (!call->catching) {      /* one that catches leaves these as they go */
+    init_thread = call->initThread;
+    init_jumped = call->initJumped;
+  }
+}
+
+/* A call that catches the jumps made inside it, as the frame that held
+   exitjmp for its length did. It stands aside for the passes and the
+   compile around it, as that frame did: a pass inside it sets a landing
+   where it would without it, and takes its own jump. It hides the landings
+   of the passes around it, so that any other jump comes to it. */
+void api_call_catch(CSOUND *csound, API_CALL *call)
+{
+  call->csound = csound;
+  call->outer = api_call;
+  call->initLanding = init_landing;
+  call->jumped = 0;
+  call->catching = 1;
+  init_landing = NULL;
+  api_call = call;
+}
+
+/* The innermost call on this thread, of this instance, whose passes take
+   their own jumps (a compile's), passing over the calls that catch. */
+static API_CALL *pass_call_of(const CSOUND *csound)
+{
+  API_CALL *call;
+  for (call = api_call; call != NULL && call->csound == csound;
+       call = call->outer)
+    if (!call->catching)
+      return call;
+  return NULL;
+}
+
+int32_t api_call_takes_passes(const CSOUND *csound)
+{
+  return pass_call_of(csound) != NULL;
 }
 
 /* Sets a pass's landing, if this thread lands this instance's jumps. */
 int32_t init_landing_push(CSOUND *csound, INIT_LANDING *landing)
 {
-  if (init_thread != csound && api_call_of(csound) == NULL)
+  if (init_thread != csound && pass_call_of(csound) == NULL)
     return 0;
   landing->csound = csound;
   landing->outer = init_landing;
@@ -914,7 +951,7 @@ void init_landing_pop(const INIT_LANDING *landing)
 /* In the API call that runs the pass, or for good, on the init thread. */
 int32_t init_jump_pending(const CSOUND *csound)
 {
-  const API_CALL *call = api_call_of(csound);
+  const API_CALL *call = pass_call_of(csound);
   if (call != NULL)
     return call->jumped != 0;
   return init_jumped;
@@ -924,7 +961,7 @@ void init_pass_unwind(CSOUND *csound, int32_t n)
 {
   INIT_LANDING *landing = init_landing;
   if (landing != NULL && landing->csound == csound) {
-    API_CALL *call = api_call_of(csound);
+    API_CALL *call = pass_call_of(csound);
     if (call != NULL) {
       if (call->jumped == 0)                    /* the first is the call's */
         call->jumped = n;

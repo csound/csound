@@ -513,11 +513,11 @@ static int32_t init_default_modules(CSOUND *csound)
   API_CALL          call;
   int32_t           n;
 
-  api_call_begin(csound, &call);
+  api_call_catch(csound, &call);
   if (UNLIKELY((n = setjmp(call.target)) != 0)) {
     api_call_end(&call);
     csound->default_modules_loaded = 0;
-    jump_to_landing(csound, n);
+    jump_on(csound, n);
   }
   n = csoundInitModules(csound);
   api_call_end(&call);
@@ -693,7 +693,7 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
                        Str("csoundLoadExternal(): memory allocation failure"));
       return CSOUND_MEMORY;
     }
-    api_call_begin(csound, &call);
+    api_call_catch(csound, &call);
     if ((err = setjmp(call.target)) != 0) {
       api_call_end(&call);
       print_module_error(csound, Str("Error in pre-initialisation function "
@@ -1143,7 +1143,7 @@ static int32_t load_init_module(CSOUND *csound, const char *fname){
   /* a plugin already loaded links nothing: there is no new module to start */
   if (csound->csmodule_db == loaded)
     return CSOUND_SUCCESS;
-  api_call_begin(csound, &call);
+  api_call_catch(csound, &call);
   if (UNLIKELY((err = setjmp(call.target)) != 0)) {
     api_call_end(&call);
     return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
@@ -1410,7 +1410,7 @@ int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *))
   if (csoundWasiIsWorkerThread())
     return func(csound);
 #endif
-  api_call_begin(csound, &call);
+  api_call_catch(csound, &call);
   if (setjmp(call.target) != 0)
     err = CSOUND_ERROR;
   else

@@ -1796,7 +1796,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
               corfile_rewind(cf);
               /* an option the file refuses leaves by csound->LongJmp(): the
                  file is closed before the jump goes on */
-              api_call_begin(csound, &call);
+              api_call_catch(csound, &call);
               if ((jump = setjmp(call.target)) == 0)
                 read_options(csound, cf, 0);
               api_call_end(&call);
@@ -1804,7 +1804,7 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
               corfile_rm(csound, &cf);
               csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
               if (jump != 0)
-                jump_to_landing(csound, jump);
+                jump_on(csound, jump);
             }
             while (*s++) {
             };
@@ -1950,7 +1950,7 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
     /* an option argdecode() refuses leaves it by csound->LongJmp(); a jump
        after it goes back to the setjmp above, as before */
     API_CALL call;
-    api_call_begin(csound, &call);
+    api_call_catch(csound, &call);
     if (setjmp(call.target) != 0)
       ret = -1;
     else

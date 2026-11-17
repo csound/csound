@@ -1127,6 +1127,8 @@ static const CSOUND cenviron_ = {
 
 };
 
+static CS_NORETURN void jump_to_landing(CSOUND *csound, int32_t n);
+
 void csoundLongJmp(CSOUND *csound, int32_t retval) {
   score_read_unwind(csound);
 #ifdef CSOUND_WASI_REALTIME
@@ -1148,13 +1150,16 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   jump_to_landing(csound, n);
 }
 
-void jump_to_landing(CSOUND *csound, int32_t n) {
+static void jump_to_landing(CSOUND *csound, int32_t n) {
   API_CALL *call;
   init_pass_unwind(csound, n);
   /* An API call on this thread takes the jump as its error, and the init
-     pass that made the call, if one did, goes on: its context stays. */
+     pass that made the call, if one did, goes on: its context stays. So
+     does a call that catches its jumps inside a compile's call, as the frame
+     that held exitjmp did then; outside one, it is reset below, as for
+     exitjmp. */
   call = api_call_of(csound);
-  if (call != NULL)
+  if (call != NULL && (!call->catching || api_call_takes_passes(csound)))
     longjmp(call->target, n);
 
   /* Realtime init owns these fields on the event thread. A performance-time
@@ -1174,7 +1179,12 @@ void jump_to_landing(CSOUND *csound, int32_t n) {
   }
   // printf("**** longjmp with %d\n", n);
 
-  longjmp(csound->exitjmp, n);
+  longjmp(call != NULL ? call->target : csound->exitjmp, n);
+}
+
+void jump_on(CSOUND *csound, int32_t n) {
+  API_CALL *call = api_call_of(csound);
+  longjmp(call != NULL ? call->target : csound->exitjmp, n);
 }
 
 

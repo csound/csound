@@ -85,7 +85,7 @@ void print_sndfile_version(CSOUND* csound);
       print_sndfile_version(csound);
     }
 
-    api_call_begin(csound, &call);
+    api_call_catch(csound, &call);
     if (UNLIKELY((n = setjmp(call.target)) != 0)) {
       n = (n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS;
       goto err_return;
