@@ -22,6 +22,11 @@ struct Holder inner:Box
 struct IBox value:i
 struct Pair gain:k, level:k
 gps@global:Pair[] init 2
+gkState init 0
+gkIndexCalls init 0
+giState init 0
+giIndexCalls init 0
+gkSlot init 0
 struct Bank values:k[], level:k
 gbs@global:Bank[] init 2
 
@@ -44,6 +49,33 @@ opcode Louder(kLevel:k):k
  kIndex = 1
  gps[kIndex].level = kLevel
  xout 0.5
+endop
+
+; an index and a value with side effects (#3703): the index runs first
+opcode KIndex():k
+ gkState = 10
+ gkIndexCalls += 1
+ xout 1
+endop
+
+opcode KValue():k
+ xout gkState
+endop
+
+opcode IIndex():i
+ giState = 10
+ giIndexCalls += 1
+ xout 1
+endop
+
+opcode IValue():i
+ xout giState
+endop
+
+; a value that moves the index variable it is written at (0 at init)
+opcode Bump():k
+ gkSlot = 1
+ xout gkSlot * 5
 endop
 
 opcode Fill(kLevel:k):k[]
@@ -84,6 +116,32 @@ instr 1
  filled = gbs[kIndex].values
  Check(filled[1], kc * 2, "an array member")
  Check(gbs[kIndex].level, kc, "a member the array value's call writes")
+
+ ; an index that calls a function is computed before the value, once, at a
+ ; k and an i index
+ gkState = 0
+ gkIndexCalls = 0
+ ks:Box[] init 2
+ ks[KIndex()].gain = KValue()
+ Check(ks[kIndex].gain, 10, "a value read after a k index's call")
+ Check(gkIndexCalls, 1, "the k index's calls")
+ is2:Box[] init 2
+ is2[IIndex()].gain = IValue()
+ CheckInit(i(is2[1].gain), 10, "a value read after an i index's call, at init")
+ Check(is2[kIndex].gain, 10, "a value read after an i index's call")
+ CheckInit(giIndexCalls, 1, "the i index's calls")
+ ; and so is a call in an array read as the index
+ slots:k[] fillarray 0, 1
+ gkState = 0
+ as2:Box[] init 2
+ as2[slots[KIndex()]].gain = KValue()
+ Check(as2[kIndex].gain, 10, "a value read after a call in an index's array read")
+ ; a variable is read when the member is written, as the copy back read it
+ gkSlot = 0
+ vs:Box[] init 2
+ vs[gkSlot].gain = Bump()
+ Check(vs[1].gain, 5, "a variable index the value moves")
+ Check(vs[0].gain, 0, "the element it moved from")
 
  ; a constant in a branch taken in performance
  bs:Box[] init 2

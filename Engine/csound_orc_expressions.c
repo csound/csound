@@ -1688,9 +1688,73 @@ static TREE* create_struct_array_set_call(CSOUND* csound,
   return arraySetOp;
 }
 
+static int32_t tree_calls_function(TREE* tree)
+{
+  for (; tree != NULL; tree = tree->next) {
+    if (tree->type == T_FUNCTION || tree_calls_function(tree->left) ||
+        tree_calls_function(tree->right)) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
+/* ##array_member_set takes the value before the indexes, where the
+   element's copy read them before the value (and once more after it, for
+   the copy back): an index that calls a function, boxes[Index()], is
+   expanded here, before the write, as the write's own expansion would
+   expand it, so the call runs before the value, once. Any other index is
+   read when the member is written, as the copy back read it. An index
+   that does not expand is left to the write's expansion, which reports
+   it. */
+static TREE* struct_array_calls_before_value(CSOUND* csound, TREE* indexes,
+                                             TREE** anchor,
+                                             TYPE_TABLE* typeTable)
+{
+  TREE *list = NULL, *tail = NULL, *next;
+  TREE* mark = tree_tail(*anchor);
+
+  for (TREE* index = copy_node(csound, indexes); index != NULL;
+       index = next) {
+    next = index->next;
+    index->next = NULL;
+    if (tree_calls_function(index)) {
+      if (is_boolean_expression_node(index)) {
+        TREE* expanded = create_boolean_expression(csound, index, index->line,
+                                                   index->locn, typeTable, 0);
+        index = expanded == NULL ? NULL : create_ans_token(
+          csound, tree_tail(expanded)->left->value->lexeme);
+        *anchor = tree_append(*anchor, expanded);
+      }
+      else {
+        index = expand_expression_arg_list(csound, index, anchor, index->line,
+                                           index->locn, typeTable, 0);
+      }
+      if (index == NULL) {
+        if (mark == NULL) {
+          *anchor = NULL;
+        }
+        else {
+          mark->next = NULL;
+        }
+        return copy_node(csound, indexes);
+      }
+    }
+    if (tail == NULL) {
+      list = index;
+    }
+    else {
+      tail->next = index;
+    }
+    tail = index;
+  }
+  return list;
+}
+
 /* ##array_member_set array, value, depth, member indexes..., indexes... */
 static TREE* create_struct_array_member_set_call(
-  CSOUND* csound, TREE* current, const STRUCT_ARRAY_MEMBER_PATH* path)
+  CSOUND* csound, TREE* current, const STRUCT_ARRAY_MEMBER_PATH* path,
+  TREE* indexes)
 {
   TREE* setOp = create_opcode_token(csound, "##array_member_set");
   TREE* arg;
@@ -1708,7 +1772,7 @@ static TREE* create_struct_array_member_set_call(
                                                current->locn,
                                                path->memberIndices[i]);
   }
-  arg->next = copy_node(csound, path->arrayExpr->right);
+  arg->next = indexes;
   return setOp;
 }
 
@@ -1772,8 +1836,10 @@ int expand_struct_array_member_assignment(CSOUND* csound,
       current->right->next == NULL &&
       !array_target_missing_lexeme(path.arrayExpr) &&
       (elementType == NULL || !elementType->userDefinedType)) {
+    TREE* indexes = struct_array_calls_before_value(
+      csound, path.arrayExpr->right, anchor, typeTable);
     *anchor = tree_append(*anchor,
-      create_struct_array_member_set_call(csound, current, &path));
+      create_struct_array_member_set_call(csound, current, &path, indexes));
     return 1;
   }
   structTemps[0] = create_out_arg(csound,
