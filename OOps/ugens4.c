@@ -76,7 +76,7 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
     int32_t       nn;
-    cs_double   phsf = p->fphs;
+    double   phsf = p->fphs;
     
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
@@ -139,7 +139,7 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
       }
       denom = ftbl[(int32_t) (phsf*flen)];
       if (denom > FL(0.0002) || denom < -FL(0.0002)) {
-        cs_double numerator_phase = phsf * tnp1;
+        double numerator_phase = phsf * tnp1;
         BUZZ_WRAP(numerator_phase);
         num = ftbl[(int32_t)(numerator_phase*flen)];
         ar[n] = (num / denom - FL(1.0)) * scal;
