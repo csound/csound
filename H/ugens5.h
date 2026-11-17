@@ -131,6 +131,7 @@ typedef struct {
         OPDS    h;
         cs_float   *kr, *asig, *ihp, *istor;
         cs_double   c1, c2, prvq;
+        cs_double  level_scale, correction;
 } RMS;
 
 typedef struct {

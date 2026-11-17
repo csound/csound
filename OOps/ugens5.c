@@ -1496,7 +1496,7 @@ int32_t rmsset(CSOUND *csound, RMS *p)
 {
     TONE_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
     if (!*p->istor)
-      p->prvq = 0.0;
+      p->prvq = p->level_scale = p->correction = 0.0;
     return OK;
 }
 
@@ -1523,18 +1523,43 @@ int32_t rms(CSOUND *csound, RMS *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float    *asig;
-    cs_double   q;
-    cs_double   c1 = p->c1, c2 = p->c2;
+    cs_double q, level_scale = p->level_scale, correction = p->correction;
 
     q = p->prvq;
     asig = p->asig;
     if (UNLIKELY(early)) nsmps -= early;
     for (n=offset; n<nsmps; n++) {
-      cs_double as = (cs_double)asig[n];
-      q = c1 * as * as + c2 * q;
+      cs_double magnitude = fabs(asig[n]);
+      if (magnitude > level_scale) {
+        cs_double ratio = level_scale / magnitude;
+        q *= ratio * ratio;
+        correction *= ratio * ratio;
+        level_scale = magnitude;
+      }
+      if (level_scale > 0.0) {
+        cs_double normalized = asig[n] / level_scale;
+        /* Squaring a normalized sample cannot overflow. Retain small
+           updates without rounding the complementary pole to one. */
+        volatile cs_double difference = normalized * normalized - q;
+        volatile cs_double update = p->c1 * (difference + correction);
+        volatile cs_double step = update - correction;
+        volatile cs_double next = q + step;
+        volatile cs_double applied = next - q;
+        correction = applied - step;
+        q = next;
+        /* Reduce the scale during decay, before the normalized energy
+           can underflow. Power-of-two rescaling introduces no rounding. */
+        while (q > 0.0 && q < FL(0.25) && magnitude <= level_scale * FL(0.5)) {
+          q *= FL(4.0);
+          correction *= FL(4.0);
+          level_scale *= FL(0.5);
+        }
+      }
     }
     p->prvq = q;
-    *p->kr = (cs_float) sqrt(q);
+    p->level_scale = level_scale;
+    p->correction = correction;
+    *p->kr = (cs_float)(sqrt(q) * level_scale);
     return OK;
 }
 
