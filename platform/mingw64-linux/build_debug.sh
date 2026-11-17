@@ -22,7 +22,6 @@ cmake -DCMAKE_TOOLCHAIN_FILE=$src_dir/vcpkg/scripts/buildsystems/vcpkg.cmake \
     -DCMAKE_CXX_COMPILER=/usr/bin/x86_64-w64-mingw32-g++ \
     -DCMAKE_C_COMPILER=/usr/bin/x86_64-w64-mingw32-gcc \
     -DUSE_VCPKG=1 \
-    -DBUILD_JAVA_INTERFACE=OFF \
     -DINSTALL_PYTHON_INTERFACE=OFF \
     -DBUILD_UTILITIES=OFF \
     -DBUILD_TESTS=OFF \
