@@ -95,6 +95,8 @@ static SR_CONVERTER *src_linear_init(CSOUND *csound, int32_t mode,
           csound->Calloc(csound, (size_t) size * pp->blocks *
                          sizeof(cs_float));
     }
+    if (typ == &CS_VAR_TYPE_A && n > 0)
+      pp->silence = csound->Calloc(csound, (size_t) size * sizeof(cs_float));
     pp->ncvt = n;
     pp->ratio = ratio;
     pp->mode = 4;
@@ -110,6 +112,7 @@ static void src_linear_deinit(CSOUND *csound, SR_CONVERTER *pp) {
    csound->Free(csound, pp->dat[i].data);
   }
   if(pp->ncvt) csound->Free(csound, pp->dat);
+  csound->Free(csound, pp->silence);
   csound->Free(csound, pp);
 }
 
@@ -170,12 +173,13 @@ int32_t src_linear_convert(CSOUND *csound, SR_CONVERTER *pp,
       int32_t size = pp->insize, cnt = pp->dat[n].cnt;
       cs_float ratio = pp->ratio;
       cs_float *buff = (cs_float *)(pp->dat[n].bufferin),
-        *in = argin, *out = argout;
+        *in = argin != NULL ? argin : pp->silence, *out = argout;
       const CS_TYPE *typ = pp->var->varType;
 
       if(typ == &CS_VAR_TYPE_ARRAY) {
         ARRAYDAT *arg = (ARRAYDAT *) argin;
-        in = arg->data + n*(arg->arrayMemberSize / sizeof(cs_float));
+        if (arg != NULL)
+          in = arg->data + n*(arg->arrayMemberSize / sizeof(cs_float));
         arg = (ARRAYDAT *) argout;
         out = arg->data + n*(arg->arrayMemberSize / sizeof(cs_float));
       }   
@@ -310,6 +314,8 @@ SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
         } 
       }
       pp->ncvt = n;
+      if (typ == &CS_VAR_TYPE_A && n > 0)
+        pp->silence = csound->Calloc(csound, (size_t) size * sizeof(cs_float));
     } else pp->ncvt = 0;
     pp->ratio = ratio;      
     pp->mode = cvt;
@@ -333,12 +339,13 @@ int32_t src_convert(CSOUND *csound, SR_CONVERTER *pp, cs_float *argin, cs_float 
       for(int n = 0; n < k; n++) {
         int32_t i, cnt = pp->dat[n].cnt, size = pp->insize;
         float ratio = pp->ratio;
-        cs_float *in = argin, *out = argout;
+        cs_float *in = argin != NULL ? argin : pp->silence, *out = argout;
         SRC *p = (SRC *) pp->dat[n].data;
         const CS_TYPE *typ = pp->var->varType;
         if(typ == &CS_VAR_TYPE_ARRAY) {
           ARRAYDAT *arg = (ARRAYDAT *) argin;
-          in = arg->data + n*(arg->arrayMemberSize / sizeof(cs_float));
+          if (arg != NULL)
+            in = arg->data + n*(arg->arrayMemberSize / sizeof(cs_float));
           arg = (ARRAYDAT *) argout;
           out = arg->data + n*(arg->arrayMemberSize / sizeof(cs_float));
         }   
@@ -401,6 +408,7 @@ void src_deinit(CSOUND *csound, SR_CONVERTER *pp) {
      csound->Free(csound, pp->dat[i].bufferout);
     }
     if(pp->ncvt > 0) csound->Free(csound, pp->dat);
+    csound->Free(csound, pp->silence);
     csound->Free(csound, pp);
   }
   else src_linear_deinit(csound, pp);

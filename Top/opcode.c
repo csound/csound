@@ -1569,6 +1569,30 @@ int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
                            Str("opcode object not initialised\n"));
 }
 
+/* How many opcode objects op runs, if it is a run or perf call of them. */
+int32_t opcode_run_count(OPDS *op)
+{
+  if (op->perf == (SUBR) opcode_run_perf ||
+      op->perf == (SUBR) opcode_object_perf)
+    return 1;
+  if (op->perf == (SUBR) opcode_array_perf) {
+    OPRUN *p = (OPRUN *) op;
+    const ARRAYDAT *objects = (const ARRAYDAT *) oprun_args(p)[p->OUTOCOUNT];
+    return objects->dimensions > 0 ? objects->sizes[0] : 0;
+  }
+  return 0;
+}
+
+/* The dataspace of the i-th of the opcode objects op runs. */
+OPDS *opcode_run_dataspace(OPDS *op, int32_t i)
+{
+  OPRUN *p = (OPRUN *) op;
+  cs_float **pargs = oprun_args(p);
+  if (op->perf == (SUBR) opcode_array_perf)
+    return opcode_array_obj((ARRAYDAT *) pargs[p->OUTOCOUNT], i)->dataspace;
+  return ((const OPCODEOBJ *) pargs[p->OUTOCOUNT])->dataspace;
+}
+
 /**
  * perf-time function for run opcode,
  * no checks required
