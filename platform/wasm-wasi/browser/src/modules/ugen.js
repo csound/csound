@@ -319,9 +319,9 @@ export const csoundUgenListOpcodes = (wasm) => (factory) => {
     const intypesPtr = readPointer(wasm, view, base + 2 * width);
 
     opcodes.push({
-      opname: opnamePtr ? ptr2string(wasm, opnamePtr) : "",
-      outypes: outypesPtr ? ptr2string(wasm, outypesPtr) : "",
-      intypes: intypesPtr ? ptr2string(wasm, intypesPtr) : "",
+      "opname": opnamePtr ? ptr2string(wasm, opnamePtr) : "",
+      "outypes": outypesPtr ? ptr2string(wasm, outypesPtr) : "",
+      "intypes": intypesPtr ? ptr2string(wasm, intypesPtr) : "",
     });
   }
 
