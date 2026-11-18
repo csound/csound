@@ -80,13 +80,28 @@ int32_t ephsset(CSOUND *csound, EPHSOR *p)
     }                                                               \
   } while (0)
 
+/* TwoSum returns the rounded sum and its error (sum minus exact total).
+   Volatile intermediates preserve the error calculation under fast-math. */
+#define EPHASOR_SUM(sum, error, a, b) do {                            \
+    const cs_double eph_a = (a), eph_b = (b);                        \
+    volatile cs_double eph_sum = eph_a + eph_b;                      \
+    volatile cs_double eph_bpart = eph_sum - eph_a;                  \
+    volatile cs_double eph_apart = eph_sum - eph_bpart;              \
+    volatile cs_double eph_aerror = eph_apart - eph_a;               \
+    volatile cs_double eph_berror = eph_bpart - eph_b;               \
+    (sum) = eph_sum;                                                \
+    (error) = eph_aerror + eph_berror;                               \
+  } while (0)
+
 /* Keep small updates and test the phase together with its rounding error.
    A phase rounded to one has not wrapped while its correction is positive. */
 #define EPHASOR_ADVANCE(phase, correction, incr, wrapped) do {        \
-    volatile cs_double eph_step = (incr) - (correction);              \
+    cs_double eph_step, eph_step_error;                             \
+    EPHASOR_SUM(eph_step, eph_step_error, (incr), -(correction));     \
     volatile cs_double eph_next = (phase) + eph_step;                 \
     volatile cs_double eph_applied = eph_next - (phase);              \
-    (correction) = eph_applied - eph_step;                            \
+    volatile cs_double eph_error = eph_applied - eph_step;           \
+    (correction) = eph_error + eph_step_error;                       \
     (phase) = eph_next;                                              \
     if ((phase) > FL(1.0) ||                                        \
         ((phase) == FL(1.0) && (correction) <= FL(0.0))) {            \
@@ -177,6 +192,7 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
 }
 
 #undef EPHASOR_INCREMENT
+#undef EPHASOR_SUM
 #undef EPHASOR_ADVANCE
 #undef EPHASOR_OUTPUT
 
