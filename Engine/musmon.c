@@ -34,6 +34,17 @@
 #include "fgens.h"
 #include "csdebug.h"
 
+/* The line readers' list, which a host's first line links a reader into from
+   its own thread (linevent.c): taken with acquire loads */
+#if defined(MSVC)
+#define LOAD_LINK(link) \
+  _InterlockedCompareExchangePointer((void *volatile *) &(link), NULL, NULL)
+#elif defined(HAVE_ATOMIC_BUILTIN)
+#define LOAD_LINK(link) __atomic_load_n(&(link), __ATOMIC_ACQUIRE)
+#else
+#define LOAD_LINK(link) (link)
+#endif
+
 #define SEGAMPS CS_AMPLMSG
 #define SORMSG  CS_RNGEMSG
 
@@ -394,6 +405,7 @@ int32_t start_engine(CSOUND *csound)
     /* memset(csound->omaxamp, '\0', sizeof(cs_float)*MAXCHNLS); */
 
     /* initialise sense_events state */
+    note_inits_reset(csound);
     csound->prvbt = csound->curbt = csound->nxtbt = 0.0;
     csound->curp2 = csound->nxtim = csound->timeOffs = csound->beatOffs = 0.0;
     csound->icurTimeSamples = 0L;
@@ -545,15 +557,10 @@ static void deactivate_all_notes(CSOUND *csound)
     }
 }
 
-static void delete_pending_rt_events(CSOUND *csound)
+void rt_events_drop(CSOUND *csound, EVTNODE *events)
 {
-  EVTNODE *events, *ep, *tail = NULL;
+  EVTNODE *ep = events, *tail = NULL;
 
-  csound_rt_event_lock(csound);
-  events = csound->OrcTrigEvts;
-  csound->OrcTrigEvts = NULL;
-  csound_rt_event_unlock(csound);
-  ep = events;
   while (ep != NULL) {
     if (ep->evt.strarg != NULL) {
       csound->Free(csound,ep->evt.strarg);
@@ -562,7 +569,19 @@ static void delete_pending_rt_events(CSOUND *csound)
     tail = ep;
     ep = ep->nxt;
   }
-  csound_recycle_rt_event_list_with_tail(csound, events, tail);
+  if (events != NULL)
+    csound_recycle_rt_event_list_with_tail(csound, events, tail);
+}
+
+static void delete_pending_rt_events(CSOUND *csound)
+{
+  EVTNODE *events;
+
+  csound_rt_event_lock(csound);
+  events = csound->OrcTrigEvts;
+  csound->OrcTrigEvts = NULL;
+  csound_rt_event_unlock(csound);
+  rt_events_drop(csound, events);
 }
 
 void delete_selected_rt_events(CSOUND *csound, cs_float instr)
@@ -713,6 +732,9 @@ int32_t csound_cleanup(CSOUND *csound)
     /* Unlinked deletes can wait non-blockingly for the final diskin2 borrow. */
     instance_process_pending_turnoffs(csound);
     delete_pending_rt_events(csound);
+    /* kept for a rewind that was never made */
+    rt_events_drop(csound, csound->rewind_events);
+    csound->rewind_events = NULL;
 
     while (csound->freeEvtNodes != NULL) {
       p = (void*) csound->freeEvtNodes;
@@ -1332,9 +1354,26 @@ int32_t sense_events(CSOUND *csound)
   int32_t     conn, *sinp;
   int32_t     waiting_for_realtime_work = 0;
 
+  /* a fatal jump the realtime init thread took, for exitjmp, this thread's */
+  init_thread_jump_make(csound);
+
   csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
   if (UNLIKELY(data && data->status == CSDEBUG_STATUS_STOPPED)) {
     return 0; /* don't process events if we're in debug mode and stopped */
+  }
+  /* no note's init runs here now: what a jump out of one left is gone */
+  note_inits_reset(csound);
+  /* Rewinds an item of the realtime init thread asked for, once it is
+     done: one rewind serves them. As with turnoffs, it takes a period in
+     which this thread gets the allocation lock at the first try: the init
+     thread links notes in under it. */
+  if (UNLIKELY(ATOMIC_GET(csound->score_rewind_request) !=
+               ATOMIC_GET(csound->score_rewind_served))) {
+    RT_SPIN_TRYLOCK
+    if (ATOMIC_GET(csound->score_rewind_request) !=
+        ATOMIC_GET(csound->score_rewind_served))     /* not served since */
+      csoundRewindScore(csound);
+    RT_SPIN_UNLOCK
   }
   /* Clear realtime MIDI flags once per control cycle. sens_midi() may return
      for each note message, so clearing there loses flags from earlier bytes. */
@@ -1342,6 +1381,7 @@ int32_t sense_events(CSOUND *csound)
   csound->midi_start = 0;
   csound->midi_continue = 0;
   csound->midi_stop = 0;
+  csound->midiGlobals->devbytes = 0;  /* the device may give more again */
   if (UNLIKELY(csound->MTrkend && O->termifend)) {   /* end of MIDI file:  */
     deactivate_all_notes(csound);
     csound->ErrorMsg(csound, Str("terminating.\n"));
@@ -1397,7 +1437,9 @@ int32_t sense_events(CSOUND *csound)
            performance alive while an insertion is queued or in progress so
            the score cannot end before the new instance publishes its
            off-time. */
-        if (O->realtime && alloc_queue_has_pending(csound)) {
+        if (O->realtime && (alloc_queue_has_pending(csound) ||
+                            ATOMIC_GET(csound->score_rewind_request) !=
+                            ATOMIC_GET(csound->score_rewind_served))) {
           waiting_for_realtime_work = 1;
           /* Polling the init worker does not end a score segment. */
           STA(score_segment_polling) = 1;
@@ -1507,11 +1549,11 @@ int32_t sense_events(CSOUND *csound)
   if (UNLIKELY(O->RTevents || getRemoteSocksIn(csound))) {
     int32_t nrecvd;
     /* run all registered callback functions */
-    if (csound->evtFuncChain != NULL && !csound->advanceCnt) {
-      EVT_CB_FUNC *fp = (EVT_CB_FUNC*) csound->evtFuncChain;
+    EVT_CB_FUNC *fp = (EVT_CB_FUNC*) LOAD_LINK(csound->evtFuncChain);
+    if (fp != NULL && !csound->advanceCnt) {
       do {
         fp->func(csound, fp->userData);
-        fp = fp->nxt;
+        fp = (EVT_CB_FUNC*) LOAD_LINK(fp->nxt);
       } while (fp != NULL);
     }
 
@@ -1719,6 +1761,32 @@ static EVTNODE  *copy_evtblk(CSOUND *csound, const EVTBLK *ep) {
   return e;
 }
 
+/* The checks insert_event_node makes of an event before it queues it,
+   below, where it also takes what it checks: keep the two in step. */
+static int32_t event_node_valid(CSOUND *csound, const EVTNODE *e)
+{
+  const EVTBLK *evt = &(e->evt);
+  switch (evt->opcod) {
+  case 'f':
+    return !(evt->pcnt < 4 && evt->p[1] > 0);
+  case 'a':
+    return evt->pcnt >= 3;
+  case 'i':
+  case 'q':
+    if (evt->pcnt < 3)
+      return 0;
+    /* fall through */
+  case 'd':
+    return evt->strarg == NULL || !IsStringCode(evt->p[1]) ||
+      named_instr_find(csound, evt->strarg) != FL(0.0);
+  case 'e':
+  case 's':
+    return 1;
+  default:
+    return 0;
+  }
+}
+
 static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   cs_double        start_time;
   EVTNODE       *prv;
@@ -1727,6 +1795,13 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   int32_t       i, retval = -1;
   EVTBLK        *evt = &(e->evt);
   cs_float         *pf = evt->p;
+
+  /* scheduled by an init that asked for a rewind: it comes after it */
+  if (init_item_rewinding(csound) && event_node_valid(csound, e)) {
+    init_item_holds_event(e);
+    return 0;
+  }
+  init_item_release_served(csound);
 
    /* check for required p-fields */
   switch (evt->opcod) {
@@ -1865,6 +1940,52 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
 
 }
 
+/* Held events go in as if scheduled at the rewind, from its time origin. */
+void rt_events_insert_held(CSOUND *csound, EVTNODE *events)
+{
+  while (events != NULL) {
+    EVTNODE *e = events;
+    events = e->nxt;
+    e->nxt = NULL;
+    insert_event_node(csound, e, 0);
+  }
+}
+
+/* An asking init's held events, kept for the rewind it asked for, newest
+   first. */
+void rt_events_keep_for_rewind(CSOUND *csound, EVTNODE *events)
+{
+  if (events == NULL)
+    return;
+  csound_rt_event_lock(csound);
+  while (events != NULL) {
+    EVTNODE *e = events;
+    events = e->nxt;
+    e->nxt = csound->rewind_events;
+    csound->rewind_events = e;
+  }
+  csound_rt_event_unlock(csound);
+}
+
+/* After a rewind, the events the inits that asked for it scheduled since,
+   oldest first. */
+void rt_events_after_rewind(CSOUND *csound)
+{
+  EVTNODE *events, *ordered = NULL;
+
+  csound_rt_event_lock(csound);
+  events = csound->rewind_events;
+  csound->rewind_events = NULL;
+  csound_rt_event_unlock(csound);
+  while (events != NULL) {
+    EVTNODE *e = events;
+    events = e->nxt;
+    e->nxt = ordered;
+    ordered = e;
+  }
+  rt_events_insert_held(csound, ordered);
+}
+
 /* Schedule new score event to be played. 'time_ofs' is the amount of */
 /* time in samples to add to evt->p[2] to get the actual start time   */
 /* of the event (measured from the beginning of performance, and not  */
@@ -1923,6 +2044,8 @@ int32_t insert_score_args_at_sample(CSOUND *csound, const EVTBLK *ep,
 /* called by csoundRewindScore() to reset performance to time zero */
 void rewind_score(CSOUND *csound)
 {
+  /* notes queued for a realtime init are dropped, as they are taken */
+  ATOMIC_INCR(csound->score_rewinds);
   /* deactivate all currently playing notes */
   deactivate_all_notes(csound);
   /* flush any pending real time events */

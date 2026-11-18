@@ -26,6 +26,11 @@
 #include "csmodule.h"
 #include "corfile.h"
 #include <ctype.h>
+#if defined(WIN32)
+#include <windows.h>
+#elif !defined(BARE_METAL)
+#include <sys/stat.h>
+#endif
 
 static void list_audio_devices(CSOUND *csound, int32_t output);
 static void list_midi_devices(CSOUND *csound, int32_t output);
@@ -656,7 +661,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     s += 17;
     if (UNLIKELY(*s == '\0'))
       dieu(csound, Str("no hardware bufsamps\n"));
-    O->inbufsamps = O->outbufsamps = atoi(s);
+    O->oMaxLag = atoi(s); /* as -B */
     return 1;
   } else if (!(strcmp(s, "orc"))) {
     csound->use_only_orchfile = 1; /* orchfile without scorefile */
@@ -830,9 +835,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-amps=", 7))) {
     int32_t n;
     s += 7;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message amps\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_AMPLMSG;
     else
@@ -841,9 +845,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-range=", 8))) {
     int32_t n;
     s += 8;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message range\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_RNGEMSG;
     else
@@ -852,9 +855,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-warnings=", 11))) {
     int32_t n;
     s += 11;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message warnings\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_WARNMSG;
     else
@@ -863,9 +865,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-raw=", 6))) {
     int32_t n;
     s += 6;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message raw\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= 32;
     else
@@ -874,9 +875,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-dB=", 5))) {
     int32_t n;
     s += 5;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message dB\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_RAWMSG;
     else
@@ -884,10 +884,9 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strncmp(s, "m-colours=", 10)) || !(strncmp(s, "m-colors=", 9))) {
     int32_t n;
-    s += 10;
-    if (*s == '\0')
+    s = strchr(s, '=') + 1;
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no message colours\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= 96;
     else
@@ -896,9 +895,8 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   } else if (!(strncmp(s, "m-benchmarks=", 13))) {
     int32_t n;
     s += 13;
-    if (UNLIKELY(*s == '\0'))
+    if (UNLIKELY(sscanf(s, "%d", &n) != 1))
       dieu(csound, Str("no benchmark level\n"));
-    sscanf(s, "%d", &n);
     if (n)
       O->msglevel |= CS_TIMEMSG;
     else
@@ -1153,7 +1151,9 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strncmp(s, "opcode-dir=", 11))) {
     s += 11;
-    csoundLoadPlugins(csound, s);
+    if (UNLIKELY(csoundLoadPlugins(csound, s) != CSOUND_SUCCESS))
+      csoundDie(csound, Str(" *** --opcode-dir=%s: a plugin failed to load "
+                            "or start\n"), s);
     return 1;
   } else if (!(strncmp(s, "opcode-lib=", 11))) {
     int32_t nbytes;
@@ -1395,7 +1395,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     O->no_deprecated_warnings = 1;
     return 1;
   }
-  else if (!(strncmp(s, "code", 4))) {
+  else if (!(strncmp(s, "code=", 5))) {
     s += 5;
     if(csound->orcname_mode == 0 && // only 1st argdecode pass
        csound->use_only_orchfile == 0) {
@@ -1405,7 +1405,7 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     }
     return 1;
   }
-  else if (!(strncmp(s, "events", 6))) {
+  else if (!(strncmp(s, "events=", 7))) {
     s += 7;
     if(csound->orcname_mode == 0) {// only 1st argdecode pass
       csoundEventString(csound, s, 0);
@@ -1414,6 +1414,74 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
   }  
   csoundWarning(csound, Str("unknown long option: '--%s',\n...ignored.\n"), s);
   return 1;
+}
+
+#if defined(WIN32)
+#define FULL_NAME_LENGTH 1024
+/* The full name Windows resolves a file name to: absolute, with no . or ..
+   parts and no 8.3 short names. Names are UTF-8, as _wfopen gets them
+   (Engine/filesys.c). 0 if it is not UTF-8, or does not fit. */
+static int32_t windows_full_name(const char *name, wchar_t *out) {
+  wchar_t wide[FULL_NAME_LENGTH], full[FULL_NAME_LENGTH];
+  DWORD n;
+  if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, name, -1, wide,
+                          FULL_NAME_LENGTH) == 0)
+    return 0;
+  n = GetFullPathNameW(wide, FULL_NAME_LENGTH, full, NULL);
+  if (n == 0 || n >= FULL_NAME_LENGTH)
+    return 0;
+  n = GetLongPathNameW(full, out, FULL_NAME_LENGTH);
+  if (n == 0 || n >= FULL_NAME_LENGTH) /* not expanded: the full name */
+    memcpy(out, full, sizeof full);
+  return 1;
+}
+#endif
+
+/* Whether two open files are one file: the same name, or another name for
+   it, such as ./opts. On POSIX the system says so, for a link too. On
+   Windows st_ino is 0, and a stream may belong to another C runtime, whose
+   descriptors this one cannot look up: there the names are resolved, and
+   compared without case, as Windows does. A link stays another name, and so
+   does any name while a host's open callback, which may serve names that are
+   not paths, is set. */
+static int32_t same_file(const CSOUND *csound, const CSFILE *a,
+                         const CSFILE *b) {
+  if (strcmp(a->fullName, b->fullName) == 0)
+    return 1;
+  if (a->type != CSFILE_STD || b->type != CSFILE_STD ||
+      a->f == NULL || b->f == NULL)
+    return 0;
+#if defined(WIN32)
+  if (csound->OpenFileCallback_ == NULL) {
+    wchar_t fa[FULL_NAME_LENGTH], fb[FULL_NAME_LENGTH];
+    return windows_full_name(a->fullName, fa) &&
+           windows_full_name(b->fullName, fb) &&
+           CompareStringOrdinal(fa, -1, fb, -1, TRUE) == CSTR_EQUAL;
+  }
+  return 0;
+#elif !defined(BARE_METAL)
+  {
+    struct stat sa, sb;
+    (void)csound;
+    return fstat(fileno(a->f), &sa) == 0 && fstat(fileno(b->f), &sb) == 0 &&
+           sa.st_ino != 0 && sa.st_dev == sb.st_dev && sa.st_ino == sb.st_ino;
+  }
+#else
+  (void)csound;
+  return 0;
+#endif
+}
+
+/* An indirection file stays open while its options are read, so one open
+   already is being read: it names itself, or names a file that names it. */
+static int32_t indirection_is_open(CSOUND *csound, const void *fd) {
+  const CSFILE *file = (const CSFILE *)fd, *p;
+  int32_t found = 0;
+  csoundSpinLock(&csound->open_files_lock);
+  for (p = (const CSFILE *)csound->open_files; p != NULL && !found; p = p->nxt)
+    found = p != file && same_file(csound, file, p);
+  csoundSpinUnLock(&csound->open_files_lock);
+  return found;
 }
 
 static int32_t capture_application_arguments(CSOUND *csound, int32_t *argc,
@@ -1521,14 +1589,16 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           break;
         case 'b':
           FIND(Str("no iobufsamps\n"));
-          sscanf(s, "%d%n", &(O->outbufsamps), &n);
+          if (UNLIKELY(sscanf(s, "%d%n", &(O->outbufsamps), &n) != 1))
+            dieu(csound, Str("no iobufsamps\n"));
           /* defaults in musmon.c */
           O->inbufsamps = O->outbufsamps;
           s += n;
           break;
         case 'B':
           FIND(Str("no hardware bufsamps\n"));
-          sscanf(s, "%d%n", &(O->oMaxLag), &n);
+          if (UNLIKELY(sscanf(s, "%d%n", &(O->oMaxLag), &n) != 1))
+            dieu(csound, Str("no hardware bufsamps\n"));
           /* defaults in rtaudio.c */
           s += n;
           break;
@@ -1557,14 +1627,12 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
         case 'r':
           FIND(Str("no sample rate\n"));
           O->sr_override = (float)atof(s);
-          while (*++s)
-            ;
+          s += strlen(s); /* the value may be empty: -r "" */
           break;
         case 'k':
           FIND(Str("no control rate\n"));
           O->kr_override = (float)atof(s);
-          while (*++s)
-            ;
+          s += strlen(s); /* the value may be empty: -k "" */
           break;
         case 'v':
           if (isdigit(*s)) {
@@ -1575,7 +1643,8 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
           break;
         case 'm':
           FIND(Str("no message level\n"));
-          sscanf(s, "%d%n", &(O->msglevel), &n);
+          if (UNLIKELY(sscanf(s, "%d%n", &(O->msglevel), &n) != 1))
+            dieu(csound, Str("no message level\n"));
           s += n;
           break;
         case 'd':
@@ -1590,14 +1659,15 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
         case 'x':
           FIND(Str("no xfilename\n"));
           csound->xfilename = s; /* extractfile name */
-          while (*++s)
-            ;
+          s += strlen(s); /* the name may be empty: -x "" */
           break;
         case 't':
           FIND(Str("no tempo value\n"));
           {
             cs_double val;
-            sscanf(s, "%" CS_DOUBLE_SCAN "%n", &val, &n); /* use this tempo .. */
+            /* use this tempo .. */
+            if (UNLIKELY(sscanf(s, "%" CS_DOUBLE_SCAN "%n", &val, &n) != 1))
+              dieu(csound, Str("no tempo value\n"));
             s += n;
             if (UNLIKELY(val < 0.0))
               dieu(csound, Str("illegal tempo\n"));
@@ -1714,11 +1784,27 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
                                   CSFTYPE_OPTIONS, 0);
             if (UNLIKELY(fd == NULL)) {
               dieu(csound, Str("Cannot open indirection file %s\n"), s);
+            } else if (UNLIKELY(indirection_is_open(csound, fd))) {
+              csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
+              dieu(csound, Str("Indirection file %s is already being read\n"), s);
             } else {
               CORFIL *cf = copy_to_corefile(csound, s, NULL, 0);
-              read_options(csound, cf, 0);
+              API_CALL call;
+              volatile int32_t jump;
+              /* read_options() counts the lines it reads as the CSD's */
+              const int32_t lines = csound->onefileStatics.csdlinecount;
+              corfile_rewind(cf);
+              /* an option the file refuses leaves by csound->LongJmp(): the
+                 file is closed before the jump goes on */
+              api_call_catch(csound, &call);
+              if ((jump = setjmp(call.target)) == 0)
+                read_options(csound, cf, 0);
+              api_call_end(&call);
+              csound->onefileStatics.csdlinecount = lines;
               corfile_rm(csound, &cf);
               csound->FileClose(csound, fd, CSFILE_CLOSE_SYNC);
+              if (jump != 0)
+                jump_on(csound, jump);
             }
             while (*s++) {
             };
@@ -1749,19 +1835,18 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
             csound->Message(csound, Str("\n...failing to parse options\n"));
             return 0; // fail
           }
-          while (*(++s))
-            ;
+          s += strlen(s); /* the option may be empty: "-d-" */
           break;
         case 'j':
           FIND(Str("no number of threads\n"));
-          sscanf(s, "%d%n", &(O->numThreads), &n);
+          if (UNLIKELY(sscanf(s, "%d%n", &(O->numThreads), &n) != 1))
+            dieu(csound, Str("no number of threads\n"));
           s += n;
           break;
         case '+': /* IV - Feb 01 2005 */
           if (parse_option_as_cfgvar(csound, (char *)s - 2) != 0)
             csound->LongJmp(csound, 1);
-          while (*(++s))
-            ;
+          s += strlen(s); /* the option may be empty: "-d+" */
           break;
         default:
           if (csound->info_message_request == 0)
@@ -1804,6 +1889,8 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
 }
 
 
+static int32_t set_option(CSOUND *csound, const char *opt);
+
  int32_t csoundSetOption(CSOUND *csound, const char *opt) {
   /* if given no string, or already compiled and running, return */
   if (opt == NULL || (csound->engineStatus & CS_STATE_COMP))
@@ -1812,11 +1899,25 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
   else if (opt[strspn(opt, " ")] == '\0')
     return 0;
   else {
+    /* A jump outside argdecode() gives 1. Its landing is exitjmp, or,
+       inside another call on this thread, one of its own. */
+    API_CALL call;
+    jmp_buf *landing = api_call_nested(csound, &call);
+    int32_t ret;
+    if (setjmp(*landing) != 0)
+      ret = 1;
+    else
+      ret = set_option(csound, opt);
+    api_call_nested_end(&call);
+    return ret;
+  }
+}
+
+static int32_t set_option(CSOUND *csound, const char *opt) {
+  {
     char **args;
     char *options, *sp;
     int32_t cnt = 0, ret, argn, i;
-    if ((ret = setjmp(csound->exitjmp) != 0))
-      return ret;
 
     // check .cs7rc before setting any options
     if (!csound->options_checked) {
@@ -1862,10 +1963,21 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
         sp++;
     }
 
-    ret = argdecode(csound, argn + 1, (const char **)args);
+    /* an option argdecode() refuses leaves it by csound->LongJmp(); a jump
+       after it goes back to the setjmp above, as before */
+    API_CALL call;
+    api_call_catch(csound, &call);
+    if (setjmp(call.target) != 0)
+      ret = -1;
+    else
+      ret = argdecode(csound, argn + 1, (const char **)args);
+    api_call_end(&call);
     csoundFree(csound, options);
-    for(i = 1; i < argn; i++) csoundFree(csound, args[i]);
-     csoundFree(csound, args);
+    for (i = 1; i <= argn + 1; i++)
+      csoundFree(csound, args[i]);
+    csoundFree(csound, args);
+    if (ret < 0)
+      return 1;
 
     /* Hosts get the list at once, as before: a request left pending
        would make a later csoundCompile() stop after listing. */
@@ -2033,16 +2145,27 @@ static char *unquote_arg(CSOUND *csound, char *arg) {
   strcpy(oparms->Midioutname, name);
 }
 
+/* The fill answers how many it filled, which can be fewer than it counted,
+   or a negative number: list only those. The entries are zeroed, so one a
+   fill claims and does not write prints as empty. */
+static int32_t devices_filled(int32_t counted, int32_t filled) {
+  return filled < 0 ? 0 : (filled < counted ? filled : counted);
+}
+
 static void list_audio_devices(CSOUND *csound, int32_t output) {
 
   int32_t i, n = csoundGetAudioDevList(csound, NULL, output);
-  CS_AUDIODEVICE *devs =
-      (CS_AUDIODEVICE *)csound->Malloc(csound, n * sizeof(CS_AUDIODEVICE));
+  CS_AUDIODEVICE *devs = NULL;
+  if (n > 0) {
+    devs = (CS_AUDIODEVICE *)csound->Calloc(csound, n * sizeof(CS_AUDIODEVICE));
+    n = devices_filled(n, csoundGetAudioDevList(csound, devs, output));
+  }
+  else
+    n = 0;
   if (output)
     csound->Message(csound, Str("%d audio output devices\n"), n);
   else
     csound->Message(csound, Str("%d audio input devices\n"), n);
-  csoundGetAudioDevList(csound, devs, output);
   for (i = 0; i < n; i++) {
     int32_t nchnls = devs[i].max_nchnls;
     if (nchnls > 0)
@@ -2058,13 +2181,17 @@ static void list_audio_devices(CSOUND *csound, int32_t output) {
 static void list_midi_devices(CSOUND *csound, int32_t output) {
 
   int32_t i, n = csoundGetMIDIDevList(csound, NULL, output);
-  CS_MIDIDEVICE *devs =
-      (CS_MIDIDEVICE *)csound->Malloc(csound, n * sizeof(CS_MIDIDEVICE));
+  CS_MIDIDEVICE *devs = NULL;
+  if (n > 0) {
+    devs = (CS_MIDIDEVICE *)csound->Calloc(csound, n * sizeof(CS_MIDIDEVICE));
+    n = devices_filled(n, csoundGetMIDIDevList(csound, devs, output));
+  }
+  else
+    n = 0;
   if (output)
     csound->Message(csound, Str("%d MIDI output devices\n"), n);
   else
     csound->Message(csound, Str("%d MIDI input devices\n"), n);
-  csoundGetMIDIDevList(csound, devs, output);
   for (i = 0; i < n; i++)
     csound->Message(csound, " %d: %s (%s)\n", i, devs[i].device_id,
                     devs[i].device_name);

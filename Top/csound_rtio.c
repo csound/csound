@@ -186,11 +186,15 @@ void csoundSetAudioDeviceListCallback(
 
  int32_t csoundGetAudioDevList(CSOUND *csound, CS_AUDIODEVICE *list,
                                      int32_t isOutput) {
+  if (csound->audio_dev_list_callback == NULL)
+    return 0;
   return csound->audio_dev_list_callback(csound, list, isOutput);
 }
 
  int32_t csoundGetMIDIDevList(CSOUND *csound, CS_MIDIDEVICE *list,
                                     int32_t isOutput) {
+  if (csound->midi_dev_list_callback == NULL)
+    return 0;
   return csound->midi_dev_list_callback(csound, list, isOutput);
 }
 
@@ -363,9 +367,16 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
 }
 
 
+/* Loads and starts the plugins, or starts them again once they have been,
+   so that the module just chosen sets its callbacks. */
+static int32_t start_modules(CSOUND *csound) {
+  if (!csound->default_modules_loaded)
+    return csoundLoadDefaultModules(csound);
+  return csoundInitModules(csound);
+}
+
  void csoundSetRTAudioModule(CSOUND *csound, const char *module) {
   char *s;
-  int32_t modules_loaded = csound->default_modules_loaded;
   if ((s = csoundQueryGlobalVariable(csound, "_RTAUDIO")) != NULL)
     strNcpy(s, module, 20);
   if (UNLIKELY(s == NULL))
@@ -381,15 +392,16 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
     csound->SetAudioDeviceListCallback(csound, audio_dev_list_dummy);
     return;
   }
-  if (csoundLoadDefaultModules(csound) != CSOUND_SUCCESS)
-    csound->LongJmp(csound, 1);
-  if (modules_loaded && csoundInitModules(csound) != 0)
-    csound->LongJmp(csound, 1);
+  /* A host may call this first: a plugin that fails to load or start ends
+     the call. It returns nothing to say so, and csoundStart() starts the
+     plugins again, and fails on it, even after a compile that has started
+     them. */
+  if (csoundCatchJump(csound, start_modules) != CSOUND_SUCCESS)
+    csound->modules_loaded = 0;
 }
 
  void csoundSetMIDIModule(CSOUND *csound, const char *module) {
   char *s;
-  int32_t modules_loaded = csound->default_modules_loaded;
 
   if ((s = csoundQueryGlobalVariable(csound, "_RTMIDI")) != NULL)
     strNcpy(s, module, 20);
@@ -407,8 +419,7 @@ void **csoundGetRtPlayUserData(CSOUND *csound) {
 
     return;
   }
-  if (csoundLoadDefaultModules(csound) != CSOUND_SUCCESS)
-    csound->LongJmp(csound, 1);
-  if (modules_loaded && csoundInitModules(csound) != 0)
-    csound->LongJmp(csound, 1);
+  /* as in csoundSetRTAudioModule() */
+  if (csoundCatchJump(csound, start_modules) != CSOUND_SUCCESS)
+    csound->modules_loaded = 0;
 }

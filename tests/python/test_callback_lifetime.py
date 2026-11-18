@@ -12,6 +12,7 @@ import subprocess
 import sys
 import unittest
 import weakref
+from unittest import mock
 
 PYTHON_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'languages', 'python')
 sys.path.insert(0, PYTHON_DIR)
@@ -134,6 +135,37 @@ cs.remove_keyboard_callback(types.MethodType(fifth, first))
 cs.remove_keyboard_callback(int(str(address)))
 cs.perform_ksmps()
 assert calls == [('first', 'a')], calls
+'''
+
+# A callback that registers itself again from inside, with new data each time,
+# still has the data it was called with, and only the last data stays held.
+KEYBOARD_AGAIN_FROM_ITSELF = PRELUDE + '''
+import gc, weakref
+class Data:
+    def __init__(self, n):
+        self.n = n
+seen, alive = [], weakref.WeakSet()
+event = ctcsound.CSOUND_CALLBACK_KBD_EVENT.value
+def key(user_data, _data, _type):
+    fresh = Data(user_data.n + 1)
+    alive.add(fresh)
+    cs.register_keyboard_callback(key, fresh, event)
+    seen.append(user_data.n)
+    return 0
+cs.register_keyboard_callback(key, Data(0), event)
+cs.compile_orc(HEADER + """instr 1
+    k_key:k, k_down:k = sensekey()
+endin
+schedule(1, 0, 1)
+""")
+cs.start()
+kept = len(cs._kept)
+for _ in range(50):
+    cs.perform_ksmps()
+gc.collect()
+assert seen == list(range(50)), seen
+assert len(alive) == 1, len(alive)
+assert len(cs._kept) == kept, len(cs._kept) - kept
 '''
 
 # Csound keeps the name and the types as well, which Python would reuse.
@@ -357,6 +389,53 @@ class CallbackLifetimeTests(unittest.TestCase):
                                            ctcsound.CSOUND_CALLBACK_KBD_EVENT.value)
         del user_data
         self.assertIsNotNone(kept())
+
+    def test_a_keyboard_callback_holds_only_the_user_data_csound_has(self):
+        function, event = Callback(), ctcsound.CSOUND_CALLBACK_KBD_EVENT.value
+        replaced, current, refused, invalid = Callback(), Callback(), Callback(), Callback()
+        held = [weakref.ref(value) for value in (replaced, current, refused, invalid)]
+        self.cs.register_keyboard_callback(function, replaced, event)
+        kept = len(self.cs._kept)
+        for _ in range(100):
+            self.cs.register_keyboard_callback(function, replaced, event)
+        self.assertEqual(len(self.cs._kept), kept)
+        # A wrapper hands over what its CSOUND's owner holds, and then goes.
+        ctcsound.Csound(pointer_=self.cs.csound()).register_keyboard_callback(
+            function, current, event)
+        # Csound refuses the type, and keeps what it had.
+        self.assertEqual(self.cs.register_keyboard_callback(function, refused, 1 << 8),
+                         ctcsound.CSOUND_ERROR)
+        # Nor does a type Python cannot take reach Csound.
+        with self.assertRaises(TypeError):
+            self.cs.register_keyboard_callback(function, invalid, None)
+        del replaced, current, refused, invalid
+        gc.collect()
+        self.assertEqual([ref() is not None for ref in held], [False, True, False, False])
+        self.cs.remove_keyboard_callback(function)
+        gc.collect()
+        self.assertIsNone(held[1]())
+
+    def test_a_registration_interrupted_once_csound_has_the_data_keeps_it(self):
+        function, event = Callback(), ctcsound.CSOUND_CALLBACK_KBD_EVENT.value
+        replaced, current = Callback(), Callback()
+        held = weakref.ref(current)
+        register = ctcsound.libcsound.csoundRegisterKeyboardCallback
+
+        def interrupted(*args):
+            result = register(*args)
+            raise KeyboardInterrupt(result)
+
+        self.cs.register_keyboard_callback(function, replaced, event)
+        with mock.patch.object(ctcsound.libcsound, 'csoundRegisterKeyboardCallback',
+                               interrupted):
+            with self.assertRaises(KeyboardInterrupt):
+                self.cs.register_keyboard_callback(function, current, event)
+        del replaced, current
+        gc.collect()
+        self.assertIsNotNone(held())
+
+    def test_a_keyboard_callback_can_register_itself_again_with_new_data(self):
+        self.run_alone(KEYBOARD_AGAIN_FROM_ITSELF)
 
     def test_destroy_releases_what_was_kept(self):
         replaced, function, user_data = Callback(), Callback(), Callback()

@@ -64,6 +64,8 @@ static inline int32_t ordering(SRTBLK *a, SRTBLK *b)
     /* printf("SORT: ca=%c, cb=%c\n", ca, cb); */
     if (ca=='w') return TRUE;
     if (cb=='w') return FALSE;
+    if (ca=='t' && cb=='t') return b->lineno > a->lineno; /* in their order */
+    if (ca=='t') return TRUE;
     if (cb=='t') return FALSE;
     tmp = b->newp2 - a->newp2;
     if (tmp < 0) return FALSE;

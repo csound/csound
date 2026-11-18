@@ -378,6 +378,149 @@ int32_t atonex(CSOUND *csound, TONEX *p)      /* Gabriel Maldonado, modified */
     return OK;
 }
 
+static void tonela_coefficients(TONELA *p)
+{
+    cs_double a, b, a2;
+
+    TONE_COEFFICIENTS(p->prvhp * CS_TPIDSR, p->c1, p->c2);
+    a = p->c2;
+    b = p->c1;
+    a2 = a * a;
+    p->a4 = a2 * a2;
+    p->g[0] = b;
+    p->g[1] = b * a;
+    p->g[2] = p->g[1] * a;
+    p->g[3] = p->g[2] * a;
+}
+
+int32_t tonelaset(CSOUND *csound, TONELA *p)
+{
+    p->prvhp = (cs_double)*p->khp;
+    tonela_coefficients(p);
+    if (LIKELY(!(*p->istor))) {
+      memset(p->yh, 0, sizeof(p->yh));
+      memset(p->uh, 0, sizeof(p->uh));
+      p->settle = 4;
+    } else {
+      p->settle = 0;
+    }
+    csound->AuxAlloc(csound, (size_t)CS_KSMPS * sizeof(cs_float), &p->aux);
+    if (UNLIKELY(p->aux.auxp == NULL))
+      return csound->InitError(csound, Str("tonela: insufficient memory\n"));
+    return OK;
+}
+
+static int32_t tonela_process(CSOUND *csound, TONELA *p, int32_t highpass)
+{
+    cs_float       *ar = p->ar;
+    const cs_float *asig = p->asig, *in;
+    uint32_t       offset = p->h.insdshead->ksmps_offset;
+    uint32_t       early = p->h.insdshead->ksmps_no_end;
+    uint32_t       n, nsmps = CS_KSMPS;
+    int32_t        r;
+    cs_double      c1, c2, a4, g[4], y[4], win[7];
+    cs_double      *yh = p->yh, *uh = p->uh;
+
+    if (*p->khp != (cs_float)p->prvhp) {
+      p->prvhp = (cs_double)*p->khp;
+      tonela_coefficients(p);
+      p->settle = 0;
+    }
+    c1 = p->c1;
+    c2 = p->c2;
+    a4 = p->a4;
+    for (r = 0; r < 4; r++)
+      g[r] = p->g[r];
+    if (UNLIKELY(nsmps == 0))
+      return OK;
+    if (UNLIKELY(ar == asig)) {
+      size_t bytes = (size_t)nsmps * sizeof(cs_float);
+      if (UNLIKELY(p->aux.auxp == NULL || p->aux.size < bytes))
+        return csound->PerfError(csound, &(p->h),
+                                 Str("tonela: insufficient memory\n"));
+      in = (const cs_float*)p->aux.auxp;
+      memcpy((void*)in, asig, bytes);
+    } else {
+      in = asig;
+    }
+    if (UNLIKELY(offset))
+      memset(ar, '\0', offset * sizeof(cs_float));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(&ar[nsmps], '\0', early * sizeof(cs_float));
+    }
+    n = offset;
+    while (p->settle < 4 && n < nsmps) {
+      cs_double u = (cs_double)in[n];
+      cs_double out = c1 * u + c2 * yh[3];
+
+      yh[0] = yh[1];
+      yh[1] = yh[2];
+      yh[2] = yh[3];
+      yh[3] = out;
+      uh[0] = uh[1];
+      uh[1] = uh[2];
+      uh[2] = u;
+      ar[n] = (cs_float)(highpass ? u - out : out);
+      p->settle++;
+      n++;
+    }
+    while (n + 4u <= nsmps) {
+      if (UNLIKELY(n - offset < 3)) {
+        win[0] = uh[0];
+        win[1] = uh[1];
+        win[2] = uh[2];
+        for (r = 0; r < 4; r++)
+          win[3+r] = (cs_double)in[n+r];
+        for (r = 0; r < 4; r++)
+          y[r] = a4 * yh[r] + g[0] * win[3+r] + g[1] * win[2+r]
+               + g[2] * win[1+r] + g[3] * win[0+r];
+      } else {
+        for (r = 0; r < 4; r++)
+          y[r] = a4 * yh[r] + g[0] * (cs_double)in[n+r]
+               + g[1] * (cs_double)in[n+r-1]
+               + g[2] * (cs_double)in[n+r-2]
+               + g[3] * (cs_double)in[n+r-3];
+      }
+      for (r = 0; r < 4; r++) {
+        cs_double u = (cs_double)in[n+r];
+        ar[n+r] = (cs_float)(highpass ? u - y[r] : y[r]);
+      }
+      for (r = 0; r < 4; r++)
+        yh[r] = y[r];
+      uh[0] = (cs_double)in[n+1];
+      uh[1] = (cs_double)in[n+2];
+      uh[2] = (cs_double)in[n+3];
+      n += 4;
+    }
+    while (n < nsmps) {
+      cs_double u = (cs_double)in[n];
+      cs_double out = a4 * yh[0] + g[0] * u + g[1] * uh[2]
+                    + g[2] * uh[1] + g[3] * uh[0];
+
+      yh[0] = yh[1];
+      yh[1] = yh[2];
+      yh[2] = yh[3];
+      yh[3] = out;
+      uh[0] = uh[1];
+      uh[1] = uh[2];
+      uh[2] = u;
+      ar[n] = (cs_float)(highpass ? u - out : out);
+      n++;
+    }
+    return OK;
+}
+
+int32_t tonela(CSOUND *csound, TONELA *p)
+{
+    return tonela_process(csound, p, 0);
+}
+
+int32_t atonela(CSOUND *csound, TONELA *p)
+{
+    return tonela_process(csound, p, 1);
+}
+
 int32_t rsnset(CSOUND *csound, RESON *p)
 {
     cs_double scale_value = (cs_double)*p->iscl;

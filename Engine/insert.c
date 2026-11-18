@@ -516,6 +516,7 @@ int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
   else {
     wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp] = *data;
+    csound->alloc_queue[wp].rewinds = ATOMIC_GET(csound->score_rewinds);
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
     ATOMIC_INCR(csound->alloc_queue_items);
     if (data->type == ALLOC_DATA_MIDI_EVENT)
@@ -569,6 +570,14 @@ void alloc_queue_stop(CSOUND *csound)
 {
   ATOMIC_SET(csound->alloc_queue_stopping, 1);
   ATOMIC_SET(csound->event_insert_loop, 0);
+}
+
+/* A request queued before the last rewind of the score: the note it would
+   start or reinit, the rewind turns off. */
+static int32_t queued_before_rewind(const CSOUND *csound,
+                                    const ALLOC_DATA *data)
+{
+  return data->rewinds != ATOMIC_GET(csound->score_rewinds);
 }
 
 static void alloc_queue_complete(CSOUND *csound, int32_t type)
@@ -813,17 +822,322 @@ void realtime_message_queue_stop(CSOUND *csound)
                      Str("%ld realtime messages dropped\n"), dropped);
 }
 
+#if defined(_MSC_VER)
+#define INIT_THREAD_LOCAL __declspec(thread)
+#elif defined(BARE_METAL)
+#define INIT_THREAD_LOCAL
+#else
+#define INIT_THREAD_LOCAL _Thread_local
+#endif
+
+/* Where a fatal jump lands on the realtime init thread. exitjmp belongs to
+   the thread that performs, and a jump to it from here went on running that
+   thread's frames on this one. So each pass on this thread, an init_pass, a
+   reinit_pass or init_instr0's for global code, sets a landing, as do a
+   UDO's and a subinstrument's init (useropcdset, subinstrset_), which run
+   their opcodes themselves. The innermost
+   takes the jump: it puts back what it set, releases its level of the init
+   mutex and ends in error, and what called it unwinds as from an init error.
+   From then on, no pass on this thread runs another opcode: the performance
+   is over. The thread that performs makes the jump at the start of its next
+   control period, or as the score ends (init_thread_jump_make).
+   The passes inside a compile's API call (API_CALL) set landings too, on
+   any thread, and the call takes the jump as its error; a call that catches
+   its jumps (api_call_catch) stands aside for them. */
+static INIT_THREAD_LOCAL CSOUND *init_thread;        /* the instance whose
+                                                         init thread this is */
+static INIT_THREAD_LOCAL INIT_LANDING *init_landing; /* the innermost pass's */
+static INIT_THREAD_LOCAL int32_t init_jumped;        /* this thread took a
+                                                         jump: the first */
+static INIT_THREAD_LOCAL CSOUND *init_item;          /* the instance whose
+                                                         queued item runs */
+static INIT_THREAD_LOCAL int32_t rewind_asked;       /* that item asked for a
+                                                         rewind of the score */
+static INIT_THREAD_LOCAL long rewind_asked_at;       /* score_rewinds then */
+static INIT_THREAD_LOCAL long rewind_first_asked_at; /*   and at its first  */
+static INIT_THREAD_LOCAL EVTNODE *held_events;       /* what the item       */
+static INIT_THREAD_LOCAL EVTNODE *held_events_last;  /*   scheduled since it
+                                                         asked                */
+static INIT_THREAD_LOCAL const CSOUND *note_init_of; /* the instance a note
+                                                         of which the score
+                                                         or MIDI started is
+                                                         in its init pass,
+                                                         or in a reinit       */
+
+static INIT_THREAD_LOCAL API_CALL *api_call;          /* the innermost */
+static INIT_THREAD_LOCAL const CSOUND *exitjmp_owner; /* a call on this
+                                                         thread set this
+                                                         instance's exitjmp,
+                                                         and runs */
+
+/* The innermost API call on this thread, if it takes this instance's
+   jumps. */
+API_CALL *api_call_of(const CSOUND *csound)
+{
+  API_CALL *call = api_call;
+  return call != NULL && call->csound == csound ? call : NULL;
+}
+
+void api_call_begin(CSOUND *csound, API_CALL *call)
+{
+  call->csound = csound;
+  call->outer = api_call;
+  call->initThread = init_thread;
+  call->initLanding = init_landing;
+  call->initJumped = init_jumped;
+  call->jumped = 0;
+  call->catching = 0;
+  init_thread = NULL;
+  init_landing = NULL;
+  init_jumped = 0;
+  api_call = call;
+}
+
+void api_call_end(const API_CALL *call)
+{
+  api_call = call->outer;
+  init_landing = call->initLanding;
+  if (!call->catching) {      /* one that catches leaves these as they go */
+    init_thread = call->initThread;
+    init_jumped = call->initJumped;
+  }
+}
+
+/* A call that catches the jumps made inside it, as the frame that held
+   exitjmp for its length did. It stands aside for the passes and the
+   compile around it, as that frame did: a pass inside it sets a landing
+   where it would without it, and takes its own jump. It hides the landings
+   of the passes around it, so that any other jump comes to it. */
+void api_call_catch(CSOUND *csound, API_CALL *call)
+{
+  call->csound = csound;
+  call->outer = api_call;
+  call->initLanding = init_landing;
+  call->jumped = 0;
+  call->catching = 1;
+  init_landing = NULL;
+  api_call = call;
+}
+
+/* The innermost call on this thread, of this instance, whose passes take
+   their own jumps (a compile's), passing over the calls that catch. */
+static API_CALL *pass_call_of(const CSOUND *csound)
+{
+  API_CALL *call;
+  for (call = api_call; call != NULL && call->csound == csound;
+       call = call->outer)
+    if (!call->catching)
+      return call;
+  return NULL;
+}
+
+int32_t api_call_takes_passes(const CSOUND *csound)
+{
+  return pass_call_of(csound) != NULL;
+}
+
+/* Whether a call of this instance runs on this thread: one with a landing,
+   one that set exitjmp (api_call_nested), or the realtime init thread's
+   work. */
+int32_t api_call_running(const CSOUND *csound)
+{
+  return api_call_of(csound) != NULL || init_thread == csound ||
+    exitjmp_owner == csound;
+}
+
+/* A call that sets exitjmp and keeps it when it runs on its own: inside
+   another call on this thread (api_call_running), it catches its jumps in a
+   call of its own instead, and exitjmp stays the outer frame's. On its own,
+   it marks the thread as running a call while it does. */
+jmp_buf *api_call_nested(CSOUND *csound, API_CALL *call)
+{
+  if (api_call_running(csound)) {
+    api_call_catch(csound, call);
+    return &call->target;
+  }
+  call->csound = NULL;
+  call->ownerBefore = exitjmp_owner;
+  exitjmp_owner = csound;
+  return &csound->exitjmp;
+}
+
+void api_call_nested_end(const API_CALL *call)
+{
+  if (call->csound != NULL)
+    api_call_end(call);
+  else
+    exitjmp_owner = call->ownerBefore;
+}
+
+/* Sets a pass's landing, if this thread lands this instance's jumps. */
+int32_t init_landing_push(CSOUND *csound, INIT_LANDING *landing)
+{
+  if (init_thread != csound && pass_call_of(csound) == NULL)
+    return 0;
+  landing->csound = csound;
+  landing->outer = init_landing;
+  init_landing = landing;
+  return 1;
+}
+
+void init_landing_pop(const INIT_LANDING *landing)
+{
+  init_landing = landing->outer;
+}
+
+/* In the API call that runs the pass, or for good, on the init thread. */
+int32_t init_jump_pending(const CSOUND *csound)
+{
+  const API_CALL *call = pass_call_of(csound);
+  if (call != NULL)
+    return call->jumped != 0;
+  return init_jumped;
+}
+
+void init_pass_unwind(CSOUND *csound, int32_t n)
+{
+  INIT_LANDING *landing = init_landing;
+  if (landing != NULL && landing->csound == csound) {
+    API_CALL *call = pass_call_of(csound);
+    if (call != NULL) {
+      if (call->jumped == 0)                    /* the first is the call's */
+        call->jumped = n;
+    }
+    else if (!init_jumped) {                    /* the first is made */
+      init_jumped = 1;
+      ATOMIC_SET(csound->init_thread_jump, n);
+    }
+    longjmp(landing->target, 1);
+  }
+}
+
+/* SUCCESS - n is the retval that gives csoundLongJmp the same n. */
+void init_thread_jump_make(CSOUND *csound)
+{
+  int32_t n;
+  if (!csound->oparms->realtime)  /* only the realtime init thread sets it */
+    return;
+  n = ATOMIC_GET(csound->init_thread_jump);
+  if (UNLIKELY(n != 0)) {
+    ATOMIC_SET(csound->init_thread_jump, 0);
+    csoundLongJmp(csound, CSOUND_EXITJMP_SUCCESS - n);
+  }
+}
+
+int32_t init_item_asks_rewind(CSOUND *csound)
+{
+  if (init_item != csound)
+    return 0;
+  /* the performance reads no line while an item has asked: a line it sent
+     is read once the performance has rewound */
+  if (!rewind_asked) {
+    ATOMIC_INCR(csound->rewind_asking);
+    rewind_first_asked_at = ATOMIC_GET(csound->score_rewinds);
+  }
+  /* asked again: the events it scheduled since the first ask come before
+     this rewind, which drops them (its lines wait in the line buffer) */
+  rt_events_drop(csound, held_events);
+  held_events = held_events_last = NULL;
+  rewind_asked = 1;
+  rewind_asked_at = ATOMIC_GET(csound->score_rewinds);
+  return 1;
+}
+
+int32_t init_item_rewinding(const CSOUND *csound)
+{
+  long rewinds;
+  if (init_item != csound || !rewind_asked)
+    return 0;
+  /* no rewind since the ask, or the one that serves it is under way */
+  rewinds = ATOMIC_GET(csound->score_rewinds);
+  return rewinds == rewind_asked_at ||
+    rewinds != ATOMIC_GET(csound->score_rewinds_done);
+}
+
+int32_t init_item_runs(const CSOUND *csound)
+{
+  return init_item == csound;
+}
+
+/* What an item held, once a rewind since its ask served it: put in from
+   that rewind's time origin, or, if a later rewind came too, dropped, as
+   that one would have dropped it. */
+static void release_served(CSOUND *csound, EVTNODE *events)
+{
+  if (ATOMIC_GET(csound->score_rewinds) == rewind_asked_at + 1)
+    rt_events_insert_held(csound, events);
+  else
+    rt_events_drop(csound, events);
+}
+
+void init_item_release_served(CSOUND *csound)
+{
+  EVTNODE *events = held_events;
+  if (init_item != csound || events == NULL || init_item_rewinding(csound))
+    return;
+  held_events = held_events_last = NULL;
+  release_served(csound, events);
+}
+
+void init_item_holds_event(EVTNODE *e)
+{
+  e->evt.pinstance = NULL;   /* the init is over when the rewind puts it in */
+  e->nxt = NULL;
+  if (held_events_last != NULL)
+    held_events_last->nxt = e;
+  else
+    held_events = e;
+  held_events_last = e;
+}
+
+const CSOUND *note_init_enter(const CSOUND *csound)
+{
+  const CSOUND *outer = note_init_of;
+  note_init_of = csound;
+  return outer;
+}
+
+void note_init_leave(const CSOUND *outer)
+{
+  note_init_of = outer;
+}
+
+int32_t note_init_runs(const CSOUND *csound)
+{
+  return note_init_of == csound;
+}
+
+void note_inits_reset(const CSOUND *csound)
+{
+  if (note_init_of == csound)
+    note_init_of = NULL;
+}
+
 /* do init pass for this instr */
 static int32_t init_pass(CSOUND *csound, INSDS *ip) {
   int32_t error = 0;
   OPDS *ids = csound->ids;
   INSDS *curip = csound->curip;
+  EVTBLK *initEvent = csound->init_event;
+  INIT_LANDING landing;
+  int32_t landed = init_landing_push(csound, &landing);
   if(csound->oparms->realtime)
     csoundLockMutex(csound->init_pass_threadlock);
   csound->curip = ip;
   csound->ids = (OPDS *)ip;
   ip->init_pass++;
+  if (landed) {
+    if (setjmp(landing.target)) {
+      csound->mode = 0;
+      csound->init_event = initEvent;
+      error = NOTOK;
+    }
+  }
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL) {
+    if (landed && init_jump_pending(csound)) {
+      error = NOTOK;
+      break;
+    }
     csound->mode = 1;
     csound->op = csound->ids->optext->t.oentry->opname;
     if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME)) {
@@ -831,6 +1145,11 @@ static int32_t init_pass(CSOUND *csound, INSDS *ip) {
      }
     error = (*csound->ids->init)(csound, csound->ids);
     csound->mode = 0;
+  }
+  if (landed) {
+    if (error == 0 && init_jump_pending(csound))
+      error = NOTOK;
+    init_landing_pop(&landing);
   }
   csound->ids = ids;
   csound->curip = curip;
@@ -850,26 +1169,49 @@ int32_t rireturn(CSOUND *csound, void *p);
 /* do reinit pass */
 static int32_t reinit_pass(CSOUND *csound, INSDS *ip, OPDS *ids) {
   int32_t error = 0;
+  const CSOUND *outer;
+  EVTBLK *initEvent = csound->init_event;
+  INIT_LANDING landing;
+  int32_t landed = init_landing_push(csound, &landing);
   if(csound->oparms->realtime) {
     csoundLockMutex(csound->init_pass_threadlock);
   }
   /* Each queued pass owns a complete reinit interval. An earlier queued pass
      may already have cleared these flags before this one starts. */
+  outer = note_init_enter(csound);
   csound->reinitflag = ip->reinitflag = 1;
   csound->curip = ip;
   csound->ids = ids;
   csound->mode = 1;
   ip->init_pass++;
+  if (landed) {
+    if (setjmp(landing.target)) {
+      csound->init_event = initEvent;
+      csound->curip = ip;
+      csound->ids = ids;
+      error = NOTOK;
+    }
+  }
   while (error == 0 && (csound->ids = csound->ids->nxti) != NULL &&
          (csound->ids->init != (SUBR) rireturn)){
+    if (landed && init_jump_pending(csound)) {
+      error = NOTOK;
+      break;
+    }
     csound->op = csound->ids->optext->t.oentry->opname;
     if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME))
       csound->Message(csound, "reinit %s:\n", csound->op);
     error = (*csound->ids->init)(csound, csound->ids);
   }
+  if (landed) {
+    if (error == 0 && init_jump_pending(csound))
+      error = NOTOK;
+    init_landing_pop(&landing);
+  }
   csound->mode = 0;
 
   csound->reinitflag = ip->reinitflag = 0;
+  note_init_leave(outer);
   if(csound->oparms->realtime)
     csoundUnlockMutex(csound->init_pass_threadlock);
   return error;
@@ -906,6 +1248,7 @@ uintptr_t event_insert_thread(void *p) {
   unsigned long rp = 0, rpm = 0;
   message_string_queue_t *mess = csound->message_string_queue;
 
+  init_thread = csound;
   for (;;) {
     ALLOC_DATA data;
     int32_t stopping;
@@ -916,6 +1259,9 @@ uintptr_t event_insert_thread(void *p) {
       /* Keep the common lock order: init mutex, then allocation lock. */
       if (csound->init_pass_threadlock)
         csoundLockMutex(csound->init_pass_threadlock);
+      init_item = csound;
+      /* no note's init runs here now: what a jump out of one left is gone */
+      note_inits_reset(csound);
       switch (data.type) {
         case ALLOC_DATA_MERGE_STATE: {
           ENGINE_STATE *engine_state = data.engine_state;
@@ -928,10 +1274,19 @@ uintptr_t event_insert_thread(void *p) {
         case ALLOC_DATA_REINIT_PASS: {
           INSDS *ip = data.ip;
           OPDS *ids = data.ids;
-          int32_t error;
+          int32_t error = NOTOK;
           INSTANCE_INIT_RESULT initResult;
           csoundSpinLock(&csound->alloc_spinlock);
-          error = realtime_reinit_pass(csound, ip, ids);
+          /* A rewind of the score turns notes off, and passes over one in
+             reinit, which is not active: one queued before the rewind, or
+             running when it comes, ends here, as a failed reinit. */
+          if (queued_before_rewind(csound, &data))
+            csound->reinitflag = ip->reinitflag = 0;   /* as the pass would */
+          else {
+            error = realtime_reinit_pass(csound, ip, ids);
+            if (queued_before_rewind(csound, &data))
+              error = NOTOK;
+          }
           initResult = instance_init_finish(csound, ip);
           if (error == 0 && initResult != INSTANCE_INIT_TURNOFF) {
             ATOMIC_SET8(ip->actflg, 1);
@@ -950,11 +1305,14 @@ uintptr_t event_insert_thread(void *p) {
           INSDS *ip = data.ip;
           int32_t error;
           INSTANCE_INIT_RESULT initResult;
+          const CSOUND *outer;
           ATOMIC_SET(ip->init_done, 0);
           if (UNLIKELY(instance_init_begin(csound, ip) != CSOUND_SUCCESS))
             break;
           csoundSpinLock(&csound->alloc_spinlock);
+          outer = note_init_enter(csound);
           error = realtime_init_pass(csound, ip);
+          note_init_leave(outer);
           initResult = instance_init_finish(csound, ip);
           if (initResult == INSTANCE_INIT_COMPLETE && error == 0)
             ATOMIC_SET(ip->init_done, 1);
@@ -966,15 +1324,18 @@ uintptr_t event_insert_thread(void *p) {
 
         case ALLOC_DATA_MIDI_EVENT:
           csoundSpinLock(&csound->alloc_spinlock);
-          insert_midi(csound, data.insno, data.chn, &data.mep);
+          /* a note queued before a rewind of the score does not start */
+          if (!queued_before_rewind(csound, &data))
+            insert_midi(csound, data.insno, data.chn, &data.mep);
           csoundSpinUnLock(&csound->alloc_spinlock);
           break;
 
         case ALLOC_DATA_SCORE_EVENT:
         {
-          int32_t result;
+          int32_t result = -1;
           csoundSpinLock(&csound->alloc_spinlock);
-          result = insert(csound, data.insno, &data.blk);
+          if (!queued_before_rewind(csound, &data))
+            result = insert(csound, data.insno, &data.blk);
           csoundSpinUnLock(&csound->alloc_spinlock);
           if (result == 0) {
             /* insert() copies p-fields, but keeps strarg for INSDS::strarg. */
@@ -986,6 +1347,39 @@ uintptr_t event_insert_thread(void *p) {
           }
           break;
         }
+      }
+      init_item = NULL;
+      /* A rewind this item asked for: the performance makes it now, unless
+         a rewind came since it last asked, which serves it, or between a
+         note's item being queued and its first ask, which turned the note
+         off. Under the allocation lock, which the performance holds while
+         it rewinds. */
+      if (rewind_asked) {
+        EVTNODE *events = held_events;
+        int32_t served, counted;
+        rewind_asked = 0;
+        held_events = held_events_last = NULL;
+        csoundSpinLock(&csound->alloc_spinlock);
+        served = ATOMIC_GET(csound->score_rewinds) != rewind_asked_at;
+        /* a note a rewind turned off before its first ask asks for none */
+        counted = !served && (data.type == ALLOC_DATA_MERGE_STATE ||
+                              data.rewinds == rewind_first_asked_at);
+        if (counted) {
+          /* its events go in with the rewind */
+          rt_events_keep_for_rewind(csound, events);
+          events = NULL;
+          ATOMIC_INCR(csound->score_rewind_request);
+        }
+        csoundSpinUnLock(&csound->alloc_spinlock);
+        /* a rewind since the ask served it, and its events go in from that
+           rewind; a note a rewind turned off before it asked takes them
+           with it */
+        if (served)
+          release_served(csound, events);
+        else
+          rt_events_drop(csound, events);
+        /* lines may be read again: once that rewind is made, if counted */
+        ATOMIC_DECR(csound->rewind_asking);
       }
       if (csound->init_pass_threadlock)
         csoundUnlockMutex(csound->init_pass_threadlock);
@@ -1016,6 +1410,7 @@ uintptr_t event_insert_thread(void *p) {
     if (stopping)
       break;
   }
+  init_thread = NULL;
 
   return (uintptr_t) NULL;
 }
@@ -1024,6 +1419,8 @@ uintptr_t event_insert_thread(void *p) {
 static int32_t init_instr0(CSOUND *csound, INSTRTXT *tp)
 {
   INSDS     *ip;
+  INIT_LANDING landing;
+  int32_t   landed, jumped = 0;
 
   csound->curip = ip = allocate_or_take_instance(csound, tp, 0);
   if (UNLIKELY(ip == NULL))
@@ -1045,13 +1442,29 @@ static int32_t init_instr0(CSOUND *csound, INSTRTXT *tp)
   csound->inerrcnt = 0;
   csound->mode = 1;
   ip->init_pass++;
+  landed = init_landing_push(csound, &landing);
+  if (landed) {
+    if (setjmp(landing.target)) {
+      csound->curip = ip;
+      jumped = 1;
+    }
+  }
 
-  while ((csound->ids = csound->ids->nxti) != NULL) {
+  while (!jumped && (csound->ids = csound->ids->nxti) != NULL) {
+    if (landed && init_jump_pending(csound)) {
+      jumped = 1;
+      break;
+    }
     csound->op = csound->ids->optext->t.oentry->opname;
     (*csound->ids->init)(csound, csound->ids);  /*   run all i-code     */
   }
+  if (landed) {
+    if (init_jump_pending(csound))
+      jumped = 1;
+    init_landing_pop(&landing);
+  }
   csound->mode = 0;
-  return csound->inerrcnt;                        /*   return errcnt      */
+  return csound->inerrcnt + jumped;               /*   return errcnt      */
 }
 
 static INSTRTXT *current_instr0(CSOUND *csound)
@@ -1275,6 +1688,7 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
   CS_VAR_MEM *pfields = NULL;        /* *** was uninitialised *** */
   int32_t   tie = 0, i;
   int32_t  n, error = 0;
+  const CSOUND *outer;
   INSTANCE_INIT_RESULT initResult;
   cs_float  *flp, *fep;
 
@@ -1522,8 +1936,10 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
 
   // current event needs to be reset here
   csound->init_event = newevtp;
+  outer = note_init_enter(csound);
   error = csound->oparms->realtime ? realtime_init_pass(csound, ip) :
     init_pass(csound, ip);
+  note_init_leave(outer);
   initResult = instance_init_finish(csound, ip);
   ATOMIC_SET(ip->init_done, 0);
   if (initResult == INSTANCE_INIT_TURNOFF) {
@@ -1623,6 +2039,7 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   CS_VAR_MEM *pfields;
   int32_t pmax = 0, error = 0;
   INSTANCE_INIT_RESULT initResult;
+  const CSOUND *outer;
 
   if (UNLIKELY(csound->advanceCnt))
     return 0;
@@ -1854,8 +2271,10 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
    }
   } else csound->init_event = NULL;
 
+  outer = note_init_enter(csound);
   error = csound->oparms->realtime ? realtime_init_pass(csound, ip) :
     init_pass(csound, ip);
+  note_init_leave(outer);
   if(evt.p) csound->Free(csound, evt.p);
   csound->init_event = NULL;
   initResult = instance_init_finish(csound, ip);
@@ -2092,7 +2511,11 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
         continue;
 
       udo = (UOPCODE *) current->opcod_deact;
-      free_user_opcode_buffers(csound, udo);
+      /* A reinit of the UDO still queued or running on the realtime init
+         thread uses these buffers. Its caller's next init, or the reset,
+         frees them then. */
+      if (udo->ip == NULL || ATOMIC_GET(udo->ip->init_running) == 0)
+        free_user_opcode_buffers(csound, udo);
 
       if (udo->ip == NULL || ATOMIC_GET8(udo->ip->actflg) == 0 ||
           !instance_turnoff_claim(csound, udo->ip))
@@ -3281,6 +3704,9 @@ int32_t init_instance(CSOUND *csound, INSDS *ip,
 
   fep = &newevtp->p[0];
   n = newevtp->pcnt;
+  /* the instance holds its instrument's p-fields, up to pmax, as
+     insert_new copies them */
+  if (n > tp->pmax) n = tp->pmax;
   for (i = 1; i < n + 1; i++) {
     CS_VAR_MEM* pfield = pfields + i;
     pfield->varType = &CS_VAR_TYPE_P;

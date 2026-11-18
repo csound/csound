@@ -251,18 +251,16 @@ int32_t printk(CSOUND *csound, PRINTK *p)
 
 #define ESC (0x1B)
 
-/* printksset is called when the instance of the instrument is initialised. */
-static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
+/* printksset_ reads a format into txtstring, at init and when printks'
+   format changes during performance. A format that does not fit is NOTOK,
+   for the caller to report. */
+static int32_t printksset_(PRINTKS *p, char *sarg)
 {
     char        *sdest;
+    /* The last byte stays the terminator the memset writes. */
+    const char  *send = p->txtstring + sizeof(p->txtstring) - 1;
     char        temp, tempn;
 
-    if (*p->ptime < CS_ONEDKR)
-      p->ctime = CS_ONEDKR;
-    else
-      p->ctime = *p->ptime * CS_EKR;
-    if(!p->h.insdshead->reinitflag)
-       p->printat = CS_KCNT;
     memset(p->txtstring, 0, 8192);   /* This line from matt ingalls */
     sdest = p->txtstring;
     /* Copy the string to the storage place in PRINTKS.
@@ -277,6 +275,10 @@ static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
     while (*sarg) {
       temp  = *sarg++;
       tempn = *sarg--;
+      /* A backslash that ends the format escapes nothing. */
+      if (temp == '\\' && tempn == '\0') break;
+      /* Each case writes one byte, and a single tilde or %% two. */
+      if (UNLIKELY(sdest >= send)) return NOTOK;
       /* Look for a single caret and insert an escape char.  */
       if ((temp  == '^') && (tempn != '^')) {
         *sdest++ = ESC;
@@ -289,6 +291,7 @@ static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
 /* Look for a single tilde and insert an escape followed by a '['.
  * ESC[ is the escape sequence for ANSI consoles */
       else if ((temp  == '~') && (tempn != '~')) {
+        if (UNLIKELY(sdest + 1 >= send)) return NOTOK;
         *sdest++ = ESC;
         *sdest++ = '[';
       }
@@ -330,6 +333,14 @@ static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
           break;
         }
       }
+      /* %% goes to sprints whole, which prints one percent sign, and the
+         character after it is not an escape. */
+      else if (temp == '%' && tempn == '%') {
+        if (UNLIKELY(sdest + 1 >= send)) return NOTOK;
+        *sdest++ = '%';
+        *sdest++ = '%';
+        sarg++;
+      }
       /* This case is from matt ingalls */
       else if (temp == '%' && tempn != '%' ) {
         /* an extra option to specify tab and
@@ -369,27 +380,40 @@ static int32_t printksset_(CSOUND *csound, PRINTKS *p, char *sarg)
       /* Increment pointer and process next character until end of string.  */
       ++sarg;
     }
+    return OK;
+}
+
+/* printksset is called when the instance of the instrument is initialised.
+   A format given then: none, or one too long, is an init error. */
+static int32_t printksset_init(CSOUND *csound, PRINTKS *p, char *sarg)
+{
+    if (*p->ptime < CS_ONEDKR)
+      p->ctime = CS_ONEDKR;
+    else
+      p->ctime = *p->ptime * CS_EKR;
     if(!p->h.insdshead->reinitflag)
        p->printat = CS_KCNT;
+    if (sarg == NULL) return csoundInitError(csound, Str("null string\n"));
+    if (UNLIKELY(printksset_(p, sarg) != OK))
+      return csoundInitError(csound,
+                             Str("format too long in formatted printing\n"));
     p->initialised = -1;
     return OK;
 }
 
+/* printks keeps a copy of its format, to see when it changes. */
 int32_t printksset_S(CSOUND *csound, PRINTKS *p){
-    char *sarg;
-    sarg = ((STRINGDAT*)p->ifilcod)->data;
-    if (sarg == NULL) return csoundInitError(csound, Str("null string\n"));
+    char *sarg = ((STRINGDAT*)p->ifilcod)->data;
+    int32_t err = printksset_init(csound, p, sarg);
+    if (UNLIKELY(err != OK)) return err;
+    /* An earlier note of this instance, or a reinit, made one. */
+    csound->Free(csound, p->old);
     p->old = csoundStrdup(csound, sarg);
-    return printksset_(csound, p, sarg);
+    return OK;
 }
 
 int32_t printksset(CSOUND *csound, PRINTKS *p){
-    char* arg_string = csoundGetArgString(csound, *p->ifilcod);
-
-    if (arg_string == NULL) {
-        return csoundInitError(csound, Str("null string\n"));
-    }
-    return printksset_(csound, p, arg_string);
+    return printksset_init(csound, p, csoundGetArgString(csound, *p->ifilcod));
 }
 
 
@@ -506,11 +530,10 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
           len-=1;
         }
         else if (*(fmt+1) && isspace(*(fmt+1))) {
-          if (UNLIKELY(len < 4)) return NOTOK;
+          if (UNLIKELY(len < 3)) return NOTOK;
           *outstring++ = *fmt++;
-          *outstring++ = '%';
           *outstring++ = *fmt++;
-          len-=3;
+          len-=2;
         }
         else {
           int32_t n = 1;
@@ -540,11 +563,6 @@ static int32_t sprints(char *outstring,  char *fmt, cs_float **kvals, int32_t nu
             break;
           case 'c':
             cc  = (char) CS_FLOAT2LRND(*kvals[j]);
-            if (cc == '%') {
-              if (UNLIKELY(len < 3)) return NOTOK;
-              *outstring++ = '%';
-              len--;
-            }
             snprintf(outstring, len, tmp, cc);
             break;
           case 's':
@@ -594,7 +612,9 @@ int32_t printks(CSOUND *csound, PRINTKS *p)
       if (sarg == NULL)
         return csoundPerfError(csound, &(p->h), Str("null string\n"));
       if (p->old==NULL || strcmp(sarg, p->old) != 0) {
-        printksset_(csound, p, sarg);
+        if (UNLIKELY(printksset_(p, sarg) != OK))
+          return csound->PerfError(csound, &(p->h),
+                                   Str("format too long in formatted printing\n"));
         csound->Free(csound, p->old);
         p->old = csoundStrdup(csound, sarg);
       }
@@ -627,17 +647,21 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
-    printksset(csound, &pk);
+    int32_t err = printksset(csound, &pk);
+    if (UNLIKELY(err != OK)) return err;
     memset(string,0,8192);
-    memset(pk.txtstring,0,sizeof(pk.txtstring));
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
         return
           csound->InitError(csound,
                             Str("Insufficient arguments, or a format too long, in formatted printing\n"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
   }
-  else if(isstrcod(*p->ifilcod))
-    csound->Message(csound, "%s", csound->GetArgString(csound, *p->ifilcod));
+  else if(isstrcod(*p->ifilcod)) {
+    const char *s = csound->GetArgString(csound, *p->ifilcod);
+    if (UNLIKELY(s == NULL))
+      return csound->InitError(csound, Str("null string\n"));
+    csound->Message(csound, "%s", s);
+  }
   else csound->Message(csound, "%f\n", *p->ifilcod);
     return OK;
 }
@@ -652,18 +676,15 @@ int32_t printsset_S(CSOUND *csound, PRINTS *p)
     pk.h = p->h;
     pk.ifilcod = p->ifilcod;
     pk.ptime = &ptime;
-    printksset_S(csound, &pk);
-    if (strlen(pk.txtstring) < 8191){
-      memset(string,0,8192);
+    int32_t err = printksset_init(csound, &pk,
+                                  ((STRINGDAT*)p->ifilcod)->data);
+    if (UNLIKELY(err != OK)) return err;
+    memset(string,0,8192);
     if (sprints(string, pk.txtstring, p->kvals, p->INOCOUNT-1)!=OK)
         return
           csound->InitError(csound,
                             Str("Insufficient arguments, or a format too long, in formatted printing\n"));
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
-    } else {
-      csound->Warning(csound,
-                      Str("Formatting string too long: %s\n"), pk.txtstring);
-    }
   } else csound->Message(csound, "%s", ((STRINGDAT*)p->ifilcod)->data);
     return OK;
 }

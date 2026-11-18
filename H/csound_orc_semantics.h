@@ -87,7 +87,7 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable);
 int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable);
 // bison functions
 extern int32_t csound_orcget_lineno(void*);
-extern char *csound_orcget_current_pointer(void *);
+extern int csound_orcget_previous_char(void *);
 
 
 

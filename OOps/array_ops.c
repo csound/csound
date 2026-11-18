@@ -3581,6 +3581,17 @@ int32_t tabcopy1(CSOUND *csound, TABCPY *p)
   return OK;
 }
 
+/* =.b[] copies a b[] at init, as =.I does an i[], and in performance, as
+   =._ did: a b[] can be written at a k index. A source with no value at
+   init, as an array member read at a k index, is only sized, as =._ did,
+   and copied in performance. */
+int32_t tabcopy_b_init(CSOUND *csound, TABCPY *p)
+{
+  if (p->src->data == NULL || p->src->dimensions <= 0)
+    return tabcopyk_init(csound, p);
+  return tabcopy1(csound, p);
+}
+
 static int32_t tabcopy_audio(CSOUND *csound, TABCPY *p, int32_t initializing)
 {
   size_t count, sourceStride, targetStride;

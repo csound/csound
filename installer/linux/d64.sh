@@ -21,10 +21,8 @@ rm ../../../CSDIST/$DIR/opc/frontends/*
 cp -puv ../../li*.so ../../opcodes.dir ../../../CSDIST/$DIR/opc
 
 mv ../../../CSDIST/$DIR/opc/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends
-mv ../../../CSDIST/$DIR/opc/lib_jcsound.so ../../../CSDIST/$DIR/opc/frontends
 cp -puv ../../_loris.so ../../../CSDIST/$DIR/opc/frontends
 ln ../../../CSDIST/$DIR/opc/frontends/lib_csnd.so ../../../CSDIST/$DIR/opc/frontends/_csnd.so
-cp -puv ../../*.jar ../../../CSDIST/$DIR/opc/frontends
 cp -puv ../../csnd.py ../../../CSDIST/$DIR/opc/frontends
 cp -puv ../../loris.py ../../../CSDIST/$DIR/opc/frontends
 rm ../../../CSDIST/$DIR/opc/libcsound64.so

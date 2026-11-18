@@ -20,6 +20,9 @@ class MidiRealtimeInputTests : public ::testing::Test {
   std::vector<unsigned char> pending;
   int32_t capacity = 0;  // of the buffer, as the last read was told
   int32_t excess = 0;    // counted past what a read really wrote
+  bool endless = false;  // every read has a byte more
+  long reads = 0;        // calls to read
+  static constexpr long readLimit = 1000000;  // where an endless read gives up
   std::string extraOrchestra;
 
   static int32_t open(CSOUND *csound, void **data, const char *)
@@ -32,6 +35,10 @@ class MidiRealtimeInputTests : public ::testing::Test {
                       int32_t capacity)
   {
     auto *test = static_cast<MidiRealtimeInputTests *>(data);
+    if (++test->reads <= readLimit && test->endless) {
+      buffer[0] = 0xFE;  // active sensing
+      return 1;
+    }
     auto &bytes = test->pending;
     const auto count = std::min(bytes.size(), static_cast<size_t>(capacity));
     test->capacity = capacity;
@@ -130,6 +137,16 @@ class MidiRealtimeInputTests : public ::testing::Test {
     EXPECT_EQ(csoundGetControlChannel(csound, "data1", nullptr), data1);
     EXPECT_EQ(csoundGetControlChannel(csound, "data2", nullptr), data2);
   }
+
+  // A rewind turns every note off, so the midiin reporter starts again, with
+  // nothing reported yet.
+  void rewind()
+  {
+    csoundRewindScore(csound);
+    csoundEventString(csound, "i3 0 1\n", 0);
+    for (const char *name : {"status", "channel", "data1", "data2"})
+      csoundSetControlChannel(csound, name, 0);
+  }
 };
 
 TEST_F(MidiRealtimeInputTests, ContinueIsIndependentOfClock)
@@ -179,6 +196,27 @@ TEST_F(MidiRealtimeInputTests, ACountThatFillsTheBufferIsRead)
   ASSERT_EQ(csoundPerformKsmps(csound), 0);
   EXPECT_EQ(csoundGetControlChannel(csound, "continue", nullptr), 1);
   EXPECT_EQ(messages().find("error reading MIDI device"), std::string::npos);
+}
+
+TEST_F(MidiRealtimeInputTests, AReadThatNeverEndsDoesNotHoldTheCycle)
+{
+  // A read callback that always has a byte more: each cycle reads a bounded
+  // amount and ends, and the next one reads again.
+  endless = true;
+  for (int i = 0; i < 2; ++i) {
+    reads = 0;
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    EXPECT_GT(reads, 0);
+    EXPECT_LT(reads, readLimit);
+  }
+}
+
+TEST_F(MidiRealtimeInputTests, SixteenBuffersAreReadInOneCycle)
+{
+  pending.assign(16 * capacity, 0xF8);
+  ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_TRUE(pending.empty());
+  EXPECT_EQ(csoundGetControlChannel(csound, "clock", nullptr), 1);
 }
 
 TEST_F(MidiRealtimeInputTests, TransportFlagsSurviveNoteMessages)
@@ -233,6 +271,26 @@ TEST_F(MidiRealtimeInputTests, RunningStatusRepeatsTheLastMessage)
   EXPECT_EQ(csoundGetControlChannel(csound, "clock", nullptr), 1);
 }
 
+TEST_F(MidiRealtimeInputTests, SystemMessagesEndRunningStatus)
+{
+  // A tune request, a system exclusive, an end of exclusive: the data bytes
+  // after each are part of no message.
+  message({{0x90, 60, 100, 0xF6, 61, 101}, {}}, 0x90, 1, 60, 100);
+  message({{0x91, 62, 100, 0xF0, 1, 0xF7, 63, 101}, {}}, 0x90, 2, 62, 100);
+  message({{0x92, 64, 100, 0xF7, 65, 101}, {}}, 0x90, 3, 64, 100);
+}
+
+TEST_F(MidiRealtimeInputTests, UndefinedSystemCommonTakesNoData)
+{
+  message({{0x90, 60, 100}}, 0x90, 1, 60, 100);
+  for (unsigned char status : {0xF4, 0xF5}) {
+    SCOPED_TRACE(static_cast<int>(status));
+    std::vector<unsigned char> bytes(1 + 32767, 61);
+    bytes[0] = status;
+    message({bytes, {}}, 0x90, 1, 60, 100);
+  }
+}
+
 TEST_F(MidiRealtimeInputTests, StatusAfterACutOffStatusIsAStatus)
 {
   // A read ends on a status whose data never comes: the status that
@@ -249,6 +307,15 @@ TEST_F(MidiRealtimeInputTests, RealtimeByteAfterAStatusIsNoPort)
   EXPECT_EQ(csoundGetControlChannel(csound, "clock", nullptr), 1);
   message({{0x90, 0xFC, 63, 100}}, 0x90, 1, 63, 100);
   EXPECT_EQ(csoundGetControlChannel(csound, "stop", nullptr), 1);
+}
+
+TEST_F(MidiRealtimeInputTests, SystemStatusAfterAStatusIsNoPort)
+{
+  // The note on is cut off: its data never come. A port byte is 0x80 | port.
+  message({{0x90, 60, 100}}, 0x90, 1, 60, 100);
+  messages();
+  message({{0x90, 0xF0, 1, 2, 0xF7}}, 0x90, 1, 60, 100);
+  EXPECT_EQ(messages().find("port"), std::string::npos);
 }
 
 // A MIDI file alongside the device: the control change 0xB4 7 100 on the
@@ -295,6 +362,23 @@ class MidiDeviceAndFileInputTests : public MidiRealtimeInputTests {
     std::remove(file.c_str());
   }
 };
+
+TEST_F(MidiDeviceAndFileInputTests, RewindRestartsTheFileOnItsCycles)
+{
+  message({{}, {}, {}}, 0xB0, 5, 7, 100);
+  rewind();
+  // The cycle that begins again, as SetUp's did, and the one after it.
+  message({{}, {}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 5, 7, 100);
+}
+
+TEST_F(MidiDeviceAndFileInputTests, RewindReplaysAFileThatHadEnded)
+{
+  message({{}, {}, {}, {}, {}, {}, {}, {}}, 0x90, 1, 60, 100);
+  rewind();
+  message({{}, {}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 5, 7, 100);
+}
 
 TEST_F(MidiDeviceAndFileInputTests, FileEventIsNoPortOfADeviceStatus)
 {
@@ -355,3 +439,209 @@ TEST_F(MidiDeviceAndFileInputTests, DeviceDataBeforeAnyStatusIsNoMessage)
   message({{60}}, 0x90, 1, 60, 100);
   EXPECT_EQ(csoundGetControlChannel(csound, "released", nullptr), 0);
 }
+
+// A file the orchestra opens and plays, read through -F with no file name:
+// CC 9 = 1 on the first cycle after SetUp's and CC 9 = 2 on the 100th, on
+// channel 1, and its end on the 150th. A tick is a k-cycle here too.
+class MidiOrchestraFileTests : public MidiRealtimeInputTests {
+ protected:
+  std::string file;
+
+  void options() override
+  {
+#if defined(_WIN32)
+    const auto pid = _getpid();
+#else
+    const auto pid = getpid();
+#endif
+    file = std::string("midi_orchestra_file_") + std::to_string(pid) + ".mid";
+    const unsigned char midi[] = {
+      'M', 'T', 'h', 'd', 0, 0, 0, 6, 0, 0, 0, 1, 0x05, 0xDC,
+      'M', 'T', 'r', 'k', 0, 0, 0, 12,
+      1, 0xB0, 9, 1, 99, 0xB0, 9, 2, 50, 0xFF, 0x2F, 0
+    };
+    std::ofstream out(file, std::ios::binary);
+    ASSERT_TRUE(out.is_open());
+    out.write(reinterpret_cast<const char *>(midi), sizeof(midi));
+    out.close();
+    ASSERT_TRUE(out.good());
+    ASSERT_EQ(csoundSetOption(csound, "-F"), 0);
+    extraOrchestra = "iFile midifileopen \"" + file + "\"\nmidifileplay iFile\n";
+  }
+
+  void TearDown() override
+  {
+    MidiRealtimeInputTests::TearDown();
+    std::remove(file.c_str());
+  }
+};
+
+// The same file, opened but not played until a test plays it.
+class MidiOrchestraFileLaterTests : public MidiOrchestraFileTests {
+ protected:
+  void options() override
+  {
+    MidiOrchestraFileTests::options();
+    extraOrchestra = "giFile midifileopen \"" + file + "\"\n";
+  }
+};
+
+TEST_F(MidiOrchestraFileLaterTests, AFileSetBeforeItPlaysGoesOnFromThere)
+{
+  // midifilepos counts the time it sets as played, and the first cycle the
+  // file plays in moves on from it: set to tick 93.75, it gives CC 9 = 2,
+  // at tick 100, on the 7th cycle it plays in.
+  ASSERT_EQ(csoundCompileOrc(csound, "midifilepos 0.03125, giFile\n"
+                             "midifileplay giFile\n", 0), 0);
+  for (int i = 0; i < 6; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "status", nullptr), 0);
+  message({{}}, 0xB0, 1, 9, 2);
+}
+
+TEST_F(MidiOrchestraFileLaterTests, AFilePlayedLaterStartsAtItsFirstTick)
+{
+  // Played 50 cycles in, the file reads its tick 0 in the cycle it starts
+  // in, and CC 9 = 1, at its tick 1, comes in the cycle after, as it would
+  // from the start of the performance.
+  for (int i = 0; i < 50; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileplay giFile\n", 0), 0);
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
+TEST_F(MidiOrchestraFileTests, RewindTakesTheFileBackToItsStart)
+{
+  // A rewind of the score takes the orchestra's file back to its start, as
+  // it does the -F file, and resets the controllers of the file's port:
+  // CC 9 = 1, at tick 1, comes again on the second cycle after it.
+  ASSERT_EQ(csoundCompileOrc(csound, "instr 6\n"
+                             "chnset ctrl7:k(1, 9, 0, 127), \"c9\"\n"
+                             "endin\n", 0), 0);
+  message({{}}, 0xB0, 1, 9, 1);
+  for (int i = 0; i < 49; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  rewind();
+  csoundEventString(csound, "i6 0 1\n", 0);
+  message({{}}, 0, 0, 0, 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "c9", nullptr), 0);
+  message({{}}, 0xB0, 1, 9, 1);
+  EXPECT_EQ(csoundGetControlChannel(csound, "c9", nullptr), 1);
+}
+
+// The same file, opened and played by a UDO the orchestra's header calls.
+class MidiOrchestraFileUdoTests : public MidiOrchestraFileTests {
+ protected:
+  void options() override
+  {
+    MidiOrchestraFileTests::options();
+    extraOrchestra =
+      "opcode OpenAndPlay(name:S):i\n"
+      "  iFile midifileopen name\n"
+      "  midifileplay iFile\n"
+      "  xout iFile\n"
+      "endop\n"
+      "giFile OpenAndPlay \"" + file + "\"\n";
+  }
+};
+
+TEST_F(MidiOrchestraFileUdoTests, RewindTakesAFileTheHeadersUdoOpenedBack)
+{
+  // A file the header's UDO opened is the header's: the rewind takes it
+  // back to its start, and CC 9 = 1, at tick 1, comes again.
+  message({{}}, 0xB0, 1, 9, 1);
+  for (int i = 0; i < 49; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  rewind();
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
+TEST_F(MidiOrchestraFileTests, RewindReplaysAFileThatHadEnded)
+{
+  // The file ends on the 150th cycle, which pauses it. After a rewind it
+  // plays again, as the -F file does.
+  for (int i = 0; i < 160; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  rewind();
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
+TEST_F(MidiOrchestraFileTests, RewindLeavesAFileTheOrchestraPausedPaused)
+{
+  // Paused by the orchestra, the file stays paused through a rewind, at its
+  // start: played again, it gives CC 9 = 1, at its tick 1, on its second
+  // cycle.
+  for (int i = 0; i < 50; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  ASSERT_EQ(csoundCompileOrc(csound, "midifilepause 1\n", 0), 0);
+  rewind();
+  for (int i = 0; i < 200; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "status", nullptr), 0);
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileplay 1\n", 0), 0);
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
+TEST_F(MidiOrchestraFileTests, AFileTheOrchestraRewindsReadsItsFirstTickFirst)
+{
+  // Rewound by midifilerewind 50 cycles in, the file reads its tick 0 in
+  // the next cycle, and CC 9 = 1, at its tick 1, in the one after.
+  message({{}}, 0xB0, 1, 9, 1);
+  for (int i = 0; i < 49; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  ASSERT_EQ(csoundCompileOrc(csound, "midifilerewind 1\n", 0), 0);
+  for (const char *name : {"status", "channel", "data1", "data2"})
+    csoundSetControlChannel(csound, name, 0);
+  message({{}}, 0, 0, 0, 0);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
+TEST_F(MidiOrchestraFileTests, ALoopedFilePlaysToItsEndBeforeItStartsAgain)
+{
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileloop 1, 1\n", 0), 0);
+  message({{}}, 0xB0, 1, 9, 1);
+  for (int i = 0; i < 98; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  message({{}}, 0xB0, 1, 9, 2);
+  // The 50 ticks between its last event and its end are part of the loop.
+  for (int i = 0; i < 50; ++i)
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "data2", nullptr), 2);
+  message({{}}, 0xB0, 1, 9, 1);
+}
+
+TEST_F(MidiOrchestraFileTests, ALoopedFileKeepsItsPhase)
+{
+  // At four times the file's tempo a cycle is 4 ticks and a pass 37.5
+  // cycles: CC 9 = 1, at tick 1, comes on cycles 1, 38 and 76. A pass that
+  // began from tick 0 each time would lose the half cycle past each end.
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileloop 1, 1\nmidifiletempo 480, 1\n", 0), 0);
+  std::vector<int> cycles;
+  for (int cycle = 1; cycle <= 80; ++cycle) {
+    csoundSetControlChannel(csound, "data2", 0);
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    if (csoundGetControlChannel(csound, "data2", nullptr) == 1)
+      cycles.push_back(cycle);
+  }
+  EXPECT_EQ(cycles, (std::vector<int>{1, 38, 76}));
+}
+
+TEST_F(MidiOrchestraFileTests, ALoopedFileSetPastItsEndPlaysOnePass)
+{
+  // 10 s are 200 passes of the file: it goes on at their phase, tick 1 of
+  // the next pass, and does not play them all at once.
+  ASSERT_EQ(csoundCompileOrc(csound, "midifileloop 1, 1\nmidifilepos 10, 1\n", 0), 0);
+  int messages = 0;
+  for (int cycle = 1; cycle <= 20; ++cycle) {
+    csoundSetControlChannel(csound, "data1", 0);
+    ASSERT_EQ(csoundPerformKsmps(csound), 0);
+    if (csoundGetControlChannel(csound, "data1", nullptr) == 9)
+      ++messages;
+  }
+  EXPECT_EQ(messages, 1);
+}
+

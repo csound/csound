@@ -41,7 +41,9 @@
       negative in case of an error. A count past 'nbytes' is an error
       too, and nothing is taken from 'buf'. Note: incomplete messages
       (such as a note on status without the data bytes) should not be
-      returned.
+      returned. Csound may read again in the same k-cycle, at most until
+      a read returns zero or it has had 16 times 'nbytes' bytes in that
+      cycle: so a read returns zero when there is nothing more now.
 
     int32_t (*MidiInCloseCallback)(CSOUND *csound, void *userData);
 
@@ -114,6 +116,11 @@ static const cs_float dsctl_map[12] = {
 };
 
 static const int16 datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
+
+/* A device is read again in a k-cycle while it has more, up to this much,
+   so that a reader that always has more cannot hold the cycle. A MIDI
+   cable carries 3125 bytes a second: it would take a 20 s k-cycle. */
+#define MIDI_DEVICE_CYCLE_MAX (16 * MBUFSIZ)
 
 /* open a Midi event stream for reading, alloc bufs */
 /*     callable once from main.c                    */
@@ -508,7 +515,9 @@ int32_t sens_midi(CSOUND *csound)
     if (p->bufp >= p->endatp) {
       p->bufp = &(p->mbuf[0]);
       p->endatp = p->bufp;
-      if (O->Midiin && !csound->advanceCnt) {   /* read MIDI device */
+      if (O->Midiin && !csound->advanceCnt &&   /* read MIDI device */
+          p->MidiReadCallback != NULL &&
+          p->devbytes < MIDI_DEVICE_CYCLE_MAX) {
         n = p->MidiReadCallback(csound, p->midiInUserData, p->bufp, MBUFSIZ);
         if (n < 0)
           csoundErrorMsg(csound,
@@ -519,8 +528,10 @@ int32_t sens_midi(CSOUND *csound)
                             Str(" *** error reading MIDI device: read returned "
                                 "%d, more than the %d bytes asked for\n"),
                                  n, MBUFSIZ);
-        else
+        else {
           p->endatp += (int32_t) n;
+          p->devbytes += (int32_t) n;
+        }
       }
       p->filep = p->endatp;                     /* the file's bytes start here */
       if (O->FMidiin) {                         /* read MIDI file */
@@ -572,6 +583,7 @@ int32_t sens_midi(CSOUND *csound)
           }
         else {                          /* sys_non-realtime status: */
           src->sexp = 0;                /* implies sys_exclus end   */
+          src->datreq = 0;              /*   and running status's   */
           switch (lo3) {                /* dispatch on lo3:     */
           case 7: goto nxtchr;          /* EOX: already done    */
           case 0: src->sexp = 1;        /* sys_ex begin:        */
@@ -584,10 +596,8 @@ int32_t sens_midi(CSOUND *csound)
             break;
           case 6:                       /* tune request         */
             goto nxtchr;
-          default:
+          default:                      /* undefined: so is its data */
             csound->Message(csound, Str("undefined sys_common msg %x\n"), c);
-            src->datreq = 32767;        /* waste any data following */
-            src->datcnt = 0;
             goto nxtchr;
           }
         }
@@ -603,7 +613,7 @@ int32_t sens_midi(CSOUND *csound)
         mep->type = type;               /* & begin new event    */
         mep->chan = chan;
         src->datreq = datbyts[(type>>4) & 0x7];
-        if(p->bufp < srcend && *p->bufp & 0x80 && *p->bufp < 0xF8
+        if(p->bufp < srcend && *p->bufp & 0x80 && *p->bufp < 0xF0
            && src->datreq > 0)
         {/*
             if there is another status byte inserted after
@@ -616,7 +626,8 @@ int32_t sens_midi(CSOUND *csound)
             A module writes it in the same read as its status. A read
             may end on the status, and what lies past the end is not
             data, so it is not looked at: nor is a MIDI file's event.
-            A real time byte is no port.
+            A system status is no port: real time may come anywhere,
+            and any other begins a message of its own.
           */
           int32_t port = *(p->bufp++) & 0x7F;
           if(port >= MIDIMAXPORTS) {

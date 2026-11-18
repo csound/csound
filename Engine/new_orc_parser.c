@@ -106,6 +106,7 @@ static void free_preprocessor(CSOUND *csound, PRE_PARM *qq)
       csound_pre_delete_buffers(qq->yyscanner);
       csound_prelex_destroy(qq->yyscanner);
     }
+    csound->Free(csound, qq->buffers.parents);
     while (qq->ifdefStack != NULL) {
       IFDEFSTACK *entry = qq->ifdefStack;
       qq->ifdefStack = entry->prv;
@@ -478,8 +479,16 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
     PARSE_PARM parser = {0};
-    if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
-      return NULL;
+    /* A host may call this first. Once the plugins are loaded and no
+       --opcode-lib is left, which is what csoundLoadRequestedPlugins()
+       tests, there is nothing to load. */
+    if (!csound->default_modules_loaded ||
+        (csound->dl_opcodes_oplibs != NULL &&
+         csound->dl_opcodes_oplibs[0] != '\0')) {
+      if (UNLIKELY(csoundCatchJump(csound, csoundLoadRequestedPlugins)
+                   != CSOUND_SUCCESS))
+        return NULL;
+    }
     add_opcode_defs(csound);
     if (preprocess_orc_scoped(csound, str) != CSOUND_SUCCESS)
       return NULL;

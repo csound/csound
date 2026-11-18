@@ -18,6 +18,20 @@ int32_t named(void *data, void *, uint32_t)
     return CSOUND_SUCCESS;
 }
 
+// Positive: the call is ignored, and the older callbacks are asked.
+template <char Name>
+int32_t ignores(void *data, void *, uint32_t)
+{
+    static_cast<Calls *>(data)->order += Name;
+    return 1;
+}
+
+int32_t fails(void *data, void *, uint32_t)
+{
+    static_cast<Calls *>(data)->order += 'e';
+    return CSOUND_ERROR;
+}
+
 int32_t removesItself(void *data, void *, uint32_t)
 {
     auto *calls = static_cast<Calls *>(data);
@@ -193,6 +207,23 @@ TEST_F(KeyboardCallbackTests, RegistersANewOneAfterRemovingEverything)
     perform(3);
     // What is registered during a round has its first call in the next one.
     EXPECT_EQ(calls.order, "x" "c" "c");
+}
+
+TEST_F(KeyboardCallbackTests, AnIgnoredCallGoesOnToTheOlderOnes)
+{
+    add(named<'a'>);
+    add(ignores<'i'>);
+    perform(2);
+    EXPECT_EQ(calls.order, "ia" "ia");
+}
+
+TEST_F(KeyboardCallbackTests, AnErrorEndsTheRound)
+{
+    add(named<'a'>);
+    add(fails);
+    add(ignores<'i'>);
+    perform(2);
+    EXPECT_EQ(calls.order, "ie" "ie");
 }
 
 TEST_F(KeyboardCallbackTests, ListStillWorksAfterReset)

@@ -787,6 +787,7 @@ class Csound:
         """
         self._kept = []
         self._keyboard_thunks = {}
+        self._keyboard_data = {}  # the user_data Csound may have, by callback
         self._threads = set()  # C pointers: a collection clears weakrefs first
         self._destroying = False
         if pointer_:
@@ -798,6 +799,7 @@ class Csound:
             else:
                 self._kept = owner._kept
                 self._keyboard_thunks = owner._keyboard_thunks
+                self._keyboard_data = owner._keyboard_data
         else:
             self.cs = libcsound.csoundCreate(ct.py_object(self._keep(host_data)),
                                              cstring(opcode_dir))
@@ -816,7 +818,9 @@ class Csound:
         csoundDestroy needs. Once Csound is gone, what this instance kept for
         it is released, all but the current callback of each set_ method.
         Calling it again, from a callback Csound calls while it is destroyed
-        included, does nothing. Otherwise it must not run inside a callback.
+        included, does nothing. Otherwise it must not run inside a callback,
+        nor while another thread is in join() of a thread on it: joining a
+        thread is not thread-safe (see CsoundPerformanceThread).
         """
         owner = self._owners.get(self.cs)
         if self.from_pointer and owner is not self:
@@ -839,6 +843,7 @@ class Csound:
                 self.cs = None
                 self._kept.clear()
                 self._keyboard_thunks.clear()
+                self._keyboard_data.clear()
 
     def csound(self):
         """Returns the opaque pointer to the underlying CSOUND struct.
@@ -923,17 +928,20 @@ class Csound:
         libcsound.csoundSetHostData(self.cs, ct.py_object(self._keep(data)))
 
     def env(self, name):
-        """Gets the value of environment variable name.
+        """Gets the value of environment variable name in this instance.
 
-        The searching order is: local environment of Csound ,
-        variables set with set_global_env(), and system environment variables.
-        Should be called after compile_().
+        Only the instance's own copy is read. It is made when the instance
+        is created and at reset(), from the system environment variables
+        Csound uses (SFDIR, SSDIR, SADIR, INCDIR, OPCODE7DIR64 and the
+        like), then from those set with set_global_env(), which take
+        precedence. Other system variables are not in it, nor later changes
+        to either source until a reset. --env options change it, those of a
+        CSD's <CsOptions> when they are read, and compile_() can add the
+        directory of the files it is given to SADIR, SSDIR, INCDIR and
+        MFDIR (see --no-default-paths).
         Return value is None if the variable is not set.
         """
-        ret = libcsound.csoundGetEnv(self.cs, cstring(name))
-        if (ret):
-            return pstring(ret)
-        return None
+        return pstring(libcsound.csoundGetEnv(self.cs, cstring(name)))
 
     def set_global_env(self, name, value):
         """Set the global value of environment variable name to value.
@@ -941,6 +949,9 @@ class Csound:
         The variable is deleted if value is None.
         It is not safe to call this function while any Csound instances
         are active.
+        A name is letters, digits and underscores, does not start with a
+        digit, as for --env, and is shorter than 32 characters; any other
+        is refused.
         Returns zero on success..
         """
         return libcsound.csoundSetGlobalEnv(cstring(name), cstring(value))
@@ -1020,10 +1031,13 @@ class Csound:
         to get meaningful information.
         """
         n = libcsound.csoundGetAudioDevList(self.cs, None, ct.c_int32(is_output))
+        if n <= 0:
+            return []
         devs = (CsoundAudioDevice * n)()
-        libcsound.csoundGetAudioDevList(self.cs, ct.byref(devs), ct.c_int32(is_output))
+        # The fill says how many it filled, which can be fewer than it counted.
+        n = libcsound.csoundGetAudioDevList(self.cs, ct.byref(devs), ct.c_int32(is_output))
         lst = []
-        for dev in devs:
+        for dev in devs[:max(n, 0)]:
             d = {}
             d["device_name"] = pstring(dev.device_name)
             d["device_id"] = pstring(dev.device_id)
@@ -1044,10 +1058,13 @@ class Csound:
         to get meaningful information.
         """
         n = libcsound.csoundGetMIDIDevList(self.cs, None, ct.c_int32(is_output))
+        if n <= 0:
+            return []
         devs = (CsoundMidiDevice * n)()
-        libcsound.csoundGetMIDIDevList(self.cs, ct.byref(devs), ct.c_int32(is_output))
+        # The fill says how many it filled, which can be fewer than it counted.
+        n = libcsound.csoundGetMIDIDevList(self.cs, ct.byref(devs), ct.c_int32(is_output))
         lst = []
-        for dev in devs:
+        for dev in devs[:max(n, 0)]:
             d = {}
             d["device_name"] = pstring(dev.device_name)
             d["interface_name"] = pstring(dev.interface_name)
@@ -1445,10 +1462,7 @@ class Csound:
         Currently supported channel var types are 'k' (control), 'a' (audio),
         'S' (string), 'f' (pvs), and '[' (array).
         """
-        ret = libcsound.csoundGetChannelVarTypeName(self.cs, cstring(name))
-        if ret:
-            return cstring(ret)
-        return None
+        return pstring(libcsound.csoundGetChannelVarTypeName(self.cs, cstring(name)))
 
     def list_channels(self):
         """Returns a list of allocated channels and an error message.
@@ -1781,9 +1795,10 @@ class Csound:
     def key_press(self, c):
         """Sets the ASCII code of the most recent key pressed.
 
-        This value is used by the sensekey opcode if a callback for
-        returning keyboard events is not set (see
-        register_keyboard_callback()).
+        sensekey reads it if no callback for keyboard events is set, or if
+        each one ignores the call (see register_keyboard_callback()).
+        readline reads it whenever no callback gives it a key, also when a
+        callback returns zero with no key.
         """
         libcsound.csoundKeyPress(self.cs, cchar(c))
 
@@ -1798,7 +1813,9 @@ class Csound:
         registration. If the same function is set again, it is only moved
         in the list of callbacks so that it will be called first, and the
         user data and type mask parameters are updated. The same function
-        means what it does for remove_keyboard_callback().
+        means what it does for remove_keyboard_callback(). user_data is held
+        until another registration of the function is accepted, or it is
+        removed, or this instance is destroyed.
         type_mask can be the bitwise OR of callback types for which the
         function should be called, or zero for all types.
 
@@ -1836,14 +1853,28 @@ class Csound:
 
         The return value should be zero on success, negative on error, and
         positive if the callback was ignored (for example because the type is
-        not known). A callback that raises counts as an error.
+        not known). A callback that raises counts as an error. The callbacks
+        for the type are called in turn until one returns an error, and
+        sensekey then has no key. Otherwise, if one or more returned zero,
+        sensekey takes the key they left; if none did, it reads the key set
+        by key_press() or, if none has been set, stdin (the console on
+        Windows).
         """
         # Csound tells callbacks apart by address, so a function has one thunk,
-        # and that thunk stays after removal for the reason _keep gives.
-        thunk = self._keyboard_thunks.setdefault(self._keyboard_key(function),
-                                                 KEYBOARDFUNC(_checked(function, CSOUND_ERROR)))
-        return libcsound.csoundRegisterKeyboardCallback(self.cs, thunk,
-            ct.py_object(self._keep(user_data)), ct.c_uint(type_))
+        # and that thunk stays after removal for the reason _keep gives. Its
+        # user_data is the one Csound has: the old and the new are both held
+        # until Csound has answered, so that an exception in between, such as
+        # KeyboardInterrupt, leaves neither unheld.
+        key = self._keyboard_key(function)
+        thunk = self._keyboard_thunks.get(key)
+        if thunk is None:
+            thunk = self._keyboard_thunks[key] = KEYBOARDFUNC(_checked(function, CSOUND_ERROR))
+        data, mask = ct.py_object(user_data), ct.c_uint(type_)
+        old = self._keyboard_data.get(key, ())
+        self._keyboard_data[key] = old + (user_data,)
+        result = libcsound.csoundRegisterKeyboardCallback(self.cs, thunk, data, mask)
+        self._keyboard_data[key] = (user_data,) if result == CSOUND_SUCCESS else old
+        return result
 
     def remove_keyboard_callback(self, function):
         """Removes a callback previously set with register_keyboard_callback().
@@ -1862,6 +1893,7 @@ class Csound:
         key = self._keyboard_key(function)
         if key in self._keyboard_thunks:
             libcsound.csoundRemoveKeyboardCallback(self.cs, self._keyboard_thunks[key])
+            self._keyboard_data.pop(key, None)
 
     @staticmethod
     def _keyboard_key(function):
@@ -2134,7 +2166,11 @@ class Csound:
     def set_midi_device_list_callback(self, function):
         """Sets a callback for obtaining a list of MIDI devices.
 
-        With None, there are none.
+        With None, there are none. function(csound, devices, is_output)
+        returns the number of devices: how many there are when devices is a
+        NULL pointer (false, though not None), and otherwise how many it
+        filled, at most that many, or a negative number on an error. Only
+        those are listed.
         """
         self.midi_dev_list_cb_ref = _thunk(MIDIDEVLISTFUNC, _checked(function, 0), _no_callback)
         libcsound.csoundSetMIDIDeviceListCallback(self.cs,
@@ -2332,10 +2368,29 @@ class CsoundPerformanceThread:
     The playback (which is paused by default) is stopped by calling
     stop(), or if an error occurs.
     The constructor takes a Csound instance pointer as argument; it assumes
-    that ctcsound.compile_() was called successfully before creating
-    the performance thread. Once the playback is stopped for one of the above
-    mentioned reasons, the performance thread returns.
-    The Csound stays alive until join() returns or this object goes.
+    that the Csound was compiled and started (start()) before creating the
+    performance thread.
+    Once the playback is stopped for one of the above mentioned reasons, the
+    performance thread returns.
+    The Csound stays alive until a join() has ended the thread, or this
+    object goes.
+
+    To end it, from a thread of the host's and never from a callback the
+    performance runs: stop() it, join() it, then let this object go.
+    Csound.destroy() stops and joins it too. A thread cannot wait for its own
+    end, so in a callback on it join() returns at once, and the last
+    reference to this object, or to its Csound, must not be let go of there:
+    this object's __del__ would ask C to destroy the thread on itself, which
+    C refuses. The thread is then only stopped, its C object is never freed,
+    its Csound no longer stops and joins it, and what this object kept for
+    it, its process callback included, is released while the thread may
+    still call it. If this object held the last reference to its Csound, the
+    Csound is destroyed there, under the thread: a crash.
+    Joining is not thread-safe: one thread at a time calls join(), and not
+    beside Csound.destroy() on another thread, which joins it as well; nor
+    may any other call on this object, input_message() or
+    flush_message_queue() for instance, run on another thread beside a join,
+    which frees the message queue they use.
     """
     def __init__(self, csp):
         self.cpt = libcspt.csoundCreatePerformanceThread(csp)
@@ -2376,10 +2431,11 @@ class CsoundPerformanceThread:
         address of data, a ctypes object, or None if data is None. Each time
         this is called, both stay held until this object goes, for the reason
         Csound._keep gives. So a function that reaches this object, such as a
-        method of what holds it, makes a cycle that only a collection ends:
-        call stop() rather than just letting go of the thread. Stop and join
-        it before Python exits: __del__ joins it, and a thread that calls
-        Python while Python is finalizing never comes back.
+        method of what holds it, makes a cycle that only a collection ends,
+        and a collection can run on the thread itself: stop() and join() the
+        thread before letting go of it. Stop and join it before Python exits
+        as well: __del__ joins it, and a thread that calls Python while Python
+        is finalizing never comes back.
         """
         thunk = PROCESSFUNC(0 if function is None else function)
         pointer = None if data is None else ct.byref(data)
@@ -2418,7 +2474,8 @@ class CsoundPerformanceThread:
         """Starts recording the output from Csound.
 
         The sample rate and number of channels are taken directly from the
-        running Csound instance.
+        running Csound instance. Once status() is no longer 0, it does
+        nothing, and opens no file.
         """
         libcspt.csoundPerformanceThreadRecord(self.cpt, cstring(filename), samplebits, numbufs)
 
@@ -2454,11 +2511,16 @@ class CsoundPerformanceThread:
 
         Returns a positive value if the end of score was reached or
         stop() was called, and a negative value if an error occured.
-        Also releases any resources associated with the performance thread
-        object.
+        Also releases the message queue and its locks, and stops a recording
+        still running once the performance has ended.
+        Not thread-safe: call it from one thread at a time, and not beside
+        Csound.destroy() on another thread. Called from a callback on the
+        thread itself, it joins nothing and returns the current status at
+        once, 0 while the performance still plays.
         """
         status = libcspt.csoundPerformanceThreadJoin(self.cpt)
-        self._release_csound()
+        if not self.is_running():  # C refuses a join on the thread itself
+            self._release_csound()
         return status
 
     def flush_message_queue(self):
@@ -2693,8 +2755,7 @@ class Ugen:
 
             ugen.get_out_var(index).get_string()
         """
-        s = libcsound.csoundUgenGetString(self.ugen, index)
-        return pstring(s) if s else None
+        return pstring(libcsound.csoundUgenGetString(self.ugen, index))
 
     # Query
 
@@ -2898,5 +2959,4 @@ class UgenVar:
 
     def get_string(self):
         """Get the string value (S-type vars only)."""
-        s = libcsound.csoundUgenVarGetString(self.var)
-        return pstring(s) if s else None
+        return pstring(libcsound.csoundUgenVarGetString(self.var))

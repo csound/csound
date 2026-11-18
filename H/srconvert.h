@@ -36,12 +36,14 @@ typedef struct {
 typedef struct _SR_CONVERTER {
   float   ratio;  // src ratio
   int32_t insize, outsize; // input and output block sizes
+  int32_t blocks;  // whole chunks staged when insize == outsize
   int32_t mode;   // conversion mode
   CVTDAT *dat; // converter data
   int32_t ncvt;   // no of converters
   CS_VARIABLE *var; // argument var
   CSOUND *csound;   
   INSDS *ip;  // calling insds
+  cs_float *silence; // a zero input block, for an audio converter
 } SR_CONVERTER;
 
 
@@ -54,11 +56,12 @@ typedef struct _SR_CONVERTER {
     mode - conversion mode (0 - 4), or the same + SRC_HELD_K
     ratio - conversion ratio (oversampling or 1/oversampling factor)
     in_ksmps, out_ksmps - audio block sizes on each side of the conversion
-    var - actual variable given to conversion
+    var - the argument's variable, which gives its type
+    value - the argument at init: an array gets a converter per member
     ip - calling insds (context)
 */
 SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
-                       float ratio, CS_VARIABLE *var,
+                       float ratio, CS_VARIABLE *var, const void *value,
                        INSDS *ip, int32_t in_ksmps, int32_t out_ksmps);
 
 /** conversion de-initialisation
@@ -66,7 +69,8 @@ SR_CONVERTER *src_init(CSOUND *csound, int32_t mode,
 void src_deinit(CSOUND *csound, SR_CONVERTER *p);
 
 /** sampling rate conversion
-    in - signal to be converted
+    in - signal to be converted, or NULL to convert silence, for a
+         converter that has a silence block
     out - signal to be converted
 
     src is only performed on time-domain signals (a,k and arrays thereof)

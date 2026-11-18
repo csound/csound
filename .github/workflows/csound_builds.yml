@@ -626,7 +626,6 @@ jobs:
             -DUSE_PULSEAUDIO=OFF \
             -DUSE_FLTK=OFF \
             -DBUILD_VIRTUAL_KEYBOARD=OFF \
-            -DBUILD_JAVA_INTERFACE=OFF \
             -DBUILD_PYTHON_INTERFACE=OFF \
             -DINSTALL_PYTHON_INTERFACE=OFF \
             -DBUILD_LUA_INTERFACE=OFF \

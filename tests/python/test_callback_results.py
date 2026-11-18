@@ -161,6 +161,46 @@ def midi_devices():
     return devices
 
 
+def device_lists():
+    """What each case below lists, by device id, and how often it called its callback.
+
+    A case's callback counts `counted` devices, then fills the first `filled`
+    of them and answers that, or raises if `filled` is None.
+    """
+    devices = {'midi': ctcsound.CsoundMidiDevice, 'audio': ctcsound.CsoundAudioDevice}
+    audio_list = ctypes.CFUNCTYPE(ctypes.c_int32, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int32)
+    ctcsound.libcsound.csoundSetAudioDeviceListCallback.argtypes = [ctypes.c_void_p, audio_list]
+    results = {}
+    for kind, counted, filled in (('midi', 2, None), ('midi', 2, 1), ('midi', 2, -1),
+                                  ('audio', 2, 1), ('audio', 2, -1),
+                                  ('midi', 0, 0), ('audio', -1, 0)):
+        calls = []
+
+        def listing(_csound, devs, _is_output):
+            calls.append(1)
+            if not devs:
+                return counted
+            if filled is None:
+                raise ValueError('no answer')
+            array = ctypes.cast(devs, ctypes.POINTER(devices[kind]))
+            for i in range(filled):
+                array[i].device_id = b'hw:%d' % i
+            return filled
+
+        cs = csound([])
+        if kind == 'midi':
+            cs.set_midi_device_list_callback(listing)
+            listed = cs.midi_dev_list()
+        else:
+            thunk = audio_list(listing)
+            ctcsound.libcsound.csoundSetAudioDeviceListCallback(cs.csound(), thunk)
+            listed = cs.audio_dev_list()
+        cs.destroy()
+        results['%s %d %s' % (kind, counted, filled)] = [
+            [device['device_id'] for device in listed], len(calls)]
+    return results
+
+
 def opcode(failing):
     """Two notes of an opcode whose function failing answers 0 once, then raises.
 
@@ -270,6 +310,12 @@ class CallbackResultTests(unittest.TestCase):
 
     def test_a_device_list_that_raises_is_empty(self):
         self.assertEqual(self.child('midi_devices'), [])
+
+    def test_a_device_list_holds_only_the_devices_filled(self):
+        self.assertEqual(self.child('device_lists'), {
+            'midi 2 None': [[], 2], 'midi 2 1': [['hw:0'], 2], 'midi 2 -1': [[], 2],
+            'audio 2 1': [['hw:0'], 2], 'audio 2 -1': [[], 2],
+            'midi 0 0': [[], 1], 'audio -1 0': [[], 1]})
 
     def test_an_init_that_raises_stops_its_instrument(self):
         self.assertEqual(self.child('opcode', 'init'), [NOTE, []])

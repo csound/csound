@@ -47,6 +47,17 @@ class TestChannelVariableMemory(unittest.TestCase):
             ctcsound.CSOUND_SUCCESS)
         self.assertEqual(destination[0], 12.5)
 
+    def test_channel_var_type_name_gives_the_type_of_each_channel(self):
+        both = ctcsound.CSOUND_INPUT_CHANNEL | ctcsound.CSOUND_OUTPUT_CHANNEL
+        for name, kind in (('control', ctcsound.CSOUND_CONTROL_CHANNEL),
+                           ('audio', ctcsound.CSOUND_AUDIO_CHANNEL),
+                           ('text', ctcsound.CSOUND_STRING_CHANNEL)):
+            self.assertEqual(self.cs.channel_ptr(name, kind | both)[1], '')
+        self.assertIsNotNone(self.cs.init_array_channel('array', 'k', [3]))
+        self.assertEqual([self.cs.channel_var_type_name(name) for name in
+                          ('control', 'audio', 'text', 'array', 'missing')],
+                         ['k', 'a', 'S', '[', None])
+
     def test_channel_returns_none_for_missing_channel(self):
         self.assertFalse(self.cs.channel('missing'))
 

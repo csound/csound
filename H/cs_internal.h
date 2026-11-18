@@ -137,6 +137,7 @@ extern "C" {
     unsigned char mbuf[MBUFSIZ];
     unsigned char *bufp, *filep, *endatp;
     MIDIPARSER device, file;
+    int32_t devbytes;     /* what the device has given this k-cycle */
   } MGLOBAL;
 
   typedef struct osc_mess {
@@ -271,6 +272,7 @@ extern "C" {
     OPDS *ids;
     ENGINE_STATE *engine_state;
     struct type_table *type_table;
+    long rewinds;               /* score_rewinds when it was queued */
   } ALLOC_DATA;
 
 #define MAX_MESSAGE_STR 1024
@@ -306,7 +308,7 @@ extern "C" {
       int32_t  input_size, input_cnt;
       int32_t  unused_int3;
       int32_t  unused_int2;
-      int32_t  linepos /* = -1 */;
+      int32_t  linepos;                /* unused: a place is counted in the text */
       MARKED_SECTIONS unused_names[30]; /* kept for the layout: the marks
                                            are CSOUND's marked_sections       */
       char    unused_char0[RPTDEPTH][NAMELEN];

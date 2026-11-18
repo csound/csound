@@ -4,15 +4,22 @@
 # include "unistd.h"
 #endif
 #include <stdio.h>
+#include <string.h>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
+#include <string>
 #include <thread>
+#include <vector>
 #include "gtest/gtest.h"
 
 #include "csound.hpp"
 #include "csPerfThread.hpp"
+#include "csPerfThread.h"
+
+// A test hook of the library (H/prototyp.h): the blocks Csound holds.
+extern "C" size_t csound_tracked_block_count(CSOUND *);
 
 namespace {
 
@@ -109,6 +116,30 @@ void onProcessCallbackFlush(void *userdata) {
     pt->Stop();
 }
 
+// State for ProcessCallbackJoinIsIgnored: the process callback flushes and
+// joins its own thread at every cycle. The thread cannot wait for itself, and
+// Join() must not free what the performance goes on using.
+std::atomic<int> processJoinCalls{0};
+std::atomic<int> processJoinResult{-1};
+
+void onProcessCallbackJoin(void *userdata) {
+    CsoundPerformanceThread *pt =
+        static_cast<CsoundPerformanceThread *>(userdata);
+    pt->FlushMessageQueue();
+    int32_t result = pt->Join();
+    if (processJoinCalls.fetch_add(1) == 0)
+        processJoinResult.store(result);
+}
+
+// State for ProcessCallbackDestroyStopsIt: the process callback destroys the
+// thread through the C API, which the thread cannot do to itself.
+std::atomic<int> processDestroyCalls{0};
+
+void onProcessCallbackDestroy(void *userdata) {
+    if (processDestroyCalls.fetch_add(1) == 0)
+        csoundDestroyPerformanceThread(userdata);
+}
+
 // State for SetProcessCallbackWhileRunning: the callback is set/cleared from
 // another thread while the performance thread reads and invokes it.
 struct ProcessCallbackSignal {
@@ -130,6 +161,54 @@ void onSignalProcessCallback(void *userdata) {
         signal->called = true;
     }
     signal->cv.notify_one();
+}
+
+// A score of 0.1 s at 48 kHz, mono, whose take a recording with numbufs
+// 100 holds whole: 100 buffers of 256 frames.
+const char *const kRecordedOrchestra =
+    "sr=48000\nksmps=64\nnchnls=1\n0dbfs=1\n"
+    "instr 1\nout(oscili:a(0.5, 440))\nendin\n";
+const char *const kRecordedScore = "i 1 0 0.1\ne 0.1\n";
+const int32_t kRecordBuffers = 100;
+const long kWholeTake = 44 + 2 * 4800;  // a WAV header and 16-bit frames
+
+// The length of the data chunk of the WAV file at path, or -1.
+long recordedBytes(const char *path) {
+    FILE *file = fopen(path, "rb");
+    if (file == nullptr)
+        return -1;
+    std::string wav;
+    char chunk[4096];
+    size_t got;
+    while ((got = fread(chunk, 1, sizeof chunk, file)) > 0)
+        wav.append(chunk, got);
+    fclose(file);
+    const size_t data = wav.find("data", 12);
+    if (data == std::string::npos || data + 8 > wav.size())
+        return -1;
+    const unsigned char *length = (const unsigned char *) wav.data() + data + 4;
+    return (long) length[0] | (long) length[1] << 8 | (long) length[2] << 16 |
+           (long) length[3] << 24;
+}
+
+// The size of the file at path, or -1 if there is none.
+long fileSize(const char *path) {
+    FILE *file = fopen(path, "rb");
+    if (file == nullptr)
+        return -1;
+    fseek(file, 0, SEEK_END);
+    const long size = ftell(file);
+    fclose(file);
+    return size;
+}
+
+void startRecordedScore(Csound &csound, const char *output) {
+    csound.SetOption("-W");
+    csound.SetOption("-b256");
+    csound.SetOption(output);
+    ASSERT_EQ(csound.CompileOrc(kRecordedOrchestra), 0);
+    csound.EventString(kRecordedScore);
+    ASSERT_EQ(csound.Start(), 0);
 }
 
 }  // namespace
@@ -372,6 +451,86 @@ TEST(PerfThreadsTests, ProcessCallbackCanFlush) {
     EXPECT_TRUE(processFlushReturned.load());
 }
 
+TEST(PerfThreadsTests, ProcessCallbackJoinIsIgnored) {
+    const char *instrument =
+        "sr=48000\n"
+        "ksmps=64\n"
+        "nchnls=1\n"
+        "instr 1\n"
+        "endin\n";
+
+    processJoinCalls.store(0);
+    processJoinResult.store(-1);
+
+    Csound csound;
+    csound.SetOption("-n");
+    csound.CreateMessageBuffer(0);
+    ASSERT_EQ(csound.CompileOrc(instrument), 0);
+    csound.EventString("f 0 z\ni 1 0 -1\n");
+    ASSERT_EQ(csound.Start(), 0);
+
+    CsoundPerformanceThread performanceThread(csound.GetCsound());
+    performanceThread.SetProcessCallback(onProcessCallbackJoin,
+                                         &performanceThread);
+    performanceThread.Play();
+
+    // The performance goes on after the call, through later cycles.
+    for (int i = 0; i < 500 && processJoinCalls.load() < 10; ++i)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    EXPECT_GE(processJoinCalls.load(), 10);
+    // Returned at once, with the status of a performance still playing.
+    EXPECT_EQ(processJoinResult.load(), 0);
+
+    performanceThread.Stop();
+    EXPECT_GT(performanceThread.Join(), 0);
+    performanceThread.SetProcessCallback(nullptr, nullptr);
+
+    // Each refusal is said once, the first time.
+    const char *flush = "FlushMessageQueue() called from the performance";
+    const char *join = "Join() called from the performance thread";
+    int flushes = 0, joins = 0;
+    for (; csound.GetMessageCnt() > 0; csound.PopFirstMessage()) {
+        flushes += strstr(csound.GetFirstMessage(), flush) != nullptr;
+        joins += strstr(csound.GetFirstMessage(), join) != nullptr;
+    }
+    EXPECT_EQ(flushes, 1);
+    EXPECT_EQ(joins, 1);
+    csound.DestroyMessageBuffer();
+    csound.Reset();
+}
+
+TEST(PerfThreadsTests, ProcessCallbackDestroyStopsIt) {
+    const char *instrument =
+        "sr=48000\n"
+        "ksmps=64\n"
+        "nchnls=1\n"
+        "instr 1\n"
+        "endin\n";
+
+    processDestroyCalls.store(0);
+
+    Csound csound;
+    csound.SetOption("-n");
+    ASSERT_EQ(csound.CompileOrc(instrument), 0);
+    csound.EventString("f 0 z\ni 1 0 -1\n");
+    ASSERT_EQ(csound.Start(), 0);
+
+    CS_PERF_THREAD *pt = csoundCreatePerformanceThread(csound.GetCsound());
+    csoundPerformanceThreadSetProcessCB(pt, onProcessCallbackDestroy, pt);
+    csoundPerformanceThreadPlay(pt);
+
+    // The call stops the performance, and leaves the object to this thread.
+    for (int i = 0; i < 500 && csoundPerformanceThreadIsRunning(pt); ++i)
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    EXPECT_FALSE(csoundPerformanceThreadIsRunning(pt));
+    csoundPerformanceThreadStop(pt);
+    EXPECT_GT(csoundPerformanceThreadJoin(pt), 0);
+    EXPECT_EQ(processDestroyCalls.load(), 1);
+    csoundDestroyPerformanceThread(pt);
+    csoundDestroyPerformanceThread(nullptr);  // as delete would: nothing
+    csound.Reset();
+}
+
 TEST(PerfThreadsTests, SetProcessCallbackWhileRunning) {
     const char *instrument =
         "sr=48000\n"
@@ -442,4 +601,177 @@ TEST(PerfThreadsTests, Record) {
     performanceThread1.Stop();
     performanceThread1.Join();
     csound.Reset();
+}
+
+TEST(PerfThreadsTests, RecordOnceThePerformanceHasEndedLeavesTheTake) {
+    const char *take = "perfthread_record_take.wav";
+    remove(take);
+    long recorded = -1;
+    {
+        Csound csound;
+        ASSERT_NO_FATAL_FAILURE(
+            startRecordedScore(csound, "-operfthread_record_output.wav"));
+        CsoundPerformanceThread performanceThread(csound.GetCsound());
+        performanceThread.Record(take, 16, kRecordBuffers);
+        performanceThread.Play();
+        for (int i = 0; i < 1000 && performanceThread.GetStatus() == 0; ++i)
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        ASSERT_NE(performanceThread.GetStatus(), 0);
+        EXPECT_GT(performanceThread.Join(), 0);
+        recorded = fileSize(take);
+        ASSERT_GE(recorded, kWholeTake);
+
+        // Nothing would record into it: it must not open, and so empty, the
+        // take, nor the destructor close it.
+        performanceThread.Record(take, 16, kRecordBuffers);
+        EXPECT_EQ(fileSize(take), recorded);
+    }
+    EXPECT_EQ(fileSize(take), recorded);
+    remove(take);
+    remove("perfthread_record_output.wav");
+}
+
+// The recording thread may not have run yet when the recording is stopped,
+// all the more with every core busy: what the performance wrote stays in
+// the take all the same. A race, so it is tried many times.
+TEST(PerfThreadsTests, RecordingStoppedBeforeItsThreadRanKeepsTheTake) {
+    const char *take = "perfthread_race_take.wav";
+    std::atomic<bool> spin{true};
+    std::vector<std::thread> busy;
+    const unsigned cores = std::thread::hardware_concurrency();
+    for (unsigned i = 0; i < (cores > 2 ? cores : 2); ++i)
+        busy.emplace_back([&spin] { while (spin.load()) {} });
+    int lost = 0;
+    // A lambda, so that a failed assertion still stops the spinners below.
+    auto takes = [&] {
+        for (int i = 0; i < 40; ++i) {
+            remove(take);
+            Csound csound;
+            ASSERT_NO_FATAL_FAILURE(
+                startRecordedScore(csound, "-operfthread_race_output.wav"));
+            CsoundPerformanceThread performanceThread(csound.GetCsound());
+            performanceThread.Record(take, 16, kRecordBuffers);
+            performanceThread.Play();
+            for (int j = 0; j < 10000 && performanceThread.GetStatus() == 0; ++j)
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            ASSERT_NE(performanceThread.GetStatus(), 0);
+            ASSERT_GT(performanceThread.Join(), 0);
+            lost += fileSize(take) < kWholeTake;
+        }
+    };
+    takes();
+    spin = false;
+    for (auto &thread : busy)
+        thread.join();
+    EXPECT_EQ(lost, 0);
+    remove(take);
+    remove("perfthread_race_output.wav");
+}
+
+TEST(PerfThreadsTests, JoinRecordsThePerformanceToItsEnd) {
+    const char *take = "perfthread_join_take.wav";
+    remove(take);
+    {
+        Csound csound;
+        ASSERT_NO_FATAL_FAILURE(
+            startRecordedScore(csound, "-operfthread_join_output.wav"));
+        CsoundPerformanceThread performanceThread(csound.GetCsound());
+        performanceThread.Record(take, 16, kRecordBuffers);
+        performanceThread.Play();
+        EXPECT_GT(performanceThread.Join(), 0);
+        EXPECT_GE(fileSize(take), kWholeTake);
+    }
+    remove(take);
+    remove("perfthread_join_output.wav");
+}
+
+TEST(PerfThreadsTests, RecordingHoldsEachBlockOnce) {
+    const char *take = "perfthread_blocks_take.wav";
+    remove(take);
+    {
+        Csound csound;
+        ASSERT_NO_FATAL_FAILURE(
+            startRecordedScore(csound, "-operfthread_blocks_output.wav"));
+        CsoundPerformanceThread performanceThread(csound.GetCsound());
+        performanceThread.Record(take, 16, kRecordBuffers);
+        performanceThread.Play();
+        for (int i = 0; i < 1000 && performanceThread.GetStatus() == 0; ++i)
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        ASSERT_NE(performanceThread.GetStatus(), 0);
+        EXPECT_GT(performanceThread.Join(), 0);
+        // 75 blocks of 64 frames, not a 76th that repeats the last.
+        EXPECT_EQ(recordedBytes(take), 2 * 4800);
+    }
+    remove(take);
+    remove("perfthread_blocks_output.wav");
+}
+
+TEST(PerfThreadsTests, EachTakeFreesTheBufferOfTheLast) {
+    const char *take = "perfthread_takes.wav";
+    const int takes = 20;
+    remove(take);
+    Csound csound;
+    csound.SetOption("-+rtaudio=null");
+    csound.SetOption("-odac");
+    csound.SetOption("-b256");
+    ASSERT_EQ(csound.CompileOrc(kRecordedOrchestra), 0);
+    csound.EventString("f 0 z\ni 1 0 -1\n");
+    ASSERT_EQ(csound.Start(), 0);
+    CSOUND *cs = csound.GetCsound();
+    // Declared before the thread, which may still call back as it goes.
+    std::atomic<int> cycles{0};
+    CsoundPerformanceThread performanceThread(cs);
+    // The callback runs before each k-cycle: its fifth call follows four.
+    performanceThread.SetProcessCallback(
+        [](void *data) { ++*static_cast<std::atomic<int> *>(data); }, &cycles);
+    performanceThread.Play();
+    // The held note's instance is made in the first k-cycles: count after them.
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+    while (cycles.load() < 5) {
+        ASSERT_LT(std::chrono::steady_clock::now(), deadline);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    const size_t idle = csound_tracked_block_count(cs);
+    performanceThread.Record(take, 16, kRecordBuffers);
+    // Record() makes the take's buffer, two blocks, on this thread at once:
+    // a take that was refused, or failed, leaves the count as it was.
+    ASSERT_GE(csound_tracked_block_count(cs), idle + 2);
+    performanceThread.StopRecord();
+    performanceThread.FlushMessageQueue();
+    const size_t before = csound_tracked_block_count(cs);
+    for (int i = 1; i < takes; ++i) {
+        performanceThread.Record(take, 16, kRecordBuffers);
+        performanceThread.StopRecord();
+        performanceThread.FlushMessageQueue();
+    }
+    // Each take frees the last take's buffer: the count is where it was.
+    EXPECT_EQ(before, csound_tracked_block_count(cs));
+    performanceThread.Stop();
+    EXPECT_GT(performanceThread.Join(), 0);
+    remove(take);
+}
+
+// A block of 1024 frames of 6 channels is more than the 4096 samples the
+// recording thread reads at a time, and 4096 is no whole number of frames.
+TEST(PerfThreadsTests, RecordingOfSixChannelsKeepsEveryFrame) {
+    const char *take = "perfthread_channels_take.wav";
+    remove(take);
+    {
+        Csound csound;
+        csound.SetOption("-W");
+        csound.SetOption("-b1024");
+        csound.SetOption("-operfthread_channels_output.wav");
+        ASSERT_EQ(csound.CompileOrc("sr=48000\nksmps=1024\nnchnls=6\n0dbfs=1\n"
+                                    "instr 1\nendin\n"), 0);
+        csound.EventString("i 1 0 0.1\ne 0.1\n");
+        ASSERT_EQ(csound.Start(), 0);
+        CsoundPerformanceThread performanceThread(csound.GetCsound());
+        performanceThread.Record(take, 16, kRecordBuffers);
+        performanceThread.Play();
+        EXPECT_GT(performanceThread.Join(), 0);
+        // 0.1 s is 5 blocks of 1024 frames, 6 samples of 2 bytes each.
+        EXPECT_EQ(recordedBytes(take), 5 * 1024 * 6 * 2);
+    }
+    remove(take);
+    remove("perfthread_channels_output.wav");
 }

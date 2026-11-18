@@ -50,7 +50,9 @@ extern "C" {
    * Turns on the transmission of console messages to UDP on address addr
    * port port. If mirror is one, the messages will continue to be
    * sent to the usual destination (see csoundSetMessaggeCallback())
-   * as well as to UDP.
+   * as well as to UDP. Each message is one NUL-terminated datagram, up to
+   * 8191 text bytes. Larger messages are replaced with a diagnostic on UDP;
+   * the usual destination still receives the original message in mirror mode.
    * returns CSOUND_SUCCESS or CSOUND_ERROR if the UDP transmission
    * could not be set up.
    */

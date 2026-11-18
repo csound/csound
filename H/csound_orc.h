@@ -44,6 +44,8 @@ typedef struct type_table {
     CS_VAR_POOL* localPool;
     CONS_CELL* labelList;
     const char* udoOutTypes; /* of the UDO being verified, for its xout */
+    const char* udoName; /* of the new-style UDO being verified, for its xout */
+    int32_t udoHasXout; /* and whether its body has an xout */
 } TYPE_TABLE;
 
 /* Parser nodes can be detached or share children during rewriting. Track

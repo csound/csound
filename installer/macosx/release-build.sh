@@ -69,7 +69,6 @@ export SUPPORT_LIBS_DIR=$FRAMEWORK64_DIR/libs
 
 export PYTHON_DIR=Versions/$CSLIBVERSION/Resources/Python/Current
 export TCLTK_DIR=Versions/$CSLIBVERSION/Resources/TclTk
-export JAVA_DIR=Versions/$CSLIBVERSION/Resources/Java
 export SAMPLES_DIR=Versions/$CSLIBVERSION/Resources/samples
 
 export DIST=csound/build/dist
@@ -83,7 +82,6 @@ mkdir -p $SUPPORT_LIBS_DIR
 
 
 mkdir -p $FRAMEWORK64_DIR/$PYTHON_DIR
-mkdir -p $FRAMEWORK64_DIR/$JAVA_DIR
 #mkdir -p $FRAMEWORK64_DIR/$SAMPLES_DIR
 mkdir -p $FRAMEWORK64_DIR/../Documentation
 #mkdir -p $FRAMEWORK64_DIR/Headers

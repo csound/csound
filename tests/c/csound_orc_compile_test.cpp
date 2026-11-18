@@ -953,7 +953,7 @@ endop
 TEST_F (OrcCompileTests, testStructArrayMemberAssignmentRates)
 {
     const char* orchestra = R"(
-struct Field value:i, enabled:b
+struct Field value:i, enabled:b, level:k, active:B
 struct Record field:Field
 fields@global:Field[] init 1
 records@global:Record[] init 1
@@ -973,15 +973,15 @@ opcode WriteWithPerformance(index:i):void
 endop
 opcode WriteKValue(input:i):void
   value:k init input
-  fields[0].value = value
+  fields[0].level = value
 endop
 opcode WriteKBoolean(input:i):void
   value:k init input
-  fields[0].enabled = (value > 0)
+  fields[0].active = (value > 0)
 endop
 opcode WriteFromKIndex(input:i):void
   index:k init input
-  fields[0].value = fields[index].value
+  fields[0].level = fields[index].value
 endop
 opcode WriteToKIndex(input:i):void
   index:k init input
@@ -1003,6 +1003,86 @@ endop
         OENTRY* entry = find_opcode_new(csound, name, "", "i");
         ASSERT_NE(nullptr, entry) << name;
         EXPECT_NE(nullptr, entry->perf) << name;
+    }
+}
+
+/* A scalar member, or an array of scalars, written in each cycle is
+   written in place: neither the element's copy out (##array_get_struct...)
+   nor its copy back (##array_set_struct...) is left in the UDO. */
+TEST_F (OrcCompileTests, testStructArrayMemberWritesInPlace)
+{
+    const char* orchestra = R"(
+struct Field level:k, on:B, name:S, values:k[]
+struct Record field:Field
+fields@global:Field[] init 2
+records@global:Record[] init 2
+
+opcode WriteAtI(index:i):void
+  fields[index].level = 0.5
+endop
+opcode WriteBooleanAtI(input:i):void
+  value:k init input
+  fields[1].on = value > 0
+endop
+opcode WriteAtK(input:i):void
+  index:k init input
+  fields[index].level = 0.5
+endop
+opcode WriteStringAtK(input:i):void
+  index:k init input
+  fields[index].name = "text"
+endop
+opcode WriteNested(index:i):void
+  records[index].field.level = 0.5
+endop
+opcode WriteArrayAtI(index:i):void
+  values:k[] init 2
+  fields[index].values = values
+endop
+opcode CopyStructAtK(input:i):void
+  index:k init input
+  field:Field init
+  records[index].field = field
+endop
+opcode CopyThroughIArray(input:i):void
+  slots:i[] fillarray 0, 1
+  index:k init input
+  fields[slots[index]].level = 0.5
+endop
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    for (const char* name : {"WriteAtI", "WriteBooleanAtI", "WriteAtK",
+                             "WriteStringAtK", "WriteNested",
+                             "WriteArrayAtI"}) {
+        OENTRY* entry = find_opcode_new(csound, name, "", "i");
+        ASSERT_NE(nullptr, entry) << name;
+        OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+        ASSERT_NE(nullptr, info) << name;
+        int inPlace = 0, copies = 0;
+        for (OPTXT* op = info->ip->nxtop; op != nullptr; op = op->nxtop) {
+            const char* opname =
+              op->t.oentry != nullptr ? op->t.oentry->opname : "";
+            inPlace += !strcmp(opname, "##array_member_set");
+            copies += !strncmp(opname, "##array_get_struct", 18) ||
+                      !strncmp(opname, "##array_set_struct", 18);
+        }
+        EXPECT_EQ(1, inPlace) << name;
+        EXPECT_EQ(0, copies) << name;
+    }
+    /* a struct member keeps the copy, and so does an i index that reads an
+       array at a k index, at the rate it had */
+    for (const char* name : {"CopyStructAtK", "CopyThroughIArray"}) {
+        OENTRY* entry = find_opcode_new(csound, name, "", "i");
+        ASSERT_NE(nullptr, entry) << name;
+        OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+        ASSERT_NE(nullptr, info) << name;
+        int inPlace = 0;
+        for (OPTXT* op = info->ip->nxtop; op != nullptr; op = op->nxtop) {
+            inPlace += op->t.oentry != nullptr &&
+                       !strcmp(op->t.oentry->opname, "##array_member_set");
+        }
+        EXPECT_EQ(0, inPlace) << name;
     }
 }
 
@@ -1125,6 +1205,120 @@ endin
     EXPECT_LE(instances, 16);
 }
 
+TEST_F (OrcCompileTests, testInitOnlyUdoWithLiteralOrGlobalCondition)
+{
+    const char* orchestra = R"(
+yes@global:b = 1 < 2
+on@global:B init 1
+
+opcode CountWhileTrue(depth:i):i
+  result:i = 1
+  while true do
+    if depth > 0 then
+      left:i = CountWhileTrue(depth - 1)
+      right:i = CountWhileTrue(depth - 1)
+      result = left + right
+    endif
+    break
+  od
+  xout result
+endop
+opcode CountWhileFlag(depth:i):i
+  result:i = 1
+  flag:b = true
+  while flag do
+    if depth > 0 then
+      left:i = CountWhileFlag(depth - 1)
+      right:i = CountWhileFlag(depth - 1)
+      result = left + right
+    endif
+    break
+  od
+  xout result
+endop
+opcode CountIfTrue(depth:i):i
+  result:i = 1
+  if true then
+    if depth > 0 then
+      left:i = CountIfTrue(depth - 1)
+      right:i = CountIfTrue(depth - 1)
+      result = left + right
+    endif
+  endif
+  xout result
+endop
+opcode CountIfGlobal(depth:i):i
+  result:i = 1
+  if yes then
+    if depth > 0 then
+      left:i = CountIfGlobal(depth - 1)
+      right:i = CountIfGlobal(depth - 1)
+      result = left + right
+    endif
+  endif
+  xout result
+endop
+opcode WhileTruek(depth:i):i
+  result:i = depth
+  while truek do
+    break
+  od
+  xout result
+endop
+opcode IfGlobalB(depth:i):i
+  result:i = depth
+  if on then
+    result = depth + 1
+  endif
+  xout result
+endop
+instr 1
+  chnset CountWhileTrue(8), "while-true"
+  chnset CountWhileFlag(8), "while-flag"
+  chnset CountIfTrue(8), "if-true"
+  chnset CountIfGlobal(8), "if-global"
+endin
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+
+    // A b condition, a literal or a global as much as a local, is read at
+    // init: the UDO stays init-only, and a recursion reuses its frames.
+    const char* initOnly[][2] = {{"CountWhileTrue", "while-true"},
+                                 {"CountWhileFlag", "while-flag"},
+                                 {"CountIfTrue", "if-true"},
+                                 {"CountIfGlobal", "if-global"}};
+    for (auto& udo : initOnly) {
+        SCOPED_TRACE(udo[0]);
+        int32_t error = 0;
+        EXPECT_EQ(256, csoundGetControlChannel(csound, udo[1], &error));
+        EXPECT_EQ(CSOUND_SUCCESS, error);
+        OENTRY* entry = find_opcode_new(csound, udo[0], "i", "i");
+        ASSERT_NE(nullptr, entry);
+        EXPECT_EQ(nullptr, entry->perf);
+        OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+        ASSERT_NE(nullptr, info);
+        int instances = 0;
+        for (INSDS* frame = info->ip->instance; frame != nullptr;
+             frame = frame->nxtinstance) {
+            ++instances;
+        }
+        EXPECT_LE(instances, 16);
+    }
+
+    // A B condition, truek or a global, is read at performance.
+    OENTRY* truek = find_opcode_new(csound, "WhileTruek", "i", "i");
+    OENTRY* globalB = find_opcode_new(csound, "IfGlobalB", "i", "i");
+    ASSERT_NE(nullptr, truek);
+    ASSERT_NE(nullptr, globalB);
+    EXPECT_NE(nullptr, truek->perf);
+    EXPECT_NE(nullptr, globalB->perf);
+}
+
 TEST_F (OrcCompileTests, UdosAtParentSampleRateDoNotAllocateConverters)
 {
     const char* orchestra = R"(
@@ -1229,6 +1423,83 @@ endin
             EXPECT_NEAR(0.5, csoundGetSpout(csound)[0], 1e-6);
     }
     EXPECT_EQ(0, csoundErrCnt(csound));
+}
+
+/* A reinit that runs xout or xin again makes that argument's converters
+   anew. The ones it replaces were kept until a reset: a converter's blocks
+   for every reinit, and libsamplerate's state outside them. */
+TEST_F (OrcCompileTests, UdoReinitFreesTheConvertersItReplaces)
+{
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+giMode init 0
+opcode OutAgain, a, a
+  oversample 2, giMode
+  aIn xin
+  aOut = aIn * 0.5
+  kCycle timeinstk
+  if kCycle % 2 == 0 then
+    reinit Again
+  endif
+Again:
+  chnset chnget:i("passes") + 1, "passes"
+  xout aOut
+  rireturn
+endop
+opcode InAgain, a, a
+  oversample 2, giMode
+Again:
+  chnset chnget:i("passes") + 1, "passes"
+  aIn xin
+  rireturn
+  kCycle timeinstk
+  if kCycle % 2 == 0 then
+    reinit Again
+  endif
+  xout aIn * 0.5
+endop
+instr 1
+  giMode = p4
+  aSig poscil 0.1, 440
+  if p5 == 0 then
+    aOut OutAgain aSig
+  else
+    aOut InAgain aSig
+  endif
+  out aOut
+endin
+)";
+    /* Converter 0 is libsamplerate's, 4 Csound's linear one. */
+    for (const char* side : {"xout", "xin"}) {
+        for (int mode : {0, 4}) {
+            SCOPED_TRACE(std::string(side) + ", converter " +
+                         std::to_string(mode));
+            CSOUND* cs = csoundCreate(NULL, NULL);
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(cs, "-n -d -m0"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, orchestra));
+            const std::string note = "i 1 0 1 " + std::to_string(mode) +
+                (strcmp(side, "xout") == 0 ? " 0" : " 1");
+            csoundReadScore(cs, note.c_str());
+            ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+            for (int i = 0; i < 4; ++i)
+                ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+            int32_t error = 0;
+            const cs_float passes = csoundGetControlChannel(cs, "passes",
+                                                            &error);
+            const size_t blocks = csound_tracked_block_count(cs);
+            for (int i = 0; i < 20; ++i)
+                ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+            /* One reinit for each caller k-period. */
+            EXPECT_EQ(passes + 20, csoundGetControlChannel(cs, "passes",
+                                                           &error));
+            EXPECT_EQ(blocks, csound_tracked_block_count(cs));
+            EXPECT_EQ(0, csoundErrCnt(cs));
+            csoundDestroy(cs);
+        }
+    }
 }
 
 TEST_F (OrcCompileTests, testCompile)
@@ -1571,6 +1842,123 @@ INSTANTIATE_TEST_SUITE_P(
         "Scopy init Swords[kIndex]",
         "printf \"LENGTH=%d\\n\", 1, strlen(Swords[kIndex])",
         "PrintWord Swords[kIndex]"));
+
+/* = between two types it has no entry for resolves to =.generic, which
+   copies a value into a variable of its own type. Such an = stopped each note
+   that reached it at init, and now fails the compile, even in an instrument
+   no note reaches. */
+class AssignmentTypeTests
+    : public OrcCompileTests,
+      public ::testing::WithParamInterface<std::tuple<const char *,
+                                                      const char *>> {};
+
+TEST_P (AssignmentTypeTests, rejectsTypesItCannotCopy)
+{
+    std::string orchestra = R"(
+struct Flag on:b
+struct Holder flags:b[]
+struct Box value:i
+
+instr 2
+  kValue:k init 1
+  held:B = kValue > 0
+  flags:b[] fillarray false, true
+  kIndex:k init 1
+  flag:Flag init
+  holder:Holder init
+  boxes:Box[] init 2
+  flagArray:Flag[] init 2
+  )";
+    orchestra += std::get<0>(GetParam());
+    orchestra += "\nendin\n";
+    csoundCreateMessageBuffer(csound, 0);
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra.c_str()));
+    std::string messages;
+    while (csoundGetMessageCnt(csound) > 0) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    EXPECT_NE(std::string::npos, messages.find(std::get<1>(GetParam())))
+        << messages;
+    csoundDestroyMessageBuffer(csound);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Assignments, AssignmentTypeTests,
+    ::testing::Values(
+        std::make_tuple("x:b = held", "cannot assign B to x, which is b"),
+        std::make_tuple("i1:i = kValue", "cannot assign k to i1, which is i"),
+        std::make_tuple("S1:S = held", "cannot assign B to S1, which is S"),
+        std::make_tuple("a1:a = \"text\"", "cannot assign S to a1, which is a"),
+        std::make_tuple("value:b = flags[kIndex]",
+                        "cannot assign B to value, which is b"),
+        std::make_tuple("value:b = (p4 > 0) ? flags[kIndex] : false",
+                        "cannot assign k to value, which is b"),
+        std::make_tuple("flags[kIndex] = kValue > 0",
+                        "cannot assign B to b, line"),
+        std::make_tuple("holder.flags[kIndex] = kValue > 0",
+                        "cannot assign B to b, line"),
+        std::make_tuple("flag.on = kValue > 0",
+                        "cannot assign B to b, line"),
+        std::make_tuple("boxes[1].value = kValue",
+                        "cannot assign k to i, line"),
+        std::make_tuple("boxes[1].value = boxes[kIndex].value",
+                        "struct array index must be i-rate during init"),
+        std::make_tuple("flagArray[1].on = kValue > 0",
+                        "cannot assign B to b, line")));
+
+/* What =.generic copies still compiles: two values of one type, and a
+   boolean for an a, which is read as a number first. */
+TEST_F (OrcCompileTests, testAcceptsAssignmentsItCanCopy)
+{
+    const char *orchestra = R"(
+struct Point x:k, y:k
+
+instr 1
+  kValue:k init 1
+  held:B = kValue > 0
+  copy:B = held
+  first:Point init 1, 2
+  second:Point = first
+  a1 = true
+  a2 = held
+endin
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+}
+
+/* A statement is verified again once its expressions are expanded, or a
+   boolean argument is converted to a number, and warned each time that its
+   opcode is deprecated. */
+TEST_F (OrcCompileTests, testDeprecatedOpcodeWarnsOnce)
+{
+    for (const char *statement : {"  values:i[] array 1 + 2, 3\n",
+                                  "  flag:b = 1 < 2\n"
+                                  "  values:i[] array flag, 3\n"}) {
+        CSOUND *instance = csoundCreate(NULL, NULL);
+        std::string orchestra = std::string("instr 1\n") + statement +
+                                "endin\n";
+        std::string messages;
+        size_t count = 0, at = 0;
+        csoundSetOption(instance, "-n");
+        csoundCreateMessageBuffer(instance, 0);
+        EXPECT_EQ(CSOUND_SUCCESS,
+                  csoundCompileOrc(instance, orchestra.c_str()));
+        while (csoundGetMessageCnt(instance) > 0) {
+            messages += csoundGetFirstMessage(instance);
+            csoundPopFirstMessage(instance);
+        }
+        while ((at = messages.find("opcode array is deprecated", at)) !=
+               std::string::npos) {
+            count++;
+            at++;
+        }
+        EXPECT_EQ(1u, count) << statement << messages;
+        csoundDestroyMessageBuffer(instance);
+        csoundDestroy(instance);
+    }
+}
 
 TEST_F (OrcCompileTests, testStringArrayInitAndPerformanceValues)
 {

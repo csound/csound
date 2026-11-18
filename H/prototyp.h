@@ -37,6 +37,10 @@ extern "C" {
   void *csoundCalloc_debug(CSOUND *, size_t, char*, int32_t);
   void *csoundRealloc_debug(CSOUND *, void *, size_t, char*, int32_t);
   void csoundFree_debug(CSOUND *, void *, char*, int32_t);
+  /* For tests: the number of blocks Csound holds until a reset, and whether
+     a pointer is the data of one of them. */
+  size_t csound_tracked_block_count(CSOUND *);
+  int32_t csound_is_tracked_block(CSOUND *, const void *);
   void csoundAuxAlloc(CSOUND *, size_t, AUXCH *);
   void csoundAuxAllocAligned(CSOUND *, size_t, size_t, AUXCH *);
   void auxchfree(CSOUND *, INSDS *);
@@ -59,6 +63,10 @@ extern "C" {
   void csoundErrorMsgS(CSOUND *, int32_t attr, const char *, ...);
   void csoundErrMsgV(CSOUND *, const char *, const char *, va_list);
   CS_NORETURN void csoundLongJmp(CSOUND *, int32_t retval);
+  /* Passes on a jump that setjmp gives as n, as longjmp(exitjmp, n) did:
+     to the innermost API call on this thread, or to exitjmp. For a frame
+     that caught a jump to clean up, and the parser's NULL tree. */
+  CS_NORETURN void jump_on(CSOUND *, int32_t n);
   TEXT *getoptxt(CSOUND *, int32_t *);
   void  csoundInitDisplay(CSOUND *);
   int32_t init0(CSOUND *);
@@ -66,6 +74,9 @@ extern "C" {
   void instr0_wait(CSOUND *, INSTRTXT *);
   void scsort(CSOUND *, FILE *, FILE *);
   char *scsortstr(CSOUND *, CORFIL *);
+  char *scsortstr_events(CSOUND *, CORFIL *);
+  void scsortstr_merge(CSOUND *);
+  void scsortstr_forget(CSOUND *);
   int32_t scxtract(CSOUND *, CORFIL *, FILE *);
   int32_t rdscor(CSOUND *, EVTBLK *);
   int32_t start_engine(CSOUND *);
@@ -134,6 +145,13 @@ extern "C" {
   void csound_recycle_rt_event_list_with_tail(CSOUND *csound,
                                               EVTNODE *events,
                                               EVTNODE *tail);
+  /* Realtime events held for a rewind of the score (musmon.c): dropped;
+     put in from the rewind's time origin; kept for the rewind; or put in
+     by it. */
+  void rt_events_drop(CSOUND *csound, EVTNODE *events);
+  void rt_events_insert_held(CSOUND *csound, EVTNODE *events);
+  void rt_events_keep_for_rewind(CSOUND *csound, EVTNODE *events);
+  void rt_events_after_rewind(CSOUND *csound);
   int32_t diskin2_async_setup(CSOUND *csound);
   void diskin2_async_drain_deferred(CSOUND *csound);
   void diskin2_async_prepare_shutdown(CSOUND *csound);
@@ -180,6 +198,97 @@ extern "C" {
   int32_t realtset(CSOUND *, SRTBLK *);
   cs_float   realt(CSOUND *, cs_float);
   uintptr_t event_insert_thread(void *);
+  /* The landings of the init passes for a fatal jump, on the realtime init
+     thread and in an API call (insert.c). The unwind does not return inside
+     such a pass. */
+  typedef struct init_landing_s {
+    CSOUND *csound;
+    jmp_buf target;
+    struct init_landing_s *outer;
+  } INIT_LANDING;
+  void init_pass_unwind(CSOUND *, int32_t n);
+  /* Sets a landing, if this thread lands this instance's jumps, and says
+     whether it did; a frame that runs init opcodes of its own (a UDO's)
+     takes the jumps made in them too. Pop it on every way out. */
+  int32_t init_landing_push(CSOUND *, INIT_LANDING *);
+  void init_landing_pop(const INIT_LANDING *);
+  /* Whether an init pass on this thread must stop: a pass took a jump. A
+     loop that runs init opcodes of its own (a UDO's, subinstr's) stops too. */
+  int32_t init_jump_pending(const CSOUND *);
+  /* On the thread that performs: makes the jump the init thread took, if
+     any, and does not return then. */
+  void init_thread_jump_make(CSOUND *);
+  /* In an item the realtime init thread runs for the instance (an init, a
+     reinit, global code, and any API call they make), beside the
+     performance: records that the item asks for a rewind of the score,
+     which the performance makes once the item is done, and returns 1. */
+  int32_t init_item_asks_rewind(CSOUND *);
+  /* Whether this is such an item, which asked, and no rewind came since,
+     or the one that serves it is under way: it holds the events it
+     schedules (init_item_holds_event), which go in from the rewind's new
+     time origin. */
+  int32_t init_item_rewinding(const CSOUND *);
+  void init_item_holds_event(EVTNODE *);
+  /* Whether this thread runs such an item, asking or not. */
+  int32_t init_item_runs(const CSOUND *);
+  /* A rewind since the ask served it and is done: what the item held goes
+     in now, before what it schedules next, or is dropped if a later
+     rewind came too. */
+  void init_item_release_served(CSOUND *);
+  /* The init pass of a note the score or MIDI started, or a reinit, on
+     this thread: entered (giving what to restore) and left; whether one of
+     the instance's runs; reset as a performance starts, at each period
+     and at each item of the realtime init thread, as a jump can leave
+     one. */
+  const CSOUND *note_init_enter(const CSOUND *);
+  void note_init_leave(const CSOUND *outer);
+  int32_t note_init_runs(const CSOUND *);
+  void note_inits_reset(const CSOUND *);
+  /* A call that takes the jumps made inside it, on its own thread, as its
+     error: csound_compile_orc, csoundCompileTree, csoundCompileCSD, the
+     plugin loaders and csoundCatchJump, csoundRunUtility, argdecode's for an
+     options file and for csoundSetOption, csoundScoreSort and
+     csoundScoreExtract, and the calls below made inside another call on
+     their thread (api_call_nested). A jump lands at the target
+     of the innermost on its thread: exitjmp is left to the call that
+     performs, or starts, on its own, and another thread's jump never finds
+     this one. In a compile's (api_call_begin), an init pass takes its own
+     jump and the call gives it (jumped), and the init thread's landings
+     stand aside while it runs. A call that reads jumped after a jump makes
+     its setjmp in a frame of its own, under the record's. linevent.c's
+     input_message takes its jumps on an init landing inside its call. */
+  typedef struct api_call_s {
+    CSOUND *csound;
+    struct api_call_s *outer;
+    CSOUND *initThread;
+    INIT_LANDING *initLanding;
+    int32_t initJumped;
+    int32_t jumped;             /* the jump a pass inside the call took */
+    int32_t catching;           /* api_call_catch's */
+    const CSOUND *ownerBefore;  /* api_call_nested's, when it gave exitjmp */
+    jmp_buf target;             /* where a jump inside the call lands */
+  } API_CALL;
+  void api_call_begin(CSOUND *, API_CALL *);
+  void api_call_end(const API_CALL *);
+  API_CALL *api_call_of(const CSOUND *);
+  /* The other calls catch their jumps as the frame that held exitjmp for
+     their length did (api_call_catch): they stand aside for the passes and
+     the compile around them, and the init context is reset as for exitjmp
+     unless a compile's call is open around them (api_call_takes_passes). */
+  void api_call_catch(CSOUND *, API_CALL *);
+  int32_t api_call_takes_passes(const CSOUND *);
+  /* For the calls that set exitjmp and keep it when they run on their own
+     (csoundCompile, csoundStart, csoundSetOption, csoundPerformKsmps,
+     perform_buffer): whether they run inside another call on this thread
+     (api_call_running); then they catch in a call of their own, and
+     exitjmp stays. api_call_nested gives the landing, exitjmp or the target
+     of a call it began, and marks the thread while it runs on its own;
+     api_call_nested_end ends that, on every way out, after a jump to its
+     landing too. The performance calls use api_call_running and mark
+     nothing, so that their landing reads nothing of a frame left. */
+  int32_t api_call_running(const CSOUND *);
+  jmp_buf *api_call_nested(CSOUND *, API_CALL *);
+  void api_call_nested_end(const API_CALL *);
   int32_t sens_midi(CSOUND *);
   void sort(CSOUND*);
   void twarp(CSOUND*);
