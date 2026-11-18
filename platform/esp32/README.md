@@ -79,3 +79,10 @@ startup code, memory, audio I/O, and any file support that your score needs.
 
 CI builds and packages each chip separately. These jobs check compilation and
 installation. They do not run audio on an ESP32 board.
+
+The companion `ESP32 float CSD tests (Linux host)` job runs the full CSD suite
+with `USE_DOUBLE=OFF` and `USE_FLOAT=ON`. It uses the host CLI and file support
+to expose bugs shared by float builds. It does not run the ESP32 libraries or
+check chip-specific behavior. A test failure fails the job. The job summary
+lists failing tests, and the `esp32-float-csd-results` artifact contains the
+full output and build settings.
