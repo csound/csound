@@ -2,8 +2,15 @@
 #include "csoundCore.h"
 #include "ugens5.h"
 #include "gtest/gtest.h"
+#include <cfenv>
 #include <cmath>
 #include <limits>
+
+#if defined(__SSE__) || defined(_M_X64) || \
+    (defined(_M_IX86_FP) && _M_IX86_FP >= 1)
+#include <xmmintrin.h>
+#define RMS_TEST_SSE
+#endif
 
 extern "C" {
 int32_t rmsset(CSOUND *, RMS *);
@@ -21,8 +28,22 @@ protected:
     INSDS instrument{};
     RMS detector{};
     cs_float input = 0, output = 0, cutoff = 24000, keep = 0;
+    std::fenv_t environment{};
+#ifdef RMS_TEST_SSE
+    unsigned int mxcsr = 0;
+#endif
 
     void SetUp() override {
+        ASSERT_EQ(std::fegetenv(&environment), 0);
+#ifdef RMS_TEST_SSE
+        mxcsr = _mm_getcsr();
+#endif
+        // Exercise gradual underflow, as on wasm, even when the native build
+        // starts with fast-math's flush-to-zero modes enabled.
+        ASSERT_EQ(std::fesetenv(FE_DFL_ENV), 0);
+#ifdef RMS_TEST_SSE
+        _mm_setcsr(_mm_getcsr() & ~0x8040u); // Clear FTZ and DAZ.
+#endif
         instrument.ksmps = 1;
         instrument.pidsr = PI/48000;
         detector.h.insdshead = &instrument;
@@ -31,6 +52,13 @@ protected:
         detector.ihp = &cutoff;
         detector.istor = &keep;
         ASSERT_EQ(rmsset(nullptr, &detector), OK);
+    }
+
+    void TearDown() override {
+        std::fesetenv(&environment);
+#ifdef RMS_TEST_SSE
+        _mm_setcsr(mxcsr);
+#endif
     }
 
     cs_float step(cs_float sample) {
@@ -44,8 +72,8 @@ TEST_F(RmsTests, DecayDoesNotRoundASubnormalScale)
 {
     const cs_float unit = std::numeric_limits<cs_float>::denorm_min();
     // The first two levels are 2.73 and 1.13 units, rounded only at output.
-    EXPECT_EQ(step(3*unit)/unit, 3);
-    EXPECT_EQ(step(0)/unit, 1);
+    EXPECT_EQ(step(3*unit), 3*unit);
+    EXPECT_EQ(step(0), unit);
 }
 
 TEST_F(RmsTests, SmallestWeightsStillAccumulateEnergy)
@@ -64,7 +92,7 @@ TEST_F(RmsTests, SilentDecayCanResumeAtTheSmallestInput)
     for (int n = 0; n < 3000; ++n) step(0);
     EXPECT_EQ(output, 0);
     const cs_float unit = std::numeric_limits<cs_float>::denorm_min();
-    EXPECT_EQ(step(3*unit)/unit, 3);
+    EXPECT_EQ(step(3*unit), 3*unit);
 }
 
 TEST_F(RmsTests, FullScaleInputsStayFinite)
