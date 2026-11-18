@@ -256,6 +256,11 @@ static int32_t distort(CSOUND *csound, DIST *p)
     correction = p->rms_correction;
     for (n=offset; n<nsmps; n++) {
       cs_double magnitude = FABS(asig[n]);
+      if (UNLIKELY(!isfinite(magnitude)))
+        return csound->PerfError(csound, &(p->h), "%s\n",
+                                 Str("distort: input level is out of range"));
+      /* A zero cutoff freezes retained energy, including its scale. */
+      if (p->c1 == FL(0.0)) continue;
       if (magnitude > level_scale) {
         cs_double ratio = level_scale / magnitude;
         q *= ratio * ratio;
