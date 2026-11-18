@@ -8,6 +8,11 @@
 extern "C" {
 int32_t rmsset(CSOUND *, RMS *);
 int32_t rms(CSOUND *, RMS *);
+int32_t gainset(CSOUND *, GAIN *);
+int32_t gain(CSOUND *, GAIN *);
+int32_t balnset(CSOUND *, BALANCE *);
+int32_t balance(CSOUND *, BALANCE *);
+int32_t balance2(CSOUND *, BALANCE *);
 }
 
 namespace {
@@ -51,5 +56,65 @@ TEST_F(RmsTests, SmallestWeightsStillAccumulateEnergy)
     ASSERT_GT(first, 0);
     for (int n = 0; n < 100; ++n) step(FL(6e14));
     EXPECT_NEAR(output/first, std::sqrt(FL(37.0)), .00001);
+}
+
+TEST_F(RmsTests, SilentDecayCanResumeAtTheSmallestInput)
+{
+    step(1);
+    for (int n = 0; n < 3000; ++n) step(0);
+    EXPECT_EQ(output, 0);
+    const cs_float unit = std::numeric_limits<cs_float>::denorm_min();
+    EXPECT_EQ(step(3*unit)/unit, 3);
+}
+
+TEST_F(RmsTests, FullScaleInputsStayFinite)
+{
+    const cs_float maximum = (std::numeric_limits<cs_float>::max)();
+    for (cs_float frequency : {FL(.0001), FL(10.0), FL(24000.0)}) {
+        cutoff = frequency;
+        ASSERT_EQ(rmsset(nullptr, &detector), OK);
+        for (int n = 0; n < 1000; ++n) {
+            step(maximum);
+            ASSERT_TRUE(std::isfinite(output)) << frequency << ": " << n;
+            ASSERT_LE(output, maximum);
+        }
+    }
+}
+
+TEST_F(RmsTests, LowCutoffPulseMatchesBothBalancePaths)
+{
+    cutoff = FL(.0001);
+    ASSERT_EQ(rmsset(nullptr, &detector), OK);
+    cs_float source = 1, chain = 0, balanced = 0, perSample = 0;
+    GAIN chainOp{};
+    chainOp.h.insdshead = &instrument;
+    chainOp.asig = &source;
+    chainOp.krms = &output;
+    chainOp.ar = &chain;
+    chainOp.ihp = &cutoff;
+    chainOp.istor = &keep;
+    ASSERT_EQ(gainset(nullptr, &chainOp), OK);
+    BALANCE balanceOp{};
+    balanceOp.h.insdshead = &instrument;
+    balanceOp.asig = &source;
+    balanceOp.csig = &input;
+    balanceOp.ar = &balanced;
+    balanceOp.ihp = &cutoff;
+    balanceOp.istor = &keep;
+    ASSERT_EQ(balnset(nullptr, &balanceOp), OK);
+    BALANCE perSampleOp = balanceOp;
+    perSampleOp.ar = &perSample;
+    cs_float previousPerSample = 0;
+    for (int n = 0; n < 48000; ++n) {
+        step(n == 0 ? FL(1.0) : FL(0.0));
+        ASSERT_EQ(gain(nullptr, &chainOp), OK);
+        ASSERT_EQ(balance(nullptr, &balanceOp), OK);
+        previousPerSample = perSample;
+        ASSERT_EQ(balance2(nullptr, &perSampleOp), OK);
+    }
+    ASSERT_GT(chain, 0);
+    EXPECT_NEAR(chain/balanced, 1, .000002);
+    // gain and balance ramp from the preceding block's level; ksmps is one.
+    EXPECT_NEAR(chain/previousPerSample, 1, .000002);
 }
 } // namespace

@@ -1599,17 +1599,22 @@ int32_t rmsset(CSOUND *csound, RMS *p)
 
 int32_t gainset(CSOUND *csound, GAIN *p)
 {
-    TONE_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
-    if (!*p->istor)
-      p->prvq = p->prva = 0.0;
+    RMS_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->coefficients);
+    if (!*p->istor) {
+      memset(&p->energy, 0, sizeof(p->energy));
+      p->prva = FL(0.0);
+    }
     return OK;
 }
 
 int32_t balnset(CSOUND *csound, BALANCE *p)
 {
-    TONE_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
-    if (!*p->istor)
-      p->prvq = p->prvr = p->prva = 0.0;
+    RMS_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->coefficients);
+    if (!*p->istor) {
+      memset(&p->energy, 0, sizeof(p->energy));
+      memset(&p->reference, 0, sizeof(p->reference));
+      p->prva = FL(0.0);
+    }
     return OK;
 }
 
@@ -1637,10 +1642,8 @@ int32_t gain(CSOUND *csound, GAIN *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float    *ar, *asig;
-    cs_double   q, a, m, diff, inc;
-    cs_double   c1 = p->c1, c2 = p->c2;
-
-    q = p->prvq;
+    cs_double a, m, diff, inc;
+    RMS_ENERGY q = p->energy;
     asig = p->asig;
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
@@ -1651,12 +1654,16 @@ int32_t gain(CSOUND *csound, GAIN *p)
     if (UNLIKELY(offset >= nsmps))
       return OK;
     for (n = offset; n < nsmps; n++) {
-      cs_double as = (cs_double)asig[n];
-      q = c1 * as * as + c2 * q;
+      RMS_UPDATE(p->coefficients, q, asig[n]);
     }
-    p->prvq = q;
-    if (q > 0.0)
-      a = *p->krms / sqrt(q);
+    p->energy = q;
+    if (q.value > FL(0.0)) {
+      /* Divide mantissas before restoring the level's exponent. */
+      int target_exponent = 0;
+      cs_double target = RMS_FREXP(*p->krms, &target_exponent);
+      cs_double level = RMS_SQRT(RMS_LDEXP(q.value, q.exponent % 2));
+      a = RMS_LDEXP(target / level, target_exponent - q.exponent / 2);
+    }
     else
       a = *p->krms;
     if ((diff = a - p->prva) != 0.0) {
@@ -1683,11 +1690,8 @@ int32_t balance(CSOUND *csound, BALANCE *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float    *ar, *asig, *csig;
-    cs_double   q, r, a, m, diff, inc;
-    cs_double   c1 = p->c1, c2 = p->c2;
-
-    q = p->prvq;
-    r = p->prvr;
+    cs_double a, m, diff, inc;
+    RMS_ENERGY q = p->energy, r = p->reference;
     asig = p->asig;
     csig = p->csig;
     ar = p->ar;
@@ -1699,17 +1703,17 @@ int32_t balance(CSOUND *csound, BALANCE *p)
     if (UNLIKELY(offset >= nsmps))
       return OK;
     for (n = offset; n < nsmps; n++) {
-      cs_double as = (cs_double)asig[n];
-      cs_double cs = (cs_double)csig[n];
-      q = c1 * as * as + c2 * q;
-      r = c1 * cs * cs + c2 * r;
+      RMS_UPDATE(p->coefficients, q, asig[n]);
+      RMS_UPDATE(p->coefficients, r, csig[n]);
     }
-    p->prvq = q;
-    p->prvr = r;
-    if (LIKELY(q != 0.0))
-      a = sqrt(r/q);
+    p->energy = q;
+    p->reference = r;
+    if (LIKELY(q.value != FL(0.0))) {
+      RMS_ENERGY ratio = {r.value / q.value, FL(0.0), r.exponent - q.exponent};
+      a = RMS_LEVEL(ratio);
+    }
     else
-      a = sqrt(r);
+      a = RMS_LEVEL(r);
     if ((diff = a - p->prva) != 0.0) {
       m = p->prva;
       inc = diff / (cs_double)(nsmps-offset);
@@ -1735,11 +1739,8 @@ int32_t balance2(CSOUND *csound, BALANCE *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float    *ar, *asig, *csig;
-    cs_double   q, r, a;
-    cs_double   c1 = p->c1, c2 = p->c2;
-
-    q = p->prvq;
-    r = p->prvr;
+    cs_double a;
+    RMS_ENERGY q = p->energy, r = p->reference;
     asig = p->asig;
     csig = p->csig;
     ar = p->ar;
@@ -1749,18 +1750,18 @@ int32_t balance2(CSOUND *csound, BALANCE *p)
       memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
-      cs_double as = (cs_double)asig[n];
-      cs_double cs = (cs_double)csig[n];
-      q = c1 * as * as + c2 * q;
-      r = c1 * cs * cs + c2 * r;
-      if (LIKELY(q != 0.0))
-        a = sqrt(r/q);
+      RMS_UPDATE(p->coefficients, q, asig[n]);
+      RMS_UPDATE(p->coefficients, r, csig[n]);
+      if (LIKELY(q.value != FL(0.0))) {
+        RMS_ENERGY ratio = {r.value / q.value, FL(0.0), r.exponent - q.exponent};
+        a = RMS_LEVEL(ratio);
+      }
       else
-        a = sqrt(r);
+        a = RMS_LEVEL(r);
       ar[n] = asig[n] * a;
     }
-    p->prvq = q;
-    p->prvr = r;
+    p->energy = q;
+    p->reference = r;
     return OK;
 }
 

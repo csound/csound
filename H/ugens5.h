@@ -149,13 +149,17 @@ typedef struct {
 typedef struct {
         OPDS    h;
         cs_float   *ar, *asig, *krms, *ihp, *istor;
-        cs_double  c1, c2, prvq, prva;
+        RMS_COEFS coefficients;
+        RMS_ENERGY energy;
+        cs_double prva;
 } GAIN;
 
 typedef struct {
         OPDS    h;
         cs_float   *ar, *asig, *csig, *ihp, *istor;
-        cs_double  c1, c2, prvq, prvr, prva;
+        RMS_COEFS coefficients;
+        RMS_ENERGY energy, reference;
+        cs_double prva;
 } BALANCE;
 
 typedef struct {

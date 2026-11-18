@@ -335,10 +335,10 @@ jobs:
       - name: Build unit tests
         run: cmake --build build-linux64-float --target unittests --parallel "$(nproc)"
 
-      - name: Run type-system tests
+      - name: Run selected unit tests
         run: >
           ctest --test-dir build-linux64-float
-          --tests-regex '^(TypeSystemTests\.|numeric_type_compatibility$|LfsrTests\.|OscBlobTest\.|InternalOscDecodeTests\.|Inputs/NextPowerTests\.)'
+          --tests-regex '^(TypeSystemTests\.|numeric_type_compatibility$|LfsrTests\.|OscBlobTest\.|InternalOscDecodeTests\.|Inputs/NextPowerTests\.|RmsTests\.)'
           --parallel "$(nproc)"
           --output-on-failure
           --no-tests=error
