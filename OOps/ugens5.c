@@ -1528,6 +1528,8 @@ int32_t rms(CSOUND *csound, RMS *p)
     q = p->prvq;
     asig = p->asig;
     if (UNLIKELY(early)) nsmps -= early;
+    /* Zero cutoff freezes the retained energy and its scale. */
+    if (p->c1 == FL(0.0)) nsmps = offset;
     for (n=offset; n<nsmps; n++) {
       cs_double magnitude = FABS(asig[n]);
       if (magnitude > level_scale) {
