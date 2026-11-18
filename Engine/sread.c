@@ -282,6 +282,85 @@ void sread_initstr(CSOUND *csound, CORFIL *sco)
     }
 }
 
+/* Read a score seed without rounding through the sample or internal float
+   type. Keep enough leading digits for every uint32 value, then move the
+   decimal/binary point and discard the fractional part. */
+static int32_t score_seed(const char *text, uint32_t *seed)
+{
+    const char *p = text;
+    const int64_t limit = INT64_MAX / 8;
+    uint64_t value = 0;
+    int64_t places = 0, exponent = 0;
+    int32_t negative, hex = 0, point = 0, significant = 0, stored = 0;
+
+    while (isspace((unsigned char)*p)) p++;
+    negative = (*p == '-');
+    if (*p == '+' || *p == '-') p++;
+    /* strtod also accepted signed infinity and NaN; both are out of range. */
+    if (((p[0] == 'i' || p[0] == 'I') &&
+         (p[1] == 'n' || p[1] == 'N') &&
+         (p[2] == 'f' || p[2] == 'F')) ||
+        ((p[0] == 'n' || p[0] == 'N') &&
+         (p[1] == 'a' || p[1] == 'A') &&
+         (p[2] == 'n' || p[2] == 'N')))
+      return 0;
+    if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) {
+      hex = 1;
+      p += 2;
+    }
+    for (;;) {
+      int32_t digit;
+      if (*p >= '0' && *p <= '9') digit = *p - '0';
+      else if (hex && *p >= 'a' && *p <= 'f') digit = *p - 'a' + 10;
+      else if (hex && *p >= 'A' && *p <= 'F') digit = *p - 'A' + 10;
+      else if (*p == '.' && !point) {
+        point = 1;
+        p++;
+        continue;
+      }
+      else break;
+      if (digit != 0) significant = 1;
+      if (significant) {
+        /* Nine hex digits also cover shifts by part of a four-bit digit. */
+        if (stored < (hex ? 9 : 10)) {
+          value = value * (hex ? 16 : 10) + digit;
+          stored++;
+        }
+        if (!point) places += (hex ? 4 : 1);
+      }
+      else if (point) places -= (hex ? 4 : 1);
+      p++;
+    }
+    if (*p == (hex ? 'p' : 'e') || *p == (hex ? 'P' : 'E')) {
+      int32_t exponent_negative;
+      p++;
+      exponent_negative = (*p == '-');
+      if (*p == '+' || *p == '-') p++;
+      while (*p >= '0' && *p <= '9') {
+        int32_t digit = *p++ - '0';
+        /* Bound extreme exponents before integer arithmetic can overflow. */
+        exponent = exponent > (limit - digit) / 10
+          ? limit : exponent * 10 + digit;
+      }
+      if (exponent_negative) exponent = -exponent;
+    }
+    places += exponent;
+    *seed = 0;
+    if (!significant || places <= 0) return 1;
+    if (places > (hex ? 35 : 10)) return 0;
+    if (hex) {
+      int32_t shift = (int32_t)places - 4 * stored;
+      value = shift >= 0 ? value << shift : value >> -shift;
+    }
+    else {
+      while (stored > places) { value /= 10; stored--; }
+      while (stored < places) { value *= 10; stored++; }
+    }
+    if (value > UINT32_MAX || (negative && value != 0)) return 0;
+    *seed = (uint32_t)value;
+    return 1;
+}
+
 static int32_t read_section(CSOUND *csound) /* reads from SCOREIN    */
 {                               /*  each score statement gets a sortblock   */
     int32_t  rtncod;                /* return code to calling program:      */
@@ -325,20 +404,17 @@ static int32_t read_section(CSOUND *csound) /* reads from SCOREIN    */
           p = &((csound->sread.bp)->text[1]);
           while (isblank(q=*p)) p++;
           if (isdigit(q) || q=='+' || q=='-' || q=='.') {
-            /* All uint32 seeds must remain distinct, including in float builds.
-               Keep decimal and exponent syntax and the C-locale parser. */
-            double tt = 0.0;
-            csoundSscanf(p, "%lf", &tt);
-            //printf("tt=%lf q=%c\n", tt, q);
+            uint32_t seed;
             /* A seed is from 0 to 2^32, which an int does not hold, and
                converting one past it was undefined. It is truncated, as it
                was, and folded into the generator's range as seed folds what
                it is given; 0, which would keep the generator at 0, is 1, as
                a y without a seed is the one that takes the clock. */
-            if (UNLIKELY(!(tt > -1.0 && tt < 4294967296.0)))
-              sreaderr(csound, Str("y: seed %g out of range, ignored\n"), tt);
+            if (UNLIKELY(!score_seed(p, &seed)))
+              sreaderr(csound, Str("y: seed %g out of range, ignored\n"),
+                       csoundStrtod(p, NULL));
             else {
-              uint32_t seed = (uint32_t) tt % (uint32_t) 0x7FFFFFFE;
+              seed %= (uint32_t) 0x7FFFFFFE;
               csound->randSeed1 = seed == 0 ? 1 : (int32_t) seed;
               csound->Message(csound, Str("seed from score %d\n"),
                               csound->randSeed1);
