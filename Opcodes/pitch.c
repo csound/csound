@@ -1226,51 +1226,104 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
 /* phasorbnk                                                        */
 /*==================================================================*/
 
-/* Wrap output that rounds to one, keeping the double phase for the next call. */
-#define PHASORBNK_OUTPUT(phase)                                    \
-    ((cs_float)(phase) == FL(1.0) ? FL(0.0) : (cs_float)(phase))
+/* Each bank keeps the phase and its rounding error in configured precision. */
+typedef struct {
+    cs_double phase, correction;
+} PHSORBNK_PHASE;
+
+/* The represented phase is phase - correction. Retain the error even when
+   increments change magnitude. Volatile prevents fast-math reassociation. */
+#define PHASORBNK_SUM(result, error, a, b) do {                              \
+    const cs_double pb_a = (a), pb_b = (b);                                  \
+    volatile cs_double pb_sum = pb_a + pb_b;                                 \
+    volatile cs_double pb_bpart = pb_sum - pb_a;                             \
+    volatile cs_double pb_apart = pb_sum - pb_bpart;                         \
+    volatile cs_double pb_aerror = pb_apart - pb_a;                          \
+    volatile cs_double pb_berror = pb_bpart - pb_b;                          \
+    volatile cs_double pb_rounding = pb_aerror + pb_berror;                  \
+    (result) = pb_sum;                                                       \
+    (error) = pb_rounding;                                                   \
+} while (0)
+
+/* Remove whole cycles before addition, without rounding away the phase. */
+#define PHASORBNK_INCREMENT(increment) do {                                  \
+    if ((increment) >= FL(1.0) || (increment) <= -FL(1.0)) {                 \
+      cs_double pb_whole;                                                    \
+      (increment) = cs_modf((increment), &pb_whole);                         \
+    }                                                                        \
+} while (0)
+
+#define PHASORBNK_ADVANCE(phase, correction, increment) do {                 \
+    cs_double pb_next, pb_error;                                             \
+    PHASORBNK_SUM(pb_next, pb_error, (phase), (increment));                  \
+    pb_error += (correction);                                                \
+    PHASORBNK_SUM((phase), (correction), pb_next, -pb_error);                \
+    if ((phase) >= FL(1.0)) (phase) -= FL(1.0);                              \
+    else if ((phase) < FL(0.0)) {                                            \
+      volatile cs_double pb_wrapped = (phase) + FL(1.0);                     \
+      volatile cs_double pb_back = pb_wrapped - FL(1.0);                     \
+      volatile cs_double pb_wrap_error = pb_back - (phase);                  \
+      (correction) += pb_wrap_error;                                         \
+      (phase) = pb_wrapped;                                                  \
+    }                                                                        \
+} while (0)
+
+/* Wrap rounded output without changing the saved phase or its remainder. */
+#define PHASORBNK_OUTPUT(result, phase, correction) do {                     \
+    cs_double pb_output = (phase) - (correction);                            \
+    if (pb_output < FL(0.0)) pb_output += FL(1.0);                           \
+    else if (pb_output >= FL(1.0)) pb_output -= FL(1.0);                     \
+    cs_float pb_value = (cs_float)pb_output;                                 \
+    (result) = (pb_value == FL(1.0) ? FL(0.0) : pb_value);                   \
+} while (0)
 
 int32_t phsbnkset(CSOUND *csound, PHSORBNK *p)
 {
-    double  phs;
+    cs_double  phs;
     int32_t    n, count;
-    double  *curphs;
+    PHSORBNK_PHASE *curphs;
 
-    if (UNLIKELY(!((cs_double)*p->icnt <= (INT32_MAX + 0.0) - 0.5)))
+    /* A strict bound also rejects INT32_MAX rounded up in float. */
+    if (UNLIKELY(!(*p->icnt < FL(2147483647.0))))
       return csound->InitError(csound, "%s\n", Str("phasorbnk: invalid bank size"));
     count = *p->icnt < FL(2.0) ? 2 : (int32_t)CS_FLOAT2LONG(*p->icnt);
-    if (UNLIKELY((size_t)count > SIZE_MAX / sizeof(double)))
+    if (UNLIKELY((size_t)count > SIZE_MAX / sizeof(PHSORBNK_PHASE)))
       return csound->InitError(csound, "%s\n", Str("phasorbnk: bank size too large"));
 
-    if (p->curphs.auxp==NULL || p->curphs.size < sizeof(double)*(size_t)count) {
+    size_t bytes = sizeof(PHSORBNK_PHASE)*(size_t)count;
+    if (p->curphs.auxp==NULL || p->curphs.size < bytes) {
       /* AuxAlloc clears a resized buffer, even when initialization is skipped. */
-      double *saved = NULL;
-      size_t oldBytes = sizeof(double)*(size_t)p->count;
+      PHSORBNK_PHASE *saved = NULL;
+      size_t oldBytes = sizeof(PHSORBNK_PHASE)*(size_t)p->count;
       if (*p->iphs < FL(0.0) && p->curphs.auxp != NULL) {
         saved = csound->Malloc(csound, oldBytes);
         memcpy(saved, p->curphs.auxp, oldBytes);
       }
-      csound->AuxAlloc(csound, sizeof(double)*(size_t)count, &p->curphs);
+      csound->AuxAlloc(csound, bytes, &p->curphs);
       if (saved != NULL) {
         memcpy(p->curphs.auxp, saved, oldBytes);
         csound->Free(csound, saved);
       }
     }
     else if (*p->iphs < FL(0.0) && count > p->count) {
-      memset((double*)p->curphs.auxp + p->count, 0,
-             sizeof(double)*(size_t)(count - p->count));
+      memset((PHSORBNK_PHASE*)p->curphs.auxp + p->count, 0,
+             sizeof(PHSORBNK_PHASE)*(size_t)(count - p->count));
     }
 
-    curphs = (double*)p->curphs.auxp;
+    curphs = (PHSORBNK_PHASE*)p->curphs.auxp;
     if (*p->iphs > 1) {
       for (n=0; n<count;n++) {
-        curphs[n] = (double) rand_31(csound) / 2147483645.0;
-        if (curphs[n] == 1.0) curphs[n] = 0.0;
+        curphs[n].phase = (cs_double) rand_31(csound) / (cs_double)2147483645;
+        if (curphs[n].phase == FL(1.0)) curphs[n].phase = FL(0.0);
+        curphs[n].correction = FL(0.0);
       }
     }
     else if ((phs = *p->iphs) >= 0) {
       if (phs == 1.0) phs = 0.0;
-      for (n=0; n<count;n++) curphs[n] = phs;
+      for (n=0; n<count;n++) {
+        curphs[n].phase = phs;
+        curphs[n].correction = FL(0.0);
+      }
     }
     p->count = count;
     return OK;
@@ -1278,8 +1331,8 @@ int32_t phsbnkset(CSOUND *csound, PHSORBNK *p)
 
 int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
 {
-    double  phs;
-    double  *curphs = (double*)p->curphs.auxp;
+    cs_double phs, correction, incr;
+    PHSORBNK_PHASE *curphs = (PHSORBNK_PHASE*)p->curphs.auxp;
     cs_float   cps;
     int32_t     index;
 
@@ -1296,13 +1349,14 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
 
     /* Read the frequency before the output can overwrite it. */
     cps = *p->xcps;
-    phs = curphs[index];
-    *p->sr = PHASORBNK_OUTPUT(phs);
-    if (UNLIKELY((phs += cps * CS_ONEDKR) >= 1.0))
-      phs -= 1.0;
-    else if (UNLIKELY(phs < 0.0)) /* patch from Matthew Scala */
-      phs += 1.0;
-    curphs[index] = phs;
+    phs = curphs[index].phase;
+    correction = curphs[index].correction;
+    incr = cps * CS_ONEDKR;
+    PHASORBNK_INCREMENT(incr);
+    PHASORBNK_OUTPUT(*p->sr, phs, correction);
+    PHASORBNK_ADVANCE(phs, correction, incr);
+    curphs[index].phase = phs;
+    curphs[index].correction = correction;
     return OK;
 }
 
@@ -1312,9 +1366,8 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float   *rs;
-    double  phase;
-    cs_double incr;
-    double  *curphs = (double*)p->curphs.auxp;
+    cs_double phase, correction, incr;
+    PHSORBNK_PHASE *curphs = (PHSORBNK_PHASE*)p->curphs.auxp;
     int32_t     index;
 
     if (UNLIKELY(curphs == NULL)) {
@@ -1329,7 +1382,8 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     index = (int32_t)*p->kindx;
 
     rs = p->sr;
-    phase = curphs[index];
+    phase = curphs[index].phase;
+    correction = curphs[index].correction;
     if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -1339,28 +1393,28 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
       cs_float *cps = p->xcps;
       for (n=offset; n<nsmps; n++) {
         incr = (cs_double)(cps[n] * CS_ONEDSR);
-        rs[n] = PHASORBNK_OUTPUT(phase);
-        phase += incr;
-        if (UNLIKELY(phase >= 1.0))
-          phase -= 1.0;
-        else if (UNLIKELY(phase < 0.0))
-          phase += 1.0;
+        PHASORBNK_INCREMENT(incr);
+        PHASORBNK_OUTPUT(rs[n], phase, correction);
+        PHASORBNK_ADVANCE(phase, correction, incr);
       }
     }
     else {
       incr = (cs_double)(*p->xcps * CS_ONEDSR);
+      PHASORBNK_INCREMENT(incr);
       for (n=offset; n<nsmps; n++) {
-        rs[n] = PHASORBNK_OUTPUT(phase);
-        phase += incr;
-        if (UNLIKELY(phase >= 1.0))
-          phase -= 1.0;
-        else if (UNLIKELY(phase < 0.0))
-          phase += 1.0;
+        PHASORBNK_OUTPUT(rs[n], phase, correction);
+        PHASORBNK_ADVANCE(phase, correction, incr);
       }
     }
-    curphs[index] = phase;
+    curphs[index].phase = phase;
+    curphs[index].correction = correction;
     return OK;
 }
+
+#undef PHASORBNK_SUM
+#undef PHASORBNK_INCREMENT
+#undef PHASORBNK_ADVANCE
+#undef PHASORBNK_OUTPUT
 
 /* Opcodes from rasmus ekman */
 
