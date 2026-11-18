@@ -1,5 +1,5 @@
 <CsTest>
-description = "pvsanal reinitializes from FFT to sliding analysis with hop 10 and correct metadata"
+description = "pvsanal resets reused buffers when switching between FFT and sliding analysis"
 
 [expect]
 exit = 0
@@ -22,7 +22,17 @@ instr CheckReinit
  kWindow init 1
  kCycle init 0
  kCycle += 1
- if kCycle == 3 then
+ if kCycle == 30 then
+  kSize = 128
+  kHop = 32
+  kWindow = 1
+  reinit ANALYZE
+ elseif kCycle == 50 then
+  kSize = 96
+  kHop = 10
+  kWindow = 4
+  reinit ANALYZE
+ elseif kCycle == 3 then
   kSize = 64
   kHop = 10
   kWindow = 6
@@ -31,9 +41,11 @@ instr CheckReinit
  aInput oscili .25, 137
 ANALYZE:
  ; Start with FFT analysis, then reuse its buffers for a smaller sliding
- ; transform. Hop 10 must select sliding analysis at every block size.
+ ; transform, back to FFT, then to a different sliding size and window.
+ ; Hop 10 must select sliding analysis at every block size.
  fActual pvsanal aInput, i(kSize), i(kHop), i(kSize), i(kWindow)
- fReference pvsanal aInput, 64, 1, 64, 6
+ iReferenceSize = (i(kHop) == 10 ? i(kSize) : 64)
+ fReference pvsanal aInput, iReferenceSize, 1, iReferenceSize, i(kWindow)
  iHop, iBins, iWindowSize, iFormat pvsinfo fActual
  iExpectedHop = (i(kHop) == 10 ? 1 : 32)
  if iHop != iExpectedHop || iBins != i(kSize)/2+1 || iWindowSize != i(kSize) || iFormat != 0 then
@@ -43,7 +55,7 @@ ANALYZE:
  rireturn
  aMagnitude, aFrequency pvsbin fActual, 1
  aReferenceMagnitude, aReferenceFrequency pvsbin fReference, 1
- if kCycle >= 3 then
+ if kHop == 10 then
   ; Compare every sample, including the first frame after reinitialization.
   kIndex = 0
   while kIndex < ksmps do

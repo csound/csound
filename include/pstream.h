@@ -129,8 +129,7 @@ typedef struct {
         AUXCH   analwinbuf;     /* prewin in SDFT case */
         AUXCH   oldInPhase;
         AUXCH           trig;
-        /* Sliding rotations must retain a unit radius over many samples. */
-        double          *cosine, *sine;
+        cs_double          *cosine, *sine;
         void    *setup;
 } PVSANAL;
 
