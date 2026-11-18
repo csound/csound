@@ -38,10 +38,12 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
       if (UNLIKELY(!isfinite(phase)))
         return csound->InitError(csound, "%s\n", Str("buzz: invalid initial phase"));
       if (phase >= 0.0) {
-        phase *= 0.5; /* The sine quotient uses theta/2. */
-        phase -= floor(phase);
+        cs_double whole;
+        phase *= FL(0.5); /* The sine quotient uses theta/2. */
+        phase = cs_modf(phase, &whole);
         p->lphs = (int32_t)(phase * FMAXLEN);
         p->fphs = phase;
+        p->correction = FL(0.0);
       }
       p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
       p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
@@ -51,17 +53,95 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
     return NOTOK;
 }
 
-/* Keep non-power-of-two phase calculations in double precision. */
-#define BUZZ_WRAP(phase) do {                                      \
-    if ((phase) >= 1.0 || (phase) < 0.0) (phase) -= floor(phase);    \
-    if ((phase) >= 1.0) (phase) = 0.0;                             \
-  } while (0)
+/* FMA must follow cs_double, including mixed-precision builds. */
+#ifdef USE_FLOAT
+#define BUZZ_FMA fmaf
+#else
+#define BUZZ_FMA fma
+#endif
 
-/* Remove whole cycles before addition to retain the fractional phase. */
-#define BUZZ_INCREMENT(increment) do {                              \
-    if ((increment) >= 1.0 || (increment) <= -1.0)                  \
-      (increment) -= trunc(increment);                            \
-  } while (0)
+/* Store phase as phase - correction. TwoSum retains the rounded sum and
+   its error even when magnitudes differ. Volatile prevents reassociation. */
+#define BUZZ_SUM(result, error, a, b) do {                                   \
+  const cs_double bz_a = (a), bz_b = (b);                                    \
+  volatile cs_double bz_sum = bz_a + bz_b;                                   \
+  volatile cs_double bz_bpart = bz_sum - bz_a;                               \
+  volatile cs_double bz_apart = bz_sum - bz_bpart;                           \
+  volatile cs_double bz_aerror = bz_apart - bz_a;                            \
+  volatile cs_double bz_berror = bz_bpart - bz_b;                            \
+  volatile cs_double bz_rounding = bz_aerror + bz_berror;                    \
+  (result) = bz_sum;                                                         \
+  (error) = bz_rounding;                                                     \
+} while (0)
+
+/* Remove whole cycles before adding an increment. */
+#define BUZZ_INCREMENT(increment) do {                                       \
+  if ((increment) >= FL(1.0) || (increment) <= -FL(1.0)) {                   \
+    cs_double bz_whole;                                                      \
+    (increment) = cs_modf((increment), &bz_whole);                           \
+  }                                                                          \
+} while (0)
+
+/* Add a fractional cycle and retain rounding through both wrap directions. */
+#define BUZZ_ADD(phase, correction, increment) do {                          \
+  cs_double bz_next, bz_error;                                               \
+  BUZZ_SUM(bz_next, bz_error, (phase), (increment));                         \
+  bz_error += (correction);                                                  \
+  BUZZ_SUM((phase), (correction), bz_next, -bz_error);                       \
+  if ((phase) >= FL(1.0)) (phase) -= FL(1.0);                                \
+  else if ((phase) < FL(0.0)) {                                              \
+    volatile cs_double bz_wrapped = (phase) + FL(1.0);                       \
+    volatile cs_double bz_back = bz_wrapped - FL(1.0);                       \
+    volatile cs_double bz_wrap_error = bz_back - (phase);                    \
+    (correction) += bz_wrap_error;                                           \
+    (phase) = bz_wrapped;                                                    \
+  }                                                                          \
+} while (0)
+
+/* Reduce each product part before addition so large harmonics retain detail. */
+#define BUZZ_MULTIPLY(result, error, phase, correction, factor) do {         \
+  const cs_double bz_phase = (phase), bz_correction = (correction);          \
+  const cs_double bz_factor = (cs_double)(factor);                           \
+  volatile cs_double bz_product = bz_phase * bz_factor;                      \
+  volatile cs_double bz_cproduct = bz_correction * bz_factor;                \
+  cs_double bz_low = BUZZ_FMA(bz_phase, bz_factor, -bz_product);             \
+  cs_double bz_chigh = bz_cproduct;                                          \
+  cs_double bz_clow = BUZZ_FMA(bz_correction, bz_factor, -bz_cproduct);      \
+  (result) = bz_product;                                                     \
+  BUZZ_INCREMENT(result);                                                    \
+  (error) = FL(0.0);                                                         \
+  if (bz_low != FL(0.0)) {                                                   \
+    BUZZ_INCREMENT(bz_low);                                                  \
+    BUZZ_ADD((result), (error), bz_low);                                     \
+  }                                                                          \
+  if (bz_chigh != FL(0.0)) {                                                 \
+    BUZZ_INCREMENT(bz_chigh);                                                \
+    BUZZ_ADD((result), (error), -bz_chigh);                                  \
+  }                                                                          \
+  if (bz_clow != FL(0.0)) {                                                  \
+    BUZZ_INCREMENT(bz_clow);                                                 \
+    BUZZ_ADD((result), (error), -bz_clow);                                   \
+  }                                                                          \
+} while (0)
+
+/* Compare the local offset with zero/one before rounding it to a table cell. */
+#define BUZZ_INDEX(result, phase, correction) do {                           \
+  cs_double bz_position = (phase) * flen;                                    \
+  int32_t bz_index = (int32_t)bz_position;                                   \
+  cs_double bz_offset = BUZZ_FMA((phase), (cs_double)flen,                   \
+                                -(cs_double)bz_index);                       \
+  volatile cs_double bz_detail = (correction) * flen;                        \
+  cs_double bz_fraction, bz_ferror;                                          \
+  BUZZ_SUM(bz_fraction, bz_ferror, bz_offset, -bz_detail);                   \
+  bz_ferror += BUZZ_FMA((correction), (cs_double)flen, -bz_detail);          \
+  if (bz_fraction < FL(0.0) ||                                               \
+      (bz_fraction == FL(0.0) && bz_ferror > FL(0.0))) --bz_index;           \
+  else if (bz_fraction > FL(1.0) ||                                          \
+           (bz_fraction == FL(1.0) && bz_ferror <= FL(0.0))) ++bz_index;     \
+  if (bz_index < 0) bz_index += flen;                                        \
+  else if (bz_index >= flen) bz_index -= flen;                               \
+  (result) = bz_index;                                                       \
+} while (0)
 
 int32_t buzz(CSOUND *csound, BUZZ *p)
 {
@@ -76,7 +156,7 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
     int32_t       nn;
-    double   phsf = p->fphs;
+    cs_double   phsf = p->fphs, correction = p->correction;
     
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
@@ -137,27 +217,49 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
         incf = cpsp[n] * sicvt2;
         BUZZ_INCREMENT(incf);
       }
-      denom = ftbl[(int32_t) (phsf*flen)];
+      int32_t index;
+      BUZZ_INDEX(index, phsf, correction);
+      denom = ftbl[index];
       if (denom > FL(0.0002) || denom < -FL(0.0002)) {
-        double numerator_phase = phsf * tnp1;
-        BUZZ_WRAP(numerator_phase);
-        num = ftbl[(int32_t)(numerator_phase*flen)];
+        cs_double numerator_phase, numerator_error;
+        if (tnp1 <= 0x1000000U) {
+          BUZZ_MULTIPLY(numerator_phase, numerator_error,
+                        phsf, correction, tnp1);
+        }
+        else {
+          /* Split an integer multiplier that float cannot represent exactly. */
+          cs_double high_phase, high_error;
+          BUZZ_MULTIPLY(numerator_phase, numerator_error,
+                        phsf, correction, tnp1 & 0xffffU);
+          BUZZ_MULTIPLY(high_phase, high_error,
+                        phsf, correction, tnp1 >> 16);
+          BUZZ_MULTIPLY(high_phase, high_error,
+                        high_phase, high_error, FL(65536.0));
+          BUZZ_ADD(numerator_phase, numerator_error, high_phase);
+          BUZZ_ADD(numerator_phase, numerator_error, -high_error);
+        }
+        BUZZ_INDEX(index, numerator_phase, numerator_error);
+        num = ftbl[index];
         ar[n] = (num / denom - FL(1.0)) * scal;
       }
       else ar[n] = amp;
-      phsf += incf;
-      BUZZ_WRAP(phsf);
+      BUZZ_ADD(phsf, correction, incf);
       }
     }
     p->lphs = phs;
     p->fphs = phsf;
+    p->correction = correction;
     return OK;
  err1:
     return csound->PerfError(csound, &(p->h), Str("buzz: not initialised\n"));
 }
 
-#undef BUZZ_WRAP
+#undef BUZZ_FMA
+#undef BUZZ_SUM
 #undef BUZZ_INCREMENT
+#undef BUZZ_ADD
+#undef BUZZ_MULTIPLY
+#undef BUZZ_INDEX
 
 int32_t gbzset(CSOUND *csound, GBUZZ *p)
 {

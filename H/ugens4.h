@@ -32,8 +32,8 @@ typedef struct {
   FUNC    *ftp;
   int32_t     reported;
   int32_t  floatph;
-  /* Preserve phase increments smaller than a float ULP. */
-  double fphs;
+  /* Retain phase rounding remainders in the configured precision. */
+  cs_double fphs, correction;
 } BUZZ;
 
 typedef struct {
