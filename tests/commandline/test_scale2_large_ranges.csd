@@ -57,8 +57,21 @@ instr CheckSmoothingRanges
   gkChecks += 1
 endin
 
+instr CheckEndpointStep
+  ; Both endpoints contribute to a small step, even when 1-position rounds
+  ; to 1. A weighted sum would lose enough of this step to keep the endpoint.
+  kPosition = pow(2,-25)
+  kForward scale2 kPosition, -2e38, 2e38
+  kReverse scale2 kPosition, 2e38, -2e38
+  if !(kForward > -2e38 && kForward < 0 && kReverse < 2e38 && kReverse > 0) then
+    printks "scale2 lost a near-endpoint mapping step: %g, %g\n", 0, kForward, kReverse
+    exitnowk -1
+  endif
+  gkChecks += 1
+endin
+
 instr CheckCompletion
-  if i(gkChecks) != 9 then
+  if i(gkChecks) != 10 then
     prints "All range and smoothing positions must be checked\n"
     exitnow -1
   endif
@@ -67,6 +80,7 @@ endin
 <CsScore>
 i "CheckRanges" 0 [5/1024]
 i "CheckSmoothingRanges" 0 [4/1024]
+i "CheckEndpointStep" 0 [1/1024]
 i "CheckCompletion" [8/1024] [1/1024]
 e
 </CsScore>

@@ -102,15 +102,30 @@ static int32_t scale_process(CSOUND *csound, scale *p)
       (result) = scale2_low;                                              \
     else if (scale2_t >= FL(1.0))                                         \
       (result) = scale2_high;                                             \
-    else if ((scale2_low < FL(0.0) && scale2_high > FL(0.0)) ||             \
-             (scale2_low > FL(0.0) && scale2_high < FL(0.0))) {             \
-      /* Keep fast-math from rebuilding the overflowing difference. */    \
-      volatile cs_double scale2_left = (FL(1.0) - scale2_t) * scale2_low;   \
-      volatile cs_double scale2_right = scale2_t * scale2_high;            \
-      (result) = scale2_left + scale2_right;                              \
+    else {                                                               \
+      /* Step from the nearer endpoint, retaining small displacements. */ \
+      const cs_double scale2_start =                                     \
+        scale2_t <= FL(0.5) ? scale2_low : scale2_high;                    \
+      const cs_double scale2_end =                                       \
+        scale2_t <= FL(0.5) ? scale2_high : scale2_low;                    \
+      const cs_double scale2_fraction =                                  \
+        scale2_t <= FL(0.5) ? scale2_t : FL(1.0) - scale2_t;               \
+      cs_double scale2_difference = scale2_end - scale2_start;            \
+      volatile cs_double scale2_step;                                    \
+      if (isfinite(scale2_difference))                                   \
+        scale2_step = scale2_fraction * scale2_difference;                \
+      else {                                                             \
+        volatile cs_double scale2_halfend = scale2_end * FL(0.5);         \
+        volatile cs_double scale2_halfstart = scale2_start * FL(0.5);     \
+        volatile cs_double scale2_halfdiff =                             \
+          scale2_halfend - scale2_halfstart;                             \
+        volatile cs_double scale2_halfstep =                             \
+          scale2_fraction * scale2_halfdiff;                             \
+        /* The fraction is at most 0.5, so restoring the scale is safe. */\
+        scale2_step = scale2_halfstep * FL(2.0);                          \
+      }                                                                  \
+      (result) = scale2_start + scale2_step;                              \
     }                                                                    \
-    else                                                                 \
-      (result) = scale2_low + scale2_t * (scale2_high - scale2_low);        \
   } while (0)
 
 static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
