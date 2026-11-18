@@ -345,8 +345,25 @@ static int32_t distort(CSOUND *csound, DIST *p)
              Volatile intermediates also prevent fast-math reassociation. */
           volatile cs_double centre = p->midphs == centre_index ?
             ftp->ftable[centre_index] : ftp->ftable[index] + fraction * slope;
-          volatile cs_double detail = displacement * slope;
-          val = centre + detail;
+          if (UNLIKELY(!isfinite(slope) || !isfinite(centre))) {
+            /* A finite result can have an overflowing slope or an
+               extrapolated centre. Keep both terms at half scale. */
+            volatile cs_double low = (cs_double)ftp->ftable[index] * FL(0.5);
+            volatile cs_double high =
+              (cs_double)ftp->ftable[index + 1] * FL(0.5);
+            volatile cs_double halfslope = high - low;
+            volatile cs_double halfcentre = p->midphs == centre_index ?
+              (cs_double)ftp->ftable[centre_index] * FL(0.5) :
+              (fraction > FL(0.5) ? high + (fraction - FL(1.0))*halfslope :
+                                   low + fraction*halfslope);
+            volatile cs_double halfdetail = displacement * halfslope;
+            volatile cs_double halfvalue = halfcentre + halfdetail;
+            val = halfvalue * FL(2.0);
+          }
+          else {
+            volatile cs_double detail = displacement * slope;
+            val = centre + detail;
+          }
         }
         else {
           cs_double phase = p->midphs + displacement;
@@ -354,7 +371,16 @@ static int32_t distort(CSOUND *csound, DIST *p)
             int32_t index = (int32_t)phase;
             cs_double fraction = phase - index;
             cs_float *fp = ftp->ftable + index;
-            val = fp[0] + ((cs_double)fp[1] - fp[0]) * fraction;
+            cs_double slope = (cs_double)fp[1] - fp[0];
+            if (UNLIKELY(!isfinite(slope))) {
+              volatile cs_double low = (cs_double)fp[0] * FL(0.5);
+              volatile cs_double high = (cs_double)fp[1] * FL(0.5);
+              volatile cs_double halfslope = high - low;
+              volatile cs_double halfvalue = low + halfslope * fraction;
+              val = halfvalue * FL(2.0);
+            }
+            else
+              val = fp[0] + slope * fraction;
           }
           else if (phase <= FL(0.0))
             val = p->begval;
