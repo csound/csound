@@ -9,7 +9,7 @@ extern "C" void csound_test_scale2_step(cs_double, cs_double, cs_float,
 
 TEST(Scale2Tests, RetainsSmallUpdatesAcrossOverflowingDifference)
 {
-    const cs_float magnitude = std::numeric_limits<cs_float>::max()*FL(.6);
+    const cs_float magnitude = (std::numeric_limits<cs_float>::max)()*FL(.6);
     for (int exponent : {25, 26, 27, 28}) {
         SCOPED_TRACE(exponent);
         const cs_double coefficient = std::ldexp(cs_double(1), -exponent);
