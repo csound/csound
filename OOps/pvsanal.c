@@ -518,17 +518,21 @@ static int32_t pvssanal(CSOUND *csound, PVSANAL *p)
     data[loc] = input;
     for (j = 0; j < NB; j++) {
       cs_double ci, si;
-      SDFT_COEFFICIENT(ci, si, phase);
-      /* Entering and leaving samples use the same periodic weight. Round
-         each product identically before summing, so they can cancel later. */
-      volatile cs_double incoming_re = input * ci;
-      volatile cs_double outgoing_re = previous * ci;
-      volatile cs_double incoming_im = -input * si;
-      volatile cs_double outgoing_im = -previous * si;
-      SDFT_ADD(sum[j].re, sum[j].re_error, -outgoing_re);
-      SDFT_ADD(sum[j].re, sum[j].re_error, incoming_re);
-      SDFT_ADD(sum[j].im, sum[j].im_error, -outgoing_im);
-      SDFT_ADD(sum[j].im, sum[j].im_error, incoming_im);
+      /* An unchanged sample needs no update. Removing and adding it can
+         round away a small sum even with compensated addition. */
+      if (input != previous) {
+        SDFT_COEFFICIENT(ci, si, phase);
+        /* Round entering and leaving products identically so they can
+           cancel when the sample leaves the window. */
+        volatile cs_double incoming_re = input * ci;
+        volatile cs_double outgoing_re = previous * ci;
+        volatile cs_double incoming_im = -input * si;
+        volatile cs_double outgoing_im = -previous * si;
+        SDFT_ADD(sum[j].re, sum[j].re_error, -outgoing_re);
+        SDFT_ADD(sum[j].re, sum[j].re_error, incoming_re);
+        SDFT_ADD(sum[j].im, sum[j].im_error, -outgoing_im);
+        SDFT_ADD(sum[j].im, sum[j].im_error, incoming_im);
+      }
       int32_t rotation = phase >= N-j ? phase-(N-j) : phase+j;
       SDFT_COEFFICIENT(ci, si, rotation);
       cs_double real = sum[j].re - sum[j].re_error;
