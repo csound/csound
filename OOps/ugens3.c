@@ -37,9 +37,11 @@ int32_t foscset(CSOUND *csound, FOSC *p)
     if (UNLIKELY(!isfinite(phase)))
       return csound->InitError(csound, "%s\n", Str("foscil: invalid initial phase"));
     if (phase >= 0.0) {
-      phase -= floor(phase);
+      cs_double whole;
+      phase = cs_modf(phase, &whole);
       p->cphs = p->mphs = (int32_t)(phase * FMAXLEN);
       p->cphsf = p->mphsf = phase;
+      p->cerror = p->merror = FL(0.0);
     }
     p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
     p->carcod = IS_ASIG_ARG(p->xcar) ? 1 : 0;
@@ -49,18 +51,65 @@ int32_t foscset(CSOUND *csound, FOSC *p)
   return NOTOK;
 }
 
-/* Keep the non-power-of-two phase in double precision. Remove whole
-   cycles before addition so they do not erase the fractional phase. */
-#define FOSC_PHASE_ADVANCE(phase, increment) do {                   \
-    cs_double fosc_increment = (increment);                           \
-    if (UNLIKELY(fosc_increment >= 1.0 || fosc_increment <= -1.0))   \
-      fosc_increment -= trunc(fosc_increment);                     \
-    (phase) += fosc_increment;                                     \
-    if ((phase) >= 1.0) (phase) -= 1.0;                             \
-    else if ((phase) < 0.0) {                                      \
-      (phase) += 1.0;                                             \
-      if ((phase) >= 1.0) (phase) = 0.0;                           \
-    }                                                             \
+/* The FMA must follow cs_double, including mixed-precision builds. */
+#ifdef USE_FLOAT
+#define FOSC_FMA fmaf
+#else
+#define FOSC_FMA fma
+#endif
+
+/* Retain increments lost when rounding the phase. Volatile intermediates
+   keep fast-math from removing the rounding correction. */
+#define FOSC_PHASE_ADVANCE(phase, error, increment) do {             \
+    cs_double fosc_increment = (increment);                         \
+    if (UNLIKELY(fosc_increment >= FL(1.0) ||                        \
+                 fosc_increment <= -FL(1.0))) {                     \
+      cs_double fosc_whole;                                         \
+      fosc_increment = cs_modf(fosc_increment, &fosc_whole);         \
+    }                                                              \
+    volatile cs_double fosc_step = fosc_increment - (error);        \
+    volatile cs_double fosc_next = (phase) + fosc_step;              \
+    volatile cs_double fosc_applied = fosc_next - (phase);           \
+    (error) = fosc_applied - fosc_step;                              \
+    (phase) = fosc_next;                                            \
+    if ((phase) >= FL(1.0)) (phase) -= FL(1.0);                      \
+    else if ((phase) < FL(0.0)) {                                   \
+      volatile cs_double fosc_wrapped = (phase) + FL(1.0);           \
+      volatile cs_double fosc_back = fosc_wrapped - FL(1.0);         \
+      volatile cs_double fosc_wrap_error = fosc_back - (phase);     \
+      (error) += fosc_wrap_error;                                   \
+      (phase) = fosc_wrapped >= FL(1.0) ? FL(0.0) : fosc_wrapped;    \
+    }                                                              \
+  } while (0)
+
+/* Find the offset from a nearby table entry without rounding the full
+   table position first. A signed offset also retains detail at wraparound. */
+#define FOSC_LOOKUP(result, table, phase, error, interp) do {        \
+    cs_double fosc_position = (phase) * ftlen;                       \
+    int32_t fosc_index = (int32_t)fosc_position;                      \
+    if (fosc_position - fosc_index > FL(0.5)) ++fosc_index;           \
+    volatile cs_double fosc_detail = (error) * ftlen;                \
+    cs_double fosc_fraction =                                      \
+      FOSC_FMA((phase), (cs_double)ftlen, -(cs_double)fosc_index) -   \
+      fosc_detail;                                                  \
+    if (fosc_fraction < FL(0.0)) {                                  \
+      if (fosc_index == 0) fosc_index = ftlen;                       \
+      if (interp) {                                                \
+        cs_double fosc_value = (table)[fosc_index];                  \
+        cs_double fosc_slope = fosc_value - (table)[fosc_index - 1]; \
+        (result) = FOSC_FMA(fosc_fraction, fosc_slope, fosc_value);  \
+      }                                                            \
+      else (result) = (table)[fosc_index - 1];                       \
+    }                                                              \
+    else {                                                         \
+      if (fosc_index >= ftlen) fosc_index -= ftlen;                  \
+      if (interp) {                                                \
+        cs_double fosc_value = (table)[fosc_index];                  \
+        cs_double fosc_slope = (table)[fosc_index + 1] - fosc_value; \
+        (result) = FOSC_FMA(fosc_fraction, fosc_slope, fosc_value);  \
+      }                                                            \
+      else (result) = (table)[fosc_index];                           \
+    }                                                              \
   } while (0)
 
 int32_t foscil(CSOUND *csound, FOSC *p)
@@ -73,7 +122,8 @@ int32_t foscil(CSOUND *csound, FOSC *p)
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
   cs_double   mincf, cincf;
-  double   cphsf, mphsf;
+  cs_double   cphsf, mphsf;
+  cs_double cerror = p->cerror, merror = p->merror;
   cs_float    sicvt = CS_SICVT;
 
 
@@ -120,12 +170,14 @@ int32_t foscil(CSOUND *csound, FOSC *p)
         cphs += cinc;
       } else {
         mincf = mod * CS_ONEDSR;
-        fmod = *(ftab + (int32_t)(mphsf*ftlen)) * ndx;
-        FOSC_PHASE_ADVANCE(mphsf, mincf);
+        FOSC_LOOKUP(fmod, ftab, mphsf, merror, 0);
+        fmod *= ndx;
+        FOSC_PHASE_ADVANCE(mphsf, merror, mincf);
         cfreq = car + fmod;
         cincf = cfreq * CS_ONEDSR;
-        ar[n] = *(ftab + (int32_t)(cphsf*ftlen)) * amp;
-        FOSC_PHASE_ADVANCE(cphsf, cincf);
+        FOSC_LOOKUP(ar[n], ftab, cphsf, cerror, 0);
+        ar[n] *= amp;
+        FOSC_PHASE_ADVANCE(cphsf, cerror, cincf);
       }
     }
   }
@@ -148,12 +200,14 @@ int32_t foscil(CSOUND *csound, FOSC *p)
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
       } else {
-        fmod = *(ftab + (int32_t)(mphsf*ftlen)) * ndx;
-        FOSC_PHASE_ADVANCE(mphsf, mincf);
+        FOSC_LOOKUP(fmod, ftab, mphsf, merror, 0);
+        fmod *= ndx;
+        FOSC_PHASE_ADVANCE(mphsf, merror, mincf);
         cfreq = car + fmod;
         cincf = cfreq * CS_ONEDSR;
-        ar[n] = *(ftab + (int32_t)(cphsf*ftlen)) * amp;
-        FOSC_PHASE_ADVANCE(cphsf, cincf);
+        FOSC_LOOKUP(ar[n], ftab, cphsf, cerror, 0);
+        ar[n] *= amp;
+        FOSC_PHASE_ADVANCE(cphsf, cerror, cincf);
       }
     }
   }
@@ -161,6 +215,8 @@ int32_t foscil(CSOUND *csound, FOSC *p)
   p->cphs = cphs;
   p->mphsf = mphsf;
   p->cphsf = cphsf;
+  p->merror = merror;
+  p->cerror = cerror;
 
   return OK;
  err1:
@@ -171,7 +227,7 @@ int32_t foscil(CSOUND *csound, FOSC *p)
 int32_t foscili(CSOUND *csound, FOSC *p)
 {
   FUNC     *ftp;
-  cs_float    *ar, *ampp, amp, cps, fract, v1, v2, car, fmod, cfreq, mod;
+  cs_float    *ar, *ampp, amp, cps, fract, v1, car, fmod, cfreq, mod;
   cs_float    *carp, *modp, xcar, xmod, ndx, *ftab;
   int32_t  ftlen, mphs, cphs, minc, cinc, lobits, floatph = p->floatph;
   uint32_t offset = p->h.insdshead->ksmps_offset;
@@ -179,7 +235,8 @@ int32_t foscili(CSOUND *csound, FOSC *p)
   uint32_t n, nsmps = CS_KSMPS;
   cs_float    *ft, sicvt = CS_SICVT;
   cs_double   cincf, mincf;
-  double   cphsf = p->cphsf, mphsf = p->mphsf;
+  cs_double   cphsf = p->cphsf, mphsf = p->mphsf;
+  cs_double cerror = p->cerror, merror = p->merror;
 
 
   ar = p->rslt;
@@ -228,22 +285,14 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         cphs += cinc;
       } else {
         mincf = mod * CS_ONEDSR;
-        double siz = mphsf*ftlen;
-        int32_t i = (int32_t)siz;
-        fract = (cs_float)(siz - i);
-        v1 = ft[i++];
-        v2 = ft[i];
-        fmod = (v1 + (v2 - v1) * fract) * ndx;
-        FOSC_PHASE_ADVANCE(mphsf, mincf);
+        FOSC_LOOKUP(fmod, ft, mphsf, merror, 1);
+        fmod *= ndx;
+        FOSC_PHASE_ADVANCE(mphsf, merror, mincf);
         cfreq = car + fmod;
         cincf = cfreq * CS_ONEDSR;
-        siz = cphsf*ftlen;
-        i = (int32_t)siz;
-        fract = (cs_float)(siz - i);
-        v1 = ft[i++];
-        v2 = ft[i];
-        ar[n] = (v1 + (v2 - v1) * fract) * amp;
-        FOSC_PHASE_ADVANCE(cphsf, cincf);
+        FOSC_LOOKUP(ar[n], ft, cphsf, cerror, 1);
+        ar[n] *= amp;
+        FOSC_PHASE_ADVANCE(cphsf, cerror, cincf);
       }
     }
   }
@@ -271,22 +320,14 @@ int32_t foscili(CSOUND *csound, FOSC *p)
         ar[n] = (v1 + (*ftab - v1) * fract) * amp;
         cphs += cinc;
       } else {
-        double siz = mphsf*ftlen;
-        int32_t i = (int32_t)siz;
-        fract = (cs_float)(siz - i);
-        v1 = ft[i++];
-        v2 = ft[i];
-        fmod = (v1 + (v2 - v1) * fract) * ndx;
-        FOSC_PHASE_ADVANCE(mphsf, mincf);
+        FOSC_LOOKUP(fmod, ft, mphsf, merror, 1);
+        fmod *= ndx;
+        FOSC_PHASE_ADVANCE(mphsf, merror, mincf);
         cfreq = car + fmod;
         cincf = cfreq * CS_ONEDSR;
-        siz = cphsf*ftlen;
-        i = (int32_t)siz;
-        fract = (cs_float)(siz - i);
-        v1 = ft[i++];
-        v2 = ft[i];
-        ar[n] = (v1 + (v2 - v1) * fract) * amp;
-        FOSC_PHASE_ADVANCE(cphsf, cincf);
+        FOSC_LOOKUP(ar[n], ft, cphsf, cerror, 1);
+        ar[n] *= amp;
+        FOSC_PHASE_ADVANCE(cphsf, cerror, cincf);
       }
     }
   }
@@ -294,6 +335,8 @@ int32_t foscili(CSOUND *csound, FOSC *p)
   p->cphs = cphs;
   p->mphsf = mphsf;
   p->cphsf = cphsf;
+  p->merror = merror;
+  p->cerror = cerror;
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
@@ -302,6 +345,8 @@ int32_t foscili(CSOUND *csound, FOSC *p)
 
 
 #undef FOSC_PHASE_ADVANCE
+#undef FOSC_LOOKUP
+#undef FOSC_FMA
 
 int32_t losset(CSOUND *csound, LOSC *p)
 {
