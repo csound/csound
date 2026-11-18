@@ -2582,6 +2582,15 @@ static int32_t kdel_set(CSOUND *csound,KDEL *p)
     return OK;
 }
 
+static inline cs_double kdelay_mod(cs_double value, cs_double period)
+{
+#ifdef USE_FLOAT
+    return fmodf(value, period);
+#else
+    return fmod(value, period);
+#endif
+}
+
 static int32_t kdelay(CSOUND *csound,KDEL *p)
 {
     int64_t maxd =  p->maxd, indx, v1, v2;
@@ -2601,12 +2610,12 @@ static int32_t kdelay(CSOUND *csound,KDEL *p)
     /* Reduce large delays first: subtracting a large delay from the write head can
        otherwise discard the head's low bits before the modulo operation. */
     if (UNLIKELY(delay <= -maxd || delay >= maxd))
-      delay = fmod(delay, (cs_double) maxd);
+      delay = kdelay_mod(delay, (cs_double) maxd);
     position = (cs_double) indx - delay;
     /* Like vdelay, the legacy delay wraps at the buffer period, including
        the maximum delay itself. Keep that behavior for existing scores. */
     if (UNLIKELY(!(position >= 0 && position < maxd))) {
-      position = fmod(position, (cs_double) maxd);
+      position = kdelay_mod(position, (cs_double) maxd);
       if (position < 0) position += maxd;
       /* Rounding a tiny negative remainder can produce exactly maxd. */
       if (position >= maxd) position = 0;
