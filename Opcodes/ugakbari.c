@@ -45,7 +45,7 @@ typedef struct _scale2 {
   OPDS  h;
   cs_float *koutval;
   cs_float *kinval, *kmin, *kmax, *imin, *imax, *ihtim;
-  cs_double c1, yt1, correction;
+  cs_double c1, c2, yt1, correction;
 } SCALE2;
 
 typedef struct _expcurve {
@@ -119,14 +119,22 @@ static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
       return csound->InitError(csound, "%s\n",
                                Str("scale2: smoothing time must be nonnegative"));
     p->yt1 = p->correction = 0.0;
-    /* Compute the small coefficient directly, without subtracting from one. */
+    /* Compute both coefficients directly, retaining small updates and poles. */
+    if (*p->ihtim == FL(0.0)) {
+      p->c1 = FL(1.0);
+      p->c2 = FL(0.0);
+    }
+    else {
 #ifdef USE_FLOAT
-    p->c1 = *p->ihtim == FL(0.0) ? FL(1.0) :
-      -expm1f(-logf(FL(2.0)) * CS_ONEDKR / (cs_double)*p->ihtim);
+      cs_double exponent = -logf(FL(2.0))*CS_ONEDKR/(cs_double)*p->ihtim;
+      p->c1 = -expm1f(exponent);
+      p->c2 = expf(exponent);
 #else
-    p->c1 = *p->ihtim == FL(0.0) ? 1.0 :
-      -expm1(-log(2.0) * CS_ONEDKR / (cs_double)*p->ihtim);
+      cs_double exponent = -log(2.0)*CS_ONEDKR/(cs_double)*p->ihtim;
+      p->c1 = -expm1(exponent);
+      p->c2 = exp(exponent);
 #endif
+    }
     return OK;
 }
 
@@ -155,9 +163,14 @@ static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
       position = (halfval - halfmin) / (halfmax - halfmin);
     }
     SCALE2_LERP(val, kmin, kmax, position);
-    if (p->c1 == 1.0) {
+    if (p->c2 == FL(0.0)) {
       p->yt1 = val;
       p->correction = 0.0;
+    }
+    else if (p->c1 > FL(0.5)) {
+      /* Interpolate from the target so a small pole survives c1 rounding. */
+      SCALE2_LERP(p->yt1, val, p->yt1, p->c2);
+      p->correction = FL(0.0);
     }
     else {
       cs_double difference = val - p->yt1;
