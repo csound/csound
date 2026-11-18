@@ -86,11 +86,14 @@ typedef struct {
 typedef struct {
     OPDS   h;
     cs_float  *out, *in, *fc, *v, *q, *mode, *iskip;
-    cs_double xnm1, xnm2;
-    /* Near DC and Nyquist, rounded poles can become unstable. */
-    double ynm1, ynm2;
+    cs_double xnm1, xnm2, ynm1, ynm2;
     cs_float  prv_fc, prv_v, prv_q;
-    double b0, b1, b2, a1, a2;
+    cs_double b0, b1, b2, a1, a2;
+#ifdef USE_FLOAT
+    /* ynm1/ynm2 hold the residual and its first difference in float builds. */
+    cs_double rerror, derror;
+    int32_t sign;
+#endif
     int32_t imode, initialized;
 } PAREQ;
 
