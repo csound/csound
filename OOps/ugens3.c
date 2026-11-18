@@ -88,10 +88,9 @@ int32_t foscset(CSOUND *csound, FOSC *p)
     cs_double fosc_position = (phase) * ftlen;                       \
     int32_t fosc_index = (int32_t)fosc_position;                      \
     if (fosc_position - fosc_index > FL(0.5)) ++fosc_index;           \
-    volatile cs_double fosc_detail = (error) * ftlen;                \
-    cs_double fosc_fraction =                                      \
-      FOSC_FMA((phase), (cs_double)ftlen, -(cs_double)fosc_index) -   \
-      fosc_detail;                                                  \
+    /* Keep the error product's low bits at table boundaries. */    \
+    cs_double fosc_fraction = FOSC_FMA(-(error), (cs_double)ftlen,   \
+      FOSC_FMA((phase), (cs_double)ftlen, -(cs_double)fosc_index));  \
     if (fosc_fraction < FL(0.0)) {                                  \
       if (fosc_index == 0) fosc_index = ftlen;                       \
       if (interp) {                                                \

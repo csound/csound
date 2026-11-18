@@ -13,6 +13,7 @@ ksmps = 16
 nchnls = 1
 0dbfs = 1
 giShape ftgen 0, 0, -12, -2, 0, 1/3, 2/3, 1, 2/3, 1/3, 0, -1/3, -2/3, -1, -2/3, -1/3
+giThree ftgen 0, 0, -3, -2, 0, 1, 2
 gkChecks init 0
 
 instr SlowCarrier
@@ -103,6 +104,40 @@ instr Boundary
   endif
 endin
 
+instr BoundaryNearThird
+  ; phase = 0x1.555556p-2, increment = -0x1.555556p-27.
+  ; After one step, the exact table position is 1 - 2^-50. Rounding
+  ; the phase and error products separately would select entry 1.
+  iPhase = 11184811/33554432
+  iFrequency = -sr*11184811/1125899906842624
+  aAmp = 1
+  aCar init 1
+  aMod init 0
+  if p4 == 0 then
+    aOut foscil 1, iFrequency, 1, 0, 0, giThree, iPhase
+  elseif p4 == 1 then
+    aOut foscil aAmp, iFrequency, aCar, aMod, 0, giThree, iPhase
+  else
+    aAmp foscil aAmp, iFrequency, aCar, aMod, 0, giThree, iPhase
+    aOut = aAmp
+  endif
+  kBase init 0
+  kN = 0
+  while kN < ksmps do
+    kActual vaget kN, aOut
+    kExpected = (kBase+kN == 0 ? 1 : 0)
+    if kActual != kExpected then
+      printks "Near-third boundary mode=%g sample=%g: %g expected %g\n", 0, p4, kBase+kN, kActual, kExpected
+      exitnowk -1
+    endif
+    kN += 1
+  od
+  kBase += ksmps
+  if kBase == 64 then
+    gkChecks += 1
+  endif
+endin
+
 instr Reinit
   ; Reinit must preserve a nonzero rounding remainder with a negative phase,
   ; and clear it when a new initial phase is supplied.
@@ -136,7 +171,7 @@ OSC:
 endin
 
 instr CheckCompletion
-  if i(gkChecks) != 17 then
+  if i(gkChecks) != 20 then
     prints "Not all float phase checks completed\n"
     exitnow -1
   endif
@@ -159,6 +194,9 @@ i "SlowModulator" 0 .0625 0
 i "SlowModulator" 0 .0625 1
 i "Boundary" 0 .0625 0
 i "Boundary" 0 .0625 1
+i "BoundaryNearThird" 0 .0625 0
+i "BoundaryNearThird" 0 .0625 1
+i "BoundaryNearThird" 0 .0625 2
 i "Reinit" 0 .0625
 i "CheckCompletion" .125 .015625
 e
