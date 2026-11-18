@@ -1493,11 +1493,107 @@ int32_t lpfreson(CSOUND *csound, LPFRESON *p)
     return OK;
 }
 
+/* These operations follow cs_double, including mixed-precision builds. */
+#ifdef USE_FLOAT
+#define RMS_FREXP frexpf
+#define RMS_LDEXP ldexpf
+#define RMS_SQRT SQRT
+#define RMS_FMA fmaf
+#define RMS_EPSILON FLT_EPSILON
+#define RMS_LOWEST_EXPONENT (3 * (FLT_MIN_EXP - FLT_MANT_DIG) - FLT_MANT_DIG)
+#else
+#define RMS_FREXP frexp
+#define RMS_LDEXP ldexp
+#define RMS_SQRT sqrt
+#define RMS_FMA fma
+#define RMS_EPSILON DBL_EPSILON
+#define RMS_LOWEST_EXPONENT (3 * (DBL_MIN_EXP - DBL_MANT_DIG) - DBL_MANT_DIG)
+#endif
+
+#define RMS_COEFFICIENTS(omega, coefficients) do {                     \
+    RMS_COEFS *rms_c = &(coefficients);                               \
+    cs_double rms_omega = (omega);                                   \
+    if (rms_omega < FL(0.0)) rms_omega = -rms_omega;                   \
+    if (rms_omega < RMS_EPSILON) {                                   \
+      /* Avoid rounding sin(omega/2) to zero before doubling it. */   \
+      rms_c->c1 = rms_omega;                                         \
+      rms_c->c2 = FL(1.0) - rms_omega;                               \
+    } else {                                                        \
+      TONE_COEFFICIENTS(rms_omega, rms_c->c1, rms_c->c2);              \
+    }                                                               \
+    int rms_exponent = 0;                                           \
+    rms_c->weight = RMS_FREXP(rms_c->c1, &rms_exponent);               \
+    rms_c->weight_exponent = rms_exponent;                           \
+  } while (0)
+
+/* Form c1*x*x from bounded mantissas, then align it with the stored energy.
+   Only terms too small relative to that energy can underflow. */
+#define RMS_UPDATE(coefficients, energy, sample) do {                 \
+    const RMS_COEFS *rms_c = &(coefficients);                         \
+    RMS_ENERGY *rms_e = &(energy);                                   \
+    if (rms_c->c1 == FL(0.0)) break;                                 \
+    cs_double rms_sample = (sample), rms_input = FL(0.0);             \
+    if (rms_sample != FL(0.0)) {                                     \
+      int rms_exponent = 0;                                         \
+      cs_double rms_mantissa = RMS_FREXP(rms_sample, &rms_exponent);   \
+      rms_input = rms_c->weight * rms_mantissa * rms_mantissa;        \
+      rms_exponent = 2 * rms_exponent + rms_c->weight_exponent;       \
+      if (rms_e->value == FL(0.0)) {                                 \
+        rms_e->exponent = rms_exponent;                              \
+        rms_e->correction = FL(0.0);                                 \
+      }                                                             \
+      if (rms_exponent > rms_e->exponent) {                          \
+        int rms_shift = rms_e->exponent - rms_exponent;              \
+        rms_e->value = RMS_LDEXP(rms_e->value, rms_shift);            \
+        rms_e->correction = RMS_LDEXP(rms_e->correction, rms_shift);  \
+        rms_e->exponent = rms_exponent;                              \
+      } else {                                                      \
+        rms_input = RMS_LDEXP(rms_input, rms_exponent-rms_e->exponent); \
+      }                                                             \
+    }                                                               \
+    if (rms_c->c1 > FL(0.5)) {                                       \
+      volatile cs_double rms_prior = rms_c->c2 * rms_e->value;        \
+      volatile cs_double rms_residual =                             \
+        RMS_FMA(rms_c->c2, rms_e->value, -rms_prior) -                \
+        rms_c->c2 * rms_e->correction;                               \
+      volatile cs_double rms_next = rms_prior + rms_input;           \
+      volatile cs_double rms_applied = rms_next - rms_prior;         \
+      rms_e->correction = (rms_applied - rms_input) - rms_residual;   \
+      rms_e->value = rms_next;                                       \
+    } else {                                                        \
+      volatile cs_double rms_decay =                                \
+        rms_c->c1 * (rms_e->value - rms_e->correction);               \
+      volatile cs_double rms_change = rms_input - rms_decay;         \
+      volatile cs_double rms_step = rms_change - rms_e->correction;   \
+      volatile cs_double rms_next = rms_e->value + rms_step;          \
+      volatile cs_double rms_applied = rms_next - rms_e->value;       \
+      rms_e->correction = rms_applied - rms_step;                     \
+      rms_e->value = rms_next;                                       \
+    }                                                               \
+    if (rms_e->value > FL(0.0) &&                                    \
+        (rms_e->value < FL(0.25) || rms_e->value >= FL(1.0))) {        \
+      int rms_exponent = 0;                                         \
+      rms_e->value = RMS_FREXP(rms_e->value, &rms_exponent);           \
+      rms_e->correction = RMS_LDEXP(rms_e->correction, -rms_exponent); \
+      rms_e->exponent += rms_exponent;                              \
+    }                                                               \
+    /* Bound silent decay below the least possible input contribution. */ \
+    if (rms_e->exponent < RMS_LOWEST_EXPONENT) {                      \
+      rms_e->value = rms_e->correction = FL(0.0);                     \
+      rms_e->exponent = 0;                                          \
+    }                                                               \
+  } while (0)
+
+#define RMS_LEVEL(energy)                                           \
+    RMS_LDEXP(RMS_SQRT(RMS_LDEXP((energy).value,                      \
+                                 (energy).exponent % 2)),             \
+              (energy).exponent / 2)
+
 int32_t rmsset(CSOUND *csound, RMS *p)
 {
-    TONE_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
+    RMS_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->coefficients);
     if (!*p->istor)
-      p->prvq = p->level_scale = p->correction = 0.0;
+      memset(&p->energy, 0, sizeof(p->energy));
     return OK;
 }
 
@@ -1521,61 +1617,16 @@ int32_t rms(CSOUND *csound, RMS *p)
 {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    cs_float    *asig;
-    cs_double q, level_scale = p->level_scale, correction = p->correction;
-#ifdef USE_FLOAT
-    const cs_double minimum_scale = FLT_MIN;
-#else
-    const cs_double minimum_scale = DBL_MIN;
-#endif
+    RMS_ENERGY energy = p->energy;
 
-    q = p->prvq;
-    asig = p->asig;
     if (UNLIKELY(early)) nsmps -= early;
-    /* Zero cutoff freezes the retained energy and its scale. */
-    if (p->c1 == FL(0.0)) nsmps = offset;
-    for (n=offset; n<nsmps; n++) {
-      cs_double magnitude = FABS(asig[n]);
-      if (magnitude > level_scale) {
-        cs_double next_scale = magnitude < minimum_scale ? minimum_scale : magnitude;
-        cs_double ratio = level_scale / next_scale;
-        q *= ratio * ratio;
-        correction *= ratio * ratio;
-        level_scale = next_scale;
-      }
-      if (level_scale > 0.0) {
-        cs_double normalized = asig[n] / level_scale;
-        /* Squaring a normalized sample cannot overflow. Retain small
-           updates without rounding the complementary pole to one. */
-        volatile cs_double difference = normalized * normalized - q;
-        volatile cs_double update = p->c1 * (difference + correction);
-        volatile cs_double step = update - correction;
-        volatile cs_double next = q + step;
-        volatile cs_double applied = next - q;
-        correction = applied - step;
-        q = next;
-        /* Reduce the scale during decay, before the normalized energy
-           can underflow. Power-of-two rescaling introduces no rounding. */
-        while (q > 0.0 && q < FL(0.25) &&
-               level_scale >= FL(2.0) * minimum_scale &&
-               magnitude <= level_scale * FL(0.5)) {
-          q *= FL(4.0);
-          correction *= FL(4.0);
-          level_scale *= FL(0.5);
-        }
-      }
+    for (n = offset; n < nsmps; n++) {
+      RMS_UPDATE(p->coefficients, energy, p->asig[n]);
     }
-    p->prvq = q;
-    p->level_scale = level_scale;
-    p->correction = correction;
-#ifdef USE_FLOAT
-    *p->kr = SQRT(q) * level_scale;
-#else
-    /* SQRT follows sample precision; mixed builds need cs_double here. */
-    *p->kr = (cs_float)(sqrt(q) * level_scale);
-#endif
+    p->energy = energy;
+    *p->kr = (cs_float)RMS_LEVEL(energy);
     return OK;
 }
 

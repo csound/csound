@@ -42,4 +42,14 @@ TEST_F(RmsTests, DecayDoesNotRoundASubnormalScale)
     EXPECT_EQ(step(3*unit)/unit, 3);
     EXPECT_EQ(step(0)/unit, 1);
 }
+
+TEST_F(RmsTests, SmallestWeightsStillAccumulateEnergy)
+{
+    cutoff = std::numeric_limits<cs_float>::denorm_min()*8192;
+    ASSERT_EQ(rmsset(nullptr, &detector), OK);
+    const cs_float first = step(FL(1e15));
+    ASSERT_GT(first, 0);
+    for (int n = 0; n < 100; ++n) step(FL(6e14));
+    EXPECT_NEAR(output/first, std::sqrt(FL(37.0)), .00001);
+}
 } // namespace
