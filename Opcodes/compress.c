@@ -339,7 +339,7 @@ static int32_t distort(CSOUND *csound, DIST *p)
             ++index;
             fraction -= FL(1.0);
           }
-          slope = ftp->ftable[index + 1] - ftp->ftable[index];
+          slope = (cs_double)ftp->ftable[index + 1] - ftp->ftable[index];
           /* Keep a quiet signal separate from the large centre index.
              Volatile intermediates also prevent fast-math reassociation. */
           volatile cs_double centre = ftp->ftable[index] + fraction * slope;
@@ -352,7 +352,7 @@ static int32_t distort(CSOUND *csound, DIST *p)
             int32_t index = (int32_t)phase;
             cs_double fraction = phase - index;
             cs_float *fp = ftp->ftable + index;
-            val = fp[0] + (fp[1] - fp[0]) * fraction;
+            val = fp[0] + ((cs_double)fp[1] - fp[0]) * fraction;
           }
           else if (phase <= FL(0.0))
             val = p->begval;
