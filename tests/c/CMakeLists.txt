@@ -86,6 +86,8 @@ if(BUILD_TESTS)
         keyboard_callback_test.cpp
         local_ksmps_test.cpp
         lfsr_test.cpp
+        scale2_test.cpp
+        fixtures/scale2_test_opcode.c
         serial_test.cpp
         fixtures/serial_test_opcode.c
         joystick_test.cpp

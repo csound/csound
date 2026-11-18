@@ -174,14 +174,22 @@ static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
     }
     else {
       cs_double difference = val - p->yt1;
+      volatile cs_double update;
       if (UNLIKELY(!isfinite(difference))) {
-        SCALE2_LERP(p->yt1, p->yt1, val, p->c1);
-        p->correction = 0.0;
+        /* c1 <= 0.5: halve before subtracting, then multiply before
+           restoring the scale. The full increment now fits. */
+        volatile cs_double halfval = val * FL(0.5);
+        volatile cs_double halfstate = p->yt1 * FL(0.5);
+        volatile cs_double halfdiff = halfval - halfstate;
+        volatile cs_double halfupdate =
+          p->c1 * (halfdiff + p->correction * FL(0.5));
+        update = halfupdate * FL(2.0);
       }
-      else {
-        /* Keep updates smaller than one ULP in a second cs_double. */
-        /* Force the rounding steps even in a fast-math build. */
-        volatile cs_double update = p->c1 * (difference + p->correction);
+      else
+        update = p->c1 * (difference + p->correction);
+      /* Keep updates smaller than one ULP in a second cs_double. */
+      /* Force the rounding steps even in a fast-math build. */
+      {
         volatile cs_double step = update - p->correction;
         volatile cs_double next = p->yt1 + step;
         volatile cs_double applied = next - p->yt1;
