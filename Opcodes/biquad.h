@@ -133,6 +133,9 @@ typedef struct {
   OPDS h;
   cs_float *out;
   cs_float *in, *f0, *tau, *reinit;
-  /* Recursive rotation needs more precision than its sample input. */
-  double x, y;
+  cs_double x, y;
+#ifdef USE_FLOAT
+  /* Float builds keep state in the rotating frame and save rounding errors. */
+  cs_double xerror, yerror, phase, phase_error;
+#endif
 } MVMFILT;
