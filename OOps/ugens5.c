@@ -23,6 +23,7 @@
 #include "csoundCore.h"         /*                      UGENS5.C        */
 #include "ugens5.h"
 #include <math.h>
+#include <float.h>
 #include <inttypes.h>
 #include <stddef.h>
 #include "strarg2name.h"
@@ -1524,6 +1525,11 @@ int32_t rms(CSOUND *csound, RMS *p)
     uint32_t n, nsmps = CS_KSMPS;
     cs_float    *asig;
     cs_double q, level_scale = p->level_scale, correction = p->correction;
+#ifdef USE_FLOAT
+    const cs_double minimum_scale = FLT_MIN;
+#else
+    const cs_double minimum_scale = DBL_MIN;
+#endif
 
     q = p->prvq;
     asig = p->asig;
@@ -1533,10 +1539,11 @@ int32_t rms(CSOUND *csound, RMS *p)
     for (n=offset; n<nsmps; n++) {
       cs_double magnitude = FABS(asig[n]);
       if (magnitude > level_scale) {
-        cs_double ratio = level_scale / magnitude;
+        cs_double next_scale = magnitude < minimum_scale ? minimum_scale : magnitude;
+        cs_double ratio = level_scale / next_scale;
         q *= ratio * ratio;
         correction *= ratio * ratio;
-        level_scale = magnitude;
+        level_scale = next_scale;
       }
       if (level_scale > 0.0) {
         cs_double normalized = asig[n] / level_scale;
@@ -1551,7 +1558,9 @@ int32_t rms(CSOUND *csound, RMS *p)
         q = next;
         /* Reduce the scale during decay, before the normalized energy
            can underflow. Power-of-two rescaling introduces no rounding. */
-        while (q > 0.0 && q < FL(0.25) && magnitude <= level_scale * FL(0.5)) {
+        while (q > 0.0 && q < FL(0.25) &&
+               level_scale >= FL(2.0) * minimum_scale &&
+               magnitude <= level_scale * FL(0.5)) {
           q *= FL(4.0);
           correction *= FL(4.0);
           level_scale *= FL(0.5);
