@@ -255,7 +255,7 @@ static int32_t distort(CSOUND *csound, DIST *p)
     level_scale = p->rms_scale;
     correction = p->rms_correction;
     for (n=offset; n<nsmps; n++) {
-      cs_double magnitude = fabs(asig[n]);
+      cs_double magnitude = FABS(asig[n]);
       if (magnitude > level_scale) {
         cs_double ratio = level_scale / magnitude;
         q *= ratio * ratio;
@@ -285,7 +285,12 @@ static int32_t distort(CSOUND *csound, DIST *p)
     if (UNLIKELY(!isfinite(q)))
       return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("distort: input level is out of range"));
-    rms = sqrt(q) * level_scale;    /* get running rms      */
+#ifdef USE_FLOAT
+    rms = SQRT(q) * level_scale;
+#else
+    /* SQRT follows sample precision; mixed builds need cs_double here. */
+    rms = sqrt(q) * level_scale;
+#endif
     if (rms < p->min_rms)
       rms = p->min_rms;
     dist = *p->kdist;
@@ -317,7 +322,7 @@ static int32_t distort(CSOUND *csound, DIST *p)
           val = p->begval;
         else if (displacement >= p->midphs)
           val = p->endval;
-        else if (fabs(displacement) < FL(1.0)) {
+        else if (displacement > -FL(1.0) && displacement < FL(1.0)) {
           int32_t index = (int32_t)p->midphs;
           cs_double fraction = p->midphs - index;
           cs_double slope;
