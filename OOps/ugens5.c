@@ -1529,7 +1529,7 @@ int32_t rms(CSOUND *csound, RMS *p)
     asig = p->asig;
     if (UNLIKELY(early)) nsmps -= early;
     for (n=offset; n<nsmps; n++) {
-      cs_double magnitude = fabs(asig[n]);
+      cs_double magnitude = FABS(asig[n]);
       if (magnitude > level_scale) {
         cs_double ratio = level_scale / magnitude;
         q *= ratio * ratio;
@@ -1559,7 +1559,12 @@ int32_t rms(CSOUND *csound, RMS *p)
     p->prvq = q;
     p->level_scale = level_scale;
     p->correction = correction;
+#ifdef USE_FLOAT
+    *p->kr = SQRT(q) * level_scale;
+#else
+    /* SQRT follows sample precision; mixed builds need cs_double here. */
     *p->kr = (cs_float)(sqrt(q) * level_scale);
+#endif
     return OK;
 }
 
