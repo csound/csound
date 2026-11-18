@@ -5,7 +5,7 @@ description = "y takes a seed from 0 to 2^32, as the manual says, and refuses on
 exit = 0
 output = ["seed from score 852516354", "seed from score 852516355",
           "y: seed -5 out of range, ignored", "seed from score 2",
-          "seed from score 3", "y: seed 4.29497e+09 out of range, ignored",
+          "seed from score 3", "y: seed 4294967296 out of range, ignored",
           "every seed gave numbers of its own"]
 </CsTest>
 <CsoundSynthesizer>

@@ -411,8 +411,7 @@ static int32_t read_section(CSOUND *csound) /* reads from SCOREIN    */
                it is given; 0, which would keep the generator at 0, is 1, as
                a y without a seed is the one that takes the clock. */
             if (UNLIKELY(!score_seed(p, &seed)))
-              sreaderr(csound, Str("y: seed %g out of range, ignored\n"),
-                       csoundStrtod(p, NULL));
+              sreaderr(csound, Str("y: seed %s out of range, ignored\n"), p);
             else {
               seed %= (uint32_t) 0x7FFFFFFE;
               csound->randSeed1 = seed == 0 ? 1 : (int32_t) seed;

@@ -2,7 +2,7 @@
 description = "score y seeds retain exact integer values in every build precision"
 [expect]
 exit = 0
-output = ["score seed spellings agree"]
+output = ["score seed spellings agree", "y: seed 1e39 out of range, ignored"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -22,7 +22,7 @@ instr Capture
   giCount += 1
 endin
 instr Check
-  if giCount != 35 then
+  if giCount != 36 then
     prints "FAIL score seed cases did not complete\n"
     exitnow 1
   endif
@@ -121,6 +121,10 @@ i "Capture" 0 0 [~] 33 0
 y 123
 y +NaN
 i "Capture" 0 0 [~] 34 0
+; A rejected value beyond float range keeps its spelling and the prior seed.
+y 123
+y 1e39
+i "Capture" 0 0 [~] 35 0
 i "Check" .1 0
 e
 </CsScore>
