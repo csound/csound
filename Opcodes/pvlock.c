@@ -255,8 +255,20 @@ static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
   pv_find_peaks(fwin, nbins, mag, cpeaks);
   pv_nearest_peaks(cpeaks, nbins, region);
   if (mode == 3 && beta != FL(1.0)) {
+#ifdef USE_FLOAT
+    /* A zero bin has no phase. Keep the old atan2 convention for its
+       whole region, since that convention also sets later unwrap steps. */
     for (b=0; b < nbins; b++) {
       p = region[b];
+      if (p >= 0 && fwin[2*b] == FL(0.0) && fwin[2*b + 1] == FL(0.0))
+        cpeaks[p] = 2;
+    }
+    for (b=0; b < nbins; b++) {
+      p = region[b];
+      if (p >= 0 && cpeaks[p] == 2) {
+        mag[b] = ATAN2(fwin[2*b + 1], fwin[2*b]);
+        continue;
+      }
       if (p < 0 || b == p) {
         mag[b] = FL(0.0);
         continue;
@@ -284,6 +296,11 @@ static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
       }
       mag[b] = ATAN2(di*nr - dr*ni, dr*nr + di*ni);
     }
+#else
+    /* Preserve the established phase-wrap choices in mixed/double builds. */
+    for (b=0; b < nbins; b++)
+      mag[b] = ATAN2(fwin[2*b + 1], fwin[2*b]);
+#endif
     pv_unwrap_region_phases(mag, nbins, cpeaks, region);
   }
 

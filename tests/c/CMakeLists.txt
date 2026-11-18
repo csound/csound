@@ -115,6 +115,8 @@ if(BUILD_TESTS)
         pvsblur_test.cpp
         pvsanal_test.cpp
         pvstanal_test.cpp
+        pvlock_test.cpp
+        fixtures/pvlock_test_opcode.c
         pvscross_test.cpp
         pvsmorph_test.cpp
         pvsmaska_test.cpp
