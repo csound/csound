@@ -75,12 +75,25 @@ typedef struct {
         int32_t scaletype, aratemod;
 } RESONZ;
 
+#ifdef USE_FLOAT
+typedef struct {
+        cs_double value, delta, value_error;
+        cs_double damping, stiffness;
+        int32_t sign;
+} PHASER2STATE;
+#endif
+
 /* Structure for cascade of 2nd order allpass filters */
 typedef struct {
         OPDS h;
         cs_float *out, *in, *kbf, *kbw, *order, *mode, *ksep, *fbgain, *iskip;
         int32_t loop, modetype;
-        double *nm1, *nm2, feedback;
+#ifdef USE_FLOAT
+        PHASER2STATE *state;
+#else
+        cs_double *nm1, *nm2;
+#endif
+        cs_double feedback;
         AUXCH aux1, aux2;
 } PHASER2;
 
