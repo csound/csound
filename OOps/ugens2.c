@@ -60,9 +60,11 @@ int32_t ephsset(CSOUND *csound, EPHSOR *p)
   if (phs >= 0.0) {
     if (UNLIKELY(phs >= 1.0)) {
       csound->Warning(csound, Str("init phase truncation\n"));
-      phs -= floor(phs);
+      cs_double whole;
+      phs = cs_modf(phs, &whole);
     }
     p->curphs = phs;
+    p->correction = FL(0.0);
   }
   p->b = 1.0;
   return OK;
@@ -71,17 +73,44 @@ int32_t ephsset(CSOUND *csound, EPHSOR *p)
 /* Remove whole cycles before addition so large increments retain the phase.
    Keep the wrap event: it also resets the exponential output. */
 #define EPHASOR_INCREMENT(incr, wrapped) do {                         \
-    (wrapped) = (incr) >= 1.0 || (incr) <= -1.0;                       \
-    if (UNLIKELY(wrapped)) (incr) -= trunc(incr);                       \
+    (wrapped) = (incr) >= FL(1.0) || (incr) <= -FL(1.0);              \
+    if (UNLIKELY(wrapped)) {                                         \
+      cs_double eph_whole;                                           \
+      (incr) = cs_modf((incr), &eph_whole);                           \
+    }                                                               \
   } while (0)
 
-/* A double phase just below one may round to one in a float build. */
+/* Keep small updates and test the phase together with its rounding error.
+   A phase rounded to one has not wrapped while its correction is positive. */
+#define EPHASOR_ADVANCE(phase, correction, incr, wrapped) do {        \
+    volatile cs_double eph_step = (incr) - (correction);              \
+    volatile cs_double eph_next = (phase) + eph_step;                 \
+    volatile cs_double eph_applied = eph_next - (phase);              \
+    (correction) = eph_applied - eph_step;                            \
+    (phase) = eph_next;                                              \
+    if ((phase) > FL(1.0) ||                                        \
+        ((phase) == FL(1.0) && (correction) <= FL(0.0))) {            \
+      (phase) -= FL(1.0);                                           \
+      (wrapped) = 1;                                                \
+    }                                                               \
+    else if ((phase) < FL(0.0) ||                                   \
+             ((phase) == FL(0.0) && (correction) > FL(0.0))) {        \
+      volatile cs_double eph_wrapped = (phase) + FL(1.0);            \
+      volatile cs_double eph_back = eph_wrapped - FL(1.0);           \
+      volatile cs_double eph_wrap_error = eph_back - (phase);        \
+      (correction) += eph_wrap_error;                                \
+      (phase) = eph_wrapped;                                         \
+      (wrapped) = 1;                                                \
+    }                                                               \
+  } while (0)
+
+/* A phase just below one can round to one at the output precision. */
 #define EPHASOR_OUTPUT(phase)                                        \
   ((cs_float)(phase) < FL(1.0) ? (cs_float)(phase) : FL(0.0))
 
 int32_t ephsor(CSOUND *csound, EPHSOR *p)
 {
-    double         phase;
+    cs_double      phase, correction = p->correction;
     uint32_t    offset = GetKsmpsOffset(&p->h);
     uint32_t    early  = GetEarlySmps(&p->h);
     uint32_t    n, nsmps = CS_KSMPS;
@@ -108,19 +137,18 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
       incr = (cs_double)(cps[n] * onedsr);
       EPHASOR_INCREMENT(incr, whole_cycle);
       rs[n] = (cs_float) b;
-      aphs[n] = EPHASOR_OUTPUT(phase);
-      phase += incr;
+      aphs[n] = EPHASOR_OUTPUT(phase - correction);
+      int32_t wrapped = whole_cycle;
+      EPHASOR_ADVANCE(phase, correction, incr, wrapped);
       b *= R;
-      if (UNLIKELY(phase >= 1.0)) {
-        phase -= 1.0;
-        b = pow(R, 1.0+phase);
+      if (UNLIKELY(wrapped)) {
+#ifdef USE_FLOAT
+        b = POWER(R, FL(1.0) + (phase - correction));
+#else
+        /* POWER follows sample precision; mixed builds need cs_double. */
+        b = pow(R, FL(1.0) + (phase - correction));
+#endif
       }
-      else if (UNLIKELY(phase < 0.0)) {
-        phase += 1.0;
-        b = pow(R, 1.0+phase);
-      }
-      else if (UNLIKELY(whole_cycle))
-        b = pow(R, 1.0+phase);
     }
   }
   else {
@@ -128,25 +156,29 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
     EPHASOR_INCREMENT(incr, whole_cycle);
     for (n=offset; n<nsmps; n++) {
       rs[n] = (cs_float) b;
-      aphs[n] = EPHASOR_OUTPUT(phase);
-      phase += incr;
+      aphs[n] = EPHASOR_OUTPUT(phase - correction);
+      int32_t wrapped = whole_cycle;
+      EPHASOR_ADVANCE(phase, correction, incr, wrapped);
       b *= R;
-      if (UNLIKELY(phase >= 1.0)) {
-        phase -= 1.0;
-        b =  pow(R, 1.0+phase);
+      if (UNLIKELY(wrapped)) {
+#ifdef USE_FLOAT
+        b = POWER(R, FL(1.0) + (phase - correction));
+#else
+        /* POWER follows sample precision; mixed builds need cs_double. */
+        b = pow(R, FL(1.0) + (phase - correction));
+#endif
       }
-      else if (UNLIKELY(phase < 0.0)) {
-        phase += 1.0;
-        b = pow(R, 1.0+phase);
-      }
-      else if (UNLIKELY(whole_cycle))
-        b = pow(R, 1.0+phase);
     }
   }
   p->curphs = phase;
+  p->correction = correction;
   p->b = b;
   return OK;
 }
+
+#undef EPHASOR_INCREMENT
+#undef EPHASOR_ADVANCE
+#undef EPHASOR_OUTPUT
 
 /* A phase just below one can round to one in cs_float. Wrap the output,
    retaining the more precise internal phase for the next sample. */

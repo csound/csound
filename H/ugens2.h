@@ -33,8 +33,8 @@ typedef struct {
 typedef struct {
         OPDS    h;
         cs_float   *sr,*aphs, *xcps, *kR, *iphs;
-        /* Keep small phase increments until the next wrap. */
-        double  curphs;
+        /* Keep phase rounding remainders in the configured precision. */
+        cs_double  curphs, correction;
         cs_double  b;
 } EPHSOR;
 
