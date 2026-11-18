@@ -98,9 +98,8 @@ int32_t ephsset(CSOUND *csound, EPHSOR *p)
 #define EPHASOR_ADVANCE(phase, correction, incr, wrapped) do {        \
     cs_double eph_step, eph_step_error;                             \
     EPHASOR_SUM(eph_step, eph_step_error, (incr), -(correction));     \
-    volatile cs_double eph_next = (phase) + eph_step;                 \
-    volatile cs_double eph_applied = eph_next - (phase);              \
-    volatile cs_double eph_error = eph_applied - eph_step;           \
+    cs_double eph_next, eph_error;                                  \
+    EPHASOR_SUM(eph_next, eph_error, (phase), eph_step);              \
     (correction) = eph_error + eph_step_error;                       \
     (phase) = eph_next;                                              \
     if ((phase) > FL(1.0) ||                                        \
