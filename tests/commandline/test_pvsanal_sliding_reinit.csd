@@ -21,8 +21,12 @@ instr CheckReinit
  kHop init 32
  kWindow init 1
  kCycle init 0
+ kLastFFTFrame init 1
+ kFFTChecks init 0
+ kActualFFT[] init 130
+ kReferenceFFT[] init 130
  kCycle += 1
- if kCycle == 75 then
+ if kCycle == 225 then
   ; Reuse the same allocations as well as switching sizes and modes.
   reinit ANALYZE
  elseif kCycle == 30 then
@@ -30,7 +34,7 @@ instr CheckReinit
   kHop = 32
   kWindow = 1
   reinit ANALYZE
- elseif kCycle == 50 then
+ elseif kCycle == 200 then
   kSize = 96
   kHop = 10
   kWindow = 4
@@ -60,12 +64,36 @@ ANALYZE:
  if kCycle >= 3 && kCycle < 30 then
   fFirst pvsanal aInput, 64, 10, 64, 6
   aReferenceMagnitude, aReferenceFrequency pvsbin fFirst, 1
- elseif kCycle >= 50 && kCycle < 75 then
+ elseif kCycle >= 200 && kCycle < 225 then
   fSecond pvsanal aInput, 96, 10, 96, 4
   aReferenceMagnitude, aReferenceFrequency pvsbin fSecond, 1
- elseif kCycle >= 75 then
+ elseif kCycle >= 225 then
   fThird pvsanal aInput, 96, 10, 96, 4
   aReferenceMagnitude, aReferenceFrequency pvsbin fThird, 1
+ endif
+ if kCycle >= 30 && kCycle < 200 then
+  ; This reference has no pre-transition input or phase history.
+  fFFT pvsanal aInput, 128, 32, 128, 1
+  kActualFrame pvs2array kActualFFT, fActual
+  kReferenceFrame pvs2array kReferenceFFT, fFFT
+  if kActualFrame != kReferenceFrame then
+   printks "pvsanal FFT reinit frame: ksmps=%g cycle=%g frame=%g/%g\n", 0, ksmps, kCycle, kActualFrame, kReferenceFrame
+   exitnowk(-1)
+  endif
+  ; Check the reset buffer and every bin of each frame, starting at frame 2.
+  kIndex = 0
+  while kIndex < 130 do
+   kTolerance = (kIndex%2 == 0 ? .0001 : .01)
+   if !(abs(kActualFFT[kIndex]-kReferenceFFT[kIndex]) < kTolerance) then
+    printks "pvsanal FFT reinit: ksmps=%g cycle=%g frame=%g index=%g actual=%g expected=%g\n", 0, ksmps, kCycle, kActualFrame, kIndex, kActualFFT[kIndex], kReferenceFFT[kIndex]
+    exitnowk(-1)
+   endif
+   kIndex += 1
+  od
+  if kActualFrame > kLastFFTFrame then
+   kFFTChecks += 1
+   kLastFFTFrame = kActualFrame
+  endif
  endif
  if kHop == 10 then
   ; Compare every sample, including the first frame after reinitialization.
@@ -82,8 +110,14 @@ ANALYZE:
    kIndex += 1
   od
  endif
- if kCycle == 100 then
+ if kCycle == 250 then
+  ; Even ksmps=1 must see several FFT frames after the mode switch.
+  if kFFTChecks < 3 then
+   printks "pvsanal FFT reinit checks did not complete: ksmps=%g frames=%g\n", 0, ksmps, kFFTChecks
+   exitnowk(-1)
+  endif
   gkChecks += 1
+  turnoff
  endif
 endin
 
@@ -96,10 +130,10 @@ endin
 </CsInstruments>
 <CsScore>
 ; Blocks smaller than, equal to, and larger than hop 10.
-i "CheckReinit" 0 .3 1
-i "CheckReinit" 0 .3 10
-i "CheckReinit" 0 .3 20
-i "CheckResults" .31 .01
+i "CheckReinit" 0 .7 1
+i "CheckReinit" 0 .7 10
+i "CheckReinit" 0 .7 20
+i "CheckResults" .71 .01
 e
 </CsScore>
 </CsoundSynthesizer>
