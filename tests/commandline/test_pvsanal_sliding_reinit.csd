@@ -22,7 +22,10 @@ instr CheckReinit
  kWindow init 1
  kCycle init 0
  kCycle += 1
- if kCycle == 30 then
+ if kCycle == 75 then
+  ; Reuse the same allocations as well as switching sizes and modes.
+  reinit ANALYZE
+ elseif kCycle == 30 then
   kSize = 128
   kHop = 32
   kWindow = 1
@@ -44,8 +47,6 @@ ANALYZE:
  ; transform, back to FFT, then to a different sliding size and window.
  ; Hop 10 must select sliding analysis at every block size.
  fActual pvsanal aInput, i(kSize), i(kHop), i(kSize), i(kWindow)
- iReferenceSize = (i(kHop) == 10 ? i(kSize) : 64)
- fReference pvsanal aInput, iReferenceSize, 1, iReferenceSize, i(kWindow)
  iHop, iBins, iWindowSize, iFormat pvsinfo fActual
  iExpectedHop = (i(kHop) == 10 ? 1 : 32)
  if iHop != iExpectedHop || iBins != i(kSize)/2+1 || iWindowSize != i(kSize) || iFormat != 0 then
@@ -54,7 +55,18 @@ ANALYZE:
  endif
  rireturn
  aMagnitude, aFrequency pvsbin fActual, 1
- aReferenceMagnitude, aReferenceFrequency pvsbin fReference, 1
+ ; Each reference runs only from its matching transition. Its initializer
+ ; runs once, outside ANALYZE, and its history starts with the same block.
+ if kCycle >= 3 && kCycle < 30 then
+  fFirst pvsanal aInput, 64, 10, 64, 6
+  aReferenceMagnitude, aReferenceFrequency pvsbin fFirst, 1
+ elseif kCycle >= 50 && kCycle < 75 then
+  fSecond pvsanal aInput, 96, 10, 96, 4
+  aReferenceMagnitude, aReferenceFrequency pvsbin fSecond, 1
+ elseif kCycle >= 75 then
+  fThird pvsanal aInput, 96, 10, 96, 4
+  aReferenceMagnitude, aReferenceFrequency pvsbin fThird, 1
+ endif
  if kHop == 10 then
   ; Compare every sample, including the first frame after reinitialization.
   kIndex = 0
