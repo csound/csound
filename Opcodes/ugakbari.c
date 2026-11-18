@@ -114,8 +114,13 @@ static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
                                Str("scale2: smoothing time must be nonnegative"));
     p->yt1 = p->correction = 0.0;
     /* Compute the small coefficient directly, without subtracting from one. */
+#ifdef USE_FLOAT
+    p->c1 = *p->ihtim == FL(0.0) ? FL(1.0) :
+      -expm1f(-logf(FL(2.0)) * CS_ONEDKR / (cs_double)*p->ihtim);
+#else
     p->c1 = *p->ihtim == FL(0.0) ? 1.0 :
       -expm1(-log(2.0) * CS_ONEDKR / (cs_double)*p->ihtim);
+#endif
     return OK;
 }
 
