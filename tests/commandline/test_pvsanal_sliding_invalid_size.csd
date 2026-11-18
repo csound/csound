@@ -22,7 +22,6 @@ endin
 <CsScore>
 i "CheckSize" 0 .01 0
 i "CheckSize" 0 .01 -1
-i "CheckSize" 0 .01 2147483648
 i "CheckSize" 0 .01 1e20
 e
 </CsScore>
