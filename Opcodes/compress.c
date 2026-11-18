@@ -328,7 +328,8 @@ static int32_t distort(CSOUND *csound, DIST *p)
         else if (displacement >= p->midphs)
           val = p->endval;
         else if (displacement > -FL(1.0) && displacement < FL(1.0)) {
-          int32_t index = (int32_t)p->midphs;
+          int32_t centre_index = (int32_t)p->midphs;
+          int32_t index = centre_index;
           cs_double fraction = p->midphs - index;
           cs_double slope;
           if (displacement < -fraction) {
@@ -342,7 +343,8 @@ static int32_t distort(CSOUND *csound, DIST *p)
           slope = (cs_double)ftp->ftable[index + 1] - ftp->ftable[index];
           /* Keep a quiet signal separate from the large centre index.
              Volatile intermediates also prevent fast-math reassociation. */
-          volatile cs_double centre = ftp->ftable[index] + fraction * slope;
+          volatile cs_double centre = p->midphs == centre_index ?
+            ftp->ftable[centre_index] : ftp->ftable[index] + fraction * slope;
           volatile cs_double detail = displacement * slope;
           val = centre + detail;
         }
