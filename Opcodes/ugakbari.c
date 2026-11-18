@@ -94,18 +94,24 @@ static int32_t scale_process(CSOUND *csound, scale *p)
 }
 
 /* A convex combination must not overflow when the endpoints are finite. */
-static inline cs_double scale2_lerp(cs_double low, cs_double high, cs_double t)
-{
-    if (t <= 0.0) return low;
-    if (t >= 1.0) return high;
-    if ((low < 0.0 && high > 0.0) || (low > 0.0 && high < 0.0)) {
-      /* Do not let fast-math rebuild the overflowing endpoint difference. */
-      volatile cs_double left = (FL(1.0) - t) * low;
-      volatile cs_double right = t * high;
-      return left + right;
-    }
-    return low + t * (high - low);
-}
+#define SCALE2_LERP(result, low, high, t) do {                              \
+    const cs_double scale2_low = (low);                                   \
+    const cs_double scale2_high = (high);                                 \
+    const cs_double scale2_t = (t);                                       \
+    if (scale2_t <= FL(0.0))                                              \
+      (result) = scale2_low;                                              \
+    else if (scale2_t >= FL(1.0))                                         \
+      (result) = scale2_high;                                             \
+    else if ((scale2_low < FL(0.0) && scale2_high > FL(0.0)) ||             \
+             (scale2_low > FL(0.0) && scale2_high < FL(0.0))) {             \
+      /* Keep fast-math from rebuilding the overflowing difference. */    \
+      volatile cs_double scale2_left = (FL(1.0) - scale2_t) * scale2_low;   \
+      volatile cs_double scale2_right = scale2_t * scale2_high;            \
+      (result) = scale2_left + scale2_right;                              \
+    }                                                                    \
+    else                                                                 \
+      (result) = scale2_low + scale2_t * (scale2_high - scale2_low);        \
+  } while (0)
 
 static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
 {
@@ -148,7 +154,7 @@ static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
       volatile cs_double halfmax = max * FL(0.5);
       position = (halfval - halfmin) / (halfmax - halfmin);
     }
-    val = scale2_lerp(kmin, kmax, position);
+    SCALE2_LERP(val, kmin, kmax, position);
     if (p->c1 == 1.0) {
       p->yt1 = val;
       p->correction = 0.0;
@@ -156,7 +162,7 @@ static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
     else {
       cs_double difference = val - p->yt1;
       if (UNLIKELY(!isfinite(difference))) {
-        p->yt1 = scale2_lerp(p->yt1, val, p->c1);
+        SCALE2_LERP(p->yt1, p->yt1, val, p->c1);
         p->correction = 0.0;
       }
       else {
