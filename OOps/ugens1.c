@@ -736,20 +736,26 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)
 
 /* Store a slow curve's change from one directly, then retain updates that
    fall below the spacing of val. Volatile prevents fast-math reassociation. */
-static inline cs_double expseg_advance(cs_double val, cs_double multiplier,
-                                       cs_double delta, cs_double *correction)
-{
-  if (delta > FL(-0.5) && delta < FL(0.5)) {
-    volatile cs_double update = (val - *correction) * delta;
-    volatile cs_double step = update - *correction;
-    volatile cs_double next = val + step;
-    volatile cs_double applied = next - val;
-    *correction = applied - step;
-    return next;
-  }
-  *correction = FL(0.0);
-  return val * multiplier;
-}
+#define EXPSEG_ADVANCE(value, multiplier, delta, correction) do {           \
+  cs_double *const expseg_value = &(value);                                 \
+  cs_double *const expseg_correction = (correction);                        \
+  const cs_double expseg_current = *expseg_value;                           \
+  const cs_double expseg_multiplier = (multiplier);                         \
+  const cs_double expseg_delta = (delta);                                   \
+  if (expseg_delta > FL(-0.5) && expseg_delta < FL(0.5)) {                  \
+    volatile cs_double expseg_update =                                      \
+      (expseg_current - *expseg_correction) * expseg_delta;                 \
+    volatile cs_double expseg_step = expseg_update - *expseg_correction;    \
+    volatile cs_double expseg_next = expseg_current + expseg_step;          \
+    volatile cs_double expseg_applied = expseg_next - expseg_current;       \
+    *expseg_correction = expseg_applied - expseg_step;                      \
+    *expseg_value = expseg_next;                                            \
+  }                                                                         \
+  else {                                                                    \
+    *expseg_correction = FL(0.0);                                           \
+    *expseg_value = expseg_current * expseg_multiplier;                     \
+  }                                                                         \
+} while (0)
 
 /***************************************/
 
@@ -779,7 +785,7 @@ int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) 
       val = segp->val;
     }
     rs[n] = (cs_float)val;
-    val = expseg_advance(val, segp->mlt, segp->delta, &segp->correction);
+    EXPSEG_ADVANCE(val, segp->mlt, segp->delta, &segp->correction);
   }
   segp->val = val;
   return OK;
@@ -797,8 +803,7 @@ int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
   while (segp->cnt != MAXPOS && --segp->cnt < 0)
     p->cursegp = ++segp;
   *p->rslt = (cs_float)segp->val;
-  segp->val = expseg_advance(segp->val, segp->mlt, segp->delta,
-                             &segp->correction);
+  EXPSEG_ADVANCE(segp->val, segp->mlt, segp->delta, &segp->correction);
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
@@ -831,14 +836,15 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
       //       segp->val,segp->amlt,segp->acnt);
     }
     rs[n] = (cs_float)segp->val;
-    segp->val = expseg_advance(segp->val, segp->amlt, segp->adelta,
-                               &segp->correction);
+    EXPSEG_ADVANCE(segp->val, segp->amlt, segp->adelta, &segp->correction);
   }
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
                            Str("expseg (arate): not initialised\n"));
 }
+
+#undef EXPSEG_ADVANCE
 
 int32_t xsgrset(CSOUND *csound, EXPSEG *p)
 {
