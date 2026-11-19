@@ -1956,6 +1956,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     int32    nh, flen, srclen, i, j, k, l, bs;
     FUNC    *src;
     uint8_t *reflect;
+    cs_double *correction;
     int32_t     nargs = ff->e.pcnt - 4;
 
     if (UNLIKELY(nargs < 3)) {
@@ -1996,6 +1997,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     cn  = (cs_double*) csound->Malloc(csound, sizeof(cs_double) * (nh + 1L));
     vn  = (cs_double*) csound->Malloc(csound, sizeof(cs_double) * (nh + 1L));
     reflect = (uint8_t*)csound->Calloc(csound, (size_t)nh + 1);
+    correction = (cs_double*)csound->Calloc(csound, 2 * ((size_t)nh + 1) * sizeof(cs_double));
     /* initialise oscillators */
     i = -1L;
     while (++i < nh) {
@@ -2022,11 +2024,20 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
         reflect[i] = 1;
       }
       else {
-        frq = (frq / divisor) * TWOPI;
-        const cs_double y1 = sin(phs + frq);   /* sample 1 */
-        cn[i] = 2.0 * cos(frq) - 2.0;
-        const cs_double velocity = y1 - cn[i] * y0 - y0;
-        vn[i] = velocity * amp;
+        /* Reflect around Nyquist before converting to radians. The small
+           difference then remains in the coefficient instead of rounding
+           into the repeated root at -1. */
+        if (magnitude > divisor * FL(0.25)) {
+          const cs_double distance = divisor - FL(2.0) * magnitude;
+          const cs_double radians = (distance / divisor) * PI;
+          reflect[i] = 1;
+          frq = frq > FL(0.0) ? -radians : radians;
+        }
+        else frq = (frq / divisor) * TWOPI;
+        const cs_double half = frq * FL(0.5);
+        const cs_double step = FL(2.0) * sin(half);
+        cn[i] = -step * step;
+        vn[i] = step * cos(phs + half) * amp - cn[i] * xn[i];
       }
     }
 
@@ -2042,10 +2053,28 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
       while (++i < nh) {
         x = xn[i]; c = cn[i]; v = vn[i];
         l = k;
-        if (reflect[i]) {
+        if (reflect[i] && c != FL(0.0)) {
+          cs_double xe = correction[2*i], ve = correction[2*i+1];
           do {
             *(tmp++) += (l & 1) == (k & 1) ? x : -x;
-            v += c * x;
+            /* The reflected increment can be much smaller than the
+               accumulated state. Keep its rounding error across blocks. */
+            volatile cs_double dv = c * (x - xe) - ve;
+            volatile cs_double next_v = v + dv;
+            volatile cs_double applied_v = next_v - v;
+            ve = applied_v - dv;
+            v = next_v;
+            volatile cs_double dx = (v - ve) - xe;
+            volatile cs_double next_x = x + dx;
+            volatile cs_double applied_x = next_x - x;
+            xe = applied_x - dx;
+            x = next_x;
+          } while (--l);
+          correction[2*i] = xe; correction[2*i+1] = ve;
+        }
+        else if (reflect[i]) {
+          do {
+            *(tmp++) += (l & 1) == (k & 1) ? x : -x;
             x += v;
           } while (--l);
         }
@@ -2067,7 +2096,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     /* free tmp buffers */
     csound->Free(csound,tmp); csound->Free(csound,xn);
     csound->Free(csound,cn); csound->Free(csound,vn);
-    csound->Free(csound,reflect);
+    csound->Free(csound,reflect); csound->Free(csound,correction);
 
     return OK;
 }
