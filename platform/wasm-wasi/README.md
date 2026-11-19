@@ -63,7 +63,9 @@ Both targets use WASI Preview 3. Nix builds LLVM runtimes and wasi-libc from
 source; it does not download a WASI SDK bundle. The shared nixpkgs pin is
 `6dadaf4375be35033e1c84395adbd53ff5fded96` with LLVM 23.1.3.
 [`src/wasi-libc-source.nix`](src/wasi-libc-source.nix) pins wasi-libc to
-`f762ab41b0953a4e7340b409697e6625993d60f1` (2026-11-16), using WASI 0.3.2.
+`c3b3596e3d3b2418cb128c0095ad710d351959d6` (2026-11-18), using WASI 0.3.2.
+This revision reads the initial working directory from the host and keeps
+the file offset consistent when a descriptor alternates reads and writes.
 The wasm64 port patches libc's pointer atomics, task stack/TLS declarations
 and WIT metadata object, plus compiler-rt's floating comparison return types.
 LLVM 23 also needs two source patches: its backend and linker hard-code
@@ -106,9 +108,10 @@ nix-build ./src/wasi-preview3-support.nix -o result_preview3_support
 nix-build ./src/wasi64-support.nix -o result_wasi64_support
 ```
 
-The wasm64 probe runs real C code in Wasmtime and JavaScript, including file
-paths and buffers above 4 GiB, arguments, directories, clocks, random data and
-long-double comparisons. The build fails if either host check fails.
+Both probes check the initial working directory, interleaved file reads and
+writes, arguments, clocks and random data in Wasmtime and JavaScript. The
+wasm64 probe also checks paths and buffers above 4 GiB and long-double
+comparisons. The build fails if either host check fails.
 
 Rebuild plugins with the SDK for their target. Its generated `float-version.h`
 sets precision. Do not pass `-DUSE_DOUBLE=0` as a C compiler flag: the headers
@@ -182,7 +185,7 @@ overrides for unavailable features such as sockets and PARCS. Preview 3 lacks
 native thread support. The `wasip3` test profile records this limit and maps
 expected error statuses to Preview 3's boolean exit result.
 
-When the toolchain supports native threads, CI instead reuses
+When the toolchain supports native threads, CI also uses
 `test-artifacts/csound-realtime.wasm` from `scripts/compile-test-fixtures.sh`
 and passes `--arg threaded true` to the test derivation. This keeps the
 threaded tests ready for a future Preview 3 toolchain. The published
@@ -201,11 +204,12 @@ SharedArrayBuffer or MessagePort transport. These modes use wasm32 by default
 and wasm64 only through the opt-in module. `useWorker` defaults to `false`;
 set it to `true` to run Csound in a worker. SharedArrayBuffer transport needs cross-origin isolation headers.
 
-Preview 3 adds async calls, streams, futures and cooperative tasks. Those
-features do not supply the native thread spawning that Csound's background
-init worker needs. This toolchain still builds without that worker.
-`supportsRealtime()` returns 0, and `--realtime` cannot start Csound's native
-background init worker. Browser playback still works. Both browser modules keep their selected Preview 3 engine.
+Preview 3 supports async calls, streams and futures. The
+[experimental pthreads sysroot](https://github.com/WebAssembly/wasi-sdk/blob/wasi-sdk-34/CoopThreading.md)
+switches between threads at yields and synchronization points. Csound's
+`--realtime` background init needs a worker that can run in parallel with audio
+rendering, so `supportsRealtime()` returns 0 on both Preview 3 builds. Browser
+playback still works.
 
 The internal thread probes remain available through
 `scripts/compile-test-fixtures.sh`. They skip thread fixtures when the target

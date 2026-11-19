@@ -16,10 +16,13 @@ assert(
 );
 const { instantiateCommand } = await import(pathToFileURL(process.argv[3] + "/utils/wasm64.js"));
 const wasi = new WASI({ args: ["probe", "preview3"] });
+wasi.mkdir("/project");
+assert.equal(wasi.chdir("/project"), 0);
 wasi.fd[0].node.buffers = [new TextEncoder().encode("abc")];
 wasi.fd[0].node.size = 3;
 const instance = instantiateCommand(module, wasi);
 assert.equal(wasi.startCommand(instance), 0, wasi.readOutput(2));
 assert.match(wasi.readOutput(1), /Preview 3 arguments, files, streams, clocks and random passed/);
-assert.deepEqual(wasi.readdir("/"), []);
+assert.deepEqual(wasi.readdir("/"), ["project"]);
+assert.deepEqual(wasi.readdir("/project"), []);
 console.log(wasi.readOutput(1));

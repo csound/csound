@@ -8,8 +8,8 @@ in toolchain.stdenv.mkDerivation {
   buildPhase = ''
     $CC ${../tests/preview3-host.c} -Wl,--export=free -o probe.core.wasm
     wasm-tools component new probe.core.wasm -o probe.wasm
-    mkdir files-root
-    printf 'abc' | wasmtime run -S p3 -Ccache=n --dir=files-root::. probe.wasm preview3
+    mkdir -p files-root/project
+    printf 'abc' | wasmtime run -S p3 -S cwd=/project -Ccache=n --dir=files-root::/ probe.wasm preview3
     node ${../tests/check-preview3-host.mjs} probe.core.wasm ${../browser/src}
   '';
   installPhase = ''mkdir -p "$out"; cp probe*.wasm "$out/"'';

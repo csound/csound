@@ -1,10 +1,10 @@
 { fetchFromGitHub }:
 {
-  version = "0-unstable-2026-11-16";
+  version = "0-unstable-2026-11-18";
   src = fetchFromGitHub {
     owner = "WebAssembly";
     repo = "wasi-libc";
-    rev = "f762ab41b0953a4e7340b409697e6625993d60f1";
-    sha256 = "0yqw6dnqkcp5b160v75ybb6mhrj4h1rlrg9xagxx009pc3jqfi58";
+    rev = "c3b3596e3d3b2418cb128c0095ad710d351959d6";
+    sha256 = "1za2hsk22m804flhs73i8fzxw4k7ph578a16sk53y0nx92nc4wdi";
   };
 }

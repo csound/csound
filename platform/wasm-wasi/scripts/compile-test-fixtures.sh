@@ -10,7 +10,7 @@ if [ "$(cat result_realtime_support/supported)" != 1 ]; then
     test-artifacts/csound-browser-realtime.wasm.z test-artifacts/csound-probe.js \
     test-artifacts/plugin_example_shared_missing_tls.wasm \
     test-artifacts/plugin_example_shared_trap_ctor.wasm
-  printf '%s\n' 'Preview 3 thread spawning is unavailable; no threaded fixtures were built.'
+  printf '%s\n' 'Preview 3 native thread spawning is unavailable; no threaded fixtures were built.'
   exit 0
 fi
 

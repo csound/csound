@@ -37,6 +37,8 @@ int main(int argc, char **argv) {
   volatile long double a = 1.5L, b = 2.5L;
   assert(a < b && a != b && lrintl(a) == 2);
   assert(argc == 2 && strcmp(argv[1], "preview3") == 0);
+  char cwd[128];
+  assert(getcwd(cwd, sizeof(cwd)) && strcmp(cwd, "/project") == 0);
   assert(mkdir("files", 0700) == 0);
   FILE *file = fopen("files/audio", "w+");
   assert(file);
@@ -57,6 +59,15 @@ int main(int argc, char **argv) {
   assert(read(fd, marker, 4) == 4 && memcmp(marker, "HEAD", 4) == 0);
   assert(lseek(fd, -4, SEEK_END) == 16);
   assert(read(fd, marker, 4) == 4 && memcmp(marker, "TAIL", 4) == 0);
+  // Reads and writes without a seek must advance the same file offset.
+  assert(lseek(fd, 0, SEEK_SET) == 0);
+  assert(read(fd, marker, 1) == 1 && marker[0] == 'H');
+  assert(write(fd, "X", 1) == 1);
+  assert(read(fd, marker, 2) == 2 && memcmp(marker, "AD", 2) == 0);
+  assert(write(fd, "Y", 1) == 1);
+  assert(lseek(fd, 0, SEEK_SET) == 0);
+  assert(read(fd, marker, 4) == 4 && memcmp(marker, "HXAD", 4) == 0);
+  assert(read(fd, marker, 1) == 1 && marker[0] == 'Y');
   assert(close(fd) == 0);
   // Restore the sample data for the remaining file checks.
   file = fopen("files/audio", "w");

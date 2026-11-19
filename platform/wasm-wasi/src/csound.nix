@@ -161,9 +161,8 @@ in
         "--export=posix_memalign"
         # The loader maps wasi-libc's __libc_malloc/calloc/free aliases to the
         # public functions above, so they need no separate engine exports.
-        # The pinned wasi-libc source defines this cwd-aware
-        # resolver in libc-bottom-half/sources/chdir.c. It has no public alias:
-        # keep a hard export and recheck its name/signature when updating Nix.
+        # Plugins import this cwd-aware resolver from wasi-libc's getcwd.c
+        # to share the engine's working directory.
         "--export=__wasilibc_find_relpath_alloc"
         "--export=memcpy"
         "--export=memmove"
