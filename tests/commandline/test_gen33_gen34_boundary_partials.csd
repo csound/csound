@@ -33,11 +33,10 @@ instr 1
 endin
 
 instr 2
-  ; At DC and Nyquist the recurrence must not build a ramp from roundoff
-  ; in sin(pi). Check a longer table, including a zero-phase silent partial.
+  ; Check for drift across a long table and silence at zero phase or above Nyquist.
   iSource ftgen 0, 0, -3, -2, 1, p4, p5
   iTable ftgen 0, 0, 4096, -34, iSource, 1, 1, p6
-  iAmplitude = (p7 != 0 || p5 == 0 ? 0 : 1)
+  iAmplitude = (p7 != 0 ? 0 : sin(2*$M_PI*p5))
   iIndex = 0
   while iIndex < 4096 do
     iExpected = iAmplitude * (p4 == 0 ? 1 : 1 - 2*(iIndex % 2))
@@ -59,6 +58,9 @@ i 2 0 .01 2048 0 0 0
 i 2 0 .01 -2048 0 0 0
 i 2 0 .01 2048 .25 0 0
 i 2 0 .01 -2048 .25 0 0
+; This phase makes the initial sample inexact in both precisions.
+i 2 0 .01 2048 .125 0 0
+i 2 0 .01 -2048 .125 0 0
 i 2 0 .01 0 .25 0 0
 ; 41 * (1/82) rounds below Nyquist in float builds.
 i 2 0 .01 41 0 82 0

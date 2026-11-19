@@ -1952,7 +1952,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     cs_float   *ft, *srcft, scl;
     cs_double  fmode, divisor;
-    cs_double  y0, y1, x, c, v, *xn, *cn, *vn, *tmp, amp, frq, phs;
+    cs_double  y0, x, c, v, *xn, *cn, *vn, *tmp, amp, frq, phs;
     int32    nh, flen, srclen, i, j, k, l, bs;
     FUNC    *src;
     int32_t     nargs = ff->e.pcnt - 4;
@@ -2010,23 +2010,22 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
       phs = TWOPI * (cs_double) *(srcft++);                /* phase */
       /* calculate coeffs for fast sine oscillator */
       y0 = sin(phs);           /* sample 0 */
-      xn[i] = y0;
+      xn[i] = y0 * amp;
       if (frq == FL(0.0)) {
-        y1 = y0;
-        cn[i] = FL(0.0);
+        cn[i] = vn[i] = FL(0.0);
       }
       else if (magnitude == remainder) {
-        y1 = -y0;
         cn[i] = FL(-4.0);
+        /* Start with exactly twice the scaled sample to avoid drift. */
+        vn[i] = FL(2.0) * xn[i];
       }
       else {
         frq = (frq / divisor) * TWOPI;
-        y1 = sin(phs + frq);     /* sample 1 */
+        const cs_double y1 = sin(phs + frq);   /* sample 1 */
         cn[i] = 2.0 * cos(frq) - 2.0;
+        const cs_double velocity = y1 - cn[i] * y0 - y0;
+        vn[i] = velocity * amp;
       }
-      vn[i] = y1 - cn[i] * y0 - y0;
-      /* amp. scale */
-      xn[i] *= amp; vn[i] *= amp;
     }
 
     /* render output */
