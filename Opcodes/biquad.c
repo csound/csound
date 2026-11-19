@@ -1809,7 +1809,13 @@ static int32_t mvmfilter(CSOUND *csound, MVMFILT *p)
          and cosine values never become repeated rotation coefficients. */
       MVM_DECAY(x, xerror, decay, incremental);
       MVM_DECAY(y, yerror, decay, incremental);
-      out[n] = (cs_float)((x - xerror) * cosine - (y - yerror) * sine + input);
+      volatile cs_double real = x * cosine, imaginary = y * sine;
+      cs_double sum, input_error, projection_error;
+      MVM_SUM(sum, input_error, real, input);
+      MVM_SUM(sum, projection_error, sum, -imaginary);
+      const cs_double detail = fmaf(x, cosine, -real) - fmaf(y, sine, -imaginary)
+        - xerror * cosine + yerror * sine;
+      out[n] = (cs_float)(sum + (detail - input_error - projection_error));
       if (input != FL(0.0)) {
         MVM_ADD(x, xerror, input * cosine);
         MVM_ADD(y, yerror, -input * sine);
