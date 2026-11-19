@@ -75,6 +75,19 @@ TEST(PvlockTests, PreservesScaledPhaseAndMagnitude)
     }
 }
 
+#ifdef USE_FLOAT
+TEST(PvlockTests, UnwrapsTheSignOfANearHalfTurn)
+{
+    Frame input = {FL(.1), 0, FL(.2), 0, FL(.3), 0, FL(.4), 0, 1, 0,
+                   FL(.25), FL(.125), FL(-.125),
+                   std::nextafter(FL(-.0625), FL(0.0)), FL(.07), 0, FL(.03), 0};
+    const auto result = lock(input, 3, FL(.5));
+    // The turn from bin 5 to bin 6 is positive and just below pi.
+    EXPECT_NEAR(result[12], FL(-.03210894), 1e-7);
+    EXPECT_NEAR(result[13], FL(.13601568), 1e-7);
+}
+#endif
+
 TEST(PvlockTests, KeepsSilenceAndNoPeakFallback)
 {
     Frame silence = {};

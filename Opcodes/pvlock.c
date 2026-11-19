@@ -216,7 +216,11 @@ static void pv_unwrap_region_phases(cs_float *phase, int32_t nbins,
   int32_t p, b;
   for (p=0; p < nbins; p++) {
     cs_float last, wrapped, unwrapped;
+    #ifdef USE_FLOAT
+    if (peaks[p] != 2) continue;
+#else
     if (!peaks[p]) continue;
+#endif
     last = phase[p];
     wrapped = last;
     unwrapped = last;
@@ -236,6 +240,24 @@ static void pv_unwrap_region_phases(cs_float *phase, int32_t nbins,
     }
   }
 }
+
+#ifdef USE_FLOAT
+static cs_float pv_neighbor_phase(const cs_float *current, const cs_float *last)
+{
+  /* Power-of-two scaling preserves the direction and keeps products bounded. */
+  int current_exp = 0, last_exp = 0;
+  frexpf(fmaxf(FABS(current[0]), FABS(current[1])), &current_exp);
+  frexpf(fmaxf(FABS(last[0]), FABS(last[1])), &last_exp);
+  const cs_float cr = ldexpf(current[0], -current_exp);
+  const cs_float ci = ldexpf(current[1], -current_exp);
+  const cs_float lr = ldexpf(last[0], -last_exp);
+  const cs_float li = ldexpf(last[1], -last_exp);
+  /* Preserve the sign even when the two cross products almost cancel. */
+  volatile cs_float product = cr * li;
+  volatile cs_float cross = fmaf(ci, lr, -product) - fmaf(cr, li, -product);
+  return ATAN2(cross, cr * lr + ci * li);
+}
+#endif
 
 static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
                        cs_float beta, cs_float *bwin, cs_float *fwin,
@@ -265,36 +287,18 @@ static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
     }
     for (b=0; b < nbins; b++) {
       p = region[b];
-      if (p >= 0 && cpeaks[p] == 2) {
+      if (p >= 0 && cpeaks[p] == 2)
         mag[b] = ATAN2(fwin[2*b + 1], fwin[2*b]);
-        continue;
-      }
-      if (p < 0 || b == p) {
-        mag[b] = FL(0.0);
-        continue;
-      }
-      /* Measure phase relative to the peak before unwrapping. A shared
-         phase shift, including input polarity, then cancels in the product
-         instead of being subtracted from two rounded absolute angles. */
-      nr = fwin[2*p];
-      ni = fwin[2*p + 1];
-      /* A detected peak has nonzero magnitude. Retain the direction of
-         every nonzero bin, even below pv_unit's magnitude cutoff. */
-      div = HYPOT(nr, ni);
-      nr /= div;
-      ni /= div;
-      dr = fwin[2*b];
-      di = fwin[2*b + 1];
-      div = HYPOT(dr, di);
-      if (div > FL(0.0)) {
-        dr /= div;
-        di /= div;
-      }
-      else {
-        dr = FL(1.0);
-        di = FL(0.0);
-      }
-      mag[b] = ATAN2(di*nr - dr*ni, dr*nr + di*ni);
+    }
+    for (p=0; p < nbins; p++) {
+      if (cpeaks[p] != 1) continue;
+      mag[p] = FL(0.0);
+      /* Unwrap from the peak using the signed turn between neighbors. The
+         sign can vanish if their independently rounded angles are subtracted. */
+      for (b=p+1; b < nbins && region[b] == p; b++)
+        mag[b] = mag[b-1] + pv_neighbor_phase(fwin+2*b, fwin+2*(b-1));
+      for (b=p-1; b >= 0 && region[b] == p; b--)
+        mag[b] = mag[b+1] + pv_neighbor_phase(fwin+2*b, fwin+2*(b+1));
     }
 #else
     /* Preserve the established phase-wrap choices in mixed/double builds. */
