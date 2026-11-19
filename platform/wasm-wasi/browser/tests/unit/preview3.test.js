@@ -101,8 +101,38 @@ describe("Preview 3 core host", () => {
       throw new Error("A delivered timer must not schedule another wait");
     };
     assert.throws(() => root["[waitable-set-wait]"](set, 32), /No synchronous host event/);
-    root["[waitable-join]"](task, 0);
     root["[subtask-drop]"](task);
+    root["[waitable-set-drop]"](set);
+  });
+  it("returns a started timer's cancellation exactly once", () => {
+    const { host } = setup();
+    const root = host.rootImports();
+    const status = host.clockTask(Infinity);
+    assert.equal(status & 15, 1);
+    const task = status >>> 4;
+    assert.equal(root["[subtask-cancel]"](task), 4);
+    assert.throws(() => root["[subtask-cancel]"](task), /Cannot cancel/);
+    const set = root["[waitable-set-new]"]();
+    root["[waitable-join]"](task, set);
+    assert.equal(root["[waitable-set-poll]"](set, 32), 0);
+    root["[subtask-drop]"](task);
+    root["[waitable-set-drop]"](set);
+  });
+  it("keeps a completed stream transfer pending until its event is read", () => {
+    const { host } = setup();
+    const root = host.rootImports();
+    const { reader, writer } = host.pair("bytes");
+    const set = root["[waitable-set-new]"]();
+    root["[waitable-join]"](reader, set);
+    assert.equal(host.transfer("bytes", "read", reader, 128, 1), 0xffffffff);
+    host.u8(256, 42);
+    assert.equal(host.transfer("bytes", "write", writer, 256, 1), 16);
+    assert.throws(() => host.transfer("bytes", "read", reader, 128, 1), /already pending/);
+    assert.equal(root["[waitable-set-poll]"](set, 32), 2);
+    assert.equal(host.getMemory().getUint8(128), 42);
+    host.dropEndpoint("bytes", "read", reader);
+    assert.equal(root["[waitable-set-poll]"](set, 32), 0);
+    host.dropEndpoint("bytes", "write", writer);
     root["[waitable-set-drop]"](set);
   });
   it("restores the task's stack after an exception before releasing it", () => {

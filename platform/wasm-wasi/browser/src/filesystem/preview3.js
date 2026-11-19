@@ -7,6 +7,9 @@ const monotonic = () => globalThis.performance?.now() ?? Date.now();
 const fileType = (node) => (node.type === "dir" ? 2 : node.type === "stream" ? 1 : 5);
 const errorCode = (code) => (code > 1 ? code - 1 : code);
 const BLOCKED = 0xffffffff;
+const SUBTASK_STARTED = 1;
+const SUBTASK_RETURNED = 2;
+const SUBTASK_CANCELLED_BEFORE_RETURNED = 4;
 
 // Core-module host for the synchronous C API on Preview 3. The filesystem is
 // in memory; stream/future operations still keep their ownership and waitable
@@ -160,7 +163,7 @@ export class WASI extends Preview2 {
   writeViaStream(id, reader, offset, append = false, fd = undefined) {
     const stream = this.resource(reader, "bytes-read");
     const state = stream.state;
-    if (stream.pending || state.sink || state.node)
+    if (stream.pending || stream.event !== undefined || state.sink || state.node)
       throw new TypeError("Stream already transferred");
     let error;
     try {
@@ -170,7 +173,7 @@ export class WASI extends Preview2 {
       error = this.failure(error_);
       state.reader = false;
     }
-    this.resources.delete(reader);
+    this.dropWaitable(reader, stream);
     const future = this.future(fd === undefined ? "fs-result" : "cli-result", error);
     this.resources.get(future).state.pendingStream = state;
     this.pump(state);
@@ -180,7 +183,8 @@ export class WASI extends Preview2 {
   transfer(type, direction, id, pointer, length = 1) {
     const endpoint = this.resource(id, type + "-" + direction);
     const state = endpoint.state;
-    if (endpoint.pending) throw new TypeError("An operation is already pending on this endpoint");
+    if (endpoint.pending || endpoint.event !== undefined)
+      throw new TypeError("An operation is already pending on this endpoint");
     if (type.endsWith("-result")) {
       if (direction !== "read")
         throw new TypeError("Guest-written WASI result futures are unsupported");
@@ -315,14 +319,22 @@ export class WASI extends Preview2 {
 
   dropEndpoint(type, direction, id) {
     const endpoint = this.resource(id, type + "-" + direction);
-    if (endpoint.pending) throw new TypeError("Cannot drop an endpoint with a pending operation");
+    if (endpoint.pending || endpoint.event !== undefined)
+      throw new TypeError("Cannot drop an endpoint with a pending operation");
     endpoint.state[direction === "read" ? "reader" : "writer"] = false;
-    this.resources.delete(id);
+    this.dropWaitable(id, endpoint);
     this.pump(endpoint.state);
   }
 
+  dropWaitable(id, waitable) {
+    if (waitable.set) this.resource(waitable.set, "waitable-set").members.delete(id);
+    this.resources.delete(id);
+  }
+
   clockTask(deadline) {
-    return deadline <= monotonic() ? 2 : this.add("subtask", { deadline }) * 16 + 1;
+    return deadline <= monotonic()
+      ? SUBTASK_RETURNED
+      : this.add("subtask", { deadline }) * 16 + SUBTASK_STARTED;
   }
 
   wait(set, pointer, block) {
@@ -333,7 +345,7 @@ export class WASI extends Preview2 {
         const value = this.resources.get(id);
         if (!value) throw new TypeError("Waitable was dropped while joined");
         if (value.kind === "subtask" && !value.delivered) {
-          if (value.deadline <= monotonic()) value.event = 2;
+          if (value.deadline <= monotonic()) value.event = SUBTASK_RETURNED;
           else deadline = Math.min(deadline, value.deadline);
         }
         if (value.event === undefined) continue;
@@ -373,20 +385,28 @@ export class WASI extends Preview2 {
       },
       "[waitable-join]": (id, set) => {
         const value = this.resources.get(id);
-        if (!value) throw new TypeError("Invalid waitable");
+        if (!value || (value.kind !== "subtask" && !value.state))
+          throw new TypeError("Invalid waitable");
+        const members = set ? this.resource(set, "waitable-set").members : undefined;
         if (value.set) this.resource(value.set, "waitable-set").members.delete(id);
-        if (set) this.resource(set, "waitable-set").members.add(id);
+        members?.add(id);
         value.set = set;
       },
       "[waitable-set-wait]": (set, pointer) => this.wait(set, pointer, true),
       "[waitable-set-poll]": (set, pointer) => this.wait(set, pointer, false),
       "[subtask-cancel]": (id) => {
         const subtask = this.resource(id, "subtask");
-        const status = subtask.deadline <= monotonic() ? 2 : 3;
-        subtask.event = status;
-        return status;
+        if (subtask.delivered || subtask.set) throw new TypeError("Cannot cancel this subtask");
+        subtask.delivered = true;
+        return subtask.deadline <= monotonic()
+          ? SUBTASK_RETURNED
+          : SUBTASK_CANCELLED_BEFORE_RETURNED;
       },
-      "[subtask-drop]": (id) => this.drop(id, "subtask"),
+      "[subtask-drop]": (id) => {
+        const subtask = this.resource(id, "subtask");
+        if (!subtask.delivered) throw new TypeError("Cannot drop an unresolved subtask");
+        this.dropWaitable(id, subtask);
+      },
       "[context-get-0]": () => this.context,
       "[context-set-0]": (value) => {
         this.context = value;

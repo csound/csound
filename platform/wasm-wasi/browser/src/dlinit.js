@@ -48,10 +48,13 @@ export const dlinit = (
     typeof pluginInstance.exports["csoundModuleInfo"] === "function"
       ? pluginInstance.exports["csoundModuleInfo"]()
       : 0;
-  // Match the native loader: missing metadata denotes the legacy cs_double ABI.
+  // An unset internal precision flag denotes the legacy cs_double ABI.
   const getSampleSize =
     hostExports["csoundGetSizeOfCsFloat"] || hostExports["csoundGetSizeOfMYFLT"];
   const sampleSize = info & 0x7f;
+  if (!sampleSize && typeof hostExports["__wasm_task_hook"] === "function") {
+    throw new Error("Incompatible plugin: rebuild with the matching SDK and export csoundModuleInfo");
+  }
   const doubleSize =
     typeof hostExports["csoundGetSizeOfCsDouble"] === "function"
       ? hostExports["csoundGetSizeOfCsDouble"]()

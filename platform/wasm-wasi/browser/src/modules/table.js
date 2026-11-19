@@ -44,6 +44,7 @@ export const csoundTableCopyIn =
     if (sourceLength < length) throw new RangeError("The source must fill the Csound table");
     // The C API also reads the guard point after the table's last sample.
     const arrayPtr = wasm.exports["allocFloatArray"](length + 1);
+    if (!arrayPtr) throw new Error("Could not allocate table samples");
     try {
       const buffer = new (sampleArrayType(wasm))(wasm.wasi.memory.buffer, arrayPtr, length + 1);
       for (let index = 0; index < length; index++) buffer[index] = array[index];
@@ -66,16 +67,14 @@ export const csoundTableCopyOut = (wasm) => (csound /* CsoundInst */, tableNumbe
   const tableLength = wasm.exports["csoundTableLength"](csound, tableNumber);
   if (tableLength > 0) {
     const arrayPtr = wasm.exports["allocFloatArray"](tableLength);
-    wasm.exports["csoundTableCopyOut"](csound, tableNumber, arrayPtr);
-    const { buffer } = wasm.wasi.memory;
-    const freeableArray = new (sampleArrayType(wasm))(buffer, arrayPtr, tableLength);
-    const clonedArray = new (sampleArrayType(wasm))(freeableArray.length);
-    /* eslint-disable-next-line unicorn/no-for-loop */
-    for (let i = 0; i < freeableArray.length; i++) {
-      clonedArray[i] = freeableArray[i];
+    if (!arrayPtr) throw new Error("Could not allocate table samples");
+    try {
+      wasm.exports["csoundTableCopyOut"](csound, tableNumber, arrayPtr, 0);
+      const Samples = sampleArrayType(wasm);
+      return new Samples(new Samples(wasm.wasi.memory.buffer, arrayPtr, tableLength));
+    } finally {
+      wasm.exports["freeFloatArrayMem"](arrayPtr);
     }
-    wasm.exports["freeFloatArrayMem"](arrayPtr);
-    return clonedArray;
   }
 };
 
@@ -98,12 +97,13 @@ csoundGetTable.toString = csoundTableCopyOut.toString;
  */
 export const csoundGetTableArgs = (wasm) => (csound /* CsoundInst */, tableNumber /* string */) => {
   const pointerSlot = wasm.exports["allocByteMem"](pointerSize(wasm));
+  if (!pointerSlot) throw new Error("Could not allocate the table argument pointer");
   try {
     const length = wasm.exports["csoundGetTableArgs"](csound, pointerSlot, tableNumber);
     if (length < 0) return;
+    const Samples = sampleArrayType(wasm);
     const { buffer } = wasm.wasi.memory;
     const pointer = readPointer(wasm, new DataView(buffer), pointerSlot);
-    const Samples = sampleArrayType(wasm);
     return new Samples(new Samples(buffer, pointer, length));
   } finally {
     wasm.exports["freeByteMem"](pointerSlot);

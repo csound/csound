@@ -43,10 +43,10 @@ char *allocStringMem(int length) {
 void freeStringMem(char *ptr) { free(ptr); }
 
 __attribute__((used))
-cs_double *allocFloatArray(int length) {
-  return allocWasmArray(length, sizeof(cs_double));
+cs_float *allocFloatArray(int length) {
+  return allocWasmArray(length, sizeof(cs_float));
 }
-void freeFloatArrayMem(cs_double *ptr) { free(ptr); }
+void freeFloatArrayMem(cs_float *ptr) { free(ptr); }
 
 int sizeOfMidiStruct() { return sizeof(CS_MIDIDEVICE); }
 int csoundWasiOentrySize(void) { return sizeof(OENTRY); }
