@@ -97,13 +97,25 @@ typedef struct {
   cs_double re, im, re_error, im_error;
 } SDFT_SUM;
 
-/* Keep the rounded products and addition errors under fast-math. */
+/* Add the entering or leaving term to the main sum first. This keeps
+   the residual when a large term cancels the main sum. */
 #define SDFT_ADD(value, error, increment) do {                              \
-  volatile cs_double sd_increment = (increment) - (error);                  \
-  volatile cs_double sd_next = (value) + sd_increment;                      \
-  volatile cs_double sd_back = sd_next - (value);                           \
-  (error) = sd_back - sd_increment;                                         \
-  (value) = sd_next;                                                        \
+  const cs_double sd_term = (increment);                                   \
+  const cs_double sd_main = (value);                                       \
+  const int32_t sd_ordered = fabs(sd_main) >= fabs(sd_term);                \
+  const cs_double sd_large = sd_ordered ? sd_main : sd_term;                \
+  const cs_double sd_small = sd_ordered ? sd_term : sd_main;                \
+  volatile cs_double sd_sum = sd_large + sd_small;                          \
+  volatile cs_double sd_applied = sd_sum - sd_large;                         \
+  volatile cs_double sd_residual = sd_small - sd_applied;                    \
+  volatile cs_double sd_low = sd_residual - (error);                         \
+  const int32_t sd_high_first = fabs(sd_sum) >= fabs(sd_low);             \
+  const cs_double sd_high = sd_high_first ? sd_sum : sd_low;               \
+  const cs_double sd_tail = sd_high_first ? sd_low : sd_sum;               \
+  volatile cs_double sd_next = sd_high + sd_tail;                           \
+  volatile cs_double sd_back = sd_next - sd_high;                           \
+  (error) = sd_back - sd_tail;                                                 \
+  (value) = sd_next;                                                          \
 } while (0)
 
 /* The half-table also describes the conjugate half of each period. */
@@ -165,6 +177,7 @@ static int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
     csound->AuxAlloc(csound, (size_t)(NB+4)*sizeof(CMPLX), &p->analwinbuf);
   else memset(p->analwinbuf.auxp, 0, (size_t)(NB+4)*sizeof(CMPLX));
   p->inptr = 0;                 /* Pointer in circular buffer */
+  p->sliding_nonzero = 0;
   p->fsig->NB = p->Ii = NB;
   p->fsig->wintype = wintype;
   p->fsig->format = PVS_AMP_FREQ;      /* only this, for now */
@@ -499,6 +512,7 @@ static int32_t pvssanal(CSOUND *csound, PVSANAL *p)
   }
   ain = p->ain + offset;      /* The active input samples */
   loc = p->inptr;             /* Circular buffer */
+  int32_t nonzero = p->sliding_nonzero;
   nsmps -= early;
   /* Each inactive audio sample contains NB amplitude-frequency pairs. */
   if (offset)
@@ -515,12 +529,16 @@ static int32_t pvssanal(CSOUND *csound, PVSANAL *p)
     /* S[k] sums x[t]*exp(-i*2*pi*k*t/N). The ring position supplies
        the periodic index; F[k] = exp(i*2*pi*k*(t+1)/N)*S[k]. */
     int32_t phase = 0;
+    const int32_t old_nonzero = nonzero;
+    nonzero += (input != FL(0.0)) - (previous != FL(0.0));
+    if (nonzero == 0 && old_nonzero != 0)
+      memset(sum, 0, (size_t)NB * sizeof(*sum));
     data[loc] = input;
     for (j = 0; j < NB; j++) {
       cs_double ci, si;
       /* An unchanged sample needs no update. Removing and adding it can
          round away a small sum even with compensated addition. */
-      if (input != previous) {
+      if (nonzero != 0 && input != previous) {
         SDFT_COEFFICIENT(ci, si, phase);
         /* Round entering and leaving products identically so they can
            cancel when the sample leaves the window. */
@@ -646,6 +664,7 @@ static int32_t pvssanal(CSOUND *csound, PVSANAL *p)
   }
 
   p->inptr = loc;
+  p->sliding_nonzero = nonzero;
   return OK;
 }
 
