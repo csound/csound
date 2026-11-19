@@ -1068,16 +1068,21 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
       }
       range = (uint32_t)(finish - start), j = start;
       while (j <= finish) {                      /* write the table */
-        uint32_t ii;
-        /* Keep the table cell exact even when the product exceeds the
-           precision of cs_double in a float build. The product fits uint64. */
+        /* Keep the cell and exact knots independent of float rounding. */
         uint64_t position = (uint64_t)fnlen * (uint32_t)(j - start);
-        ii = (uint32_t)(position / range);
-        f = (cs_float)((cs_double)(position % range) / range);
-        if (ii == (uint32_t) fnlen)
-          fp18[j++] += amp * fp[ii];
-        else
-          fp18[j++] += amp * ((f * (fp[ii+1] - fp[ii])) + fp[ii]);
+        uint32_t ii = (uint32_t)(position / range);
+        uint32_t remainder = (uint32_t)(position % range);
+        cs_double value = fp[ii];
+        if (remainder != 0) {
+          f = (cs_float)((cs_double)remainder / range);
+          const cs_double next = fp[ii + 1];
+          const cs_double slope = next - value;
+          if (LIKELY(isfinite(slope)))
+            value += f * slope;
+          else
+            value = (FL(1.0) - f) * value + f * next;
+        }
+        fp18[j++] += amp * value;
       }
     }
     return OK;
