@@ -1955,6 +1955,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     cs_double  y0, x, c, v, *xn, *cn, *vn, *tmp, amp, frq, phs;
     int32    nh, flen, srclen, i, j, k, l, bs;
     FUNC    *src;
+    uint8_t *reflect;
     int32_t     nargs = ff->e.pcnt - 4;
 
     if (UNLIKELY(nargs < 3)) {
@@ -1994,6 +1995,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     xn  = (cs_double*) csound->Malloc(csound, sizeof(cs_double) * (nh + 1L));
     cn  = (cs_double*) csound->Malloc(csound, sizeof(cs_double) * (nh + 1L));
     vn  = (cs_double*) csound->Malloc(csound, sizeof(cs_double) * (nh + 1L));
+    reflect = (uint8_t*)csound->Calloc(csound, (size_t)nh + 1);
     /* initialise oscillators */
     i = -1L;
     while (++i < nh) {
@@ -2015,9 +2017,9 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
         cn[i] = vn[i] = FL(0.0);
       }
       else if (magnitude == remainder) {
-        cn[i] = FL(-4.0);
-        /* Start with exactly twice the scaled sample to avoid drift. */
-        vn[i] = FL(2.0) * xn[i];
+        /* Nyquist is a constant oscillator with alternating polarity. */
+        cn[i] = vn[i] = FL(0.0);
+        reflect[i] = 1;
       }
       else {
         frq = (frq / divisor) * TWOPI;
@@ -2040,11 +2042,20 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
       while (++i < nh) {
         x = xn[i]; c = cn[i]; v = vn[i];
         l = k;
-        do {
-          *(tmp++) += x;
-          v += c * x;
-          x += v;
-        } while (--l);
+        if (reflect[i]) {
+          do {
+            *(tmp++) += (l & 1) == (k & 1) ? x : -x;
+            v += c * x;
+            x += v;
+          } while (--l);
+        }
+        else {
+          do {
+            *(tmp++) += x;
+            v += c * x;
+            x += v;
+          } while (--l);
+        }
         tmp -= k;               /* restore pointer */
         xn[i] = x; vn[i] = v;   /* save oscillator state */
       }
@@ -2056,6 +2067,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     /* free tmp buffers */
     csound->Free(csound,tmp); csound->Free(csound,xn);
     csound->Free(csound,cn); csound->Free(csound,vn);
+    csound->Free(csound,reflect);
 
     return OK;
 }
