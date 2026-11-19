@@ -21,7 +21,9 @@
 */
 
 #include "csoundCore.h" /*                              UGENS2.C        */
+#define CS_PHASE_IMPLEMENTATION
 #include "ugens2.h"
+#undef CS_PHASE_IMPLEMENTATION
 #include <math.h>
 
 /* Macro form of Istvan's speedup ; constant should be 3fefffffffffffff */
@@ -63,8 +65,7 @@ int32_t ephsset(CSOUND *csound, EPHSOR *p)
       cs_double whole;
       phs = cs_modf(phs, &whole);
     }
-    p->curphs = phs;
-    p->correction = FL(0.0);
+    CS_PHASE_SET(p->phase, phs);
   }
   p->b = 1.0;
   return OK;
@@ -80,51 +81,14 @@ int32_t ephsset(CSOUND *csound, EPHSOR *p)
     }                                                               \
   } while (0)
 
-/* TwoSum returns the rounded sum and its error (sum minus exact total).
-   Volatile intermediates preserve the error calculation under fast-math. */
-#define EPHASOR_SUM(sum, error, a, b) do {                            \
-    const cs_double eph_a = (a), eph_b = (b);                        \
-    volatile cs_double eph_sum = eph_a + eph_b;                      \
-    volatile cs_double eph_bpart = eph_sum - eph_a;                  \
-    volatile cs_double eph_apart = eph_sum - eph_bpart;              \
-    volatile cs_double eph_aerror = eph_apart - eph_a;               \
-    volatile cs_double eph_berror = eph_bpart - eph_b;               \
-    (sum) = eph_sum;                                                \
-    (error) = eph_aerror + eph_berror;                               \
-  } while (0)
-
-/* Keep small updates and test the phase together with its rounding error.
-   A phase rounded to one has not wrapped while its correction is positive. */
-#define EPHASOR_ADVANCE(phase, correction, incr, wrapped) do {        \
-    cs_double eph_step, eph_step_error;                             \
-    EPHASOR_SUM(eph_step, eph_step_error, (incr), -(correction));     \
-    cs_double eph_next, eph_error;                                  \
-    EPHASOR_SUM(eph_next, eph_error, (phase), eph_step);              \
-    (correction) = eph_error + eph_step_error;                       \
-    (phase) = eph_next;                                              \
-    if ((phase) > FL(1.0) ||                                        \
-        ((phase) == FL(1.0) && (correction) <= FL(0.0))) {            \
-      (phase) -= FL(1.0);                                           \
-      (wrapped) = 1;                                                \
-    }                                                               \
-    else if ((phase) < FL(0.0) ||                                   \
-             ((phase) == FL(0.0) && (correction) > FL(0.0))) {        \
-      volatile cs_double eph_wrapped = (phase) + FL(1.0);            \
-      volatile cs_double eph_back = eph_wrapped - FL(1.0);           \
-      volatile cs_double eph_wrap_error = eph_back - (phase);        \
-      (correction) += eph_wrap_error;                                \
-      (phase) = eph_wrapped;                                         \
-      (wrapped) = 1;                                                \
-    }                                                               \
-  } while (0)
-
 /* A phase just below one can round to one at the output precision. */
 #define EPHASOR_OUTPUT(phase)                                        \
   ((cs_float)(phase) < FL(1.0) ? (cs_float)(phase) : FL(0.0))
 
 int32_t ephsor(CSOUND *csound, EPHSOR *p)
 {
-    cs_double      phase, correction = p->correction;
+    CS_PHASE step;
+    int32_t negative;
     uint32_t    offset = GetKsmpsOffset(&p->h);
     uint32_t    early  = GetEarlySmps(&p->h);
     uint32_t    n, nsmps = CS_KSMPS;
@@ -144,23 +108,22 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
     memset(&rs[nsmps], '\0', early*sizeof(cs_float));
     memset(&aphs[nsmps], '\0', early*sizeof(cs_float));
   }
-  phase = p->curphs;
   if (IS_ASIG_ARG(p->xcps)) {
     cs_float *cps = p->xcps;
     for (n=offset; n<nsmps; n++) {
       incr = (cs_double)(cps[n] * onedsr);
       EPHASOR_INCREMENT(incr, whole_cycle);
+      negative = csPhaseSplit(&step, incr);
       rs[n] = (cs_float) b;
-      aphs[n] = EPHASOR_OUTPUT(phase - correction);
-      int32_t wrapped = whole_cycle;
-      EPHASOR_ADVANCE(phase, correction, incr, wrapped);
+      aphs[n] = EPHASOR_OUTPUT(csPhaseValue(&p->phase));
+      const int32_t wrapped = csPhaseAdvance(&p->phase, &step, negative);
       b *= R;
-      if (UNLIKELY(wrapped)) {
+      if (UNLIKELY(wrapped || whole_cycle)) {
 #ifdef USE_FLOAT
-        b = POWER(R, FL(1.0) + (phase - correction));
+        b = POWER(R, FL(1.0) + (csPhaseValue(&p->phase)));
 #else
         /* POWER follows sample precision; mixed builds need cs_double. */
-        b = pow(R, FL(1.0) + (phase - correction));
+        b = pow(R, FL(1.0) + (csPhaseValue(&p->phase)));
 #endif
       }
     }
@@ -168,31 +131,27 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
   else {
     incr = (cs_double)(*p->xcps * onedsr);
     EPHASOR_INCREMENT(incr, whole_cycle);
+    negative = csPhaseSplit(&step, incr);
     for (n=offset; n<nsmps; n++) {
       rs[n] = (cs_float) b;
-      aphs[n] = EPHASOR_OUTPUT(phase - correction);
-      int32_t wrapped = whole_cycle;
-      EPHASOR_ADVANCE(phase, correction, incr, wrapped);
+      aphs[n] = EPHASOR_OUTPUT(csPhaseValue(&p->phase));
+      const int32_t wrapped = csPhaseAdvance(&p->phase, &step, negative);
       b *= R;
-      if (UNLIKELY(wrapped)) {
+      if (UNLIKELY(wrapped || whole_cycle)) {
 #ifdef USE_FLOAT
-        b = POWER(R, FL(1.0) + (phase - correction));
+        b = POWER(R, FL(1.0) + (csPhaseValue(&p->phase)));
 #else
         /* POWER follows sample precision; mixed builds need cs_double. */
-        b = pow(R, FL(1.0) + (phase - correction));
+        b = pow(R, FL(1.0) + (csPhaseValue(&p->phase)));
 #endif
       }
     }
   }
-  p->curphs = phase;
-  p->correction = correction;
   p->b = b;
   return OK;
 }
 
 #undef EPHASOR_INCREMENT
-#undef EPHASOR_SUM
-#undef EPHASOR_ADVANCE
 #undef EPHASOR_OUTPUT
 
 /* A phase just below one can round to one in cs_float. Wrap the output,

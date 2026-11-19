@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "phase_accum.h"
+
 typedef struct {
         OPDS    h;
         cs_float   *sr, *xcps, *iphs;
@@ -33,8 +35,7 @@ typedef struct {
 typedef struct {
         OPDS    h;
         cs_float   *sr,*aphs, *xcps, *kR, *iphs;
-        /* Keep phase rounding remainders in the configured precision. */
-        cs_double  curphs, correction;
+        CS_PHASE phase;
         cs_double  b;
 } EPHSOR;
 
