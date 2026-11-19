@@ -24,11 +24,12 @@
 
 #pragma once
 
+#include "phase_accum.h"
+
 typedef struct {
   OPDS    h;
   cs_float   *rslt, *xamp, *kcps, *xcar, *xmod, *kndx, *ifn, *iphs;
-  /* Keep phase rounding remainders in the configured precision. */
-  cs_double mphsf, cphsf, merror, cerror;
+  CS_PHASE mod_phase, car_phase;
   int32   mphs, cphs, floatph;
   int16   ampcod, carcod, modcod;
   FUNC    *ftp;
