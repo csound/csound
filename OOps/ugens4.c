@@ -27,6 +27,67 @@
 
 /* The branch prediction slows it down!! */
 
+#define BUZZ_WORD_SCALE FL(4294967296.0)
+
+static int32_t buzzPhaseWords(uint32_t *words, cs_double fraction,
+                              cs_double scale)
+{
+    int32_t used = 0;
+    while (fraction > FL(0.0)) {
+      fraction *= scale;
+      const uint32_t word = (uint32_t)fraction;
+      words[used++] = word;
+      fraction -= (cs_double)word;
+      scale = BUZZ_WORD_SCALE;
+    }
+    return used;
+}
+
+/* Return the word count with the sign of the increment. */
+static int32_t buzzPhaseStep(uint32_t *words, cs_double increment)
+{
+    if (increment >= FL(1.0) || increment <= -FL(1.0)) {
+      cs_double whole;
+      increment = cs_modf(increment, &whole);
+    }
+    if (increment < FL(0.0))
+      return -buzzPhaseWords(words, -increment, BUZZ_WORD_SCALE);
+    return buzzPhaseWords(words, increment, BUZZ_WORD_SCALE);
+}
+
+static void buzzAdvancePhase(BUZZ_PHASE *phase, const uint32_t *step,
+                             int32_t signedCount)
+{
+    const int32_t subtract = signedCount < 0;
+    const int32_t count = subtract ? -signedCount : signedCount;
+    const uint32_t mask = subtract ? UINT32_MAX : 0;
+    uint64_t carry = (uint32_t)subtract;
+
+    /* Two's complement handles reverse steps. Discard whole cycles. */
+    for (int32_t i = count - 1; i >= 0; --i) {
+      const uint64_t sum = (uint64_t)phase->words[i] + (step[i] ^ mask) + carry;
+      phase->words[i] = (uint32_t)sum;
+      carry = sum >> 32;
+    }
+    if (phase->used < count) phase->used = count;
+    while (phase->used > 0 && phase->words[phase->used - 1] == 0)
+      --phase->used;
+}
+
+static uint32_t buzzPhaseIndex(const BUZZ_PHASE *phase, uint32_t length,
+                               uint32_t harmonic)
+{
+    uint64_t carry = 0, index = 0;
+    for (int32_t i = phase->used - 1; i >= 0; --i) {
+      /* Multiply the phase by the harmonic, then the fractional part by
+         the table length. Each pass carries into the next word. */
+      const uint64_t product = (uint64_t)phase->words[i] * harmonic + carry;
+      carry = product >> 32;
+      index = ((uint64_t)(uint32_t)product * length + index) >> 32;
+    }
+    return (uint32_t)index;
+}
+
 int32_t bzzset(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
@@ -39,11 +100,14 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
         return csound->InitError(csound, "%s\n", Str("buzz: invalid initial phase"));
       if (phase >= 0.0) {
         cs_double whole;
-        phase *= FL(0.5); /* The sine quotient uses theta/2. */
-        phase = cs_modf(phase, &whole);
-        p->lphs = (int32_t)(phase * FMAXLEN);
-        p->fphs = phase;
-        p->correction = FL(0.0);
+        /* The sine quotient uses theta/2. Fold halving into the first
+           word for small phases so the phase can also hold subnormals. */
+        const cs_double half = cs_modf(phase * FL(0.5), &whole);
+        p->lphs = (int32_t)(half * FMAXLEN);
+        memset(&p->phase, 0, sizeof(p->phase));
+        p->phase.used = phase < FL(1.0)
+          ? buzzPhaseWords(p->phase.words, phase, BUZZ_WORD_SCALE * FL(0.5))
+          : buzzPhaseWords(p->phase.words, half, BUZZ_WORD_SCALE);
       }
       p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
       p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
@@ -53,96 +117,6 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
     return NOTOK;
 }
 
-/* FMA must follow cs_double, including mixed-precision builds. */
-#ifdef USE_FLOAT
-#define BUZZ_FMA fmaf
-#else
-#define BUZZ_FMA fma
-#endif
-
-/* Store phase as phase - correction. TwoSum retains the rounded sum and
-   its error even when magnitudes differ. Volatile prevents reassociation. */
-#define BUZZ_SUM(result, error, a, b) do {                                   \
-  const cs_double bz_a = (a), bz_b = (b);                                    \
-  volatile cs_double bz_sum = bz_a + bz_b;                                   \
-  volatile cs_double bz_bpart = bz_sum - bz_a;                               \
-  volatile cs_double bz_apart = bz_sum - bz_bpart;                           \
-  volatile cs_double bz_aerror = bz_apart - bz_a;                            \
-  volatile cs_double bz_berror = bz_bpart - bz_b;                            \
-  volatile cs_double bz_rounding = bz_aerror + bz_berror;                    \
-  (result) = bz_sum;                                                         \
-  (error) = bz_rounding;                                                     \
-} while (0)
-
-/* Remove whole cycles before adding an increment. */
-#define BUZZ_INCREMENT(increment) do {                                       \
-  if ((increment) >= FL(1.0) || (increment) <= -FL(1.0)) {                   \
-    cs_double bz_whole;                                                      \
-    (increment) = cs_modf((increment), &bz_whole);                           \
-  }                                                                          \
-} while (0)
-
-/* Add a fractional cycle and retain rounding through both wrap directions. */
-#define BUZZ_ADD(phase, correction, increment) do {                          \
-  cs_double bz_next, bz_error;                                               \
-  BUZZ_SUM(bz_next, bz_error, (phase), (increment));                         \
-  bz_error += (correction);                                                  \
-  BUZZ_SUM((phase), (correction), bz_next, -bz_error);                       \
-  if ((phase) >= FL(1.0)) (phase) -= FL(1.0);                                \
-  else if ((phase) < FL(0.0)) {                                              \
-    volatile cs_double bz_wrapped = (phase) + FL(1.0);                       \
-    volatile cs_double bz_back = bz_wrapped - FL(1.0);                       \
-    volatile cs_double bz_wrap_error = bz_back - (phase);                    \
-    (correction) += bz_wrap_error;                                           \
-    (phase) = bz_wrapped;                                                    \
-  }                                                                          \
-} while (0)
-
-/* Reduce each product part before addition so large harmonics retain detail. */
-#define BUZZ_MULTIPLY(result, error, phase, correction, factor) do {         \
-  const cs_double bz_phase = (phase), bz_correction = (correction);          \
-  const cs_double bz_factor = (cs_double)(factor);                           \
-  volatile cs_double bz_product = bz_phase * bz_factor;                      \
-  volatile cs_double bz_cproduct = bz_correction * bz_factor;                \
-  cs_double bz_low = BUZZ_FMA(bz_phase, bz_factor, -bz_product);             \
-  cs_double bz_chigh = bz_cproduct;                                          \
-  cs_double bz_clow = BUZZ_FMA(bz_correction, bz_factor, -bz_cproduct);      \
-  (result) = bz_product;                                                     \
-  BUZZ_INCREMENT(result);                                                    \
-  (error) = FL(0.0);                                                         \
-  if (bz_low != FL(0.0)) {                                                   \
-    BUZZ_INCREMENT(bz_low);                                                  \
-    BUZZ_ADD((result), (error), bz_low);                                     \
-  }                                                                          \
-  if (bz_chigh != FL(0.0)) {                                                 \
-    BUZZ_INCREMENT(bz_chigh);                                                \
-    BUZZ_ADD((result), (error), -bz_chigh);                                  \
-  }                                                                          \
-  if (bz_clow != FL(0.0)) {                                                  \
-    BUZZ_INCREMENT(bz_clow);                                                 \
-    BUZZ_ADD((result), (error), -bz_clow);                                   \
-  }                                                                          \
-} while (0)
-
-/* Compare the local offset with zero/one before rounding it to a table cell. */
-#define BUZZ_INDEX(result, phase, correction) do {                           \
-  cs_double bz_position = (phase) * flen;                                    \
-  int32_t bz_index = (int32_t)bz_position;                                   \
-  cs_double bz_offset = BUZZ_FMA((phase), (cs_double)flen,                   \
-                                -(cs_double)bz_index);                       \
-  volatile cs_double bz_detail = (correction) * flen;                        \
-  cs_double bz_fraction, bz_ferror;                                          \
-  BUZZ_SUM(bz_fraction, bz_ferror, bz_offset, -bz_detail);                   \
-  bz_ferror += BUZZ_FMA((correction), (cs_double)flen, -bz_detail);          \
-  if (bz_fraction < FL(0.0) ||                                               \
-      (bz_fraction == FL(0.0) && bz_ferror > FL(0.0))) --bz_index;           \
-  else if (bz_fraction > FL(1.0) ||                                          \
-           (bz_fraction == FL(1.0) && bz_ferror <= FL(0.0))) ++bz_index;     \
-  if (bz_index < 0) bz_index += flen;                                        \
-  else if (bz_index >= flen) bz_index -= flen;                               \
-  (result) = bz_index;                                                       \
-} while (0)
-
 int32_t buzz(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
@@ -151,12 +125,12 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
       floatph = p->floatph, flen;
     uint32_t tnp1;
     cs_float       sicvt2, over2n, scal, num, denom, harmonics;
-    cs_double incf = 0.0;
+    uint32_t    phaseStep[BUZZ_PHASE_WORDS];
+    int32_t     stepCount = 0;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
     int32_t       nn;
-    cs_double   phsf = p->fphs, correction = p->correction;
     
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
@@ -182,9 +156,12 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     over2n = FL(0.5) / (cs_float)nn;
     amp = *ampp;
     scal = amp * over2n;
-    if(floatph) {
-      incf = *cpsp * sicvt2;
-      BUZZ_INCREMENT(incf);
+    if (floatph) {
+      if (!p->cpscod) {
+        const cs_double step = *cpsp * sicvt2;
+        if (UNLIKELY(!isfinite(step))) goto invalid_frequency;
+        stepCount = buzzPhaseStep(phaseStep, step);
+      }
     }
     else inc = (int32_t)(*cpsp * sicvt2);
     ar = p->ar;
@@ -213,53 +190,29 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
       phs += inc;
       phs &= PHMASK;
       } else {
-      if (p->cpscod) {
-        incf = cpsp[n] * sicvt2;
-        BUZZ_INCREMENT(incf);
-      }
-      int32_t index;
-      BUZZ_INDEX(index, phsf, correction);
-      denom = ftbl[index];
-      if (denom > FL(0.0002) || denom < -FL(0.0002)) {
-        cs_double numerator_phase, numerator_error;
-        if (tnp1 <= 0x1000000U) {
-          BUZZ_MULTIPLY(numerator_phase, numerator_error,
-                        phsf, correction, tnp1);
+        if (p->cpscod) {
+          const cs_double step = cpsp[n] * sicvt2;
+          if (UNLIKELY(!isfinite(step))) goto invalid_frequency;
+          stepCount = buzzPhaseStep(phaseStep, step);
         }
-        else {
-          /* Split an integer multiplier that float cannot represent exactly. */
-          cs_double high_phase, high_error;
-          BUZZ_MULTIPLY(numerator_phase, numerator_error,
-                        phsf, correction, tnp1 & 0xffffU);
-          BUZZ_MULTIPLY(high_phase, high_error,
-                        phsf, correction, tnp1 >> 16);
-          BUZZ_MULTIPLY(high_phase, high_error,
-                        high_phase, high_error, FL(65536.0));
-          BUZZ_ADD(numerator_phase, numerator_error, high_phase);
-          BUZZ_ADD(numerator_phase, numerator_error, -high_error);
+        denom = ftbl[buzzPhaseIndex(&p->phase, (uint32_t)flen, 1U)];
+        if (denom > FL(0.0002) || denom < -FL(0.0002)) {
+          num = ftbl[buzzPhaseIndex(&p->phase, (uint32_t)flen, tnp1)];
+          ar[n] = (num / denom - FL(1.0)) * scal;
         }
-        BUZZ_INDEX(index, numerator_phase, numerator_error);
-        num = ftbl[index];
-        ar[n] = (num / denom - FL(1.0)) * scal;
-      }
-      else ar[n] = amp;
-      BUZZ_ADD(phsf, correction, incf);
+        else ar[n] = amp;
+        if (stepCount != 0) buzzAdvancePhase(&p->phase, phaseStep, stepCount);
       }
     }
     p->lphs = phs;
-    p->fphs = phsf;
-    p->correction = correction;
     return OK;
+ invalid_frequency:
+    return csound->PerfError(csound, &(p->h), Str("buzz: invalid frequency\n"));
  err1:
     return csound->PerfError(csound, &(p->h), Str("buzz: not initialised\n"));
 }
 
-#undef BUZZ_FMA
-#undef BUZZ_SUM
-#undef BUZZ_INCREMENT
-#undef BUZZ_ADD
-#undef BUZZ_MULTIPLY
-#undef BUZZ_INDEX
+#undef BUZZ_WORD_SCALE
 
 int32_t gbzset(CSOUND *csound, GBUZZ *p)
 {

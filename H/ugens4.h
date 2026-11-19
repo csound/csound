@@ -24,6 +24,18 @@
 
 #pragma once
 
+/* Enough fractional bits for half the smallest cs_double subnormal. */
+#ifdef USE_FLOAT
+#define BUZZ_PHASE_WORDS 5
+#else
+#define BUZZ_PHASE_WORDS 34
+#endif
+
+typedef struct {
+  uint32_t words[BUZZ_PHASE_WORDS];  /* most significant word first */
+  int32_t used;
+} BUZZ_PHASE;
+
 typedef struct {
   OPDS    h;
   cs_float   *ar, *xamp, *xcps, *knh, *ifn, *iphs;
@@ -32,8 +44,7 @@ typedef struct {
   FUNC    *ftp;
   int32_t     reported;
   int32_t  floatph;
-  /* Retain phase rounding remainders in the configured precision. */
-  cs_double fphs, correction;
+  BUZZ_PHASE phase;
 } BUZZ;
 
 typedef struct {

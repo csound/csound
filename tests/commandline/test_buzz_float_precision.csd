@@ -14,6 +14,7 @@ ksmps = 16
 nchnls = 1
 0dbfs = 1
 giSine ftgen 1, 0, -96, 10, 1
+giOdd ftgen 2, 0, -97, 10, 1
 gkChecks init 0
 
 instr 1
@@ -176,8 +177,61 @@ OSC:
   endif
 endin
 
+instr 6
+  ; This step leaves both products below a cell boundary on the odd table.
+  ; On the other table, check small steps that survive larger cancelling ones.
+  iTable = (p4 == 0 ? giOdd : giSine)
+  iPhase = (p4 == 0 ? 11069503/268435456 : .25)
+  kCount init 0
+  aFrequency init 0
+  kN = 0
+  while kN < ksmps do
+    kSample = kCount + kN
+    kStep = 0
+    if p4 == 0 && kSample == 0 then
+      kStep = 43/68719476736
+    elseif p4 == 1 then
+      kStep = (kSample == 0 ? -2^(-53) : (kSample == 1 ? 2^(-27) : (kSample == 2 ? -2^(-27) : 0)))
+    elseif p4 == 2 then
+      if kSample == 0 then
+        kStep = 2^(-100)
+      elseif kSample == 1 then
+        kStep = 2^(-53)
+      elseif kSample == 2 then
+        kStep = 2^(-27)
+      elseif kSample == 3 then
+        kStep = -2^(-27)
+      elseif kSample == 4 then
+        kStep = -2^(-53)
+      endif
+    endif
+    vaset kStep*2*sr, kN, aFrequency
+    kN += 1
+  od
+  aOut buzz 1, aFrequency, 3, iTable, iPhase
+  kN = 0
+  while kN < ksmps do
+    kSample = kCount + kN
+    kBelow = (p4 == 1 && kSample != 0 && kSample != 2 ? 1 : 0)
+    kDenominator table (p4 == 0 ? 1 : 12 - kBelow), iTable
+    kNumerator table (p4 == 0 ? 13 : 84 - kBelow), iTable
+    kExpected = (kNumerator/kDenominator - 1)/6
+    kActual vaget kN, aOut
+    if !(abs(kActual - kExpected) < .000001) then
+      printks "FAIL buzz cell boundary case=%g sample=%g: %g expected %g\n", \
+          0, p4, kSample, kActual, kExpected
+      exitnowk -1
+    endif
+    kN += 1
+  od
+  kCount += ksmps
+  if kCount == 64 then
+    gkChecks += 1
+  endif
+endin
+
 instr 99
-  if i(gkChecks) != 14 then
+  if i(gkChecks) != 17 then
     prints "FAIL buzz float checks did not complete\n"
     exitnow -1
   endif
@@ -198,6 +252,9 @@ i 3 1.25 .0625 1
 i 4 1.375 .0625
 i 5 1.5 .0625 0
 i 5 1.625 .0625 1
-i 99 1.75 .015625
+i 6 1.75 .0625 0
+i 6 1.875 .0625 1
+i 6 2 .0625 2
+i 99 2.125 .015625
 </CsScore>
 </CsoundSynthesizer>
