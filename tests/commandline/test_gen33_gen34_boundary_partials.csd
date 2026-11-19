@@ -36,13 +36,14 @@ instr 2
   ; At DC and Nyquist the recurrence must not build a ramp from roundoff
   ; in sin(pi). Check a longer table, including a zero-phase silent partial.
   iSource ftgen 0, 0, -3, -2, 1, p4, p5
-  iTable ftgen 0, 0, 4096, -34, iSource, 1, 1
+  iTable ftgen 0, 0, 4096, -34, iSource, 1, 1, p6
+  iAmplitude = (p7 != 0 || p5 == 0 ? 0 : 1)
   iIndex = 0
   while iIndex < 4096 do
-    iExpected = (p5 == 0 ? 0 : (p4 == 0 ? 1 : 1 - 2*(iIndex % 2)))
+    iExpected = iAmplitude * (p4 == 0 ? 1 : 1 - 2*(iIndex % 2))
     iActual table iIndex, iTable
     if !(abs(iActual-iExpected) < .000001) then
-      prints "GEN34 boundary partial %g at %g: %g expected %g\n", p4, iIndex, iActual, iExpected
+      prints "GEN34 partial %g, phase %g, mode %g at %g: %g expected %g\n", p4, p5, p6, iIndex, iActual, iExpected
       exitnow -1
     endif
     iIndex += 1
@@ -54,10 +55,17 @@ i 1 0 .01 33 0
 i 1 0 .01 33 .25
 i 1 0 .01 34 0
 i 1 0 .01 34 .25
-i 2 0 .01 2048 0
-i 2 0 .01 -2048 0
-i 2 0 .01 2048 .25
-i 2 0 .01 -2048 .25
-i 2 0 .01 0 .25
+i 2 0 .01 2048 0 0 0
+i 2 0 .01 -2048 0 0 0
+i 2 0 .01 2048 .25 0 0
+i 2 0 .01 -2048 .25 0 0
+i 2 0 .01 0 .25 0 0
+; 41 * (1/82) rounds below Nyquist in float builds.
+i 2 0 .01 41 0 82 0
+i 2 0 .01 -41 0 82 0
+i 2 0 .01 41 .25 82 0
+; The next float above 41 is outside the cutoff.
+i 2 0 .01 41.000003814697265625 .25 82 1
+i 2 0 .01 24000 .25 -1 0
 </CsScore>
 </CsoundSynthesizer>

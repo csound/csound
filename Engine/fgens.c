@@ -1951,7 +1951,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
     cs_float   *ft, *srcft, scl;
-    cs_double  fmode;
+    cs_double  fmode, divisor;
     cs_double  y0, y1, x, c, v, *xn, *cn, *vn, *tmp, amp, frq, phs;
     int32    nh, flen, srclen, i, j, k, l, bs;
     FUNC    *src;
@@ -1978,13 +1978,13 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     scl = ff->e.p[7];
     /* frequency mode */
     if (fmode < FL(0.0)) {
-      fmode = FL(1.0) / (csound->esr * -fmode); /* cycles per sample from Hz */
+      divisor = csound->esr * -fmode;    /* frequency in Hz */
     }
     else if (fmode > FL(0.0)) {
-      fmode = FL(1.0) / fmode;            /* ref. sample rate */
+      divisor = fmode;                 /* ref. sample rate */
     }
     else {
-      fmode = FL(1.0) / (cs_double) flen;    /* partial number */
+      divisor = (cs_double) flen;      /* partial number */
     }
 
     /* use blocks of 256 samples (2048 bytes) for speed */
@@ -1998,9 +1998,12 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     i = -1L;
     while (++i < nh) {
       amp = (cs_double) scl * (cs_double) *(srcft++);         /* amplitude */
-      frq = (cs_double) fmode * (cs_double) *(srcft++);       /* frequency */
-      /* Test Nyquist in cycles, where one half is exact in either precision. */
-      if (UNLIKELY(fabs(frq) > FL(0.5))) {
+      frq = (cs_double) *(srcft++);
+      const cs_double magnitude = (cs_double) fabs(frq);
+      /* Compare twice the magnitude with the divisor before taking the ratio.
+         Fast-math can turn division into multiplication by a rounded reciprocal. */
+      const cs_double remainder = divisor - magnitude;
+      if (UNLIKELY(magnitude > remainder)) {
         xn[i] = cn[i] = vn[i] = 0.0;
         srcft++; continue;      /* skip partial with too high frequency */
       }
@@ -2012,12 +2015,12 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
         y1 = y0;
         cn[i] = FL(0.0);
       }
-      else if (fabs(frq) == FL(0.5)) {
+      else if (magnitude == remainder) {
         y1 = -y0;
         cn[i] = FL(-4.0);
       }
       else {
-        frq *= TWOPI;
+        frq = (frq / divisor) * TWOPI;
         y1 = sin(phs + frq);     /* sample 1 */
         cn[i] = 2.0 * cos(frq) - 2.0;
       }
