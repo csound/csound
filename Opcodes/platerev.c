@@ -304,20 +304,23 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
         cs_double w = p->wo[qq];
         cs_double cv = p->co[qq]*p->cdo[qq] - p->so[qq]*p->sdo[qq];
         cs_double sv = p->co[qq]*p->sdo[qq] + p->so[qq]*p->cdo[qq];
-        cs_double xod = (0.5+w*cv)*Nx;
+        const cs_double xoffset = w * cv;
+        const cs_double xleft = (FL(0.5) - fabs(xoffset)) * Nx;
         cs_double yod = (*p->asp*0.5+w*sv)/dy;
-        uint32_t xo = (uint32_t)floor(xod)+2u;
+        const uint32_t left = (uint32_t)xleft;
         uint32_t yo = (uint32_t)floor(yod)+2u;
-        cs_double xf = xod-(cs_double)(xo-2);
+        const cs_double xf = xleft - (cs_double)left;
+        /* Reflect the integer cells and keep the same interpolation weights. */
+        const uint32_t near = xoffset > FL(0.0) ? Nx - left + 2u : left + 2u;
+        const uint32_t far = xoffset > FL(0.0) ? near - 1u : near + 1u;
         cs_double yf = yod-(cs_double)(yo-2);
-        size_t uidx;
+        const size_t row = Nx5 * yo;
         p->co[qq] = cv; p->so[qq] = sv;
-        uidx = Nx5*yo + xo;
         /* Form each row in the same order under horizontal reflection. */
-        volatile cs_double top_left = (FL(1.0)-xf)*u[uidx];
-        volatile cs_double top_right = xf*u[1+uidx];
-        volatile cs_double bottom_left = (FL(1.0)-xf)*u[Nx5+uidx];
-        volatile cs_double bottom_right = xf*u[1+Nx5+uidx];
+        volatile cs_double top_left = (FL(1.0)-xf)*u[row + near];
+        volatile cs_double top_right = xf*u[row + far];
+        volatile cs_double bottom_left = (FL(1.0)-xf)*u[row + Nx5 + near];
+        volatile cs_double bottom_right = xf*u[row + Nx5 + far];
         (p->aout[qq])[n] = (cs_float)((FL(1.0)-yf)*(top_left+top_right)+
                                      yf*(bottom_left+bottom_right))/FL(25.0);
       }
