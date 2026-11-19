@@ -1589,6 +1589,61 @@ int32_t lpfreson(CSOUND *csound, LPFRESON *p)
                                  (energy).exponent % 2)),             \
               (energy).exponent / 2)
 
+/* Keep the exponent separate until the gain is applied to a sample. */
+static RMS_GAIN rmsGain(cs_double mantissa, int exponent)
+{
+    int shift = 0;
+    if (mantissa == FL(0.0)) return (RMS_GAIN){FL(0.0), 0};
+    mantissa = RMS_FREXP(mantissa, &shift);
+    return (RMS_GAIN){mantissa, exponent + shift};
+}
+
+static RMS_GAIN rmsBalanceGain(RMS_ENERGY input, RMS_ENERGY reference)
+{
+    if (input.value != FL(0.0)) {
+      reference.value /= input.value;
+      reference.exponent -= input.exponent;
+    }
+    cs_double level = RMS_SQRT(RMS_LDEXP(reference.value, reference.exponent % 2));
+    return rmsGain(level, reference.exponent / 2);
+}
+
+#ifdef USE_FLOAT
+#define RMS_MIN_EXP FLT_MIN_EXP
+#define RMS_MAX_EXP FLT_MAX_EXP
+#else
+#define RMS_MIN_EXP DBL_MIN_EXP
+#define RMS_MAX_EXP DBL_MAX_EXP
+#endif
+
+#define RMS_APPLY_GAIN(result, sample, mantissa, exponent) do {             \
+    const cs_double rms_signal = (sample);                                   \
+    if ((exponent) >= RMS_MIN_EXP && (exponent) < RMS_MAX_EXP) {             \
+      (result) = (cs_float)(rms_signal * RMS_LDEXP((mantissa), (exponent))); \
+    } else {                                                                 \
+      int rms_sample_exp = 0;                                                \
+      const cs_double rms_sample = RMS_FREXP(rms_signal, &rms_sample_exp);    \
+      (result) = (cs_float)RMS_LDEXP(rms_sample * (mantissa),                 \
+                                     rms_sample_exp + (exponent));          \
+    }                                                                        \
+  } while (0)
+
+static void rmsRamp(cs_float *output, const cs_float *input, uint32_t offset,
+                    uint32_t end, RMS_GAIN previous, RMS_GAIN target)
+{
+    int exponent = target.exponent;
+    if (target.mantissa == FL(0.0) ||
+        (previous.mantissa != FL(0.0) && previous.exponent > exponent))
+      exponent = previous.exponent;
+    cs_double gain = RMS_LDEXP(previous.mantissa, previous.exponent - exponent);
+    const cs_double final = RMS_LDEXP(target.mantissa, target.exponent - exponent);
+    const cs_double increment = (final - gain) / (cs_double)(end - offset);
+    for (uint32_t n = offset; n < end; n++) {
+      RMS_APPLY_GAIN(output[n], input[n], gain, exponent);
+      gain += increment;
+    }
+}
+
 int32_t rmsset(CSOUND *csound, RMS *p)
 {
     RMS_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->coefficients);
@@ -1602,7 +1657,7 @@ int32_t gainset(CSOUND *csound, GAIN *p)
     RMS_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->coefficients);
     if (!*p->istor) {
       memset(&p->energy, 0, sizeof(p->energy));
-      p->prva = FL(0.0);
+      p->prva = (RMS_GAIN){FL(0.0), 0};
     }
     return OK;
 }
@@ -1613,7 +1668,7 @@ int32_t balnset(CSOUND *csound, BALANCE *p)
     if (!*p->istor) {
       memset(&p->energy, 0, sizeof(p->energy));
       memset(&p->reference, 0, sizeof(p->reference));
-      p->prva = FL(0.0);
+      p->prva = (RMS_GAIN){FL(0.0), 0};
     }
     return OK;
 }
@@ -1642,7 +1697,7 @@ int32_t gain(CSOUND *csound, GAIN *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float    *ar, *asig;
-    cs_double a, m, diff, inc;
+    RMS_GAIN a;
     RMS_ENERGY q = p->energy;
     asig = p->asig;
     ar = p->ar;
@@ -1662,24 +1717,12 @@ int32_t gain(CSOUND *csound, GAIN *p)
       int target_exponent = 0;
       cs_double target = RMS_FREXP(*p->krms, &target_exponent);
       cs_double level = RMS_SQRT(RMS_LDEXP(q.value, q.exponent % 2));
-      a = RMS_LDEXP(target / level, target_exponent - q.exponent / 2);
+      a = rmsGain(target / level, target_exponent - q.exponent / 2);
     }
     else
-      a = *p->krms;
-    if ((diff = a - p->prva) != 0.0) {
-      m = p->prva;
-      inc = diff / (cs_double)(nsmps-offset);
-      for (n = offset; n < nsmps; n++) {
-        ar[n] = asig[n] * m;
-        m += inc;
-      }
-      p->prva = a;
-    }
-    else {
-      for (n = offset; n < nsmps; n++) {
-        ar[n] = asig[n] * a;
-      }
-    }
+      a = rmsGain(*p->krms, 0);
+    rmsRamp(ar, asig, offset, nsmps, p->prva, a);
+    p->prva = a;
     return OK;
 }
 
@@ -1690,7 +1733,6 @@ int32_t balance(CSOUND *csound, BALANCE *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float    *ar, *asig, *csig;
-    cs_double a, m, diff, inc;
     RMS_ENERGY q = p->energy, r = p->reference;
     asig = p->asig;
     csig = p->csig;
@@ -1708,26 +1750,9 @@ int32_t balance(CSOUND *csound, BALANCE *p)
     }
     p->energy = q;
     p->reference = r;
-    if (LIKELY(q.value != FL(0.0))) {
-      RMS_ENERGY ratio = {r.value / q.value, FL(0.0), r.exponent - q.exponent};
-      a = RMS_LEVEL(ratio);
-    }
-    else
-      a = RMS_LEVEL(r);
-    if ((diff = a - p->prva) != 0.0) {
-      m = p->prva;
-      inc = diff / (cs_double)(nsmps-offset);
-      for (n = offset; n < nsmps; n++) {
-        ar[n] = asig[n] * m;
-        m += inc;
-      }
-      p->prva = a;
-    }
-    else {
-      for (n = offset; n < nsmps; n++) {
-        ar[n] = asig[n] * a;
-      }
-    }
+    const RMS_GAIN a = rmsBalanceGain(q, r);
+    rmsRamp(ar, asig, offset, nsmps, p->prva, a);
+    p->prva = a;
     return OK;
 }
 
@@ -1739,7 +1764,6 @@ int32_t balance2(CSOUND *csound, BALANCE *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float    *ar, *asig, *csig;
-    cs_double a;
     RMS_ENERGY q = p->energy, r = p->reference;
     asig = p->asig;
     csig = p->csig;
@@ -1752,13 +1776,8 @@ int32_t balance2(CSOUND *csound, BALANCE *p)
     for (n = offset; n < nsmps; n++) {
       RMS_UPDATE(p->coefficients, q, asig[n]);
       RMS_UPDATE(p->coefficients, r, csig[n]);
-      if (LIKELY(q.value != FL(0.0))) {
-        RMS_ENERGY ratio = {r.value / q.value, FL(0.0), r.exponent - q.exponent};
-        a = RMS_LEVEL(ratio);
-      }
-      else
-        a = RMS_LEVEL(r);
-      ar[n] = asig[n] * a;
+      const RMS_GAIN a = rmsBalanceGain(q, r);
+      RMS_APPLY_GAIN(ar[n], asig[n], a.mantissa, a.exponent);
     }
     p->energy = q;
     p->reference = r;
