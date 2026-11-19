@@ -1009,15 +1009,26 @@ static int32_t vco(CSOUND *csound, VCO *p)
           sign = -1; frequency = -fs * FL(0.5) - frequency;
         }
         cs_double k = TAN((cs_double)PI * (frequency / fs));
-        cs_double kk = k * k, damping = k / *p->q;
-        cs_double norm = FL(1.0) / (FL(1.0) + damping + kk);
+        cs_double kk = k * k, norm, normalized_damping;
+        const cs_double q = *p->q;
+        if (q > FL(0.0) && FABS(k) > q) {
+          /* Divide the denominator by k/Q before it can overflow. */
+          const cs_double inverse = q / k;
+          normalized_damping = FL(1.0) / (FL(1.0) + inverse * (FL(1.0) + kk));
+          norm = inverse * normalized_damping;
+        }
+        else {
+          const cs_double damping = k / q;
+          norm = FL(1.0) / (FL(1.0) + damping + kk);
+          normalized_damping = damping * norm;
+        }
         cs_double dry = FL(1.0), low = FL(0.0), band;
         if (p->imode == 1 || p->imode == 2) {
           if ((p->imode == 1) == (sign == 1)) low = *p->v - FL(1.0);
           else { dry = *p->v; low = FL(1.0) - dry; }
-          band = SQRT(FL(2.0) * *p->v) - dry / *p->q;
+          band = SQRT(FL(2.0) * *p->v) * (k * norm) - dry * normalized_damping;
         }
-        else band = (*p->v - FL(1.0)) / *p->q;
+        else band = (*p->v - FL(1.0)) * normalized_damping;
 
         /* r[n] = y[n] - dry*x[n], d[n] = r[n] - sign*r[n-1].
            Transform the saved history when the dry gain or reflection changes,
@@ -1032,9 +1043,9 @@ static int32_t vco(CSOUND *csound, VCO *p)
         PAREQ_ADD(p->ynm2, p->derror,
                   gain_change * (p->xnm1 - sign * p->xnm2));
         p->sign = sign;
-        p->a1 = FL(2.0) * damping * norm;
+        p->a1 = FL(2.0) * normalized_damping;
         p->a2 = FL(4.0) * kk * norm;
-        p->b0 = dry; p->b1 = band * k * norm; p->b2 = low * kk * norm;
+        p->b0 = dry; p->b1 = band; p->b2 = low * kk * norm;
         p->prv_fc = *p->fc; p->prv_v = *p->v; p->prv_q = *p->q;
       }
       if (UNLIKELY(offset)) memset(p->out, 0, offset * sizeof(cs_float));
