@@ -23,6 +23,7 @@
 #include "interlocks.h"
 #include "vectorial.h"
 #include <math.h>
+#include <float.h>
 #include <inttypes.h>
 
 /* These comparisons also reject NaN and infinity before integer casts. */
@@ -2582,11 +2583,37 @@ static int32_t kdel_set(CSOUND *csound,KDEL *p)
     return OK;
 }
 
+/* Reduce an integral sample offset without rounding the buffer length. */
+static int64_t kdelayMod(cs_double samples, int64_t length)
+{
+    const int32_t negative = samples < FL(0.0);
+    if (negative) samples = -samples;
+    int64_t reduced;
+    if (samples < FL(4611686018427387904.0)) {  /* 2^62 */
+      reduced = (int64_t)samples % length;
+    }
+    else {
+      int exponent;
+#ifdef USE_FLOAT
+      cs_double mantissa = frexpf(samples, &exponent);
+      reduced = (int64_t)ldexpf(mantissa, FLT_MANT_DIG) % length;
+      exponent -= FLT_MANT_DIG;
+#else
+      cs_double mantissa = frexp(samples, &exponent);
+      reduced = (int64_t)ldexp(mantissa, DBL_MANT_DIG) % length;
+      exponent -= DBL_MANT_DIG;
+#endif
+      for (; reduced != 0 && exponent > 0; --exponent)
+        reduced = (reduced * 2) % length;
+    }
+    return negative ? -reduced : reduced;
+}
+
 static int32_t kdelay(CSOUND *csound,KDEL *p)
 {
     int64_t maxd =  p->maxd, indx, v1, v2;
     cs_float *buf = (cs_float *)p->aux.auxp;
-    cs_double delay, position;
+    cs_double delay, whole;
 
     if (UNLIKELY(buf==NULL)) {
       return csound->PerfError(csound, &p->h, "%s\n",
@@ -2598,28 +2625,26 @@ static int32_t kdelay(CSOUND *csound,KDEL *p)
     if (UNLIKELY(!isfinite(delay)))
       return csound->PerfError(csound, &p->h, "%s\n",
                                Str("vdelayk: invalid delay time"));
-    /* Reduce large delays first: subtracting a large delay from the write head can
-       otherwise discard the head's low bits before the modulo operation. */
-    if (UNLIKELY(delay <= -maxd || delay >= maxd))
-      delay = FMOD(delay, (cs_double) maxd);
-    position = (cs_double) indx - delay;
-    /* Like vdelay, the legacy delay wraps at the buffer period, including
-       the maximum delay itself. Keep that behavior for existing scores. */
-    if (UNLIKELY(!(position >= 0 && position < maxd))) {
-      position = FMOD(position, (cs_double) maxd);
-      if (position < 0) position += maxd;
-      /* Rounding a tiny negative remainder can produce exactly maxd. */
-      if (position >= maxd) position = 0;
-    }
+    const cs_double fraction = cs_modf(delay, &whole);
+    int64_t cell = indx - kdelayMod(whole, maxd);
+    if (cell < 0) cell += maxd;
+    else if (cell >= maxd) cell -= maxd;
     buf[indx] = *p->kin;
-    v1 = (int32_t) position;
-    if (*p->interp) { /*  no interpolation */
-      *p->kr = buf[v1];
+
+    /* Keep the integer write head separate from the fractional delay. */
+    if (fraction > FL(0.0)) {
+      v1 = (cell == 0 ? maxd : cell) - 1;
+      if (*p->interp) *p->kr = buf[v1];
+      else *p->kr = (cs_float)(buf[cell] + fraction *
+                                ((cs_double)buf[v1] - buf[cell]));
+    }
+    else if (*p->interp || fraction == FL(0.0)) {
+      *p->kr = buf[cell];
     }
     else {
-      v2 = v1 + 1;
-      if (v2 == maxd) v2 = 0;
-      *p->kr = buf[v1] + (cs_float)(position - v1) * (buf[v2]-buf[v1]);
+      v2 = cell + 1 == maxd ? 0 : cell + 1;
+      *p->kr = (cs_float)(buf[cell] - fraction *
+                          ((cs_double)buf[v2] - buf[cell]));
     }
     if (++(p->left) == maxd) p->left = 0;
     return OK;
