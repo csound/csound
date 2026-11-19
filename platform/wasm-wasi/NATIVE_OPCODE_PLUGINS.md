@@ -29,7 +29,7 @@ build. It supports the following.
   arguments
 - opcode init, perf, and deinit callbacks
 
-The default WASI package now uses 32-bit `cs_float` and `cs_double` values.
+The default browser engine uses 32-bit `cs_float` and 64-bit `cs_double` values.
 Its browser plugins do not match this native bridge. Keep double-precision
 headers and flags when building plugins for the native bridge.
 

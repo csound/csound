@@ -59,8 +59,8 @@ memory grows; the other helper gives a converted copy. Web Audio transport
 buffers remain float. Matching C and C++ example plugins use `-wasm64` in the
 names of the 64-bit versions.
 
-Both targets use WASI Preview 3. Nix builds LLVM runtimes and wasi-libc from
-source; it does not download a WASI SDK bundle. The shared nixpkgs pin is
+Both targets use WASI Preview 3. Nix uses LLVM from nixpkgs and builds the
+target runtimes and wasi-libc from source. The shared nixpkgs pin is
 `6dadaf4375be35033e1c84395adbd53ff5fded96` with LLVM 23.1.3.
 [`src/wasi-libc-source.nix`](src/wasi-libc-source.nix) pins wasi-libc to
 `c3b3596e3d3b2418cb128c0095ad710d351959d6` (2026-11-18), using WASI 0.3.2.
@@ -98,9 +98,9 @@ API. It rejects values outside JavaScript's exact integer range.
 Browsers must support memory64, table64, multiple memories and Wasm exceptions.
 The browser loader caps engine memory at 8 GiB.
 
-The [Component Model memory64 work](https://github.com/WebAssembly/component-model/issues/22)
-and [WASI SDK target policy](https://github.com/WebAssembly/wasi-sdk#notable-limitations)
-explain why the adapter is needed. Run the source-built host probes with:
+The [Component Model memory64 issue](https://github.com/WebAssembly/component-model/issues/22)
+tracks the work needed for a direct memory64 component ABI. Run the
+source-built host probes with:
 
 ```bash
 source scripts/nixpkgs-pin.sh
@@ -204,9 +204,9 @@ SharedArrayBuffer or MessagePort transport. These modes use wasm32 by default
 and wasm64 only through the opt-in module. `useWorker` defaults to `false`;
 set it to `true` to run Csound in a worker. SharedArrayBuffer transport needs cross-origin isolation headers.
 
-Preview 3 supports async calls, streams and futures. The
-[experimental pthreads sysroot](https://github.com/WebAssembly/wasi-sdk/blob/wasi-sdk-34/CoopThreading.md)
-switches between threads at yields and synchronization points. Csound's
+Preview 3 supports async calls, streams and futures.
+[wasi-libc's experimental pthreads](https://github.com/WebAssembly/wasi-libc/blob/c3b3596e3d3b2418cb128c0095ad710d351959d6/README.md#building-in-pthread-support)
+switch between threads at yields and synchronization points. Csound's
 `--realtime` background init needs a worker that can run in parallel with audio
 rendering, so `supportsRealtime()` returns 0 on both Preview 3 builds. Browser
 playback still works.
