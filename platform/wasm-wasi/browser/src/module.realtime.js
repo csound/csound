@@ -9,15 +9,11 @@ import { createWasiThreadHost } from "./utils/wasi-threads.js";
 import { createThreadedPluginRegistry } from "./utils/threaded-plugins.js";
 import { isWasmBinary } from "./utils/wasm-dylink.js";
 import { assertBrowserReactor, assertBrowserPrecision } from "./utils/browser-reactor.js";
-import {
-  createWasiClockImports,
-  createWasiThreadEnvironment,
-} from "./utils/wasi-threads-imports.js";
+import { createWasiThreadEnvironment } from "./utils/wasi-threads-imports.js";
 
 export default async function loadRealtimeWasm({
   wasmBytes,
   ports = [],
-  mayBlock = false,
   withPlugins = [],
   messagePort,
 }) {
@@ -38,11 +34,14 @@ export default async function loadRealtimeWasm({
   let host = null;
   let plugins = null;
   const imports = wasi.getImports(module);
-  imports["env"] = createWasiThreadEnvironment({
-    memory,
-    postMessage: (data) => messagePort.post(data),
-    decodeText: uint2String,
-  });
+  imports["env"] = {
+    ...imports["env"],
+    ...createWasiThreadEnvironment({
+      memory,
+      postMessage: (data) => messagePort.post(data),
+      decodeText: uint2String,
+    }),
+  };
   // The parent keeps the full host API when --realtime is off. Child imports
   // remain restricted because file handles cannot be copied across threads.
   imports["env"]["csoundWasiJsMessageCallback"] = csoundWasiJsMessageCallback({
@@ -63,41 +62,13 @@ export default async function loadRealtimeWasm({
   imports["env"]["csoundLoadModules"] = (csound) => plugins.loadModules(csound);
   imports["env"]["csoundLoadExternals"] = (csound, pointer) =>
     plugins.loadExternals(csound, pointer);
-  imports["wasi"] = {
-    "thread-spawn": (argument, resultPointer) => {
-      if (host) return host.threadSpawn(argument, resultPointer);
-      // Plugin constructors and parent-only hosts may try pthread_create.
-      // Report EAGAIN through either WASI ABI instead of trapping in JS.
-      if (resultPointer === undefined) return -6;
-      const view = new DataView(memory.buffer);
-      view.setUint32(resultPointer, 1, true);
-      view.setUint32(resultPointer + 4, 6, true);
-      return undefined;
-    },
-  };
-  // A local shared Wasm memory also works when the browser hides the global
-  // SharedArrayBuffer constructor. UI/AudioWorklet hosts still cannot wait.
-  const clockControl = new WebAssembly.Memory({ initial: 1, maximum: 1, shared: true });
-  const clocks = createWasiClockImports({
-    memory,
-    control: new Int32Array(clockControl.buffer),
-    mayBlock,
-  });
-  imports["wasi_snapshot_preview1"] ??= {};
-  Object.assign(imports["wasi_snapshot_preview1"], clocks);
   const instance = await WebAssembly.instantiate(module, imports);
   assertBrowserPrecision(instance.exports);
   // Constructors and the main thread's TLS run once, never on child instances.
   wasi.start(instance);
   const importsForModule = (pluginModule) => {
     const options = wasi.getImports(pluginModule);
-    options["env"] = imports["env"];
-    options["wasi"] = imports["wasi"];
-    options["wasi_snapshot_preview1"] = Object.assign(
-      {},
-      options["wasi_snapshot_preview1"],
-      clocks,
-    );
+    options["env"] = { ...imports["env"], ...options["env"] };
     return options;
   };
   plugins = createThreadedPluginRegistry({

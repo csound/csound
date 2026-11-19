@@ -474,7 +474,6 @@ const initialize = async (payload) => {
     ? await loadRealtimeWasm({
         wasmBytes: wasmDataURI,
         ports: payload["threadPorts"],
-        mayBlock: true,
         messagePort: workerMessagePort,
         withPlugins,
       })

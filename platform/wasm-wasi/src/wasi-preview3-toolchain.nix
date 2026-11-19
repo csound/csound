@@ -41,9 +41,10 @@ let
         patches = [./wasi-preview3-stdin-close.patch];
         pname = "wasilibc-preview3";
         cmakeFlags = builtins.filter
-          (flag: !(pkgs.lib.hasPrefix "-DTARGET_TRIPLE=" flag))
+          (flag: builtins.match "-D(TARGET_TRIPLE|BUILTINS_LIB)(:[^=]+)?=.*" flag == null)
           old.cmakeFlags ++ [
             "-DTARGET_TRIPLE=${target}"
+            "-DBUILTINS_LIB=${final.llvmPackages.compiler-rt}/lib/wasi/libclang_rt.builtins-wasm32.a"
             "-DBUILD_SHARED=OFF"
             "-DBINDINGS_TARGET=OFF"
           ];
@@ -76,4 +77,13 @@ in {
   inherit pkgsWasm compiler target;
   libc = pkgsWasm.wasilibc;
   stdenv = pkgs.overrideCC pkgsWasm.clangStdenv compiler;
+  tools = pkgs.symlinkJoin {
+    name = "csound-wasip3-compiler-tools";
+    paths = [
+      (pkgs.writeShellScriptBin "wasm32-wasip3-clang" ''
+        exec ${compiler}/bin/${compiler.targetPrefix}clang "$@"
+      '')
+      pkgs.llvmPackages_23.lld
+    ];
+  };
 }

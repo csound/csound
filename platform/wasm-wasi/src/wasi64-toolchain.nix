@@ -52,7 +52,7 @@ let
           python3 ${../scripts/wasm64/patch-libc.py}
         '';
         cmakeFlags = builtins.filter
-          (flag: !(pkgs.lib.hasPrefix "-DTARGET_TRIPLE=" flag) && !(pkgs.lib.hasPrefix "-DBUILTINS_LIB=" flag))
+          (flag: builtins.match "-D(TARGET_TRIPLE|BUILTINS_LIB)(:[^=]+)?=.*" flag == null)
           old.cmakeFlags ++ [
             "-DTARGET_TRIPLE=${target}"
             "-DBUILTINS_LIB=${final.wasi64Builtins}/lib/wasi/libclang_rt.builtins-wasm64.a"

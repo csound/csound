@@ -26,7 +26,6 @@ const wasi = new WASI();
 wasi.setMemory(memory);
 const bridge = wide ? memory64Imports(module, memory, wasi) : undefined;
 const imports = bridge ? bridge.imports : wasi.getImports(module);
-imports.wasi = { "thread-spawn": () => -6 };
 imports.env = {
   ...imports.env,
   memory,

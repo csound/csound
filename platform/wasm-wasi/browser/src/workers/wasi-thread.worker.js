@@ -41,9 +41,6 @@ globalThis.addEventListener("message", ({ data }) => {
       const imports = createWasiThreadImports({
         module: data["module"],
         memory: data["memory"],
-        control,
-        index: data["index"],
-        clockOrigin: data["clockOrigin"],
         postMessage,
       });
       const instance = await WebAssembly.instantiate(data["module"], imports);
@@ -61,9 +58,6 @@ globalThis.addEventListener("message", ({ data }) => {
             createWasiThreadImports({
               module,
               memory: data["memory"],
-              control,
-              index: data["index"],
-              clockOrigin: data["clockOrigin"],
               postMessage,
             }),
         }),

@@ -1,5 +1,8 @@
 #include <pthread.h>
 #include <stdint.h>
+#if !defined(__wasip3__)
+#error WASI realtime requires WASI Preview 3
+#endif
 #if !defined(__wasm_atomics__) || !defined(__wasm_bulk_memory__)
 #error WASI realtime requires -pthread and Wasm atomics
 #endif

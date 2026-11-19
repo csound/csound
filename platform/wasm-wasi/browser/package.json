@@ -65,7 +65,6 @@
     "test:realtime": "node tests/browser-realtime-runner.js"
   },
   "devDependencies": {
-    "@csound/wasm-bin": "7.0.0-beta31",
     "@eslint/js": "^10.0.1",
     "browser-or-node": "^3.0.0",
     "chai": "^6.2.2",

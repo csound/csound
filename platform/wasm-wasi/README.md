@@ -192,8 +192,9 @@ threaded tests ready for a future Preview 3 toolchain. The published
 `csound-cli.wasm` remains the non-threaded command.
 
 For releases, publish a new `@csound/wasm-bin` version before updating and
-publishing `@csound/browser`; older binary packages do not contain the new
-`csound-wasm64.wasm` engine and its SDK.
+publishing `@csound/browser`. The browser build requires Preview 3 reactors for
+both pointer widths. During development, build the local binaries before
+bundling the browser package.
 
 ---
 
@@ -291,7 +292,7 @@ can keep using `nix-shell`, which supplies Node 24 without nvm.
 ```bash
 cd browser
 npm ci              # install browser-wrapper dependencies
-npm link @csound/wasm-bin   # replace the npm version with your local build
+npm link @csound/wasm-bin   # use the local Preview 3 build
 ```
 
 ---
