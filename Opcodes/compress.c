@@ -23,6 +23,7 @@
 #ifdef BUILD_PLUGINS
 #include "csdl.h"
 #else
+#include <float.h>
 #include "csoundCore.h"
 #endif
 #include "interlocks.h"
@@ -49,7 +50,8 @@ typedef struct {        /* this now added from 07/01 */
     cs_float   midphs, maxphs, begval, endval;
     FUNC    *ftp;
     int32_t initialized;
-    cs_double rms_scale, rms_correction;
+    cs_double rms_scale, rms_correction, rms_weight;
+    int32_t rms_shift;
 } DIST;
 
 static int32_t compset(CSOUND *csound, CMPRS *p)
@@ -207,6 +209,16 @@ static int32_t compress(CSOUND *csound, CMPRS *p)
     return OK;
 }
 
+#ifdef USE_FLOAT
+#define DIST_LDEXP ldexpf
+#define DIST_MIN_NORMAL FLT_MIN
+#define DIST_BOOST 64
+#else
+#define DIST_LDEXP ldexp
+#define DIST_MIN_NORMAL DBL_MIN
+#define DIST_BOOST 512
+#endif
+
 static int32_t distset(CSOUND *csound, DIST *p)
 {
     FUNC    *ftp;
@@ -221,12 +233,22 @@ static int32_t distset(CSOUND *csound, DIST *p)
     p->begval = ftp->ftable[0];
     p->endval = ftp->ftable[ftp->flen];
     TONE_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
+    /* Keep a subnormal detector weight normal without changing its pole.
+       The stored energy is scaled by 2^rms_shift. */
+    const int32_t shift = (p->c1 == FL(0.0) && p->initialized) ? p->rms_shift :
+      (p->c1 > FL(0.0) && p->c1 < DIST_MIN_NORMAL ? DIST_BOOST : 0);
+    p->rms_weight = DIST_LDEXP(p->c1, shift);
     p->min_rms = csound->Get0dBFS(csound) * DV32768;
     if (!*p->istor || !p->initialized || !isfinite(p->prvq) ||
         p->prvq < FL(0.0) || !isfinite(p->prvd) || p->prvd <= FL(0.0)) {
       p->prvq = p->rms_scale = p->rms_correction = FL(0.0);
       p->prvd = FL(1000.0) * p->min_rms;
     }
+    else if (shift != p->rms_shift) {
+      p->prvq = DIST_LDEXP(p->prvq, shift - p->rms_shift);
+      p->rms_correction = DIST_LDEXP(p->rms_correction, shift - p->rms_shift);
+    }
+    p->rms_shift = shift;
     p->initialized = 1;
 
     return OK;
@@ -271,8 +293,17 @@ static int32_t distort(CSOUND *csound, DIST *p)
         cs_double normalized = asig[n] / level_scale;
         /* Squaring a normalized sample cannot overflow. Retain small
            updates without rounding the complementary pole to one. */
-        volatile cs_double difference = normalized * normalized - q;
-        volatile cs_double update = p->c1 * (difference + correction);
+        const cs_double squared = normalized * normalized;
+        volatile cs_double update;
+        if (p->rms_shift == 0) {
+          volatile cs_double difference = squared - q;
+          update = p->c1 * (difference + correction);
+        }
+        else {
+          volatile cs_double incoming = p->rms_weight * squared;
+          volatile cs_double decay = p->c1 * (q - correction);
+          update = incoming - decay;
+        }
         volatile cs_double step = update - correction;
         volatile cs_double next = q + step;
         volatile cs_double applied = next - q;
@@ -291,10 +322,10 @@ static int32_t distort(CSOUND *csound, DIST *p)
       return csound->PerfError(csound, &(p->h), "%s\n",
                                Str("distort: input level is out of range"));
 #ifdef USE_FLOAT
-    rms = SQRT(q) * level_scale;
+    rms = DIST_LDEXP(SQRT(q), -p->rms_shift / 2) * level_scale;
 #else
     /* SQRT follows sample precision; mixed builds need cs_double here. */
-    rms = sqrt(q) * level_scale;
+    rms = DIST_LDEXP(sqrt(q), -p->rms_shift / 2) * level_scale;
 #endif
     if (rms < p->min_rms)
       rms = p->min_rms;
@@ -398,6 +429,10 @@ static int32_t distort(CSOUND *csound, DIST *p)
 
     return OK;
 }
+
+#undef DIST_LDEXP
+#undef DIST_MIN_NORMAL
+#undef DIST_BOOST
 
 #define S(x)    sizeof(x)
 
