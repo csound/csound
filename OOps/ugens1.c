@@ -610,6 +610,16 @@ int32_t linsegr(CSOUND *csound, LINSEG *p)
   return OK;
 }
 
+#ifdef USE_FLOAT
+#define EXPSEG_FREXP frexpf
+#define EXPSEG_LDEXP ldexpf
+#define EXPSEG_EXP_LIMIT (2 * FLT_MAX_EXP)
+#else
+#define EXPSEG_FREXP frexp
+#define EXPSEG_LDEXP ldexp
+#define EXPSEG_EXP_LIMIT (2 * DBL_MAX_EXP)
+#endif
+
 /* Shared initialization for duration and absolute-time exponential segments.
    rate is the rate used by cnt/mlt; acnt/amlt always use the sample rate. */
 static int32_t expseg_init(CSOUND *csound, cs_float **args, int32_t nargs,
@@ -703,6 +713,7 @@ static int32_t expseg_init(CSOUND *csound, cs_float **args, int32_t nargs,
       segp->delta = expm1(logratio / count);
       segp->adelta = expm1(logratio / audio_count);
     }
+    segp->val = EXPSEG_FREXP(segp->val, &segp->exponent);
   }
   segp->cnt = segp->acnt = MAXPOS;
   *current = segments;
@@ -736,7 +747,7 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)
 
 /* Store a slow curve's change from one directly, then retain updates that
    fall below the spacing of val. Volatile prevents fast-math reassociation. */
-#define EXPSEG_ADVANCE(value, multiplier, delta, correction) do {           \
+#define EXPSEG_ADVANCE(value, multiplier, delta, correction, exponent) do {           \
   cs_double *const expseg_value = &(value);                                 \
   cs_double *const expseg_correction = (correction);                        \
   const cs_double expseg_current = *expseg_value;                           \
@@ -754,6 +765,15 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)
   else {                                                                    \
     *expseg_correction = FL(0.0);                                           \
     *expseg_value = expseg_current * expseg_multiplier;                     \
+  }                                                                         \
+  const cs_double magnitude = fabs(*expseg_value);                          \
+  if (magnitude >= FL(1.0) || (magnitude > FL(0.0) && magnitude < FL(0.5))) { \
+    int shift = 0;                                                          \
+    *expseg_value = EXPSEG_FREXP(*expseg_value, &shift);                      \
+    *expseg_correction = EXPSEG_LDEXP(*expseg_correction, -shift);            \
+    (exponent) += shift;                                                     \
+    if ((exponent) > EXPSEG_EXP_LIMIT) (exponent) = EXPSEG_EXP_LIMIT;       \
+    else if ((exponent) < -EXPSEG_EXP_LIMIT) (exponent) = -EXPSEG_EXP_LIMIT; \
   }                                                                         \
 } while (0)
 
@@ -784,8 +804,8 @@ int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) 
       p->cursegp = ++segp;
       val = segp->val;
     }
-    rs[n] = (cs_float)val;
-    EXPSEG_ADVANCE(val, segp->mlt, segp->delta, &segp->correction);
+    rs[n] = (cs_float)EXPSEG_LDEXP(val, segp->exponent);
+    EXPSEG_ADVANCE(val, segp->mlt, segp->delta, &segp->correction, segp->exponent);
   }
   segp->val = val;
   return OK;
@@ -802,8 +822,8 @@ int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
   if (UNLIKELY(segp == NULL)) goto err1;
   while (segp->cnt != MAXPOS && --segp->cnt < 0)
     p->cursegp = ++segp;
-  *p->rslt = (cs_float)segp->val;
-  EXPSEG_ADVANCE(segp->val, segp->mlt, segp->delta, &segp->correction);
+  *p->rslt = (cs_float)EXPSEG_LDEXP(segp->val, segp->exponent);
+  EXPSEG_ADVANCE(segp->val, segp->mlt, segp->delta, &segp->correction, segp->exponent);
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
@@ -835,8 +855,8 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
       //printf("nxtseg: val=%f amlt=%f acnt=%d\n",
       //       segp->val,segp->amlt,segp->acnt);
     }
-    rs[n] = (cs_float)segp->val;
-    EXPSEG_ADVANCE(segp->val, segp->amlt, segp->adelta, &segp->correction);
+    rs[n] = (cs_float)EXPSEG_LDEXP(segp->val, segp->exponent);
+    EXPSEG_ADVANCE(segp->val, segp->amlt, segp->adelta, &segp->correction, segp->exponent);
   }
   return OK;
  err1:
@@ -845,6 +865,9 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
 }
 
 #undef EXPSEG_ADVANCE
+#undef EXPSEG_FREXP
+#undef EXPSEG_LDEXP
+#undef EXPSEG_EXP_LIMIT
 
 int32_t xsgrset(CSOUND *csound, EXPSEG *p)
 {
