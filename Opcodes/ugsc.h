@@ -80,6 +80,7 @@ typedef struct {
         cs_double value, delta, value_error;
         cs_double damping, stiffness;
         int32_t sign;
+        int exponent;
 } PHASER2STATE;
 #endif
 

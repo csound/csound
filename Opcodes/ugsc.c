@@ -491,6 +491,33 @@ static int32_t phaser2set(CSOUND *csound, PHASER2 *p)
   (value) = ph_next;                                                        \
 } while (0)
 
+/* Leave room to add state and apply the section coefficients. Rescale
+   by an exact power of two as the input or accumulated state grows. */
+static void phaser2Scale(PHASER2STATE *state, cs_double input)
+{
+    const cs_double threshold = FL(79228162514264337593543950336.0); /* 2^96 */
+    const cs_double magnitude = fmaxf(FABS(state->value), FABS(state->delta));
+    if (state->exponent == 0 && magnitude < threshold && FABS(input) < threshold)
+      return;
+    if (!isfinite(magnitude) || !isfinite(input))
+      return;
+    int signal_exp = 0, state_exp = 0;
+    if (input != FL(0.0)) frexpf(input, &signal_exp);
+    if (magnitude != FL(0.0)) {
+      frexpf(magnitude, &state_exp);
+      state_exp += state->exponent;
+    }
+    int exponent = (signal_exp > state_exp ? signal_exp : state_exp) - 96;
+    if (exponent < 0) exponent = 0;
+    if (exponent != state->exponent) {
+      const int shift = state->exponent - exponent;
+      state->value = ldexpf(state->value, shift);
+      state->delta = ldexpf(state->delta, shift);
+      state->value_error = ldexpf(state->value_error, shift);
+      state->exponent = exponent;
+    }
+}
+
 static int32_t phaser2(CSOUND *csound, PHASER2 *p)
 {
     const cs_double kbf = FABS(*p->kbf), ksep = FABS(*p->ksep);
@@ -540,8 +567,10 @@ static int32_t phaser2(CSOUND *csound, PHASER2 *p)
       for (j = 0; j < p->loop; j++) {
         PHASER2STATE *state = &p->state[j];
         const cs_double sign = state->sign;
+        phaser2Scale(state, xn);
+        const cs_double input = state->exponent == 0 ? xn : ldexpf(xn, -state->exponent);
         cs_double old_delta = sign * state->delta;
-        volatile cs_double change = xn - state->damping * old_delta
+        volatile cs_double change = input - state->damping * old_delta
           - state->stiffness * sign * (state->value - state->value_error);
         volatile cs_double delta = old_delta + change;
         state->delta = delta;
@@ -549,7 +578,8 @@ static int32_t phaser2(CSOUND *csound, PHASER2 *p)
         PHASER2_ADD(state->value, state->value_error, delta);
         /* y = x + (r*r-1)*(w[n]-w[n-2]). Use differences directly,
            rather than subtracting two large canonical state values. */
-        yn = xn - state->damping * (delta + old_delta);
+        yn = input - state->damping * (delta + old_delta);
+        if (state->exponent != 0) yn = ldexpf(yn, state->exponent);
         xn = yn;
       }
       p->out[n] = (cs_float)yn;
