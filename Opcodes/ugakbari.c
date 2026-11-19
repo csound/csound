@@ -160,7 +160,7 @@ static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
     cs_double kmax = *p->kmax;
     cs_double kmin = *p->kmin;
     cs_double val = *p->kinval;
-    cs_double span, position;
+    cs_double span, from_min, from_max;
     if (UNLIKELY(!(max > min)))
       return csound->PerfError(csound, &p->h, "%s\n",
                                Str("scale2: input maximum must exceed minimum"));
@@ -169,15 +169,22 @@ static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
 
     span = max - min;
     /* Halving all terms preserves the ratio when the full span overflows. */
-    if (isfinite(span))
-      position = (val - min) / span;
+    if (isfinite(span)) {
+      from_min = val - min;
+      from_max = max - val;
+    }
     else {
       volatile cs_double halfval = val * FL(0.5);
       volatile cs_double halfmin = min * FL(0.5);
       volatile cs_double halfmax = max * FL(0.5);
-      position = (halfval - halfmin) / (halfmax - halfmin);
+      span = halfmax - halfmin;
+      from_min = halfval - halfmin;
+      from_max = halfmax - halfval;
     }
-    SCALE2_LERP(val, kmin, kmax, position);
+    if (from_max < from_min)
+      SCALE2_LERP(val, kmax, kmin, from_max / span);
+    else
+      SCALE2_LERP(val, kmin, kmax, from_min / span);
     if (p->c2 == FL(0.0)) {
       p->yt1 = val;
       p->correction = 0.0;
