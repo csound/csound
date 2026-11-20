@@ -125,6 +125,13 @@ int32_t         closedir(DIR*);
 
 int32_t     allocgen(CSOUND *, char *, int32_t (*)(FGDATA *, FUNC *));
 
+/* a path separator; Windows accepts '/' as well as '\' */
+#ifdef WIN32
+#  define IS_DIRSEP(c)  ((c) == DIRSEP || (c) == '/')
+#else
+#  define IS_DIRSEP(c)  ((c) == DIRSEP)
+#endif
+
 /* module interface function names */
 
 static  const   char    *opcode_init_Name =   "csound_opcode_init";
@@ -337,7 +344,7 @@ static CS_NOINLINE int32_t init_module(CSOUND *csound, csoundModule_t *m)
   return CSOUND_SUCCESS;
 }
 
-static int32_t cmp_module_name(const void *a, const void *b)
+static int cmp_module_name(const void *a, const void *b)
 {
   const csoundModule_t *x = *(const csoundModule_t * const *) a;
   const csoundModule_t *y = *(const csoundModule_t * const *) b;
@@ -668,11 +675,11 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
   /* check for a valid name */
   if (UNLIKELY(libraryPath == NULL || libraryPath[0] == '\0'))
     return CSOUND_ERROR;
-  /* remove leading directory components from name */
+  /* remove leading directory components from name (Windows takes '/' too) */
   fname = (char*) libraryPath + (int32_t) strlen(libraryPath);
-  for ( ; fname[0] != DIRSEP && fname != (char*) libraryPath; fname--)
+  for ( ; !IS_DIRSEP(fname[0]) && fname != (char*) libraryPath; fname--)
     ;
-  if (fname[0] == DIRSEP)
+  if (IS_DIRSEP(fname[0]))
     fname++;
   if (UNLIKELY(fname[0] == '\0'))
     return CSOUND_ERROR;
