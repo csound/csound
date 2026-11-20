@@ -201,21 +201,27 @@ PUBLIC int32_t csoundModuleInfo(void)                                       \
  */
 #if defined(_WIN32) || defined(__CYGWIN__)
 #  define CSOUND_PLUGIN_EXPORT_DATA __declspec(dllexport)
+#  define CSOUND_PLUGIN_USED_DATA
 #elif defined(__GNUC__) || defined(__clang__)
-#  define CSOUND_PLUGIN_EXPORT_DATA \
-     __attribute__((visibility("default"), used))
+#  define CSOUND_PLUGIN_EXPORT_DATA __attribute__((visibility("default")))
+#  define CSOUND_PLUGIN_USED_DATA   __attribute__((used))
 #else
 #  define CSOUND_PLUGIN_EXPORT_DATA
+#  define CSOUND_PLUGIN_USED_DATA
 #endif
 
+/* "used" goes on the definition only: compilers ignore it, with a warning,
+   on a declaration. */
 #ifdef __cplusplus
 #  define CSOUND_PLUGIN_VERSION(v) \
      extern "C" CSOUND_PLUGIN_EXPORT_DATA const char csoundModuleVersion[]; \
-     extern "C" CSOUND_PLUGIN_EXPORT_DATA const char csoundModuleVersion[] = v
+     extern "C" CSOUND_PLUGIN_EXPORT_DATA CSOUND_PLUGIN_USED_DATA \
+     const char csoundModuleVersion[] = v
 #else
 #  define CSOUND_PLUGIN_VERSION(v) \
      extern CSOUND_PLUGIN_EXPORT_DATA const char csoundModuleVersion[]; \
-     CSOUND_PLUGIN_EXPORT_DATA const char csoundModuleVersion[] = v
+     CSOUND_PLUGIN_EXPORT_DATA CSOUND_PLUGIN_USED_DATA \
+     const char csoundModuleVersion[] = v
 #endif
 
 #undef FLINKAGE_BUILTIN

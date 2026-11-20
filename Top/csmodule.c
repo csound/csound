@@ -337,6 +337,57 @@ static CS_NOINLINE int32_t init_module(CSOUND *csound, csoundModule_t *m)
   return CSOUND_SUCCESS;
 }
 
+static int32_t cmp_module_name(const void *a, const void *b)
+{
+  const csoundModule_t *x = *(const csoundModule_t * const *) a;
+  const csoundModule_t *y = *(const csoundModule_t * const *) b;
+  return strcmp(&(x->name[0]), &(y->name[0]));
+}
+
+/* Print the plugin libraries loaded by this Csound, with their own version
+   and path, sorted by file name (--list-plugins). */
+void list_plugins(CSOUND *csound)
+{
+  const char      *none = Str("(none)");
+  csoundModule_t  *m, **lst = NULL;
+  int32_t         cnt = 0, i;
+  int             nameWidth = 0, versionWidth = (int) strlen(none);
+
+  for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt)
+    cnt++;
+  if (cnt > 0) {
+    lst = (csoundModule_t**) csound->Malloc(csound,
+                                            sizeof(csoundModule_t*) * cnt);
+    if (UNLIKELY(lst == NULL)) {
+      csound->ErrorMsg(csound, "%s", Str("Error creating plugin list"));
+      return;
+    }
+  }
+  for (i = 0, m = (csoundModule_t*) csound->csmodule_db; m != NULL;
+       m = m->nxt, i++) {
+    int len = (int) strlen(&(m->name[0]));
+    lst[i] = m;
+    if (len > nameWidth)
+      nameWidth = len;
+    len = (int) strlen(m->version);
+    if (len > versionWidth)
+      versionWidth = len;
+  }
+  if (cnt > 1)
+    qsort((void*) lst, (size_t) cnt, sizeof(csoundModule_t*), cmp_module_name);
+  for (i = 0; i < cnt; i++) {
+    m = lst[i];
+    csound->Message(csound, "%-*s  %-*s  %s\n",
+                    nameWidth, m->name[0] != '\0' ? &(m->name[0]) : "-",
+                    versionWidth, m->version[0] != '\0' ? m->version : none,
+                    m->path != NULL ? m->path : "-");
+  }
+  csound->Message(csound, "\n");
+  csound->Message(csound, Str("%d plugins\n\n"), cnt);
+  if (lst != NULL)
+    csound->Free(csound, lst);
+}
+
 #ifdef __wasi__
 __attribute__((used))
 void csoundWasiLoadPlugin(CSOUND *csound, void *preInitFunc, void *initFunc, void *destFunc, void *errCodeToStr) {
@@ -767,57 +818,6 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
   csound->csmodule_db = (void*) mp;
   /* plugin was loaded successfully */
   return CSOUND_SUCCESS;
-}
-
-static int32_t cmp_module_name(const void *a, const void *b)
-{
-  const csoundModule_t *x = *(const csoundModule_t * const *) a;
-  const csoundModule_t *y = *(const csoundModule_t * const *) b;
-  return strcmp(&(x->name[0]), &(y->name[0]));
-}
-
-/* Print the plugin libraries loaded by this Csound, with their own version
-   and path, sorted by file name (--list-plugins). */
-void list_plugins(CSOUND *csound)
-{
-  const char      *none = Str("(none)");
-  csoundModule_t  *m, **lst = NULL;
-  int32_t         cnt = 0, i;
-  int             nameWidth = 0, versionWidth = (int) strlen(none);
-
-  for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt)
-    cnt++;
-  if (cnt > 0) {
-    lst = (csoundModule_t**) csound->Malloc(csound,
-                                            sizeof(csoundModule_t*) * cnt);
-    if (UNLIKELY(lst == NULL)) {
-      csound->ErrorMsg(csound, "%s", Str("Error creating plugin list"));
-      return;
-    }
-  }
-  for (i = 0, m = (csoundModule_t*) csound->csmodule_db; m != NULL;
-       m = m->nxt, i++) {
-    int len = (int) strlen(&(m->name[0]));
-    lst[i] = m;
-    if (len > nameWidth)
-      nameWidth = len;
-    len = (int) strlen(m->version);
-    if (len > versionWidth)
-      versionWidth = len;
-  }
-  if (cnt > 1)
-    qsort((void*) lst, (size_t) cnt, sizeof(csoundModule_t*), cmp_module_name);
-  for (i = 0; i < cnt; i++) {
-    m = lst[i];
-    csound->Message(csound, "%-*s  %-*s  %s\n",
-                    nameWidth, m->name[0] != '\0' ? &(m->name[0]) : "-",
-                    versionWidth, m->version[0] != '\0' ? m->version : none,
-                    m->path != NULL ? m->path : "-");
-  }
-  csound->Message(csound, "\n");
-  csound->Message(csound, Str("%d plugins\n\n"), cnt);
-  if (lst != NULL)
-    csound->Free(csound, lst);
 }
 
 static int32_t check_opcode_deny(CSOUND * csound, const char *fname)
