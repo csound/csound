@@ -67,6 +67,21 @@ TEST_F(PluginOptionTests, StringOptionLoadsItsDefinition)
   expectClient("Changed");
 }
 
+TEST_F(PluginOptionTests, StringOptionAcceptsFullBuffer)
+{
+  const std::string maxValue(63, 'x');
+  ASSERT_EQ(csoundSetOption(csound,
+          ("-+test_plugin_client=" + maxValue).c_str()), 0);
+  expectClient(maxValue.c_str());
+
+  const std::string tooLong(64, 'x');
+  ASSERT_EQ(csoundSetOption(csound,
+          ("-+test_plugin_client=" + tooLong).c_str()), 0);
+  EXPECT_NE(messages().find("string exceeds maximum allowed length"),
+            std::string::npos);
+  expectClient(maxValue.c_str());
+}
+
 TEST_F(PluginOptionTests, BooleanOptionLoadsItsDefinition)
 {
   ASSERT_EQ(csoundSetOption(csound, "-+test_plugin_enabled"), 0);
