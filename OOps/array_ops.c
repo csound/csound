@@ -643,7 +643,10 @@ static int32_t array_get_common(CSOUND *csound, ARRAY_GET *p,
     return ARRAY_PHASE_ERROR("%s\n", Str("Invalid array element offset"));
   }
   size_t offset = (size_t)index * (size_t)dat->arrayMemberSize;
-  size_t allocatedBytes = csound_array_allocated_bytes(csound, dat);
+  size_t allocatedBytes = dat->allocated;
+  if (UNLIKELY(allocatedBytes == 0)) {
+    allocatedBytes = csound_array_allocated_bytes(csound, dat);
+  }
   if (UNLIKELY(allocatedBytes > 0 &&
                offset + (size_t)dat->arrayMemberSize > allocatedBytes)) {
     return ARRAY_PHASE_ERROR(
