@@ -24,6 +24,7 @@
 #include "failing_create_plugin_path.hpp"
 #include "jumping_init_plugin_path.hpp"
 #include "hook_plugin_path.hpp"
+#include "version_plugin_paths.hpp"
 #endif
 
 #ifdef CSOUND_TEST_HAS_TWO_COPIES
@@ -1094,6 +1095,110 @@ TEST(PluginThatSetsAnOption, InItsInitLeavesTheCompilesLanding) {
       ::testing::ExitedWithCode(0), "");
   std::remove(csd.c_str());
 }
+
+// A plugin may give its own version, independent of the Csound version, with
+// CSOUND_PLUGIN_VERSION. The loader reports it with -v. An invalid string is
+// ignored with a warning and the plugin still loads.
+namespace {
+std::string versionLine(const char *plugin, const char *version) {
+  return "Plugin '" +
+         std::filesystem::path(plugin).filename().string() +
+         "' version: " + version + "\n";
+}
+} // namespace
+
+TEST(PluginVersion, LoaderReportsEachPluginsOwnVersion) {
+  const NoUserPluginDirectory noUserPlugins;
+  CSOUND *csound = createWithoutRcFile();
+  ASSERT_EQ(csoundSetOption(csound, "-v"), CSOUND_SUCCESS);
+  drainMessages(csound);
+  EXPECT_EQ(csoundLoadPlugins(
+                csound, directoryOf(CSOUND_TEST_VERSION_TEST_PLUGIN).c_str()),
+            CSOUND_SUCCESS);
+  const std::string messages = drainMessages(csound);
+  EXPECT_NE(messages.find(versionLine(CSOUND_TEST_VERSION_TEST_PLUGIN,
+                                      "1.2.3-test")),
+            std::string::npos) << messages;
+  EXPECT_NE(messages.find(versionLine(CSOUND_TEST_VERSION_CPP_TEST_PLUGIN,
+                                      "4.5.6-cpp")),
+            std::string::npos) << messages;
+  EXPECT_NE(messages.find(versionLine(CSOUND_TEST_INVALID_VERSION_TEST_PLUGIN,
+                                      "(none)")),
+            std::string::npos) << messages;
+  EXPECT_NE(messages.find("ignoring invalid version string of '" +
+                          std::filesystem::path(
+                              CSOUND_TEST_INVALID_VERSION_TEST_PLUGIN)
+                              .filename().string() + "'"),
+            std::string::npos) << messages;
+  csoundDestroy(csound);
+}
+
+// --list-plugins prints each loaded plugin library with its own version and
+// path, and stops before compiling, as --list-opcodes does.
+namespace {
+// The listing's line for a plugin: its file name, then its version.
+bool listsPlugin(const std::string &text, const char *plugin,
+                 const char *version) {
+  const std::string name =
+      std::filesystem::path(plugin).filename().string();
+  size_t line = 0;
+  while ((line = text.find(name, line)) != std::string::npos) {
+    if (line == 0 || text[line - 1] == '\n') {
+      const size_t end = text.find('\n', line);
+      const std::string row = text.substr(line, end - line);
+      return row.find(std::string("  ") + version + "  ") !=
+                 std::string::npos &&
+             row.find(plugin) != std::string::npos;
+    }
+    line += name.size();
+  }
+  return false;
+}
+} // namespace
+
+TEST(ListPlugins, ListsVersionAndPathOfEachPlugin) {
+  const std::string libs =
+      std::string("--opcode-lib=") + CSOUND_TEST_VERSION_TEST_PLUGIN + "," +
+      CSOUND_TEST_INVALID_VERSION_TEST_PLUGIN;
+  const OpcodeListing listing =
+      compileWithArgs({"--list-plugins", libs.c_str()});
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_TRUE(listsPlugin(listing.text, CSOUND_TEST_VERSION_TEST_PLUGIN,
+                          "1.2.3-test")) << listing.text;
+  EXPECT_TRUE(listsPlugin(listing.text,
+                          CSOUND_TEST_INVALID_VERSION_TEST_PLUGIN, "(none)"))
+      << listing.text;
+  EXPECT_NE(listing.text.find(" plugins\n"), std::string::npos)
+      << listing.text;
+}
+
+TEST(ListPlugins, OptionsInCsdListAndStopBeforeCompiling) {
+  const TempCsd csd(std::string("--opcode-lib=") +
+                    CSOUND_TEST_VERSION_CPP_TEST_PLUGIN + " --list-plugins");
+  const OpcodeListing listing = compileWithArgs({"-n", csd.path()});
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_TRUE(listsPlugin(listing.text, CSOUND_TEST_VERSION_CPP_TEST_PLUGIN,
+                          "4.5.6-cpp")) << listing.text;
+  EXPECT_EQ(listing.text.find("performed"), std::string::npos)
+      << listing.text;
+}
+
+// The symbol is plain exported data: a tool can read it without calling into
+// the plugin.
+#ifndef WIN32
+TEST(PluginVersion, IsAnExportedDataSymbol) {
+  for (const char *plugin : {CSOUND_TEST_VERSION_TEST_PLUGIN,
+                             CSOUND_TEST_VERSION_CPP_TEST_PLUGIN}) {
+    void *h = dlopen(plugin, RTLD_NOW | RTLD_LOCAL);
+    ASSERT_NE(h, nullptr) << dlerror();
+    const char *version = (const char *) dlsym(h, "csoundModuleVersion");
+    ASSERT_NE(version, nullptr) << plugin;
+    EXPECT_TRUE(std::string(version) == "1.2.3-test" ||
+                std::string(version) == "4.5.6-cpp") << version;
+    dlclose(h);
+  }
+}
+#endif
 #endif
 
 #include "plugin.h"

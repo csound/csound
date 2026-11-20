@@ -32,6 +32,10 @@ typedef double cs_double;
    Older loaders see an invalid sample size and reject this ABI too. */
 #define CSOUND_MODULE_USE_FLOAT 0x80
 
+/* Plugin metadata: room for a plugin's own version string, including the
+   terminating NUL. See CSOUND_PLUGIN_VERSION in csdl.h. */
+#define CSOUND_MODULE_VERSION_MAX 64
+
 /* Deprecated in CS7. Keep old host and opcode source code valid. */
 #ifndef __MYFLT_DEF
 #define __MYFLT_DEF

@@ -341,6 +341,39 @@ if(BUILD_TESTS)
                 "#pragma once\n#define CSOUND_TEST_CREATE_ERROR_PLUGIN R\"csound($<TARGET_FILE:create_error_test_plugin>)csound\"\n"
             TARGET create_error_test_plugin)
 
+        # Plugins that give their own version, in one directory. They see
+        # only installed SDK headers, as a plugin built outside Csound does.
+        set(version_test_plugins
+            version_test_plugin fixtures/version_plugin.c
+            version_cpp_test_plugin fixtures/version_plugin_cpp.cpp
+            invalid_version_test_plugin fixtures/invalid_version_plugin.c)
+        set(version_plugin_paths "#pragma once\n")
+        while(version_test_plugins)
+            list(POP_FRONT version_test_plugins target source)
+            add_library(${target} MODULE ${source})
+            set_property(TARGET ${target} PROPERTY INCLUDE_DIRECTORIES
+                "${Csound_SOURCE_DIR}/include;${PROJECT_BINARY_DIR}/include")
+            if(USE_LIBSNDFILE)
+                target_include_directories(${target} PRIVATE
+                    $<TARGET_PROPERTY:SndFile::sndfile,INTERFACE_INCLUDE_DIRECTORIES>)
+            endif()
+            target_compile_definitions(${target} PRIVATE BUILD_PLUGINS)
+            set_target_properties(${target} PROPERTIES
+                SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+                LIBRARY_OUTPUT_DIRECTORY
+                    ${CMAKE_CURRENT_BINARY_DIR}/version-plugins
+                RUNTIME_OUTPUT_DIRECTORY
+                    ${CMAKE_CURRENT_BINARY_DIR}/version-plugins)
+            add_dependencies(unittests ${target})
+            string(TOUPPER ${target} macro)
+            string(APPEND version_plugin_paths
+                "#define CSOUND_TEST_${macro} R\"csound($<TARGET_FILE:${target}>)csound\"\n")
+        endwhile()
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/version_plugin_paths.hpp
+            CONTENT "${version_plugin_paths}")
+
         if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
             # A second copy of each plugin that shares instance variables.
             set(TEST_TWO_COPIES_DIR ${CMAKE_CURRENT_BINARY_DIR}/two-copies)

@@ -65,6 +65,13 @@
  * A missing function, or a return value of 0, cannot be validated against    *
  * this Csound, so such a plugin is not loaded.                               *
  *                                                                            *
+ * const char csoundModuleVersion[]                 (optional)                *
+ * --------------------------------                                           *
+ *                                                                            *
+ * The plugin's own version, independent of the Csound version. Define it     *
+ * with CSOUND_PLUGIN_VERSION (from csdl.h). A missing or invalid string      *
+ * leaves the version empty; the plugin still loads.                          *
+ *                                                                            *
  ******************************************************************************/
 
 #include <stdio.h>
@@ -129,6 +136,7 @@ static  const   char    *DestFunc_Name =      "csoundModuleDestroy";
 static  const   char    *ErrCodeToStr_Name =  "csoundModuleErrorCodeToString";
 
 static  const   char    *InfoFunc_Name =      "csoundModuleInfo";
+static  const   char    *Version_Name =       "csoundModuleVersion";
 
 /* environment variable storing path to plugin libraries */
 static  const   char    *plugindir_envvar =   "OPCODE7DIR";
@@ -193,6 +201,10 @@ typedef struct csoundModule_s {
     pluginLibFunc_t   p;                  /* generic plugin interface      */
     opcodeLibFunc_t   o;                  /* opcode library interface      */
   } fn;
+  char        *path;                      /* library path as loaded, or
+                                             NULL if not from a library    */
+  char        version[CSOUND_MODULE_VERSION_MAX]; /* plugin's own version,
+                                             empty if not given            */
   char        name[1];                    /* name of the module            */
 } csoundModule_t;
 
@@ -206,6 +218,29 @@ static CS_NOINLINE void print_module_error(CSOUND *csound,
                    ": %s\n", Str(m->fn.p.ErrCodeToStr(err)));
   else
     csoundMessageS(csound, CSOUNDMSG_ERROR, "\n");
+}
+
+/* Copy the plugin's own version string, if it is a short run of printable
+   ASCII characters. The symbol comes from an untrusted library, so read at
+   most CSOUND_MODULE_VERSION_MAX bytes. Return 0 when the version is valid
+   or absent, and -1 when the plugin gave one that is not used. */
+static int32_t copy_module_version(char *dst, const char *src)
+{
+  size_t  i;
+  dst[0] = '\0';
+  if (src == NULL)
+    return 0;
+  for (i = 0; i < CSOUND_MODULE_VERSION_MAX; i++) {
+    if (src[i] == '\0')
+      break;
+    if (src[i] < 0x20 || src[i] > 0x7E)
+      return -1;
+  }
+  if (i == 0 || i == CSOUND_MODULE_VERSION_MAX)
+    return -1;
+  memcpy(dst, src, i);
+  dst[i] = '\0';
+  return 0;
 }
 
 static int32_t check_plugin_compatibility(CSOUND *csound, const char *fname, int32_t n)
@@ -577,7 +612,7 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
   char            *fname;
   void            *h, *p;
   int32_t             (*infoFunc)(void);
-  int32_t             err;
+  int32_t             err, badVersion;
 
   /* check for a valid name */
   if (UNLIKELY(libraryPath == NULL || libraryPath[0] == '\0'))
@@ -666,10 +701,21 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
     close_library(h);
     return CSOUND_ERROR;
   }
-  /* set up module info structure */
+  /* the plugin's own version, if it gives one */
+  badVersion = copy_module_version(m.version,
+                   (const char*) get_library_symbol(h, Version_Name));
+  if (UNLIKELY(csound->oparms->odebug)) {
+    if (UNLIKELY(badVersion))
+      csound->Warning(csound, Str("ignoring invalid version string of '%s'\n"),
+                      fname);
+    csoundMessage(csound, Str("Plugin '%s' version: %s\n"), fname,
+                  m.version[0] != '\0' ? m.version : Str("(none)"));
+  }
+  /* set up module info structure, followed by the library path */
   /* (note: space for NUL character is already included in size of struct) */
   p = (void*) csound->Malloc(csound,
-                             sizeof(csoundModule_t) + (size_t) strlen(fname));
+                             sizeof(csoundModule_t) + strlen(fname)
+                             + strlen(libraryPath) + 1);
   if (UNLIKELY(p == NULL)) {
     close_library(h);
     csound->ErrorMsg(csound,
@@ -679,6 +725,8 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
   mp = (csoundModule_t*) p;
   memcpy(mp, &m, sizeof(csoundModule_t));
   strcpy(&(mp->name[0]), fname);
+  mp->path = &(mp->name[strlen(fname) + 1]);
+  strcpy(mp->path, libraryPath);
   /* call csoundModuleCreate() if available; a module whose
      csoundModuleCreate() fails is not linked, so it is neither started nor
      destroyed, and keep_failed_module() keeps its library open. */
@@ -719,6 +767,57 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
   csound->csmodule_db = (void*) mp;
   /* plugin was loaded successfully */
   return CSOUND_SUCCESS;
+}
+
+static int32_t cmp_module_name(const void *a, const void *b)
+{
+  const csoundModule_t *x = *(const csoundModule_t * const *) a;
+  const csoundModule_t *y = *(const csoundModule_t * const *) b;
+  return strcmp(&(x->name[0]), &(y->name[0]));
+}
+
+/* Print the plugin libraries loaded by this Csound, with their own version
+   and path, sorted by file name (--list-plugins). */
+void list_plugins(CSOUND *csound)
+{
+  const char      *none = Str("(none)");
+  csoundModule_t  *m, **lst = NULL;
+  int32_t         cnt = 0, i;
+  int             nameWidth = 0, versionWidth = (int) strlen(none);
+
+  for (m = (csoundModule_t*) csound->csmodule_db; m != NULL; m = m->nxt)
+    cnt++;
+  if (cnt > 0) {
+    lst = (csoundModule_t**) csound->Malloc(csound,
+                                            sizeof(csoundModule_t*) * cnt);
+    if (UNLIKELY(lst == NULL)) {
+      csound->ErrorMsg(csound, "%s", Str("Error creating plugin list"));
+      return;
+    }
+  }
+  for (i = 0, m = (csoundModule_t*) csound->csmodule_db; m != NULL;
+       m = m->nxt, i++) {
+    int len = (int) strlen(&(m->name[0]));
+    lst[i] = m;
+    if (len > nameWidth)
+      nameWidth = len;
+    len = (int) strlen(m->version);
+    if (len > versionWidth)
+      versionWidth = len;
+  }
+  if (cnt > 1)
+    qsort((void*) lst, (size_t) cnt, sizeof(csoundModule_t*), cmp_module_name);
+  for (i = 0; i < cnt; i++) {
+    m = lst[i];
+    csound->Message(csound, "%-*s  %-*s  %s\n",
+                    nameWidth, m->name[0] != '\0' ? &(m->name[0]) : "-",
+                    versionWidth, m->version[0] != '\0' ? m->version : none,
+                    m->path != NULL ? m->path : "-");
+  }
+  csound->Message(csound, "\n");
+  csound->Message(csound, Str("%d plugins\n\n"), cnt);
+  if (lst != NULL)
+    csound->Free(csound, lst);
 }
 
 static int32_t check_opcode_deny(CSOUND * csound, const char *fname)

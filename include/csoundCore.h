@@ -1992,6 +1992,7 @@ struct CSOUND_ {
   EVTNODE *rewind_events;                                    /* what the asking inits scheduled after they asked: the rewind puts it in */
   volatile long rewind_asking;                               /* realtime init items that asked for a rewind and run: no line is read */
   volatile long score_rewinds_done;                          /* score_rewinds when the last rewind was done: one runs while they differ */
+  int32_t list_plugins_request;                              /* --list-plugins requested */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */
