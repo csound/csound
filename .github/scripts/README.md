@@ -26,6 +26,10 @@ not discard them.
 `fetch-archive` caches the pinned WASI, Wasmtime and ESP32 downloads by SHA-256.
 It checks the checksum on every use, including cache hits, before extraction.
 
+`download-vc-redist.ps1` retries failed or incomplete Visual C++ runtime downloads.
+It requires a valid Microsoft signature before passing a file to the Windows
+installer build, and stops after three failed attempts.
+
 The macOS installer uses source revisions from `platform/osx/dependencies.env`.
 Its cache key includes the SDK, compiler, build tools, both target architectures
 and dependency build scripts. Save these libraries before packaging changes

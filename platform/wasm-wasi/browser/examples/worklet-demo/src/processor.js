@@ -15,9 +15,7 @@
  */
 
 import { libcsound } from "@csound/browser";
-
-// Cache the libcsound promise so it's shared if multiple nodes are created.
-let csPromise = null;
+import { workletRandomValues } from "../../../src/utils/random-pool.js";
 
 class CsoundUgenProcessor extends AudioWorkletProcessor {
   constructor(options) {
@@ -46,13 +44,12 @@ class CsoundUgenProcessor extends AudioWorkletProcessor {
       }
     };
 
-    this._init();
+    this._init(workletRandomValues(options.processorOptions.randomBytes, this.port));
   }
 
-  async _init() {
+  async _init(getRandomValues) {
     try {
-      if (!csPromise) csPromise = libcsound();
-      const cs = await csPromise;
+      const cs = await libcsound({ getRandomValues });
 
       const csound = cs.csoundCreate();
       cs.csoundSetOption(csound, "-d");
@@ -114,7 +111,7 @@ class CsoundUgenProcessor extends AudioWorkletProcessor {
 
     // Render one ksmps block (ksmps=128 = rendering quantum)
     cs.csoundUgenGraphPerform(this.graph);
-    const samples = cs.csoundUgenVarGetFloat64Array(this.outVar);
+    const samples = cs.csoundUgenVarGetFloat32Array(this.outVar);
 
     // Copy to output (mono source duplicated to all channels)
     for (let ch = 0; ch < output.length; ch++) {

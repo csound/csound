@@ -20,7 +20,6 @@ in base.overrideAttrs (old: {
     "-DBUILD_MULTI_CORE=OFF"
     "-DBUILD_WASI_REALTIME_TESTS=${if testHooks then "ON" else "OFF"}"
   ];
-  nativeBuildInputs = old.nativeBuildInputs ++ [ pkgs.nodejs ];
   # Real C recovery replaces the old browser shim's trap-based jump stubs.
   NIX_CFLAGS_COMPILE = old.NIX_CFLAGS_COMPILE ++ [
     "-mllvm -wasm-use-legacy-eh=false"
@@ -46,6 +45,7 @@ in base.overrideAttrs (old: {
   buildPhase = ''
     runHook preBuild
     ninja -j"$NIX_BUILD_CORES" csound-bin
+    node --experimental-wasm-exnref ../platform/wasm-wasi/tests/check-precision.mjs ./csound shared
     node --experimental-wasm-exnref ../platform/wasm-wasi/tests/realtime/check-reactor.mjs ./csound
     runHook postBuild
   '';
@@ -53,12 +53,11 @@ in base.overrideAttrs (old: {
     runHook preInstall
     mkdir -p "$out/lib" "$out/include/csound"
     cp csound "$out/lib/csound-browser-realtime.wasm"
-    zopfli --zlib -c csound > "$out/lib/csound-browser-realtime.wasm.z"
-    cp libcsound64.a "$out/lib/"
+    cp libcsound.a "$out/lib/"
     cp ../include/*.h include/*.h "$out/include/csound/"
     mkdir -p "$out/share/csound-plugin-sdk/include" "$out/share/csound-plugin-sdk/lib"
     cp -R "$out/include/csound" "$out/share/csound-plugin-sdk/include/"
-    cp "$out/lib/libcsound64.a" "$out/share/csound-plugin-sdk/lib/"
+    cp "$out/lib/libcsound.a" "$out/share/csound-plugin-sdk/lib/"
     cat > "$out/share/csound-plugin-sdk/README.md" <<'EOF'
     Csound shared-memory WASM plugin SDK
 
@@ -72,5 +71,8 @@ in base.overrideAttrs (old: {
     runHook postInstall
   '';
   postInstall = "";
+  postFixup = ''
+    zopfli --zlib -c "$out/lib/csound-browser-realtime.wasm" > "$out/lib/csound-browser-realtime.wasm.z"
+  '';
   passthru = (old.passthru or {}) // { inherit toolchain; };
 })

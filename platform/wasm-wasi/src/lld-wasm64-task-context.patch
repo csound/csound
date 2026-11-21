@@ -1,0 +1,20 @@
+--- a/wasm/Driver.cpp
++++ b/wasm/Driver.cpp
+@@ -995,13 +995,13 @@
+       ctx.sym.tlsBase->markLive();
+       ctx.sym.tlsSize->markLive();
+       ctx.sym.tlsAlign->markLive();
+-      static WasmSignature setTLSBaseSignature{{}, {ValType::I32}};
++      WasmSignature setTLSBaseSignature{{}, {is64 ? ValType::I64 : ValType::I32}};
+       ctx.sym.setTLSBase =
+-          createUndefinedFunction("__wasm_set_tls_base", &setTLSBaseSignature);
++          createUndefinedFunction("__wasm_set_tls_base", make<WasmSignature>(setTLSBaseSignature));
+       ctx.sym.setTLSBase->markLive();
+-      static WasmSignature getTLSBaseSignature{{ValType::I32}, {}};
++      WasmSignature getTLSBaseSignature{{is64 ? ValType::I64 : ValType::I32}, {}};
+       ctx.sym.getTLSBase =
+-          createUndefinedFunction("__wasm_get_tls_base", &getTLSBaseSignature);
++          createUndefinedFunction("__wasm_get_tls_base", make<WasmSignature>(getTLSBaseSignature));
+       ctx.sym.getTLSBase->markLive();
+     }
+   }

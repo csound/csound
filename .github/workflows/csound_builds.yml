@@ -77,9 +77,6 @@ jobs:
       CXX: clang++
       CFLAGS: -Wshorten-64-to-32 -Wpointer-sign -Wformat-security -Wimplicit-const-int-float-conversion
       CXXFLAGS: -Wshorten-64-to-32 -Wformat-security -Wimplicit-const-int-float-conversion -Wwritable-strings
-      CSOUND_WASI_SDK_VERSION: '34'
-      CSOUND_WASI_SDK_FULL_VERSION: '34.0'
-      CSOUND_WASI_SDK_SHA256: b761e3a0721dbae9c09a0059e5fdb2bf917d1b4a8a7b430fb3b5aafb0984b2c4
       # Stay on the supported 48 LTS line and take its patch updates.
       CSOUND_WASMTIME_VERSION: '48.0.5'
       CSOUND_WASMTIME_SHA256: 81fffe5fe895c7f8f84a744f4d4d165dda28793d00ee943ee71fcfb6ab5ed923
@@ -103,18 +100,14 @@ jobs:
             swig liblua5.1-0-dev default-jdk liblo-dev bison flex gettext
             libsamplerate0-dev libpipewire-0.3-dev
 
-      - name: Download WASI SDK
-        id: wasi-sdk
-        uses: ./.github/actions/fetch-archive
-        with:
-          url: https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${{ env.CSOUND_WASI_SDK_VERSION }}/wasi-sdk-${{ env.CSOUND_WASI_SDK_FULL_VERSION }}-x86_64-linux.tar.gz
-          sha256: ${{ env.CSOUND_WASI_SDK_SHA256 }}
-      - name: Install WASI SDK
-        env:
-          ARCHIVE_PATH: ${{ steps.wasi-sdk.outputs.path }}
+      - name: Set up Nix
+        uses: cachix/install-nix-action@v31.11.1
+      - name: Build the Preview 3 fixture toolchain
         run: |
-          tar -xzf "$ARCHIVE_PATH" -C "$RUNNER_TEMP"
-          echo "WASI_SDK_PATH=$RUNNER_TEMP/wasi-sdk-$CSOUND_WASI_SDK_FULL_VERSION-x86_64-linux" >> "$GITHUB_ENV"
+          source platform/wasm-wasi/scripts/nixpkgs-pin.sh
+          fixture_tools="$RUNNER_TEMP/csound-wasip3-tools"
+          nix-build -E '(import ./platform/wasm-wasi/src/wasi-preview3-toolchain.nix {}).tools' -o "$fixture_tools"
+          echo "CSOUND_WASM_FIXTURE_TOOLS=$fixture_tools/bin" >> "$GITHUB_ENV"
 
       - name: Download Wasmtime C API
         id: wasmtime
@@ -168,6 +161,8 @@ jobs:
           cd build
           cmake .. -DUSE_MP3=0 -DBUILD_TESTS=1 -DBUILD_STATIC_LIBRARY=1 \
             -DWasmtime_ROOT="${CSOUND_WASMTIME_ROOT}" \
+            -DCSOUND_WASM_TEST_C_COMPILER="$CSOUND_WASM_FIXTURE_TOOLS/wasm32-wasip3-clang" \
+            -DCSOUND_WASM_TEST_LINKER="$CSOUND_WASM_FIXTURE_TOOLS/wasm-ld" \
             -DCMAKE_BUILD_TYPE=Debug -DDEBUG_ERROR_ON_WARNING=ON
           grep -q '^Wasmtime_HAS_REQUIRED_API:INTERNAL=1$' CMakeCache.txt
 
@@ -1546,27 +1541,9 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $redistUrl = "https://aka.ms/vs/18/release/vc_redist.x64.exe"
-          $redistPath = "installer/windows/vc_redist.x64.exe"
-          Write-Host "Downloading Visual C++ Redistributable (x64) from $redistUrl ..."
-          Invoke-WebRequest -Uri $redistUrl -OutFile $redistPath
-          if (!(Test-Path $redistPath)) {
-            Write-Error "Failed to download vc_redist.x64.exe to $redistPath"
-            exit 1
-          }
-          $hash = (Get-FileHash $redistPath -Algorithm SHA256).Hash
-          $size = (Get-Item $redistPath).Length
-          Write-Host "Downloaded vc_redist.x64.exe - SHA256: $hash Size: $size bytes"
-          $sig = Get-AuthenticodeSignature $redistPath
-          if ($sig.Status -ne 'Valid') {
-            Write-Error "Authenticode signature invalid for $redistPath : $($sig.Status) $($sig.StatusMessage)"
-            exit 1
-          }
-          if ($sig.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') {
-            Write-Error "Unexpected signer for $redistPath : $($sig.SignerCertificate.Subject) - expected Microsoft Corporation"
-            exit 1
-          }
-          Write-Host "Authenticode valid - Subject: $($sig.SignerCertificate.Subject) Issuer: $($sig.SignerCertificate.Issuer)"
+          ./.github/scripts/download-vc-redist.ps1 `
+            -Uri "https://aka.ms/vs/18/release/vc_redist.x64.exe" `
+            -Destination "installer/windows/vc_redist.x64.exe"
           iscc /o. installer\\windows\\csound7_x64_github.iss
 
       - name: Upload installer
@@ -1637,27 +1614,9 @@ jobs:
       - name: Build installer
         shell: powershell
         run: |
-          $redistUrl = "https://aka.ms/vc14/vc_redist.arm64.exe"
-          $redistPath = "installer/windows/vc_redist.arm64.exe"
-          Write-Host "Downloading Visual C++ Redistributable (ARM64) from $redistUrl ..."
-          Invoke-WebRequest -Uri $redistUrl -OutFile $redistPath
-          if (!(Test-Path $redistPath)) {
-            Write-Error "Failed to download vc_redist.arm64.exe to $redistPath"
-            exit 1
-          }
-          $hash = (Get-FileHash $redistPath -Algorithm SHA256).Hash
-          $size = (Get-Item $redistPath).Length
-          Write-Host "Downloaded vc_redist.arm64.exe - SHA256: $hash Size: $size bytes"
-          $sig = Get-AuthenticodeSignature $redistPath
-          if ($sig.Status -ne 'Valid') {
-            Write-Error "Authenticode signature invalid for $redistPath : $($sig.Status) $($sig.StatusMessage)"
-            exit 1
-          }
-          if ($sig.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') {
-            Write-Error "Unexpected signer for $redistPath : $($sig.SignerCertificate.Subject) - expected Microsoft Corporation"
-            exit 1
-          }
-          Write-Host "Authenticode valid - Subject: $($sig.SignerCertificate.Subject) Issuer: $($sig.SignerCertificate.Issuer)"
+          ./.github/scripts/download-vc-redist.ps1 `
+            -Uri "https://aka.ms/vs/18/release/vc_redist.arm64.exe" `
+            -Destination "installer/windows/vc_redist.arm64.exe"
           iscc /o. installer\\windows\\csound7_arm64_github.iss
 
       - name: Upload installer
@@ -1729,27 +1688,9 @@ jobs:
 #        if: github.ref == 'refs/heads/develop'
         shell: powershell
         run: |
-          $redistUrl = "https://aka.ms/vs/17/release/vc_redist.x86.exe"
-          $redistPath = "installer/windows/vc_redist.x86.exe"
-          Write-Host "Downloading Visual C++ Redistributable (x86) from $redistUrl ..."
-          Invoke-WebRequest -Uri $redistUrl -OutFile $redistPath
-          if (!(Test-Path $redistPath)) {
-            Write-Error "Failed to download vc_redist.x86.exe to $redistPath"
-            exit 1
-          }
-          $hash = (Get-FileHash $redistPath -Algorithm SHA256).Hash
-          $size = (Get-Item $redistPath).Length
-          Write-Host "Downloaded vc_redist.x86.exe - SHA256: $hash Size: $size bytes"
-          $sig = Get-AuthenticodeSignature $redistPath
-          if ($sig.Status -ne 'Valid') {
-            Write-Error "Authenticode signature invalid for $redistPath : $($sig.Status) $($sig.StatusMessage)"
-            exit 1
-          }
-          if ($sig.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') {
-            Write-Error "Unexpected signer for $redistPath : $($sig.SignerCertificate.Subject) - expected Microsoft Corporation"
-            exit 1
-          }
-          Write-Host "Authenticode valid - Subject: $($sig.SignerCertificate.Subject) Issuer: $($sig.SignerCertificate.Issuer)"
+          ./.github/scripts/download-vc-redist.ps1 `
+            -Uri "https://aka.ms/vs/17/release/vc_redist.x86.exe" `
+            -Destination "installer/windows/vc_redist.x86.exe"
           iscc /o. installer\\windows\\csound7_x86_github.iss
 
       - name: Upload installer

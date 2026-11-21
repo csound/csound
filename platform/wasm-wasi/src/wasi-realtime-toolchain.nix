@@ -1,26 +1,5 @@
-{ pkgs, pkgsWasm ? pkgs.pkgsCross.wasi32 }:
-let
-  libc = pkgsWasm.wasilibc.override { enablePosixThreads = true; };
-  cCompiler = pkgsWasm.clangStdenv.cc.override (old: {
-    inherit libc;
-    bintools = pkgsWasm.clangStdenv.cc.bintools.override { inherit libc; };
-    extraBuildCommands = (old.extraBuildCommands or "") + ''
-      echo " -pthread" >> "$out/nix-support/cc-cflags"
-    '';
-  });
-  cStdenv = pkgs.overrideCC pkgsWasm.clangStdenv cCompiler;
-  # The default WASI libc++ and libc++abi disable thread support. Rebuild both,
-  # rather than putting a threaded allocator behind a single-thread C++ runtime.
-  libcxx = (pkgsWasm.llvmPackages.libcxx.override {
-    stdenv = cStdenv;
-    devExtraCmakeFlags = [
-      "-DLIBCXX_ENABLE_THREADS=ON"
-      "-DLIBCXXABI_ENABLE_THREADS=ON"
-      "-DLIBCXX_HAS_PTHREAD_API=ON"
-    ];
-  });
-  compiler = cCompiler.override { inherit libcxx; };
-in {
-  inherit libc libcxx compiler;
-  stdenv = pkgs.overrideCC pkgsWasm.clangStdenv compiler;
-}
+{ pkgs, system ? pkgs.stdenv.hostPlatform.system, pkgsWasm ? pkgs.pkgsCross.wasi32 }:
+# Preview 3's experimental pthreads run cooperatively. The realtime probe
+# requires a native thread entry point and shared memory for parallel work.
+# Strict pthread declarations keep libc's EAGAIN stubs out of the probe.
+import ./wasi-preview3-toolchain.nix { inherit system pkgs; }

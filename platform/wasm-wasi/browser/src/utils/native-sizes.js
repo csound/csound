@@ -13,28 +13,36 @@
  * limitations under the License.
  */
 
-import { TREE, ORCTOKEN, CS_MIDIDEVICE, CSOUND_PARAMS } from "../structures.js";
+import { pointerSize } from "./wasm64.js";
 
-export const sizeOfPrimitive = {
-  int: 4,
-  uint64: 8,
-  cs_float: 8,
-  char: 1,
-  double: 8,
-  ptr: 4,
-  void: 8,
+/** Read C primitive widths from the engine bound to this API. */
+export const sizeOfPrimitive = (wasm) => ({
+  "int": 4,
+  "uint64": 8,
+  "cs_float": wasm.exports["csoundGetSizeOfCsFloat"](),
+  "cs_double": wasm.exports["csoundGetSizeOfCsDouble"](),
+  "char": 1,
+  "double": 8,
+  "ptr": pointerSize(wasm),
+});
+
+const alignUp = (offset, alignment) => Math.ceil(offset / alignment) * alignment;
+
+/** Lay out C fields, including array lengths, field alignment and tail padding. */
+export const structLayout = (jsStruct, wasm) => {
+  const sizes = sizeOfPrimitive(wasm);
+  let offset = 0;
+  let alignment = 1;
+  const fields = jsStruct.map(([name, primitive, count = 1]) => {
+    const width = sizes[primitive];
+    if (!width) throw new TypeError(`Unknown C primitive: ${primitive}`);
+    alignment = Math.max(alignment, width);
+    offset = alignUp(offset, width);
+    const field = { name, primitive, offset, size: width * count };
+    offset += field.size;
+    return field;
+  });
+  return { fields, size: alignUp(offset, alignment) };
 };
 
-export const sizeOfStruct = (jsStruct) =>
-  jsStruct
-    ? jsStruct.reduce((accumulator, [_, primitive]) => {
-        return sizeOfPrimitive[primitive]
-          ? sizeOfPrimitive[primitive] + accumulator
-          : sizeOfStruct({ TREE, ORCTOKEN }[primitive]) + accumulator;
-      }, 0)
-    : 0;
-
-export const TREE_SIZE = sizeOfStruct(TREE);
-export const ORCTOKEN_SIZE = sizeOfStruct(ORCTOKEN);
-export const CSOUND_PARAMS_SIZE = sizeOfStruct(CSOUND_PARAMS);
-export const CS_MIDIDEVICE_SIZE = sizeOfStruct(CS_MIDIDEVICE);
+export const sizeOfStruct = (jsStruct, wasm) => structLayout(jsStruct, wasm).size;

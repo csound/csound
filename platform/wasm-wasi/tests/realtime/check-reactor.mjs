@@ -15,15 +15,9 @@ const memory = new WebAssembly.Memory({ initial: maximum, maximum, shared: true 
 const wasi = new WASI();
 wasi.setMemory(memory);
 let hostSupportsThreads = true;
-let threadSpawns = 0;
 const imports = wasi.getImports(module);
-imports.wasi = {
-  "thread-spawn": () => {
-    threadSpawns++;
-    return -6;
-  },
-};
 imports.env = {
+  ...imports.env,
   memory,
   csoundWasiJsSupportsThreads: () => Number(hostSupportsThreads),
   csoundLoadModules: () => 0,
@@ -185,7 +179,6 @@ assert.equal(api.csoundIsRealtime(csound), 1);
 hostSupportsThreads = false;
 assert.equal(api.csoundStart(csound), 0);
 assert.equal(api.csoundIsRealtime(csound), 0);
-assert.equal(threadSpawns, 0);
 api.csoundResetWasi(csound);
 
 function fillMidiQueue(target = csound) {

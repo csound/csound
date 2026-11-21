@@ -23,7 +23,7 @@
  *   cs.csoundUgenSetValue(osc, 1, 440);  // frequency
  *   cs.csoundUgenInit(osc);
  *   cs.csoundUgenPerform(osc);
- *   const samples = cs.csoundUgenVarGetFloat64Array(
+ *   const samples = cs.csoundUgenVarGetFloat32Array(
  *     cs.csoundUgenGetOutVar(osc, 0)
  *   );
  */
@@ -37,7 +37,7 @@ import libcsoundFactory from "./libcsound";
  * The returned object exposes synchronous functions matching the C API.
  * @function
  */
-const libcsound = async function ({ withPlugins = [], onReadline } = {}) {
+const libcsound = async function ({ withPlugins = [], onReadline, getRandomValues } = {}) {
   // Minimal message port that prints to console
   const messagePort = {
     post: (msg) => {
@@ -53,6 +53,7 @@ const libcsound = async function ({ withPlugins = [], onReadline } = {}) {
     wasmDataURI: wasmDataURI(),
     withPlugins,
     messagePort,
+    getRandomValues,
   });
 
   wasm.wasi = wasi;
@@ -63,7 +64,7 @@ const libcsound = async function ({ withPlugins = [], onReadline } = {}) {
   // Expose wasm internals for advanced use (memory access, etc.)
   api["wasm"] = wasm;
 
-  // Convenience: expose memory for Float64Array views
+  // Convenience: expose memory for Float32Array views
   api["getMemory"] = () => wasm.exports["memory"];
 
   return api;

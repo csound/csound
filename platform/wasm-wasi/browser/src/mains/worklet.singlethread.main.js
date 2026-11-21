@@ -27,6 +27,7 @@ import { requestMidi } from "../utils/request-midi.js";
 import { EventPromises } from "../utils/event-promises.js";
 import { registerWorkletModule } from "../utils/worklet-context.js";
 import WorkletWorker from "../../dist/__compiled.worklet.singlethread.worker.inline.js";
+import { randomBytes } from "../utils/random-pool.js";
 
 const initializeModule = async (audioContext) => {
   log("Initialize Module")();
@@ -234,7 +235,16 @@ class SingleThreadAudioWorkletMainThread {
     this.ipcMessagePorts.mainMessagePort.addEventListener("message", messageEventHandler(this));
     this.ipcMessagePorts.mainMessagePort.start();
 
-    await this.workletProxy["initialize"](wasmDataURI(), withPlugins);
+    const refillRandom = () => {
+      const bytes = randomBytes();
+      return Comlink.transfer(bytes, [bytes.buffer]);
+    };
+    await this.workletProxy["initialize"](
+      wasmDataURI(),
+      withPlugins,
+      refillRandom(),
+      Comlink.proxy(refillRandom),
+    );
     const csoundInstance = await makeProxyCallback(
       this.workletProxy,
       undefined,

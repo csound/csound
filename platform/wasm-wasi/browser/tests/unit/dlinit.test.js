@@ -73,6 +73,26 @@ describe("WASM plugin registration", () => {
     assert.equal(table.get(calls[0][2].value), opcodeInit);
     assert.equal(table.length, tableLength);
   });
+
+  it("requires a sample width before registering a plugin on Preview 3", () => {
+    for (const sampleSize of [4, 8]) {
+      const host = {
+        exports: {
+          __wasm_task_hook: () => {},
+          csoundGetSizeOfCsFloat: () => sampleSize,
+        },
+      };
+      const calls = [];
+      const plugin = { exports: { csoundModuleInit: (csound) => calls.push(csound) } };
+      assert.throws(() => dlinit(host, plugin, {}, 1), /export csoundModuleInfo/);
+      plugin.exports.csoundModuleInfo = () => 7 << 16;
+      assert.throws(() => dlinit(host, plugin, {}, 1), /export csoundModuleInfo/);
+      assert.deepEqual(calls, []);
+      plugin.exports.csoundModuleInfo = () => (7 << 16) | sampleSize;
+      dlinit(host, plugin, {}, 1);
+      assert.deepEqual(calls, [1]);
+    }
+  });
 });
 
 // Exercise the fallback for hosts without csoundWasiLoadOpcodeLibrary.

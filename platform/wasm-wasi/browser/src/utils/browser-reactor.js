@@ -1,3 +1,13 @@
+export function assertBrowserPrecision(exports, sampleSize = 4) {
+  if (
+    typeof exports["csoundGetSizeOfCsFloat"] !== "function" ||
+    typeof exports["csoundGetSizeOfCsDouble"] !== "function" ||
+    exports["csoundGetSizeOfCsFloat"]() !== sampleSize ||
+    exports["csoundGetSizeOfCsDouble"]() !== 8
+  )
+    throw new Error(`The browser requires a Csound binary with ${sampleSize}-byte samples and 8-byte internal values`);
+}
+
 export function assertBrowserReactor(module) {
   const exports = new Map(WebAssembly.Module.exports(module).map(({ name, kind }) => [name, kind]));
   // Command modules own startup and their pthread runtime. Never hand them to

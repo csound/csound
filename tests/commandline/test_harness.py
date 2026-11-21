@@ -66,6 +66,17 @@ stderr = ["no threads"]
         self.assertFalse(load_test(path, self.root).skip)
         self.assertEqual(load_test(path, self.root, "wasm").skip, "Needs threads")
 
+    def test_wasi_components_inherit_wasm_and_use_boolean_exit_status(self):
+        for profile in ("wasip2", "wasip3"):
+            with self.subTest(profile=profile):
+                path = self.write(metadata='[profiles.wasm.expect]\nexit = 3\nstderr = ["3 errors"]')
+                case = load_test(path, self.root, profile)
+                self.assertEqual(case.expect, {"exit": 1, "stderr": ["3 errors"]})
+                self.assertEqual(load_test(path, self.root, "wasm").expect["exit"], 3)
+                path = self.write(metadata=f'profiles.{profile}.skip = "Needs threads"')
+                self.assertFalse(load_test(path, self.root, "wasm").skip)
+                self.assertEqual(load_test(path, self.root, profile).skip, "Needs threads")
+
     def test_invalid_metadata_fails_with_filename(self):
         for data in ('typo = 1', 'expect.exit = "nonzero"',
                      'expect.exit = true', 'expect.exit = -11',

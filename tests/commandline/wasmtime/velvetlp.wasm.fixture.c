@@ -1,5 +1,9 @@
 /* Native Wasm opcode loader test fixture. */
 
+#ifndef __wasip3__
+#error This fixture requires a WASI Preview 3 compiler
+#endif
+
 #include <csdl.h>
 
 #include "wasm_opcode_abi.h"

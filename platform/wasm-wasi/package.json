@@ -5,6 +5,8 @@
   "main": "./lib/csound.wasm",
   "files": [
     "src",
+    "scripts/wasm64/*.py",
+    "scripts/nixpkgs-pin.sh",
     "lib"
   ],
   "license": "LGPL-2.1",

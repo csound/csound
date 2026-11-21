@@ -841,7 +841,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
         csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
         snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
 #if defined(__wasi__) && !defined(CSOUND_WASI_BROWSER)
-        /* WASI Preview 1 has no process API. Do not report false success. */
+        /* The standalone WASI command has no process API. */
         int system_result = -1;
 #else
         int system_result = system(sys);

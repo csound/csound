@@ -1,4 +1,4 @@
-import { Util } from "./util";
+import { Util } from "./util.js";
 /**
  * @fileoverview Adler32 checksum 実装.
  */

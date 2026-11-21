@@ -29,6 +29,10 @@ build. It supports the following.
   arguments
 - opcode init, perf, and deinit callbacks
 
+The default browser engine uses 32-bit `cs_float` and 64-bit `cs_double` values.
+Its browser plugins do not match this native bridge. Keep double-precision
+headers and flags when building plugins for the native bridge.
+
 It does not yet support strings, arrays, function tables, spectral values,
 custom argument types, optional or variable arguments, or general access to
 the native `CSOUND` function table. The host-call bridge covers the allocation
@@ -50,7 +54,7 @@ the wasm32 Csound layout in guest memory. It does not pass native host pointers
 or native host layouts to the plugin.
 
 The frozen wasm32 offsets live in the private `Top/wasm_opcode_abi.h` header.
-Browser builds check each bridged size and offset at compile time. The native
+Double-precision wasm builds check each bridged size and offset at compile time. The native
 loader reserves a 256-byte `INSDS` prefix, but supplies values only for `esr`,
 `ekr`, `ksmps`, `ksmps_offset`, and `ksmps_no_end`. Guest code must not use
 other `INSDS` fields, even within that prefix. In particular, helpers such as
@@ -163,26 +167,22 @@ The command-line test builds its plugin from C source when CTest runs. It uses
 the current Csound headers and checks the frozen wasm32 layout while it
 compiles. The repository does not store a built test plugin.
 
-Use [WASI SDK 34.0](https://github.com/WebAssembly/wasi-sdk/releases/tag/wasi-sdk-34),
-the version pinned in CI, to build the test plugin. Choose the SDK archive for
-your build machine, unpack it, and set `WASI_SDK_PATH` to its directory.
+Use the pinned Nix LLVM and wasi-libc toolchain that builds the Preview 3
+command and browser reactor.
 
 ```sh
-export WASI_SDK_PATH=/path/to/wasi-sdk-34.0-x86_64-linux
+source platform/wasm-wasi/scripts/nixpkgs-pin.sh
+fixture_tools=$(nix-build -E '(import ./platform/wasm-wasi/src/wasi-preview3-toolchain.nix {}).tools' --no-out-link)
 cmake -S . -B build -G Ninja -DBUILD_TESTS=ON \
-  -DWasmtime_ROOT=/path/to/wasmtime-c-api
+  -DWasmtime_ROOT=/path/to/wasmtime-c-api \
+  -DCSOUND_WASM_TEST_C_COMPILER="$fixture_tools/bin/wasm32-wasip3-clang" \
+  -DCSOUND_WASM_TEST_LINKER="$fixture_tools/bin/wasm-ld"
 ninja -C build
 ctest --test-dir build -R '^commandline_wasmtime_opcode_cache$' \
   --no-tests=error --output-on-failure
 ```
 
-CTest builds the fixture before running the loader checks. The compiler uses
-`wasm32-wasip1`, the target name supported by current WASI SDK releases. The
-fixture links without the WASI runtime because this loader does not provide
-WASI system calls.
-
-Without `WASI_SDK_PATH`, CMake looks for `wasm32-wasip1-clang`,
-`wasm32-wasi-clang`, or `wasm32-unknown-wasi-clang` on `PATH`. You can also set
-`CSOUND_WASM_TEST_C_COMPILER` and `CSOUND_WASM_TEST_SYSROOT` to a compatible
-Clang executable and WASI sysroot. The tests need a Csound build with 64-bit
-`cs_float` and Wasmtime support.
+CTest compiles the fixture for `wasm32-wasip3` and links it directly with
+`wasm-ld`. The core module imports only memory and an indirect function table
+from the native loader. CMake also looks for both tools on `PATH`. The tests
+need a Csound build with 64-bit `cs_float` and Wasmtime support.

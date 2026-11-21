@@ -17,6 +17,16 @@ struct SharedPluginInit {
 static SharedPluginInit plugin_shared_init;
 #endif
 
+#if defined(__wasip3__) && !defined(CSOUND_WASI_SHARED_PLUGIN)
+// The loader must initialize this module's TLS before running its constructors
+// and keep that TLS separate from the engine and other plugins.
+static thread_local int preview3_plugin_value = 42;
+struct Preview3PluginInit {
+  Preview3PluginInit() { ++preview3_plugin_value; }
+};
+static Preview3PluginInit preview3_plugin_init;
+#endif
+
 struct Hello440 : csnd::Plugin<1, 0> {
   cs_double phase = 0.0;
   cs_double phase_inc = 0.0;
@@ -28,6 +38,10 @@ struct Hello440 : csnd::Plugin<1, 0> {
     CSOUND *engine = csound->get_csound();
     engine->Message(engine, "shared C++ plugin: ctor=1 tls=42\n");
 #endif
+#if defined(__wasip3__) && !defined(CSOUND_WASI_SHARED_PLUGIN)
+    if (preview3_plugin_value != 43)
+      return NOTOK;
+#endif
     const cs_double two_pi = 6.283185307179586;
     phase_inc = (two_pi * 440.0) / sr();
     return OK;
@@ -36,6 +50,10 @@ struct Hello440 : csnd::Plugin<1, 0> {
   int aperf() {
 #ifdef CSOUND_WASI_SHARED_PLUGIN
     if (plugin_constructor_count.load() != 1 || plugin_thread_value != 42)
+      return NOTOK;
+#endif
+#if defined(__wasip3__) && !defined(CSOUND_WASI_SHARED_PLUGIN)
+    if (preview3_plugin_value != 43)
       return NOTOK;
 #endif
     const cs_double two_pi = 6.283185307179586;

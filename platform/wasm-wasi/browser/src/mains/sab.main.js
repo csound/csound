@@ -105,10 +105,10 @@ class SharedArrayBufferMainThread {
     }
 
     this.audioStreamIn = new SharedArrayBuffer(
-      MAX_CHANNELS * RING_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
+      MAX_CHANNELS * RING_BUFFER_SIZE * Float32Array.BYTES_PER_ELEMENT,
     );
     this.audioStreamOut = new SharedArrayBuffer(
-      MAX_CHANNELS * RING_BUFFER_SIZE * Float64Array.BYTES_PER_ELEMENT,
+      MAX_CHANNELS * RING_BUFFER_SIZE * Float32Array.BYTES_PER_ELEMENT,
     );
 
     this.midiBufferSAB = new SharedArrayBuffer(
@@ -926,6 +926,7 @@ class SharedArrayBufferMainThread {
             if (
               (this.threaded && active) ||
               this.currentPlayState === "realtimePerformanceStarted" ||
+              this.currentPlayState === "realtimePerformanceResumed" ||
               this.currentPlayState === "renderStarted" ||
               this.eventPromises.isWaitingToStart()
               // startPromiz indicates that startup is in progress

@@ -32,6 +32,7 @@ export const preparePluginImports = ({
   options,
   importedSymbols = [],
   memoryBase,
+  memory64 = false,
 }) => {
   const exportKinds = new Map(exports.map(({ name, kind }) => [name, kind]));
   const weak = new Set(
@@ -69,7 +70,10 @@ export const preparePluginImports = ({
       if (kind !== "global")
         throw new TypeError(`Invalid WebAssembly address import: ${module}.${name}`);
       options[module] ||= Object.create(null);
-      const global = new WebAssembly.Global({ value: "i32", mutable: true }, 0);
+      const global = new WebAssembly.Global(
+        { value: memory64 ? "i64" : "i32", mutable: true },
+        memory64 ? BigInt(0) : 0,
+      );
       options[module][name] = global;
       addressImports.push({ module, name, global });
     } else if (module === "env" && kind === "function") {
@@ -85,7 +89,7 @@ export const preparePluginImports = ({
     ) {
       // Statically linked runtimes own their exception state. Exceptions may
       // propagate through the engine, but cannot be caught by another plugin.
-      options["env"][name] = new WebAssembly.Tag({ parameters: ["i32"] });
+      options["env"][name] = new WebAssembly.Tag({ parameters: [memory64 ? "i64" : "i32"] });
     }
   }
 
@@ -101,7 +105,8 @@ export const preparePluginImports = ({
             ? host
             : local;
         if (typeof func === "function") {
-          global.value = addFunction(func);
+          const address = addFunction(func);
+          global.value = memory64 ? BigInt(address) : address;
         } else if (!isWeak(module, name)) {
           throw new TypeError(`Missing WebAssembly function address: ${name}`);
         }
@@ -113,7 +118,8 @@ export const preparePluginImports = ({
         ) {
           global.value = host.value;
         } else if (local instanceof WebAssembly.Global) {
-          global.value = Number(local.value) + memoryBase;
+          const address = Number(local.value) + memoryBase;
+          global.value = memory64 ? BigInt(address) : address;
         } else if (!isWeak(module, name)) {
           throw new TypeError(`Missing WebAssembly data address: ${name}`);
         }

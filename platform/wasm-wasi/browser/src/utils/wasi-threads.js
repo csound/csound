@@ -27,7 +27,7 @@ export function stopWasiThreads(control, failed = false) {
 }
 
 /**
- * Prepare all instances before playback. thread-spawn only reserves a ready slot
+ * Prepare all instances before playback. Spawning only reserves a ready slot
  * and publishes its argument; it never waits for JavaScript in another worker.
  * The caller owns the Workers so it can also kill a render worker stuck in join.
  */
@@ -39,7 +39,6 @@ export function createWasiThreadHost({
   createWorker,
   onError = () => {},
   poolSize = 4,
-  clockOrigin = performance.timeOrigin,
   readyTimeout = 30000,
 }) {
   if (!(memory.buffer instanceof SharedArrayBuffer))
@@ -118,7 +117,6 @@ export function createWasiThreadHost({
         "initializationStackTop": initializationStackTops[index] || 0,
         "control": control.buffer,
         "index": index,
-        "clockOrigin": clockOrigin,
       });
       if (worker.start) worker.start();
     }
@@ -162,16 +160,7 @@ export function createWasiThreadHost({
     }
     return -EAGAIN;
   };
-  const threadSpawn = (argument, resultPointer) => {
-    const result = spawn(argument);
-    if (resultPointer === undefined) return result;
-    // wasi-libc supports both the original return-value ABI and its struct ABI.
-    const view = new DataView(memory.buffer);
-    view.setUint32(resultPointer, result < 0 ? 1 : 0, true);
-    view.setUint32(resultPointer + 4, Math.abs(result), true);
-    return undefined;
-  };
-  return { ready, threadSpawn, dispose, control };
+  return { ready, spawn, dispose, control };
 }
 
 // The render loop runs after start() returns. A rejected loop must reach the

@@ -86,116 +86,139 @@ if (fs.existsSync(distDir)) {
   rimrafSync(distDir);
 }
 fs.mkdirSync(distDir);
-// Repository builds write to ../lib; installed packages provide the same files.
-const binaries = browserBinaries(rootDir, process.env.CSOUND_THREADED_WASM);
-const memoryLimitFile = path.join(rootDir, "../src/shared-memory-max.txt");
-const sharedMemoryMax = binaries.threaded
-  ? Number(
-      fs.readFileSync(
-        fs.existsSync(memoryLimitFile)
-          ? memoryLimitFile
-          : path.join(nodeModulesDir, "@csound/wasm-bin/src/shared-memory-max.txt"),
-        "utf8",
-      ),
-    )
-  : 65536;
-if (
-  !Number.isSafeInteger(sharedMemoryMax) ||
-  sharedMemoryMax <= 0 ||
-  sharedMemoryMax > 4294967296 ||
-  sharedMemoryMax % 65536 !== 0
-)
-  throw new Error(
-    "Shared Wasm memory limit must be a positive byte count, a multiple of 65536, and at most 4 GiB",
+async function buildTarget(target) {
+  // Repository builds write to ../lib; installed packages provide the same files.
+  const filename = target === "wasm64" ? "csound-wasm64.js" : "csound.js";
+  const threadedOverride =
+    target === "wasm64"
+      ? process.env.CSOUND_WASM64_THREADED_WASM
+      : process.env.CSOUND_THREADED_WASM;
+  const binaries = browserBinaries(rootDir, threadedOverride, target);
+  const memoryLimitFile = path.join(rootDir, "../src/shared-memory-max.txt");
+  const sharedMemoryMax = binaries.threaded
+    ? Number(
+        fs.readFileSync(
+          fs.existsSync(memoryLimitFile)
+            ? memoryLimitFile
+            : path.join(nodeModulesDir, "@csound/wasm-bin/src/shared-memory-max.txt"),
+          "utf8",
+        ),
+      )
+    : 65536;
+  if (
+    !Number.isSafeInteger(sharedMemoryMax) ||
+    sharedMemoryMax <= 0 ||
+    sharedMemoryMax > 4294967296 ||
+    sharedMemoryMax % 65536 !== 0
+  )
+    throw new Error(
+      "Shared Wasm memory limit must be a positive byte count, a multiple of 65536, and at most 4 GiB",
+    );
+  fs.writeFileSync(
+    path.join(rootDir, "dist", "__csound_wasm.inline.js"),
+    inlineArraybuffer(binaries.threaded || binaries.baseline, "binary.wasm"),
   );
-fs.writeFileSync(
-  path.join(rootDir, "dist", "__csound_wasm.inline.js"),
-  inlineArraybuffer(binaries.threaded || binaries.baseline, "binary.wasm"),
-);
 
-// Workers need the engine kind, but must not embed another copy of its bytes.
-fs.writeFileSync(
-  path.join(distDir, "__csound_engine.inline.js"),
-  `export const sharedEngine = ${Boolean(binaries.threaded)};\n` +
-    `export const sharedMemoryPages = ${sharedMemoryMax / 65536};\n`,
-);
+  // Workers need the engine kind, but must not embed another copy of its bytes.
+  fs.writeFileSync(
+    path.join(distDir, "__csound_engine.inline.js"),
+    `export const sharedEngine = ${Boolean(binaries.threaded)};\n` +
+      `export const sharedMemoryPages = ${sharedMemoryMax / 65536};\n`,
+  );
 
-// const polyfills = {
-//   fetch_noop: fs.readFileSync("polyfills/fetch-noop.js", "utf-8"),
-//   set_timeout_noop: fs.readFileSync("polyfills/set-timeout-noop.js", "utf-8"),
-//   text_encoding: fs.readFileSync("polyfills/text-encoding.js", "utf-8"),
-//   performance: fs.readFileSync("polyfills/performance.js", "utf-8"),
-// };
+  fs.copyFileSync(
+    path.join(distDir, "__csound_engine.inline.js"),
+    path.join(distDir, `__csound_engine.${target}.js`),
+  );
 
-const compilationSequence = [
-  {
-    entry_point: "./src/workers/wasi-thread.worker.js",
-    js_output_file: path.join(rootDir, "dist", "__compiled.wasi-thread.worker.js"),
-    postbuild: () => inlineWebworker("wasi-thread.worker.js", "worker.wasi-thread", false),
-    output_wrapper: "(function(){%output%}).call(this);",
-  },
-  {
-    entry_point: "./src/workers/sab.worker",
-    js_output_file: path.join(rootDir, "dist", "__compiled.sab.worker.js"),
-    create_source_map: path.join(rootDir, "dist", "__compiled.sab.worker.js.map"),
-    source_map_location_mapping: "./src|/dist/src",
-    postbuild: () => inlineWebworker("sab.worker.js", "worker.sab", false, []),
-    output_wrapper: trimString(`(function(){%output%}).call(this);
-                    //# sourceMappingURL=__compiled.sab.worker.js.map`),
-    define: DEV ? [] : ["PRODUCTION=1"],
-  },
-  {
-    entry_point: "./src/workers/vanilla.worker.js",
-    js_output_file: path.join(rootDir, "dist", "__compiled.vanilla.worker.js"),
-    create_source_map: path.join(rootDir, "dist", "__compiled.vanilla.worker.js.map"),
-    source_map_location_mapping: "./src|/dist/src",
-    postbuild: () => inlineWebworker("vanilla.worker.js", "worker.vanilla", false, []),
-    output_wrapper: trimString(`(function(){%output%}).call(this);
-                    //# sourceMappingURL=__compiled.vanilla.worker.js.map`),
-    define: DEV ? [] : ["PRODUCTION=1"],
-  },
-  {
-    entry_point: "./src/workers/worklet.worker.js",
-    js_output_file: path.join(rootDir, "dist", "__compiled.worklet.worker.js"),
-    create_source_map: path.join(rootDir, "dist", "__compiled.worklet.worker.js.map"),
-    source_map_location_mapping: "./src|/dist/src",
-    output_wrapper: trimString(`
-    let self = AudioWorkletGlobalScope;
-    %output%
-    //# sourceMappingURL=__compiled.worklet.worker.js.map`),
-    postbuild: () => inlineWebworker("worklet.worker.js", "worker.worklet", true, []),
-    define: DEV ? [] : ["PRODUCTION=1"],
-  },
-  {
-    entry_point: "./src/workers/worklet.singlethread.worker.js",
-    js_output_file: path.join(rootDir, "dist", "__compiled.worklet.singlethread.worker.js"),
-    create_source_map: path.join(rootDir, "dist", "__compiled.worklet.singlethread.worker.js.map"),
-    source_map_location_mapping:
-      path.join(rootDir, "dist", "__compiled.worklet.singlethread.worker.js") +
-      "|" +
-      "dist/src/workers/worklet.singlethread.worker.js",
-    define: ["WITH_TEXT_ENCODER_POLYFILL=1", "PRODUCTION=1"],
-    output_wrapper: trimString(`
-    let self = AudioWorkletGlobalScope;
-    %output%
-    //# sourceURL=/dist/__compiled.worklet.singlethread.worker.js
-    //# sourceMappingURL=/dist/__compiled.worklet.singlethread.worker.js.map`),
-    postbuild: () =>
-      inlineWebworker("worklet.singlethread.worker.js", "worklet.singlethread.worker", true, []),
-  },
+  // const polyfills = {
+  //   fetch_noop: fs.readFileSync("polyfills/fetch-noop.js", "utf-8"),
+  //   set_timeout_noop: fs.readFileSync("polyfills/set-timeout-noop.js", "utf-8"),
+  //   text_encoding: fs.readFileSync("polyfills/text-encoding.js", "utf-8"),
+  //   performance: fs.readFileSync("polyfills/performance.js", "utf-8"),
+  // };
 
-  {
-    entry_point: "./src/index.js",
-    js_output_file: path.join(rootDir, "dist", "csound.js"),
-    create_source_map: path.join(rootDir, "dist", "csound.js.map"),
-    define: DEV ? [] : ["PRODUCTION=1"],
-    output_manifest: "output.manifest.txt",
-    postbuild: makeModuleExportsHack("csound.js"),
-    output_wrapper: trimString(`%output%
-      __GOOGLE_CLOSURE_REPLACEME__
-      //# sourceMappingURL=csound.js.map`),
-  },
-];
+  const compilationSequence = [
+    {
+      entry_point: "./src/workers/wasi-thread.worker.js",
+      js_output_file: path.join(rootDir, "dist", "__compiled.wasi-thread.worker.js"),
+      postbuild: () => inlineWebworker("wasi-thread.worker.js", "worker.wasi-thread", false),
+      output_wrapper: "(function(){%output%}).call(this);",
+    },
+    {
+      entry_point: "./src/workers/sab.worker",
+      js_output_file: path.join(rootDir, "dist", "__compiled.sab.worker.js"),
+      create_source_map: path.join(rootDir, "dist", "__compiled.sab.worker.js.map"),
+      source_map_location_mapping: "./src|/dist/src",
+      postbuild: () => inlineWebworker("sab.worker.js", "worker.sab", false, []),
+      output_wrapper: trimString(`(function(){%output%}).call(this);
+                      //# sourceMappingURL=__compiled.sab.worker.js.map`),
+      define: DEV ? [] : ["PRODUCTION=1"],
+    },
+    {
+      entry_point: "./src/workers/vanilla.worker.js",
+      js_output_file: path.join(rootDir, "dist", "__compiled.vanilla.worker.js"),
+      create_source_map: path.join(rootDir, "dist", "__compiled.vanilla.worker.js.map"),
+      source_map_location_mapping: "./src|/dist/src",
+      postbuild: () => inlineWebworker("vanilla.worker.js", "worker.vanilla", false, []),
+      output_wrapper: trimString(`(function(){%output%}).call(this);
+                      //# sourceMappingURL=__compiled.vanilla.worker.js.map`),
+      define: DEV ? [] : ["PRODUCTION=1"],
+    },
+    {
+      entry_point: "./src/workers/worklet.worker.js",
+      js_output_file: path.join(rootDir, "dist", "__compiled.worklet.worker.js"),
+      create_source_map: path.join(rootDir, "dist", "__compiled.worklet.worker.js.map"),
+      source_map_location_mapping: "./src|/dist/src",
+      output_wrapper: trimString(`
+      let self = AudioWorkletGlobalScope;
+      %output%
+      //# sourceMappingURL=__compiled.worklet.worker.js.map`),
+      postbuild: () => inlineWebworker("worklet.worker.js", "worker.worklet", true, []),
+      define: DEV ? [] : ["PRODUCTION=1"],
+    },
+    {
+      entry_point: "./src/workers/worklet.singlethread.worker.js",
+      js_output_file: path.join(rootDir, "dist", "__compiled.worklet.singlethread.worker.js"),
+      create_source_map: path.join(
+        rootDir,
+        "dist",
+        "__compiled.worklet.singlethread.worker.js.map",
+      ),
+      source_map_location_mapping:
+        path.join(rootDir, "dist", "__compiled.worklet.singlethread.worker.js") +
+        "|" +
+        "dist/src/workers/worklet.singlethread.worker.js",
+      define: ["WITH_TEXT_ENCODER_POLYFILL=1", "PRODUCTION=1"],
+      output_wrapper: trimString(`
+      let self = AudioWorkletGlobalScope;
+      %output%
+      //# sourceURL=/dist/__compiled.worklet.singlethread.worker.js
+      //# sourceMappingURL=/dist/__compiled.worklet.singlethread.worker.js.map`),
+      postbuild: () =>
+        inlineWebworker("worklet.singlethread.worker.js", "worklet.singlethread.worker", true, []),
+    },
+
+    {
+      entry_point: "./src/index.js",
+      js_output_file: path.join(distDir, filename),
+      create_source_map: path.join(distDir, `${filename}.map`),
+      define: DEV ? [] : ["PRODUCTION=1"],
+      output_manifest: "output.manifest.txt",
+      postbuild: makeModuleExportsHack(filename),
+      output_wrapper: trimString(`%output%
+        __GOOGLE_CLOSURE_REPLACEME__
+        //# sourceMappingURL=${filename}.map`),
+    },
+  ];
+
+  for (const compileInfo of compilationSequence) {
+    const postbuild = R.prop("postbuild", compileInfo);
+    const closureData = R.dissoc("postbuild", compileInfo);
+    await compile(closureData);
+    postbuild && postbuild();
+  }
+}
 
 function deepMerge(v1, v2) {
   if (Array.isArray(v1) && Array.isArray(v2)) {
@@ -250,11 +273,8 @@ const compile = async (config) => {
   await runClosureCompiler(deepMerge(defaultConfig, config), { failOnWarnings: !DEV });
 };
 
-(async () => {
-  for (const compileInfo of compilationSequence) {
-    const postbuild = R.prop("postbuild", compileInfo);
-    const closureData = R.dissoc("postbuild", compileInfo);
-    await compile(closureData);
-    postbuild && postbuild();
-  }
-})();
+// Compile each engine separately. Finish with wasm32 so the development worker
+// files and fixture metadata match the default csound.js entry.
+for (const target of ["wasm64", "wasm32"]) {
+  await buildTarget(target);
+}
