@@ -293,6 +293,22 @@ TEST_F (OptionParserTests, testRefusedIndirectionFileIsClosed)
     EXPECT_STREQ (csoundGetEnv (csound, "FROM_AT_FILE_AGAIN"), "1");
 }
 
+/* Read for a CSD's options, the same file fails the compile: the frame that
+   reads it closes it and passes the jump on to csoundCompileCSD's landing. */
+TEST_F (OptionParserTests, testRefusedIndirectionFileFailsTheCsdThatNamesIt)
+{
+    namespace fs = std::filesystem;
+    const fs::path file = fs::temp_directory_path () /
+        ("csound-options-" + std::to_string (std::random_device {} ()));
+    std::ofstream (file) << "-%\n";
+    const std::string csd =
+        "<CsoundSynthesizer>\n<CsOptions>\n-@ \"" + file.generic_string () +
+        "\"\n</CsOptions>\n<CsInstruments>\ninstr 1\nendin\n"
+        "</CsInstruments>\n</CsoundSynthesizer>\n";
+    EXPECT_NE (csoundCompileCSD (csound, csd.c_str (), 1, 0), CSOUND_SUCCESS);
+    fs::remove (file);
+}
+
 TEST_F (OptionParserTests, testMessageColoursTakeEitherSpelling)
 {
     EXPECT_EQ (csoundSetOption (csound, "--m-colors=1"), 0);

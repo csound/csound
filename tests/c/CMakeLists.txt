@@ -254,6 +254,26 @@ if(BUILD_TESTS)
                 "#pragma once\n#define CSOUND_TEST_JUMPING_INIT_PLUGIN R\"csound($<TARGET_FILE:jumping_init_test_plugin>)csound\"\n"
             TARGET jumping_init_test_plugin)
 
+        add_library(hook_test_plugin MODULE fixtures/hook_plugin.c)
+        target_include_directories(hook_test_plugin PRIVATE
+            ${libcsound_private_include_dirs})
+        target_include_directories(hook_test_plugin PUBLIC
+            ${libcsound_public_include_dirs})
+        target_compile_definitions(hook_test_plugin PRIVATE BUILD_PLUGINS)
+        set_target_properties(hook_test_plugin PROPERTIES
+            SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+            LIBRARY_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/hook-plugin
+            RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/hook-plugin)
+        add_dependencies(unittests hook_test_plugin)
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/hook_plugin_path.hpp
+            CONTENT
+                "#pragma once\n#define CSOUND_TEST_HOOK_PLUGIN R\"csound($<TARGET_FILE:hook_test_plugin>)csound\"\n"
+            TARGET hook_test_plugin)
+
         add_library(failing_create_test_plugin MODULE
             fixtures/failing_create_plugin.c)
         target_include_directories(failing_create_test_plugin PRIVATE

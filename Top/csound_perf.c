@@ -31,32 +31,6 @@ void dag_reinit(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
 int32_t sense_events(CSOUND *);
 
-#if defined(_MSC_VER)
-#define PERF_THREAD_LOCAL __declspec(thread)
-#elif defined(BARE_METAL)
-#define PERF_THREAD_LOCAL
-#else
-#define PERF_THREAD_LOCAL _Thread_local
-#endif
-
-typedef struct perf_jump_s {
-  CSOUND *csound;
-  jmp_buf target;
-  struct perf_jump_s *outer;
-} PERF_JUMP;
-
-/* Compilation on the init thread also uses exitjmp. Keep the performance
- * target on its own thread, and only while the call that owns it is active.
- * A nested performance of another Csound instance restores its caller's.
- */
-static PERF_THREAD_LOCAL PERF_JUMP *perf_jump;
-
-void perform_jump_make(CSOUND *csound, int32_t value)
-{
-  if (perf_jump != NULL && perf_jump->csound == csound)
-    longjmp(perf_jump->target, value);
-}
-
 
 inline static void mix_out(cs_float *out, const cs_float *in, uint32_t smps) {
   uint32_t i;
@@ -453,10 +427,22 @@ static int32_t perform_control_period(CSOUND *csound)
   return result;
 }
 
+/* Where a jump out of a performance's k-cycles lands: what it gives. */
+static int32_t performance_jumped(CSOUND *csound, int32_t returnValue)
+{
+  long epoch = ATOMIC_GET(csound->performance_epoch);
+  if (epoch & 1L)
+    ATOMIC_SET(csound->performance_epoch,
+               (long) ((unsigned long) epoch + 1UL));
+  /* the jump left the k-cycles below, which hold API_lock */
+  if (!csound->oparms->realtime)
+    csoundUnlockMutex(csound->API_lock);
+  return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+}
+
  int32_t csoundPerformKsmps(CSOUND *csound) {
-  PERF_JUMP jump;
-  int32_t returnValue;
-  int32_t done;
+  int32_t done, returnValue;
+  API_CALL call;
   if (UNLIKELY(ATOMIC_GET(csound->performance_epoch) & 1L))
     return CSOUND_ERROR;
   /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
@@ -469,20 +455,11 @@ static int32_t perform_control_period(CSOUND *csound)
   /* nor after a csoundStart() that failed, and said why */
   if (UNLIKELY(csound->engineStatus & CS_STATE_START_FAILED))
     return CSOUND_ERROR;
-  jump.csound = csound;
-  jump.outer = perf_jump;
-  perf_jump = &jump;
-  /* Each call needs its own target: the previous call's frame has returned. */
-  if (UNLIKELY((returnValue = setjmp(jump.target)))) {
-    long epoch = ATOMIC_GET(csound->performance_epoch);
-    perf_jump = jump.outer;
-    if (epoch & 1L)
-      ATOMIC_SET(csound->performance_epoch,
-                 (long) ((unsigned long) epoch + 1UL));
-    /* the jump left the k-cycles below, which hold API_lock */
-    if (!csound->oparms->realtime)
-      csoundUnlockMutex(csound->API_lock);
-    return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+  /* Each performance call owns its landing for the life of its frame. */
+  api_call_catch(csound, &call);
+  if (UNLIKELY((returnValue = setjmp(call.target)))) {
+    api_call_end(&call);
+    return performance_jumped(csound, returnValue);
   }
   if (!csound->oparms->realtime) // no API lock in realtime mode
     csoundLockMutex(csound->API_lock);
@@ -502,13 +479,13 @@ static int32_t perform_control_period(CSOUND *csound)
 #endif
       }
       csoundMessage(csound, Str("end of Performance\n"));
-      perf_jump = jump.outer;
+      api_call_end(&call);
       return done;
     }
   } while (perform_control_period(csound));
   if (!csound->oparms->realtime) // no API lock in realtime mode
     csoundUnlockMutex(csound->API_lock);
-  perf_jump = jump.outer;
+  api_call_end(&call);
   return 0;
 }
 
@@ -517,9 +494,9 @@ static int32_t perform_control_period(CSOUND *csound)
     An active render interval returns CSOUND_ERROR without calling the host.
  */
 int32_t perform_buffer(CSOUND *csound) {
-  PERF_JUMP jump;
   int32_t returnValue;
   int32_t done;
+  API_CALL call;
   if (UNLIKELY(ATOMIC_GET(csound->performance_epoch) & 1L))
     return CSOUND_ERROR;
   /* VL: 1.1.13 if not compiled (csoundStart() not called)  */
@@ -532,23 +509,14 @@ int32_t perform_buffer(CSOUND *csound) {
   /* nor after a csoundStart() that failed, and said why */
   if (UNLIKELY(csound->engineStatus & CS_STATE_START_FAILED))
     return CSOUND_ERROR;
-  jump.csound = csound;
-  jump.outer = perf_jump;
-  perf_jump = &jump;
-  /* Setup jmp for return after an exit(). */
-  if (UNLIKELY((returnValue = setjmp(jump.target)))) {
-    long epoch = ATOMIC_GET(csound->performance_epoch);
-    perf_jump = jump.outer;
-    if (epoch & 1L)
-      ATOMIC_SET(csound->performance_epoch,
-                 (long) ((unsigned long) epoch + 1UL));
-    /* the jump left the k-cycles below, which hold API_lock */
-    if (!csound->oparms->realtime)
-      csoundUnlockMutex(csound->API_lock);
+  api_call_catch(csound, &call);
+  if (UNLIKELY((returnValue = setjmp(call.target)))) {
+    api_call_end(&call);
+    returnValue = performance_jumped(csound, returnValue);
 #ifndef MACOSX
     csoundMessage(csound, Str("Early return from csoundPerformBuffer().\n"));
 #endif
-    return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+    return returnValue;
   }
   csound->sampsNeeded += csound->oparms_.outbufsamps;
   while (csound->sampsNeeded > 0) {
@@ -569,7 +537,7 @@ int32_t perform_buffer(CSOUND *csound) {
         ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));
 #endif
         }
-        perf_jump = jump.outer;
+        api_call_end(&call);
         return done;
       }
     } while (perform_control_period(csound));
@@ -578,6 +546,6 @@ int32_t perform_buffer(CSOUND *csound) {
     }
     csound->sampsNeeded -= csound->nspout;
   }
-  perf_jump = jump.outer;
+  api_call_end(&call);
   return 0;
 }

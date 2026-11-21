@@ -950,6 +950,102 @@ endop
 }
 
 
+class AudioMemberAssignmentTests
+    : public OrcCompileTests,
+      public ::testing::WithParamInterface<std::tuple<const char *,
+                                                      const char *>> {};
+
+TEST_P (AudioMemberAssignmentTests, matchesPlainAudioAssignment)
+{
+    const std::string member = std::get<0>(GetParam());
+    const std::string source = std::get<1>(GetParam());
+    const std::string orchestra = R"(
+sr = 1000
+ksmps = 10
+nchnls = 2
+0dbfs = 1
+struct AudioBox value:a
+struct WrappedAudio box:AudioBox
+instr 1
+  box:AudioBox init
+  boxes:AudioBox[] init 2
+  wrapped:WrappedAudio init
+  wrappers:WrappedAudio[] init 2
+  iIndex init 1
+  kIndex = timeinstk() % 2
+  iValue init 0.5
+  kValue = timeinstk() * 0.125
+  aValue = kValue + 0.25
+)" + member + " = " + source + "\n"
+    + "  aExpected = " + source + "\n"
+    + "  aActual = " + member + "\n"
+    + "  outs aActual, aExpected\nendin\n";
+    ASSERT_EQ(0, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(0, csoundCompileOrc(csound, orchestra.c_str()));
+    ASSERT_EQ(0, csoundStart(csound));
+    csoundEventString(csound, "i 1 0 1 0.75", 0);
+    for (int block = 1; block <= 4; ++block) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        const cs_float *output = csoundGetSpout(csound);
+        const cs_float expected = source == "0.25" ? 0.25 :
+            source == "iValue" ? 0.5 : source == "p4" ? 0.75 :
+            source == "kValue" ? block * 0.125 :
+            source == "aValue" ? block * 0.125 + 0.25 :
+            (block > 1 ? 1 : 0);
+        for (int sample = 0; sample < 10; ++sample) {
+            EXPECT_EQ(expected, output[2 * sample + 1]) << block << ":" << sample;
+            EXPECT_EQ(output[2 * sample + 1], output[2 * sample])
+                << block << ":" << sample;
+        }
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    Members, AudioMemberAssignmentTests,
+    ::testing::Combine(
+        ::testing::Values("box.value", "boxes[0].value", "boxes[iIndex].value",
+                          "boxes[kIndex].value", "wrapped.box.value",
+                          "wrappers[iIndex].box.value",
+                          "wrappers[kIndex].box.value"),
+        ::testing::Values("0.25", "iValue", "kValue", "p4", "aValue",
+                          "kValue > 0.2")));
+
+TEST_F (OrcCompileTests, testAudioMemberAssignmentEvaluatesIndexBeforeValue)
+{
+    const char *orchestra = R"(
+sr = 1000
+ksmps = 10
+nchnls = 1
+0dbfs = 1
+struct AudioBox value:a
+gkSeen init 0
+opcode Index():k
+  gkSeen chnget "wanted"
+  xout 0
+endop
+opcode Value():k
+  xout gkSeen
+endop
+instr 1
+  boxes:AudioBox[] init 1
+  boxes[Index()].value = Value()
+  aActual = boxes[0].value
+  out aActual
+endin
+)";
+    ASSERT_EQ(0, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(0, csoundCompileOrc(csound, orchestra));
+    ASSERT_EQ(0, csoundStart(csound));
+    csoundEventString(csound, "i 1 0 1", 0);
+    for (int block = 1; block <= 4; ++block) {
+        csoundSetControlChannel(csound, "wanted", block * 0.125);
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        const cs_float *output = csoundGetSpout(csound);
+        for (int sample = 0; sample < 10; ++sample)
+            EXPECT_EQ(block * 0.125, output[sample]) << block << ":" << sample;
+    }
+}
+
 TEST_F (OrcCompileTests, testStructArrayMemberAssignmentRates)
 {
     const char* orchestra = R"(
@@ -1003,6 +1099,86 @@ endop
         OENTRY* entry = find_opcode_new(csound, name, "", "i");
         ASSERT_NE(nullptr, entry) << name;
         EXPECT_NE(nullptr, entry->perf) << name;
+    }
+}
+
+/* A scalar member, or an array of scalars, written in each cycle is
+   written in place: neither the element's copy out (##array_get_struct...)
+   nor its copy back (##array_set_struct...) is left in the UDO. */
+TEST_F (OrcCompileTests, testStructArrayMemberWritesInPlace)
+{
+    const char* orchestra = R"(
+struct Field level:k, on:B, name:S, values:k[]
+struct Record field:Field
+fields@global:Field[] init 2
+records@global:Record[] init 2
+
+opcode WriteAtI(index:i):void
+  fields[index].level = 0.5
+endop
+opcode WriteBooleanAtI(input:i):void
+  value:k init input
+  fields[1].on = value > 0
+endop
+opcode WriteAtK(input:i):void
+  index:k init input
+  fields[index].level = 0.5
+endop
+opcode WriteStringAtK(input:i):void
+  index:k init input
+  fields[index].name = "text"
+endop
+opcode WriteNested(index:i):void
+  records[index].field.level = 0.5
+endop
+opcode WriteArrayAtI(index:i):void
+  values:k[] init 2
+  fields[index].values = values
+endop
+opcode CopyStructAtK(input:i):void
+  index:k init input
+  field:Field init
+  records[index].field = field
+endop
+opcode CopyThroughIArray(input:i):void
+  slots:i[] fillarray 0, 1
+  index:k init input
+  fields[slots[index]].level = 0.5
+endop
+)";
+
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    for (const char* name : {"WriteAtI", "WriteBooleanAtI", "WriteAtK",
+                             "WriteStringAtK", "WriteNested",
+                             "WriteArrayAtI"}) {
+        OENTRY* entry = find_opcode_new(csound, name, "", "i");
+        ASSERT_NE(nullptr, entry) << name;
+        OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+        ASSERT_NE(nullptr, info) << name;
+        int inPlace = 0, copies = 0;
+        for (OPTXT* op = info->ip->nxtop; op != nullptr; op = op->nxtop) {
+            const char* opname =
+              op->t.oentry != nullptr ? op->t.oentry->opname : "";
+            inPlace += !strcmp(opname, "##array_member_set");
+            copies += !strncmp(opname, "##array_get_struct", 18) ||
+                      !strncmp(opname, "##array_set_struct", 18);
+        }
+        EXPECT_EQ(1, inPlace) << name;
+        EXPECT_EQ(0, copies) << name;
+    }
+    /* a struct member keeps the copy, and so does an i index that reads an
+       array at a k index, at the rate it had */
+    for (const char* name : {"CopyStructAtK", "CopyThroughIArray"}) {
+        OENTRY* entry = find_opcode_new(csound, name, "", "i");
+        ASSERT_NE(nullptr, entry) << name;
+        OPCODINFO* info = (OPCODINFO*)entry->useropinfo;
+        ASSERT_NE(nullptr, info) << name;
+        int inPlace = 0;
+        for (OPTXT* op = info->ip->nxtop; op != nullptr; op = op->nxtop) {
+            inPlace += op->t.oentry != nullptr &&
+                       !strcmp(op->t.oentry->opname, "##array_member_set");
+        }
+        EXPECT_EQ(0, inPlace) << name;
     }
 }
 
@@ -1778,6 +1954,7 @@ TEST_P (AssignmentTypeTests, rejectsTypesItCannotCopy)
 struct Flag on:b
 struct Holder flags:b[]
 struct Box value:i
+struct AudioValue value:a
 
 instr 2
   kValue:k init 1
@@ -1788,6 +1965,8 @@ instr 2
   holder:Holder init
   boxes:Box[] init 2
   flagArray:Flag[] init 2
+  sound:AudioValue init
+  sounds:AudioValue[] init 2
   )";
     orchestra += std::get<0>(GetParam());
     orchestra += "\nendin\n";
@@ -1825,7 +2004,13 @@ INSTANTIATE_TEST_SUITE_P(
         std::make_tuple("boxes[1].value = boxes[kIndex].value",
                         "struct array index must be i-rate during init"),
         std::make_tuple("flagArray[1].on = kValue > 0",
-                        "cannot assign B to b, line")));
+                        "cannot assign B to b, line"),
+        std::make_tuple("sound.value = \"text\"",
+                        "cannot assign S to a, line"),
+        std::make_tuple("sounds[1].value = \"text\"",
+                        "cannot assign S to a, line"),
+        std::make_tuple("sounds[kIndex].value = \"text\"",
+                        "cannot assign S to a, line")));
 
 /* What =.generic copies still compiles: two values of one type, and a
    boolean for an a, which is read as a number first. */

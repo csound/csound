@@ -154,6 +154,9 @@ the separate [Csound plugins repository](https://github.com/csound/plugins).
 They are no longer part of the core build. Install the separate plugin if
 an orchestra uses them. The core build no longer has `BUILD_DSSI_OPCODES`.
 
+The old `jcsound6` desktop Java binding has been removed. Android keeps its
+separate Java interface.
+
 The `MYFLT` alias still works, but the deprecation warning for it is paused
 for this release. New code should use `cs_float` and `cs_double`.
 

@@ -93,10 +93,10 @@ extern "C" {
   int32_t csoundLoadDefaultModules(CSOUND *csound);
 
   /**
-   * Call func, which may stop Csound with a jump to exitjmp, in a frame of
-   * its own, and return what it returns, or CSOUND_ERROR if it jumps. For
-   * the API calls that load or start the plugins and that a host may make
-   * before anything owns exitjmp.
+   * Call func, which may stop Csound with a jump, in a frame of its own on
+   * this thread, and return what it returns, or CSOUND_ERROR if it jumps.
+   * For the API calls that load or start the plugins and that a host may
+   * make before anything else.
    */
   int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *));
 

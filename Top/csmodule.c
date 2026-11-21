@@ -510,17 +510,17 @@ int32_t csoundLoadDefaultModules(CSOUND *csound) {
    modules for loaded. */
 static int32_t init_default_modules(CSOUND *csound)
 {
-  volatile jmp_buf  tmpExitJmp;
+  API_CALL          call;
   int32_t           n;
 
-  memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
-  if (UNLIKELY((n = setjmp(csound->exitjmp)) != 0)) {
-    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+  api_call_catch(csound, &call);
+  if (UNLIKELY((n = setjmp(call.target)) != 0)) {
+    api_call_end(&call);
     csound->default_modules_loaded = 0;
-    longjmp(csound->exitjmp, n);
+    jump_on(csound, n);
   }
   n = csoundInitModules(csound);
-  memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+  api_call_end(&call);
   return n;
 }
 
@@ -571,7 +571,7 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
                                           const char *libraryPath)
 {
   csoundModule_t  m;
-  volatile jmp_buf tmpExitJmp;
+  API_CALL        call;
   csoundModule_t  *mp;
   failedModule_t  *spare = NULL;
   char            *fname;
@@ -693,9 +693,9 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
                        Str("csoundLoadExternal(): memory allocation failure"));
       return CSOUND_MEMORY;
     }
-    memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
-    if ((err = setjmp(csound->exitjmp)) != 0) {
-      memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+    api_call_catch(csound, &call);
+    if ((err = setjmp(call.target)) != 0) {
+      api_call_end(&call);
       print_module_error(csound, Str("Error in pre-initialisation function "
                                      "of module '%s'"), fname, NULL, 0);
       csound->Free(csound, p);
@@ -704,7 +704,7 @@ static CS_NOINLINE int32_t load_external(CSOUND *csound,
               CSOUND_MEMORY : CSOUND_INITIALIZATION);
     }
     err = m.PreInitFunc(csound);
-    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+    api_call_end(&call);
     if (UNLIKELY(err != 0)) {
       print_module_error(csound, Str("Error in pre-initialisation function "
                                      "of module '%s'"), fname, &m, err);
@@ -1133,7 +1133,7 @@ int32_t csoundInitModules(CSOUND *csound)
 /* load a plugin library and also initialise it */
 /* called on deferred loading of opcode plugins */
 static int32_t load_init_module(CSOUND *csound, const char *fname){
-  volatile jmp_buf  tmpExitJmp;
+  API_CALL          call;
   volatile int32_t      err;
   const void        *loaded = csound->csmodule_db;
 
@@ -1143,36 +1143,18 @@ static int32_t load_init_module(CSOUND *csound, const char *fname){
   /* a plugin already loaded links nothing: there is no new module to start */
   if (csound->csmodule_db == loaded)
     return CSOUND_SUCCESS;
-  memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
-  if (UNLIKELY((err = setjmp(csound->exitjmp)) != 0)) {
-    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+  api_call_catch(csound, &call);
+  if (UNLIKELY((err = setjmp(call.target)) != 0)) {
+    api_call_end(&call);
     return (err == (CSOUND_EXITJMP_SUCCESS + CSOUND_MEMORY) ?
             CSOUND_MEMORY : CSOUND_INITIALIZATION);
   }
   /* csound->csmodule_db is the module load_external() has just linked */
   err = init_module(csound, (csoundModule_t*) csound->csmodule_db);
-  memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
+  api_call_end(&call);
 
   /* not CSOUND_ERROR, which the scan takes for a file that is no plugin */
   return (err == CSOUND_SUCCESS ? CSOUND_SUCCESS : CSOUND_INITIALIZATION);
-}
-
-/* The default scan stops Csound with a jump when a plugin fails to load or
-   start. A host may call csoundLoadPlugins() first, with no frame for that
-   jump, so take it here and return an error. */
-static int32_t load_default_modules(CSOUND *csound)
-{
-  volatile jmp_buf  tmpExitJmp;
-  int32_t           err;
-
-  memcpy((void*) &tmpExitJmp, (void*) &csound->exitjmp, sizeof(jmp_buf));
-  if (UNLIKELY(setjmp(csound->exitjmp) != 0)) {
-    memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
-    return CSOUND_ERROR;
-  }
-  err = csoundLoadDefaultModules(csound);
-  memcpy((void*) &csound->exitjmp, (void*) &tmpExitJmp, sizeof(jmp_buf));
-  return err;
 }
 
 int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
@@ -1194,8 +1176,12 @@ int32_t csoundLoadAndInitModules(CSOUND *csound, const char *opdir){
   int32_t dfltdir = 0;
 #endif
   /* Scan the default directories first so that loading an explicit
-     --opcode-dir adds to, rather than replaces, the default set. */
-  if (UNLIKELY(load_default_modules(csound) != CSOUND_SUCCESS))
+     --opcode-dir adds to, rather than replaces, the default set. The scan
+     stops Csound with a jump when a plugin fails to load or start, and a
+     host may call csoundLoadPlugins() first, with no frame for that jump:
+     take it here as an error. */
+  if (UNLIKELY(csoundCatchJump(csound, csoundLoadDefaultModules)
+               != CSOUND_SUCCESS))
     return CSOUND_ERROR;
   /* open plugin directory */
   // EM'2021: This seems to be dead code since opdir will never be NULL and
@@ -1413,34 +1399,26 @@ int32_t csoundLoadRequestedPlugins(CSOUND *csound) {
   return retval;
 }
 
-static CS_NOINLINE int32_t catch_jump_own_jumps(
-  CSOUND *csound, int32_t (*func)(CSOUND *))
-{
-  volatile jmp_buf  saved;
-  int32_t           err;
-
-  memcpy((void*) &saved, (void*) &csound->exitjmp, sizeof(jmp_buf));
-  if (setjmp(csound->exitjmp) != 0)
-    err = CSOUND_ERROR;
-  else
-    err = func(csound);
-  memcpy((void*) &csound->exitjmp, (void*) &saved, sizeof(jmp_buf));
-  return err;
-}
-
 int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *))
 {
-  API_CALL call;
-  int32_t err;
+  API_CALL          call;
+  int32_t           err;
 
 #ifdef CSOUND_WASI_REALTIME
   /* A compiler worker's jump goes to its compile context, or ends the
-     process. Leave other API calls' exitjmp alone. */
+     process: exitjmp is the render thread's, and is left alone. */
   if (csoundWasiIsWorkerThread())
     return func(csound);
 #endif
-  api_call_begin(csound, &call);
-  err = catch_jump_own_jumps(csound, func);
+  /* A note's init pass must keep its current opcode if this call fails. */
+  if (note_init_runs(csound))
+    api_call_begin(csound, &call);
+  else
+    api_call_catch(csound, &call);
+  if (setjmp(call.target) != 0)
+    err = CSOUND_ERROR;
+  else
+    err = func(csound);
   api_call_end(&call);
   return err;
 }

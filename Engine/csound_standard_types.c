@@ -1269,6 +1269,11 @@ int32_t csound_array_prepare_write_impl(CSOUND *csound, ARRAYDAT *array,
     if (array == NULL) {
         return NOTOK;
     }
+    /* The shared-storage protocol applies to arrays of user-defined structs. */
+    if (!allowAllocation && array->arrayType == &CS_VAR_TYPE_K &&
+        array->allocated > 0 && array->data != NULL && array->storage == NULL) {
+        return OK;
+    }
     if (UNLIKELY(cs_array_storage_protocol_lock(csound) != OK)) {
         return NOTOK;
     }

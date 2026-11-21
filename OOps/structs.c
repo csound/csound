@@ -45,6 +45,20 @@ static int32_t nonnegative_index_from_myflt(cs_float value, int32_t *result)
   return OK;
 }
 
+/* Whether a member of a struct value has the type its struct declares. */
+static int32_t struct_member_matches_type(const CS_VARIABLE *expected,
+                                          const CS_VAR_MEM *actual)
+{
+  if (expected == NULL || expected->varType == NULL || actual == NULL ||
+      actual->varType == NULL ||
+      expected->varType != actual->varType) {
+    return 0;
+  }
+  return expected->varType != &CS_VAR_TYPE_ARRAY ||
+    expected->subType == NULL ||
+    ((const ARRAYDAT *)&actual->value)->arrayType == expected->subType;
+}
+
 static int32_t struct_value_matches_type(const CS_TYPE *type,
                                          const CS_STRUCT_VAR *value)
 {
@@ -59,17 +73,8 @@ static int32_t struct_value_matches_type(const CS_TYPE *type,
     if (expectedMember == NULL) {
       return 0;
     }
-    CS_VARIABLE *expected = (CS_VARIABLE *)expectedMember->value;
-    CS_VAR_MEM *actual = value->members[i];
-
-    if (expected == NULL || expected->varType == NULL || actual == NULL ||
-        actual->varType == NULL ||
-        expected->varType != actual->varType) {
-      return 0;
-    }
-    if (expected->varType == &CS_VAR_TYPE_ARRAY &&
-        expected->subType != NULL &&
-        ((ARRAYDAT *)&actual->value)->arrayType != expected->subType) {
+    if (!struct_member_matches_type((CS_VARIABLE *)expectedMember->value,
+                                    value->members[i])) {
       return 0;
     }
     expectedMember = expectedMember->next;
@@ -193,16 +198,40 @@ static int32_t struct_array_element(CSOUND *csound, OPDS *opds,
   return OK;
 }
 
-static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
-                                     CSOUND_STRUCT_COPY_MODE copyMode,
-                                     int32_t initializing)
+/* A declared array can have complete dimensions before its backing store is
+   created. At init, create it with the same initializer as other array
+   paths. */
+static int32_t struct_array_create_storage(CSOUND *csound, ARRAYDAT *array,
+                                           INSDS *ctx)
+{
+  size_t totalSize;
+
+  if (UNLIKELY(csound_array_member_count(array, &totalSize) != OK ||
+               totalSize > INT32_MAX)) {
+    return csound->InitError(csound,
+                             Str("Invalid struct array dimensions\n"));
+  }
+  if (UNLIKELY(tabinit(csound, array, (int32_t)totalSize, ctx) != OK)) {
+    return csound_array_init_resize_error(csound);
+  }
+  return OK;
+}
+
+/* The element of a struct array a write at indexes changes: the outer
+   storage made writable, the indexes checked against its bounds, a whole
+   struct written (source, or NULL for a member) checked against the
+   array's type, and the element prepared at init. */
+static int32_t struct_array_write_element(CSOUND *csound, ARRAY_SET *p,
+                                          cs_float *const *indexes,
+                                          int32_t indexCount,
+                                          const CS_STRUCT_VAR *source,
+                                          int32_t initializing,
+                                          CS_STRUCT_VAR **result)
 {
   ARRAYDAT* dat = p->arrayDat;
-  CS_STRUCT_VAR *source;
   CS_STRUCT_VAR *destination;
   size_t index;
   void *element;
-  int32_t indexCount = p->INOCOUNT - 2;
 
   if (UNLIKELY(dat == NULL || p->value == NULL)) {
     return initializing
@@ -226,7 +255,7 @@ static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
     return NOTOK;
   }
   if (UNLIKELY(struct_array_flat_index(csound, &p->h, "array_set_struct",
-                                       dat, p->indexes, indexCount,
+                                       dat, indexes, indexCount,
                                        initializing,
                                        &index) != OK)) {
     return NOTOK;
@@ -237,9 +266,8 @@ static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
     return NOTOK;
   }
 
-  source = (CS_STRUCT_VAR *)p->value;
-  destination = (CS_STRUCT_VAR *)element;
-  if (UNLIKELY(!struct_value_matches_type(dat->arrayType, source))) {
+  if (UNLIKELY(source != NULL &&
+               !struct_value_matches_type(dat->arrayType, source))) {
     return initializing
       ? csound->InitError(
           csound, Str("array_set_struct: value does not match type\n"))
@@ -247,6 +275,7 @@ static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
           csound, &p->h,
           Str("array_set_struct: value does not match type\n"));
   }
+  destination = (CS_STRUCT_VAR *)element;
   if (destination->members == NULL) {
     if (!initializing) {
       return csound->PerfError(
@@ -265,7 +294,25 @@ static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
             Str("array_set_struct: cannot initialize element\n"));
     }
   }
-  if (UNLIKELY(!struct_value_matches_type(dat->arrayType, destination))) {
+  *result = destination;
+  return OK;
+}
+
+static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
+                                     CSOUND_STRUCT_COPY_MODE copyMode,
+                                     int32_t initializing)
+{
+  CS_STRUCT_VAR *source = (CS_STRUCT_VAR *)p->value;
+  CS_STRUCT_VAR *destination;
+
+  if (UNLIKELY(struct_array_write_element(csound, p, p->indexes,
+                                          p->INOCOUNT - 2, source,
+                                          initializing,
+                                          &destination) != OK)) {
+    return NOTOK;
+  }
+  if (UNLIKELY(!struct_value_matches_type(p->arrayDat->arrayType,
+                                          destination))) {
     return initializing
       ? csound->InitError(
           csound, Str("array_set_struct: destination does not match type\n"))
@@ -277,7 +324,7 @@ static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
   /* The registered copier carries nested-array ownership through ordinary
      struct assignment and through this array-specific lowering path. */
   if (UNLIKELY(csound_copy_struct_value(
-                 csound, dat->arrayType, destination, source,
+                 csound, p->arrayDat->arrayType, destination, source,
                  p->h.insdshead, copyMode) != OK)) {
     return initializing
       ? csound->InitError(csound,
@@ -286,6 +333,100 @@ static int32_t array_set_struct_copy(CSOUND *csound, ARRAY_SET *p,
                           Str("array_set_struct: could not copy value\n"));
   }
   return OK;
+}
+
+/* The member a struct type declares at index nth, or NULL. */
+static const CS_VARIABLE *struct_type_member(const CS_TYPE *type, int32_t nth)
+{
+  const CONS_CELL *cell = type != NULL ? type->members : NULL;
+
+  while (cell != NULL && nth-- > 0) {
+    cell = cell->next;
+  }
+  return cell != NULL ? (const CS_VARIABLE *)cell->value : NULL;
+}
+
+/* ##array_member_set: array, value, the member path's depth, its member
+   indexes, then the array's indexes. It writes the value into that member
+   of the element in place, through the member type's copier: a scalar, or
+   an array of scalars, which ##member_set wrote the same way into the
+   element's copy before ##array_set_struct copied it back. Only the members
+   on the path are checked against the types the struct declares, so the
+   work does not grow with the members it leaves alone. */
+static int32_t array_member_set_common(CSOUND *csound, ARRAY_SET *p,
+                                       int32_t initializing)
+{
+  int32_t argCount = p->INOCOUNT - 2;
+  int32_t depth, level, nth;
+  const CS_TYPE *structType = p->arrayDat != NULL ? p->arrayDat->arrayType
+                                                   : NULL;
+  const CS_VARIABLE *declared;
+  CS_STRUCT_VAR *var;
+  CS_VAR_MEM *member = NULL;
+
+  if (UNLIKELY(argCount < 3 || p->indexes[0] == NULL ||
+               nonnegative_index_from_myflt(*p->indexes[0], &depth) != OK ||
+               depth < 1 || depth > argCount - 2)) {
+    return initializing
+      ? csound->InitError(csound, Str("Invalid member index\n"))
+      : csound->PerfError(csound, &p->h, Str("Invalid member index\n"));
+  }
+  /* the read the element's copy began with created the backing store at
+     init when only the dimensions were set; so does this write */
+  if (initializing && p->arrayDat != NULL && p->arrayDat->data == NULL &&
+      p->arrayDat->arrayType != NULL &&
+      p->arrayDat->arrayType->userDefinedType &&
+      UNLIKELY(struct_array_create_storage(csound, p->arrayDat,
+                                           p->h.insdshead) != OK)) {
+    return NOTOK;
+  }
+  if (UNLIKELY(struct_array_write_element(csound, p, p->indexes + 1 + depth,
+                                          argCount - 1 - depth, NULL,
+                                          initializing, &var) != OK)) {
+    return NOTOK;
+  }
+  for (level = 1; level <= depth; level++) {
+    if (UNLIKELY(nonnegative_index_from_myflt(*p->indexes[level], &nth) != OK ||
+                 var == NULL || var->members == NULL ||
+                 nth >= var->memberCount ||
+                 (member = var->members[nth]) == NULL ||
+                 (declared = struct_type_member(structType, nth)) == NULL)) {
+      return initializing
+        ? csound->InitError(csound, Str("Invalid member index\n"))
+        : csound->PerfError(csound, &p->h, Str("Invalid member index\n"));
+    }
+    if (UNLIKELY(!struct_member_matches_type(declared, member) ||
+                 (level < depth && !member->varType->userDefinedType))) {
+      return initializing
+        ? csound->InitError(
+            csound, Str("array_set_struct: destination does not match type\n"))
+        : csound->PerfError(
+            csound, &p->h,
+            Str("array_set_struct: destination does not match type\n"));
+    }
+    structType = member->varType;
+    var = (CS_STRUCT_VAR *)&member->value;
+  }
+  if (UNLIKELY(member->varType->copyValue == NULL)) {
+    return initializing
+      ? csound->InitError(csound,
+                          Str("array_set_struct: could not copy value\n"))
+      : csound->PerfError(csound, &p->h,
+                          Str("array_set_struct: could not copy value\n"));
+  }
+  member->varType->copyValue(csound, member->varType, &member->value,
+                             p->value, p->h.insdshead);
+  return OK;
+}
+
+int32_t array_member_set_i(CSOUND *csound, ARRAY_SET *p)
+{
+  return array_member_set_common(csound, p, 1);
+}
+
+int32_t array_member_set(CSOUND *csound, ARRAY_SET *p)
+{
+  return array_member_set_common(csound, p, 0);
 }
 
 int32_t array_set_struct_init(CSOUND *csound, ARRAY_SET *p)
@@ -573,7 +714,6 @@ static int32_t struct_array_read(CSOUND *csound, STRUCT_ARRAY_GET *dat,
   CS_STRUCT_VAR *source;
   CS_STRUCT_VAR *destination = (CS_STRUCT_VAR *)dat->out;
   size_t index;
-  size_t totalSize;
   void *element;
   int32_t indexCount = dat->INOCOUNT - 1;
 
@@ -594,21 +734,15 @@ static int32_t struct_array_read(CSOUND *csound, STRUCT_ARRAY_GET *dat,
           csound, &dat->h, Str("struct_array_get: invalid element type\n"));
   }
 
-  /* A declared array can have complete dimensions before its backing store is
-     created. Use the same initializer as other array paths before reading. */
   if (arrayDat->data == NULL) {
     if (!initializing) {
       return csound->PerfError(
         csound, &dat->h, Str("struct_array_get: array is not initialized\n"));
     }
-    if (UNLIKELY(csound_array_member_count(arrayDat, &totalSize) != OK ||
-                 totalSize > INT32_MAX)) {
-      return csound->InitError(csound,
-                               Str("Invalid struct array dimensions\n"));
+    if (UNLIKELY(struct_array_create_storage(csound, arrayDat,
+                                             dat->h.insdshead) != OK)) {
+      return NOTOK;
     }
-    if (UNLIKELY(tabinit(csound, arrayDat, (int32_t)totalSize,
-                         dat->h.insdshead) != OK))
-      return csound_array_init_resize_error(csound);
   }
   if (UNLIKELY(struct_array_flat_index(csound, &dat->h,
                                        "struct_array_get", arrayDat,
