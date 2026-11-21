@@ -1820,6 +1820,24 @@ int expand_struct_array_member_assignment(CSOUND* csound,
     return 0;
   }
 
+  /* The member copier needs a full audio block. A typed assignment expression
+     applies plain audio assignment's conversions and type checks. Keep it in
+     the value expression to preserve the order of index and value calls. */
+  if (path.memberVars[path.memberCount - 1]->varType == &CS_VAR_TYPE_A) {
+    char* valueType = get_arg_type2(csound, current->right, typeTable);
+    if (valueType != NULL && strcmp(valueType, "a") != 0) {
+      TREE* value = current->right;
+      TREE* convert = make_node(csound, current->line, current->locn,
+                                  T_FUNCTION, NULL, value);
+      convert->value = make_token(csound, "=", NULL);
+      convert->value->optype = csoundParserStrdup(csound, "a");
+      convert->next = value->next;
+      value->next = NULL;
+      current->right = convert;
+    }
+    if (valueType != NULL) csound->Free(csound, valueType);
+  }
+
   follows = struct_member_follows_at_i_index(&path, initContext);
   const CS_TYPE* memberType = path.memberVars[path.memberCount - 1]->varType;
   /* A scalar member, or an array of scalars, written in each cycle, at an
