@@ -1545,6 +1545,7 @@ static int32_t ftgenonce_(CSOUND *csound, FTGEN *p, bool isNamedGenerator,
     case 28:
     case 43:
       ftevt->strarg = ((STRINGDAT *)p->p5)->data;
+      ftevt->scnt = 1;
       break;
     default:
       return csound->InitError(csound, "%s\n", Str("ftgen string arg not allowed"));
