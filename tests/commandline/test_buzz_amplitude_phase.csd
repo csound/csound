@@ -119,7 +119,7 @@ instr 3
 endin
 
 instr 99
-  if i(gkChecks) != 21 then
+  if i(gkChecks) != 25 then
     prints "FAIL buzz checks did not complete\n"
     exitnow -1
   endif
@@ -151,6 +151,11 @@ i 1 2.1279296875 .0625 2 0 3 2 0
 i 2 2.25 .0625 1
 i 2 2.375 .0625 2
 i 3 2.5 .0625
-i 99 2.625 .015625
+; Steps with many whole cycles and an exact fractional part.
+i 1 2.625 .0625 1 .25 3 0 257.125
+i 1 2.7529296875 .0625 1 .25 3 1 -257.125
+i 1 2.875 .0625 1 .25 3 1 256
+i 1 3.0029296875 .0625 2 .25 3 2 257.125
+i 99 3.125 .015625
 </CsScore>
 </CsoundSynthesizer>
