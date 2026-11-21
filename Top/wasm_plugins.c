@@ -681,11 +681,15 @@ done:
 
 static int32_t module_info_is_compatible(int32_t info)
 {
-  int32_t float_size = info & 0xff;
+  int32_t float_size =
+      info & (0xff ^ (CSOUND_MODULE_USE_FLOAT | CSOUND_MODULE_ARRAY_RANK));
+  int32_t float_abi =
+      sizeof(cs_double) == sizeof(float) ? CSOUND_MODULE_USE_FLOAT : 0;
   int32_t minor = (info >> 8) & 0xff;
   int32_t major = (info >> 16) & 0xffff;
-  return float_size == (int32_t) sizeof(cs_float) && major == CS_VERSION &&
-         minor <= CS_SUBVER;
+  return float_size == (int32_t) sizeof(cs_float) &&
+         (info & CSOUND_MODULE_USE_FLOAT) == float_abi &&
+         major == CS_VERSION && minor <= CS_SUBVER;
 }
 
 static int32_t prepare_guest(CSOUND *csound, WasmModule *module,

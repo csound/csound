@@ -443,12 +443,24 @@ static int32_t copy_var_no_op(CSOUND *csound, void *p) {
 static char *write_type_name(char *out, const char *name, size_t length,
                              int32_t dimensions)
 {
+  int32_t generic = 0;
+  if (length >= 3 && name[0] != '[' &&
+      !memcmp(name + length - 3, "[*]", 3)) {
+    generic = 1;
+    length -= 3;
+  }
   if (length > 1 && name[0] == '[' && name[length - 1] == ']') {
     --length; /* Internal arrays have one closing bracket, e.g. [[:Point;]. */
     while (length > 0 && *name == '[') {
       ++dimensions;
       ++name;
       --length;
+    }
+    if (length > 1 && *name == '^') {
+      generic = 1;
+      ++name;
+      --length;
+      dimensions = 0;
     }
   }
   else {
@@ -466,6 +478,10 @@ static char *write_type_name(char *out, const char *name, size_t length,
   for (int32_t i = 0; i < dimensions; ++i) {
     *out++ = '[';
     *out++ = ']';
+  }
+  if (generic) {
+    memcpy(out, "[*]", 3);
+    out += 3;
   }
   *out = '\0';
   return out;
@@ -516,6 +532,10 @@ char *csoundFormatTypeList(CSOUND *csound, const char *signature)
     while (next[0] == '[' && next[1] == ']') {
       ++dimensions;
       next += 2;
+    }
+    if (next[0] == '[' && next[1] == '*' && next[2] == ']') {
+      next += 3;
+      length = (size_t)(next - name);
     }
     if (out != result) {
       *out++ = ',';
@@ -578,6 +598,19 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
     ASSIGN* assign = (ASSIGN*)p;
     const CS_TYPE* typeR = csoundGetTypeForArg(assign->r);
     const CS_TYPE* typeA = csoundGetTypeForArg(assign->a);
+    if (typeR == &CS_VAR_TYPE_ARRAY && typeA == &CS_VAR_TYPE_ARRAY) {
+      ARRAYDAT *destination = (ARRAYDAT *)assign->r;
+      const ARRAYDAT *source = (const ARRAYDAT *)assign->a;
+      if (!csound_array_rank_matches(destination, source->dimensions)) {
+        return initializing
+          ? csound->InitError(csound,
+              Str("array rank mismatch: expected %d, got %d\n"),
+              destination->dimensions, source->dimensions)
+          : csound->PerfError(csound, &assign->h,
+              Str("array rank mismatch: expected %d, got %d\n"),
+              destination->dimensions, source->dimensions);
+      }
+    }
 
     // Check for type equivalence, handling both internal (:Type;) and external (Type) formats
     int types_different = (typeR != typeA) && !types_are_equivalent(csound, typeR->varTypeName, typeA->varTypeName);

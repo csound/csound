@@ -470,6 +470,17 @@ static int32_t is_named_type(const CS_TYPE *type, const char *name, size_t len) 
  * expects inargs to follow outargs + 1 skip (for obj arg)
  * returns an error if args do not match
  */
+/* External array suffixes describe either a fixed rank or any rank. */
+static size_t array_suffix_length(const char *types)
+{
+  size_t length = 0;
+  if (types[0] == '[' && types[1] == '*' && types[2] == ']')
+    return 3;
+  while (types[length] == '[' && types[length + 1] == ']')
+    length += 2;
+  return length;
+}
+
 static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *args[],
                    const CS_TYPE **cstypes, int32_t no, int32_t ni){
   TEXT *t = &(obj->dataspace->optext->t);
@@ -675,7 +686,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
       }
       types += (end+1);
       // skip array type chars
-      while(types[0] == '[' && types[1] == ']') types += 2;
+      types += array_suffix_length(types);
     } else {
     // single-char types: an i output takes a p-field too
     argtype = check_arg_type(args[n], cstypes, n);
@@ -704,7 +715,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
     }
     types++;
     // skip array type chars
-    while(types[0] == '[' && types[1] == ']') types += 2;
+    types += array_suffix_length(types);
     }
     outargs[i++] = args[n++];
   }
@@ -1150,7 +1161,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
         }
         types += (end+1);
         // skip array type chars
-        while(types[0] == '[' && types[1] == ']') types += 2;
+        types += array_suffix_length(types);
       } else {
         // single-char types
         argtype = check_arg_type(args[n], cstypes, n);
@@ -1189,7 +1200,7 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
         }
         types++;
         // skip array type chars
-        while(types[0] == '[' && types[1] == ']') types += 2;
+        types += array_suffix_length(types);
       }
       inargs[i++] = args[n++];
     }
@@ -1230,7 +1241,7 @@ static uint32_t input_slots(const char *types, uint32_t given) {
       return slots > given ? slots : given;
     if(*types == ':') types = strchr(types, ';');
     types++;
-    while(types[0] == '[' && types[1] == ']') types += 2;
+    types += array_suffix_length(types);
     slots++;
   }
   return slots;
@@ -1641,6 +1652,7 @@ static int32_t isTypeArray(OPCODEOBJ *obj, int32_t n, int32_t isInput) {
       // internal form: "[k]", "[[k]", "[:Name;]"
       array = 1;
       while (*types == '[') types++;
+      if (*types == '^') types++;
       if (*types == ':')
         while (*types && *types != ';') types++;
       if (*types) types++;
@@ -1650,10 +1662,9 @@ static int32_t isTypeArray(OPCODEOBJ *obj, int32_t n, int32_t isInput) {
       if (*types == ':')
         while (*types && *types != ';') types++;
       if (*types) types++;
-      while (types[0] == '[' && types[1] == ']') {
-        array = 1;
-        types += 2;
-      }
+      size_t suffix = array_suffix_length(types);
+      array = suffix != 0;
+      types += suffix;
     }
     if (i == n) return array;
     i++;

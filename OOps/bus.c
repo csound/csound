@@ -603,7 +603,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
   case CSOUND_PVS_CHANNEL:
     varType = &CS_VAR_TYPE_F;
     break;
-  case CSOUND_ARRAY_CHANNEL: // one-dim array
+  case CSOUND_ARRAY_CHANNEL:
     varType = &CS_VAR_TYPE_ARRAY;
     break;
   case CSOUND_VAR_CHANNEL: // generic
@@ -621,7 +621,7 @@ static CS_NOINLINE CHNENTRY *alloc_channel(CSOUND *csound,
   if(varType) {
     ARRAY_VAR_INIT varInit;
     if(varType == &CS_VAR_TYPE_ARRAY) {
-      varInit.dimensions = 1; //  default to 1
+      varInit.dimensions = 0; // the first value supplies the channel rank
       varInit.type = NULL; //subtype to be set later
     }
     pp->var = csoundCreateVariableForType(
@@ -2045,7 +2045,7 @@ int32_t chnget_array_opcode_init_i(CSOUND* csound, CHNGETARRAY* p)
   p->arraySize = arr->sizes[0];
   p->channels = arr;
 
-  if (UNLIKELY(tabinit(csound, p->arrayDat, p->arraySize,
+  if (UNLIKELY(csound_array_init_vector(csound, p->arrayDat, p->arraySize,
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
 
@@ -2137,7 +2137,7 @@ int32_t chnget_array_opcode_init(CSOUND* csound, CHNGETARRAY* p)
   p->channels = arr;
   if (UNLIKELY(init_channel_bindings(csound, p) != OK))
     return NOTOK;
-  if (UNLIKELY(tabinit(csound, p->arrayDat, p->arraySize,
+  if (UNLIKELY(csound_array_init_vector(csound, p->arrayDat, p->arraySize,
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
 
@@ -2899,7 +2899,8 @@ static int32_t prepare_array_channel(CSOUND *csound, ARRAYDAT *prepared,
     prepared->sizes[i] = sizes[i];
     totalSize *= (size_t)sizes[i];
   }
-  if (UNLIKELY(tabinit(csound, prepared, (int32_t)totalSize, ctx) != OK)) {
+  if (UNLIKELY(csound_array_ensure_capacity(csound, prepared,
+                                            totalSize ? totalSize : 1, ctx) != OK)) {
     csound_free_array_storage(csound, prepared);
     return NOTOK;
   }
@@ -2938,6 +2939,31 @@ static inline int32_t copy_array(CSOUND *csound, ARRAYDAT *out,
   csoundSpinLock(lock);
   result = csound_array_copy_independent(csound, out, in, NULL, mode);
   csoundSpinUnLock(lock);
+  return result;
+}
+
+static int32_t write_array_channel(CSOUND *csound, ARRAYDAT *out,
+                                   const ARRAYDAT *in, spin_lock_t *lock)
+{
+  ARRAYDAT prepared = {0};
+  int32_t result;
+
+  csoundSpinLock(lock);
+  if (out->dimensions == in->dimensions) {
+    result = csound_array_copy_independent(csound, out, in, NULL,
+                                           CSOUND_ARRAY_COPY_ALLOW_ALLOCATION);
+    csoundSpinUnLock(lock);
+    return result;
+  }
+  prepared.arrayType = out->arrayType;
+  csoundSpinUnLock(lock);
+
+  result = csound_array_copy_independent(csound, &prepared, in, NULL,
+                                         CSOUND_ARRAY_COPY_ALLOW_ALLOCATION);
+  if (result == OK)
+    publish_array_channel(csound, out, &prepared, lock, 1);
+  else
+    csound_free_array_storage(csound, &prepared);
   return result;
 }
 
@@ -3101,9 +3127,8 @@ static int32_t chnset_opcode_perf_ARRAY(CSOUND* csound, CHNGET* p)
   if(array_perf_check(csound, p, CSOUND_OUTPUT_CHANNEL) == OK) {
     /* See chnget_opcode_perf_ARRAY: dynamic array-channel sizing is an
        established behavior and remains protected by the channel lock. */
-    if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->fp,
-                            (ARRAYDAT *)p->arg, p->lock,
-                            CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
+    if (UNLIKELY(write_array_channel(csound, (ARRAYDAT *)p->fp,
+                                     (ARRAYDAT *)p->arg, p->lock) != OK)) {
       return csound->PerfError(csound, &p->h, "%s\n",
                                Str("array channel copy failed"));
     }
@@ -3120,9 +3145,8 @@ int32_t chnset_opcode_init_ARRAY(CSOUND *csound, CHNGET *p)
     if(adat->arrayType != &CS_VAR_TYPE_A &&
        adat->arrayType != &CS_VAR_TYPE_K) {
       /* copy array data - except if it is k or a-type */
-      if (UNLIKELY(copy_array(csound, (ARRAYDAT *)p->fp, adat,
-                              p->lock,
-                              CSOUND_ARRAY_COPY_ALLOW_ALLOCATION) != OK)) {
+      if (UNLIKELY(write_array_channel(csound, (ARRAYDAT *)p->fp, adat,
+                                       p->lock) != OK)) {
         return csound->InitError(csound, "%s\n",
                                  Str("array channel copy failed"));
       }
