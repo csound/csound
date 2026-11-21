@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <limits.h>
 #include "csoundCore.h"
 #include "corfile.h"
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
@@ -41,12 +42,18 @@ static void do_ifdef(CSOUND *, char *, yyscan_t);
 static void do_ifdef_skip_code(CSOUND *, yyscan_t);
 //static void print_csound_prsdata(CSOUND *,char *,yyscan_t);
 static void csound_prs_line(CORFIL*, yyscan_t);
-static void delete_macros(CSOUND*, yyscan_t);
+struct prs_parm_s;
+static void delete_macros(CSOUND*, struct prs_parm_s*);
+static void free_macro(CSOUND*, MACRO*);
 static int extract_int(CSOUND*, yyscan_t, int*);
+static int read_digits(yyscan_t, int*);
 static int on_EOF(CSOUND*, yyscan_t);
 #define MACDEBUG 1
 
 #define S_INC (10)
+/* The longest #include or #includestr name, with its NUL: a longer one is
+   ignored, with the rest of its line. */
+#define INCLUDE_NAME_SIZE (1024)
 static inline int isNameChar(int cc, int pos)
 {
     unsigned char c = ((unsigned char) cc);
@@ -56,15 +63,29 @@ static inline int isNameChar(int cc, int pos)
 #include "score_param.h"
 
 static void expand_macro(CSOUND*, MACRO*, yyscan_t);
-static void expand_macroa(CSOUND*, MACRO*, yyscan_t);
+static int expand_macroa(CSOUND*, MACRO*, yyscan_t);
 //static void trace_alt_stack(CSOUND*, PRS_PARM*, int);
 
 #define YY_EXTRA_TYPE  PRS_PARM *
 #define PARM    yyget_extra(yyscanner)
 
-#define YY_USER_INIT {csound_prs_scan_string(csound->scorestr->body, yyscanner); \
-    csound_prsset_lineno(csound->scoLineOffset, yyscanner);             \
-    /* yyg->yy_flex_debug_r=1;*/                                        \
+/* Every buffer here is a string, and input() gives 0 at its end only once: a
+   loop that reads on reached flex's read of a NULL yyin. The scanner's own read
+   at the end pops the buffer, so a read after that one is the error. flex's
+   fatal errors, such as a push-back overflow, exit the process, and are too. */
+static void prs_fatal(yyscan_t, const char *);
+static int prs_past_end(yyscan_t);
+static void prs_push_buffer(CSOUND *, yyscan_t);
+static void prs_scan_string(const char *, yyscan_t);
+static void prs_pop_buffer(yyscan_t);
+#define YY_INPUT(buf, result, max_size) ((result) = prs_past_end(yyscanner))
+#define YY_FATAL_ERROR(msg) prs_fatal(yyscanner, msg)
+
+/* The score's first line is the one after the lines before it in a .csd,
+   unless --csd-line-nums=0, as the reader counts it. */
+#define YY_USER_INIT {prs_scan_string(csound->scorestr->body, yyscanner); \
+    csound_prsset_lineno((csound->oparms->useCsdLineCounts ?            \
+                          csound->scoLineOffset : 0) + 1, yyscanner);   \
     PARM->macro_stack_size = 0;                                         \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
     PARM->path = ".";                                                   \
@@ -105,13 +126,13 @@ SEND            ^[ \t]*[es]
 ROP             ^[ \t]*r
 
 NP              np[0-9]+
-NM              [nm][ \t]+
+HEX             [0-9a-fA-F]
+HEXLITERAL      0[xX]({HEX}+\.?{HEX}*|\.{HEX}+)([pP][-+]?[0-9]+)?
 
 %X incl
 %x macro
 %x umacro
 %x ifdef
-%x lname
 
 %%
 
@@ -154,6 +175,7 @@ NM              [nm][ \t]+
                     corfile_puts(csound, yytext, PARM->cf);
                   }
                 }
+{HEXLITERAL}    { corfile_puts(csound, yytext, PARM->cf); }
 "c"             {
                   if (PARM->isString != 1) {
                     comment(yyscanner);
@@ -214,7 +236,7 @@ NM              [nm][ \t]+
                   if (PARM->isString != 1)
                     PARM->isinclude = 1;
                   else
-                    corfile_puts(csound, yytext, csound->expanded_orc);
+                    corfile_puts(csound, yytext, PARM->cf);
                 }
 {INCLUDE}       {
                   if (PARM->isString != 1)
@@ -232,10 +254,17 @@ NM              [nm][ \t]+
                 }
 {EXIT}          {
                  //printf("exit found: >>>%s<<<\n", PARM->cf->body);
-                  corfile_putc(csound, '\0', PARM->cf);
-                  corfile_putc(csound, '\0', PARM->cf);
-                  delete_macros(csound, yyscanner);
-                  return 0;
+                  if (PARM->isString) corfile_puts(csound, yytext, PARM->cf);
+                  else {
+                    if (UNLIKELY(PARM->repeat_index > 0 ||
+                                 PARM->in_repeat_sect == 1))
+                      csound->ErrorMsg(csound, Str("unclosed repeat or section "
+                                                   "in score is dropped\n"));
+                    corfile_putc(csound, '\0', PARM->cf);
+                    corfile_putc(csound, '\0', PARM->cf);
+                    delete_macros(csound, PARM);
+                    return 0;
+                  }
                 }
 <<EOF>>         {
                   if (on_EOF(csound, yyscanner)==0) yyterminate();
@@ -340,149 +369,176 @@ NM              [nm][ \t]+
                     corfile_puts(csound, yytext, PARM->cf);
                   }
                 }
-{NM}            {
-                  if (PARM->isString) {
-                    corfile_putc(csound, yytext[0], PARM->cf);
-                    BEGIN(lname);
-                  } else {
-                    corfile_puts(csound, yytext, PARM->cf);
-                  }
-                }
-<lname>[ \t]*     /* eat the whitespace */
-<lname>{IDENT}   {
-                  corfile_putc(csound, ' ', PARM->cf);
-                  corfile_puts(csound, yytext, PARM->cf);
-                  BEGIN(INITIAL);
-                }
 
 "{"             {
-                  int c=' ', i;
-                  PARM->repeat_index++;
-                  if (UNLIKELY(PARM->repeat_index >= RPTDEPTH))
-                    csound->Die(csound, Str("Loops are nested too deeply\n"));
-                  PARM->repeat_mm_n[PARM->repeat_index] =
-                    (MACRO*)csound->Malloc(csound, sizeof(MACRO));
-                  if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index] == NULL)) {
-                    csound->Message(csound, Str("Memory exhausted"));
-                    csound->LongJmp(csound, 1);
-                  }
-                  PARM->repeat_cnt_n[PARM->repeat_index] =
-                    extract_int(csound, yyscanner, &c);
-                  if (UNLIKELY(PARM->repeat_cnt_n[PARM->repeat_index] <= 0))
-                    csound->Die(csound, Str("{: invalid repeat count\n"));
-                  if (PARM->repeat_index > 1) {
-                    char st[41];
-                    int j;
-                    for (j = 0; j < PARM->repeat_index; j++) {
-                      st[j] = ' ';
-                      st[j+1] = '\0';
-                    }
-                    if (UNLIKELY(csound->oparms->odebug))
-                      csound->Message(csound, Str("%s Nested LOOP=%d Level:%d\n"),
-                                      st, PARM->repeat_cnt_n[PARM->repeat_index],
-                              PARM->repeat_index);
-                  }
+                  if (PARM->isString) corfile_puts(csound, yytext, PARM->cf);
                   else {
-                    if (UNLIKELY(csound->oparms->odebug))
-                      csound->Message(csound, Str("External LOOP=%d Level:%d\n"),
-                              PARM->repeat_cnt_n[PARM->repeat_index],
-                              PARM->repeat_index);
+                    int c=' ', i;
+                    PARM->repeat_index++;
+                    if (UNLIKELY(PARM->repeat_index >= RPTDEPTH))
+                      csound->Die(csound, Str("Loops are nested too deeply\n"));
+                    PARM->repeat_mm_n[PARM->repeat_index] =
+                      (MACRO*)csound->Calloc(csound, sizeof(MACRO));
+                    if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index] == NULL)) {
+                      csound->Message(csound, Str("Memory exhausted"));
+                      csound->LongJmp(csound, 1);
+                    }
+                    PARM->defining = PARM->repeat_mm_n[PARM->repeat_index];
+                    PARM->repeat_cnt_n[PARM->repeat_index] =
+                      extract_int(csound, yyscanner, &c);
+                    if (UNLIKELY(PARM->repeat_cnt_n[PARM->repeat_index] <= 0))
+                      csound->Die(csound, Str("{: invalid repeat count\n"));
+                    if (PARM->repeat_index > 1) {
+                      char st[41];
+                      int j;
+                      for (j = 0; j < PARM->repeat_index; j++) {
+                        st[j] = ' ';
+                        st[j+1] = '\0';
+                      }
+                      if (UNLIKELY(csound->oparms->odebug))
+                        csound->Message(csound, Str("%s Nested LOOP=%d Level:%d\n"),
+                                        st, PARM->repeat_cnt_n[PARM->repeat_index],
+                                PARM->repeat_index);
+                    }
+                    else {
+                      if (UNLIKELY(csound->oparms->odebug))
+                        csound->Message(csound, Str("External LOOP=%d Level:%d\n"),
+                                PARM->repeat_cnt_n[PARM->repeat_index],
+                                PARM->repeat_index);
+                    }
+                    /* A count that ends the macro's text the { is in, or
+                       with blanks after it, has its counter after the call,
+                       as a { that ends its text has its count. */
+                    while (isblank(c) || (c=='\0' && on_EOF(csound, yyscanner)))
+                      c = input(yyscanner);
+                    for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
+                      PARM->repeat_name_n[PARM->repeat_index][i] = c;
+                      c = input(yyscanner);
+                    }
+                    PARM->repeat_name_n[PARM->repeat_index][i] = '\0';
+                    /* Define macro for counter */
+                    PARM->repeat_mm_n[PARM->repeat_index]->name =
+                      csound->Malloc(csound,
+                                 strlen(PARM->repeat_name_n[PARM->repeat_index])+1);
+                    if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index]->name==NULL)) {
+                      csound->Message(csound, Str("Memory exhausted"));
+                      csound->LongJmp(csound, 1);
+                    }
+                    strcpy(PARM->repeat_mm_n[PARM->repeat_index]->name,
+                           PARM->repeat_name_n[PARM->repeat_index]);
+                    PARM->repeat_mm_n[PARM->repeat_index]->acnt = -1;
+                    PARM->repeat_mm_n[PARM->repeat_index]->body =
+                      csound->Calloc(csound, 16); // ensure nulls
+                    PARM->repeat_mm_n[PARM->repeat_index]->body[0] = '0';
+                    PARM->repeat_indx[PARM->repeat_index] = 0;
+                    csound->DebugMsg(csound,"csound_prs(%d): repeat %s zero %p\n",
+                                     __LINE__,
+                                     PARM->repeat_name_n[PARM->repeat_index],
+                                     PARM->repeat_mm_n[PARM->repeat_index]->body);
+                    PARM->repeat_mm_n[PARM->repeat_index]->next = PARM->macros;
+                    PARM->macros = PARM->repeat_mm_n[PARM->repeat_index];
+                    PARM->defining = NULL;
+                    /* The rest of its line, which goes on after the call of
+                       a macro whose text it ends */
+                    while (c!='\n' && (c!='\0' || on_EOF(csound, yyscanner)))
+                      c = input(yyscanner);
+                    if (c=='\n')                      /* the line end read */
+                      csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
+                                           yyscanner);
+                    PARM->cf_stack[PARM->repeat_index] = PARM->cf;
+                    PARM->cf = corfile_create_w(csound);
                   }
-                  while (isblank(c)) {
-                    c = input(yyscanner);
-                  }
-                  for (i = 0; isNameChar(c, i) && i < (NAMELEN-1); i++) {
-                    PARM->repeat_name_n[PARM->repeat_index][i] = c;
-                    c = input(yyscanner);
-                  }
-                  PARM->repeat_name_n[PARM->repeat_index][i] = '\0';
-                  unput(c);
-                  /* Define macro for counter */
-                  PARM->repeat_mm_n[PARM->repeat_index]->name =
-                    csound->Malloc(csound,
-                               strlen(PARM->repeat_name_n[PARM->repeat_index])+1);
-                  if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index]->name==NULL)) {
-                    csound->Message(csound, Str("Memory exhausted"));
-                    csound->LongJmp(csound, 1);
-                  }
-                  strcpy(PARM->repeat_mm_n[PARM->repeat_index]->name,
-                         PARM->repeat_name_n[PARM->repeat_index]);
-                  PARM->repeat_mm_n[PARM->repeat_index]->acnt = -1;
-                  PARM->repeat_mm_n[PARM->repeat_index]->body =
-                    csound->Calloc(csound, 16); // ensure nulls
-                  PARM->repeat_mm_n[PARM->repeat_index]->body[0] = '0';
-                  PARM->repeat_indx[PARM->repeat_index] = 0;
-                  csound->DebugMsg(csound,"csound_prs(%d): repeat %s zero %p\n",
-                                   __LINE__,
-                                   PARM->repeat_name_n[PARM->repeat_index],
-                                   PARM->repeat_mm_n[PARM->repeat_index]->body);
-                  PARM->repeat_mm_n[PARM->repeat_index]->next = PARM->macros;
-                  PARM->macros = PARM->repeat_mm_n[PARM->repeat_index];
-                  while (input(yyscanner)!='\n') {}
-                  PARM->cf_stack[PARM->repeat_index] = PARM->cf;
-                  PARM->cf = corfile_create_w(csound);
         }
 "}"     {
-          int temp;
-          CORFIL *bdy = PARM->cf;
-          if (UNLIKELY((temp=PARM->repeat_cnt_n[PARM->repeat_index])==0)) {
-            csound->Message(csound, Str("unmatched } in score\n"));
-            csound->LongJmp(csound, 1);
-          }
-          corfile_puts(csound, "#loop", PARM->cf);
-          corfile_putc(csound, '\0', PARM->cf);
-          corfile_putc(csound, '\0', PARM->cf);
-          PARM->cf = PARM->cf_stack[PARM->repeat_index];
-          //printf("****Repeat body\n>>>%s<<<\n", bdy->body);
-          PARM->repeat_mm_n[PARM->repeat_index]->acnt = 0; /* uninhibit */
-          if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
-            //trace_alt_stack(csound, PARM, __LINE__);
-            PARM->alt_stack =
-              (MACRON*)csound->ReAlloc(csound, PARM->alt_stack,
-                                   sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
-            if (UNLIKELY(PARM->alt_stack == NULL)) {
-              csound->Message(csound, Str("Memory exhausted"));
+          if (PARM->isString) corfile_puts(csound, yytext, PARM->cf);
+          else {
+            int temp;
+            CORFIL *bdy = PARM->cf;
+            if (UNLIKELY((temp=PARM->repeat_cnt_n[PARM->repeat_index])==0)) {
+              csound->Message(csound, Str("unmatched } in score\n"));
               csound->LongJmp(csound, 1);
             }
+            if (UNLIKELY(PARM->repeat_index == PARM->repeat_crossed ||
+                         (PARM->in_repeat_sect == 1 &&
+                          PARM->repeat_index == PARM->repeat_sect_depth)))
+              prs_fatal(yyscanner, Str("repeat and section cross in score"));
+            {   /* A statement against the } ends its line, or each
+                   repeat's first one is written onto it */
+              uint32_t end = bdy->p;
+              while (end > 0 && isblank((unsigned char) bdy->body[end - 1]))
+                end--;
+              if (end > 0 && bdy->body[end - 1] != '\n')
+                corfile_putc(csound, '\n', PARM->cf);
+            }
+            corfile_puts(csound, "#loop", PARM->cf);
+            corfile_putc(csound, '\0', PARM->cf);
+            corfile_putc(csound, '\0', PARM->cf);
+            PARM->cf = PARM->cf_stack[PARM->repeat_index];
+            //printf("****Repeat body\n>>>%s<<<\n", bdy->body);
+            PARM->repeat_mm_n[PARM->repeat_index]->acnt = 0; /* uninhibit */
+            if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
+              //trace_alt_stack(csound, PARM, __LINE__);
+              PARM->alt_stack =
+                (MACRON*)csound->ReAlloc(csound, PARM->alt_stack,
+                                     sizeof(MACRON)*(PARM->macro_stack_size+=S_INC));
+              if (UNLIKELY(PARM->alt_stack == NULL)) {
+                csound->Message(csound, Str("Memory exhausted"));
+                csound->LongJmp(csound, 1);
+              }
+            }
+            csound->DebugMsg(csound,"csound_ps(%d): stacking line %d at %d\n",
+                             __LINE__,
+                             csound_prsget_lineno(yyscanner),PARM->macro_stack_ptr);
+            PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
+            PARM->alt_stack[PARM->macro_stack_ptr].line =
+              csound_prsget_lineno(yyscanner);
+            PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
+            PARM->depth++;
+            prs_push_buffer(csound, yyscanner);
+            prs_scan_string(bdy->body, yyscanner);
+            PARM->cf_stack[PARM->repeat_index] = bdy;
           }
-          csound->DebugMsg(csound,"csound_ps(%d): stacking line %d at %d\n",
-                           __LINE__,
-                           csound_prsget_lineno(yyscanner),PARM->macro_stack_ptr);
-          PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
-          PARM->alt_stack[PARM->macro_stack_ptr].line =
-            csound_prsget_lineno(yyscanner);
-          PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-          PARM->depth++;
-          csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-          csound_prs_scan_string(bdy->body, yyscanner);
-          PARM->cf_stack[PARM->repeat_index] = bdy;
        }
 
 {LOOP} {
-          //printf("#loop found\n");
-          yypop_buffer_state(yyscanner);
-          PARM->depth--;
-          PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
-          /* printf("Loop structures: count = %d, name = %s, indx = %d\n", */
-          /*        PARM->repeat_cnt_n[PARM->repeat_index], */
-          /*        PARM->repeat_name_n[PARM->repeat_index], */
-          /*        PARM->repeat_indx[PARM->repeat_index]); */
-          if (++PARM->repeat_indx[PARM->repeat_index] !=
-              PARM->repeat_cnt_n[PARM->repeat_index]) {
-            snprintf(PARM->repeat_mm_n[PARM->repeat_index]->body, 16, "%d",
-                     PARM->repeat_indx[PARM->repeat_index]);
-            //printf(">>%s<<\n", PARM->cf_stack[PARM->repeat_index]->body);
-            PARM->depth++;
-            csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-            csound_prs_scan_string(PARM->cf_stack[PARM->repeat_index]->body,
-                                   yyscanner);
-          }
+          /* The marker "}" puts at the end of a repeat's body, which is
+             always read outside a string: inside one it is the string's
+             text, and popped the buffer it was in. */
+          if (PARM->isString) corfile_puts(csound, yytext, PARM->cf);
           else {
-            //printf("*** end loop\n");
-            //printf(">>%s<<\n", PARM->cf->body);
-            corfile_rm(csound, &PARM->cf_stack[PARM->repeat_index]);
-            PARM->repeat_index--;
-            PARM->macro_stack_ptr--;
+            //printf("#loop found\n");
+            /* acnt is -1 until "}" starts the repeat playing. */
+            if (UNLIKELY(PARM->repeat_index == 0 ||
+                         PARM->repeat_mm_n[PARM->repeat_index]->acnt != 0)) {
+              csound->ErrorMsg(csound, Str("#loop outside a repeat in score\n"));
+              csound->LongJmp(csound, 1);
+            }
+            prs_pop_buffer(yyscanner);
+            PARM->depth--;
+            PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
+            /* printf("Loop structures: count = %d, name = %s, indx = %d\n", */
+            /*        PARM->repeat_cnt_n[PARM->repeat_index], */
+            /*        PARM->repeat_name_n[PARM->repeat_index], */
+            /*        PARM->repeat_indx[PARM->repeat_index]); */
+            if (++PARM->repeat_indx[PARM->repeat_index] !=
+                PARM->repeat_cnt_n[PARM->repeat_index]) {
+              snprintf(PARM->repeat_mm_n[PARM->repeat_index]->body, 16, "%d",
+                       PARM->repeat_indx[PARM->repeat_index]);
+              //printf(">>%s<<\n", PARM->cf_stack[PARM->repeat_index]->body);
+              PARM->depth++;
+              prs_push_buffer(csound, yyscanner);
+              prs_scan_string(PARM->cf_stack[PARM->repeat_index]->body,
+                              yyscanner);
+            }
+            else {
+              //printf("*** end loop\n");
+              //printf(">>%s<<\n", PARM->cf->body);
+              corfile_rm(csound, &PARM->cf_stack[PARM->repeat_index]);
+              PARM->repeat_index--;
+              if (PARM->repeat_sect_depth > PARM->repeat_index)
+                PARM->repeat_sect_depth = PARM->repeat_index;
+              PARM->macro_stack_ptr--;
+            }
           }
        }
 {ROP}  {
@@ -492,25 +548,24 @@ NM              [nm][ \t]+
            char buff[120];
            //printf("r detected %d\n",PARM->in_repeat_sect );
            if (PARM->in_repeat_sect==1) {
-             char *tmp = strdup(yytext);
-             // Previous r opcode not terminated so fake an s and redo
+             // Previous r opcode not terminated so fake an s and redo.
+             // The blanks before the r go: nothing writes them, and a copy
+             // of them leaked when unput overflowed and the read stopped.
              //printf("unterminated r loop\n");
-             for (size_t remaining = yyleng; remaining > 0; )
-               unput(tmp[--remaining]);
+             unput('r');
              unput('\n'); unput('s'); unput('\n');
-             free(tmp);
+             /* line ends of no line, counted when they are read */
+             csound_prsset_lineno(csound_prsget_lineno(yyscanner) - 2,
+                                  yyscanner);
            }
            else {
              PARM->repeat_sect_cnt = 0;
              PARM->in_repeat_sect = 1; /* Mark as recording */
+             PARM->repeat_sect_depth = PARM->repeat_index;
              do {
                c = input(yyscanner);
              } while (isblank(c) || c=='\0');
-             while (isdigit(c)) {
-               PARM->repeat_sect_cnt =
-                 10 * PARM->repeat_sect_cnt + c - '0';
-               c = input(yyscanner);
-             }
+             PARM->repeat_sect_cnt = read_digits(yyscanner, &c);
              if (UNLIKELY(PARM->repeat_sect_cnt <= 0
                           || !isspace(c))) {
                csound->Message(csound, Str("r: invalid repeat count %d"),
@@ -562,26 +617,33 @@ NM              [nm][ \t]+
           if (!PARM->isString) {
             int op = yytext[strlen(yytext)-1];
             if (PARM->in_repeat_sect==1) { // Record mode
+              if (PARM->repeat_index != PARM->repeat_sect_depth) {
+                /* A repeat already playing has no } left to refuse. */
+                if (UNLIKELY(PARM->repeat_mm_n[PARM->repeat_index]->acnt == 0))
+                  prs_fatal(yyscanner, Str("repeat and section cross in score"));
+                PARM->repeat_crossed = PARM->repeat_index;
+              }
               //printf("recording section end %d %c\n>>%s<<\n",
               //       PARM->in_repeat_sect, op, PARM->cf->body);
-              corfile_putc(csound, 's', PARM->cf);
-              corfile_putc(csound, '\n', PARM->cf);
+              corfile_putc(csound, 's', PARM->cf);   /* then its time */
               while (1) {
                 int c = input(yyscanner);
                 //printf("copying >>%c<<(%.2x)", c, c);
+                if (c=='\n')            /* the line end read */
+                  csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),
+                                       yyscanner);
                 if (c=='\n' ||c=='\0') break;
                 if (!isblank(c)&&!isdigit(c)&&!strchr(".e+-",c)) { unput(c); break;}
                 corfile_putc(csound, c, PARM->cf);
               }
               corfile_putc(csound, '\n', PARM->cf);
               //unput('\n'); unput(op);unput('\n');
-              struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
               PARM->in_repeat_sect=2;
               //printf("****Repeat body\n>>>%s<<<\n", PARM->cf->body);
               if (PARM->repeat_sect_mm)
                 PARM->repeat_sect_mm->acnt = 0; /* uninhibit */
-              csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-              csound_prs_scan_string(PARM->cf->body, yyscanner);
+              prs_push_buffer(csound, yyscanner);
+              prs_scan_string(PARM->cf->body, yyscanner);
               { CORFIL *tmp = PARM->cf;
                 PARM->cf = PARM->repeat_sect_cf;
                 PARM->repeat_sect_cf = tmp;
@@ -589,6 +651,11 @@ NM              [nm][ \t]+
               PARM->line = PARM->repeat_sect_line;
             }
             else if (PARM->in_repeat_sect==2) { // expand loop
+              /* A repeat first read during the playing; one the record mode
+                 above marked has nothing closing it, and plays. */
+              if (UNLIKELY(PARM->repeat_index != PARM->repeat_sect_depth &&
+                           PARM->repeat_index != PARM->repeat_crossed))
+                prs_fatal(yyscanner, Str("repeat and section cross in score"));
               corfile_putc(csound, 's', PARM->cf);
               while (1) {
                 int c = input(yyscanner);
@@ -596,7 +663,7 @@ NM              [nm][ \t]+
                 if (c=='\n') break;
               }
               corfile_putc(csound, '\n', PARM->cf);
-              yypop_buffer_state(yyscanner);
+              prs_pop_buffer(yyscanner);
               PARM->llocn = PARM->locn; PARM->locn = make_slocation(PARM);
               //printf("repeat section %d %d\n",
               //       PARM->repeat_sect_index,PARM->repeat_sect_cnt);
@@ -608,8 +675,8 @@ NM              [nm][ \t]+
                   //printf("%s now %s\n",
                   //       PARM->repeat_sect_mm->name,PARM->repeat_sect_mm->body);
                 }
-                csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-                csound_prs_scan_string(PARM->repeat_sect_cf->body, yyscanner);
+                prs_push_buffer(csound, yyscanner);
+                prs_scan_string(PARM->repeat_sect_cf->body, yyscanner);
                 PARM->line = PARM->repeat_sect_line;
               }
               else { // finished loop
@@ -624,21 +691,14 @@ NM              [nm][ \t]+
               }
             }
             else {
-              corfile_putc(csound, op, PARM->cf);
+              /* The rest of its line is read as any line is: its number,
+                 written against it or not, a macro, a comment, its line end */
               int c = input(yyscanner);
-              if (isblank(c)) {
-                while (1) {
-                  //printf("**copy %.2x(%c)\n", c, c);
-                  corfile_putc(csound, c, PARM->cf);
-                  if (c=='\n') break;
-                  if (c=='\0') {
-                    corfile_putc(csound, '\n', PARM->cf);
-                    break;
-                  }
-                  c = input(yyscanner);
-                }
-              }
-              corfile_putc(csound, '\n', PARM->cf);
+              corfile_putc(csound, op, PARM->cf);
+              if (c=='\0')              /* the end of a macro's text ends it */
+                corfile_putc(csound, '\n', PARM->cf);
+              else
+                unput(c);
             }
           }
           else corfile_puts(csound, yytext, PARM->cf);
@@ -646,6 +706,51 @@ NM              [nm][ \t]+
 .       { corfile_putc(csound, yytext[0], PARM->cf); }
 
 %%
+static void prs_push_buffer(CSOUND *csound, yyscan_t yyscanner)
+{
+    scanner_buffers_push(csound, &PARM->buffers);
+}
+
+static void prs_scan_string(const char *text, yyscan_t yyscanner)
+{
+    PARM->buffers.current = yy_scan_string(text, yyscanner);
+}
+
+static void prs_pop_buffer(yyscan_t yyscanner)
+{
+    SCANNER_BUFFERS *buffers = &PARM->buffers;
+    YY_BUFFER_STATE current = buffers->current;
+    YY_BUFFER_STATE parent =
+      buffers->count ? buffers->parents[--buffers->count] : NULL;
+    if (current != parent) {
+      if (current != NULL)
+        yy_delete_buffer(current, yyscanner);
+      if (parent != NULL)
+        yy_switch_to_buffer(parent, yyscanner);
+    }
+    buffers->current = parent;
+    PARM->end_pending = 0;
+}
+
+static void prs_fatal(yyscan_t yyscanner, const char *msg)
+{
+    CSOUND *csound = PARM->csound;
+    csound->ErrorMsg(csound, "%s\n", msg);
+    csound->LongJmp(csound, 1);
+    abort();                           /* not reached */
+}
+
+static int prs_past_end(yyscan_t yyscanner)
+{
+    if (PARM->end_pending) {
+      PARM->end_pending = 0;
+      return 0;
+    }
+    if (PARM->past_end++)
+      prs_fatal(yyscanner, "unexpected EOF!!");
+    return 0;
+}
+
 static void comment(yyscan_t yyscanner)              /* Skip until nextline */
 {
     char c;
@@ -653,8 +758,7 @@ static void comment(yyscan_t yyscanner)              /* Skip until nextline */
     while ((c = input(yyscanner)) != '\n' && c != '\r') { /* skip */
       int cc = (int) c;
       if (UNLIKELY(cc == EOF || c=='\0')) {
-        YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
-          YY_BUFFER_EOF_PENDING;
+        PARM->end_pending = 1;
         return;
       }
     }
@@ -663,8 +767,7 @@ static void comment(yyscan_t yyscanner)              /* Skip until nextline */
       if (LIKELY(cc != EOF && c!='\0'))
         unput(c);
       else
-        YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
-          YY_BUFFER_EOF_PENDING;
+        PARM->end_pending = 1;
     }
     csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),yyscanner);
 }
@@ -672,7 +775,6 @@ static void comment(yyscan_t yyscanner)              /* Skip until nextline */
 static void do_comment(yyscan_t yyscanner)         /* Skip until * and / chars */
 {
     int c;
-    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
  TOP:
     c = input(yyscanner);
     switch (c) {
@@ -698,31 +800,45 @@ static void do_comment(yyscan_t yyscanner)         /* Skip until * and / chars *
       }
     case EOF:
     ERR:
-      YY_CURRENT_BUFFER_LVALUE->yy_buffer_status =
-        YY_BUFFER_EOF_PENDING;
+      PARM->end_pending = 1;
       return;
     default:
       goto TOP;
     }
 }
 
+/* The rest of a directive's line: to its newline, or to the end of the
+   text, where waiting for a newline alone never ended. */
+static void skip_line(yyscan_t yyscanner)
+{
+    int c;
+    do c = input(yyscanner); while (c != '\n' && c != EOF && c != '\0');
+}
+
 static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 {
-    char buffer[100];
+    char buffer[INCLUDE_NAME_SIZE];
     int p=0;
     int c;
     CORFIL *cf;
-    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
     while ((c=input(yyscanner))!=term) {
       if (c=='\n' || c==EOF || c=='\0') {
         csound->Warning(csound, Str("Ill formed #include ignored\n"));
+        return;
+      }
+      if (UNLIKELY(p >= (int)sizeof(buffer) - 1)) {
+        csound->Warning(csound,
+                        Str("#include file name longer than %d bytes ignored\n"),
+                        (int)sizeof(buffer) - 1);
+        skip_line(yyscanner);
+        csound_prsset_lineno(1+csound_prsget_lineno(yyscanner), yyscanner);
         return;
       }
       buffer[p] = c;
       p++;
     }
     buffer[p] = '\0';
-    while ((c=input(yyscanner))!='\n');
+    skip_line(yyscanner);
     if (UNLIKELY(PARM->depth++>=1024)) {
       csound->Die(csound, Str("Includes nested too deeply\n"));
     }
@@ -745,11 +861,9 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
       csound->Warning(csound, Str("%s is a directory; not including\n"), buffer);
     csound->DebugMsg(csound, "path = %s\n", PARM->path);
     if (PARM->path && buffer[0]!= DIRSEP) { // if nested included directories
-      char tmp[1024];
+      char tmp[2*INCLUDE_NAME_SIZE];
       csound->DebugMsg(csound, "using path %s\n", PARM->path);
-      strncpy(tmp, PARM->path, 1023);
-      strcat(tmp, "/");
-      strncat(tmp, buffer, 1022-strlen(tmp));
+      snprintf(tmp, sizeof(tmp), "%s/%s", PARM->path, buffer);
       if ((cf = copy_to_corefile(csound, tmp, "INCDIR", 0))==NULL)
           cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     }
@@ -768,7 +882,6 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
                   Str("Cannot open #include'd file %s\n"), buffer);
 #endif
     }
-    printf("stack pointer = %d\n", PARM->macro_stack_ptr);
     if (UNLIKELY(PARM->macro_stack_ptr +1 >= PARM->macro_stack_size )) {
       //trace_alt_stack(csound, PARM, __LINE__);
       PARM->alt_stack =
@@ -794,10 +907,10 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     }
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-    csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+    prs_push_buffer(csound, yyscanner);
     // this inserts a new line in included score to avoid lexer crash
     strcat(cf->body, "\n");
-    csound_prs_scan_string(cf->body, yyscanner);
+    prs_scan_string(cf->body, yyscanner);
     corfile_rm(csound, &cf);
     csound->DebugMsg(csound,"Set line number to 1\n");
     csound_prsset_lineno(1, yyscanner);
@@ -805,20 +918,26 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
 
 void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
 {
-    char buffer[128];
+    char buffer[INCLUDE_NAME_SIZE];
     CORFIL *cf = PARM->cf;
     int p = cf->p-2;
-    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
 
     //printf("*** in do_new_include\n");
     cf->body[p+1] = '\0';
     while (cf->body[p]!='"') p--;
     //printf("*** name is >>%s<<\n", &cf->body[p]);
     cf->body[p] = '\0';
-    strncpy(buffer, &cf->body[p+1],127); buffer[127]='\0';
     cf->p = p;
-    //printf("****buffer >>%s<<\n", buffer);
-    while ((input(yyscanner))!='\n');
+    if (UNLIKELY(strlen(&cf->body[p+1]) >= sizeof(buffer))) {
+      csound->Warning(csound,
+                      Str("#include file name longer than %d bytes ignored\n"),
+                      (int)sizeof(buffer) - 1);
+      skip_line(yyscanner);
+      csound_prsset_lineno(1+csound_prsget_lineno(yyscanner), yyscanner);
+      return;
+    }
+    strcpy(buffer, &cf->body[p+1]);
+    skip_line(yyscanner);
     if (UNLIKELY(PARM->depth++>=1024)) {
       csound->Die(csound, Str("Includes nested too deeply\n"));
     }
@@ -837,10 +956,8 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     if (UNLIKELY(isDir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including\n"), buffer);
     if (PARM->path && buffer[0]!=DIRSEP) {
-      char tmp[1024];
-      strncpy(tmp, PARM->path, 1023);
-      strcat(tmp, "/");
-      strncat(tmp, buffer, 1022-strlen(tmp));
+      char tmp[2*INCLUDE_NAME_SIZE];
+      snprintf(tmp, sizeof(tmp), "%s/%s", PARM->path, buffer);
       cf = copy_to_corefile(csound, tmp, "INCDIR", 0);
     }
     else cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
@@ -881,8 +998,8 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     }
     else PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-    csound_prspush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
-    csound_prs_scan_string(cf->body, yyscanner);
+    prs_push_buffer(csound, yyscanner);
+    prs_scan_string(cf->body, yyscanner);
     corfile_rm(csound, &cf);
     csound->DebugMsg(csound,"Set line number to 1\n");
     csound_prsset_lineno(1, yyscanner);
@@ -890,7 +1007,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
 
 static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
-    MACRO *mm = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
+    MACRO *mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
     int   arg = 0, i, c;
     int   size = 100;
     int mlen = 40;
@@ -901,6 +1018,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       csound->Message(csound, Str("Memory exhausted"));
       csound->LongJmp(csound, 1);
     }
+    PARM->defining = mm;
     mm->margs = MARGS;    /* Initial size */
     mm->name = (char*)csound->Malloc(csound, strlen(name0) + 1);
     if (UNLIKELY(mm->name == NULL)) {
@@ -957,6 +1075,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
         csound->LongJmp(csound, 1);
       }
       strcpy(mm->arg[arg++], mname);
+      mm->acnt = arg;
       if (UNLIKELY(arg >= mm->margs)) {
         mm = (MACRO*) csound->ReAlloc(csound, mm, sizeof(MACRO)
                                + mm->margs * sizeof(char*));
@@ -964,6 +1083,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
           csound->Message(csound, Str("Memory exhausted"));
           csound->LongJmp(csound, 1);
         }
+        PARM->defining = mm;
         mm->margs += MARGS;
       }
       while (isspace(c))
@@ -1018,7 +1138,7 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
       if (c=='$') {             /* munge macro name? */
         int n = (int32_t) strlen(name0)+4;
         if (UNLIKELY(i+n >= size)) {
-          mm->body = csound->ReAlloc(csound, mm->body, size += 100);
+          mm->body = csound->ReAlloc(csound, mm->body, size = i+n+100);
           if (UNLIKELY(mm->body == NULL)) {
             csound->Message(csound, Str("Memory exhausted"));
             csound->LongJmp(csound, 1);
@@ -1057,17 +1177,19 @@ static void do_macro_arg(CSOUND *csound, char *name0, yyscan_t yyscanner)
     mm->body[i] = '\0';
     mm->next = PARM->macros;
     PARM->macros = mm;
+    PARM->defining = NULL;
 }
 
 static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
-    MACRO *mm = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
+    MACRO *mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
     int   i, c;
     int   size = 100;
     if (UNLIKELY(mm == NULL)) {
       csound->Message(csound, Str("Memory exhausted"));
       csound->LongJmp(csound, 1);
     }
+    PARM->defining = mm;
 
     mm->margs = MARGS;    /* Initial size */
     csound->DebugMsg(csound,"Macro definition for %s\n", name0);
@@ -1145,38 +1267,43 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
     csound->DebugMsg(csound,"Body #%s#\n", mm->body);
     mm->next = PARM->macros;
     PARM->macros = mm;
+    PARM->defining = NULL;
 }
 
 static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
-    int i,c;
+    int i,c,running;
+    MACRO *found = PARM->macros;
     if (UNLIKELY(csound->oparms->msglevel))
       csound->Message(csound,Str("macro %s undefined\n"), name0);
     csound->DebugMsg(csound, "macro %s undefined\n", name0);
-    if (strcmp(name0, PARM->macros->name)==0) {
+    while (found != NULL && strcmp(name0, found->name) != 0)
+      found = found->next;
+    if (UNLIKELY(found == NULL)) {
+      csound->Message(csound, "%s\n", Str("Undefining undefined macro"));
+      csound->LongJmp(csound, 1);
+    }
+    running = PARM->in_repeat_sect && found == PARM->repeat_sect_mm;
+    for (i = 1; i <= PARM->repeat_index; i++)
+      running |= found == PARM->repeat_mm_n[i];
+    if (UNLIKELY(running))
+      csound->Message(csound, Str("#undef of a repeat's counter ignored\n"));
+    else if (strcmp(name0, PARM->macros->name)==0) {
       MACRO *mm=PARM->macros->next;
-      csoundFree(csound, PARM->macros->name); csoundFree(csound, PARM->macros->body);
-      for (i=0; i<PARM->macros->acnt; i++)
-        csoundFree(csound, PARM->macros->arg[i]);
-      csoundFree(csound, PARM->macros); PARM->macros = mm;
+      free_macro(csound, PARM->macros);
+      PARM->macros = mm;
     }
     else {
       MACRO *mm = PARM->macros;
       MACRO *nn = mm->next;
       while (strcmp(name0, nn->name) != 0) {
         mm = nn; nn = nn->next;
-        if (UNLIKELY(nn == NULL)) {
-          csound->Message(csound, Str("Undefining undefined macro"));
-          csound->LongJmp(csound, 1);
-        }
       }
-      csoundFree(csound, nn->name); csoundFree(csound, nn->body);
-      for (i=0; i<nn->acnt; i++)
-        csoundFree(csound, nn->arg[i]);
-      mm->next = nn->next; csoundFree(csound, nn);
+      mm->next = nn->next;
+      free_macro(csound, nn);
     }
     while ((c=input(yyscanner)) != '\n' &&
-           c != EOF && c != '\r'); /* ignore rest of line */
+           c != EOF && c != '\0' && c != '\r'); /* ignore rest of line */
     csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),yyscanner);
 }
 
@@ -1203,7 +1330,8 @@ static void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
     if (pp->isSkip)
       do_ifdef_skip_code(csound, yyscanner);
     else
-      while ((c = input(yyscanner)) != '\n' && c != '\r' && c != EOF);
+      while ((c = input(yyscanner)) != '\n' && c != '\r' && c != EOF &&
+             c != '\0');
 }
 
 static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
@@ -1257,22 +1385,68 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
       }
     }
     //free(buf);
-    while (c != '\n' && c != EOF && c != '\r') c = input(yyscanner);
+    while (c != '\n' && c != EOF && c != '\0' && c != '\r') c = input(yyscanner);
 }
 
-static void delete_macros(CSOUND *csound, yyscan_t yyscanner)
+static void free_macro(CSOUND *csound, MACRO *mm)
 {
-    MACRO * qq = PARM->macros;
-    if (qq) {
-      MACRO *mm = qq;
-      while (mm) {
-        csound->Free(csound, mm->body);
-        csound->Free(csound, mm->name);
-        qq = mm->next;
-        csound->Free(csound, mm);
-        mm = qq;
-       }
+    int i;
+    for (i = 0; i < mm->acnt; i++)
+      csound->Free(csound, mm->arg[i]);
+    csound->Free(csound, mm->body);
+    csound->Free(csound, mm->name);
+    csound->Free(csound, mm);
+}
+
+static void delete_macros(CSOUND *csound, PRS_PARM *qq)
+{
+    while (qq->macros != NULL) {
+      MACRO *next = qq->macros->next;
+      free_macro(csound, qq->macros);
+      qq->macros = next;
     }
+}
+
+/* What a read of the score holds, when it ends and when a fatal error ends
+   it early: the scanner, the macros and the one being read, the bodies of
+   repeats and of an r, each once and never the score's own text, and the
+   stacks. */
+void csound_prs_free(CSOUND *csound, PRS_PARM *qq)
+{
+    CORFIL *open[RPTDEPTH + 2];
+    int     n = 0, i, j;
+    if (qq->yyscanner != NULL) {
+      while (qq->buffers.current != NULL || qq->buffers.count != 0)
+        prs_pop_buffer(qq->yyscanner);
+      csound_prslex_destroy(qq->yyscanner);
+    }
+    csound->Free(csound, qq->buffers.parents);
+    delete_macros(csound, qq);
+    if (qq->defining != NULL)
+      free_macro(csound, qq->defining);
+    open[n++] = qq->cf;
+    open[n++] = qq->repeat_sect_cf;
+    for (i = 1; i <= qq->repeat_index && i < RPTDEPTH; i++)
+      open[n++] = qq->cf_stack[i];
+    /* Distinct as the lexer keeps them, but between restoring its outer text
+       and keeping the body, a "}" that fails to allocate leaves one in two. */
+    for (i = 0; i < n; i++) {
+      if (open[i] == NULL || open[i] == csound->expanded_sco)
+        continue;
+      for (j = 0; j < i && open[j] != open[i]; j++)
+        ;
+      if (j == i) {
+        CORFIL *f = open[i];
+        corfile_rm(csound, &f);
+      }
+    }
+    while (qq->ifdefStack != NULL) {
+      IFDEFSTACK *pp = qq->ifdefStack->prv;
+      csound->Free(csound, qq->ifdefStack);
+      qq->ifdefStack = pp;
+    }
+    csound->Free(csound, qq->alt_stack);
+    csound->Free(csound, qq);
 }
 
 void cs_init_smacros(CSOUND *csound, PRS_PARM *qq, NAMES *nn)
@@ -1357,34 +1531,35 @@ static void expand_macro(CSOUND* csound, MACRO* mm, yyscan_t yyscanner)
         csound_prsget_lineno(yyscanner);
       PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
       PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
-      yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+      prs_push_buffer(csound, yyscanner);
       csound_prsset_lineno(1, yyscanner);
       if (UNLIKELY(PARM->depth>1022)) {
-        csound->Message(csound,
-                        Str("macros/include nested too deep: "));
+        csound->ErrorMsg(csound,
+                         Str("macros/include nested too deep: "));
         csound->LongJmp(csound, 1);
       }
       PARM->lstack[++PARM->depth] =
         (strchr(mm->body,'\n') ?file_to_int(csound, yytext) : 63);
-      yy_scan_string(mm->body, yyscanner);
+      prs_scan_string(mm->body, yyscanner);
       /* csound->DebugMsg(csound,"%p\n", YY_CURRENT_BUFFER); */
     }
 }
 
-static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
+/* Pushes the macro's text to be read, its arguments read up to their ), and
+   gives 0; or says why its arguments are refused, and gives 1. */
+static int expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
 {
-    struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
     int err =0;
     //char      *mname;
     int c, i, j, cnt=0;
     //mname = buf;
     /* Need to read from macro definition */
     csound->DebugMsg(csound,"Looking for %d args\n", mm->acnt);
-    for (j = 0; j < mm->acnt; j++) {
+    for (j = 0; j < mm->acnt && !err; j++) {
       char  term = (j == mm->acnt - 1 ? ')' : '\'');
       /* Compatability */
       char  trm1 = (j == mm->acnt - 1 ? ')' : '#');
-      MACRO *nn = (MACRO*) csound->Malloc(csound, sizeof(MACRO));
+      MACRO *nn = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
       //int   size = 100;
       if (UNLIKELY(nn == NULL)) {
         csound->Message(csound, Str("Memory exhausted"));
@@ -1397,6 +1572,8 @@ static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
       }
       csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
       strcpy(nn->name, mm->arg[j]);
+      nn->next = PARM->macros;      /* the list owns it, whatever stops it */
+      PARM->macros = nn;
       csound->Message(csound, "defining argument %s ",
                       nn->name);
       i = 0;
@@ -1441,8 +1618,6 @@ static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
       nn->body[i] = '\0';
       csound->Message(csound, "as...#%s#\n", nn->body);
       nn->acnt = 0;       /* No arguments for arguments */
-      nn->next = PARM->macros;
-      PARM->macros = nn;
     }
     if (!err) {
       //csound->DebugMsg(csound,"New body: ...#%s#\n", mm->body);
@@ -1461,8 +1636,8 @@ static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
         /*        "macro_stack extends alt_stack to %d long\n", */
         /*                  PARM->macro_stack_size); */
       }
-      PARM->alt_stack[PARM->macro_stack_ptr].n =
-        PARM->macros->acnt;
+      /* The arguments stay until the end: on_EOF deletes none. */
+      PARM->alt_stack[PARM->macro_stack_ptr].n = 0;
       PARM->alt_stack[PARM->macro_stack_ptr].line =
         csound_prsget_lineno(yyscanner);
       PARM->alt_stack[PARM->macro_stack_ptr].path = NULL;
@@ -1477,22 +1652,21 @@ static void expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
       PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;
       //csound->DebugMsg(csound,"Push %p macro stack\n",
       //                 PARM->macros);
-      yypush_buffer_state(YY_CURRENT_BUFFER, yyscanner);
+      prs_push_buffer(csound, yyscanner);
       csound_prsset_lineno(1, yyscanner);
       if (UNLIKELY(PARM->depth>1022)) {
-        csound->Message(csound,
-                        Str("macros/include nested too deep: "));
-        //csound->LongJmp(csound, 1);
-        corfile_puts(csound, "$error", PARM->cf);
-        err = 1;
+        csound->ErrorMsg(csound,
+                         Str("macros/include nested too deep: "));
+        csound->LongJmp(csound, 1);
       }
     }
     if (!err) {
       PARM->lstack[++PARM->depth] =
         (strchr(mm->body,'\n') ?file_to_int(csound, mm->name) : 63);
-      yy_scan_string(mm->body, yyscanner);
+      prs_scan_string(mm->body, yyscanner);
       csound_prsset_lineno(0, yyscanner);
     }
+    return err;
 }
 
 static void csound_prs_line(CORFIL* cf, void *yyscanner)
@@ -1526,9 +1700,11 @@ static void csound_prs_line(CORFIL* cf, void *yyscanner)
 static MACRO *find_definition(MACRO *mmo, char *s)
 {
     MACRO *mm = mmo;
-    if (s[strlen(s)-1]=='.') s[strlen(s)-1]='\0';
-    else if (s[strlen(s)-2]=='.' && s[strlen(s)-1]=='(') {
-      s[strlen(s)-2] = '('; s[strlen(s)-1] = '\0'; }
+    size_t len = strlen(s);
+    if (len == 0) return NULL;
+    if (s[len-1]=='.') s[len-1]='\0';
+    else if (len > 1 && s[len-2]=='.' && s[len-1]=='(') {
+      s[len-2] = '('; s[len-1] = '\0'; }
     //printf("****Looking for %s\n", s);
     while (mm != NULL) {  /* Find the definition */
       //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
@@ -1537,9 +1713,10 @@ static MACRO *find_definition(MACRO *mmo, char *s)
     }
     if (mm == NULL) {
       mm = mmo;
-      s++;                      /* skip _ */
+      if (*s++ == '\0') return NULL; /* skip _ */
     looking:
-      while (*s++!='`') { if (*s=='\0') return NULL; }
+      while (*s!='`') { if (*s++=='\0') return NULL; }
+      s++;
       if (*s++!='`') { s--; goto looking; }
       //printf("now try looking for %s\n", s);
       while (mm != NULL) {  /* Find the definition */
@@ -1554,29 +1731,35 @@ static MACRO *find_definition(MACRO *mmo, char *s)
 
 //#if 0
 
-static int powintint(int x, int n)
+/* The number in the digits from *c on, leaving the character after them in
+   *c: -1 when it is past INT_MAX. */
+static int read_digits(yyscan_t yyscanner, int *c)
 {
-    int32 ans = 1;
-    if (n<0) return 0;
-    while (n!=0) {
-      if (n&1) ans = ans * x;
-      n >>= 1;
-      x = x*x;
+    int n = 0;
+    while (isdigit(*c)) {
+      if (n >= 0)
+        n = n > (INT_MAX - (*c - '0')) / 10 ? -1 : 10 * n + (*c - '0');
+      *c = input(yyscanner);
     }
-    return ans;
+    return n;
 }
 
 static int operate(CSOUND *csound, int a, int b, char c)
 {
-    int ans;
+    int64_t ans;
 
     switch (c) {
-    case '+': ans = a + b; break;
-    case '-': ans = a - b; break;
-    case '*': ans = a * b; break;
-    case '/': ans = a / b; break;
-    case '%': ans = a % b; break;
-    case '^': ans = powintint(a, b); break;
+    case '+': ans = (int64_t) a + b; break;
+    case '-': ans = (int64_t) a - b; break;
+    case '*': ans = (int64_t) a * b; break;
+    case '/':
+    case '%':
+      if (UNLIKELY(b == 0 || (b == -1 && a == INT_MIN))) {
+        csound->Message(csound, Str("division error in [] expression\n"));
+        csound->LongJmp(csound, 1);
+      }
+      ans = c == '/' ? a / b : a % b;
+      break;
     case '&': ans = a & b; break;
     case '|': ans = a | b; break;
     case '#': ans = a ^ b; break;
@@ -1585,36 +1768,60 @@ static int operate(CSOUND *csound, int a, int b, char c)
       ans = 0;
     }
     //printf("operate: %d %c %d => %d\n", a, c, b, ans);
-    return ans;
+    if (UNLIKELY(ans < INT_MIN || ans > INT_MAX)) {
+      csound->Message(csound, Str("integer overflow in [] expression\n"));
+      csound->LongJmp(csound, 1);
+    }
+    return (int) ans;
 }
 
-static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
+static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
 {
-      char  stack[30];
-      int   vv[30];
-      char  *op = stack - 1;
-      int   *pv = vv - 1;
+      /* Slot 0 is below the bottom of each stack, so that op and pv start
+         at an element: a pointer before an array is undefined. */
+      char  stack[32] = {0};
+      int   vv[32] = {0};
+      char  *op = stack;
+      int   *pv = vv;
       int   c;
       struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
       int   type = 0;  /* 1 -> expecting binary operator,')', or ']'; else 0 */
+      int   neg = 0;   /* 1 -> a unary minus waits for its number */
+      if (UNLIKELY(depth >= 30)) {
+        csound->Message(csound, Str("[] expression nested too deeply\n"));
+        csound->LongJmp(csound, 1);
+      }
       *++op = '[';
-      do {
+      for (;;) {
       parseNumber:
         c = input(yyscanner);
       top:
         while (isblank(c)) c = input(yyscanner);
+        /* Every push below comes back through here before the next, so no
+           push lands past the last slot. */
+        if (UNLIKELY(op - stack >= 31 || pv - vv >= 31)) {
+          csound->Message(csound, Str("[] expression too long\n"));
+          csound->LongJmp(csound, 1);
+        }
         //printf("bodmas: c='%c'\n", c);
         switch (c) {
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9': {
           //printf("bodmas:number\n");
-          int i = 0;
-          while (isdigit(c)) {
-            i = 10 * i + c - '0';
-            c = input(yyscanner);
+          int i;
+          if (UNLIKELY(type)) {
+            csound->Message(csound, Str("illegal placement of number in [] "
+                                        "expression\n"));
+            csound->LongJmp(csound, 1);
+          }
+          i = read_digits(yyscanner, &c);
+          if (UNLIKELY(i < 0)) {
+            csound->Message(csound, Str("integer overflow in [] expression\n"));
+            csound->LongJmp(csound, 1);
           }
           //printf("Number: %d terminated by %c(%.2x)\n", i, c, c);
-          *++pv = i;
+          *++pv = neg ? -i : i;
+          neg = 0;
           type = 1;
           if (c=='\0') {
             if (on_EOF(csound,yyscanner)==0) return 0;
@@ -1628,8 +1835,10 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           int p=0;
           int first = 1;
           while ((c=input(yyscanner))) {
-            if (isalpha(c) || c=='_' || c=='`' || (!first && isdigit(c)))
-              buf[p++] = c;
+            if (isalpha(c) || c=='_' || c=='`' || (!first && isdigit(c))) {
+              if (p < (int) sizeof(buf) - 1)
+                buf[p++] = c;
+            }
             else break;
             first = 0;
           }
@@ -1637,9 +1846,13 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           buf[p] = '\0';
           //printf("macro: %s\n", buf);
           mm = find_definition(mm, buf);
-          if (mm==NULL) return 0;
+          if (UNLIKELY(mm==NULL)) {
+            csound->Message(csound, Str("Undefined macro: '%s'"), buf);
+            csound->LongJmp(csound, 1);
+          }
           if (c=='(') {
-            expand_macroa(csound, mm, yyscanner);
+            if (UNLIKELY(expand_macroa(csound, mm, yyscanner) != 0))
+              csound->LongJmp(csound, 1);   /* its arguments, refused */
             goto parseNumber;
           }
           else {
@@ -1652,9 +1865,11 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
         }
         case '+': case '-':
           //printf("bodmas:arith %d type %d\n", c, type);
-          if (!type)
+          if (!type) {
+            if (c == '-') neg = !neg;
             goto parseNumber;
-          if (*op != '[' && *op != '(') {
+          }
+          while (*op != '[' && *op != '(') {
             int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
@@ -1668,7 +1883,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           if (UNLIKELY(!type)) {
             csound->Message(csound, Str("illegal placement of operator %c in [] "
                                         "expression"), c);
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           if (*op == '*' || *op == '/' || *op == '%') {
             int v = operate(csound, *(pv-1), *pv, *op);
@@ -1684,7 +1899,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           if (UNLIKELY(!type)) {
             csound->Message(csound, Str("illegal placement of operator %c in [] "
                                         "expression"), c);
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           if (*op == '|' || *op == '&' || *op == '#') {
             int v = operate(csound, *(pv-1), *pv, *op);
@@ -1696,10 +1911,10 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           goto parseNumber;
         case '(':
           //printf("bodmas: bra\n");
-          if (UNLIKELY(type)) {
+          if (UNLIKELY(type || neg)) {
             csound->Message(csound,
                             Str("illegal placement of '(' in [] expression"));
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           type = 0;
           *++op = c;
@@ -1709,12 +1924,16 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           if (UNLIKELY(!type)) {
             csound->Message(csound,
                             Str("missing operand before ')' in [] expression"));
-            return 0;
+            csound->LongJmp(csound, 1);
           }
-          while (*op != '(') {
+          while (*op != '(' && *op != '[') {
             int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
+          }
+          if (UNLIKELY(*op != '(')) {
+            csound->Message(csound, Str("unmatched ')' in [] expression\n"));
+            csound->LongJmp(csound, 1);
           }
           type = 1;
           op--;
@@ -1723,10 +1942,10 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
         //type = 0;
         // *++op = c; c = getscochar(csound, 1); break;
         case '[':
-          if (UNLIKELY(type)) {
+          if (UNLIKELY(type || neg)) {
             csound->Message(csound,
                             Str("illegal placement of '[' in [] expression"));
-            return 0;
+            csound->LongJmp(csound, 1);
           }
           type = 1;
           {
@@ -1734,31 +1953,30 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
             //cs_float x;
             //for (i=0;i<=pv-vv;i++) printf(" %d ", vv[i]);
             //printf("| %ld\n", pv-vv);
-            *++pv = bodmas(csound, yyscanner, term);
+            *++pv = bodmas(csound, yyscanner, term, depth + 1);
             //printf("recursion gives %lf (%d)\n", x,*(pv-1));
             //for (i=0;i<pv-vv;i++) printf(" %d ", vv[i]); printf("| %ld\n", pv-vv);
-            c = input(yyscanner);
-            break;
+            c = *term;               /* the character after its ] */
+            goto top;
           }
         case ']':
           //printf("] case: type = %d *op=%c\n", type, *op);
           if (UNLIKELY(!type)) {
             csound->Message(csound,
                             Str("missing operand before closing bracket in []"));
-            return 0;
+            csound->LongJmp(csound, 1);
           }
-          while (*op != '[') {
+          while (*op != '[' && *op != '(') {
             int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
           }
+          if (UNLIKELY(*op != '[')) {
+            csound->Message(csound, Str("unmatched ']' in [] expression\n"));
+            csound->LongJmp(csound, 1);
+          }
           //printf("done ]*** *op=%c v=%d (%c)\n", *op, *pv, c);
-          *term = '~'; return *pv;
-        case '~':
-          break;
-        case ' ':               /* Ignore spaces */
-          c = input(yyscanner);
-          continue;
+          *term = input(yyscanner); return *pv;
         case EOF:
         case '\0':
           if (on_EOF(csound, yyscanner)==0) {
@@ -1770,27 +1988,41 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term)
           csound->Message(csound,
                           Str("illegal character %c(%.2x) in [] expression"),
                           c, c);
-          return 0;
+          csound->LongJmp(csound, 1);
         }
-      } while (c != '~');
-      return *pv;
+      }
 }
 //#endif
 
+/* The count after a {, leaving the character after it in *term. A macro's
+   count is read from the start of its text, and what follows the count there
+   is ignored: *term is then the character after the call. In a macro's text
+   a number may come after line ends and with a plus sign, as when it was read
+   with strtoll, and the macro's text with no count gives none. */
 static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
 {
-    int c;
+    size_t level = PARM->buffers.count;   /* the text the count is in */
+    int c, n;
  top:
     do {
       c = input(yyscanner);
     } while (isblank(c));
-    if (c=='$') { // macro to yield count
+    if (PARM->buffers.count > level && (isspace(c) || c=='+')) {
+      while (isspace(c))
+        c = input(yyscanner);
+      if (c=='+')
+        c = input(yyscanner);
+      n = read_digits(yyscanner, &c);
+    }
+    else if (c=='$') { // macro to yield count
       char buf[256];
       int i=0;
       MACRO* mm;
       //printf("*** macro count\n");
-      while (isalnum(c=input(yyscanner)) || c=='_') {
-        buf[i++] = c;
+      /* A macro with arguments names them in its text with a ` */
+      while (isalnum(c=input(yyscanner)) || c=='_' || c=='`') {
+        if (i < (int) sizeof(buf) - 1)
+          buf[i++] = c;
       }
       if (c=='.') c = input(yyscanner);
       buf[i] = '\0';
@@ -1799,51 +2031,56 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
         csound->Message(csound,Str("Undefined macro: '%s'"), buf);
         //csound->LongJmp(csound, 1);
         corfile_puts(csound, "$error", PARM->cf);
-        *term = c;
-        return 0;
+        n = 0;
       }
       else if (c=='(') {
-        struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
-        unput(c);
-        expand_macroa(csound, mm, yyscanner);
-        goto top;
+        if (expand_macroa(csound, mm, yyscanner) == 0)
+          goto top;                    /* the count is in its text */
+        n = 0;                         /* its arguments were refused */
       }
+      else if (mm->acnt < 0)
+        n = 0;                         /* a counter, before its repeat plays */
       else {
-        *term = c;
-        return atoi(mm->body);
+        struct yyguts_t *yyg = (struct yyguts_t*)yyscanner;
+        unput(c);                      /* read after the macro's text */
+        expand_macro(csound, mm, yyscanner);
+        goto top;                      /* the count is in its text */
       }
     }
     else if (c=='[') {
       //printf("** ] case\n");
-      int n =  bodmas(csound, yyscanner,term);
-      return n;
+      n = bodmas(csound, yyscanner, &c, 0);
     }
+    else if (c=='\0' && PARM->buffers.count == level + 1)
+      n = 0;                           /* the macro's text, with no count */
     else if (c=='\0') {
       if (on_EOF(csound, yyscanner)==0) return 0;
+      if (PARM->buffers.count < level)
+        level = PARM->buffers.count;   /* the { ended its text */
       goto top;
     }
-    else {
-      int i = 0;
-      while (isdigit(c)) {
-        i = 10 * i + c - '0';
-        c = input(yyscanner);
-      }
-      *term = c;
-      return i;
+    else
+      n = read_digits(yyscanner, &c);
+    /* Back to the text the count is in: the rest of each macro's text is
+       read to its end, which input() gives as 0, and popped. */
+    while (PARM->buffers.count > level) {
+      while (c != '\0') c = input(yyscanner);
+      on_EOF(csound, yyscanner);
+      c = input(yyscanner);
     }
     *term = c;
-    return 0;
+    return n;
 }
 
 static int on_EOF(CSOUND* csound, void* yyscanner)
 {
     MACRO *x, *y=NULL;
     int n;
-    struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
     csound->DebugMsg(csound,"*********Leaving buffer %p\n",
-                     YY_CURRENT_BUFFER);
+                     PARM->buffers.current);
     //printf("stack pointer = %d\n", PARM->macro_stack_ptr);
-    yypop_buffer_state(yyscanner);
+    prs_pop_buffer(yyscanner);
+    PARM->past_end = 0;
     PARM->depth--;
     if (UNLIKELY(PARM->depth > 1024)) {
       //csound->Die(csound, Str("unexpected EOF!!"));
@@ -1854,9 +2091,9 @@ static int on_EOF(CSOUND* csound, void* yyscanner)
     csound->DebugMsg(csound,"csound-prs(%d): loc=%llu ; lastloc=%llu\n",
                      __LINE__, (unsigned long long) PARM->llocn,
                      (unsigned long long) PARM->locn);
-    if ( !YY_CURRENT_BUFFER ) return 0;
+    if ( !PARM->buffers.current ) return 0;
     csound->DebugMsg(csound,"End of input; popping to %p\n",
-                     YY_CURRENT_BUFFER);
+                     PARM->buffers.current);
     csound_prs_line(PARM->cf, yyscanner);
     n = PARM->alt_stack[--PARM->macro_stack_ptr].n;
     if (PARM->alt_stack[PARM->macro_stack_ptr].path) {
@@ -1913,43 +2150,3 @@ static int on_EOF(CSOUND* csound, void* yyscanner)
 /*  printf("***Line %d extend alt_stack from %d/%d (%p)\n", */
 /*         line, p->macro_stack_ptr, p->macro_stack_size, p->alt_stack); */
 /* } */
-
-#if 0
-static void print_csound_prsdata(CSOUND *csound, char *mesg, void *yyscanner)
-{
-    struct yyguts_t *yyg =(struct yyguts_t*)yyscanner;
-    csound->DebugMsg(csound,"********* %s extra data ************\n", mesg);
-    csound->DebugMsg(csound,"yyscanner = %p\n", yyscanner);
-    csound->DebugMsg(csound,"yyextra_r = %p, yyin_r = %p, yyout_r = %p,"
-                     " yy_buffer_stack_top = %d\n",
-           yyg->yyextra_r, yyg->yyin_r,yyg->yyout_r, yyg->yy_buffer_stack_top);
-    csound->DebugMsg(csound,"yy_buffer_stack_max = %d1, yy_buffer_stack = %p, "
-                     "yy_hold_char = %d '%c'\n",
-           yyg->yy_buffer_stack_max, yyg->yy_buffer_stack, yyg->yy_hold_char,
-           yyg->yy_hold_char);
-    csound->DebugMsg(csound,"yy_n_chars = %d, yyleng_r = %d, yy_c_buf_p = %p %c\n",
-           yyg->yy_n_chars, yyg->yyleng_r, yyg->yy_c_buf_p, *yyg->yy_c_buf_p);
-    csound->DebugMsg(csound,"yy_init = %d, yy_start = %d, "
-                     "yy_did_buffer_switch_on_eof = %d\n",
-           yyg->yy_init, yyg->yy_start, yyg->yy_did_buffer_switch_on_eof);
-    csound->DebugMsg(csound,"yy_start_stack_ptr = %d,"
-                     " yy_start_stack_depth = %d, yy_start_stack = %p\n",
-           yyg->yy_start_stack_ptr, yyg->yy_start_stack_depth, yyg->yy_start_stack);
-
-    csound->DebugMsg(csound,"yy_last_accepting_state = %d, "
-                     "yy_last_accepting_cpos = %p %c\n",
-           yyg->yy_last_accepting_state, yyg->yy_last_accepting_cpos,
-                     *yyg->yy_last_accepting_cpos);
-    csound->DebugMsg(csound,"yylineno_r = %d, yy_flex_debug_r = %d, "
-                     "yytext_r = %p \"%s\", yy_more_flag = %d, yy_more_len = %d\n",
-           yyg->yylineno_r, yyg->yy_flex_debug_r, yyg->yytext_r, yyg->yytext_r,
-                     yyg->yy_more_flag, yyg->yy_more_len);
-    {
-      PRS_PARM* pp = yyg->yyextra_r;
-      printf("macros = %p, isIfndef = %d, isString = %d, line - %d loc = %d\n",
-             pp->macros, pp->isIfndef, pp->isString, pp->line, pp->locn);
-      printf("llocn = %d dept=%d\n", pp->llocn, pp->depth);
-    }
-    csound->DebugMsg(csound,"*********\n");
-}
-#endif

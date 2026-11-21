@@ -1,10 +1,10 @@
 
 check_c_compiler_flag(-ftree-vectorize HAS_TREE_VECTORIZE)
 check_cxx_compiler_flag(-ftree-vectorize HAS_CXX_TREE_VECTORIZE)
-if (HAS_TREE_VECTORISE)
+if (HAS_TREE_VECTORIZE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ftree-vectorize")
 endif()
-if (HAS_CXX_TREE_VECTORISE)
+if (HAS_CXX_TREE_VECTORIZE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftree-vectorize")
 endif()
 

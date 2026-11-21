@@ -23,7 +23,8 @@ $(LOCAL_PATH)/csound_orcparse.h: $(LOCAL_PATH)/csound_orcparse.c
 endif
 
 LOCAL_MODULE   := csoundandroid
-LOCAL_C_INCLUDES := $(LIBSNDFILE_SRC_DIR) $(HOME)/include $(LOCAL_PATH)/../../../../H $(LOCAL_PATH)/../../../../include $(LOCAL_PATH)/../../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../../Engine $(LOCAL_PATH)/../../../../interfaces
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/$(CSOUND_SRC_ROOT)/third_party/pffft/include/pffft
+LOCAL_C_INCLUDES += $(LIBSNDFILE_SRC_DIR) $(HOME)/include $(LOCAL_PATH)/../../../../H $(LOCAL_PATH)/../../../../include $(LOCAL_PATH)/../../../../ $(LIBSNDFILE_SRC_DIR) $(LOCAL_PATH)/../../../../Engine $(LOCAL_PATH)/../../../../interfaces
 
 ifeq ($(NDK_TOOLCHAIN_VERSION),clang)
 LOCAL_CFLAGS := -std=c11 -O3 -DUSE_LIBSNDFILE -DENABLE_OPCODEDIR_WARNINGS -D__BUILDING_LIBCSOUND -DENABLE_NEW_PARSER -DLINUX -DHAVE_DIRENT_H -DHAVE_FCNTL_H -DHAVE_UNISTD_H -DHAVE_STDINT_H -DHAVE_SYS_TIME_H -DHAVE_SYS_TYPES_H -DHAVE_TERMIOS_H -DHAVE_STRTOK_R -DHAVE_PTHREAD -DHAVE_ATOMIC_BUILTIN -mllvm -unroll-allow-partial -mllvm -unroll-runtime -funsafe-math-optimizations -ffast-math -fno-finite-math-only -DPARCS -DGIT_HASH_VALUE=`git rev-parse HEAD`
@@ -84,6 +85,7 @@ $(CSOUND_SRC_ROOT)/InOut/window.c \
 $(CSOUND_SRC_ROOT)/InOut/winEPS.c \
 $(CSOUND_SRC_ROOT)/InOut/circularbuffer.c \
 $(CSOUND_SRC_ROOT)/OOps/aops.c \
+$(CSOUND_SRC_ROOT)/OOps/audio_mul_add.c \
 $(CSOUND_SRC_ROOT)/OOps/array_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/assert_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/bus.c \
@@ -95,6 +97,7 @@ $(CSOUND_SRC_ROOT)/OOps/dumpf.c \
 $(CSOUND_SRC_ROOT)/OOps/fftlib.c \
 $(CSOUND_SRC_ROOT)/OOps/lpred.c \
 $(CSOUND_SRC_ROOT)/OOps/pffft.c \
+$(CSOUND_SRC_ROOT)/OOps/pffft_double.c \
 $(CSOUND_SRC_ROOT)/OOps/inst_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/goto_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/midiinterop.c \
@@ -327,7 +330,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_new_dispatch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
-$(CSOUND_SRC_ROOT)/languages/java/cs_glue.cpp \
+cs_glue.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/savgol.c \
 $(CSOUND_SRC_ROOT)/Opcodes/remap.c
 #CsoundObj.cpp

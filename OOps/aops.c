@@ -24,6 +24,7 @@
 #include "aops.h"
 #include "arrays.h"
 #include "arrays_internal.h"
+#include "csound_standard_types.h"
 #include <math.h>
 #include <time.h>
 
@@ -79,8 +80,32 @@ int32_t retrievek(CSOUND *csound, STOREI *p) {
 
 
 int32_t b2s(CSOUND *csound, ASSIGN *p){
-  // B may use cs_float storage when it represents a k-rate boolean.
-  *p->r = *p->a;
+  // B is stored as int32_t, like b (see create_bool).
+  int32_t value;
+  memcpy(&value, p->a, sizeof(value));
+  *p->r = (cs_float) value;
+  return OK;
+}
+
+/* A k given to a UDO's B parameter: r is the B, a the truth it goes in with,
+   b the k. */
+int32_t k2B_ref(CSOUND *csound, AOP *p){
+  int32_t value = *p->b != FL(0.0);
+  IGN(csound);
+  *(int32_t *) p->r = value;
+  *p->a = (cs_float) value;
+  return OK;
+}
+
+/* After the call: r is the k, a the B, b the truth it went in with. The k
+   takes the B only if the UDO changed it, so a k it did not write through the
+   B keeps what it holds. */
+int32_t B2k_back(CSOUND *csound, AOP *p){
+  int32_t value;
+  IGN(csound);
+  memcpy(&value, p->a, sizeof(value));
+  if ((cs_float) (value != 0) != *p->b)
+    *p->r = (cs_float) value;
   return OK;
 }
 
@@ -96,6 +121,18 @@ int32_t b2b(CSOUND *csound, ASSIGN *p){
   return OK;
 }
 
+/* A b or B holds an int32_t (see create_bool), a number a cs_float. The
+   compiler gives m a boolean as a number, but fillarray's * form passes it as
+   it is, so they are read both ways. */
+int32_t arg_is_true(const cs_float *arg)
+{
+  const CS_TYPE *type = csoundGetTypeForArg(arg);
+  int32_t value = 0;
+  if (type == &CS_VAR_TYPE_b || type == &CS_VAR_TYPE_B)
+    memcpy(&value, arg, sizeof(value));
+  return value != 0 || *arg != FL(0.0);
+}
+
 int32_t binit(CSOUND *csound, ASSIGNM *p)
 {
   uint32_t nargs = p->INOCOUNT;
@@ -103,19 +140,21 @@ int32_t binit(CSOUND *csound, ASSIGNM *p)
   int32_t **r = (int32_t **) p->r;
   uint32_t i;
   int32_t *tmp;
+  if (UNLIKELY(nargs == 0))
+    return csound->InitError(csound, Str("init needs a value\n"));
   if (UNLIKELY(nargs > p->OUTOCOUNT))
     return csound->InitError(csound,
                              Str("Cannot be more In arguments than Out in "
                                  "init (%d,%d)\n"),p->OUTOCOUNT, nargs);
   if (nout==1) {
-    *r[0] =  *p->a[0] != 0 ? 1 : 0;
+    *r[0] = arg_is_true(p->a[0]);
     return OK;
   }
   tmp = (int32_t *)csound->Malloc(csound, sizeof(int32_t)*p->OUTOCOUNT);
   for (i=0; i<nargs; i++)
-    tmp[i] = *p->a[i] != 0 ? 1 : 0;
+    tmp[i] = arg_is_true(p->a[i]);
   for (; i<nout; i++)
-    tmp[i] = *p->a[nargs-1] != 0 ? 1 : 0;;
+    tmp[i] = arg_is_true(p->a[nargs-1]);
   for (i=0; i<nout; i++)
     *r[i] = tmp[i];
   csound->Free(csound, tmp);
@@ -190,6 +229,8 @@ int32_t minit(CSOUND *csound, ASSIGNM *p)
   uint32_t nout = p->OUTOCOUNT;
   uint32_t i;
   cs_float *tmp;
+  if (UNLIKELY(nargs == 0))
+    return csound->InitError(csound, Str("init needs a value\n"));
   if (UNLIKELY(nargs > p->OUTOCOUNT))
     return csound->InitError(csound,
                              Str("Cannot be more In arguments than Out in "
@@ -301,7 +342,7 @@ RELATN(eq,==)
 RELATN(ne,!=)
 
 int32_t bassign(CSOUND *csound, RELAT *p) {
-  *p->rbool = ((int32_t) *p->a != 0) ? 1 : 0;
+  *p->rbool = (*p->a != FL(0.0)) ? 1 : 0;
   return OK;
 }
 
@@ -544,53 +585,13 @@ int32_t modak(CSOUND *csound, AOP *p)
     }                                                                   \
   }
 
-/* VL
-   experimental code using SSE for operations
-   needs memory alignment - 16 bytes
-*/
-#ifdef USE_SSE
-#include "emmintrin.h"
-#define AA_VEC(OPNAME,OP)                                               \
-  int32_t OPNAME(CSOUND *csound, AOP *p){                               \
-    cs_float   *r, *a, *b;                                                 \
-    __m128d va, vb;                                                     \
-    uint32_t n, nsmps = CS_KSMPS, end;                                  \
-    if (LIKELY(nsmps!=1)) {                                             \
-      uint32_t offset = p->h.insdshead->ksmps_offset;                   \
-      uint32_t early  = p->h.insdshead->ksmps_no_end;                   \
-      r = p->r; a = p->a; b = p->b;                                     \
-      if (UNLIKELY(offset)) memset(r, '\0', offset*sizeof(cs_float));      \
-      if (UNLIKELY(early)) {                                            \
-        nsmps -= early;                                                 \
-        memset(&r[nsmps], '\0', early*sizeof(cs_float));                   \
-      }                                                                 \
-      end = nsmps;                                                      \
-      for (n=offset; n<end; n+=2) {                                     \
-        va = _mm_loadu_pd(&a[n]);                                       \
-        vb = _mm_loadu_pd(&b[n]);                                       \
-        va = OP(va,vb);                                                 \
-        _mm_storeu_pd(&r[n],va);                                        \
-      }                                                                 \
-      return OK;                                                        \
-    }                                                                   \
-    else {                                                              \
-      *p->r = *p->a + *p->b;                                            \
-      return OK;                                                        \
-    }                                                                   \
-  }                                                                     \
-
-AA_VEC(addaa,_mm_add_pd)
-AA_VEC(subaa,_mm_sub_pd)
-AA_VEC(mulaa,_mm_mul_pd)
-AA_VEC(divaa,_mm_div_pd)
-
-#else
+/* Any vector replacement must support both sample types, ksmps=1, and
+   odd active ranges after sample-accurate start and end offsets. */
 AA(addaa,+)
 AA(subaa,-)
 AA(mulaa,*)
-//AA(divaa,/)
-#endif
 
+/* Division stays separate to report zero divisors. */
 int32_t divaa(CSOUND *csound, AOP *p)
 {
   cs_float   *r, *a, *b;
@@ -959,6 +960,12 @@ int32_t atan21(CSOUND *csound, AOP *p)
   return OK;
 }
 
+/* Inputs may include NaNs, infinities and values outside a function's domain.
+   A future vector-math path must preserve those cases, in-place operation,
+   inactive samples and short tails. Do not use finite-only compiler flags.
+   Explicit vector libraries need per-function and whole-Csound benchmarks at
+   several ksmps sizes: a vectorized-loop remark need not mean vector math
+   calls, and actual vector calls can still be slower (see #3491). */
 #define LIBA(OPNAME,LIBNAME) int32_t OPNAME(CSOUND *csound, EVAL *p) {  \
     IGN(csound);                                                        \
     uint32_t offset = p->h.insdshead->ksmps_offset;                     \

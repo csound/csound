@@ -67,6 +67,18 @@ Settings `3` and `4` select zero-order hold and linear conversion.
 The output converter defaults to the input converter.
 Builds without libsamplerate use linear conversion for all converter settings.
 
+Settings `0` to `4` also convert k-rate values, as signals of one sample per
+control cycle, so a converter's latency counts control cycles. Settings `5` to
+`9` select the same five converters for audio and leave k-rate values
+unconverted under `oversample`, so these are copied as the next paragraph says.
+Each side has its own setting, so `oversample 2, 6, 1` holds k-rate arguments
+and converts k-rate outputs, with converter 1 for audio both ways.
+`undersample` passes k-rate values through at every setting.
+
+A value that can change during performance and is not converted, such as a
+string, is copied as it is with `setksmps`: in at each local control cycle, so
+it holds the parent's value through them, and back from the last of them.
+
 Use positive integer factors. A factor of `1` leaves the rate unchanged.
 Place rate setup before signal processing in the UDO.
 Do not combine it with a different local `ksmps` from `setksmps`.

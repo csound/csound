@@ -81,6 +81,11 @@ typedef struct {
 } AOP;
 
 typedef struct {
+    OPDS h;
+    cs_float *out, *input, *gain, *other;
+} AUDIO_MUL_ADD;
+
+typedef struct {
     OPDS    h;
     cs_float   *r, *a, *b, *def;
 } DIVZ;
@@ -252,6 +257,14 @@ int32_t monitor_opcode_init(CSOUND *csound, MONITOR_OPCODE *p);
 int32_t outRange_i(CSOUND *csound, OUTRANGE *p);
 int32_t outRange(CSOUND *csound, OUTRANGE *p);
 int32_t hw_channels(CSOUND *csound, ASSIGN *p);
+int32_t assign(CSOUND *csound, ASSIGN *p);
+int32_t minit(CSOUND *csound, ASSIGNM *p);
+int32_t addkk(CSOUND *csound, AOP *p);
+int32_t subkk(CSOUND *csound, AOP *p);
+int32_t mulkk(CSOUND *csound, AOP *p);
+int32_t mulak(CSOUND *csound, AOP *p);
+int32_t addaa(CSOUND *csound, AOP *p);
+int32_t audio_mul_add(CSOUND *csound, AUDIO_MUL_ADD *p);
 void csound_aops_init_tables(CSOUND *);
 cs_float MOD(cs_float, cs_float);
 int32_t inarray_set(CSOUND *csound, INA *p);
@@ -262,7 +275,10 @@ int32_t and_kk_bool(CSOUND *csound, LOGCL_KK *p);
 int32_t or_kk_bool(CSOUND *csound, LOGCL_KK *p);
 int32_t b2s(CSOUND *csound, ASSIGN *p);
 int32_t b2i(CSOUND *csound, ASSIGN *p);
+int32_t k2B_ref(CSOUND *csound, AOP *p);
+int32_t B2k_back(CSOUND *csound, AOP *p);
 int32_t b2b(CSOUND *csound, ASSIGN *p);
+int32_t arg_is_true(const cs_float *arg);
 int32_t binit(CSOUND *csound, ASSIGNM *p);
 int32_t mainit2(CSOUND *csound, ASSIGNM *p);
 int32_t storei(CSOUND *csound, STOREI *p);

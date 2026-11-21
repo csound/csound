@@ -23,6 +23,8 @@
 #ifndef __SCORE_PARAM_H
 #define __SCORE_PARAM_H
 
+#include "scanner_buffers.h"
+
 
 typedef struct ListItem {
   cs_double           val;
@@ -55,6 +57,11 @@ typedef struct IFDEFSTACK_ {
 
 typedef struct prs_parm_s {
     void            *yyscanner;
+    SCANNER_BUFFERS buffers;
+    CSOUND          *csound;
+    int             past_end;       /* reads past the current buffer's end */
+    int             end_pending;
+    MACRO           *defining;      /* a macro being read, until it is linked */
     CORFIL          *cf;
     MACRO           *macros;
     MACRON          *alt_stack; //[MAX_INCLUDE_DEPTH];
@@ -82,6 +89,8 @@ typedef struct prs_parm_s {
     int     repeat_index;
          /* Variables for section repeat */
     int     in_repeat_sect;
+    int     repeat_sect_depth;      /* repeat_index at its r */
+    int     repeat_crossed;         /* repeat an s or e ended a section in */
     int     repeat_sect_cnt;
     int     repeat_sect_index;
     int     repeat_sect_line;

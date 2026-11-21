@@ -6,7 +6,8 @@
   It creates its own virtual CoreMIDI destination, so no physical MIDI
   hardware or external device is required, then drives Csound through the
   "coremidi" MIDI output module and checks that the bytes emitted by the
-  midiout opcodes actually arrive at the destination.
+  midiout opcodes actually arrive at the destination, and that a device
+  number past the last destination, or a name, stops Csound at its start.
 
   This test is only compiled on macOS with the CoreMIDI plugin available.
 */
@@ -114,6 +115,29 @@ class CoreMidiOutputTests : public ::testing::Test {
     if (sink.client != 0)
       MIDIClientDispose(sink.client);
   }
+
+  /* True, with the coremidi module chosen, if `csound` has it. */
+  bool useCoreMidi() {
+    char *name = nullptr, *type = nullptr;
+    for (int32_t n = 0; !csoundGetModule(csound, n, &name, &type); n++) {
+      if (name != nullptr && type != nullptr &&
+          strcmp(name, "coremidi") == 0 && strcmp(type, "midi") == 0) {
+        csoundSetMIDIModule(csound, "coremidi");
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /* Everything Csound said, emptying its message buffer. */
+  std::string messages() {
+    std::string text;
+    while (csoundGetMessageCnt(csound) > 0) {
+      text += csoundGetFirstMessage(csound);
+      csoundPopFirstMessage(csound);
+    }
+    return text;
+  }
 };
 
 TEST_F(CoreMidiOutputTests, SendsMidiMessages) {
@@ -126,20 +150,9 @@ TEST_F(CoreMidiOutputTests, SendsMidiMessages) {
   csound = csoundCreate(nullptr, nullptr);
   ASSERT_NE(csound, nullptr);
   csoundCreateMessageBuffer(csound, 0);
-
-  bool haveCoreMidi = false;
-  char *name = nullptr, *type = nullptr;
-  for (int32_t n = 0; !csoundGetModule(csound, n, &name, &type); n++) {
-    if (name != nullptr && type != nullptr && strcmp(name, "coremidi") == 0 &&
-        strcmp(type, "midi") == 0) {
-      haveCoreMidi = true;
-      break;
-    }
-  }
-  if (!haveCoreMidi)
+  if (!useCoreMidi())
     GTEST_SKIP() << "The coremidi module is not available";
 
-  csoundSetMIDIModule(csound, "coremidi");
   ASSERT_EQ(csoundSetOption(csound, "-n"), 0);
   const std::string q = "-Q" + std::to_string(index);
   ASSERT_EQ(csoundSetOption(csound, q.c_str()), 0);
@@ -167,6 +180,37 @@ TEST_F(CoreMidiOutputTests, SendsMidiMessages) {
     return sink.bytes.size() >= expected.size();
   });
   EXPECT_EQ(sink.bytes, expected);
+#endif
+}
+
+TEST_F(CoreMidiOutputTests, RefusesADeviceItCannotOpen) {
+#if !defined(CSOUND_TEST_COREMIDI_PLUGIN_DIR)
+  GTEST_SKIP() << "The coremidi plugin is not built";
+#else
+  /* One past the last destination, and names: until they were refused,
+     each opened nothing, and Csound started sending MIDI out nowhere. */
+  const ItemCount count = MIDIGetNumberOfDestinations();
+  const std::string past = std::to_string(count);
+  const std::string devices[][2] = {
+      {past, count > 0 ? "MIDI output device " + past + " is out of range"
+                       : "no MIDI output destinations available"},
+      {"foo", "invalid MIDI output device 'foo'"},
+      {"1foo", "invalid MIDI output device '1foo'"}};
+  for (const auto &device : devices) {
+    if (csound != nullptr)
+      csoundDestroy(csound);
+    csound = csoundCreate(nullptr, nullptr);
+    ASSERT_NE(csound, nullptr);
+    csoundCreateMessageBuffer(csound, 0);
+    if (!useCoreMidi())
+      GTEST_SKIP() << "The coremidi module is not available";
+    ASSERT_EQ(csoundSetOption(csound, "-n"), 0);
+    ASSERT_EQ(csoundSetOption(csound, ("-Q" + device[0]).c_str()), 0);
+    ASSERT_EQ(csoundCompileOrc(csound, "sr = 48000\nksmps = 16\nnchnls = 1\n",
+                               0), 0);
+    EXPECT_NE(csoundStart(csound), 0) << device[0];
+    EXPECT_NE(messages().find(device[1]), std::string::npos) << device[0];
+  }
 #endif
 }
 

@@ -130,23 +130,10 @@ void corfile_rm(CSOUND *csound, CORFIL **ff)
 
 int32_t corfile_getc(CORFIL *f)
 {
-    int32_t c = f->body[f->p];
+    int32_t c = (unsigned char) f->body[f->p];  /* a byte 0xFF is no EOF */
     if (UNLIKELY(c=='\0')) return EOF;
     f->p++;
     return c;
-}
-
-char *corfile_fgets(char *buff, int32_t len, CORFIL *f)
-{
-    int32_t i;
-    char *p = &(f->body[f->p]), *q;
-    if (UNLIKELY(*p == '\0')) return NULL;
-    q = strchr(p, '\n');
-    i = (int32_t)  (q-p);
-    if (UNLIKELY(i>=len)) i = len-1;
-    memcpy(buff, p, i);
-    f->p += i;
-    return buff;
 }
 
 #undef corfile_ungetc
@@ -235,7 +222,6 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     fd = fopen_path(csound, &ff, (const char *)fname, NULL, (char *)env, fromScore);
     if (UNLIKELY(ff==NULL)) return NULL;
     mm = corfile_create_w(csound);
-    if (fromScore) corfile_putc(csound, '\n', mm);
     memset(buffer, '\0', 1024);
     while ((n = (int32_t)  fread(buffer, 1, 1023, ff))) {
       /* Need to lose \r characters  here */
@@ -278,7 +264,6 @@ CORFIL *copy_string_to_corefile(CSOUND *csound, const char *string,
       csound->LongJmp(csound, 1);
     }
     mm = corfile_create_w(csound);
-    if (fromScore) corfile_putc(csound, '\n', mm);
     corfile_puts(csound, string, mm);
     if (fromScore) {
       corfile_puts(csound, "\ne\n#exit\n", mm);

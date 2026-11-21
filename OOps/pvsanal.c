@@ -93,6 +93,38 @@ static CS_NOINLINE int32_t PVS_CreateWindow(CSOUND *csound, cs_float *buf,
 }
 
 
+typedef struct {
+  cs_double re, im, re_error, im_error;
+} SDFT_SUM;
+
+/* Add the entering or leaving term to the main sum first. This keeps
+   the residual when a large term cancels the main sum. */
+#define SDFT_ADD(value, error, increment) do {                              \
+  const cs_double sd_term = (increment);                                   \
+  const cs_double sd_main = (value);                                       \
+  const int32_t sd_ordered = fabs(sd_main) >= fabs(sd_term);                \
+  const cs_double sd_large = sd_ordered ? sd_main : sd_term;                \
+  const cs_double sd_small = sd_ordered ? sd_term : sd_main;                \
+  volatile cs_double sd_sum = sd_large + sd_small;                          \
+  volatile cs_double sd_applied = sd_sum - sd_large;                         \
+  volatile cs_double sd_residual = sd_small - sd_applied;                    \
+  volatile cs_double sd_low = sd_residual - (error);                         \
+  const int32_t sd_high_first = fabs(sd_sum) >= fabs(sd_low);             \
+  const cs_double sd_high = sd_high_first ? sd_sum : sd_low;               \
+  const cs_double sd_tail = sd_high_first ? sd_low : sd_sum;               \
+  volatile cs_double sd_next = sd_high + sd_tail;                           \
+  volatile cs_double sd_back = sd_next - sd_high;                           \
+  (error) = sd_back - sd_tail;                                                 \
+  (value) = sd_next;                                                          \
+} while (0)
+
+/* The half-table also describes the conjugate half of each period. */
+#define SDFT_COEFFICIENT(re, im, index) do {                                \
+  const int32_t sd_index = (index);                                         \
+  if (sd_index < NB) { (re) = c[sd_index]; (im) = s[sd_index]; }            \
+  else { (re) = c[N-sd_index]; (im) = -s[N-sd_index]; }                     \
+} while (0)
+
 static int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
 {
   /* opcode params */
@@ -101,8 +133,14 @@ static int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
   int32_t i;
   int32_t wintype = CS_FLOAT2LRND(*p->wintype);
 
+#ifdef USE_FLOAT
+  /* The exclusive bound rounds up in float; every value below it is safe. */
+  if (UNLIKELY(!(*p->winsize >= FL(1.0) &&
+                 *p->winsize < FL(INT32_MAX - 3))))
+#else
   if (UNLIKELY(!(*p->winsize >= FL(1.0) &&
                  *p->winsize <= (INT32_MAX + 0.0) - 3)))
+#endif
     return csound->InitError(csound, Str("Invalid window size\n"));
   N = CS_FLOAT2LRND(*p->winsize);
   /* deal with iinit and iformat later on! */
@@ -113,6 +151,11 @@ static int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
                (size_t)(NB+4) > SIZE_MAX / sizeof(CMPLX) ||
                (size_t)(2*NB) > SIZE_MAX / sizeof(cs_double)))
     return csound->InitError(csound, Str("pvsanal: window size too large\n"));
+
+  if (UNLIKELY((size_t)NB > SIZE_MAX / sizeof(SDFT_SUM)))
+    return csound->InitError(csound, Str("pvsanal: window size too large\n"));
+  /* The FFT work buffer is free in sliding mode; reset it on every init. */
+  csound->AuxAlloc(csound, (size_t)NB * sizeof(SDFT_SUM), &p->analbuf);
 
   /* Need space for NB complex numbers for each of ksmps */
   if (p->fsig->frame.auxp==NULL ||
@@ -134,6 +177,7 @@ static int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
     csound->AuxAlloc(csound, (size_t)(NB+4)*sizeof(CMPLX), &p->analwinbuf);
   else memset(p->analwinbuf.auxp, 0, (size_t)(NB+4)*sizeof(CMPLX));
   p->inptr = 0;                 /* Pointer in circular buffer */
+  p->sliding_nonzero = 0;
   p->fsig->NB = p->Ii = NB;
   p->fsig->wintype = wintype;
   p->fsig->format = PVS_AMP_FREQ;      /* only this, for now */
@@ -142,30 +186,32 @@ static int32_t pvssanalset(CSOUND *csound, PVSANAL *p)
   p->fsig->overlap = 1;
   p->fsig->framecount = 1;
   p->fsig->sliding = 1;
-  /* Need space for NB sines, cosines and a scatch phase area */
+  /* Need space for NB sines and cosines. */
   if (p->trig.auxp==NULL ||
       (size_t)(2*NB)*sizeof(cs_double) > p->trig.size)
     csound->AuxAlloc(csound, (size_t)(2*NB)*sizeof(cs_double), &p->trig);
   {
-    cs_double dc = cos(TWOPI/(cs_double)N);
-    cs_double ds = sin(TWOPI/(cs_double)N);
     cs_double *c = (cs_double *)(p->trig.auxp);
     cs_double *s = c+NB;
     p->cosine = c;
     p->sine = s;
-    c[0] = 1.0; s[0] = 0.0; // assignment to s unnecessary as csoundAuxalloc zeros
-    /*
-      direct computation of c and s may be better for large n
-      c[i] = cos(2*PI*i/n);
-      s[i] = sin(2*PI*i/n);
-      if (i % 16 == 15) {
-      c[i] = cos(2*PI*(i+1)/n);
-      s[i] = sin(2*PI*(i+1)/n);
-    */
+    c[0] = 1.0; s[0] = 0.0;
+    /* Compute each rotation directly. Recurring from rounded coefficients
+       builds a radius and phase error before analysis even begins. */
     for (i=1; i<NB; i++) {
-      c[i] = dc*c[i-1] - ds*s[i-1];
-      s[i] = ds*c[i-1] + dc*s[i-1];
+#ifdef USE_FLOAT
+      int32_t index = i > N/4 ? N/2-i : i;
+      cs_double angle = (cs_double)TWOPI * index / N;
+      c[i] = (i > N/4 ? -COS(angle) : COS(angle));
+      s[i] = SIN(angle);
+#else
+      c[i] = cos(TWOPI * i / N);
+      s[i] = sin(TWOPI * i / N);
+#endif
     }
+#ifdef USE_FLOAT
+    if (N % 4 == 0) { c[N/4] = FL(0.0); s[N/4] = FL(1.0); }
+#endif
     /* The endpoint coefficients of a real signal stay real. */
     c[NB-1] = -1.0;
     s[NB-1] = 0.0;
@@ -454,6 +500,7 @@ static int32_t pvssanal(CSOUND *csound, PVSANAL *p)
   CMPLX *fw = (CMPLX*)(p->analwinbuf.auxp) + 2;
   cs_double *c = p->cosine;
   cs_double *s = p->sine;
+  SDFT_SUM *sum = (SDFT_SUM *)p->analbuf.auxp;
   cs_double *h = (cs_double*)p->oldInPhase.auxp;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -465,6 +512,7 @@ static int32_t pvssanal(CSOUND *csound, PVSANAL *p)
   }
   ain = p->ain + offset;      /* The active input samples */
   loc = p->inptr;             /* Circular buffer */
+  int32_t nonzero = p->sliding_nonzero;
   nsmps -= early;
   /* Each inactive audio sample contains NB amplitude-frequency pairs. */
   if (offset)
@@ -473,22 +521,46 @@ static int32_t pvssanal(CSOUND *csound, PVSANAL *p)
     memset(output + (size_t)nsmps * NB, 0,
            (size_t)early * NB * sizeof(CMPLX));
   for (i=offset; i < nsmps; i++) {
-    cs_float re, im, dx;
     CMPLX* ff;
     int32_t j;
 
-    /*       printf("%d: in = %f\n", i, *ain); */
-    dx = *ain - data[loc];    /* Change in sample */
-    data[loc] = *ain++;       /* Remember input sample */
-    /* get the frame for this sample */
     ff = output + (size_t)i*NB;
-    /* fw is the current frame at this sample */
+    const cs_double input = *ain++, previous = data[loc];
+    /* S[k] sums x[t]*exp(-i*2*pi*k*t/N). The ring position supplies
+       the periodic index; F[k] = exp(i*2*pi*k*(t+1)/N)*S[k]. */
+    int32_t phase = 0;
+    const int32_t old_nonzero = nonzero;
+    nonzero += (input != FL(0.0)) - (previous != FL(0.0));
+    if (nonzero == 0 && old_nonzero != 0)
+      memset(sum, 0, (size_t)NB * sizeof(*sum));
+    data[loc] = input;
     for (j = 0; j < NB; j++) {
-      cs_double ci = c[j], si = s[j];
-      re = fw[j].re + dx;
-      im = fw[j].im;
-      fw[j].re = ci*re - si*im;
-      fw[j].im = ci*im + si*re;
+      cs_double ci, si;
+      /* An unchanged sample needs no update. Removing and adding it can
+         round away a small sum even with compensated addition. */
+      if (nonzero != 0 && input != previous) {
+        SDFT_COEFFICIENT(ci, si, phase);
+        /* Round entering and leaving products identically so they can
+           cancel when the sample leaves the window. */
+        volatile cs_double incoming_re = input * ci;
+        volatile cs_double outgoing_re = previous * ci;
+        volatile cs_double incoming_im = -input * si;
+        volatile cs_double outgoing_im = -previous * si;
+        SDFT_ADD(sum[j].re, sum[j].re_error, -outgoing_re);
+        SDFT_ADD(sum[j].re, sum[j].re_error, incoming_re);
+        SDFT_ADD(sum[j].im, sum[j].im_error, -outgoing_im);
+        SDFT_ADD(sum[j].im, sum[j].im_error, incoming_im);
+      }
+      int32_t rotation = phase >= N-j ? phase-(N-j) : phase+j;
+      SDFT_COEFFICIENT(ci, si, rotation);
+      cs_double real = sum[j].re - sum[j].re_error;
+      cs_double imag = sum[j].im - sum[j].im_error;
+      fw[j].re = ci * real - si * imag;
+      fw[j].im = ci * imag + si * real;
+      /* Keep the accumulated spectrum in a fixed frame; rotating only the
+         output cannot feed coefficient radius or phase error back into it. */
+      if (phase >= N-loc) phase -= N-loc;
+      else phase += loc;
     }
     loc++; if (UNLIKELY(loc==p->nI)) loc = 0; /* Circular buffer */
     /* apply window and transfer to ff buffer*/
@@ -570,9 +642,17 @@ static int32_t pvssanal(CSOUND *csound, PVSANAL *p)
       cs_double angleDif  = phase -  h[j];
       h[j] = phase;
       /*subtract expected phase difference */
+#ifdef USE_FLOAT
+      angleDif -= (cs_double)j * (cs_double)TWOPI / N;
+      angleDif = FMOD(angleDif, (cs_double)TWOPI);
+      if (angleDif <= -(cs_double)PI) angleDif += (cs_double)TWOPI;
+      else if (angleDif > (cs_double)PI) angleDif -= (cs_double)TWOPI;
+      angleDif = angleDif * N / (cs_double)TWOPI;
+#else
       angleDif -= (cs_double)j * TWOPI/N;
-      angleDif =  mod2Pi(angleDif);
-      angleDif =  angleDif * N /TWOPI;
+      angleDif = mod2Pi(angleDif);
+      angleDif = angleDif * N /TWOPI;
+#endif
       ff[j].re = thismag;
       ff[j].im = CS_ESR * (j + angleDif)/N;
     }
@@ -584,10 +664,13 @@ static int32_t pvssanal(CSOUND *csound, PVSANAL *p)
   }
 
   p->inptr = loc;
+  p->sliding_nonzero = nonzero;
   return OK;
 }
 
 #undef SDFT_THREE_TERM_WINDOW
+#undef SDFT_ADD
+#undef SDFT_COEFFICIENT
 
 int32_t pvsanal(CSOUND *csound, PVSANAL *p)
 {

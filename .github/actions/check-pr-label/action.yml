@@ -20,8 +20,14 @@ runs:
     - name: Install dependencies
       shell: bash
       run: |
-        sudo apt-get update
-        sudo apt-get install -y gh jq
+        packages=()
+        for tool in gh jq; do
+          command -v "$tool" >/dev/null || packages+=("$tool")
+        done
+        if (( ${#packages[@]} )); then
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 install -y "${packages[@]}"
+        fi
 
     - name: Find PR and check label
       id: check_label

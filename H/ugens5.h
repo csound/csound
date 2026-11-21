@@ -49,6 +49,16 @@ typedef struct {
 
 typedef struct {
         OPDS    h;
+        cs_float   *ar, *asig, *khp, *istor;
+        cs_double  c1, c2, a4;
+        cs_double  g[4], yh[4], uh[3];
+        cs_double  prvhp;
+        int32_t    settle;
+        AUXCH      aux;
+} TONELA;
+
+typedef struct {
+        OPDS    h;
         cs_float   *ar, *asig, *kcf, *kbw, *iscl, *istor;
         int32_t     scale;
         cs_double  c1, c2, c3, yt1, yt2, cosf, prvcf, prvbw;

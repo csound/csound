@@ -31,7 +31,7 @@ typedef struct srtblk {
         struct srtblk *nxtblk;
         struct srtblk *prvblk;
         int16   insno;
-        int16   pcnt;
+        int32_t pcnt;           /* a statement can have more than 32767 */
         cs_float   p1val;
         cs_float   p2val;
         cs_float   p3val;

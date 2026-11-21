@@ -37,6 +37,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include "fftlib.h"
+#include "strarg2name.h"
 
 static int32_t gen01raw(FGDATA *, FUNC *);
 static int32_t gen01(FGDATA *, FUNC *), gen02(FGDATA *, FUNC *);
@@ -150,7 +151,9 @@ int32_t csoundFTCreate(CSOUND *csound, FUNC **ftpp, const EVTBLK *evtblkp,
     ff.csound = csound;
 
     memcpy(&(ff.e), evtblkp, sizeof(EVTBLK));
-    ff.e.p = (cs_float *) csound->Calloc(csound, sizeof(cs_float) * (evtblkp->pcnt + 2));
+    /* csoundFtError reads p4 whatever the event gave: f -1 gives p1 alone. */
+    ff.e.p = (cs_float *) csound->Calloc(csound, sizeof(cs_float) *
+                                         ((evtblkp->pcnt < 3 ? 3 : evtblkp->pcnt) + 2));
     ff.e.p[1] = evtblkp->p[1];
     ff.fno = (int32_t) CS_FLOAT2LRND(ff.e.p[1]);
     if (!ff.fno) {
@@ -754,7 +757,9 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
       scale = 0.5 / n;
       pdlen = PI / (cs_double) ff->flen;
       for (phs = 0; fp <= finp; phs++) {
-        x = phs * pdlen;
+        /* The cosine sum is even. Keep the sine quotient away from pi,
+           where float rounding can swamp both numerator and denominator. */
+        x = (phs <= ff->flen / 2 ? phs : ff->flen - phs) * pdlen;
         denom = sin(x);
         if (fabs(denom)<1.0e-10) //(!(denom = (cs_float) sin(x)))
           *fp++ = FL(1.0);
@@ -766,9 +771,16 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
       cs_double  numer, twor, rsqp1, rtn, rtnp1, absr;
       cs_double  km1, kpn, kpnm1;
 
-      km1   = (cs_double) k - 1.0;
-      kpn   = (cs_double) k + n;
-      kpnm1 = kpn - 1;
+      cs_double first = k, polarity = FL(1.0);
+      if (fabs(r) > FL(1.0)) {
+        /* Reverse the harmonics and normalize the reciprocal weights. */
+        first = -((cs_double)k + (n - 1));
+        if (r < FL(0.0) && !(n & 1)) polarity = FL(-1.0);
+        r = FL(1.0) / r;
+      }
+      km1   = first - FL(1.0);
+      kpn   = first + n;
+      kpnm1 = kpn - FL(1.0);
       twor  = r * FL(2.0);
       rsqp1 = r * r + FL(1.0);
       rtn   = intpow(r, (int32) n);
@@ -776,9 +788,10 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
       if ((absr = fabs(r)) == 1.0)
         scale = 1.0 / n;
       else scale = (1.0 - absr) / (1.0 - fabs(rtn));
+      scale *= polarity;
       for (phs = 0; fp <= finp; phs++) {
-        x = (cs_double) phs * tpdlen;
-        numer = cos(x*k) - r * cos(x*km1) - rtn*cos(x*kpn)
+        x = (cs_double)(phs <= ff->flen / 2 ? phs : ff->flen - phs) * tpdlen;
+        numer = cos(x*first) - r * cos(x*km1) - rtn*cos(x*kpn)
                 + rtnp1 * cos(x*kpnm1);
         if ((denom = rsqp1 - twor * cos(x)) > FL(0.0001)
             || denom < -FL(0.0001))
@@ -788,7 +801,7 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
           cs_double sum = 0.0, amp = scale;
           int32_t j;
           for (j = 0; j < n; j++) {
-            sum += amp * cos(x * ((cs_double) k + j));
+            sum += amp * cos(x * (first + j));
             amp *= r;
           }
           *fp++ = sum;
@@ -1033,7 +1046,7 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     int32_t     cnt, start, finish, fnlen, j;
     cs_float   *pp = &ff->e.p[5], fn, amp, *fp, *fp18 = ftp->ftable, f;
-    cs_double  range, position;
+    uint32_t range;
     FUNC    *fnp;
     int32_t     nargs = ff->e.pcnt - 4;
 
@@ -1063,17 +1076,23 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
         fp18[start] += amp * fp[0];
         continue;
       }
-      range = (cs_double) (finish - start), j = start;
+      range = (uint32_t)(finish - start), j = start;
       while (j <= finish) {                      /* write the table */
-        uint32_t ii;
-        /* Convert before multiplying: valid table sizes can overflow int32. */
-        position = (cs_double) fnlen * (j - start) / range;
-        ii = (uint32_t) position;
-        f = (cs_float) (position - ii);
-        if (ii == (uint32_t) fnlen)
-          fp18[j++] += amp * fp[ii];
-        else
-          fp18[j++] += amp * ((f * (fp[ii+1] - fp[ii])) + fp[ii]);
+        /* Keep the cell and exact knots independent of float rounding. */
+        uint64_t position = (uint64_t)fnlen * (uint32_t)(j - start);
+        uint32_t ii = (uint32_t)(position / range);
+        uint32_t remainder = (uint32_t)(position % range);
+        cs_double value = fp[ii];
+        if (remainder != 0) {
+          f = (cs_float)((cs_double)remainder / range);
+          const cs_double next = fp[ii + 1];
+          const cs_double slope = next - value;
+          if (LIKELY(isfinite(slope)))
+            value += f * slope;
+          else
+            value = (FL(1.0) - f) * value + f * next;
+        }
+        fp18[j++] += amp * value;
       }
     }
     return OK;
@@ -1948,10 +1967,12 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
 {
     CSOUND  *csound = ff->csound;
     cs_float   *ft, *srcft, scl;
-    cs_double  fmode;
-    cs_double  y0, y1, x, c, v, *xn, *cn, *vn, *tmp, amp, frq, phs;
+    cs_double  fmode, divisor;
+    cs_double  y0, x, c, v, *xn, *cn, *vn, *tmp, amp, frq, phs;
     int32    nh, flen, srclen, i, j, k, l, bs;
     FUNC    *src;
+    uint8_t *reflect;
+    cs_double *correction;
     int32_t     nargs = ff->e.pcnt - 4;
 
     if (UNLIKELY(nargs < 3)) {
@@ -1975,13 +1996,13 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     scl = ff->e.p[7];
     /* frequency mode */
     if (fmode < FL(0.0)) {
-      fmode = TWOPI / (csound->esr * -fmode); /* frequency in Hz */
+      divisor = csound->esr * -fmode;    /* frequency in Hz */
     }
     else if (fmode > FL(0.0)) {
-      fmode = TWOPI / fmode;            /* ref. sample rate */
+      divisor = fmode;                 /* ref. sample rate */
     }
     else {
-      fmode = TWOPI / (cs_double) flen;    /* partial number */
+      divisor = (cs_double) flen;      /* partial number */
     }
 
     /* use blocks of 256 samples (2048 bytes) for speed */
@@ -1991,24 +2012,49 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     xn  = (cs_double*) csound->Malloc(csound, sizeof(cs_double) * (nh + 1L));
     cn  = (cs_double*) csound->Malloc(csound, sizeof(cs_double) * (nh + 1L));
     vn  = (cs_double*) csound->Malloc(csound, sizeof(cs_double) * (nh + 1L));
+    reflect = (uint8_t*)csound->Calloc(csound, (size_t)nh + 1);
+    correction = (cs_double*)csound->Calloc(csound, 2 * ((size_t)nh + 1) * sizeof(cs_double));
     /* initialise oscillators */
     i = -1L;
     while (++i < nh) {
       amp = (cs_double) scl * (cs_double) *(srcft++);         /* amplitude */
-      frq = (cs_double) fmode * (cs_double) *(srcft++);       /* frequency */
-      if (UNLIKELY(fabs (frq) > PI)) {
+      frq = (cs_double) *(srcft++);
+      const cs_double magnitude = (cs_double) fabs(frq);
+      /* Compare twice the magnitude with the divisor before taking the ratio.
+         Fast-math can turn division into multiplication by a rounded reciprocal. */
+      const cs_double remainder = divisor - magnitude;
+      if (UNLIKELY(magnitude > remainder)) {
         xn[i] = cn[i] = vn[i] = 0.0;
         srcft++; continue;      /* skip partial with too high frequency */
       }
       phs = TWOPI * (cs_double) *(srcft++);                /* phase */
       /* calculate coeffs for fast sine oscillator */
       y0 = sin(phs);           /* sample 0 */
-      y1 = sin(phs + frq);     /* sample 1 */
-      xn[i] = y0;
-      cn[i] = 2.0 * cos(frq) - 2.0;
-      vn[i] = y1 - cn[i] * y0 - y0;
-      /* amp. scale */
-      xn[i] *= amp; vn[i] *= amp;
+      xn[i] = y0 * amp;
+      if (frq == FL(0.0)) {
+        cn[i] = vn[i] = FL(0.0);
+      }
+      else if (magnitude == remainder) {
+        /* Nyquist is a constant oscillator with alternating polarity. */
+        cn[i] = vn[i] = FL(0.0);
+        reflect[i] = 1;
+      }
+      else {
+        /* Reflect around Nyquist before converting to radians. The small
+           difference then remains in the coefficient instead of rounding
+           into the repeated root at -1. */
+        if (magnitude > divisor * FL(0.25)) {
+          const cs_double distance = divisor - FL(2.0) * magnitude;
+          const cs_double radians = (distance / divisor) * PI;
+          reflect[i] = 1;
+          frq = frq > FL(0.0) ? -radians : radians;
+        }
+        else frq = (frq / divisor) * TWOPI;
+        const cs_double half = frq * FL(0.5);
+        const cs_double step = FL(2.0) * sin(half);
+        cn[i] = -step * step;
+        vn[i] = step * cos(phs + half) * amp - cn[i] * xn[i];
+      }
     }
 
     /* render output */
@@ -2023,11 +2069,38 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
       while (++i < nh) {
         x = xn[i]; c = cn[i]; v = vn[i];
         l = k;
-        do {
-          *(tmp++) += x;
-          v += c * x;
-          x += v;
-        } while (--l);
+        if (reflect[i] && c != FL(0.0)) {
+          cs_double xe = correction[2*i], ve = correction[2*i+1];
+          do {
+            *(tmp++) += (l & 1) == (k & 1) ? x : -x;
+            /* The reflected increment can be much smaller than the
+               accumulated state. Keep its rounding error across blocks. */
+            volatile cs_double dv = c * (x - xe) - ve;
+            volatile cs_double next_v = v + dv;
+            volatile cs_double applied_v = next_v - v;
+            ve = applied_v - dv;
+            v = next_v;
+            volatile cs_double dx = (v - ve) - xe;
+            volatile cs_double next_x = x + dx;
+            volatile cs_double applied_x = next_x - x;
+            xe = applied_x - dx;
+            x = next_x;
+          } while (--l);
+          correction[2*i] = xe; correction[2*i+1] = ve;
+        }
+        else if (reflect[i]) {
+          do {
+            *(tmp++) += (l & 1) == (k & 1) ? x : -x;
+            x += v;
+          } while (--l);
+        }
+        else {
+          do {
+            *(tmp++) += x;
+            v += c * x;
+            x += v;
+          } while (--l);
+        }
         tmp -= k;               /* restore pointer */
         xn[i] = x; vn[i] = v;   /* save oscillator state */
       }
@@ -2039,6 +2112,7 @@ static int32_t gen34(FGDATA *ff, FUNC *ftp)
     /* free tmp buffers */
     csound->Free(csound,tmp); csound->Free(csound,xn);
     csound->Free(csound,cn); csound->Free(csound,vn);
+    csound->Free(csound,reflect); csound->Free(csound,correction);
 
     return OK;
 }
@@ -2616,9 +2690,9 @@ static int32_t gen43(FGDATA *ff, FUNC *ftp)
 
     filno = &ff->e.p[5];
     if (isstrcod(ff->e.p[5]))
-      strNcpy(filename, (char *)(&ff->e.strarg[0]), MAXNAME);
+      strname_bounded(csound, filename, MAXNAME, ff->e.strarg);
     else
-      csound->StringArg2Name(csound, filename, filno, "pvoc.", 0);
+      strarg2name_bounded(csound, filename, sizeof(filename), filno, "pvoc.", 0);
 
     if (UNLIKELY(csoundPVOCEX_LoadFile(csound, filename, &pp) != 0))
       return csoundFtError(ff, Str("Failed to load PVOC-EX file\n"));
@@ -2680,11 +2754,10 @@ static int32_t gen44(FGDATA *ff, FUNC *ftp)
     cs_float stiffness;
 
     if (isstrcod(ff->e.p[5])) {
-      strncpy(buff, (char *)(&ff->e.strarg[0]), sizeof(buff) - 1);
-      buff[sizeof(buff) - 1] = '\0';
+      strname_bounded(csound, buff, sizeof(buff), ff->e.strarg);
     }
     else
-      csound->StringArg2Name(csound, buff, &(ff->e.p[5]), "stiff.", 0);
+      strarg2name_bounded(csound, buff, sizeof(buff), &(ff->e.p[5]), "stiff.", 0);
     fd = csound->FileOpen(csound, &filp, CSFILE_STD, buff, "r",
                            "SFDIR;SSDIR;INCDIR", CSFTYPE_FLOATS_TEXT, 0);
     if (UNLIKELY(fd == NULL))

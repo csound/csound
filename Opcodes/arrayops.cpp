@@ -38,10 +38,10 @@ static inline cs_float lim1(cs_float f) {
 }
 
 /* Keep output length current without allocating during performance. */
-template <std::size_t Inputs, std::size_t ArrayInputs = 1>
+template <std::size_t Inputs, int32_t ArrayInputs = 1>
 struct ArrayOutput : csnd::Plugin<1, Inputs> {
   bool vectors_only() {
-    for (std::size_t i = 0; i < ArrayInputs; ++i) {
+    for (int32_t i = 0; i < ArrayInputs; ++i) {
       const auto *in = reinterpret_cast<const ARRAYDAT *>(this->inargs(i));
       if (in->dimensions != 1 || in->sizes == nullptr) return false;
     }

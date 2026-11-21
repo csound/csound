@@ -1,1 +1,2 @@
 *.mid -text
+third_party/pffft/** linguist-vendored

@@ -1,0 +1,39 @@
+name: Publish a native test build
+description: Keep binaries, symlinks and the full test inventory for the test runners.
+inputs:
+  build:
+    description: Build directory.
+    required: true
+  name:
+    description: Artifact name suffix.
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Check the harness and plan all test groups
+      shell: bash
+      env:
+        BUILD_DIR: ${{ inputs.build }}
+        ARTIFACT_NAME: ${{ inputs.name }}
+      run: |
+        python3 tests/test_ci_test_shards.py
+        cmake --build "$BUILD_DIR" --target csdtest-harness-tests
+        python3 .github/scripts/ci-test-shards.py plan \
+          --build "$BUILD_DIR" --plan ".ci-test-plans/$ARTIFACT_NAME.json"
+        tar -czf "$RUNNER_TEMP/$ARTIFACT_NAME.tar.gz" "$BUILD_DIR"
+
+    - uses: actions/upload-artifact@v7.0.1
+      with:
+        name: native-build-${{ inputs.name }}
+        path: ${{ runner.temp }}/${{ inputs.name }}.tar.gz
+        compression-level: 0
+        retention-days: 2
+        if-no-files-found: error
+
+    - uses: actions/upload-artifact@v7.0.1
+      with:
+        name: native-plan-${{ inputs.name }}
+        path: .ci-test-plans/${{ inputs.name }}.json
+        include-hidden-files: true
+        retention-days: 7
+        if-no-files-found: error

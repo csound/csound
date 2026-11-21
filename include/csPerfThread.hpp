@@ -40,10 +40,24 @@ class CsPerfThread_PerformScore;
  * the playback (which is paused by default) is stopped by calling
  * CsoundPerformanceThread::Stop(), or an error occurs.
  * The constructor takes a Csound instance pointer as argument; it assumes
- * that csoundCompile() was called successfully before creating the
- * performance thread. Once the playback is stopped for one of the above
- * mentioned reasons, the performance thread calls csoundCleanup() and
- * returns.
+ * that the instance was compiled and started (csoundStart()) before creating
+ * the performance thread. Once the playback is stopped for one of
+ * the above mentioned reasons, the performance thread cleans up the
+ * instance and returns.
+ *
+ * Which thread may call what: Play(), Pause(), TogglePause(), Stop(),
+ * StopRecord(), ScoreEvent(), InputMessage(), SetScoreOffsetSeconds(),
+ * CompileOrc(), EvalCode(), RequestCallback() and SetProcessCallback() only
+ * queue a message or swap the callback, and may come from any thread, the
+ * performance thread's callbacks included. Record() opens the file on the
+ * thread that calls it: call it from a thread of the host's. Join(),
+ * FlushMessageQueue() and the destructor must not come from a callback the
+ * performance runs, and Join() and the destructor must come from one thread
+ * at a time, with no other call beside them: Join() frees the message queue
+ * and its locks, which every call that queues a message and
+ * FlushMessageQueue() use, and the destructor frees the object. To end a
+ * performance thread: Stop(), then Join(), then destroy the object, and
+ * destroy the Csound instance after that.
 
   An example program using the CsoundPerformanceThread class
 
@@ -56,6 +70,8 @@ int32_t main(int32_t argc, char *argv[])
  int32_t result=0;
  Csound cs;
  result = cs.Compile(argc,argv);
+ if(!result)
+   result = cs.Start();
 
  if(!result)
  {
@@ -70,7 +86,7 @@ int32_t main(int32_t argc, char *argv[])
    perfThread.Join();  // always call Join() after Stop() as a rule of thumb.
  }
  else{
-   printf("csoundCompile returned an error\n");
+   printf("csoundCompile or csoundStart returned an error\n");
    return 1;
  }
 
@@ -192,6 +208,7 @@ class PUBLIC CsoundPerformanceThread {
     /**
      * Starts recording the output from Csound. The sample rate and number
      * of channels are taken directly from the running Csound instance.
+     * Once GetStatus() is no longer 0, it does nothing, and opens no file.
      */
     void Record(std::string filename, int32_t samplebits = 16, int32_t numbufs = 4);
     
@@ -253,15 +270,28 @@ class PUBLIC CsoundPerformanceThread {
       * Must not be called from the performance thread itself, i.e. from a
       * message callback or from the process callback: the performance thread
       * cannot wait for itself. Such a call is ignored (with a one-time
-      * warning) instead of deadlocking.
+      * warning) instead of deadlocking. Csound calls some callbacks from
+      * other threads (its worker threads with -j, the recording thread, some
+      * audio and MIDI modules): there the call is not seen, and can deadlock.
       */
     void FlushMessageQueue();
 
      /**
      * Waits until the performance is finished or fails, and returns a
      * positive value if the end of score was reached or Stop() was called,
-     * and a negative value if an error occured. Also releases any resources
-     * associated with the performance thread object.
+     * and a negative value if an error occured. Also releases the message
+     * queue and its locks, and stops a recording still running once the
+     * performance has ended.
+     * Must not be called from a callback the performance runs. On the
+     * performance thread itself, i.e. from a message callback, from the
+     * process callback or from a Csound callback called there, it cannot
+     * wait for itself: the call is ignored and returns the current status,
+     * with a warning the first time. Csound calls some callbacks from other
+     * threads (its worker threads with -j, the recording thread, some audio
+     * and MIDI modules): there the call is not seen, and can deadlock.
+     * Not thread-safe: two threads must not join the same object at once,
+     * nor one join it while another destroys it. Each would wait for the
+     * thread and free what Join() frees, and the process crashes or hangs.
      */
     int32_t Join();
 
@@ -270,6 +300,14 @@ class PUBLIC CsoundPerformanceThread {
     CsoundPerformanceThread(Csound *);
     CsoundPerformanceThread(Csound &);
     CsoundPerformanceThread(CSOUND *);
+    /**
+     * Stops the performance, joins the thread and frees the object.
+     * Must not run in a callback the performance runs: the thread cannot
+     * join itself, and the performance would go on in a deleted object.
+     * From C, csoundDestroyPerformanceThread() called on the performance
+     * thread stops the performance and leaves the object.
+     * Not while another thread joins it: see Join().
+     */
     ~CsoundPerformanceThread();
     // --------
     friend class CsoundPerformanceThreadMessage;

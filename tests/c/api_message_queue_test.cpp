@@ -2,6 +2,7 @@
 #include "csoundCore.h"
 #include "gtest/gtest.h"
 #include <array>
+#include <climits>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -165,9 +166,22 @@ protected:
             input_message_async(csound, "i 1 0 1");
     }
 
+    static void takeAnotherFromWarning(CSOUND *csound, int32_t, const char *message)
+    {
+        if (std::strstr(message, "async API request could not be queued") == nullptr)
+            return;
+        auto *self = static_cast<ApiQueueRejectionTests *>(csoundGetHostData(csound));
+        self->reportedStatus = csoundGetAsyncStatus(csound);
+        message_dequeue(csound);
+        csoundEventString(csound, "i 1 0 1", 1);
+        self->innerStatus = csoundGetAsyncStatus(csound);
+    }
+
     cs_float output = 0;
     cs_float input[2] = { 2, 3 };
     int callbackWarnings = 0;
+    int32_t innerStatus = -99;
+    int32_t reportedStatus = -99;
 };
 
 TEST_P(ApiQueueRejectionTests, VoidApiWarnsOnceUntilReset)
@@ -190,6 +204,129 @@ TEST_P(ApiQueueRejectionTests, VoidApiWarnsOnceUntilReset)
 
 INSTANTIATE_TEST_SUITE_P(EachVoidApi, ApiQueueRejectionTests,
                         ::testing::Range(0, 7));
+
+TEST_F(ApiQueueRejectionTests, AsyncStatusSaysWhetherTheQueueTookIt)
+{
+    // rejectRequest makes the request; with room, the queue takes it. The
+    // four public calls, and input_message_async, csoundCompileCSD's score.
+    for (int api = 0; api < 5; ++api) {
+        SCOPED_TRACE(api);
+        fillQueue();
+        EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
+        rejectRequest(api);
+        EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+        message_dequeue(csound);
+        rejectRequest(api);
+        EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
+        message_dequeue(csound);
+    }
+}
+
+TEST_F(ApiQueueRejectionTests, AsyncStatusIsTheLastAsyncRequests)
+{
+    cs_float copy = 0;
+    const cs_float fields[] = { 1, 0, 1 };
+    fillQueue();
+    rejectRequest(0);
+    csoundTableCopyOut(csound, 1, &copy, 0);
+    csoundTableCopyIn(csound, 1, input, 0);
+    csoundEvent(csound, CS_INSTR_EVENT, fields, 3, 0);
+    csoundEventString(csound, "i 1 0 1", 0);
+    EXPECT_EQ(copy, 1);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+    message_dequeue(csound);
+    // From a success, each synchronous call - an unknown type among them -
+    // leaves it, and an async one of an unknown type is a drop.
+    rejectRequest(0);
+    ASSERT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
+    csoundTableCopyOut(csound, 1, &copy, 0);
+    csoundTableCopyIn(csound, 1, input, 0);
+    csoundEvent(csound, CS_INSTR_EVENT, fields, 3, 0);
+    csoundEvent(csound, 99, fields, 3, 0);
+    csoundEventString(csound, "i 1 0 1", 0);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
+    csoundEvent(csound, 99, fields, 3, 1);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+    message_dequeue(csound);
+}
+
+TEST_F(ApiQueueRejectionTests, AsyncStatusIsEachCallersOwn)
+{
+    fillQueue();
+    csoundDestroyMessageBuffer(csound);
+    csoundSetMessageStringCallback(csound, takeAnotherFromWarning);
+    rejectRequest(0);
+    EXPECT_EQ(reportedStatus, CSOUND_ERROR);
+    EXPECT_EQ(innerStatus, CSOUND_SUCCESS);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+    message_dequeue(csound);
+}
+
+TEST_F(ApiQueueRejectionTests, AsyncStatusIsSuccessAfterAReset)
+{
+    fillQueue();
+    rejectRequest(0);
+    ASSERT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+    message_dequeue(csound);
+    csoundDestroyMessageBuffer(csound);
+    csoundReset(csound);
+    csoundCreateMessageBuffer(csound, 0);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
+    // No queue until the start: a request dropped.
+    rejectRequest(0);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+}
+
+TEST_F(ApiQueueRejectionTests, AsyncStatusOfAMalformedRequestIsADrop)
+{
+    // Each a drop with no warning, which stays the queue's: the first real
+    // overflow after them is still told.
+    const cs_float fields[] = { 1, 0, 1 };
+    csoundEvent(csound, 99, fields, 3, 1);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+    rejectRequest(0);
+    ASSERT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
+    csoundEvent(csound, CS_INSTR_EVENT, fields, -1, 1);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+    rejectRequest(0);
+    ASSERT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
+    score_event_async(csound, 'i', fields, LONG_MAX);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+    EXPECT_EQ(takeWarnings(), 0);
+    message_dequeue(csound);
+    fillQueue();
+    rejectRequest(0);
+    EXPECT_EQ(takeWarnings(), 1);
+    message_dequeue(csound);
+}
+
+TEST_F(ApiQueueRejectionTests, AsyncStatusOfACompiledScore)
+{
+    // The orchestra takes the queue's last place, so its score finds none.
+    const char *csd =
+        "<CsoundSynthesizer>\n<CsInstruments>\ninstr 2\nendin\n</CsInstruments>\n"
+        "<CsScore>\ni 2 0 1\n</CsScore>\n</CsoundSynthesizer>\n";
+    for (int i = 0; i < queueCapacity - 1; ++i)
+        csoundTableCopyOut(csound, 1, &output, 1);
+    ASSERT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
+    csoundCompileCSD(csound, csd, 1, 1);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+    message_dequeue(csound);
+    csoundCompileCSD(csound, csd, 1, 1);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
+    message_dequeue(csound);
+    // The queue full, the orchestra is refused and no score is queued: the
+    // status is left as it was, the fill's success.
+    fillQueue();
+    ASSERT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
+    EXPECT_NE(csoundCompileCSD(csound, csd, 1, 1), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_SUCCESS);
+    rejectRequest(0);
+    ASSERT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+    EXPECT_NE(csoundCompileCSD(csound, csd, 1, 1), CSOUND_SUCCESS);
+    EXPECT_EQ(csoundGetAsyncStatus(csound), CSOUND_ERROR);
+    message_dequeue(csound);
+}
 
 TEST_F(ApiQueueRejectionTests, WarningCallbackCanRejectAnotherRequest)
 {

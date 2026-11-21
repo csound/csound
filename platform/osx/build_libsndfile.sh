@@ -1,5 +1,6 @@
 #!/bin/bash
 set -x
+source "$(dirname "${BASH_SOURCE[0]}")/dependencies.env"
 
 # Configuration
 TARGET_PLATFORM="${1:-macos}"  # default to macOS if nothing is passed
@@ -66,8 +67,12 @@ rm -rf "flac-${FLACVERSION}"
 echo "Downloading flac..."
 curl -sL "https://downloads.xiph.org/releases/flac/flac-${FLACVERSION}.tar.xz" | tar -xJ
 echo "Downloading lame..."
-git clone https://github.com/lameproject/lame.git "${SRCDIR}"/lame-${LAMEVERSION}
-git clone --depth 1 --branch ${LIBSNDFILEVERSION} https://github.com/libsndfile/libsndfile.git
+git init "${SRCDIR}/lame-${LAMEVERSION}"
+git -C "${SRCDIR}/lame-${LAMEVERSION}" fetch --depth 1 https://github.com/lameproject/lame.git "$LAME_REVISION"
+git -C "${SRCDIR}/lame-${LAMEVERSION}" checkout --detach FETCH_HEAD
+git init libsndfile
+git -C libsndfile fetch --depth 1 https://github.com/libsndfile/libsndfile.git "$LIBSNDFILE_REVISION"
+git -C libsndfile checkout --detach FETCH_HEAD
 # Download mpg123 official release tarball
 echo "Downloading mpg123..."
 curl -sL -o "${MPG123_TARBALL}" "https://www.mpg123.de/download/mpg123-1.33.0.tar.bz2"
@@ -156,7 +161,7 @@ for LIB in "${LIBS[@]}"; do
     # Special handling for LAME
     if [[ "$LIB" == "lame-${LAMEVERSION}" ]]; then
       # Update config.sub for modern architectures
-      CONFIG_SUB_URL="https://raw.githubusercontent.com/gcc-mirror/gcc/master/config.sub"
+      CONFIG_SUB_URL="https://raw.githubusercontent.com/gcc-mirror/gcc/${CONFIG_SUB_REVISION}/config.sub"
       curl -s "${CONFIG_SUB_URL}" -o "${SRCDIR}/${LIB}/config.sub" || {
         echo "Warning: Failed to download updated config.sub, using manual patch"
         sed -i '' -e 's/arm \*-/arm* | aarch64* | arm64*-/' \

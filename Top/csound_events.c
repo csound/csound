@@ -21,10 +21,12 @@
 */
 #include "csoundCore.h"
 #include "corfile.h"
+#include "sread.h"
 
 void score_event_async(CSOUND *csound, char type, const cs_float *pfields,
                            long numFields);
 void read_score_async(CSOUND *csound, const char *message);
+void async_refused(CSOUND *csound);
 void csoundInputMessage(CSOUND *csound, const char *message);
 
 void rewind_score(CSOUND *csound);   /* musmon.c */
@@ -70,7 +72,40 @@ int32_t csound_score_event_absolute(CSOUND *csound, char type,
 
 
 
+#if defined(_MSC_VER)
+#define SCORE_READ_LOCAL __declspec(thread)
+#elif defined(BARE_METAL)
+#define SCORE_READ_LOCAL
+#else
+#define SCORE_READ_LOCAL _Thread_local
+#endif
+
+/* Where a fatal error in the score reader lands during csoundReadScore().
+   exitjmp cannot serve: it is the frame of a call that has returned when a host
+   calls from outside a performance, it belongs to the performance thread when
+   a host calls beside one, and a jump to it ends that performance. So each
+   thread has its own target, and another thread's fatal error never finds it. */
+typedef struct score_read_s {
+  CSOUND *csound;
+  jmp_buf target;
+  struct score_read_s *outer;
+} SCORE_READ;
+
+static SCORE_READ_LOCAL SCORE_READ *score_read;
+
+/* Does not return if this thread is reading a score for this instance. */
+void score_read_unwind(CSOUND *csound) {
+  if (score_read != NULL && score_read->csound == csound)
+    longjmp(score_read->target, 1);
+}
+
 int32_t csoundReadScore(CSOUND *csound, const char *str) {
+  SCORE_READ guard;
+  int32_t first;
+  /* A host's lines are its own, counted from its first: none is a .csd's. */
+  const int32_t offset = csound->scoLineOffset;
+  char *sc;
+
   /* protect resource */
   if (csound->scorestr != NULL && csound->scorestr->body != NULL)
     corfile_rewind(csound->scorestr);
@@ -83,15 +118,29 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
     corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
   // #endif
   corfile_flush(csound, csound->scorestr);
+  first = csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0;
+  guard.csound = csound;
+  guard.outer = score_read;
+  if (setjmp(guard.target)) {
+    score_read = guard.outer;
+    csound->scoLineOffset = offset;
+    sread_abandon(csound);
+    if (first)
+      corfile_rm(csound, &csound->scstr);
+    csound->ErrorMsg(csound, Str("score refused: none of it was scheduled\n"));
+    return CSOUND_ERROR;
+  }
+  score_read = &guard;
+  csound->scoLineOffset = 0;
+  sc = scsortstr(csound, csound->scorestr);
+  csound->scoLineOffset = offset;
+  score_read = guard.outer;
   /* copy sorted score name */
-  if (csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0) {
-    scsortstr(csound, csound->scorestr);
+  if (first) {
     csound->playscore = csound->scstr;
     // corfile_rm(csound, &(csound->scorestr));
     // printf("%s\n", O->playscore->body);
-  } else {
-
-    char *sc = scsortstr(csound, csound->scorestr);
+  } else if (sc != NULL) { /* none for a later read before the start: kept */
     csoundInputMessage(csound, (const char *)sc);
     csound->Free(csound, sc);
     corfile_rm(csound, &(csound->scorestr));
@@ -118,7 +167,11 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
     c = 'e';
   else if (type == CS_ADV_EVENT)
     c = 'a';
-  else return;
+  else {
+    if (async)
+      async_refused(csound);
+    return;
+  }
 
   if (async)
     score_event_async(csound, c, params, nparams);
@@ -138,7 +191,7 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   csound->csoundIsScorePending_ = pending;
 }
 
- void csoundSetScoreOffsetSeconds(CSOUND *csound, cs_float offset) {
+static void set_score_offset(CSOUND *csound, cs_float offset) {
   cs_double aTime;
   cs_float prv = (cs_float)csound->csoundScoreOffsetSeconds_;
 
@@ -148,6 +201,13 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   /* if csoundCompile() was not called yet, just store the offset */
   if (!(csound->engineStatus & CS_STATE_COMP))
     return;
+  /* an init that asked for a rewind: the rewind takes the score there; a
+     seek back asks again, as it would rewind */
+  if (init_item_rewinding(csound)) {
+    if (offset < prv)
+      csoundRewindScore(csound);
+    return;
+  }
   /* otherwise seek to the requested time now */
   aTime = (cs_double)offset - (csound->icurTimeSamples / csound->esr);
   if (aTime < 0.0 || offset < prv) {
@@ -168,12 +228,35 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   }
 }
 
+ void csoundSetScoreOffsetSeconds(CSOUND *csound, cs_float offset) {
+  /* In an item of the realtime init thread, beside the performance: under
+     the allocation lock, which the performance holds while it rewinds, so
+     that no rewind reads the offset or resets the time in the middle. */
+  const int32_t item = init_item_runs(csound);
+  if (item)
+    csoundSpinLock(&csound->alloc_spinlock);
+  set_score_offset(csound, offset);
+  if (item)
+    csoundSpinUnLock(&csound->alloc_spinlock);
+}
+
  cs_float csoundGetScoreOffsetSeconds(CSOUND *csound) {
   return csound->csoundScoreOffsetSeconds_;
 }
 
  void csoundRewindScore(CSOUND *csound) {
+  /* An item the realtime init thread runs (an init that calls rewindscore,
+     or setscorepos) runs beside the performance, which would go on with the
+     notes the rewind turns off: the performance makes the rewind once the
+     item is done, at the start of a control period (sense_events). */
+  if (init_item_asks_rewind(csound))
+    return;
+  /* this rewind serves the ones asked for so far */
+  ATOMIC_SET(csound->score_rewind_served,
+             ATOMIC_GET(csound->score_rewind_request));
   rewind_score(csound);
-  if (csound->oparms->FMidiname != NULL)
-    midifile_rewind_score(csound);
+  midifile_rewind_score(csound);
+  rt_events_after_rewind(csound);
+  /* done: an init that asked puts in what it held from now on */
+  ATOMIC_SET(csound->score_rewinds_done, ATOMIC_GET(csound->score_rewinds));
 }

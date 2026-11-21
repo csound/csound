@@ -233,7 +233,7 @@ endif()
 
 ### COMPILER OPTIMIZATION FLAGS
 option(USE_COMPILER_OPTIMIZATIONS "Use the default Csound compiler optimization flags" ON)
-option(USE_AVX2 "Enable AVX2 SIMD instructions on x86-64 (ignored on other architectures)" ON)
+option(USE_AVX2 "Require AVX2 instructions on x86-64 (no runtime CPU dispatch)" OFF)
 option(USE_APPLE_M1_BASELINE "On macOS arm64, tune for Apple M1 as the baseline CPU (-mcpu=apple-m1)" ON)
 ## USER OPTIONS ##
 # Optional targets, they should all default to ON (check_deps will disable them if not possible to build)
@@ -471,7 +471,8 @@ else()
     message(STATUS  "NOT USING COMPILER OPTIMISATIONS")
 endif()
 
-# AVX2 support – x86-64 only, optional, enabled by default
+# AVX2 is opt-in. Compiler support does not establish that the user's CPU
+# supports these instructions, and global flags provide no runtime fallback.
 if(USE_AVX2)
     # Restrict to x86-64; CMAKE_SYSTEM_PROCESSOR may be "x86_64" or "AMD64"
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
@@ -480,7 +481,7 @@ if(USE_AVX2)
             if(COMPILER_SUPPORTS_AVX2)
                 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   /arch:AVX2")
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:AVX2")
-                message(STATUS "AVX2 enabled (/arch:AVX2)")
+                message(STATUS "AVX2 enabled (/arch:AVX2): binaries require an AVX2-capable CPU and OS")
             else()
                 message(STATUS "AVX2 requested but compiler does not support /arch:AVX2 – skipping")
             endif()
@@ -489,7 +490,7 @@ if(USE_AVX2)
             if(COMPILER_SUPPORTS_AVX2)
                 set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -mavx2")
                 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx2")
-                message(STATUS "AVX2 enabled (-mavx2)")
+                message(STATUS "AVX2 enabled (-mavx2): binaries require an AVX2-capable CPU and OS")
             else()
                 message(STATUS "AVX2 requested but compiler does not support -mavx2 – skipping")
             endif()
@@ -615,6 +616,12 @@ if (HAS_CXX_VISIBILITY_HIDDEN)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden ")
 endif()
 
+# Keep NaN and infinity checks valid even when -ffast-math is enabled.
+# With GCC, this override also undefines __FAST_MATH__, which hides glibc's
+# automatic vector-math declarations. Do not restore finite-only assumptions
+# or define that macro by hand to recover SIMD calls. An explicit vector
+# library can support nonfinite inputs, but needs accuracy, platform support
+# and Csound workload checks. See the investigation in #3491.
 if (PRESERVE_NAN)
     message(STATUS "Preserving NaNs")
     check_c_compiler_flag(-fno-finite-math-only HAS_NO_FINITE_MATH_ONLY)
@@ -739,7 +746,6 @@ if(APPLE)
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
 endif()
 
-if(CS_OPCODE_DIR STREQUAL "")
 if(APPLE)
     if(BUILD_INSTALLER)
        	set(CS_FRAMEWORK_FULL_PATH "/Library/Frameworks/${CSOUNDLIB}.framework/Versions/${APIVERSION}/Resources/Opcodes64")
@@ -747,12 +753,7 @@ if(APPLE)
         get_filename_component(CS_FRAMEWORK_FULL_PATH ${PLUGIN_INSTALL_DIR} ABSOLUTE)
     endif()
 
-    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_FRAMEWORK_FULL_PATH}\"")
     set(DEFAULT_OPCODEDIR "${CS_FRAMEWORK_FULL_PATH}")
-endif()
-else()
-   add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${CS_OPCODE_DIR}\"")
-   set(DEFAULT_OPCODEDIR "${CS_OPCODE_DIR}")
 endif()
 
 
@@ -766,7 +767,6 @@ endif()
 
 if(LINUX)
     set(DEFAULT_OPCODEDIR "${PLUGIN_INSTALL_DIR}")
-    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
     # dir relative to $HOME
     if(USE_DOUBLE)
         set(DEFAULT_USER_PLUGINDIR ".local/lib/csound/${APIVERSION}/plugins64")
@@ -784,6 +784,16 @@ if(WIN32)
         set(DEFAULT_USER_PLUGINDIR "csound/${APIVERSION}/plugin")
     endif()
     add_definitions("-DCS_DEFAULT_USER_PLUGINDIR=\"${DEFAULT_USER_PLUGINDIR}\"")
+endif()
+
+if("${DEFAULT_OPCODEDIR}" STREQUAL "")
+    set(DEFAULT_OPCODEDIR "${CS_OPCODE_DIR}")
+elseif(NOT "${CS_OPCODE_DIR}" STREQUAL "")
+    set(DEFAULT_OPCODEDIR "${CS_OPCODE_DIR}:${DEFAULT_OPCODEDIR}")
+endif()
+
+if(NOT "${DEFAULT_OPCODEDIR}" STREQUAL "")
+    add_definitions("-DCS_DEFAULT_PLUGINDIR=\"${DEFAULT_OPCODEDIR}\"")
 endif()
 
 if(APPLE OR LINUX)
@@ -1118,6 +1128,7 @@ set(libcsound_SRCS
     InOut/circularbuffer.c
     OOps/array_ops.c
     OOps/aops.c
+    OOps/audio_mul_add.c
     OOps/assert_ops.c
     OOps/bus.c
     OOps/cmath.c
@@ -1129,6 +1140,7 @@ set(libcsound_SRCS
     OOps/inst_ops.c
     OOps/lpred.c
     OOps/pffft.c
+    OOps/pffft_double.c
     OOps/goto_ops.c
     OOps/midiinterop.c
     OOps/midiops.c
@@ -1181,6 +1193,14 @@ set(vbap_ops
 )
 
 set(libcsound_static_SRCS  ${libcsound_SRCS})
+
+set_source_files_properties(OOps/pffft.c OOps/pffft_double.c PROPERTIES
+    INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/third_party/pffft/include/pffft")
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    # Suppress upstream SIMD selection messages without changing vendored files.
+    set_property(SOURCE OOps/pffft.c OOps/pffft_double.c APPEND PROPERTY
+        COMPILE_OPTIONS "-Wno-#pragma-messages")
+endif()
 
 # Keep JSON numbers precise even when DSP code uses fast-math. The parser is
 # private to Csound, not a new exported library interface.
@@ -1493,6 +1513,11 @@ set(LEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_orc.lex)
 set(LEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c)
 set_source_files_properties(${CMAKE_CURRENT_BINARY_DIR}/csound_orclex.c
     PROPERTIES COMPILE_FLAGS "-Wno-implicit-fallthrough -Wno-misleading-indentation")
+# Flex 2.6.5's generated input routine narrows a size to int.
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    set_property(SOURCE ${LEX_OUT} APPEND_STRING PROPERTY COMPILE_FLAGS
+        " -Wno-shorten-64-to-32")
+endif()
 
 set(PRELEX_SRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_pre.lex)
 set(PRELEX_OUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prelex.c)
@@ -1549,6 +1574,24 @@ list(APPEND libcsound_static_SRCS
     Engine/symbtab.c)
 
 
+# The private audio multiply/add kernel must round twice, never contract to FMA.
+# Scope these flags to the kernel, leaving the other arithmetic opcodes alone.
+# Non-CMake builds use its volatile fallback instead.
+if(MSVC)
+    check_c_compiler_flag("/fp:strict" HAS_STRICT_AUDIO_MUL_ADD_FP)
+    set(AUDIO_MUL_ADD_STRICT_FP_OPTIONS "/fp:strict")
+elseif(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    check_c_compiler_flag("-fno-fast-math -ffp-contract=off" HAS_STRICT_AUDIO_MUL_ADD_FP)
+    set(AUDIO_MUL_ADD_STRICT_FP_OPTIONS "-fno-fast-math;-ffp-contract=off")
+endif()
+if(HAS_STRICT_AUDIO_MUL_ADD_FP)
+    set_property(SOURCE OOps/audio_mul_add.c APPEND PROPERTY
+        COMPILE_OPTIONS ${AUDIO_MUL_ADD_STRICT_FP_OPTIONS})
+    set_property(SOURCE OOps/audio_mul_add.c APPEND PROPERTY
+        COMPILE_DEFINITIONS CSOUND_FUSION_STRICT_FP=1)
+endif()
+
+
 set_source_files_properties(${YACC_OUT} GENERATED)
 set_source_files_properties(${YACC_OUTH} GENERATED)
 set_source_files_properties(${LEX_OUT} GENERATED)
@@ -1574,6 +1617,12 @@ endif()
 
 set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
 set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
+
+# Flex emits an unused fatal handler when YY_FATAL_ERROR is overridden.
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    set_source_files_properties(${PRELEX_SCOOUT}
+        PROPERTIES COMPILE_FLAGS "-Wno-unused-function")
+endif()
 
 ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c")
 ##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")
@@ -2000,6 +2049,7 @@ add_subdirectory(util)
 add_subdirectory(util1)
 add_subdirectory(po)
 add_subdirectory(tests/c)
+add_subdirectory(tests/benchmarks)
 add_subdirectory(tests/commandline)
 add_subdirectory(tests/regression)
 add_subdirectory(tests/soak)

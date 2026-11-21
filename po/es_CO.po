@@ -2652,27 +2652,27 @@ msgstr "::leyendo orquesta, use '' para terminar::\n"
 
 #: Engine/linevent.c:350
 #, c-format
-msgid "unknown opcode %c"
-msgstr "opcode desconocido '%c'"
+msgid "unknown opcode %c\n"
+msgstr "opcode desconocido '%c'\n"
 
 #: Engine/linevent.c:432
 #, fuzzy
-msgid "dot carry has no reference"
-msgstr "dot carry no tiene referencia"
+msgid "dot carry has no reference\n"
+msgstr "dot carry no tiene referencia\n"
 
 #: Engine/linevent.c:437
 #, fuzzy
-msgid "cannot carry string p-field"
-msgstr "no puede llevar la cadena p-field"
+msgid "cannot carry string p-field\n"
+msgstr "no puede llevar la cadena p-field\n"
 
 #: Engine/linevent.c:459
 #, fuzzy, c-format
-msgid "too few pfields (%d)"
-msgstr "muy pocos pfields (%d)"
+msgid "too few pfields (%d)\n"
+msgstr "muy pocos pfields (%d)\n"
 
 #: Engine/linevent.c:463
-msgid "-L with negative p2 illegal"
-msgstr "-L con p2 negativo es ilegal"
+msgid "-L with negative p2 illegal\n"
+msgstr "-L con p2 negativo es ilegal\n"
 
 #: Engine/linevent.c:480
 msgid "too many pfields"
@@ -2683,11 +2683,11 @@ msgstr "demasiados campos-p (pfields)"
 msgid ""
 "illegal RT scoreline:\n"
 "%s\n"
-"%*s"
+"%*s\n"
 msgstr ""
 "linea de score RT ilegal:\n"
 "%s\n"
-"%*s"
+"%*s\n"
 
 #: Engine/memalloc.c:118
 #, fuzzy, c-format

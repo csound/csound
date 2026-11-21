@@ -21,6 +21,9 @@
  */
 
 #include "csoundCore.h"
+#if defined(MSVC)
+#include <intrin.h> /* for ATOMIC_SET_SIZE */
+#endif
 #include "csound_standard_types.h"
 #include "arrays.h"
 #include "arrays_internal.h"
@@ -94,7 +97,7 @@ static void string_resize_internal(CSOUND* csound, STRINGDAT* str, size_t newSiz
     if (str->refcount == -1) {
         char* oldData = str->data;
         str->data = csound->Calloc(csound, newSize);
-        str->size = newSize;
+        ATOMIC_SET_SIZE(str->size, newSize);
         str->refcount = 0;  // Now we own it
         if (oldData) {
             strncpy(str->data, oldData, newSize - 1);
@@ -103,7 +106,7 @@ static void string_resize_internal(CSOUND* csound, STRINGDAT* str, size_t newSiz
     } else {
         // Safe to resize - we own the buffer
         str->data = csound->ReAlloc(csound, str->data, newSize);
-        str->size = newSize;
+        ATOMIC_SET_SIZE(str->size, newSize);
         str->data[newSize - 1] = '\0';
     }
 }
@@ -123,20 +126,19 @@ static void string_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
     /* Guard against NULL data pointers */
     if (UNLIKELY(sSrc->data == NULL)) return;
+    /* size is buffer capacity, not text length. Copying that capacity into
+       structs and arrays propagates the largest past value to every copy. */
+    size_t bytes = strlen(sSrc->data) + 1;
     if (UNLIKELY(sDest->data == NULL)) {
-        /* Destination has no buffer; allocate one to match source size */
-        sDest->data = csound->Calloc(csound, sSrc->size);
-        sDest->size = sSrc->size;
+        sDest->data = csound->Calloc(csound, bytes);
+        ATOMIC_SET_SIZE(sDest->size, bytes);
         sDest->refcount = 0;
+    } else if (sDest->refcount == -1 || bytes > sDest->size) {
+        /* Borrowed storage must detach even when the new text fits. Keep
+           owned spare capacity so repeated assignments do not shrink/grow. */
+        string_resize_internal(csound, sDest, bytes);
     }
-
-    if (sSrc->size > sDest->size) {
-      string_resize_internal(csound, sDest, sSrc->size);
-      memcpy(sDest->data, sSrc->data, sSrc->size);
-    } else {
-        strncpy(sDest->data, sSrc->data, sDest->size-1);
-        sDest->data[sDest->size-1] = '\0';
-    }
+    memcpy(sDest->data, sSrc->data, bytes);
 }
 
 /* The ownership implementation is private to the engine. A short-held lock
@@ -387,7 +389,7 @@ int32_t csound_array_ensure_capacity_impl(CSOUND *csound, ARRAYDAT *array,
     csound_array_initialize_element_range_with_variable(
       csound, array, oldCapacity, capacity, var);
     csound->Free(csound, var);
-    array->allocated = bytes;
+    ATOMIC_SET_SIZE(array->allocated, bytes);
     return OK;
 }
 
@@ -727,7 +729,7 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
         }
         csound_array_initialize_element_range_with_variable(
           csound, destination, 0, capacity, var);
-        destination->allocated = requiredBytes;
+        ATOMIC_SET_SIZE(destination->allocated, requiredBytes);
         csound->Free(csound, var);
     }
     else {
@@ -1093,8 +1095,18 @@ static void array_clear_view(ARRAYDAT* dat) {
     dat->sizes = NULL;
     dat->arrayMemberSize = 0;
     dat->data = NULL;
-    dat->allocated = 0;
+    ATOMIC_SET_SIZE(dat->allocated, 0);
     dat->storage = NULL;
+}
+
+void csound_array_assign(ARRAYDAT *destination, const ARRAYDAT *source) {
+    destination->dimensions = source->dimensions;
+    destination->sizes = source->sizes;
+    destination->arrayMemberSize = source->arrayMemberSize;
+    destination->arrayType = source->arrayType;
+    destination->data = source->data;
+    ATOMIC_SET_SIZE(destination->allocated, source->allocated);
+    destination->storage = source->storage;
 }
 
 void csound_free_array_storage(CSOUND* csound, ARRAYDAT* dat) {
@@ -1252,7 +1264,7 @@ unlock:
     dest->arrayMemberSize = storage->arrayMemberSize;
     dest->arrayType = storage->arrayType;
     dest->data = storage->data;
-    dest->allocated = 0;
+    ATOMIC_SET_SIZE(dest->allocated, 0);
     dest->storage = storage;
     return OK;
 }
@@ -1267,6 +1279,11 @@ int32_t csound_array_prepare_write_impl(CSOUND *csound, ARRAYDAT *array,
 
     if (array == NULL) {
         return NOTOK;
+    }
+    /* The shared-storage protocol applies to arrays of user-defined structs. */
+    if (!allowAllocation && array->arrayType == &CS_VAR_TYPE_K &&
+        array->allocated > 0 && array->data != NULL && array->storage == NULL) {
+        return OK;
     }
     if (UNLIKELY(cs_array_storage_protocol_lock(csound) != OK)) {
         return NOTOK;
@@ -1300,7 +1317,7 @@ int32_t csound_array_prepare_write_impl(CSOUND *csound, ARRAYDAT *array,
         array->arrayType = storage->arrayType;
         array->sizes = storage->sizes;
         array->data = storage->data;
-        array->allocated = storage->allocated;
+        ATOMIC_SET_SIZE(array->allocated, storage->allocated);
         array->storage = allowAllocation
           ? NULL : &cs_array_storage_write_owned;
         cs_array_storage_protocol_unlock(csound);
@@ -1337,7 +1354,7 @@ int32_t csound_array_prepare_write_impl(CSOUND *csound, ARRAYDAT *array,
         return NOTOK;
     }
     destroyStorage = --storage->refs == 0;
-    *array = clone;
+    csound_array_assign(array, &clone);
     cs_array_storage_protocol_unlock(csound);
     if (destroyStorage) {
         cs_array_storage_destroy(csound, storage);

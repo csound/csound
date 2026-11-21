@@ -107,10 +107,12 @@ int32_t reinit(CSOUND *csound, GOTO *p)
   if (csound->oparms->realtime == 0) {
     csound->curip = p->h.insdshead;
     csound->ids = p->lblblk->prvi;        /* now, despite ANSI C warning:  */
+    const CSOUND *outer = note_init_enter(csound);
     p->h.insdshead->init_pass++;
     while ((csound->ids = csound->ids->nxti) != NULL &&
            (csound->ids->init != (SUBR) rireturn))
       (*csound->ids->init)(csound, csound->ids);
+    note_init_leave(outer);
     csound->reinitflag = p->h.insdshead->reinitflag = 0;
   }
   else {

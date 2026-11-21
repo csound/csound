@@ -11,14 +11,20 @@ expression-argument expansion. Use --source to measure an existing orchestra.
 import argparse
 import ctypes
 import json
+import platform
+import hashlib
 from pathlib import Path
 import statistics
 import time
+
+from optimizer_bench import optimizer_options
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--library", type=Path, required=True)
+    parser.add_argument("--passes", type=int,
+                        help="optional optimizer mask; omit for older reference libraries")
     parser.add_argument("--source", type=Path,
                         help="measure this orchestra instead of generated expressions")
     parser.add_argument("--phase", choices=("parse", "compile"), default="compile")
@@ -29,12 +35,18 @@ def main():
     parser.add_argument("--repeats", type=int, default=21)
     parser.add_argument("--warmups", type=int, default=3)
     args = parser.parse_args()
+    if args.passes is not None:
+        try:
+            optimizer_options(args.passes)
+        except ValueError as error:
+            parser.error(str(error))
     if (not all(0 < count < 1999 for count in args.arguments) or
             args.instruments < 1 or args.repeats < 1 or args.warmups < 0):
         parser.error("counts must be positive, arguments < 1999, warmups >= 0")
 
     lib = ctypes.CDLL(str(args.library.resolve()))
     signatures = {
+        "csoundQueryGlobalVariable": ([ctypes.c_void_p, ctypes.c_char_p], ctypes.POINTER(ctypes.c_int32)),
         "csoundCreate": ([ctypes.c_void_p, ctypes.c_char_p], ctypes.c_void_p),
         "csoundDestroy": ([ctypes.c_void_p], None),
         "csoundSetOption": ([ctypes.c_void_p, ctypes.c_char_p], ctypes.c_int),
@@ -70,6 +82,13 @@ def main():
             try:
                 if lib.csoundSetOption(csound, b"-n -d -m0") != 0:
                     raise RuntimeError("csoundSetOption failed")
+                if args.passes is not None:
+                    for option in optimizer_options(args.passes):
+                        if lib.csoundSetOption(csound, option.encode()):
+                            raise RuntimeError("optimizer option failed")
+                    controls = lib.csoundQueryGlobalVariable(csound, b"__orc_optimizer")
+                    if not controls or controls[0] != args.passes:
+                        raise RuntimeError("optimizer option was not applied")
                 if lib.csoundCompileOrc(csound, b"sr=48000\nksmps=64\nnchnls=1\n0dbfs=1", 0):
                     raise RuntimeError("engine setup failed")
                 start = time.perf_counter_ns()
@@ -96,7 +115,10 @@ def main():
                       "source": str(args.source) if args.source else None,
                       "kind": args.kind if not args.source else None,
                       "instruments": args.instruments if not args.source else None,
-                      "repeats": args.repeats, "results": results}, indent=2))
+                      "repeats": args.repeats, "warmups": args.warmups,
+                      "passes": args.passes, "platform": platform.platform(),
+                      "library_sha256": hashlib.sha256(args.library.read_bytes()).hexdigest(),
+                      "results": results}, indent=2))
 
 
 if __name__ == "__main__":

@@ -34,6 +34,10 @@
 #  include <sys/types.h>
 #  include <sys/stat.h>
 #endif
+#if defined(WIN32) && !defined(__CYGWIN__)
+#  include <io.h>
+#  include <fcntl.h>
+#endif
 
 #define CSD_MAX_LINE_LEN    4096
 #define CSD_MAX_ARGS        100
@@ -96,21 +100,44 @@ CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
 
 #elif defined(WIN32) && !defined(__CYGWIN__)
 
-    /* Windows: use _tempnam() since mkstemp() is not available. */
+    /* Windows: use _tempnam() since mkstemp() is not available. It gives a
+       name, without extension, that no file has, but creates nothing, so
+       processes running at once were given the same one. The name is
+       reserved by creating its file exclusively, as mkstemp() does, which
+       other processes' _tempnam() then passes over, and that file goes with
+       the other temporary files. A name taken since _tempnam() looked is
+       given up for the next one, its number being sequential. */
     struct _stat tmp;
-    do {
+    int32_t tries = 0;
+    for (;;) {
         char *s = (char*) csoundGetEnv(csound, "SFDIR");
+        int32_t fd;
         if (s == NULL)
             s = (char*) csoundGetEnv(csound, "HOME");
         s = _tempnam(s, "cs");
-        if (UNLIKELY(s == NULL))
+        if (UNLIKELY(s == NULL || strlen(s) >= nBytes))  /* not cut: unique */
             csound->Die(csound, Str(" *** cannot create temporary file\n"));
         strNcpy(lbuf, s, nBytes);
         free(s);
 
-        if (ext && ext[0] != '\0')
-            strlcat(lbuf, ext, nBytes);
-    } while (_stat(lbuf, &tmp) == 0);
+        fd = _open(lbuf, _O_CREAT | _O_EXCL | _O_RDWR | _O_BINARY,
+                   _S_IREAD | _S_IWRITE);
+        if (fd >= 0) {
+            _close(fd);
+            if (ext == NULL || ext[0] == '\0')
+                break;
+            add_tmpfile(csound, lbuf);
+            if (UNLIKELY(strlcat(lbuf, ext, nBytes) >= nBytes))
+                csound->Die(csound, Str(" *** cannot create temporary file\n"));
+            if (_stat(lbuf, &tmp) != 0)     /* free with its extension too */
+                break;
+        }
+        /* EACCES too, as _tempnam() takes it: a file still being deleted */
+        else if (UNLIKELY(errno != EEXIST && errno != EACCES))
+            csound->Die(csound, Str(" *** cannot create temporary file\n"));
+        if (UNLIKELY(++tries >= 100))
+            csound->Die(csound, Str(" *** cannot create temporary file\n"));
+    }
 
     return csoundStrdup(csound, lbuf);
 
@@ -139,6 +166,8 @@ CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
         close(fd);
 
         if (ext && ext[0] != '\0') {
+            /* mkstemp's file keeps the name unique: it goes with the rest */
+            add_tmpfile(csound, lbuf);
             #if !defined(LINUX) && !defined(__MACH__)
             char *p = strrchr(lbuf, '.');
             if (p) *p = '\0';
@@ -166,9 +195,11 @@ static inline void alloc_globals(CSOUND *csound)
     STA(csdlinecount) = 0;
 }
 
+/* Reads a generated file, not the CSD: its lines are not counted. */
 static char *my_fgets(CSOUND *csound, char *s, int32_t n, FILE *stream)
 {
     char *a = s;
+    IGN(csound);
     if (UNLIKELY(n <= 1)) return NULL;        /* best of a bad deal */
     do {
       int32_t ch = getc(stream);
@@ -178,7 +209,6 @@ static char *my_fgets(CSOUND *csound, char *s, int32_t n, FILE *stream)
         break; /* add NULL even if ferror(), spec says 'indeterminate' */
       }
       if (ch == '\n' || ch == '\r') {   /* end of line ? */
-        ++(STA(csdlinecount));          /* count the lines */
         *(s++) = '\n';                  /* convert */
         if (ch == '\r') {
           ch = getc(stream);
@@ -214,7 +244,6 @@ void remove_tmpfiles(CSOUND *csound)            /* IV - Feb 03 2005 */
 void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
 {                               /* add temporary file to delete list */
     NAMELST *tmp;
-    alloc_globals(csound);
     tmp = (NAMELST*) csound->Malloc(csound, sizeof(NAMELST));
     tmp->name = (char*) csound->Malloc(csound, strlen(name) + 1);
     strcpy(tmp->name, name);
@@ -235,7 +264,6 @@ static int32_t blank_buffer(/*CSOUND *csound,*/ const char *buffer)
 }
 
 
-/* Consider wrapping corfile_fgets for this function */
 static char *my_fgets_cf(CSOUND *csound, char *s, int32_t n, CORFIL *stream)
 {
     char *a = s;
@@ -250,8 +278,10 @@ static char *my_fgets_cf(CSOUND *csound, char *s, int32_t n, CORFIL *stream)
         ++(STA(csdlinecount));          /* count the lines */
         *(s++) = '\n';                  /* convert */
         if (ch == '\r') {
+          int32_t at = stream->p;
           ch = corfile_getc(stream);
-          if (ch != '\n')               /* Mac format */
+          /* Mac format. At the end, corfile_getc read nothing to put back. */
+          if (ch != '\n' && stream->p != at)
             corfile_ungetc(stream);
         }
         break;
@@ -260,6 +290,50 @@ static char *my_fgets_cf(CSOUND *csound, char *s, int32_t n, CORFIL *stream)
     } while (--n > 1);
     *s = '\0';
     return a;
+}
+
+/* Frees what read_line allocated, if it did. */
+static void free_line(CSOUND *csound, char *buf, const char *fixed)
+{
+    if (buf != fixed)
+      csound->Free(csound, buf);
+}
+
+/* Reads a whole line, however long, where my_fgets_cf hands a line longer
+   than its buffer over in chunks. *buf is the caller's `fixed` buffer, until
+   a line does not fit it: then one is allocated with room for the line, its
+   newline, its NUL and a byte more, for the newline read_options gives a
+   last line that has none. free_line frees it. */
+static char *read_line(CSOUND *csound, CORFIL *cf, char **buf, size_t *size,
+                       const char *fixed)
+{
+    size_t n = strcspn(corfile_current(cf), "\r\n") + 2;
+
+    if (UNLIKELY(n > INT32_MAX - 1))  /* my_fgets_cf counts in int32_t: the */
+      n = INT32_MAX - 1;              /* rest comes as a line of its own */
+    if (n + 1 > *size) {
+      free_line(csound, *buf, fixed);  /* no copy: its line is done with */
+      *buf = (char *) csound->Malloc(csound, n + 1);
+      *size = n + 1;
+    }
+    return my_fgets_cf(csound, *buf, (int32_t) n, cf);
+}
+
+/* A line's leading blanks can fill a chunk, or leave its end to cut a tag or
+   an opening that follows them. A chunk that starts a line and fills `size`
+   with no newline is cut after its blanks, at `p`, and its text is read
+   again as the next chunk, which still starts the line. A full chunk was
+   read byte for byte: no newline or end of file in it to undo. Returns
+   whether the chunk was cut. */
+static int32_t cut_after_blanks(char *buffer, char *p, int32_t size,
+                                CORFIL *cf)
+{
+    if (p == buffer || (int32_t) strlen(buffer) != size - 1 ||
+        buffer[size-2] == '\n')
+      return FALSE;
+    cf->p -= (uint32_t) strlen(p);
+    *p = '\0';
+    return TRUE;
 }
 
 /* Remove the 0x03 and 0x18 characters that the option parser inserted
@@ -277,28 +351,64 @@ static void remove_special_placeholders(char *s, size_t n)
     }
 }
 
+/* Read past a block comment, from just after its opening. It ends at the
+   first closing delimiter, in this line or a later one, or at end of file,
+   and the rest of the line holding that delimiter goes with it. It has its
+   own buffer: the options before the comment are in the caller's. `last` is
+   the last byte read: a delimiter can lie across two chunks of a too-long
+   line, and the caller's next read starts a line. */
+static void skip_block_comment(CSOUND *csound, CORFIL *cf, const char *p,
+                               char *last)
+{
+    char  buffer[CSD_MAX_LINE_LEN];
+    int32_t closed = strstr(p, "*/") != NULL;
+
+    if (*p == '\n')             /* the star of the opening closes nothing */
+      *last = '\n';
+    while (!closed || *last != '\n') {
+      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) == NULL)
+        return;
+      closed = closed || (*last == '*' && *buffer == '/') ||
+               strstr(buffer, "*/") != NULL;
+      *last = buffer[strlen(buffer)-1];
+    }
+}
+
+#define CSOPTIONS_SKIP (2)
+
 /* readingCsOptions should be non-zero when read_options() is called
-   while reading the <CsOptions> tag, but zero in other cases. */
+   while reading the <CsOptions> tag, but zero in other cases.
+   CSOPTIONS_SKIP reads the tag's lines by the same rules, and applies none. */
 int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
 {
     char  *p;
     int32_t   argc = 0;
-    const char  *argv[CSD_MAX_ARGS];
-    char  buffer[CSD_MAX_LINE_LEN];
+    char  last;                  /* no newline: the file's last line */
+    const char  *argv[CSD_MAX_ARGS+1];     /* the command name, then the rest */
+    char  line[CSD_MAX_LINE_LEN+1];        /* a line that fits, as most do */
+    char  *buffer = line;                  /* or one allocated, however long */
+    size_t  size = sizeof(line);
 
     //alloc_globals(csound);
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (read_line(csound, cf, &buffer, &size, line) != NULL) {
+      last = buffer[strlen(buffer)-1];
+      p = buffer;
+      while (isblank(*p)) p++;
+      /* Before the trim, which overwrites the last character of a last line
+         that has no newline. */
+      if (readingCsOptions && strstr(p, "</CsOptions>") == p) {
+        free_line(csound, buffer, line);
+        return TRUE;
+      }
       p = buffer;
       /* Remove trailing spaces; rather heavy handed */
       {
-        int32_t len = (int32_t) strlen(p)-2;
+        /* Without a newline to overwrite, the last character is the line's. */
+        int32_t len = (int32_t) strlen(p) - (last == '\n' ? 2 : 1);
         while (len>0 && (isblank(p[len]))) len--;
         p[len+1] = '\n'; p[len+2] = '\0';
       }
       while (isblank(*p)) p++;
-      if (readingCsOptions && strstr(p, "</CsOptions>") == p) {
-        return TRUE;
-      }
       /**
        * Allow command options in unified CSD files
        * to begin with the Csound command, so that
@@ -307,6 +417,10 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
        */
       if (*p==';' || *p=='#' || *p=='\n' || (*p=='/' && *(p+1)=='/'))
         continue; /* empty or comment line? */
+      if (*p=='/' && *(p+1)=='*') {
+        skip_block_comment(csound, cf, p+2, &last);
+        continue;
+      }
       argc = 0;
       argv[0] = p;
       while (isblank(*p)) p++;  /* Ignore leading space */
@@ -323,6 +437,8 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
                                 argc, argc, argv[argc]);
 #endif
           while (isblank(*p)) p++;
+          if (readingCsOptions == CSOPTIONS_SKIP)
+            argc = 0;           /* a skipped line collects nothing: no limit */
 
           if (*p== '"') {
             if (UNLIKELY(argc == CSD_MAX_ARGS))
@@ -351,17 +467,8 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
             *p = '\0'; break;
           }
           if (*p == '/' && *(p+1) == '*') {  /* Comment line? */
-            p += 2;
-          top:
-            while (*p != '*' && *p != '\0') p++;
-            if (*p == '*' && *(p+1)== '/') {
-              /* p += 2; */ break;
-            }
-            if (*p=='*') {
-              p++; goto top;
-            }
-            my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf);
-            p = buffer; goto top;
+            skip_block_comment(csound, cf, p+2, &last);
+            break;
           }
           if (UNLIKELY(argc == CSD_MAX_ARGS))
             csoundDie(csound, Str("More than %d arguments in <CsOptions>\n"),
@@ -372,7 +479,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
           *p = '\0';
           break;
         }
-        else if (*p=='"' && *(p-1) != '\\') {
+        else if (*p=='"' && (p == buffer || *(p-1) != '\\')) {
           int32_t is_escape = 0;
           char *old = NULL;
           *p=3; /* ETX char used to mark the limits of a string */
@@ -387,14 +494,15 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
             if (isspace(*(p+1))) {
               *p = '\0';
               remove_special_placeholders((char *)argv[argc], strlen(argv[argc]));
-              break;
+              p++;              /* the blank after it ends the argument */
+              continue;
             }
             else {
               *p = 3;
             }
           }
         }
-        p++;
+        if (*p != '\0') p++;   /* a quote left open ends at the line's end */
       }
       //argc++;                /* according to Nicola but wrong */
 #ifdef _DEBUG
@@ -403,6 +511,8 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
         for (i=0;  i<=argc; i++) printf("%d: %s\n", i, argv[i]);
       }
 #endif
+      if (readingCsOptions == CSOPTIONS_SKIP)
+        continue;
       /* Read an argv thing */
       if (UNLIKELY(argc == 0)) {
         if (readingCsOptions)
@@ -414,6 +524,7 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
       }
       else argdecode(csound, argc, argv);
     }
+    free_line(csound, buffer, line);
     if (UNLIKELY(readingCsOptions))
       csoundErrorMsg(csound, Str("Missing end tag </CsOptions>\n"));
     return FALSE;
@@ -520,17 +631,27 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
     CORFIL *incore = corfile_create_w(csound);
     char  buffer[CSD_MAX_LINE_LEN];
     int32_t comm = 0;
+    char  last = '\n';           /* no newline: a chunk of a too-long line */
 
     csound->orcLineOffset = STA(csdlinecount)+1;
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      int32_t split_close = comm && last == '*' && *buffer == '/';
+      int32_t line_start = last == '\n';   /* not a chunk's */
+      last = buffer[strlen(buffer)-1];
       p = buffer;
       while (isblank(*p)) p++;
-      if(*p == '/' && *(p+1) == '*') {
+      if (line_start && cut_after_blanks(buffer, p, CSD_MAX_LINE_LEN, cf))
+        last = '\n';
+      if (split_close)            /* a closer across two chunks of a line */
+        comm = 0;
+      else if(!comm && line_start && *p == '/' && *(p+1) == '*') {
         //csound->Message(csound, "comment start\n");
         comm = 1; p += 2;
+        if (*p == '\0')           /* the star of the opening closes nothing */
+          last = ' ';
       }
 
-      if (comm == 0 &&
+      if (comm == 0 && line_start &&
           strstr(p, "</CsInstruments>") == p) {
         corfile_puts(csound, "\n#exit\n", incore);
         corfile_putc(csound, '\0', incore);
@@ -538,7 +659,7 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
         csound->orchstr = incore;
         return TRUE;
       } else if (comm) {
-        while (p < buffer + CSD_MAX_LINE_LEN){
+        while (*p != '\0') {    /* this line's text, not an older one's */
           if(*p == '*' && *(p+1) == '/') {
            comm = 0;
            // csound->Message(csound, "comment end\n");
@@ -629,16 +750,26 @@ static int32_t create_score(CSOUND *csound, CORFIL *cf)
 {
     char   *p;
     char   buffer[CSD_MAX_LINE_LEN];
+    char   last = '\n';         /* no newline: a chunk of a too-long line */
 
+    /* The score's lines are those of the block that begins its text, where
+       nothing is written yet: a later one is read after the first one's #exit */
     if (csound->scorestr == NULL)
       csound->scorestr = corfile_create_w(csound);
-    csound->scoLineOffset = STA(csdlinecount);
+    if (csound->scorestr->p == 0)
+      csound->scoLineOffset = STA(csdlinecount);
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      int32_t line_start = last == '\n';
+      last = buffer[strlen(buffer)-1];
       p = buffer;
       while (isblank(*p)) p++;
-      if (strstr(p, "</CsScore>") == p) {
+      if (line_start && cut_after_blanks(buffer, p, CSD_MAX_LINE_LEN, cf))
+        last = '\n';
+      if (line_start && strstr(p, "</CsScore>") == p) {
         //#ifdef SCORE_PARSER
-        corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
+        /* A started engine takes no e, as csoundReadScore gives it none */
+        corfile_puts(csound, csound->engineStatus & CS_STATE_COMP ?
+                     "\n#exit\n" : "\ne\n#exit\n", csound->scorestr);
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
         corfile_putc(csound, '\0', csound->scorestr); /* For use in bison/flex */
         //#endif
@@ -664,6 +795,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
     void *fd;
     FILE  *scof;
     char  buffer[CSD_MAX_LINE_LEN];
+    char  last = '\n';          /* no newline: a chunk of a too-long line */
 
     p = strstr(p, "bin=\"");
     if (UNLIKELY(p==NULL)) {
@@ -678,7 +810,8 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
     *q = '\0';
     strNcpy(prog, p+5, 256); //prog[255]='\0';/* after "<CsExScore " */
     /* Generate score name */
-    if (STA(sconame)) free(STA(sconame));
+    csound->Free(csound, STA(sconame));        /* a later block replaces it */
+    STA(sconame) = NULL;                    /* if tmp_file_name stops */
     STA(sconame) = tmp_file_name(csound, ".sco");
     extname = tmp_file_name(csound, ".ext");
     fd = csoundFileOpen(csound, &scof, CSFILE_STD, extname, "w", NULL,
@@ -692,10 +825,18 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
       return FALSE;
     }
 
-    csound->scoLineOffset = STA(csdlinecount);
+    /* The program's output has lines of its own, not the .csd's, when it
+       begins the score's text */
+    if (csound->scorestr == NULL || csound->scorestr->p == 0)
+      csound->scoLineOffset = 0;
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
+      int32_t line_start = last == '\n';
+      last = buffer[strlen(buffer)-1];
       p = buffer;
-      if (strstr(p, "</CsScore>") == p) {
+      while (isblank(*p)) p++;    /* as create_score */
+      if (line_start && cut_after_blanks(buffer, p, CSD_MAX_LINE_LEN, cf))
+        last = '\n';
+      if (line_start && strstr(p, "</CsScore>") == p) {
         char sys[1024];
         csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
         snprintf(sys, 1024, "%s %s %s", prog, extname, STA(sconame));
@@ -743,6 +884,8 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
       else fputs(buffer, scof);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>\n"));
+    csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
+    remove(extname);
     csound->Free(csound, extname);
     return FALSE;
 #endif
@@ -755,7 +898,9 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
 
     n = nbits = 0;
     while ((c = corfile_getc(in)) != '=' && c != '<') {
-      while (isspace(c)) {
+      /* The alphabet is ASCII: above it, isspace, isupper, islower and
+         even isdigit depend on the locale, now that a byte comes unsigned */
+      while (c < 0x80 && isspace(c)) {
         if (c == '\n') {               /* count lines */
           ++(STA(csdlinecount));
           c = corfile_getc(in);
@@ -771,11 +916,11 @@ static void read_base64(CSOUND *csound, CORFIL *in, FILE *out)
         break;
       n <<= 6;
       nbits += 6;
-      if (isupper(c))
+      if (c >= 'A' && c <= 'Z')
         c -= 'A';
-      else if (islower(c))
+      else if (c >= 'a' && c <= 'z')
         c -= ((int32_t) 'a' - 26);
-      else if (isdigit(c))
+      else if (c >= '0' && c <= '9')
         c -= ((int32_t) '0' - 52);
       else if (c == '+')
         c = 62;
@@ -812,7 +957,9 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
 
     n = nbits = 0;
     while ((c = corfile_getc(in)) != '=' && c != '<') {
-      while (isspace(c)) {
+      /* The alphabet is ASCII: above it, isspace, isupper, islower and
+         even isdigit depend on the locale, now that a byte comes unsigned */
+      while (c < 0x80 && isspace(c)) {
         if (c == '\n') {               /* count lines */
           ++(STA(csdlinecount));
           c = corfile_getc(in);
@@ -828,11 +975,11 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
         break;
       n <<= 6;
       nbits += 6;
-      if (isupper(c))
+      if (c >= 'A' && c <= 'Z')
         c -= 'A';
-      else if (islower(c))
+      else if (c >= 'a' && c <= 'z')
         c -= ((int32_t) 'a' - 26);
-      else if (isdigit(c))
+      else if (c >= '0' && c <= '9')
         c -= ((int32_t) '0' - 52);
       else if (c == '+')
         c = 62;
@@ -863,15 +1010,38 @@ static void read_base64_2cor(CSOUND *csound, CORFIL *in, CORFIL *out)
 }
 #endif
 
+/* Reads past the end tag of a base64 section, `tag` or `alt`, anywhere in
+   a line: read_base64 stops at the first = of padding, before the tag on the
+   same line, and a section skipped is not decoded at all. The last bytes of
+   a chunk that cuts a line are kept before the next, so that a tag across
+   the cut is found. Returns FALSE at the end of the file. */
+static int32_t find_base64_end_tag(CSOUND *csound, CORFIL *cf,
+                                   const char *tag, const char *alt)
+{
+    char    buffer[CSD_MAX_LINE_LEN];
+    size_t  kept = 0;
+    const size_t keep = strlen(tag) - 1;      /* alt is no longer */
+
+    while (my_fgets_cf(csound, buffer + kept,
+                       CSD_MAX_LINE_LEN - (int32_t) kept, cf) != NULL) {
+      size_t n = strlen(buffer);
+      if (strstr(buffer, tag) != NULL ||
+          (alt != NULL && strstr(buffer, alt) != NULL))
+        return TRUE;              /* base64 data holds no < */
+      kept = buffer[n-1] == '\n' ? 0 : (n < keep ? n : keep);
+      memmove(buffer, buffer + n - kept, kept);
+    }
+    return FALSE;
+}
+
 static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
 {
-    char  *p;
     FILE  *midf;
     void  *fd;
-    char  buffer[CSD_MAX_LINE_LEN];
 
     /* Generate MIDI file name */
-    if (STA(midname)) free(STA(midname));
+    csound->Free(csound, STA(midname));        /* a later block replaces it */
+    STA(midname) = NULL;                    /* if tmp_file_name stops */
     STA(midname) = tmp_file_name(csound, ".mid");
     fd = csoundFileOpen(csound, &midf, CSFILE_STD, STA(midname),
                                 "wb", NULL, CSFTYPE_STD_MIDI, 1);
@@ -884,15 +1054,9 @@ static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
     csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
     add_tmpfile(csound, STA(midname));               /* IV - Feb 03 2005 */
     STA(midiSet) = TRUE;
-    while (TRUE) {
-      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
-        p = buffer;
-        while (isblank(*p)) p++;
-        if (strstr(p, "</CsMidifileB>") == p) {
-          return TRUE;
-        }
-      }
-    }
+    if (find_base64_end_tag(csound, cf, "</CsMidifileB>",
+                            "</CsMidiFileB>"))         /* an old error's */
+      return TRUE;
     csoundErrorMsg(csound, Str("Missing end tag </CsMidifileB>\n"));
     return FALSE;
 }
@@ -903,31 +1067,34 @@ static int32_t create_sample(CSOUND *csound, char *buffer, CORFIL *cf)
     FILE  *smpf;
     void  *fd;
     char  sampname[256];
+    const char *tag = buffer;
     /* char  buffer[CSD_MAX_LINE_LEN]; */
 
-    sscanf(buffer, "<CsSampleB filename=\"%d\">", &num);
-    snprintf(sampname, 256, "soundin.%d", num);
-    if (UNLIKELY((smpf = fopen(sampname, "rb")) != NULL)) {
-      fclose(smpf);
-      csoundDie(csound, Str("File %s already exists\n"), sampname);
-    }
-    fd = csoundFileOpen(csound, &smpf, CSFILE_STD, sampname, "wb", NULL,
-                                CSFTYPE_UNKNOWN_AUDIO, 1);
-    if (UNLIKELY(fd == NULL)) {
-      csoundDie(csound, Str("Cannot open sample file (%s) subfile\n"), sampname);
-    }
-    read_base64(csound, cf, smpf);
-    csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
-    add_tmpfile(csound, sampname);              /* IV - Feb 03 2005 */
-    while (TRUE) {
-      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
-        char *p = buffer;
-        while (isblank(*p)) p++;
-        if (strstr(p, "</CsSampleB>") == p) {
-          return TRUE;
-        }
+    while (isblank(*tag)) tag++;      /* the tag was found after blanks */
+    tag += 20;  /* 20== strlen("<CsSampleB filename=") */
+    if (*tag == '"') tag++;           /* quoted or not, as for <CsFileB> */
+    if (UNLIKELY(sscanf(tag, "%d", &num) != 1))    /* its data are skipped */
+      csound->Warning(csound,
+                      Str("<CsSampleB> without a file number, skipped: %s"),
+                      buffer);
+    else {
+      snprintf(sampname, 256, "soundin.%d", num);
+      if (UNLIKELY((smpf = fopen(sampname, "rb")) != NULL)) {
+        fclose(smpf);
+        csoundDie(csound, Str("File %s already exists\n"), sampname);
       }
+      fd = csoundFileOpen(csound, &smpf, CSFILE_STD, sampname, "wb", NULL,
+                                  CSFTYPE_UNKNOWN_AUDIO, 1);
+      if (UNLIKELY(fd == NULL)) {
+        csoundDie(csound, Str("Cannot open sample file (%s) subfile\n"),
+                  sampname);
+      }
+      read_base64(csound, cf, smpf);
+      csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
+      add_tmpfile(csound, sampname);              /* IV - Feb 03 2005 */
     }
+    if (find_base64_end_tag(csound, cf, "</CsSampleB>", NULL))
+      return TRUE;
     csoundErrorMsg(csound, Str("Missing end tag </CsSampleB>\n"));
     return FALSE;
 }
@@ -941,6 +1108,7 @@ static int32_t create_file(CSOUND *csound, char *buffer, CORFIL *cf)
 
     filename[0] = '\0';
 
+    while (isblank(*p)) p++;          /* the tag was found after blanks */
     p += 18;    /* 18== strlen("<CsFileB filename=  ") */
     if (*p=='"') {
       p++; q = strchr(p, '"');
@@ -962,15 +1130,8 @@ static int32_t create_file(CSOUND *csound, char *buffer, CORFIL *cf)
     csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
     add_tmpfile(csound, filename);              /* IV - Feb 03 2005 */
 
-    while (TRUE) {
-      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
-        char *p = buffer;
-        while (isblank(*p)) p++;
-        if (strstr(p, "</CsFileB>") == p) {
-          return TRUE;
-        }
-      }
-    }
+    if (find_base64_end_tag(csound, cf, "</CsFileB>", NULL))
+      return TRUE;
     csoundErrorMsg(csound, Str("Missing end tag </CsFileB>\n"));
     return FALSE;
 }
@@ -984,6 +1145,7 @@ static int32_t create_corfile(CSOUND *csound, char *buffer, CORFIL *cf)
 
     filename[0] = '\0';
 
+    while (isblank(*p)) p++;          /* the tag was found after blanks */
     p += 18;    /* 18== strlen("<CsFileC filename=  ") */
     if (*p=='"') {
       p++; q = strchr(p, '"');
@@ -1003,15 +1165,8 @@ static int32_t create_corfile(CSOUND *csound, char *buffer, CORFIL *cf)
     corfile_rewind(smpf);
     add_corfile(csound, smpf, filename);
 
-    while (TRUE) {
-      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
-        char *p = buffer;
-        while (isblank(*p)) p++;
-        if (strstr(p, "</CsFileC>") == p) {
-          return TRUE;
-        }
-      }
-    }
+    if (find_base64_end_tag(csound, cf, "</CsFileC>", NULL))
+      return TRUE;
     csoundErrorMsg(csound, Str("Missing end tag </CsFileC>\n"));
     return FALSE;
 }
@@ -1025,9 +1180,11 @@ static int32_t create_filea(CSOUND *csound, char *buffer, CORFIL *cf)
     char  buff[1024];
     char *p = buffer, *q;
     int32_t res=FALSE;
+    char  last = '\n';           /* no newline: a chunk of a too-long line */
 
     filename[0] = '\0';
 
+    while (isblank(*p)) p++;          /* the tag was found after blanks */
     p += 17;    /* 17== strlen("<CsFile filename=  ") */
     if (*p=='"') {
       p++; q = strchr(p, '"');
@@ -1046,10 +1203,15 @@ static int32_t create_filea(CSOUND *csound, char *buffer, CORFIL *cf)
     if (UNLIKELY(fd == NULL)) {
       csoundDie(csound, Str("Cannot open file (%s) subfile\n"), filename);
     }
-    while (corfile_fgets(buff, 1024, cf)!=NULL) {
+    while (my_fgets_cf(csound, buff, 1024, cf) != NULL) {
       char *p = buff;
+      int32_t line_start = last == '\n';
+      last = buff[strlen(buff)-1];
       while (isblank(*p)) p++;
-      if (!strncmp(p, "</CsFile>", 9)) { /* stop on antitag at start of line */
+      if (line_start && cut_after_blanks(buff, p, 1024, cf))
+        last = '\n';
+      if (line_start &&
+          !strncmp(p, "</CsFile>", 9)) { /* stop on antitag at start of line */
         res = TRUE; break;
       }
       fputs(buff, smpf);
@@ -1067,13 +1229,17 @@ static int32_t check_version(CSOUND *csound, CORFIL *cf)
     int32_t   major = 0, minor = 0;
     int32_t   result = TRUE;
     int32_t   version = csoundGetVersion();
-    char  buffer[CSD_MAX_LINE_LEN];
+    char  line[CSD_MAX_LINE_LEN];  /* or one read_line allocates */
+    char  *buffer = line;
+    size_t  size = sizeof(line);
 
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (read_line(csound, cf, &buffer, &size, line) != NULL) {
       p = buffer;
       while (isblank(*p)) p++;
-      if (strstr(p, "</CsVersion>") != NULL)
+      if (strstr(p, "</CsVersion>") != NULL) {
+        free_line(csound, buffer, line);
         return result;
+      }
       if (strstr(p, "Before") != NULL) {
         sscanf(p, "Before %d.%d", &major, &minor);
         if (UNLIKELY(version >= ((major * 1000) + (minor*10)))) {
@@ -1106,6 +1272,7 @@ static int32_t check_version(CSOUND *csound, CORFIL *cf)
         }
       }
     }
+    free_line(csound, buffer, line);
     csoundErrorMsg(csound, Str("Missing end tag </CsVersion>\n"));
     return FALSE;
 }
@@ -1114,17 +1281,20 @@ static int32_t check_licence(CSOUND *csound, CORFIL *cf)
 {
     char  *p, *licence;
     int32_t   len = 1;
-    char  buffer[CSD_MAX_LINE_LEN];
+    char  line[CSD_MAX_LINE_LEN];  /* or one read_line allocates */
+    char  *buffer = line;
+    size_t  size = sizeof(line);
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
     licence = (char*) csound->Calloc(csound, len);
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (read_line(csound, cf, &buffer, &size, line) != NULL) {
       p = buffer;
       if (strstr(p, "</CsLicence>") != NULL ||
           strstr(p, "</CsLicense>") != NULL) {
         csoundMessage(csound, Str("**** End of Licence Information ****\n"));
         csound->Free(csound, csound->SF_csd_licence);
         csound->SF_csd_licence = licence;
+        free_line(csound, buffer, line);
         return TRUE;
       }
       csoundMessage(csound, "%s", p);
@@ -1133,6 +1303,7 @@ static int32_t check_licence(CSOUND *csound, CORFIL *cf)
       strlcat(licence, p, len);
     }
     csound->Free(csound, licence);
+    free_line(csound, buffer, line);
     csoundErrorMsg(csound, Str("Missing end tag </CsLicence>\n"));
     return FALSE;
 }
@@ -1140,17 +1311,21 @@ static int32_t check_licence(CSOUND *csound, CORFIL *cf)
 static int32_t check_short_licence(CSOUND *csound, CORFIL *cf)
 {
     int32_t   type = 0;
-    char  buff[CSD_MAX_LINE_LEN];
+    char  line[CSD_MAX_LINE_LEN];  /* or one read_line allocates */
+    char  *buff = line;
+    size_t  size = sizeof(line);
 
     csoundMessage(csound, Str("**** Licence Information ****\n"));
-    while (my_fgets_cf(csound, buff, CSD_MAX_LINE_LEN, cf) != NULL) {
+    while (read_line(csound, cf, &buff, &size, line) != NULL) {
       if (strstr(buff, "</CsShortLicence>") != NULL ||
           strstr(buff, "</CsShortLicense>") != NULL) {
         csound->SF_id_scopyright = type;
+        free_line(csound, buff, line);
         return TRUE;
       }
       type = atoi(buff);
     }
+    free_line(csound, buff, line);
     csoundErrorMsg(csound, Str("Missing end tag </CsShortLicence>\n"));
     return FALSE;
 }
@@ -1160,19 +1335,37 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
     int32_t   result = TRUE;
     int32_t   r;
     int32_t started = FALSE;
-    int32_t notrunning = csound->engineStatus & CS_STATE_COMP;
+    /* csoundStart sets CS_STATE_COMP. Options and a MIDI file are taken only
+       from a CSD compiled before it: a later one skips them. */
+    int32_t running = csound->engineStatus & CS_STATE_COMP;
     char    buffer[CSD_MAX_LINE_LEN];
+    int32_t cut = FALSE;            /* the last chunk was a line's blanks */
 #ifdef _DEBUG
     //csoundMessage(csound, "Calling unified file system4\n");
 #endif
-    if (notrunning==0) {
-      alloc_globals(csound);
+    alloc_globals(csound);          /* each CSD counts its own lines */
+    if (!running) {
       STA(orcname) = STA(sconame) = STA(midname) = NULL;
       STA(midiSet) = FALSE;
     }
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)) {
-      char *p = buffer;
+    for (;;) {
+      char *p;
+      /* A tag counts at a line's start, after its blanks. The rest of a line
+         longer than a chunk is no line of its own, whether this loop or a
+         section's reader stopped in it. */
+      int32_t line_start = cut || cf->p == 0 || cf->body[cf->p-1] == '\n' ||
+                           cf->body[cf->p-1] == '\r';
+      if (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) == NULL)
+        break;
+      if (!line_start)
+        continue;
+      p = buffer;
       while (isblank(*p)) p++;
+      /* Blanks that fill the chunk, or leave its end to cut a tag: the text
+         after them is read again, as a chunk that starts the line. */
+      cut = cut_after_blanks(buffer, p, CSD_MAX_LINE_LEN, cf);
+      if (cut)
+        continue;
       if (strstr(p, "<CsoundSynthesizer>") == p ||
           strstr(p, "<CsoundSynthesiser>") == p) {
         if(csound->oparms->odebug)
@@ -1184,14 +1377,14 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         if (csound->scorestr != NULL)
           corfile_flush(csound, csound->scorestr);
         corfile_rm(csound, &cf);
-        if (notrunning && STA(midiSet)) {
+        if (!running && STA(midiSet)) {
           csound->oparms->FMidiname = STA(midname);
           csound->oparms->FMidiin = 1;
         }
         return result;
       }
       else if (strstr(p, "<CsOptions>") == p) {
-        if (!notrunning) {
+        if (!running && !csound->disable_csd_options) {
           if(csound->oparms->odebug)
           csoundMessage(csound, Str("Creating options\n"));
           csound->orchname = NULL;  /* allow orchestra/score name in CSD file */
@@ -1200,16 +1393,8 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         }
         else {
           csoundMessage(csound, Str("Skipping <CsOptions>\n"));
-          do {
-            if (UNLIKELY(my_fgets_cf(csound, buffer,
-                                   CSD_MAX_LINE_LEN, cf) == NULL)) {
-              csoundErrorMsg(csound, Str("Missing end tag </CsOptions>\n"));
-              result = FALSE;
-              break;
-            }
-            p = buffer;
-            while (isblank(*p)) p++;
-          } while (strstr(p, "</CsOptions>") != p);
+          r = read_options(csound, cf, CSOPTIONS_SKIP);
+          result = r && result;
         }
       }
       else if (strstr(p, "<CsInstruments>") == p) {
@@ -1228,22 +1413,17 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         result = r && result;
       }
       else if (strstr(p, "<CsMidifileB>") == p) {
-        if (notrunning) {
+        if (!running) {
           r = create_MIDI2(csound, cf);
           result = r && result;
         }
         else {
           csoundMessage(csound, Str("Skipping <CsMidifileB>\n"));
-          do {
-            if (UNLIKELY(my_fgets_cf(csound, buffer,
-                                   CSD_MAX_LINE_LEN, cf) == NULL)) {
-              csoundErrorMsg(csound, Str("Missing end tag </CsMidiFileB>\n"));
-              result = FALSE;
-              break;
-            }
-            p = buffer;
-            while (isblank(*p)) p++;
-          } while (strstr(p, "</CsMidiFileB>") != p);
+          if (UNLIKELY(!find_base64_end_tag(csound, cf, "</CsMidifileB>",
+                                            "</CsMidiFileB>"))) {
+            csoundErrorMsg(csound, Str("Missing end tag </CsMidifileB>\n"));
+            result = FALSE;
+          }
         }
       }
       else if (strstr(p, "<CsSampleB filename=") == p) {
@@ -1276,7 +1456,7 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
         result = r && result;
       }
       else if (strstr(p, "<CsShortLicence>") == p ||
-               strstr(p, "<CsSortLicense>") == p) {
+               strstr(p, "<CsShortLicense>") == p) {
         r = check_short_licence(csound, cf);
         result = r && result;
       }
@@ -1291,5 +1471,9 @@ int32_t read_unified_file4(CSOUND *csound, CORFIL *cf)
       result = FALSE;
     }
     corfile_rm(csound, &cf);
+    if (!running && STA(midiSet)) {     /* no </CsoundSynthesizer> */
+      csound->oparms->FMidiname = STA(midname);
+      csound->oparms->FMidiin = 1;
+    }
     return result;
 }
