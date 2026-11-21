@@ -51,17 +51,6 @@ uint64_t make_location(PRE_PARM *qq)
     return loc;
 }
 
-uint64_t make_slocation(PRS_PARM *qq)
-{
-    int32_t d = qq->depth;
-    uint64_t loc = 0;
-    int32_t n = (d>8?d-7:0);
-    for (; n<=d; n++) {
-      loc = (loc<<8)+(qq->lstack[n]);
-    }
-    return loc;
-}
-
 // Code to add #includes of UDOs
 static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
 {

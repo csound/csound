@@ -39,7 +39,6 @@ int32_t scxtract(CSOUND *csound, CORFIL *scin, FILE *xfile)
     corfile_seek(scin, 0, SEEK_END);
     corfile_puts(csound, "\n#exit\n", scin);
     corfile_rewind(scin);
-    csound->scoreout = NULL;
     csound->scorestr = scin;
     csound->scstr = corfile_create_w(csound);
     csound->sectcnt = 0;

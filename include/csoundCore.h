@@ -1894,8 +1894,6 @@ struct CSOUND_ {
   CORFIL *scstr;                                             /* score reader corfile */
   CORFIL *expanded_orc;                                      /* preprocessed orchestra source */
   CORFIL *expanded_sco;                                      /* preprocessed score source */
-  CORFIL *playscore;                                         /* realtime score playback corfile */
-  FILE *scoreout;                                            /* score output file */
   EVTBLK *currevent;                                         /* current event block */
   EVTBLK evt;                                                /* working event block */
   EVTBLK *init_event;                                        /* event used during initialisation */
@@ -1923,7 +1921,6 @@ struct CSOUND_ {
   char *opcodedir;                                           /* opcode search directory */
   int32_t aftouch;                                           /* default MIDI touch value */
   int32_t keep_tmp;                                          /* keep temporary files */
-  uint32_t tempStatus;                                       /* temporary-file tracking status */
   void *evtFuncChain;                                        /* realtime event function chain */
   EVTNODE *OrcTrigEvts;                                      /* events triggered by the orchestra awaiting start */
   EVTNODE *freeEvtNodes;                                     /* free list of event nodes */

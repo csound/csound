@@ -29,7 +29,6 @@
 #include "cs_par_orc_semantics.h"
 // #include "cs_par_dispatch.h"
 
-extern const uint32_t csPlayScoMask;
 #if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
 extern int csoundSupportsRealtime(void);
 #endif
@@ -373,7 +372,7 @@ static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv) {
 
   if (csound->scorename == NULL && csound->scorestr == NULL) {
     /* No scorename yet */
-    if(csound->playscore == NULL) // if score not given in --events=
+    if (csound->scstr == NULL) // if score not given in --events=
       csound->Message(csound, Str("scoreless operation\n"));
     csound->scorestr = corfile_create_r(csound, "\n\n\ne\n#exit\n");
     corfile_flush(csound, csound->scorestr);
@@ -460,9 +459,10 @@ static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv) {
       (!strcmp(csound->scorename + (n - 4), ".srt") ||
        !strcmp(csound->scorename + (n - 4), ".xtr"))) {
     csound->Message(csound, Str("using previous %s\n"), csound->scorename);
-    // playscore = sortedscore = csound->scorename;   /*  use that one */
-    csound->scorestr = NULL;
-    csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL, 1);
+    corfile_rm(csound, &csound->scstr);
+    csound->scstr = copy_to_corefile(csound, csound->scorename, NULL, 0);
+    if (UNLIKELY(csound->scstr == NULL))
+      csoundDie(csound, Str("cannot open scorefile %s\n"), csound->scorename);
   } else {
     // sortedscore = NULL;
     if (csound->scorestr == NULL) {
@@ -481,11 +481,15 @@ static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv) {
     // printf("*** keep_tmp = %d\n", csound->keep_tmp);
     if (csound->keep_tmp) {
       FILE *ff = fopen("score.srt", "w");
-      if (csound->keep_tmp == 1)
-        fputs(corfile_body(csound->scstr), ff);
-      else
-        put_sorted_score(csound, corfile_body(csound->scstr), ff);
-      fclose(ff);
+      if (UNLIKELY(ff == NULL)) {
+        csound->Warning(csound, Str("cannot open score.srt for writing\n"));
+      } else {
+        if (csound->keep_tmp == 1)
+          fputs(corfile_body(csound->scstr), ff);
+        else
+          put_sorted_score(csound, corfile_body(csound->scstr), ff);
+        fclose(ff);
+      }
     }
   }
   if (csound->xfilename != NULL) { /* optionally extract */
@@ -497,13 +501,10 @@ static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv) {
       csound->Message(csound, Str("  ... extracting ...\n"));
     scxtract(csound, csound->scstr, xfile);
     fclose(xfile);
-    csound->tempStatus &= ~csPlayScoMask;
   }
   if (O->odebug) {
     csound->Message(csound, Str("\t... done\n"));
   }
-  /* copy sorted score name */
-  csound->playscore = csound->scstr;
   if (O->odebug)
     print_benchmark_info(csound, Str("end of score sort"));
   if (O->syntaxCheckOnly) {

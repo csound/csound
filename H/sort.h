@@ -37,7 +37,7 @@ typedef struct srtblk {
         cs_float   p3val;
         cs_float   newp2;
         cs_float   newp3;
-        int16   lineno;
+        int32_t lineno;
         char    preced;
         char    text[9];
 } SRTBLK;

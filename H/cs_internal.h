@@ -309,22 +309,6 @@ extern "C" {
       int32_t  last_name /* = -1 */;
       IN_STACK *inputs, *str;
       int32_t  input_size, input_cnt;
-      int32_t  unused_int3;
-      int32_t  unused_int2;
-      int32_t  linepos;                /* unused: a place is counted in the text */
-      MARKED_SECTIONS unused_names[30]; /* kept for the layout: the marks
-                                           are CSOUND's marked_sections       */
-      char    unused_char0[RPTDEPTH][NAMELEN];
-      int32_t unused_int4[RPTDEPTH];
-      int32   unused_int7[RPTDEPTH];
-      int32_t  unused_int5;
-      MACRO   *unused_ptr0[RPTDEPTH];
-      int32_t  unused_int6;
-      /* Variable for repeat sections */
-      char    unused_char1[NAMELEN];
-      int32_t unused_int8;
-      int32   unused_int9;
-      int32_t unused_intA;
       CORFIL  *sorted;                /* scsortstr's output, until returned   */
       int32_t  nocarry;
    };
