@@ -67,36 +67,29 @@ static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
 {
 #if defined(HAVE_DIRENT_H)
     char *dir = getenv("CS_UDO_DIR");
-    char buff[1024];
     if (dir) {
       DIR *udo = opendir(dir);
-      //printf(Str("** found CS_UDO_DIR=%s\n"), dir);
       if (udo) {
         struct dirent *f;
-        //printf("**and it opens\n");
-        strcpy(buff, "#line 0\n");
+        CORFIL *tmp = corfile_create_w(csound);
+        corfile_puts(csound, "#line 0\n", tmp);
         while ((f = readdir(udo)) != NULL) {
           char *fname = &(f->d_name[0]);
-          int32_t n = (int)strlen(fname);
-          //printf("**  name=%s n=%d\n", fname, n);
-          if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
-            strlcat(buff, "#include \"", 1024);
-            strlcat(buff, dir, 1024);
-            strlcat(buff, "/", 1024);
-            strlcat(buff, fname, 1024);
-            strlcat(buff, "\"\n", 1024);
-            if (strlen(buff)>768) {
-              corfile_preputs(csound, buff, xx);
-              buff[0] ='\0';
-            }
+          int32_t n = (int32_t)strlen(fname);
+          if (n > 4 && (strcmp(&fname[n-4], ".udo") == 0)) {
+            corfile_puts(csound, "#include \"", tmp);
+            corfile_puts(csound, dir, tmp);
+            corfile_puts(csound, "/", tmp);
+            corfile_puts(csound, fname, tmp);
+            corfile_puts(csound, "\"\n", tmp);
           }
         }
         closedir(udo);
-        strlcat(buff, "###\n", 1024);
-        corfile_preputs(csound, buff, xx);
+        corfile_puts(csound, "###\n", tmp);
+        corfile_preputs(csound, corfile_body(tmp), xx);
+        corfile_rm(csound, &tmp);
       }
     }
-    //printf("Giving\n%s", corfile_body(xx));
 #endif
 }
 
@@ -143,6 +136,7 @@ static int32_t preprocess_orc(CSOUND *csound, const char *str, PRE_PARM *qq)
 {
       /* A failed live edit must not carry errors into the next request. */
       csound->synterrcnt = 0;
+      qq->csound = csound;
       //csp_orc_sa_print_list(csound);
       csound_prelex_init(&qq->yyscanner);
       csound_preset_extra(qq, qq->yyscanner);
@@ -305,78 +299,10 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
       {
         extern int32_t process_struct_definitions_two_phase(CSOUND* csound, TREE* structDefList);
 
-        // Create a separate list of wrapper nodes to avoid mutating the original AST
-        TREE* structList = NULL;
-        TREE* structTail = NULL;
-        TREE* scan = astTree;
-
-        while (scan != NULL) {
-          if (scan->type == STRUCT_TOKEN) {
-            // Create a wrapper node that references the struct node without modifying its next pointer
-            TREE* wrapper = (TREE*)csoundParserOwn(csound, csound->Malloc(csound, sizeof(TREE)));
-            if (UNLIKELY(wrapper == NULL)) {
-              csound->ErrorMsg(csound, Str("Memory allocation failed for struct wrapper node\n"));
-              err = 3;
-
-              // Clean up any already allocated wrapper nodes before jumping to ending
-              TREE* current = structList;
-              while (current != NULL) {
-                TREE* next = current->next;
-                csound->Free(csound, current);
-                current = next;
-              }
-              structList = NULL;
-
-              goto ending;
-            }
-
-            // Initialize wrapper with minimal information needed for processing
-            wrapper->type = scan->type;
-            wrapper->value = scan->value;
-            wrapper->rate = scan->rate;
-            wrapper->len = scan->len;
-            wrapper->line = scan->line;
-            wrapper->locn = scan->locn;
-            wrapper->left = scan->left;
-            wrapper->right = scan->right;
-            wrapper->markup = scan->markup;
-            wrapper->next = NULL;  // Initialize next to NULL
-
-            // Add wrapper to struct list
-            if (structList == NULL) {
-              structList = wrapper;
-              structTail = wrapper;
-            } else {
-              structTail->next = wrapper;
-              structTail = wrapper;
-            }
-          }
-          scan = scan->next;
-        }
-
-        // Process all struct definitions in two phases
-        if (structList != NULL) {
-          if (!process_struct_definitions_two_phase(csound, structList)) {
-            csound->ErrorMsg(csound, Str("Error in early two-phase struct processing\n"));
-            err = 3;
-
-            // Clean up wrapper nodes before exiting
-            TREE* current = structList;
-            while (current != NULL) {
-              TREE* next = current->next;
-              csound->Free(csound, current);
-              current = next;
-            }
-            goto ending;
-          }
-
-          // Clean up wrapper nodes after successful processing
-          TREE* current = structList;
-          while (current != NULL) {
-            TREE* next = current->next;
-            csound->Free(csound, current);
-            current = next;
-          }
+        if (!process_struct_definitions_two_phase(csound, astTree)) {
+          csound->ErrorMsg(csound, Str("Error in early two-phase struct processing\n"));
+          err = 3;
+          goto ending;
         }
       }
 
@@ -447,6 +373,18 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
            rewriting. A tree walk cannot safely recover those allocations. */
         if (csoundWasiHasAllocScope(csound)) return NULL;
 #endif
+        TREE *node = astTree;
+        while (node != NULL) {
+          if ((node->type == INSTR_TOKEN || node->type == UDO_TOKEN) &&
+              node->markup != NULL &&
+              (typeTable == NULL ||
+               (node->markup != typeTable->localPool &&
+                node->markup != typeTable->instr0LocalPool))) {
+            csoundFreeVarPool(csound, (CS_VAR_POOL *)node->markup);
+            node->markup = NULL;
+          }
+          node = node->next;
+        }
         csoundDeleteTree(csound, astTree);
         if (typeTable != NULL) {
           csoundFreeVarPool(csound, typeTable->globalPool);
@@ -456,6 +394,8 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
           if (typeTable->localPool != typeTable->instr0LocalPool) {
             csoundFreeVarPool(csound, typeTable->localPool);
           }
+          cs_cons_free_complete(csound, typeTable->labelList);
+          typeTable->labelList = NULL;
           csound->Free(csound, typeTable);
         }
         return NULL;

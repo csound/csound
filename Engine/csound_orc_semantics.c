@@ -57,7 +57,6 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
                            char *outtypes, char *intypes, int32_t flags);
 
 const char* SYNTHESIZED_ARG = "_synthesized";
-const char* UNARY_PLUS = "_unary_plus";
 
 char* csoundStrdup(CSOUND* csound, const char* str) {
   size_t len;
@@ -4670,10 +4669,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
 	csound->Message(csound, "UDO declared\n");
 
-      typeTable->localPool = csoundParserCreateVarPool(csound);
-      current->markup = typeTable->localPool;
-
       if (current->right != NULL) {
+        typeTable->localPool = csoundParserCreateVarPool(csound);
+        current->markup = typeTable->localPool;
 
         newRight = verify_tree(csound, current->right, typeTable);
 
@@ -4685,9 +4683,9 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
         current->right = newRight;
         newRight = NULL;
-      }
 
-      typeTable->localPool = typeTable->instr0LocalPool;
+        typeTable->localPool = typeTable->instr0LocalPool;
+      }
 
       break;
     }
@@ -5096,6 +5094,9 @@ TREE* copy_node(CSOUND* csound, TREE* tree) {
     ans->right = (tree->right == NULL) ? NULL : copy_node(csound, tree->right);
     if (tree->value != NULL) {
       ans->value = make_token(csound, tree->value->lexeme, NULL);
+      ans->value->type = tree->value->type;
+      ans->value->value = tree->value->value;
+      ans->value->fvalue = tree->value->fvalue;
       ans->value->optype = csoundParserStrdup(csound, tree->value->optype);
       ans->value->first_column = tree->value->first_column;
       ans->value->last_column = tree->value->last_column;
@@ -5129,6 +5130,9 @@ TREE* copy_node_shallow(CSOUND* csound, TREE* tree) {
 
     if (tree->value != NULL) {
       ans->value = make_token(csound, tree->value->lexeme, NULL);
+      ans->value->type = tree->value->type;
+      ans->value->value = tree->value->value;
+      ans->value->fvalue = tree->value->fvalue;
       ans->value->optype = csoundParserStrdup(csound, tree->value->optype);
       ans->value->first_column = tree->value->first_column;
       ans->value->last_column = tree->value->last_column;
@@ -5221,6 +5225,10 @@ static void delete_tree(CSOUND *csound, TREE **l)
       if (tree->value->lexeme) {
         csound->Free(csound, tree->value->lexeme);
         tree->value->lexeme = NULL;
+      }
+      if (tree->value->optype) {
+        csound->Free(csound, tree->value->optype);
+        tree->value->optype = NULL;
       }
       csound->Free(csound,tree->value);
       tree->value = NULL;
@@ -5351,12 +5359,6 @@ void print_tree_i(CSOUND *csound, TREE *l, int32_t n)
     csound->Message(csound,"INTEGER_TOKEN: %d\n", l->value->value); break;
   case NUMBER_TOKEN:
     csound->Message(csound,"NUMBER_TOKEN: %f\n", l->value->fvalue); break;
-  case S_ANDTHEN:
-    csound->Message(csound,"S_ANDTHEN:(%d:%s)\n",
-                    l->line, csound->filedir[(l->locn)&0xff]); break;
-  case S_APPLY:
-    csound->Message(csound,"S_APPLY:(%d:%s)\n",
-                    l->line, csound->filedir[(l->locn)&0xff]); break;
   case T_FUNCTION:
     csound->Message(csound,"T_FUNCTION: %s\n",
                     l->value->lexeme); break;
@@ -5503,10 +5505,6 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int32_t n, int32_t which)
   case NUMBER_TOKEN:
     csound->Message(csound,"name=\"NUMBER_TOKEN\" value=\"%f\"",
                     l->value->fvalue); break;
-  case S_ANDTHEN:
-    csound->Message(csound,"name=\"S_ANDTHEN\""); break;
-  case S_APPLY:
-    csound->Message(csound,"name=\"S_APPLY\""); break;
   case T_FUNCTION:
     csound->Message(csound,"name=\"T_FUNCTION\" fname=\"%s\"",
                     l->value->lexeme); break;
@@ -5523,8 +5521,6 @@ static void print_tree_xml(CSOUND *csound, TREE *l, int32_t n, int32_t which)
   case UDO_ARGS_TOKEN:
     csound->Message(csound,"name=\"UDO_ARGS_TOKEN\" signature=\"%s\"",
                     l->value->lexeme); break;
-  case S_ELIPSIS:
-    csound->Message(csound,"name=\"S_ELIPSIS\""); break;
   case S_ADDIN:
     csound->Message(csound,"name=\"##addin\""); break;
     break;

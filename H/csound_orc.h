@@ -32,11 +32,6 @@
 #include "csound_orcparse.h"
 #include "csoundCore.h"
 
-enum {
-  S_ANDTHEN = T_HIGHEST+1,
-  S_APPLY,
-};
-
 typedef struct type_table {
     OENTRY* udos;
     CS_VAR_POOL* globalPool;

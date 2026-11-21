@@ -3150,3 +3150,157 @@ endin
         EXPECT_EQ(3, csoundGetControlChannel(csound, "once", &error));
     }
 }
+
+TEST_F(OrcCompileTests, UnterminatedQuotedStringAtEofFailsCleanly)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = "instr 1\nSfoo = \"unterminated";
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+}
+
+TEST_F(OrcCompileTests, UnterminatedMultiLineStringAtEofFailsCleanly)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = "instr 1\nSfoo = {{\nunclosed";
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+}
+
+TEST_F(OrcCompileTests, UnterminatedRawStringAtEofFailsCleanly)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = "instr 1\nSfoo = R{\nunclosed";
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+}
+
+TEST_F(OrcCompileTests, RawStringPreservesSpecialSyntaxAndNesting)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"csound(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+#define FOO #EXPANDED#
+instr 1
+  Sraw = R{semi; slash// block/* quote" #define BAR #1# $FOO nested R{ok}R end}R
+  chnset Sraw, "rawOut"
+endin
+)csound";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    char buf[256] = {0};
+    csoundGetStringChannel(csound, "rawOut", buf);
+    EXPECT_STREQ("semi; slash// block/* quote\" #define BAR #1# $FOO nested R{ok}R end", buf);
+}
+
+TEST_F(OrcCompileTests, AtAtPowerOfTwoInstrumentNumber)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr @@10
+  chnset 1, "atInstr"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 17 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "atInstr", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, MacroArgumentOver98CharsExpands)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const std::string longArg(120, 'x');
+    const std::string orchestra =
+        "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\n"
+        "#define MAKE_STR(A) #\"$A\"#\n"
+        "instr 1\n"
+        "  Sval = $MAKE_STR(" + longArg + ")\n"
+        "  chnset Sval, \"macroOut\"\n"
+        "endin\n";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra.c_str()));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    char buf[256] = {0};
+    csoundGetStringChannel(csound, "macroOut", buf);
+    EXPECT_EQ(longArg, std::string(buf));
+}
+
+TEST_F(OrcCompileTests, MultiNamedInstrCreatesInstrDefVariablesAndRuns)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr Foo, Bar
+  kCount chnget "multiInstrCount"
+  chnset kCount + 1, "multiInstrCount"
+  turnoff
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    CS_VARIABLE* fooVar = csoundFindVariableWithName(
+        csound, csound->engineState.varPool, "Foo");
+    CS_VARIABLE* barVar = csoundFindVariableWithName(
+        csound, csound->engineState.varPool, "Bar");
+    ASSERT_NE(nullptr, fooVar);
+    ASSERT_NE(nullptr, barVar);
+    EXPECT_EQ(&CS_VAR_TYPE_INSTR, fooVar->varType);
+    EXPECT_EQ(&CS_VAR_TYPE_INSTR, barVar->varType);
+    csoundReadScore(csound, "i \"Foo\" 0 0.1\ni \"Bar\" 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(2, csoundGetControlChannel(csound, "multiInstrCount", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, ForLoopWithTypedVariables)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+  kArr[] = fillarray(10, 20, 30)
+  kSum = 0
+  kIdxSum = 0
+  kUntypedIdxSum = 0
+  for x:k in kArr do
+    kSum += x
+  od
+  for y:k, idx:k in kArr do
+    kIdxSum += y * idx
+  od
+  for z:k, idx2 in kArr do
+    kUntypedIdxSum += z * idx2
+  od
+  chnset kSum, "sum"
+  chnset kIdxSum, "idxSum"
+  chnset kUntypedIdxSum, "untypedIdxSum"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(60, csoundGetControlChannel(csound, "sum", &error));
+    EXPECT_EQ(80, csoundGetControlChannel(csound, "idxSum", &error));
+    EXPECT_EQ(80, csoundGetControlChannel(csound, "untypedIdxSum", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}

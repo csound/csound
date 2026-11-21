@@ -102,14 +102,11 @@
 %token FALSEK_TOKEN
 
 
-%token S_ELIPSIS
 %token S_ELIPSIS2
 %token T_ARRAY
 %token T_ARRAY_IDENT
 %token T_DECLARE
 %token STRUCT_EXPR
-%token T_MAPI
-%token T_MAPK
 
 %start orcfile
 
@@ -127,7 +124,6 @@
 %right S_UNOT
 %right S_UMINUS
 %right S_UPLUS
-%token S_GOTO
 %token T_HIGHEST
 
  //%error-verbose
@@ -169,12 +165,9 @@
 #define csp_orc_sa_global_write_add_list(a,b);
 #endif
 
-#define namedInstrFlag csound->parserNamedInstrFlag
-
     extern TREE* parser_append(CSOUND * csound, TREE *first, TREE *newlast);
     extern int csound_orclex(TREE**, CSOUND *, void *);
     extern void print_tree(CSOUND *, char *msg, TREE *);
-    extern TREE* constant_fold(CSOUND *, TREE *);
     extern void csound_orcerror(PARSE_PARM *, void *, CSOUND *,
                                 TREE**, const char*);
     extern ORCTOKEN *lookup_token(CSOUND*,char*,void*);
@@ -182,8 +175,6 @@
 #define LOCN csound_orcget_locn(scanner)
     extern uint64_t csound_orcget_locn(void *);
     extern int csound_orcget_lineno(void *);
-    extern ORCTOKEN *make_string(CSOUND *, char *);
-    extern char* UNARY_PLUS;
     extern TREE* make_opcall_from_func_start(CSOUND*, int32_t, uint64_t, int32_t, TREE*, TREE*);
     extern void add_instr_variable(CSOUND *csound,  TREE *x);
 %}
@@ -258,7 +249,9 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
 
 
 instr_id_list : instr_id_list ',' instr_id
-                  { $$ = parser_append(csound, $1, $3); }
+                  { csp_orc_sa_instr_add_tree(csound, $3);
+                    add_instr_variable(csound, $3);
+                    $$ = parser_append(csound, $1, $3); }
               | instr_id  { csp_orc_sa_instr_add_tree(csound, $1);
                     add_instr_variable(csound, $1);
                 }
@@ -317,7 +310,6 @@ udo_definition   : UDOSTART_DEFINITION identifier ',' UDO_IDENT ',' UDO_IDENT NE
                 $2->right = $3;
                 $$->right = $8;
               }
-            ;
               | UDOSTART_DEFINITION identifier udo_arg_list NEWLINE ':' udo_out_arg_list NEWLINE
                 statement_list UDOEND_TOKEN NEWLINE
               {
@@ -635,54 +627,22 @@ switch  : SWITCH_TOKEN expr NEWLINE case_list ENDSW_TOKEN
         }
         ;
 
-for_in : FOR_TOKEN identifier in expr DO_TOKEN statement_list OD_TOKEN
+for_var : identifier
+        | typed_identifier
+        ;
+
+for_in : FOR_TOKEN for_var in expr DO_TOKEN statement_list OD_TOKEN
         {
           $3->left = $4;
           $3->right = $6;
-          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $3);
+          $$ = make_node(csound, LINE, LOCN, FOR_TOKEN, $2, $3);
         }
-        | FOR_TOKEN identifier ',' identifier in expr DO_TOKEN statement_list OD_TOKEN
+        | FOR_TOKEN for_var ',' for_var in expr DO_TOKEN statement_list OD_TOKEN
         {
           $2->next = $4;
           $5->left = $6;
           $5->right = $8;
-          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $5);
-        }
-         | FOR_TOKEN typed_identifier in expr DO_TOKEN statement_list OD_TOKEN
-        {
-          $3->left = $4;
-          $3->right = $6;
-          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN,
-                         make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
-                                   lookup_token(csound, $2->value->lexeme, NULL)), $3);
-        }
-         | FOR_TOKEN typed_identifier ',' identifier in expr DO_TOKEN statement_list OD_TOKEN
-        {
-          
-          $5->left = $6;
-          $5->right = $8;
-          $$ = make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
-                         lookup_token(csound, $2->value->lexeme, NULL));
-          $$->next = $4;
-          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $$, $5);
-          }
-         | FOR_TOKEN typed_identifier ',' typed_identifier in expr DO_TOKEN statement_list OD_TOKEN
-        {
-          $5->left = $6;
-          $5->right = $8;
-          $$ = make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
-                         lookup_token(csound, $2->value->lexeme, NULL));
-          $$->next = make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
-                         lookup_token(csound, $4->value->lexeme, NULL));
-          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $$, $5);
-          }
-        | FOR_TOKEN identifier ',' typed_identifier in expr DO_TOKEN statement_list OD_TOKEN
-        {
-          $2->next = make_leaf(csound,LINE,LOCN, T_TYPED_IDENT, 
-                         lookup_token(csound, $4->value->lexeme, NULL));
-          $5->left = $6;
-          $5->right = $8;
-          $$ = make_node(csound,LINE,LOCN, FOR_TOKEN, $2, $5);
+          $$ = make_node(csound, LINE, LOCN, FOR_TOKEN, $2, $5);
         }
         ;
 
@@ -791,9 +751,7 @@ array_expr :  array_expr '[' expr ']'
           }
           | identifier '[' expr ']'
           {
-           char* arrayName = $1->value->lexeme;
-            $$ = make_node(csound, LINE, LOCN, T_ARRAY,
-                           make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, arrayName, NULL)), $3);
+            $$ = make_node(csound, LINE, LOCN, T_ARRAY, $1, $3);
           }
           | function_call '[' expr ']'
           {
@@ -803,48 +761,53 @@ array_expr :  array_expr '[' expr ']'
 
 struct_expr : struct_expr '.' identifier
             {
-              char* memberName = $3->value->lexeme;
+              $3->type = T_MEMBER_IDENT;
               // Important: Clear the next pointer of $3 to prevent it from being processed separately
               $3->next = NULL;
-              $$ = make_node(
-                csound, LINE, LOCN, STRUCT_EXPR,
-                $1,
-                make_leaf(
-                          csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName, NULL)
-                )
-              );
+              $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3);
             }
             | struct_expr '.' array_expr
             {
               /* Build a struct member node from array_expr's base identifier, then
                  attach the array indexing so nested chains like a.b[0] work. */
-              char* memberName = $3->value == NULL ?
-                                  $3->left->value->lexeme :
-                                  $3->value->lexeme;
-              TREE* memberLeaf = make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT,
-                                           make_token(csound, memberName, NULL));
-              TREE* structMember = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, memberLeaf);
+              TREE *memberLeaf;
+              if ($3->value == NULL && $3->left != NULL && $3->left->type == T_IDENT) {
+                memberLeaf = $3->left;
+                memberLeaf->type = T_MEMBER_IDENT;
+                memberLeaf->next = NULL;
+              } else {
+                char* memberName = $3->value == NULL ?
+                                    $3->left->value->lexeme :
+                                    $3->value->lexeme;
+                memberLeaf = make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT,
+                                       make_token(csound, memberName, NULL));
+              }
               /* Now make the array_expr index the struct member */
-              $3->left = structMember;
+              $3->left = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, memberLeaf);
               $$ = $3;
             }
             | array_expr '.' identifier
             {
               $3->type = T_MEMBER_IDENT;
+              $3->next = NULL;
               $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3);
             }
             | identifier '.' array_expr
             {
-              char* structName = $1->value->lexeme;
-              char* memberName = $3->value == NULL ?
-                $3->left->value->lexeme :
-                $3->value->lexeme;
-
-              $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR,
-                             make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName, NULL)),
-                             make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName, NULL))
-              );
-              $3->left = $$;
+              $1->next = NULL;
+              TREE *memberLeaf;
+              if ($3->value == NULL && $3->left != NULL && $3->left->type == T_IDENT) {
+                memberLeaf = $3->left;
+                memberLeaf->type = T_MEMBER_IDENT;
+                memberLeaf->next = NULL;
+              } else {
+                char* memberName = $3->value == NULL ?
+                                    $3->left->value->lexeme :
+                                    $3->value->lexeme;
+                memberLeaf = make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT,
+                                       make_token(csound, memberName, NULL));
+              }
+              $3->left = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, memberLeaf);
               $$ = $3;
             }
             | struct_expr '[' expr ']'
@@ -853,14 +816,11 @@ struct_expr : struct_expr '.' identifier
             }
             | identifier '.' identifier
             {
-              char* structName = $1->value->lexeme;
-              char* memberName = $3->value->lexeme;
+              $1->next = NULL;
+              $3->type = T_MEMBER_IDENT;
               // Important: Clear the next pointer of $3 to prevent it from being processed separately
               $3->next = NULL;
-              $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR,
-                             make_leaf(csound, LINE, LOCN, T_IDENT, make_token(csound, structName, NULL)),
-                             make_leaf(csound, LINE, LOCN, T_MEMBER_IDENT, make_token(csound, memberName, NULL))
-                   );
+              $$ = make_node(csound, LINE, LOCN, STRUCT_EXPR, $1, $3);
             }
             ;
 
@@ -1117,34 +1077,3 @@ identifierb : T_IDENTB
         ;
 
 %%
-
-#ifdef SOME_FINE_DAY
-void
-yyerror(char *s, ...)
-{
-  va_list ap;
-  va_start(ap, s);
-
-  if (yylloc.first_line)
-    fprintf(stderr, "%d.%d-%d.%d: error: ",
-            yylloc.first_line, yylloc.first_column,
-            yylloc.last_line, yylloc.last_column);
-  vfprintf(stderr, s, ap);
-  fprintf(stderr, "\n");
-
-}
-
-void
-lyyerror(YYLTYPE t, char *s, ...)
-{
-  va_list ap;
-  va_start(ap, s);
-
-  if (t.first_line)
-    fprintf(stderr, "%d.%d-%d.%d: error: ", t.first_line, t.first_column,
-            t.last_line, t.last_column);
-  vfprintf(stderr, s, ap);
-  fprintf(stderr, "\n");
-}
-
-#endif

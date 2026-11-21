@@ -63,12 +63,14 @@ static void csound_pre_line(CSOUND *, CORFIL*, yyscan_t);
 #define YY_EXTRA_TYPE  PRE_PARM *
 #define PARM    yyget_extra(yyscanner)
 #define YY_INPUT(buf, result, max_size) ((result) = 0)
+static void pre_fatal(yyscan_t, const char *);
+#define YY_FATAL_ERROR(msg) pre_fatal(yyscanner, msg)
 
 #define YY_USER_INIT {pre_scan_string(csound->orchstr->body, yyscanner); \
     csound_preset_lineno(csound->orcLineOffset, yyscanner);             \
-    csound_preset_debug(1, yyscanner); PARM->macro_stack_size = 0;      \
+    PARM->macro_stack_size = 0;                                         \
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
-    PARM->initial_path = PARM->path = ".";                               \
+    PARM->initial_path = PARM->path = ".";                              \
   }
 static MACRO *find_definition(MACRO *, char *);
 
@@ -182,6 +184,7 @@ QNAN            "qnan"[ \t]*\(
 %x macro
 %x umacro
 %x ifdef
+%x rstr
 
 %%
 
@@ -242,6 +245,70 @@ QNAN            "qnan"[ \t]*\(
                     PARM->isinclude = 0;
                   }
                 }
+"R{"            {
+                  corfile_puts(csound, yytext, csound->expanded_orc);
+                  if (PARM->isString != 1) {
+                    PARM->rstr_depth = 0;
+                    BEGIN(rstr);
+                  }
+                }
+<rstr>{
+  "R{"          {
+                  PARM->rstr_depth++;
+                  corfile_puts(csound, yytext, csound->expanded_orc);
+                }
+  "}R"          {
+                  corfile_puts(csound, yytext, csound->expanded_orc);
+                  if (PARM->rstr_depth > 0)
+                    PARM->rstr_depth--;
+                  else
+                    BEGIN(INITIAL);
+                }
+  {NEWLINE}     {
+                  corfile_putc(csound, '\n', csound->expanded_orc);
+                  csound_preset_lineno(1+csound_preget_lineno(yyscanner),
+                                       yyscanner);
+                  csound_pre_line(csound, csound->expanded_orc, yyscanner);
+                }
+  .             {
+                  corfile_putc(csound, yytext[0], csound->expanded_orc);
+                }
+  <<EOF>>       {
+                  if (PARM->buffers.count > 0) {
+                    pre_pop_buffer(yyscanner);
+                    PARM->depth--;
+                    if (UNLIKELY(PARM->depth > 1024))
+                      csound->Die(csound, Str("unexpected EOF!\n"));
+                    PARM->llocn = PARM->locn; PARM->locn = make_location(PARM);
+                    if (!PARM->buffers.current) {
+                      corfile_putc(csound, '\0', csound->expanded_orc);
+                      corfile_putc(csound, '\0', csound->expanded_orc);
+                      BEGIN(INITIAL);
+                      return 0;
+                    }
+                    PARM->macro_stack_ptr--;
+                    if (PARM->alt_stack[PARM->macro_stack_ptr].path) {
+                      free(PARM->path);
+                      PARM->path = PARM->alt_stack[PARM->macro_stack_ptr].path;
+                    }
+                    if (PARM->alt_stack[PARM->macro_stack_ptr].n != 0) {
+                      csound_pre_free_macro_args(
+                          csound, PARM->alt_stack[PARM->macro_stack_ptr].s,
+                          PARM->alt_stack[PARM->macro_stack_ptr].n);
+                    }
+                    csound_preset_lineno(
+                        PARM->alt_stack[PARM->macro_stack_ptr].line,
+                        yyscanner);
+                    csound_pre_line(csound, csound->expanded_orc, yyscanner);
+                    BEGIN(INITIAL);
+                  } else {
+                    corfile_putc(csound, '\0', csound->expanded_orc);
+                    corfile_putc(csound, '\0', csound->expanded_orc);
+                    BEGIN(INITIAL);
+                    return 0;
+                  }
+                }
+}
 {XSTR}          {
                   char c, *str = yytext;
                   if (PARM->isString == 1)
@@ -335,8 +402,8 @@ QNAN            "qnan"[ \t]*\(
                        }
                        csound->DebugMsg(csound,"Arg %d: %s\n", j+1, mm->arg[j]);
                        strcpy(nn->name, mm->arg[j]);
-                       csound->Message(csound, "defining argument %s ",
-                                       nn->name);
+                       csound->DebugMsg(csound, "defining argument %s ",
+                                          nn->name);
                        i = 0;
                        nn->body = (char*) csound->Malloc(csound, 100);
                        if (UNLIKELY(nn->body == NULL)) {
@@ -346,6 +413,15 @@ QNAN            "qnan"[ \t]*\(
                        while (1) {
                          c = macro_input(yyscanner);
                          if (cnt==0 && ( c==term || c==trm1)) break;
+                         if (UNLIKELY(c == EOF || c == '\0')) {
+                           nn->body[i] = '\0';
+                           csound->Message(csound,
+                                           Str("Missing argument "
+                                               "terminator\n%.98s"),
+                                           nn->body);
+                           corfile_puts(csound, "$error", csound->expanded_orc);
+                           err = 1; break;
+                         }
                          if (UNLIKELY(cnt==0 && c == ')')) {
                            csound->Message(csound,
                                            Str("Too few arguments to macro\n"));
@@ -354,32 +430,33 @@ QNAN            "qnan"[ \t]*\(
                          }
                          if (c=='(') cnt++;
                          if (c==')') cnt--;
-                         if (c == '\\') {
-                           int newc = macro_input(yyscanner);
-                           if (newc == ')')
-                             nn->body[i++] = c;
-                           c = newc;
-                         }
-                         if (UNLIKELY(i > 98)) {
-                           csound->Message(csound,
-                                           Str("Missing argument "
-                                               "terminator\n%.98s"),
-                                           nn->body);
-                           corfile_puts(csound, "$error", csound->expanded_orc);
-                           err = 1; break;
-                         }
-                         nn->body[i++] = c;
-                         if (UNLIKELY(i >= size)) {
+                         if (UNLIKELY(i + 2 >= size)) {
                            nn->body = csound->ReAlloc(csound, nn->body,
-                                                      size += 100);
+                                                      size *= 2);
                            if (UNLIKELY(nn->body == NULL)) {
                              csound->Message(csound, Str("Memory exhausted"));
                              csound->LongJmp(csound, 1);
                            }
                          }
+                         if (c == '\\') {
+                           int newc = macro_input(yyscanner);
+                           if (UNLIKELY(newc == EOF || newc == '\0')) {
+                             nn->body[i] = '\0';
+                             csound->Message(csound,
+                                             Str("Missing argument "
+                                                 "terminator\n%.98s"),
+                                             nn->body);
+                             corfile_puts(csound, "$error", csound->expanded_orc);
+                             err = 1; break;
+                           }
+                           if (newc == ')')
+                             nn->body[i++] = c;
+                           c = newc;
+                         }
+                         nn->body[i++] = c;
                        }
                        nn->body[i] = '\0';
-                       csound->Message(csound, "as...#%s#\n", nn->body);
+                       csound->DebugMsg(csound, "as...#%s#\n", nn->body);
                        nn->acnt = 0;       /* No arguments for arguments */
                        nn->next = csound->orc_macros;
                        csound->orc_macros = nn;
@@ -703,6 +780,16 @@ QNAN            "qnan"[ \t]*\(
 .               { corfile_putc(csound, yytext[0], csound->expanded_orc); }
 
 %%
+static void pre_fatal(yyscan_t yyscanner, const char *msg)
+{
+    PRE_PARM *parm = yyscanner ? yyget_extra(yyscanner) : NULL;
+    if (parm != NULL && parm->csound != NULL) {
+      parm->csound->ErrorMsg(parm->csound, "%s\n", msg);
+      parm->csound->LongJmp(parm->csound, 1);
+    }
+    abort();
+}
+
 static void pre_push_buffer(CSOUND *csound, yyscan_t yyscanner)
 {
     scanner_buffers_push(csound, &PARM->buffers);
@@ -927,7 +1014,8 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     if (PARM->path && buffer[0]!=DIRSEP) {
       char tmp[2*INCLUDE_NAME_SIZE];
       snprintf(tmp, sizeof(tmp), "%s/%s", PARM->path, buffer);
-      cf = copy_to_corefile(csound, tmp, "INCDIR", 0);
+      if ((cf = copy_to_corefile(csound, tmp, "INCDIR", 0))==NULL)
+        cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     }
     else cf = copy_to_corefile(csound, buffer, "INCDIR", 0);
     if (UNLIKELY(cf == NULL)) {
