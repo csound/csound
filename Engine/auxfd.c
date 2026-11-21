@@ -59,27 +59,29 @@ void csoundAuxAlloc(CSOUND *csound, size_t nbytes, AUXCH *auxchp)
 void csoundAuxAllocAligned(CSOUND *csound, size_t nbytes, size_t align,
                            AUXCH *auxchp)
 {
-  if (auxchp->auxp != NULL) {
-    /* if allocd with same size, just clear to zero */
-    if (nbytes == (size_t)auxchp->size) {
-      memset(auxchp->auxp, 0, nbytes);
-      return;
-    }
-    else {
-      void  *tmp = auxchp->auxp;
-      /* if size change only, free the old space and re-allocate */
-      auxchp->auxp = NULL;
-      csound->Free(csound, tmp);
-    }
+  void *replacement;
+
+  /* A same-sized buffer can still need a stricter alignment. */
+  if (auxchp->auxp != NULL && nbytes == (size_t)auxchp->size && align != 0 &&
+      (align & (align - 1)) == 0 &&
+      (uintptr_t)auxchp->auxp % align == 0) {
+    memset(auxchp->auxp, 0, nbytes);
+    return;
   }
+
+  /* Validate and allocate before changing the buffer or its chain. A fatal
+     allocation error must leave the old buffer and its metadata intact. */
+  replacement = csoundCallocAligned(csound, nbytes, align);
+  if (auxchp->auxp != NULL)
+    csound->Free(csound, auxchp->auxp);
   else {                                  /* else link in new auxch blk */
     auxchp->nxtchp = csound->curip->auxchp;
     csound->curip->auxchp = auxchp;
   }
-  /* now alloc the space and update the internal data */
+  /* Install the replacement only after allocation succeeds. */
   auxchp->size = nbytes;
-  auxchp->auxp = csoundCallocAligned(csound, nbytes, align);
-  auxchp->endp = (char*)auxchp->auxp + nbytes;
+  auxchp->auxp = replacement;
+  auxchp->endp = replacement == NULL ? NULL : (char*)replacement + nbytes;
   if (UNLIKELY(csoundGetDebug(csound) & 0x01))
     auxchprint(csound, csound->curip);
 }

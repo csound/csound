@@ -48,6 +48,8 @@ static int32_t is_reserved(char*);
 static char *check_optional_type(CSOUND *csound, char *name);
 static char *resolve_struct_expr_type(CSOUND *csound, TREE *tree,
                                       TYPE_TABLE *typeTable);
+static int32_t index_is_krate(CSOUND* csound, TREE* indices,
+                              TYPE_TABLE* typeTable);
 
 char *csound_orcget_text ( void *scanner );
 uint64_t csound_orcget_locn(void *);
@@ -534,15 +536,97 @@ static char *convert_array_type_string(CSOUND *csound,
   } else return csoundStrdup(csound, str);
 }
 
+/* Whether an index given to i(karray, ...) is computed in performance, and
+   so has no value at init, where i reads it: a k-rate expression or
+   comparison, or one that reads an array at a k index. An element read at
+   i indexes is read at init, whatever its type. */
+static int32_t is_perf_index(CSOUND* csound, TREE* index, TYPE_TABLE* typeTable)
+{
+  char* type;
+  int32_t perf;
+  if (tree_has_k_rate_array_index(csound, index->left, typeTable) ||
+      tree_has_k_rate_array_index(csound, index->right, typeTable))
+    return 1;
+  if (index->type == T_ARRAY)
+    return index_is_krate(csound, index->right, typeTable) > 0;
+  type = get_arg_type2(csound, index, typeTable);
+  perf = type != NULL && (*type == 'k' || *type == 'B');
+  csound->Free(csound, type);
+  return perf;
+}
+
+/* Deal with odd case of i(expressions). Called once the arguments are
+   typed, so each index has a type. */
+static void check_i_argument(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
+{
+  TREE* index;
+  char* type;
+  int32_t array;
+  if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
+    print_tree(csound, "i()", tree);
+  /* No argument: no form of i matches, which is the caller's error to report */
+  if (tree->right == NULL)
+    return;
+  if (tree->right->type == T_ARRAY &&
+      tree->right->left->type == T_IDENT &&
+      is_irate(tree->right->right)) {
+    synterr(csound, Str("Use of i() with array element ill formed on line %d\n"), tree->line);
+  }
+  else
+    if (UNLIKELY(is_expression_node(tree->right)))
+      synterr(csound,
+              Str("Use of i() with expression not permitted on line %d\n"),
+              tree->line);
+  /* Only the array form, i(karray, index, ...), takes more arguments */
+  if (tree->right->next == NULL)
+    return;
+  type = get_arg_type2(csound, tree->right, typeTable);
+  array = type != NULL && *type == '[';
+  csound->Free(csound, type);
+  if (!array)
+    return;
+  for (index = tree->right->next; index != NULL; index = index->next) {
+    if (UNLIKELY((is_expression_node(index) ||
+                  is_boolean_expression_node(index)) &&
+                 is_perf_index(csound, index, typeTable)))
+      synterr(csound, Str("Use of i() with a k-rate expression as index "
+                          "not permitted on line %d\n"), tree->line);
+  }
+}
+
 /* This function gets arg type with checking type table */
 static char* get_arg_type2_impl(CSOUND* csound, TREE* tree,
                                 TYPE_TABLE* typeTable);
 
+/* Whether tree reads a member of an array element read at a k index, or an
+   element of such a member, as fs[kIndex].flags[1] and
+   hs[kIndex].points[1].on. */
+static int32_t is_member_read_at_k_index(CSOUND* csound, TREE* tree,
+                                         TYPE_TABLE* typeTable)
+{
+  if (tree->type == T_ARRAY && tree->left != NULL) tree = tree->left;
+  if (tree->type != STRUCT_EXPR) return 0;
+  while (tree->type == STRUCT_EXPR && tree->left != NULL) tree = tree->left;
+  return tree->type == T_ARRAY &&
+    (index_is_krate(csound, tree->right, typeTable) > 0 ||
+     tree_has_k_rate_array_index(csound, tree->right, typeTable) ||
+     (tree->left != NULL &&
+      is_member_read_at_k_index(csound, tree->left, typeTable)));
+}
+
 char* get_arg_type2(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
 {
+  char* type = get_arg_type2_impl(csound, tree, typeTable);
+  /* A b member read through an array element at a k index changes at
+     performance, so it is a B, as expand_struct_array_member_read types it:
+     a statement chooses its entry from this type before the member is
+     expanded, and = from a b to a B runs at init only. */
+  if (type != NULL && !strcmp(type, "b") &&
+      is_member_read_at_k_index(csound, tree, typeTable))
+    type[0] = 'B';
   /* Callers own each returned type string. Register recursive results too,
      since a later argument can fail before its caller releases them. */
-  return csoundParserOwn(csound, get_arg_type2_impl(csound, tree, typeTable));
+  return csoundParserOwn(csound, type);
 }
 
 static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable)
@@ -700,26 +784,13 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
 
     }
 
-    // Deal with odd case of i(expressions)
-    if (tree->type == T_FUNCTION && !strcmp(tree->value->lexeme, "i")) {
-      if(csoundGetDebug(csound) & DEBUG_SEMANTICS)
-        print_tree(csound, "i()", tree);
-      if (tree->right->type == T_ARRAY &&
-          tree->right->left->type == T_IDENT &&
-          is_irate(tree->right->right)) {
-        synterr(csound, Str("Use of i() with array element ill formed on line %d\n"), tree->line);
-      }
-      else
-        if (UNLIKELY(is_expression_node(tree->right)))
-          synterr(csound,
-                  Str("Use of i() with expression not permitted on line %d\n"),
-                  tree->line);
-    }
-
     if (tree->type == T_FUNCTION) {
       char* argTypeRight = get_arg_string_from_tree(csound,
                                                     tree->right, typeTable);
       char* opname = tree->value->lexeme;
+      if (!strcmp(opname, "i")) {
+        check_i_argument(csound, tree, typeTable);
+      }
       OENTRIES* entries = find_opcode2(csound, opname);
       char * out;
 
@@ -890,7 +961,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
 #ifdef CSOUND_WASI_REALTIME
    csound->LongJmp(csound, 1);
 #else
-   longjmp(csound->exitjmp,0);
+   jump_on(csound, 1);  /* as longjmp(csound->exitjmp, 0) gave */
 #endif
    return 0;
   }
@@ -3123,33 +3194,6 @@ static TREE* convert_unary_op_to_binary(CSOUND* csound, TREE* new_left, TREE* un
  * For further reference, please see the rule for statement and opcall in
  * Engine/csound_orc.y.
  */
-static char *get_assignment_lhs_type_hint(CSOUND *csound, TREE *left)
-{
-  if (left == NULL || left->value == NULL) {
-    return NULL;
-  }
-
-  if (left->value->optype != NULL) {
-    return convert_array_type_string(csound, left->value->optype);
-  }
-
-  char *name = left->value->lexeme;
-  if (name == NULL) {
-    return NULL;
-  }
-  if (*name == '#') {
-    name++;
-  }
-  if (*name == 'g' && name[1] != '\0') {
-    name++;
-  }
-  if (strchr("aikSKBbf", *name) != NULL) {
-    char type[2] = {*name, '\0'};
-    return csoundStrdup(csound, type);
-  }
-  return NULL;
-}
-
 TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
                                   TYPE_TABLE* typeTable) {
   int32_t leftCount, rightCount;
@@ -3161,34 +3205,11 @@ TREE* convert_statement_to_opcall(CSOUND* csound, TREE* root,
     if (right->type == T_FUNCTION &&
         right->left == NULL &&
         right->next == NULL) {
-      char *outType = NULL;
       TREE *arg = right->right;
-      int32_t hasExpressionArg = 0;
 
       while (arg != NULL) {
         handle_negative_number(csound, arg);
-        if (!hasExpressionArg) {
-          hasExpressionArg = is_expression_node(arg) ||
-                             is_boolean_expression_node(arg);
-        }
         arg = arg->next;
-      }
-
-      if (hasExpressionArg && tree_arg_list_count(root->left) == 1) {
-        char *leftType = get_assignment_lhs_type_hint(csound, root->left);
-
-        if (leftType != NULL && strlen(leftType) == 1 &&
-            (outType = get_arg_type2(csound, right, typeTable)) != NULL) {
-          if (!strcmp(leftType, outType)) {
-            csound->Free(csound, leftType);
-            csound->Free(csound, outType);
-            return root;
-          }
-          csound->Free(csound, outType);
-        }
-        if (leftType != NULL) {
-          csound->Free(csound, leftType);
-        }
       }
 
       right->next = root->next;
@@ -3385,8 +3406,14 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   add_args(csound, root->left, typeTable);
 
   opcodeName = root->value->lexeme;
+  /* i reads its argument at init, written i(x) or as an opcode; a signed
+     number is a number, as convert_statement_to_opcall makes it for i(-1) */
+  if (!strcmp(opcodeName, "i"))
+    handle_negative_number(csound, right);
   leftArgString = get_arg_string_from_tree(csound, left, typeTable);
   rightArgString = get_arg_string_from_tree(csound, right, typeTable);
+  if (!strcmp(opcodeName, "i"))
+    check_i_argument(csound, root, typeTable);
 
   OENTRIES* entries = find_opcode2(csound, opcodeName);
   if (UNLIKELY(entries == NULL || entries->count == 0)) {
@@ -3456,8 +3483,11 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
                                root->value->optype, rightArgString);
   }
 
-  /* Check the resolved overload, including legacy _QQ registrations. */
-  if (oentry && (oentry->deprecated || (oentry->flags & _QQ))) {
+  /* Check the resolved overload, including legacy _QQ registrations. A
+     statement verified again, once its expressions are expanded or an
+     argument is converted, warned the first time. */
+  if (oentry && oentry != root->markup &&
+      (oentry->deprecated || (oentry->flags & _QQ))) {
     char message[512];
     csoundOpcodeDeprecationMessage(oentry->opname, oentry->deprecated == 2,
                                   message, sizeof(message));
@@ -3552,6 +3582,284 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
   csound->Free(csound, rightArgString);
   csound->Free(csound, entries);
   return 1;
+}
+
+/* The opcode that converts a value of type found for a reader of type required,
+   or NULL if it needs none. A reader of numbers takes a boolean as 0 or 1, and
+   a reader of booleans takes a number as true unless it is 0. A b read at
+   performance is converted then too: a global one can change in the meantime. */
+static const char* boolean_conversion(const char* found, const char* required,
+                                      int32_t numeric, int32_t perf, char* type) {
+  if (found[1] != '\0') return NULL;
+  if (*found == 'b' || *found == 'B') {
+    if (!numeric && (required[1] != '\0' ||
+                     strchr("mMNnzZikKa", *required) == NULL)) return NULL;
+    *type = *found == 'b' ? 'i' : 'k';
+    return *found == 'B' ? "##b2k" : perf ? "##b2i" : "i";
+  }
+  if (numeric || required[1] != '\0' ||
+      (*required != 'b' && *required != 'B') ||
+      strchr("cikpr", *found) == NULL) return NULL;
+  *type = *required;
+  return *required == 'B' ? "##k2B" : "##k2b";
+}
+
+/* A b or B holds an int32_t (see create_bool), a number a cs_float, and neither
+   reads as the other. Yet a var-arg code takes a boolean, a k stands in for a B,
+   xout takes anything, and == reads both its sides as numbers. So a value that
+   would be read as the other kind goes through a variable of the right kind
+   first. Only the statements that mix them run anything more. print is left
+   alone: it reads a boolean by its type, and shows the argument's name.
+   A UDO's outputs leave it at the end of its body, wherever xout stands, so
+   what xout gives is converted at the end of the UDO's body, and at
+   performance too: a reinit can change it, and stop at rireturn short of there.
+   classify_udo_rates does not count a conversion as work at performance, so
+   an init-only UDO stays one, and its conversion only runs at init. A UDO takes a
+   parameter by reference and may write it, so a k it took for a B gets the
+   boolean back after the call, if the UDO changed it. An a has no = from a
+   boolean, so a1 = s finds =.generic, which copies a value of the a's own
+   type: the boolean is read as a number there too, as a1 init s reads it. */
+static TREE* convert_boolean_args(CSOUND* csound, TREE* statement,
+                                  TYPE_TABLE* typeTable) {
+  OENTRY* entry = statement->markup;
+  TREE* anchor = NULL;
+  TREE* last = statement;
+  TREE** slot;
+  char** required;
+  const char* types;
+  const char* varArg = NULL;
+  int32_t i = 0, xout, numeric, audio = 0;
+
+  if (entry == NULL || entry->init == printv) return statement;
+  xout = !strcmp(entry->opname, "xout");
+  numeric = entry->init == eq || entry->perf == eq;
+  if (!strcmp(entry->opname, "=.generic") && statement->left != NULL) {
+    char* out = get_arg_type2(csound, statement->left, typeTable);
+    audio = out != NULL && !strcmp(out, "a");
+    if (out != NULL) csound->Free(csound, out);
+  }
+  types = xout ? typeTable->udoOutTypes : audio ? "a" : entry->intypes;
+  if (types == NULL || (!xout && !numeric && !audio &&
+                        strpbrk(types, "mMNnzZB") == NULL)) return statement;
+  if ((required = split_args(csound, types)) == NULL) return statement;
+
+  for (slot = &statement->right; *slot != NULL; slot = &(*slot)->next) {
+    const char* type = varArg != NULL ? varArg : required[i++];
+    const char* opname;
+    char* found;
+    char target;
+    int32_t perf;
+    if (type == NULL) break;
+    if (is_in_var_arg(type)) varArg = type;
+    perf = xout || entry->perf != NULL;
+    if ((found = get_arg_type2(csound, *slot, typeTable)) == NULL) continue;
+    opname = boolean_conversion(found, type, numeric, perf, &target);
+    csound->Free(csound, found);
+    if (opname != NULL) {
+      char name[32], before[32];
+      TREE* arg = *slot;
+      int32_t back = target == 'B' && entry->useropinfo != NULL &&
+        arg->type == T_IDENT;
+      TREE* out;
+      for (out = statement->left; back && out != NULL; out = out->next)
+        if (out->value != NULL && !strcmp(out->value->lexeme,
+                                          arg->value->lexeme))
+          back = 0; /* what the call returns into the k stands */
+      TREE* convert = create_opcode_token(csound,
+                                          back ? "##k2Bref" : (char*) opname);
+      snprintf(name, sizeof(name), "#%c%d", target,
+               typeTable->localPool->synthArgCount++);
+      add_arg(csound, name, NULL, typeTable, NULL);
+      convert->line = statement->line;
+      convert->locn = statement->locn;
+      convert->left = make_leaf(csound, statement->line, statement->locn,
+                                T_IDENT, make_token(csound, name, NULL));
+      if (back) {
+        TREE* after = create_opcode_token(csound, "##Bback");
+        snprintf(before, sizeof(before), "#k%d",
+                 typeTable->localPool->synthArgCount++);
+        add_arg(csound, before, NULL, typeTable, NULL);
+        convert->left->next = make_leaf(csound, statement->line,
+                                        statement->locn, T_IDENT,
+                                        make_token(csound, before, NULL));
+        after->line = statement->line;
+        after->locn = statement->locn;
+        after->left = make_leaf(csound, statement->line, statement->locn,
+                                T_IDENT, make_token(csound, arg->value->lexeme,
+                                                    NULL));
+        after->right = make_leaf(csound, statement->line, statement->locn,
+                                 T_IDENT, make_token(csound, name, NULL));
+        after->right->next = make_leaf(csound, statement->line,
+                                       statement->locn, T_IDENT,
+                                       make_token(csound, before, NULL));
+        after->next = last->next;
+        last->next = after;
+        last = after;
+      }
+      convert->right = arg;
+      *slot = make_leaf(csound, statement->line, statement->locn,
+                        T_IDENT, make_token(csound, name, NULL));
+      (*slot)->next = arg->next;
+      arg->next = NULL;
+      if (xout)
+        tree_append(statement, convert);
+      else
+        anchor = tree_append(anchor, convert);
+    }
+  }
+  free_split_args(csound, required);
+  return anchor != NULL ? tree_append(anchor, statement) : statement;
+}
+
+/* An array output takes the UDO's array with the element type it has, and
+   these are read right through the output's type: an array of the same
+   element type, whatever its rank or the quoting of a named type ([:Complex;]
+   is [Complex]), an i[] and a k[] for each other, an array of numbers or
+   booleans for a b[] or B[], whose reads take a boolean from either, and an
+   a[] for a k[], read as each member's first sample. */
+static int32_t array_read_as(const char* want, const char* got) {
+  size_t n;
+  if (*want != '[' || *got != '[') return 0;
+  want += strspn(want, "[:");
+  got += strspn(got, "[:");
+  n = strcspn(want, ";]");
+  if (n == strcspn(got, ";]") && !strncmp(want, got, n)) return 1;
+  if (n != 1 || strcspn(got, ";]") != 1) return 0;
+  return (strchr("ik", *want) && strchr("ik", *got)) ||
+         (*want == 'k' && *got == 'a') ||
+         (strchr("bB", *want) && strchr("ikbB", *got));
+}
+
+/* A new-style UDO copies each output by the type it declares, whatever xout
+   gives it: a number read as a block of audio is read past its end, a block
+   of audio written to a number writes over what follows it, and a string read
+   as a number gives the bits of its pointer. So xout must give each output
+   one value that reads as its type. What an opcode's input of that type takes
+   is taken, and so are a k for an i output and the arrays array_read_as
+   lists. A number for an a output goes through =, as a1 = k1 does, so it
+   fills the block, and an a for a k output gives its first sample, as
+   k1 = a1 does. These go at the end of the body, as the boolean conversions
+   do, and after them. Anything else is refused. The xout of a UDO with no
+   outputs gives nothing to anyone, and is left as it is. Old-style UDOs keep
+   verify_xin_xout, which is stricter. */
+static int32_t check_xout_args(CSOUND* csound, TREE* statement,
+                               TYPE_TABLE* typeTable) {
+  OENTRY* entry = statement->markup;
+  const char* types = typeTable->udoOutTypes;
+  char** required;
+  TREE** slot;
+  int32_t i, outputs, given, ok = 1;
+
+  if (typeTable->udoName == NULL || types == NULL || entry == NULL ||
+      strcmp(entry->opname, "xout")) return 1;
+  typeTable->udoHasXout = 1;
+  if (!strcmp(types, "0")) return 1;
+  outputs = args_required(types);
+  given = tree_arg_list_count(statement->right);
+  if (outputs <= 0) return 1;
+  if (UNLIKELY(given != outputs)) {
+    synterr(csound, Str("xout in UDO %s gives %d values for %d outputs, "
+                        "line %d\n"),
+            typeTable->udoName, given, outputs, statement->line);
+    do_baktrace(csound, statement->locn);
+    return 0;
+  }
+  if ((required = split_args(csound, types)) == NULL) return 1;
+  for (i = 0, slot = &statement->right; ok && i < outputs;
+       i++, slot = &(*slot)->next) {
+    const char* type = required[i];
+    char* found = get_arg_type2(csound, *slot, typeTable);
+    int32_t scalar;
+    if (found == NULL) continue;
+    scalar = *found != '\0' && found[1] == '\0' && type[1] == '\0';
+    if (check_in_arg(found, type) ||
+        (scalar && *type == 'i' && *found == 'k') ||
+        array_read_as(type, found)) {
+      /* taken as it is */
+    } else if (scalar && ((*type == 'a' && strchr("ikcpr", *found)) ||
+                          (*type == 'k' && *found == 'a'))) {
+      char name[32];
+      TREE* arg = *slot;
+      TREE* convert = create_opcode_token(csound, "=");
+      snprintf(name, sizeof(name), "#%c%d", *type,
+               typeTable->localPool->synthArgCount++);
+      add_arg(csound, name, NULL, typeTable, NULL);
+      convert->line = statement->line;
+      convert->locn = statement->locn;
+      convert->left = make_leaf(csound, statement->line, statement->locn,
+                                T_IDENT, make_token(csound, name, NULL));
+      convert->right = arg;
+      *slot = make_leaf(csound, statement->line, statement->locn,
+                        T_IDENT, make_token(csound, name, NULL));
+      (*slot)->next = arg->next;
+      arg->next = NULL;
+      tree_append(statement, convert);
+    } else {
+      char* want = csoundFormatTypeName(csound, type, 0);
+      char* got = csoundFormatTypeName(csound, found, 0);
+      synterr(csound, Str("xout in UDO %s gives %s for output %d, which is %s, "
+                          "line %d\n"),
+              typeTable->udoName, got, i + 1, want, statement->line);
+      do_baktrace(csound, statement->locn);
+      csound->Free(csound, want);
+      csound->Free(csound, got);
+      ok = 0;
+    }
+    csound->Free(csound, found);
+  }
+  free_split_args(csound, required);
+  return ok;
+}
+
+/* =.generic copies a value into a variable of its own type. Given two types,
+   it stops the note at init unless they are a number for an i, k or a, or a
+   p-field for a string (copy_var_generic_impl), so an = that resolves to it
+   with any other two, as b1 = kB or i1 = k1, is refused here, when the
+   orchestra compiles. */
+static int32_t check_generic_assign(CSOUND* csound, TREE* statement,
+                                    TYPE_TABLE* typeTable) {
+  OENTRY* entry = statement->markup;
+  char *want, *got, *wantName, *gotName;
+  int32_t ok;
+
+  if (entry == NULL || strcmp(entry->opname, "=.generic") ||
+      statement->left == NULL || statement->right == NULL) return 1;
+  want = get_arg_type2(csound, statement->left, typeTable);
+  got = get_arg_type2(csound, statement->right, typeTable);
+  ok = want == NULL || got == NULL;
+  if (!ok) {
+    /* one type, quoted (:Name;) or not */
+    wantName = remove_type_quoting(csound, want);
+    gotName = remove_type_quoting(csound, got);
+    ok = !strcmp(wantName, gotName);
+    csound->Free(csound, wantName);
+    csound->Free(csound, gotName);
+  }
+  ok = ok || (*want == '[' && *got == '[') ||
+    (want[1] == '\0' && got[1] == '\0' &&
+     (((*want == 'i' || *want == 'k') && (*got == 'c' || *got == 'p')) ||
+      (*want == 'a' && (*got == 'c' || *got == 'i' || *got == 'k')) ||
+      (*want == 'S' && *got == 'p')));
+  if (!ok) {
+    const char* name = statement->left->value != NULL ?
+      statement->left->value->lexeme : NULL;
+    wantName = csoundFormatTypeName(csound, want, 0);
+    gotName = csoundFormatTypeName(csound, got, 0);
+    /* a struct member is not named, nor the temporary that holds what is
+       written into an array element */
+    if (name == NULL || *name == '#')
+      synterr(csound, Str("cannot assign %s to %s, line %d\n"),
+              gotName, wantName, statement->line);
+    else
+      synterr(csound, Str("cannot assign %s to %s, which is %s, line %d\n"),
+              gotName, name, wantName, statement->line);
+    do_baktrace(csound, statement->locn);
+    csound->Free(csound, wantName);
+    csound->Free(csound, gotName);
+  }
+  if (want != NULL) csound->Free(csound, want);
+  if (got != NULL) csound->Free(csound, got);
+  return ok;
 }
 
 /* Walks tree and finds all label: definitions */
@@ -4127,9 +4435,6 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
     xin/xout number of args matches UDO input/output arg specifications
     xin/xout statements exist if UDO in and out args are not 0 */
 static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTable) {
-  if (udoTree->right == NULL) {
-    return 1;
-  }
   TREE* outArgsTree = udoTree->left->left;
   TREE* inArgsTree = udoTree->left->right;
   TREE* current = udoTree->right;
@@ -4179,7 +4484,10 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
   char* outArgsFound = get_arg_string_from_tree(csound, xoutArgs, typeTable);
 
 
-  if (check_in_args(csound, inArgsFound, inArgs) <= 0) {
+  /* An empty body does nothing with its inputs, but its outputs still need
+     an xout, or the caller's variables keep what they held. */
+  if (udoTree->right != NULL &&
+      check_in_args(csound, inArgsFound, inArgs) <= 0) {
     if (UNLIKELY(!(strcmp("0", inArgs) == 0 && xinArgs == NULL))) {
       synterr(csound,
               Str("invalid xin statement for UDO: defined '%s', found '%s'\n"),
@@ -4303,10 +4611,15 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       csound->inZero = 0;
 
       current->markup = typeTable->localPool;
+      typeTable->udoHasXout = 0;
 
       if (current->right != NULL) {
 
+        typeTable->udoOutTypes = top->left->markup;
+        if (top->left->type != UDO_ANS_TOKEN) typeTable->udoName = udo_name;
         newRight = verify_tree(csound, current->right, typeTable);
+        typeTable->udoOutTypes = NULL;
+        typeTable->udoName = NULL;
 
         if (newRight == NULL) {
           cs_cons_free(csound, typeTable->labelList);
@@ -4315,15 +4628,30 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         }
 
         current->right = newRight;
-
-        if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
-          if(!verify_xin_xout(csound, current, typeTable)) {
-            synterr(csound, Str("%s UDO\n"), udo_name);
-            return 0;
-          }
-        }
-
         newRight = NULL;
+      }
+
+      if (top->left != NULL && top->left->type == UDO_ANS_TOKEN) {
+        if(!verify_xin_xout(csound, current, typeTable)) {
+          synterr(csound, Str("%s UDO\n"), udo_name);
+          cs_cons_free(csound, typeTable->labelList);
+          typeTable->labelList = parentLabelList;
+          return NULL;
+        }
+      }
+
+      /* A new-style UDO's outputs are given only by xout: without one, the
+         caller's variables keep what they held. */
+      if (top->left->type != UDO_ANS_TOKEN && strcmp(top->left->markup, "0") &&
+          !typeTable->udoHasXout) {
+        char* outputs = csoundFormatTypeList(csound, top->left->markup);
+        synterr(csound, Str("UDO %s has outputs %s and no xout, line %d\n"),
+                udo_name, outputs, top->line);
+        do_baktrace(csound, top->locn);
+        csound->Free(csound, outputs);
+        cs_cons_free(csound, typeTable->labelList);
+        typeTable->labelList = parentLabelList;
+        return NULL;
       }
 
       typeTable->localPool = typeTable->instr0LocalPool;
@@ -4609,11 +4937,11 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
         TREE* anchor_expansion = NULL;
         if (expand_struct_array_member_assignment(csound, current, typeTable, &anchor_expansion)) {
-          // Successfully expanded, replace current with the expanded sequence
+          // Successfully expanded, replace current with the expanded sequence;
+          // at the head, the first statement verified below is the anchor,
+          // as for any statement an expansion replaces
           if (previous != NULL) {
             previous->next = anchor_expansion;
-          } else if (anchor == NULL) {
-            anchor = anchor_expansion;
           }
 
           // Reconnect the expansion to the remaining statements.
@@ -4655,6 +4983,18 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
 
         continue;
       } else {
+        TREE* converted = convert_boolean_args(csound, current, typeTable);
+        if (converted != current) {
+          current = converted;
+          if (previous != NULL) {
+            previous->next = current;
+          }
+          continue;
+        }
+        if (!check_xout_args(csound, current, typeTable) ||
+            !check_generic_assign(csound, current, typeTable)) {
+          return 0;
+        }
         handle_optional_args(csound, current);
       }
     }
@@ -4694,12 +5034,12 @@ void csound_orcerror(PARSE_PARM *pp, void *yyscanner,
 
   IGN(pp);
   IGN(astTree);
-  char *p = csound_orcget_current_pointer(yyscanner)-1;
+  int previous_char = csound_orcget_previous_char(yyscanner);
   int32_t line = csound_orcget_lineno(yyscanner);
   uint64_t files = csound_orcget_locn(yyscanner);
   uint32_t column1 = csound_orcget_first_column(yyscanner);
   uint32_t column2 = csound_orcget_last_column(yyscanner);
-  if (UNLIKELY(*p=='\0' || *p=='\n')) line--;
+  if (UNLIKELY(previous_char=='\0' || previous_char=='\n')) line--;
   csound->ErrorMsg(csound, Str("%s (token \"%s\"), "),
                   str, csound_orcget_text(yyscanner));
   csound->ErrorMsg(csound, Str(" line %d, columns %d,%d\n"), line, column1, column2);
@@ -5342,7 +5682,10 @@ void add_instr_variable(CSOUND *csound,  TREE *x) {
                                                  csound->engineState.varPool,
                                                  varname);
     /* Keep the running reference until the compiler publishes a valid merge. */
-    if (var != NULL && var->varType == &CS_VAR_TYPE_INSTR) return;
+    if (var != NULL) {
+      if (var->varType == &CS_VAR_TYPE_INSTR) return;
+      if (var->varType != &CS_VAR_TYPE_OPCODEREF) return;
+    }
     var = add_global_variable(csound, &csound->engineState,
                                          &CS_VAR_TYPE_INSTR, varname,
                                            NULL);

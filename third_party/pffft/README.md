@@ -12,6 +12,5 @@ only when the target enables it and honour PFFFT_SIMD_DISABLE. They do not
 add AVX or WebAssembly SIMD requirements to a build.
 
 Csound's private adapter in H/pffft-csound.h uses the float or double API
-to match its sample type. The Windows installers still ship H/pffft.h for
-users of the legacy float API; the core no longer includes it. The default
-FFT remains Csound's original implementation.
+to match its sample type. The PFFFT headers are internal and are not installed.
+The default FFT remains Csound's original implementation.

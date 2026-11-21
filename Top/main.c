@@ -57,7 +57,10 @@ void check_options(CSOUND *csound) {
   char *s = NULL;
   /* IV - Feb 17 2005 */
   csrcname = csoundGetEnv(csound, "CSOUND7RC");
-  if (csrcname != NULL && csrcname[0] != '\0') {
+  /* set but empty: no rc file at all, the working directory's included */
+  if (csrcname != NULL && csrcname[0] == '\0')
+    return;
+  if (csrcname != NULL) {
     fd = csound->FileOpen(csound, &csrc, CSFILE_STD, csrcname, "r", NULL,
                           CSFTYPE_OPTIONS, 0);
     if (UNLIKELY(fd == NULL)) {
@@ -156,6 +159,19 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
   }
 }
 
+/* List only after decoding options, so every plugin option can take effect. */
+static void list_if_requested(CSOUND *csound) {
+  if (LIKELY(!csound->list_opcodes_request && !csound->list_structs_request))
+    return;
+  if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
+    csound->LongJmp(csound, 1);
+  if (csound->list_opcodes_request)
+    list_opcodes(csound, csound->list_opcodes_request - 1);
+  if (csound->list_structs_request)
+    list_structs(csound);
+  csound->LongJmp(csound, 0);
+}
+
 int32_t csoundSetCommandLineArgs(CSOUND *csound, int32_t argc,
                                  const char **argv)
 {
@@ -217,7 +233,32 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   return csound->commandLineArgs[index];
 }
 
+static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv);
+
  int32_t csoundCompile(CSOUND *csound, int32_t argc, const char **argv) {
+  API_CALL call;
+  jmp_buf *landing;
+  int32_t n;
+
+  /* refused before the setjmp: exitjmp may be a running performance's */
+  if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
+    csound->Message(csound,
+                    Str("Csound is already started, call csoundReset()\n"
+                        "before starting again.\n"));
+    return CSOUND_ERROR;
+  }
+
+  /* exitjmp, or, inside another call on this thread, a landing of its own */
+  landing = api_call_nested(csound, &call);
+  if ((n = setjmp(*landing)) != 0)
+    n = ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+  else
+    n = compile_args(csound, argc, argv);
+  api_call_nested_end(&call);
+  return n;
+}
+
+static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv) {
   OPARMS *O = csound->oparms;
   char *s;
   FILE *xfile = NULL;
@@ -227,17 +268,7 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   char *fileDir;
   volatile int32_t compiledOk = 0;
 
-  if ((n = setjmp(csound->exitjmp)) != 0) {
-    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
-  }
-
   argc = ac;
-  if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
-    csound->Message(csound,
-                    Str("Csound is already started, call csoundReset()\n"
-                        "before starting again.\n"));
-    return CSOUND_ERROR;
-  }
 
   if (UNLIKELY(--argc <= 0)) {
     dieu(csound, Str("insufficient arguments\n"));
@@ -258,6 +289,7 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
     csound->Free(csound, csound->delayederrormessages);
     csound->delayederrormessages = NULL;
   }
+  list_if_requested(csound);
 
   /* check for CSD file */
   if (csound->orchname == NULL) {
@@ -297,8 +329,8 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
         }
         corfile_rewind(cf);
         if (UNLIKELY(!read_unified_file4(csound, cf))) {
-          csound->Die(csound, Str("Reading CSD failed (%s)... stopping\n"),
-                      strerror(errno));
+          /* It has said why: errno is left from something else. */
+          csound->Die(csound, Str("Reading CSD failed... stopping\n"));
         }
         /* cf is deleted in read_unified_file4 */
       }
@@ -311,8 +343,18 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
   /* this assumes that argdecode is safe to run multiple times */
   csound->orcname_mode = 1;      /* ignore orc/sco name */
   argdecode(csound, argc, argv); /* should not fail this time */
+  list_if_requested(csound); /* requested in <CsOptions> */
   if(csound->print_version == 1) {
      print_csound_version(csound);
+  }
+  /* Neither <CsInstruments> nor <CsOptions> gave an orchestra. The CSD is
+     not one itself, and only daemon mode starts without one. */
+  if (csdFound && csound->orchstr == NULL &&
+      (csound->orchname == NULL || csound->orchname == csound->csdname)) {
+    if (UNLIKELY(!O->daemon))
+      csound->Die(csound, Str("No orchestra: CSD file %s has no "
+                              "<CsInstruments>\n"), csound->csdname);
+    csound->orchname = NULL;
   }
   
   /* some error checking */
@@ -432,7 +474,9 @@ const char *csoundGetCommandLineArg(CSOUND *csound, int32_t index)
       csound->Message(csound, Str("Sorting score ...\n"));
     }
     // printf("score:\n%s", corfile_current(csound->scorestr));
+    /* after --events= or an earlier compile, this score joins that one */
     scsortstr(csound, csound->scorestr);
+    scsortstr_merge(csound);
     // printf("*** keep_tmp = %d\n", csound->keep_tmp);
     if (csound->keep_tmp) {
       FILE *ff = fopen("score.srt", "w");
@@ -484,31 +528,43 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
     csound->csdname = name;
     /* Ensure any stale orchname from a previous compile is not used */
     csound->orchname = NULL;
+    if (UNLIKELY(csound->orchstr == NULL)) {
+      csoundErrorMsg(csound, Str("No orchestra: CSD file %s has no "
+                                 "<CsInstruments>\n"), name);
+      return CSOUND_ERROR;
+    }
 
     res = csound_compile_orc(csound, NULL, async);
     if (res == CSOUND_SUCCESS) {
-      if ((csound->engineStatus & CS_STATE_COMP) != 0) {
-          char *sc;
+      /* Before the start, the first score sorted is the one played, and a
+         later one joins it. An async compile's orchestra waits in the queue
+         for the performance, and its score follows it there as realtime
+         events, as a started engine's does: in the score played, its notes
+         would come before their instruments. */
+      if ((csound->engineStatus & CS_STATE_COMP) != 0 ||
+          (csound->scstr != NULL && async)) {
+          char *sorted = NULL;
           scoreErrCnt = csound->inerrcnt;
-          if (csound->scorestr == NULL)
-            sc = "#exit";
-          else {
-            csound->scorestr->body[+csound->scorestr->len - 9] = ' ';
-            sc = scsortstr(csound, csound->scorestr);
-          }
+          if (csound->scorestr != NULL) /* with no score, nothing is queued */
+            sorted = scsortstr_events(csound, csound->scorestr);
           if (UNLIKELY(csound->inerrcnt > scoreErrCnt)) {
+            csound->Free(csound, sorted);
             return CSOUND_ERROR;
           }
-          if (sc) {
+          if (sorted) {
             if (csound->oparms->odebug)
               csound->Message(
                   csound, Str("Real-time score events (engineStatus: %d).\n"),
                   csound->engineStatus);
             if(async)
-            input_message_async(csound, (const char *) sc);
-            else csoundInputMessage(csound, (const char *) sc);
+            input_message_async(csound, (const char *) sorted);
+            else csoundInputMessage(csound, (const char *) sorted);
           }
+          /* Here scsortstr_events returns a copy of its own, and both of
+             those take theirs. */
+          csound->Free(csound, sorted);
       } else {
+        const int32_t later = csound->scstr != NULL;
         if (csound->scorestr == NULL) {
           csound->scorestr = corfile_create_w(csound);
           corfile_puts(csound, "\n\n\ne\n#exit\n", csound->scorestr);
@@ -516,6 +572,8 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
         scoreErrCnt = csound->inerrcnt;
         scsortstr(csound, csound->scorestr);
         if (UNLIKELY(csound->inerrcnt > scoreErrCnt)) {
+          if (later) /* a later score with an error is refused */
+            scsortstr_forget(csound);
           return CSOUND_ERROR;
         }
         if (csound->oparms->odebug)
@@ -531,13 +589,13 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
 }
 
 int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t async) {
-  jmp_buf savedExitJmp;
   CORFIL *volatile input = NULL;
   int32_t result;
+  API_CALL call;
+  api_call_begin(csound, &call);
 
   /* Score errors must return to this active API call, not an earlier one. */
-  memcpy(savedExitJmp, csound->exitjmp, sizeof(jmp_buf));
-  if ((result = setjmp(csound->exitjmp)) != 0) {
+  if ((result = setjmp(call.target)) != 0) {
     result = (result - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS;
   } else if (mode == 0) {
     input = copy_to_corefile(csound, str, NULL, 0);
@@ -550,7 +608,7 @@ int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t 
     CORFIL *file = input;
     corfile_rm(csound, &file);
   }
-  memcpy(csound->exitjmp, savedExitJmp, sizeof(jmp_buf));
+  api_call_end(&call);
   return result;
 }
 
@@ -571,7 +629,39 @@ extern int32_t DummyMidiOutOpen(CSOUND *csound, void **userData,
 extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
                               const unsigned char *buf, int32_t nbytes);
 
+static int32_t start_csound(CSOUND *csound);
+
  int32_t csoundStart(CSOUND *csound) // DEBUG
+{
+  API_CALL call;
+  jmp_buf *landing;
+  int32_t n;
+
+  /* A started engine is refused before anything is read: its rc file would
+     set options on it, and exitjmp may be a running performance's. */
+  if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
+    csound->Message(csound,
+                    Str("Csound is already started, call csoundReset()\n"
+                        "before starting again.\n"));
+    return CSOUND_ERROR;
+  }
+
+  /* The rc file and the plugins below can stop Csound, which jumps to
+     exitjmp: this call owns it from here, or, inside another call on this
+     thread, a landing of its own does. */
+  landing = api_call_nested(csound, &call);
+  if ((n = setjmp(*landing)) == 0) {
+    n = start_csound(csound);
+    api_call_nested_end(&call);
+    return n;
+  }
+  api_call_nested_end(&call);
+  if (csound->engineStatus & CS_STATE_COMP) /* in the engine's start */
+    csound->engineStatus |= CS_STATE_START_FAILED;
+  return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
+}
+
+static int32_t start_csound(CSOUND *csound)
 {
   OPARMS *O = csound->oparms;
   int32_t n;
@@ -598,13 +688,6 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
     O->realtime = 0;
   }
 #endif
-
-  if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
-    csound->Message(csound,
-                    Str("Csound is already started, call csoundReset()\n"
-                        "before starting again.\n"));
-    return CSOUND_ERROR;
-  }
 
   { /* test for dummy module request */
     char *s;
@@ -656,10 +739,6 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
                  || csound->instr0 == NULL)) {
       return CSOUND_ERROR;
     }
-  }
-
-  if ((n = setjmp(csound->exitjmp)) != 0) {
-    return ((n - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
   }
 
   /* if sound file type is still not known, check SFOUTYP */
@@ -737,11 +816,15 @@ extern int32_t DummyMidiWrite(CSOUND *csound, void *userData,
     csound->WaitBarrier(csound->barrier2);
   }
 #endif
+  scsortstr_merge(csound); /* the scores sorted after the first join it */
   csound->engineStatus |= CS_STATE_COMP;
   if (csound->oparms->daemon > 1)
     csoundUDPServerStart(csound, csound->oparms->daemon);
 
   allocate_message_queue(csound); /* if de-alloc by reset */
 
-  return start_engine(csound);
+  n = start_engine(csound);
+  if (UNLIKELY(n != CSOUND_SUCCESS))
+    csound->engineStatus |= CS_STATE_START_FAILED;
+  return n;
 }

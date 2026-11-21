@@ -1171,6 +1171,9 @@ typedef struct RtJackMIDIGlobals_ {
     if (UNLIKELY(O->msglevel & 0x400))
       csound->Message(csound, "%s",
                       Str("JACK real-time audio module for Csound\n"));
+    /* A second copy of this module shares the first one's globals. */
+    if (csound->QueryGlobalVariable(csound, "_rtjackGlobals") != NULL)
+      return 0;
     if (UNLIKELY(csound->CreateGlobalVariable(csound, "_rtjackGlobals",
                                               sizeof(RtJackGlobals)) != 0)) {
       csound->ErrorMsg(csound, "%s", Str(" *** rtjack: error allocating globals"));
@@ -1245,10 +1248,12 @@ typedef struct RtJackMIDIGlobals_ {
     strcpy(&(pm->clientName[0]), "csound7-midi");
     strcpy(&(pm->inputPortName[0]), "port");
     strcpy(&(pm->outputPortName[0]), "port");
-    /*   client name */
+    /*   client name: reserve room for the "_in"/"_out" suffix appended
+         when the MIDI clients are opened */
     i = jack_client_name_size();
-    if (i > MAX_NAME_LEN)
-      i = MAX_NAME_LEN;
+    if (i > (MAX_NAME_LEN + 1))
+      i = (MAX_NAME_LEN + 1);
+    i -= 4;   /* "_out" and the terminating NUL character */
     csound->CreateConfigurationVariable(csound, "jack_midi_client",
                                         (void*) &(pm->clientName[0]),
                                         CSOUNDCFG_STRING, 0, NULL, &i,

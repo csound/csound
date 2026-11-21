@@ -9,6 +9,7 @@
 #else
 # include <fcntl.h>
 # include <sys/socket.h>
+# include <sys/select.h>
 # include <netinet/in.h>
 # include <arpa/inet.h>
 #endif
@@ -1007,3 +1008,181 @@ TEST_F (ServerTests, SockrecvKRebindsPortAfterDeinit) {
     }
     EXPECT_FALSE(bind_failed);
 }
+
+
+#ifdef HAVE_SOCKETS
+class UdpConsoleTests : public ::testing::TestWithParam<bool> {
+protected:
+    void SetUp() override
+    {
+#if defined(WIN32) && !defined(__CYGWIN__)
+        WSADATA data = {};
+        ASSERT_EQ(WSAStartup(MAKEWORD(2, 2), &data), 0);
+        winsockStarted = true;
+#endif
+        receiver = socket(AF_INET, SOCK_DGRAM, 0);
+#if defined(WIN32) && !defined(__CYGWIN__)
+        ASSERT_NE(receiver, INVALID_SOCKET);
+#else
+        ASSERT_GE(receiver, 0);
+#endif
+        sockaddr_in address = {};
+        address.sin_family = AF_INET;
+        address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        ASSERT_EQ(bind(receiver, reinterpret_cast<sockaddr*>(&address),
+                       sizeof(address)), 0);
+#if defined(WIN32) && !defined(__CYGWIN__)
+        int addressSize = sizeof(address);
+#else
+        socklen_t addressSize = sizeof(address);
+#endif
+        ASSERT_EQ(getsockname(receiver, reinterpret_cast<sockaddr*>(&address),
+                              &addressSize), 0);
+        csound = csoundCreate(NULL, NULL);
+        ASSERT_NE(csound, nullptr);
+        csoundCreateMessageBuffer(csound, 0);
+        ASSERT_EQ(csoundUDPConsole(csound, "127.0.0.1", ntohs(address.sin_port),
+                                   GetParam()), CSOUND_SUCCESS);
+    }
+
+    void TearDown() override
+    {
+        if (csound != nullptr)
+            csoundDestroy(csound);
+#if defined(WIN32) && !defined(__CYGWIN__)
+        if (receiver != INVALID_SOCKET)
+            EXPECT_EQ(closesocket(receiver), 0);
+        if (winsockStarted)
+            EXPECT_EQ(WSACleanup(), 0);
+#else
+        if (receiver >= 0)
+            EXPECT_EQ(close(receiver), 0);
+#endif
+    }
+
+    std::string receive(size_t expectedSize)
+    {
+        std::string message;
+        packets.clear();
+        do {
+            fd_set ready;
+            FD_ZERO(&ready);
+            FD_SET(receiver, &ready);
+            timeval timeout = {1, 0};
+            if (select(static_cast<int>(receiver) + 1, &ready, nullptr, nullptr,
+                       &timeout) <= 0)
+                break;
+            std::array<char, 65536> packet;
+            const auto size = recv(receiver, packet.data(),
+                                  static_cast<int>(packet.size()), 0);
+            EXPECT_GE(size, 1);
+            if (size < 1)
+                break;
+            EXPECT_LE(size, 8192);
+            EXPECT_EQ(packet[size - 1], '\0');
+            packets.emplace_back(packet.data(), size - 1);
+            message += packets.back();
+        } while (message.size() < expectedSize);
+        EXPECT_FALSE(packets.empty());
+        return message;
+    }
+
+    CSOUND *csound = nullptr;
+    std::vector<std::string> packets;
+#if defined(WIN32) && !defined(__CYGWIN__)
+    SOCKET receiver = INVALID_SOCKET;
+    bool winsockStarted = false;
+#else
+    int receiver = -1;
+#endif
+};
+
+TEST_P(UdpConsoleTests, PreservesFormattedMessages)
+{
+    for (size_t size : {size_t(0), size_t(1), size_t(1004), size_t(1005),
+                        size_t(4077), size_t(8172)}) {
+        SCOPED_TRACE(size);
+        const std::string text(size, 'x');
+        const std::string expected = "value=42 text=" + text + " END!";
+        csoundMessageS(csound, CSOUNDMSG_WARNING, "value=%d text=%s %s",
+                       42, text.c_str(), "END!");
+        EXPECT_EQ(receive(expected.size()), expected);
+        EXPECT_EQ(packets.size(), 1);
+        if (GetParam()) {
+            ASSERT_EQ(csoundGetMessageCnt(csound), 1);
+            EXPECT_STREQ(csoundGetFirstMessage(csound), expected.c_str());
+            EXPECT_EQ(csoundGetFirstMessageAttr(csound), CSOUNDMSG_WARNING);
+            csoundPopFirstMessage(csound);
+        } else {
+            EXPECT_EQ(csoundGetMessageCnt(csound), 0);
+        }
+    }
+    csoundMessage(csound, "%s", "");
+    EXPECT_EQ(receive(0), "");
+    if (GetParam()) {
+        ASSERT_EQ(csoundGetMessageCnt(csound), 1);
+        EXPECT_STREQ(csoundGetFirstMessage(csound), "");
+        csoundPopFirstMessage(csound);
+    }
+
+}
+
+TEST_P(UdpConsoleTests, PreservesUtf8WithinOneDatagram)
+{
+    for (const std::string character : {"\xC3\xA9", "\xE9\x9F\xB3",
+                                         "\xF0\x9F\x8E\xB5"}) {
+        const std::string prefix(1022, 'x');
+        const std::string suffix = character + " END!";
+        const std::string expected = prefix + suffix;
+        csoundMessage(csound, "%s", expected.c_str());
+        EXPECT_EQ(receive(expected.size()), expected);
+        ASSERT_EQ(packets.size(), 1);
+        EXPECT_EQ(packets[0], expected);
+        if (GetParam()) {
+            ASSERT_EQ(csoundGetMessageCnt(csound), 1);
+            EXPECT_STREQ(csoundGetFirstMessage(csound), expected.c_str());
+            csoundPopFirstMessage(csound);
+        }
+    }
+}
+
+TEST_P(UdpConsoleTests, ReportsMessagesTooLargeForOneDatagram)
+{
+    const std::string text(8192, 'x');
+    const std::string diagnostic = "UDP console: message exceeds 8191 bytes\n";
+    csoundMessage(csound, "%s", text.c_str());
+    EXPECT_EQ(receive(diagnostic.size()), diagnostic);
+    ASSERT_EQ(packets.size(), 1);
+    fd_set ready;
+    FD_ZERO(&ready);
+    FD_SET(receiver, &ready);
+    timeval quiet = {0, 100000};
+    EXPECT_EQ(select(static_cast<int>(receiver) + 1, &ready, nullptr, nullptr,
+                     &quiet), 0);
+    if (GetParam()) {
+        ASSERT_EQ(csoundGetMessageCnt(csound), 1);
+        EXPECT_STREQ(csoundGetFirstMessage(csound), text.c_str());
+    } else {
+        EXPECT_EQ(csoundGetMessageCnt(csound), 0);
+    }
+}
+
+TEST_P(UdpConsoleTests, KeepsCStringSemanticsForEmbeddedNuls)
+{
+    const std::string tail(8192, 'y');
+    for (size_t size : {size_t(0), size_t(17), size_t(1023), size_t(8191)}) {
+        SCOPED_TRACE(size);
+        const std::string prefix(size, 'x');
+        csoundMessage(csound, "%s%c%s", prefix.c_str(), 0, tail.c_str());
+        EXPECT_EQ(receive(prefix.size()), prefix);
+        ASSERT_EQ(packets.size(), 1);
+        if (GetParam()) {
+            ASSERT_EQ(csoundGetMessageCnt(csound), 1);
+            EXPECT_STREQ(csoundGetFirstMessage(csound), prefix.c_str());
+            csoundPopFirstMessage(csound);
+        }
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(RedirectAndMirror, UdpConsoleTests, ::testing::Bool());
+#endif // HAVE_SOCKETS

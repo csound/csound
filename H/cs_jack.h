@@ -22,7 +22,9 @@
 
 #pragma once
 
-#define MAX_NAME_LEN    32      /* for client and port name */
+/* JACK2 limits client names to 64 characters (JACK_CLIENT_NAME_SIZE - 1);
+   this is also the maximum length of a port name prefix. */
+#define MAX_NAME_LEN    64
 
 typedef struct RtJackBuffer_ {
 #ifdef LINUX

@@ -154,6 +154,9 @@ the separate [Csound plugins repository](https://github.com/csound/plugins).
 They are no longer part of the core build. Install the separate plugin if
 an orchestra uses them. The core build no longer has `BUILD_DSSI_OPCODES`.
 
+The old `jcsound6` desktop Java binding has been removed. Android keeps its
+separate Java interface.
+
 The `MYFLT` alias still works, but the deprecation warning for it is paused
 for this release. New code should use `cs_float` and `cs_double`.
 
@@ -336,6 +339,11 @@ and compatibility aliases.
 ## System-level changes
 
 ### Builds and platforms
+
+AVX2 is now an explicit build option on x86-64. `USE_AVX2` defaults to `OFF`
+so Csound does not add an AVX2 requirement to general packages. Builders who
+enable it must target systems with AVX2 support. See
+[CPU compatibility](../BUILD.md#cpu-compatibility).
 
 Windows now has a native ARM64 installer alongside the x64 installer.
 Both include the native WASAPI audio backend and IP MIDI. Extra plugins must

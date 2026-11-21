@@ -155,7 +155,7 @@ typedef struct {
   OPDS h;
   ARRAYDAT *tab, *tabin;
   cs_float    *start, *end, *inc;
-  int32_t   len;
+  int32_t   warned;
 } TABSLICE;
 
 typedef struct {
@@ -286,6 +286,7 @@ int32_t tabcopy(CSOUND *csound, TABCPY *p);
 int32_t tabcopyk_init(CSOUND *csound, TABCPY *p);
 int32_t tabcopyk(CSOUND *csound, TABCPY *p);
 int32_t tabcopy1(CSOUND *csound, TABCPY *p);
+int32_t tabcopy_b_init(CSOUND *csound, TABCPY *p);
 int32_t tabcopy2_init(CSOUND *csound, TABCPY *p);
 int32_t tabcopy2(CSOUND *csound, TABCPY *p);
 int32_t tab2ftab(CSOUND *csound, TABCOPY *p);

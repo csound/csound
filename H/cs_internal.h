@@ -99,16 +99,25 @@ extern "C" {
   } NAME;
 
 
-  typedef union {
-    uint32 dwData;
-    unsigned char bData[4];
+  /* A message as midiin and its kin read it. The channel counts from 1,
+     and port-mapped input takes it past 255. */
+  typedef struct {
+    unsigned char status, data1, data2;
+    int16         chan;
   } MIDIMESSAGE;
+
+  /* How far a MIDI source has got with its next message. A device and a MIDI
+     file each have their own: either can stop in the middle of a message. */
+  typedef struct {
+    MEVENT  event;
+    int32_t sexp;
+    int16   datreq, datcnt;
+  } MIDIPARSER;
 
   /* MIDI globals */
 
   typedef struct midiglobals {
     MEVENT  *Midevtblk;
-    int32_t     sexp;
     int32_t     MIDIoutDONE;
     int32_t     MIDIINbufIndex;
     MIDIMESSAGE MIDIINbuffer2[MIDIINBUFMAX];
@@ -126,8 +135,9 @@ extern "C" {
     int32_t     rawControllerMode;
     char    muteTrackList[256];
     unsigned char mbuf[MBUFSIZ];
-    unsigned char *bufp, *endatp;
-    int16   datreq, datcnt;
+    unsigned char *bufp, *filep, *endatp;
+    MIDIPARSER device, file;
+    int32_t devbytes;     /* what the device has given this k-cycle */
   } MGLOBAL;
 
   typedef struct osc_mess {
@@ -200,6 +210,7 @@ extern "C" {
     PBR_REWIRE_ENTRY *perf_entries;
     PBR_SEED_ENTRY   *seed_entries;
     PBR_ALIAS_ENTRY  *aliases;
+    unsigned char    *input_written;   /* per input: the body writes it */
   } PBR_REWIRE_PLAN;
 
   typedef struct opcodinfo {
@@ -261,6 +272,7 @@ extern "C" {
     OPDS *ids;
     ENGINE_STATE *engine_state;
     struct type_table *type_table;
+    long rewinds;               /* score_rewinds when it was queued */
   } ALLOC_DATA;
 
 #define MAX_MESSAGE_STR 1024
@@ -289,14 +301,16 @@ extern "C" {
       cs_float   warp_factor /* = FL(1.0) */;
       char    *curmem;
       char    *memend;                /* end of cur memblk                    */
-      MACRO   *unused_ptr2;
+      void    *prs;                   /* the preprocessor's PRS_PARM, while
+                                         it reads                             */
       int32_t  last_name /* = -1 */;
       IN_STACK *inputs, *str;
       int32_t  input_size, input_cnt;
       int32_t  unused_int3;
       int32_t  unused_int2;
-      int32_t  linepos /* = -1 */;
-      MARKED_SECTIONS names[30];
+      int32_t  linepos;                /* unused: a place is counted in the text */
+      MARKED_SECTIONS unused_names[30]; /* kept for the layout: the marks
+                                           are CSOUND's marked_sections       */
       char    unused_char0[RPTDEPTH][NAMELEN];
       int32_t unused_int4[RPTDEPTH];
       int32   unused_int7[RPTDEPTH];
@@ -308,7 +322,7 @@ extern "C" {
       int32_t unused_int8;
       int32   unused_int9;
       int32_t unused_intA;
-      MACRO   *unused_ptr1;
+      CORFIL  *sorted;                /* scsortstr's output, until returned   */
       int32_t  nocarry;
    };
 

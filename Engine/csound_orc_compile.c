@@ -61,9 +61,11 @@ OENTRY* find_opcode(CSOUND*, char*);
 void sanitize(CSOUND *csound);
 
 static int32_t udo_entry_is_init_control(CSOUND *csound,
+                                         const ENGINE_STATE *engineState,
                                          const INSTRTXT *ip,
                                          const TEXT *text) {
   const CS_VARIABLE *variable;
+  const char *name;
 
   if (ip == NULL || text == NULL || text->oentry == NULL) {
     return 0;
@@ -78,8 +80,16 @@ static int32_t udo_entry_is_init_control(CSOUND *csound,
       text->inlist == NULL || text->inlist->count < 1) {
     return 0;
   }
-  variable = csoundFindVariableWithName(csound, ip->varPool,
-                                        text->inlist->arg[0]);
+  name = text->inlist->arg[0];
+  variable = csoundFindVariableWithName(csound, ip->varPool, name);
+  /* true, false and a global are not in the UDO's own pool */
+  if (variable == NULL) {
+    variable = csoundFindVariableWithName(csound, engineState->varPool, name);
+  }
+  if (variable == NULL) {
+    variable = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                          name);
+  }
   return variable != NULL && variable->varType == &CS_VAR_TYPE_b;
 }
 
@@ -91,6 +101,13 @@ static int32_t variable_has_perf_type(const CS_VARIABLE *variable) {
          type == &CS_VAR_TYPE_F || subtype == &CS_VAR_TYPE_A ||
          subtype == &CS_VAR_TYPE_K || subtype == &CS_VAR_TYPE_B ||
          subtype == &CS_VAR_TYPE_W || subtype == &CS_VAR_TYPE_F;
+}
+
+/* What the compiler puts where a boolean meets a number has a performance pass
+   for a UDO that runs at performance. It is no reason for one to. */
+static int32_t udo_entry_is_boolean_conversion(const OENTRY *entry) {
+  return !strncmp(entry->opname, "##b2", 4) ||
+         !strncmp(entry->opname, "##k2", 4);
 }
 
 static int32_t udo_pool_has_perf_types(const CS_VAR_POOL *pool) {
@@ -116,8 +133,9 @@ static OPCODINFO *udo_called_definition(const OENTRY *entry) {
 /* A UDO call is classified after every definition in this compilation has
    been built. Ignoring calls here lets mutually recursive, init-only UDOs
    reach the same fixed point as direct recursion. */
-static int32_t udo_has_intrinsic_perf(CSOUND *csound, INSTRTXT *ip,
-                                      OPCODINFO *opinfo) {
+static int32_t udo_has_intrinsic_perf(CSOUND *csound,
+                                      const ENGINE_STATE *engineState,
+                                      INSTRTXT *ip, OPCODINFO *opinfo) {
   OPTXT *optxt = (OPTXT *) ip;
   if (opinfo != NULL &&
       (udo_pool_has_perf_types(opinfo->in_arg_pool) ||
@@ -132,7 +150,8 @@ static int32_t udo_has_intrinsic_perf(CSOUND *csound, INSTRTXT *ip,
     if (udo_called_definition(ttp->oentry) != NULL) {
       continue;
     }
-    if (udo_entry_is_init_control(csound, ip, ttp)) {
+    if (udo_entry_is_init_control(csound, engineState, ip, ttp) ||
+        udo_entry_is_boolean_conversion(ttp->oentry)) {
       continue;
     }
     if (ttp->oentry->perf != NULL) {
@@ -157,33 +176,133 @@ static int32_t udo_calls_perf_definition(OPCODINFO *opinfo) {
   return 0;
 }
 
+typedef struct {
+  OENTRY *entry;
+  size_t callers; /* First reverse edge, one-based. Zero ends the list. */
+} UDO_RATE_NODE;
+
+typedef struct {
+  size_t caller;
+  size_t next;
+} UDO_RATE_EDGE;
+
+static int compare_udo_rate_nodes(const void *left, const void *right) {
+  uintptr_t a = (uintptr_t)((const UDO_RATE_NODE *)left)->entry;
+  uintptr_t b = (uintptr_t)((const UDO_RATE_NODE *)right)->entry;
+  return (a > b) - (a < b);
+}
+
 static void classify_udo_rates(CSOUND *csound, ENGINE_STATE *engineState) {
   INSTRTXT *instrument;
-  int32_t changed;
+  size_t count = 0;
 
-  /* Seed each definition from its own body. Calls are ignored in this pass so
-     an init-only recursion cycle starts at the all-init fixed point. */
+  /* Start from intrinsic work on every invocation. Getter specialization can
+     remove that work between invocations. Init-only recursive groups must not
+     inherit a performance callback from an earlier classification. */
   for (instrument = engineState->instxtanchor.nxtinstxt;
        instrument != NULL; instrument = instrument->nxtinstxt) {
     if (instrument->opcode_info != NULL) {
-      OPCODINFO *opinfo = instrument->opcode_info;
-      opinfo->oentry->perf = udo_has_intrinsic_perf(
-        csound, instrument, opinfo) ? (SUBR)useropcd : NULL;
+      instrument->opcode_info->oentry->perf = NULL;
+      count++;
     }
   }
-
-  do {
-    changed = 0;
-    for (instrument = engineState->instxtanchor.nxtinstxt;
-         instrument != NULL; instrument = instrument->nxtinstxt) {
-      OPCODINFO *opinfo = instrument->opcode_info;
-      if (opinfo != NULL && opinfo->oentry->perf == NULL &&
-          udo_calls_perf_definition(opinfo)) {
-        opinfo->oentry->perf = (SUBR)useropcd;
-        changed = 1;
-      }
+  /* Clear every flag before seeding. Definitions sharing an entry contribute
+     together, so a later init-only body cannot erase earlier intrinsic work. */
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    OPCODINFO *opinfo = instrument->opcode_info;
+    if (opinfo != NULL &&
+        udo_has_intrinsic_perf(csound, engineState, instrument, opinfo))
+      opinfo->oentry->perf = (SUBR)useropcd;
+  }
+  /* One scan often settles small or callee-first graphs. Avoid allocating a
+     graph when no rate changes, or when every definition is already perf. */
+  int32_t changed = 0;
+  size_t unresolved = 0;
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    OPCODINFO *opinfo = instrument->opcode_info;
+    if (opinfo == NULL || opinfo->oentry->perf != NULL) continue;
+    if (udo_calls_perf_definition(opinfo)) {
+      opinfo->oentry->perf = (SUBR)useropcd;
+      changed = 1;
+    } else {
+      unresolved++;
     }
-  } while (changed);
+  }
+  if (!changed || unresolved == 0) return;
+
+  UDO_RATE_NODE *nodes = csound->Calloc(csound, count * sizeof(*nodes));
+  size_t used = 0;
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    if (instrument->opcode_info != NULL)
+      nodes[used++].entry = instrument->opcode_info->oentry;
+  }
+  /* Use resolved definitions, never names. Some UDO overloads share an entry
+     and therefore a perf flag. Group that storage so a change reaches callers
+     of every such definition, including those compiled earlier. */
+  qsort(nodes, count, sizeof(*nodes), compare_udo_rate_nodes);
+  used = 0;
+  for (size_t i = 0; i < count; i++) {
+    if (used == 0 || nodes[i].entry != nodes[used-1].entry)
+      nodes[used++] = nodes[i];
+  }
+  count = used;
+
+  size_t *queue = csound->Malloc(csound, count * sizeof(*queue));
+  size_t head = 0, tail = 0, edgeCount = 0, capacity = count;
+  UDO_RATE_EDGE *edges = csound->Malloc(csound, capacity * sizeof(*edges));
+  for (size_t i = 0; i < count; i++) {
+    if (nodes[i].entry->perf != NULL) queue[tail++] = i;
+  }
+  for (instrument = engineState->instxtanchor.nxtinstxt;
+       instrument != NULL; instrument = instrument->nxtinstxt) {
+    OPCODINFO *opinfo = instrument->opcode_info;
+    if (opinfo == NULL || opinfo->oentry->perf != NULL) continue;
+    UDO_RATE_NODE key = {opinfo->oentry, 0};
+    UDO_RATE_NODE *caller = bsearch(&key, nodes, count, sizeof(*nodes),
+                                   compare_udo_rate_nodes);
+    if (caller == NULL) continue;
+    size_t i = (size_t)(caller - nodes);
+    OPTXT *op = (OPTXT *)opinfo->ip;
+    while (op != NULL && (op = op->nxtop) != NULL) {
+      OPCODINFO *called = udo_called_definition(op->t.oentry);
+      if (called == NULL || called->oentry == NULL ||
+          called->oentry == opinfo->oentry) continue;
+      key.entry = called->oentry;
+      UDO_RATE_NODE *callee = bsearch(&key, nodes, count, sizeof(*nodes),
+                                     compare_udo_rate_nodes);
+      /* The initial scan already handled calls to earlier definitions. */
+      if (callee == NULL) continue;
+      if (edgeCount == capacity) {
+        capacity *= 2;
+        edges = csound->ReAlloc(csound, edges, capacity * sizeof(*edges));
+      }
+      /* Keep one edge per call, including repeats. This stays linear in the
+         call count; the perf check below enqueues each caller only once. */
+      edges[edgeCount].caller = i;
+      edges[edgeCount].next = callee->callers;
+      callee->callers = ++edgeCount;
+    }
+  }
+  /* Each shared perf flag enters the queue once. Revisit only its callers, rather
+     than rescanning every body for each link of a caller-first chain. */
+  while (head < tail) {
+    size_t edge = nodes[queue[head++]].callers;
+    while (edge != 0) {
+      UDO_RATE_EDGE *link = &edges[edge-1];
+      OENTRY *caller = nodes[link->caller].entry;
+      if (caller->perf == NULL) {
+        caller->perf = (SUBR)useropcd;
+        queue[tail++] = link->caller;
+      }
+      edge = link->next;
+    }
+  }
+  csound->Free(csound, edges);
+  csound->Free(csound, queue);
+  csound->Free(csound, nodes);
 }
 
 /* Expression lowering sees provisional UDO callbacks. Once their rates are
@@ -1535,6 +1654,14 @@ static int32_t named_instr_alloc(CSOUND *csound, char *s, INSTRTXT *ip,
 }
 
 
+/* Numbered instruments and UDOs share one table. Neither kind of growth may
+   shrink storage reserved for the other. Both maxima are inclusive indices. */
+static size_t instrtxtp_alloc_size(const ENGINE_STATE *state) {
+  int32_t last = state->maxinsno > state->maxopcno
+                   ? state->maxinsno : state->maxopcno;
+  return ((size_t)last + 1) * sizeof(INSTRTXT *);
+}
+
 /**
    assign instrument numbers to all named instruments
 */
@@ -1596,7 +1723,7 @@ void named_instr_assign_numbers(CSOUND *csound,
           engineState->maxinsno += MAXINSNO; /* Expand */
           engineState->instrtxtp = (INSTRTXT **)
             csound->ReAlloc(csound, engineState->instrtxtp,
-                            (1 + engineState->maxinsno) * sizeof(INSTRTXT *));
+                            instrtxtp_alloc_size(engineState));
           /* Array expected to be nulled so.... */
           while (++m <= engineState->maxinsno)
             engineState->instrtxtp[m] = NULL;
@@ -1668,7 +1795,7 @@ static void insert_instrtxt(CSOUND *csound, INSTRTXT *instrtxt,
     }
     engineState->instrtxtp = (INSTRTXT **)
       csound->ReAlloc(csound, engineState->instrtxtp,
-                      (1 + engineState->maxinsno) * sizeof(INSTRTXT *));
+                      instrtxtp_alloc_size(engineState));
     /* Array expected to be nulled so.... */
     for (i = old_maxinsno + 1; i <= engineState->maxinsno; i++) {
       engineState->instrtxtp[i] = NULL;
@@ -1753,15 +1880,22 @@ static void insert_opcodes(CSOUND *csound, OPCODINFO *opcodeInfo,
       /* we may need to expand the instrument array */
       if (UNLIKELY(++num > engineState->maxopcno)) {
         int32_t i;
-        i = (engineState->maxopcno > 0 ? engineState->maxopcno
-             : engineState->maxinsno);
+        /* Numbered instruments may have grown past the old UDO capacity. */
+        i = (engineState->maxopcno > engineState->maxinsno
+             ? engineState->maxopcno : engineState->maxinsno);
         engineState->maxopcno = i + MAXINSNO;
         engineState->instrtxtp = (INSTRTXT **)
           csound->ReAlloc(csound, engineState->instrtxtp,
-                          (1 + engineState->maxopcno) * sizeof(INSTRTXT *));
+                          instrtxtp_alloc_size(engineState));
         /* Array expected to be nulled so.... */
         while (++i <= engineState->maxopcno)
           engineState->instrtxtp[i] = NULL;
+      }
+      /* A live compile can relocate UDOs. Active and reusable frames must
+         follow their template so deactivation and p-field lookup stay valid. */
+      if (inm->instno != num && inm->ip != NULL) {
+        for (INSDS *ip = inm->ip->instance; ip != NULL; ip = ip->nxtinstance)
+          ip->insno = (int16_t) num;
       }
       inm->instno = num;
       if(csound->GetDebug(csound) & DEBUG_COMPILER)
@@ -1816,7 +1950,32 @@ static void varpool_merge(CSOUND *csound, ENGINE_STATE *current_state,
                       gVar->varName, gVar->varType->varTypeName);
     var = csoundFindVariableWithName(csound, current_state->varPool,
                                      gVar->varName);
-    if (var == NULL) {
+    if (gVar->varType == &CS_VAR_TYPE_INSTR && var != NULL &&
+        var->varType == &CS_VAR_TYPE_OPCODEREF) {
+      /* An instrument shadows the OpcodeDef the parser created for the same
+         name. Add the InstrDef so the hash publishes it instead of the opcode. */
+      ARRAY_VAR_INIT varInit;
+      varInit.dimensions = gVar->dimensions;
+      varInit.type = gVar->subType;
+      var = csoundCreateVariable(csound, csound->typePool,
+                                 (void *) gVar->varType,
+                                 gVar->varName, &varInit);
+      csoundAddVariable(csound, current_state->varPool, var);
+      var->memBlock = gVar->memBlock;
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
+        csound->Message(csound, Str(" shadowing %p %d) %s:%s\n"), var, count,
+                        gVar->varName, gVar->varType->varTypeName);
+      gVar = gVar->next;
+    } else if (gVar->varType == &CS_VAR_TYPE_OPCODEREF && var != NULL &&
+               var->varType == &CS_VAR_TYPE_INSTR) {
+      /* The parser's OpcodeDef is still in the linked list, but the hash now
+         holds the InstrDef created for an instrument with the same name.
+         Publish the current definition instead of the stale OpcodeDef. */
+      if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
+        csound->Message(csound, Str(" skipping stale %p %d) %s:%s\n"), gVar,
+                        count, gVar->varName, gVar->varType->varTypeName);
+      gVar = gVar->next;
+    } else if (var == NULL) {
       ARRAY_VAR_INIT varInit;
       varInit.dimensions = gVar->dimensions;
       varInit.type = gVar->subType;
@@ -1860,6 +2019,26 @@ static void stage_instr_reference(CSOUND *csound, ENGINE_STATE *state,
   reference->instrument = instrument;
 }
 
+static void bind_instr_variable(CSOUND *csound, ENGINE_STATE *state,
+                                CS_VAR_POOL *pool, INSTRTXT *instrument,
+                                const char *name) {
+  CS_VARIABLE *variable = csoundFindVariableWithName(csound, pool, name);
+  if (variable == NULL) return;
+  if (variable->varType == &CS_VAR_TYPE_INSTR) {
+    stage_instr_reference(csound, state,
+                          (INSTREF *) &variable->memBlock->value, instrument);
+    return;
+  }
+  csound->Warning(csound,
+                  Str("instr %s: cannot bind :InstrDef because %s is already"
+                      " a :%s; refer to the instrument by string name \"%s\""
+                      " instead\n"),
+                  name, name,
+                  variable->varType != NULL ?
+                    variable->varType->varTypeName : "unknown",
+                  name);
+}
+
 static void finish_instr_references(CSOUND *csound, ENGINE_STATE *state,
                                     int32_t publish) {
   INSTR_REFERENCE *reference = state->instrumentRefs;
@@ -1897,6 +2076,12 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   cs_hash_table_merge(csound, current_state->constantsPool,
                       engineState->constantsPool);
   varpool_merge(csound, current_state, engineState->varPool);
+  /* An instr 0 replaced before it ran - a compilation's before the start -
+     waits for the start, which runs every compilation's global code in
+     order (init0_pending). */
+  if (current_state->instrtxtp[0] != NULL &&
+      current_state->instrtxtp[0]->instance == NULL)
+    instr0_wait(csound, current_state->instrtxtp[0]);
   /* merge opcodinfo */
   insert_instrtxt(csound, engineState->instrtxtp[0], 0, current_state, 1);
   for (i = 1; i < end; i++) {
@@ -2095,8 +2280,9 @@ static void merge_engine_state(CSOUND *csound, ENGINE_STATE *engineState,
 }
 
 static void run_merged_global_init(CSOUND *csound, OPDS *ids) {
-  /* run global i-time code */
-  init0(csound);
+  /* run global i-time code, which before the start waits for it */
+  if (csound->engineStatus & CS_STATE_COMP)
+    init0(csound);
   csound->ids = ids;
 }
 
@@ -2431,13 +2617,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
             instrtxt->insname = csound->Malloc(csound, strlen(c) + 1);
             strcpy(instrtxt->insname, c);
             // the parser has created a variable with the instrument name
-            CS_VARIABLE *ivar = csoundFindVariableWithName(csound,
-                                                           csound->engineState.varPool, c);
-            // set it
-            if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
-              stage_instr_reference(csound, engineState,
-                  (INSTREF *) &ivar->memBlock->value, instrtxt);
-            }
+            bind_instr_variable(csound, engineState,
+                                csound->engineState.varPool, instrtxt, c);
           }
         } else {
           if (p->type == INTEGER_TOKEN) {
@@ -2462,13 +2643,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
 
               // the parser has created a variable with the instrument name
               // in globalPool
-              CS_VARIABLE *ivar =
-                csoundFindVariableWithName(csound, globalPool, c);
-              // set it
-              if(ivar != NULL && ivar->varType == &CS_VAR_TYPE_INSTR) {
-                stage_instr_reference(csound, engineState,
-                    (INSTREF *) &ivar->memBlock->value, instrtxt);
-              }
+              bind_instr_variable(csound, engineState, globalPool, instrtxt, c);
             }
           }
         }
@@ -2550,6 +2725,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     classify_udo_rates(csound, engineState);
   }
   verify_array_read_phases(csound, engineState);
+  csound_orc_dump_templates(csound, engineState);
 
   if (UNLIKELY(csound->synterrcnt)) {
     print_opcodedir_warning(csound);
@@ -2738,6 +2914,18 @@ static int32_t compile_orc(CSOUND *csound, const char *str, int32_t async) {
   return retVal;
 }
 
+/* compile_orc, taking the jumps made inside it at the call's target: this
+   frame's. The API_CALL is the caller's, out of this setjmp's frame. */
+static CS_NOINLINE int32_t compile_orc_own_jumps(CSOUND *csound,
+                                                API_CALL *call,
+                                                const char *str, int32_t async)
+{
+  int32_t retVal;
+  if ((retVal = setjmp(call->target)))
+    return retVal;
+  return compile_orc(csound, str, async);
+}
+
 int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
   int32_t retVal;
 #ifdef CSOUND_WASI_REALTIME
@@ -2773,15 +2961,13 @@ int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async) {
     return retVal;
   }
 #endif
-  volatile jmp_buf tmpExitJmp;
-  memcpy((void *)&tmpExitJmp, (void *)&csound->exitjmp, sizeof(jmp_buf));
-  if ((retVal = setjmp(csound->exitjmp))) {
-    memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
-    return retVal;
-  }
-  retVal = compile_orc(csound, str, async);
-  memcpy((void *)&csound->exitjmp, (void *)&tmpExitJmp, sizeof(jmp_buf));
-  return retVal;
+  API_CALL call;
+  api_call_begin(csound, &call);
+  retVal = compile_orc_own_jumps(csound, &call, str, async);
+  api_call_end(&call);
+  /* the first jump that an init pass of the global code took, as exitjmp
+     would give it */
+  return call.jumped ? call.jumped : retVal;
 }
 
 static void print_instr(CSOUND *csound, INSTRTXT *tp, ENGINE_STATE *e) {

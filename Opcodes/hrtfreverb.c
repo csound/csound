@@ -231,7 +231,7 @@ static int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
 {
   /* left and right data files: spectral mag, phase format */
   MEMFIL *fpl = NULL, *fpr = NULL;
-  char filel[MAXNAME],filer[MAXNAME];
+  const char *filel, *filer;
   /* files contain floats */
   float *fpindexl, *fpindexr;
 
@@ -316,9 +316,9 @@ static int32_t hrtfreverb_init(CSOUND *csound, hrtfreverb *p)
       overlapsize = (irlength - 1);
     }
 
-  /* copy in string name... */
-  strncpy(filel, (char*) p->ifilel->data, MAXNAME-1);
-  strncpy(filer, (char*) p->ifiler->data, MAXNAME-1);
+  /* the names as given: LoadMemoryFile refuses one too long to keep */
+  filel = p->ifilel->data;
+  filer = p->ifiler->data;
 
   /* reading files, with byte swap */
   fpl = csound->LoadMemoryFile(csound, filel,

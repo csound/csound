@@ -111,6 +111,11 @@ typedef struct csdata_ {
   cs_float sr;
   int32_t complete;          /* set at close: fade out, then stop  */
   RT_AUDIO_FADE closeFade;
+  int32_t outRing;           /* output circular buffer size, in frames */
+  int32_t inRender;          /* input render buffer size, in frames */
+  int32_t outLargest, inLargest; /* largest callback requests, in frames */
+  int32_t warned;            /* warnings already issued, bit flags */
+  int32_t stalled;           /* device stopped: 1 output, 2 input */
 } csdata;
 
 
@@ -162,7 +167,8 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     UInt32  bufframes, nchnls;
     int32_t devouts = 0, devins = 0;
     Float64 srate;
-    UInt32 enableIO, maxFPS;
+    UInt32 enableIO, maxFPS, granted, need;
+    int32_t ring;
     AudioComponent HALOutput;
     AudioComponentInstance *aunit;
     AudioComponentDescription cd = {kAudioUnitType_Output,
@@ -381,7 +387,7 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
 
     /* although the SR is set in the stream properties,
        we also need to set the device to match */
-    Float64 sr;
+    Float64 sr = 0.0;
     prop.mSelector = kAudioDevicePropertyNominalSampleRate;
     if(!isInput){
       AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &sr);
@@ -411,6 +417,23 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
                          srate, attempts);
          break;
        }
+    }
+    /* the input unit does not convert the sampling rate: refuse a device
+       that cannot run at ours, rather than read it at the wrong rate */
+    if (isInput && sr != srate) {
+      csound->ErrorMsg(csound,
+                       Str(" *** CoreAudio: input device runs at %.0f Hz, "
+                           "not %.0f Hz\n"), sr, srate);
+      if (cdata->defdevin) {
+        AudioObjectPropertyAddress def = {
+          kAudioHardwarePropertyDefaultInputDevice,
+          kAudioObjectPropertyScopeGlobal,
+          kAudioObjectPropertyElementMain
+        };
+        AudioObjectSetPropertyData(kAudioObjectSystemObject, &def, 0, NULL,
+                                   sizeof(AudioDeviceID), &cdata->defdevin);
+      }
+      return -1;
     }
     csound->Message(csound, Str("auhal: device sampling rate set to %.1f\n"),
                     sr);
@@ -451,12 +474,48 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
     prop.mSelector = kAudioDevicePropertyBufferFrameSize;
     psize = 4;
     AudioObjectSetPropertyData(dev, &prop, 0, NULL, psize, &bufframes);
+    /* the device may not take the requested size (e.g. Bluetooth) */
+    psize = sizeof(granted);
+    if (AudioObjectGetPropertyData(dev, &prop, 0, NULL, &psize, &granted)
+        != noErr)
+      granted = bufframes;
+    if (granted != bufframes)
+      csound->Message(csound,
+                      Str("auhal: device buffer is %u frames, requested %u\n"),
+                      (unsigned) granted, (unsigned) bufframes);
+    /* The unit refuses renders larger than MaximumFramesPerSlice and stops
+       calling back, so never set it below the device buffer, converted to
+       our sampling rate for an output at another rate. */
+    need = granted;
+    if (sr > 0.0 && srate > sr)
+      need = (UInt32) (granted * srate / sr) + 1;
+    if (need < bufframes)
+      need = bufframes;
     psize = sizeof(maxFPS);
-    AudioUnitGetProperty(*aunit, kAudioUnitProperty_MaximumFramesPerSlice,
-                         kAudioUnitScope_Global, isInput, &maxFPS, &psize);
-    AudioUnitSetProperty(*aunit, kAudioUnitProperty_MaximumFramesPerSlice,
-                         kAudioUnitScope_Global, isInput, &bufframes,
-                         sizeof(UInt32));
+    if (AudioUnitGetProperty(*aunit, kAudioUnitProperty_MaximumFramesPerSlice,
+                             kAudioUnitScope_Global, isInput, &maxFPS, &psize)
+        != noErr)
+      maxFPS = 0;
+    if (maxFPS < need) {
+      maxFPS = need;
+      AudioUnitSetProperty(*aunit, kAudioUnitProperty_MaximumFramesPerSlice,
+                           kAudioUnitScope_Global, isInput, &maxFPS,
+                           sizeof(UInt32));
+    }
+    /* the circular buffer holds -B frames, or at least one callback */
+    ring = need > (UInt32) parm->bufSamp_HW ? (int32_t) need : parm->bufSamp_HW;
+    if (!isInput && ring != parm->bufSamp_HW)
+      csound->Message(csound,
+                      Str("auhal: output buffer raised to %d frames for the "
+                          "device\n"), ring);
+    if (isInput) {
+      cdata->incb = csound->CreateCircularBuffer(csound, ring * (int32_t) nchnls,
+                                                 sizeof(cs_float));
+    } else {
+      cdata->outRing = ring;
+      cdata->outcb = csound->CreateCircularBuffer(csound, ring * (int32_t) nchnls,
+                                                  sizeof(cs_float));
+    }
     /* set the stream properties */
     psize = sizeof(AudioStreamBasicDescription);
     AudioUnitGetProperty(*aunit, kAudioUnitProperty_StreamFormat,
@@ -490,7 +549,7 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
        csound->Message(csound,
                       Str("***** AuHAL module: output device open with %d "
                           "buffer frames\n"),
-                          bufframes);
+                          granted);
       cdata->disp = 0;
     }
     else {
@@ -499,14 +558,16 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
         (AudioBufferList*)csound->Malloc(csound,sizeof(UInt32)
                                  + cdata->inchnls * sizeof(AudioBufferList));
       CAInputData->mNumberBuffers = cdata->inchnls;
+      /* a callback renders its whole request at once */
       for (i = 0; i < cdata->inchnls; i++) {
         CAInputData->mBuffers[i].mNumberChannels = 1;
         CAInputData->mBuffers[i].mDataByteSize =
-          bufframes * sizeof(Float32);
+          maxFPS * sizeof(Float32);
         CAInputData->mBuffers[i].mData =
-          csound->Calloc(csound,bufframes*sizeof(Float32));
+          csound->Calloc(csound,maxFPS*sizeof(Float32));
       }
       cdata->inputdata = CAInputData;
+      cdata->inRender = (int32_t) maxFPS;
 
       input.inputProc = Csound_Input;
       input.inputProcRefCon = cdata;
@@ -518,7 +579,7 @@ static int32_t AuHAL_open(CSOUND *csound, const csRtAudioParams * parm,
        csound->Message(csound,
                       Str("***** AuHAL module: input device open with "
                           "%d buffer frames\n"),
-                      (int32_t) bufframes);
+                      (int32_t) granted);
     }
 
     cdata->disp = 0;
@@ -663,14 +724,11 @@ static int32_t recopen_(CSOUND *csound, const csRtAudioParams * parm)
     *recordata = (void *) cdata;
     cdata->inParm =  (csRtAudioParams *) parm;
     cdata->csound = csound;
+    cdata->inBufSamples = (int32_t) csound->GetInputBufferSize(csound);
     cdata->inputBuffer =
       (cs_float *) csound->Calloc(csound,
-                               csound->GetInputBufferSize(csound)* sizeof(cs_float));
-    cdata->incb =
-      csound->CreateCircularBuffer(csound,
-                                   parm->bufSamp_HW*parm->nChannels,
-                                   sizeof(cs_float));
-
+                               cdata->inBufSamples * sizeof(cs_float));
+    /* the circular buffer is created by AuHAL_open */
     int32_t ret = AuHAL_open(csound, parm, cdata, 1);
     return ret;
 }
@@ -691,17 +749,16 @@ static int32_t playopen_(CSOUND *csound, const csRtAudioParams * parm)
     *playdata = (void *) cdata;
     cdata->outParm =  (csRtAudioParams *) parm;
     cdata->csound = csound;
+    cdata->outBufSamples = (int32_t) csound->GetOutputBufferSize(csound);
     cdata->outputBuffer =
       (cs_float *) csound->Calloc(csound,
-                               csound->GetOutputBufferSize(csound)*sizeof(cs_float));
+                               cdata->outBufSamples*sizeof(cs_float));
     memset(cdata->outputBuffer, 0,
-           csound->GetOutputBufferSize(csound)*sizeof(cs_float));
+           cdata->outBufSamples*sizeof(cs_float));
 
-    cdata->outcb =
-      csound->CreateCircularBuffer(csound,
-                                   parm->bufSamp_HW*parm->nChannels,
-                                   sizeof(cs_float));
+    /* the circular buffer is created by AuHAL_open */
     ATOMIC_SET(cdata->complete, 0);
+    ATOMIC_SET(cdata->outLargest, 0);
     rt_audio_fade_reset(&cdata->closeFade);
 
     return AuHAL_open(csound, parm,cdata,0);
@@ -718,40 +775,105 @@ static OSStatus  Csound_Input(void *inRefCon,
     CSOUND *csound = cdata->csound;
     int32_t inchnls = cdata->inchnls;
     cs_float *inputBuffer = cdata->inputBuffer;
+    /* The whole request is rendered at once and copied out in -b blocks;
+       a request too large for the render buffers is recorded as silence. */
+    UInt32 most = (UInt32) (cdata->inBufSamples/inchnls);
+    UInt32 room = (UInt32) cdata->inRender;
+    UInt32 done, frames;
+    OSStatus err = -1;
     int32_t j,k,i,chns;
     Float32 *buffer;
-    int32_t n = inNumberFrames*inchnls;
-    AudioUnitRender(cdata->inunit, ioActionFlags, inTimeStamp, inBusNumber,
-                    inNumberFrames, cdata->inputdata);
 
+    if ((int32_t) inNumberFrames > ATOMIC_GET(cdata->inLargest))
+      ATOMIC_SET(cdata->inLargest, (int32_t) inNumberFrames);
     ioData = cdata->inputdata;
-    chns = ioData->mBuffers[0].mNumberChannels;
-    if(chns == 1) { // non-interleaved
-      for (i = 0; i < ioData->mNumberBuffers; i++) {
-        buffer = (Float32 *) ioData->mBuffers[i].mData;
-        for(j = 0, k = 0; (uint32_t) k < inNumberFrames; j+=inchnls, k++)
-          inputBuffer[j+i] = (cs_float) buffer[k];
-      }
-    } else { // interleaved
-      buffer = (Float32 *) ioData->mBuffers[0].mData;
-      for(k = 0; k < n; k++)
-        inputBuffer[k] = (cs_float) buffer[k];
+    if (inNumberFrames <= room) {
+      /* AudioUnitRender leaves mDataByteSize at what it rendered */
+      for (i = 0; i < ioData->mNumberBuffers; i++)
+        ioData->mBuffers[i].mDataByteSize = inNumberFrames*sizeof(Float32);
+      err = AudioUnitRender(cdata->inunit, ioActionFlags, inTimeStamp,
+                            inBusNumber, inNumberFrames, ioData);
     }
-    csound->WriteCircularBuffer(csound, cdata->incb,inputBuffer,n);
+    if (err != noErr) {
+      memset(inputBuffer, 0, sizeof(cs_float)*cdata->inBufSamples);
+      for (done = 0; done < inNumberFrames; done += frames) {
+        frames = inNumberFrames - done < most ? inNumberFrames - done : most;
+        csound->WriteCircularBuffer(csound, cdata->incb, inputBuffer,
+                                    frames*inchnls);
+      }
+      return 0;
+    }
+
+    chns = ioData->mBuffers[0].mNumberChannels;
+    for (done = 0; done < inNumberFrames; done += frames) {
+      frames = inNumberFrames - done < most ? inNumberFrames - done : most;
+      if(chns == 1) { // non-interleaved
+        for (i = 0; i < ioData->mNumberBuffers; i++) {
+          buffer = (Float32 *) ioData->mBuffers[i].mData + done;
+          for(j = 0, k = 0; (uint32_t) k < frames; j+=inchnls, k++)
+            inputBuffer[j+i] = (cs_float) buffer[k];
+        }
+      } else { // interleaved
+        buffer = (Float32 *) ioData->mBuffers[0].mData + done*inchnls;
+        for(k = 0; (uint32_t) k < frames*inchnls; k++)
+          inputBuffer[k] = (cs_float) buffer[k];
+      }
+      csound->WriteCircularBuffer(csound, cdata->incb, inputBuffer,
+                                  frames*inchnls);
+    }
     return 0;
 }
 #define slt 100
+
+/* Waits of slt us for the device in rtplay_ (which = 1) and rtrecord_ (2):
+   1 s, 5 s before its first callback. Once it has stalled, one block's
+   duration, so the performance keeps time and can still be stopped; none for
+   an input when an output paces the performance. */
+static int32_t naps(csdata *cdata, int32_t samples, int32_t chnls, int32_t which)
+{
+    int32_t called = which == 1 ? ATOMIC_GET(cdata->outLargest)
+                                : ATOMIC_GET(cdata->inLargest);
+    if (!(cdata->stalled & which) || cdata->sr <= 0.0 || chnls <= 0)
+      return (called ? 1 : 5) * (1000000 / slt);
+    if (which == 2 && cdata->outunit != NULL)
+      return 0;
+    return (int32_t) (1e6 * samples / chnls / cdata->sr / slt) + 1;
+}
+
 static int32_t rtrecord_(CSOUND *csound, cs_float *inbuff_, int32_t nbytes)
 {
     csdata  *cdata;
     int32_t n = nbytes/sizeof(cs_float);
-    int32_t m = 0, l;
+    int32_t m = 0, l, left;
     cdata = (csdata *) *(csound->GetRtRecordUserData(csound));
+    if (!(cdata->warned & 2) && ATOMIC_GET(cdata->inLargest) > cdata->inRender) {
+      cdata->warned |= 2;
+      csound->Warning(csound,
+                      Str("auhal: input callback of %d frames exceeds the "
+                          "render buffer (%d), recording silence\n"),
+                      ATOMIC_GET(cdata->inLargest), cdata->inRender);
+    }
+    left = naps(cdata, n, cdata->inchnls, 2);
     do{
       l = csound->ReadCircularBuffer(csound,cdata->incb,&inbuff_[m],n);
       m += l;
       n -= l;
+      if (l > 0)
+        cdata->stalled &= ~2;
       if(n) {
+        if (--left < 0) {
+          memset(&inbuff_[m], 0, n*sizeof(cs_float));
+          if (!(cdata->stalled & 2)) {
+            cdata->stalled |= 2;
+            if (!(cdata->warned & 8)) {
+              cdata->warned |= 8;
+              csound->Warning(csound,
+                              Str("auhal: input device stopped, recording "
+                                  "silence\n"));
+            }
+          }
+          break;
+        }
         usleep(slt);
       }
     } while(n);
@@ -771,37 +893,46 @@ static OSStatus Csound_Render(void *inRefCon,
     CSOUND *csound = cdata->csound;
     int32_t onchnls = cdata->onchnls;
     cs_float *outputBuffer = cdata->outputBuffer;
-    int32_t j,k,i,chns;
+    /* the device may request more than -b frames: fill in -b blocks */
+    UInt32 most = (UInt32) (cdata->outBufSamples/onchnls);
+    UInt32 done, frames;
+    int32_t closing = ATOMIC_GET(cdata->complete);
+    int32_t j,k,i,n,chns;
     Float32 *buffer;
-    int32_t n = inNumberFrames*onchnls;
     IGN(ioActionFlags);
     IGN(inTimeStamp);
     IGN(inBusNumber);
 
-    memset(outputBuffer, 0, sizeof(cs_float)*n);
-    /* Once closing, fade the audio still queued out to silence, as
-       Ardour does when stopping its engine, so the stream never ends
-       on a non-zero sample. The fade spans the queued audio and so
-       reaches zero exactly when the buffer drains. */
-    if (ATOMIC_GET(cdata->complete) && cdata->closeFade.lengthFrames == 0) {
-      int32_t queued = csound->CheckCircularBuffer(csound, cdata->outcb, 0);
-      rt_audio_fade_begin(&cdata->closeFade, queued, onchnls);
-    }
-    n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,n);
-    if (ATOMIC_GET(cdata->complete) && n > 0)
-      rt_audio_fade_apply(&cdata->closeFade, outputBuffer, n, onchnls);
-
+    if ((int32_t) inNumberFrames > ATOMIC_GET(cdata->outLargest))
+      ATOMIC_SET(cdata->outLargest, (int32_t) inNumberFrames);
     chns = ioData->mBuffers[0].mNumberChannels;
-    if(chns == 1) { // non-interleaved
-      for (i = 0; i < ioData->mNumberBuffers; i++) {
-        buffer = (Float32 *) ioData->mBuffers[i].mData;
-        for(j = 0, k = 0; (uint32_t) k < inNumberFrames; j+=onchnls, k++)
-          buffer[k] = (Float32) outputBuffer[j+i];
+    for (done = 0; done < inNumberFrames; done += frames) {
+      frames = inNumberFrames - done < most ? inNumberFrames - done : most;
+      memset(outputBuffer, 0, sizeof(cs_float)*frames*onchnls);
+      /* Once closing, fade the audio still queued out to silence, as
+         Ardour does when stopping its engine, so the stream never ends
+         on a non-zero sample. The fade spans the queued audio and so
+         reaches zero exactly when the buffer drains. */
+      if (closing && cdata->closeFade.lengthFrames == 0) {
+        int32_t queued = csound->CheckCircularBuffer(csound, cdata->outcb, 0);
+        rt_audio_fade_begin(&cdata->closeFade, queued, onchnls);
       }
-    } else { // interleaved
-      buffer = (Float32 *) ioData->mBuffers[0].mData;
-      for(k = 0; k < n; k++)
-        buffer[k] = (Float32) outputBuffer[k];
+      n = csound->ReadCircularBuffer(csound,cdata->outcb,outputBuffer,
+                                     frames*onchnls);
+      if (closing && n > 0)
+        rt_audio_fade_apply(&cdata->closeFade, outputBuffer, n, onchnls);
+
+      if(chns == 1) { // non-interleaved
+        for (i = 0; i < ioData->mNumberBuffers; i++) {
+          buffer = (Float32 *) ioData->mBuffers[i].mData + done;
+          for(j = 0, k = 0; (uint32_t) k < frames; j+=onchnls, k++)
+            buffer[k] = (Float32) outputBuffer[j+i];
+        }
+      } else { // interleaved
+        buffer = (Float32 *) ioData->mBuffers[0].mData + done*onchnls;
+        for(k = 0; (uint32_t) k < frames*onchnls; k++)
+          buffer[k] = (Float32) outputBuffer[k];
+      }
     }
     return 0;
 }
@@ -810,13 +941,37 @@ static void rtplay_(CSOUND *csound, const cs_float *outbuff_, int32_t nbytes)
 {
     csdata  *cdata;
     int32_t n = nbytes/sizeof(cs_float);
-    int32_t m = 0, l;
+    int32_t m = 0, l, left;
     cdata = (csdata *) *(csound->GetRtPlayUserData(csound));
+    if (!(cdata->warned & 1) && ATOMIC_GET(cdata->outLargest) > cdata->outRing) {
+      cdata->warned |= 1;
+      csound->Warning(csound,
+                      Str("auhal: device requested %d frames, more than the "
+                          "output buffer (%d), expect dropouts\n"),
+                      ATOMIC_GET(cdata->outLargest), cdata->outRing);
+    }
+    left = naps(cdata, n, cdata->onchnls, 1);
     do {
       l = csound->WriteCircularBuffer(csound, cdata->outcb,&outbuff_[m],n);
       m += l;
       n -= l;
-      if(n) usleep(slt);
+      if (l > 0)
+        cdata->stalled &= ~1;
+      if(n) {
+        if (--left < 0) {
+          if (!(cdata->stalled & 1)) {
+            cdata->stalled |= 1;
+            if (!(cdata->warned & 4)) {
+              cdata->warned |= 4;
+              csound->Warning(csound,
+                              Str("auhal: output device stopped, dropping "
+                                  "output\n"));
+            }
+          }
+          break;
+        }
+        usleep(slt);
+      }
     } while(n);
 }
 
@@ -835,17 +990,19 @@ static void rtclose_(CSOUND *csound)
         ATOMIC_SET(cdata->complete, 1);
 
         /* Wait until the callback has consumed the circular buffer.  The
-           timeout covers the requested queue and one render buffer, while
-           the second wait lets the final render block reach the device. */
+           timeout covers the requested queue and the largest render
+           buffer, while the second wait lets the final render block
+           reach the device. */
         int32_t waitMs = 100;
         int32_t queued = csound->CheckCircularBuffer(csound, cdata->outcb, 0);
         cs_double renderMs = 0.0;
         if (cdata->sr > 0.0 && cdata->onchnls > 0) {
+          int32_t render = ATOMIC_GET(cdata->outLargest);
           cs_double queueMs = 1000.0 * (cs_double) queued /
                            ((cs_double) cdata->onchnls * (cs_double) cdata->sr);
-          renderMs = 1000.0 *
-                     (cs_double) csound->GetOutputBufferSize(csound) /
-                     ((cs_double) cdata->onchnls * (cs_double) cdata->sr);
+          if (render < cdata->outBufSamples/cdata->onchnls)
+            render = cdata->outBufSamples/cdata->onchnls;
+          renderMs = 1000.0 * (cs_double) render / (cs_double) cdata->sr;
           waitMs = (int32_t) (queueMs + renderMs + 20.0);
           if (waitMs < 50)
             waitMs = 50;

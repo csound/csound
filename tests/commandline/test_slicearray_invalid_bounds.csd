@@ -1,8 +1,8 @@
 <CsTest>
-description = "slicearray rejects invalid source bounds and insufficient output capacity"
+description = "slicearray rejects invalid source bounds, including after the source shrinks"
 [expect]
 exit = "nonzero"
-stderr = ["slicearray: invalid slice bounds", "slice larger than original size", "Array too small"]
+stderr = ["slicearray: invalid slice bounds", "slice larger than original size"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -21,17 +21,10 @@ instr ShrinkingSource
   kOutput[] slicearray kInput, 1, 3
   trim kInput, 2
 endin
-instr GrowingSource
-  kInput[] fillarray 1, 2, 3, 4
-  trim_i kInput, 2
-  kOutput[] slicearray kInput, 0
-  trim kInput, 4
-endin
 </CsInstruments>
 <CsScore>
 i "NegativeStart" 0 .015625
 i "ShrinkingSource" .03125 .03125
-i "GrowingSource" .0625 .03125
 e
 </CsScore>
 </CsoundSynthesizer>

@@ -31,16 +31,39 @@ extern "C" {
   /**
      Runs Csound in a separate thread.
      The playback (which is paused by default) is stopped by calling
-     stop(), or if an error occurs.
+     csoundPerformanceThreadStop(), or if an error occurs.
      The constructor takes a Csound instance pointer as argument; it assumes
-     that ctcsound.compile_() was called successfully before creating
-     the performance thread. Once the playback is stopped for one of the above
-     mentioned reasons, the performance thread return
+     that the instance was compiled and started (csoundStart()) before
+     creating the performance thread. Once the playback is stopped for one
+     of the above mentioned reasons, the performance thread returns.
+     The calls that only queue a message (play, pause, toggle pause, stop,
+     stop recording, score events, input messages, score offset, orchestra
+     code to compile or evaluate, requested callbacks) and setting the
+     process callback may come from any thread, the performance thread's
+     callbacks included. Recording opens the file on the thread that asks
+     for it: ask from a thread of the host's. Joining, flushing the
+     message queue and destroying must not come from a callback the
+     performance runs, and joining and destroying must come from one
+     thread at a time, with no other call beside them: joining frees the
+     message queue and its locks, which every call that queues a message
+     and flushing use, and destroying frees the object. To end a performance
+     thread: stop it, join it, destroy it, then destroy the Csound
+     instance.
   */
   PUBLIC CS_PERF_THREAD* csoundCreatePerformanceThread(CSOUND *csound);
 
   /**
-     Destroys a Csound perfomance thread object
+     Destroys a Csound perfomance thread object.
+     Must not be called from a callback the performance runs. On the
+     performance thread itself, i.e. from a message callback, from the
+     process callback or from a Csound callback called there, it only stops
+     the performance, with a warning the first time: the thread cannot wait
+     for its own end, nor go on in a deleted object. The object is then
+     still to be destroyed, from another thread, once the callback has
+     returned. Csound calls some callbacks from other threads (its worker
+     threads with -j, the recording thread, some audio and MIDI modules):
+     there the call is not seen, and can deadlock.
+     Not while another thread joins it: see csoundPerformanceThreadJoin().
   */
   PUBLIC void csoundDestroyPerformanceThread(CS_PERF_THREAD* pt);
 
@@ -97,6 +120,7 @@ extern "C" {
      Starts recording the output from Csound.
      The sample rate and number of channels are taken directly from the
      running Csound instance.
+     Once the status is no longer 0, it does nothing, and opens no file.
   */
   PUBLIC void csoundPerformanceThreadRecord(CS_PERF_THREAD* pt,
     const char *filename,
@@ -164,9 +188,18 @@ extern "C" {
      Waits until the performance is finished or fails.
      Returns a positive value if the end of score was reached or
      stop() was called, and a negative value if an error occured.
-     Also releases any resources associated with the performance thread
-     object.
-
+     Also releases the message queue and its locks, and stops a recording
+     still running once the performance has ended.
+     Must not be called from a callback the performance runs. On the
+     performance thread itself, i.e. from a message callback, from the
+     process callback or from a Csound callback called there, it cannot
+     wait for itself: the call is ignored and returns the current status,
+     with a warning the first time. Csound calls some callbacks from other
+     threads (its worker threads with -j, the recording thread, some audio
+     and MIDI modules): there the call is not seen, and can deadlock.
+     Not thread-safe: two threads must not join the same object at once,
+     nor one join it while another destroys it. Each would wait for the
+     thread and free what the join frees, and the process crashes or hangs.
   */
   PUBLIC int32_t csoundPerformanceThreadJoin(CS_PERF_THREAD* pt);
 
@@ -176,7 +209,9 @@ extern "C" {
       Must not be called from the performance thread itself, i.e. from a
       message callback or from the process callback: the performance thread
       cannot wait for itself. Such a call is ignored (with a one-time
-      warning) instead of deadlocking.
+      warning) instead of deadlocking. Csound calls some callbacks from
+      other threads (its worker threads with -j, the recording thread, some
+      audio and MIDI modules): there the call is not seen, and can deadlock.
    */
   PUBLIC void csoundPerformanceThreadFlushMessageQueue(CS_PERF_THREAD* pt);
 

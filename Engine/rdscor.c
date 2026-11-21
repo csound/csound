@@ -95,6 +95,11 @@ static int32_t scanflt(CSOUND *csound, cs_float *pfld)
         sstrp = csound->sstrbuf = csound->Malloc(csound, csound->strsiz=SSTRSIZ);
       while (n--!=0) sstrp += strlen(sstrp)+1;
       n = (int32_t) (sstrp-csound->sstrbuf);
+      if (n > csound->strsiz-10) {      /* an empty string grows it nowhere */
+        csound->sstrbuf = csound->ReAlloc(csound, csound->sstrbuf,
+                                          csound->strsiz+=SSTRSIZ);
+        sstrp = csound->sstrbuf+n;
+      }
       while ((c = corfile_getc(csound->scstr)) != '"') {
         if (c=='\\') { c = corfile_getc(csound->scstr);
           switch (c) {

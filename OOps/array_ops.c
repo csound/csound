@@ -22,6 +22,7 @@
 
 #include <ctype.h>
 #include <math.h>
+#include "aops.h"
 #include "array_ops.h"
 #include "arrays_internal.h"
 #include "csound_orc_semantics.h"
@@ -30,12 +31,11 @@
 static int32_t is_intentionally_empty_array(CSOUND *csound,
                                             const ARRAYDAT *dat)
 {
-  size_t allocated = csound_array_allocated_bytes(csound, dat);
-
   return dat != NULL && dat->data != NULL && dat->dimensions == 1 &&
          dat->sizes != NULL && dat->sizes[0] == 0 &&
          dat->arrayMemberSize > 0 &&
-         allocated == (size_t)dat->arrayMemberSize;
+         csound_array_allocated_bytes(csound, dat) ==
+           (size_t)dat->arrayMemberSize;
 }
 
 int32_t array_init(CSOUND *csound, ARRAYINIT *p)
@@ -144,7 +144,7 @@ int32_t tabfill(CSOUND *csound, TABFILL *p)
     for (i=0; i<nargs; i++) {
       // bool is int32_t but each array slot is sizeof(cs_float)
       int32_t *idat = (int32_t *) (p->ans->data + (i * memMyfltSize));
-      *idat = *valp[i] ? 1 : 0;
+      *idat = arg_is_true(valp[i]);
     }
   }
   else if (p->ans->arrayType == &CS_VAR_TYPE_S) {
@@ -548,8 +548,8 @@ static int32_t array_get_common(CSOUND *csound, ARRAY_GET *p,
   }
   // Check if this is a struct array that needs auto-sizing before bounds checking
   if (dat->dimensions > 0 && dat->sizes != NULL &&
-      !is_intentionally_empty_array(csound, dat) &&
-      dat->arrayType && dat->arrayType->userDefinedType) {
+      dat->arrayType && dat->arrayType->userDefinedType &&
+      !is_intentionally_empty_array(csound, dat)) {
     int needsAutoSizing = 0;
     for (int32_t j = 0; j < dat->dimensions; j++) {
       if (dat->sizes[j] <= 0) {
@@ -642,7 +642,10 @@ static int32_t array_get_common(CSOUND *csound, ARRAY_GET *p,
     return ARRAY_PHASE_ERROR("%s\n", Str("Invalid array element offset"));
   }
   size_t offset = (size_t)index * (size_t)dat->arrayMemberSize;
-  size_t allocatedBytes = csound_array_allocated_bytes(csound, dat);
+  size_t allocatedBytes = dat->allocated;
+  if (UNLIKELY(allocatedBytes == 0)) {
+    allocatedBytes = csound_array_allocated_bytes(csound, dat);
+  }
   if (UNLIKELY(allocatedBytes > 0 &&
                offset + (size_t)dat->arrayMemberSize > allocatedBytes)) {
     return ARRAY_PHASE_ERROR(
@@ -3580,6 +3583,17 @@ int32_t tabcopy1(CSOUND *csound, TABCPY *p)
   return OK;
 }
 
+/* =.b[] copies a b[] at init, as =.I does an i[], and in performance, as
+   =._ did: a b[] can be written at a k index. A source with no value at
+   init, as an array member read at a k index, is only sized, as =._ did,
+   and copied in performance. */
+int32_t tabcopy_b_init(CSOUND *csound, TABCPY *p)
+{
+  if (p->src->data == NULL || p->src->dimensions <= 0)
+    return tabcopyk_init(csound, p);
+  return tabcopy1(csound, p);
+}
+
 static int32_t tabcopy_audio(CSOUND *csound, TABCPY *p, int32_t initializing)
 {
   size_t count, sourceStride, targetStride;
@@ -3863,6 +3877,7 @@ static void tabslice_copy(CSOUND *csound, TABSLICE *p, int32_t start,
 int32_t tabslice(CSOUND *csound, TABSLICE *p)
 {
   int32_t start, inc, size;
+  p->warned = 0;
   const char *error = tabslice_bounds(p, &start, &inc, &size);
   if (UNLIKELY(error != NULL))
     return csound->InitError(csound, "%s\n", error);
@@ -3875,11 +3890,42 @@ int32_t tabslice(CSOUND *csound, TABSLICE *p)
 int32_t tabslice_perf(CSOUND *csound, TABSLICE *p)
 {
   int32_t start, inc, size;
+  size_t bytes;
   const char *error = tabslice_bounds(p, &start, &inc, &size);
   if (UNLIKELY(error != NULL))
     return csound->PerfError(csound, &p->h, "%s\n", error);
-  if (UNLIKELY(tabcheck(csound, p->tab, size, &p->h) != OK))
+  /* Validate the existing output and retain the shared-storage write guard.
+     slicearray historically rereads i-rate globals and can grow at perf time;
+     preserve that outside real-time mode only. */
+  if (UNLIKELY(tabcheck(csound, p->tab,
+                         p->tab->sizes != NULL ? p->tab->sizes[0] : 0,
+                         &p->h) != OK))
     return NOTOK;
+  if (UNLIKELY(csound_array_allocation_size(
+                 p->tab->arrayMemberSize, (size_t)size, &bytes) != OK))
+    return csound->PerfError(csound, &p->h, "%s\n", Str("Array size overflow"));
+  if (UNLIKELY(bytes > p->tab->allocated)) {
+    /* Keep the usual capacity error in --realtime, before any allocation. */
+    if (csound->oparms->realtime)
+      return tabcheck(csound, p->tab, size, &p->h);
+    size_t oldBytes = p->tab->allocated;
+    if (UNLIKELY(csound_array_ensure_capacity(
+                   csound, p->tab, (size_t)size, p->h.insdshead) != OK))
+      return csound_array_perf_resize_error(csound, &p->h);
+    /* Warn once per initialization, not on every growing control block. */
+    if (!p->warned) {
+      const char *name = GetOutputArgName(&p->h, 0);
+      csound->Warning(csound,
+        Str("realloc: slicearray output '%s' grew from %zu to %zu bytes during "
+            "performance. Growth is disabled with --realtime.\n"
+            "To avoid this reallocation, predeclare the output array with init "
+            "for the largest slice you will need (at least %d elements here), "
+            "e.g. '%s[] init %d'.\n"),
+        name, oldBytes, p->tab->allocated, size, name, size);
+      p->warned = 1;
+    }
+  }
+  p->tab->sizes[0] = size;
   tabslice_copy(csound, p, start, inc, size);
   return OK;
 }

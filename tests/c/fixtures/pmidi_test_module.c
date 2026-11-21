@@ -1,0 +1,148 @@
+/*
+  pmidi_test_module.c:
+
+  InOut/pmidi.c compiled against stand-in PortMidi and PortTime functions,
+  so the PortMIDI module opens devices without MIDI hardware and without
+  the PortMidi library: only its headers are used. The stand-ins offer two
+  inputs and two outputs, one of each without an interface name, or no
+  device at all while csound_test_pmidi_no_devices is set. Each device has
+  a stream of its own, and csound_test_pmidi_writes counts the messages
+  written to each.
+*/
+
+#define Pm_Initialize csound_test_Pm_Initialize
+#define Pm_Terminate csound_test_Pm_Terminate
+#define Pm_CountDevices csound_test_Pm_CountDevices
+#define Pm_GetDeviceInfo csound_test_Pm_GetDeviceInfo
+#define Pm_GetDefaultInputDeviceID csound_test_Pm_GetDefaultInputDeviceID
+#define Pm_GetDefaultOutputDeviceID csound_test_Pm_GetDefaultOutputDeviceID
+#define Pm_OpenInput csound_test_Pm_OpenInput
+#define Pm_OpenOutput csound_test_Pm_OpenOutput
+#define Pm_SetFilter csound_test_Pm_SetFilter
+#define Pm_Poll csound_test_Pm_Poll
+#define Pm_Read csound_test_Pm_Read
+#define Pm_Write csound_test_Pm_Write
+#define Pm_Close csound_test_Pm_Close
+#define Pm_GetErrorText csound_test_Pm_GetErrorText
+#define Pt_Start csound_test_Pt_Start
+#define Pt_Stop csound_test_Pt_Stop
+/* libcsound defines these too */
+#define csoundLock csound_test_pmidi_lock
+#define csoundUnLock csound_test_pmidi_unlock
+#define csoundModuleCreate csound_test_pmidi_module_create
+#define csoundModuleInit csound_test_pmidi_module_init
+#define csoundModuleDestroy csound_test_pmidi_module_destroy
+#define csoundModuleInfo csound_test_pmidi_module_info
+#include "../../../InOut/pmidi.c"
+
+static const PmDeviceInfo devices[] = {
+  { .interf = "Stand-in", .name = "Keys", .input = 1 },
+  { .interf = NULL, .name = "Pads", .input = 1 },
+  { .interf = "Stand-in", .name = "Synth", .output = 1 },
+  { .interf = NULL, .name = "Box", .output = 1 },
+};
+static int streams[4];  /* one per device */
+int csound_test_pmidi_writes[4];
+int csound_test_pmidi_no_devices = 0;
+
+PmError Pm_Initialize(void) { return pmNoError; }
+PmError Pm_Terminate(void) { return pmNoError; }
+int Pm_CountDevices(void)
+{
+    return csound_test_pmidi_no_devices
+               ? 0 : (int) (sizeof(devices) / sizeof(devices[0]));
+}
+const PmDeviceInfo *Pm_GetDeviceInfo(PmDeviceID id)
+{
+    return id >= 0 && id < Pm_CountDevices() ? &devices[id] : NULL;
+}
+PmDeviceID Pm_GetDefaultInputDeviceID(void)
+{
+    return csound_test_pmidi_no_devices ? pmNoDevice : 0;
+}
+PmDeviceID Pm_GetDefaultOutputDeviceID(void)
+{
+    return csound_test_pmidi_no_devices ? pmNoDevice : 2;
+}
+PmError Pm_OpenInput(PortMidiStream **s, PmDeviceID id, void *info,
+                     int32_t size, PmTimeProcPtr time, void *time_info)
+{
+    (void) info; (void) size; (void) time; (void) time_info;
+    *s = &streams[id];
+    return pmNoError;
+}
+PmError Pm_OpenOutput(PortMidiStream **s, PmDeviceID id, void *info,
+                      int32_t size, PmTimeProcPtr time, void *time_info,
+                      int32_t latency)
+{
+    (void) info; (void) size; (void) time; (void) time_info;
+    (void) latency;
+    *s = &streams[id];
+    return pmNoError;
+}
+PmError Pm_SetFilter(PortMidiStream *s, int32_t filters)
+{
+    (void) s; (void) filters;
+    return pmNoError;
+}
+PmError Pm_Poll(PortMidiStream *s) { (void) s; return pmNoData; }
+int Pm_Read(PortMidiStream *s, PmEvent *buffer, int32_t length)
+{
+    (void) s; (void) buffer; (void) length;
+    return 0;
+}
+PmError Pm_Write(PortMidiStream *s, PmEvent *buffer, int32_t length)
+{
+    (void) buffer; (void) length;
+    csound_test_pmidi_writes[(int *) s - streams]++;
+    return pmNoError;
+}
+PmError Pm_Close(PortMidiStream *s) { (void) s; return pmNoError; }
+const char *Pm_GetErrorText(PmError error) { (void) error; return ""; }
+PtError Pt_Start(int resolution, PtCallback *callback, void *data)
+{
+    (void) resolution; (void) callback; (void) data;
+    return ptNoError;
+}
+PtError Pt_Stop(void) { return ptNoError; }
+
+int32_t csound_test_pmidi_open_input(CSOUND *csound, void **data,
+                                     const char *dev)
+{
+    return OpenMidiInDevice_(csound, data, dev);
+}
+
+int32_t csound_test_pmidi_close_input(CSOUND *csound, void *data)
+{
+    return CloseMidiInDevice_(csound, data);
+}
+
+int32_t csound_test_pmidi_open_output(CSOUND *csound, void **data,
+                                      const char *dev)
+{
+    return OpenMidiOutDevice_(csound, data, dev);
+}
+
+int32_t csound_test_pmidi_close_output(CSOUND *csound, void *data)
+{
+    return CloseMidiOutDevice_(csound, data);
+}
+
+static int32_t out_port;
+static int32_t get_out_port(CSOUND *csound) { (void) csound; return out_port; }
+
+/* Writes a message for `port`. csoundSendMidiMsg keeps the port in a
+   member of CSOUND a module cannot see, which the module reads back
+   through GetMidiOutPort: the instance's GetMidiOutPort answers here,
+   for this write alone. */
+int32_t csound_test_pmidi_write(CSOUND *csound, void *data, int32_t port,
+                                const unsigned char *mbuf, int32_t nbytes)
+{
+    int32_t (*own)(CSOUND *) = csound->GetMidiOutPort;
+    int32_t n;
+    out_port = port;
+    csound->GetMidiOutPort = get_out_port;
+    n = WriteMidiData_(csound, data, mbuf, nbytes);
+    csound->GetMidiOutPort = own;
+    return n;
+}

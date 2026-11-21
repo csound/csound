@@ -32,8 +32,6 @@ pluginDir64 = libDir + '/csound/plugins64'
 docDir      = instPrefix + '/share/doc/csound'
 # tclcsound.so
 tclDir      = libDir + '/csound/tcl'
-# csnd.jar
-javaDir     = libDir + '/csound/java'
 # LISP interface
 lispDir     = libDir + '/csound/lisp'
 # STK raw wave files
@@ -316,9 +314,6 @@ for i in range(4):
                       #'CsoundVST.py', 'CsoundVST.pyc', 'CsoundVST.pyo',
                       'scoregen.py', 'scoregen.pyc', 'scoregen.pyo'],
                      pythonDir)
-        # Java interface library
-        installXFile('--strip-debug', 'lib_jcsound.so', libDir)
-        installFile('csnd.jar', javaDir)
         # LISP interface
         installFile('interfaces/csound6.lisp', lispDir)
 

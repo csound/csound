@@ -43,6 +43,18 @@ static const char *errmsg_2 =
   Str_noop("event: string name is allowed only for"
            " \"i\", \"d\", and \"q\" events");
 
+static int32_t schedule_type_error(CSOUND *csound, OPDS *opds,
+                                   const char *argName,
+                                   const CS_TYPE *type) {
+  const char *typeName = type != NULL ? type->varTypeName : "unknown";
+  const char *message =
+    Str("%s is of :%s type,\n"
+        "expected :S, :InstrDef, or a numeric instrument\n");
+  if (opds->init)
+    return csound->InitError(csound, message, argName, typeName);
+  return csound->PerfError(csound, opds, message, argName, typeName);
+}
+
 int32_t instr_num(CSOUND *csound, INSTREF *reference);
 int32_t event_opcode_perf(CSOUND *csound, LINEVENT *p, int32_t pcnt,
                                  int32_t mode, char opcod)
@@ -342,8 +354,7 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
   evt.pcnt = p->INOCOUNT;
 
   const CS_TYPE *argType = GetTypeForArg(p->argums[0]);
-  if (argType == &CS_VAR_TYPE_INSTR ||
-      (argType != NULL && strcmp(argType->varTypeName, "InstrDef") == 0)) {
+  if (argType == &CS_VAR_TYPE_INSTR) {
     // handling argum[0] as instrument type
     cs_float insno;
     int32_t res;
@@ -351,10 +362,10 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
     insno = instr_num(csound, ref);
     p->argums[0] = &insno;
     res = insert_score_args_at_sample(csound, &evt, p->argums,
-                                  csound->icurTimeSamples);
+                                      csound->icurTimeSamples);
     p->argums[0] = (cs_float *) ref;
     return res;
-  } else if (GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_S) {
+  } else if (argType == &CS_VAR_TYPE_S) {
     cs_float insno;
     int32_t res;
     cs_float *ref = p->argums[0];
@@ -366,14 +377,16 @@ int32_t schedule(CSOUND *csound, SCHEDO *p)
     p->argums[0] = ref;
     return res;
   }
-  else if (GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_I ||
-           GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_C ||
-           GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_P ||
-	   GetTypeForArg(p->argums[0]) == &CS_VAR_TYPE_K)
+  else if (argType == &CS_VAR_TYPE_I ||
+           argType == &CS_VAR_TYPE_C ||
+           argType == &CS_VAR_TYPE_P ||
+           argType == &CS_VAR_TYPE_K)
     return insert_score_args_at_sample(csound, &evt, p->argums,
                                       csound->icurTimeSamples);
 
-  else return csound->InitError(csound, Str("invalid instrument argument\n"));
+  else
+    return schedule_type_error(csound, (OPDS *) p,
+                               GetInputArgName((OPDS *) p, 0), argType);
 }
 
 
@@ -420,7 +433,8 @@ int32_t schedule_N(CSOUND *csound, SCHED *p)
              type == &CS_VAR_TYPE_P || type == &CS_VAR_TYPE_K)
       insno = *p->which;
     else
-      return csound->InitError(csound, Str("instrument argument invalid\n"));
+      return schedule_type_error(csound, (OPDS *) p,
+                                 GetInputArgName((OPDS *) p, 0), type);
     return schedule_string_event(csound, p, insno);
 }
 
@@ -444,6 +458,7 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
     if (p->todo && *p->trigger != FL(0.0)) {
       LINEVENT pp = {0};
       int32_t i;
+      const CS_TYPE *type = GetTypeForArg(p->which);
       pp.h = p->h;
       pp.args[0] = p->which;
       pp.args[1] = p->when;
@@ -453,15 +468,20 @@ int32_t kschedule(CSOUND *csound, WSCHED *p)
         pp.args[i] = p->argums[i-3];
       }
       p->todo = 0;
-      if (IS_STR_ARG(p->which)){
+      if (type == &CS_VAR_TYPE_S){
         return event_opcode_perf(csound, &pp, pp.argno, 1, 'i');
       }
-      if (GetTypeForArg(p->which) == &CS_VAR_TYPE_INSTR){
+      else if (type == &CS_VAR_TYPE_INSTR){
         return event_opcode_perf(csound, &pp, pp.argno, 2, 'i');
       }
-      else {
+      else if (type == &CS_VAR_TYPE_I || type == &CS_VAR_TYPE_C ||
+               type == &CS_VAR_TYPE_P || type == &CS_VAR_TYPE_K ||
+               type == &CS_VAR_TYPE_R) {
         return event_opcode_perf(csound, &pp, pp.argno, 0, 'i');
       }
+      else
+        return schedule_type_error(csound, (OPDS *) p,
+                                   GetInputArgName((OPDS *) p, 1), type);
     }
     else return OK;
 }

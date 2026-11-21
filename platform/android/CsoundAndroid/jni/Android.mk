@@ -86,6 +86,7 @@ $(CSOUND_SRC_ROOT)/InOut/window.c \
 $(CSOUND_SRC_ROOT)/InOut/winEPS.c \
 $(CSOUND_SRC_ROOT)/InOut/circularbuffer.c \
 $(CSOUND_SRC_ROOT)/OOps/aops.c \
+$(CSOUND_SRC_ROOT)/OOps/audio_mul_add.c \
 $(CSOUND_SRC_ROOT)/OOps/array_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/assert_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/bus.c \
@@ -330,7 +331,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_new_dispatch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
-$(CSOUND_SRC_ROOT)/languages/java/cs_glue.cpp \
+cs_glue.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/savgol.c \
 $(CSOUND_SRC_ROOT)/Opcodes/remap.c
 #CsoundObj.cpp

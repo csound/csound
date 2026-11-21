@@ -1,8 +1,5 @@
 name: csound_builds
 
-env:
-  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-
 on:
   push:
     branches:
@@ -80,52 +77,90 @@ jobs:
       CXX: clang++
       CFLAGS: -Wshorten-64-to-32 -Wpointer-sign -Wformat-security -Wimplicit-const-int-float-conversion
       CXXFLAGS: -Wshorten-64-to-32 -Wformat-security -Wimplicit-const-int-float-conversion -Wwritable-strings
+      CSOUND_WASI_SDK_VERSION: '34'
+      CSOUND_WASI_SDK_FULL_VERSION: '34.0'
+      CSOUND_WASI_SDK_SHA256: b761e3a0721dbae9c09a0059e5fdb2bf917d1b4a8a7b430fb3b5aafb0984b2c4
+      # Stay on the supported 48 LTS line and take its patch updates.
+      CSOUND_WASMTIME_VERSION: '48.0.5'
+      CSOUND_WASMTIME_SHA256: 81fffe5fe895c7f8f84a744f4d4d165dda28793d00ee943ee71fcfb6ab5ed923
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
 
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
+        with:
+          compiler-cache: 'true'
+
       - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install cmake curl xz-utils libgtest-dev libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk liblo-dev bison flex gettext libsamplerate0-dev libpipewire-0.3-dev
+        uses: ./.github/actions/install-apt
+        with:
+          packages: >-
+            ninja-build ccache cmake curl xz-utils libgtest-dev libsndfile1-dev
+            libasound2-dev libjack-dev portaudio19-dev libportmidi-dev libpulse-dev
+            swig liblua5.1-0-dev default-jdk liblo-dev bison flex gettext
+            libsamplerate0-dev libpipewire-0.3-dev
 
+      - name: Download WASI SDK
+        id: wasi-sdk
+        uses: ./.github/actions/fetch-archive
+        with:
+          url: https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${{ env.CSOUND_WASI_SDK_VERSION }}/wasi-sdk-${{ env.CSOUND_WASI_SDK_FULL_VERSION }}-x86_64-linux.tar.gz
+          sha256: ${{ env.CSOUND_WASI_SDK_SHA256 }}
       - name: Install WASI SDK
+        env:
+          ARCHIVE_PATH: ${{ steps.wasi-sdk.outputs.path }}
         run: |
-          CSOUND_WASI_SDK_VERSION=34
-          CSOUND_WASI_SDK_FULL_VERSION=34.0
-          CSOUND_WASI_SDK_SHA256=b761e3a0721dbae9c09a0059e5fdb2bf917d1b4a8a7b430fb3b5aafb0984b2c4
-          CSOUND_WASI_SDK_ARCHIVE="wasi-sdk-${CSOUND_WASI_SDK_FULL_VERSION}-x86_64-linux.tar.gz"
-          curl --fail --location --retry 3 \
-            --output "${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE}" \
-            "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${CSOUND_WASI_SDK_VERSION}/${CSOUND_WASI_SDK_ARCHIVE}"
-          echo "${CSOUND_WASI_SDK_SHA256}  ${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE}" | sha256sum --check
-          tar -xzf "${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE}" -C "${RUNNER_TEMP}"
-          echo "WASI_SDK_PATH=${RUNNER_TEMP}/${CSOUND_WASI_SDK_ARCHIVE%.tar.gz}" >> "${GITHUB_ENV}"
+          tar -xzf "$ARCHIVE_PATH" -C "$RUNNER_TEMP"
+          echo "WASI_SDK_PATH=$RUNNER_TEMP/wasi-sdk-$CSOUND_WASI_SDK_FULL_VERSION-x86_64-linux" >> "$GITHUB_ENV"
 
+      - name: Download Wasmtime C API
+        id: wasmtime
+        uses: ./.github/actions/fetch-archive
+        with:
+          url: https://github.com/bytecodealliance/wasmtime/releases/download/v${{ env.CSOUND_WASMTIME_VERSION }}/wasmtime-v${{ env.CSOUND_WASMTIME_VERSION }}-x86_64-linux-c-api.tar.xz
+          sha256: ${{ env.CSOUND_WASMTIME_SHA256 }}
       - name: Install Wasmtime C API
+        env:
+          ARCHIVE_PATH: ${{ steps.wasmtime.outputs.path }}
         run: |
-          # Stay on the supported 48 LTS line and take its patch updates.
-          CSOUND_WASMTIME_VERSION=48.0.5
-          CSOUND_WASMTIME_SHA256=81fffe5fe895c7f8f84a744f4d4d165dda28793d00ee943ee71fcfb6ab5ed923
-          CSOUND_WASMTIME_ARCHIVE="wasmtime-v${CSOUND_WASMTIME_VERSION}-x86_64-linux-c-api.tar.xz"
-          curl --fail --location --retry 3 \
-            --output "${RUNNER_TEMP}/${CSOUND_WASMTIME_ARCHIVE}" \
-            "https://github.com/bytecodealliance/wasmtime/releases/download/v${CSOUND_WASMTIME_VERSION}/${CSOUND_WASMTIME_ARCHIVE}"
-          echo "${CSOUND_WASMTIME_SHA256}  ${RUNNER_TEMP}/${CSOUND_WASMTIME_ARCHIVE}" | sha256sum --check
-          tar -xJf "${RUNNER_TEMP}/${CSOUND_WASMTIME_ARCHIVE}" -C "${RUNNER_TEMP}"
-          echo "CSOUND_WASMTIME_ROOT=${RUNNER_TEMP}/${CSOUND_WASMTIME_ARCHIVE%.tar.xz}" >> "${GITHUB_ENV}"
+          tar -xJf "$ARCHIVE_PATH" -C "$RUNNER_TEMP"
+          echo "CSOUND_WASMTIME_ROOT=$RUNNER_TEMP/wasmtime-v$CSOUND_WASMTIME_VERSION-x86_64-linux-c-api" >> "$GITHUB_ENV"
 
       - name: Configure without Wasmtime
         run: |
           cmake -S . -B build-no-wasmtime -DUSE_WASMTIME=OFF -DUSE_MP3=0 \
+            -DCMAKE_BUILD_TYPE=Release \
             -DWasmtime_ROOT="${CSOUND_WASMTIME_ROOT}"
           if grep -Eq '^Wasmtime_(INCLUDE_DIR|LIBRARY):' build-no-wasmtime/CMakeCache.txt; then
             echo "USE_WASMTIME=OFF must skip Wasmtime discovery"
             exit 1
           fi
-          cmake --build build-no-wasmtime --target csound-bin --parallel
+          cmake --build build-no-wasmtime --target csound-bin --parallel "$(nproc)"
+
+      - name: Run the default build on a CPU without AVX
+        timeout-minutes: 10
+        run: |
+          # Ubuntu runners can use amd64v3 libraries and startup objects.
+          # Build and run with baseline packages from the matching release.
+          # Leave USE_AVX2 unset to check the default in a fresh build directory.
+          . /etc/os-release
+          docker run --rm --volume "$PWD:/src" --workdir /src \
+            --env CC=clang --env CXX=clang++ --env DEBIAN_FRONTEND=noninteractive \
+            "ubuntu:$VERSION_ID" bash -euc '
+              apt-get update -qq
+              apt-get install -y --no-install-recommends \
+                clang cmake ninja-build bison flex gettext qemu-user \
+                libsndfile1-dev libsamplerate0-dev libasound2-dev
+              cmake -S . -B /tmp/build-no-avx -G Ninja \
+                -DUSE_WASMTIME=OFF -DUSE_MP3=0 -DCMAKE_BUILD_TYPE=Release
+              cmake --build /tmp/build-no-avx --target csound-bin --parallel "$(nproc)"
+              # Nehalem has SSE2 but no AVX or AVX2.
+              qemu-x86_64 -cpu Nehalem /tmp/build-no-avx/csound \
+                tests/commandline/test_oscil1i.csd
+            '
 
       - name: Configure build
         run: |
@@ -139,7 +174,7 @@ jobs:
       - name: Build Csound
         run: |
           cd build
-          make
+          ninja
 
       - name: Run unit tests
         run: |
@@ -150,10 +185,10 @@ jobs:
       - name: Run CSD tests
         run: |
           cd build
-          make csdtests
+          ninja csdtests
 
-  linux_sanitizer:
-    name: Linux/Ubuntu full tests (ASan + UBSan)
+  linux_sanitizer_build:
+    name: Linux ASan + UBSan - build
     runs-on: ubuntu-latest
     env:
       CC: clang
@@ -166,15 +201,13 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
+        with:
+          compiler-cache: 'true'
+
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential clang cmake ninja-build python3 libgtest-dev \
-            libsndfile1-dev libasound2-dev libjack-dev portaudio19-dev \
-            libportmidi-dev libpulse-dev swig liblua5.1-0-dev default-jdk \
-            liblo-dev libsamplerate0-dev \
-            libpipewire-0.3-dev bison flex gettext
+        uses: ./.github/actions/native-test-deps
 
       - name: Configure sanitizer build
         # Match GCC's UBSan checks; opcode dispatch uses generic function pointers.
@@ -195,20 +228,58 @@ jobs:
       - name: Build sanitizer Csound
         run: cmake --build build-sanitize --parallel "$(nproc)"
 
-      - name: Run unit tests
-        run: >
-          ctest --test-dir build-sanitize
-          --parallel "$(nproc)"
-          --output-on-failure
-          --no-tests=error
+      - name: Publish test build
+        uses: ./.github/actions/publish-test-build
+        with:
+          build: build-sanitize
+          name: linux-sanitizer
 
-      - name: Run CSD tests
-        run: |
-          cmake --build build-sanitize --target csdtests
-          if grep -E 'AddressSanitizer|UndefinedBehaviorSanitizer|runtime error:' \
-            build-sanitize/tests/commandline/results.txt; then
-            exit 1
-          fi
+  linux_sanitizer_tests:
+    name: Linux ASan + UBSan - tests ${{ matrix.part }} of 4
+    needs: linux_sanitizer_build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 0
+            part: 1
+          - shard: 1
+            part: 2
+          - shard: 2
+            part: 3
+          - shard: 3
+            part: 4
+    env:
+      CC: clang
+      CXX: clang++
+      ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
+      UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/native-test-deps
+      - uses: ./.github/actions/run-test-shard
+        with:
+          build: build-sanitize
+          name: linux-sanitizer
+          shard: ${{ matrix.shard }}
+          reject-sanitizers: 'true'
+
+  linux_sanitizer:
+    name: Linux/Ubuntu full tests (ASan + UBSan)
+    if: always()
+    needs: [linux_sanitizer_build, linux_sanitizer_tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every test group to pass
+        env:
+          BUILD_RESULT: ${{ needs.linux_sanitizer_build.result }}
+          TEST_RESULT: ${{ needs.linux_sanitizer_tests.result }}
+        run: test "$BUILD_RESULT" = success && test "$TEST_RESULT" = success
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/audit-test-shards
+        with:
+          name: linux-sanitizer
 
   linux64_float_ubsan:
     name: 64-bit Linux / USE_FLOAT=${{ matrix.use_float }} (UBSan)
@@ -227,11 +298,17 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
+        with:
+          compiler-cache: 'true'
+          variant: float-${{ matrix.use_float }}
+
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            build-essential clang cmake ninja-build python3 libgtest-dev \
+        uses: ./.github/actions/install-apt
+        with:
+          packages: >-
+            build-essential clang cmake ninja-build ccache python3 libgtest-dev
             libsndfile1-dev libasound2-dev bison flex gettext
 
       - name: Configure 32-bit floats on 64-bit Linux
@@ -276,28 +353,30 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.4.2
-
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9.0.0
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkg: 'true'
+          compiler-cache: 'true'
+
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install cmake libjack-dev libpulse-dev autoconf libtool
+        uses: ./.github/actions/install-apt
+        with:
+          packages: ninja-build ccache cmake libjack-dev libpulse-dev autoconf libtool
 
       - name: Configure Build
         run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/linux/custom.cmake"
 
       - name: Build Csound
         run: cmake --build build --config Release
+
+      - name: Compile optimizer benchmark
+        run: cmake --build build --config Release --target optimizer_timeline
 
       - name: Run unit tests
         run: ctest --test-dir build -j$(nproc) --output-on-failure
@@ -339,7 +418,7 @@ jobs:
           apt-get install -y --no-install-recommends \
             build-essential \
             ca-certificates \
-            cmake \
+            cmake ninja-build \
             curl \
             flex \
             bison \
@@ -360,6 +439,9 @@ jobs:
       # so those CMake targets must exist at configure time regardless of
       # whether we want Vorbis/Opus support. They are not hard to get built
       # se we include them and add those formats for libsndfile
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
+
       - name: Cache static codec chain
         id: cache-static-deps
         uses: actions/cache@v6.1.0
@@ -544,7 +626,6 @@ jobs:
             -DUSE_PULSEAUDIO=OFF \
             -DUSE_FLTK=OFF \
             -DBUILD_VIRTUAL_KEYBOARD=OFF \
-            -DBUILD_JAVA_INTERFACE=OFF \
             -DBUILD_PYTHON_INTERFACE=OFF \
             -DINSTALL_PYTHON_INTERFACE=OFF \
             -DBUILD_LUA_INTERFACE=OFF \
@@ -682,6 +763,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
+
       - name: Build libsndfile xcframework
         working-directory: platform/ios
         run: |
@@ -711,14 +795,12 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.4.2
-
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9.0.0
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkg: 'true'
+
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
@@ -729,6 +811,7 @@ jobs:
       - name: Configure Build
         run: |
           docker run --rm \
+            -e VCPKG_BINARY_SOURCES -e CMAKE_BUILD_PARALLEL_LEVEL \
             -v "${{ github.workspace }}:${{ github.workspace }}" \
             --workdir "${{ github.workspace }}" \
             ghcr.io/${{ github.repository_owner }}/csound-ioscross:${{ env.VERSION }} \
@@ -746,6 +829,7 @@ jobs:
       - name: Build Csound
         run: |
           docker run --rm \
+            -e VCPKG_BINARY_SOURCES -e CMAKE_BUILD_PARALLEL_LEVEL \
             -v "${{ github.workspace }}:${{ github.workspace }}" \
             --workdir "${{ github.workspace }}" \
             ghcr.io/${{ github.repository_owner }}/csound-ioscross:${{ env.VERSION }} \
@@ -754,8 +838,8 @@ jobs:
               cmake --build build/arm64 --config Release
             '
 
-  macos_build_brew:
-    name: MacOS build (brew)
+  macos_build_brew_build:
+    name: macOS ASan - build
     runs-on: macos-latest
     steps:
       - name: Checkout source code
@@ -764,10 +848,13 @@ jobs:
           fetch-depth: 1
           submodules: true
 
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
+        with:
+          compiler-cache: 'true'
+
       - name: Install dependencies
-        run: |
-          brew install libogg flac lame libvorbis mpg123 opus libsndfile portaudio libsamplerate liblo portmidi
-          brew install bison flex jack
+        uses: ./.github/actions/native-test-deps
 
       - name: Checkout GoogleTest
         uses: actions/checkout@v7.0.1
@@ -798,10 +885,52 @@ jobs:
       - name: Build Csound
         run: cmake --build build --config Debug
 
-      - name: Run unit tests
-        run: ctest --test-dir build -j"$(sysctl -n hw.ncpu)" --output-on-failure
-      - name: Run CSD tests
-        run: cmake --build build --target csdtests
+      - name: Publish test build
+        uses: ./.github/actions/publish-test-build
+        with:
+          build: build
+          name: macos-brew
+
+  macos_build_brew_tests:
+    name: macOS ASan - tests ${{ matrix.part }} of 4
+    needs: macos_build_brew_build
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - shard: 0
+            part: 1
+          - shard: 1
+            part: 2
+          - shard: 2
+            part: 3
+          - shard: 3
+            part: 4
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/native-test-deps
+      - uses: ./.github/actions/run-test-shard
+        with:
+          build: build
+          name: macos-brew
+          shard: ${{ matrix.shard }}
+
+  macos_build_brew:
+    name: MacOS build (brew)
+    if: always()
+    needs: [macos_build_brew_build, macos_build_brew_tests]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every test group to pass
+        env:
+          BUILD_RESULT: ${{ needs.macos_build_brew_build.result }}
+          TEST_RESULT: ${{ needs.macos_build_brew_tests.result }}
+        run: test "$BUILD_RESULT" = success && test "$TEST_RESULT" = success
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/audit-test-shards
+        with:
+          name: macos-brew
 
   bare_arm_brew:
     name: ARM baremetal build (brew)
@@ -816,10 +945,13 @@ jobs:
           fetch-depth: 1
           submodules: true
 
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
+
       - name: Install dependencies
         run: |
           brew update
-          brew install bison flex
+          brew install bison flex ninja
 
       - name: Install Arm GNU Toolchain (arm-none-eabi) without Homebrew cask
         run: |
@@ -876,17 +1008,25 @@ jobs:
         with:
           submodules: true
 
-      - name: Install build tools
-        run: sudo apt-get update && sudo apt-get install -y bison flex ninja-build
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
 
+      - name: Install build tools
+        uses: ./.github/actions/install-apt
+        with:
+          packages: bison flex ninja-build
+
+      - name: Download Espressif GCC
+        id: esp-toolchain
+        uses: ./.github/actions/fetch-archive
+        with:
+          url: https://github.com/espressif/crosstool-NG/releases/download/esp-${{ env.ESP_GCC_VERSION }}/${{ env.ESP_TOOLCHAIN }}-${{ env.ESP_GCC_VERSION }}-x86_64-linux-gnu.tar.xz
+          sha256: ${{ env.ESP_TOOLCHAIN_SHA256 }}
       - name: Install Espressif GCC
+        env:
+          ARCHIVE_PATH: ${{ steps.esp-toolchain.outputs.path }}
         run: |
-          set -euo pipefail
-          archive="${ESP_TOOLCHAIN}-${ESP_GCC_VERSION}-x86_64-linux-gnu.tar.xz"
-          url="https://github.com/espressif/crosstool-NG/releases/download/esp-${ESP_GCC_VERSION}/${archive}"
-          curl --fail --location --retry 3 "$url" -o "$RUNNER_TEMP/$archive"
-          printf '%s  %s\n' "$ESP_TOOLCHAIN_SHA256" "$RUNNER_TEMP/$archive" | sha256sum --check -
-          tar -xJf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP"
+          tar -xJf "$ARCHIVE_PATH" -C "$RUNNER_TEMP"
           echo "$RUNNER_TEMP/$ESP_TOOLCHAIN/bin" >> "$GITHUB_PATH"
 
       - name: Configure Csound
@@ -897,7 +1037,7 @@ jobs:
 
       - name: Build and install Csound
         run: |
-          cmake --build build --parallel 2
+          cmake --build build --parallel "$(nproc)"
           cmake --install build
           test -f package/lib/libcsound.a
           test -f package/include/csound/float-version.h
@@ -932,44 +1072,45 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - name: Checkout and build libsndfile, portmidi, portaudio, libsamplerate and liblo
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
+
+      - name: Install build tools
+        run: brew install bison flex ninja
+
+      - name: Identify the macOS toolchain
+        id: macos-toolchain
         run: |
-          cd platform/osx
-          chmod +x build_libsndfile.sh
-          ./build_libsndfile.sh
-          cd ../..
+          toolchain=$( { xcodebuild -version; xcrun --sdk macosx --show-sdk-version; xcrun clang --version; sw_vers -productVersion; cmake --version; ninja --version; } | shasum -a 256 | cut -d ' ' -f 1)
+          echo "key=$toolchain" >> "$GITHUB_OUTPUT"
 
-          git clone https://github.com/PortMidi/portmidi.git
-          cd portmidi
-          cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../portmidi_install
-          cmake --build build
-          cmake --build build --target install
-          cd ..
+      - name: Restore universal macOS dependencies
+        id: macos-deps
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: |
+            platform/osx/libsndfile_build/dependencies
+            portmidi_install
+            portaudio_install
+            samplerate_install
+            liblo_install
+          key: macos-deps-v1-${{ runner.os }}-${{ runner.arch }}-arm64-x86_64-${{ steps.macos-toolchain.outputs.key }}-${{ hashFiles('platform/osx/dependencies.env', 'platform/osx/build_libsndfile.sh', '.github/scripts/build-macos-deps.sh', '.github/actions/setup-build/action.yml') }}
 
-          git clone https://github.com/PortAudio/portaudio.git
-          cd portaudio
-          cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../portaudio_install
-          cmake --build build
-          cmake --build build --target install
-          cd ..
+      - name: Build universal macOS dependencies
+        if: steps.macos-deps.outputs.cache-hit != 'true'
+        run: bash .github/scripts/build-macos-deps.sh
 
-          git clone https://github.com/libsndfile/libsamplerate
-          cd libsamplerate
-          cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../samplerate_install
-          cmake --build build
-          cmake --build build --target install
-          cd ..
-
-          git clone https://github.com/radarsat1/liblo
-          cd liblo
-          cmake ./cmake -B build -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -DCMAKE_INSTALL_PREFIX=../liblo_install
-          cmake --build build
-          cmake --build build --target install
-          cd ..
-
-
-      - name: Brew install bison and flex
-        run: brew install bison flex
+      - name: Save universal macOS dependencies before packaging
+        if: steps.macos-deps.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6.1.0
+        with:
+          path: |
+            platform/osx/libsndfile_build/dependencies
+            portmidi_install
+            portaudio_install
+            samplerate_install
+            liblo_install
+          key: ${{ steps.macos-deps.outputs.cache-primary-key }}
 
       - name: Configure Csound
         run: |
@@ -1236,20 +1377,19 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.4.2
-
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9.0.0
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkg: 'true'
+          compiler-cache: 'true'
+
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Install dependencies
-        run: brew install bison flex
+        run: brew install bison flex ninja ccache
 
       - name: Configure build
         run: cmake -B build -S . -DUSE_DOUBLE=0 -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
@@ -1273,20 +1413,19 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.4.2
-
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9.0.0
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkg: 'true'
+          compiler-cache: 'true'
+
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Install dependencies
-        run: brew install bison flex
+        run: brew install bison flex ninja ccache
 
       - name: Configure build
         run: cmake -B build -S . -DBUILD_TESTS=1 -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/osx/custom-osx.cmake"
@@ -1312,14 +1451,12 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.4.2
-
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9.0.0
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkg: 'true'
+
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
@@ -1330,6 +1467,7 @@ jobs:
       - name: Configure Build
         run: |
           docker run --rm \
+            -e VCPKG_BINARY_SOURCES -e CMAKE_BUILD_PARALLEL_LEVEL \
             -v "${{ github.workspace }}:${{ github.workspace }}" \
             --workdir "${{ github.workspace }}" \
             ghcr.io/${{ github.repository_owner }}/csound-osxcross:${{ env.VERSION }} \
@@ -1348,6 +1486,7 @@ jobs:
       - name: Build Csound
         run: |
           docker run --rm \
+            -e VCPKG_BINARY_SOURCES -e CMAKE_BUILD_PARALLEL_LEVEL \
             -v "${{ github.workspace }}:${{ github.workspace }}" \
             --workdir "${{ github.workspace }}" \
             ghcr.io/${{ github.repository_owner }}/csound-osxcross:${{ env.VERSION }} \
@@ -1371,14 +1510,12 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.4.2
-
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9.0.0
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkg: 'true'
+
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Install system dependencies
         shell: pwsh
@@ -1392,6 +1529,9 @@ jobs:
 
       - name: Build Csound
         run: cmake --build build --config Release
+
+      - name: Compile optimizer benchmark
+        run: cmake --build build --config Release --target optimizer_timeline
 
       - name: Run tests
         run: cmake --build build --config Release --target csdtests
@@ -1465,12 +1605,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9.0.0
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkg: 'true'
 
       - name: Install system dependencies
         shell: pwsh
@@ -1556,14 +1694,12 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.4.2
-
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9.0.0
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkg: 'true'
+
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Install system dependencies
         shell: pwsh
@@ -1650,22 +1786,23 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.4.2
-
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9.0.0
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkg: 'true'
+
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
 
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install mingw-w64-x86-64-dev gcc-mingw-w64 g++-mingw-w64 mingw-w64-tools wine
+        uses: ./.github/actions/install-apt
+        with:
+          # Only the x86-64 POSIX compilers are selected by this build.
+          packages: >-
+            mingw-w64-x86-64-dev gcc-mingw-w64-x86-64-posix
+            g++-mingw-w64-x86-64-posix mingw-w64-tools wine
 
       - name: Use posix mingw
         run: |
@@ -1696,14 +1833,12 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.4.2
-
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9.0.0
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkg: 'true'
+
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
@@ -1719,9 +1854,12 @@ jobs:
           cp -r libsndfile-win32/libsndfile-1.2.2-win32/cmake $HOME/libsndfile-i686/
 
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install mingw-w64-i686-dev gcc-mingw-w64-i686 g++-mingw-w64-i686 mingw-w64-tools flex bison
+        uses: ./.github/actions/install-apt
+        with:
+          install-recommends: 'false'
+          packages: >-
+            mingw-w64-i686-dev gcc-mingw-w64-i686-posix
+            g++-mingw-w64-i686-posix mingw-w64-tools flex bison
 
       - name: Use posix mingw for 32-bit
         run: |
@@ -1764,14 +1902,12 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - uses: lukka/get-cmake@v4.4.2
-
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9.0.0
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkg: 'true'
+
+      - uses: lukka/get-cmake@v4.4.2
 
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
@@ -1782,6 +1918,7 @@ jobs:
       - name: Configure Build
         run: |
           docker run --rm \
+            -e VCPKG_BINARY_SOURCES -e CMAKE_BUILD_PARALLEL_LEVEL \
             -v "${{ github.workspace }}:${{ github.workspace }}" \
             --workdir "${{ github.workspace }}" \
             ghcr.io/${{ github.repository_owner }}/csound-android:${{ env.VERSION }} \
@@ -1797,6 +1934,7 @@ jobs:
       - name: Build Csound
         run: |
           docker run --rm \
+            -e VCPKG_BINARY_SOURCES -e CMAKE_BUILD_PARALLEL_LEVEL \
             -v "${{ github.workspace }}:${{ github.workspace }}" \
             --workdir "${{ github.workspace }}" \
             ghcr.io/${{ github.repository_owner }}/csound-android:${{ env.VERSION }} \
@@ -1825,12 +1963,10 @@ jobs:
           fetch-depth: 1
           submodules: true
 
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9.0.0
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          vcpkg: 'true'
 
       - name: Bootstrap VCPKG
         run: ./vcpkg/bootstrap-vcpkg.sh
@@ -1843,10 +1979,13 @@ jobs:
 
       - name: Configure Build
         run: |
-          cmake -B build -S . -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/wasm-emscripten/Custom-wasm.cmake" -DCMAKE_SYSTEM_NAME=Emscripten -DEMSDK=$EMSDK -DEMSDK_NODE=$EMSDK_NODE
+          # This legacy toolchain emits libcsound.a from both library targets.
+          # Keep its existing generator and build order until those outputs
+          # are separated. The vcpkg binary cache still applies to this job.
+          cmake -B build -S . -G "Unix Makefiles" -DUSE_VCPKG=1 -DCUSTOM_CMAKE="./platform/wasm-emscripten/Custom-wasm.cmake" -DCMAKE_SYSTEM_NAME=Emscripten -DEMSDK=$EMSDK -DEMSDK_NODE=$EMSDK_NODE
 
       - name: Build Csound
-        run: cmake --build build --config Release
+        run: cmake --build build --config Release --parallel 1
 
       #- name: Run unit tests
       #  run: ctest --test-dir build -j$(nproc) --output-on-failure
@@ -1867,6 +2006,9 @@ jobs:
         uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 1
+
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
 
       - name: Download NDK
         working-directory: platform/android

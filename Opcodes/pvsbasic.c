@@ -28,6 +28,7 @@
 #include "pvsbasic.h"
 #include "pvfileio.h"
 #include <math.h>
+#include "strarg2name.h"
 #define MAXOUTS 16
 
 typedef struct _pvsgain {
@@ -253,7 +254,7 @@ static int32_t pvsfwriteset_(CSOUND *csound, PVSFWRITE *p, int32_t stringname)
     if (IsStringCode(*p->file))
       fname = csound->GetArgString(csound, *p->file);
     else {
-      csound->StringArg2Name(csound, generated_name, p->file, "pvoc.", 0);
+      strarg2name_bounded(csound, generated_name, sizeof(generated_name), p->file, "pvoc.", 0);
       fname = generated_name;
     }
   }
@@ -406,7 +407,7 @@ static int32_t pvsdiskinset_(CSOUND *csound, pvsdiskin *p, int32_t stringname)
     if (IsStringCode(*p->file))
       fname = csound->GetArgString(csound, *p->file);
     else {
-      csound->StringArg2Name(csound, generated_name, p->file, "pvoc.", 0);
+      strarg2name_bounded(csound, generated_name, sizeof(generated_name), p->file, "pvoc.", 0);
       fname = generated_name;
     }
   }

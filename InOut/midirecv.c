@@ -38,9 +38,12 @@
       Read at most 'nbytes' bytes of MIDI data from input stream
       'userData', and store in 'buf'. Returns the actual number of
       bytes read, which may be zero if there were no events, and
-      negative in case of an error. Note: incomplete messages (such
-      as a note on status without the data bytes) should not be
-      returned.
+      negative in case of an error. A count past 'nbytes' is an error
+      too, and nothing is taken from 'buf'. Note: incomplete messages
+      (such as a note on status without the data bytes) should not be
+      returned. Csound may read again in the same k-cycle, at most until
+      a read returns zero or it has had 16 times 'nbytes' bytes in that
+      cycle: so a read returns zero when there is nothing more now.
 
     int32_t (*MidiInCloseCallback)(CSOUND *csound, void *userData);
 
@@ -105,7 +108,7 @@
 
 #define MGLOB(x) (csound->midiGlobals->x)
 
-static  void    midNotesOff(CSOUND *);
+static  void    midNotesOff(CSOUND *, int32_t);
 
 static const cs_float dsctl_map[12] = {
     FL(1.0), FL(0.0), FL(1.0), FL(0.0), FL(1.0), FL(0.0),
@@ -113,6 +116,11 @@ static const cs_float dsctl_map[12] = {
 };
 
 static const int16 datbyts[8] = { 2, 2, 2, 2, 1, 1, 2, 0 };
+
+/* A device is read again in a k-cycle while it has more, up to this much,
+   so that a reader that always has more cannot hold the cycle. A MIDI
+   cable carries 3125 bytes a second: it would take a 20 s k-cycle. */
+#define MIDI_DEVICE_CYCLE_MAX (16 * MBUFSIZ)
 
 /* open a Midi event stream for reading, alloc bufs */
 /*     callable once from main.c                    */
@@ -124,7 +132,9 @@ void midi_open(CSOUND *csound)
     int32_t     err;
     /* First set up buffers. */
     p->Midevtblk = (MEVENT*) csound->Calloc(csound, sizeof(MEVENT));
-    p->sexp = 0;
+    /* A new performance starts with no message from either source. */
+    memset(&p->device, 0, sizeof(MIDIPARSER));
+    memset(&p->file, 0, sizeof(MIDIPARSER));
     /* Then open device... */
     if (O->Midiin) {
       if (p->MidiInOpenCallback == NULL)
@@ -321,7 +331,8 @@ void m_chanmsg(CSOUND *csound, MEVENT *mep)
       else if (n == 122) {                      /* absorb lcl ctrl data */
 /*      int32_t lcl_ctrl = mep->dat2;  ?? */        /* 0:off, 127:on */
       }
-      else if (n == 123) midNotesOff(csound);   /* allchnl AllNotesOff */
+      else if (n == 123)                        /* AllNotesOff, its port's */
+        midNotesOff(csound, mep->chan / MAXCHAN);
       else if (n == 126) {                      /* MONO mode */
         if (chn->monobas == NULL) {
           MONPCH *mnew, *mend;
@@ -410,41 +421,57 @@ void m_chn_init_all(CSOUND *csound)
     }
 }
 
-/* assign an insno to a chnl */
+/* assign an insno to a chnl, or to every chnl of every port if chan < 0 */
 /* =massign: called from i0  */
 
 int32_t m_chinsno(CSOUND *csound, int32_t chan, int32_t insno, int32_t reset_ctls)
 {
     MCHNBLK  *chn;
     MEVENT   mev;
+    int32_t  last, all = chan < 0;
 
-    if (chan < 0 || chan >= MAXCHAN)
+    if (all) {
+      chan = 0;
+      last = MIDIMAXPORTS * MAXCHAN;
+    }
+    else if (chan >= MIDIMAXPORTS * MAXCHAN)
       return csound->InitError(csound, Str("illegal channel number\n"));
-    chn = csound->m_chnbp[chan];
-    if (insno <= 0) {
-      chn->insno = -1;
+    else
+      last = chan + 1;
+    if (insno > 0 &&
+        (insno > csound->engineState.maxinsno ||
+         csound->engineState.instrtxtp[insno] == NULL)) {
+      csound->Message(csound, Str("Insno = %d\n"), insno);
+      return csound->InitError(csound, Str("unknown instr\n"));
+    }
+    if (all) {
+      if (insno <= 0)
+        csound->Message(csound, Str("all MIDI channels muted\n"));
+      else
+        csound->Message(csound, Str("all MIDI channels using instr %d\n"), insno);
+    }
+    else if (insno <= 0)
       csound->Message(csound, Str("MIDI channel %d muted\n"), chan + 1);
-    }
-    else {
-      if (insno > csound->engineState.maxinsno ||
-          csound->engineState.instrtxtp[insno] == NULL) {
-        csound->Message(csound, Str("Insno = %d\n"), insno);
-        return csound->InitError(csound, Str("unknown instr\n"));
+    else
+      csound->Message(csound, Str("chnl %d using instr %d\n"), chan + 1, insno);
+    for ( ; chan < last; chan++) {
+      chn = csound->m_chnbp[chan];
+      if (insno <= 0)
+        chn->insno = -1;
+      else {
+        chn->insno = (int16_t) insno;
+        /* check for program change: will override massign if enabled */
+        if (chn->pgmno >= 0) {
+          mev.type = PROGRAM_TYPE;
+          mev.chan = (int16_t) chan;
+          mev.dat1 = chn->pgmno;
+          mev.dat2 = 0;
+          m_chanmsg(csound, &mev);
+        }
       }
-      chn->insno = (int16_t) insno;
-      csound->Message(csound, Str("chnl %d using instr %d\n"),
-                              chan + 1, chn->insno);
-      /* check for program change: will override massign if enabled */
-      if (chn->pgmno >= 0) {
-        mev.type = PROGRAM_TYPE;
-        mev.chan = (int16_t) chan;
-        mev.dat1 = chn->pgmno;
-        mev.dat2 = 0;
-        m_chanmsg(csound, &mev);
-      }
+      if (reset_ctls)
+        midi_ctl_reset(csound, (int16_t) chan);
     }
-    if (reset_ctls)
-      midi_ctl_reset(csound, (int16_t) chan);
     return OK;
 }
 
@@ -462,15 +489,14 @@ void AllNotesOff(CSOUND *csound, MCHNBLK *chn)
     }
 }
 
-/* turn off ALL curr midi notes, ALL chnls */
-/*  called by musmon, ctrl 123 & sensMidi  */
+/* turn off ALL curr midi notes, ALL chnls of a port */
+/*  called by ctrl 123 on any of them               */
 
-static void midNotesOff(CSOUND *csound)
+static void midNotesOff(CSOUND *csound, int32_t port)
 {
-    int32_t chan = 0;
-    do {
-      AllNotesOff(csound, csound->m_chnbp[chan]);
-    } while (++chan < MAXCHAN);
+    int32_t chan;
+    for (chan = 0; chan < MAXCHAN; chan++)
+      AllNotesOff(csound, csound->m_chnbp[chan + MAXCHAN * port]);
 }
 
 /* sense a MIDI event, collect the data & dispatch */
@@ -479,7 +505,9 @@ static void midNotesOff(CSOUND *csound)
 int32_t sens_midi(CSOUND *csound)
 {
     MGLOBAL *p = csound->midiGlobals;
-    MEVENT  *mep = p->Midevtblk;
+    MIDIPARSER *src;
+    MEVENT  *mep;
+    unsigned char *srcend;
    const OPARMS  *O = csound->oparms;
     int32_t     n;
     int16   c, type;
@@ -487,15 +515,25 @@ int32_t sens_midi(CSOUND *csound)
     if (p->bufp >= p->endatp) {
       p->bufp = &(p->mbuf[0]);
       p->endatp = p->bufp;
-      if (O->Midiin && !csound->advanceCnt) {   /* read MIDI device */
+      if (O->Midiin && !csound->advanceCnt &&   /* read MIDI device */
+          p->MidiReadCallback != NULL &&
+          p->devbytes < MIDI_DEVICE_CYCLE_MAX) {
         n = p->MidiReadCallback(csound, p->midiInUserData, p->bufp, MBUFSIZ);
         if (n < 0)
           csoundErrorMsg(csound,
                             Str(" *** error reading MIDI device: %d (%s)\n"),
                                  n, csoundExternalMidiErrorString(csound, n));
-        else
+        else if (n > MBUFSIZ)
+          csoundErrorMsg(csound,
+                            Str(" *** error reading MIDI device: read returned "
+                                "%d, more than the %d bytes asked for\n"),
+                                 n, MBUFSIZ);
+        else {
           p->endatp += (int32_t) n;
+          p->devbytes += (int32_t) n;
+        }
       }
+      p->filep = p->endatp;                     /* the file's bytes start here */
       if (O->FMidiin) {                         /* read MIDI file */
         n = csoundMIDIFileRead(csound, p->endatp,
                                MBUFSIZ - (int32_t) (p->endatp - p->bufp));
@@ -505,6 +543,18 @@ int32_t sens_midi(CSOUND *csound)
       if (p->endatp <= p->bufp)
         return 0;               /* no events were received */
     }
+
+    /* A device and a MIDI file are parsed apart. Either can stop in the middle
+       of a message, and the other's bytes are not its next ones. */
+    if (p->bufp < p->filep) {
+      src = &p->device;
+      srcend = p->filep;
+    }
+    else {
+      src = &p->file;
+      srcend = p->endatp;
+    }
+    mep = &src->event;
 
     if ((c = *(p->bufp++)) & 0x80) {    /* STATUS byte:         */
       type = c & 0xF0;
@@ -532,39 +582,39 @@ int32_t sens_midi(CSOUND *csound)
             goto nxtchr;
           }
         else {                          /* sys_non-realtime status: */
-          p->sexp = 0;                  /* implies sys_exclus end   */
+          src->sexp = 0;                /* implies sys_exclus end   */
+          src->datreq = 0;              /*   and running status's   */
           switch (lo3) {                /* dispatch on lo3:     */
           case 7: goto nxtchr;          /* EOX: already done    */
-          case 0: p->sexp = 1;          /* sys_ex begin:        */
+          case 0: src->sexp = 1;        /* sys_ex begin:        */
             goto nxtchr;                /*   goto copy data     */
           /* sys_common: need some data, so build evt */
           case 1:                       /* MTC quarter frame    */
-          case 3: p->datreq = 1;        /* song select          */
+          case 3: src->datreq = 1;      /* song select          */
             break;
-          case 2: p->datreq = 2;        /* song position        */
+          case 2: src->datreq = 2;      /* song position        */
             break;
           case 6:                       /* tune request         */
             goto nxtchr;
-          default:
+          default:                      /* undefined: so is its data */
             csound->Message(csound, Str("undefined sys_common msg %x\n"), c);
-            p->datreq = 32767;          /* waste any data following */
-            p->datcnt = 0;
             goto nxtchr;
           }
         }
         mep->type = type;               /* begin sys_com event  */
         mep->chan = lo3;                /* holding code in chan */
-        p->datcnt = 0;
+        src->datcnt = 0;
         goto nxtchr;
       }
       else {                            /* other status types:  */
         int16 chan;
-        p->sexp = 0;                    /* also implies sys_exclus end */
+        src->sexp = 0;                  /* also implies sys_exclus end */
         chan = c & 0xF;
         mep->type = type;               /* & begin new event    */
         mep->chan = chan;
-        p->datreq = datbyts[(type>>4) & 0x7];
-        if(*p->bufp & 0x80  && p->datreq > 0)
+        src->datreq = datbyts[(type>>4) & 0x7];
+        if(p->bufp < srcend && *p->bufp & 0x80 && *p->bufp < 0xF0
+           && src->datreq > 0)
         {/*
             if there is another status byte inserted after
             a chan msg status byte, this implies a port number
@@ -573,6 +623,11 @@ int32_t sens_midi(CSOUND *csound)
             (not sure if there are times when this is not the case)
             MIDI backend modules can now insert a port number coded in
             this way to allow for separate mapping of devices
+            A module writes it in the same read as its status. A read
+            may end on the status, and what lies past the end is not
+            data, so it is not looked at: nor is a MIDI file's event.
+            A system status is no port: real time may come anywhere,
+            and any other begins a message of its own.
           */
           int32_t port = *(p->bufp++) & 0x7F;
           if(port >= MIDIMAXPORTS) {
@@ -580,30 +635,31 @@ int32_t sens_midi(CSOUND *csound)
                                       ", mapping to port 0\n"), port, MIDIMAXPORTS);
           } else mep->chan += 16*port;
         }
-        p->datcnt = 0;
+        src->datcnt = 0;
         goto nxtchr;
       }
     }
-    if (p->sexp != 0) {                 /* NON-STATUS byte:     */
+    if (src->sexp != 0 ||               /* NON-STATUS byte:     */
+        src->datreq == 0) {             /*   no status yet, so of no message */
       goto nxtchr;
     }
-    if (p->datcnt == 0)
+    if (src->datcnt == 0)
       mep->dat1 = c;                    /* else normal data     */
     else mep->dat2 = c;
-    if (++p->datcnt < p->datreq)        /* if msg incomplete    */
+    if (++src->datcnt < src->datreq)    /* if msg incomplete    */
       goto nxtchr;                      /*   get next char      */
+    *p->Midevtblk = *mep;               /* whole: it is the caller's now */
     /* Enter the input event into a buffer used by 'midiin'. */
     /* VL -- changed to allow higher-mapped channels */
     if (mep->type != SYSTEM_TYPE) {
-      unsigned char *pMessage =
-                    &(p->MIDIINbuffer2[p->MIDIINbufIndex++].bData[0]);
-       p->MIDIINbufIndex &= MIDIINBUFMSK;
-      *pMessage++ = mep->type; // | mep->chan;
-      *pMessage++ = mep->chan + 1;
-      *pMessage++ = (unsigned char) mep->dat1;
-      *pMessage = (p->datreq < 2 ? (unsigned char) 0 : mep->dat2);
+      MIDIMESSAGE *msg = &(p->MIDIINbuffer2[p->MIDIINbufIndex++]);
+      p->MIDIINbufIndex &= MIDIINBUFMSK;
+      msg->status = (unsigned char) mep->type;
+      msg->chan = mep->chan + 1;
+      msg->data1 = (unsigned char) mep->dat1;
+      msg->data2 = (src->datreq < 2 ? 0 : (unsigned char) mep->dat2);
     }
-    p->datcnt = 0;                      /* else allow a repeat  */
+    src->datcnt = 0;                    /* else allow a repeat  */
     /* NB:  this allows repeat in syscom 1,2,3 too */
     if (mep->type > NOTEON_TYPE) {      /* if control or syscom */
       /* The performance thread must wait for earlier asynchronous note-ons

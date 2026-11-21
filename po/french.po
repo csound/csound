@@ -2577,25 +2577,25 @@ msgstr "::orchestre de lecture, utilisez '' pour terminer ::\n"
 
 #: Engine/linevent.c:350
 #, c-format
-msgid "unknown opcode %c"
-msgstr "opcode %c inconnu"
+msgid "unknown opcode %c\n"
+msgstr "opcode %c inconnu\n"
 
 #: Engine/linevent.c:432
-msgid "dot carry has no reference"
-msgstr "le point de report de valeur (carry) n'a pas de référence"
+msgid "dot carry has no reference\n"
+msgstr "le point de report de valeur (carry) n'a pas de référence\n"
 
 #: Engine/linevent.c:437
-msgid "cannot carry string p-field"
-msgstr "impossible de reporter un p-champ chaîne de caractères"
+msgid "cannot carry string p-field\n"
+msgstr "impossible de reporter un p-champ chaîne de caractères\n"
 
 #: Engine/linevent.c:459
 #, c-format
-msgid "too few pfields (%d)"
-msgstr "pas assez de p-champs (%d)"
+msgid "too few pfields (%d)\n"
+msgstr "pas assez de p-champs (%d)\n"
 
 #: Engine/linevent.c:463
-msgid "-L with negative p2 illegal"
-msgstr "-L avec un p2 négatif est illégal"
+msgid "-L with negative p2 illegal\n"
+msgstr "-L avec un p2 négatif est illégal\n"
 
 #: Engine/linevent.c:480
 msgid "too many pfields"
@@ -2606,11 +2606,11 @@ msgstr "trop de p-champs"
 msgid ""
 "illegal RT scoreline:\n"
 "%s\n"
-"%*s"
+"%*s\n"
 msgstr ""
 "ligne de partition RT illégale :\n"
 "%s\n"
-"%*s"
+"%*s\n"
 
 #: Engine/memalloc.c:118
 #, c-format

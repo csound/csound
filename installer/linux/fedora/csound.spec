@@ -26,9 +26,6 @@ BuildRequires: flex bison
 BuildRequires: alsa-lib-devel jack-audio-connection-kit-devel pulseaudio-libs-devel
 BuildRequires: fluidsynth-devel liblo-devel lua-devel
 BuildRequires: fltk-devel fltk-fluid
-BuildRequires: java-devel >= 1.4.0
-BuildRequires: jpackage-utils >= 1.5
-BuildRequires: java-gcj-compat-devel
 BuildRequires: tk-devel tcl-devel
 BuildRequires: tetex tetex-latex libxslt
 BuildRequires: libvorbis-devel libogg-devel
@@ -84,30 +81,6 @@ Requires: %{name} = %{version}-%{release}
 
 %description python-devel
 Contains libraries for developing against csound-python.
-
-%package java
-Summary: Java Csound support
-Group: System Environment/Libraries
-Requires: %{name} = %{version}-%{release}
-Requires:         jpackage-utils >= 1.5
-Requires:         java-1.5.0-gcj
-Requires(post):   jpackage-utils >= 1.5
-Requires(postun): jpackage-utils >= 1.5
-Requires(post):   java-gcj-compat
-Requires(postun): java-gcj-compat
-Requires(post):   /sbin/ldconfig
-Requires(postun): /sbin/ldconfig
-
-%description java
-Contains Java language bindings for developing and running Java
-applications that use Csound.
-
-%package javadoc
-Summary: API documentation for Java Csound support
-Group: Documentation
-
-%description javadoc
-API documentation for the %{name}-java package.
 
 %package tk
 Summary: Tcl/Tk related Csound utilities
@@ -226,16 +199,12 @@ scons dynamicCsoundLibrary=1 \
       buildPythonWrapper=1 \
       buildLuaWrapper=1 \
       buildTclcsound=1 \
-      buildJavaWrapper=1 \
       buildUtilities=1 \
       prefix=%{_prefix} \
       customCCFLAGS="%{optflags}" \
       customCXXFLAGS="%{optflags}" \
       Word64=%{build64bit} \
       useDouble=%{useDouble}
-
-# Generate javadoc
-(cd interfaces; javadoc *.java)
 
 %install
 %{__rm} -rf %{buildroot}
@@ -247,13 +216,6 @@ scons dynamicCsoundLibrary=1 \
 %{__rm} -f %{buildroot}%{_bindir}/uninstall-csound5
 %{__rm} -f %{buildroot}%{_prefix}/csound5-*.md5sums
 
-install -dm 755 %{buildroot}%{_javadir}
-(cd %{buildroot}%{_javadir}; ln -s %{_libdir}/%{name}/java/csnd.jar .)
-
-install -dm 644 %{buildroot}%{_javadocdir}/%{name}-java
-%{__chmod} -R 755 %{buildroot}%{_javadocdir}/%{name}-java
-(cd interfaces; tar cf - *.html csnd/*.html) | (cd %{buildroot}%{_javadocdir}/%{name}-java; tar xvf -)
-
 %{_bindir}/aot-compile-rpm
 
 %find_lang %{name}5
@@ -264,16 +226,6 @@ install -dm 644 %{buildroot}%{_javadocdir}/%{name}-java
 %post -p /sbin/ldconfig
 
 %postun -p /sbin/ldconfig
-
-%post java
-if [ -x %{_bindir}/rebuild-gcj-db ]; then
-  %{_bindir}/rebuild-gcj-db
-fi
-
-%postun java
-if [ -x %{_bindir}/rebuild-gcj-db ]; then
-  %{_bindir}/rebuild-gcj-db
-fi
 
 %files -f %{name}5.lang
 %defattr(-,root,root,-)
@@ -378,18 +330,6 @@ fi
 %files python-devel
 %defattr(-,root,root,-)
 # %{_libdir}/libcsnd.so
-
-%files java
-%defattr(-,root,root,-)
-%{_libdir}/lib_jcsound.so
-%{_libdir}/%{name}/java/
-%{_javadir}/csnd.jar
-%attr(-,root,root) %{_libdir}/gcj/%{name}
-
-%files javadoc
-%defattr(-,root,root,-)
-%doc COPYING
-%doc %{_javadocdir}/%{name}-java
 
 %files tk
 %defattr(-,root,root,-)

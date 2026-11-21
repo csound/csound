@@ -33,5 +33,6 @@ int32_t csound_orclex_init(void *);
 void csound_orcset_extra(void *, void *);
 void csound_orcset_lineno(int32_t,  void*);
 int32_t csound_orclex_destroy(void *);
-TREE* csound_orc_optimize(CSOUND *, TREE *);
+struct type_table;
+TREE* csound_orc_optimize(CSOUND *, TREE *, struct type_table *);
 

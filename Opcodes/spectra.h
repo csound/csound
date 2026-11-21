@@ -255,6 +255,9 @@ typedef struct {
         cs_float   *aout;
         cs_float   *ain, *imethod, *limit, *iarg;
         cs_float   arg, lim, k1, k2;
+        cs_float   kscale, k1n; /* power-of-two normalisation of k1 */
+        cs_float   k1n2inv;     /* reciprocal of k1n squared, or zero */
+        cs_float   cmethod, climit, cshape; /* inputs the coefficients were built from */
         int32_t     meth;
 } CLIP;
 
@@ -347,6 +350,7 @@ int32_t GardnerPink_perf(CSOUND *, PINKISH *p);
 int32_t adsynt(CSOUND *, ADSYNT *p);
 int32_t adsyntset(CSOUND *, ADSYNT *p);
 int32_t clip(CSOUND *, CLIP *p);
+int32_t clip_k(CSOUND *, CLIP *p);
 int32_t clip_set(CSOUND *, CLIP *p);
 int32_t clockoff(CSOUND *, CLOCK *p);
 int32_t clockon(CSOUND *, CLOCK *p);

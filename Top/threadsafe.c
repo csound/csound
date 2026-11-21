@@ -274,11 +274,34 @@ static void report_api_queue_rejection(CSOUND *csound) {
                          "further warnings suppressed until reset\n"));
 }
 
+/* What an async request found, kept for csoundGetAsyncStatus(). A rejection
+   is kept before it is reported, so a host callback the report reaches
+   inside this call reads it there, and again after, since a request that
+   callback makes keeps its own: the rejected call's caller reads its own
+   status when it returns. */
+static void queued(CSOUND *csound, int32_t status) {
+  ATOMIC_SET(csound->msg_queue_status, status);
+  if (status != CSOUND_SUCCESS) {
+    report_api_queue_rejection(csound);
+    ATOMIC_SET(csound->msg_queue_status, status);
+  }
+}
+
+/* An async request refused before the queue was asked - csoundEvent()'s
+   unknown type, a negative count: a drop, with no warning, which is the
+   queue's, once a reset. */
+void async_refused(CSOUND *csound) {
+  ATOMIC_SET(csound->msg_queue_status, CSOUND_ERROR);
+}
+
+int32_t csoundGetAsyncStatus(CSOUND *csound) {
+  return (int32_t) ATOMIC_GET(csound->msg_queue_status);
+}
+
 /* these are the message enqueueing functions for each relevant API function */
 static inline void input_message_enqueue(CSOUND *csound,
                                               const char *str){
-  if (message_enqueue(csound, INPUT_MESSAGE, str, strlen(str)+1) != CSOUND_SUCCESS)
-    report_api_queue_rejection(csound);
+  queued(csound, message_enqueue(csound, INPUT_MESSAGE, str, strlen(str)+1));
 }
 
 static inline int32_t read_score_enqueue(CSOUND *csound, const char *str){
@@ -291,8 +314,7 @@ static inline void table_copy_out_enqueue(CSOUND *csound, int32_t table,
   char args[ARG_ALIGN*2] = { 0 };
   memcpy(args, &table, sizeof(int32_t));
   memcpy(args+ARG_ALIGN, &ptable, sizeof(cs_float *));
-  if (message_enqueue(csound, TABLE_COPY_OUT, args, argsize) != CSOUND_SUCCESS)
-    report_api_queue_rejection(csound);
+  queued(csound, message_enqueue(csound, TABLE_COPY_OUT, args, argsize));
 }
 
 static inline void table_copy_in_enqueue(CSOUND *csound, int32_t table,
@@ -301,8 +323,7 @@ static inline void table_copy_in_enqueue(CSOUND *csound, int32_t table,
   char args[ARG_ALIGN*2] = { 0 };
   memcpy(args, &table, sizeof(int32_t));
   memcpy(args+ARG_ALIGN, &ptable, sizeof(cs_float *));
-  if (message_enqueue(csound, TABLE_COPY_IN, args, argsize) != CSOUND_SUCCESS)
-    report_api_queue_rejection(csound);
+  queued(csound, message_enqueue(csound, TABLE_COPY_IN, args, argsize));
 }
 
 static inline int32_t score_event_enqueue(CSOUND *csound, char type,
@@ -310,8 +331,7 @@ static inline int32_t score_event_enqueue(CSOUND *csound, char type,
                                           long numFields) {
   size_t argsize;
   cs_float *args;
-  if (numFields < 0 || (size_t) numFields > SIZE_MAX / sizeof(cs_float) - 2 ||
-      csound->msg_queue == NULL || message_queue_full(csound))
+  if (csound->msg_queue == NULL || message_queue_full(csound))
     return CSOUND_ERROR;
   argsize = sizeof(cs_float) * ((size_t) numFields + 2);
   args = (cs_float *) csound->Calloc(csound, argsize);
@@ -366,14 +386,15 @@ void input_message_async(CSOUND *csound, const char *message){
 }
 
 void read_score_async(CSOUND *csound, const char *message){
-  if (read_score_enqueue(csound, message) != CSOUND_SUCCESS)
-    report_api_queue_rejection(csound);
+  queued(csound, read_score_enqueue(csound, message));
 }
 
 void score_event_async(CSOUND *csound, char type,
                            const cs_float *pfields, long numFields){
-  if (score_event_enqueue(csound, type, pfields, numFields) != CSOUND_SUCCESS)
-    report_api_queue_rejection(csound);
+  if (numFields < 0 || (size_t) numFields > SIZE_MAX / sizeof(cs_float) - 2)
+    async_refused(csound);
+  else
+    queued(csound, score_event_enqueue(csound, type, pfields, numFields));
 }
 
 void csoundTableCopyOut(CSOUND *csound, int32_t table, cs_float *ptable, int32_t async){

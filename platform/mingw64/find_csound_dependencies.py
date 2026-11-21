@@ -63,7 +63,6 @@ CsoundAC.dll
 CsoundVST.dll
 _CsoundAC.pyd
 _csnd6.pyd
-_jcsound6.dll
 csnd6.dll
 csound64.dll
 luaCsnd6.dll

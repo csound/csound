@@ -128,6 +128,14 @@ void free_opcode_info_chain(CSOUND *);
    active. */
 cs_float *user_opcode_ref_arg_storage(const UOPCODE *p, const char *varName);
 
+/* Call before an opcode object's arguments change after init, while p->ar
+   still holds the old ones. A pass-by-ref body works on xin's copy of an
+   i-rate constant it writes, and a rebind keeps that copy as init left it.
+   A constant given where the call before gave other storage starts the copy
+   from its value, as a body rebound to a variable reads what that holds. */
+void user_opcode_rebind_constants(UOPCODE *p, cs_float **inargs,
+                                  int32_t count);
+
 /* Rewire a pass-by-ref UDO body, and the UDOs nested in it, onto the current
    p->ar locations after an opcode object's arguments change following init. */
 int32_t user_opcode_rebind_args(CSOUND *csound, UOPCODE *p);

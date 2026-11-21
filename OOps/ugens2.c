@@ -609,6 +609,10 @@ static int32_t kposct(CSOUND *csound, OSC *p)
   return OK;
 }
 
+/* Also used by oscili for non-power-of-two tables. Phase advances only for
+   active samples, and interpolation may read the table's guard point.
+   Preserve per-sample phase rounding when batching this loop: independent
+   phases computed as base + lane * si can drift, especially with USE_FLOAT. */
 int32_t posckk(CSOUND *csound, OSC *p)
 {
   FUNC        *ftp = p->ftp;

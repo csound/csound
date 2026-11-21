@@ -25,6 +25,14 @@ instr 1
   ; Both channel names and values must use the array's element spacing.
   kCycle init 0
   kCycle += 1
+  ; Changing one member must not reuse another member's cached channel.
+  if kCycle == 2 then
+    SNames[0] strcpyk "right"
+    SNames[1] strcpyk "left"
+  elseif kCycle == 3 then
+    SNames[0] strcpyk "left"
+    SNames[1] strcpyk "right"
+  endif
   SLeft sprintfk "left %d", kCycle
   SRight sprintfk "right %d", kCycle
   SValues[] init 2
@@ -34,6 +42,12 @@ instr 1
   SRead[] chngets SNames
   if strcmpk(SRead[0], SLeft) != 0 || strcmpk(SRead[1], SRight) != 0 then
     printks "string channel array copy failed on cycle %d\n", 0, kCycle
+    exitnowk(-1)
+  endif
+  SFixedLeft chngetks "left"
+  if kCycle == 2 && strcmpk(SFixedLeft, SRight) != 0 || \
+     kCycle != 2 && strcmpk(SFixedLeft, SLeft) != 0 then
+    printks "string array write ignored a changed name\n", 0
     exitnowk(-1)
   endif
 endin

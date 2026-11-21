@@ -54,42 +54,19 @@ int32_t midibset(CSOUND*, MIDIKMB*);
 
 int32_t massign_p(CSOUND *csound, MASSIGN *p)
 {
-    int32_t   chnl = (int32_t)(*p->chnl + FL(0.5));
-    int32_t   resetCtls;
-    int32_t   retval = OK;
-
-    resetCtls = (*p->iresetctls == FL(0.0) ? 0 : 1);
-    if (--chnl >= 0)
-      retval = m_chinsno(csound, chnl, (int32_t) *p->insno, resetCtls);
-    else {
-      for (chnl = 0; chnl < 16; chnl++) {
-        if (m_chinsno(csound, chnl, (int32_t) *p->insno, resetCtls) != OK)
-          retval = NOTOK;
-      }
-    }
-    return retval;
+    /* channel 0 is every channel of every port */
+    return m_chinsno(csound, (int32_t)(*p->chnl + FL(0.5)) - 1,
+                     (int32_t) *p->insno, *p->iresetctls != FL(0.0));
 }
 
 int32_t massign_S(CSOUND *csound, MASSIGNS *p)
 {
-    int32_t   chnl = (int32_t)(*p->chnl + FL(0.5));
-    int32_t   instno = 0L;
-    int32_t   resetCtls;
-    int32_t   retval = OK;
+    int32_t   instno;
 
     if (UNLIKELY((instno = csoundStringArg2Insno(csound, p->insno->data, 1)) <= 0L))
       return NOTOK;
-
-    resetCtls = (*p->iresetctls == FL(0.0) ? 0 : 1);
-    if (--chnl >= 0)
-      retval = m_chinsno(csound, chnl, (int32_t) instno, resetCtls);
-    else {
-      for (chnl = 0; chnl < 16; chnl++) {
-        if (m_chinsno(csound, chnl, (int32_t) instno, resetCtls) != OK)
-          retval = NOTOK;
-      }
-    }
-    return retval;
+    return m_chinsno(csound, (int32_t)(*p->chnl + FL(0.5)) - 1,
+                     instno, *p->iresetctls != FL(0.0));
 }
 
 
@@ -479,19 +456,23 @@ static int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
     int32_t pgm, ins, chn;
 
     chn = (int32_t)(*p->ichn + 0.5);
-    if (UNLIKELY(chn < 0 || chn > 16))
+    if (UNLIKELY(chn < 0 || chn > MIDIMAXPORTS * MAXCHAN))
       return csound->InitError(csound, Str("illegal channel number\n"));
     /* IV - Oct 31 2002: allow named instruments */
-    if (instname || IsStringCode(*p->inst)) {
-      cs_float buf[128];
-      csound->StringArg2Name(csound, (char*) buf, p->inst, "", 1);
-      ins = (int32_t)csoundStringArg2Insno(csound, buf, 1);
+    if (instname)
+      ins = (int32_t)csoundStringArg2Insno(csound,
+                                           ((STRINGDAT *) p->inst)->data, 1);
+    else if (IsStringCode(*p->inst)) {
+      /* no string behind the code: an empty name, not found */
+      char *name = csoundGetArgString(csound, *p->inst);
+      ins = (int32_t)csoundStringArg2Insno(csound,
+                                           name != NULL ? name : (char *) "", 1);
     }
     else
       ins = (int32_t)(*(p->inst) + FL(0.5));
     if (*(p->ipgm) < FL(0.5)) {         /* program <= 0: assign all pgms */
-      if (!chn) {                           /* on all channels */
-        for (chn = 0; chn < 16; chn++)
+      if (!chn) {                   /* on all channels of every port */
+        for (chn = 0; chn < MIDIMAXPORTS * MAXCHAN; chn++)
           for (pgm = 0; pgm < 128; pgm++)
             csound->m_chnbp[chn]->pgm2ins[pgm] = ins;
       }
@@ -506,8 +487,8 @@ static int32_t pgmassign_(CSOUND *csound, PGMASSIGN *p, int32_t instname)
       if (UNLIKELY(pgm < 0 || pgm > 127)) {
         return csound->InitError(csound, Str("pgmassign: invalid program number\n"));
       }
-      if (!chn) {                           /* on all channels */
-        for (chn = 0; chn < 16; chn++)
+      if (!chn) {                   /* on all channels of every port */
+        for (chn = 0; chn < MIDIMAXPORTS * MAXCHAN; chn++)
           csound->m_chnbp[chn]->pgm2ins[pgm] = ins;
       }
       else {                                /* or selected channel only */
@@ -600,14 +581,14 @@ int32_t midiin_set(CSOUND *csound, MIDIIN *p)
 
 int32_t midiin(CSOUND *csound, MIDIIN *p)
 {
-    unsigned char *temp;                        /* IV - Nov 30 2002 */
+    const MIDIMESSAGE *msg;
     if (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
-      temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
+      msg = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++]);
       p->local_buf_index &= MIDIINBUFMSK;
-      *p->status = (cs_float) *temp; //(*temp & (unsigned char) 0xf0);
-      *p->chan   = (cs_float) *++temp; //((*temp & 0x0f) + 1);
-      *p->data1  = (cs_float) *++temp;
-      *p->data2  = (cs_float) *++temp;
+      *p->status = (cs_float) msg->status;
+      *p->chan   = (cs_float) msg->chan;
+      *p->data1  = (cs_float) msg->data1;
+      *p->data2  = (cs_float) msg->data2;
     }
     else *p->status = FL(0.0);
     return OK;
@@ -622,14 +603,14 @@ int32_t pgmin_set(CSOUND *csound, PGMIN *p)
 
 int32_t pgmin(CSOUND *csound, PGMIN *p)
 {
-    const unsigned char *temp;
+    const MIDIMESSAGE *msg;
     if (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
       int32_t st,ch,d1;
-      temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
+      msg = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++]);
       /* The input buffer stores status and channel separately. */
-      st = temp[0];
-      ch = temp[1];
-      d1 = temp[2];
+      st = msg->status;
+      ch = msg->chan;
+      d1 = msg->data1;
       if (st == 0xC0 && (p->watch==0 || p->watch==ch)) {
         *p->pgm = (cs_float)1+d1;
         *p->chn = (cs_float)ch;
@@ -657,14 +638,14 @@ int32_t ctlin_set(CSOUND *csound, CTLIN *p)
 
 int32_t ctlin(CSOUND *csound, CTLIN *p)
 {
-    const unsigned char *temp;
+    const MIDIMESSAGE *msg;
     if  (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
       int32_t st,ch,d1,d2;
-      temp = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData[0]);
-      st = temp[0];
-      ch = temp[1];
-      d1 = temp[2];
-      d2 = temp[3];
+      msg = &(MGLOB(MIDIINbuffer2)[p->local_buf_index++]);
+      st = msg->status;
+      ch = msg->chan;
+      d1 = msg->data1;
+      d2 = msg->data2;
       if (st == 0xB0 &&
           (p->watch1==0 || p->watch1==ch) &&
           (p->watch2==0 || p->watch2==d1)) {
@@ -716,28 +697,27 @@ int32_t midiarp(CSOUND *csound, MIDIARP *p)
     mode = (int32_t) *p->arpMode;
 
     /* Drain the messages already received before choosing a held note.
-       The buffer stores status, channel, key, velocity as separate bytes. */
+       The buffer stores status, channel, key, velocity as separate fields. */
     while (p->local_buf_index != MGLOB(MIDIINbufIndex)) {
-      const unsigned char *msg =
-        MGLOB(MIDIINbuffer2)[p->local_buf_index++].bData;
+      const MIDIMESSAGE *msg = &MGLOB(MIDIINbuffer2)[p->local_buf_index++];
       int32_t i, j;
       p->local_buf_index &= MIDIINBUFMSK;
-      if (msg[0] != NOTEON_TYPE && msg[0] != NOTEOFF_TYPE)
+      if (msg->status != NOTEON_TYPE && msg->status != NOTEOFF_TYPE)
         continue;
       for (i = 0; i < p->noteCnt; i++)
-        if (p->notes[i] == msg[2] && p->channels[i] == msg[1])
+        if (p->notes[i] == msg->data1 && p->channels[i] == msg->chan)
           break;
-      if (msg[0] == NOTEON_TYPE && msg[3] != 0) {
+      if (msg->status == NOTEON_TYPE && msg->data2 != 0) {
         /* Retriggers do not add another held key. Keep the first ten keys
            when full; ignored keys must not change the count on release. */
         if (i < p->noteCnt || p->noteCnt == 10)
           continue;
-        for (i = p->noteCnt; i > 0 && p->notes[i - 1] > msg[2]; i--) {
+        for (i = p->noteCnt; i > 0 && p->notes[i - 1] > msg->data1; i--) {
           p->notes[i] = p->notes[i - 1];
           p->channels[i] = p->channels[i - 1];
         }
-        p->notes[i] = msg[2];
-        p->channels[i] = msg[1];
+        p->notes[i] = msg->data1;
+        p->channels[i] = msg->chan;
         if (p->noteCnt != 0 && i <= p->noteIndex)
           p->noteIndex++;
         p->noteCnt++;
