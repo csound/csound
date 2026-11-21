@@ -89,6 +89,8 @@ extern "C" {
     void (*updateMemBlockSize)(CSOUND*, struct csvariable*);
     void (*initializeVariableMemory)(CSOUND*, struct csvariable*, cs_float*);
     struct insds *ctx;
+    /* Runtime storage for pool variables; a declared constant default for
+       struct member descriptors, or NULL when no default was declared. */
     CS_VAR_MEM *memBlock;
   } CS_VARIABLE;
 
