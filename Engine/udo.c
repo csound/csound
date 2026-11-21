@@ -2283,13 +2283,8 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     buf = p->buf = (OPCOD_IOBUFS*) lcurip->opcod_iobufs;
     buf->opcode_info = inm;
     /* initialise perf time address lists */
-    /* **** Could be a memset **** */
-    buf->iobufp_ptrs[0] = buf->iobufp_ptrs[1] = NULL;
-    buf->iobufp_ptrs[2] = buf->iobufp_ptrs[3] = NULL;
-    buf->iobufp_ptrs[4] = buf->iobufp_ptrs[5] = NULL;
-    buf->iobufp_ptrs[6] = buf->iobufp_ptrs[7] = NULL;
-    buf->iobufp_ptrs[8] = buf->iobufp_ptrs[9] = NULL;
-    buf->iobufp_ptrs[10] = buf->iobufp_ptrs[11] = NULL;
+    memset(buf->iobufp_ptrs, 0,
+           sizeof(cs_float*) * (size_t)(inm->inchns + inm->outchns));
     /* store parameters of input and output channels, and parent ip */
     buf->uopcode_struct = (void*) p;
     buf->parent_ip = p->parent_ip = parent_ip;
@@ -2533,7 +2528,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
           // no copying of a & k types at i-time !!!
           if (((cur->varType != &CS_VAR_TYPE_A &&
                 cur->varType != &CS_VAR_TYPE_K) ||
-               inm_local->outtypes[output_index] == 'K') &&
+               udo_arg_is_K(inm_local->outtypes, output_index)) &&
               UNLIKELY(udo_copy_value(csound, cur, dst, src,
                                       buf_local->parent_ip,
                                       lcurip->nxtp != NULL, 1) != OK)) {
@@ -2666,7 +2661,7 @@ static int32_t set_inbufs(CSOUND *csound,
     if ((csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
          csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) ||
         // special case: K-type inputs
-          inm->intypes[i] == 'K') {
+          udo_arg_is_K(inm->intypes, i)) {
       if (UNLIKELY(udo_copy_value(csound, current, out, in,
                                   h->insdshead,
                                   h->insdshead->nxtp != NULL, 1) != OK)) {

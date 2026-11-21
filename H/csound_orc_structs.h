@@ -27,7 +27,6 @@
 #include "csound.h"
 #include "csound_type_system.h"
 #include "csoundCore.h"
-#define MAX_STRUCT_ARG_SIZE 1024
 
 typedef struct initstructvar {
   OPDS h;

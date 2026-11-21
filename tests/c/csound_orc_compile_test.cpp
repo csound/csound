@@ -23,6 +23,8 @@ extern "C" {
 #include "str_ops.h"
 #include "udo.h"
 #include "namedins.h"
+#include "pstream.h"
+#include "csound_standard_types.h"
 }
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
@@ -3302,5 +3304,200 @@ endin
     EXPECT_EQ(60, csoundGetControlChannel(csound, "sum", &error));
     EXPECT_EQ(80, csoundGetControlChannel(csound, "idxSum", &error));
     EXPECT_EQ(80, csoundGetControlChannel(csound, "untypedIdxSum", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, UndefinedVarInExpressionArgFailsCleanly)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+  chnset 1 + (iMissingVar * 2), "out"
+endin
+)";
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+}
+
+TEST_F(OrcCompileTests, Instr0IfAfterInstrBlockRunsAtInitTime)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+endin
+giFlag = 1
+if giFlag == 1 then
+  chnset 42, "instr0After"
+endif
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "e 0.05\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int32_t error = 0;
+    EXPECT_EQ(42, csoundGetControlChannel(csound, "instr0After", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, UdoOver12ArgsAndArrayBeforeKArg)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+opcode ManyArgs, kk, kkkkkkkkkkkkkk
+  k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11, k12, k13, k14 xin
+  xout k1 + k13, k12 + k14
+endop
+opcode ArrBeforeK, k[]K, k[]K
+  kArr[], kVal xin
+  kOut[] init 1
+  kOut[0] = kArr[0] + kVal
+  xout kOut, kVal * 2
+endop
+instr 1
+  kA, kB ManyArgs 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14
+  kIn[] = fillarray(5)
+  kScaled init 7
+  kOutArr[], kOutK ArrBeforeK kIn, kScaled
+  chnset kA, "manyA"
+  chnset kB, "manyB"
+  chnset kOutArr[0], "arrOut"
+  chnset kOutK, "kOut"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(14, csoundGetControlChannel(csound, "manyA", &error));
+    EXPECT_EQ(26, csoundGetControlChannel(csound, "manyB", &error));
+    EXPECT_EQ(12, csoundGetControlChannel(csound, "arrOut", &error));
+    EXPECT_EQ(14, csoundGetControlChannel(csound, "kOut", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, CopyUninitializedFsigDoesNotCrash)
+{
+    PVSDAT src{};
+    PVSDAT dest{};
+    CS_VAR_TYPE_F.copyValue(csound, &CS_VAR_TYPE_F, &dest, &src, nullptr);
+    EXPECT_EQ(nullptr, dest.frame.auxp);
+
+    char dummyBuf[16];
+    memset(dummyBuf, 0x5A, sizeof(dummyBuf));
+    dest.frame.auxp = dummyBuf;
+    dest.frame.size = sizeof(dummyBuf);
+    CS_VAR_TYPE_F.copyValue(csound, &CS_VAR_TYPE_F, &dest, &src, nullptr);
+    for (char c : dummyBuf) {
+        EXPECT_EQ(0, c);
+    }
+
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+opcode PassF, f, f
+  fIn xin
+  xout fIn
+endop
+instr 1
+  if 0 == 1 then
+    aZero = 0
+    fUninit pvsanal aZero, 256, 64, 256, 1
+  endif
+  fOut PassF fUninit
+  chnset 1, "fsigDone"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "fsigDone", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, MissingNumberedInstrReturnsNotAnInstrument)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    cs_float missing = 99.0;
+    EXPECT_EQ(NOT_AN_INSTRUMENT, csoundStringArg2Insno(csound, &missing, 0));
+    cs_float present = 1.0;
+    EXPECT_EQ(1, csoundStringArg2Insno(csound, &present, 0));
+}
+
+typedef struct {
+    OPDS h;
+    cs_float *out;
+    cs_float *in1;
+    cs_float *optArg;
+} OPT_QUESTION_TEST_OP;
+
+static int32_t opt_question_test_init(CSOUND *csound, OPT_QUESTION_TEST_OP *p)
+{
+    IGN(csound);
+    *p->out = *p->in1 + *p->optArg;
+    return OK;
+}
+
+TEST_F(OrcCompileTests, OpcodeObjectOptionalQuestionArgReadsProvidedValue)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    OENTRY entry = {
+        const_cast<char*>("optqtest"),
+        sizeof(OPT_QUESTION_TEST_OP),
+        0,
+        const_cast<char*>("i"),
+        const_cast<char*>("i?"),
+        (SUBR)opt_question_test_init,
+        NULL,
+        NULL,
+        NULL,
+        0
+    };
+    ASSERT_EQ(CSOUND_SUCCESS, csoundAppendOpcodes(csound, &entry, 1));
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+  obj1:Opcode create opcoderef("optqtest")
+  iDefault run obj1, 10
+  obj2:Opcode create opcoderef("optqtest")
+  iProvided run obj2, 10, 5
+  chnset iDefault, "optDefault"
+  chnset iProvided, "optProvided"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(10, csoundGetControlChannel(csound, "optDefault", &error));
+    EXPECT_EQ(15, csoundGetControlChannel(csound, "optProvided", &error));
     EXPECT_EQ(CSOUND_SUCCESS, error);
 }

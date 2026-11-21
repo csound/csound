@@ -97,6 +97,98 @@ static char* map_udo_out_arg_type(char* in) {
     The code below (line ~130: if (*in_arg == '[')) expects this
     INTERNAL format where dimension brackets precede the type.
 */
+static int32_t parse_udo_arg_list(CSOUND *csound, OPCODINFO *inm,
+                                  char **args, bool isInput, int32_t *err)
+{
+    int32_t i = 0;
+    char typeSpecifier[256];
+    char tempName[20];
+    ARRAY_VAR_INIT varInit;
+    CS_VAR_POOL *pool = isInput ? inm->in_arg_pool : inm->out_arg_pool;
+    const char *dir = isInput ? "input" : "output";
+
+    if (*args[0] == '0') {
+      return 0;
+    }
+
+    while (args[i] != NULL) {
+      char *arg = args[i];
+      snprintf(tempName, sizeof(tempName), "%s%d", isInput ? "in" : "out", i);
+
+      if (*arg == '[') {
+        int32_t dimensions = 0;
+        char *end;
+        while (*arg == '[') {
+          dimensions += 1;
+          arg += 1;
+        }
+
+        end = arg;
+        while (*end != '\0' && *end != ']') {
+          end++;
+        }
+        if (*end != ']') {
+          synterr(csound,
+                  Str("invalid %s array type for opcode %s: missing ']' in '%s'\n"),
+                  dir, inm->name, args[i]);
+          (*err)++;
+          i++;
+          continue;
+        }
+        size_t length = (size_t)(end - arg);
+        if (length >= sizeof(typeSpecifier)) {
+          length = sizeof(typeSpecifier) - 1;
+        }
+        memcpy(typeSpecifier, arg, length);
+        typeSpecifier[length] = '\0';
+        const CS_TYPE *type =
+          csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
+
+        if (UNLIKELY(type == NULL)) {
+          synterr(csound, Str("invalid %s array type '%s' for opcode %s\n"),
+                  dir, args[i], inm->name);
+          (*err)++;
+          i++;
+          continue;
+        }
+
+        varInit.dimensions = dimensions;
+        varInit.type = type;
+        CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
+                                                &CS_VAR_TYPE_ARRAY,
+                                                tempName, &varInit);
+        var->dimensions = dimensions;
+        csoundAddVariable(csound, pool, var);
+      } else {
+        char *mapped;
+        // Preserve :TypeName; UDT entries directly on both inputs and outputs
+        if (arg[0] == ':' && strchr(arg, ';') != NULL) {
+          mapped = arg;
+        } else {
+          mapped = isInput ? map_udo_in_arg_type(arg)
+                           : map_udo_out_arg_type(arg);
+        }
+
+        const CS_TYPE *type =
+          csoundGetTypeWithVarTypeName(csound->typePool, mapped);
+
+        if (UNLIKELY(type == NULL)) {
+          synterr(csound, Str("invalid %s type '%s' for opcode %s\n"),
+                  dir, args[i], inm->name);
+          (*err)++;
+          i++;
+          continue;
+        }
+
+        CS_VARIABLE *var = csoundCreateVariable(csound, csound->typePool,
+                                                type, tempName, type);
+        csoundAddVariable(csound, pool, var);
+      }
+      i++;
+    }
+    return i;
+}
+
 static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
                                  OPCODINFO *inm)
 {
@@ -107,15 +199,8 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
     }
     char** in_args;
     char** out_args;
-    char typeSpecifier[256];
-    char tempName[20];
-    int32_t i = 0, err = 0;
-    int32_t n=0;
-
-    ARRAY_VAR_INIT varInit;
-
-    typeSpecifier[1] = '\0';
-
+    int32_t err = 0;
+    int32_t n = 0;
 
     in_args = split_args(csound, inm->intypes);
     out_args = split_args(csound, inm->outtypes);
@@ -135,145 +220,9 @@ static int32_t parse_opcode_args(CSOUND *csound, OENTRY *opc,
 
     if (UNLIKELY(err > 0)) goto early_exit;
 
-    if (*in_args[0] != '0') {
-      while (in_args[i] != NULL) {
-        char* in_arg = in_args[i];
-        char* end;
-        snprintf(tempName, 20, "in%d", i);
+    inm->inchns = parse_udo_arg_list(csound, inm, in_args, true, &err);
+    inm->outchns = parse_udo_arg_list(csound, inm, out_args, false, &err);
 
-        if (*in_arg == '[') {
-          int32_t dimensions = 0;
-          while (*in_arg == '[') {
-            dimensions += 1;
-            in_arg += 1;
-          }
-
-          end = in_arg;
-          while (*end != '\0' && *end != ']') {
-            end++;
-          }
-          if (*end != ']') {
-            synterr(csound, Str("invalid input array type for opcode %s: missing ']' in '%s'\n"), inm->name, in_args[i]);
-            err++;
-            i++;
-            continue;
-          }
-          size_t length = (size_t)(end - in_arg);
-          if (length >= sizeof(typeSpecifier)) {
-            length = sizeof(typeSpecifier) - 1;
-          }
-          memcpy(typeSpecifier, in_arg, length);
-          typeSpecifier[length] = '\0';
-          const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
-
-          if (UNLIKELY(type == NULL)) {
-            synterr(csound, Str("invalid input type for opcode %s\n"), in_arg);
-            err++;
-            i++;
-            continue;
-          }
-
-          varInit.dimensions = dimensions;
-          varInit.type = type;
-          CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  &CS_VAR_TYPE_ARRAY,
-                                                  tempName, &varInit);
-          var->dimensions = dimensions;
-          csoundAddVariable(csound, inm->in_arg_pool, var);
-        } else {
-          char *c;
-          // Skip map_udo_in_arg_type for UDT (User Defined Type) entries
-          // UDT entries are in the format :TypeName; and should be used directly
-          if (in_arg[0] == ':' && strchr(in_arg, ';') != NULL) {
-            c = in_arg;  // Use UDT type string directly
-          } else {
-            c = map_udo_in_arg_type(in_arg);  // Map single-char types
-          }
-
-          const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, c);
-
-          if (UNLIKELY(type == NULL)) {
-            synterr(csound, Str("invalid input type for opcode %s\n"), in_args[i]);
-            err++;
-            i++;
-            continue;
-          }
-
-          CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  type, tempName, type);
-          csoundAddVariable(csound, inm->in_arg_pool, var);
-        }
-        i++;
-      }
-    }
-
-    inm->inchns = i;
-    i = 0;
-    if (*out_args[0] != '0') {
-      while(out_args[i] != NULL) {
-        char* out_arg = out_args[i];
-        char* end;
-        snprintf(tempName, 20, "out%d", i);
-
-        if (*out_arg == '[') {
-          int32_t dimensions = 0;
-          while (*out_arg == '[') {
-            dimensions += 1;
-            out_arg += 1;
-          }
-
-          end = out_arg;
-          while (*end != '\0' && *end != ']') {
-            end++;
-          }
-          if (*end != ']') {
-            synterr(csound, Str("invalid output array type for opcode %s: missing ']' in '%s'\n"), inm->name, out_args[i]);
-            err++;
-            i++;
-            continue;
-          }
-          size_t length = (size_t)(end - out_arg);
-          if (length >= sizeof(typeSpecifier)) {
-            length = sizeof(typeSpecifier) - 1;
-          }
-          memcpy(typeSpecifier, out_arg, length);
-          typeSpecifier[length] = '\0';
-          const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, typeSpecifier);
-
-          if (UNLIKELY(type == NULL)) {
-            synterr(csound, Str("invalid output type for opcode %s\n"), out_args[i]);
-            err++;
-            i++;
-            continue;
-          }
-
-          varInit.dimensions = dimensions;
-          varInit.type = type;
-          CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool,
-                                                  &CS_VAR_TYPE_ARRAY,
-                                                  tempName, &varInit);
-          var->dimensions = dimensions;
-          csoundAddVariable(csound, inm->out_arg_pool, var);
-        } else {
-          char* c = map_udo_out_arg_type(out_arg);
-          const CS_TYPE* type = csoundGetTypeWithVarTypeName(csound->typePool, c);
-
-          if (UNLIKELY(type == NULL)) {
-            synterr(csound, Str("invalid output type for opcode %s\n"), out_arg);
-            err++;
-            i++;
-            continue;
-          }
-
-          CS_VARIABLE* var = csoundCreateVariable(csound, csound->typePool, type,
-                                                  tempName, type);
-          csoundAddVariable(csound, inm->out_arg_pool, var);
-        }
-        i++;
-      }
-    }
-
-    inm->outchns = i;
     opc->dsblksiz = (uint16) (sizeof(UOPCODE) +
                               sizeof(cs_float*) * (inm->inchns + inm->outchns));
     opc->dsblksiz = ((opc->dsblksiz + (uint16) 15)
@@ -426,10 +375,8 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     inm->oentry = newopc;
 
     newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
-    /* check in/out types and copy to the opcode's */
-    newopc->outypes = csound->Malloc(csound, strlen(outtypes) + 1
-                                     + strlen(intypes) + 1);
-    newopc->intypes = &(newopc->outypes[strlen(outtypes) + 1]);
+    newopc->outypes = NULL;
+    newopc->intypes = NULL;
     newopc->flags = flags | newopc->flags;
 
     if (UNLIKELY(parse_opcode_args(csound, newopc, inm) != 0))

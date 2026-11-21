@@ -59,16 +59,6 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    cs_float   *args[OPCODENUMOUTS_LOW];
-} XIN_LOW;
-
-typedef struct {
-    OPDS    h;
-    cs_float   *args[OPCODENUMOUTS_HIGH];
-} XIN_HIGH;
-
-typedef struct {
-    OPDS    h;
     cs_float   *args[OPCODENUMOUTS_MAX];
 } XIN_MAX;
 
@@ -79,37 +69,68 @@ typedef struct {
 
 typedef struct {
     OPDS    h;
-    cs_float   *args[OPCODENUMOUTS_LOW];
-} XOUT_LOW;
-
-typedef struct {
-    OPDS    h;
-    cs_float   *args[OPCODENUMOUTS_HIGH];
-} XOUT_HIGH;
-
-typedef struct {
-    OPDS    h;
     cs_float   *args[OPCODENUMOUTS_MAX];
 } XOUT_MAX;
 
 /**
- * Compare two UDO type signature strings for compatibility.
- * Allows 'k' to match 'K' (k-rate input accepting K-type pass-by-reference).
+ * Advance past one UDO type specifier in external or internal form
+ * (e.g., "k", "k[]", "[k]", ":Struct;", ":Struct;[]", "[:Struct;]").
+ */
+static inline const char *udo_next_type_token(const char *p) {
+  if (p == NULL || *p == '\0') return p;
+  while (*p == '[') p++;
+  if (*p == ':') {
+    p++;
+    while (*p != '\0' && *p != ';') p++;
+    if (*p == ';') p++;
+  } else if (*p != '\0') {
+    p++;
+  }
+  while (*p == ']' || (p[0] == '[' && p[1] == ']')) {
+    p += (*p == ']') ? 1 : 2;
+  }
+  return p;
+}
+
+/**
+ * Return 1 iff the argument at `index` in `types` is the scalar "K" type.
+ */
+static inline int32_t udo_arg_is_K(const char *types, int32_t index) {
+  const char *p = types;
+  if (types == NULL || index < 0) return 0;
+  for (int32_t idx = 0; idx < index && *p != '\0'; idx++) {
+    const char *next = udo_next_type_token(p);
+    if (next == p) return 0;
+    p = next;
+  }
+  if (*p == '\0') return 0;
+  return (udo_next_type_token(p) - p == 1 && *p == 'K');
+}
+
+/**
+ * Compare two UDO type signature strings token-by-token.
+ * Allows scalar 'k' to match scalar 'K' (k-rate input accepting K-type pass-by-ref).
  * Returns 0 if signatures match, 1 if they don't.
  */
 static inline int32_t inargs_match(const char *intypes, const char *inargs) {
-  int32_t i;
+  const char *p = intypes;
+  const char *q = inargs;
   if (intypes == NULL || inargs == NULL) return 1;
-  if (strcmp(intypes, inargs) != 0) {
-    for (i = 0; intypes[i] != 0 && inargs[i] != 0; i++) {
-      if (intypes[i] != inargs[i]) {
-        if (intypes[i] == 'k' && inargs[i] == 'K') continue;
-        else return 1;
-      }
+  if (strcmp(intypes, inargs) == 0) return 0;
+  while (*p != '\0' && *q != '\0') {
+    const char *np = udo_next_type_token(p);
+    const char *nq = udo_next_type_token(q);
+    size_t lp = (size_t)(np - p);
+    size_t lq = (size_t)(nq - q);
+    if (lp == 0 || lq == 0) return 1;
+    if (lp != lq) return 1;
+    if (memcmp(p, q, lp) != 0) {
+      if (!(lp == 1 && *p == 'k' && *q == 'K')) return 1;
     }
-    if (intypes[i] != 0 || inargs[i] != 0) return 1;
+    p = np;
+    q = nq;
   }
-  return 0;
+  return (*p != '\0' || *q != '\0') ? 1 : 0;
 }
 
 int32_t useropcd(CSOUND *, UOPCODE *p);

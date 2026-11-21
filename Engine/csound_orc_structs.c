@@ -27,13 +27,6 @@
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
 
-typedef struct {
-  OPDS      h;
-  cs_float*    out;
-  ARRAYDAT* arrayDat;
-  cs_float*    indicies[VARGMAX];
-} STRUCT_ARRAY_GET;
-
 int findStructMemberIndex(CONS_CELL* members, char* memberName) {
     int i = 0;
     while(members != NULL) {
