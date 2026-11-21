@@ -82,6 +82,9 @@
 
 /* return thread index of caller */
 int32_t csp_thread_index_get(CSOUND *csound);
+void csp_barrier_alloc(CSOUND *csound, void **barrier, int32_t thread_count);
+void csp_barrier_dealloc(CSOUND *csound, void **barrier);
+void dag_cleanup(CSOUND *csound);
 
 /* structure headers */
 #define HDR_LEN                 4

@@ -3769,3 +3769,162 @@ endin
     EXPECT_EQ(0, csoundGetControlChannel(csound, "shouldNotReach2", &err));
     EXPECT_EQ(0, csoundGetControlChannel(csound, "shouldNotReach3", &err));
 }
+
+TEST(ParcsTests, MultiInstrumentListAndNamedInstruments)
+{
+    for (int threads : {2, 4}) {
+        CSOUND* csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j " + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char* orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+gkSum init 0
+
+instr 1, 2
+  kOnce init 0
+  if kOnce == 0 then
+    gkSum += p1
+    kOnce = 1
+  endif
+endin
+
+instr Foo, Bar
+  kOnce init 0
+  if kOnce == 0 then
+    gkSum += p4
+    kOnce = 1
+  endif
+  chnset gkSum, "sum"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+        csoundReadScore(csound,
+                        "i 1 0 0.02\n"
+                        "i 2 0 0.02\n"
+                        "i \"Foo\" 0 0.02 10\n"
+                        "i \"Bar\" 0 0.02 20\n"
+                        "e 0.03\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        while (csoundPerformKsmps(csound) == 0) {
+        }
+        int32_t err = 0;
+        EXPECT_DOUBLE_EQ(33.0, (double)csoundGetControlChannel(csound, "sum", &err));
+        EXPECT_EQ(0, err);
+        csoundReset(csound);
+        csoundDestroy(csound);
+    }
+}
+
+TEST(ParcsTests, SharedGlobalsTablesAndChannelsDeterministic)
+{
+    struct Case {
+        const char* name;
+        const char* orchestra;
+    };
+    const Case cases[] = {
+        {"GlobalVar", R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+
+instr 1
+  kCnt init 0
+  kCnt += 1
+  gkShared = kCnt
+endin
+
+instr 2
+  kExp init 0
+  kBad init 0
+  kExp += 1
+  if gkShared != kExp then
+    kBad += 1
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+endin
+)"},
+        {"TableReadWrite", R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+giTbl ftgen 0, 0, 8, -2, 0
+
+instr 1
+  kCnt init 0
+  kCnt += 1
+  tablew kCnt, 0, giTbl
+endin
+
+instr 2
+  kExp init 0
+  kBad init 0
+  kExp += 1
+  kV table 0, giTbl
+  if kV != kExp then
+    kBad += 1
+  endif
+  chnset kBad, "bad"
+  chnset kV, "seen"
+endin
+)"},
+        {"ChannelReadWrite", R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  kCnt init 0
+  kCnt += 1
+  chnset kCnt, "pipe"
+endin
+
+instr 2
+  kExp init 0
+  kBad init 0
+  kExp += 1
+  kV chnget "pipe"
+  if kV != kExp then
+    kBad += 1
+  endif
+  chnset kBad, "bad"
+  chnset kV, "seen"
+endin
+)"},
+    };
+
+    CSOUND* csound = csoundCreate(nullptr, nullptr);
+    ASSERT_NE(nullptr, csound);
+    for (const auto& tc : cases) {
+        SCOPED_TRACE(tc.name);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-j 4"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, tc.orchestra));
+        csoundReadScore(csound, "i 1 0 0.05\ni 2 0 0.05\ne 0.06\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        while (csoundPerformKsmps(csound) == 0) {
+        }
+        int32_t err = 0;
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_GE(csoundGetControlChannel(csound, "seen", &err), FL(50.0));
+        EXPECT_EQ(0, err);
+        csoundReset(csound);
+    }
+    csoundDestroy(csound);
+}

@@ -56,7 +56,6 @@
 #include "fftlib.h"
 #include "lpred.h"
 #include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
 #include "arrays_internal.h"
 #include "namedins.h"
 #include "find_opcode.h"
@@ -979,9 +978,6 @@ static const CSOUND cenviron_ = {
     .multiThreadedDag = NULL,
     .barrier1 = NULL,
     .barrier2 = NULL,
-    .instCurr = NULL,
-    .instRoot = NULL,
-    .inInstr = 0,
     .dag_changed = 1,
     .dag_num_active = 0,
     .dag_task_map = NULL,
@@ -1967,17 +1963,40 @@ static void reset(CSOUND *csound) {
      this idempotent operation for direct cleanup callers. */
   csound_close_audio(csound);
 
-  // stop multicore threads if still running
+#ifdef PARCS
+  // stop multicore threads, join workers, and release barriers/DAG state
   if (csound->oparms->numThreads > 1 &&
-      csound->multiThreadedThreadInfo != NULL &&
-      ATOMIC_GET(csound->multiThreadedComplete) == 0) {
-    ATOMIC_SET(csound->multiThreadedComplete, 1);
+      csound->multiThreadedThreadInfo != NULL) {
+    if (ATOMIC_GET(csound->multiThreadedComplete) == 0) {
+      ATOMIC_SET(csound->multiThreadedComplete, 1);
 #ifdef PARCS_USE_LOCK_BARRIER
-    csound->WaitBarrier(csound->barrier1);
+      if (csound->barrier1 != NULL)
+        csound->WaitBarrier(csound->barrier1);
 #else
-    ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));
+      ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));
 #endif
+    }
+    THREADINFO *t = csound->multiThreadedThreadInfo;
+    while (t != NULL) {
+      THREADINFO *next = t->next;
+      csound->JoinThread(t->threadId);
+      csound->Free(csound, t);
+      t = next;
+    }
+    csound->multiThreadedThreadInfo = NULL;
   }
+#ifdef PARCS_USE_LOCK_BARRIER
+  if (csound->barrier1 != NULL)
+    csp_barrier_dealloc(csound, &(csound->barrier1));
+#endif
+  if (csound->barrier2 != NULL)
+    csp_barrier_dealloc(csound, &(csound->barrier2));
+  if (csound->taskflag != NULL) {
+    csound->Free(csound, csound->taskflag);
+    csound->taskflag = NULL;
+  }
+  dag_cleanup(csound);
+#endif
   csound_cleanup(csound);
   /* call registered reset callbacks */
   while (csound->reset_list != NULL) {

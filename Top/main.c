@@ -26,7 +26,6 @@
 #include "sread.h"
 
 #include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
 // #include "cs_par_dispatch.h"
 
 #if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)

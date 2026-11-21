@@ -2038,9 +2038,6 @@ struct CSOUND_ {
   struct dag_t *multiThreadedDag;                            /* parallel execution graph */
   void *barrier1;                                            /* parallel execution barrier 1 */
   void *barrier2;                                            /* parallel execution barrier 2 */
-  struct instr_semantics_t *instCurr;                        /* instrument currently under semantic analysis */
-  struct instr_semantics_t *instRoot;                        /* root of the instrument semantic tree */
-  int32_t inInstr;                                           /* inside an instrument during semantic analysis */
   int32_t dag_changed;                                       /* execution graph changed flag */
   int32_t dag_num_active;                                    /* number of active graph nodes */
   INSDS **dag_task_map;                                      /* graph node to instrument instance map */

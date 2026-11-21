@@ -57,7 +57,6 @@ cs_float initialise_io(CSOUND *csound);
 int32_t merge_state_enqueue(CSOUND *csound, ENGINE_STATE *e, TYPE_TABLE *t,
                             OPDS *ids);
 OENTRY* find_opcode(CSOUND*, char*);
-void sanitize(CSOUND *csound);
 
 static int32_t udo_entry_is_init_control(CSOUND *csound,
                                          const ENGINE_STATE *engineState,
@@ -3023,10 +3022,6 @@ static int32_t compile_orc(CSOUND *csound, const char *str, int32_t async) {
     if (context != NULL) context->enabled = 0;
 #endif
     retVal = csound_compile_tree(csound, root, async);
-#ifdef PARCS
-    // Sanitise semantic sets here
-    sanitize(csound);
-#endif
     csoundDeleteTree(csound, root);
   } else {
     /* csoundParseOrc only returns NULL when parsing itself failed; empty

@@ -89,7 +89,6 @@ ORCTOKEN* make_int(CSOUND *,char *, void*);
 ORCTOKEN* make_num(CSOUND *,char *, void *);
 ORCTOKEN *make_token(CSOUND *csound, char *s, void *);
 TREE* copy_node(CSOUND*, TREE*);
-extern void csp_orc_sa_print_list(CSOUND*);
 
 /* Diagnostic only; called after execution-rate resolution. */
 void csound_orc_dump_templates(CSOUND *, ENGINE_STATE *);

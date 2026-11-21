@@ -150,21 +150,6 @@
 #include "csound_orc.h"
 #include "parse_param.h"
 
-#ifdef PARCS
-#include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
-#else
-#define csp_orc_sa_instr_add(a,b)
-#define csp_orc_sa_instr_add_tree(a,b)
-#define csp_orc_sa_instr_finalize(a)
-#define csp_orc_sa_global_read_write_add_list(a,b,c)
-#define csp_orc_sa_globals_find(a,b)
-#define csp_orc_sa_global_read_write_add_list1(a,b,c)
-#define csp_orc_sa_interlocks(a, b)
-#define csp_orc_sa_global_read_add_list(a,b)
-#define csp_orc_sa_global_write_add_list(a,b);
-#endif
-
     extern TREE* parser_append(CSOUND * csound, TREE *first, TREE *newlast);
     extern int csound_orclex(TREE**, CSOUND *, void *);
     extern void print_tree(CSOUND *, char *msg, TREE *);
@@ -179,14 +164,6 @@
     extern void add_instr_variable(CSOUND *csound,  TREE *x);
 %}
 %%
-
-/* TODO
-
- - add csp_orc_sa_instr_add calls in later csp analyze phase
-   => these seem to be done now below, in the instr_definition rules
- - add csp_orc_sa_global_read_write_add_list etc
-   => not sure where exactly?
-*/
 
 orcfile : root_statement_list
           {
@@ -238,22 +215,18 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
                   {  $$ = make_node(csound, (int32_t) csound_orcget_iline(scanner),
                                   csound_orcget_ilocn(scanner), INSTR_TOKEN,
                                   $2, $5);
-                    csp_orc_sa_instr_finalize(csound);
                  }
                 | INSTR_TOKEN NEWLINE error
                  { csound->ErrorMsg(csound, Str("No number following instr\n"));
-                  csp_orc_sa_instr_finalize(csound);
                   $$ = NULL;
                  }
                 ;
 
 
 instr_id_list : instr_id_list ',' instr_id
-                  { csp_orc_sa_instr_add_tree(csound, $3);
-                    add_instr_variable(csound, $3);
+                  { add_instr_variable(csound, $3);
                     $$ = parser_append(csound, $1, $3); }
-              | instr_id  { csp_orc_sa_instr_add_tree(csound, $1);
-                    add_instr_variable(csound, $1);
+              | instr_id  { add_instr_variable(csound, $1);
                 }
               ;
 

@@ -126,7 +126,6 @@ static int32_t preprocess_orc(CSOUND *csound, const char *str, PRE_PARM *qq)
       /* A failed live edit must not carry errors into the next request. */
       csound->synterrcnt = 0;
       qq->csound = csound;
-      //csp_orc_sa_print_list(csound);
       csound_prelex_init(&qq->yyscanner);
       csound_preset_extra(qq, qq->yyscanner);
       qq->line = csound->orcLineOffset;
@@ -257,9 +256,6 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
                              corfile_tell(csound->expanded_orc), pp->yyscanner);
       err = csound_orcparse(pp, pp->yyscanner, csound, &astTree);
       corfile_rm(csound, &csound->expanded_orc);
-#ifdef PARCS
-      if (UNLIKELY(csoundGetDebug(csound) > 99)) csp_orc_sa_print_list(csound);
-#endif
       if (UNLIKELY(csound->synterrcnt)) err = 3;
       if (LIKELY(err == 0)) {
         if (csoundGetDebug(csound) & DEBUG_PARSER)
