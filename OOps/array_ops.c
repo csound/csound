@@ -31,12 +31,11 @@
 static int32_t is_intentionally_empty_array(CSOUND *csound,
                                             const ARRAYDAT *dat)
 {
-  size_t allocated = csound_array_allocated_bytes(csound, dat);
-
   return dat != NULL && dat->data != NULL && dat->dimensions == 1 &&
          dat->sizes != NULL && dat->sizes[0] == 0 &&
          dat->arrayMemberSize > 0 &&
-         allocated == (size_t)dat->arrayMemberSize;
+         csound_array_allocated_bytes(csound, dat) ==
+           (size_t)dat->arrayMemberSize;
 }
 
 int32_t array_init(CSOUND *csound, ARRAYINIT *p)
@@ -549,8 +548,8 @@ static int32_t array_get_common(CSOUND *csound, ARRAY_GET *p,
   }
   // Check if this is a struct array that needs auto-sizing before bounds checking
   if (dat->dimensions > 0 && dat->sizes != NULL &&
-      !is_intentionally_empty_array(csound, dat) &&
-      dat->arrayType && dat->arrayType->userDefinedType) {
+      dat->arrayType && dat->arrayType->userDefinedType &&
+      !is_intentionally_empty_array(csound, dat)) {
     int needsAutoSizing = 0;
     for (int32_t j = 0; j < dat->dimensions; j++) {
       if (dat->sizes[j] <= 0) {
