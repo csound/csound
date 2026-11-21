@@ -1036,7 +1036,7 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
     CSOUND  *csound = ff->csound;
     int32_t     cnt, start, finish, fnlen, j;
     cs_float   *pp = &ff->e.p[5], fn, amp, *fp, *fp18 = ftp->ftable, f;
-    cs_double  range, position;
+    uint32_t range;
     FUNC    *fnp;
     int32_t     nargs = ff->e.pcnt - 4;
 
@@ -1066,17 +1066,23 @@ static int32_t gen18(FGDATA *ff, FUNC *ftp)
         fp18[start] += amp * fp[0];
         continue;
       }
-      range = (cs_double) (finish - start), j = start;
+      range = (uint32_t)(finish - start), j = start;
       while (j <= finish) {                      /* write the table */
-        uint32_t ii;
-        /* Convert before multiplying: valid table sizes can overflow int32. */
-        position = (cs_double) fnlen * (j - start) / range;
-        ii = (uint32_t) position;
-        f = (cs_float) (position - ii);
-        if (ii == (uint32_t) fnlen)
-          fp18[j++] += amp * fp[ii];
-        else
-          fp18[j++] += amp * ((f * (fp[ii+1] - fp[ii])) + fp[ii]);
+        /* Keep the cell and exact knots independent of float rounding. */
+        uint64_t position = (uint64_t)fnlen * (uint32_t)(j - start);
+        uint32_t ii = (uint32_t)(position / range);
+        uint32_t remainder = (uint32_t)(position % range);
+        cs_double value = fp[ii];
+        if (remainder != 0) {
+          f = (cs_float)((cs_double)remainder / range);
+          const cs_double next = fp[ii + 1];
+          const cs_double slope = next - value;
+          if (LIKELY(isfinite(slope)))
+            value += f * slope;
+          else
+            value = (FL(1.0) - f) * value + f * next;
+        }
+        fp18[j++] += amp * value;
       }
     }
     return OK;
