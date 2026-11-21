@@ -127,22 +127,44 @@ typedef struct {
         AUXCH   aux;
 } LPFRESON;
 
+/* Energy is (value - correction) * 2^exponent. Keep the mantissa normal
+   even when the sample's square or its weighted contribution is not. */
+typedef struct {
+        cs_double value, correction;
+        int32_t exponent;
+} RMS_ENERGY;
+
+typedef struct {
+        cs_double c1, c2, weight;
+        int32_t weight_exponent;
+} RMS_COEFS;
+
 typedef struct {
         OPDS    h;
         cs_float   *kr, *asig, *ihp, *istor;
-        cs_double   c1, c2, prvq;
+        RMS_COEFS coefficients;
+        RMS_ENERGY energy;
 } RMS;
+
+typedef struct {
+        cs_double mantissa;
+        int exponent;
+} RMS_GAIN;
 
 typedef struct {
         OPDS    h;
         cs_float   *ar, *asig, *krms, *ihp, *istor;
-        cs_double  c1, c2, prvq, prva;
+        RMS_COEFS coefficients;
+        RMS_ENERGY energy;
+        RMS_GAIN prva;
 } GAIN;
 
 typedef struct {
         OPDS    h;
         cs_float   *ar, *asig, *csig, *ihp, *istor;
-        cs_double  c1, c2, prvq, prvr, prva;
+        RMS_COEFS coefficients;
+        RMS_ENERGY energy, reference;
+        RMS_GAIN prva;
 } BALANCE;
 
 typedef struct {
