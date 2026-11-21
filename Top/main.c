@@ -161,7 +161,8 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
 
 /* List only after decoding options, so every plugin option can take effect. */
 static void list_if_requested(CSOUND *csound) {
-  if (LIKELY(!csound->list_opcodes_request && !csound->list_structs_request))
+  if (LIKELY(!csound->list_opcodes_request && !csound->list_structs_request &&
+             !csound->list_plugins_request))
     return;
   if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
     csound->LongJmp(csound, 1);
@@ -169,6 +170,8 @@ static void list_if_requested(CSOUND *csound) {
     list_opcodes(csound, csound->list_opcodes_request - 1);
   if (csound->list_structs_request)
     list_structs(csound);
+  if (csound->list_plugins_request)
+    list_plugins(csound);
   csound->LongJmp(csound, 0);
 }
 

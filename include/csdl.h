@@ -186,6 +186,44 @@ PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 PUBLIC int32_t csoundModuleInfo(void)                                       \
 { return CSOUND_MODULE_INFO; }
 
+/** Export the plugin's own version, which is independent of the Csound
+ * version. Optional; plugins without it still load. Use it once per plugin
+ * library, at file scope, followed by a semicolon:
+ *
+ * \code
+ * CSOUND_PLUGIN_VERSION("1.4.2");
+ * \endcode
+ *
+ * The version is a string literal of printable ASCII characters, shorter than
+ * CSOUND_MODULE_VERSION_MAX bytes. Semantic Versioning is recommended.
+ * It is a data symbol, so tools can read it without running plugin code.
+ * Do not use it in opcode sources built into libcsound.
+ */
+#if defined(_WIN32) || defined(__CYGWIN__)
+#  define CSOUND_PLUGIN_EXPORT_DATA __declspec(dllexport)
+#  define CSOUND_PLUGIN_USED_DATA
+#elif defined(__GNUC__) || defined(__clang__)
+#  define CSOUND_PLUGIN_EXPORT_DATA __attribute__((visibility("default")))
+#  define CSOUND_PLUGIN_USED_DATA   __attribute__((used))
+#else
+#  define CSOUND_PLUGIN_EXPORT_DATA
+#  define CSOUND_PLUGIN_USED_DATA
+#endif
+
+/* "used" goes on the definition only: compilers ignore it, with a warning,
+   on a declaration. */
+#ifdef __cplusplus
+#  define CSOUND_PLUGIN_VERSION(v) \
+     extern "C" CSOUND_PLUGIN_EXPORT_DATA const char csoundModuleVersion[]; \
+     extern "C" CSOUND_PLUGIN_EXPORT_DATA CSOUND_PLUGIN_USED_DATA \
+     const char csoundModuleVersion[] = v
+#else
+#  define CSOUND_PLUGIN_VERSION(v) \
+     extern CSOUND_PLUGIN_EXPORT_DATA const char csoundModuleVersion[]; \
+     CSOUND_PLUGIN_EXPORT_DATA CSOUND_PLUGIN_USED_DATA \
+     const char csoundModuleVersion[] = v
+#endif
+
 #undef FLINKAGE_BUILTIN
 #define FLINKAGE_BUILTIN(name)                                          \
 PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \

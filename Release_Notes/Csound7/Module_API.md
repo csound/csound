@@ -172,6 +172,22 @@ This value includes version and precision information for the loader.
 The loader rejects native opcode plugins with missing, zero, or incompatible
 metadata before their entry points run.
 
+A plugin can also give its own version, which is independent of the Csound
+version. Use `CSOUND_PLUGIN_VERSION` once, at file scope:
+
+```c
+CSOUND_PLUGIN_VERSION("1.4.2");
+```
+
+The macro exports a `csoundModuleVersion` string as data, with C linkage in
+C++ too. Tools can read it from the library without running plugin code.
+It is optional, and plugins without it load as before. Use printable ASCII
+shorter than `CSOUND_MODULE_VERSION_MAX` (64) bytes; Semantic Versioning is
+recommended. `csound --list-plugins` prints each loaded plugin library with
+its version and path. With `-v`, the loader also reports each plugin's version
+as it loads, and ignores an invalid string with a warning. Do not use the macro in opcode sources
+built into libcsound.
+
 `CreateInstanceVariable` and `QueryInstanceVariable` provide named storage
 for opcodes in the same instrument instance. Use them instead of private
 `INSDS` fields for shared instance state. The engine owns this storage.
