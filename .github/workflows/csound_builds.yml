@@ -982,6 +982,84 @@ jobs:
           name: csound-${{env.CSOUND_VERSION}}-${{github.run_number}}-arm-cortex-m7
           path: arm-cortex-m7
 
+  esp32_float_csd_tests:
+    name: ESP32 float CSD tests (Linux host)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up build reuse
+        uses: ./.github/actions/setup-build
+        with:
+          compiler-cache: 'true'
+          variant: esp32-float-csd
+
+      - name: Install test dependencies
+        uses: ./.github/actions/native-test-deps
+
+      - name: Configure host build with ESP32 float precision
+        # The ESP libraries cannot run on this host. Match their precision
+        # while retaining the host CLI and file support needed by the suite.
+        # BUILD_TESTS selects C++ unit tests; csdtests is a separate target.
+        run: >
+          cmake -S . -B build-esp32-float-host -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DUSE_DOUBLE=OFF
+          -DUSE_FLOAT=ON
+          -DBUILD_TESTS=OFF
+          -DBUILD_UTILITIES=ON
+          -DUSE_CURL=OFF
+
+      - name: Build Csound and utility opcodes
+        run: ninja -C build-esp32-float-host
+
+      - name: Run CSD tests
+        id: csdtests
+        shell: bash
+        env:
+          # csdtests sets OPCODE7DIR64, but float builds use OPCODE7DIR.
+          OPCODE7DIR: ${{ github.workspace }}/build-esp32-float-host
+        run: |
+          ninja -C build-esp32-float-host csdtests 2>&1 | tee build-esp32-float-host/csdtests.log
+
+      - name: Summarize CSD failures
+        if: ${{ always() }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          log = Path("build-esp32-float-host/csdtests.log")
+          lines = log.read_text(errors="replace").splitlines() if log.exists() else []
+          counts = [line for line in lines if line.startswith(
+              ("Tests Passed:", "Tests Failed:", "Tests Skipped:"))]
+          failures = dict.fromkeys(line for line in lines if line.startswith("[FAIL] Test "))
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+              summary.write("### ESP32 float CSD tests (Linux host)\n\n")
+              summary.write("Runs with `USE_DOUBLE=OFF, USE_FLOAT=ON`; "
+                            "does not execute ESP32 firmware.\n\n")
+              summary.write("```text\n")
+              summary.write("\n".join(counts) if counts else "The CSD suite did not finish.")
+              summary.write("\n" + "\n".join(failures) + "\n```\n\n")
+              summary.write("See the esp32-float-csd-results artifact for full output.\n")
+          PY
+
+      - name: Upload CSD results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: esp32-float-csd-results
+          path: |
+            build-esp32-float-host/csdtests.log
+            build-esp32-float-host/tests/commandline/results.txt
+            build-esp32-float-host/CMakeCache.txt
+          if-no-files-found: warn
+
   bare_esp32:
     name: ESP32 ${{ matrix.chip }} build
     runs-on: ubuntu-latest
