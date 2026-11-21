@@ -32,7 +32,7 @@ instr CheckImpulse
     ; All frequencies below are whole numbers of Hz. After one second,
     ; the phase has completed whole cycles. Check one sample later so
     ; phase error is visible as well as decay error.
-    iExpected = exp(-(sr+1)/(sr*iDecay))*cos(2*$M_PI*iFrequency/sr)
+    iExpected = exp(-(sr+1)/(sr*iDecay))*cos(2*$M_PI*min(iFrequency,sr/2)/sr)
     kKK vaget 1, aKK
     kAK vaget 1, aAK
     kKA vaget 1, aKA
@@ -46,9 +46,35 @@ instr CheckImpulse
   kBlock += 1
 endin
 
+instr CheckVarying
+  aImpulse mpulse 1, 0
+  aFrequency init 0
+  kN = 0
+  while kN < ksmps do
+    vaset (kN % 2 == 0 ? 11025 : 23000), kN, aFrequency
+    kN += 1
+  od
+  aOut mvmfilter aImpulse, aFrequency, 1024
+  aFrequency mvmfilter aImpulse, aFrequency, 1024
+  kBlock init 0
+  if kBlock == kr then
+    ; The 48000 steps after the impulse cover 17012.5 cycles; the next
+    ; step is at 23000 Hz. Derive the phase without a float running sum.
+    iExpected = -exp(-(sr+1)/(sr*1024))*cos(2*$M_PI*23000/sr)
+    kActual vaget 1, aOut
+    kInPlace vaget 1, aFrequency
+    if !(abs(kActual-iExpected) < .00001 && abs(kInPlace-iExpected) < .00001) then
+      printks "mvmfilter changing frequency: %.12g / %.12g expected %.12g\n", 0, kActual, kInPlace, iExpected
+      exitnowk -1
+    endif
+    gkChecks += 1
+  endif
+  kBlock += 1
+endin
+
 instr CheckCompletion
-  if i(gkChecks) != 3 then
-    prints "The long-decay and both tuning checks must complete\n"
+  if i(gkChecks) != 8 then
+    prints "All decay and tuning checks must complete\n"
     exitnow -1
   endif
 endin
@@ -59,6 +85,11 @@ i "CheckImpulse" 0 1.01 0 1024
 ; Higher frequencies expose phase error accumulated over many samples.
 i "CheckImpulse" 0 1.01 11025 2
 i "CheckImpulse" 0 1.01 23000 2
+i "CheckImpulse" 0 1.01 -23000 2
+i "CheckImpulse" 0 1.01 24000 2
+i "CheckImpulse" 0 1.01 -72000 2
+i "CheckImpulse" 0 1.01 30000 2
+i "CheckVarying" 0 1.01
 i "CheckCompletion" 1.02 .001
 e
 </CsScore>
