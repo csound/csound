@@ -808,7 +808,7 @@ static const CSOUND cenviron_ = {
     .perferrcnt = 0,
     .total_assert_cnt = 0,
     .warped = 0,
-    .jumpset = 0,
+    .unused_jumpset = 0,
     .inZero = 1,
     .orcLineOffset = 1,
     .scoLineOffset = 0,
@@ -1135,8 +1135,8 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   CSOUND_WASI_COMPILE_JUMP *compile = csoundWasiCompileJumpContext(csound);
   if (compile != NULL && compile->enabled)
     longjmp(compile->target, retval == 0 ? 1 : retval);
-  /* exitjmp belongs to the control/render caller. A worker cannot unwind that
-     stack or safely recover a partly initialized opcode. P1 proc_exit stops
+  /* A worker cannot unwind the control caller's stack or safely recover a
+     partly initialized opcode. P1 proc_exit stops
      all threads; avoid callbacks and cleanup that could wait on held locks. */
   if (csoundWasiIsWorkerThread())
     _Exit(EXIT_FAILURE);

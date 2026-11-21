@@ -1,6 +1,7 @@
 #if defined(CSOUND_TEST_PTHREADS) && !defined(__EMSCRIPTEN__) && !defined(__wasi__)
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
+#include "csmodule.h"
 #include "gtest/gtest.h"
 
 #include <atomic>
@@ -29,6 +30,47 @@ extern "C" int32_t perform_buffer(CSOUND *csound);
 namespace {
 
 const char *const header = "sr = 48000\nksmps = 16\nnchnls = 1\n0dbfs = 1\n";
+
+/* Use different stack depths so a stale jump target cannot rely on a host
+ * calling every block from the same stack address. Keep work after the call
+ * to prevent a tail call.
+ */
+CS_NOINLINE int32_t firstBlock(CSOUND *csound)
+{
+  volatile unsigned char pad[32] = {0};
+  int32_t result = csoundPerformKsmps(csound);
+  return result + pad[0];
+}
+
+CS_NOINLINE int32_t laterBlock(CSOUND *csound)
+{
+  volatile unsigned char pad[4096] = {0};
+  int32_t result = csoundPerformKsmps(csound);
+  return result + pad[0];
+}
+
+int32_t performChildAndExit(CSOUND *csound, void *)
+{
+  auto *child = static_cast<CSOUND *>(csoundGetHostData(csound));
+  csoundSetControlChannel(csound, "child_first", csoundPerformKsmps(child));
+  csoundEventString(child, "i1 0 -1", 0);
+  csoundSetControlChannel(csound, "child_result", csoundPerformKsmps(child));
+  csound->LongJmp(csound, 4);
+  return CSOUND_ERROR;
+}
+
+int32_t jumpFive(CSOUND *csound)
+{
+  csound->LongJmp(csound, 5);
+  return CSOUND_ERROR;
+}
+
+int32_t catchJumpInOpcode(CSOUND *csound, void *)
+{
+  int32_t result = csoundCatchJump(csound, jumpFive);
+  csoundSetControlChannel(csound, "caught", result);
+  return CSOUND_SUCCESS;
+}
 
 /* Each case performs until its end, or for ten seconds. */
 const auto patience = std::chrono::seconds(10);
@@ -105,19 +147,18 @@ class RealtimeInitJumpTests : public ::testing::TestWithParam<bool> {
   }
 
   /* What a k-cycle returns that is not 0. Or 0: after a thousand k-cycles
-     more once the channel named is 1, or after patience. A jump returns to
-     the place of csoundPerformKsmps's first call, so a test calls this once,
-     and does what comes between the first k-cycle and the next ones in
-     afterFirst.
+     more once the channel named is 1, or after patience. Run afterFirst
+     after the first successful cycle when supplied.
    */
   int32_t perform(const char *until = nullptr,
+                  int32_t (*performCall)(CSOUND *) = csoundPerformKsmps,
                   const std::function<void()> &afterFirst = nullptr)
   {
     const auto deadline = std::chrono::steady_clock::now() + patience;
     int32_t more = -1;
     bool first = true;
     while (more != 0 && std::chrono::steady_clock::now() < deadline) {
-      int32_t result = csoundPerformKsmps(csound);
+      int32_t result = performCall(csound);
       if (result != 0)
         return result;
       if (first && afterFirst)
@@ -164,6 +205,91 @@ class RealtimeInitJumpTests : public ::testing::TestWithParam<bool> {
     return free;
   }
 };
+
+TEST_P(RealtimeInitJumpTests, ALaterCallTakesItsOwnJump)
+{
+  start("instr 1\n exitnow 3\nendin\n", nullptr);
+  ASSERT_EQ(firstBlock(csound), 0);
+  csoundEventString(csound, "i1 0 -1", 0);
+  EXPECT_EQ(perform(nullptr, laterBlock), -3);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
+  EXPECT_TRUE(initMutexFree());
+}
+
+TEST_P(RealtimeInitJumpTests, ACallAfterResetTakesItsOwnJump)
+{
+  start("instr 1\n exitnow 3\nendin\n", nullptr);
+  ASSERT_EQ(firstBlock(csound), 0);
+  csoundReset(csound);
+  ASSERT_EQ(csoundSetOption(csound, "-n -d -m0"), 0);
+  if (GetParam())
+    ASSERT_EQ(csoundSetOption(csound, "--realtime"), 0);
+  start("instr 1\n exitnow 3\nendin\n", "i1 0 -1");
+  EXPECT_EQ(perform(nullptr, laterBlock), -3);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
+  EXPECT_TRUE(initMutexFree());
+}
+
+TEST_P(RealtimeInitJumpTests, ANestedInstanceRestoresTheOuterJump)
+{
+  std::unique_ptr<CSOUND, decltype(&csoundDestroy)> child(
+    csoundCreate(nullptr, nullptr), csoundDestroy);
+  ASSERT_NE(child, nullptr);
+  ASSERT_EQ(csoundSetOption(child.get(), "-n -d -m0"), 0);
+  std::string code = std::string(header) + "instr 1\n exitnow 3\nendin\n";
+  ASSERT_EQ(csoundCompileOrc(child.get(), code.c_str(), 0), 0);
+  ASSERT_EQ(csoundStart(child.get()), 0);
+
+  csoundSetHostData(csound, child.get());
+  ASSERT_EQ(csoundAppendOpcode(csound, "test_perform_child", sizeof(OPDS),
+                              0, "", "", nullptr, performChildAndExit, nullptr), 0);
+  start("instr 1\n test_perform_child\nendin\n", "i1 0 -1");
+  EXPECT_EQ(perform(), -4);
+  EXPECT_EQ(csoundGetControlChannel(csound, "child_first", nullptr), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "child_result", nullptr), -3);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
+  EXPECT_EQ(ATOMIC_GET(child->performance_epoch) & 1, 0);
+  EXPECT_TRUE(initMutexFree());
+  csoundSetHostData(csound, nullptr);
+}
+
+TEST_P(RealtimeInitJumpTests, ACatchJumpOnThePerformingThreadLandsLocally)
+{
+  ASSERT_EQ(csoundAppendOpcode(csound, "test_catch_jump", sizeof(OPDS), 0,
+                              "", "", nullptr, catchJumpInOpcode, nullptr), 0);
+  start("instr 1\n"
+        " test_catch_jump\n"
+        " chnset 1, \"after\"\n"
+        " turnoff\n"
+        "endin\n", "i1 0 -1");
+  EXPECT_EQ(perform("after"), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "caught", nullptr), CSOUND_ERROR);
+  EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 1);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
+  EXPECT_TRUE(initMutexFree());
+}
+
+TEST_P(RealtimeInitJumpTests, ACatchJumpDuringInitRestoresTheOuterInitState)
+{
+  ASSERT_EQ(csoundAppendOpcode(csound, "test_catch_jump_init", sizeof(OPDS), 0,
+                              "", "", catchJumpInOpcode, nullptr, nullptr), 0);
+  start("instr 1\n"
+        " test_catch_jump_init\n"
+        " chnset 1, \"between\"\n"
+        " exitnow 4\n"
+        " chnset 1, \"after\"\n"
+        "endin\n", "i1 0 -1");
+  EXPECT_EQ(perform(), -4);
+  EXPECT_EQ(csoundGetControlChannel(csound, "caught", nullptr), CSOUND_ERROR);
+  EXPECT_EQ(csoundGetControlChannel(csound, "between", nullptr), 1);
+  EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 0);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_TRUE(initMutexFree());
+}
 
 /* exitnow 3 gives -3. */
 TEST_P(RealtimeInitJumpTests, ANoteInitEndsThePerformance)
@@ -235,6 +361,8 @@ TEST_P(RealtimeInitJumpTests, AReinitEndsThePerformance)
         " rireturn\n"
         "endin\n", "i1 0 -1");
   EXPECT_EQ(perform(), -3);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
   EXPECT_TRUE(initMutexFree());
 }
 
@@ -262,6 +390,21 @@ TEST_P(RealtimeInitJumpTests, ACompileErrorInCompilestrIsCompilestrs)
   EXPECT_EQ(perform("after"), 0);
   EXPECT_NE(csoundGetControlChannel(csound, "result", nullptr), 0);
   EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 1);
+}
+
+TEST_P(RealtimeInitJumpTests, ACompileErrorDoesNotEndBufferPerformance)
+{
+  start("instr 1\n"
+        " iResult = compilestr(\"instr 2\\n kMissing[0] = 1\\nendin\\n\")\n"
+        " chnset iResult, \"result\"\n"
+        " chnset 1, \"after\"\n"
+        "endin\n", "i1 0 -1");
+  EXPECT_EQ(perform("after", perform_buffer), 0);
+  EXPECT_NE(csoundGetControlChannel(csound, "result", nullptr), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 1);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
+  EXPECT_TRUE(initMutexFree());
 }
 
 /* The same for compilecsd, with a CSD that asks for a Csound before 1.0. */
@@ -457,7 +600,7 @@ TEST_P(RealtimeInitJumpTests, AJumpWhileAHostCompilesIsThePerformances)
   start("instr 1\n exitnowk 3\nendin\n", nullptr);
   std::unique_ptr<HeldCompile> compile;
   bool held = false;
-  EXPECT_EQ(perform(nullptr, [&] {
+  EXPECT_EQ(perform(nullptr, csoundPerformKsmps, [&] {
     compile.reset(new HeldCompile(csound, "instr 2\nendin\n"));
     held = compile->held();
     csoundEventString(csound, "i1 0 -1", 0);
@@ -477,7 +620,7 @@ TEST_P(RealtimeInitJumpTests, AHostsCompileLeavesThePerformanceItsLanding)
   start("instr 1\n exitnowk 3\nendin\n", nullptr);
   HeldCompile compile(csound, "instr 2\nendin\n");
   ASSERT_TRUE(compile.held());
-  EXPECT_EQ(perform(nullptr, [&] {
+  EXPECT_EQ(perform(nullptr, csoundPerformKsmps, [&] {
     EXPECT_EQ(compile.join(), 0);
     csoundEventString(csound, "i1 0 -1", 0);
   }), -3);

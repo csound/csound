@@ -249,10 +249,8 @@ extern "C" {
      plugin loaders and csoundCatchJump, csoundRunUtility, argdecode's for an
      options file and for csoundSetOption, csoundScoreSort and
      csoundScoreExtract, and the calls below made inside another call on
-     their thread (api_call_nested). A jump lands at the target
-     of the innermost on its thread: exitjmp is left to the call that
-     performs, or starts, on its own, and another thread's jump never finds
-     this one. In a compile's (api_call_begin), an init pass takes its own
+     their thread (api_call_nested), and each performance call. A jump
+     lands at the innermost target on its thread. In a compile's (api_call_begin), an init pass takes its own
      jump and the call gives it (jumped), and the init thread's landings
      stand aside while it runs. A call that reads jumped after a jump makes
      its setjmp in a frame of its own, under the record's. linevent.c's
@@ -278,14 +276,13 @@ extern "C" {
   void api_call_catch(CSOUND *, API_CALL *);
   int32_t api_call_takes_passes(const CSOUND *);
   /* For the calls that set exitjmp and keep it when they run on their own
-     (csoundCompile, csoundStart, csoundSetOption, csoundPerformKsmps,
-     perform_buffer): whether they run inside another call on this thread
+     (csoundCompile, csoundStart, csoundSetOption): whether they run inside
+     another call on this thread
      (api_call_running); then they catch in a call of their own, and
      exitjmp stays. api_call_nested gives the landing, exitjmp or the target
      of a call it began, and marks the thread while it runs on its own;
      api_call_nested_end ends that, on every way out, after a jump to its
-     landing too. The performance calls use api_call_running and mark
-     nothing, so that their landing reads nothing of a frame left. */
+     landing too. */
   int32_t api_call_running(const CSOUND *);
   jmp_buf *api_call_nested(CSOUND *, API_CALL *);
   void api_call_nested_end(const API_CALL *);

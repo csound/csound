@@ -1410,7 +1410,11 @@ int32_t csoundCatchJump(CSOUND *csound, int32_t (*func)(CSOUND *))
   if (csoundWasiIsWorkerThread())
     return func(csound);
 #endif
-  api_call_catch(csound, &call);
+  /* A note's init pass must keep its current opcode if this call fails. */
+  if (note_init_runs(csound))
+    api_call_begin(csound, &call);
+  else
+    api_call_catch(csound, &call);
   if (setjmp(call.target) != 0)
     err = CSOUND_ERROR;
   else
