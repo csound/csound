@@ -58,6 +58,7 @@ public:
 
 extern "C" {
     extern int32_t args_required (const char* arrayName);
+    extern uint8_t file_to_int (CSOUND *csound, const char *name);
     extern char** split_args (CSOUND* csound, const char* argString);
     extern OENTRY* find_opcode_new (CSOUND* csound, const char* opname,
                                     const char* outArgsFound,
@@ -3500,4 +3501,271 @@ endin
     EXPECT_EQ(10, csoundGetControlChannel(csound, "optDefault", &error));
     EXPECT_EQ(15, csoundGetControlChannel(csound, "optProvided", &error));
     EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, EvalCodeExitNowBeforeStartReturnsCleanly)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    EXPECT_EQ(FL(0.0), csoundEvalCode(csound, "exitnow 3\n"));
+}
+
+static bool replace_opcode_lexeme(CSOUND *csound, TREE *node,
+                                  const char *from, const char *to)
+{
+    if (node == nullptr) return false;
+    if (node->value != nullptr && node->value->lexeme != nullptr &&
+        strcmp(node->value->lexeme, from) == 0) {
+        csound->Free(csound, node->value->lexeme);
+        node->value->lexeme = csoundStrdup(csound, to);
+        node->markup = nullptr;
+        return true;
+    }
+    return replace_opcode_lexeme(csound, node->left, from, to) ||
+           replace_opcode_lexeme(csound, node->right, from, to) ||
+           replace_opcode_lexeme(csound, node->next, from, to);
+}
+
+TEST(OrcCompileRecoveryTests, RecoverAfterFailedInitialCompileOrcTreeAndCsd)
+{
+    const char *validOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+  chnset 42, "recovered"
+endin
+)";
+    // 1. Failed initial csoundCompileOrc -> valid csoundCompileOrc
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        EXPECT_NE(CSOUND_SUCCESS,
+                  csoundCompileOrc(cs, "instr 1\n  unknown_op_xyz 1\nendin\n"));
+        EXPECT_EQ(nullptr, cs->instr0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, validOrc));
+        csoundReadScore(cs, "i 1 0 0.1\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(42, csoundGetControlChannel(cs, "recovered", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // 2. Failed initial csoundCompileTree -> valid csoundCompileTree
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        TREE *badTree = csoundParseOrc(cs, "instr 1\n  prints \"hi\"\nendin\n");
+        ASSERT_NE(nullptr, badTree);
+        ASSERT_TRUE(replace_opcode_lexeme(cs, badTree, "prints", "nonexistent_op_xyz"));
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileTree(cs, badTree, 0));
+        csoundDeleteTree(cs, badTree);
+        EXPECT_EQ(nullptr, cs->instr0);
+        EXPECT_EQ(nullptr, cs->engineState.instrtxtp);
+        EXPECT_EQ(0, cs->synterrcnt);
+
+        TREE *okTree = csoundParseOrc(cs, validOrc);
+        ASSERT_NE(nullptr, okTree);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileTree(cs, okTree, 0));
+        csoundDeleteTree(cs, okTree);
+        csoundReadScore(cs, "i 1 0 0.1\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(42, csoundGetControlChannel(cs, "recovered", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // 3. Failed initial csoundCompileCSD -> valid csoundCompileCSD
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        const char *badCsd = R"(
+<CsoundSynthesizer>
+<CsOptions>
+-n -d -m0
+</CsOptions>
+<CsInstruments>
+instr 1
+  unknown_csd_op_xyz 1
+endin
+</CsInstruments>
+<CsScore>
+i 1 0 0.1
+</CsScore>
+</CsoundSynthesizer>
+)";
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileCSD(cs, badCsd, 1, 0));
+        EXPECT_EQ(nullptr, cs->scorestr);
+        EXPECT_EQ(nullptr, cs->instr0);
+
+        const char *goodCsd = R"(
+<CsoundSynthesizer>
+<CsOptions>
+-n -d -m0
+</CsOptions>
+<CsInstruments>
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+  chnset 42, "recovered"
+endin
+</CsInstruments>
+<CsScore>
+i 1 0 0.1
+</CsScore>
+</CsoundSynthesizer>
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(cs, goodCsd, 1, 0));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(42, csoundGetControlChannel(cs, "recovered", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+}
+
+TEST_F(OrcCompileTests, GlobalStructMemberAccessCodegen)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+
+struct GlobalPair a:i, b:i
+pair@global:GlobalPair init 10, 32
+
+instr 1
+  iSum = pair.a + pair.b
+  chnset iSum, "structSum"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(42, csoundGetControlChannel(csound, "structSum", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, NamedInstrRedefinitionWithAllowRedefAndLiveMerge)
+{
+    csoundSetOption(csound, "-n -d -m0 --allow-redefinition");
+    const char *initialOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+
+instr TestNamed
+  kOut init 10
+  chnset kOut, "namedVal"
+endin
+
+instr TestNamed
+  kOut init 25
+  chnset kOut, "namedVal"
+endin
+
+instr LiveNamed
+  kVal init 1
+  chnset kVal, "liveVal"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, initialOrc));
+    csoundReadScore(csound, "i \"TestNamed\" 0 0.05\ni \"LiveNamed\" 0 0.2\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+
+    int32_t err = 0;
+    EXPECT_EQ(25, csoundGetControlChannel(csound, "namedVal", &err));
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "liveVal", &err));
+
+    // Redefine LiveNamed while an instance is still active (deadpool + merge)
+    const char *liveUpdate = R"(
+instr LiveNamed
+  kVal init 99
+  chnset kVal, "liveVal"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, liveUpdate));
+    csoundReadScore(csound, "i \"LiveNamed\" 0 0.05\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    EXPECT_EQ(99, csoundGetControlChannel(csound, "liveVal", &err));
+}
+
+TEST_F(OrcCompileTests, FileToIntExceeds255AndResetsCleanly)
+{
+    for (int i = 0; i < 270; ++i) {
+        char name[32];
+        snprintf(name, sizeof(name), "inc_%d.orc", i);
+        uint8_t idx = file_to_int(csound, name);
+        if (i < 254) {
+            EXPECT_EQ(static_cast<uint8_t>(i), idx);
+        } else {
+            EXPECT_EQ(254, idx);
+        }
+    }
+    EXPECT_NE(nullptr, csound->filedir[254]);
+    EXPECT_EQ(nullptr, csound->filedir[255]);
+    EXPECT_EQ(254, file_to_int(csound, "another_overflow_file.orc"));
+    csoundReset(csound);
+}
+
+TEST_F(OrcCompileTests, CsobjDestroyThenDeleteAndUninitializedGuards)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  obj:Csound create
+  iOk compilestr obj, "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\ninstr 1\nendin\n"
+  chnset iOk, "compiledOk"
+  destroy obj
+  chnset 1, "destroyedOk"
+endin
+
+instr 2
+  if 0 == 1 then
+    uninitObj:Csound create
+  endif
+  iRes compilestr uninitObj, "instr 1\nendin\n"
+  chnset 1, "shouldNotReach2"
+endin
+
+instr 3
+  obj:Csound create
+  destroy obj
+  iRes setoption obj, "-n"
+  chnset 1, "shouldNotReach3"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.01\ni 2 0 0.01\ni 3 0 0.01\ne 0.05\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    // Run long enough for instr 1's deinit (`delete`) to execute too
+    for (int i = 0; i < 20; ++i) {
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    }
+    int32_t err = 0;
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "compiledOk", &err));
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "destroyedOk", &err));
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "shouldNotReach2", &err));
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "shouldNotReach3", &err));
 }

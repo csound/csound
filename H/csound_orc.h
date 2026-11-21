@@ -91,8 +91,6 @@ ORCTOKEN *make_token(CSOUND *csound, char *s, void *);
 TREE* copy_node(CSOUND*, TREE*);
 extern void csp_orc_sa_print_list(CSOUND*);
 
-int32_t  query_reversewrite_opcode(CSOUND *, ORCTOKEN *);
-
 /* Diagnostic only; called after execution-rate resolution. */
 void csound_orc_dump_templates(CSOUND *, ENGINE_STATE *);
 

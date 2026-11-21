@@ -23,6 +23,7 @@
 #include "corfile.h"
 #include "soundfile.h"
 #include "csound_orc.h"
+#include "sread.h"
 
 #include "cs_par_base.h"
 #include "cs_par_orc_semantics.h"
@@ -531,6 +532,8 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
     if (UNLIKELY(csound->orchstr == NULL)) {
       csoundErrorMsg(csound, Str("No orchestra: CSD file %s has no "
                                  "<CsInstruments>\n"), name);
+      if (csound->scorestr != NULL)
+        corfile_rm(csound, &csound->scorestr);
       return CSOUND_ERROR;
     }
 
@@ -582,6 +585,8 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
                               "(engineStatus: %d).\n"),
                           csound->engineStatus);
       }
+    } else if (csound->scorestr != NULL) {
+      corfile_rm(csound, &csound->scorestr);
     }
     return res;
   } else
@@ -596,6 +601,7 @@ int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t 
 
   /* Score errors must return to this active API call, not an earlier one. */
   if ((result = setjmp(call.target)) != 0) {
+    sread_abandon(csound);
     result = (result - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS;
   } else if (mode == 0) {
     input = copy_to_corefile(csound, str, NULL, 0);

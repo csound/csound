@@ -1626,20 +1626,49 @@ int32_t csoundCompileTree(CSOUND *csound, TREE *root, int32_t async) {
   return csound_compile_orc(csound, str, async);
 }
 
+static CS_NOINLINE cs_float eval_code_body(CSOUND *csound, const char *str)
+{
+  if (str == NULL || csound_compile_orc(csound, str, 0) != CSOUND_SUCCESS)
+    return FL(0.0);
+  /* The block evaluated: before the start its global code runs below, and
+     a compilestr in it puts another global instrument in instr 0's place. */
+  if (csound->API_lock != NULL)
+    csoundLockMutex(csound->API_lock);
+  INSTRTXT *evaluated = csound->instr0;
+  if (csound->API_lock != NULL)
+    csoundUnlockMutex(csound->API_lock);
+  if (!(csound->engineStatus & CS_STATE_COMP)) {
+    init0_pending(csound);
+  }
+  if (csound->API_lock != NULL)
+    csoundLockMutex(csound->API_lock);
+  cs_float retval = (evaluated != NULL && evaluated->instance != NULL)
+                    ? evaluated->instance[0].retval
+                    : FL(0.0);
+  if (csound->API_lock != NULL)
+    csoundUnlockMutex(csound->API_lock);
+  return retval;
+}
+
+static CS_NOINLINE cs_float eval_code_own_jumps(CSOUND *csound, API_CALL *call,
+                                               const char *str)
+{
+  if (setjmp(call->target) != 0)
+    return FL(0.0);
+  return eval_code_body(csound, str);
+}
+
 cs_float csoundEvalCode(CSOUND *csound, const char *str)
 {
-  int32_t async = 0;
-  if (str && csound_compile_orc(csound,str,async)
-      == CSOUND_SUCCESS){
-    /* The block evaluated: before the start its global code runs below, and
-       a compilestr in it puts another global instrument in instr 0's place. */
-    INSTRTXT *evaluated = csound->instr0;
-    if(!(csound->engineStatus & CS_STATE_COMP)) {
-      init0_pending(csound);
-    }
-    return evaluated->instance != NULL ? evaluated->instance[0].retval : FL(0.0);
-    }
-  else return 0; // always return 0 on failure
+  if (!api_call_running(csound)) {
+    API_CALL call;
+    cs_float retval;
+    api_call_begin(csound, &call);
+    retval = eval_code_own_jumps(csound, &call, str);
+    api_call_end(&call);
+    return retval;
+  }
+  return eval_code_body(csound, str);
 }
 
 

@@ -271,12 +271,14 @@ static int32_t append_message(CSOUND *csound, const char *message,
                               int32_t block, int32_t *grown) {
     int32  size = (int32) strlen(message);
 
-    if (linevent_alloc(csound, 0) != 0) return 0;
+    if (linevent_alloc(csound, 0) != 0) return 1;
 
     /* An orchestra block's buffer, made by the call that sends a { line,
        on its thread, rather than when sense_line reads the block */
-    if (block && STA(orchestrab) == NULL)
+    if (block && STA(orchestrab) == NULL) {
       STA(orchestra) = STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
+      if (STA(orchestrab) == NULL) return 1;
+    }
     if (!size) return 0;
     if (UNLIKELY((STA(Linep) + size) >= STA(Linebufend))) {
       /* and one more, for the newline added below */
@@ -322,47 +324,145 @@ static int32_t input_message(CSOUND *csound, const char *message,
    Returns the end of what was taken, or NULL when no line is complete. */
 static char *take_lines(CSOUND *csound)
 {
-    char    *cp, *last = NULL;
+    char    *cp, *last;
     int32_t len = 0, n;
 
-    csoundSpinLock(&csound->line_event_spinlock);
-    /* An init on the realtime init thread asked for a rewind, or the rewind
-       it asked for is not made yet: the lines wait, and are read once the
-       performance has rewound, as they are without --realtime. Under the
-       lock: a line sent after the ask is never read before it. */
-    if (ATOMIC_GET(csound->rewind_asking) != 0 ||
-        ATOMIC_GET(csound->score_rewind_request) !=
-        ATOMIC_GET(csound->score_rewind_served)) {
-      csoundSpinUnLock(&csound->line_event_spinlock);
-      return NULL;
-    }
-    if (csound->Linefd >= 0) {
-      n = (int32_t) read(csound->Linefd, STA(Linep), STA(Linebufend) - STA(Linep));
-      STA(Linep) += (n > 0 ? n : 0);
-    }
-    for (cp = STA(Linep); cp > STA(Linebuf); cp--)
-      if (cp[-1] == LF) {
-        last = cp;
-        break;
+    while (1) {
+      csoundSpinLock(&csound->line_event_spinlock);
+      /* An init on the realtime init thread asked for a rewind, or the rewind
+         it asked for is not made yet: the lines wait, and are read once the
+         performance has rewound, as they are without --realtime. Under the
+         lock: a line sent after the ask is never read before it. */
+      if (ATOMIC_GET(csound->rewind_asking) != 0 ||
+          ATOMIC_GET(csound->score_rewind_request) !=
+          ATOMIC_GET(csound->score_rewind_served)) {
+        csoundSpinUnLock(&csound->line_event_spinlock);
+        return NULL;
       }
-    if (last != NULL) {
+      if (csound->Linefd >= 0) {
+        while (STA(Linep) < STA(Linebufend)) {
+          n = (int32_t) read(csound->Linefd, STA(Linep),
+                             (size_t)(STA(Linebufend) - STA(Linep)));
+          if (n <= 0)
+            break;
+          STA(Linep) += n;
+        }
+      }
+      last = NULL;
+      for (cp = STA(Linep); cp > STA(Linebuf); cp--) {
+        if (cp[-1] == LF) {
+          last = cp;
+          break;
+        }
+      }
+      if (last == NULL) {
+        if (csound->Linefd >= 0 && STA(Linep) >= STA(Linebufend)) {
+          if (STA(linebufsiz) < MAXSTR) {
+            int32_t newsize = STA(linebufsiz) * 2;
+            if (newsize > MAXSTR || newsize <= STA(linebufsiz))
+              newsize = MAXSTR;
+            API_CALL call;
+            INIT_LANDING landing;
+            int32_t landed;
+            volatile int32_t allocErr = 1;
+            api_call_begin(csound, &call);
+            landed = init_landing_push(csound, &landing);
+            if (!landed || setjmp(landing.target) == 0) {
+              allocErr = linevent_alloc(csound, newsize);
+            }
+            if (landed)
+              init_landing_pop(&landing);
+            api_call_end(&call);
+            if (allocErr == 0) {
+              csoundSpinUnLock(&csound->line_event_spinlock);
+              continue;
+            }
+          }
+          /* Drop oversized partial line so -L input cannot stall forever. */
+          STA(Linep) = STA(Linebuf);
+        }
+        csoundSpinUnLock(&csound->line_event_spinlock);
+        return NULL;
+      }
       len = (int32_t) (last - STA(Linebuf));
       if (csound->line_event_work == NULL ||
           len + 1 > csound->line_event_work_size) {
-        csound->line_event_work = (char *) (csound->line_event_work == NULL
-                              ? csound->Calloc(csound, len + 1)
-                              : csound->ReAlloc(csound, csound->line_event_work,
-                                                len + 1));
+        char *work = csound->line_event_work;
+        csoundSpinUnLock(&csound->line_event_spinlock);
+        work = (char *) (work == NULL
+                         ? csound->Calloc(csound, len + 1)
+                         : csound->ReAlloc(csound, work, len + 1));
+        if (work == NULL)
+          return NULL;
+        csound->line_event_work = work;
         csound->line_event_work_size = len + 1;
+        continue;
       }
       memcpy(csound->line_event_work, STA(Linebuf), len);
       csound->line_event_work[len] = '\0';
       n = (int32_t) (STA(Linep) - last);
       memmove(STA(Linebuf), last, n);
       STA(Linep) = STA(Linebuf) + n;
+      csoundSpinUnLock(&csound->line_event_spinlock);
+      return csound->line_event_work + len;
     }
-    csoundSpinUnLock(&csound->line_event_spinlock);
-    return last == NULL ? NULL : csound->line_event_work + len;
+}
+
+/* Find the first standalone '}' closing an orchestra block, ignoring braces
+   inside "..." strings, {{...}} multi-line strings, and Csound comments. */
+static char *find_orc_block_end(const char *start, const char *end)
+{
+    const char *p = start;
+    while (p < end) {
+      char ch = *p;
+      if (ch == '"') {
+        p++;
+        while (p < end && *p != '"' && *p != LF) {
+          if (*p == '\\' && (p + 1) < end && p[1] != LF)
+            p += 2;
+          else
+            p++;
+        }
+        if (p < end && *p == '"')
+          p++;
+        continue;
+      }
+      if (ch == '{' && (p + 1) < end && p[1] == '{') {
+        p += 2;
+        while (p < end) {
+          if (*p == '}' && (p + 1) < end && p[1] == '}') {
+            p += 2;
+            break;
+          }
+          p++;
+        }
+        continue;
+      }
+      if (ch == ';' || (ch == '/' && (p + 1) < end && p[1] == '/')) {
+        while (p < end && *p != LF)
+          p++;
+        continue;
+      }
+      if (ch == '/' && (p + 1) < end && p[1] == '*') {
+        p += 2;
+        while (p < end) {
+          if (*p == '*' && (p + 1) < end && p[1] == '/') {
+            p += 2;
+            break;
+          }
+          p++;
+        }
+        continue;
+      }
+      if (ch == '}') {
+        int32_t nextIsBrace = ((p + 1) < end && p[1] == '}');
+        int32_t prevIsBrace = (p > start && p[-1] == '}');
+        if (!nextIsBrace && !prevIsBrace)
+          return (char *)p;
+      }
+      p++;
+    }
+    return NULL;
 }
 
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
@@ -406,7 +506,8 @@ static void sense_line(CSOUND *csound, void *userData)
           if(c == '}' && cpp1 != '}') {
             STA(oflag) = 0;
             if (STA(orchestra) != NULL) {
-              csoundCompileOrc(csound, STA(orchestrab), 0);
+              csoundCompileOrc(csound, STA(orchestrab),
+                               csound->oparms->realtime ? 1 : 0);
               csound->Message(csound, Str("::compiling orchestra::\n"));
             }
             STA(orchestra) = STA(orchestrab);
@@ -414,10 +515,8 @@ static void sense_line(CSOUND *csound, void *userData)
             continue;
           }
           else {
-            /* the block's text taken: to the last }, unless that ends a {{
-               string, or all of it, with more to come */
-            char *end = strrchr(Linestart, '}');
-            if (end == NULL || *(end-1) == '}')
+            char *end = find_orc_block_end(Linestart, Linend);
+            if (end == NULL)
               end = Linend;
             if (STA(orchestra) != NULL &&
                 end - Linestart >= MAXSTR - (STA(orchestra) - STA(orchestrab))) {
@@ -439,6 +538,12 @@ static void sense_line(CSOUND *csound, void *userData)
             continue;
           }
         } else if(c == '{') {
+          if (STA(orchestrab) == NULL) {
+            STA(orchestra) = STA(orchestrab) =
+              (char *) csound->Calloc(csound, MAXSTR);
+          } else {
+            STA(orchestra) = STA(orchestrab);
+          }
           STA(oflag) = 1;
           *STA(orchestrab) = '\0';             /* none of the block before */
           csound->Message(csound,
