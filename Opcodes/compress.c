@@ -20,10 +20,11 @@
     Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
+#include <float.h>
+
 #ifdef BUILD_PLUGINS
 #include "csdl.h"
 #else
-#include <float.h>
 #include "csoundCore.h"
 #endif
 #include "interlocks.h"
