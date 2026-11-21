@@ -311,16 +311,16 @@ static int32_t platerev(CSOUND *csound, PLATE *p)
         uint32_t yo = (uint32_t)floor(yod)+2u;
         const cs_double xf = xleft - (cs_double)left;
         /* Reflect the integer cells and keep the same interpolation weights. */
-        const uint32_t near = xoffset > FL(0.0) ? Nx - left + 2u : left + 2u;
-        const uint32_t far = xoffset > FL(0.0) ? near - 1u : near + 1u;
+        const uint32_t near_cell = xoffset > FL(0.0) ? Nx - left + 2u : left + 2u;
+        const uint32_t far_cell = xoffset > FL(0.0) ? near_cell - 1u : near_cell + 1u;
         cs_double yf = yod-(cs_double)(yo-2);
         const size_t row = Nx5 * yo;
         p->co[qq] = cv; p->so[qq] = sv;
         /* Form each row in the same order under horizontal reflection. */
-        volatile cs_double top_left = (FL(1.0)-xf)*u[row + near];
-        volatile cs_double top_right = xf*u[row + far];
-        volatile cs_double bottom_left = (FL(1.0)-xf)*u[row + Nx5 + near];
-        volatile cs_double bottom_right = xf*u[row + Nx5 + far];
+        volatile cs_double top_left = (FL(1.0)-xf)*u[row + near_cell];
+        volatile cs_double top_right = xf*u[row + far_cell];
+        volatile cs_double bottom_left = (FL(1.0)-xf)*u[row + Nx5 + near_cell];
+        volatile cs_double bottom_right = xf*u[row + Nx5 + far_cell];
         (p->aout[qq])[n] = (cs_float)((FL(1.0)-yf)*(top_left+top_right)+
                                      yf*(bottom_left+bottom_right))/FL(25.0);
       }
