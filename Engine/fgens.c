@@ -757,7 +757,9 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
       scale = 0.5 / n;
       pdlen = PI / (cs_double) ff->flen;
       for (phs = 0; fp <= finp; phs++) {
-        x = phs * pdlen;
+        /* The cosine sum is even. Keep the sine quotient away from pi,
+           where float rounding can swamp both numerator and denominator. */
+        x = (phs <= ff->flen / 2 ? phs : ff->flen - phs) * pdlen;
         denom = sin(x);
         if (fabs(denom)<1.0e-10) //(!(denom = (cs_float) sin(x)))
           *fp++ = FL(1.0);
@@ -769,9 +771,16 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
       cs_double  numer, twor, rsqp1, rtn, rtnp1, absr;
       cs_double  km1, kpn, kpnm1;
 
-      km1   = (cs_double) k - 1.0;
-      kpn   = (cs_double) k + n;
-      kpnm1 = kpn - 1;
+      cs_double first = k, polarity = FL(1.0);
+      if (fabs(r) > FL(1.0)) {
+        /* Reverse the harmonics and normalize the reciprocal weights. */
+        first = -((cs_double)k + (n - 1));
+        if (r < FL(0.0) && !(n & 1)) polarity = FL(-1.0);
+        r = FL(1.0) / r;
+      }
+      km1   = first - FL(1.0);
+      kpn   = first + n;
+      kpnm1 = kpn - FL(1.0);
       twor  = r * FL(2.0);
       rsqp1 = r * r + FL(1.0);
       rtn   = intpow(r, (int32) n);
@@ -779,9 +788,10 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
       if ((absr = fabs(r)) == 1.0)
         scale = 1.0 / n;
       else scale = (1.0 - absr) / (1.0 - fabs(rtn));
+      scale *= polarity;
       for (phs = 0; fp <= finp; phs++) {
-        x = (cs_double) phs * tpdlen;
-        numer = cos(x*k) - r * cos(x*km1) - rtn*cos(x*kpn)
+        x = (cs_double)(phs <= ff->flen / 2 ? phs : ff->flen - phs) * tpdlen;
+        numer = cos(x*first) - r * cos(x*km1) - rtn*cos(x*kpn)
                 + rtnp1 * cos(x*kpnm1);
         if ((denom = rsqp1 - twor * cos(x)) > FL(0.0001)
             || denom < -FL(0.0001))
@@ -791,7 +801,7 @@ static int32_t gen11(FGDATA *ff, FUNC *ftp)
           cs_double sum = 0.0, amp = scale;
           int32_t j;
           for (j = 0; j < n; j++) {
-            sum += amp * cos(x * ((cs_double) k + j));
+            sum += amp * cos(x * (first + j));
             amp *= r;
           }
           *fp++ = sum;
