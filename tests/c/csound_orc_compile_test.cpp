@@ -3873,6 +3873,129 @@ endin
     EXPECT_EQ(CSOUND_SUCCESS, err);
 }
 
+TEST_F(OrcCompileTests, RollsBackNewStructDefinitionsOnCompileFailure)
+{
+    // Fresh engine: semantic/compile failure must roll back newly registered struct
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        const char *failingInitial = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct Box x:i
+gVal@global:Box init 1
+instr 1
+  unknownOpcodeForRollbackTest
+endin
+)";
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(cs, failingInitial));
+        EXPECT_EQ(nullptr, csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Box"));
+
+        const char *retryInitial = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct Box x:i, y:i
+gVal@global:Box init 7, 11
+instr 1
+  chnset gVal.x + gVal.y, "freshRetrySum"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, retryInitial));
+        csoundEventString(cs, "i 1 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(18.0), csoundGetControlChannel(cs, "freshRetrySum", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // Parse-only discard must roll back structs registered during parse
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *parsed = csoundParseOrc(cs, "struct ParsedBox x:i\n");
+        ASSERT_NE(nullptr, parsed);
+        csoundDeleteTree(cs, parsed);
+        EXPECT_EQ(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "ParsedBox"));
+        const char *validOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct ParsedBox x:i, y:i
+instr 1
+  b:ParsedBox init 3, 4
+  chnset b.x + b.y, "parsedRetrySum"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, validOrc));
+        csoundEventString(cs, "i 1 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(7.0), csoundGetControlChannel(cs, "parsedRetrySum", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // Live edit on running engine: failed compile allows redefining struct layout
+    {
+        csoundSetOption(csound, "-n -d -m0");
+        const char *baseOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct ExistingBox v:i
+instr 1
+  eb:ExistingBox init 5
+  chnset eb.v, "existingBox"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, baseOrc));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        csoundReadScore(csound, "i 1 0 0.05\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+
+        const char *badLive = R"(
+struct ExistingBox v:i
+struct LiveBox a:i
+instr 2
+  b:LiveBox init 1
+  unknownLiveOpcode
+endin
+)";
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, badLive));
+        EXPECT_NE(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "ExistingBox"));
+        EXPECT_EQ(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "LiveBox"));
+
+        const char *fixedLive = R"(
+struct LiveBox a:i, b:i
+instr 2
+  lb:LiveBox init 20, 22
+  chnset lb.a + lb.b, "liveRetrySum"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, fixedLive));
+        csoundReadScore(csound, "i 2 0 0.05\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+        int32_t err = 0;
+        EXPECT_EQ(FL(5.0), csoundGetControlChannel(csound, "existingBox", &err));
+        EXPECT_EQ(FL(42.0), csoundGetControlChannel(csound, "liveRetrySum", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+    }
+}
+
 TEST_F(OrcCompileTests, NamedInstrRedefinitionWithAllowRedefAndLiveMerge)
 {
     csoundSetOption(csound, "-n -d -m0 --allow-redefinition");

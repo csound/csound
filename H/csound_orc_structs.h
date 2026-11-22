@@ -69,6 +69,10 @@ int32_t csound_copy_struct_value(CSOUND *csound,
                                  CSOUND_STRUCT_COPY_MODE mode);
 int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree);
 int32_t process_struct_definitions_two_phase(CSOUND *csound, TREE *structDefList);
+int32_t process_struct_definitions_two_phase_tracked(CSOUND *csound,
+                                                     TREE *structDefList,
+                                                     CONS_CELL **newTypesOut);
+void rollback_struct_definitions(CSOUND *csound, CONS_CELL **newTypes);
 void freeStructVarMemory(void *csnd, void *p);
 void csound_free_struct_members(CSOUND *csound, CS_STRUCT_VAR *var);
 

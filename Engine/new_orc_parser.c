@@ -247,6 +247,7 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
       TREE* astTree = NULL;
       TREE* newRoot;
       TYPE_TABLE* typeTable = NULL;
+      CONS_CELL *newStructTypes = NULL;
       int32_t hadStatements = 0;
 
       /* Parse */
@@ -282,7 +283,8 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
 
       // EARLY two-phase struct processing: must happen before any variable declarations
       // This ensures struct types are available when parsing variable declarations like john:Person
-      if (!process_struct_definitions_two_phase(csound, astTree)) {
+      if (!process_struct_definitions_two_phase_tracked(csound, astTree,
+                                                        &newStructTypes)) {
         csound->ErrorMsg(csound, Str("Error in early two-phase struct processing\n"));
         err = 3;
         goto ending;
@@ -290,6 +292,8 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
 
       typeTable = csoundParserOwn(csound, csound->Calloc(csound, sizeof(TYPE_TABLE)));
       typeTable->udos = NULL;
+      typeTable->newStructTypes = newStructTypes;
+      newStructTypes = NULL;
 
       typeTable->globalPool = csoundParserCreateVarPool(csound);
       if (typeTable->globalPool == NULL) {
@@ -350,6 +354,9 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
       pp->xstrbuff = NULL;
       if (UNLIKELY(err)) {
         csound->ErrorMsg(csound, "%s", Str("Stopping on parser failure\n"));
+        rollback_struct_definitions(
+            csound, typeTable != NULL ? &typeTable->newStructTypes
+                                      : &newStructTypes);
 #ifdef CSOUND_WASI_REALTIME
         /* The scope also owns nodes discarded by Bison or detached during
            rewriting. A tree walk cannot safely recover those allocations. */

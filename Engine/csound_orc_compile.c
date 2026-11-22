@@ -2244,6 +2244,10 @@ static int32_t enginestate_free(CSOUND *csound, ENGINE_STATE *engineState) {
 }
 
 static void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable) {
+  if (typeTable->newStructTypes != NULL) {
+    cs_cons_free(csound, typeTable->newStructTypes);
+    typeTable->newStructTypes = NULL;
+  }
   cs_cons_free_complete(csound, typeTable->labelList);
   csound->Free(csound, typeTable);
 }
@@ -3018,6 +3022,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     }
   }
   /* Initial compilation writes the persistent state owned by CSOUND. */
+  rollback_struct_definitions(csound, &typeTable->newStructTypes);
   free_typetable(csound, typeTable);
   return CSOUND_ERROR;
 }

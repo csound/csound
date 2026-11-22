@@ -550,8 +550,139 @@ static void rollback_completed_structs(CSOUND *csound, CS_TYPE **types,
   }
 }
 
+static void remove_type_from_pool(CSOUND *csound, TYPE_POOL *pool,
+                                  const CS_TYPE *type) {
+  CS_TYPE_ITEM **link;
+  if (pool == NULL || type == NULL) {
+    return;
+  }
+  link = &pool->head;
+  while (*link != NULL) {
+    CS_TYPE_ITEM *item = *link;
+    if (item->cstype == type) {
+      *link = item->next;
+      csound->Free(csound, item);
+      return;
+    }
+    link = &item->next;
+  }
+}
+
+static void prune_varpool_by_type(CSOUND *csound, CS_VAR_POOL *pool,
+                                  const CS_TYPE *type) {
+  CS_VARIABLE **link;
+  if (pool == NULL || type == NULL) {
+    return;
+  }
+  link = &pool->head;
+  while (*link != NULL) {
+    CS_VARIABLE *v = *link;
+    if (csound_variable_contains_type(v, type)) {
+      *link = v->next;
+      if (pool->table != NULL && v->varName != NULL &&
+          cs_hash_table_get(csound, pool->table, v->varName) == v) {
+        cs_hash_table_remove(csound, pool->table, v->varName);
+      }
+      if (v->memBlock != NULL) {
+        if (v->varType != NULL && v->varType->freeVariableMemory != NULL) {
+          v->varType->freeVariableMemory(csound, &v->memBlock->value);
+        }
+        csound->Free(csound, v->memBlock);
+      }
+      csound->Free(csound, v->varName);
+      csound->Free(csound, v);
+    } else {
+      link = &v->next;
+    }
+  }
+}
+
+static void unregister_struct_opcodes(CSOUND *csound, const CS_TYPE *type) {
+  size_t nameLen;
+  char *opName;
+  CONS_CELL *origHead, *head, *prev, *cell;
+  if (csound->opcodes == NULL || type == NULL || type->varTypeName == NULL) {
+    return;
+  }
+  nameLen = strlen(type->varTypeName);
+  if (nameLen < 3) {
+    return;
+  }
+  origHead = cs_hash_table_get(csound, csound->opcodes, (char *)"init");
+  if (origHead == NULL) {
+    return;
+  }
+  opName = csound->Calloc(csound, nameLen + 5);
+  strcpy(opName, "init.");
+  memcpy(opName + 5, type->varTypeName + 1, nameLen - 2);
+  opName[5 + nameLen - 2] = '\0';
+
+  head = origHead;
+  prev = NULL;
+  cell = head;
+  while (cell != NULL) {
+    CONS_CELL *next = cell->next;
+    OENTRY *ep = (OENTRY *)cell->value;
+    if (ep != NULL && ep->opname != NULL && strcmp(ep->opname, opName) == 0 &&
+        (ep->init == initStructVar || ep->init == copy_var_generic_init)) {
+      if (prev == NULL) {
+        head = next;
+      } else {
+        prev->next = next;
+      }
+      csound->Free(csound, ep->opname);
+      csound->Free(csound, ep->outypes);
+      csound->Free(csound, ep->intypes);
+      csound->Free(csound, ep);
+      csound->Free(csound, cell);
+    } else {
+      prev = cell;
+    }
+    cell = next;
+  }
+  if (head != origHead) {
+    if (head == NULL) {
+      cs_hash_table_remove(csound, csound->opcodes, (char *)"init");
+    } else {
+      cs_hash_table_put(csound, csound->opcodes, (char *)"init", head);
+    }
+  }
+  csound->Free(csound, opName);
+}
+
+void rollback_struct_definitions(CSOUND *csound, CONS_CELL **newTypes) {
+  CONS_CELL *cell;
+  if (csound == NULL || newTypes == NULL || *newTypes == NULL) {
+    return;
+  }
+  /* Prune variables referencing these struct types before freeing type->members. */
+  if (csound->engineState.varPool != NULL) {
+    for (cell = *newTypes; cell != NULL; cell = cell->next) {
+      prune_varpool_by_type(csound, csound->engineState.varPool,
+                            (const CS_TYPE *)cell->value);
+    }
+  }
+  cell = *newTypes;
+  while (cell != NULL) {
+    CONS_CELL *next = cell->next;
+    CS_TYPE *type = (CS_TYPE *)cell->value;
+    if (type != NULL) {
+      unregister_struct_opcodes(csound, type);
+      remove_type_from_pool(csound, csound->typePool, type);
+      free_struct_member_list(csound, type->members);
+      type->members = NULL;
+      csound->Free(csound, type->varTypeName);
+      csound->Free(csound, type);
+    }
+    csound->Free(csound, cell);
+    cell = next;
+  }
+  *newTypes = NULL;
+}
+
 // Phase 1: Register struct name as placeholder type (for recursive references)
-static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) {
+static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree,
+                                           CONS_CELL **newTypesOut) {
   if (!structDefTree || !structDefTree->left || !structDefTree->left->value) {
     return 0;
   }
@@ -593,13 +724,17 @@ static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) 
     csound->Free(csound, type);
     return 0;
   }
+  if (newTypesOut != NULL) {
+    *newTypesOut = cs_cons(csound, type, *newTypesOut);
+  }
 
   return 1;
 }
 
 static int32_t populate_struct_definition(CSOUND* csound, TREE* structDefTree,
                                           CS_TYPE **outType,
-                                          int32_t *outNewlyCompleted) {
+                                          int32_t *outNewlyCompleted,
+                                          CONS_CELL **newTypesOut) {
   TREE* current = structDefTree->right;
   CS_TYPE* type;
   CONS_CELL *newMembers = NULL;
@@ -650,6 +785,9 @@ static int32_t populate_struct_definition(CSOUND* csound, TREE* structDefTree,
       csound->Free(csound, type->varTypeName);
       csound->Free(csound, type);
       return 0;
+    }
+    if (newTypesOut != NULL) {
+      *newTypesOut = cs_cons(csound, type, *newTypesOut);
     }
   }
 
@@ -770,14 +908,17 @@ static void register_struct_opcodes(CSOUND *csound, CS_TYPE *type) {
 int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   CS_TYPE *type = NULL;
   int32_t newlyCompleted = 0;
+  CONS_CELL *newTypes = NULL;
   const CS_TYPE **visited = NULL;
   size_t visitedCount = 0, visitedCap = 0;
 
   if (!populate_struct_definition(csound, structDefTree, &type,
-                                  &newlyCompleted)) {
+                                  &newlyCompleted, &newTypes)) {
+    rollback_struct_definitions(csound, &newTypes);
     return 0;
   }
   if (!newlyCompleted) {
+    if (newTypes != NULL) cs_cons_free(csound, newTypes);
     return 1;
   }
   if (check_struct_scalar_cycle(csound, type, NULL, &visited,
@@ -786,16 +927,22 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
                      Str("cyclic scalar struct dependency involving '%s'\n"),
                      type->varTypeName);
     rollback_completed_structs(csound, &type, 1);
+    rollback_struct_definitions(csound, &newTypes);
     csound->Free(csound, (void *)visited);
     return 0;
   }
   csound->Free(csound, (void *)visited);
+  if (newTypes != NULL) cs_cons_free(csound, newTypes);
   register_struct_opcodes(csound, type);
   return 1;
 }
 
-int32_t process_struct_definitions_two_phase(CSOUND *csound,
-                                             TREE *structDefList) {
+int32_t process_struct_definitions_two_phase_tracked(CSOUND *csound,
+                                                     TREE *structDefList,
+                                                     CONS_CELL **newTypesOut) {
+  if (newTypesOut != NULL) {
+    *newTypesOut = NULL;
+  }
   if (structDefList == NULL) {
     return 1; // No struct definitions to process
   }
@@ -816,7 +963,8 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
   current = structDefList;
   while (current != NULL) {
     if (current->type == STRUCT_TOKEN) {
-      if (!register_struct_placeholder(csound, current)) {
+      if (!register_struct_placeholder(csound, current, newTypesOut)) {
+        rollback_struct_definitions(csound, newTypesOut);
         return 0; // Error in Phase 1
       }
     }
@@ -835,9 +983,10 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
       CS_TYPE *type = NULL;
       int32_t newlyCompleted = 0;
       if (!populate_struct_definition(csound, current, &type,
-                                      &newlyCompleted)) {
+                                      &newlyCompleted, newTypesOut)) {
         csound->ErrorMsg(csound, Str("[struct] Phase 2: ERROR processing struct '%s'\n"), structName ? structName : "(null)");
         rollback_completed_structs(csound, completedTypes, completedCount);
+        rollback_struct_definitions(csound, newTypesOut);
         csound->Free(csound, completedTypes);
         return 0; // Error in Phase 2
       }
@@ -858,6 +1007,7 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
                        Str("cyclic scalar struct dependency involving '%s'\n"),
                        completedTypes[i]->varTypeName);
       rollback_completed_structs(csound, completedTypes, completedCount);
+      rollback_struct_definitions(csound, newTypesOut);
       csound->Free(csound, (void *)visited);
       csound->Free(csound, completedTypes);
       return 0;
@@ -871,4 +1021,16 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
   }
   csound->Free(csound, completedTypes);
   return 1;
+}
+
+int32_t process_struct_definitions_two_phase(CSOUND *csound,
+                                             TREE *structDefList) {
+  CONS_CELL *newTypes = NULL;
+  int32_t ok = process_struct_definitions_two_phase_tracked(csound,
+                                                            structDefList,
+                                                            &newTypes);
+  if (newTypes != NULL) {
+    cs_cons_free(csound, newTypes);
+  }
+  return ok;
 }
