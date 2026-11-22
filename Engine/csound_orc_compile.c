@@ -1742,10 +1742,10 @@ void named_instr_assign_numbers(CSOUND *csound,
         /* VL, start from instr 1 */
         num = 1;
         /* check both this state & current state */
-        while (num <= engineState->maxinsno
-               && (engineState->instrtxtp[num] ||
-                   (num <= csound->engineState.maxinsno &&
-                    csound->engineState.instrtxtp[num])))
+        while ((num <= engineState->maxinsno &&
+                engineState->instrtxtp[num] != NULL) ||
+               (num <= csound->engineState.maxinsno &&
+                csound->engineState.instrtxtp[num] != NULL))
           num++;
 
         /* we may need to expand the instrument array */
@@ -2304,13 +2304,11 @@ static void discard_compile_var_pool(CSOUND *csound, CS_VAR_POOL *pool) {
   csound->Free(csound, pool);
 }
 
-static void discard_compile_state(CSOUND *csound, ENGINE_STATE *state) {
-  finish_instr_references(csound, state, 0);
-  INSTRTXT *instrument = state->instxtanchor.nxtinstxt;
+static void discard_instr_chain(CSOUND *csound, INSTRTXT *instrument) {
   while (instrument != NULL) {
     INSTRTXT *next = instrument->nxtinstxt;
     OPTXT *opcode = (OPTXT *)instrument;
-    /* Rejected private templates have no instances or prepared ARG lists. */
+    /* Rejected unmerged templates have no instances or prepared ARG lists. */
     while (opcode != NULL) {
       OPTXT *nextOpcode = opcode->nxtop;
       csound->Free(csound, opcode->t.inlist);
@@ -2318,11 +2316,15 @@ static void discard_compile_state(CSOUND *csound, ENGINE_STATE *state) {
       if (opcode != (OPTXT *)instrument) csound->Free(csound, opcode);
       opcode = nextOpcode;
     }
-    discard_compile_var_pool(csound, instrument->varPool);
+    if (instrument->varPool != NULL)
+      discard_compile_var_pool(csound, instrument->varPool);
     csound->Free(csound, instrument->insname);
     csound->Free(csound, instrument);
     instrument = next;
   }
+}
+
+static void discard_instrument_names(CSOUND *csound, ENGINE_STATE *state) {
   if (state->instrumentNames != NULL) {
     INSTRNAME *name = cs_hash_table_get(csound, state->instrumentNames,
                                         (char *)INSTR_NAME_FIRST);
@@ -2338,7 +2340,14 @@ static void discard_compile_state(CSOUND *csound, ENGINE_STATE *state) {
       name = next;
     }
     cs_hash_table_free(csound, state->instrumentNames);
+    state->instrumentNames = NULL;
   }
+}
+
+static void discard_compile_state(CSOUND *csound, ENGINE_STATE *state) {
+  finish_instr_references(csound, state, 0);
+  discard_instr_chain(csound, state->instxtanchor.nxtinstxt);
+  discard_instrument_names(csound, state);
   cs_hash_table_mfree_complete(csound, state->constantsPool);
   discard_compile_var_pool(csound, state->varPool);
   csound->Free(csound, state->instrtxtp);
@@ -2993,17 +3002,19 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   csound->synterrcnt = 0;
   finish_compile_references(csound, references, 1, plansBuilt);
   if (engineState != &csound->engineState) {
-    csound->instr0 = previousInstr0;
     discard_compile_state(csound, engineState);
   } else {
     finish_instr_references(csound, engineState, 0);
     csound->instr0 = previousInstr0;
     if (previousInstr0 == NULL) {
+      discard_instr_chain(csound, engineState->instxtanchor.nxtinstxt);
       engineState->instxtanchor.nxtinstxt = NULL;
+      discard_instrument_names(csound, engineState);
       if (engineState->instrtxtp != NULL) {
         csound->Free(csound, engineState->instrtxtp);
         engineState->instrtxtp = NULL;
       }
+      engineState->maxinsno = 0;
     }
   }
   /* Initial compilation writes the persistent state owned by CSOUND. */

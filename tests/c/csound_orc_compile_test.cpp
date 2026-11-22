@@ -3623,6 +3623,44 @@ endin
         csoundDestroy(cs);
     }
 
+    // 4. Failed initial csoundCompileTree with named instrument RetryMe ->
+    //    valid csoundCompileTree of RetryMe without --allow-redefinition
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        TREE *badTree = csoundParseOrc(cs, "instr RetryMe\n  prints \"hi\"\nendin\n");
+        ASSERT_NE(nullptr, badTree);
+        ASSERT_TRUE(replace_opcode_lexeme(cs, badTree, "prints", "nonexistent_op_xyz"));
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileTree(cs, badTree, 0));
+        csoundDeleteTree(cs, badTree);
+        EXPECT_EQ(nullptr, cs->instr0);
+        EXPECT_EQ(nullptr, cs->engineState.instrtxtp);
+        EXPECT_EQ(nullptr, cs->engineState.instrumentNames);
+        EXPECT_EQ(0, cs->synterrcnt);
+
+        const char *retryOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr RetryMe
+  chnset 42, "recoveredNamed"
+endin
+)";
+        TREE *okTree = csoundParseOrc(cs, retryOrc);
+        ASSERT_NE(nullptr, okTree);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileTree(cs, okTree, 0));
+        csoundDeleteTree(cs, okTree);
+        csoundReadScore(cs, "i \"RetryMe\" 0 0.1\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(42, csoundGetControlChannel(cs, "recoveredNamed", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
     // 3. Failed initial csoundCompileCSD -> valid csoundCompileCSD
     {
         CSOUND *cs = csoundCreate(nullptr, nullptr);
@@ -3746,6 +3784,44 @@ endin
     csoundReadScore(csound, "i \"LiveNamed\" 0 0.05\n");
     ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
     EXPECT_EQ(99, csoundGetControlChannel(csound, "liveVal", &err));
+}
+
+TEST_F(OrcCompileTests, NamedInstrLiveDoesNotOverwriteOccupiedSlots)
+{
+    csoundSetOption(csound, "-n -d -m0 --allow-redefinition");
+    const char *baseOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  chnset 1, "n1"
+endin
+
+instr 2
+  chnset 2, "n2"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, baseOrc));
+    const char *liveOrc = R"(
+instr 1
+  chnset 10, "n1"
+endin
+
+instr LiveNamed
+  chnset 99, "liveNamed"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, liveOrc));
+    csoundReadScore(csound, "i 1 0 0.05\ni 2 0 0.05\ni \"LiveNamed\" 0 0.05\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t err = 0;
+    EXPECT_EQ(10, csoundGetControlChannel(csound, "n1", &err));
+    EXPECT_EQ(2, csoundGetControlChannel(csound, "n2", &err));
+    EXPECT_EQ(99, csoundGetControlChannel(csound, "liveNamed", &err));
+    EXPECT_EQ(CSOUND_SUCCESS, err);
 }
 
 TEST_F(OrcCompileTests, FileToIntExceeds255AndResetsCleanly)
