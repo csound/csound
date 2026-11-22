@@ -1109,7 +1109,7 @@ static const CSOUND cenviron_ = {
     .marked_sections = {{NULL, 0, 0}},
     .line_event_work = NULL,
     .line_event_work_size = 0,
-    .orcScan = {0, 0, '\0'},
+    .orcScan = {0, 0, 0, '\0'},
     .lineventDiscardLine = 0,
 
 };

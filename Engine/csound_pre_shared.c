@@ -249,36 +249,51 @@ enum {
     ORC_SCAN_EXTENDED,
     ORC_SCAN_RAW,
     ORC_SCAN_LINE_COMMENT,
-    ORC_SCAN_BLOCK_COMMENT
+    ORC_SCAN_BLOCK_COMMENT,
+    ORC_SCAN_DIRECTIVE,
+    ORC_SCAN_MACRO_HEADER,
+    ORC_SCAN_MACRO_HEADER_LCOM,
+    ORC_SCAN_MACRO_HEADER_BCOM,
+    ORC_SCAN_MACRO_BODY
 };
 
 int32_t csound_orc_scan_in_code(const ORC_DELIMITER_SCAN *scan)
 {
-    return scan->mode == ORC_SCAN_CODE;
+    return scan->mode == ORC_SCAN_CODE || scan->mode == ORC_SCAN_DIRECTIVE;
+}
+
+static int32_t csound_orc_scan_code_char(ORC_DELIMITER_SCAN *scan,
+                                         char previous, char c)
+{
+    if (c == '"')
+      scan->mode = ORC_SCAN_QUOTED;
+    else if (c == ';' || (previous == '/' && c == '/'))
+      scan->mode = ORC_SCAN_LINE_COMMENT;
+    else if (previous == '/' && c == '*')
+      scan->mode = ORC_SCAN_BLOCK_COMMENT;
+    else if (previous == '{' && c == '{')
+      scan->mode = ORC_SCAN_EXTENDED;
+    else if (previous == 'R' && c == '{') {
+      scan->mode = ORC_SCAN_RAW;
+      scan->rawDepth = 1;
+    } else if (c == '#') {
+      scan->mode = ORC_SCAN_DIRECTIVE;
+      scan->macroStep = 0;
+    } else {
+      scan->previous = c;
+      return c == '}';
+    }
+    return 0;
 }
 
 int32_t csound_orc_scan_char(ORC_DELIMITER_SCAN *scan, char c)
 {
+    static const char defineKw[] = "define";
     char previous = scan->previous;
     scan->previous = '\0';
     switch (scan->mode) {
     case ORC_SCAN_CODE:
-      if (c == '"')
-        scan->mode = ORC_SCAN_QUOTED;
-      else if (c == ';' || (previous == '/' && c == '/'))
-        scan->mode = ORC_SCAN_LINE_COMMENT;
-      else if (previous == '/' && c == '*')
-        scan->mode = ORC_SCAN_BLOCK_COMMENT;
-      else if (previous == '{' && c == '{')
-        scan->mode = ORC_SCAN_EXTENDED;
-      else if (previous == 'R' && c == '{') {
-        scan->mode = ORC_SCAN_RAW;
-        scan->rawDepth = 1;
-      } else {
-        scan->previous = c;
-        return c == '}';
-      }
-      break;
+      return csound_orc_scan_code_char(scan, previous, c);
     case ORC_SCAN_QUOTED:
       if (previous != '\\') {
         if (c == '"' || c == '\n')
@@ -311,6 +326,57 @@ int32_t csound_orc_scan_char(ORC_DELIMITER_SCAN *scan, char c)
         scan->mode = ORC_SCAN_CODE;
       else
         scan->previous = c;
+      break;
+    case ORC_SCAN_DIRECTIVE:
+      if (scan->macroStep == 0 && (c == ' ' || c == '\t'))
+        break;
+      if (scan->macroStep < 6 && c == defineKw[scan->macroStep]) {
+        scan->macroStep++;
+        break;
+      }
+      if (scan->macroStep == 6 && (c == ' ' || c == '\t')) {
+        scan->mode = ORC_SCAN_MACRO_HEADER;
+        scan->macroStep = 0;
+        break;
+      }
+      /* Not #define (e.g., bitwise XOR # or #ifdef): scan normally from code. */
+      scan->mode = ORC_SCAN_CODE;
+      scan->macroStep = 0;
+      return csound_orc_scan_code_char(scan, '\0', c);
+    case ORC_SCAN_MACRO_HEADER:
+      if (c == ';')
+        scan->mode = ORC_SCAN_MACRO_HEADER_LCOM;
+      else if (previous == '/' && c == '/')
+        scan->mode = ORC_SCAN_MACRO_HEADER_LCOM;
+      else if (previous == '/' && c == '*')
+        scan->mode = ORC_SCAN_MACRO_HEADER_BCOM;
+      else if (c == '(')
+        scan->macroStep++;
+      else if (c == ')' && scan->macroStep > 0)
+        scan->macroStep--;
+      else if (c == '#' && scan->macroStep == 0) {
+        scan->mode = ORC_SCAN_MACRO_BODY;
+        scan->macroStep = 0;
+      } else
+        scan->previous = c;
+      break;
+    case ORC_SCAN_MACRO_HEADER_LCOM:
+      if (c == '\n')
+        scan->mode = ORC_SCAN_MACRO_HEADER;
+      break;
+    case ORC_SCAN_MACRO_HEADER_BCOM:
+      if (previous == '*' && c == '/')
+        scan->mode = ORC_SCAN_MACRO_HEADER;
+      else
+        scan->previous = c;
+      break;
+    case ORC_SCAN_MACRO_BODY:
+      if (previous == '\\')
+        scan->previous = '\0';
+      else if (c == '\\')
+        scan->previous = '\\';
+      else if (c == '#')
+        scan->mode = ORC_SCAN_CODE;
       break;
     }
     return 0;

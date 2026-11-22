@@ -50,6 +50,7 @@ extern "C" {
   typedef struct orc_delimiter_scan {
     int32_t mode;
     int32_t rawDepth;
+    int32_t macroStep;
     char previous;
   } ORC_DELIMITER_SCAN;
 

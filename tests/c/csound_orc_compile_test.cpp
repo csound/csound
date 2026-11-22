@@ -4533,3 +4533,70 @@ endin
     csoundReset(csound);
     std::remove(tmpPath.c_str());
 }
+
+TEST_F(OrcCompileTests, ScannerSkipsDefineMacroBodyInCsdAndLiveInput)
+{
+    // CSD <CsInstruments> with unused macro whose body opens R{ / {{ / /*
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        const char *csd = R"(
+<CsoundSynthesizer>
+<CsOptions>
+-n -d -m0
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+#define RAW_OPEN #R{#
+#define WITH_ARGS(A#B) #$A + $B R{ /* {{ \# #
+instr 1
+  chnset 42, "csdMacroOk"
+endin
+</CsInstruments>
+<CsScore>
+i 1 0 0.01
+e
+</CsScore>
+</CsoundSynthesizer>
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(cs, csd, 1, 0));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        while (csoundPerformKsmps(cs) == 0) {
+        }
+        int32_t err = 0;
+        EXPECT_EQ(FL(42.0), csoundGetControlChannel(cs, "csdMacroOk", &err));
+        EXPECT_EQ(0, err);
+        csoundDestroy(cs);
+    }
+
+    // Live orchestra block with unused macro containing R{ must still close on }
+    {
+        csoundSetOption(csound, "-n -d -m0");
+        const char *baseOrc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, baseOrc));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        csound->InputMessage(csound,
+            "{\n"
+            "#define RAW_OPEN #R{#\n"
+            "instr 1\n"
+            "  chnset 77, \"liveMacroOk\"\n"
+            "endin\n"
+            "}\n"
+            "i 1 0 0\n");
+        for (int i = 0; i < 16; i++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+        int32_t err = 0;
+        EXPECT_EQ(FL(77.0), csoundGetControlChannel(csound, "liveMacroOk", &err));
+        EXPECT_EQ(0, err);
+    }
+}
