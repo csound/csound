@@ -3971,7 +3971,7 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
     if (UNLIKELY(!(strcmp("0", inArgs) == 0 && xinArgs == NULL))) {
       synterr(csound,
               Str("invalid xin statement for UDO: defined '%s', found '%s'\n"),
-              inArgs, inArgsFound ? inArgsFound : "");
+              inArgs, inArgsFound ? inArgsFound : "(none)");
       csound->Free(csound, inArgsFound);
       csound->Free(csound, outArgsFound);
       return 0;
@@ -3982,7 +3982,7 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
     if (UNLIKELY(!(strcmp("0", outArgs) == 0 && xoutArgs == NULL))) {
       synterr(csound,
               Str("invalid xout statement for UDO: defined '%s', found '%s'\n"),
-              outArgs, outArgsFound ? outArgsFound : "");
+              outArgs, outArgsFound ? outArgsFound : "(none)");
       csound->Free(csound, inArgsFound);
       csound->Free(csound, outArgsFound);
       return 0;

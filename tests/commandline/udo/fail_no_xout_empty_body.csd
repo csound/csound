@@ -3,7 +3,7 @@ description = "fail due to no xout in an empty body"
 
 [expect]
 exit = "nonzero"
-stderr = ["syntax error, invalid xout statement for UDO: defined 'i', found '(null)'", "syntax error, testUDO UDO"]
+stderr = ["syntax error, invalid xout statement for UDO: defined 'i', found '(none)'", "syntax error, testUDO UDO"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
