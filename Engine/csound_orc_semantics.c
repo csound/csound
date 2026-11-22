@@ -4727,33 +4727,99 @@ TREE* make_opcall_from_func_start(CSOUND *csound, int32_t line, uint64_t locn,
   return left;
 }
 
-static void delete_tree(CSOUND *csound, TREE **l)
+typedef struct {
+  const void **slots;
+  size_t capacity;
+  size_t count;
+} TREE_PTR_SET;
+
+static size_t tree_ptr_hash(const void *ptr)
 {
-  while (1) {
-    TREE *old = *l;
-    TREE *tree = *l;
-    if (UNLIKELY(*l==NULL)) {
-      return;
+  uintptr_t h = (uintptr_t)ptr >> 3;
+  h ^= h >> 16;
+  h *= (uintptr_t)0x45d9f3bu;
+  h ^= h >> 16;
+  return (size_t)h;
+}
+
+static int32_t tree_ptr_set_insert(CSOUND *csound, TREE_PTR_SET *set,
+                                   const void *ptr)
+{
+  if (ptr == NULL) {
+    return 0;
+  }
+  if (set->slots == NULL || (set->count + 1) * 10 >= set->capacity * 7) {
+    size_t newCap = (set->capacity == 0) ? 64 : set->capacity * 2;
+    const void **newSlots =
+        (const void **)csound->Calloc(csound, newCap * sizeof(const void *));
+    if (UNLIKELY(newSlots == NULL)) {
+      return 0;
     }
-    if (tree->value) {
-      if (tree->value->lexeme) {
+    for (size_t i = 0; i < set->capacity; i++) {
+      const void *existing = set->slots[i];
+      if (existing != NULL) {
+        size_t idx = tree_ptr_hash(existing) & (newCap - 1);
+        while (newSlots[idx] != NULL) {
+          idx = (idx + 1) & (newCap - 1);
+        }
+        newSlots[idx] = existing;
+      }
+    }
+    csound->Free(csound, set->slots);
+    set->slots = newSlots;
+    set->capacity = newCap;
+  }
+  size_t mask = set->capacity - 1;
+  size_t idx = tree_ptr_hash(ptr) & mask;
+  while (set->slots[idx] != NULL) {
+    if (set->slots[idx] == ptr) {
+      return 0;
+    }
+    idx = (idx + 1) & mask;
+  }
+  set->slots[idx] = ptr;
+  set->count++;
+  return 1;
+}
+
+static void tree_ptr_set_free(CSOUND *csound, TREE_PTR_SET *set)
+{
+  if (set->slots != NULL) {
+    csound->Free(csound, set->slots);
+    set->slots = NULL;
+  }
+  set->capacity = 0;
+  set->count = 0;
+}
+
+static void delete_tree(CSOUND *csound, TREE **l, TREE_PTR_SET *seen)
+{
+  TREE *tree = *l;
+  while (tree != NULL) {
+    if (!tree_ptr_set_insert(csound, seen, tree)) {
+      break;
+    }
+    TREE *left = tree->left;
+    TREE *right = tree->right;
+    TREE *next = tree->next;
+    if (tree->value != NULL && tree_ptr_set_insert(csound, seen, tree->value)) {
+      if (tree->value->lexeme != NULL) {
         csound->Free(csound, tree->value->lexeme);
         tree->value->lexeme = NULL;
       }
-      if (tree->value->optype) {
+      if (tree->value->optype != NULL) {
         csound->Free(csound, tree->value->optype);
         tree->value->optype = NULL;
       }
-      csound->Free(csound,tree->value);
+      csound->Free(csound, tree->value);
       tree->value = NULL;
     }
-    delete_tree(csound, &(tree->left));
-    tree->left = NULL;
-    delete_tree(csound, &(tree->right));
-    tree->right = NULL;
-    *l = tree->next;
-    csound->Free(csound, old);
+    delete_tree(csound, &left, seen);
+    delete_tree(csound, &right, seen);
+    csound->Free(csound, tree);
+    tree = next;
   }
+  *l = NULL;
 }
 
 void csoundDeleteTree(CSOUND *csound, TREE *tree)
@@ -4774,7 +4840,9 @@ void csoundDeleteTree(CSOUND *csound, TREE *tree)
       csound->Free(csound, types);
     }
   }
-  delete_tree(csound, &tree);
+  TREE_PTR_SET seen = {NULL, 0, 0};
+  delete_tree(csound, &tree, &seen);
+  tree_ptr_set_free(csound, &seen);
 }
 
 
