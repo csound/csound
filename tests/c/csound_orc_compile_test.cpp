@@ -3203,23 +3203,49 @@ endin
 
 TEST_F(OrcCompileTests, UnterminatedQuotedStringAtEofFailsCleanly)
 {
-    csoundSetOption(csound, "-n -d -m0");
+    csoundCreateMessageBuffer(csound, 0);
+    csoundSetOption(csound, "-n -d");
     const char* orchestra = "instr 1\nSfoo = \"unterminated";
     EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    std::string messages;
+    while (csoundGetMessageCnt(csound)) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    csoundDestroyMessageBuffer(csound);
+    EXPECT_NE(std::string::npos, messages.find("unexpected EOF!")) << messages;
 }
 
 TEST_F(OrcCompileTests, UnterminatedMultiLineStringAtEofFailsCleanly)
 {
-    csoundSetOption(csound, "-n -d -m0");
+    csoundCreateMessageBuffer(csound, 0);
+    csoundSetOption(csound, "-n -d");
     const char* orchestra = "instr 1\nSfoo = {{\nunclosed";
     EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    std::string messages;
+    while (csoundGetMessageCnt(csound)) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    csoundDestroyMessageBuffer(csound);
+    EXPECT_NE(std::string::npos,
+              messages.find("unterminated string at end of input")) << messages;
 }
 
 TEST_F(OrcCompileTests, UnterminatedRawStringAtEofFailsCleanly)
 {
-    csoundSetOption(csound, "-n -d -m0");
+    csoundCreateMessageBuffer(csound, 0);
+    csoundSetOption(csound, "-n -d");
     const char* orchestra = "instr 1\nSfoo = R{\nunclosed";
     EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    std::string messages;
+    while (csoundGetMessageCnt(csound)) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    csoundDestroyMessageBuffer(csound);
+    EXPECT_NE(std::string::npos,
+              messages.find("unterminated string at end of input")) << messages;
 }
 
 TEST_F(OrcCompileTests, RawStringPreservesSpecialSyntaxAndNesting)
@@ -4139,9 +4165,13 @@ endin
     }
     int32_t err = 0;
     EXPECT_EQ(0, csoundGetControlChannel(csound, "compiledOk", &err));
+    EXPECT_EQ(0, err);
     EXPECT_EQ(1, csoundGetControlChannel(csound, "destroyedOk", &err));
+    EXPECT_EQ(0, err);
     EXPECT_EQ(0, csoundGetControlChannel(csound, "shouldNotReach2", &err));
+    EXPECT_EQ(0, err);
     EXPECT_EQ(0, csoundGetControlChannel(csound, "shouldNotReach3", &err));
+    EXPECT_EQ(0, err);
 }
 
 TEST_F(OrcCompileTests, CsobjSharedLifetimeAcrossCopies)
@@ -4266,8 +4296,10 @@ endin
                         "i \"Bar\" 0 0.02 20\n"
                         "e 0.03\n");
         ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
-        while (csoundPerformKsmps(csound) == 0) {
+        int perfStatus = 0;
+        while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
         }
+        EXPECT_GT(perfStatus, 0);
         int32_t err = 0;
         EXPECT_DOUBLE_EQ(33.0, (double)csoundGetControlChannel(csound, "sum", &err));
         EXPECT_EQ(0, err);
@@ -4437,8 +4469,10 @@ endin
         ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, tc.orchestra.c_str()));
         csoundReadScore(csound, "i 1 0 0.05\ni 2 0 0.05\ne 0.06\n");
         ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
-        while (csoundPerformKsmps(csound) == 0) {
+        int perfStatus = 0;
+        while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
         }
+        EXPECT_GT(perfStatus, 0);
         int32_t err = 0;
         EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
         EXPECT_EQ(0, err);
@@ -4489,8 +4523,10 @@ endin
         ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
         csoundReadScore(csound, "i 1 0 0.05\ni 2 0 0.05\ne 0.06\n");
         ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
-        while (csoundPerformKsmps(csound) == 0) {
+        int perfStatus = 0;
+        while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
         }
+        EXPECT_GT(perfStatus, 0);
         int32_t err = 0;
         EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
         EXPECT_EQ(0, err);
@@ -4552,8 +4588,10 @@ endop
 )";
         ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefinedUdo));
         csoundReadScore(csound, "i 1.1 0 0.05\ni 2 0 0.05\n");
-        while (csoundPerformKsmps(csound) == 0) {
+        int perfStatus = 0;
+        while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
         }
+        EXPECT_GT(perfStatus, 0);
         int32_t err = 0;
         EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
         EXPECT_EQ(0, err);
