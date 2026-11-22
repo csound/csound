@@ -2174,25 +2174,40 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   end = end < current_state->maxopcno ? current_state->maxopcno : end;
   {
     INSTRTXT *prev = &(current_state->instxtanchor);
+    CS_HASH_TABLE *seen = cs_hash_table_create(csound);
     prev->nxtinstxt = NULL;
     for (i = 0; i <= end; i++) {
-      int32_t k, seen = 0;
+      int32_t dup = 0;
       current = current_state->instrtxtp[i];
       if (current == NULL)
         continue;
-      for (k = 0; k < i; k++) {
-        if (current_state->instrtxtp[k] == current) {
-          seen = 1;
-          break;
+      if (seen != NULL) {
+        char key[32];
+        snprintf(key, sizeof(key), "%p", (void *)current);
+        if (cs_hash_table_get(csound, seen, key) != NULL) {
+          dup = 1;
+        } else {
+          cs_hash_table_put(csound, seen, key, current);
+        }
+      } else {
+        int32_t k;
+        for (k = 0; k < i; k++) {
+          if (current_state->instrtxtp[k] == current) {
+            dup = 1;
+            break;
+          }
         }
       }
-      if (seen)
+      if (dup)
         continue;
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_COMPILER))
         csound->Message(csound, "instr %d:%p\n", i, current);
       current->nxtinstxt = NULL;
       prev->nxtinstxt = current;
       prev = current;
+    }
+    if (seen != NULL) {
+      cs_hash_table_free(csound, seen);
     }
   }
   finish_instr_references(csound, engineState, 1);
