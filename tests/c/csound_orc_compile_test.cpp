@@ -3828,22 +3828,16 @@ TEST(ParcsTests, SharedGlobalsTablesAndChannelsDeterministic)
 {
     struct Case {
         const char* name;
-        const char* orchestra;
+        std::string orchestra;
     };
-    const Case cases[] = {
-        {"GlobalVar", R"(
+    const std::string globalSetup = R"(
 sr = 44100
 ksmps = 32
 nchnls = 1
 0dbfs = 1
 gkShared init 0
-
-instr 1
-  kCnt init 0
-  kCnt += 1
-  gkShared = kCnt
-endin
-
+)";
+    const char* globalReader = R"(
 instr 2
   kExp init 0
   kBad init 0
@@ -3854,7 +3848,39 @@ instr 2
   chnset kBad, "bad"
   chnset gkShared, "seen"
 endin
-)"},
+)";
+    std::string nestedUdos = "opcode Deep17, 0, 0\ngkShared += 1\nendop\n";
+    for (int i = 16; i >= 0; --i) {
+        nestedUdos += "opcode Deep" + std::to_string(i) + ", 0, 0\nDeep" +
+                      std::to_string(i + 1) + "\nendop\n";
+    }
+    const Case cases[] = {
+        {"GlobalVar", globalSetup + "instr 1\ngkShared += 1\nendin\n" +
+                      globalReader},
+        {"Subinstrument", globalSetup + R"(
+instr 3
+  gkShared += 1
+endin
+instr 1
+  aOut subinstr 3
+endin
+)" + globalReader},
+        {"SubinstrInitReinit", globalSetup + R"(
+instr 3
+  iNext = i(gkShared) + 1
+  gkShared init iNext
+endin
+instr 1
+  reinit doInit
+  igoto done
+doInit:
+  subinstrinit 3
+done:
+  rireturn
+endin
+)" + globalReader},
+        {"NestedUdos", globalSetup + nestedUdos + "instr 1\nDeep0\nendin\n" +
+                       globalReader},
         {"TableReadWrite", R"(
 sr = 44100
 ksmps = 32
@@ -3914,7 +3940,7 @@ endin
         ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
         ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
         ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-j 4"));
-        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, tc.orchestra));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, tc.orchestra.c_str()));
         csoundReadScore(csound, "i 1 0 0.05\ni 2 0 0.05\ne 0.06\n");
         ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
         while (csoundPerformKsmps(csound) == 0) {

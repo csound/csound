@@ -37,6 +37,7 @@
 #include "csoundCore.h"
 #include "cs_par_base.h"
 #include "interlocks.h"
+#include "entry.h"
 #include <stdbool.h>
 
 #if defined(_MSC_VER)
@@ -201,7 +202,7 @@ void dag_cleanup(CSOUND *csound)
 typedef struct dag_instr_deps {
     uint32_t read_res;
     uint32_t write_res;
-    int32_t has_monitor;
+    int32_t requires_order;
     void **reads;
     int32_t nreads, cap_reads;
     void **writes;
@@ -228,9 +229,12 @@ static void dag_collect_instr_deps(CSOUND *csound, INSTRTXT *instr,
                                    DAG_INSTR_DEPS *deps, int32_t depth)
 {
     OPTXT *op;
-    if (instr == NULL || depth > 16)
+    if (instr == NULL || depth > 16) {
+      /* A call whose effects are unknown must preserve instrument order. */
+      deps->requires_order = 1;
       return;
-    for (op = instr->nxtop; op != NULL; op = op->nxtop) {
+    }
+    for (op = instr->nxtop; op != NULL && !deps->requires_order; op = op->nxtop) {
       OENTRY *ep = op->t.oentry;
       ARG *arg;
       if (ep != NULL) {
@@ -243,7 +247,7 @@ static void dag_collect_instr_deps(CSOUND *csound, INSTRTXT *instr,
         if (ep->flags & IR) deps->read_res |= DAG_RES_INT;
         if (ep->flags & IW) {
           deps->write_res |= DAG_RES_INT;
-          deps->has_monitor = 1;
+          deps->requires_order = 1;
         }
         if (ep->flags & SK) {
           deps->read_res |= DAG_RES_STK;
@@ -251,8 +255,12 @@ static void dag_collect_instr_deps(CSOUND *csound, INSTRTXT *instr,
         }
         if (ep->useropinfo != NULL) {
           OPCODINFO *udo = (OPCODINFO *)ep->useropinfo;
-          if (udo->ip != NULL)
-            dag_collect_instr_deps(csound, udo->ip, deps, depth + 1);
+          dag_collect_instr_deps(csound, udo->ip, deps, depth + 1);
+        } else if (ep->perf == (SUBR)subinstr ||
+                   ep->init == (SUBR)subinstrset ||
+                   ep->init == (SUBR)subinstrset_S) {
+          /* The subinstrument target is chosen at init, possibly from a p-field. */
+          deps->requires_order = 1;
         }
       }
       for (arg = op->t.outArgs; arg != NULL; arg = arg->next) {
@@ -288,7 +296,7 @@ static int32_t dag_ptr_lists_overlap(void *const *a, int32_t na,
 static int32_t dag_deps_conflict(const DAG_INSTR_DEPS *a,
                                  const DAG_INSTR_DEPS *b)
 {
-    if (a->has_monitor || b->has_monitor)
+    if (a->requires_order || b->requires_order)
       return 1;
     if ((a->write_res & (b->read_res | b->write_res)) != 0 ||
         (a->read_res & b->write_res) != 0)
