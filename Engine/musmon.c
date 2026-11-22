@@ -1354,7 +1354,7 @@ int32_t sense_events(CSOUND *csound)
   int32_t     conn, *sinp;
   int32_t     waiting_for_realtime_work = 0;
 
-  /* a fatal jump the realtime init thread took, for exitjmp, this thread's */
+  /* Forward any fatal init-thread jump to this performance call. */
   init_thread_jump_make(csound);
 
   csdebug_data_t *data = (csdebug_data_t *) csound->csdebug_data;
