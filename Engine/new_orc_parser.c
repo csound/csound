@@ -245,6 +245,7 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
          We just pass a pointer, which will be allocated
          by make leaf */
       TREE* astTree = NULL;
+      TREE* origTree = NULL;
       TREE* newRoot;
       TYPE_TABLE* typeTable = NULL;
       CONS_CELL *newStructTypes = NULL;
@@ -327,6 +328,7 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
          as a rejected struct definition, report through ErrorMsg only and
          leave synterrcnt unchanged. */
       hadStatements = (astTree != NULL);
+      origTree = astTree;
       astTree = verify_tree(csound, astTree, typeTable);
 
       if (UNLIKELY(csound->synterrcnt || (hadStatements && astTree == NULL))) {
@@ -362,26 +364,31 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
            rewriting. A tree walk cannot safely recover those allocations. */
         if (csoundWasiHasAllocScope(csound)) return NULL;
 #endif
-        TREE *node = astTree;
+        TREE *cleanupTree = (astTree != NULL) ? astTree : origTree;
+        TREE *node = cleanupTree;
         while (node != NULL) {
-          if ((node->type == INSTR_TOKEN || node->type == UDO_TOKEN) &&
+          if ((node->type == INSTR_TOKEN || node->type == UDO_TOKEN ||
+               node->type == T_DECLARE) &&
               node->markup != NULL &&
               (typeTable == NULL ||
                (node->markup != typeTable->localPool &&
                 node->markup != typeTable->instr0LocalPool))) {
-            csoundFreeVarPool(csound, (CS_VAR_POOL *)node->markup);
+            csoundFreeParserVarPool(csound, node->markup);
             node->markup = NULL;
           }
           node = node->next;
         }
-        csoundDeleteTree(csound, astTree);
+        csoundDeleteTree(csound, cleanupTree);
         if (typeTable != NULL) {
-          csoundFreeVarPool(csound, typeTable->globalPool);
-          if (typeTable->instr0LocalPool != NULL) {
-            csoundFreeVarPool(csound, typeTable->instr0LocalPool);
+          if (typeTable->globalPool != NULL) {
+            csoundFreeParserVarPool(csound, typeTable->globalPool);
           }
-          if (typeTable->localPool != typeTable->instr0LocalPool) {
-            csoundFreeVarPool(csound, typeTable->localPool);
+          if (typeTable->instr0LocalPool != NULL) {
+            csoundFreeParserVarPool(csound, typeTable->instr0LocalPool);
+          }
+          if (typeTable->localPool != NULL &&
+              typeTable->localPool != typeTable->instr0LocalPool) {
+            csoundFreeParserVarPool(csound, typeTable->localPool);
           }
           cs_cons_free_complete(csound, typeTable->labelList);
           typeTable->labelList = NULL;

@@ -4831,3 +4831,61 @@ endin
     EXPECT_EQ(FL(24.0), csoundGetControlChannel(csound, "kScaledSum", &err));
     EXPECT_EQ(0, err);
 }
+
+TEST_F(OrcCompileTests, VerifyTreeFailureCleansOriginalAstAndPriorInstrPools)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *badWithUdoAndInstr = R"(
+opcode GoodHelper(iIn:i):i
+  iLocal = iIn * 2
+  xout iLocal + 1
+endop
+
+instr 1
+  iRes = GoodHelper(3)
+  chnset iRes, "priorInstrOk"
+endin
+
+instr 2
+  iBad nonexistentOpcodeForVerifyCleanup 1
+endin
+)";
+    const char *badWithInstr0ExprFirst = R"(
+giFirstExpr = 1 + 2
+
+instr 1
+  iX init giFirstExpr + 4
+endin
+
+instr 2
+  iBad nonexistentOpcodeForVerifyCleanup 2
+endin
+)";
+
+    for (int i = 0; i < 5; i++) {
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, badWithUdoAndInstr));
+        EXPECT_NE(CSOUND_SUCCESS,
+                  csoundCompileOrc(csound, badWithInstr0ExprFirst));
+    }
+
+    const char *validAfterFailures = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  chnset 42, "afterVerifyFailure"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, validAfterFailures));
+    csoundReadScore(csound, "i 1 0 0.01\ne 0.02\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int perfStatus = 0;
+    while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+    }
+    EXPECT_GT(perfStatus, 0);
+    int32_t err = 0;
+    EXPECT_EQ(FL(42.0), csoundGetControlChannel(csound, "afterVerifyFailure", &err));
+    EXPECT_EQ(0, err);
+}
