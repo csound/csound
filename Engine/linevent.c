@@ -428,8 +428,8 @@ static void sense_line(CSOUND *csound, void *userData)
         if (STA(oflag)) {
           char *end = Linestart;
           while (end < Linend) {
-            char previous = STA(orcScan).previous;
-            if (csound_orc_scan_char(&STA(orcScan), *end) &&
+            char previous = csound->orcScan.previous;
+            if (csound_orc_scan_char(&csound->orcScan, *end) &&
                 previous != '}' && end[1] != '}')
               break;
             end++;
@@ -480,7 +480,7 @@ static void sense_line(CSOUND *csound, void *userData)
             STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
           STA(orchestra) = STA(orchestrab);
           *STA(orchestra) = '\0';
-          STA(orcScan) = (ORC_DELIMITER_SCAN){0};
+          csound->orcScan = (ORC_DELIMITER_SCAN){0};
           STA(oflag) = 1;
           csound->Message(csound,
                           Str("::reading orchestra, use '}' to terminate::\n"));

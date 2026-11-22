@@ -1060,7 +1060,7 @@ static const CSOUND cenviron_ = {
         NULL,
         0,
         NULL, NULL,
-        0, NULL, 0, {0}
+        0, NULL, 0
       },
     .musmonStatics = {
         {0,0}, {0,0},
@@ -1109,6 +1109,7 @@ static const CSOUND cenviron_ = {
     .marked_sections = {{NULL, 0, 0}},
     .line_event_work = NULL,
     .line_event_work_size = 0,
+    .orcScan = {0, 0, '\0'},
 
 };
 
