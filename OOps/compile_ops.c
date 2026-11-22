@@ -20,7 +20,11 @@
 */
 
 #include "compile_ops.h"
+#include <limits.h>
 #include <stdio.h>
+#ifndef WIN32
+#include <sys/stat.h>
+#endif
 int32_t csound_compile_orc(CSOUND *csound, const char *str, int32_t async);
 int32_t csoundReadScore(CSOUND *csound, const char *str);
 
@@ -39,10 +43,17 @@ int32_t compile_orc_i(CSOUND *csound, COMPILE *p){
     return OK;
   }
 
+#ifndef WIN32
+  {
+    struct stat st;
+    if (fstat(fileno(fp), &st) != 0 || !S_ISREG(st.st_mode))
+      goto read_error;
+  }
+#endif
   if (fseek(fp, 0, SEEK_END) != 0)
     goto read_error;
   sz = ftell(fp);
-  if (sz <= 0 || fseek(fp, 0, SEEK_SET) != 0)
+  if (sz <= 0 || sz == LONG_MAX || fseek(fp, 0, SEEK_SET) != 0)
     goto read_error;
   size = (size_t)sz;
 
