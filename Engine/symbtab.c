@@ -353,6 +353,32 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     inm->in_arg_pool = csoundCreateVarPool(csound);
     inm->out_arg_pool = csoundCreateVarPool(csound);
 
+    /* Validate argument signatures before linking OPCODINFO or adding an OENTRY
+       so a failed UDO definition never leaves a half-initialized opcode entry. */
+    OENTRY parsedEntry = {0};
+    parsedEntry.opname = (char *)opname;
+
+    if (UNLIKELY(parse_opcode_args(csound, &parsedEntry, inm) != 0)) {
+      CS_VARIABLE *var;
+      csound->Free(csound, parsedEntry.intypes);
+      csound->Free(csound, parsedEntry.outypes);
+      csound->Free(csound, inm->name);
+      csound->Free(csound, inm->intypes);
+      csound->Free(csound, inm->outtypes);
+      for (var = inm->in_arg_pool ? inm->in_arg_pool->head : NULL;
+           var != NULL; var = var->next) {
+        csound->Free(csound, var->varName);
+      }
+      for (var = inm->out_arg_pool ? inm->out_arg_pool->head : NULL;
+           var != NULL; var = var->next) {
+        csound->Free(csound, var->varName);
+      }
+      if (inm->in_arg_pool != NULL) csoundFreeVarPool(csound, inm->in_arg_pool);
+      if (inm->out_arg_pool != NULL) csoundFreeVarPool(csound, inm->out_arg_pool);
+      csound->Free(csound, inm);
+      return -3;
+    }
+
     inm->prv = csound->opcodeInfo;
     csound->opcodeInfo = inm;
 
@@ -373,18 +399,18 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     }
     newopc = csound_find_internal_oentry(csound, &tmpEntry);
     inm->oentry = newopc;
-
-    newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
-    newopc->outypes = NULL;
-    newopc->intypes = NULL;
-    newopc->flags = flags | newopc->flags;
-
-    if (UNLIKELY(parse_opcode_args(csound, newopc, inm) != 0))
-      return -3;
-
-
-    // add opcodeDef for this UDO
-    add_opcode_def(csound, newopc);
+    if (LIKELY(newopc != NULL)) {
+      newopc->useropinfo = (void*) inm; /* ptr to opcode parameters */
+      newopc->dsblksiz = parsedEntry.dsblksiz;
+      newopc->intypes = parsedEntry.intypes;
+      newopc->outypes = parsedEntry.outypes;
+      newopc->flags = flags | newopc->flags;
+      // add opcodeDef for this UDO
+      add_opcode_def(csound, newopc);
+    } else {
+      csound->Free(csound, parsedEntry.intypes);
+      csound->Free(csound, parsedEntry.outypes);
+    }
     return 0;
 }
 
