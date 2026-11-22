@@ -29,12 +29,12 @@
 #include <limits.h>
 #include "csoundCore.h"
 #include "corfile.h"
+#include "csound_pre_shared.h"
 #define YY_DECL int yylex (CSOUND *csound, yyscan_t yyscanner)
 static void comment(yyscan_t);
 static void do_comment(yyscan_t);
 static void do_include(CSOUND *, int, yyscan_t);
 static void do_new_include(CSOUND *, yyscan_t);
-extern int isDir(char *);
 static void do_macro_arg(CSOUND *, char *, yyscan_t);
 static void do_macro(CSOUND *, char *, yyscan_t);
 static void do_umacro(CSOUND *, char *, yyscan_t);
@@ -44,8 +44,6 @@ static void do_ifdef_skip_code(CSOUND *, yyscan_t);
 struct prs_parm_s;
 static void do_umacroq(CSOUND*, const char*, struct prs_parm_s*);
 static int macro_input(yyscan_t);
-static void delete_macros(CSOUND*, struct prs_parm_s*);
-static void free_macro(CSOUND*, MACRO*);
 static int extract_int(CSOUND*, yyscan_t, int*);
 static int read_digits(yyscan_t, int*);
 static int on_EOF(CSOUND*, yyscan_t);
@@ -92,7 +90,6 @@ static void prs_pop_buffer(yyscan_t);
     PARM->path = csoundStrdup(csound, ".");                             \
     PARM->cf = csound->expanded_sco;                                    \
   }
-static MACRO *find_definition(MACRO *, char *);
 %}
 %option reentrant
 %option noyywrap
@@ -193,7 +190,7 @@ HEXLITERAL      0[xX]({HEX}+\.?{HEX}*|\.{HEX}+)([pP][-+]?[0-9]+)?
                 }
 {MACRONAME}|{MACRONAMED}     {
                    MACRO     *mm = PARM->macros;
-                   mm = find_definition(mm, yytext+1);
+                   mm = csound_pre_find_definition(mm, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      //csound->LongJmp(csound, 1);
@@ -211,7 +208,7 @@ HEXLITERAL      0[xX]({HEX}+\.?{HEX}*|\.{HEX}+)([pP][-+]?[0-9]+)?
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                 yytext);
                    yytext[yyleng-1] = '\0';
-                   mm = find_definition(mm, yytext+1);
+                   mm = csound_pre_find_definition(mm, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      corfile_puts(csound, "$error", PARM->cf);
@@ -251,7 +248,7 @@ HEXLITERAL      0[xX]({HEX}+\.?{HEX}*|\.{HEX}+)([pP][-+]?[0-9]+)?
                                                    "in score is dropped\n"));
                     corfile_putc(csound, '\0', PARM->cf);
                     corfile_putc(csound, '\0', PARM->cf);
-                    delete_macros(csound, PARM);
+                    csound_pre_delete_macro_list(csound, &PARM->macros);
                     return 0;
                   }
                 }
@@ -829,7 +826,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
                      csound_prsget_lineno(yyscanner));
     // printf("reading included file \"%s\"\n", buffer);
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
-    if (UNLIKELY(isDir(buffer)))
+    if (UNLIKELY(csound_pre_is_dir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including\n"), buffer);
     csound->DebugMsg(csound, "path = %s\n", PARM->path);
     if (PARM->path && buffer[0]!= DIRSEP) { // if nested included directories
@@ -917,7 +914,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     csound->DebugMsg(csound,"line %d at end of #include line\n",
                      csound_prsget_lineno(yyscanner));
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
-    if (UNLIKELY(isDir(buffer)))
+    if (UNLIKELY(csound_pre_is_dir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including\n"), buffer);
     if (PARM->path && buffer[0]!=DIRSEP) {
       char tmp[2*INCLUDE_NAME_SIZE];
@@ -1179,7 +1176,7 @@ static void do_umacroq(CSOUND *csound, const char *name0, PRS_PARM *parm)
       return;
     }
     *pp = found->next;
-    free_macro(csound, found);
+    csound_pre_free_macro(csound, found);
 }
 
 static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
@@ -1289,20 +1286,8 @@ static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
       running |= found == PARM->repeat_mm_n[i];
     if (UNLIKELY(running))
       csound->Message(csound, Str("#undef of a repeat's counter ignored\n"));
-    else if (strcmp(name0, PARM->macros->name)==0) {
-      MACRO *mm=PARM->macros->next;
-      free_macro(csound, PARM->macros);
-      PARM->macros = mm;
-    }
-    else {
-      MACRO *mm = PARM->macros;
-      MACRO *nn = mm->next;
-      while (strcmp(name0, nn->name) != 0) {
-        mm = nn; nn = nn->next;
-      }
-      mm->next = nn->next;
-      free_macro(csound, nn);
-    }
+    else
+      csound_pre_undef_macro_quiet(csound, &PARM->macros, name0);
     while ((c=input(yyscanner)) != '\n' &&
            c != EOF && c != '\0' && c != '\r'); /* ignore rest of line */
     csound_prsset_lineno(1+csound_prsget_lineno(yyscanner),yyscanner);
@@ -1311,23 +1296,9 @@ static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 static void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     int c;
-    MACRO *mm;
-    IFDEFSTACK *pp;
-    pp = (IFDEFSTACK*) csound->Calloc(csound, sizeof(IFDEFSTACK));
-    if (UNLIKELY(pp == NULL)) {
-      csound->Message(csound, Str("Memory exhausted"));
-      csound->LongJmp(csound, 1);
-    }
-    pp->prv = PARM->ifdefStack;
-    pp->isDef = PARM->isIfndef;
-    for (mm = PARM->macros; mm != NULL; mm = mm->next) {
-      if (strcmp(name0, mm->name) == 0) {
-        pp->isDef ^= (unsigned char) 1;
-        break;
-      }
-    }
-    PARM->ifdefStack = pp;
-    pp->isSkip = pp->isDef ^ (unsigned char) 1;
+    IFDEFSTACK *pp = csound_pre_push_ifdef(csound, &PARM->ifdefStack,
+                                           PARM->macros, name0,
+                                           PARM->isIfndef);
     if (pp->isSkip)
       do_ifdef_skip_code(csound, yyscanner);
     else
@@ -1388,25 +1359,6 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
     while (c != '\n' && c != EOF && c != '\0' && c != '\r') c = input(yyscanner);
 }
 
-static void free_macro(CSOUND *csound, MACRO *mm)
-{
-    int i;
-    for (i = 0; i < mm->acnt; i++)
-      csound->Free(csound, mm->arg[i]);
-    csound->Free(csound, mm->body);
-    csound->Free(csound, mm->name);
-    csound->Free(csound, mm);
-}
-
-static void delete_macros(CSOUND *csound, PRS_PARM *qq)
-{
-    while (qq->macros != NULL) {
-      MACRO *next = qq->macros->next;
-      free_macro(csound, qq->macros);
-      qq->macros = next;
-    }
-}
-
 /* What a read of the score holds, when it ends and when a fatal error ends
    it early: the scanner, the macros and the one being read, the bodies of
    repeats and of an r, each once and never the score's own text, and the
@@ -1421,9 +1373,9 @@ void csound_prs_free(CSOUND *csound, PRS_PARM *qq)
       csound_prslex_destroy(qq->yyscanner);
     }
     csound->Free(csound, qq->buffers.parents);
-    delete_macros(csound, qq);
+    csound_pre_delete_macro_list(csound, &qq->macros);
     if (qq->defining != NULL)
-      free_macro(csound, qq->defining);
+      csound_pre_free_macro(csound, qq->defining);
     open[n++] = qq->cf;
     open[n++] = qq->repeat_sect_cf;
     for (i = 1; i <= qq->repeat_index && i < RPTDEPTH; i++)
@@ -1440,11 +1392,7 @@ void csound_prs_free(CSOUND *csound, PRS_PARM *qq)
         corfile_rm(csound, &f);
       }
     }
-    while (qq->ifdefStack != NULL) {
-      IFDEFSTACK *pp = qq->ifdefStack->prv;
-      csound->Free(csound, qq->ifdefStack);
-      qq->ifdefStack = pp;
-    }
+    csound_pre_free_ifdef_stack(csound, &qq->ifdefStack);
     for (i = 0; i < (int)qq->macro_stack_ptr; i++) {
       csound->Free(csound, qq->alt_stack[i].path);
     }
@@ -1455,56 +1403,7 @@ void csound_prs_free(CSOUND *csound, PRS_PARM *qq)
 
 void cs_init_smacros(CSOUND *csound, PRS_PARM *qq, NAMES *nn)
 {
-    while (nn) {
-      char  *s = nn->mac;
-      char  *p = strchr(s, '=');
-      char  *mname;
-      MACRO *mm;
-
-      if (p == NULL)
-        p = s + strlen(s);
-      if (UNLIKELY(csound->oparms->msglevel & 7))
-        csound->Message(csound, Str("Macro definition for %*s\n"), (int)(p - s), s);
-      s = strchr(s, ':') + 1;                   /* skip arg bit */
-      if (UNLIKELY(s == NULL || s >= p)) {
-        csound->Die(csound, Str("Invalid macro name for --smacro\n"));
-      }
-      mname = (char*) csound->Malloc(csound, (p - s) + 1);
-      if (UNLIKELY(mname == NULL)) {
-        csound->Message(csound, Str("Memory exhausted"));
-        csound->LongJmp(csound, 1);
-      }
-      strncpy(mname, s, p - s);
-      mname[p - s] = '\0';
-      /* check if macro is already defined */
-      for (mm = qq->macros; mm != NULL; mm = mm->next) {
-        if (strcmp(mm->name, mname) == 0)
-          break;
-      }
-      if (mm == NULL) {
-        mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
-        if (UNLIKELY(mm  == NULL)) {
-          csound->Message(csound, Str("Memory exhausted"));
-          csound->LongJmp(csound, 1);
-        }
-        mm->name = mname;
-        mm->next = qq->macros;
-        qq->macros = mm;
-      }
-      else
-        csoundFree(csound, mname);
-      mm->margs = MARGS;    /* Initial size */
-      mm->acnt = 0;
-      if (*p != '\0')
-        p++;
-      mm->body = (char*) csound->Malloc(csound, strlen(p) + 1);
-      if (UNLIKELY(mm->body == NULL)) {
-        csound->Message(csound, Str("Memory exhausted"));
-        csound->LongJmp(csound, 1);
-      }
-      strcpy(mm->body, p);
-      nn = nn->next;
-    }
+    csound_pre_init_cli_macros(csound, &qq->macros, nn, "--smacro");
 }
 
 static void expand_macro(CSOUND* csound, MACRO* mm, yyscan_t yyscanner)
@@ -1642,7 +1541,7 @@ static int expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
       while (pushed-- > 0 && PARM->macros != NULL) {
         MACRO *del = PARM->macros;
         PARM->macros = del->next;
-        free_macro(csound, del);
+        csound_pre_free_macro(csound, del);
       }
       return err;
     }
@@ -1673,38 +1572,6 @@ static int expand_macroa(CSOUND *csound, MACRO* mm, yyscan_t yyscanner)
     prs_scan_string(mm->body, yyscanner);
     csound_prsset_lineno(0, yyscanner);
     return err;
-}
-
-static MACRO *find_definition(MACRO *mmo, char *s)
-{
-    MACRO *mm = mmo;
-    size_t len = strlen(s);
-    if (len == 0) return NULL;
-    if (s[len-1]=='.') s[len-1]='\0';
-    else if (len > 1 && s[len-2]=='.' && s[len-1]=='(') {
-      s[len-2] = '('; s[len-1] = '\0'; }
-    //printf("****Looking for %s\n", s);
-    while (mm != NULL) {  /* Find the definition */
-      //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
-      if (!(strcmp(s, mm->name))) break;
-      mm = mm->next;
-    }
-    if (mm == NULL) {
-      mm = mmo;
-      if (*s++ == '\0') return NULL; /* skip _ */
-    looking:
-      while (*s!='`') { if (*s++=='\0') return NULL; }
-      s++;
-      if (*s++!='`') { s--; goto looking; }
-      //printf("now try looking for %s\n", s);
-      while (mm != NULL) {  /* Find the definition */
-        //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
-        if (!(strcmp(s, mm->name))) break;
-        mm = mm->next;
-      }
-    }
-    //if (mm) printf("found body #%s#%c\n****\n", mm->body, mm->acnt?'X':' ');
-    return mm;
 }
 
 //#if 0
@@ -1844,7 +1711,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
           if (c=='.') c = input(yyscanner);
           buf[p] = '\0';
           //printf("macro: %s\n", buf);
-          mm = find_definition(mm, buf);
+          mm = csound_pre_find_definition(mm, buf);
           if (UNLIKELY(mm==NULL)) {
             csound->Message(csound, Str("Undefined macro: '%s'"), buf);
             csound->LongJmp(csound, 1);
@@ -2026,7 +1893,7 @@ static int extract_int(CSOUND *csound, yyscan_t yyscanner, int* term)
       if (c=='.') c = input(yyscanner);
       buf[i] = '\0';
       //printf("*** lookup macro %s\n", buf);
-      if ((mm = find_definition(PARM->macros, buf))==NULL) {
+      if ((mm = csound_pre_find_definition(PARM->macros, buf))==NULL) {
         csound->Message(csound,Str("Undefined macro: '%s'"), buf);
         //csound->LongJmp(csound, 1);
         corfile_puts(csound, "$error", PARM->cf);
@@ -2101,7 +1968,7 @@ static int on_EOF(CSOUND* csound, void* yyscanner)
       while (n > 0 && *pp != NULL) {
         MACRO *del = *pp;
         *pp = del->next;
-        free_macro(csound, del);
+        csound_pre_free_macro(csound, del);
         n--;
       }
       PARM->alt_stack[PARM->macro_stack_ptr].s = NULL;

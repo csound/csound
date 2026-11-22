@@ -24,7 +24,9 @@
 
 #define __CSOUND_ORC_H
 
+#ifndef YYDEBUG
 #define YYDEBUG 1
+#endif
 
 #include "parse_param.h"
 #include "score_param.h"

@@ -893,6 +893,51 @@ static inline int32_t IsStringCode(cs_float f) {
 }
 
 /**
+ * Encodes string argument index into a NaN-boxed SSTRCOD p-field value.
+ */
+static inline cs_float csound_encode_sstrcod(int32_t index) {
+#ifdef USE_DOUBLE
+  int32_t sel = (byte_order() + 1) & 1;
+  union {
+    cs_float d;
+    int32 i[2];
+  } ch;
+  ch.d = SSTRCOD;
+  ch.i[sel] += (index & 0xffff);
+  return ch.d;
+#else
+  union {
+    cs_float d;
+    int32 i;
+  } ch;
+  ch.d = SSTRCOD;
+  ch.i += (index & 0xffff);
+  return ch.d;
+#endif
+}
+
+/**
+ * Decodes the string argument index from an SSTRCOD p-field value.
+ */
+static inline int32_t csound_decode_sstrcod(cs_float p) {
+#ifdef USE_DOUBLE
+  union {
+    cs_float d;
+    int32 i[2];
+  } ch;
+  ch.d = p;
+  return (byte_order() == 0) ? (ch.i[1] & 0xffff) : (ch.i[0] & 0xffff);
+#else
+  union {
+    cs_float d;
+    int32 j;
+  } ch;
+  ch.d = p;
+  return ch.j & 0xffff;
+#endif
+}
+
+/**
  * Returns the number of input arguments for opcode 'p'.
  */
 static inline int32_t GetInputArgCnt(OPDS *p) {

@@ -797,6 +797,10 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
       else {
         char* inArgTypes =
           get_arg_string_from_tree(csound, root->right, typeTable);
+        if (root->right != NULL && inArgTypes == NULL) {
+          csound->Free(csound, opentries);
+          return NULL;
+        }
         if (root->value->optype != NULL)
           outtype =
             check_annotated_type(csound, opentries, root->value->optype);
@@ -876,6 +880,7 @@ static TREE *create_expression(CSOUND *csound, TREE *root, int32_t line,
                                                     typeTable);
 
       if (rightArgType == NULL) {
+        csound->Free(csound, opentries);
         return NULL;
       }
 

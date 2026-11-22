@@ -29,6 +29,7 @@
 #include <float.h>
 #include "csoundCore.h"
 #include "corfile.h"
+#include "csound_pre_shared.h"
 #include <inttypes.h>
 
 #ifdef USE_DOUBLE
@@ -48,16 +49,13 @@ static int macro_input(yyscan_t);
 static void do_macro_arg(CSOUND *, char *, yyscan_t);
 static void do_macro(CSOUND *, char *, yyscan_t);
 static void do_umacro(CSOUND *, char *, yyscan_t);
-static void do_umacroq(CSOUND *, char *, yyscan_t);
 static void do_ifdef(CSOUND *, char *, yyscan_t);
 static void do_ifdef_skip_code(CSOUND *, yyscan_t);
 static void do_function(CSOUND*, char *, CORFIL*, int32_t);
 static void pre_push_buffer(CSOUND *, yyscan_t);
 static void pre_scan_string(const char *, yyscan_t);
 static void pre_pop_buffer(yyscan_t);
-//static void print_csound_predata(CSOUND *,char *,yyscan_t);
 static void csound_pre_line(CSOUND *, CORFIL*, yyscan_t);
-//static void delete_macros(CSOUND*, yyscan_t);
 #include "parse_param.h"
 
 #define YY_EXTRA_TYPE  PRE_PARM *
@@ -72,7 +70,6 @@ static void pre_fatal(yyscan_t, const char *);
     PARM->alt_stack = NULL; PARM->macro_stack_ptr = 0;                  \
     PARM->initial_path = PARM->path = ".";                              \
   }
-static MACRO *find_definition(MACRO *, char *);
 
 #define S_INC (10)
 /* The longest #include or #includestr name, with its NUL: a longer one is
@@ -328,7 +325,7 @@ QNAN            "qnan"[ \t]*\(
 {MACRONAME}|{MACRONAMED}     {
                    MACRO     *mm = csound->orc_macros;
                    //printf("macro name >>%s<<\n", yytext);
-                   mm = find_definition(mm, yytext+1);
+                   mm = csound_pre_find_definition(mm, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      //csound->LongJmp(csound, 1);
@@ -375,7 +372,7 @@ QNAN            "qnan"[ \t]*\(
                    //csound->DebugMsg(csound,"Macro with arguments call %s\n",
                    //                 yytext);
                    yytext[yyleng-1] = '\0';
-                   mm = find_definition(mm, yytext+1);
+                   mm = csound_pre_find_definition(mm, yytext+1);
                    if (UNLIKELY(mm == NULL)) {
                      csound->Message(csound,Str("Undefined macro: '%s'"), yytext);
                      corfile_puts(csound, "$error", csound->expanded_orc);
@@ -616,7 +613,8 @@ QNAN            "qnan"[ \t]*\(
                                       yytext);
                   /* print_csound_predata(csound, "Before do_macro_arg",
                                           yyscanner); */
-                  do_umacroq(csound, yytext, yyscanner);
+                  csound_pre_undef_macro_quiet(csound, &csound->orc_macros,
+                                               yytext);
                   do_macro_arg(csound, yytext, yyscanner);
                   //print_csound_predata(csound,"After do_macro_arg", yyscanner);
                   BEGIN(INITIAL);
@@ -624,7 +622,8 @@ QNAN            "qnan"[ \t]*\(
 <macro>{MACRO} {
                   csound->DebugMsg(csound,"Define macro %s\n", yytext);
                   /* print_csound_predata(csound,"Before do_macro", yyscanner); */
-                  do_umacroq(csound, yytext, yyscanner);
+                  csound_pre_undef_macro_quiet(csound, &csound->orc_macros,
+                                               yytext);
                   do_macro(csound, yytext, yyscanner);
                   //print_csound_predata(csound,"After do_macro", yyscanner);
                   BEGIN(INITIAL);
@@ -866,16 +865,6 @@ void do_comment(yyscan_t yyscanner)              /* Skip until * and / chars */
       goto TOP;
     }
 }
-#ifndef WIN32
-int isDir(char *path) {
-   struct stat statbuf;
-   if (stat(path, &statbuf) != 0)
-       return 0;
-   return S_ISDIR(statbuf.st_mode);
-}
-#else
-int isDir(char *path) { return 0;}
-#endif
 
 /* The rest of a directive's line: to its newline, or to the end of the
    text, where waiting for a newline alone never ended. */
@@ -916,7 +905,7 @@ void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     csound->DebugMsg(csound,"line %d at end of #include line\n",
                      csound_preget_lineno(yyscanner));
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
-    if (UNLIKELY(isDir(buffer)))
+    if (UNLIKELY(csound_pre_is_dir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including\n"), buffer);
     if (PARM->path && buffer[0]!= DIRSEP) { // if nested included directories
       char tmp[2*INCLUDE_NAME_SIZE];
@@ -1009,7 +998,7 @@ void  do_new_include(CSOUND *csound, yyscan_t yyscanner)
     csound->DebugMsg(csound,"line %d at end of #include line\n",
                      csound_preget_lineno(yyscanner));
     csound->DebugMsg(csound,"reading included file \"%s\"\n", buffer);
-    if (UNLIKELY(isDir(buffer)))
+    if (UNLIKELY(csound_pre_is_dir(buffer)))
       csound->Warning(csound, Str("%s is a directory; not including\n"), buffer);
     if (PARM->path && buffer[0]!=DIRSEP) {
       char tmp[2*INCLUDE_NAME_SIZE];
@@ -1359,77 +1348,25 @@ static void do_macro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 
 static void do_umacro(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
-    int i,c;
+    int c;
     if (UNLIKELY(csound->oparms->msglevel))
       csound->Message(csound,Str("macro %s undefined\n"), name0);
     csound->DebugMsg(csound, "macro %s undefined\n", name0);
-    if (strcmp(name0, csound->orc_macros->name)==0) {
-      MACRO *mm=csound->orc_macros->next;
-      csoundFree(csound, csound->orc_macros->name); csoundFree(csound, csound->orc_macros->body);
-      for (i=0; i<csound->orc_macros->acnt; i++)
-        csoundFree(csound, csound->orc_macros->arg[i]);
-      csoundFree(csound, csound->orc_macros); csound->orc_macros = mm;
-    }
-    else {
-      MACRO *mm = csound->orc_macros;
-      MACRO *nn = mm->next;
-      while (strcmp(name0, nn->name) != 0) {
-        mm = nn; nn = nn->next;
-        if (UNLIKELY(nn == NULL)) {
-          csound->Message(csound, Str("Undefining undefined macro"));
-          csound->LongJmp(csound, 1);
-        }
-      }
-      csoundFree(csound, nn->name); csoundFree(csound, nn->body);
-      for (i=0; i<nn->acnt; i++)
-        csoundFree(csound, nn->arg[i]);
-      mm->next = nn->next; csoundFree(csound, nn);
+    if (!csound_pre_undef_macro_quiet(csound, &csound->orc_macros, name0)) {
+      csound->Message(csound, Str("Undefining undefined macro"));
+      csound->LongJmp(csound, 1);
     }
     while ((c=input(yyscanner)) != '\n' &&
            c != EOF && c != '\0' && c != '\r'); /* ignore rest of line */
     csound_preset_lineno(1+csound_preget_lineno(yyscanner),yyscanner);
 }
 
-static void do_umacroq(CSOUND *csound, char *name0, yyscan_t yyscanner)
-{
-    int i;
-    MACRO *mm = csound->orc_macros, *last = NULL;
-    while (mm) {
-      if (strcmp(name0, mm->name)==0) {
-        MACRO *nn=mm->next;
-        csoundFree(csound, mm->name); csoundFree(csound, mm->body);
-        for (i=0; i<mm->acnt; i++)
-          csoundFree(csound, mm->arg[i]);
-        csoundFree(csound, mm);
-        if (last) last->next = nn;
-        else csound->orc_macros = nn;
-        return;
-      }
-      last = mm; mm = last->next;
-    }
-    return;
-}
-
 static void do_ifdef(CSOUND *csound, char *name0, yyscan_t yyscanner)
 {
     int c;
-    MACRO *mm;
-    IFDEFSTACK *pp;
-    pp = (IFDEFSTACK*) csound->Calloc(csound, sizeof(IFDEFSTACK));
-    if (UNLIKELY(pp == NULL)) {
-      csound->Message(csound, Str("Memory exhausted"));
-      csound->LongJmp(csound, 1);
-    }
-    pp->prv = PARM->ifdefStack;
-    pp->isDef = PARM->isIfndef;
-    for (mm = csound->orc_macros; mm != NULL; mm = mm->next) {
-      if (strcmp(name0, mm->name) == 0) {
-        pp->isDef ^= (unsigned char) 1;
-        break;
-      }
-    }
-    PARM->ifdefStack = pp;
-    pp->isSkip = pp->isDef ^ (unsigned char) 1;
+    IFDEFSTACK *pp = csound_pre_push_ifdef(csound, &PARM->ifdefStack,
+                                           csound->orc_macros, name0,
+                                           PARM->isIfndef);
     if (pp->isSkip)
       do_ifdef_skip_code(csound, yyscanner);
     else
@@ -1491,23 +1428,6 @@ static void do_ifdef_skip_code(CSOUND *csound, yyscan_t yyscanner)
       c = input(yyscanner);
 }
 
-#if 0
-static void delete_macros(CSOUND *csound, yyscan_t yyscanner)
-{
-    MACRO * qq = csound->orc_macros;
-    if (qq) {
-      MACRO *mm = qq;
-      while (mm) {
-        csound->Free(csound, mm->body);
-        csound->Free(csound, mm->name);
-        qq = mm->next;
-        csound->Free(csound, mm);
-        mm = qq;
-       }
-    }
-}
-#endif
-
 static void add_math_const_macro(CSOUND *csound, char * name, char *body)
 {
     MACRO *mm;
@@ -1556,56 +1476,7 @@ void cs_init_math_constants_macros(CSOUND *csound)
 
 void cs_init_omacros(CSOUND *csound, NAMES *nn)
 {
-    while (nn) {
-      char  *s = nn->mac;
-      char  *p = strchr(s, '=');
-      char  *mname;
-      MACRO *mm;
-
-      if (p == NULL)
-        p = s + strlen(s);
-      if (csound->oparms->msglevel & 7)
-        csound->Message(csound, Str("Macro definition for %*s\n"), (int)(p - s), s);
-      s = strchr(s, ':') + 1;                   /* skip arg bit */
-      if (UNLIKELY(s == NULL || s >= p)) {
-        csound->Die(csound, Str("Invalid macro name for --omacro\n"));
-      }
-      mname = (char*) csound->Malloc(csound, (p - s) + 1);
-      if (UNLIKELY(mname == NULL)) {
-        csound->Message(csound, Str("Memory exhausted"));
-        csound->LongJmp(csound, 1);
-      }
-      strncpy(mname, s, p - s);
-      mname[p - s] = '\0';
-      /* check if macro is already defined */
-      for (mm = csound->orc_macros; mm != NULL; mm = mm->next) {
-        if (strcmp(mm->name, mname) == 0)
-          break;
-      }
-      if (mm == NULL) {
-        mm = (MACRO*) csound->Calloc(csound, sizeof(MACRO));
-        if (UNLIKELY(mm  == NULL)) {
-          csound->Message(csound, Str("Memory exhausted"));
-          csound->LongJmp(csound, 1);
-        }
-        mm->name = mname;
-        mm->next = csound->orc_macros;
-        csound->orc_macros = mm;
-      }
-      else
-        csoundFree(csound, mname);
-      mm->margs = MARGS;    /* Initial size */
-      mm->acnt = 0;
-      if (*p != '\0')
-        p++;
-      mm->body = (char*) csound->Malloc(csound, strlen(p) + 1);
-      if (UNLIKELY(mm->body == NULL)) {
-        csound->Message(csound, Str("Memory exhausted"));
-        csound->LongJmp(csound, 1);
-      }
-      strcpy(mm->body, p);
-      nn = nn->next;
-    }
+    csound_pre_init_cli_macros(csound, &csound->orc_macros, nn, "--omacro");
 }
 
 /* int csound_prewrap(void *yyscanner)  */
@@ -1647,35 +1518,6 @@ static void do_function(CSOUND *csound, char *text, CORFIL *cf,
       p++;
     }
     return;
-}
-
-static MACRO *find_definition(MACRO *mmo, char *s)
-{
-    MACRO *mm = mmo;
-    if (s[strlen(s)-1]=='.') s[strlen(s)-1]='\0';
-    else if (s[strlen(s)-2]=='.' && s[strlen(s)-1]=='(') {
-      s[strlen(s)-2] = '('; s[strlen(s)-1] = '\0'; }
-    // printf("****Looking for %s strlen=%d\n", s, strlen(s), s[strlen(s)-1]);
-    while (mm != NULL) {  /* Find the definition */
-      //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
-      if (!(strcmp(s, mm->name))) break;
-      mm = mm->next;
-    }
-    if (mm == NULL) {
-      mm = mmo;
-      s++;                      /* skip _ */
-    looking:
-      while (*s++!='`') { if (*s=='\0') return NULL; }
-      if (*s++!='`') { s--; goto looking; }
-      //printf("now try looking for %s\n", s);
-      while (mm != NULL) {  /* Find the definition */
-        //printf("looking at %p(%s) body #%s#\n", mm, mm->name, mm->body);
-        if (!(strcmp(s, mm->name))) break;
-        mm = mm->next;
-      }
-    }
-    //if (mm) printf("found body #%s#\n****\n", mm->body);
-    return mm;
 }
 
 

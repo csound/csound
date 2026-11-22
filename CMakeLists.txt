@@ -1562,6 +1562,7 @@ list(APPEND libcsound_SRCS
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c
     Engine/csound_orc_structs.c
+    Engine/csound_pre_shared.c
     Engine/new_orc_parser.c
     Engine/symbtab.c)
 
@@ -1572,6 +1573,7 @@ list(APPEND libcsound_static_SRCS
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c
     Engine/csound_orc_structs.c
+    Engine/csound_pre_shared.c
     Engine/new_orc_parser.c
     Engine/symbtab.c)
 

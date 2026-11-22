@@ -23,15 +23,7 @@
 #define __PARSE_PARAM_H
 
 #include "scanner_buffers.h"
-
-typedef struct IFDEFSTACK_ {
-    struct IFDEFSTACK_  *prv;
-    unsigned char   isDef;      /* non-zero if #ifdef is true, or #ifndef   */
-                                /*   is false                               */
-    unsigned char   isElse;     /* non-zero between #else and #endif        */
-    unsigned char   isSkip;     /* sum of: 1: skipping code due to this     */
-                                /*   #ifdef, 2: skipping due to parent      */
-} IFDEFSTACK;
+#include "csound_pre_shared.h"
 
 
 struct CSOUND_;

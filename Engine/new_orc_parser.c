@@ -27,6 +27,7 @@
 #include "corfile.h"
 #include "score_param.h"
 #include "csound_orc_semantics.h"
+#include "csound_orc_structs.h"
 #include "new_orc_parser.h"
 #include "csmodule.h"
 void add_opcode_defs(CSOUND *csound);
@@ -281,14 +282,10 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
 
       // EARLY two-phase struct processing: must happen before any variable declarations
       // This ensures struct types are available when parsing variable declarations like john:Person
-      {
-        extern int32_t process_struct_definitions_two_phase(CSOUND* csound, TREE* structDefList);
-
-        if (!process_struct_definitions_two_phase(csound, astTree)) {
-          csound->ErrorMsg(csound, Str("Error in early two-phase struct processing\n"));
-          err = 3;
-          goto ending;
-        }
+      if (!process_struct_definitions_two_phase(csound, astTree)) {
+        csound->ErrorMsg(csound, Str("Error in early two-phase struct processing\n"));
+        err = 3;
+        goto ending;
       }
 
       typeTable = csoundParserOwn(csound, csound->Calloc(csound, sizeof(TYPE_TABLE)));

@@ -36,29 +36,7 @@ char* csoundGetArgString(CSOUND *csound, cs_float p)
     if (ss == NULL)   /* none: no string behind the code */
       return NULL;
 
-#ifdef USE_DOUBLE
-    {
-      union {
-        cs_float d;
-        int32 i[2];
-      } ch;
-      ch.d = p;
-      if (byte_order()==0)
-        n = ch.i[1]&0xffff;
-      else
-        n = ch.i[0]&0xffff;
-      //printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
-    }
-#else
-    {
-      union {
-        cs_float d;
-        int32 j;
-      } ch;
-      ch.d = p; n = ch.j&0xffff;
-      //printf("SUNION %.8x \n", ch.j);
-    }
-#endif
+    n = csound_decode_sstrcod(p);
     while (n-- > 0) {
       ss += strlen(ss)+1;
     }
@@ -70,31 +48,10 @@ char* get_string_arg_from_evt(CSOUND *csound, cs_float p, EVTBLK *evt)
 {
     int32 n;
     char *ss = evt->strarg;
+    IGN(csound);
     if (ss == NULL)
       return NULL;
-#ifdef USE_DOUBLE
-    {
-      union {
-        cs_float d;
-        int32 i[2];
-      } ch;
-      ch.d = p;
-      if (byte_order()==0)
-        n = ch.i[1]&0xffff;
-      else
-        n = ch.i[0]&0xffff;
-      //printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
-    }
-#else
-    {
-      union {
-        cs_float d;
-        int32 j;
-      } ch;
-      ch.d = p; n = ch.j&0xffff;
-      //printf("SUNION %.8x \n", ch.j);
-    }
-#endif
+    n = csound_decode_sstrcod(p);
     while (n-- > 0) {
       ss += strlen(ss)+1;
     }
@@ -121,23 +78,8 @@ void set_evt_strarg(CSOUND *csound, EVTBLK *e, int32_t pcnt, const
     memcpy(e->strarg + offset, str, strsiz);
   }
 
-#ifdef USE_DOUBLE              
-  int32_t sel = (byte_order()+1)&1;
-  union {
-    cs_float d;
-    int32 i[2];
-  } ch;
-  ch.d = SSTRCOD; ch.i[sel] += scnt++;
-  e->p[pcnt] = ch.d;           /* set as string with count */
-#else
-  union {
-    cs_float d;
-    int32 i;
-  } ch;
-  ch.d = SSTRCOD; ch.i += scnt++;
-  e->p[pcnt] = ch.d;           /* set as string with count */
-#endif
- e->scnt = scnt;
+  e->p[pcnt] = csound_encode_sstrcod(scnt++); /* set as string with count */
+  e->scnt = scnt;
 }
 
 
@@ -205,31 +147,7 @@ static int32_t scanflt(CSOUND *csound, cs_float *pfld)
         return(0);
       }
       *sstrp++ = '\0';
-#ifdef USE_DOUBLE
-      {
-        int32_t sel = (byte_order()+1)&1;
-        union {
-          cs_float d;
-          int32 i[2];
-        } ch;
-        ch.d = SSTRCOD;
-        //printf("**** %.8x %.8x\n", ch.i[0], ch.i[1]);
-        ch.i[sel] += csound->scnt++;
-        *pfld = ch.d;           /* set as string with count */
-        //printf("***  %.8x %.8x\n", ch.i[0], ch.i[1]);
-      }
-#else
-      {
-        union {
-          cs_float d;
-          int32 j;
-        } ch;
-        ch.d = SSTRCOD;
-        //printf("****** %.8x\n", ch.j);
-        ch.j += csound->scnt++;
-        *pfld = ch.d;           /* set as string with count */
-      }
-#endif
+      *pfld = csound_encode_sstrcod(csound->scnt++); /* set as string with count */
       csound->sstrlen = (int32_t) (sstrp - csound->sstrbuf);  /*    & overall length  */
       //printf("csound->sstrlen = %d\n", csound->sstrlen);
       return(1);

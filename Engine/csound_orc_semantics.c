@@ -786,6 +786,9 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
     if (tree->type == T_FUNCTION) {
       char* argTypeRight = get_arg_string_from_tree(csound,
                                                     tree->right, typeTable);
+      if (tree->right != NULL && argTypeRight == NULL) {
+        return NULL;
+      }
       char* opname = tree->value->lexeme;
       if (!strcmp(opname, "i")) {
         check_i_argument(csound, tree, typeTable);
@@ -1290,21 +1293,24 @@ static int32_t check_array_arg_in(const char* found, const char* required) {
 
 
 
-/* Helper function to normalize type names for comparison */
-static char* normalize_type_for_comparison(const char* typeName) {
-  if (!typeName) return NULL;
-
-  // If it's in internal format (:TypeName;), extract the core name
-  if (typeName[0] == ':' && typeName[strlen(typeName) - 1] == ';') {
-    size_t len = strlen(typeName) - 2; // Remove : and ;
-    char* result = malloc(len + 1);
-    memcpy(result, typeName + 1, len);
-    result[len] = '\0';
-    return result;
+/* Zero-allocation comparison that ignores an internal ':...;' wrapper */
+static size_t strip_type_wrapper(const char *typeName, const char **core) {
+  size_t len = strlen(typeName);
+  if (len >= 2 && typeName[0] == ':' && typeName[len - 1] == ';') {
+    *core = typeName + 1;
+    return len - 2;
   }
+  *core = typeName;
+  return len;
+}
 
-  // Otherwise, return a copy of the original name
-  return strdup(typeName);
+static int32_t type_names_equal(const char *a, const char *b) {
+  const char *ca, *cb;
+  size_t la, lb;
+  if (!a || !b) return 0;
+  la = strip_type_wrapper(a, &ca);
+  lb = strip_type_wrapper(b, &cb);
+  return la == lb && memcmp(ca, cb, la) == 0;
 }
 
 int32_t check_in_arg(const char* found, const char* required) {
@@ -1319,15 +1325,10 @@ int32_t check_in_arg(const char* found, const char* required) {
     return 1;
   }
 
-  // For user-defined types, normalize both sides and compare
-  if (strlen(found) > 1 || strlen(required) > 1) {
-    char* found_normalized = normalize_type_for_comparison(found);
-    char* required_normalized = normalize_type_for_comparison(required);
-    int32_t result = (found_normalized && required_normalized &&
-                      strcmp(found_normalized, required_normalized) == 0);
-    if (found_normalized) free(found_normalized);
-    if (required_normalized) free(required_normalized);
-    if (result) return 1;
+  // For user-defined types, compare ignoring internal ':...;' wrapper
+  if ((strlen(found) > 1 || strlen(required) > 1) &&
+      type_names_equal(found, required)) {
+    return 1;
   }
 
 
@@ -1550,15 +1551,10 @@ int32_t check_out_arg(const char* found, const char* required) {
     return 1;
   }
 
-  // For user-defined types, normalize both sides and compare
-  if (strlen(found) > 1 || strlen(required) > 1) {
-    char* found_normalized = normalize_type_for_comparison(found);
-    char* required_normalized = normalize_type_for_comparison(required);
-    int32_t result = (found_normalized && required_normalized &&
-                      strcmp(found_normalized, required_normalized) == 0);
-    if (found_normalized) free(found_normalized);
-    if (required_normalized) free(required_normalized);
-    if (result) return 1;
+  // For user-defined types, compare ignoring internal ':...;' wrapper
+  if ((strlen(found) > 1 || strlen(required) > 1) &&
+      type_names_equal(found, required)) {
+    return 1;
   }
 
   // check for multichar types now
@@ -2303,257 +2299,172 @@ char* convert_external_to_internal(CSOUND* csound, char* arg) {
 }
 
 
-static int is_external(const char *s) {
-  if(*s != '[') {
-    if(strchr(s+1, '[') != NULL)
-        return 1;
+/* Formats a single raw type string (internal array "[k]", wrapped ":MyType;",
+   primitive "k[]", or plain "MyType"/"MyType[]") into a newly allocated
+   external signature component. Caller owns and must free the result. */
+static char *format_external_arg_type(CSOUND *csound, const char *argType) {
+  const char *brackets;
+  size_t baseLen;
+  size_t bracketLen;
+  char *formatted;
+
+  if (argType[0] == '[') {
+    char *converted = convert_internal_to_external(csound, (char *)argType);
+    return (converted == argType) ? csoundStrdup(csound, converted) : converted;
   }
-  return 0;
+
+  if (argType[0] == ':' && strchr(argType, ';') != NULL) {
+    return csoundStrdup(csound, argType);
+  }
+
+  brackets = strchr(argType, '[');
+  baseLen = brackets != NULL ? (size_t)(brackets - argType) : strlen(argType);
+  if (baseLen == 1) {
+    return csoundStrdup(csound, argType);
+  }
+
+  bracketLen = brackets != NULL ? strlen(brackets) : 0;
+  formatted = csound->Malloc(csound, baseLen + 3 + bracketLen);
+  formatted[0] = ':';
+  memcpy(formatted + 1, argType, baseLen);
+  formatted[baseLen + 1] = ';';
+  if (bracketLen > 0) {
+    memcpy(formatted + baseLen + 2, brackets, bracketLen);
+  }
+  formatted[baseLen + 2 + bracketLen] = '\0';
+  return formatted;
 }
 
+static char *format_out_decl_type(CSOUND *csound, TREE *node) {
+  const char *argType;
+  size_t len;
+  int32_t dims = 0;
+  char *formatted;
+  char *p;
 
-char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
-                               TYPE_TABLE* typeTable) {
-  int32_t len = tree_arg_list_count(tree);
-  int32_t i;
-
-  if (len == 0) {
+  if (node == NULL || node->value == NULL || node->value->lexeme == NULL) {
+    synterr(csound, Str("Could not parse type for argument\n"));
     return NULL;
   }
 
-  char** argTypes = csoundParserOwn(csound,
-    csound->Malloc(csound, len * sizeof(char*)));
-  char* argString = NULL;
-  TREE* current = tree;
+  argType = node->value->lexeme;
+  len = strlen(argType);
+  if (node->right != NULL && node->right->value != NULL &&
+      node->right->value->lexeme != NULL &&
+      *node->right->value->lexeme == '[') {
+    dims = tree_arg_list_count(node->right);
+  }
+
+  if (len == 1) {
+    formatted = csound->Malloc(csound, len + (size_t)dims * 2 + 1);
+    memcpy(formatted, argType, len);
+    p = formatted + len;
+  } else {
+    formatted = csound->Malloc(csound, len + 2 + (size_t)dims * 2 + 1);
+    formatted[0] = ':';
+    memcpy(formatted + 1, argType, len);
+    formatted[len + 1] = ';';
+    p = formatted + len + 2;
+  }
+
+  while (dims-- > 0) {
+    *p++ = '[';
+    *p++ = ']';
+  }
+  *p = '\0';
+  return formatted;
+}
+
+static void free_arg_type_parts(CSOUND *csound, char **parts, int32_t count) {
+  int32_t i;
+  for (i = 0; i < count; i++) {
+    csound->Free(csound, parts[i]);
+  }
+  csound->Free(csound, parts);
+}
+
+/* Builds a concatenated external type signature string from an argument AST. */
+static char *build_arg_type_string(CSOUND *csound, TREE *tree,
+                                   TYPE_TABLE *typeTable,
+                                   int32_t from_out_decl,
+                                   int32_t zero_if_empty) {
+  int32_t len = tree_arg_list_count(tree);
+  char **parts;
+  TREE *current = tree;
   int32_t index = 0;
-  int32_t argsLen = 0;
+  size_t totalLen = 0;
+  char *argString;
+  char *dest;
+  int32_t i;
 
+  if (len == 0) {
+    return zero_if_empty ? csoundParserStrdup(csound, "0") : NULL;
+  }
+  if (zero_if_empty && len == 1 && tree->value != NULL &&
+      tree->value->lexeme != NULL && strcmp(tree->value->lexeme, "0") == 0) {
+    return csoundParserStrdup(csound, "0");
+  }
+
+  parts = csound->Calloc(csound, (size_t)len * sizeof(char *));
   while (current != NULL) {
-    char* argType = csoundParserOwn(csound,
-      get_arg_type2(csound, current, typeTable));
-    if (argType == NULL) {
-      // if we failed to find argType, exit from parser
-      csound->Die(csound, Str("Could not parse type for argument\n"));
-    } else {
-      	// catch type[] in expressions to opcall - no conversion
-      if(!is_external(argType)) {
-        argType = csoundParserOwn(csound,
-          convert_internal_to_external(csound, argType));
+    char *formatted;
+    if (from_out_decl) {
+      formatted = format_out_decl_type(csound, current);
+      if (formatted == NULL) {
+        free_arg_type_parts(csound, parts, index);
+        return NULL;
       }
-      argsLen += strlen(argType);
-      argTypes[index++] = argType;
-
+    } else {
+      int32_t prevErrCnt = csound->synterrcnt;
+      char *rawType = get_arg_type2(csound, current, typeTable);
+      if (rawType == NULL) {
+        if (csound->synterrcnt == prevErrCnt) {
+          synterr(csound, Str("Could not parse type for argument\n"));
+        }
+        free_arg_type_parts(csound, parts, index);
+        return NULL;
+      }
+      formatted = format_external_arg_type(csound, rawType);
+      csound->Free(csound, rawType);
     }
-
+    totalLen += strlen(formatted);
+    parts[index++] = formatted;
     current = current->next;
   }
 
   argString = csoundParserOwn(csound,
-    csound->Malloc(csound, (argsLen + 1) * sizeof(char)));
-  char* temp = argString;
-
-  for (i = 0; i < len; i++) {
-    int32_t size = (int32_t) strlen(argTypes[i]);
-    memcpy(temp, argTypes[i], size);
-    temp += size;
-    csound->Free(csound, argTypes[i]);
+    csound->Malloc(csound, (totalLen + 1) * sizeof(char)));
+  dest = argString;
+  for (i = 0; i < index; i++) {
+    size_t partLen = strlen(parts[i]);
+    memcpy(dest, parts[i], partLen);
+    dest += partLen;
   }
+  *dest = '\0';
 
-  argString[argsLen] = '\0';
-
-  csound->Free(csound, argTypes);
+  free_arg_type_parts(csound, parts, index);
   return argString;
 }
 
-
+char* get_arg_string_from_tree(CSOUND* csound, TREE* tree,
+                               TYPE_TABLE* typeTable) {
+  return build_arg_type_string(csound, tree, typeTable, 0, 0);
+}
 
 /**
  * Builds a concatenated input type string from the parse tree for new-style UDOs.
- *
- * Array Type Format Contract:
- * ---------------------------
- * OUTPUT: Returns a string in EXTERNAL format for use in OENTRY.intypes
- *         Examples: "ik[]", "a:MyType;[]", "SS"
- *         - Primitive arrays: "k[]", "a[][]"
- *         - UDT arrays: ":TypeName;[]"
- *
- * IMPORTANT: get_arg_type2() returns INTERNAL format ("[k]"), so we must
- * convert to EXTERNAL format before concatenation. Failure to do so produces
- * invalid hybrid strings like "i[k]" that split_args() cannot parse.
- *
- * This string is passed to add_udo_definition() and ultimately to split_args()
- * which expects EXTERNAL format input.
+ * Output is in EXTERNAL format (e.g., "ik[]", "a:MyType;[]", "SS").
  */
 static char* get_in_types_from_tree(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTable) {
-  int32_t len = tree_arg_list_count(tree);
-
-  if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
-    return csoundStrdup(csound, "0");
-  }
-
-  // Use the same logic as get_out_types_from_tree to ensure consistent formatting
-  char* argTypes = csoundParserOwn(csound,
-    csound->Malloc(csound, len * 256 * sizeof(char)));
-  int32_t i;
-  int32_t argsLen = 0;
-  i = 0;
-
-  TREE* current = tree;
-
-  while (current != NULL) {
-    // Use get_arg_type2 to extract the actual type from the tree node
-    char* argType = csoundParserOwn(csound,
-      get_arg_type2(csound, current, typeTable));
-    if (argType == NULL) {
-      csound->Die(csound, Str("Could not parse type for argument\n"));
-    }
-
-    int32_t argLen = (int32_t) strlen(argType);
-    int32_t offset = i * 256;
-
-    // Check if this is in internal array format (starts with '[')
-    // Convert to external format for proper concatenation
-    if (argType[0] == '[') {
-      char* converted = convert_internal_to_external(csound, argType);
-      int32_t convLen = (int32_t) strlen(converted);
-      strcpy(&argTypes[offset], converted);
-      argsLen += convLen;
-      csound->Free(csound, argType);
-      csound->Free(csound, converted);
-    } else if (argType[0] == ':' && argType[argLen - 1] == ';') {
-      // Already in UDT format, use as-is
-      strcpy(&argTypes[offset], argType);
-      argsLen += argLen;
-      csound->Free(csound, argType);
-    } else if (argLen == 1 || (argLen == 3 && argType[1] == '[' && argType[2] == ']')) {
-      // Built-in types (single char like 'i' or array like 'k[]')
-      strcpy(&argTypes[offset], argType);
-      argsLen += argLen;
-      csound->Free(csound, argType);
-    } else {
-      // User-defined types (length > 1 and not built-in array) - convert to :TypeName; format
-      // Check if it's an array type
-      if (argLen > 2 && argType[argLen-2] == '[' && argType[argLen-1] == ']') {
-        // User-defined array type like "MyType[]" -> ":MyType;[]"
-        int32_t baseLen = argLen - 2; // Length without []
-        argTypes[offset] = ':';
-        memcpy(argTypes + offset + 1, argType, baseLen);
-        argTypes[offset + baseLen + 1] = ';';
-        argTypes[offset + baseLen + 2] = '[';
-        argTypes[offset + baseLen + 3] = ']';
-        argTypes[offset + baseLen + 4] = '\0';
-        argsLen += baseLen + 4;
-      } else {
-        // User-defined non-array type like "MyType" -> ":MyType;"
-        argTypes[offset] = ':';
-        memcpy(argTypes + offset + 1, argType, argLen);
-        argTypes[offset + argLen + 1] = ';';
-        argTypes[offset + argLen + 2] = '\0';
-        argsLen += argLen + 2;
-      }
-      csound->Free(csound, argType);
-    }
-
-    current = current->next;
-    i += 1;
-  }
-
-  char* argString = csoundParserOwn(csound,
-    csound->Malloc(csound, (argsLen + 1) * sizeof(char)));
-  char* temp = argString;
-
-  for (i = 0; i < len; i++) {
-    int32_t size = (int32_t) strlen(&argTypes[i * 256]);
-    memcpy(temp, &argTypes[i * 256], size);
-    temp += size;
-  }
-
-  argString[argsLen] = '\0';
-  csound->Free(csound, argTypes);
-  return argString;
+  return build_arg_type_string(csound, tree, typeTable, 0, 1);
 }
 
 /**
  * Builds a concatenated output type string from the parse tree for new-style UDOs.
- *
- * Array Type Format Contract:
- * ---------------------------
- * OUTPUT: Returns a string in EXTERNAL format for use in OENTRY.outypes
- *         Examples: "k[]", ":MyType;[]", "aS"
- *         - Primitive arrays: "k[]", "a[][]"
- *         - UDT arrays: ":TypeName;[]"
- *
- * This string is passed to add_udo_definition() and ultimately to split_args()
- * which expects EXTERNAL format input.
+ * Output is in EXTERNAL format (e.g., "k[]", ":MyType;[]", "aS").
  */
 static char* get_out_types_from_tree(CSOUND* csound, TREE* tree) {
-
-  int32_t len = tree_arg_list_count(tree);
-  char* argTypes = csoundParserOwn(csound,
-    csound->Malloc(csound, len * 256 * sizeof(char)));
-  int32_t i;
-
-  if (len == 0 || (len == 1 && !strcmp(tree->value->lexeme, "0"))) {
-    return csoundParserStrdup(csound, "0");
-  }
-
-  int32_t argsLen = 0;
-  i = 0;
-
-  TREE* current = tree;
-
-  while (current != NULL) {
-    char* argType = current->value->lexeme;
-    int32_t len = (int32_t) strlen(argType);
-    int32_t offset = i * 256;
-    argsLen += len;
-
-    // Check if this is an array type (has brackets in next node)
-    int32_t isArray = (current->right != NULL && *current->right->value->lexeme == '[');
-
-    if (len == 1) {
-      // Built-in single-character types (i, k, a, S, etc.)
-      strcpy(&argTypes[offset], argType);
-      if (isArray) {
-        argTypes[offset + len] = '[';
-        argTypes[offset + len + 1] = ']';
-        argTypes[offset + len + 2] = '\0';
-        argsLen += 2;
-      }
-    } else {
-      // User-defined types (length > 1) - use :TypeName; format
-      argTypes[offset] = ':';
-      memcpy(argTypes + offset + 1, argType, len);
-      argTypes[offset + len + 1] = ';';
-      if (isArray) {
-        // For user-defined array types, use :TypeName;[] format
-        argTypes[offset + len + 2] = '[';
-        argTypes[offset + len + 3] = ']';
-        argTypes[offset + len + 4] = '\0';
-        argsLen += 4;
-      } else {
-        argTypes[offset + len + 2] = '\0';
-        argsLen += 2;
-      }
-    }
-
-    current = current->next;
-    i += 1;
-  }
-
-  char* argString = csoundParserOwn(csound,
-    csound->Malloc(csound, (argsLen + 1) * sizeof(char)));
-  char* curLoc = argString;
-
-  for (i = 0; i < len; i++) {
-    unsigned long argLen = strlen(&argTypes[i * 256]);
-    memcpy(curLoc, &argTypes[i * 256], argLen);
-    curLoc += argLen;
-  }
-
-  argString[argsLen] = '\0';
-  csound->Free(csound, argTypes);
-  return argString;
+  return build_arg_type_string(csound, tree, NULL, 1, 1);
 }
 
 
@@ -2724,28 +2635,10 @@ static char *check_optional_type(CSOUND *csound, char *name) {
     return csoundStrdup(csound, name);
 }
 
-/* Look up a type by its exact internal name (":Name;"), without the quote
-   stripping that csoundGetTypeWithVarTypeName() applies. That fallback makes
-   the lookup ":Name;" also match a builtin type called "Name", so a struct
-   named after a builtin type would resolve to the builtin. Builtin types are
-   registered from const storage, so writing through such a result crashes.
-   Struct types are only ever registered under their internal name, so
-   requiring an exact match is enough to tell them apart. */
-static const CS_TYPE* get_struct_type_by_internal_name(const TYPE_POOL* pool,
-                                                       const char* internalName) {
-  const CS_TYPE_ITEM* current = pool->head;
-  while (current != NULL) {
-    if (strcmp(internalName, current->cstype->varTypeName) == 0)
-      return current->cstype;
-    current = current->next;
-  }
-  return NULL;
-}
-
-static const CS_TYPE *resolve_type_annotation(CSOUND *csound,
-                                              const char *annotation,
-                                              ARRAY_VAR_INIT *varInit,
-                                              const void **typeArg) {
+const CS_TYPE *resolve_type_annotation(CSOUND *csound,
+                                        const char *annotation,
+                                        ARRAY_VAR_INIT *varInit,
+                                        const void **typeArg) {
   const CS_TYPE *type;
   const char *firstBracket = strchr(annotation, '[');
 
@@ -3416,6 +3309,12 @@ int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable) {
     handle_negative_number(csound, right);
   leftArgString = get_arg_string_from_tree(csound, left, typeTable);
   rightArgString = get_arg_string_from_tree(csound, right, typeTable);
+  if ((left != NULL && leftArgString == NULL) ||
+      (right != NULL && rightArgString == NULL)) {
+    csound->Free(csound, leftArgString);
+    csound->Free(csound, rightArgString);
+    return 0;
+  }
   if (!strcmp(opcodeName, "i"))
     check_i_argument(csound, root, typeTable);
 
@@ -4006,437 +3905,6 @@ static int32_t verify_until_statement(CSOUND* csound, TREE* root,
   return 1;
 }
 
-int32_t initStructVar(CSOUND* csound, void* p) {
-  INIT_STRUCT_VAR* init = (INIT_STRUCT_VAR*)p;
-  CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)init->out;
-  const CS_TYPE* type = csoundGetTypeForArg(init->out);
-  int32_t len = cs_cons_length(type->members);
-  int32_t incnt = (int32_t)init->h.optext->t.inArgCount;
-  int32_t i;
-  if(csoundGetDebug(csound) & DEBUG_SEMANTICS) {
-     csound->Message(csound, "Initializing Struct...\n");
-     csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
-  }
-  if (incnt == 0) {
-    return CSOUND_SUCCESS;
-  }
-  for (i = 0; i < len; i++) {
-    CS_VAR_MEM* mem = structVar->members[i];
-    mem->varType->copyValue(csound, mem->varType, &mem->value,
-                            init->inArgs[i], init->h.insdshead);
-  }
-
-  return CSOUND_SUCCESS;
-}
-
-static size_t align_struct_member(size_t size) {
-  const size_t alignment = sizeof(void *) > sizeof(cs_float)
-                            ? sizeof(void *) : sizeof(cs_float);
-  return (size + alignment - 1) & ~(alignment - 1);
-}
-
-void initializeStructVar(CSOUND* csound, CS_VARIABLE* var, cs_float* mem) {
-  CS_STRUCT_VAR* structVar = (CS_STRUCT_VAR*)mem;
-  const CS_TYPE* type = var->varType;
-  CONS_CELL* members = type->members;
-
-  int32_t len = cs_cons_length(members);
-  int32_t i;
-  size_t offset = align_struct_member(len * sizeof(CS_VAR_MEM *));
-  size_t size = offset;
-
-  for (CONS_CELL *member = members; member != NULL; member = member->next) {
-    CS_VARIABLE *field = member->value;
-    /* Audio fields were sized before the orchestra header set ksmps. */
-    if (field->updateMemBlockSize != NULL) {
-      field->updateMemBlockSize(csound, field);
-    }
-    size += align_struct_member(CS_VAR_TYPE_OFFSET + field->memBlockSize);
-  }
-  structVar->members = csound->Calloc(csound, size);
-  structVar->memberCount = len;  // Set the member count
-  structVar->ownsMembers = CSOUND_STRUCT_MEMBERS_POOLED;
-  if(csoundGetDebug(csound) & DEBUG_SEMANTICS) {
-      csound->Message(csound, "Initializing Struct...\n");
-      csound->Message(csound, "Struct Type: %s\n", type->varTypeName);
-  }
-  for (i = 0; i < len; i++) {
-    CS_VARIABLE* var = members->value;
-    CS_VAR_MEM* mem = (CS_VAR_MEM *)((char *)structVar->members + offset);
-    offset += align_struct_member(CS_VAR_TYPE_OFFSET + var->memBlockSize);
-    mem->varType = var->varType;
-    structVar->members[i] = mem;
-    members = members->next;
-  }
-
-  /* Finish the layout before callbacks initialize nested values. */
-  members = type->members;
-  for (i = 0; i < len; i++, members = members->next) {
-    CS_VARIABLE *field = members->value;
-    if (field->initializeVariableMemory != NULL) {
-      field->initializeVariableMemory(csound, field,
-                                      &structVar->members[i]->value);
-    }
-  }
-}
-
-CS_VARIABLE* createStructVar(void* cs, const CS_TYPE* type,
-                             const void* typeArg, INSDS *ctx) {
-  CSOUND* csound = (CSOUND*)cs;
-  IGN(typeArg);
-
-  if (type == NULL) {
-    csound->Message(csound, Str("ERROR: no type given for struct creation\n"));
-    return NULL;
-  }
-
-  CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
-  /* Array storage advances in cs_float units. On wasm32 CS_STRUCT_VAR is 12
-     bytes, so leaving this unaligned would truncate the element stride. */
-  var->memBlockSize = CS_FLOAT_ALIGN(sizeof(CS_STRUCT_VAR));
-  var->initializeVariableMemory = initializeStructVar;
-  var->ctx = ctx;
-
-  //FIXME - implement
-  return var;
-}
-
-int32_t csound_copy_struct_value(CSOUND *csound,
-                                 const CS_TYPE *structType,
-                                 void *dest, const void *src, INSDS *ctx,
-                                 CSOUND_STRUCT_COPY_MODE mode) {
-  CS_STRUCT_VAR* varDest = (CS_STRUCT_VAR*)dest;
-  const CS_STRUCT_VAR* varSrc = (const CS_STRUCT_VAR*)src;
-  int32_t i, count;
-
-  if (dest == src) {
-    return OK;
-  }
-
-  if (structType == NULL || varDest == NULL || varSrc == NULL ||
-      varDest->members == NULL || varSrc->members == NULL) {
-    return NOTOK;
-  }
-
-  count = cs_cons_length(structType->members);
-  if (count != varDest->memberCount || count != varSrc->memberCount) {
-    return NOTOK;
-  }
-  for (i = 0; i < count; i++) {
-    CS_VAR_MEM* d = varDest->members[i];
-    CS_VAR_MEM* s = varSrc->members[i];
-    if (d == NULL || s == NULL || d->varType == NULL ||
-        d->varType != s->varType) {
-      return NOTOK;
-    }
-    if (d == s) {
-      continue;
-    }
-    if (mode != CSOUND_STRUCT_COPY_SHARED_ARRAYS &&
-        d->varType == &CS_VAR_TYPE_ARRAY) {
-      if (csound_array_copy_independent(
-            csound, (ARRAYDAT *)&d->value,
-            (const ARRAYDAT *)&s->value, ctx,
-            mode == CSOUND_STRUCT_COPY_INDEPENDENT_ALLOW_ALLOCATION
-              ? CSOUND_ARRAY_COPY_ALLOW_ALLOCATION
-              : CSOUND_ARRAY_COPY_NO_ALLOCATION) != OK) {
-        return NOTOK;
-      }
-    }
-    else if (mode != CSOUND_STRUCT_COPY_SHARED_ARRAYS &&
-             d->varType->userDefinedType) {
-      if (csound_copy_struct_value(csound, d->varType,
-                                   &d->value, &s->value, ctx,
-                                   mode) != OK) {
-        return NOTOK;
-      }
-    }
-    else if (d->varType->copyValue != NULL) {
-      d->varType->copyValue(csound, d->varType,
-                            &d->value, &s->value, ctx);
-    }
-    else {
-      return NOTOK;
-    }
-  }
-  return OK;
-}
-
-void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest,
-                   const void* src, INSDS *p) {
-  if (UNLIKELY(csound_copy_struct_value(
-                 csound, structType, dest, src, p,
-                 CSOUND_STRUCT_COPY_SHARED_ARRAYS) != OK)) {
-    csound->Message(csound, Str("struct not initialised - cannot copy\n"));
-  }
-}
-
-// Phase 1: Register struct name as placeholder type (for recursive references)
-static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) {
-  if (!structDefTree || !structDefTree->left || !structDefTree->left->value) {
-    return 0;
-  }
-
-  char *structName = structDefTree->left->value->lexeme;
-
-  // Create internal name format for consistency with Phase 2 lookup
-  size_t nameLen = strlen(structName);
-  char *internalName = csound->Malloc(csound, nameLen + 3);
-  internalName[0] = ':';
-  strcpy(internalName + 1, structName);
-  internalName[nameLen + 1] = ';';
-  internalName[nameLen + 2] = '\0';
-
-  // Check if struct type already exists (using internal name format)
-  const CS_TYPE *existingType =
-      get_struct_type_by_internal_name(csound->typePool, internalName);
-  if (existingType != NULL) {
-    csound->Free(csound, internalName);
-    // Struct already registered, return success
-    return 1;
-  }
-
-  // Create placeholder type with minimal information
-  CS_TYPE *type = csound->Calloc(csound, sizeof(CS_TYPE));
-  // Use the already-created internal name
-  type->varTypeName = internalName;
-  type->varDescription = "user-defined struct (placeholder)";
-  type->argtype = CS_ARG_TYPE_BOTH;
-  type->createVariable = createStructVar;
-  type->copyValue = copyStructVar;
-  type->freeVariableMemory = freeStructVarMemory;
-  type->userDefinedType = CS_TYPE_USER_DEFINED;
-  type->members = NULL; // Will be filled in Phase 2
-
-  // Register the placeholder type
-  if (!csoundAddVariableType(csound, csound->typePool, type)) {
-    csound->Free(csound, type->varTypeName);
-    csound->Free(csound, type);
-    return 0;
-  }
-
-  return 1;
-}
-
-int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
-  TREE* current = structDefTree->right;
-  size_t index = 0;
-  char *temp;
-  CS_TYPE* type;
-
-  // Create internal name format to check if placeholder already exists
-  char *structName = structDefTree->left->value->lexeme;
-  size_t nameLen = strlen(structName);
-  char *internalName = csound->Malloc(csound, nameLen + 3);
-  internalName[0] = ':';
-  strcpy(internalName + 1, structName);
-  internalName[nameLen + 1] = ';';
-  internalName[nameLen + 2] = '\0';
-
-  // Check if placeholder type already exists
-  const CS_TYPE *placeholder =
-      get_struct_type_by_internal_name(csound->typePool, internalName);
-
-  if (placeholder != NULL) {
-    // Update existing placeholder with member information
-    csound->Free(csound, internalName);
-    if (placeholder->userDefinedType != CS_TYPE_USER_DEFINED)
-      return 0;
-    /* This file allocates orchestra struct descriptors as writable objects. */
-    type = (CS_TYPE *)placeholder;
-    type->varDescription = "user-defined struct";
-  } else {
-    // Create new type if no placeholder exists (for backward compatibility)
-    type = csound->Calloc(csound, sizeof(CS_TYPE));
-    type->varTypeName = internalName;
-    type->varDescription = "user-defined struct";
-    type->argtype = CS_ARG_TYPE_BOTH;
-    type->createVariable = createStructVar;
-    type->copyValue = copyStructVar;
-    type->freeVariableMemory = freeStructVarMemory;
-    type->userDefinedType = CS_TYPE_USER_DEFINED;
-  }
-
-  if (get_struct_type_by_internal_name(csound->typePool, type->varTypeName)
-      == NULL)
-    csoundAddVariableType(csound, csound->typePool, type);
-
-  // Clear existing members if updating placeholder
-  if (type->members != NULL) {
-    // Free existing member list (they're just empty placeholders)
-    type->members = NULL;
-  }
-
-  // FIXME: Values are appended in reverse order of definition
-  while (current != NULL) {
-    const char* memberName = current->value->lexeme;
-    const char* annotation = current->value->optype;
-    char* inferredAnnotation = NULL;
-
-    if (annotation == NULL) {
-      char elementType[] = { memberName[0], '\0' };
-      int32_t dimensions = current->type == T_ARRAY_IDENT
-        ? tree_arg_list_count(current->right) : 0;
-      inferredAnnotation = csoundFormatTypeName(csound, elementType, dimensions);
-      annotation = inferredAnnotation;
-    }
-
-    ARRAY_VAR_INIT varInit;
-    const void* typeArg;
-    const CS_TYPE* memberType =
-      resolve_type_annotation(csound, annotation, &varInit, &typeArg);
-    CS_VARIABLE* var =
-      csoundCreateVariableForType(csound, memberType, typeArg, NULL);
-
-    if (UNLIKELY(var == NULL)) {
-      csound->ErrorMsg(csound,
-                       Str("unknown type '%s' for member '%s' of struct\n"),
-                       annotation, memberName);
-      csound->Free(csound, inferredAnnotation);
-      return 0;
-    }
-    csound->Free(csound, inferredAnnotation);
-
-    var->varName = csoundStrdup(csound, memberName);
-    CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
-   member->value = var;
-    type->members = cs_cons_append(type->members, member);
-    current = current->next;
-  }
-
-  // Only add to type pool if it's a new type (not updating placeholder)
-  const CS_TYPE* existingType =
-      get_struct_type_by_internal_name(csound->typePool, type->varTypeName);
-  if(existingType == NULL) {
-    if(!csoundAddVariableType(csound, csound->typePool, type)) {
-      return 0;
-    }
-  }
-
-  OENTRY oentry;
-  memset(&oentry, 0, sizeof(OENTRY));
-  size_t signature_size = 1;
-  for (CONS_CELL *cell = type->members; cell != NULL; cell = cell->next) {
-    CS_VARIABLE *field = cell->value;
-    signature_size += strlen(field->subType != NULL
-      ? field->subType->varTypeName : field->varType->varTypeName) + 4;
-  }
-  size_t temp_size = signature_size + strlen(type->varTypeName) + 8;
-  temp = csound->Calloc(csound, temp_size);
-
-  // Extract plain struct name from internal format (:name;) for opcode name
-  char* plainName = type->varTypeName + 1;  // Skip leading ':'
-  size_t plainNameLen = strlen(plainName) - 1;  // Exclude trailing ';'
-
-  csoundSprintf(temp, "init.");
-  strncat(temp, plainName, plainNameLen);
-  oentry.opname = csoundStrdup(csound, temp);
-  oentry.dsblksiz = CS_FLOAT_ALIGN(
-    offsetof(INIT_STRUCT_VAR, inArgs) +
-    cs_cons_length(type->members) * sizeof(cs_float *));
-  oentry.flags = 0;
-  oentry.init = initStructVar;
-  oentry.perf = NULL;
-  oentry.deinit = NULL;
-  oentry.useropinfo = NULL;
-
-  /* FIXME - this is not yet implemented */
-  memset(temp, 0, temp_size);
-  csoundSprintf(temp, "%s", type->varTypeName);  // Use internal format for outypes
-  oentry.outypes = csoundStrdup(csound, temp);
-
-  CONS_CELL* member = type->members;
-  while (member != NULL) {
-    CS_VARIABLE* memberVar = (CS_VARIABLE*)member->value;
-    int32_t isArray = (memberVar->subType != NULL);
-
-    // For arrays, get the base type from subType, otherwise use varType
-    char* memberTypeName = isArray ?
-                           memberVar->subType->varTypeName :
-                           memberVar->varType->varTypeName;
-    int32_t len = (int32_t) strlen(memberTypeName);
-
-    if (len == 1) {
-      temp[index++] = *memberTypeName;
-      if (isArray) {
-        temp[index++] = '[';
-        temp[index++] = ']';
-      }
-    } else if (memberTypeName[0] == ':') {
-      // Already in internal format (:Type;), copy as-is
-      memcpy(temp + index, memberTypeName, len);
-      index += len;
-      if (isArray) {
-        temp[index++] = '[';
-        temp[index++] = ']';
-      }
-    } else {
-      // Plain type name, add internal format escaping
-      temp[index++] = ':';
-      memcpy(temp + index, memberTypeName, len);
-      index += len;
-      temp[index++] = ';';
-      if (isArray) {
-        temp[index++] = '[';
-        temp[index++] = ']';
-      }
-    }
-
-    member = member->next;
-  }
-  temp[index] = 0;
-  oentry.intypes = csoundStrdup(csound, "");
-  csoundAppendOpcodes(csound, &oentry, 1);
-  oentry.opname = csoundStrdup(csound, oentry.opname);
-  oentry.outypes = csoundStrdup(csound, oentry.outypes);
-  oentry.intypes = csoundStrdup(csound, temp);
-  csoundAppendOpcodes(csound, &oentry, 1);
-
-  /* Register an exact copy constructor without shadowing member-based
-     constructors for the same struct. */
-  oentry.opname = csoundStrdup(csound, oentry.opname);
-  oentry.outypes = csoundStrdup(csound, type->varTypeName);
-  oentry.intypes = csoundStrdup(csound, type->varTypeName);
-  oentry.dsblksiz = sizeof(ASSIGN);
-  oentry.init = copy_var_generic_init;
-  csoundAppendOpcodes(csound, &oentry, 1);
-  csound->Free(csound, temp);
-  return 1;
-}
-
-int32_t process_struct_definitions_two_phase(CSOUND *csound,
-                                             TREE *structDefList) {
-  if (structDefList == NULL) {
-    return 1; // No struct definitions to process
-  }
-
-  // Phase 1: Register all struct names as placeholders
-  TREE *current = structDefList;
-  while (current != NULL) {
-    if (current->type == STRUCT_TOKEN) {
-      if (!register_struct_placeholder(csound, current)) {
-        return 0; // Error in Phase 1
-      }
-    }
-    current = current->next;
-  }
-
-  // Phase 2: Resolve all struct members and register opcodes
-  current = structDefList;
-  while (current != NULL) {
-    if (current->type == STRUCT_TOKEN) {
-      char* structName = current->left->value->lexeme;
-      if (!add_struct_definition(csound, current)) {
-        csound->ErrorMsg(csound, Str("[struct] Phase 2: ERROR processing struct '%s'\n"), structName ? structName : "(null)");
-        return 0; // Error in Phase 2
-      }
-    }
-    current = current->next;
-  }
-
-  return 1;
-}
-
 /** Verifies if xin and xout statements are correct for UDO
     needs to check:
     xin/xout number of args matches UDO input/output arg specifications
@@ -4489,7 +3957,12 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
 
   char* inArgsFound = get_arg_string_from_tree(csound, xinArgs, typeTable);
   char* outArgsFound = get_arg_string_from_tree(csound, xoutArgs, typeTable);
-
+  if ((xinArgs != NULL && inArgsFound == NULL) ||
+      (xoutArgs != NULL && outArgsFound == NULL)) {
+    csound->Free(csound, inArgsFound);
+    csound->Free(csound, outArgsFound);
+    return 0;
+  }
 
   /* An empty body does nothing with its inputs, but its outputs still need
      an xout, or the caller's variables keep what they held. */
@@ -4498,7 +3971,9 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
     if (UNLIKELY(!(strcmp("0", inArgs) == 0 && xinArgs == NULL))) {
       synterr(csound,
               Str("invalid xin statement for UDO: defined '%s', found '%s'\n"),
-              inArgs, inArgsFound);
+              inArgs, inArgsFound ? inArgsFound : "");
+      csound->Free(csound, inArgsFound);
+      csound->Free(csound, outArgsFound);
       return 0;
     }
   }
@@ -4507,11 +3982,15 @@ static int32_t verify_xin_xout(CSOUND *csound, TREE *udoTree, TYPE_TABLE *typeTa
     if (UNLIKELY(!(strcmp("0", outArgs) == 0 && xoutArgs == NULL))) {
       synterr(csound,
               Str("invalid xout statement for UDO: defined '%s', found '%s'\n"),
-              outArgs, outArgsFound);
+              outArgs, outArgsFound ? outArgsFound : "");
+      csound->Free(csound, inArgsFound);
+      csound->Free(csound, outArgsFound);
       return 0;
     }
   }
 
+  csound->Free(csound, inArgsFound);
+  csound->Free(csound, outArgsFound);
   return 1;
 }
 
@@ -4591,6 +4070,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
         char* inArgString = get_in_types_from_tree(csound,
                                                    current->left->right,
                                                    typeTable);
+        if (outArgString == NULL || inArgString == NULL) {
+          anchor = NULL;
+          goto cleanup;
+        }
         if (*inArgString != '0') {
           TREE* statements = current->right;
           TREE* xin = create_opcode_token(csound, "xin");
@@ -4658,6 +4141,10 @@ TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable)
       char* inArgStringDecl = get_in_types_from_tree(csound,
                                                      current->left->right,
                                                      typeTable);
+      if (outArgStringDecl == NULL || inArgStringDecl == NULL) {
+        anchor = NULL;
+        goto cleanup;
+      }
       add_udo_definition(csound, false, current->value->lexeme,
                          outArgStringDecl, inArgStringDecl, UNDEFINED);
       if (UNLIKELY(csoundGetDebug(csound) & DEBUG_SEMANTICS))
