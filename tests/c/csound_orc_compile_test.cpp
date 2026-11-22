@@ -4743,3 +4743,91 @@ endin
     EXPECT_EQ(FL(6.0), csoundGetControlChannel(csound, "globalAnnotated", &err));
     EXPECT_EQ(0, err);
 }
+
+TEST_F(OrcCompileTests, MultiDimensionalArrayRankPreservedInExpressionTemporaries)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+struct Cell value:i
+struct Holder grid:i[][]
+
+opcode MakeI2D, i[][], 0
+  iOut[][] init 2, 2
+  iOut[0][0] = 1
+  iOut[0][1] = 2
+  iOut[1][0] = 3
+  iOut[1][1] = 4
+  xout iOut
+endop
+
+opcode SumI2D(iArr[][]):i
+  xout iArr[0][0] + iArr[0][1] + iArr[1][0] + iArr[1][1]
+endop
+
+opcode ScaleK2D(kArr[][], kScale:k):k[][]
+  kOut[][] init 2, 2
+  kOut = kArr * kScale
+  xout kOut
+endop
+
+opcode SumK2D(kArr[][]):k
+  xout kArr[0][0] + kArr[0][1] + kArr[1][0] + kArr[1][1]
+endop
+
+opcode MakeCellGrid():Cell[][]
+  grid:Cell[][] init 2, 2
+  cell:Cell init 19
+  grid[1][1] = cell
+  xout grid
+endop
+
+opcode ReadCell11(grid:Cell[][]):i
+  out:Cell = grid[1][1]
+  val:i init out.value
+  xout val
+endop
+
+instr 1
+  iSumExpr = SumI2D(MakeI2D())
+  iCellExpr = ReadCell11(MakeCellGrid())
+
+  iGrid[][] init 2, 2
+  iGrid[0][0] = 5
+  iGrid[0][1] = 6
+  iGrid[1][0] = 7
+  iGrid[1][1] = 8
+  holder:Holder init iGrid
+  iMemberSumExpr = SumI2D(holder.grid)
+
+  kA[][] init 2, 2
+  kA = 2
+  kScaledSum = SumK2D(ScaleK2D(kA, 3))
+
+  chnset iSumExpr, "iSumExpr"
+  chnset iCellExpr, "iCellExpr"
+  chnset iMemberSumExpr, "iMemberSumExpr"
+  chnset kScaledSum, "kScaledSum"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.01\ne 0.02\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int perfStatus = 0;
+    while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+    }
+    EXPECT_GT(perfStatus, 0);
+    int32_t err = 0;
+    EXPECT_EQ(FL(10.0), csoundGetControlChannel(csound, "iSumExpr", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(19.0), csoundGetControlChannel(csound, "iCellExpr", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(26.0), csoundGetControlChannel(csound, "iMemberSumExpr", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(24.0), csoundGetControlChannel(csound, "kScaledSum", &err));
+    EXPECT_EQ(0, err);
+}

@@ -156,21 +156,46 @@ static char *create_out_arg(CSOUND *csound, char* outype, int32_t argCount,
      // we need to remove these for the type system to recognise the type
     char *type = remove_type_quoting(csound, outype);
     if (find_brace(type)) {
-      if(*type == '[') { // [type]
+      int32_t dims = 0;
+      char *baseType = NULL;
+      if (*type == '[') { // [type] or [[type] (internal array encoding)
+        const char *p = type;
+        while (*p == '[') {
+          dims++;
+          p++;
+        }
+        size_t baseLen = strlen(p);
+        int32_t closing = 0;
+        while (baseLen > 0 && closing < dims && p[baseLen - 1] == ']') {
+          baseLen--;
+          closing++;
+        }
+        baseType = (baseLen > 0) ? cs_strndup(csound, p, baseLen)
+                                 : csoundParserStrdup(csound, type);
+      } else { // type[] or type[][] (external array encoding)
         size_t typeLen = strlen(type);
-        char *baseType = (typeLen >= 3) ? cs_strndup(csound, type + 1, typeLen - 2)
-                                        : csoundParserStrdup(csound, type);
-        snprintf(s, 256, "#%s%d[]", baseType, argCount);
-        add_array_arg(csound, s, baseType, 1, typeTable);
-        csound->Free(csound, baseType);
-      } else { // type[]
-        size_t typeLen = strlen(type);
-        char *baseType = (typeLen >= 2) ? cs_strndup(csound, type, typeLen - 2)
-                                        : csoundParserStrdup(csound, type);
-        snprintf(s, 256, "#%s%d[]", baseType, argCount);
-        add_array_arg(csound, s,  baseType, 1, typeTable);
-        csound->Free(csound, baseType);
+        while (typeLen >= 2 && type[typeLen - 2] == '[' &&
+               type[typeLen - 1] == ']') {
+          dims++;
+          typeLen -= 2;
+        }
+        baseType = (typeLen > 0) ? cs_strndup(csound, type, typeLen)
+                                 : csoundParserStrdup(csound, type);
       }
+      if (dims <= 0) {
+        dims = 1;
+      }
+      int written = snprintf(s, 256, "#%s%d", baseType, argCount);
+      if (written > 0 && written < 256) {
+        size_t pos = (size_t)written;
+        for (int32_t d = 0; d < dims && pos + 2 < 256; d++) {
+          s[pos++] = '[';
+          s[pos++] = ']';
+        }
+        s[pos] = '\0';
+      }
+      add_array_arg(csound, s, baseType, dims, typeTable);
+      csound->Free(csound, baseType);
     }
     else {
       snprintf(s, 256, "#%s%d", type, argCount);
