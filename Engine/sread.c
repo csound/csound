@@ -1217,19 +1217,6 @@ static void score_expr_append_char(CSOUND *csound, char *buffer,
   buffer[(*length)++] = (char)c;
 }
 
-static int32_t score_expr_prec(int32_t op)
-{
-  switch (op) {
-  case '^': return 6;
-  case '*': case '/': case '%': return 5;
-  case '+': case '-': return 4;
-  case '&': return 3;
-  case '#': return 2;
-  case '|': return 1;
-  default: return 0;
-  }
-}
-
 /* An error that is not fatal is said, the rest of its line dropped, and
    *dropped set: a [] around it ends there too, as the rest of it is gone with
    the line. */
@@ -1245,6 +1232,7 @@ static cs_float read_expression(CSOUND *csound, int32_t depth,
       score_expr_push_op(csound, &expr, '[');
       c = getscochar(csound, 1);
       for (;;) {
+        char top;
         switch (c) {
         case '0': case '1': case '2': case '3': case '4':
         case '5': case '6': case '7': case '8': case '9':
@@ -1310,7 +1298,8 @@ static cs_float read_expression(CSOUND *csound, int32_t depth,
         case '+': case '-':
           if (!type)
             goto parseNumber;
-          while (score_expr_prec(expr.ops[expr.opCount - 1]) >= 4) {
+          while (expr.ops[expr.opCount - 1] != '[' &&
+                 expr.ops[expr.opCount - 1] != '(') {
             score_expr_reduce(csound, &expr);
           }
           type = 0;
@@ -1322,7 +1311,8 @@ static cs_float read_expression(CSOUND *csound, int32_t depth,
             scorerr(csound, Str("illegal placement of operator %c in [] "
                                 "expression\n"), c);
           }
-          while (score_expr_prec(expr.ops[expr.opCount - 1]) >= 5) {
+          while ((top = expr.ops[expr.opCount - 1]) == '*' || top == '/' ||
+                 top == '%' || top == '^') {
             score_expr_reduce(csound, &expr);
           }
           type = 0;
@@ -1334,11 +1324,9 @@ static cs_float read_expression(CSOUND *csound, int32_t depth,
             scorerr(csound, Str("illegal placement of operator %c in [] "
                                 "expression\n"), c);
           }
-          {
-            int32_t prec = score_expr_prec(c);
-            while (score_expr_prec(expr.ops[expr.opCount - 1]) >= prec) {
-              score_expr_reduce(csound, &expr);
-            }
+          while ((top = expr.ops[expr.opCount - 1]) == '|' || top == '&' ||
+                 top == '#' || top == '^') {
+            score_expr_reduce(csound, &expr);
           }
           type = 0;
           score_expr_push_op(csound, &expr, c); c = getscochar(csound, 1); break;
