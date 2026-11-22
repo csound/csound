@@ -54,10 +54,12 @@
 
 #define STA(x)   (csound->onefileStatics.x)
 
-CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
+CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext,
+                                            int32_t reserve)
 {
-    enum { nBytes = 256 };
+    enum { nBytes = 1024 };
     char lbuf[nBytes];
+    IGN(reserve);
 
 #if defined(__wasi__)
 
@@ -134,46 +136,32 @@ CS_NOINLINE static char *tmp_file_name(CSOUND *csound, const char *ext)
 
 #else /* Unix/POSIX */
 
-    /* Non-WASI, non-Windows: preserve original mkstemp-based flow. */
-    struct stat tmp;
-    int32_t fd;
+    char directory[nBytes];
+    const char *tmpdir = getenv("TMPDIR");
+    if (tmpdir == NULL || *tmpdir == '\0')
+      tmpdir = "/tmp";
 
-    do {
-        const char *tmpdir = getenv("TMPDIR");
-        if (tmpdir && tmpdir[0] != '\0')
-            snprintf(lbuf, nBytes, "%s/csound-XXXXXX", tmpdir);
-        else
-            strcpy(lbuf, "/tmp/csound-XXXXXX");
+    int written = snprintf(directory, sizeof(directory), "%s/csound-XXXXXX",
+                           tmpdir);
+    if (UNLIKELY(written < 0 || written >= (int)sizeof(directory) ||
+                 mkdtemp(directory) == NULL))
+      csound->Die(csound, Str(" *** cannot create temporary directory\n"));
 
-        /* Ensure exclusive creation with restrictive 0600 permissions. */
-        fd = mkstemp(lbuf);
-        if (UNLIKELY(fd < 0))
-            csound->Die(csound, Str(" *** cannot create temporary file\n"));
-        #ifndef BARE_METAL
-            (void)fchmod(fd, S_IRUSR | S_IWUSR);
-        #endif
-        close(fd);
-
-        if (ext && ext[0] != '\0') {
-            /* mkstemp's file keeps the name unique: it goes with the rest */
-            add_tmpfile(csound, lbuf);
-            #if !defined(LINUX) && !defined(__MACH__)
-            char *p = strrchr(lbuf, '.');
-            if (p) *p = '\0';
-            #endif
-            strlcat(lbuf, ext, nBytes);
-        }
-
-        #ifdef __MACH__
-        /* macOS: normalize /var/tmp -> /tmp (historic behavior). */
-        if (strncmp(lbuf, "/var/tmp/", 9) == 0) {
-            /* shift left by 4 chars to drop "/var" prefix, including '\0' */
-            memmove(lbuf, lbuf + 4, strlen(lbuf + 4) + 1);
-        }
-        #endif
-
-        /* Loop if the name somehow already exists (paranoia). */
-    } while (stat(lbuf, &tmp) == 0);
+    written = snprintf(lbuf, sizeof(lbuf), "%s/csound%s", directory, ext);
+    if (UNLIKELY(written < 0 || written >= (int)sizeof(lbuf))) {
+      remove(directory);
+      csound->Die(csound, Str(" *** cannot create temporary file\n"));
+    }
+    /* An external score generator may expect to create its own output. */
+    if (reserve) {
+      int fd = open(lbuf, O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+      if (UNLIKELY(fd < 0)) {
+        remove(directory);
+        csound->Die(csound, Str(" *** cannot create temporary file\n"));
+      }
+      close(fd);
+    }
+    add_tmpfile(csound, directory);
 #endif
 return csoundStrdup(csound, lbuf);
 }
@@ -663,14 +651,16 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
     /* Generate score name */
     csound->Free(csound, STA(sconame));        /* a later block replaces it */
     STA(sconame) = NULL;                    /* if tmp_file_name stops */
-    STA(sconame) = tmp_file_name(csound, ".sco");
-    extname = tmp_file_name(csound, ".ext");
+    STA(sconame) = tmp_file_name(csound, ".sco", 0);
+    extname = tmp_file_name(csound, ".ext", 1);
     fd = csoundFileOpen(csound, &scof, CSFILE_STD, extname, "w", NULL,
                                 CSFTYPE_SCORE, 1);
 #ifdef _DEBUG
     csoundMessage(csound, Str("Creating %s (%p)\n"), extname, scof);
 #endif
     if (UNLIKELY(fd == NULL)) {
+      remove(extname);
+      remove(STA(sconame));
       csound->Free(csound, extname);
       return FALSE;
     }
@@ -736,6 +726,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>\n"));
     csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
     remove(extname);
+    remove(STA(sconame));
     csound->Free(csound, extname);
     return FALSE;
 #endif
@@ -895,10 +886,11 @@ static int32_t create_MIDI2(CSOUND *csound, CORFIL *cf)
     /* Generate MIDI file name */
     csound->Free(csound, STA(midname));        /* a later block replaces it */
     STA(midname) = NULL;                    /* if tmp_file_name stops */
-    STA(midname) = tmp_file_name(csound, ".mid");
+    STA(midname) = tmp_file_name(csound, ".mid", 1);
     fd = csoundFileOpen(csound, &midf, CSFILE_STD, STA(midname),
                                 "wb", NULL, CSFTYPE_STD_MIDI, 1);
     if (UNLIKELY(fd == NULL)) {
+      remove(STA(midname));
       csoundDie(csound, Str("Cannot open temporary file (%s) for MIDI subfile\n"),
                         STA(midname));
     }
