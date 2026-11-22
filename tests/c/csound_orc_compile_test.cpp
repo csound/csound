@@ -4714,3 +4714,32 @@ nchnls = 1
         EXPECT_EQ(0, err);
     }
 }
+
+TEST_F(OrcCompileTests, GlobalAnnotatedVariableAcceptedInArgCheck)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+iCount@global:i init 5
+
+instr 1
+  if iCount@global == 5 then
+    chnset iCount@global + 1, "globalAnnotated"
+  endif
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.01\ne 0.02\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int perfStatus = 0;
+    while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+    }
+    EXPECT_GT(perfStatus, 0);
+    int32_t err = 0;
+    EXPECT_EQ(FL(6.0), csoundGetControlChannel(csound, "globalAnnotated", &err));
+    EXPECT_EQ(0, err);
+}

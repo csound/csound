@@ -237,6 +237,17 @@ CS_VARIABLE* find_var_from_pools(CSOUND* csound, const char* varName,
   return var;
 }
 
+/* Strip any @global suffix before searching variable pools, matching get_arg_type2. */
+static CS_VARIABLE* find_var_from_pools_annotated(CSOUND* csound,
+                                                  const char* varName,
+                                                  TYPE_TABLE* typeTable) {
+  char* stripped = csoundStrdup(csound, varName);
+  find_global_annotation(stripped, typeTable);
+  CS_VARIABLE* var = find_var_from_pools(csound, stripped, stripped, typeTable);
+  csound->Free(csound, stripped);
+  return var;
+}
+
 /* Match the complete name, including indices too large to represent. */
 int32_t is_pfield_name(const char *name)
 {
@@ -704,7 +715,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
         }
       } else {
         varBaseName = tree->left->value->lexeme;
-        var = find_var_from_pools(csound, varBaseName, varBaseName, typeTable);
+        var = find_var_from_pools_annotated(csound, varBaseName, typeTable);
 
         if (var == NULL) {
           synterr(csound,
@@ -1091,13 +1102,7 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
     }
     else {
       // other vars
-      // make a copy to preserve the lexeme
-      char *s_copy = csoundStrdup(csound, s);
-      // strip @global if it exists, it's a non-op here
-      find_global_annotation(s_copy, typeTable);
-      // find the variable in one of the variable pools
-      var = find_var_from_pools(csound, s_copy, s_copy, typeTable);
-      csound->Free(csound, s_copy);
+      var = find_var_from_pools_annotated(csound, s, typeTable);
     }
 
     if (UNLIKELY(var == NULL)) {
@@ -2541,7 +2546,7 @@ static int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
         csound->Free(csound, argType);
 
         // search for the variable in all variable pools
-        var = find_var_from_pools(csound, varName, varName, typeTable);
+        var = find_var_from_pools_annotated(csound, varName, typeTable);
 
         if (UNLIKELY(var == NULL)) {
             synterr(csound,
@@ -2556,7 +2561,7 @@ static int32_t check_args_exist(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
         if (current->left && current->left->value && current->left->value->lexeme) {
           varName = current->left->value->lexeme;
           // search for the variable in all variable pools
-          var = find_var_from_pools(csound, varName, varName, typeTable);
+          var = find_var_from_pools_annotated(csound, varName, typeTable);
           if (UNLIKELY(var == NULL)) {
               synterr(csound,
                       Str("ArgCheck: variable '%s' used before defined at line %d\n"),
