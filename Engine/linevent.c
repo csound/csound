@@ -24,6 +24,10 @@
 #include <ctype.h>
 #include "csound_pre_shared.h"
 
+#if !defined(DOSGCC) && !defined(WIN32)
+#include <poll.h>
+#endif
+
 #ifdef MSVC
 #include <fcntl.h>
 #endif
@@ -100,6 +104,8 @@ void linevent_open(CSOUND *csound)
 
     int32_t grown = 0;
 
+    csound->lineventDiscardLine = 0;
+
     /* The buffer, its position, the line reader and a block's buffer, made
        as a line sent makes them, under the lock: a line sent before the
        start has made them, and one sent from another thread now makes them,
@@ -126,6 +132,12 @@ void linevent_open(CSOUND *csound)
       if (LIKELY(csound->Linepipe != NULL)) {
         csound->Linefd = fileno(csound->Linepipe);
         setvbuf(csound->Linepipe, NULL, _IONBF, 0);
+#if !defined(DOSGCC) && !defined(WIN32)
+        int32_t flags = fcntl(csound->Linefd, F_GETFL, 0);
+        if (flags >= 0) {
+          (void) fcntl(csound->Linefd, F_SETFL, flags | O_NDELAY);
+        }
+#endif
       }
       else csoundDie(csound, Str("Cannot open %s\n"), O->Linename);
     }
@@ -319,6 +331,28 @@ static int32_t input_message(CSOUND *csound, const char *message,
     return lost;
 }
 
+static int32_t linefd_has_data(int32_t fd, int32_t *eofOut)
+{
+#if !defined(DOSGCC) && !defined(WIN32)
+    struct pollfd pfd;
+    pfd.fd = fd;
+    pfd.events = POLLIN;
+    pfd.revents = 0;
+    if (poll(&pfd, 1, 0) <= 0)
+      return 0;
+    if (pfd.revents & POLLIN)
+      return 1;
+    if (eofOut != NULL && (pfd.revents & POLLHUP) != 0)
+      *eofOut = 1;
+    return 0;
+#else
+    IGN(fd);
+    if (eofOut != NULL)
+      *eofOut = 0;
+    return 1;
+#endif
+}
+
 /* The complete lines waiting in the line-event buffer, with what the -L
    input has to give, moved into sense_line's own work buffer under the lock,
    and the rest - a line not ended yet - moved down to the buffer's start.
@@ -341,12 +375,47 @@ static char *take_lines(CSOUND *csound)
         return NULL;
       }
       if (csound->Linefd >= 0) {
-        while (STA(Linep) < STA(Linebufend)) {
-          n = (int32_t) read(csound->Linefd, STA(Linep),
-                             (size_t)(STA(Linebufend) - STA(Linep)));
-          if (n <= 0)
+        if (csound->lineventDiscardLine) {
+          /* Skip the remainder of an oversized line through its terminating LF
+             so a trailing suffix cannot be misread as a new event. */
+          char discard[4096];
+          int32_t eof = 0;
+          while (linefd_has_data(csound->Linefd, &eof)) {
+            n = (int32_t) read(csound->Linefd, discard, sizeof(discard));
+            if (n <= 0) {
+              if (n == 0)
+                csound->lineventDiscardLine = 0;
+              break;
+            }
+            char *nl = (char *) memchr(discard, LF, (size_t) n);
+            if (nl != NULL) {
+              size_t rem = (size_t) (discard + n - (nl + 1));
+              csound->lineventDiscardLine = 0;
+              if (rem > 0 && rem <= (size_t) (STA(Linebufend) - STA(Linep))) {
+                memcpy(STA(Linep), nl + 1, rem);
+                STA(Linep) += rem;
+              }
+              break;
+            }
+#if defined(DOSGCC) || defined(WIN32)
             break;
-          STA(Linep) += n;
+#endif
+          }
+          if (eof)
+            csound->lineventDiscardLine = 0;
+        }
+        if (!csound->lineventDiscardLine) {
+          while (STA(Linep) < STA(Linebufend) &&
+                 linefd_has_data(csound->Linefd, NULL)) {
+            n = (int32_t) read(csound->Linefd, STA(Linep),
+                               (size_t)(STA(Linebufend) - STA(Linep)));
+            if (n <= 0)
+              break;
+            STA(Linep) += n;
+#if defined(DOSGCC) || defined(WIN32)
+            break;
+#endif
+          }
         }
       }
       last = NULL;
@@ -379,8 +448,15 @@ static char *take_lines(CSOUND *csound)
               continue;
             }
           }
-          /* Drop oversized partial line so -L input cannot stall forever. */
+          /* Drop oversized partial line and discard through the next LF. */
           STA(Linep) = STA(Linebuf);
+          csound->lineventDiscardLine = 1;
+#if !defined(DOSGCC) && !defined(WIN32)
+          if (linefd_has_data(csound->Linefd, NULL)) {
+            csoundSpinUnLock(&csound->line_event_spinlock);
+            continue;
+          }
+#endif
         }
         csoundSpinUnLock(&csound->line_event_spinlock);
         return NULL;

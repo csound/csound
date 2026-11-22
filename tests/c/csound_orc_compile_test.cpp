@@ -15,10 +15,15 @@
 #include "gtest/gtest.h"
 #include <cstring>
 #include <cmath>
+#include <chrono>
+#include <cstdio>
 #include <limits>
 #include <string>
 #include <tuple>
 #include <vector>
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
 extern "C" {
 #include "str_ops.h"
 #include "udo.h"
@@ -4319,4 +4324,89 @@ endin
         csoundReset(csound);
     }
     csoundDestroy(csound);
+}
+
+#if !defined(_WIN32)
+TEST_F(OrcCompileTests, LineventPipeDoesNotBlockWhileProducerIsOpen)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-L\"/dev/null\""));
+    const char *orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  chnset 1, "pipeEventSeen"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    int fds[2] = {-1, -1};
+    ASSERT_EQ(0, pipe(fds));
+    const char msg[] = "i 1 0 0\n";
+    ASSERT_EQ((ssize_t)sizeof(msg) - 1, write(fds[1], msg, sizeof(msg) - 1));
+    int32_t oldFd = csound->Linefd;
+    csound->Linefd = fds[0];
+
+    auto start = std::chrono::steady_clock::now();
+    int32_t seen = 0;
+    for (int i = 0; i < 10 && !seen; i++) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        int32_t err = 0;
+        seen = (int32_t)csoundGetControlChannel(csound, "pipeEventSeen", &err);
+    }
+    auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start).count();
+
+    csound->Linefd = oldFd;
+    close(fds[0]);
+    close(fds[1]);
+    EXPECT_EQ(1, seen);
+    EXPECT_LT(elapsedMs, 250);
+}
+#endif
+
+TEST_F(OrcCompileTests, LineventDiscardsEntireOversizedLineThroughNewline)
+{
+    std::string tmpPath = ::testing::TempDir() + "/csound-linevent-oversize.sco";
+    FILE *fp = std::fopen(tmpPath.c_str(), "wb");
+    ASSERT_NE(nullptr, fp);
+    std::string hugePrefix(1048576, ';');
+    std::fwrite(hugePrefix.data(), 1, hugePrefix.size(), fp);
+    const char *tail = "i 1 0 0\ni 2 0 0\n";
+    std::fwrite(tail, 1, std::strlen(tail), fp);
+    std::fclose(fp);
+
+    std::string opt = std::string("-L\"") + tmpPath + "\"";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, opt.c_str()));
+    const char *orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  chnset 1, "oversizedSuffixRan"
+endin
+
+instr 2
+  chnset 1, "followingLineRan"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    for (int i = 0; i < 64; i++) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+    }
+    int32_t err = 0;
+    EXPECT_EQ(FL(0.0),
+              csoundGetControlChannel(csound, "oversizedSuffixRan", &err));
+    EXPECT_EQ(FL(1.0),
+              csoundGetControlChannel(csound, "followingLineRan", &err));
+    csoundReset(csound);
+    std::remove(tmpPath.c_str());
 }

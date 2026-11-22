@@ -2192,6 +2192,7 @@ struct CSOUND_ {
   int32_t preserve_subnormals;                              /* preserve subnormal inputs and results on x86 */
   /* Append new private fields at the very end to preserve CSOUND ABI offsets. */
   ORC_DELIMITER_SCAN orcScan;                                /* stateful scanner for live orchestra blocks */
+  int32_t lineventDiscardLine;                               /* discarding remainder of oversized -L line */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */
