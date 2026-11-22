@@ -38,6 +38,7 @@
 #include "cs_par_base.h"
 #include "interlocks.h"
 #include "entry.h"
+#include "opcode.h"
 #include <stdbool.h>
 
 #if defined(_MSC_VER)
@@ -258,8 +259,14 @@ static void dag_collect_instr_deps(CSOUND *csound, INSTRTXT *instr,
           dag_collect_instr_deps(csound, udo->ip, deps, depth + 1);
         } else if (ep->perf == (SUBR)subinstr ||
                    ep->init == (SUBR)subinstrset ||
-                   ep->init == (SUBR)subinstrset_S) {
-          /* The subinstrument target is chosen at init, possibly from a p-field. */
+                   ep->init == (SUBR)subinstrset_S ||
+                   ep->perf == (SUBR)opcode_run_perf ||
+                   ep->perf == (SUBR)opcode_array_perf ||
+                   ep->perf == (SUBR)opcode_object_perf ||
+                   ep->init == (SUBR)opcode_object_init ||
+                   ep->init == (SUBR)opcode_array_init) {
+          /* Indirect targets (subinstruments and Opcode objects) are resolved
+             dynamically, so preserve instrument order. */
           deps->requires_order = 1;
         }
       }
@@ -272,7 +279,8 @@ static void dag_collect_instr_deps(CSOUND *csound, INSTRTXT *instr,
         if (arg->type == ARG_GLOBAL && arg->argPtr != NULL) {
           dag_deps_add_ptr(csound, &deps->reads, &deps->nreads,
                            &deps->cap_reads, arg->argPtr);
-          if (ep != NULL && (ep->flags & WI) != 0)
+          if (ep != NULL &&
+              ((ep->flags & WI) != 0 || ep->useropinfo != NULL))
             dag_deps_add_ptr(csound, &deps->writes, &deps->nwrites,
                              &deps->cap_writes, arg->argPtr);
         }

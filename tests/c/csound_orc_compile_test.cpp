@@ -4001,6 +4001,48 @@ endin
 )" + globalReader},
         {"NestedUdos", globalSetup + nestedUdos + "instr 1\nDeep0\nendin\n" +
                        globalReader},
+        {"OpcodeObjectRun", globalSetup + R"(
+opcode SharedBump(kInc:k):k
+  gkShared += kInc
+  xout gkShared
+endop
+instr 1
+  obj:Opcode create opcoderef("SharedBump")
+  kRes run obj, 1
+endin
+)" + globalReader},
+        {"OpcodeObjectPerf", globalSetup + R"(
+opcode SharedBump(kInc:k):k
+  gkShared += kInc
+  xout gkShared
+endop
+instr 1
+  obj:Opcode create opcoderef("SharedBump")
+  kZero = 0
+  kRes init obj, kZero
+  kRes perf obj, 1
+endin
+)" + globalReader},
+        {"OpcodeArrayRun", globalSetup + R"(
+opcode SharedBump(kInc:k):k
+  gkShared += kInc
+  xout gkShared
+endop
+instr 1
+  objs:Opcode[] = create(opcoderef("SharedBump"), 1)
+  incs:k[] fillarray 1
+  outs:k[] init 1
+  outs = run(objs, incs)
+endin
+)" + globalReader},
+        {"ByRefUdoWrite", globalSetup + R"(
+opcode BumpRef(kVal):void
+  kVal += 1
+endop
+instr 1
+  BumpRef gkShared
+endin
+)" + globalReader},
         {"TableReadWrite", R"(
 sr = 44100
 ksmps = 32
