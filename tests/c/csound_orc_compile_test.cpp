@@ -3740,6 +3740,134 @@ endin
     EXPECT_EQ(CSOUND_SUCCESS, error);
 }
 
+TEST_F(OrcCompileTests, RejectsConflictingStructRedefinitionAndKeepsOriginalConstructor)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    // Conflicting redefinition within a single compile is rejected
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        const char *conflicting = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct Record first:i
+struct Record first:i, second:i
+instr 1
+endin
+)";
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(cs, conflicting));
+        csoundDestroy(cs);
+    }
+
+    // Completed struct resists conflicting live redefinition and keeps its constructor intact
+    const char *baseOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct Record first:i
+instr 1
+  val:Record init 7
+  chnset val.first, "firstVal"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, baseOrc));
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, "struct Record first:i, second:i\n"));
+    const char *identicalLive = R"(
+struct Record first:i
+instr 2
+  val:Record init 11
+  chnset val.first, "secondVal"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, identicalLive));
+    csoundReadScore(csound, "i 1 0 0.05\ni 2 0 0.05\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(7, csoundGetControlChannel(csound, "firstVal", &error));
+    EXPECT_EQ(11, csoundGetControlChannel(csound, "secondVal", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, RejectsScalarStructCyclesWhileAllowingForwardRefsAndArrayRecursion)
+{
+    // Direct scalar self-cycle
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        EXPECT_NE(CSOUND_SUCCESS,
+                  csoundCompileOrc(cs, "struct SelfLoop next:SelfLoop\ninstr 1\nendin\n"));
+        csoundDestroy(cs);
+    }
+    // Mutual scalar cycle (and recovery to non-cyclic definitions in the same instance)
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        const char *mutual = R"(
+struct Parent child:Child
+struct Child parent:Parent
+instr 1
+endin
+)";
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(cs, mutual));
+        const char *validAfterCycle = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct Parent x:i
+instr 1
+  p:Parent init 9
+  chnset p.x, "recoveredParent"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, validAfterCycle));
+        csoundReadScore(cs, "i 1 0 0.05\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(9, csoundGetControlChannel(cs, "recoveredParent", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+    // Forward reference + diamond DAG + recursive array member all succeed
+    csoundSetOption(csound, "-n -d -m0");
+    const char *validComplex = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct Forward leaf:Leaf
+struct Leaf val:i
+struct Diamond left:Leaf, right:Leaf
+struct Node val:i, children:Node[]
+instr 1
+  l1:Leaf init 10
+  l2:Leaf init 32
+  d:Diamond init l1, l2
+  f:Forward init l1
+  ch:Node[] init 0
+  n:Node init 5, ch
+  chnset d.left.val + d.right.val, "diamondSum"
+  chnset f.leaf.val + n.val, "forwardAndNode"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, validComplex));
+    csoundReadScore(csound, "i 1 0 0.05\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t err = 0;
+    EXPECT_EQ(42, csoundGetControlChannel(csound, "diamondSum", &err));
+    EXPECT_EQ(15, csoundGetControlChannel(csound, "forwardAndNode", &err));
+    EXPECT_EQ(CSOUND_SUCCESS, err);
+}
+
 TEST_F(OrcCompileTests, NamedInstrRedefinitionWithAllowRedefAndLiveMerge)
 {
     csoundSetOption(csound, "-n -d -m0 --allow-redefinition");

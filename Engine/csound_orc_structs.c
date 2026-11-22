@@ -253,6 +253,12 @@ int32_t initStructVar(CSOUND* csound, void* p) {
   if (incnt == 0) {
     return CSOUND_SUCCESS;
   }
+  if (UNLIKELY(incnt != len)) {
+    return csound->InitError(
+      csound,
+      Str("struct '%s' constructor expected %d arguments, got %d\n"),
+      type->varTypeName, len, incnt);
+  }
   for (i = 0; i < len; i++) {
     CS_VAR_MEM* mem = structVar->members[i];
     mem->varType->copyValue(csound, mem->varType, &mem->value,
@@ -404,6 +410,146 @@ void copyStructVar(CSOUND* csound, const CS_TYPE* structType, void* dest,
   }
 }
 
+#define STRUCT_PLACEHOLDER_DESC "user-defined struct (placeholder)"
+#define STRUCT_COMPLETED_DESC "user-defined struct"
+
+static int32_t struct_is_completed(const CS_TYPE *type) {
+  return type != NULL &&
+         (type->members != NULL ||
+          (type->varDescription != NULL &&
+           strcmp(type->varDescription, STRUCT_PLACEHOLDER_DESC) != 0));
+}
+
+static void free_struct_member_list(CSOUND *csound, CONS_CELL *members) {
+  while (members != NULL) {
+    CONS_CELL *next = members->next;
+    CS_VARIABLE *var = (CS_VARIABLE *)members->value;
+    if (var != NULL) {
+      csound->Free(csound, var->varName);
+      csound->Free(csound, var);
+    }
+    csound->Free(csound, members);
+    members = next;
+  }
+}
+
+static CS_VARIABLE *create_struct_member_var(CSOUND *csound, TREE *memberNode) {
+  const char *memberName = memberNode->value->lexeme;
+  const char *annotation = memberNode->value->optype;
+  char *inferredAnnotation = NULL;
+  ARRAY_VAR_INIT varInit;
+  const void *typeArg;
+  const CS_TYPE *memberType;
+  CS_VARIABLE *var;
+
+  if (annotation == NULL) {
+    char elementType[] = { memberName[0], '\0' };
+    int32_t dimensions = memberNode->type == T_ARRAY_IDENT
+      ? tree_arg_list_count(memberNode->right) : 0;
+    inferredAnnotation = csoundFormatTypeName(csound, elementType, dimensions);
+    annotation = inferredAnnotation;
+  }
+
+  memberType = resolve_type_annotation(csound, annotation, &varInit, &typeArg);
+  var = csoundCreateVariableForType(csound, memberType, typeArg, NULL);
+
+  if (UNLIKELY(var == NULL)) {
+    csound->ErrorMsg(csound,
+                     Str("unknown type '%s' for member '%s' of struct\n"),
+                     annotation, memberName);
+    csound->Free(csound, inferredAnnotation);
+    return NULL;
+  }
+  csound->Free(csound, inferredAnnotation);
+  var->varName = csoundStrdup(csound, memberName);
+  return var;
+}
+
+static int32_t struct_members_match(CSOUND *csound, const CS_TYPE *type,
+                                    TREE *current) {
+  CONS_CELL *existing = type->members;
+  while (current != NULL && existing != NULL) {
+    CS_VARIABLE *existingVar = (CS_VARIABLE *)existing->value;
+    CS_VARIABLE *incomingVar = create_struct_member_var(csound, current);
+    int32_t same;
+    if (incomingVar == NULL) {
+      return 0;
+    }
+    same = existingVar != NULL &&
+           existingVar->varName != NULL &&
+           strcmp(existingVar->varName, incomingVar->varName) == 0 &&
+           existingVar->varType == incomingVar->varType &&
+           existingVar->subType == incomingVar->subType &&
+           existingVar->dimensions == incomingVar->dimensions;
+    csound->Free(csound, incomingVar->varName);
+    csound->Free(csound, incomingVar);
+    if (!same) {
+      return 0;
+    }
+    current = current->next;
+    existing = existing->next;
+  }
+  return current == NULL && existing == NULL;
+}
+
+static int32_t check_struct_scalar_cycle(CSOUND *csound, const CS_TYPE *type,
+                                         const CSOUND_TYPE_PATH *path,
+                                         const CS_TYPE ***visited,
+                                         size_t *visitedCount,
+                                         size_t *visitedCap) {
+  size_t i;
+  const CSOUND_TYPE_PATH *cur = path;
+  if (type == NULL || (type->userDefinedType & CS_TYPE_USER_DEFINED) == 0) {
+    return 0;
+  }
+  while (cur != NULL) {
+    if (cur->type == type) {
+      return 1;
+    }
+    cur = cur->parent;
+  }
+  for (i = 0; i < *visitedCount; i++) {
+    if ((*visited)[i] == type) {
+      return 0;
+    }
+  }
+  {
+    CSOUND_TYPE_PATH next = { type, path };
+    for (CONS_CELL *cell = type->members; cell != NULL; cell = cell->next) {
+      CS_VARIABLE *field = (CS_VARIABLE *)cell->value;
+      /* Only scalar struct members expand recursively during initialization;
+         array members defer element construction. */
+      if (field != NULL && field->varType != NULL &&
+          field->subType == NULL &&
+          (field->varType->userDefinedType & CS_TYPE_USER_DEFINED) != 0) {
+        if (check_struct_scalar_cycle(csound, field->varType, &next,
+                                      visited, visitedCount, visitedCap)) {
+          return 1;
+        }
+      }
+    }
+  }
+  if (*visitedCount >= *visitedCap) {
+    size_t newCap = *visitedCap == 0 ? 16 : (*visitedCap * 2);
+    *visited = (const CS_TYPE **)csound->ReAlloc(
+      csound, (void *)*visited, sizeof(const CS_TYPE *) * newCap);
+    *visitedCap = newCap;
+  }
+  (*visited)[(*visitedCount)++] = type;
+  return 0;
+}
+
+static void rollback_completed_structs(CSOUND *csound, CS_TYPE **types,
+                                       size_t count) {
+  for (size_t i = 0; i < count; i++) {
+    if (types[i] != NULL) {
+      free_struct_member_list(csound, types[i]->members);
+      types[i]->members = NULL;
+      types[i]->varDescription = STRUCT_PLACEHOLDER_DESC;
+    }
+  }
+}
+
 // Phase 1: Register struct name as placeholder type (for recursive references)
 static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) {
   if (!structDefTree || !structDefTree->left || !structDefTree->left->value) {
@@ -433,7 +579,7 @@ static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) 
   CS_TYPE *type = csound->Calloc(csound, sizeof(CS_TYPE));
   // Use the already-created internal name
   type->varTypeName = internalName;
-  type->varDescription = "user-defined struct (placeholder)";
+  type->varDescription = STRUCT_PLACEHOLDER_DESC;
   type->argtype = CS_ARG_TYPE_BOTH;
   type->createVariable = createStructVar;
   type->copyValue = copyStructVar;
@@ -451,11 +597,15 @@ static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree) 
   return 1;
 }
 
-int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
+static int32_t populate_struct_definition(CSOUND* csound, TREE* structDefTree,
+                                          CS_TYPE **outType,
+                                          int32_t *outNewlyCompleted) {
   TREE* current = structDefTree->right;
-  size_t index = 0;
-  char *temp;
   CS_TYPE* type;
+  CONS_CELL *newMembers = NULL;
+
+  *outType = NULL;
+  *outNewlyCompleted = 0;
 
   // Create internal name format to check if placeholder already exists
   char *structName = structDefTree->left->value->lexeme;
@@ -471,82 +621,63 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
       get_struct_type_by_internal_name(csound->typePool, internalName);
 
   if (placeholder != NULL) {
-    // Update existing placeholder with member information
     csound->Free(csound, internalName);
     if (placeholder->userDefinedType != CS_TYPE_USER_DEFINED)
       return 0;
     /* This file allocates orchestra struct descriptors as writable objects. */
     type = (CS_TYPE *)placeholder;
-    type->varDescription = "user-defined struct";
+    if (struct_is_completed(type)) {
+      if (struct_members_match(csound, type, current)) {
+        *outType = type;
+        return 1;
+      }
+      csound->ErrorMsg(csound,
+                       Str("conflicting redefinition of struct '%s'\n"),
+                       structName);
+      return 0;
+    }
   } else {
     // Create new type if no placeholder exists (for backward compatibility)
     type = csound->Calloc(csound, sizeof(CS_TYPE));
     type->varTypeName = internalName;
-    type->varDescription = "user-defined struct";
+    type->varDescription = STRUCT_PLACEHOLDER_DESC;
     type->argtype = CS_ARG_TYPE_BOTH;
     type->createVariable = createStructVar;
     type->copyValue = copyStructVar;
     type->freeVariableMemory = freeStructVarMemory;
     type->userDefinedType = CS_TYPE_USER_DEFINED;
-  }
-
-  if (get_struct_type_by_internal_name(csound->typePool, type->varTypeName)
-      == NULL)
-    csoundAddVariableType(csound, csound->typePool, type);
-
-  // Clear existing members if updating placeholder
-  if (type->members != NULL) {
-    // Free existing member list (they're just empty placeholders)
-    type->members = NULL;
-  }
-
-  // FIXME: Values are appended in reverse order of definition
-  while (current != NULL) {
-    const char* memberName = current->value->lexeme;
-    const char* annotation = current->value->optype;
-    char* inferredAnnotation = NULL;
-
-    if (annotation == NULL) {
-      char elementType[] = { memberName[0], '\0' };
-      int32_t dimensions = current->type == T_ARRAY_IDENT
-        ? tree_arg_list_count(current->right) : 0;
-      inferredAnnotation = csoundFormatTypeName(csound, elementType, dimensions);
-      annotation = inferredAnnotation;
-    }
-
-    ARRAY_VAR_INIT varInit;
-    const void* typeArg;
-    const CS_TYPE* memberType =
-      resolve_type_annotation(csound, annotation, &varInit, &typeArg);
-    CS_VARIABLE* var =
-      csoundCreateVariableForType(csound, memberType, typeArg, NULL);
-
-    if (UNLIKELY(var == NULL)) {
-      csound->ErrorMsg(csound,
-                       Str("unknown type '%s' for member '%s' of struct\n"),
-                       annotation, memberName);
-      csound->Free(csound, inferredAnnotation);
+    if (!csoundAddVariableType(csound, csound->typePool, type)) {
+      csound->Free(csound, type->varTypeName);
+      csound->Free(csound, type);
       return 0;
     }
-    csound->Free(csound, inferredAnnotation);
+  }
 
-    var->varName = csoundStrdup(csound, memberName);
+  while (current != NULL) {
+    CS_VARIABLE* var = create_struct_member_var(csound, current);
+    if (UNLIKELY(var == NULL)) {
+      free_struct_member_list(csound, newMembers);
+      return 0;
+    }
+
     CONS_CELL* member = csound->Calloc(csound, sizeof(CONS_CELL));
     member->value = var;
-    type->members = cs_cons_append(type->members, member);
+    newMembers = cs_cons_append(newMembers, member);
     current = current->next;
   }
 
-  // Only add to type pool if it's a new type (not updating placeholder)
-  const CS_TYPE* existingType =
-      get_struct_type_by_internal_name(csound->typePool, type->varTypeName);
-  if(existingType == NULL) {
-    if(!csoundAddVariableType(csound, csound->typePool, type)) {
-      return 0;
-    }
-  }
+  type->members = newMembers;
+  *outType = type;
+  *outNewlyCompleted = 1;
+  return 1;
+}
 
+static void register_struct_opcodes(CSOUND *csound, CS_TYPE *type) {
+  size_t index = 0;
+  char *temp;
   OENTRY oentry;
+
+  type->varDescription = STRUCT_COMPLETED_DESC;
   memset(&oentry, 0, sizeof(OENTRY));
   size_t signature_size = 1;
   for (CONS_CELL *cell = type->members; cell != NULL; cell = cell->next) {
@@ -634,6 +765,32 @@ int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
   oentry.init = copy_var_generic_init;
   csoundAppendOpcodes(csound, &oentry, 1);
   csound->Free(csound, temp);
+}
+
+int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree) {
+  CS_TYPE *type = NULL;
+  int32_t newlyCompleted = 0;
+  const CS_TYPE **visited = NULL;
+  size_t visitedCount = 0, visitedCap = 0;
+
+  if (!populate_struct_definition(csound, structDefTree, &type,
+                                  &newlyCompleted)) {
+    return 0;
+  }
+  if (!newlyCompleted) {
+    return 1;
+  }
+  if (check_struct_scalar_cycle(csound, type, NULL, &visited,
+                                &visitedCount, &visitedCap)) {
+    csound->ErrorMsg(csound,
+                     Str("cyclic scalar struct dependency involving '%s'\n"),
+                     type->varTypeName);
+    rollback_completed_structs(csound, &type, 1);
+    csound->Free(csound, (void *)visited);
+    return 0;
+  }
+  csound->Free(csound, (void *)visited);
+  register_struct_opcodes(csound, type);
   return 1;
 }
 
@@ -643,8 +800,20 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
     return 1; // No struct definitions to process
   }
 
-  // Phase 1: Register all struct names as placeholders
+  size_t structCount = 0;
   TREE *current = structDefList;
+  while (current != NULL) {
+    if (current->type == STRUCT_TOKEN) {
+      structCount++;
+    }
+    current = current->next;
+  }
+  if (structCount == 0) {
+    return 1;
+  }
+
+  // Phase 1: Register all struct names as placeholders
+  current = structDefList;
   while (current != NULL) {
     if (current->type == STRUCT_TOKEN) {
       if (!register_struct_placeholder(csound, current)) {
@@ -654,18 +823,52 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound,
     current = current->next;
   }
 
-  // Phase 2: Resolve all struct members and register opcodes
+  CS_TYPE **completedTypes =
+    (CS_TYPE **)csound->Calloc(csound, sizeof(CS_TYPE *) * structCount);
+  size_t completedCount = 0;
+
+  // Phase 2a: Resolve all struct members without publishing constructors yet
   current = structDefList;
   while (current != NULL) {
     if (current->type == STRUCT_TOKEN) {
       char* structName = current->left->value->lexeme;
-      if (!add_struct_definition(csound, current)) {
+      CS_TYPE *type = NULL;
+      int32_t newlyCompleted = 0;
+      if (!populate_struct_definition(csound, current, &type,
+                                      &newlyCompleted)) {
         csound->ErrorMsg(csound, Str("[struct] Phase 2: ERROR processing struct '%s'\n"), structName ? structName : "(null)");
+        rollback_completed_structs(csound, completedTypes, completedCount);
+        csound->Free(csound, completedTypes);
         return 0; // Error in Phase 2
+      }
+      if (newlyCompleted) {
+        completedTypes[completedCount++] = type;
       }
     }
     current = current->next;
   }
 
+  // Phase 2b: Reject scalar struct-member cycles before constructor registration
+  const CS_TYPE **visited = NULL;
+  size_t visitedCount = 0, visitedCap = 0;
+  for (size_t i = 0; i < completedCount; i++) {
+    if (check_struct_scalar_cycle(csound, completedTypes[i], NULL, &visited,
+                                  &visitedCount, &visitedCap)) {
+      csound->ErrorMsg(csound,
+                       Str("cyclic scalar struct dependency involving '%s'\n"),
+                       completedTypes[i]->varTypeName);
+      rollback_completed_structs(csound, completedTypes, completedCount);
+      csound->Free(csound, (void *)visited);
+      csound->Free(csound, completedTypes);
+      return 0;
+    }
+  }
+  csound->Free(csound, (void *)visited);
+
+  // Phase 2c: Register constructors and assignment opcodes
+  for (size_t i = 0; i < completedCount; i++) {
+    register_struct_opcodes(csound, completedTypes[i]);
+  }
+  csound->Free(csound, completedTypes);
   return 1;
 }
