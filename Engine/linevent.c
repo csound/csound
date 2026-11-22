@@ -448,8 +448,7 @@ static void sense_line(CSOUND *csound, void *userData)
           if (end < Linend) {
             STA(oflag) = 0;
             if (STA(orchestra) != NULL) {
-              csoundCompileOrc(csound, STA(orchestrab),
-                               csound->oparms->realtime ? 1 : 0);
+              csoundCompileOrc(csound, STA(orchestrab), 0);
               csound->Message(csound, Str("::compiling orchestra::\n"));
             }
             STA(orchestra) = STA(orchestrab);
