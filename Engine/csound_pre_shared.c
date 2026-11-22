@@ -242,3 +242,76 @@ void csound_pre_free_ifdef_stack(CSOUND *csound, IFDEFSTACK **stack)
         *stack = prv;
     }
 }
+
+enum {
+    ORC_SCAN_CODE,
+    ORC_SCAN_QUOTED,
+    ORC_SCAN_EXTENDED,
+    ORC_SCAN_RAW,
+    ORC_SCAN_LINE_COMMENT,
+    ORC_SCAN_BLOCK_COMMENT
+};
+
+int32_t csound_orc_scan_in_code(const ORC_DELIMITER_SCAN *scan)
+{
+    return scan->mode == ORC_SCAN_CODE;
+}
+
+int32_t csound_orc_scan_char(ORC_DELIMITER_SCAN *scan, char c)
+{
+    char previous = scan->previous;
+    scan->previous = '\0';
+    switch (scan->mode) {
+    case ORC_SCAN_CODE:
+      if (c == '"')
+        scan->mode = ORC_SCAN_QUOTED;
+      else if (c == ';' || (previous == '/' && c == '/'))
+        scan->mode = ORC_SCAN_LINE_COMMENT;
+      else if (previous == '/' && c == '*')
+        scan->mode = ORC_SCAN_BLOCK_COMMENT;
+      else if (previous == '{' && c == '{')
+        scan->mode = ORC_SCAN_EXTENDED;
+      else if (previous == 'R' && c == '{') {
+        scan->mode = ORC_SCAN_RAW;
+        scan->rawDepth = 1;
+      } else {
+        scan->previous = c;
+        return c == '}';
+      }
+      break;
+    case ORC_SCAN_QUOTED:
+      if (previous != '\\') {
+        if (c == '"' || c == '\n')
+          scan->mode = ORC_SCAN_CODE;
+        else
+          scan->previous = c;
+      }
+      break;
+    case ORC_SCAN_EXTENDED:
+      if (previous == '}' && c == '}')
+        scan->mode = ORC_SCAN_CODE;
+      else
+        scan->previous = c;
+      break;
+    case ORC_SCAN_RAW:
+      if (previous == 'R' && c == '{')
+        scan->rawDepth++;
+      else if (previous == '}' && c == 'R') {
+        if (--scan->rawDepth == 0)
+          scan->mode = ORC_SCAN_CODE;
+      } else
+        scan->previous = c;
+      break;
+    case ORC_SCAN_LINE_COMMENT:
+      if (c == '\n')
+        scan->mode = ORC_SCAN_CODE;
+      break;
+    case ORC_SCAN_BLOCK_COMMENT:
+      if (previous == '*' && c == '/')
+        scan->mode = ORC_SCAN_CODE;
+      else
+        scan->previous = c;
+      break;
+    }
+    return 0;
+}

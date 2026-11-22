@@ -47,6 +47,12 @@ extern "C" {
     char fullName[1];
   } CSFILE;
 
+  typedef struct orc_delimiter_scan {
+    int32_t mode;
+    int32_t rawDepth;
+    char previous;
+  } ORC_DELIMITER_SCAN;
+
   typedef struct CORFIL {
     char    *body;
     uint32_t     len;
@@ -332,6 +338,7 @@ extern "C" {
       int32_t   oflag;
       cs_float     *pfields;
      int32_t   msize;
+     ORC_DELIMITER_SCAN orcScan;
    };
 
    struct musmonStatics__ {

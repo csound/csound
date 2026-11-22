@@ -1736,6 +1736,18 @@ TEST(HostLineEvents, TheRestOfTheBraceLineIsTheBlocks)
     EXPECT_EQ(" {\"a\": 1\n} ", channelText(host)) << host.said();
 }
 
+TEST(HostLineEvents, AFragmentedRawStringKeepsItsBraces)
+{
+    Host host;
+    host.start();
+    host.csound->InputMessage(host.csound, "{\ninstr 107\nS1 = R{first }\n");
+    host.perform(1);
+    host.csound->InputMessage(host.csound,
+        "}\nlast}R\nchnset S1, \"text\"\nendin\n}\ni 107 0 0\n");
+    host.perform(1);
+    EXPECT_EQ("first }\n}\nlast", channelText(host)) << host.said();
+}
+
 /* An orchestra block whose text, the lines between its { line and its }
    line, is size bytes: instr 105, then comment lines. */
 std::string blockOf(size_t size)

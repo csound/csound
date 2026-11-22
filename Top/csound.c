@@ -1060,7 +1060,7 @@ static const CSOUND cenviron_ = {
         NULL,
         0,
         NULL, NULL,
-        0, NULL, 0
+        0, NULL, 0, {0}
       },
     .musmonStatics = {
         {0,0}, {0,0},

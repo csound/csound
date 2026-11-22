@@ -782,6 +782,19 @@ TEST_F(CsdCompileTests, NoScoreOnAStartedEngineQueuesNothing)
   }
 }
 
+TEST_F(CsdCompileTests, OrchestraStringsCanContainCommentsAndClosingTags)
+{
+  const auto text = csd(R"(
+prints {{ literal /*
+</CsInstruments>
+}}
+prints R{raw R{nested /*}R
+</CsInstruments>
+}R
+)");
+  EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
+}
+
 // A byte 0xFF is a character of a CSD, not its end: a line starting with one,
 // here in a Latin-1 comment, ended the orchestra.
 TEST_F(CsdCompileTests, ByteFFIsNoEndOfTheCsd)

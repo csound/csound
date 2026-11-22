@@ -22,6 +22,7 @@
 
 #include "csoundCore.h"     /*                              LINEVENT.C      */
 #include <ctype.h>
+#include "csound_pre_shared.h"
 
 #ifdef MSVC
 #include <fcntl.h>
@@ -408,80 +409,56 @@ static char *take_lines(CSOUND *csound)
     }
 }
 
-/* Find the first standalone '}' closing an orchestra block, ignoring braces
-   inside "..." strings, {{...}} multi-line strings, and Csound comments. */
-static char *find_orc_block_end(const char *start, const char *end)
-{
-    const char *p = start;
-    while (p < end) {
-      char ch = *p;
-      if (ch == '"') {
-        p++;
-        while (p < end && *p != '"' && *p != LF) {
-          if (*p == '\\' && (p + 1) < end && p[1] != LF)
-            p += 2;
-          else
-            p++;
-        }
-        if (p < end && *p == '"')
-          p++;
-        continue;
-      }
-      if (ch == '{' && (p + 1) < end && p[1] == '{') {
-        p += 2;
-        while (p < end) {
-          if (*p == '}' && (p + 1) < end && p[1] == '}') {
-            p += 2;
-            break;
-          }
-          p++;
-        }
-        continue;
-      }
-      if (ch == ';' || (ch == '/' && (p + 1) < end && p[1] == '/')) {
-        while (p < end && *p != LF)
-          p++;
-        continue;
-      }
-      if (ch == '/' && (p + 1) < end && p[1] == '*') {
-        p += 2;
-        while (p < end) {
-          if (*p == '*' && (p + 1) < end && p[1] == '/') {
-            p += 2;
-            break;
-          }
-          p++;
-        }
-        continue;
-      }
-      if (ch == '}') {
-        int32_t nextIsBrace = ((p + 1) < end && p[1] == '}');
-        int32_t prevIsBrace = (p > start && p[-1] == '}');
-        if (!nextIsBrace && !prevIsBrace)
-          return (char *)p;
-      }
-      p++;
-    }
-    return NULL;
-}
-
 /* accumlate RT Linein buffer, & place completed events in EVTBLK */
 /* does more syntax checking than rdscor, since not preprocessed  */
 
 static void sense_line(CSOUND *csound, void *userData)
 {
     char    *cp, *Linestart, *Linend;
-    int32_t     c, cpp1, n, pcnt, oflag = STA(oflag);
+    int32_t     c, n, pcnt;
     IGN(userData);
 
     while (1) {
-      if(STA(oflag) > oflag) break;
       if ((Linend = take_lines(csound)) == NULL)
         break;
       Linestart = csound->line_event_work;
       cp = Linestart;
 
       while (containsLF(Linestart, Linend)) {
+        if (STA(oflag)) {
+          char *end = Linestart;
+          while (end < Linend) {
+            char previous = STA(orcScan).previous;
+            if (csound_orc_scan_char(&STA(orcScan), *end) &&
+                previous != '}' && end[1] != '}')
+              break;
+            end++;
+          }
+          if (STA(orchestra) != NULL &&
+              end - Linestart >= MAXSTR - (STA(orchestra) - STA(orchestrab))) {
+            csound->ErrorMsg(csound, Str("orchestra block longer than %d "
+                                         "bytes: not compiled\n"), MAXSTR - 1);
+            STA(orchestra) = NULL;
+          }
+          if (STA(orchestra) != NULL) {
+            memcpy(STA(orchestra), Linestart, end - Linestart);
+            STA(orchestra) += end - Linestart;
+            *STA(orchestra) = '\0';
+          }
+          if (end < Linend) {
+            STA(oflag) = 0;
+            if (STA(orchestra) != NULL) {
+              csoundCompileOrc(csound, STA(orchestrab),
+                               csound->oparms->realtime ? 1 : 0);
+              csound->Message(csound, Str("::compiling orchestra::\n"));
+            }
+            STA(orchestra) = STA(orchestrab);
+            end++;
+          }
+          Linestart = cp = end;
+          continue;
+        }
+
         EVTBLK  e;
         cs_float *pfields = STA(pfields);
         char    *sstrp = NULL;
@@ -498,57 +475,22 @@ static void sense_line(CSOUND *csound, void *userData)
           Linestart = (++cp);
           continue;
         }
-        cpp1 = *(cp+1);
-
-        /* new orchestra input
-         */
-        if(STA(oflag)) {
-          if(c == '}' && cpp1 != '}') {
-            STA(oflag) = 0;
-            if (STA(orchestra) != NULL) {
-              csoundCompileOrc(csound, STA(orchestrab),
-                               csound->oparms->realtime ? 1 : 0);
-              csound->Message(csound, Str("::compiling orchestra::\n"));
-            }
-            STA(orchestra) = STA(orchestrab);
-            Linestart = (++cp);
-            continue;
-          }
-          else {
-            char *end = find_orc_block_end(Linestart, Linend);
-            if (end == NULL)
-              end = Linend;
-            if (STA(orchestra) != NULL &&
-                end - Linestart >= MAXSTR - (STA(orchestra) - STA(orchestrab))) {
-              csound->ErrorMsg(csound, Str("orchestra block longer than %d "
-                                           "bytes: not compiled\n"),
-                               MAXSTR - 1);
-              STA(orchestra) = NULL;            /* its text dropped, to its } */
-            }
-            if (STA(orchestra) != NULL) {
-              memcpy(STA(orchestra), Linestart, end - Linestart);
-              STA(orchestra) += end - Linestart;
-              *STA(orchestra) = '\0';
-            }
-            STA(oflag)++;
-            if (end == Linend)
-              Linestart = Linend;
-            else
-              cp = end;                         /* the } that ends it, next */
-            continue;
-          }
-        } else if(c == '{') {
-          if (STA(orchestrab) == NULL) {
-            STA(orchestra) = STA(orchestrab) =
-              (char *) csound->Calloc(csound, MAXSTR);
-          } else {
-            STA(orchestra) = STA(orchestrab);
-          }
+        if (c == '{') {
+          if (STA(orchestrab) == NULL)
+            STA(orchestrab) = (char *) csound->Calloc(csound, MAXSTR);
+          STA(orchestra) = STA(orchestrab);
+          *STA(orchestra) = '\0';
+          STA(orcScan) = (ORC_DELIMITER_SCAN){0};
           STA(oflag) = 1;
-          *STA(orchestrab) = '\0';             /* none of the block before */
           csound->Message(csound,
                           Str("::reading orchestra, use '}' to terminate::\n"));
-          Linestart = (++cp);           /* the rest of the line is the block's */
+          Linestart = ++cp;
+          while (isblank((unsigned char)*cp))
+            cp++;
+          if (*cp == LF)
+            Linestart = ++cp;
+          else
+            cp = Linestart;
           continue;
         }
 
@@ -703,6 +645,8 @@ static void sense_line(CSOUND *csound, void *userData)
                                  Linestart, n + 1, "^");  /* mark the error */
         Linestart = (++cp);
       }
+      if (STA(oflag))
+        break;                 /* Wait for the rest of the block next cycle. */
       /* Every line taken ends with LF, so all were read: the next turn
          takes what has come since - from the -L input, from a host, or
          appended by what these lines did. */

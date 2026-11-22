@@ -34,6 +34,11 @@ typedef struct IFDEFSTACK_ {
                                 /*   #ifdef, 2: skipping due to parent      */
 } IFDEFSTACK;
 
+/* Zero-initialized state starts in orchestra code. Return nonzero for an
+   unquoted closing brace. The state can be carried across input chunks. */
+int32_t csound_orc_scan_char(ORC_DELIMITER_SCAN *scan, char c);
+int32_t csound_orc_scan_in_code(const ORC_DELIMITER_SCAN *scan);
+
 int csound_pre_is_dir(const char *path);
 void csound_pre_free_macro(CSOUND *csound, MACRO *mm);
 void csound_pre_delete_macro_list(CSOUND *csound, MACRO **head);

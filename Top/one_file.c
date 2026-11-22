@@ -29,6 +29,7 @@
 #endif
 #include <stdlib.h>
 #include "corfile.h"
+#include "csound_pre_shared.h"
 
 #if defined(LINUX) || defined(__MACH__) || defined(WIN32)
 #  include <sys/types.h>
@@ -525,23 +526,18 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
     char  *p;
     CORFIL *incore = corfile_create_w(csound);
     char  buffer[CSD_MAX_LINE_LEN];
-    int32_t comm = 0;
-    char  last = '\n';           /* no newline: a chunk of a too-long line */
+    ORC_DELIMITER_SCAN scan = {0};
+    char last = '\n';
 
     csound->orcLineOffset = STA(csdlinecount)+1;
-    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf)!= NULL) {
-      int32_t split_close = comm && last == '*' && *buffer == '/';
-      int32_t line_start = last == '\n';   /* not a chunk's */
-      char *s;
+    while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
+      int32_t line_start = last == '\n';
       last = buffer[strlen(buffer)-1];
       p = buffer;
       while (isblank(*p)) p++;
       if (line_start && cut_after_blanks(buffer, p, CSD_MAX_LINE_LEN, cf))
         last = '\n';
-      if (split_close)            /* a closer across two chunks of a line */
-        comm = 0;
-
-      if (comm == 0 && line_start &&
+      if (csound_orc_scan_in_code(&scan) && line_start &&
           strstr(p, "</CsInstruments>") == p) {
         corfile_puts(csound, "\n#exit\n", incore);
         corfile_putc(csound, '\0', incore);
@@ -551,36 +547,8 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
         csound->orchstr = incore;
         return TRUE;
       }
-      s = split_close ? buffer + 1 : buffer;
-      while (*s != '\0') {
-        if (comm) {
-          if (s[0] == '*' && s[1] == '/') {
-            comm = 0;
-            s += 2;
-          } else {
-            s++;
-          }
-        } else if (*s == ';' || (s[0] == '/' && s[1] == '/')) {
-          break;
-        } else if (*s == '"') {
-          s++;
-          while (*s != '\0' && *s != '"') {
-            if (*s == '\\' && s[1] != '\0')
-              s += 2;
-            else
-              s++;
-          }
-          if (*s == '"')
-            s++;
-        } else if (s[0] == '/' && s[1] == '*') {
-          comm = 1;
-          s += 2;
-          if (*s == '\0')
-            last = ' ';
-        } else {
-          s++;
-        }
-      }
+      for (const char *s = buffer; *s != '\0'; s++)
+        csound_orc_scan_char(&scan, *s);
       corfile_puts(csound, buffer, incore);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>\n"));
