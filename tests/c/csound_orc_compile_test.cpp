@@ -2226,6 +2226,48 @@ TEST_F (OrcCompileTests, testColumnNumbers)
     csoundDeleteTree(csound, tree);
 }
 
+TEST_F(OrcCompileTests, DeletingAnUncompiledTreeReleasesParserState)
+{
+    TREE* tree = csoundParseOrc(csound,
+        "opcode AddOne, k, k\n"
+        "  kx xin\n"
+        "  xout kx + 1\n"
+        "endop\n"
+        "instr 1\n"
+        "  kLocal = AddOne(1)\n"
+        "endin\n");
+    ASSERT_NE(nullptr, tree);
+    ASSERT_NE(nullptr, tree->markup);
+    ASSERT_NE(nullptr, tree->next);
+    ASSERT_NE(nullptr, tree->next->markup);
+    ASSERT_NE(nullptr, tree->next->next);
+    ASSERT_NE(nullptr, tree->next->next->markup);
+    struct Allocations {
+        decltype(CSOUND::Free) free;
+        void* typeTable;
+        void* udoPool;
+        void* instrumentPool;
+    } allocations{csound->Free, tree->markup, tree->next->markup,
+                  tree->next->next->markup};
+    csoundSetHostData(csound, &allocations);
+    csound->Free = [](CSOUND* cs, void* pointer) {
+        auto* state = static_cast<Allocations*>(csoundGetHostData(cs));
+        if (pointer == state->typeTable)
+            state->typeTable = nullptr;
+        if (pointer == state->udoPool)
+            state->udoPool = nullptr;
+        if (pointer == state->instrumentPool)
+            state->instrumentPool = nullptr;
+        state->free(cs, pointer);
+    };
+    csoundDeleteTree(csound, tree);
+    csound->Free = allocations.free;
+    csoundSetHostData(csound, nullptr);
+    EXPECT_EQ(nullptr, allocations.typeTable);
+    EXPECT_EQ(nullptr, allocations.udoPool);
+    EXPECT_EQ(nullptr, allocations.instrumentPool);
+}
+
 // Test that column numbers reset correctly across multiple lines
 TEST_F (OrcCompileTests, testColumnNumbersMultiLine)
 {

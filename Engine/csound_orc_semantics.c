@@ -4751,8 +4751,23 @@ static void delete_tree(CSOUND *csound, TREE **l)
   }
 }
 
- void csoundDeleteTree(CSOUND *csound, TREE *tree)
+void csoundDeleteTree(CSOUND *csound, TREE *tree)
 {
+  if (tree != NULL && tree->type == 0 && tree->value == NULL) {
+    TYPE_TABLE *types = tree->markup;
+    for (TREE *node = tree->next; node != NULL; node = node->next) {
+      if ((node->type == INSTR_TOKEN || node->type == UDO_TOKEN ||
+           node->type == T_DECLARE) && node->markup != NULL) {
+        csoundFreeParserVarPool(csound, node->markup);
+      }
+    }
+    if (types != NULL) {
+      csoundFreeParserVarPool(csound, types->globalPool);
+      csoundFreeParserVarPool(csound, types->instr0LocalPool);
+      cs_cons_free_complete(csound, types->labelList);
+      csound->Free(csound, types);
+    }
+  }
   delete_tree(csound, &tree);
 }
 

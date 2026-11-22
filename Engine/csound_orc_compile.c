@@ -1326,6 +1326,7 @@ static INSTRTXT *create_instrument(CSOUND *csound, TREE *root,
   if (typeTable != NULL) {
     typeTable->localPool = ip->varPool;
   }
+  root->markup = NULL; /* The instrument now owns the pool. */
 
   op = (OPTXT *)ip;
   statements = root->right;
@@ -2580,6 +2581,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     csound->Message(csound, Str("Error: missing TYPE_TABLE on AST root\n"));
     return CSOUND_ERROR;
   }
+
+  root->markup = NULL; /* The compiler now owns the type table and global pools. */
 
   /* Advance past sentinel header node only if this node is the synthetic head
      created by the parser (type==0 and no value). If verify_tree returned a
