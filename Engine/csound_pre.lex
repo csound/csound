@@ -265,7 +265,6 @@ QNAN            "qnan"[ \t]*\(
                   corfile_putc(csound, '\n', csound->expanded_orc);
                   csound_preset_lineno(1+csound_preget_lineno(yyscanner),
                                        yyscanner);
-                  csound_pre_line(csound, csound->expanded_orc, yyscanner);
                 }
   .             {
                   corfile_putc(csound, yytext[0], csound->expanded_orc);

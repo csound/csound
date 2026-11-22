@@ -878,7 +878,7 @@ static void do_include(CSOUND *csound, int term, yyscan_t yyscanner)
     PARM->alt_stack[PARM->macro_stack_ptr++].s = NULL;
     prs_push_buffer(csound, yyscanner);
     // this inserts a new line in included score to avoid lexer crash
-    corfile_putc(csound, '\n', cf);
+    corfile_puts(csound, "\n", cf);
     prs_scan_string(cf->body, yyscanner);
     corfile_rm(csound, &cf);
     csound->DebugMsg(csound,"Set line number to 1\n");
