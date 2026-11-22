@@ -237,6 +237,44 @@ void add_tmpfile(CSOUND *csound, char *name)    /* IV - Feb 03 2005 */
     STA(toremove) = tmp;
 }
 
+static int32_t remove_tmpfile_and_dir(CSOUND *csound, const char *path)
+{
+    if (path == NULL) {
+      return 0;
+    }
+    int32_t rc = remove(path);
+    const char *sep = strrchr(path, DIRSEP);
+#if DIRSEP != '/'
+    const char *fwd = strrchr(path, '/');
+    if (fwd != NULL && (sep == NULL || fwd > sep)) {
+      sep = fwd;
+    }
+#endif
+    if (sep != NULL && sep > path) {
+      size_t dirLen = (size_t)(sep - path);
+      NAMELST **prev = &STA(toremove);
+      while (*prev != NULL) {
+        NAMELST *entry = *prev;
+        if (entry->name != NULL && strlen(entry->name) == dirLen &&
+            strncmp(entry->name, path, dirLen) == 0) {
+          int32_t dirRc = remove(entry->name);
+          if (dirRc == 0
+#ifdef ENOENT
+              || errno == ENOENT
+#endif
+          ) {
+            *prev = entry->next;
+            csound->Free(csound, entry->name);
+            csound->Free(csound, entry);
+            continue;
+          }
+        }
+        prev = &(*prev)->next;
+      }
+    }
+    return rc;
+}
+
 static int32_t blank_buffer(/*CSOUND *csound,*/ const char *buffer)
 {
     const char *s;
@@ -627,8 +665,8 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
     csoundMessage(csound, Str("Creating %s (%p)\n"), extname, scof);
 #endif
     if (UNLIKELY(fd == NULL)) {
-      remove(extname);
-      remove(STA(sconame));
+      remove_tmpfile_and_dir(csound, extname);
+      remove_tmpfile_and_dir(csound, STA(sconame));
       csound->Free(csound, extname);
       return FALSE;
     }
@@ -656,12 +694,12 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
 #endif
         if (UNLIKELY(system_result != 0)) {
           csoundErrorMsg(csound, Str("External generation failed\n"));
-          remove(extname);
-          remove(STA(sconame));
+          remove_tmpfile_and_dir(csound, extname);
+          remove_tmpfile_and_dir(csound, STA(sconame));
           csound->Free(csound, extname);
           return FALSE;
         }
-       if (UNLIKELY(remove(extname)))
+       if (UNLIKELY(remove_tmpfile_and_dir(csound, extname)))
          csoundErrorMsg(csound, Str("and cannot remove %s\n"), extname);
         if (csound->scorestr == NULL)
           csound->scorestr = corfile_create_w(csound);
@@ -670,7 +708,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
                                     "r", NULL, CSFTYPE_SCORE, 0);
         if (UNLIKELY(fd == NULL)) {
           csoundErrorMsg(csound, Str("cannot open %s\n"), STA(sconame));
-          if (UNLIKELY(remove(STA(sconame))))
+          if (UNLIKELY(remove_tmpfile_and_dir(csound, STA(sconame))))
             csoundErrorMsg(csound, Str("and cannot remove %s\n"), STA(sconame));
           csound->Free(csound, extname);
           return FALSE;
@@ -680,7 +718,7 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
           corfile_puts(csound, buffer, csound->scorestr);
         csoundMessage(csound, Str("closing %s\n"), STA(sconame));
         csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
-        if (UNLIKELY(remove(STA(sconame))))
+        if (UNLIKELY(remove_tmpfile_and_dir(csound, STA(sconame))))
           csoundErrorMsg(csound, Str("and cannot remove %s\n"), STA(sconame));
         corfile_puts(csound, "\n#exit\n", csound->scorestr);
         corfile_putc(csound, '\0', csound->scorestr);
@@ -693,8 +731,8 @@ static int32_t create_ex_score(CSOUND *csound, char *p, CORFIL *cf)
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsScore>\n"));
     csoundFileClose(csound, fd, CSFILE_CLOSE_SYNC);
-    remove(extname);
-    remove(STA(sconame));
+    remove_tmpfile_and_dir(csound, extname);
+    remove_tmpfile_and_dir(csound, STA(sconame));
     csound->Free(csound, extname);
     return FALSE;
 #endif

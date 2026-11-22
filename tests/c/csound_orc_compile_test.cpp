@@ -4889,3 +4889,38 @@ endin
     EXPECT_EQ(FL(42.0), csoundGetControlChannel(csound, "afterVerifyFailure", &err));
     EXPECT_EQ(0, err);
 }
+
+#if !defined(_WIN32)
+TEST_F(OrcCompileTests, ExternalScoreRemovesTempDirectoriesImmediately)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *csd = R"(
+<CsoundSynthesizer>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  chnset 7, "exScoreRan"
+endin
+</CsInstruments>
+<CsScore bin="/bin/cp">
+i 1 0 0.01
+e 0.02
+</CsScore>
+</CsoundSynthesizer>
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(csound, csd, 1, 0));
+    EXPECT_EQ(nullptr, csound->onefileStatics.toremove);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int perfStatus = 0;
+    while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+    }
+    EXPECT_GT(perfStatus, 0);
+    int32_t err = 0;
+    EXPECT_EQ(FL(7.0), csoundGetControlChannel(csound, "exScoreRan", &err));
+    EXPECT_EQ(0, err);
+}
+#endif
