@@ -186,14 +186,16 @@ void corfile_set(CORFIL *f, int32_t n)
 
 void corfile_seek(CORFIL *f, int32_t n, int32_t dir)
 {
-    int32_t len = (int32_t) strlen(f->body);
-    if (dir == SEEK_SET) f->p = n;
-    else if (dir == SEEK_CUR) f->p += n;
-    else if (dir == SEEK_END) f->p = len - n;
-    if (UNLIKELY(f->p < 0))
-      f->p = 0;
-    else if (UNLIKELY(f->p > len))
-      f->p = len;
+    int64_t len = (int64_t) strlen(f->body);
+    int64_t pos = (int64_t) f->p;
+    if (dir == SEEK_SET) pos = (int64_t) n;
+    else if (dir == SEEK_CUR) pos += (int64_t) n;
+    else if (dir == SEEK_END) pos = len - (int64_t) n;
+    if (UNLIKELY(pos < 0))
+      pos = 0;
+    else if (UNLIKELY(pos > len))
+      pos = len;
+    f->p = (uint32_t) pos;
 }
 
 
