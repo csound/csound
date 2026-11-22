@@ -4449,6 +4449,120 @@ endin
     csoundDestroy(csound);
 }
 
+TEST(ParcsTests, GlobalArrayElementWriteOrdering)
+{
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND* csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j " + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char* orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkArr@global:k[] init 4
+
+instr 1
+  kCnt init 0
+  kCnt += 1
+  gkArr[0] = kCnt
+endin
+
+instr 2
+  kExp init 0
+  kBad init 0
+  kExp += 1
+  kV = gkArr[0]
+  if kV != kExp then
+    kBad += 1
+  endif
+  chnset kBad, "bad"
+  chnset kV, "seen"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+        csoundReadScore(csound, "i 1 0 0.05\ni 2 0 0.05\ne 0.06\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        while (csoundPerformKsmps(csound) == 0) {
+        }
+        int32_t err = 0;
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_GE(csoundGetControlChannel(csound, "seen", &err), FL(50.0));
+        EXPECT_EQ(0, err);
+        csoundDestroy(csound);
+    }
+}
+
+TEST(ParcsTests, LiveRedefinedUdoBoundTemplateOrdering)
+{
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND* csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j " + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char* initialOrc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+
+opcode BumpShared():void
+  ; Initial definition does not write gkShared.
+  kNoop = 0
+endop
+
+instr 1
+  BumpShared
+endin
+
+instr 2
+  kExp init 0
+  kBad init 0
+  kExp += 1
+  if gkShared != kExp then
+    kBad += 1
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, initialOrc));
+        csoundReadScore(csound, "i 1 0 0.1\ne 0.2\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        // Keep an older note bound to BumpShared v1 while redefining v2
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+
+        const char* redefinedUdo = R"(
+opcode BumpShared():void
+  gkShared += 1
+endop
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefinedUdo));
+        csoundReadScore(csound, "i 1.1 0 0.05\ni 2 0 0.05\n");
+        while (csoundPerformKsmps(csound) == 0) {
+        }
+        int32_t err = 0;
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_GE(csoundGetControlChannel(csound, "seen", &err), FL(50.0));
+        EXPECT_EQ(0, err);
+        csoundDestroy(csound);
+    }
+}
+
 #if !defined(_WIN32)
 TEST_F(OrcCompileTests, LineventPipeDoesNotBlockWhileProducerIsOpen)
 {

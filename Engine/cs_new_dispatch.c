@@ -39,6 +39,7 @@
 #include "interlocks.h"
 #include "entry.h"
 #include "opcode.h"
+#include "udo.h"
 #include <stdbool.h>
 
 #if defined(_MSC_VER)
@@ -226,6 +227,23 @@ static void dag_deps_add_ptr(CSOUND *csound, void ***arr,
     (*arr)[(*n)++] = ptr;
 }
 
+static int32_t is_inplace_global_write_op(const OENTRY *ep)
+{
+    if (ep == NULL) {
+      return 0;
+    }
+    if ((ep->flags & WI) != 0 || ep->useropinfo != NULL) {
+      return 1;
+    }
+    if (ep->opname == NULL) {
+      return 0;
+    }
+    return strncmp(ep->opname, "##array_set", 11) == 0 ||
+           strcmp(ep->opname, "##array_init") == 0 ||
+           strncmp(ep->opname, "##array_member_set", 18) == 0 ||
+           strcmp(ep->opname, "##member_set") == 0;
+}
+
 static void dag_collect_instr_deps(CSOUND *csound, INSTRTXT *instr,
                                    DAG_INSTR_DEPS *deps, int32_t depth)
 {
@@ -279,12 +297,62 @@ static void dag_collect_instr_deps(CSOUND *csound, INSTRTXT *instr,
         if (arg->type == ARG_GLOBAL && arg->argPtr != NULL) {
           dag_deps_add_ptr(csound, &deps->reads, &deps->nreads,
                            &deps->cap_reads, arg->argPtr);
-          if (ep != NULL &&
-              ((ep->flags & WI) != 0 || ep->useropinfo != NULL))
+          if (is_inplace_global_write_op(ep))
             dag_deps_add_ptr(csound, &deps->writes, &deps->nwrites,
                              &deps->cap_writes, arg->argPtr);
         }
       }
+    }
+}
+
+static void dag_collect_instance_deps(CSOUND *csound, INSDS *insds,
+                                      DAG_INSTR_DEPS *deps)
+{
+    INSDS *cur;
+    const INSTRTXT *seen[64];
+    int32_t nseen = 0;
+    int32_t steps = 0;
+
+    if (insds == NULL) {
+      deps->requires_order = 1;
+      return;
+    }
+    dag_collect_instr_deps(csound, insds->instr, deps, 0);
+    if (insds->instr != NULL) {
+      seen[nseen++] = insds->instr;
+    }
+    /* Also inspect the UDO templates bound to this instance at init time,
+       so live UDO redefinitions that bind newer notes still serialize cleanly. */
+    cur = insds;
+    while (!deps->requires_order && cur->opcod_deact != NULL) {
+      UOPCODE *udo;
+      INSDS *udoIp;
+      if (steps >= 64) {
+        deps->requires_order = 1;
+        break;
+      }
+      udo = (UOPCODE *)cur->opcod_deact;
+      udoIp = udo->ip;
+      steps++;
+      if (udoIp == NULL) {
+        break;
+      }
+      if (udoIp->instr != NULL) {
+        int32_t i, already = 0;
+        for (i = 0; i < nseen; i++) {
+          if (seen[i] == udoIp->instr) {
+            already = 1;
+            break;
+          }
+        }
+        if (!already) {
+          if (nseen < 64) {
+            seen[nseen++] = udoIp->instr;
+          }
+          dag_collect_instr_deps(csound, udoIp->instr, deps, 1);
+        }
+      }
+      cur = udoIp;
     }
 }
 
@@ -361,7 +429,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
       csound->dag_task_status[i].s = AVAILABLE;
       csound->dag_wlmm[i].id = i;
       task_map[i] = chain;
-      dag_collect_instr_deps(csound, chain->instr, &task_deps[i], 0);
+      dag_collect_instance_deps(csound, chain, &task_deps[i]);
       i++;
       chain = chain->nxtact;
     }
