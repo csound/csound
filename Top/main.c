@@ -808,8 +808,20 @@ static int32_t start_csound(CSOUND *csound)
 
     for (i = 1; i < O->numThreads; i++) {
       THREADINFO *t = csound->Malloc(csound, sizeof(THREADINFO));
+      PARCS_WORKER_ARG *arg =
+          csound->Malloc(csound, sizeof(PARCS_WORKER_ARG));
+      if (UNLIKELY(t == NULL || arg == NULL)) {
+        if (t != NULL) csound->Free(csound, t);
+        if (arg != NULL) csound->Free(csound, arg);
+        csound->Die(csound, Str("Failed to allocate PARCS thread info\n"));
+      }
+      arg->csound = csound;
+      arg->index = i;
 
-      t->threadId = csound->CreateThread(&kperf_thread, (void *)csound);
+      t->threadId = csound->CreateThread(&kperf_thread, (void *)arg);
+      if (UNLIKELY(t->threadId == NULL)) {
+        csound->Free(csound, arg);
+      }
       t->next = NULL;
 
       if (current == NULL) {

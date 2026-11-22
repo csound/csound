@@ -1979,8 +1979,14 @@ static void reset(CSOUND *csound) {
     }
     THREADINFO *t = csound->multiThreadedThreadInfo;
     while (t != NULL) {
+      if (t->threadId != NULL) {
+        csound->JoinThread(t->threadId);
+      }
+      t = t->next;
+    }
+    t = csound->multiThreadedThreadInfo;
+    while (t != NULL) {
       THREADINFO *next = t->next;
-      csound->JoinThread(t->threadId);
       csound->Free(csound, t);
       t = next;
     }

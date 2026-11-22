@@ -39,32 +39,6 @@ inline static void mix_out(cs_float *out, const cs_float *in, uint32_t smps) {
 }
 
 #ifdef PARCS
-static int32_t get_thread_index(CSOUND *csound, void *threadId) {
-  int32_t index = 0;
-  THREADINFO *current = csound->multiThreadedThreadInfo;
-
-  if (current == NULL) {
-    return -1;
-  }
-
-  while (current != NULL) {
-#ifdef HAVE_PTHREAD
-    if (pthread_equal(*(pthread_t *)threadId,
-                      *(pthread_t *)current->threadId))
-#elif defined(WIN32)
-    DWORD *d = (DWORD *)threadId;
-    if (*d == GetThreadId(*(HANDLE *)current->threadId))
-#else
-    // FIXME - need to verify this works...
-    if (threadId == current->threadId)
-#endif
-      return index;
-    index++;
-    current = current->next;
-  }
-  return -1;
-}
-
 #define INVALID (-1)
 #define WAIT (-2)
 /**
@@ -187,26 +161,24 @@ int32_t csound_node_perf(CSOUND *csound, int32_t index,
     master thread.
 */
 unsigned long kperf_thread(void *cs) {
-  CSOUND *csound = (CSOUND *)cs;
-  void *threadId;
-  int32_t index;
+  PARCS_WORKER_ARG *arg = (PARCS_WORKER_ARG *)cs;
+  CSOUND *csound = arg->csound;
+  int32_t index = arg->index;
   int32_t numThreads;
+  csound->Free(csound, arg);
   CSOUND_WORKER_SUBNORMAL_MODE(csound);
 
   csound->WaitBarrier(csound->barrier2);
-  threadId = csound->GetCurrentThreadID();
-  index = get_thread_index(csound, threadId);
   numThreads = csound->oparms->numThreads;
-  if(csoundGetDebug(csound) & DEBUG_PARCS)
-    csound->Message(csound,
-                  Str("Multithread performance:thread %d of "
-                      "%d starting.\n"),
-                  index + 1, numThreads);
-  if (UNLIKELY(index < 0)) {
+  if (UNLIKELY(index <= 0 || index >= numThreads)) {
     csound->Die(csound, Str("Bad ThreadId\n"));
     return ULONG_MAX;
   }
-  index++;
+  if (csoundGetDebug(csound) & DEBUG_PARCS)
+    csound->Message(csound,
+                  Str("Multithread performance:thread %d of "
+                      "%d starting.\n"),
+                  index, numThreads);
   int32_t parflag, taskflag = 0, err = 0;
   while (1) {
 #ifdef PARCS_USE_LOCK_BARRIER
@@ -218,7 +190,6 @@ unsigned long kperf_thread(void *cs) {
 #endif
     if (ATOMIC_GET(csound->multiThreadedComplete) == 1) {
       // exit thread on performance end
-      free(threadId);
       return 0UL;
     }
     err = node_perf(csound, index, numThreads);

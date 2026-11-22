@@ -80,6 +80,11 @@
 #define BARRIER_1_WAIT_SYM 0x32
 #define BARRIER_2_WAIT_SYM 0x33
 
+typedef struct {
+  CSOUND *csound;
+  int32_t index;
+} PARCS_WORKER_ARG;
+
 /* return thread index of caller */
 int32_t csp_thread_index_get(CSOUND *csound);
 void csp_barrier_alloc(CSOUND *csound, void **barrier, int32_t thread_count);
