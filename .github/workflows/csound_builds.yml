@@ -663,6 +663,9 @@ jobs:
         env:
           PKG_CONFIG_PATH: "${{ env.DEPS_PREFIX }}/lib/pkgconfig"
         run: |
+          # Use the GITHUB_WORKSPACE env var (the workspace path inside the
+          # container) instead of the github.workspace context, which still
+          # holds the host path (/home/runner/work/...) in container jobs.
           cmake -B build -S . \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_PREFIX_PATH="${DEPS_PREFIX}" \
@@ -671,7 +674,7 @@ jobs:
             -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DCMAKE_SHARED_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
             -DCMAKE_MODULE_LINKER_FLAGS="-static-libgcc -static-libstdc++" \
-            -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="${{ github.workspace }}/.github/cmake/linux-portable.cmake" \
+            -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES="${GITHUB_WORKSPACE}/.github/cmake/linux-portable.cmake" \
             -DCMAKE_INSTALL_RPATH='$ORIGIN' \
             -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON \
             -DBUILD_PLUGINS=ON \
