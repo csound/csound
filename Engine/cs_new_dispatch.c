@@ -119,21 +119,20 @@ static void dag_print_state(CSOUND *csound)
 }
 
 /* For now allocate a fixed maximum number of tasks; FIXME */
-static void create_dag(CSOUND *csound)
+static void create_dag(CSOUND *csound, int32_t max)
 {
     /* Allocate the main task status and watchlists */
-    int32_t max = csound->dag_task_max_size;
     csound->dag_task_status = csound->Calloc(csound, sizeof(stateWithPadding)*max);
     csound->dag_task_watch  = csound->Calloc(csound, sizeof(watchList*)*max);
     csound->dag_task_map    = csound->Calloc(csound, sizeof(INSDS*)*max);
     csound->dag_task_dep    = (char **)csound->Calloc(csound, sizeof(char*)*max);
     csound->dag_wlmm = (watchList *)csound->Calloc(csound, sizeof(watchList)*max);
+    csound->dag_task_max_size = max;
 }
 
-static void recreate_dag(CSOUND *csound, int32_t old_max)
+static void recreate_dag(CSOUND *csound, int32_t old_max, int32_t max)
 {
     /* Allocate the main task status and watchlists */
-    int32_t max = csound->dag_task_max_size;
     csound->dag_task_status =
       csound->ReAlloc(csound, (void *)csound->dag_task_status,
                sizeof(stateWithPadding)*max);
@@ -159,6 +158,7 @@ static void recreate_dag(CSOUND *csound, int32_t old_max)
       memset((void *)(csound->dag_wlmm + old_max), 0,
              sizeof(watchList) * added);
     }
+    csound->dag_task_max_size = max;
 }
 
 void dag_cleanup(CSOUND *csound)
@@ -329,9 +329,10 @@ void dag_build(CSOUND *csound, INSDS *chain)
       chain = chain->nxtact;
     }
     if (csound->dag_task_status == NULL) {
-      if (csound->dag_num_active > csound->dag_task_max_size)
-        csound->dag_task_max_size = csound->dag_num_active + INIT_SIZE;
-      create_dag(csound);
+      int32_t new_max = csound->dag_task_max_size;
+      if (csound->dag_num_active > new_max)
+        new_max = csound->dag_num_active + INIT_SIZE;
+      create_dag(csound, new_max);
     } else {
       int32_t old_max = csound->dag_task_max_size;
       for (i = 0; i < old_max; i++) {
@@ -341,9 +342,8 @@ void dag_build(CSOUND *csound, INSDS *chain)
         }
         csound->dag_wlmm[i].id = INVALID;
       }
-      if (csound->dag_num_active > csound->dag_task_max_size) {
-        csound->dag_task_max_size = csound->dag_num_active + INIT_SIZE;
-        recreate_dag(csound, old_max);
+      if (csound->dag_num_active > old_max) {
+        recreate_dag(csound, old_max, csound->dag_num_active + INIT_SIZE);
       }
       memset((void *)csound->dag_task_watch, 0,
              sizeof(watchList *) * csound->dag_task_max_size);
@@ -429,11 +429,17 @@ void dag_reinit(CSOUND *csound)
 }
 
 #if defined(_MSC_VER)
-#define ATOMIC_READ(x) (x)
-#define ATOMIC_WRITE(x,v) do { (x) = (v); MemoryBarrier(); } while (0)
+#define ATOMIC_READ(x) \
+  ((enum state)InterlockedCompareExchange((volatile LONG *)&(x), 0, 0))
+#define ATOMIC_WRITE(x,v) \
+  ((void)InterlockedExchange((volatile LONG *)&(x), (LONG)(v)))
+#define ATOMIC_READ_PTR(x) \
+  ((watchList *)InterlockedCompareExchangePointer((PVOID volatile *)&(x), \
+                                                  NULL, NULL))
 #else
 #define ATOMIC_READ(x) __atomic_load_n(&(x), __ATOMIC_SEQ_CST)
 #define ATOMIC_WRITE(x,v) __atomic_store_n(&(x), (v), __ATOMIC_SEQ_CST)
+#define ATOMIC_READ_PTR(x) __atomic_load_n(&(x), __ATOMIC_SEQ_CST)
 #endif
 #if defined(_MSC_VER)
 #define ATOMIC_CAS(x,current,new) \
@@ -522,12 +528,12 @@ inline static int32_t move_watch(CSOUND *csound, watchList * volatile *w,
                             watchList *t)
 {
      IGN(csound);
-    watchList *local=*w;
+    watchList *local;
     t->next = NULL;
     //printf("moveWatch\n");
     do {
       //dag_print_state(csound);
-      local = ATOMIC_READ(*w);
+      local = ATOMIC_READ_PTR(*w);
       if (local==&DoNotRead) {
         //printf("local is DoNotRead\n");
         return 0;//was no & earlier
@@ -556,7 +562,7 @@ taskID dag_end_task(CSOUND *csound, taskID i)
     // imply a write barrier, so it should be OK.
     {                                      /* ATOMIC_SWAP */
       do {
-        to_notify = ATOMIC_READ(task_watch[i]);
+        to_notify = ATOMIC_READ_PTR(task_watch[i]);
       } while (!ATOMIC_CAS_PTR(&task_watch[i],to_notify,(watchList *) &DoNotRead));
     } //to_notify = ATOMIC_SWAP(task_watch[i], &DoNotRead);
     //printf("Ending task %d\n", i);
