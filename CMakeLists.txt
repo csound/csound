@@ -1615,8 +1615,8 @@ set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
 
 # Flex emits an unused fatal handler when YY_FATAL_ERROR is overridden.
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
-    set_source_files_properties(${PRELEX_SCOOUT}
-        PROPERTIES COMPILE_FLAGS "-Wno-unused-function")
+    set_property(SOURCE ${PRELEX_OUT} ${PRELEX_SCOOUT}
+        APPEND_STRING PROPERTY COMPILE_FLAGS " -Wno-unused-function")
 endif()
 
 if(LEXER_DEBUG)
