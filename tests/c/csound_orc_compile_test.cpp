@@ -3812,6 +3812,84 @@ endin
     EXPECT_EQ(0, csoundGetControlChannel(csound, "shouldNotReach3", &err));
 }
 
+TEST_F(OrcCompileTests, CsobjSharedLifetimeAcrossCopies)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  objA:Csound create
+  objB:Csound = objA
+  destroy objB
+  chnset 1, "copyDestroyOk"
+  iRes setoption objA, "-n"
+  chnset 1, "shouldNotReach1"
+endin
+
+instr 2
+  objA:Csound create
+  objB:Csound = objA
+  objA create
+  iOkB compilestr objB, "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\ninstr 1\nendin\n"
+  iOkA compilestr objA, "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\ninstr 1\nendin\n"
+  destroy objA
+  destroy objB
+  if iOkB == 0 && iOkA == 0 then
+    chnset 1, "recreatePreservesCopy"
+  endif
+endin
+
+instr 3
+  objB:Csound create
+  iOkOld compilestr objB, "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\ninstr 1\nendin\n"
+  objA:Csound create
+  objB = objA
+  objB = objB
+  iOkNew compilestr objB, "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\ninstr 1\nendin\n"
+  destroy objB
+  if iOkOld == 0 && iOkNew == 0 then
+    chnset 1, "overwriteAndSelfAssignOk"
+  endif
+endin
+
+instr 4
+  objA:Csound create
+  objB:Csound = objA
+  if p4 == 1 then
+    destroy objB
+    chnset 1, "reuseDestroyedOk"
+  else
+    iOkReuse compilestr objA, "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\ninstr 1\nendin\n"
+    if iOkReuse == 0 then
+      chnset 1, "reuseRecreateOk"
+    endif
+  endif
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound,
+                    "i 1 0 0.005\n"
+                    "i 2 0 0.005\n"
+                    "i 3 0 0.005\n"
+                    "i 4 0 0.005 1\n"
+                    "i 4 0.01 0.005 0\n"
+                    "e 0.03\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    while (csoundPerformKsmps(csound) == 0) {
+    }
+    int32_t err = 0;
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "copyDestroyOk", &err));
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "shouldNotReach1", &err));
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "recreatePreservesCopy", &err));
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "overwriteAndSelfAssignOk", &err));
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "reuseDestroyedOk", &err));
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "reuseRecreateOk", &err));
+}
+
 TEST(ParcsTests, MultiInstrumentListAndNamedInstruments)
 {
     for (int threads : {2, 4}) {

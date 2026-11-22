@@ -336,29 +336,55 @@ int32_t myflt_size(CSOUND *csound, ASSIGN *p) {
 
 // Csound Type & Opcodes
 typedef struct {
+  int32_t refcount;
   CSOUND *csound;
   int32_t nsmps;
-  int32_t owned;
   cs_float  *bufferout;
   cs_float  *bufferin;
+} CS_OBJ_STATE;
+
+typedef struct {
+  CS_OBJ_STATE *state;
 } CS_OBJ;
 
-static void csobj_free_resources(CSOUND *csound, CS_OBJ *csobj) {
-  if (csobj == NULL) return;
-  if (csobj->bufferout != NULL) {
-    csoundFree(csound, csobj->bufferout);
-    csobj->bufferout = NULL;
+static CS_OBJ_STATE *csobj_get_state(const CS_OBJ *csobj, CSOUND **engineOut) {
+  CS_OBJ_STATE *state = csobj != NULL ? csobj->state : NULL;
+  if (engineOut != NULL) {
+    *engineOut = state != NULL ? state->csound : NULL;
   }
-  if (csobj->bufferin != NULL) {
-    csoundFree(csound, csobj->bufferin);
-    csobj->bufferin = NULL;
+  return state;
+}
+
+static void csobj_destroy_state_resources(CSOUND *parent, CS_OBJ_STATE *state) {
+  if (state == NULL) return;
+  if (state->bufferout != NULL) {
+    if (parent != NULL) {
+      csoundFree(parent, state->bufferout);
+    }
+    state->bufferout = NULL;
   }
-  if (csobj->csound != NULL) {
-    csoundDestroy(csobj->csound);
-    csobj->csound = NULL;
+  if (state->bufferin != NULL) {
+    if (parent != NULL) {
+      csoundFree(parent, state->bufferin);
+    }
+    state->bufferin = NULL;
   }
-  csobj->nsmps = 0;
-  csobj->owned = 0;
+  if (state->csound != NULL) {
+    csoundDestroy(state->csound);
+    state->csound = NULL;
+  }
+  state->nsmps = 0;
+}
+
+static void csobj_release_state(CSOUND *parent, CS_OBJ *csobj) {
+  CS_OBJ_STATE *state;
+  if (csobj == NULL || csobj->state == NULL) return;
+  state = csobj->state;
+  csobj->state = NULL;
+  if (--state->refcount <= 0) {
+    csobj_destroy_state_resources(parent, state);
+    free(state);
+  }
 }
 
 static void csobj_var_init_memory(CSOUND *csound, CS_VARIABLE* var, cs_float* memblock) {
@@ -368,18 +394,27 @@ static void csobj_var_init_memory(CSOUND *csound, CS_VARIABLE* var, cs_float* me
 
 static void csobj_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                              const void* src, INSDS *ctx) {
-  IGN(csound);
+  CS_OBJ *destObj = (CS_OBJ *)dest;
+  const CS_OBJ *srcObj = (const CS_OBJ *)src;
+  CS_OBJ_STATE *srcState;
   IGN(cstype);
   IGN(ctx);
-  memcpy(dest, src, sizeof(CS_OBJ));
-  ((CS_OBJ *)dest)->owned = 0;
+  if (destObj == NULL || destObj == srcObj) {
+    return;
+  }
+  srcState = srcObj != NULL ? srcObj->state : NULL;
+  if (destObj->state == srcState) {
+    return;
+  }
+  csobj_release_state(csound, destObj);
+  if (srcState != NULL) {
+    srcState->refcount++;
+    destObj->state = srcState;
+  }
 }
 
 static void csobj_free_var_memory(void *cs, void *varMem) {
-  CS_OBJ *csobj = (CS_OBJ *)varMem;
-  if (csobj != NULL && csobj->owned) {
-    csobj_free_resources((CSOUND *)cs, csobj);
-  }
+  csobj_release_state((CSOUND *)cs, (CS_OBJ *)varMem);
 }
 
 static CS_VARIABLE* create_csobj_var(void* cs, const CS_TYPE *type,
@@ -397,20 +432,28 @@ static CS_VARIABLE* create_csobj_var(void* cs, const CS_TYPE *type,
 
 static int32_t create_csobj(CSOUND *csound, ASSIGN *p) {
   CS_OBJ *csobj = (CS_OBJ *) p->r;
+  CS_OBJ_STATE *state;
   /* not started: a reused instance still holds the last object */
-  if (csobj->owned) {
-    csobj_free_resources(csound, csobj);
+  csobj_release_state(csound, csobj);
+  state = (CS_OBJ_STATE *)calloc(1, sizeof(CS_OBJ_STATE));
+  if (UNLIKELY(state == NULL)) {
+    return csound->InitError(csound, "%s\n",
+                             Str("Csound create: out of memory"));
   }
-  memset(csobj, 0, sizeof(CS_OBJ));
-  csobj->csound = csoundCreate(NULL, NULL);
-  csobj->owned = (csobj->csound != NULL);
+  state->csound = csoundCreate(NULL, NULL);
+  if (state->csound == NULL) {
+    free(state);
+    return OK;
+  }
+  state->refcount = 1;
+  csobj->state = state;
   return OK;
 }
 
 static int32_t setoption_csobj(CSOUND *csound, AOP *p) {
-  CS_OBJ *csobj = (CS_OBJ *) p->a;
+  CSOUND *engine = NULL;
+  csobj_get_state((const CS_OBJ *)p->a, &engine);
   STRINGDAT *code = (STRINGDAT *) p->b;
-  CSOUND *engine = csobj != NULL ? csobj->csound : NULL;
   if (UNLIKELY(engine == NULL)) {
     *p->r = (cs_float)CSOUND_ERROR;
     return csound->InitError(csound, "%s\n",
@@ -421,9 +464,9 @@ static int32_t setoption_csobj(CSOUND *csound, AOP *p) {
 }
 
 static int32_t compile_csobj(CSOUND *csound, AOP *p) {
-  CS_OBJ *csobj = (CS_OBJ *) p->a;
+  CSOUND *engine = NULL;
+  csobj_get_state((const CS_OBJ *)p->a, &engine);
   STRINGDAT *code = (STRINGDAT *) p->b;
-  CSOUND *engine = csobj != NULL ? csobj->csound : NULL;
   if (UNLIKELY(engine == NULL)) {
     *p->r = (cs_float)CSOUND_ERROR;
     return csound->InitError(csound, "%s\n",
@@ -434,8 +477,8 @@ static int32_t compile_csobj(CSOUND *csound, AOP *p) {
 }
 
 static int32_t start_csobj(CSOUND *csound, AOP *p) {
-  CS_OBJ *csobj = (CS_OBJ *) p->a;
-  CSOUND *engine = csobj != NULL ? csobj->csound : NULL;
+  CSOUND *engine = NULL;
+  CS_OBJ_STATE *state = csobj_get_state((const CS_OBJ *)p->a, &engine);
   if (UNLIKELY(engine == NULL)) {
     *p->r = (cs_float)CSOUND_ERROR;
     return csound->InitError(csound, "%s\n",
@@ -445,25 +488,25 @@ static int32_t start_csobj(CSOUND *csound, AOP *p) {
   if (*p->r != CSOUND_SUCCESS) return OK;
   size_t bsiz = (size_t)(CS_KSMPS < engine->ksmps ?
                          engine->ksmps : CS_KSMPS)*sizeof(cs_float);
-  csobj->nsmps = engine->ksmps;
+  state->nsmps = engine->ksmps;
 
-  if (csobj->bufferout != NULL) {
-    csoundFree(csound, csobj->bufferout);
-    csobj->bufferout = NULL;
+  if (state->bufferout != NULL) {
+    csoundFree(csound, state->bufferout);
+    state->bufferout = NULL;
   }
-  if (csobj->bufferin != NULL) {
-    csoundFree(csound, csobj->bufferin);
-    csobj->bufferin = NULL;
+  if (state->bufferin != NULL) {
+    csoundFree(csound, state->bufferin);
+    state->bufferin = NULL;
   }
-  csobj->bufferout = (cs_float *) csoundCalloc(csound,bsiz*engine->nchnls);
-  csobj->bufferin = (cs_float *) csoundCalloc(csound,bsiz*engine->inchnls);
+  state->bufferout = (cs_float *) csoundCalloc(csound,bsiz*engine->nchnls);
+  state->bufferin = (cs_float *) csoundCalloc(csound,bsiz*engine->inchnls);
   return OK;
 }
 
 
 static int32_t compilecsd_csobj(CSOUND *csound, AOP *p) {
-  CS_OBJ *csobj = (CS_OBJ *) p->a;
-  CSOUND *engine = csobj != NULL ? csobj->csound : NULL;
+  CSOUND *engine = NULL;
+  csobj_get_state((const CS_OBJ *)p->a, &engine);
   STRINGDAT *code = (STRINGDAT *) p->b;
   if (UNLIKELY(engine == NULL)) {
     *p->r = (cs_float)CSOUND_ERROR;
@@ -475,8 +518,8 @@ static int32_t compilecsd_csobj(CSOUND *csound, AOP *p) {
 }
 
 static int32_t perform_csobj(CSOUND *csound, AOP *p) {
-  CS_OBJ *csobj = (CS_OBJ *) p->a;
-  CSOUND *engine = csobj != NULL ? csobj->csound : NULL;
+  CSOUND *engine = NULL;
+  CS_OBJ_STATE *state = csobj_get_state((const CS_OBJ *)p->a, &engine);
   if (UNLIKELY(engine == NULL)) {
     *p->r = (cs_float)CSOUND_ERROR;
     return csound->PerfError(csound, &p->h, "%s\n",
@@ -487,9 +530,9 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
   int32_t nchnls = engine->nchnls, inc;
   int32_t inchnls = engine->inchnls;
   cs_float *spout = engine->spout;
-  cs_float *bufferout = csobj->bufferout;
+  cs_float *bufferout = state->bufferout;
   cs_float *spin = engine->spin;
-  cs_float *bufferin = csobj->bufferin;
+  cs_float *bufferin = state->bufferin;
 
   /* start allocates the buffers once the object has started */
   if (UNLIKELY(bufferout == NULL))
@@ -497,38 +540,38 @@ static int32_t perform_csobj(CSOUND *csound, AOP *p) {
                              Str("Csound perf: the Csound object has not started"));
   if(esmps >= ksmps) {
    for(uint32_t i=0; i < ksmps; i++) {
-    if((uint32_t)csobj->nsmps == esmps) {
+    if((uint32_t)state->nsmps == esmps) {
       *p->r = csoundPerformKsmps(engine);             
-      csobj->nsmps = 0;
+      state->nsmps = 0;
     }
-    inc = csobj->nsmps*inchnls;
+    inc = state->nsmps*inchnls;
     memcpy(spin+inc,bufferin+inc,
             sizeof(cs_float)*inchnls);
-    inc = csobj->nsmps*nchnls;
+    inc = state->nsmps*nchnls;
     memcpy(bufferout+inc,
            spout+inc,
            sizeof(cs_float)*nchnls);
-    csobj->nsmps += 1;
+    state->nsmps += 1;
    }
   } else {
     for(uint32_t j = 0; j < ksmps; j++) {
-      if((uint32_t)csobj->nsmps == esmps) {
+      if((uint32_t)state->nsmps == esmps) {
       *p->r = csoundPerformKsmps(engine);
-       csobj->nsmps = 0;
+       state->nsmps = 0;
       }
-      inc = (csobj->nsmps*inchnls);
+      inc = (state->nsmps*inchnls);
       memcpy(spin+inc,bufferin+j*inchnls,sizeof(cs_float)*inchnls);
-      inc = (csobj->nsmps*nchnls);
+      inc = (state->nsmps*nchnls);
       memcpy(bufferout+j*nchnls,spout+inc,sizeof(cs_float)*nchnls);
-      csobj->nsmps += 1;
+      state->nsmps += 1;
     }
    }
   return OK;
 }
 
 static int32_t chnset_scalar_csobj(CSOUND *csound, AOP *p) {
-    CS_OBJ *csobj = (CS_OBJ *) p->r;
-    CSOUND *engine = csobj != NULL ? csobj->csound : NULL;
+    CSOUND *engine = NULL;
+    csobj_get_state((const CS_OBJ *)p->r, &engine);
     if (UNLIKELY(engine == NULL)) {
       const char *msg = Str("Csound chnset: invalid or destroyed Csound object");
       return (csound->mode == 1)
@@ -542,8 +585,8 @@ static int32_t chnset_scalar_csobj(CSOUND *csound, AOP *p) {
 }
 
 static int32_t chnset_vector_csobj(CSOUND *csound, AOP *p) {
-    CS_OBJ *csobj = (CS_OBJ *) p->r;
-    CSOUND *engine = csobj != NULL ? csobj->csound : NULL;
+    CSOUND *engine = NULL;
+    csobj_get_state((const CS_OBJ *)p->r, &engine);
     if (UNLIKELY(engine == NULL)) {
       return csound->PerfError(csound, &p->h, "%s\n",
                                Str("Csound chnset: invalid or destroyed Csound object"));
@@ -559,8 +602,8 @@ static int32_t chnset_vector_csobj(CSOUND *csound, AOP *p) {
 }
 
 static int32_t chnget_scalar_csobj(CSOUND *csound, AOP *p) {
-    CS_OBJ *csobj = (CS_OBJ *) p->a;
-    CSOUND *engine = csobj != NULL ? csobj->csound : NULL;
+    CSOUND *engine = NULL;
+    csobj_get_state((const CS_OBJ *)p->a, &engine);
     if (UNLIKELY(engine == NULL)) {
       const char *msg = Str("Csound chnget: invalid or destroyed Csound object");
       *p->r = FL(0.0);
@@ -576,8 +619,8 @@ static int32_t chnget_scalar_csobj(CSOUND *csound, AOP *p) {
 }
 
 static int32_t chnget_vector_csobj(CSOUND *csound, AOP *p) {
-    CS_OBJ *csobj = (CS_OBJ *) p->a;
-    CSOUND *engine = csobj != NULL ? csobj->csound : NULL;
+    CSOUND *engine = NULL;
+    csobj_get_state((const CS_OBJ *)p->a, &engine);
     if (UNLIKELY(engine == NULL)) {
       return csound->PerfError(csound, &p->h, "%s\n",
                                Str("Csound chnget: invalid or destroyed Csound object"));
@@ -594,8 +637,8 @@ static int32_t chnget_vector_csobj(CSOUND *csound, AOP *p) {
 
 
 static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
-  CS_OBJ *csobj = (CS_OBJ *) p->a;
-  CSOUND *engine = csobj != NULL ? csobj->csound : NULL;
+  CSOUND *engine = NULL;
+  CS_OBJ_STATE *state = csobj_get_state((const CS_OBJ *)p->a, &engine);
   if (UNLIKELY(engine == NULL))
     return csound->PerfError(csound, &p->h, "%s\n",
                              Str("Csound inch: invalid or destroyed Csound object"));
@@ -604,7 +647,7 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
   uint32_t ksmps = CS_KSMPS;
   uint32_t esmps = engine->ksmps;
   cs_float *out = p->r;
-  cs_float *in = csobj->bufferout;
+  cs_float *in = state->bufferout;
 
   if (UNLIKELY(in == NULL))
     return csound->PerfError(csound, &p->h, "%s\n",
@@ -617,7 +660,7 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
   chn = (int32_t)*p->b - 1;
 
   if(esmps >= ksmps) {
-    int start = csobj->nsmps-ksmps;
+    int start = state->nsmps-ksmps;
     if(start < 0) start += esmps;
     start *= nchnls;
     esmps *= nchnls;
@@ -633,8 +676,8 @@ static int32_t getochn_csobj(CSOUND *csound, AOP *p) {
 }
 
 static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
-  CS_OBJ *csobj = (CS_OBJ *) p->r;
-  CSOUND *engine = csobj != NULL ? csobj->csound : NULL;
+  CSOUND *engine = NULL;
+  CS_OBJ_STATE *state = csobj_get_state((const CS_OBJ *)p->r, &engine);
   if (UNLIKELY(engine == NULL))
     return csound->PerfError(csound, &p->h, "%s\n",
                              Str("Csound outch: invalid or destroyed Csound object"));
@@ -643,7 +686,7 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
   uint32_t ksmps = CS_KSMPS;
   uint32_t esmps = engine->ksmps;
   cs_float *in = p->b;
-  cs_float *out = csobj->bufferin;
+  cs_float *out = state->bufferin;
   if (UNLIKELY(out == NULL))
     return csound->PerfError(csound, &p->h, "%s\n",
                              Str("Csound outch: the Csound object has not started"));
@@ -655,7 +698,7 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
   chn = (int32_t)*p->a - 1;
    
   if(esmps >= ksmps) {
-    int start = csobj->nsmps;
+    int start = state->nsmps;
     start *= nchnls;
     esmps *= nchnls;
     int i = start+chn;
@@ -671,7 +714,11 @@ static int32_t setichn_csobj(CSOUND *csound, AOP *p) {
 }
 
 static int32_t destroy_csobj(CSOUND *csound, ASSIGN *p) {
-  csobj_free_resources(csound, (CS_OBJ *) p->r);
+  CS_OBJ *csobj = (CS_OBJ *) p->r;
+  if (csobj != NULL && csobj->state != NULL) {
+    csobj_destroy_state_resources(csound, csobj->state);
+    csobj_release_state(csound, csobj);
+  }
   return OK;
 }
 
