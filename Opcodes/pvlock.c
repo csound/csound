@@ -242,20 +242,25 @@ static void pv_unwrap_region_phases(cs_float *phase, int32_t nbins,
 }
 
 #ifdef USE_FLOAT
-static cs_float pv_neighbor_phase(const cs_float *current, const cs_float *last)
+typedef struct {
+  cs_float real, imag;
+} PV_SCALED_BIN;
+
+static PV_SCALED_BIN pv_scale_bin(const cs_float *bin)
 {
-  /* Power-of-two scaling preserves the direction and keeps products bounded. */
-  int current_exp = 0, last_exp = 0;
-  frexpf(fmaxf(FABS(current[0]), FABS(current[1])), &current_exp);
-  frexpf(fmaxf(FABS(last[0]), FABS(last[1])), &last_exp);
-  const cs_float cr = ldexpf(current[0], -current_exp);
-  const cs_float ci = ldexpf(current[1], -current_exp);
-  const cs_float lr = ldexpf(last[0], -last_exp);
-  const cs_float li = ldexpf(last[1], -last_exp);
+  /* Keep the products bounded without changing the bin direction. */
+  int exponent = 0;
+  frexpf(fmaxf(FABS(bin[0]), FABS(bin[1])), &exponent);
+  return (PV_SCALED_BIN){ldexpf(bin[0], -exponent), ldexpf(bin[1], -exponent)};
+}
+
+static cs_float pv_neighbor_phase(PV_SCALED_BIN current, PV_SCALED_BIN last)
+{
+  const cs_float cr = current.real, ci = current.imag, lr = last.real, li = last.imag;
   /* Preserve the sign even when the two cross products almost cancel. */
   volatile cs_float product = cr * li;
   volatile cs_float cross = fmaf(ci, lr, -product) - fmaf(cr, li, -product);
-  return ATAN2(cross, cr * lr + ci * li);
+  return ATAN2(cross, fmaf(cr, lr, ci * li));
 }
 #endif
 
@@ -295,10 +300,22 @@ static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
       mag[p] = FL(0.0);
       /* Unwrap from the peak using the signed turn between neighbors. The
          sign can vanish if their independently rounded angles are subtracted. */
-      for (b=p+1; b < nbins && region[b] == p; b++)
-        mag[b] = mag[b-1] + pv_neighbor_phase(fwin+2*b, fwin+2*(b-1));
-      for (b=p-1; b >= 0 && region[b] == p; b--)
-        mag[b] = mag[b+1] + pv_neighbor_phase(fwin+2*b, fwin+2*(b+1));
+      if ((p + 1 >= nbins || region[p + 1] != p) &&
+          (p == 0 || region[p - 1] != p)) continue;
+      /* The next pair shares one bin with the previous pair. */
+      const PV_SCALED_BIN center = pv_scale_bin(fwin + 2*p);
+      PV_SCALED_BIN previous = center;
+      for (b=p+1; b < nbins && region[b] == p; b++) {
+        const PV_SCALED_BIN current = pv_scale_bin(fwin + 2*b);
+        mag[b] = mag[b-1] + pv_neighbor_phase(current, previous);
+        previous = current;
+      }
+      previous = center;
+      for (b=p-1; b >= 0 && region[b] == p; b--) {
+        const PV_SCALED_BIN current = pv_scale_bin(fwin + 2*b);
+        mag[b] = mag[b+1] + pv_neighbor_phase(current, previous);
+        previous = current;
+      }
     }
 #else
     /* Preserve the established phase-wrap choices in mixed/double builds. */
