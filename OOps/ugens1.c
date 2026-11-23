@@ -611,10 +611,12 @@ int32_t linsegr(CSOUND *csound, LINSEG *p)
 }
 
 #ifdef USE_FLOAT
+#define EXPSEG_ABS FABS
 #define EXPSEG_FREXP frexpf
 #define EXPSEG_LDEXP ldexpf
 #define EXPSEG_EXP_LIMIT (2 * FLT_MAX_EXP)
 #else
+#define EXPSEG_ABS fabs
 #define EXPSEG_FREXP frexp
 #define EXPSEG_LDEXP ldexp
 #define EXPSEG_EXP_LIMIT (2 * DBL_MAX_EXP)
@@ -766,7 +768,7 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)
     *expseg_correction = FL(0.0);                                           \
     *expseg_value = expseg_current * expseg_multiplier;                     \
   }                                                                         \
-  const cs_double magnitude = fabs(*expseg_value);                          \
+  const cs_double magnitude = EXPSEG_ABS(*expseg_value);                    \
   if (magnitude >= FL(1.0) || (magnitude > FL(0.0) && magnitude < FL(0.5))) { \
     int shift = 0;                                                          \
     *expseg_value = EXPSEG_FREXP(*expseg_value, &shift);                      \
@@ -865,6 +867,7 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
 }
 
 #undef EXPSEG_ADVANCE
+#undef EXPSEG_ABS
 #undef EXPSEG_FREXP
 #undef EXPSEG_LDEXP
 #undef EXPSEG_EXP_LIMIT
