@@ -69,7 +69,11 @@ static cs_double csPhaseValue(const CS_PHASE *phase)
     const int32_t leading = 32 * word + bit;
     const int32_t available = CS_PHASE_BITS - leading;
     const int32_t precision = available < CS_PHASE_MANT_DIG ? available : CS_PHASE_MANT_DIG;
+#ifdef USE_FLOAT
+    uint32_t significand = 0;
+#else
     uint64_t significand = 0;
+#endif
     int32_t left = precision;
     while (left > 0) {
       const int32_t take = left < 32 - bit ? left : 32 - bit;

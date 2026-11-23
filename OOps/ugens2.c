@@ -81,10 +81,6 @@ int32_t ephsset(CSOUND *csound, EPHSOR *p)
     }                                                               \
   } while (0)
 
-/* A phase just below one can round to one at the output precision. */
-#define EPHASOR_OUTPUT(phase)                                        \
-  ((cs_float)(phase) < FL(1.0) ? (cs_float)(phase) : FL(0.0))
-
 int32_t ephsor(CSOUND *csound, EPHSOR *p)
 {
     CS_PHASE step;
@@ -115,7 +111,9 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
       EPHASOR_INCREMENT(incr, whole_cycle);
       negative = csPhaseSplit(&step, incr);
       rs[n] = (cs_float) b;
-      aphs[n] = EPHASOR_OUTPUT(csPhaseValue(&p->phase));
+      /* A phase just below one can round to one at the output precision. */
+      const cs_float phase = (cs_float)csPhaseValue(&p->phase);
+      aphs[n] = phase < FL(1.0) ? phase : FL(0.0);
       const int32_t wrapped = csPhaseAdvance(&p->phase, &step, negative);
       b *= R;
       if (UNLIKELY(wrapped || whole_cycle)) {
@@ -134,7 +132,8 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
     negative = csPhaseSplit(&step, incr);
     for (n=offset; n<nsmps; n++) {
       rs[n] = (cs_float) b;
-      aphs[n] = EPHASOR_OUTPUT(csPhaseValue(&p->phase));
+      const cs_float phase = (cs_float)csPhaseValue(&p->phase);
+      aphs[n] = phase < FL(1.0) ? phase : FL(0.0);
       const int32_t wrapped = csPhaseAdvance(&p->phase, &step, negative);
       b *= R;
       if (UNLIKELY(wrapped || whole_cycle)) {
@@ -152,7 +151,6 @@ int32_t ephsor(CSOUND *csound, EPHSOR *p)
 }
 
 #undef EPHASOR_INCREMENT
-#undef EPHASOR_OUTPUT
 
 /* A phase just below one can round to one in cs_float. Wrap the output,
    retaining the more precise internal phase for the next sample. */
