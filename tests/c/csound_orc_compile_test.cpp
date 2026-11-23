@@ -23,6 +23,8 @@
 #include <vector>
 #if !defined(_WIN32)
 #include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
 #endif
 extern "C" {
 #include "str_ops.h"
@@ -4760,6 +4762,81 @@ endin
     csoundReset(csound);
     std::remove(tmpPath.c_str());
 }
+
+#if !defined(_WIN32)
+TEST_F(OrcCompileTests, LineventKeepsWhatFollowsDiscardedLineWhenBufferIsFull)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-L\"/dev/null\""));
+    const char *orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  chnset 1, "afterDiscardedLineRan"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    int fds[2] = {-1, -1};
+    ASSERT_EQ(0, pipe(fds));
+    ASSERT_EQ(0, fcntl(fds[1], F_SETFL, O_NONBLOCK));
+    int32_t oldFd = csound->Linefd;
+    csound->Linefd = fds[0];
+
+    // A line past what the line buffer grows to, 1 MB, without its newline.
+    // It goes in pieces, a k-cycle draining each, so that no write blocks.
+    const std::string piece(4096, ';');
+    const size_t oversized = (size_t)1048576 + 4 * piece.size();
+    size_t sent = 0;
+    int cycles = 0;
+    while (sent < oversized) {
+        ASSERT_LT(++cycles, 4096);
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        ssize_t written = write(fds[1], piece.data(),
+                                std::min(piece.size(), oversized - sent));
+        if (written < 0) {
+            ASSERT_EQ(EAGAIN, errno);
+            continue;
+        }
+        sent += (size_t) written;
+    }
+    // The line is dropped, and what was still to come of it discarded: the
+    // discard now waits for the line's end, with the buffer emptied.
+    for (int i = 0; i < 8; i++) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+    }
+    ASSERT_EQ(1, csound->lineventDiscardLine);
+    ASSERT_EQ(csound->lineventStatics.Linebuf,
+              csound->lineventStatics.Linep);
+
+    // Host lines queue behind it until almost no room is left.
+    const char blanks[] = "           \n";
+    for (int i = 0; i < 90000; i++) {
+        csound->InputMessage(csound, blanks);
+    }
+    ASSERT_GT(40, csound->lineventStatics.Linebufend -
+                      csound->lineventStatics.Linep);
+
+    // The end of the discarded line, and the next line read with it: that
+    // one is kept, room or no room.
+    const char tail[] = "\ni 1 0 0.01 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n";
+    ASSERT_EQ((ssize_t)(sizeof(tail) - 1), write(fds[1], tail, sizeof(tail) - 1));
+    for (int i = 0; i < 64; i++) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+    }
+    csound->Linefd = oldFd;
+    close(fds[0]);
+    close(fds[1]);
+    int32_t err = 0;
+    EXPECT_EQ(FL(1.0),
+              csoundGetControlChannel(csound, "afterDiscardedLineRan", &err));
+    EXPECT_EQ(0, err);
+}
+#endif
 
 TEST_F(OrcCompileTests, ScannerSkipsDefineMacroBodyInCsdAndLiveInput)
 {

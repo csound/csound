@@ -354,11 +354,32 @@ static int32_t linefd_has_data(int32_t fd, int32_t *eofOut)
 #endif
 }
 
+/* The line-event buffer grown to newsize, under line_event_spinlock, with a
+   landing of this thread's own: an allocation that fails in it lands there
+   and leaves the buffer as it was. Returns zero when it grew. */
+static int32_t grow_linebuf(CSOUND *csound, int32_t newsize)
+{
+    API_CALL call;
+    INIT_LANDING landing;
+    int32_t landed;
+    volatile int32_t allocErr = 1;
+    api_call_begin(csound, &call);
+    landed = init_landing_push(csound, &landing);
+    if (!landed || setjmp(landing.target) == 0) {
+      allocErr = linevent_alloc(csound, newsize);
+    }
+    if (landed)
+      init_landing_pop(&landing);
+    api_call_end(&call);
+    return allocErr;
+}
+
 /* The complete lines waiting in the line-event buffer, with what the -L
    input has to give, moved into sense_line's own work buffer under the lock,
    and the rest - a line not ended yet - moved down to the buffer's start.
-   Returns the end of what was taken, or NULL when no line is complete. */
-static char *take_lines(CSOUND *csound)
+   Returns the end of what was taken, or NULL when no line is complete. What
+   was lost is only marked in *lost, to be said once the lock is let go. */
+static char *take_lines(CSOUND *csound, int32_t *lost)
 {
     char    *cp, *last;
     int32_t len = 0, n;
@@ -390,9 +411,24 @@ static char *take_lines(CSOUND *csound)
             }
             char *nl = (char *) memchr(discard, LF, (size_t) n);
             if (nl != NULL) {
+              /* What the read took past that LF is the start of the next
+                 line, and is kept: the buffer makes room for it, as it does
+                 for the lines a host sends. Only when it cannot is it lost
+                 with the rest of its line, and said to be. */
               size_t rem = (size_t) (discard + n - (nl + 1));
+              size_t room = (size_t) (STA(Linebufend) - STA(Linep));
               csound->lineventDiscardLine = 0;
-              if (rem > 0 && rem <= (size_t) (STA(Linebufend) - STA(Linep))) {
+              if (rem > room &&
+                  grow_linebuf(csound,
+                               STA(linebufsiz) + (int32_t) (rem - room)) == 0)
+                room = (size_t) (STA(Linebufend) - STA(Linep));
+              if (rem > room) {
+                if (rem > 0) {
+                  csound->lineventDiscardLine = 1;
+                  *lost = 1;
+                }
+              }
+              else if (rem > 0) {
                 memcpy(STA(Linep), nl + 1, rem);
                 STA(Linep) += rem;
               }
@@ -432,19 +468,7 @@ static char *take_lines(CSOUND *csound)
             int32_t newsize = STA(linebufsiz) * 2;
             if (newsize > MAXSTR || newsize <= STA(linebufsiz))
               newsize = MAXSTR;
-            API_CALL call;
-            INIT_LANDING landing;
-            int32_t landed;
-            volatile int32_t allocErr = 1;
-            api_call_begin(csound, &call);
-            landed = init_landing_push(csound, &landing);
-            if (!landed || setjmp(landing.target) == 0) {
-              allocErr = linevent_alloc(csound, newsize);
-            }
-            if (landed)
-              init_landing_pop(&landing);
-            api_call_end(&call);
-            if (allocErr == 0) {
+            if (grow_linebuf(csound, newsize) == 0) {
               csoundSpinUnLock(&csound->line_event_spinlock);
               continue;
             }
@@ -496,7 +520,12 @@ static void sense_line(CSOUND *csound, void *userData)
     IGN(userData);
 
     while (1) {
-      if ((Linend = take_lines(csound)) == NULL)
+      int32_t lost = 0;
+      Linend = take_lines(csound, &lost);
+      if (UNLIKELY(lost))          /* said here: not under the line lock */
+        csoundErrorMsg(csound, Str("LineBuffer Overflow - "
+                                   "Input Data has been Lost\n"));
+      if (Linend == NULL)
         break;
       Linestart = csound->line_event_work;
       cp = Linestart;
