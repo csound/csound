@@ -1510,6 +1510,46 @@ int32_t lpfreson(CSOUND *csound, LPFRESON *p)
 #define RMS_LOWEST_EXPONENT (3 * (DBL_MIN_EXP - DBL_MANT_DIG) - DBL_MANT_DIG)
 #endif
 
+#if defined(USE_FLOAT) && FLT_RADIX == 2 && FLT_MANT_DIG == 24 && \
+    FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128
+/* Replace the exponent bits for normal binary32 values. Leave boundary cases
+   to libm, including shifts that require rounding to a subnormal. */
+typedef union {
+    cs_double value;
+    uint32_t bits;
+} RMS_FLOAT;
+
+#define RMS_SPLIT_SAMPLE(sample, mantissa, exponent) do {              \
+    RMS_FLOAT rms_split = { .value = (sample) };                       \
+    const int rms_field = (int)((rms_split.bits >> 23) & 0xffU);        \
+    if (LIKELY(rms_field > 0 && rms_field < 255)) {                    \
+      rms_split.bits = (rms_split.bits & UINT32_C(0x807fffff)) |        \
+                       UINT32_C(0x3f000000);                            \
+      (mantissa) = rms_split.value;                                    \
+      (exponent) = rms_field - 126;                                   \
+    } else                                                            \
+      (mantissa) = RMS_FREXP((sample), &(exponent));                    \
+  } while (0)
+
+#define RMS_ALIGN_INPUT(input, shift) do {                             \
+    const int rms_align_shift = (shift);                              \
+    RMS_FLOAT rms_align = { .value = (input) };                        \
+    const int rms_field = (int)((rms_align.bits >> 23) & 0xffU);        \
+    const int rms_scaled = rms_field + rms_align_shift;                \
+    if (LIKELY(rms_field > 0 && rms_field < 255 &&                     \
+               rms_scaled > 0 && rms_scaled < 255)) {                  \
+      rms_align.bits = (rms_align.bits & UINT32_C(0x807fffff)) |         \
+                       ((uint32_t)rms_scaled << 23);                   \
+      (input) = rms_align.value;                                       \
+    } else                                                            \
+      (input) = RMS_LDEXP((input), rms_align_shift);                    \
+  } while (0)
+#else
+#define RMS_SPLIT_SAMPLE(sample, mantissa, exponent) \
+    ((mantissa) = RMS_FREXP((sample), &(exponent)))
+#define RMS_ALIGN_INPUT(input, shift) ((input) = RMS_LDEXP((input), (shift)))
+#endif
+
 #define RMS_COEFFICIENTS(omega, coefficients) do {                     \
     RMS_COEFS *rms_c = &(coefficients);                               \
     cs_double rms_omega = (omega);                                   \
@@ -1535,7 +1575,8 @@ int32_t lpfreson(CSOUND *csound, LPFRESON *p)
     cs_double rms_sample = (sample), rms_input = FL(0.0);             \
     if (rms_sample != FL(0.0)) {                                     \
       int rms_exponent = 0;                                         \
-      cs_double rms_mantissa = RMS_FREXP(rms_sample, &rms_exponent);   \
+      cs_double rms_mantissa;                                       \
+      RMS_SPLIT_SAMPLE(rms_sample, rms_mantissa, rms_exponent);        \
       rms_input = rms_c->weight * rms_mantissa * rms_mantissa;        \
       rms_exponent = 2 * rms_exponent + rms_c->weight_exponent;       \
       if (rms_e->value == FL(0.0)) {                                 \
@@ -1548,7 +1589,7 @@ int32_t lpfreson(CSOUND *csound, LPFRESON *p)
         rms_e->correction = RMS_LDEXP(rms_e->correction, rms_shift);  \
         rms_e->exponent = rms_exponent;                              \
       } else {                                                      \
-        rms_input = RMS_LDEXP(rms_input, rms_exponent-rms_e->exponent); \
+        RMS_ALIGN_INPUT(rms_input, rms_exponent - rms_e->exponent);   \
       }                                                             \
     }                                                               \
     if (rms_c->c1 > FL(0.5)) {                                       \
@@ -1638,6 +1679,16 @@ static void rmsRamp(cs_float *output, const cs_float *input, uint32_t offset,
     cs_double gain = RMS_LDEXP(previous.mantissa, previous.exponent - exponent);
     const cs_double final = RMS_LDEXP(target.mantissa, target.exponent - exponent);
     const cs_double increment = (final - gain) / (cs_double)(end - offset);
+    if (exponent >= RMS_MIN_EXP && exponent < RMS_MAX_EXP) {
+      const cs_double scale = RMS_LDEXP(FL(1.0), exponent);
+      for (uint32_t n = offset; n < end; n++) {
+        /* Round the scaled gain once before multiplying the sample. */
+        const volatile cs_double scaled = gain * scale;
+        output[n] = (cs_float)(input[n] * scaled);
+        gain += increment;
+      }
+      return;
+    }
     for (uint32_t n = offset; n < end; n++) {
       RMS_APPLY_GAIN(output[n], input[n], gain, exponent);
       gain += increment;
