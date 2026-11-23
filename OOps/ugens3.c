@@ -111,7 +111,7 @@ int32_t foscil(CSOUND *csound, FOSC *p)
   FUNC     *ftp;
   cs_float    *ar, *ampp, *modp, cps, amp;
   cs_float    xcar, xmod, *carp, car, fmod, cfreq, mod, ndx, *ftab;
-  int32_t  ftlen, mphs, cphs, minc, cinc, lobits, floatph = p->floatph;
+  int32_t  ftlen, floatph = p->floatph;
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
@@ -126,9 +126,6 @@ int32_t foscil(CSOUND *csound, FOSC *p)
   if (UNLIKELY(ftp == NULL)) goto err1;
   ftab = ftp->ftable;
   ftlen = ftp->flen;
-  lobits = ftp->lobits;
-  mphs = p->mphs;
-  cphs = p->cphs;
   ampp = p->xamp;
   cps  = *p->kcps;
   carp = p->xcar;
@@ -142,74 +139,83 @@ int32_t foscil(CSOUND *csound, FOSC *p)
     memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
 
-  if (floatph && !p->modcod && offset < nsmps) {
+  if (!floatph) {
+    /* Put the table phase in the high bits so unsigned addition wraps it. */
+    const uint32_t phaseShift = MAXLEN == (1 << 24) ? 8 : 2;
+    const uint32_t indexShift = ftlen == 1 ? 0 : ftp->lobits + phaseShift;
+    uint32_t mphs = (uint32_t)p->mphs << phaseShift;
+    uint32_t cphs = (uint32_t)p->cphs << phaseShift;
+    const int32_t ampcod = p->ampcod, carcod = p->carcod, modcod = p->modcod;
+    if (offset < nsmps) {
+      uint32_t minc = 0;
+      car = carcod ? FL(0.0) : cps * xcar;
+      ndx = FL(0.0);
+      if (!modcod) {
+        mod = cps * xmod;
+        ndx = *p->kndx * mod;
+        minc = (uint32_t)(int32_t)(mod * sicvt) << phaseShift;
+      }
+      for (n=offset; n<nsmps; n++) {
+        if (ampcod) amp = ampp[n];
+        if (carcod) car = cps * carp[n];
+        if (modcod) {
+          mod = cps * modp[n];
+          ndx = *p->kndx * mod;
+          minc = (uint32_t)(int32_t)(mod * sicvt) << phaseShift;
+        }
+        fmod = ftab[ftlen == 1 ? 0 : mphs >> indexShift] * ndx;
+        mphs += minc;
+        cfreq = car + fmod;
+        const uint32_t cinc = (uint32_t)(int32_t)(cfreq * sicvt) << phaseShift;
+        ar[n] = ftab[ftlen == 1 ? 0 : cphs >> indexShift] * amp;
+        cphs += cinc;
+      }
+    }
+    p->mphs = mphs >> phaseShift;
+    p->cphs = cphs >> phaseShift;
+    return OK;
+  }
+
+  if (!p->modcod && offset < nsmps) {
     const cs_float modFrequency = cps * xmod;
     modNegative = foscSplitStep(&modStep, modFrequency * CS_ONEDSR);
   }
 
   if (p->ampcod || p->carcod || p->modcod) {
-    for (n=offset;n<nsmps;n++) {
+    for (n=offset; n<nsmps; n++) {
       if (p->ampcod) amp = ampp[n];
       if (p->carcod) xcar = carp[n];
       if (p->modcod) xmod = modp[n];
       car = cps * xcar;
       mod = cps * xmod;
       ndx = *p->kndx * mod;
-      if(!floatph) {
-        minc = (int32_t)(mod * sicvt);
-        mphs &= PHMASK;
-        fmod = *(ftab + (mphs >>lobits)) * ndx;
-        mphs += minc;
-        cfreq = car + fmod;
-        cinc = (int32_t)(cfreq * sicvt);
-        cphs &= PHMASK;
-        ar[n] = *(ftab + (cphs >>lobits)) * amp;
-        cphs += cinc;
-      } else {
-        if (p->modcod)
-          modNegative = foscSplitStep(&modStep, mod * CS_ONEDSR);
-        fmod = foscLookup(ftab, (uint32_t)ftlen, &p->mod_phase, 0);
-        fmod *= ndx;
-        csPhaseAdvance(&p->mod_phase, &modStep, modNegative);
-        cfreq = car + fmod;
-        cincf = cfreq * CS_ONEDSR;
-        ar[n] = foscLookup(ftab, (uint32_t)ftlen, &p->car_phase, 0);
-        ar[n] *= amp;
-        foscAdvance(&p->car_phase, cincf);
-      }
+      if (p->modcod)
+        modNegative = foscSplitStep(&modStep, mod * CS_ONEDSR);
+      fmod = foscLookup(ftab, (uint32_t)ftlen, &p->mod_phase, 0);
+      fmod *= ndx;
+      csPhaseAdvance(&p->mod_phase, &modStep, modNegative);
+      cfreq = car + fmod;
+      cincf = cfreq * CS_ONEDSR;
+      ar[n] = foscLookup(ftab, (uint32_t)ftlen, &p->car_phase, 0);
+      ar[n] *= amp;
+      foscAdvance(&p->car_phase, cincf);
     }
   }
   else {
-    cs_float amp = *ampp;
-    cps = *p->kcps;
-    car = cps * *carp;
-    mod = cps * *modp;
+    car = cps * xcar;
+    mod = cps * xmod;
     ndx = *p->kndx * mod;
-    if (!floatph) minc = (int32_t)(mod * sicvt);
-    for (n=offset;n<nsmps;n++) {
-      if(!floatph) {      
-        mphs &= PHMASK;
-        fmod = *(ftab + (mphs >>lobits)) * ndx;
-        mphs += minc;
-        cfreq = car + fmod;
-        cinc = (int32_t)(cfreq * sicvt);
-        cphs &= PHMASK;
-        ar[n] = *(ftab + (cphs >>lobits)) * amp;
-        cphs += cinc;
-      } else {
-        fmod = foscLookup(ftab, (uint32_t)ftlen, &p->mod_phase, 0);
-        fmod *= ndx;
-        csPhaseAdvance(&p->mod_phase, &modStep, modNegative);
-        cfreq = car + fmod;
-        cincf = cfreq * CS_ONEDSR;
-        ar[n] = foscLookup(ftab, (uint32_t)ftlen, &p->car_phase, 0);
-        ar[n] *= amp;
-        foscAdvance(&p->car_phase, cincf);
-      }
+    for (n=offset; n<nsmps; n++) {
+      fmod = foscLookup(ftab, (uint32_t)ftlen, &p->mod_phase, 0);
+      fmod *= ndx;
+      csPhaseAdvance(&p->mod_phase, &modStep, modNegative);
+      cfreq = car + fmod;
+      cincf = cfreq * CS_ONEDSR;
+      ar[n] = foscLookup(ftab, (uint32_t)ftlen, &p->car_phase, 0);
+      ar[n] *= amp;
+      foscAdvance(&p->car_phase, cincf);
     }
   }
-  p->mphs = mphs;
-  p->cphs = cphs;
 
   return OK;
  err1:
