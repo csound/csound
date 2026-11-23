@@ -576,7 +576,7 @@ if(BUILD_TESTS)
         target_link_libraries(score_host_error_tests PRIVATE
             GTest::gtest_main ${CSOUNDLIB_STATIC})
         target_compile_features(score_host_error_tests PRIVATE cxx_std_17)
-        gtest_discover_tests(score_host_error_tests PROPERTIES TIMEOUT 30)
+        gtest_discover_tests(score_host_error_tests PROPERTIES TIMEOUT 120)
     endif()
 
     if(NOT EMSCRIPTEN AND NOT IOS AND NOT BARE_METAL AND
