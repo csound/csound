@@ -1686,17 +1686,21 @@ static int32_t mvmfilterset(CSOUND *csound, MVMFILT *p)
 
 /* Represent each value as value - error. Volatile protects the rounding
    steps from fast-math reassociation. */
+#define MVM_SUM_ORDERED(result, error, high, low) do {                       \
+  volatile cs_double mv_sum = (high) + (low);                               \
+  volatile cs_double mv_back = mv_sum - (high);                              \
+  volatile cs_double mv_error = mv_back - (low);                            \
+  (result) = mv_sum;                                                         \
+  (error) = mv_error;                                                        \
+} while (0)
+
 #define MVM_SUM(result, error, a, b) do {                                   \
   const cs_double mv_a = (a), mv_b = (b);                                   \
   const cs_double mv_absa = mv_a < FL(0.0) ? -mv_a : mv_a;                  \
   const cs_double mv_absb = mv_b < FL(0.0) ? -mv_b : mv_b;                  \
   const cs_double mv_high = mv_absa >= mv_absb ? mv_a : mv_b;               \
   const cs_double mv_low = mv_absa >= mv_absb ? mv_b : mv_a;                \
-  volatile cs_double mv_sum = mv_high + mv_low;                             \
-  volatile cs_double mv_back = mv_sum - mv_high;                            \
-  volatile cs_double mv_error = mv_back - mv_low;                           \
-  (result) = mv_sum;                                                        \
-  (error) = mv_error;                                                       \
+  MVM_SUM_ORDERED(result, error, mv_high, mv_low);                           \
 } while (0)
 
 #define MVM_ADD(value, error, increment) do {                               \
@@ -1729,7 +1733,8 @@ static int32_t mvmfilterset(CSOUND *csound, MVMFILT *p)
   if (incremental) {                                                        \
     cs_double mv_next, mv_remainder;                                        \
     cs_double mv_detail = fmaf(mv_old, (factor), -mv_product);              \
-    MVM_SUM(mv_next, mv_remainder, mv_old, mv_product);                     \
+    /* The expm1 factor has magnitude below one, so mv_old comes first. */ \
+    MVM_SUM_ORDERED(mv_next, mv_remainder, mv_old, mv_product);              \
     mv_remainder += mv_old_error + mv_old_error * (factor) - mv_detail;     \
     MVM_SUM((value), (error), mv_next, -mv_remainder);                      \
   }                                                                         \
@@ -1843,6 +1848,7 @@ static int32_t mvmfilter(CSOUND *csound, MVMFILT *p)
 }
 
 #undef MVM_SUM
+#undef MVM_SUM_ORDERED
 #undef MVM_ADD
 #undef MVM_PHASE
 #undef MVM_DECAY
