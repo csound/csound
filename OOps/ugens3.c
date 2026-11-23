@@ -60,14 +60,19 @@ int32_t foscset(CSOUND *csound, FOSC *p)
 #define FOSC_FMA fma
 #endif
 
-static void foscAdvance(CS_PHASE *phase, cs_double increment)
+static int32_t foscSplitStep(CS_PHASE *step, cs_double increment)
 {
   if (increment >= FL(1.0) || increment <= -FL(1.0)) {
     cs_double whole;
     increment = cs_modf(increment, &whole);
   }
+  return csPhaseSplit(step, increment);
+}
+
+static void foscAdvance(CS_PHASE *phase, cs_double increment)
+{
   CS_PHASE step;
-  const int32_t negative = csPhaseSplit(&step, increment);
+  const int32_t negative = foscSplitStep(&step, increment);
   csPhaseAdvance(phase, &step, negative);
 }
 
@@ -110,7 +115,9 @@ int32_t foscil(CSOUND *csound, FOSC *p)
   uint32_t offset = p->h.insdshead->ksmps_offset;
   uint32_t early  = p->h.insdshead->ksmps_no_end;
   uint32_t n, nsmps = CS_KSMPS;
-  cs_double   mincf, cincf;
+  cs_double   cincf;
+  CS_PHASE modStep;
+  int32_t modNegative = 0;
   cs_float    sicvt = CS_SICVT;
 
 
@@ -135,6 +142,11 @@ int32_t foscil(CSOUND *csound, FOSC *p)
     memset(&ar[nsmps], '\0', early*sizeof(cs_float));
   }
 
+  if (floatph && !p->modcod && offset < nsmps) {
+    const cs_float modFrequency = cps * xmod;
+    modNegative = foscSplitStep(&modStep, modFrequency * CS_ONEDSR);
+  }
+
   if (p->ampcod || p->carcod || p->modcod) {
     for (n=offset;n<nsmps;n++) {
       if (p->ampcod) amp = ampp[n];
@@ -154,10 +166,11 @@ int32_t foscil(CSOUND *csound, FOSC *p)
         ar[n] = *(ftab + (cphs >>lobits)) * amp;
         cphs += cinc;
       } else {
-        mincf = mod * CS_ONEDSR;
+        if (p->modcod)
+          modNegative = foscSplitStep(&modStep, mod * CS_ONEDSR);
         fmod = foscLookup(ftab, (uint32_t)ftlen, &p->mod_phase, 0);
         fmod *= ndx;
-        foscAdvance(&p->mod_phase, mincf);
+        csPhaseAdvance(&p->mod_phase, &modStep, modNegative);
         cfreq = car + fmod;
         cincf = cfreq * CS_ONEDSR;
         ar[n] = foscLookup(ftab, (uint32_t)ftlen, &p->car_phase, 0);
@@ -173,7 +186,6 @@ int32_t foscil(CSOUND *csound, FOSC *p)
     mod = cps * *modp;
     ndx = *p->kndx * mod;
     if (!floatph) minc = (int32_t)(mod * sicvt);
-    mincf = mod * CS_ONEDSR;
     for (n=offset;n<nsmps;n++) {
       if(!floatph) {      
         mphs &= PHMASK;
@@ -187,7 +199,7 @@ int32_t foscil(CSOUND *csound, FOSC *p)
       } else {
         fmod = foscLookup(ftab, (uint32_t)ftlen, &p->mod_phase, 0);
         fmod *= ndx;
-        foscAdvance(&p->mod_phase, mincf);
+        csPhaseAdvance(&p->mod_phase, &modStep, modNegative);
         cfreq = car + fmod;
         cincf = cfreq * CS_ONEDSR;
         ar[n] = foscLookup(ftab, (uint32_t)ftlen, &p->car_phase, 0);
