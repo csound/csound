@@ -622,6 +622,27 @@ int32_t linsegr(CSOUND *csound, LINSEG *p)
 #define EXPSEG_EXP_LIMIT (2 * DBL_MAX_EXP)
 #endif
 
+#if defined(USE_FLOAT) && FLT_RADIX == 2 && FLT_MANT_DIG == 24 && \
+    FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128
+/* Replacing a normal exponent is exact when the result stays normal. */
+#define EXPSEG_OUTPUT(output, current, exponent) do {                       \
+    const cs_double scale_value = (current);                                \
+    const int scale_exponent = (exponent);                                   \
+    union { cs_double value; uint32_t bits; } scaled = { scale_value };       \
+    const uint32_t field = (scaled.bits >> 23) & UINT32_C(255);               \
+    const uint32_t adjusted = field + (uint32_t)scale_exponent;               \
+    if (LIKELY(sizeof(cs_double) == sizeof(uint32_t) &&                       \
+               field - 1U < 254U && adjusted - 1U < 254U)) {                 \
+      scaled.bits = (scaled.bits & UINT32_C(0x807fffff)) | (adjusted << 23); \
+      (output) = scaled.value;                                             \
+    } else                                                                  \
+      (output) = EXPSEG_LDEXP(scale_value, scale_exponent);                 \
+  } while (0)
+#else
+#define EXPSEG_OUTPUT(output, value, exponent) \
+    ((output) = (cs_float)EXPSEG_LDEXP((value), (exponent)))
+#endif
+
 /* Shared initialization for duration and absolute-time exponential segments.
    rate is the rate used by cnt/mlt; acnt/amlt always use the sample rate. */
 static int32_t expseg_init(CSOUND *csound, cs_float **args, int32_t nargs,
@@ -806,7 +827,7 @@ int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) 
       p->cursegp = ++segp;
       val = segp->val;
     }
-    rs[n] = (cs_float)EXPSEG_LDEXP(val, segp->exponent);
+    EXPSEG_OUTPUT(rs[n], val, segp->exponent);
     EXPSEG_ADVANCE(val, segp->mlt, segp->delta, &segp->correction, segp->exponent);
   }
   segp->val = val;
@@ -824,7 +845,7 @@ int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
   if (UNLIKELY(segp == NULL)) goto err1;
   while (segp->cnt != MAXPOS && --segp->cnt < 0)
     p->cursegp = ++segp;
-  *p->rslt = (cs_float)EXPSEG_LDEXP(segp->val, segp->exponent);
+  EXPSEG_OUTPUT(*p->rslt, segp->val, segp->exponent);
   EXPSEG_ADVANCE(segp->val, segp->mlt, segp->delta, &segp->correction, segp->exponent);
   return OK;
  err1:
@@ -857,7 +878,7 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
       //printf("nxtseg: val=%f amlt=%f acnt=%d\n",
       //       segp->val,segp->amlt,segp->acnt);
     }
-    rs[n] = (cs_float)EXPSEG_LDEXP(segp->val, segp->exponent);
+    EXPSEG_OUTPUT(rs[n], segp->val, segp->exponent);
     EXPSEG_ADVANCE(segp->val, segp->amlt, segp->adelta, &segp->correction, segp->exponent);
   }
   return OK;
@@ -870,6 +891,7 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
 #undef EXPSEG_ABS
 #undef EXPSEG_FREXP
 #undef EXPSEG_LDEXP
+#undef EXPSEG_OUTPUT
 #undef EXPSEG_EXP_LIMIT
 
 int32_t xsgrset(CSOUND *csound, EXPSEG *p)
