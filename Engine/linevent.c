@@ -557,6 +557,9 @@ static void sense_line(CSOUND *csound, void *userData)
           STA(orchestra) = STA(orchestrab);
           *STA(orchestra) = '\0';
           csound->orcScan = (ORC_DELIMITER_SCAN){0};
+          /* A branch of a conditional that is skipped in the block may leave
+             a string open: the line that closes it must still be seen. */
+          csound->orcScan.resync = 1;
           STA(oflag) = 1;
           csound->Message(csound,
                           Str("::reading orchestra, use '}' to terminate::\n"));

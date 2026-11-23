@@ -4828,6 +4828,116 @@ nchnls = 1
     }
 }
 
+TEST_F(OrcCompileTests, ScannerFollowsThePreprocessorsDirectives)
+{
+    const char *instrument =
+        "instr 1\n"
+        "  chnset 42, \"directiveOk\"\n"
+        "endin\n";
+    // What a CSD comes to when its orchestra is this: CSOUND_ERROR if the
+    // end tag was not found, else what instrument 1 wrote.
+    cs_float written = FL(-1.0);
+    auto csdResult = [&](const std::string &orchestra) {
+        std::string csd =
+            "<CsoundSynthesizer>\n<CsOptions>\n-n -d -m0\n</CsOptions>\n"
+            "<CsInstruments>\n" + orchestra +
+            "</CsInstruments>\n<CsScore>\ni 1 0 0.01\ne\n</CsScore>\n"
+            "</CsoundSynthesizer>\n";
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        csoundSetOption(cs, "-n -d -m0");
+        int32_t result = csoundCompileCSD(cs, csd.c_str(), 1, 0);
+        if (result == CSOUND_SUCCESS) {
+            EXPECT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+            while (csoundPerformKsmps(cs) == 0) {
+            }
+            int32_t err = 0;
+            written = csoundGetControlChannel(cs, "directiveOk", &err);
+        }
+        csoundDestroy(cs);
+        return result;
+    };
+
+    // The lexer's #define needs no blank after its keyword.
+    ASSERT_EQ(CSOUND_SUCCESS,
+              csdResult("#defineRAW_OPEN #R{#\n" + std::string(instrument)));
+    EXPECT_EQ(FL(42.0), written);
+
+    // A conditional's skipped branch is plain lines to the preprocessor, so
+    // what looks left open there hides nothing that follows it.
+    ASSERT_EQ(CSOUND_SUCCESS, csdResult(
+        "#ifdef NEVER_DEFINED\n"
+        "Sunused = R{\n"
+        "#endif\n" + std::string(instrument)));
+    EXPECT_EQ(FL(42.0), written);
+
+    ASSERT_EQ(CSOUND_SUCCESS, csdResult(
+        "#ifndef NEVER_DEFINED\n"
+        "#else\n"
+        "Sunused = R{\n"
+        "#endif\n" + std::string(instrument)));
+    EXPECT_EQ(FL(42.0), written);
+
+    ASSERT_EQ(CSOUND_SUCCESS, csdResult(
+        "#ifdef NEVER_DEFINED\n"
+        "Sunused = R{\n"
+        "#ifdef ALSO_NEVER_DEFINED\n"
+        "Sunused2 = {{\n"
+        "#endif\n"
+        "#endif\n" + std::string(instrument)));
+    EXPECT_EQ(FL(42.0), written);
+
+    ASSERT_EQ(CSOUND_SUCCESS, csdResult(
+        "#ifdef NEVER_DEFINED\n"
+        "/* never closed\n"
+        "#endif\n" + std::string(instrument)));
+    EXPECT_EQ(FL(42.0), written);
+
+    // A string that is compiled keeps what it holds: its own #endif line
+    // and an end tag are text, and the orchestra ends at the real one.
+    ASSERT_EQ(CSOUND_SUCCESS, csdResult(
+        "#define TAKEN #1#\n"
+        "#ifdef TAKEN\n"
+        "Sdoc = R{\n"
+        "#endif is quoted here, and so is\n"
+        "</CsInstruments>\n"
+        "}R\n"
+        "#endif\n" + std::string(instrument)));
+    EXPECT_EQ(FL(42.0), written);
+
+    // The same, in live orchestra blocks.
+    csoundSetOption(csound, "-n -d -m0");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound,
+        "sr = 44100\nksmps = 32\nnchnls = 1\n0dbfs = 1\n"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    csound->InputMessage(csound,
+        "{\n"
+        "#defineRAW_OPEN #R{#\n"
+        "instr 1\n"
+        "  chnset 77, \"liveNoBlankDefine\"\n"
+        "endin\n"
+        "}\n"
+        "i 1 0 0\n"
+        "{\n"
+        "#ifdef NEVER_DEFINED\n"
+        "Sunused = R{\n"
+        "#endif\n"
+        "instr 2\n"
+        "  chnset 88, \"liveSkippedBranch\"\n"
+        "endin\n"
+        "}\n"
+        "i 2 0 0\n");
+    for (int i = 0; i < 16; i++) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+    }
+    int32_t err = 0;
+    EXPECT_EQ(FL(77.0),
+              csoundGetControlChannel(csound, "liveNoBlankDefine", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(88.0),
+              csoundGetControlChannel(csound, "liveSkippedBranch", &err));
+    EXPECT_EQ(0, err);
+}
+
 TEST_F(OrcCompileTests, GlobalAnnotatedVariableAcceptedInArgCheck)
 {
     csoundSetOption(csound, "-n -d -m0");

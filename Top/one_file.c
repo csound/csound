@@ -559,14 +559,38 @@ int32_t read_options(CSOUND *csound, CORFIL *cf, int32_t readingCsOptions)
 
 
 
+/* The orchestra is the text collected in incore up to end: the CSD's end tag
+   is left out, and the preprocessor's #exit stops where the tag did. */
+static int32_t orchestra_built(CSOUND *csound, CORFIL *incore, int32_t end)
+{
+    corfile_set(incore, end);
+    incore->body[end] = '\0';
+    corfile_puts(csound, "\n#exit\n", incore);
+    corfile_putc(csound, '\0', incore);
+    corfile_putc(csound, '\0', incore);
+    if (csound->orchstr != NULL)
+      corfile_rm(csound, &csound->orchstr);
+    csound->orchstr = incore;
+    return TRUE;
+}
+
 static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
 {
     char  *p;
     CORFIL *incore = corfile_create_w(csound);
     char  buffer[CSD_MAX_LINE_LEN];
     ORC_DELIMITER_SCAN scan = {0};
+    /* The same scan, reading a conditional's skipped branch as the
+       preprocessor does, where a string it left open hides nothing. It
+       settles nothing that scan settles, only what scan cannot. */
+    ORC_DELIMITER_SCAN skipped = {0};
+    int32_t  skippedLen = 0;    /* the orchestra as it stood before that
+                                    scan's only candidate for the tag's line */
+    uint32_t skippedCfPos = 0;  /* the CSD just after that line */
+    int32_t  skippedLine = 0;   /* and the lines counted up to it */
     char last = '\n';
 
+    skipped.resync = 1;
     csound->orcLineOffset = STA(csdlinecount)+1;
     while (my_fgets_cf(csound, buffer, CSD_MAX_LINE_LEN, cf) != NULL) {
       int32_t line_start = last == '\n';
@@ -575,19 +599,26 @@ static int32_t create_orchestra(CSOUND *csound, CORFIL *cf)
       while (isblank(*p)) p++;
       if (line_start && cut_after_blanks(buffer, p, CSD_MAX_LINE_LEN, cf))
         last = '\n';
-      if (csound_orc_scan_in_code(&scan) && line_start &&
-          strstr(p, "</CsInstruments>") == p) {
-        corfile_puts(csound, "\n#exit\n", incore);
-        corfile_putc(csound, '\0', incore);
-        corfile_putc(csound, '\0', incore);
-        if (csound->orchstr != NULL)
-          corfile_rm(csound, &csound->orchstr);
-        csound->orchstr = incore;
-        return TRUE;
+      if (line_start && strstr(p, "</CsInstruments>") == p) {
+        if (csound_orc_scan_in_code(&scan))
+          return orchestra_built(csound, incore, corfile_tell(incore));
+        if (skippedLen == 0 && csound_orc_scan_in_code(&skipped)) {
+          skippedLen = corfile_tell(incore);
+          skippedCfPos = cf->p;
+          skippedLine = STA(csdlinecount);
+        }
       }
-      for (const char *s = buffer; *s != '\0'; s++)
+      for (const char *s = buffer; *s != '\0'; s++) {
         csound_orc_scan_char(&scan, *s);
+        csound_orc_scan_char(&skipped, *s);
+      }
       corfile_puts(csound, buffer, incore);
+    }
+    if (skippedLen > 0) {
+      /* The CSD was read on past that line to give scan its chance. */
+      corfile_set(cf, (int32_t) skippedCfPos);
+      STA(csdlinecount) = skippedLine;
+      return orchestra_built(csound, incore, skippedLen);
     }
     csoundErrorMsg(csound, Str("Missing end tag </CsInstruments>\n"));
     corfile_rm(csound, &incore);

@@ -262,6 +262,133 @@ int32_t csound_orc_scan_in_code(const ORC_DELIMITER_SCAN *scan)
     return scan->mode == ORC_SCAN_CODE || scan->mode == ORC_SCAN_DIRECTIVE;
 }
 
+/* The directives the scanner tells apart, matched one character at a time
+   after their '#', as the lexer's patterns #[ \t]*define, #ifn?def, #else
+   and #end(if)? accept them: none needs a blank after its keyword. */
+enum {
+    DK_NO_MATCH = 0,
+    DK_START,                /* after '#', blanks may still come */
+    DK_D, DK_DE, DK_DEF, DK_DEFI, DK_DEFIN,
+    DK_I, DK_IF, DK_IFD, DK_IFDE, DK_IFN, DK_IFND, DK_IFNDE,
+    DK_E, DK_EL, DK_ELS, DK_EN,
+    DK_DEFINE, DK_IFDEF, DK_IFNDEF, DK_ELSE, DK_END   /* a whole keyword */
+};
+
+static int dk_step(int step, char c)
+{
+    switch (step) {
+    case DK_START:
+        if (c == ' ' || c == '\t') return DK_START;
+        if (c == 'd') return DK_D;
+        if (c == 'i') return DK_I;
+        if (c == 'e') return DK_E;
+        return DK_NO_MATCH;
+    case DK_D:     return c == 'e' ? DK_DE : DK_NO_MATCH;
+    case DK_DE:    return c == 'f' ? DK_DEF : DK_NO_MATCH;
+    case DK_DEF:   return c == 'i' ? DK_DEFI : DK_NO_MATCH;
+    case DK_DEFI:  return c == 'n' ? DK_DEFIN : DK_NO_MATCH;
+    case DK_DEFIN: return c == 'e' ? DK_DEFINE : DK_NO_MATCH;
+    case DK_I:     return c == 'f' ? DK_IF : DK_NO_MATCH;
+    case DK_IF:    return c == 'd' ? DK_IFD : c == 'n' ? DK_IFN : DK_NO_MATCH;
+    case DK_IFD:   return c == 'e' ? DK_IFDE : DK_NO_MATCH;
+    case DK_IFDE:  return c == 'f' ? DK_IFDEF : DK_NO_MATCH;
+    case DK_IFN:   return c == 'd' ? DK_IFND : DK_NO_MATCH;
+    case DK_IFND:  return c == 'e' ? DK_IFNDE : DK_NO_MATCH;
+    case DK_IFNDE: return c == 'f' ? DK_IFNDEF : DK_NO_MATCH;
+    case DK_E:     return c == 'l' ? DK_EL : c == 'n' ? DK_EN : DK_NO_MATCH;
+    case DK_EL:    return c == 's' ? DK_ELS : DK_NO_MATCH;
+    case DK_ELS:   return c == 'e' ? DK_ELSE : DK_NO_MATCH;
+    case DK_EN:    return c == 'd' ? DK_END : DK_NO_MATCH;
+    }
+    return DK_NO_MATCH;
+}
+
+/* What a whole directive does to the count of open groups: #else, in a
+   group that is open either way, nothing. */
+static int dk_depth_change(int directive)
+{
+    if (directive == DK_IFDEF || directive == DK_IFNDEF) return 1;
+    return directive == DK_END ? -1 : 0;
+}
+
+static void scan_count_conditional(ORC_DELIMITER_SCAN *scan, int change)
+{
+    int depth = scan->condDepth + change;
+    scan->condDepth = (uint16_t)(depth < 0 ? 0 :
+                                 depth > UINT16_MAX ? UINT16_MAX : depth);
+}
+
+/* Where the look for a conditional directive line is, inside a string,
+   comment or macro body. */
+enum { CM_IDLE, CM_AT_HASH, CM_KEYWORD, CM_REST };
+
+/* A branch of an #ifdef group that the preprocessor skips is read as plain
+   lines: an R{, a block comment or a {{ in it opens nothing. The scanner
+   cannot tell which branches are skipped and follows them all, so one of
+   those may be left open into the next directive line. There it is taken to
+   be what it is in a skipped branch, nothing, and closed, and the directive
+   counted: in a branch that is compiled that line would be inside what was
+   opened. */
+static void csound_orc_scan_open_conditional(ORC_DELIMITER_SCAN *scan,
+                                             char c, int32_t atLineStart)
+{
+    int step;
+    switch (scan->condMatch) {
+    case CM_IDLE:
+      if (scan->resync && scan->condDepth > 0 && atLineStart && c == '#')
+        scan->condMatch = CM_AT_HASH;
+      return;
+    case CM_AT_HASH:
+      if (c == '\n') {
+        scan->condMatch = CM_IDLE;
+        return;
+      }
+      scan->condPending = DK_START;
+      scan->condMatch = CM_KEYWORD;
+      break;
+    case CM_KEYWORD:
+      break;
+    default:                    /* CM_REST: the rest of the directive's line */
+      if (c != '\n')
+        return;
+      scan_count_conditional(scan, scan->condPending);
+      scan->condMatch = CM_IDLE;
+      scan->mode = ORC_SCAN_CODE;
+      scan->rawDepth = 0;
+      scan->previous = '\0';
+      return;
+    }
+    /* The keyword's step is kept in condPending until it is whole: in a
+       macro header macroStep is the depth of its argument brackets. */
+    step = dk_step(scan->condPending, c);
+    if (step == DK_NO_MATCH) {
+      scan->condMatch = CM_IDLE;
+      return;
+    }
+    if (step < DK_DEFINE) {
+      scan->condPending = (signed char) step;
+      return;
+    }
+    scan->condPending = (signed char) dk_depth_change(step);
+    scan->condMatch = CM_REST;
+}
+
+/* Whether a string, comment or macro body is open: what a skipped branch
+   may have left open. A quoted string and a ; or // comment end with their
+   line. */
+static int32_t csound_orc_scan_open_construct(const ORC_DELIMITER_SCAN *scan)
+{
+    switch (scan->mode) {
+    case ORC_SCAN_CODE:
+    case ORC_SCAN_DIRECTIVE:
+    case ORC_SCAN_QUOTED:
+    case ORC_SCAN_LINE_COMMENT:
+      return 0;
+    default:
+      return 1;
+    }
+}
+
 static int32_t csound_orc_scan_code_char(ORC_DELIMITER_SCAN *scan,
                                          char previous, char c)
 {
@@ -278,7 +405,7 @@ static int32_t csound_orc_scan_code_char(ORC_DELIMITER_SCAN *scan,
       scan->rawDepth = 1;
     } else if (c == '#') {
       scan->mode = ORC_SCAN_DIRECTIVE;
-      scan->macroStep = 0;
+      scan->macroStep = DK_START;
     } else {
       scan->previous = c;
       return c == '}';
@@ -288,9 +415,11 @@ static int32_t csound_orc_scan_code_char(ORC_DELIMITER_SCAN *scan,
 
 int32_t csound_orc_scan_char(ORC_DELIMITER_SCAN *scan, char c)
 {
-    static const char defineKw[] = "define";
     char previous = scan->previous;
+    int32_t atLineStart = scan->lineStart;
     scan->previous = '\0';
+    scan->lineStart = (unsigned char)(c == '\n' ||
+                                      (atLineStart && (c == ' ' || c == '\t')));
     switch (scan->mode) {
     case ORC_SCAN_CODE:
       return csound_orc_scan_code_char(scan, previous, c);
@@ -327,22 +456,23 @@ int32_t csound_orc_scan_char(ORC_DELIMITER_SCAN *scan, char c)
       else
         scan->previous = c;
       break;
-    case ORC_SCAN_DIRECTIVE:
-      if (scan->macroStep == 0 && (c == ' ' || c == '\t'))
-        break;
-      if (scan->macroStep < 6 && c == defineKw[scan->macroStep]) {
-        scan->macroStep++;
-        break;
-      }
-      if (scan->macroStep == 6 && (c == ' ' || c == '\t')) {
-        scan->mode = ORC_SCAN_MACRO_HEADER;
+    case ORC_SCAN_DIRECTIVE: {
+      int step = dk_step(scan->macroStep, c);
+      if (step == DK_NO_MATCH) {
+        /* Not a directive told apart here, as #undef or #include: the lexer
+           passes it on, and the rest is scanned as the code that follows. */
+        scan->mode = ORC_SCAN_CODE;
         scan->macroStep = 0;
-        break;
+        return csound_orc_scan_code_char(scan, '\0', c);
       }
-      /* Not #define (e.g., bitwise XOR # or #ifdef): scan normally from code. */
-      scan->mode = ORC_SCAN_CODE;
-      scan->macroStep = 0;
-      return csound_orc_scan_code_char(scan, '\0', c);
+      scan->macroStep = step;
+      if (step >= DK_DEFINE) {
+        scan_count_conditional(scan, dk_depth_change(step));
+        scan->mode = step == DK_DEFINE ? ORC_SCAN_MACRO_HEADER : ORC_SCAN_CODE;
+        scan->macroStep = 0;
+      }
+      break;
+    }
     case ORC_SCAN_MACRO_HEADER:
       if (c == ';')
         scan->mode = ORC_SCAN_MACRO_HEADER_LCOM;
@@ -379,5 +509,11 @@ int32_t csound_orc_scan_char(ORC_DELIMITER_SCAN *scan, char c)
         scan->mode = ORC_SCAN_CODE;
       break;
     }
+    /* In what may be a skipped branch's open string, comment or macro body,
+       watch for the conditional directive line that ends it. */
+    if (csound_orc_scan_open_construct(scan))
+      csound_orc_scan_open_conditional(scan, c, atLineStart);
+    else
+      scan->condMatch = CM_IDLE;
     return 0;
 }

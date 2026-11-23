@@ -52,6 +52,13 @@ extern "C" {
     int32_t rawDepth;
     int32_t macroStep;
     char previous;
+    uint16_t condDepth;      /* #ifdef and #ifndef groups open */
+    unsigned char resync;    /* a conditional directive line closes what a
+                                string, comment or macro body left open */
+    unsigned char lineStart; /* nothing but blanks so far on this line */
+    unsigned char condMatch; /* where the look for such a line is */
+    signed char condPending; /* its keyword's step, then what its directive
+                                does to condDepth */
   } ORC_DELIMITER_SCAN;
 
   typedef struct CORFIL {

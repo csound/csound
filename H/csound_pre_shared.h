@@ -35,7 +35,14 @@ typedef struct IFDEFSTACK_ {
 } IFDEFSTACK;
 
 /* Zero-initialized state starts in orchestra code. Return nonzero for an
-   unquoted closing brace. The state can be carried across input chunks. */
+   unquoted closing brace. The state can be carried across input chunks.
+
+   The scanner follows every branch of a conditional, not knowing which the
+   preprocessor skips, so a string or comment a skipped branch left open can
+   hide what follows. With resync set, the conditional directive line that
+   follows such a construct closes it, as it does for the preprocessor in a
+   skipped branch; in a compiled branch that line would be inside the
+   construct. Left clear, nothing of the kind is assumed. */
 int32_t csound_orc_scan_char(ORC_DELIMITER_SCAN *scan, char c);
 int32_t csound_orc_scan_in_code(const ORC_DELIMITER_SCAN *scan);
 
