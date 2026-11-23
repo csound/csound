@@ -24,7 +24,8 @@
 #include <ctype.h>
 #include "csound_pre_shared.h"
 
-#if !defined(DOSGCC) && !defined(WIN32)
+#if !defined(DOSGCC) && !defined(WIN32) && !defined(BARE_METAL)
+#define CS_HAVE_POLL 1
 #include <poll.h>
 #endif
 
@@ -333,7 +334,7 @@ static int32_t input_message(CSOUND *csound, const char *message,
 
 static int32_t linefd_has_data(int32_t fd, int32_t *eofOut)
 {
-#if !defined(DOSGCC) && !defined(WIN32)
+#if defined(CS_HAVE_POLL)
     struct pollfd pfd;
     pfd.fd = fd;
     pfd.events = POLLIN;
@@ -397,7 +398,7 @@ static char *take_lines(CSOUND *csound)
               }
               break;
             }
-#if defined(DOSGCC) || defined(WIN32)
+#if !defined(CS_HAVE_POLL)
             break;
 #endif
           }
@@ -412,7 +413,7 @@ static char *take_lines(CSOUND *csound)
             if (n <= 0)
               break;
             STA(Linep) += n;
-#if defined(DOSGCC) || defined(WIN32)
+#if !defined(CS_HAVE_POLL)
             break;
 #endif
           }
