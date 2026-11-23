@@ -294,6 +294,7 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
       typeTable = csoundParserOwn(csound, csound->Calloc(csound, sizeof(TYPE_TABLE)));
       typeTable->udos = NULL;
       typeTable->newStructTypes = newStructTypes;
+      typeTable->compileGeneration = csound->orcCompileGeneration;
       newStructTypes = NULL;
 
       typeTable->globalPool = csoundParserCreateVarPool(csound);

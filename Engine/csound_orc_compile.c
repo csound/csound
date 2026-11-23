@@ -2983,6 +2983,9 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   if (engineState == &csound->engineState) {
     free_typetable(csound, typeTable);
   }
+  /* From here the engine may hold what any parse registered, however that
+     parse ends: its types are no longer a parse's to roll back. */
+  csound->orcCompileGeneration++;
   return CSOUND_SUCCESS;
 
  invalid:
@@ -3005,7 +3008,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     }
   }
   /* Initial compilation writes the persistent state owned by CSOUND. */
-  rollback_struct_definitions(csound, &typeTable->newStructTypes);
+  rollback_parse_struct_definitions(csound, &typeTable->newStructTypes,
+                                    typeTable->compileGeneration);
   free_typetable(csound, typeTable);
   return CSOUND_ERROR;
 }

@@ -680,6 +680,23 @@ void rollback_struct_definitions(CSOUND *csound, CONS_CELL **newTypes) {
   *newTypes = NULL;
 }
 
+void rollback_parse_struct_definitions(CSOUND *csound, CONS_CELL **newTypes,
+                                       uint32_t parseGeneration)
+{
+  if (csound == NULL || newTypes == NULL) {
+    return;
+  }
+  if (parseGeneration != csound->orcCompileGeneration) {
+    /* Parsing registers the types with the engine at once, and a later
+       compile that re-declares one records nothing of its own: the first
+       parse's list is the only bookkeeping, whoever is using them now. */
+    cs_cons_free(csound, *newTypes);
+    *newTypes = NULL;
+    return;
+  }
+  rollback_struct_definitions(csound, newTypes);
+}
+
 // Phase 1: Register struct name as placeholder type (for recursive references)
 static int32_t register_struct_placeholder(CSOUND *csound, TREE *structDefTree,
                                            CONS_CELL **newTypesOut) {

@@ -73,6 +73,11 @@ int32_t process_struct_definitions_two_phase_tracked(CSOUND *csound,
                                                      TREE *structDefList,
                                                      CONS_CELL **newTypesOut);
 void rollback_struct_definitions(CSOUND *csound, CONS_CELL **newTypes);
+/* The same for a tree parsed when csound->orcCompileGeneration was
+   parseGeneration, unless a compile has succeeded since: it may have taken
+   the types, which then stay registered. newTypes is always consumed. */
+void rollback_parse_struct_definitions(CSOUND *csound, CONS_CELL **newTypes,
+                                       uint32_t parseGeneration);
 void freeStructVarMemory(void *csnd, void *p);
 void csound_free_struct_members(CSOUND *csound, CS_STRUCT_VAR *var);
 

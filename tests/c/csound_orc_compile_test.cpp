@@ -4022,6 +4022,81 @@ endin
     }
 }
 
+TEST_F(OrcCompileTests, DeletingParsedTreeKeepsStructsAdoptedByLaterCompile)
+{
+    // Parsing registers a struct with the engine at once, and a compile that
+    // re-declares it records nothing of its own. The first tree's list is
+    // then the only bookkeeping of a type that compile's instruments use:
+    // deleting the tree must not roll it back out from under them.
+    const char *decl = "struct Foo x:i\n";
+    const char *use =
+        "gShared@global:Foo init 42\n"
+        "instr 1\n"
+        "  lFoo:Foo init 7\n"
+        "  chnset gShared.x + lFoo.x, \"adoptedSum\"\n"
+        "endin\n";
+    std::string orchestra = std::string(decl) + use;
+    const char *laterUse =
+        "instr 2\n"
+        "  lFoo:Foo init 7\n"
+        "  chnset lFoo.x, \"adoptedAgain\"\n"
+        "endin\n";
+
+    // Deleted after the compile: the instruments run, and the engine tears
+    // down around them.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *parsed = csoundParseOrc(cs, decl);
+        ASSERT_NE(nullptr, parsed);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, orchestra.c_str()));
+        csoundDeleteTree(cs, parsed);
+        csoundEventString(cs, "i 1 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(49.0), csoundGetControlChannel(cs, "adoptedSum", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // Deleted before the engine is used, as a host that parses ahead may:
+    // the type is still there to start with and to compile with.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *parsed = csoundParseOrc(cs, decl);
+        ASSERT_NE(nullptr, parsed);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, orchestra.c_str()));
+        csoundDeleteTree(cs, parsed);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, laterUse));
+        csoundEventString(cs, "i 1 0 0.05\ni 2 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(49.0), csoundGetControlChannel(cs, "adoptedSum", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        EXPECT_EQ(FL(7.0), csoundGetControlChannel(cs, "adoptedAgain", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // With no compile in between, the types are still the parse's own.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *parsed = csoundParseOrc(cs, decl);
+        ASSERT_NE(nullptr, parsed);
+        csoundDeleteTree(cs, parsed);
+        EXPECT_EQ(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Foo"));
+        csoundDestroy(cs);
+    }
+}
+
 TEST_F(OrcCompileTests, NamedInstrRedefinitionWithAllowRedefAndLiveMerge)
 {
     csoundSetOption(csound, "-n -d -m0 --allow-redefinition");
