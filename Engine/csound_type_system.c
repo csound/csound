@@ -375,18 +375,32 @@ void csoundReallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
 }
 
 void csoundDeleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
+    CS_VARIABLE* current, *next;
     if (pool == NULL) return;
-    CS_VARIABLE* current = pool->head, *tmp;
-    const CS_TYPE* type;
+    /* The variables go with their memory, and the pool is left empty: its
+       list and its table must not keep pointing at them, or freeing the
+       pool frees them twice. */
+    current = pool->head;
+    pool->head = NULL;
+    pool->tail = NULL;
+    pool->poolSize = 0;
+    pool->varCount = 0;
     while (current != NULL) {
-      tmp = current;
-      type = current->varType;
+      const CS_TYPE* type = current->varType;
+      next = current->next;
       if (type != NULL && type->freeVariableMemory != NULL) {
-        type->freeVariableMemory(csound, current->memBlock);
+        /* As everywhere else, the callback is given the value, not the
+           CS_VAR_MEM header in front of it. */
+        type->freeVariableMemory(csound,
+                                 current->memBlock != NULL ?
+                                   &current->memBlock->value : NULL);
       }
       csound->Free(csound, current->memBlock);
-      current = current->next;
-      csound->Free(csound, tmp);
+      if (pool->table != NULL)
+        cs_hash_table_remove(csound, pool->table, current->varName);
+      csound->Free(csound, current->varName);
+      csound->Free(csound, current);
+      current = next;
     }
 }
 

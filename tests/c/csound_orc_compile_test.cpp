@@ -5015,6 +5015,50 @@ TEST_F(OrcCompileTests, ScannerFollowsThePreprocessorsDirectives)
     EXPECT_EQ(0, err);
 }
 
+namespace {
+void *freedValue = nullptr;
+void freeProbeValue(void *, void *value) { freedValue = value; }
+CS_VARIABLE *createProbeVariable(void *cs, const CS_TYPE *, const void *, INSDS *)
+{
+    CS_VARIABLE *var = (CS_VARIABLE *)((CSOUND *)cs)->Calloc(
+        (CSOUND *)cs, sizeof(CS_VARIABLE));
+    var->memBlockSize = sizeof(cs_float);
+    return var;
+}
+char probeTypeName[] = "Probe";
+const CS_TYPE probeType = {
+    probeTypeName, probeTypeName, CS_ARG_TYPE_BOTH, createProbeVariable,
+    nullptr, freeProbeValue, nullptr, 0
+};
+}
+
+TEST_F(OrcCompileTests, DeleteVarPoolMemoryFreesTheValueAndEmptiesThePool)
+{
+    CS_VAR_POOL *pool = csoundCreateVarPool(csound);
+    ASSERT_NE(nullptr, pool);
+    CS_VARIABLE *var =
+        csoundCreateVariableForType(csound, &probeType, nullptr, nullptr);
+    ASSERT_NE(nullptr, var);
+    var->varName = csoundStrdup(csound, "probe");
+    var->memBlock = (CS_VAR_MEM *)csound->Calloc(
+        csound, CS_VAR_TYPE_OFFSET + var->memBlockSize);
+    var->memBlock->varType = &probeType;
+    void *value = &var->memBlock->value;
+    ASSERT_EQ(0, csoundAddVariable(csound, pool, var));
+    ASSERT_EQ(var, csoundFindVariableWithName(csound, pool, "probe"));
+
+    freedValue = nullptr;
+    csoundDeleteVarPoolMemory(csound, pool);
+
+    // The callback was given the value, not the header in front of it.
+    EXPECT_EQ(value, freedValue);
+    // The pool no longer stands for what was freed, so freeing it frees
+    // each variable once.
+    EXPECT_EQ(nullptr, pool->head);
+    EXPECT_EQ(nullptr, csoundFindVariableWithName(csound, pool, "probe"));
+    csoundFreeVarPool(csound, pool);
+}
+
 TEST_F(OrcCompileTests, GlobalAnnotatedVariableAcceptedInArgCheck)
 {
     csoundSetOption(csound, "-n -d -m0");
