@@ -1620,27 +1620,10 @@ static int operate(CSOUND *csound, int a, int b, char c)
     return (int) ans;
 }
 
-static int bodmas_prec(int op)
-{
-    switch (op) {
-    case '*':
-    case '/':
-    case '%':
-      return 5;
-    case '+':
-    case '-':
-      return 4;
-    case '&':
-      return 3;
-    case '#':
-      return 2;
-    case '|':
-      return 1;
-    default:
-      return 0;
-    }
-}
-
+/* The precedence is that of the manual's score expressions, as sread.c reads
+   them for p-fields: + and - reduce all that waits, * / % only their own, and
+   the bitwise operators bind tighter still. Both readers of a score must agree,
+   or [1&1+2] is one value in a p-field and another in a repeat count. */
 static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
 {
       /* Slot 0 is below the bottom of each stack, so that op and pv start
@@ -1735,7 +1718,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
             if (c == '-') neg = !neg;
             goto parseNumber;
           }
-          while (bodmas_prec(*op) >= bodmas_prec(c)) {
+          while (*op != '[' && *op != '(') {
             int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
@@ -1751,7 +1734,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
                                         "expression"), c);
             csound->LongJmp(csound, 1);
           }
-          while (bodmas_prec(*op) >= bodmas_prec(c)) {
+          if (*op == '*' || *op == '/' || *op == '%') {
             int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;
@@ -1767,7 +1750,7 @@ static int bodmas(CSOUND *csound, yyscan_t yyscanner, int* term, int depth)
                                         "expression"), c);
             csound->LongJmp(csound, 1);
           }
-          while (bodmas_prec(*op) >= bodmas_prec(c)) {
+          if (*op == '|' || *op == '&' || *op == '#') {
             int v = operate(csound, *(pv-1), *pv, *op);
             op--; pv--;
             *pv = v;

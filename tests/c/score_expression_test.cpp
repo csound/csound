@@ -87,6 +87,56 @@ TEST(ScoreExpressionTests, PreservesArithmeticAndGrouping)
     }
 }
 
+namespace {
+/* A repeat count is an expression too, and one the score preprocessor reads
+   rather than the reader of p-fields: the two must give it one value. Each
+   note ends a section, so that the count is taken one note at a time. */
+void checkRepeatCount(const std::string& expression, cs_float expectedNotes)
+{
+    SCOPED_TRACE(expression);
+    std::unique_ptr<CSOUND, decltype(&csoundDestroy)> engine(
+      csoundCreate(nullptr, nullptr), csoundDestroy);
+    CSOUND* csound = engine.get();
+    csoundSetOption(csound, "-n -d -m0");
+    std::string csd =
+      "<CsoundSynthesizer>\n<CsInstruments>\n"
+      "sr=44100\nksmps=32\nnchnls=1\n"
+      "gkCount init 0\n"
+      "instr 1\n"
+      "gkCount = i(gkCount) + 1\n"
+      "chnset gkCount, \"count\"\n"
+      "endin\n"
+      "</CsInstruments>\n<CsScore>\n"
+      "{ [" + expression + "]\n"
+      "i 1 0 0.01\n"
+      "s\n"
+      "}\n"
+      "e\n"
+      "</CsScore>\n</CsoundSynthesizer>\n";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(csound, csd.c_str(), 1, 0));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int perfStatus = 0;
+    while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+    }
+    EXPECT_GT(perfStatus, 0);
+    int channelError = 0;
+    EXPECT_EQ(expectedNotes,
+              csoundGetControlChannel(csound, "count", &channelError));
+    EXPECT_EQ(0, channelError);
+}
+}
+
+/* A count of 0 is not a repeat: these all give at least one. */
+TEST(ScoreExpressionTests, RepeatCountHasThePrecedenceOfPFields)
+{
+    for (const auto& item : {
+      std::pair<const char*, cs_float>{"3", 3}, {"[3]", 3},
+      {"[1&1+2]", 3}, {"[2*2&3]", 4}, {"[2+3*4]", 14}, {"[1|6]", 7},
+      {"[(1&1)+2]", 3}, {"[7&3]", 3}, {"[4|3*3]", 13}}) {
+        checkRepeatCount(item.first, item.second);
+    }
+}
+
 TEST(ScoreExpressionTests, HandlesFileInputAndScoreErrors)
 {
     checkExpression("2+3", 5, nullptr, 0);
