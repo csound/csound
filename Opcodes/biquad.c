@@ -1797,8 +1797,23 @@ static int32_t mvmfilter(CSOUND *csound, MVMFILT *p)
         quadrant = (int32_t)(phase * FL(4.0) + FL(0.5));
       cs_double position = (phase - quadrant * FL(0.25)) - phase_error;
       cs_double angle = position * (cs_double)TWOPI;
-      cosine = COS(angle);
-      sine = SIN(angle);
+      if (LIKELY(FABS(angle) <= FL(PI / 4.0))) {
+        /* The phase is already reduced. The first omitted Taylor terms
+           are below 2e-9 for sine and 2e-10 for cosine on this interval. */
+        const cs_double squared = angle * angle;
+        sine = fmaf(FL(1.0 / 362880.0), squared, FL(-1.0 / 5040.0));
+        sine = fmaf(sine, squared, FL(1.0 / 120.0));
+        sine = fmaf(sine, squared, FL(-1.0 / 6.0));
+        sine = angle * fmaf(sine, squared, FL(1.0));
+        cosine = fmaf(FL(-1.0 / 3628800.0), squared, FL(1.0 / 40320.0));
+        cosine = fmaf(cosine, squared, FL(-1.0 / 720.0));
+        cosine = fmaf(cosine, squared, FL(1.0 / 24.0));
+        cosine = fmaf(cosine, squared, FL(-0.5));
+        cosine = fmaf(cosine, squared, FL(1.0));
+      } else {
+        cosine = COS(angle);
+        sine = SIN(angle);
+      }
       cs_double cosbase = cosine;
       switch (quadrant & 3) {
       case 1: cosine = -sine; sine = cosbase; break;
