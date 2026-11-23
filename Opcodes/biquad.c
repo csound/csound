@@ -983,6 +983,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
 #ifdef USE_FLOAT
         p->rerror = p->derror = p->b0 = FL(0.0);
         p->sign = 1;
+        p->large_samples = 0;
 #endif
         p->prv_fc = p->prv_v = p->prv_q = FL(-1.0);
         p->imode = (int32_t) CS_FLOAT2LONG(*p->mode);
@@ -1062,13 +1063,15 @@ static int32_t vco(CSOUND *csound, VCO *p)
       cs_double x1 = p->xnm1, x2 = p->xnm2;
       const cs_double sign = p->sign, dry = p->b0, band = p->b1, low = p->b2;
       const cs_double damping = p->a1, stiffness = p->a2;
+      int32_t large_samples = p->large_samples;
       for (n = offset; n < nsmps; n++) {
         cs_double x = p->in[n];
         r *= sign; re *= sign; d *= sign; de *= sign;
         cs_double force;
-        if (UNLIKELY(FABS(x) > FLT_MAX * FL(0.25) ||
-                     FABS(x1) > FLT_MAX * FL(0.25) ||
-                     FABS(x2) > FLT_MAX * FL(0.25))) {
+        /* A large sample requires scaling here and in the next two updates. */
+        if (UNLIKELY(FABS(x) > FLT_MAX * FL(0.25))) large_samples = 3;
+        if (UNLIKELY(large_samples != 0)) {
+          --large_samples;
           /* Scale large inputs before summing; retain exact cancellation
              for constant or alternating signals in either reflection. */
           volatile cs_double halfx = FL(0.5) * x;
@@ -1089,6 +1092,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
       }
       p->ynm1 = r; p->ynm2 = d; p->rerror = re; p->derror = de;
       p->xnm1 = x1; p->xnm2 = x2;
+      p->large_samples = large_samples;
       return OK;
     }
 #undef PAREQ_ADD
