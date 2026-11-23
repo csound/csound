@@ -2604,9 +2604,9 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
 
       if (current->opcod_deact != NULL) {
         UOPCODE *udo = (UOPCODE *) current->opcod_deact;
-        udo->ip = NULL;
         udo->h.perf = (SUBR) useropcd;
         current->opcod_deact = NULL;
+        udo->ip = NULL;
       }
 
       frame->stage = DEACT_AFTER_SUBINSTR;
@@ -3698,9 +3698,9 @@ static void free_unlinked_instance(CSOUND *csound, INSDS *ip)
     free_user_opcode_buffers(csound, p);
 
     deact(csound, p->ip);     /* deactivate */
-    p->ip = NULL;
     p->h.perf = (SUBR) useropcd;
     ip->opcod_deact = NULL;
+    p->ip = NULL;
   }
   // same for any subinstrs - these behave like UDOS
   if (ip->subins_deact) {

@@ -335,6 +335,9 @@ static void dag_collect_instance_deps(CSOUND *csound, INSDS *insds,
       udoIp = udo->ip;
       steps++;
       if (udoIp == NULL) {
+        /* A call linked but not bound yet, its init on another thread: what
+           it will write is unknown, so this instrument keeps its place. */
+        deps->requires_order = 1;
         break;
       }
       if (udoIp->instr != NULL) {

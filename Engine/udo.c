@@ -2277,8 +2277,10 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     /* link into deact chain */
     lcurip->opcod_deact = parent_ip->opcod_deact;
     lcurip->subins_deact = NULL;
-    parent_ip->opcod_deact = (void*) p;
+    /* The link below publishes this call to whoever walks the chain, the
+       parallel dispatcher among them, and takes ip as its bound instance. */
     p->ip = lcurip;
+    parent_ip->opcod_deact = (void*) p;
     /* IV - Nov 10 2002: set up pointers to I/O buffers */
     buf = p->buf = (OPCOD_IOBUFS*) lcurip->opcod_iobufs;
     buf->opcode_info = inm;
