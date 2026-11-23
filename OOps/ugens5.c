@@ -1566,6 +1566,17 @@ typedef union {
     rms_c->weight_exponent = rms_exponent;                           \
   } while (0)
 
+/* Use a register barrier to preserve each rounding step on RV32 with
+   hardware float. Volatile forces the same steps on other builds. */
+#if defined(USE_FLOAT) && defined(BARE_METAL) && defined(__GNUC__) && \
+    !defined(__clang__) && defined(__riscv_float_abi_single) && __riscv_xlen == 32
+#define RMS_ROUND(name, expression)                                 \
+    cs_double name = (expression);                                  \
+    __asm__ __volatile__ ("" : "+f" (name))
+#else
+#define RMS_ROUND(name, expression) volatile cs_double name = (expression)
+#endif
+
 /* Form c1*x*x from bounded mantissas, then align it with the stored energy.
    Only terms too small relative to that energy can underflow. */
 #define RMS_UPDATE(coefficients, energy, sample) do {                 \
@@ -1602,12 +1613,12 @@ typedef union {
       rms_e->correction = (rms_applied - rms_input) - rms_residual;   \
       rms_e->value = rms_next;                                       \
     } else {                                                        \
-      volatile cs_double rms_decay =                                \
-        rms_c->c1 * (rms_e->value - rms_e->correction);               \
-      volatile cs_double rms_change = rms_input - rms_decay;         \
-      volatile cs_double rms_step = rms_change - rms_e->correction;   \
-      volatile cs_double rms_next = rms_e->value + rms_step;          \
-      volatile cs_double rms_applied = rms_next - rms_e->value;       \
+      RMS_ROUND(rms_decay, rms_c->c1 *                              \
+                (rms_e->value - rms_e->correction));                \
+      RMS_ROUND(rms_change, rms_input - rms_decay);                  \
+      RMS_ROUND(rms_step, rms_change - rms_e->correction);           \
+      RMS_ROUND(rms_next, rms_e->value + rms_step);                   \
+      RMS_ROUND(rms_applied, rms_next - rms_e->value);                \
       rms_e->correction = rms_applied - rms_step;                     \
       rms_e->value = rms_next;                                       \
     }                                                               \
@@ -1683,7 +1694,7 @@ static void rmsRamp(cs_float *output, const cs_float *input, uint32_t offset,
       const cs_double scale = RMS_LDEXP(FL(1.0), exponent);
       for (uint32_t n = offset; n < end; n++) {
         /* Round the scaled gain once before multiplying the sample. */
-        const volatile cs_double scaled = gain * scale;
+        RMS_ROUND(scaled, gain * scale);
         output[n] = (cs_float)(input[n] * scaled);
         gain += increment;
       }
@@ -1834,6 +1845,8 @@ int32_t balance2(CSOUND *csound, BALANCE *p)
     p->reference = r;
     return OK;
 }
+
+#undef RMS_ROUND
 
 /*
  *   Set current lpc slot
