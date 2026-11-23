@@ -1066,7 +1066,9 @@ static int32_t vco(CSOUND *csound, VCO *p)
       int32_t large_samples = p->large_samples;
       for (n = offset; n < nsmps; n++) {
         cs_double x = p->in[n];
-        r *= sign; re *= sign; d *= sign; de *= sign;
+        if (sign < FL(0.0)) {
+          r = -r; re = -re; d = -d; de = -de;
+        }
         cs_double force;
         /* A large sample requires scaling here and in the next two updates. */
         if (UNLIKELY(FABS(x) > FLT_MAX * FL(0.25))) large_samples = 3;
