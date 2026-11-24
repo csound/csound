@@ -275,6 +275,7 @@ extern "C" {
     ENGINE_STATE *engine_state;
     struct type_table *type_table;
     long rewinds;               /* score_rewinds when it was queued */
+    uint64_t seq;               /* its place among those queued, from 1 */
   } ALLOC_DATA;
 
 #define MAX_MESSAGE_STR 1024

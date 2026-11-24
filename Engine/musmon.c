@@ -132,14 +132,54 @@ static int32_t is_turnoff(const EVTBLK *evt)
   return evt->p[1] < FL(0.0);
 }
 
-/* Under --realtime a note is inserted on the allocation thread, and a
-   turnoff looks for it among the active instances when it is read: it
-   waits for the requests queued before it, polled each k-cycle. */
+/* The instrument a name's number, or a p1, names, or 0 if none. A name that
+   remove() left still finds its number, and a tag adds to the number:
+   "Name.1e9" is 1e8 past it. So the number is bounded before it is
+   converted, and its definition checked, as a numbered p1's is. */
+static int32_t named_insno(CSOUND *csound, cs_float n)
+{
+  cs_float a = FABS(n);
+  int32_t  insno;
+
+  if (UNLIKELY(!(a >= FL(1.0) &&
+                 a < (cs_float) csound->engineState.maxinsno + FL(1.0))))
+    return 0;
+  insno = (int32_t) a;
+  return csound->engineState.instrtxtp[insno] != NULL ? insno : 0;
+}
+
+/* Under --realtime a note is inserted, and a reinit run, on the allocation
+   thread, and a turnoff looks for its note among the instances when it is
+   read. It waits while a note it would turn off, as indef_off matches one,
+   is still to be inserted by a request queued before it first waited, or
+   is in a reinit, and for nothing else. Polled each k-cycle, with the
+   allocation lock held, so that no insert or reinit ends meanwhile. */
 static int32_t turnoff_waits(CSOUND *csound, const EVTBLK *evt,
                              int32_t *waiting, uint64_t *ticket)
 {
-  return csound->oparms->realtime && is_turnoff(evt) &&
-         alloc_queue_turnoff_waits(csound, waiting, ticket);
+  const INSDS *ip;
+  cs_float n, p1;
+  int32_t  insno;
+
+  if (!csound->oparms->realtime || !is_turnoff(evt))
+    return 0;
+  n = IsStringCode(evt->p[1]) && evt->strarg != NULL ?
+    named_instr_find(csound, evt->strarg) : evt->p[1];
+  p1 = FABS(n);
+  if ((insno = named_insno(csound, n)) == 0) {
+    *waiting = 0;                     /* refused when it is processed */
+    return 0;
+  }
+  if (alloc_queue_holds_note(csound, insno, p1, waiting, ticket))
+    return 1;
+  /* reinit clears actflg as it queues the pass, which restores it */
+  for (ip = csound->engineState.instrtxtp[insno]->instance; ip != NULL;
+       ip = ip->nxtinstance)
+    if (ip->p1.value == p1 && ip->offtim < 0.0 &&
+        !ATOMIC_GET8(ip->actflg) && ATOMIC_GET(ip->init_running) > 0)
+      return 1;
+  *waiting = 0;
+  return 0;
 }
 
 /* A turnoff that waits stays at the head, and the events after it with it */
@@ -668,8 +708,9 @@ static void stop_event_insert_thread(CSOUND *csound)
       csound->alloc_queue = NULL;
       ATOMIC_SET(csound->alloc_queue_items, 0);
       csound->alloc_queue_active = 0;
-      /* a jump can leave a request uncompleted: no ticket waits for it */
-      csound->alloc_queue_queued = csound->alloc_queue_done = 0;
+      /* a jump can leave a request uncompleted: no turnoff waits for it */
+      csound->alloc_queue_queued = 0;
+      csound->alloc_queue_work_insno = 0;
       csound->score_turnoff_waiting = 0;
       ATOMIC_SET(csound->alloc_queue_midi, 0);
       csound->midi_event_pending = 0;
@@ -1047,22 +1088,6 @@ static void indef_off(CSOUND *csound, int32_t insno, cs_float p1)
 }
 
 
-
-/* The instrument a named event's number names, or 0 if none. A name that
-   remove() left still finds its number, and a tag adds to the number:
-   "Name.1e9" is 1e8 past it. So the number is bounded before it is
-   converted, and its definition checked, as a numbered p1's is. */
-static int32_t named_insno(CSOUND *csound, cs_float n)
-{
-  cs_float a = FABS(n);
-  int32_t  insno;
-
-  if (UNLIKELY(!(a >= FL(1.0) &&
-                 a < (cs_float) csound->engineState.maxinsno + FL(1.0))))
-    return 0;
-  insno = (int32_t) a;
-  return csound->engineState.instrtxtp[insno] != NULL ? insno : 0;
-}
 
 static CS_NOINLINE void print_score_error(CSOUND *p, int32_t rtEvt,
                                         const char *fmt, ...)
@@ -1500,11 +1525,22 @@ int32_t sense_events(CSOUND *csound)
         retval = (e->opcod == 'l' ? 3 : (e->opcod == 's' ? 1 : 2));
         goto scode;
       default:                            /* q, i, d, f, a:           */
-        /* A turnoff waits for the notes queued before it, and the score
-           after it waits with it. */
-        if (turnoff_waits(csound, e, &csound->score_turnoff_waiting,
-                          &csound->score_turnoff_ticket))
-          goto wait_realtime;
+        /* A realtime turnoff is read under the allocation lock, as a line
+           event's is: it waits for a note it turns off, and the score
+           after it waits with it; a busy lock waits a k-cycle too. */
+        if (O->realtime && is_turnoff(e)) {
+          int32_t waits = 1;
+          RT_SPIN_TRYLOCK
+          waits = turnoff_waits(csound, e, &csound->score_turnoff_waiting,
+                                &csound->score_turnoff_ticket);
+          if (!waits)
+            process_score_event(csound, e, 0);
+          RT_SPIN_UNLOCK
+          if (waits)
+            goto wait_realtime;
+          e->opcod = '\0';
+          continue;
+        }
         process_score_event(csound, e, 0);/*   handle event now       */
         e->opcod = '\0';                  /*   and get next one       */
         continue;

@@ -1992,10 +1992,12 @@ struct CSOUND_ {
   EVTNODE *rewind_events;                                    /* what the asking inits scheduled after they asked: the rewind puts it in */
   volatile long rewind_asking;                               /* realtime init items that asked for a rewind and run: no line is read */
   volatile long score_rewinds_done;                          /* score_rewinds when the last rewind was done: one runs while they differ */
-  uint64_t alloc_queue_queued;                               /* realtime allocation requests queued: a turnoff's ticket */
-  uint64_t alloc_queue_done;                                 /* realtime allocation requests completed, in the order queued */
+  uint64_t alloc_queue_queued;                               /* realtime allocation requests queued: the last one's seq */
+  uint64_t alloc_queue_work_seq;                             /* the seq of the request the worker took */
   uint64_t score_turnoff_ticket;                             /* alloc_queue_queued when the score's turnoff first waited */
-  int32_t score_turnoff_waiting;                             /* the score's turnoff waits for its ticket */
+  int32_t score_turnoff_waiting;                             /* the score's turnoff waits, with its ticket */
+  int32_t alloc_queue_work_insno;                            /* the instr of the note that request starts or ties, until it completes, or 0 */
+  cs_float alloc_queue_work_p1;                              /* and that note's p1 */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

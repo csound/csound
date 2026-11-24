@@ -491,7 +491,8 @@ int32_t alloc_queue_lock_init(CSOUND *csound)
   ATOMIC_SET(csound->alloc_queue_midi, 0);
   csound->midi_event_pending = 0;
   csound->alloc_queue_wp = 0;
-  csound->alloc_queue_queued = csound->alloc_queue_done = 0;
+  csound->alloc_queue_queued = 0;
+  csound->alloc_queue_work_insno = 0;
   csound->score_turnoff_waiting = 0;
   return realtime_spin_lock_init(&csound->alloc_queue_spinlock);
 }
@@ -519,14 +520,30 @@ int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
     wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp] = *data;
     csound->alloc_queue[wp].rewinds = ATOMIC_GET(csound->score_rewinds);
+    csound->alloc_queue[wp].seq = ++csound->alloc_queue_queued;
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
-    csound->alloc_queue_queued++;
     ATOMIC_INCR(csound->alloc_queue_items);
     if (data->type == ALLOC_DATA_MIDI_EVENT)
       ATOMIC_INCR(csound->alloc_queue_midi);
   }
   alloc_queue_unlock(csound);
   return result;
+}
+
+/* The instr of the note a request starts or ties, and its p1 (a MIDI
+   note's is its instr), or 0 */
+static int32_t request_note(const ALLOC_DATA *data, cs_float *p1)
+{
+  if (data->type == ALLOC_DATA_MIDI_EVENT) {
+    *p1 = (cs_float) data->insno;
+    return data->insno;
+  }
+  if (data->type == ALLOC_DATA_SCORE_EVENT && data->blk.p != NULL &&
+      data->blk.pcnt >= 1) {
+    *p1 = data->blk.p[1];
+    return data->insno;
+  }
+  return 0;
 }
 
 static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
@@ -541,6 +558,10 @@ static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
       *readPosition + 1 : 0;
     ATOMIC_DECR(csound->alloc_queue_items);
     csound->alloc_queue_active++;
+    /* out of the ring now, and its note maybe not inserted yet */
+    csound->alloc_queue_work_insno =
+      request_note(data, &csound->alloc_queue_work_p1);
+    csound->alloc_queue_work_seq = data->seq;
     result = 1;
   }
   alloc_queue_unlock(csound);
@@ -557,25 +578,35 @@ int32_t alloc_queue_has_pending(CSOUND *csound)
   return result;
 }
 
-/* A turnoff looks for its note among the active instances, and the note may
-   still be queued here. It waits for the requests queued when it first
-   asks, its ticket, and for no later one: the single worker completes them
-   in order, so other work cannot hold it. */
-int32_t alloc_queue_turnoff_waits(CSOUND *csound, int32_t *waiting,
-                                  uint64_t *ticket)
+/* Whether a request queued up to a turnoff's ticket would start or tie a
+   note of instr insno whose p1 is p1, as indef_off matches one: the request
+   the worker took, or one still queued. The first call takes the ticket,
+   the last request queued, so that later ones do not count. At most the
+   queue's capacity is read, oldest first, under its lock. */
+int32_t alloc_queue_holds_note(CSOUND *csound, int32_t insno, cs_float p1,
+                               int32_t *waiting, uint64_t *ticket)
 {
-  int32_t result;
+  unsigned long i, n;
+  cs_float note_p1;
+  int32_t held;
 
   alloc_queue_lock(csound);
   if (!*waiting) {
     *ticket = csound->alloc_queue_queued;
     *waiting = 1;
   }
-  result = csound->alloc_queue_done < *ticket;
-  if (!result)
-    *waiting = 0;
+  held = csound->alloc_queue_work_insno == insno &&
+    csound->alloc_queue_work_p1 == p1 &&
+    csound->alloc_queue_work_seq <= *ticket;
+  n = (unsigned long) ATOMIC_GET(csound->alloc_queue_items);
+  i = (csound->alloc_queue_wp + MAX_ALLOC_QUEUE - n) % MAX_ALLOC_QUEUE;
+  for (; !held && n > 0 && csound->alloc_queue[i].seq <= *ticket; n--) {
+    held = request_note(&csound->alloc_queue[i], &note_p1) == insno &&
+      note_p1 == p1;
+    i = i + 1 < MAX_ALLOC_QUEUE ? i + 1 : 0;
+  }
   alloc_queue_unlock(csound);
-  return result;
+  return held;
 }
 
 /* Keep MIDI parsing on the performance thread, but do not let later note-off
@@ -608,7 +639,7 @@ static void alloc_queue_complete(CSOUND *csound, int32_t type)
 {
   alloc_queue_lock(csound);
   csound->alloc_queue_active--;
-  csound->alloc_queue_done++;
+  csound->alloc_queue_work_insno = 0;
   if (type == ALLOC_DATA_MIDI_EVENT)
     ATOMIC_DECR(csound->alloc_queue_midi);
   alloc_queue_unlock(csound);
