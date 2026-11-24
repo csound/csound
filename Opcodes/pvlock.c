@@ -191,7 +191,7 @@ static int32_t pv_formant_init(CSOUND *csound, FORMANT_DATA *fd, int32_t N)
 }
 
 static int32_t pv_formant_active(FORMANT_DATA *fd, int32_t N,
-                                 cs_float *keepform, cs_float *kcoefs,
+                                 const cs_float *keepform, const cs_float *kcoefs,
                                  cs_float kpitch, cs_float resamp,
                                  int32_t *mode, int32_t *coefs)
 {
