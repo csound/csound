@@ -1122,6 +1122,10 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
         }
       }
       evt->p[1] = n;
+      if (n < FL(0.0) || evt->opcod == 'd') {  /* a turnoff, as below */
+        indef_off(csound, FABS(n));
+        break;
+      }
       if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
         evt->p[3] = evt->p3orig * (cs_float) csound->ibeatTime/csound->esr;
       /* else alloc, init, activate */
