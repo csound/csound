@@ -595,9 +595,10 @@ static void sense_line(CSOUND *csound, void *userData)
           Linestart = ++cp;
           while (isblank((unsigned char)*cp))
             cp++;
-          if (*cp == LF)
+          if (*cp == LF) {
+            csound->orcScan.lineStart = 1;
             Linestart = ++cp;
-          else
+          } else
             cp = Linestart;
           continue;
         }

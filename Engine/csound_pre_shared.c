@@ -408,7 +408,7 @@ static int32_t csound_orc_scan_code_char(ORC_DELIMITER_SCAN *scan,
       scan->macroStep = DK_START;
     } else {
       scan->previous = c;
-      return c == '}';
+      return c == '}' && scan->condDepth == 0;
     }
     return 0;
 }

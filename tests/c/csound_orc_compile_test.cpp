@@ -5434,7 +5434,29 @@ TEST_F(OrcCompileTests, ScannerFollowsThePreprocessorsDirectives)
         "  chnset 88, \"liveSkippedBranch\"\n"
         "endin\n"
         "}\n"
-        "i 2 0 0\n");
+        "i 2 0 0\n"
+        "{\n"
+        "#ifdef NEVER_DEFINED\n"
+        "}\n"
+        "#endif\n"
+        "instr 3\n"
+        "  chnset 41, \"seen\"\n"
+        "endin\n"
+        "}\n"
+        "i 3 0 0\n"
+        "{\n"
+        "#ifndef NEVER_DEFINED\n"
+        "#else\n"
+        "  #ifdef ALSO_NEVER_DEFINED\n"
+        "  }\n"
+        "  #endif\n"
+        "}\n"
+        "#endif\n"
+        "instr 4\n"
+        "  chnset 99, \"nestedConditionalBrace\"\n"
+        "endin\n"
+        "}\n"
+        "i 4 0 0\n");
     for (int i = 0; i < 16; i++) {
         ASSERT_EQ(0, csoundPerformKsmps(csound));
     }
@@ -5445,6 +5467,12 @@ TEST_F(OrcCompileTests, ScannerFollowsThePreprocessorsDirectives)
     EXPECT_EQ(FL(88.0),
               csoundGetControlChannel(csound, "liveSkippedBranch", &err));
     EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(41.0), csoundGetControlChannel(csound, "seen", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(99.0),
+              csoundGetControlChannel(csound, "nestedConditionalBrace", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(0, csoundErrCnt(csound));
 }
 
 namespace {
