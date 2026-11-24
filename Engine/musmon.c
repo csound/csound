@@ -1170,8 +1170,8 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
           break;                      /* RM: and quit              */
         }
       }
-      if (evt->p[1] < FL(0.0))         /* if p1 neg,             */
-        indef_off(csound, -evt->p[1]);    /*  turnoff any infin cpy */
+      if (evt->p[1] < FL(0.0) || evt->opcod == 'd') /* if p1 neg, or d, */
+        indef_off(csound, FABS(evt->p[1]));    /*  turnoff any infin cpy */
       else {
         if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
           evt->p[3] = evt->p3orig * (cs_float) csound->ibeatTime/csound->esr;
