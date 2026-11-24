@@ -1850,20 +1850,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   case 'q':                         /* mute instrument */
     /* check for a valid instrument number or name: a name not found is 0,
        which in p1 would be a note for instr 0, the global code run again */
-    if (evt->opcod=='d') {
-      if (evt->strarg != NULL && IsStringCode(pf[1])) {
-        cs_float n = named_instr_find(csound, evt->strarg);
-        if (UNLIKELY(n == FL(0.0)))
-          goto missing_name;
-        i = (int32_t) n;
-        pf[1] = -i;
-      }
-      else {
-        i = (int32_t) fabs((cs_double) pf[1]);
-        pf[1] = -i;
-      }
-    }
-    else if (evt->strarg != NULL && IsStringCode(pf[1])) {
+    if (evt->strarg != NULL && IsStringCode(pf[1])) {
       cs_float n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY(n == FL(0.0)))
         goto missing_name;
@@ -1873,6 +1860,8 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
     }
     else
       i = (int32_t) fabs((cs_double) pf[1]);
+    if (evt->opcod=='d')            /* a turnoff, of the tagged note too */
+      pf[1] = -FABS(pf[1]);
 
     /* Realtime dispatch checks this under the publication lock. A render
        opcode must not inspect the table halfway through a background merge. */
