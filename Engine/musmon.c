@@ -991,6 +991,18 @@ static void section_amps(CSOUND *csound, int32_t enable_msgs)
   }
 }
 
+/* A d, or an i whose p1, a number or a name, is negative */
+static int32_t is_turnoff(const EVTBLK *evt)
+{
+  if (evt->opcod == 'd')
+    return 1;
+  if (evt->opcod != 'i')
+    return 0;
+  if (IsStringCode(evt->p[1]))
+    return evt->strarg != NULL && *evt->strarg == '-';
+  return evt->p[1] < FL(0.0);
+}
+
 /* turn off an indef copy of instr insno, whose p1 is p1 */
 static void indef_off(CSOUND *csound, int32_t insno, cs_float p1)
 {
@@ -1455,15 +1467,8 @@ int32_t sense_events(CSOUND *csound)
            off-time. */
         if (O->realtime && (alloc_queue_has_pending(csound) ||
                             ATOMIC_GET(csound->score_rewind_request) !=
-                            ATOMIC_GET(csound->score_rewind_served))) {
-          waiting_for_realtime_work = 1;
-          /* Polling the init worker does not end a score segment. */
-          STA(score_segment_polling) = 1;
-          csound->nxtim =
-            (csound->icurTimeSamples + csound->ksmps) / csound->esr;
-          csound->nxtbt = csound->curBeat + csound->curBeat_inc;
-          break;
-        }
+                            ATOMIC_GET(csound->score_rewind_served)))
+          goto wait_realtime;
         if (csound->frstoff != NULL) {    /* if still have notes
                                              with finite length, wait
                                              until all are turned off */
@@ -1477,10 +1482,23 @@ int32_t sense_events(CSOUND *csound)
         /* end of: 1: section, 2: score, 3: lplay list */
         retval = (e->opcod == 'l' ? 3 : (e->opcod == 's' ? 1 : 2));
         goto scode;
-      default:                            /* q, i, f, a:              */
+      default:                            /* q, i, d, f, a:           */
+        /* A turnoff looks for its note when it is read, and one inserted on
+           the allocation thread may not be there yet: it waits for the
+           queue, as the end of a score does. */
+        if (O->realtime && is_turnoff(e) && alloc_queue_has_pending(csound))
+          goto wait_realtime;
         process_score_event(csound, e, 0);/*   handle event now       */
         e->opcod = '\0';                  /*   and get next one       */
         continue;
+      wait_realtime:
+        waiting_for_realtime_work = 1;
+        /* Polling the init worker does not end a score segment. */
+        STA(score_segment_polling) = 1;
+        csound->nxtim =
+          (csound->icurTimeSamples + csound->ksmps) / csound->esr;
+        csound->nxtbt = csound->curBeat + csound->curBeat_inc;
+        break;
       }
     }
     else {
