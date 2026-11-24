@@ -1686,35 +1686,50 @@ static int32_t mvmfilterset(CSOUND *csound, MVMFILT *p)
 
 /* Represent each value as value - error. Volatile protects the rounding
    steps from fast-math reassociation. */
-#define MVM_SUM_ORDERED(result, error, high, low) do {                       \
-  volatile cs_double mv_sum = (high) + (low);                               \
-  volatile cs_double mv_back = mv_sum - (high);                              \
+#define MVM_VOLATILE_STEP(name, expression)                                  \
+  volatile cs_double name = (expression)
+
+/* GCC can keep the first two state rounding steps in floating-point
+   registers on RISC-V. Keep the residual and both projection sums volatile. */
+#if defined(__riscv_flen) && __riscv_flen >= 32 && defined(__has_builtin)
+# if __has_builtin(__builtin_assoc_barrier)
+#  define MVM_STATE_STEP(name, expression)                                    \
+  const cs_double name = __builtin_assoc_barrier(expression)
+# endif
+#endif
+#ifndef MVM_STATE_STEP
+# define MVM_STATE_STEP MVM_VOLATILE_STEP
+#endif
+
+#define MVM_SUM_ORDERED(result, error, high, low, step) do {                 \
+  step(mv_sum, (high) + (low));                                               \
+  step(mv_back, mv_sum - (high));                                             \
   volatile cs_double mv_error = mv_back - (low);                            \
   (result) = mv_sum;                                                         \
   (error) = mv_error;                                                        \
 } while (0)
 
-#define MVM_SUM(result, error, a, b) do {                                   \
+#define MVM_SUM(result, error, a, b, step) do {                             \
   const cs_double mv_a = (a), mv_b = (b);                                   \
   const cs_double mv_absa = mv_a < FL(0.0) ? -mv_a : mv_a;                  \
   const cs_double mv_absb = mv_b < FL(0.0) ? -mv_b : mv_b;                  \
   const cs_double mv_high = mv_absa >= mv_absb ? mv_a : mv_b;               \
   const cs_double mv_low = mv_absa >= mv_absb ? mv_b : mv_a;                \
-  MVM_SUM_ORDERED(result, error, mv_high, mv_low);                           \
+  MVM_SUM_ORDERED(result, error, mv_high, mv_low, step);                     \
 } while (0)
 
 #define MVM_ADD(value, error, increment) do {                               \
   cs_double mv_next, mv_remainder;                                          \
-  MVM_SUM(mv_next, mv_remainder, (value), (increment));                     \
+  MVM_SUM(mv_next, mv_remainder, (value), (increment), MVM_STATE_STEP);      \
   mv_remainder += (error);                                                  \
-  MVM_SUM((value), (error), mv_next, -mv_remainder);                        \
+  MVM_SUM((value), (error), mv_next, -mv_remainder, MVM_STATE_STEP);         \
 } while (0)
 
 #define MVM_PHASE(phase, error, step, detail) do {                          \
   cs_double mv_next, mv_remainder;                                          \
-  MVM_SUM(mv_next, mv_remainder, (phase), (step));                          \
+  MVM_SUM(mv_next, mv_remainder, (phase), (step), MVM_STATE_STEP);           \
   mv_remainder += (error) - (detail);                                       \
-  MVM_SUM((phase), (error), mv_next, -mv_remainder);                        \
+  MVM_SUM((phase), (error), mv_next, -mv_remainder, MVM_STATE_STEP);         \
   if ((phase) >= FL(1.0)) (phase) -= FL(1.0);                               \
   else if ((phase) < FL(0.0)) {                                             \
     volatile cs_double mv_wrapped = (phase) + FL(1.0);                      \
@@ -1734,9 +1749,9 @@ static int32_t mvmfilterset(CSOUND *csound, MVMFILT *p)
     cs_double mv_next, mv_remainder;                                        \
     cs_double mv_detail = fmaf(mv_old, (factor), -mv_product);              \
     /* The expm1 factor has magnitude below one, so mv_old comes first. */ \
-    MVM_SUM_ORDERED(mv_next, mv_remainder, mv_old, mv_product);              \
+    MVM_SUM_ORDERED(mv_next, mv_remainder, mv_old, mv_product, MVM_STATE_STEP); \
     mv_remainder += mv_old_error + mv_old_error * (factor) - mv_detail;     \
-    MVM_SUM((value), (error), mv_next, -mv_remainder);                      \
+    MVM_SUM((value), (error), mv_next, -mv_remainder, MVM_STATE_STEP);       \
   }                                                                         \
   else {                                                                    \
     (value) = mv_product;                                                   \
@@ -1831,8 +1846,8 @@ static int32_t mvmfilter(CSOUND *csound, MVMFILT *p)
       MVM_DECAY(y, yerror, decay, incremental);
       volatile cs_double real = x * cosine, imaginary = y * sine;
       cs_double sum, input_error, projection_error;
-      MVM_SUM(sum, input_error, real, input);
-      MVM_SUM(sum, projection_error, sum, -imaginary);
+      MVM_SUM(sum, input_error, real, input, MVM_VOLATILE_STEP);
+      MVM_SUM(sum, projection_error, sum, -imaginary, MVM_VOLATILE_STEP);
       const cs_double detail = fmaf(x, cosine, -real) - fmaf(y, sine, -imaginary)
         - xerror * cosine + yerror * sine;
       out[n] = (cs_float)(sum + (detail - input_error - projection_error));
@@ -1849,6 +1864,8 @@ static int32_t mvmfilter(CSOUND *csound, MVMFILT *p)
 
 #undef MVM_SUM
 #undef MVM_SUM_ORDERED
+#undef MVM_STATE_STEP
+#undef MVM_VOLATILE_STEP
 #undef MVM_ADD
 #undef MVM_PHASE
 #undef MVM_DECAY
