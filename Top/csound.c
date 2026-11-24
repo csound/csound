@@ -1111,7 +1111,7 @@ static const CSOUND cenviron_ = {
     .line_event_work_size = 0,
     .orcScan = {0},
     .lineventDiscardLine = 0,
-    .orcCompileGeneration = 0,
+    .provisionalStructs = NULL,
 
 };
 

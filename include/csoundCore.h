@@ -2193,7 +2193,7 @@ struct CSOUND_ {
   /* Append new private fields at the very end to preserve CSOUND ABI offsets. */
   ORC_DELIMITER_SCAN orcScan;                                /* stateful scanner for live orchestra blocks */
   int32_t lineventDiscardLine;                               /* discarding remainder of oversized -L line */
-  uint32_t orcCompileGeneration;                             /* orchestra compiles that succeeded, counted */
+  struct provisional_struct_entry *provisionalStructs;       /* uncommitted parsed struct types */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

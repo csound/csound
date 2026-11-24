@@ -2227,9 +2227,9 @@ static int32_t enginestate_free(CSOUND *csound, ENGINE_STATE *engineState) {
 }
 
 static void free_typetable(CSOUND *csound, TYPE_TABLE *typeTable) {
-  if (typeTable->newStructTypes != NULL) {
-    cs_cons_free(csound, typeTable->newStructTypes);
-    typeTable->newStructTypes = NULL;
+  if (typeTable->retainedStructs != NULL) {
+    cs_cons_free(csound, typeTable->retainedStructs);
+    typeTable->retainedStructs = NULL;
   }
   cs_cons_free_complete(csound, typeTable->labelList);
   csound->Free(csound, typeTable);
@@ -2862,6 +2862,9 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
     /* merge ENGINE_STATE */
     /* lock to ensure thread-safety */
     if (!async) {
+      /* Commit retained structs before merge frees typeTable, so a deleted
+         earlier parse cannot roll them back out from under live instruments. */
+      commit_provisional_structs(csound, &typeTable->retainedStructs);
       if (csound->oparms->realtime && csound->realtime_locks_initialized) {
         /* A synchronous background caller needs the same publication lock
            as the realtime init queue. Rendering only tries this spinlock. */
@@ -2882,15 +2885,19 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
         }
       }
     } else {
+      CONS_CELL *retained = typeTable->retainedStructs;
+      typeTable->retainedStructs = NULL;
       /* Defer UDO opcode table binding updates until async merge runs under lock. */
       finish_compile_references(csound, references, 1, plansBuilt);
       references = NULL;
       if (UNLIKELY(merge_state_enqueue(csound, engineState,
                                        typeTable, ids) != CSOUND_SUCCESS)) {
+        typeTable->retainedStructs = retained;
         csound->ErrorMsg(csound, "%s", Str("cannot merge compiled orchestra: "
                                            "async queue is full or busy\n"));
         goto invalid;
       }
+      commit_provisional_structs(csound, &retained);
     }
   } else {
     /* now add the instruments with names, assigning them fake instr numbers */
@@ -2981,11 +2988,9 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   }
   finish_compile_references(csound, references, 0, 0);
   if (engineState == &csound->engineState) {
+    commit_provisional_structs(csound, &typeTable->retainedStructs);
     free_typetable(csound, typeTable);
   }
-  /* From here the engine may hold what any parse registered, however that
-     parse ends: its types are no longer a parse's to roll back. */
-  csound->orcCompileGeneration++;
   return CSOUND_SUCCESS;
 
  invalid:
@@ -3007,9 +3012,8 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
       engineState->maxinsno = 0;
     }
   }
-  /* Initial compilation writes the persistent state owned by CSOUND. */
-  rollback_parse_struct_definitions(csound, &typeTable->newStructTypes,
-                                    typeTable->compileGeneration);
+  /* Release only structs no other live parsed tree or committed compile owns. */
+  release_provisional_structs(csound, &typeTable->retainedStructs);
   free_typetable(csound, typeTable);
   return CSOUND_ERROR;
 }

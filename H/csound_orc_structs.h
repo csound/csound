@@ -72,12 +72,15 @@ int32_t process_struct_definitions_two_phase(CSOUND *csound, TREE *structDefList
 int32_t process_struct_definitions_two_phase_tracked(CSOUND *csound,
                                                      TREE *structDefList,
                                                      CONS_CELL **newTypesOut);
+struct type_table;
 void rollback_struct_definitions(CSOUND *csound, CONS_CELL **newTypes);
-/* The same for a tree parsed when csound->orcCompileGeneration was
-   parseGeneration, unless a compile has succeeded since: it may have taken
-   the types, which then stay registered. newTypes is always consumed. */
-void rollback_parse_struct_definitions(CSOUND *csound, CONS_CELL **newTypes,
-                                       uint32_t parseGeneration);
+/* Retain provisional struct types created or adopted by a parsed tree until
+   compilation commits them or tree deletion releases the last reference. */
+void retain_parsed_provisional_structs(CSOUND *csound, TREE *astTree,
+                                       struct type_table *typeTable,
+                                       CONS_CELL **newTypes);
+void commit_provisional_structs(CSOUND *csound, CONS_CELL **retainedTypes);
+void release_provisional_structs(CSOUND *csound, CONS_CELL **retainedTypes);
 void freeStructVarMemory(void *csnd, void *p);
 void csound_free_struct_members(CSOUND *csound, CS_STRUCT_VAR *var);
 

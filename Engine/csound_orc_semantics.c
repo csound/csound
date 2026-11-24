@@ -4833,8 +4833,7 @@ void csoundDeleteTree(CSOUND *csound, TREE *tree)
       }
     }
     if (types != NULL) {
-      rollback_parse_struct_definitions(csound, &types->newStructTypes,
-                                        types->compileGeneration);
+      release_provisional_structs(csound, &types->retainedStructs);
       csoundFreeParserVarPool(csound, types->globalPool);
       csoundFreeParserVarPool(csound, types->instr0LocalPool);
       cs_cons_free_complete(csound, types->labelList);

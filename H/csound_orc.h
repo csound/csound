@@ -43,8 +43,7 @@ typedef struct type_table {
     const char* udoOutTypes; /* of the UDO being verified, for its xout */
     const char* udoName; /* of the new-style UDO being verified, for its xout */
     int32_t udoHasXout; /* and whether its body has an xout */
-    CONS_CELL* newStructTypes; /* registered in this parse, until compile succeeds */
-    uint32_t compileGeneration; /* csound->orcCompileGeneration when this tree was parsed */
+    CONS_CELL* retainedStructs; /* provisional CS_TYPE* entries retained by this tree */
 } TYPE_TABLE;
 
 /* Parser nodes can be detached or share children during rewriting. Track

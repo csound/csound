@@ -650,16 +650,254 @@ static void unregister_struct_opcodes(CSOUND *csound, const CS_TYPE *type) {
   csound->Free(csound, opName);
 }
 
+typedef struct provisional_struct_entry {
+  CS_TYPE *type;
+  int32_t refCount;
+  struct provisional_struct_entry *next;
+} PROVISIONAL_STRUCT_ENTRY;
+
+static PROVISIONAL_STRUCT_ENTRY *find_provisional_entry(CSOUND *csound,
+                                                        const CS_TYPE *type) {
+  PROVISIONAL_STRUCT_ENTRY *entry = csound->provisionalStructs;
+  while (entry != NULL) {
+    if (entry->type == type) {
+      return entry;
+    }
+    entry = entry->next;
+  }
+  return NULL;
+}
+
+static void mark_varpool_provisional_structs(CS_VAR_POOL *pool,
+                                             PROVISIONAL_STRUCT_ENTRY **entries,
+                                             uint8_t *marked,
+                                             size_t count) {
+  CS_VARIABLE *var;
+  if (pool == NULL) {
+    return;
+  }
+  for (var = pool->head; var != NULL; var = var->next) {
+    for (size_t i = 0; i < count; i++) {
+      if (!marked[i] &&
+          csound_variable_contains_type(var, entries[i]->type)) {
+        marked[i] = 1;
+      }
+    }
+  }
+}
+
+typedef struct {
+  OENTRY *oentry;
+  size_t entryIdx;
+} PROVISIONAL_OENTRY_REF;
+
+static size_t collect_provisional_oentries(CSOUND *csound,
+                                           PROVISIONAL_STRUCT_ENTRY **entries,
+                                           size_t count,
+                                           PROVISIONAL_OENTRY_REF **outRefs) {
+  CONS_CELL *head;
+  size_t total = 0, idx = 0;
+  PROVISIONAL_OENTRY_REF *refs;
+  *outRefs = NULL;
+  if (csound->opcodes == NULL || count == 0) {
+    return 0;
+  }
+  head = cs_hash_table_get(csound, csound->opcodes, (char *)"init");
+  if (head == NULL) {
+    return 0;
+  }
+  for (CONS_CELL *cell = head; cell != NULL; cell = cell->next) {
+    OENTRY *ep = (OENTRY *)cell->value;
+    if (ep == NULL || ep->outypes == NULL ||
+        (ep->init != initStructVar && ep->init != copy_var_generic_init)) {
+      continue;
+    }
+    for (size_t i = 0; i < count; i++) {
+      if (strcmp(ep->outypes, entries[i]->type->varTypeName) == 0) {
+        total++;
+        break;
+      }
+    }
+  }
+  if (total == 0) {
+    return 0;
+  }
+  refs = (PROVISIONAL_OENTRY_REF *)csound->Calloc(
+    csound, sizeof(PROVISIONAL_OENTRY_REF) * total);
+  for (CONS_CELL *cell = head; cell != NULL; cell = cell->next) {
+    OENTRY *ep = (OENTRY *)cell->value;
+    if (ep == NULL || ep->outypes == NULL ||
+        (ep->init != initStructVar && ep->init != copy_var_generic_init)) {
+      continue;
+    }
+    for (size_t i = 0; i < count; i++) {
+      if (strcmp(ep->outypes, entries[i]->type->varTypeName) == 0) {
+        refs[idx].oentry = ep;
+        refs[idx].entryIdx = i;
+        idx++;
+        break;
+      }
+    }
+  }
+  *outRefs = refs;
+  return total;
+}
+
+static int32_t match_plain_struct_name(const char *internalName,
+                                       const char *plainName,
+                                       size_t plainLen) {
+  size_t internalLen;
+  if (internalName == NULL || plainName == NULL || plainLen == 0) {
+    return 0;
+  }
+  internalLen = strlen(internalName);
+  return internalLen == plainLen + 2 &&
+         internalName[0] == ':' &&
+         internalName[internalLen - 1] == ';' &&
+         strncmp(internalName + 1, plainName, plainLen) == 0;
+}
+
+static void mark_optype_provisional_structs(const char *optype,
+                                            PROVISIONAL_STRUCT_ENTRY **entries,
+                                            uint8_t *marked,
+                                            size_t count) {
+  const char *bracket;
+  size_t baseLen;
+  if (optype == NULL || *optype == '\0') {
+    return;
+  }
+  bracket = strchr(optype, '[');
+  baseLen = bracket != NULL ? (size_t)(bracket - optype) : strlen(optype);
+  if (baseLen == 0) {
+    return;
+  }
+  for (size_t i = 0; i < count; i++) {
+    if (!marked[i] &&
+        match_plain_struct_name(entries[i]->type->varTypeName,
+                                optype, baseLen)) {
+      marked[i] = 1;
+    }
+  }
+}
+
+typedef struct {
+  const TREE **slots;
+  size_t cap;
+  size_t count;
+} STRUCT_VISIT_SET;
+
+static int32_t struct_visit_seen(CSOUND *csound, STRUCT_VISIT_SET *set,
+                                 const TREE *node) {
+  size_t mask, idx;
+  if (node == NULL) {
+    return 1;
+  }
+  if ((set->count + 1) * 2 > set->cap) {
+    size_t newCap = set->cap == 0 ? 64 : set->cap * 2;
+    const TREE **newSlots =
+      (const TREE **)csound->Calloc(csound, sizeof(const TREE *) * newCap);
+    size_t newMask = newCap - 1;
+    for (size_t i = 0; i < set->cap; i++) {
+      const TREE *old = set->slots[i];
+      if (old != NULL) {
+        size_t j = ((uintptr_t)old * 11400714819323198485ULL) & newMask;
+        while (newSlots[j] != NULL) {
+          j = (j + 1) & newMask;
+        }
+        newSlots[j] = old;
+      }
+    }
+    csound->Free(csound, (void *)set->slots);
+    set->slots = newSlots;
+    set->cap = newCap;
+  }
+  mask = set->cap - 1;
+  idx = ((uintptr_t)node * 11400714819323198485ULL) & mask;
+  while (set->slots[idx] != NULL) {
+    if (set->slots[idx] == node) {
+      return 1;
+    }
+    idx = (idx + 1) & mask;
+  }
+  set->slots[idx] = node;
+  set->count++;
+  return 0;
+}
+
+static void mark_ast_provisional_structs(CSOUND *csound, const TREE *node,
+                                         STRUCT_VISIT_SET *seen,
+                                         PROVISIONAL_STRUCT_ENTRY **entries,
+                                         uint8_t *marked, size_t count,
+                                         const PROVISIONAL_OENTRY_REF *refs,
+                                         size_t refCount) {
+  while (node != NULL && !struct_visit_seen(csound, seen, node)) {
+    if (node->type == STRUCT_TOKEN && node->left != NULL &&
+        node->left->value != NULL && node->left->value->lexeme != NULL) {
+      size_t lexLen = strlen(node->left->value->lexeme);
+      for (size_t i = 0; i < count; i++) {
+        if (!marked[i] &&
+            match_plain_struct_name(entries[i]->type->varTypeName,
+                                    node->left->value->lexeme, lexLen)) {
+          marked[i] = 1;
+        }
+      }
+    } else if ((node->type == INSTR_TOKEN || node->type == UDO_TOKEN ||
+                node->type == T_DECLARE) && node->markup != NULL) {
+      mark_varpool_provisional_structs((CS_VAR_POOL *)node->markup,
+                                       entries, marked, count);
+    }
+    if (node->type == UDO_TOKEN && node->left != NULL) {
+      const char *outSig = node->left->left != NULL
+        ? (const char *)node->left->left->markup : NULL;
+      const char *inSig = node->left->right != NULL
+        ? (const char *)node->left->right->markup : NULL;
+      for (size_t i = 0; i < count; i++) {
+        if (!marked[i] &&
+            ((outSig != NULL && strstr(outSig, entries[i]->type->varTypeName) != NULL) ||
+             (inSig != NULL && strstr(inSig, entries[i]->type->varTypeName) != NULL))) {
+          marked[i] = 1;
+        }
+      }
+    }
+    if (node->markup != NULL) {
+      for (size_t r = 0; r < refCount; r++) {
+        if (node->markup == refs[r].oentry) {
+          marked[refs[r].entryIdx] = 1;
+        }
+      }
+    }
+    if (node->value != NULL && node->value->optype != NULL) {
+      mark_optype_provisional_structs(node->value->optype,
+                                      entries, marked, count);
+    }
+    if (node->left != NULL) {
+      mark_ast_provisional_structs(csound, node->left, seen, entries, marked,
+                                   count, refs, refCount);
+    }
+    if (node->right != NULL) {
+      mark_ast_provisional_structs(csound, node->right, seen, entries, marked,
+                                   count, refs, refCount);
+    }
+    node = node->next;
+  }
+}
+
 void rollback_struct_definitions(CSOUND *csound, CONS_CELL **newTypes) {
   CONS_CELL *cell;
   if (csound == NULL || newTypes == NULL || *newTypes == NULL) {
     return;
   }
   /* Prune variables referencing these struct types before freeing type->members. */
-  if (csound->engineState.varPool != NULL) {
-    for (cell = *newTypes; cell != NULL; cell = cell->next) {
-      prune_varpool_by_type(csound, csound->engineState.varPool,
-                            (const CS_TYPE *)cell->value);
+  for (cell = *newTypes; cell != NULL; cell = cell->next) {
+    const CS_TYPE *target = (const CS_TYPE *)cell->value;
+    if (csound->engineState.varPool != NULL) {
+      prune_varpool_by_type(csound, csound->engineState.varPool, target);
+    }
+    for (OPCODINFO *inm = csound->opcodeInfo; inm != NULL; inm = inm->prv) {
+      if (inm->ip == NULL) {
+        prune_varpool_by_type(csound, inm->in_arg_pool, target);
+        prune_varpool_by_type(csound, inm->out_arg_pool, target);
+      }
     }
   }
   cell = *newTypes;
@@ -680,21 +918,207 @@ void rollback_struct_definitions(CSOUND *csound, CONS_CELL **newTypes) {
   *newTypes = NULL;
 }
 
-void rollback_parse_struct_definitions(CSOUND *csound, CONS_CELL **newTypes,
-                                       uint32_t parseGeneration)
-{
-  if (csound == NULL || newTypes == NULL) {
+void retain_parsed_provisional_structs(CSOUND *csound, TREE *astTree,
+                                       TYPE_TABLE *typeTable,
+                                       CONS_CELL **newTypes) {
+  PROVISIONAL_STRUCT_ENTRY *stackEntries[64];
+  uint8_t stackMarked[64];
+  PROVISIONAL_STRUCT_ENTRY **entries = stackEntries;
+  uint8_t *marked = stackMarked;
+  size_t count = 0;
+  int32_t hadPriorProvisional;
+
+  if (csound == NULL || typeTable == NULL) {
+    if (csound != NULL && newTypes != NULL && *newTypes != NULL) {
+      cs_cons_free(csound, *newTypes);
+      *newTypes = NULL;
+    }
     return;
   }
-  if (parseGeneration != csound->orcCompileGeneration) {
-    /* Parsing registers the types with the engine at once, and a later
-       compile that re-declares one records nothing of its own: the first
-       parse's list is the only bookkeeping, whoever is using them now. */
+  if ((newTypes == NULL || *newTypes == NULL) &&
+      csound->provisionalStructs == NULL) {
+    return;
+  }
+
+  hadPriorProvisional = (csound->provisionalStructs != NULL);
+  if (newTypes != NULL && *newTypes != NULL) {
+    for (CONS_CELL *cell = *newTypes; cell != NULL; cell = cell->next) {
+      CS_TYPE *type = (CS_TYPE *)cell->value;
+      if (type != NULL && find_provisional_entry(csound, type) == NULL) {
+        PROVISIONAL_STRUCT_ENTRY *entry =
+          csound->Calloc(csound, sizeof(PROVISIONAL_STRUCT_ENTRY));
+        entry->type = type;
+        entry->refCount = 0;
+        entry->next = csound->provisionalStructs;
+        csound->provisionalStructs = entry;
+      }
+    }
+  }
+
+  for (PROVISIONAL_STRUCT_ENTRY *e = csound->provisionalStructs;
+       e != NULL; e = e->next) {
+    count++;
+  }
+  if (count == 0) {
+    if (newTypes != NULL && *newTypes != NULL) {
+      cs_cons_free(csound, *newTypes);
+      *newTypes = NULL;
+    }
+    return;
+  }
+  if (count > 64) {
+    entries = (PROVISIONAL_STRUCT_ENTRY **)csound->Calloc(
+      csound, sizeof(PROVISIONAL_STRUCT_ENTRY *) * count);
+    marked = (uint8_t *)csound->Calloc(csound, sizeof(uint8_t) * count);
+  } else {
+    memset(stackMarked, 0, sizeof(uint8_t) * count);
+  }
+
+  {
+    size_t idx = 0;
+    for (PROVISIONAL_STRUCT_ENTRY *e = csound->provisionalStructs;
+         e != NULL; e = e->next) {
+      entries[idx++] = e;
+    }
+  }
+
+  if (newTypes != NULL && *newTypes != NULL) {
+    for (CONS_CELL *cell = *newTypes; cell != NULL; cell = cell->next) {
+      for (size_t i = 0; i < count; i++) {
+        if (entries[i]->type == cell->value) {
+          marked[i] = 1;
+        }
+      }
+    }
     cs_cons_free(csound, *newTypes);
     *newTypes = NULL;
+  }
+
+  if (!hadPriorProvisional) {
+    /* Fast path: every provisional struct belongs strictly to this parse. */
+    for (size_t i = 0; i < count; i++) {
+      marked[i] = 1;
+    }
+  } else {
+    PROVISIONAL_OENTRY_REF *refs = NULL;
+    size_t refCount = collect_provisional_oentries(csound, entries, count, &refs);
+    STRUCT_VISIT_SET seen = {NULL, 0, 0};
+    int32_t changed;
+
+    mark_varpool_provisional_structs(typeTable->globalPool,
+                                     entries, marked, count);
+    mark_varpool_provisional_structs(typeTable->instr0LocalPool,
+                                     entries, marked, count);
+    mark_ast_provisional_structs(csound, astTree, &seen, entries, marked,
+                                 count, refs, refCount);
+    csound->Free(csound, (void *)seen.slots);
+    csound->Free(csound, refs);
+
+    /* Retain nested provisional member types transitively. */
+    do {
+      changed = 0;
+      for (size_t i = 0; i < count; i++) {
+        if (!marked[i] || entries[i]->type == NULL) {
+          continue;
+        }
+        for (CONS_CELL *m = entries[i]->type->members;
+             m != NULL; m = m->next) {
+          const CS_VARIABLE *member = (const CS_VARIABLE *)m->value;
+          for (size_t j = 0; j < count; j++) {
+            if (!marked[j] &&
+                csound_variable_contains_type(member, entries[j]->type)) {
+              marked[j] = 1;
+              changed = 1;
+            }
+          }
+        }
+      }
+    } while (changed);
+  }
+
+  for (size_t i = 0; i < count; i++) {
+    if (marked[i]) {
+      entries[i]->refCount++;
+      typeTable->retainedStructs =
+        cs_cons(csound, entries[i]->type, typeTable->retainedStructs);
+    }
+  }
+
+  if (count > 64) {
+    csound->Free(csound, entries);
+    csound->Free(csound, marked);
+  }
+}
+
+static void commit_single_provisional_type(CSOUND *csound, const CS_TYPE *type) {
+  PROVISIONAL_STRUCT_ENTRY **link;
+  int32_t removed = 0;
+  if (type == NULL || csound->provisionalStructs == NULL) {
     return;
   }
-  rollback_struct_definitions(csound, newTypes);
+  link = &csound->provisionalStructs;
+  while (*link != NULL) {
+    PROVISIONAL_STRUCT_ENTRY *entry = *link;
+    if (entry->type == type) {
+      *link = entry->next;
+      csound->Free(csound, entry);
+      removed = 1;
+      break;
+    }
+    link = &entry->next;
+  }
+  if (removed) {
+    for (CONS_CELL *m = type->members; m != NULL; m = m->next) {
+      const CS_VARIABLE *member = (const CS_VARIABLE *)m->value;
+      if (member != NULL) {
+        const CS_TYPE *memberType =
+          member->varType == &CS_VAR_TYPE_ARRAY ? member->subType : member->varType;
+        commit_single_provisional_type(csound, memberType);
+      }
+    }
+  }
+}
+
+void commit_provisional_structs(CSOUND *csound, CONS_CELL **retainedTypes) {
+  if (retainedTypes == NULL || *retainedTypes == NULL) {
+    return;
+  }
+  if (csound != NULL && csound->provisionalStructs != NULL) {
+    for (CONS_CELL *cell = *retainedTypes; cell != NULL; cell = cell->next) {
+      commit_single_provisional_type(csound, (const CS_TYPE *)cell->value);
+    }
+  }
+  cs_cons_free(csound, *retainedTypes);
+  *retainedTypes = NULL;
+}
+
+void release_provisional_structs(CSOUND *csound, CONS_CELL **retainedTypes) {
+  CONS_CELL *deadTypes = NULL;
+  if (csound == NULL || retainedTypes == NULL || *retainedTypes == NULL) {
+    return;
+  }
+  for (CONS_CELL *cell = *retainedTypes; cell != NULL; cell = cell->next) {
+    CS_TYPE *type = (CS_TYPE *)cell->value;
+    PROVISIONAL_STRUCT_ENTRY **link = &csound->provisionalStructs;
+    while (*link != NULL) {
+      PROVISIONAL_STRUCT_ENTRY *entry = *link;
+      if (entry->type == type) {
+        entry->refCount--;
+        if (entry->refCount <= 0) {
+          *link = entry->next;
+          csound->Free(csound, entry);
+          deadTypes = cs_cons(csound, type, deadTypes);
+        }
+        break;
+      }
+      link = &entry->next;
+    }
+  }
+  cs_cons_free(csound, *retainedTypes);
+  *retainedTypes = NULL;
+  if (deadTypes != NULL) {
+    rollback_struct_definitions(csound, &deadTypes);
+  }
 }
 
 // Phase 1: Register struct name as placeholder type (for recursive references)

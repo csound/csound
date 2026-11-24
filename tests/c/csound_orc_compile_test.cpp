@@ -4099,6 +4099,148 @@ TEST_F(OrcCompileTests, DeletingParsedTreeKeepsStructsAdoptedByLaterCompile)
     }
 }
 
+TEST_F(OrcCompileTests, DeletingParsedTreeKeepsStructsAdoptedByLaterParse)
+{
+    // Exact two-tree sequence: treeB adopts Draft during csoundParseOrc,
+    // treeA is deleted before treeB is compiled, and treeB must still compile
+    // without touching freed CS_TYPE or init.Draft OENTRY storage.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *treeA = csoundParseOrc(cs, "struct Draft x:i\n");
+        ASSERT_NE(nullptr, treeA);
+        TREE *treeB = csoundParseOrc(
+            cs,
+            "instr 1\n"
+            "  box:Draft init 41\n"
+            "  chnset box.x + 1, \"draftOut\"\n"
+            "endin\n");
+        ASSERT_NE(nullptr, treeB);
+
+        csoundDeleteTree(cs, treeA);
+        ASSERT_NE(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Draft"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileTree(cs, treeB, 0));
+        csoundDeleteTree(cs, treeB);
+
+        csoundEventString(cs, "i 1 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(42.0), csoundGetControlChannel(cs, "draftOut", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // Transitive nested structs across separate parsed trees: treeD only uses
+    // Outer, whose member references Inner from treeA. Deleting A and B before
+    // compiling D must keep both Outer and Inner alive.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *treeA = csoundParseOrc(cs, "struct Inner v:i\n");
+        ASSERT_NE(nullptr, treeA);
+        TREE *treeB = csoundParseOrc(cs, "struct Outer in:Inner\n");
+        ASSERT_NE(nullptr, treeB);
+        TREE *treeC = csoundParseOrc(
+            cs,
+            "instr 1\n"
+            "  iSub:Inner init 9\n"
+            "  oBox:Outer init iSub\n"
+            "  chnset oBox.in.v, \"nestedOut\"\n"
+            "endin\n");
+        ASSERT_NE(nullptr, treeC);
+        TREE *treeD = csoundParseOrc(
+            cs,
+            "opcode PassOuter(o:Outer):Outer\n"
+            "  xout o\n"
+            "endop\n"
+            "instr 2\n"
+            "  oA:Outer init\n"
+            "  oB:Outer = PassOuter(oA)\n"
+            "  chnset oB.in.v, \"udoNestedOut\"\n"
+            "endin\n");
+        ASSERT_NE(nullptr, treeD);
+
+        csoundDeleteTree(cs, treeA);
+        csoundDeleteTree(cs, treeB);
+        csoundDeleteTree(cs, treeC);
+        ASSERT_NE(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Inner"));
+        ASSERT_NE(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Outer"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileTree(cs, treeD, 0));
+        csoundDeleteTree(cs, treeD);
+
+        csoundEventString(cs, "i 2 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(cs, "udoNestedOut", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // Deleting both adopting trees without compiling either rolls the struct
+    // back cleanly, allowing a different definition afterwards.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *treeA = csoundParseOrc(cs, "struct Draft x:i\n");
+        ASSERT_NE(nullptr, treeA);
+        TREE *treeB = csoundParseOrc(
+            cs,
+            "instr 1\n"
+            "  box:Draft init 1\n"
+            "endin\n");
+        ASSERT_NE(nullptr, treeB);
+
+        csoundDeleteTree(cs, treeA);
+        EXPECT_NE(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Draft"));
+        csoundDeleteTree(cs, treeB);
+        EXPECT_EQ(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Draft"));
+
+        ASSERT_EQ(CSOUND_SUCCESS,
+                  csoundCompileOrc(cs,
+                                   "struct Draft x:i, y:i\n"
+                                   "instr 1\n"
+                                   "  box:Draft init 3, 4\n"
+                                   "  chnset box.x + box.y, \"redefined\"\n"
+                                   "endin\n"));
+        csoundEventString(cs, "i 1 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(7.0), csoundGetControlChannel(cs, "redefined", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // A failed or unrelated second parse must not prevent treeA rollback.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *treeA = csoundParseOrc(cs, "struct Draft x:i\n");
+        ASSERT_NE(nullptr, treeA);
+        TREE *bad = csoundParseOrc(cs, "instr 1\n  bad =\nendin\n");
+        EXPECT_EQ(nullptr, bad);
+        TREE *unrelated = csoundParseOrc(cs, "instr 1\n  k1 = 1\nendin\n");
+        ASSERT_NE(nullptr, unrelated);
+
+        csoundDeleteTree(cs, treeA);
+        EXPECT_EQ(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Draft"));
+        csoundDeleteTree(cs, unrelated);
+        csoundDestroy(cs);
+    }
+}
+
 TEST_F(OrcCompileTests, NamedInstrRedefinitionWithAllowRedefAndLiveMerge)
 {
     csoundSetOption(csound, "-n -d -m0 --allow-redefinition");
