@@ -74,6 +74,8 @@ if(BUILD_TESTS)
         nxtpow2_test.cpp
         dct_test.cpp
         fft_backend_test.cpp
+        pvlock_formants_test.cpp
+        fixtures/pvlock_formant_test_fixture.c
         engine_test.cpp
         global_env_test.cpp
         realtime_chain_test.cpp

@@ -3,7 +3,7 @@ description = "formant preservation for mincer, temposcal, and filescal"
 
 [expect]
 exit = 0
-output = ["mincer formants ok", "temposcal formants ok", "filescal formants ok", "formant k-rate ok"]
+output = ["mincer formants ok", "klock0 formants ok", "temposcal formants ok", "filescal formants ok", "formant k-rate ok"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -44,6 +44,27 @@ if timeinsts() > 0.2 && !(klevel >= kmin && klevel < 1e30) then
 endif
 endop
 
+opcode check_equal_window, 0, aakkkkS
+a1, a2, ktol, kmin, kstart, kend, Slabel xin
+kdiff rms (a1 - a2)
+klevel rms a1
+ktime = timeinsts()
+if ktime > kstart && ktime < kend && !(kdiff <= ktol && klevel >= kmin && klevel < 1e30) then
+  printks "%s equal window check failed %.9f %.9f\n", 1, Slabel, kdiff, klevel
+  exitnowk(-1)
+endif
+endop
+
+opcode check_differs_window, 0, aakkkkS
+a1, a2, ktol, kmin, kstart, kend, Slabel xin
+kdiff rms (a1 - a2)
+ktime = timeinsts()
+if ktime > kstart && ktime < kend && !(kdiff >= ktol && kdiff < 1e30) then
+  printks "%s difference window check failed %.9f\n", 1, Slabel, kdiff
+  exitnowk(-1)
+endif
+endop
+
 instr 1
 itab ftgen 0, 0, 0, 1, "fox.wav", 0, 0, 0
 apos = 0.1
@@ -62,9 +83,15 @@ check_equal am2, am3, 1e-7, 1e-6
 check_equal am1, acoef, 1e-7, 1e-6
 check_equal adeadoff, adead, 1e-7, 1e-6
 check_nonzero am2, 1e-6
+aoffk0 mincer apos, 1, 2, itab, 0, 512, 4
+am1k0 mincer apos, 1, 2, itab, 0, 512, 4, 1, 1, 80
+am2k0 mincer apos, 1, 2, itab, 0, 512, 4, 1, 2, 80
+check_differs am1k0, aoffk0, 1e-5, 1e-5
+check_differs am2k0, aoffk0, 1e-5, 1e-5
 kdone init 0
 if timeinsts() > 0.3 && kdone == 0 then
   printks "mincer formants ok\n", 0
+  printks "klock0 formants ok\n", 0
   kdone = 1
 endif
 endin
@@ -86,6 +113,9 @@ check_equal am2, am3, 1e-7, 1e-6
 check_equal am1, acoef, 1e-7, 1e-6
 check_equal adeadoff, adead, 1e-7, 1e-6
 check_nonzero am2, 1e-6
+aoffk0 temposcal 0.5, 1, 2, itab, 0, 512, 4, 1, 0, 1, 1
+am1k0 temposcal 0.5, 1, 2, itab, 0, 512, 4, 1, 0, 1, 1, 1, 80
+check_differs am1k0, aoffk0, 1e-5, 1e-5
 kdone init 0
 if timeinsts() > 0.3 && kdone == 0 then
   printks "temposcal formants ok\n", 0
@@ -109,6 +139,9 @@ check_equal am2, am3, 1e-7, 1e-6
 check_equal am1, acoef, 1e-7, 1e-6
 check_equal adeadoff, adead, 1e-7, 1e-6
 check_nonzero am2, 1e-6
+aoffk0 filescal 0.5, 1, 2, "fox.wav", 0, 512, 4, 1, 0, 1, 1
+am1k0 filescal 0.5, 1, 2, "fox.wav", 0, 512, 4, 1, 0, 1, 1, 1, 80
+check_differs am1k0, aoffk0, 1e-5, 1e-5
 kdone init 0
 if timeinsts() > 0.3 && kdone == 0 then
   printks "filescal formants ok\n", 0
@@ -120,17 +153,25 @@ instr 4
 itab ftgen 0, 0, 0, 1, "fox.wav", 0, 0, 0
 apos = 0.1
 aoff mincer apos, 1, 2, itab, 2, 512, 4
+adef mincer apos, 1, 2, itab, 2, 512, 4, 1, 0, 8
 kkeep init 0
 kcoefs init 8
 if timeinsts() > 0.1 then
   kkeep = 1
+endif
+if timeinsts() > 0.25 then
   kcoefs = 80
 endif
+akeep mincer apos, 1, 2, itab, 2, 512, 4, 1, kkeep, 8
 ak mincer apos, 1, 2, itab, 2, 512, 4, 1, kkeep, kcoefs
-check_differs ak, aoff, 1e-5, 1e-5
+check_equal_window ak, aoff, 1e-7, 1e-6, 0.04, 0.09, "initial off"
+check_equal_window ak, adef, 1e-7, 1e-6, 0.04, 0.09, "initial def"
+check_differs_window ak, aoff, 1e-5, 1e-5, 0.14, 0.23, "keep on"
+check_equal_window ak, akeep, 1e-7, 1e-6, 0.14, 0.23, "coefs 8"
+check_differs_window ak, akeep, 1e-6, 1e-6, 0.30, 0.44, "coefs change"
 check_nonzero ak, 1e-6
 kdone init 0
-if timeinsts() > 0.3 && kdone == 0 then
+if timeinsts() > 0.4 && kdone == 0 then
   printks "formant k-rate ok\n", 0
   kdone = 1
 endif
@@ -141,6 +182,6 @@ endin
 i1 0 0.4
 i2 0 0.4
 i3 0 0.4
-i4 0 0.4
+i4 0 0.45
 </CsScore>
 </CsoundSynthesizer>

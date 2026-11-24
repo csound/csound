@@ -213,14 +213,24 @@ static int32_t pv_formant_active(FORMANT_DATA *fd, int32_t N,
   return 1;
 }
 
+static void pv_formant_lifter(cs_float *ceps, int32_t M, int32_t coefs)
+{
+  int32_t k, limit;
+
+  ceps[1] = FL(0.0);
+  limit = 2*coefs;
+  if (limit > M) limit = M;
+  for (k = limit; k < M; k++) ceps[k] = FL(0.0);
+}
+
 static void pv_formant_analyse(CSOUND *csound, FORMANT_DATA *fd, int32_t N,
                                int32_t mode, int32_t coefs,
                                cs_float *fwin, cs_float *bwin)
 {
-  int32_t M = N/2, iter, k, j, cond;
+  int32_t M = N/2, iter, k, j, cond = 0;
   cs_float *fenv = (cs_float *) fd->fenv.auxp;
   cs_float *ceps = (cs_float *) fd->ceps.auxp;
-  cs_float mag, max = FL(0.0);
+  cs_float mag, diff, max = FL(0.0), lift = FL(0.0);
 
   for (k = 0; k < M; k++) {
     j = 2*k;
@@ -231,7 +241,7 @@ static void pv_formant_analyse(CSOUND *csound, FORMANT_DATA *fd, int32_t N,
     cond = 0;
     for (k = 0; k < M; k++) ceps[k] = fenv[k];
     csound->RealFFT(csound, fd->fwdsetup, ceps);
-    for (k = coefs; k < M; k++) ceps[k] = FL(0.0);
+    pv_formant_lifter(ceps, M, coefs);
     csound->RealFFT(csound, fd->invsetup, ceps);
     for (k = 0; k < M; k++) {
       if (mode > 1) {
@@ -245,8 +255,15 @@ static void pv_formant_analyse(CSOUND *csound, FORMANT_DATA *fd, int32_t N,
     }
     if (mode == 1 || !cond) break;
   }
-  if (mode > 1)
-    for (k = 0; k < M; k++) ceps[k] = fenv[k];
+  if (mode > 1 && cond) {
+    for (k = 0; k < M; k++) {
+      j = 2*k;
+      mag = HYPOT(fwin[j], fwin[j + 1]);
+      diff = LOG(mag > FORMANT_FLOOR ? mag : FORMANT_FLOOR) - ceps[k];
+      if (diff > lift) lift = diff;
+    }
+    for (k = 0; k < M; k++) ceps[k] += lift;
+  }
   for (k = 0; k < M; k++) {
     cs_float e = EXP(ceps[k]);
     if (e > max) max = e;
@@ -263,15 +280,29 @@ static void pv_formant_analyse(CSOUND *csound, FORMANT_DATA *fd, int32_t N,
   }
 }
 
-static void pv_formant_restore(FORMANT_DATA *fd, int32_t N, cs_float *fwin)
+static void pv_formant_restore(FORMANT_DATA *fd, int32_t N, cs_float *fwin,
+                               cs_float pitch)
 {
-  int32_t k, j;
+  int32_t k, j, idx;
   int32_t M = N/2;
   cs_float *fenv = (cs_float *) fd->fenv.auxp;
+  cs_float pos, frac, env;
 
+  pitch = FABS(pitch);
   for (k = 1, j = 2; k < M; k++, j += 2) {
-    fwin[j] *= fenv[k];
-    fwin[j + 1] *= fenv[k];
+    pos = pitch*(cs_float)k;
+    if (pos < FL(1.0)) pos = FL(1.0);
+    else if (pos > (cs_float)(M - 1)) pos = (cs_float)(M - 1);
+    idx = (int32_t) pos;
+    frac = pos - (cs_float) idx;
+    if (idx >= M - 1) {
+      idx = M - 1;
+      frac = FL(0.0);
+    }
+    env = fenv[idx];
+    if (frac > FL(0.0)) env += frac*(fenv[idx + 1] - env);
+    fwin[j] *= env;
+    fwin[j + 1] *= env;
   }
 }
 
@@ -918,7 +949,7 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE_MIN *p)
               prev[i+1] = fwin[i+1] = tmp_im;
             }
           }
-          if (formant) pv_formant_restore(&p->formant, N, fwin);
+          if (formant) pv_formant_restore(&p->formant, N, fwin, formant_pitch);
           /* re-order bins and take inverse FFT */
           fwin[1] = fwin[N];
           csound->RealFFT(csound, p->invsetup, fwin);
@@ -1139,7 +1170,7 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM_MIN *p)
               prev[i+1] = fwin[i+1] = tmp_im;
             }
           }
-          if (formant) pv_formant_restore(&p->formant, N, fwin);
+          if (formant) pv_formant_restore(&p->formant, N, fwin, formant_pitch);
           /* re-order bins and take inverse FFT */
           fwin[1] = fwin[N];
           csound->RealFFT(csound, p->invsetup, fwin);
@@ -1408,7 +1439,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
             }
           }
 
-          if (formant) pv_formant_restore(&p->formant, N, fwin);
+          if (formant) pv_formant_restore(&p->formant, N, fwin, formant_pitch);
           fwin[1] = fwin[N];
           csound->RealFFT(csound, p->invsetup, fwin);
 
@@ -1644,7 +1675,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
             }
           }
 
-          if (formant) pv_formant_restore(&p->formant, N, fwin);
+          if (formant) pv_formant_restore(&p->formant, N, fwin, formant_pitch);
           fwin[1] = fwin[N];
           csound->RealFFT(csound, p->invsetup, fwin);
 
@@ -1760,6 +1791,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     cs_float pitch = *p->kpitch*p->resamp, time = *p->time, lock = *p->klock;
+    cs_float formant_pitch = *p->kpitch;
     cs_float *out, amp =*p->kamp;
     int32_t formant, fmode = 0, fcoefs = 0;
     cs_float *tab,frac,  dbtresh = *p->dbthresh;
@@ -1960,7 +1992,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
               }
             }
 
-            if (formant) pv_formant_restore(&p->formant, N, fwin);
+            if (formant) pv_formant_restore(&p->formant, N, fwin, formant_pitch);
             fwin[1] = fwin[N];
             csound->RealFFT(csound,  p->invsetup,  fwin);
 
