@@ -174,6 +174,33 @@ TEST_F(PvlockFormantTests, ActiveUsesRawPitchAndRejectsInvalidControls)
   csound_test_pv_formant_free(csound, handle);
 }
 
+TEST_F(PvlockFormantTests, ActivePreservesHalfUpRounding)
+{
+  const int32_t N = 256;
+  void *handle = csound_test_pv_formant_new(csound, N);
+  int32_t mode = -1, coefs = -1;
+
+  ASSERT_NE(handle, nullptr);
+  EXPECT_EQ(csound_test_pv_formant_active(handle, N, FL(0.5), FL(80.0),
+                                          FL(2.0), &mode, &coefs), 1);
+  EXPECT_EQ(mode, 1);
+  mode = -1;
+  EXPECT_EQ(csound_test_pv_formant_active(handle, N, FL(1.5), FL(80.0),
+                                          FL(2.0), &mode, &coefs), 1);
+  EXPECT_EQ(mode, 2);
+
+  coefs = -1;
+  EXPECT_EQ(csound_test_pv_formant_active(handle, N, FL(1.0), FL(0.6),
+                                          FL(2.0), &mode, &coefs), 1);
+  EXPECT_EQ(coefs, 1);
+  coefs = -1;
+  EXPECT_EQ(csound_test_pv_formant_active(handle, N, FL(1.0), FL(0.4),
+                                          FL(2.0), &mode, &coefs), 1);
+  EXPECT_EQ(coefs, 80);
+
+  csound_test_pv_formant_free(csound, handle);
+}
+
 TEST_F(PvlockFormantTests, EnvelopeFloorBoundsCorrectionGain)
 {
   const int32_t N = 64, M = N/2;

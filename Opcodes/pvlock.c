@@ -203,14 +203,14 @@ static int32_t pv_formant_active(FORMANT_DATA *fd, int32_t N,
   keep = *keepform;
   if (!isfinite(keep)) m = 0;
   else if (keep >= FL(2.5)) m = 2;
-  else if (keep <= FL(0.5)) m = 0;
+  else if (keep < FL(0.5)) m = 0;
   else m = (int32_t)(keep + FL(0.5));
   if (m == 0) return 0;
   if (!isfinite(kpitch)) return 0;
   pitch = FABS(kpitch);
   if (pitch >= FORMANT_PITCH_LOW && pitch <= FORMANT_PITCH_HIGH) return 0;
   coeff = *kcoefs;
-  if (!isfinite(coeff) || coeff < FL(1.0)) n = 80;
+  if (!isfinite(coeff) || coeff < FL(0.5)) n = 80;
   else if (coeff >= (cs_float)(N/2)) n = N/2;
   else n = (int32_t)(coeff + FL(0.5));
   if (n < 1) n = 80;

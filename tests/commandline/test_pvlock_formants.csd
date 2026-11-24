@@ -3,7 +3,7 @@ description = "formant preservation for mincer, temposcal, and filescal"
 
 [expect]
 exit = 0
-output = ["mincer formants ok", "klock0 formants ok", "temposcal formants ok", "filescal formants ok", "formant k-rate ok", "raw pitch bypass ok", "sparse gain bounded ok", "formant state reset ok"]
+output = ["mincer formants ok", "klock0 formants ok", "control rounding ok", "temposcal formants ok", "filescal formants ok", "formant k-rate ok", "raw pitch bypass ok", "sparse gain bounded ok", "formant state reset ok"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -83,6 +83,9 @@ am1 mincer apos, 1, 2, itab, 2, 512, 4, 1, 1, 80
 am2 mincer apos, 1, 2, itab, 2, 512, 4, 1, 2, 80
 am3 mincer apos, 1, 2, itab, 2, 512, 4, 1, 3, 80
 acoef mincer apos, 1, 2, itab, 2, 512, 4, 1, 1, 0
+amhalf mincer apos, 1, 2, itab, 2, 512, 4, 1, 0.5, 80
+acoef1 mincer apos, 1, 2, itab, 2, 512, 4, 1, 1, 1
+acoef06 mincer apos, 1, 2, itab, 2, 512, 4, 1, 1, 0.6
 adeadoff mincer apos, 1, 1, itab, 2, 512, 4
 adead mincer apos, 1, 1, itab, 2, 512, 4, 1, 2, 80
 check_equal aoff, adef, 1e-7, 1e-6
@@ -90,6 +93,9 @@ check_differs am1, aoff, 1e-5, 1e-5
 check_differs am2, aoff, 1e-5, 1e-5
 check_equal am2, am3, 1e-7, 1e-6
 check_equal am1, acoef, 1e-7, 1e-6
+check_equal amhalf, am1, 1e-7, 1e-6
+check_equal acoef06, acoef1, 1e-7, 1e-6
+check_differs acoef1, am1, 1e-5, 1e-5
 check_equal adeadoff, adead, 1e-7, 1e-6
 check_nonzero am2, 1e-6
 aoffk0 mincer apos, 1, 2, itab, 0, 512, 4
@@ -101,6 +107,7 @@ kdone init 0
 if timeinsts() > 0.3 && kdone == 0 then
   printks "mincer formants ok\n", 0
   printks "klock0 formants ok\n", 0
+  printks "control rounding ok\n", 0
   kdone = 1
 endif
 endin
