@@ -71,7 +71,8 @@
 void csound_rt_event_lock(CSOUND *csound)
 {
   /* Realtime init opcodes produce events while the performance thread
-     consumes them. Hold this lock only for list pointer changes. */
+     consumes them. Hold this lock only for list pointer changes, and a due
+     turnoff's look at the allocation queue, whose lock takes no other. */
   if (csound->realtime_locks_initialized)
     csoundSpinLock(&csound->rt_event_spinlock);
 }
@@ -119,6 +120,29 @@ void csound_recycle_rt_event_list_with_tail(CSOUND *csound, EVTNODE *events,
   csound_rt_event_unlock(csound);
 }
 
+/* A d, or an i whose p1, a number or a name, is negative */
+static int32_t is_turnoff(const EVTBLK *evt)
+{
+  if (evt->opcod == 'd')
+    return 1;
+  if (evt->opcod != 'i')
+    return 0;
+  if (IsStringCode(evt->p[1]))
+    return evt->strarg != NULL && *evt->strarg == '-';
+  return evt->p[1] < FL(0.0);
+}
+
+/* Under --realtime a note is inserted on the allocation thread, and a
+   turnoff looks for it among the active instances when it is read: while
+   the queue has work, the note may not be there yet, and the turnoff waits
+   for it, polled each k-cycle. */
+static int32_t turnoff_waits(CSOUND *csound, const EVTBLK *evt)
+{
+  return csound->oparms->realtime && is_turnoff(evt) &&
+         alloc_queue_has_pending(csound);
+}
+
+/* A turnoff that waits stays at the head, and the events after it with it */
 static EVTNODE *rt_event_take_due(CSOUND *csound)
 {
   EVTNODE *event;
@@ -127,7 +151,8 @@ static EVTNODE *rt_event_take_due(CSOUND *csound)
     return NULL;
   event = csound->OrcTrigEvts;
   if (event != NULL && event->start_kcnt <=
-      (uint32_t) csound->global_kcounter) {
+      (uint32_t) csound->global_kcounter &&
+      !turnoff_waits(csound, &event->evt)) {
     csound->OrcTrigEvts = event->nxt;
     event->nxt = NULL;
   }
@@ -991,18 +1016,6 @@ static void section_amps(CSOUND *csound, int32_t enable_msgs)
   }
 }
 
-/* A d, or an i whose p1, a number or a name, is negative */
-static int32_t is_turnoff(const EVTBLK *evt)
-{
-  if (evt->opcod == 'd')
-    return 1;
-  if (evt->opcod != 'i')
-    return 0;
-  if (IsStringCode(evt->p[1]))
-    return evt->strarg != NULL && *evt->strarg == '-';
-  return evt->p[1] < FL(0.0);
-}
-
 /* turn off an indef copy of instr insno, whose p1 is p1 */
 static void indef_off(CSOUND *csound, int32_t insno, cs_float p1)
 {
@@ -1483,10 +1496,9 @@ int32_t sense_events(CSOUND *csound)
         retval = (e->opcod == 'l' ? 3 : (e->opcod == 's' ? 1 : 2));
         goto scode;
       default:                            /* q, i, d, f, a:           */
-        /* A turnoff looks for its note when it is read, and one inserted on
-           the allocation thread may not be there yet: it waits for the
-           queue, as the end of a score does. */
-        if (O->realtime && is_turnoff(e) && alloc_queue_has_pending(csound))
+        /* A turnoff waits for the allocation queue, as the end of a score
+           does, and the score after it waits with it. */
+        if (turnoff_waits(csound, e))
           goto wait_realtime;
         process_score_event(csound, e, 0);/*   handle event now       */
         e->opcod = '\0';                  /*   and get next one       */
