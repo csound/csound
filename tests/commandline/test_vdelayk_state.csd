@@ -29,10 +29,13 @@ DELAY:
   rireturn
   kNegative vdelayk kCount, -6.5/kr, 8/kr
   kLarge vdelayk kCount, 1099511627776/kr, 8/kr
+  ; Wrap the delay before subtracting the write head, even beyond the exact
+  ; integer range of a double intermediate.
+  kVeryLarge vdelayk kCount, (2^100)/kr, 8/kr
   kMaximum vdelayk kCount, 8/kr, 8/kr
   kZero vdelayk kCount, 0, 0
   kExpected = (max(kCount-2,0) + max(kCount-1,0)) / 2
-  if abs(kLinear-kExpected) > .00001 || abs(kNegative-kExpected) > .00001 || kDiscrete != max(kCount-2,0) || kLarge != kCount || kMaximum != kCount || kZero != kCount then
+  if abs(kLinear-kExpected) > .00001 || abs(kNegative-kExpected) > .00001 || kDiscrete != max(kCount-2,0) || kLarge != kCount || kVeryLarge != kCount || kMaximum != kCount || kZero != kCount then
     printks "vdelayk mismatch at cycle %g\n", 0, kCount
     exitnowk(-1)
   endif
