@@ -45,7 +45,7 @@ typedef struct _scale2 {
   OPDS  h;
   cs_float *koutval;
   cs_float *kinval, *kmin, *kmax, *imin, *imax, *ihtim;
-  cs_double c1, c2, yt1;
+  cs_double c1, c2, yt1, correction;
 } SCALE2;
 
 typedef struct _expcurve {
@@ -93,17 +93,62 @@ static int32_t scale_process(CSOUND *csound, scale *p)
     return OK;
 }
 
+/* A convex combination must not overflow when the endpoints are finite. */
+#define SCALE2_LERP(result, low, high, t) do {                              \
+    const cs_double scale2_low = (low);                                   \
+    const cs_double scale2_high = (high);                                 \
+    const cs_double scale2_t = (t);                                       \
+    if (scale2_t <= FL(0.0))                                              \
+      (result) = scale2_low;                                              \
+    else if (scale2_t >= FL(1.0))                                         \
+      (result) = scale2_high;                                             \
+    else {                                                               \
+      /* Step from the nearer endpoint, retaining small displacements. */ \
+      const cs_double scale2_start =                                     \
+        scale2_t <= FL(0.5) ? scale2_low : scale2_high;                    \
+      const cs_double scale2_end =                                       \
+        scale2_t <= FL(0.5) ? scale2_high : scale2_low;                    \
+      const cs_double scale2_fraction =                                  \
+        scale2_t <= FL(0.5) ? scale2_t : FL(1.0) - scale2_t;               \
+      cs_double scale2_difference = scale2_end - scale2_start;            \
+      volatile cs_double scale2_step;                                    \
+      if (isfinite(scale2_difference))                                   \
+        scale2_step = scale2_fraction * scale2_difference;                \
+      else {                                                             \
+        volatile cs_double scale2_halfend = scale2_end * FL(0.5);         \
+        volatile cs_double scale2_halfstart = scale2_start * FL(0.5);     \
+        volatile cs_double scale2_halfdiff =                             \
+          scale2_halfend - scale2_halfstart;                             \
+        volatile cs_double scale2_halfstep =                             \
+          scale2_fraction * scale2_halfdiff;                             \
+        /* The fraction is at most 0.5, so restoring the scale is safe. */\
+        scale2_step = scale2_halfstep * FL(2.0);                          \
+      }                                                                  \
+      (result) = scale2_start + scale2_step;                              \
+    }                                                                    \
+  } while (0)
+
 static int32_t scale2_init(CSOUND *csound, SCALE2 *p)
 {
     if (*p->ihtim < FL(0.0))
       return csound->InitError(csound, "%s\n",
                                Str("scale2: smoothing time must be nonnegative"));
-    p->yt1 = 0.0;
-    if (*p->ihtim != FL(0.0)) {
-      p->c2 = pow(0.5, CS_ONEDKR / (cs_double)*p->ihtim);
-      p->c1 = 1.0 - p->c2;
-    } else {
-      p->c2 = 0.0; p->c1 = 1.0;
+    p->yt1 = p->correction = 0.0;
+    /* Compute both coefficients directly, retaining small updates and poles. */
+    if (*p->ihtim == FL(0.0)) {
+      p->c1 = FL(1.0);
+      p->c2 = FL(0.0);
+    }
+    else {
+#ifdef USE_FLOAT
+      cs_double exponent = -logf(FL(2.0))*CS_ONEDKR/(cs_double)*p->ihtim;
+      p->c1 = -expm1f(exponent);
+      p->c2 = expf(exponent);
+#else
+      cs_double exponent = -log(2.0)*CS_ONEDKR/(cs_double)*p->ihtim;
+      p->c1 = -expm1(exponent);
+      p->c2 = exp(exponent);
+#endif
     }
     return OK;
 }
@@ -115,17 +160,65 @@ static int32_t scale2_process(CSOUND *csound, SCALE2 *p)
     cs_double kmax = *p->kmax;
     cs_double kmin = *p->kmin;
     cs_double val = *p->kinval;
+    cs_double span, from_min, from_max;
     if (UNLIKELY(!(max > min)))
       return csound->PerfError(csound, &p->h, "%s\n",
                                Str("scale2: input maximum must exceed minimum"));
     if (val > max) val = max;
     else if (val < min) val = min;
 
-    val = ((val - min)/(max-min))* (kmax - kmin) + kmin;
-    if (p->c2 == 0.0)
-      p->yt1 = val;
+    span = max - min;
+    /* Halving all terms preserves the ratio when the full span overflows. */
+    if (isfinite(span)) {
+      from_min = val - min;
+      from_max = max - val;
+    }
+    else {
+      volatile cs_double halfval = val * FL(0.5);
+      volatile cs_double halfmin = min * FL(0.5);
+      volatile cs_double halfmax = max * FL(0.5);
+      span = halfmax - halfmin;
+      from_min = halfval - halfmin;
+      from_max = halfmax - halfval;
+    }
+    if (from_max < from_min)
+      SCALE2_LERP(val, kmax, kmin, from_max / span);
     else
-      p->yt1 = p->c1 * val + p->c2 * p->yt1;
+      SCALE2_LERP(val, kmin, kmax, from_min / span);
+    if (p->c2 == FL(0.0)) {
+      p->yt1 = val;
+      p->correction = 0.0;
+    }
+    else if (p->c1 > FL(0.5)) {
+      /* Interpolate from the target so a small pole survives c1 rounding. */
+      SCALE2_LERP(p->yt1, val, p->yt1, p->c2);
+      p->correction = FL(0.0);
+    }
+    else {
+      cs_double difference = val - p->yt1;
+      volatile cs_double update;
+      if (UNLIKELY(!isfinite(difference))) {
+        /* c1 <= 0.5: halve before subtracting, then multiply before
+           restoring the scale. The full increment now fits. */
+        volatile cs_double halfval = val * FL(0.5);
+        volatile cs_double halfstate = p->yt1 * FL(0.5);
+        volatile cs_double halfdiff = halfval - halfstate;
+        volatile cs_double halfupdate =
+          p->c1 * (halfdiff + p->correction * FL(0.5));
+        update = halfupdate * FL(2.0);
+      }
+      else
+        update = p->c1 * (difference + p->correction);
+      /* Keep updates smaller than one ULP in a second cs_double. */
+      /* Force the rounding steps even in a fast-math build. */
+      {
+        volatile cs_double step = update - p->correction;
+        volatile cs_double next = p->yt1 + step;
+        volatile cs_double applied = next - p->yt1;
+        p->correction = applied - step;
+        p->yt1 = next;
+      }
+    }
     *p->koutval = (cs_float)p->yt1;
     return OK;
 }
