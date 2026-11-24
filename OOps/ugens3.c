@@ -76,6 +76,43 @@ static void foscAdvance(CS_PHASE *phase, cs_double increment)
   csPhaseAdvance(phase, &step, negative);
 }
 
+#if defined(USE_FLOAT) && FLT_RADIX == 2 && FLT_MANT_DIG == 24 && \
+    FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128
+static int32_t foscSplitScalarStep(CS_PHASE *step, cs_double increment)
+{
+  if (sizeof(cs_double) == sizeof(uint32_t)) {
+    union { cs_double value; uint32_t bits; } raw = {increment};
+    const uint32_t exponent = (raw.bits >> 23) & UINT32_C(0xff);
+    if (exponent >= 86 && exponent <= 126) {
+      /* These binary32 steps fit exactly in the first two phase words.
+         At exponent 118 the significand's low bit aligns with bit 32. */
+      const uint32_t significand = (raw.bits & UINT32_C(0x7fffff)) |
+                                    UINT32_C(0x800000);
+      if (exponent >= 118) {
+        step->words[0] = significand << (exponent - 118);
+        step->used = 1;
+      } else {
+        const uint32_t shift = 118 - exponent;
+        step->words[0] = shift < FLT_MANT_DIG ? significand >> shift : 0;
+        step->words[1] = significand << (32 - shift);
+        step->used = step->words[1] ? 2 : 1;
+      }
+      return (int32_t)(raw.bits >> 31);
+    }
+  }
+  return foscSplitStep(step, increment);
+}
+
+static void foscAdvanceScalar(CS_PHASE *phase, cs_double increment)
+{
+  CS_PHASE step;
+  const int32_t negative = foscSplitScalarStep(&step, increment);
+  csPhaseAdvance(phase, &step, negative);
+}
+#else
+#define foscAdvanceScalar foscAdvance
+#endif
+
 static cs_float foscLookup(const cs_float *table, uint32_t length,
                            const CS_PHASE *phase, int32_t interpolate)
 {
@@ -213,7 +250,7 @@ int32_t foscil(CSOUND *csound, FOSC *p)
       cincf = cfreq * CS_ONEDSR;
       ar[n] = foscLookup(ftab, (uint32_t)ftlen, &p->car_phase, 0);
       ar[n] *= amp;
-      foscAdvance(&p->car_phase, cincf);
+      foscAdvanceScalar(&p->car_phase, cincf);
     }
   }
 
