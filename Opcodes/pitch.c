@@ -1357,6 +1357,28 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     }
     else {
       const int32_t negative = phasorbnkStep(&step, *p->xcps * CS_ONEDSR);
+#if defined(USE_FLOAT) && defined(BARE_METAL) && defined(__GNUC__) && \
+    !defined(__clang__) && defined(__riscv_float_abi_single) && __riscv_xlen == 32
+      CS_PHASE *phase = &curphs[index];
+      /* One word is already an exact phase on the 2^-32 grid. Unsigned
+         addition wraps without touching any lower phase words. */
+      if (phase->used <= 1 && step.used <= 1) {
+        uint32_t word = phase->words[0];
+        const uint32_t stride = step.used == 0 ? 0 :
+          (negative ? 0U - step.words[0] : step.words[0]);
+        for (n = offset; n < nsmps; ++n) {
+          cs_double value;
+          /* Match the phase accumulator's round-to-nearest-even conversion. */
+          __asm__("fcvt.s.wu %0, %1, rne" : "=f" (value) : "r" (word));
+          value *= FL(0x1p-32);
+          rs[n] = value == FL(1.0) ? FL(0.0) : value;
+          word += stride;
+        }
+        phase->words[0] = word;
+        phase->used = word != 0;
+        return OK;
+      }
+#endif
       for (n=offset; n<nsmps; n++) {
         PHASORBNK_OUTPUT(rs[n]);
         csPhaseAdvance(&curphs[index], &step, negative);
