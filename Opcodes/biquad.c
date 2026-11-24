@@ -1665,16 +1665,212 @@ static int32_t vco(CSOUND *csound, VCO *p)
       return OK;
     }
 
-    static int32_t mvmfilterset(CSOUND *csound, MVMFILT *p)
-    {
-      IGN(csound);
-      if (*p->reinit==FL(0.0)) {
-        p->x = 0;
-        p->y = 0;
-      }
-      return OK;
+static int32_t mvmfilterset(CSOUND *csound, MVMFILT *p)
+{
+    IGN(csound);
+    if (*p->reinit == FL(0.0)) {
+      p->x = p->y = FL(0.0);
+#ifdef USE_FLOAT
+      p->xerror = p->yerror = FL(0.0);
+      p->phase = p->phase_error = FL(0.0);
+#endif
     }
+    return OK;
+}
 
+#ifdef USE_FLOAT
+/* If z[n] = r[n]*exp(i*theta[n])*z[n-1] + input[n], set
+   w[n] = exp(-i*phi[n])*z[n], where phi accumulates theta. Then
+   w[n] = r[n]*w[n-1] + input[n]*exp(-i*phi[n]). This avoids feeding
+   rounded rotation coefficients back into the next sample. */
+
+/* Represent each value as value - error. Volatile protects the rounding
+   steps from fast-math reassociation. */
+#define MVM_VOLATILE_STEP(name, expression)                                  \
+  volatile cs_double name = (expression)
+
+/* GCC can keep the first two state rounding steps in floating-point
+   registers on RISC-V. Keep the residual and both projection sums volatile. */
+#if defined(__riscv_flen) && __riscv_flen >= 32 && defined(__has_builtin)
+# if __has_builtin(__builtin_assoc_barrier)
+#  define MVM_STATE_STEP(name, expression)                                    \
+  const cs_double name = __builtin_assoc_barrier(expression)
+# endif
+#endif
+#ifndef MVM_STATE_STEP
+# define MVM_STATE_STEP MVM_VOLATILE_STEP
+#endif
+
+#define MVM_SUM_ORDERED(result, error, high, low, step) do {                 \
+  step(mv_sum, (high) + (low));                                               \
+  step(mv_back, mv_sum - (high));                                             \
+  volatile cs_double mv_error = mv_back - (low);                            \
+  (result) = mv_sum;                                                         \
+  (error) = mv_error;                                                        \
+} while (0)
+
+#define MVM_SUM(result, error, a, b, step) do {                             \
+  const cs_double mv_a = (a), mv_b = (b);                                   \
+  const cs_double mv_absa = mv_a < FL(0.0) ? -mv_a : mv_a;                  \
+  const cs_double mv_absb = mv_b < FL(0.0) ? -mv_b : mv_b;                  \
+  const cs_double mv_high = mv_absa >= mv_absb ? mv_a : mv_b;               \
+  const cs_double mv_low = mv_absa >= mv_absb ? mv_b : mv_a;                \
+  MVM_SUM_ORDERED(result, error, mv_high, mv_low, step);                     \
+} while (0)
+
+#define MVM_ADD(value, error, increment) do {                               \
+  cs_double mv_next, mv_remainder;                                          \
+  MVM_SUM(mv_next, mv_remainder, (value), (increment), MVM_STATE_STEP);      \
+  mv_remainder += (error);                                                  \
+  MVM_SUM((value), (error), mv_next, -mv_remainder, MVM_STATE_STEP);         \
+} while (0)
+
+#define MVM_PHASE(phase, error, step, detail) do {                          \
+  cs_double mv_next, mv_remainder;                                          \
+  MVM_SUM(mv_next, mv_remainder, (phase), (step), MVM_STATE_STEP);           \
+  mv_remainder += (error) - (detail);                                       \
+  MVM_SUM((phase), (error), mv_next, -mv_remainder, MVM_STATE_STEP);         \
+  if ((phase) >= FL(1.0)) (phase) -= FL(1.0);                               \
+  else if ((phase) < FL(0.0)) {                                             \
+    volatile cs_double mv_wrapped = (phase) + FL(1.0);                      \
+    volatile cs_double mv_back = mv_wrapped - FL(1.0);                      \
+    volatile cs_double mv_wrap_error = mv_back - (phase);                   \
+    (error) += mv_wrap_error;                                               \
+    (phase) = mv_wrapped;                                                   \
+  }                                                                         \
+} while (0)
+
+/* For a pole near one, retain exp(argument)-1 instead of rounding exp to one.
+   For faster decay, multiply directly so a small nonzero pole stays nonzero. */
+#define MVM_DECAY(value, error, factor, incremental) do {                   \
+  const cs_double mv_old = (value), mv_old_error = (error);                 \
+  volatile cs_double mv_product = mv_old * (factor);                        \
+  if (incremental) {                                                        \
+    cs_double mv_next, mv_remainder;                                        \
+    cs_double mv_detail = fmaf(mv_old, (factor), -mv_product);              \
+    /* The expm1 factor has magnitude below one, so mv_old comes first. */ \
+    MVM_SUM_ORDERED(mv_next, mv_remainder, mv_old, mv_product, MVM_STATE_STEP); \
+    mv_remainder += mv_old_error + mv_old_error * (factor) - mv_detail;     \
+    MVM_SUM((value), (error), mv_next, -mv_remainder, MVM_STATE_STEP);       \
+  }                                                                         \
+  else {                                                                    \
+    (value) = mv_product;                                                   \
+    (error) = fmaf(-mv_old, (factor), mv_product)                           \
+      + mv_old_error * (factor);                                            \
+  }                                                                         \
+} while (0)
+
+static void mvmfilter_frequency(cs_double frequency, cs_double fs,
+                                cs_double *step, cs_double *detail)
+{
+    if (frequency > fs * FL(0.5)) frequency = fs * FL(0.5);
+    if (frequency <= -fs) {
+      frequency = FMOD(frequency, fs);
+    }
+    /* Keep fast-math from cancelling the division remainder. */
+    volatile cs_double quotient = frequency / fs;
+    *step = quotient;
+    *detail = fmaf(-quotient, fs, frequency) / fs;
+}
+
+static cs_double mvmfilter_decay(cs_double tau, cs_double fs,
+                                 int32_t *incremental)
+{
+    if (!(tau > FL(0.0))) {
+      *incremental = 0;
+      return FL(0.0);
+    }
+    /* Divide in this order to avoid overflow in tau * fs. */
+    cs_double argument = (-FL(1.0) / fs) / tau;
+    *incremental = argument > -FL(0.5);
+    return *incremental ? expm1f(argument) : EXP(argument);
+}
+
+static int32_t mvmfilter(CSOUND *csound, MVMFILT *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    int32_t asigtau = IS_ASIG_ARG(p->tau), asigf0 = IS_ASIG_ARG(p->f0);
+    int32_t incremental = 0;
+    cs_double fs = CS_ESR, step = 0, detail = 0, decay = 0;
+    cs_double x = p->x, y = p->y, xerror = p->xerror, yerror = p->yerror;
+    cs_double phase = p->phase, phase_error = p->phase_error;
+    cs_float *out = p->out, *in = p->in, *f0 = p->f0, *tau = p->tau;
+
+    if (!asigf0) mvmfilter_frequency(*f0, fs, &step, &detail);
+    if (!asigtau) decay = mvmfilter_decay(*tau, fs, &incremental);
+    if (UNLIKELY(offset)) memset(out, 0, offset * sizeof(cs_float));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(out + nsmps, 0, early * sizeof(cs_float));
+    }
+    for (n = offset; n < nsmps; n++) {
+      if (asigf0) mvmfilter_frequency(f0[n], fs, &step, &detail);
+      if (asigtau) decay = mvmfilter_decay(tau[n], fs, &incremental);
+      cs_double input = in[n], cosine, sine;
+      MVM_PHASE(phase, phase_error, step, detail);
+      /* Reduce around an exact quarter cycle before applying the remainder.
+         This also keeps DC and Nyquist on exact sine/cosine endpoints. */
+      int32_t quadrant = 0;
+      if (LIKELY(isfinite(phase)))
+        quadrant = (int32_t)(phase * FL(4.0) + FL(0.5));
+      cs_double position = (phase - quadrant * FL(0.25)) - phase_error;
+      cs_double angle = position * (cs_double)TWOPI;
+      if (LIKELY(FABS(angle) <= FL(PI / 4.0))) {
+        /* The phase is already reduced. The first omitted Taylor terms
+           are below 2e-9 for sine and 2e-10 for cosine on this interval. */
+        const cs_double squared = angle * angle;
+        sine = fmaf(FL(1.0 / 362880.0), squared, FL(-1.0 / 5040.0));
+        sine = fmaf(sine, squared, FL(1.0 / 120.0));
+        sine = fmaf(sine, squared, FL(-1.0 / 6.0));
+        sine = angle * fmaf(sine, squared, FL(1.0));
+        cosine = fmaf(FL(-1.0 / 3628800.0), squared, FL(1.0 / 40320.0));
+        cosine = fmaf(cosine, squared, FL(-1.0 / 720.0));
+        cosine = fmaf(cosine, squared, FL(1.0 / 24.0));
+        cosine = fmaf(cosine, squared, FL(-0.5));
+        cosine = fmaf(cosine, squared, FL(1.0));
+      } else {
+        cosine = COS(angle);
+        sine = SIN(angle);
+      }
+      cs_double cosbase = cosine;
+      switch (quadrant & 3) {
+      case 1: cosine = -sine; sine = cosbase; break;
+      case 2: cosine = -cosine; sine = -sine; break;
+      case 3: cosine = sine; sine = -cosbase; break;
+      }
+      /* In the rotating frame, feedback only applies decay. Rounded sine
+         and cosine values never become repeated rotation coefficients. */
+      MVM_DECAY(x, xerror, decay, incremental);
+      MVM_DECAY(y, yerror, decay, incremental);
+      volatile cs_double real = x * cosine, imaginary = y * sine;
+      cs_double sum, input_error, projection_error;
+      MVM_SUM(sum, input_error, real, input, MVM_VOLATILE_STEP);
+      MVM_SUM(sum, projection_error, sum, -imaginary, MVM_VOLATILE_STEP);
+      const cs_double detail = fmaf(x, cosine, -real) - fmaf(y, sine, -imaginary)
+        - xerror * cosine + yerror * sine;
+      out[n] = (cs_float)(sum + (detail - input_error - projection_error));
+      if (input != FL(0.0)) {
+        MVM_ADD(x, xerror, input * cosine);
+        MVM_ADD(y, yerror, -input * sine);
+      }
+    }
+    p->x = x; p->y = y;
+    p->xerror = xerror; p->yerror = yerror;
+    p->phase = phase; p->phase_error = phase_error;
+    return OK;
+}
+
+#undef MVM_SUM
+#undef MVM_SUM_ORDERED
+#undef MVM_STATE_STEP
+#undef MVM_VOLATILE_STEP
+#undef MVM_ADD
+#undef MVM_PHASE
+#undef MVM_DECAY
+
+#else
     static int32_t mvmfilter(CSOUND *csound, MVMFILT *p) {
       uint32_t      offset   = p->h.insdshead->ksmps_offset;
       uint32_t      early    = p->h.insdshead->ksmps_no_end;
@@ -1690,7 +1886,7 @@ static int32_t vco(CSOUND *csound, VCO *p)
       f0  = p->f0;
       tau = p->tau;
 
-      /* Long decays and repeated rotations need cs_double coefficients and state. */
+      /* Mixed and double builds retain the direct recursive rotation. */
       cs_double theta,r1,x1,y1,x,y;
       cs_float limit;
       x  = p->x;
@@ -1747,6 +1943,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
 
       return OK;
     }
+
+#endif
 
 
 #define S(x)    sizeof(x)
