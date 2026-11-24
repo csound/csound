@@ -977,7 +977,7 @@ int32_t kperf_debug(CSOUND *csound) {
       /* DEBUGGER disabled for multicore performance */
       int32_t k;
       int32_t n = csound->oparms->numThreads;
-      if (csound->dag_changed)
+      if (ATOMIC_GET(csound->dag_changed))
         dag_build(csound, ip);
       else
         dag_reinit(csound);

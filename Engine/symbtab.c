@@ -347,6 +347,7 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     inm = (OPCODINFO *) csound->Calloc(csound, sizeof(OPCODINFO));
     inm->name = csoundStrdup(csound, opname);
     inm->newStyle = newStyle;
+    inm->latest = inm;
     /* Duplicate strings to avoid dangling pointers to parser-allocated memory */
     inm->intypes = csoundStrdup(csound, intypes);
     inm->outtypes = csoundStrdup(csound, outtypes);

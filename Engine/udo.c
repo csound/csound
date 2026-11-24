@@ -2196,6 +2196,35 @@ static OPCODINFO *find_latest_useropinfo(CSOUND *csound, const char *name,
   return NULL;
 }
 
+void csound_publish_latest_udos(CSOUND *csound) {
+  OPCODINFO *cur;
+  if (csound == NULL) {
+    return;
+  }
+  for (cur = csound->opcodeInfo; cur != NULL; cur = cur->prv) {
+    OPCODINFO *head = cur;
+    OPCODINFO *scan;
+    if (cur->ip == NULL) {
+      continue;
+    }
+    for (scan = csound->opcodeInfo;
+         scan != NULL && scan != cur; scan = scan->prv) {
+      if (scan->ip != NULL &&
+          strcmp(scan->name, cur->name) == 0 &&
+          strcmp(scan->outtypes, cur->outtypes) == 0 &&
+          inargs_match(scan->intypes, cur->intypes) == 0) {
+        head = scan;
+        break;
+      }
+    }
+#ifdef HAVE_ATOMIC_BUILTIN
+    __atomic_store_n(&cur->latest, head, __ATOMIC_RELEASE);
+#else
+    cur->latest = head;
+#endif
+  }
+}
+
 int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 {
   OPDS         *saved_ids = csound->ids;
@@ -2281,6 +2310,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
        parallel dispatcher among them, and takes ip as its bound instance. */
     p->ip = lcurip;
     parent_ip->opcod_deact = (void*) p;
+    if (csound->oparms->numThreads > 1) {
+      ATOMIC_INCR(csound->dag_changed);
+    }
     /* IV - Nov 10 2002: set up pointers to I/O buffers */
     buf = p->buf = (OPCOD_IOBUFS*) lcurip->opcod_iobufs;
     buf->opcode_info = inm;

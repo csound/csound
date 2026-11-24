@@ -4820,6 +4820,296 @@ endop
     }
 }
 
+TEST(ParcsTests, LiveRedefinedUdoDeferredReinitOrdering)
+{
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j" + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char *initialOrc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+
+opcode BumpShared():void
+  kNoop = 0
+endop
+
+instr 1
+  kTrig chnget "trig"
+  kBound init 0
+  if kTrig == 1 && kBound == 0 then
+    kBound = 1
+    reinit bindNow
+  endif
+  igoto skipInit
+  if kBound == 0 kgoto skipInit
+bindNow:
+  BumpShared
+  rireturn
+skipInit:
+endin
+
+instr 2
+  kTrig chnget "trig"
+  kExp init 0
+  kBad init 0
+  if kTrig == 1 then
+    kExp += 1
+    if gkShared != kExp then
+      kBad += 1
+    endif
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+  chnset kExp, "checked"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, initialOrc));
+        csoundReadScore(csound, "i 1 0 1\ni 2 0 1\ne 2\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        csoundSetControlChannel(csound, "trig", FL(0.0));
+        // Build the initial DAG while instr 1 has opcod_deact == NULL.
+        for (int i = 0; i < 8; i++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+
+        const char *redefinedUdo = R"(
+opcode BumpShared():void
+  gkShared += 1
+endop
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefinedUdo));
+        // Trigger deferred reinit on the next k-cycle, keeping instr 1 and 2 running.
+        csoundSetControlChannel(csound, "trig", FL(1.0));
+        for (int i = 0; i < 64; i++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+
+        int32_t err = 0;
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "checked", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "seen", &err));
+        EXPECT_EQ(0, err);
+        csoundDestroy(csound);
+    }
+}
+
+TEST(ParcsTests, LiveRedefinedUdoRealtimeInitAndReinitOrdering)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#endif
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        // Subcase 1: realtime note init with UDO redefined after initial DAG build.
+        {
+            CSOUND *csound = csoundCreate(nullptr, nullptr);
+            ASSERT_NE(nullptr, csound);
+            std::string jOpt = "-j" + std::to_string(threads);
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+            const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+
+opcode BumpShared():void
+  kNoop = 0
+endop
+
+instr 1
+  chnset 1, "i1Ready"
+  kGo chnget "go"
+  if kGo == 1 then
+    BumpShared
+  endif
+endin
+
+instr 2
+  chnset 1, "i2Ready"
+  kGo chnget "go"
+  kExp init 0
+  kBad init 0
+  if kGo == 1 then
+    kExp += 1
+    if gkShared != kExp then
+      kBad += 1
+    endif
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+  chnset kExp, "checked"
+endin
+
+instr 3
+  ; Keep the engine alive before instr 1 and 2 are scheduled.
+  kKeepAlive = 0
+endin
+)";
+            ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+            csoundReadScore(csound, "i 3 0 10\ne 11\n");
+            ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+            for (int i = 0; i < 4; i++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+            }
+
+            const char *redefinedUdo = R"(
+opcode BumpShared():void
+  gkShared += 1
+endop
+)";
+            ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefinedUdo));
+            csoundReadScore(csound, "i 1 0 10\ni 2 0 10\n");
+
+            int32_t err = 0;
+            for (int step = 0; step < 2000; step++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+                if (csoundGetControlChannel(csound, "i1Ready", &err) == FL(1.0) &&
+                    csoundGetControlChannel(csound, "i2Ready", &err) == FL(1.0)) {
+                    break;
+                }
+                csoundSleep(1);
+            }
+            ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "i1Ready", &err));
+            ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "i2Ready", &err));
+
+            csoundSetControlChannel(csound, "go", FL(1.0));
+            for (int i = 0; i < 64; i++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+            }
+
+            EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+            EXPECT_EQ(0, err);
+            EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "checked", &err));
+            EXPECT_EQ(0, err);
+            EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "seen", &err));
+            EXPECT_EQ(0, err);
+            csoundDestroy(csound);
+        }
+
+        // Subcase 2: realtime deferred reinit binding after initial DAG build.
+        {
+            CSOUND *csound = csoundCreate(nullptr, nullptr);
+            ASSERT_NE(nullptr, csound);
+            std::string jOpt = "-j" + std::to_string(threads);
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+            const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+
+opcode BumpShared():void
+  kNoop = 0
+endop
+
+instr 1
+  chnset 1, "i1Ready"
+  kTrig chnget "trig"
+  kGo chnget "go"
+  kBound init 0
+  if kTrig == 1 && kBound == 0 then
+    kBound = 1
+    reinit bindNow
+  endif
+  igoto skipInit
+  if kGo == 0 kgoto skipInit
+bindNow:
+  iBound = 1
+  chnset iBound, "i1Bound"
+  BumpShared
+  rireturn
+skipInit:
+endin
+
+instr 2
+  chnset 1, "i2Ready"
+  kGo chnget "go"
+  kExp init 0
+  kBad init 0
+  if kGo == 1 then
+    kExp += 1
+    if gkShared != kExp then
+      kBad += 1
+    endif
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+  chnset kExp, "checked"
+endin
+)";
+            ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+            csoundReadScore(csound, "i 1 0 10\ni 2 0 10\ne 11\n");
+            ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+            int32_t err = 0;
+            for (int step = 0; step < 2000; step++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+                if (csoundGetControlChannel(csound, "i1Ready", &err) == FL(1.0) &&
+                    csoundGetControlChannel(csound, "i2Ready", &err) == FL(1.0)) {
+                    break;
+                }
+                csoundSleep(1);
+            }
+            ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "i1Ready", &err));
+            ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "i2Ready", &err));
+
+            const char *redefinedUdo = R"(
+opcode BumpShared():void
+  gkShared += 1
+endop
+)";
+            ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefinedUdo));
+            csoundSetControlChannel(csound, "trig", FL(1.0));
+            for (int step = 0; step < 2000; step++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+                if (csoundGetControlChannel(csound, "i1Bound", &err) == FL(1.0)) {
+                    break;
+                }
+                csoundSleep(1);
+            }
+            ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "i1Bound", &err));
+
+            csoundSetControlChannel(csound, "go", FL(1.0));
+            for (int i = 0; i < 64; i++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+            }
+
+            EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+            EXPECT_EQ(0, err);
+            EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "checked", &err));
+            EXPECT_EQ(0, err);
+            EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "seen", &err));
+            EXPECT_EQ(0, err);
+            csoundDestroy(csound);
+        }
+    }
+}
+
 #if !defined(_WIN32)
 TEST_F(OrcCompileTests, LineventPipeDoesNotBlockWhileProducerIsOpen)
 {

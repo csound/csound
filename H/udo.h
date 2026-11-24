@@ -142,6 +142,7 @@ void free_user_opcode_buffers(CSOUND *, UOPCODE *);
 void recycle_init_only_udo_instances(CSOUND *, INSDS *);
 void build_user_opcode_rewire_plan(CSOUND *, OPCODINFO *);
 void free_opcode_info_chain(CSOUND *);
+void csound_publish_latest_udos(CSOUND *);
 
 /* Storage a pass-by-ref UDO argument was rewired onto (a caller argument or
    output work buffer), or NULL for an ordinary local or a pass-by-copy call.

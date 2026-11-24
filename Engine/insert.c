@@ -1360,8 +1360,12 @@ uintptr_t event_insert_thread(void *p) {
           initResult = instance_init_finish(csound, ip);
           if (error == 0 && initResult != INSTANCE_INIT_TURNOFF) {
             ATOMIC_SET8(ip->actflg, 1);
-            if (initResult == INSTANCE_INIT_COMPLETE)
+            if (initResult == INSTANCE_INIT_COMPLETE) {
               ATOMIC_SET(ip->init_done, 1);
+              if (csound->oparms->numThreads > 1) {
+                ATOMIC_INCR(csound->dag_changed);
+              }
+            }
           }
           else
             ATOMIC_SET(ip->init_done, 0);
@@ -1384,8 +1388,12 @@ uintptr_t event_insert_thread(void *p) {
           error = realtime_init_pass(csound, ip);
           note_init_leave(outer);
           initResult = instance_init_finish(csound, ip);
-          if (initResult == INSTANCE_INIT_COMPLETE && error == 0)
+          if (initResult == INSTANCE_INIT_COMPLETE && error == 0) {
             ATOMIC_SET(ip->init_done, 1);
+            if (csound->oparms->numThreads > 1) {
+              ATOMIC_INCR(csound->dag_changed);
+            }
+          }
           if (error != 0)
             instance_init_request_turnoff(csound, ip);
           csoundSpinUnLock(&csound->alloc_spinlock);
@@ -1874,7 +1882,11 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     /* Add an active instrument */
     tp->active++;
     tp->instcnt++;
-    csound->dag_changed++;      /* Need to remake DAG */
+    if (csound->oparms->numThreads > 1) {
+      ATOMIC_INCR(csound->dag_changed);
+    } else {
+      csound->dag_changed++;      /* Need to remake DAG */
+    }
     if(order == 1) { // MODE 1 = add to end
       INSDS *prvp, *nxtp;
       nxtp = &(csound->actanchor);
@@ -2139,7 +2151,11 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   }
   tp->active++;
   tp->instcnt++;
-  csound->dag_changed++;      /* Need to remake DAG */
+  if (csound->oparms->numThreads > 1) {
+    ATOMIC_INCR(csound->dag_changed);
+  } else {
+    csound->dag_changed++;      /* Need to remake DAG */
+  }
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
@@ -2686,7 +2702,11 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
       if (!current->linked && current->fdchp != NULL &&
           !instance_has_async_refs(current))
         fdchclose(csound, current);
-      csound->dag_changed++;
+      if (csound->oparms->numThreads > 1) {
+        ATOMIC_INCR(csound->dag_changed);
+      } else {
+        csound->dag_changed++;
+      }
       if (frame->completeTurnoff)
         instance_turnoff_complete(csound, current, 1);
       frameCount--;
@@ -2772,7 +2792,11 @@ static void xturnoff_internal(CSOUND *csound, INSDS *ip, int32_t force)
   else {
     /* no extra time needed: deactivate immediately */
     deact_internal(csound, ip);
-    csound->dag_changed++;      /* Need to remake DAG */
+    if (csound->oparms->numThreads > 1) {
+      ATOMIC_INCR(csound->dag_changed);
+    } else {
+      csound->dag_changed++;      /* Need to remake DAG */
+    }
     if (!force)
       instance_turnoff_complete(csound, ip, 1);
   }

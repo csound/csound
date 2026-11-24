@@ -247,7 +247,7 @@ int32_t kperf(CSOUND *csound) {
 #ifdef PARCS
       int32_t k, error = 0;
       int32_t n = csound->oparms->numThreads;
-      if (csound->dag_changed)
+      if (ATOMIC_GET(csound->dag_changed))
         dag_build(csound, ip);
       else
         dag_reinit(csound); /* set to initial state */

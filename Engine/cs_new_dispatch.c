@@ -205,6 +205,7 @@ typedef struct dag_instr_deps {
     uint32_t read_res;
     uint32_t write_res;
     int32_t requires_order;
+    int32_t has_udo_call;
     void **reads;
     int32_t nreads, cap_reads;
     void **writes;
@@ -244,6 +245,15 @@ static int32_t is_inplace_global_write_op(const OENTRY *ep)
            strcmp(ep->opname, "##member_set") == 0;
 }
 
+static inline OPCODINFO *load_latest_udo(const OPCODINFO *udo)
+{
+#ifdef HAVE_ATOMIC_BUILTIN
+    return __atomic_load_n(&udo->latest, __ATOMIC_ACQUIRE);
+#else
+    return udo->latest;
+#endif
+}
+
 static void dag_collect_instr_deps(CSOUND *csound, INSTRTXT *instr,
                                    DAG_INSTR_DEPS *deps, int32_t depth)
 {
@@ -274,7 +284,12 @@ static void dag_collect_instr_deps(CSOUND *csound, INSTRTXT *instr,
         }
         if (ep->useropinfo != NULL) {
           OPCODINFO *udo = (OPCODINFO *)ep->useropinfo;
+          OPCODINFO *latest = load_latest_udo(udo);
+          deps->has_udo_call = 1;
           dag_collect_instr_deps(csound, udo->ip, deps, depth + 1);
+          if (latest != NULL && latest != udo) {
+            dag_collect_instr_deps(csound, latest->ip, deps, depth + 1);
+          }
         } else if (ep->perf == (SUBR)subinstr ||
                    ep->init == (SUBR)subinstrset ||
                    ep->init == (SUBR)subinstrset_S ||
@@ -318,6 +333,12 @@ static void dag_collect_instance_deps(CSOUND *csound, INSDS *insds,
       return;
     }
     dag_collect_instr_deps(csound, insds->instr, deps, 0);
+    if (deps->has_udo_call && !ATOMIC_GET(insds->init_done)) {
+      /* Async realtime init or reinit may still be unbound on the init thread
+         and become runnable mid-cycle: preserve order until next DAG build. */
+      deps->requires_order = 1;
+      return;
+    }
     if (insds->instr != NULL) {
       seen[nseen++] = insds->instr;
     }
@@ -387,13 +408,36 @@ static int32_t dag_deps_conflict(const DAG_INSTR_DEPS *a,
     return 0;
 }
 
+void dag_reinit(CSOUND *csound);
+
 void dag_build(CSOUND *csound, INSDS *chain)
 {
-    INSDS *save = chain;
+    INSDS *save;
     INSDS **task_map;
     DAG_INSTR_DEPS *task_deps;
     int32_t i;
+    int32_t locked = 0;
 
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized) {
+      if (csoundSpinTryLock(&csound->alloc_spinlock) != CSOUND_SUCCESS) {
+        /* Keep dag_changed nonzero so the next k-cycle rebuilds once
+           actanchor/engineState publication completes; never block audio. */
+        if (csound->dag_task_status != NULL && csound->dag_num_active > 0)
+          dag_reinit(csound);
+        else
+          csound->dag_num_active = 0;
+        return;
+      }
+      locked = 1;
+      /* Re-read actanchor under alloc_spinlock so notes spliced at the head
+         after kperf sampled actanchor.nxtact are included. */
+      chain = csound->actanchor.nxtact;
+    }
+#endif
+    save = chain;
+
+    ATOMIC_SET(csound->dag_changed, 0);
     csound->dag_num_active = 0;
     while (chain != NULL) {
       csound->dag_num_active++;
@@ -419,16 +463,20 @@ void dag_build(CSOUND *csound, INSDS *chain)
       memset((void *)csound->dag_task_watch, 0,
              sizeof(watchList *) * csound->dag_task_max_size);
     }
-    csound->dag_changed = 0;
-    if (csound->dag_num_active == 0)
+    if (csound->dag_num_active == 0) {
+#if CSOUND_SPINLOCK_AVAILABLE
+      if (locked)
+        csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
       return;
+    }
 
     task_map = csound->dag_task_map;
     task_deps = (DAG_INSTR_DEPS *)csound->Calloc(
       csound, sizeof(DAG_INSTR_DEPS) * csound->dag_num_active);
     i = 0;
     chain = save;
-    while (chain != NULL) {
+    while (chain != NULL && i < csound->dag_num_active) {
       csound->dag_task_status[i].s = AVAILABLE;
       csound->dag_wlmm[i].id = i;
       task_map[i] = chain;
@@ -436,6 +484,11 @@ void dag_build(CSOUND *csound, INSDS *chain)
       i++;
       chain = chain->nxtact;
     }
+    csound->dag_num_active = i;
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (locked)
+      csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
     if (UNLIKELY(csound->oparms->odebug))
       printf("dag_num_active = %d\n", csound->dag_num_active);
     for (i = 0; i < csound->dag_num_active; i++) {
@@ -476,6 +529,8 @@ void dag_reinit(CSOUND *csound)
     volatile stateWithPadding *task_status = csound->dag_task_status;
     watchList * volatile *task_watch = csound->dag_task_watch;
     watchList *wlmm = csound->dag_wlmm;
+    if (csound->dag_num_active <= 0 || task_status == NULL)
+      return;
     if (UNLIKELY(csound->oparms->odebug))
       printf("DAG REINIT************************\n");
     for (i=csound->dag_num_active; i<max; i++)
@@ -535,9 +590,13 @@ taskID dag_get_task(CSOUND *csound, int32_t index, int32_t numThreads, taskID ne
     int32_t i;
     int32_t count_waiting = 0;
     int32_t active = csound->dag_num_active;
-    int32_t start = (index * active) / numThreads;
     volatile stateWithPadding *task_status = csound->dag_task_status;
+    int32_t start;
     enum state current_task_status;
+
+    if (active <= 0 || task_status == NULL)
+      return (taskID)INVALID;
+    start = (index * active) / numThreads;
 
     if (next_task != INVALID) {
       // Have forwarded one task from the previous one

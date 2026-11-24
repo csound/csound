@@ -242,6 +242,7 @@ extern "C" {
     OENTRY *oentry;
     PBR_REWIRE_PLAN *pbr_plan;
     struct opcodinfo *prv;
+    struct opcodinfo *latest;
   } OPCODINFO;
 
 

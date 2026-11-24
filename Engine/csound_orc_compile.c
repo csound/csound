@@ -2195,6 +2195,10 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
   }
   finish_instr_references(csound, engineState, 1);
   named_instr_publish_numbers(csound);
+  csound_publish_latest_udos(csound);
+  if (csound->oparms->numThreads > 1) {
+    ATOMIC_INCR(csound->dag_changed);
+  }
 
   // VL 23-09-2022
   // At the moment, instr0 can't be freed anywhere because it may hold state
@@ -2988,6 +2992,7 @@ int32_t csound_compile_tree(CSOUND *csound, TREE *root, int32_t async)
   }
   finish_compile_references(csound, references, 0, 0);
   if (engineState == &csound->engineState) {
+    csound_publish_latest_udos(csound);
     commit_provisional_structs(csound, &typeTable->retainedStructs);
     free_typetable(csound, typeTable);
   }
