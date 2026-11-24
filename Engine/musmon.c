@@ -668,6 +668,9 @@ static void stop_event_insert_thread(CSOUND *csound)
       csound->alloc_queue = NULL;
       ATOMIC_SET(csound->alloc_queue_items, 0);
       csound->alloc_queue_active = 0;
+      /* a jump can leave a request uncompleted: no ticket waits for it */
+      csound->alloc_queue_queued = csound->alloc_queue_done = 0;
+      csound->score_turnoff_waiting = 0;
       ATOMIC_SET(csound->alloc_queue_midi, 0);
       csound->midi_event_pending = 0;
       csound->alloc_queue_wp = 0;
