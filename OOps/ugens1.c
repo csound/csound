@@ -768,8 +768,18 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)
                      &p->cursegp, CS_ESR, CS_ESR, 0);
 }
 
+/* Preserve the rounding steps without spilling on RV32 with hardware float. */
+#if defined(USE_FLOAT) && defined(BARE_METAL) && defined(__GNUC__) && \
+    !defined(__clang__) && defined(__riscv_float_abi_single) && __riscv_xlen == 32
+#define EXPSEG_ROUND(name, expression)                                      \
+  cs_double name = (expression);                                           \
+  __asm__ __volatile__ ("" : "+f" (name))
+#else
+#define EXPSEG_ROUND(name, expression) volatile cs_double name = (expression)
+#endif
+
 /* Store a slow curve's change from one directly, then retain updates that
-   fall below the spacing of val. Volatile prevents fast-math reassociation. */
+   fall below the spacing of val. */
 #define EXPSEG_ADVANCE(value, multiplier, delta, correction, exponent) do {           \
   cs_double *const expseg_value = &(value);                                 \
   cs_double *const expseg_correction = (correction);                        \
@@ -777,11 +787,11 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)
   const cs_double expseg_multiplier = (multiplier);                         \
   const cs_double expseg_delta = (delta);                                   \
   if (expseg_delta > FL(-0.5) && expseg_delta < FL(0.5)) {                  \
-    volatile cs_double expseg_update =                                      \
-      (expseg_current - *expseg_correction) * expseg_delta;                 \
-    volatile cs_double expseg_step = expseg_update - *expseg_correction;    \
-    volatile cs_double expseg_next = expseg_current + expseg_step;          \
-    volatile cs_double expseg_applied = expseg_next - expseg_current;       \
+    EXPSEG_ROUND(expseg_update,                                             \
+                 (expseg_current - *expseg_correction) * expseg_delta);     \
+    EXPSEG_ROUND(expseg_step, expseg_update - *expseg_correction);           \
+    EXPSEG_ROUND(expseg_next, expseg_current + expseg_step);                 \
+    EXPSEG_ROUND(expseg_applied, expseg_next - expseg_current);              \
     *expseg_correction = expseg_applied - expseg_step;                      \
     *expseg_value = expseg_next;                                            \
   }                                                                         \
@@ -888,6 +898,7 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
 }
 
 #undef EXPSEG_ADVANCE
+#undef EXPSEG_ROUND
 #undef EXPSEG_ABS
 #undef EXPSEG_FREXP
 #undef EXPSEG_LDEXP
