@@ -63,6 +63,7 @@ if(BUILD_TESTS)
         pitch_test.cpp
         delayk_test.cpp
         resonbnk_test.cpp
+        rms_test.cpp
         diode_ladder_test.cpp
         seed_state_test.cpp
         trigseq_test.cpp
