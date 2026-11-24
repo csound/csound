@@ -1826,7 +1826,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   EVTNODE       *prv;
   CSOUND        *st = csound;
   uint32        start_kcnt;
-  int32_t       i, retval = -1;
+  int32_t       i = 0, retval = -1;
   EVTBLK        *evt = &(e->evt);
   cs_float         *pf = evt->p;
 
@@ -1884,9 +1884,17 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
       cs_float n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY(n == FL(0.0)))
         goto missing_name;
+      /* A tag can take the number past the table, and past an int: it is
+         bounded before it is converted. Under realtime locks the dispatch
+         checks it against the table, as a number, and here it must only be
+         an int. */
+      if (!csound->realtime_locks_initialized) {
+        if (UNLIKELY((i = named_insno(csound, n)) == 0))
+          goto missing_name;
+      }
+      else if (UNLIKELY(!(FABS(n) < FL(2147483648.0))))
+        goto missing_name;
       pf[1] = n;
-      i =(int32_t) n;
-      if (n<0) {i= -i;}
     }
     else
       i = (int32_t) fabs((cs_double) pf[1]);
