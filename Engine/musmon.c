@@ -133,13 +133,13 @@ static int32_t is_turnoff(const EVTBLK *evt)
 }
 
 /* Under --realtime a note is inserted on the allocation thread, and a
-   turnoff looks for it among the active instances when it is read: while
-   the queue has work, the note may not be there yet, and the turnoff waits
-   for it, polled each k-cycle. */
-static int32_t turnoff_waits(CSOUND *csound, const EVTBLK *evt)
+   turnoff looks for it among the active instances when it is read: it
+   waits for the requests queued before it, polled each k-cycle. */
+static int32_t turnoff_waits(CSOUND *csound, const EVTBLK *evt,
+                             int32_t *waiting, uint64_t *ticket)
 {
   return csound->oparms->realtime && is_turnoff(evt) &&
-         alloc_queue_has_pending(csound);
+         alloc_queue_turnoff_waits(csound, waiting, ticket);
 }
 
 /* A turnoff that waits stays at the head, and the events after it with it */
@@ -152,7 +152,8 @@ static EVTNODE *rt_event_take_due(CSOUND *csound)
   event = csound->OrcTrigEvts;
   if (event != NULL && event->start_kcnt <=
       (uint32_t) csound->global_kcounter &&
-      !turnoff_waits(csound, &event->evt)) {
+      !turnoff_waits(csound, &event->evt, &event->turnoff_waiting,
+                     &event->turnoff_ticket)) {
     csound->OrcTrigEvts = event->nxt;
     event->nxt = NULL;
   }
@@ -1496,9 +1497,10 @@ int32_t sense_events(CSOUND *csound)
         retval = (e->opcod == 'l' ? 3 : (e->opcod == 's' ? 1 : 2));
         goto scode;
       default:                            /* q, i, d, f, a:           */
-        /* A turnoff waits for the allocation queue, as the end of a score
-           does, and the score after it waits with it. */
-        if (turnoff_waits(csound, e))
+        /* A turnoff waits for the notes queued before it, and the score
+           after it waits with it. */
+        if (turnoff_waits(csound, e, &csound->score_turnoff_waiting,
+                          &csound->score_turnoff_ticket))
           goto wait_realtime;
         process_score_event(csound, e, 0);/*   handle event now       */
         e->opcod = '\0';                  /*   and get next one       */
@@ -1515,6 +1517,7 @@ int32_t sense_events(CSOUND *csound)
     }
     else {
       /* else read next score event */
+        csound->score_turnoff_waiting = 0;  /* a new event, no ticket */
         if (!(rdscor(csound, e))){
           /* or rd nxt evt from scstr */
           e->opcod = 'e';
@@ -1949,6 +1952,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   }
   /* queue new event */
   e->start_kcnt = start_kcnt;
+  e->turnoff_waiting = 0;          /* a turnoff takes its ticket when due */
   csound_rt_event_lock(csound);
   prv = csound->OrcTrigEvts;
   /* if list is empty, or at beginning of list: */

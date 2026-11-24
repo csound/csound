@@ -491,6 +491,8 @@ int32_t alloc_queue_lock_init(CSOUND *csound)
   ATOMIC_SET(csound->alloc_queue_midi, 0);
   csound->midi_event_pending = 0;
   csound->alloc_queue_wp = 0;
+  csound->alloc_queue_queued = csound->alloc_queue_done = 0;
+  csound->score_turnoff_waiting = 0;
   return realtime_spin_lock_init(&csound->alloc_queue_spinlock);
 }
 
@@ -518,6 +520,7 @@ int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
     csound->alloc_queue[wp] = *data;
     csound->alloc_queue[wp].rewinds = ATOMIC_GET(csound->score_rewinds);
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
+    csound->alloc_queue_queued++;
     ATOMIC_INCR(csound->alloc_queue_items);
     if (data->type == ALLOC_DATA_MIDI_EVENT)
       ATOMIC_INCR(csound->alloc_queue_midi);
@@ -554,6 +557,27 @@ int32_t alloc_queue_has_pending(CSOUND *csound)
   return result;
 }
 
+/* A turnoff looks for its note among the active instances, and the note may
+   still be queued here. It waits for the requests queued when it first
+   asks, its ticket, and for no later one: the single worker completes them
+   in order, so other work cannot hold it. */
+int32_t alloc_queue_turnoff_waits(CSOUND *csound, int32_t *waiting,
+                                  uint64_t *ticket)
+{
+  int32_t result;
+
+  alloc_queue_lock(csound);
+  if (!*waiting) {
+    *ticket = csound->alloc_queue_queued;
+    *waiting = 1;
+  }
+  result = csound->alloc_queue_done < *ticket;
+  if (!result)
+    *waiting = 0;
+  alloc_queue_unlock(csound);
+  return result;
+}
+
 /* Keep MIDI parsing on the performance thread, but do not let later note-off
    or controller messages overtake an accepted asynchronous note-on. */
 int32_t alloc_queue_midi_ready(CSOUND *csound, int32_t wait_for_init)
@@ -584,6 +608,7 @@ static void alloc_queue_complete(CSOUND *csound, int32_t type)
 {
   alloc_queue_lock(csound);
   csound->alloc_queue_active--;
+  csound->alloc_queue_done++;
   if (type == ALLOC_DATA_MIDI_EVENT)
     ATOMIC_DECR(csound->alloc_queue_midi);
   alloc_queue_unlock(csound);

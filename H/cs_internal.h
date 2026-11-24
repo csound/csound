@@ -153,6 +153,8 @@ extern "C" {
     struct eventnode  *nxt;
     uint32     start_kcnt;
     EVTBLK            evt;
+    uint64_t          turnoff_ticket;  /* a waiting turnoff's, see       */
+    int32_t           turnoff_waiting; /*   alloc_queue_turnoff_waits()  */
   } EVTNODE;
 
   typedef struct {
