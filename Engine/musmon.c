@@ -991,12 +991,11 @@ static void section_amps(CSOUND *csound, int32_t enable_msgs)
   }
 }
 
-static void indef_off(CSOUND *csound, cs_float p1)   /* turn off an indef copy of instr p1 */
+/* turn off an indef copy of instr insno, whose p1 is p1 */
+static void indef_off(CSOUND *csound, int32_t insno, cs_float p1)
 {
   INSDS *ip;
-  int32_t   insno;
 
-  insno = (int32_t) p1;
   if (LIKELY((ip = (csound->engineState.instrtxtp[insno])->instance) != NULL)) {
     do {
       if (ip->insno == insno          /* if find the insno */
@@ -1019,6 +1018,22 @@ static void indef_off(CSOUND *csound, cs_float p1)   /* turn off an indef copy o
 }
 
 
+
+/* The instrument a named event's number names, or 0 if none. A name that
+   remove() left still finds its number, and a tag adds to the number:
+   "Name.1e9" is 1e8 past it. So the number is bounded before it is
+   converted, and its definition checked, as a numbered p1's is. */
+static int32_t named_insno(CSOUND *csound, cs_float n)
+{
+  cs_float a = FABS(n);
+  int32_t  insno;
+
+  if (UNLIKELY(!(a >= FL(1.0) &&
+                 a < (cs_float) csound->engineState.maxinsno + FL(1.0))))
+    return 0;
+  insno = (int32_t) a;
+  return csound->engineState.instrtxtp[insno] != NULL ? insno : 0;
+}
 
 static CS_NOINLINE void print_score_error(CSOUND *p, int32_t rtEvt,
                                         const char *fmt, ...)
@@ -1071,9 +1086,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   case 'q':
     if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       cs_float n = named_instr_find(csound, evt->strarg);
-      /* checked as a number is below: remove() leaves the name */
-      if (UNLIKELY((insno = abs((int32_t) n)) == 0 ||
-                   csound->engineState.instrtxtp[insno] == NULL)) {
+      if (UNLIKELY((insno = named_insno(csound, n)) == 0)) {
         print_score_error(csound, rtEvt,
                         Str(" - note deleted. instr %s undefined\n"),
                         evt->strarg);
@@ -1103,18 +1116,14 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   case 'd':
     if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       cs_float n = named_instr_find(csound, evt->strarg);
-      if (UNLIKELY((insno = (int)n) == 0 ||   /* as for q above */
-                   csound->engineState.instrtxtp[abs(insno)] == NULL)) {
+      if (UNLIKELY((insno = named_insno(csound, n)) == 0)) {
         print_score_error(csound, rtEvt,
                         Str(" - note deleted. instr %s undefined\n"),
                         evt->strarg);
         break;
       }
       evt->p[1] = n;
-      if (insno<0) {
-        evt->p[1] = insno; insno = -insno;
-      }
-      else if (evt->opcod=='d') evt->p[1]=-insno;
+      if (n < FL(0.0) || evt->opcod == 'd') evt->p[1] = -insno;
       if ((rfd = getRemoteInsRfd(csound, insno))) {
         /* RM: if this note labeled as remote_cleanup */
         if (rfd == GLOBAL_REMOT)
@@ -1126,7 +1135,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
       }
       evt->p[1] = n;
       if (n < FL(0.0) || evt->opcod == 'd') {  /* a turnoff, as below */
-        indef_off(csound, FABS(n));
+        indef_off(csound, insno, FABS(n));
         break;
       }
       if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
@@ -1174,7 +1183,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
         }
       }
       if (evt->p[1] < FL(0.0) || evt->opcod == 'd') /* if p1 neg, or d, */
-        indef_off(csound, FABS(evt->p[1]));    /*  turnoff any infin cpy */
+        indef_off(csound, insno, FABS(evt->p[1])); /* turnoff any infin cpy */
       else {
         if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
           evt->p[3] = evt->p3orig * (cs_float) csound->ibeatTime/csound->esr;
