@@ -444,22 +444,152 @@ static int32_t phaser2set(CSOUND *csound, PHASER2 *p)
       return csound->InitError(csound,
                                "%s\n", Str("Phaser mode must be either 1 or 2"));
     }
-    loop = p->loop = (int32_t) CS_FLOAT2LONG(*p->order);
+    if (UNLIKELY(!(*p->order >= FL(0.0) && *p->order < FL(INT32_MAX))))
+      return csound->InitError(csound, "%s\n", Str("phaser2: invalid stage count"));
+    loop = (int32_t) CS_FLOAT2LONG(*p->order);
+#ifdef USE_FLOAT
+    const size_t state_size = sizeof(PHASER2STATE);
+#else
+    const size_t state_size = sizeof(cs_double);
+#endif
+    if (UNLIKELY((size_t)loop > SIZE_MAX / state_size))
+      return csound->InitError(csound, "%s\n", Str("phaser2: invalid stage count"));
+    p->loop = loop;
 
+#ifdef USE_FLOAT
+    if (*p->iskip == FL(0.0) || p->aux1.auxp == NULL) {
+      csound->AuxAlloc(csound, (size_t)loop * state_size, &p->aux1);
+      p->feedback = FL(0.0);
+    }
+    else {
+      phaser_grow_state(csound, &p->aux1, (size_t)loop * state_size);
+    }
+    p->state = (PHASER2STATE *)p->aux1.auxp;
+#else
     if (*p->iskip==0 || p->aux1.auxp==NULL || p->aux2.auxp==NULL) {
-      csound->AuxAlloc(csound, (size_t)loop*sizeof(cs_double), &p->aux1);
-      csound->AuxAlloc(csound, (size_t)loop*sizeof(cs_double), &p->aux2);
+      csound->AuxAlloc(csound, (size_t)loop * state_size, &p->aux1);
+      csound->AuxAlloc(csound, (size_t)loop * state_size, &p->aux2);
       p->feedback = 0.0;
     }
     else {
-      phaser_grow_state(csound, &p->aux1, (size_t)loop*sizeof(cs_double));
-      phaser_grow_state(csound, &p->aux2, (size_t)loop*sizeof(cs_double));
+      phaser_grow_state(csound, &p->aux1, (size_t)loop * state_size);
+      phaser_grow_state(csound, &p->aux2, (size_t)loop * state_size);
     }
     p->nm1 = (cs_double *) p->aux1.auxp;
     p->nm2 = (cs_double *) p->aux2.auxp;
+#endif
     return OK;
 }
 
+#ifdef USE_FLOAT
+/* Store each sum as value - error. Keep the rounding steps under fast-math. */
+#define PHASER2_ADD(value, error, increment) do {                           \
+  volatile cs_double ph_increment = (increment) - (error);                  \
+  volatile cs_double ph_next = (value) + ph_increment;                      \
+  volatile cs_double ph_back = ph_next - (value);                           \
+  (error) = ph_back - ph_increment;                                         \
+  (value) = ph_next;                                                        \
+} while (0)
+
+/* Leave room to add state and apply the section coefficients. Rescale
+   by an exact power of two as the input or accumulated state grows. */
+static void phaser2Scale(PHASER2STATE *state, cs_double input)
+{
+    const cs_double threshold = FL(79228162514264337593543950336.0); /* 2^96 */
+    const cs_double magnitude = fmaxf(FABS(state->value), FABS(state->delta));
+    if (state->exponent == 0 && magnitude < threshold && FABS(input) < threshold)
+      return;
+    if (!isfinite(magnitude) || !isfinite(input))
+      return;
+    int signal_exp = 0, state_exp = 0;
+    if (input != FL(0.0)) frexpf(input, &signal_exp);
+    if (magnitude != FL(0.0)) {
+      frexpf(magnitude, &state_exp);
+      state_exp += state->exponent;
+    }
+    int exponent = (signal_exp > state_exp ? signal_exp : state_exp) - 96;
+    if (exponent < 0) exponent = 0;
+    if (exponent != state->exponent) {
+      const int shift = state->exponent - exponent;
+      state->value = ldexpf(state->value, shift);
+      state->delta = ldexpf(state->delta, shift);
+      state->value_error = ldexpf(state->value_error, shift);
+      state->exponent = exponent;
+    }
+}
+
+static int32_t phaser2(CSOUND *csound, PHASER2 *p)
+{
+    const cs_double kbf = FABS(*p->kbf), ksep = FABS(*p->ksep);
+    const cs_double kq = *p->kbw, fbgain = *p->fbgain, fs = CS_ESR;
+    cs_double feedback = p->feedback, kk = FL(1.0);
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
+    uint32_t n, nsmps = CS_KSMPS;
+    int32_t j;
+
+    /* All controls are k-rate. Calculate each section once per block. */
+    for (j = 0; j < p->loop; j++) {
+      PHASER2STATE *state = &p->state[j];
+      cs_double freq;
+      if (p->modetype == 1) freq = kbf + kbf * ksep * j;
+      else { freq = kbf * kk; kk *= ksep; }
+      cs_double decay = (cs_double)PI * (freq / fs) / kq;
+      cs_double r = EXP(-decay), loss = -expm1f(-decay);
+      cs_double angle_freq = FMOD(freq, fs);
+      if (angle_freq > fs * FL(0.5)) angle_freq -= fs;
+      int32_t sign = 1;
+      if (angle_freq > fs * FL(0.25)) {
+        sign = -1; angle_freq = fs * FL(0.5) - angle_freq;
+      }
+      else if (angle_freq < -fs * FL(0.25)) {
+        sign = -1; angle_freq = -fs * FL(0.5) - angle_freq;
+      }
+      /* For the reflected angle, stiffness = 1 - 2*r*cos(angle) + r*r.
+         Form it from small terms, without subtracting coefficients near one. */
+      cs_double sine = SIN((cs_double)PI * (angle_freq / fs));
+      state->damping = -expm1f(-FL(2.0) * decay);
+      state->stiffness = loss * loss + FL(4.0) * r * sine * sine;
+      if (sign != state->sign) {
+        /* d = w[n-1] - sign*w[n-2]; preserve both canonical histories. */
+        state->delta = FL(2.0) * (state->value - state->value_error)
+          - state->delta;
+        state->sign = sign;
+      }
+    }
+    if (UNLIKELY(offset)) memset(p->out, 0, offset * sizeof(cs_float));
+    if (UNLIKELY(early)) {
+      nsmps -= early;
+      memset(p->out + nsmps, 0, early * sizeof(cs_float));
+    }
+    for (n = offset; n < nsmps; n++) {
+      cs_double xn = p->in[n] + feedback * fbgain, yn = FL(0.0);
+      for (j = 0; j < p->loop; j++) {
+        PHASER2STATE *state = &p->state[j];
+        const cs_double sign = state->sign;
+        phaser2Scale(state, xn);
+        const cs_double input = state->exponent == 0 ? xn : ldexpf(xn, -state->exponent);
+        cs_double old_delta = sign * state->delta;
+        volatile cs_double change = input - state->damping * old_delta
+          - state->stiffness * sign * (state->value - state->value_error);
+        volatile cs_double delta = old_delta + change;
+        state->delta = delta;
+        state->value *= sign; state->value_error *= sign;
+        PHASER2_ADD(state->value, state->value_error, delta);
+        /* y = x + (r*r-1)*(w[n]-w[n-2]). Use differences directly,
+           rather than subtracting two large canonical state values. */
+        yn = input - state->damping * (delta + old_delta);
+        if (state->exponent != 0) yn = ldexpf(yn, state->exponent);
+        xn = yn;
+      }
+      p->out[n] = (cs_float)yn;
+      feedback = yn;
+    }
+    p->feedback = feedback;
+    return OK;
+}
+#undef PHASER2_ADD
+#else
 static int32_t phaser2(CSOUND *csound, PHASER2 *p)
 {
     /* Low-frequency allpass sections need cs_double coefficients and state. */
@@ -539,6 +669,8 @@ static int32_t phaser2(CSOUND *csound, PHASER2 *p)
     p->feedback = feedback;
     return OK;
 }
+
+#endif
 
 /* initialization for 2nd-order lowpass filter */
 static int32_t lp2_set(CSOUND *csound, LP2 *p)
