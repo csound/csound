@@ -152,14 +152,16 @@ static int32_t named_insno(CSOUND *csound, cs_float n)
    thread, and a turnoff looks for its note among the instances when it is
    read. It waits while a note it would turn off, as indef_off matches one,
    is still to be inserted by a request queued before it first waited, or
-   is in a reinit, and for nothing else. Polled each k-cycle, with the
-   allocation lock held, so that no insert or reinit ends meanwhile. */
+   is in an init. With no such note active, it also waits for any earlier
+   request of its instrument, whose init may set p1 to its own. Polled each
+   k-cycle, with the allocation lock held, so that no insert or reinit ends
+   meanwhile. */
 static int32_t turnoff_waits(CSOUND *csound, const EVTBLK *evt,
                              int32_t *waiting, uint64_t *ticket)
 {
   const INSDS *ip;
   cs_float n, p1;
-  int32_t  insno;
+  int32_t  insno, active = 0, in_init = 0;
 
   if (!csound->oparms->realtime || !is_turnoff(evt))
     return 0;
@@ -170,14 +172,18 @@ static int32_t turnoff_waits(CSOUND *csound, const EVTBLK *evt,
     *waiting = 0;                     /* refused when it is processed */
     return 0;
   }
-  if (alloc_queue_holds_note(csound, insno, p1, waiting, ticket))
-    return 1;
-  /* reinit clears actflg as it queues the pass, which restores it */
+  /* a reinit clears actflg as it queues the pass, which restores it */
   for (ip = csound->engineState.instrtxtp[insno]->instance; ip != NULL;
        ip = ip->nxtinstance)
-    if (ip->p1.value == p1 && ip->offtim < 0.0 &&
-        !ATOMIC_GET8(ip->actflg) && ATOMIC_GET(ip->init_running) > 0)
-      return 1;
+    if (ip->p1.value == p1 && ip->offtim < 0.0) {
+      if (ATOMIC_GET(ip->init_running) > 0)
+        in_init = 1;
+      else if (ATOMIC_GET8(ip->actflg))
+        active = 1;
+    }
+  if (alloc_queue_holds_note(csound, insno, p1, !active, waiting, ticket) ||
+      in_init)
+    return 1;
   *waiting = 0;
   return 0;
 }

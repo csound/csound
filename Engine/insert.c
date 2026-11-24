@@ -530,20 +530,29 @@ int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
   return result;
 }
 
-/* The instr of the note a request starts or ties, and its p1 (a MIDI
-   note's is its instr), or 0 */
-static int32_t request_note(const ALLOC_DATA *data, cs_float *p1)
+/* The instr of the note a request inits, starting, tying or reinitializing
+   it, or 0. For a note it starts or ties, *note is 1 and *p1 its p1 as
+   queued (a MIDI note's is its instr); a reinit's has none here. */
+static int32_t request_instr(const ALLOC_DATA *data, cs_float *p1,
+                             int32_t *note)
 {
-  if (data->type == ALLOC_DATA_MIDI_EVENT) {
+  *note = 0;
+  switch (data->type) {
+  case ALLOC_DATA_MIDI_EVENT:
     *p1 = (cs_float) data->insno;
+    *note = 1;
     return data->insno;
-  }
-  if (data->type == ALLOC_DATA_SCORE_EVENT && data->blk.p != NULL &&
-      data->blk.pcnt >= 1) {
-    *p1 = data->blk.p[1];
+  case ALLOC_DATA_SCORE_EVENT:
+    if (data->blk.p != NULL && data->blk.pcnt >= 1) {
+      *p1 = data->blk.p[1];
+      *note = 1;
+    }
     return data->insno;
+  case ALLOC_DATA_REINIT_PASS:     /* kept alive by its init_running */
+    return data->ip != NULL ? (int32_t) data->ip->insno : 0;
+  default:
+    return 0;
   }
-  return 0;
 }
 
 static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
@@ -560,7 +569,8 @@ static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
     csound->alloc_queue_active++;
     /* out of the ring now, and its note maybe not inserted yet */
     csound->alloc_queue_work_insno =
-      request_note(data, &csound->alloc_queue_work_p1);
+      request_instr(data, &csound->alloc_queue_work_p1,
+                    &csound->alloc_queue_work_note);
     csound->alloc_queue_work_seq = data->seq;
     result = 1;
   }
@@ -578,17 +588,19 @@ int32_t alloc_queue_has_pending(CSOUND *csound)
   return result;
 }
 
-/* Whether a request queued up to a turnoff's ticket would start or tie a
-   note of instr insno whose p1 is p1, as indef_off matches one: the request
-   the worker took, or one still queued. The first call takes the ticket,
-   the last request queued, so that later ones do not count. At most the
+/* Whether a request queued up to a turnoff's ticket inits a note of instr
+   insno that it may turn off: one whose p1 is p1, as indef_off matches one,
+   or with any_p1, any, since an init can change p1. The request the worker
+   took counts, as one still queued. The first call takes the ticket, the
+   last request queued, so that later ones do not count. At most the
    queue's capacity is read, oldest first, under its lock. */
 int32_t alloc_queue_holds_note(CSOUND *csound, int32_t insno, cs_float p1,
-                               int32_t *waiting, uint64_t *ticket)
+                               int32_t any_p1, int32_t *waiting,
+                               uint64_t *ticket)
 {
   unsigned long i, n;
-  cs_float note_p1;
-  int32_t held;
+  cs_float note_p1 = FL(0.0);
+  int32_t held, note;
 
   alloc_queue_lock(csound);
   if (!*waiting) {
@@ -596,13 +608,14 @@ int32_t alloc_queue_holds_note(CSOUND *csound, int32_t insno, cs_float p1,
     *waiting = 1;
   }
   held = csound->alloc_queue_work_insno == insno &&
-    csound->alloc_queue_work_p1 == p1 &&
-    csound->alloc_queue_work_seq <= *ticket;
+    csound->alloc_queue_work_seq <= *ticket &&
+    (any_p1 ||
+     (csound->alloc_queue_work_note && csound->alloc_queue_work_p1 == p1));
   n = (unsigned long) ATOMIC_GET(csound->alloc_queue_items);
   i = (csound->alloc_queue_wp + MAX_ALLOC_QUEUE - n) % MAX_ALLOC_QUEUE;
   for (; !held && n > 0 && csound->alloc_queue[i].seq <= *ticket; n--) {
-    held = request_note(&csound->alloc_queue[i], &note_p1) == insno &&
-      note_p1 == p1;
+    held = request_instr(&csound->alloc_queue[i], &note_p1, &note) == insno &&
+      (any_p1 || (note && note_p1 == p1));
     i = i + 1 < MAX_ALLOC_QUEUE ? i + 1 : 0;
   }
   alloc_queue_unlock(csound);

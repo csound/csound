@@ -1996,8 +1996,9 @@ struct CSOUND_ {
   uint64_t alloc_queue_work_seq;                             /* the seq of the request the worker took */
   uint64_t score_turnoff_ticket;                             /* alloc_queue_queued when the score's turnoff first waited */
   int32_t score_turnoff_waiting;                             /* the score's turnoff waits, with its ticket */
-  int32_t alloc_queue_work_insno;                            /* the instr of the note that request starts or ties, until it completes, or 0 */
+  int32_t alloc_queue_work_insno;                            /* the instr of the note that request inits, until it completes, or 0 */
   cs_float alloc_queue_work_p1;                              /* and that note's p1 */
+  int32_t alloc_queue_work_note;                             /* that request has a p1: it starts or ties a note, it is no reinit */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

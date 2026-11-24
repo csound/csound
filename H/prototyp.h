@@ -130,7 +130,8 @@ extern "C" {
                               const struct _alloc_data_ *data);
   int32_t alloc_queue_has_pending(CSOUND *csound);
   int32_t alloc_queue_holds_note(CSOUND *csound, int32_t insno, cs_float p1,
-                                 int32_t *waiting, uint64_t *ticket);
+                                 int32_t any_p1, int32_t *waiting,
+                                 uint64_t *ticket);
   int32_t alloc_queue_midi_ready(CSOUND *csound, int32_t wait_for_init);
   void alloc_queue_stop(CSOUND *csound);
   int32_t realtime_message_queue_start(CSOUND *csound);
