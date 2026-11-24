@@ -912,6 +912,7 @@ static void ifa(CSOUND *csound)
 static void setprv(CSOUND *csound)      /*  set insno = (int32_t) p1val         */
 {                                       /*  prvibp = prv note, same insno   */
     SRTBLK *p = (csound->sread.bp);
+    cs_float p1;
     int16 n;
 
     if (IsStringCode((csound->sread.bp)->p1val) &&
@@ -930,22 +931,21 @@ static void setprv(CSOUND *csound)      /*  set insno = (int32_t) p1val         
         csound->DebugMsg(csound, "negative name %s\n", name);
       }
       /* find corresponding insno */
-      if (UNLIKELY(!(n = (int16) named_instr_find(csound, name+sign)))) {
+      if (UNLIKELY((p1 = named_instr_find(csound, name+sign)) == FL(0.0))) {
         csound->Message(csound, Str("WARNING: instr %s not found, "
                                     "assuming insno = -1\n"), name);
-        n = -1;
+        p1 = -FL(1.0);
       }
-      if (sign) n = -n;
+      if (sign) p1 = -p1;
       if (name != buff)
         csound->Free(csound, name);
     }
-    else {                                              /* set current insno */
-      /* An instrument's number is an int16, and so is insno. A p1 outside it
-         names no instrument, and its conversion would be undefined: it gets
-         the one number no instrument or turnoff has. */
-      cs_float p1 = (csound->sread.bp)->p1val;
-      n = (p1 > -FL(32768.0) && p1 < FL(32768.0)) ? (int16) p1 : INT16_MIN;
-    }
+    else p1 = (csound->sread.bp)->p1val;               /* set current insno */
+    /* An instrument's number is an int16, and so is insno. A p1 outside it
+       names no instrument, and its conversion would be undefined: it gets
+       the one number no instrument or turnoff has. A name's tag can take its
+       number there too: "Name.1e9" is 1e8 past it. */
+    n = (p1 > -FL(32768.0) && p1 < FL(32768.0)) ? (int16) p1 : INT16_MIN;
     (csound->sread.bp)->insno = n;
 
     while ((p = p->prvblk) != NULL)

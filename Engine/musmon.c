@@ -71,7 +71,8 @@
 void csound_rt_event_lock(CSOUND *csound)
 {
   /* Realtime init opcodes produce events while the performance thread
-     consumes them. Hold this lock only for list pointer changes. */
+     consumes them. Hold this lock only for list pointer changes, and a due
+     turnoff's look at the allocation queue, whose lock takes no other. */
   if (csound->realtime_locks_initialized)
     csoundSpinLock(&csound->rt_event_spinlock);
 }
@@ -119,6 +120,75 @@ void csound_recycle_rt_event_list_with_tail(CSOUND *csound, EVTNODE *events,
   csound_rt_event_unlock(csound);
 }
 
+/* A d, or an i whose p1, a number or a name, is negative */
+static int32_t is_turnoff(const EVTBLK *evt)
+{
+  if (evt->opcod == 'd')
+    return 1;
+  if (evt->opcod != 'i')
+    return 0;
+  if (IsStringCode(evt->p[1]))
+    return evt->strarg != NULL && *evt->strarg == '-';
+  return evt->p[1] < FL(0.0);
+}
+
+/* The instrument a name's number, or a p1, names, or 0 if none. A name that
+   remove() left still finds its number, and a tag adds to the number:
+   "Name.1e9" is 1e8 past it. So the number is bounded before it is
+   converted, and its definition checked, as a numbered p1's is. */
+static int32_t named_insno(CSOUND *csound, cs_float n)
+{
+  cs_float a = FABS(n);
+  int32_t  insno;
+
+  if (UNLIKELY(!(a >= FL(1.0) &&
+                 a < (cs_float) csound->engineState.maxinsno + FL(1.0))))
+    return 0;
+  insno = (int32_t) a;
+  return csound->engineState.instrtxtp[insno] != NULL ? insno : 0;
+}
+
+/* Under --realtime a note is inserted, and a reinit run, on the allocation
+   thread, and a turnoff looks for its note among the instances when it is
+   read. It waits while a note it would turn off, as indef_off matches one,
+   is still to be inserted by a request queued before it first waited, or
+   is in an init. With no such note active, it also waits for any earlier
+   request of its instrument, whose init may set p1 to its own. Polled each
+   k-cycle, with the allocation lock held, so that no insert or reinit ends
+   meanwhile. */
+static int32_t turnoff_waits(CSOUND *csound, const EVTBLK *evt,
+                             int32_t *waiting, uint64_t *ticket)
+{
+  const INSDS *ip;
+  cs_float n, p1;
+  int32_t  insno, active = 0, in_init = 0;
+
+  if (!csound->oparms->realtime || !is_turnoff(evt))
+    return 0;
+  n = IsStringCode(evt->p[1]) && evt->strarg != NULL ?
+    named_instr_find(csound, evt->strarg) : evt->p[1];
+  p1 = FABS(n);
+  if ((insno = named_insno(csound, n)) == 0) {
+    *waiting = 0;                     /* refused when it is processed */
+    return 0;
+  }
+  /* a reinit clears actflg as it queues the pass, which restores it */
+  for (ip = csound->engineState.instrtxtp[insno]->instance; ip != NULL;
+       ip = ip->nxtinstance)
+    if (ip->p1.value == p1 && ip->offtim < 0.0) {
+      if (ATOMIC_GET(ip->init_running) > 0)
+        in_init = 1;
+      else if (ATOMIC_GET8(ip->actflg))
+        active = 1;
+    }
+  if (alloc_queue_holds_note(csound, insno, p1, !active, waiting, ticket) ||
+      in_init)
+    return 1;
+  *waiting = 0;
+  return 0;
+}
+
+/* A turnoff that waits stays at the head, and the events after it with it */
 static EVTNODE *rt_event_take_due(CSOUND *csound)
 {
   EVTNODE *event;
@@ -127,7 +197,9 @@ static EVTNODE *rt_event_take_due(CSOUND *csound)
     return NULL;
   event = csound->OrcTrigEvts;
   if (event != NULL && event->start_kcnt <=
-      (uint32_t) csound->global_kcounter) {
+      (uint32_t) csound->global_kcounter &&
+      !turnoff_waits(csound, &event->evt, &event->turnoff_waiting,
+                     &event->turnoff_ticket)) {
     csound->OrcTrigEvts = event->nxt;
     event->nxt = NULL;
   }
@@ -642,6 +714,10 @@ static void stop_event_insert_thread(CSOUND *csound)
       csound->alloc_queue = NULL;
       ATOMIC_SET(csound->alloc_queue_items, 0);
       csound->alloc_queue_active = 0;
+      /* a jump can leave a request uncompleted: no turnoff waits for it */
+      csound->alloc_queue_queued = 0;
+      csound->alloc_queue_work_insno = 0;
+      csound->score_turnoff_waiting = 0;
       ATOMIC_SET(csound->alloc_queue_midi, 0);
       csound->midi_event_pending = 0;
       csound->alloc_queue_wp = 0;
@@ -991,12 +1067,11 @@ static void section_amps(CSOUND *csound, int32_t enable_msgs)
   }
 }
 
-static void indef_off(CSOUND *csound, cs_float p1)   /* turn off an indef copy of instr p1 */
+/* turn off an indef copy of instr insno, whose p1 is p1 */
+static void indef_off(CSOUND *csound, int32_t insno, cs_float p1)
 {
   INSDS *ip;
-  int32_t   insno;
 
-  insno = (int32_t) p1;
   if (LIKELY((ip = (csound->engineState.instrtxtp[insno])->instance) != NULL)) {
     do {
       if (ip->insno == insno          /* if find the insno */
@@ -1071,7 +1146,7 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   case 'q':
     if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       cs_float n = named_instr_find(csound, evt->strarg);
-      if (UNLIKELY((insno = (int32_t) n) == 0)) {
+      if (UNLIKELY((insno = named_insno(csound, n)) == 0)) {
         print_score_error(csound, rtEvt,
                         Str(" - note deleted. instr %s undefined\n"),
                         evt->strarg);
@@ -1101,17 +1176,14 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   case 'd':
     if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       cs_float n = named_instr_find(csound, evt->strarg);
-      if (UNLIKELY((insno = (int)n) == 0)) {
+      if (UNLIKELY((insno = named_insno(csound, n)) == 0)) {
         print_score_error(csound, rtEvt,
                         Str(" - note deleted. instr %s undefined\n"),
                         evt->strarg);
         break;
       }
       evt->p[1] = n;
-      if (insno<0) {
-        evt->p[1] = insno; insno = -insno;
-      }
-      else if (evt->opcod=='d') evt->p[1]=-insno;
+      if (n < FL(0.0) || evt->opcod == 'd') evt->p[1] = -insno;
       if ((rfd = getRemoteInsRfd(csound, insno))) {
         /* RM: if this note labeled as remote_cleanup */
         if (rfd == GLOBAL_REMOT)
@@ -1122,6 +1194,10 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
         }
       }
       evt->p[1] = n;
+      if (n < FL(0.0) || evt->opcod == 'd') {  /* a turnoff, as below */
+        indef_off(csound, insno, FABS(n));
+        break;
+      }
       if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
         evt->p[3] = evt->p3orig * (cs_float) csound->ibeatTime/csound->esr;
       /* else alloc, init, activate */
@@ -1166,8 +1242,8 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
           break;                      /* RM: and quit              */
         }
       }
-      if (evt->p[1] < FL(0.0))         /* if p1 neg,             */
-        indef_off(csound, -evt->p[1]);    /*  turnoff any infin cpy */
+      if (evt->p[1] < FL(0.0) || evt->opcod == 'd') /* if p1 neg, or d, */
+        indef_off(csound, insno, FABS(evt->p[1])); /* turnoff any infin cpy */
       else {
         if (csound->oparms->Beatmode && !rtEvt && evt->p3orig > FL(0.0))
           evt->p[3] = evt->p3orig * (cs_float) csound->ibeatTime/csound->esr;
@@ -1439,15 +1515,8 @@ int32_t sense_events(CSOUND *csound)
            off-time. */
         if (O->realtime && (alloc_queue_has_pending(csound) ||
                             ATOMIC_GET(csound->score_rewind_request) !=
-                            ATOMIC_GET(csound->score_rewind_served))) {
-          waiting_for_realtime_work = 1;
-          /* Polling the init worker does not end a score segment. */
-          STA(score_segment_polling) = 1;
-          csound->nxtim =
-            (csound->icurTimeSamples + csound->ksmps) / csound->esr;
-          csound->nxtbt = csound->curBeat + csound->curBeat_inc;
-          break;
-        }
+                            ATOMIC_GET(csound->score_rewind_served)))
+          goto wait_realtime;
         if (csound->frstoff != NULL) {    /* if still have notes
                                              with finite length, wait
                                              until all are turned off */
@@ -1461,14 +1530,39 @@ int32_t sense_events(CSOUND *csound)
         /* end of: 1: section, 2: score, 3: lplay list */
         retval = (e->opcod == 'l' ? 3 : (e->opcod == 's' ? 1 : 2));
         goto scode;
-      default:                            /* q, i, f, a:              */
+      default:                            /* q, i, d, f, a:           */
+        /* A realtime turnoff is read under the allocation lock, as a line
+           event's is: it waits for a note it turns off, and the score
+           after it waits with it; a busy lock waits a k-cycle too. */
+        if (O->realtime && is_turnoff(e)) {
+          int32_t waits = 1;
+          RT_SPIN_TRYLOCK
+          waits = turnoff_waits(csound, e, &csound->score_turnoff_waiting,
+                                &csound->score_turnoff_ticket);
+          if (!waits)
+            process_score_event(csound, e, 0);
+          RT_SPIN_UNLOCK
+          if (waits)
+            goto wait_realtime;
+          e->opcod = '\0';
+          continue;
+        }
         process_score_event(csound, e, 0);/*   handle event now       */
         e->opcod = '\0';                  /*   and get next one       */
         continue;
+      wait_realtime:
+        waiting_for_realtime_work = 1;
+        /* Polling the init worker does not end a score segment. */
+        STA(score_segment_polling) = 1;
+        csound->nxtim =
+          (csound->icurTimeSamples + csound->ksmps) / csound->esr;
+        csound->nxtbt = csound->curBeat + csound->curBeat_inc;
+        break;
       }
     }
     else {
       /* else read next score event */
+        csound->score_turnoff_waiting = 0;  /* a new event, no ticket */
         if (!(rdscor(csound, e))){
           /* or rd nxt evt from scstr */
           e->opcod = 'e';
@@ -1792,7 +1886,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   EVTNODE       *prv;
   CSOUND        *st = csound;
   uint32        start_kcnt;
-  int32_t       i, retval = -1;
+  int32_t       i = 0, retval = -1;
   EVTBLK        *evt = &(e->evt);
   cs_float         *pf = evt->p;
 
@@ -1846,29 +1940,26 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   case 'q':                         /* mute instrument */
     /* check for a valid instrument number or name: a name not found is 0,
        which in p1 would be a note for instr 0, the global code run again */
-    if (evt->opcod=='d') {
-      if (evt->strarg != NULL && IsStringCode(pf[1])) {
-        cs_float n = named_instr_find(csound, evt->strarg);
-        if (UNLIKELY(n == FL(0.0)))
-          goto missing_name;
-        i = (int32_t) n;
-        pf[1] = -i;
-      }
-      else {
-        i = (int32_t) fabs((cs_double) pf[1]);
-        pf[1] = -i;
-      }
-    }
-    else if (evt->strarg != NULL && IsStringCode(pf[1])) {
+    if (evt->strarg != NULL && IsStringCode(pf[1])) {
       cs_float n = named_instr_find(csound, evt->strarg);
       if (UNLIKELY(n == FL(0.0)))
         goto missing_name;
+      /* A tag can take the number past the table, and past an int: it is
+         bounded before it is converted. Under realtime locks the dispatch
+         checks it against the table, as a number, and here it must only be
+         an int. */
+      if (!csound->realtime_locks_initialized) {
+        if (UNLIKELY((i = named_insno(csound, n)) == 0))
+          goto missing_name;
+      }
+      else if (UNLIKELY(!(FABS(n) < FL(2147483648.0))))
+        goto missing_name;
       pf[1] = n;
-      i =(int32_t) n;
-      if (n<0) {i= -i;}
     }
     else
       i = (int32_t) fabs((cs_double) pf[1]);
+    if (evt->opcod=='d')            /* a turnoff, of the tagged note too */
+      pf[1] = -FABS(pf[1]);
 
     /* Realtime dispatch checks this under the publication lock. A render
        opcode must not inspect the table halfway through a background merge. */
@@ -1906,6 +1997,7 @@ static int32_t insert_event_node(CSOUND *csound, EVTNODE *e, int64_t time_ofs) {
   }
   /* queue new event */
   e->start_kcnt = start_kcnt;
+  e->turnoff_waiting = 0;          /* a turnoff takes its ticket when due */
   csound_rt_event_lock(csound);
   prv = csound->OrcTrigEvts;
   /* if list is empty, or at beginning of list: */
