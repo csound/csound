@@ -167,10 +167,11 @@ static int32_t fog(CSOUND *csound, FOGS *p)
           result *= *(ftp2->ftable + (size_t) (ovp->risphsf * ftp2->flen));
           ovp->risphsf += ovp->risincf;
         }
-        if (ovp->timrem <= ovp->dectim) {       /*  formant dec envlp */
-          result *= *(ftp2->ftable + (size_t) (ovp->decphsf * ftp2->flen));
-          if ((ovp->decphsf -= ovp->decincf) < 0.)
-            ovp->decphsf = 0.;
+        if (ovp->timrem > 0 && ovp->timrem <= ovp->dectim) {       /*  formant dec envlp */
+          /* Keep the lookup just below the endpoint. The integer clock
+             advances even when the decay step is smaller than a phase ULP. */
+          const uint64_t position = (uint64_t)ovp->timrem * ftp2->flen;
+          result *= ftp2->ftable[(position - 1U) / (uint32_t)ovp->dectim];
         } 
       } else {
         fract = PFRAC1(ovp->formphs);                   /*JMC Fog*/
@@ -311,10 +312,7 @@ static int32_t newpulse(CSOUND *csound, FOGS *p, OVERLAP *ovp, const cs_float   
 
   /*  fnb dec  */
   if(p->floatph) {
-    if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0)
-      ovp->decincf = (CS_ONEDSR / *p->kdec);
-    /* Start at the end of the rise table, as the fixed-point path does. */
-    ovp->decphsf = 1.0 - DBL_EPSILON;
+    ovp->dectim = (int32)(*p->kdec * CS_ESR);
   } else {
     if ((ovp->dectim = (int32)(*p->kdec * CS_ESR)) > 0)
       ovp->decinc = (int32)(CS_SICVT / *p->kdec);
