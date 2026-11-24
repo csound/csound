@@ -406,7 +406,11 @@ static void pv_unwrap_region_phases(cs_float *phase, int32_t nbins,
   int32_t p, b;
   for (p=0; p < nbins; p++) {
     cs_float last, wrapped, unwrapped;
+    #ifdef USE_FLOAT
+    if (peaks[p] != 2) continue;
+#else
     if (!peaks[p]) continue;
+#endif
     last = phase[p];
     wrapped = last;
     unwrapped = last;
@@ -427,6 +431,29 @@ static void pv_unwrap_region_phases(cs_float *phase, int32_t nbins,
   }
 }
 
+#ifdef USE_FLOAT
+typedef struct {
+  cs_float real, imag;
+} PV_SCALED_BIN;
+
+static PV_SCALED_BIN pv_scale_bin(const cs_float *bin)
+{
+  /* Keep the products bounded without changing the bin direction. */
+  int exponent = 0;
+  frexpf(fmaxf(FABS(bin[0]), FABS(bin[1])), &exponent);
+  return (PV_SCALED_BIN){ldexpf(bin[0], -exponent), ldexpf(bin[1], -exponent)};
+}
+
+static cs_float pv_neighbor_phase(PV_SCALED_BIN current, PV_SCALED_BIN last)
+{
+  const cs_float cr = current.real, ci = current.imag, lr = last.real, li = last.imag;
+  /* Preserve the sign even when the two cross products almost cancel. */
+  volatile cs_float product = cr * li;
+  volatile cs_float cross = fmaf(ci, lr, -product) - fmaf(cr, li, -product);
+  return ATAN2(cross, fmaf(cr, lr, ci * li));
+}
+#endif
+
 static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
                        cs_float beta, cs_float *bwin, cs_float *fwin,
                        cs_float *prev)
@@ -445,8 +472,46 @@ static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
   pv_find_peaks(fwin, nbins, mag, cpeaks);
   pv_nearest_peaks(cpeaks, nbins, region);
   if (mode == 3 && beta != FL(1.0)) {
+#ifdef USE_FLOAT
+    /* A zero bin has no phase. Keep the old atan2 convention for its
+       whole region, since that convention also sets later unwrap steps. */
+    for (b=0; b < nbins; b++) {
+      p = region[b];
+      if (p >= 0 && fwin[2*b] == FL(0.0) && fwin[2*b + 1] == FL(0.0))
+        cpeaks[p] = 2;
+    }
+    for (b=0; b < nbins; b++) {
+      p = region[b];
+      if (p >= 0 && cpeaks[p] == 2)
+        mag[b] = ATAN2(fwin[2*b + 1], fwin[2*b]);
+    }
+    for (p=0; p < nbins; p++) {
+      if (cpeaks[p] != 1) continue;
+      mag[p] = FL(0.0);
+      /* Unwrap from the peak using the signed turn between neighbors. The
+         sign can vanish if their independently rounded angles are subtracted. */
+      if ((p + 1 >= nbins || region[p + 1] != p) &&
+          (p == 0 || region[p - 1] != p)) continue;
+      /* The next pair shares one bin with the previous pair. */
+      const PV_SCALED_BIN center = pv_scale_bin(fwin + 2*p);
+      PV_SCALED_BIN previous = center;
+      for (b=p+1; b < nbins && region[b] == p; b++) {
+        const PV_SCALED_BIN current = pv_scale_bin(fwin + 2*b);
+        mag[b] = mag[b-1] + pv_neighbor_phase(current, previous);
+        previous = current;
+      }
+      previous = center;
+      for (b=p-1; b >= 0 && region[b] == p; b--) {
+        const PV_SCALED_BIN current = pv_scale_bin(fwin + 2*b);
+        mag[b] = mag[b+1] + pv_neighbor_phase(current, previous);
+        previous = current;
+      }
+    }
+#else
+    /* Preserve the established phase-wrap choices in mixed/double builds. */
     for (b=0; b < nbins; b++)
       mag[b] = ATAN2(fwin[2*b + 1], fwin[2*b]);
+#endif
     pv_unwrap_region_phases(mag, nbins, cpeaks, region);
   }
 
