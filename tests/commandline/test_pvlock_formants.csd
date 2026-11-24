@@ -3,7 +3,7 @@ description = "formant preservation for mincer, temposcal, and filescal"
 
 [expect]
 exit = 0
-output = ["mincer formants ok", "klock0 formants ok", "temposcal formants ok", "filescal formants ok", "formant k-rate ok"]
+output = ["mincer formants ok", "klock0 formants ok", "temposcal formants ok", "filescal formants ok", "formant k-rate ok", "raw pitch bypass ok", "sparse gain bounded ok", "formant state reset ok"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -40,6 +40,15 @@ a, kmin xin
 klevel rms a
 if timeinsts() > 0.2 && !(klevel >= kmin && klevel < 1e30) then
   printks "level check failed %.9f\n", 1, klevel
+  exitnowk(-1)
+endif
+endop
+
+opcode check_bounded, 0, akk
+a, klimit, kmin xin
+klevel rms a
+if timeinsts() > 0.2 && !(klevel >= kmin && klevel < klimit) then
+  printks "bounded check failed %.9f\n", 1, klevel
   exitnowk(-1)
 endif
 endop
@@ -177,11 +186,76 @@ if timeinsts() > 0.4 && kdone == 0 then
 endif
 endin
 
+instr 5
+itab ftgen 0, 0, 0, 1, "formant_rate_22050.wav", 0, 0, 0
+apos = 0
+aminoff mincer apos, 1, 1, itab, 2, 512, 4
+aminunity mincer apos, 1, 1, itab, 2, 512, 4, 1, 1, 80
+aminupoff mincer apos, 1, 2, itab, 2, 512, 4
+aminup mincer apos, 1, 2, itab, 2, 512, 4, 1, 1, 80
+check_equal aminoff, aminunity, 1e-7, 1e-6
+check_differs aminup, aminupoff, 1e-5, 1e-5
+afileoff filescal 1, 1, 1, "formant_rate_22050.wav", 2, 512, 4, 1, 0, 1, 1
+afileunity filescal 1, 1, 1, "formant_rate_22050.wav", 2, 512, 4, 1, 0, 1, 1, 1, 80
+afileupoff filescal 1, 1, 2, "formant_rate_22050.wav", 2, 512, 4, 1, 0, 1, 1
+afileup filescal 1, 1, 2, "formant_rate_22050.wav", 2, 512, 4, 1, 0, 1, 1, 1, 80
+check_equal afileoff, afileunity, 1e-7, 1e-6
+check_differs afileup, afileupoff, 1e-5, 1e-5
+kdone init 0
+if timeinsts() > 0.3 && kdone == 0 then
+  printks "raw pitch bypass ok\n", 0
+  kdone = 1
+endif
+endin
+
+instr 6
+itab ftgen 0, 0, 0, 1, "formant_sparse_44100.wav", 0, 0, 0
+apos = 0
+aoff mincer apos, 1, 0.5, itab, 0, 512, 4
+am1 mincer apos, 1, 0.5, itab, 0, 512, 4, 1, 1, 80
+am2 mincer apos, 1, 0.5, itab, 0, 512, 4, 1, 2, 80
+check_differs am1, aoff, 1e-5, 1e-5
+check_bounded am1, 5, 1e-6
+check_bounded am2, 5, 1e-6
+check_nonzero am2, 1e-6
+kdone init 0
+if timeinsts() > 0.3 && kdone == 0 then
+  printks "sparse gain bounded ok\n", 0
+  kdone = 1
+endif
+endin
+
+instr 7
+itab ftgen 0, 0, 0, 1, "fox.wav", 0, 0, 0
+apos = 0
+kCycle init 0
+kk = kCycle < 32 ? 1 : 0
+if kCycle == 32 then
+  reinit FORMANT_RESET
+endif
+FORMANT_RESET:
+aReset mincer apos, 1, 2, itab, 2, 512, 4, 1, kk, 80
+rireturn
+if kCycle >= 32 then
+  aFresh mincer apos, 1, 2, itab, 2, 512, 4, 1, 0, 80
+  check_equal aReset, aFresh, 1e-7, 1e-6
+endif
+kCycle += 1
+kdone init 0
+if timeinsts() > 0.3 && kdone == 0 then
+  printks "formant state reset ok\n", 0
+  kdone = 1
+endif
+endin
+
 </CsInstruments>
 <CsScore>
 i1 0 0.4
 i2 0 0.4
 i3 0 0.4
 i4 0 0.45
+i5 0 0.4
+i6 0 0.4
+i7 0 0.4
 </CsScore>
 </CsoundSynthesizer>

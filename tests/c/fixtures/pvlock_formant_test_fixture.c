@@ -73,3 +73,17 @@ void csound_test_pv_formant_set_env(void *handle, const cs_float *in,
 
   for (k = 0; k < count; k++) ((cs_float *) fd->fenv.auxp)[k] = in[k];
 }
+
+int32_t csound_test_pv_formant_active(void *handle, int32_t N,
+                                      cs_float keepform, cs_float kcoefs,
+                                      cs_float kpitch, int32_t *mode,
+                                      int32_t *coefs)
+{
+  return pv_formant_active((FORMANT_DATA *) handle, N, &keepform, &kcoefs,
+                           kpitch, mode, coefs);
+}
+
+cs_float csound_test_pv_formant_max_gain(void)
+{
+  return FORMANT_MAX_GAIN;
+}

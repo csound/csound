@@ -36,6 +36,8 @@
 #define FORMANT_PITCH_LOW FL(0.97153194)
 #define FORMANT_PITCH_HIGH FL(1.02930224)
 #define FORMANT_FLOOR FL(1e-20)
+#define FORMANT_MAX_GAIN FL(10.0)
+#define FORMANT_MIN_ENV (FL(1.0)/FORMANT_MAX_GAIN)
 
 typedef struct {
   AUXCH fenv, ceps;
@@ -192,22 +194,26 @@ static int32_t pv_formant_init(CSOUND *csound, FORMANT_DATA *fd, int32_t N)
 
 static int32_t pv_formant_active(FORMANT_DATA *fd, int32_t N,
                                  const cs_float *keepform, const cs_float *kcoefs,
-                                 cs_float kpitch, cs_float resamp,
-                                 int32_t *mode, int32_t *coefs)
+                                 cs_float kpitch, int32_t *mode, int32_t *coefs)
 {
-  cs_float pitch;
+  cs_float pitch, keep, coeff;
   int32_t m, n;
 
   if (fd->fwdsetup == NULL || fd->invsetup == NULL) return 0;
-  m = (int32_t)(*keepform + FL(0.5));
-  if (m < 0) m = 0;
-  else if (m > 2) m = 2;
+  keep = *keepform;
+  if (!isfinite(keep)) m = 0;
+  else if (keep >= FL(2.5)) m = 2;
+  else if (keep <= FL(0.5)) m = 0;
+  else m = (int32_t)(keep + FL(0.5));
   if (m == 0) return 0;
-  pitch = FABS(kpitch*resamp);
+  if (!isfinite(kpitch)) return 0;
+  pitch = FABS(kpitch);
   if (pitch >= FORMANT_PITCH_LOW && pitch <= FORMANT_PITCH_HIGH) return 0;
-  n = (int32_t)(*kcoefs + FL(0.5));
+  coeff = *kcoefs;
+  if (!isfinite(coeff) || coeff < FL(1.0)) n = 80;
+  else if (coeff >= (cs_float)(N/2)) n = N/2;
+  else n = (int32_t)(coeff + FL(0.5));
   if (n < 1) n = 80;
-  else if (n > N/2) n = N/2;
   *mode = m;
   *coefs = n;
   return 1;
@@ -223,6 +229,13 @@ static void pv_formant_lifter(cs_float *ceps, int32_t M, int32_t coefs)
   for (k = limit; k < M; k++) ceps[k] = FL(0.0);
 }
 
+static cs_float pv_formant_mag(const cs_float *win, int32_t N, int32_t k)
+{
+  if (k == 0) return FABS(win[0]);
+  if (k == N/2) return FABS(win[N]);
+  return HYPOT(win[2*k], win[2*k + 1]);
+}
+
 static void pv_formant_analyse(CSOUND *csound, FORMANT_DATA *fd, int32_t N,
                                int32_t mode, int32_t coefs,
                                cs_float *fwin, cs_float *bwin)
@@ -230,11 +243,10 @@ static void pv_formant_analyse(CSOUND *csound, FORMANT_DATA *fd, int32_t N,
   int32_t M = N/2, iter, k, j, cond = 0;
   cs_float *fenv = (cs_float *) fd->fenv.auxp;
   cs_float *ceps = (cs_float *) fd->ceps.auxp;
-  cs_float mag, diff, max = FL(0.0), lift = FL(0.0);
+  cs_float mag, diff, max = FL(0.0), lift = FL(0.0), nyq;
 
   for (k = 0; k < M; k++) {
-    j = 2*k;
-    mag = HYPOT(fwin[j], fwin[j + 1]);
+    mag = pv_formant_mag(fwin, N, k);
     fenv[k] = LOG(mag > FORMANT_FLOOR ? mag : FORMANT_FLOOR);
   }
   for (iter = 0; iter < FORMANT_MAX_ITERS; iter++) {
@@ -246,8 +258,7 @@ static void pv_formant_analyse(CSOUND *csound, FORMANT_DATA *fd, int32_t N,
     for (k = 0; k < M; k++) {
       if (mode > 1) {
         if (fenv[k] < ceps[k]) fenv[k] = ceps[k];
-        j = 2*k;
-        mag = HYPOT(fwin[j], fwin[j + 1]);
+        mag = pv_formant_mag(fwin, N, k);
         if (LOG(mag > FORMANT_FLOOR ? mag : FORMANT_FLOOR) - ceps[k]
             > FORMANT_ITER_THRESH)
           cond = 1;
@@ -257,8 +268,7 @@ static void pv_formant_analyse(CSOUND *csound, FORMANT_DATA *fd, int32_t N,
   }
   if (mode > 1 && cond) {
     for (k = 0; k < M; k++) {
-      j = 2*k;
-      mag = HYPOT(fwin[j], fwin[j + 1]);
+      mag = pv_formant_mag(fwin, N, k);
       diff = LOG(mag > FORMANT_FLOOR ? mag : FORMANT_FLOOR) - ceps[k];
       if (diff > lift) lift = diff;
     }
@@ -270,14 +280,24 @@ static void pv_formant_analyse(CSOUND *csound, FORMANT_DATA *fd, int32_t N,
     fenv[k] = e;
   }
   if (max <= FL(0.0)) return;
-  for (k = 0; k < M; k++) fenv[k] /= max;
+  for (k = 0; k < M; k++) {
+    fenv[k] /= max;
+    if (fenv[k] < FORMANT_MIN_ENV) fenv[k] = FORMANT_MIN_ENV;
+  }
+  nyq = pv_formant_mag(fwin, N, M);
+  if (nyq < FORMANT_FLOOR) nyq = FORMANT_FLOOR;
+  fenv[M] = nyq/max;
+  if (fenv[M] < FORMANT_MIN_ENV) fenv[M] = FORMANT_MIN_ENV;
+  else if (fenv[M] > FL(1.0)) fenv[M] = FL(1.0);
   for (k = 1, j = 2; k < M; k++, j += 2) {
-    cs_float inv = FL(1.0)/(fenv[k] > FORMANT_FLOOR ? fenv[k] : FORMANT_FLOOR);
+    cs_float inv = FL(1.0)/fenv[k];
     fwin[j] *= inv;
     fwin[j + 1] *= inv;
     bwin[j] *= inv;
     bwin[j + 1] *= inv;
   }
+  fwin[N] /= fenv[M];
+  bwin[N] /= fenv[M];
 }
 
 static void pv_formant_restore(FORMANT_DATA *fd, int32_t N, cs_float *fwin,
@@ -288,6 +308,7 @@ static void pv_formant_restore(FORMANT_DATA *fd, int32_t N, cs_float *fwin,
   cs_float *fenv = (cs_float *) fd->fenv.auxp;
   cs_float pos, frac, env;
 
+  if (!isfinite(pitch)) return;
   pitch = FABS(pitch);
   for (k = 1, j = 2; k < M; k++, j += 2) {
     pos = pitch*(cs_float)k;
@@ -304,6 +325,19 @@ static void pv_formant_restore(FORMANT_DATA *fd, int32_t N, cs_float *fwin,
     fwin[j] *= env;
     fwin[j + 1] *= env;
   }
+  pos = pitch*(cs_float)M;
+  if (pos < FL(1.0)) pos = FL(1.0);
+  else if (pos > (cs_float)M) pos = (cs_float)M;
+  idx = (int32_t) pos;
+  frac = pos - (cs_float) idx;
+  if (idx >= M) {
+    idx = M;
+    frac = FL(0.0);
+  }
+  env = fenv[idx];
+  if (frac > FL(0.0) && idx < M) env += frac*(fenv[idx + 1] - env);
+  fwin[N] *= env;
+  fwin[N + 1] *= env;
 }
 
 static cs_float pv_bin_mag2(const cs_float *buf, int32_t bin)
@@ -495,6 +529,7 @@ static int32_t sinit(CSOUND *csound, DATASPACE *p)
         csound->AuxAlloc(csound, size, &p->bwin[i]);
       if (p->prev[i].auxp == NULL || p->prev[i].size < size)
         csound->AuxAlloc(csound, size, &p->prev[i]);
+      memset(p->prev[i].auxp, 0, size);
       size = decim*sizeof(int32_t);
       if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
         csound->AuxAlloc(csound, size, &p->framecount[i]);
@@ -569,6 +604,7 @@ static int32_t sinitm(CSOUND *csound, DATASPACEM *p)
         csound->AuxAlloc(csound, size, &p->bwin[i]);
       if (p->prev[i].auxp == NULL || p->prev[i].size < size)
         csound->AuxAlloc(csound, size, &p->prev[i]);
+      memset(p->prev[i].auxp, 0, size);
       size = decim*sizeof(int32_t);
       if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
         csound->AuxAlloc(csound, size, &p->framecount[i]);
@@ -643,6 +679,7 @@ static int32_t sinit_min(CSOUND *csound, DATASPACE_MIN *p)
         csound->AuxAlloc(csound, size, &p->bwin[i]);
       if (p->prev[i].auxp == NULL || p->prev[i].size < size)
         csound->AuxAlloc(csound, size, &p->prev[i]);
+      memset(p->prev[i].auxp, 0, size);
       size = decim*sizeof(int32_t);
       if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
         csound->AuxAlloc(csound, size, &p->framecount[i]);
@@ -717,6 +754,7 @@ static int32_t sinitm_min(CSOUND *csound, DATASPACEM_MIN *p)
         csound->AuxAlloc(csound, size, &p->bwin[i]);
       if (p->prev[i].auxp == NULL || p->prev[i].size < size)
         csound->AuxAlloc(csound, size, &p->prev[i]);
+      memset(p->prev[i].auxp, 0, size);
       size = decim*sizeof(int32_t);
       if (p->framecount[i].auxp == NULL || p->framecount[i].size < size)
         csound->AuxAlloc(csound, size, &p->framecount[i]);
@@ -816,7 +854,7 @@ static int32_t sprocess1(CSOUND *csound, DATASPACE_MIN *p)
           return csound->PerfError(csound, &(p->h), "%s\n", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         formant = pv_formant_active(&p->formant, N, p->kkeepform, p->kcoefs,
-                                    formant_pitch, resamp, &fmode, &fcoefs);
+                                    formant_pitch, &fmode, &fcoefs);
         pitch *= resamp;
         tab = ft->ftable;
         size = ft->flen;
@@ -1037,7 +1075,7 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM_MIN *p)
           return csound->PerfError(csound, &(p->h), "%s\n", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         formant = pv_formant_active(&p->formant, N, p->kkeepform, p->kcoefs,
-                                    formant_pitch, resamp, &fmode, &fcoefs);
+                                    formant_pitch, &fmode, &fcoefs);
         pitch *= resamp;
         tab = ft->ftable;
         size = ft->flen;
@@ -1287,7 +1325,7 @@ static int32_t sprocess2(CSOUND *csound, DATASPACE *p)
           return csound->PerfError(csound, &(p->h), "%s\n", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         formant = pv_formant_active(&p->formant, N, p->kkeepform, p->kcoefs,
-                                    formant_pitch, resamp, &fmode, &fcoefs);
+                                    formant_pitch, &fmode, &fcoefs);
         pitch *= resamp;
         time  *= resamp;
         tab = ft->ftable;
@@ -1523,7 +1561,7 @@ static int32_t sprocess2m(CSOUND *csound, DATASPACEM *p)
           return csound->PerfError(csound, &(p->h), "%s\n", Str("function table not found"));
         resamp = ft->gen01args.sample_rate/CS_ESR;
         formant = pv_formant_active(&p->formant, N, p->kkeepform, p->kcoefs,
-                                    formant_pitch, resamp, &fmode, &fcoefs);
+                                    formant_pitch, &fmode, &fcoefs);
         pitch *= resamp;
         time  *= resamp;
         tab = ft->ftable;
@@ -1812,7 +1850,7 @@ static int32_t sprocess3(CSOUND *csound, DATASPACE *p)
     cs_double tstamp = p->tstamp, incrt = p->incr;
 
     formant = pv_formant_active(&p->formant, N, p->kkeepform, p->kcoefs,
-                                *p->kpitch, p->resamp, &fmode, &fcoefs);
+                                *p->kpitch, &fmode, &fcoefs);
     if (time < 0) /* negative tempo is not possible */
       time = 0.0;
     time *= p->resamp;

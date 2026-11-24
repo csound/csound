@@ -15,6 +15,11 @@ void csound_test_pv_formant_restore(void *handle, int32_t N, cs_float *fwin,
 void csound_test_pv_formant_get_env(void *handle, cs_float *out, int32_t count);
 void csound_test_pv_formant_set_env(void *handle, const cs_float *in,
                                     int32_t count);
+int32_t csound_test_pv_formant_active(void *handle, int32_t N,
+                                      cs_float keepform, cs_float kcoefs,
+                                      cs_float kpitch, int32_t *mode,
+                                      int32_t *coefs);
+cs_float csound_test_pv_formant_max_gain(void);
 #ifdef __cplusplus
 }
 #endif
