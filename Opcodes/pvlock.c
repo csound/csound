@@ -38,6 +38,9 @@
 #define FORMANT_FLOOR FL(1e-20)
 #define FORMANT_MAX_GAIN FL(10.0)
 #define FORMANT_MIN_ENV (FL(1.0)/FORMANT_MAX_GAIN)
+#define PSHIFTER_PITCH_MIN FL(0.25)
+#define PSHIFTER_PITCH_MAX FL(4.0)
+#define PSHIFTER_RING_FACTOR 16
 
 typedef struct {
   AUXCH fenv, ceps;
@@ -130,6 +133,20 @@ typedef struct dats1min {
   void *fwdsetup, *invsetup;
   FORMANT_DATA formant;
 } DATASPACEM_MIN;
+
+
+typedef struct {
+  OPDS h;
+  cs_float *out, *del, *in, *kpitch, *kfscal, *klock, *kkeepform;
+  cs_float *iN, *idecim, *ibeta, *kcoefs;
+  int32_t cnt, hsize, curframe, N, decim, ringSize;
+  uint64_t wp;
+  cs_double rp;
+  cs_float beta;
+  AUXCH ring, outframe, win, bwin, fwin, prev, framecount, lockdata;
+  void *fwdsetup, *invsetup;
+  FORMANT_DATA formant;
+} DATASPACE_PSHIFT;
 
 
 typedef struct {
@@ -491,6 +508,44 @@ static void pv_lock_ld(AUXCH *lockdat, int32_t N, int32_t mode,
     prev[i] = fwin[i] = tmp_real;
     prev[i+1] = fwin[i+1] = tmp_im;
   }
+}
+
+
+static cs_float pshifter_ring_read(const AUXCH *ring, int32_t size,
+                                   cs_double pos)
+{
+  const cs_float *buf = (const cs_float *)ring->auxp;
+  int64_t base;
+  int32_t i0, i1;
+  cs_float frac;
+
+  if (buf == NULL || size < 1) return FL(0.0);
+  base = (int64_t)floor((double)pos);
+  i0 = (int32_t)(base % (int64_t)size);
+  if (i0 < 0) i0 += size;
+  i1 = i0 + 1;
+  if (i1 >= size) i1 = 0;
+  frac = (cs_float)(pos - (cs_double)base);
+  return buf[i0] + frac*(buf[i1] - buf[i0]);
+}
+
+
+static cs_float pshifter_valid_pitch(cs_float pitch)
+{
+  if (!isfinite(pitch) || pitch <= FL(0.0)) return FL(1.0);
+  if (pitch < PSHIFTER_PITCH_MIN) return PSHIFTER_PITCH_MIN;
+  if (pitch > PSHIFTER_PITCH_MAX) return PSHIFTER_PITCH_MAX;
+  return pitch;
+}
+
+
+static cs_float pshifter_valid_fscal(cs_float fscal)
+{
+  if (!isfinite(fscal) || fscal == FL(0.0)) return FL(1.0);
+  fscal = FABS(fscal);
+  if (fscal < PSHIFTER_PITCH_MIN) return PSHIFTER_PITCH_MIN;
+  if (fscal > PSHIFTER_PITCH_MAX) return PSHIFTER_PITCH_MAX;
+  return fscal;
 }
 
 
@@ -1245,6 +1300,234 @@ static int32_t sprocess1m(CSOUND *csound, DATASPACEM_MIN *p)
     return OK;
 }
 
+
+static int32_t pshifterset(CSOUND *csound, DATASPACE_PSHIFT *p)
+{
+    int32_t N = *p->iN, ui;
+    uint32_t i;
+    size_t size;
+    int32_t decim = *p->idecim;
+    cs_float pitch = pshifter_valid_pitch(*p->kpitch);
+
+    if (N > 0) {
+      for (i=0; N; i++) N >>= 1;
+      N = (int32_t)intpow1(2, i-1);
+    } else N = 2048;
+    if (N < 8) N = 8;
+    if (decim == 0) decim = 4;
+    if (UNLIKELY(decim < 1 || decim > N || N > INT32_MAX/PSHIFTER_RING_FACTOR))
+      return csound->InitError(csound, "%s\n",
+                               Str("pshifter: invalid ifftsize or idecim"));
+
+    p->N = N;
+    p->decim = decim;
+    p->hsize = N/decim;
+    p->ringSize = N*PSHIFTER_RING_FACTOR;
+    p->cnt = p->hsize;
+    p->curframe = 0;
+    p->wp = 0;
+    p->rp = -((cs_double)N + (cs_double)p->hsize*pitch);
+    p->beta = *p->ibeta;
+    *p->del = (cs_float)N/CS_ESR;
+
+    size = (size_t)p->ringSize*sizeof(cs_float);
+    if (p->ring.auxp == NULL || p->ring.size < size)
+      csound->AuxAlloc(csound, size, &p->ring);
+    if (UNLIKELY(p->ring.auxp == NULL))
+      return csound->InitError(csound, "%s\n",
+                               Str("could not allocate pshifter ring buffer"));
+    memset(p->ring.auxp, 0, size);
+
+    size = (size_t)(N + 2)*sizeof(cs_float);
+    if (p->fwin.auxp == NULL || p->fwin.size < size)
+      csound->AuxAlloc(csound, size, &p->fwin);
+    if (p->bwin.auxp == NULL || p->bwin.size < size)
+      csound->AuxAlloc(csound, size, &p->bwin);
+    if (p->prev.auxp == NULL || p->prev.size < size)
+      csound->AuxAlloc(csound, size, &p->prev);
+    if (UNLIKELY(p->fwin.auxp == NULL || p->bwin.auxp == NULL ||
+                 p->prev.auxp == NULL))
+      return csound->InitError(csound, "%s\n",
+                               Str("could not allocate pshifter frames"));
+    memset(p->prev.auxp, 0, size);
+
+    size = (size_t)decim*sizeof(int32_t);
+    if (p->framecount.auxp == NULL || p->framecount.size < size)
+      csound->AuxAlloc(csound, size, &p->framecount);
+    if (UNLIKELY(p->framecount.auxp == NULL))
+      return csound->InitError(csound, "%s\n",
+                               Str("could not allocate pshifter counters"));
+    for (i=0; i < (uint32_t)decim; i++)
+      ((int32_t *)(p->framecount.auxp))[i] = (int32_t)i*N;
+
+    size = (size_t)decim*(size_t)N*sizeof(cs_float);
+    if (p->outframe.auxp == NULL || p->outframe.size < size)
+      csound->AuxAlloc(csound, size, &p->outframe);
+    if (UNLIKELY(p->outframe.auxp == NULL))
+      return csound->InitError(csound, "%s\n",
+                               Str("could not allocate pshifter output frames"));
+    memset(p->outframe.auxp, 0, size);
+
+    size = (size_t)N*sizeof(cs_float);
+    if (p->win.auxp == NULL || p->win.size < size)
+      csound->AuxAlloc(csound, size, &p->win);
+    if (UNLIKELY(p->win.auxp == NULL))
+      return csound->InitError(csound, "%s\n",
+                               Str("could not allocate pshifter window"));
+    {
+      cs_float x = FL(2.0)*PI_F/(cs_float)N;
+      for (ui=0; ui < N; ui++)
+        ((cs_float *)p->win.auxp)[ui] =
+          FL(0.5) - FL(0.5)*COS((cs_float)ui*x);
+    }
+
+    p->fwdsetup = csound->RealFFTSetup(csound, N, FFT_FWD);
+    p->invsetup = csound->RealFFTSetup(csound, N, FFT_INV);
+    {
+      int32_t rc = pv_alloc_lock(csound, &p->lockdata, N);
+      if (rc != OK) return rc;
+      return pv_formant_init(csound, &p->formant, N);
+    }
+}
+
+
+static int32_t pshifterproc(CSOUND *csound, DATASPACE_PSHIFT *p)
+{
+    uint32_t offset = p->h.insdshead->ksmps_offset;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
+    cs_float pitch = pshifter_valid_pitch(*p->kpitch);
+    cs_float fscal = pshifter_valid_fscal(*p->kfscal);
+    cs_float lock = *p->klock;
+    cs_float formant_pitch = pitch/fscal;
+    int32_t formant = 0, fmode = 0, fcoefs = 0;
+    int32_t N = p->N, hsize = p->hsize, cnt = p->cnt;
+    int32_t nsmps = CS_KSMPS, n, i, j;
+    int32_t decim = p->decim, curframe = p->curframe;
+    int32_t mode = pv_lock_mode(lock);
+    cs_float beta = p->beta;
+    cs_double scaling = (8./decim)/3.;
+    cs_float *ring = (cs_float *)p->ring.auxp;
+    cs_float *win = (cs_float *)p->win.auxp;
+    cs_float *fwin = (cs_float *)p->fwin.auxp;
+    cs_float *bwin = (cs_float *)p->bwin.auxp;
+    cs_float *prev = (cs_float *)p->prev.auxp;
+    cs_float *outframe = (cs_float *)p->outframe.auxp;
+    int32_t *framecnt = (int32_t *)p->framecount.auxp;
+    cs_float *out = p->out, *in = p->in;
+    cs_float ph_real, ph_im, tmp_real, tmp_im, div;
+    cs_double front, lag;
+
+    if (!isfinite(formant_pitch)) formant_pitch = FL(1.0);
+    formant = pv_formant_active(&p->formant, N, p->kkeepform, p->kcoefs,
+                                formant_pitch, &fmode, &fcoefs);
+
+    if (UNLIKELY(early)) {
+      nsmps -= (int32_t)early;
+      memset(&out[nsmps], '\0', early*sizeof(cs_float));
+    }
+    if (UNLIKELY(offset)) {
+      memset(out, '\0', offset*sizeof(cs_float));
+    }
+
+    for (n=(int32_t)offset; n < nsmps; n++) {
+      ring[(int32_t)(p->wp % (uint64_t)p->ringSize)] = in[n];
+      p->wp++;
+      if (cnt == hsize) {
+        lag = (cs_double)p->wp - p->rp;
+        front = (cs_double)p->wp - (cs_double)N;
+        if (lag < (cs_double)N || lag > (cs_double)(p->ringSize/2)) {
+          p->rp = front - (cs_double)hsize*pitch;
+          memset(prev, 0, (size_t)(N + 2)*sizeof(cs_float));
+          memset(outframe, 0, (size_t)decim*(size_t)N*sizeof(cs_float));
+          for (i=0; i < decim; i++) framecnt[i] = i*N;
+          if (p->formant.fenv.auxp != NULL)
+            memset(p->formant.fenv.auxp, 0, p->formant.fenv.size);
+          if (p->formant.ceps.auxp != NULL)
+            memset(p->formant.ceps.auxp, 0, p->formant.ceps.size);
+        }
+        for (i=0; i < N; i++) {
+          fwin[i] = pshifter_ring_read(&p->ring, p->ringSize,
+                                       front + (cs_double)i)*win[i];
+          bwin[i] = pshifter_ring_read(&p->ring, p->ringSize,
+                                       p->rp + (cs_double)i)*win[i];
+        }
+        csound->RealFFT(csound, p->fwdsetup, bwin);
+        bwin[N] = bwin[1];
+        bwin[N+1] = FL(0.0);
+        csound->RealFFT(csound, p->fwdsetup, fwin);
+        fwin[N] = fwin[1];
+        fwin[N+1] = FL(0.0);
+
+        if (formant)
+          pv_formant_analyse(csound, &p->formant, N, fmode, fcoefs,
+                             fwin, bwin);
+
+        if (mode > 1) {
+          pv_lock_ld(&p->lockdata, N, mode, beta, bwin, fwin, prev);
+        }
+        else {
+          for (i=0; i < N + 2; i+=2) {
+            div = FL(1.0)/(HYPOT(prev[i], prev[i+1]) + 1e-20);
+            ph_real = prev[i]*div;
+            ph_im = prev[i+1]*div;
+            tmp_real = bwin[i]*ph_real + bwin[i+1]*ph_im;
+            tmp_im = bwin[i]*ph_im - bwin[i+1]*ph_real;
+            bwin[i] = tmp_real;
+            bwin[i+1] = tmp_im;
+          }
+          for (i=0; i < N + 2; i+=2) {
+            if (mode) {
+              if (i > 0) {
+                if (i < N) {
+                  tmp_real = bwin[i] + bwin[i-2] + bwin[i+2];
+                  tmp_im = bwin[i+1] + bwin[i-1] + bwin[i+3];
+                }
+                else {
+                  tmp_real = bwin[i] + bwin[i-2];
+                  tmp_im = FL(0.0);
+                }
+              }
+              else {
+                tmp_real = bwin[i] + bwin[i+2];
+                tmp_im = FL(0.0);
+              }
+            }
+            else {
+              tmp_real = bwin[i];
+              tmp_im = bwin[i+1];
+            }
+            tmp_real = (cs_float)(tmp_real + 1e-15);
+            div = FL(1.0)/(HYPOT(tmp_real, tmp_im));
+            ph_real = tmp_real*div;
+            ph_im = tmp_im*div;
+            tmp_real = fwin[i]*ph_real - fwin[i+1]*ph_im;
+            tmp_im = fwin[i]*ph_im + fwin[i+1]*ph_real;
+            prev[i] = fwin[i] = tmp_real;
+            prev[i+1] = fwin[i+1] = tmp_im;
+          }
+        }
+        if (formant) pv_formant_restore(&p->formant, N, fwin, formant_pitch);
+        fwin[1] = fwin[N];
+        csound->RealFFT(csound, p->invsetup, fwin);
+        framecnt[curframe] = curframe*N;
+        for (i=0; i < N; i++) outframe[framecnt[curframe]+i] = win[i]*fwin[i];
+        p->rp += (cs_double)hsize*pitch;
+        cnt = 0;
+        curframe++;
+        if (curframe == decim) curframe = 0;
+      }
+      out[n] = FL(0.0);
+      for (j=0; j < decim; j++) {
+        out[n] += outframe[framecnt[j]];
+        framecnt[j]++;
+      }
+      out[n] *= (cs_float)scaling;
+      cnt++;
+    }
+    p->cnt = cnt;
+    p->curframe = curframe;
+    return OK;
+}
 
 
 static int32_t sinit2m(CSOUND *csound, DATASPACEM *p)
@@ -2500,6 +2783,8 @@ static OENTRY pvlock_localops[] =
   {
    {"mincer", sizeof(DATASPACEM_MIN), 0, "a", "akkkkoopOO",
     (SUBR)sinit1m,(SUBR)sprocess1m },
+   {"pshifter", sizeof(DATASPACE_PSHIFT), 0, "ai", "akkkkoopO",
+    (SUBR)pshifterset,(SUBR)pshifterproc },
    {"mincer", sizeof(DATASPACE_MIN), 0, "mm", "akkkkoopOO",
     (SUBR)sinit1,(SUBR)sprocess1 },
    {"temposcal", sizeof(DATASPACEM), 0, "a", "kkkkkooPOPpOO",
