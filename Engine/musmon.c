@@ -1071,7 +1071,9 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   case 'q':
     if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       cs_float n = named_instr_find(csound, evt->strarg);
-      if (UNLIKELY((insno = (int32_t) n) == 0)) {
+      /* checked as a number is below: remove() leaves the name */
+      if (UNLIKELY((insno = abs((int32_t) n)) == 0 ||
+                   csound->engineState.instrtxtp[insno] == NULL)) {
         print_score_error(csound, rtEvt,
                         Str(" - note deleted. instr %s undefined\n"),
                         evt->strarg);
@@ -1101,7 +1103,8 @@ static int32_t process_score_event(CSOUND *csound, EVTBLK *evt, int32_t rtEvt)
   case 'd':
     if (IsStringCode(evt->p[1]) && evt->strarg) {    /* IV - Oct 31 2002 */
       cs_float n = named_instr_find(csound, evt->strarg);
-      if (UNLIKELY((insno = (int)n) == 0)) {
+      if (UNLIKELY((insno = (int)n) == 0 ||   /* as for q above */
+                   csound->engineState.instrtxtp[abs(insno)] == NULL)) {
         print_score_error(csound, rtEvt,
                         Str(" - note deleted. instr %s undefined\n"),
                         evt->strarg);
