@@ -29,6 +29,7 @@
 #include "arrays_internal.h"
 #include "csound_orc_structs.h"
 #include "pstream.h"
+#include "swtdat.h"
 #include "find_opcode.h"
 #include <stdlib.h>
 
@@ -71,6 +72,36 @@ static void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     ((CSOUND *)csound)->AuxAlloc(csound,
                                  (N + 2) * sizeof(float), &fsigout->frame);
   memcpy(fsigout->frame.auxp, fsigin->frame.auxp, (N + 2) * sizeof(float));
+}
+
+static void swt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
+                           const void* src, INSDS *ctx) {
+  SWTDAT *swtout;
+  const SWTDAT *swtin;
+  size_t bytes;
+  size_t historyBytes;
+
+  if (UNLIKELY(src == NULL || dest == NULL)) return;
+  swtout = (SWTDAT*) dest;
+  swtin = (const SWTDAT*) src;
+  bytes = (size_t) swtin->capacity * sizeof(float);
+  historyBytes = bytes * (size_t) swtin->historyCount;
+  memcpy(dest, src, sizeof(SWTDAT) - 2 * sizeof(SWT_AUXCH));
+  if (bytes > 0 &&
+      (swtout->frame.auxp == NULL || swtout->frame.size < bytes)) {
+    csound->AuxAlloc(csound, bytes, (AUXCH*) &swtout->frame);
+  }
+  if (historyBytes > 0 &&
+      (swtout->history.auxp == NULL || swtout->history.size < historyBytes)) {
+    csound->AuxAlloc(csound, historyBytes, (AUXCH*) &swtout->history);
+  }
+  if (bytes > 0 && swtin->frame.auxp != NULL && swtout->frame.auxp != NULL) {
+    memcpy(swtout->frame.auxp, swtin->frame.auxp, bytes);
+  }
+  if (historyBytes > 0 && swtin->history.auxp != NULL &&
+      swtout->history.auxp != NULL) {
+    memcpy(swtout->history.auxp, swtin->history.auxp, historyBytes);
+  }
 }
 
 /* String buffer management utility */
@@ -904,6 +935,12 @@ static void var_init_memory_fsig(CSOUND *csound, CS_VARIABLE* var, cs_float* mem
     memset(fsig, 0, sizeof(PVSDAT));  /* VL: clear memory for now */
 }
 
+static void var_init_memory_swt(CSOUND *csound, CS_VARIABLE* var, cs_float* memblock) {
+    SWTDAT *swt = (SWTDAT *)memblock;
+    IGN(csound);
+    memset(swt, 0, sizeof(SWTDAT));
+}
+
 /* CREATE VAR FUNCTIONS */
 
 static CS_VARIABLE* create_asig(void* cs, const CS_TYPE *type,
@@ -983,6 +1020,18 @@ static CS_VARIABLE* create_fsig(void* cs, const CS_TYPE *type,
     CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
     var->memBlockSize = CS_FLOAT_ALIGN(sizeof(PVSDAT));
     var->initializeVariableMemory = &var_init_memory_fsig;
+    var->ctx = ctx;
+    return var;
+}
+
+static CS_VARIABLE* create_swt(void* cs, const CS_TYPE *type,
+                               const void *typeArg, INSDS *ctx) {
+    CSOUND* csound = (CSOUND*)cs;
+    IGN(type);
+    IGN(typeArg);
+    CS_VARIABLE* var = csound->Calloc(csound, sizeof (CS_VARIABLE));
+    var->memBlockSize = CS_FLOAT_ALIGN(sizeof(SWTDAT));
+    var->initializeVariableMemory = &var_init_memory_swt;
     var->ctx = ctx;
     return var;
 }
@@ -1413,6 +1462,11 @@ const CS_TYPE CS_VAR_TYPE_F = {
   "f", "f-sig", CS_ARG_TYPE_BOTH, create_fsig, fsig_copy_value, NULL, NULL, 0
 };
 
+const CS_TYPE CS_VAR_TYPE_SWT = {
+  "swt", "stationary wavelet frame", CS_ARG_TYPE_BOTH,
+  create_swt, swt_copy_value, NULL, NULL, 0
+};
+
 const CS_TYPE CS_VAR_TYPE_B = {
   "B", "boolean", CS_ARG_TYPE_BOTH, create_bool, myflt_copy_value, NULL, NULL, 0
 };
@@ -1463,6 +1517,7 @@ void add_standard_types(CSOUND* csound, TYPE_POOL* pool) {
     csoundAddVariableType(csound, pool, &CS_VAR_TYPE_C);
     csoundAddVariableType(csound, pool, &CS_VAR_TYPE_W);
     csoundAddVariableType(csound, pool, &CS_VAR_TYPE_F);
+    csoundAddVariableType(csound, pool, &CS_VAR_TYPE_SWT);
     csoundAddVariableType(csound, pool, &CS_VAR_TYPE_B);
     csoundAddVariableType(csound, pool, &CS_VAR_TYPE_b);
     csoundAddVariableType(csound, pool, &CS_VAR_TYPE_OPCODEREF);

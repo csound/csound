@@ -117,6 +117,8 @@ $(CSOUND_SRC_ROOT)/OOps/str_ops.c \
 $(CSOUND_SRC_ROOT)/OOps/structs.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens1.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens2.c \
+$(CSOUND_SRC_ROOT)/OOps/wavelet_coeffs.c \
+$(CSOUND_SRC_ROOT)/OOps/wavelets.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens3.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens4.c \
 $(CSOUND_SRC_ROOT)/OOps/ugens5.c \
