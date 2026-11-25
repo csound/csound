@@ -1,14 +1,19 @@
 #if defined(CSOUND_TEST_PTHREADS) && !defined(__EMSCRIPTEN__) && !defined(__wasi__)
 #define __BUILDING_LIBCSOUND
 #include "csoundCore.h"
+#include "csmodule.h"
 #include "gtest/gtest.h"
 
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <functional>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -25,6 +30,47 @@ extern "C" int32_t perform_buffer(CSOUND *csound);
 namespace {
 
 const char *const header = "sr = 48000\nksmps = 16\nnchnls = 1\n0dbfs = 1\n";
+
+/* Use different stack depths so a stale jump target cannot rely on a host
+ * calling every block from the same stack address. Keep work after the call
+ * to prevent a tail call.
+ */
+CS_NOINLINE int32_t firstBlock(CSOUND *csound)
+{
+  volatile unsigned char pad[32] = {0};
+  int32_t result = csoundPerformKsmps(csound);
+  return result + pad[0];
+}
+
+CS_NOINLINE int32_t laterBlock(CSOUND *csound)
+{
+  volatile unsigned char pad[4096] = {0};
+  int32_t result = csoundPerformKsmps(csound);
+  return result + pad[0];
+}
+
+int32_t performChildAndExit(CSOUND *csound, void *)
+{
+  auto *child = static_cast<CSOUND *>(csoundGetHostData(csound));
+  csoundSetControlChannel(csound, "child_first", csoundPerformKsmps(child));
+  csoundEventString(child, "i1 0 -1", 0);
+  csoundSetControlChannel(csound, "child_result", csoundPerformKsmps(child));
+  csound->LongJmp(csound, 4);
+  return CSOUND_ERROR;
+}
+
+int32_t jumpFive(CSOUND *csound)
+{
+  csound->LongJmp(csound, 5);
+  return CSOUND_ERROR;
+}
+
+int32_t catchJumpInOpcode(CSOUND *csound, void *)
+{
+  int32_t result = csoundCatchJump(csound, jumpFive);
+  csoundSetControlChannel(csound, "caught", result);
+  return CSOUND_SUCCESS;
+}
 
 /* Each case performs until its end, or for ten seconds. */
 const auto patience = std::chrono::seconds(10);
@@ -101,17 +147,23 @@ class RealtimeInitJumpTests : public ::testing::TestWithParam<bool> {
   }
 
   /* What a k-cycle returns that is not 0. Or 0: after a thousand k-cycles
-     more once the channel named is 1, or after patience. A jump returns to
-     the place of csoundPerformKsmps's first call, so a test calls this once.
+     more once the channel named is 1, or after patience. Run afterFirst
+     after the first successful cycle when supplied.
    */
-  int32_t perform(const char *until = nullptr)
+  int32_t perform(const char *until = nullptr,
+                  int32_t (*performCall)(CSOUND *) = csoundPerformKsmps,
+                  const std::function<void()> &afterFirst = nullptr)
   {
     const auto deadline = std::chrono::steady_clock::now() + patience;
     int32_t more = -1;
+    bool first = true;
     while (more != 0 && std::chrono::steady_clock::now() < deadline) {
-      int32_t result = csoundPerformKsmps(csound);
+      int32_t result = performCall(csound);
       if (result != 0)
         return result;
+      if (first && afterFirst)
+        afterFirst();
+      first = false;
       if (more > 0)
         more--;
       else if (until != nullptr &&
@@ -153,6 +205,91 @@ class RealtimeInitJumpTests : public ::testing::TestWithParam<bool> {
     return free;
   }
 };
+
+TEST_P(RealtimeInitJumpTests, ALaterCallTakesItsOwnJump)
+{
+  start("instr 1\n exitnow 3\nendin\n", nullptr);
+  ASSERT_EQ(firstBlock(csound), 0);
+  csoundEventString(csound, "i1 0 -1", 0);
+  EXPECT_EQ(perform(nullptr, laterBlock), -3);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
+  EXPECT_TRUE(initMutexFree());
+}
+
+TEST_P(RealtimeInitJumpTests, ACallAfterResetTakesItsOwnJump)
+{
+  start("instr 1\n exitnow 3\nendin\n", nullptr);
+  ASSERT_EQ(firstBlock(csound), 0);
+  csoundReset(csound);
+  ASSERT_EQ(csoundSetOption(csound, "-n -d -m0"), 0);
+  if (GetParam())
+    ASSERT_EQ(csoundSetOption(csound, "--realtime"), 0);
+  start("instr 1\n exitnow 3\nendin\n", "i1 0 -1");
+  EXPECT_EQ(perform(nullptr, laterBlock), -3);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
+  EXPECT_TRUE(initMutexFree());
+}
+
+TEST_P(RealtimeInitJumpTests, ANestedInstanceRestoresTheOuterJump)
+{
+  std::unique_ptr<CSOUND, decltype(&csoundDestroy)> child(
+    csoundCreate(nullptr, nullptr), csoundDestroy);
+  ASSERT_NE(child, nullptr);
+  ASSERT_EQ(csoundSetOption(child.get(), "-n -d -m0"), 0);
+  std::string code = std::string(header) + "instr 1\n exitnow 3\nendin\n";
+  ASSERT_EQ(csoundCompileOrc(child.get(), code.c_str(), 0), 0);
+  ASSERT_EQ(csoundStart(child.get()), 0);
+
+  csoundSetHostData(csound, child.get());
+  ASSERT_EQ(csoundAppendOpcode(csound, "test_perform_child", sizeof(OPDS),
+                              0, "", "", nullptr, performChildAndExit, nullptr), 0);
+  start("instr 1\n test_perform_child\nendin\n", "i1 0 -1");
+  EXPECT_EQ(perform(), -4);
+  EXPECT_EQ(csoundGetControlChannel(csound, "child_first", nullptr), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "child_result", nullptr), -3);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
+  EXPECT_EQ(ATOMIC_GET(child->performance_epoch) & 1, 0);
+  EXPECT_TRUE(initMutexFree());
+  csoundSetHostData(csound, nullptr);
+}
+
+TEST_P(RealtimeInitJumpTests, ACatchJumpOnThePerformingThreadLandsLocally)
+{
+  ASSERT_EQ(csoundAppendOpcode(csound, "test_catch_jump", sizeof(OPDS), 0,
+                              "", "", nullptr, catchJumpInOpcode, nullptr), 0);
+  start("instr 1\n"
+        " test_catch_jump\n"
+        " chnset 1, \"after\"\n"
+        " turnoff\n"
+        "endin\n", "i1 0 -1");
+  EXPECT_EQ(perform("after"), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "caught", nullptr), CSOUND_ERROR);
+  EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 1);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
+  EXPECT_TRUE(initMutexFree());
+}
+
+TEST_P(RealtimeInitJumpTests, ACatchJumpDuringInitRestoresTheOuterInitState)
+{
+  ASSERT_EQ(csoundAppendOpcode(csound, "test_catch_jump_init", sizeof(OPDS), 0,
+                              "", "", catchJumpInOpcode, nullptr, nullptr), 0);
+  start("instr 1\n"
+        " test_catch_jump_init\n"
+        " chnset 1, \"between\"\n"
+        " exitnow 4\n"
+        " chnset 1, \"after\"\n"
+        "endin\n", "i1 0 -1");
+  EXPECT_EQ(perform(), -4);
+  EXPECT_EQ(csoundGetControlChannel(csound, "caught", nullptr), CSOUND_ERROR);
+  EXPECT_EQ(csoundGetControlChannel(csound, "between", nullptr), 1);
+  EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 0);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_TRUE(initMutexFree());
+}
 
 /* exitnow 3 gives -3. */
 TEST_P(RealtimeInitJumpTests, ANoteInitEndsThePerformance)
@@ -224,6 +361,8 @@ TEST_P(RealtimeInitJumpTests, AReinitEndsThePerformance)
         " rireturn\n"
         "endin\n", "i1 0 -1");
   EXPECT_EQ(perform(), -3);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
   EXPECT_TRUE(initMutexFree());
 }
 
@@ -251,6 +390,21 @@ TEST_P(RealtimeInitJumpTests, ACompileErrorInCompilestrIsCompilestrs)
   EXPECT_EQ(perform("after"), 0);
   EXPECT_NE(csoundGetControlChannel(csound, "result", nullptr), 0);
   EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 1);
+}
+
+TEST_P(RealtimeInitJumpTests, ACompileErrorDoesNotEndBufferPerformance)
+{
+  start("instr 1\n"
+        " iResult = compilestr(\"instr 2\\n kMissing[0] = 1\\nendin\\n\")\n"
+        " chnset iResult, \"result\"\n"
+        " chnset 1, \"after\"\n"
+        "endin\n", "i1 0 -1");
+  EXPECT_EQ(perform("after", perform_buffer), 0);
+  EXPECT_NE(csoundGetControlChannel(csound, "result", nullptr), 0);
+  EXPECT_EQ(csoundGetControlChannel(csound, "after", nullptr), 1);
+  EXPECT_TRUE(apiLockFree());
+  EXPECT_EQ(ATOMIC_GET(csound->performance_epoch) & 1, 0);
+  EXPECT_TRUE(initMutexFree());
 }
 
 /* The same for compilecsd, with a CSD that asks for a Csound before 1.0. */
@@ -367,6 +521,111 @@ TEST_P(RealtimeInitJumpTests, ASubinstrThatJumpsInCompiledGlobalCodeEndsItsInit)
   EXPECT_TRUE(initMutexFree());
 }
 
+/* A host's csoundCompileOrc on a thread of its own, held in its parse: the
+ * first allocation it makes through the instance's table waits until the
+ * test lets it go, or for patience.
+ */
+std::atomic<std::thread::id> heldThread;
+std::atomic<int> heldStep{0};          /* 1: held, 2: let go */
+void *(*callocOfCsound)(CSOUND *, size_t);
+
+void *holdTheCompile(CSOUND *csound, size_t size)
+{
+  if (std::this_thread::get_id() == heldThread.load()) {
+    heldThread = std::thread::id();
+    heldStep = 1;
+    const auto deadline = std::chrono::steady_clock::now() + patience;
+    while (heldStep.load() < 2 && std::chrono::steady_clock::now() < deadline)
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  return callocOfCsound(csound, size);
+}
+
+class HeldCompile {
+ public:
+  HeldCompile(CSOUND *csound, const char *code) : csound(csound)
+  {
+    heldStep = 0;
+    callocOfCsound = csound->Calloc;
+    csound->Calloc = holdTheCompile;
+    std::atomic<bool> named{false};
+    compiler = std::thread([this, code, &named] {
+      heldThread = std::this_thread::get_id();
+      named = true;
+      result = csoundCompileOrc(this->csound, code, 0);
+    });
+    while (!named.load()) {
+    }
+  }
+
+  ~HeldCompile()
+  {
+    if (compiler.joinable())
+      join();
+  }
+
+  /* Whether the compile is held, within two seconds: it takes the first
+     allocation of its parse at once. */
+  bool held()
+  {
+    const auto deadline =
+      std::chrono::steady_clock::now() + std::chrono::seconds(2);
+    while (heldStep.load() < 1 && std::chrono::steady_clock::now() < deadline)
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    return heldStep.load() == 1;
+  }
+
+  /* Lets it go, and gives what it returned. */
+  int32_t join()
+  {
+    heldStep = 2;
+    compiler.join();
+    csound->Calloc = callocOfCsound;
+    return result;
+  }
+
+ private:
+  CSOUND *csound;
+  std::thread compiler;
+  int32_t result = -1;
+};
+
+/* A jump in the performance while a host compiles is the performance's. The
+ * compile set exitjmp to a frame of its own for its length, on its thread,
+ * and the jump went there: the thread that performed went on in the
+ * compile's frames.
+ */
+TEST_P(RealtimeInitJumpTests, AJumpWhileAHostCompilesIsThePerformances)
+{
+  start("instr 1\n exitnowk 3\nendin\n", nullptr);
+  std::unique_ptr<HeldCompile> compile;
+  bool held = false;
+  EXPECT_EQ(perform(nullptr, csoundPerformKsmps, [&] {
+    compile.reset(new HeldCompile(csound, "instr 2\nendin\n"));
+    held = compile->held();
+    csoundEventString(csound, "i1 0 -1", 0);
+  }), -3);
+  ASSERT_NE(compile, nullptr);
+  EXPECT_TRUE(held);
+  EXPECT_EQ(compile->join(), 0);
+}
+
+/* A host's compile that begins before the first k-cycle and ends after it
+ * leaves the performance its landing. It put back the exitjmp it had found,
+ * csoundStart's, whose frame was gone, over the one the first k-cycle had
+ * set, and the performance's jump went there.
+ */
+TEST_P(RealtimeInitJumpTests, AHostsCompileLeavesThePerformanceItsLanding)
+{
+  start("instr 1\n exitnowk 3\nendin\n", nullptr);
+  HeldCompile compile(csound, "instr 2\nendin\n");
+  ASSERT_TRUE(compile.held());
+  EXPECT_EQ(perform(nullptr, csoundPerformKsmps, [&] {
+    EXPECT_EQ(compile.join(), 0);
+    csoundEventString(csound, "i1 0 -1", 0);
+  }), -3);
+}
+
 INSTANTIATE_TEST_SUITE_P(Modes, RealtimeInitJumpTests, ::testing::Bool(),
                          [](const ::testing::TestParamInfo<bool> &info) {
                            return info.param ? "Realtime" : "Default";
@@ -445,6 +704,161 @@ TEST_F(ExitJumpApiLockTests, PerformBuffer)
   EXPECT_FALSE(performUntilTheJump(perform_buffer, result));
   EXPECT_EQ(result, -3);
 }
+
+/* A utility the host adds, which calls the API as a utility may, run by
+ * csoundRunUtility(), or by csoundCompile() given -U. A jump in code it
+ * evaluates is the run's, as one of its own is: an init pass inside the run
+ * took it, the utility went on, and the run gave 0. Each call it makes
+ * takes the jumps made inside it, as when the host makes it, and leaves the
+ * landing of the call around it as it found it: a call that set exitjmp
+ * set it inside the utility, to a frame gone once the utility returned, and
+ * the jump that ends csoundCompile() after -U went there; and such a call's
+ * jumps went to the run's landing, so the utility stopped.
+ */
+enum class Nested { EvalCode, SetOption, ScoreSort, Compile, Start, Perform };
+
+std::atomic<bool> utilityWentOn{false};
+std::atomic<int32_t> nestedResult{0};
+Nested nestedCall;
+
+int32_t nestedUtility(CSOUND *csound, int32_t, char **)
+{
+  int32_t result = 0;
+  switch (nestedCall) {
+  case Nested::EvalCode:
+    csoundEvalCode(csound, "exitnow 3\n");
+    break;
+  case Nested::SetOption:
+    result = csoundSetOption(csound, "-d");
+    break;
+  case Nested::ScoreSort: {
+    FILE *in = std::tmpfile(), *out = std::tmpfile();
+    std::fputs("#include \"exit_jump_test_no_such_score\"\ne\n", in);
+    std::rewind(in);
+    result = csoundScoreSort(csound, in, out);
+    std::fclose(in);
+    std::fclose(out);
+    break;
+  }
+  case Nested::Compile: {
+    const char *argv[] = {"csound", "--exit-jump-test-no-such-option"};
+    result = csoundCompile(csound, 2, argv);
+    break;
+  }
+  case Nested::Start:
+    csoundCompileOrc(csound, "exitnow 3\n", 0);
+    result = csoundStart(csound);
+    break;
+  case Nested::Perform: {
+    csoundCompileOrc(csound, (std::string(header) +
+                              "instr 1\n exitnowk 3\nendin\n").c_str(), 0);
+    if (csoundStart(csound) != 0)
+      return 1;
+    csoundEventString(csound, "i1 0 -1", 0);
+    for (int i = 0; i < 10000 && result == 0; i++)
+      result = csoundPerformKsmps(csound);
+    break;
+  }
+  }
+  nestedResult = result;
+  utilityWentOn = true;
+  return 0;
+}
+
+class NestedCallTests : public ::testing::TestWithParam<Nested> {
+ protected:
+  Watchdog watchdog;
+  CSOUND *csound = nullptr;
+
+  void SetUp() override
+  {
+    csound = csoundCreate(nullptr, nullptr);
+    ASSERT_NE(csound, nullptr);
+    ASSERT_EQ(csoundSetOption(csound, "-n -d -m0"), 0);
+    ASSERT_EQ(csoundAddUtility(csound, "exit_jump_test_utility",
+                               nestedUtility), 0);
+    nestedCall = GetParam();
+    utilityWentOn = false;
+    nestedResult = 0;
+  }
+
+  void TearDown() override
+  {
+    if (csound != nullptr)
+      csoundDestroy(csound);
+  }
+};
+
+TEST_P(NestedCallTests, TakesItsJumpsAndLeavesTheOuterLanding)
+{
+  if (GetParam() == Nested::SetOption) {
+    /* -U: once the utility returns, csoundCompile() ends by a jump to its
+       own frame, which the utility's csoundSetOption() replaced by its own */
+    const char *argv[] = {"csound", "-U", "exit_jump_test_utility"};
+    EXPECT_EQ(csoundCompile(csound, 3, argv), CSOUND_EXITJMP_SUCCESS);
+    EXPECT_TRUE(utilityWentOn);
+    EXPECT_EQ(nestedResult, 0);
+    return;
+  }
+  const int32_t result =
+    csoundRunUtility(csound, "exit_jump_test_utility", 0, nullptr);
+  if (GetParam() == Nested::EvalCode) {
+    /* the jump in the code it evaluated before the start is the utility's,
+       as a jump of its own is: it stops there, and its run gives the jump */
+    EXPECT_EQ(result, -3);
+    EXPECT_FALSE(utilityWentOn);
+    return;
+  }
+  /* the call it made took the jump, and the utility went on */
+  EXPECT_EQ(result, 0);
+  EXPECT_TRUE(utilityWentOn);
+  if (GetParam() == Nested::Perform)
+    EXPECT_EQ(nestedResult, -3);
+  else
+    EXPECT_NE(nestedResult, 0);
+}
+
+std::string nestedName(const ::testing::TestParamInfo<Nested> &info)
+{
+  static const char *const names[] = {"EvalCode", "SetOption", "ScoreSort",
+                                      "Compile", "Start", "Perform"};
+  return names[static_cast<int>(info.param)];
+}
+
+/* csoundScoreSort() and csoundScoreExtract(), which a started engine does
+ * not refuse, leave exitjmp as they found it, a refused score too: they set
+ * it to a frame of their own, gone once they returned, under a performance
+ * that holds it.
+ */
+TEST(ScoreUtilityJumpTests, LeaveExitjmpAsTheyFoundIt)
+{
+  CSOUND *csound = csoundCreate(nullptr, nullptr);
+  ASSERT_NE(csound, nullptr);
+  ASSERT_EQ(csoundSetOption(csound, "-n -d -m0"), 0);
+  jmp_buf found;
+  std::memcpy(found, csound->exitjmp, sizeof(jmp_buf));
+  for (int extract = 0; extract < 2; extract++) {
+    FILE *in = std::tmpfile(), *out = std::tmpfile(), *x = std::tmpfile();
+    std::fputs("#include \"exit_jump_test_no_such_score\"\ne\n", in);
+    std::rewind(in);
+    std::fputs("i1\n", x);
+    std::rewind(x);
+    EXPECT_NE(extract ? csoundScoreExtract(csound, in, out, x)
+                      : csoundScoreSort(csound, in, out), 0);
+    EXPECT_EQ(std::memcmp(found, csound->exitjmp, sizeof(jmp_buf)), 0)
+      << (extract ? "csoundScoreExtract" : "csoundScoreSort");
+    std::fclose(in);
+    std::fclose(out);
+    std::fclose(x);
+  }
+  csoundDestroy(csound);
+}
+
+INSTANTIATE_TEST_SUITE_P(Calls, NestedCallTests,
+                         ::testing::Values(Nested::EvalCode, Nested::SetOption,
+                                           Nested::ScoreSort, Nested::Compile,
+                                           Nested::Start, Nested::Perform),
+                         nestedName);
 
 } // namespace
 #endif

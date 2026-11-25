@@ -126,6 +126,8 @@ SEND            ^[ \t]*[es]
 ROP             ^[ \t]*r
 
 NP              np[0-9]+
+HEX             [0-9a-fA-F]
+HEXLITERAL      0[xX]({HEX}+\.?{HEX}*|\.{HEX}+)([pP][-+]?[0-9]+)?
 
 %X incl
 %x macro
@@ -173,6 +175,7 @@ NP              np[0-9]+
                     corfile_puts(csound, yytext, PARM->cf);
                   }
                 }
+{HEXLITERAL}    { corfile_puts(csound, yytext, PARM->cf); }
 "c"             {
                   if (PARM->isString != 1) {
                     comment(yyscanner);

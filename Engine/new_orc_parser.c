@@ -479,10 +479,9 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
 TREE *csoundParseOrc(CSOUND *csound, const char *str)
 {
     PARSE_PARM parser = {0};
-    /* A host may call this first, before anything owns exitjmp. Once the
-       plugins are loaded and no --opcode-lib is left, which is what
-       csoundLoadRequestedPlugins() tests, there is nothing to load, and
-       exitjmp is left alone: a performance may own it. */
+    /* A host may call this first. Once the plugins are loaded and no
+       --opcode-lib is left, which is what csoundLoadRequestedPlugins()
+       tests, there is nothing to load. */
     if (!csound->default_modules_loaded ||
         (csound->dl_opcodes_oplibs != NULL &&
          csound->dl_opcodes_oplibs[0] != '\0')) {

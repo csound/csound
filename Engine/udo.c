@@ -154,6 +154,12 @@ static int32_t udo_copy_value(CSOUND *csound, const CS_VARIABLE *variable,
   return OK;
 }
 
+/* The built-in k type copies one scalar. Use memmove for aliased arguments. */
+#define UDO_COPY_PERF_VALUE(csound, variable, dst, src, ctx)                 \
+  ((variable)->varType == &CS_VAR_TYPE_K && (dst) != NULL && (src) != NULL    \
+   ? (memmove((dst), (src), sizeof(cs_float)), OK)                            \
+   : udo_copy_value((csound), (variable), (dst), (src), (ctx), 1, 0))
+
 static int32_t udo_audio_array_layout(CSOUND *csound,
                                       const ARRAYDAT *array,
                                       size_t *memberCount,
@@ -2826,8 +2832,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          if (UNLIKELY(udo_copy_value(csound, current, out, in,
-                                      p->h.insdshead, 1, 0) != OK)) {
+          if (UNLIKELY(UDO_COPY_PERF_VALUE(csound, current, out, in,
+                                           p->h.insdshead) != OK)) {
             return csound->PerfError(
               csound, &p->h,
               Str("UDO input changed capacity during performance\n"));
@@ -2959,8 +2965,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
           // This one checks if an array has a subtype of 'i'
           void* in = (void*)external_ptrs[i + inm->outchns];
           void* out = (void*)internal_ptrs[i + inm->outchns];
-          if (UNLIKELY(udo_copy_value(csound, current, out, in,
-                                      p->h.insdshead, 1, 0) != OK)) {
+          if (UNLIKELY(UDO_COPY_PERF_VALUE(csound, current, out, in,
+                                           p->h.insdshead) != OK)) {
             return csound->PerfError(
               csound, &p->h,
               Str("UDO input changed capacity during performance\n"));
@@ -3119,8 +3125,8 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
           }
         }
       } else {
-        if (UNLIKELY(udo_copy_value(csound, current, out, in,
-                                    p->h.insdshead, 1, 0) != OK)) {
+        if (UNLIKELY(UDO_COPY_PERF_VALUE(csound, current, out, in,
+                                         p->h.insdshead) != OK)) {
           return csound->PerfError(
             csound, &p->h,
             Str("UDO output changed capacity during performance\n"));
@@ -3213,8 +3219,8 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
           } else {
             void* in = (void*)external_ptrs[i + inm->outchns];
             void* out = (void*)internal_ptrs[i + inm->outchns];
-            if (UNLIKELY(udo_copy_value(csound, current, out, in,
-                                        p->h.insdshead, 1, 0) != OK)) {
+            if (UNLIKELY(UDO_COPY_PERF_VALUE(csound, current, out, in,
+                                             p->h.insdshead) != OK)) {
               return csound->PerfError(
                 csound, &p->h,
                 Str("UDO input changed capacity during performance\n"));
@@ -3266,8 +3272,8 @@ int32_t useropcd_pass_by_copy(CSOUND *csound, UOPCODE *p)
           } else {
             void* in = (void*)internal_ptrs[i];
             void* out = (void*)external_ptrs[i];
-            if (UNLIKELY(udo_copy_value(csound, current, out, in,
-                                        p->h.insdshead, 1, 0) != OK)) {
+            if (UNLIKELY(UDO_COPY_PERF_VALUE(csound, current, out, in,
+                                             p->h.insdshead) != OK)) {
               return csound->PerfError(
                 csound, &p->h,
                 Str("UDO output changed capacity during performance\n"));

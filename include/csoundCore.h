@@ -1764,7 +1764,7 @@ struct CSOUND_ {
   int32_t perferrcnt;                                        /* performance error count */
   int32_t total_assert_cnt;                                  /* total number of unit-test assertions */
   int32_t warped;                                            /* score warping active flag */
-  int32_t jumpset;                                           /* setjmp target is active */
+  int32_t unused_jumpset;                                    /* unused; preserves the private CSOUND layout */
   int32_t inZero;                                            /* compiling or running global instrument 0 */
   int32_t orcLineOffset;                                     /* lines before the orchestra in the CSD */
   int32_t scoLineOffset;                                     /* lines before the score in the CSD */
@@ -1992,6 +1992,13 @@ struct CSOUND_ {
   EVTNODE *rewind_events;                                    /* what the asking inits scheduled after they asked: the rewind puts it in */
   volatile long rewind_asking;                               /* realtime init items that asked for a rewind and run: no line is read */
   volatile long score_rewinds_done;                          /* score_rewinds when the last rewind was done: one runs while they differ */
+  uint64_t alloc_queue_queued;                               /* realtime allocation requests queued: the last one's seq */
+  uint64_t alloc_queue_work_seq;                             /* the seq of the request the worker took */
+  uint64_t score_turnoff_ticket;                             /* alloc_queue_queued when the score's turnoff first waited */
+  int32_t score_turnoff_waiting;                             /* the score's turnoff waits, with its ticket */
+  int32_t alloc_queue_work_insno;                            /* the instr of the note that request inits, until it completes, or 0 */
+  cs_float alloc_queue_work_p1;                              /* and that note's p1 */
+  int32_t alloc_queue_work_note;                             /* that request has a p1: it starts or ties a note, it is no reinit */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

@@ -122,7 +122,6 @@ If you want all Csound plugins to be built with static linkage to all library de
 16. In the Csound installation's command shell (the Csound icon on the Start menu), run the following pieces to perform a variety of quick tests of some major features.
   * Run `examples/xanadu.csd` with command-line Csound to test basic functionality.
   * Run `examples/python/drone.py` and `TrappedCsd.py` with Python to test the Python interface.
-  * Run `examples/java/CSDPlayer.jar` with java to test the Java interface.
   * Run `examples/opcode_demos/lua_scoregen.csd` with LuaJIT to test the Lua opcodes.
   * Run `examples/html/GameOfLife3D.csd` in CsoundQt to test CsoundQt, the HTML5 integration, the signal flow graph opcodes, and the vst4cs or Fluid opcodes.
   * Run examples/html/NW_Csound_Demo.html in NW.js to test csound.node.

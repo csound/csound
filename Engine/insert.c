@@ -491,6 +491,9 @@ int32_t alloc_queue_lock_init(CSOUND *csound)
   ATOMIC_SET(csound->alloc_queue_midi, 0);
   csound->midi_event_pending = 0;
   csound->alloc_queue_wp = 0;
+  csound->alloc_queue_queued = 0;
+  csound->alloc_queue_work_insno = 0;
+  csound->score_turnoff_waiting = 0;
   return realtime_spin_lock_init(&csound->alloc_queue_spinlock);
 }
 
@@ -517,6 +520,7 @@ int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
     wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp] = *data;
     csound->alloc_queue[wp].rewinds = ATOMIC_GET(csound->score_rewinds);
+    csound->alloc_queue[wp].seq = ++csound->alloc_queue_queued;
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
     ATOMIC_INCR(csound->alloc_queue_items);
     if (data->type == ALLOC_DATA_MIDI_EVENT)
@@ -524,6 +528,31 @@ int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
   }
   alloc_queue_unlock(csound);
   return result;
+}
+
+/* The instr of the note a request inits, starting, tying or reinitializing
+   it, or 0. For a note it starts or ties, *note is 1 and *p1 its p1 as
+   queued (a MIDI note's is its instr); a reinit's has none here. */
+static int32_t request_instr(const ALLOC_DATA *data, cs_float *p1,
+                             int32_t *note)
+{
+  *note = 0;
+  switch (data->type) {
+  case ALLOC_DATA_MIDI_EVENT:
+    *p1 = (cs_float) data->insno;
+    *note = 1;
+    return data->insno;
+  case ALLOC_DATA_SCORE_EVENT:
+    if (data->blk.p != NULL && data->blk.pcnt >= 1) {
+      *p1 = data->blk.p[1];
+      *note = 1;
+    }
+    return data->insno;
+  case ALLOC_DATA_REINIT_PASS:     /* kept alive by its init_running */
+    return data->ip != NULL ? (int32_t) data->ip->insno : 0;
+  default:
+    return 0;
+  }
 }
 
 static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
@@ -538,6 +567,11 @@ static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
       *readPosition + 1 : 0;
     ATOMIC_DECR(csound->alloc_queue_items);
     csound->alloc_queue_active++;
+    /* out of the ring now, and its note maybe not inserted yet */
+    csound->alloc_queue_work_insno =
+      request_instr(data, &csound->alloc_queue_work_p1,
+                    &csound->alloc_queue_work_note);
+    csound->alloc_queue_work_seq = data->seq;
     result = 1;
   }
   alloc_queue_unlock(csound);
@@ -552,6 +586,40 @@ int32_t alloc_queue_has_pending(CSOUND *csound)
   result = ATOMIC_GET(csound->alloc_queue_items) > 0 || csound->alloc_queue_active > 0;
   alloc_queue_unlock(csound);
   return result;
+}
+
+/* Whether a request queued up to a turnoff's ticket inits a note of instr
+   insno that it may turn off: one whose p1 is p1, as indef_off matches one,
+   or with any_p1, any, since an init can change p1. The request the worker
+   took counts, as one still queued. The first call takes the ticket, the
+   last request queued, so that later ones do not count. At most the
+   queue's capacity is read, oldest first, under its lock. */
+int32_t alloc_queue_holds_note(CSOUND *csound, int32_t insno, cs_float p1,
+                               int32_t any_p1, int32_t *waiting,
+                               uint64_t *ticket)
+{
+  unsigned long i, n;
+  cs_float note_p1 = FL(0.0);
+  int32_t held, note;
+
+  alloc_queue_lock(csound);
+  if (!*waiting) {
+    *ticket = csound->alloc_queue_queued;
+    *waiting = 1;
+  }
+  held = csound->alloc_queue_work_insno == insno &&
+    csound->alloc_queue_work_seq <= *ticket &&
+    (any_p1 ||
+     (csound->alloc_queue_work_note && csound->alloc_queue_work_p1 == p1));
+  n = (unsigned long) ATOMIC_GET(csound->alloc_queue_items);
+  i = (csound->alloc_queue_wp + MAX_ALLOC_QUEUE - n) % MAX_ALLOC_QUEUE;
+  for (; !held && n > 0 && csound->alloc_queue[i].seq <= *ticket; n--) {
+    held = request_instr(&csound->alloc_queue[i], &note_p1, &note) == insno &&
+      (any_p1 || (note && note_p1 == p1));
+    i = i + 1 < MAX_ALLOC_QUEUE ? i + 1 : 0;
+  }
+  alloc_queue_unlock(csound);
+  return held;
 }
 
 /* Keep MIDI parsing on the performance thread, but do not let later note-off
@@ -584,6 +652,7 @@ static void alloc_queue_complete(CSOUND *csound, int32_t type)
 {
   alloc_queue_lock(csound);
   csound->alloc_queue_active--;
+  csound->alloc_queue_work_insno = 0;
   if (type == ALLOC_DATA_MIDI_EVENT)
     ATOMIC_DECR(csound->alloc_queue_midi);
   alloc_queue_unlock(csound);
@@ -830,9 +899,9 @@ void realtime_message_queue_stop(CSOUND *csound)
 #define INIT_THREAD_LOCAL _Thread_local
 #endif
 
-/* Where a fatal jump lands on the realtime init thread. exitjmp belongs to
-   the thread that performs, and a jump to it from here went on running that
-   thread's frames on this one. So each pass on this thread, an init_pass, a
+/* Where a fatal jump lands on the realtime init thread. A jump to the
+   performance thread's target used to run that thread's frames on this one.
+   So each pass on this thread, an init_pass, a
    reinit_pass or init_instr0's for global code, sets a landing, as do a
    UDO's and a subinstrument's init (useropcdset, subinstrset_), which run
    their opcodes themselves. The innermost
@@ -841,8 +910,9 @@ void realtime_message_queue_stop(CSOUND *csound)
    From then on, no pass on this thread runs another opcode: the performance
    is over. The thread that performs makes the jump at the start of its next
    control period, or as the score ends (init_thread_jump_make).
-   The passes inside an API call that holds exitjmp (API_CALL) set landings
-   too, on any thread, and the call takes the jump as its error. */
+   The passes inside a compile's API call (API_CALL) set landings too, on
+   any thread, and the call takes the jump as its error; a call that catches
+   its jumps (api_call_catch) stands aside for them. */
 static INIT_THREAD_LOCAL CSOUND *init_thread;        /* the instance whose
                                                          init thread this is */
 static INIT_THREAD_LOCAL INIT_LANDING *init_landing; /* the innermost pass's */
@@ -864,9 +934,13 @@ static INIT_THREAD_LOCAL const CSOUND *note_init_of; /* the instance a note
                                                          or in a reinit       */
 
 static INIT_THREAD_LOCAL API_CALL *api_call;          /* the innermost */
+static INIT_THREAD_LOCAL const CSOUND *exitjmp_owner; /* a call on this
+                                                         thread set this
+                                                         instance's exitjmp,
+                                                         and runs */
 
-/* The innermost API call on this thread, if it holds this instance's
-   exitjmp. */
+/* The innermost API call on this thread, if it takes this instance's
+   jumps. */
 API_CALL *api_call_of(const CSOUND *csound)
 {
   API_CALL *call = api_call;
@@ -881,6 +955,7 @@ void api_call_begin(CSOUND *csound, API_CALL *call)
   call->initLanding = init_landing;
   call->initJumped = init_jumped;
   call->jumped = 0;
+  call->catching = 0;
   init_thread = NULL;
   init_landing = NULL;
   init_jumped = 0;
@@ -890,15 +965,83 @@ void api_call_begin(CSOUND *csound, API_CALL *call)
 void api_call_end(const API_CALL *call)
 {
   api_call = call->outer;
-  init_thread = call->initThread;
   init_landing = call->initLanding;
-  init_jumped = call->initJumped;
+  if (!call->catching) {      /* one that catches leaves these as they go */
+    init_thread = call->initThread;
+    init_jumped = call->initJumped;
+  }
+}
+
+/* A call that catches the jumps made inside it, as the frame that held
+   exitjmp for its length did. It stands aside for the passes and the
+   compile around it, as that frame did: a pass inside it sets a landing
+   where it would without it, and takes its own jump. It hides the landings
+   of the passes around it, so that any other jump comes to it. */
+void api_call_catch(CSOUND *csound, API_CALL *call)
+{
+  call->csound = csound;
+  call->outer = api_call;
+  call->initLanding = init_landing;
+  call->jumped = 0;
+  call->catching = 1;
+  init_landing = NULL;
+  api_call = call;
+}
+
+/* The innermost call on this thread, of this instance, whose passes take
+   their own jumps (a compile's), passing over the calls that catch. */
+static API_CALL *pass_call_of(const CSOUND *csound)
+{
+  API_CALL *call;
+  for (call = api_call; call != NULL && call->csound == csound;
+       call = call->outer)
+    if (!call->catching)
+      return call;
+  return NULL;
+}
+
+int32_t api_call_takes_passes(const CSOUND *csound)
+{
+  return pass_call_of(csound) != NULL;
+}
+
+/* Whether a call of this instance runs on this thread: one with a landing,
+   one that set exitjmp (api_call_nested), or the realtime init thread's
+   work. */
+int32_t api_call_running(const CSOUND *csound)
+{
+  return api_call_of(csound) != NULL || init_thread == csound ||
+    exitjmp_owner == csound;
+}
+
+/* A call that sets exitjmp and keeps it when it runs on its own: inside
+   another call on this thread (api_call_running), it catches its jumps in a
+   call of its own instead, and exitjmp stays the outer frame's. On its own,
+   it marks the thread as running a call while it does. */
+jmp_buf *api_call_nested(CSOUND *csound, API_CALL *call)
+{
+  if (api_call_running(csound)) {
+    api_call_catch(csound, call);
+    return &call->target;
+  }
+  call->csound = NULL;
+  call->ownerBefore = exitjmp_owner;
+  exitjmp_owner = csound;
+  return &csound->exitjmp;
+}
+
+void api_call_nested_end(const API_CALL *call)
+{
+  if (call->csound != NULL)
+    api_call_end(call);
+  else
+    exitjmp_owner = call->ownerBefore;
 }
 
 /* Sets a pass's landing, if this thread lands this instance's jumps. */
 int32_t init_landing_push(CSOUND *csound, INIT_LANDING *landing)
 {
-  if (init_thread != csound && api_call_of(csound) == NULL)
+  if (init_thread != csound && pass_call_of(csound) == NULL)
     return 0;
   landing->csound = csound;
   landing->outer = init_landing;
@@ -914,7 +1057,7 @@ void init_landing_pop(const INIT_LANDING *landing)
 /* In the API call that runs the pass, or for good, on the init thread. */
 int32_t init_jump_pending(const CSOUND *csound)
 {
-  const API_CALL *call = api_call_of(csound);
+  const API_CALL *call = pass_call_of(csound);
   if (call != NULL)
     return call->jumped != 0;
   return init_jumped;
@@ -924,7 +1067,7 @@ void init_pass_unwind(CSOUND *csound, int32_t n)
 {
   INIT_LANDING *landing = init_landing;
   if (landing != NULL && landing->csound == csound) {
-    API_CALL *call = api_call_of(csound);
+    API_CALL *call = pass_call_of(csound);
     if (call != NULL) {
       if (call->jumped == 0)                    /* the first is the call's */
         call->jumped = n;

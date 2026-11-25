@@ -296,8 +296,8 @@ static int32_t append_message(CSOUND *csound, const char *message,
    own, set before the lock is taken: an allocation that fails in the append
    (memdie) lands there with the lock held, the message is lost, and the lock
    is let go as on the way out. The landing is this thread's (insert.c), so
-   that csound->exitjmp, which the thread in csoundStart or in the
-   performance holds, is neither used nor set here. */
+   csound->exitjmp, which another API call may hold, is neither used nor set
+   here. */
 static int32_t input_message(CSOUND *csound, const char *message,
                              int32_t block, int32_t *grown) {
     API_CALL call;

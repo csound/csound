@@ -1727,6 +1727,15 @@ int32_t opcode_array_init(CSOUND *csound, OPRUN *p) {
   for(i = 0; i < n; i++)
     if(opcode_array_obj(objects, i)->dataspace == NULL)
       return csound->InitError(csound, Str("opcode object not initialised\n"));
+  // slots are laid out from objects[0], so every object must split the
+  // same array arguments
+  for(i = 1; i < n; i++)
+    for(j = 0; j < argn; j++)
+      if(oprun_splits_arg(p, pargs, opcode_array_obj(objects, i), j) !=
+         oprun_splits_arg(p, pargs, opcode_array_obj(objects, 0), j))
+        return csound->InitError(csound,
+                 Str("opcode object %d has a different signature from "
+                     "object 0\n"), i);
   // check that array args split across obj[] are 1-dim and large enough
   for(i = 0; i < argn; i++)
     if(oprun_splits_arg(p, pargs, opcode_array_obj(objects, 0), i)) {

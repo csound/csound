@@ -35,6 +35,14 @@ opcode ExpressionBlock, ik, i
   xout ksmps, kCycles
 endop
 
+opcode ClassicCopy, kk, ik
+  iBlock, kValue xin
+  setksmps iBlock
+  kBefore = kValue
+  kValue += 7
+  xout kBefore, kValue
+endop
+
 instr CheckRates
   iRequested = p4
   iExpected = (iRequested == 0 ? ksmps : iRequested)
@@ -50,6 +58,12 @@ instr CheckRates
   if kClassic != kExpected || kModern != kExpected || kExpression != kExpected then
     printks "Expected %g local cycles, got classic=%g modern=%g expression=%g\n", \
       0, kExpected, kClassic, kModern, kExpression
+    exitnowk -1
+  endif
+  kInput = timeinstk()*3
+  kBefore, kAfter ClassicCopy iRequested, kInput
+  if kInput != timeinstk()*3 || kBefore != kInput || kAfter != kInput + 7 then
+    printks "Expected an independent k input copy on every local cycle\n", 0
     exitnowk -1
   endif
   gkChecks += 1

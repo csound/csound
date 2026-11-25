@@ -309,7 +309,7 @@ static int32_t set_cfgvariable_value(csCfgVariable_t *pp, void *value)
         *(pp->m.p) = mVal;
         break;
       case CSOUNDCFG_STRING:
-        if (UNLIKELY((int32_t) strlen((char*) value) >= (pp->s.maxlen - 1)))
+        if (UNLIKELY((int32_t) strlen((char*) value) >= pp->s.maxlen))
           return CSOUNDCFG_STRING_LENGTH;
         strcpy((char*) (pp->s.p), (char*) value);
         break;
