@@ -1317,6 +1317,7 @@ uintptr_t event_insert_thread(void *p) {
   unsigned long rp = 0, rpm = 0;
   message_string_queue_t *mess = csound->message_string_queue;
 
+  if (csound->preserve_subnormals) CSOUND_PRESERVE_SUBNORMALS();
   init_thread = csound;
   for (;;) {
     ALLOC_DATA data;

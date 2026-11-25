@@ -39,6 +39,12 @@ extern "C" {
 #define _MM_GET_DENORMALS_ZERO_MODE()           \
   (_mm_getcsr() & _MM_DENORMALS_ZERO_MASK)
 #endif
+#define CSOUND_PRESERVE_SUBNORMALS() \
+  _mm_setcsr(_mm_getcsr() & ~(_MM_DENORMALS_ZERO_MASK | _MM_FLUSH_ZERO_MASK))
+#define CSOUND_WORKER_SUBNORMAL_MODE(csound) do { \
+    if ((csound)->preserve_subnormals) CSOUND_PRESERVE_SUBNORMALS(); \
+    else _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON); \
+  } while (0)
 #else
 #ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_MASK   0
@@ -46,6 +52,9 @@ extern "C" {
 #define _MM_DENORMALS_ZERO_OFF    0
 #define _MM_SET_DENORMALS_ZERO_MODE(mode)
 #endif
+#define CSOUND_PRESERVE_SUBNORMALS() ((void)0)
+#define CSOUND_WORKER_SUBNORMAL_MODE(csound) \
+  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON)
 #endif
 #endif
 

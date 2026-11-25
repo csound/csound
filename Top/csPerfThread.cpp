@@ -212,7 +212,7 @@ extern "C" {
     cs_float buf[bufsize];
     // Whole frames at a time: a sound file takes no part of one.
     const int items = bufsize - bufsize % csoundGetChannels(csound, 0);
-    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+    CSOUND_WORKER_SUBNORMAL_MODE(csound);
     csoundLockMutex(recordData->mutex);
     for (;;) {
         // Read before draining: a stop can come before this thread first
@@ -828,8 +828,9 @@ class CsPerfThread_PerformScore {
 extern "C" {
   static uintptr_t csoundPerformanceThread_(void *userData)
   {
-    CsPerfThread_PerformScore p(userData);
-    _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+    auto *thread = static_cast<CsoundPerformanceThread *>(userData);
+    CsPerfThread_PerformScore p(thread);
+    CSOUND_WORKER_SUBNORMAL_MODE(thread->GetCsound());
     // perform the score
     int retval = p.Perform();
     // return positive value if stopped or end of score, and negative on error

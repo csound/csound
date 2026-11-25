@@ -2039,6 +2039,7 @@ static void reset(CSOUND *csound) {
   csound->line_event_spinlock = saved_env->line_event_spinlock;
 #endif
   csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
+  csound->preserve_subnormals = saved_env->preserve_subnormals;
   memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
   csound->memalloc_db = saved_env->memalloc_db;
   /* what a failed module left behind may outlive the reset */

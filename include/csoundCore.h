@@ -1999,6 +1999,7 @@ struct CSOUND_ {
   int32_t alloc_queue_work_insno;                            /* the instr of the note that request inits, until it completes, or 0 */
   cs_float alloc_queue_work_p1;                              /* and that note's p1 */
   int32_t alloc_queue_work_note;                             /* that request has a p1: it starts or ties a note, it is no reinit */
+  int32_t preserve_subnormals;                              /* preserve subnormal inputs and results on x86 */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

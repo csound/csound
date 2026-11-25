@@ -677,6 +677,7 @@ static int32_t start_csound(CSOUND *csound)
   if (csound->csdname == NULL && !csound->options_checked) {
     check_options(csound);
   }
+  if (csound->preserve_subnormals) CSOUND_PRESERVE_SUBNORMALS();
 
 #if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
   /* Enforce the host limit even when options were set through native state. */
