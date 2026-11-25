@@ -29,6 +29,9 @@
 #include "csoundCore.h"
 #endif
 #include <math.h>
+#define CS_PHASE_IMPLEMENTATION
+#include "phase_accum.h"
+#undef CS_PHASE_IMPLEMENTATION
 #include <limits.h>
 #include "cwindow.h"
 #include "spectra.h"
@@ -1226,51 +1229,66 @@ int32_t pitchamdf(CSOUND *csound, PITCHAMDF *p)
 /* phasorbnk                                                        */
 /*==================================================================*/
 
-/* Wrap output that rounds to one, keeping the cs_double phase for the next call. */
-#define PHASORBNK_OUTPUT(phase)                                    \
-    ((cs_float)(phase) == FL(1.0) ? FL(0.0) : (cs_float)(phase))
+/* Each bank keeps an exact binary phase through cancellation and wraps. */
+static int32_t phasorbnkStep(CS_PHASE *step, cs_double increment)
+{
+    if (increment >= FL(1.0) || increment <= -FL(1.0)) {
+      cs_double whole;
+      increment = cs_modf(increment, &whole);
+    }
+    return csPhaseSplit(step, increment);
+}
+
+#define PHASORBNK_OUTPUT(phase) do {                                       \
+    cs_float value = (cs_float)csPhaseValue(&curphs[index]);               \
+    (phase) = value == FL(1.0) ? FL(0.0) : value;                           \
+  } while (0)
 
 int32_t phsbnkset(CSOUND *csound, PHSORBNK *p)
 {
     cs_double  phs;
     int32_t    n, count;
-    cs_double  *curphs;
+    CS_PHASE *curphs;
 
-    if (UNLIKELY(!((cs_double)*p->icnt <= (INT32_MAX + 0.0) - 0.5)))
+    /* A strict bound also rejects INT32_MAX rounded up in float. */
+    if (UNLIKELY(!(*p->icnt < FL(2147483647.0))))
       return csound->InitError(csound, "%s\n", Str("phasorbnk: invalid bank size"));
     count = *p->icnt < FL(2.0) ? 2 : (int32_t)CS_FLOAT2LONG(*p->icnt);
-    if (UNLIKELY((size_t)count > SIZE_MAX / sizeof(cs_double)))
+    if (UNLIKELY((size_t)count > SIZE_MAX / sizeof(CS_PHASE)))
       return csound->InitError(csound, "%s\n", Str("phasorbnk: bank size too large"));
 
-    if (p->curphs.auxp==NULL || p->curphs.size < sizeof(cs_double)*(size_t)count) {
+    size_t bytes = sizeof(CS_PHASE)*(size_t)count;
+    if (p->curphs.auxp==NULL || p->curphs.size < bytes) {
       /* AuxAlloc clears a resized buffer, even when initialization is skipped. */
-      cs_double *saved = NULL;
-      size_t oldBytes = sizeof(cs_double)*(size_t)p->count;
+      CS_PHASE *saved = NULL;
+      size_t oldBytes = sizeof(CS_PHASE)*(size_t)p->count;
       if (*p->iphs < FL(0.0) && p->curphs.auxp != NULL) {
         saved = csound->Malloc(csound, oldBytes);
         memcpy(saved, p->curphs.auxp, oldBytes);
       }
-      csound->AuxAlloc(csound, sizeof(cs_double)*(size_t)count, &p->curphs);
+      csound->AuxAlloc(csound, bytes, &p->curphs);
       if (saved != NULL) {
         memcpy(p->curphs.auxp, saved, oldBytes);
         csound->Free(csound, saved);
       }
     }
     else if (*p->iphs < FL(0.0) && count > p->count) {
-      memset((cs_double*)p->curphs.auxp + p->count, 0,
-             sizeof(cs_double)*(size_t)(count - p->count));
+      memset((CS_PHASE*)p->curphs.auxp + p->count, 0,
+             sizeof(CS_PHASE)*(size_t)(count - p->count));
     }
 
-    curphs = (cs_double*)p->curphs.auxp;
+    curphs = (CS_PHASE*)p->curphs.auxp;
     if (*p->iphs > 1) {
       for (n=0; n<count;n++) {
-        curphs[n] = (cs_double) rand_31(csound) / 2147483645.0;
-        if (curphs[n] == 1.0) curphs[n] = 0.0;
+        phs = (cs_double) rand_31(csound) / (cs_double)2147483645;
+        CS_PHASE_SET(curphs[n], phs < FL(1.0) ? phs : FL(0.0));
       }
     }
     else if ((phs = *p->iphs) >= 0) {
       if (phs == 1.0) phs = 0.0;
-      for (n=0; n<count;n++) curphs[n] = phs;
+      CS_PHASE phase;
+      CS_PHASE_SET(phase, phs);
+      for (n=0; n<count;n++) curphs[n] = phase;
     }
     p->count = count;
     return OK;
@@ -1278,8 +1296,8 @@ int32_t phsbnkset(CSOUND *csound, PHSORBNK *p)
 
 int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
 {
-    cs_double  phs;
-    cs_double  *curphs = (cs_double*)p->curphs.auxp;
+    CS_PHASE step;
+    CS_PHASE *curphs = (CS_PHASE*)p->curphs.auxp;
     cs_float   cps;
     int32_t     index;
 
@@ -1296,13 +1314,9 @@ int32_t kphsorbnk(CSOUND *csound, PHSORBNK *p)
 
     /* Read the frequency before the output can overwrite it. */
     cps = *p->xcps;
-    phs = curphs[index];
-    *p->sr = PHASORBNK_OUTPUT(phs);
-    if (UNLIKELY((phs += cps * CS_ONEDKR) >= 1.0))
-      phs -= 1.0;
-    else if (UNLIKELY(phs < 0.0)) /* patch from Matthew Scala */
-      phs += 1.0;
-    curphs[index] = phs;
+    const int32_t negative = phasorbnkStep(&step, cps * CS_ONEDKR);
+    PHASORBNK_OUTPUT(*p->sr);
+    csPhaseAdvance(&curphs[index], &step, negative);
     return OK;
 }
 
@@ -1312,8 +1326,8 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float   *rs;
-    cs_double  phase, incr;
-    cs_double  *curphs = (cs_double*)p->curphs.auxp;
+    CS_PHASE step;
+    CS_PHASE *curphs = (CS_PHASE*)p->curphs.auxp;
     int32_t     index;
 
     if (UNLIKELY(curphs == NULL)) {
@@ -1328,7 +1342,6 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     index = (int32_t)*p->kindx;
 
     rs = p->sr;
-    phase = curphs[index];
     if (UNLIKELY(offset)) memset(rs, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       nsmps -= early;
@@ -1337,29 +1350,44 @@ int32_t phsorbnk(CSOUND *csound, PHSORBNK *p)
     if (IS_ASIG_ARG(p->xcps)) {
       cs_float *cps = p->xcps;
       for (n=offset; n<nsmps; n++) {
-        incr = (cs_double)(cps[n] * CS_ONEDSR);
-        rs[n] = PHASORBNK_OUTPUT(phase);
-        phase += incr;
-        if (UNLIKELY(phase >= 1.0))
-          phase -= 1.0;
-        else if (UNLIKELY(phase < 0.0))
-          phase += 1.0;
+        const int32_t negative = phasorbnkStep(&step, cps[n] * CS_ONEDSR);
+        PHASORBNK_OUTPUT(rs[n]);
+        csPhaseAdvance(&curphs[index], &step, negative);
       }
     }
     else {
-      incr = (cs_double)(*p->xcps * CS_ONEDSR);
+      const int32_t negative = phasorbnkStep(&step, *p->xcps * CS_ONEDSR);
+#if defined(USE_FLOAT) && defined(BARE_METAL) && defined(__GNUC__) && \
+    !defined(__clang__) && defined(__riscv_float_abi_single) && __riscv_xlen == 32
+      CS_PHASE *phase = &curphs[index];
+      /* One word is already an exact phase on the 2^-32 grid. Unsigned
+         addition wraps without touching any lower phase words. */
+      if (phase->used <= 1 && step.used <= 1) {
+        uint32_t word = phase->words[0];
+        const uint32_t stride = step.used == 0 ? 0 :
+          (negative ? 0U - step.words[0] : step.words[0]);
+        for (n = offset; n < nsmps; ++n) {
+          cs_double value;
+          /* Match the phase accumulator's round-to-nearest-even conversion. */
+          __asm__("fcvt.s.wu %0, %1, rne" : "=f" (value) : "r" (word));
+          value *= FL(0x1p-32);
+          rs[n] = value == FL(1.0) ? FL(0.0) : value;
+          word += stride;
+        }
+        phase->words[0] = word;
+        phase->used = word != 0;
+        return OK;
+      }
+#endif
       for (n=offset; n<nsmps; n++) {
-        rs[n] = PHASORBNK_OUTPUT(phase);
-        phase += incr;
-        if (UNLIKELY(phase >= 1.0))
-          phase -= 1.0;
-        else if (UNLIKELY(phase < 0.0))
-          phase += 1.0;
+        PHASORBNK_OUTPUT(rs[n]);
+        csPhaseAdvance(&curphs[index], &step, negative);
       }
     }
-    curphs[index] = phase;
     return OK;
 }
+
+#undef PHASORBNK_OUTPUT
 
 /* Opcodes from rasmus ekman */
 

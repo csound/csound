@@ -88,6 +88,18 @@ static cs_double csPhaseValue(const CS_PHASE *phase)
       while (!more && word < phase->used) more = phase->words[word++];
       if (more || (significand & 1U)) ++significand;
     }
+#if defined(USE_FLOAT) && FLT_RADIX == 2 && FLT_MANT_DIG == 24 && \
+    FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128
+    if (sizeof(cs_double) == sizeof(uint32_t)) {
+      /* The significand includes the leading bit, so add the exponent
+         field one below its value. A rounding carry can reach 1.0.
+         Subnormals already use the same 2^-149 grid as the phase. */
+      union { uint32_t bits; cs_double value; } result = { significand };
+      if (leading <= 125)
+        result.bits += (uint32_t)(125 - leading) << 23;
+      return result.value;
+    }
+#endif
     return CS_PHASE_LDEXP((cs_double)significand, -leading - precision);
 }
 
