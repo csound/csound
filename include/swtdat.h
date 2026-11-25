@@ -53,6 +53,7 @@ struct swtdat {
   uint64_t framecount;
   uint64_t revision;
   uint64_t generation;
+  int64_t startSample;
   double sampleRate;
   SWT_AUXCH frame;
   SWT_AUXCH history;

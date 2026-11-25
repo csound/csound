@@ -57,6 +57,7 @@ typedef struct {
   int32_t bandValue;
   uint64_t lastFrame;
   uint64_t generation;
+  int64_t streamStart;
 } SWTSET;
 
 typedef struct {
@@ -74,6 +75,9 @@ typedef struct {
   uint64_t firstFrame;
   uint64_t nextFrame;
   uint64_t generation;
+  int64_t streamStart;
+  int64_t synthStart;
+  int64_t timeBase;
   int64_t outpos;
   const float *low;
   const float *high;
@@ -90,6 +94,7 @@ int32_t swt_alloc_aux(CSOUND *csound, size_t nbytes, SWT_AUXCH *aux);
 void swt_free_aux(CSOUND *csound, SWT_AUXCH *aux);
 void swt_free_var_mem(void *csound, void *varMem);
 void swt_copy_frame(CSOUND *csound, SWTDAT *dest, const SWTDAT *src);
+int32_t swt_history_overrun(const SWTDAT *frame, uint64_t cursor);
 
 const float *swt_get_coefficients(int32_t family, int32_t order,
                                   int32_t *length);

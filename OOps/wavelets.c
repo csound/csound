@@ -27,6 +27,27 @@ static int64_t swt_wrap64(int64_t n, int64_t N) {
   return n;
 }
 
+static uint32_t swtRunCounter = 0;
+
+static int32_t swt_layout_equal(const SWTDAT *a, const SWTDAT *b) {
+  if (a == NULL || b == NULL) return 0;
+  return a->framesize == b->framesize && a->hopsize == b->hopsize &&
+         a->levels == b->levels && a->capacity == b->capacity &&
+         a->waveletFamily == b->waveletFamily &&
+         a->waveletOrder == b->waveletOrder &&
+         a->boundaryMode == b->boundaryMode &&
+         a->windowPair == b->windowPair && a->olaMode == b->olaMode &&
+         a->latency == b->latency;
+}
+
+int32_t swt_history_overrun(const SWTDAT *frame, uint64_t cursor) {
+  uint64_t pending;
+  if (frame == NULL || frame->framecount < cursor) return 1;
+  pending = frame->framecount - cursor;
+  if (frame->historyCount <= 0) return pending > 1;
+  return pending > (uint64_t) frame->historyCount;
+}
+
 void swt_free_aux(CSOUND *csound, SWT_AUXCH *aux) {
   if (aux == NULL) return;
   if (aux->auxp != NULL) csound->Free(csound, aux->auxp);
@@ -258,9 +279,9 @@ int32_t swt_inverse(const float *low, const float *high, int32_t length,
 }
 
 static int32_t swt_set_metadata(CSOUND *csound, SWTDAT *frame, int32_t N,
-                                int32_t H, int32_t J, int32_t family,
-                                int32_t order, int32_t window, int32_t ola,
-                                int32_t historyCount) {
+                                 int32_t H, int32_t J, int32_t family,
+                                 int32_t order, int32_t window, int32_t ola,
+                                 int32_t historyCount, int64_t startSample) {
   if (frame == NULL || N < 2 || H < 1 || H > N || J < 1 || historyCount < 1) {
     return NOTOK;
   }
@@ -281,7 +302,8 @@ static int32_t swt_set_metadata(CSOUND *csound, SWTDAT *frame, int32_t N,
   frame->historyCount = historyCount;
   frame->framecount = 0;
   frame->revision = 0;
-  frame->generation++;
+  frame->generation = (uint64_t) ATOMIC_INCR(swtRunCounter);
+  frame->startSample = startSample;
   frame->sampleRate = (double) csound->esr;
   return OK;
 }
@@ -390,7 +412,9 @@ int32_t swtanalset(CSOUND *csound, SWTANAL *p) {
     return NOTOK;
   }
   if (swt_set_metadata(csound, p->out, N, H, J, family, order, window, ola,
-                       historyCount) != OK) {
+                        historyCount,
+                        (int64_t) csound->GetCurrentTimeSamples(csound) +
+                            (int64_t) p->h.insdshead->ksmps_offset) != OK) {
     csound->InitError(csound, Str("swtanal: invalid SWT metadata\n"));
     return NOTOK;
   }
@@ -428,10 +452,12 @@ int32_t swtanalset(CSOUND *csound, SWTANAL *p) {
 }
 
 int32_t swtanal(CSOUND *csound, SWTANAL *p) {
-  uint32_t offset = p->h.insdshead->ksmps_offset;
+  uint32_t start = p->h.insdshead->ksmps_offset;
   uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t nsmps = CS_KSMPS - early;
   uint32_t i;
+  int64_t blockStart;
+  int64_t skip;
   float *input = (float *) p->input.auxp;
   float *work = (float *) p->scratch.auxp;
   float *tmp = (float *) p->scratch2.auxp;
@@ -445,7 +471,13 @@ int32_t swtanal(CSOUND *csound, SWTANAL *p) {
       frame == NULL || history == NULL) {
     return NOTOK;
   }
-  for (i = offset; i < nsmps; i++) {
+  blockStart = csound->GetCurrentTimeSamples(csound) - (int64_t) csound->ksmps;
+  if (blockStart + (int64_t) start < p->out->startSample) {
+    skip = p->out->startSample - (blockStart + (int64_t) start);
+    if (skip >= (int64_t) nsmps - (int64_t) start) return OK;
+    start += (uint32_t) skip;
+  }
+  for (i = start; i < nsmps; i++) {
     input[writeIndex] = (float) p->ain[i];
     writeIndex = (writeIndex + 1) % p->N;
     p->inputCount++;
@@ -541,6 +573,7 @@ int32_t swtsetset(CSOUND *csound, SWTSET *p) {
   swt_copy_frame(csound, p->out, p->in);
   p->lastFrame = p->in->framecount;
   p->generation = p->in->generation;
+  p->streamStart = p->in->startSample;
   return OK;
 }
 
@@ -551,19 +584,27 @@ int32_t swtset(CSOUND *csound, SWTSET *p) {
   float *data = (float *) p->out->frame.auxp;
   size_t bytes = (size_t) p->out->capacity * sizeof(float);
   size_t available;
+  if (!swt_layout_equal(p->in, p->out)) {
+    return csound->PerfError(csound, &p->h,
+                             Str("swtset: SWT frame layout changed\n"));
+  }
   if (offset < 0 || size <= 0 || data == NULL ||
       swt_band_array_length(p->bands, &available) != OK ||
       available < (size_t) size) {
     return csound->PerfError(csound, &p->h,
                              Str("swtset: input array is too short\n"));
   }
-  if (p->in->generation != p->generation) {
+  if (p->in->generation != p->generation ||
+      p->in->startSample != p->streamStart ||
+      p->in->framecount < p->lastFrame) {
     p->lastFrame = 0;
     p->generation = p->in->generation;
+    p->streamStart = p->in->startSample;
     if (p->out != p->in) {
       p->out->framecount = 0;
       p->out->revision = p->in->revision;
-      p->out->generation++;
+      p->out->generation = p->in->generation;
+      p->out->startSample = p->in->startSample;
       if (p->out->frame.auxp != NULL)
         memset(p->out->frame.auxp, 0, bytes);
       if (p->out->history.auxp != NULL)
@@ -571,9 +612,7 @@ int32_t swtset(CSOUND *csound, SWTSET *p) {
                bytes * (size_t) p->out->historyCount);
     }
   }
-  if (p->in->framecount > p->lastFrame &&
-      p->in->framecount - p->lastFrame >
-      (uint64_t) p->in->historyCount) {
+  if (swt_history_overrun(p->in, p->lastFrame)) {
     return csound->PerfError(csound, &p->h,
                              Str("swtset: SWT history overrun\n"));
   }
@@ -633,9 +672,16 @@ static int32_t swt_synth_add_frame(CSOUND *csound, SWTSYNTH *p,
   float *windows = (float *) p->windows.auxp;
   float *denom = (float *) p->denom.auxp;
   float *outbuf = (float *) p->outbuf.auxp;
-  int64_t start = (int64_t) p->nextFrame * (int64_t) p->H +
-                  (int64_t) p->latency;
+  int64_t frameOffset = (int64_t) p->nextFrame * (int64_t) p->H;
+  int64_t offsetPlusLatency;
+  int64_t start;
   int32_t n;
+  if (frameOffset > INT64_MAX - (int64_t) p->latency) return NOTOK;
+  offsetPlusLatency = frameOffset + (int64_t) p->latency;
+  if (p->timeBase > INT64_MAX - offsetPlusLatency ||
+      p->timeBase < INT64_MIN + offsetPlusLatency)
+    return NOTOK;
+  start = p->timeBase + offsetPlusLatency;
 
   if (recon == NULL || work == NULL || tmp == NULL || windows == NULL ||
       denom == NULL || outbuf == NULL) {
@@ -704,6 +750,11 @@ int32_t swtsynthset(CSOUND *csound, SWTSYNTH *p) {
   p->firstFrame = p->in->framecount;
   p->nextFrame = p->firstFrame;
   p->generation = p->in->generation;
+  p->streamStart = p->in->startSample;
+  p->synthStart = (int64_t) csound->GetCurrentTimeSamples(csound) +
+                  (int64_t) p->h.insdshead->ksmps_offset;
+  p->timeBase = p->in->framecount == 0 ?
+                p->streamStart - p->synthStart : 0;
   p->outpos = (int64_t) (p->nextFrame * (uint64_t) H);
   ksmps = CS_KSMPS;
   buflen = (int64_t) 2 * N + H + 2 * (int64_t) ksmps + 8;
@@ -751,6 +802,10 @@ int32_t swtsynth(CSOUND *csound, SWTSYNTH *p) {
   uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t nsmps = CS_KSMPS - early;
   uint32_t i;
+  int64_t clearFrom;
+  int64_t clearEnd;
+  int64_t pos;
+  int64_t scheduled;
   float *outbuf = (float *) p->outbuf.auxp;
   float *history = (float *) p->in->history.auxp;
   float *latest = (float *) p->in->frame.auxp;
@@ -760,16 +815,33 @@ int32_t swtsynth(CSOUND *csound, SWTSYNTH *p) {
       p->in->levels != p->J) {
     return NOTOK;
   }
-  if (p->in->generation != p->generation) {
+  if (p->in->framecount > (uint64_t) (INT64_MAX / p->H)) {
+    return csound->PerfError(csound, &p->h,
+                             Str("swtsynth: frame count is too large\n"));
+  }
+  if (p->in->generation != p->generation ||
+      p->in->startSample != p->streamStart ||
+      p->in->framecount < p->nextFrame) {
     p->firstFrame = 0;
     p->nextFrame = 0;
     p->generation = p->in->generation;
-    p->outpos = 0;
-    memset(outbuf, 0, (size_t) p->buflen * sizeof(float));
+    p->streamStart = p->in->startSample;
+    p->timeBase = p->streamStart - p->synthStart;
+    clearFrom = p->timeBase > p->outpos ? p->timeBase : p->outpos;
+    clearEnd = p->outpos + (int64_t) p->buflen;
+    for (pos = clearFrom; pos < clearEnd; pos++) {
+      outbuf[swt_wrap64(pos, (int64_t) p->buflen)] = 0.0f;
+    }
+    while (p->nextFrame < p->in->framecount) {
+      scheduled = p->timeBase +
+                  (int64_t) (p->nextFrame * (uint64_t) p->H) +
+                  (int64_t) p->latency;
+      if (scheduled >= p->outpos) break;
+      p->nextFrame++;
+    }
+    p->firstFrame = p->nextFrame;
   }
-  if (p->in->framecount > p->nextFrame &&
-      p->in->framecount - p->nextFrame >
-      (uint64_t) p->in->historyCount) {
+  if (swt_history_overrun(p->in, p->nextFrame)) {
     return csound->PerfError(csound, &p->h,
                              Str("swtsynth: SWT history overrun\n"));
   }

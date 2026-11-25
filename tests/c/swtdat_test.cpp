@@ -2,6 +2,7 @@
 #include "csoundCore.h"
 #include "csound_standard_types.h"
 #include "swtdat.h"
+#include "wavelets.h"
 #include "gtest/gtest.h"
 
 #include <cstdlib>
@@ -26,6 +27,7 @@ SWTDAT makeFrame() {
   frame.framecount = 7;
   frame.revision = 9;
   frame.generation = 11;
+  frame.startSample = 1234;
   frame.sampleRate = 44100.0;
   frame.frame.size = 256 * sizeof(float);
   frame.frame.auxp = std::malloc(frame.frame.size);
@@ -114,6 +116,7 @@ TEST(SwtDataAccessors, CopyValuePreservesFrameAndHistory) {
   EXPECT_EQ(csoundSwtDataFramecount(&destination), 7u);
   EXPECT_EQ(csoundSwtDataRevision(&destination), 9u);
   EXPECT_EQ(destination.generation, 11u);
+  EXPECT_EQ(destination.startSample, 1234);
   EXPECT_NE(destination.frame.auxp, source.frame.auxp);
   EXPECT_NE(destination.history.auxp, source.history.auxp);
   EXPECT_EQ(std::memcmp(destination.frame.auxp, source.frame.auxp,
@@ -131,6 +134,27 @@ TEST(SwtDataAccessors, CopyValuePreservesFrameAndHistory) {
     EXPECT_EQ(csound->curip->auxchp, auxchBefore);
   freeFrame(source);
   csoundDestroy(csound);
+}
+
+TEST(SwtDataHistory, NoHistoryAllowsOnlyCurrentFrame) {
+  SWTDAT frame = makeFrame();
+  frame.historyCount = 0;
+  frame.framecount = 1;
+
+  EXPECT_EQ(swt_history_overrun(&frame, 0), 0);
+  EXPECT_EQ(swt_history_overrun(&frame, 1), 0);
+
+  frame.framecount = 2;
+  EXPECT_NE(swt_history_overrun(&frame, 0), 0);
+  EXPECT_EQ(swt_history_overrun(&frame, 1), 0);
+
+  frame.historyCount = 5;
+  frame.framecount = 6;
+  EXPECT_EQ(swt_history_overrun(&frame, 1), 0);
+  frame.framecount = 7;
+  EXPECT_NE(swt_history_overrun(&frame, 1), 0);
+
+  freeFrame(frame);
 }
 
 }
