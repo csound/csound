@@ -42,6 +42,9 @@ typedef struct {
   cs_float *band;
   int32_t count;
   int32_t bandValue;
+  int32_t frameSize;
+  int32_t levels;
+  int32_t capacity;
 } SWTGET;
 
 typedef struct {
@@ -53,6 +56,7 @@ typedef struct {
   int32_t count;
   int32_t bandValue;
   uint64_t lastFrame;
+  uint64_t generation;
 } SWTSET;
 
 typedef struct {
@@ -69,6 +73,7 @@ typedef struct {
   int32_t buflen;
   uint64_t firstFrame;
   uint64_t nextFrame;
+  uint64_t generation;
   int64_t outpos;
   const float *low;
   const float *high;

@@ -25,6 +25,7 @@ SWTDAT makeFrame() {
   frame.historyCount = 5;
   frame.framecount = 7;
   frame.revision = 9;
+  frame.generation = 11;
   frame.sampleRate = 44100.0;
   frame.frame.size = 256 * sizeof(float);
   frame.frame.auxp = std::malloc(frame.frame.size);
@@ -112,6 +113,7 @@ TEST(SwtDataAccessors, CopyValuePreservesFrameAndHistory) {
   EXPECT_EQ(csoundSwtDataCapacity(&destination), 256);
   EXPECT_EQ(csoundSwtDataFramecount(&destination), 7u);
   EXPECT_EQ(csoundSwtDataRevision(&destination), 9u);
+  EXPECT_EQ(destination.generation, 11u);
   EXPECT_NE(destination.frame.auxp, source.frame.auxp);
   EXPECT_NE(destination.history.auxp, source.history.auxp);
   EXPECT_EQ(std::memcmp(destination.frame.auxp, source.frame.auxp,

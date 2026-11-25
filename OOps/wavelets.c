@@ -281,6 +281,7 @@ static int32_t swt_set_metadata(CSOUND *csound, SWTDAT *frame, int32_t N,
   frame->historyCount = historyCount;
   frame->framecount = 0;
   frame->revision = 0;
+  frame->generation++;
   frame->sampleRate = (double) csound->esr;
   return OK;
 }
@@ -375,7 +376,8 @@ int32_t swtanalset(CSOUND *csound, SWTANAL *p) {
     return NOTOK;
   }
   if (ola == SWT_OLA_DIRECT) window = SWT_WINDOW_NONE;
-  ksmps = CS_KSMPS;
+  ksmps = csound->ksmps > (int32_t) CS_KSMPS ? csound->ksmps :
+          (int32_t) CS_KSMPS;
   frames = ((int64_t) ksmps + H - 1) / H +
            ((int64_t) N + H - 1) / H + 2;
   if (frames < 1 || frames > INT32_MAX) {
@@ -479,6 +481,9 @@ int32_t swtgetset(CSOUND *csound, SWTGET *p) {
   }
   p->bandValue = band;
   p->count = size;
+  p->frameSize = p->in->framesize;
+  p->levels = p->in->levels;
+  p->capacity = p->in->capacity;
   if (tabinit(csound, p->out, size, p->h.insdshead) != OK) {
     csound->InitError(csound, Str("swtget: array allocation failed\n"));
     return NOTOK;
@@ -488,9 +493,15 @@ int32_t swtgetset(CSOUND *csound, SWTGET *p) {
 
 int32_t swtget(CSOUND *csound, SWTGET *p) {
   int32_t offset = swt_band_offset(p->in, p->bandValue);
+  int32_t size = swt_band_size(p->in, p->bandValue);
   int32_t i;
   const float *data;
-  if (offset < 0 || p->in->frame.auxp == NULL) return NOTOK;
+  if (offset < 0 || size != p->count || p->in->frame.auxp == NULL ||
+      p->in->framesize != p->frameSize || p->in->levels != p->levels ||
+      p->in->capacity != p->capacity) {
+    return csound->PerfError(csound, &p->h,
+                             Str("swtget: SWT frame layout changed\n"));
+  }
   data = (const float *) p->in->frame.auxp + offset;
   if (p->out->data == NULL) return NOTOK;
   for (i = 0; i < p->count; i++) p->out->data[i] = (cs_float) data[i];
@@ -529,6 +540,7 @@ int32_t swtsetset(CSOUND *csound, SWTSET *p) {
   }
   swt_copy_frame(csound, p->out, p->in);
   p->lastFrame = p->in->framecount;
+  p->generation = p->in->generation;
   return OK;
 }
 
@@ -544,6 +556,26 @@ int32_t swtset(CSOUND *csound, SWTSET *p) {
       available < (size_t) size) {
     return csound->PerfError(csound, &p->h,
                              Str("swtset: input array is too short\n"));
+  }
+  if (p->in->generation != p->generation) {
+    p->lastFrame = 0;
+    p->generation = p->in->generation;
+    if (p->out != p->in) {
+      p->out->framecount = 0;
+      p->out->revision = p->in->revision;
+      p->out->generation++;
+      if (p->out->frame.auxp != NULL)
+        memset(p->out->frame.auxp, 0, bytes);
+      if (p->out->history.auxp != NULL)
+        memset(p->out->history.auxp, 0,
+               bytes * (size_t) p->out->historyCount);
+    }
+  }
+  if (p->in->framecount > p->lastFrame &&
+      p->in->framecount - p->lastFrame >
+      (uint64_t) p->in->historyCount) {
+    return csound->PerfError(csound, &p->h,
+                             Str("swtset: SWT history overrun\n"));
   }
   if (p->in->framecount > p->lastFrame &&
       p->in->capacity == p->out->capacity &&
@@ -671,6 +703,7 @@ int32_t swtsynthset(CSOUND *csound, SWTSYNTH *p) {
   }
   p->firstFrame = p->in->framecount;
   p->nextFrame = p->firstFrame;
+  p->generation = p->in->generation;
   p->outpos = (int64_t) (p->nextFrame * (uint64_t) H);
   ksmps = CS_KSMPS;
   buflen = (int64_t) 2 * N + H + 2 * (int64_t) ksmps + 8;
@@ -726,6 +759,19 @@ int32_t swtsynth(CSOUND *csound, SWTSYNTH *p) {
   if (p->in->framesize != p->N || p->in->hopsize != p->H ||
       p->in->levels != p->J) {
     return NOTOK;
+  }
+  if (p->in->generation != p->generation) {
+    p->firstFrame = 0;
+    p->nextFrame = 0;
+    p->generation = p->in->generation;
+    p->outpos = 0;
+    memset(outbuf, 0, (size_t) p->buflen * sizeof(float));
+  }
+  if (p->in->framecount > p->nextFrame &&
+      p->in->framecount - p->nextFrame >
+      (uint64_t) p->in->historyCount) {
+    return csound->PerfError(csound, &p->h,
+                             Str("swtsynth: SWT history overrun\n"));
   }
   for (i = 0; i < offset && i < (uint32_t) CS_KSMPS; i++) p->aout[i] = 0;
   for (i = nsmps; i < (uint32_t) CS_KSMPS; i++) p->aout[i] = 0;
