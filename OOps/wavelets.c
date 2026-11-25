@@ -456,8 +456,6 @@ int32_t swtanal(CSOUND *csound, SWTANAL *p) {
   uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t nsmps = CS_KSMPS - early;
   uint32_t i;
-  int64_t blockStart;
-  int64_t skip;
   float *input = (float *) p->input.auxp;
   float *work = (float *) p->scratch.auxp;
   float *tmp = (float *) p->scratch2.auxp;
@@ -471,11 +469,22 @@ int32_t swtanal(CSOUND *csound, SWTANAL *p) {
       frame == NULL || history == NULL) {
     return NOTOK;
   }
-  blockStart = csound->GetCurrentTimeSamples(csound) - (int64_t) csound->ksmps;
-  if (blockStart + (int64_t) start < p->out->startSample) {
-    skip = p->out->startSample - (blockStart + (int64_t) start);
-    if (skip >= (int64_t) nsmps - (int64_t) start) return OK;
-    start += (uint32_t) skip;
+  {
+    int64_t blockStart =
+        csound->GetCurrentTimeSamples(csound) - (int64_t) csound->ksmps;
+    int64_t inputOffset = 0;
+    if (csound->spin != NULL && p->h.insdshead->spin != NULL &&
+        csound->inchnls > 0) {
+      inputOffset = (int64_t) (p->h.insdshead->spin - csound->spin) /
+                    (int64_t) csound->inchnls;
+    }
+    if (inputOffset < 0) inputOffset = 0;
+    if (blockStart + inputOffset + (int64_t) start < p->out->startSample) {
+      int64_t skip = p->out->startSample -
+                     (blockStart + inputOffset + (int64_t) start);
+      if (skip >= (int64_t) nsmps - (int64_t) start) return OK;
+      start += (uint32_t) skip;
+    }
   }
   for (i = start; i < nsmps; i++) {
     input[writeIndex] = (float) p->ain[i];
@@ -756,6 +765,7 @@ int32_t swtsynthset(CSOUND *csound, SWTSYNTH *p) {
   p->timeBase = p->in->framecount == 0 ?
                 p->streamStart - p->synthStart : 0;
   p->outpos = (int64_t) (p->nextFrame * (uint64_t) H);
+  p->originOffset = p->outpos;
   ksmps = CS_KSMPS;
   buflen = (int64_t) 2 * N + H + 2 * (int64_t) ksmps + 8;
   if (buflen > INT32_MAX) {
@@ -826,7 +836,7 @@ int32_t swtsynth(CSOUND *csound, SWTSYNTH *p) {
     p->nextFrame = 0;
     p->generation = p->in->generation;
     p->streamStart = p->in->startSample;
-    p->timeBase = p->streamStart - p->synthStart;
+    p->timeBase = p->streamStart - p->synthStart + p->originOffset;
     clearFrom = p->timeBase > p->outpos ? p->timeBase : p->outpos;
     clearEnd = p->outpos + (int64_t) p->buflen;
     for (pos = clearFrom; pos < clearEnd; pos++) {

@@ -77,6 +77,7 @@ typedef struct {
   uint64_t generation;
   int64_t streamStart;
   int64_t synthStart;
+  int64_t originOffset;
   int64_t timeBase;
   int64_t outpos;
   const float *low;
