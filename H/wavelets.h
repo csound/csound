@@ -67,6 +67,7 @@ typedef struct {
   int32_t filterLength;
   int32_t olaMode;
   int32_t buflen;
+  uint64_t firstFrame;
   uint64_t nextFrame;
   int64_t outpos;
   const float *low;

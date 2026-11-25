@@ -1,5 +1,5 @@
 <CsTest>
-description = "swtanal and swtsynth reconstruct direct and overlap-add frames from latency onward and clear inactive output samples"
+description = "swtanal and swtsynth reconstruct direct and overlap-add frames from latency onward, start late synths correctly, and clear inactive output samples"
 
 [expect]
 exit = 0
@@ -18,6 +18,8 @@ gkOnsetChecks init 0
 gkInactiveChecks init 0
 gkLateSilent init 0
 gkLateAudio init 0
+gkLateOlaSilent init 0
+gkLateOlaAudio init 0
 
 instr 1
   iN = p4
@@ -114,9 +116,43 @@ instr 6
   endif
 endin
 
+instr 7
+  aInput = 0.25
+  lateOlaWave@global:swt swtanal aInput, 64, 16, 1, 4, 4, 0, 1, 2
+endin
+
+instr 8
+  aOutput swtsynth lateOlaWave
+  kCycle init 0
+  kCycle += 1
+  if kCycle <= 2 then
+    kIndex = 0
+    while kIndex < ksmps do
+      kActual vaget kIndex, aOutput
+      if abs(kActual) > 0.000001 then
+        printks "late overlap-add swtsynth replayed an old frame: cycle=%d sample=%d value=%g\n", 0, kCycle, kIndex, kActual
+        exitnowk(-1)
+      endif
+      gkLateOlaSilent += 1
+      kIndex += 1
+    od
+  elseif kCycle >= 4 && kCycle <= 6 then
+    kIndex = 0
+    while kIndex < ksmps do
+      kActual vaget kIndex, aOutput
+      if abs(kActual - 0.25) > 0.0005 then
+        printks "late overlap-add swtsynth onset failed: cycle=%d sample=%d got=%g expected=0.25\n", 0, kCycle, kIndex, kActual
+        exitnowk(-1)
+      endif
+      kIndex += 1
+    od
+    gkLateOlaAudio += 1
+  endif
+endin
+
 instr 2
-  if i(gkChecks) != 18 || i(gkOnsetChecks) != 4 || i(gkInactiveChecks) != 1 || i(gkLateSilent) != 32 || i(gkLateAudio) != 1 then
-    prints "swt reconstruction checks did not complete: %d %d %d %d %d\n", i(gkChecks), i(gkOnsetChecks), i(gkInactiveChecks), i(gkLateSilent), i(gkLateAudio)
+  if i(gkChecks) != 18 || i(gkOnsetChecks) != 4 || i(gkInactiveChecks) != 1 || i(gkLateSilent) != 32 || i(gkLateAudio) != 1 || i(gkLateOlaSilent) != 64 || i(gkLateOlaAudio) != 3 then
+    prints "swt reconstruction checks did not complete: %d %d %d %d %d %d %d\n", i(gkChecks), i(gkOnsetChecks), i(gkInactiveChecks), i(gkLateSilent), i(gkLateAudio), i(gkLateOlaSilent), i(gkLateOlaAudio)
     exitnow(-1)
   endif
 endin
@@ -128,6 +164,8 @@ i 3 0 0.2
 i 4 0 0.003
 i 5 0 0.2
 i 6 0.05 0.1
+i 7 0 0.2
+i 8 0.05 0.12
 i 2 0.25 0.01
 e
 </CsScore>

@@ -619,7 +619,8 @@ static int32_t swt_synth_add_frame(CSOUND *csound, SWTSYNTH *p,
     int64_t idx = swt_wrap64(pos, (int64_t) p->buflen);
     float value = recon[n];
     if (p->olaMode == SWT_OLA_OVERLAP_ADD) {
-      int64_t q = (int64_t) p->nextFrame * (int64_t) p->H + (int64_t) n;
+      int64_t q = (int64_t) (p->nextFrame - p->firstFrame) * (int64_t) p->H +
+                  (int64_t) n;
       double weightSum = swt_ola_denominator(windows, p->N, p->H, q, denom);
       value *= windows[n] / (float) weightSum;
     }
@@ -668,7 +669,8 @@ int32_t swtsynthset(CSOUND *csound, SWTSYNTH *p) {
     csound->InitError(csound, Str("swtsynth: frame count is too large\n"));
     return NOTOK;
   }
-  p->nextFrame = p->in->framecount;
+  p->firstFrame = p->in->framecount;
+  p->nextFrame = p->firstFrame;
   p->outpos = (int64_t) (p->nextFrame * (uint64_t) H);
   ksmps = CS_KSMPS;
   buflen = (int64_t) 2 * N + H + 2 * (int64_t) ksmps + 8;
