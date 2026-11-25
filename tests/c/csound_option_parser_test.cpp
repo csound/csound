@@ -12,6 +12,13 @@
 #include "csound.h"
 #include "csoundCore.h"
 
+#if !defined(EMSCRIPTEN) && !defined(_M_ARM64EC) && \
+    (defined(__SSE2__) || defined(_M_X64) || \
+     (defined(_M_IX86_FP) && _M_IX86_FP >= 2))
+#include <xmmintrin.h>
+#define CSOUND_TEST_SSE2
+#endif
+
 extern "C" {
     extern CORFIL *corfile_create_r(CSOUND *csound, const char *text);
     extern void corfile_rm(CSOUND *csound, CORFIL **ff);
@@ -63,6 +70,24 @@ public:
 
     CSOUND* csound {nullptr};
 };
+
+#ifdef CSOUND_TEST_SSE2
+TEST_F (OptionParserTests, testPreserveSubnormalsClearsDazAndFtz)
+{
+    struct MxcsrRestore {
+        unsigned int value;
+        ~MxcsrRestore () { _mm_setcsr (value); }
+    } restore {_mm_getcsr ()};
+    const unsigned int flush_bits = 0x8040u;
+
+    _mm_setcsr (_mm_getcsr () | flush_bits);
+    ASSERT_EQ (_mm_getcsr () & flush_bits, flush_bits);
+
+    ASSERT_EQ (csoundSetOption (csound, "--preserve-subnormals"), 0);
+    EXPECT_EQ (csound->preserve_subnormals, 1);
+    EXPECT_EQ (_mm_getcsr () & flush_bits, 0u);
+}
+#endif
 
 TEST_F (OptionParserTests, testParseSimpleEnvVar)
 {

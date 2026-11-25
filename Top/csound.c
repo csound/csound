@@ -1485,7 +1485,7 @@ static void install_signal_handler(void) {
  CSOUND *csoundCreate(void *hostdata, const char *opcodedir) {
   CSOUND *csound;
   csInstance_t *p;
-  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+  CSOUND_DEFAULT_SUBNORMAL_MODE();
 
   if (init_done != 1) {
     if (csoundInitialize(0) < 0)
