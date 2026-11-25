@@ -70,7 +70,7 @@ typedef int int32_t;
   }
 %}
 
-%include "languages/java/exclusions.i"
+%include "exclusions.i"
 
 %include "csound.h"
 %include "cfgvar.h"

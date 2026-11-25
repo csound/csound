@@ -23,6 +23,7 @@
 #include "failing_init_plugin_path.hpp"
 #include "failing_create_plugin_path.hpp"
 #include "jumping_init_plugin_path.hpp"
+#include "hook_plugin_path.hpp"
 #endif
 
 #ifdef CSOUND_TEST_HAS_TWO_COPIES
@@ -979,6 +980,119 @@ TEST(PluginThatFailsToStart, LoadedAfterACompileFailsTheStartAfterSetRTAudioModu
 
 TEST(PluginThatFailsToStart, LoadedAfterACompileFailsTheStartAfterSetMIDIModule) {
   expectCalledAfterACompileToFail(setMIDIModule);
+}
+
+// A plugin whose csoundModuleCreate() or csoundModuleInit() evaluates code
+// before the start, with csoundEvalCode(), and the code jumps (exitnow): the
+// plugin stops there and its load fails, as when it jumps itself. The jump
+// went to an init pass's landing inside the call that loaded the plugin,
+// the plugin went on, and the load succeeded. Each runs in a process of its
+// own.
+namespace {
+bool evaluatedOn = false;  // the plugin went on after the code it evaluated
+
+void evaluateAJump(CSOUND *csound) {
+  csoundEvalCode(csound, "exitnow 3\n");
+  evaluatedOn = true;
+}
+
+void hookPlugin(CSOUND *csound, const char *where,
+                void (*hook)(CSOUND *) = evaluateAJump) {
+  typedef void (*Hook)(CSOUND *);
+  csoundCreateGlobalVariable(csound, where, sizeof(Hook));
+  *static_cast<Hook *>(csoundQueryGlobalVariable(csound, where)) = hook;
+}
+
+// Exits 0 if the call fails and the plugin stops at the jump.
+void expectAnEvaluatedJumpToFail(const char *where, bool scanned,
+                                 int32_t (*call)(CSOUND *)) {
+  EXPECT_EXIT(
+      {
+        CSOUND *csound = scanned
+                             ? createScanningTheDirectoryOf(CSOUND_TEST_HOOK_PLUGIN)
+                             : createWithoutRcFile();
+        hookPlugin(csound, where);
+        const int32_t result = call(csound);
+        csoundDestroy(csound);
+        std::exit(result == CSOUND_SUCCESS ? 1 : evaluatedOn ? 2 : 0);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+
+int32_t loadHookPlugin(CSOUND *csound) {
+  return csoundLoadPlugins(csound,
+                           directoryOf(CSOUND_TEST_HOOK_PLUGIN).c_str());
+}
+} // namespace
+
+TEST(PluginThatEvaluatesAJump, InItsCreateFailsCsoundLoadPlugins) {
+  const NoUserPluginDirectory noUserPlugins;
+  expectAnEvaluatedJumpToFail("hook_plugin_create", false, loadHookPlugin);
+}
+
+TEST(PluginThatEvaluatesAJump, InItsInitFailsCsoundLoadPlugins) {
+  const NoUserPluginDirectory noUserPlugins;
+  expectAnEvaluatedJumpToFail("hook_plugin_init", false, loadHookPlugin);
+}
+
+TEST(PluginThatEvaluatesAJump, InItsInitInThePluginDirectoryFailsParseOrc) {
+  expectAnEvaluatedJumpToFail("hook_plugin_init", true, parseOrc);
+}
+
+// Loaded by a compile, through --opcode-lib, the jump is the compile's, as a
+// jump in its global code is: the plugin goes on, and the compile gives the
+// jump. It gave 0.
+TEST(PluginThatEvaluatesAJump, InItsInitLoadedByACompileIsTheCompiles) {
+  const NoUserPluginDirectory noUserPlugins;
+  const std::string option =
+      std::string("--opcode-lib=") + CSOUND_TEST_HOOK_PLUGIN;
+  EXPECT_EXIT(
+      {
+        CSOUND *csound = createWithoutRcFile();
+        hookPlugin(csound, "hook_plugin_init");
+        csoundSetOption(csound, option.c_str());
+        const int32_t result = compileOrc(csound);
+        csoundDestroy(csound);
+        std::exit(result == CSOUND_EXITJMP_SUCCESS - 3 && evaluatedOn ? 0 : 1);
+      },
+      ::testing::ExitedWithCode(0), "");
+}
+
+// A plugin of the plugin directory whose csoundModuleInit() calls
+// csoundSetOption(), as csoundCompile() starts the plugins: the compile's
+// error, an orchestra that does not compile, still comes back from it.
+// csoundSetOption() set exitjmp to its own frame, gone once it returned,
+// and the error jumped there.
+namespace {
+void setAnOption(CSOUND *csound) {
+  csoundSetOption(csound, "-d");
+}
+
+int32_t compileWithoutSound(CSOUND *csound, const std::string &csd) {
+  const char *argv[] = {"csound", "-n", csd.c_str()};
+  return csoundCompile(csound, 3, argv);
+}
+} // namespace
+
+TEST(PluginThatSetsAnOption, InItsInitLeavesTheCompilesLanding) {
+  const std::string csd =
+      (std::filesystem::temp_directory_path() /
+       ("plugin_sets_an_option_" + std::to_string(std::random_device{}()) +
+        ".csd"))
+          .generic_string();
+  std::ofstream(csd) << "<CsoundSynthesizer>\n<CsInstruments>\n"
+                        "instr 1\n no_such_opcode_here\nendin\n"
+                        "</CsInstruments>\n</CsoundSynthesizer>\n";
+  EXPECT_EXIT(
+      {
+        CSOUND *csound = createScanningTheDirectoryOf(CSOUND_TEST_HOOK_PLUGIN);
+        hookPlugin(csound, "hook_plugin_init", setAnOption);
+        const int32_t result = compileWithoutSound(csound, csd);
+        csoundDestroy(csound);
+        std::exit(result == CSOUND_SUCCESS ? 1 : 0);
+      },
+      ::testing::ExitedWithCode(0), "");
+  std::remove(csd.c_str());
 }
 #endif
 

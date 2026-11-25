@@ -23,6 +23,7 @@
 #include "interlocks.h"
 #include "vectorial.h"
 #include <math.h>
+#include <float.h>
 #include <inttypes.h>
 
 /* These comparisons also reject NaN and infinity before integer casts. */
@@ -2567,7 +2568,7 @@ static int32_t kdel_set(CSOUND *csound,KDEL *p)
       return OK;
     if (maxpts > INT32_MAX)
       maxpts = INT32_MAX;
-    samples = (cs_double) (*p->imaxd * CS_EKR);
+    samples = (cs_double) *p->imaxd * CS_EKR;
     if (UNLIKELY(!(samples >= 0 && samples < (cs_double) maxpts + 1)))
       return csound->InitError(csound, "%s\n", Str("vdelayk: invalid maximum delay"));
     n = (int32_t) samples;
@@ -2582,11 +2583,38 @@ static int32_t kdel_set(CSOUND *csound,KDEL *p)
     return OK;
 }
 
+/* Reduce an integral sample offset without rounding the buffer length. */
+static int64_t kdelayMod(cs_double samples, int64_t length)
+{
+    const int32_t negative = samples < FL(0.0);
+    if (negative) samples = -samples;
+    int64_t reduced;
+    if (samples < FL(4611686018427387904.0)) {  /* 2^62 */
+      const int64_t whole = (int64_t)samples;
+      reduced = whole < length ? whole : whole % length;
+    }
+    else {
+      int exponent;
+#ifdef USE_FLOAT
+      cs_double mantissa = frexpf(samples, &exponent);
+      reduced = (int64_t)ldexpf(mantissa, FLT_MANT_DIG) % length;
+      exponent -= FLT_MANT_DIG;
+#else
+      cs_double mantissa = frexp(samples, &exponent);
+      reduced = (int64_t)ldexp(mantissa, DBL_MANT_DIG) % length;
+      exponent -= DBL_MANT_DIG;
+#endif
+      for (; reduced != 0 && exponent > 0; --exponent)
+        reduced = (reduced * 2) % length;
+    }
+    return negative ? -reduced : reduced;
+}
+
 static int32_t kdelay(CSOUND *csound,KDEL *p)
 {
     int64_t maxd =  p->maxd, indx, v1, v2;
     cs_float *buf = (cs_float *)p->aux.auxp;
-    cs_double position;
+    cs_double whole, residual = FL(0.0);
 
     if (UNLIKELY(buf==NULL)) {
       return csound->PerfError(csound, &p->h, "%s\n",
@@ -2594,27 +2622,45 @@ static int32_t kdelay(CSOUND *csound,KDEL *p)
     }
 
     indx = p->left;
-    position = (cs_double) indx - (cs_double) *p->kdel * CS_EKR;
-    /* Like vdelay, the legacy delay wraps at the buffer period, including
-       the maximum delay itself. Keep that behavior for existing scores. */
-    if (UNLIKELY(!(position >= 0 && position < maxd))) {
-      if (UNLIKELY(!isfinite(position)))
-        return csound->PerfError(csound, &p->h, "%s\n",
-                                 Str("vdelayk: invalid delay time"));
-      position = fmod(position, (cs_double) maxd);
-      if (position < 0) position += maxd;
-      /* Rounding a tiny negative remainder can produce exactly maxd. */
-      if (position >= maxd) position = 0;
+    volatile cs_double delay = (cs_double)*p->kdel * CS_EKR;
+    if (UNLIKELY(!isfinite(delay)))
+      return csound->PerfError(csound, &p->h, "%s\n",
+                               Str("vdelayk: invalid delay time"));
+    /* Once the product can lose whole sample bits, retain its low part
+       before the integer modulo. */
+#ifdef USE_FLOAT
+    if (fabs(delay) >= FL(16777216.0))
+      residual = fmaf(*p->kdel, CS_EKR, -delay);
+#else
+    if (fabs(delay) >= FL(9007199254740992.0))
+      residual = fma(*p->kdel, CS_EKR, -delay);
+#endif
+    const cs_double fraction = cs_modf(delay, &whole);
+    int64_t cell = indx - kdelayMod(whole, maxd);
+    cs_double offset = fraction;
+    if (UNLIKELY(residual != FL(0.0))) {
+      cs_double extra;
+      offset += cs_modf(residual, &extra);
+      cell = (cell - kdelayMod(extra, maxd)) % maxd;
     }
+    if (cell < 0) cell += maxd;
+    else if (cell >= maxd) cell -= maxd;
     buf[indx] = *p->kin;
-    v1 = (int32_t) position;
-    if (*p->interp) { /*  no interpolation */
-      *p->kr = buf[v1];
+
+    /* Keep the integer write head separate from the fractional delay. */
+    if (offset > FL(0.0)) {
+      v1 = (cell == 0 ? maxd : cell) - 1;
+      if (*p->interp) *p->kr = buf[v1];
+      else *p->kr = (cs_float)(buf[cell] + offset *
+                                ((cs_double)buf[v1] - buf[cell]));
+    }
+    else if (*p->interp || offset == FL(0.0)) {
+      *p->kr = buf[cell];
     }
     else {
-      v2 = v1 + 1;
-      if (v2 == maxd) v2 = 0;
-      *p->kr = buf[v1] + (cs_float)(position - v1) * (buf[v2]-buf[v1]);
+      v2 = cell + 1 == maxd ? 0 : cell + 1;
+      *p->kr = (cs_float)(buf[cell] - offset *
+                          ((cs_double)buf[v2] - buf[cell]));
     }
     if (++(p->left) == maxd) p->left = 0;
     return OK;

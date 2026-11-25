@@ -610,6 +610,39 @@ int32_t linsegr(CSOUND *csound, LINSEG *p)
   return OK;
 }
 
+#ifdef USE_FLOAT
+#define EXPSEG_ABS FABS
+#define EXPSEG_FREXP frexpf
+#define EXPSEG_LDEXP ldexpf
+#define EXPSEG_EXP_LIMIT (2 * FLT_MAX_EXP)
+#else
+#define EXPSEG_ABS fabs
+#define EXPSEG_FREXP frexp
+#define EXPSEG_LDEXP ldexp
+#define EXPSEG_EXP_LIMIT (2 * DBL_MAX_EXP)
+#endif
+
+#if defined(USE_FLOAT) && FLT_RADIX == 2 && FLT_MANT_DIG == 24 && \
+    FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128
+/* Replacing a normal exponent is exact when the result stays normal. */
+#define EXPSEG_OUTPUT(output, current, exponent) do {                       \
+    const cs_double scale_value = (current);                                \
+    const int scale_exponent = (exponent);                                   \
+    union { cs_double value; uint32_t bits; } scaled = { scale_value };       \
+    const uint32_t field = (scaled.bits >> 23) & UINT32_C(255);               \
+    const uint32_t adjusted = field + (uint32_t)scale_exponent;               \
+    if (LIKELY(sizeof(cs_double) == sizeof(uint32_t) &&                       \
+               field - 1U < 254U && adjusted - 1U < 254U)) {                 \
+      scaled.bits = (scaled.bits & UINT32_C(0x807fffff)) | (adjusted << 23); \
+      (output) = scaled.value;                                             \
+    } else                                                                  \
+      (output) = EXPSEG_LDEXP(scale_value, scale_exponent);                 \
+  } while (0)
+#else
+#define EXPSEG_OUTPUT(output, value, exponent) \
+    ((output) = (cs_float)EXPSEG_LDEXP((value), (exponent)))
+#endif
+
 /* Shared initialization for duration and absolute-time exponential segments.
    rate is the rate used by cnt/mlt; acnt/amlt always use the sample rate. */
 static int32_t expseg_init(CSOUND *csound, cs_float **args, int32_t nargs,
@@ -682,25 +715,28 @@ static int32_t expseg_init(CSOUND *csound, cs_float **args, int32_t nargs,
     segp = &segments[n];
     segp->cnt = (int32_t)steps;
     segp->acnt = (int32_t)audio_steps;
+    segp->correction = 0.0;
     if (absolute && count == 0.0) {
       /* Points at the same update jump immediately, including the final point. */
       segp->val = next;
       segp->mlt = segp->amlt = FL(1.0);
+      segp->delta = segp->adelta = FL(0.0);
     }
     else {
       cs_double ratio = (cs_double)next / val;
+      cs_double logratio;
       segp->val = val;
-      if (LIKELY(ratio >= DBL_MIN && ratio <= DBL_MAX)) {
-        segp->mlt = pow(ratio, 1.0 / count);
-        segp->amlt = pow(ratio, 1.0 / audio_count);
-      }
-      else {
+      if (ratio >= FL(0.5) && ratio <= FL(2.0))
+        logratio = log1p(((cs_double)next - val) / val);
+      else
         /* Avoid overflow and underflow in the endpoint ratio. */
-        cs_double logratio = log(fabs((cs_double)next)) - log(fabs((cs_double)val));
-        segp->mlt = exp(logratio / count);
-        segp->amlt = exp(logratio / audio_count);
-      }
+        logratio = log(fabs((cs_double)next)) - log(fabs((cs_double)val));
+      segp->mlt = exp(logratio / count);
+      segp->amlt = exp(logratio / audio_count);
+      segp->delta = expm1(logratio / count);
+      segp->adelta = expm1(logratio / audio_count);
     }
+    segp->val = EXPSEG_FREXP(segp->val, &segp->exponent);
   }
   segp->cnt = segp->acnt = MAXPOS;
   *current = segments;
@@ -732,6 +768,48 @@ int32_t xsgset2(CSOUND *csound, EXPSEG2 *p)
                      &p->cursegp, CS_ESR, CS_ESR, 0);
 }
 
+/* Preserve the rounding steps without spilling on RV32 with hardware float. */
+#if defined(USE_FLOAT) && defined(BARE_METAL) && defined(__GNUC__) && \
+    !defined(__clang__) && defined(__riscv_float_abi_single) && __riscv_xlen == 32
+#define EXPSEG_ROUND(name, expression)                                      \
+  cs_double name = (expression);                                           \
+  __asm__ __volatile__ ("" : "+f" (name))
+#else
+#define EXPSEG_ROUND(name, expression) volatile cs_double name = (expression)
+#endif
+
+/* Store a slow curve's change from one directly, then retain updates that
+   fall below the spacing of val. */
+#define EXPSEG_ADVANCE(value, multiplier, delta, correction, exponent) do {           \
+  cs_double *const expseg_value = &(value);                                 \
+  cs_double *const expseg_correction = (correction);                        \
+  const cs_double expseg_current = *expseg_value;                           \
+  const cs_double expseg_multiplier = (multiplier);                         \
+  const cs_double expseg_delta = (delta);                                   \
+  if (expseg_delta > FL(-0.5) && expseg_delta < FL(0.5)) {                  \
+    EXPSEG_ROUND(expseg_update,                                             \
+                 (expseg_current - *expseg_correction) * expseg_delta);     \
+    EXPSEG_ROUND(expseg_step, expseg_update - *expseg_correction);           \
+    EXPSEG_ROUND(expseg_next, expseg_current + expseg_step);                 \
+    EXPSEG_ROUND(expseg_applied, expseg_next - expseg_current);              \
+    *expseg_correction = expseg_applied - expseg_step;                      \
+    *expseg_value = expseg_next;                                            \
+  }                                                                         \
+  else {                                                                    \
+    *expseg_correction = FL(0.0);                                           \
+    *expseg_value = expseg_current * expseg_multiplier;                     \
+  }                                                                         \
+  const cs_double magnitude = EXPSEG_ABS(*expseg_value);                    \
+  if (magnitude >= FL(1.0) || (magnitude > FL(0.0) && magnitude < FL(0.5))) { \
+    int shift = 0;                                                          \
+    *expseg_value = EXPSEG_FREXP(*expseg_value, &shift);                      \
+    *expseg_correction = EXPSEG_LDEXP(*expseg_correction, -shift);            \
+    (exponent) += shift;                                                     \
+    if ((exponent) > EXPSEG_EXP_LIMIT) (exponent) = EXPSEG_EXP_LIMIT;       \
+    else if ((exponent) < -EXPSEG_EXP_LIMIT) (exponent) = -EXPSEG_EXP_LIMIT; \
+  }                                                                         \
+} while (0)
+
 /***************************************/
 
 int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) */
@@ -759,8 +837,8 @@ int32_t expseg2(CSOUND *csound, EXPSEG2 *p)             /* gab-A1 (G.Maldonado) 
       p->cursegp = ++segp;
       val = segp->val;
     }
-    rs[n] = (cs_float)val;
-    val *=  segp->mlt;
+    EXPSEG_OUTPUT(rs[n], val, segp->exponent);
+    EXPSEG_ADVANCE(val, segp->mlt, segp->delta, &segp->correction, segp->exponent);
   }
   segp->val = val;
   return OK;
@@ -777,8 +855,8 @@ int32_t kxpseg(CSOUND *csound, EXXPSEG *p)
   if (UNLIKELY(segp == NULL)) goto err1;
   while (segp->cnt != MAXPOS && --segp->cnt < 0)
     p->cursegp = ++segp;
-  *p->rslt = (cs_float)segp->val;
-  segp->val *= segp->mlt;
+  EXPSEG_OUTPUT(*p->rslt, segp->val, segp->exponent);
+  EXPSEG_ADVANCE(segp->val, segp->mlt, segp->delta, &segp->correction, segp->exponent);
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
@@ -810,14 +888,22 @@ int32_t expseg(CSOUND *csound, EXXPSEG *p)
       //printf("nxtseg: val=%f amlt=%f acnt=%d\n",
       //       segp->val,segp->amlt,segp->acnt);
     }
-    rs[n] = (cs_float)segp->val;
-    segp->val *= segp->amlt;
+    EXPSEG_OUTPUT(rs[n], segp->val, segp->exponent);
+    EXPSEG_ADVANCE(segp->val, segp->amlt, segp->adelta, &segp->correction, segp->exponent);
   }
   return OK;
  err1:
   return csound->PerfError(csound, &(p->h),
                            Str("expseg (arate): not initialised\n"));
 }
+
+#undef EXPSEG_ADVANCE
+#undef EXPSEG_ROUND
+#undef EXPSEG_ABS
+#undef EXPSEG_FREXP
+#undef EXPSEG_LDEXP
+#undef EXPSEG_OUTPUT
+#undef EXPSEG_EXP_LIMIT
 
 int32_t xsgrset(CSOUND *csound, EXPSEG *p)
 {

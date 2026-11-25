@@ -32,7 +32,7 @@ typedef struct overlap {
   int32          timrem, dectim, formphs, forminc;
   int32         risphs;
   int32          risinc, decphs, decinc;
-  cs_double         formphsf, formincf, risphsf, risincf, decphsf, decincf;
+  cs_double         formphsf, formincf, risphsf, risincf;
   cs_float          curamp, expamp;
 } OVERLAP;
 

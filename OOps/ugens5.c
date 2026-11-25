@@ -23,6 +23,7 @@
 #include "csoundCore.h"         /*                      UGENS5.C        */
 #include "ugens5.h"
 #include <math.h>
+#include <float.h>
 #include <inttypes.h>
 #include <stddef.h>
 #include "strarg2name.h"
@@ -1492,27 +1493,295 @@ int32_t lpfreson(CSOUND *csound, LPFRESON *p)
     return OK;
 }
 
+/* These operations follow cs_double, including mixed-precision builds. */
+#ifdef USE_FLOAT
+#define RMS_FREXP frexpf
+#define RMS_LDEXP ldexpf
+#define RMS_SQRT SQRT
+#define RMS_FMA fmaf
+#define RMS_EPSILON FLT_EPSILON
+#define RMS_LOWEST_EXPONENT (3 * (FLT_MIN_EXP - FLT_MANT_DIG) - FLT_MANT_DIG)
+#else
+#define RMS_FREXP frexp
+#define RMS_LDEXP ldexp
+#define RMS_SQRT sqrt
+#define RMS_FMA fma
+#define RMS_EPSILON DBL_EPSILON
+#define RMS_LOWEST_EXPONENT (3 * (DBL_MIN_EXP - DBL_MANT_DIG) - DBL_MANT_DIG)
+#endif
+
+#if defined(USE_FLOAT) && FLT_RADIX == 2 && FLT_MANT_DIG == 24 && \
+    FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128
+/* Replace the exponent bits for normal binary32 values. Leave boundary cases
+   to libm, including shifts that require rounding to a subnormal. */
+typedef union {
+    cs_double value;
+    uint32_t bits;
+} RMS_FLOAT;
+
+#define RMS_SPLIT_SAMPLE(sample, mantissa, exponent) do {              \
+    RMS_FLOAT rms_split = { .value = (sample) };                       \
+    const int rms_field = (int)((rms_split.bits >> 23) & 0xffU);        \
+    if (LIKELY(rms_field > 0 && rms_field < 255)) {                    \
+      rms_split.bits = (rms_split.bits & UINT32_C(0x807fffff)) |        \
+                       UINT32_C(0x3f000000);                            \
+      (mantissa) = rms_split.value;                                    \
+      (exponent) = rms_field - 126;                                   \
+    } else                                                            \
+      (mantissa) = RMS_FREXP((sample), &(exponent));                    \
+  } while (0)
+
+#define RMS_ALIGN_INPUT(input, shift) do {                             \
+    const int rms_align_shift = (shift);                              \
+    RMS_FLOAT rms_align = { .value = (input) };                        \
+    const int rms_field = (int)((rms_align.bits >> 23) & 0xffU);        \
+    const int rms_scaled = rms_field + rms_align_shift;                \
+    if (LIKELY(rms_field > 0 && rms_field < 255 &&                     \
+               rms_scaled > 0 && rms_scaled < 255)) {                  \
+      rms_align.bits = (rms_align.bits & UINT32_C(0x807fffff)) |         \
+                       ((uint32_t)rms_scaled << 23);                   \
+      (input) = rms_align.value;                                       \
+    } else                                                            \
+      (input) = RMS_LDEXP((input), rms_align_shift);                    \
+  } while (0)
+#else
+#define RMS_SPLIT_SAMPLE(sample, mantissa, exponent) \
+    ((mantissa) = RMS_FREXP((sample), &(exponent)))
+#define RMS_ALIGN_INPUT(input, shift) ((input) = RMS_LDEXP((input), (shift)))
+#endif
+
+#define RMS_COEFFICIENTS(omega, coefficients) do {                     \
+    RMS_COEFS *rms_c = &(coefficients);                               \
+    cs_double rms_omega = (omega);                                   \
+    if (rms_omega < FL(0.0)) rms_omega = -rms_omega;                   \
+    if (rms_omega < RMS_EPSILON) {                                   \
+      /* Avoid rounding sin(omega/2) to zero before doubling it. */   \
+      rms_c->c1 = rms_omega;                                         \
+      rms_c->c2 = FL(1.0) - rms_omega;                               \
+    } else {                                                        \
+      TONE_COEFFICIENTS(rms_omega, rms_c->c1, rms_c->c2);              \
+    }                                                               \
+    int rms_exponent = 0;                                           \
+    rms_c->weight = RMS_FREXP(rms_c->c1, &rms_exponent);               \
+    rms_c->weight_exponent = rms_exponent;                           \
+  } while (0)
+
+/* Use a register barrier to preserve each rounding step on RV32 with
+   hardware float. Volatile forces the same steps on other builds. */
+#if defined(USE_FLOAT) && defined(BARE_METAL) && defined(__GNUC__) && \
+    !defined(__clang__) && defined(__riscv_float_abi_single) && __riscv_xlen == 32
+#define RMS_REGISTER_ROUND 1
+#define RMS_ROUND(name, expression)                                 \
+    cs_double name = (expression);                                  \
+    __asm__ __volatile__ ("" : "+f" (name))
+#else
+#define RMS_ROUND(name, expression) volatile cs_double name = (expression)
+#endif
+
+#define RMS_ADD_INPUT(c1, state, input) do {                         \
+    RMS_ROUND(rms_decay, (c1) * ((state)->value -                     \
+                                 (state)->correction));              \
+    RMS_ROUND(rms_change, (input) - rms_decay);                       \
+    RMS_ROUND(rms_step, rms_change - (state)->correction);            \
+    RMS_ROUND(rms_next, (state)->value + rms_step);                   \
+    RMS_ROUND(rms_applied, rms_next - (state)->value);                \
+    (state)->correction = rms_applied - rms_step;                     \
+    (state)->value = rms_next;                                       \
+  } while (0)
+
+#define RMS_NORMALIZE(state) do {                                   \
+    if ((state)->value > FL(0.0) &&                                   \
+        ((state)->value < FL(0.25) || (state)->value >= FL(1.0))) {    \
+      int rms_shift = 0;                                             \
+      (state)->value = RMS_FREXP((state)->value, &rms_shift);         \
+      (state)->correction = RMS_LDEXP((state)->correction, -rms_shift); \
+      (state)->exponent += rms_shift;                                \
+    }                                                               \
+    /* Bound silent decay below the least possible input contribution. */ \
+    if ((state)->exponent < RMS_LOWEST_EXPONENT) {                    \
+      (state)->value = (state)->correction = FL(0.0);                 \
+      (state)->exponent = 0;                                         \
+    }                                                               \
+  } while (0)
+
+/* Form c1*x*x from bounded mantissas, then align it with the stored energy.
+   Only terms too small relative to that energy can underflow. */
+#define RMS_UPDATE(coefficients, energy, sample) do {                 \
+    const RMS_COEFS *rms_c = &(coefficients);                         \
+    RMS_ENERGY *rms_e = &(energy);                                   \
+    if (rms_c->c1 == FL(0.0)) break;                                 \
+    cs_double rms_sample = (sample), rms_input = FL(0.0);             \
+    if (rms_sample != FL(0.0)) {                                     \
+      int rms_exponent = 0;                                         \
+      cs_double rms_mantissa;                                       \
+      RMS_SPLIT_SAMPLE(rms_sample, rms_mantissa, rms_exponent);        \
+      rms_input = rms_c->weight * rms_mantissa * rms_mantissa;        \
+      rms_exponent = 2 * rms_exponent + rms_c->weight_exponent;       \
+      if (rms_e->value == FL(0.0)) {                                 \
+        rms_e->exponent = rms_exponent;                              \
+        rms_e->correction = FL(0.0);                                 \
+      }                                                             \
+      if (rms_exponent > rms_e->exponent) {                          \
+        int rms_shift = rms_e->exponent - rms_exponent;              \
+        rms_e->value = RMS_LDEXP(rms_e->value, rms_shift);            \
+        rms_e->correction = RMS_LDEXP(rms_e->correction, rms_shift);  \
+        rms_e->exponent = rms_exponent;                              \
+      } else {                                                      \
+        RMS_ALIGN_INPUT(rms_input, rms_exponent - rms_e->exponent);   \
+      }                                                             \
+    }                                                               \
+    if (rms_c->c1 > FL(0.5)) {                                       \
+      volatile cs_double rms_prior = rms_c->c2 * rms_e->value;        \
+      volatile cs_double rms_residual =                             \
+        RMS_FMA(rms_c->c2, rms_e->value, -rms_prior) -                \
+        rms_c->c2 * rms_e->correction;                               \
+      volatile cs_double rms_next = rms_prior + rms_input;           \
+      volatile cs_double rms_applied = rms_next - rms_prior;         \
+      rms_e->correction = (rms_applied - rms_input) - rms_residual;   \
+      rms_e->value = rms_next;                                       \
+    } else {                                                        \
+      RMS_ADD_INPUT(rms_c->c1, rms_e, rms_input);                    \
+    }                                                               \
+    RMS_NORMALIZE(rms_e);                                           \
+  } while (0)
+
+static RMS_ENERGY rmsAccumulate(RMS_COEFS coefficients, RMS_ENERGY energy,
+                                const cs_float *input, uint32_t n,
+                                uint32_t end)
+{
+    if (coefficients.c1 == FL(0.0))
+      return energy;
+    for (; n < end; ++n) {
+#if defined(RMS_REGISTER_ROUND) && FLT_RADIX == 2 && FLT_MANT_DIG == 24 && \
+    FLT_MIN_EXP == -125 && FLT_MAX_EXP == 128
+      const int scale_exp = coefficients.weight_exponent - energy.exponent;
+      if (coefficients.c1 <= FL(0.5) && scale_exp >= -60 && scale_exp <= 60 &&
+          energy.value >= FL(0.25) && energy.value < FL(1.0)) {
+        cs_double scaled = coefficients.weight;
+        RMS_ALIGN_INPUT(scaled, scale_exp);
+        /* Compute the weighted square at the current energy scale. For
+           frexp exponents in [-30, floor(-scale_exp/2)], both products
+           stay normal and the input cannot raise the energy exponent. */
+        const int max_exp = (-scale_exp - (scale_exp > 0)) / 2;
+        for (; n < end; ++n) {
+          const RMS_FLOAT sample = { .value = (cs_double)input[n] };
+          const unsigned field = (sample.bits >> 23) & 0xffU;
+          if (UNLIKELY(field - (126U - 30U) > (unsigned)(max_exp + 30) &&
+                       (sample.bits << 1) != 0))
+            break;
+          RMS_ROUND(weighted, scaled * sample.value * sample.value);
+          RMS_ADD_INPUT(coefficients.c1, &energy, weighted);
+          if (UNLIKELY(energy.value < FL(0.25) || energy.value >= FL(1.0))) {
+            RMS_NORMALIZE(&energy);
+            ++n;
+            break;
+          }
+        }
+        if (n == end)
+          break;
+      }
+#endif
+      RMS_UPDATE(coefficients, energy, input[n]);
+    }
+    return energy;
+}
+
+#define RMS_LEVEL(energy)                                           \
+    RMS_LDEXP(RMS_SQRT(RMS_LDEXP((energy).value,                      \
+                                 (energy).exponent % 2)),             \
+              (energy).exponent / 2)
+
+/* Keep the exponent separate until the gain is applied to a sample. */
+static RMS_GAIN rmsGain(cs_double mantissa, int exponent)
+{
+    int shift = 0;
+    if (mantissa == FL(0.0)) return (RMS_GAIN){FL(0.0), 0};
+    mantissa = RMS_FREXP(mantissa, &shift);
+    return (RMS_GAIN){mantissa, exponent + shift};
+}
+
+static RMS_GAIN rmsBalanceGain(RMS_ENERGY input, RMS_ENERGY reference)
+{
+    if (input.value != FL(0.0)) {
+      reference.value /= input.value;
+      reference.exponent -= input.exponent;
+    }
+    cs_double level = RMS_SQRT(RMS_LDEXP(reference.value, reference.exponent % 2));
+    return rmsGain(level, reference.exponent / 2);
+}
+
+#ifdef USE_FLOAT
+#define RMS_MIN_EXP FLT_MIN_EXP
+#define RMS_MAX_EXP FLT_MAX_EXP
+#else
+#define RMS_MIN_EXP DBL_MIN_EXP
+#define RMS_MAX_EXP DBL_MAX_EXP
+#endif
+
+#define RMS_APPLY_GAIN(result, sample, mantissa, exponent) do {             \
+    const cs_double rms_signal = (sample);                                   \
+    if ((exponent) >= RMS_MIN_EXP && (exponent) < RMS_MAX_EXP) {             \
+      (result) = (cs_float)(rms_signal * RMS_LDEXP((mantissa), (exponent))); \
+    } else {                                                                 \
+      int rms_sample_exp = 0;                                                \
+      const cs_double rms_sample = RMS_FREXP(rms_signal, &rms_sample_exp);    \
+      (result) = (cs_float)RMS_LDEXP(rms_sample * (mantissa),                 \
+                                     rms_sample_exp + (exponent));          \
+    }                                                                        \
+  } while (0)
+
+static void rmsRamp(cs_float *output, const cs_float *input, uint32_t offset,
+                    uint32_t end, RMS_GAIN previous, RMS_GAIN target)
+{
+    int exponent = target.exponent;
+    if (target.mantissa == FL(0.0) ||
+        (previous.mantissa != FL(0.0) && previous.exponent > exponent))
+      exponent = previous.exponent;
+    cs_double gain = RMS_LDEXP(previous.mantissa, previous.exponent - exponent);
+    const cs_double final = RMS_LDEXP(target.mantissa, target.exponent - exponent);
+    const cs_double increment = (final - gain) / (cs_double)(end - offset);
+    if (exponent >= RMS_MIN_EXP && exponent < RMS_MAX_EXP) {
+      const cs_double scale = RMS_LDEXP(FL(1.0), exponent);
+      for (uint32_t n = offset; n < end; n++) {
+        /* Round the scaled gain once before multiplying the sample. */
+        RMS_ROUND(scaled, gain * scale);
+        output[n] = (cs_float)(input[n] * scaled);
+        gain += increment;
+      }
+      return;
+    }
+    for (uint32_t n = offset; n < end; n++) {
+      RMS_APPLY_GAIN(output[n], input[n], gain, exponent);
+      gain += increment;
+    }
+}
+
 int32_t rmsset(CSOUND *csound, RMS *p)
 {
-    TONE_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
+    RMS_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->coefficients);
     if (!*p->istor)
-      p->prvq = 0.0;
+      memset(&p->energy, 0, sizeof(p->energy));
     return OK;
 }
 
 int32_t gainset(CSOUND *csound, GAIN *p)
 {
-    TONE_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
-    if (!*p->istor)
-      p->prvq = p->prva = 0.0;
+    RMS_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->coefficients);
+    if (!*p->istor) {
+      memset(&p->energy, 0, sizeof(p->energy));
+      p->prva = (RMS_GAIN){FL(0.0), 0};
+    }
     return OK;
 }
 
 int32_t balnset(CSOUND *csound, BALANCE *p)
 {
-    TONE_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->c1, p->c2);
-    if (!*p->istor)
-      p->prvq = p->prvr = p->prva = 0.0;
+    RMS_COEFFICIENTS((cs_double)*p->ihp * CS_TPIDSR, p->coefficients);
+    if (!*p->istor) {
+      memset(&p->energy, 0, sizeof(p->energy));
+      memset(&p->reference, 0, sizeof(p->reference));
+      p->prva = (RMS_GAIN){FL(0.0), 0};
+    }
     return OK;
 }
 
@@ -1520,21 +1789,14 @@ int32_t rms(CSOUND *csound, RMS *p)
 {
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
-    uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
-    cs_float    *asig;
-    cs_double   q;
-    cs_double   c1 = p->c1, c2 = p->c2;
+    uint32_t early = p->h.insdshead->ksmps_no_end;
+    uint32_t nsmps = CS_KSMPS;
 
-    q = p->prvq;
-    asig = p->asig;
     if (UNLIKELY(early)) nsmps -= early;
-    for (n=offset; n<nsmps; n++) {
-      cs_double as = (cs_double)asig[n];
-      q = c1 * as * as + c2 * q;
-    }
-    p->prvq = q;
-    *p->kr = (cs_float) sqrt(q);
+    RMS_ENERGY energy = rmsAccumulate(p->coefficients, p->energy, p->asig,
+                                      offset, nsmps);
+    p->energy = energy;
+    *p->kr = (cs_float)RMS_LEVEL(energy);
     return OK;
 }
 
@@ -1543,12 +1805,9 @@ int32_t gain(CSOUND *csound, GAIN *p)
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
+    uint32_t nsmps = CS_KSMPS;
     cs_float    *ar, *asig;
-    cs_double   q, a, m, diff, inc;
-    cs_double   c1 = p->c1, c2 = p->c2;
-
-    q = p->prvq;
+    RMS_GAIN a;
     asig = p->asig;
     ar = p->ar;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
@@ -1558,29 +1817,19 @@ int32_t gain(CSOUND *csound, GAIN *p)
     }
     if (UNLIKELY(offset >= nsmps))
       return OK;
-    for (n = offset; n < nsmps; n++) {
-      cs_double as = (cs_double)asig[n];
-      q = c1 * as * as + c2 * q;
+    RMS_ENERGY q = rmsAccumulate(p->coefficients, p->energy, asig, offset, nsmps);
+    p->energy = q;
+    if (q.value > FL(0.0)) {
+      /* Divide mantissas before restoring the level's exponent. */
+      int target_exponent = 0;
+      cs_double target = RMS_FREXP(*p->krms, &target_exponent);
+      cs_double level = RMS_SQRT(RMS_LDEXP(q.value, q.exponent % 2));
+      a = rmsGain(target / level, target_exponent - q.exponent / 2);
     }
-    p->prvq = q;
-    if (q > 0.0)
-      a = *p->krms / sqrt(q);
     else
-      a = *p->krms;
-    if ((diff = a - p->prva) != 0.0) {
-      m = p->prva;
-      inc = diff / (cs_double)(nsmps-offset);
-      for (n = offset; n < nsmps; n++) {
-        ar[n] = asig[n] * m;
-        m += inc;
-      }
-      p->prva = a;
-    }
-    else {
-      for (n = offset; n < nsmps; n++) {
-        ar[n] = asig[n] * a;
-      }
-    }
+      a = rmsGain(*p->krms, 0);
+    rmsRamp(ar, asig, offset, nsmps, p->prva, a);
+    p->prva = a;
     return OK;
 }
 
@@ -1589,13 +1838,8 @@ int32_t balance(CSOUND *csound, BALANCE *p)
     IGN(csound);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
-    uint32_t n, nsmps = CS_KSMPS;
+    uint32_t nsmps = CS_KSMPS;
     cs_float    *ar, *asig, *csig;
-    cs_double   q, r, a, m, diff, inc;
-    cs_double   c1 = p->c1, c2 = p->c2;
-
-    q = p->prvq;
-    r = p->prvr;
     asig = p->asig;
     csig = p->csig;
     ar = p->ar;
@@ -1606,32 +1850,15 @@ int32_t balance(CSOUND *csound, BALANCE *p)
     }
     if (UNLIKELY(offset >= nsmps))
       return OK;
-    for (n = offset; n < nsmps; n++) {
-      cs_double as = (cs_double)asig[n];
-      cs_double cs = (cs_double)csig[n];
-      q = c1 * as * as + c2 * q;
-      r = c1 * cs * cs + c2 * r;
-    }
-    p->prvq = q;
-    p->prvr = r;
-    if (LIKELY(q != 0.0))
-      a = sqrt(r/q);
-    else
-      a = sqrt(r);
-    if ((diff = a - p->prva) != 0.0) {
-      m = p->prva;
-      inc = diff / (cs_double)(nsmps-offset);
-      for (n = offset; n < nsmps; n++) {
-        ar[n] = asig[n] * m;
-        m += inc;
-      }
-      p->prva = a;
-    }
-    else {
-      for (n = offset; n < nsmps; n++) {
-        ar[n] = asig[n] * a;
-      }
-    }
+    const RMS_ENERGY q = rmsAccumulate(p->coefficients, p->energy, asig,
+                                        offset, nsmps);
+    const RMS_ENERGY r = rmsAccumulate(p->coefficients, p->reference, csig,
+                                        offset, nsmps);
+    p->energy = q;
+    p->reference = r;
+    const RMS_GAIN a = rmsBalanceGain(q, r);
+    rmsRamp(ar, asig, offset, nsmps, p->prva, a);
+    p->prva = a;
     return OK;
 }
 
@@ -1643,11 +1870,7 @@ int32_t balance2(CSOUND *csound, BALANCE *p)
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
     cs_float    *ar, *asig, *csig;
-    cs_double   q, r, a;
-    cs_double   c1 = p->c1, c2 = p->c2;
-
-    q = p->prvq;
-    r = p->prvr;
+    RMS_ENERGY q = p->energy, r = p->reference;
     asig = p->asig;
     csig = p->csig;
     ar = p->ar;
@@ -1657,20 +1880,17 @@ int32_t balance2(CSOUND *csound, BALANCE *p)
       memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n = offset; n < nsmps; n++) {
-      cs_double as = (cs_double)asig[n];
-      cs_double cs = (cs_double)csig[n];
-      q = c1 * as * as + c2 * q;
-      r = c1 * cs * cs + c2 * r;
-      if (LIKELY(q != 0.0))
-        a = sqrt(r/q);
-      else
-        a = sqrt(r);
-      ar[n] = asig[n] * a;
+      RMS_UPDATE(p->coefficients, q, asig[n]);
+      RMS_UPDATE(p->coefficients, r, csig[n]);
+      const RMS_GAIN a = rmsBalanceGain(q, r);
+      RMS_APPLY_GAIN(ar[n], asig[n], a.mantissa, a.exponent);
     }
-    p->prvq = q;
-    p->prvr = r;
+    p->energy = q;
+    p->reference = r;
     return OK;
 }
+
+#undef RMS_ROUND
 
 /*
  *   Set current lpc slot

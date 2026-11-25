@@ -42,15 +42,45 @@ instr CheckRanges
   gkChecks += 1
 endin
 
+instr CheckSmoothingRanges
+  kStep init 0
+  kInputs[] fillarray -1, -1, 1, 1
+  kExpected[] fillarray -1, -1.5, .25, 1.125
+  ; A one-sample half-time averages the current state and each target.
+  ; On step two, their difference overflows float even though the result fits.
+  kSmoothed scale2 kInputs[kStep], -2e38, 2e38, -1, 1, 1/sr
+  if !(abs(kSmoothed/1e38-kExpected[kStep]) < .000001) then
+    printks "scale2 large smoothed range at step %g: expected %g, got %g\n", 0, kStep, kExpected[kStep], kSmoothed/1e38
+    exitnowk -1
+  endif
+  kStep += 1
+  gkChecks += 1
+endin
+
+instr CheckEndpointStep
+  ; Both endpoints contribute to a small step, even when 1-position rounds
+  ; to 1. A weighted sum would lose enough of this step to keep the endpoint.
+  kPosition = pow(2,-25)
+  kForward scale2 kPosition, -2e38, 2e38
+  kReverse scale2 kPosition, 2e38, -2e38
+  if !(kForward > -2e38 && kForward < 0 && kReverse < 2e38 && kReverse > 0) then
+    printks "scale2 lost a near-endpoint mapping step: %g, %g\n", 0, kForward, kReverse
+    exitnowk -1
+  endif
+  gkChecks += 1
+endin
+
 instr CheckCompletion
-  if i(gkChecks) != 5 then
-    prints "All five range positions must be checked\n"
+  if i(gkChecks) != 10 then
+    prints "All range and smoothing positions must be checked\n"
     exitnow -1
   endif
 endin
 </CsInstruments>
 <CsScore>
 i "CheckRanges" 0 [5/1024]
+i "CheckSmoothingRanges" 0 [4/1024]
+i "CheckEndpointStep" 0 [1/1024]
 i "CheckCompletion" [8/1024] [1/1024]
 e
 </CsScore>
