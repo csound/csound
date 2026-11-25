@@ -14,11 +14,13 @@
 #include "csound_type_system.h"
 #include "gtest/gtest.h"
 #include <cstring>
+#include <atomic>
 #include <cmath>
 #include <chrono>
 #include <cstdio>
 #include <limits>
 #include <string>
+#include <thread>
 #include <tuple>
 #include <vector>
 #if !defined(_WIN32)
@@ -5108,6 +5110,226 @@ endop
             csoundDestroy(csound);
         }
     }
+}
+
+TEST(ParcsTests, DirtyDagLockContentionSerializesActiveNotes)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#else
+    struct SpinLockGuardThread {
+        spin_lock_t *lock;
+        std::atomic<bool> acquired{false};
+        std::atomic<bool> release{false};
+        std::thread worker;
+
+        explicit SpinLockGuardThread(spin_lock_t *l) : lock(l) {
+            worker = std::thread([this]() {
+                csoundSpinLock(lock);
+                acquired.store(true, std::memory_order_release);
+                while (!release.load(std::memory_order_acquire)) {
+                    csoundSleep(1);
+                }
+                csoundSpinUnLock(lock);
+            });
+            while (!acquired.load(std::memory_order_acquire)) {
+                csoundSleep(1);
+            }
+        }
+
+        void unlockAndJoin() {
+            if (worker.joinable()) {
+                release.store(true, std::memory_order_release);
+                worker.join();
+            }
+        }
+
+        ~SpinLockGuardThread() {
+            unlockAndJoin();
+        }
+    };
+
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j" + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        // instr 1 uses no channels so instr 1 and instr 2 initially share no
+        // DAG dependencies (dag_task_dep[1] == nullptr), while instr 3 reads
+        // gkChain so dag_task_dep[2] != nullptr.
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+gkChain init 0
+gkTrig1 init 0
+gkGo init 0
+
+opcode BumpShared():void
+  kNoop = 0
+endop
+
+instr 1
+  kBound init 0
+  if gkTrig1 == 1 && kBound == 0 then
+    kBound = 1
+    reinit bindNow
+  endif
+  if gkGo == 1 then
+    gkChain += 1
+  endif
+  igoto skipInit
+  if gkGo == 0 kgoto skipInit
+bindNow:
+  BumpShared
+  rireturn
+skipInit:
+endin
+
+instr 2
+  kExp init 0
+  kBad init 0
+  if gkGo == 1 then
+    kExp += 1
+    if gkShared != kExp then
+      kBad += 1
+    endif
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+  chnset kExp, "checked"
+endin
+
+instr 3
+  kExp3 init 0
+  kBad3 init 0
+  if gkGo == 1 then
+    kExp3 += 1
+    if gkChain != kExp3 then
+      kBad3 += 1
+    endif
+  endif
+  chnset kBad3, "bad3"
+  chnset kExp3, "checked3"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ni 2 0 10\ni 3 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+
+        bool allReady = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active == 3 &&
+                ATOMIC_GET(csound->dag_changed) == 0 &&
+                csound->dag_task_map != nullptr &&
+                csound->dag_task_map[0]->insno == 1 &&
+                csound->dag_task_map[1]->insno == 2 &&
+                csound->dag_task_map[2]->insno == 3 &&
+                ATOMIC_GET(csound->dag_task_map[0]->init_done) == 1 &&
+                ATOMIC_GET(csound->dag_task_map[1]->init_done) == 1 &&
+                ATOMIC_GET(csound->dag_task_map[2]->init_done) == 1) {
+                allReady = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(allReady);
+        ASSERT_EQ(nullptr, csound->dag_task_dep[1]);
+        ASSERT_NE(nullptr, csound->dag_task_dep[2]);
+        INSDS *instr1Ip = csound->dag_task_map[0];
+
+        // Redefine BumpShared to write gkShared and request deferred reinit.
+        const char *redefineOrc = R"(
+opcode BumpShared():void
+  gkShared += 1
+endop
+gkTrig1 init 1
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefineOrc));
+        ASSERT_GT(ATOMIC_GET(csound->dag_changed), 0);
+
+        {
+            SpinLockGuardThread holder(&csound->alloc_spinlock);
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            EXPECT_EQ(nullptr, csound->dag_task_dep[1]);
+            EXPECT_GT(ATOMIC_GET(csound->dag_changed), 0);
+            holder.unlockAndJoin();
+        }
+
+        // Wait for async ALLOC_DATA_REINIT_PASS to complete without rebuilding
+        // the parallel DAG via csoundPerformKsmps.
+        bool bound = false;
+        for (int step = 0; step < 2000; step++) {
+            if (ATOMIC_GET(instr1Ip->init_done) == 1 &&
+                ATOMIC_GET(instr1Ip->init_pass) >= 2) {
+                bound = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(bound);
+        ASSERT_EQ(nullptr, csound->dag_task_dep[1]);
+        ASSERT_GT(ATOMIC_GET(csound->dag_changed), 0);
+
+        // Enable shared writes/checks, then run 32 control blocks with
+        // alloc_spinlock continuously held on another thread so dag_build()
+        // must take its dirty-DAG fallback on every block.
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, "gkGo init 1\n"));
+        {
+            SpinLockGuardThread holder(&csound->alloc_spinlock);
+            for (int i = 0; i < 32; i++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+                EXPECT_GT(ATOMIC_GET(csound->dag_changed), 0);
+                EXPECT_EQ(nullptr, csound->dag_task_dep[1]);
+            }
+            holder.unlockAndJoin();
+        }
+
+        int32_t err = 0;
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(32.0), csoundGetControlChannel(csound, "checked", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(32.0), csoundGetControlChannel(csound, "seen", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad3", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(32.0), csoundGetControlChannel(csound, "checked3", &err));
+        EXPECT_EQ(0, err);
+
+        // Once the lock is released, the next k-cycle rebuilds the DAG with
+        // the new instr 1 -> instr 2 dependency edge.
+        for (int i = 0; i < 32; i++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+        EXPECT_EQ(0, ATOMIC_GET(csound->dag_changed));
+        ASSERT_NE(nullptr, csound->dag_task_dep[1]);
+        EXPECT_NE(0, csound->dag_task_dep[1][0]);
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "checked", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "seen", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad3", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "checked3", &err));
+        EXPECT_EQ(0, err);
+
+        csoundDestroy(csound);
+    }
+#endif
 }
 
 #if !defined(_WIN32)

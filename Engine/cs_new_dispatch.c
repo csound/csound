@@ -109,7 +109,9 @@ static void dag_print_state(CSOUND *csound)
           char *tt = csound->dag_task_dep[i];
           int32_t j;
           printf("status=WAITING for tasks [");
-          for (j=0; j<i; j++) if (tt[j]) printf("%d ", j);
+          if (tt != NULL) {
+            for (j=0; j<i; j++) if (tt[j]) printf("%d ", j);
+          }
           printf("]\n");
         }
         break;
@@ -409,6 +411,7 @@ static int32_t dag_deps_conflict(const DAG_INSTR_DEPS *a,
 }
 
 void dag_reinit(CSOUND *csound);
+static void dag_reinit_serial(CSOUND *csound);
 
 void dag_build(CSOUND *csound, INSDS *chain)
 {
@@ -422,9 +425,10 @@ void dag_build(CSOUND *csound, INSDS *chain)
     if (csound->realtime_locks_initialized) {
       if (csoundSpinTryLock(&csound->alloc_spinlock) != CSOUND_SUCCESS) {
         /* Keep dag_changed nonzero so the next k-cycle rebuilds once
-           actanchor/engineState publication completes; never block audio. */
+           actanchor/engineState publication completes; serialize active tasks
+           instead of reusing stale dependencies. */
         if (csound->dag_task_status != NULL && csound->dag_num_active > 0)
-          dag_reinit(csound);
+          dag_reinit_serial(csound);
         else
           csound->dag_num_active = 0;
         return;
@@ -552,6 +556,28 @@ void dag_reinit(CSOUND *csound)
         }
     }
     //dag_print_state(csound);
+}
+
+static void dag_reinit_serial(CSOUND *csound)
+{
+    int32_t i;
+    int32_t max = csound->dag_task_max_size;
+    volatile stateWithPadding *task_status = csound->dag_task_status;
+    watchList * volatile *task_watch = csound->dag_task_watch;
+    watchList *wlmm = csound->dag_wlmm;
+    if (csound->dag_num_active <= 0 || task_status == NULL)
+      return;
+    for (i = csound->dag_num_active; i < max; i++)
+      task_status[i].s = DONE;
+    task_status[0].s = AVAILABLE;
+    task_watch[0] = NULL;
+    for (i = 1; i < csound->dag_num_active; i++) {
+      task_status[i].s = WAITING;
+      task_watch[i] = NULL;
+      wlmm[i].id = i;
+      wlmm[i].next = NULL;
+      task_watch[i - 1] = &wlmm[i];
+    }
 }
 
 #if defined(_MSC_VER)
@@ -703,39 +729,42 @@ taskID dag_end_task(CSOUND *csound, taskID i)
       //printf("%d notifying task %d it finished\n", i, j);
       canQueue = 1;
       wait_on_current_tasks = 0;
+      char *dep = csound->dag_task_dep[j];
 
-      for (k=0; k<j; k++) {     /* seek next watch */
-        if (csound->dag_task_dep[j][k]==0) continue;
-        current_task_status = ATOMIC_READ(csound->dag_task_status[k].s);
-        //printf("investigating task %d (%d)\n", k, current_task_status);
+      if (dep != NULL) {
+        for (k=0; k<j; k++) {     /* seek next watch */
+          if (dep[k]==0) continue;
+          current_task_status = ATOMIC_READ(csound->dag_task_status[k].s);
+          //printf("investigating task %d (%d)\n", k, current_task_status);
 
-        if (current_task_status == WAITING) {   // Prefer watching blocked tasks
-          //printf("found task %d to watch %d status %d\n",
-          //       k, j, csound->dag_task_status[k].s);
-          if (move_watch(csound, &task_watch[k], to_notify)) {
-            //printf("task %d now watches %d\n", j, k);
-            canQueue = 0;
-            wait_on_current_tasks = 0;
-            break;
+          if (current_task_status == WAITING) {   // Prefer watching blocked tasks
+            //printf("found task %d to watch %d status %d\n",
+            //       k, j, csound->dag_task_status[k].s);
+            if (move_watch(csound, &task_watch[k], to_notify)) {
+              //printf("task %d now watches %d\n", j, k);
+              canQueue = 0;
+              wait_on_current_tasks = 0;
+              break;
+            }
+            else {
+              /* assert csound->dag_task_status[j].s == DONE and we are in race */
+              //printf("Racing status %d %d %d %d\n",
+              //       csound->dag_task_status[j].s, i, j, k);
+            }
+
           }
-          else {
-            /* assert csound->dag_task_status[j].s == DONE and we are in race */
-            //printf("Racing status %d %d %d %d\n",
-            //       csound->dag_task_status[j].s, i, j, k);
+          else if (current_task_status == AVAILABLE ||
+                   current_task_status == INPROGRESS) {
+            wait_on_current_tasks = 1;
           }
-
+          //else { printf("not %d\n", k); }
         }
-        else if (current_task_status == AVAILABLE ||
-                 current_task_status == INPROGRESS) {
-          wait_on_current_tasks = 1;
-        }
-        //else { printf("not %d\n", k); }
       }
 
       // Try the same thing again but this time waiting on active or available task
-      if (wait_on_current_tasks == 1) {
+      if (wait_on_current_tasks == 1 && dep != NULL) {
         for (k=0; k<j; k++) {     /* seek next watch */
-          if (csound->dag_task_dep[j][k]==0) continue;
+          if (dep[k]==0) continue;
           current_task_status = ATOMIC_READ(csound->dag_task_status[k].s);
           //printf("investigating task %d (%d)\n", k, current_task_status);
 
