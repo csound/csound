@@ -1,9 +1,9 @@
 <CsTest>
-description = "swtanal rejects unsupported boundaries and windowless overlap-add"
+description = "swtanal rejects unsupported boundaries, windows, overlap modes, and windowless or non-overlapped overlap-add"
 
 [expect]
 exit = "nonzero"
-stderr = ["swtanal: only periodic boundary is supported", "swtanal: overlap-add requires a window"]
+stderr = ["swtanal: only periodic boundary is supported", "swtanal: overlap-add requires a window", "swtanal: invalid window", "swtanal: invalid overlap-add mode", "swtanal: overlap-add requires H < N"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -23,6 +23,9 @@ endin
 <CsScore>
 i 1 0 0.01 64 32 1 1 2
 i 1 0 0.01 64 64 0 0 2
+i 1 0 0.01 64 32 0 2 0
+i 1 0 0.01 64 32 0 1 3
+i 1 0 0.01 64 64 0 1 2
 e
 </CsScore>
 </CsoundSynthesizer>

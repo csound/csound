@@ -101,9 +101,12 @@ TEST(SwtDataAccessors, CopyValuePreservesFrameAndHistory) {
   SWTDAT destination;
   std::memset(&destination, 0, sizeof(destination));
 
+  void *auxchBefore = csound->curip != nullptr ? csound->curip->auxchp : nullptr;
   CS_VAR_TYPE_SWT.copyValue(csound, &CS_VAR_TYPE_SWT, &destination, &source,
-                            nullptr);
+                             nullptr);
 
+  if (csound->curip != nullptr)
+    EXPECT_EQ(csound->curip->auxchp, auxchBefore);
   EXPECT_EQ(csoundSwtDataFrameSize(&destination), 64);
   EXPECT_EQ(csoundSwtDataLevels(&destination), 3);
   EXPECT_EQ(csoundSwtDataCapacity(&destination), 256);
@@ -121,6 +124,9 @@ TEST(SwtDataAccessors, CopyValuePreservesFrameAndHistory) {
   EXPECT_NE(static_cast<float *>(destination.frame.auxp)[0], 99.0f);
   EXPECT_NE(static_cast<float *>(destination.history.auxp)[0], -99.0f);
 
+  CS_VAR_TYPE_SWT.freeVariableMemory(csound, &destination);
+  if (csound->curip != nullptr)
+    EXPECT_EQ(csound->curip->auxchp, auxchBefore);
   freeFrame(source);
   csoundDestroy(csound);
 }

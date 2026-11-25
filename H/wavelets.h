@@ -25,7 +25,7 @@ typedef struct {
   int32_t H;
   int32_t J;
   int32_t filterLength;
-  int32_t inputCount;
+  int64_t inputCount;
   const float *low;
   const float *high;
   AUXCH input;
@@ -52,7 +52,7 @@ typedef struct {
   cs_float *band;
   int32_t count;
   int32_t bandValue;
-  uint32_t lastFrame;
+  uint64_t lastFrame;
 } SWTSET;
 
 typedef struct {
@@ -67,7 +67,7 @@ typedef struct {
   int32_t filterLength;
   int32_t olaMode;
   int32_t buflen;
-  uint32_t nextFrame;
+  uint64_t nextFrame;
   int64_t outpos;
   const float *low;
   const float *high;
@@ -79,6 +79,11 @@ typedef struct {
   AUXCH denom;
   AUXCH outbuf;
 } SWTSYNTH;
+
+int32_t swt_alloc_aux(CSOUND *csound, size_t nbytes, SWT_AUXCH *aux);
+void swt_free_aux(CSOUND *csound, SWT_AUXCH *aux);
+void swt_free_var_mem(void *csound, void *varMem);
+void swt_copy_frame(CSOUND *csound, SWTDAT *dest, const SWTDAT *src);
 
 const float *swt_get_coefficients(int32_t family, int32_t order,
                                   int32_t *length);

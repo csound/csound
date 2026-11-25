@@ -30,6 +30,7 @@
 #include "csound_orc_structs.h"
 #include "pstream.h"
 #include "swtdat.h"
+#include "wavelets.h"
 #include "find_opcode.h"
 #include <stdlib.h>
 
@@ -76,32 +77,10 @@ static void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
 static void swt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                            const void* src, INSDS *ctx) {
-  SWTDAT *swtout;
-  const SWTDAT *swtin;
-  size_t bytes;
-  size_t historyBytes;
-
   if (UNLIKELY(src == NULL || dest == NULL)) return;
-  swtout = (SWTDAT*) dest;
-  swtin = (const SWTDAT*) src;
-  bytes = (size_t) swtin->capacity * sizeof(float);
-  historyBytes = bytes * (size_t) swtin->historyCount;
-  memcpy(dest, src, sizeof(SWTDAT) - 2 * sizeof(SWT_AUXCH));
-  if (bytes > 0 &&
-      (swtout->frame.auxp == NULL || swtout->frame.size < bytes)) {
-    csound->AuxAlloc(csound, bytes, (AUXCH*) &swtout->frame);
-  }
-  if (historyBytes > 0 &&
-      (swtout->history.auxp == NULL || swtout->history.size < historyBytes)) {
-    csound->AuxAlloc(csound, historyBytes, (AUXCH*) &swtout->history);
-  }
-  if (bytes > 0 && swtin->frame.auxp != NULL && swtout->frame.auxp != NULL) {
-    memcpy(swtout->frame.auxp, swtin->frame.auxp, bytes);
-  }
-  if (historyBytes > 0 && swtin->history.auxp != NULL &&
-      swtout->history.auxp != NULL) {
-    memcpy(swtout->history.auxp, swtin->history.auxp, historyBytes);
-  }
+  IGN(cstype);
+  IGN(ctx);
+  swt_copy_frame(csound, (SWTDAT*) dest, (const SWTDAT*) src);
 }
 
 /* String buffer management utility */
@@ -1464,7 +1443,7 @@ const CS_TYPE CS_VAR_TYPE_F = {
 
 const CS_TYPE CS_VAR_TYPE_SWT = {
   "swt", "stationary wavelet frame", CS_ARG_TYPE_BOTH,
-  create_swt, swt_copy_value, NULL, NULL, 0
+  create_swt, swt_copy_value, swt_free_var_mem, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_B = {

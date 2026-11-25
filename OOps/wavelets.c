@@ -1,5 +1,6 @@
 #include <limits.h>
 #include <math.h>
+#include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -24,6 +25,45 @@ static int64_t swt_wrap64(int64_t n, int64_t N) {
   n %= N;
   if (n < 0) n += N;
   return n;
+}
+
+void swt_free_aux(CSOUND *csound, SWT_AUXCH *aux) {
+  if (aux == NULL) return;
+  if (aux->auxp != NULL) csound->Free(csound, aux->auxp);
+  aux->nxtchp = NULL;
+  aux->size = 0;
+  aux->auxp = NULL;
+  aux->endp = NULL;
+}
+
+int32_t swt_alloc_aux(CSOUND *csound, size_t nbytes, SWT_AUXCH *aux) {
+  if (aux == NULL || nbytes == 0) return NOTOK;
+  if (aux->auxp != NULL) {
+    if (aux->size == nbytes) {
+      memset(aux->auxp, 0, nbytes);
+      return OK;
+    }
+    swt_free_aux(csound, aux);
+  }
+  aux->auxp = csound->Calloc(csound, nbytes);
+  if (aux->auxp == NULL) {
+    aux->nxtchp = NULL;
+    aux->size = 0;
+    aux->endp = NULL;
+    return NOTOK;
+  }
+  aux->nxtchp = NULL;
+  aux->size = nbytes;
+  aux->endp = (char *) aux->auxp + nbytes;
+  return OK;
+}
+
+void swt_free_var_mem(void *csnd, void *varMem) {
+  CSOUND *csound = (CSOUND *) csnd;
+  SWTDAT *frame = (SWTDAT *) varMem;
+  if (csound == NULL || frame == NULL) return;
+  swt_free_aux(csound, &frame->frame);
+  swt_free_aux(csound, &frame->history);
 }
 
 static int64_t swt_step(int32_t level) {
@@ -58,7 +98,8 @@ static void swt_make_windows(float *windows, int32_t N, int32_t mode) {
   int32_t n;
   if (mode == SWT_WINDOW_SQRT_HANN) {
     for (n = 0; n < N; n++) {
-      double w = 0.5 - 0.5 * cos(2.0 * SWT_PI * (double) n / (double) N);
+      double w = 0.5 - 0.5 * cos(2.0 * SWT_PI * ((double) n + 0.5) /
+                                 (double) N);
       windows[n] = (float) sqrt(w);
     }
   } else {
@@ -124,11 +165,11 @@ PUBLIC double csoundSwtDataSampleRate(const SWTDAT *swtdat) {
   return swtdat != NULL ? swtdat->sampleRate : 0.0;
 }
 
-PUBLIC uint32_t csoundSwtDataFramecount(const SWTDAT *swtdat) {
+PUBLIC uint64_t csoundSwtDataFramecount(const SWTDAT *swtdat) {
   return swtdat != NULL ? swtdat->framecount : 0;
 }
 
-PUBLIC uint32_t csoundSwtDataRevision(const SWTDAT *swtdat) {
+PUBLIC uint64_t csoundSwtDataRevision(const SWTDAT *swtdat) {
   return swtdat != NULL ? swtdat->revision : 0;
 }
 
@@ -244,18 +285,19 @@ static int32_t swt_set_metadata(CSOUND *csound, SWTDAT *frame, int32_t N,
   return OK;
 }
 
-static void swt_copy_frame(CSOUND *csound, SWTDAT *dest, const SWTDAT *src) {
-  size_t bytes = (size_t) src->capacity * sizeof(float);
-  size_t historyBytes = bytes * (size_t) src->historyCount;
-  if (dest == NULL || src == NULL) return;
-  memcpy(dest, src, sizeof(SWTDAT) - 2 * sizeof(SWT_AUXCH));
-  if (bytes > 0 &&
-      (dest->frame.auxp == NULL || dest->frame.size < bytes)) {
-    csound->AuxAlloc(csound, bytes, (AUXCH *) &dest->frame);
+void swt_copy_frame(CSOUND *csound, SWTDAT *dest, const SWTDAT *src) {
+  size_t bytes;
+  size_t historyBytes;
+  if (dest == NULL || src == NULL || dest == src) return;
+  bytes = (size_t) src->capacity * sizeof(float);
+  historyBytes = bytes * (size_t) src->historyCount;
+  memcpy(dest, src, offsetof(SWTDAT, frame));
+  if (bytes > 0 && (dest->frame.auxp == NULL || dest->frame.size < bytes)) {
+    swt_alloc_aux(csound, bytes, &dest->frame);
   }
   if (historyBytes > 0 &&
       (dest->history.auxp == NULL || dest->history.size < historyBytes)) {
-    csound->AuxAlloc(csound, historyBytes, (AUXCH *) &dest->history);
+    swt_alloc_aux(csound, historyBytes, &dest->history);
   }
   if (bytes > 0 && src->frame.auxp != NULL && dest->frame.auxp != NULL) {
     memcpy(dest->frame.auxp, src->frame.auxp, bytes);
@@ -289,6 +331,15 @@ int32_t swtanalset(CSOUND *csound, SWTANAL *p) {
     csound->InitError(csound, Str("swtanal: only periodic boundary is supported\n"));
     return NOTOK;
   }
+  if (window != SWT_WINDOW_NONE && window != SWT_WINDOW_SQRT_HANN) {
+    csound->InitError(csound, Str("swtanal: invalid window\n"));
+    return NOTOK;
+  }
+  if (ola != SWT_OLA_AUTO && ola != SWT_OLA_DIRECT &&
+      ola != SWT_OLA_OVERLAP_ADD) {
+    csound->InitError(csound, Str("swtanal: invalid overlap-add mode\n"));
+    return NOTOK;
+  }
   low = swt_get_coefficients(family, order, &L);
   if (low == NULL || L < 1 || L > N) {
     csound->InitError(csound, Str("swtanal: invalid wavelet family or order\n"));
@@ -319,6 +370,10 @@ int32_t swtanalset(CSOUND *csound, SWTANAL *p) {
     csound->InitError(csound, Str("swtanal: overlap-add requires a window\n"));
     return NOTOK;
   }
+  if (ola == SWT_OLA_OVERLAP_ADD && H == N) {
+    csound->InitError(csound, Str("swtanal: overlap-add requires H < N\n"));
+    return NOTOK;
+  }
   if (ola == SWT_OLA_DIRECT) window = SWT_WINDOW_NONE;
   ksmps = CS_KSMPS;
   frames = ((int64_t) ksmps + H - 1) / H +
@@ -343,11 +398,11 @@ int32_t swtanalset(CSOUND *csound, SWTANAL *p) {
   p->filterLength = L;
   p->inputCount = 0;
   p->low = low;
-  csound->AuxAlloc(csound, (size_t) p->out->capacity * sizeof(float),
-                   (AUXCH *) &p->out->frame);
-  csound->AuxAlloc(csound, (size_t) p->out->capacity *
-                   (size_t) historyCount * sizeof(float),
-                   (AUXCH *) &p->out->history);
+  swt_alloc_aux(csound, (size_t) p->out->capacity * sizeof(float),
+                &p->out->frame);
+  swt_alloc_aux(csound, (size_t) p->out->capacity *
+                (size_t) historyCount * sizeof(float),
+                &p->out->history);
   csound->AuxAlloc(csound, (size_t) N * sizeof(float), &p->input);
   csound->AuxAlloc(csound, (size_t) N * sizeof(float), &p->scratch);
   csound->AuxAlloc(csound, (size_t) N * sizeof(float), &p->scratch2);
@@ -402,7 +457,7 @@ int32_t swtanal(CSOUND *csound, SWTANAL *p) {
                       work, tmp, frame) != OK) {
         return NOTOK;
       }
-      slot = (int32_t) (p->out->framecount % (uint32_t) p->out->historyCount);
+      slot = (int32_t) (p->out->framecount % (uint64_t) p->out->historyCount);
       memcpy(history + (size_t) slot * (size_t) p->out->capacity, frame,
              (size_t) p->out->capacity * sizeof(float));
       p->out->framecount++;
@@ -442,8 +497,23 @@ int32_t swtget(CSOUND *csound, SWTGET *p) {
   return OK;
 }
 
+static int32_t swt_band_array_length(const ARRAYDAT *array, size_t *length) {
+  if (array == NULL || array->data == NULL ||
+      array->arrayMemberSize < (int32_t) sizeof(cs_float)) {
+    return NOTOK;
+  }
+  return csound_array_member_count(array, length);
+}
+
+static void swt_apply_band(float *frame, int32_t offset, int32_t size,
+                           const cs_float *values) {
+  int32_t i;
+  for (i = 0; i < size; i++) frame[offset + i] = (float) values[i];
+}
+
 int32_t swtsetset(CSOUND *csound, SWTSET *p) {
   int32_t band = -1;
+  size_t available;
   if (p == NULL || p->in == NULL || p->out == NULL) return NOTOK;
   if (p->band != NULL) band = swt_int_arg(*p->band);
   if (swt_band_size(p->in, band) <= 0) {
@@ -452,8 +522,8 @@ int32_t swtsetset(CSOUND *csound, SWTSET *p) {
   }
   p->bandValue = band;
   p->count = swt_band_size(p->in, band);
-  if (p->bands == NULL || p->bands->data == NULL ||
-      p->bands->sizes == NULL || p->bands->sizes[0] < p->count) {
+  if (swt_band_array_length(p->bands, &available) != OK ||
+      available < (size_t) p->count) {
     csound->InitError(csound, Str("swtset: input array is too small\n"));
     return NOTOK;
   }
@@ -468,9 +538,12 @@ int32_t swtset(CSOUND *csound, SWTSET *p) {
   int32_t size = swt_band_size(p->out, band);
   float *data = (float *) p->out->frame.auxp;
   size_t bytes = (size_t) p->out->capacity * sizeof(float);
-  int32_t i;
-  if (offset < 0 || size <= 0 || data == NULL || p->bands->data == NULL) {
-    return NOTOK;
+  size_t available;
+  if (offset < 0 || size <= 0 || data == NULL ||
+      swt_band_array_length(p->bands, &available) != OK ||
+      available < (size_t) size) {
+    return csound->PerfError(csound, &p->h,
+                             Str("swtset: input array is too short\n"));
   }
   if (p->in->framecount > p->lastFrame &&
       p->in->capacity == p->out->capacity &&
@@ -478,27 +551,46 @@ int32_t swtset(CSOUND *csound, SWTSET *p) {
       p->out->history.auxp != NULL &&
       p->in->historyCount > 0 && p->out->historyCount > 0) {
     while (p->lastFrame < p->in->framecount) {
-      size_t slot = (size_t) (p->lastFrame % (uint32_t) p->out->historyCount);
-      memcpy((float *) p->out->history.auxp + slot * (size_t) p->out->capacity,
-             (const float *) p->in->history.auxp + slot * (size_t) p->in->capacity,
-             bytes);
+      size_t outSlot = (size_t) (p->lastFrame %
+                                (uint64_t) p->out->historyCount);
+      size_t inSlot = (size_t) (p->lastFrame %
+                               (uint64_t) p->in->historyCount);
+      float *edited = (float *) p->out->history.auxp +
+                      outSlot * (size_t) p->out->capacity;
+      memcpy(edited,
+             (const float *) p->in->history.auxp +
+             inSlot * (size_t) p->in->capacity, bytes);
+      swt_apply_band(edited, offset, size, p->bands->data);
       p->lastFrame++;
     }
     memcpy(data, (const float *) p->in->frame.auxp, bytes);
     p->out->framecount = p->lastFrame;
   }
-  for (i = 0; i < size; i++) {
-    data[offset + i] = (float) p->bands->data[i];
-  }
+  swt_apply_band(data, offset, size, p->bands->data);
   if (p->out->history.auxp != NULL && p->out->historyCount > 0 &&
       p->out->framecount > 0) {
     size_t slot = (size_t) ((p->out->framecount - 1) %
-                            (uint32_t) p->out->historyCount);
+                            (uint64_t) p->out->historyCount);
     memcpy((float *) p->out->history.auxp + slot * (size_t) p->out->capacity,
            data, bytes);
   }
   p->out->revision++;
   return OK;
+}
+
+static double swt_ola_denominator(const float *windows, int32_t N, int32_t H,
+                                  int64_t q, const float *denom) {
+  int64_t k;
+  double sum = 0.0;
+  if (q >= (int64_t) N - 1) {
+    return denom[(int32_t) (q % (int64_t) H)];
+  }
+  for (k = q / (int64_t) H; k >= 0 && q - k * (int64_t) H < (int64_t) N;
+       k--) {
+    int32_t n = (int32_t) (q - k * (int64_t) H);
+    sum += (double) windows[n] * windows[n];
+  }
+  return sum > 1e-12 ? sum : 1.0;
 }
 
 static int32_t swt_synth_add_frame(CSOUND *csound, SWTSYNTH *p,
@@ -527,8 +619,9 @@ static int32_t swt_synth_add_frame(CSOUND *csound, SWTSYNTH *p,
     int64_t idx = swt_wrap64(pos, (int64_t) p->buflen);
     float value = recon[n];
     if (p->olaMode == SWT_OLA_OVERLAP_ADD) {
-      int32_t r = (int32_t) swt_mod((int32_t) (pos - p->latency), p->H);
-      value *= windows[n] / denom[r];
+      int64_t q = (int64_t) p->nextFrame * (int64_t) p->H + (int64_t) n;
+      double weightSum = swt_ola_denominator(windows, p->N, p->H, q, denom);
+      value *= windows[n] / (float) weightSum;
     }
     outbuf[idx] += value;
   }
@@ -564,10 +657,19 @@ int32_t swtsynthset(CSOUND *csound, SWTSYNTH *p) {
   p->latency = p->in->latency > 0 ? p->in->latency : N;
   p->capacity = capacity;
   p->filterLength = L;
+  if (p->in->olaMode < SWT_OLA_AUTO ||
+      p->in->olaMode > SWT_OLA_OVERLAP_ADD) {
+    csound->InitError(csound, Str("swtsynth: invalid overlap-add mode\n"));
+    return NOTOK;
+  }
   p->olaMode = p->in->olaMode == SWT_OLA_DIRECT ?
                SWT_OLA_DIRECT : SWT_OLA_OVERLAP_ADD;
-  p->nextFrame = 0;
-  p->outpos = 0;
+  if (p->in->framecount > (uint64_t) (INT64_MAX / H)) {
+    csound->InitError(csound, Str("swtsynth: frame count is too large\n"));
+    return NOTOK;
+  }
+  p->nextFrame = p->in->framecount;
+  p->outpos = (int64_t) (p->nextFrame * (uint64_t) H);
   ksmps = CS_KSMPS;
   buflen = (int64_t) 2 * N + H + 2 * (int64_t) ksmps + 8;
   if (buflen > INT32_MAX) {
@@ -623,13 +725,15 @@ int32_t swtsynth(CSOUND *csound, SWTSYNTH *p) {
       p->in->levels != p->J) {
     return NOTOK;
   }
+  for (i = 0; i < offset && i < (uint32_t) CS_KSMPS; i++) p->aout[i] = 0;
+  for (i = nsmps; i < (uint32_t) CS_KSMPS; i++) p->aout[i] = 0;
   for (i = offset; i < nsmps; i++) {
     while (p->nextFrame < p->in->framecount) {
-      uint32_t m = p->nextFrame;
+      uint64_t m = p->nextFrame;
       const float *source;
       if (history != NULL && p->in->historyCount > 0) {
-        uint32_t slot = m % (uint32_t) p->in->historyCount;
-        source = history + (size_t) slot * (size_t) p->capacity;
+        size_t slot = (size_t) (m % (uint64_t) p->in->historyCount);
+        source = history + slot * (size_t) p->capacity;
       } else {
         source = latest;
       }
