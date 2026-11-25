@@ -37,14 +37,22 @@ static inline cs_float lim1(cs_float f) {
   return f > FL(0.0) ? (f < FL(1.0) ? f : FL(1.0)) : FL(0.0);
 }
 
-/* Keep output length current without allocating during performance. */
 template <std::size_t Inputs, int32_t ArrayInputs = 1>
-struct ArrayOutput : csnd::Plugin<1, Inputs> {
+struct VectorInputs : csnd::Plugin<1, Inputs> {
   bool vectors_only() {
     for (int32_t i = 0; i < ArrayInputs; ++i) {
       const auto *in = reinterpret_cast<const ARRAYDAT *>(this->inargs(i));
       if (in->dimensions != 1 || in->sizes == nullptr) return false;
     }
+    return true;
+  }
+};
+
+/* Keep output length current without allocating during performance. */
+template <std::size_t Inputs, int32_t ArrayInputs = 1>
+struct ArrayOutput : VectorInputs<Inputs, ArrayInputs> {
+  bool vectors_only() {
+    if (!VectorInputs<Inputs, ArrayInputs>::vectors_only()) return false;
     const auto *out = reinterpret_cast<const ARRAYDAT *>(this->outargs(0));
     return out->dimensions <= 1;
   }
@@ -205,13 +213,15 @@ template <typename T> struct ArraySort : ArrayOutput<1> {
 
 /** dot product
  */
-struct Dot : csnd::Plugin<1, 2> {
+struct Dot : VectorInputs<2, 2> {
 
   cs_float process(csnd::myfltvec &in1, csnd::myfltvec &in2) {
     return std::inner_product(in1.begin(), in1.end(), in2.begin(), 0.0);
   }
 
   int32_t init() {
+    if (!vectors_only())
+      return csound->init_error(Str_noop("expected one-dimensional arrays\n"));
     csnd::myfltvec &in1 = inargs.myfltvec_data(0);
     csnd::myfltvec &in2 = inargs.myfltvec_data(1);
     if (UNLIKELY(in2.len() < in1.len()))
@@ -221,6 +231,8 @@ struct Dot : csnd::Plugin<1, 2> {
   }
 
   int32_t kperf() {
+    if (!vectors_only())
+      return csound->perf_error(Str_noop("expected one-dimensional arrays\n"), this);
     if (UNLIKELY(inargs.myfltvec_data(1).len() < inargs.myfltvec_data(0).len()))
       return csound->perf_error(Str_noop("second input array is too short\n"), this);
     outargs[0] = process(inargs.myfltvec_data(0), inargs.myfltvec_data(1));
@@ -228,19 +240,23 @@ struct Dot : csnd::Plugin<1, 2> {
   }
 };
 
-template <typename T, int32_t I> struct Accum : csnd::Plugin<1, 1> {
+template <typename T, int32_t I> struct Accum : VectorInputs<1> {
 
   cs_float process(csnd::myfltvec &in1) {
     return std::accumulate(in1.begin(), in1.end(), FL(I), T());
   }
 
   int32_t init() {
+    if (!vectors_only())
+      return csound->init_error(Str_noop("expected one-dimensional arrays\n"));
     csnd::myfltvec &in1 = inargs.myfltvec_data(0);
     outargs[0] = process(in1);
     return OK;
   }
 
   int32_t kperf() {
+    if (!vectors_only())
+      return csound->perf_error(Str_noop("expected one-dimensional arrays\n"), this);
     outargs[0] = process(inargs.myfltvec_data(0));
     return OK;
   }
