@@ -138,12 +138,12 @@ TEST_P(DctTests, NonPowerOfTwoReportsError)
 
 TEST_P(DctTests, MatrixInputReportsError)
 {
-  run("kIn[] init 2,2\nkOut[] dct kIn", {}, "expected one-dimensional arrays");
+  run("kIn[][] init 2, 2\nkOut[] dct kIn", {}, "expected one-dimensional arrays");
 }
 
 TEST_P(DctTests, MatrixOutputReportsError)
 {
-  run("kIn[] init 4\nkOut[] init 2,2\nkOut dctinv kIn", {}, "expected one-dimensional arrays");
+  run("kIn[] init 4\nkOut[][] init 2, 2\nkOut dctinv kIn", {}, "expected one-dimensional arrays");
 }
 
 const int dctBackends[] = {0, 1

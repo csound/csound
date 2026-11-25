@@ -65,6 +65,14 @@ Review assignments to input arguments when you convert an existing
 UDO to the new form.
 
 Array literals use brackets, as in `notes:i[] = [60, 64, 67]`.
+Array declarations fix the rank. Use `[][]` for a matrix and `[*]` in a UDO
+interface that accepts any rank. To change rank, use `reshapearray` with a
+separate output. These checks apply to both legacy declarations and typed
+annotations. Arithmetic keeps its input rank. Native vector-producing opcodes
+such as `sorta`, `slicearray`, and `rfft` also retain their output rank when
+used in expressions. Array math functions that only support vectors reject
+matrix inputs rather than processing part of the matrix.
+
 The `for ... in ... do` loop reads array elements and can also provide
 their indices. Audio variables support sample access with an index.
 The `switch`, `case`, `default`, and `endsw` statements select a branch

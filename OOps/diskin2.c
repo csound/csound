@@ -22,6 +22,7 @@
 
 
 #include "csoundCore.h"
+#include "arrays.h"
 #include "soundfile.h"
 #include "soundio.h"
 #include "sysdep.h"
@@ -2712,6 +2713,10 @@ static int32_t diskin2_init_array(CSOUND *csound, DISKIN2_ARRAY *p,
     SFLIB_INFO sfinfo;
     int32_t     n, asyncMode;
     ARRAYDAT *t = p->aOut;
+
+    if (UNLIKELY(csound_array_check_rank(csound, t, 1) != OK))
+      return csound->InitError(csound, "%s\n",
+                               Str("diskin2: invalid output rank"));
 
     /* The engine owns cached samples; reinit only resets this reader. */
     if (memory && p->memfile != NULL && p->initDone && p->SkipInit != FL(0.0))

@@ -41,13 +41,13 @@ out aout
 
 endin
 
-opcode PassAudioArray1, a[], a[]
+opcode PassAudioArray1, a[][], a[][]
   aIn[][] xin
   setksmps 1
   xout aIn
 endop
 
-opcode PassAudioArray32, a[], a[]
+opcode PassAudioArray32, a[][], a[][]
   aIn[][] xin
   setksmps 32
   xout aIn

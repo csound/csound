@@ -346,6 +346,9 @@ int32_t savgol_control_perf(CSOUND *csound, SAVGOL *p) {
 
 int32_t savgol_matrix(CSOUND *csound, SAVGOL_MATRIX *p) {
     uint32_t winsize, ncoef;
+    if (UNLIKELY(csound_array_check_rank(csound, p->mat, 2) != OK))
+        return csound->InitError(csound, "%s\n",
+                                 Str("savgol: invalid output rank"));
     int32_t res = validate_params(csound, *p->winsize, *p->order, *p->delta, &winsize, &ncoef);
     if (UNLIKELY(res != OK)) {
         return res;
@@ -359,15 +362,22 @@ int32_t savgol_matrix(CSOUND *csound, SAVGOL_MATRIX *p) {
         return csound->InitError(csound, "[savgol] could not compute savgol coefficients\n");
     }
 
-    /* tabinit only maintains sizes[] for 1-D arrays, so the 2-D shape is set
-       here; sizes must already be valid when tabinit sees dimensions > 1. */
-    if (p->mat->dimensions != 2) {
-        p->mat->sizes = (int32_t *) csound->ReAlloc(csound, p->mat->sizes, sizeof(int32_t) * 2);
+    /* Set the matrix shape before reserving space for its elements. */
+    if (p->mat->sizes == NULL) {
+        p->mat->sizes = (int32_t *) csound->Calloc(csound, sizeof(int32_t) * 2);
+        if (UNLIKELY(p->mat->sizes == NULL)) {
+            csound->Free(csound, sg.coeffs);
+            return csound_array_init_resize_error(csound);
+        }
         p->mat->dimensions = 2;
     }
     p->mat->sizes[0] = (int32_t) sg.nrows;
     p->mat->sizes[1] = (int32_t) sg.ncols;
-    tabinit(csound, p->mat, (int32_t) (ncoef * winsize), p->h.insdshead);
+    if (UNLIKELY(csound_array_ensure_capacity(csound, p->mat,
+                    (size_t)ncoef * winsize, p->h.insdshead) != OK)) {
+        csound->Free(csound, sg.coeffs);
+        return csound_array_init_resize_error(csound);
+    }
 
     cs_float *out = (cs_float *) p->mat->data;
     double *row = (double *) csound->Calloc(csound, sizeof(double) * (size_t) sg.ncols);

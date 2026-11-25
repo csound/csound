@@ -392,7 +392,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
       sf->loopEnd = tmp;
     }
     p->nChannels = sf->nChannels;
-    if (UNLIKELY(tabinit(csound, p->arr, p->nChannels,
+    if (UNLIKELY(csound_array_init_vector(csound, p->arr, p->nChannels,
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     dataPtr = (void*) &(sf->data[0]);
@@ -421,7 +421,7 @@ static int32_t loscilxa_opcode_init(CSOUND *csound, LOSCILXA_OPCODE *p)
     if (ftp == NULL)
       return NOTOK;
     p->nChannels = ftp->nchanls;
-    if (UNLIKELY(tabinit(csound, p->arr, p->nChannels,
+    if (UNLIKELY(csound_array_init_vector(csound, p->arr, p->nChannels,
                          p->h.insdshead) != OK))
       return csound_array_init_resize_error(csound);
     dataPtr = (void*) &(ftp->ftable[0]);

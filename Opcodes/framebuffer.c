@@ -277,7 +277,7 @@ static int32_t Framebuffer_initialise(CSOUND *csound, Framebuffer *self)
         if (UNLIKELY(array->dimensions > 1))
           return csound->InitError(csound, "%s\n",
                                   Str("framebuffer: output array must be one dimensional"));
-        if (UNLIKELY(tabinit(csound, array, self->elementCount,
+        if (UNLIKELY(csound_array_init_vector(csound, array, self->elementCount,
                             self->h.insdshead) != OK))
           return csound->InitError(csound, "%s\n",
                                   Str("framebuffer: cannot initialise output array"));

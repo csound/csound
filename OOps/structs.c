@@ -211,7 +211,8 @@ static int32_t struct_array_create_storage(CSOUND *csound, ARRAYDAT *array,
     return csound->InitError(csound,
                              Str("Invalid struct array dimensions\n"));
   }
-  if (UNLIKELY(tabinit(csound, array, (int32_t)totalSize, ctx) != OK)) {
+  if (UNLIKELY(csound_array_ensure_capacity(csound, array,
+                     totalSize ? totalSize : 1, ctx) != OK)) {
     return csound_array_init_resize_error(csound);
   }
   return OK;

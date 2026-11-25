@@ -151,9 +151,11 @@ PUBLIC  int32_t     csoundModuleInfo(void);
 
 /** Return this value from hand-written csoundModuleInfo functions too.
  * An unset precision flag retains the legacy ABI with 64-bit cs_double.
+ * The rank flag prevents these headers from targeting older signature parsers.
  */
 #define CSOUND_MODULE_INFO \
   ((CS_VERSION << 16) | (CS_SUBVER << 8) | (int32_t) sizeof(cs_float) | \
+   CSOUND_MODULE_ARRAY_RANK | \
    (sizeof(cs_double) == sizeof(float) ? CSOUND_MODULE_USE_FLOAT : 0))
 
 /** The LINKAGE macro sets up linking of opcode list*/

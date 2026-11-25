@@ -91,7 +91,8 @@ TEST_F(OpcodeSignatureTests, RejectMalformedDescriptorsBeforeAllocation) {
                             "[a]]", ":", ":Voice", ":;", ":Voice[];",
                             ":Voice:;", "[:Voice]", "a:Voice", "a]", ";",
                             "a [a]", "[:Voice;", "a[][][", "a a", "a\ta",
-                            "a\na", "a\ra", "a\fa", "a\va"}) {
+                            "a\na", "a\ra", "a\fa", "a\va",
+                            "i[*][]", "i[][*]", "[[^i]", "[^]"}) {
         SCOPED_TRACE(bad);
         EXPECT_EQ(-1, args_required(bad));
         EXPECT_EQ(nullptr, split_args(csound, bad));
@@ -115,6 +116,8 @@ TEST_F(OpcodeSignatureTests, SplitBothArrayFormatsAndNamedTypes) {
         {"[[a][:Voice;]i", {"[[a]", "[:Voice;]", "i"}},
         {":Voice;[][]:Voice2;", {"[[:Voice;]", ":Voice2;"}},
         {".[]?[][]*[]", {"[.]", "[[?]", "[*]"}},
+        {"i[*]:Voice;[*]", {"[^i]", "[^:Voice;]"}},
+        {"[^k][^:Voice;]", {"[^k]", "[^:Voice;]"}},
     };
     SignatureMemory memory(csound);
     for (const auto &item : cases) {

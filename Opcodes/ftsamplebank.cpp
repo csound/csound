@@ -236,7 +236,7 @@ static int32_t directory(CSOUND *csound, DIR_STRUCT *p) {
     return NOTOK;
 
   int32_t numberOfFiles = (int32_t) fileNames.size();
-  if (UNLIKELY(tabinit(csound, p->outArr, numberOfFiles,
+  if (UNLIKELY(csound_array_init_vector(csound, p->outArr, numberOfFiles,
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   for (int32_t i = 0; i < numberOfFiles; i++) {

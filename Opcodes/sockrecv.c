@@ -738,7 +738,7 @@ static int32_t init_raw_osc(CSOUND *csound, RAWOSC *p)
       memset(buf, 0, MTU);
     }
     if(p->sout->data == NULL)
-      if (UNLIKELY(tabinit(csound, p->sout, 2,
+      if (UNLIKELY(csound_array_init_vector(csound, p->sout, 2,
                            p->h.insdshead) != OK)) {
         destroy_raw_osc(csound, p);
         return csound_array_init_resize_error(csound);

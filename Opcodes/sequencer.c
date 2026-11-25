@@ -551,7 +551,7 @@ static int32_t sequStateInit(CSOUND *csound, SEQSTATE* p)
   if (UNLIKELY(r == NULL || r[id].owner == NULL))
     return csound->InitError(csound, Str("sequstate: no active sequence\n"));
   p->q = &r[id];
-  if (UNLIKELY(tabinit(csound, p->riff, p->q->max_length,
+  if (UNLIKELY(csound_array_init_vector(csound, p->riff, p->q->max_length,
                        p->h.insdshead) != OK))
     return csound->InitError(csound, Str("sequstate: cannot allocate output array\n"));
   return sequState(csound, p);

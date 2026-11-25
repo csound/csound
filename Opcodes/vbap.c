@@ -1926,7 +1926,7 @@ int32_t vbap_init_a(CSOUND *csound, VBAPA *p)
                              "%s\n", Str("vbap system NOT configured.\nMissing"
                                        " vbaplsinit opcode in orchestra?"));
   //printf("**** size = %d\n", p->q.ls_set_am);
-  if (UNLIKELY(tabinit(csound, p->tabout, p->q.ls_am,
+  if (UNLIKELY(csound_array_init_vector(csound, p->tabout, p->q.ls_am,
                        p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
   cnt = p->q.number = p->tabout->sizes[0];
