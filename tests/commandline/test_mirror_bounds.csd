@@ -43,7 +43,7 @@ instr 1
 endin
 
 instr 99
-  if i(gkchecks) != 28 then
+  if i(gkchecks) != 29 then
     prints "not all mirror checks ran\n"
     exitnow(-1)
   endif
@@ -72,6 +72,7 @@ i 1 0 .004 0 3 3 3 126
 i 1 0 .004 0 3 2 2.5 126
 i 1 0 .004 3 -1 1 -1 126
 i 1 0 .004 3 -3 2 1 126
+i 1 0 .004 -3 -2 3 -1 126
 i 1 0 .004 3 -3 -2 -3 126
 i 1 0 .004 2.5 -3 -2 -2.5 126
 ; Exercise remquo with a zero lower bound and with a zero input.

@@ -58,8 +58,17 @@ static uint32_t instance_cnt = 0;    /* Is tis thread-safe? */
 
 #define FA(n)   ((float)(F(1.190566,n,0)+F(0.162580,n,1)+F(0.002208,n,2)+ \
                          F(0.025475,n,3)+F(-0.001522,n,4)+F(0.007322,n,5)-PINK_BIAS))
-#define FB(n)   ((float)(F(0.001774,n,0)+F(0.004529,n,1)+F(-0.001561,n,2)+ \
+#define FB_SUM(n) ((float)(F(0.001774,n,0)+F(0.004529,n,1)+F(-0.001561,n,2)+ \
                          F(0.000776,n,3)+F(-0.000486,n,4)+F(0.002017,n,5)))
+
+/* Near the bias of 440, binary32 samples are spaced by 2^-15. Round the
+   second FIR table to that grid at compile time, as adding it to the first
+   table used to do at run time. No table entry lies halfway between points.
+   Now both addition orders produce the same noise sequence. */
+#define PINK_GRID 0x1p-15f
+#define FB_GRID(value) ((float)(int32_t)((value) / PINK_GRID + \
+                       ((value) < 0.0f ? -0.5f : 0.5f)) * PINK_GRID)
+#define FB(n) FB_GRID(FB_SUM(n))
 
 #define FA8(n)  FA(n),FA(n+1),FA(n+2),FA(n+3),FA(n+4),FA(n+5),FA(n+6),FA(n+7)
 #define FB8(n)  FB(n),FB(n+1),FB(n+2),FB(n+3),FB(n+4),FB(n+5),FB(n+6),FB(n+7)
