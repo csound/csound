@@ -77,6 +77,7 @@ if(BUILD_TESTS)
         fft_backend_test.cpp
         pvlock_formants_test.cpp
         fixtures/pvlock_formant_test_fixture.c
+        swtdat_test.cpp
         engine_test.cpp
         global_env_test.cpp
         realtime_chain_test.cpp

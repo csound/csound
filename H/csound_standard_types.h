@@ -41,6 +41,7 @@ extern "C" {
     extern const CS_TYPE CS_VAR_TYPE_C;
     extern const CS_TYPE CS_VAR_TYPE_W;
     extern const CS_TYPE CS_VAR_TYPE_F;
+    extern const CS_TYPE CS_VAR_TYPE_SWT;
     extern const CS_TYPE CS_VAR_TYPE_B;
     extern const CS_TYPE CS_VAR_TYPE_b;
     extern const CS_TYPE CS_VAR_TYPE_ARRAY;
