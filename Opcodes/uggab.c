@@ -141,8 +141,13 @@ static int32_t kwrap(CSOUND *csound, WRAP *p)
                                                                                \
     if (low >= high) {                                                         \
       cs_double sum = low + high;                                                 \
-      (output) = (cs_float)(isfinite(sum) ? sum * 0.5                             \
-                                     : low * 0.5 + high * 0.5);                \
+      if (isfinite(sum)) {                                                       \
+        (output) = (cs_float)(sum * 0.5);                                        \
+      } else {                                                                  \
+        /* Do not reassociate the halves into the overflowing sum. */          \
+        volatile cs_double half_low = low * 0.5;                                \
+        (output) = (cs_float)(half_low + high * 0.5);                            \
+      }                                                                          \
       break;                                                                   \
     }                                                                          \
     if (mirror_input >= low && mirror_input <= high) {                         \
@@ -157,9 +162,11 @@ static int32_t kwrap(CSOUND *csound, WRAP *p)
     width = high - low;                                                        \
     if (!isfinite(width)) {                                                    \
       /* Such a wide finite interval needs at most one reflection. */          \
-      (output) = (cs_float)(mirror_input > high                                   \
-                         ? high - (mirror_input - high)                        \
-                         : low + (low - mirror_input));                        \
+      const int32_t above = mirror_input > high;                                \
+      /* Doubling the endpoint before subtracting can overflow. */            \
+      volatile cs_double distance = above ? mirror_input - high                \
+                                          : low - mirror_input;                \
+      (output) = (cs_float)(above ? high - distance : low + distance);           \
       break;                                                                   \
     }                                                                          \
                                                                                \
