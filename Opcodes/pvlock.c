@@ -52,6 +52,11 @@ typedef struct {
   void *setup;
 } FFT_CACHE;
 
+typedef struct {
+  FFT_CACHE *entries;
+  int32_t count, cap;
+} FFT_CACHE_STORE;
+
 typedef struct dats {
   OPDS h;
   cs_float *out[MAXOUTS], *time, *kamp, *kpitch, *knum, *klock, *iN,
@@ -149,7 +154,7 @@ typedef struct {
   double rp;
   cs_float beta;
   AUXCH ring, outframe, win, bwin, fwin, prev, framecount, lockdata, map;
-  FFT_CACHE fftcache[8];
+  FFT_CACHE_STORE fftcache;
   void *fwdsetup, *invsetup;
   FORMANT_DATA formant;
 } DATASPACE_PSHIFT;
@@ -196,27 +201,50 @@ static void *pv_fft_setup(CSOUND *csound, void *setup, int32_t N, int32_t d)
   return csound->RealFFTSetup(csound, N, d);
 }
 
-static void *pv_fft_cached_setup(CSOUND *csound, FFT_CACHE *cache,
+static void pv_fft_cache_free(CSOUND *csound, FFT_CACHE_STORE *store)
+{
+  if (store->entries != NULL) {
+    csound->Free(csound, store->entries);
+    store->entries = NULL;
+  }
+  store->count = 0;
+  store->cap = 0;
+}
+
+static void *pv_fft_cached_setup(CSOUND *csound, FFT_CACHE_STORE *store,
                                  int32_t N, int32_t d)
 {
-  int32_t i, spare = 0;
+  int32_t i, cap;
+  FFT_CACHE *entries;
   void *setup;
 
-  for (i = 0; i < 8; i++) {
-    if (cache[i].setup != NULL && cache[i].N == N && cache[i].d == d)
-      return cache[i].setup;
-    if (cache[i].setup == NULL) spare = i;
+  for (i = 0; i < store->count; i++) {
+    if (store->entries[i].N == N && store->entries[i].d == d)
+      return store->entries[i].setup;
+  }
+  if (store->count == store->cap) {
+    if (store->cap > INT32_MAX/2) return NULL;
+    cap = store->cap == 0 ? 8 : store->cap*2;
+    entries = csound->Malloc(csound, sizeof(FFT_CACHE)*(size_t)cap);
+    if (entries == NULL) return NULL;
+    if (store->count > 0)
+      memcpy(entries, store->entries,
+             sizeof(FFT_CACHE)*(size_t)store->count);
+    if (store->entries != NULL) csound->Free(csound, store->entries);
+    store->entries = entries;
+    store->cap = cap;
   }
   setup = csound->RealFFTSetup(csound, N, d);
   if (setup == NULL) return NULL;
-  cache[spare].N = N;
-  cache[spare].d = d;
-  cache[spare].setup = setup;
+  store->entries[store->count].N = N;
+  store->entries[store->count].d = d;
+  store->entries[store->count].setup = setup;
+  store->count++;
   return setup;
 }
 
 static int32_t pv_formant_init(CSOUND *csound, FORMANT_DATA *fd,
-                               FFT_CACHE *cache, int32_t N)
+                               FFT_CACHE_STORE *cache, int32_t N)
 {
   int32_t M = N/2;
   size_t size;
@@ -594,6 +622,13 @@ static cs_float pshifter_valid_fscal(cs_float fscal)
   if (fscal < PSHIFTER_PITCH_MIN) return PSHIFTER_PITCH_MIN;
   if (fscal > PSHIFTER_PITCH_MAX) return PSHIFTER_PITCH_MAX;
   return fscal;
+}
+
+
+static int32_t pshifter_deinit(CSOUND *csound, DATASPACE_PSHIFT *p)
+{
+  pv_fft_cache_free(csound, &p->fftcache);
+  return OK;
 }
 
 
@@ -1452,15 +1487,15 @@ static int32_t pshifterset(CSOUND *csound, DATASPACE_PSHIFT *p)
           FL(0.5) - FL(0.5)*COS((cs_float)ui*x);
     }
 
-    p->fwdsetup = pv_fft_cached_setup(csound, p->fftcache, N, FFT_FWD);
-    p->invsetup = pv_fft_cached_setup(csound, p->fftcache, N, FFT_INV);
+    p->fwdsetup = pv_fft_cached_setup(csound, &p->fftcache, N, FFT_FWD);
+    p->invsetup = pv_fft_cached_setup(csound, &p->fftcache, N, FFT_INV);
     if (UNLIKELY(p->fwdsetup == NULL || p->invsetup == NULL))
       return csound->InitError(csound, "%s\n",
                                Str("could not create pshifter FFT setups"));
     {
       int32_t rc = pv_alloc_lock(csound, &p->lockdata, N);
       if (rc != OK) return rc;
-      return pv_formant_init(csound, &p->formant, p->fftcache, N);
+      return pv_formant_init(csound, &p->formant, &p->fftcache, N);
     }
 }
 
@@ -2893,7 +2928,7 @@ static OENTRY pvlock_localops[] =
    {"mincer", sizeof(DATASPACEM_MIN), 0, "a", "akkkkoopOO",
     (SUBR)sinit1m,(SUBR)sprocess1m },
    {"pshifter", sizeof(DATASPACE_PSHIFT), 0, "ai", "akkkkoopO",
-    (SUBR)pshifterset,(SUBR)pshifterproc },
+    (SUBR)pshifterset,(SUBR)pshifterproc,(SUBR)pshifter_deinit },
    {"mincer", sizeof(DATASPACE_MIN), 0, "mm", "akkkkoopOO",
     (SUBR)sinit1,(SUBR)sprocess1 },
    {"temposcal", sizeof(DATASPACEM), 0, "a", "kkkkkooPOPpOO",
