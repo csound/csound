@@ -95,6 +95,7 @@ aconst = 0.5
 aconst4, idel13 pshifter aconst, 1, 1, 0, 0, 512, 4
 aconst8, idel14 pshifter aconst, 1, 1, 0, 0, 512, 8
 aconst16, idel15 pshifter aconst, 1, 1, 0, 0, 512, 16
+adefault, idel20 pshifter aconst, 1, 1, 0, 0, 512
 adry4 delayr idel13
       delayw aconst
 adry8 delayr idel14
@@ -109,7 +110,7 @@ aalt = 0.2*oscili(1, sr/2, giSine, 0.25)
 anyq, idel18 pshifter aalt, 0.5, 1, 0, 0, 512, 4
 aupnyq, idel19 pshifter aalt, 2, 1, 0, 0, 512, 4
 
-if idel != 512/sr || idel != idel2 || idel2 != idel3 || idel3 != idel4 || idel4 != idel5 || idel5 != idel6 || idel6 != idel7 || idel7 != idel8 || idel8 != idel9 || idel9 != idel10 || idel10 != idel11 || idel11 != idel12 || idel12 != idel13 || idel13 != idel14 || idel14 != idel15 || idel15 != idel16 || idel16 != idel17 || idel17 != idel18 || idel18 != idel19 then
+if idel != 512/sr || idel != idel2 || idel2 != idel3 || idel3 != idel4 || idel4 != idel5 || idel5 != idel6 || idel6 != idel7 || idel7 != idel8 || idel8 != idel9 || idel9 != idel10 || idel10 != idel11 || idel11 != idel12 || idel12 != idel13 || idel13 != idel14 || idel14 != idel15 || idel15 != idel20 || idel20 != idel16 || idel16 != idel17 || idel17 != idel18 || idel18 != idel19 then
   printks "delay check failed %.9f %.9f\n", 1, idel, idel19
   exitnow(-1)
 endif
@@ -132,6 +133,7 @@ check_tone aoct, 0.01, 689.0625, 344.53125, 0.3, 2
 check_equal aconst4, adry4, 1e-6, 1e-4
 check_equal aconst8, adry8, 1e-6, 1e-4
 check_equal aconst16, adry16, 1e-6, 1e-4
+check_equal adefault, aconst8, 1e-6, 1e-4
 check_nonzero adown, 1e-4
 check_tone adown, 0.01, 409.130859, 1636.523438, 0.3, 8
 check_nonzero aup, 1e-4

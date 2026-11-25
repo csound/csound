@@ -1403,7 +1403,7 @@ static int32_t pshifterset(CSOUND *csound, DATASPACE_PSHIFT *p)
       N = (int32_t)intpow1(2, i-1);
     } else N = 2048;
     if (N < 8) N = 8;
-    if (decim == 0) decim = 4;
+    if (decim == 0) decim = 8;
     if (UNLIKELY(decim < 4 || decim > N || N % decim != 0 ||
                   N > INT32_MAX/PSHIFTER_RING_FACTOR ||
                   N > INT32_MAX/decim))
