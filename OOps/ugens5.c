@@ -22,6 +22,7 @@
 
 #include "csoundCore.h"         /*                      UGENS5.C        */
 #include "ugens5.h"
+#include "filter_math.h"
 #include <math.h>
 #include <float.h>
 #include <inttypes.h>
@@ -547,8 +548,10 @@ int32_t rsnset(CSOUND *csound, RESON *p)
 
 int32_t krsnset(CSOUND *csound, RESON *p){ return rsnset(csound,p); }
 
+CS_FILTER_FUNCTION
 int32_t kreson(CSOUND *csound, RESON *p)
 {
+    CS_FILTER_ORDERED
     uint32_t flag = 0;
     cs_double      c3p1, c3t4, omc3, c2sqr;
     cs_double      yt0, yt1, yt2, c1 = p->c1, c2 = p->c2, c3 = p->c3;
@@ -578,15 +581,17 @@ int32_t kreson(CSOUND *csound, RESON *p)
     }
 
     yt1 = p->yt1; yt2 = p->yt2;
-    yt0 = c1 * ((cs_double)*p->asig) + c2 * yt1 - c3 * yt2;
+    yt0 = CS_RESON_STEP((cs_double)*p->asig, yt1, yt2, c1, c2, c3);
     *p->ar = (cs_float)yt0;
     p->yt1 = yt0; p->yt2 = yt1; /* Write back for next cycle */
     return OK;
 }
 
 
+CS_FILTER_FUNCTION
 int32_t reson(CSOUND *csound, RESON *p)
 {
+    CS_FILTER_ORDERED
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    flag = 0, n, nsmps = CS_KSMPS;
@@ -632,7 +637,7 @@ int32_t reson(CSOUND *csound, RESON *p)
         else c1 = p->c1 = 1.0;
         flag = 0;
       }
-      yt0 = c1 * ((cs_double)asig[n]) + c2 * yt1 - c3 * yt2;
+      yt0 = CS_RESON_STEP((cs_double)asig[n], yt1, yt2, c1, c2, c3);
       ar[n] = (cs_float)yt0;
       yt2 = yt1;
       yt1 = yt0;
@@ -680,8 +685,10 @@ int32_t rsnsetx(CSOUND *csound, RESONX *p)
     return OK;
 }
 
+CS_FILTER_FUNCTION
 int32_t resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
 {
+    CS_FILTER_ORDERED
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    flag = 0, n, nsmps = CS_KSMPS;
@@ -733,7 +740,7 @@ int32_t resonx(CSOUND *csound, RESONX *p)   /* Gabriel Maldonado, modified  */
         flag =0;
       }
       for (j=0; j< p->loop; j++) {
-        cs_double x = c1 * (cs_double)sig + c2 * yt1[j] - c3 * yt2[j];
+        cs_double x = CS_RESON_STEP((cs_double)sig, yt1[j], yt2[j], c1, c2, c3);
         yt2[j] = yt1[j];
         yt1[j] = x;
         sig = (cs_float)x;

@@ -30,6 +30,7 @@
 
 #include "gab.h"
 #include <math.h>
+#include "filter_math.h"
 #include "interlocks.h"
 #include "arrays.h"
 
@@ -72,10 +73,12 @@ static int32_t krsnsetx(CSOUND *csound, KRESONX *p)
   return OK;
 }
 
+CS_FILTER_FUNCTION
 static int32_t kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modified */
 {
+  CS_FILTER_ORDERED
   int32_t flag = 0, j;
-  cs_float       *ar, *asig;
+  cs_float       sig;
   cs_double      c3p1, c3t4, omc3, c2sqr;
   cs_double *yt1, *yt2, c1,c2,c3;
 
@@ -106,16 +109,15 @@ static int32_t kresonx(CSOUND *csound, KRESONX *p) /* Gabriel Maldonado, modifie
   c3   = p->c3;
   yt1  = p->yt1;
   yt2  = p->yt2;
-  asig = p->asig;
-  ar   = p->ar;
+  sig = *p->asig;
   for (j=0; j< p->loop; j++) {
-    cs_double yt0 = c1 * (cs_double)*asig + c2 * yt1[j] - c3 * yt2[j];
+    cs_double yt0 = CS_RESON_STEP((cs_double)sig, yt1[j], yt2[j], c1, c2, c3);
     yt2[j] = yt1[j];
     yt1[j] = yt0;
     /* Keep cs_double history, but pass cs_float between layers like serial resonk. */
-    *ar = (cs_float)yt0;
-    asig= p->ar;
+    sig = (cs_float)yt0;
   }
+  *p->ar = sig;
   return OK;
 }
 
