@@ -18,15 +18,15 @@ nchnls = 1
 
 giSine ftgen 1, 0, 4096, 10, 1
 
-opcode check_tone, 0, aiiii
-asig, imin, itarget, isource, istart xin
+opcode check_tone, 0, aiiiii
+asig, imin, itarget, isource, istart, iratio xin
 acos oscili 1, itarget, giSine, 0.25
 asrc oscili 1, isource, giSine, 0.25
 atarget butlp asig*acos, 10
 asource butlp asig*asrc, 10
 ktarget rms atarget
 ksource rms asource
-if timeinsts() > istart && !(ktarget >= imin && ktarget > 8*ksource) then
+if timeinsts() > istart && !(ktarget >= imin && ktarget > iratio*ksource) then
   printks "tone check failed %.9f %.9f\n", 1, ktarget, ksource
   exitnowk(-1)
 endif
@@ -78,9 +78,11 @@ asine = 0.5*oscili(1, 110, giSine)
 apure, idel10 pshifter asine, 1.4, 1, 0, 0, 512, 4
 kshift linseg 0.5, 0.3, 0.5, 0.2, 1, 0.25, 1
 achanged, idel11 pshifter asine, kshift, 1, 0, 0, 512, 4
+aoctsource = 0.2*oscili(1, 344.53125, giSine)
+aoct, idel12 pshifter aoctsource, 2, 1, 0, 0, 512, 4
 
-if idel != 512/sr || idel != idel2 || idel2 != idel3 || idel3 != idel4 || idel4 != idel5 || idel5 != idel6 || idel6 != idel7 || idel7 != idel8 || idel8 != idel9 || idel9 != idel10 || idel10 != idel11 then
-  printks "delay check failed %.9f %.9f\n", 1, idel, idel11
+if idel != 512/sr || idel != idel2 || idel2 != idel3 || idel3 != idel4 || idel4 != idel5 || idel5 != idel6 || idel6 != idel7 || idel7 != idel8 || idel8 != idel9 || idel9 != idel10 || idel10 != idel11 || idel11 != idel12 then
+  printks "delay check failed %.9f %.9f\n", 1, idel, idel12
   exitnow(-1)
 endif
 
@@ -94,9 +96,11 @@ check_equal alock2, aunit, 1e-9, 1e-4
 check_equal alock3, alock2, 1e-7, 1e-4
 check_nonzero aclamp, 1e-4
 check_nonzero apure, 1e-4
-check_tone apure, 0.02, 154, 110, 0.3
+check_tone apure, 0.02, 154, 110, 0.3, 8
 check_nonzero achanged, 1e-4
-check_tone achanged, 0.02, 110, 55, 0.8
+check_tone achanged, 0.02, 110, 55, 0.8, 8
+check_nonzero aoct, 1e-4
+check_tone aoct, 0.01, 689.0625, 344.53125, 0.3, 2
 
 kdone init 0
 if timeinsts() > 0.9 && kdone == 0 then

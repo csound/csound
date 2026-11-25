@@ -1337,9 +1337,9 @@ static int32_t pshifterset(CSOUND *csound, DATASPACE_PSHIFT *p)
     } else N = 2048;
     if (N < 8) N = 8;
     if (decim == 0) decim = 4;
-    if (UNLIKELY(decim < 2 || decim > N ||
-                 N > INT32_MAX/PSHIFTER_RING_FACTOR ||
-                 N > INT32_MAX/decim))
+    if (UNLIKELY(decim < 2 || decim > N || N % decim != 0 ||
+                  N > INT32_MAX/PSHIFTER_RING_FACTOR ||
+                  N > INT32_MAX/decim))
       return csound->InitError(csound, "%s\n",
                                Str("pshifter: invalid ifftsize or idecim"));
     ringSamples = (size_t)N*PSHIFTER_RING_FACTOR;
@@ -1537,6 +1537,24 @@ static int32_t pshifterproc(CSOUND *csound, DATASPACE_PSHIFT *p)
           }
         }
         if (formant) pv_formant_restore(&p->formant, N, fwin, formant_pitch);
+        if (pitch != FL(1.0)) {
+          int32_t k, M = N/2, dest;
+          cs_double bin;
+          memset(bwin, 0, (size_t)(N + 2)*sizeof(cs_float));
+          bwin[0] = fwin[0];
+          bwin[1] = fwin[1];
+          for (k = 1; k < M; k++) {
+            bin = (cs_double)k*(cs_double)pitch + 0.5;
+            if (bin >= 1.0 && bin < (cs_double)M) {
+              dest = (int32_t)bin;
+              bwin[2*dest] = fwin[2*k];
+              bwin[2*dest + 1] = fwin[2*k + 1];
+            }
+          }
+          bwin[N] = bwin[1];
+          bwin[N + 1] = FL(0.0);
+          memcpy(fwin, bwin, (size_t)(N + 2)*sizeof(cs_float));
+        }
         fwin[1] = fwin[N];
         csound->RealFFT(csound, p->invsetup, fwin);
         framecnt[curframe] = curframe*N;
