@@ -2630,11 +2630,10 @@ static int32_t kdelay(CSOUND *csound,KDEL *p)
        before the integer modulo. */
 #ifdef USE_FLOAT
     if (fabs(delay) >= FL(16777216.0))
-      residual = fmaf(*p->kdel, CS_EKR, -delay);
 #else
     if (fabs(delay) >= FL(9007199254740992.0))
-      residual = fma(*p->kdel, CS_EKR, -delay);
 #endif
+      CS_PRODUCT_RESIDUAL(residual, *p->kdel, CS_EKR, delay);
     const cs_double fraction = cs_modf(delay, &whole);
     int64_t cell = indx - kdelayMod(whole, maxd);
     cs_double offset = fraction;
