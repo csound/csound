@@ -6,7 +6,7 @@ exit = 0
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
--n -d -m0
+-n -d -m0 --preserve-subnormals
 </CsOptions>
 <CsInstruments>
 sr = 48000

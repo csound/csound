@@ -1485,7 +1485,7 @@ static void install_signal_handler(void) {
  CSOUND *csoundCreate(void *hostdata, const char *opcodedir) {
   CSOUND *csound;
   csInstance_t *p;
-  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+  CSOUND_DEFAULT_SUBNORMAL_MODE();
 
   if (init_done != 1) {
     if (csoundInitialize(0) < 0)
@@ -2039,6 +2039,7 @@ static void reset(CSOUND *csound) {
   csound->line_event_spinlock = saved_env->line_event_spinlock;
 #endif
   csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
+  csound->preserve_subnormals = saved_env->preserve_subnormals;
   memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
   csound->memalloc_db = saved_env->memalloc_db;
   /* what a failed module left behind may outlive the reset */

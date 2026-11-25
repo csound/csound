@@ -191,7 +191,7 @@ unsigned long kperf_thread(void *cs) {
   void *threadId;
   int32_t index;
   int32_t numThreads;
-  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+  CSOUND_WORKER_SUBNORMAL_MODE(csound);
 
   csound->WaitBarrier(csound->barrier2);
   threadId = csound->GetCurrentThreadID();
