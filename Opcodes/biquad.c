@@ -964,12 +964,25 @@ static int32_t vco(CSOUND *csound, VCO *p)
 
     /* Implementation of Zoelzer's Parametric Equalizer Filters */
 #ifdef USE_FLOAT
-/* Store each state as value - error. Keep the rounding steps under fast-math. */
+/* Keep the rounding steps in registers on hardware-float RISC-V. */
+#if defined(__riscv_flen) && __riscv_flen >= 32 && defined(__has_builtin)
+# if __has_builtin(__builtin_assoc_barrier)
+#  define PAREQ_ROUND(expression) __builtin_assoc_barrier(expression)
+#  define PAREQ_STEP(name, expression) const cs_double name = PAREQ_ROUND(expression)
+# endif
+#endif
+#ifndef PAREQ_STEP
+# define PAREQ_ROUND(expression) (expression)
+# define PAREQ_STEP(name, expression) volatile cs_double name = (expression)
+#endif
+
+/* Store each state as value - error. Keep fast-math from folding the
+   additions and subtractions that recover the rounding error. */
 #define PAREQ_ADD(value, error, increment) do {                             \
-  volatile cs_double pe_increment = (increment) - (error);                  \
-  volatile cs_double pe_next = (value) + pe_increment;                      \
-  volatile cs_double pe_back = pe_next - (value);                           \
-  (error) = pe_back - pe_increment;                                         \
+  PAREQ_STEP(pe_increment, (increment) - (error));                           \
+  PAREQ_STEP(pe_next, (value) + pe_increment);                                \
+  PAREQ_STEP(pe_back, pe_next - (value));                                     \
+  (error) = PAREQ_ROUND(pe_back - pe_increment);                             \
   (value) = pe_next;                                                        \
 } while (0)
 #endif
@@ -1081,15 +1094,21 @@ static int32_t vco(CSOUND *csound, VCO *p)
           volatile cs_double difference = halfx - halfx2;
           volatile cs_double midpoint = FL(0.5) * (halfx + halfx2);
           volatile cs_double average = midpoint + FL(0.5) * sign * x1;
-          force = FL(2.0) * band * difference + FL(4.0) * low * average;
+          /* Apply the coefficients before restoring scale. Reassociation
+             can otherwise overflow the input sum before the multiplication. */
+          volatile cs_double band_force = band * difference;
+          volatile cs_double low_force = low * average;
+          volatile cs_double half_force = band_force + FL(2.0) * low_force;
+          force = FL(2.0) * half_force;
         }
         else {
           force = band * (x - x2) + low * (x + FL(2.0)*sign*x1 + x2);
         }
-        cs_double delta = force - damping * (d - de) - stiffness * (r - re);
+        cs_double delta = force - damping * PAREQ_ROUND(d - de) -
+                          stiffness * PAREQ_ROUND(r - re);
         PAREQ_ADD(d, de, delta);
-        PAREQ_ADD(r, re, d - de);
-        p->out[n] = (cs_float)(dry * x + (r - re));
+        PAREQ_ADD(r, re, PAREQ_ROUND(d - de));
+        p->out[n] = (cs_float)(dry * x + PAREQ_ROUND(r - re));
         x2 = x1; x1 = x;
       }
       p->ynm1 = r; p->ynm2 = d; p->rerror = re; p->derror = de;
@@ -1098,6 +1117,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
       return OK;
     }
 #undef PAREQ_ADD
+#undef PAREQ_STEP
+#undef PAREQ_ROUND
 #else
     static int32_t pareq(CSOUND *csound, PAREQ *p)
     {
