@@ -43,6 +43,7 @@
 #include <setjmp.h>
 #include "csound_type_system.h"
 #include "csound.h"
+#include "swtdat.h"
 #include "csound_files.h"
 #include "csound_graph_display.h"
 #include "csound_circular_buffer.h"
@@ -1067,6 +1068,150 @@ static inline char *GetOpcodeName(OPDS *p) {
  */
 static inline int32_t GetEventType(OPDS *p) {
    return p->insdshead->m_chnbp == NULL ? 0 : 1;
+}
+
+/**@}*/
+
+/** @name SWT data accessors
+ *  Inline accessors for plugins; hosts call the PUBLIC csoundSwtData* functions.
+ */
+/**@{ */
+
+/** @brief Get the SWT frame size.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return frame size, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataFrameSize(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->framesize : 0;
+}
+
+/** @brief Get the SWT hop size.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return hop size, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataHopSize(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->hopsize : 0;
+}
+
+/** @brief Get the number of decomposition levels.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return level count, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataLevels(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->levels : 0;
+}
+
+/** @brief Get the wavelet family.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return wavelet family, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataWaveletFamily(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->waveletFamily : 0;
+}
+
+/** @brief Get the wavelet order.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return wavelet order, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataWaveletOrder(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->waveletOrder : 0;
+}
+
+/** @brief Get the boundary mode.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return boundary mode, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataBoundaryMode(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->boundaryMode : 0;
+}
+
+/** @brief Get the window-pair mode.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return window-pair mode, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataWindowPair(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->windowPair : 0;
+}
+
+/** @brief Get the overlap-add mode.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return overlap-add mode, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataOlaMode(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->olaMode : 0;
+}
+
+/** @brief Get the transform latency.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return latency, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataLatency(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->latency : 0;
+}
+
+/** @brief Get the coefficient capacity.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return coefficient capacity, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataCapacity(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->capacity : 0;
+}
+
+/** @brief Get the frame sample rate.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return sample rate, or 0.0 if swtdat is NULL
+ */
+static inline double SwtDataSampleRate(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->sampleRate : 0.0;
+}
+
+/** @brief Get the processed frame count.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return frame count, or 0 if swtdat is NULL
+ */
+static inline uint64_t SwtDataFramecount(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->framecount : 0;
+}
+
+/** @brief Get the frame revision.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return revision, or 0 if swtdat is NULL
+ */
+static inline uint64_t SwtDataRevision(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->revision : 0;
+}
+
+/** @brief Get the byte-independent offset of a coefficient band.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @param band band index, negative for the whole frame
+ *  @return band offset, 0 for a negative band, -1 for NULL or out of range
+ */
+static inline int32_t SwtDataBandOffset(const SWTDAT *swtdat, int32_t band) {
+  return swtdat == NULL ? -1
+       : band < 0 ? 0
+       : band > swtdat->levels ? -1
+       : band * swtdat->framesize;
+}
+
+/** @brief Get the size of a coefficient band.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @param band band index, negative for the whole frame
+ *  @return band size, capacity for a negative band, 0 for NULL or out of range
+ */
+static inline int32_t SwtDataBandSize(const SWTDAT *swtdat, int32_t band) {
+  return swtdat == NULL ? 0
+       : band < 0 ? swtdat->capacity
+       : band > swtdat->levels ? 0
+       : swtdat->framesize;
+}
+
+/** @brief Get the frame coefficient data.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return coefficient data, or NULL if unavailable
+ */
+static inline const cs_float *GetSwtData(const SWTDAT *swtdat) {
+  return swtdat != NULL && swtdat->frame.auxp != NULL
+             ? (const cs_float *) swtdat->frame.auxp : NULL;
 }
 
 /**@}*/

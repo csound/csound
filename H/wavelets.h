@@ -26,8 +26,8 @@ typedef struct {
   int32_t J;
   int32_t filterLength;
   int64_t inputCount;
-  const float *low;
-  const float *high;
+  const cs_float *low;
+  const cs_float *high;
   AUXCH input;
   AUXCH scratch;
   AUXCH scratch2;
@@ -80,8 +80,8 @@ typedef struct {
   int64_t originOffset;
   int64_t timeBase;
   int64_t outpos;
-  const float *low;
-  const float *high;
+  const cs_float *low;
+  const cs_float *high;
   AUXCH recon;
   AUXCH scratch;
   AUXCH scratch2;
@@ -97,16 +97,16 @@ void swt_free_var_mem(void *csound, void *varMem);
 void swt_copy_frame(CSOUND *csound, SWTDAT *dest, const SWTDAT *src);
 int32_t swt_history_overrun(const SWTDAT *frame, uint64_t cursor);
 
-const float *swt_get_coefficients(int32_t family, int32_t order,
+const cs_float *swt_get_coefficients(int32_t family, int32_t order,
                                   int32_t *length);
 int32_t swt_band_offset(const SWTDAT *frame, int32_t band);
 int32_t swt_band_size(const SWTDAT *frame, int32_t band);
-int32_t swt_forward(const float *low, const float *high, int32_t length,
-                    int32_t N, int32_t J, float *work, float *tmp,
-                    float *frame);
-int32_t swt_inverse(const float *low, const float *high, int32_t length,
-                    int32_t N, int32_t J, const float *frame, float *work,
-                    float *tmp);
+int32_t swt_forward(const cs_float *low, const cs_float *high, int32_t length,
+                    int32_t N, int32_t J, cs_float *work, cs_float *tmp,
+                    cs_float *frame);
+int32_t swt_inverse(const cs_float *low, const cs_float *high, int32_t length,
+                    int32_t N, int32_t J, const cs_float *frame, cs_float *work,
+                    cs_float *tmp);
 
 int32_t swtanalset(CSOUND *csound, SWTANAL *p);
 int32_t swtanal(CSOUND *csound, SWTANAL *p);

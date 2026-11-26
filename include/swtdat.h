@@ -74,7 +74,7 @@ PUBLIC uint64_t csoundSwtDataFramecount(const SWTDAT *swtdat);
 PUBLIC uint64_t csoundSwtDataRevision(const SWTDAT *swtdat);
 PUBLIC int32_t csoundSwtDataBandOffset(const SWTDAT *swtdat, int32_t band);
 PUBLIC int32_t csoundSwtDataBandSize(const SWTDAT *swtdat, int32_t band);
-PUBLIC const float *csoundGetSwtData(const SWTDAT *swtdat);
+PUBLIC const cs_float *csoundGetSwtData(const SWTDAT *swtdat);
 
 #ifdef __cplusplus
 }

@@ -29,14 +29,14 @@ SWTDAT makeFrame() {
   frame.generation = 11;
   frame.startSample = 1234;
   frame.sampleRate = 44100.0;
-  frame.frame.size = 256 * sizeof(float);
+  frame.frame.size = 256 * sizeof(cs_float);
   frame.frame.auxp = std::malloc(frame.frame.size);
-  frame.history.size = 1280 * sizeof(float);
+  frame.history.size = 1280 * sizeof(cs_float);
   frame.history.auxp = std::malloc(frame.history.size);
   for (int32_t i = 0; i < 256; ++i)
-    static_cast<float *>(frame.frame.auxp)[i] = 0.25f * i;
+    static_cast<cs_float *>(frame.frame.auxp)[i] = 0.25 * i;
   for (int32_t i = 0; i < 1280; ++i)
-    static_cast<float *>(frame.history.auxp)[i] = -0.5f * i;
+    static_cast<cs_float *>(frame.history.auxp)[i] = -0.5 * i;
   return frame;
 }
 
@@ -124,10 +124,10 @@ TEST(SwtDataAccessors, CopyValuePreservesFrameAndHistory) {
   EXPECT_EQ(std::memcmp(destination.history.auxp, source.history.auxp,
                         source.history.size), 0);
 
-  static_cast<float *>(source.frame.auxp)[0] = 99.0f;
-  static_cast<float *>(source.history.auxp)[0] = -99.0f;
-  EXPECT_NE(static_cast<float *>(destination.frame.auxp)[0], 99.0f);
-  EXPECT_NE(static_cast<float *>(destination.history.auxp)[0], -99.0f);
+  static_cast<cs_float *>(source.frame.auxp)[0] = 99.0;
+  static_cast<cs_float *>(source.history.auxp)[0] = -99.0;
+  EXPECT_NE(static_cast<cs_float *>(destination.frame.auxp)[0], 99.0);
+  EXPECT_NE(static_cast<cs_float *>(destination.history.auxp)[0], -99.0);
 
   CS_VAR_TYPE_SWT.freeVariableMemory(csound, &destination);
   if (csound->curip != nullptr)
