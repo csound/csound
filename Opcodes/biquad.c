@@ -1769,8 +1769,10 @@ static void mvmfilter_frequency(cs_double frequency, cs_double fs,
     }
     /* Keep fast-math from cancelling the division remainder. */
     volatile cs_double quotient = frequency / fs;
+    cs_double remainder;
     *step = quotient;
-    *detail = fmaf(-quotient, fs, frequency) / fs;
+    CS_PRODUCT_RESIDUAL(remainder, -quotient, fs, -frequency);
+    *detail = remainder / fs;
 }
 
 static cs_double mvmfilter_decay(cs_double tau, cs_double fs,

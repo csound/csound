@@ -200,6 +200,30 @@ typedef uint_least16_t uint16;
 
 #define FL(x) ((cs_float) (x))
 
+/* Subtract a nearby value from an unrounded product. Clang with fast-math
+   can split an explicit fma on targets without the instruction. On generic
+   x86 with SSE2, a binary64 product retains all 48 binary32 significand bits
+   and avoids a library call. Other targets use a fused operation. */
+#if defined(USE_FLOAT) && defined(__clang__) && defined(__SSE2__) && !defined(__FMA__)
+# define CS_PRODUCT_RESIDUAL(out, a, b, rounded) \
+    ((out) = (cs_double)((double)(a) * (double)(b) - (double)(rounded)))
+#else
+# if defined(USE_FLOAT)
+#  define CS_RESIDUAL_FMA fmaf
+# else
+#  define CS_RESIDUAL_FMA fma
+# endif
+# if defined(__clang__)
+#  define CS_RESIDUAL_STEP _Pragma("clang fp reassociate(off)")
+# else
+#  define CS_RESIDUAL_STEP
+# endif
+# define CS_PRODUCT_RESIDUAL(out, a, b, rounded) do { \
+    CS_RESIDUAL_STEP \
+    (out) = CS_RESIDUAL_FMA((a), (b), -(rounded)); \
+  } while (0)
+#endif
+
 /* find out operating system if not specified on the command line */
 
 #if defined(_WIN32) || defined(__WIN32__)
