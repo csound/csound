@@ -159,14 +159,14 @@ opcode assert_block_matches(sig:a, blocked:a, w:i, o:i, d:i, dt:i, id:i):void
   assert_close_k(downsamp(blocked, 1), downsamp(ref, 1), 1.0e-12, id)
 endop
 
-; The k-rate variant must produce exactly the same sequence as the a-rate one
-; when a k-cycle is a single sample.
+; The k-rate and a-rate variants use the same window when a k-cycle is one
+; sample. They sum the window in different groups, so rounding can differ.
 opcode assert_rates_agree(sig:a, w:i, o:i, d:i, dt:i, id:i):void
   setksmps(1)
   ya:a = savgol(sig, w, o, d, dt)
   xk:k = downsamp(sig, 1)
   yk:k = savgol(xk, w, o, d, dt)
-  assert_close_k(downsamp(ya, 1), yk, 1.0e-12, id)
+  assert_close_k(downsamp(ya, 1), yk, prec_tol(1.0e-12, gi_eps), id)
 endop
 
 
