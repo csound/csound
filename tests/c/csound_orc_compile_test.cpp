@@ -4938,7 +4938,8 @@ opcode BumpShared():void
 endop
 
 instr 1
-  chnset 1, "i1Ready"
+  kReady = 1
+  chnset kReady, "i1Ready"
   kGo chnget "go"
   if kGo == 1 then
     BumpShared
@@ -4946,7 +4947,8 @@ instr 1
 endin
 
 instr 2
-  chnset 1, "i2Ready"
+  kReady = 1
+  chnset kReady, "i2Ready"
   kGo chnget "go"
   kExp init 0
   kBad init 0
@@ -5030,10 +5032,12 @@ opcode BumpShared():void
 endop
 
 instr 1
-  chnset 1, "i1Ready"
+  kReady = 1
+  chnset kReady, "i1Ready"
   kTrig chnget "trig"
   kGo chnget "go"
   kBound init 0
+  iBound init 0
   if kTrig == 1 && kBound == 0 then
     kBound = 1
     reinit bindNow
@@ -5041,15 +5045,17 @@ instr 1
   igoto skipInit
   if kGo == 0 kgoto skipInit
 bindNow:
-  iBound = 1
-  chnset iBound, "i1Bound"
   BumpShared
+  iBound = 1
   rireturn
 skipInit:
+  kReinitDone = iBound
+  chnset kReinitDone, "i1Bound"
 endin
 
 instr 2
-  chnset 1, "i2Ready"
+  kReady = 1
+  chnset kReady, "i2Ready"
   kGo chnget "go"
   kExp init 0
   kBad init 0

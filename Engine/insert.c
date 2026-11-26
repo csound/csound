@@ -1361,10 +1361,10 @@ uintptr_t event_insert_thread(void *p) {
           if (error == 0 && initResult != INSTANCE_INIT_TURNOFF) {
             ATOMIC_SET8(ip->actflg, 1);
             if (initResult == INSTANCE_INIT_COMPLETE) {
-              ATOMIC_SET(ip->init_done, 1);
               if (csound->oparms->numThreads > 1) {
                 ATOMIC_INCR(csound->dag_changed);
               }
+              ATOMIC_SET(ip->init_done, 1);
             }
           }
           else
@@ -1389,10 +1389,10 @@ uintptr_t event_insert_thread(void *p) {
           note_init_leave(outer);
           initResult = instance_init_finish(csound, ip);
           if (initResult == INSTANCE_INIT_COMPLETE && error == 0) {
-            ATOMIC_SET(ip->init_done, 1);
             if (csound->oparms->numThreads > 1) {
               ATOMIC_INCR(csound->dag_changed);
             }
+            ATOMIC_SET(ip->init_done, 1);
           }
           if (error != 0)
             instance_init_request_turnoff(csound, ip);
