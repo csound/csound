@@ -108,109 +108,102 @@ static int32_t swt_max_levels(int32_t N, int32_t L) {
   return levels;
 }
 
-static void swt_make_high(const float *low, int32_t length, float *high) {
+static void swt_make_high(const cs_float *low, int32_t length, cs_float *high) {
   int32_t k;
   for (k = 0; k < length; k++) {
-    high[k] = ((k & 1) ? -1.0f : 1.0f) * low[length - 1 - k];
+    high[k] = ((k & 1) ? -1.0 : 1.0) * low[length - 1 - k];
   }
 }
 
-static void swt_make_windows(float *windows, int32_t N, int32_t mode) {
+static void swt_make_windows(cs_float *windows, int32_t N, int32_t mode) {
   int32_t n;
   if (mode == SWT_WINDOW_SQRT_HANN) {
     for (n = 0; n < N; n++) {
       double w = 0.5 - 0.5 * cos(2.0 * SWT_PI * ((double) n + 0.5) /
                                  (double) N);
-      windows[n] = (float) sqrt(w);
+      windows[n] = (cs_float) sqrt(w);
     }
   } else {
-    for (n = 0; n < N; n++) windows[n] = 1.0f;
+    for (n = 0; n < N; n++) windows[n] = 1.0;
   }
 }
 
 int32_t swt_band_offset(const SWTDAT *frame, int32_t band) {
-  if (frame == NULL) return -1;
-  if (band < 0) return 0;
-  if (band > frame->levels) return -1;
-  return band * frame->framesize;
+  return SwtDataBandOffset(frame, band);
 }
 
 int32_t swt_band_size(const SWTDAT *frame, int32_t band) {
-  if (frame == NULL) return 0;
-  if (band < 0) return frame->capacity;
-  if (band > frame->levels) return 0;
-  return frame->framesize;
+  return SwtDataBandSize(frame, band);
 }
 
 PUBLIC int32_t csoundSwtDataFrameSize(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->framesize : 0;
+  return SwtDataFrameSize(swtdat);
 }
 
 PUBLIC int32_t csoundSwtDataHopSize(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->hopsize : 0;
+  return SwtDataHopSize(swtdat);
 }
 
 PUBLIC int32_t csoundSwtDataLevels(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->levels : 0;
+  return SwtDataLevels(swtdat);
 }
 
 PUBLIC int32_t csoundSwtDataWaveletFamily(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->waveletFamily : 0;
+  return SwtDataWaveletFamily(swtdat);
 }
 
 PUBLIC int32_t csoundSwtDataWaveletOrder(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->waveletOrder : 0;
+  return SwtDataWaveletOrder(swtdat);
 }
 
 PUBLIC int32_t csoundSwtDataBoundaryMode(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->boundaryMode : 0;
+  return SwtDataBoundaryMode(swtdat);
 }
 
 PUBLIC int32_t csoundSwtDataWindowPair(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->windowPair : 0;
+  return SwtDataWindowPair(swtdat);
 }
 
 PUBLIC int32_t csoundSwtDataOlaMode(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->olaMode : 0;
+  return SwtDataOlaMode(swtdat);
 }
 
 PUBLIC int32_t csoundSwtDataLatency(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->latency : 0;
+  return SwtDataLatency(swtdat);
 }
 
 PUBLIC int32_t csoundSwtDataCapacity(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->capacity : 0;
+  return SwtDataCapacity(swtdat);
 }
 
 PUBLIC double csoundSwtDataSampleRate(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->sampleRate : 0.0;
+  return SwtDataSampleRate(swtdat);
 }
 
 PUBLIC uint64_t csoundSwtDataFramecount(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->framecount : 0;
+  return SwtDataFramecount(swtdat);
 }
 
 PUBLIC uint64_t csoundSwtDataRevision(const SWTDAT *swtdat) {
-  return swtdat != NULL ? swtdat->revision : 0;
+  return SwtDataRevision(swtdat);
 }
 
 PUBLIC int32_t csoundSwtDataBandOffset(const SWTDAT *swtdat, int32_t band) {
-  return swt_band_offset(swtdat, band);
+  return SwtDataBandOffset(swtdat, band);
 }
 
 PUBLIC int32_t csoundSwtDataBandSize(const SWTDAT *swtdat, int32_t band) {
-  return swt_band_size(swtdat, band);
+  return SwtDataBandSize(swtdat, band);
 }
 
-PUBLIC const float *csoundGetSwtData(const SWTDAT *swtdat) {
-  return swtdat != NULL && swtdat->frame.auxp != NULL
-             ? (const float *) swtdat->frame.auxp : NULL;
+PUBLIC const cs_float *csoundGetSwtData(const SWTDAT *swtdat) {
+  return GetSwtData(swtdat);
 }
 
-int32_t swt_forward(const float *low, const float *high, int32_t length,
-                    int32_t N, int32_t J, float *work, float *tmp,
-                    float *frame) {
-  const float scale = (float) (1.0 / SWT_SQRT2);
+int32_t swt_forward(const cs_float *low, const cs_float *high, int32_t length,
+                    int32_t N, int32_t J, cs_float *work, cs_float *tmp,
+                    cs_float *frame) {
+  const cs_float scale = (cs_float) (1.0 / SWT_SQRT2);
   int32_t j, n, k;
 
   if (low == NULL || high == NULL || work == NULL || tmp == NULL ||
@@ -220,52 +213,52 @@ int32_t swt_forward(const float *low, const float *high, int32_t length,
   for (j = 1; j <= J; j++) {
     int64_t step64 = swt_step(j);
     int32_t step, band;
-    float *detail;
+    cs_float *detail;
     if (step64 <= 0 || step64 > INT32_MAX) return NOTOK;
     step = (int32_t) step64;
     if ((int64_t) step * length > N) return NOTOK;
     band = J - j + 1;
     detail = frame + band * N;
     for (n = 0; n < N; n++) {
-      float a = 0.0f;
-      float d = 0.0f;
+      cs_float a = 0.0;
+      cs_float d = 0.0;
       for (k = 0; k < length; k++) {
-        float v = work[swt_mod(n - k * step, N)];
+        cs_float v = work[swt_mod(n - k * step, N)];
         a += low[k] * v;
         d += high[k] * v;
       }
       tmp[n] = scale * a;
       detail[n] = scale * d;
     }
-    memcpy(work, tmp, (size_t) N * sizeof(float));
+    memcpy(work, tmp, (size_t) N * sizeof(cs_float));
   }
-  memcpy(frame, work, (size_t) N * sizeof(float));
+  memcpy(frame, work, (size_t) N * sizeof(cs_float));
   return OK;
 }
 
-int32_t swt_inverse(const float *low, const float *high, int32_t length,
-                    int32_t N, int32_t J, const float *frame, float *work,
-                    float *tmp) {
-  const float scale = (float) (1.0 / SWT_SQRT2);
+int32_t swt_inverse(const cs_float *low, const cs_float *high, int32_t length,
+                    int32_t N, int32_t J, const cs_float *frame, cs_float *work,
+                    cs_float *tmp) {
+  const cs_float scale = (cs_float) (1.0 / SWT_SQRT2);
   int32_t j, n, k;
 
   if (low == NULL || high == NULL || frame == NULL || work == NULL ||
       tmp == NULL || length <= 0 || N <= 0 || J <= 0) {
     return NOTOK;
   }
-  memcpy(work, frame, (size_t) N * sizeof(float));
+  memcpy(work, frame, (size_t) N * sizeof(cs_float));
   for (j = J; j >= 1; j--) {
     int64_t step64 = swt_step(j);
     int32_t step, band;
-    const float *detail;
+    const cs_float *detail;
     if (step64 <= 0 || step64 > INT32_MAX) return NOTOK;
     step = (int32_t) step64;
     if ((int64_t) step * length > N) return NOTOK;
     band = J - j + 1;
     detail = frame + band * N;
     for (n = 0; n < N; n++) {
-      float a = 0.0f;
-      float d = 0.0f;
+      cs_float a = 0.0;
+      cs_float d = 0.0;
       for (k = 0; k < length; k++) {
         int32_t idx = swt_mod(n + k * step, N);
         a += low[k] * work[idx];
@@ -273,7 +266,7 @@ int32_t swt_inverse(const float *low, const float *high, int32_t length,
       }
       tmp[n] = scale * (a + d);
     }
-    memcpy(work, tmp, (size_t) N * sizeof(float));
+    memcpy(work, tmp, (size_t) N * sizeof(cs_float));
   }
   return OK;
 }
@@ -312,7 +305,7 @@ void swt_copy_frame(CSOUND *csound, SWTDAT *dest, const SWTDAT *src) {
   size_t bytes;
   size_t historyBytes;
   if (dest == NULL || src == NULL || dest == src) return;
-  bytes = (size_t) src->capacity * sizeof(float);
+  bytes = (size_t) src->capacity * sizeof(cs_float);
   historyBytes = bytes * (size_t) src->historyCount;
   memcpy(dest, src, offsetof(SWTDAT, frame));
   if (bytes > 0 && (dest->frame.auxp == NULL || dest->frame.size < bytes)) {
@@ -335,7 +328,7 @@ int32_t swtanalset(CSOUND *csound, SWTANAL *p) {
   int32_t L = 0, N, H, J, family, order, boundary, window, ola;
   int32_t maxLevels, historyCount, ksmps;
   int64_t frames, capacity;
-  const float *low;
+  const cs_float *low;
 
   if (p == NULL || p->out == NULL) return NOTOK;
   N = swt_int_arg(*p->framesize);
@@ -407,7 +400,7 @@ int32_t swtanalset(CSOUND *csound, SWTANAL *p) {
     return NOTOK;
   }
   historyCount = (int32_t) frames;
-  if ((size_t) capacity > SIZE_MAX / (size_t) historyCount / sizeof(float)) {
+  if ((size_t) capacity > SIZE_MAX / (size_t) historyCount / sizeof(cs_float)) {
     csound->InitError(csound, Str("swtanal: frame history is too large\n"));
     return NOTOK;
   }
@@ -424,16 +417,16 @@ int32_t swtanalset(CSOUND *csound, SWTANAL *p) {
   p->filterLength = L;
   p->inputCount = 0;
   p->low = low;
-  swt_alloc_aux(csound, (size_t) p->out->capacity * sizeof(float),
+  swt_alloc_aux(csound, (size_t) p->out->capacity * sizeof(cs_float),
                 &p->out->frame);
   swt_alloc_aux(csound, (size_t) p->out->capacity *
-                (size_t) historyCount * sizeof(float),
+                (size_t) historyCount * sizeof(cs_float),
                 &p->out->history);
-  csound->AuxAlloc(csound, (size_t) N * sizeof(float), &p->input);
-  csound->AuxAlloc(csound, (size_t) N * sizeof(float), &p->scratch);
-  csound->AuxAlloc(csound, (size_t) N * sizeof(float), &p->scratch2);
-  csound->AuxAlloc(csound, (size_t) N * sizeof(float), &p->windows);
-  csound->AuxAlloc(csound, (size_t) L * sizeof(float), &p->highBuf);
+  csound->AuxAlloc(csound, (size_t) N * sizeof(cs_float), &p->input);
+  csound->AuxAlloc(csound, (size_t) N * sizeof(cs_float), &p->scratch);
+  csound->AuxAlloc(csound, (size_t) N * sizeof(cs_float), &p->scratch2);
+  csound->AuxAlloc(csound, (size_t) N * sizeof(cs_float), &p->windows);
+  csound->AuxAlloc(csound, (size_t) L * sizeof(cs_float), &p->highBuf);
   if (p->out->frame.auxp == NULL || p->out->history.auxp == NULL ||
       p->input.auxp == NULL || p->scratch.auxp == NULL ||
       p->scratch2.auxp == NULL || p->windows.auxp == NULL ||
@@ -441,13 +434,13 @@ int32_t swtanalset(CSOUND *csound, SWTANAL *p) {
     csound->InitError(csound, Str("swtanal: memory allocation failed\n"));
     return NOTOK;
   }
-  swt_make_windows((float *) p->windows.auxp, N, window);
-  swt_make_high(low, L, (float *) p->highBuf.auxp);
-  p->high = (const float *) p->highBuf.auxp;
-  memset(p->input.auxp, 0, (size_t) N * sizeof(float));
-  memset(p->out->frame.auxp, 0, (size_t) p->out->capacity * sizeof(float));
+  swt_make_windows((cs_float *) p->windows.auxp, N, window);
+  swt_make_high(low, L, (cs_float *) p->highBuf.auxp);
+  p->high = (const cs_float *) p->highBuf.auxp;
+  memset(p->input.auxp, 0, (size_t) N * sizeof(cs_float));
+  memset(p->out->frame.auxp, 0, (size_t) p->out->capacity * sizeof(cs_float));
   memset(p->out->history.auxp, 0,
-         (size_t) p->out->capacity * (size_t) historyCount * sizeof(float));
+         (size_t) p->out->capacity * (size_t) historyCount * sizeof(cs_float));
   return OK;
 }
 
@@ -456,12 +449,12 @@ int32_t swtanal(CSOUND *csound, SWTANAL *p) {
   uint32_t early = p->h.insdshead->ksmps_no_end;
   uint32_t nsmps = CS_KSMPS - early;
   uint32_t i;
-  float *input = (float *) p->input.auxp;
-  float *work = (float *) p->scratch.auxp;
-  float *tmp = (float *) p->scratch2.auxp;
-  float *windows = (float *) p->windows.auxp;
-  float *frame = (float *) p->out->frame.auxp;
-  float *history = (float *) p->out->history.auxp;
+  cs_float *input = (cs_float *) p->input.auxp;
+  cs_float *work = (cs_float *) p->scratch.auxp;
+  cs_float *tmp = (cs_float *) p->scratch2.auxp;
+  cs_float *windows = (cs_float *) p->windows.auxp;
+  cs_float *frame = (cs_float *) p->out->frame.auxp;
+  cs_float *history = (cs_float *) p->out->history.auxp;
   int32_t writeIndex = p->inputCount % p->N;
   int32_t n;
 
@@ -487,7 +480,7 @@ int32_t swtanal(CSOUND *csound, SWTANAL *p) {
     }
   }
   for (i = start; i < nsmps; i++) {
-    input[writeIndex] = (float) p->ain[i];
+    input[writeIndex] = (cs_float) p->ain[i];
     writeIndex = (writeIndex + 1) % p->N;
     p->inputCount++;
     if (p->inputCount >= p->N && (p->inputCount - p->N) % p->H == 0) {
@@ -502,7 +495,7 @@ int32_t swtanal(CSOUND *csound, SWTANAL *p) {
       }
       slot = (int32_t) (p->out->framecount % (uint64_t) p->out->historyCount);
       memcpy(history + (size_t) slot * (size_t) p->out->capacity, frame,
-             (size_t) p->out->capacity * sizeof(float));
+             (size_t) p->out->capacity * sizeof(cs_float));
       p->out->framecount++;
       p->out->revision++;
     }
@@ -515,7 +508,7 @@ int32_t swtgetset(CSOUND *csound, SWTGET *p) {
   int32_t size;
   if (p == NULL || p->in == NULL) return NOTOK;
   if (p->band != NULL) band = swt_int_arg(*p->band);
-  size = swt_band_size(p->in, band);
+  size = SwtDataBandSize(p->in, band);
   if (size <= 0) {
     csound->InitError(csound, Str("swtget: invalid band selector\n"));
     return NOTOK;
@@ -533,17 +526,17 @@ int32_t swtgetset(CSOUND *csound, SWTGET *p) {
 }
 
 int32_t swtget(CSOUND *csound, SWTGET *p) {
-  int32_t offset = swt_band_offset(p->in, p->bandValue);
-  int32_t size = swt_band_size(p->in, p->bandValue);
+  int32_t offset = SwtDataBandOffset(p->in, p->bandValue);
+  int32_t size = SwtDataBandSize(p->in, p->bandValue);
   int32_t i;
-  const float *data;
+  const cs_float *data;
   if (offset < 0 || size != p->count || p->in->frame.auxp == NULL ||
       p->in->framesize != p->frameSize || p->in->levels != p->levels ||
       p->in->capacity != p->capacity) {
     return csound->PerfError(csound, &p->h,
                              Str("swtget: SWT frame layout changed\n"));
   }
-  data = (const float *) p->in->frame.auxp + offset;
+  data = (const cs_float *) p->in->frame.auxp + offset;
   if (p->out->data == NULL) return NOTOK;
   for (i = 0; i < p->count; i++) p->out->data[i] = (cs_float) data[i];
   return OK;
@@ -557,10 +550,10 @@ static int32_t swt_band_array_length(const ARRAYDAT *array, size_t *length) {
   return csound_array_member_count(array, length);
 }
 
-static void swt_apply_band(float *frame, int32_t offset, int32_t size,
+static void swt_apply_band(cs_float *frame, int32_t offset, int32_t size,
                            const cs_float *values) {
   int32_t i;
-  for (i = 0; i < size; i++) frame[offset + i] = (float) values[i];
+  for (i = 0; i < size; i++) frame[offset + i] = (cs_float) values[i];
 }
 
 int32_t swtsetset(CSOUND *csound, SWTSET *p) {
@@ -568,12 +561,12 @@ int32_t swtsetset(CSOUND *csound, SWTSET *p) {
   size_t available;
   if (p == NULL || p->in == NULL || p->out == NULL) return NOTOK;
   if (p->band != NULL) band = swt_int_arg(*p->band);
-  if (swt_band_size(p->in, band) <= 0) {
+  if (SwtDataBandSize(p->in, band) <= 0) {
     csound->InitError(csound, Str("swtset: invalid band selector\n"));
     return NOTOK;
   }
   p->bandValue = band;
-  p->count = swt_band_size(p->in, band);
+  p->count = SwtDataBandSize(p->in, band);
   if (swt_band_array_length(p->bands, &available) != OK ||
       available < (size_t) p->count) {
     csound->InitError(csound, Str("swtset: input array is too small\n"));
@@ -588,10 +581,10 @@ int32_t swtsetset(CSOUND *csound, SWTSET *p) {
 
 int32_t swtset(CSOUND *csound, SWTSET *p) {
   int32_t band = p->bandValue;
-  int32_t offset = swt_band_offset(p->out, band);
-  int32_t size = swt_band_size(p->out, band);
-  float *data = (float *) p->out->frame.auxp;
-  size_t bytes = (size_t) p->out->capacity * sizeof(float);
+  int32_t offset = SwtDataBandOffset(p->out, band);
+  int32_t size = SwtDataBandSize(p->out, band);
+  cs_float *data = (cs_float *) p->out->frame.auxp;
+  size_t bytes = (size_t) p->out->capacity * sizeof(cs_float);
   size_t available;
   if (!swt_layout_equal(p->in, p->out)) {
     return csound->PerfError(csound, &p->h,
@@ -635,15 +628,15 @@ int32_t swtset(CSOUND *csound, SWTSET *p) {
                                 (uint64_t) p->out->historyCount);
       size_t inSlot = (size_t) (p->lastFrame %
                                (uint64_t) p->in->historyCount);
-      float *edited = (float *) p->out->history.auxp +
+      cs_float *edited = (cs_float *) p->out->history.auxp +
                       outSlot * (size_t) p->out->capacity;
       memcpy(edited,
-             (const float *) p->in->history.auxp +
+             (const cs_float *) p->in->history.auxp +
              inSlot * (size_t) p->in->capacity, bytes);
       swt_apply_band(edited, offset, size, p->bands->data);
       p->lastFrame++;
     }
-    memcpy(data, (const float *) p->in->frame.auxp, bytes);
+    memcpy(data, (const cs_float *) p->in->frame.auxp, bytes);
     p->out->framecount = p->lastFrame;
   }
   swt_apply_band(data, offset, size, p->bands->data);
@@ -651,15 +644,15 @@ int32_t swtset(CSOUND *csound, SWTSET *p) {
       p->out->framecount > 0) {
     size_t slot = (size_t) ((p->out->framecount - 1) %
                             (uint64_t) p->out->historyCount);
-    memcpy((float *) p->out->history.auxp + slot * (size_t) p->out->capacity,
+    memcpy((cs_float *) p->out->history.auxp + slot * (size_t) p->out->capacity,
            data, bytes);
   }
   p->out->revision++;
   return OK;
 }
 
-static double swt_ola_denominator(const float *windows, int32_t N, int32_t H,
-                                  int64_t q, const float *denom) {
+static double swt_ola_denominator(const cs_float *windows, int32_t N, int32_t H,
+                                  int64_t q, const cs_float *denom) {
   int64_t k;
   double sum = 0.0;
   if (q >= (int64_t) N - 1) {
@@ -674,13 +667,13 @@ static double swt_ola_denominator(const float *windows, int32_t N, int32_t H,
 }
 
 static int32_t swt_synth_add_frame(CSOUND *csound, SWTSYNTH *p,
-                                   const float *source) {
-  float *recon = (float *) p->recon.auxp;
-  float *work = (float *) p->scratch.auxp;
-  float *tmp = (float *) p->scratch2.auxp;
-  float *windows = (float *) p->windows.auxp;
-  float *denom = (float *) p->denom.auxp;
-  float *outbuf = (float *) p->outbuf.auxp;
+                                   const cs_float *source) {
+  cs_float *recon = (cs_float *) p->recon.auxp;
+  cs_float *work = (cs_float *) p->scratch.auxp;
+  cs_float *tmp = (cs_float *) p->scratch2.auxp;
+  cs_float *windows = (cs_float *) p->windows.auxp;
+  cs_float *denom = (cs_float *) p->denom.auxp;
+  cs_float *outbuf = (cs_float *) p->outbuf.auxp;
   int64_t frameOffset = (int64_t) p->nextFrame * (int64_t) p->H;
   int64_t offsetPlusLatency;
   int64_t start;
@@ -700,16 +693,16 @@ static int32_t swt_synth_add_frame(CSOUND *csound, SWTSYNTH *p,
                   source, work, tmp) != OK) {
     return NOTOK;
   }
-  memcpy(recon, work, (size_t) p->N * sizeof(float));
+  memcpy(recon, work, (size_t) p->N * sizeof(cs_float));
   for (n = 0; n < p->N; n++) {
     int64_t pos = start + n;
     int64_t idx = swt_wrap64(pos, (int64_t) p->buflen);
-    float value = recon[n];
+    cs_float value = recon[n];
     if (p->olaMode == SWT_OLA_OVERLAP_ADD) {
       int64_t q = (int64_t) (p->nextFrame - p->firstFrame) * (int64_t) p->H +
                   (int64_t) n;
       double weightSum = swt_ola_denominator(windows, p->N, p->H, q, denom);
-      value *= windows[n] / (float) weightSum;
+      value *= windows[n] / (cs_float) weightSum;
     }
     outbuf[idx] += value;
   }
@@ -719,7 +712,7 @@ static int32_t swt_synth_add_frame(CSOUND *csound, SWTSYNTH *p,
 int32_t swtsynthset(CSOUND *csound, SWTSYNTH *p) {
   int32_t N, H, J, L, historyCount, ksmps, capacity;
   int64_t buflen;
-  float *windows, *denom;
+  cs_float *windows, *denom;
   int32_t i;
 
   if (p == NULL || p->in == NULL) return NOTOK;
@@ -773,13 +766,13 @@ int32_t swtsynthset(CSOUND *csound, SWTSYNTH *p) {
     return NOTOK;
   }
   p->buflen = (int32_t) buflen;
-  csound->AuxAlloc(csound, (size_t) N * sizeof(float), &p->recon);
-  csound->AuxAlloc(csound, (size_t) N * sizeof(float), &p->scratch);
-  csound->AuxAlloc(csound, (size_t) N * sizeof(float), &p->scratch2);
-  csound->AuxAlloc(csound, (size_t) N * sizeof(float), &p->windows);
-  csound->AuxAlloc(csound, (size_t) H * sizeof(float), &p->denom);
-  csound->AuxAlloc(csound, (size_t) L * sizeof(float), &p->highBuf);
-  csound->AuxAlloc(csound, (size_t) p->buflen * sizeof(float), &p->outbuf);
+  csound->AuxAlloc(csound, (size_t) N * sizeof(cs_float), &p->recon);
+  csound->AuxAlloc(csound, (size_t) N * sizeof(cs_float), &p->scratch);
+  csound->AuxAlloc(csound, (size_t) N * sizeof(cs_float), &p->scratch2);
+  csound->AuxAlloc(csound, (size_t) N * sizeof(cs_float), &p->windows);
+  csound->AuxAlloc(csound, (size_t) H * sizeof(cs_float), &p->denom);
+  csound->AuxAlloc(csound, (size_t) L * sizeof(cs_float), &p->highBuf);
+  csound->AuxAlloc(csound, (size_t) p->buflen * sizeof(cs_float), &p->outbuf);
   if (p->recon.auxp == NULL || p->scratch.auxp == NULL ||
       p->scratch2.auxp == NULL || p->windows.auxp == NULL ||
       p->denom.auxp == NULL || p->highBuf.auxp == NULL ||
@@ -787,23 +780,23 @@ int32_t swtsynthset(CSOUND *csound, SWTSYNTH *p) {
     csound->InitError(csound, Str("swtsynth: memory allocation failed\n"));
     return NOTOK;
   }
-  windows = (float *) p->windows.auxp;
-  denom = (float *) p->denom.auxp;
+  windows = (cs_float *) p->windows.auxp;
+  denom = (cs_float *) p->denom.auxp;
   swt_make_windows(windows, N, p->olaMode == SWT_OLA_OVERLAP_ADD ?
                    SWT_WINDOW_SQRT_HANN : SWT_WINDOW_NONE);
-  swt_make_high(p->low, L, (float *) p->highBuf.auxp);
-  p->high = (const float *) p->highBuf.auxp;
+  swt_make_high(p->low, L, (cs_float *) p->highBuf.auxp);
+  p->high = (const cs_float *) p->highBuf.auxp;
   for (i = 0; i < H; i++) {
     double sum = 0.0;
     int32_t n;
     if (p->olaMode == SWT_OLA_DIRECT) {
-      denom[i] = 1.0f;
+      denom[i] = 1.0;
       continue;
     }
     for (n = i; n < N; n += H) sum += (double) windows[n] * windows[n];
-    denom[i] = (float) (sum > 1e-12 ? sum : 1.0);
+    denom[i] = (cs_float) (sum > 1e-12 ? sum : 1.0);
   }
-  memset(p->outbuf.auxp, 0, (size_t) p->buflen * sizeof(float));
+  memset(p->outbuf.auxp, 0, (size_t) p->buflen * sizeof(cs_float));
   return OK;
 }
 
@@ -816,9 +809,9 @@ int32_t swtsynth(CSOUND *csound, SWTSYNTH *p) {
   int64_t clearEnd;
   int64_t pos;
   int64_t scheduled;
-  float *outbuf = (float *) p->outbuf.auxp;
-  float *history = (float *) p->in->history.auxp;
-  float *latest = (float *) p->in->frame.auxp;
+  cs_float *outbuf = (cs_float *) p->outbuf.auxp;
+  cs_float *history = (cs_float *) p->in->history.auxp;
+  cs_float *latest = (cs_float *) p->in->frame.auxp;
 
   if (outbuf == NULL || latest == NULL) return NOTOK;
   if (p->in->framesize != p->N || p->in->hopsize != p->H ||
@@ -840,7 +833,7 @@ int32_t swtsynth(CSOUND *csound, SWTSYNTH *p) {
     clearFrom = p->timeBase > p->outpos ? p->timeBase : p->outpos;
     clearEnd = p->outpos + (int64_t) p->buflen;
     for (pos = clearFrom; pos < clearEnd; pos++) {
-      outbuf[swt_wrap64(pos, (int64_t) p->buflen)] = 0.0f;
+      outbuf[swt_wrap64(pos, (int64_t) p->buflen)] = 0.0;
     }
     while (p->nextFrame < p->in->framecount) {
       scheduled = p->timeBase +
@@ -860,7 +853,7 @@ int32_t swtsynth(CSOUND *csound, SWTSYNTH *p) {
   for (i = offset; i < nsmps; i++) {
     while (p->nextFrame < p->in->framecount) {
       uint64_t m = p->nextFrame;
-      const float *source;
+      const cs_float *source;
       if (history != NULL && p->in->historyCount > 0) {
         size_t slot = (size_t) (m % (uint64_t) p->in->historyCount);
         source = history + slot * (size_t) p->capacity;
@@ -873,7 +866,7 @@ int32_t swtsynth(CSOUND *csound, SWTSYNTH *p) {
     {
       int64_t idx = swt_wrap64(p->outpos, (int64_t) p->buflen);
       p->aout[i] = (cs_float) outbuf[idx];
-      outbuf[idx] = 0.0f;
+      outbuf[idx] = 0.0;
     }
     p->outpos++;
   }
