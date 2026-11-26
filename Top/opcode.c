@@ -1324,26 +1324,35 @@ static int32_t check_consistency(OPCODEOBJ *obj, cs_float **args,
 
 
 /**
- * allocate and initialise opcode dataspace
+ * allocate and initialise opcode dataspace (with hidden refcount prefix)
  */
 static OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
+    size_t total;
+    char *base;
     OPDS *dataspace;
-    dataspace = (OPDS *) csound->Calloc(csound, entry->dsblksiz);
-    if(dataspace != NULL) {
-      // fill OPDS with as much information as we have now, rest on init
-      dataspace->insdshead = h->insdshead;
-      dataspace->optext = csound->Calloc(csound, sizeof(OPTXT));
-      if(dataspace->optext != NULL) {
-        dataspace->optext->t.oentry = entry;
-        dataspace->optext->t.opcod = entry->opname;
-        dataspace->optext->t.inlist =
-          csound->Calloc(csound, sizeof(ARGLST));
-      }
-      dataspace->init = entry->init;
-      dataspace->perf = entry->perf;
-      dataspace->deinit = entry->deinit;
-      return dataspace;
-    } return NULL;
+    if (entry->dsblksiz < sizeof(OPDS)) total = sizeof(uint32_t) + sizeof(OPDS);
+    else total = sizeof(uint32_t) + entry->dsblksiz;
+    base = (char *) csound->Calloc(csound, total);
+    if(base == NULL) return NULL;
+    *((uint32_t *)base) = 1; /* refcount */
+    dataspace = (OPDS *)(base + sizeof(uint32_t));
+    /* if dsblksiz is smaller than OPDS (unlikely), be safe: we only used prefix+OPDS */
+    if(entry->dsblksiz > 0) {
+      /* zero the rest? Calloc already zeroed the whole block */
+    }
+    // fill OPDS with as much information as we have now, rest on init
+    dataspace->insdshead = h->insdshead;
+    dataspace->optext = csound->Calloc(csound, sizeof(OPTXT));
+    if(dataspace->optext != NULL) {
+      dataspace->optext->t.oentry = entry;
+      dataspace->optext->t.opcod = entry->opname;
+      dataspace->optext->t.inlist =
+        csound->Calloc(csound, sizeof(ARGLST));
+    }
+    dataspace->init = entry->init;
+    dataspace->perf = entry->perf;
+    dataspace->deinit = entry->deinit;
+    return dataspace;
 }
 
 /**
@@ -1356,12 +1365,27 @@ static inline OPCODEOBJ *opcode_array_obj(ARRAYDAT *array, int32_t i) {
 }
 
 /**
- * free opcode dataspace
+ * free opcode dataspace (refcounted prefix)
  */
 static void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace) {
-  csound->Free(csound, dataspace->optext->t.inlist);
-  csound->Free(csound, dataspace->optext);
-  csound->Free(csound, dataspace);
+  char *base;
+  if(dataspace == NULL) return;
+  if(dataspace->optext != NULL) {
+    csound->Free(csound, dataspace->optext->t.inlist);
+    csound->Free(csound, dataspace->optext);
+  }
+  base = ((char *)dataspace) - sizeof(uint32_t);
+  csound->Free(csound, base);
+}
+
+
+
+int32_t opcode_dataspace_decref(OPDS *dataspace) {
+  char *base;
+  if(dataspace == NULL) return 0;
+  base = ((char *)dataspace) - sizeof(uint32_t);
+  if(*(uint32_t *)base > 0) (*(uint32_t *)base)--;
+  return (int32_t)(*(uint32_t *)base);
 }
 
 /**
@@ -1372,8 +1396,14 @@ static void opcode_take_spare(CSOUND *csound, OPCODEOBJ *obj, OENTRY *entry) {
   UOPCODE *udo = (UOPCODE *) obj->spare;
   if(udo == NULL) return;
   obj->spare = NULL;
-  if(obj->dataspace == NULL && udo->h.optext->t.oentry == entry)
+  if(obj->dataspace == NULL && udo->h.optext->t.oentry == entry) {
     obj->dataspace = (OPDS *) udo;
+    /* reuse means this holder owns it as refcount 1 */
+    {
+      char *base = ((char *)obj->dataspace) - sizeof(uint32_t);
+      *(uint32_t *)base = 1;
+    }
+  }
   else if(udo->ip == NULL)
     opcode_dataspace_free(csound, (OPDS *) udo);
 }
@@ -1391,6 +1421,23 @@ int32_t create_opcode_simple(CSOUND *csound, AOP *p) {
     OENTRY *entry =
       ref->entries->entries[n < ref->entries->count ?
                             n : ref->entries->count-1];
+    /* detach any existing live shared dataspace before creating/replacing */
+    if(obj->dataspace != NULL) {
+      int32_t rc = opcode_dataspace_decref(obj->dataspace);
+      if(rc == 0) {
+        if(obj->dataspace->deinit != NULL)
+          obj->dataspace->deinit(csound, obj->dataspace);
+        if(obj->udo_flag) {
+          if(obj->spare != NULL && ((UOPCODE *) obj->spare)->ip == NULL)
+            opcode_dataspace_free(csound, obj->spare);
+          obj->spare = obj->dataspace;
+        } else {
+          opcode_dataspace_free(csound, obj->dataspace);
+        }
+      }
+      obj->dataspace = NULL;
+      obj->outargp = obj->inargp = NULL;
+    }
     opcode_take_spare(csound, obj, entry);
     // a dataspace is kept for the opcode it was made for, and no other;
     // one too small is not read
@@ -1426,6 +1473,23 @@ int32_t create_opcode_array(CSOUND *csound, OPARRAY *p) {
       return csound_array_init_resize_error(csound);
     for(i = 0; i < n; i++) {
       obj = opcode_array_obj(p->r, i);
+      /* detach any existing live shared dataspace before creating/replacing */
+      if(obj->dataspace != NULL) {
+        int32_t rc = opcode_dataspace_decref(obj->dataspace);
+        if(rc == 0) {
+          if(obj->dataspace->deinit != NULL)
+            obj->dataspace->deinit(csound, obj->dataspace);
+          if(obj->udo_flag) {
+            if(obj->spare != NULL && ((UOPCODE *) obj->spare)->ip == NULL)
+              opcode_dataspace_free(csound, obj->spare);
+            obj->spare = obj->dataspace;
+          } else {
+            opcode_dataspace_free(csound, obj->dataspace);
+          }
+        }
+        obj->dataspace = NULL;
+        obj->outargp = obj->inargp = NULL;
+      }
       opcode_take_spare(csound, obj, entry);
       // a dataspace is kept for the opcode it was made for, and no other;
       // one too small is not read
@@ -1446,25 +1510,27 @@ int32_t create_opcode_array(CSOUND *csound, OPARRAY *p) {
 }
 
 /**
- *  Delete opcode obj dataspace
+ *  Delete opcode obj dataspace (refcounted)
  *
  *  delete obj:Opcode
  */
 int32_t opcode_delete(CSOUND *csound, AOP *p) {
   OPCODEOBJ *obj = (OPCODEOBJ *) p->r;
   if(obj->dataspace) {
-    if(obj->dataspace->deinit != NULL)
-      obj->dataspace->deinit(csound, obj->dataspace);
-    // a UDO dataspace is the UOPCODE linked in the instance's opcod_deact
-    // chain, which is walked after deinit, so it is kept for create to reuse
-    if(obj->udo_flag) {
-      // an older spare left here by a copied object has been deactivated
-      if(obj->spare != NULL && ((UOPCODE *) obj->spare)->ip == NULL)
-        opcode_dataspace_free(csound, obj->spare);
-      obj->spare = obj->dataspace;
+    int32_t rc = opcode_dataspace_decref(obj->dataspace);
+    if(rc == 0) {
+      /* final release: run deinit then spare/free rules */
+      if(obj->dataspace->deinit != NULL)
+        obj->dataspace->deinit(csound, obj->dataspace);
+      if(obj->udo_flag) {
+        if(obj->spare != NULL && ((UOPCODE *) obj->spare)->ip == NULL)
+          opcode_dataspace_free(csound, obj->spare);
+        obj->spare = obj->dataspace;
+      }
+      else
+        opcode_dataspace_free(csound, obj->dataspace);
     }
-    else
-      opcode_dataspace_free(csound, obj->dataspace);
+    /* else rc > 0: other holders still exist, do not deinit/free/shared spare */
     obj->dataspace = NULL;
     obj->outargp = obj->inargp = NULL;
   }

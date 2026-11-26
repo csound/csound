@@ -32,6 +32,7 @@
 #include "swtdat.h"
 #include "wavelets.h"
 #include "find_opcode.h"
+#include "udo.h"
 #include <stdlib.h>
 
 /* MEMORY COPYING FUNCTIONS */
@@ -824,15 +825,80 @@ static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
     csound->Warning(csound, Str("mismatching context: copy value bypassed\n"));
     return;
   }
-  if(!p->readonly) {
-   // a spare dataspace belongs to the variable that deleted it
-   struct opds *spare = p->spare;
-   memcpy(dest, src, sizeof(OPCODEOBJ));
-   p->readonly = 0; // clear readonly flag (which is not copied)
-   p->spare = spare;
-  }
-  else csound->Warning(csound, Str("opcode instance var is read-only:"
+  if(p->readonly) {
+    csound->Warning(csound, Str("opcode instance var is read-only:"
                        " copy value bypassed\n"));
+    return;
+  }
+  /* preserve dest spare */
+  struct opds *spare = p->spare;
+  if(psrc->dataspace == NULL) {
+    /* copy empty source onto dest: release dest live if any (best effort) */
+    if(p->dataspace != NULL) {
+      char *base = ((char *)p->dataspace) - sizeof(uint32_t);
+      if(*(uint32_t *)base > 0) (*(uint32_t *)base)--;
+      if(*(uint32_t *)base == 0) {
+        if(p->dataspace->deinit != NULL)
+          p->dataspace->deinit(csound, p->dataspace);
+        if(p->udo_flag) {
+          /* For UDO final release, keep as spare like opcode_delete does */
+          if(p->spare != NULL && ((UOPCODE *) p->spare)->ip == NULL) {
+            char *sbase = ((char *)p->spare) - sizeof(uint32_t);
+            csound->Free(csound, sbase);
+          }
+          p->spare = p->dataspace;
+        } else {
+          csound->Free(csound, base);
+        }
+      }
+    }
+    p->dataspace = NULL;
+    p->size = 0;
+    p->outargp = NULL;
+    p->inargp = NULL;
+    p->udo_flag = 0;
+    p->readonly = 0;
+    p->spare = spare;
+    return;
+  }
+  /* src is live */
+  if(p->dataspace == psrc->dataspace) {
+    /* self assign */
+    p->readonly = 0;
+    p->spare = spare;
+    return;
+  }
+  /* release dest if it holds different live dataspace */
+  if(p->dataspace != NULL) {
+    char *base = ((char *)p->dataspace) - sizeof(uint32_t);
+    if(*(uint32_t *)base > 0) (*(uint32_t *)base)--;
+    if(*(uint32_t *)base == 0) {
+      if(p->dataspace->deinit != NULL)
+        p->dataspace->deinit(csound, p->dataspace);
+      if(p->udo_flag) {
+        if(p->spare != NULL && ((UOPCODE *) p->spare)->ip == NULL) {
+          char *sbase = ((char *)p->spare) - sizeof(uint32_t);
+          csound->Free(csound, sbase);
+        }
+        p->spare = p->dataspace;
+      } else {
+        csound->Free(csound, base);
+      }
+    }
+    /* if rc>0, just detach */
+  }
+  /* incref src */
+  {
+    char *sbase = ((char *)psrc->dataspace) - sizeof(uint32_t);
+    (*(uint32_t *)sbase)++;
+  }
+  p->dataspace = psrc->dataspace;
+  p->size = psrc->size;
+  p->outargp = psrc->outargp;
+  p->inargp = psrc->inargp;
+  p->udo_flag = psrc->udo_flag;
+  p->readonly = 0;
+  p->spare = spare;
 }
 
 
@@ -848,6 +914,44 @@ static void instrdef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* des
   }
   else csound->Warning(csound, Str("instr ref var %s is read-only: copy value bypassed\n"),
                        p->instr ? p->instr->insname : "(uninitialized)");
+}
+
+static void opcode_free_variable_memory(void *csnd, void *p) {
+  CSOUND *csound = (CSOUND *)csnd;
+  OPCODEOBJ *obj = (OPCODEOBJ *) p;
+  if (obj == NULL || obj->dataspace == NULL) {
+    if (obj != NULL) {
+      obj->dataspace = NULL;
+      obj->outargp = obj->inargp = NULL;
+      obj->size = 0;
+      obj->udo_flag = 0;
+      obj->spare = NULL;
+    }
+    return;
+  }
+  {
+    char *base = ((char *)obj->dataspace) - sizeof(uint32_t);
+    int32_t rc;
+    if (*(uint32_t *)base > 0) (*(uint32_t *)base)--;
+    rc = (int32_t)(*(uint32_t *)base);
+    if (rc == 0) {
+      /* NOTE: deinit not called here to avoid AUXCH-order issues during
+         instrument var teardown; explicit delete opcode handles deinit. */
+      if (obj->udo_flag) {
+        if (obj->spare != NULL && ((UOPCODE *) obj->spare)->ip == NULL) {
+          char *sbase = ((char *)obj->spare) - sizeof(uint32_t);
+          csound->Free(csound, sbase);
+        }
+        obj->spare = obj->dataspace;
+      } else {
+        csound->Free(csound, base);
+      }
+    }
+    /* if rc>0, shared instance remains for others */
+  }
+  obj->dataspace = NULL;
+  obj->outargp = obj->inargp = NULL;
+  obj->size = 0;
 }
 
 static void instr_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
@@ -1467,7 +1571,7 @@ const CS_TYPE CS_VAR_TYPE_OPCODEREF = {
 
 const CS_TYPE CS_VAR_TYPE_OPCODEOBJ = {
   "Opcode", "opcode instance reference", CS_ARG_TYPE_BOTH,
-  create_opcode, opcode_copy_value, NULL, NULL, 0
+  create_opcode, opcode_copy_value, opcode_free_variable_memory, NULL, 0
 };
 
 const CS_TYPE CS_VAR_TYPE_INSTR = {
