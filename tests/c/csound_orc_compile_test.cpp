@@ -5156,6 +5156,32 @@ TEST(ParcsTests, DirtyDagLockContentionSerializesActiveNotes)
         }
     };
 
+    auto atomicLoadInt32 = [](int32_t *p) -> int32_t {
+#if defined(MSVC)
+        static_assert(sizeof(int32_t) == sizeof(long),
+                      "MSVC long must be 32-bit");
+        return static_cast<int32_t>(
+            _InterlockedExchangeAdd(reinterpret_cast<volatile long *>(p), 0));
+#elif defined(HAVE_ATOMIC_BUILTIN)
+        return __atomic_load_n(p, __ATOMIC_SEQ_CST);
+#else
+        return *p;
+#endif
+    };
+    auto atomicLoadUint64 = [](uint64_t *p) -> uint64_t {
+#if defined(MSVC)
+        static_assert(sizeof(uint64_t) == sizeof(__int64),
+                      "MSVC __int64 must be 64-bit");
+        return static_cast<uint64_t>(
+            _InterlockedCompareExchange64(
+                reinterpret_cast<volatile __int64 *>(p), 0, 0));
+#elif defined(HAVE_ATOMIC_BUILTIN)
+        return __atomic_load_n(p, __ATOMIC_SEQ_CST);
+#else
+        return *p;
+#endif
+    };
+
     for (int threads : {2, 4}) {
         SCOPED_TRACE(threads);
         CSOUND *csound = csoundCreate(nullptr, nullptr);
@@ -5237,14 +5263,14 @@ endin
         for (int step = 0; step < 2000; step++) {
             ASSERT_EQ(0, csoundPerformKsmps(csound));
             if (csound->dag_num_active == 3 &&
-                ATOMIC_GET(csound->dag_changed) == 0 &&
+                atomicLoadInt32(&csound->dag_changed) == 0 &&
                 csound->dag_task_map != nullptr &&
                 csound->dag_task_map[0]->insno == 1 &&
                 csound->dag_task_map[1]->insno == 2 &&
                 csound->dag_task_map[2]->insno == 3 &&
-                ATOMIC_GET(csound->dag_task_map[0]->init_done) == 1 &&
-                ATOMIC_GET(csound->dag_task_map[1]->init_done) == 1 &&
-                ATOMIC_GET(csound->dag_task_map[2]->init_done) == 1) {
+                atomicLoadInt32(&csound->dag_task_map[0]->init_done) == 1 &&
+                atomicLoadInt32(&csound->dag_task_map[1]->init_done) == 1 &&
+                atomicLoadInt32(&csound->dag_task_map[2]->init_done) == 1) {
                 allReady = true;
                 break;
             }
@@ -5263,13 +5289,13 @@ endop
 gkTrig1 init 1
 )";
         ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefineOrc));
-        ASSERT_GT(ATOMIC_GET(csound->dag_changed), 0);
+        ASSERT_GT(atomicLoadInt32(&csound->dag_changed), 0);
 
         {
             SpinLockGuardThread holder(&csound->alloc_spinlock);
             ASSERT_EQ(0, csoundPerformKsmps(csound));
             EXPECT_EQ(nullptr, csound->dag_task_dep[1]);
-            EXPECT_GT(ATOMIC_GET(csound->dag_changed), 0);
+            EXPECT_GT(atomicLoadInt32(&csound->dag_changed), 0);
             holder.unlockAndJoin();
         }
 
@@ -5277,8 +5303,8 @@ gkTrig1 init 1
         // the parallel DAG via csoundPerformKsmps.
         bool bound = false;
         for (int step = 0; step < 2000; step++) {
-            if (ATOMIC_GET(instr1Ip->init_done) == 1 &&
-                ATOMIC_GET(instr1Ip->init_pass) >= 2) {
+            if (atomicLoadInt32(&instr1Ip->init_done) == 1 &&
+                atomicLoadUint64(&instr1Ip->init_pass) >= 2) {
                 bound = true;
                 break;
             }
@@ -5286,7 +5312,7 @@ gkTrig1 init 1
         }
         ASSERT_TRUE(bound);
         ASSERT_EQ(nullptr, csound->dag_task_dep[1]);
-        ASSERT_GT(ATOMIC_GET(csound->dag_changed), 0);
+        ASSERT_GT(atomicLoadInt32(&csound->dag_changed), 0);
 
         // Enable shared writes/checks, then run 32 control blocks with
         // alloc_spinlock continuously held on another thread so dag_build()
@@ -5296,7 +5322,7 @@ gkTrig1 init 1
             SpinLockGuardThread holder(&csound->alloc_spinlock);
             for (int i = 0; i < 32; i++) {
                 ASSERT_EQ(0, csoundPerformKsmps(csound));
-                EXPECT_GT(ATOMIC_GET(csound->dag_changed), 0);
+                EXPECT_GT(atomicLoadInt32(&csound->dag_changed), 0);
                 EXPECT_EQ(nullptr, csound->dag_task_dep[1]);
             }
             holder.unlockAndJoin();
@@ -5319,7 +5345,7 @@ gkTrig1 init 1
         for (int i = 0; i < 32; i++) {
             ASSERT_EQ(0, csoundPerformKsmps(csound));
         }
-        EXPECT_EQ(0, ATOMIC_GET(csound->dag_changed));
+        EXPECT_EQ(0, atomicLoadInt32(&csound->dag_changed));
         ASSERT_NE(nullptr, csound->dag_task_dep[1]);
         EXPECT_NE(0, csound->dag_task_dep[1][0]);
         EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
