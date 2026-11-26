@@ -870,14 +870,17 @@ static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
   }
   /* release dest if it holds different live dataspace */
   if(p->dataspace != NULL) {
-    char *base = ((char *)p->dataspace) - sizeof(uint32_t);
+    size_t align = _Alignof(max_align_t);
+    char *base;
+    if(align < sizeof(void*)) align = sizeof(void*);
+    base = ((char *)p->dataspace) - align;
     if(*(uint32_t *)base > 0) (*(uint32_t *)base)--;
     if(*(uint32_t *)base == 0) {
       if(p->dataspace->deinit != NULL)
         p->dataspace->deinit(csound, p->dataspace);
       if(p->udo_flag) {
         if(p->spare != NULL && ((UOPCODE *) p->spare)->ip == NULL) {
-          char *sbase = ((char *)p->spare) - sizeof(uint32_t);
+          char *sbase = ((char *)p->spare) - align;
           csound->Free(csound, sbase);
         }
         p->spare = p->dataspace;
@@ -889,7 +892,10 @@ static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
   }
   /* incref src */
   {
-    char *sbase = ((char *)psrc->dataspace) - sizeof(uint32_t);
+    size_t align = _Alignof(max_align_t);
+    char *sbase;
+    if(align < sizeof(void*)) align = sizeof(void*);
+    sbase = ((char *)psrc->dataspace) - align;
     (*(uint32_t *)sbase)++;
   }
   p->dataspace = psrc->dataspace;
@@ -930,8 +936,11 @@ static void opcode_free_variable_memory(void *csnd, void *p) {
     return;
   }
   {
-    char *base = ((char *)obj->dataspace) - sizeof(uint32_t);
+    size_t align = _Alignof(max_align_t);
+    char *base;
     int32_t rc;
+    if(align < sizeof(void*)) align = sizeof(void*);
+    base = ((char *)obj->dataspace) - align;
     if (*(uint32_t *)base > 0) (*(uint32_t *)base)--;
     rc = (int32_t)(*(uint32_t *)base);
     if (rc == 0) {
@@ -939,7 +948,7 @@ static void opcode_free_variable_memory(void *csnd, void *p) {
          instrument var teardown; explicit delete opcode handles deinit. */
       if (obj->udo_flag) {
         if (obj->spare != NULL && ((UOPCODE *) obj->spare)->ip == NULL) {
-          char *sbase = ((char *)obj->spare) - sizeof(uint32_t);
+          char *sbase = ((char *)obj->spare) - align;
           csound->Free(csound, sbase);
         }
         obj->spare = obj->dataspace;

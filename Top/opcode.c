@@ -1327,20 +1327,17 @@ static int32_t check_consistency(OPCODEOBJ *obj, cs_float **args,
  * allocate and initialise opcode dataspace (with hidden refcount prefix)
  */
 static OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
+    size_t align = _Alignof(max_align_t);
     size_t total;
     char *base;
     OPDS *dataspace;
-    if (entry->dsblksiz < sizeof(OPDS)) total = sizeof(uint32_t) + sizeof(OPDS);
-    else total = sizeof(uint32_t) + entry->dsblksiz;
+    if (align < sizeof(void*)) align = sizeof(void*);
+    total = align + (entry->dsblksiz > sizeof(OPDS) ? entry->dsblksiz : sizeof(OPDS));
     base = (char *) csound->Calloc(csound, total);
     if(base == NULL) return NULL;
+    /* store refcount in first bytes; prefix/align ensures dataspace is aligned */
     *((uint32_t *)base) = 1; /* refcount */
-    dataspace = (OPDS *)(base + sizeof(uint32_t));
-    /* if dsblksiz is smaller than OPDS (unlikely), be safe: we only used prefix+OPDS */
-    if(entry->dsblksiz > 0) {
-      /* zero the rest? Calloc already zeroed the whole block */
-    }
-    // fill OPDS with as much information as we have now, rest on init
+    dataspace = (OPDS *)(base + align);
     dataspace->insdshead = h->insdshead;
     dataspace->optext = csound->Calloc(csound, sizeof(OPTXT));
     if(dataspace->optext != NULL) {
@@ -1369,12 +1366,14 @@ static inline OPCODEOBJ *opcode_array_obj(ARRAYDAT *array, int32_t i) {
  */
 static void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace) {
   char *base;
+  size_t align = _Alignof(max_align_t);
+  if(align < sizeof(void*)) align = sizeof(void*);
   if(dataspace == NULL) return;
   if(dataspace->optext != NULL) {
     csound->Free(csound, dataspace->optext->t.inlist);
     csound->Free(csound, dataspace->optext);
   }
-  base = ((char *)dataspace) - sizeof(uint32_t);
+  base = ((char *)dataspace) - align;
   csound->Free(csound, base);
 }
 
@@ -1382,8 +1381,10 @@ static void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace) {
 
 int32_t opcode_dataspace_decref(OPDS *dataspace) {
   char *base;
+  size_t align = _Alignof(max_align_t);
+  if(align < sizeof(void*)) align = sizeof(void*);
   if(dataspace == NULL) return 0;
-  base = ((char *)dataspace) - sizeof(uint32_t);
+  base = ((char *)dataspace) - align;
   if(*(uint32_t *)base > 0) (*(uint32_t *)base)--;
   return (int32_t)(*(uint32_t *)base);
 }
@@ -1400,7 +1401,10 @@ static void opcode_take_spare(CSOUND *csound, OPCODEOBJ *obj, OENTRY *entry) {
     obj->dataspace = (OPDS *) udo;
     /* reuse means this holder owns it as refcount 1 */
     {
-      char *base = ((char *)obj->dataspace) - sizeof(uint32_t);
+      size_t align = _Alignof(max_align_t);
+      char *base;
+      if(align < sizeof(void*)) align = sizeof(void*);
+      base = ((char *)obj->dataspace) - align;
       *(uint32_t *)base = 1;
     }
   }
