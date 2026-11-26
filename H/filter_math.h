@@ -33,8 +33,16 @@
 #endif
 
 #ifdef USE_FLOAT
+  /* Picolibc's inline fmaf hides the operation from GCC. The builtin lets
+     GCC use a fused subtract and optimize the cascade's stage loop. */
+  #if defined(FP_FAST_FMAF) && defined(__riscv_flen) && __riscv_flen >= 32 && \
+      defined(__GNUC__) && !defined(__clang__)
+    #define CS_RESON_MADD(a, b, c) __builtin_fmaf((a), (b), (c))
+  #else
+    #define CS_RESON_MADD CS_FILTER_MADD
+  #endif
   #define CS_RESON_STEP(input, y1, y2, c1, c2, c3) \
-    CS_FILTER_MADD((c1), (input), CS_FILTER_MADD((c2), (y1), -(c3) * (y2)))
+    CS_RESON_MADD((c1), (input), CS_RESON_MADD((c2), (y1), -(c3) * (y2)))
 #else
   #define CS_RESON_STEP(input, y1, y2, c1, c2, c3) \
     ((c1) * (input) + (c2) * (y1) - (c3) * (y2))
