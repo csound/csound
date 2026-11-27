@@ -4,6 +4,13 @@
 
 #include "wasm_opcode_abi.h"
 
+/* The metadata record must survive the Wasm link: --list-plugins reads it
+   from the final module. */
+CSOUND_PLUGIN_METADATA("0.1.0-wasm",
+  "opcodes = ['velvetlp', 'wasmretryonce', 'wasmretrycount', 'wasmstate',\n"
+  "  'wasmdeinitcount', 'wasmnoinit', 'wasminitadd', 'wasmdeiniterror',\n"
+  "  'wasmalias', 'wasminiterror']\n");
+
 typedef struct {
   OPDS h;
   cs_float *out;

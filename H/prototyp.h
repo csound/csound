@@ -82,6 +82,7 @@ extern "C" {
   int32_t start_engine(CSOUND *);
   void list_opcodes(CSOUND *, int32_t);
   void list_structs(CSOUND *);
+  void list_plugins(CSOUND *);
   char  *csoundGetStrFormat(int32_t format);
   int32_t sndfileSampleSize(int32_t sf_format);
   char *csoundType2String(int32_t type);

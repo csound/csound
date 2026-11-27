@@ -2145,6 +2145,8 @@ struct CSOUND_ {
   cs_float alloc_queue_work_p1;                              /* and that note's p1 */
   int32_t alloc_queue_work_note;                             /* that request has a p1: it starts or ties a note, it is no reinit */
   int32_t preserve_subnormals;                              /* preserve subnormal inputs and results on x86 */
+  int32_t list_plugins_request;                              /* --list-plugins requested */
+  char *list_plugin_dirs;                                    /* --opcode-dir directories kept for --list-plugins */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

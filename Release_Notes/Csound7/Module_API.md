@@ -172,6 +172,85 @@ This value includes version and precision information for the loader.
 The loader rejects native opcode plugins with missing, zero, or incompatible
 metadata before their entry points run.
 
+### Plugin metadata
+
+A plugin library can carry a metadata record: its own version, which is
+independent of the Csound version, and an optional free text. Csound and
+other tools read the record from the library file without loading the
+library, so they can also read plugins that would fail to load, such as one
+built for another ABI. Use `CSOUND_PLUGIN_METADATA` once, at file scope:
+
+```c
+CSOUND_PLUGIN_METADATA("1.4.2",
+  "opcodes = ['myop', 'myfilter']\n");
+```
+
+Both arguments are string literals. The version is printable ASCII, shorter
+than `CSOUND_MODULE_VERSION_MAX` (64) bytes; Semantic Versioning is
+recommended. Csound does not interpret the text. By convention it is TOML,
+and `opcodes` lists the names of the opcodes the plugin registers, so tools
+such as editors and language servers can tell which plugin provides an
+opcode. Use `""` for no text. Single-quoted TOML strings need no escaping in
+C. More keys may be added by convention, without changes to Csound. The
+record is optional, and plugins without it load as before. Do not use the
+macro in opcode sources built into libcsound.
+
+`csound --list-plugins` lists the plugin libraries in the plugin
+directories, in each `--opcode-dir` and each `--opcode-lib` file, with the
+version each file gives and its path. It loads none of them, wherever it
+comes among the options. A file shows `(no-meta)` for no record, `(invalid)` for
+a record that is not valid, `(ambiguous)` for copies that differ, and
+`(unreadable)` when it cannot be read. The loader still checks each plugin's
+ABI when it opens it.
+
+Hosts read a record with `csoundGetPluginMetadata()`, which takes a path and
+needs no Csound instance:
+
+```c
+char version[CSOUND_MODULE_VERSION_MAX];
+size_t size = 0;
+if (csoundGetPluginMetadata(path, version, sizeof(version), NULL, &size)
+    == CSOUND_PLUGIN_METADATA_SHORT_BUFFER) {
+  char *text = malloc(size);
+  csoundGetPluginMetadata(path, version, sizeof(version), text, &size);
+}
+```
+
+#### Record format
+
+Tools that do not link libcsound can read the record themselves: it needs
+no object-format parser, and it is read the same way from ELF, Mach-O, PE and
+Wasm files. The record is version 1 of this layout, with every field made of
+bytes:
+
+| Offset | Size | Field |
+| --- | --- | --- |
+| 0 | 8 | marker: the ASCII bytes `CSPLMETA` (`43 53 50 4C 4D 45 54 41`) |
+| 8 | 1 | format: 1 |
+| 9 | 3 | reserved: 0 |
+| 12 | 4 | payload length in bytes, unsigned, little-endian |
+| 16 | length | payload |
+
+The payload is the version, a NUL, the text and a NUL. To read it, find every
+occurrence of the marker in the file. A record is valid when:
+
+- the format is 1 and the reserved bytes are 0;
+- the length is from 1 to 65536 (`CSOUND_PLUGIN_METADATA_MAX`) and does not
+  run past the end of the file;
+- the version is 1 to 63 bytes from 0x20 to 0x7E, followed by a NUL;
+- the text ends at the payload's last byte with a NUL, and has no other NUL
+  and no byte below 0x20 but tab, LF and CR, and no 0x7F. Bytes from 0x80
+  are allowed, as TOML is UTF-8.
+
+A universal binary has a copy in each architecture slice. Copies with the
+same payload count once. If copies differ the metadata is ambiguous, and if
+any copy is not valid the metadata is invalid. A file with more than 16
+markers is invalid.
+
+The macro also exports the record as the data symbol `csoundModuleMetadata`,
+with C linkage in C++ too, and marks it used so that the linker keeps it. A
+host that has loaded the plugin finds the same bytes there.
+
 `CreateInstanceVariable` and `QueryInstanceVariable` provide named storage
 for opcodes in the same instrument instance. Use them instead of private
 `INSDS` fields for shared instance state. The engine owns this storage.

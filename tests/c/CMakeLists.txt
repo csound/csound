@@ -349,6 +349,87 @@ if(BUILD_TESTS)
                 "#pragma once\n#define CSOUND_TEST_CREATE_ERROR_PLUGIN R\"csound($<TARGET_FILE:create_error_test_plugin>)csound\"\n"
             TARGET create_error_test_plugin)
 
+        # Plugins with a metadata record, in one directory, and one that
+        # stops the process when it is loaded, in another. They see only
+        # installed SDK headers, as a plugin built outside Csound does.
+        set(version_test_plugins
+            version_test_plugin fixtures/version_plugin.c version-plugins
+            version_cpp_test_plugin fixtures/version_plugin_cpp.cpp
+                version-plugins
+            invalid_version_test_plugin fixtures/invalid_version_plugin.c
+                version-plugins
+            trap_test_plugin fixtures/trap_plugin.c trap-plugins)
+        set(version_plugin_paths "#pragma once\n")
+        while(version_test_plugins)
+            list(POP_FRONT version_test_plugins target source directory)
+            add_library(${target} MODULE ${source})
+            set_property(TARGET ${target} PROPERTY INCLUDE_DIRECTORIES
+                "${Csound_SOURCE_DIR}/include;${PROJECT_BINARY_DIR}/include")
+            if(USE_LIBSNDFILE)
+                target_include_directories(${target} PRIVATE
+                    $<TARGET_PROPERTY:SndFile::sndfile,INTERFACE_INCLUDE_DIRECTORIES>)
+            endif()
+            target_compile_definitions(${target} PRIVATE BUILD_PLUGINS)
+            set_target_properties(${target} PROPERTIES
+                SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+                LIBRARY_OUTPUT_DIRECTORY
+                    ${CMAKE_CURRENT_BINARY_DIR}/${directory}
+                RUNTIME_OUTPUT_DIRECTORY
+                    ${CMAKE_CURRENT_BINARY_DIR}/${directory})
+            add_dependencies(unittests ${target})
+            string(TOUPPER ${target} macro)
+            string(APPEND version_plugin_paths
+                "#define CSOUND_TEST_${macro} R\"csound($<TARGET_FILE:${target}>)csound\"\n")
+        endwhile()
+
+        # The record must survive stripping: read it from a stripped copy,
+        # outside the plugin directories.
+        if(CMAKE_STRIP AND NOT MSVC)
+            if(APPLE)
+                set(strip_flags -x)
+            else()
+                set(strip_flags --strip-all)
+            endif()
+            set(stripped_plugin
+                ${CMAKE_CURRENT_BINARY_DIR}/stripped-plugins/version_test_plugin${CMAKE_SHARED_LIBRARY_SUFFIX})
+            add_custom_command(TARGET version_test_plugin POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E make_directory
+                    ${CMAKE_CURRENT_BINARY_DIR}/stripped-plugins
+                COMMAND ${CMAKE_COMMAND} -E copy
+                    $<TARGET_FILE:version_test_plugin> ${stripped_plugin}
+                COMMAND ${CMAKE_STRIP} ${strip_flags} ${stripped_plugin}
+                VERBATIM)
+            string(APPEND version_plugin_paths
+                "#define CSOUND_TEST_STRIPPED_PLUGIN R\"csound(${stripped_plugin})csound\"\n")
+        endif()
+
+        # A universal binary has a copy of the record in each slice.
+        if(APPLE)
+            add_library(universal_test_plugin MODULE fixtures/version_plugin.c)
+            set_property(TARGET universal_test_plugin PROPERTY
+                INCLUDE_DIRECTORIES
+                "${Csound_SOURCE_DIR}/include;${PROJECT_BINARY_DIR}/include")
+            if(USE_LIBSNDFILE)
+                target_include_directories(universal_test_plugin PRIVATE
+                    $<TARGET_PROPERTY:SndFile::sndfile,INTERFACE_INCLUDE_DIRECTORIES>)
+            endif()
+            target_compile_definitions(universal_test_plugin PRIVATE
+                BUILD_PLUGINS)
+            set_target_properties(universal_test_plugin PROPERTIES
+                OSX_ARCHITECTURES "arm64;x86_64"
+                SUFFIX "${CMAKE_SHARED_LIBRARY_SUFFIX}"
+                LIBRARY_OUTPUT_DIRECTORY
+                    ${CMAKE_CURRENT_BINARY_DIR}/universal-plugins)
+            add_dependencies(unittests universal_test_plugin)
+            string(APPEND version_plugin_paths
+                "#define CSOUND_TEST_UNIVERSAL_TEST_PLUGIN R\"csound($<TARGET_FILE:universal_test_plugin>)csound\"\n")
+        endif()
+
+        file(GENERATE
+            OUTPUT
+                ${CMAKE_CURRENT_BINARY_DIR}/generated/$<CONFIG>/version_plugin_paths.hpp
+            CONTENT "${version_plugin_paths}")
+
         if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
             # A second copy of each plugin that shares instance variables.
             set(TEST_TWO_COPIES_DIR ${CMAKE_CURRENT_BINARY_DIR}/two-copies)
@@ -486,6 +567,11 @@ if(BUILD_TESTS)
                 BUILD_PLUGINS USE_${precision})
             add_test(NAME ${conversion_test} COMMAND ${conversion_test})
         endforeach()
+    endif()
+    if(TARGET ${CSOUNDLIB})
+        add_test(NAME libcsound_holds_no_plugin_metadata_marker
+            COMMAND ${CMAKE_COMMAND} -DFILE=$<TARGET_FILE:${CSOUNDLIB}>
+                -P ${CMAKE_CURRENT_SOURCE_DIR}/check_no_plugin_metadata.cmake)
     endif()
     if(WIN32)
         add_executable(wasapi_format_tests wasapi_format_test.c)

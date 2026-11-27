@@ -161,8 +161,19 @@ static void put_sorted_score(CSOUND *csound, char *ss, FILE *ff) {
 
 /* List only after decoding options, so every plugin option can take effect. */
 static void list_if_requested(CSOUND *csound) {
-  if (LIKELY(!csound->list_opcodes_request && !csound->list_structs_request))
+  if (LIKELY(!csound->list_opcodes_request && !csound->list_structs_request &&
+             !csound->list_plugins_request))
     return;
+  /* --list-plugins reads plugin files without loading them, so it comes
+     before the other lists load the requested plugins */
+  if (csound->list_plugins_request) {
+    list_plugins(csound);
+    if (!csound->list_opcodes_request && !csound->list_structs_request)
+      csound->LongJmp(csound, 0);
+    if (UNLIKELY(csoundLoadRecordedPluginDirs(csound) != CSOUND_SUCCESS))
+      csound->Die(csound, Str(" *** --opcode-dir: a plugin failed to load "
+                            "or start\n"));
+  }
   if (UNLIKELY(csoundLoadRequestedPlugins(csound) != CSOUND_SUCCESS))
     csound->LongJmp(csound, 1);
   if (csound->list_opcodes_request)

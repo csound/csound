@@ -184,6 +184,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/sequencer.c \
 $(CSOUND_SRC_ROOT)/Top/argdecode.c \
 $(CSOUND_SRC_ROOT)/Top/csound_debug.c \
 $(CSOUND_SRC_ROOT)/Top/csmodule.c \
+$(CSOUND_SRC_ROOT)/Top/plugin_metadata.c \
 $(CSOUND_SRC_ROOT)/Top/csound_perf.c \
 $(CSOUND_SRC_ROOT)/Top/csound_events.c \
 $(CSOUND_SRC_ROOT)/Top/csound_rtio.c \

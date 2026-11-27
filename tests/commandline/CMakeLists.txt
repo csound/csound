@@ -174,6 +174,20 @@ if(Python3_Interpreter_FOUND)
         LABELS "commandline;wasmtime"
         TIMEOUT 60
       )
+
+      add_test(
+        NAME commandline_wasm_plugin_metadata
+        COMMAND
+          ${Python3_EXECUTABLE}
+          ${CMAKE_CURRENT_SOURCE_DIR}/wasmtime/test_wasm_plugin_metadata.py
+          --csound-executable=$<TARGET_FILE:csound-bin>
+          --plugin=${_wasm_test_plugin}
+      )
+      set_tests_properties(commandline_wasm_plugin_metadata PROPERTIES
+        FIXTURES_REQUIRED wasmtime_opcode_fixture
+        LABELS "commandline;wasmtime"
+        TIMEOUT 60
+      )
     else()
       message(STATUS
         "WASI C compiler not found; Wasmtime opcode tests are disabled")

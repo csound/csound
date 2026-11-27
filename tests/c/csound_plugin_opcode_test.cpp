@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <random>
@@ -24,6 +25,7 @@
 #include "failing_create_plugin_path.hpp"
 #include "jumping_init_plugin_path.hpp"
 #include "hook_plugin_path.hpp"
+#include "version_plugin_paths.hpp"
 #endif
 
 #ifdef CSOUND_TEST_HAS_TWO_COPIES
@@ -1094,6 +1096,280 @@ TEST(PluginThatSetsAnOption, InItsInitLeavesTheCompilesLanding) {
       ::testing::ExitedWithCode(0), "");
   std::remove(csd.c_str());
 }
+
+// A plugin may give a metadata record with CSOUND_PLUGIN_METADATA: its own
+// version, independent of the Csound version, and a free text. It is read from
+// the library file, without loading the library.
+namespace {
+struct Metadata {
+  int32_t status;
+  std::string version;
+  std::string text;
+};
+
+Metadata readMetadata(const std::string &path) {
+  char version[CSOUND_MODULE_VERSION_MAX] = "";
+  size_t textSize = 0;
+  Metadata m{csoundGetPluginMetadata(path.c_str(), version, sizeof(version),
+                                     nullptr, &textSize),
+             "", ""};
+  if (m.status != CSOUND_PLUGIN_METADATA_SHORT_BUFFER)
+    return m;
+  std::vector<char> text(textSize);
+  m.status = csoundGetPluginMetadata(path.c_str(), version, sizeof(version),
+                                     text.data(), &textSize);
+  m.version = version;
+  m.text = text.data();
+  return m;
+}
+
+const unsigned char kMarker[8] = {CSOUND_PLUGIN_METADATA_MARKER};
+
+// A record as CSOUND_PLUGIN_METADATA lays it out, with a payload of
+// 'version' and 'text', each with its NUL. 'length' replaces the payload
+// length when it is not negative.
+std::string record(const std::string &version, const std::string &text,
+                   long long length = -1) {
+  std::string payload = version + '\0' + text + '\0';
+  const uint32_t n =
+      length < 0 ? (uint32_t) payload.size() : (uint32_t) length;
+  std::string r((const char *) kMarker, sizeof(kMarker));
+  r += (char) CSOUND_PLUGIN_METADATA_FORMAT;
+  r += std::string(3, '\0');
+  for (int i = 0; i < 4; i++)
+    r += (char) ((n >> (8 * i)) & 0xFF);
+  return r + payload;
+}
+
+// A file with the given bytes, removed with the object.
+class TempFile {
+public:
+  explicit TempFile(const std::string &bytes) {
+    static int count = 0;
+    path_ = (std::filesystem::temp_directory_path() /
+             ("csound_plugin_metadata_" + std::to_string(count++) + "_" +
+              std::to_string(std::random_device{}())))
+                .string();
+    std::ofstream(path_, std::ios::binary) << bytes;
+  }
+  ~TempFile() { std::remove(path_.c_str()); }
+  const std::string &path() const { return path_; }
+
+private:
+  std::string path_;
+};
+
+int32_t statusOf(const std::string &bytes) {
+  const TempFile file(bytes);
+  return readMetadata(file.path()).status;
+}
+} // namespace
+
+TEST(PluginMetadata, ReadsVersionAndTextFromTheLibraryFile) {
+  const Metadata c = readMetadata(CSOUND_TEST_VERSION_TEST_PLUGIN);
+  EXPECT_EQ(c.status, CSOUND_PLUGIN_METADATA_OK);
+  EXPECT_EQ(c.version, "1.2.3-test");
+  EXPECT_EQ(c.text, "opcodes = ['vtest', 'vtest2']\n");
+  const Metadata cpp = readMetadata(CSOUND_TEST_VERSION_CPP_TEST_PLUGIN);
+  EXPECT_EQ(cpp.status, CSOUND_PLUGIN_METADATA_OK);
+  EXPECT_EQ(cpp.version, "4.5.6-cpp");
+  EXPECT_EQ(cpp.text, "");
+}
+
+TEST(PluginMetadata, AnInvalidVersionMakesTheRecordInvalid) {
+  EXPECT_EQ(readMetadata(CSOUND_TEST_INVALID_VERSION_TEST_PLUGIN).status,
+            CSOUND_PLUGIN_METADATA_INVALID);
+}
+
+#ifdef CSOUND_TEST_STRIPPED_PLUGIN
+TEST(PluginMetadata, SurvivesStripping) {
+  const Metadata m = readMetadata(CSOUND_TEST_STRIPPED_PLUGIN);
+  EXPECT_EQ(m.status, CSOUND_PLUGIN_METADATA_OK);
+  EXPECT_EQ(m.version, "1.2.3-test");
+}
+#endif
+
+#ifdef CSOUND_TEST_UNIVERSAL_TEST_PLUGIN
+// Each slice of a universal binary has a copy: identical copies count once.
+TEST(PluginMetadata, ReadsAUniversalBinaryOnce) {
+  const Metadata m = readMetadata(CSOUND_TEST_UNIVERSAL_TEST_PLUGIN);
+  EXPECT_EQ(m.status, CSOUND_PLUGIN_METADATA_OK);
+  EXPECT_EQ(m.version, "1.2.3-test");
+}
+#endif
+
+TEST(PluginMetadata, ReportsWhatIsWrongWithAFile) {
+  const std::string pad(100, 'x');
+  EXPECT_EQ(readMetadata("no-such-plugin-file").status,
+            CSOUND_PLUGIN_METADATA_ERROR);
+  EXPECT_EQ(statusOf(""), CSOUND_PLUGIN_METADATA_NONE);
+  EXPECT_EQ(statusOf(pad), CSOUND_PLUGIN_METADATA_NONE);
+  EXPECT_EQ(statusOf(pad + record("1.0", "a = 1\n") + pad),
+            CSOUND_PLUGIN_METADATA_OK);
+  // the header or the payload runs past the end of the file
+  EXPECT_EQ(statusOf(pad + record("1.0", "").substr(0, 12)),
+            CSOUND_PLUGIN_METADATA_INVALID);
+  EXPECT_EQ(statusOf(pad + record("1.0", "", 100)),
+            CSOUND_PLUGIN_METADATA_INVALID);
+  // the length is zero or over the format limit
+  EXPECT_EQ(statusOf(pad + record("1.0", "", 0) + pad),
+            CSOUND_PLUGIN_METADATA_INVALID);
+  EXPECT_EQ(statusOf(pad + record("1.0", "", CSOUND_PLUGIN_METADATA_MAX + 1) +
+                     std::string(CSOUND_PLUGIN_METADATA_MAX + 1, 'x')),
+            CSOUND_PLUGIN_METADATA_INVALID);
+  // another format, or a reserved byte that is not zero
+  std::string r = record("1.0", "");
+  r[8] = 2;
+  EXPECT_EQ(statusOf(r), CSOUND_PLUGIN_METADATA_INVALID);
+  r = record("1.0", "");
+  r[10] = 1;
+  EXPECT_EQ(statusOf(r), CSOUND_PLUGIN_METADATA_INVALID);
+  // the version is empty, too long or not printable ASCII
+  EXPECT_EQ(statusOf(record("", "")), CSOUND_PLUGIN_METADATA_INVALID);
+  EXPECT_EQ(statusOf(record(std::string(CSOUND_MODULE_VERSION_MAX - 1, '1'),
+                            "")),
+            CSOUND_PLUGIN_METADATA_OK);
+  EXPECT_EQ(statusOf(record(std::string(CSOUND_MODULE_VERSION_MAX, '1'), "")),
+            CSOUND_PLUGIN_METADATA_INVALID);
+  EXPECT_EQ(statusOf(record("1.0\t", "")), CSOUND_PLUGIN_METADATA_INVALID);
+  // the text has a NUL inside, or a control character
+  EXPECT_EQ(statusOf(record("1.0", std::string("a\0b", 3))),
+            CSOUND_PLUGIN_METADATA_INVALID);
+  EXPECT_EQ(statusOf(record("1.0", "a\x01")), CSOUND_PLUGIN_METADATA_INVALID);
+  EXPECT_EQ(statusOf(record("1.0", "a\t\r\n\xc3\xa8")),
+            CSOUND_PLUGIN_METADATA_OK);
+  // the payload does not end with the text's NUL
+  r = record("1.0", "ab");
+  r.pop_back();
+  EXPECT_EQ(statusOf(r.substr(0, 12) + std::string("\x06\0\0\0", 4) +
+                     r.substr(16)),
+            CSOUND_PLUGIN_METADATA_INVALID);
+}
+
+TEST(PluginMetadata, CountsIdenticalCopiesOnceAndFlagsDifferentOnes) {
+  const std::string a = record("1.0", "a = 1\n"), b = record("1.1", "a = 1\n");
+  EXPECT_EQ(statusOf(a + "xyz" + a), CSOUND_PLUGIN_METADATA_OK);
+  EXPECT_EQ(statusOf(a + "xyz" + b), CSOUND_PLUGIN_METADATA_AMBIGUOUS);
+  EXPECT_EQ(statusOf(a + "xyz" + record("", "")),
+            CSOUND_PLUGIN_METADATA_INVALID);
+}
+
+// The file is read in chunks: a marker across two of them is found too.
+TEST(PluginMetadata, FindsARecordAcrossTheReadChunks) {
+  for (size_t at : {65536 - 4, 65536 - 1, 65536, 2 * 65536 - 7}) {
+    const TempFile file(std::string(at, 'x') + record("2.0", "") + "tail");
+    const Metadata m = readMetadata(file.path());
+    EXPECT_EQ(m.status, CSOUND_PLUGIN_METADATA_OK) << at;
+    EXPECT_EQ(m.version, "2.0") << at;
+  }
+}
+
+TEST(PluginMetadata, ReportsShortBuffers) {
+  const TempFile file(record("1.0", "abc"));
+  char version[4], text[4];
+  size_t textSize = 3;
+  EXPECT_EQ(csoundGetPluginMetadata(file.path().c_str(), version, 3, text,
+                                    &textSize),
+            CSOUND_PLUGIN_METADATA_SHORT_BUFFER);
+  EXPECT_EQ(textSize, 4u);
+  EXPECT_EQ(csoundGetPluginMetadata(file.path().c_str(), version,
+                                    sizeof(version), text, &textSize),
+            CSOUND_PLUGIN_METADATA_OK);
+  EXPECT_STREQ(version, "1.0");
+  EXPECT_STREQ(text, "abc");
+  EXPECT_EQ(csoundGetPluginMetadata(file.path().c_str(), nullptr, 0, nullptr,
+                                    nullptr),
+            CSOUND_PLUGIN_METADATA_OK);
+}
+
+// --list-plugins prints the plugin files Csound would load, with the version
+// each gives and its path, and stops before compiling, as --list-opcodes
+// does. It loads none of them.
+namespace {
+// The listing's line for a plugin: its file name, then its version.
+bool listsPlugin(const std::string &text, const char *plugin,
+                 const char *version) {
+  const std::string name =
+      std::filesystem::path(plugin).filename().string();
+  size_t line = 0;
+  while ((line = text.find(name, line)) != std::string::npos) {
+    if (line == 0 || text[line - 1] == '\n') {
+      const size_t end = text.find('\n', line);
+      const std::string row = text.substr(line, end - line);
+      return row.find(std::string("  ") + version + " ") !=
+                 std::string::npos &&
+             row.find(plugin) != std::string::npos;
+    }
+    line += name.size();
+  }
+  return false;
+}
+} // namespace
+
+TEST(ListPlugins, ListsVersionAndPathOfEachPlugin) {
+  const std::string libs =
+      std::string("--opcode-lib=") + CSOUND_TEST_VERSION_TEST_PLUGIN + "," +
+      CSOUND_TEST_INVALID_VERSION_TEST_PLUGIN + "," +
+      CSOUND_TEST_REQUESTED_OPCODE_PLUGIN + ",no-such-plugin-file";
+  const OpcodeListing listing =
+      compileWithArgs({"--list-plugins", libs.c_str()});
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_TRUE(listsPlugin(listing.text, CSOUND_TEST_VERSION_TEST_PLUGIN,
+                          "1.2.3-test")) << listing.text;
+  EXPECT_TRUE(listsPlugin(listing.text,
+                          CSOUND_TEST_INVALID_VERSION_TEST_PLUGIN,
+                          "(invalid)"))
+      << listing.text;
+  EXPECT_TRUE(listsPlugin(listing.text, CSOUND_TEST_REQUESTED_OPCODE_PLUGIN,
+                          "(no-meta)"))
+      << listing.text;
+  EXPECT_TRUE(listsPlugin(listing.text, "no-such-plugin-file",
+                          "(unreadable)"))
+      << listing.text;
+  EXPECT_NE(listing.text.find(" plugins\n"), std::string::npos)
+      << listing.text;
+}
+
+TEST(ListPlugins, OptionsInCsdListAndStopBeforeCompiling) {
+  const TempCsd csd(std::string("--opcode-lib=") +
+                    CSOUND_TEST_VERSION_CPP_TEST_PLUGIN + " --list-plugins");
+  const OpcodeListing listing = compileWithArgs({"-n", csd.path()});
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_TRUE(listsPlugin(listing.text, CSOUND_TEST_VERSION_CPP_TEST_PLUGIN,
+                          "4.5.6-cpp")) << listing.text;
+  EXPECT_EQ(listing.text.find("performed"), std::string::npos)
+      << listing.text;
+}
+
+#ifndef WIN32
+// The trap plugin stops the process when loaded. --opcode-dir loads its
+// directory as it is decoded, but not with --list-plugins, even after it.
+TEST(ListPlugins, LoadsNoPluginEvenAfterOpcodeDir) {
+  const NoUserPluginDirectory noUserPlugins;
+  const std::string dir =
+      "--opcode-dir=" + directoryOf(CSOUND_TEST_TRAP_TEST_PLUGIN);
+  const OpcodeListing listing =
+      compileWithArgs({dir.c_str(), "--list-plugins"});
+  EXPECT_EQ(listing.status, CSOUND_EXITJMP_SUCCESS) << listing.text;
+  EXPECT_TRUE(listsPlugin(listing.text, CSOUND_TEST_TRAP_TEST_PLUGIN,
+                          "9.9.9-trap")) << listing.text;
+}
+
+// The record is also exported data: a host that has loaded the plugin can
+// find the same bytes with dlsym().
+TEST(PluginMetadata, IsAnExportedDataSymbol) {
+  for (const char *plugin : {CSOUND_TEST_VERSION_TEST_PLUGIN,
+                             CSOUND_TEST_VERSION_CPP_TEST_PLUGIN}) {
+    void *h = dlopen(plugin, RTLD_NOW | RTLD_LOCAL);
+    ASSERT_NE(h, nullptr) << dlerror();
+    const unsigned char *rec =
+        (const unsigned char *) dlsym(h, "csoundModuleMetadata");
+    ASSERT_NE(rec, nullptr) << plugin;
+    EXPECT_EQ(memcmp(rec, kMarker, sizeof(kMarker)), 0) << plugin;
+    dlclose(h);
+  }
+}
+#endif
 #endif
 
 #include "plugin.h"
