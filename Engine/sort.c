@@ -235,12 +235,13 @@ static void smoothsort(SRTBLK *A[], const int32_t N)
 
 void sort(CSOUND *csound)
 {
-    SRTBLK *bp;
+    SRTBLK *bp, *nxt;
     SRTBLK **A;
     int32_t i, n = 0;
     if (UNLIKELY((bp = csound->frstbp) == NULL))
       return;
     do {
+      nxt = bp->nxtblk;
       n++;                      /* Need to count to alloc the array */
       switch ((int32_t) bp->text[0]) {
       case 'd':
@@ -264,6 +265,12 @@ void sort(CSOUND *csound)
         bp->preced = 'a';
         break;
       case 'x':
+        if (bp->prvblk != NULL)
+          bp->prvblk->nxtblk = nxt;
+        else
+          csound->frstbp = nxt;
+        if (nxt != NULL)
+          nxt->prvblk = bp->prvblk;
         n--;
         break;
       case -1:
@@ -274,7 +281,7 @@ void sort(CSOUND *csound)
                                 bp->text[0], bp->text[0]);
         break;
       }
-    } while ((bp = bp->nxtblk) != NULL);
+    } while ((bp = nxt) != NULL);
 
     if (n>1) {
       /* Get a temporary array and populate it */
@@ -282,7 +289,6 @@ void sort(CSOUND *csound)
       bp = csound->frstbp;
       for (i=0; i<n; i++,bp = bp->nxtblk) {
         A[i] = bp;
-        if (bp->text[0]=='x') i--; /* try to ignore x opcode */
       }
       if (LIKELY(A[n-1]->text[0]=='e' || A[n-1]->text[0]=='s'))
         smoothsort(A, n-1);

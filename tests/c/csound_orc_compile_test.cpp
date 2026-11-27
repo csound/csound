@@ -14,15 +14,29 @@
 #include "csound_type_system.h"
 #include "gtest/gtest.h"
 #include <cstring>
+#include <atomic>
 #include <cmath>
+#include <chrono>
+#include <condition_variable>
+#include <cstdio>
 #include <limits>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <tuple>
 #include <vector>
+#if !defined(_WIN32)
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#endif
 extern "C" {
 #include "str_ops.h"
 #include "udo.h"
 #include "namedins.h"
+#include "pstream.h"
+#include "csound_standard_types.h"
+#include "inst_ops.h"
 }
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
@@ -56,6 +70,7 @@ public:
 
 extern "C" {
     extern int32_t args_required (const char* arrayName);
+    extern uint8_t file_to_int (CSOUND *csound, const char *name);
     extern char** split_args (CSOUND* csound, const char* argString);
     extern OENTRY* find_opcode_new (CSOUND* csound, const char* opname,
                                     const char* outArgsFound,
@@ -2223,6 +2238,48 @@ TEST_F (OrcCompileTests, testColumnNumbers)
     csoundDeleteTree(csound, tree);
 }
 
+TEST_F(OrcCompileTests, DeletingAnUncompiledTreeReleasesParserState)
+{
+    TREE* tree = csoundParseOrc(csound,
+        "opcode AddOne, k, k\n"
+        "  kx xin\n"
+        "  xout kx + 1\n"
+        "endop\n"
+        "instr 1\n"
+        "  kLocal = AddOne(1)\n"
+        "endin\n");
+    ASSERT_NE(nullptr, tree);
+    ASSERT_NE(nullptr, tree->markup);
+    ASSERT_NE(nullptr, tree->next);
+    ASSERT_NE(nullptr, tree->next->markup);
+    ASSERT_NE(nullptr, tree->next->next);
+    ASSERT_NE(nullptr, tree->next->next->markup);
+    struct Allocations {
+        decltype(CSOUND::Free) free;
+        void* typeTable;
+        void* udoPool;
+        void* instrumentPool;
+    } allocations{csound->Free, tree->markup, tree->next->markup,
+                  tree->next->next->markup};
+    csoundSetHostData(csound, &allocations);
+    csound->Free = [](CSOUND* cs, void* pointer) {
+        auto* state = static_cast<Allocations*>(csoundGetHostData(cs));
+        if (pointer == state->typeTable)
+            state->typeTable = nullptr;
+        if (pointer == state->udoPool)
+            state->udoPool = nullptr;
+        if (pointer == state->instrumentPool)
+            state->instrumentPool = nullptr;
+        state->free(cs, pointer);
+    };
+    csoundDeleteTree(csound, tree);
+    csound->Free = allocations.free;
+    csoundSetHostData(csound, nullptr);
+    EXPECT_EQ(nullptr, allocations.typeTable);
+    EXPECT_EQ(nullptr, allocations.udoPool);
+    EXPECT_EQ(nullptr, allocations.instrumentPool);
+}
+
 // Test that column numbers reset correctly across multiple lines
 TEST_F (OrcCompileTests, testColumnNumbersMultiLine)
 {
@@ -3148,5 +3205,4011 @@ endin
         EXPECT_EQ(3 + period, csoundGetControlChannel(csound, "field", &error));
         EXPECT_EQ(3 + period, csoundGetControlChannel(csound, "element", &error));
         EXPECT_EQ(3, csoundGetControlChannel(csound, "once", &error));
+    }
+}
+
+TEST_F(OrcCompileTests, UnterminatedQuotedStringAtEofFailsCleanly)
+{
+    csoundCreateMessageBuffer(csound, 0);
+    csoundSetOption(csound, "-n -d");
+    const char* orchestra = "instr 1\nSfoo = \"unterminated";
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    std::string messages;
+    while (csoundGetMessageCnt(csound)) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    csoundDestroyMessageBuffer(csound);
+    EXPECT_NE(std::string::npos, messages.find("unexpected EOF!")) << messages;
+}
+
+TEST_F(OrcCompileTests, UnterminatedMultiLineStringAtEofFailsCleanly)
+{
+    csoundCreateMessageBuffer(csound, 0);
+    csoundSetOption(csound, "-n -d");
+    const char* orchestra = "instr 1\nSfoo = {{\nunclosed";
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    std::string messages;
+    while (csoundGetMessageCnt(csound)) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    csoundDestroyMessageBuffer(csound);
+    EXPECT_NE(std::string::npos,
+              messages.find("unterminated string at end of input")) << messages;
+}
+
+TEST_F(OrcCompileTests, UnterminatedRawStringAtEofFailsCleanly)
+{
+    csoundCreateMessageBuffer(csound, 0);
+    csoundSetOption(csound, "-n -d");
+    const char* orchestra = "instr 1\nSfoo = R{\nunclosed";
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    std::string messages;
+    while (csoundGetMessageCnt(csound)) {
+        messages += csoundGetFirstMessage(csound);
+        csoundPopFirstMessage(csound);
+    }
+    csoundDestroyMessageBuffer(csound);
+    EXPECT_NE(std::string::npos,
+              messages.find("unterminated string at end of input")) << messages;
+}
+
+TEST_F(OrcCompileTests, RawStringPreservesSpecialSyntaxAndNesting)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"csound(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+#define FOO #EXPANDED#
+instr 1
+  Sraw = R{semi; slash// block/* quote" #define BAR #1# $FOO nested R{ok}R end}R
+  chnset Sraw, "rawOut"
+endin
+)csound";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    char buf[256] = {0};
+    csoundGetStringChannel(csound, "rawOut", buf);
+    EXPECT_STREQ("semi; slash// block/* quote\" #define BAR #1# $FOO nested R{ok}R end", buf);
+}
+
+TEST_F(OrcCompileTests, AtAtPowerOfTwoInstrumentNumber)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr @@10
+  chnset 1, "atInstr"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 17 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "atInstr", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, MacroArgumentOver98CharsExpands)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const std::string longArg(120, 'x');
+    const std::string orchestra =
+        "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\n"
+        "#define MAKE_STR(A) #\"$A\"#\n"
+        "instr 1\n"
+        "  Sval = $MAKE_STR(" + longArg + ")\n"
+        "  chnset Sval, \"macroOut\"\n"
+        "endin\n";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra.c_str()));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    char buf[256] = {0};
+    csoundGetStringChannel(csound, "macroOut", buf);
+    EXPECT_EQ(longArg, std::string(buf));
+}
+
+TEST_F(OrcCompileTests, MultiNamedInstrCreatesInstrDefVariablesAndRuns)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr Foo, Bar
+  kCount chnget "multiInstrCount"
+  chnset kCount + 1, "multiInstrCount"
+  turnoff
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    CS_VARIABLE* fooVar = csoundFindVariableWithName(
+        csound, csound->engineState.varPool, "Foo");
+    CS_VARIABLE* barVar = csoundFindVariableWithName(
+        csound, csound->engineState.varPool, "Bar");
+    ASSERT_NE(nullptr, fooVar);
+    ASSERT_NE(nullptr, barVar);
+    EXPECT_EQ(&CS_VAR_TYPE_INSTR, fooVar->varType);
+    EXPECT_EQ(&CS_VAR_TYPE_INSTR, barVar->varType);
+    csoundReadScore(csound, "i \"Foo\" 0 0.1\ni \"Bar\" 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(2, csoundGetControlChannel(csound, "multiInstrCount", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, ForLoopWithTypedVariables)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+  kArr[] = fillarray(10, 20, 30)
+  kSum = 0
+  kIdxSum = 0
+  kUntypedIdxSum = 0
+  for x:k in kArr do
+    kSum += x
+  od
+  for y:k, idx:k in kArr do
+    kIdxSum += y * idx
+  od
+  for z:k, idx2 in kArr do
+    kUntypedIdxSum += z * idx2
+  od
+  chnset kSum, "sum"
+  chnset kIdxSum, "idxSum"
+  chnset kUntypedIdxSum, "untypedIdxSum"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(60, csoundGetControlChannel(csound, "sum", &error));
+    EXPECT_EQ(80, csoundGetControlChannel(csound, "idxSum", &error));
+    EXPECT_EQ(80, csoundGetControlChannel(csound, "untypedIdxSum", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, UndefinedVarInExpressionArgFailsCleanly)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+  chnset 1 + (iMissingVar * 2), "out"
+endin
+)";
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+}
+
+TEST_F(OrcCompileTests, Instr0IfAfterInstrBlockRunsAtInitTime)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+endin
+giFlag = 1
+if giFlag == 1 then
+  chnset 42, "instr0After"
+endif
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "e 0.05\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int32_t error = 0;
+    EXPECT_EQ(42, csoundGetControlChannel(csound, "instr0After", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, UdoOver12ArgsAndArrayBeforeKArg)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+opcode ManyArgs, kk, kkkkkkkkkkkkkk
+  k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11, k12, k13, k14 xin
+  xout k1 + k13, k12 + k14
+endop
+opcode ArrBeforeK, k[]K, k[]K
+  kArr[], kVal xin
+  kOut[] init 1
+  kOut[0] = kArr[0] + kVal
+  xout kOut, kVal * 2
+endop
+instr 1
+  kA, kB ManyArgs 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14
+  kIn[] = fillarray(5)
+  kScaled init 7
+  kOutArr[], kOutK ArrBeforeK kIn, kScaled
+  chnset kA, "manyA"
+  chnset kB, "manyB"
+  chnset kOutArr[0], "arrOut"
+  chnset kOutK, "kOut"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(14, csoundGetControlChannel(csound, "manyA", &error));
+    EXPECT_EQ(26, csoundGetControlChannel(csound, "manyB", &error));
+    EXPECT_EQ(12, csoundGetControlChannel(csound, "arrOut", &error));
+    EXPECT_EQ(14, csoundGetControlChannel(csound, "kOut", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, CopyUninitializedFsigDoesNotCrash)
+{
+    PVSDAT src{};
+    PVSDAT dest{};
+    CS_VAR_TYPE_F.copyValue(csound, &CS_VAR_TYPE_F, &dest, &src, nullptr);
+    EXPECT_EQ(nullptr, dest.frame.auxp);
+
+    char dummyBuf[16];
+    memset(dummyBuf, 0x5A, sizeof(dummyBuf));
+    dest.frame.auxp = dummyBuf;
+    dest.frame.size = sizeof(dummyBuf);
+    CS_VAR_TYPE_F.copyValue(csound, &CS_VAR_TYPE_F, &dest, &src, nullptr);
+    for (char c : dummyBuf) {
+        EXPECT_EQ(0, c);
+    }
+
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+opcode PassF, f, f
+  fIn xin
+  xout fIn
+endop
+instr 1
+  if 0 == 1 then
+    aZero = 0
+    fUninit pvsanal aZero, 256, 64, 256, 1
+  endif
+  fOut PassF fUninit
+  chnset 1, "fsigDone"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "fsigDone", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, MissingNumberedInstrReturnsNotAnInstrument)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    cs_float missing = 99.0;
+    EXPECT_EQ(NOT_AN_INSTRUMENT, csoundStringArg2Insno(csound, &missing, 0));
+    cs_float present = 1.0;
+    EXPECT_EQ(1, csoundStringArg2Insno(csound, &present, 0));
+}
+
+typedef struct {
+    OPDS h;
+    cs_float *out;
+    cs_float *in1;
+    cs_float *optArg;
+} OPT_QUESTION_TEST_OP;
+
+static int32_t opt_question_test_init(CSOUND *csound, OPT_QUESTION_TEST_OP *p)
+{
+    IGN(csound);
+    *p->out = *p->in1 + *p->optArg;
+    return OK;
+}
+
+TEST_F(OrcCompileTests, OpcodeObjectOptionalQuestionArgReadsProvidedValue)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    OENTRY entry = {
+        const_cast<char*>("optqtest"),
+        sizeof(OPT_QUESTION_TEST_OP),
+        0,
+        const_cast<char*>("i"),
+        const_cast<char*>("i?"),
+        (SUBR)opt_question_test_init,
+        NULL,
+        NULL,
+        NULL,
+        0
+    };
+    ASSERT_EQ(CSOUND_SUCCESS, csoundAppendOpcodes(csound, &entry, 1));
+    const char* orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+  obj1:Opcode create opcoderef("optqtest")
+  iDefault run obj1, 10
+  obj2:Opcode create opcoderef("optqtest")
+  iProvided run obj2, 10, 5
+  chnset iDefault, "optDefault"
+  chnset iProvided, "optProvided"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(10, csoundGetControlChannel(csound, "optDefault", &error));
+    EXPECT_EQ(15, csoundGetControlChannel(csound, "optProvided", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, EvalCodeExitNowBeforeStartReturnsCleanly)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    EXPECT_EQ(FL(0.0), csoundEvalCode(csound, "exitnow 3\n"));
+}
+
+static bool replace_opcode_lexeme(CSOUND *csound, TREE *node,
+                                  const char *from, const char *to)
+{
+    if (node == nullptr) return false;
+    if (node->value != nullptr && node->value->lexeme != nullptr &&
+        strcmp(node->value->lexeme, from) == 0) {
+        csound->Free(csound, node->value->lexeme);
+        node->value->lexeme = csoundStrdup(csound, to);
+        node->markup = nullptr;
+        return true;
+    }
+    return replace_opcode_lexeme(csound, node->left, from, to) ||
+           replace_opcode_lexeme(csound, node->right, from, to) ||
+           replace_opcode_lexeme(csound, node->next, from, to);
+}
+
+TEST(OrcCompileRecoveryTests, RecoverAfterFailedInitialCompileOrcTreeAndCsd)
+{
+    const char *validOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+  chnset 42, "recovered"
+endin
+)";
+    // 1. Failed initial csoundCompileOrc -> valid csoundCompileOrc
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        EXPECT_NE(CSOUND_SUCCESS,
+                  csoundCompileOrc(cs, "instr 1\n  unknown_op_xyz 1\nendin\n"));
+        EXPECT_EQ(nullptr, cs->instr0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, validOrc));
+        csoundReadScore(cs, "i 1 0 0.1\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(42, csoundGetControlChannel(cs, "recovered", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // 2. Failed initial csoundCompileTree -> valid csoundCompileTree
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        TREE *badTree = csoundParseOrc(cs, "instr 1\n  prints \"hi\"\nendin\n");
+        ASSERT_NE(nullptr, badTree);
+        ASSERT_TRUE(replace_opcode_lexeme(cs, badTree, "prints", "nonexistent_op_xyz"));
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileTree(cs, badTree, 0));
+        csoundDeleteTree(cs, badTree);
+        EXPECT_EQ(nullptr, cs->instr0);
+        EXPECT_EQ(nullptr, cs->engineState.instrtxtp);
+        EXPECT_EQ(0, cs->synterrcnt);
+
+        TREE *okTree = csoundParseOrc(cs, validOrc);
+        ASSERT_NE(nullptr, okTree);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileTree(cs, okTree, 0));
+        csoundDeleteTree(cs, okTree);
+        csoundReadScore(cs, "i 1 0 0.1\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(42, csoundGetControlChannel(cs, "recovered", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // 4. Failed initial csoundCompileTree with named instrument RetryMe ->
+    //    valid csoundCompileTree of RetryMe without --allow-redefinition
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        TREE *badTree = csoundParseOrc(cs, "instr RetryMe\n  prints \"hi\"\nendin\n");
+        ASSERT_NE(nullptr, badTree);
+        ASSERT_TRUE(replace_opcode_lexeme(cs, badTree, "prints", "nonexistent_op_xyz"));
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileTree(cs, badTree, 0));
+        csoundDeleteTree(cs, badTree);
+        EXPECT_EQ(nullptr, cs->instr0);
+        EXPECT_EQ(nullptr, cs->engineState.instrtxtp);
+        EXPECT_EQ(nullptr, cs->engineState.instrumentNames);
+        EXPECT_EQ(0, cs->synterrcnt);
+
+        const char *retryOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr RetryMe
+  chnset 42, "recoveredNamed"
+endin
+)";
+        TREE *okTree = csoundParseOrc(cs, retryOrc);
+        ASSERT_NE(nullptr, okTree);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileTree(cs, okTree, 0));
+        csoundDeleteTree(cs, okTree);
+        csoundReadScore(cs, "i \"RetryMe\" 0 0.1\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(42, csoundGetControlChannel(cs, "recoveredNamed", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // 3. Failed initial csoundCompileCSD -> valid csoundCompileCSD
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        const char *badCsd = R"(
+<CsoundSynthesizer>
+<CsOptions>
+-n -d -m0
+</CsOptions>
+<CsInstruments>
+instr 1
+  unknown_csd_op_xyz 1
+endin
+</CsInstruments>
+<CsScore>
+i 1 0 0.1
+</CsScore>
+</CsoundSynthesizer>
+)";
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileCSD(cs, badCsd, 1, 0));
+        EXPECT_EQ(nullptr, cs->scorestr);
+        EXPECT_EQ(nullptr, cs->instr0);
+
+        const char *goodCsd = R"(
+<CsoundSynthesizer>
+<CsOptions>
+-n -d -m0
+</CsOptions>
+<CsInstruments>
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+instr 1
+  chnset 42, "recovered"
+endin
+</CsInstruments>
+<CsScore>
+i 1 0 0.1
+</CsScore>
+</CsoundSynthesizer>
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(cs, goodCsd, 1, 0));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(42, csoundGetControlChannel(cs, "recovered", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+}
+
+TEST_F(OrcCompileTests, GlobalStructMemberAccessCodegen)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+
+struct GlobalPair a:i, b:i
+pair@global:GlobalPair init 10, 32
+
+instr 1
+  iSum = pair.a + pair.b
+  chnset iSum, "structSum"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(42, csoundGetControlChannel(csound, "structSum", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, RejectsConflictingStructRedefinitionAndKeepsOriginalConstructor)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    // Conflicting redefinition within a single compile is rejected
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        const char *conflicting = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct Record first:i
+struct Record first:i, second:i
+instr 1
+endin
+)";
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(cs, conflicting));
+        csoundDestroy(cs);
+    }
+
+    // Completed struct resists conflicting live redefinition and keeps its constructor intact
+    const char *baseOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct Record first:i
+instr 1
+  val:Record init 7
+  chnset val.first, "firstVal"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, baseOrc));
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, "struct Record first:i, second:i\n"));
+    const char *identicalLive = R"(
+struct Record first:i
+instr 2
+  val:Record init 11
+  chnset val.first, "secondVal"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, identicalLive));
+    csoundReadScore(csound, "i 1 0 0.05\ni 2 0 0.05\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t error = 0;
+    EXPECT_EQ(7, csoundGetControlChannel(csound, "firstVal", &error));
+    EXPECT_EQ(11, csoundGetControlChannel(csound, "secondVal", &error));
+    EXPECT_EQ(CSOUND_SUCCESS, error);
+}
+
+TEST_F(OrcCompileTests, RejectsScalarStructCyclesWhileAllowingForwardRefsAndArrayRecursion)
+{
+    // Direct scalar self-cycle
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        EXPECT_NE(CSOUND_SUCCESS,
+                  csoundCompileOrc(cs, "struct SelfLoop next:SelfLoop\ninstr 1\nendin\n"));
+        csoundDestroy(cs);
+    }
+    // Mutual scalar cycle (and recovery to non-cyclic definitions in the same instance)
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0 --logfile=null");
+        const char *mutual = R"(
+struct Parent child:Child
+struct Child parent:Parent
+instr 1
+endin
+)";
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(cs, mutual));
+        const char *validAfterCycle = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct Parent x:i
+instr 1
+  p:Parent init 9
+  chnset p.x, "recoveredParent"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, validAfterCycle));
+        csoundReadScore(cs, "i 1 0 0.05\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(9, csoundGetControlChannel(cs, "recoveredParent", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+    // Forward reference + diamond DAG + recursive array member all succeed
+    csoundSetOption(csound, "-n -d -m0");
+    const char *validComplex = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct Forward leaf:Leaf
+struct Leaf val:i
+struct Diamond left:Leaf, right:Leaf
+struct Node val:i, children:Node[]
+instr 1
+  l1:Leaf init 10
+  l2:Leaf init 32
+  d:Diamond init l1, l2
+  f:Forward init l1
+  ch:Node[] init 0
+  n:Node init 5, ch
+  chnset d.left.val + d.right.val, "diamondSum"
+  chnset f.leaf.val + n.val, "forwardAndNode"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, validComplex));
+    csoundReadScore(csound, "i 1 0 0.05\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t err = 0;
+    EXPECT_EQ(42, csoundGetControlChannel(csound, "diamondSum", &err));
+    EXPECT_EQ(15, csoundGetControlChannel(csound, "forwardAndNode", &err));
+    EXPECT_EQ(CSOUND_SUCCESS, err);
+}
+
+TEST_F(OrcCompileTests, RollsBackNewStructDefinitionsOnCompileFailure)
+{
+    // Fresh engine: semantic/compile failure must roll back newly registered struct
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        const char *failingInitial = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct Box x:i
+gVal@global:Box init 1
+instr 1
+  unknownOpcodeForRollbackTest
+endin
+)";
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(cs, failingInitial));
+        EXPECT_EQ(nullptr, csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Box"));
+
+        const char *retryInitial = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct Box x:i, y:i
+gVal@global:Box init 7, 11
+instr 1
+  chnset gVal.x + gVal.y, "freshRetrySum"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, retryInitial));
+        csoundEventString(cs, "i 1 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(18.0), csoundGetControlChannel(cs, "freshRetrySum", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // Parse-only discard must roll back structs registered during parse
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *parsed = csoundParseOrc(cs, "struct ParsedBox x:i\n");
+        ASSERT_NE(nullptr, parsed);
+        csoundDeleteTree(cs, parsed);
+        EXPECT_EQ(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "ParsedBox"));
+        const char *validOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct ParsedBox x:i, y:i
+instr 1
+  b:ParsedBox init 3, 4
+  chnset b.x + b.y, "parsedRetrySum"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, validOrc));
+        csoundEventString(cs, "i 1 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(7.0), csoundGetControlChannel(cs, "parsedRetrySum", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // Live edit on running engine: failed compile allows redefining struct layout
+    {
+        csoundSetOption(csound, "-n -d -m0");
+        const char *baseOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+struct ExistingBox v:i
+instr 1
+  eb:ExistingBox init 5
+  chnset eb.v, "existingBox"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, baseOrc));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        csoundReadScore(csound, "i 1 0 0.05\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+
+        const char *badLive = R"(
+struct ExistingBox v:i
+struct LiveBox a:i
+instr 2
+  b:LiveBox init 1
+  unknownLiveOpcode
+endin
+)";
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, badLive));
+        EXPECT_NE(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "ExistingBox"));
+        EXPECT_EQ(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(csound), "LiveBox"));
+
+        const char *fixedLive = R"(
+struct LiveBox a:i, b:i
+instr 2
+  lb:LiveBox init 20, 22
+  chnset lb.a + lb.b, "liveRetrySum"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, fixedLive));
+        csoundReadScore(csound, "i 2 0 0.05\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+        int32_t err = 0;
+        EXPECT_EQ(FL(5.0), csoundGetControlChannel(csound, "existingBox", &err));
+        EXPECT_EQ(FL(42.0), csoundGetControlChannel(csound, "liveRetrySum", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+    }
+}
+
+TEST_F(OrcCompileTests, DeletingParsedTreeKeepsStructsAdoptedByLaterCompile)
+{
+    // Parsing registers a struct with the engine at once, and a compile that
+    // re-declares it records nothing of its own. The first tree's list is
+    // then the only bookkeeping of a type that compile's instruments use:
+    // deleting the tree must not roll it back out from under them.
+    const char *decl = "struct Foo x:i\n";
+    const char *use =
+        "gShared@global:Foo init 42\n"
+        "instr 1\n"
+        "  lFoo:Foo init 7\n"
+        "  chnset gShared.x + lFoo.x, \"adoptedSum\"\n"
+        "endin\n";
+    std::string orchestra = std::string(decl) + use;
+    const char *laterUse =
+        "instr 2\n"
+        "  lFoo:Foo init 7\n"
+        "  chnset lFoo.x, \"adoptedAgain\"\n"
+        "endin\n";
+
+    // Deleted after the compile: the instruments run, and the engine tears
+    // down around them.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *parsed = csoundParseOrc(cs, decl);
+        ASSERT_NE(nullptr, parsed);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, orchestra.c_str()));
+        csoundDeleteTree(cs, parsed);
+        csoundEventString(cs, "i 1 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(49.0), csoundGetControlChannel(cs, "adoptedSum", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // Deleted before the engine is used, as a host that parses ahead may:
+    // the type is still there to start with and to compile with.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *parsed = csoundParseOrc(cs, decl);
+        ASSERT_NE(nullptr, parsed);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, orchestra.c_str()));
+        csoundDeleteTree(cs, parsed);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(cs, laterUse));
+        csoundEventString(cs, "i 1 0 0.05\ni 2 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(49.0), csoundGetControlChannel(cs, "adoptedSum", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        EXPECT_EQ(FL(7.0), csoundGetControlChannel(cs, "adoptedAgain", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // With no compile in between, the types are still the parse's own.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *parsed = csoundParseOrc(cs, decl);
+        ASSERT_NE(nullptr, parsed);
+        csoundDeleteTree(cs, parsed);
+        EXPECT_EQ(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Foo"));
+        csoundDestroy(cs);
+    }
+}
+
+TEST_F(OrcCompileTests, DeletingParsedTreeKeepsStructsAdoptedByLaterParse)
+{
+    // Exact two-tree sequence: treeB adopts Draft during csoundParseOrc,
+    // treeA is deleted before treeB is compiled, and treeB must still compile
+    // without touching freed CS_TYPE or init.Draft OENTRY storage.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *treeA = csoundParseOrc(cs, "struct Draft x:i\n");
+        ASSERT_NE(nullptr, treeA);
+        TREE *treeB = csoundParseOrc(
+            cs,
+            "instr 1\n"
+            "  box:Draft init 41\n"
+            "  chnset box.x + 1, \"draftOut\"\n"
+            "endin\n");
+        ASSERT_NE(nullptr, treeB);
+
+        csoundDeleteTree(cs, treeA);
+        ASSERT_NE(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Draft"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileTree(cs, treeB, 0));
+        csoundDeleteTree(cs, treeB);
+
+        csoundEventString(cs, "i 1 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(42.0), csoundGetControlChannel(cs, "draftOut", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // Transitive nested structs across separate parsed trees: treeD only uses
+    // Outer, whose member references Inner from treeA. Deleting A and B before
+    // compiling D must keep both Outer and Inner alive.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *treeA = csoundParseOrc(cs, "struct Inner v:i\n");
+        ASSERT_NE(nullptr, treeA);
+        TREE *treeB = csoundParseOrc(cs, "struct Outer in:Inner\n");
+        ASSERT_NE(nullptr, treeB);
+        TREE *treeC = csoundParseOrc(
+            cs,
+            "instr 1\n"
+            "  iSub:Inner init 9\n"
+            "  oBox:Outer init iSub\n"
+            "  chnset oBox.in.v, \"nestedOut\"\n"
+            "endin\n");
+        ASSERT_NE(nullptr, treeC);
+        TREE *treeD = csoundParseOrc(
+            cs,
+            "opcode PassOuter(o:Outer):Outer\n"
+            "  xout o\n"
+            "endop\n"
+            "instr 2\n"
+            "  oA:Outer init\n"
+            "  oB:Outer = PassOuter(oA)\n"
+            "  chnset oB.in.v, \"udoNestedOut\"\n"
+            "endin\n");
+        ASSERT_NE(nullptr, treeD);
+
+        csoundDeleteTree(cs, treeA);
+        csoundDeleteTree(cs, treeB);
+        csoundDeleteTree(cs, treeC);
+        ASSERT_NE(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Inner"));
+        ASSERT_NE(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Outer"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileTree(cs, treeD, 0));
+        csoundDeleteTree(cs, treeD);
+
+        csoundEventString(cs, "i 2 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(cs, "udoNestedOut", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // Deleting both adopting trees without compiling either rolls the struct
+    // back cleanly, allowing a different definition afterwards.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *treeA = csoundParseOrc(cs, "struct Draft x:i\n");
+        ASSERT_NE(nullptr, treeA);
+        TREE *treeB = csoundParseOrc(
+            cs,
+            "instr 1\n"
+            "  box:Draft init 1\n"
+            "endin\n");
+        ASSERT_NE(nullptr, treeB);
+
+        csoundDeleteTree(cs, treeA);
+        EXPECT_NE(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Draft"));
+        csoundDeleteTree(cs, treeB);
+        EXPECT_EQ(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Draft"));
+
+        ASSERT_EQ(CSOUND_SUCCESS,
+                  csoundCompileOrc(cs,
+                                   "struct Draft x:i, y:i\n"
+                                   "instr 1\n"
+                                   "  box:Draft init 3, 4\n"
+                                   "  chnset box.x + box.y, \"redefined\"\n"
+                                   "endin\n"));
+        csoundEventString(cs, "i 1 0 0.05\n", 0);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(cs));
+        int32_t err = 0;
+        EXPECT_EQ(FL(7.0), csoundGetControlChannel(cs, "redefined", &err));
+        EXPECT_EQ(CSOUND_SUCCESS, err);
+        csoundDestroy(cs);
+    }
+
+    // A failed or unrelated second parse must not prevent treeA rollback.
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        TREE *treeA = csoundParseOrc(cs, "struct Draft x:i\n");
+        ASSERT_NE(nullptr, treeA);
+        TREE *bad = csoundParseOrc(cs, "instr 1\n  bad =\nendin\n");
+        EXPECT_EQ(nullptr, bad);
+        TREE *unrelated = csoundParseOrc(cs, "instr 1\n  k1 = 1\nendin\n");
+        ASSERT_NE(nullptr, unrelated);
+
+        csoundDeleteTree(cs, treeA);
+        EXPECT_EQ(nullptr,
+                  csoundGetTypeWithVarTypeName(csoundGetTypePool(cs), "Draft"));
+        csoundDeleteTree(cs, unrelated);
+        csoundDestroy(cs);
+    }
+}
+
+TEST_F(OrcCompileTests, NamedInstrRedefinitionWithAllowRedefAndLiveMerge)
+{
+    csoundSetOption(csound, "-n -d -m0 --allow-redefinition");
+    const char *initialOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+
+instr TestNamed
+  kOut init 10
+  chnset kOut, "namedVal"
+endin
+
+instr TestNamed
+  kOut init 25
+  chnset kOut, "namedVal"
+endin
+
+instr LiveNamed
+  kVal init 1
+  chnset kVal, "liveVal"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, initialOrc));
+    csoundReadScore(csound, "i \"TestNamed\" 0 0.05\ni \"LiveNamed\" 0 0.2\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+
+    int32_t err = 0;
+    EXPECT_EQ(25, csoundGetControlChannel(csound, "namedVal", &err));
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "liveVal", &err));
+
+    // Redefine LiveNamed while an instance is still active (deadpool + merge)
+    const char *liveUpdate = R"(
+instr LiveNamed
+  kVal init 99
+  chnset kVal, "liveVal"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, liveUpdate));
+    csoundReadScore(csound, "i \"LiveNamed\" 0 0.05\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    EXPECT_EQ(99, csoundGetControlChannel(csound, "liveVal", &err));
+}
+
+TEST_F(OrcCompileTests, NamedInstrLiveDoesNotOverwriteOccupiedSlots)
+{
+    csoundSetOption(csound, "-n -d -m0 --allow-redefinition");
+    const char *baseOrc = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  chnset 1, "n1"
+endin
+
+instr 2
+  chnset 2, "n2"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, baseOrc));
+    const char *liveOrc = R"(
+instr 1
+  chnset 10, "n1"
+endin
+
+instr LiveNamed
+  chnset 99, "liveNamed"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, liveOrc));
+    csoundReadScore(csound, "i 1 0 0.05\ni 2 0 0.05\ni \"LiveNamed\" 0 0.05\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    int32_t err = 0;
+    EXPECT_EQ(10, csoundGetControlChannel(csound, "n1", &err));
+    EXPECT_EQ(2, csoundGetControlChannel(csound, "n2", &err));
+    EXPECT_EQ(99, csoundGetControlChannel(csound, "liveNamed", &err));
+    EXPECT_EQ(CSOUND_SUCCESS, err);
+}
+
+TEST_F(OrcCompileTests, FileToIntExceeds255AndResetsCleanly)
+{
+    for (int i = 0; i < 270; ++i) {
+        char name[32];
+        snprintf(name, sizeof(name), "inc_%d.orc", i);
+        uint8_t idx = file_to_int(csound, name);
+        if (i < 254) {
+            EXPECT_EQ(static_cast<uint8_t>(i), idx);
+        } else {
+            EXPECT_EQ(254, idx);
+        }
+    }
+    EXPECT_NE(nullptr, csound->filedir[254]);
+    EXPECT_EQ(nullptr, csound->filedir[255]);
+    EXPECT_EQ(254, file_to_int(csound, "another_overflow_file.orc"));
+    csoundReset(csound);
+}
+
+TEST_F(OrcCompileTests, CsobjDestroyThenDeleteAndUninitializedGuards)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  obj:Csound create
+  iOk compilestr obj, "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\ninstr 1\nendin\n"
+  chnset iOk, "compiledOk"
+  destroy obj
+  chnset 1, "destroyedOk"
+endin
+
+instr 2
+  if 0 == 1 then
+    uninitObj:Csound create
+  endif
+  iRes compilestr uninitObj, "instr 1\nendin\n"
+  chnset 1, "shouldNotReach2"
+endin
+
+instr 3
+  obj:Csound create
+  destroy obj
+  iRes setoption obj, "-n"
+  chnset 1, "shouldNotReach3"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.01\ni 2 0 0.01\ni 3 0 0.01\ne 0.05\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    // Run long enough for instr 1's deinit (`delete`) to execute too
+    for (int i = 0; i < 20; ++i) {
+        ASSERT_EQ(CSOUND_SUCCESS, csoundPerformKsmps(csound));
+    }
+    int32_t err = 0;
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "compiledOk", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "destroyedOk", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "shouldNotReach2", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "shouldNotReach3", &err));
+    EXPECT_EQ(0, err);
+}
+
+TEST_F(OrcCompileTests, CsobjSharedLifetimeAcrossCopies)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *orchestra = R"(
+sr = 48000
+ksmps = 64
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  objA:Csound create
+  objB:Csound = objA
+  destroy objB
+  chnset 1, "copyDestroyOk"
+  iRes setoption objA, "-n"
+  chnset 1, "shouldNotReach1"
+endin
+
+instr 2
+  objA:Csound create
+  objB:Csound = objA
+  objA create
+  iOkB compilestr objB, "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\ninstr 1\nendin\n"
+  iOkA compilestr objA, "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\ninstr 1\nendin\n"
+  destroy objA
+  destroy objB
+  if iOkB == 0 && iOkA == 0 then
+    chnset 1, "recreatePreservesCopy"
+  endif
+endin
+
+instr 3
+  objB:Csound create
+  iOkOld compilestr objB, "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\ninstr 1\nendin\n"
+  objA:Csound create
+  objB = objA
+  objB = objB
+  iOkNew compilestr objB, "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\ninstr 1\nendin\n"
+  destroy objB
+  if iOkOld == 0 && iOkNew == 0 then
+    chnset 1, "overwriteAndSelfAssignOk"
+  endif
+endin
+
+instr 4
+  objA:Csound create
+  objB:Csound = objA
+  if p4 == 1 then
+    destroy objB
+    chnset 1, "reuseDestroyedOk"
+  else
+    iOkReuse compilestr objA, "sr = 48000\nksmps = 64\nnchnls = 1\n0dbfs = 1\ninstr 1\nendin\n"
+    if iOkReuse == 0 then
+      chnset 1, "reuseRecreateOk"
+    endif
+  endif
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound,
+                    "i 1 0 0.005\n"
+                    "i 2 0 0.005\n"
+                    "i 3 0 0.005\n"
+                    "i 4 0 0.005 1\n"
+                    "i 4 0.01 0.005 0\n"
+                    "e 0.03\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    while (csoundPerformKsmps(csound) == 0) {
+    }
+    int32_t err = 0;
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "copyDestroyOk", &err));
+    EXPECT_EQ(0, csoundGetControlChannel(csound, "shouldNotReach1", &err));
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "recreatePreservesCopy", &err));
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "overwriteAndSelfAssignOk", &err));
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "reuseDestroyedOk", &err));
+    EXPECT_EQ(1, csoundGetControlChannel(csound, "reuseRecreateOk", &err));
+}
+
+TEST(ParcsTests, MultiInstrumentListAndNamedInstruments)
+{
+    for (int threads : {2, 4}) {
+        CSOUND* csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j " + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char* orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+gkSum init 0
+
+instr 1, 2
+  kOnce init 0
+  if kOnce == 0 then
+    gkSum += p1
+    kOnce = 1
+  endif
+endin
+
+instr Foo, Bar
+  kOnce init 0
+  if kOnce == 0 then
+    gkSum += p4
+    kOnce = 1
+  endif
+  chnset gkSum, "sum"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+        csoundReadScore(csound,
+                        "i 1 0 0.02\n"
+                        "i 2 0 0.02\n"
+                        "i \"Foo\" 0 0.02 10\n"
+                        "i \"Bar\" 0 0.02 20\n"
+                        "e 0.03\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        int perfStatus = 0;
+        while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+        }
+        EXPECT_GT(perfStatus, 0);
+        int32_t err = 0;
+        EXPECT_DOUBLE_EQ(33.0, (double)csoundGetControlChannel(csound, "sum", &err));
+        EXPECT_EQ(0, err);
+        csoundReset(csound);
+        csoundDestroy(csound);
+    }
+}
+
+TEST(ParcsTests, SharedGlobalsTablesAndChannelsDeterministic)
+{
+    struct Case {
+        const char* name;
+        std::string orchestra;
+    };
+    const std::string globalSetup = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+)";
+    const char* globalReader = R"(
+instr 2
+  kExp init 0
+  kBad init 0
+  kExp += 1
+  if gkShared != kExp then
+    kBad += 1
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+endin
+)";
+    std::string nestedUdos = "opcode Deep17, 0, 0\ngkShared += 1\nendop\n";
+    for (int i = 16; i >= 0; --i) {
+        nestedUdos += "opcode Deep" + std::to_string(i) + ", 0, 0\nDeep" +
+                      std::to_string(i + 1) + "\nendop\n";
+    }
+    const Case cases[] = {
+        {"GlobalVar", globalSetup + "instr 1\ngkShared += 1\nendin\n" +
+                      globalReader},
+        {"Subinstrument", globalSetup + R"(
+instr 3
+  gkShared += 1
+endin
+instr 1
+  aOut subinstr 3
+endin
+)" + globalReader},
+        {"SubinstrInitReinit", globalSetup + R"(
+instr 3
+  iNext = i(gkShared) + 1
+  gkShared init iNext
+endin
+instr 1
+  reinit doInit
+  igoto done
+doInit:
+  subinstrinit 3
+done:
+  rireturn
+endin
+)" + globalReader},
+        {"NestedUdos", globalSetup + nestedUdos + "instr 1\nDeep0\nendin\n" +
+                       globalReader},
+        {"OpcodeObjectRun", globalSetup + R"(
+opcode SharedBump(kInc:k):k
+  gkShared += kInc
+  xout gkShared
+endop
+instr 1
+  obj:Opcode create opcoderef("SharedBump")
+  kRes run obj, 1
+endin
+)" + globalReader},
+        {"OpcodeObjectPerf", globalSetup + R"(
+opcode SharedBump(kInc:k):k
+  gkShared += kInc
+  xout gkShared
+endop
+instr 1
+  obj:Opcode create opcoderef("SharedBump")
+  kZero = 0
+  kRes init obj, kZero
+  kRes perf obj, 1
+endin
+)" + globalReader},
+        {"OpcodeArrayRun", globalSetup + R"(
+opcode SharedBump(kInc:k):k
+  gkShared += kInc
+  xout gkShared
+endop
+instr 1
+  objs:Opcode[] = create(opcoderef("SharedBump"), 1)
+  incs:k[] fillarray 1
+  outs:k[] init 1
+  outs = run(objs, incs)
+endin
+)" + globalReader},
+        {"ByRefUdoWrite", globalSetup + R"(
+opcode BumpRef(kVal):void
+  kVal += 1
+endop
+instr 1
+  BumpRef gkShared
+endin
+)" + globalReader},
+        {"TableReadWrite", R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+giTbl ftgen 0, 0, 8, -2, 0
+
+instr 1
+  kCnt init 0
+  kCnt += 1
+  tablew kCnt, 0, giTbl
+endin
+
+instr 2
+  kExp init 0
+  kBad init 0
+  kExp += 1
+  kV table 0, giTbl
+  if kV != kExp then
+    kBad += 1
+  endif
+  chnset kBad, "bad"
+  chnset kV, "seen"
+endin
+)"},
+        {"ChannelReadWrite", R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  kCnt init 0
+  kCnt += 1
+  chnset kCnt, "pipe"
+endin
+
+instr 2
+  kExp init 0
+  kBad init 0
+  kExp += 1
+  kV chnget "pipe"
+  if kV != kExp then
+    kBad += 1
+  endif
+  chnset kBad, "bad"
+  chnset kV, "seen"
+endin
+)"},
+    };
+
+    CSOUND* csound = csoundCreate(nullptr, nullptr);
+    ASSERT_NE(nullptr, csound);
+    for (const auto& tc : cases) {
+        SCOPED_TRACE(tc.name);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-j 4"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, tc.orchestra.c_str()));
+        csoundReadScore(csound, "i 1 0 0.05\ni 2 0 0.05\ne 0.06\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        int perfStatus = 0;
+        while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+        }
+        EXPECT_GT(perfStatus, 0);
+        int32_t err = 0;
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_GE(csoundGetControlChannel(csound, "seen", &err), FL(50.0));
+        EXPECT_EQ(0, err);
+        csoundReset(csound);
+    }
+    csoundDestroy(csound);
+}
+
+TEST(ParcsTests, GlobalArrayElementWriteOrdering)
+{
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND* csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j " + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char* orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkArr@global:k[] init 4
+
+instr 1
+  kCnt init 0
+  kCnt += 1
+  gkArr[0] = kCnt
+endin
+
+instr 2
+  kExp init 0
+  kBad init 0
+  kExp += 1
+  kV = gkArr[0]
+  if kV != kExp then
+    kBad += 1
+  endif
+  chnset kBad, "bad"
+  chnset kV, "seen"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+        csoundReadScore(csound, "i 1 0 0.05\ni 2 0 0.05\ne 0.06\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        int perfStatus = 0;
+        while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+        }
+        EXPECT_GT(perfStatus, 0);
+        int32_t err = 0;
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_GE(csoundGetControlChannel(csound, "seen", &err), FL(50.0));
+        EXPECT_EQ(0, err);
+        csoundDestroy(csound);
+    }
+}
+
+TEST(ParcsTests, LiveRedefinedUdoBoundTemplateOrdering)
+{
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND* csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j " + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char* initialOrc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+
+opcode BumpShared():void
+  ; Initial definition does not write gkShared.
+  kNoop = 0
+endop
+
+instr 1
+  BumpShared
+endin
+
+instr 2
+  kExp init 0
+  kBad init 0
+  kExp += 1
+  if gkShared != kExp then
+    kBad += 1
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, initialOrc));
+        csoundReadScore(csound, "i 1 0 0.1\ne 0.2\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        // Keep an older note bound to BumpShared v1 while redefining v2
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+
+        const char* redefinedUdo = R"(
+opcode BumpShared():void
+  gkShared += 1
+endop
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefinedUdo));
+        csoundReadScore(csound, "i 1.1 0 0.05\ni 2 0 0.05\n");
+        int perfStatus = 0;
+        while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+        }
+        EXPECT_GT(perfStatus, 0);
+        int32_t err = 0;
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_GE(csoundGetControlChannel(csound, "seen", &err), FL(50.0));
+        EXPECT_EQ(0, err);
+        csoundDestroy(csound);
+    }
+}
+
+TEST(ParcsTests, LiveRedefinedUdoDeferredReinitOrdering)
+{
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j" + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char *initialOrc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+
+opcode BumpShared():void
+  kNoop = 0
+endop
+
+instr 1
+  kTrig chnget "trig"
+  kBound init 0
+  if kTrig == 1 && kBound == 0 then
+    kBound = 1
+    reinit bindNow
+  endif
+  igoto skipInit
+  if kBound == 0 kgoto skipInit
+bindNow:
+  BumpShared
+  rireturn
+skipInit:
+endin
+
+instr 2
+  kTrig chnget "trig"
+  kExp init 0
+  kBad init 0
+  if kTrig == 1 then
+    kExp += 1
+    if gkShared != kExp then
+      kBad += 1
+    endif
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+  chnset kExp, "checked"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, initialOrc));
+        csoundReadScore(csound, "i 1 0 1\ni 2 0 1\ne 2\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        csoundSetControlChannel(csound, "trig", FL(0.0));
+        // Build the initial DAG while instr 1 has opcod_deact == NULL.
+        for (int i = 0; i < 8; i++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+
+        const char *redefinedUdo = R"(
+opcode BumpShared():void
+  gkShared += 1
+endop
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefinedUdo));
+        // Trigger deferred reinit on the next k-cycle, keeping instr 1 and 2 running.
+        csoundSetControlChannel(csound, "trig", FL(1.0));
+        for (int i = 0; i < 64; i++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+
+        int32_t err = 0;
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "checked", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "seen", &err));
+        EXPECT_EQ(0, err);
+        csoundDestroy(csound);
+    }
+}
+
+TEST(ParcsTests, LiveRedefinedUdoRealtimeInitAndReinitOrdering)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#endif
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        // Subcase 1: realtime note init with UDO redefined after initial DAG build.
+        {
+            CSOUND *csound = csoundCreate(nullptr, nullptr);
+            ASSERT_NE(nullptr, csound);
+            std::string jOpt = "-j" + std::to_string(threads);
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+            const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+
+opcode BumpShared():void
+  kNoop = 0
+endop
+
+instr 1
+  kReady = 1
+  chnset kReady, "i1Ready"
+  kGo chnget "go"
+  if kGo == 1 then
+    BumpShared
+  endif
+endin
+
+instr 2
+  kReady = 1
+  chnset kReady, "i2Ready"
+  kGo chnget "go"
+  kExp init 0
+  kBad init 0
+  if kGo == 1 then
+    kExp += 1
+    if gkShared != kExp then
+      kBad += 1
+    endif
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+  chnset kExp, "checked"
+endin
+
+instr 3
+  ; Keep the engine alive before instr 1 and 2 are scheduled.
+  kKeepAlive = 0
+endin
+)";
+            ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+            csoundReadScore(csound, "i 3 0 10\ne 11\n");
+            ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+            for (int i = 0; i < 4; i++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+            }
+
+            const char *redefinedUdo = R"(
+opcode BumpShared():void
+  gkShared += 1
+endop
+)";
+            ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefinedUdo));
+            csoundReadScore(csound, "i 1 0 10\ni 2 0 10\n");
+
+            int32_t err = 0;
+            for (int step = 0; step < 2000; step++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+                if (csoundGetControlChannel(csound, "i1Ready", &err) == FL(1.0) &&
+                    csoundGetControlChannel(csound, "i2Ready", &err) == FL(1.0)) {
+                    break;
+                }
+                csoundSleep(1);
+            }
+            ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "i1Ready", &err));
+            ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "i2Ready", &err));
+
+            csoundSetControlChannel(csound, "go", FL(1.0));
+            for (int i = 0; i < 64; i++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+            }
+
+            EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+            EXPECT_EQ(0, err);
+            EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "checked", &err));
+            EXPECT_EQ(0, err);
+            EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "seen", &err));
+            EXPECT_EQ(0, err);
+            csoundDestroy(csound);
+        }
+
+        // Subcase 2: realtime deferred reinit binding after initial DAG build.
+        {
+            CSOUND *csound = csoundCreate(nullptr, nullptr);
+            ASSERT_NE(nullptr, csound);
+            std::string jOpt = "-j" + std::to_string(threads);
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+            ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+            const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+
+opcode BumpShared():void
+  kNoop = 0
+endop
+
+instr 1
+  kReady = 1
+  chnset kReady, "i1Ready"
+  kTrig chnget "trig"
+  kGo chnget "go"
+  kBound init 0
+  iBound init 0
+  if kTrig == 1 && kBound == 0 then
+    kBound = 1
+    reinit bindNow
+  endif
+  igoto skipInit
+  if kGo == 0 kgoto skipInit
+bindNow:
+  BumpShared
+  iBound = 1
+  rireturn
+skipInit:
+  kReinitDone = iBound
+  chnset kReinitDone, "i1Bound"
+endin
+
+instr 2
+  kReady = 1
+  chnset kReady, "i2Ready"
+  kGo chnget "go"
+  kExp init 0
+  kBad init 0
+  if kGo == 1 then
+    kExp += 1
+    if gkShared != kExp then
+      kBad += 1
+    endif
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+  chnset kExp, "checked"
+endin
+)";
+            ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+            csoundReadScore(csound, "i 1 0 10\ni 2 0 10\ne 11\n");
+            ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+            int32_t err = 0;
+            for (int step = 0; step < 2000; step++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+                if (csoundGetControlChannel(csound, "i1Ready", &err) == FL(1.0) &&
+                    csoundGetControlChannel(csound, "i2Ready", &err) == FL(1.0)) {
+                    break;
+                }
+                csoundSleep(1);
+            }
+            ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "i1Ready", &err));
+            ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "i2Ready", &err));
+
+            const char *redefinedUdo = R"(
+opcode BumpShared():void
+  gkShared += 1
+endop
+)";
+            ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefinedUdo));
+            csoundSetControlChannel(csound, "trig", FL(1.0));
+            for (int step = 0; step < 2000; step++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+                if (csoundGetControlChannel(csound, "i1Bound", &err) == FL(1.0)) {
+                    break;
+                }
+                csoundSleep(1);
+            }
+            ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "i1Bound", &err));
+
+            csoundSetControlChannel(csound, "go", FL(1.0));
+            for (int i = 0; i < 64; i++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+            }
+
+            EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+            EXPECT_EQ(0, err);
+            EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "checked", &err));
+            EXPECT_EQ(0, err);
+            EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "seen", &err));
+            EXPECT_EQ(0, err);
+            csoundDestroy(csound);
+        }
+    }
+}
+
+namespace {
+
+int32_t parcsAtomicLoadInt32(int32_t *p)
+{
+#if defined(MSVC)
+    static_assert(sizeof(int32_t) == sizeof(long),
+                  "MSVC long must be 32-bit");
+    return static_cast<int32_t>(
+        _InterlockedExchangeAdd(reinterpret_cast<volatile long *>(p), 0));
+#elif defined(HAVE_ATOMIC_BUILTIN)
+    return __atomic_load_n(p, __ATOMIC_SEQ_CST);
+#else
+    return *p;
+#endif
+}
+
+uint64_t parcsAtomicLoadUint64(uint64_t *p)
+{
+#if defined(MSVC)
+    static_assert(sizeof(uint64_t) == sizeof(__int64),
+                  "MSVC __int64 must be 64-bit");
+    return static_cast<uint64_t>(
+        _InterlockedCompareExchange64(
+            reinterpret_cast<volatile __int64 *>(p), 0, 0));
+#elif defined(HAVE_ATOMIC_BUILTIN)
+    return __atomic_load_n(p, __ATOMIC_SEQ_CST);
+#else
+    return *p;
+#endif
+}
+
+struct ParcsHoldInitState {
+    std::mutex mutex;
+    std::condition_variable cv;
+    bool entered = false;
+    bool released = false;
+};
+
+int32_t parcsHoldInitOpcode(CSOUND *csound, void *)
+{
+    auto *state = static_cast<ParcsHoldInitState *>(csoundGetHostData(csound));
+    if (state == nullptr) {
+        return CSOUND_ERROR;
+    }
+    std::unique_lock<std::mutex> lock(state->mutex);
+    state->entered = true;
+    state->cv.notify_all();
+    return state->cv.wait_for(lock, std::chrono::seconds(10),
+                              [state] { return state->released; })
+        ? CSOUND_SUCCESS
+        : CSOUND_ERROR;
+}
+
+}  // namespace
+
+TEST(ParcsTests, DirtyDagLockContentionSerializesActiveNotes)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#else
+    struct SpinLockGuardThread {
+        spin_lock_t *lock;
+        std::atomic<bool> acquired{false};
+        std::atomic<bool> release{false};
+        std::thread worker;
+
+        explicit SpinLockGuardThread(spin_lock_t *l) : lock(l) {
+            worker = std::thread([this]() {
+                csoundSpinLock(lock);
+                acquired.store(true, std::memory_order_release);
+                while (!release.load(std::memory_order_acquire)) {
+                    csoundSleep(1);
+                }
+                csoundSpinUnLock(lock);
+            });
+            while (!acquired.load(std::memory_order_acquire)) {
+                csoundSleep(1);
+            }
+        }
+
+        void unlockAndJoin() {
+            if (worker.joinable()) {
+                release.store(true, std::memory_order_release);
+                worker.join();
+            }
+        }
+
+        ~SpinLockGuardThread() {
+            unlockAndJoin();
+        }
+    };
+
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j" + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        // instr 1 uses no channels so instr 1 and instr 2 initially share no
+        // DAG dependencies (dag_task_dep[1] == nullptr), while instr 3 reads
+        // gkChain so dag_task_dep[2] != nullptr.
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+gkChain init 0
+gkTrig1 init 0
+gkGo init 0
+
+opcode BumpShared():void
+  kNoop = 0
+endop
+
+instr 1
+  kBound init 0
+  if gkTrig1 == 1 && kBound == 0 then
+    kBound = 1
+    reinit bindNow
+  endif
+  if gkGo == 1 then
+    gkChain += 1
+  endif
+  igoto skipInit
+  if gkGo == 0 kgoto skipInit
+bindNow:
+  BumpShared
+  rireturn
+skipInit:
+endin
+
+instr 2
+  kExp init 0
+  kBad init 0
+  if gkGo == 1 then
+    kExp += 1
+    if gkShared != kExp then
+      kBad += 1
+    endif
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+  chnset kExp, "checked"
+endin
+
+instr 3
+  kExp3 init 0
+  kBad3 init 0
+  if gkGo == 1 then
+    kExp3 += 1
+    if gkChain != kExp3 then
+      kBad3 += 1
+    endif
+  endif
+  chnset kBad3, "bad3"
+  chnset kExp3, "checked3"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ni 2 0 10\ni 3 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+
+        bool allReady = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active == 3 &&
+                parcsAtomicLoadInt32(&csound->dag_changed) == 0 &&
+                csound->dag_task_map != nullptr &&
+                csound->dag_task_map[0]->insno == 1 &&
+                csound->dag_task_map[1]->insno == 2 &&
+                csound->dag_task_map[2]->insno == 3 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[0]->init_done) == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[1]->init_done) == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[2]->init_done) == 1) {
+                allReady = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(allReady);
+        ASSERT_EQ(nullptr, csound->dag_task_dep[1]);
+        ASSERT_NE(nullptr, csound->dag_task_dep[2]);
+        INSDS *instr1Ip = csound->dag_task_map[0];
+
+        // Redefine BumpShared to write gkShared and request deferred reinit.
+        const char *redefineOrc = R"(
+opcode BumpShared():void
+  gkShared += 1
+endop
+gkTrig1 init 1
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefineOrc));
+        ASSERT_GT(parcsAtomicLoadInt32(&csound->dag_changed), 0);
+
+        {
+            SpinLockGuardThread holder(&csound->alloc_spinlock);
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            EXPECT_EQ(nullptr, csound->dag_task_dep[1]);
+            EXPECT_GT(parcsAtomicLoadInt32(&csound->dag_changed), 0);
+            holder.unlockAndJoin();
+        }
+
+        // Wait for async ALLOC_DATA_REINIT_PASS to complete without rebuilding
+        // the parallel DAG via csoundPerformKsmps.
+        bool bound = false;
+        for (int step = 0; step < 2000; step++) {
+            if (parcsAtomicLoadInt32(&instr1Ip->init_done) == 1 &&
+                parcsAtomicLoadUint64(&instr1Ip->init_pass) >= 2) {
+                bound = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(bound);
+        ASSERT_EQ(nullptr, csound->dag_task_dep[1]);
+        ASSERT_GT(parcsAtomicLoadInt32(&csound->dag_changed), 0);
+
+        // Enable shared writes/checks, then run 32 control blocks with
+        // alloc_spinlock continuously held on another thread so dag_build()
+        // must take its dirty-DAG fallback on every block.
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, "gkGo init 1\n"));
+        {
+            SpinLockGuardThread holder(&csound->alloc_spinlock);
+            for (int i = 0; i < 32; i++) {
+                ASSERT_EQ(0, csoundPerformKsmps(csound));
+                EXPECT_GT(parcsAtomicLoadInt32(&csound->dag_changed), 0);
+                EXPECT_EQ(nullptr, csound->dag_task_dep[1]);
+            }
+            holder.unlockAndJoin();
+        }
+
+        int32_t err = 0;
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(32.0), csoundGetControlChannel(csound, "checked", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(32.0), csoundGetControlChannel(csound, "seen", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad3", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(32.0), csoundGetControlChannel(csound, "checked3", &err));
+        EXPECT_EQ(0, err);
+
+        // Once the lock is released, the next k-cycle rebuilds the DAG with
+        // the new instr 1 -> instr 2 dependency edge.
+        for (int i = 0; i < 32; i++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+        EXPECT_EQ(0, parcsAtomicLoadInt32(&csound->dag_changed));
+        ASSERT_NE(nullptr, csound->dag_task_dep[1]);
+        EXPECT_NE(0, csound->dag_task_dep[1][0]);
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "checked", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "seen", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad3", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "checked3", &err));
+        EXPECT_EQ(0, err);
+
+        csoundDestroy(csound);
+    }
+#endif
+}
+
+TEST(ParcsTests, DirtyDagLockContentionRunsNewlyReadyNote)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#else
+    struct SpinLockGuardThread {
+        spin_lock_t *lock;
+        std::atomic<bool> acquired{false};
+        std::atomic<bool> release{false};
+        std::thread worker;
+
+        explicit SpinLockGuardThread(spin_lock_t *l) : lock(l) {
+            worker = std::thread([this]() {
+                csoundSpinLock(lock);
+                acquired.store(true, std::memory_order_release);
+                while (!release.load(std::memory_order_acquire)) {
+                    csoundSleep(1);
+                }
+                csoundSpinUnLock(lock);
+            });
+            while (!acquired.load(std::memory_order_acquire)) {
+                csoundSleep(1);
+            }
+        }
+
+        void unlockAndJoin() {
+            if (worker.joinable()) {
+                release.store(true, std::memory_order_release);
+                worker.join();
+            }
+        }
+
+        ~SpinLockGuardThread() {
+            unlockAndJoin();
+        }
+    };
+
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j" + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  kCount init 0
+  kCount += 1
+  chnset kCount, "i1"
+endin
+
+instr 2
+  kCount init 0
+  kCount += 1
+  chnset kCount, "i2"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+
+        bool instr1Ready = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_changed) == 0 &&
+                csound->dag_task_map != nullptr &&
+                csound->dag_task_map[0]->insno == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[0]->init_done) == 1) {
+                instr1Ready = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(instr1Ready);
+        ASSERT_EQ(1, csound->dag_num_active);
+
+        // Queue instr 2 and run one control block so sense_events pushes it
+        // into alloc_queue while the DAG still only knows instr 1.
+        csoundReadScore(csound, "i 2 0 10\n");
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        ASSERT_EQ(1, csound->dag_num_active);
+
+        // Wait without calling csoundPerformKsmps so the DAG stays stale
+        // (dag_num_active == 1, dag_changed > 0) while instr 2 is linked in
+        // actanchor with init_done == 1.
+        bool instr2LinkedAndReady = false;
+        for (int step = 0; step < 2000; step++) {
+            csoundSpinLock(&csound->alloc_spinlock);
+            for (INSDS *ip = csound->actanchor.nxtact; ip != nullptr;
+                 ip = ip->nxtact) {
+                if (ip->insno == 2 &&
+                    parcsAtomicLoadInt32(&ip->init_done) == 1 &&
+                    parcsAtomicLoadInt32(&csound->dag_changed) > 0) {
+                    instr2LinkedAndReady = true;
+                    break;
+                }
+            }
+            csoundSpinUnLock(&csound->alloc_spinlock);
+            if (instr2LinkedAndReady) {
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(instr2LinkedAndReady);
+        ASSERT_EQ(1, csound->dag_num_active);
+        int32_t err = 0;
+        ASSERT_EQ(FL(0.0), csoundGetControlChannel(csound, "i2", &err));
+
+        // Hold alloc_spinlock across csoundPerformKsmps: dag_build cannot take
+        // the lock, so kperf must walk actanchor serially and run ready instr 2.
+        {
+            SpinLockGuardThread holder(&csound->alloc_spinlock);
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            EXPECT_GT(parcsAtomicLoadInt32(&csound->dag_changed), 0);
+            EXPECT_EQ(1, csound->dag_num_active);
+            EXPECT_EQ(FL(1.0), csoundGetControlChannel(csound, "i2", &err));
+            EXPECT_EQ(0, err);
+            holder.unlockAndJoin();
+        }
+
+        // Next block rebuilds the DAG for both active instruments.
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        EXPECT_EQ(0, parcsAtomicLoadInt32(&csound->dag_changed));
+        EXPECT_EQ(2, csound->dag_num_active);
+        EXPECT_EQ(FL(2.0), csoundGetControlChannel(csound, "i2", &err));
+        EXPECT_EQ(0, err);
+
+        csoundDestroy(csound);
+    }
+#endif
+}
+
+TEST(ParcsTests, ChildUdoRealtimeReinitKeepsRootOrdered)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#else
+    // Part A: when a child UDO is paused inside realtime reinit (root ready,
+    // child not init_done), dag_build() must keep the root note ordered.
+    {
+        ParcsHoldInitState holdState;
+        CSOUND *csound = csoundCreate(&holdState, nullptr);
+        ASSERT_NE(nullptr, csound);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-j2"));
+        ASSERT_EQ(0, csoundAppendOpcode(csound, "test_parcs_hold_init",
+                                        sizeof(OPDS), 0, "", "",
+                                        parcsHoldInitOpcode, nullptr, nullptr));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkTrig init 0
+gkOneRunning init 0
+gkTwoRunning init 0
+
+opcode ChildReinit():void
+  kDid init 0
+  if gkTrig == 1 && kDid == 0 then
+    kDid = 1
+    reinit pauseHere
+  endif
+  igoto afterPause
+pauseHere:
+  test_parcs_hold_init
+  rireturn
+afterPause:
+endop
+
+instr 1
+  gkOneRunning = 1
+  ChildReinit
+endin
+
+instr 2
+  gkTwoRunning = 1
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ni 2 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+
+        bool ready = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active == 2 &&
+                parcsAtomicLoadInt32(&csound->dag_changed) == 0 &&
+                csound->dag_task_map != nullptr &&
+                csound->dag_task_map[0]->insno == 1 &&
+                csound->dag_task_map[1]->insno == 2 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[0]->init_done) == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[1]->init_done) == 1) {
+                ready = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(ready);
+        ASSERT_EQ(nullptr, csound->dag_task_dep[1]);
+        INSDS *rootIp = csound->dag_task_map[0];
+        ASSERT_NE(nullptr, rootIp->opcod_deact);
+        INSDS *childIp = static_cast<UOPCODE *>(rootIp->opcod_deact)->ip;
+        ASSERT_NE(nullptr, childIp);
+
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, "gkTrig init 1\n"));
+        bool testedInReinit = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            bool entered = false;
+            {
+                std::lock_guard<std::mutex> lock(holdState.mutex);
+                entered = holdState.entered;
+            }
+            if (entered) {
+                if (parcsAtomicLoadInt32(&csound->dag_changed) > 0) {
+                    ASSERT_EQ(0, csoundPerformKsmps(csound));
+                }
+                EXPECT_EQ(1, parcsAtomicLoadInt32(&rootIp->init_done));
+                EXPECT_EQ(0, parcsAtomicLoadInt32(&childIp->init_done));
+                EXPECT_EQ(0, parcsAtomicLoadInt32(&csound->dag_changed));
+                ASSERT_NE(nullptr, csound->dag_task_dep[1]);
+                EXPECT_NE(0, csound->dag_task_dep[1][0]);
+                testedInReinit = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(testedInReinit);
+
+        {
+            std::lock_guard<std::mutex> lock(holdState.mutex);
+            holdState.released = true;
+        }
+        holdState.cv.notify_all();
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (parcsAtomicLoadInt32(&childIp->init_done) == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_changed) == 0) {
+                break;
+            }
+            csoundSleep(1);
+        }
+        EXPECT_EQ(1, parcsAtomicLoadInt32(&childIp->init_done));
+        csoundSetHostData(csound, nullptr);
+        csoundDestroy(csound);
+    }
+
+    // Part B: live redefined nested UDO bound by a child UDO's realtime reinit.
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j" + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkShared init 0
+
+opcode BumpShared():void
+  kNoop = 0
+endop
+
+opcode ChildCaller():void
+  kTrig chnget "trig"
+  kGo chnget "go"
+  kBound init 0
+  iBound init 0
+  if kTrig == 1 && kBound == 0 then
+    kBound = 1
+    reinit bindChild
+  endif
+  igoto skipChildInit
+  if kGo == 0 kgoto skipChildInit
+bindChild:
+  BumpShared
+  iBound = 1
+  rireturn
+skipChildInit:
+  kDone = iBound
+  chnset kDone, "childBound"
+endop
+
+instr 1
+  kReady = 1
+  chnset kReady, "i1Ready"
+  ChildCaller
+endin
+
+instr 2
+  kReady = 1
+  chnset kReady, "i2Ready"
+  kGo chnget "go"
+  kExp init 0
+  kBad init 0
+  if kGo == 1 then
+    kExp += 1
+    if gkShared != kExp then
+      kBad += 1
+    endif
+  endif
+  chnset kBad, "bad"
+  chnset gkShared, "seen"
+  chnset kExp, "checked"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ni 2 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+        int32_t err = 0;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csoundGetControlChannel(csound, "i1Ready", &err) == FL(1.0) &&
+                csoundGetControlChannel(csound, "i2Ready", &err) == FL(1.0)) {
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "i1Ready", &err));
+        ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "i2Ready", &err));
+
+        const char *redefinedUdo = R"(
+opcode BumpShared():void
+  gkShared += 1
+endop
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, redefinedUdo));
+        csoundSetControlChannel(csound, "trig", FL(1.0));
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csoundGetControlChannel(csound, "childBound", &err) == FL(1.0)) {
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_EQ(FL(1.0), csoundGetControlChannel(csound, "childBound", &err));
+
+        csoundSetControlChannel(csound, "go", FL(1.0));
+        for (int i = 0; i < 64; i++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "bad", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "checked", &err));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(FL(64.0), csoundGetControlChannel(csound, "seen", &err));
+        EXPECT_EQ(0, err);
+        csoundDestroy(csound);
+    }
+#endif
+}
+
+TEST(ParcsTests, DirtyDagFallbackWithConcurrentNoteInserts)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#else
+    struct SpinLockGuardThread {
+        spin_lock_t *lock;
+        std::atomic<bool> acquired{false};
+        std::atomic<bool> release{false};
+        std::thread worker;
+
+        explicit SpinLockGuardThread(spin_lock_t *l) : lock(l) {
+            worker = std::thread([this]() {
+                csoundSpinLock(lock);
+                acquired.store(true, std::memory_order_release);
+                while (!release.load(std::memory_order_acquire)) {
+                    csoundSleep(1);
+                }
+                csoundSpinUnLock(lock);
+            });
+            while (!acquired.load(std::memory_order_acquire)) {
+                csoundSleep(1);
+            }
+        }
+
+        void unlockAndJoin() {
+            if (worker.joinable()) {
+                release.store(true, std::memory_order_release);
+                worker.join();
+            }
+        }
+
+        ~SpinLockGuardThread() {
+            unlockAndJoin();
+        }
+    };
+
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j" + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkHeadSeen init 0
+gkTailSeen init 0
+
+instr 1
+  gkHeadSeen += 1
+  chnset gkHeadSeen, "headSeen"
+endin
+
+instr 2
+  kCount init 0
+  kCount += 1
+  chnset kCount, "steady"
+endin
+
+instr 3
+  kCount init 0
+  kCount += 1
+  chnset kCount, "newlyReady"
+endin
+
+instr 4
+  gkTailSeen += 1
+  chnset gkTailSeen, "tailSeen"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 2 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+
+        bool steadyReady = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_changed) == 0 &&
+                csound->dag_task_map != nullptr &&
+                csound->dag_task_map[0]->insno == 2 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[0]->init_done) == 1) {
+                steadyReady = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(steadyReady);
+
+        // Queue instr 3 and wait until linked + init_done while DAG still has
+        // only instr 2, then run under alloc_spinlock contention.
+        csoundReadScore(csound, "i 3 0 10\n");
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        bool instr3Ready = false;
+        for (int step = 0; step < 2000; step++) {
+            csoundSpinLock(&csound->alloc_spinlock);
+            for (INSDS *ip = csound->actanchor.nxtact; ip != nullptr;
+                 ip = ip->nxtact) {
+                if (ip->insno == 3 &&
+                    parcsAtomicLoadInt32(&ip->init_done) == 1 &&
+                    parcsAtomicLoadInt32(&csound->dag_changed) > 0) {
+                    instr3Ready = true;
+                    break;
+                }
+            }
+            csoundSpinUnLock(&csound->alloc_spinlock);
+            if (instr3Ready) {
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(instr3Ready);
+
+        int32_t err = 0;
+        cs_float steadyBefore = csoundGetControlChannel(csound, "steady", &err);
+        ASSERT_EQ(FL(0.0), csoundGetControlChannel(csound, "newlyReady", &err));
+        {
+            SpinLockGuardThread holder(&csound->alloc_spinlock);
+            ASSERT_NE(nullptr, csound->dag_active_snapshot);
+            EXPECT_GE(csound->dag_active_snapshot->count, 2);
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            EXPECT_GT(csoundGetControlChannel(csound, "steady", &err), steadyBefore);
+            EXPECT_EQ(FL(1.0), csoundGetControlChannel(csound, "newlyReady", &err));
+            holder.unlockAndJoin();
+        }
+
+        // Repeatedly insert short notes splicing at both head (instr 1) and
+        // tail (instr 4) of actanchor concurrently with kperf()/dag_build().
+        for (int iter = 0; iter < 64; iter++) {
+            if ((iter % 8) == 0) {
+                csoundReadScore(csound, "i 1 0 0.02\ni 4 0 0.02\n");
+            }
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            csoundSleep(1);
+        }
+
+        // Wait for queued short notes to initialize and run cleanly.
+        bool sawHeadAndTail = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csoundGetControlChannel(csound, "headSeen", &err) > FL(0.0) &&
+                csoundGetControlChannel(csound, "tailSeen", &err) > FL(0.0)) {
+                sawHeadAndTail = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+
+        EXPECT_TRUE(sawHeadAndTail);
+        EXPECT_GT(csoundGetControlChannel(csound, "headSeen", &err), FL(0.0));
+        EXPECT_EQ(0, err);
+        EXPECT_GT(csoundGetControlChannel(csound, "tailSeen", &err), FL(0.0));
+        EXPECT_EQ(0, err);
+        EXPECT_GT(csoundGetControlChannel(csound, "newlyReady", &err), FL(60.0));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(0, csoundErrCnt(csound));
+        csoundDestroy(csound);
+    }
+#endif
+}
+
+namespace {
+struct DagCallocFailHook {
+    void *(*origCalloc)(CSOUND *, size_t) = nullptr;
+    CSOUND *target = nullptr;
+    std::thread::id perfThread{};
+    size_t minBytes = 0;
+    std::atomic<bool> armed{false};
+    std::atomic<bool> tripped{false};
+};
+
+DagCallocFailHook &getDagCallocFailHook()
+{
+    static DagCallocFailHook hook;
+    return hook;
+}
+
+void *dagFailOnceCalloc(CSOUND *cs, size_t nbytes)
+{
+    DagCallocFailHook &hook = getDagCallocFailHook();
+    if (cs == hook.target &&
+        nbytes >= hook.minBytes &&
+        std::this_thread::get_id() == hook.perfThread &&
+        hook.armed.exchange(false, std::memory_order_acq_rel)) {
+        hook.tripped.store(true, std::memory_order_release);
+        return hook.origCalloc(cs, SIZE_MAX);
+    }
+    return hook.origCalloc(cs, nbytes);
+}
+}  // namespace
+
+TEST(ParcsTests, DagBuildAllocationFailureReleasesAllocSpinlock)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#else
+    // Subcase A: task_deps Calloc failure on rebuild leaves alloc_spinlock unlocked
+    // and allows subsequent DAG rebuild + realtime teardown without hanging.
+    {
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-j2"));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  kA = 1
+endin
+
+instr 2
+  kB = 2
+endin
+
+instr 3
+  kC = 3
+  chnset 1, "i3Ran"
+endin
+
+instr 4
+  chnset 42, "i4Recovered"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ni 2 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+
+        bool builtTwo = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active == 2 &&
+                parcsAtomicLoadInt32(&csound->dag_changed) == 0 &&
+                csound->dag_task_status != nullptr) {
+                builtTwo = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(builtTwo);
+
+        csoundReadScore(csound, "i 3 0 10\n");
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        bool instr3Linked = false;
+        for (int step = 0; step < 2000; step++) {
+            csoundSpinLock(&csound->alloc_spinlock);
+            for (INSDS *ip = csound->actanchor.nxtact; ip != nullptr;
+                 ip = ip->nxtact) {
+                if (ip->insno == 3 &&
+                    parcsAtomicLoadInt32(&csound->dag_changed) > 0) {
+                    instr3Linked = true;
+                    break;
+                }
+            }
+            csoundSpinUnLock(&csound->alloc_spinlock);
+            if (instr3Linked) {
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(instr3Linked);
+
+        DagCallocFailHook &hook = getDagCallocFailHook();
+        hook.origCalloc = csound->Calloc;
+        hook.target = csound;
+        hook.perfThread = std::this_thread::get_id();
+        hook.minBytes = 0;
+        hook.tripped.store(false, std::memory_order_release);
+        hook.armed.store(true, std::memory_order_release);
+        csound->Calloc = dagFailOnceCalloc;
+
+        int32_t perfRes = csoundPerformKsmps(csound);
+        csound->Calloc = hook.origCalloc;
+        hook.armed.store(false, std::memory_order_release);
+        hook.target = nullptr;
+
+        EXPECT_TRUE(hook.tripped.load(std::memory_order_acquire));
+        EXPECT_EQ(CSOUND_MEMORY, perfRes);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSpinTryLock(&csound->alloc_spinlock));
+        csoundSpinUnLock(&csound->alloc_spinlock);
+        EXPECT_GT(parcsAtomicLoadInt32(&csound->dag_changed), 0);
+
+        // Next k-cycle recovers cleanly and rebuilds the 3-node DAG, and
+        // subsequent realtime event insertion does not block on alloc_spinlock.
+        csoundReadScore(csound, "i 4 0 0.2\n");
+        bool recovered = false;
+        int32_t err = 0;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active >= 3 &&
+                csoundGetControlChannel(csound, "i4Recovered", &err) == FL(42.0)) {
+                recovered = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        EXPECT_TRUE(recovered);
+        csoundDestroy(csound);
+    }
+
+    // Subcase B: create_dag() Calloc failure on first dirty build also leaves
+    // alloc_spinlock unlocked and tears down cleanly.
+    {
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-j2"));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  kOut = 1
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+        ASSERT_EQ(nullptr, csound->dag_task_status);
+
+        // Fail once create_dag() allocates its task arrays (> 1 KiB), leaving
+        // sense_events() score queuing intact.
+        DagCallocFailHook &hook = getDagCallocFailHook();
+        hook.origCalloc = csound->Calloc;
+        hook.target = csound;
+        hook.perfThread = std::this_thread::get_id();
+        hook.minBytes = 1024;
+        hook.tripped.store(false, std::memory_order_release);
+        hook.armed.store(true, std::memory_order_release);
+        csound->Calloc = dagFailOnceCalloc;
+
+        int32_t perfRes = 0;
+        for (int step = 0; step < 2000; step++) {
+            perfRes = csoundPerformKsmps(csound);
+            if (hook.tripped.load(std::memory_order_acquire)) {
+                break;
+            }
+            ASSERT_EQ(0, perfRes);
+            csoundSleep(1);
+        }
+        csound->Calloc = hook.origCalloc;
+        hook.armed.store(false, std::memory_order_release);
+        hook.target = nullptr;
+        hook.minBytes = 0;
+
+        EXPECT_TRUE(hook.tripped.load(std::memory_order_acquire));
+        EXPECT_EQ(CSOUND_MEMORY, perfRes);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSpinTryLock(&csound->alloc_spinlock));
+        csoundSpinUnLock(&csound->alloc_spinlock);
+        EXPECT_GT(parcsAtomicLoadInt32(&csound->dag_changed), 0);
+        csoundDestroy(csound);
+    }
+#endif
+}
+
+TEST(ParcsTests, SpliceReordersSnapshotAndSynchronizesConcurrentPublish)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#else
+    struct SpinLockGuardThread {
+        spin_lock_t *lock;
+        std::atomic<bool> acquired{false};
+        std::atomic<bool> release{false};
+        std::thread worker;
+
+        explicit SpinLockGuardThread(spin_lock_t *l) : lock(l) {
+            worker = std::thread([this]() {
+                csoundSpinLock(lock);
+                acquired.store(true, std::memory_order_release);
+                while (!release.load(std::memory_order_acquire)) {
+                    csoundSleep(1);
+                }
+                csoundSpinUnLock(lock);
+            });
+            while (!acquired.load(std::memory_order_acquire)) {
+                csoundSleep(1);
+            }
+        }
+
+        void unlockAndJoin() {
+            if (worker.joinable()) {
+                release.store(true, std::memory_order_release);
+                worker.join();
+            }
+        }
+
+        ~SpinLockGuardThread() {
+            unlockAndJoin();
+        }
+    };
+
+    // Part A: splice() updates the published active snapshot and marks the DAG
+    // dirty so contended serial fallback immediately observes the new order.
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j" + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkWriter init 0
+
+instr 1
+  first@global:Instr = this
+  gkWriter = 1
+endin
+
+instr 2
+  second@global:Instr = this
+  gkWriter = 2
+endin
+
+instr 3
+  chnset gkWriter, "lastWriter"
+endin
+
+instr 4
+  iRes = splice(second, first, p4)
+  chnset iRes, "spliceRes"
+  chnset p5, "spliceSeq"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ni 2 0 10\ni 3 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+
+        int32_t err = 0;
+        bool builtThree = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active == 3 &&
+                parcsAtomicLoadInt32(&csound->dag_changed) == 0 &&
+                csound->dag_task_map != nullptr &&
+                csound->dag_task_map[0]->insno == 1 &&
+                csound->dag_task_map[1]->insno == 2 &&
+                csound->dag_task_map[2]->insno == 3 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[0]->init_done) == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[1]->init_done) == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[2]->init_done) == 1 &&
+                csoundGetControlChannel(csound, "lastWriter", &err) == FL(2.0)) {
+                builtThree = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(builtThree);
+
+        // Queue splice(second, first, 0): reorders live chain to 2 1 3.
+        csoundReadScore(csound, "i 4 0 0 0 1\n");
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        bool splicedOne = false;
+        for (int step = 0; step < 2000; step++) {
+            if (csoundGetControlChannel(csound, "spliceSeq", &err) == FL(1.0) &&
+                parcsAtomicLoadInt32(&csound->dag_changed) > 0) {
+                splicedOne = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(splicedOne);
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "spliceRes", &err));
+
+        // Hold alloc_spinlock across csoundPerformKsmps so dag_build cannot take
+        // it: serial fallback must read the updated snapshot (2 1 3 -> 1).
+        {
+            SpinLockGuardThread holder(&csound->alloc_spinlock);
+            ASSERT_NE(nullptr, csound->dag_active_snapshot);
+            ASSERT_GE(csound->dag_active_snapshot->count, 3);
+            EXPECT_EQ(2, csound->dag_active_snapshot->items[0]->insno);
+            EXPECT_EQ(1, csound->dag_active_snapshot->items[1]->insno);
+            EXPECT_EQ(3, csound->dag_active_snapshot->items[2]->insno);
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            EXPECT_GT(parcsAtomicLoadInt32(&csound->dag_changed), 0);
+            EXPECT_EQ(FL(1.0), csoundGetControlChannel(csound, "lastWriter", &err));
+            holder.unlockAndJoin();
+        }
+
+        // Next cycle rebuilds the DAG in 2 1 3 order cleanly.
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        EXPECT_EQ(0, parcsAtomicLoadInt32(&csound->dag_changed));
+        ASSERT_EQ(3, csound->dag_num_active);
+        EXPECT_EQ(2, csound->dag_task_map[0]->insno);
+        EXPECT_EQ(1, csound->dag_task_map[1]->insno);
+        EXPECT_EQ(3, csound->dag_task_map[2]->insno);
+        EXPECT_EQ(FL(1.0), csoundGetControlChannel(csound, "lastWriter", &err));
+
+        // Queue splice(second, first, 1): restores live chain and snapshot to 1 2 3.
+        csoundReadScore(csound, "i 4 0 0 1 2\n");
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        bool splicedTwo = false;
+        for (int step = 0; step < 2000; step++) {
+            if (csoundGetControlChannel(csound, "spliceSeq", &err) == FL(2.0) &&
+                parcsAtomicLoadInt32(&csound->dag_changed) > 0) {
+                splicedTwo = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(splicedTwo);
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "spliceRes", &err));
+
+        {
+            SpinLockGuardThread holder(&csound->alloc_spinlock);
+            ASSERT_NE(nullptr, csound->dag_active_snapshot);
+            ASSERT_GE(csound->dag_active_snapshot->count, 3);
+            EXPECT_EQ(1, csound->dag_active_snapshot->items[0]->insno);
+            EXPECT_EQ(2, csound->dag_active_snapshot->items[1]->insno);
+            EXPECT_EQ(3, csound->dag_active_snapshot->items[2]->insno);
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            EXPECT_EQ(FL(2.0), csoundGetControlChannel(csound, "lastWriter", &err));
+            holder.unlockAndJoin();
+        }
+
+        csoundDestroy(csound);
+    }
+
+    // Part B: concurrent splice_instance() + active-snapshot publication +
+    // short-note insertion under --realtime -j2.
+    {
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-j2"));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  kA = 1
+endin
+
+instr 2
+  kB = 2
+endin
+
+instr 3
+  kC = 3
+endin
+
+instr 5
+  kS init 1
+  kS += 1
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ni 2 0 10\ni 3 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+
+        bool ready = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active == 3 &&
+                parcsAtomicLoadInt32(&csound->dag_changed) == 0 &&
+                csound->dag_task_map != nullptr &&
+                csound->dag_task_map[0]->insno == 1 &&
+                csound->dag_task_map[1]->insno == 2 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[0]->init_done) == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[1]->init_done) == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[2]->init_done) == 1) {
+                ready = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(ready);
+        INSDS *first = csound->dag_task_map[0];
+        INSDS *second = csound->dag_task_map[1];
+
+        std::atomic<bool> startFlag{false};
+        std::atomic<int> spliceFailures{0};
+        std::thread splicer([&]() {
+            INSTANCEREF srcRef = {second, 0};
+            INSTANCEREF dstRef = {first, 0};
+            cs_float outVal = 0;
+            cs_float modeVal = 0;
+            SPLICE_INSTR op = {};
+            op.in = &srcRef;
+            op.nxt = &dstRef;
+            op.out = &outVal;
+            op.mode = &modeVal;
+            while (!startFlag.load(std::memory_order_acquire)) {
+                csoundSleep(1);
+            }
+            for (int iter = 0; iter < 200; iter++) {
+                modeVal = (iter & 1) ? FL(1.0) : FL(0.0);
+                outVal = FL(-1.0);
+                if (splice_instance(csound, &op) != OK ||
+                    outVal != FL(0.0)) {
+                    spliceFailures.fetch_add(1, std::memory_order_relaxed);
+                }
+            }
+        });
+
+        startFlag.store(true, std::memory_order_release);
+        for (int iter = 0; iter < 64; iter++) {
+            if ((iter % 4) == 0) {
+                csoundReadScore(csound, "i 5 0 0.01\n");
+            }
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+        splicer.join();
+        EXPECT_EQ(0, spliceFailures.load(std::memory_order_relaxed));
+
+        for (int step = 0; step < 32; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+        EXPECT_EQ(0, csoundErrCnt(csound));
+        csoundDestroy(csound);
+    }
+#endif
+}
+
+#if !defined(_WIN32)
+TEST_F(OrcCompileTests, LineventPipeDoesNotBlockWhileProducerIsOpen)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-L\"/dev/null\""));
+    const char *orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  chnset 1, "pipeEventSeen"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    int fds[2] = {-1, -1};
+    ASSERT_EQ(0, pipe(fds));
+    const char msg[] = "i 1 0 0\n";
+    ASSERT_EQ((ssize_t)sizeof(msg) - 1, write(fds[1], msg, sizeof(msg) - 1));
+    int32_t oldFd = csound->Linefd;
+    csound->Linefd = fds[0];
+
+    auto start = std::chrono::steady_clock::now();
+    int32_t seen = 0;
+    for (int i = 0; i < 10 && !seen; i++) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        int32_t err = 0;
+        seen = (int32_t)csoundGetControlChannel(csound, "pipeEventSeen", &err);
+    }
+    auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start).count();
+
+    csound->Linefd = oldFd;
+    close(fds[0]);
+    close(fds[1]);
+    EXPECT_EQ(1, seen);
+    EXPECT_LT(elapsedMs, 250);
+}
+#endif
+
+TEST_F(OrcCompileTests, LineventDiscardsEntireOversizedLineThroughNewline)
+{
+    std::string tmpPath = ::testing::TempDir() + "/csound-linevent-oversize.sco";
+    FILE *fp = std::fopen(tmpPath.c_str(), "wb");
+    ASSERT_NE(nullptr, fp);
+    std::string hugePrefix(1048576, ';');
+    std::fwrite(hugePrefix.data(), 1, hugePrefix.size(), fp);
+    const char *tail = "i 1 0 0\ni 2 0 0\n";
+    std::fwrite(tail, 1, std::strlen(tail), fp);
+    std::fclose(fp);
+
+    std::string opt = std::string("-L\"") + tmpPath + "\"";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, opt.c_str()));
+    const char *orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  chnset 1, "oversizedSuffixRan"
+endin
+
+instr 2
+  chnset 1, "followingLineRan"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    for (int i = 0; i < 64; i++) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+    }
+    int32_t err = 0;
+    EXPECT_EQ(FL(0.0),
+              csoundGetControlChannel(csound, "oversizedSuffixRan", &err));
+    EXPECT_EQ(FL(1.0),
+              csoundGetControlChannel(csound, "followingLineRan", &err));
+    csoundReset(csound);
+    std::remove(tmpPath.c_str());
+}
+
+#if !defined(_WIN32)
+TEST_F(OrcCompileTests, LineventKeepsWhatFollowsDiscardedLineWhenBufferIsFull)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-L\"/dev/null\""));
+    const char *orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  chnset 1, "afterDiscardedLineRan"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+
+    int fds[2] = {-1, -1};
+    ASSERT_EQ(0, pipe(fds));
+    ASSERT_EQ(0, fcntl(fds[1], F_SETFL, O_NONBLOCK));
+    int32_t oldFd = csound->Linefd;
+    csound->Linefd = fds[0];
+
+    // A line past what the line buffer grows to, 1 MB, without its newline.
+    // It goes in pieces, a k-cycle draining each, so that no write blocks.
+    const std::string piece(4096, ';');
+    const size_t oversized = (size_t)1048576 + 4 * piece.size();
+    size_t sent = 0;
+    int cycles = 0;
+    while (sent < oversized) {
+        ASSERT_LT(++cycles, 4096);
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        ssize_t written = write(fds[1], piece.data(),
+                                std::min(piece.size(), oversized - sent));
+        if (written < 0) {
+            ASSERT_EQ(EAGAIN, errno);
+            continue;
+        }
+        sent += (size_t) written;
+    }
+    // The line is dropped, and what was still to come of it discarded: the
+    // discard now waits for the line's end, with the buffer emptied.
+    for (int i = 0; i < 8; i++) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+    }
+    ASSERT_EQ(1, csound->lineventDiscardLine);
+    ASSERT_EQ(csound->lineventStatics.Linebuf,
+              csound->lineventStatics.Linep);
+
+    // Host lines queue behind it until almost no room is left.
+    const char blanks[] = "           \n";
+    for (int i = 0; i < 90000; i++) {
+        csound->InputMessage(csound, blanks);
+    }
+    ASSERT_GT(40, csound->lineventStatics.Linebufend -
+                      csound->lineventStatics.Linep);
+
+    // The end of the discarded line, and the next line read with it: that
+    // one is kept, room or no room.
+    const char tail[] = "\ni 1 0 0.01 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n";
+    ASSERT_EQ((ssize_t)(sizeof(tail) - 1), write(fds[1], tail, sizeof(tail) - 1));
+    for (int i = 0; i < 64; i++) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+    }
+    csound->Linefd = oldFd;
+    close(fds[0]);
+    close(fds[1]);
+    int32_t err = 0;
+    EXPECT_EQ(FL(1.0),
+              csoundGetControlChannel(csound, "afterDiscardedLineRan", &err));
+    EXPECT_EQ(0, err);
+}
+#endif
+
+TEST_F(OrcCompileTests, ScannerSkipsDefineMacroBodyInCsdAndLiveInput)
+{
+    // CSD <CsInstruments> with unused macro whose body opens R{ / {{ / /*
+    {
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, cs);
+        csoundSetOption(cs, "-n -d -m0");
+        const char *csd = R"(
+<CsoundSynthesizer>
+<CsOptions>
+-n -d -m0
+</CsOptions>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+#define RAW_OPEN #R{#
+#define WITH_ARGS(A#B) #$A + $B R{ /* {{ \# #
+instr 1
+  chnset 42, "csdMacroOk"
+endin
+</CsInstruments>
+<CsScore>
+i 1 0 0.01
+e
+</CsScore>
+</CsoundSynthesizer>
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(cs, csd, 1, 0));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+        while (csoundPerformKsmps(cs) == 0) {
+        }
+        int32_t err = 0;
+        EXPECT_EQ(FL(42.0), csoundGetControlChannel(cs, "csdMacroOk", &err));
+        EXPECT_EQ(0, err);
+        csoundDestroy(cs);
+    }
+
+    // Live orchestra block with unused macro containing R{ must still close on }
+    {
+        csoundSetOption(csound, "-n -d -m0");
+        const char *baseOrc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, baseOrc));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        csound->InputMessage(csound,
+            "{\n"
+            "#define RAW_OPEN #R{#\n"
+            "instr 1\n"
+            "  chnset 77, \"liveMacroOk\"\n"
+            "endin\n"
+            "}\n"
+            "i 1 0 0\n");
+        for (int i = 0; i < 16; i++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+        int32_t err = 0;
+        EXPECT_EQ(FL(77.0), csoundGetControlChannel(csound, "liveMacroOk", &err));
+        EXPECT_EQ(0, err);
+    }
+}
+
+TEST_F(OrcCompileTests, ScannerFollowsThePreprocessorsDirectives)
+{
+    const char *instrument =
+        "instr 1\n"
+        "  chnset 42, \"directiveOk\"\n"
+        "endin\n";
+    // What a CSD comes to when its orchestra is this: CSOUND_ERROR if the
+    // end tag was not found, else what instrument 1 wrote.
+    cs_float written = FL(-1.0);
+    auto csdResult = [&](const std::string &orchestra) {
+        std::string csd =
+            "<CsoundSynthesizer>\n<CsOptions>\n-n -d -m0\n</CsOptions>\n"
+            "<CsInstruments>\n" + orchestra +
+            "</CsInstruments>\n<CsScore>\ni 1 0 0.01\ne\n</CsScore>\n"
+            "</CsoundSynthesizer>\n";
+        CSOUND *cs = csoundCreate(nullptr, nullptr);
+        csoundSetOption(cs, "-n -d -m0");
+        int32_t result = csoundCompileCSD(cs, csd.c_str(), 1, 0);
+        if (result == CSOUND_SUCCESS) {
+            EXPECT_EQ(CSOUND_SUCCESS, csoundStart(cs));
+            while (csoundPerformKsmps(cs) == 0) {
+            }
+            int32_t err = 0;
+            written = csoundGetControlChannel(cs, "directiveOk", &err);
+        }
+        csoundDestroy(cs);
+        return result;
+    };
+
+    // The lexer's #define needs no blank after its keyword.
+    ASSERT_EQ(CSOUND_SUCCESS,
+              csdResult("#defineRAW_OPEN #R{#\n" + std::string(instrument)));
+    EXPECT_EQ(FL(42.0), written);
+
+    // A conditional's skipped branch is plain lines to the preprocessor, so
+    // what looks left open there hides nothing that follows it.
+    ASSERT_EQ(CSOUND_SUCCESS, csdResult(
+        "#ifdef NEVER_DEFINED\n"
+        "Sunused = R{\n"
+        "#endif\n" + std::string(instrument)));
+    EXPECT_EQ(FL(42.0), written);
+
+    ASSERT_EQ(CSOUND_SUCCESS, csdResult(
+        "#ifndef NEVER_DEFINED\n"
+        "#else\n"
+        "Sunused = R{\n"
+        "#endif\n" + std::string(instrument)));
+    EXPECT_EQ(FL(42.0), written);
+
+    ASSERT_EQ(CSOUND_SUCCESS, csdResult(
+        "#ifdef NEVER_DEFINED\n"
+        "Sunused = R{\n"
+        "#ifdef ALSO_NEVER_DEFINED\n"
+        "Sunused2 = {{\n"
+        "#endif\n"
+        "#endif\n" + std::string(instrument)));
+    EXPECT_EQ(FL(42.0), written);
+
+    ASSERT_EQ(CSOUND_SUCCESS, csdResult(
+        "#ifdef NEVER_DEFINED\n"
+        "/* never closed\n"
+        "#endif\n" + std::string(instrument)));
+    EXPECT_EQ(FL(42.0), written);
+
+    // A string that is compiled keeps what it holds: its own #endif line
+    // and an end tag are text, and the orchestra ends at the real one.
+    ASSERT_EQ(CSOUND_SUCCESS, csdResult(
+        "#define TAKEN #1#\n"
+        "#ifdef TAKEN\n"
+        "Sdoc = R{\n"
+        "#endif is quoted here, and so is\n"
+        "</CsInstruments>\n"
+        "}R\n"
+        "#endif\n" + std::string(instrument)));
+    EXPECT_EQ(FL(42.0), written);
+
+    // The same, in live orchestra blocks.
+    csoundSetOption(csound, "-n -d -m0");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound,
+        "sr = 44100\nksmps = 32\nnchnls = 1\n0dbfs = 1\n"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    csound->InputMessage(csound,
+        "{\n"
+        "#defineRAW_OPEN #R{#\n"
+        "instr 1\n"
+        "  chnset 77, \"liveNoBlankDefine\"\n"
+        "endin\n"
+        "}\n"
+        "i 1 0 0\n"
+        "{\n"
+        "#ifdef NEVER_DEFINED\n"
+        "Sunused = R{\n"
+        "#endif\n"
+        "instr 2\n"
+        "  chnset 88, \"liveSkippedBranch\"\n"
+        "endin\n"
+        "}\n"
+        "i 2 0 0\n"
+        "{\n"
+        "#ifdef NEVER_DEFINED\n"
+        "}\n"
+        "#endif\n"
+        "instr 3\n"
+        "  chnset 41, \"seen\"\n"
+        "endin\n"
+        "}\n"
+        "i 3 0 0\n"
+        "{\n"
+        "#ifndef NEVER_DEFINED\n"
+        "#else\n"
+        "  #ifdef ALSO_NEVER_DEFINED\n"
+        "  }\n"
+        "  #endif\n"
+        "}\n"
+        "#endif\n"
+        "instr 4\n"
+        "  chnset 99, \"nestedConditionalBrace\"\n"
+        "endin\n"
+        "}\n"
+        "i 4 0 0\n");
+    for (int i = 0; i < 16; i++) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+    }
+    int32_t err = 0;
+    EXPECT_EQ(FL(77.0),
+              csoundGetControlChannel(csound, "liveNoBlankDefine", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(88.0),
+              csoundGetControlChannel(csound, "liveSkippedBranch", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(41.0), csoundGetControlChannel(csound, "seen", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(99.0),
+              csoundGetControlChannel(csound, "nestedConditionalBrace", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(0, csoundErrCnt(csound));
+}
+
+namespace {
+void *freedValue = nullptr;
+void freeProbeValue(void *, void *value) { freedValue = value; }
+CS_VARIABLE *createProbeVariable(void *cs, const CS_TYPE *, const void *, INSDS *)
+{
+    CS_VARIABLE *var = (CS_VARIABLE *)((CSOUND *)cs)->Calloc(
+        (CSOUND *)cs, sizeof(CS_VARIABLE));
+    var->memBlockSize = sizeof(cs_float);
+    return var;
+}
+char probeTypeName[] = "Probe";
+const CS_TYPE probeType = {
+    probeTypeName, probeTypeName, CS_ARG_TYPE_BOTH, createProbeVariable,
+    nullptr, freeProbeValue, nullptr, 0
+};
+}
+
+TEST_F(OrcCompileTests, DeleteVarPoolMemoryFreesTheValueAndEmptiesThePool)
+{
+    CS_VAR_POOL *pool = csoundCreateVarPool(csound);
+    ASSERT_NE(nullptr, pool);
+    CS_VARIABLE *var =
+        csoundCreateVariableForType(csound, &probeType, nullptr, nullptr);
+    ASSERT_NE(nullptr, var);
+    var->varName = csoundStrdup(csound, "probe");
+    var->memBlock = (CS_VAR_MEM *)csound->Calloc(
+        csound, CS_VAR_TYPE_OFFSET + var->memBlockSize);
+    var->memBlock->varType = &probeType;
+    void *value = &var->memBlock->value;
+    ASSERT_EQ(0, csoundAddVariable(csound, pool, var));
+    ASSERT_EQ(var, csoundFindVariableWithName(csound, pool, "probe"));
+
+    freedValue = nullptr;
+    csoundDeleteVarPoolMemory(csound, pool);
+
+    // The callback was given the value, not the header in front of it.
+    EXPECT_EQ(value, freedValue);
+    // The pool no longer stands for what was freed, so freeing it frees
+    // each variable once.
+    EXPECT_EQ(nullptr, pool->head);
+    EXPECT_EQ(nullptr, csoundFindVariableWithName(csound, pool, "probe"));
+    csoundFreeVarPool(csound, pool);
+}
+
+TEST_F(OrcCompileTests, GlobalAnnotatedVariableAcceptedInArgCheck)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+iCount@global:i init 5
+
+instr 1
+  if iCount@global == 5 then
+    chnset iCount@global + 1, "globalAnnotated"
+  endif
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.01\ne 0.02\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int perfStatus = 0;
+    while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+    }
+    EXPECT_GT(perfStatus, 0);
+    int32_t err = 0;
+    EXPECT_EQ(FL(6.0), csoundGetControlChannel(csound, "globalAnnotated", &err));
+    EXPECT_EQ(0, err);
+}
+
+TEST_F(OrcCompileTests, MultiDimensionalArrayRankPreservedInExpressionTemporaries)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *orchestra = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+struct Cell value:i
+struct Holder grid:i[][]
+
+opcode MakeI2D, i[][], 0
+  iOut[][] init 2, 2
+  iOut[0][0] = 1
+  iOut[0][1] = 2
+  iOut[1][0] = 3
+  iOut[1][1] = 4
+  xout iOut
+endop
+
+opcode SumI2D(iArr[][]):i
+  xout iArr[0][0] + iArr[0][1] + iArr[1][0] + iArr[1][1]
+endop
+
+opcode ScaleK2D(kArr[][], kScale:k):k[][]
+  kOut[][] init 2, 2
+  kOut = kArr * kScale
+  xout kOut
+endop
+
+opcode SumK2D(kArr[][]):k
+  xout kArr[0][0] + kArr[0][1] + kArr[1][0] + kArr[1][1]
+endop
+
+opcode MakeCellGrid():Cell[][]
+  grid:Cell[][] init 2, 2
+  cell:Cell init 19
+  grid[1][1] = cell
+  xout grid
+endop
+
+opcode ReadCell11(grid:Cell[][]):i
+  out:Cell = grid[1][1]
+  val:i init out.value
+  xout val
+endop
+
+instr 1
+  iSumExpr = SumI2D(MakeI2D())
+  iCellExpr = ReadCell11(MakeCellGrid())
+
+  iGrid[][] init 2, 2
+  iGrid[0][0] = 5
+  iGrid[0][1] = 6
+  iGrid[1][0] = 7
+  iGrid[1][1] = 8
+  holder:Holder init iGrid
+  iMemberSumExpr = SumI2D(holder.grid)
+
+  kA[][] init 2, 2
+  kA = 2
+  kScaledSum = SumK2D(ScaleK2D(kA, 3))
+
+  chnset iSumExpr, "iSumExpr"
+  chnset iCellExpr, "iCellExpr"
+  chnset iMemberSumExpr, "iMemberSumExpr"
+  chnset kScaledSum, "kScaledSum"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orchestra));
+    csoundReadScore(csound, "i 1 0 0.01\ne 0.02\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int perfStatus = 0;
+    while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+    }
+    EXPECT_GT(perfStatus, 0);
+    int32_t err = 0;
+    EXPECT_EQ(FL(10.0), csoundGetControlChannel(csound, "iSumExpr", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(19.0), csoundGetControlChannel(csound, "iCellExpr", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(26.0), csoundGetControlChannel(csound, "iMemberSumExpr", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(24.0), csoundGetControlChannel(csound, "kScaledSum", &err));
+    EXPECT_EQ(0, err);
+}
+
+TEST_F(OrcCompileTests, VerifyTreeFailureCleansOriginalAstAndPriorInstrPools)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *badWithUdoAndInstr = R"(
+opcode GoodHelper(iIn:i):i
+  iLocal = iIn * 2
+  xout iLocal + 1
+endop
+
+instr 1
+  iRes = GoodHelper(3)
+  chnset iRes, "priorInstrOk"
+endin
+
+instr 2
+  iBad nonexistentOpcodeForVerifyCleanup 1
+endin
+)";
+    const char *badWithInstr0ExprFirst = R"(
+giFirstExpr = 1 + 2
+
+instr 1
+  iX init giFirstExpr + 4
+endin
+
+instr 2
+  iBad nonexistentOpcodeForVerifyCleanup 2
+endin
+)";
+
+    for (int i = 0; i < 5; i++) {
+        EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, badWithUdoAndInstr));
+        EXPECT_NE(CSOUND_SUCCESS,
+                  csoundCompileOrc(csound, badWithInstr0ExprFirst));
+    }
+
+    const char *validAfterFailures = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  chnset 42, "afterVerifyFailure"
+endin
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, validAfterFailures));
+    csoundReadScore(csound, "i 1 0 0.01\ne 0.02\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int perfStatus = 0;
+    while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+    }
+    EXPECT_GT(perfStatus, 0);
+    int32_t err = 0;
+    EXPECT_EQ(FL(42.0), csoundGetControlChannel(csound, "afterVerifyFailure", &err));
+    EXPECT_EQ(0, err);
+}
+
+#if !defined(_WIN32)
+TEST_F(OrcCompileTests, ExternalScoreRemovesTempDirectoriesImmediately)
+{
+    csoundSetOption(csound, "-n -d -m0");
+    const char *csd = R"(
+<CsoundSynthesizer>
+<CsInstruments>
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  chnset 7, "exScoreRan"
+endin
+</CsInstruments>
+<CsScore bin="/bin/cp">
+i 1 0 0.01
+e 0.02
+</CsScore>
+</CsoundSynthesizer>
+)";
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileCSD(csound, csd, 1, 0));
+    EXPECT_EQ(nullptr, csound->onefileStatics.toremove);
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int perfStatus = 0;
+    while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+    }
+    EXPECT_GT(perfStatus, 0);
+    int32_t err = 0;
+    EXPECT_EQ(FL(7.0), csoundGetControlChannel(csound, "exScoreRan", &err));
+    EXPECT_EQ(0, err);
+}
+#endif
+
+TEST_F(OrcCompileTests, RejectedCommaInstrumentAliasDoesNotLeakIntoVarPool)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  kDummy = 0
+endin
+)"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+
+    // A rejected comma-separated instrument header must not leave its alias in
+    // engineState.varPool as an InstrDef.
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+instr 2, gkExtra
+  no_such_opcode 1
+endin
+)"));
+    EXPECT_EQ(nullptr, csoundFindVariableWithName(
+        csound, csound->engineState.varPool, "gkExtra"));
+
+    // Deleting an uncompiled parsed tree must not leak its staged alias either.
+    TREE *parsedOnly = csoundParseOrc(csound, R"(
+instr 3, gkParsedOnly
+  kOk = 1
+endin
+)");
+    ASSERT_NE(nullptr, parsedOnly);
+    csoundDeleteTree(csound, parsedOnly);
+    EXPECT_EQ(nullptr, csoundFindVariableWithName(
+        csound, csound->engineState.varPool, "gkParsedOnly"));
+
+    // Subsequent valid global definitions using those names must succeed.
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+gkExtra = 7
+gkParsedOnly = 9
+)"));
+
+    // Valid live comma-named instruments still bind :InstrDef cleanly.
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+instr 4, LiveNamed
+  gkExtra = 7
+  gkParsedOnly = 9
+  chnset gkExtra, "extraVal"
+  chnset gkParsedOnly, "parsedVal"
+  chnset 11, "liveNamedRan"
+endin
+schedule LiveNamed, 0, 0.05
+)"));
+
+    for (int i = 0; i < 8; i++) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+    }
+    int32_t err = 0;
+    EXPECT_EQ(FL(7.0), csoundGetControlChannel(csound, "extraVal", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(9.0), csoundGetControlChannel(csound, "parsedVal", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(11.0), csoundGetControlChannel(csound, "liveNamedRan", &err));
+    EXPECT_EQ(0, err);
+}
+
+TEST_F(OrcCompileTests, FailedStructDeclareParseAllowsLaterValidUdoDefinition)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+
+    // Parse struct + UDO declaration alongside an invalid instrument: parsing
+    // fails and rolls back the provisional struct, leaving an UNDEFINED
+    // opcodeInfo declaration whose argument pool was pruned.
+    TREE *failedTree = csoundParseOrc(csound, R"(
+struct Box x:i
+declare PassBox(first:i, item:Box):i
+
+instr 1
+  no_such_opcode 1
+endin
+)");
+    EXPECT_EQ(nullptr, failedTree);
+
+    // Defining the struct and UDO afterwards must rebuild the UNDEFINED UDO's
+    // argument pool and run cleanly without failing note init.
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+struct Box x:i
+
+opcode PassBox(first:i, item:Box):i
+  xout first + item.x
+endop
+
+instr 1
+  b:Box init 30
+  iRes = PassBox(12, b)
+  chnset iRes, "passBoxOut"
+endin
+)"));
+    csoundReadScore(csound, "i 1 0 0.05\ne 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int perfStatus = 0;
+    while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+    }
+    EXPECT_GT(perfStatus, 0);
+    int32_t err = 0;
+    EXPECT_EQ(FL(42.0), csoundGetControlChannel(csound, "passBoxOut", &err));
+    EXPECT_EQ(0, err);
+}
+
+TEST_F(OrcCompileTests, RepeatedVarPoolCleanupAndStructRollbackDoNotLeakKeys)
+{
+    for (int iter = 0; iter < 50; iter++) {
+        CS_VAR_POOL *pool = csoundCreateVarPool(csound);
+        ASSERT_NE(nullptr, pool);
+        for (int v = 0; v < 4; v++) {
+            char name[32];
+            snprintf(name, sizeof(name), "iv_%d_%d", iter, v);
+            CS_VARIABLE *var = csoundCreateVariable(
+                csound, csound->typePool, &CS_VAR_TYPE_I, name, nullptr);
+            ASSERT_NE(nullptr, var);
+            ASSERT_EQ(0, csoundAddVariable(csound, pool, var));
+        }
+        ASSERT_EQ(4, pool->table->count);
+        csoundDeleteVarPoolMemory(csound, pool);
+        EXPECT_EQ(nullptr, pool->head);
+        EXPECT_EQ(nullptr, pool->tail);
+        EXPECT_EQ(0, pool->varCount);
+        EXPECT_EQ(0, pool->table->count);
+        csoundFreeVarPool(csound, pool);
+    }
+
+    CS_HASH_TABLE *table = cs_hash_table_create(csound);
+    ASSERT_NE(nullptr, table);
+    for (int iter = 0; iter < 50; iter++) {
+        cs_hash_table_put(csound, table, const_cast<char *>("init"),
+                          reinterpret_cast<void *>(static_cast<uintptr_t>(iter + 1)));
+    }
+    EXPECT_EQ(1, table->count);
+    cs_hash_table_free(csound, table);
+
+    for (int iter = 0; iter < 50; iter++) {
+        TREE *failed = csoundParseOrc(csound, R"(
+struct RollTmp x:i
+gkTmp:RollTmp init 1
+instr 1
+  no_such_opcode 1
+endin
+)");
+        EXPECT_EQ(nullptr, failed);
+        EXPECT_EQ(nullptr,
+                  csoundGetTypeWithVarTypeName(csound->typePool, ":RollTmp;"));
+        EXPECT_EQ(nullptr,
+                  csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                             "gkTmp"));
     }
 }

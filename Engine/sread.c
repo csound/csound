@@ -1025,7 +1025,6 @@ static void pcopy(CSOUND *csound, int32_t pfno, int32_t ncopy, SRTBLK *prvbp)
       default:
         break;
       }
-      (csound->sread.bp)->lineno = prvbp->lineno;
       pfno++;
     }
     (csound->sread.nxp) = p;            /*          adjust globl nxp pntr */

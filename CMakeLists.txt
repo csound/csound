@@ -1562,6 +1562,7 @@ list(APPEND libcsound_SRCS
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c
     Engine/csound_orc_structs.c
+    Engine/csound_pre_shared.c
     Engine/new_orc_parser.c
     Engine/symbtab.c)
 
@@ -1572,6 +1573,7 @@ list(APPEND libcsound_static_SRCS
     Engine/csound_orc_optimize.c
     Engine/csound_orc_compile.c
     Engine/csound_orc_structs.c
+    Engine/csound_pre_shared.c
     Engine/new_orc_parser.c
     Engine/symbtab.c)
 
@@ -1606,57 +1608,35 @@ if(MSVC)
         COMPILE_FLAGS -DYY_NO_UNISTD_H)
 endif()
 
-# Handling New Score Parser
-
-##list(APPEND libcsound_CFLAGS -DSCORE_PARSER)
-
-#set(YACC_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.y)
-#set(YACC_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c)
-#set(YACC_SCOOUTH ${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.h)
-
-#set(LEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_sco.lex)
-#set(LEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c)
+# Score preprocessor lexer
 
 set(PRELEX_SCOSRC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/csound_prs.lex)
 set(PRELEX_SCOOUT ${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c)
 
 # Flex emits an unused fatal handler when YY_FATAL_ERROR is overridden.
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
-    set_source_files_properties(${PRELEX_SCOOUT}
-        PROPERTIES COMPILE_FLAGS "-Wno-unused-function")
+    set_property(SOURCE ${PRELEX_OUT} ${PRELEX_SCOOUT}
+        APPEND_STRING PROPERTY COMPILE_FLAGS " -Wno-unused-function")
 endif()
 
-##message("${CMAKE_CURRENT_BINARY_DIR}/csound_prslex.c")
-##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scolex.c")
-##message("${CMAKE_CURRENT_BINARY_DIR}/csound_scoparse.c")
-
-#add_custom_command(
-#    OUTPUT ${LEX_SCOOUT}
-#    DEPENDS ${LEX_SCOSRC}
-#    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${LEX_SCOSRC} > ${LEX_SCOOUT}
-#    )
-
-add_custom_command(
-    OUTPUT ${PRELEX_SCOOUT}
-    DEPENDS ${PRELEX_SCOSRC}
-    COMMAND ${FLEX_EXECUTABLE} ARGS -B -t -d ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
-)
-
-#add_custom_command(
-#    OUTPUT ${YACC_SCOOUT} ${YACC_SCOOUTH}
-#    DEPENDS ${YACC_SCOSRC} ${LEX_SCOOUT}
-#    COMMAND ${BISON_EXECUTABLE}
-#    ARGS -pcsound_sco -t -d --report=itemset -o ${YACC_SCOOUT} ${YACC_SCOSRC}
-#    )
+if(LEXER_DEBUG)
+    add_custom_command(
+        OUTPUT ${PRELEX_SCOOUT}
+        DEPENDS ${PRELEX_SCOSRC}
+        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t -d ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
+    )
+else()
+    add_custom_command(
+        OUTPUT ${PRELEX_SCOOUT}
+        DEPENDS ${PRELEX_SCOSRC}
+        COMMAND ${FLEX_EXECUTABLE} ARGS -B -t ${PRELEX_SCOSRC} > ${PRELEX_SCOOUT}
+    )
+endif()
 
 list(APPEND libcsound_SRCS ${PRELEX_SCOOUT})
-    #${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
 
 list(APPEND libcsound_static_SRCS ${PRELEX_SCOOUT})
-    #${LEX_SCOOUT} ${YACC_SCOOUT} ${PRELEX_SCOOUT})
 
-#set_source_files_properties(${YACC_SCOOUT} GENERATED)
-#set_source_files_properties(${LEX_SCOOUT} GENERATED)
 set_source_files_properties(${PRELEX_SCOOUT} GENERATED)
 if(MSVC)
     set_source_files_properties(${PRELEX_SCOOUT} PROPERTIES
@@ -1675,13 +1655,11 @@ if(BUILD_MULTI_CORE)
 
     list(APPEND libcsound_SRCS
         Engine/cs_new_dispatch.c
-        Engine/cs_par_base.c
-        Engine/cs_par_orc_semantic_analysis.c)
+        Engine/cs_par_base.c)
 
     list(APPEND libcsound_static_SRCS
         Engine/cs_new_dispatch.c
-        Engine/cs_par_base.c
-        Engine/cs_par_orc_semantic_analysis.c)
+        Engine/cs_par_base.c)
 
     list(APPEND libcsound_CFLAGS -DPARCS)
 

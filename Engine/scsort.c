@@ -85,7 +85,6 @@ static void keep_later(CSOUND *csound, CORFIL *scin)
     LATER *later;
     CORFIL *sorted;
 
-    csound->scoreout = NULL;
     sorted = csound->sread.sorted = corfile_create_w(csound);
     sort_sections(csound, scin, sorted, 1);
     corfile_flush(csound, sorted);
@@ -134,7 +133,6 @@ char *scsortstr_events(CSOUND *csound, CORFIL *scin)
     CORFIL *sco;
     char   *str;
 
-    csound->scoreout = NULL;
     sco = csound->sread.sorted = corfile_create_w(csound);
     sort_sections(csound, scin, sco, 0);
     corfile_flush(csound, sco);
@@ -161,7 +159,6 @@ char *scsortstr(CSOUND *csound, CORFIL *scin)
       keep_later(csound, scin);
       return NULL;
     }
-    csound->scoreout = NULL;
     sco = csound->scstr = corfile_create_w(csound);
     sort_sections(csound, scin, sco, 1);
     //printf("**** body = >>%s<<\n", sco->body);

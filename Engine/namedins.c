@@ -199,7 +199,7 @@ int32 csoundStringArg2Insno(CSOUND *csound, void *p, int32_t is_string)
       if (UNLIKELY(insno < 1 || insno > csound->engineState.maxinsno ||
                    !csound->engineState.instrtxtp[insno])) {
         csound->Warning(csound, Str("Cannot Find Instrument %d\n"), (int32_t) insno);
-        return csound->engineState.maxinsno;
+        return NOT_AN_INSTRUMENT;
       }
     }
     return insno;
@@ -416,6 +416,8 @@ void *csoundQueryGlobalVariableNoCheck(CSOUND *csound, const char *name)
  */
 int32_t csoundDestroyGlobalVariable(CSOUND *csound, const char *name)
 {
+    if (UNLIKELY(csound == NULL || csound->namedGlobals == NULL || name == NULL))
+      return CSOUND_ERROR;
     void *p = cs_hash_table_get(csound, csound->namedGlobals, (char*)name);
     if (UNLIKELY(p == NULL))
       return CSOUND_ERROR;

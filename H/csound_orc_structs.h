@@ -27,7 +27,6 @@
 #include "csound.h"
 #include "csound_type_system.h"
 #include "csoundCore.h"
-#define MAX_STRUCT_ARG_SIZE 1024
 
 typedef struct initstructvar {
   OPDS h;
@@ -69,6 +68,19 @@ int32_t csound_copy_struct_value(CSOUND *csound,
                                  void *dest, const void *src, INSDS *ctx,
                                  CSOUND_STRUCT_COPY_MODE mode);
 int32_t add_struct_definition(CSOUND* csound, TREE* structDefTree);
+int32_t process_struct_definitions_two_phase(CSOUND *csound, TREE *structDefList);
+int32_t process_struct_definitions_two_phase_tracked(CSOUND *csound,
+                                                     TREE *structDefList,
+                                                     CONS_CELL **newTypesOut);
+struct type_table;
+void rollback_struct_definitions(CSOUND *csound, CONS_CELL **newTypes);
+/* Retain provisional struct types created or adopted by a parsed tree until
+   compilation commits them or tree deletion releases the last reference. */
+void retain_parsed_provisional_structs(CSOUND *csound, TREE *astTree,
+                                       struct type_table *typeTable,
+                                       CONS_CELL **newTypes);
+void commit_provisional_structs(CSOUND *csound, CONS_CELL **retainedTypes);
+void release_provisional_structs(CSOUND *csound, CONS_CELL **retainedTypes);
 void freeStructVarMemory(void *csnd, void *p);
 void csound_free_struct_members(CSOUND *csound, CS_STRUCT_VAR *var);
 

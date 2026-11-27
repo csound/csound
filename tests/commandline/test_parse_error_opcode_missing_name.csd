@@ -3,7 +3,7 @@ description = "expected failure: opcode missing name"
 
 [expect]
 exit = "nonzero"
-stderr = ["syntax error, unexpected NEWLINE, expecting ','"]
+stderr = ["syntax error, unexpected ',', expecting T_IDENT"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

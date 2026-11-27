@@ -129,6 +129,9 @@ int32_t reinit(CSOUND *csound, GOTO *p)
                                Str("reinit: instance is being turned off"));
     }
     ATOMIC_SET(p->h.insdshead->init_done, 0);
+    if (csound->oparms->numThreads > 1) {
+      ATOMIC_INCR(csound->dag_changed);
+    }
     ATOMIC_SET8(p->h.insdshead->actflg, 0);
     data.ip = p->h.insdshead;
     data.ids = p->lblblk->prvi;

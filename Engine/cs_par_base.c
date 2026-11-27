@@ -54,6 +54,7 @@ int32_t csp_thread_index_get(CSOUND *csound)
       index++;
       current = current->next;
     }
+    free(threadId);
     return -1;
 }
 
@@ -81,6 +82,7 @@ void csp_barrier_dealloc(CSOUND *csound, void **barrier)
       csound->Die(csound, Str("Invalid NULL Parameter barrier\n"));
 
     csound->DestroyBarrier(*barrier);
+    *barrier = NULL;
 }
 
 
@@ -164,6 +166,7 @@ static void set_element_delloc(CSOUND *csound,
 {
     if (UNLIKELY(set_element == NULL || *set_element == NULL))
       csound->Die(csound, Str("Invalid NULL Parameter set_element\n"));
+    csound->Free(csound, (*set_element)->data);
     csound->Free(csound, *set_element);
     *set_element = NULL;
 
@@ -316,6 +319,10 @@ void csp_set_remove(CSOUND *csound, struct set_t *set, void *data)
           }
           else if (ele == set->head) {
             set->head = ele->next;
+          }
+          else if (ele == set->tail) {
+            prev->next = NULL;
+            set->tail = prev;
           }
           else {
             prev->next = ele->next;

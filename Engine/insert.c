@@ -308,6 +308,7 @@ void instance_process_pending_turnoffs(CSOUND *csound)
   INSDS *pending;
   INSDS *reclaim = NULL;
   int32_t allocLocked = 0;
+  int32_t anyFinalized = 0;
 
 #if CSOUND_SPINLOCK_AVAILABLE
   if (csound->realtime_locks_initialized) {
@@ -341,6 +342,7 @@ void instance_process_pending_turnoffs(CSOUND *csound)
       if (ATOMIC_GET8(ip->actflg) == 0)
         ATOMIC_SET8(ip->actflg, 1);
       xturnoff_now_internal(csound, ip, 1);
+      anyFinalized = 1;
     }
 
     async_instance_lock(csound);
@@ -367,6 +369,11 @@ void instance_process_pending_turnoffs(CSOUND *csound)
     }
     pending = next;
   }
+
+#ifdef PARCS
+  if (csound->oparms->numThreads > 1 && (reclaim != NULL || anyFinalized))
+    dag_publish_active_snapshot_locked(csound);
+#endif
 
   if (allocLocked)
     csoundSpinUnLock(&csound->alloc_spinlock);
@@ -1360,8 +1367,12 @@ uintptr_t event_insert_thread(void *p) {
           initResult = instance_init_finish(csound, ip);
           if (error == 0 && initResult != INSTANCE_INIT_TURNOFF) {
             ATOMIC_SET8(ip->actflg, 1);
-            if (initResult == INSTANCE_INIT_COMPLETE)
+            if (initResult == INSTANCE_INIT_COMPLETE) {
+              if (csound->oparms->numThreads > 1) {
+                ATOMIC_INCR(csound->dag_changed);
+              }
               ATOMIC_SET(ip->init_done, 1);
+            }
           }
           else
             ATOMIC_SET(ip->init_done, 0);
@@ -1384,8 +1395,12 @@ uintptr_t event_insert_thread(void *p) {
           error = realtime_init_pass(csound, ip);
           note_init_leave(outer);
           initResult = instance_init_finish(csound, ip);
-          if (initResult == INSTANCE_INIT_COMPLETE && error == 0)
+          if (initResult == INSTANCE_INIT_COMPLETE && error == 0) {
+            if (csound->oparms->numThreads > 1) {
+              ATOMIC_INCR(csound->dag_changed);
+            }
             ATOMIC_SET(ip->init_done, 1);
+          }
           if (error != 0)
             instance_init_request_turnoff(csound, ip);
           csoundSpinUnLock(&csound->alloc_spinlock);
@@ -1874,7 +1889,11 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     /* Add an active instrument */
     tp->active++;
     tp->instcnt++;
-    csound->dag_changed++;      /* Need to remake DAG */
+    if (csound->oparms->numThreads > 1) {
+      ATOMIC_INCR(csound->dag_changed);
+    } else {
+      csound->dag_changed++;      /* Need to remake DAG */
+    }
     if(order == 1) { // MODE 1 = add to end
       INSDS *prvp, *nxtp;
       nxtp = &(csound->actanchor);
@@ -1915,6 +1934,10 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     ip->actflg++;                   /*    and mark the instr active */
     if(ip->instance_id == 0)
       ip->instance_id = csound->instance_count;
+#ifdef PARCS
+    if (csound->oparms->numThreads > 1)
+      dag_publish_active_snapshot_locked(csound);
+#endif
   }
 
 
@@ -2139,7 +2162,11 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   }
   tp->active++;
   tp->instcnt++;
-  csound->dag_changed++;      /* Need to remake DAG */
+  if (csound->oparms->numThreads > 1) {
+    ATOMIC_INCR(csound->dag_changed);
+  } else {
+    csound->dag_changed++;      /* Need to remake DAG */
+  }
   if (UNLIKELY(csoundGetDebug(csound) & DEBUG_RUNTIME)) {
     char *name = csound->engineState.instrtxtp[insno]->insname;
     if (UNLIKELY(name))
@@ -2210,6 +2237,10 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   ip->prvact       = prvp;
   prvp->nxtact     = ip;
   ip->actflg++;                         /* and mark the instr active */
+#ifdef PARCS
+  if (csound->oparms->numThreads > 1)
+    dag_publish_active_snapshot_locked(csound);
+#endif
   ip->m_chnbp      = chn;               /* rec address of chnl ctrl blk */
   ip->m_pitch      = (unsigned char) mep->dat1;    /* rec MIDI data   */
   ip->m_veloc      = (unsigned char) mep->dat2;
@@ -2604,9 +2635,9 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
 
       if (current->opcod_deact != NULL) {
         UOPCODE *udo = (UOPCODE *) current->opcod_deact;
-        udo->ip = NULL;
         udo->h.perf = (SUBR) useropcd;
         current->opcod_deact = NULL;
+        udo->ip = NULL;
       }
 
       frame->stage = DEACT_AFTER_SUBINSTR;
@@ -2686,7 +2717,11 @@ static void deact_internal(CSOUND *csound, INSDS *ip)
       if (!current->linked && current->fdchp != NULL &&
           !instance_has_async_refs(current))
         fdchclose(csound, current);
-      csound->dag_changed++;
+      if (csound->oparms->numThreads > 1) {
+        ATOMIC_INCR(csound->dag_changed);
+      } else {
+        csound->dag_changed++;
+      }
       if (frame->completeTurnoff)
         instance_turnoff_complete(csound, current, 1);
       frameCount--;
@@ -2772,7 +2807,11 @@ static void xturnoff_internal(CSOUND *csound, INSDS *ip, int32_t force)
   else {
     /* no extra time needed: deactivate immediately */
     deact_internal(csound, ip);
-    csound->dag_changed++;      /* Need to remake DAG */
+    if (csound->oparms->numThreads > 1) {
+      ATOMIC_INCR(csound->dag_changed);
+    } else {
+      csound->dag_changed++;      /* Need to remake DAG */
+    }
     if (!force)
       instance_turnoff_complete(csound, ip, 1);
   }
@@ -2875,6 +2914,10 @@ void free_inactive_instances(CSOUND *csound)
   /* Detach reclaimable instances while holding the instance-list lock, then
      release files and memory after that lock is released. A caller may still
      serialize the surrounding section transition with alloc_spinlock. */
+#ifdef PARCS
+  if (csound->oparms->numThreads > 1)
+    dag_publish_active_snapshot_locked(csound);
+#endif
   inactive_instance_lock(csound);
   for (txtp = &(csound->engineState.instxtanchor);
        txtp != NULL;  txtp = txtp->nxtinstxt) {
@@ -3464,7 +3507,7 @@ static INSDS *instantiate(CSOUND *csound, INSTRTXT *tp, int32_t insno,
     OPCODINFO* info = tp->opcode_info;
     size_t pcnt = sizeof(OPCOD_IOBUFS) +
       sizeof(cs_float*) * (info->inchns + info->outchns);
-    ip->opcod_iobufs = (void*) csound->Malloc(csound, pcnt);
+    ip->opcod_iobufs = (void*) csound->Calloc(csound, pcnt);
   }
 
   /* gbloffbas = csound->globalVarPool; */
@@ -3698,9 +3741,9 @@ static void free_unlinked_instance(CSOUND *csound, INSDS *ip)
     free_user_opcode_buffers(csound, p);
 
     deact(csound, p->ip);     /* deactivate */
-    p->ip = NULL;
     p->h.perf = (SUBR) useropcd;
     ip->opcod_deact = NULL;
+    p->ip = NULL;
   }
   // same for any subinstrs - these behave like UDOS
   if (ip->subins_deact) {

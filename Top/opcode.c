@@ -349,7 +349,8 @@ void add_opcode_def(CSOUND *csound, OENTRY *ep) {
       // create new variable
       var = add_global_variable(csound, &csound->engineState, type, varName,
                               NULL);
-    } else csound->Free(csound, varName);
+    }
+    csound->Free(csound, varName);
     /* A global of the orchestra's own with this name shadows the opcode: it
        is not an opcode reference, and is not to be written as one. */
     if(var != NULL && var->varType == type) {
@@ -413,11 +414,19 @@ int32_t opcode_ref(CSOUND *csound, ASSIGN *p) {
  * opcodeinfo opc:OpcodeDef
  */
 int32_t opcode_info(CSOUND *csound, OPINFO *p) {
+  if (p->ref == NULL || p->ref->entries == NULL ||
+      p->ref->entries->count <= 0 || p->ref->entries->entries[0] == NULL) {
+    return csound->InitError(csound, Str("uninitialized OpcodeDef\n"));
+  }
   OENTRY *ep = p->ref->entries->entries[0];
-  int n, nep =  p->ref->entries->count;
+  int n, nep = p->ref->entries->count;
+  char *shortName = get_opcode_short_name(csound, ep->opname);
   csound->Message(csound, Str("%s: %d overloads\n"),
-                  get_opcode_short_name(csound, ep->opname),
+                  shortName,
                   nep);
+  if (shortName != ep->opname) {
+    csound->Free(csound, shortName);
+  }
   for(n = 0; n < nep; n++) {
     ep = p->ref->entries->entries[n];
     csound->Message(csound, Str("(%d)\t%s\tout-types: %s\tin-types: %s\n"),
@@ -940,9 +949,10 @@ static int32_t setup_args(CSOUND *csound, OPCODEOBJ *obj, OPDS *h, cs_float *arg
     // no arg is provided.
     else if(*types == '?') {
       // increment opt count if no args are passed
-      opt += (n < ni && args[n]) ? 0 : 1;
+      int32_t hasArg = (n < no + 1 + ni && args[n] != NULL);
+      opt += hasArg ? 0 : 1;
       // connect arg if passed, else lookup const
-      inargs[i++] = (n < ni && args[n]) ? args[n++] :
+      inargs[i++] = hasArg ? args[n++] :
         set_constant(csound, "0", 0);
       types++;
     }

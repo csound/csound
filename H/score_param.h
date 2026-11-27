@@ -24,36 +24,9 @@
 #define __SCORE_PARAM_H
 
 #include "scanner_buffers.h"
-
-
-typedef struct ListItem {
-  cs_double           val;
-  struct ListItem *args;
-} ListItem;
-
-typedef struct ScoreTree {
-  int              op;
-  ListItem         *args;
-  struct ScoreTree *next;
-  int              line;
-  int              locn;
-} ScoreTree;
-
-#ifndef __PARSE_PARAM_H
+#include "csound_pre_shared.h"
 
 #define MAX_INCLUDE_DEPTH 100
-
-typedef struct IFDEFSTACK_ {
-    struct IFDEFSTACK_  *prv;
-    unsigned char   isDef;      /* non-zero if #ifdef is true, or #ifndef   */
-                                /*   is false                               */
-    unsigned char   isElse;     /* non-zero between #else and #endif        */
-    unsigned char   isSkip;     /* sum of: 1: skipping code due to this     */
-                                /*   #ifdef, 2: skipping due to parent      */
-} IFDEFSTACK;
-
-
-#endif
 
 typedef struct prs_parm_s {
     void            *yyscanner;
@@ -72,11 +45,7 @@ typedef struct prs_parm_s {
     unsigned char   isString;
     unsigned char   isinclude;
     char            *path;
-    uint16_t        line;
-    uint64_t        locn;
-    uint64_t        llocn;
     uint16_t        depth;
-    uint16_t        lstack[1024];
          /* Variable for nested repeat loops */
 #define NAMELEN 40              /* array size of repeat macro names */
 #define RPTDEPTH 40             /* size of repeat_n arrays (39 loop levels) */
@@ -97,25 +66,4 @@ typedef struct prs_parm_s {
     CORFIL  *repeat_sect_cf;
     MACRO   *repeat_sect_mm;
 } PRS_PARM;
-
-typedef struct scotoken_s {
-    int             type;
-    int             ival;
-    cs_float           fval;
-    char            *strbuff;
-} SCOTOKEN;
-
-typedef struct score_parm_s {
-    void            *yyscanner;
-    int             locn;
-    MACRO           *macros;
-    char            *xstrbuff;
-    int             xstrptr,xstrmax;
-    int             ival;
-    cs_float           fval;
-    SCOTOKEN        *arglist;
-} SCORE_PARM;
-
-  uint64_t make_slocation(PRS_PARM *);
-  uint8_t file_to_int(CSOUND*, const char*);
 #endif

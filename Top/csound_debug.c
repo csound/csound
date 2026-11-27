@@ -35,7 +35,7 @@ static void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_lis
 int32_t dag_get_task(CSOUND *csound, int32_t index, int32_t numThreads,
                      int32_t next_task);
 int32_t dag_end_task(CSOUND *csound, int32_t task);
-void dag_build(CSOUND *csound, INSDS *chain);
+int32_t dag_build(CSOUND *csound, INSDS *chain);
 void dag_reinit(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
 int32_t sense_events(CSOUND *);
@@ -977,7 +977,7 @@ int32_t kperf_debug(CSOUND *csound) {
       /* DEBUGGER disabled for multicore performance */
       int32_t k;
       int32_t n = csound->oparms->numThreads;
-      if (csound->dag_changed)
+      if (ATOMIC_GET(csound->dag_changed))
         dag_build(csound, ip);
       else
         dag_reinit(csound);

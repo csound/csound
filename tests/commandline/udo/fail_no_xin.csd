@@ -3,7 +3,7 @@ description = "fail due to no xin"
 
 [expect]
 exit = "nonzero"
-stderr = ["syntax error, invalid xin statement for UDO: defined 'i', found '(null)'", "syntax error, testUDO UDO"]
+stderr = ["syntax error, invalid xin statement for UDO: defined 'i', found '(none)'", "syntax error, testUDO UDO"]
 </CsTest>
 <CsoundSynthesizer>
 ;<CsOptions>

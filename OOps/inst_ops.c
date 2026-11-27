@@ -138,6 +138,19 @@ int32_t delete_instr(CSOUND *csound, DELETEIN *p)
                csound->engineState.instrtxtp[n] == NULL))
     return OK;                /* Instrument does not exist so noop */
   ip = csound->engineState.instrtxtp[n];
+#ifdef PARCS
+  if (csound->oparms->numThreads > 1) {
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized)
+      csoundSpinLock(&csound->alloc_spinlock);
+#endif
+    dag_publish_active_snapshot_locked(csound);
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized)
+      csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
+  }
+#endif
   active = ip->instance;
   while (active != NULL) {    /* Check there are no active instances */
     INSDS   *nxt = active->nxtinstance;
@@ -198,6 +211,19 @@ int32_t delete_instrdef_opcode(CSOUND *csound, DELETE_INSTRDEF *p)
                csound->engineState.instrtxtp[n] == NULL))
     return OK;                /* Instrument does not exist so noop */
   ip = csound->engineState.instrtxtp[n];
+#ifdef PARCS
+  if (csound->oparms->numThreads > 1) {
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized)
+      csoundSpinLock(&csound->alloc_spinlock);
+#endif
+    dag_publish_active_snapshot_locked(csound);
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized)
+      csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
+  }
+#endif
   active = ip->instance;
   while (active != NULL) {    /* Check there are no active instances */
     INSDS   *nxt = active->nxtinstance;
@@ -408,6 +434,13 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
       int32_t err = init_instance(csound, ip, &evt);
       if(err == 0) {
         INSDS *prvp, *nxtp;
+#if CSOUND_SPINLOCK_AVAILABLE
+        int32_t locked = 0;
+        if (csound->realtime_locks_initialized) {
+          csoundSpinLock(&csound->alloc_spinlock);
+          locked = 1;
+        }
+#endif
         nxtp = &(csound->actanchor);
         // splice at end of chain
         while ((prvp = nxtp) &&
@@ -416,6 +449,19 @@ int32_t play_instr(CSOUND *csound, LINEVENT2 *p) {
         ip->nxtact = nxtp;
         ip->prvact = prvp;
         prvp->nxtact = ip;
+        if (csound->oparms->numThreads > 1) {
+          ATOMIC_INCR(csound->dag_changed);
+        } else {
+          csound->dag_changed++;
+        }
+#ifdef PARCS
+        if (csound->oparms->numThreads > 1)
+          dag_publish_active_snapshot_locked(csound);
+#endif
+#if CSOUND_SPINLOCK_AVAILABLE
+        if (locked)
+          csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
         ((INSTANCEREF *) p->inst)->instance = ip;
         const OPARMS* O = csound->GetOParms(csound);
         if (UNLIKELY(O->msglevel & CS_RNGEMSG)) {
@@ -685,12 +731,37 @@ int32_t xtratim(CSOUND *csound, XTRADUR *p)
     runs only at i-time
 */
 int32_t splice_instance(CSOUND *csound, SPLICE_INSTR *p) {
-  if(p->in->instance && p->nxt->instance)
-    *p->out = (cs_float) ((int32_t) *p->mode == 0 ?
+  if (p->in->instance && p->nxt->instance) {
+    int32_t res;
+#if CSOUND_SPINLOCK_AVAILABLE
+    int32_t locked = 0;
+    if (csound->realtime_locks_initialized) {
+      csoundSpinLock(&csound->alloc_spinlock);
+      locked = 1;
+    }
+#endif
+    res = ((int32_t) *p->mode == 0) ?
       splice_before_instance(csound, p->in->instance,
                              p->nxt->instance) :
       splice_after_instance(csound, p->in->instance,
-                            p->nxt->instance));
+                            p->nxt->instance);
+    if (res == CSOUND_SUCCESS) {
+      if (csound->oparms->numThreads > 1) {
+        ATOMIC_INCR(csound->dag_changed);
+      } else {
+        csound->dag_changed++;
+      }
+#ifdef PARCS
+      if (csound->oparms->numThreads > 1)
+        dag_publish_active_snapshot_locked(csound);
+#endif
+    }
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (locked)
+      csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
+    *p->out = (cs_float) res;
+  }
   else *p->out = FL(-1.);
   return OK;
 }

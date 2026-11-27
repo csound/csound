@@ -275,19 +275,6 @@ CS_VARIABLE* csoundFindVariableWithName(CSOUND* csound, CS_VAR_POOL* pool,
     return returnValue;
 }
 
-CS_VARIABLE* csoundGetVariable(CS_VAR_POOL* pool, int32_t index) {
-
-    CS_VARIABLE* current = pool->head;
-    int32_t i;
-
-    for(i = 0; i < index || current != NULL; i++) {
-      /* THIS WAS WRONG!! && or || meant foR , ?? */
-      current = current->next;
-    }
-
-    return current;
-}
-
 int32_t csoundAddVariable(CSOUND* csound, CS_VAR_POOL* pool, CS_VARIABLE* var) {
   // Check for null or corrupted pool to prevent segfault
   if (pool == NULL || (uintptr_t)pool < 0x1000) {  // Detect corrupted small addresses
@@ -388,17 +375,35 @@ void csoundReallocateVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
 }
 
 void csoundDeleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
-    CS_VARIABLE* current = pool->head, *tmp;
-    const CS_TYPE* type;
+    CS_VARIABLE* current, *next;
+    if (pool == NULL) return;
+    /* The variables go with their memory, and the pool is left empty: its
+       list and its table must not keep pointing at them, or freeing the
+       pool frees them twice. */
+    current = pool->head;
+    pool->head = NULL;
+    pool->tail = NULL;
+    pool->poolSize = 0;
+    pool->varCount = 0;
     while (current != NULL) {
-      tmp = current;
-      type = current->subType;
-      if (type->freeVariableMemory != NULL) {
-        type->freeVariableMemory(csound, current->memBlock);
+      const CS_TYPE* type = current->varType;
+      next = current->next;
+      if (type != NULL && type->freeVariableMemory != NULL) {
+        /* As everywhere else, the callback is given the value, not the
+           CS_VAR_MEM header in front of it. */
+        type->freeVariableMemory(csound,
+                                 current->memBlock != NULL ?
+                                   &current->memBlock->value : NULL);
       }
       csound->Free(csound, current->memBlock);
-      current = current->next;
-      csound->Free(csound, tmp);
+      if (pool->table != NULL) {
+        char *key = cs_hash_table_get_key(csound, pool->table, current->varName);
+        cs_hash_table_remove(csound, pool->table, current->varName);
+        csound->Free(csound, key);
+      }
+      csound->Free(csound, current->varName);
+      csound->Free(csound, current);
+      current = next;
     }
 }
 
@@ -418,20 +423,6 @@ void csoundInitializeVarPool(CSOUND* csound, cs_float* memBlock, CS_VAR_POOL* po
                                           memBlock + current->memBlockIndex);
       }
       current = current->next;
-    }
-}
-
-void debug_print_varpool(CSOUND* csound, CS_VAR_POOL* pool) {
-    if (pool == NULL) {
-        csound->Warning(csound, "Warning: debug_print_varpool called with NULL pool\n");
-        return;
-    }
-    CS_VARIABLE* gVar = pool->head;
-    int32_t count = 0;
-    while(gVar != NULL) {
-      csound->Message(csound, "  %d) %s:%s\n", count++,
-                      gVar->varName, gVar->varType->varTypeName);
-      gVar = gVar->next;
     }
 }
 

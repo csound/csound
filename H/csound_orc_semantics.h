@@ -26,6 +26,7 @@
 #include "csoundCore.h"
 #include "csound_orc.h"
 #include "csound_orc_structs.h"  /* CS_STRUCT_VAR public layout */
+#include "csound_standard_types.h"
 
 /** Gets short version of opcode name, trimming off anything after '.'.
  If opname has no '.' in name, simply returns the opname pointer.
@@ -84,7 +85,12 @@ OENTRY* resolve_index_set_entry(CSOUND* csound, const CS_TYPE* type, const char*
                                 TREE* value, TREE* indices, TYPE_TABLE* typeTable,
                                 char** valueType);
 TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable);
+void stage_instr_variables(CSOUND *csound, TREE *astTree, TYPE_TABLE *typeTable);
 int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable);
+const CS_TYPE *resolve_type_annotation(CSOUND *csound,
+                                       const char *annotation,
+                                       ARRAY_VAR_INIT *varInit,
+                                       const void **typeArg);
 // bison functions
 extern int32_t csound_orcget_lineno(void*);
 extern int csound_orcget_previous_char(void *);

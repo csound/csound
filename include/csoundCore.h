@@ -893,6 +893,51 @@ static inline int32_t IsStringCode(cs_float f) {
 }
 
 /**
+ * Encodes string argument index into a NaN-boxed SSTRCOD p-field value.
+ */
+static inline cs_float csound_encode_sstrcod(int32_t index) {
+#ifdef USE_DOUBLE
+  int32_t sel = (byte_order() + 1) & 1;
+  union {
+    cs_float d;
+    int32 i[2];
+  } ch;
+  ch.d = SSTRCOD;
+  ch.i[sel] += (index & 0xffff);
+  return ch.d;
+#else
+  union {
+    cs_float d;
+    int32 i;
+  } ch;
+  ch.d = SSTRCOD;
+  ch.i += (index & 0xffff);
+  return ch.d;
+#endif
+}
+
+/**
+ * Decodes the string argument index from an SSTRCOD p-field value.
+ */
+static inline int32_t csound_decode_sstrcod(cs_float p) {
+#ifdef USE_DOUBLE
+  union {
+    cs_float d;
+    int32 i[2];
+  } ch;
+  ch.d = p;
+  return (byte_order() == 0) ? (ch.i[1] & 0xffff) : (ch.i[0] & 0xffff);
+#else
+  union {
+    cs_float d;
+    int32 j;
+  } ch;
+  ch.d = p;
+  return ch.j & 0xffff;
+#endif
+}
+
+/**
  * Returns the number of input arguments for opcode 'p'.
  */
 static inline int32_t GetInputArgCnt(OPDS *p) {
@@ -1263,6 +1308,19 @@ typedef struct _CSOUND_UTIL {
 */
 #ifdef __BUILDING_LIBCSOUND
 #include "cs_internal.h"
+
+typedef struct dag_active_snapshot {
+  int32_t count;
+  long retired_epoch;
+  struct dag_active_snapshot *next_retired;
+  INSDS *items[1];
+} DAG_ACTIVE_SNAPSHOT;
+
+#ifdef PARCS
+const DAG_ACTIVE_SNAPSHOT *dag_load_active_snapshot(CSOUND *csound);
+void dag_publish_active_snapshot_locked(CSOUND *csound);
+void dag_cleanup_active_snapshots(CSOUND *csound);
+#endif
 #endif
 
 /**
@@ -1894,8 +1952,8 @@ struct CSOUND_ {
   CORFIL *scstr;                                             /* score reader corfile */
   CORFIL *expanded_orc;                                      /* preprocessed orchestra source */
   CORFIL *expanded_sco;                                      /* preprocessed score source */
-  CORFIL *playscore;                                         /* realtime score playback corfile */
-  FILE *scoreout;                                            /* score output file */
+  void *reserved_playscore;                                  /* reserved for ABI layout compatibility */
+  FILE *reserved_scoreout;                                   /* reserved for ABI layout compatibility */
   EVTBLK *currevent;                                         /* current event block */
   EVTBLK evt;                                                /* working event block */
   EVTBLK *init_event;                                        /* event used during initialisation */
@@ -1923,7 +1981,7 @@ struct CSOUND_ {
   char *opcodedir;                                           /* opcode search directory */
   int32_t aftouch;                                           /* default MIDI touch value */
   int32_t keep_tmp;                                          /* keep temporary files */
-  uint32_t tempStatus;                                       /* temporary-file tracking status */
+  uint32_t reserved_tempStatus;                              /* reserved for ABI layout compatibility */
   void *evtFuncChain;                                        /* realtime event function chain */
   EVTNODE *OrcTrigEvts;                                      /* events triggered by the orchestra awaiting start */
   EVTNODE *freeEvtNodes;                                     /* free list of event nodes */
@@ -2041,9 +2099,9 @@ struct CSOUND_ {
   struct dag_t *multiThreadedDag;                            /* parallel execution graph */
   void *barrier1;                                            /* parallel execution barrier 1 */
   void *barrier2;                                            /* parallel execution barrier 2 */
-  struct instr_semantics_t *instCurr;                        /* instrument currently under semantic analysis */
-  struct instr_semantics_t *instRoot;                        /* root of the instrument semantic tree */
-  int32_t inInstr;                                           /* inside an instrument during semantic analysis */
+  void *reserved_instCurr;                                   /* reserved for ABI layout compatibility */
+  void *reserved_instRoot;                                   /* reserved for ABI layout compatibility */
+  int32_t reserved_inInstr;                                  /* reserved for ABI layout compatibility */
   int32_t dag_changed;                                       /* execution graph changed flag */
   int32_t dag_num_active;                                    /* number of active graph nodes */
   INSDS **dag_task_map;                                      /* graph node to instrument instance map */
@@ -2145,6 +2203,12 @@ struct CSOUND_ {
   cs_float alloc_queue_work_p1;                              /* and that note's p1 */
   int32_t alloc_queue_work_note;                             /* that request has a p1: it starts or ties a note, it is no reinit */
   int32_t preserve_subnormals;                              /* preserve subnormal inputs and results on x86 */
+  /* Append new private fields at the very end to preserve CSOUND ABI offsets. */
+  ORC_DELIMITER_SCAN orcScan;                                /* stateful scanner for live orchestra blocks */
+  int32_t lineventDiscardLine;                               /* discarding remainder of oversized -L line */
+  struct provisional_struct_entry *provisionalStructs;       /* uncommitted parsed struct types */
+  struct dag_active_snapshot *dag_active_snapshot;           /* published active-chain snapshot for busy-lock PARCS fallback */
+  struct dag_active_snapshot *dag_active_retired;            /* retired active-chain snapshots awaiting epoch reclamation */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

@@ -11,6 +11,7 @@
 #include <process.h>
 #else
 #include <sys/resource.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #endif
 
@@ -467,8 +468,7 @@ TEST_F(CsdCompileTests, Base64SectionKeepsLineNumbers)
 }
 
 #if GTEST_HAS_DEATH_TEST && !defined(_WIN32)
-// The temporary files of a CSD's sections go at a reset, mkstemp's empty
-// file beside each of them too. In a child, for its TMPDIR.
+// Use a child to set TMPDIR and umask for this compile.
 TEST_F(CsdCompileTests, TemporaryFilesLeaveNothing)
 {
   const auto tmpdir = path("tmp");
@@ -478,7 +478,19 @@ TEST_F(CsdCompileTests, TemporaryFilesLeaveNothing)
     "<CsMidifileB>\nAAAA\n</CsMidifileB>\n</CsoundSynthesizer>\n";
   ASSERT_EXIT(([&] {
       if (setenv("TMPDIR", tmpdir.c_str(), 1) != 0) exit(2);
+      umask(0022);
       if (csoundCompileCSD(csound, text, 1, 0) != 0) exit(3);
+      bool foundMidi = false;
+      for (const auto& file : std::filesystem::recursive_directory_iterator(tmpdir)) {
+        if (file.path().extension() != ".mid")
+          continue;
+        foundMidi = true;
+        const auto others = std::filesystem::perms::group_all |
+                            std::filesystem::perms::others_all;
+        if ((file.status().permissions() & others) != std::filesystem::perms::none)
+          exit(4);
+      }
+      if (!foundMidi) exit(5);
       csoundReset(csound);
       exit(std::filesystem::is_empty(tmpdir) ? 0 : 1);
   }()), ::testing::ExitedWithCode(0), "");
@@ -768,6 +780,19 @@ TEST_F(CsdCompileTests, NoScoreOnAStartedEngineQueuesNothing)
     EXPECT_EQ(std::string::npos, output.find("illegal RT scoreline"))
       << "async " << async << ": " << output;
   }
+}
+
+TEST_F(CsdCompileTests, OrchestraStringsCanContainCommentsAndClosingTags)
+{
+  const auto text = csd(R"(
+prints {{ literal /*
+</CsInstruments>
+}}
+prints R{raw R{nested /*}R
+</CsInstruments>
+}R
+)");
+  EXPECT_EQ(0, csoundCompileCSD(csound, text.c_str(), 1, 0)) << messages();
 }
 
 // A byte 0xFF is a character of a CSD, not its end: a line starting with one,

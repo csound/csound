@@ -23,18 +23,13 @@
 #define __PARSE_PARAM_H
 
 #include "scanner_buffers.h"
+#include "csound_pre_shared.h"
 
-typedef struct IFDEFSTACK_ {
-    struct IFDEFSTACK_  *prv;
-    unsigned char   isDef;      /* non-zero if #ifdef is true, or #ifndef   */
-                                /*   is false                               */
-    unsigned char   isElse;     /* non-zero between #else and #endif        */
-    unsigned char   isSkip;     /* sum of: 1: skipping code due to this     */
-                                /*   #ifdef, 2: skipping due to parent      */
-} IFDEFSTACK;
 
+struct CSOUND_;
 
 typedef struct pre_parm_s {
+    struct CSOUND_  *csound;
     void            *yyscanner;
     SCANNER_BUFFERS buffers;
   //MACRO           *macros;
@@ -46,6 +41,7 @@ typedef struct pre_parm_s {
     char            *macro_name_buffer; /* temporary argument-name storage */
     MACRO           *pending_arguments; /* argument group not yet stacked */
     int32_t         pending_argument_count;
+    int             rstr_depth;     /* nesting depth inside R{ ... }R raw strings */
     unsigned char   isIfndef;
     unsigned char   isString;
     uint16_t        line;

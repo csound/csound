@@ -23,12 +23,11 @@
 #include "corfile.h"
 #include "soundfile.h"
 #include "csound_orc.h"
+#include "sread.h"
 
 #include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
 // #include "cs_par_dispatch.h"
 
-extern const uint32_t csPlayScoMask;
 #if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
 extern int csoundSupportsRealtime(void);
 #endif
@@ -372,7 +371,7 @@ static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv) {
 
   if (csound->scorename == NULL && csound->scorestr == NULL) {
     /* No scorename yet */
-    if(csound->playscore == NULL) // if score not given in --events=
+    if (csound->scstr == NULL) // if score not given in --events=
       csound->Message(csound, Str("scoreless operation\n"));
     csound->scorestr = corfile_create_r(csound, "\n\n\ne\n#exit\n");
     corfile_flush(csound, csound->scorestr);
@@ -459,9 +458,10 @@ static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv) {
       (!strcmp(csound->scorename + (n - 4), ".srt") ||
        !strcmp(csound->scorename + (n - 4), ".xtr"))) {
     csound->Message(csound, Str("using previous %s\n"), csound->scorename);
-    // playscore = sortedscore = csound->scorename;   /*  use that one */
-    csound->scorestr = NULL;
-    csound->scorestr = copy_to_corefile(csound, csound->scorename, NULL, 1);
+    corfile_rm(csound, &csound->scstr);
+    csound->scstr = copy_to_corefile(csound, csound->scorename, NULL, 0);
+    if (UNLIKELY(csound->scstr == NULL))
+      csoundDie(csound, Str("cannot open scorefile %s\n"), csound->scorename);
   } else {
     // sortedscore = NULL;
     if (csound->scorestr == NULL) {
@@ -480,11 +480,15 @@ static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv) {
     // printf("*** keep_tmp = %d\n", csound->keep_tmp);
     if (csound->keep_tmp) {
       FILE *ff = fopen("score.srt", "w");
-      if (csound->keep_tmp == 1)
-        fputs(corfile_body(csound->scstr), ff);
-      else
-        put_sorted_score(csound, corfile_body(csound->scstr), ff);
-      fclose(ff);
+      if (UNLIKELY(ff == NULL)) {
+        csound->Warning(csound, Str("cannot open score.srt for writing\n"));
+      } else {
+        if (csound->keep_tmp == 1)
+          fputs(corfile_body(csound->scstr), ff);
+        else
+          put_sorted_score(csound, corfile_body(csound->scstr), ff);
+        fclose(ff);
+      }
     }
   }
   if (csound->xfilename != NULL) { /* optionally extract */
@@ -496,13 +500,10 @@ static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv) {
       csound->Message(csound, Str("  ... extracting ...\n"));
     scxtract(csound, csound->scstr, xfile);
     fclose(xfile);
-    csound->tempStatus &= ~csPlayScoMask;
   }
   if (O->odebug) {
     csound->Message(csound, Str("\t... done\n"));
   }
-  /* copy sorted score name */
-  csound->playscore = csound->scstr;
   if (O->odebug)
     print_benchmark_info(csound, Str("end of score sort"));
   if (O->syntaxCheckOnly) {
@@ -531,6 +532,8 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
     if (UNLIKELY(csound->orchstr == NULL)) {
       csoundErrorMsg(csound, Str("No orchestra: CSD file %s has no "
                                  "<CsInstruments>\n"), name);
+      if (csound->scorestr != NULL)
+        corfile_rm(csound, &csound->scorestr);
       return CSOUND_ERROR;
     }
 
@@ -582,6 +585,8 @@ static int32_t compile_csd_txt(CSOUND *csound, const char *csd_text,
                               "(engineStatus: %d).\n"),
                           csound->engineStatus);
       }
+    } else if (csound->scorestr != NULL) {
+      corfile_rm(csound, &csound->scorestr);
     }
     return res;
   } else
@@ -596,6 +601,7 @@ int32_t csoundCompileCSD(CSOUND *csound, const char *str, int32_t mode, int32_t 
 
   /* Score errors must return to this active API call, not an earlier one. */
   if ((result = setjmp(call.target)) != 0) {
+    sread_abandon(csound);
     result = (result - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS;
   } else if (mode == 0) {
     input = copy_to_corefile(csound, str, NULL, 0);
@@ -802,8 +808,20 @@ static int32_t start_csound(CSOUND *csound)
 
     for (i = 1; i < O->numThreads; i++) {
       THREADINFO *t = csound->Malloc(csound, sizeof(THREADINFO));
+      PARCS_WORKER_ARG *arg =
+          csound->Malloc(csound, sizeof(PARCS_WORKER_ARG));
+      if (UNLIKELY(t == NULL || arg == NULL)) {
+        if (t != NULL) csound->Free(csound, t);
+        if (arg != NULL) csound->Free(csound, arg);
+        csound->Die(csound, Str("Failed to allocate PARCS thread info\n"));
+      }
+      arg->csound = csound;
+      arg->index = i;
 
-      t->threadId = csound->CreateThread(&kperf_thread, (void *)csound);
+      t->threadId = csound->CreateThread(&kperf_thread, (void *)arg);
+      if (UNLIKELY(t->threadId == NULL)) {
+        csound->Free(csound, arg);
+      }
       t->next = NULL;
 
       if (current == NULL) {

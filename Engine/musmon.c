@@ -556,7 +556,7 @@ int32_t start_engine(CSOUND *csound)
     if(!csound->io_initialised)
          initialise_io(csound);
 
-    if (csound->playscore!=NULL) corfile_flush(csound, csound->playscore);
+    if (csound->scstr != NULL) corfile_flush(csound, csound->scstr);
     ++STA(sectno);
     if (O->msglevel > 0)
       csound->Message(csound, Str("SECTION %d:\n"), STA(sectno));
@@ -819,6 +819,9 @@ int32_t csound_cleanup(CSOUND *csound)
     }
 
     free_inactive_instances(csound);
+#ifdef PARCS
+    dag_cleanup_active_snapshots(csound);
+#endif
 #ifndef __EMSCRIPTEN__
     realtime_engine_locks_destroy(csound);
 #endif

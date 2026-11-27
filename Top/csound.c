@@ -56,7 +56,6 @@
 #include "fftlib.h"
 #include "lpred.h"
 #include "cs_par_base.h"
-#include "cs_par_orc_semantics.h"
 #include "arrays_internal.h"
 #include "namedins.h"
 #include "find_opcode.h"
@@ -792,8 +791,6 @@ static const CSOUND cenviron_ = {
     .scstr = (CORFIL*)NULL,
     .expanded_orc = NULL,
     .expanded_sco = NULL,
-    .playscore = NULL,
-    .scoreout = NULL,
     .currevent = (EVTBLK*) NULL,
     .evt = { 0, NULL, NULL, 0, '\0', 0, FL(0.0),
       FL(0.0), NULL},
@@ -822,7 +819,6 @@ static const CSOUND cenviron_ = {
     .opcodedir = NULL,
     .aftouch = 127,
     .keep_tmp = 0,
-    .tempStatus = 0,
     .evtFuncChain = NULL,
     .OrcTrigEvts = NULL,
     .freeEvtNodes = NULL,
@@ -982,9 +978,6 @@ static const CSOUND cenviron_ = {
     .multiThreadedDag = NULL,
     .barrier1 = NULL,
     .barrier2 = NULL,
-    .instCurr = NULL,
-    .instRoot = NULL,
-    .inInstr = 0,
     .dag_changed = 1,
     .dag_num_active = 0,
     .dag_task_map = NULL,
@@ -1040,26 +1033,18 @@ static const CSOUND cenviron_ = {
     .SF_id_date = (char*) NULL,
     /* -------- Sub-module static state and API bookkeeping -------- */
     .sread = {
-        NULL, NULL, NULL, NULL,
-        0, 0, 0, 0,
-        -FL(1.0), FL(0.0), FL(1.0),
-        NULL,
-        NULL,
-        NULL,
-        -1,
-        NULL, NULL,
-        0,0,0,
-        1,
-        -1,
-        {{NULL, 0, 0}},
-        {""},
-        {0},
-        {0},
-        1, {NULL}, 0,
-        "",
-        0,0,1,
-        NULL,
-        0
+        .bp = NULL, .prvibp = NULL,
+        .sp = NULL, .nxp = NULL,
+        .op = 0, .warpin = 0, .linpos = 0, .lincnt = 0,
+        .prvp2 = -FL(1.0), .clock_base = FL(0.0), .warp_factor = FL(1.0),
+        .curmem = NULL,
+        .memend = NULL,
+        .prs = NULL,
+        .last_name = -1,
+        .inputs = NULL, .str = NULL,
+        .input_size = 0, .input_cnt = 0,
+        .sorted = NULL,
+        .nocarry = 0
       },
     .onefileStatics = {
         NULL,
@@ -1124,6 +1109,11 @@ static const CSOUND cenviron_ = {
     .marked_sections = {{NULL, 0, 0}},
     .line_event_work = NULL,
     .line_event_work_size = 0,
+    .orcScan = {0},
+    .lineventDiscardLine = 0,
+    .provisionalStructs = NULL,
+    .dag_active_snapshot = NULL,
+    .dag_active_retired = NULL,
 
 };
 
@@ -1626,20 +1616,49 @@ int32_t csoundCompileTree(CSOUND *csound, TREE *root, int32_t async) {
   return csound_compile_orc(csound, str, async);
 }
 
+static CS_NOINLINE cs_float eval_code_body(CSOUND *csound, const char *str)
+{
+  if (str == NULL || csound_compile_orc(csound, str, 0) != CSOUND_SUCCESS)
+    return FL(0.0);
+  /* The block evaluated: before the start its global code runs below, and
+     a compilestr in it puts another global instrument in instr 0's place. */
+  if (csound->API_lock != NULL)
+    csoundLockMutex(csound->API_lock);
+  INSTRTXT *evaluated = csound->instr0;
+  if (csound->API_lock != NULL)
+    csoundUnlockMutex(csound->API_lock);
+  if (!(csound->engineStatus & CS_STATE_COMP)) {
+    init0_pending(csound);
+  }
+  if (csound->API_lock != NULL)
+    csoundLockMutex(csound->API_lock);
+  cs_float retval = (evaluated != NULL && evaluated->instance != NULL)
+                    ? evaluated->instance[0].retval
+                    : FL(0.0);
+  if (csound->API_lock != NULL)
+    csoundUnlockMutex(csound->API_lock);
+  return retval;
+}
+
+static CS_NOINLINE cs_float eval_code_own_jumps(CSOUND *csound, API_CALL *call,
+                                               const char *str)
+{
+  if (setjmp(call->target) != 0)
+    return FL(0.0);
+  return eval_code_body(csound, str);
+}
+
 cs_float csoundEvalCode(CSOUND *csound, const char *str)
 {
-  int32_t async = 0;
-  if (str && csound_compile_orc(csound,str,async)
-      == CSOUND_SUCCESS){
-    /* The block evaluated: before the start its global code runs below, and
-       a compilestr in it puts another global instrument in instr 0's place. */
-    INSTRTXT *evaluated = csound->instr0;
-    if(!(csound->engineStatus & CS_STATE_COMP)) {
-      init0_pending(csound);
-    }
-    return evaluated->instance != NULL ? evaluated->instance[0].retval : FL(0.0);
-    }
-  else return 0; // always return 0 on failure
+  if (!api_call_running(csound)) {
+    API_CALL call;
+    cs_float retval;
+    api_call_begin(csound, &call);
+    retval = eval_code_own_jumps(csound, &call, str);
+    api_call_end(&call);
+    return retval;
+  }
+  return eval_code_body(csound, str);
 }
 
 
@@ -1949,18 +1968,50 @@ static void reset(CSOUND *csound) {
      this idempotent operation for direct cleanup callers. */
   csound_close_audio(csound);
 
-  // stop multicore threads if still running
+#ifdef PARCS
+  // stop multicore threads, join workers, and release barriers/DAG state
   if (csound->oparms->numThreads > 1 &&
-      csound->multiThreadedThreadInfo != NULL &&
-      ATOMIC_GET(csound->multiThreadedComplete) == 0) {
-    ATOMIC_SET(csound->multiThreadedComplete, 1);
+      csound->multiThreadedThreadInfo != NULL) {
+    if (ATOMIC_GET(csound->multiThreadedComplete) == 0) {
+      ATOMIC_SET(csound->multiThreadedComplete, 1);
 #ifdef PARCS_USE_LOCK_BARRIER
-    csound->WaitBarrier(csound->barrier1);
+      if (csound->barrier1 != NULL)
+        csound->WaitBarrier(csound->barrier1);
 #else
-    ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));
+      ATOMIC_SET(csound->parflag, !ATOMIC_GET(csound->parflag));
 #endif
+    }
+    THREADINFO *t = csound->multiThreadedThreadInfo;
+    while (t != NULL) {
+      if (t->threadId != NULL) {
+        csound->JoinThread(t->threadId);
+      }
+      t = t->next;
+    }
+    t = csound->multiThreadedThreadInfo;
+    while (t != NULL) {
+      THREADINFO *next = t->next;
+      csound->Free(csound, t);
+      t = next;
+    }
+    csound->multiThreadedThreadInfo = NULL;
   }
+#ifdef PARCS_USE_LOCK_BARRIER
+  if (csound->barrier1 != NULL)
+    csp_barrier_dealloc(csound, &(csound->barrier1));
+#endif
+  if (csound->barrier2 != NULL)
+    csp_barrier_dealloc(csound, &(csound->barrier2));
+  if (csound->taskflag != NULL) {
+    csound->Free(csound, csound->taskflag);
+    csound->taskflag = NULL;
+  }
+  dag_cleanup(csound);
+#endif
   csound_cleanup(csound);
+#ifdef PARCS
+  dag_cleanup_active_snapshots(csound);
+#endif
   /* call registered reset callbacks */
   while (csound->reset_list != NULL) {
     resetCallback_t *p = (resetCallback_t *)csound->reset_list;

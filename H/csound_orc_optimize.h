@@ -2,6 +2,8 @@
 #pragma once
 
 enum {
+    /* Retained as a CLI/bitmask compatibility no-op; the old TREE pass was
+       dead code after semantic lowering and has been removed. */
     CSOUND_OPT_LEGACY = 1 << 0,
     CSOUND_OPT_CONSTANT_FOLDING = 1 << 1,
     CSOUND_OPT_COPY_REMOVAL = 1 << 2,

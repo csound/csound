@@ -124,7 +124,9 @@ void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics)
     cs_float   turnoff, anticip;
     int32_t     warped;
 
-    alloc_globals(extractStatics);
+    extractStatics->a0.nxtblk = extractStatics->a0.prvblk = NULL;
+    extractStatics->f0.nxtblk = extractStatics->f0.prvblk = NULL;
+    extractStatics->e.nxtblk = extractStatics->e.prvblk = NULL;
 
     if ((bp = csound->frstbp) == NULL)      /* if null file         */
       return;
@@ -149,6 +151,7 @@ void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics)
           include(extractStatics, bp); /*   incl w,s,e verbatim  */
           break;
         case 't':
+        case 'd':
         case 'i':
         case 'a':
           break;                            /*   but skip all t,i,a   */
@@ -186,8 +189,10 @@ void extract(CSOUND *csound, EXTRACT_STATICS* extractStatics)
         }
         include(extractStatics, bp);
         break;
+        case 'd':
         case 'i':
-          if (!extractStatics->inslst[bp->insno])   /* skip insnos not required */
+          if (bp->insno < 0 || bp->insno >= INSMAX ||
+              !extractStatics->inslst[bp->insno])   /* skip insnos not required */
             break;
           if (bp->newp3 < 0)            /* treat indef dur like f */
             goto casef;

@@ -3,7 +3,7 @@ description = "test for UDO crashing"
 
 [expect]
 exit = "nonzero"
-stderr = ["syntax error, invalid xout statement for UDO: defined 'k', found '(null)'", "syntax error, SimpleTest UDO"]
+stderr = ["syntax error, invalid xout statement for UDO: defined 'k', found '(none)'", "syntax error, SimpleTest UDO"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>

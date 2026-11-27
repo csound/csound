@@ -107,16 +107,14 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   char *sc;
 
   /* protect resource */
-  if (csound->scorestr != NULL && csound->scorestr->body != NULL)
-    corfile_rewind(csound->scorestr);
+  if (csound->scorestr != NULL)
+    corfile_rm(csound, &csound->scorestr);
   csound->scorestr = corfile_create_w(csound);
   corfile_puts(csound, (char *)str, csound->scorestr);
-  // #ifdef SCORE_PARSER
   if (csound->engineStatus & CS_STATE_COMP)
     corfile_puts(csound, "\n#exit\n", csound->scorestr);
   else
     corfile_puts(csound, "\ne\n#exit\n", csound->scorestr);
-  // #endif
   corfile_flush(csound, csound->scorestr);
   first = csound->scstr == NULL && (csound->engineStatus & CS_STATE_COMP) == 0;
   guard.csound = csound;
@@ -135,12 +133,7 @@ int32_t csoundReadScore(CSOUND *csound, const char *str) {
   sc = scsortstr(csound, csound->scorestr);
   csound->scoLineOffset = offset;
   score_read = guard.outer;
-  /* copy sorted score name */
-  if (first) {
-    csound->playscore = csound->scstr;
-    // corfile_rm(csound, &(csound->scorestr));
-    // printf("%s\n", O->playscore->body);
-  } else if (sc != NULL) { /* none for a later read before the start: kept */
+  if (!first && sc != NULL) { /* none for a later read before the start: kept */
     csoundInputMessage(csound, (const char *)sc);
     csound->Free(csound, sc);
     corfile_rm(csound, &(csound->scorestr));

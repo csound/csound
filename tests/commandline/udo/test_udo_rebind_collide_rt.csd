@@ -13,10 +13,12 @@ skip = "The command-line WASI runtime does not support --realtime."
 -odac -+rtaudio=null -d -m4 --realtime
 </CsOptions>
 <CsInstruments>
-sr = 1024
+sr = 8000
 ksmps = 32
 nchnls = 1
 0dbfs = 1
+
+gkPerfRan init 0
 
 opcode Echo(Sin:S):S
   Sout strcpyk Sin
@@ -31,14 +33,23 @@ instr 1
   Sa init objects[0], Sa
   kCycle timeinstk
   if kCycle == 1 then
+    gkPerfRan = 1
     Sb perf objects[0], Sb
     printf "Sb is %s\n", 1, Sb
   endif
 endin
 
+instr 2
+  if gkPerfRan != 0 then
+    event "e", 0, 0
+    turnoff
+  endif
+endin
+
 </CsInstruments>
 <CsScore>
-i 1 0 .1
+i 1 0 10
+i 2 0 10
 e
 </CsScore>
 </CsoundSynthesizer>

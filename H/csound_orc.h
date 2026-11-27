@@ -24,18 +24,15 @@
 
 #define __CSOUND_ORC_H
 
+#ifndef YYDEBUG
 #define YYDEBUG 1
+#endif
 
 #include "parse_param.h"
 #include "score_param.h"
 #include "tok.h"
 #include "csound_orcparse.h"
 #include "csoundCore.h"
-
-enum {
-  S_ANDTHEN = T_HIGHEST+1,
-  S_APPLY,
-};
 
 typedef struct type_table {
     OENTRY* udos;
@@ -46,6 +43,7 @@ typedef struct type_table {
     const char* udoOutTypes; /* of the UDO being verified, for its xout */
     const char* udoName; /* of the new-style UDO being verified, for its xout */
     int32_t udoHasXout; /* and whether its body has an xout */
+    CONS_CELL* retainedStructs; /* provisional CS_TYPE* entries retained by this tree */
 } TYPE_TABLE;
 
 /* Parser nodes can be detached or share children during rewriting. Track
@@ -94,9 +92,6 @@ ORCTOKEN* make_int(CSOUND *,char *, void*);
 ORCTOKEN* make_num(CSOUND *,char *, void *);
 ORCTOKEN *make_token(CSOUND *csound, char *s, void *);
 TREE* copy_node(CSOUND*, TREE*);
-extern void csp_orc_sa_print_list(CSOUND*);
-
-int32_t  query_reversewrite_opcode(CSOUND *, ORCTOKEN *);
 
 /* Diagnostic only; called after execution-rate resolution. */
 void csound_orc_dump_templates(CSOUND *, ENGINE_STATE *);

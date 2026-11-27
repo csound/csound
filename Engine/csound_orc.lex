@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <limits.h>
 #include "csoundCore.h"
 
 #ifdef ECHO
@@ -36,14 +37,10 @@
 #define ECHO if(csound->oparms->odebug) { csoundErrorMsg(csound, "%s", "--lexer echo:"); \
              fwrite(yytext, (size_t) yyleng, 1, stderr); \
              csoundErrorMsg(csound, "%s", "--\n");}
-#define YYSTYPE TREE*
-#define YYLTYPE ORCTOKEN*
-#define YY_DECL int yylex (YYLTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
 #include "csound_orc.h"
 #include "corfile.h"
 #include "filesys.h"
-YYSTYPE *yylval_param;
-YYLTYPE *yylloc_param;
+#define YY_DECL int yylex (YYSTYPE *lvalp, CSOUND *csound, yyscan_t yyscanner)
  ORCTOKEN *make_string(CSOUND *, char *, void*);
  ORCTOKEN *lookup_token(CSOUND *, char *, void *);
  ORCTOKEN *new_token(CSOUND *csound, int32_t type, void *yyscanner);
@@ -66,11 +63,47 @@ YYLTYPE *yylloc_param;
 
 struct yyguts_t;
  ORCTOKEN *do_at(CSOUND *, int32_t, void*, char*);
-int get_next_char(char *, int32_t, void*);
+
+static void append_xstr(CSOUND *csound, PARSE_PARM *parm,
+                        const char *s, size_t len)
+{
+    if (parm->xstrbuff == NULL) {
+        size_t cap = 128;
+        while (cap <= len + 2) cap *= 2;
+        parm->xstrbuff = (char *)malloc(cap);
+        if (UNLIKELY(parm->xstrbuff == NULL)) {
+            csound->ErrorMsg(csound, "%s\n", Str("Memory exhausted"));
+            csound->LongJmp(csound, 1);
+        }
+        parm->xstrmax = (int)cap;
+        parm->xstrptr = 0;
+        parm->xstrbuff[parm->xstrptr++] = '"';
+    } else if ((size_t)parm->xstrptr + len + 2 >= (size_t)parm->xstrmax) {
+        int newmax = parm->xstrmax;
+        while ((size_t)parm->xstrptr + len + 2 >= (size_t)newmax) {
+            if (UNLIKELY(newmax > INT_MAX / 2)) {
+                csound->ErrorMsg(csound, "%s\n", Str("Memory exhausted"));
+                csound->LongJmp(csound, 1);
+            }
+            newmax *= 2;
+        }
+        char *tmp = (char *)realloc(parm->xstrbuff, (size_t)newmax);
+        if (UNLIKELY(tmp == NULL)) {
+            csound->ErrorMsg(csound, "%s\n", Str("Memory exhausted"));
+            csound->LongJmp(csound, 1);
+        }
+        parm->xstrbuff = tmp;
+        parm->xstrmax = newmax;
+        csound->DebugMsg(csound, "Extending xstr buffer\n");
+    }
+    if (len > 0) {
+        memcpy(parm->xstrbuff + parm->xstrptr, s, len);
+        parm->xstrptr += (int)len;
+    }
+    parm->xstrbuff[parm->xstrptr] = '\0';
+}
 %}
 %option reentrant
-%option bison-bridge
-%option bison-locations
 %option prefix="csound_orc"
 %option outfile="Engine/csound_orclex.c"
 %option stdout
@@ -119,7 +152,6 @@ ERSTR           "}R"
                   csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                        yyscanner);
                 }
-"->"            { return S_ELIPSIS; }
 "..."           { return S_ELIPSIS2; }
 
 "!="            { return S_NEQ; }
@@ -134,9 +166,7 @@ ERSTR           "}R"
 "-="            { return S_SUBIN; }
 "*="            { return S_MULIN; }
 "/="            { return S_DIVIN; }
-"="             { *lvalp = make_token(csound, "=", yyscanner);
-                  (*lvalp)->type = '=';
-                  return '='; }
+"="             { return '='; }
 ">"             { return S_GT; }
 ">="            { return S_GE; }
 "|"             { return '|'; }
@@ -147,100 +177,76 @@ ERSTR           "}R"
 
 \xC2?\xAC{OPTWHITE} { return '~'; } /* BACKWARDS COMPATABILITY */
 
-"@@"{OPTWHITE}{INTGR}     { *lvalp = do_at(csound, 1, yyscanner, yytext); return INTEGER_TOKEN; }
-"@"{OPTWHITE}{INTGR}      { *lvalp = do_at(csound, 0, yyscanner, yytext); return INTEGER_TOKEN; }
-"@i"            { return T_MAPI; }
-"@k"            { return T_MAPK; }
+"@@"{OPTWHITE}{INTGR}     { lvalp->token = do_at(csound, 1, yyscanner, yytext); return INTEGER_TOKEN; }
+"@"{OPTWHITE}{INTGR}      { lvalp->token = do_at(csound, 0, yyscanner, yytext); return INTEGER_TOKEN; }
 "false"         { return FALSE_TOKEN; }
 "true"          { return TRUE_TOKEN; }
 "falsek"        { return FALSEK_TOKEN; }
 "truek"         { return TRUEK_TOKEN; }
 "if"\([ \t]*    { yyless(2);
                   PARM->previous_char = (unsigned char)yytext[yyleng - 1];
-                  *lvalp = make_token(csound, "if", yyscanner);
-                  (*lvalp)->type = IF_TOKEN;
                   return IF_TOKEN; }
-"if"            { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = IF_TOKEN;
-                  return IF_TOKEN; }
-"then"          { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = THEN_TOKEN;
+"if"            { return IF_TOKEN; }
+"then"          { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = THEN_TOKEN;
                   return THEN_TOKEN; }
-"ithen"         { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = ITHEN_TOKEN;
+"ithen"         { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = ITHEN_TOKEN;
                   return ITHEN_TOKEN; }
-"kthen"         { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = KTHEN_TOKEN;
+"kthen"         { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = KTHEN_TOKEN;
                   return KTHEN_TOKEN; }
 "elseif"\([ \t]* { yyless(6);
                   PARM->previous_char = (unsigned char)yytext[yyleng - 1];
-                  *lvalp = make_token(csound, "elseif", yyscanner);
-                  (*lvalp)->type = ELSEIF_TOKEN;
                   return ELSEIF_TOKEN; }
-"elseif"        { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = ELSEIF_TOKEN;
-                  return ELSEIF_TOKEN; }
-"else"          { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = ELSE_TOKEN;
-                  return ELSE_TOKEN; }
-"endif"         { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = ENDIF_TOKEN;
-                  return ENDIF_TOKEN; }
-"fi"            { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = ENDIF_TOKEN;
-                  return ENDIF_TOKEN; }
+"elseif"        { return ELSEIF_TOKEN; }
+"else"          { return ELSE_TOKEN; }
+"endif"         { return ENDIF_TOKEN; }
+"fi"            { return ENDIF_TOKEN; }
 "until"\([ \t]* { yyless(5);
                   PARM->previous_char = (unsigned char)yytext[yyleng - 1];
-                  *lvalp = make_token(csound, "until", yyscanner);
-                  (*lvalp)->type = UNTIL_TOKEN;
+                  lvalp->token = make_token(csound, "until", yyscanner);
+                  lvalp->token->type = UNTIL_TOKEN;
                   return UNTIL_TOKEN; }
-"until"         { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = UNTIL_TOKEN;
+"until"         { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = UNTIL_TOKEN;
                   return UNTIL_TOKEN; }
 "while"\([ \t]* { yyless(5);
                   PARM->previous_char = (unsigned char)yytext[yyleng - 1];
-                  *lvalp = make_token(csound, "while", yyscanner);
-                  (*lvalp)->type = WHILE_TOKEN;
+                  lvalp->token = make_token(csound, "while", yyscanner);
+                  lvalp->token->type = WHILE_TOKEN;
                   return WHILE_TOKEN; }
-"while"         { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = WHILE_TOKEN;
+"while"         { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = WHILE_TOKEN;
                   return WHILE_TOKEN; }
-"do"            { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = DO_TOKEN;
-                  return DO_TOKEN; }
-"od"            { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = OD_TOKEN;
-                  return OD_TOKEN; }
-"enduntil"      { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = OD_TOKEN;
-                  return OD_TOKEN; }
-"break"         { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = BREAK_TOKEN;
+"do"            { return DO_TOKEN; }
+"od"            { return OD_TOKEN; }
+"enduntil"      { return OD_TOKEN; }
+"break"         { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = BREAK_TOKEN;
                   return BREAK_TOKEN; }
-"continue"      { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = CONTINUE_TOKEN;
+"continue"      { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = CONTINUE_TOKEN;
                   return CONTINUE_TOKEN; }
-"switch"        { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = SWITCH_TOKEN;
+"switch"        { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = SWITCH_TOKEN;
                   return SWITCH_TOKEN; }
-"case"          { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = CASE_TOKEN;
+"case"          { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = CASE_TOKEN;
                   return CASE_TOKEN; }
-"default"       { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = DEFAULT_TOKEN;
+"default"       { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = DEFAULT_TOKEN;
                   return DEFAULT_TOKEN; }
-"endsw"         { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = ENDSW_TOKEN;
-                  return ENDSW_TOKEN; }
+"endsw"         { return ENDSW_TOKEN; }
 
-"goto"          { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = GOTO_TOKEN;
+"goto"          { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = GOTO_TOKEN;
                   return GOTO_TOKEN; };
-"igoto"         { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = IGOTO_TOKEN;
+"igoto"         { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = IGOTO_TOKEN;
                   return IGOTO_TOKEN; };
-"kgoto"         { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = KGOTO_TOKEN;
+"kgoto"         { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = KGOTO_TOKEN;
                   return KGOTO_TOKEN; };
 "struct"        {
                   return STRUCT_TOKEN;
@@ -248,185 +254,133 @@ ERSTR           "}R"
 "instr"         {
                   return INSTR_TOKEN;
                 }
-"endin"         { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = ENDIN_TOKEN;
-                  return ENDIN_TOKEN; }
+"endin"         { return ENDIN_TOKEN; }
 "void"          { return VOID_TOKEN; }
 
 
-"for"           {  *lvalp = make_token(csound, yytext, yyscanner);
-                   (*lvalp)->type = FOR_TOKEN;
-                   BEGIN(forloop);
-                   return FOR_TOKEN; }
+"for"           { BEGIN(forloop);
+                  return FOR_TOKEN; }
 
 <forloop>{
    ","            { return ','; }
 
-  [ \t]*          /* eat the whitespace */
-  {IDENT}/[ \t]*   { char *pp = yytext;
-                    while (*pp==' ' || *pp=='\t') pp++;
-                    *lvalp = make_token(csound, pp, yyscanner);
-                    if (strcmp(pp, "in") == 0) {
+  [ \t]+          /* eat the whitespace */
+  {IDENT}/[ \t]*   { lvalp->token = make_token(csound, yytext, yyscanner);
+                    if (strcmp(yytext, "in") == 0) {
                       BEGIN(INITIAL);
                       return IN_TOKEN;
                     } else {
+                      lvalp->token->type = T_IDENT;
                       return T_IDENT;
                     }
                   }
-  
-  [ \t]*          /* eat the whitespace */
-  {TYPED_IDENTIFIER}/[ \t]*   { char *pp = yytext;
-                    while (*pp==' ' || *pp=='\t') pp++;
-                    *lvalp = make_token(csound, pp, yyscanner);
-                    if (strcmp(pp, "in") == 0) {
-                      BEGIN(INITIAL);
-                      return IN_TOKEN;
-                    } else {
-                      return T_TYPED_IDENT;
-                    }
-                  }
+
+  {TYPED_IDENTIFIER}/[ \t]*   { lvalp->token = lookup_token(csound, yytext, yyscanner);
+                                return lvalp->token->type; }
+
+  "\n"            { BEGIN(INITIAL);
+                    yycolumn = 1;
+                    csound_orcset_lineno(1 + csound_orcget_lineno(yyscanner),
+                                         yyscanner);
+                    return NEWLINE; }
+
+  .               { BEGIN(INITIAL);
+                    return ERROR_TOKEN; }
 }
 
 "\{\{"          {
-                  PARM->xstrbuff = (char *)malloc(128);
-                  PARM->xstrptr = 0; PARM->xstrmax = 128;
-                  PARM->xstrbuff[PARM->xstrptr++] = '"';
-                  PARM->xstrbuff[PARM->xstrptr] = '\0';
+                  PARM->xstrbuff = NULL;
+                  PARM->xstrptr = 0; PARM->xstrmax = 0;
                   PARM->xsubstr = 0;
+                  append_xstr(csound, PARM, "", 0);
                   BEGIN(xstr);
                 }
 <xstr>{
   "\{\{" {
              PARM->xsubstr += 1; // substr start
-             if (PARM->xstrptr+3>=PARM->xstrmax) {
-                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
-                                                       PARM->xstrmax+=80);
-               csound->DebugMsg(csound,"Extending xstr buffer\n");
-             }
-             PARM->xstrbuff[PARM->xstrptr++] = '{';
-             PARM->xstrbuff[PARM->xstrptr++] = '{';
-             PARM->xstrbuff[PARM->xstrptr] = '\0';
+             append_xstr(csound, PARM, "{{", 2);
          }
 
   "}}"   {
-    if(PARM->xsubstr) {
+    if (PARM->xsubstr) {
             PARM->xsubstr -= 1; // substr end
-           if (PARM->xstrptr+3>=PARM->xstrmax) {
-                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
-                                                       PARM->xstrmax+=80);
-               csound->DebugMsg(csound,"Extending xstr buffer\n");
-           }
-           PARM->xstrbuff[PARM->xstrptr++] = '}';
-           PARM->xstrbuff[PARM->xstrptr++] = '}';
-           PARM->xstrbuff[PARM->xstrptr] = '\0';
+            append_xstr(csound, PARM, "}}", 2);
     } else {
            BEGIN(INITIAL);
-           PARM->xstrbuff[PARM->xstrptr++] = '"';
-           PARM->xstrbuff[PARM->xstrptr] = '\0';
-           /* printf("xstrbuff:>>%s<<\n", PARM->xstrbuff); */
-           *lvalp = make_string(csound, PARM->xstrbuff, yyscanner);
-            free(PARM->xstrbuff);
-            PARM->xstrbuff = NULL;
-            return STRING_TOKEN;
-          }
+           append_xstr(csound, PARM, "\"", 1);
+           lvalp->token = make_string(csound, PARM->xstrbuff, yyscanner);
+           free(PARM->xstrbuff);
+           PARM->xstrbuff = NULL;
+           return STRING_TOKEN;
+    }
   }
 
-  "\n"  { /* The next two should be one case but I cannot get that to work */
+  "\n"  {
            yycolumn = 1;
-           if (PARM->xstrptr+2>=PARM->xstrmax) {
-               PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
-                                                       PARM->xstrmax+=80);
-               csound->DebugMsg(csound,"Extending xstr buffer\n");
-           }
-            //csound->DebugMsg(csound,"Adding newline (%.2x)\n", yytext[0]);
-               PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
-               PARM->xstrbuff[PARM->xstrptr] = '\0';
-           }
+           csound_orcset_lineno(1 + csound_orcget_lineno(yyscanner),
+                                yyscanner);
+           append_xstr(csound, PARM, "\n", 1);
+        }
 
-  .        {
-            if (PARM->xstrptr+2>=PARM->xstrmax) {
-                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
-                                                       PARM->xstrmax+=80);
-                 csound->DebugMsg(csound,"Extending xstr buffer\n");
-               }
-              //csound->DebugMsg(csound,"Adding (%.2x)\n", yytext[0]);
-              PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
-              PARM->xstrbuff[PARM->xstrptr] = '\0';
-            }
+  .     {
+           append_xstr(csound, PARM, yytext, 1);
+        }
 }
 
 "R{"   {
-                  PARM->xstrbuff = (char *)malloc(128);
-                  PARM->xstrptr = 0; PARM->xstrmax = 128;
-                  PARM->xstrbuff[PARM->xstrptr++] = '"';
-                  PARM->xstrbuff[PARM->xstrptr] = '\0';
+                  PARM->xstrbuff = NULL;
+                  PARM->xstrptr = 0; PARM->xstrmax = 0;
                   PARM->xsubstr = 0;
+                  append_xstr(csound, PARM, "", 0);
                   BEGIN(rstr);
                 }
 
 <rstr>{
   "R{" {
              PARM->xsubstr += 1; // substr start
-             if (PARM->xstrptr+4>=PARM->xstrmax) {
-                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
-                                                       PARM->xstrmax+=80);
-               csound->DebugMsg(csound,"Extending rstr buffer\n");
-             }
-             PARM->xstrbuff[PARM->xstrptr++] = 'R';
-             PARM->xstrbuff[PARM->xstrptr++] = '{';
-             PARM->xstrbuff[PARM->xstrptr] = '\0';
+             append_xstr(csound, PARM, "R{", 2);
          }
 
   "}R"   {
-    if(PARM->xsubstr) {
+    if (PARM->xsubstr) {
             PARM->xsubstr -= 1; // substr end
-           if (PARM->xstrptr+4>=PARM->xstrmax) {
-                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
-                                                       PARM->xstrmax+=80);
-               csound->DebugMsg(csound,"Extending rstr buffer\n");
-           }
-             PARM->xstrbuff[PARM->xstrptr++] = '}';
-             PARM->xstrbuff[PARM->xstrptr++] = 'R';
-           PARM->xstrbuff[PARM->xstrptr] = '\0';
+            append_xstr(csound, PARM, "}R", 2);
     } else {
            BEGIN(INITIAL);
-           PARM->xstrbuff[PARM->xstrptr++] = '"';
-           PARM->xstrbuff[PARM->xstrptr] = '\0';
-           *lvalp = make_string(csound, PARM->xstrbuff, yyscanner);
-            free(PARM->xstrbuff);
-            PARM->xstrbuff = NULL;
-            return STRING_TOKEN;
-          }
+           append_xstr(csound, PARM, "\"", 1);
+           lvalp->token = make_string(csound, PARM->xstrbuff, yyscanner);
+           free(PARM->xstrbuff);
+           PARM->xstrbuff = NULL;
+           return STRING_TOKEN;
+    }
   }
 
-  "\n"  { /* The next two should be one case but I cannot get that to work */
+  "\n"  {
            yycolumn = 1;
-           if (PARM->xstrptr+2>=PARM->xstrmax) {
-               PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
-                                                       PARM->xstrmax+=80);
-               csound->DebugMsg(csound,"Extending xstr buffer\n");
-           }
-            //csound->DebugMsg(csound,"Adding newline (%.2x)\n", yytext[0]);
-               PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
-               PARM->xstrbuff[PARM->xstrptr] = '\0';
-           }
+           csound_orcset_lineno(1 + csound_orcget_lineno(yyscanner),
+                                yyscanner);
+           append_xstr(csound, PARM, "\n", 1);
+        }
 
-  .        {
-            if (PARM->xstrptr+2>=PARM->xstrmax) {
-                PARM->xstrbuff = (char *)realloc(PARM->xstrbuff,
-                                                       PARM->xstrmax+=80);
-                 csound->DebugMsg(csound,"Extending xstr buffer\n");
-               }
-              //csound->DebugMsg(csound,"Adding (%.2x)\n", yytext[0]);
-              PARM->xstrbuff[PARM->xstrptr++] = yytext[0];
-              PARM->xstrbuff[PARM->xstrptr] = '\0';
-            }
+  .     {
+           append_xstr(csound, PARM, yytext, 1);
+        }
  }
+
+<xstr,rstr><<EOF>> {
+                  BEGIN(INITIAL);
+                  csound->ErrorMsg(csound,
+                                   Str("unterminated string at end of input, line %d\n"),
+                                   csound_orcget_lineno(yyscanner));
+                  free(PARM->xstrbuff);
+                  PARM->xstrbuff = NULL;
+                  return ERROR_TOKEN;
+                }
 
 
 ^[ \t]*{IDENT}:/[ \t\n]  { char *pp = yytext;
                   while (*pp==' ' || *pp=='\t') pp++;
-                  *lvalp = make_label(csound, pp, yyscanner); return LABEL_TOKEN;
+                  lvalp->token = make_label(csound, pp, yyscanner); return LABEL_TOKEN;
                 }
 
 "declare"       { BEGIN(declare);
@@ -436,121 +390,182 @@ ERSTR           "}R"
 "opcode"        { BEGIN(udodef);
                   return UDOSTART_DEFINITION;
                 }
-"endop"         {
-  *lvalp = new_token(csound, UDOEND_TOKEN, yyscanner); return UDOEND_TOKEN;
-                }
+"endop"         { return UDOEND_TOKEN; }
 
 
 <udodef>{
-
+  [ \t]+          { }
 
   {IDENT}/[ \t]*\( { BEGIN(INITIAL);
-                    *lvalp = lookup_token(csound, yytext, yyscanner);
+                    lvalp->token = lookup_token(csound, yytext, yyscanner);
                     /*csound->Message(csound, ">>>> NEW UDO DEF <<<<<<<\n");*/
                     /*csound->Message(csound,"%s -> %d\n",*/
-                    /*                   yytext, (*lvalp)->type); */
-                    return (*lvalp)->type; }
+                    /*                   yytext, lvalp->token->type); */
+                    return lvalp->token->type; }
 
 
   {IDENT} { BEGIN(udoarg);
                     /*csound->Message(csound, ">>>> OLD UDO DEF <<<<<<<\n");*/
-                    *lvalp = lookup_token(csound, yytext, yyscanner);
+                    lvalp->token = lookup_token(csound, yytext, yyscanner);
                     /* csound->Message(csound,"%s -> %d\n",
-                                       yytext, (*lvalp)->type); */
-                    return (*lvalp)->type; }
+                                       yytext, lvalp->token->type); */
+                    return lvalp->token->type; }
 
+  "\n"            { BEGIN(INITIAL);
+                    yycolumn = 1;
+                    csound_orcset_lineno(1 + csound_orcget_lineno(yyscanner),
+                                         yyscanner);
+                    return NEWLINE; }
 
+  ","             { BEGIN(INITIAL);
+                    return ','; }
+
+  .               { BEGIN(INITIAL);
+                    return ERROR_TOKEN; }
 }
 
 <declare>{
+  [ \t]+          { }
   {IDENT} { BEGIN(INITIAL);
-            *lvalp = lookup_token(csound, yytext, yyscanner);
-            return (*lvalp)->type; }
+            lvalp->token = lookup_token(csound, yytext, yyscanner);
+            return lvalp->token->type; }
+  "\n"            { BEGIN(INITIAL);
+                    yycolumn = 1;
+                    csound_orcset_lineno(1 + csound_orcget_lineno(yyscanner),
+                                         yyscanner);
+                    return NEWLINE; }
+  .               { BEGIN(INITIAL);
+                    return ERROR_TOKEN; }
 }
 
 <udoarg>{
+  [ \t]+  { }
+  \"      { } /* Legacy UDO arg type lists may be quoted, e.g. "i[]i". */
   ","     { return ','; }
  {XIDENT} { BEGIN(udoarg);
-                  *lvalp = lookup_token(csound, yytext, yyscanner);
+                  lvalp->token = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%s -> %d\n",
-                                     yytext, (*lvalp)->type); */
-                  (*lvalp)->type = UDO_IDENT;
-                  return (*lvalp)->type; }
+                                     yytext, lvalp->token->type); */
+                  lvalp->token->type = UDO_IDENT;
+                  return lvalp->token->type; }
   "\n"     { BEGIN(INITIAL);
              yycolumn = 1;
              csound_orcset_lineno(1+csound_orcget_lineno(yyscanner),
                                    yyscanner);
              return NEWLINE; }
   {IDENT} {
+    BEGIN(INITIAL);
     csound->Message(csound, Str("unsupported UDO arg type: %s"), yytext);
     return ERROR_TOKEN;
   }
+  .        { BEGIN(INITIAL);
+             return ERROR_TOKEN; }
 }
 
 
 \"              { /* String decode by c-code not rexp */
                   int cnt = 80;
-                  char *buff = malloc(cnt);
+                  char *buff = (char *)malloc((size_t)cnt);
                   int n = 1;
                   int ch;
+                  int unterminated_eof = 0;
+                  if (UNLIKELY(buff == NULL)) {
+                    csound->ErrorMsg(csound, "%s\n", Str("Memory exhausted"));
+                    csound->LongJmp(csound, 1);
+                  }
                   buff[0] = '"';
                   for (;;) {
+                    if (UNLIKELY(n >= cnt - 3)) {
+                      int newcnt = cnt * 2;
+                      char *tmp = (char *)realloc(buff, (size_t)newcnt);
+                      if (UNLIKELY(tmp == NULL)) {
+                        free(buff);
+                        csound->ErrorMsg(csound, "%s\n", Str("Memory exhausted"));
+                        csound->LongJmp(csound, 1);
+                      }
+                      buff = tmp;
+                      cnt = newcnt;
+                    }
                     ch = input(yyscanner);
                     if (ch=='"') {
-                      if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                       buff[n++] = ch;
                       buff[n] = '\0';
                       break;
                     }
                     else if (ch=='\\') {
                       ch = input(yyscanner);
+                      if (UNLIKELY(ch == 0 || ch == EOF)) {
+                        buff[n++] = '"';
+                        buff[n] = '\0';
+                        csound->ErrorMsg(csound,
+                                Str("unterminated string found on line %d >>%s<<\n"),
+                                        csound_orcget_lineno(yyscanner), buff);
+                        unterminated_eof = 1;
+                        break;
+                      }
+                      if (ch == '\n') {
+                        yycolumn = 1;
+                        csound_orcset_lineno(1 + csound_orcget_lineno(yyscanner),
+                                             yyscanner);
+                      }
                       switch (ch) {
                       case 'a': case 'b': case 'n': case 'r':
                       case 't': case '\\':
-                        if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                         buff[n++] = '\\'; buff[n++]= ch;
                         break;
                         /* VL - 21-1-17 fix for octals in strings */
                       case '0':case '1':case '2':case '3':
                       case '4':case '5':case '6':case '7':
-                        if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                         buff[n++] = '\\'; buff[n++]= ch;
                         break;
                       default:
-                        if (n>=cnt-2) buff = realloc(buff, cnt+=20);
                         buff[n++] = ch;
                         break;
                       }
                     }
+                    else if (UNLIKELY(ch == 0 || ch == EOF)) {
+                      buff[n++] = '"';
+                      buff[n] = '\0';
+                      csound->ErrorMsg(csound,
+                              Str("unterminated string found on line %d >>%s<<\n"),
+                                      csound_orcget_lineno(yyscanner), buff);
+                      unterminated_eof = 1;
+                      break;
+                    }
                     else if (UNLIKELY(ch=='\n')) {
-                      if (UNLIKELY(n>=cnt-2)) buff = realloc(buff, cnt+=20);
                       buff[n++] = '"';
                       buff[n] = '\0';
                       csound->Message(csound,
                               Str("unterminated string found on line %d >>%s<<\n"),
                                       csound_orcget_lineno(yyscanner), buff);
+                      yycolumn = 1;
+                      csound_orcset_lineno(1 + csound_orcget_lineno(yyscanner),
+                                           yyscanner);
                       break;
                     }
                     else {
-                      if (UNLIKELY(n>=cnt-2)) buff = realloc(buff, cnt+=20);
                       buff[n++] = ch;
                     }
                   }
                   /* input() leaves a NUL after the token for error reporting. */
                   PARM->previous_char = 0;
-                  *lvalp = make_string(csound, buff, yyscanner);
+                  if (UNLIKELY(unterminated_eof)) {
+                    free(buff);
+                    return ERROR_TOKEN;
+                  }
+                  lvalp->token = make_string(csound, buff, yyscanner);
                   free(buff);
                   return (STRING_TOKEN);
                 }
 
-"0dbfs"         { *lvalp = make_token(csound, yytext, yyscanner);
-                  (*lvalp)->type = T_IDENT;
-                  /* csound->Message(csound,"%d\n", (*lvalp)->type); */
+"0dbfs"         { lvalp->token = make_token(csound, yytext, yyscanner);
+                  lvalp->token->type = T_IDENT;
+                  /* csound->Message(csound,"%d\n", lvalp->token->type); */
                   return T_IDENT; }
-{IDENT}         { *lvalp = lookup_token(csound, yytext, yyscanner);
+{IDENT}         { lvalp->token = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%s -> %d\n",
-                                     yytext, (*lvalp)->type); */
-                  return (*lvalp)->type; }
+                                     yytext, lvalp->token->type); */
+                  return lvalp->token->type; }
 {IDENTB}        { PARM->paren_depth++;
                   if (UNLIKELY(strchr(yytext, '\n'))) {
                        yycolumn = 1;
@@ -561,12 +576,12 @@ ERSTR           "}R"
                   if (opening == yytext + yyleng - 1)
                     PARM->previous_char = '\0';
                   *opening = '\0';
-                  *lvalp = lookup_token(csound, yytext, yyscanner);
-                  return (*lvalp)->type+1; }
-{TYPED_IDENTIFIER} { *lvalp = lookup_token(csound, yytext, yyscanner);
+                  lvalp->token = lookup_token(csound, yytext, yyscanner);
+                  return lvalp->token->type+1; }
+{TYPED_IDENTIFIER} { lvalp->token = lookup_token(csound, yytext, yyscanner);
                   /* csound->Message(csound,"%s -> %d\n",
-                                     yytext, (*lvalp)->type); */
-                  return (*lvalp)->type; }
+                                     yytext, lvalp->token->type); */
+                  return lvalp->token->type; }
 {TYPED_IDENTIFIERB} { PARM->paren_depth++;
                       if (UNLIKELY(strchr(yytext, '\n'))) {
                            yycolumn = 1;
@@ -577,12 +592,11 @@ ERSTR           "}R"
                       if (opening == yytext + yyleng - 1)
                         PARM->previous_char = '\0';
                       *opening = '\0';
-                      *lvalp = lookup_token(csound, yytext, yyscanner);
-                      return (*lvalp)->type+1; }
+                      lvalp->token = lookup_token(csound, yytext, yyscanner);
+                      return lvalp->token->type+1; }
 {INTGR}         {
-                    *lvalp = make_int(csound, yytext, yyscanner); return (INTEGER_TOKEN);
-                    /*csound->Message(csound,"%d\n", (*lvalp)->type);*/
-                    return ((*lvalp)->type);
+                    lvalp->token = make_int(csound, yytext, yyscanner);
+                    return (INTEGER_TOKEN);
                 }
 {LPAREN}     { PARM->paren_depth++;
                return *yytext; }
@@ -593,7 +607,7 @@ ERSTR           "}R"
 
 {SYMBOL}     { return *yytext;}
 
-{NUMBER}        { *lvalp = make_num(csound, yytext, yyscanner); return (NUMBER_TOKEN); }
+{NUMBER}        { lvalp->token = make_num(csound, yytext, yyscanner); return (NUMBER_TOKEN); }
 {WHITE}         { }
 
 {SLINE}         { BEGIN(sline); }
@@ -619,7 +633,8 @@ ERSTR           "}R"
 
 .               {
                   { int c = yytext[0]&0xff;
-                    printf("Error: character %c(%.2x)\n", c, c);
+                    csound->ErrorMsg(csound,
+                                     Str("Error: character %c(%.2x)\n"), c, c);
                   }
                   return ERROR_TOKEN;
                 }
@@ -722,7 +737,7 @@ ORCTOKEN *do_at(CSOUND *csound, int32_t k, void *yyscanner, char *yytex){
     len = (int32_t) strlen(buf);
     ans->lexeme = (char*)csoundParserOwn(csound, csound->Calloc(csound, len + 1));
     strNcpy(ans->lexeme, buf, len+1);
-    ans->value = i;
+    ans->value = i + k;
     return ans;
 }
 
@@ -739,7 +754,7 @@ ORCTOKEN *make_int(CSOUND *csound, char *s, void *yyscanner)
 
 ORCTOKEN *make_num(CSOUND *csound, char *s, void *yyscanner)
 {
-    cs_double n = atof(s);
+    cs_double n = csoundStrtod(s, NULL);
     ORCTOKEN *ans = new_token(csound, NUMBER_TOKEN, yyscanner);
     int32_t len = (int32_t) strlen(s);
     ans->lexeme = (char*)csoundParserOwn(csound, csound->Calloc(csound, len + 1));

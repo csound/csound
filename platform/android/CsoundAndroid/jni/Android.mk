@@ -305,6 +305,7 @@ $(CSOUND_SRC_ROOT)/Opcodes/emugens/scugens.c \
 $(CSOUND_SRC_ROOT)/Opcodes/stm.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_semantics.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_structs.c \
+$(CSOUND_SRC_ROOT)/Engine/csound_pre_shared.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_expressions.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_optimize.c \
 $(CSOUND_SRC_ROOT)/Engine/csound_orc_compile.c \
@@ -331,7 +332,6 @@ java_interfaceJAVA_wrap.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/paulstretch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_new_dispatch.c \
 $(CSOUND_SRC_ROOT)/Engine/cs_par_base.c \
-$(CSOUND_SRC_ROOT)/Engine/cs_par_orc_semantic_analysis.c \
 cs_glue.cpp \
 $(CSOUND_SRC_ROOT)/Opcodes/savgol.c \
 $(CSOUND_SRC_ROOT)/Opcodes/remap.c

@@ -6,7 +6,6 @@ Engine: internal engine operation
 * corfiles.c: core file processing for csound programs and scores
 * cs_new_dispatch.c: parallel csound task dependency management and dispatching
 * cs_par_base.c: parallel csound functions
-* cs_par_orc_semantic_analysis.c: parallel csound semantics
 * csound_data_structures.c: useful data structures (lists, cons cells, hash tables etc)
 * csound_orc.lex: csound language lexer
 * csound_orc.y: csound language parser
@@ -16,7 +15,6 @@ Engine: internal engine operation
 * csound_orc_semantics.c: csound code semantic analysis
 * csound_pre.lex: csound language preprocessor lexer
 * csound_prs.lex: score preprocessor lexer
-* csound_sco.lex: score lexer
 * csound_standard_types.c : csound language internal types
 * csound_type_system.c : type system functions
 * entry.c: opcode database

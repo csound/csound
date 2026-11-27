@@ -465,20 +465,39 @@ void recycle_init_only_udo_instances(CSOUND *csound, INSDS *parent)
   /* Recycle after the complete init chain has materialised outputs and linked
      resources. Walking from the top lets each child expose the previous entry
      before its frame is returned to the free list. */
-  while (parent != NULL && parent->opcod_deact != NULL) {
+  while (parent != NULL) {
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized)
+      csoundSpinLock(&csound->alloc_spinlock);
+#endif
+    if (parent->opcod_deact == NULL) {
+#if CSOUND_SPINLOCK_AVAILABLE
+      if (csound->realtime_locks_initialized)
+        csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
+      break;
+    }
     opcode = (UOPCODE *)parent->opcod_deact;
     child = opcode->ip;
     if (!udo_frame_can_be_recycled(opcode, parent, child)) {
+#if CSOUND_SPINLOCK_AVAILABLE
+      if (csound->realtime_locks_initialized)
+        csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
       break;
     }
     parent->opcod_deact = child->opcod_deact;
     child->opcod_deact = NULL;
-    udo_free_output_snapshots(csound, opcode);
-    recycle_udo_instance(csound, child);
     opcode->ip = NULL;
     opcode->buf = NULL;
     opcode->parent_ip = NULL;
     opcode->h.perf = (SUBR)useropcd_init_only;
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized)
+      csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
+    udo_free_output_snapshots(csound, opcode);
+    recycle_udo_instance(csound, child);
   }
 }
 
@@ -2196,6 +2215,35 @@ static OPCODINFO *find_latest_useropinfo(CSOUND *csound, const char *name,
   return NULL;
 }
 
+void csound_publish_latest_udos(CSOUND *csound) {
+  OPCODINFO *cur;
+  if (csound == NULL) {
+    return;
+  }
+  for (cur = csound->opcodeInfo; cur != NULL; cur = cur->prv) {
+    OPCODINFO *head = cur;
+    OPCODINFO *scan;
+    if (cur->ip == NULL) {
+      continue;
+    }
+    for (scan = csound->opcodeInfo;
+         scan != NULL && scan != cur; scan = scan->prv) {
+      if (scan->ip != NULL &&
+          strcmp(scan->name, cur->name) == 0 &&
+          strcmp(scan->outtypes, cur->outtypes) == 0 &&
+          inargs_match(scan->intypes, cur->intypes) == 0) {
+        head = scan;
+        break;
+      }
+    }
+#ifdef HAVE_ATOMIC_BUILTIN
+    __atomic_store_n(&cur->latest, head, __ATOMIC_RELEASE);
+#else
+    cur->latest = head;
+#endif
+  }
+}
+
 int32_t useropcdset(CSOUND *csound, UOPCODE *p)
 {
   OPDS         *saved_ids = csound->ids;
@@ -2275,21 +2323,29 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     tp->active++;
     tp->instcnt++;
     /* link into deact chain */
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized)
+      csoundSpinLock(&csound->alloc_spinlock);
+#endif
     lcurip->opcod_deact = parent_ip->opcod_deact;
     lcurip->subins_deact = NULL;
-    parent_ip->opcod_deact = (void*) p;
+    /* The link below publishes this call to whoever walks the chain, the
+       parallel dispatcher among them, and takes ip as its bound instance. */
     p->ip = lcurip;
+    parent_ip->opcod_deact = (void*) p;
+    if (csound->oparms->numThreads > 1) {
+      ATOMIC_INCR(csound->dag_changed);
+    }
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized)
+      csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
     /* IV - Nov 10 2002: set up pointers to I/O buffers */
     buf = p->buf = (OPCOD_IOBUFS*) lcurip->opcod_iobufs;
     buf->opcode_info = inm;
     /* initialise perf time address lists */
-    /* **** Could be a memset **** */
-    buf->iobufp_ptrs[0] = buf->iobufp_ptrs[1] = NULL;
-    buf->iobufp_ptrs[2] = buf->iobufp_ptrs[3] = NULL;
-    buf->iobufp_ptrs[4] = buf->iobufp_ptrs[5] = NULL;
-    buf->iobufp_ptrs[6] = buf->iobufp_ptrs[7] = NULL;
-    buf->iobufp_ptrs[8] = buf->iobufp_ptrs[9] = NULL;
-    buf->iobufp_ptrs[10] = buf->iobufp_ptrs[11] = NULL;
+    memset(buf->iobufp_ptrs, 0,
+           sizeof(cs_float*) * (size_t)(inm->inchns + inm->outchns));
     /* store parameters of input and output channels, and parent ip */
     buf->uopcode_struct = (void*) p;
     buf->parent_ip = p->parent_ip = parent_ip;
@@ -2533,7 +2589,7 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
           // no copying of a & k types at i-time !!!
           if (((cur->varType != &CS_VAR_TYPE_A &&
                 cur->varType != &CS_VAR_TYPE_K) ||
-               inm_local->outtypes[output_index] == 'K') &&
+               udo_arg_is_K(inm_local->outtypes, output_index)) &&
               UNLIKELY(udo_copy_value(csound, cur, dst, src,
                                       buf_local->parent_ip,
                                       lcurip->nxtp != NULL, 1) != OK)) {
@@ -2555,6 +2611,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   if (UNLIKELY(err != OK)) {
     ATOMIC_SET(p->ip->init_done, 0);
     goto restore_state;
+  }
+  if (initResult == INSTANCE_INIT_COMPLETE && csound->oparms->numThreads > 1) {
+    ATOMIC_INCR(csound->dag_changed);
   }
   ATOMIC_SET(p->ip->init_done,
              initResult == INSTANCE_INIT_COMPLETE);
@@ -2666,7 +2725,7 @@ static int32_t set_inbufs(CSOUND *csound,
     if ((csoundGetTypeForArg(out) != &CS_VAR_TYPE_K &&
          csoundGetTypeForArg(out) != &CS_VAR_TYPE_A) ||
         // special case: K-type inputs
-          inm->intypes[i] == 'K') {
+          udo_arg_is_K(inm->intypes, i)) {
       if (UNLIKELY(udo_copy_value(csound, current, out, in,
                                   h->insdshead,
                                   h->insdshead->nxtp != NULL, 1) != OK)) {
@@ -2801,157 +2860,22 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
   /* global ksmps is the caller instr ksmps minus sample-accurate end */
   g_ksmps = CS_KSMPS - early;
 
-  /* sample-accurate offset */
-  ofs = offset;
-
-  if (this_instr->ksmps == 1) {           /* special case for local kr == sr */
-    /* clear offsets, since with CS_KSMPS=1
-       they don't apply to opcodes, but to the
-       calling code (ie. this code)
-    */
-    this_instr->ksmps_offset = 0;
-    this_instr->ksmps_no_end = 0;
-    this_instr->spin += csound->inchnls * ofs;
-    this_instr->spout += ofs;
-    /* the samples before the note's start pass without running */
-    if (ofs > 0)
-      udo_pass_cycles(this_instr, ofs, NULL);
-    do {
-      this_instr->kcounter++; /*kcounter needs to be incremented BEFORE perf */
-      /* copy inputs */
-      current = inm->in_arg_pool->head;
-      for (i = 0; i < inm->inchns; i++) {
-        // this hardcoded type check for non-perf time vars needs to change
-        //to use generic code...
-        // skip a-vars for now, handle uniquely within performance loop
-        if (current->varType != &CS_VAR_TYPE_I &&
-            current->varType != &CS_VAR_TYPE_b &&
-            current->varType != &CS_VAR_TYPE_A &&
-            current->subType != &CS_VAR_TYPE_I &&
-            current->subType != &CS_VAR_TYPE_A) {
-          // This one checks if an array has a subtype of 'i'
-          void* in = (void*)external_ptrs[i + inm->outchns];
-          void* out = (void*)internal_ptrs[i + inm->outchns];
-          if (UNLIKELY(UDO_COPY_PERF_VALUE(csound, current, out, in,
-                                           p->h.insdshead) != OK)) {
-            return csound->PerfError(
-              csound, &p->h,
-              Str("UDO input changed capacity during performance\n"));
-          }
-        } else if (current->varType == &CS_VAR_TYPE_A) {
-          cs_float* in = (void*)external_ptrs[i + inm->outchns];
-          cs_float* out = (void*)internal_ptrs[i + inm->outchns];
-          *out = *(in + ofs);
-        } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
-                   current->subType == &CS_VAR_TYPE_A) {
-          ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
-          ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
-          size_t count;
-          size_t sourceStride, targetStride;
-          if (UNLIKELY(udo_audio_array_pair_layout(
-                         csound, src, target, &count, &sourceStride,
-                         &targetStride) != OK ||
-                       !udo_audio_array_range_valid(
-                         sourceStride, ofs, 1) ||
-                       !udo_audio_array_range_valid(
-                         targetStride, 0, 1))) {
-            return csound->PerfError(
-              csound, &p->h, "%s\n",
-              Str("UDO audio-array input layout changed during performance"));
-          }
-
-          for (size_t j = 0; j < count; j++) {
-            cs_float* in = src->data +
-              j * sourceStride;
-            cs_float* out = target->data +
-              j * targetStride;
-            *out = *(in + ofs);
-          }
-        }
-        current = current->next;
-      }
-
-      if ((opstart = (OPDS *) (this_instr->nxtp)) != NULL) {
-        int32_t error = 0;
-        do {
-          if(UNLIKELY(!ATOMIC_GET8(this_instr->actflg))) goto endop;
-          this_instr->pds = opstart;
-          error = (*opstart->perf)(csound, opstart);
-          opstart = this_instr->pds;
-        } while (error == 0 && p->ip != NULL
-                 && (opstart = opstart->nxtp));
-      }
-
-      if (UNLIKELY(p->ip == NULL || !ATOMIC_GET8(this_instr->actflg)))
-        goto endop;
-      if (UNLIKELY(udo_snapshot_outputs(csound, p, 0) != OK))
-        return csound->PerfError(csound, &p->h,
-                                 Str("UDO output changed capacity during performance\n"));
-
-      /* copy a-sig outputs, accounting for offset */
-      current = inm->out_arg_pool->head;
-      for (i = 0; i < inm->outchns; i++) {
-        if (current->varType == &CS_VAR_TYPE_A) {
-          cs_float* in = (void*)internal_ptrs[i];
-          cs_float* out = (void*)external_ptrs[i];
-          *(out + ofs) = *in;
-        } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
-                   current->subType == &CS_VAR_TYPE_A) {
-          ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
-          ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
-          size_t count;
-          size_t sourceStride, targetStride;
-          if (UNLIKELY(udo_audio_array_pair_layout(
-                         csound, src, target, &count, &sourceStride,
-                         &targetStride) != OK ||
-                       !udo_audio_array_range_valid(
-                         sourceStride, 0, 1) ||
-                       !udo_audio_array_range_valid(
-                         targetStride, ofs, 1))) {
-            return csound->PerfError(
-              csound, &p->h, "%s\n",
-              Str("UDO audio-array output layout changed during performance"));
-          }
-
-          for (size_t j = 0; j < count; j++) {
-            cs_float* in = src->data +
-              j * sourceStride;
-            cs_float* out = target->data +
-              j * targetStride;
-            *(out + ofs) = *in;
-          }
-        }
-
-        current = current->next;
-      }
-
-      this_instr->spout += 1;
-      this_instr->spin  += inchnls;
-    } while (++ofs < g_ksmps);
-  }
-  else {
-    /* generic case for local kr != sr */
-    /* we have to deal with sample-accurate code
-       whole CS_KSMPS blocks are offset here, the
-       remainder is left to each opcode to deal with.
-    */
-    int32_t start = 0;
+  /* sample-accurate offset and unified local-ksmps execution loop */
+  {
     int32_t lksmps = this_instr->ksmps;
-    while (ofs >= lksmps) {
-      ofs -= lksmps;
-      start += lksmps;
-      this_instr->spin += csound->inchnls * lksmps;
-      this_instr->spout += lksmps;
-    }
-    /* the blocks before the note's start pass without running */
+    ofs = offset;
+    int32_t start = (ofs / lksmps) * lksmps;
+    size_t asigSize = (size_t)lksmps * sizeof(cs_float);
+    this_instr->spin += inchnls * start;
+    this_instr->spout += start;
     if (start > 0)
       udo_pass_cycles(this_instr, start / lksmps, NULL);
-    this_instr->ksmps_offset = ofs;
+    this_instr->ksmps_offset = (lksmps == 1) ? 0 : (ofs - start);
+    this_instr->ksmps_no_end = 0;
     ofs = start;
     do {
-      this_instr->kcounter++;
-      /* copy a-sig inputs, accounting for offset */
-      size_t asigSize = (this_instr->ksmps * sizeof(cs_float));
+      this_instr->kcounter++; /* kcounter needs to be incremented BEFORE perf */
+      /* copy inputs */
       current = inm->in_arg_pool->head;
       for (i = 0; i < inm->inchns; i++) {
         // this hardcoded type check for non-perf time vars needs to change
@@ -2974,14 +2898,17 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
         } else if (current->varType == &CS_VAR_TYPE_A) {
           cs_float* in = (void*)external_ptrs[i + inm->outchns];
           cs_float* out = (void*)internal_ptrs[i + inm->outchns];
-          memcpy(out, in + ofs, asigSize);
+          if (lksmps == 1)
+            *out = *(in + ofs);
+          else
+            memcpy(out, in + ofs, asigSize);
         } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)external_ptrs[i + inm->outchns];
           ARRAYDAT* target = (ARRAYDAT*)internal_ptrs[i + inm->outchns];
           size_t count;
           size_t sourceStride, targetStride;
-          size_t localSamples = asigSize / sizeof(cs_float);
+          size_t localSamples = (size_t)lksmps;
           if (UNLIKELY(udo_audio_array_pair_layout(
                          csound, src, target, &count, &sourceStride,
                          &targetStride) != OK ||
@@ -2995,20 +2922,23 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
           }
 
           for (size_t j = 0; j < count; j++) {
-            cs_float* in = src->data +
-              j * sourceStride;
-            cs_float* out = target->data +
-              j * targetStride;
-            memcpy(out, in + ofs, asigSize);
+            cs_float* in = src->data + j * sourceStride;
+            cs_float* out = target->data + j * targetStride;
+            if (lksmps == 1)
+              *out = *(in + ofs);
+            else
+              memcpy(out, in + ofs, asigSize);
           }
         }
         current = current->next;
       }
 
-      this_instr->ksmps_offset = ofs == start ? offset % lksmps : 0;
-      this_instr->ksmps_no_end = ofs + lksmps >= g_ksmps ? early % lksmps : 0;
+      if (lksmps > 1) {
+        this_instr->ksmps_offset = (ofs == start) ? (offset % lksmps) : 0;
+        this_instr->ksmps_no_end = (ofs + lksmps >= g_ksmps) ? (early % lksmps) : 0;
+      }
 
-      /*  run each opcode  */
+      /* run each opcode */
       if ((opstart = (OPDS *) (this_instr->nxtp)) != NULL) {
         int32_t error = 0;
         do {
@@ -3032,14 +2962,17 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
         if (current->varType == &CS_VAR_TYPE_A) {
           cs_float* in = (void*)internal_ptrs[i];
           cs_float* out = (void*)external_ptrs[i];
-          memcpy(out + ofs, in, asigSize);
+          if (lksmps == 1)
+            *(out + ofs) = *in;
+          else
+            memcpy(out + ofs, in, asigSize);
         } else if (current->varType == &CS_VAR_TYPE_ARRAY &&
                    current->subType == &CS_VAR_TYPE_A) {
           ARRAYDAT* src = (ARRAYDAT*)internal_ptrs[i];
           ARRAYDAT* target = (ARRAYDAT*)external_ptrs[i];
           size_t count;
           size_t sourceStride, targetStride;
-          size_t localSamples = asigSize / sizeof(cs_float);
+          size_t localSamples = (size_t)lksmps;
           if (UNLIKELY(udo_audio_array_pair_layout(
                          csound, src, target, &count, &sourceStride,
                          &targetStride) != OK ||
@@ -3052,21 +2985,20 @@ int32_t useropcd_local_ksmps(CSOUND *csound, UOPCODE *p)
               Str("UDO audio-array output layout changed during performance"));
           }
           for (size_t j = 0; j < count; j++) {
-            cs_float* in = src->data +
-              j * sourceStride;
-            cs_float* out = target->data +
-              j * targetStride;
-            memcpy(out + ofs, in, asigSize);
+            cs_float* in = src->data + j * sourceStride;
+            cs_float* out = target->data + j * targetStride;
+            if (lksmps == 1)
+              *(out + ofs) = *in;
+            else
+              memcpy(out + ofs, in, asigSize);
           }
-
         }
         current = current->next;
       }
 
       this_instr->spout += lksmps;
       this_instr->spin  += insmps;
-
-    } while ((ofs += this_instr->ksmps) < g_ksmps);
+    } while ((ofs += lksmps) < g_ksmps);
   }
 
 
@@ -3729,57 +3661,26 @@ static int32_t subinstrset_(CSOUND *csound, SUBINST *p, int32_t instno, int32_t 
   if (UNLIKELY(p->INOCOUNT >
                (unsigned int)(csound->engineState.instrtxtp[instno]->pmax + 1)))
     return csoundInitError(csound, "%s\n", Str("subinstr: too many p-fields"));
-#ifdef USE_DOUBLE
-  union {
-    cs_float d;
-    int32 i[2];
-  } ch;
-  int32_t sel = byte_order()==0? 1 :0;
-  int32_t str_cnt = 0, len = 0;
-  char *argstr;
-  for (n = 1; (uint32_t) n < p->INOCOUNT; n++){
-    if (IS_STR_ARG(p->ar[inarg_ofs + n])) {
-      ch.d = SSTRCOD;
-      ch.i[sel] += str_cnt & 0xffff;
-      (pfield + n)->value = ch.d;
-      argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
-      if (str_cnt == 0)
-        p->ip->strarg = csound->Calloc(csound, strlen(argstr)+1);
-      else
-        p->ip->strarg = csound->ReAlloc(csound, p->ip->strarg,
-                                        len+strlen(argstr)+1);
-      strcpy(p->ip->strarg + len, argstr);
-      len += strlen(argstr)+1;
-      str_cnt++;
+  {
+    int32_t str_cnt = 0, len = 0;
+    char *argstr;
+    for (n = 1; (uint32_t) n < p->INOCOUNT; n++) {
+      if (IS_STR_ARG(p->ar[inarg_ofs + n])) {
+        (pfield + n)->value = csound_encode_sstrcod(str_cnt);
+        argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
+        if (str_cnt == 0)
+          p->ip->strarg = csound->Calloc(csound, strlen(argstr) + 1);
+        else
+          p->ip->strarg = csound->ReAlloc(csound, p->ip->strarg,
+                                          len + strlen(argstr) + 1);
+        strcpy(p->ip->strarg + len, argstr);
+        len += strlen(argstr) + 1;
+        str_cnt++;
+      } else {
+        (pfield + n)->value = *p->ar[inarg_ofs + n];
+      }
     }
-
-    else (pfield + n)->value = *p->ar[inarg_ofs + n];
   }
-#else
-  union {
-    cs_float d;
-    int32 j;
-  } ch;
-  int32_t str_cnt = 0, len = 0;
-  char *argstr;
-  for (n = 1; (uint32_t) n < p->INOCOUNT; n++){
-    if (IS_STR_ARG(p->ar[inarg_ofs + n])) {
-      ch.d = SSTRCOD;
-      ch.j += str_cnt & 0xffff;
-      (pfield + n)->value = ch.d;
-      argstr = ((STRINGDAT *)p->ar[inarg_ofs + n])->data;
-      if (str_cnt == 0)
-        p->ip->strarg = csound->Calloc(csound, strlen(argstr)+1);
-      else
-        p->ip->strarg = csound->ReAlloc(csound, p->ip->strarg,
-                                        len+strlen(argstr)+1);
-      strcpy(p->ip->strarg + len, argstr);
-      len += strlen(argstr)+1;
-      str_cnt++;
-    }
-    else (pfield + n)->value = *p->ar[inarg_ofs + n];
-  }
-#endif
 
   // allocate memory for a temporary store of spout buffers
   if (!init_op && !(pip->reinitflag | pip->tieflag))

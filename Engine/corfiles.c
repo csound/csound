@@ -33,8 +33,8 @@
 CORFIL *corfile_create_w(CSOUND *csound)
 {
     CORFIL *ans = (CORFIL*) csound->Malloc(csound, sizeof(CORFIL));
-    ans->body = (char*)csound->Calloc(csound,100); /* 100 is just a number */
-    ans->len = 100;
+    ans->body = (char*)csound->Calloc(csound, 256);
+    ans->len = 256;
     ans->p = 0;
     return ans;
 }
@@ -49,51 +49,52 @@ CORFIL *corfile_create_r(CSOUND *csound, const char *text)
     return ans;
 }
 
+static void corfile_grow(CSOUND *csound, CORFIL *f, int32_t needed)
+{
+    int32_t newlen = f->len > 0 ? f->len : 256;
+    while (newlen < needed) {
+      if (UNLIKELY(newlen > INT32_MAX / 2)) {
+        newlen = needed;
+        break;
+      }
+      newlen *= 2;
+    }
+    char *newbuf = (char *) csound->ReAlloc(csound, f->body, (size_t) newlen);
+    if (UNLIKELY(newbuf == NULL)) {
+      csound->Die(csound, Str("Out of Memory\n"));
+    }
+    f->body = newbuf;
+    f->len = newlen;
+}
+
 void corfile_putc(CSOUND *csound, int32_t c, CORFIL *f)
 {
-    f->body[f->p++] = c;
-    if (UNLIKELY(f->p >= f->len)) {
-      char *new = (char*) csound->ReAlloc(csound, f->body, f->len+=100);
-      if (UNLIKELY(new==NULL)) {
-        fprintf(stderr, Str("Out of Memory\n"));
-        exit(7);
-      }
-      f->body = new;
+    if (UNLIKELY(f->p + 1 >= f->len)) {
+      corfile_grow(csound, f, f->p + 2);
     }
+    f->body[f->p++] = c;
     f->body[f->p] = '\0';
 }
 
 void corfile_puts(CSOUND *csound, const char *s, CORFIL *f)
 {
-    const char *c;
     int32_t n;
+    size_t slen;
     /* skip and count the NUL chars to the end */
     for (n=0; f->p > 0 && f->body[f->p-1] == '\0'; n++, f->p--);
-    /* append the string */
-    for (c = s; *c != '\0'; c++) {
-      f->body[f->p++] = *c;
-      if (UNLIKELY(f->p >= f->len)) {
-        char *new = (char*) csound->ReAlloc(csound, f->body, f->len+=100);
-        if (UNLIKELY(new==NULL)) {
-          fprintf(stderr, Str("Out of Memory\n"));
-          exit(7);
-        }
-        f->body = new;
-      }
+    slen = strlen(s);
+    if (UNLIKELY(slen > (size_t)(INT32_MAX - f->p - n - 1))) {
+      csound->Die(csound, Str("Out of Memory\n"));
     }
-    if (n > 0) {
-      /* put the extra NULL chars to the end */
-      while (--n >= 0) {
-        f->body[f->p++] = '\0';
-        if (UNLIKELY(f->p >= f->len)) {
-          char *new = (char*) csound->ReAlloc(csound, f->body, f->len+=100);
-          if (UNLIKELY(new==NULL)) {
-            fprintf(stderr, Str("Out of Memory\n"));
-            exit(7);
-          }
-          f->body = new;
-        }
-      }
+    if (UNLIKELY(f->p + (int32_t)slen + n + 1 > f->len)) {
+      corfile_grow(csound, f, f->p + (int32_t)slen + n + 1);
+    }
+    if (slen > 0) {
+      memcpy(f->body + f->p, s, slen);
+      f->p += (int32_t)slen;
+    }
+    while (--n >= 0) {
+      f->body[f->p++] = '\0';
     }
     f->body[f->p] = '\0';
 }
@@ -104,8 +105,7 @@ void corfile_flush(CSOUND *csound, CORFIL *f)
     f->len = (int32_t)  strlen(f->body)+1;
     new = (char*)csound->ReAlloc(csound, f->body, f->len);
     if (UNLIKELY(new==NULL)) {
-      fprintf(stderr, Str("Out of Memory\n"));
-      exit(7);
+      csound->Die(csound, Str("Out of Memory\n"));
     }
     f->body = new;
     f->body[f->len - 1] = '\0';  // VL: added NULL terminator.
@@ -145,9 +145,17 @@ void corfile_ungetc(CORFIL *f)
 cs_float corfile_get_flt(CORFIL *f)
 {
     int32_t n = f->p;
+    char *endptr = NULL;
     cs_float ans;
-    while (!isspace(f->body[(int)(++f->p)]));
-    ans = (cs_float) atof(&f->body[n]);
+    if (UNLIKELY(f->body[n] == '\0'))
+      return FL(0.0);
+    ans = (cs_float) csoundStrtod(&f->body[n], &endptr);
+    if (endptr != NULL && endptr > &f->body[n]) {
+      f->p = (int32_t)(endptr - f->body);
+    } else {
+      while (f->body[f->p] != '\0' && !isspace((unsigned char)f->body[f->p]))
+        f->p++;
+    }
     return ans;
 }
 
@@ -178,13 +186,16 @@ void corfile_set(CORFIL *f, int32_t n)
 
 void corfile_seek(CORFIL *f, int32_t n, int32_t dir)
 {
-    if (dir == SEEK_SET) f->p = n;
-    else if (dir == SEEK_CUR) f->p += n;
-    else if (dir == SEEK_END) f->p = (int32_t)  strlen(f->body)-n;
-    if (UNLIKELY(f->p > strlen(f->body))) {
-      printf(Str("INTERNAL ERROR: Corfile seek out of range\n"));
-      exit(1);
-    }
+    int64_t len = (int64_t) strlen(f->body);
+    int64_t pos = (int64_t) f->p;
+    if (dir == SEEK_SET) pos = (int64_t) n;
+    else if (dir == SEEK_CUR) pos += (int64_t) n;
+    else if (dir == SEEK_END) pos = len - (int64_t) n;
+    if (UNLIKELY(pos < 0))
+      pos = 0;
+    else if (UNLIKELY(pos > len))
+      pos = len;
+    f->p = (uint32_t) pos;
 }
 
 
@@ -215,8 +226,9 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
     }
 #ifdef HAVE_CURL
     if (strstr(fname,"://")) {
-      /* **** Note the +2 is to skip spurous ./ inserted in a file name */
-      return copy_url_corefile(csound, fname+2, fromScore);
+      /* Strip optional ./ prefix only when present */
+      const char *url = (strncmp(fname, "./", 2) == 0) ? fname + 2 : fname;
+      return copy_url_corefile(csound, url, fromScore);
     }
 #endif
     fd = fopen_path(csound, &ff, (const char *)fname, NULL, (char *)env, fromScore);
@@ -233,11 +245,9 @@ CORFIL *copy_to_corefile(CSOUND *csound, const char *fname,
       corfile_puts(csound, buffer, mm);
       memset(buffer, '\0', 1024);
     }
-    //#ifdef SCORE_PARSER
     if (fromScore) {
       corfile_puts(csound, "\ne\n#exit\n", mm);
     }
-    //#endif
     corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
     corfile_putc(csound, '\0', mm);     /* For use in bison/flex */
     if (fromScore) corfile_flush(csound, mm);
@@ -292,13 +302,13 @@ write_memory_callback(void *contents, size_t size, size_t nmemb, void *userp)
   size_t realsize = size * nmemb;
   struct MemoryStruct *mem = (struct MemoryStruct *)userp;
   CSOUND *csound = mem->cs;
-
-  mem->memory = csound->ReAlloc(csound, mem->memory, mem->size + realsize + 1);
-  if (UNLIKELY(mem->memory == NULL)) {
+  char *ptr = csound->ReAlloc(csound, mem->memory, mem->size + realsize + 1);
+  if (UNLIKELY(ptr == NULL)) {
     /* out of memory! */
-    printf(Str("not enough memory (realloc returned NULL)\n"));
+    csound->ErrorMsg(csound, Str("not enough memory (realloc returned NULL)\n"));
     return 0;
   }
+  mem->memory = ptr;
 
   memcpy(&(mem->memory[mem->size]), contents, realsize);
   mem->size += realsize;
@@ -311,9 +321,14 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int32_t fromScore)
 {
     int32_t n;
     CURL *curl = curl_easy_init();
-    CORFIL *mm = corfile_create_w(csound);
+    CORFIL *mm;
     struct MemoryStruct chunk;
 
+    if (UNLIKELY(curl == NULL)) {
+      csound->ErrorMsg(csound, Str("curl_easy_init() failed\n"));
+      return NULL;
+    }
+    mm = corfile_create_w(csound);
     chunk.memory = csound->Malloc(csound, 1);  /* will grown */
     chunk.size = 0;    /* no data at this point */
     chunk.cs = csound;
@@ -323,9 +338,11 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int32_t fromScore)
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
     n = curl_easy_perform(curl);
     if (UNLIKELY(n != CURLE_OK)) {
+      curl_easy_cleanup(curl);
+      csound->Free(csound, chunk.memory);
+      corfile_rm(csound, &mm);
       csound->Die(csound, Str("curl_easy_perform() failed: %s\n"),
                   curl_easy_strerror(n));
-      /* return NULL ? */
     }
     curl_easy_cleanup(curl);
     corfile_puts(csound, chunk.memory, mm);
@@ -334,7 +351,6 @@ CORFIL *copy_url_corefile(CSOUND *csound, const char *url, int32_t fromScore)
     if (fromScore) corfile_flush(csound, mm);
     csound->Free(csound, chunk.memory);
 
-    curl_global_cleanup();
     return mm;
 }
 

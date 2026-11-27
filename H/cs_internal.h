@@ -47,6 +47,20 @@ extern "C" {
     char fullName[1];
   } CSFILE;
 
+  typedef struct orc_delimiter_scan {
+    int32_t mode;
+    int32_t rawDepth;
+    int32_t macroStep;
+    char previous;
+    uint16_t condDepth;      /* #ifdef and #ifndef groups open */
+    unsigned char resync;    /* a conditional directive line closes what a
+                                string, comment or macro body left open */
+    unsigned char lineStart; /* nothing but blanks so far on this line */
+    unsigned char condMatch; /* where the look for such a line is */
+    signed char condPending; /* its keyword's step, then what its directive
+                                does to condDepth */
+  } ORC_DELIMITER_SCAN;
+
   typedef struct CORFIL {
     char    *body;
     uint32_t     len;
@@ -228,6 +242,7 @@ extern "C" {
     OENTRY *oentry;
     PBR_REWIRE_PLAN *pbr_plan;
     struct opcodinfo *prv;
+    struct opcodinfo *latest;
   } OPCODINFO;
 
 

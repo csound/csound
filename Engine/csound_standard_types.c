@@ -63,16 +63,24 @@ static void wsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
 static void fsig_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                      const void* src, INSDS *ctx) {
+  IGN(cstype);
+  IGN(ctx);
   if (UNLIKELY(src == NULL || dest == NULL)) return;
   PVSDAT *fsigout = (PVSDAT*) dest;
   const PVSDAT *fsigin = (const PVSDAT*) src;
   int32_t N = fsigin->N;
   memcpy(dest, src, sizeof(PVSDAT) - sizeof(AUXCH));
+  if (fsigin->frame.auxp == NULL || N <= 0) {
+    if (fsigout->frame.auxp != NULL && fsigout->frame.size > 0) {
+      memset(fsigout->frame.auxp, 0, fsigout->frame.size);
+    }
+    return;
+  }
+  size_t bytes = (size_t)(N + 2) * sizeof(float);
   if(fsigout->frame.auxp == NULL ||
-     fsigout->frame.size < (N + 2) * sizeof(float))
-    ((CSOUND *)csound)->AuxAlloc(csound,
-                                 (N + 2) * sizeof(float), &fsigout->frame);
-  memcpy(fsigout->frame.auxp, fsigin->frame.auxp, (N + 2) * sizeof(float));
+     fsigout->frame.size < bytes)
+    ((CSOUND *)csound)->AuxAlloc(csound, bytes, &fsigout->frame);
+  memcpy(fsigout->frame.auxp, fsigin->frame.auxp, bytes);
 }
 
 static void swt_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
@@ -808,9 +816,19 @@ static void opcodedef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* de
    memcpy(dest, src, sizeof(OPCODEREF));
    p->readonly = 0; // clear readonly flag (which is not copied)
   }
-  else csound->Warning(csound, Str("%s (:OpcodeDef) is read-only: "
+  else {
+    char *opname = (p->entries != NULL && p->entries->count > 0 &&
+                    p->entries->entries[0] != NULL)
+      ? p->entries->entries[0]->opname
+      : NULL;
+    char *name = opname != NULL ? get_opcode_short_name(csound, opname) : NULL;
+    csound->Warning(csound, Str("%s (:OpcodeDef) is read-only: "
                                 "cannot be redefined, ignoring assignment\n"),
-                       get_opcode_short_name(csound, p->entries->entries[0]->opname));
+                    name != NULL ? name : "(uninitialized)");
+    if (name != NULL && name != opname) {
+      csound->Free(csound, name);
+    }
+  }
 }
 
 // from opcode.c
@@ -864,7 +882,9 @@ static void instr_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
 
 /* MEM SIZE UPDATING FUNCTIONS */
 static void update_asig_memblock(CSOUND* csound, CS_VARIABLE* var) {
-    int32_t ksmps = csound->ksmps;
+    int32_t ksmps = (var->ctx != NULL && var->ctx->ksmps > 0)
+      ? (int32_t)var->ctx->ksmps
+      : (int32_t)csound->ksmps;
     var->memBlockSize = CS_FLOAT_ALIGN(ksmps * sizeof (cs_float));
 }
 

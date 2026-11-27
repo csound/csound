@@ -36,29 +36,7 @@ char* csoundGetArgString(CSOUND *csound, cs_float p)
     if (ss == NULL)   /* none: no string behind the code */
       return NULL;
 
-#ifdef USE_DOUBLE
-    {
-      union {
-        cs_float d;
-        int32 i[2];
-      } ch;
-      ch.d = p;
-      if (byte_order()==0)
-        n = ch.i[1]&0xffff;
-      else
-        n = ch.i[0]&0xffff;
-      //printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
-    }
-#else
-    {
-      union {
-        cs_float d;
-        int32 j;
-      } ch;
-      ch.d = p; n = ch.j&0xffff;
-      //printf("SUNION %.8x \n", ch.j);
-    }
-#endif
+    n = csound_decode_sstrcod(p);
     while (n-- > 0) {
       ss += strlen(ss)+1;
     }
@@ -70,29 +48,10 @@ char* get_string_arg_from_evt(CSOUND *csound, cs_float p, EVTBLK *evt)
 {
     int32 n;
     char *ss = evt->strarg;
-#ifdef USE_DOUBLE
-    {
-      union {
-        cs_float d;
-        int32 i[2];
-      } ch;
-      ch.d = p;
-      if (byte_order()==0)
-        n = ch.i[1]&0xffff;
-      else
-        n = ch.i[0]&0xffff;
-      //printf("UNION %.8x %.8x\n", ch.i[0], ch.i[1]);
-    }
-#else
-    {
-      union {
-        cs_float d;
-        int32 j;
-      } ch;
-      ch.d = p; n = ch.j&0xffff;
-      //printf("SUNION %.8x \n", ch.j);
-    }
-#endif
+    IGN(csound);
+    if (ss == NULL)
+      return NULL;
+    n = csound_decode_sstrcod(p);
     while (n-- > 0) {
       ss += strlen(ss)+1;
     }
@@ -119,23 +78,8 @@ void set_evt_strarg(CSOUND *csound, EVTBLK *e, int32_t pcnt, const
     memcpy(e->strarg + offset, str, strsiz);
   }
 
-#ifdef USE_DOUBLE              
-  int32_t sel = (byte_order()+1)&1;
-  union {
-    cs_float d;
-    int32 i[2];
-  } ch;
-  ch.d = SSTRCOD; ch.i[sel] += scnt++;
-  e->p[pcnt] = ch.d;           /* set as string with count */
-#else
-  union {
-    cs_float d;
-    int32 i;
-  } ch;
-  ch.d = SSTRCOD; ch.i += scnt++;
-  e->p[pcnt] = ch.d;           /* set as string with count */
-#endif
- e->scnt = scnt;
+  e->p[pcnt] = csound_encode_sstrcod(scnt++); /* set as string with count */
+  e->scnt = scnt;
 }
 
 
@@ -145,7 +89,7 @@ static void dumpline(CSOUND *);
 static void flushline(CSOUND *csound)   /* flush scorefile to next newline */
 {
     int32_t     c;
-    while ((c = corfile_getc(csound->scstr)) != '\0' && c != '\n')
+    while ((c = corfile_getc(csound->scstr)) != EOF && c != '\0' && c != '\n')
         ;
 }
 
@@ -172,8 +116,11 @@ static int32_t scanflt(CSOUND *csound, cs_float *pfld)
                                           csound->strsiz+=SSTRSIZ);
         sstrp = csound->sstrbuf+n;
       }
-      while ((c = corfile_getc(csound->scstr)) != '"') {
-        if (c=='\\') { c = corfile_getc(csound->scstr);
+      while ((c = corfile_getc(csound->scstr)) != '"' && c != EOF) {
+        if (c=='\\') {
+          c = corfile_getc(csound->scstr);
+          if (UNLIKELY(c == EOF))
+            break;
           switch (c) {
           case '"': c = '"'; break;
           case '\'': c = '\''; break;
@@ -195,36 +142,18 @@ static int32_t scanflt(CSOUND *csound, cs_float *pfld)
           sstrp = csound->sstrbuf+n;
         }
       }
+      if (UNLIKELY(c != '"')) {
+        csound->ErrorMsg(csound, Str("ERROR: unterminated string in scoreline\n"));
+        return(0);
+      }
       *sstrp++ = '\0';
-#ifdef USE_DOUBLE
-      {
-        int32_t sel = (byte_order()+1)&1;
-        union {
-          cs_float d;
-          int32 i[2];
-        } ch;
-        ch.d = SSTRCOD;
-        //printf("**** %.8x %.8x\n", ch.i[0], ch.i[1]);
-        ch.i[sel] += csound->scnt++;
-        *pfld = ch.d;           /* set as string with count */
-        //printf("***  %.8x %.8x\n", ch.i[0], ch.i[1]);
-      }
-#else
-      {
-        union {
-          cs_float d;
-          int32 j;
-        } ch;
-        ch.d = SSTRCOD;
-        //printf("****** %.8x\n", ch.j);
-        ch.j += csound->scnt++;
-        *pfld = ch.d;           /* set as string with count */
-      }
-#endif
+      *pfld = csound_encode_sstrcod(csound->scnt++); /* set as string with count */
       csound->sstrlen = (int32_t) (sstrp - csound->sstrbuf);  /*    & overall length  */
       //printf("csound->sstrlen = %d\n", csound->sstrlen);
       return(1);
     }
+    if (UNLIKELY(c == EOF))
+      return(0);
     if (UNLIKELY(!((c>='0' && c<='9') || c=='+' || c=='-' || c=='.'))) {
       corfile_ungetc(csound->scstr);
       csound->Message(csound,
@@ -245,7 +174,7 @@ static int32_t scanflt(CSOUND *csound, cs_float *pfld)
 static void dumpline(CSOUND *csound)    /* print the line while flushing it */
 {
     int32_t     c;
-    while ((c = corfile_getc(csound->scstr)) != '\0' && c != '\n') {
+    while ((c = corfile_getc(csound->scstr)) != EOF && c != '\0' && c != '\n') {
       csound->Message(csound, "%c", c);
     }
     csound->Message(csound, Str("\n\tremainder of line flushed\n"));
@@ -298,7 +227,7 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
         while ((c = corfile_getc(csound->scstr))==' ' ||
                c=='\t'); /* eat whitespace */
         if (c == ';') { flushline(csound); break; } /* comments? skip */
-        if (c == '\n' || c == '\0')   break;    /* newline? done  */
+        if (c == '\n' || c == '\0' || c == EOF) break; /* newline? done */
         corfile_ungetc(csound->scstr);          /* pfld:  back up */
         if (!scanflt(csound, ++pp))  break;     /*   & read value */
         if (UNLIKELY(pp >= plim)) {
@@ -308,8 +237,7 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
           e->p =  (cs_float*) csound->ReAlloc(csound, e->p,
                                            sizeof(cs_float)*(msize+1));
           if (UNLIKELY(e->p==NULL)) {
-            fprintf(stderr, Str("Out of Memory\n"));
-            exit(7);
+            csound->Die(csound, Str("Out of Memory\n"));
           }
           pp = e->p + ofs;
           plim = e->p + msize;
@@ -329,17 +257,17 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
       e->opcod = c;                                       /* opcod */
       pp = &e->p[0];
       plim = &e->p[PMAX];
-      if (corfile_getc(csound->scstr) != '\n' &&
+      if ((c = corfile_getc(csound->scstr)) != '\n' && c != EOF &&
           scanflt(csound, ++pp))         /* p1      */
-        if (corfile_getc(csound->scstr) != '\n' &&
+        if ((c = corfile_getc(csound->scstr)) != '\n' && c != EOF &&
             scanflt(csound, &e->p2orig)) /* p2 orig */
-          if (corfile_getc(csound->scstr) != '\n' &&
+          if ((c = corfile_getc(csound->scstr)) != '\n' && c != EOF &&
               scanflt(csound, ++pp))     /* p2 warp */
-            if (corfile_getc(csound->scstr) != '\n' &&
+            if ((c = corfile_getc(csound->scstr)) != '\n' && c != EOF &&
                 scanflt(csound, &e->p3orig)) /* p3  */
-              if (corfile_getc(csound->scstr) != '\n' &&
+              if ((c = corfile_getc(csound->scstr)) != '\n' && c != EOF &&
                   scanflt(csound, ++pp)) /* p3 warp */
-                while (corfile_getc(csound->scstr) != '\n' &&
+                while ((c = corfile_getc(csound->scstr)) != '\n' && c != EOF &&
                        scanflt(csound, ++pp)) { /* p4....  */
                   if(pp >= plim) {
                     size_t ofs;
@@ -348,8 +276,7 @@ int32_t rdscor(CSOUND *csound, EVTBLK *e) /* read next score-line from scorefile
                     e->p = (cs_float*) csound->ReAlloc(csound, e->p,
                                                      sizeof(cs_float)*(msize+1));
                     if (UNLIKELY(e->p==NULL)) {
-                      fprintf(stderr, Str("Out of Memory\n"));
-                      exit(7);
+                      csound->Die(csound, Str("Out of Memory\n"));
                     }
                     pp = e->p + ofs;
                     plim = e->p + msize;

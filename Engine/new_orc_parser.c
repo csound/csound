@@ -27,6 +27,7 @@
 #include "corfile.h"
 #include "score_param.h"
 #include "csound_orc_semantics.h"
+#include "csound_orc_structs.h"
 #include "new_orc_parser.h"
 #include "csmodule.h"
 void add_opcode_defs(CSOUND *csound);
@@ -51,52 +52,34 @@ uint64_t make_location(PRE_PARM *qq)
     return loc;
 }
 
-uint64_t make_slocation(PRS_PARM *qq)
-{
-    int32_t d = qq->depth;
-    uint64_t loc = 0;
-    int32_t n = (d>8?d-7:0);
-    for (; n<=d; n++) {
-      loc = (loc<<8)+(qq->lstack[n]);
-    }
-    return loc;
-}
-
 // Code to add #includes of UDOs
 static void add_include_udo_dir(CSOUND *csound, CORFIL *xx)
 {
 #if defined(HAVE_DIRENT_H)
     char *dir = getenv("CS_UDO_DIR");
-    char buff[1024];
     if (dir) {
       DIR *udo = opendir(dir);
-      //printf(Str("** found CS_UDO_DIR=%s\n"), dir);
       if (udo) {
         struct dirent *f;
-        //printf("**and it opens\n");
-        strcpy(buff, "#line 0\n");
+        CORFIL *tmp = corfile_create_w(csound);
+        corfile_puts(csound, "#line 0\n", tmp);
         while ((f = readdir(udo)) != NULL) {
           char *fname = &(f->d_name[0]);
-          int32_t n = (int)strlen(fname);
-          //printf("**  name=%s n=%d\n", fname, n);
-          if (n>4 && (strcmp(&fname[n-4], ".udo")==0)) {
-            strlcat(buff, "#include \"", 1024);
-            strlcat(buff, dir, 1024);
-            strlcat(buff, "/", 1024);
-            strlcat(buff, fname, 1024);
-            strlcat(buff, "\"\n", 1024);
-            if (strlen(buff)>768) {
-              corfile_preputs(csound, buff, xx);
-              buff[0] ='\0';
-            }
+          int32_t n = (int32_t)strlen(fname);
+          if (n > 4 && (strcmp(&fname[n-4], ".udo") == 0)) {
+            corfile_puts(csound, "#include \"", tmp);
+            corfile_puts(csound, dir, tmp);
+            corfile_puts(csound, "/", tmp);
+            corfile_puts(csound, fname, tmp);
+            corfile_puts(csound, "\"\n", tmp);
           }
         }
         closedir(udo);
-        strlcat(buff, "###\n", 1024);
-        corfile_preputs(csound, buff, xx);
+        corfile_puts(csound, "###\n", tmp);
+        corfile_preputs(csound, corfile_body(tmp), xx);
+        corfile_rm(csound, &tmp);
       }
     }
-    //printf("Giving\n%s", corfile_body(xx));
 #endif
 }
 
@@ -143,7 +126,7 @@ static int32_t preprocess_orc(CSOUND *csound, const char *str, PRE_PARM *qq)
 {
       /* A failed live edit must not carry errors into the next request. */
       csound->synterrcnt = 0;
-      //csp_orc_sa_print_list(csound);
+      qq->csound = csound;
       csound_prelex_init(&qq->yyscanner);
       csound_preset_extra(qq, qq->yyscanner);
       qq->line = csound->orcLineOffset;
@@ -262,8 +245,10 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
          We just pass a pointer, which will be allocated
          by make leaf */
       TREE* astTree = NULL;
+      TREE* origTree = NULL;
       TREE* newRoot;
       TYPE_TABLE* typeTable = NULL;
+      CONS_CELL *newStructTypes = NULL;
       int32_t hadStatements = 0;
 
       /* Parse */
@@ -274,9 +259,6 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
                              corfile_tell(csound->expanded_orc), pp->yyscanner);
       err = csound_orcparse(pp, pp->yyscanner, csound, &astTree);
       corfile_rm(csound, &csound->expanded_orc);
-#ifdef PARCS
-      if (UNLIKELY(csoundGetDebug(csound) > 99)) csp_orc_sa_print_list(csound);
-#endif
       if (UNLIKELY(csound->synterrcnt)) err = 3;
       if (LIKELY(err == 0)) {
         if (csoundGetDebug(csound) & DEBUG_PARSER)
@@ -302,86 +284,16 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
 
       // EARLY two-phase struct processing: must happen before any variable declarations
       // This ensures struct types are available when parsing variable declarations like john:Person
-      {
-        extern int32_t process_struct_definitions_two_phase(CSOUND* csound, TREE* structDefList);
-
-        // Create a separate list of wrapper nodes to avoid mutating the original AST
-        TREE* structList = NULL;
-        TREE* structTail = NULL;
-        TREE* scan = astTree;
-
-        while (scan != NULL) {
-          if (scan->type == STRUCT_TOKEN) {
-            // Create a wrapper node that references the struct node without modifying its next pointer
-            TREE* wrapper = (TREE*)csoundParserOwn(csound, csound->Malloc(csound, sizeof(TREE)));
-            if (UNLIKELY(wrapper == NULL)) {
-              csound->ErrorMsg(csound, Str("Memory allocation failed for struct wrapper node\n"));
-              err = 3;
-
-              // Clean up any already allocated wrapper nodes before jumping to ending
-              TREE* current = structList;
-              while (current != NULL) {
-                TREE* next = current->next;
-                csound->Free(csound, current);
-                current = next;
-              }
-              structList = NULL;
-
-              goto ending;
-            }
-
-            // Initialize wrapper with minimal information needed for processing
-            wrapper->type = scan->type;
-            wrapper->value = scan->value;
-            wrapper->rate = scan->rate;
-            wrapper->len = scan->len;
-            wrapper->line = scan->line;
-            wrapper->locn = scan->locn;
-            wrapper->left = scan->left;
-            wrapper->right = scan->right;
-            wrapper->markup = scan->markup;
-            wrapper->next = NULL;  // Initialize next to NULL
-
-            // Add wrapper to struct list
-            if (structList == NULL) {
-              structList = wrapper;
-              structTail = wrapper;
-            } else {
-              structTail->next = wrapper;
-              structTail = wrapper;
-            }
-          }
-          scan = scan->next;
-        }
-
-        // Process all struct definitions in two phases
-        if (structList != NULL) {
-          if (!process_struct_definitions_two_phase(csound, structList)) {
-            csound->ErrorMsg(csound, Str("Error in early two-phase struct processing\n"));
-            err = 3;
-
-            // Clean up wrapper nodes before exiting
-            TREE* current = structList;
-            while (current != NULL) {
-              TREE* next = current->next;
-              csound->Free(csound, current);
-              current = next;
-            }
-            goto ending;
-          }
-
-          // Clean up wrapper nodes after successful processing
-          TREE* current = structList;
-          while (current != NULL) {
-            TREE* next = current->next;
-            csound->Free(csound, current);
-            current = next;
-          }
-        }
+      if (!process_struct_definitions_two_phase_tracked(csound, astTree,
+                                                        &newStructTypes)) {
+        csound->ErrorMsg(csound, Str("Error in early two-phase struct processing\n"));
+        err = 3;
+        goto ending;
       }
 
       typeTable = csoundParserOwn(csound, csound->Calloc(csound, sizeof(TYPE_TABLE)));
       typeTable->udos = NULL;
+      typeTable->retainedStructs = NULL;
 
       typeTable->globalPool = csoundParserCreateVarPool(csound);
       if (typeTable->globalPool == NULL) {
@@ -405,6 +317,7 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
+      stage_instr_variables(csound, astTree, typeTable);
 
       /* Empty input parses to no statements, which is valid: the compiler is
          then given just the sentinel root carrying the TYPE_TABLE and can
@@ -415,6 +328,7 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
          as a rejected struct definition, report through ErrorMsg only and
          leave synterrcnt unchanged. */
       hadStatements = (astTree != NULL);
+      origTree = astTree;
       astTree = verify_tree(csound, astTree, typeTable);
 
       if (UNLIKELY(csound->synterrcnt || (hadStatements && astTree == NULL))) {
@@ -442,26 +356,48 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
       pp->xstrbuff = NULL;
       if (UNLIKELY(err)) {
         csound->ErrorMsg(csound, "%s", Str("Stopping on parser failure\n"));
+        rollback_struct_definitions(csound, &newStructTypes);
 #ifdef CSOUND_WASI_REALTIME
         /* The scope also owns nodes discarded by Bison or detached during
            rewriting. A tree walk cannot safely recover those allocations. */
         if (csoundWasiHasAllocScope(csound)) return NULL;
 #endif
-        csoundDeleteTree(csound, astTree);
+        TREE *cleanupTree = (astTree != NULL) ? astTree : origTree;
+        TREE *node = cleanupTree;
+        while (node != NULL) {
+          if ((node->type == INSTR_TOKEN || node->type == UDO_TOKEN ||
+               node->type == T_DECLARE) &&
+              node->markup != NULL &&
+              (typeTable == NULL ||
+               (node->markup != typeTable->localPool &&
+                node->markup != typeTable->instr0LocalPool))) {
+            csoundFreeParserVarPool(csound, node->markup);
+            node->markup = NULL;
+          }
+          node = node->next;
+        }
+        csoundDeleteTree(csound, cleanupTree);
         if (typeTable != NULL) {
-          csoundFreeVarPool(csound, typeTable->globalPool);
+          if (typeTable->globalPool != NULL) {
+            csoundFreeParserVarPool(csound, typeTable->globalPool);
+          }
           if (typeTable->instr0LocalPool != NULL) {
-            csoundFreeVarPool(csound, typeTable->instr0LocalPool);
+            csoundFreeParserVarPool(csound, typeTable->instr0LocalPool);
           }
-          if (typeTable->localPool != typeTable->instr0LocalPool) {
-            csoundFreeVarPool(csound, typeTable->localPool);
+          if (typeTable->localPool != NULL &&
+              typeTable->localPool != typeTable->instr0LocalPool) {
+            csoundFreeParserVarPool(csound, typeTable->localPool);
           }
+          cs_cons_free_complete(csound, typeTable->labelList);
+          typeTable->labelList = NULL;
           csound->Free(csound, typeTable);
         }
         return NULL;
       }
 
       astTree = csound_orc_optimize(csound, astTree, typeTable);
+      retain_parsed_provisional_structs(csound, astTree, typeTable,
+                                        &newStructTypes);
       /* Prepend a sentinel node to the statement list to carry the
          TYPE_TABLE across to the compilation step, which receives only the
          tree root and reads the table back from root->markup. The node is
