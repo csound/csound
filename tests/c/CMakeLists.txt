@@ -63,6 +63,7 @@ if(BUILD_TESTS)
         pitch_test.cpp
         delayk_test.cpp
         resonbnk_test.cpp
+        rms_test.cpp
         diode_ladder_test.cpp
         seed_state_test.cpp
         trigseq_test.cpp
@@ -74,6 +75,9 @@ if(BUILD_TESTS)
         nxtpow2_test.cpp
         dct_test.cpp
         fft_backend_test.cpp
+        pvlock_formants_test.cpp
+        fixtures/pvlock_formant_test_fixture.c
+        swtdat_test.cpp
         engine_test.cpp
         global_env_test.cpp
         realtime_chain_test.cpp
@@ -86,6 +90,8 @@ if(BUILD_TESTS)
         keyboard_callback_test.cpp
         local_ksmps_test.cpp
         lfsr_test.cpp
+        scale2_test.cpp
+        fixtures/scale2_test_opcode.c
         serial_test.cpp
         fixtures/serial_test_opcode.c
         joystick_test.cpp
@@ -115,6 +121,8 @@ if(BUILD_TESTS)
         pvsblur_test.cpp
         pvsanal_test.cpp
         pvstanal_test.cpp
+        pvlock_test.cpp
+        fixtures/pvlock_test_opcode.c
         pvscross_test.cpp
         pvsmorph_test.cpp
         pvsmaska_test.cpp

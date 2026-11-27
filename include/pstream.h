@@ -131,6 +131,7 @@ typedef struct {
         AUXCH           trig;
         cs_double          *cosine, *sine;
         void    *setup;
+        int32_t  sliding_nonzero;
 } PVSANAL;
 
 typedef struct {

@@ -153,6 +153,8 @@ extern "C" {
     struct eventnode  *nxt;
     uint32     start_kcnt;
     EVTBLK            evt;
+    uint64_t          turnoff_ticket;  /* a waiting turnoff's, see       */
+    int32_t           turnoff_waiting; /*   alloc_queue_turnoff_waits()  */
   } EVTNODE;
 
   typedef struct {
@@ -273,6 +275,7 @@ extern "C" {
     ENGINE_STATE *engine_state;
     struct type_table *type_table;
     long rewinds;               /* score_rewinds when it was queued */
+    uint64_t seq;               /* its place among those queued, from 1 */
   } ALLOC_DATA;
 
 #define MAX_MESSAGE_STR 1024

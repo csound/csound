@@ -23,10 +23,18 @@
 #pragma once
 
 typedef struct {
+        cs_double  feedback, gain;
+#ifndef USE_FLOAT
+        cs_double  feedback1;
+#endif
+} LOWRES_COEFFICIENTS;
+
+typedef struct {
         OPDS    h;
         cs_float   *ar, *asig, *kfco, *kres, *istor;
         cs_double  ynm1, ynm2;
-        cs_double  coef1, coef2, okf, okr, k;
+        LOWRES_COEFFICIENTS coef;
+        cs_double  okf, okr;
 } LOWPR;
 
 typedef struct {
@@ -34,7 +42,7 @@ typedef struct {
         cs_float   *ar, *asig, *kfco, *kres, *ord, *istor;
         cs_double  ynm1[10], ynm2[10];
         int32_t     loop;
-        cs_double  coef1, coef2, k;
+        LOWRES_COEFFICIENTS coef;
         cs_float   okf, okr;
 } LOWPRX;
 

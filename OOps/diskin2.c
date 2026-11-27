@@ -2178,7 +2178,7 @@ static uintptr_t diskin_io_thread(void *p)
                    current->h.insdshead->esr;
   int32_t *start =
      csound->QueryGlobalVariable(csound,"DISKIN_THREAD_START");
-  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+  CSOUND_WORKER_SUBNORMAL_MODE(csound);
   while (*start) {
     csoundSleep(wakeup > 0 ? wakeup : 1);
     current = *((DISKIN2 **)
@@ -2637,7 +2637,7 @@ static uintptr_t diskin2_io_loop(CSOUND *csound, int32_t array)
                                        &state->starting;
   int32_t wakeup = 1000 * csound->ksmps / csound->esr;
 
-  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+  CSOUND_WORKER_SUBNORMAL_MODE(csound);
   for (;;) {
     DISKIN2_ASYNC_ENTRY *entry;
 
@@ -2686,7 +2686,7 @@ static uintptr_t diskin_io_thread_array(void *p)
                    current->h.insdshead->esr;
   int32_t *start =
     csound->QueryGlobalVariable(csound, "DISKIN_THREAD_START_ARRAY");
-  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+  CSOUND_WORKER_SUBNORMAL_MODE(csound);
   while (*start) {
     current = *((DISKIN2_ARRAY **)
                 csound->QueryGlobalVariable(csound, "DISKIN_INST_ARRAY"));

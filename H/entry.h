@@ -70,6 +70,7 @@
 #include "opcode.h"
 #include "array_ops.h"
 #include "struct_ops.h"
+#include "wavelets.h"
 
 #define S(x)    sizeof(x)
 

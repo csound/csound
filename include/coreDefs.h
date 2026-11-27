@@ -27,9 +27,19 @@ extern "C" {
 #endif /*  __cplusplus */
 
 #ifndef CSOUND_CSDL_H
+#if !defined(EMSCRIPTEN) && !defined(_M_ARM64EC) && \
+    (defined(__SSE__) || defined(_M_X64) || \
+     (defined(_M_IX86_FP) && _M_IX86_FP >= 2))
+#include <xmmintrin.h>
+/* MXCSR DAZ (bit 6) and FTZ (bit 15). */
+#define CSOUND_PRESERVE_SUBNORMALS() \
+  _mm_setcsr(_mm_getcsr() & ~0x8040u)
+#else
+#define CSOUND_PRESERVE_SUBNORMALS() ((void)0)
+#endif
+
 /* VL not sure if we need to check for SSE */
 #if defined(__SSE__) && !defined(EMSCRIPTEN)
-#include <xmmintrin.h>
 #ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_MASK   0x0040
 #define _MM_DENORMALS_ZERO_ON     0x0040
@@ -39,6 +49,8 @@ extern "C" {
 #define _MM_GET_DENORMALS_ZERO_MODE()           \
   (_mm_getcsr() & _MM_DENORMALS_ZERO_MASK)
 #endif
+#define CSOUND_DEFAULT_SUBNORMAL_MODE() \
+  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON)
 #else
 #ifndef _MM_DENORMALS_ZERO_ON
 #define _MM_DENORMALS_ZERO_MASK   0
@@ -46,7 +58,14 @@ extern "C" {
 #define _MM_DENORMALS_ZERO_OFF    0
 #define _MM_SET_DENORMALS_ZERO_MODE(mode)
 #endif
+/* Keep the prior default on targets without __SSE__. */
+#define CSOUND_DEFAULT_SUBNORMAL_MODE() ((void)0)
 #endif
+
+#define CSOUND_WORKER_SUBNORMAL_MODE(csound) do { \
+    if ((csound)->preserve_subnormals) CSOUND_PRESERVE_SUBNORMALS(); \
+    else CSOUND_DEFAULT_SUBNORMAL_MODE(); \
+  } while (0)
 #endif
 
 #define OK        (0)

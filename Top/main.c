@@ -251,7 +251,7 @@ static int32_t compile_args(CSOUND *csound, int32_t argc, const char **argv);
   jmp_buf *landing;
   int32_t n;
 
-  /* refused before the setjmp: exitjmp may be a running performance's */
+  /* Refuse a second compile before changing a started engine. */
   if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
     csound->Message(csound,
                     Str("Csound is already started, call csoundReset()\n"
@@ -648,8 +648,7 @@ static int32_t start_csound(CSOUND *csound);
   jmp_buf *landing;
   int32_t n;
 
-  /* A started engine is refused before anything is read: its rc file would
-     set options on it, and exitjmp may be a running performance's. */
+  /* Refuse a started engine before reading its rc file or changing options. */
   if (UNLIKELY(csound->engineStatus & CS_STATE_COMP)) {
     csound->Message(csound,
                     Str("Csound is already started, call csoundReset()\n"
@@ -689,6 +688,7 @@ static int32_t start_csound(CSOUND *csound)
   if (csound->csdname == NULL && !csound->options_checked) {
     check_options(csound);
   }
+  if (csound->preserve_subnormals) CSOUND_PRESERVE_SUBNORMALS();
 
 #if defined(CSOUND_WASI_REALTIME) && defined(CSOUND_WASI_BROWSER)
   /* Enforce the host limit even when options were set through native state. */

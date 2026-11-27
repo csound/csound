@@ -27,6 +27,83 @@
 
 /* The branch prediction slows it down!! */
 
+#define BUZZ_WORD_SCALE FL(4294967296.0)
+
+static int32_t buzzPhaseWords(uint32_t *words, cs_double fraction,
+                              cs_double scale)
+{
+    int32_t used = 0;
+    while (fraction > FL(0.0)) {
+      fraction *= scale;
+      const uint32_t word = (uint32_t)fraction;
+      words[used++] = word;
+      fraction -= (cs_double)word;
+      scale = BUZZ_WORD_SCALE;
+    }
+    return used;
+}
+
+#ifdef USE_FLOAT
+#define BUZZ_STEP_ABS FABS
+#else
+#define BUZZ_STEP_ABS fabs
+#endif
+
+static int32_t buzzFraction(cs_double increment, cs_double *fraction)
+{
+    /* Magnitudes below one are finite and already fractional. */
+    if (UNLIKELY(!(BUZZ_STEP_ABS(increment) < FL(1.0)))) {
+      if (UNLIKELY(!isfinite(increment))) return NOTOK;
+      cs_double whole;
+      increment = cs_modf(increment, &whole);
+    }
+    *fraction = increment;
+    return OK;
+}
+
+#undef BUZZ_STEP_ABS
+
+/* Return the word count with the sign of the fractional increment. */
+static int32_t buzzPhaseStep(uint32_t *words, cs_double increment)
+{
+    if (increment < FL(0.0))
+      return -buzzPhaseWords(words, -increment, BUZZ_WORD_SCALE);
+    return buzzPhaseWords(words, increment, BUZZ_WORD_SCALE);
+}
+
+static void buzzAdvancePhase(BUZZ_PHASE *phase, const uint32_t *step,
+                             int32_t signedCount)
+{
+    const int32_t subtract = signedCount < 0;
+    const int32_t count = subtract ? -signedCount : signedCount;
+    const uint32_t mask = subtract ? UINT32_MAX : 0;
+    uint64_t carry = (uint32_t)subtract;
+
+    /* Two's complement handles reverse steps. Discard whole cycles. */
+    for (int32_t i = count - 1; i >= 0; --i) {
+      const uint64_t sum = (uint64_t)phase->words[i] + (step[i] ^ mask) + carry;
+      phase->words[i] = (uint32_t)sum;
+      carry = sum >> 32;
+    }
+    if (phase->used < count) phase->used = count;
+    while (phase->used > 0 && phase->words[phase->used - 1] == 0)
+      --phase->used;
+}
+
+static uint32_t buzzPhaseIndex(const BUZZ_PHASE *phase, uint32_t length,
+                               uint32_t harmonic)
+{
+    uint64_t carry = 0, index = 0;
+    for (int32_t i = phase->used - 1; i >= 0; --i) {
+      /* Multiply the phase by the harmonic, then the fractional part by
+         the table length. Each pass carries into the next word. */
+      const uint64_t product = (uint64_t)phase->words[i] * harmonic + carry;
+      carry = product >> 32;
+      index = ((uint64_t)(uint32_t)product * length + index) >> 32;
+    }
+    return (uint32_t)index;
+}
+
 int32_t bzzset(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
@@ -38,10 +115,15 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
       if (UNLIKELY(!isfinite(phase)))
         return csound->InitError(csound, "%s\n", Str("buzz: invalid initial phase"));
       if (phase >= 0.0) {
-        phase *= 0.5; /* The sine quotient uses theta/2. */
-        phase -= floor(phase);
-        p->lphs = (int32_t)(phase * FMAXLEN);
-        p->fphs = phase;
+        cs_double whole;
+        /* The sine quotient uses theta/2. Fold halving into the first
+           word for small phases so the phase can also hold subnormals. */
+        const cs_double half = cs_modf(phase * FL(0.5), &whole);
+        p->lphs = (int32_t)(half * FMAXLEN);
+        memset(&p->phase, 0, sizeof(p->phase));
+        p->phase.used = phase < FL(1.0)
+          ? buzzPhaseWords(p->phase.words, phase, BUZZ_WORD_SCALE * FL(0.5))
+          : buzzPhaseWords(p->phase.words, half, BUZZ_WORD_SCALE);
       }
       p->ampcod = IS_ASIG_ARG(p->xamp) ? 1 : 0;
       p->cpscod = IS_ASIG_ARG(p->xcps) ? 1 : 0;
@@ -51,43 +133,36 @@ int32_t bzzset(CSOUND *csound, BUZZ *p)
     return NOTOK;
 }
 
-/* Keep non-power-of-two phase calculations in double precision. */
-#define BUZZ_WRAP(phase) do {                                      \
-    if ((phase) >= 1.0 || (phase) < 0.0) (phase) -= floor(phase);    \
-    if ((phase) >= 1.0) (phase) = 0.0;                             \
-  } while (0)
-
-/* Remove whole cycles before addition to retain the fractional phase. */
-#define BUZZ_INCREMENT(increment) do {                              \
-    if ((increment) >= 1.0 || (increment) <= -1.0)                  \
-      (increment) -= trunc(increment);                            \
-  } while (0)
-
 int32_t buzz(CSOUND *csound, BUZZ *p)
 {
     FUNC        *ftp;
     cs_float       *ar, *ampp, *cpsp, *ftbl, amp;
-    int32_t       phs, inc = 0, lobits, dwnphs, lenmask,
-      floatph = p->floatph, flen;
+    uint32_t    phs, inc = 0, dwnphs, lenmask;
+    int32_t     floatph = p->floatph, flen;
     uint32_t tnp1;
     cs_float       sicvt2, over2n, scal, num, denom, harmonics;
-    cs_double incf = 0.0;
+    uint32_t    phaseStep[BUZZ_PHASE_WORDS];
+    int32_t     stepCount = 0;
     uint32_t    offset = p->h.insdshead->ksmps_offset;
     uint32_t    early  = p->h.insdshead->ksmps_no_end;
     uint32_t    n, nsmps = CS_KSMPS;
     int32_t       nn;
-    cs_double   phsf = p->fphs;
     
     ftp = p->ftp;
     if (UNLIKELY(ftp==NULL)) goto err1; /* RWD fix */
     ftbl = ftp->ftable;
     flen = ftp->flen;
 
-    if(floatph) sicvt2 = CS_ONEDSR*FL(0.5);
-    else sicvt2 = CS_SICVT * FL(0.5); /* for theta/2  */
+    /* Convert to cycles before scaling to the integer phase grid. */
+    if (floatph) sicvt2 = CS_ONEDSR * FL(0.5);
+    else sicvt2 = (cs_float)(CS_SICVT / FMAXLEN) * FL(0.5);
 
-    lobits = ftp->lobits;
-    lenmask = ftp->lenmask;
+    /* Use the high bits of the unsigned phase so addition wraps it. */
+    const uint32_t phaseShift = MAXLEN == (1 << 24) ? 8 : 2;
+    const uint32_t indexShift = flen == 1 ? 0 : ftp->lobits + phaseShift;
+    const int32_t ampcod = p->ampcod, cpscod = p->cpscod;
+    /* A full-size power-of-two table has zero lobits and an all-ones mask. */
+    lenmask = (uint32_t)flen - 1U;
     ampp = p->xamp;
     cpsp = p->xcps;
     harmonics = FABS(*p->knh);
@@ -102,13 +177,15 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
     over2n = FL(0.5) / (cs_float)nn;
     amp = *ampp;
     scal = amp * over2n;
-    if(floatph) {
-      incf = *cpsp * sicvt2;
-      BUZZ_INCREMENT(incf);
+    if (!cpscod) {
+      const cs_double step = *cpsp * sicvt2;
+      cs_double fraction;
+      if (UNLIKELY(buzzFraction(step, &fraction) != OK)) goto invalid_frequency;
+      if (floatph) stepCount = buzzPhaseStep(phaseStep, fraction);
+      else inc = (uint32_t)(int32_t)(fraction * FMAXLEN) << phaseShift;
     }
-    else inc = (int32_t)(*cpsp * sicvt2);
     ar = p->ar;
-    phs = p->lphs;
+    phs = (uint32_t)p->lphs << phaseShift;
     if (UNLIKELY(offset)) memset(ar, '\0', offset*sizeof(cs_float));
     if (UNLIKELY(early)) {
       //printf("early=%d\n", early);
@@ -116,48 +193,45 @@ int32_t buzz(CSOUND *csound, BUZZ *p)
       memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps; n++) {
-      if (p->ampcod) {
+      if (ampcod) {
         amp = ampp[n];
         scal = amp * over2n;
       }
-      if(!floatph) {
-      if (p->cpscod)
-        inc = (int32_t)(cpsp[n] * sicvt2);
-      dwnphs = phs >> lobits;
-      denom = ftbl[dwnphs];
-      if (denom > FL(0.0002) || denom < -FL(0.0002)) {
-        num = ftbl[dwnphs * tnp1 & lenmask];
-        ar[n] = (num / denom - FL(1.0)) * scal;
+      if (cpscod) {
+        const cs_double step = cpsp[n] * sicvt2;
+        cs_double fraction;
+        if (UNLIKELY(buzzFraction(step, &fraction) != OK)) goto invalid_frequency;
+        if (floatph) stepCount = buzzPhaseStep(phaseStep, fraction);
+        else inc = (uint32_t)(int32_t)(fraction * FMAXLEN) << phaseShift;
       }
-      else ar[n] = amp;
-      phs += inc;
-      phs &= PHMASK;
+      if (!floatph) {
+        dwnphs = flen == 1 ? 0 : phs >> indexShift;
+        denom = ftbl[dwnphs];
+        if (FABS(denom) > FL(0.0002)) {
+          num = ftbl[dwnphs * tnp1 & lenmask];
+          ar[n] = (num / denom - FL(1.0)) * scal;
+        }
+        else ar[n] = amp;
+        phs += inc;
       } else {
-      if (p->cpscod) {
-        incf = cpsp[n] * sicvt2;
-        BUZZ_INCREMENT(incf);
-      }
-      denom = ftbl[(int32_t) (phsf*flen)];
-      if (denom > FL(0.0002) || denom < -FL(0.0002)) {
-        cs_double numerator_phase = phsf * tnp1;
-        BUZZ_WRAP(numerator_phase);
-        num = ftbl[(int32_t)(numerator_phase*flen)];
-        ar[n] = (num / denom - FL(1.0)) * scal;
-      }
-      else ar[n] = amp;
-      phsf += incf;
-      BUZZ_WRAP(phsf);
+        denom = ftbl[buzzPhaseIndex(&p->phase, (uint32_t)flen, 1U)];
+        if (FABS(denom) > FL(0.0002)) {
+          num = ftbl[buzzPhaseIndex(&p->phase, (uint32_t)flen, tnp1)];
+          ar[n] = (num / denom - FL(1.0)) * scal;
+        }
+        else ar[n] = amp;
+        if (stepCount != 0) buzzAdvancePhase(&p->phase, phaseStep, stepCount);
       }
     }
-    p->lphs = phs;
-    p->fphs = phsf;
+    if (!floatph) p->lphs = (int32_t)(phs >> phaseShift);
     return OK;
+ invalid_frequency:
+    return csound->PerfError(csound, &(p->h), Str("buzz: invalid frequency\n"));
  err1:
     return csound->PerfError(csound, &(p->h), Str("buzz: not initialised\n"));
 }
 
-#undef BUZZ_WRAP
-#undef BUZZ_INCREMENT
+#undef BUZZ_WORD_SCALE
 
 int32_t gbzset(CSOUND *csound, GBUZZ *p)
 {

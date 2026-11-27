@@ -135,6 +135,7 @@ extern "C" {
   typedef struct stringdat STRINGDAT;
   typedef struct arraydat ARRAYDAT;
   typedef struct pvsdat PVSDAT;
+  typedef struct swtdat SWTDAT;
 
 
   typedef struct CSOUND_PARAMS {

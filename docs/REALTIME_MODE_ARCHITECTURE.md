@@ -43,6 +43,22 @@ that path or warn and leave `--realtime` disabled. The checks live in
 [musmon.c](../Engine/musmon.c). A host still has audio deadlines when the flag
 is off.
 
+### Subnormal arithmetic
+
+On x86 builds with SSE, set `--preserve-subnormals` before compiling to
+preserve subnormal inputs and results. Hosts can set it with `csoundSetOption()`.
+The option clears the two flush-to-zero flags while preserving the rounding
+mode. Other targets keep their platform's floating-point mode.
+
+The option takes effect on the thread that reads it and on the thread that
+calls `csoundStart()`. Csound also applies it when its performance, init, and
+file workers start. The setting survives `csoundReset()`. Floating-point mode
+belongs to a thread and affects other code on that thread. A host that renders
+on a separate thread it owns must configure that thread's mode directly.
+
+Csound keeps its usual performance settings by default. Processing subnormal
+values can cost more CPU when preservation is enabled.
+
 ## Performance ownership and lifetime
 
 Use one host performance thread per Csound instance. Do not overlap calls to

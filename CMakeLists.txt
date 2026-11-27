@@ -1163,6 +1163,8 @@ set(libcsound_SRCS
     OOps/structs.c
     OOps/ugens1.c
     OOps/ugens2.c
+    OOps/wavelet_coeffs.c
+    OOps/wavelets.c
     OOps/ugens3.c
     OOps/ugens4.c
     OOps/ugens5.c

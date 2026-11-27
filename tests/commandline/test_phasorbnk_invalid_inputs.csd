@@ -41,6 +41,8 @@ endin
 </CsInstruments>
 <CsScore>
 i 1 0 .01 1e20
+; Float rounds INT32_MAX up to this value; reject it before conversion.
+i 1 0 .01 2147483648
 i 2 .1 .01 -1
 i 2 .1 .01 2
 i 2 .1 .01 1e20

@@ -491,6 +491,9 @@ int32_t alloc_queue_lock_init(CSOUND *csound)
   ATOMIC_SET(csound->alloc_queue_midi, 0);
   csound->midi_event_pending = 0;
   csound->alloc_queue_wp = 0;
+  csound->alloc_queue_queued = 0;
+  csound->alloc_queue_work_insno = 0;
+  csound->score_turnoff_waiting = 0;
   return realtime_spin_lock_init(&csound->alloc_queue_spinlock);
 }
 
@@ -517,6 +520,7 @@ int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
     wp = csound->alloc_queue_wp;
     csound->alloc_queue[wp] = *data;
     csound->alloc_queue[wp].rewinds = ATOMIC_GET(csound->score_rewinds);
+    csound->alloc_queue[wp].seq = ++csound->alloc_queue_queued;
     csound->alloc_queue_wp = wp + 1 < MAX_ALLOC_QUEUE ? wp + 1 : 0;
     ATOMIC_INCR(csound->alloc_queue_items);
     if (data->type == ALLOC_DATA_MIDI_EVENT)
@@ -524,6 +528,31 @@ int32_t alloc_queue_enqueue(CSOUND *csound, const ALLOC_DATA *data)
   }
   alloc_queue_unlock(csound);
   return result;
+}
+
+/* The instr of the note a request inits, starting, tying or reinitializing
+   it, or 0. For a note it starts or ties, *note is 1 and *p1 its p1 as
+   queued (a MIDI note's is its instr); a reinit's has none here. */
+static int32_t request_instr(const ALLOC_DATA *data, cs_float *p1,
+                             int32_t *note)
+{
+  *note = 0;
+  switch (data->type) {
+  case ALLOC_DATA_MIDI_EVENT:
+    *p1 = (cs_float) data->insno;
+    *note = 1;
+    return data->insno;
+  case ALLOC_DATA_SCORE_EVENT:
+    if (data->blk.p != NULL && data->blk.pcnt >= 1) {
+      *p1 = data->blk.p[1];
+      *note = 1;
+    }
+    return data->insno;
+  case ALLOC_DATA_REINIT_PASS:     /* kept alive by its init_running */
+    return data->ip != NULL ? (int32_t) data->ip->insno : 0;
+  default:
+    return 0;
+  }
 }
 
 static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
@@ -538,6 +567,11 @@ static int32_t alloc_queue_dequeue(CSOUND *csound, ALLOC_DATA *data,
       *readPosition + 1 : 0;
     ATOMIC_DECR(csound->alloc_queue_items);
     csound->alloc_queue_active++;
+    /* out of the ring now, and its note maybe not inserted yet */
+    csound->alloc_queue_work_insno =
+      request_instr(data, &csound->alloc_queue_work_p1,
+                    &csound->alloc_queue_work_note);
+    csound->alloc_queue_work_seq = data->seq;
     result = 1;
   }
   alloc_queue_unlock(csound);
@@ -552,6 +586,40 @@ int32_t alloc_queue_has_pending(CSOUND *csound)
   result = ATOMIC_GET(csound->alloc_queue_items) > 0 || csound->alloc_queue_active > 0;
   alloc_queue_unlock(csound);
   return result;
+}
+
+/* Whether a request queued up to a turnoff's ticket inits a note of instr
+   insno that it may turn off: one whose p1 is p1, as indef_off matches one,
+   or with any_p1, any, since an init can change p1. The request the worker
+   took counts, as one still queued. The first call takes the ticket, the
+   last request queued, so that later ones do not count. At most the
+   queue's capacity is read, oldest first, under its lock. */
+int32_t alloc_queue_holds_note(CSOUND *csound, int32_t insno, cs_float p1,
+                               int32_t any_p1, int32_t *waiting,
+                               uint64_t *ticket)
+{
+  unsigned long i, n;
+  cs_float note_p1 = FL(0.0);
+  int32_t held, note;
+
+  alloc_queue_lock(csound);
+  if (!*waiting) {
+    *ticket = csound->alloc_queue_queued;
+    *waiting = 1;
+  }
+  held = csound->alloc_queue_work_insno == insno &&
+    csound->alloc_queue_work_seq <= *ticket &&
+    (any_p1 ||
+     (csound->alloc_queue_work_note && csound->alloc_queue_work_p1 == p1));
+  n = (unsigned long) ATOMIC_GET(csound->alloc_queue_items);
+  i = (csound->alloc_queue_wp + MAX_ALLOC_QUEUE - n) % MAX_ALLOC_QUEUE;
+  for (; !held && n > 0 && csound->alloc_queue[i].seq <= *ticket; n--) {
+    held = request_instr(&csound->alloc_queue[i], &note_p1, &note) == insno &&
+      (any_p1 || (note && note_p1 == p1));
+    i = i + 1 < MAX_ALLOC_QUEUE ? i + 1 : 0;
+  }
+  alloc_queue_unlock(csound);
+  return held;
 }
 
 /* Keep MIDI parsing on the performance thread, but do not let later note-off
@@ -584,6 +652,7 @@ static void alloc_queue_complete(CSOUND *csound, int32_t type)
 {
   alloc_queue_lock(csound);
   csound->alloc_queue_active--;
+  csound->alloc_queue_work_insno = 0;
   if (type == ALLOC_DATA_MIDI_EVENT)
     ATOMIC_DECR(csound->alloc_queue_midi);
   alloc_queue_unlock(csound);
@@ -830,9 +899,9 @@ void realtime_message_queue_stop(CSOUND *csound)
 #define INIT_THREAD_LOCAL _Thread_local
 #endif
 
-/* Where a fatal jump lands on the realtime init thread. exitjmp belongs to
-   the thread that performs, and a jump to it from here went on running that
-   thread's frames on this one. So each pass on this thread, an init_pass, a
+/* Where a fatal jump lands on the realtime init thread. A jump to the
+   performance thread's target used to run that thread's frames on this one.
+   So each pass on this thread, an init_pass, a
    reinit_pass or init_instr0's for global code, sets a landing, as do a
    UDO's and a subinstrument's init (useropcdset, subinstrset_), which run
    their opcodes themselves. The innermost
@@ -1248,6 +1317,7 @@ uintptr_t event_insert_thread(void *p) {
   unsigned long rp = 0, rpm = 0;
   message_string_queue_t *mess = csound->message_string_queue;
 
+  if (csound->preserve_subnormals) CSOUND_PRESERVE_SUBNORMALS();
   init_thread = csound;
   for (;;) {
     ALLOC_DATA data;

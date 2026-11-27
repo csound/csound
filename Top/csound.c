@@ -808,7 +808,7 @@ static const CSOUND cenviron_ = {
     .perferrcnt = 0,
     .total_assert_cnt = 0,
     .warped = 0,
-    .jumpset = 0,
+    .unused_jumpset = 0,
     .inZero = 1,
     .orcLineOffset = 1,
     .scoLineOffset = 0,
@@ -1137,8 +1137,8 @@ void csoundLongJmp(CSOUND *csound, int32_t retval) {
   CSOUND_WASI_COMPILE_JUMP *compile = csoundWasiCompileJumpContext(csound);
   if (compile != NULL && compile->enabled)
     longjmp(compile->target, retval == 0 ? 1 : retval);
-  /* exitjmp belongs to the control/render caller. A worker cannot unwind that
-     stack or safely recover a partly initialized opcode. P1 proc_exit stops
+  /* A worker cannot unwind the control caller's stack or safely recover a
+     partly initialized opcode. P1 proc_exit stops
      all threads; avoid callbacks and cleanup that could wait on held locks. */
   if (csoundWasiIsWorkerThread())
     _Exit(EXIT_FAILURE);
@@ -1487,7 +1487,7 @@ static void install_signal_handler(void) {
  CSOUND *csoundCreate(void *hostdata, const char *opcodedir) {
   CSOUND *csound;
   csInstance_t *p;
-  _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+  CSOUND_DEFAULT_SUBNORMAL_MODE();
 
   if (init_done != 1) {
     if (csoundInitialize(0) < 0)
@@ -2041,6 +2041,7 @@ static void reset(CSOUND *csound) {
   csound->line_event_spinlock = saved_env->line_event_spinlock;
 #endif
   csound->enableHostImplementedMIDIIO = saved_env->enableHostImplementedMIDIIO;
+  csound->preserve_subnormals = saved_env->preserve_subnormals;
   memcpy(&(csound->exitjmp), &(saved_env->exitjmp), sizeof(jmp_buf));
   csound->memalloc_db = saved_env->memalloc_db;
   /* what a failed module left behind may outlive the reset */

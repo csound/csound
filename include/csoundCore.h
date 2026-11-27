@@ -43,6 +43,7 @@
 #include <setjmp.h>
 #include "csound_type_system.h"
 #include "csound.h"
+#include "swtdat.h"
 #include "csound_files.h"
 #include "csound_graph_display.h"
 #include "csound_circular_buffer.h"
@@ -1071,6 +1072,150 @@ static inline int32_t GetEventType(OPDS *p) {
 
 /**@}*/
 
+/** @name SWT data accessors
+ *  Inline accessors for plugins; hosts call the PUBLIC csoundSwtData* functions.
+ */
+/**@{ */
+
+/** @brief Get the SWT frame size.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return frame size, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataFrameSize(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->framesize : 0;
+}
+
+/** @brief Get the SWT hop size.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return hop size, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataHopSize(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->hopsize : 0;
+}
+
+/** @brief Get the number of decomposition levels.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return level count, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataLevels(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->levels : 0;
+}
+
+/** @brief Get the wavelet family.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return wavelet family, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataWaveletFamily(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->waveletFamily : 0;
+}
+
+/** @brief Get the wavelet order.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return wavelet order, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataWaveletOrder(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->waveletOrder : 0;
+}
+
+/** @brief Get the boundary mode.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return boundary mode, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataBoundaryMode(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->boundaryMode : 0;
+}
+
+/** @brief Get the window-pair mode.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return window-pair mode, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataWindowPair(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->windowPair : 0;
+}
+
+/** @brief Get the overlap-add mode.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return overlap-add mode, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataOlaMode(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->olaMode : 0;
+}
+
+/** @brief Get the transform latency.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return latency, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataLatency(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->latency : 0;
+}
+
+/** @brief Get the coefficient capacity.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return coefficient capacity, or 0 if swtdat is NULL
+ */
+static inline int32_t SwtDataCapacity(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->capacity : 0;
+}
+
+/** @brief Get the frame sample rate.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return sample rate, or 0.0 if swtdat is NULL
+ */
+static inline double SwtDataSampleRate(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->sampleRate : 0.0;
+}
+
+/** @brief Get the processed frame count.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return frame count, or 0 if swtdat is NULL
+ */
+static inline uint64_t SwtDataFramecount(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->framecount : 0;
+}
+
+/** @brief Get the frame revision.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return revision, or 0 if swtdat is NULL
+ */
+static inline uint64_t SwtDataRevision(const SWTDAT *swtdat) {
+  return swtdat != NULL ? swtdat->revision : 0;
+}
+
+/** @brief Get the byte-independent offset of a coefficient band.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @param band band index, negative for the whole frame
+ *  @return band offset, 0 for a negative band, -1 for NULL or out of range
+ */
+static inline int32_t SwtDataBandOffset(const SWTDAT *swtdat, int32_t band) {
+  return swtdat == NULL ? -1
+       : band < 0 ? 0
+       : band > swtdat->levels ? -1
+       : band * swtdat->framesize;
+}
+
+/** @brief Get the size of a coefficient band.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @param band band index, negative for the whole frame
+ *  @return band size, capacity for a negative band, 0 for NULL or out of range
+ */
+static inline int32_t SwtDataBandSize(const SWTDAT *swtdat, int32_t band) {
+  return swtdat == NULL ? 0
+       : band < 0 ? swtdat->capacity
+       : band > swtdat->levels ? 0
+       : swtdat->framesize;
+}
+
+/** @brief Get the frame coefficient data.
+ *  @param swtdat frame to inspect, may be NULL
+ *  @return coefficient data, or NULL if unavailable
+ */
+static inline const cs_float *GetSwtData(const SWTDAT *swtdat) {
+  return swtdat != NULL && swtdat->frame.auxp != NULL
+             ? (const cs_float *) swtdat->frame.auxp : NULL;
+}
+
+/**@}*/
+
 static inline char le_test() {
   union _le {
     char c[2];
@@ -1764,7 +1909,7 @@ struct CSOUND_ {
   int32_t perferrcnt;                                        /* performance error count */
   int32_t total_assert_cnt;                                  /* total number of unit-test assertions */
   int32_t warped;                                            /* score warping active flag */
-  int32_t jumpset;                                           /* setjmp target is active */
+  int32_t unused_jumpset;                                    /* unused; preserves the private CSOUND layout */
   int32_t inZero;                                            /* compiling or running global instrument 0 */
   int32_t orcLineOffset;                                     /* lines before the orchestra in the CSD */
   int32_t scoLineOffset;                                     /* lines before the score in the CSD */
@@ -1992,6 +2137,14 @@ struct CSOUND_ {
   EVTNODE *rewind_events;                                    /* what the asking inits scheduled after they asked: the rewind puts it in */
   volatile long rewind_asking;                               /* realtime init items that asked for a rewind and run: no line is read */
   volatile long score_rewinds_done;                          /* score_rewinds when the last rewind was done: one runs while they differ */
+  uint64_t alloc_queue_queued;                               /* realtime allocation requests queued: the last one's seq */
+  uint64_t alloc_queue_work_seq;                             /* the seq of the request the worker took */
+  uint64_t score_turnoff_ticket;                             /* alloc_queue_queued when the score's turnoff first waited */
+  int32_t score_turnoff_waiting;                             /* the score's turnoff waits, with its ticket */
+  int32_t alloc_queue_work_insno;                            /* the instr of the note that request inits, until it completes, or 0 */
+  cs_float alloc_queue_work_p1;                              /* and that note's p1 */
+  int32_t alloc_queue_work_note;                             /* that request has a p1: it starts or ties a note, it is no reinit */
+  int32_t preserve_subnormals;                              /* preserve subnormal inputs and results on x86 */
   int32_t list_plugins_request;                              /* --list-plugins requested */
   char *list_plugin_dirs;                                    /* --opcode-dir directories kept for --list-plugins */
   /*struct CSOUND_ **self;*/
