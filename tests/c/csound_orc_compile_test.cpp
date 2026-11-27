@@ -6460,3 +6460,51 @@ schedule LiveNamed, 0, 0.05
     EXPECT_EQ(FL(11.0), csoundGetControlChannel(csound, "liveNamedRan", &err));
     EXPECT_EQ(0, err);
 }
+
+TEST_F(OrcCompileTests, FailedStructDeclareParseAllowsLaterValidUdoDefinition)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+
+    // Parse struct + UDO declaration alongside an invalid instrument: parsing
+    // fails and rolls back the provisional struct, leaving an UNDEFINED
+    // opcodeInfo declaration whose argument pool was pruned.
+    TREE *failedTree = csoundParseOrc(csound, R"(
+struct Box x:i
+declare PassBox(first:i, item:Box):i
+
+instr 1
+  no_such_opcode 1
+endin
+)");
+    EXPECT_EQ(nullptr, failedTree);
+
+    // Defining the struct and UDO afterwards must rebuild the UNDEFINED UDO's
+    // argument pool and run cleanly without failing note init.
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+struct Box x:i
+
+opcode PassBox(first:i, item:Box):i
+  xout first + item.x
+endop
+
+instr 1
+  b:Box init 30
+  iRes = PassBox(12, b)
+  chnset iRes, "passBoxOut"
+endin
+)"));
+    csoundReadScore(csound, "i 1 0 0.05\ne 0.1\n");
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    int perfStatus = 0;
+    while ((perfStatus = csoundPerformKsmps(csound)) == 0) {
+    }
+    EXPECT_GT(perfStatus, 0);
+    int32_t err = 0;
+    EXPECT_EQ(FL(42.0), csoundGetControlChannel(csound, "passBoxOut", &err));
+    EXPECT_EQ(0, err);
+}

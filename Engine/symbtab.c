@@ -290,6 +290,18 @@ static OENTRY* csound_find_internal_oentry(CSOUND* csound, OENTRY* oentry) {
 
 void add_opcode_def(CSOUND *csound, OENTRY *ep);
 
+static void free_udo_arg_pool(CSOUND *csound, CS_VAR_POOL *pool)
+{
+    CS_VARIABLE *var;
+    if (pool == NULL) {
+      return;
+    }
+    for (var = pool->head; var != NULL; var = var->next) {
+      csound->Free(csound, var->varName);
+    }
+    csoundFreeVarPool(csound, pool);
+}
+
 /** Adds a UDO definition as an T_OPCODE or T_OPCODE0 type to the symbol table
  * used at parse time.  An OENTRY is also added at this time so that at
  * verification time the opcode can be looked up to get its signature.
@@ -321,7 +333,35 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
 
       // check if the opcode is already declared
       if (opc->flags & UNDEFINED) {
-        opc->flags = 0x0000;
+        OPCODINFO *declInfo = (OPCODINFO *)opc->useropinfo;
+        if (declInfo != NULL) {
+          CS_VAR_POOL *oldIn = declInfo->in_arg_pool;
+          CS_VAR_POOL *oldOut = declInfo->out_arg_pool;
+          OENTRY parsedEntry = {0};
+          parsedEntry.opname = (char *)opname;
+          declInfo->in_arg_pool = csoundCreateVarPool(csound);
+          declInfo->out_arg_pool = csoundCreateVarPool(csound);
+          if (UNLIKELY(parse_opcode_args(csound, &parsedEntry, declInfo) != 0)) {
+            csound->Free(csound, parsedEntry.intypes);
+            csound->Free(csound, parsedEntry.outypes);
+            free_udo_arg_pool(csound, declInfo->in_arg_pool);
+            free_udo_arg_pool(csound, declInfo->out_arg_pool);
+            declInfo->in_arg_pool = oldIn;
+            declInfo->out_arg_pool = oldOut;
+            return -3;
+          }
+          free_udo_arg_pool(csound, oldIn);
+          free_udo_arg_pool(csound, oldOut);
+          csound->Free(csound, opc->intypes);
+          csound->Free(csound, opc->outypes);
+          opc->intypes = parsedEntry.intypes;
+          opc->outypes = parsedEntry.outypes;
+          opc->dsblksiz = parsedEntry.dsblksiz;
+          declInfo->newStyle = newStyle;
+        }
+        if (!(flags & UNDEFINED)) {
+          opc->flags &= ~UNDEFINED;
+        }
         return 0;
       }
 
@@ -360,22 +400,13 @@ int32_t add_udo_definition(CSOUND *csound, bool newStyle, char *opname,
     parsedEntry.opname = (char *)opname;
 
     if (UNLIKELY(parse_opcode_args(csound, &parsedEntry, inm) != 0)) {
-      CS_VARIABLE *var;
       csound->Free(csound, parsedEntry.intypes);
       csound->Free(csound, parsedEntry.outypes);
       csound->Free(csound, inm->name);
       csound->Free(csound, inm->intypes);
       csound->Free(csound, inm->outtypes);
-      for (var = inm->in_arg_pool ? inm->in_arg_pool->head : NULL;
-           var != NULL; var = var->next) {
-        csound->Free(csound, var->varName);
-      }
-      for (var = inm->out_arg_pool ? inm->out_arg_pool->head : NULL;
-           var != NULL; var = var->next) {
-        csound->Free(csound, var->varName);
-      }
-      if (inm->in_arg_pool != NULL) csoundFreeVarPool(csound, inm->in_arg_pool);
-      if (inm->out_arg_pool != NULL) csoundFreeVarPool(csound, inm->out_arg_pool);
+      free_udo_arg_pool(csound, inm->in_arg_pool);
+      free_udo_arg_pool(csound, inm->out_arg_pool);
       csound->Free(csound, inm);
       return -3;
     }

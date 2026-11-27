@@ -571,6 +571,9 @@ static void remove_type_from_pool(CSOUND *csound, TYPE_POOL *pool,
 static void prune_varpool_by_type(CSOUND *csound, CS_VAR_POOL *pool,
                                   const CS_TYPE *type) {
   CS_VARIABLE **link;
+  CS_VARIABLE *prev = NULL;
+  int32_t removed = 0;
+  int32_t count = 0;
   if (pool == NULL || type == NULL) {
     return;
   }
@@ -591,9 +594,17 @@ static void prune_varpool_by_type(CSOUND *csound, CS_VAR_POOL *pool,
       }
       csound->Free(csound, v->varName);
       csound->Free(csound, v);
+      removed = 1;
     } else {
+      prev = v;
+      count++;
       link = &v->next;
     }
+  }
+  if (removed) {
+    pool->tail = prev;
+    pool->varCount = count;
+    csoundRecalculateVarPoolMemory(csound, pool);
   }
 }
 
