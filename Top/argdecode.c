@@ -309,7 +309,7 @@ static const char *longUsageList[] = {
     Str_noop("--list-opcodes          list opcodes in this version"),
     Str_noop("--list-opcodesN         list opcodes in style N in this version"),
     Str_noop("--list-structs          list user-defined types (structs)"),
-    Str_noop("--list-plugins          list loaded plugin libraries and their versions"),
+    Str_noop("--list-plugins          list plugin libraries and their versions, without loading them"),
     Str_noop("--dither                dither output"),
     Str_noop(
         "--dither-triangular     dither output with triangular distribution"),
@@ -1155,6 +1155,11 @@ static int32_t decode_long(CSOUND *csound, char *s, int32_t argc, char **argv) {
     return 1;
   } else if (!(strncmp(s, "opcode-dir=", 11))) {
     s += 11;
+    /* --list-plugins reads plugin files only: keep the directory */
+    if (csound->list_plugins_request) {
+      csoundRecordPluginDir(csound, s);
+      return 1;
+    }
     if (UNLIKELY(csoundLoadPlugins(csound, s) != CSOUND_SUCCESS))
       csoundDie(csound, Str(" *** --opcode-dir=%s: a plugin failed to load "
                             "or start\n"), s);
@@ -1534,6 +1539,12 @@ int32_t argdecode(CSOUND *csound, int32_t argc, const char **argv_) {
     strcpy(p2, argv_[i]);
     p2 = (char *)p2 + ((int32_t)strlen(argv_[i]) + 1);
   }
+  /* --opcode-dir loads its plugins as it is decoded, so that their options
+     can follow it. --list-plugins must load none, wherever it comes in the
+     list: look for it first. */
+  for (i = 1; i <= argc; i++)
+    if (strcmp(argv_[i], "--list-plugins") == 0)
+      csound->list_plugins_request = 1;
   //<csound->keep_tmp = 0;
 
   do {
@@ -1985,6 +1996,13 @@ static int32_t set_option(CSOUND *csound, const char *opt) {
 
     /* Hosts get the list at once, as before: a request left pending
        would make a later csoundCompile() stop after listing. */
+    if (csound->list_plugins_request) {
+      csound->list_plugins_request = 0;
+      list_plugins(csound);
+      /* the --opcode-dir directories were kept for the listing */
+      if (UNLIKELY(csoundLoadRecordedPluginDirs(csound) != CSOUND_SUCCESS))
+        return 1;
+    }
     if (csound->list_opcodes_request) {
       int32_t level = csound->list_opcodes_request - 1;
       csound->list_opcodes_request = 0;

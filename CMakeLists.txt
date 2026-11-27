@@ -1078,6 +1078,7 @@ set(libcsound_SRCS
     Top/argdecode.c
     Top/csound_debug.c
     Top/csmodule.c
+    Top/plugin_metadata.c
     Top/getstring.c
     Top/main.c
     Top/new_opts.c

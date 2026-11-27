@@ -1680,6 +1680,44 @@ extern "C" {
    */
   PUBLIC int32_t csoundLoadPlugins(CSOUND *csound, const char *dir);
 
+  /** Results of csoundGetPluginMetadata(). */
+  typedef enum {
+    /* The file has a valid metadata record. */
+    CSOUND_PLUGIN_METADATA_OK = 0,
+    /* The file has no metadata record. */
+    CSOUND_PLUGIN_METADATA_NONE = 1,
+    /* The file has a metadata record that is not valid. */
+    CSOUND_PLUGIN_METADATA_INVALID = 2,
+    /* The file has valid records that differ, e.g. in two architecture
+       slices of a universal binary. */
+    CSOUND_PLUGIN_METADATA_AMBIGUOUS = 3,
+    /* The record is valid, but a buffer is too small for it. */
+    CSOUND_PLUGIN_METADATA_SHORT_BUFFER = 4,
+    /* The file cannot be read, or memory ran out. */
+    CSOUND_PLUGIN_METADATA_ERROR = -1
+  } CSOUND_PLUGIN_METADATA_STATUS;
+
+  /**
+   * Reads the metadata record that a plugin library gives with
+   * CSOUND_PLUGIN_METADATA (csdl.h), from the library file at 'path'.
+   * The library is not loaded and none of its code runs, so this works for
+   * any plugin file, including one built for another architecture or ABI.
+   * It needs no Csound instance.
+   *
+   * If 'version' is not NULL, the plugin version is copied to it as a
+   * NUL-terminated string; CSOUND_MODULE_VERSION_MAX bytes always suffice.
+   * If 'textSize' is not NULL, the plugin's free text (by convention TOML)
+   * is copied to 'text' as a NUL-terminated string, if 'text' is not NULL
+   * and *textSize is large enough; *textSize is then set to the bytes the
+   * text needs, its NUL included. Call it with 'text' NULL to learn the size.
+   * Returns a CSOUND_PLUGIN_METADATA_STATUS; on any result other than
+   * CSOUND_PLUGIN_METADATA_OK and CSOUND_PLUGIN_METADATA_SHORT_BUFFER the
+   * buffers are left as they were.
+   */
+  PUBLIC int32_t csoundGetPluginMetadata(const char *path,
+                                         char *version, size_t versionSize,
+                                         char *text, size_t *textSize);
+
 
   /**
    * Appends an opcode implemented by external software

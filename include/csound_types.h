@@ -32,9 +32,24 @@ typedef double cs_double;
    Older loaders see an invalid sample size and reject this ABI too. */
 #define CSOUND_MODULE_USE_FLOAT 0x80
 
-/* Plugin metadata: room for a plugin's own version string, including the
-   terminating NUL. See CSOUND_PLUGIN_VERSION in csdl.h. */
-#define CSOUND_MODULE_VERSION_MAX 64
+/* Plugin metadata record, written by CSOUND_PLUGIN_METADATA (csdl.h) and
+   read from the library file without loading it. Layout, all fields bytes:
+
+     offset  0  marker, the 8 bytes of CSOUND_PLUGIN_METADATA_MARKER
+     offset  8  format, CSOUND_PLUGIN_METADATA_FORMAT
+     offset  9  3 reserved bytes, zero
+     offset 12  payload length in bytes, 32-bit little-endian
+     offset 16  payload: the version, NUL-terminated, then the text,
+                NUL-terminated
+
+   CSOUND_MODULE_VERSION_MAX is the room for the version including its NUL,
+   CSOUND_PLUGIN_METADATA_MAX the most payload bytes a record can have. */
+#define CSOUND_MODULE_VERSION_MAX           64
+#define CSOUND_PLUGIN_METADATA_FORMAT       1
+#define CSOUND_PLUGIN_METADATA_HEADER_SIZE  16
+#define CSOUND_PLUGIN_METADATA_MAX          65536
+#define CSOUND_PLUGIN_METADATA_MARKER \
+  'C', 'S', 'P', 'L', 'M', 'E', 'T', 'A'
 
 /* Deprecated in CS7. Keep old host and opcode source code valid. */
 #ifndef __MYFLT_DEF

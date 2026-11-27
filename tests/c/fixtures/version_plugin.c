@@ -1,7 +1,8 @@
 #include "csdl.h"
 
-/* A plugin that gives its own version, independent of the Csound version. */
-CSOUND_PLUGIN_VERSION("1.2.3-test");
+/* A plugin with a metadata record: its own version, independent of the
+   Csound version, and a TOML text. */
+CSOUND_PLUGIN_METADATA("1.2.3-test", "opcodes = ['vtest', 'vtest2']\n");
 
 PUBLIC int32_t csoundModuleInfo(void)
 {

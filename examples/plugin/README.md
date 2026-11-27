@@ -552,15 +552,16 @@ This opcode is registered using the following line:
 csnd::plugin<SimpleArray>(csound, "simple", "k[]", "k[]", csnd::thread::ik);
 ```
 
-Plugin version
+Plugin metadata
 -------------------------------------------
 
-A plugin library can give its own version, independent of the Csound
-version, with the CSOUND_PLUGIN_VERSION macro from csdl.h (included by
-plugin.h). Use it once, at file scope:
+A plugin library can carry its own version, independent of the Csound
+version, and a free text, with the CSOUND_PLUGIN_METADATA macro from csdl.h
+(included by plugin.h). Use it once, at file scope. By convention the text is
+TOML, and `opcodes` lists the opcodes the plugin registers:
 
 ```
-CSOUND_PLUGIN_VERSION("1.0.0");
+CSOUND_PLUGIN_METADATA("1.0.0", "opcodes = ['simple', 'tprint']\n");
 ```
 
 A build system can pass the version in, for instance with CMake:
@@ -569,10 +570,12 @@ A build system can pass the version in, for instance with CMake:
 target_compile_definitions(myplugin PRIVATE MYPLUGIN_VERSION="${PROJECT_VERSION}")
 ```
 ```
-CSOUND_PLUGIN_VERSION(MYPLUGIN_VERSION);
+CSOUND_PLUGIN_METADATA(MYPLUGIN_VERSION, "opcodes = ['simple']\n");
 ```
 
-`csound --list-plugins` prints each loaded plugin with its version and path.
+Csound and other tools read the record from the library file, without
+loading it. `csound --list-plugins` prints each plugin with its version and
+path. See Release_Notes/Csound7/Module_API.md for the record format.
 
 Building the opcodes
 -------------------------------------------

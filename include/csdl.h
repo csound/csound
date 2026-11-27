@@ -186,17 +186,23 @@ PUBLIC NGFENS *csound_fgen_init(CSOUND *csound)                         \
 PUBLIC int32_t csoundModuleInfo(void)                                       \
 { return CSOUND_MODULE_INFO; }
 
-/** Export the plugin's own version, which is independent of the Csound
- * version. Optional; plugins without it still load. Use it once per plugin
+/** Give the plugin library a metadata record: its own version, which is
+ * independent of the Csound version, and an optional free text. Csound and
+ * other tools read the record from the library file, without loading the
+ * plugin. Optional; plugins without it still load. Use it once per plugin
  * library, at file scope, followed by a semicolon:
  *
  * \code
- * CSOUND_PLUGIN_VERSION("1.4.2");
+ * CSOUND_PLUGIN_METADATA("1.4.2",
+ *   "opcodes = ['myop', 'myfilter']\n");
  * \endcode
  *
- * The version is a string literal of printable ASCII characters, shorter than
- * CSOUND_MODULE_VERSION_MAX bytes. Semantic Versioning is recommended.
- * It is a data symbol, so tools can read it without running plugin code.
+ * Both arguments are string literals. The version is printable ASCII,
+ * shorter than CSOUND_MODULE_VERSION_MAX bytes; Semantic Versioning is
+ * recommended. Csound does not interpret the text. By convention it is TOML,
+ * and `opcodes` lists the names of the opcodes the plugin registers. Use ""
+ * for no text. Single-quoted TOML strings need no escaping in C.
+ * The record layout is described in csound_types.h.
  * Do not use it in opcode sources built into libcsound.
  */
 #if defined(_WIN32) || defined(__CYGWIN__)
@@ -210,18 +216,63 @@ PUBLIC int32_t csoundModuleInfo(void)                                       \
 #  define CSOUND_PLUGIN_USED_DATA
 #endif
 
-/* "used" goes on the definition only: compilers ignore it, with a warning,
-   on a declaration. */
+/* The record type, sized for the literals: "" ver "" also makes sure each
+   argument is a string literal. All members are bytes, so it has no
+   padding. */
+#define CSOUND_PLUGIN_METADATA_TYPE_(ver, txt)                          \
+  struct csoundModuleMetadata_s {                                       \
+    unsigned char marker[8];                                            \
+    unsigned char format;                                               \
+    unsigned char reserved[3];                                          \
+    unsigned char length[4];                                            \
+    char          version[sizeof("" ver "")];                           \
+    char          text[sizeof("" txt "")];                              \
+  }
+
+#define CSOUND_PLUGIN_METADATA_LENGTH_(ver, txt)                        \
+  (sizeof("" ver "") + sizeof("" txt ""))
+
+/* An array of negative size stops the build when the literals do not fit. */
+#define CSOUND_PLUGIN_METADATA_CHECK_(ver, txt)                         \
+  typedef char csoundModuleMetadata_fits_[                              \
+    (sizeof("" ver "") > 1 &&                                           \
+     sizeof("" ver "") <= CSOUND_MODULE_VERSION_MAX &&                  \
+     CSOUND_PLUGIN_METADATA_LENGTH_(ver, txt) <=                        \
+       CSOUND_PLUGIN_METADATA_MAX) ? 1 : -1]
+
+#define CSOUND_PLUGIN_METADATA_INIT_(ver, txt)                          \
+  { { CSOUND_PLUGIN_METADATA_MARKER },                                  \
+    CSOUND_PLUGIN_METADATA_FORMAT, { 0, 0, 0 },                         \
+    { (unsigned char) (CSOUND_PLUGIN_METADATA_LENGTH_(ver, txt) & 0xFF),\
+      (unsigned char) ((CSOUND_PLUGIN_METADATA_LENGTH_(ver, txt) >> 8)  \
+                       & 0xFF),                                         \
+      (unsigned char) ((CSOUND_PLUGIN_METADATA_LENGTH_(ver, txt) >> 16) \
+                       & 0xFF),                                         \
+      (unsigned char) ((CSOUND_PLUGIN_METADATA_LENGTH_(ver, txt) >> 24) \
+                       & 0xFF) },                                       \
+    ver, txt }
+
+/* The declaration gives the const record external linkage in C++ and keeps
+   -Wmissing-variable-declarations quiet in C. "used" goes on the definition
+   only: compilers ignore it, with a warning, on a declaration. */
 #ifdef __cplusplus
-#  define CSOUND_PLUGIN_VERSION(v) \
-     extern "C" CSOUND_PLUGIN_EXPORT_DATA const char csoundModuleVersion[]; \
-     extern "C" CSOUND_PLUGIN_EXPORT_DATA CSOUND_PLUGIN_USED_DATA \
-     const char csoundModuleVersion[] = v
+#  define CSOUND_PLUGIN_METADATA(ver, txt)                              \
+     CSOUND_PLUGIN_METADATA_CHECK_(ver, txt);                           \
+     CSOUND_PLUGIN_METADATA_TYPE_(ver, txt);                            \
+     extern "C" CSOUND_PLUGIN_EXPORT_DATA                               \
+     const struct csoundModuleMetadata_s csoundModuleMetadata;          \
+     extern "C" CSOUND_PLUGIN_EXPORT_DATA CSOUND_PLUGIN_USED_DATA       \
+     const struct csoundModuleMetadata_s csoundModuleMetadata =         \
+       CSOUND_PLUGIN_METADATA_INIT_(ver, txt)
 #else
-#  define CSOUND_PLUGIN_VERSION(v) \
-     extern CSOUND_PLUGIN_EXPORT_DATA const char csoundModuleVersion[]; \
-     CSOUND_PLUGIN_EXPORT_DATA CSOUND_PLUGIN_USED_DATA \
-     const char csoundModuleVersion[] = v
+#  define CSOUND_PLUGIN_METADATA(ver, txt)                              \
+     CSOUND_PLUGIN_METADATA_CHECK_(ver, txt);                           \
+     CSOUND_PLUGIN_METADATA_TYPE_(ver, txt);                            \
+     extern CSOUND_PLUGIN_EXPORT_DATA                                   \
+     const struct csoundModuleMetadata_s csoundModuleMetadata;          \
+     CSOUND_PLUGIN_EXPORT_DATA CSOUND_PLUGIN_USED_DATA                  \
+     const struct csoundModuleMetadata_s csoundModuleMetadata =         \
+       CSOUND_PLUGIN_METADATA_INIT_(ver, txt)
 #endif
 
 #undef FLINKAGE_BUILTIN

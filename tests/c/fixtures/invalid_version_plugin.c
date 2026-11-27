@@ -1,8 +1,8 @@
 #include "csdl.h"
 
-/* A plugin whose version string has a control character: it still loads,
-   without a version. */
-CSOUND_PLUGIN_VERSION("1.0\n");
+/* A plugin whose version has a control character: its record is invalid,
+   and it still loads. */
+CSOUND_PLUGIN_METADATA("1.0\n", "");
 
 PUBLIC int32_t csoundModuleInfo(void)
 {

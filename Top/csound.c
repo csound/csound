@@ -896,6 +896,7 @@ static const CSOUND cenviron_ = {
     .info_message_request = 0,
     .list_structs_request = 0,
     .list_plugins_request = 0,
+    .list_plugin_dirs = NULL,
     .list_opcodes_request = 0,
     .init_thread_jump = 0,
     /* -------- Realtime audio I/O and buffers -------- */

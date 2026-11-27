@@ -115,6 +115,13 @@ extern "C" {
   /** Load and initialise --opcode-lib entries through the active host. */
   int32_t csoundLoadRequestedPlugins(CSOUND *csound);
 
+  /** --opcode-dir decoded with --list-plugins: keep the directory instead of
+      loading it. */
+  void csoundRecordPluginDir(CSOUND *csound, const char *dir);
+
+  /** Load the directories kept by csoundRecordPluginDir(), and forget them. */
+  int32_t csoundLoadRecordedPluginDirs(CSOUND *csound);
+
   /**
    * Close the libraries of the modules whose csoundModuleCreate failed, for
    * Csound instance 'csound'. They stay open until the instance is destroyed,
