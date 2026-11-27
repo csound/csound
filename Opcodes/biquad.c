@@ -30,6 +30,7 @@
 /* October 1998 by Hans Mikelson                               */
 /***************************************************************/
 //#include "csdl.h"
+#include <float.h>
 #include <math.h>
 #include "biquad.h"
 #include "csound_standard_types.h"
@@ -962,12 +963,41 @@ static int32_t vco(CSOUND *csound, VCO *p)
     /* ************************************************** */
 
     /* Implementation of Zoelzer's Parametric Equalizer Filters */
+#ifdef USE_FLOAT
+/* Keep the rounding steps in registers on hardware-float RISC-V. */
+#if defined(__riscv_flen) && __riscv_flen >= 32 && defined(__has_builtin)
+# if __has_builtin(__builtin_assoc_barrier)
+#  define PAREQ_ROUND(expression) __builtin_assoc_barrier(expression)
+#  define PAREQ_STEP(name, expression) const cs_double name = PAREQ_ROUND(expression)
+# endif
+#endif
+#ifndef PAREQ_STEP
+# define PAREQ_ROUND(expression) (expression)
+# define PAREQ_STEP(name, expression) volatile cs_double name = (expression)
+#endif
+
+/* Store each state as value - error. Keep fast-math from folding the
+   additions and subtractions that recover the rounding error. */
+#define PAREQ_ADD(value, error, increment) do {                             \
+  PAREQ_STEP(pe_increment, (increment) - (error));                           \
+  PAREQ_STEP(pe_next, (value) + pe_increment);                                \
+  PAREQ_STEP(pe_back, pe_next - (value));                                     \
+  (error) = PAREQ_ROUND(pe_back - pe_increment);                             \
+  (value) = pe_next;                                                        \
+} while (0)
+#endif
+
     static int32_t pareqset(CSOUND *csound, PAREQ *p)
     {
       IGN(csound);
       /* Initialize once before honoring iskip. */
       if (*p->iskip == FL(0.0) || !p->initialized) {
         p->xnm1 = p->xnm2 = p->ynm1 = p->ynm2 = 0.0;
+#ifdef USE_FLOAT
+        p->rerror = p->derror = p->b0 = FL(0.0);
+        p->sign = 1;
+        p->large_samples = 0;
+#endif
         p->prv_fc = p->prv_v = p->prv_q = FL(-1.0);
         p->imode = (int32_t) CS_FLOAT2LONG(*p->mode);
         p->initialized = 1;
@@ -975,6 +1005,121 @@ static int32_t vco(CSOUND *csound, VCO *p)
       return OK;
     } /* end pareqset(p) */
 
+#ifdef USE_FLOAT
+    static int32_t pareq(CSOUND *csound, PAREQ *p)
+    {
+      uint32_t offset = p->h.insdshead->ksmps_offset;
+      uint32_t early = p->h.insdshead->ksmps_no_end;
+      uint32_t n, nsmps = CS_KSMPS;
+      if (*p->fc != p->prv_fc || *p->v != p->prv_v || *p->q != p->prv_q) {
+        cs_double fs = CS_ESR, frequency = FMOD(*p->fc, fs);
+        if (frequency > fs * FL(0.5)) frequency -= fs;
+        else if (frequency < -fs * FL(0.5)) frequency += fs;
+        int32_t sign = 1;
+        if (frequency > fs * FL(0.25)) {
+          sign = -1; frequency = fs * FL(0.5) - frequency;
+        }
+        else if (frequency < -fs * FL(0.25)) {
+          sign = -1; frequency = -fs * FL(0.5) - frequency;
+        }
+        cs_double k = TAN((cs_double)PI * (frequency / fs));
+        cs_double kk = k * k, norm, normalized_damping;
+        const cs_double q = *p->q;
+        if (q > FL(0.0) && FABS(k) > q) {
+          /* Divide the denominator by k/Q before it can overflow. */
+          const cs_double inverse = q / k;
+          normalized_damping = FL(1.0) / (FL(1.0) + inverse * (FL(1.0) + kk));
+          norm = inverse * normalized_damping;
+        }
+        else {
+          const cs_double damping = k / q;
+          norm = FL(1.0) / (FL(1.0) + damping + kk);
+          normalized_damping = damping * norm;
+        }
+        cs_double dry = FL(1.0), low = FL(0.0), band;
+        if (p->imode == 1 || p->imode == 2) {
+          if ((p->imode == 1) == (sign == 1)) low = *p->v - FL(1.0);
+          else { dry = *p->v; low = FL(1.0) - dry; }
+          band = SQRT(FL(2.0) * *p->v) * (k * norm) - dry * normalized_damping;
+        }
+        else band = (*p->v - FL(1.0)) * normalized_damping;
+
+        /* r[n] = y[n] - dry*x[n], d[n] = r[n] - sign*r[n-1].
+           Transform the saved history when the dry gain or reflection changes,
+           so changing parameters retain the direct-form history semantics. */
+        if (sign != p->sign) {
+          cs_double delta = FL(2.0) * (p->ynm1 - p->rerror);
+          p->ynm2 = -p->ynm2; p->derror = -p->derror;
+          PAREQ_ADD(p->ynm2, p->derror, delta);
+        }
+        cs_double gain_change = p->b0 - dry;
+        PAREQ_ADD(p->ynm1, p->rerror, gain_change * p->xnm1);
+        PAREQ_ADD(p->ynm2, p->derror,
+                  gain_change * (p->xnm1 - sign * p->xnm2));
+        p->sign = sign;
+        p->a1 = FL(2.0) * normalized_damping;
+        p->a2 = FL(4.0) * kk * norm;
+        p->b0 = dry; p->b1 = band; p->b2 = low * kk * norm;
+        p->prv_fc = *p->fc; p->prv_v = *p->v; p->prv_q = *p->q;
+      }
+      if (UNLIKELY(offset)) memset(p->out, 0, offset * sizeof(cs_float));
+      if (UNLIKELY(early)) {
+        nsmps -= early;
+        memset(p->out + nsmps, 0, early * sizeof(cs_float));
+      }
+      /* Expanding the denominator in differences gives
+         d[n] = sign*d[n-1] + force - 2*k/Q/a0*sign*d[n-1]
+                - 4*k*k/a0*sign*r[n-1], r[n] = sign*r[n-1] + d[n].
+         Keep these small terms separate instead of rounding poles near +/-1.
+         Reflection keeps |k| <= 1, including frequencies near Nyquist. */
+      cs_double r = p->ynm1, d = p->ynm2, re = p->rerror, de = p->derror;
+      cs_double x1 = p->xnm1, x2 = p->xnm2;
+      const cs_double sign = p->sign, dry = p->b0, band = p->b1, low = p->b2;
+      const cs_double damping = p->a1, stiffness = p->a2;
+      int32_t large_samples = p->large_samples;
+      for (n = offset; n < nsmps; n++) {
+        cs_double x = p->in[n];
+        if (sign < FL(0.0)) {
+          r = -r; re = -re; d = -d; de = -de;
+        }
+        cs_double force;
+        /* A large sample requires scaling here and in the next two updates. */
+        if (UNLIKELY(FABS(x) > FLT_MAX * FL(0.25))) large_samples = 3;
+        if (UNLIKELY(large_samples != 0)) {
+          --large_samples;
+          /* Scale large inputs before summing; retain exact cancellation
+             for constant or alternating signals in either reflection. */
+          volatile cs_double halfx = FL(0.5) * x;
+          volatile cs_double halfx2 = FL(0.5) * x2;
+          volatile cs_double difference = halfx - halfx2;
+          volatile cs_double midpoint = FL(0.5) * (halfx + halfx2);
+          volatile cs_double average = midpoint + FL(0.5) * sign * x1;
+          /* Apply the coefficients before restoring scale. Reassociation
+             can otherwise overflow the input sum before the multiplication. */
+          volatile cs_double band_force = band * difference;
+          volatile cs_double low_force = low * average;
+          volatile cs_double half_force = band_force + FL(2.0) * low_force;
+          force = FL(2.0) * half_force;
+        }
+        else {
+          force = band * (x - x2) + low * (x + FL(2.0)*sign*x1 + x2);
+        }
+        cs_double delta = force - damping * PAREQ_ROUND(d - de) -
+                          stiffness * PAREQ_ROUND(r - re);
+        PAREQ_ADD(d, de, delta);
+        PAREQ_ADD(r, re, PAREQ_ROUND(d - de));
+        p->out[n] = (cs_float)(dry * x + PAREQ_ROUND(r - re));
+        x2 = x1; x1 = x;
+      }
+      p->ynm1 = r; p->ynm2 = d; p->rerror = re; p->derror = de;
+      p->xnm1 = x1; p->xnm2 = x2;
+      p->large_samples = large_samples;
+      return OK;
+    }
+#undef PAREQ_ADD
+#undef PAREQ_STEP
+#undef PAREQ_ROUND
+#else
     static int32_t pareq(CSOUND *csound, PAREQ *p)
     {
       IGN(csound);
@@ -1055,6 +1200,8 @@ static int32_t vco(CSOUND *csound, VCO *p)
       }
       return OK;
     }
+
+#endif
 
     /* Nested all-pass filters useful for creating reverbs */
     /* Coded by Hans Mikelson January 1999                 */
