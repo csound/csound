@@ -32,7 +32,29 @@
 #include "interlocks.h"
 #include "find_opcode.h"
 
+#if defined(HAVE_PTHREAD_SPIN_LOCK)
+static spin_lock_t opcode_dataspace_lock;
+static pthread_once_t opcode_dataspace_lock_once = PTHREAD_ONCE_INIT;
+
+static void init_opcode_dataspace_lock(void) {
+  (void) csoundSpinLockInit(&opcode_dataspace_lock);
+}
+
+static void opcode_dataspace_spinlock(void) {
+  pthread_once(&opcode_dataspace_lock_once, init_opcode_dataspace_lock);
+  csoundSpinLock(&opcode_dataspace_lock);
+}
+#else
 static spin_lock_t opcode_dataspace_lock = SPINLOCK_INIT;
+
+static void opcode_dataspace_spinlock(void) {
+  csoundSpinLock(&opcode_dataspace_lock);
+}
+#endif
+
+static void opcode_dataspace_spinunlock(void) {
+  csoundSpinUnLock(&opcode_dataspace_lock);
+}
 
 /* Print opcodes in system */
 /* John ffitch -- 26 Jan 97 */
@@ -1426,9 +1448,9 @@ static int32_t opcode_dataspace_record_setp(CSOUND *csound, OPDS *dataspace,
                                              uint32_t ndx, cs_float value) {
   int32_t result;
   if(dataspace == NULL) return NOTOK;
-  csoundSpinLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinlock();
   result = opcode_dataspace_record_setp_unlocked(csound, dataspace, ndx, value);
-  csoundSpinUnLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinunlock();
   return result;
 }
 
@@ -1444,9 +1466,9 @@ static cs_float *opcode_dataspace_setp_arg_unlocked(OPDS *dataspace,
 static cs_float *opcode_dataspace_setp_arg(OPDS *dataspace, uint32_t ndx) {
   cs_float *arg;
   if(dataspace == NULL) return NULL;
-  csoundSpinLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinlock();
   arg = opcode_dataspace_setp_arg_unlocked(dataspace, ndx);
-  csoundSpinUnLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinunlock();
   return arg;
 }
 
@@ -1456,13 +1478,13 @@ static void opcode_dataspace_restore_setp(OPCODEOBJ *obj) {
   if(obj->dataspace == NULL || obj->inargp == NULL) return;
   t = &(obj->dataspace->optext->t);
   slots = input_slots(t->oentry->intypes, t->inArgCount);
-  csoundSpinLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinlock();
   for(i = 0; i < opcode_dataspace_header(obj->dataspace)->setpCount; i++) {
     OPCODE_SETP_ENTRY *entry =
       &opcode_dataspace_header(obj->dataspace)->setp[i];
     if(entry->ndx < slots) obj->inargp[entry->ndx] = &entry->value;
   }
-  csoundSpinUnLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinunlock();
 }
 
 
@@ -1538,35 +1560,35 @@ static void opcode_dataspace_setref_unlocked(OPDS *dataspace, uint32_t count) {
 int32_t opcode_dataspace_refcount(OPDS *dataspace) {
   int32_t rc;
   if(dataspace == NULL) return 0;
-  csoundSpinLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinlock();
   rc = (int32_t) ATOMIC_GET(*opcode_dataspace_refslot(dataspace));
-  csoundSpinUnLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinunlock();
   return rc;
 }
 
 int32_t opcode_dataspace_incref(OPDS *dataspace) {
   int32_t rc;
   if(dataspace == NULL) return 0;
-  csoundSpinLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinlock();
   rc = opcode_dataspace_incref_unlocked(dataspace);
-  csoundSpinUnLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinunlock();
   return rc;
 }
 
 int32_t opcode_dataspace_decref(OPDS *dataspace) {
   int32_t rc;
   if(dataspace == NULL) return 0;
-  csoundSpinLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinlock();
   rc = opcode_dataspace_decref_unlocked(dataspace);
-  csoundSpinUnLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinunlock();
   return rc;
 }
 
 void opcode_dataspace_setref(OPDS *dataspace, uint32_t count) {
   if(dataspace == NULL) return;
-  csoundSpinLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinlock();
   opcode_dataspace_setref_unlocked(dataspace, count);
-  csoundSpinUnLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinunlock();
 }
 
 OPCODE_COPY_STATUS opcode_dataspace_acquire_copy(CSOUND *csound,
@@ -1579,7 +1601,7 @@ OPCODE_COPY_STATUS opcode_dataspace_acquire_copy(CSOUND *csound,
   OPCODE_COPY_STATUS status = OPCODE_COPY_OK;
   OPDS *ds;
   if(src == NULL) return OPCODE_COPY_EMPTY;
-  csoundSpinLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinlock();
   ds = src->dataspace;
   if(ds == NULL) status = OPCODE_COPY_EMPTY;
   else if(opcode_udo_ended(src)) status = OPCODE_COPY_ENDED;
@@ -1592,7 +1614,7 @@ OPCODE_COPY_STATUS opcode_dataspace_acquire_copy(CSOUND *csound,
     if(inargp != NULL) *inargp = src->inargp;
     if(udo_flag != NULL) *udo_flag = src->udo_flag;
   }
-  csoundSpinUnLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinunlock();
   return status;
 }
 
@@ -1627,11 +1649,11 @@ int32_t opcode_dataspace_release(CSOUND *csound, OPCODEOBJ *obj,
                                  int32_t runDeinit) {
   OPDS *freeDataspace = NULL, *freeSpare = NULL, *deinitDataspace = NULL;
   int32_t rc;
-  csoundSpinLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinlock();
   rc = opcode_dataspace_release_locked(csound, obj, runDeinit,
                                        &freeDataspace, &freeSpare,
                                        &deinitDataspace);
-  csoundSpinUnLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinunlock();
   if(rc == 0) {
     if(deinitDataspace != NULL && deinitDataspace->deinit != NULL)
       deinitDataspace->deinit(csound, deinitDataspace);
@@ -1648,10 +1670,10 @@ int32_t opcode_dataspace_release(CSOUND *csound, OPCODEOBJ *obj,
 static void opcode_take_spare(CSOUND *csound, OPCODEOBJ *obj, OENTRY *entry) {
   UOPCODE *udo;
   OPDS *freeDataspace = NULL;
-  csoundSpinLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinlock();
   udo = (UOPCODE *) obj->spare;
   if(udo == NULL) {
-    csoundSpinUnLock(&opcode_dataspace_lock);
+    opcode_dataspace_spinunlock();
     return;
   }
   obj->spare = NULL;
@@ -1660,7 +1682,7 @@ static void opcode_take_spare(CSOUND *csound, OPCODEOBJ *obj, OENTRY *entry) {
     opcode_dataspace_setref_unlocked(obj->dataspace, 1);
   }
   else if(udo->ip == NULL) freeDataspace = (OPDS *) udo;
-  csoundSpinUnLock(&opcode_dataspace_lock);
+  opcode_dataspace_spinunlock();
   if(freeDataspace != NULL) opcode_dataspace_free(csound, freeDataspace);
 }
 
