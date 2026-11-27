@@ -6508,3 +6508,51 @@ endin
     EXPECT_EQ(FL(42.0), csoundGetControlChannel(csound, "passBoxOut", &err));
     EXPECT_EQ(0, err);
 }
+
+TEST_F(OrcCompileTests, RepeatedVarPoolCleanupAndStructRollbackDoNotLeakKeys)
+{
+    for (int iter = 0; iter < 50; iter++) {
+        CS_VAR_POOL *pool = csoundCreateVarPool(csound);
+        ASSERT_NE(nullptr, pool);
+        for (int v = 0; v < 4; v++) {
+            char name[32];
+            snprintf(name, sizeof(name), "iv_%d_%d", iter, v);
+            CS_VARIABLE *var = csoundCreateVariable(
+                csound, csound->typePool, &CS_VAR_TYPE_I, name, nullptr);
+            ASSERT_NE(nullptr, var);
+            ASSERT_EQ(0, csoundAddVariable(csound, pool, var));
+        }
+        ASSERT_EQ(4, pool->table->count);
+        csoundDeleteVarPoolMemory(csound, pool);
+        EXPECT_EQ(nullptr, pool->head);
+        EXPECT_EQ(nullptr, pool->tail);
+        EXPECT_EQ(0, pool->varCount);
+        EXPECT_EQ(0, pool->table->count);
+        csoundFreeVarPool(csound, pool);
+    }
+
+    CS_HASH_TABLE *table = cs_hash_table_create(csound);
+    ASSERT_NE(nullptr, table);
+    for (int iter = 0; iter < 50; iter++) {
+        cs_hash_table_put(csound, table, const_cast<char *>("init"),
+                          reinterpret_cast<void *>(static_cast<uintptr_t>(iter + 1)));
+    }
+    EXPECT_EQ(1, table->count);
+    cs_hash_table_free(csound, table);
+
+    for (int iter = 0; iter < 50; iter++) {
+        TREE *failed = csoundParseOrc(csound, R"(
+struct RollTmp x:i
+gkTmp:RollTmp init 1
+instr 1
+  no_such_opcode 1
+endin
+)");
+        EXPECT_EQ(nullptr, failed);
+        EXPECT_EQ(nullptr,
+                  csoundGetTypeWithVarTypeName(csound->typePool, ":RollTmp;"));
+        EXPECT_EQ(nullptr,
+                  csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                             "gkTmp"));
+    }
+}

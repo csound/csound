@@ -396,8 +396,11 @@ void csoundDeleteVarPoolMemory(CSOUND* csound, CS_VAR_POOL* pool) {
                                    &current->memBlock->value : NULL);
       }
       csound->Free(csound, current->memBlock);
-      if (pool->table != NULL)
+      if (pool->table != NULL) {
+        char *key = cs_hash_table_get_key(csound, pool->table, current->varName);
         cs_hash_table_remove(csound, pool->table, current->varName);
+        csound->Free(csound, key);
+      }
       csound->Free(csound, current->varName);
       csound->Free(csound, current);
       current = next;

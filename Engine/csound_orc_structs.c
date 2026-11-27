@@ -584,7 +584,9 @@ static void prune_varpool_by_type(CSOUND *csound, CS_VAR_POOL *pool,
       *link = v->next;
       if (pool->table != NULL && v->varName != NULL &&
           cs_hash_table_get(csound, pool->table, v->varName) == v) {
+        char *key = cs_hash_table_get_key(csound, pool->table, v->varName);
         cs_hash_table_remove(csound, pool->table, v->varName);
+        csound->Free(csound, key);
       }
       if (v->memBlock != NULL) {
         if (v->varType != NULL && v->varType->freeVariableMemory != NULL) {
@@ -653,7 +655,9 @@ static void unregister_struct_opcodes(CSOUND *csound, const CS_TYPE *type) {
   }
   if (head != origHead) {
     if (head == NULL) {
+      char *key = cs_hash_table_get_key(csound, csound->opcodes, (char *)"init");
       cs_hash_table_remove(csound, csound->opcodes, (char *)"init");
+      csound->Free(csound, key);
     } else {
       cs_hash_table_put(csound, csound->opcodes, (char *)"init", head);
     }

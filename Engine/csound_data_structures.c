@@ -239,14 +239,21 @@ static char* cs_hash_table_put_no_key_copy(CSOUND* csound,
 
 void cs_hash_table_put(CSOUND* csound,
                               CS_HASH_TABLE* hashTable, char* key, void* value) {
-    cs_hash_table_put_no_key_copy(csound, hashTable,
-                                  csoundStrdup(csound, key), value);
+    char *copy = csoundStrdup(csound, key);
+    char *stored = cs_hash_table_put_no_key_copy(csound, hashTable, copy, value);
+    if (stored != copy) {
+      csound->Free(csound, copy);
+    }
 }
 
 char* cs_hash_table_put_key(CSOUND* csound,
                                    CS_HASH_TABLE* hashTable, char* key) {
-    return cs_hash_table_put_no_key_copy(csound, hashTable,
-                                         csoundStrdup(csound, key), NULL);
+    char *copy = csoundStrdup(csound, key);
+    char *stored = cs_hash_table_put_no_key_copy(csound, hashTable, copy, NULL);
+    if (stored != copy) {
+      csound->Free(csound, copy);
+    }
+    return stored;
 }
 
 void cs_hash_table_remove(CSOUND* csound,
