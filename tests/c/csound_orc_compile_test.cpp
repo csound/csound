@@ -36,6 +36,7 @@ extern "C" {
 #include "namedins.h"
 #include "pstream.h"
 #include "csound_standard_types.h"
+#include "inst_ops.h"
 }
 
 #define csoundCompileOrc(a,b) csoundCompileOrc(a,b,0)
@@ -6150,6 +6151,282 @@ endin
         ASSERT_EQ(CSOUND_SUCCESS, csoundSpinTryLock(&csound->alloc_spinlock));
         csoundSpinUnLock(&csound->alloc_spinlock);
         EXPECT_GT(parcsAtomicLoadInt32(&csound->dag_changed), 0);
+        csoundDestroy(csound);
+    }
+#endif
+}
+
+TEST(ParcsTests, SpliceReordersSnapshotAndSynchronizesConcurrentPublish)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#else
+    struct SpinLockGuardThread {
+        spin_lock_t *lock;
+        std::atomic<bool> acquired{false};
+        std::atomic<bool> release{false};
+        std::thread worker;
+
+        explicit SpinLockGuardThread(spin_lock_t *l) : lock(l) {
+            worker = std::thread([this]() {
+                csoundSpinLock(lock);
+                acquired.store(true, std::memory_order_release);
+                while (!release.load(std::memory_order_acquire)) {
+                    csoundSleep(1);
+                }
+                csoundSpinUnLock(lock);
+            });
+            while (!acquired.load(std::memory_order_acquire)) {
+                csoundSleep(1);
+            }
+        }
+
+        void unlockAndJoin() {
+            if (worker.joinable()) {
+                release.store(true, std::memory_order_release);
+                worker.join();
+            }
+        }
+
+        ~SpinLockGuardThread() {
+            unlockAndJoin();
+        }
+    };
+
+    // Part A: splice() updates the published active snapshot and marks the DAG
+    // dirty so contended serial fallback immediately observes the new order.
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j" + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkWriter init 0
+
+instr 1
+  first@global:Instr = this
+  gkWriter = 1
+endin
+
+instr 2
+  second@global:Instr = this
+  gkWriter = 2
+endin
+
+instr 3
+  chnset gkWriter, "lastWriter"
+endin
+
+instr 4
+  iRes = splice(second, first, p4)
+  chnset iRes, "spliceRes"
+  chnset p5, "spliceSeq"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ni 2 0 10\ni 3 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+
+        int32_t err = 0;
+        bool builtThree = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active == 3 &&
+                parcsAtomicLoadInt32(&csound->dag_changed) == 0 &&
+                csound->dag_task_map != nullptr &&
+                csound->dag_task_map[0]->insno == 1 &&
+                csound->dag_task_map[1]->insno == 2 &&
+                csound->dag_task_map[2]->insno == 3 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[0]->init_done) == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[1]->init_done) == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[2]->init_done) == 1 &&
+                csoundGetControlChannel(csound, "lastWriter", &err) == FL(2.0)) {
+                builtThree = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(builtThree);
+
+        // Queue splice(second, first, 0): reorders live chain to 2 1 3.
+        csoundReadScore(csound, "i 4 0 0 0 1\n");
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        bool splicedOne = false;
+        for (int step = 0; step < 2000; step++) {
+            if (csoundGetControlChannel(csound, "spliceSeq", &err) == FL(1.0) &&
+                parcsAtomicLoadInt32(&csound->dag_changed) > 0) {
+                splicedOne = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(splicedOne);
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "spliceRes", &err));
+
+        // Hold alloc_spinlock across csoundPerformKsmps so dag_build cannot take
+        // it: serial fallback must read the updated snapshot (2 1 3 -> 1).
+        {
+            SpinLockGuardThread holder(&csound->alloc_spinlock);
+            ASSERT_NE(nullptr, csound->dag_active_snapshot);
+            ASSERT_GE(csound->dag_active_snapshot->count, 3);
+            EXPECT_EQ(2, csound->dag_active_snapshot->items[0]->insno);
+            EXPECT_EQ(1, csound->dag_active_snapshot->items[1]->insno);
+            EXPECT_EQ(3, csound->dag_active_snapshot->items[2]->insno);
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            EXPECT_GT(parcsAtomicLoadInt32(&csound->dag_changed), 0);
+            EXPECT_EQ(FL(1.0), csoundGetControlChannel(csound, "lastWriter", &err));
+            holder.unlockAndJoin();
+        }
+
+        // Next cycle rebuilds the DAG in 2 1 3 order cleanly.
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        EXPECT_EQ(0, parcsAtomicLoadInt32(&csound->dag_changed));
+        ASSERT_EQ(3, csound->dag_num_active);
+        EXPECT_EQ(2, csound->dag_task_map[0]->insno);
+        EXPECT_EQ(1, csound->dag_task_map[1]->insno);
+        EXPECT_EQ(3, csound->dag_task_map[2]->insno);
+        EXPECT_EQ(FL(1.0), csoundGetControlChannel(csound, "lastWriter", &err));
+
+        // Queue splice(second, first, 1): restores live chain and snapshot to 1 2 3.
+        csoundReadScore(csound, "i 4 0 0 1 2\n");
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        bool splicedTwo = false;
+        for (int step = 0; step < 2000; step++) {
+            if (csoundGetControlChannel(csound, "spliceSeq", &err) == FL(2.0) &&
+                parcsAtomicLoadInt32(&csound->dag_changed) > 0) {
+                splicedTwo = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(splicedTwo);
+        EXPECT_EQ(FL(0.0), csoundGetControlChannel(csound, "spliceRes", &err));
+
+        {
+            SpinLockGuardThread holder(&csound->alloc_spinlock);
+            ASSERT_NE(nullptr, csound->dag_active_snapshot);
+            ASSERT_GE(csound->dag_active_snapshot->count, 3);
+            EXPECT_EQ(1, csound->dag_active_snapshot->items[0]->insno);
+            EXPECT_EQ(2, csound->dag_active_snapshot->items[1]->insno);
+            EXPECT_EQ(3, csound->dag_active_snapshot->items[2]->insno);
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            EXPECT_EQ(FL(2.0), csoundGetControlChannel(csound, "lastWriter", &err));
+            holder.unlockAndJoin();
+        }
+
+        csoundDestroy(csound);
+    }
+
+    // Part B: concurrent splice_instance() + active-snapshot publication +
+    // short-note insertion under --realtime -j2.
+    {
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-j2"));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  kA = 1
+endin
+
+instr 2
+  kB = 2
+endin
+
+instr 3
+  kC = 3
+endin
+
+instr 5
+  kS init 1
+  kS += 1
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ni 2 0 10\ni 3 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+
+        bool ready = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active == 3 &&
+                parcsAtomicLoadInt32(&csound->dag_changed) == 0 &&
+                csound->dag_task_map != nullptr &&
+                csound->dag_task_map[0]->insno == 1 &&
+                csound->dag_task_map[1]->insno == 2 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[0]->init_done) == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[1]->init_done) == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[2]->init_done) == 1) {
+                ready = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(ready);
+        INSDS *first = csound->dag_task_map[0];
+        INSDS *second = csound->dag_task_map[1];
+
+        std::atomic<bool> startFlag{false};
+        std::atomic<int> spliceFailures{0};
+        std::thread splicer([&]() {
+            INSTANCEREF srcRef = {second, 0};
+            INSTANCEREF dstRef = {first, 0};
+            cs_float outVal = 0;
+            cs_float modeVal = 0;
+            SPLICE_INSTR op = {};
+            op.in = &srcRef;
+            op.nxt = &dstRef;
+            op.out = &outVal;
+            op.mode = &modeVal;
+            while (!startFlag.load(std::memory_order_acquire)) {
+                csoundSleep(1);
+            }
+            for (int iter = 0; iter < 200; iter++) {
+                modeVal = (iter & 1) ? FL(1.0) : FL(0.0);
+                outVal = FL(-1.0);
+                if (splice_instance(csound, &op) != OK ||
+                    outVal != FL(0.0)) {
+                    spliceFailures.fetch_add(1, std::memory_order_relaxed);
+                }
+            }
+        });
+
+        startFlag.store(true, std::memory_order_release);
+        for (int iter = 0; iter < 64; iter++) {
+            if ((iter % 4) == 0) {
+                csoundReadScore(csound, "i 5 0 0.01\n");
+            }
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+        splicer.join();
+        EXPECT_EQ(0, spliceFailures.load(std::memory_order_relaxed));
+
+        for (int step = 0; step < 32; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+        }
+        EXPECT_EQ(0, csoundErrCnt(csound));
         csoundDestroy(csound);
     }
 #endif

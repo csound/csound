@@ -344,38 +344,52 @@ static void dag_publish_active_snapshot_from_array_locked(
 void dag_publish_active_snapshot_locked(CSOUND *csound)
 {
     DAG_ACTIVE_SNAPSHOT *old_snap;
-    DAG_ACTIVE_SNAPSHOT *new_snap;
-    INSDS *cur;
-    int32_t count = 0;
-    int32_t same;
+    int32_t attempt;
 
     if (csound == NULL)
       return;
     dag_reclaim_active_snapshots_locked(csound);
     old_snap = csound->dag_active_snapshot;
-    same = (old_snap != NULL);
-    for (cur = csound->actanchor.nxtact; cur != NULL; cur = cur->nxtact) {
-      if (same && (count >= old_snap->count || old_snap->items[count] != cur))
-        same = 0;
-      count++;
-    }
-    if (old_snap == NULL && count == 0)
-      return;
-    if (same && count == old_snap->count)
-      return;
 
-    new_snap = dag_alloc_snapshot(count);
-    if (new_snap == NULL) {
-      dag_pin_snapshot_inactive_nodes(old_snap,
-                                      ATOMIC_GET(csound->performance_epoch));
-      return;
+    for (attempt = 0; attempt < 4; attempt++) {
+      DAG_ACTIVE_SNAPSHOT *new_snap;
+      INSDS *cur;
+      int32_t expected_count = 0;
+      int32_t filled = 0;
+      int32_t same = (old_snap != NULL);
+
+      for (cur = csound->actanchor.nxtact; cur != NULL; cur = cur->nxtact) {
+        if (same &&
+            (expected_count >= old_snap->count ||
+             old_snap->items[expected_count] != cur))
+          same = 0;
+        expected_count++;
+      }
+      if (old_snap == NULL && expected_count == 0)
+        return;
+      if (same && expected_count == old_snap->count)
+        return;
+
+      new_snap = dag_alloc_snapshot(expected_count);
+      if (new_snap == NULL)
+        break;
+
+      for (cur = csound->actanchor.nxtact;
+           cur != NULL && filled < expected_count;
+           cur = cur->nxtact) {
+        new_snap->items[filled++] = cur;
+      }
+      if (cur == NULL) {
+        new_snap->count = filled;
+        dag_store_active_snapshot(csound, new_snap);
+        dag_retire_active_snapshot_locked(csound, old_snap);
+        return;
+      }
+      free(new_snap);
     }
-    count = 0;
-    for (cur = csound->actanchor.nxtact; cur != NULL; cur = cur->nxtact) {
-      new_snap->items[count++] = cur;
-    }
-    dag_store_active_snapshot(csound, new_snap);
-    dag_retire_active_snapshot_locked(csound, old_snap);
+
+    dag_pin_snapshot_inactive_nodes(old_snap,
+                                    ATOMIC_GET(csound->performance_epoch));
 }
 
 void dag_cleanup_active_snapshots(CSOUND *csound)
