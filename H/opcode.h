@@ -56,7 +56,15 @@ int32_t opcode_object_init(CSOUND *csound, OPRUN *p);
 int32_t opcode_object_perf(CSOUND *csound, OPRUN *p);
 int32_t opcode_run_perf(CSOUND *csound, OPRUN *p);
 int32_t opcode_array_perf(CSOUND *csound, OPRUN *p);
+int32_t opcode_dataspace_refcount(OPDS *dataspace);
+int32_t opcode_dataspace_incref(OPDS *dataspace);
 int32_t opcode_dataspace_decref(OPDS *dataspace);
+void opcode_dataspace_setref(OPDS *dataspace, uint32_t count);
+void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace);
+int32_t opcode_dataspace_release(CSOUND *csound, OPCODEOBJ *obj,
+                                 int32_t runDeinit);
+int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds);
+int32_t opcode_udo_ended(OPCODEOBJ *obj);
 /* the opcode objects a run or perf call runs: how many, and each one's
    dataspace */
 int32_t opcode_run_count(OPDS *op);

@@ -32,6 +32,7 @@
 #include "swtdat.h"
 #include "wavelets.h"
 #include "find_opcode.h"
+#include "opcode.h"
 #include "udo.h"
 #include <stdlib.h>
 
@@ -814,13 +815,17 @@ static void opcodedef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* de
                        get_opcode_short_name(csound, p->entries->entries[0]->opname));
 }
 
-// from opcode.c
-int32_t context_check(CSOUND* csound, OPCODEOBJ *p, INSDS *ctx);
 static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                       const void* src, INSDS *ctx) {
+  OPCODEOBJ *p, *psrc;
   if (UNLIKELY(src == NULL || dest == NULL)) return;
-  OPCODEOBJ *p = (OPCODEOBJ *) dest;
-  OPCODEOBJ *psrc = (OPCODEOBJ *) src;
+  p = (OPCODEOBJ *) dest;
+  psrc = (OPCODEOBJ *) src;
+  if(psrc->dataspace != NULL && opcode_udo_ended(psrc)) {
+    csound->Warning(csound, Str("opcode object UDO instance has ended: "
+                       "copy value bypassed\n"));
+    return;
+  }
   if(psrc->dataspace != NULL && context_check(csound, psrc, ctx) != 0) {
     csound->Warning(csound, Str("mismatching context: copy value bypassed\n"));
     return;
@@ -830,81 +835,25 @@ static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
                        " copy value bypassed\n"));
     return;
   }
-  /* preserve dest spare */
-  struct opds *spare = p->spare;
   if(psrc->dataspace == NULL) {
-    /* copy empty source onto dest: release dest live if any (best effort) */
-    if(p->dataspace != NULL) {
-      char *base = ((char *)p->dataspace) - sizeof(uint32_t);
-      if(*(uint32_t *)base > 0) (*(uint32_t *)base)--;
-      if(*(uint32_t *)base == 0) {
-        if(p->dataspace->deinit != NULL)
-          p->dataspace->deinit(csound, p->dataspace);
-        if(p->udo_flag) {
-          /* For UDO final release, keep as spare like opcode_delete does */
-          if(p->spare != NULL && ((UOPCODE *) p->spare)->ip == NULL) {
-            char *sbase = ((char *)p->spare) - sizeof(uint32_t);
-            csound->Free(csound, sbase);
-          }
-          p->spare = p->dataspace;
-        } else {
-          csound->Free(csound, base);
-        }
-      }
-    }
-    p->dataspace = NULL;
+    opcode_dataspace_release(csound, p, 1);
     p->size = 0;
-    p->outargp = NULL;
-    p->inargp = NULL;
     p->udo_flag = 0;
     p->readonly = 0;
-    p->spare = spare;
     return;
   }
-  /* src is live */
   if(p->dataspace == psrc->dataspace) {
-    /* self assign */
     p->readonly = 0;
-    p->spare = spare;
     return;
   }
-  /* release dest if it holds different live dataspace */
-  if(p->dataspace != NULL) {
-    size_t align = _Alignof(max_align_t);
-    char *base;
-    if(align < sizeof(void*)) align = sizeof(void*);
-    base = ((char *)p->dataspace) - align;
-    if(*(uint32_t *)base > 0) (*(uint32_t *)base)--;
-    if(*(uint32_t *)base == 0) {
-      if(p->dataspace->deinit != NULL)
-        p->dataspace->deinit(csound, p->dataspace);
-      if(p->udo_flag) {
-        if(p->spare != NULL && ((UOPCODE *) p->spare)->ip == NULL) {
-          char *sbase = ((char *)p->spare) - align;
-          csound->Free(csound, sbase);
-        }
-        p->spare = p->dataspace;
-      } else {
-        csound->Free(csound, base);
-      }
-    }
-    /* if rc>0, just detach */
-  }
-  /* incref src */
-  {
-    size_t align = _Alignof(max_align_t);
-    char *sbase;
-    if(align < sizeof(void*)) align = sizeof(void*);
-    sbase = ((char *)psrc->dataspace) - align;
-    (*(uint32_t *)sbase)++;
-  }
+  opcode_dataspace_release(csound, p, 1);
+  opcode_dataspace_incref(psrc->dataspace);
   p->dataspace = psrc->dataspace;
   p->size = psrc->size;
   p->outargp = psrc->outargp;
   p->inargp = psrc->inargp;
   p->udo_flag = psrc->udo_flag;
   p->readonly = 0;
-  p->spare = spare;
 }
 
 
@@ -925,42 +874,19 @@ static void instrdef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* des
 static void opcode_free_variable_memory(void *csnd, void *p) {
   CSOUND *csound = (CSOUND *)csnd;
   OPCODEOBJ *obj = (OPCODEOBJ *) p;
-  if (obj == NULL || obj->dataspace == NULL) {
-    if (obj != NULL) {
-      obj->dataspace = NULL;
-      obj->outargp = obj->inargp = NULL;
-      obj->size = 0;
-      obj->udo_flag = 0;
+  if (obj == NULL) return;
+  if (obj->dataspace == NULL) {
+    if (obj->spare != NULL) {
+      if (((UOPCODE *) obj->spare)->ip == NULL)
+        opcode_dataspace_free(csound, (OPDS *) obj->spare);
       obj->spare = NULL;
     }
-    return;
   }
-  {
-    size_t align = _Alignof(max_align_t);
-    char *base;
-    int32_t rc;
-    if(align < sizeof(void*)) align = sizeof(void*);
-    base = ((char *)obj->dataspace) - align;
-    if (*(uint32_t *)base > 0) (*(uint32_t *)base)--;
-    rc = (int32_t)(*(uint32_t *)base);
-    if (rc == 0) {
-      /* NOTE: deinit not called here to avoid AUXCH-order issues during
-         instrument var teardown; explicit delete opcode handles deinit. */
-      if (obj->udo_flag) {
-        if (obj->spare != NULL && ((UOPCODE *) obj->spare)->ip == NULL) {
-          char *sbase = ((char *)obj->spare) - align;
-          csound->Free(csound, sbase);
-        }
-        obj->spare = obj->dataspace;
-      } else {
-        csound->Free(csound, base);
-      }
-    }
-    /* if rc>0, shared instance remains for others */
-  }
+  else opcode_dataspace_release(csound, obj, 0);
   obj->dataspace = NULL;
   obj->outargp = obj->inargp = NULL;
   obj->size = 0;
+  obj->udo_flag = 0;
 }
 
 static void instr_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
