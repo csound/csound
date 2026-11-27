@@ -1,9 +1,26 @@
 #include "gtest/gtest.h"
+#include <cstdint>
 #include <string>
 #include "csound.h"
+#include "csdl.h"
 
 namespace {
 const char *header = "sr = 1000\nksmps = 10\n0dbfs = 1\n";
+
+struct AlignedProbe {
+  OPDS h;
+  cs_float *result, *trigger;
+  alignas(16) cs_float payload[4];
+};
+
+uintptr_t alignedProbeAddress = 0;
+
+int32_t aligned_probe_perform(CSOUND *csound, AlignedProbe *p) {
+  (void) csound;
+  alignedProbeAddress = reinterpret_cast<uintptr_t>(p);
+  *p->result = (alignedProbeAddress & 15u) == 0 ? 1.0f : 0.0f;
+  return OK;
+}
 
 class OpcodeRefcountTests : public ::testing::Test {
 protected:
@@ -146,6 +163,25 @@ TEST_F(OpcodeRefcountTests, EndedUdoInstanceFailsClearly) {
   const std::string output = messages();
   EXPECT_GT(csoundErrCnt(csound), 0) << output;
   EXPECT_NE(output.find("opcode object UDO instance has ended"),
-            std::string::npos) << output;
+             std::string::npos) << output;
+}
+
+TEST_F(OpcodeRefcountTests, RegisteredOpcodeDataspaceIs16ByteAligned) {
+  alignedProbeAddress = 0;
+  csoundAppendOpcode(csound, "aligned_dataspace_probe", sizeof(AlignedProbe), 0,
+                     "k", "i", (SUBR) aligned_probe_perform,
+                     (SUBR) aligned_probe_perform, NULL);
+  perform("instr 1\n"
+          "  probe:Opcode = create(opcoderef(\"aligned_dataspace_probe\"))\n"
+          "  result:k run probe, 1\n"
+          "  printks \"aligned probe: %g\\n\", 0, result\n"
+          "  turnoff\n"
+          "endin\n",
+          "i 1 0 0.05\ne\n");
+  const std::string output = messages();
+  EXPECT_EQ(csoundErrCnt(csound), 0) << output;
+  EXPECT_NE(output.find("aligned probe: 1"), std::string::npos) << output;
+  EXPECT_EQ(alignedProbeAddress & 15u, 0u);
 }
 }
+

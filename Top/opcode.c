@@ -1372,9 +1372,11 @@ typedef struct {
   uint32_t initialized;
   uint32_t setpCount;
   OPCODE_SETP_ENTRY *setp;
+  spin_lock_t runLock;
+  void *allocation;
 } OPCODE_DATASPACE_HEADER;
 
-#define OPCODE_DATASPACE_ALIGNMENT sizeof(void *)
+#define OPCODE_DATASPACE_ALIGNMENT 16u
 #define OPCODE_DATASPACE_PREFIX \
   ((sizeof(OPCODE_DATASPACE_HEADER) + OPCODE_DATASPACE_ALIGNMENT - 1) / \
    OPCODE_DATASPACE_ALIGNMENT * OPCODE_DATASPACE_ALIGNMENT)
@@ -1385,7 +1387,36 @@ static OPCODE_DATASPACE_HEADER *opcode_dataspace_header(OPDS *dataspace) {
 }
 
 static char *opcode_dataspace_base(OPDS *dataspace) {
-  return (char *) dataspace - OPCODE_DATASPACE_PREFIX;
+  return (char *) opcode_dataspace_header(dataspace)->allocation;
+}
+
+static void opcode_dataspace_runlock(OPDS *dataspace) {
+  if(dataspace != NULL)
+    csoundSpinLock(&opcode_dataspace_header(dataspace)->runLock);
+}
+
+static void opcode_dataspace_rununlock(OPDS *dataspace) {
+  if(dataspace != NULL)
+    csoundSpinUnLock(&opcode_dataspace_header(dataspace)->runLock);
+}
+
+static int32_t opcode_dataspace_incref_unlocked(OPDS *dataspace);
+
+static OPDS *opcode_dataspace_acquire_run(OPCODEOBJ *obj) {
+  OPDS *dataspace = NULL;
+  if(obj == NULL) return NULL;
+  opcode_dataspace_spinlock();
+  dataspace = obj->dataspace;
+  if(dataspace != NULL) opcode_dataspace_incref_unlocked(dataspace);
+  opcode_dataspace_spinunlock();
+  if(dataspace != NULL) opcode_dataspace_runlock(dataspace);
+  return dataspace;
+}
+
+static void opcode_dataspace_release_run(OPDS *dataspace) {
+  if(dataspace == NULL) return;
+  opcode_dataspace_rununlock(dataspace);
+  opcode_dataspace_decref(dataspace);
 }
 
 static uint32_t *opcode_dataspace_refslot(OPDS *dataspace) {
@@ -1473,8 +1504,12 @@ static OPCODE_SETP_ENTRY *opcode_dataspace_detach_setp(OPDS *dataspace) {
 }
 
 static void opcode_dataspace_free_setp(CSOUND *csound, OPDS *dataspace) {
-  opcode_dataspace_free_setp_list(csound,
-                                  opcode_dataspace_detach_setp(dataspace));
+  OPCODE_SETP_ENTRY *entries;
+  if(dataspace == NULL) return;
+  opcode_dataspace_spinlock();
+  entries = opcode_dataspace_detach_setp(dataspace);
+  opcode_dataspace_spinunlock();
+  opcode_dataspace_free_setp_list(csound, entries);
 }
 
 static OPCODE_SETP_ENTRY *opcode_dataspace_find_setp_unlocked(OPDS *dataspace,
@@ -1564,15 +1599,25 @@ static OPDS *opcode_dataspace_new(CSOUND *csound, OENTRY *entry, OPDS *h) {
     size_t dsblksiz = entry->dsblksiz > sizeof(OPDS) ?
       (size_t) entry->dsblksiz : sizeof(OPDS);
     size_t total;
-    char *base;
+    char *allocation;
     OPDS *dataspace;
-    if(dsblksiz > (size_t) -1 - OPCODE_DATASPACE_PREFIX) return NULL;
-    total = OPCODE_DATASPACE_PREFIX + dsblksiz;
-    base = (char *) csound->Calloc(csound, total);
-    if(base == NULL) return NULL;
-    dataspace = (OPDS *) (base + OPCODE_DATASPACE_PREFIX);
+    OPCODE_DATASPACE_HEADER *header;
+    if(dsblksiz > (size_t) -1 - OPCODE_DATASPACE_PREFIX -
+       (OPCODE_DATASPACE_ALIGNMENT - 1)) return NULL;
+    total = OPCODE_DATASPACE_PREFIX + dsblksiz +
+      (OPCODE_DATASPACE_ALIGNMENT - 1);
+    allocation = (char *) csound->Calloc(csound, total);
+    if(allocation == NULL) return NULL;
+    dataspace = (OPDS *) (((uintptr_t) allocation + OPCODE_DATASPACE_PREFIX +
+                           OPCODE_DATASPACE_ALIGNMENT - 1) &
+                          ~(uintptr_t) (OPCODE_DATASPACE_ALIGNMENT - 1));
+    header = opcode_dataspace_header(dataspace);
+    header->allocation = allocation;
+    header->setp = NULL;
+    header->setpCount = 0;
+    (void) csoundSpinLockInit(&header->runLock);
     *opcode_dataspace_refslot(dataspace) = 1;
-    opcode_dataspace_header(dataspace)->initialized = 0;
+    header->initialized = 0;
     dataspace->insdshead = h->insdshead;
     dataspace->optext = csound->Calloc(csound, sizeof(OPTXT));
     if(dataspace->optext != NULL) {
@@ -1928,42 +1973,57 @@ int32_t opcode_object_init(CSOUND *csound, OPRUN *p) {
 int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
   cs_float **pargs = oprun_args(p);
   OPCODEOBJ *obj = (OPCODEOBJ *) pargs[p->OUTOCOUNT];
-  if(obj->dataspace != NULL) {
-  if(opcode_udo_ended(obj))
+  OPDS *runDataspace;
+  int32_t result;
+  if(obj->dataspace == NULL)
     return csound->PerfError(csound, &(p->h),
-                             Str("opcode object UDO instance has ended\n"));
-  if(context_check(csound, obj, p->h.insdshead) != OK)
-    return csound->PerfError(csound, &(p->h), Str("incompatible context, "
-                             "cannot perform opcode obj for %s\n"),
-                             obj->dataspace->optext->t.oentry->opname);
+                             Str("opcode object not initialised\n"));
+  runDataspace = opcode_dataspace_acquire_run(obj);
+  if(runDataspace == NULL)
+    return csound->PerfError(csound, &(p->h),
+                             Str("opcode object not initialised\n"));
+  if(opcode_udo_ended(obj)) {
+    result = csound->PerfError(csound, &(p->h),
+                               Str("opcode object UDO instance has ended\n"));
+    goto done;
+  }
+  if(context_check(csound, obj, p->h.insdshead) != OK) {
+    result = csound->PerfError(csound, &(p->h), Str("incompatible context, "
+                               "cannot perform opcode obj for %s\n"),
+                               obj->dataspace->optext->t.oentry->opname);
+    goto done;
+  }
   set_line_num_and_loc(obj, p);
   if(check_consistency(obj, pargs, p->OUTOCOUNT, p->INOCOUNT - 1) != OK) {
     if(obj->udo_flag)
       user_opcode_rebind_constants((UOPCODE *) obj->dataspace,
                                    pargs + p->OUTOCOUNT + 1, p->INOCOUNT - 1);
     if(setup_args(csound, obj, &(p->h), pargs, NULL, p->OUTOCOUNT,
-                p->INOCOUNT - 1) != OK)
-      return csound->PerfError(csound, &(p->h), Str("mismatching arguments\n"
+                p->INOCOUNT - 1) != OK) {
+      result = csound->PerfError(csound, &(p->h), Str("mismatching arguments\n"
                            "for opcode obj %s\t"
                            "outypes: %s\tintypes: %s\n"),
                            obj->dataspace->optext->t.oentry->opname,
                            obj->dataspace->optext->t.oentry->outypes,
                                obj->dataspace->optext->t.oentry->intypes);
+      goto done;
+    }
     // setp overrides must be in the slots before the UDO body is rewired
     opcode_dataspace_restore_setp(obj);
     if(obj->udo_flag &&
-       user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK)
-      return csound->PerfError(csound, &(p->h),
-                               Str("could not rebind arguments "
-                                   "for opcode obj %s\n"),
-                                obj->dataspace->optext->t.oentry->opname);
+       user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK) {
+      result = csound->PerfError(csound, &(p->h),
+                                 Str("could not rebind arguments "
+                                     "for opcode obj %s\n"),
+                                  obj->dataspace->optext->t.oentry->opname);
+      goto done;
     }
-    if(obj->dataspace->perf != NULL)
-       return obj->dataspace->perf(csound, obj->dataspace);
-    else return OK; // nothing to do
   }
-  return csound->PerfError(csound, &(p->h),
-                           Str("opcode object not initialised\n"));
+  result = obj->dataspace->perf != NULL
+    ? obj->dataspace->perf(csound, obj->dataspace) : OK;
+done:
+  opcode_dataspace_release_run(runDataspace);
+  return result;
 }
 
 /* How many opcode objects op runs, if it is a run or perf call of them. */
@@ -1997,42 +2057,57 @@ OPDS *opcode_run_dataspace(OPDS *op, int32_t i)
 int32_t opcode_run_perf(CSOUND *csound, OPRUN *p) {
   cs_float **pargs = oprun_args(p);
   OPCODEOBJ *obj = (OPCODEOBJ *) pargs[p->OUTOCOUNT];
+  OPDS *runDataspace;
+  int32_t result;
   if(UNLIKELY(obj->dataspace == NULL ||
               obj->dataspace->optext->t.outlist == NULL))
     return csound->PerfError(csound, &(p->h),
                              Str("opcode object not initialised\n"));
-  if(opcode_udo_ended(obj))
+  runDataspace = opcode_dataspace_acquire_run(obj);
+  if(runDataspace == NULL)
     return csound->PerfError(csound, &(p->h),
-                             Str("opcode object UDO instance has ended\n"));
-  if(context_check(csound, obj, p->h.insdshead) != OK)
-    return csound->PerfError(csound, &(p->h), Str("incompatible context, "
-                             "cannot perform opcode obj for %s\n"),
-                             obj->dataspace->optext->t.oentry->opname);
+                             Str("opcode object not initialised\n"));
+  if(opcode_udo_ended(obj)) {
+    result = csound->PerfError(csound, &(p->h),
+                               Str("opcode object UDO instance has ended\n"));
+    goto done;
+  }
+  if(context_check(csound, obj, p->h.insdshead) != OK) {
+    result = csound->PerfError(csound, &(p->h), Str("incompatible context, "
+                               "cannot perform opcode obj for %s\n"),
+                               obj->dataspace->optext->t.oentry->opname);
+    goto done;
+  }
   set_line_num_and_loc(obj, p);
   if(check_consistency(obj, pargs, p->OUTOCOUNT, p->INOCOUNT - 1) != OK) {
     if(obj->udo_flag)
       user_opcode_rebind_constants((UOPCODE *) obj->dataspace,
                                    pargs + p->OUTOCOUNT + 1, p->INOCOUNT - 1);
     if(setup_args(csound, obj, &(p->h), pargs, NULL, p->OUTOCOUNT,
-                  p->INOCOUNT - 1) != OK)
-      return csound->PerfError(csound, &(p->h), Str("mismatching arguments\n"
+                  p->INOCOUNT - 1) != OK) {
+      result = csound->PerfError(csound, &(p->h), Str("mismatching arguments\n"
                            "for opcode obj %s\t"
                            "outypes: %s\tintypes: %s\n"),
                            obj->dataspace->optext->t.oentry->opname,
                            obj->dataspace->optext->t.oentry->outypes,
                            obj->dataspace->optext->t.oentry->intypes);
+      goto done;
+    }
     opcode_dataspace_restore_setp(obj);
     if(obj->udo_flag &&
-       user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK)
-      return csound->PerfError(csound, &(p->h),
-                               Str("could not rebind arguments "
-                                   "for opcode obj %s\n"),
-                                obj->dataspace->optext->t.oentry->opname);
+       user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK) {
+      result = csound->PerfError(csound, &(p->h),
+                                 Str("could not rebind arguments "
+                                     "for opcode obj %s\n"),
+                                  obj->dataspace->optext->t.oentry->opname);
+      goto done;
     }
-
-   if(obj->dataspace->perf != NULL)
-       return obj->dataspace->perf(csound, obj->dataspace);
-   else return OK;
+  }
+  result = obj->dataspace->perf != NULL
+    ? obj->dataspace->perf(csound, obj->dataspace) : OK;
+done:
+  opcode_dataspace_release_run(runDataspace);
+  return result;
 }
 
 /**
@@ -2321,12 +2396,23 @@ int32_t opcode_array_perf(CSOUND *csound, OPRUN *p) {
               obj->dataspace->optext->t.outlist == NULL))
     return csound->PerfError(csound, &(p->h),
                              Str("opcode object not initialised\n"));
-  if(opcode_udo_ended(obj))
-    return csound->PerfError(csound, &(p->h),
-                             Str("opcode object UDO instance has ended\n"));
-  set_line_num_and_loc(obj, p);
-  if(obj->dataspace->perf != NULL)
-    obj->dataspace->perf(csound, obj->dataspace);
+  {
+    OPDS *runDataspace = opcode_dataspace_acquire_run(obj);
+    int32_t runResult;
+    if(runDataspace == NULL)
+      return csound->PerfError(csound, &(p->h),
+                               Str("opcode object not initialised\n"));
+    if(opcode_udo_ended(obj)) {
+      opcode_dataspace_release_run(runDataspace);
+      return csound->PerfError(csound, &(p->h),
+                               Str("opcode object UDO instance has ended\n"));
+    }
+    set_line_num_and_loc(obj, p);
+    runResult = obj->dataspace->perf != NULL
+      ? obj->dataspace->perf(csound, obj->dataspace) : OK;
+    opcode_dataspace_release_run(runDataspace);
+    if(runResult != OK) return runResult;
+  }
 
    // copy array args data out
    for(j = 0; j < GetOutputArgCnt(&p->h); j++) {
@@ -2385,43 +2471,62 @@ int32_t set_opcode_param(CSOUND *csound, AOP *p) {
   cs_float *arg  = p->b;
   cs_float *previousArg = NULL;
   uint32_t slots;
+  OPDS *runDataspace;
+  int32_t result;
   // Defensive: object not initialised yet (e.g., wrong overload picked or missing 'create')
   if (UNLIKELY(obj == NULL || obj->dataspace == NULL)) {
     return csound->PerfError(csound, &(p->h), Str("opcode object not initialised (setp)\n"));
   }
-  if(opcode_udo_ended(obj))
-    return csound->PerfError(csound, &(p->h),
-                             Str("opcode object UDO instance has ended\n"));
-  if(context_check(csound, obj, p->h.insdshead) != OK)
-    return csound->PerfError(csound, &(p->h), Str("incompatible context for opcode %s \n"),
-                             obj->dataspace->optext->t.oentry->opname);
   // a negative index selects the first input; a NaN is none, and no
   // opcode has VARGMAX inputs: refused before it is converted, as a
   // larger index might not convert
   if(index < 0) index = 0;
   if(UNLIKELY(index != index || index >= VARGMAX))
     return csound->PerfError(csound, &(p->h), Str("argument index out of range\n"));
+  runDataspace = opcode_dataspace_acquire_run(obj);
+  if(runDataspace == NULL)
+    return csound->PerfError(csound, &(p->h),
+                             Str("opcode object not initialised (setp)\n"));
+  if(opcode_udo_ended(obj)) {
+    result = csound->PerfError(csound, &(p->h),
+                               Str("opcode object UDO instance has ended\n"));
+    goto done;
+  }
+  if(context_check(csound, obj, p->h.insdshead) != OK) {
+    result = csound->PerfError(csound, &(p->h),
+                               Str("incompatible context for opcode %s \n"),
+                               obj->dataspace->optext->t.oentry->opname);
+    goto done;
+  }
   ndx = (uint32_t) index;
   slots = input_slots(obj->dataspace->optext->t.oentry->intypes,
                       obj->dataspace->optext->t.inArgCount);
   if(obj->inargp != NULL && ndx < slots) previousArg = obj->inargp[ndx];
-  if(check_and_set_arg(csound, obj, ndx, arg) != 0)
-    return csound->PerfError(csound, &(p->h), Str("could not set arg %u \n"), ndx);
+  if(check_and_set_arg(csound, obj, ndx, arg) != 0) {
+    result = csound->PerfError(csound, &(p->h), Str("could not set arg %u \n"), ndx);
+    goto done;
+  }
   if(opcode_dataspace_record_setp(csound, obj->dataspace, ndx, arg,
                                   p->h.insdshead) != OK) {
     if(previousArg != NULL && obj->inargp != NULL && ndx < slots)
       obj->inargp[ndx] = previousArg;
     opcode_dataspace_restore_setp(obj);
-    return csound->PerfError(csound, &(p->h), Str("could not set arg %u \n"), ndx);
+    result = csound->PerfError(csound, &(p->h), Str("could not set arg %u \n"), ndx);
+    goto done;
   }
   opcode_dataspace_restore_setp(obj);
   if(obj->udo_flag &&
-     user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK)
-    return csound->PerfError(csound, &(p->h),
-                             Str("could not rebind arguments "
-                                 "for opcode obj %s\n"),
-                             obj->dataspace->optext->t.oentry->opname);
-  return OK;
+     user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK) {
+    result = csound->PerfError(csound, &(p->h),
+                               Str("could not rebind arguments "
+                                   "for opcode obj %s\n"),
+                               obj->dataspace->optext->t.oentry->opname);
+    goto done;
+  }
+  result = OK;
+done:
+  opcode_dataspace_release_run(runDataspace);
+  return result;
 }
 
 static int32_t copy_opcode_output(CSOUND *csound, AOP *p,

@@ -37,6 +37,7 @@
 #include "csound_orc_semantics.h"
 #include "csound_orc_compile.h"
 #include "entry.h"
+#include "opcode.h"
 #include "opcode_deprecation.h"
 
 
@@ -4094,15 +4095,49 @@ CS_VARIABLE* createStructVar(void* cs, const CS_TYPE* type,
   return var;
 }
 
+static int32_t struct_opcode_sources_copyable(CSOUND *csound,
+                                               const CS_TYPE *structType,
+                                               const CS_STRUCT_VAR *var,
+                                               INSDS *ctx) {
+  int32_t i, count;
+  if (structType == NULL || structType->members == NULL || var == NULL ||
+      var->members == NULL) return NOTOK;
+  count = cs_cons_length(structType->members);
+  if (count != var->memberCount) return NOTOK;
+  for (i = 0; i < count; i++) {
+    CS_VAR_MEM *member = var->members[i];
+    if (member == NULL || member->varType == NULL) return NOTOK;
+    if (member->varType == &CS_VAR_TYPE_OPCODEOBJ) {
+      OPDS *dataspace = NULL;
+      OPCODE_COPY_STATUS status = opcode_dataspace_acquire_copy(
+        csound, (OPCODEOBJ *) &member->value, ctx, &dataspace,
+        NULL, NULL, NULL, NULL);
+      if (status != OPCODE_COPY_OK) return NOTOK;
+      opcode_dataspace_decref(dataspace);
+    }
+    else if (member->varType->userDefinedType &&
+             struct_opcode_sources_copyable(csound, member->varType,
+                                            (const CS_STRUCT_VAR *) &member->value,
+                                            ctx) != OK) {
+      return NOTOK;
+    }
+  }
+  return OK;
+}
+
 int32_t csound_copy_struct_value(CSOUND *csound,
-                                 const CS_TYPE *structType,
-                                 void *dest, const void *src, INSDS *ctx,
-                                 CSOUND_STRUCT_COPY_MODE mode) {
+                                  const CS_TYPE *structType,
+                                  void *dest, const void *src, INSDS *ctx,
+                                  CSOUND_STRUCT_COPY_MODE mode) {
   CS_STRUCT_VAR* varDest = (CS_STRUCT_VAR*)dest;
   const CS_STRUCT_VAR* varSrc = (const CS_STRUCT_VAR*)src;
   int32_t i, count;
 
+  if (struct_opcode_sources_copyable(csound, structType, varSrc, ctx) != OK)
+    return NOTOK;
+
   if (dest == src) {
+
     return OK;
   }
 
