@@ -1305,6 +1305,7 @@ int32_t context_check(CSOUND *csound, OPCODEOBJ *obj, INSDS *insds) {
 }
 
 static int32_t opcode_dataspace_was_initialized(OPDS *dataspace);
+static cs_float *opcode_dataspace_setp_arg(OPDS *dataspace, uint32_t ndx);
 
 int32_t opcode_udo_ended(OPCODEOBJ *obj) {
   UOPCODE *udo;
@@ -1326,9 +1327,11 @@ static int32_t check_consistency(OPCODEOBJ *obj, cs_float **args,
   if(oargs == NULL || iargs == NULL) return NOTOK;
   for(n = 0; n < no; n++)
     if(oargs[n] != args[n]) return NOTOK;
-  // inargs follow the opcode object arg
-  for(n = 0; n < ni; n++)
-    if(iargs[n] != args[no + 1 + n]) return NOTOK;
+  // inargs follow the opcode object arg; a recorded setp overrides the call
+  for(n = 0; n < ni; n++) {
+    cs_float *want = opcode_dataspace_setp_arg(obj->dataspace, (uint32_t) n);
+    if(iargs[n] != (want != NULL ? want : args[no + 1 + n])) return NOTOK;
+  }
   return OK;
 }
 
@@ -1413,6 +1416,14 @@ static int32_t opcode_dataspace_record_setp(CSOUND *csound, OPDS *dataspace,
   header->setp[header->setpCount].arg = arg;
   header->setpCount++;
   return OK;
+}
+
+static cs_float *opcode_dataspace_setp_arg(OPDS *dataspace, uint32_t ndx) {
+  OPCODE_DATASPACE_HEADER *header = opcode_dataspace_header(dataspace);
+  uint32_t i;
+  for(i = 0; i < header->setpCount; i++)
+    if(header->setp[i].ndx == ndx) return header->setp[i].arg;
+  return NULL;
 }
 
 static void opcode_dataspace_restore_setp(OPCODEOBJ *obj) {
@@ -1730,14 +1741,14 @@ int32_t opcode_object_perf(CSOUND *csound, OPRUN *p) {
                            obj->dataspace->optext->t.oentry->opname,
                            obj->dataspace->optext->t.oentry->outypes,
                                obj->dataspace->optext->t.oentry->intypes);
-    // a pass-by-ref UDO body still points at the args seen at init
+    // setp overrides must be in the slots before the UDO body is rewired
+    opcode_dataspace_restore_setp(obj);
     if(obj->udo_flag &&
        user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK)
       return csound->PerfError(csound, &(p->h),
                                Str("could not rebind arguments "
                                    "for opcode obj %s\n"),
                                 obj->dataspace->optext->t.oentry->opname);
-    opcode_dataspace_restore_setp(obj);
     }
     if(obj->dataspace->perf != NULL)
        return obj->dataspace->perf(csound, obj->dataspace);
@@ -1802,14 +1813,15 @@ int32_t opcode_run_perf(CSOUND *csound, OPRUN *p) {
                            obj->dataspace->optext->t.oentry->opname,
                            obj->dataspace->optext->t.oentry->outypes,
                            obj->dataspace->optext->t.oentry->intypes);
+    opcode_dataspace_restore_setp(obj);
     if(obj->udo_flag &&
        user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK)
       return csound->PerfError(csound, &(p->h),
                                Str("could not rebind arguments "
                                    "for opcode obj %s\n"),
                                 obj->dataspace->optext->t.oentry->opname);
-   opcode_dataspace_restore_setp(obj);
-   }
+    }
+
    if(obj->dataspace->perf != NULL)
        return obj->dataspace->perf(csound, obj->dataspace);
    else return OK;
@@ -2140,14 +2152,19 @@ int32_t copy_opcode_obj(CSOUND *csound, ASSIGN *p) {
                              Str("opcode object UDO instance has ended\n"));
   }
   if(src->dataspace != NULL &&
-     context_check(csound, src, p->h.insdshead) != OK)
+     context_check(csound, src, p->h.insdshead) != OK) {
+    if(csound->mode == 1)
+      return csound->InitError(csound, Str("could not copy opcode object: "
+                                           "incompatible context\n"));
     return csound->PerfError(csound, &(p->h),
                              Str("could not copy opcode object: "
                                  "incompatible context\n"));
-  if(dst->readonly)
-    return csound->PerfError(csound, &(p->h),
-                             Str("could not copy opcode object: "
-                                 "destination is read-only\n"));
+  }
+  if(dst->readonly) {
+    csound->Warning(csound, Str("opcode instance var is read-only:"
+                                " copy value bypassed\n"));
+    return OK;
+  }
   CS_VAR_TYPE_OPCODEOBJ.copyValue(csound, &CS_VAR_TYPE_OPCODEOBJ, dst,
                                   src, p->h.insdshead);
   return OK;
@@ -2179,6 +2196,12 @@ int32_t set_opcode_param(CSOUND *csound, AOP *p) {
     return csound->PerfError(csound, &(p->h), Str("could not set arg %u \n"), ndx);
   if(opcode_dataspace_record_setp(csound, obj->dataspace, ndx, arg) != OK)
     return csound->PerfError(csound, &(p->h), Str("could not set arg %u \n"), ndx);
+  if(obj->udo_flag &&
+     user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK)
+    return csound->PerfError(csound, &(p->h),
+                             Str("could not rebind arguments "
+                                 "for opcode obj %s\n"),
+                             obj->dataspace->optext->t.oentry->opname);
   return OK;
 }
 

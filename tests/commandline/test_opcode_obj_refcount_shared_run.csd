@@ -3,8 +3,8 @@ description = "two aliases of one opcode object rebind their arguments per run"
 
 [expect]
 exit = 0
-output = ["shared run distinct:"]
-output_excludes = ["not initialised", "Segmentation fault", "AddressSanitizer"]
+output = ["shared run correct:"]
+output_excludes = ["shared run wrong:", "not initialised", "Segmentation fault", "AddressSanitizer"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -25,10 +25,10 @@ instr 1
   b:k run alias, 3
   done:k init 0
   if done == 0 then
-    if abs(a-b) > 0.01 then
-      printks "shared run distinct: %g %g\n", 1, a, b
+    if abs(a-2) > 0.01 || abs(b-6) > 0.01 then
+      printks "shared run wrong: %g %g\n", 1, a, b
     else
-      printks "shared run same: %g %g\n", 1, a, b
+      printks "shared run correct: %g %g\n", 1, a, b
     endif
     done = 1
   endif

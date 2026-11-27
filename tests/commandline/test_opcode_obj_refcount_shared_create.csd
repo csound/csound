@@ -3,8 +3,8 @@ description = "create on a shared holder leaves the original holder intact"
 
 [expect]
 exit = 0
-output = ["create shared distinct:"]
-output_excludes = ["not initialised", "Segmentation fault", "AddressSanitizer"]
+output = ["create shared correct:"]
+output_excludes = ["create shared wrong:", "not initialised", "Segmentation fault", "AddressSanitizer"]
 </CsTest>
 <CsoundSynthesizer>
 <CsOptions>
@@ -26,10 +26,10 @@ instr 1
   b:k run alias, 3
   done:k init 0
   if done == 0 then
-    if abs(a-b) > 0.01 then
-      printks "create shared distinct: %g %g\n", 1, a, b
+    if abs(a-2) > 0.01 || abs(b-6) > 0.01 then
+      printks "create shared wrong: %g %g\n", 1, a, b
     else
-      printks "create shared same: %g %g\n", 1, a, b
+      printks "create shared correct: %g %g\n", 1, a, b
     endif
     done = 1
   endif

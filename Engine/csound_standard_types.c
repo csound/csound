@@ -875,14 +875,13 @@ static void opcode_free_variable_memory(void *csnd, void *p) {
   CSOUND *csound = (CSOUND *)csnd;
   OPCODEOBJ *obj = (OPCODEOBJ *) p;
   if (obj == NULL) return;
-  if (obj->dataspace == NULL) {
-    if (obj->spare != NULL) {
-      if (((UOPCODE *) obj->spare)->ip == NULL)
-        opcode_dataspace_free(csound, (OPDS *) obj->spare);
-      obj->spare = NULL;
-    }
+  if (obj->dataspace != NULL)
+    opcode_dataspace_release(csound, obj, 0);
+  if (obj->spare != NULL) {
+    if (((UOPCODE *) obj->spare)->ip == NULL)
+      opcode_dataspace_free(csound, (OPDS *) obj->spare);
+    obj->spare = NULL;
   }
-  else opcode_dataspace_release(csound, obj, 0);
   obj->dataspace = NULL;
   obj->outargp = obj->inargp = NULL;
   obj->size = 0;

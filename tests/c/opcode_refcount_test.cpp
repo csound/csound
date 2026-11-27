@@ -91,17 +91,17 @@ TEST_F(OpcodeRefcountTests, SharedAliasesRebindArguments) {
           "  alias:Opcode = shared\n"
           "  a:k run shared, 1\n"
           "  b:k run alias, 3\n"
-          "  if abs(a-b) > 0.01 then\n"
-          "    printks \"shared run distinct: %g %g\\n\", 1, a, b\n"
+          "  if abs(a-2) > 0.01 || abs(b-6) > 0.01 then\n"
+          "    printks \"shared run wrong: %g %g\\n\", 1, a, b\n"
           "  else\n"
-          "    printks \"shared run same: %g %g\\n\", 1, a, b\n"
+          "    printks \"shared run correct: %g %g\\n\", 1, a, b\n"
           "  endif\n"
           "  turnoff\n"
           "endin\n",
           "i 1 0 0.2\ne\n");
   const std::string output = messages();
   EXPECT_EQ(csoundErrCnt(csound), 0) << output;
-  EXPECT_NE(output.find("shared run distinct:"), std::string::npos) << output;
+  EXPECT_NE(output.find("shared run correct:"), std::string::npos) << output;
 }
 
 TEST_F(OpcodeRefcountTests, CreateOnSharedAliasPreservesOriginal) {
@@ -114,17 +114,17 @@ TEST_F(OpcodeRefcountTests, CreateOnSharedAliasPreservesOriginal) {
           "  alias = create(opcoderef(\"Twice\"))\n"
           "  a:k run shared, 1\n"
           "  b:k run alias, 3\n"
-          "  if abs(a-b) > 0.01 then\n"
-          "    printks \"create shared distinct: %g %g\\n\", 1, a, b\n"
+          "  if abs(a-2) > 0.01 || abs(b-6) > 0.01 then\n"
+          "    printks \"create shared wrong: %g %g\\n\", 1, a, b\n"
           "  else\n"
-          "    printks \"create shared same: %g %g\\n\", 1, a, b\n"
+          "    printks \"create shared correct: %g %g\\n\", 1, a, b\n"
           "  endif\n"
           "  turnoff\n"
           "endin\n",
           "i 1 0 0.2\ne\n");
   const std::string output = messages();
   EXPECT_EQ(csoundErrCnt(csound), 0) << output;
-  EXPECT_NE(output.find("create shared distinct:"), std::string::npos) << output;
+  EXPECT_NE(output.find("create shared correct:"), std::string::npos) << output;
 }
 
 TEST_F(OpcodeRefcountTests, EndedUdoInstanceFailsClearly) {
