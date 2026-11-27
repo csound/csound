@@ -27,6 +27,7 @@
 #include "arrays_internal.h"
 #include "csound_orc_semantics.h"
 #include "csound_standard_types.h"
+#include "opcode.h"
 
 static int32_t is_intentionally_empty_array(CSOUND *csound,
                                             const ARRAYDAT *dat)
@@ -132,6 +133,23 @@ int32_t tabfill(CSOUND *csound, TABFILL *p)
   int32_t i, size;
   size_t memMyfltSize;
   cs_float  **valp = p->iargs;
+  if (p->ans != NULL && p->ans->arrayType == &CS_VAR_TYPE_OPCODEOBJ) {
+    for (i = 0; i < nargs; i++) {
+      OPCODEOBJ *src = (OPCODEOBJ *) valp[i];
+      OPDS *dataspace = NULL;
+      OPCODE_COPY_STATUS status =
+        opcode_dataspace_acquire_copy(csound, src, p->h.insdshead,
+                                      &dataspace, NULL, NULL, NULL, NULL);
+      if (status == OPCODE_COPY_ENDED || status == OPCODE_COPY_CONTEXT) {
+        const char *message = status == OPCODE_COPY_ENDED
+          ? Str("opcode object UDO instance has ended\n")
+          : Str("could not copy opcode object: incompatible context\n");
+        if (csound->mode == 1) return csound->InitError(csound, "%s", message);
+        return csound->PerfError(csound, &p->h, "%s", message);
+      }
+      if (status == OPCODE_COPY_OK) opcode_dataspace_decref(dataspace);
+    }
+  }
   if (UNLIKELY(tabinit(csound, p->ans, nargs, p->h.insdshead) != OK))
     return csound_array_init_resize_error(csound);
 

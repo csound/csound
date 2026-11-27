@@ -32,6 +32,8 @@
 #include "interlocks.h"
 #include "find_opcode.h"
 
+static spin_lock_t opcode_dataspace_lock = SPINLOCK_INIT;
+
 /* Print opcodes in system */
 /* John ffitch -- 26 Jan 97 */
 /*  4 april 02 -- ma++ */
@@ -1338,7 +1340,7 @@ static int32_t check_consistency(OPCODEOBJ *obj, cs_float **args,
 
 typedef struct {
   uint32_t ndx;
-  cs_float *arg;
+  cs_float value;
 } OPCODE_SETP_ENTRY;
 
 typedef struct {
@@ -1395,13 +1397,15 @@ static void opcode_dataspace_free_setp(CSOUND *csound, OPDS *dataspace) {
   header->setpCount = 0;
 }
 
-static int32_t opcode_dataspace_record_setp(CSOUND *csound, OPDS *dataspace,
-                                            uint32_t ndx, cs_float *arg) {
+static int32_t opcode_dataspace_record_setp_unlocked(CSOUND *csound,
+                                                     OPDS *dataspace,
+                                                     uint32_t ndx,
+                                                     cs_float value) {
   OPCODE_DATASPACE_HEADER *header = opcode_dataspace_header(dataspace);
   uint32_t i;
   for(i = 0; i < header->setpCount; i++) {
     if(header->setp[i].ndx == ndx) {
-      header->setp[i].arg = arg;
+      header->setp[i].value = value;
       return OK;
     }
   }
@@ -1413,29 +1417,54 @@ static int32_t opcode_dataspace_record_setp(CSOUND *csound, OPDS *dataspace,
   if(entry == NULL) return NOTOK;
   header->setp = entry;
   header->setp[header->setpCount].ndx = ndx;
-  header->setp[header->setpCount].arg = arg;
+  header->setp[header->setpCount].value = value;
   header->setpCount++;
   return OK;
 }
 
-static cs_float *opcode_dataspace_setp_arg(OPDS *dataspace, uint32_t ndx) {
+static int32_t opcode_dataspace_record_setp(CSOUND *csound, OPDS *dataspace,
+                                             uint32_t ndx, cs_float value) {
+  int32_t result;
+  if(dataspace == NULL) return NOTOK;
+  csoundSpinLock(&opcode_dataspace_lock);
+  result = opcode_dataspace_record_setp_unlocked(csound, dataspace, ndx, value);
+  csoundSpinUnLock(&opcode_dataspace_lock);
+  return result;
+}
+
+static cs_float *opcode_dataspace_setp_arg_unlocked(OPDS *dataspace,
+                                                    uint32_t ndx) {
   OPCODE_DATASPACE_HEADER *header = opcode_dataspace_header(dataspace);
   uint32_t i;
   for(i = 0; i < header->setpCount; i++)
-    if(header->setp[i].ndx == ndx) return header->setp[i].arg;
+    if(header->setp[i].ndx == ndx) return &header->setp[i].value;
   return NULL;
 }
 
-static void opcode_dataspace_restore_setp(OPCODEOBJ *obj) {
-  OPCODE_DATASPACE_HEADER *header = opcode_dataspace_header(obj->dataspace);
-  const TEXT *t = &(obj->dataspace->optext->t);
-  uint32_t slots = input_slots(t->oentry->intypes, t->inArgCount);
-  uint32_t i;
-  for(i = 0; i < header->setpCount; i++) {
-    uint32_t ndx = header->setp[i].ndx;
-    if(ndx < slots) obj->inargp[ndx] = header->setp[i].arg;
-  }
+static cs_float *opcode_dataspace_setp_arg(OPDS *dataspace, uint32_t ndx) {
+  cs_float *arg;
+  if(dataspace == NULL) return NULL;
+  csoundSpinLock(&opcode_dataspace_lock);
+  arg = opcode_dataspace_setp_arg_unlocked(dataspace, ndx);
+  csoundSpinUnLock(&opcode_dataspace_lock);
+  return arg;
 }
+
+static void opcode_dataspace_restore_setp(OPCODEOBJ *obj) {
+  const TEXT *t;
+  uint32_t slots, i;
+  if(obj->dataspace == NULL || obj->inargp == NULL) return;
+  t = &(obj->dataspace->optext->t);
+  slots = input_slots(t->oentry->intypes, t->inArgCount);
+  csoundSpinLock(&opcode_dataspace_lock);
+  for(i = 0; i < opcode_dataspace_header(obj->dataspace)->setpCount; i++) {
+    OPCODE_SETP_ENTRY *entry =
+      &opcode_dataspace_header(obj->dataspace)->setp[i];
+    if(entry->ndx < slots) obj->inargp[entry->ndx] = &entry->value;
+  }
+  csoundSpinUnLock(&opcode_dataspace_lock);
+}
+
 
 /**
  * allocate and initialise opcode dataspace (with hidden refcount prefix)
@@ -1486,52 +1515,129 @@ void opcode_dataspace_free(CSOUND *csound, OPDS *dataspace) {
   csound->Free(csound, opcode_dataspace_base(dataspace));
 }
 
-int32_t opcode_dataspace_refcount(OPDS *dataspace) {
+static int32_t opcode_dataspace_incref_unlocked(OPDS *dataspace) {
+  uint32_t *ref;
   if(dataspace == NULL) return 0;
-  return (int32_t) *opcode_dataspace_refslot(dataspace);
+  ref = opcode_dataspace_refslot(dataspace);
+  if(ATOMIC_GET(*ref) < 0xffffffffu) ATOMIC_INCR(*ref);
+  return (int32_t) ATOMIC_GET(*ref);
+}
+
+static int32_t opcode_dataspace_decref_unlocked(OPDS *dataspace) {
+  uint32_t *ref;
+  if(dataspace == NULL) return 0;
+  ref = opcode_dataspace_refslot(dataspace);
+  if(ATOMIC_GET(*ref) > 0) ATOMIC_DECR(*ref);
+  return (int32_t) ATOMIC_GET(*ref);
+}
+
+static void opcode_dataspace_setref_unlocked(OPDS *dataspace, uint32_t count) {
+  if(dataspace != NULL) ATOMIC_SET(*opcode_dataspace_refslot(dataspace), count);
+}
+
+int32_t opcode_dataspace_refcount(OPDS *dataspace) {
+  int32_t rc;
+  if(dataspace == NULL) return 0;
+  csoundSpinLock(&opcode_dataspace_lock);
+  rc = (int32_t) ATOMIC_GET(*opcode_dataspace_refslot(dataspace));
+  csoundSpinUnLock(&opcode_dataspace_lock);
+  return rc;
 }
 
 int32_t opcode_dataspace_incref(OPDS *dataspace) {
-  uint32_t *ref;
+  int32_t rc;
   if(dataspace == NULL) return 0;
-  ref = opcode_dataspace_refslot(dataspace);
-  if(*ref < 0xffffffffu) (*ref)++;
-  return (int32_t) *ref;
+  csoundSpinLock(&opcode_dataspace_lock);
+  rc = opcode_dataspace_incref_unlocked(dataspace);
+  csoundSpinUnLock(&opcode_dataspace_lock);
+  return rc;
 }
 
 int32_t opcode_dataspace_decref(OPDS *dataspace) {
-  uint32_t *ref;
+  int32_t rc;
   if(dataspace == NULL) return 0;
-  ref = opcode_dataspace_refslot(dataspace);
-  if(*ref > 0) (*ref)--;
-  return (int32_t) *ref;
+  csoundSpinLock(&opcode_dataspace_lock);
+  rc = opcode_dataspace_decref_unlocked(dataspace);
+  csoundSpinUnLock(&opcode_dataspace_lock);
+  return rc;
 }
 
 void opcode_dataspace_setref(OPDS *dataspace, uint32_t count) {
-  if(dataspace != NULL) *opcode_dataspace_refslot(dataspace) = count;
+  if(dataspace == NULL) return;
+  csoundSpinLock(&opcode_dataspace_lock);
+  opcode_dataspace_setref_unlocked(dataspace, count);
+  csoundSpinUnLock(&opcode_dataspace_lock);
+}
+
+OPCODE_COPY_STATUS opcode_dataspace_acquire_copy(CSOUND *csound,
+                                                 OPCODEOBJ *src, INSDS *ctx,
+                                                 OPDS **dataspace,
+                                                 size_t *size,
+                                                 cs_float ***outargp,
+                                                 cs_float ***inargp,
+                                                 uint32_t *udo_flag) {
+  OPCODE_COPY_STATUS status = OPCODE_COPY_OK;
+  OPDS *ds;
+  if(src == NULL) return OPCODE_COPY_EMPTY;
+  csoundSpinLock(&opcode_dataspace_lock);
+  ds = src->dataspace;
+  if(ds == NULL) status = OPCODE_COPY_EMPTY;
+  else if(opcode_udo_ended(src)) status = OPCODE_COPY_ENDED;
+  else if(context_check(csound, src, ctx) != OK) status = OPCODE_COPY_CONTEXT;
+  else {
+    opcode_dataspace_incref_unlocked(ds);
+    if(dataspace != NULL) *dataspace = ds;
+    if(size != NULL) *size = src->size;
+    if(outargp != NULL) *outargp = src->outargp;
+    if(inargp != NULL) *inargp = src->inargp;
+    if(udo_flag != NULL) *udo_flag = src->udo_flag;
+  }
+  csoundSpinUnLock(&opcode_dataspace_lock);
+  return status;
+}
+
+static int32_t opcode_dataspace_release_locked(CSOUND *csound, OPCODEOBJ *obj,
+                                               int32_t runDeinit,
+                                               OPDS **freeDataspace,
+                                               OPDS **freeSpare,
+                                               OPDS **deinitDataspace) {
+  OPDS *dataspace;
+  int32_t rc;
+  *freeDataspace = *freeSpare = *deinitDataspace = NULL;
+  if(obj == NULL || obj->dataspace == NULL) return 0;
+  dataspace = obj->dataspace;
+  rc = opcode_dataspace_decref_unlocked(dataspace);
+  if(rc == 0) {
+    opcode_dataspace_clear_setp(dataspace);
+    if(runDeinit) *deinitDataspace = dataspace;
+    if(obj->udo_flag) {
+      if(obj->spare != NULL && obj->spare != dataspace &&
+         ((UOPCODE *) obj->spare)->ip == NULL)
+        *freeSpare = (OPDS *) obj->spare;
+      obj->spare = dataspace;
+    }
+    else *freeDataspace = dataspace;
+  }
+  obj->dataspace = NULL;
+  obj->outargp = obj->inargp = NULL;
+  return rc;
 }
 
 int32_t opcode_dataspace_release(CSOUND *csound, OPCODEOBJ *obj,
                                  int32_t runDeinit) {
-  OPDS *dataspace;
+  OPDS *freeDataspace = NULL, *freeSpare = NULL, *deinitDataspace = NULL;
   int32_t rc;
-  if(obj == NULL || obj->dataspace == NULL) return 0;
-  dataspace = obj->dataspace;
-  rc = opcode_dataspace_decref(dataspace);
+  csoundSpinLock(&opcode_dataspace_lock);
+  rc = opcode_dataspace_release_locked(csound, obj, runDeinit,
+                                       &freeDataspace, &freeSpare,
+                                       &deinitDataspace);
+  csoundSpinUnLock(&opcode_dataspace_lock);
   if(rc == 0) {
-    opcode_dataspace_clear_setp(dataspace);
-    if(runDeinit && dataspace->deinit != NULL)
-      dataspace->deinit(csound, dataspace);
-    if(obj->udo_flag) {
-      if(obj->spare != NULL && obj->spare != dataspace &&
-         ((UOPCODE *) obj->spare)->ip == NULL)
-        opcode_dataspace_free(csound, (OPDS *) obj->spare);
-      obj->spare = dataspace;
-    }
-    else opcode_dataspace_free(csound, dataspace);
+    if(deinitDataspace != NULL && deinitDataspace->deinit != NULL)
+      deinitDataspace->deinit(csound, deinitDataspace);
+    if(freeSpare != NULL) opcode_dataspace_free(csound, freeSpare);
+    if(freeDataspace != NULL) opcode_dataspace_free(csound, freeDataspace);
   }
-  obj->dataspace = NULL;
-  obj->outargp = obj->inargp = NULL;
   return rc;
 }
 
@@ -1540,15 +1646,22 @@ int32_t opcode_dataspace_release(CSOUND *csound, OPCODEOBJ *obj,
  * definition, or free it once its instance has been deactivated
  */
 static void opcode_take_spare(CSOUND *csound, OPCODEOBJ *obj, OENTRY *entry) {
-  UOPCODE *udo = (UOPCODE *) obj->spare;
-  if(udo == NULL) return;
+  UOPCODE *udo;
+  OPDS *freeDataspace = NULL;
+  csoundSpinLock(&opcode_dataspace_lock);
+  udo = (UOPCODE *) obj->spare;
+  if(udo == NULL) {
+    csoundSpinUnLock(&opcode_dataspace_lock);
+    return;
+  }
   obj->spare = NULL;
   if(obj->dataspace == NULL && udo->h.optext->t.oentry == entry) {
     obj->dataspace = (OPDS *) udo;
-    opcode_dataspace_setref(obj->dataspace, 1);
+    opcode_dataspace_setref_unlocked(obj->dataspace, 1);
   }
-  else if(udo->ip == NULL)
-    opcode_dataspace_free(csound, (OPDS *) udo);
+  else if(udo->ip == NULL) freeDataspace = (OPDS *) udo;
+  csoundSpinUnLock(&opcode_dataspace_lock);
+  if(freeDataspace != NULL) opcode_dataspace_free(csound, freeDataspace);
 }
 
 /**
@@ -2194,7 +2307,7 @@ int32_t set_opcode_param(CSOUND *csound, AOP *p) {
   ndx = (uint32_t) index;
   if(check_and_set_arg(csound, obj, ndx, arg) != 0)
     return csound->PerfError(csound, &(p->h), Str("could not set arg %u \n"), ndx);
-  if(opcode_dataspace_record_setp(csound, obj->dataspace, ndx, arg) != OK)
+  if(opcode_dataspace_record_setp(csound, obj->dataspace, ndx, *arg) != OK)
     return csound->PerfError(csound, &(p->h), Str("could not set arg %u \n"), ndx);
   if(obj->udo_flag &&
      user_opcode_rebind_args(csound, (UOPCODE *) obj->dataspace) != OK)

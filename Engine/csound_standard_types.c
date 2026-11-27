@@ -816,45 +816,53 @@ static void opcodedef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* de
 }
 
 static void opcode_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
-                      const void* src, INSDS *ctx) {
+                       const void* src, INSDS *ctx) {
   OPCODEOBJ *p, *psrc;
+  OPDS *dataspace = NULL;
+  cs_float **outargp = NULL, **inargp = NULL;
+  size_t size = 0;
+  uint32_t udo_flag = 0;
+  OPCODE_COPY_STATUS status;
   if (UNLIKELY(src == NULL || dest == NULL)) return;
   p = (OPCODEOBJ *) dest;
   psrc = (OPCODEOBJ *) src;
-  if(psrc->dataspace != NULL && opcode_udo_ended(psrc)) {
-    csound->Warning(csound, Str("opcode object UDO instance has ended: "
-                       "copy value bypassed\n"));
-    return;
-  }
-  if(psrc->dataspace != NULL && context_check(csound, psrc, ctx) != 0) {
-    csound->Warning(csound, Str("mismatching context: copy value bypassed\n"));
-    return;
-  }
   if(p->readonly) {
     csound->Warning(csound, Str("opcode instance var is read-only:"
                        " copy value bypassed\n"));
     return;
   }
-  if(psrc->dataspace == NULL) {
+  status = opcode_dataspace_acquire_copy(csound, psrc, ctx, &dataspace,
+                                         &size, &outargp, &inargp, &udo_flag);
+  if(status == OPCODE_COPY_ENDED) {
+    csound->Warning(csound, Str("opcode object UDO instance has ended: "
+                       "copy value bypassed\n"));
+    return;
+  }
+  if(status == OPCODE_COPY_CONTEXT) {
+    csound->Warning(csound, Str("mismatching context: copy value bypassed\n"));
+    return;
+  }
+  if(status == OPCODE_COPY_EMPTY) {
     opcode_dataspace_release(csound, p, 1);
     p->size = 0;
     p->udo_flag = 0;
     p->readonly = 0;
     return;
   }
-  if(p->dataspace == psrc->dataspace) {
+  if(p->dataspace == dataspace) {
+    opcode_dataspace_decref(dataspace);
     p->readonly = 0;
     return;
   }
   opcode_dataspace_release(csound, p, 1);
-  opcode_dataspace_incref(psrc->dataspace);
-  p->dataspace = psrc->dataspace;
-  p->size = psrc->size;
-  p->outargp = psrc->outargp;
-  p->inargp = psrc->inargp;
-  p->udo_flag = psrc->udo_flag;
+  p->dataspace = dataspace;
+  p->size = size;
+  p->outargp = outargp;
+  p->inargp = inargp;
+  p->udo_flag = udo_flag;
   p->readonly = 0;
 }
+
 
 
 static void instrdef_copy_value(CSOUND* csound, const CS_TYPE* cstype, void* dest,
