@@ -22,6 +22,7 @@
   Foundation, Inc., 31 Milk Street, #960789, Boston, MA, 02196, USA
 */
 
+#include "pfield.h"
 #include "csoundCore.h"
 #if defined(MSVC)
 #include <intrin.h> /* for ATOMIC_SET_SIZE */
@@ -139,10 +140,9 @@ int32_t strget_init(CSOUND *csound, STRGET_OP *p)
 {
   int32_t   indx;
   if (IsStringCode(*(p->indx))) {
-    char *ss = csound->init_event->strarg;
+    const char *ss = csoundInstanceStringArg(p->h.insdshead, *p->indx);
     if (ss == NULL)
       return OK;
-    ss = csoundGetArgString(csound, *p->indx);
     size_t len = strlen(ss);
     if (len >= p->r->size) {
       char *temp = csound->ReAlloc(csound, p->r->data, len + 1);

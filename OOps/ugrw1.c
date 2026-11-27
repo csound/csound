@@ -45,6 +45,7 @@
 
 #include "csoundCore.h"
 #include "ugrw1.h"
+#include "pfield.h"
 #include <math.h>
 #include <ctype.h>
 #include "csound_standard_types.h"
@@ -254,7 +255,7 @@ int32_t printk(CSOUND *csound, PRINTK *p)
 /* printksset_ reads a format into txtstring, at init and when printks'
    format changes during performance. A format that does not fit is NOTOK,
    for the caller to report. */
-static int32_t printksset_(PRINTKS *p, char *sarg)
+static int32_t printksset_(PRINTKS *p, const char *sarg)
 {
     char        *sdest;
     /* The last byte stays the terminator the memset writes. */
@@ -385,7 +386,7 @@ static int32_t printksset_(PRINTKS *p, char *sarg)
 
 /* printksset is called when the instance of the instrument is initialised.
    A format given then: none, or one too long, is an init error. */
-static int32_t printksset_init(CSOUND *csound, PRINTKS *p, char *sarg)
+static int32_t printksset_init(CSOUND *csound, PRINTKS *p, const char *sarg)
 {
     if (*p->ptime < CS_ONEDKR)
       p->ctime = CS_ONEDKR;
@@ -413,7 +414,8 @@ int32_t printksset_S(CSOUND *csound, PRINTKS *p){
 }
 
 int32_t printksset(CSOUND *csound, PRINTKS *p){
-    return printksset_init(csound, p, csoundGetArgString(csound, *p->ifilcod));
+    return printksset_init(csound, p,
+                           csoundInstanceStringArg(p->h.insdshead, *p->ifilcod));
 }
 
 
@@ -657,7 +659,7 @@ int32_t printsset(CSOUND *csound, PRINTS *p)
     csound->MessageS(csound, CSOUNDMSG_ORCH, "%s", string);
   }
   else if(isstrcod(*p->ifilcod)) {
-    const char *s = csound->GetArgString(csound, *p->ifilcod);
+    const char *s = csoundInstanceStringArg(p->h.insdshead, *p->ifilcod);
     if (UNLIKELY(s == NULL))
       return csound->InitError(csound, Str("null string\n"));
     csound->Message(csound, "%s", s);
