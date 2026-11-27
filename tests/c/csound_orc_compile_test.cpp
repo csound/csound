@@ -5775,6 +5775,386 @@ endop
 #endif
 }
 
+TEST(ParcsTests, DirtyDagFallbackWithConcurrentNoteInserts)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#else
+    struct SpinLockGuardThread {
+        spin_lock_t *lock;
+        std::atomic<bool> acquired{false};
+        std::atomic<bool> release{false};
+        std::thread worker;
+
+        explicit SpinLockGuardThread(spin_lock_t *l) : lock(l) {
+            worker = std::thread([this]() {
+                csoundSpinLock(lock);
+                acquired.store(true, std::memory_order_release);
+                while (!release.load(std::memory_order_acquire)) {
+                    csoundSleep(1);
+                }
+                csoundSpinUnLock(lock);
+            });
+            while (!acquired.load(std::memory_order_acquire)) {
+                csoundSleep(1);
+            }
+        }
+
+        void unlockAndJoin() {
+            if (worker.joinable()) {
+                release.store(true, std::memory_order_release);
+                worker.join();
+            }
+        }
+
+        ~SpinLockGuardThread() {
+            unlockAndJoin();
+        }
+    };
+
+    for (int threads : {2, 4}) {
+        SCOPED_TRACE(threads);
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        std::string jOpt = "-j" + std::to_string(threads);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, jOpt.c_str()));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+gkHeadSeen init 0
+gkTailSeen init 0
+
+instr 1
+  gkHeadSeen += 1
+  chnset gkHeadSeen, "headSeen"
+endin
+
+instr 2
+  kCount init 0
+  kCount += 1
+  chnset kCount, "steady"
+endin
+
+instr 3
+  kCount init 0
+  kCount += 1
+  chnset kCount, "newlyReady"
+endin
+
+instr 4
+  gkTailSeen += 1
+  chnset gkTailSeen, "tailSeen"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 2 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+
+        bool steadyReady = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active == 1 &&
+                parcsAtomicLoadInt32(&csound->dag_changed) == 0 &&
+                csound->dag_task_map != nullptr &&
+                csound->dag_task_map[0]->insno == 2 &&
+                parcsAtomicLoadInt32(&csound->dag_task_map[0]->init_done) == 1) {
+                steadyReady = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(steadyReady);
+
+        // Queue instr 3 and wait until linked + init_done while DAG still has
+        // only instr 2, then run under alloc_spinlock contention.
+        csoundReadScore(csound, "i 3 0 10\n");
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        bool instr3Ready = false;
+        for (int step = 0; step < 2000; step++) {
+            csoundSpinLock(&csound->alloc_spinlock);
+            for (INSDS *ip = csound->actanchor.nxtact; ip != nullptr;
+                 ip = ip->nxtact) {
+                if (ip->insno == 3 &&
+                    parcsAtomicLoadInt32(&ip->init_done) == 1 &&
+                    parcsAtomicLoadInt32(&csound->dag_changed) > 0) {
+                    instr3Ready = true;
+                    break;
+                }
+            }
+            csoundSpinUnLock(&csound->alloc_spinlock);
+            if (instr3Ready) {
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(instr3Ready);
+
+        int32_t err = 0;
+        cs_float steadyBefore = csoundGetControlChannel(csound, "steady", &err);
+        ASSERT_EQ(FL(0.0), csoundGetControlChannel(csound, "newlyReady", &err));
+        {
+            SpinLockGuardThread holder(&csound->alloc_spinlock);
+            ASSERT_NE(nullptr, csound->dag_active_snapshot);
+            EXPECT_GE(csound->dag_active_snapshot->count, 2);
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            EXPECT_GT(csoundGetControlChannel(csound, "steady", &err), steadyBefore);
+            EXPECT_EQ(FL(1.0), csoundGetControlChannel(csound, "newlyReady", &err));
+            holder.unlockAndJoin();
+        }
+
+        // Repeatedly insert short notes splicing at both head (instr 1) and
+        // tail (instr 4) of actanchor concurrently with kperf()/dag_build().
+        for (int iter = 0; iter < 64; iter++) {
+            if ((iter % 8) == 0) {
+                csoundReadScore(csound, "i 1 0 0.02\ni 4 0 0.02\n");
+            }
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            csoundSleep(1);
+        }
+
+        // Wait for queued short notes to initialize and run cleanly.
+        bool sawHeadAndTail = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csoundGetControlChannel(csound, "headSeen", &err) > FL(0.0) &&
+                csoundGetControlChannel(csound, "tailSeen", &err) > FL(0.0)) {
+                sawHeadAndTail = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+
+        EXPECT_TRUE(sawHeadAndTail);
+        EXPECT_GT(csoundGetControlChannel(csound, "headSeen", &err), FL(0.0));
+        EXPECT_EQ(0, err);
+        EXPECT_GT(csoundGetControlChannel(csound, "tailSeen", &err), FL(0.0));
+        EXPECT_EQ(0, err);
+        EXPECT_GT(csoundGetControlChannel(csound, "newlyReady", &err), FL(60.0));
+        EXPECT_EQ(0, err);
+        EXPECT_EQ(0, csoundErrCnt(csound));
+        csoundDestroy(csound);
+    }
+#endif
+}
+
+namespace {
+struct DagCallocFailHook {
+    void *(*origCalloc)(CSOUND *, size_t) = nullptr;
+    CSOUND *target = nullptr;
+    std::thread::id perfThread{};
+    size_t minBytes = 0;
+    std::atomic<bool> armed{false};
+    std::atomic<bool> tripped{false};
+};
+
+DagCallocFailHook &getDagCallocFailHook()
+{
+    static DagCallocFailHook hook;
+    return hook;
+}
+
+void *dagFailOnceCalloc(CSOUND *cs, size_t nbytes)
+{
+    DagCallocFailHook &hook = getDagCallocFailHook();
+    if (cs == hook.target &&
+        nbytes >= hook.minBytes &&
+        std::this_thread::get_id() == hook.perfThread &&
+        hook.armed.exchange(false, std::memory_order_acq_rel)) {
+        hook.tripped.store(true, std::memory_order_release);
+        return hook.origCalloc(cs, SIZE_MAX);
+    }
+    return hook.origCalloc(cs, nbytes);
+}
+}  // namespace
+
+TEST(ParcsTests, DagBuildAllocationFailureReleasesAllocSpinlock)
+{
+#if !CSOUND_SPINLOCK_AVAILABLE || \
+    (!defined(HAVE_ATOMIC_BUILTIN) && !defined(MSVC))
+    GTEST_SKIP() << "Realtime publication requires native atomics";
+#else
+    // Subcase A: task_deps Calloc failure on rebuild leaves alloc_spinlock unlocked
+    // and allows subsequent DAG rebuild + realtime teardown without hanging.
+    {
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-j2"));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  kA = 1
+endin
+
+instr 2
+  kB = 2
+endin
+
+instr 3
+  kC = 3
+  chnset 1, "i3Ran"
+endin
+
+instr 4
+  chnset 42, "i4Recovered"
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ni 2 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+
+        bool builtTwo = false;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active == 2 &&
+                parcsAtomicLoadInt32(&csound->dag_changed) == 0 &&
+                csound->dag_task_status != nullptr) {
+                builtTwo = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(builtTwo);
+
+        csoundReadScore(csound, "i 3 0 10\n");
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+        bool instr3Linked = false;
+        for (int step = 0; step < 2000; step++) {
+            csoundSpinLock(&csound->alloc_spinlock);
+            for (INSDS *ip = csound->actanchor.nxtact; ip != nullptr;
+                 ip = ip->nxtact) {
+                if (ip->insno == 3 &&
+                    parcsAtomicLoadInt32(&csound->dag_changed) > 0) {
+                    instr3Linked = true;
+                    break;
+                }
+            }
+            csoundSpinUnLock(&csound->alloc_spinlock);
+            if (instr3Linked) {
+                break;
+            }
+            csoundSleep(1);
+        }
+        ASSERT_TRUE(instr3Linked);
+
+        DagCallocFailHook &hook = getDagCallocFailHook();
+        hook.origCalloc = csound->Calloc;
+        hook.target = csound;
+        hook.perfThread = std::this_thread::get_id();
+        hook.minBytes = 0;
+        hook.tripped.store(false, std::memory_order_release);
+        hook.armed.store(true, std::memory_order_release);
+        csound->Calloc = dagFailOnceCalloc;
+
+        int32_t perfRes = csoundPerformKsmps(csound);
+        csound->Calloc = hook.origCalloc;
+        hook.armed.store(false, std::memory_order_release);
+        hook.target = nullptr;
+
+        EXPECT_TRUE(hook.tripped.load(std::memory_order_acquire));
+        EXPECT_EQ(CSOUND_MEMORY, perfRes);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSpinTryLock(&csound->alloc_spinlock));
+        csoundSpinUnLock(&csound->alloc_spinlock);
+        EXPECT_GT(parcsAtomicLoadInt32(&csound->dag_changed), 0);
+
+        // Next k-cycle recovers cleanly and rebuilds the 3-node DAG, and
+        // subsequent realtime event insertion does not block on alloc_spinlock.
+        csoundReadScore(csound, "i 4 0 0.2\n");
+        bool recovered = false;
+        int32_t err = 0;
+        for (int step = 0; step < 2000; step++) {
+            ASSERT_EQ(0, csoundPerformKsmps(csound));
+            if (csound->dag_num_active >= 3 &&
+                csoundGetControlChannel(csound, "i4Recovered", &err) == FL(42.0)) {
+                recovered = true;
+                break;
+            }
+            csoundSleep(1);
+        }
+        EXPECT_TRUE(recovered);
+        csoundDestroy(csound);
+    }
+
+    // Subcase B: create_dag() Calloc failure on first dirty build also leaves
+    // alloc_spinlock unlocked and tears down cleanly.
+    {
+        CSOUND *csound = csoundCreate(nullptr, nullptr);
+        ASSERT_NE(nullptr, csound);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-d"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-m0"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "--realtime"));
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-j2"));
+
+        const char *orc = R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  kOut = 1
+endin
+)";
+        ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, orc));
+        csoundReadScore(csound, "i 1 0 10\ne 11\n");
+        ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+        ASSERT_TRUE(csound->realtime_locks_initialized);
+        ASSERT_EQ(nullptr, csound->dag_task_status);
+
+        // Fail once create_dag() allocates its task arrays (> 1 KiB), leaving
+        // sense_events() score queuing intact.
+        DagCallocFailHook &hook = getDagCallocFailHook();
+        hook.origCalloc = csound->Calloc;
+        hook.target = csound;
+        hook.perfThread = std::this_thread::get_id();
+        hook.minBytes = 1024;
+        hook.tripped.store(false, std::memory_order_release);
+        hook.armed.store(true, std::memory_order_release);
+        csound->Calloc = dagFailOnceCalloc;
+
+        int32_t perfRes = 0;
+        for (int step = 0; step < 2000; step++) {
+            perfRes = csoundPerformKsmps(csound);
+            if (hook.tripped.load(std::memory_order_acquire)) {
+                break;
+            }
+            ASSERT_EQ(0, perfRes);
+            csoundSleep(1);
+        }
+        csound->Calloc = hook.origCalloc;
+        hook.armed.store(false, std::memory_order_release);
+        hook.target = nullptr;
+        hook.minBytes = 0;
+
+        EXPECT_TRUE(hook.tripped.load(std::memory_order_acquire));
+        EXPECT_EQ(CSOUND_MEMORY, perfRes);
+        ASSERT_EQ(CSOUND_SUCCESS, csoundSpinTryLock(&csound->alloc_spinlock));
+        csoundSpinUnLock(&csound->alloc_spinlock);
+        EXPECT_GT(parcsAtomicLoadInt32(&csound->dag_changed), 0);
+        csoundDestroy(csound);
+    }
+#endif
+}
+
 #if !defined(_WIN32)
 TEST_F(OrcCompileTests, LineventPipeDoesNotBlockWhileProducerIsOpen)
 {

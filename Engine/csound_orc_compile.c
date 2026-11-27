@@ -2388,6 +2388,10 @@ void merge_state(CSOUND *csound, ENGINE_STATE *engineState,
   if (csound->init_pass_threadlock)
     csoundLockMutex(csound->init_pass_threadlock);
   if (!landed || setjmp(landing.target) == 0) {
+#ifdef PARCS
+    if (csound->oparms->numThreads > 1)
+      dag_publish_active_snapshot_locked(csound);
+#endif
     merge_engine_state(csound, engineState, typetable);
     run_merged_global_init(csound, ids);
   }
@@ -2422,6 +2426,10 @@ void merge_state_realtime(CSOUND *csound, ENGINE_STATE *engineState,
     /* Keep the init-lock-before-allocation-lock order used by realtime init. */
     csoundSpinLock(&csound->alloc_spinlock);
     allocLocked = 1;
+#ifdef PARCS
+    if (csound->oparms->numThreads > 1)
+      dag_publish_active_snapshot_locked(csound);
+#endif
     named_instr_assign_numbers(csound, engineState);
     merge_engine_state(csound, engineState, typetable);
     csoundSpinUnLock(&csound->alloc_spinlock);

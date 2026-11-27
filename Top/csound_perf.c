@@ -206,13 +206,89 @@ unsigned long kperf_thread(void *cs) {
 #endif // PARCS
 
 /**
+   Run one active instrument instance for a single control cycle.
+*/
+static inline void kperf_run_instance(CSOUND *csound, INSDS *ip,
+                                      cs_double time_end) {
+  int32_t done = ATOMIC_GET(ip->init_done);
+  if (done == 1) { /* if init-pass has been done */
+    if (UNLIKELY(csound->oparms->sampleAccurate && ip->offtim > 0 &&
+                 time_end > ip->offtim)) {
+      /* this is the last cycle of performance */
+      if (csoundGetDebug(csound) & DEBUG_RUNTIME)
+        csound->Message(csound, "last cycle %d: %f %f %d\n",
+                        ip->insno, csound->icurTimeSamples / csound->esr,
+                        ip->offtim, ip->no_end);
+      ip->ksmps_no_end = ip->no_end;
+    }
+    int32_t error = 0;
+    OPDS *opstart = (OPDS *)ip;
+    ip->spin = csound->spin;
+    ip->spout = csound->spout_tmp;
+    ip->kcounter = csound->kcounter;
+    if (ip->ksmps == csound->ksmps) {
+      csound->mode = 2;
+      /* Keep the owner, but reread pds after callbacks for jumps. */
+      while (error == 0 && opstart != NULL &&
+             (opstart = opstart->nxtp) != NULL && ip->actflg) {
+        ip->pds = opstart;
+        csound->op = opstart->optext->t.opcod;
+        error = (*opstart->perf)(csound, opstart); /* run each opcode */
+        opstart = ip->pds;
+      }
+      csound->mode = 0;
+    } else {
+      int32_t inner_error = 0;
+      int32_t i, n = csound->nspout, start = 0;
+      int32_t lksmps = ip->ksmps;
+      int32_t incr = csound->nchnls * lksmps;
+      int32_t insmps = csound->inchnls * lksmps;
+      int32_t offset = ip->ksmps_offset;
+      int32_t early = ip->ksmps_no_end;
+      OPDS *local_opstart;
+      ip->kcounter = (csound->kcounter - 1) * csound->ksmps / lksmps;
+
+      /* we have to deal with sample-accurate code
+         whole CS_KSMPS blocks are offset here, the
+         remainder is left to each opcode to deal with.
+      */
+      while (offset >= lksmps) {
+        offset -= lksmps;
+        start += incr;
+        ip->spin += csound->inchnls * lksmps;
+        ip->spout += lksmps;
+      }
+      ip->ksmps_offset = offset;
+      n -= early * csound->nchnls;
+      for (i = start; i < n;
+           i += incr, ip->spin += insmps, ip->spout += lksmps) {
+        ip->ksmps_no_end = i + incr >= n ? early % lksmps : 0;
+        ip->kcounter++;
+        local_opstart = (OPDS *)ip;
+        csound->mode = 2;
+        while (inner_error == 0 && (local_opstart = local_opstart->nxtp) != NULL &&
+               ip->actflg) {
+          ip->pds = local_opstart;
+          csound->op = local_opstart->optext->t.opcod;
+          inner_error = (*local_opstart->perf)(csound, local_opstart); /* run each opcode */
+          local_opstart = ip->pds;
+        }
+        csound->mode = 0;
+        ip->ksmps_offset = 0;
+      }
+    }
+    ip->ksmps_offset = 0; /* reset sample-accuracy offset */
+    ip->ksmps_no_end = 0; /* reset end of loop samples */
+  }
+}
+
+/**
    Perform one k-cycle
    either in a single thread
    or as the master thread for multicore
 */
 int32_t kperf(CSOUND *csound) {
   INSDS *ip;
-  int32_t lksmps = csound->ksmps;
   /* update orchestra time */
   csound->kcounter = ++(csound->global_kcounter);
   csound->icurTimeSamples += csound->ksmps;
@@ -237,26 +313,22 @@ int32_t kperf(CSOUND *csound) {
   memset(csound->spout, 0, csound->nspout * sizeof(cs_float));
   memset(csound->spout_tmp, 0,
          sizeof(cs_float) * csound->nspout * csound->oparms->numThreads);
-  ip = csound->actanchor.nxtact;
 
-  if (ip != NULL) {
-    int32_t use_multicore = 0;
 #ifdef PARCS
-    // multicore performance
-    if (csound->multiThreadedThreadInfo != NULL) {
-      /* There are 2 partitions of work: 1st by inso,
-         2nd by inso count / thread count. */
-      int32_t k, error = 0;
-      int32_t n = csound->oparms->numThreads;
-      use_multicore = 1;
-      if (ATOMIC_GET(csound->dag_changed)) {
-        if (!dag_build(csound, ip))
-          use_multicore = 0;
-      } else {
-        dag_reinit(csound); /* set to initial state */
-      }
+  if (csound->multiThreadedThreadInfo != NULL) {
+    /* multicore performance (must avoid unsynchronized actanchor walks) */
+    int32_t use_multicore = 1;
+    if (ATOMIC_GET(csound->dag_changed)) {
+      if (!dag_build(csound, NULL))
+        use_multicore = 0;
+    } else if (csound->dag_num_active > 0) {
+      dag_reinit(csound); /* set to initial state */
+    }
 
-      if (use_multicore) {
+    if (use_multicore) {
+      if (csound->dag_num_active > 0) {
+        int32_t k, error = 0;
+        int32_t n = csound->oparms->numThreads;
         /* process this partition */
 #ifdef PARCS_USE_LOCK_BARRIER
         csound->WaitBarrier(csound->barrier1);
@@ -265,9 +337,9 @@ int32_t kperf(CSOUND *csound) {
         ATOMIC_SET(csound->parflag, parflag);
 #endif
         error = node_perf(csound, 0, n);
-        if(error)
-          csoundErrorMsg(csound, "%s",  Str("error in thread 1\n"));
-          
+        if (error)
+          csoundErrorMsg(csound, "%s", Str("error in thread 1\n"));
+
         /* wait until partition is complete */
 #ifdef PARCS_USE_LOCK_BARRIER
         csound->WaitBarrier(csound->barrier2);
@@ -275,110 +347,52 @@ int32_t kperf(CSOUND *csound) {
         {
           int32_t i;
           do {
-            for(i = 1; i < n; i++)
+            for (i = 1; i < n; i++)
               if (ATOMIC_GET(csound->taskflag[i]) != parflag)
                 break;
-          } while(i < n);
+          } while (i < n);
         }
 #endif
         /* do the mixing of thread buffers */
         for (k = 1; k < csound->oparms->numThreads; k++)
-            mix_out(csound->spout_tmp, csound->spout_tmp +
-                    k * csound->nspout, csound->nspout);
+          mix_out(csound->spout_tmp, csound->spout_tmp +
+                  k * csound->nspout, csound->nspout);
         csound->multiThreadedDag = NULL;
       }
+    } else {
+      /* Contended dirty-DAG serial fallback: read published snapshot safely. */
+      const DAG_ACTIVE_SNAPSHOT *snap = dag_load_active_snapshot(csound);
+      if (snap != NULL && snap->count > 0) {
+        int32_t idx;
+        cs_double time_end =
+          (csound->ksmps + csound->icurTimeSamples) / csound->esr;
+        for (idx = 0; idx < snap->count; idx++) {
+          kperf_run_instance(csound, snap->items[idx], time_end);
+        }
+      }
     }
+    csound->spoutran(csound); /* send to audio_out */
+    return 0;
+  }
 #endif /* PARCS */
-    // single-thread performance (and contended dirty-DAG serial fallback)
-    if (!use_multicore) {
-      int32_t done;
-      cs_double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
-      ip = csound->actanchor.nxtact;
 
-      while (ip != NULL) { /* for each instr active:  */
-        INSDS *nxt = ip->nxtact;
-        done = ATOMIC_GET(ip->init_done);
-        if (done == 1) { /* if init-pass has been done */
-          if (UNLIKELY(csound->oparms->sampleAccurate && ip->offtim > 0 &&
-                       time_end > ip->offtim)) {
-            /* this is the last cycle of performance */
-            if(csoundGetDebug(csound) & DEBUG_RUNTIME)
-               csound->Message(csound, "last cycle %d: %f %f %d\n",
-                   ip->insno, csound->icurTimeSamples/csound->esr,
-                   ip->offtim, ip->no_end);
-            ip->ksmps_no_end = ip->no_end;
-          }
-          int32_t error = 0;
-          OPDS *opstart = (OPDS *)ip;
-          ip->spin = csound->spin;
-          ip->spout = csound->spout_tmp;
-          ip->kcounter = csound->kcounter;
-          if (ip->ksmps == csound->ksmps) {
-            csound->mode = 2;
-            /* Keep the owner, but reread pds after callbacks for jumps. */
-            while (error == 0 && opstart != NULL &&
-                   (opstart = opstart->nxtp) != NULL && ip->actflg) {
-              ip->pds = opstart;
-              csound->op = opstart->optext->t.opcod;
-              error = (*opstart->perf)(csound, opstart); /* run each opcode */
-              opstart = ip->pds;
-            }
-            csound->mode = 0;
-          } else {
-            int32_t error = 0;
-            int32_t i, n = csound->nspout, start = 0;
-            lksmps = ip->ksmps;
-            int32_t incr = csound->nchnls * lksmps;
-            int32_t insmps = csound->inchnls * lksmps;
-            int32_t offset = ip->ksmps_offset;
-            int32_t early = ip->ksmps_no_end;
-            OPDS *opstart;
-            ip->kcounter = (csound->kcounter - 1) * csound->ksmps / lksmps;
+  ip = csound->actanchor.nxtact;
+  if (ip != NULL) {
+    cs_double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
 
-            /* we have to deal with sample-accurate code
-               whole CS_KSMPS blocks are offset here, the
-               remainder is left to each opcode to deal with.
-            */
-            while (offset >= lksmps) {
-              offset -= lksmps;
-              start += incr;
-              ip->spin += csound->inchnls * lksmps;
-              ip->spout += lksmps;
-            }
-            ip->ksmps_offset = offset;
-            n -= early * csound->nchnls;
-            for (i = start; i < n;
-                 i += incr, ip->spin += insmps, ip->spout += lksmps) {
-              ip->ksmps_no_end = i + incr >= n ? early % lksmps : 0;
-              ip->kcounter++;
-              opstart = (OPDS *)ip;
-              csound->mode = 2;
-              while (error == 0 && (opstart = opstart->nxtp) != NULL &&
-                     ip->actflg) {
-                ip->pds = opstart;
-                csound->op = opstart->optext->t.opcod;
-                error = (*opstart->perf)(csound, opstart); /* run each opcode */
-                opstart = ip->pds;
-              }
-              csound->mode = 0;
-              ip->ksmps_offset = 0;
-            }
-          }
-          ip->ksmps_offset = 0; /* reset sample-accuracy offset */
-          ip->ksmps_no_end = 0; /* reset end of loop samples */
-        }
-        if(nxt == NULL) {
-          ip = ip->nxtact;
-        /* VL 13.04.21 this allows for deletions to operate
-           correctly on the active list at perf time.
-           This allows for turnoff2 to work correctly
-        */
-        }
-        else {
-          ip = nxt;
-          /* now check again if there is nothing nxt
-             in the chain making sure turnoff also works  */
-        }
+    while (ip != NULL) { /* for each instr active:  */
+      INSDS *nxt = ip->nxtact;
+      kperf_run_instance(csound, ip, time_end);
+      if (nxt == NULL) {
+        ip = ip->nxtact;
+      /* VL 13.04.21 this allows for deletions to operate
+         correctly on the active list at perf time.
+         This allows for turnoff2 to work correctly
+      */
+      } else {
+        ip = nxt;
+        /* now check again if there is nothing nxt
+           in the chain making sure turnoff also works  */
       }
     }
   }
@@ -415,6 +429,10 @@ static int32_t performance_jumped(CSOUND *csound, int32_t returnValue)
   /* the jump left the k-cycles below, which hold API_lock */
   if (!csound->oparms->realtime)
     csoundUnlockMutex(csound->API_lock);
+#ifdef PARCS
+  if (csound->oparms->numThreads > 1)
+    ATOMIC_INCR(csound->dag_changed);
+#endif
   return ((returnValue - CSOUND_EXITJMP_SUCCESS) | CSOUND_EXITJMP_SUCCESS);
 }
 

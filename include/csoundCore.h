@@ -1308,6 +1308,19 @@ typedef struct _CSOUND_UTIL {
 */
 #ifdef __BUILDING_LIBCSOUND
 #include "cs_internal.h"
+
+typedef struct dag_active_snapshot {
+  int32_t count;
+  long retired_epoch;
+  struct dag_active_snapshot *next_retired;
+  INSDS *items[1];
+} DAG_ACTIVE_SNAPSHOT;
+
+#ifdef PARCS
+const DAG_ACTIVE_SNAPSHOT *dag_load_active_snapshot(CSOUND *csound);
+void dag_publish_active_snapshot_locked(CSOUND *csound);
+void dag_cleanup_active_snapshots(CSOUND *csound);
+#endif
 #endif
 
 /**
@@ -2194,6 +2207,8 @@ struct CSOUND_ {
   ORC_DELIMITER_SCAN orcScan;                                /* stateful scanner for live orchestra blocks */
   int32_t lineventDiscardLine;                               /* discarding remainder of oversized -L line */
   struct provisional_struct_entry *provisionalStructs;       /* uncommitted parsed struct types */
+  struct dag_active_snapshot *dag_active_snapshot;           /* published active-chain snapshot for busy-lock PARCS fallback */
+  struct dag_active_snapshot *dag_active_retired;            /* retired active-chain snapshots awaiting epoch reclamation */
   /*struct CSOUND_ **self;*/
   /**@}*/
 #endif /* __BUILDING_LIBCSOUND */

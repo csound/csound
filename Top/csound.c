@@ -1112,6 +1112,8 @@ static const CSOUND cenviron_ = {
     .orcScan = {0},
     .lineventDiscardLine = 0,
     .provisionalStructs = NULL,
+    .dag_active_snapshot = NULL,
+    .dag_active_retired = NULL,
 
 };
 
@@ -2007,6 +2009,9 @@ static void reset(CSOUND *csound) {
   dag_cleanup(csound);
 #endif
   csound_cleanup(csound);
+#ifdef PARCS
+  dag_cleanup_active_snapshots(csound);
+#endif
   /* call registered reset callbacks */
   while (csound->reset_list != NULL) {
     resetCallback_t *p = (resetCallback_t *)csound->reset_list;

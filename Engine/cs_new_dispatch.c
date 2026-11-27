@@ -33,6 +33,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <limits.h>
 #include "csoundCore.h"
 #include "cs_par_base.h"
@@ -203,31 +204,223 @@ void dag_cleanup(CSOUND *csound)
 #define DAG_RES_INT (1u << 3)
 #define DAG_RES_STK (1u << 4)
 
+typedef struct dag_ptr_pools {
+    void **reads;
+    int32_t read_used, read_cap, read_overflow;
+    void **writes;
+    int32_t write_used, write_cap, write_overflow;
+} DAG_PTR_POOLS;
+
 typedef struct dag_instr_deps {
     uint32_t read_res;
     uint32_t write_res;
     int32_t requires_order;
     int32_t has_udo_call;
-    void **reads;
-    int32_t nreads, cap_reads;
-    void **writes;
-    int32_t nwrites, cap_writes;
+    int32_t read_off, nreads;
+    int32_t write_off, nwrites;
 } DAG_INSTR_DEPS;
 
-static void dag_deps_add_ptr(CSOUND *csound, void ***arr,
-                             int32_t *n, int32_t *cap, void *ptr)
+static inline const DAG_ACTIVE_SNAPSHOT *dag_load_active_snapshot_raw(
+    const CSOUND *csound)
+{
+#if defined(_MSC_VER)
+    return (const DAG_ACTIVE_SNAPSHOT *)InterlockedCompareExchangePointer(
+        (PVOID volatile *)&csound->dag_active_snapshot, NULL, NULL);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+    return __atomic_load_n(&csound->dag_active_snapshot, __ATOMIC_SEQ_CST);
+#else
+    return csound->dag_active_snapshot;
+#endif
+}
+
+static inline void dag_store_active_snapshot(CSOUND *csound,
+                                             DAG_ACTIVE_SNAPSHOT *snap)
+{
+#if defined(_MSC_VER)
+    (void)InterlockedExchangePointer(
+        (PVOID volatile *)&csound->dag_active_snapshot, (PVOID)snap);
+#elif defined(HAVE_ATOMIC_BUILTIN)
+    __atomic_store_n(&csound->dag_active_snapshot, snap, __ATOMIC_SEQ_CST);
+#else
+    csound->dag_active_snapshot = snap;
+#endif
+}
+
+const DAG_ACTIVE_SNAPSHOT *dag_load_active_snapshot(CSOUND *csound)
+{
+    if (csound == NULL)
+      return NULL;
+    return dag_load_active_snapshot_raw(csound);
+}
+
+static void dag_pin_snapshot_inactive_nodes(const DAG_ACTIVE_SNAPSHOT *snap,
+                                            long epoch)
 {
     int32_t i;
+    if (snap == NULL || (epoch & 1L) == 0)
+      return;
+    for (i = 0; i < snap->count; i++) {
+      INSDS *item = snap->items[i];
+      if (item != NULL && !ATOMIC_GET8(item->actflg)) {
+        ATOMIC_SET(item->retired_epoch, epoch);
+      }
+    }
+}
+
+static void dag_reclaim_active_snapshots_locked(CSOUND *csound)
+{
+    long current_epoch = ATOMIC_GET(csound->performance_epoch);
+    DAG_ACTIVE_SNAPSHOT **link = &csound->dag_active_retired;
+    while (*link != NULL) {
+      DAG_ACTIVE_SNAPSHOT *cur = *link;
+      if ((cur->retired_epoch & 1L) == 0 ||
+          cur->retired_epoch != current_epoch) {
+        *link = cur->next_retired;
+        free(cur);
+      } else {
+        link = &cur->next_retired;
+      }
+    }
+}
+
+static void dag_retire_active_snapshot_locked(CSOUND *csound,
+                                              DAG_ACTIVE_SNAPSHOT *old_snap)
+{
+    long epoch;
+    if (old_snap == NULL)
+      return;
+    epoch = ATOMIC_GET(csound->performance_epoch);
+    if ((epoch & 1L) != 0) {
+      dag_pin_snapshot_inactive_nodes(old_snap, epoch);
+      old_snap->retired_epoch = epoch;
+      old_snap->next_retired = csound->dag_active_retired;
+      csound->dag_active_retired = old_snap;
+    } else {
+      free(old_snap);
+    }
+}
+
+static DAG_ACTIVE_SNAPSHOT *dag_alloc_snapshot(int32_t count)
+{
+    size_t alloc_items = (size_t)(count > 0 ? count : 1);
+    size_t sz = offsetof(DAG_ACTIVE_SNAPSHOT, items) +
+                sizeof(INSDS *) * alloc_items;
+    DAG_ACTIVE_SNAPSHOT *snap = (DAG_ACTIVE_SNAPSHOT *)malloc(sz);
+    if (snap != NULL) {
+      snap->count = count;
+      snap->retired_epoch = 0;
+      snap->next_retired = NULL;
+      snap->items[0] = NULL;
+    }
+    return snap;
+}
+
+static void dag_publish_active_snapshot_from_array_locked(
+    CSOUND *csound, INSDS *const *items, int32_t count)
+{
+    DAG_ACTIVE_SNAPSHOT *old_snap = csound->dag_active_snapshot;
+    DAG_ACTIVE_SNAPSHOT *new_snap;
+
+    dag_reclaim_active_snapshots_locked(csound);
+    if (old_snap == NULL && count == 0)
+      return;
+    if (old_snap != NULL && old_snap->count == count &&
+        (count == 0 ||
+         memcmp(old_snap->items, items, sizeof(INSDS *) * (size_t)count) == 0))
+      return;
+
+    new_snap = dag_alloc_snapshot(count);
+    if (new_snap == NULL) {
+      dag_pin_snapshot_inactive_nodes(old_snap,
+                                      ATOMIC_GET(csound->performance_epoch));
+      return;
+    }
+    if (count > 0)
+      memcpy(new_snap->items, items, sizeof(INSDS *) * (size_t)count);
+    dag_store_active_snapshot(csound, new_snap);
+    dag_retire_active_snapshot_locked(csound, old_snap);
+}
+
+void dag_publish_active_snapshot_locked(CSOUND *csound)
+{
+    DAG_ACTIVE_SNAPSHOT *old_snap;
+    DAG_ACTIVE_SNAPSHOT *new_snap;
+    INSDS *cur;
+    int32_t count = 0;
+    int32_t same;
+
+    if (csound == NULL)
+      return;
+    dag_reclaim_active_snapshots_locked(csound);
+    old_snap = csound->dag_active_snapshot;
+    same = (old_snap != NULL);
+    for (cur = csound->actanchor.nxtact; cur != NULL; cur = cur->nxtact) {
+      if (same && (count >= old_snap->count || old_snap->items[count] != cur))
+        same = 0;
+      count++;
+    }
+    if (old_snap == NULL && count == 0)
+      return;
+    if (same && count == old_snap->count)
+      return;
+
+    new_snap = dag_alloc_snapshot(count);
+    if (new_snap == NULL) {
+      dag_pin_snapshot_inactive_nodes(old_snap,
+                                      ATOMIC_GET(csound->performance_epoch));
+      return;
+    }
+    count = 0;
+    for (cur = csound->actanchor.nxtact; cur != NULL; cur = cur->nxtact) {
+      new_snap->items[count++] = cur;
+    }
+    dag_store_active_snapshot(csound, new_snap);
+    dag_retire_active_snapshot_locked(csound, old_snap);
+}
+
+void dag_cleanup_active_snapshots(CSOUND *csound)
+{
+    DAG_ACTIVE_SNAPSHOT *cur;
+    DAG_ACTIVE_SNAPSHOT *retired;
+    if (csound == NULL)
+      return;
+    cur = csound->dag_active_snapshot;
+    csound->dag_active_snapshot = NULL;
+    free(cur);
+    retired = csound->dag_active_retired;
+    csound->dag_active_retired = NULL;
+    while (retired != NULL) {
+      DAG_ACTIVE_SNAPSHOT *next = retired->next_retired;
+      free(retired);
+      retired = next;
+    }
+}
+
+static void dag_deps_add_ptr(DAG_PTR_POOLS *pools, int32_t is_write,
+                             int32_t off, int32_t *n, void *ptr)
+{
+    void **arr = is_write ? pools->writes : pools->reads;
+    int32_t *used = is_write ? &pools->write_used : &pools->read_used;
+    int32_t cap = is_write ? pools->write_cap : pools->read_cap;
+    int32_t *overflow = is_write ? &pools->write_overflow
+                                 : &pools->read_overflow;
+    int32_t i;
+
+    if (*overflow) {
+      (*used)++;
+      return;
+    }
     for (i = 0; i < *n; i++) {
-      if ((*arr)[i] == ptr)
+      if (arr[off + i] == ptr)
         return;
     }
-    if (*n >= *cap) {
-      int32_t newcap = (*cap == 0) ? 8 : (*cap * 2);
-      *arr = (void **)csound->ReAlloc(csound, *arr, sizeof(void *) * newcap);
-      *cap = newcap;
+    if (*used >= cap) {
+      *overflow = 1;
+      (*used)++;
+      return;
     }
-    (*arr)[(*n)++] = ptr;
+    arr[(*used)++] = ptr;
+    (*n)++;
 }
 
 static int32_t is_inplace_global_write_op(const OENTRY *ep)
@@ -256,8 +449,8 @@ static inline OPCODINFO *load_latest_udo(const OPCODINFO *udo)
 #endif
 }
 
-static void dag_collect_instr_deps(CSOUND *csound, INSTRTXT *instr,
-                                   DAG_INSTR_DEPS *deps, int32_t depth)
+static void dag_collect_instr_deps(INSTRTXT *instr, DAG_INSTR_DEPS *deps,
+                                   DAG_PTR_POOLS *pools, int32_t depth)
 {
     OPTXT *op;
     if (instr == NULL || depth > 16) {
@@ -288,9 +481,9 @@ static void dag_collect_instr_deps(CSOUND *csound, INSTRTXT *instr,
           OPCODINFO *udo = (OPCODINFO *)ep->useropinfo;
           OPCODINFO *latest = load_latest_udo(udo);
           deps->has_udo_call = 1;
-          dag_collect_instr_deps(csound, udo->ip, deps, depth + 1);
+          dag_collect_instr_deps(udo->ip, deps, pools, depth + 1);
           if (latest != NULL && latest != udo) {
-            dag_collect_instr_deps(csound, latest->ip, deps, depth + 1);
+            dag_collect_instr_deps(latest->ip, deps, pools, depth + 1);
           }
         } else if (ep->perf == (SUBR)subinstr ||
                    ep->init == (SUBR)subinstrset ||
@@ -307,23 +500,23 @@ static void dag_collect_instr_deps(CSOUND *csound, INSTRTXT *instr,
       }
       for (arg = op->t.outArgs; arg != NULL; arg = arg->next) {
         if (arg->type == ARG_GLOBAL && arg->argPtr != NULL)
-          dag_deps_add_ptr(csound, &deps->writes, &deps->nwrites,
-                           &deps->cap_writes, arg->argPtr);
+          dag_deps_add_ptr(pools, 1, deps->write_off,
+                           &deps->nwrites, arg->argPtr);
       }
       for (arg = op->t.inArgs; arg != NULL; arg = arg->next) {
         if (arg->type == ARG_GLOBAL && arg->argPtr != NULL) {
-          dag_deps_add_ptr(csound, &deps->reads, &deps->nreads,
-                           &deps->cap_reads, arg->argPtr);
+          dag_deps_add_ptr(pools, 0, deps->read_off,
+                           &deps->nreads, arg->argPtr);
           if (is_inplace_global_write_op(ep))
-            dag_deps_add_ptr(csound, &deps->writes, &deps->nwrites,
-                             &deps->cap_writes, arg->argPtr);
+            dag_deps_add_ptr(pools, 1, deps->write_off,
+                             &deps->nwrites, arg->argPtr);
         }
       }
     }
 }
 
-static void dag_collect_instance_deps(CSOUND *csound, INSDS *insds,
-                                      DAG_INSTR_DEPS *deps)
+static void dag_collect_instance_deps(INSDS *insds, DAG_INSTR_DEPS *deps,
+                                      DAG_PTR_POOLS *pools)
 {
     INSDS *cur;
     const INSTRTXT *seen[64];
@@ -334,7 +527,7 @@ static void dag_collect_instance_deps(CSOUND *csound, INSDS *insds,
       deps->requires_order = 1;
       return;
     }
-    dag_collect_instr_deps(csound, insds->instr, deps, 0);
+    dag_collect_instr_deps(insds->instr, deps, pools, 0);
     if (deps->has_udo_call && !ATOMIC_GET(insds->init_done)) {
       /* Async realtime init or reinit may still be unbound on the init thread
          and become runnable mid-cycle: preserve order until next DAG build. */
@@ -375,7 +568,7 @@ static void dag_collect_instance_deps(CSOUND *csound, INSDS *insds,
           if (nseen < 64) {
             seen[nseen++] = udoIp->instr;
           }
-          dag_collect_instr_deps(csound, udoIp->instr, deps, 1);
+          dag_collect_instr_deps(udoIp->instr, deps, pools, 1);
         }
       }
       cur = udoIp;
@@ -396,110 +589,185 @@ static int32_t dag_ptr_lists_overlap(void *const *a, int32_t na,
 }
 
 static int32_t dag_deps_conflict(const DAG_INSTR_DEPS *a,
-                                 const DAG_INSTR_DEPS *b)
+                                 const DAG_INSTR_DEPS *b,
+                                 void *const *read_pool,
+                                 void *const *write_pool)
 {
     if (a->requires_order || b->requires_order)
       return 1;
     if ((a->write_res & (b->read_res | b->write_res)) != 0 ||
         (a->read_res & b->write_res) != 0)
       return 1;
-    if (dag_ptr_lists_overlap(a->writes, a->nwrites, b->reads, b->nreads) ||
-        dag_ptr_lists_overlap(a->writes, a->nwrites, b->writes, b->nwrites) ||
-        dag_ptr_lists_overlap(a->reads, a->nreads, b->writes, b->nwrites))
+    if (dag_ptr_lists_overlap(write_pool + a->write_off, a->nwrites,
+                              read_pool + b->read_off, b->nreads) ||
+        dag_ptr_lists_overlap(write_pool + a->write_off, a->nwrites,
+                              write_pool + b->write_off, b->nwrites) ||
+        dag_ptr_lists_overlap(read_pool + a->read_off, a->nreads,
+                              write_pool + b->write_off, b->nwrites))
       return 1;
     return 0;
 }
 
 int32_t dag_build(CSOUND *csound, INSDS *chain)
 {
-    INSDS *save;
     INSDS **task_map;
     DAG_INSTR_DEPS *task_deps;
+    DAG_PTR_POOLS pools;
     int32_t i;
-    int32_t locked = 0;
+    int32_t cap;
+    int32_t active_count = 0;
+    int32_t built = 0;
+    int32_t attempt;
 
-#if CSOUND_SPINLOCK_AVAILABLE
-    if (csound->realtime_locks_initialized) {
-      if (csoundSpinTryLock(&csound->alloc_spinlock) != CSOUND_SUCCESS) {
-        /* Keep dag_changed nonzero so the next k-cycle rebuilds once
-           actanchor/engineState publication completes; let the caller run the
-           current active chain serially instead of reusing a stale map. */
-        return 0;
-      }
-      locked = 1;
-      /* Re-read actanchor under alloc_spinlock so notes spliced at the head
-         after kperf sampled actanchor.nxtact are included. */
-      chain = csound->actanchor.nxtact;
-    }
-#endif
-    save = chain;
-
-    ATOMIC_SET(csound->dag_changed, 0);
-    csound->dag_num_active = 0;
-    while (chain != NULL) {
-      csound->dag_num_active++;
-      chain = chain->nxtact;
-    }
+    /* Allocate DAG buffers outside alloc_spinlock so a memdie()/LongJmp
+       on allocation failure can never unwind out while holding alloc_spinlock.
+       Leave existing dag_num_active and dag_task_dep intact until a locked
+       snapshot succeeds, so contended calls do not disturb prior state. */
     if (csound->dag_task_status == NULL) {
       int32_t new_max = csound->dag_task_max_size;
-      if (csound->dag_num_active > new_max)
-        new_max = csound->dag_num_active + INIT_SIZE;
+      if (new_max < INIT_SIZE)
+        new_max = INIT_SIZE;
       create_dag(csound, new_max);
-    } else {
-      int32_t old_max = csound->dag_task_max_size;
-      for (i = 0; i < old_max; i++) {
-        if (csound->dag_task_dep[i]) {
-          csound->Free(csound, csound->dag_task_dep[i]);
-          csound->dag_task_dep[i] = NULL;
-        }
-        csound->dag_wlmm[i].id = INVALID;
-      }
-      if (csound->dag_num_active > old_max) {
-        recreate_dag(csound, old_max, csound->dag_num_active + INIT_SIZE);
-      }
-      memset((void *)csound->dag_task_watch, 0,
-             sizeof(watchList *) * csound->dag_task_max_size);
     }
-    if (csound->dag_num_active == 0) {
+
+    cap = csound->dag_task_max_size;
+    task_deps = (DAG_INSTR_DEPS *)csound->Calloc(
+        csound, sizeof(DAG_INSTR_DEPS) * (size_t)cap);
+    pools.read_cap = 64;
+    pools.write_cap = 64;
+    pools.reads = (void **)csound->Malloc(
+        csound, sizeof(void *) * (size_t)pools.read_cap);
+    pools.writes = (void **)csound->Malloc(
+        csound, sizeof(void *) * (size_t)pools.write_cap);
+
+    for (attempt = 0; attempt < 4; attempt++) {
+      INSDS *cur;
+      int32_t count = 0;
+      int32_t count_overflow = 0;
+      int32_t locked = 0;
+
+#if CSOUND_SPINLOCK_AVAILABLE
+      if (csound->realtime_locks_initialized) {
+        if (csoundSpinTryLock(&csound->alloc_spinlock) != CSOUND_SUCCESS) {
+          /* Keep dag_changed nonzero so the next k-cycle rebuilds once
+             actanchor/engineState publication completes; let the caller run
+             from the published active snapshot instead of walking live links. */
+          break;
+        }
+        locked = 1;
+        cur = csound->actanchor.nxtact;
+      } else
+#endif
+      {
+        cur = (chain != NULL) ? chain : csound->actanchor.nxtact;
+      }
+
+      pools.read_used = 0;
+      pools.write_used = 0;
+      pools.read_overflow = 0;
+      pools.write_overflow = 0;
+      task_map = csound->dag_task_map;
+
+      while (cur != NULL) {
+        if (count < cap) {
+          csound->dag_task_status[count].s = AVAILABLE;
+          csound->dag_wlmm[count].id = count;
+          task_map[count] = cur;
+          memset(&task_deps[count], 0, sizeof(DAG_INSTR_DEPS));
+          task_deps[count].read_off = pools.read_used;
+          task_deps[count].write_off = pools.write_used;
+          dag_collect_instance_deps(cur, &task_deps[count], &pools);
+        } else {
+          count_overflow = 1;
+        }
+        count++;
+        cur = cur->nxtact;
+      }
+
+      if (!count_overflow && !pools.read_overflow && !pools.write_overflow) {
+        ATOMIC_SET(csound->dag_changed, 0);
+        dag_publish_active_snapshot_from_array_locked(
+            csound, csound->dag_task_map, count);
+#if CSOUND_SPINLOCK_AVAILABLE
+        if (locked)
+          csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
+        active_count = count;
+        built = 1;
+        break;
+      }
+
 #if CSOUND_SPINLOCK_AVAILABLE
       if (locked)
         csoundSpinUnLock(&csound->alloc_spinlock);
 #endif
+      if (attempt == 3)
+        break;
+
+      if (count_overflow) {
+        int32_t old_max = csound->dag_task_max_size;
+        int32_t grown_max = count + INIT_SIZE;
+        recreate_dag(csound, old_max, grown_max);
+        cap = csound->dag_task_max_size;
+        task_deps = (DAG_INSTR_DEPS *)csound->ReAlloc(
+            csound, task_deps, sizeof(DAG_INSTR_DEPS) * (size_t)cap);
+      }
+      if (pools.read_overflow) {
+        int32_t new_cap = pools.read_used + 64;
+        pools.reads = (void **)csound->ReAlloc(
+            csound, pools.reads, sizeof(void *) * (size_t)new_cap);
+        pools.read_cap = new_cap;
+      }
+      if (pools.write_overflow) {
+        int32_t new_cap = pools.write_used + 64;
+        pools.writes = (void **)csound->ReAlloc(
+            csound, pools.writes, sizeof(void *) * (size_t)new_cap);
+        pools.write_cap = new_cap;
+      }
+    }
+
+    if (!built) {
+      csound->Free(csound, pools.writes);
+      csound->Free(csound, pools.reads);
+      csound->Free(csound, task_deps);
+      return 0;
+    }
+
+    csound->dag_num_active = 0;
+    for (i = 0; i < csound->dag_task_max_size; i++) {
+      if (csound->dag_task_dep[i]) {
+        csound->Free(csound, csound->dag_task_dep[i]);
+        csound->dag_task_dep[i] = NULL;
+      }
+      if (i >= active_count)
+        csound->dag_wlmm[i].id = INVALID;
+    }
+    memset((void *)csound->dag_task_watch, 0,
+           sizeof(watchList *) * (size_t)csound->dag_task_max_size);
+
+    if (active_count == 0) {
+      csound->Free(csound, pools.writes);
+      csound->Free(csound, pools.reads);
+      csound->Free(csound, task_deps);
       return 1;
     }
 
     task_map = csound->dag_task_map;
-    task_deps = (DAG_INSTR_DEPS *)csound->Calloc(
-      csound, sizeof(DAG_INSTR_DEPS) * csound->dag_num_active);
-    i = 0;
-    chain = save;
-    while (chain != NULL && i < csound->dag_num_active) {
-      csound->dag_task_status[i].s = AVAILABLE;
-      csound->dag_wlmm[i].id = i;
-      task_map[i] = chain;
-      dag_collect_instance_deps(csound, chain, &task_deps[i]);
-      i++;
-      chain = chain->nxtact;
-    }
-    csound->dag_num_active = i;
-#if CSOUND_SPINLOCK_AVAILABLE
-    if (locked)
-      csoundSpinUnLock(&csound->alloc_spinlock);
-#endif
     if (UNLIKELY(csound->oparms->odebug))
-      printf("dag_num_active = %d\n", csound->dag_num_active);
-    for (i = 0; i < csound->dag_num_active; i++) {
+      printf("dag_num_active = %d\n", active_count);
+    for (i = 0; i < active_count; i++) {
       int32_t j;
       if (UNLIKELY(csound->oparms->odebug))
         printf("\nWho depends on %d (instr %d)?\n", i, task_map[i]->insno);
-      for (j = i + 1; j < csound->dag_num_active; j++) {
+      for (j = i + 1; j < active_count; j++) {
         if (UNLIKELY(csound->oparms->odebug))
           printf("%d ", j);
-        if (dag_deps_conflict(&task_deps[i], &task_deps[j])) {
+        if (dag_deps_conflict(&task_deps[i], &task_deps[j],
+                              pools.reads, pools.writes)) {
           char *tt = csound->dag_task_dep[j];
           if (tt == NULL) {
             tt = csound->dag_task_dep[j] =
-              (char *)csound->Calloc(csound, sizeof(char) * (j + 1));
+              (char *)csound->Calloc(csound, sizeof(char) * (size_t)(j + 1));
             csound->dag_task_status[j].s = WAITING;
             csound->dag_wlmm[j].next = csound->dag_task_watch[i];
             csound->dag_wlmm[j].id = j;
@@ -509,12 +777,9 @@ int32_t dag_build(CSOUND *csound, INSDS *chain)
         }
       }
     }
-    for (i = 0; i < csound->dag_num_active; i++) {
-      if (task_deps[i].reads != NULL)
-        csound->Free(csound, task_deps[i].reads);
-      if (task_deps[i].writes != NULL)
-        csound->Free(csound, task_deps[i].writes);
-    }
+    csound->dag_num_active = active_count;
+    csound->Free(csound, pools.writes);
+    csound->Free(csound, pools.reads);
     csound->Free(csound, task_deps);
     if (UNLIKELY(csound->oparms->odebug)) dag_print_state(csound);
     return 1;

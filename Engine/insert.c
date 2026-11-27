@@ -308,6 +308,7 @@ void instance_process_pending_turnoffs(CSOUND *csound)
   INSDS *pending;
   INSDS *reclaim = NULL;
   int32_t allocLocked = 0;
+  int32_t anyFinalized = 0;
 
 #if CSOUND_SPINLOCK_AVAILABLE
   if (csound->realtime_locks_initialized) {
@@ -341,6 +342,7 @@ void instance_process_pending_turnoffs(CSOUND *csound)
       if (ATOMIC_GET8(ip->actflg) == 0)
         ATOMIC_SET8(ip->actflg, 1);
       xturnoff_now_internal(csound, ip, 1);
+      anyFinalized = 1;
     }
 
     async_instance_lock(csound);
@@ -367,6 +369,11 @@ void instance_process_pending_turnoffs(CSOUND *csound)
     }
     pending = next;
   }
+
+#ifdef PARCS
+  if (csound->oparms->numThreads > 1 && (reclaim != NULL || anyFinalized))
+    dag_publish_active_snapshot_locked(csound);
+#endif
 
   if (allocLocked)
     csoundSpinUnLock(&csound->alloc_spinlock);
@@ -1927,6 +1934,10 @@ static int32_t insert_new(CSOUND *csound, int32_t insno,
     ip->actflg++;                   /*    and mark the instr active */
     if(ip->instance_id == 0)
       ip->instance_id = csound->instance_count;
+#ifdef PARCS
+    if (csound->oparms->numThreads > 1)
+      dag_publish_active_snapshot_locked(csound);
+#endif
   }
 
 
@@ -2226,6 +2237,10 @@ int32_t insert_midi(CSOUND *csound, int32_t insno, MCHNBLK *chn, MEVENT *mep)
   ip->prvact       = prvp;
   prvp->nxtact     = ip;
   ip->actflg++;                         /* and mark the instr active */
+#ifdef PARCS
+  if (csound->oparms->numThreads > 1)
+    dag_publish_active_snapshot_locked(csound);
+#endif
   ip->m_chnbp      = chn;               /* rec address of chnl ctrl blk */
   ip->m_pitch      = (unsigned char) mep->dat1;    /* rec MIDI data   */
   ip->m_veloc      = (unsigned char) mep->dat2;
@@ -2899,6 +2914,10 @@ void free_inactive_instances(CSOUND *csound)
   /* Detach reclaimable instances while holding the instance-list lock, then
      release files and memory after that lock is released. A caller may still
      serialize the surrounding section transition with alloc_spinlock. */
+#ifdef PARCS
+  if (csound->oparms->numThreads > 1)
+    dag_publish_active_snapshot_locked(csound);
+#endif
   inactive_instance_lock(csound);
   for (txtp = &(csound->engineState.instxtanchor);
        txtp != NULL;  txtp = txtp->nxtinstxt) {

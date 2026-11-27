@@ -819,6 +819,9 @@ int32_t csound_cleanup(CSOUND *csound)
     }
 
     free_inactive_instances(csound);
+#ifdef PARCS
+    dag_cleanup_active_snapshots(csound);
+#endif
 #ifndef __EMSCRIPTEN__
     realtime_engine_locks_destroy(csound);
 #endif
