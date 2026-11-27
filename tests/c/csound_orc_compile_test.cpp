@@ -6393,3 +6393,70 @@ e 0.02
     EXPECT_EQ(0, err);
 }
 #endif
+
+TEST_F(OrcCompileTests, RejectedCommaInstrumentAliasDoesNotLeakIntoVarPool)
+{
+    ASSERT_EQ(CSOUND_SUCCESS, csoundSetOption(csound, "-n -d -m0"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+sr = 44100
+ksmps = 32
+nchnls = 1
+0dbfs = 1
+
+instr 1
+  kDummy = 0
+endin
+)"));
+    ASSERT_EQ(CSOUND_SUCCESS, csoundStart(csound));
+    ASSERT_EQ(0, csoundPerformKsmps(csound));
+
+    // A rejected comma-separated instrument header must not leave its alias in
+    // engineState.varPool as an InstrDef.
+    EXPECT_NE(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+instr 2, gkExtra
+  no_such_opcode 1
+endin
+)"));
+    EXPECT_EQ(nullptr, csoundFindVariableWithName(
+        csound, csound->engineState.varPool, "gkExtra"));
+
+    // Deleting an uncompiled parsed tree must not leak its staged alias either.
+    TREE *parsedOnly = csoundParseOrc(csound, R"(
+instr 3, gkParsedOnly
+  kOk = 1
+endin
+)");
+    ASSERT_NE(nullptr, parsedOnly);
+    csoundDeleteTree(csound, parsedOnly);
+    EXPECT_EQ(nullptr, csoundFindVariableWithName(
+        csound, csound->engineState.varPool, "gkParsedOnly"));
+
+    // Subsequent valid global definitions using those names must succeed.
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+gkExtra = 7
+gkParsedOnly = 9
+)"));
+
+    // Valid live comma-named instruments still bind :InstrDef cleanly.
+    ASSERT_EQ(CSOUND_SUCCESS, csoundCompileOrc(csound, R"(
+instr 4, LiveNamed
+  gkExtra = 7
+  gkParsedOnly = 9
+  chnset gkExtra, "extraVal"
+  chnset gkParsedOnly, "parsedVal"
+  chnset 11, "liveNamedRan"
+endin
+schedule LiveNamed, 0, 0.05
+)"));
+
+    for (int i = 0; i < 8; i++) {
+        ASSERT_EQ(0, csoundPerformKsmps(csound));
+    }
+    int32_t err = 0;
+    EXPECT_EQ(FL(7.0), csoundGetControlChannel(csound, "extraVal", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(9.0), csoundGetControlChannel(csound, "parsedVal", &err));
+    EXPECT_EQ(0, err);
+    EXPECT_EQ(FL(11.0), csoundGetControlChannel(csound, "liveNamedRan", &err));
+    EXPECT_EQ(0, err);
+}

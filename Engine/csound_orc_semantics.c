@@ -1056,13 +1056,20 @@ static char* get_arg_type2_impl(CSOUND* csound, TREE* tree, TYPE_TABLE* typeTabl
       return NULL;
     }
 
-    /* check for instrument name variables on the engine varPool */
-    if((var = csoundFindVariableWithName(csound, csound->engineState.varPool,
-                                         tree->value->lexeme)) != NULL) {
-       if(var->varType == &CS_VAR_TYPE_INSTR)
-         // found it, return type.
-         return csoundStrdup(csound, var->varType->varTypeName);
-     }
+    /* check for instrument name variables on the staged or live engine varPool */
+    if (typeTable != NULL && typeTable->globalPool != NULL) {
+      var = csoundFindVariableWithName(csound, typeTable->globalPool,
+                                       tree->value->lexeme);
+      if (var != NULL && var->varType == &CS_VAR_TYPE_INSTR) {
+        return csoundStrdup(csound, var->varType->varTypeName);
+      }
+    }
+    if ((var = csoundFindVariableWithName(csound, csound->engineState.varPool,
+                                          tree->value->lexeme)) != NULL) {
+      if (var->varType == &CS_VAR_TYPE_INSTR)
+        // found it, return type.
+        return csoundStrdup(csound, var->varType->varTypeName);
+    }
 
     if(!strcmp(tree->value->lexeme, "this_instr")) {
       const CS_TYPE *varType = &CS_VAR_TYPE_INSTR;
@@ -5131,24 +5138,45 @@ void handle_optional_args(CSOUND *csound, TREE *l)
 CS_VARIABLE *add_global_variable(CSOUND *csound, ENGINE_STATE *engineState,
                                  const CS_TYPE *type, char *name,
                                  const void *typeArg);
-void add_instr_variable(CSOUND *csound,  TREE *x) {
-  /* add instr variable to engine varpool
-     called by bison when instr ids are found
-  */
-  if (x->type == T_IDENT) {
-    char *varname = x->value->lexeme;
-    CS_VARIABLE *var = csoundFindVariableWithName(csound,
-                                                 csound->engineState.varPool,
-                                                 varname);
-    /* Keep the running reference until the compiler publishes a valid merge. */
-    if (var != NULL) {
-      if (var->varType == &CS_VAR_TYPE_INSTR) return;
-      if (var->varType != &CS_VAR_TYPE_OPCODEREF) return;
+void stage_instr_variables(CSOUND *csound, TREE *astTree, TYPE_TABLE *typeTable) {
+  /* Stage named instrument references into the parser's globalPool so a failed
+     parse or compile never leaks InstrDef entries into csound->engineState. */
+  TREE *node;
+  if (csound == NULL || typeTable == NULL || typeTable->globalPool == NULL) {
+    return;
+  }
+  for (node = astTree; node != NULL; node = node->next) {
+    TREE *id;
+    if (node->type != INSTR_TOKEN) {
+      continue;
     }
-    var = add_global_variable(csound, &csound->engineState,
-                                         &CS_VAR_TYPE_INSTR, varname,
-                                           NULL);
-    if(var == NULL)
-      csound->Warning(csound, Str("Could not add instrument ref %s\n"), varname);
+    for (id = node->left; id != NULL; id = id->next) {
+      TREE *target = (id->left != NULL) ? id->left : id;
+      char *varname;
+      CS_VARIABLE *existing;
+      CS_VARIABLE *var;
+      if (target->type != T_IDENT || target->value == NULL ||
+          target->value->lexeme == NULL) {
+        continue;
+      }
+      varname = target->value->lexeme;
+      if (csoundFindVariableWithName(csound, typeTable->globalPool,
+                                     varname) != NULL) {
+        continue;
+      }
+      existing = csoundFindVariableWithName(csound,
+                                            csound->engineState.varPool,
+                                            varname);
+      if (existing != NULL && existing->varType != &CS_VAR_TYPE_OPCODEREF) {
+        continue;
+      }
+      var = csoundCreateVariable(csound, csound->typePool,
+                                 &CS_VAR_TYPE_INSTR, varname, NULL);
+      if (var == NULL ||
+          csoundAddVariable(csound, typeTable->globalPool, var) != 0) {
+        csound->Warning(csound, Str("Could not add instrument ref %s\n"),
+                        varname);
+      }
+    }
   }
 }

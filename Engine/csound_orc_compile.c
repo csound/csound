@@ -2045,7 +2045,13 @@ static void stage_instr_reference(CSOUND *csound, ENGINE_STATE *state,
 static void bind_instr_variable(CSOUND *csound, ENGINE_STATE *state,
                                 CS_VAR_POOL *pool, INSTRTXT *instrument,
                                 const char *name) {
-  CS_VARIABLE *variable = csoundFindVariableWithName(csound, pool, name);
+  CS_VARIABLE *variable = NULL;
+  if (state->varPool != NULL) {
+    variable = csoundFindVariableWithName(csound, state->varPool, name);
+  }
+  if (variable == NULL && pool != NULL && pool != state->varPool) {
+    variable = csoundFindVariableWithName(csound, pool, name);
+  }
   if (variable == NULL) return;
   if (variable->varType == &CS_VAR_TYPE_INSTR) {
     stage_instr_reference(csound, state,
@@ -2127,11 +2133,16 @@ static int32_t enginestate_merge(CSOUND *csound, ENGINE_STATE *engineState) {
            the current engine */
         int32 nnum =
           named_instr_find_in_engine(csound, current->insname, engineState);
-        named_instr_alloc(csound, current->insname, current, nnum, current_state,
-                          1);
-        ensure_instrtxtp_capacity(csound, current_state, i);
-        /* place it in the corresponding slot */
-        current_state->instrtxtp[i] = current;
+        if (i == nnum) {
+          named_instr_alloc(csound, current->insname, current, nnum,
+                            current_state, 1);
+          ensure_instrtxtp_capacity(csound, current_state, i);
+          /* place it in the corresponding slot */
+          current_state->instrtxtp[i] = current;
+        } else if (i > current_state->maxinsno ||
+                   current_state->instrtxtp[i] != current) {
+          insert_instrtxt(csound, current, i, current_state, 1);
+        }
       }
     }
   }

@@ -317,6 +317,7 @@ static TREE *parse_orc(CSOUND *csound, PARSE_PARM *pp)
 
       typeTable->localPool = typeTable->instr0LocalPool;
       typeTable->labelList = NULL;
+      stage_instr_variables(csound, astTree, typeTable);
 
       /* Empty input parses to no statements, which is valid: the compiler is
          then given just the sentinel root carrying the TYPE_TABLE and can

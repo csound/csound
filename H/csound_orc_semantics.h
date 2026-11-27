@@ -85,6 +85,7 @@ OENTRY* resolve_index_set_entry(CSOUND* csound, const CS_TYPE* type, const char*
                                 TREE* value, TREE* indices, TYPE_TABLE* typeTable,
                                 char** valueType);
 TREE* verify_tree(CSOUND * csound, TREE *root, TYPE_TABLE* typeTable);
+void stage_instr_variables(CSOUND *csound, TREE *astTree, TYPE_TABLE *typeTable);
 int32_t verify_opcode(CSOUND* csound, TREE* root, TYPE_TABLE* typeTable);
 const CS_TYPE *resolve_type_annotation(CSOUND *csound,
                                        const char *annotation,

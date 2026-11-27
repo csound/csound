@@ -179,7 +179,6 @@
     extern uint64_t csound_orcget_locn(void *);
     extern int csound_orcget_lineno(void *);
     extern TREE* make_opcall_from_func_start(CSOUND*, int32_t, uint64_t, int32_t, TREE*, TREE*);
-    extern void add_instr_variable(CSOUND *csound,  TREE *x);
 %}
 %%
 
@@ -242,10 +241,8 @@ instr_definition : INSTR_TOKEN instr_id_list NEWLINE
 
 
 instr_id_list : instr_id_list ',' instr_id
-                  { add_instr_variable(csound, $3);
-                    $$ = parser_append(csound, $1, $3); }
-              | instr_id  { add_instr_variable(csound, $1);
-                }
+                  { $$ = parser_append(csound, $1, $3); }
+              | instr_id
               ;
 
 instr_id : integer
