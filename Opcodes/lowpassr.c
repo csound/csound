@@ -24,6 +24,7 @@
 
 #include "stdopcod.h"
 #include "lowpassr.h"
+#include "filter_math.h"
 #include <math.h>
 
 /* Validate only when coefficients change, before dividing by either input. */
@@ -34,6 +35,54 @@
                   Str("lowres: cutoff and resonance must be positive")); \
     } while (0)
 
+#ifdef USE_FLOAT
+/* The direct form loses low-order bits at low cutoffs. In this form ynm2
+   stores the last output increment. Compute the next increment directly
+   and retain the same unity DC gain as the original recurrence. */
+#define LOWRES_COEFS(coef, cutoff, resonance)                              \
+    do {                                                                  \
+      LOWRES_CHECK_PARAMS(cutoff, resonance);                              \
+      const cs_double denom = FL(1000.0) +                                 \
+        FL(10.0) * SQRT(cutoff) / (resonance);                             \
+      const cs_double reciprocal = FL(1.0) / denom;                       \
+      (coef).feedback = FL(1000.0) * reciprocal;                           \
+      (coef).gain = (cutoff) * reciprocal;                                \
+    } while (0)
+#if defined(FP_FAST_FMAF)
+#define LOWRES_STEP(coef, input, ynm1, ynm2)                                \
+    do {                                                                   \
+      const cs_double drive = (coef).gain * (cs_double)(input);             \
+      const cs_double next = CS_FILTER_MADD((coef).feedback, (ynm2), drive); \
+      (ynm2) = CS_FILTER_MADD(-(coef).gain, (ynm1), next);                   \
+      (ynm1) += (ynm2);                                                     \
+    } while (0)
+#else
+#define LOWRES_STEP(coef, input, ynm1, ynm2)                                \
+    do {                                                                   \
+      const cs_double force = (coef).gain * ((cs_double)(input) - (ynm1));  \
+      (ynm2) = CS_FILTER_MADD((coef).feedback, (ynm2), force);               \
+      (ynm1) += (ynm2);                                                     \
+    } while (0)
+#endif
+#else
+#define LOWRES_COEFS(coef, cutoff, resonance)                               \
+    do {                                                                   \
+      LOWRES_CHECK_PARAMS(cutoff, resonance);                               \
+      const cs_double b = 10.0 / ((resonance) * sqrt((cs_double)(cutoff))) - 1.0; \
+      const cs_double k = 1000.0 / (cs_double)(cutoff);                      \
+      (coef).feedback = k;                                                  \
+      (coef).feedback1 = b + 2.0 * k;                                        \
+      (coef).gain = 1.0 / (1.0 + b + k);                                    \
+    } while (0)
+#define LOWRES_STEP(coef, input, ynm1, ynm2)                                \
+    do {                                                                   \
+      const cs_double next_output = ((coef).feedback1 * (ynm1) -            \
+        (coef).feedback * (ynm2) + (cs_double)(input)) * (coef).gain;        \
+      (ynm2) = (ynm1);                                                      \
+      (ynm1) = next_output;                                                \
+    } while (0)
+#endif
+
 static int32_t lowpr_set(CSOUND *csound, LOWPR *p)
 {
 
@@ -43,28 +92,26 @@ static int32_t lowpr_set(CSOUND *csound, LOWPR *p)
     /* Force the first coefficient calculation, including invalid inputs. */
     p->okf = NAN;
     p->okr = 0.0;
-    p->k = 0.0;
+    p->coef = (LOWRES_COEFFICIENTS){0};
     return OK;
 }
 
+CS_FILTER_FUNCTION
 static int32_t lowpr(CSOUND *csound, LOWPR *p)
 {
-    cs_double b, k = p->k;
+    CS_FILTER_ORDERED
     cs_float *ar, *asig;
-    cs_double yn, ynm1, ynm2 ;
+    cs_double ynm1, ynm2;
     cs_float kfco = *p->kfco;
     cs_float kres = *p->kres;
-    cs_double coef1 = p->coef1, coef2 = p->coef2;
+    LOWRES_COEFFICIENTS coef = p->coef;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
 
     if (p->okf != kfco || p->okr != kres) { /* Only if changed */
-      LOWRES_CHECK_PARAMS(kfco, kres);
-      b = 10.0 / (kres * sqrt((cs_double)kfco)) - 1.0;
-      p->k = k = 1000.0 / (cs_double)kfco;
-      p->coef1 = coef1 = (b+2.0 * k);
-      p->coef2 = coef2 = 1.0/(1.0 + b + k);
+      LOWRES_COEFS(coef, kfco, kres);
+      p->coef = coef;
       p->okf = kfco; p->okr = kres; /* remember to save recalculation */
     }
     ar = p->ar;
@@ -78,9 +125,8 @@ static int32_t lowpr(CSOUND *csound, LOWPR *p)
       memset(&ar[nsmps], '\0', early*sizeof(cs_float));
     }
     for (n=offset; n<nsmps;n++) {
-      ar[n] = (cs_float)(yn = (coef1 * ynm1 - k * ynm2 + (cs_double)asig[n]) * coef2);
-      ynm2 = ynm1;
-      ynm1 =  yn;
+      LOWRES_STEP(coef, asig[n], ynm1, ynm2);
+      ar[n] = (cs_float)ynm1;
     }
     p->ynm1 = ynm1;
     p->ynm2 = ynm2;             /* And save */
@@ -88,15 +134,16 @@ static int32_t lowpr(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
+CS_FILTER_FUNCTION
 static int32_t lowpraa(CSOUND *csound, LOWPR *p)
 {
-    cs_double b, k = p->k;
+    CS_FILTER_ORDERED
     cs_float *ar, *asig;
-    cs_double yn, ynm1, ynm2 ;
+    cs_double ynm1, ynm2;
     cs_float *fco = p->kfco;
     cs_float *res = p->kres;
     cs_float okf = p->okf, okr = p->okr;
-    cs_double coef1 = p->coef1, coef2 = p->coef2;
+    LOWRES_COEFFICIENTS coef = p->coef;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -113,17 +160,13 @@ static int32_t lowpraa(CSOUND *csound, LOWPR *p)
     }
     for (n=offset; n<nsmps;n++) {
       if (okf!= fco[n] || okr != res[n]) { /* Only if changed */
-        LOWRES_CHECK_PARAMS(fco[n], res[n]);
-        b = 10.0 / (res[n] * sqrt((cs_double)fco[n])) - 1.0;
-        p->k = k = 1000.0 / (cs_double)fco[n];
-        p->coef1 = coef1 = (b+2.0 * k);
-        p->coef2 = coef2 = 1.0/(1.0 + b + k);
+        LOWRES_COEFS(coef, fco[n], res[n]);
+        p->coef = coef;
         okf = fco[n]; okr = res[n];
         /* remember to save recalculation */
       }
-      ar[n] = (cs_float)(yn = (coef1 * ynm1 - k * ynm2 + (cs_double)asig[n]) * coef2);
-      ynm2 = ynm1;
-      ynm1 = yn;
+      LOWRES_STEP(coef, asig[n], ynm1, ynm2);
+      ar[n] = (cs_float)ynm1;
     }
     p->ynm1 = ynm1;
     p->ynm2 = ynm2;             /* And save */
@@ -131,15 +174,16 @@ static int32_t lowpraa(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
+CS_FILTER_FUNCTION
 static int32_t lowprak(CSOUND *csound, LOWPR *p)
 {
-    cs_double b, k = p->k;
+    CS_FILTER_ORDERED
     cs_float *ar, *asig;
-    cs_double yn, ynm1, ynm2 ;
+    cs_double ynm1, ynm2;
     cs_float *fco = p->kfco;
     cs_float kres = *p->kres;
     cs_float okf = p->okf, okr = p->okr;
-    cs_double coef1 = p->coef1, coef2 = p->coef2;
+    LOWRES_COEFFICIENTS coef = p->coef;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -156,16 +200,12 @@ static int32_t lowprak(CSOUND *csound, LOWPR *p)
     }
     for (n=offset; n<nsmps;n++) {
       if (okf != fco[n] || okr != kres) { /* Only if changed */
-        LOWRES_CHECK_PARAMS(fco[n], kres);
-        b = 10.0 / (kres * sqrt((cs_double)fco[n])) - 1.0;
-        p->k = k = 1000.0 / (cs_double)fco[n];
-        p->coef1 = coef1 = (b+2.0 * k);
-        p->coef2 = coef2 = 1.0/(1.0 + b + k);
+        LOWRES_COEFS(coef, fco[n], kres);
+        p->coef = coef;
         okf = fco[n]; okr = kres; /* remember to save recalculation */
       }
-      ar[n] = (cs_float)(yn = (coef1 * ynm1 - k * ynm2 + (cs_double)asig[n]) * coef2);
-      ynm2 = ynm1;
-      ynm1 =  yn;
+      LOWRES_STEP(coef, asig[n], ynm1, ynm2);
+      ar[n] = (cs_float)ynm1;
     }
     p->ynm1 = ynm1;
     p->ynm2 = ynm2;             /* And save */
@@ -174,15 +214,16 @@ static int32_t lowprak(CSOUND *csound, LOWPR *p)
     return OK;
 }
 
+CS_FILTER_FUNCTION
 static int32_t lowprka(CSOUND *csound, LOWPR *p)
 {
-    cs_double b, k = p->k;
+    CS_FILTER_ORDERED
     cs_float *ar, *asig;
-    cs_double yn, ynm1, ynm2 ;
+    cs_double ynm1, ynm2;
     cs_float fco = *p->kfco;
     cs_float *res = p->kres;
     cs_float okr = p->okr, okf = p->okf;
-    cs_double coef1 = p->coef1, coef2 = p->coef2;
+    LOWRES_COEFFICIENTS coef = p->coef;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
@@ -199,16 +240,12 @@ static int32_t lowprka(CSOUND *csound, LOWPR *p)
     }
     for (n=offset; n<nsmps;n++) {
       if (okf != fco || okr != res[n]) { /* Only if changed */
-        LOWRES_CHECK_PARAMS(fco, res[n]);
-        b = 10.0 / (res[n] * sqrt((cs_double)fco)) - 1.0;
-        p->k = k = 1000.0 / (cs_double)fco;
-        p->coef1 = coef1 = (b+2.0 * k);
-        p->coef2 = coef2 = 1.0/(1.0 + b + k);
+        LOWRES_COEFS(coef, fco, res[n]);
+        p->coef = coef;
         okf = fco; okr = res[n]; /* remember to save recalculation */
       }
-      ar[n] = (cs_float)(yn = (coef1 * ynm1 - k * ynm2 + (cs_double)asig[n]) * coef2);
-      ynm2 = ynm1;
-      ynm1 = yn;
+      LOWRES_STEP(coef, asig[n], ynm1, ynm2);
+      ar[n] = (cs_float)ynm1;
     }
     p->ynm1 = ynm1;
     p->ynm2 = ynm2;             /* And save */
@@ -226,18 +263,20 @@ static int32_t lowpr_setx(CSOUND *csound, LOWPRX *p)
     }
     if (*p->istor == FL(0.0))
       for (j=0; j< p->loop; j++)  p->ynm1[j] = p->ynm2[j] = FL(0.0);
-    p->k = p->okr = -FL(1.0);
+    p->okr = -FL(1.0);
+    p->coef = (LOWRES_COEFFICIENTS){0};
     p->okf = NAN;
     return OK;
 }
 
+CS_FILTER_FUNCTION
 static int32_t lowprx(CSOUND *csound, LOWPRX *p)
 {
+    CS_FILTER_ORDERED
     IGN(csound);
-    cs_double   b, k = p->k;
     cs_float   *ar, *asig, yn;
     cs_double  *ynm1, *ynm2;
-    cs_double   coef1 = p->coef1, coef2 = p->coef2;
+    LOWRES_COEFFICIENTS coef = p->coef;
     cs_float    *kfco = p->kfco, *kres = p->kres;
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
@@ -259,26 +298,18 @@ static int32_t lowprx(CSOUND *csound, LOWPRX *p)
       cs_float fco = (asgf ? kfco[n] : *kfco);
       cs_float res = (asgr ? kres[n] : *kres);
       if (p->okf != fco || p->okr != res) { /* Only if changed */
-        LOWRES_CHECK_PARAMS(fco, res);
-        b = 10.0 / (res * sqrt((cs_double)fco)) - 1.0;
-        k = 1000.0 / (cs_double)fco;
-        coef1 = b + 2.0 * k;
-        coef2 = 1.0 / (1.0 + b + k);
+        LOWRES_COEFS(coef, fco, res);
         p->okf = fco; p->okr = res; /* remember to save recalculation */
       }
       yn = asig[n];
       for (j=0; j< p->loop; j++) {
-        cs_double yt0 = (coef1 * ynm1[j] - k * ynm2[j] + (cs_double)yn) * coef2;
-        ynm2[j] = ynm1[j];
-        ynm1[j] = yt0;
+        LOWRES_STEP(coef, yn, ynm1[j], ynm2[j]);
         /* Keep cs_double history, but pass cs_float between layers like lowres. */
-        yn = (cs_float)yt0;
+        yn = (cs_float)ynm1[j];
       }
       ar[n] = yn;
     }
-    p->k = k;
-    p->coef1 = coef1;
-    p->coef2 = coef2;
+    p->coef = coef;
     return OK;
 }
 
@@ -294,19 +325,19 @@ static int32_t lowpr_w_sep_set(CSOUND *csound, LOWPR_SEP *p)
     return OK;
 }
 
+CS_FILTER_FUNCTION
 static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
 {
-     IGN(csound);
-    cs_double   b, k;
+    CS_FILTER_ORDERED
+    IGN(csound);
     cs_float   *ar, *asig;
-    cs_double   yn, *ynm1, *ynm2;
-    cs_double   coef1, coef2;
+    cs_double   *ynm1, *ynm2;
     cs_float    kfcobase = *p->kfco;
     cs_float    sep = (*p->sep / p->loop);
     uint32_t offset = p->h.insdshead->ksmps_offset;
     uint32_t early  = p->h.insdshead->ksmps_no_end;
     uint32_t n, nsmps = CS_KSMPS;
-    int32_t      j;
+    int32_t      j = 0;
 
     cs_float kres = *p->kres;
     cs_float kfco;
@@ -320,7 +351,36 @@ static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
       memset(&p->ar[nsmps], '\0', early*sizeof(cs_float));
     }
     ar = p->ar;
-    for (j=0; j< p->loop; j++) {
+#ifdef USE_FLOAT
+    /* Work on two stages together. During each iteration the first stage
+       advances the next sample while the second consumes the current one. */
+    for (; j + 1 < p->loop; j += 2) {
+      const cs_float firstCutoff = kfcobase * (FL(1.0) + sep * j);
+      const cs_float secondCutoff = kfcobase * (FL(1.0) + sep * (j + 1));
+      LOWRES_COEFFICIENTS first, second;
+      LOWRES_COEFS(first, firstCutoff, kres);
+      LOWRES_COEFS(second, secondCutoff, kres);
+      if (offset < nsmps) {
+        cs_double firstOut = ynm1[j], firstStep = ynm2[j];
+        cs_double secondOut = ynm1[j + 1], secondStep = ynm2[j + 1];
+        LOWRES_STEP(first, asig[offset], firstOut, firstStep);
+        for (n = offset; n + 1 < nsmps; n++) {
+          const cs_float sample = (cs_float)firstOut;
+          LOWRES_STEP(first, asig[n + 1], firstOut, firstStep);
+          LOWRES_STEP(second, sample, secondOut, secondStep);
+          ar[n] = (cs_float)secondOut;
+        }
+        LOWRES_STEP(second, firstOut, secondOut, secondStep);
+        ar[n] = (cs_float)secondOut;
+        ynm1[j] = firstOut;
+        ynm2[j] = firstStep;
+        ynm1[j + 1] = secondOut;
+        ynm2[j + 1] = secondStep;
+        asig = ar;
+      }
+    }
+#endif
+    for (; j < p->loop; j++) {
       cs_double lynm1 = ynm1[j];
       cs_double lynm2 = ynm2[j];
                 /*
@@ -330,18 +390,12 @@ static int32_t lowpr_w_sep(CSOUND *csound, LOWPR_SEP *p)
                 */
       kfco = kfcobase * (FL(1.0) + (sep * j));
 
-      LOWRES_CHECK_PARAMS(kfco, kres);
-      b = 10.0 / (kres * sqrt((cs_double)kfco)) - 1.0;
-      k = 1000.0 / (cs_double)kfco;
-      coef1 = b + 2.0 * k;
-      coef2 = 1.0 / (1.0 + b + k);
+      LOWRES_COEFFICIENTS coef;
+      LOWRES_COEFS(coef, kfco, kres);
 
       for (n=offset;n<nsmps; n++) {
-        /* This can be speeded up avoiding indirection */
-        yn = (coef1 * lynm1 - k * lynm2 + (cs_double)asig[n]) * coef2;
-        ar[n] = (cs_float)yn;
-        lynm2 = lynm1;
-        lynm1 =  yn;
+        LOWRES_STEP(coef, asig[n], lynm1, lynm2);
+        ar[n] = (cs_float)lynm1;
       }
       ynm1[j] = lynm1;
       ynm2[j] = lynm2;
