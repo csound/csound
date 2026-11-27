@@ -665,6 +665,20 @@ static int32_t copy_var_generic_impl(CSOUND *csound, void *p,
 
 
 
+    if (typeR == &CS_VAR_TYPE_ARRAY && typeA == &CS_VAR_TYPE_ARRAY &&
+        ((ARRAYDAT *) assign->a)->arrayType == &CS_VAR_TYPE_OPCODEOBJ) {
+      if (UNLIKELY(csound_array_copy_independent(
+                     csound, (ARRAYDAT *) assign->r,
+                     (ARRAYDAT *) assign->a, assign->h.insdshead,
+                     initializing ? CSOUND_ARRAY_COPY_ALLOW_ALLOCATION
+                                  : CSOUND_ARRAY_COPY_NO_ALLOCATION) != OK)) {
+        return initializing
+          ? csound->InitError(csound, Str("could not copy opcode object array\n"))
+          : csound->PerfError(csound, &assign->h,
+                              Str("could not copy opcode object array\n"));
+      }
+      return OK;
+    }
     if (typeR->userDefinedType) {
       if (UNLIKELY(csound_copy_struct_value(
                      csound, typeR, assign->r, assign->a,

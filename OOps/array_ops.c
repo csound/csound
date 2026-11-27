@@ -3490,6 +3490,21 @@ int32_t tabscale1(CSOUND *csound, TABSCALE *p)
   else return NOTOK;
 }
 
+static int32_t tabcopy_opcode_array(CSOUND *csound, TABCPY *p,
+                                    int32_t initializing)
+{
+  if (UNLIKELY(csound_array_copy_independent(
+                 csound, p->dst, p->src, p->h.insdshead,
+                 initializing ? CSOUND_ARRAY_COPY_ALLOW_ALLOCATION
+                              : CSOUND_ARRAY_COPY_NO_ALLOCATION) != OK)) {
+    return initializing
+      ? csound->InitError(csound, "%s\n", Str("could not copy opcode object array"))
+      : csound->PerfError(csound, &p->h, "%s\n",
+                          Str("could not copy opcode object array"));
+  }
+  return OK;
+}
+
 int32_t tabcopy(CSOUND *csound, TABCPY *p)
 {
   if (UNLIKELY(p->src->data==NULL) || p->src->dimensions <= 0 )
@@ -3504,6 +3519,8 @@ int32_t tabcopy(CSOUND *csound, TABCPY *p)
     return csound->InitError(csound, "%s\n",
                              Str("array-variable types do not match"));
   if (p->src == p->dst) return OK;
+  if (p->src->arrayType == &CS_VAR_TYPE_OPCODEOBJ)
+    return tabcopy_opcode_array(csound, p, 1);
 
   /* The registered copy routine owns element lifetime and keeps dimensions,
      capacity, and backing-storage metadata in sync. Reimplementing resize here
@@ -3568,6 +3585,8 @@ int32_t tabcopyk(CSOUND *csound, TABCPY *p)
                              Str("array-variable types do not match"));
 
   if (p->src == p->dst) return OK;
+  if (p->src->arrayType == &CS_VAR_TYPE_OPCODEOBJ)
+    return tabcopy_opcode_array(csound, p, 0);
 
   if (p->src->arrayType != NULL && p->src->arrayType->userDefinedType) {
     if (UNLIKELY(csound_array_copy_independent(
@@ -3595,6 +3614,8 @@ int32_t tabcopy1(CSOUND *csound, TABCPY *p)
                              Str("array-variable dimensions do not match"));
 
   if (p->src == p->dst) return OK;
+  if (p->src->arrayType == &CS_VAR_TYPE_OPCODEOBJ)
+    return tabcopy_opcode_array(csound, p, 1);
 
   CS_VAR_TYPE_ARRAY.copyValue(csound, &CS_VAR_TYPE_ARRAY,
                               p->dst, p->src, p->h.insdshead);

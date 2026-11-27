@@ -583,10 +583,33 @@ static int32_t csound_array_copy_dimensions(CSOUND *csound,
     return OK;
 }
 
+static int32_t opcode_array_sources_copyable(CSOUND *csound,
+                                              const ARRAYDAT *source,
+                                              INSDS *ctx) {
+  size_t memberCount, i;
+  if(source->arrayType != &CS_VAR_TYPE_OPCODEOBJ) return OK;
+  if(UNLIKELY(csound_array_member_count(source, &memberCount) != OK))
+    return NOTOK;
+  for(i = 0; i < memberCount; i++) {
+    OPCODEOBJ *obj = (OPCODEOBJ *) ((char *) source->data +
+                                    i * (size_t) source->arrayMemberSize);
+    OPDS *dataspace = NULL;
+    OPCODE_COPY_STATUS status =
+      opcode_dataspace_acquire_copy(csound, obj, ctx, &dataspace,
+                                    NULL, NULL, NULL, NULL);
+    if(UNLIKELY(status == OPCODE_COPY_ENDED ||
+                status == OPCODE_COPY_CONTEXT)) return NOTOK;
+    if(UNLIKELY(status != OPCODE_COPY_OK &&
+                status != OPCODE_COPY_EMPTY)) return NOTOK;
+    if(status == OPCODE_COPY_OK) opcode_dataspace_decref(dataspace);
+  }
+  return OK;
+}
+
 static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
-                                 const ARRAYDAT *source, INSDS *ctx,
-                                 int32_t shareStructured,
-                                 int32_t allowAllocation)
+                                  const ARRAYDAT *source, INSDS *ctx,
+                                  int32_t shareStructured,
+                                  int32_t allowAllocation)
 {
     CS_VARIABLE *var = NULL;
     size_t memberCount;
@@ -610,6 +633,9 @@ static int32_t csound_array_copy(CSOUND *csound, ARRAYDAT *destination,
     }
     if (UNLIKELY(csound_array_member_count(source, &memberCount) != OK ||
                  (memberCount > 0 && source->data == NULL))) {
+        return NOTOK;
+    }
+    if (UNLIKELY(opcode_array_sources_copyable(csound, source, ctx) != OK)) {
         return NOTOK;
     }
 
