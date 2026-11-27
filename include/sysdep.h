@@ -616,6 +616,10 @@ typedef int32_t spin_lock_t;
 #define SPINLOCK_INIT 0
 #elif defined(__GNUC__) && defined(HAVE_PTHREAD_SPIN_LOCK)
 typedef pthread_spinlock_t spin_lock_t;
+#ifndef PTHREAD_SPINLOCK_INITIALIZER
+#define PTHREAD_SPINLOCK_INITIALIZER 0
+#endif
+#define SPINLOCK_INIT PTHREAD_SPINLOCK_INITIALIZER
 #elif defined(__GNUC__) && defined(HAVE_ATOMIC_BUILTIN)
 typedef char spin_lock_t;
 #define SPINLOCK_INIT 0
