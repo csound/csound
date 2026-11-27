@@ -357,9 +357,9 @@ static void dag_collect_instance_deps(CSOUND *csound, INSDS *insds,
       udo = (UOPCODE *)cur->opcod_deact;
       udoIp = udo->ip;
       steps++;
-      if (udoIp == NULL) {
-        /* A call linked but not bound yet, its init on another thread: what
-           it will write is unknown, so this instrument keeps its place. */
+      if (udoIp == NULL || !ATOMIC_GET(udoIp->init_done)) {
+        /* A call linked but not bound yet, or currently reinitializing on
+           another thread: what it will write is unknown, so keep order. */
         deps->requires_order = 1;
         break;
       }
@@ -410,10 +410,7 @@ static int32_t dag_deps_conflict(const DAG_INSTR_DEPS *a,
     return 0;
 }
 
-void dag_reinit(CSOUND *csound);
-static void dag_reinit_serial(CSOUND *csound);
-
-void dag_build(CSOUND *csound, INSDS *chain)
+int32_t dag_build(CSOUND *csound, INSDS *chain)
 {
     INSDS *save;
     INSDS **task_map;
@@ -425,13 +422,9 @@ void dag_build(CSOUND *csound, INSDS *chain)
     if (csound->realtime_locks_initialized) {
       if (csoundSpinTryLock(&csound->alloc_spinlock) != CSOUND_SUCCESS) {
         /* Keep dag_changed nonzero so the next k-cycle rebuilds once
-           actanchor/engineState publication completes; serialize active tasks
-           instead of reusing stale dependencies. */
-        if (csound->dag_task_status != NULL && csound->dag_num_active > 0)
-          dag_reinit_serial(csound);
-        else
-          csound->dag_num_active = 0;
-        return;
+           actanchor/engineState publication completes; let the caller run the
+           current active chain serially instead of reusing a stale map. */
+        return 0;
       }
       locked = 1;
       /* Re-read actanchor under alloc_spinlock so notes spliced at the head
@@ -472,7 +465,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
       if (locked)
         csoundSpinUnLock(&csound->alloc_spinlock);
 #endif
-      return;
+      return 1;
     }
 
     task_map = csound->dag_task_map;
@@ -524,6 +517,7 @@ void dag_build(CSOUND *csound, INSDS *chain)
     }
     csound->Free(csound, task_deps);
     if (UNLIKELY(csound->oparms->odebug)) dag_print_state(csound);
+    return 1;
 }
 
 void dag_reinit(CSOUND *csound)
@@ -556,28 +550,6 @@ void dag_reinit(CSOUND *csound)
         }
     }
     //dag_print_state(csound);
-}
-
-static void dag_reinit_serial(CSOUND *csound)
-{
-    int32_t i;
-    int32_t max = csound->dag_task_max_size;
-    volatile stateWithPadding *task_status = csound->dag_task_status;
-    watchList * volatile *task_watch = csound->dag_task_watch;
-    watchList *wlmm = csound->dag_wlmm;
-    if (csound->dag_num_active <= 0 || task_status == NULL)
-      return;
-    for (i = csound->dag_num_active; i < max; i++)
-      task_status[i].s = DONE;
-    task_status[0].s = AVAILABLE;
-    task_watch[0] = NULL;
-    for (i = 1; i < csound->dag_num_active; i++) {
-      task_status[i].s = WAITING;
-      task_watch[i] = NULL;
-      wlmm[i].id = i;
-      wlmm[i].next = NULL;
-      task_watch[i - 1] = &wlmm[i];
-    }
 }
 
 #if defined(_MSC_VER)

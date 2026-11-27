@@ -35,7 +35,7 @@ static void csoundDebugFreeOpcodeList(CSOUND *csound, debug_opcode_t *opcode_lis
 int32_t dag_get_task(CSOUND *csound, int32_t index, int32_t numThreads,
                      int32_t next_task);
 int32_t dag_end_task(CSOUND *csound, int32_t task);
-void dag_build(CSOUND *csound, INSDS *chain);
+int32_t dag_build(CSOUND *csound, INSDS *chain);
 void dag_reinit(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
 int32_t sense_events(CSOUND *);

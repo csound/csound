@@ -465,20 +465,39 @@ void recycle_init_only_udo_instances(CSOUND *csound, INSDS *parent)
   /* Recycle after the complete init chain has materialised outputs and linked
      resources. Walking from the top lets each child expose the previous entry
      before its frame is returned to the free list. */
-  while (parent != NULL && parent->opcod_deact != NULL) {
+  while (parent != NULL) {
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized)
+      csoundSpinLock(&csound->alloc_spinlock);
+#endif
+    if (parent->opcod_deact == NULL) {
+#if CSOUND_SPINLOCK_AVAILABLE
+      if (csound->realtime_locks_initialized)
+        csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
+      break;
+    }
     opcode = (UOPCODE *)parent->opcod_deact;
     child = opcode->ip;
     if (!udo_frame_can_be_recycled(opcode, parent, child)) {
+#if CSOUND_SPINLOCK_AVAILABLE
+      if (csound->realtime_locks_initialized)
+        csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
       break;
     }
     parent->opcod_deact = child->opcod_deact;
     child->opcod_deact = NULL;
-    udo_free_output_snapshots(csound, opcode);
-    recycle_udo_instance(csound, child);
     opcode->ip = NULL;
     opcode->buf = NULL;
     opcode->parent_ip = NULL;
     opcode->h.perf = (SUBR)useropcd_init_only;
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized)
+      csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
+    udo_free_output_snapshots(csound, opcode);
+    recycle_udo_instance(csound, child);
   }
 }
 
@@ -2304,6 +2323,10 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     tp->active++;
     tp->instcnt++;
     /* link into deact chain */
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized)
+      csoundSpinLock(&csound->alloc_spinlock);
+#endif
     lcurip->opcod_deact = parent_ip->opcod_deact;
     lcurip->subins_deact = NULL;
     /* The link below publishes this call to whoever walks the chain, the
@@ -2313,6 +2336,10 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
     if (csound->oparms->numThreads > 1) {
       ATOMIC_INCR(csound->dag_changed);
     }
+#if CSOUND_SPINLOCK_AVAILABLE
+    if (csound->realtime_locks_initialized)
+      csoundSpinUnLock(&csound->alloc_spinlock);
+#endif
     /* IV - Nov 10 2002: set up pointers to I/O buffers */
     buf = p->buf = (OPCOD_IOBUFS*) lcurip->opcod_iobufs;
     buf->opcode_info = inm;
@@ -2584,6 +2611,9 @@ int32_t useropcdset(CSOUND *csound, UOPCODE *p)
   if (UNLIKELY(err != OK)) {
     ATOMIC_SET(p->ip->init_done, 0);
     goto restore_state;
+  }
+  if (initResult == INSTANCE_INIT_COMPLETE && csound->oparms->numThreads > 1) {
+    ATOMIC_INCR(csound->dag_changed);
   }
   ATOMIC_SET(p->ip->init_done,
              initResult == INSTANCE_INIT_COMPLETE);

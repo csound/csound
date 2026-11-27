@@ -26,7 +26,7 @@
 int32_t dag_get_task(CSOUND *csound, int32_t index, int32_t numThreads,
                      int32_t next_task);
 int32_t dag_end_task(CSOUND *csound, int32_t task);
-void dag_build(CSOUND *csound, INSDS *chain);
+int32_t dag_build(CSOUND *csound, INSDS *chain);
 void dag_reinit(CSOUND *csound);
 void message_dequeue(CSOUND *csound);
 int32_t sense_events(CSOUND *);
@@ -240,53 +240,60 @@ int32_t kperf(CSOUND *csound) {
   ip = csound->actanchor.nxtact;
 
   if (ip != NULL) {
+    int32_t use_multicore = 0;
+#ifdef PARCS
     // multicore performance
     if (csound->multiThreadedThreadInfo != NULL) {
-    /* There are 2 partitions of work: 1st by inso,
-       2nd by inso count / thread count. */
-#ifdef PARCS
+      /* There are 2 partitions of work: 1st by inso,
+         2nd by inso count / thread count. */
       int32_t k, error = 0;
       int32_t n = csound->oparms->numThreads;
-      if (ATOMIC_GET(csound->dag_changed))
-        dag_build(csound, ip);
-      else
+      use_multicore = 1;
+      if (ATOMIC_GET(csound->dag_changed)) {
+        if (!dag_build(csound, ip))
+          use_multicore = 0;
+      } else {
         dag_reinit(csound); /* set to initial state */
-
-      /* process this partition */
-#ifdef PARCS_USE_LOCK_BARRIER
-      csound->WaitBarrier(csound->barrier1);
-#else
-      int32_t parflag = !ATOMIC_GET(csound->parflag);
-      ATOMIC_SET(csound->parflag, parflag);
-#endif
-      error = node_perf(csound, 0, n);
-      if(error)
-        csoundErrorMsg(csound, "%s",  Str("error in thread 1\n"));
-        
-      /* wait until partition is complete */
-#ifdef PARCS_USE_LOCK_BARRIER
-      csound->WaitBarrier(csound->barrier2);
-#else
-      {
-        int32_t i;
-        do {
-          for(i = 1; i < n; i++)
-            if (ATOMIC_GET(csound->taskflag[i]) != parflag)
-              break;
-        } while(i < n);
       }
+
+      if (use_multicore) {
+        /* process this partition */
+#ifdef PARCS_USE_LOCK_BARRIER
+        csound->WaitBarrier(csound->barrier1);
+#else
+        int32_t parflag = !ATOMIC_GET(csound->parflag);
+        ATOMIC_SET(csound->parflag, parflag);
 #endif
-      /* do the mixing of thread buffers */
-      for (k = 1; k < csound->oparms->numThreads; k++)
-          mix_out(csound->spout_tmp, csound->spout_tmp +
-                  k * csound->nspout, csound->nspout);
-#endif /* PARCS */
-      csound->multiThreadedDag = NULL;
+        error = node_perf(csound, 0, n);
+        if(error)
+          csoundErrorMsg(csound, "%s",  Str("error in thread 1\n"));
+          
+        /* wait until partition is complete */
+#ifdef PARCS_USE_LOCK_BARRIER
+        csound->WaitBarrier(csound->barrier2);
+#else
+        {
+          int32_t i;
+          do {
+            for(i = 1; i < n; i++)
+              if (ATOMIC_GET(csound->taskflag[i]) != parflag)
+                break;
+          } while(i < n);
+        }
+#endif
+        /* do the mixing of thread buffers */
+        for (k = 1; k < csound->oparms->numThreads; k++)
+            mix_out(csound->spout_tmp, csound->spout_tmp +
+                    k * csound->nspout, csound->nspout);
+        csound->multiThreadedDag = NULL;
+      }
     }
-    // single-thread performance
-    else {
+#endif /* PARCS */
+    // single-thread performance (and contended dirty-DAG serial fallback)
+    if (!use_multicore) {
       int32_t done;
       cs_double time_end = (csound->ksmps + csound->icurTimeSamples) / csound->esr;
+      ip = csound->actanchor.nxtact;
 
       while (ip != NULL) { /* for each instr active:  */
         INSDS *nxt = ip->nxtact;
