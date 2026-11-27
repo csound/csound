@@ -237,9 +237,15 @@ struct_arg_list : struct_arg_list ',' struct_arg
                 | struct_arg
                 ;
 
-struct_arg : identifier
-        | typed_identifier
-        | array_identifier;
+struct_arg : struct_member
+           | struct_member '=' expr
+             { $$ = $1; $$->left = $3; }
+           ;
+
+struct_member : identifier
+              | typed_identifier
+              | array_identifier
+              ;
 
 instr_definition : INSTR_TOKEN instr_id_list NEWLINE
                     { csound_orcput_ilocn(scanner, LINE, LOCN); }

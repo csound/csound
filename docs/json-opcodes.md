@@ -113,10 +113,29 @@ Multidimensional Csound arrays are not supported; nest UDTs with array members
 when the data needs several levels.
 
 Field names are case-sensitive. JSON object fields may appear in any order,
-but every declared member must appear exactly once. Missing, unknown, and
-duplicate fields cause an error. `null`, wrong value types, and NUL characters
-in keys or strings also cause errors; there is no implicit conversion from a
-string to a number or from `null` to a default value.
+but each member without a declared default must appear exactly once. An omitted
+member uses its declared default, when present. Unknown and duplicate fields
+cause an error. `null`, wrong value types, and NUL characters in keys or strings
+also cause errors; there is no implicit conversion from a string to a number or
+from `null` to a default value.
+
+For example:
+
+```csound
+struct Event pitch:i, velocity:i = 100
+
+instr 3
+  event:Event jsonunmarshal {{ {"pitch":62} }}
+  prints "pitch=%g velocity=%g\n", event.pitch, event.velocity
+endin
+```
+
+This prints `pitch=62 velocity=100`. A supplied `"velocity":0` keeps the value
+`0`; `"velocity":null` causes an error. Omitting `pitch` still causes an error.
+The same rules apply to nested structs, array elements, and `jsonunmarshalfile`.
+An omitted field uses the declaration's default even when the destination
+already holds another value. Defaults do not need a read flag, and the existing
+`iflags` values keep their meaning.
 
 An invalid input reports an initialization error without replacing the
 destination with a partly decoded value. Syntax errors report a byte position;
